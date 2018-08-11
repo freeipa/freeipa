@@ -1,5 +1,5 @@
 .\" A man page for ipa-otptoken-import
-.\" Copyright (C) 2014 Red Hat, Inc.
+.\" Copyright (C) 2014-2018 Red Hat, Inc.
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 .\"
 .\" Author: Nathaniel McCallum <npmccallum@redhat.com>
 .\"
-.TH "ipa-otptoken-import" "1" "Jun 12 2014" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-otptoken-import" "1" "Aug 11 2018" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-otptoken\-import \- Imports OTP tokens from RFC 6030 XML file
 .SH "SYNOPSIS"
@@ -30,6 +30,16 @@ If the \fBinfile\fR contains encrypted token data, then the \fIkeyfile\fR (\fB-k
 .TP
 \fB\-k\fR \fIkeyfile\fR
 File containing the key used to decrypt the token data.
+.TP
+\fB\-c\fR
+Treat \fBinfile\fR as a comma-separated values file instead of an RFC 6030 XML file. Following structure and order of CSV fields is expected:
+
+\fBtoken ID\fR, \fBkey\fR, \fBtoken type\fR, \fBnumber of digits in the token\fR, \fBinterval (in seconds) of a token value change\fR
+
+An example token line:
+
+GALT10280115,0fdb21c04108a1df1e8eeaad610c5048ee9e8f62,totp,6,30
+
 .SH "EXIT STATUS"
 0 if the command was successful
 

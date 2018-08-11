@@ -21,6 +21,7 @@ from __future__ import absolute_import
 
 import abc
 import base64
+import binascii
 import datetime
 import logging
 import os
@@ -31,6 +32,7 @@ import dateutil.parser
 import dateutil.tz
 import gssapi
 import six
+import csv
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, hmac
@@ -506,6 +508,95 @@ class PSKCDocument(object):
         self.__doc.write(dest)
 
 
+class CSVToken(object):
+    @property
+    def id(self):
+        return self.__id
+
+    @property
+    def options(self):
+        return self.__options
+
+    @property
+    def removed(self):
+        return self.__removed
+
+    def __init__(self, id, options):
+        self.__id = id
+        self.__options = options
+        self.__removed = False
+
+    def remove(self):
+        self.__removed = True
+
+
+class CSVDocument(object):
+    _FIELDS = ("serial", "key", "type", "digits", "interval")
+
+    _MAP = (
+        ('type', 'type', lambda v, o: v.strip()),
+        ('serial', 'ipatokenserial', lambda v, o: v.strip()),
+        (
+            'key',
+            'ipatokenotpkey',
+            lambda v, o: base64.b32encode(base64.b64decode(v)).decode('ascii')
+        ),
+        ('digits', 'ipatokenotpdigits', lambda v, o: v),
+        ('interval', 'ipatokentotptimestep', lambda v, o: v),
+    )
+
+    @property
+    def keyname(self):
+        # Always return None as we have no key names in CSV format
+        return None
+
+    def __init__(self, filename):
+        self.__keypackages = []
+
+        with open(filename, "r") as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if len(row) != len(self._FIELDS):
+                    raise ValidationError(
+                        'Provided token has incorrect number of fields')
+                try:
+                    vals = dict(zip(self._FIELDS, row))
+
+                    # Copy values into output.
+                    options = {}
+                    for (dk, ok, f) in self._MAP:
+                        if dk in vals:
+                            options[ok] = f(vals[dk], options)
+
+                    self.__keypackages.append(
+                        CSVToken(options['ipatokenserial'], options))
+                except csv.Error as e:
+                    raise ValidationError(
+                        'Parsing CSV failed: {e}'.format(e=str(e)))
+                except (TypeError, binascii.Error) as e:
+                    raise ValidationError(
+                        'Provided token key is not properly encoded: {e}'.
+                        format(e=str(e)))
+
+    def getKeyPackages(self):
+        for kp in self.__keypackages:
+            yield kp
+
+    def save(self, dest):
+        with open(dest, "w") as f:
+            writer = csv.writer(f)
+            for kp in self.getKeyPackages():
+                if not kp.removed:
+                    val = {}
+                    opt = kp.options
+                    for (dk, ok, f) in self._MAP:
+                        if (dk in self._FIELDS) and (ok in opt):
+                            val[dk] = opt[ok]
+
+                    line = [str(opt[x]) for x in self._FIELDS]
+                    writer.writerow(line)
+
+
 class OTPTokenImport(admintool.AdminTool):
     command_name = 'ipa-otptoken-import'
     description = "Import OTP tokens."
@@ -517,6 +608,8 @@ class OTPTokenImport(admintool.AdminTool):
 
         parser.add_option("-k", "--keyfile", dest="keyfile",
                           help="File containing the key used to decrypt token secrets")
+        parser.add_option("-c", "--csv", dest="importcsv", action="store_true",
+                          help="Import tokens in a CSV format instead of PSKC")
 
     def validate_options(self):
         super(OTPTokenImport, self).validate_options()
@@ -524,7 +617,11 @@ class OTPTokenImport(admintool.AdminTool):
         # Parse the file.
         if len(self.args) < 1:
             raise admintool.ScriptError("Import file required!")
-        self.doc = PSKCDocument(self.args[0])
+
+        if self.safe_options.importcsv is not None:
+            self.doc = CSVDocument(self.args[0])
+        else:
+            self.doc = PSKCDocument(self.args[0])
 
         # Get the output file.
         if len(self.args) < 2:
@@ -558,6 +655,9 @@ class OTPTokenImport(admintool.AdminTool):
             for keypkg in self.doc.getKeyPackages():
                 try:
                     api.Command.otptoken_add(keypkg.id, no_qrcode=True, **keypkg.options)
+                except errors.DuplicateEntry:
+                    logger.info("Token %s already exists, skipping", keypkg.id)
+                    keypkg.remove()
                 except Exception as e:
                     logger.warning("Error adding token: %s", e)
                 else:
@@ -566,5 +666,5 @@ class OTPTokenImport(admintool.AdminTool):
         finally:
             api.Backend.ldap2.disconnect()
 
-        # Write out the XML file without the tokens that succeeded.
+        # Write out the output file without the tokens that succeeded.
         self.doc.save(self.output)
