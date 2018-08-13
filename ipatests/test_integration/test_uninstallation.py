@@ -12,6 +12,8 @@ pieces if possible.
 
 from __future__ import absolute_import
 
+import os
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
@@ -21,9 +23,31 @@ from ipaserver.install import dsinstance
 
 class TestUninstallBase(IntegrationTest):
 
+    num_replicas = 1
+
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=False)
+
+    def test_uninstall_client_invalid_hostname(self):
+
+        # using replica as client just for convenience
+        client = self.replicas[0]
+        client_inv_hostname = '{}.nonexistent'.format(client.hostname)
+        tasks.install_client(self.master, client,
+                             extra_args=['--hostname', client_inv_hostname])
+
+        client.run_command(['ipa-client-install', '--uninstall', '-U'])
+        client_uninstall_log = client.get_file_contents(
+            paths.IPACLIENT_UNINSTALL_LOG, encoding='utf-8'
+        )
+        assert "exception: ScriptError:" not in client_uninstall_log
+
+        restore_state_path = os.path.join(paths.IPA_CLIENT_SYSRESTORE,
+                                          'sysrestore.state')
+        result = client.run_command(
+            ['ls', restore_state_path], raiseonerr=False)
+        assert 'No such file or directory' in result.stderr_text
 
     def test_failed_uninstall(self):
         self.master.run_command(['ipactl', 'stop'])
