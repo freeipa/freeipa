@@ -20,10 +20,6 @@
 .SH "NAME"
 ipa\-kra\-install \- Install a KRA on a server
 .SH "SYNOPSIS"
-.SS "DOMAIN LEVEL 0"
-.TP
-ipa\-kra\-install [\fIOPTION\fR]... [replica_file]
-.SS "DOMAIN LEVEL 1"
 .TP
 ipa\-kra\-install [\fIOPTION\fR]...
 .SH "DESCRIPTION"
@@ -31,12 +27,9 @@ Adds a KRA as an IPA\-managed service. This requires that the IPA server is alre
 
 The KRA (Key Recovery Authority) is a component used to securely store secrets such as passwords, symmetric keys and private asymmetric keys.  It is used as the back-end repository for the IPA Password Vault.
 
-In a domain at domain level 0, ipa\-kra\-install can be run without replica_file to add KRA to the existing CA, or with replica_file to install the KRA service on the replica.
-ipa\-kra\-install will contact the CA to determine if a KRA has already been installed on another replica, and if so, will exit indicating that a replica_file is required.
+Domain level 0 is not supported anymore.
 
-The replica_file is created using the ipa\-replica\-prepare utility.  A new replica_file should be generated on the master IPA server after the KRA has been installed and configured, so that the replica_file will contain the master KRA configuration and system certificates.
-
-In a domain at domain level 1, ipa\-kra\-install can be used to add KRA to the existing CA, or to install the KRA service on a replica, and does not require any replica file.
+ipa\-kra\-install can be used to add KRA to the existing CA, or to install the KRA service on a replica.
 
 KRA can only be removed along with the entire server using ipa\-server\-install \-\-uninstall.
 .SH "OPTIONS"

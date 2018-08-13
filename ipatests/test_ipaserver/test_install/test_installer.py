@@ -8,7 +8,6 @@ import six
 from abc import ABCMeta, abstractproperty
 from collections import namedtuple
 import itertools
-import tempfile
 
 from ipatests.util import assert_equal
 from ipaserver.install.ipa_replica_install import ReplicaInstall
@@ -146,31 +145,3 @@ class TestReplicaInstaller(InstallerTestBase):
             assert_equal(ic.password, self.PASSWORD.value)
             assert_equal(ic.principal, self.PRINCIPAL.value)
             assert_equal(ic.admin_password, self.ADMIN_PASSWORD.value)
-
-    def test_password_option_DL0(self):
-        with tempfile.NamedTemporaryFile() as repl_file:
-            REPLICA_FILE_PATH = repl_file.name
-            # when --password is set in DL0 installation, it sets both
-            # password and dm_password attributes
-            for passwd_opt in self.all_option_permutations(self.PASSWORD):
-                ic = self.get_installer_instance(
-                    self.combine_options(passwd_opt, REPLICA_FILE_PATH)
-                )
-                assert_equal(ic.password, self.PASSWORD.value)
-                assert_equal(ic.dm_password, self.PASSWORD.value)
-                assert_equal(ic.admin_password, None)
-                assert_equal(ic.principal, None)
-
-            # try adding admin_password just to see it is set correctly
-            for passwd_opt, adm_password_opt in (
-                self.all_option_permutations(
-                    self.PASSWORD, self.ADMIN_PASSWORD)
-            ):
-                ic = self.get_installer_instance(
-                    self.combine_options(passwd_opt, adm_password_opt,
-                                         REPLICA_FILE_PATH)
-                )
-                assert_equal(ic.password, self.PASSWORD.value)
-                assert_equal(ic.admin_password, self.ADMIN_PASSWORD.value)
-                assert_equal(ic.dm_password, self.PASSWORD.value)
-                assert_equal(ic.principal, None)
