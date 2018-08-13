@@ -12,6 +12,7 @@ from __future__ import absolute_import
 import os
 import pytest
 from ipalib.constants import DOMAIN_LEVEL_0
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
@@ -387,6 +388,21 @@ class TestInstallMaster(IntegrationTest):
 
     def test_install_dns(self):
         tasks.install_dns(self.master)
+
+    def test_WSGI_worker_process(self):
+        """ Test if WSGI worker process count is set to 4
+
+        related ticket : https://pagure.io/freeipa/issue/7587
+        """
+        # check process count in httpd conf file i.e expected string
+        exp = b'WSGIDaemonProcess ipa processes=%d' % constants.WSGI_PROCESSES
+        httpd_conf = self.master.get_file_contents(paths.HTTPD_IPA_CONF)
+        assert exp in httpd_conf
+
+        # check the process count
+        cmd = self.master.run_command('ps -eF')
+        wsgi_count = cmd.stdout_text.count('wsgi:ipa')
+        assert constants.WSGI_PROCESSES == wsgi_count
 
 
 class TestInstallMasterKRA(IntegrationTest):
