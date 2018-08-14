@@ -27,6 +27,7 @@ define(['dojo/_base/declare',
         'dojo/on',
         '../ipa',
         '../auth',
+        '../config',
         '../reg',
         '../FieldBinder',
         '../text',
@@ -34,7 +35,8 @@ define(['dojo/_base/declare',
         './LoginScreenBase'
        ],
        function(declare, Deferred, construct, dom_style, query, topic, on,
-                IPA, auth, reg, FieldBinder, text, util, LoginScreenBase) {
+                IPA, auth, config, reg, FieldBinder, text, util,
+                LoginScreenBase) {
 
 
     /**
@@ -61,7 +63,7 @@ define(['dojo/_base/declare',
         render_buttons: function(container) {
             this.cancel_btn_node = IPA.button({
                 name: 'cancel',
-                label: 'Cancel',
+                label: text.get('@i18n:buttons.cancel', "Cancel"),
                 'class': 'btn-default btn-lg',
                 click: this.on_cancel.bind(this)
             })[0];
@@ -69,7 +71,7 @@ define(['dojo/_base/declare',
                 construct.place(this.cancel_btn_node, container);
             }
             this.sync_btn_node = IPA.button({
-                label: text.get('@i18n:password.sync_otp_token', "Sync OTP Token"),
+                label: text.get('@i18n:login.sync_otp_token', "Sync OTP Token"),
                 'class': 'btn-primary btn-lg',
                 click: this.on_confirm.bind(this)
             })[0];
@@ -156,7 +158,7 @@ define(['dojo/_base/declare',
             };
 
             var request = {
-                url: '/ipa/session/sync_token',
+                url: config.token_sync_url,
                 data: data,
                 contentType: 'application/x-www-form-urlencoded',
                 processData: true,
