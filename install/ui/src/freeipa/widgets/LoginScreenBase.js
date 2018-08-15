@@ -51,8 +51,6 @@ define(['dojo/_base/declare',
 
         'class': 'login-pf',
 
-        logo_src: 'images/login-screen-logo.png',
-
         product_name_src: 'images/product-name.png',
 
         product_name: '',
@@ -133,8 +131,6 @@ define(['dojo/_base/declare',
 
             construct.empty(login_body);
 
-            this.render_badge(login_body);
-
             var cnt = construct.create('div', {
                 'class': 'container'
             }, login_body);
@@ -147,17 +143,6 @@ define(['dojo/_base/declare',
             this.render_brand(row);
             this.render_form(row);
             this.render_aside(row);
-        },
-
-        render_badge: function(container) {
-
-            var cnt = construct.create('span', {
-                'id': 'badge'
-            }, container);
-            construct.create('img', {
-                src: this.logo_src,
-                alt: this.product_name
-            }, cnt);
         },
 
         render_brand: function(container) {
