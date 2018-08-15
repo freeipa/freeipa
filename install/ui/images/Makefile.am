@@ -6,7 +6,6 @@ app_DATA =                              \
 	facet-tab-on.png		\
 	header-logo.png			\
 	login-screen-background.jpg	\
-	login-screen-logo.png	\
 	product-name.png		\
 	$(NULL)
 
