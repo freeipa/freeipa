@@ -60,6 +60,12 @@ def get_real_key(key):
 
 
 def get_persistent_key(key):
+    """
+    Fetches the value of a persistent key from storage, trimming trailing
+    any tailing whitespace.
+
+    Assert when key is not a string-type.
+    """
     assert isinstance(key, six.string_types)
     result = run([paths.KEYCTL, 'get_persistent', KEYRING, key],
                  raiseonerr=False, capture_output=True)
@@ -69,6 +75,9 @@ def get_persistent_key(key):
 
 
 def is_persistent_keyring_supported():
+    """
+    Returns True if the kernel persistent keyring is supported.
+    """
     uid = os.geteuid()
     try:
         get_persistent_key(str(uid))
