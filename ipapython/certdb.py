@@ -173,6 +173,11 @@ def unparse_trust_flags(trust_flags):
 
 
 def verify_kdc_cert_validity(kdc_cert, ca_certs, realm):
+    """
+    Verifies the validity of a kdc_cert, ensuring it is trusted by
+    the ca_certs chain, has a PKINIT_KDC extended key usage support,
+    and verify it applies to the given realm.
+    """
     with NamedTemporaryFile() as kdc_file, NamedTemporaryFile() as ca_file:
         kdc_file.write(kdc_cert.public_bytes(x509.Encoding.PEM))
         kdc_file.flush()
