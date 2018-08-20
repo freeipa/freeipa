@@ -371,62 +371,6 @@ done:
     return rval;
 }
 
-/*
- * Get the certificate subject base from the IPA configuration.
- *
- * Not considered a show-stopper if this fails for some reason.
- *
- * The caller is responsible for binding/unbinding to LDAP.
- */
-static int
-get_subject(LDAP *ld, char *ldap_base, const char **subject, int quiet)
-{
-    char *attrs[] = {"ipaCertificateSubjectBase", NULL};
-    char *base = NULL;
-    LDAPMessage *entry, *res = NULL;
-    struct berval **ncvals;
-    int ret, rval = 0;
-
-    ret = asprintf(&base, "cn=ipaconfig,cn=etc,%s", ldap_base);
-    if (ret == -1)
-    {
-        if (!quiet)
-            fprintf(stderr, _("Out of memory!\n"));
-        rval = 3;
-        goto done;
-    }
-
-    ret = ldap_search_ext_s(ld, base, LDAP_SCOPE_BASE,
-                            "objectclass=*", attrs, 0,
-                            NULL, NULL, NULL, 0, &res);
-
-    if (ret != LDAP_SUCCESS) {
-        fprintf(stderr,
-                _("Search for ipaCertificateSubjectBase failed with error %d"),
-                ret);
-        rval = 14;
-        goto done;
-    }
-
-    entry = ldap_first_entry(ld, res);
-    ncvals = ldap_get_values_len(ld, entry, attrs[0]);
-    if (!ncvals) {
-        fprintf(stderr, _("No values for %s"), attrs[0]);
-        rval = 14;
-        goto done;
-    }
-
-    *subject = strdup(ncvals[0]->bv_val);
-
-    ldap_value_free_len(ncvals);
-
-done:
-    free(base);
-    if (res) ldap_msgfree(res);
-
-    return rval;
-}
-
 /* Join a host to the current IPA realm.
  *
  * There are several scenarios for this:
@@ -446,7 +390,7 @@ done:
  * the state of the entry.
  */
 static int
-join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bindpw, const char *basedn, const char **princ, const char **subject, int quiet)
+join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bindpw, const char *basedn, const char **princ, int quiet)
 {
     LDAP *ld;
     int rval = 0;
@@ -458,7 +402,6 @@ join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bin
 
     *binddn = NULL;
     *princ = NULL;
-    *subject = NULL;
 
     if (NULL != basedn) {
         ldap_base = strdup(basedn);
@@ -492,14 +435,6 @@ join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bin
             fprintf(stderr, _("Incorrect password.\n"));
         rval = 15;
         goto done;
-    }
-
-    if (get_subject(ld, ldap_base, subject, quiet) != 0) {
-        if (!quiet)
-            fprintf(stderr,
-                    _("Unable to determine certificate subject of %s\n"),
-                    ipaserver);
-        /* Not a critical failure */
     }
 
     valrequest.bv_val = (char *)hostname;
@@ -538,7 +473,7 @@ done:
 }
 
 static int
-join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **princ, const char **subject, int force, int quiet) {
+join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
     xmlrpc_env env;
     xmlrpc_value * argArrayP = NULL;
     xmlrpc_value * paramArrayP = NULL;
@@ -550,7 +485,6 @@ join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **pri
     struct utsname uinfo;
     xmlrpc_value *princP = NULL;
     xmlrpc_value *krblastpwdchangeP = NULL;
-    xmlrpc_value *subjectP = NULL;
     xmlrpc_value *hostdnP = NULL;
     const char *krblastpwdchange = NULL;
     char * url = NULL;
@@ -559,7 +493,6 @@ join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **pri
     int ret;
 
     *hostdn = NULL;
-    *subject = NULL;
     *princ = NULL;
 
     /* Start up our XML-RPC client library. */
@@ -656,18 +589,6 @@ join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **pri
             fprintf(stderr, _("Host is already joined.\n"));
         rval = 13;
         goto cleanup;
-    }
-
-    xmlrpc_struct_find_value(&env, structP, "ipacertificatesubjectbase", &subjectP);
-    if (subjectP) {
-        xmlrpc_value * singleprincP = NULL;
-
-        /* FIXME: all values are returned as lists currently. Once this is
-         * fixed we can read the string directly.
-         */
-        xmlrpc_array_read_item(&env, subjectP, 0, &singleprincP);
-        xmlrpc_read_string(&env, singleprincP, *&subject);
-        xmlrpc_DECREF(subjectP);
     }
 
 cleanup:
@@ -922,7 +843,6 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
     char *iparealm = NULL;
     char * host = NULL;
     const char * princ = NULL;
-    const char * subject = NULL;
     char * hostdn = NULL;
     struct utsname uinfo;
 
@@ -963,7 +883,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
     }
 
     if (bindpw)
-        rval = join_ldap(ipaserver, host, &hostdn, bindpw, basedn, &princ, &subject, quiet);
+        rval = join_ldap(ipaserver, host, &hostdn, bindpw, basedn, &princ, quiet);
     else {
         krberr = krb5_init_context(&krbctx);
         if (krberr) {
@@ -987,7 +907,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
             rval = 6;
             goto cleanup;
         }
-        rval = join_krb5(ipaserver, host, &hostdn, &princ, &subject, force,
+        rval = join_krb5(ipaserver, host, &hostdn, &princ, force,
                          quiet);
     }
 
@@ -1049,11 +969,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
     }
 
 cleanup:
-    if (NULL != subject && !quiet && rval == 0)
-        fprintf(stderr, _("Certificate subject base is: %s\n"), subject);
-
     free((char *)princ);
-    free((char *)subject);
     free(host);
 
     if (bindpw)

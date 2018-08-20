@@ -2684,13 +2684,6 @@ def _install(options):
             else:
                 logger.info("Enrolled in IPA realm %s", cli_realm)
 
-            start = stderr.find('Certificate subject base is: ')
-            if start >= 0:
-                start = start + 29
-                subject_base = stderr[start:]
-                subject_base = subject_base.strip()
-                subject_base = DN(subject_base)
-
             if options.principal is not None:
                 run([paths.KDESTROY], raiseonerr=False, env=env)
 
@@ -2855,6 +2848,20 @@ def _install(options):
         ca_enabled = result['result']['enable_ra']
     if not ca_enabled:
         disable_ra()
+
+    try:
+        result = api.Backend.rpcclient.forward(
+            'config_show',
+            raw=True,  # so that servroles are not queried
+            version=u'2.0'
+        )
+    except Exception as e:
+        logger.debug("config_show failed %s", e, exc_info=True)
+        raise ScriptError(
+            "Failed to retrieve CA certificate subject base: {}".format(e),
+            rval=CLIENT_INSTALL_ERROR)
+    else:
+        subject_base = DN(result['result']['ipacertificatesubjectbase'][0])
 
     # Create IPA NSS database
     try:
