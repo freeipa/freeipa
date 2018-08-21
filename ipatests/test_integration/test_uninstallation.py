@@ -17,8 +17,8 @@ import os
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
-from ipaserver.install.installutils import realm_to_serverid
 from ipaserver.install import dsinstance
+from ipaserver.install.installutils import realm_to_serverid
 
 
 class TestUninstallBase(IntegrationTest):
@@ -88,10 +88,9 @@ class TestUninstallBase(IntegrationTest):
             # be marked as uninstalled so server cert will still be
             # tracked and the instances may remain. This can cause
             # subsequent installations to fail so be thorough.
-            ds = dsinstance.DsInstance()
-            ds_running = ds.is_running()
-            if ds_running:
-                ds.stop(serverid)
+            dashed_domain = self.master.domain.realm.replace(".", '-')
+            dirsrv_service = "dirsrv@%s.service" % dashed_domain
+            self.master.run_command(['systemctl', 'stop', dirsrv_service])
 
             # Moving it back should allow the uninstall to finish
             # successfully.
@@ -101,17 +100,21 @@ class TestUninstallBase(IntegrationTest):
                 '%s/%s' % (paths.ETC_DIRSRV, instance_name)
             ])
 
-            # DS has been marked as uninstalled so force the issue
-            ds.stop_tracking_certificates(serverid)
-
-            self.master.run_command([
-                paths.REMOVE_DS_PL,
-                '-i', instance_name
-            ])
-
             cmd = self.master.run_command([
                 'ipa-server-install',
                 '--uninstall', '-U'],
                 raiseonerr=False
             )
             assert cmd.returncode == 0
+
+            self.master.run_command([
+                paths.IPA_GETCERT,
+                'stop-tracking',
+                '-d', '%s/%s' % (paths.ETC_DIRSRV, instance_name),
+                '-n', 'Server-Cert',
+            ])
+
+            self.master.run_command([
+                paths.REMOVE_DS_PL,
+                '-i', instance_name
+            ])
