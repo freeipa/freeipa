@@ -22,6 +22,7 @@ from __future__ import print_function, absolute_import
 import logging
 import itertools
 
+import re
 import six
 import time
 import datetime
@@ -600,7 +601,20 @@ class ReplicationManager(object):
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
             r_conn.gssapi_bind()
-        self._finalize_replica_settings(r_conn)
+        # If the remote server has 389-ds < 1.3, it does not
+        # support the attributes we are trying to set.
+        # Find which 389-ds is installed
+        rootdse = r_conn.get_entry(DN(''), ['vendorVersion'])
+        version = rootdse.single_value.get('vendorVersion')
+        mo = re.search(r'(\d+)\.(\d+)\.(\d+)[\.\d]*', version)
+        vendor_version = tuple(int(v) for v in mo.groups())
+        if vendor_version >= (1, 3, 0):
+            # 389-ds understands the replication attributes,
+            # we can safely modify them
+            self._finalize_replica_settings(r_conn)
+        else:
+            logger.debug("replication attributes not supported "
+                         "on remote master, skipping update.")
         r_conn.close()
 
     def setup_chaining_backend(self, conn):
