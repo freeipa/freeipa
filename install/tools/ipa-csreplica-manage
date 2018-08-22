@@ -32,6 +32,7 @@ from ipaserver.install import (replication, installutils, bindinstance,
 from ipalib import api, errors
 from ipalib.util import has_managed_topology
 from ipapython import ipautil, ipaldap, version
+from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -408,6 +409,7 @@ def exit_on_managed_topology(what, hint="topologysegment"):
 
 
 def main():
+    installutils.check_server_configuration()
     options, args = parse_options()
 
     # Just initialize the environment. This is so the installer can have
@@ -496,7 +498,7 @@ try:
     main()
 except KeyboardInterrupt:
     sys.exit(1)
-except SystemExit as e:
+except (SystemExit, ScriptError) as e:
     sys.exit(e)
 except Exception as e:
     sys.exit("unexpected error: %s" % e)

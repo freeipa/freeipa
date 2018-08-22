@@ -35,6 +35,8 @@ class ServerUpgrade(admintool.AdminTool):
     def validate_options(self):
         super(ServerUpgrade, self).validate_options(needs_root=True)
 
+        installutils.check_server_configuration()
+
         if self.options.force:
             self.options.skip_version_check = True
 

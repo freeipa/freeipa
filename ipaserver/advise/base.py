@@ -30,6 +30,7 @@ from ipalib.errors import ValidationError
 from ipaplatform.paths import paths
 from ipapython import admintool
 from ipapython.ipa_log_manager import Filter
+from ipaserver.install import installutils
 
 
 """
@@ -418,6 +419,7 @@ class IpaAdvise(admintool.AdminTool):
 
     def validate_options(self):
         super(IpaAdvise, self).validate_options(needs_root=False)
+        installutils.check_server_configuration()
 
         if len(self.args) > 1:
             raise self.option_parser.error("You can only provide one "
