@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # Authors:
 #   John Dennis <jdennis@redhat.com>
 #
