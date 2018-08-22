@@ -112,6 +112,11 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
         that.keys.splice(i, 1);
         that.values.splice(i, 1);
         delete that._key_indicies[key];
+
+        // reindex
+        for (var j=i; j<that.keys.length; j++) {
+            that._key_indicies[that.keys[j]]=j;
+        }
         that.length = that.keys.length;
         return value;
     };
