@@ -1,0 +1,8 @@
+@PYTHONSHEBANG@
+#
+# Copyright (C) 2017  FreeIPA Contributors see COPYING for license
+#
+
+from ipaserver.install.ipa_pkinit_manage import PKINITManage
+
+PKINITManage.run_cli()

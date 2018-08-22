@@ -1,6 +1,0 @@
-#!/usr/bin/python3
-# Copyright (C) 2017  IPA Project Contributors, see COPYING for license
-from ipaserver.secrets.service import main
-
-if __name__ == '__main__':
-    main()

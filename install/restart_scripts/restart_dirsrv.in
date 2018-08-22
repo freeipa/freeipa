@@ -1,0 +1,57 @@
+@PYTHONSHEBANG@
+#
+# Authors:
+#   Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2012  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import sys
+import syslog
+import traceback
+from ipalib import api
+from ipaplatform import services
+from ipaplatform.paths import paths
+from ipaserver.install import certs
+
+
+def _main():
+    try:
+        instance = sys.argv[1]
+    except IndexError:
+        instance = ""
+
+    api.bootstrap(in_server=True, context='restart', confdir=paths.ETC_IPA)
+    api.finalize()
+
+    syslog.syslog(syslog.LOG_NOTICE, "certmonger restarted dirsrv instance '%s'" % instance)
+
+    try:
+        if services.knownservices.dirsrv.is_running():
+            services.knownservices.dirsrv.restart(instance, ldapi=True)
+    except Exception as e:
+        syslog.syslog(syslog.LOG_ERR, "Cannot restart dirsrv (instance: '%s'): %s" % (instance, str(e)))
+
+
+def main():
+    with certs.renewal_lock:
+        _main()
+
+
+try:
+    main()
+except Exception:
+    syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
