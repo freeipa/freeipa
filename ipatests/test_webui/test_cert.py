@@ -21,29 +21,13 @@
 Cert tests
 """
 
+from ipatests.test_webui.crypto_utils import generate_csr
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 from datetime import date, timedelta
 import pytest
 
 ENTITY = 'cert'
-
-CERT_CSR = ("""-----BEGIN NEW CERTIFICATE REQUEST-----
-MIICcjCCAVoCAQAwLTERMA8GA1UEChMISVBBLlRFU1QxGDAWBgNVBAMTD21hc3Rl
-ci5pcGEudGVzdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK9xZ/OT
-PC9vlwP78ACCYTOGy8C+Ho4OUF4p4PYPkns4Zdov6N/f0MlUcxY7cpAlKlAZT53b
-OphSKamc7nlNgUAzV1S6JTm1YXiTzG6mAOWWK/i3O25rNfiz0D+srlqS0ADsGPwG
-4vxuWJYwUEKcV4YgCYCJj78dD+yxoz5anVrNosN4tVGg6jfaPI9uu1T+FhsNM/AC
-EN7pa50bgeV7iBZs/pdZEXEsk18NO4W55yPAKQp5JFCL6eeBJcHTU/IuEb/YPCSr
-e873Iwzw4ZqW8dHbE10Za3VzdKPDUbtJp93rvU6imRavvifIAa3GgBuLYbpEXXcG
-B6MLHdWOApwPBoMCAwEAAaAAMA0GCSqGSIb3DQEBCwUAA4IBAQClXDGZoGUSetZP
-lwx//vSN6P6y30dpiHDQiY4hCLYplpoB7V6wXXVMyuKpJjRMQ2mSdyuFge14Lvwr
-y1pE8Vg0+D99PW09tGTp54egPCKeyXptJ/1xi/Quo70OfSSI01vSczMDGTa4OfAB
-VPzE2xey1qL0a0UHqwBaSqnt6D0Xmid79YP0XkVEqZeHZvprtXzeA4dNc1GrZrjb
-7bazcPXbd7PXQaEFvmhqbDMFvu3xMBm5HJd4WkYKvBFDw4NHfT6jw/yRZXkWwJ/F
-EI0h2e9yxrSKgOEpWmeCdETZhMCljx5C2rLNqLAWJIJQ293UuVRCg4Rn6fdIefhF
-yKHlBerZ
------END NEW CERTIFICATE REQUEST-----""")
 
 ERR_SPACE = "invalid '{}': Leading and trailing spaces are not allowed"
 ERR_MUST_INTEGER = "invalid '{}': must be an integer"
@@ -180,7 +164,8 @@ class test_cert(UI_driver):
 
         # add a new cert
         hostname = self.config.get('ipa_server')
-        record = add_cert(self, 'HTTP/{}'.format(hostname), CERT_CSR)
+        csr = generate_csr(hostname)
+        record = add_cert(self, 'HTTP/{}'.format(hostname), csr)
 
         # revoke added cert
         revoke_cert(self, record, '1')
