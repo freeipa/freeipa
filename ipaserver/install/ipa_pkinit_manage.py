@@ -9,6 +9,7 @@ import logging
 from ipalib import api
 from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool
+from ipaserver.install import installutils
 from ipaserver.install.krbinstance import KrbInstance, is_pkinit_enabled
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ class PKINITManage(AdminTool):
 
     def validate_options(self):
         super(PKINITManage, self).validate_options(needs_root=True)
+        installutils.check_server_configuration()
 
         option_parser = self.option_parser
 
