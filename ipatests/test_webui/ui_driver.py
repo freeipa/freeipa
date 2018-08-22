@@ -123,7 +123,7 @@ class UI_driver(object):
             raise unittest.SkipTest('Selenium not installed')
 
     def setup(self, driver=None, config=None):
-        self.request_timeout = 30
+        self.request_timeout = 60
         self.driver = driver
         self.config = config
         if not config:
