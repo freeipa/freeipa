@@ -1,4 +1,6 @@
+import os
 import shlex
+import subprocess
 import sys
 import contextlib
 
@@ -305,3 +307,56 @@ class TestCLIParsing(object):
 
         if not adtrust_is_enabled:
             mockldap.del_entry(adtrust_dn)
+
+
+IPA_NOT_CONFIGURED = b'IPA is not configured on this system'
+IPA_CLIENT_NOT_CONFIGURED = b'IPA client is not configured on this system'
+
+
+@pytest.mark.needs_ipaapi
+@pytest.mark.skipif(
+    os.geteuid() != 0 or os.path.isfile('/etc/ipa/default.conf'),
+    reason="Must have root privileges to run this test "
+           "and IPA must not be installed")
+@pytest.mark.parametrize(
+    "args, retcode, error",
+    [
+        # Commands delivered by the client pkg
+        (['ipa'], 1, IPA_CLIENT_NOT_CONFIGURED),
+        (['ipa-certupdate'], 1, IPA_CLIENT_NOT_CONFIGURED),
+        (['ipa-client-automount'], 1, IPA_CLIENT_NOT_CONFIGURED),
+        # Commands delivered by the server pkg
+        (['ipa-adtrust-install'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-advise'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-backup'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-cacert-manage'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-ca-install'], 1,
+         b'IPA server is not configured on this system'),
+        (['ipa-compat-manage'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-csreplica-manage'], 1, IPA_NOT_CONFIGURED),
+        (['ipactl', 'status'], 4, b'IPA is not configured'),
+        (['ipa-dns-install'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-kra-install'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-ldap-updater',
+          '/usr/share/ipa/updates/05-pre_upgrade_plugins.update'],
+         1, IPA_NOT_CONFIGURED),
+        (['ipa-managed-entries'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-nis-manage'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-pkinit-manage'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-replica-manage', 'list'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-server-certinstall'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-server-upgrade'], 1, IPA_NOT_CONFIGURED),
+        (['ipa-winsync-migrate'], 1, IPA_NOT_CONFIGURED)
+    ])
+def test_command_ipa_not_installed(args, retcode, error):
+    """
+    Test that the commands properly return that IPA client|server is not
+    configured on this system.
+    Launch the command specified in args.
+    Check that the exit code is as expected and that stderr
+    contains the expected strings.
+    """
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    res = p.communicate()
+    assert retcode == p.returncode
+    assert error in res[1]
