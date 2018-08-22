@@ -125,7 +125,11 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
     };
 
     that.get_key_index = function(key) {
-        return that._key_indicies[key];
+        var index = that._key_indicies[key];
+        if (index !== undefined) {
+            return index;
+        }
+        return -1;
     };
 
     that.get_key_by_index = function(index) {
