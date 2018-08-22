@@ -1,0 +1,4 @@
+# special handling of Python scripts with auto-generated shebang line
+$(PYTHON_SHEBANG):%: %.in Makefile
+	$(AM_V_GEN)sed -e 's|@PYTHONSHEBANG[@]|#!$(PYTHON) -E|g' $< > $@
+	$(AM_V_GEN)chmod +x $@
