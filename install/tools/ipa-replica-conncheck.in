@@ -1,0 +1,660 @@
+@PYTHONSHEBANG@
+# Authors: Martin Kosek <mkosek@redhat.com>
+#
+# Copyright (C) 2011  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+from __future__ import print_function
+
+import logging
+
+import ipaclient.install.ipachangeconf
+from ipapython.config import IPAOptionParser
+from ipapython.dn import DN
+from ipapython import version
+from ipapython import ipautil, certdb
+from ipalib import api, errors, x509
+from ipaserver.install import installutils
+# pylint: disable=deprecated-module
+from optparse import OptionGroup, OptionValueError
+# pylint: enable=deprecated-module
+from ipapython.ipa_log_manager import standard_logging_setup
+import copy
+import sys
+import os
+import signal
+import tempfile
+import select
+import socket
+import time
+import threading
+import traceback
+from socket import SOCK_STREAM, SOCK_DGRAM
+import distutils.spawn
+from ipaplatform.paths import paths
+import gssapi
+
+logger = logging.getLogger(os.path.basename(__file__))
+
+CONNECT_TIMEOUT = 5
+RESPONDER = None
+QUIET = False
+CCACHE_FILE = None
+KRB5_CONFIG = None
+
+
+class SshExec(object):
+    def __init__(self, user, addr):
+        self.user = user
+        self.addr = addr
+        self.cmd = distutils.spawn.find_executable('ssh')
+        # Bail if ssh is not installed
+        if self.cmd is None:
+            raise RuntimeError("ssh not installed")
+
+    def __call__(self, command, verbose=False):
+
+        tmpf = tempfile.NamedTemporaryFile()
+        cmd = [
+            self.cmd,
+            '-o StrictHostKeychecking=no',
+            '-o UserKnownHostsFile=%s' % tmpf.name,
+            '-o GSSAPIAuthentication=yes',
+            '-o User=%s' % self.user,
+            '%s' % self.addr,
+            command
+        ]
+        if verbose:
+            cmd.insert(1, '-v')
+
+        env = dict()
+        if KRB5_CONFIG is not None:
+            env['KRB5_CONFIG'] = KRB5_CONFIG
+        elif 'KRB5_CONFIG' in os.environ:
+            env['KRB5_CONFIG'] = os.environ['KRB5_CONFIG']
+        if CCACHE_FILE is not None:
+            env['KRB5CCNAME'] = CCACHE_FILE
+        elif 'KRB5CCNAME' in os.environ:
+            env['KRB5CCNAME'] = os.environ['KRB5CCNAME']
+
+        return ipautil.run(cmd, env=env, raiseonerr=False,
+                           capture_output=True, capture_error=True)
+
+
+class CheckedPort(object):
+    def __init__(self, port, port_type, description):
+        self.port = port
+        self.port_type = port_type
+        self.description = description
+
+
+BASE_PORTS = [
+                CheckedPort(389, SOCK_STREAM, "Directory Service: Unsecure port"),
+                CheckedPort(636, SOCK_STREAM, "Directory Service: Secure port"),
+                CheckedPort(88, SOCK_STREAM, "Kerberos KDC: TCP"),
+                CheckedPort(88, SOCK_DGRAM, "Kerberos KDC: UDP"),
+                CheckedPort(464, SOCK_STREAM, "Kerberos Kpasswd: TCP"),
+                CheckedPort(464, SOCK_DGRAM, "Kerberos Kpasswd: UDP"),
+                CheckedPort(80, SOCK_STREAM, "HTTP Server: Unsecure port"),
+                CheckedPort(443, SOCK_STREAM, "HTTP Server: Secure port"),
+             ]
+
+
+def parse_options():
+    def ca_cert_file_callback(option, opt, value, parser):
+        if not os.path.exists(value):
+            raise OptionValueError(
+                "%s option '%s' does not exist" % (opt, value))
+        if not os.path.isfile(value):
+            raise OptionValueError(
+                "%s option '%s' is not a file" % (opt, value))
+        if not os.path.isabs(value):
+            raise OptionValueError(
+                "%s option '%s' is not an absolute file path" % (opt, value))
+
+        try:
+            x509.load_certificate_list_from_file(value)
+        except Exception:
+            raise OptionValueError(
+                "%s option '%s' is not a valid certificate file" %
+                (opt, value))
+
+        parser.values.ca_cert_file = value
+
+    parser = IPAOptionParser(version=version.VERSION)
+
+    replica_group = OptionGroup(parser, "on-replica options")
+    replica_group.add_option("-m", "--master", dest="master",
+                      help="Master address with running IPA for output connection check")
+    replica_group.add_option("-a", "--auto-master-check", dest="auto_master_check",
+                      action="store_true",
+                      default=False,
+                      help="Automatically execute connection check on master")
+    replica_group.add_option("-r", "--realm", dest="realm",
+                      help="Realm name")
+    replica_group.add_option("-k", "--kdc", dest="kdc",
+                      help="Master KDC. Defaults to master address")
+    replica_group.add_option("-p", "--principal", dest="principal",
+                      default=None, help="Principal to use to log in to remote master")
+    replica_group.add_option("-w", "--password", dest="password", sensitive=True,
+                      help="Password for the principal")
+    replica_group.add_option("--ca-cert-file", dest="ca_cert_file",
+                             type="string", action="callback",
+                             callback=ca_cert_file_callback,
+                             help="load the CA certificate from this file")
+    parser.add_option_group(replica_group)
+
+
+    master_group = OptionGroup(parser, "on-master options")
+    master_group.add_option("-R", "--replica", dest="replica",
+                      help="Address of remote replica machine to check against")
+    parser.add_option_group(master_group)
+
+    common_group = OptionGroup(parser, "common options")
+    common_group.add_option("-c", "--check-ca", dest="check_ca",
+                      action="store_true",
+                      default=False,
+                      help="Check also ports for Certificate Authority "
+                        "(for servers installed before IPA 3.1)")
+
+    common_group.add_option("", "--hostname", dest="hostname",
+                      help="The hostname of this server (FQDN). "
+                           "By default the result of getfqdn() call from "
+                           "Python's socket module is used.")
+    parser.add_option_group(common_group)
+
+    parser.add_option("-d", "--debug", dest="debug",
+                      action="store_true",
+                      default=False, help="Print debugging information")
+    parser.add_option("-q", "--quiet", dest="quiet",
+                      action="store_true",
+                      default=False, help="Output only errors")
+    parser.add_option("--no-log", dest="log_to_file", action="store_false",
+                      default=True, help="Do not log into file")
+
+    options, _args = parser.parse_args()
+    safe_options = parser.get_safe_opts(options)
+
+    if options.master and options.replica:
+        parser.error("on-master and on-replica options are mutually exclusive!")
+
+    if options.master:
+        if options.auto_master_check and not options.realm:
+            parser.error("Realm is parameter is required to connect to remote master!")
+        if not os.getegid() == 0:
+            parser.error("You can only run on-replica part as root.")
+
+    if options.master and not options.kdc:
+       options.kdc = options.master
+
+    if not options.master and not options.replica:
+       parser.error("No action: you should select either --replica or --master option.")
+
+    if not options.hostname:
+        options.hostname = socket.getfqdn()
+
+    return safe_options, options
+
+
+def logging_setup(options):
+    log_file = None
+
+    if os.getegid() == 0 and options.log_to_file:
+        log_file = paths.IPAREPLICA_CONNCHECK_LOG
+
+    standard_logging_setup(log_file, verbose=(not options.quiet),
+                           debug=options.debug, console_format='%(message)s')
+
+
+def sigterm_handler(signum, frame):
+    # do what SIGINT does (raise a KeyboardInterrupt)
+    sigint_handler = signal.getsignal(signal.SIGINT)
+    if callable(sigint_handler):
+        sigint_handler(signum, frame)
+
+
+def configure_krb5_conf(realm, kdc, filename):
+
+    krbconf = ipaclient.install.ipachangeconf.IPAChangeConf("IPA Installer")
+    krbconf.setOptionAssignment((" = ", " "))
+    krbconf.setSectionNameDelimiters(("[","]"))
+    krbconf.setSubSectionDelimiters(("{","}"))
+    krbconf.setIndent(("","  ","    "))
+
+    opts = [{'name':'comment', 'type':'comment', 'value':'File created by ipa-replica-conncheck'},
+            {'name':'empty', 'type':'empty'}]
+
+    #[libdefaults]
+    libdefaults = [{'name':'default_realm', 'type':'option', 'value':realm}]
+    libdefaults.append({'name':'dns_lookup_realm', 'type':'option', 'value':'false'})
+    libdefaults.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'true'})
+    libdefaults.append({'name':'rdns', 'type':'option', 'value':'false'})
+    libdefaults.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
+    libdefaults.append({'name':'forwardable', 'type':'option', 'value':'true'})
+    libdefaults.append({'name':'udp_preference_limit', 'type':'option', 'value':'0'})
+
+    opts.append({'name':'libdefaults', 'type':'section', 'value': libdefaults})
+    opts.append({'name':'empty', 'type':'empty'})
+
+    #the following are necessary only if DNS discovery does not work
+    #[realms]
+    realms_info =[{'name':'kdc', 'type':'option', 'value':ipautil.format_netloc(kdc, 88)},
+                 {'name':'master_kdc', 'type':'option', 'value':ipautil.format_netloc(kdc, 88)},
+                 {'name':'admin_server', 'type':'option', 'value':ipautil.format_netloc(kdc, 749)}]
+    realms = [{'name':realm, 'type':'subsection', 'value':realms_info}]
+
+    opts.append({'name':'realms', 'type':'section', 'value':realms})
+    opts.append({'name':'empty', 'type':'empty'})
+
+    #[appdefaults]
+    pamopts = [{'name':'debug', 'type':'option', 'value':'false'},
+               {'name':'ticket_lifetime', 'type':'option', 'value':'36000'},
+               {'name':'renew_lifetime', 'type':'option', 'value':'36000'},
+               {'name':'forwardable', 'type':'option', 'value':'true'},
+               {'name':'krb4_convert', 'type':'option', 'value':'false'}]
+    appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
+    opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
+
+    logger.debug("Writing temporary Kerberos configuration to %s:\n%s",
+                 filename, krbconf.dump(opts))
+
+    krbconf.newConf(filename, opts)
+
+
+class PortResponder(threading.Thread):
+
+    PROTO = {socket.SOCK_STREAM: 'tcp',
+             socket.SOCK_DGRAM: 'udp'}
+
+    def __init__(self, ports):
+        """
+        ports: a list of CheckedPort
+        """
+        super(PortResponder, self).__init__()
+        # copy ports to avoid the need to synchronize it between threads
+        self.ports = copy.deepcopy(ports)
+        self._sockets = []
+        self._close = False
+        self._close_lock = threading.Lock()
+        self.responder_data = b'FreeIPA'
+        self.ports_opened = False
+        self.ports_open_cond = threading.Condition()
+
+    def run(self):
+        logger.debug('Starting listening thread.')
+
+        for port in self.ports:
+            self._bind_to_port(port.port, port.port_type)
+        with self.ports_open_cond:
+            self.ports_opened = True
+            logger.debug('Ports opened, notify original thread')
+            self.ports_open_cond.notify()
+
+        while not self._is_closing():
+            ready_socks, _socks1, _socks2 = select.select(
+                self._sockets, [], [], 1)
+            if ready_socks:
+                ready_sock = ready_socks[0]
+                self._respond(ready_sock)
+
+        for sock in self._sockets:
+            port = sock.getsockname()[1]
+            proto = PortResponder.PROTO[sock.type]
+            sock.close()
+            logger.debug('%d %s: Stopped listening', port, proto)
+
+    def _is_closing(self):
+        with self._close_lock:  # pylint: disable=not-context-manager
+            return self._close
+
+    def _bind_to_port(self, port, socket_type):
+        # Use IPv6 socket as it is able to accept both IPv6 and IPv4
+        # connections. Since IPv6 kernel module is required by other
+        # parts of IPA, it should always be available.
+        family = socket.AF_INET6
+        host = '::'   # all available interfaces
+        proto = PortResponder.PROTO[socket_type]
+
+        try:
+            sock = socket.socket(family, socket_type)
+
+            # Make sure IPv4 clients can connect to IPv6 socket
+            sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+
+            if socket_type == socket.SOCK_STREAM:
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+            sock.bind((host, port))
+            if socket_type == socket.SOCK_STREAM:
+                # There might be a delay before accepting the connection,
+                # because a single thread is used to handle all the
+                # connections. Thus a backlog size of at least 1 is needed.
+                sock.listen(1)
+
+            logger.debug('%d %s: Started listening', port, proto)
+        except socket.error:
+            logger.warning('%d %s: Failed to bind', port, proto)
+            logger.debug("%s", traceback.format_exc())
+        else:
+            self._sockets.append(sock)
+
+    def _respond(self, sock):
+        port = sock.getsockname()[1]
+        if sock.type == socket.SOCK_STREAM:
+            connection, addr = sock.accept()
+            try:
+                connection.sendall(self.responder_data)
+                logger.debug('%d tcp: Responded to %s', port, addr[0])
+            finally:
+                connection.close()
+        elif sock.type == socket.SOCK_DGRAM:
+            _data, addr = sock.recvfrom(1)
+            sock.sendto(self.responder_data, addr)
+            logger.debug('%d udp: Responded to %s', port, addr[0])
+
+    def stop(self):
+        logger.debug('Stopping listening thread.')
+
+        with self._close_lock:  # pylint: disable=not-context-manager
+            self._close = True
+
+
+def port_check(host, port_list):
+    ports_failed = []
+    ports_udp_warning = []  # conncheck could not verify that port is open
+    log_level = {
+        SOCK_DGRAM: logging.WARNING,
+        SOCK_STREAM: logging.ERROR
+    }
+    for port in port_list:
+        try:
+            port_open = ipautil.host_port_open(
+                host, port.port, port.port_type,
+                socket_timeout=CONNECT_TIMEOUT, log_errors=True,
+                log_level=log_level[port.port_type])
+        except socket.gaierror:
+            raise RuntimeError("Port check failed! Unable to resolve host name '%s'" % host)
+        if port_open:
+            result = "OK"
+        else:
+            if port.port_type == socket.SOCK_DGRAM:
+                ports_udp_warning.append(port)
+                result = "WARNING"
+            else:
+                ports_failed.append(port)
+                result = "FAILED"
+        logger.info("   %s (%d): %s", port.description, port.port, result)
+
+    if ports_udp_warning:
+        logger.warning(
+            ("The following UDP ports could not be verified as open: %s\n"
+             "This can happen if they are already bound to an application\n"
+             "and ipa-replica-conncheck cannot attach own UDP responder."),
+            ", ".join(str(port.port) for port in ports_udp_warning))
+
+    if ports_failed:
+        msg_ports = []
+        for port in ports_failed:
+            port_type_text = "TCP" if port.port_type == SOCK_STREAM else "UDP"
+            msg_ports.append('%d (%s)' % (port.port, port_type_text))
+        raise RuntimeError("Port check failed! Inaccessible port(s): %s" \
+                % ", ".join(msg_ports))
+
+
+def main():
+    global RESPONDER
+    safe_options, options = parse_options()
+
+    logging_setup(options)
+    logger.debug('%s was invoked with options: %s', sys.argv[0], safe_options)
+    logger.debug("missing options might be asked for interactively later\n")
+    logger.debug('IPA version %s', version.VENDOR_VERSION)
+
+    signal.signal(signal.SIGTERM, sigterm_handler)
+
+    required_ports = BASE_PORTS
+    if options.check_ca:
+        # Check old Dogtag CA replication port
+        # New installs with unified databases use main DS port (checked above)
+        required_ports.append(CheckedPort(7389, SOCK_STREAM,
+                                          "PKI-CA: Directory Service port"))
+
+    if options.replica:
+        logger.info("Check connection from master to remote replica '%s':",
+                    options.replica)
+        port_check(options.replica, required_ports)
+        logger.info("\nConnection from master to replica is OK.")
+
+    # kinit to foreign master
+    if options.master:
+        # check ports on master first
+        logger.info("Check connection from replica to remote master '%s':",
+                    options.master)
+        tcp_ports = [ port for port in required_ports if port.port_type == SOCK_STREAM ]
+        udp_ports = [ port for port in required_ports if port.port_type == SOCK_DGRAM ]
+        port_check(options.master, tcp_ports)
+
+        if udp_ports:
+            logger.info("\nThe following list of ports use UDP protocol "
+                        "and would need to be\n"
+                        "checked manually:")
+            for port in udp_ports:
+                result = "SKIPPED"
+                logger.info("   %s (%d): %s",
+                            port.description, port.port, result)
+
+        logger.info("\nConnection from replica to master is OK.")
+
+        # create listeners
+        logger.info("Start listening on required ports for remote "
+                    "master check")
+
+        RESPONDER = PortResponder(required_ports)
+        RESPONDER.start()
+
+        with RESPONDER.ports_open_cond:
+            if not RESPONDER.ports_opened:
+                logger.debug('Original thread stopped')
+                RESPONDER.ports_open_cond.wait()
+                logger.debug('Original thread resumed')
+
+        remote_check_opts = ['--replica %s' % options.hostname]
+
+        if options.auto_master_check:
+            logger.info("Get credentials to log in to remote master")
+            cred = None
+            if options.principal is None:
+                # Check if ccache is available
+                try:
+                    logger.debug('KRB5CCNAME set to %s',
+                                 os.environ.get('KRB5CCNAME', None))
+                    # get default creds, will raise if none found
+                    cred = gssapi.creds.Credentials()
+                    principal = str(cred.name)
+                except gssapi.raw.misc.GSSError as e:
+                    logger.debug('Failed to find default ccache: %s', e)
+                    # Use admin as the default principal
+                    principal = "admin"
+            else:
+                principal = options.principal
+
+            if cred is None:
+                (krb_fd, krb_name) = tempfile.mkstemp()
+                os.close(krb_fd)
+                configure_krb5_conf(options.realm, options.kdc, krb_name)
+                global KRB5_CONFIG
+                KRB5_CONFIG = krb_name
+                (ccache_fd, ccache_name) = tempfile.mkstemp()
+                os.close(ccache_fd)
+                global CCACHE_FILE
+                CCACHE_FILE = ccache_name
+
+                if principal.find('@') == -1:
+                    principal = '%s@%s' % (principal, options.realm)
+
+                if options.password:
+                    password=options.password
+                else:
+                    password = installutils.read_password(principal, confirm=False,
+                               validate=False, retry=False)
+                    if password is None:
+                        sys.exit("Principal password required")
+
+
+                result = ipautil.run([paths.KINIT, principal],
+                     env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
+                    stdin=password, raiseonerr=False, capture_error=True)
+                if result.returncode != 0:
+                    raise RuntimeError("Cannot acquire Kerberos ticket: %s" %
+                                        result.error_output)
+
+                # Verify kinit was actually successful
+                result = ipautil.run([paths.BIN_KVNO,
+                     'host/%s' % options.master],
+                    env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
+                    raiseonerr=False, capture_error=True)
+                if result.returncode != 0:
+                    raise RuntimeError("Could not get ticket for master server: %s" %
+                                        result.error_output)
+                # Now that the cred cache file is initialized,
+                # use it for the IPA API calls
+                os.environ['KRB5CCNAME'] = CCACHE_FILE
+
+            try:
+                logger.info("Check RPC connection to remote master")
+
+                xmlrpc_uri = ('https://%s/ipa/xml' %
+                              ipautil.format_netloc(options.master))
+
+                if options.ca_cert_file:
+                    nss_dir = None
+                else:
+                    nss_dir = paths.IPA_NSSDB_DIR
+
+                with certdb.NSSDatabase(nss_dir) as nss_db:
+                    if options.ca_cert_file:
+                        nss_db.create_db()
+                        ca_certs = x509.load_certificate_list_from_file(
+                            options.ca_cert_file)
+                        for ca_cert in ca_certs:
+                            nss_db.add_cert(
+                                ca_cert,
+                                str(DN(ca_cert.subject)),
+                                certdb.EXTERNAL_CA_TRUST_FLAGS)
+
+                    api.bootstrap(context='client',
+                                  confdir=paths.ETC_IPA,
+                                  xmlrpc_uri=xmlrpc_uri,
+                                  nss_dir=nss_db.secdir)
+                    api.finalize()
+                    try:
+                        api.Backend.rpcclient.connect()
+                        api.Command.ping()
+                    except Exception as e:
+                        logger.info(
+                            "Could not connect to the remote host: %s", e)
+                        raise
+
+                    logger.info("Execute check on remote master")
+                    try:
+                        result = api.Backend.rpcclient.forward(
+                            'server_conncheck',
+                            ipautil.fsdecode(options.master),
+                            ipautil.fsdecode(options.hostname),
+                            version=u'2.162',
+                        )
+                    except (errors.CommandError, errors.NetworkError) as e:
+                        logger.info(
+                            "Remote master does not support check over RPC: "
+                            "%s", e)
+                        raise
+                    except errors.PublicError as e:
+                        returncode = 1
+                        stderr = e
+                    else:
+                        for message in result['messages']:
+                            logger.info('%s', message['message'])
+                        returncode = int(not result['result'])
+                        stderr = ("ipa-replica-conncheck returned non-zero "
+                                  "exit code")
+                    finally:
+                        if api.Backend.rpcclient.isconnected():
+                            api.Backend.rpcclient.disconnect()
+            except Exception as e:
+                logger.debug("RPC connection failed: %s", e)
+                logger.info("Retrying using SSH...")
+
+                # Ticket 5812 Always qualify requests for admin
+                user = principal
+                try:
+                    ssh = SshExec(user, options.master)
+                except RuntimeError as e:
+                    logger.warning("WARNING: %s, skipping ssh test", e)
+                    return 0
+
+                logger.info("Check SSH connection to remote master")
+                result = ssh('echo OK', verbose=True)
+                if result.returncode != 0:
+                    logger.debug('%s', result.error_output)
+                    raise RuntimeError(
+                        'Could not SSH to remote host.\n'
+                        'See /var/log/ipareplica-conncheck.log for more '
+                        'information.')
+
+                logger.info("Execute check on remote master")
+                result = ssh(
+                    "/usr/sbin/ipa-replica-conncheck " +
+                        " ".join(remote_check_opts))
+                returncode = result.returncode
+                stderr = result.error_output
+                logger.info('%s', result.output)
+            if returncode != 0:
+                raise RuntimeError(
+                    "Remote master check failed with following "
+                    "error message(s):\n%s" % stderr)
+        else:
+            # wait until user  test is ready
+            logger.info(
+                "Listeners are started. Use CTRL+C to terminate the listening "
+                "part after the test.\n\n"
+                "Please run the following command on remote master:\n"
+                "/usr/sbin/ipa-replica-conncheck %s",
+                " ".join(remote_check_opts))
+            time.sleep(3600)
+            logger.info(
+                "Connection check timeout: terminating listening program")
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        logger.info("\nCleaning up...")
+        sys.exit(1)
+    except RuntimeError as e:
+        logger.error('ERROR: %s', e)
+        sys.exit(1)
+    finally:
+        if RESPONDER is not None:
+            RESPONDER.stop()
+            RESPONDER.join()
+        for file_name in (CCACHE_FILE, KRB5_CONFIG):
+            if file_name:
+                try:
+                    os.remove(file_name)
+                except OSError:
+                    pass
