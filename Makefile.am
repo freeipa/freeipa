@@ -1,3 +1,5 @@
+NULL =
+
 ACLOCAL_AMFLAGS = -I m4
 
 if ENABLE_SERVER
@@ -16,20 +18,35 @@ SUBDIRS = asn1 util client contrib po pypi $(PYTHON_SUBDIRS) $(SERVER_SUBDIRS)
 
 GENERATED_PYTHON_FILES = \
 	$(top_builddir)/ipaplatform/override.py \
-	$(top_builddir)/ipapython/version.py
+	$(top_builddir)/ipapython/version.py \
+	$(top_builddir)/makeaci \
+	$(top_builddir)/makeapi \
+	$(NULL)
 
 MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo \
 		   pylint_plugins.pyc pylint_plugins.pyo
 
 # user-facing scripts
-dist_bin_SCRIPTS = ipa
+nodist_bin_SCRIPTS = ipa
 
 # files required for build but not installed
-dist_noinst_SCRIPTS = makeapi \
-		      makeaci \
-		      make-doc \
-		      make-test \
-		      pylint_plugins.py
+nodist_noinst_SCRIPTS = \
+	makeapi \
+	makeaci \
+	$(NULL)
+
+dist_noinst_SCRIPTS = \
+	make-doc \
+	make-test \
+	pylint_plugins.py \
+	$(NULL)
+
+# templates
+dist_noinst_DATA = \
+	ipa.in		\
+	makeaci.in	\
+	makeapi.in	\
+	$(NULL)
 
 ipasetup.py: ipasetup.py.in $(CONFIG_STATUS)
 	$(AM_V_GEN)sed						\
@@ -62,7 +79,6 @@ clean-local:
 	rm -rf "$(top_builddir)/.tox"
 	rm -rf "$(top_srcdir)/__pycache__"
 	rm -f "$(top_builddir)"/$(PACKAGE)-*.tar.gz
-
 
 # convenience targets for RPM build
 .PHONY: rpmroot rpmdistdir version-update _dist-version-bakein _rpms-prep \
@@ -368,3 +384,13 @@ python_install:
 .PHONY:
 strip-po:
 	$(MAKE) -C po strip-po
+
+PYTHON_SHEBANG = 					\
+	ipa	\
+	makeaci	\
+	makeapi	\
+	$(NULL)
+
+CLEANFILES = $(PYTHON_SHEBANG)
+
+include $(top_srcdir)/Makefile.pythonscripts.am

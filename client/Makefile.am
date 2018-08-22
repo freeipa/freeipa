@@ -40,9 +40,9 @@ sbin_PROGRAMS =			\
 	$(NULL)
 
 sbin_SCRIPTS =			\
-	ipa-client-install	\
-	ipa-client-automount	\
 	ipa-certupdate		\
+	ipa-client-automount	\
+	ipa-client-install	\
 	$(NULL)
 
 ipa_getkeytab_SOURCES =		\
@@ -98,10 +98,17 @@ noinst_HEADERS =		\
 	ipa-client-common.h
 
 EXTRA_DIST =			\
-	$(sbin_SCRIPTS)		\
+	ipa-certupdate.in	\
+	ipa-client-automount.in	\
+	ipa-client-install.in	\
 	$(NULL)
 
 install-data-hook:
 	$(INSTALL) -d -m 755 $(DESTDIR)$(IPA_SYSCONF_DIR)/nssdb
 	$(INSTALL) -d -m 755 $(DESTDIR)$(localstatedir)/lib/ipa-client/pki
 	$(INSTALL) -d -m 755 $(DESTDIR)$(localstatedir)/lib/ipa-client/sysrestore
+
+
+PYTHON_SHEBANG = $(sbin_SCRIPTS)
+
+include $(top_srcdir)/Makefile.pythonscripts.am
