@@ -21,6 +21,9 @@
 Host tests
 """
 
+import uuid
+from random import randint
+
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_hostgroup as hostgroup
@@ -52,7 +55,7 @@ class host_tasks(UI_driver):
         self.prep_data4()
 
     def prep_data(self):
-        host = 'itest'
+        host = self.rand_host()
         domain = self.config.get('ipa_domain')
         ip = self.get_ip()
         self.data = self.get_data(host, domain, ip)
@@ -60,21 +63,21 @@ class host_tasks(UI_driver):
         return self.data
 
     def prep_data2(self):
-        host = 'itest2'
+        host = self.rand_host()
         domain = self.config.get('ipa_domain')
         self.data2 = self.get_data(host, domain)
         self.pkey2 = self.data2['pkey']
         return self.data2
 
     def prep_data3(self):
-        host = 'itest3'
+        host = self.rand_host()
         domain = self.config.get('ipa_domain')
         self.data3 = self.get_data(host, domain)
         self.pkey3 = self.data3['pkey']
         return self.data3
 
     def prep_data4(self):
-        host = 'itest4'
+        host = self.rand_host()
         domain = self.config.get('ipa_domain')
         self.data4 = self.get_data(host, domain)
         self.pkey4 = self.data4['pkey']
@@ -117,10 +120,20 @@ class host_tasks(UI_driver):
         ip = self.config.get('ipa_ip')
         if not ip:
             self.skip('FreeIPA Server IP address not configured')
-        ip = ip.split('.')
-        last = int(ip.pop())
-        ip.append(str(last + 1))
-        return '.'.join(ip)
+
+        while True:
+            new_ip = '10.{}.{}.{}'.format(
+                randint(0, 255),
+                randint(0, 255),
+                randint(1, 254)
+            )
+            if new_ip != ip:
+                break
+        return new_ip
+
+    @staticmethod
+    def rand_host():
+        return 'host-{}'.format(uuid.uuid4().hex[:8])
 
     def load_file(self, path):
         """
