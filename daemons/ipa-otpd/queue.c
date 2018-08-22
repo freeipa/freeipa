@@ -111,12 +111,16 @@ void otpd_queue_push(struct otpd_queue *q, struct otpd_queue_item *item)
         q->head = q->tail = item;
     else
         q->tail = q->tail->next = item;
+
+    item->next = NULL;
 }
 
 void otpd_queue_push_head(struct otpd_queue *q, struct otpd_queue_item *item)
 {
     if (item == NULL)
         return;
+
+    item->next = NULL;
 
     if (q->head == NULL)
         q->tail = q->head = item;
@@ -145,6 +149,8 @@ struct otpd_queue_item *otpd_queue_pop(struct otpd_queue *q)
     if (q->head == NULL)
         q->tail = NULL;
 
+    if (item != NULL)
+        item->next = NULL;
     return item;
 }
 
@@ -160,6 +166,7 @@ struct otpd_queue_item *otpd_queue_pop_msgid(struct otpd_queue *q, int msgid)
             *prev = item->next;
             if (q->head == NULL)
                 q->tail = NULL;
+            item->next = NULL;
             return item;
         }
     }
