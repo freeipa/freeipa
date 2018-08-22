@@ -82,6 +82,8 @@ def main():
     retval = 0
     files = [paths.SCHEMA_COMPAT_ULDIF]
 
+    installutils.check_server_configuration()
+
     options, args = parse_options()
 
     if len(args) != 1:
