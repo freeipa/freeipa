@@ -4,7 +4,37 @@ SUBDIRS = 			\
         man			\
         $(NULL)
 
-dist_sbin_SCRIPTS =		\
+dist_noinst_DATA =		\
+	ipa-ca-install.in		\
+	ipa-dns-install.in		\
+	ipa-kra-install.in		\
+	ipa-server-install.in	\
+	ipa-adtrust-install.in	\
+	ipa-replica-conncheck.in	\
+	ipa-replica-install.in	\
+	ipa-replica-manage.in	\
+	ipa-csreplica-manage.in	\
+	ipa-server-certinstall.in  \
+	ipa-server-upgrade.in	\
+	ipactl.in			\
+	ipa-compat-manage.in	\
+	ipa-nis-manage.in		\
+	ipa-managed-entries.in     \
+	ipa-ldap-updater.in	\
+	ipa-otptoken-import.in	\
+	ipa-backup.in		\
+	ipa-restore.in		\
+	ipa-advise.in		\
+	ipa-cacert-manage.in	\
+	ipa-winsync-migrate.in	\
+	ipa-pkinit-manage.in	\
+	ipa-custodia.in		\
+	ipa-custodia-check.in	\
+	ipa-httpd-kdcproxy.in	\
+	ipa-pki-retrieve-key.in	\
+	$(NULL)
+
+nodist_sbin_SCRIPTS =		\
 	ipa-ca-install		\
 	ipa-dns-install		\
 	ipa-kra-install		\
@@ -31,10 +61,22 @@ dist_sbin_SCRIPTS =		\
 	$(NULL)
 
 appdir = $(libexecdir)/ipa/
-dist_app_SCRIPTS =		\
+nodist_app_SCRIPTS =		\
 	ipa-custodia		\
 	ipa-custodia-check	\
 	ipa-httpd-kdcproxy	\
-	ipa-httpd-pwdreader	\
 	ipa-pki-retrieve-key	\
 	$(NULL)
+
+dist_app_SCRIPTS =		\
+	ipa-httpd-pwdreader	\
+	$(NULL)
+
+PYTHON_SHEBANG = 					\
+	$(nodist_sbin_SCRIPTS)	\
+	$(nodist_app_SCRIPTS)	\
+	$(NULL)
+
+CLEANFILES = $(PYTHON_SHEBANG)
+
+include $(top_srcdir)/Makefile.pythonscripts.am
