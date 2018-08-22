@@ -100,11 +100,27 @@ PKG_CHECK_MODULES([CRYPTO], [libcrypto])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for Python
+dnl - Check for platform Python interpreter
 dnl - Check for Python 2/3 for devcheck
 dnl ---------------------------------------------------------------------------
 
+AS_IF([test "x${PYTHON}" != "x"], [
+    AC_MSG_NOTICE([Python user override detected, ${PYTHON}])
+])
+
+AC_MSG_NOTICE([Checking for platform Python])
+AC_PATH_PROG(PLATFORM_PYTHON, platform-python, [], [/usr/libexec$PATH_SEPARATOR$PATH])
 AC_MSG_NOTICE([Checking for Python 3])
-AC_PATH_PROG(PYTHON3, python3)
+AC_PATH_PROGS(PYTHON3, python3)
+
+dnl Only use platform-python when there is no override
+if test \( "x${PLATFORM_PYTHON}" != "x" -a "x${PYTHON}" = "x" \); then
+    dnl platform-python executable detected (it's always Python 3)
+    AC_MSG_NOTICE([Using platform Python as default Python 3 interpreter])
+    PYTHON3=${PLATFORM_PYTHON}
+    PYTHON=${PLATFORM_PYTHON}
+fi
+
 AC_SUBST([PYTHON3])
 AM_CONDITIONAL([WITH_PYTHON3], [test "x${PYTHON3}" != "x"])
 
@@ -122,6 +138,7 @@ elif test "x${PYTHON3}" != "x"; then
     dnl Found Python 3, but no user override. Use Python >= 3.6 as default.
     AM_PATH_PYTHON(3.6)
 fi
+
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for cmocka unit test framework http://cmocka.cryptomilk.org/
