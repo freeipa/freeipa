@@ -175,7 +175,7 @@ def validate_doc():
                 next_topic = None
 
                 for package in api.packages:
-                    module = '%s.%s' % (package.__name__, topic)
+                    module = f'{package.__name__}.{topic}'
                     try:
                         mod = sys.modules[module]
                     except KeyError:
