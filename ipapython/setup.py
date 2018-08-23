@@ -48,7 +48,6 @@ if __name__ == '__main__':
             "six",
         ],
         extras_require={
-            ":python_version<'3'": ["enum34"],
             "install": ["dbus-python"],  # for certmonger
         },
     )
