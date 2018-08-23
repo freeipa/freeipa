@@ -12,5 +12,16 @@ app_DATA =                              \
 	$(NULL)
 
 EXTRA_DIST =                            \
-        $(app_DATA)                     \
-        $(NULL)
+	restart_dirsrv.in			\
+	restart_httpd.in			\
+	renew_ca_cert.in			\
+	renew_kdc_cert.in			\
+	renew_ra_cert.in			\
+	stop_pkicad.in			\
+	renew_ra_cert_pre.in		\
+	$(NULL)
+
+PYTHON_SHEBANG = $(app_DATA)
+CLEANFILES = $(PYTHON_SHEBANG)
+
+include $(top_srcdir)/Makefile.pythonscripts.am

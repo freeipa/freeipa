@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = 1.7
 
 appdir = $(libexecdir)/ipa/
-dist_app_SCRIPTS = 		\
+nodist_app_SCRIPTS = 		\
 	ipa-dnskeysyncd		\
 	ipa-dnskeysync-replica	\
 	ipa-ods-exporter
@@ -11,14 +11,18 @@ dist_app_SCRIPTS = 		\
 dist_noinst_DATA = 				\
 	ipa-dnskeysyncd.service.in		\
 	ipa-ods-exporter.service.in		\
-	ipa-ods-exporter.socket.in
+	ipa-ods-exporter.socket.in		\
+	ipa-dnskeysyncd.in		\
+	ipa-dnskeysync-replica.in	\
+	ipa-ods-exporter.in
+
 
 systemdsystemunit_DATA = 		\
 	ipa-dnskeysyncd.service		\
 	ipa-ods-exporter.service	\
 	ipa-ods-exporter.socket
 
-CLEANFILES = $(systemdsystemunit_DATA)
+CLEANFILES = $(systemdsystemunit_DATA) $(nodist_app_SCRIPTS)
 
 %: %.in Makefile
 	sed \
@@ -32,3 +36,9 @@ CLEANFILES = $(systemdsystemunit_DATA)
 dnssecconfdir = $(IPA_SYSCONF_DIR)/dnssec
 install-data-hook:
 	$(INSTALL) -d -m 755 $(DESTDIR)$(dnssecconfdir)
+
+PYTHON_SHEBANG = 					\
+	$(nodist_app_SCRIPTS)	\
+	$(NULL)
+
+include $(top_srcdir)/Makefile.pythonscripts.am
