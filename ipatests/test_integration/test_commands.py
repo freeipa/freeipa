@@ -11,6 +11,7 @@ import os
 import logging
 import ssl
 from tempfile import NamedTemporaryFile
+from itertools import chain, repeat
 import textwrap
 import time
 import paramiko
@@ -20,6 +21,7 @@ from ipaplatform.paths import paths
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.create_external_ca import ExternalCA
 
 logger = logging.getLogger(__name__)
 
@@ -352,6 +354,52 @@ class TestIPACommand(IntegrationTest):
         result = self.master.run_command(journal_cmd)
         output = result.stdout_text
         assert not re.search('exited on signal 13', output)
+
+        # cleanup
+        self.master.run_command(['ipa', 'user-del', test_user])
+
+    def test_ssh_leak(self):
+        """
+        Integration test for https://pagure.io/SSSD/sssd/issue/3794
+        """
+
+        def count_pipes():
+
+            res = self.master.run_command(['pidof', 'sssd_ssh'])
+            pid = res.stdout_text.strip()
+            proc_path = '/proc/{}/fd'.format(pid)
+            res = self.master.run_command(['ls', '-la', proc_path])
+            fds_text = res.stdout_text.strip()
+            return sum((1 for _ in re.finditer(r'pipe', fds_text)))
+
+        test_user = 'test-ssh'
+
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'user-add', test_user,
+                                 '--first=tester', '--last=tester'])
+
+        certs = []
+
+        # we are ok with whatever certificate for this test
+        external_ca = ExternalCA()
+        for _dummy in range(3):
+            cert = external_ca.create_ca()
+            cert = tasks.strip_cert_header(cert.decode('utf-8'))
+            certs.append('"{}"'.format(cert))
+
+        cert_args = list(
+            chain.from_iterable(list(zip(repeat('--certificate'), certs))))
+        cmd = 'ipa user-add-cert {} {}'.format(test_user, ' '.join(cert_args))
+        self.master.run_command(cmd)
+
+        tasks.clear_sssd_cache(self.master)
+
+        num_of_pipes = count_pipes()
+
+        for _dummy in range(3):
+            self.master.run_command([paths.SSS_SSH_AUTHORIZEDKEYS, test_user])
+            current_num_of_pipes = count_pipes()
+            assert current_num_of_pipes == num_of_pipes
 
         # cleanup
         self.master.run_command(['ipa', 'user-del', test_user])
