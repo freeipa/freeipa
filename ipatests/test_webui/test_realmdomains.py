@@ -127,15 +127,15 @@ class test_realmdomains(UI_driver):
     @screenshot
     def test_add_single_labeled_domain(self):
         """
-        Add domain with special_character
+        Add single label domain
         """
         self.init_app()
         self.navigate_to_entity(ENTITY)
 
-        domain_with_special_char = u'﻿ipa@123#'
+        single_label_domain = u'single-label-domain'
 
         # add with force - skipping DNS check
-        self._add_associateddomain([domain_with_special_char], force=True)
+        self._add_associateddomain([single_label_domain], force=True)
         dialog = self.get_last_error_dialog()
         assert ("invalid 'domain': single label domains are not supported"
                 in dialog.text)
