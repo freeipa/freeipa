@@ -1475,3 +1475,4 @@ def generate_ssh_keypair():
     public_key_str = public_key.decode('utf-8')
 
     return (private_key_str, public_key_str)
+
