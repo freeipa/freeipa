@@ -99,9 +99,8 @@ dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES([CRYPTO], [libcrypto])
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for Python
+dnl - Check for Python 3
 dnl - Check for platform Python interpreter
-dnl - Check for Python 2/3 for devcheck
 dnl ---------------------------------------------------------------------------
 
 AS_IF([test "x${PYTHON}" != "x"], [
@@ -110,34 +109,15 @@ AS_IF([test "x${PYTHON}" != "x"], [
 
 AC_MSG_NOTICE([Checking for platform Python])
 AC_PATH_PROG(PLATFORM_PYTHON, platform-python, [], [/usr/libexec$PATH_SEPARATOR$PATH])
-AC_MSG_NOTICE([Checking for Python 3])
-AC_PATH_PROGS(PYTHON3, python3)
 
 dnl Only use platform-python when there is no override
 if test \( "x${PLATFORM_PYTHON}" != "x" -a "x${PYTHON}" = "x" \); then
     dnl platform-python executable detected (it's always Python 3)
     AC_MSG_NOTICE([Using platform Python as default Python 3 interpreter])
-    PYTHON3=${PLATFORM_PYTHON}
     PYTHON=${PLATFORM_PYTHON}
 fi
 
-AC_SUBST([PYTHON3])
-AM_CONDITIONAL([WITH_PYTHON3], [test "x${PYTHON3}" != "x"])
-
-AC_MSG_NOTICE([Checking for Python 2])
-AC_PATH_PROG(PYTHON2, python2)
-AC_SUBST([PYTHON2])
-AM_CONDITIONAL([WITH_PYTHON2], [test "x${PYTHON2}" != "x"])
-
-if test \( "x${PYTHON3}" = "x" -o "x${PYTHON}" != "x" \); then
-    dnl Python 3 is not available *or* user has set PYTHON variable.
-    dnl Accept Python >= 2.7 as default Python. We also accept any Python 3
-    dnl version from PYTHON environment variable.
-    AM_PATH_PYTHON(2.7)
-elif test "x${PYTHON3}" != "x"; then
-    dnl Found Python 3, but no user override. Use Python >= 3.6 as default.
-    AM_PATH_PYTHON(3.6)
-fi
+AM_PATH_PYTHON(3.6)
 
 
 dnl ---------------------------------------------------------------------------
@@ -609,9 +589,7 @@ echo "
         source code location:     ${srcdir}
         compiler:                 ${CC}
         cflags:                   ${CFLAGS}
-        Default Python:           ${PYTHON} (${PYTHON_VERSION})
-        Python 2:                 ${PYTHON2}
-        Python 3:                 ${PYTHON3}
+        Python:                   ${PYTHON} (${PYTHON_VERSION})
         pylint:                   ${PYLINT}
         jslint:                   ${JSLINT}
         LDAP libs:                ${LDAP_LIBS}

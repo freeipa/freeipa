@@ -63,7 +63,7 @@ def generate_aci_lines(api):
         )
         aci = perm_plugin.make_aci(entry)
         yield 'dn: %s\n' % entry.single_value['ipapermlocation']
-        yield 'aci: %s\n' % aci
+        yield f'aci: {aci}\n'
 
         check_member_attrs(name, template)
 

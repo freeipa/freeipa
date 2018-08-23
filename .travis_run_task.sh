@@ -6,12 +6,7 @@
 
 test_set=""
 
-if [[ $PYTHON == "/usr/bin/python2" ]]
-then
-env_opt="--define 'with_python3 0'"
-else
 env_opt=""
-fi
 
 case "$TASK_TO_RUN" in
     lint|tox)
@@ -55,7 +50,6 @@ docker pull $TEST_RUNNER_IMAGE
 ipa-docker-test-runner -l $CI_RESULTS_LOG \
     -c $TEST_RUNNER_CONFIG \
     $developer_mode_opt \
-    --container-environment "PYTHON=$PYTHON" \
     --container-environment "RPMBUILD_OPTS=$env_opt" \
     --container-image $TEST_RUNNER_IMAGE \
     --git-repo $TRAVIS_BUILD_DIR \
