@@ -1531,3 +1531,16 @@ def generate_ssh_keypair():
 
     return (private_key_str, public_key_str)
 
+
+def strip_cert_header(pem):
+    """
+    Remove the header and footer from a certificate.
+    """
+    regexp = (
+        r"^-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----"
+    )
+    s = re.search(regexp, pem, re.MULTILINE | re.DOTALL)
+    if s is not None:
+        return s.group(1)
+    else:
+        return pem
