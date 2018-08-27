@@ -370,7 +370,7 @@ class CAInstance(DogtagInstance):
             ca_subject or installutils.default_ca_subject_dn(self.subject_base)
 
         if ca_signing_algorithm is None:
-            self.ca_signing_algorithm = 'SHA256withRSA'
+            self.ca_signing_algorithm = ipalib.constants.PKI_CA_SIGNING_ALGO
         else:
             self.ca_signing_algorithm = ca_signing_algorithm
         if ca_type is not None:
@@ -572,6 +572,10 @@ class CAInstance(DogtagInstance):
 
         # CA key algorithm
         config.set("CA", "pki_ca_signing_key_algorithm", self.ca_signing_algorithm)
+
+        # CA default key size
+        config.set("CA", "pki_ca_signing_key_size",
+                   ipalib.constants.PKI_CA_SIGNING_KEY_SIZE)
 
         if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
                 os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
