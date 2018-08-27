@@ -25,11 +25,13 @@ Update means Check DNS in WebUI.
 Force udpate means Force Update in WebUI.
 """
 
+import uuid
+
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 from ipatests.test_webui.data_dns import (
     ZONE_ENTITY, FORWARD_ZONE_ENTITY, ZONE_DATA, FORWARD_ZONE_DATA,
-    ZONE_PKEY, FORWARD_ZONE_PKEY, ZONE_DEFAULT_FACET
+    ZONE_DEFAULT_FACET
 )
 import pytest
 
@@ -61,7 +63,7 @@ class test_realmdomains(UI_driver):
 
         # add DNS domain
         self.navigate_to_entity(ZONE_ENTITY)
-        self.add_record(ZONE_ENTITY, ZONE_DATA)
+        self.add_record(ZONE_ENTITY, self.copy_zone_data(realmdomain))
 
         realm = self.config.get('ipa_realm')
 
@@ -72,7 +74,7 @@ class test_realmdomains(UI_driver):
 
         # re-add _TXT kerberos.$domain "$REALM"
         self.navigate_to_entity(ZONE_ENTITY)
-        self.navigate_to_record(ZONE_PKEY)
+        self.navigate_to_record(realmdomain + '.')
 
         DNS_RECORD_ADD_DATA = {
             'pkey': '_kerberos',
@@ -96,6 +98,19 @@ class test_realmdomains(UI_driver):
         self.wait_for_request()
         self.close_notifications()
 
+    @staticmethod
+    def copy_zone_data(realmdomain, zone_data=ZONE_DATA):
+        data = zone_data.copy()
+        data['pkey'] = realmdomain
+        for i, field in enumerate(data['add']):
+            if field[1] == 'idnsname':
+                data['add'][i] = (field[0], field[1], realmdomain)
+        return data
+
+    @staticmethod
+    def rand_realmdomain():
+        return 'zone-{}.itest'.format(uuid.uuid4().hex[:8])
+
     @screenshot
     def test_read(self):
         """
@@ -112,7 +127,7 @@ class test_realmdomains(UI_driver):
         self.del_realm_domain('itest.bar', 'force')
         self.wait_for_request()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         self.prepare_dns_zone(realmdomain)
 
         # add Realm Domain and Check DNS
@@ -122,7 +137,7 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_add_single_labeled_domain(self):
@@ -201,7 +216,7 @@ class test_realmdomains(UI_driver):
         self.init_app()
         self.navigate_to_entity(ENTITY)
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         self.prepare_dns_zone(realmdomain)
 
         # add Realm Domain and Check DNS
@@ -215,7 +230,7 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_add_domain_and_refresh(self):
@@ -260,7 +275,7 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         self.prepare_dns_zone(realmdomain)
 
         self.navigate_to_entity(ENTITY)
@@ -275,7 +290,7 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.del_realm_domain(realmdomain, 'force')
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_add_empty_domain(self):
@@ -331,7 +346,7 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         self.prepare_dns_zone(realmdomain)
 
         # add
@@ -354,7 +369,7 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_del_domain_undo_all(self):
@@ -363,7 +378,7 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         self.prepare_dns_zone(realmdomain)
 
         # add
@@ -386,7 +401,7 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_del_domain_revert(self):
@@ -395,7 +410,7 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         self.prepare_dns_zone(realmdomain)
 
         # add
@@ -414,7 +429,7 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_del_domain_and_refresh(self):
@@ -423,7 +438,7 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         self.prepare_dns_zone(realmdomain)
 
         # add
@@ -443,7 +458,7 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_del_domain_and_update(self):
@@ -452,7 +467,7 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         self.prepare_dns_zone(realmdomain)
 
         # add
@@ -474,7 +489,7 @@ class test_realmdomains(UI_driver):
 
         # cleanup
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_del_domain_with_force_update(self):
@@ -483,7 +498,7 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         self.prepare_dns_zone(realmdomain)
 
         # add
@@ -505,7 +520,7 @@ class test_realmdomains(UI_driver):
 
         # cleanup
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_add_non_dns_configured_domain_negative(self):
@@ -517,7 +532,7 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
 
         self.navigate_to_entity(ENTITY)
         self._add_associateddomain([realmdomain])
@@ -538,7 +553,7 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
 
         self.navigate_to_entity(ENTITY)
         self._add_associateddomain([realmdomain], force=True)
@@ -549,7 +564,7 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_del_domain_of_ipa_server_bug1035286(self):
@@ -564,7 +579,7 @@ class test_realmdomains(UI_driver):
 
         ipadomain = self.config.get('ipa_domain')
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         self.prepare_dns_zone(realmdomain)
 
         self.navigate_to_entity(ENTITY)
@@ -586,7 +601,7 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_dnszone_add_hooked_to_realmdomains_mod(self):
@@ -604,15 +619,15 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
         realm = self.config.get('ipa_realm')
 
         # add DNS domain
         self.navigate_to_entity(ZONE_ENTITY)
-        self.add_record(ZONE_ENTITY, ZONE_DATA)
-        self.assert_record(ZONE_PKEY)
+        self.add_record(ZONE_ENTITY, self.copy_zone_data(realmdomain))
+        self.assert_record(realmdomain + '.')
 
-        self.navigate_to_record(ZONE_PKEY)
+        self.navigate_to_record(realmdomain + '.')
         self.assert_record('_kerberos')
         self.assert_record_value('TXT', '_kerberos', 'type')
         self.assert_record_value(realm, '_kerberos', 'data')
@@ -627,15 +642,15 @@ class test_realmdomains(UI_driver):
         self.wait_for_request()
 
         self.navigate_to_entity(ZONE_ENTITY)
-        self.assert_record(ZONE_PKEY)
+        self.assert_record(realmdomain + '.')
 
-        self.navigate_to_record(ZONE_PKEY)
+        self.navigate_to_record(realmdomain + '.')
         self.facet_button_click('refresh')
         self.assert_record('_kerberos', negative=True)
 
         # cleanup
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_dns_reversezone_add_hooked_to_realmdomains_mod(self):
@@ -650,12 +665,13 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = FORWARD_ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
 
         # add DNS Reverse zone
         self.navigate_to_entity(FORWARD_ZONE_ENTITY)
-        self.add_record(FORWARD_ZONE_ENTITY, FORWARD_ZONE_DATA)
-        self.assert_record(FORWARD_ZONE_PKEY)
+        self.add_record(FORWARD_ZONE_ENTITY,
+                        self.copy_zone_data(realmdomain, FORWARD_ZONE_DATA))
+        self.assert_record(realmdomain + '.')
 
         self.navigate_to_entity(ENTITY)
         domains = self.get_multivalued_value('associateddomain')
@@ -663,7 +679,7 @@ class test_realmdomains(UI_driver):
 
         # cleanup
         self.navigate_to_entity(FORWARD_ZONE_ENTITY)
-        self.delete_record(FORWARD_ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
     @screenshot
     def test_dnszone_del_hooked_to_realmdomains_mod(self):
@@ -680,19 +696,19 @@ class test_realmdomains(UI_driver):
         """
         self.init_app()
 
-        realmdomain = ZONE_PKEY.strip('.')
+        realmdomain = self.rand_realmdomain()
 
         # add DNS domain
         self.navigate_to_entity(ZONE_ENTITY)
-        self.add_record(ZONE_ENTITY, ZONE_DATA)
-        self.assert_record(ZONE_PKEY)
+        self.add_record(ZONE_ENTITY, self.copy_zone_data(realmdomain))
+        self.assert_record(realmdomain + '.')
 
         self.navigate_to_entity(ENTITY)
         domains = self.get_multivalued_value('associateddomain')
         assert realmdomain in domains
 
         self.navigate_to_entity(ZONE_ENTITY)
-        self.delete_record(ZONE_PKEY)
+        self.delete_record(realmdomain + '.')
 
         self.navigate_to_entity(ENTITY)
         domains = self.get_multivalued_value('associateddomain')
