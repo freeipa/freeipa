@@ -14,7 +14,7 @@ import six
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from ipalib import api, errors
@@ -30,6 +30,8 @@ from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
 from ipatests.test_xmlrpc.tracker.service_plugin import ServiceTracker
 
 from ipapython.ipautil import run
+import ipalib.constants
+from ipatests.create_external_ca import MAP_SIGNING_ALGORITHM
 
 if six.PY3:
     unicode = str
@@ -410,10 +412,11 @@ def santest_csr(request, santest_host_1, santest_host_2):
     backend = default_backend()
     pkey = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=2048,
+        key_size=ipalib.constants.PKI_CA_SIGNING_KEY_SIZE,
         backend=backend
     )
 
+    algo = MAP_SIGNING_ALGORITHM[ipalib.constants.PKI_CA_SIGNING_ALGO]()
     csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
         x509.NameAttribute(NameOID.COMMON_NAME, santest_host_1.fqdn),
         x509.NameAttribute(NameOID.ORGANIZATION_NAME, api.env.realm)
@@ -434,7 +437,7 @@ def santest_csr(request, santest_host_1, santest_host_2):
         ),
         False
     ).sign(
-        pkey, hashes.SHA256(), backend
+        pkey, algo, backend
     ).public_bytes(serialization.Encoding.PEM)
 
     return csr.decode('ascii')

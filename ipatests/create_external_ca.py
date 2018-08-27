@@ -24,11 +24,17 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+import ipalib.constants
 
 import datetime
 import six
 
 ISSUER_CN = 'example.test'
+
+MAP_SIGNING_ALGORITHM = {
+    'SHA256withRSA': hashes.SHA256,
+    'SHA512withRSA': hashes.SHA512,
+}
 
 class ExternalCA(object):
     """
@@ -45,7 +51,7 @@ class ExternalCA(object):
         """
         self.ca_key = rsa.generate_private_key(
             public_exponent=65537,
-            key_size=2048,
+            key_size=ipalib.constants.PKI_CA_SIGNING_KEY_SIZE,
             backend=default_backend(),
         )
 
@@ -95,7 +101,8 @@ class ExternalCA(object):
             critical=False,
         )
 
-        cert = builder.sign(self.ca_key, hashes.SHA256(), default_backend())
+        algo = MAP_SIGNING_ALGORITHM[ipalib.constants.PKI_CA_SIGNING_ALGO]()
+        cert = builder.sign(self.ca_key, algo, default_backend())
 
         return cert.public_bytes(serialization.Encoding.PEM)
 
@@ -151,9 +158,10 @@ class ExternalCA(object):
             critical=True,
         )
 
+        algo = MAP_SIGNING_ALGORITHM[ipalib.constants.PKI_CA_SIGNING_ALGO]()
         cert = builder.sign(
             private_key=self.ca_key,
-            algorithm=hashes.SHA256(),
+            algorithm=algo,
             backend=default_backend(),
         )
 

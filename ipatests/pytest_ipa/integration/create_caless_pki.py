@@ -22,12 +22,14 @@ import six
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import encoder as der_encoder
 from pyasn1.codec.native import decoder as native_decoder
+import ipalib.constants
+from ipatests.create_external_ca import MAP_SIGNING_ALGORITHM
 
 if six.PY3:
     unicode = str
@@ -285,7 +287,7 @@ def profile_kdc(builder, ca_nick, ca,
 def gen_cert(profile, nick_base, subject, ca=None, **kwargs):
     key = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=2048,
+        key_size=ipalib.constants.PKI_CA_SIGNING_KEY_SIZE,
         backend=default_backend(),
     )
     public_key = key.public_key()
@@ -311,9 +313,10 @@ def gen_cert(profile, nick_base, subject, ca=None, **kwargs):
     builder = builder.public_key(public_key)
     builder = profile(builder, ca_nick, ca, **kwargs)
 
+    algo = MAP_SIGNING_ALGORITHM[ipalib.constants.PKI_CA_SIGNING_ALGO]()
     cert = builder.sign(
         private_key=ca_key,
-        algorithm=hashes.SHA256(),
+        algorithm=algo,
         backend=default_backend(),
     )
 
@@ -366,9 +369,10 @@ def revoke_cert(ca, serial):
 
     crl_builder = crl_builder.add_revoked_certificate(revoked_cert)
 
+    algo = MAP_SIGNING_ALGORITHM[ipalib.constants.PKI_CA_SIGNING_ALGO]()
     crl = crl_builder.sign(
         private_key=ca.key,
-        algorithm=hashes.SHA256(),
+        algorithm=algo,
         backend=default_backend(),
     )
 
