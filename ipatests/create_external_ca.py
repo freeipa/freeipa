@@ -33,6 +33,7 @@ ISSUER_CN = 'example.test'
 
 MAP_SIGNING_ALGORITHM = {
     'SHA256withRSA': hashes.SHA256,
+    'SHA384withRSA': hashes.SHA384,
     'SHA512withRSA': hashes.SHA512,
 }
 
