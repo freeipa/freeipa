@@ -578,6 +578,10 @@ class CAInstance(DogtagInstance):
         # CA key algorithm
         config.set("CA", "pki_ca_signing_key_algorithm", self.ca_signing_algorithm)
 
+        # CA default key size
+        config.set("CA", "pki_ca_signing_key_size",
+                   str(ipalib.constants.PKI_CA_SIGNING_KEY_SIZE))
+
         if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
                 os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
             # generate pin which we know can be used for FIPS NSS database
