@@ -370,7 +370,7 @@ class CAInstance(DogtagInstance):
             ca_subject or installutils.default_ca_subject_dn(self.subject_base)
 
         if ca_signing_algorithm is None:
-            self.ca_signing_algorithm = 'SHA256withRSA'
+            self.ca_signing_algorithm = ipalib.constants.PKI_CA_SIGNING_ALGO
         else:
             self.ca_signing_algorithm = ca_signing_algorithm
         if ca_type is not None:
