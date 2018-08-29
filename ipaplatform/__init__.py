@@ -8,4 +8,4 @@ ignore.
 """
 __import__('pkg_resources').declare_namespace(__name__)
 
-NAME = None  # initialized by IpaMetaImporter
+NAME = None  # initialized by ipaplatform.osinfo
