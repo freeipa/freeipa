@@ -32,7 +32,7 @@ import shlex
 import subprocess
 import tempfile
 from ipalib import api
-from ipalib.constants import CA_DBUS_TIMEOUT
+from ipalib.constants import CA_DBUS_TIMEOUT, PKI_CA_SIGNING_KEY_SIZE
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipaplatform import services
@@ -589,6 +589,8 @@ def resubmit_request(
         if is_ca:
             update['template-is-ca'] = True
             update['template-ca-path-length'] = -1  # no path length
+            # Force our CA signing key size
+            update['key-size'] = PKI_CA_SIGNING_KEY_SIZE
 
         if len(update) > 0:
             request.obj_if.modify(update)
