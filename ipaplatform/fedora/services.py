@@ -24,8 +24,7 @@ Contains Fedora-specific service class implementations.
 
 from __future__ import absolute_import
 
-import os
-
+from ipaplatform.osinfo import osinfo
 from ipaplatform.redhat import services as redhat_services
 
 # Mappings from service names as FreeIPA code references to these services
@@ -35,9 +34,7 @@ fedora_system_units = redhat_services.redhat_system_units.copy()
 # Fedora 28 and earlier have fedora-domainname.service. Starting from
 # Fedora 29, the service is called nis-domainname.service as defined in
 # ipaplatform.redhat.services.
-HAS_FEDORA_DOMAINNAME_SERVICE = os.path.isfile(
-    "/usr/lib/systemd/system/fedora-domainname.service"
-)
+HAS_FEDORA_DOMAINNAME_SERVICE = int(osinfo.version_id) <= 28
 
 if HAS_FEDORA_DOMAINNAME_SERVICE:
     fedora_system_units['domainname'] = 'fedora-domainname.service'
