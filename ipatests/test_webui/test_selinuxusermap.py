@@ -68,7 +68,10 @@ class test_selinuxusermap(UI_driver):
         """
         self.init_app()
         host = host_tasks()
-        host.setup(self.driver, self.config)
+        host.driver = self.driver
+        host.config = self.config
+        host.prep_data()
+        host.prep_data2()
 
         self.add_record(user.ENTITY, user.DATA)
         self.add_record(user.ENTITY, user.DATA2, navigate=False)
