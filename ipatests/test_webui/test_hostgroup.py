@@ -59,7 +59,9 @@ class test_hostgroup(UI_driver):
         """
         self.init_app()
         host = host_tasks()
-        host.setup(self.driver, self.config)
+        host.driver = self.driver
+        host.config = self.config
+        host.prep_data2()
 
         # prepare
         # -------
@@ -101,7 +103,9 @@ class test_hostgroup(UI_driver):
         """
         self.init_app()
         host = host_tasks()
-        host.setup(self.driver, self.config)
+        host.driver = self.driver
+        host.config = self.config
+        host.prep_data2()
 
         # add
         # ---
@@ -163,7 +167,8 @@ class test_hostgroup(UI_driver):
         """
         self.init_app()
         host = host_tasks()
-        host.setup(self.driver, self.config)
+        host.driver = self.driver
+        host.config = self.config
 
         self.add_record(hostgroup.ENTITY, hostgroup.DATA6)
         self.add_record(hostgroup.ENTITY, hostgroup.DATA7, navigate=False)
