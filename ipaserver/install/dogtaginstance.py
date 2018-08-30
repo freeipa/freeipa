@@ -29,12 +29,14 @@ import shutil
 import traceback
 import dbus
 
+import six
+
 from pki.client import PKIConnection
 import pki.system
 
 from ipalib import api, errors, x509
 from ipalib.install import certmonger
-from ipalib.constants import CA_DBUS_TIMEOUT
+from ipalib.constants import CA_DBUS_TIMEOUT, IPA_CA_RECORD
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -46,6 +48,14 @@ from ipaserver.install import service
 from ipaserver.install import sysupgrade
 from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
+
+# pylint: disable=import-error
+if six.PY3:
+    from configparser import DEFAULTSECT, ConfigParser, RawConfigParser
+else:
+    from ConfigParser import DEFAULTSECT, RawConfigParser
+    from ConfigParser import SafeConfigParser as ConfigParser
+# pylint: enable=import-error
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +112,10 @@ class DogtagInstance(service.Service):
         b'userdn="ldap:///uid=*,ou=people,o=ipaca";)'
     )
 
+    ipaca_default = os.path.join(
+        paths.USR_SHARE_IPA_DIR, "ipaca_default.ini"
+    )
+
     def __init__(self, realm, subsystem, service_desc, host_name=None,
                  nss_db=paths.PKI_TOMCAT_ALIAS_DIR, service_prefix=None,
                  config=None):
@@ -131,10 +145,14 @@ class DogtagInstance(service.Service):
         self.security_domain_name = "IPA"
         # replication parameters
         self.master_host = None
-        self.master_replication_port = None
+        self.master_replication_port = 389
         self.subject_base = None
         self.nss_db = nss_db
         self.config = config  # Path to CS.cfg
+
+        self.ca_subject = None
+        self.subject_base = None
+        # filled out by configure_instance
 
     def is_installed(self):
         """
@@ -515,16 +533,6 @@ class DogtagInstance(service.Service):
             self.__remove_admin_from_group(group)
         api.Backend.ldap2.delete_entry(self.admin_dn)
 
-    def _use_ldaps_during_spawn(self, config, ds_cacert=paths.IPA_CA_CRT):
-        """
-        config is a RawConfigParser object
-        cs_cacert is path to a PEM CA certificate
-        """
-        config.set(self.subsystem, "pki_ds_ldaps_port", "636")
-        config.set(self.subsystem, "pki_ds_secure_connection", "True")
-        config.set(self.subsystem, "pki_ds_secure_connection_ca_pem_file",
-                   ds_cacert)
-
     def backup_config(self):
         """
         Create a backup copy of CS.cfg
@@ -583,3 +591,98 @@ class DogtagInstance(service.Service):
             dn, exitcode
         )
         sysupgrade.set_upgrade_state('dogtag', state_name, True)
+
+    def _configure_clone(self, subsystem_config, security_domain_hostname,
+                         clone_pkcs12_path):
+        subsystem_config.update(
+            # Security domain registration
+            pki_security_domain_hostname=security_domain_hostname,
+            pki_security_domain_https_port=443,
+            pki_security_domain_user=self.admin_user,
+            pki_security_domain_password=self.admin_password,
+            # Clone
+            pki_clone=True,
+            pki_clone_pkcs12_path=clone_pkcs12_path,
+            pki_clone_pkcs12_password=self.dm_password,
+            pki_clone_replication_security="TLS",
+            pki_clone_replication_master_port=self.master_replication_port,
+            pki_clone_replication_clone_port=389,
+            pki_clone_replicate_schema=False,
+            pki_clone_uri="https://%s" % ipautil.format_netloc(
+                self.master_host, 443),
+        )
+
+    def _create_spawn_config(self, subsystem_config):
+        """Create config instance
+        """
+        defaults = dict(
+            # pretty much static
+            ipa_security_domain_name=self.security_domain_name,
+            ipa_ds_database=u"ipaca",
+            ipa_ds_base_dn=self.basedn,
+            ipa_admin_user=self.admin_user,
+            ipa_admin_nickname="ipa-ca-agent",
+            ipa_ca_pem_file=paths.IPA_CA_CRT,
+            # variable
+            ipa_ca_subject=self.ca_subject,
+            ipa_subject_base=self.subject_base,
+            ipa_fqdn=self.fqdn,
+            ipa_ocsp_uri="http://{}.{}/ca/ocsp".format(
+                IPA_CA_RECORD, ipautil.format_netloc(api.env.domain)),
+            ipa_admin_cert_p12=paths.DOGTAG_ADMIN_P12,
+            pki_admin_password=self.admin_password,
+            pki_ds_password=self.dm_password,
+            # Dogtag's pkiparser defines these config vars by default:
+            pki_dns_domainname=api.env.domain,
+            pki_hostname=self.fqdn,
+            pki_subsystem=self.subsystem.upper(),
+            pki_subsystem_type=self.subsystem.lower(),
+            home_dir=os.path.expanduser("~"),
+        )
+
+        def mangle_values(d):
+            """Stringify and quote % as %% to avoid interpolation errors
+
+            * booleans are converted to 'True', 'False'
+            * DN and numbers are converted to string
+            * None is turned into empty string ''
+            """
+            result = {}
+            for k, v in d.items():
+                if isinstance(v, (DN, bool, six.integer_types)):
+                    v = six.text_type(v)
+                elif v is None:
+                    v = ''
+                result[k] = v.replace('%', '%%')
+            return result
+
+        defaults = mangle_values(defaults)
+        subsystem_config = mangle_values(subsystem_config)
+
+        # create a config template with interpolation support
+        # read base config
+        cfgtpl = ConfigParser(defaults=defaults)
+        cfgtpl.optionxform = str
+        with open(self.ipaca_default) as f:
+            cfgtpl.readfp(f)  # pylint: disable=deprecated-method
+        # overwrite defaults with our defaults
+        for key, value in defaults.items():
+            cfgtpl.set(DEFAULTSECT, key, value)
+        # overwrite CA/KRA config with subsystem settings
+        section_name = self.subsystem.upper()
+        for key, value in subsystem_config.items():
+            cfgtpl.set(section_name, key, value)
+
+        # Next up, get rid of interpolation variables, DEFAULT,
+        # irrelevant sections and unused variables. Only the subsystem
+        # section is copied into a new raw config parser. A raw config
+        # parser is necessary, because ConfigParser.write() write passwords
+        # with '%' in a way, that is not accepted by Dogtag.
+        config = RawConfigParser()
+        config.optionxform = str
+        config.add_section(section_name)
+        for key, value in sorted(cfgtpl.items(section=section_name)):
+            if key.startswith('pki_'):
+                config.set(section_name, key, value)
+
+        return config
