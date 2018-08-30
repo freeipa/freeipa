@@ -410,6 +410,24 @@ class TestInstallMaster(IntegrationTest):
         wsgi_count = cmd.stdout_text.count('wsgi:ipa')
         assert constants.WSGI_PROCESSES == wsgi_count
 
+    def test_error_for_yubikey(self):
+        """ Test error when yubikey hardware not present
+
+        In order to work with IPA and Yubikey, libyubikey is required.
+        Before the fix, if yubikey added without having packages, it used to
+        result in traceback. Now it the exception is handeled properly.
+        It needs Yubikey hardware to make command successfull. This test
+        just check of proper error thrown when hardware is not attached.
+
+        related ticket : https://pagure.io/freeipa/issue/6979
+        """
+        # try to add yubikey to the user
+        args = ['ipa', 'otptoken-add-yubikey', '--owner=admin']
+        cmd = self.master.run_command(args, raiseonerr=False)
+        assert cmd.returncode != 0
+        exp_str = ("ipa: ERROR: No YubiKey found")
+        assert exp_str in cmd.stderr_text
+
 
 class TestInstallMasterKRA(IntegrationTest):
 
