@@ -1435,6 +1435,7 @@ fi
 # END
 %{_usr}/share/ipa/wsgi.py*
 %{_usr}/share/ipa/kdcproxy.wsgi
+%{_usr}/share/ipa/ipaca*.ini
 %{_usr}/share/ipa/*.ldif
 %{_usr}/share/ipa/*.uldif
 %{_usr}/share/ipa/*.template

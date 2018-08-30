@@ -342,7 +342,7 @@ class CAInstance(DogtagInstance):
     def configure_instance(self, host_name, dm_password, admin_password,
                            pkcs12_info=None, master_host=None, csr_file=None,
                            cert_file=None, cert_chain_file=None,
-                           master_replication_port=None,
+                           master_replication_port=389,
                            subject_base=None, ca_subject=None,
                            ca_signing_algorithm=None,
                            ca_type=None, external_ca_profile=None,
@@ -381,10 +381,7 @@ class CAInstance(DogtagInstance):
         self.ca_subject = \
             ca_subject or installutils.default_ca_subject_dn(self.subject_base)
 
-        if ca_signing_algorithm is None:
-            self.ca_signing_algorithm = 'SHA256withRSA'
-        else:
-            self.ca_signing_algorithm = ca_signing_algorithm
+        self.ca_signing_algorithm = ca_signing_algorithm
         if ca_type is not None:
             self.ca_type = ca_type
         else:
@@ -510,131 +507,46 @@ class CAInstance(DogtagInstance):
         Creates the config file with IPA specific parameters
         and passes it to the base class to call pkispawn
         """
+        cfg = dict(
+            pki_ds_secure_connection=self.use_ldaps
+        )
 
-        # Create an empty and secured file
-        (cfg_fd, cfg_file) = tempfile.mkstemp()
-        os.close(cfg_fd)
-        pent = pwd.getpwnam(self.service_user)
-
-        # Create CA configuration
-        config = RawConfigParser()
-        config.optionxform = str
-        config.add_section("CA")
-
-        # Server
-        config.set("CA", "pki_security_domain_name", self.security_domain_name)
-        config.set("CA", "pki_enable_proxy", "True")
-        config.set("CA", "pki_restart_configured_instance", "False")
-        config.set("CA", "pki_backup_keys", "True")
-        config.set("CA", "pki_backup_password", self.admin_password)
-        config.set("CA", "pki_profiles_in_ldap", "True")
-        config.set("CA", "pki_default_ocsp_uri",
-            "http://{}.{}/ca/ocsp".format(
-                ipalib.constants.IPA_CA_RECORD,
-                ipautil.format_netloc(api.env.domain)))
-
-        # Configures the status request timeout, i.e. the connect/data
-        # timeout on the HTTP request to get the status of Dogtag.
-        #
-        # This configuration is needed in "multiple IP address" scenarios
-        # where this server's hostname has multiple IP addresses but the
-        # HTTP server is only listening on one of them.  Without a timeout,
-        # if a "wrong" IP address is tried first, it will take a long time
-        # to timeout, exceeding the overall timeout hence the request will
-        # not be re-tried.  Setting a shorter timeout allows the request
-        # to be re-tried.
-        #
-        # Note that HSMs cause different behaviour so this value might
-        # not be suitable for when we implement HSM support.  It is
-        # known that a value of 5s is too short in HSM environment.
-        #
-        config.set("CA", "pki_status_request_timeout", "15")  # 15 seconds
-
-        # Client security database
-        config.set("CA", "pki_client_pkcs12_password", self.admin_password)
-
-        # Administrator
-        config.set("CA", "pki_admin_name", self.admin_user)
-        config.set("CA", "pki_admin_uid", self.admin_user)
-        config.set("CA", "pki_admin_email", "root@localhost")
-        config.set("CA", "pki_admin_password", self.admin_password)
-        config.set("CA", "pki_admin_nickname", "ipa-ca-agent")
-        config.set("CA", "pki_admin_subject_dn",
-            str(DN(('cn', 'ipa-ca-agent'), self.subject_base)))
-        config.set("CA", "pki_client_admin_cert_p12", paths.DOGTAG_ADMIN_P12)
-
-        # Directory server
-        config.set("CA", "pki_ds_ldap_port", "389")
-        config.set("CA", "pki_ds_password", self.dm_password)
-        config.set("CA", "pki_ds_base_dn", six.text_type(self.basedn))
-        config.set("CA", "pki_ds_database", "ipaca")
-
-        if self.use_ldaps:
-            self._use_ldaps_during_spawn(config)
-
-        # Certificate subject DN's
-        config.set("CA", "pki_subsystem_subject_dn",
-            str(DN(('cn', 'CA Subsystem'), self.subject_base)))
-        config.set("CA", "pki_ocsp_signing_subject_dn",
-            str(DN(('cn', 'OCSP Subsystem'), self.subject_base)))
-        config.set("CA", "pki_sslserver_subject_dn",
-            str(DN(('cn', self.fqdn), self.subject_base)))
-        config.set("CA", "pki_audit_signing_subject_dn",
-            str(DN(('cn', 'CA Audit'), self.subject_base)))
-        config.set(
-            "CA", "pki_ca_signing_subject_dn",
-            str(self.ca_subject))
-
-        # Certificate nicknames
-        config.set("CA", "pki_subsystem_nickname", "subsystemCert cert-pki-ca")
-        config.set("CA", "pki_ocsp_signing_nickname", "ocspSigningCert cert-pki-ca")
-        config.set("CA", "pki_sslserver_nickname", "Server-Cert cert-pki-ca")
-        config.set("CA", "pki_audit_signing_nickname", "auditSigningCert cert-pki-ca")
-        config.set("CA", "pki_ca_signing_nickname", "caSigningCert cert-pki-ca")
-
-        # CA key algorithm
-        config.set("CA", "pki_ca_signing_key_algorithm", self.ca_signing_algorithm)
+        if self.ca_signing_algorithm is not None:
+            cfg['ipa_ca_signing_algorithm'] = self.ca_signing_algorithm
 
         if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
                 os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
             # generate pin which we know can be used for FIPS NSS database
             pki_pin = ipautil.ipa_generate_password()
-            config.set("CA", "pki_pin", pki_pin)
+            cfg['pki_pin'] = pki_pin
         else:
             pki_pin = None
 
         if self.clone:
-
             if self.no_db_setup:
-                config.set("CA", "pki_ds_create_new_db", "False")
-                config.set("CA", "pki_clone_setup_replication", "False")
-                config.set("CA", "pki_clone_reindex_data", "True")
+                cfg.update(
+                    pki_ds_create_new_db=False,
+                    pki_clone_setup_replication=False,
+                    pki_clone_reindex_data=True,
+                )
 
             cafile = self.pkcs12_info[0]
             shutil.copy(cafile, paths.TMP_CA_P12)
             pent = pwd.getpwnam(self.service_user)
             os.chown(paths.TMP_CA_P12, pent.pw_uid, pent.pw_gid)
 
-            # Security domain registration
-            config.set("CA", "pki_security_domain_hostname", self.master_host)
-            config.set("CA", "pki_security_domain_https_port", "443")
-            config.set("CA", "pki_security_domain_user", self.admin_user)
-            config.set("CA", "pki_security_domain_password", self.admin_password)
-
-            # Clone
-            config.set("CA", "pki_clone", "True")
-            config.set("CA", "pki_clone_pkcs12_path", paths.TMP_CA_P12)
-            config.set("CA", "pki_clone_pkcs12_password", self.dm_password)
-            config.set("CA", "pki_clone_replication_security", "TLS")
-            config.set("CA", "pki_clone_replication_master_port", str(self.master_replication_port))
-            config.set("CA", "pki_clone_replication_clone_port", "389")
-            config.set("CA", "pki_clone_replicate_schema", "False")
-            config.set("CA", "pki_clone_uri", "https://%s" % ipautil.format_netloc(self.master_host, 443))
+            self._configure_clone(
+                cfg,
+                security_domain_hostname=self.master_host,
+                clone_pkcs12_path=paths.TMP_CA_P12,
+            )
 
         # External CA
         if self.external == 1:
-            config.set("CA", "pki_external", "True")
-            config.set("CA", "pki_external_csr_path", self.csr_file)
+            cfg.update(
+                pki_external=True,
+                pki_ca_signing_csr_path=self.csr_file,
+            )
 
             if self.ca_type == ExternalCAType.MS_CS.value:
                 # Include MS template name extension in the CSR
@@ -644,11 +556,12 @@ class CAInstance(DogtagInstance):
                     template = MSCSTemplateV1(u"SubCA")
 
                 ext_data = binascii.hexlify(template.get_ext_data())
-                config.set("CA", "pki_req_ext_add", "True")
-                config.set("CA", "pki_req_ext_oid", template.ext_oid)
-                config.set("CA", "pki_req_ext_critical", "False")
-                config.set("CA", "pki_req_ext_data", ext_data.decode('ascii'))
-
+                cfg.update(
+                    pki_req_ext_add=True,
+                    pki_req_ext_oid=template.ext_oid,
+                    pki_req_ext_critical=False,
+                    pki_req_ext_data=ext_data.decode('ascii'),
+                )
         elif self.external == 2:
             cert_file = tempfile.NamedTemporaryFile()
             with open(self.cert_file, 'rb') as f:
@@ -669,28 +582,26 @@ class CAInstance(DogtagInstance):
                 cert_chain, re.DOTALL).group(0)
             cert_chain_file = ipautil.write_tmp_file(cert_chain)
 
-            config.set("CA", "pki_external", "True")
-            config.set("CA", "pki_external_ca_cert_path", cert_file.name)
-            config.set("CA", "pki_external_ca_cert_chain_path", cert_chain_file.name)
-            config.set("CA", "pki_external_step_two", "True")
-
-        # Generate configuration file
-        with open(cfg_file, "w") as f:
-            config.write(f)
-
-        # Finally chown the config file (rhbz#1677027)
-        os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
-
-        self.backup_state('installed', True)
-        try:
-            DogtagInstance.spawn_instance(
-                self, cfg_file,
-                nolog_list=(self.dm_password,
-                            self.admin_password,
-                            pki_pin)
+            cfg.update(
+                pki_external=True,
+                pki_ca_signing_cert_path=cert_file.name,
+                pki_cert_chain_path=cert_chain_file.name,
+                pki_external_step_two=True,
             )
-        finally:
-            os.remove(cfg_file)
+
+        config = self._create_spawn_config(cfg)
+        pent = pwd.getpwnam(self.service_user)
+        with tempfile.NamedTemporaryFile('w') as f:
+            config.write(f)
+            f.flush()
+            os.fchown(f.fileno(), pent.pw_uid, pent.pw_gid)
+
+            self.backup_state('installed', True)
+
+            DogtagInstance.spawn_instance(
+                self, f.name,
+                nolog_list=(self.dm_password, self.admin_password, pki_pin)
+            )
 
         if self.external == 1:
             print("The next step is to get %s signed by your CA and re-run %s as:" % (self.csr_file, sys.argv[0]))
