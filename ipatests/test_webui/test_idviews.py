@@ -96,7 +96,9 @@ class test_idviews(UI_driver):
         """
         self.init_app()
         host = host_tasks()
-        host.setup(self.driver, self.config)
+        host.driver = self.driver
+        host.config = self.config
+        host.prep_data()
 
         self.add_record(HOST_ENTITY, host.data)
         self.add_record(hostgroup.ENTITY, hostgroup.DATA)

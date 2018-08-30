@@ -53,7 +53,10 @@ class test_sudo(UI_driver):
         """
         self.init_app()
         host = host_tasks()
-        host.setup(self.driver, self.config)
+        host.driver = self.driver
+        host.config = self.config
+        host.prep_data()
+        host.prep_data2()
 
         self.add_record(netgroup.ENTITY, netgroup.DATA2)
 

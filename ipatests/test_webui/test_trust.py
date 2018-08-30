@@ -124,7 +124,8 @@ class test_trust(trust_tasks):
         self.init_app()
 
         r_tasks = range_tasks()
-        r_tasks.setup(self.driver, self.config)
+        r_tasks.driver = self.driver
+        r_tasks.config = self.config
         r_tasks.get_shifts()
         range_add = r_tasks.get_add_data('')
         base_id = range_add[2][2]
