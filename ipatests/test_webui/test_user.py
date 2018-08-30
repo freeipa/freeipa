@@ -419,7 +419,10 @@ class test_user(user_tasks):
 
     @screenshot
     def test_login_without_username(self):
-
+        """
+        Try to login with no username provided
+        """
+        self.driver.delete_all_cookies()
         self.init_app(login='', password='xxx123')
 
         alert_e = self.find('.alert[data-name="username"]',
