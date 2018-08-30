@@ -16,6 +16,7 @@ import textwrap
 import time
 import paramiko
 import pytest
+from subprocess import CalledProcessError
 
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509
@@ -29,6 +30,7 @@ from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname
 
 from ipatests.test_integration.base import IntegrationTest
+
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.tasks import tasks as platform_tasks
 from ipatests.create_external_ca import ExternalCA
@@ -229,17 +231,18 @@ class TestIPACommand(IntegrationTest):
 
         base_dn = str(master.domain.basedn)
         entry_ldif = textwrap.dedent("""
-            dn: uid=system,cn=sysaccounts,cn=etc,{base_dn}
+            dn: uid={sysuser},cn=sysaccounts,cn=etc,{base_dn}
             changetype: add
             objectclass: account
             objectclass: simplesecurityobject
-            uid: system
+            uid: {sysuser}
             userPassword: {original_passwd}
             passwordExpirationTime: 20380119031407Z
             nsIdleTimeout: 0
         """).format(
             base_dn=base_dn,
-            original_passwd=original_passwd)
+            original_passwd=original_passwd,
+            sysuser=sysuser)
         tasks.ldapmodify_dm(master, entry_ldif)
 
         tasks.ldappasswd_sysaccount_change(sysuser, original_passwd,
@@ -330,6 +333,88 @@ class TestIPACommand(IntegrationTest):
         newkrblastpwdchange2, newkrbexp2 = self.get_krbinfo(user)
         assert newkrblastpwdchange != newkrblastpwdchange2
         assert newkrbexp != newkrbexp2
+
+    def test_change_sysaccount_password_issue7181(self):
+        """
+        Test how a password change performed by a cn=Directory Manager
+        works against a non-Kerberos account with a policy preventing
+        re-use of previously used passwords
+        """
+        sysuser = 'forcedpolicy'
+        policy_group = 'forcedpolicy'
+        original_passwd = 'Secret123'
+        new_passwd = 'userPasswd123'
+
+        master = self.master
+
+        # Add a group with a custom password policy
+        tasks.kinit_admin(self.master)
+        result = master.run_command(
+            ["ipa", "group-add", policy_group]
+        )
+        assert 'Added group "{}"'.format(policy_group) in result.stdout_text
+
+        result = master.run_command(
+            ["ipa", "pwpolicy-add", policy_group,
+                "--history=5", "--priority=1"],
+        )
+        assert 'History size: 5' in result.stdout_text
+
+        # Add a system account and add it to a group managed by the policy
+        base_dn = str(master.domain.basedn)  # pylint: disable=no-member
+        entry_ldif = textwrap.dedent("""
+            dn: uid={account_name},cn=sysaccounts,cn=etc,{base_dn}
+            changetype: add
+            objectclass: account
+            objectclass: simplesecurityobject
+            objectclass: nsMemberOf
+            objectclass: krbPrincipalAux
+            uid: {account_name}
+            userPassword: {original_passwd}
+            passwordExpirationTime: 20380119031407Z
+            nsIdleTimeout: 0
+            memberOf: cn={group_name},cn=groups,cn=accounts,{base_dn}
+        """).format(
+            account_name=sysuser,
+            group_name=policy_group,
+            base_dn=base_dn,
+            original_passwd=original_passwd)
+
+        tasks.ldapmodify_dm(master, entry_ldif)
+
+        # For an LDAP object not managed by IPA we have to use
+        # --addattr to add it as a member of a group
+        value = "member=uid={account_name},cn=sysaccounts,cn=etc,{base_dn}"
+        result = master.run_command(
+            ["ipa", "group-mod", policy_group,
+                "--addattr={value}".format(
+                    value=value.format(
+                        account_name=sysuser,
+                        base_dn=base_dn
+                    )
+                )],
+        )
+        assert 'Modified group "{}"'.format(policy_group) in result.stdout_text
+
+        # Now try to change password thrice:
+        # as a user, as a cn=Directory Manager, and as a user again
+        # If ticket 7181 is not fixed, the second change will fail
+        # Third one must fail as we are reusing the password as non-DM
+        tasks.ldappasswd_sysaccount_change(sysuser, original_passwd,
+                                           new_passwd, master,
+                                           use_dirman=False)
+        tasks.ldappasswd_sysaccount_change(sysuser, new_passwd,
+                                           new_passwd, master,
+                                           use_dirman=True)
+        try:
+            tasks.ldappasswd_sysaccount_change(sysuser, new_passwd,
+                                               original_passwd, master,
+                                               use_dirman=False)
+        except CalledProcessError as e:
+            if e.returncode != 1:
+                raise
+        else:
+            pytest.fail("Password change violating policy did not fail")
 
     def test_change_selinuxusermaporder(self):
         """
