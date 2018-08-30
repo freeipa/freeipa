@@ -2126,6 +2126,16 @@ def install_check(options):
         logger.warning("Option 'force-join' has no additional effect "
                        "when used with together with option 'keytab'.")
 
+    # Remove invalid keytab file
+    try:
+        gssapi.Credentials(
+            store={'keytab': paths.KRB5_KEYTAB},
+            usage='accept',
+        )
+    except gssapi.exceptions.GSSError:
+        logger.debug("Deleting invalid keytab: '%s'.", paths.KRB5_KEYTAB)
+        remove_file(paths.KRB5_KEYTAB)
+
     # Check if old certificate exist and show warning
     if (
         not options.ca_cert_file and
