@@ -21,3 +21,15 @@ ipa_otpd_SOURCES = bind.c forward.c main.c parse.c query.c queue.c stdio.c
 	     $< > $@
 
 CLEANFILES = $(systemdsystemunit_DATA)
+
+TESTS =
+check_PROGRAMS =
+
+if HAVE_CMOCKA
+TESTS += queue_tests
+check_PROGRAMS += queue_tests
+endif
+
+queue_tests_SOURCES = ipa_otpd_queue_cmocka_tests.c queue.c
+queue_tests_CFLAGS = $(CMOCKA_CFLAGS)
+queue_tests_LDADD = $(CMOCKA_LIBS)
