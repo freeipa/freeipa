@@ -25,7 +25,6 @@ import pwd
 import shutil
 import tempfile
 import base64
-from configparser import RawConfigParser
 
 from ipalib import api
 from ipalib import x509
@@ -159,93 +158,25 @@ class KRAInstance(DogtagInstance):
         (admin_p12_fd, admin_p12_file) = tempfile.mkstemp()
         os.close(admin_p12_fd)
 
-        # Create KRA configuration
-        config = RawConfigParser()
-        config.optionxform = str
-        config.add_section("KRA")
-
-        # Security Domain Authentication
-        config.set("KRA", "pki_security_domain_https_port", "443")
-        config.set("KRA", "pki_security_domain_password", self.admin_password)
-        config.set("KRA", "pki_security_domain_user", self.admin_user)
-
-        # issuing ca
-        config.set("KRA", "pki_issuing_ca_uri", "https://%s" %
-                   ipautil.format_netloc(self.fqdn, 443))
-
-        # Server
-        config.set("KRA", "pki_enable_proxy", "True")
-        config.set("KRA", "pki_restart_configured_instance", "False")
-        config.set("KRA", "pki_backup_keys", "True")
-        config.set("KRA", "pki_backup_password", self.admin_password)
-
-        # Client security database
-        config.set("KRA", "pki_client_database_dir", self.tmp_agent_db)
-        config.set("KRA", "pki_client_database_password", tmp_agent_pwd)
-        config.set("KRA", "pki_client_database_purge", "True")
-        config.set("KRA", "pki_client_pkcs12_password", self.admin_password)
-
-        # Administrator
-        config.set("KRA", "pki_admin_name", self.admin_user)
-        config.set("KRA", "pki_admin_uid", self.admin_user)
-        config.set("KRA", "pki_admin_email", "root@localhost")
-        config.set("KRA", "pki_admin_password", self.admin_password)
-        config.set("KRA", "pki_admin_nickname", "ipa-ca-agent")
-        config.set("KRA", "pki_admin_subject_dn",
-                   str(DN(('cn', 'ipa-ca-agent'), self.subject_base)))
-        config.set("KRA", "pki_import_admin_cert", "False")
-        config.set("KRA", "pki_client_admin_cert_p12", admin_p12_file)
-
-        # Directory server
-        config.set("KRA", "pki_ds_ldap_port", "389")
-        config.set("KRA", "pki_ds_password", self.dm_password)
-        config.set("KRA", "pki_ds_base_dn", str(self.basedn))
-        config.set("KRA", "pki_ds_database", "ipaca")
-        config.set("KRA", "pki_ds_create_new_db", "False")
-
-        self._use_ldaps_during_spawn(config)
-
-        # Certificate subject DNs
-        config.set("KRA", "pki_subsystem_subject_dn",
-                   str(DN(('cn', 'CA Subsystem'), self.subject_base)))
-        config.set("KRA", "pki_sslserver_subject_dn",
-                   str(DN(('cn', self.fqdn), self.subject_base)))
-        config.set("KRA", "pki_audit_signing_subject_dn",
-                   str(DN(('cn', 'KRA Audit'), self.subject_base)))
-        config.set(
-            "KRA", "pki_transport_subject_dn",
-            str(DN(('cn', 'KRA Transport Certificate'), self.subject_base)))
-        config.set(
-            "KRA", "pki_storage_subject_dn",
-            str(DN(('cn', 'KRA Storage Certificate'), self.subject_base)))
-
-        # Certificate nicknames
-        # Note that both the server certs and subsystem certs reuse
-        # the ca certs.
-        config.set("KRA", "pki_subsystem_nickname",
-                   "subsystemCert cert-pki-ca")
-        config.set("KRA", "pki_sslserver_nickname",
-                   "Server-Cert cert-pki-ca")
-        config.set("KRA", "pki_audit_signing_nickname",
-                   "auditSigningCert cert-pki-kra")
-        config.set("KRA", "pki_transport_nickname",
-                   "transportCert cert-pki-kra")
-        config.set("KRA", "pki_storage_nickname",
-                   "storageCert cert-pki-kra")
-
-        # Shared db settings
-        # Needed because CA and KRA share the same database
-        # We will use the dbuser created for the CA
-        config.set("KRA", "pki_share_db", "True")
-        config.set(
-            "KRA", "pki_share_dbuser_dn",
-            str(DN(('uid', 'pkidbuser'), ('ou', 'people'), ('o', 'ipaca'))))
+        cfg = dict(
+            pki_issuing_ca_uri="https://{}".format(
+                ipautil.format_netloc(self.fqdn, 443)),
+            # Client security database
+            pki_client_database_dir=self.tmp_agent_db,
+            pki_client_database_password=tmp_agent_pwd,
+            pki_client_database_purge=True,
+            pki_client_pkcs12_password=self.admin_password,
+            pki_import_admin_cert=False,
+            pki_client_admin_cert_p12=admin_p12_file,
+            pki_ds_secure_connection=True,  # always LDAPS
+            pki_ds_create_new_db=False,
+        )
 
         if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
                 os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
             # generate pin which we know can be used for FIPS NSS database
             pki_pin = ipautil.ipa_generate_password()
-            config.set("KRA", "pki_pin", pki_pin)
+            cfg['pki_pin'] = pki_pin
         else:
             pki_pin = None
 
@@ -257,21 +188,14 @@ class KRAInstance(DogtagInstance):
             pent = pwd.getpwnam(self.service_user)
             os.chown(p12_tmpfile_name, pent.pw_uid, pent.pw_gid)
 
-            # Security domain registration
-            config.set("KRA", "pki_security_domain_hostname", self.fqdn)
-            config.set("KRA", "pki_security_domain_https_port", "443")
-            config.set("KRA", "pki_security_domain_user", self.admin_user)
-            config.set("KRA", "pki_security_domain_password",
-                       self.admin_password)
-
-            # Clone
-            config.set("KRA", "pki_clone", "True")
-            config.set("KRA", "pki_clone_pkcs12_path", p12_tmpfile_name)
-            config.set("KRA", "pki_clone_pkcs12_password", self.dm_password)
-            config.set("KRA", "pki_clone_setup_replication", "False")
-            config.set(
-                "KRA", "pki_clone_uri",
-                "https://%s" % ipautil.format_netloc(self.master_host, 443))
+            self._configure_clone(
+                cfg,
+                security_domain_hostname=self.fqdn,
+                clone_pkcs12_path=p12_tmpfile_name,
+            )
+            cfg.update(
+                pki_clone_setup_replication=False,
+            )
         else:
             # the admin cert file is needed for the first instance of KRA
             cert = self.get_admin_cert()
@@ -285,6 +209,7 @@ class KRAInstance(DogtagInstance):
                 )
 
         # Generate configuration file
+        config = self._create_spawn_config(cfg)
         with open(cfg_file, "w") as f:
             config.write(f)
 
