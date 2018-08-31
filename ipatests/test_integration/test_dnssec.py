@@ -550,3 +550,47 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             self.master.ip, example3_test_zone, timeout=200
         ), ("Zone %s is not signed (master)"
             % example3_test_zone)
+
+
+class TestInstallNoDnssecValidation(IntegrationTest):
+    """test installation of the master with
+    --no-dnssec-validation
+
+    Test for issue 7666: ipa-server-install --setup-dns is failing
+    if using --no-dnssec-validation and --forwarder, when the
+    specified forwarder does not support DNSSEC.
+    The forwarder should not be checked for DNSSEC support when
+    --no-dnssec-validation argument is specified.
+    In order to reproduce the conditions, the test is using a dummy
+    IP address for the forwarder (i.e. there is no BIND service available
+    at this IP address). To make sure of that, the test is using the IP of
+    a replica (that is not yet setup).
+    """
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        cls.install_args = [
+            'ipa-server-install',
+            '-n', cls.master.domain.name,
+            '-r', cls.master.domain.realm,
+            '-p', cls.master.config.dirman_password,
+            '-a', cls.master.config.admin_password,
+            '-U',
+            '--setup-dns',
+            '--forwarder', cls.replicas[0].ip,
+            '--auto-reverse'
+        ]
+
+    def test_install_withDnssecValidation(self):
+        cmd = self.master.run_command(self.install_args, raiseonerr=False)
+        # The installer checks that the forwarder supports DNSSEC
+        # but the forwarder does not answer => expect failure
+        assert cmd.returncode != 0
+
+    def test_install_noDnssecValidation(self):
+        # With the --no-dnssec-validation, the installer does not check
+        # whether the forwarder supports DNSSEC => success even if the
+        # forwarder is not reachable
+        self.master.run_command(
+            self.install_args + ['--no-dnssec-validation'])
