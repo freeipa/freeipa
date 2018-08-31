@@ -292,8 +292,8 @@ def install_check(standalone, api, replica, options, hostname):
 
     # test DNSSEC forwarders
     if options.forwarders:
-        if (not bindinstance.check_forwarders(options.forwarders)
-                and not options.no_dnssec_validation):
+        if not options.no_dnssec_validation \
+                and not bindinstance.check_forwarders(options.forwarders):
             options.no_dnssec_validation = True
             print("WARNING: DNSSEC validation will be disabled")
 
