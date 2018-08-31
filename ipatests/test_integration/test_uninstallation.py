@@ -115,9 +115,5 @@ class TestUninstallBase(IntegrationTest):
             ])
 
             self.master.run_command([
-                paths.REMOVE_DS_PL,
-                '-i', instance_name
-            ])
-            self.master.run_command([
                 paths.DSCTL, serverid, 'remove', '--doit'
             ])
