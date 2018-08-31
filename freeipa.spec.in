@@ -329,6 +329,7 @@ Requires: python2-ipaserver = %{version}-%{release}
 Requires: python2-ldap >= %{python_ldap_version}
 %endif
 Requires: 389-ds-base >= %{ds_version}
+Requires: 389-ds-base-legacy-tools >= %{ds_version}
 Requires: openldap-clients > 2.4.35-4
 Requires: nss >= %{nss_version}
 Requires: nss-tools >= %{nss_version}
