@@ -306,6 +306,7 @@ class CAInstance(DogtagInstance):
         self.csr_file = None
         self.cert_file = None
         self.cert_chain_file = None
+        self.basedn = DN(('o', 'ipaca'))
 
         if realm is not None:
             self.canickname = get_ca_nickname(realm)
@@ -327,7 +328,8 @@ class CAInstance(DogtagInstance):
                            ca_signing_algorithm=None,
                            ca_type=None, external_ca_profile=None,
                            ra_p12=None, ra_only=False,
-                           promote=False, use_ldaps=False):
+                           promote=False, use_ldaps=False,
+                           pki_config_override=None):
         """Create a CA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -370,6 +372,7 @@ class CAInstance(DogtagInstance):
 
         self.no_db_setup = promote
         self.use_ldaps = use_ldaps
+        self.pki_config_override = pki_config_override
 
         # Determine if we are installing as an externally-signed CA and
         # what stage we're in.
@@ -569,6 +572,8 @@ class CAInstance(DogtagInstance):
                 pki_external_step_two=True,
             )
 
+        nolog_list = [self.dm_password, self.admin_password, pki_pin]
+
         config = self._create_spawn_config(cfg)
         pent = pwd.getpwnam(self.service_user)
         with tempfile.NamedTemporaryFile('w') as f:
@@ -580,7 +585,7 @@ class CAInstance(DogtagInstance):
 
             DogtagInstance.spawn_instance(
                 self, f.name,
-                nolog_list=(self.dm_password, self.admin_password, pki_pin)
+                nolog_list=nolog_list
             )
 
         if self.external == 1:

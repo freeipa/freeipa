@@ -96,6 +96,8 @@ dist_app_DATA =				\
 	ipa-rewrite.conf.template	\
 	min-ssf.ldif			\
 	ipaca_default.ini		\
+	ipaca_customize.ini		\
+	ipaca_softhsm2.ini		\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy
