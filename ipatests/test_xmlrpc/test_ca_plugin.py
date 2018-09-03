@@ -97,6 +97,13 @@ class TestCAbasicCRUD(XMLRPC_test):
     def test_retrieve_all(self, crud_subca):
         crud_subca.retrieve(all=True)
 
+    def test_export_ca(self, tmpdir, crud_subca):
+        exported_ca = tmpdir.join('exported_ca')
+        command = crud_subca.make_retrieve_command(
+            certificate_out=u'%s' % exported_ca,
+        )
+        command()
+
     def test_delete(self, crud_subca):
         crud_subca.delete()
 
