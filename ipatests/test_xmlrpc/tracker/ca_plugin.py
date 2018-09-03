@@ -91,9 +91,10 @@ class CATracker(Tracker):
             result=dict(failed=[])
         ), result)
 
-    def make_retrieve_command(self, all=False, raw=False):
+    def make_retrieve_command(self, all=False, raw=False, **options):
         """Make function that retrieves the entry using ${CMD}_show"""
-        return self.make_command('ca_show', self.name, all=all, raw=raw)
+        return self.make_command('ca_show', self.name, all=all, raw=raw,
+                                 **options)
 
     def check_retrieve(self, result, all=False, raw=False):
         """Check the plugin's `show` command result"""
