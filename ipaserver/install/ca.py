@@ -336,22 +336,25 @@ def install_step_0(standalone, replica_config, options, custodia):
     ca = cainstance.CAInstance(
         realm=realm_name, host_name=host_name, custodia=custodia
     )
-    ca.configure_instance(host_name, dm_password, dm_password,
-                          subject_base=subject_base,
-                          ca_subject=ca_subject,
-                          ca_signing_algorithm=ca_signing_algorithm,
-                          ca_type=ca_type,
-                          external_ca_profile=external_ca_profile,
-                          csr_file=csr_file,
-                          cert_file=cert_file,
-                          cert_chain_file=cert_chain_file,
-                          pkcs12_info=pkcs12_info,
-                          master_host=master_host,
-                          master_replication_port=master_replication_port,
-                          ra_p12=ra_p12,
-                          ra_only=ra_only,
-                          promote=promote,
-                          use_ldaps=use_ldaps)
+    ca.configure_instance(
+        host_name, dm_password, dm_password,
+        subject_base=subject_base,
+        ca_subject=ca_subject,
+        ca_signing_algorithm=ca_signing_algorithm,
+        ca_type=ca_type,
+        external_ca_profile=external_ca_profile,
+        csr_file=csr_file,
+        cert_file=cert_file,
+        cert_chain_file=cert_chain_file,
+        pkcs12_info=pkcs12_info,
+        master_host=master_host,
+        master_replication_port=master_replication_port,
+        ra_p12=ra_p12,
+        ra_only=ra_only,
+        promote=promote,
+        use_ldaps=use_ldaps,
+        pki_config_override=options.pki_config_override,
+    )
 
 
 def install_step_1(standalone, replica_config, options, custodia):

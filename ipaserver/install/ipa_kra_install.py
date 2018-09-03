@@ -75,6 +75,11 @@ class KRAInstall(admintool.AdminTool):
             dest="uninstall", action="store_true", default=False,
             help=SUPPRESS_HELP)
 
+        parser.add_option(
+            "--pki-config-override", dest="pki_config_override",
+            default=None,
+            help="Path to ini file with config overrides.")
+
     def validate_options(self, needs_root=True):
         super(KRAInstall, self).validate_options(needs_root=True)
 
