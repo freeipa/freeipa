@@ -77,7 +77,7 @@ class KRAInstance(DogtagInstance):
     def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, pkcs12_info=None, master_host=None,
                            subject_base=None, subject=None,
-                           promote=False):
+                           promote=False, pki_config_override=None):
         """Create a KRA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -90,6 +90,7 @@ class KRAInstance(DogtagInstance):
         if self.pkcs12_info is not None or promote:
             self.clone = True
         self.master_host = master_host
+        self.pki_config_override = pki_config_override
 
         self.subject_base = \
             subject_base or installutils.default_subject_base(realm_name)
@@ -213,13 +214,14 @@ class KRAInstance(DogtagInstance):
         with open(cfg_file, "w") as f:
             config.write(f)
 
+        nolog_list = [
+            self.dm_password, self.admin_password, pki_pin, tmp_agent_pwd
+        ]
+
         try:
             DogtagInstance.spawn_instance(
                 self, cfg_file,
-                nolog_list=(self.dm_password,
-                            self.admin_password,
-                            pki_pin,
-                            tmp_agent_pwd)
+                nolog_list=nolog_list
             )
         finally:
             os.remove(p12_tmpfile_name)
