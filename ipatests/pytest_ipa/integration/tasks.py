@@ -39,7 +39,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
 
-
+from ipapython import certdb
 from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
@@ -1478,6 +1478,32 @@ def run_certutil(host, args, reqdir, dbtype=None,
     new_args.extend(args)
     return host.run_command(new_args, raiseonerr=raiseonerr,
                             stdin_text=stdin)
+
+
+def certutil_certs_keys(host, reqdir, pwd_file, token_name=None):
+    """Run certutils and get mappings of cert and key files
+    """
+    base_args = ['-f', pwd_file]
+    if token_name is not None:
+        base_args.extend(['-h', token_name])
+    cert_args = base_args + ['-L']
+    key_args = base_args + ['-K']
+
+    result = run_certutil(host, cert_args, reqdir)
+    certs = {}
+    for line in result.stdout_text.splitlines():
+        mo = certdb.CERT_RE.match(line)
+        if mo:
+            certs[mo.group('nick')] = mo.group('flags')
+
+    result = run_certutil(host, key_args, reqdir)
+    assert 'orphan' not in result.stdout_text
+    keys = {}
+    for line in result.stdout_text.splitlines():
+        mo = certdb.KEY_RE.match(line)
+        if mo:
+            keys[mo.group('nick')] = mo.group('keyid')
+    return certs, keys
 
 
 def upload_temp_contents(host, contents, encoding='utf-8'):

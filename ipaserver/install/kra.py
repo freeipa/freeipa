@@ -87,11 +87,14 @@ def install(api, replica_config, options, custodia):
         promote = True
 
     kra = krainstance.KRAInstance(realm_name)
-    kra.configure_instance(realm_name, host_name, dm_password, dm_password,
-                           subject_base=subject_base,
-                           pkcs12_info=pkcs12_info,
-                           master_host=master_host,
-                           promote=promote)
+    kra.configure_instance(
+        realm_name, host_name, dm_password, dm_password,
+        subject_base=subject_base,
+        pkcs12_info=pkcs12_info,
+        master_host=master_host,
+        promote=promote,
+        pki_config_override=options.pki_config_override,
+    )
 
     _service.print_msg("Restarting the directory server")
     ds = dsinstance.DsInstance()

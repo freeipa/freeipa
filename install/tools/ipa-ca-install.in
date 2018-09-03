@@ -86,6 +86,7 @@ def parse_options():
                       type="choice", choices=ca_algos,
                       metavar="{{{0}}}".format(",".join(ca_algos)),
                       help="Signing algorithm of the IPA CA certificate")
+
     parser.add_option("-P", "--principal", dest="principal", sensitive=True,
                       default=None, help="User allowed to manage replicas")
     parser.add_option("--subject-base", dest="subject_base",
@@ -100,6 +101,10 @@ def parse_options():
                           "The CA certificate subject DN "
                           "(default CN=Certificate Authority,O=<realm-name>). "
                           "RDNs are in LDAP order (most specific RDN first)."))
+
+    parser.add_option("--pki-config-override", dest="pki_config_override",
+                      default=None,
+                      help="Path to ini file with config overrides.")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)

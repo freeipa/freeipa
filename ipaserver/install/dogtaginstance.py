@@ -29,6 +29,8 @@ import shutil
 import traceback
 import dbus
 
+from configparser import DEFAULTSECT, ConfigParser, RawConfigParser
+
 import six
 
 from pki.client import PKIConnection
@@ -49,13 +51,7 @@ from ipaserver.install import sysupgrade
 from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
 
-# pylint: disable=import-error
-if six.PY3:
-    from configparser import DEFAULTSECT, ConfigParser, RawConfigParser
-else:
-    from ConfigParser import DEFAULTSECT, RawConfigParser
-    from ConfigParser import SafeConfigParser as ConfigParser
-# pylint: enable=import-error
+
 
 logger = logging.getLogger(__name__)
 
@@ -112,10 +108,6 @@ class DogtagInstance(service.Service):
         b'userdn="ldap:///uid=*,ou=people,o=ipaca";)'
     )
 
-    ipaca_default = os.path.join(
-        paths.USR_SHARE_IPA_DIR, "ipaca_default.ini"
-    )
-
     def __init__(self, realm, subsystem, service_desc, host_name=None,
                  nss_db=paths.PKI_TOMCAT_ALIAS_DIR, service_prefix=None,
                  config=None):
@@ -134,7 +126,7 @@ class DogtagInstance(service.Service):
         self.pkcs12_info = None
         self.clone = False
 
-        self.basedn = DN(('o', 'ipaca'))
+        self.basedn = None
         self.admin_user = "admin"
         self.admin_dn = DN(
             ('uid', self.admin_user), self.ipaca_people
@@ -142,7 +134,6 @@ class DogtagInstance(service.Service):
         self.admin_groups = None
         self.tmp_agent_db = None
         self.subsystem = subsystem
-        self.security_domain_name = "IPA"
         # replication parameters
         self.master_host = None
         self.master_replication_port = 389
@@ -150,9 +141,10 @@ class DogtagInstance(service.Service):
         self.nss_db = nss_db
         self.config = config  # Path to CS.cfg
 
+        # filled out by configure_instance
+        self.pki_config_override = None
         self.ca_subject = None
         self.subject_base = None
-        # filled out by configure_instance
 
     def is_installed(self):
         """
@@ -213,7 +205,6 @@ class DogtagInstance(service.Service):
         """
         Enable client auth connection to the internal db.
         """
-
         with stopped_service('pki-tomcatd', 'pki-tomcat'):
             directivesetter.set_directive(
                 self.config,
@@ -613,65 +604,159 @@ class DogtagInstance(service.Service):
         )
 
     def _create_spawn_config(self, subsystem_config):
-        """Create config instance
-        """
-        defaults = dict(
+        loader = PKIIniLoader(
+            subsystem=self.subsystem,
+            fqdn=self.fqdn,
+            domain=api.env.domain,
+            basedn=self.basedn,  # o=ipaca / o=kra,o=ipaca
+            subject_base=self.subject_base,
+            ca_subject=self.ca_subject,
+            admin_user=self.admin_user,
+            admin_password=self.admin_password,
+            dm_password=self.dm_password,
+            pki_config_override=self.pki_config_override
+        )
+        return loader.create_spawn_config(subsystem_config)
+
+
+class PKIIniLoader:
+    ipaca_default = os.path.join(
+        paths.USR_SHARE_IPA_DIR, 'ipaca_default.ini'
+    )
+    ipaca_customize = os.path.join(
+        paths.USR_SHARE_IPA_DIR, 'ipaca_customize.ini'
+    )
+
+    security_domain_name = 'IPA'
+    ipaca_database = 'ipaca'
+    admin_nickname = 'ipa-ca-agent'
+    token_stanzas = [
+        'pki_audit_signing_token',
+        'pki_subsystem_token',
+        'pki_ca_signing_token',
+        'pki_ocsp_signing_token',
+        'pki_storage_token',
+        'pki_transport_token',
+    ]
+
+    def __init__(self, subsystem, fqdn, domain, basedn,
+                 subject_base, ca_subject, admin_user, admin_password,
+                 dm_password, pki_config_override=None):
+        self.pki_config_override = pki_config_override
+        self.defaults = dict(
             # pretty much static
             ipa_security_domain_name=self.security_domain_name,
-            ipa_ds_database=u"ipaca",
-            ipa_ds_base_dn=self.basedn,
-            ipa_admin_user=self.admin_user,
-            ipa_admin_nickname="ipa-ca-agent",
+            ipa_ds_database=self.ipaca_database,
+            ipa_ds_base_dn=basedn,
+            ipa_admin_nickname=self.admin_nickname,
             ipa_ca_pem_file=paths.IPA_CA_CRT,
             # variable
-            ipa_ca_subject=self.ca_subject,
-            ipa_subject_base=self.subject_base,
-            ipa_fqdn=self.fqdn,
+            ipa_ca_subject=ca_subject,
+            ipa_subject_base=subject_base,
+            ipa_fqdn=fqdn,
             ipa_ocsp_uri="http://{}.{}/ca/ocsp".format(
-                IPA_CA_RECORD, ipautil.format_netloc(api.env.domain)),
+                IPA_CA_RECORD, ipautil.format_netloc(domain)),
             ipa_admin_cert_p12=paths.DOGTAG_ADMIN_P12,
-            pki_admin_password=self.admin_password,
-            pki_ds_password=self.dm_password,
+            ipa_admin_user=admin_user,
+            pki_admin_password=admin_password,
+            pki_ds_password=dm_password,
             # Dogtag's pkiparser defines these config vars by default:
-            pki_dns_domainname=api.env.domain,
-            pki_hostname=self.fqdn,
-            pki_subsystem=self.subsystem.upper(),
-            pki_subsystem_type=self.subsystem.lower(),
+            pki_dns_domainname=domain,
+            pki_hostname=fqdn,
+            pki_subsystem=subsystem.upper(),
+            pki_subsystem_type=subsystem.lower(),
             home_dir=os.path.expanduser("~"),
+            # for softhsm2 testing
+            softhsm2_so=paths.LIBSOFTHSM2_SO
         )
 
-        def mangle_values(d):
-            """Stringify and quote % as %% to avoid interpolation errors
+    def _mangle_values(self, dct):
+        """Stringify and quote % as %% to avoid interpolation errors
 
-            * booleans are converted to 'True', 'False'
-            * DN and numbers are converted to string
-            * None is turned into empty string ''
-            """
-            result = {}
-            for k, v in d.items():
-                if isinstance(v, (DN, bool, six.integer_types)):
-                    v = six.text_type(v)
-                elif v is None:
-                    v = ''
-                result[k] = v.replace('%', '%%')
-            return result
+        * booleans are converted to 'True', 'False'
+        * DN and numbers are converted to string
+        * None is turned into empty string ''
+        """
+        result = {}
+        for k, v in dct.items():
+            if isinstance(v, (DN, bool, six.integer_types)):
+                v = six.text_type(v)
+            elif v is None:
+                v = ''
+            result[k] = v.replace('%', '%%')
+        return result
 
-        defaults = mangle_values(defaults)
-        subsystem_config = mangle_values(subsystem_config)
+    def _verify_immutable(self, config, immutable_settings, filename):
+        section_name = self.defaults['pki_subsystem']
+        errors = []
+        for key, isvalue in sorted(immutable_settings.items()):
+            cfgvalue = config.get(section_name, key)
+            if isvalue != cfgvalue:
+                errors.append(f"{key}: '{cfgvalue}' != '{isvalue}'")
+        if errors:
+            raise ValueError(
+                '{} overrides immutable options:\n{}'.format(
+                    filename, '\n'.join(errors)
+                )
+            )
+
+    def create_spawn_config(self, subsystem_config):
+        """Create config instance
+        """
+        section_name = self.defaults['pki_subsystem']
+        defaults = self._mangle_values(self.defaults)
 
         # create a config template with interpolation support
         # read base config
         cfgtpl = ConfigParser(defaults=defaults)
         cfgtpl.optionxform = str
         with open(self.ipaca_default) as f:
-            cfgtpl.readfp(f)  # pylint: disable=deprecated-method
+            cfgtpl.read_file(f)
+
         # overwrite defaults with our defaults
         for key, value in defaults.items():
             cfgtpl.set(DEFAULTSECT, key, value)
+
         # overwrite CA/KRA config with subsystem settings
-        section_name = self.subsystem.upper()
+        subsystem_config = self._mangle_values(subsystem_config)
         for key, value in subsystem_config.items():
             cfgtpl.set(section_name, key, value)
+
+        # get a list of settings that cannot be modified by users
+        immutable_settings = {
+            k: v for k, v in cfgtpl.items(section=section_name)
+            if k.startswith('pki_')
+        }
+
+        # add ipaca_customize overlay,
+        #  These are settings that can be modified by a user, too. We use
+        # ipaca_customize.ini to set sensible defaults.
+        with open(self.ipaca_customize) as f:
+            cfgtpl.read_file(f)
+
+        # sanity check
+        self._verify_immutable(
+            cfgtpl, immutable_settings, self.ipaca_customize
+        )
+
+        # load external overlay from command line
+        if self.pki_config_override is not None:
+            with open(self.pki_config_override) as f:
+                cfgtpl.read_file(f)
+            self._verify_immutable(
+                cfgtpl, immutable_settings, self.pki_config_override
+            )
+
+        # key backup is not compatible with HSM support
+        if (cfgtpl.has_option(section_name, 'pki_hsm_enable') and
+                cfgtpl.getboolean(section_name, 'pki_hsm_enable')):
+            cfgtpl.set(section_name, 'pki_backup_keys', 'False')
+            cfgtpl.set(section_name, 'pki_backup_password', '')
+
+        pki_token_name = cfgtpl.get(section_name, 'pki_token_name')
+        for stanza in self.token_stanzas:
+            if cfgtpl.has_option(section_name, stanza):
+                cfgtpl.set(section_name, stanza, pki_token_name)
 
         # Next up, get rid of interpolation variables, DEFAULT,
         # irrelevant sections and unused variables. Only the subsystem
@@ -686,3 +771,30 @@ class DogtagInstance(service.Service):
                 config.set(section_name, key, value)
 
         return config
+
+
+def test():
+    import sys
+
+    loader = PKIIniLoader(
+        subsystem='CA',
+        fqdn='replica.ipa.example',
+        domain='ipa.example',
+        basedn='o=ipaca',
+        subject_base='o=IPA,o=EXAMPLE',
+        ca_subject='cn=CA,o=IPA,o=EXAMPLE',
+        admin_user='admin',
+        admin_password='Secret1',
+        dm_password='Secret2',
+        pki_config_override='install/share/ipaca_softhsm2.ini',
+    )
+    loader.ipaca_default = 'install/share/ipaca_default.ini'
+    loader.ipaca_customize = 'install/share/ipaca_customize.ini'
+    config = loader.create_spawn_config(dict(
+        pki_external=True
+    ))
+    config.write(sys.stdout, False)
+
+
+if __name__ == '__main__':
+    test()
