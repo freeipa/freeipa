@@ -24,13 +24,16 @@ import logging
 import shutil
 import pwd
 import os
-import re
 import time
 import tempfile
 import stat
 import fnmatch
 
-import ldap
+from lib389 import DirSrv
+from lib389.idm.ipadomain import IpaDomain
+from lib389.instance.options import General2Base, Slapd2Base
+from lib389.instance.remove import remove_ds_instance as lib389_remove_ds
+from lib389.instance.setup import SetupDs
 
 from ipalib import x509
 from ipalib.install import certmonger, certstore
@@ -96,27 +99,22 @@ def schema_dirname(serverid):
     return config_dirname(serverid) + "/schema/"
 
 
-def remove_ds_instance(serverid, force=False):
-    """A wrapper around the 'remove-ds.pl' script used by
-    389ds to remove a single directory server instance. In case of error
-    additional call with the '-f' flag is performed (forced removal). If this
-    also fails, then an exception is raised.
+def remove_ds_instance(serverid):
+    """Call the lib389 api to remove the instance. Because of the
+    design of the api, there is no "force" command. Provided a marker
+    file exists, it will attempt the removal, and the marker is the *last*
+    file to be removed. IE just run this multiple times til it works (if
+    you even need multiple times ....)
     """
-    instance_name = ''.join([DS_INSTANCE_PREFIX, serverid])
-    args = [paths.REMOVE_DS_PL, '-i', instance_name]
-    if force:
-        args.append('-f')
-        logger.debug("Forcing instance removal")
 
-    try:
-        ipautil.run(args)
-    except ipautil.CalledProcessError:
-        if force:
-            logger.error("Instance removal failed.")
-            raise
-        logger.debug("'%s' failed. "
-                     "Attempting to force removal", paths.REMOVE_DS_PL)
-        remove_ds_instance(serverid, force=True)
+    logger.debug("Attempting to remove instance %s", serverid)
+    # Alloc the local instance by name (no creds needed!)
+    ds = DirSrv(verbose=True, external_log=logger)
+    ds.local_simple_allocate(serverid)
+
+    # Remove it
+    lib389_remove_ds(ds)
+    logger.debug("Instance removed correctly.")
 
 
 def get_ds_instances():
@@ -528,68 +526,83 @@ class DsInstance(service.Service):
             idrange_size = self.idmax - self.idstart + 1
         except TypeError:
             idrange_size = None
-        self.sub_dict = dict(FQDN=self.fqdn, SERVERID=self.serverid,
-                             PASSWORD=self.dm_password,
-                             RANDOM_PASSWORD=ipautil.ipa_generate_password(),
-                             SUFFIX=self.suffix,
-                             REALM=self.realm, USER=DS_USER,
-                             SERVER_ROOT=server_root, DOMAIN=self.domain,
-                             TIME=int(time.time()), IDSTART=self.idstart,
-                             IDMAX=self.idmax, HOST=self.fqdn,
-                             ESCAPED_SUFFIX=str(self.suffix),
-                             GROUP=DS_GROUP,
-                             IDRANGE_SIZE=idrange_size,
-                             DOMAIN_LEVEL=self.domainlevel,
-                             MAX_DOMAIN_LEVEL=constants.MAX_DOMAIN_LEVEL,
-                             MIN_DOMAIN_LEVEL=constants.MIN_DOMAIN_LEVEL,
-                             STRIP_ATTRS=" ".join(replication.STRIP_ATTRS),
-                             EXCLUDES='(objectclass=*) $ EXCLUDE ' +
-                             ' '.join(replication.EXCLUDES),
-                             TOTAL_EXCLUDES='(objectclass=*) $ EXCLUDE ' +
-                             ' '.join(replication.TOTAL_EXCLUDES),
-                         )
+        self.sub_dict = dict(
+            FQDN=self.fqdn, SERVERID=self.serverid,
+            PASSWORD=self.dm_password,
+            RANDOM_PASSWORD=ipautil.ipa_generate_password(),
+            SUFFIX=self.suffix,
+            REALM=self.realm, USER=DS_USER,
+            SERVER_ROOT=server_root, DOMAIN=self.domain,
+            TIME=int(time.time()), IDSTART=self.idstart,
+            IDMAX=self.idmax, HOST=self.fqdn,
+            ESCAPED_SUFFIX=str(self.suffix),
+            GROUP=DS_GROUP,
+            IDRANGE_SIZE=idrange_size,
+            DOMAIN_LEVEL=self.domainlevel,
+            MAX_DOMAIN_LEVEL=constants.MAX_DOMAIN_LEVEL,
+            MIN_DOMAIN_LEVEL=constants.MIN_DOMAIN_LEVEL,
+            STRIP_ATTRS=" ".join(replication.STRIP_ATTRS),
+            EXCLUDES='(objectclass=*) $ EXCLUDE ' +
+            ' '.join(replication.EXCLUDES),
+            TOTAL_EXCLUDES='(objectclass=*) $ EXCLUDE ' +
+            ' '.join(replication.TOTAL_EXCLUDES),
+        )
 
     def __create_instance(self):
-        pent = pwd.getpwnam(DS_USER)
-
         self.backup_state("serverid", self.serverid)
         self.fstore.backup_file(paths.SYSCONFIG_DIRSRV)
 
-        self.sub_dict['BASEDC'] = self.realm.split('.')[0].lower()
-        base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
-        logger.debug("%s", base_txt)
+        # The new installer is api driven. We can pass it a log function
+        # and it will use it. Because of this, we can pass verbose true,
+        # and allow our logger to control the display based on level.
+        sds = SetupDs(verbose=True, dryrun=False, log=logger)
 
-        target_fname = paths.DIRSRV_BOOT_LDIF
-        base_fd = open(target_fname, "w")
-        base_fd.write(base_txt)
-        base_fd.close()
+        # General environmental options.
+        general_options = General2Base(logger)
+        general_options.set('strict_host_checking', False)
+        # Check that our requested configuration is actually valid ...
+        general_options.verify()
+        general = general_options.collect()
 
-        # Must be readable for dirsrv
-        os.chmod(target_fname, 0o440)
-        os.chown(target_fname, pent.pw_uid, pent.pw_gid)
+        # Slapd options, ie instance name.
+        slapd_options = Slapd2Base(logger)
+        slapd_options.set('instance_name', self.serverid)
+        slapd_options.set('root_password', self.dm_password)
+        slapd_options.verify()
+        slapd = slapd_options.collect()
 
-        inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
-        logger.debug("writing inf template")
-        inf_fd = ipautil.write_tmp_file(inf_txt)
-        inf_txt = re.sub(r"RootDNPwd=.*\n", "", inf_txt)
-        logger.debug("%s", inf_txt)
-        args = [
-            paths.SETUP_DS_PL, "--silent",
-            "--logfile", "-",
-            "-f", inf_fd.name,
-        ]
-        logger.debug("calling setup-ds.pl")
+        # Create userroot. Note that the new install does NOT
+        # create sample entries, so this is *empty*.
+        userroot = {
+            'cn': 'userRoot',
+            'nsslapd-suffix': self.suffix.ldap_text()
+        }
+
+        backends = [userroot]
+
+        sds.create_from_args(general, slapd, backends, None)
+
+        # Now create the new domain root object in the format that IPA expects.
+        # Get the instance ....
+
+        inst = DirSrv(verbose=True, external_log=logger)
+        inst.remote_simple_allocate(
+            ldapuri=ipaldap.get_ldap_uri(self.fqdn),
+            password=self.dm_password)
+        # This actually opens the conn and binds.
+        inst.open()
+
         try:
-            ipautil.run(args)
-            logger.debug("completed creating DS instance")
-        except ipautil.CalledProcessError as e:
-            raise RuntimeError("failed to create DS instance %s" % e)
+            ipadomain = IpaDomain(inst, dn=self.suffix.ldap_text())
+            ipadomain.create(properties={
+                'dc': self.realm.split('.')[0].lower(),
+                'info': 'IPA V2.0',
+            })
+        finally:
+            inst.close()
 
-        # check for open port 389 from now on
-        self.open_ports.append(389)
-
-        inf_fd.close()
-        os.remove(paths.DIRSRV_BOOT_LDIF)
+        # Done!
+        logger.debug("completed creating DS instance")
 
     def __update_dse_ldif(self):
         """
@@ -811,6 +824,8 @@ class DsInstance(service.Service):
             dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
                                     ca_file=self.ca_file,
                                     trust_flags=trust_flags)
+            # rewrite the pin file with current password
+            dsdb.create_pin_file()
             server_certs = dsdb.find_server_certs()
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
@@ -827,6 +842,8 @@ class DsInstance(service.Service):
             self.add_cert_to_service()
         else:
             dsdb.create_from_cacert()
+            # rewrite the pin file with current password
+            dsdb.create_pin_file()
             if self.master_fqdn is None:
                 ca_args = [
                     paths.CERTMONGER_DOGTAG_SUBMIT,
@@ -868,8 +885,6 @@ class DsInstance(service.Service):
             if prev_helper is not None:
                 self.add_cert_to_service()
 
-        dsdb.create_pin_file()
-
         self.cacert_name = dsdb.cacert_name
 
         ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
@@ -877,13 +892,27 @@ class DsInstance(service.Service):
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=self.dm_password)
 
-        mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
-               (ldap.MOD_REPLACE, "nsSSL3Ciphers", "default"),
-               (ldap.MOD_REPLACE, "allowWeakCipher", "off")]
-        conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
+        encrypt_entry = conn.make_entry(
+            DN(('cn', 'encryption'), ('cn', 'config')),
+            nsSSLClientAuth=b'allowed',
+            nsSSL3Ciphers=b'default',
+            allowWeakCipher=b'off'
+        )
+        try:
+            conn.update_entry(encrypt_entry)
+        except errors.EmptyModlist:
+            logger.debug(
+                "cn=encryption,cn=config is already properly configured")
 
-        mod = [(ldap.MOD_ADD, "nsslapd-security", "on")]
-        conn.modify_s(DN(('cn', 'config')), mod)
+        conf_entry = conn.make_entry(
+            DN(('cn', 'config')),
+            # one does not simply uses '-' in variable name
+            **{'nsslapd-security': b'on'}
+        )
+        try:
+            conn.update_entry(conf_entry)
+        except errors.EmptyModlist:
+            logger.debug("nsslapd-security is already on")
 
         entry = conn.make_entry(
             DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')),
@@ -1054,16 +1083,22 @@ class DsInstance(service.Service):
 
         try:
             self.fstore.restore_file(paths.LIMITS_CONF)
+        except ValueError as error:
+            logger.debug("%s: %s", paths.LIMITS_CONF, error)
+
+        try:
             self.fstore.restore_file(paths.SYSCONFIG_DIRSRV)
         except ValueError as error:
-            logger.debug("%s", error)
+            logger.debug("%s: %s", paths.SYSCONFIG_DIRSRV, error)
 
         # disabled during IPA installation
         if enabled:
+            logger.debug("Re-enabling instance of Directory Server")
             self.enable()
 
         serverid = self.restore_state("serverid")
         if serverid is not None:
+            # What if this fails? Then what?
             self.stop_tracking_certificates(serverid)
             logger.debug("Removing DS instance %s", serverid)
             try:
@@ -1072,9 +1107,14 @@ class DsInstance(service.Service):
                 logger.error("Failed to remove DS instance. You may "
                              "need to remove instance data manually")
 
-            installutils.remove_keytab(paths.DS_KEYTAB)
-            installutils.remove_ccache(run_as=DS_USER)
+        else:
+            logger.error("Failed to remove DS instance. No serverid present "
+                         "in sysrestore file.")
 
+        installutils.remove_keytab(paths.DS_KEYTAB)
+        installutils.remove_ccache(run_as=DS_USER)
+
+        if serverid is None:
             # Remove scripts dir
             scripts = paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % (
                 serverid)

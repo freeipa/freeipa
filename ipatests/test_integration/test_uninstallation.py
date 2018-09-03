@@ -93,8 +93,7 @@ class TestUninstallBase(IntegrationTest):
             ds.stop_tracking_certificates(serverid)
 
             self.master.run_command([
-                paths.REMOVE_DS_PL,
-                '-i', instance_name
+                paths.DSCTL, serverid, 'remove'
             ])
 
             cmd = self.master.run_command([

@@ -55,8 +55,7 @@ steps:
   - sed -ri "s/mode = production/mode = development/" /etc/ipa/default.conf
   - systemctl restart httpd.service
   lint:
-  - make PYTHON=/usr/bin/python2 V=0 lint
-  - make PYTHON=/usr/bin/python3 V=0 pylint
+  - make PYTHON=/usr/bin/python3 V=0 lint
   webui_unit:
   - dnf install -y npm
   - cd ${container_working_dir}/install/ui/js/libs && make
