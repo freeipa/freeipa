@@ -1,6 +1,7 @@
 #
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
+import base64
 
 from ipaclient.frontend import MethodOverride
 from ipalib import errors, util, x509, Str
@@ -34,13 +35,11 @@ class WithCertOutArgs(MethodOverride):
         result = super(WithCertOutArgs, self).forward(*keys, **options)
         if filename:
             if options.get('chain', False):
-                certs = (x509.load_der_x509_certificate(c)
-                         for c in result['result']['certificate_chain'])
+                certs = result['result']['certificate_chain']
             else:
-                certs = [
-                    x509.load_der_x509_certificate(
-                        result['result']['certificate'])
-                ]
+                certs = [result['result']['certificate']]
+            certs = (x509.load_der_x509_certificate(base64.b64decode(cert))
+                     for cert in certs)
             x509.write_certificate_list(certs, filename)
 
         return result
