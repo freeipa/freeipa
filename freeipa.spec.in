@@ -1,7 +1,9 @@
 # 389-ds-base 1.4 no longer supports i686 platform, build only client
 # packages, https://bugzilla.redhat.com/show_bug.cgi?id=1544386
-%ifarch %{ix86}
-%{!?ONLY_CLIENT:%global ONLY_CLIENT 1}
+%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
+    %ifarch %{ix86}
+        %{!?ONLY_CLIENT:%global ONLY_CLIENT 1}
+    %endif
 %endif
 
 # Define ONLY_CLIENT to only make the ipa-client and ipa-python
@@ -961,6 +963,7 @@ find \
 	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python2}|' {} \;
 
+autoreconf -ivf
 %configure --with-vendor-suffix=-%{release} \
            %{enable_server_option} \
            %{with_ipatests_option} \
@@ -970,6 +973,7 @@ popd
 
 export PYTHON=%{__python3}
 pushd %{_builddir}/freeipa-%{version}-python3
+autoreconf -ivf
 %configure --with-vendor-suffix=-%{release} \
            %{enable_server_option} \
            %{with_ipatests_option} \
@@ -1016,7 +1020,7 @@ ln -rs %{buildroot}%{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bi
 pushd %{_builddir}/freeipa-%{version}-python2
 %{__make} python_install DESTDIR=%{?buildroot} INSTALL="%{__install} -p"
 popd
-%if 0%{?with_python2} && 0%{?fedora} < 29
+%if 0%{?with_ipatests} && 0%{?fedora} < 29
 # Fedora 29 workaround: don't ship ipatests binaries
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}
