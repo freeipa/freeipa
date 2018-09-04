@@ -287,4 +287,10 @@ class test_selfservice(UI_driver):
         s = "div[name='ipasshpubkey'].multivalued-widget"
         facet = self.get_facet()
         btn = self.find(s, By.CSS_SELECTOR, facet, strict=True)
-        assert btn.is_displayed is not True
+        btn_is_displayed = btn.is_displayed
+
+        # logout needs to prevent using this unpermitted user in other tests
+        try:
+            assert btn_is_displayed is not True
+        finally:
+            self.logout()
