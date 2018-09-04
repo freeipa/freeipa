@@ -207,6 +207,9 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
                                      '-r', self.master.domain.realm,
                                      '--server', self.master.hostname,
                                      '-U'])
+        # Ensure that pkinit is properly configured, test for 7566
+        result = self.replicas[0].run_command(['ipa-pkinit-manage', 'status'])
+        assert "PKINIT is enabled" in result.stdout_text
 
 
 @pytest.mark.skip(reason="Domain level 0 is not supported anymore")
