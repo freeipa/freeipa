@@ -160,6 +160,19 @@ class TestForcedClientReenrollment(IntegrationTest):
         self.clients[0].run_command(['touch', EMPTY_KEYTAB])
         self.reenroll_client(keytab=EMPTY_KEYTAB, expect_fail=True)
 
+    def test_try_to_reenroll_with_empty_keytab(self, client):
+        """
+        Client re-enrollment with invalid (empty) client keytab file
+        """
+        self.restore_client()
+        self.check_client_host_entry()
+        try:
+            os.remove(CLIENT_KEYTAB)
+        except OSError:
+            pass
+        self.clients[0].run_command(['touch', CLIENT_KEYTAB])
+        self.reenroll_client(force_join=True)
+
     def uninstall_client(self):
         self.clients[0].run_command(
             ['ipa-client-install', '--uninstall', '-U'],
