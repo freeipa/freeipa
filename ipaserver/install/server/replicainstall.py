@@ -79,7 +79,7 @@ def make_pkcs12_info(directory, cert_name, password_name):
 
 
 def install_replica_ds(config, options, ca_is_configured, remote_api,
-                       ca_file, promote=False, pkcs12_info=None):
+                       ca_file, promote=False, pkcs12_info=None, fstore=None):
     dsinstance.check_ports()
 
     # if we have a pkcs12 file, create the cert db from
@@ -95,7 +95,8 @@ def install_replica_ds(config, options, ca_is_configured, remote_api,
         ca_subject = installutils.default_ca_subject_dn(config.subject_base)
 
     ds = dsinstance.DsInstance(
-        config_ldif=options.dirsrv_config_file)
+        config_ldif=options.dirsrv_config_file,
+        fstore=fstore)
     ds.create_replica(
         realm_name=config.realm_name,
         master_fqdn=config.master_host_name,
@@ -115,8 +116,9 @@ def install_replica_ds(config, options, ca_is_configured, remote_api,
     return ds
 
 
-def install_krb(config, setup_pkinit=False, pkcs12_info=None, promote=False):
-    krb = krbinstance.KrbInstance()
+def install_krb(config, setup_pkinit=False, pkcs12_info=None, promote=False,
+                fstore=None):
+    krb = krbinstance.KrbInstance(fstore=fstore)
 
     # pkinit files
     if pkcs12_info is None:
@@ -153,7 +155,8 @@ def install_ca_cert(ldap, base_dn, realm, cafile, destfile=paths.IPA_CA_CRT):
 
 def install_http(config, auto_redirect, ca_is_configured, ca_file,
                  promote=False,
-                 pkcs12_info=None):
+                 pkcs12_info=None,
+                 fstore=None):
     # if we have a pkcs12 file, create the cert db from
     # that. Otherwise the ds setup will create the CA
     # cert
@@ -161,8 +164,7 @@ def install_http(config, auto_redirect, ca_is_configured, ca_file,
         pkcs12_info = make_pkcs12_info(config.dir, "httpcert.p12",
                                        "http_pin.txt")
 
-
-    http = httpinstance.HTTPInstance()
+    http = httpinstance.HTTPInstance(fstore=fstore)
     http.create_instance(
         config.realm_name, config.host_name, config.domain_name,
         config.dirman_password, pkcs12_info,
@@ -173,14 +175,14 @@ def install_http(config, auto_redirect, ca_is_configured, ca_file,
     return http
 
 
-def install_dns_records(config, options, remote_api):
+def install_dns_records(config, options, remote_api, fstore=None):
 
     if not bindinstance.dns_container_exists(
             ipautil.realm_to_suffix(config.realm_name)):
         return
 
     try:
-        bind = bindinstance.BindInstance(api=remote_api)
+        bind = bindinstance.BindInstance(api=remote_api, fstore=fstore)
         for ip in config.ips:
             reverse_zone = bindinstance.find_reverse_zone(ip, remote_api)
 
@@ -1431,10 +1433,11 @@ def install(installer):
                                 remote_api,
                                 ca_file=cafile,
                                 promote=promote,
-                                pkcs12_info=dirsrv_pkcs12_info)
+                                pkcs12_info=dirsrv_pkcs12_info,
+                                fstore=fstore)
 
         # Always try to install DNS records
-        install_dns_records(config, options, remote_api)
+        install_dns_records(config, options, remote_api, fstore=fstore)
 
     finally:
         if conn.isconnected():
@@ -1453,7 +1456,8 @@ def install(installer):
         config,
         setup_pkinit=not options.no_pkinit,
         pkcs12_info=pkinit_pkcs12_info,
-        promote=promote)
+        promote=promote,
+        fstore=fstore)
 
     if promote:
         # We need to point to the master when certmonger asks for
@@ -1483,7 +1487,8 @@ def install(installer):
         promote=promote,
         pkcs12_info=http_pkcs12_info,
         ca_is_configured=ca_enabled,
-        ca_file=cafile)
+        ca_file=cafile,
+        fstore=fstore)
 
     if promote:
         # Need to point back to ourself after the cert for HTTP is obtained
