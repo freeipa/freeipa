@@ -735,3 +735,95 @@ class TestMaskInstall(IntegrationTest):
         """ Method to restore the default bashrc contents"""
         if self.bashrc_file is not None:
             self.master.put_file_contents('/root/.bashrc', self.bashrc_file)
+
+
+class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
+    """Installation of replica against a specific server
+
+    Test to check replica install against specific server. It uses master and
+    replica1 without CA and having custodia service stopped. Then try to
+    install replica2 from replica1 and expect it to get fail as specified
+    server is not providing all the services.
+
+    related ticket: https://pagure.io/freeipa/issue/7566
+    """
+
+    num_replicas = 2
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_kra=True)
+
+        # install replica1 without CA
+        cmd = tasks.install_replica(cls.master, cls.replicas[0],
+                                    setup_ca=False, setup_dns=True,
+                                    promote=False)
+
+        # check for warning that CA is not installed on server
+        warn = 'WARNING: The CA service is only installed on one server'
+        assert warn in cmd.stderr_text
+
+    def test_replica_install_against_server_without_ca(self):
+        """Replica install will fail complaining about CA role
+        and exit code 4"""
+
+        # stop custodia service on replica1
+        self.replicas[0].run_command('systemctl stop ipa-custodia.service')
+
+        # check if custodia service is stopped
+        cmd = self.replicas[0].run_command('ipactl status')
+        assert 'ipa-custodia Service: STOPPED' in cmd.stdout_text
+
+        try:
+            # install replica2 against replica1, as CA is not installed on
+            # replica1, installation on replica2 should fail
+            cmd = tasks.install_replica(self.replicas[0], self.replicas[1],
+                                        promote=False, raiseonerr=False)
+            assert cmd.returncode == 4
+            error = "please provide a server with the CA role"
+            assert error in cmd.stderr_text
+
+        finally:
+            tasks.uninstall_master(self.replicas[1],
+                                   ignore_topology_disconnect=True,
+                                   ignore_last_of_role=True)
+
+    def test_replica_install_against_server_without_kra(self):
+        """Replica install will fail complaining about KRA role
+        and exit code 4"""
+
+        # install ca on replica1
+        tasks.install_ca(self.replicas[0])
+        try:
+            # install replica2 against replica1, as KRA is not installed on
+            # replica1(CA installed), installation should fail on replica2
+            cmd = tasks.install_replica(self.replicas[0], self.replicas[1],
+                                        promote=False, setup_kra=True,
+                                        raiseonerr=False)
+            assert cmd.returncode == 4
+            error = "please provide a server with the KRA role"
+            assert error in cmd.stderr_text
+
+        finally:
+            tasks.uninstall_master(self.replicas[1],
+                                   ignore_topology_disconnect=True,
+                                   ignore_last_of_role=True)
+
+    def test_replica_install_against_server(self):
+        """Replica install should succeed if specified server provide all
+        the services"""
+
+        tasks.install_replica(self.master, self.replicas[1],
+                              setup_dns=True, promote=False)
+
+        # check if replication agreement stablished between master
+        # and replica2 only.
+        cmd = self.replicas[1].run_command(['ipa-replica-manage', 'list',
+                                            self.replicas[0].hostname])
+        assert self.replicas[0].hostname not in cmd.stdout_text
+
+        dirman_password = self.master.config.dirman_password
+        cmd = self.replicas[1].run_command(['ipa-csreplica-manage', 'list',
+                                            self.replicas[0].hostname],
+                                           stdin_text=dirman_password)
+        assert self.replicas[0].hostname not in cmd.stdout_text
