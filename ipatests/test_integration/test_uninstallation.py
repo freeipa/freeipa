@@ -49,6 +49,18 @@ class TestUninstallBase(IntegrationTest):
             ['ls', restore_state_path], raiseonerr=False)
         assert 'No such file or directory' in result.stderr_text
 
+    def test_install_uninstall_replica(self):
+        # Test that the sequence install replica / uninstall replica
+        # properly removes the line
+        # Include /etc/httpd/conf.d/ipa-rewrite.conf
+        # from ssl.conf on the replica
+        tasks.install_replica(self.master, self.replicas[0],
+                              extra_args=['--force-join'])
+        tasks.uninstall_replica(self.master, self.replicas[0])
+        errline = b'Include /etc/httpd/conf.d/ipa-rewrite.conf'
+        ssl_conf = self.replicas[0].get_file_contents(paths.HTTPD_SSL_CONF)
+        assert errline not in ssl_conf
+
     def test_failed_uninstall(self):
         self.master.run_command(['ipactl', 'stop'])
 
