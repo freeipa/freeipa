@@ -24,6 +24,7 @@ Host tests
 import uuid
 from random import randint
 
+from ipatests.test_webui.crypto_utils import generate_csr
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_hostgroup as hostgroup
@@ -160,27 +161,20 @@ class test_host(host_tasks):
     def test_certificates(self):
         """
         Test host certificate actions
-
-        Requires to have CA installed and 'host_csr_path' configuration option
-        set.
         """
 
         if not self.has_ca():
             self.skip('CA is not configured')
 
-        csr_path = self.config.get('host_csr_path')
-        if not csr_path:
-            self.skip('CSR file is not configured')
-
         self.init_app()
-        # ENHANCEMENT: generate csr dynamically
-        csr = self.load_file(csr_path)
+
         cert_widget_sel = "div.certificate-widget"
 
         self.add_record(ENTITY, self.data)
         self.navigate_to_record(self.pkey)
 
         # cert request
+        csr = generate_csr(self.pkey)
         self.action_list_action('request_cert', confirm=False)
         self.assert_dialog()
         self.fill_text("textarea[name='csr']", csr)
