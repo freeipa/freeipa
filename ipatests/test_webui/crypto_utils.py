@@ -15,9 +15,13 @@ def generate_csr(hostname):
         key_size=2048,
         backend=default_backend()
     )
+    hostname = u'{}'.format(hostname)
     csr = x509.CertificateSigningRequestBuilder()
-    csr = csr.subject_name(x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, u'{}'.format(hostname))
-    ]))
+    csr = csr.subject_name(
+        x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, hostname)])
+    ).add_extension(
+        x509.SubjectAlternativeName([x509.DNSName(hostname)]),
+        critical=False
+    )
     csr = csr.sign(key, hashes.SHA256(), default_backend())
-    return csr.public_bytes(serialization.Encoding.PEM)
+    return csr.public_bytes(serialization.Encoding.PEM).decode()
