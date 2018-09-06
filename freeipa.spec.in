@@ -72,9 +72,9 @@
 
 %endif  # Fedora
 
-# Require Dogtag PKI 10.6.1 with Python 3 and SQL NSSDB fixes for external
-# CA support, https://bugzilla.redhat.com/show_bug.cgi?id=1573094
-%global pki_version 10.6.1
+# Require Dogtag PKI 10.6.6 to detect when fips is available,
+# https://pagure.io/freeipa/issue/7608
+%global pki_version 10.6.6
 
 # NSS release with fix for CKA_LABEL import bug in shared SQL database.
 # https://bugzilla.redhat.com/show_bug.cgi?id=1568271
