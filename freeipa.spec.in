@@ -28,28 +28,6 @@
     %global with_ipatests_option --without-ipatests
 %endif
 
-# Python 2/3 packages and default Python interpreter
-%if 0%{?rhel} > 7
-    %global with_default_python 3
-    %global with_python2 0
-%endif
-
-%if 0%{?fedora} >= 29
-    # F29 only supports Python 3 as default Python
-    %global with_default_python 3
-%endif
-
-%{!?with_default_python:%global with_default_python 3}
-%{!?with_python2:%global with_python2 1}
-
-%if %{with_default_python} == 3
-    %global with_python3 1
-    %global python %{__python3}
-%else
-    %global with_python2 1
-    %global python %{__python2}
-%endif
-
 # lint is not executed during rpmbuild
 # %%global with_lint 1
 %if 0%{?with_lint}
@@ -147,10 +125,6 @@ BuildRequires:  automake
 BuildRequires:  libtool
 BuildRequires:  gettext
 BuildRequires:  gettext-devel
-%if 0%{?with_python2}
-BuildRequires:  python2-devel
-BuildRequires:  python2-setuptools
-%endif # with_python2
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
 BuildRequires:  systemd
@@ -183,7 +157,6 @@ BuildRequires:  python3-lesscpy >= 0.13.0-2
 #
 # Build dependencies for makeapi/makeaci
 #
-%if %{with_default_python} == 3
 BuildRequires:  python3-cffi
 BuildRequires:  python3-dns
 BuildRequires:  python3-ldap >= %{python_ldap_version}
@@ -192,16 +165,6 @@ BuildRequires:  python3-netaddr >= %{python_netaddr_version}
 BuildRequires:  python3-pyasn1
 BuildRequires:  python3-pyasn1-modules
 BuildRequires:  python3-six
-%else
-BuildRequires:  python2-cffi
-BuildRequires:  python2-dns
-BuildRequires:  python2-ldap >= %{python_ldap_version}
-BuildRequires:  python2-libsss_nss_idmap
-BuildRequires:  python2-netaddr >= %{python_netaddr_version}
-BuildRequires:  python2-pyasn1
-BuildRequires:  python2-pyasn1-modules
-BuildRequires:  python2-six
-%endif
 
 #
 # Build dependencies for wheel packaging and PyPI upload
@@ -220,48 +183,6 @@ BuildRequires:  python3-wheel
 %if 0%{?with_lint}
 BuildRequires:  jsl
 BuildRequires:  softhsm
-
-%if 0%{?with_python2}
-BuildRequires:  python2-augeas
-BuildRequires:  python2-cffi
-BuildRequires:  python2-cryptography >= 1.6
-BuildRequires:  python2-custodia >= 0.3.1
-BuildRequires:  python2-dateutil
-BuildRequires:  python2-dbus
-BuildRequires:  python2-dns
-BuildRequires:  python2-dns >= 1.15
-BuildRequires:  python2-enum34
-BuildRequires:  python2-gssapi >= 1.2.0-5
-BuildRequires:  python2-jinja2
-BuildRequires:  python2-jwcrypto >= 0.4.2
-BuildRequires:  python2-ldap >= %{python_ldap_version}
-BuildRequires:  python2-libipa_hbac
-BuildRequires:  python2-libsss_nss_idmap
-BuildRequires:  python2-lxml
-BuildRequires:  python2-netaddr >= %{python_netaddr_version}
-BuildRequires:  python2-netifaces
-BuildRequires:  python2-paste
-%if 0%{?fedora} < 29
-# Fedora 29 workaround: Dogtag no longer packages Python 2
-BuildRequires:  python2-pki >= %{pki_version}
-%endif
-BuildRequires:  python2-polib
-BuildRequires:  python2-pyasn1
-BuildRequires:  python2-pyasn1-modules
-BuildRequires:  python2-pycodestyle
-BuildRequires:  python2-pylint
-BuildRequires:  python2-pytest-multihost
-BuildRequires:  python2-pytest-sourceorder
-BuildRequires:  python2-qrcode-core >= 5.0.0
-BuildRequires:  python2-samba
-BuildRequires:  python2-six
-BuildRequires:  python2-sss
-BuildRequires:  python2-sss-murmur
-BuildRequires:  python2-sssdconfig
-BuildRequires:  python2-systemd
-BuildRequires:  python2-yubico
-%endif # with_python2
-
 BuildRequires:  python3-augeas
 BuildRequires:  python3-cffi
 BuildRequires:  python3-cryptography >= 1.6
@@ -323,13 +244,8 @@ Group: System Environment/Base
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
-%if %{with_default_python} == 3
 Requires: python3-ipaserver = %{version}-%{release}
 Requires: python3-ldap >= %{python_ldap_version}
-%else
-Requires: python2-ipaserver = %{version}-%{release}
-Requires: python2-ldap >= %{python_ldap_version}
-%endif
 Requires: 389-ds-base >= %{ds_version}
 Requires: 389-ds-base-legacy-tools >= %{ds_version}
 Requires: openldap-clients > 2.4.35-4
@@ -341,19 +257,11 @@ Requires: krb5-pkinit-openssl >= %{krb5_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: chrony
 Requires: httpd >= 2.4.6-31
-%if %{with_default_python} == 3
 Requires(preun): python3
 Requires(postun): python3
 Requires: python3-gssapi >= 1.2.0-5
 Requires: python3-systemd
 Requires: python3-mod_wsgi
-%else
-Requires(preun): python2
-Requires(postun): python2
-Requires: python2-gssapi >= 1.2.0-5
-Requires: python2-systemd
-Requires: mod_wsgi
-%endif
 Requires: mod_auth_gssapi >= 1.5.0
 Requires: mod_ssl
 Requires: mod_session
@@ -416,40 +324,6 @@ and integration with Active Directory based infrastructures (Trusts).
 If you are installing an IPA server, you need to install this package.
 
 
-%if 0%{?with_python2} && 0%{?fedora} < 29
-# Fedora 29 workaround: don't build python2-ipaserver, python2-pki is n/a
-%package -n python2-ipaserver
-Summary: Python libraries used by IPA server
-Group: System Environment/Libraries
-BuildArch: noarch
-%{?python_provide:%python_provide python2-ipaserver}
-%{!?python_provide:Provides: python-ipaserver = %{version}-%{release}}
-Requires: %{name}-server-common = %{version}-%{release}
-Requires: %{name}-common = %{version}-%{release}
-Requires: python2-augeas
-Requires: python2-custodia >= 0.3.1
-Requires: python2-dbus
-Requires: python2-dns >= 1.15
-Requires: python2-gssapi >= 1.2.0-5
-Requires: python2-ipaclient = %{version}-%{release}
-Requires: python2-kdcproxy >= 0.3
-Requires: python2-ldap >= %{python_ldap_version}
-Requires: python2-lxml
-Requires: python2-pki >= %{pki_version}
-Requires: python2-pyasn1 >= 0.3.2-2
-Requires: python2-sssdconfig
-Requires: rpm-libs
-
-%description -n python2-ipaserver
-IPA is an integrated solution to provide centrally managed Identity (users,
-hosts, services), Authentication (SSO, 2FA), and Authorization
-(host access control, SELinux user roles, services). The solution provides
-features for further integration with Linux based clients (SUDO, automount)
-and integration with Active Directory based infrastructures (Trusts).
-If you are installing an IPA server, you need to install this package.
-
-%endif  # with_python2 and Fedora < 29
-
 %package -n python3-ipaserver
 Summary: Python libraries used by IPA server
 Group: System Environment/Libraries
@@ -457,10 +331,6 @@ BuildArch: noarch
 %{?python_provide:%python_provide python3-ipaserver}
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
-%if 0%{?fedora} >= 29
-Conflicts: python2-ipaserver
-Obsoletes: python2-ipaserver < %{version}
-%endif
 # we need pre-requires since earlier versions may break upgrade
 Requires(pre): python3-ldap >= %{python_ldap_version}
 Requires: python3-augeas
@@ -542,17 +412,10 @@ Requires: samba >= %{samba_version}
 Requires: samba-winbind
 Requires: libsss_idmap
 
-%if %{with_default_python} == 3
 Requires(post): python3
 Requires: python3-samba
 Requires: python3-libsss_nss_idmap
 Requires: python3-sss
-%else
-Requires(post): python2
-Requires: python2-samba
-Requires: python2-libsss_nss_idmap
-Requires: python2-sss
-%endif  # with_default_python
 
 # We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
 # on the installes where server-trust-ad subpackage is installed because
@@ -579,17 +442,10 @@ Summary: IPA authentication for use on clients
 Group: System Environment/Base
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
-%if %{with_default_python} == 3
 Requires: python3-gssapi >= 1.2.0-5
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ldap >= %{python_ldap_version}
 Requires: python3-sssdconfig
-%else
-Requires: python2-gssapi >= 1.2.0-5
-Requires: python2-ipaclient = %{version}-%{release}
-Requires: python2-ldap >= %{python_ldap_version}
-Requires: python2-sssdconfig
-%endif
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: chrony
 Requires: krb5-workstation >= %{krb5_version}
@@ -636,31 +492,6 @@ If your network uses IPA for authentication, this package should be
 installed on every client machine.
 This package provides command-line tools for IPA administrators.
 
-%if 0%{?with_python2}
-
-%package -n python2-ipaclient
-Summary: Python libraries used by IPA client
-Group: System Environment/Libraries
-BuildArch: noarch
-%{?python_provide:%python_provide python2-ipaclient}
-%{!?python_provide:Provides: python-ipaclient = %{version}-%{release}}
-Requires: %{name}-client-common = %{version}-%{release}
-Requires: %{name}-common = %{version}-%{release}
-Requires: python2-ipalib = %{version}-%{release}
-Requires: python2-augeas
-Requires: python2-dns >= 1.15
-Requires: python2-jinja2
-
-%description -n python2-ipaclient
-IPA is an integrated solution to provide centrally managed Identity (users,
-hosts, services), Authentication (SSO, 2FA), and Authorization
-(host access control, SELinux user roles, services). The solution provides
-features for further integration with Linux based clients (SUDO, automount)
-and integration with Active Directory based infrastructures (Trusts).
-If your network uses IPA for authentication, this package should be
-installed on every client machine.
-
-%endif  # with_python2
 
 %package -n python3-ipaclient
 Summary: Python libraries used by IPA client
@@ -692,6 +523,12 @@ BuildArch: noarch
 Provides: %{alt_name}-client-common = %{version}
 Conflicts: %{alt_name}-client-common
 Obsoletes: %{alt_name}-client-common < %{version}
+# python2-ipa* packages are no longer available in 4.8.
+Obsoletes: python2-ipaclient < 4.8.0-1
+Obsoletes: python2-ipalib < 4.8.0-1
+Obsoletes: python2-ipaserver < 4.8.0-1
+Obsoletes: python2-ipatests < 4.8.0-1
+
 
 %description client-common
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -710,11 +547,7 @@ BuildArch: noarch
 Obsoletes: %{name}-python < 4.2.91
 Provides: %{name}-python = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
-%if %{with_default_python} == 3
 Requires: python3-ipalib = %{version}-%{release}
-%else
-Requires: python2-ipalib = %{version}-%{release}
-%endif
 
 Provides: %{alt_name}-python-compat = %{version}
 Conflicts: %{alt_name}-python-compat
@@ -730,62 +563,10 @@ hosts, services), Authentication (SSO, 2FA), and Authorization
 features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 This is a compatibility package to accommodate %{name}-python split into
-python2-ipalib and %{name}-common. Packages still depending on
+python3-ipalib and %{name}-common. Packages still depending on
 %{name}-python should be fixed to depend on python2-ipaclient or
 %{name}-common instead.
 
-%if 0%{?with_python2}
-
-%package -n python2-ipalib
-Summary: Python libraries used by IPA
-Group: System Environment/Libraries
-BuildArch: noarch
-Conflicts: %{name}-python < 4.2.91
-%{?python_provide:%python_provide python2-ipalib}
-%{!?python_provide:Provides: python-ipalib = %{version}-%{release}}
-Provides: python2-ipapython = %{version}-%{release}
-%{?python_provide:%python_provide python2-ipapython}
-%{!?python_provide:Provides: python-ipapython = %{version}-%{release}}
-Provides: python2-ipaplatform = %{version}-%{release}
-%{?python_provide:%python_provide python2-ipaplatform}
-%{!?python_provide:Provides: python-ipaplatform = %{version}-%{release}}
-Requires: %{name}-common = %{version}-%{release}
-Requires: gnupg2
-Requires: keyutils
-Requires: python2 >= 2.7.9
-Requires: python2-cffi
-Requires: python2-cryptography >= 1.6
-Requires: python2-dateutil
-Requires: python2-dbus
-Requires: python2-dns >= 1.15
-Requires: python2-enum34
-Requires: python2-gssapi >= 1.2.0-5
-Requires: python2-jwcrypto >= 0.4.2
-Requires: python2-ldap >= %{python_ldap_version}
-Requires: python2-libipa_hbac
-Requires: python2-netaddr >= %{python_netaddr_version}
-Requires: python2-netifaces >= 0.10.4
-Requires: python2-pyasn1 >= 0.3.2-2
-Requires: python2-pyasn1-modules >= 0.3.2-2
-Requires: python2-pyusb
-Requires: python2-qrcode-core >= 5.0.0
-Requires: python2-requests
-Requires: python2-setuptools
-Requires: python2-six
-Requires: python2-sss-murmur
-Requires: python2-yubico >= 1.2.3
-
-Conflicts: %{alt_name}-python < %{version}
-
-%description -n python2-ipalib
-IPA is an integrated solution to provide centrally managed Identity (users,
-hosts, services), Authentication (SSO, 2FA), and Authorization
-(host access control, SELinux user roles, services). The solution provides
-features for further integration with Linux based clients (SUDO, automount)
-and integration with Active Directory based infrastructures (Trusts).
-If you are using IPA, you need to install this package.
-
-%endif  # with_python2
 
 %package -n python3-ipalib
 Summary: Python3 libraries used by IPA
@@ -853,55 +634,12 @@ If you are using IPA, you need to install this package.
 
 %if 0%{?with_ipatests}
 
-%if 0%{?with_python2} && 0%{?fedora} < 29
-# Fedora 29 workaround: don't build python2-ipaserver, depends on ipaserver
-%package -n python2-ipatests
-Summary: IPA tests and test tools
-BuildArch: noarch
-Obsoletes: %{name}-tests < 4.2.91
-Provides: %{name}-tests = %{version}-%{release}
-%{?python_provide:%python_provide python2-ipatests}
-%{!?python_provide:Provides: python-ipatests = %{version}-%{release}}
-Requires: python2-ipaclient = %{version}-%{release}
-Requires: python2-ipaserver = %{version}-%{release}
-Requires: iptables
-Requires: ldns-utils
-Requires: python2-coverage
-Requires: python2-cryptography >= 1.6
-Requires: python2-mock
-Requires: python2-paste
-Requires: python2-polib
-Requires: python2-pytest >= 2.6
-Requires: python2-pytest-multihost >= 0.5
-Requires: python2-pytest-sourceorder
-Requires: python2-sssdconfig
-Requires: tar
-Requires: xz
-
-Provides: %{alt_name}-tests = %{version}
-Conflicts: %{alt_name}-tests
-Obsoletes: %{alt_name}-tests < %{version}
-
-%description -n python2-ipatests
-IPA is an integrated solution to provide centrally managed Identity (users,
-hosts, services), Authentication (SSO, 2FA), and Authorization
-(host access control, SELinux user roles, services). The solution provides
-features for further integration with Linux based clients (SUDO, automount)
-and integration with Active Directory based infrastructures (Trusts).
-This package contains tests that verify IPA functionality.
-
-%endif  # with_python2 and Fedora < 29
-
 %package -n python3-ipatests
 Summary: IPA tests and test tools
 BuildArch: noarch
 %{?python_provide:%python_provide python3-ipatests}
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ipaserver = %{version}-%{release}
-%if 0%{?fedora} >= 29
-Conflicts: python2-ipatests
-Obsoletes: python2-ipatests < %{version}
-%endif
 Requires: iptables
 Requires: ldns-utils
 Requires: python3-coverage
@@ -927,58 +665,18 @@ This package contains tests that verify IPA functionality under Python 3.
 
 %prep
 %setup -n freeipa-%{version} -q
-# Workaround: We want to build Python things twice. To be sure we do not mess
-# up something, do two separate builds in separate directories.
-# freeipa-$VER-python3 for Python 3 build
-# freeipa-$VER-python2 for Python 2 build
-# freeipa-$VER is a symlink to default Python version
-
-%if %{with_default_python} == 3
-%if 0%{?with_python2}
-cp -r %{_builddir}/freeipa-%{version} %{_builddir}/freeipa-%{version}-python2
-%endif
-mv %{_builddir}/freeipa-%{version} %{_builddir}/freeipa-%{version}-python3
-ln -sr %{_builddir}/freeipa-%{version}-python3 %{_builddir}/freeipa-%{version}
-%else
-# Python 2 default
-cp -r %{_builddir}/freeipa-%{version} %{_builddir}/freeipa-%{version}-python3
-mv %{_builddir}/freeipa-%{version} %{_builddir}/freeipa-%{version}-python2
-ln -sr %{_builddir}/freeipa-%{version}-python2 %{_builddir}/freeipa-%{version}
-%endif
 
 %build
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
 export PATH=/usr/bin:/usr/sbin:$PATH
 
 
-%if 0%{?with_python2}
-export PYTHON=%{__python2}
-pushd %{_builddir}/freeipa-%{version}-python2
-# Workaround: make sure all shebangs are pointing to Python 2
-# This should be solved properly using setuptools
-# and this hack should be removed.
-find \
-	! -name '*.pyc' -a \
-	! -name '*.pyo' -a \
-	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
-	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python2}|' {} \;
-
-autoreconf -ivf
-%configure --with-vendor-suffix=-%{release} \
-           %{enable_server_option} \
-           %{with_ipatests_option} \
-           %{linter_options}
-popd
-%endif # ! with_python2
-
 export PYTHON=%{__python3}
-pushd %{_builddir}/freeipa-%{version}-python3
 autoreconf -ivf
 %configure --with-vendor-suffix=-%{release} \
            %{enable_server_option} \
            %{with_ipatests_option} \
            %{linter_options}
-popd
 
 # run build in default dir
 # -Onone is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1398405
@@ -998,14 +696,9 @@ make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
 # All files and directories created by spec install should be marked as ghost.
 # (These are typically configuration files created by IPA installer.)
 # All other artifacts should be created by make install.
-#
-# Exception to this rule are test programs which where want to install
-# Python2/3 versions at the same time so we need to rename them. Yuck.
 
-# Python 3 packages and commands
-pushd %{_builddir}/freeipa-%{version}-python3
-%{__make} python_install DESTDIR=%{?buildroot} INSTALL="%{__install} -p"
-popd
+%make_install
+
 %if 0%{?with_ipatests}
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python3_version}
@@ -1013,52 +706,13 @@ mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{p
 ln -rs %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version} %{buildroot}%{_bindir}/ipa-run-tests-3
 ln -rs %{buildroot}%{_bindir}/ipa-test-config-%{python3_version} %{buildroot}%{_bindir}/ipa-test-config-3
 ln -rs %{buildroot}%{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bindir}/ipa-test-task-3
-%endif # with_ipatests
-
-# Python 2 packages and commands
-%if 0%{?with_python2}
-pushd %{_builddir}/freeipa-%{version}-python2
-%{__make} python_install DESTDIR=%{?buildroot} INSTALL="%{__install} -p"
-popd
-%if 0%{?with_ipatests} && 0%{?fedora} < 29
-# Fedora 29 workaround: don't ship ipatests binaries
-mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
-mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}
-mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python2_version}
-ln -rs %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bindir}/ipa-run-tests-2
-ln -rs %{buildroot}%{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config-2
-ln -rs %{buildroot}%{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task-2
-%endif # with_ipatests and Fedora < 29
-%endif # with_python2
-
-# default installation
-# This installs all Python packages twice and overrides the ipa-test
-# commands. We'll fix the command links later with ln --force.
-%make_install
-
-# Decide which Python (2 or 3) should be used as default for tests
-%if 0%{?with_ipatests}
-%if %{with_default_python} == 3
 ln -frs %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version} %{buildroot}%{_bindir}/ipa-run-tests
 ln -frs %{buildroot}%{_bindir}/ipa-test-config-%{python3_version} %{buildroot}%{_bindir}/ipa-test-config
 ln -frs %{buildroot}%{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bindir}/ipa-test-task
-%else
-ln -frs %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bindir}/ipa-run-tests
-ln -frs %{buildroot}%{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config
-ln -frs %{buildroot}%{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task
-%endif # with_default_python
 %endif # with_ipatests
 
 # remove files which are useful only for make uninstall
 find %{buildroot} -wholename '*/site-packages/*/install_files.txt' -exec rm {} \;
-
-%if 0%{?with_ipatests} && 0%{?with_python2} && 0%{?fedora} >= 29
-# Fedora 29 workaround: Remove Python 2 ipaserver and ipatests
-rm -rf %{buildroot}%{python2_sitelib}/ipaserver
-rm -rf %{buildroot}%{python2_sitelib}/ipaserver-*.egg-info
-rm -rf %{buildroot}%{python2_sitelib}/ipatests
-rm -rf %{buildroot}%{python2_sitelib}/ipatests-*.egg-info
-%endif  # with python2 ipatests and Fedora >= 29
 
 %find_lang %{gettext_domain}
 
@@ -1128,7 +782,7 @@ fi
 
 %posttrans server
 # don't execute upgrade and restart of IPA when server is not installed
-%{python} -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
+%{__python3} -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
 
 if [  $? -eq 0 ]; then
     # This is necessary for Fedora system upgrades which by default
@@ -1207,7 +861,7 @@ fi
 
 
 %posttrans server-trust-ad
-%{python} -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
+%{__python3} -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
 if [  $? -eq 0 ]; then
 # NOTE: systemd specific section
     /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
@@ -1249,7 +903,7 @@ if [ $1 -gt 1 ] ; then
     fi
 
     if [ $restore -ge 2 ]; then
-        %{python} -c 'from ipaclient.install.client import update_ipa_nssdb; update_ipa_nssdb()' >/var/log/ipaupgrade.log 2>&1
+        %{__python3} -c 'from ipaclient.install.client import update_ipa_nssdb; update_ipa_nssdb()' >>/var/log/ipaupgrade.log 2>&1
     fi
 fi
 
@@ -1375,15 +1029,6 @@ fi
 %{_mandir}/man1/ipa-winsync-migrate.1*
 %{_mandir}/man1/ipa-pkinit-manage.1*
 
-%if 0%{?with_python2} && 0%{?fedora} < 29
-# Fedora 29 workaround: don't build python2-ipaserver, python2-pki is n/a
-%files -n python2-ipaserver
-%doc README.md Contributors.txt
-%license COPYING
-%{python2_sitelib}/ipaserver
-%{python2_sitelib}/ipaserver-*.egg-info
-
-%endif # with_python2 and Fedora < 29
 
 %files -n python3-ipaserver
 %doc README.md Contributors.txt
@@ -1524,31 +1169,6 @@ fi
 %{_mandir}/man1/ipa-certupdate.1*
 %{_mandir}/man1/ipa-join.1*
 
-%if 0%{?with_python2}
-
-%files -n python2-ipaclient
-%doc README.md Contributors.txt
-%license COPYING
-%dir %{python2_sitelib}/ipaclient
-%{python2_sitelib}/ipaclient/*.py*
-%dir %{python2_sitelib}/ipaclient/install
-%{python2_sitelib}/ipaclient/install/*.py*
-%dir %{python2_sitelib}/ipaclient/plugins
-%{python2_sitelib}/ipaclient/plugins/*.py*
-%dir %{python2_sitelib}/ipaclient/remote_plugins
-%{python2_sitelib}/ipaclient/remote_plugins/*.py*
-%dir %{python2_sitelib}/ipaclient/remote_plugins/2_*
-%{python2_sitelib}/ipaclient/remote_plugins/2_*/*.py*
-%dir %{python2_sitelib}/ipaclient/csrgen
-%dir %{python2_sitelib}/ipaclient/csrgen/profiles
-%{python2_sitelib}/ipaclient/csrgen/profiles/*.json
-%dir %{python2_sitelib}/ipaclient/csrgen/rules
-%{python2_sitelib}/ipaclient/csrgen/rules/*.json
-%dir %{python2_sitelib}/ipaclient/csrgen/templates
-%{python2_sitelib}/ipaclient/csrgen/templates/*.tmpl
-%{python2_sitelib}/ipaclient-*.egg-info
-
-%endif # with_python2
 
 %files -n python3-ipaclient
 %doc README.md Contributors.txt
@@ -1607,27 +1227,6 @@ fi
 %doc README.md Contributors.txt
 %license COPYING
 
-%if 0%{?with_python2}
-
-%files -n python2-ipalib
-%doc README.md Contributors.txt
-%license COPYING
-%dir %{python2_sitelib}/ipapython
-%{python2_sitelib}/ipapython/*.py*
-%dir %{python2_sitelib}/ipapython/install
-%{python2_sitelib}/ipapython/install/*.py*
-%dir %{python2_sitelib}/ipalib
-%{python2_sitelib}/ipalib/*.py*
-%dir %{python2_sitelib}/ipalib/install
-%{python2_sitelib}/ipalib/install/*.py*
-%dir %{python2_sitelib}/ipaplatform
-%{python2_sitelib}/ipaplatform/*
-%{python2_sitelib}/ipapython-*.egg-info
-%{python2_sitelib}/ipalib-*.egg-info
-%{python2_sitelib}/ipaplatform-*.egg-info
-%{python2_sitelib}/ipaplatform-*-nspkg.pth
-
-%endif # with_python2
 
 %files common -f %{gettext_domain}.lang
 %doc README.md Contributors.txt
@@ -1650,30 +1249,6 @@ fi
 
 %if 0%{?with_ipatests}
 
-%if 0%{?with_python2} && 0%{?fedora} < 29
-# Fedora 29 workaround: don't build python2-ipatests, depends on ipaserver
-%files -n python2-ipatests
-%doc README.md Contributors.txt
-%license COPYING
-%{python2_sitelib}/ipatests
-%{python2_sitelib}/ipatests-*.egg-info
-%{_bindir}/ipa-run-tests-2
-%{_bindir}/ipa-test-config-2
-%{_bindir}/ipa-test-task-2
-%{_bindir}/ipa-run-tests-%{python2_version}
-%{_bindir}/ipa-test-config-%{python2_version}
-%{_bindir}/ipa-test-task-%{python2_version}
-%if %{with_default_python} != 3
-%{_bindir}/ipa-run-tests
-%{_bindir}/ipa-test-config
-%{_bindir}/ipa-test-task
-%{_mandir}/man1/ipa-run-tests.1*
-%{_mandir}/man1/ipa-test-config.1*
-%{_mandir}/man1/ipa-test-task.1*
-%endif
-
-%endif # with_python2 and Fedora < 29
-
 %files -n python3-ipatests
 %doc README.md Contributors.txt
 %license COPYING
@@ -1685,14 +1260,12 @@ fi
 %{_bindir}/ipa-run-tests-%{python3_version}
 %{_bindir}/ipa-test-config-%{python3_version}
 %{_bindir}/ipa-test-task-%{python3_version}
-%if %{with_default_python} == 3
 %{_bindir}/ipa-run-tests
 %{_bindir}/ipa-test-config
 %{_bindir}/ipa-test-task
 %{_mandir}/man1/ipa-run-tests.1*
 %{_mandir}/man1/ipa-test-config.1*
 %{_mandir}/man1/ipa-test-task.1*
-%endif
 
 %endif # with_ipatests
 

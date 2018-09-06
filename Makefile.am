@@ -182,39 +182,20 @@ endif
 if ! WITH_JSLINT
 	@echo "ERROR: jslint not available"; exit 1
 endif
-if ! WITH_PYTHON2
-	@echo "ERROR: python2 not available"; exit 1
-endif
-	@ # run all linters, tests, and check with Python 2
-	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON2) ipatests/ipa-run-tests \
-	    --ipaclient-unittests
-	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint jslint check
-	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON2) pylint
-if WITH_PYTHON3
 	@ # just tests, aci, api and pylint on Python 3
-	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON3) ipatests/ipa-run-tests \
+	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ipatests/ipa-run-tests \
 	    --ipaclient-unittests
-	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) acilint apilint polint pylint
-else
-	@echo "WARNING: python3 not available"
-endif
+	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint pylint
 	@echo "All tests passed."
 
 .PHONY: fastcheck fasttest fastlint
 fastcheck:
-if WITH_PYTHON2
-	@$(MAKE) -j1 $(AM_MAKEFLAGS) PYTHON=$(PYTHON2) \
-	    fastlint fasttest apilint acilint
-endif
-if WITH_PYTHON3
-	@$(MAKE) -j1 $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) \
-	     fastlint fasttest apilint acilint
-endif
+	@$(MAKE) -j1 $(AM_MAKEFLAGS) fastlint fasttest apilint acilint
 
 fasttest: $(GENERATED_PYTHON_FILES) ipasetup.py
 	@ # --ignore doubles speed of total test run compared to pytest.skip()
 	@ # on module.
-	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON3) ipatests/ipa-run-tests \
+	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ipatests/ipa-run-tests \
 	    --skip-ipaapi \
 	    --ignore $(abspath $(top_srcdir))/ipatests/test_integration \
 	    --ignore $(abspath $(top_srcdir))/ipatests/test_xmlrpc

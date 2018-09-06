@@ -55,8 +55,7 @@ steps:
   - sed -ri "s/mode = production/mode = development/" /etc/ipa/default.conf
   - systemctl restart httpd.service
   lint:
-  - make PYTHON=/usr/bin/python2 V=0 lint
-  - make PYTHON=/usr/bin/python3 V=0 pylint
+  - make V=0 pylint
   webui_unit:
   - dnf install -y npm
   - cd ${container_working_dir}/install/ui/js/libs && make
@@ -64,7 +63,7 @@ steps:
   - cd ${container_working_dir}/install/ui && node_modules/grunt/bin/grunt --verbose test
   tox:
   # just run one pylint and one Python 3 target (time/coverage trade-off)
-  - tox -e py27,py36,pypi,pylint3
+  - tox -e py36,pypi,pylint3
   prepare_tests:
   - echo ${server_password} | kinit admin && ipa ping
   - cp -r /etc/ipa/* ~/.ipa/
