@@ -1301,7 +1301,10 @@ class CAInstance(DogtagInstance):
         self._ldap_enable(u'enabledService', "CA", self.fqdn, basedn, config)
 
     def setup_lightweight_ca_key_retrieval(self):
-        if sysupgrade.get_upgrade_state('dogtag', 'setup_lwca_key_retrieval'):
+        # Important: there is a typo in the below string, which is known
+        # and should not be fixed as existing installations already use it
+        LWCA_KEY_RETRIEVAL = 'setup_lwca_key_retieval'
+        if sysupgrade.get_upgrade_state('dogtag', LWCA_KEY_RETRIEVAL):
             return
 
         logger.debug('Set up lightweight CA key retrieval')
@@ -1320,7 +1323,7 @@ class CAInstance(DogtagInstance):
             directivesetter.set_directive(
                 self.config, k, v, quotes=False, separator='=')
 
-        sysupgrade.set_upgrade_state('dogtag', 'setup_lwca_key_retieval', True)
+        sysupgrade.set_upgrade_state('dogtag', LWCA_KEY_RETRIEVAL, True)
 
     def __setup_lightweight_ca_key_retrieval_kerberos(self):
         pent = pwd.getpwnam(self.service_user)
