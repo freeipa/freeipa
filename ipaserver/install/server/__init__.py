@@ -35,7 +35,6 @@ from .install import install_check as master_install_check
 from .install import uninstall, uninstall_check
 from .replicainstall import init as replica_init
 from .replicainstall import install as replica_install
-from .replicainstall import install_check as replica_install_check
 from .replicainstall import promote_check as replica_promote_check
 from .upgrade import upgrade_check, upgrade
 
@@ -329,28 +328,8 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
         if not os.path.exists(value):
             raise ValueError("File %s does not exist." % value)
 
-    def _is_promote(self):
-        """
-        :returns: True if domain level options correspond to domain level > 0
-        """
-        raise NotImplementedError()
-
     def __init__(self, **kwargs):
         super(ServerInstallInterface, self).__init__(**kwargs)
-
-        # Domain level 0 is not supported anymore
-        if not self._is_promote():
-            raise RuntimeError(
-                "Domain level 0 is not supported anymore.")
-
-        # pkinit is not supported on DL0, don't allow related options
-        if not self._is_promote():
-            if (self.no_pkinit or self.pkinit_cert_files is not None or
-                    self.pkinit_pin is not None):
-                raise RuntimeError(
-                    "pkinit on domain level 0 is not supported. Please "
-                    "don't use any pkinit-related options.")
-            self.no_pkinit = True
 
         # If any of the key file options are selected, all are required.
         cert_file_req = (self.dirsrv_cert_files, self.http_cert_files)
@@ -450,7 +429,7 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                     "You cannot specify a --no-msdcs option without the "
                     "--setup-adtrust option")
 
-        if not hasattr(self, 'replica_file'):
+        if not hasattr(self, 'replica_install'):
             if self.external_cert_files and self.dirsrv_cert_files:
                 raise RuntimeError(
                     "Service certificate file options cannot be used with the "
@@ -499,45 +478,10 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                     (self.idmax, self.idstart))
         else:
             # replica installers
-            if self.replica_file is None:
-                if self.servers and not self.domain_name:
-                    raise RuntimeError(
-                        "The --server option cannot be used without providing "
-                        "domain via the --domain option")
-
-            else:
-                # Domain level 0 is not supported anymore
-
-                if not os.path.isfile(self.replica_file):
-                    raise RuntimeError(
-                        "Replica file %s does not exist" % self.replica_file)
-
-                if any(cert_file_req + cert_file_opt):
-                    raise RuntimeError(
-                        "You cannot specify any of --dirsrv-cert-file, "
-                        "--http-cert-file, or --pkinit-cert-file together "
-                        "with replica file")
-
-                CLIKnob = collections.namedtuple('CLIKnob', ('value', 'name'))
-
-                conflicting_knobs = (
-                    CLIKnob(self.realm_name, '--realm'),
-                    CLIKnob(self.domain_name, '--domain'),
-                    CLIKnob(self.host_name, '--hostname'),
-                    CLIKnob(self.servers, '--server'),
-                    CLIKnob(self.principal, '--principal'),
-                )
-
-                if any([k.value is not None for k in conflicting_knobs]):
-                    conflicting_knob_names = [
-                        knob.name for knob in conflicting_knobs
-                        if knob.value is not None
-                    ]
-
-                    raise RuntimeError(
-                        "You cannot specify '{0}' option(s) with replica file."
-                        .format(", ".join(conflicting_knob_names))
-                        )
+            if self.servers and not self.domain_name:
+                raise RuntimeError(
+                    "The --server option cannot be used without providing "
+                    "domain via the --domain option")
 
             if self.setup_dns:
                 if (not self.forwarders and
@@ -595,9 +539,6 @@ class ServerMasterInstall(ServerMasterInstallInterface):
     add_sids = True
     add_agents = False
 
-    def _is_promote(self):
-        return self.domain_level > constants.DOMAIN_LEVEL_0
-
     def __init__(self, **kwargs):
         super(ServerMasterInstall, self).__init__(**kwargs)
         master_init(self)
@@ -631,22 +572,12 @@ class ServerReplicaInstall(ServerReplicaInstallInterface):
         description="Kerberos password for the specified admin principal",
     )
 
-    def _is_promote(self):
-        return self.replica_file is None
-
     def __init__(self, **kwargs):
         super(ServerReplicaInstall, self).__init__(**kwargs)
         replica_init(self)
 
     @step()
     def main(self):
-        if self.replica_file is not None:
-            # Domain level 0 is not supported anymore
-            raise RuntimeError(
-                "Domain level 0 is not supported anymore.")
-        if self.replica_file is None:
-            replica_promote_check(self)
-        else:
-            replica_install_check(self)
+        replica_promote_check(self)
         yield
         replica_install(self)
