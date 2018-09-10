@@ -50,8 +50,6 @@ def get_custodia_instance(config, mode):
       FQDN of the new replica/master
     *realm_name*
       Kerberos realm
-    *promote*
-      True, when instance will be promoted from client to replica
     *master_host_name* (for *CustodiaModes.MASTER_PEER*)
       hostname of a master (may not have a CA)
     *ca_host_name* (for *CustodiaModes.CA_PEER*)
@@ -59,28 +57,27 @@ def get_custodia_instance(config, mode):
     *kra_host_name* (for *CustodiaModes.KRA_PEER*)
       hostname of a master with KRA or CA
 
-    For promotion, the instance will upload new keys and retrieve secrets
-    from the same host. Therefore it uses *ca_host_name* instead of
+    For replicas, the instance will upload new keys and retrieve secrets
+    to the same host. Therefore it uses *ca_host_name* instead of
     *master_host_name* to create a replica with CA.
     """
     assert isinstance(mode, CustodiaModes)
     logger.debug(
         "Custodia client for '%r' with promotion %s.",
-        mode, 'yes' if config.promote else 'no'
+        mode, 'yes' if mode != CustodiaModes.STANDALONE else 'no'
     )
-    if config.promote:
-        if mode == CustodiaModes.CA_PEER:
-            # In case we install replica with CA, prefer CA host as source for
-            # all Custodia secret material.
-            custodia_peer = config.ca_host_name
-        elif mode == CustodiaModes.KRA_PEER:
-            custodia_peer = config.kra_host_name
-        elif mode == CustodiaModes.MASTER_PEER:
-            custodia_peer = config.master_host_name
-        elif mode == CustodiaModes.STANDALONE:
-            custodia_peer = None
-    else:
+    if mode == CustodiaModes.CA_PEER:
+        # In case we install replica with CA, prefer CA host as source for
+        # all Custodia secret material.
+        custodia_peer = config.ca_host_name
+    elif mode == CustodiaModes.KRA_PEER:
+        custodia_peer = config.kra_host_name
+    elif mode == CustodiaModes.MASTER_PEER:
+        custodia_peer = config.master_host_name
+    elif mode == CustodiaModes.STANDALONE:
         custodia_peer = None
+    else:
+        raise RuntimeError("Unknown custodia mode %s", mode)
 
     if custodia_peer is None:
         # use ldapi with local dirsrv instance
