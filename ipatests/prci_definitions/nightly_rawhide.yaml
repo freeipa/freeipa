@@ -664,6 +664,18 @@ jobs:
         timeout: 7200
         topology: *master_3repl_1client
 
+  fedora-rawhide/test_client_uninstallation:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_uninstallation.py
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl_1client
+
   fedora-rawhide/test_webui:
     requires: [fedora-rawhide/build]
     priority: 50
