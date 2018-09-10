@@ -335,10 +335,6 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
     return result
 
 
-def get_replica_filename(replica):
-    return os.path.join(replica.config.test_dir, 'replica-info.gpg')
-
-
 def check_domain_level(domain_level):
     if domain_level < MIN_DOMAIN_LEVEL:
         pytest.fail(
@@ -389,31 +385,6 @@ def _config_replica_resolvconf_with_master_data(master, replica):
     replica.put_file_contents(paths.RESOLV_CONF, content)
 
 
-def replica_prepare(master, replica, extra_args=(),
-                    raiseonerr=True, stdin_text=None):
-    fix_apache_semaphores(replica)
-    prepare_reverse_zone(master, replica.ip)
-
-    # in domain level 0 there is no autodiscovery, so it's necessary to
-    # change /etc/resolv.conf to find master DNS server
-    _config_replica_resolvconf_with_master_data(master, replica)
-
-    args = ['ipa-replica-prepare',
-            '-p', replica.config.dirman_password,
-            replica.hostname]
-    if master_authoritative_for_client_domain(master, replica):
-        args.extend(['--ip-address', replica.ip, '--auto-reverse'])
-    args.extend(extra_args)
-    result = master.run_command(args, raiseonerr=raiseonerr,
-                                stdin_text=stdin_text)
-    if result.returncode == 0:
-        replica_bundle = master.get_file_contents(
-            paths.REPLICA_INFO_GPG_TEMPLATE % replica.hostname)
-        replica_filename = get_replica_filename(replica)
-        replica.put_file_contents(replica_filename, replica_bundle)
-    return result
-
-
 def install_replica(master, replica, setup_ca=True, setup_dns=False,
                     setup_kra=False, setup_adtrust=False, extra_args=(),
                     domain_level=None, unattended=True, stdin_text=None,
@@ -448,19 +419,10 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
 
     args.extend(extra_args)
 
-    if domain_level == DOMAIN_LEVEL_0:
-        # workaround #6274 - remove when fixed
-        time.sleep(30)  # wait until dogtag wakes up
-
-        # prepare the replica file on master and put it to replica, AKA "old way"
-        replica_prepare(master, replica)
-        replica_filename = get_replica_filename(replica)
-        args.append(replica_filename)
-    else:
-        # install client on a replica machine and then promote it to replica
-        install_client(master, replica)
-        fix_apache_semaphores(replica)
-        args.extend(['-r', replica.domain.realm])
+    # install client on a replica machine and then promote it to replica
+    install_client(master, replica)
+    fix_apache_semaphores(replica)
+    args.extend(['-r', replica.domain.realm])
 
     result = replica.run_command(args, raiseonerr=raiseonerr,
                                  stdin_text=stdin_text)
@@ -1250,9 +1212,6 @@ def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
         domain_level = domainlevel(host)
     check_domain_level(domain_level)
     command = ["ipa-kra-install", "-U", "-p", host.config.dirman_password]
-    if domain_level == DOMAIN_LEVEL_0 and not first_instance:
-        replica_file = get_replica_filename(host)
-        command.append(replica_file)
     try:
         result = host.run_command(command, raiseonerr=raiseonerr)
     finally:
@@ -1267,9 +1226,6 @@ def install_ca(host, domain_level=None, first_instance=False,
     check_domain_level(domain_level)
     command = ["ipa-ca-install", "-U", "-p", host.config.dirman_password,
                "-P", 'admin', "-w", host.config.admin_password]
-    if domain_level == DOMAIN_LEVEL_0 and not first_instance:
-        replica_file = get_replica_filename(host)
-        command.append(replica_file)
     # First step of ipa-ca-install --external-ca
     if external_ca:
         command.append('--external-ca')
