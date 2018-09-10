@@ -315,22 +315,12 @@ class CALessBase(IntegrationTest):
         if pkinit_pin is not None:
             extra_args.extend(['--pkinit-pin', dirsrv_pin])
 
-        if domain_level == DOMAIN_LEVEL_0:
-            result = tasks.replica_prepare(master, replica,
-                                           extra_args=extra_args,
-                                           raiseonerr=False,
-                                           stdin_text=stdin_text)
-        else:
-            result = tasks.install_replica(master, replica, setup_ca=False,
-                                           extra_args=extra_args,
-                                           unattended=unattended,
-                                           stdin_text=stdin_text,
-                                           raiseonerr=False)
+        result = tasks.install_replica(master, replica, setup_ca=False,
+                                       extra_args=extra_args,
+                                       unattended=unattended,
+                                       stdin_text=stdin_text,
+                                       raiseonerr=False)
         return result
-
-    def get_replica_filename(self, replica):
-        return os.path.join(replica.config.test_dir,
-                            'replica-info.gpg')
 
     @classmethod
     def create_pkcs12(cls, nickname, filename='server.p12', password=None):
