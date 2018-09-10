@@ -20,14 +20,13 @@
 from __future__ import print_function, absolute_import
 
 import logging
-import os
 import sys
 import tempfile
 from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
 
 from textwrap import dedent
 from ipalib import api
-from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.constants import DOMAIN_LEVEL_1
 from ipaplatform.paths import paths
 from ipapython import admintool
 from ipaserver.install import service
@@ -36,7 +35,6 @@ from ipaserver.install import custodiainstance
 from ipaserver.install import krainstance
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
-from ipaserver.install.installutils import create_replica_config
 from ipaserver.install import dogtaginstance
 from ipaserver.install import kra
 from ipaserver.install.installutils import ReplicaConfig
@@ -118,15 +116,8 @@ class KRAInstaller(KRAInstall):
                 " in unattended mode"
             )
 
-        if len(self.args) > 1:
+        if len(self.args) > 0:
             self.option_parser.error("Too many arguments provided")
-        elif len(self.args) == 1:
-            # Domain level 0 is not supported anymore
-            self.option_parser.error("Domain level 0 is not supported anymore")
-            self.replica_file = self.args[0]
-            if not os.path.isfile(self.replica_file):
-                self.option_parser.error(
-                    "Replica file %s does not exist" % self.replica_file)
 
     def ask_for_options(self):
         super(KRAInstaller, self).ask_for_options()
@@ -162,18 +153,15 @@ class KRAInstaller(KRAInstall):
 
         # this check can be done only when CA is installed
         self.installing_replica = dogtaginstance.is_installing_replica("KRA")
-        self.options.promote = False
 
         if self.installing_replica:
             domain_level = dsinstance.get_domain_level(api)
-            if domain_level > DOMAIN_LEVEL_0:
-                self.options.promote = True
-            elif not self.args:
-                raise RuntimeError("A replica file is required.")
+            if domain_level < DOMAIN_LEVEL_1:
+                raise RuntimeError(
+                    "Unsupported domain level %d." % domain_level)
 
-        if self.args and (not self.installing_replica or self.options.promote):
-            raise RuntimeError("Too many parameters provided. "
-                               "No replica file is required.")
+        if self.args:
+            raise RuntimeError("Too many parameters provided.")
 
         self.options.dm_password = self.options.password
         self.options.setup_ca = False
@@ -182,30 +170,17 @@ class KRAInstaller(KRAInstall):
         api.Backend.ldap2.connect()
 
         if self.installing_replica:
-            if not self.options.promote:
-                # Domain level 0 is not supported anymore
-                raise admintool.ScriptError(
-                    "Domain level 0 is not supported anymore")
-
-            if self.options.promote:
-                config = ReplicaConfig()
-                config.kra_host_name = None
-                config.realm_name = api.env.realm
-                config.host_name = api.env.host
-                config.domain_name = api.env.domain
-                config.dirman_password = self.options.password
-                config.ca_ds_port = 389
-                config.top_dir = tempfile.mkdtemp("ipa")
-                config.dir = config.top_dir
-            else:
-                config = create_replica_config(
-                    self.options.password,
-                    self.replica_file,
-                    self.options)
-                config.kra_host_name = config.master_host_name
+            config = ReplicaConfig()
+            config.kra_host_name = None
+            config.realm_name = api.env.realm
+            config.host_name = api.env.host
+            config.domain_name = api.env.domain
+            config.dirman_password = self.options.password
+            config.ca_ds_port = 389
+            config.top_dir = tempfile.mkdtemp("ipa")
+            config.dir = config.top_dir
 
             config.setup_kra = True
-            config.promote = self.options.promote
 
             if config.subject_base is None:
                 attrs = api.Backend.ldap2.get_ipa_config()
