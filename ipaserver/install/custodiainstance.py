@@ -33,8 +33,8 @@ class CustodiaModes(enum.Enum):
     KRA_PEER = 'Custodia KRA peer'
     # any master will do
     MASTER_PEER = 'Custodia master peer'
-    # standalone / local instance
-    STANDALONE = 'Custodia standalone'
+    # local instance (first master)
+    FIRST_MASTER = 'Custodia on first master'
 
 
 def get_custodia_instance(config, mode):
@@ -64,7 +64,7 @@ def get_custodia_instance(config, mode):
     assert isinstance(mode, CustodiaModes)
     logger.debug(
         "Custodia client for '%r' with promotion %s.",
-        mode, 'yes' if mode != CustodiaModes.STANDALONE else 'no'
+        mode, 'yes' if mode != CustodiaModes.FIRST_MASTER else 'no'
     )
     if mode == CustodiaModes.CA_PEER:
         # In case we install replica with CA, prefer CA host as source for
@@ -74,7 +74,7 @@ def get_custodia_instance(config, mode):
         custodia_peer = config.kra_host_name
     elif mode == CustodiaModes.MASTER_PEER:
         custodia_peer = config.master_host_name
-    elif mode == CustodiaModes.STANDALONE:
+    elif mode == CustodiaModes.FIRST_MASTER:
         custodia_peer = None
     else:
         raise RuntimeError("Unknown custodia mode %s", mode)
