@@ -12,7 +12,6 @@ dist_noinst_DATA =		\
 	ipa-adtrust-install.in	\
 	ipa-replica-conncheck.in	\
 	ipa-replica-install.in	\
-	ipa-replica-prepare.in	\
 	ipa-replica-manage.in	\
 	ipa-csreplica-manage.in	\
 	ipa-server-certinstall.in  \
