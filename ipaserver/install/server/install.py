@@ -823,7 +823,7 @@ def install(installer):
                       subject_base=options.subject_base)
 
     custodia = custodiainstance.get_custodia_instance(
-        options, custodiainstance.CustodiaModes.MASTER_PEER)
+        options, custodiainstance.CustodiaModes.FIRST_MASTER)
     custodia.create_instance()
 
     if setup_ca:
