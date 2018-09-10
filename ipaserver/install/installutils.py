@@ -664,52 +664,6 @@ def read_replica_info_dogtag_port(config_dir):
     return dogtag_master_ds_port
 
 
-def create_replica_config(dirman_password, filename, options):
-    top_dir = None
-    try:
-        top_dir, dir = expand_replica_info(filename, dirman_password)
-    except Exception as e:
-        logger.error("Failed to decrypt or open the replica file.")
-        raise ScriptError(
-            "ERROR: Failed to decrypt or open the replica file.\n"
-            "Verify you entered the correct Directory Manager password.")
-    config = ReplicaConfig(top_dir)
-    read_replica_info(dir, config)
-    logger.debug(
-        'Installing replica file with version %d '
-        '(0 means no version in prepared file).',
-        config.version)
-    if config.version and config.version > version.NUM_VERSION:
-        logger.error(
-            'A replica file from a newer release (%d) cannot be installed on '
-            'an older version (%d)',
-            config.version, version.NUM_VERSION)
-        raise ScriptError()
-    config.dirman_password = dirman_password
-    try:
-        host = get_host_name(options.no_host_dns)
-    except BadHostError as e:
-        logger.error("%s", str(e))
-        raise ScriptError()
-    if config.host_name != host:
-        try:
-            print("This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host))
-            if not ipautil.user_input("This may cause problems. Continue?", False):
-                logger.debug(
-                    "Replica was created for %s but machine is named %s  "
-                    "User chose to exit",
-                    config.host_name, host)
-                sys.exit(0)
-            config.host_name = host
-            print("")
-        except KeyboardInterrupt:
-            logger.debug("Keyboard Interrupt")
-            raise ScriptError(rval=0)
-    config.dir = dir
-    config.ca_ds_port = read_replica_info_dogtag_port(config.dir)
-    return config
-
-
 def check_server_configuration():
     """
     Check if IPA server is configured on the system.
