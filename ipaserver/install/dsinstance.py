@@ -361,7 +361,7 @@ class DsInstance(service.Service):
                        domain_name, dm_password,
                        subject_base, ca_subject,
                        api, pkcs12_info=None, ca_file=None,
-                       ca_is_configured=None, promote=False,
+                       ca_is_configured=None,
                        setup_pkinit=False):
         # idstart and idmax are configured so that the range is seen as
         # depleted by the DNA plugin and the replica will go and get a
@@ -386,7 +386,7 @@ class DsInstance(service.Service):
         self.master_fqdn = master_fqdn
         if ca_is_configured is not None:
             self.ca_is_configured = ca_is_configured
-        self.promote = promote
+        self.promote = True
         self.api = api
 
         self.__common_setup()
