@@ -3697,7 +3697,6 @@ class ClientInstall(ClientInstallInterface,
     Client installer
     """
 
-    replica_file = None
     dm_password = None
 
     ca_cert_files = extend_knob(
