@@ -140,10 +140,6 @@ def install_check(standalone, replica_config, options):
         if standalone and api.env.ra_plugin == 'selfsign':
             raise ScriptError('A selfsign CA can not be added')
 
-        cafile = os.path.join(replica_config.dir, 'cacert.p12')
-        if not options.promote and not os.path.isfile(cafile):
-            raise ScriptError('CA cannot be installed in CA-less setup.')
-
         if standalone and not options.skip_conncheck:
             principal = options.principal
             replica_conn_check(
@@ -153,8 +149,6 @@ def install_check(standalone, replica_config, options):
 
         if options.skip_schema_check:
             logger.info("Skipping CA DS schema check")
-        else:
-            cainstance.replica_ca_install_check(replica_config, options.promote)
 
         return
 
@@ -278,10 +272,9 @@ def install_step_0(standalone, replica_config, options, custodia):
         promote = False
     else:
         cafile = os.path.join(replica_config.dir, 'cacert.p12')
-        if options.promote:
-            custodia.get_ca_keys(
-                cafile,
-                replica_config.dirman_password)
+        custodia.get_ca_keys(
+            cafile,
+            replica_config.dirman_password)
 
         ca_signing_algorithm = None
         ca_type = None
@@ -294,7 +287,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         master_replication_port = replica_config.ca_ds_port
         ra_p12 = os.path.join(replica_config.dir, 'ra.p12')
         ra_only = not replica_config.setup_ca
-        promote = options.promote
+        promote = True
 
     # if upgrading from CA-less to CA-ful, need to rewrite
     # certmap.conf and subject_base configuration
