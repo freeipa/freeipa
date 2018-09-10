@@ -218,7 +218,7 @@ class KrbInstance(service.Service):
                        master_fqdn, host_name,
                        domain_name, admin_password,
                        setup_pkinit=False, pkcs12_info=None,
-                       subject_base=None, promote=False):
+                       subject_base=None):
         self.pkcs12_info = pkcs12_info
         self.subject_base = subject_base
         self.master_fqdn = master_fqdn
