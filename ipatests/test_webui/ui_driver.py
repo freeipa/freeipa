@@ -132,6 +132,9 @@ class UI_driver(object):
         self.request_timeout = 60
         self.driver.maximize_window()
 
+    def teardown(self):
+        self.driver.delete_all_cookies()
+
     @classmethod
     def teardown_class(cls):
         cls.driver.quit()
