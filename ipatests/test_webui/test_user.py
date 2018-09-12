@@ -752,7 +752,7 @@ class TestLifeCycles(UI_driver):
         self.button_click('batch_stage')
         self.dialog_button_click('ok')
         self.assert_no_error_dialog()
-        self.wait(0.7)
+        self.wait(2)
         # fix assert after https://pagure.io/freeipa/issue/7477 is closed
         self.assert_notification(assert_text='1 users(s) staged')
 
@@ -814,7 +814,7 @@ class TestLifeCycles(UI_driver):
         self.button_click('batch_stage')
         self.dialog_button_click('ok')
         self.assert_no_error_dialog()
-        self.wait(0.7)
+        self.wait(2)
         self.assert_notification(assert_text='2 users(s) staged')
 
         # activate multiple users from stage
