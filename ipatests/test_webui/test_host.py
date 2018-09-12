@@ -501,7 +501,7 @@ class test_host(host_tasks):
         self.wait()
         actions = ActionChains(self.driver)
         actions.send_keys(Keys.ENTER).perform()
-        self.wait(0.7)
+        self.wait(2)
         self.dialog_button_click('cancel')
         self.assert_no_dialog()
 
