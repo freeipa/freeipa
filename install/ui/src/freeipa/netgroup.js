@@ -72,7 +72,10 @@ var spec = {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.netgroup.remove',
+    },
 };
 
     add_netgroup_details_facet_widgets(spec.facets[1]);
