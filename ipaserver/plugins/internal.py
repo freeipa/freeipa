@@ -659,6 +659,7 @@ class i18n_messages(Command):
                 "password_set_button": _("Set OTP"),
                 "password_set_success": _("OTP set"),
                 "password_set_title": _("Set One-Time-Password"),
+                "remove": _("Remove hosts"),
                 "status": _("Status"),
                 "unprovision": _("Unprovision"),
                 "unprovision_confirmation": _("Are you sure you want to unprovision this host?"),
