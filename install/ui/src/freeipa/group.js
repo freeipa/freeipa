@@ -207,7 +207,10 @@ return {
             },
             'gidnumber'
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.group.remove',
+    },
 };};
 
 IPA.group_adder_dialog = function(spec) {
