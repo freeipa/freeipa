@@ -418,6 +418,7 @@ class i18n_messages(Command):
                 "hostgrouprule": _("Host group rule"),
                 "hostgrouprules": _("Host group rules"),
                 "inclusive": _("Inclusive"),
+                "remove": _("Remove auto membership rules"),
                 "usergrouprule": _("User group rule"),
                 "usergrouprules": _("User group rules"),
             },
