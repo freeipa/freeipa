@@ -87,7 +87,11 @@ return {
             ],
             policies: [
                 mod_user.stageuser_sidebar_policy
-            ]
+            ],
+            deleter_dialog: {
+                title: '@i18n:objects.stageuser.remove',
+                $factory: IPA.search_deleter_dialog,
+            },
         },
         {
             $type: 'details',
@@ -329,7 +333,11 @@ stageuser.search_preserved_facet_spec = {
     ],
     policies: [
         mod_user.stageuser_sidebar_policy
-    ]
+    ],
+    deleter_dialog: {
+        title: '@i18n:objects.stageuser.preserved_remove',
+        $factory: IPA.search_deleter_dialog,
+    },
 };
 
 mod_user.entity_spec.policies = mod_user.entity_spec.policies || {};

@@ -146,6 +146,7 @@ return {
                 IPA.user.stageuser_sidebar_policy
             ],
             deleter_dialog: {
+                title: '@i18n:objects.user.remove',
                 $factory: IPA.user.deleter_dialog
             }
         },
