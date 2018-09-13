@@ -2,7 +2,7 @@ topologies:
   build: &build
     name: build
     cpu: 2
-    memory: 3800
+    memory: 3000
 
 jobs:
   fedora-28/build:
