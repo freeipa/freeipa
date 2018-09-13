@@ -477,6 +477,7 @@ return {
         ]
     },
     deleter_dialog: {
+        title: '@i18n:objects.host.remove',
         $factory: IPA.host_deleter_dialog
     }
 };};
