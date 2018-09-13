@@ -215,7 +215,10 @@ return {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.idview.remove',
+    },
 };};
 
 var make_idoverrideuser_spec = function() {
@@ -328,7 +331,10 @@ return {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.idview.remove_users',
+    },
 };};
 
 var make_idoverridegroup_spec = function() {
@@ -408,7 +414,10 @@ return {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.idview.remove_groups',
+    },
 };};
 
 
