@@ -2,15 +2,7 @@ topologies:
   build: &build
     name: build
     cpu: 2
-    memory: 3800
-  master_1repl: &master_1repl
-    name: master_1repl
-    cpu: 4
-    memory: 5750
-  master_1repl_1client: &master_1repl_1client
-    name: master_1repl_1client
-    cpu: 4
-    memory: 6700
+    memory: 3000
 
 jobs:
   fedora-28/build:
