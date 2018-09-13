@@ -117,6 +117,7 @@ return {
         height: '300'
     },
     deleter_dialog: {
+        title: '@i18n:objects.automember.remove',
         $factory: IPA.automember.rule_deleter_dialog
     }
 };};
