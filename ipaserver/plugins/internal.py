@@ -808,6 +808,7 @@ class i18n_messages(Command):
                 "host": _("Host Name"),
                 "missing": _("Kerberos Key Not Present"),
                 "provisioning": _("Provisioning"),
+                "remove": _("Remove services"),
                 "service": _("Service"),
                 "status": _("Status"),
                 "unprovision": _("Unprovision"),

@@ -424,7 +424,10 @@ return {
                 ]
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.service.remove',
+    },
 };};
 
 
