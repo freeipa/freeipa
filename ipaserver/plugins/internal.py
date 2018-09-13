@@ -604,6 +604,7 @@ class i18n_messages(Command):
                 "make_posix": _("Change to POSIX group"),
                 "nonposix": _("Non-POSIX"),
                 "posix": _("POSIX"),
+                "remove": _("Remove user groups"),
                 "type": _("Group Type"),
                 "user_groups": _("User Groups"),
             },
@@ -669,6 +670,7 @@ class i18n_messages(Command):
             "hostgroup": {
                 "host_group": _("Host Groups"),
                 "identity": _("Host Group Settings"),
+                "remove": _("Remove host groups"),
             },
             "idoverrideuser": {
                 "anchor_label": _("User to override"),
@@ -712,6 +714,7 @@ class i18n_messages(Command):
                 "hosts": _("Hosts"),
                 "identity": _("Netgroup Settings"),
                 "netgroups": _("Netgroups"),
+                "remove": _("Remove netgroups"),
                 "specified_hosts": _("Specified Hosts and Groups"),
                 "specified_users": _("Specified Users and Groups"),
                 "user": _("User"),
