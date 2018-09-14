@@ -407,6 +407,21 @@ class i18n_messages(Command):
             "aci": {
                 "attribute": _("Attribute"),
             },
+            "acidelegation": {
+                "remove": _("Remove delegations"),
+            },
+            "acipermission": {
+                "remove": _("Remove permissions"),
+            },
+            "aciprivilege": {
+                "remove": _("Remove privileges"),
+            },
+            "acirole": {
+                "remove": _("Remove roles"),
+            },
+            "aciselfservice": {
+                "remove": _("Remove self service permissions"),
+            },
             "automember": {
                 "add_condition": _("Add Condition into ${pkey}"),
                 "add_rule": _("Add Rule"),
