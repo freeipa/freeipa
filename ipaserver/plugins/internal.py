@@ -545,6 +545,7 @@ class i18n_messages(Command):
                 "deleter_title": _("Remove Certificate Mapping Data"),
                 "issuer": _("Issuer"),
                 "issuer_subject": _("Issuer and subject"),
+                "remove": _("Remove certificate identity mapping rules"),
                 "subject": _("Subject"),
                 "version": _("Version"),
             },
