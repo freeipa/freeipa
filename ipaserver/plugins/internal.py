@@ -855,9 +855,11 @@ class i18n_messages(Command):
             },
             "sudocmd": {
                 "groups": _("Groups"),
+                "remove": _("Remove sudo commands"),
             },
             "sudocmdgroup": {
                 "commands": _("Commands"),
+                "remove": _("Remove sudo command groups"),
             },
             "sudorule": {
                 "allow": _("Allow"),
@@ -873,6 +875,7 @@ class i18n_messages(Command):
                 "option_added": _("Option added"),
                 "option_removed": _("${count} option(s) removed"),
                 "options": _("Options"),
+                "remove": _("Remove sudo rules"),
                 "runas": _("As Whom"),
                 "specified_commands": _("Specified Commands and Groups"),
                 "specified_groups": _("Specified Groups"),

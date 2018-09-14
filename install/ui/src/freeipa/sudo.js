@@ -98,7 +98,10 @@ var spec = {
     ],
     adder_dialog: {
         fields: [ 'cn' ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.sudorule.remove',
+    },
 };
 
     add_sudorule_details_facet_widgets(spec.facets[1]);
@@ -163,7 +166,10 @@ return {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.sudocmd.remove',
+    },
 };};
 
 
@@ -223,7 +229,10 @@ return {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.sudocmdgroup.remove',
+    },
 };};
 
 /**
