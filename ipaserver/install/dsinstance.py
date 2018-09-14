@@ -444,9 +444,8 @@ class DsInstance(service.Service):
               is used (we do not have access to masters' DM password in this
               stage)
         """
-        replication.enable_replication_version_checking(
-            self.realm,
-            self.dm_password)
+        serverid = "-".join(self.realm.split("."))
+        installutils.restart_dirsrv(serverid)
 
         repl, bind_dn, bind_pw = self._get_replication_manager()
         repl.setup_promote_replication(

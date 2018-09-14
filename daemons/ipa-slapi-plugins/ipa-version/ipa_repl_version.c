@@ -45,6 +45,7 @@
 
 #define IPA_PLUGIN_NAME "ipa_replication_version"
 static char *data_version = NULL;
+static PRBool plugin_started = PR_FALSE;
 
 /*
  * Plugin identifiers
@@ -74,6 +75,9 @@ static int
 repl_version_plugin_pre_acquire_cb(void *cookie, const Slapi_DN *repl_subtree,
                                         int is_total, char **data_guid, struct berval **data)
 {
+    if (!plugin_started) {
+        return 0;
+    }
     LOG("repl_version_plugin_pre_acquire_cb() called for suffix \"%s\", "
         "is_total: \"%s\".\n", slapi_sdn_get_ndn(repl_subtree),
         is_total ? "TRUE" : "FALSE");
@@ -106,6 +110,9 @@ static int
 repl_version_plugin_recv_acquire_cb(const char *repl_subtree, int is_total,
                                          const char *data_guid, const struct berval *data)
 {
+    if (!plugin_started) {
+        return 0;
+    }
     LOG("test_repl_session_plugin_recv_acquire_cb() called for suffix \"%s\", is_total: \"%s\".\n",
         repl_subtree, is_total ? "TRUE" : "FALSE");
 
@@ -145,7 +152,9 @@ repl_version_plugin_start(Slapi_PBlock *pb)
 {
     LOG("--> repl_version_plugin_start -- begin\n");
 
-    data_version = slapi_ch_smprintf("%llu", (unsigned long long) DATA_VERSION);
+    if (data_version == NULL) {
+        data_version = slapi_ch_smprintf("%llu", (unsigned long long) DATA_VERSION);
+    }
 
     LOG("<-- repl_version_plugin_start -- end\n");
     return 0;
@@ -181,6 +190,11 @@ int repl_version_plugin_init(Slapi_PBlock *pb)
         return -1;
     }
 
+    /* broker API allows plugin to call repl_version callback EVEN if the plugin is not
+     * started. It is then important to initialize data_version (used in callbacks) at the
+     * same time as the callbacks are registered
+     */
+    data_version = slapi_ch_smprintf("%llu", (unsigned long long) DATA_VERSION);
     if( slapi_apib_register(REPL_SESSION_v1_0_GUID, repl_version_api) ) {
         LOG_FATAL("<-- repl_version_plugin_start -- failed to register repl_version api -- end\n");
         return -1;
