@@ -423,14 +423,17 @@ class i18n_messages(Command):
                 "usergrouprules": _("User group rules"),
             },
             "automountkey": {
+                "remove": _("Remove automount keys"),
             },
             "automountlocation": {
-                "identity": _("Automount Location Settings")
+                "identity": _("Automount Location Settings"),
+                "remove": _("Remove automount locations"),
             },
             "automountmap": {
                 "map_type": _("Map Type"),
                 "direct": _("Direct"),
                 "indirect": _("Indirect"),
+                "remove": _("Remove automount maps"),
             },
             "ca": {
                 "remove": _("Remove certificate authorities"),

@@ -64,7 +64,10 @@ return {
     ],
     adder_dialog: {
         fields: [ 'cn' ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.automountlocation.remove',
+    },
 };};
 
 var make_map_spec = function() {
@@ -151,7 +154,10 @@ return {
                 ]
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.automountmap.remove',
+    },
 };};
 
 var make_key_spec = function() {
@@ -202,7 +208,10 @@ return {
             return false;
         },
         fields:['automountkey','automountinformation']
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.automountkey.remove',
+    },
 };};
 
 IPA.automount.key_details_facet = function(spec) {
