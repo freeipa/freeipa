@@ -102,7 +102,10 @@ var spec = {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.caacl.remove',
+    },
 };
 
     add_caacl_details_facet_widgets(spec.facets[1]);

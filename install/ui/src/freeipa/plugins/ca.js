@@ -63,7 +63,10 @@ function(IPA, $, phases, reg, cert) {
                      name: 'description'
                  }
              ]
-         }
+         },
+         deleter_dialog: {
+             title: '@i18n:objects.ca.remove',
+         },
      };
 
      return spec;
