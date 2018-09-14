@@ -58,7 +58,10 @@ return {
                 }
             ]
         }
-    ]
+    ],
+    deleter_dialog: {
+        title: '@i18n:objects.caprofile.remove',
+    },
 };};
 
 
