@@ -797,6 +797,7 @@ class i18n_messages(Command):
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "host": _("Host"),
+                "remove": _("Remove selinux user maps"),
                 "specified_hosts": _("Specified Hosts and Groups"),
                 "specified_users": _("Specified Users and Groups"),
                 "user": _("User"),
