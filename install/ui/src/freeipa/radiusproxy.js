@@ -105,7 +105,10 @@ return {
             },
             'ipatokenusermapattribute'
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.radiusproxy.remove',
+    },
 };};
 
 /**
