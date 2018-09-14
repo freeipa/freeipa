@@ -790,6 +790,7 @@ class i18n_messages(Command):
             },
             "radiusproxy": {
                 "details": _("RADIUS Proxy Server Settings"),
+                "remove": _("Remove RADIUS servers"),
             },
             "realmdomains": {
                 "identity": _("Realm Domains"),
