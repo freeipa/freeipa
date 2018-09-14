@@ -98,7 +98,10 @@ var spec =  {
     ],
     adder_dialog: {
         fields: [ 'cn' ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.hbacrule.remove',
+    },
 };
 
     add_hbacrule_details_facet_widgets(spec.facets[1]);
@@ -162,7 +165,10 @@ return {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.hbacsvc.remove',
+    },
 };};
 
 var make_service_group_spec = function() {
@@ -221,7 +227,10 @@ return {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.hbacsvcgroup.remove',
+    },
 };};
 
 /**

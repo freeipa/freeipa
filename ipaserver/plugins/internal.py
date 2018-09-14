@@ -615,6 +615,7 @@ class i18n_messages(Command):
                 "anyone": _("Anyone"),
                 "host": _("Accessing"),
                 "ipaenabledflag": _("Rule status"),
+                "remove": _("Remove HBAC rules"),
                 "service": _("Via Service"),
                 "specified_hosts": _("Specified Hosts and Groups"),
                 "specified_services": _("Specified Services and Groups"),
@@ -622,8 +623,10 @@ class i18n_messages(Command):
                 "user": _("Who"),
             },
             "hbacsvc": {
+                "remove": _("Remove HBAC services"),
             },
             "hbacsvcgroup": {
+                "remove": _("Remove HBAC service groups"),
                 "services": _("Services"),
             },
             "hbactest": {
