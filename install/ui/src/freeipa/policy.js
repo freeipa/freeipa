@@ -93,7 +93,10 @@ return {
             }
         ],
         height: 300
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.pwpolicy.remove',
+    },
 };};
 
 exp.krbtpolicy = IPA.krbtpolicy = {};

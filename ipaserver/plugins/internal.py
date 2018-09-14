@@ -763,6 +763,7 @@ class i18n_messages(Command):
             },
             "pwpolicy": {
                 "identity": _("Password Policy"),
+                "remove": _("Remove password policies"),
             },
             "idrange": {
                 "details": _("Range Settings"),
