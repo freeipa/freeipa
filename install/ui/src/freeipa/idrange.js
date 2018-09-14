@@ -145,7 +145,10 @@ return {
         policies: [
                 IPA.idrange_adder_policy
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.idrange.remove',
+    },
 };};
 
 IPA.idrange_adder_policy = function(spec) {

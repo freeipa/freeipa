@@ -803,6 +803,7 @@ class i18n_messages(Command):
                 "ipaidrangesize": _("Range size"),
                 "ipanttrusteddomainsid": _("Domain SID"),
                 "ipasecondarybaserid": _("Secondary RID base"),
+                "remove": _("Remove ID ranges"),
                 "type": _("Range type"),
                 "type_ad": _("Active Directory domain"),
                 "type_ad_posix": _("Active Directory domain with POSIX attributes"),
