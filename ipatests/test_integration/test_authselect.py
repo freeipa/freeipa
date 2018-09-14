@@ -8,9 +8,10 @@ Module provides tests to verify that the authselect code works.
 
 from __future__ import absolute_import
 
+import os
 import pytest
 
-import ipaplatform.paths
+from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -44,7 +45,7 @@ def apply_authselect_profile(host, profile, options=()):
 
 
 @pytest.mark.skipif(
-    ipaplatform.paths.paths.AUTHSELECT is None,
+    paths.AUTHSELECT is None,
     reason="Authselect is only available in fedora-like distributions")
 class TestClientInstallation(IntegrationTest):
     """
@@ -189,6 +190,28 @@ class TestClientInstallation(IntegrationTest):
         # but not with sudo (because of extraargs)
         check_authselect_profile(self.client, default_profile, ())
 
+    def test_uninstall_wrong_sysrestore(self):
+        """
+        Test client uninstallation when sysrestore.state is incomplete
+        Test for issue 7657
+        """
+        # Remove the keys 'profile' and 'features_list' from sysrestore.state
+        def keep(line):
+            if line.startswith('profile') or line.startswith('features_list'):
+                return False
+            return True
+
+        sysrestore_state_file = os.path.join(paths.IPA_CLIENT_SYSRESTORE,
+                                             "sysrestore.state")
+        content = self.client.get_file_contents(sysrestore_state_file,
+                                                encoding='utf-8')
+        lines = [line.rstrip() for line in content.split('\n') if keep(line)]
+        new_content = '\n'.join(lines)
+        self.client.put_file_contents(sysrestore_state_file, new_content)
+
+        result = self._uninstall_client()
+        assert result.returncode == 0
+
     @classmethod
     def uninstall(cls, mh):
         super(TestClientInstallation, cls).uninstall(mh)
@@ -197,7 +220,7 @@ class TestClientInstallation(IntegrationTest):
 
 
 @pytest.mark.skipif(
-    ipaplatform.paths.paths.AUTHSELECT is None,
+    paths.AUTHSELECT is None,
     reason="Authselect is only available in fedora-like distributions")
 class TestServerInstallation(IntegrationTest):
     """
