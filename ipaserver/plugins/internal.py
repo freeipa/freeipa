@@ -743,6 +743,7 @@ class i18n_messages(Command):
                 "details": _("OTP Token Settings"),
                 "disable": _("Disable token"),
                 "enable": _("Enable token"),
+                "remove": _("Remove OTP tokens"),
                 "show_qr": _("Show QR code"),
                 "show_uri": _("Show configuration uri"),
                 "type_hotp": _("Counter-based (HOTP)"),

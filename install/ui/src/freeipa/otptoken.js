@@ -305,7 +305,10 @@ return {
             },
             'description'
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.otptoken.remove',
+    },
 };};
 
 otptoken.adder_policy = function(spec) {
