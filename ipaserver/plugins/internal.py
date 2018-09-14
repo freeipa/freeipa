@@ -432,6 +432,9 @@ class i18n_messages(Command):
                 "direct": _("Direct"),
                 "indirect": _("Indirect"),
             },
+            "ca": {
+                "remove": _("Remove certificate authorities"),
+            },
             "caacl": {
                 "all": _("All"),
                 "any_ca": _("Any CA"),
@@ -442,12 +445,16 @@ class i18n_messages(Command):
                 "ipaenabledflag": _("Rule status"),
                 "no_ca_msg": _("If no CAs are specified, requests to the default CA are allowed."),
                 "profile": _("Profiles"),
+                "remove": _("Remove CA ACLs"),
                 "specified_cas": _("Specified CAs"),
                 "specified_hosts": _("Specified Hosts and Groups"),
                 "specified_profiles": _("Specified Profiles"),
                 "specified_services": _("Specified Services and Groups"),
                 "specified_users": _("Specified Users and Groups"),
                 "who": _("Permitted to have certificates issued"),
+            },
+            "caprofile": {
+                "remove": _("Remove certificate profiles"),
             },
             "cert": {
                 "aa_compromise": _("AA Compromise"),
