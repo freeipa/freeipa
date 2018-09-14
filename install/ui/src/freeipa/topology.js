@@ -190,7 +190,10 @@ return {
                 z_index: 1
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.topologysegment.remove',
+    },
 };};
 
 var make_server_spec = function() {
@@ -461,7 +464,10 @@ return {
             },
             'description'
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.topologylocation.remove',
+    },
 };};
 
 topology.location_adapter = declare([mod_field.Adapter], {

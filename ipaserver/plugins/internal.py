@@ -927,6 +927,12 @@ class i18n_messages(Command):
                 "replication_config": _("Replication configuration"),
                 "insufficient_domain_level" : _("Managed topology requires minimal domain level ${domainlevel}"),
             },
+            "topologylocation": {
+                "remove": _("Remove IPA locations"),
+            },
+            "topologysegment": {
+                "remove": _("Remove topology segments"),
+            },
             "trust": {
                 "account": _("Account"),
                 "admin_account": _("Administrative account"),
