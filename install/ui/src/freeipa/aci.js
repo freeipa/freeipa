@@ -298,7 +298,10 @@ return {
                 widget_name: 'target'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.acipermission.remove',
+    },
 };};
 
 /**
@@ -369,7 +372,10 @@ return {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.aciprivilege.remove',
+    },
 };};
 
 var make_role_spec = function() {
@@ -417,7 +423,10 @@ return {
                 name: 'description'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.acirole.remove',
+    },
 };};
 
 var make_selfservice_spec = function() {
@@ -457,7 +466,10 @@ return {
                 name: 'attrs'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.aciselfservice.remove',
+    },
 };};
 
 
@@ -534,7 +546,10 @@ return {
                 object_type: 'user'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.acidelegation.remove',
+    },
 };};
 
 aci.attributes_widget = function(spec) {
