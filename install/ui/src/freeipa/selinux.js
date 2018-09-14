@@ -99,7 +99,10 @@ var spec = {
             'cn',
             'ipaselinuxuser'
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.selinuxusermap.remove',
+    },
 };
 
     add_selinux_details_facet_widgets(spec.facets[1]);
