@@ -268,7 +268,6 @@ return {
             facet_group: 'dnsrecord',
             nested_entity : 'dnsrecord',
             name: 'records',
-            deleter_dialog: IPA.dns.record_search_deleter_dialog,
             title: '@mo:dnszone.label_singular',
             label: '@mo:dnsrecord.label',
             tab_label: '@mo:dnsrecord.label',
@@ -328,7 +327,10 @@ return {
         policies: [
             IPA.add_dns_zone_name_policy
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.dnszone.remove',
+    },
 };};
 
 var make_forwardzone_spec = function() {
@@ -500,7 +502,10 @@ return {
         policies: [
             IPA.add_dns_zone_name_policy
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.dnsforwardzone.remove',
+    },
 };};
 
 
@@ -1376,7 +1381,11 @@ return {
                 type_field: 'record_type'
             }
         ]
-    }
+    },
+    deleter_dialog: {
+        title: '@i18n:objects.dnsrecord.remove',
+        $factory: IPA.dns.record_search_deleter_dialog,
+    },
 };};
 
 IPA.dns.record_adder_dialog = function(spec) {

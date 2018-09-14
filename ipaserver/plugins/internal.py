@@ -570,6 +570,9 @@ class i18n_messages(Command):
                 "update_dns_dialog_msg": _("Do you want to update system DNS records?"),
                 "updated_dns": _("System DNS records updated"),
             },
+            "dnsforwardzone": {
+                "remove": _("Remove DNS forward zones"),
+            },
             "dnsrecord": {
                 "data": _("Data"),
                 "deleted_no_data": _("DNS record was deleted because it contained no data."),
@@ -594,6 +597,7 @@ class i18n_messages(Command):
                 "identity": _("DNS Zone Settings"),
                 "add_permission":_("Add Permission"),
                 "add_permission_confirm":_("Are you sure you want to add permission for DNS Zone ${object}?"),
+                "remove": _("Remove DNS zones"),
                 "remove_permission": _("Remove Permission"),
                 "remove_permission_confirm": _("Are you sure you want to remove permission for DNS Zone ${object}?"),
                 "skip_dns_check": _("Skip DNS check"),
