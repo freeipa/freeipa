@@ -162,8 +162,10 @@ class RedHatAuthSelect(RedHatAuthToolBase):
             profile = 'sssd'
             features = ''
         else:
-            profile = statestore.restore_state('authselect', 'profile')
-            features = statestore.restore_state('authselect', 'features_list')
+            profile = \
+                statestore.restore_state('authselect', 'profile') or 'sssd'
+            features = \
+                statestore.restore_state('authselect', 'features_list') or ''
             statestore.delete_state('authselect', 'mkhomedir')
 
         cmd = [paths.AUTHSELECT, "select", profile, features, "--force"]
