@@ -944,6 +944,7 @@ class i18n_messages(Command):
                 "ipantflatname": _("Domain NetBIOS name"),
                 "ipanttrusteddomainsid": _("Domain Security Identifier"),
                 "preshared_password": _("Pre-shared password"),
+                "remove": _("Remove trusts"),
                 "trustdirection": _("Trust direction"),
                 "truststatus": _("Trust status"),
                 "trusttype": _("Trust type"),
