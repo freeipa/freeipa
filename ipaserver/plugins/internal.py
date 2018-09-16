@@ -687,6 +687,24 @@ class i18n_messages(Command):
                 "password_set_success": _("OTP set"),
                 "password_set_title": _("Set One-Time-Password"),
                 "remove": _("Remove hosts"),
+                "remove_hosts_managing": _(
+                    "Remove hosts managing host '${primary_key}'"
+                ),
+                "remove_from_groups": _(
+                    "Remove host '${primary_key}' from host groups"
+                ),
+                "remove_from_netgroups": _(
+                    "Remove host '${primary_key}' from netgroups"
+                ),
+                "remove_from_roles": _(
+                    "Remove host '${primary_key}' from roles"
+                ),
+                "remove_from_hbac": _(
+                    "Remove host '${primary_key}' from HBAC rules"
+                ),
+                "remove_from_sudo": _(
+                    "Remove host '${primary_key}' from sudo rules"
+                ),
                 "status": _("Status"),
                 "unprovision": _("Unprovision"),
                 "unprovision_confirmation": _("Are you sure you want to unprovision this host?"),
