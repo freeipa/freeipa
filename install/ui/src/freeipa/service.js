@@ -205,7 +205,7 @@ return {
                             add_method: 'allow_retrieve_keytab',
                             remove_method: 'disallow_retrieve_keytab',
                             add_title: '@i18n:keytab.add_retrive',
-                            remove_title: '@i18n:keytab.remove_retrieve',
+                            remove_title: '@i18n:keytab.remove_users_retrieve',
                             columns: [
                                 {
                                     name: 'ipaallowedtoperform_read_keys_user',
@@ -222,7 +222,7 @@ return {
                             add_method: 'allow_retrieve_keytab',
                             remove_method: 'disallow_retrieve_keytab',
                             add_title: '@i18n:keytab.add_retrive',
-                            remove_title: '@i18n:keytab.remove_retrieve',
+                            remove_title: '@i18n:keytab.remove_groups_retrieve',
                             columns: [
                                 {
                                     name: 'ipaallowedtoperform_read_keys_group',
@@ -239,7 +239,7 @@ return {
                             add_method: 'allow_retrieve_keytab',
                             remove_method: 'disallow_retrieve_keytab',
                             add_title: '@i18n:keytab.add_retrive',
-                            remove_title: '@i18n:keytab.remove_retrieve',
+                            remove_title: '@i18n:keytab.remove_hosts_retrieve',
                             columns: [
                                 {
                                     name: 'ipaallowedtoperform_read_keys_host',
@@ -256,7 +256,7 @@ return {
                             add_method: 'allow_retrieve_keytab',
                             remove_method: 'disallow_retrieve_keytab',
                             add_title: '@i18n:keytab.add_retrive',
-                            remove_title: '@i18n:keytab.remove_retrieve',
+                            remove_title: '@i18n:keytab.remove_hostgroups_retrieve',
                             columns: [
                                 {
                                     name: 'ipaallowedtoperform_read_keys_hostgroup',
@@ -280,7 +280,7 @@ return {
                             add_method: 'allow_create_keytab',
                             remove_method: 'disallow_create_keytab',
                             add_title: '@i18n:keytab.add_create',
-                            remove_title: '@i18n:keytab.remove_create',
+                            remove_title: '@i18n:keytab.remove_users_create',
                             columns: [
                                 {
                                     name: 'ipaallowedtoperform_write_keys_user',
@@ -297,7 +297,7 @@ return {
                             add_method: 'allow_create_keytab',
                             remove_method: 'disallow_create_keytab',
                             add_title: '@i18n:keytab.add_create',
-                            remove_title: '@i18n:keytab.remove_create',
+                            remove_title: '@i18n:keytab.remove_groups_create',
                             columns: [
                                 {
                                     name: 'ipaallowedtoperform_write_keys_group',
@@ -314,7 +314,7 @@ return {
                             add_method: 'allow_create_keytab',
                             remove_method: 'disallow_create_keytab',
                             add_title: '@i18n:keytab.add_create',
-                            remove_title: '@i18n:keytab.remove_create',
+                            remove_title: '@i18n:keytab.remove_hosts_create',
                             columns: [
                                 {
                                     name: 'ipaallowedtoperform_write_keys_host',
@@ -331,7 +331,7 @@ return {
                             add_method: 'allow_create_keytab',
                             remove_method: 'disallow_create_keytab',
                             add_title: '@i18n:keytab.add_create',
-                            remove_title: '@i18n:keytab.remove_create',
+                            remove_title: '@i18n:keytab.remove_hostgroups_create',
                             columns: [
                                 {
                                     name: 'ipaallowedtoperform_write_keys_hostgroup',
