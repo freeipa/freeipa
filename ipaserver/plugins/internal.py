@@ -833,6 +833,9 @@ class i18n_messages(Command):
                 "disable": _("Disable token"),
                 "enable": _("Enable token"),
                 "remove": _("Remove OTP tokens"),
+                "remove_users_managing": _(
+                    "Remove users managing OTP token '${primary_key}'"
+                ),
                 "show_qr": _("Show QR code"),
                 "show_uri": _("Show configuration uri"),
                 "type_hotp": _("Counter-based (HOTP)"),
