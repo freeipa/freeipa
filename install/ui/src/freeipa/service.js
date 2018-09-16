@@ -368,9 +368,15 @@ return {
         },
         {
             $type: 'association',
+            name: 'memberof_role',
+            remove_title: '@i18n:objects.service.remove_from_roles',
+        },
+        {
+            $type: 'association',
             name: 'managedby_host',
             add_method: 'add_host',
-            remove_method: 'remove_host'
+            remove_method: 'remove_host',
+            remove_title: '@i18n:objects.service.remove_hosts_managing',
         }
     ],
     standard_association_facets: true,
