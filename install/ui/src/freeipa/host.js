@@ -404,36 +404,42 @@ return {
             $type: 'association',
             name: 'managedby_host',
             add_method: 'add_managedby',
-            remove_method: 'remove_managedby'
+            remove_method: 'remove_managedby',
+            remove_title: '@i18n:objects.host.remove_hosts_managing',
         },
         {
             $type: 'association',
             name: 'memberof_hostgroup',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.host.remove_from_groups',
         },
         {
             $type: 'association',
             name: 'memberof_netgroup',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.host.remove_from_netgroups',
         },
         {
             $type: 'association',
             name: 'memberof_role',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.host.remove_from_roles',
         },
         {
             $type: 'association',
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_host',
-            remove_method: 'remove_host'
+            remove_method: 'remove_host',
+            remove_title: '@i18n:objects.host.remove_from_hbac',
         },
         {
             $type: 'association',
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_host',
-            remove_method: 'remove_host'
+            remove_method: 'remove_host',
+            remove_title: '@i18n:objects.host.remove_from_sudo',
         }
     ],
     standard_association_facets: true,
