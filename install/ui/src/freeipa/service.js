@@ -654,9 +654,6 @@ IPA.service.unprovision_dialog = function(spec) {
     var that = IPA.dialog(spec);
     that.facet = spec.facet;
 
-    var entity_singular = that.entity.metadata.label_singular;
-    that.title = that.title.replace('${entity}', entity_singular);
-
     that.create_content = function() {
         that.container.append(text.get('@i18n:objects.service.unprovision_confirmation'));
     };
