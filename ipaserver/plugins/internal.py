@@ -318,8 +318,30 @@ class i18n_messages(Command):
             "add_retrive": _("Allow ${other_entity} to retrieve keytab of ${primary_key}"),
             "allowed_to_create": _("Allowed to create keytab"),
             "allowed_to_retrieve": _("Allowed to retrieve keytab"),
-            "remove_create": _("Disallow ${other_entity} to create keytab of ${primary_key}"),
-            "remove_retrieve": _("Disallow ${other_entity} to retrieve keytab of ${primary_key}"),
+            "remove_groups_create": _(
+                "Disallow user groups to create keytab of '${primary_key}'"
+            ),
+            "remove_groups_retrieve": _(
+                "Disallow user groups to retrieve keytab of '${primary_key}'"
+            ),
+            "remove_hostgroups_create": _(
+                "Disallow host groups to create keytab of '${primary_key}'"
+            ),
+            "remove_hostgroups_retrieve": _(
+                "Disallow host groups to retrieve keytab of '${primary_key}'"
+            ),
+            "remove_hosts_create": _(
+                "Disallow hosts to create keytab of '${primary_key}'"
+            ),
+            "remove_hosts_retrieve": _(
+                "Disallow hosts to retrieve keytab of '${primary_key}'"
+            ),
+            "remove_users_create": _(
+                "Disallow users to create keytab of '${primary_key}'"
+            ),
+            "remove_users_retrieve": _(
+                "Disallow users to retrieve keytab of '${primary_key}'"
+            ),
         },
         "krbaliases": {
             "adder_title": _("Add Kerberos Principal Alias"),
