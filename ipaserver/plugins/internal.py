@@ -963,10 +963,18 @@ class i18n_messages(Command):
             "sudocmd": {
                 "groups": _("Groups"),
                 "remove": _("Remove sudo commands"),
+                "remove_from_sudocmdgroups": _(
+                    "Remove sudo command '${primary_key}' from sudo command "
+                    "groups"
+                ),
             },
             "sudocmdgroup": {
                 "commands": _("Commands"),
                 "remove": _("Remove sudo command groups"),
+                "remove_sudocmds": _(
+                    "Remove sudo commands from sudo command group "
+                    "'${primary_key}'"
+                ),
             },
             "sudorule": {
                 "allow": _("Allow"),

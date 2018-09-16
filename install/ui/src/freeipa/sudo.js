@@ -154,7 +154,8 @@ return {
                     name: 'description',
                     width: '100px'
                 }
-            ]
+            ],
+            remove_title: '@i18n:objects.sudocmd.remove_from_sudocmdgroups',
         }
     ],
     standard_association_facets: true,
@@ -217,7 +218,8 @@ return {
                     name: 'description',
                     width: '100px'
                 }
-            ]
+            ],
+            remove_title: '@i18n:objects.sudocmdgroup.remove_sudocmds',
         }
     ],
     standard_association_facets: true,
