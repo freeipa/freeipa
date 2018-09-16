@@ -628,6 +628,30 @@ class i18n_messages(Command):
                 "nonposix": _("Non-POSIX"),
                 "posix": _("POSIX"),
                 "remove": _("Remove user groups"),
+                "remove_from_groups": _(
+                    "Remove user group '${primary_key}' from user groups"
+                ),
+                "remove_from_netgroups": _(
+                    "Remove user group '${primary_key}' from netgroups"
+                ),
+                "remove_from_roles": _(
+                    "Remove user group '${primary_key}' from roles"
+                ),
+                "remove_from_hbac": _(
+                    "Remove user group '${primary_key}' from HBAC rules"
+                ),
+                "remove_from_sudo": _(
+                    "Remove user group '${primary_key}' from sudo rules"
+                ),
+                "remove_groups": _(
+                    "Remove user groups from user group '${primary_key}'"
+                ),
+                "remove_services": _(
+                    "Remove services from user group '${primary_key}'"
+                ),
+                "remove_users": _(
+                    "Remove users from user group '${primary_key}'"
+                ),
                 "type": _("Group Type"),
                 "user_groups": _("User Groups"),
             },
@@ -715,6 +739,24 @@ class i18n_messages(Command):
                 "host_group": _("Host Groups"),
                 "identity": _("Host Group Settings"),
                 "remove": _("Remove host groups"),
+                "remove_from_hostgroups": _(
+                    "Remove host group '${primary_key}' from host groups"
+                ),
+                "remove_from_netgroups": _(
+                    "Remove host group '${primary_key}' from netgroups"
+                ),
+                "remove_from_hbac": _(
+                    "Remove host group '${primary_key}' from HBAC rules"
+                ),
+                "remove_from_sudo": _(
+                    "Remove host group '${primary_key}' from sudo rules"
+                ),
+                "remove_hosts": _(
+                    "Remove hosts from host group '${primary_key}'"
+                ),
+                "remove_hostgroups": _(
+                    "Remove host groups from host group '${primary_key}'"
+                ),
             },
             "idoverrideuser": {
                 "anchor_label": _("User to override"),
@@ -762,6 +804,12 @@ class i18n_messages(Command):
                 "identity": _("Netgroup Settings"),
                 "netgroups": _("Netgroups"),
                 "remove": _("Remove netgroups"),
+                "remove_netgroups": _(
+                    "Remove netgroups from netgroup '${primary_key}'"
+                ),
+                "remove_from_netgroups": _(
+                    "Remove netgroup '${primary_key}' from netgroups"
+                ),
                 "specified_hosts": _("Specified Hosts and Groups"),
                 "specified_users": _("Specified Users and Groups"),
                 "user": _("User"),
