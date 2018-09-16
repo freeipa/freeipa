@@ -188,7 +188,7 @@ var add_netgroup_details_facet_widgets = function (spec) {
                             add_method: 'add_member',
                             remove_method: 'remove_member',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member',
+                            remove_title: '@i18n:objects.netgroup.remove_users',
                             columns: [
                                 {
                                     name: 'memberuser_user',
@@ -204,7 +204,7 @@ var add_netgroup_details_facet_widgets = function (spec) {
                             add_method: 'add_member',
                             remove_method: 'remove_member',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member',
+                            remove_title: '@i18n:objects.netgroup.remove_groups',
                             columns: [
                                 {
                                     name: 'memberuser_group',
@@ -277,7 +277,7 @@ var add_netgroup_details_facet_widgets = function (spec) {
                             remove_method: 'remove_member',
                             external: 'externalhost',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member',
+                            remove_title: '@i18n:objects.netgroup.remove_hosts',
                             columns: [
                                 {
                                     name: 'memberhost_host',
@@ -299,7 +299,7 @@ var add_netgroup_details_facet_widgets = function (spec) {
                             add_method: 'add_member',
                             remove_method: 'remove_member',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member',
+                            remove_title: '@i18n:objects.netgroup.remove_hostgroups',
                             columns: [
                                 {
                                     name: 'memberhost_hostgroup',
