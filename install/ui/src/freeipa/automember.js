@@ -295,7 +295,10 @@ IPA.automember.rule_details_facet = function(spec) {
                                 required: true
                             }
                         ]
-                    }
+                    },
+                    deleter_dialog: {
+                        title: '@i18n:objects.automember.remove_inc_conditions',
+                    },
                 }
             ]
         },
@@ -325,7 +328,10 @@ IPA.automember.rule_details_facet = function(spec) {
                                 required: true
                             }
                         ]
-                    }
+                    },
+                    deleter_dialog: {
+                        title: '@i18n:objects.automember.remove_exc_conditions',
+                    },
                 }
             ]
         }
