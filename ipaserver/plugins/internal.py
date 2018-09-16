@@ -1078,6 +1078,43 @@ class i18n_messages(Command):
                 "option_removed": _("${count} option(s) removed"),
                 "options": _("Options"),
                 "remove": _("Remove sudo rules"),
+                "remove_allow_cmds": _(
+                    "Remove allow sudo commands from sudo rule "
+                    "'${primary_key}'"
+                ),
+                "remove_allow_cmdgroups": _(
+                    "Remove allow sudo command groups from sudo rule "
+                    "'${primary_key}'"
+                ),
+                "remove_deny_cmds": _(
+                    "Remove deny sudo commands from sudo rule "
+                    "'${primary_key}'"
+                ),
+                "remove_deny_cmdgroups": _(
+                    "Remove deny sudo command groups from sudo rule "
+                    "'${primary_key}'"
+                ),
+                "remove_groups": _(
+                    "Remove user groups from sudo rule '${primary_key}'"
+                ),
+                "remove_hostgroups": _(
+                    "Remove host groups from sudo rule '${primary_key}'"
+                ),
+                "remove_hosts": _(
+                    "Remove hosts from sudo rule '${primary_key}'"
+                ),
+                "remove_runas_users": _(
+                    "Remove RunAs users from sudo rule '${primary_key}'"
+                ),
+                "remove_runas_usergroups": _(
+                    "Remove RunAs user groups from sudo rule '${primary_key}'"
+                ),
+                "remove_runas_groups": _(
+                    "Remove RunAs groups from sudo rule '${primary_key}'"
+                ),
+                "remove_users": _(
+                    "Remove users from sudo rule '${primary_key}'"
+                ),
                 "runas": _("As Whom"),
                 "specified_commands": _("Specified Commands and Groups"),
                 "specified_groups": _("Specified Groups"),

@@ -359,7 +359,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             remove_method: 'remove_user',
                             external: 'externaluser',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.sudorule.remove_users',
                         },
                         {
                             $type: 'rule_association_table',
@@ -368,7 +368,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.sudorule.remove_groups',
                         }
                     ]
                 }
@@ -434,7 +434,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             remove_method: 'remove_host',
                             external: 'externalhost',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.sudorule.remove_hosts',
                         },
                         {
                             $type: 'rule_association_table',
@@ -443,7 +443,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.sudorule.remove_hostgroups',
                         }
                     ]
                 }
@@ -527,7 +527,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             add_method: 'add_allow_command',
                             remove_method: 'remove_allow_command',
                             add_title: '@i18n:association.add.memberallowcmd',
-                            remove_title: '@i18n:association.remove.memberallowcmd'
+                            remove_title: '@i18n:objects.sudorule.remove_allow_cmds',
                         },
                         {
                             $type: 'rule_association_table',
@@ -536,7 +536,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             add_method: 'add_allow_command',
                             remove_method: 'remove_allow_command',
                             add_title: '@i18n:association.add.memberallowcmd',
-                            remove_title: '@i18n:association.remove.memberallowcmd'
+                            remove_title: '@i18n:objects.sudorule.remove_allow_cmdgroups',
                         },
                         {
                             $factory: IPA.header_widget,
@@ -551,7 +551,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             add_method: 'add_deny_command',
                             remove_method: 'remove_deny_command',
                             add_title: '@i18n:association.add.memberdenycmd',
-                            remove_title: '@i18n:association.remove.memberdenycmd'
+                            remove_title: '@i18n:objects.sudorule.remove_deny_cmds',
                         },
                         {
                             $type: 'rule_association_table',
@@ -560,7 +560,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             add_method: 'add_deny_command',
                             remove_method: 'remove_deny_command',
                             add_title: '@i18n:association.add.memberdenycmd',
-                            remove_title: '@i18n:association.remove.memberdenycmd'
+                            remove_title: '@i18n:objects.sudorule.remove_deny_cmdgroups',
                         }
                     ]
                 }
@@ -632,7 +632,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             add_method: 'add_runasuser',
                             remove_method: 'remove_runasuser',
                             add_title: '@i18n:association.add.ipasudorunas',
-                            remove_title: '@i18n:association.remove.ipasudorunas'
+                            remove_title: '@i18n:objects.sudorule.remove_runas_users',
                         },
                         {
                             $type: 'rule_association_table',
@@ -641,7 +641,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             add_method: 'add_runasuser',
                             remove_method: 'remove_runasuser',
                             add_title: '@i18n:association.add.ipasudorunas',
-                            remove_title: '@i18n:association.remove.ipasudorunas'
+                            remove_title: '@i18n:objects.sudorule.remove_runas_usergroups',
                         }
                     ]
                 },
@@ -664,7 +664,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                         add_method: 'add_runasgroup',
                         remove_method: 'remove_runasgroup',
                         add_title: '@i18n:association.add.ipasudorunasgroup',
-                        remove_title: '@i18n:association.remove.ipasudorunasgroup'
+                        remove_title: '@i18n:objects.sudorule.remove_runas_groups',
                     }]
                 }
             ]
