@@ -404,12 +404,40 @@ class i18n_messages(Command):
             },
             "acipermission": {
                 "remove": _("Remove permissions"),
+                "remove_privileges": _(
+                    "Remove privileges from permission '${primary_key}'"
+                ),
             },
             "aciprivilege": {
                 "remove": _("Remove privileges"),
+                "remove_from_permissions": _(
+                    "Remove privilege '${primary_key}' from permissions"
+                ),
+                "remove_roles": _(
+                    "Remove roles from privilege '${primary_key}'"
+                ),
             },
             "acirole": {
+                "identity": _("Role Settings"),
                 "remove": _("Remove roles"),
+                "remove_from_privileges": _(
+                    "Remove role '${primary_key}' from privileges"
+                ),
+                "remove_groups": _(
+                    "Remove user groups from role '${primary_key}'"
+                ),
+                "remove_hosts": _(
+                    "Remove hosts from role '${primary_key}'"
+                ),
+                "remove_hostgroups": _(
+                    "Remove host groups from role '${primary_key}'"
+                ),
+                "remove_services": _(
+                    "Remove services from role '${primary_key}'"
+                ),
+                "remove_users": _(
+                    "Remove users from role '${primary_key}'"
+                ),
             },
             "aciselfservice": {
                 "remove": _("Remove self service permissions"),
@@ -890,9 +918,6 @@ class i18n_messages(Command):
                 "check_dns": _("Check DNS"),
                 "check_dns_confirmation": _("Do you also want to perform DNS check?"),
                 "force_update": _("Force Update"),
-            },
-            "role": {
-                "identity": _("Role Settings"),
             },
             "selfservice": {
             },
