@@ -670,9 +670,17 @@ class i18n_messages(Command):
             },
             "hbacsvc": {
                 "remove": _("Remove HBAC services"),
+                "remove_from_hbacsvcgroups": _(
+                    "Remove HBAC service '${primary_key}' from HBAC service "
+                    "groups"
+                ),
             },
             "hbacsvcgroup": {
                 "remove": _("Remove HBAC service groups"),
+                "remove_hbacsvcs": _(
+                    "Remove HBAC services from HBAC service group "
+                    "'${primary_key}'"
+                ),
                 "services": _("Services"),
             },
             "hbactest": {
