@@ -864,6 +864,12 @@ class i18n_messages(Command):
                 "missing": _("Kerberos Key Not Present"),
                 "provisioning": _("Provisioning"),
                 "remove": _("Remove services"),
+                "remove_from_roles": _(
+                    "Remove service '${primary_key}' from roles"
+                ),
+                "remove_hosts_managing": _(
+                    "Remove hosts managing service '${primary_key}'"
+                ),
                 "service": _("Service"),
                 "status": _("Status"),
                 "unprovision": _("Unprovision"),
