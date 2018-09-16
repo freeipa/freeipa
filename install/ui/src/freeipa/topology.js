@@ -448,7 +448,8 @@ return {
                                 {
                                     name: 'service_relative_weight'
                                 }
-                            ]
+                            ],
+                            remove_title: '@i18n:objects.topologylocation.remove_servers',
                         }
                     ]
                 }
