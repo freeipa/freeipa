@@ -59,8 +59,14 @@ var spec = {
         },
         {
             $type: 'association',
+            name: 'member_netgroup',
+            remove_title: '@i18n:objects.netgroup.remove_netgroups',
+        },
+        {
+            $type: 'association',
             name: 'memberof_netgroup',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.netgroup.remove_from_netgroups',
         }
     ],
     standard_association_facets: true,
