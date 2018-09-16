@@ -197,7 +197,7 @@ var add_caacl_details_facet_widgets = function (spec) {
                             add_method: 'add_profile',
                             remove_method: 'remove_profile',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.caacl.remove_profiles',
                         }
                     ]
                 }
@@ -302,7 +302,7 @@ var add_caacl_details_facet_widgets = function (spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.caacl.remove_users',
                         },
                         {
                             $type: 'rule_association_table',
@@ -311,7 +311,7 @@ var add_caacl_details_facet_widgets = function (spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.caacl.remove_groups',
                         }
                     ]
                 },
@@ -341,7 +341,7 @@ var add_caacl_details_facet_widgets = function (spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.caacl.remove_hosts',
                         },
                         {
                             $type: 'rule_association_table',
@@ -350,7 +350,7 @@ var add_caacl_details_facet_widgets = function (spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.caacl.remove_hostgroups',
                         }
                     ]
                 },
@@ -373,7 +373,7 @@ var add_caacl_details_facet_widgets = function (spec) {
                             add_method: 'add_service',
                             remove_method: 'remove_service',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.caacl.remove_services',
                         }
                     ]
                 },
@@ -397,7 +397,7 @@ var add_caacl_details_facet_widgets = function (spec) {
                             add_method: 'add_ca',
                             remove_method: 'remove_ca',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.caacl.remove_ca',
                         }
                     ]
                 }

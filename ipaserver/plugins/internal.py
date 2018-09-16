@@ -512,6 +512,28 @@ class i18n_messages(Command):
                 "no_ca_msg": _("If no CAs are specified, requests to the default CA are allowed."),
                 "profile": _("Profiles"),
                 "remove": _("Remove CA ACLs"),
+                "remove_ca": _(
+                    "Remove Certificate Authorities from CA ACL "
+                    "'${primary_key}'"
+                ),
+                "remove_groups": _(
+                    "Remove user groups from CA ACL '${primary_key}'"
+                ),
+                "remove_hostgroups": _(
+                    "Remove host groups from CA ACL '${primary_key}'"
+                ),
+                "remove_hosts": _(
+                    "Remove hosts from CA ACL '${primary_key}'"
+                ),
+                "remove_profiles": _(
+                    "Remove certificate profiles from CA ACL '${primary_key}'"
+                ),
+                "remove_services": _(
+                    "Remove services from CA ACL '${primary_key}'"
+                ),
+                "remove_users": _(
+                    "Remove users from CA ACL '${primary_key}'"
+                ),
                 "specified_cas": _("Specified CAs"),
                 "specified_hosts": _("Specified Hosts and Groups"),
                 "specified_profiles": _("Specified Profiles"),
