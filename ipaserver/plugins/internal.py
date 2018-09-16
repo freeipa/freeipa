@@ -960,6 +960,21 @@ class i18n_messages(Command):
                 "mode_preserve": _("preserve"),
                 "noprivate": _("No private group"),
                 "remove": _("Remove users"),
+                "remove_from_groups": _(
+                    "Remove user '${primary_key}' from user groups"
+                ),
+                "remove_from_netgroups": _(
+                    "Remove user '${primary_key}' from netgroups"
+                ),
+                "remove_from_roles": _(
+                    "Remove user '${primary_key}' from roles"
+                ),
+                "remove_from_hbac": _(
+                    "Remove user '${primary_key}' from HBAC rules"
+                ),
+                "remove_from_sudo": _(
+                    "Remove user '${primary_key}' from sudo rules"
+                ),
                 "status_confirmation": _("Are you sure you want to ${action} the user?<br/>The change will take effect immediately."),
                 "status_link": _("Click to ${action}"),
                 "unlock": _("Unlock"),
