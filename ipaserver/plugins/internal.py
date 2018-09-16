@@ -1167,6 +1167,9 @@ class i18n_messages(Command):
             },
             "topologylocation": {
                 "remove": _("Remove IPA locations"),
+                "remove_servers": _(
+                    "Remove IPA servers from IPA location '${primary_key}'"
+                ),
             },
             "topologysegment": {
                 "remove": _("Remove topology segments"),
