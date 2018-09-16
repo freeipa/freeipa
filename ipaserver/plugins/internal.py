@@ -674,6 +674,7 @@ class i18n_messages(Command):
                 "ptr_redir_zones": _("Fetching DNS zones."),
                 "ptr_redir_zones_err": _("An error occurred while fetching dns zones."),
                 "redirection_dnszone": _("You will be redirected to DNS Zone."),
+                "remove": _("Remove DNS resource records"),
                 "standard": _("Standard Record Types"),
                 "title": _("Records for DNS Zone"),
                 "type": _("Record Type"),
