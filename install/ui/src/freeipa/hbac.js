@@ -327,7 +327,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.hbacrule.remove_users',
                         },
                         {
                             $type: 'rule_association_table',
@@ -336,7 +336,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.hbacrule.remove_groups',
                         }
                     ]
                 }
@@ -400,7 +400,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.hbacrule.remove_hosts',
                         },
                         {
                             $type: 'rule_association_table',
@@ -409,7 +409,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.hbacrule.remove_hostgroups',
                         }
                     ]
                 }
@@ -467,7 +467,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             add_method: 'add_service',
                             remove_method: 'remove_service',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.hbacrule.remove_services',
                         },
                         {
                             $type: 'rule_association_table',
@@ -476,7 +476,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             add_method: 'add_service',
                             remove_method: 'remove_service',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.hbacrule.remove_servicegroups',
                         }
                     ]
                 }
