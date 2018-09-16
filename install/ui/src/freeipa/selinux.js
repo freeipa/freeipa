@@ -221,7 +221,7 @@ var add_selinux_details_facet_widgets = function (spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.selinuxusermap.remove_users',
                         },
                         {
                             $type: 'rule_association_table',
@@ -230,7 +230,7 @@ var add_selinux_details_facet_widgets = function (spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.selinuxusermap.remove_groups',
                         }
                     ]
                 }
@@ -294,7 +294,7 @@ var add_selinux_details_facet_widgets = function (spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.selinuxusermap.remove_hosts',
                         },
                         {
                             $type: 'rule_association_table',
@@ -303,7 +303,7 @@ var add_selinux_details_facet_widgets = function (spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             add_title: '@i18n:association.add.member',
-                            remove_title: '@i18n:association.remove.member'
+                            remove_title: '@i18n:objects.selinuxusermap.remove_hostgroups',
                         }
                     ]
                 }
