@@ -153,7 +153,8 @@ return {
                     name: 'description',
                     width: '100px'
                 }
-            ]
+            ],
+            remove_title: '@i18n:objects.hbacsvc.remove_from_hbacsvcgroups',
         }
     ],
     standard_association_facets: true,
@@ -215,7 +216,8 @@ return {
                     name: 'description',
                     width: '100px'
                 }
-            ]
+            ],
+            remove_title: '@i18n:objects.hbacsvcgroup.remove_hbacsvcs',
         }
     ],
     standard_association_facets: true,
