@@ -985,6 +985,18 @@ class i18n_messages(Command):
                 "anyone": _("Anyone"),
                 "host": _("Host"),
                 "remove": _("Remove selinux user maps"),
+                "remove_groups": _(
+                    "Remove user groups from SELinux user map '${primary_key}'"
+                ),
+                "remove_hostgroups": _(
+                    "Remove host groups from SELinux user map '${primary_key}'"
+                ),
+                "remove_hosts": _(
+                    "Remove hosts from SELinux user map '${primary_key}'"
+                ),
+                "remove_users": _(
+                    "Remove users from SELinux user map '${primary_key}'"
+                ),
                 "specified_hosts": _("Specified Hosts and Groups"),
                 "specified_users": _("Specified Users and Groups"),
                 "user": _("User"),
