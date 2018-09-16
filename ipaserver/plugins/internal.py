@@ -1245,6 +1245,25 @@ class i18n_messages(Command):
                 "members": _("Members"),
                 "my_vaults_title": _("My User Vaults"),
                 "owners": _("Owners"),
+                "remove": _("Remove vaults"),
+                "remove_member_groups": _(
+                    "Remove user groups from members of vault '${primary_key}'"
+                ),
+                "remove_member_services": _(
+                    "Remove services from members of vault '${primary_key}'"
+                ),
+                "remove_member_users": _(
+                    "Remove users from members of vault '${primary_key}'"
+                ),
+                "remove_owner_groups": _(
+                    "Remove user groups from owners of vault '${primary_key}'"
+                ),
+                "remove_owner_services": _(
+                    "Remove services from owners of vault '${primary_key}'"
+                ),
+                "remove_owner_users": _(
+                    "Remove users from owners of vault '${primary_key}'"
+                ),
                 "service": _("Service"),
                 "service_vaults_title": _("Service Vaults"),
                 "shared": _("Shared"),
