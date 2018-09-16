@@ -205,7 +205,8 @@ return {
         {
             $type: 'association',
             name: 'member_privilege',
-            facet_group: 'privilege'
+            facet_group: 'privilege',
+            remove_title: '@i18n:objects.acipermission.remove_privileges',
         }
     ],
     adder_dialog: {
@@ -353,14 +354,16 @@ return {
             facet_group: 'role',
             add_method: 'add_privilege',
             remove_method: 'remove_privilege',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.aciprivilege.remove_roles',
         },
         {
             $type: 'association',
             name: 'memberof_permission',
             facet_group: 'permission',
             add_method: 'add_permission',
-            remove_method: 'remove_permission'
+            remove_method: 'remove_permission',
+            remove_title: '@i18n:objects.aciprivilege.remove_from_permissions',
         }
     ],
     standard_association_facets: true,
@@ -395,7 +398,7 @@ return {
             sections: [
                 {
                     name: 'identity',
-                    label: '@i18n:objects.role.identity',
+                    label: '@i18n:objects.acirole.identity',
                     fields: [
                         'cn',
                         {
@@ -408,10 +411,36 @@ return {
         },
         {
             $type: 'association',
+            name: 'member_user',
+            remove_title: '@i18n:objects.acirole.remove_users',
+        },
+        {
+            $type: 'association',
+            name: 'member_group',
+            remove_title: '@i18n:objects.acirole.remove_groups',
+        },
+        {
+            $type: 'association',
+            name: 'member_host',
+            remove_title: '@i18n:objects.acirole.remove_hosts',
+        },
+        {
+            $type: 'association',
+            name: 'member_hostgroup',
+            remove_title: '@i18n:objects.acirole.remove_hostgroups',
+        },
+        {
+            $type: 'association',
+            name: 'member_service',
+            remove_title: '@i18n:objects.acirole.remove_services',
+        },
+        {
+            $type: 'association',
             name: 'memberof_privilege',
             facet_group: 'privilege',
             add_method: 'add_privilege',
-            remove_method: 'remove_privilege'
+            remove_method: 'remove_privilege',
+            remove_title: '@i18n:objects.acirole.remove_from_privileges',
         }
     ],
     standard_association_facets: true,
