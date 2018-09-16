@@ -1053,6 +1053,7 @@ class i18n_messages(Command):
                 "ipanttrusteddomainsid": _("Domain Security Identifier"),
                 "preshared_password": _("Pre-shared password"),
                 "remove": _("Remove trusts"),
+                "remove_domains": _("Remove domains"),
                 "trustdirection": _("Trust direction"),
                 "truststatus": _("Trust status"),
                 "trusttype": _("Trust type"),
