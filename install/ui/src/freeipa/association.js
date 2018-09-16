@@ -454,7 +454,7 @@ IPA.association_table_widget = function (spec) {
 
     that.read_only = spec.read_only === undefined ? false : spec.read_only;
     that.add_title = text.get(spec.add_title || '@i18n:association.add.member');
-    that.remove_title = text.get(spec.remove_title || '@i18n:association.remove.member');
+    that.remove_title = text.get(spec.remove_title);
 
     that.adder_columns = $.ordered_map();
 
@@ -931,7 +931,8 @@ exp.association_facet_pre_op = function(spec, context) {
     }
 
     spec.add_title = '@i18n:association.add.'+spec.attribute_member;
-    spec.remove_title = '@i18n:association.remove.'+spec.attribute_member;
+    spec.remove_title = spec.remove_title ||
+                            '@i18n:association.remove_title_default';
 
     spec.facet_group = spec.facet_group || spec.attribute_member;
 
@@ -1049,7 +1050,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
     that.remove_method = spec.remove_method || 'remove_member';
 
     that.add_title = text.get(spec.add_title || '@i18n:association.add.member');
-    that.remove_title = text.get(spec.remove_title || '@i18n:association.remove.member');
+    that.remove_title = text.get(spec.remove_title);
 
     that.adder_columns = $.ordered_map();
 
@@ -1272,14 +1273,10 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
             return;
         }
 
-        var entity_label = that.entity.metadata.label_singular;
         var pkey = that.get_pkey();
-        var other_entity_label = that.other_entity.metadata.label;
 
         var title = that.remove_title;
-        title = title.replace('${entity}', entity_label);
         title = title.replace('${primary_key}', pkey);
-        title = title.replace('${other_entity}', other_entity_label);
 
         var dialog = IPA.association_deleter_dialog({
             title: title,
