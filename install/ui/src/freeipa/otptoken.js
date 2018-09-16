@@ -226,7 +226,8 @@ return {
             $type: 'association',
             name: 'managedby_user',
             add_method: 'add_managedby',
-            remove_method: 'remove_managedby'
+            remove_method: 'remove_managedby',
+            remove_title: '@i18n:objects.otptoken.remove_users_managing',
         }
     ],
 
