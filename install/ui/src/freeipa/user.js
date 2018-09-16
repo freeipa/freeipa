@@ -463,19 +463,22 @@ return {
             $type: 'association',
             $pre_ops: [ IPA.user.association_facet_ss_pre_op ],
             name: 'memberof_group',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.user.remove_from_groups',
         },
         {
             $type: 'association',
             $pre_ops: [ IPA.user.association_facet_ss_pre_op ],
             name: 'memberof_netgroup',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.user.remove_from_netgroups',
         },
         {
             $type: 'association',
             $pre_ops: [ IPA.user.association_facet_ss_pre_op ],
             name: 'memberof_role',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.user.remove_from_roles',
         },
         {
             $type: 'association',
@@ -483,7 +486,8 @@ return {
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
-            remove_method: 'remove_user'
+            remove_method: 'remove_user',
+            remove_title: '@i18n:objects.user.remove_from_hbac',
         },
         {
             $type: 'association',
@@ -491,7 +495,8 @@ return {
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
-            remove_method: 'remove_user'
+            remove_method: 'remove_user',
+            remove_title: '@i18n:objects.user.remove_from_sudo',
         }
     ],
     standard_association_facets: {
