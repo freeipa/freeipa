@@ -718,6 +718,25 @@ class i18n_messages(Command):
                 "host": _("Accessing"),
                 "ipaenabledflag": _("Rule status"),
                 "remove": _("Remove HBAC rules"),
+                "remove_groups": _(
+                    "Remove user groups from HBAC rule '${primary_key}'"
+                ),
+                "remove_hostgroups": _(
+                    "Remove host groups from HBAC rule '${primary_key}'"
+                ),
+                "remove_hosts": _(
+                    "Remove hosts from HBAC rule '${primary_key}'"
+                ),
+                "remove_servicegroups": _(
+                    "Remove HBAC service groups from HBAC rule "
+                    "'${primary_key}'"
+                ),
+                "remove_services": _(
+                    "Remove HBAC services from HBAC rule '${primary_key}'"
+                ),
+                "remove_users": _(
+                    "Remove users from HBAC rule '${primary_key}'"
+                ),
                 "service": _("Via Service"),
                 "specified_hosts": _("Specified Hosts and Groups"),
                 "specified_services": _("Specified Services and Groups"),
