@@ -735,14 +735,10 @@ IPA.association_table_widget = function (spec) {
             return;
         }
 
-        var entity_label = that.entity.metadata.label_singular;
         var pkey = that.facet.get_pkey();
-        var other_entity_label = that.other_entity.metadata.label;
 
         var title = that.remove_title;
-        title = title.replace('${entity}', entity_label);
         title = title.replace('${primary_key}', pkey);
-        title = title.replace('${other_entity}', other_entity_label);
 
         var dialog = IPA.association_deleter_dialog({
             title: title,
