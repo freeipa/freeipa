@@ -837,7 +837,7 @@ class i18n_messages(Command):
                 "status": _("Status"),
                 "unprovision": _("Unprovision"),
                 "unprovision_confirmation": _("Are you sure you want to unprovision this host?"),
-                "unprovision_title": _("Unprovisioning ${entity}"),
+                "unprovision_title": _("Unprovisioning host"),
                 "unprovisioned": _("Host unprovisioned"),
             },
             "hostgroup": {
@@ -1051,7 +1051,7 @@ class i18n_messages(Command):
                 "status": _("Status"),
                 "unprovision": _("Unprovision"),
                 "unprovision_confirmation": _("Are you sure you want to unprovision this service?"),
-                "unprovision_title": _("Unprovisioning ${entity}"),
+                "unprovision_title": _("Unprovisioning service"),
                 "unprovisioned": _("Service unprovisioned"),
                 "valid": _("Kerberos Key Present, Service Provisioned"),
             },
