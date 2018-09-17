@@ -1897,7 +1897,8 @@ class UI_driver(object):
         """
         Check if el has CSS class
         """
-        return cls in el.get_attribute("class").split()
+        class_attr = el.get_attribute("class")
+        return bool(class_attr) and cls in class_attr.split()
 
     def skip(self, reason):
         """
