@@ -117,27 +117,21 @@ class UI_driver(object):
     Base class for all UI integration tests
     """
 
+    request_timeout = 60
+
     @classmethod
     def setup_class(cls):
         if NO_SELENIUM:
             raise unittest.SkipTest('Selenium not installed')
-
-        cls.driver = None
-        cls.config = None
         cls.load_config()
-        if not cls.driver:
-            cls.driver = cls.get_driver()
 
     def setup(self):
-        self.request_timeout = 60
+        self.driver = self.get_driver()
         self.driver.maximize_window()
 
     def teardown(self):
         self.driver.delete_all_cookies()
-
-    @classmethod
-    def teardown_class(cls):
-        cls.driver.quit()
+        self.driver.quit()
 
     @classmethod
     def load_config(cls):
