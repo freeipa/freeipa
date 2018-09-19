@@ -5,32 +5,21 @@
 # see the documentation of the aforementioned directive of the mod_ssl module.
 
 USAGE="./ipa-pwdreader host:port RSA|DSA|ECC|number"
-ERR_UNKNOWN_KEY="\
-ERROR: You seem to be running a non-standard IPA installation.
-Please extend the /var/libexec/ipa/ipa-pwdreader script to cover your case."
 
-if [ ! "$#" -eq 2 ]; then
+if [ "$#" -ne 2 ]; then
     echo "Wrong number of arguments!" 1>&2
     echo "$USAGE" 1>&2
     exit 1
 fi
 
+fname=${1/:/-}-$2
+pwdpath=/var/lib/ipa/passwds/$fname
 
-case "$1" in
-    "${HOSTNAME}:443" )
-        # Read IPA password
-        # IPA expects the password filename format to be
-        # <hostname>-<port>-<ecryption_algorithm>
-        IPA_PASSWD_PATH="/var/lib/ipa/passwds/${1/:/-}-$2"
-        cat $IPA_PASSWD_PATH
-        ;;
-# ================
-# Extend for more virtual hosts with
-#    <vhostname>:<vhost_port> )
-#        your_code
-#        ;;
-# ================
-    *)
-        echo "$ERR_UNKNOWN_KEY" 1>&2
-        exit 1
-esac
+# Make sure the values passed in do not contain path information
+checkpath=$(/usr/bin/realpath -e ${pwdpath} 2>/dev/null)
+
+if [ $pwdpath == "${checkpath}" ]; then
+    cat $pwdpath
+else
+    echo "Invalid path ${pwdpath}" 1>&2
+fi
