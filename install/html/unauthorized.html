@@ -35,14 +35,9 @@
             ];
 
             ipa_loader.scripts(scripts, function() {
-                require([
-                    'dojo/dom',
-                    'freeipa/text',
-                    'dojo/domReady!'],
-                    function(dom, text) {
-                        if (msg = text.get('@i18n:unauthorized-page')) {
-                            dom.byId('unauthorized-msg').innerHTML=msg;
-                        }
+                require(['freeipa/unauthorized'],
+                    function(unauthorized) {
+                        unauthorized.init();
                     });
             });
             ipa_loader.styles(styles);

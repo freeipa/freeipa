@@ -4,6 +4,8 @@ appdir = $(IPA_DATA_DIR)/ui/js/freeipa
 nodist_app_DATA =			\
 	app.js 				\
 	core.js 			\
+	ssbrowser.js 			\
+	unauthorized.js 			\
 	$(NULL)
 
 CLEANFILES = $(nodist_app_DATA)
@@ -21,3 +23,5 @@ app.js: $(core) $(base) $(widgets) $(nav)
 	$(srcdir)/../../util/make-ui.sh
 
 core.js: app.js
+ssbrowser.js: app.js
+unauthorized.js: app.js

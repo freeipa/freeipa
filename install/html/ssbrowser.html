@@ -34,22 +34,9 @@
                 '../ui/js/dojo/dojo.js'
             ];
             ipa_loader.scripts(scripts, function() {
-                require([
-                    'dojo/dom',
-                    'freeipa/text',
-                    'dojo/domReady!'],
-                    function(dom, text) {
-                        msg = "".concat(
-                            text.get('@i18n:ssbrowser-page.header'),
-                            text.get('@i18n:ssbrowser-page.firefox-header'),
-                            text.get('@i18n:ssbrowser-page.firefox-actions'),
-                            text.get('@i18n:ssbrowser-page.chrome-header'),
-                            text.get('@i18n:ssbrowser-page.chrome-certificate'),
-                            text.get('@i18n:ssbrowser-page.chrome-spnego'),
-                            text.get('@i18n:ssbrowser-page.ie-header'),
-                            text.get('@i18n:ssbrowser-page.ie-actions'),
-                        )
-                        dom.byId('ssbrowser-msg').innerHTML=msg;
+                require(['freeipa/ssbrowser'],
+                    function(ssbrowser) {
+                        ssbrowser.init();
                     });
             });
             ipa_loader.styles(styles);
