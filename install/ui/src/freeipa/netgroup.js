@@ -71,6 +71,7 @@ var spec = {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.netgroup.add',
         fields: [
             'cn',
             {
