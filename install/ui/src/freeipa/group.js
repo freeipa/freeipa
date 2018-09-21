@@ -185,6 +185,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.group.add',
         $factory: IPA.group_adder_dialog,
         fields: [
             'cn',
