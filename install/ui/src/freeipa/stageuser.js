@@ -250,6 +250,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.stageuser.add',
         sections: [
             {
                 fields: [
