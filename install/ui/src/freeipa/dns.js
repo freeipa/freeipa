@@ -290,6 +290,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.dnszone.add',
         height: 300,
         sections: [
             {
@@ -436,6 +437,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.dnsforwardzone.add',
         sections: [
             {
                 name: 'name',
@@ -1348,6 +1350,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.dnsrecord.add',
         $factory: IPA.dns.record_adder_dialog,
         fields: [
             {
@@ -2006,15 +2009,12 @@ IPA.dns.record_type_table_widget = function(spec) {
 
     that.create_add_dialog = function() {
 
-        var title = text.get('@i18n:dialogs.add_title');
-        var label = that.entity.metadata.label_singular;
-
         var dialog_spec = {
             entity: that.entity,
             fields: [],
             widgets: [],
             retry: false,
-            title: title.replace('${entity}', label)
+            title: text.get('@i18n:objects.dnsrecord.add')
         };
 
         var dnstype = that.dnstype.toLowerCase();
