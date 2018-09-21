@@ -667,9 +667,11 @@ class i18n_messages(Command):
                 "updated_dns": _("System DNS records updated"),
             },
             "dnsforwardzone": {
+                "add": _("Add DNS forward zone"),
                 "remove": _("Remove DNS forward zones"),
             },
             "dnsrecord": {
+                "add": _("Add DNS resource record"),
                 "data": _("Data"),
                 "deleted_no_data": _("DNS record was deleted because it contained no data."),
                 "other": _("Other Record Types"),
@@ -691,9 +693,10 @@ class i18n_messages(Command):
                 "type": _("Record Type"),
             },
             "dnszone": {
-                "identity": _("DNS Zone Settings"),
-                "add_permission":_("Add Permission"),
+                "add": _("Add DNS zone"),
+                "add_permission": _("Add permission"),
                 "add_permission_confirm":_("Are you sure you want to add permission for DNS Zone ${object}?"),
+                "identity": _("DNS Zone Settings"),
                 "remove": _("Remove DNS zones"),
                 "remove_permission": _("Remove Permission"),
                 "remove_permission_confirm": _("Are you sure you want to remove permission for DNS Zone ${object}?"),
