@@ -19,6 +19,7 @@ plugin: update_fix_duplicate_cacrt_in_ldap
 plugin: update_upload_cacrt
 # update_ra_cert_store has to be executed after update_ca_renewal_master
 plugin: update_ra_cert_store
+plugin: update_mapping_Guests_to_nobody
 
 # last
 # DNS version 1
