@@ -1006,6 +1006,7 @@ class i18n_messages(Command):
                 "remove": _("Remove password policies"),
             },
             "idrange": {
+                "add": _("Add ID range"),
                 "details": _("Range Settings"),
                 "ipabaseid": _("Base ID"),
                 "ipabaserid": _("Primary RID base"),
