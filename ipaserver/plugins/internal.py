@@ -1100,6 +1100,7 @@ class i18n_messages(Command):
                 "user_categories": _("User categories"),
             },
             "sudocmd": {
+                "add": _("Add sudo command"),
                 "groups": _("Groups"),
                 "remove": _("Remove sudo commands"),
                 "remove_from_sudocmdgroups": _(
@@ -1108,6 +1109,7 @@ class i18n_messages(Command):
                 ),
             },
             "sudocmdgroup": {
+                "add": _("Add sudo command group"),
                 "commands": _("Commands"),
                 "remove": _("Remove sudo command groups"),
                 "remove_sudocmds": _(
@@ -1116,6 +1118,8 @@ class i18n_messages(Command):
                 ),
             },
             "sudorule": {
+                "add": _("Add sudo rule"),
+                "add_option": _("Add sudo option"),
                 "allow": _("Allow"),
                 "any_command": _("Any Command"),
                 "any_group": _("Any Group"),
