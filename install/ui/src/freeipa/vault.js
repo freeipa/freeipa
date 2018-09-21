@@ -219,6 +219,7 @@ var make_my_vault_spec = function() {
             }
         ],
         adder_dialog: {
+            title: '@i18n:objects.vault.add',
             $factory: vault.custom_adder_dialog,
             name: 'add',
             method: 'add_internal',
