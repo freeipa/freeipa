@@ -92,6 +92,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.idrange.add',
         fields: [
             {
                 name: 'cn'
