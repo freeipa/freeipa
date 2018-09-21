@@ -698,6 +698,7 @@ class i18n_messages(Command):
                 "set": _("Set Domain Level"),
             },
             "group": {
+                "add": _("Add user group"),
                 "details": _("Group Settings"),
                 "external": _("External"),
                 "groups": _("Groups"),
@@ -843,6 +844,7 @@ class i18n_messages(Command):
                 "unprovisioned": _("Host unprovisioned"),
             },
             "hostgroup": {
+                "add": _("Add host group"),
                 "host_group": _("Host Groups"),
                 "identity": _("Host Group Settings"),
                 "remove": _("Remove host groups"),
@@ -902,6 +904,7 @@ class i18n_messages(Command):
                 "identity": _("Kerberos Ticket Policy"),
             },
             "netgroup": {
+                "add": _("Add netgroup"),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "external": _("External"),

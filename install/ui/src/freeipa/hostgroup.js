@@ -104,6 +104,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.hostgroup.add',
         fields: [
             'cn',
             {
