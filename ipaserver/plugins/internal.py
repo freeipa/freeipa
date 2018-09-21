@@ -422,15 +422,18 @@ class i18n_messages(Command):
                 "attribute": _("Attribute"),
             },
             "acidelegation": {
+                "add": _("Add delegation"),
                 "remove": _("Remove delegations"),
             },
             "acipermission": {
+                "add": _("Add permission"),
                 "remove": _("Remove permissions"),
                 "remove_privileges": _(
                     "Remove privileges from permission '${primary_key}'"
                 ),
             },
             "aciprivilege": {
+                "add": _("Add privilege"),
                 "remove": _("Remove privileges"),
                 "remove_from_permissions": _(
                     "Remove privilege '${primary_key}' from permissions"
@@ -441,6 +444,7 @@ class i18n_messages(Command):
             },
             "acirole": {
                 "identity": _("Role Settings"),
+                "add": _("Add role"),
                 "remove": _("Remove roles"),
                 "remove_from_privileges": _(
                     "Remove role '${primary_key}' from privileges"
@@ -462,6 +466,7 @@ class i18n_messages(Command):
                 ),
             },
             "aciselfservice": {
+                "add": _("Add self service permission"),
                 "remove": _("Remove self service permissions"),
             },
             "automember": {

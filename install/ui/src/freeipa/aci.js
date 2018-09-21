@@ -210,6 +210,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.acipermission.add',
         height: 450,
         fields: [
             {
@@ -368,6 +369,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.aciprivilege.add',
         fields: [
             'cn',
             {
@@ -445,6 +447,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.acirole.add',
         fields: [
             'cn',
             {
@@ -487,6 +490,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.aciselfservice.add',
         fields: [
             'aciname',
             {
@@ -550,6 +554,7 @@ return {
     ],
     standard_association_facets: false,
     adder_dialog: {
+        title: '@i18n:objects.acidelegation.add',
         fields: [
             'aciname',
             {
