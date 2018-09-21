@@ -95,6 +95,7 @@ var spec = {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.selinuxusermap.add',
         fields: [
             'cn',
             'ipaselinuxuser'
