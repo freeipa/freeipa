@@ -491,13 +491,16 @@ class i18n_messages(Command):
                 "usergrouprules": _("User group rules"),
             },
             "automountkey": {
+                "add": _("Add automount key"),
                 "remove": _("Remove automount keys"),
             },
             "automountlocation": {
+                "add": _("Add automount location"),
                 "identity": _("Automount Location Settings"),
                 "remove": _("Remove automount locations"),
             },
             "automountmap": {
+                "add": _("Add automount map"),
                 "map_type": _("Map Type"),
                 "direct": _("Direct"),
                 "indirect": _("Indirect"),
