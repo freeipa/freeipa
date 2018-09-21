@@ -23,7 +23,8 @@ from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
 from ipaserver.install import sysupgrade
-from ipaserver.install.adtrustinstance import ADTRUSTInstance
+from ipaserver.install.adtrustinstance import (
+    ADTRUSTInstance, map_Guests_to_nobody)
 
 logger = logging.getLogger(__name__)
 
@@ -382,3 +383,20 @@ class update_tdo_gidnumber(Updater):
             return False, ()
 
         return False, ()
+
+
+@register()
+class update_mapping_Guests_to_nobody(Updater):
+    """
+    Map BUILTIN\\Guests group to nobody
+
+    Samba 4.9 became more strict on availability of builtin Guests group
+    """
+    def execute(self, **options):
+        # First, see if trusts are enabled on the server
+        if not self.api.Command.adtrust_is_enabled()['result']:
+            logger.debug('AD Trusts are not enabled on this server')
+            return False, []
+
+        map_Guests_to_nobody()
+        return False, []

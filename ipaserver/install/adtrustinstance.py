@@ -111,6 +111,15 @@ def make_netbios_name(s):
     return ''.join([c for c in s.split('.')[0].upper() \
                     if c in ALLOWED_NETBIOS_CHARS])[:15]
 
+
+def map_Guests_to_nobody():
+    env = {'LC_ALL': 'C'}
+    args = [paths.NET, 'groupmap', 'add', 'sid=S-1-5-32-546',
+            'unixgroup=nobody', 'type=builtin']
+
+    logger.debug("Map BUILTIN\\Guests to a group 'nobody'")
+    ipautil.run(args, env=env, raiseonerr=False, capture_error=True)
+
 class ADTRUSTInstance(service.Service):
 
     ATTR_SID = "ipaNTSecurityIdentifier"
@@ -523,6 +532,9 @@ class ADTRUSTInstance(service.Service):
             tmp_conf.flush()
             ipautil.run([paths.NET, "conf", "import", tmp_conf.name])
 
+    def __map_Guests_to_nobody(self):
+        map_Guests_to_nobody()
+
     def __setup_group_membership(self):
         # Add the CIFS and host principals to the 'adtrust agents' group
         # as 389-ds only operates with GroupOfNames, we have to use
@@ -825,6 +837,8 @@ class ADTRUSTInstance(service.Service):
                   self.__create_samba_domain_object)
         self.step("creating samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
+        self.step("map BUILTIN\\Guests to nobody group",
+                  self.__map_Guests_to_nobody)
         self.step("adding cifs Kerberos principal",
                   self.request_service_keytab)
         self.step("adding cifs and host Kerberos principals to the adtrust agents group", \
