@@ -444,6 +444,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.host.add',
         $factory: IPA.host_adder_dialog,
         height: 300,
         sections: [
