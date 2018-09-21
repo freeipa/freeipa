@@ -63,6 +63,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.automountlocation.add',
         fields: [ 'cn' ]
     },
     deleter_dialog: {
@@ -112,6 +113,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.automountmap.add',
         $factory: IPA.automountmap_adder_dialog,
         sections: [
             {
@@ -193,6 +195,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.automountkey.add',
         show_edit_page : function(entity, result){
             var key = result.automountkey[0];
             var info = result.automountinformation[0];
