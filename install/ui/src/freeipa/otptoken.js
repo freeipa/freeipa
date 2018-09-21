@@ -232,6 +232,7 @@ return {
     ],
 
     adder_dialog: {
+        title: '@i18n:objects.otptoken.add',
         $factory: otptoken.adder_dialog,
         $pre_ops: [
             otptoken.adder_dialog_preop
