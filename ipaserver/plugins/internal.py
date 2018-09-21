@@ -879,6 +879,9 @@ class i18n_messages(Command):
                 "anchor_tooltip_ad": _("Enter trusted group name."),
             },
             "idview": {
+                "add": _("Add ID view"),
+                "add_group": _("Add group ID override"),
+                "add_user": _("Add user ID override"),
                 "appliesto_tab": _("${primary_key} applies to:"),
                 "appliedtohosts": _("Applied to hosts"),
                 "appliedtohosts_title": _("Applied to hosts"),
