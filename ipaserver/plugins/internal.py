@@ -796,6 +796,7 @@ class i18n_messages(Command):
                 "unmatched": _("Unmatched"),
             },
             "host": {
+                "add": _("Add host"),
                 "certificate": _("Host Certificate"),
                 "cn": _("Host Name"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
