@@ -709,11 +709,7 @@ exp.entity_builder = IPA.entity_builder = function(entity) {
         spec.$factory = spec.$factory || IPA.entity_adder_dialog;
         spec.name = spec.name || 'add';
 
-        if (!spec.title) {
-            var title = text.get('@i18n:dialogs.add_title');
-            var label = entity.metadata.label_singular;
-            spec.title = title.replace('${entity}', label);
-        }
+        spec.title = spec.title || text.get('@i18n:dialogs.add_title_default');
 
         return that.dialog(spec);
     };

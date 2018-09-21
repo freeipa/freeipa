@@ -264,7 +264,7 @@ class i18n_messages(Command):
         "dialogs": {
             "add_confirmation": _("${entity} successfully added"),
             "add_custom_value": _("Add custom value"),
-            "add_title": _("Add ${entity}"),
+            "add_title_default": _("Add"),
             "available": _("Available"),
             "batch_error_message": _("Some operations failed."),
             "batch_error_title": _("Operations Error"),
