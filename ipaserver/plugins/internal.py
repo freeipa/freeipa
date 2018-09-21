@@ -1010,6 +1010,7 @@ class i18n_messages(Command):
                 "type_winsync": _("Active Directory winsync"),
             },
             "radiusproxy": {
+                "add": _("Add RADIUS server"),
                 "details": _("RADIUS Proxy Server Settings"),
                 "remove": _("Remove RADIUS servers"),
             },
