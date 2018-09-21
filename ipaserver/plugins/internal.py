@@ -1019,6 +1019,7 @@ class i18n_messages(Command):
             "selfservice": {
             },
             "selinuxusermap": {
+                "add": _("Add SELinux user map"),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "host": _("Host"),
