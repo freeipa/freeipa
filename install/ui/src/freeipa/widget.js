@@ -4421,7 +4421,7 @@ IPA.attribute_table_widget = function(spec) {
         var pkey = that.facet.get_pkey();
         dialog_spec.title = text.get(dialog_spec.title ||
                                          '@i18n:dialogs.add_title_default');
-        dialog_spec.title = dialog_spec.title.replace('${pkey}', pkey);
+        dialog_spec.title = dialog_spec.title.replace('${primary_key}', pkey);
 
 
         var factory = dialog_spec.$factory || IPA.entity_adder_dialog;

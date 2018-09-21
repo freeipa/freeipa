@@ -465,8 +465,13 @@ class i18n_messages(Command):
                 "remove": _("Remove self service permissions"),
             },
             "automember": {
-                "add_condition": _("Add Condition into ${pkey}"),
-                "add_rule": _("Add Rule"),
+                "add": _("Add rule"),
+                "add_inc_condition": _(
+                    "Add inclusive condition into '${primary_key}'"
+                ),
+                "add_exc_condition": _(
+                    "Add exclusive condition into '${primary_key}'"
+                ),
                 "attribute": _("Attribute"),
                 "default_host_group": _("Default host group"),
                 "default_user_group": _("Default user group"),
