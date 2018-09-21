@@ -178,6 +178,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.trust.add',
         $factory: IPA.trust.adder_dialog,
         fields: [
             {
