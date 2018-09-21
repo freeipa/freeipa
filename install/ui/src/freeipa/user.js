@@ -503,6 +503,7 @@ return {
         $pre_ops: [ IPA.user.association_facet_ss_pre_op ]
     },
     adder_dialog: {
+        title: '@i18n:objects.user.add',
         $factory: IPA.user.adder_dialog,
         sections: [
             {
@@ -846,7 +847,7 @@ IPA.user.add_otptoken_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'add_otptoken';
-    spec.label = spec.label || '@i18n:objects.otptoken.add_token';
+    spec.label = spec.label || '@i18n:objects.otptoken.add';
     spec.disable_cond = spec.disable_cond || ['self-service-other'];
 
     var that = IPA.action(spec);
