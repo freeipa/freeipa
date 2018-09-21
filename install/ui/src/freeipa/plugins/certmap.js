@@ -133,6 +133,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.certmap.add',
         fields: [
             'cn',
             {
