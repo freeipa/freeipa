@@ -1206,12 +1206,14 @@ class i18n_messages(Command):
                 "insufficient_domain_level" : _("Managed topology requires minimal domain level ${domainlevel}"),
             },
             "topologylocation": {
+                "add": _("Add IPA location"),
                 "remove": _("Remove IPA locations"),
                 "remove_servers": _(
                     "Remove IPA servers from IPA location '${primary_key}'"
                 ),
             },
             "topologysegment": {
+                "add": _("Add topology segment"),
                 "remove": _("Remove topology segments"),
             },
             "trust": {
