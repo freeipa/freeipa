@@ -1266,6 +1266,7 @@ class i18n_messages(Command):
                 "unlock_confirm": _("Are you sure you want to unlock user ${object}?"),
             },
             "vault": {
+                "add": _("Add vault"),
                 "add_warn_arch_ret": _(
                     "Secrets can be added/retrieved to vault only by using "
                     "vault-archive and vault-retrieve from CLI."
