@@ -987,6 +987,7 @@ class i18n_messages(Command):
                 "status_new_s": _("New: key set"),
             },
             "pwpolicy": {
+                "add": _("Add password policy"),
                 "identity": _("Password Policy"),
                 "remove": _("Remove password policies"),
             },
