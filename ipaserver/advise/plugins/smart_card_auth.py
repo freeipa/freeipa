@@ -184,10 +184,11 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
         self.log.command(
             self._interpolate_nssnickname_directive_file_into_command(
                 "http_cert_nick=$(grep '{directive}' {filename} |"
-                " cut -f 2 -d ' ')"))
+                " cut -f 2- -d ' ' | sed \"s/^'\(.*\)'$/\\1/\")"))
 
         self.log.exit_on_failed_command(
-            'certutil -M -n $http_cert_nick -d "{}" -f {} -t "Pu,u,u"'.format(
+            'certutil -M -n "$http_cert_nick" -d "{}" -f {} '
+            '-t "Pu,u,u"'.format(
                 paths.HTTPD_ALIAS_DIR,
                 httpd_nss_database_pwd_file),
             ['Can not set trust flags on HTTP certificate'])
