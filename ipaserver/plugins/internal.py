@@ -741,6 +741,7 @@ class i18n_messages(Command):
                 "user_groups": _("User Groups"),
             },
             "hbacrule": {
+                "add": _("Add HBAC rule"),
                 "any_host": _("Any Host"),
                 "any_service": _("Any Service"),
                 "anyone": _("Anyone"),
@@ -773,6 +774,7 @@ class i18n_messages(Command):
                 "user": _("Who"),
             },
             "hbacsvc": {
+                "add": _("Add HBAC service"),
                 "remove": _("Remove HBAC services"),
                 "remove_from_hbacsvcgroups": _(
                     "Remove HBAC service '${primary_key}' from HBAC service "
@@ -780,6 +782,7 @@ class i18n_messages(Command):
                 ),
             },
             "hbacsvcgroup": {
+                "add": _("Add HBAC service group"),
                 "remove": _("Remove HBAC service groups"),
                 "remove_hbacsvcs": _(
                     "Remove HBAC services from HBAC service group "
