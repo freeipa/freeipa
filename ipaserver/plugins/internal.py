@@ -504,9 +504,11 @@ class i18n_messages(Command):
                 "remove": _("Remove automount maps"),
             },
             "ca": {
+                "add": _("Add certificate authority"),
                 "remove": _("Remove certificate authorities"),
             },
             "caacl": {
+                "add": _("Add CA ACL"),
                 "all": _("All"),
                 "any_ca": _("Any CA"),
                 "any_host": _("Any Host"),

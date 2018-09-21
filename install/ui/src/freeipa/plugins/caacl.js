@@ -84,6 +84,7 @@ var spec = {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.caacl.add',
         fields: [
             'cn',
             {
