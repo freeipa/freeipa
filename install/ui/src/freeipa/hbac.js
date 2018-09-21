@@ -97,6 +97,7 @@ var spec =  {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.hbacrule.add',
         fields: [ 'cn' ]
     },
     deleter_dialog: {
@@ -159,6 +160,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.hbacsvc.add',
         fields: [
             'cn',
             {
@@ -222,6 +224,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.hbacsvcgroup.add',
         fields: [
             'cn',
             {
