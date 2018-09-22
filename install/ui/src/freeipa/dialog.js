@@ -801,6 +801,7 @@ IPA.adder_dialog = function(spec) {
 
     spec = spec || {};
 
+    spec.title = spec.title || '@i18n:buttons.add';
     spec.name = spec.name || 'adder_dialog';
 
     var that = IPA.dialog(spec);

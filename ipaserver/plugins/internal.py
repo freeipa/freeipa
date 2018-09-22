@@ -169,15 +169,7 @@ class i18n_messages(Command):
             "title": _("Actions"),
         },
         "association": {
-            "add": {
-                "ipasudorunas": _("Add RunAs ${other_entity} into ${entity} ${primary_key}"),
-                "ipasudorunasgroup": _("Add RunAs Groups into ${entity} ${primary_key}"),
-                "managedby": _("Add ${other_entity} Managing ${entity} ${primary_key}"),
-                "member": _("Add ${other_entity} into ${entity} ${primary_key}"),
-                "memberallowcmd": _("Add Allow ${other_entity} into ${entity} ${primary_key}"),
-                "memberdenycmd": _("Add Deny ${other_entity} into ${entity} ${primary_key}"),
-                "memberof": _("Add ${entity} ${primary_key} into ${other_entity}"),
-            },
+            "add_title_default": _("Add"),
             "added": _("${count} item(s) added"),
             "direct_membership": _("Direct Membership"),
             "filter_placeholder": _("Filter available ${other_entity}"),
