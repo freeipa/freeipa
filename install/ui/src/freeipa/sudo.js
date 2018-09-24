@@ -156,6 +156,7 @@ return {
                     width: '100px'
                 }
             ],
+            add_title: '@i18n:objects.sudocmd.add_into_sudocmdgroups',
             remove_title: '@i18n:objects.sudocmd.remove_from_sudocmdgroups'
         }
     ],
@@ -221,6 +222,7 @@ return {
                     width: '100px'
                 }
             ],
+            add_title: '@i18n:objects.sudocmdgroup.add_sudocmds',
             remove_title: '@i18n:objects.sudocmdgroup.remove_sudocmds'
         }
     ],
