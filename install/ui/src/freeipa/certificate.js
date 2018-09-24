@@ -696,7 +696,6 @@ IPA.cert.request_action = function(spec) {
     spec.hide_cond = spec.hide_cond || ['ra_disabled'];
 
     var that = IPA.action(spec);
-    that.entity_label = spec.entity_label;
     that.generic = spec.generic !== undefined ? spec.generic : false;
 
     that.execute_action = function(facet) {
@@ -709,15 +708,12 @@ IPA.cert.request_action = function(spec) {
             var certificate = facet.certificate;
             if (!certificate) facet.refresh();
 
-            var entity_label = that.entity_label || facet.entity.metadata.label_singular;
-
             entity_principal = certificate.entity_info.principal;
             var entity_name = certificate.entity_info.name;
             cn = certificate.entity_info.cn || cn;
             cn_name = certificate.entity_info.cn_name || cn_name;
 
-            title = text.get('@i18n:objects.cert.issue_certificate');
-            title = title.replace('${entity}', entity_label);
+            title = text.get(spec.title) || title;
             title = title.replace('${primary_key}', entity_name);
         }
 
@@ -823,20 +819,16 @@ IPA.cert.revoke_action = function(spec) {
     spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
 
     var that = IPA.action(spec);
-    that.entity_label = spec.entity_label;
     that.confirm_msg = spec.request_message;
 
     that.update_confirm_dialog = function(facet) {
 
         var certificate = facet.certificate;
-
-        var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
 
         var title = text.get('@i18n:objects.cert.revoke_certificate_simple');
-        if (entity_name && entity_label) {
-            title = text.get('@i18n:objects.cert.revoke_certificate');
-            title = title.replace('${entity}', entity_label);
+        if (entity_name) {
+            title = text.get(spec.title) || title;
             title = title.replace('${primary_key}', entity_name);
         }
 
@@ -879,20 +871,16 @@ IPA.cert.remove_hold_action = function(spec) {
     spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
 
     var that = IPA.action(spec);
-    that.entity_label = spec.entity_label;
 
     that.update_confirm_dialog = function(facet) {
 
         var certificate = facet.certificate;
 
-        var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
-
         var title = text.get('@i18n:objects.cert.remove_certificate_hold_simple');
 
-        if (entity_name && entity_label) {
-            title = text.get('@i18n:objects.cert.remove_certificate_hold');
-            title = title.replace('${entity}', entity_label);
+        if (entity_name) {
+            title = text.get(spec.title) || title;
             title = title.replace('${primary_key}', entity_name);
         }
 
@@ -1203,7 +1191,7 @@ IPA.cert.certs_widget = function(spec) {
         var sn = row.widget.certificate.serial_number;
         var message = text.get('@i18n:actions.delete_confirm');
         message = message.replace('${object}',
-            text.get('@i18n:objects.cert.delete_cert_end') + sn);
+            text.get('@i18n:objects.cert.delete_cert_end') + ' ' + sn);
 
         return message;
     };
