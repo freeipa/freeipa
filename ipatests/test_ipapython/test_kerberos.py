@@ -16,7 +16,7 @@ valid_principals = {
         'realm': u'REALM.TEST',
         'username': u'tuser'
     },
-    u'tuser\@tupn.test@REALM.TEST': {
+    u'tuser\\@tupn.test@REALM.TEST': {
         'components': (u'tuser@tupn.test',),
         'realm': u'REALM.TEST',
         'username': u'tuser@tupn.test',
@@ -54,11 +54,11 @@ valid_principals = {
         'hostname': u'$%^.ipa.t%$t',
         'service_name': u's$c'
     },
-    u'test\/service/test\/host@REALM\@TEST': {
+    u'test\\/service/test\\/host@REALM\\@TEST': {
         'components': (u'test/service', u'test/host'),
         'realm': u'REALM@TEST',
         'hostname': u'test/host',
-        'service_name': u'test\/service'
+        'service_name': r'test\/service'
     }
 }
 
@@ -103,7 +103,7 @@ principals_properties = {
         'property_true': ('is_service'),
         'property_raises': ('username', 'upn_suffix')
     },
-    u'user\@domain@REALM': {
+    u'user\\@domain@REALM': {
         'property_true': ('is_user', 'is_enterprise'),
         'property_raises': ('hostname', 'service_name')
     }
