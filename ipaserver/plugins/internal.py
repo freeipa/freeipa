@@ -580,6 +580,9 @@ class i18n_messages(Command):
                 "fingerprints": _("Fingerprints"),
                 "get_certificate": _("Get Certificate"),
                 "hold_removed": _("Certificate Hold Removed"),
+                "issue_for_host": _(
+                    "Issue new certificate for host '${primary_key}'"
+                ),
                 "issue_for_user": _(
                     "Issue new certificate for user '${primary_key}'"
                 ),
@@ -812,6 +815,24 @@ class i18n_messages(Command):
             },
             "host": {
                 "add": _("Add host"),
+                "add_hosts_managing": _(
+                    "Add hosts managing host '${primary_key}'"
+                ),
+                "add_into_groups": _(
+                    "Add host '${primary_key}' into host groups"
+                ),
+                "add_into_hbac": _(
+                    "Add host '${primary_key}' into HBAC rules"
+                ),
+                "add_into_netgroups": _(
+                    "Add host '${primary_key}' into netgroups"
+                ),
+                "add_into_roles": _(
+                    "Add host '${primary_key}' into roles"
+                ),
+                "add_into_sudo": _(
+                    "Add host '${primary_key}' into sudo rules"
+                ),
                 "certificate": _("Host Certificate"),
                 "cn": _("Host Name"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
