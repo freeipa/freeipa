@@ -178,6 +178,32 @@ class test_range(range_tasks):
                 self.delete_record(pkey)
 
     @screenshot
+    def test_add_range_with_existing_base_rid(self):
+        """
+        Test creating ID Range with existing primary RID base
+        """
+        self.navigate_to_entity(ENTITY)
+
+        pkey = 'itest-range-original'
+        form_data = self.get_add_form_data(pkey)
+        data = self.get_data(pkey, form_data=form_data)
+        # Get RID base from previous form
+        duplicated_data = self.get_data(base_rid=form_data.base_rid)
+
+        self.add_record(ENTITY, data, navigate=False)
+        self.add_record(ENTITY, duplicated_data, navigate=False, negative=True,
+                        pre_delete=False)
+
+        dialog = self.get_last_error_dialog()
+
+        try:
+            assert ('Constraint violation: '
+                    'New primary rid range overlaps with existing primary rid range.'
+                    in dialog.text)
+        finally:
+            self.delete_record(pkey)
+
+    @screenshot
     def test_add_range_without_rid(self):
         """
         Test creating ID Range without giving rid-base or/and
