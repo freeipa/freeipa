@@ -122,15 +122,18 @@ return {
                     name: 'uid',
                     primary_key: true
                 }
-            ]
+            ],
+            remove_title: '@i18n:objects.group.remove_users',
         },
         {
             $type: 'association',
-            name: 'member_group'
+            name: 'member_group',
+            remove_title: '@i18n:objects.group.remove_groups',
         },
         {
             $type: 'association',
-            name: 'member_service'
+            name: 'member_service',
+            remove_title: '@i18n:objects.group.remove_services',
         },
         {
             $type: 'attribute',
@@ -148,31 +151,36 @@ return {
         {
             $type: 'association',
             name: 'memberof_group',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.group.remove_from_groups',
         },
         {
             $type: 'association',
             name: 'memberof_netgroup',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.group.remove_from_netgroups',
         },
         {
             $type: 'association',
             name: 'memberof_role',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            remove_title: '@i18n:objects.group.remove_from_roles',
         },
         {
             $type: 'association',
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
-            remove_method: 'remove_user'
+            remove_method: 'remove_user',
+            remove_title: '@i18n:objects.group.remove_from_hbac',
         },
         {
             $type: 'association',
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
-            remove_method: 'remove_user'
+            remove_method: 'remove_user',
+            remove_title: '@i18n:objects.group.remove_from_sudo',
         }
     ],
     standard_association_facets: true,

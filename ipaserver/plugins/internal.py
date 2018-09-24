@@ -184,15 +184,7 @@ class i18n_messages(Command):
             "indirect_membership": _("Indirect Membership"),
             "no_entries": _("No entries."),
             "paging": _("Showing ${start} to ${end} of ${total} entries."),
-            "remove": {
-                "ipasudorunas": _("Remove RunAs ${other_entity} from ${entity} ${primary_key}"),
-                "ipasudorunasgroup": _("Remove RunAs Groups from ${entity} ${primary_key}"),
-                "managedby": _("Remove ${other_entity} Managing ${entity} ${primary_key}"),
-                "member": _("Remove ${other_entity} from ${entity} ${primary_key}"),
-                "memberallowcmd": _("Remove Allow ${other_entity} from ${entity} ${primary_key}"),
-                "memberdenycmd": _("Remove Deny ${other_entity} from ${entity} ${primary_key}"),
-                "memberof": _("Remove ${entity} ${primary_key} from ${other_entity}"),
-            },
+            "remove_title_default": _("Remove"),
             "removed": _("${count} item(s) removed"),
             "show_results": _("Show Results"),
         },
@@ -412,12 +404,40 @@ class i18n_messages(Command):
             },
             "acipermission": {
                 "remove": _("Remove permissions"),
+                "remove_privileges": _(
+                    "Remove privileges from permission '${primary_key}'"
+                ),
             },
             "aciprivilege": {
                 "remove": _("Remove privileges"),
+                "remove_from_permissions": _(
+                    "Remove privilege '${primary_key}' from permissions"
+                ),
+                "remove_roles": _(
+                    "Remove roles from privilege '${primary_key}'"
+                ),
             },
             "acirole": {
+                "identity": _("Role Settings"),
                 "remove": _("Remove roles"),
+                "remove_from_privileges": _(
+                    "Remove role '${primary_key}' from privileges"
+                ),
+                "remove_groups": _(
+                    "Remove user groups from role '${primary_key}'"
+                ),
+                "remove_hosts": _(
+                    "Remove hosts from role '${primary_key}'"
+                ),
+                "remove_hostgroups": _(
+                    "Remove host groups from role '${primary_key}'"
+                ),
+                "remove_services": _(
+                    "Remove services from role '${primary_key}'"
+                ),
+                "remove_users": _(
+                    "Remove users from role '${primary_key}'"
+                ),
             },
             "aciselfservice": {
                 "remove": _("Remove self service permissions"),
@@ -636,6 +656,30 @@ class i18n_messages(Command):
                 "nonposix": _("Non-POSIX"),
                 "posix": _("POSIX"),
                 "remove": _("Remove user groups"),
+                "remove_from_groups": _(
+                    "Remove user group '${primary_key}' from user groups"
+                ),
+                "remove_from_netgroups": _(
+                    "Remove user group '${primary_key}' from netgroups"
+                ),
+                "remove_from_roles": _(
+                    "Remove user group '${primary_key}' from roles"
+                ),
+                "remove_from_hbac": _(
+                    "Remove user group '${primary_key}' from HBAC rules"
+                ),
+                "remove_from_sudo": _(
+                    "Remove user group '${primary_key}' from sudo rules"
+                ),
+                "remove_groups": _(
+                    "Remove user groups from user group '${primary_key}'"
+                ),
+                "remove_services": _(
+                    "Remove services from user group '${primary_key}'"
+                ),
+                "remove_users": _(
+                    "Remove users from user group '${primary_key}'"
+                ),
                 "type": _("Group Type"),
                 "user_groups": _("User Groups"),
             },
@@ -654,9 +698,17 @@ class i18n_messages(Command):
             },
             "hbacsvc": {
                 "remove": _("Remove HBAC services"),
+                "remove_from_hbacsvcgroups": _(
+                    "Remove HBAC service '${primary_key}' from HBAC service "
+                    "groups"
+                ),
             },
             "hbacsvcgroup": {
                 "remove": _("Remove HBAC service groups"),
+                "remove_hbacsvcs": _(
+                    "Remove HBAC services from HBAC service group "
+                    "'${primary_key}'"
+                ),
                 "services": _("Services"),
             },
             "hbactest": {
@@ -695,6 +747,24 @@ class i18n_messages(Command):
                 "password_set_success": _("OTP set"),
                 "password_set_title": _("Set One-Time-Password"),
                 "remove": _("Remove hosts"),
+                "remove_hosts_managing": _(
+                    "Remove hosts managing host '${primary_key}'"
+                ),
+                "remove_from_groups": _(
+                    "Remove host '${primary_key}' from host groups"
+                ),
+                "remove_from_netgroups": _(
+                    "Remove host '${primary_key}' from netgroups"
+                ),
+                "remove_from_roles": _(
+                    "Remove host '${primary_key}' from roles"
+                ),
+                "remove_from_hbac": _(
+                    "Remove host '${primary_key}' from HBAC rules"
+                ),
+                "remove_from_sudo": _(
+                    "Remove host '${primary_key}' from sudo rules"
+                ),
                 "status": _("Status"),
                 "unprovision": _("Unprovision"),
                 "unprovision_confirmation": _("Are you sure you want to unprovision this host?"),
@@ -705,6 +775,24 @@ class i18n_messages(Command):
                 "host_group": _("Host Groups"),
                 "identity": _("Host Group Settings"),
                 "remove": _("Remove host groups"),
+                "remove_from_hostgroups": _(
+                    "Remove host group '${primary_key}' from host groups"
+                ),
+                "remove_from_netgroups": _(
+                    "Remove host group '${primary_key}' from netgroups"
+                ),
+                "remove_from_hbac": _(
+                    "Remove host group '${primary_key}' from HBAC rules"
+                ),
+                "remove_from_sudo": _(
+                    "Remove host group '${primary_key}' from sudo rules"
+                ),
+                "remove_hosts": _(
+                    "Remove hosts from host group '${primary_key}'"
+                ),
+                "remove_hostgroups": _(
+                    "Remove host groups from host group '${primary_key}'"
+                ),
             },
             "idoverrideuser": {
                 "anchor_label": _("User to override"),
@@ -752,6 +840,12 @@ class i18n_messages(Command):
                 "identity": _("Netgroup Settings"),
                 "netgroups": _("Netgroups"),
                 "remove": _("Remove netgroups"),
+                "remove_netgroups": _(
+                    "Remove netgroups from netgroup '${primary_key}'"
+                ),
+                "remove_from_netgroups": _(
+                    "Remove netgroup '${primary_key}' from netgroups"
+                ),
                 "specified_hosts": _("Specified Hosts and Groups"),
                 "specified_users": _("Specified Users and Groups"),
                 "user": _("User"),
@@ -767,6 +861,9 @@ class i18n_messages(Command):
                 "disable": _("Disable token"),
                 "enable": _("Enable token"),
                 "remove": _("Remove OTP tokens"),
+                "remove_users_managing": _(
+                    "Remove users managing OTP token '${primary_key}'"
+                ),
                 "show_qr": _("Show QR code"),
                 "show_uri": _("Show configuration uri"),
                 "type_hotp": _("Counter-based (HOTP)"),
@@ -822,9 +919,6 @@ class i18n_messages(Command):
                 "check_dns_confirmation": _("Do you also want to perform DNS check?"),
                 "force_update": _("Force Update"),
             },
-            "role": {
-                "identity": _("Role Settings"),
-            },
             "selfservice": {
             },
             "selinuxusermap": {
@@ -854,6 +948,12 @@ class i18n_messages(Command):
                 "missing": _("Kerberos Key Not Present"),
                 "provisioning": _("Provisioning"),
                 "remove": _("Remove services"),
+                "remove_from_roles": _(
+                    "Remove service '${primary_key}' from roles"
+                ),
+                "remove_hosts_managing": _(
+                    "Remove hosts managing service '${primary_key}'"
+                ),
                 "service": _("Service"),
                 "status": _("Status"),
                 "unprovision": _("Unprovision"),
@@ -891,10 +991,18 @@ class i18n_messages(Command):
             "sudocmd": {
                 "groups": _("Groups"),
                 "remove": _("Remove sudo commands"),
+                "remove_from_sudocmdgroups": _(
+                    "Remove sudo command '${primary_key}' from sudo command "
+                    "groups"
+                ),
             },
             "sudocmdgroup": {
                 "commands": _("Commands"),
                 "remove": _("Remove sudo command groups"),
+                "remove_sudocmds": _(
+                    "Remove sudo commands from sudo command group "
+                    "'${primary_key}'"
+                ),
             },
             "sudorule": {
                 "allow": _("Allow"),
@@ -945,6 +1053,7 @@ class i18n_messages(Command):
                 "ipanttrusteddomainsid": _("Domain Security Identifier"),
                 "preshared_password": _("Pre-shared password"),
                 "remove": _("Remove trusts"),
+                "remove_domains": _("Remove domains"),
                 "trustdirection": _("Trust direction"),
                 "truststatus": _("Trust status"),
                 "trusttype": _("Trust type"),
@@ -968,6 +1077,21 @@ class i18n_messages(Command):
                 "mode_preserve": _("preserve"),
                 "noprivate": _("No private group"),
                 "remove": _("Remove users"),
+                "remove_from_groups": _(
+                    "Remove user '${primary_key}' from user groups"
+                ),
+                "remove_from_netgroups": _(
+                    "Remove user '${primary_key}' from netgroups"
+                ),
+                "remove_from_roles": _(
+                    "Remove user '${primary_key}' from roles"
+                ),
+                "remove_from_hbac": _(
+                    "Remove user '${primary_key}' from HBAC rules"
+                ),
+                "remove_from_sudo": _(
+                    "Remove user '${primary_key}' from sudo rules"
+                ),
                 "status_confirmation": _("Are you sure you want to ${action} the user?<br/>The change will take effect immediately."),
                 "status_link": _("Click to ${action}"),
                 "unlock": _("Unlock"),
