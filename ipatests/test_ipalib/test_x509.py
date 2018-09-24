@@ -27,6 +27,7 @@ import datetime
 import pytest
 
 from cryptography import x509 as crypto_x509
+from cryptography.x509.general_name import DNSName
 from ipalib import x509
 from ipapython.dn import DN
 
@@ -121,6 +122,43 @@ CSc7sKqOf+fn3+fKITR2/DcSVvb0SGCr5fVVnjQ=
 -----END CERTIFICATE-----
 '''
 
+ipa_demo_crt = b'''\
+-----BEGIN CERTIFICATE-----
+MIIGFTCCBP2gAwIBAgISA61CoqWtpZoTEyfLCXliPLYFMA0GCSqGSIb3DQEBCwUA
+MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
+ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xODA3MjUwNTM2NTlaFw0x
+ODEwMjMwNTM2NTlaMCAxHjAcBgNVBAMTFWlwYS5kZW1vMS5mcmVlaXBhLm9yZzCC
+ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKisvYUdarWE0CS9i+RcNf9Q
+41Euw36R4Myf/PUCDVUvGsVXQWSCanbtyxa8Ows4cAHrfqhiKAnSg0IhLqCMJVQ8
+8F699FHrP9EfPmZkG3RMLYPxKNrSmOVyNpIEQY9qfkDXZPLung6dk/c225Znoltq
+bVWLObXA7eP9C/djupg3gUD7vOAMHFmfZ3OKnx1uktL5p707o2/qlkSiEO4Z5ebD
+M8X0dTkN8V3LCCOjzCp88itGUWJM8Tjb86WkmYkJxmeZx6REd37rDXjqgYhwgXOB
+bSqDkYKRaihwvd5Up/vE1wApBS1k7b1oEW80teDUbzbaaqp7oBWbZD2Ac1yJF7UC
+AwEAAaOCAx0wggMZMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcD
+AQYIKwYBBQUHAwIwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQUUmTMI1CB6qFMXc0+
+AGmqpfBAwhIwHwYDVR0jBBgwFoAUqEpqYwR93brm0Tm3pkVl7/Oo7KEwbwYIKwYB
+BQUHAQEEYzBhMC4GCCsGAQUFBzABhiJodHRwOi8vb2NzcC5pbnQteDMubGV0c2Vu
+Y3J5cHQub3JnMC8GCCsGAQUFBzAChiNodHRwOi8vY2VydC5pbnQteDMubGV0c2Vu
+Y3J5cHQub3JnLzAgBgNVHREEGTAXghVpcGEuZGVtbzEuZnJlZWlwYS5vcmcwgf4G
+A1UdIASB9jCB8zAIBgZngQwBAgEwgeYGCysGAQQBgt8TAQEBMIHWMCYGCCsGAQUF
+BwIBFhpodHRwOi8vY3BzLmxldHNlbmNyeXB0Lm9yZzCBqwYIKwYBBQUHAgIwgZ4M
+gZtUaGlzIENlcnRpZmljYXRlIG1heSBvbmx5IGJlIHJlbGllZCB1cG9uIGJ5IFJl
+bHlpbmcgUGFydGllcyBhbmQgb25seSBpbiBhY2NvcmRhbmNlIHdpdGggdGhlIENl
+cnRpZmljYXRlIFBvbGljeSBmb3VuZCBhdCBodHRwczovL2xldHNlbmNyeXB0Lm9y
+Zy9yZXBvc2l0b3J5LzCCAQQGCisGAQQB1nkCBAIEgfUEgfIA8AB2AMEWSuCnctLU
+OS3ICsEHcNTwxJvemRpIQMH6B1Fk9jNgAAABZNAnsSAAAAQDAEcwRQIgHkd/UkTZ
+w8iV1Ox8MPHLrpY33cX6i5FV6w9+7YH3H2kCIQCVcrhsr4fokDyE2ueUqSFxkBVH
+WND84/w5rFNAPjyO1QB2ACk8UZZUyDlluqpQ/FgH1Ldvv1h6KXLcpMMM9OVFR/R4
+AAABZNAnsyUAAAQDAEcwRQIhALDWY2k55abu7IPwnFvMr4Zqd1DYQXEKWZEQLXUP
+s4XGAiAabjpUwrLKVXpbp4WNLkTNlFjrSJafOzLG68H9AnoD4zANBgkqhkiG9w0B
+AQsFAAOCAQEAfBNuQn/A2olJHxoBGLfMcQCkkNOfvBpfQeKgni2VVM+r1ZY8YVXx
+OtVnV6XQ5M+l+6xlRpP1IwDdmJd/yaQgwbmYf4zl94W/s/qq4nlTd9G4ahmJOhlc
+mWeIQMoEtAmQlIOqWto+Knfakz6Xyo+HVCQEyeoBmYFGZcakeAm6tp/6qtpkej+4
+wBjShMPAdSYDPRaAqnZ3BAK2UmmlpAA5tkNvqOaHBCi760zYoxT6j1an7FotG0v9
+2+W0aL34eMWKz/g4qhwk+Jiz45LLQWhHGIgXIUoNSzHgLIVuVOQI8DPsguvT6GHW
+QUs1Hx1wL7mL4U8fKCFDKA+ds2B2xWgoZg==
+-----END CERTIFICATE-----
+'''
 
 class test_x509(object):
     """
@@ -180,6 +218,13 @@ class test_x509(object):
         assert cert.serial_number == 1093
         assert cert.not_valid_before == not_before
         assert cert.not_valid_after == not_after
+        assert cert.san_general_names == []
+        assert cert.san_a_label_dns_names == []
+        assert cert.extended_key_usage == {'1.3.6.1.5.5.7.3.1'}
+        assert cert.extended_key_usage_bytes == (
+            b'0\x16\x06\x03U\x1d%\x01\x01\xff\x04\x0c0\n\x06\x08'
+            b'+\x06\x01\x05\x05\x07\x03\x01'
+        )
 
     def test_load_pkcs7_pem(self):
         certlist = x509.pkcs7_to_certs(good_pkcs7, datatype=x509.PEM)
@@ -202,3 +247,23 @@ class test_x509(object):
         assert ext.value[0].policy_identifier.dotted_string == (
             u'1.3.6.1.4.1.311.21.8.8950086.10656446.2706058.12775672.480128.'
             '147.13466065.13029902')
+
+    def test_ipa_demo_letsencrypt(self):
+        cert = x509.load_pem_x509_certificate(ipa_demo_crt)
+        assert DN(cert.subject) == DN('CN=ipa.demo1.freeipa.org')
+        assert DN(cert.issuer) == DN(
+            "CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US")
+        assert cert.serial_number == 0x03ad42a2a5ada59a131327cb0979623cb605
+        not_before = datetime.datetime(2018, 7, 25, 5, 36, 59)
+        not_after = datetime.datetime(2018, 10, 23, 5, 36, 59)
+        assert cert.not_valid_before == not_before
+        assert cert.not_valid_after == not_after
+        assert cert.san_general_names == [DNSName('ipa.demo1.freeipa.org')]
+        assert cert.san_a_label_dns_names == ['ipa.demo1.freeipa.org']
+        assert cert.extended_key_usage == {
+            '1.3.6.1.5.5.7.3.1', '1.3.6.1.5.5.7.3.2'
+        }
+        assert cert.extended_key_usage_bytes == (
+            b'0 \x06\x03U\x1d%\x01\x01\xff\x04\x160\x14\x06\x08+\x06\x01'
+            b'\x05\x05\x07\x03\x01\x06\x08+\x06\x01\x05\x05\x07\x03\x02'
+        )

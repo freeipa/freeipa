@@ -46,9 +46,9 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import (
     Encoding, PublicFormat, PrivateFormat, load_pem_private_key
 )
+import pyasn1
 from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import decoder, encoder
-# from pyasn1.codec.native import decoder, encoder
 from pyasn1_modules import rfc2315, rfc2459
 import six
 
@@ -154,7 +154,11 @@ class IPACertificate(object):
         # which are capable of providing python-native types
         ext['extnID'] = univ.ObjectIdentifier(oid)
         ext['critical'] = univ.Boolean(critical)
-        ext['extnValue'] = univ.Any(encoder.encode(univ.OctetString(value)))
+        if pyasn1.__version__.startswith('0.3'):
+            # pyasn1 <= 0.3.7 needs explicit encoding
+            # see https://pagure.io/freeipa/issue/7685
+            value = encoder.encode(univ.OctetString(value))
+        ext['extnValue'] = univ.Any(value)
         ext = encoder.encode(ext)
         return ext
 
@@ -285,7 +289,7 @@ class IPACertificate(object):
             return None
 
         ekurfc = rfc2459.ExtKeyUsageSyntax()
-        for i, oid in enumerate(eku):
+        for i, oid in enumerate(sorted(eku)):
             ekurfc[i] = univ.ObjectIdentifier(oid)
         ekurfc = encoder.encode(ekurfc)
         return self.__encode_extension('2.5.29.37', EKU_ANY not in eku, ekurfc)
@@ -346,8 +350,11 @@ class IPACertificate(object):
         gns = []
         for ext in extensions:
             if ext['extnID'] == OID_SAN:
-                der = decoder.decode(
-                    ext['extnValue'], asn1Spec=univ.OctetString())[0]
+                der = ext['extnValue']
+                if pyasn1.__version__.startswith('0.3'):
+                    # pyasn1 <= 0.3.7 needs explicit unwrap of ANY container
+                    # see https://pagure.io/freeipa/issue/7685
+                    der = decoder.decode(der, asn1Spec=univ.OctetString())[0]
                 gns = decoder.decode(der, asn1Spec=rfc2459.SubjectAltName())[0]
                 break
         return gns
