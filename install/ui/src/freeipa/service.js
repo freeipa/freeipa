@@ -345,7 +345,10 @@ return {
             ],
             actions: [
                 'service_unprovision',
-                'cert_request'
+                {
+                    $type: 'cert_request',
+                    title: '@i18n:objects.cert.issue_for_service'
+                }
             ],
             header_actions: [
                 'unprovision',
@@ -369,12 +372,14 @@ return {
         {
             $type: 'association',
             name: 'memberof_role',
+            add_title: '@i18n:objects.service.add_into_roles',
             remove_title: '@i18n:objects.service.remove_from_roles'
         },
         {
             $type: 'association',
             name: 'managedby_host',
             add_method: 'add_host',
+            add_title: '@i18n:objects.service.add_hosts_managing',
             remove_method: 'remove_host',
             remove_title: '@i18n:objects.service.remove_hosts_managing'
         }
