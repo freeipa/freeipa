@@ -229,7 +229,7 @@ def restore_files(host):
     rmname = os.path.join(host.config.test_dir, 'file_remove')
 
     # Prepare command for restoring context of the backed-up files
-    sed_remove_backupdir = 's/%s//g' % backupname.replace('/', '\/')
+    sed_remove_backupdir = 's/%s//g' % backupname.replace('/', r'\/')
     restorecon_command = (
         "find %s | "
         "sed '%s' | "
@@ -361,7 +361,7 @@ def domainlevel(host):
     kinit_admin(host, raiseonerr=False)
     result = host.run_command(['ipa', 'domainlevel-get'], raiseonerr=False)
     level = MIN_DOMAIN_LEVEL
-    domlevel_re = re.compile('.*(\d)')
+    domlevel_re = re.compile(r'.*(\d)')
     if result.returncode == 0:
         # "domainlevel-get" command doesn't exist on ipa versions prior to 4.3
         level = int(domlevel_re.findall(result.stdout_text)[0])
@@ -601,7 +601,7 @@ def setup_sssd_debugging(host):
 
     # Add the debug directive to each section
     host.run_command(['sed', '-i',
-                      '/\[*\]/ a\debug_level = 7',
+                      r'/\[*\]/ a\debug_level = 7',
                       paths.SSSD_CONF],
                      raiseonerr=False)
 
@@ -1000,7 +1000,7 @@ def two_connected_topo(master, replicas):
 
 @_topo('double-circle')
 def double_circle_topo(master, replicas, site_size=6):
-    """
+    r"""
                       R--R
                       |\/|
                       |/\|

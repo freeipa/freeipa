@@ -76,7 +76,7 @@ invalid_expiration_string = "2020-12-07 19:54:13"
 expired_expiration_string = "1991-12-07T19:54:13Z"
 
 # Date in ISO format (2013-12-10T12:00:00)
-isodate_re = re.compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
+isodate_re = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
 
 
 @pytest.fixture(scope='class')

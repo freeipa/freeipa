@@ -172,8 +172,8 @@ class TestBasicADTrust(ADTrustBase):
 
         # This regex checks that Test User does not have UID 10042 nor belongs
         # to the group with GID 10047
-        testuser_regex = "^testuser@%s:\*:(?!10042)(\d+):(?!10047)(\d+):"\
-                         "Test User:/home/%s/testuser:/bin/sh$"\
+        testuser_regex = r"^testuser@%s:\*:(?!10042)(\d+):(?!10047)(\d+):"\
+                         r"Test User:/home/%s/testuser:/bin/sh$"\
                          % (re.escape(self.ad_domain),
                             re.escape(self.ad_domain))
 
@@ -321,9 +321,9 @@ class TestExternalTrustWithSubdomain(ADTrustSubdomainBase):
         testuser = 'subdomaintestuser@{0}'.format(self.ad_subdomain)
         result = self.master.run_command(['getent', 'passwd', testuser])
 
-        testuser_regex = ("^subdomaintestuser@{0}:\*:(?!10142)(\d+):"
-                          "(?!10147)(\d+):Subdomaintest User:"
-                          "/home/{1}/subdomaintestuser:/bin/sh$".format(
+        testuser_regex = (r"^subdomaintestuser@{0}:\*:(?!10142)(\d+):"
+                          r"(?!10147)(\d+):Subdomaintest User:"
+                          r"/home/{1}/subdomaintestuser:/bin/sh$".format(
                               re.escape(self.ad_subdomain),
                               re.escape(self.ad_subdomain)))
 
@@ -388,9 +388,9 @@ class TestExternalTrustWithTreedomain(ADTrustTreedomainBase):
         testuser = 'treetestuser@{0}'.format(self.ad_treedomain)
         result = self.master.run_command(['getent', 'passwd', testuser])
 
-        testuser_regex = ("^treetestuser@{0}:\*:(?!10242)(\d+):"
-                          "(?!10247)(\d+):TreeTest User:"
-                          "/home/{1}/treetestuser:/bin/sh$".format(
+        testuser_regex = (r"^treetestuser@{0}:\*:(?!10242)(\d+):"
+                          r"(?!10247)(\d+):TreeTest User:"
+                          r"/home/{1}/treetestuser:/bin/sh$".format(
                               re.escape(self.ad_treedomain),
                               re.escape(self.ad_treedomain)))
 
@@ -483,9 +483,11 @@ class TestTrustWithUPN(ADTrustBase):
                                           self.upn_principal])
 
         # result will contain AD domain, not UPN
-        upnuser_regex = "^{}@{}:\*:(\d+):(\d+):{}:/home/{}/{}:/bin/sh$".format(
-            self.upn_username, self.ad_domain, self.upn_name,
-            self.ad_domain, self.upn_username)
+        upnuser_regex = (
+            r"^{}@{}:\*:(\d+):(\d+):{}:/home/{}/{}:/bin/sh$".format(
+                self.upn_username, self.ad_domain, self.upn_name,
+                self.ad_domain, self.upn_username)
+        )
         assert re.search(upnuser_regex, result.stdout_text)
 
     def test_upn_user_authentication(self):

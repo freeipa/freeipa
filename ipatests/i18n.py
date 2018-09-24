@@ -101,13 +101,13 @@ _shell_substitution_regexp = re.compile(
 # group 5: ending delimiter
 
 printf_fmt_re = re.compile(
-    r"%"                                     # start
-     "(\d+\$)?"                              # fmt_arg    (group  1)
-     "(([#0 +'I]|-(?!\d))*)"                 # flags      (group  2)
-     "(([+-]?([1-9][0-9]*)?)|(\*|\*\d+\$))?" # width      (group  4)
-     "(\.((-?\d*)|(\*|)|(\*\d+\$)))?"        # precision  (group  8)
-     "(h|hh|l|ll|L|j|z|t)?"                  # length     (group 13)
-     "([diouxXeEfFgGaAcspnm%])")             # conversion (group 14)
+    r"%"                                      # start
+    r"(\d+\$)?"                               # fmt_arg    (group  1)
+    r"(([#0 +'I]|-(?!\d))*)"                  # flags      (group  2)
+    r"(([+-]?([1-9][0-9]*)?)|(\*|\*\d+\$))?"  # width      (group  4)
+    r"(\.((-?\d*)|(\*|)|(\*\d+\$)))?"         # precision  (group  8)
+    r"(h|hh|l|ll|L|j|z|t)?"                   # length     (group 13)
+    r"([diouxXeEfFgGaAcspnm%])")              # conversion (group 14)
 
 #-------------------------------------------------------------------------------
 

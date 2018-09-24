@@ -203,7 +203,7 @@ class Fuzzy(object):
     The first optional argument *regex* is a regular expression pattern to
     match.  For example, you could match a phone number like this:
 
-    >>> phone = Fuzzy('^\d{3}-\d{3}-\d{4}$')
+    >>> phone = Fuzzy(r'^\d{3}-\d{3}-\d{4}$')
     >>> u'123-456-7890' == phone
     True
 
@@ -218,7 +218,7 @@ class Fuzzy(object):
     The *type* kwarg allows you to specify a type constraint, so you can force
     the above to work on ``str`` instances instead:
 
-    >>> '123-456-7890' == Fuzzy('^\d{3}-\d{3}-\d{4}$', type=str)
+    >>> '123-456-7890' == Fuzzy(r'^\d{3}-\d{3}-\d{4}$', type=str)
     True
 
     You can also use the *type* constraint on its own without the *regex*, for
@@ -266,7 +266,7 @@ class Fuzzy(object):
     __hash__ = None
 
     def __init__(self, regex=None, type=None, test=None):
-        """
+        r"""
         Initialize.
 
         :param regex: A regular expression pattern to match, e.g.
@@ -593,7 +593,7 @@ class PluginTester(object):
     plugin = property(__get_plugin)
 
     def register(self, *plugins, **kw):
-        """
+        r"""
         Create a testing api and register ``self.plugin``.
 
         This method returns an (api, home) tuple.

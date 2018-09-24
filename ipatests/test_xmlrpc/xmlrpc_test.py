@@ -43,7 +43,7 @@ else:
 # Matches a gidnumber like '1391016742'
 # FIXME: Does it make more sense to return gidnumber, uidnumber, etc. as `int`
 # or `long`?  If not, we still need to return them as `unicode` instead of `str`.
-fuzzy_digits = Fuzzy('^\d+$', type=six.string_types)
+fuzzy_digits = Fuzzy(r'^\d+$', type=six.string_types)
 
 uuid_re = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 
@@ -71,7 +71,7 @@ def fuzzy_sequence_of(fuzzy):
 
 # Matches an automember task finish message
 fuzzy_automember_message = Fuzzy(
-    '^Automember rebuild task finished\. Processed \(\d+\) entries\.$'
+    r'^Automember rebuild task finished\. Processed \(\d+\) entries\.$'
 )
 
 # Matches trusted domain GUID, like u'463bf2be-3456-4a57-979e-120304f2a0eb'
@@ -109,19 +109,23 @@ fuzzy_caid = fuzzy_uuid
 fuzzy_ipauniqueid = Fuzzy('(?i)ipauniqueid=%s' % uuid_re)
 
 # Matches a hash signature, not enforcing length
-fuzzy_hash = Fuzzy('^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=six.string_types)
+fuzzy_hash = Fuzzy(
+    r'^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=six.string_types
+)
 
 # Matches a date, like Tue Apr 26 17:45:35 2016 UTC
-fuzzy_date = Fuzzy('^[a-zA-Z]{3} [a-zA-Z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4} UTC$')
+fuzzy_date = Fuzzy(
+    r'^[a-zA-Z]{3} [a-zA-Z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4} UTC$'
+)
 
 fuzzy_issuer = Fuzzy(type=six.string_types)
 
-fuzzy_hex = Fuzzy('^0x[0-9a-fA-F]+$', type=six.string_types)
+fuzzy_hex = Fuzzy(r'^0x[0-9a-fA-F]+$', type=six.string_types)
 
 # Matches password - password consists of all printable characters without
 # whitespaces. The only exception is space, but space cannot be at the
 # beginning or end of the pwd.
-fuzzy_password = Fuzzy('^\S([\S ]*\S)*$')
+fuzzy_password = Fuzzy(r'^\S([\S ]*\S)*$')
 
 # Matches generalized time value. Time format is: %Y%m%d%H%M%SZ
 fuzzy_dergeneralizedtime = Fuzzy(type=datetime.datetime)

@@ -109,7 +109,7 @@ class Principal(object):
         return hash(self.components + (self.realm,))
 
     def _parse_from_text(self, principal, realm=None):
-        """
+        r"""
         parse individual principal name components from the string
         representation of the principal. This is done in three steps:
             1.) split the string at the unescaped '@'

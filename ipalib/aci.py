@@ -127,7 +127,7 @@ class ACI(object):
 
             if var == 'targetattr':
                 # Make a string of the form attr || attr || ... into a list
-                t = re.split('[^a-zA-Z0-9;\*]+', val)
+                t = re.split(r'[^a-zA-Z0-9;\*]+', val)
                 self.target[var] = {}
                 self.target[var]['operator'] = op
                 self.target[var]['expression'] = t

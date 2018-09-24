@@ -91,7 +91,7 @@ def check_admin_in_id(host):
 
 def check_certs(host):
     result = host.run_command(['ipa', 'cert-find'])
-    assert re.search('^Number of entries returned [1-9]\d*$',
+    assert re.search(r'^Number of entries returned [1-9]\d*$',
                      result.stdout_text, re.MULTILINE), result.stdout_text
     return result
 
