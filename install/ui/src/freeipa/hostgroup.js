@@ -66,23 +66,27 @@ return {
         {
             $type: 'association',
             name: 'member_host',
+            add_title: '@i18n:objects.hostgroup.add_hosts',
             remove_title: '@i18n:objects.hostgroup.remove_hosts'
         },
         {
             $type: 'association',
             name: 'member_hostgroup',
+            add_title: '@i18n:objects.hostgroup.add_hostgroups',
             remove_title: '@i18n:objects.hostgroup.remove_hostgroups'
         },
         {
             $type: 'association',
             name: 'memberof_hostgroup',
             associator: IPA.serial_associator,
+            add_title: '@i18n:objects.hostgroup.add_into_hostgroups',
             remove_title: '@i18n:objects.hostgroup.remove_from_hostgroups'
         },
         {
             $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator,
+            add_title: '@i18n:objects.hostgroup.add_into_netgroups',
             remove_title: '@i18n:objects.hostgroup.remove_from_netgroups'
         },
         {
@@ -90,6 +94,7 @@ return {
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_host',
+            add_title: '@i18n:objects.hostgroup.add_into_hbac',
             remove_method: 'remove_host',
             remove_title: '@i18n:objects.hostgroup.remove_from_hbac'
         },
@@ -98,6 +103,7 @@ return {
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_host',
+            add_title: '@i18n:objects.hostgroup.add_into_sudo',
             remove_method: 'remove_host',
             remove_title: '@i18n:objects.hostgroup.remove_from_sudo'
         }

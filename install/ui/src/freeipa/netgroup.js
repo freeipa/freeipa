@@ -60,12 +60,14 @@ var spec = {
         {
             $type: 'association',
             name: 'member_netgroup',
+            add_title: '@i18n:objects.netgroup.add_netgroups',
             remove_title: '@i18n:objects.netgroup.remove_netgroups'
         },
         {
             $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator,
+            add_title: '@i18n:objects.netgroup.add_into_netgroups',
             remove_title: '@i18n:objects.netgroup.remove_from_netgroups'
         }
     ],
