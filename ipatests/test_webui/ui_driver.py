@@ -1904,6 +1904,18 @@ class UI_driver:
         class_attr = el.get_attribute("class")
         return bool(class_attr) and cls in class_attr.split()
 
+    def has_form_error(self, name):
+        """
+        Check if form field has error
+        TODO: Move to some mixin class
+        """
+        form_group = self.find(
+            '//input[@name="{}"]/ancestor'
+            '::div[contains(@class, "form-group")]'.format(name),
+            By.XPATH
+        )
+        return self.has_class(form_group, 'has-error')
+
     def skip(self, reason):
         """
         Skip tests

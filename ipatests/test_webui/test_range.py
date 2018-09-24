@@ -176,3 +176,38 @@ class test_range(range_tasks):
                         in dialog.text)
             finally:
                 self.delete_record(pkey)
+
+    @screenshot
+    def test_add_range_without_rid(self):
+        """
+        Test creating ID Range without giving rid-base or/and
+        secondary-rid-base values
+        """
+        self.navigate_to_entity(ENTITY)
+
+        pkey = 'itest-range-without-rid'
+
+        # Without primary RID base
+        data = self.get_data(pkey, base_rid='')
+        self.add_record(ENTITY, data, navigate=False, negative=True)
+        try:
+            assert self.has_form_error('ipabaserid')
+        finally:
+            self.delete_record(pkey)
+
+        self.dialog_button_click('cancel')
+
+        # Without secondary RID base
+        data = self.get_data(pkey, secondary_base_rid='')
+        self.add_record(ENTITY, data, navigate=False, negative=True)
+        try:
+            assert self.has_form_error('ipasecondarybaserid')
+        finally:
+            self.delete_record(pkey)
+
+        self.dialog_button_click('cancel')
+
+        # Without primary and secondary RID bases
+        data = self.get_data(pkey, base_rid='', secondary_base_rid='')
+        self.add_record(ENTITY, data, navigate=False)
+        self.delete_record(pkey)

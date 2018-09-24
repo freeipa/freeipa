@@ -100,13 +100,19 @@ class range_tasks(UI_driver):
         base_id = kwargs.get('base_id', self.max_id + shift)
         self.max_id = base_id + size
 
-        base_rid = self.max_rid + shift
-        self.max_rid = base_rid + size
+        if 'base_rid' in kwargs:
+            base_rid = kwargs['base_rid']
+        else:
+            base_rid = self.max_rid + shift
+            self.max_rid = base_rid + size
 
         secondary_base_rid = None
         if not domain:
-            secondary_base_rid = base_rid + size + shift
-            self.max_rid = secondary_base_rid + size
+            if 'secondary_base_rid' in kwargs:
+                secondary_base_rid = kwargs['secondary_base_rid']
+            else:
+                secondary_base_rid = self.max_rid + shift
+                self.max_rid = secondary_base_rid + size
 
         return RangeAddFormData(
             pkey, base_id, base_rid,
@@ -135,7 +141,7 @@ class RangeAddFormData(object):
              Do not put any additional logic here!
     """
 
-    def __init__(self, cn, base_id, base_rid, secondary_base_rid=None,
+    def __init__(self, cn, base_id, base_rid=None, secondary_base_rid=None,
                  range_type=LOCAL_ID_RANGE, size=50, domain=None,
                  callback=None):
         self.cn = cn
