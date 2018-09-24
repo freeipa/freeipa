@@ -811,6 +811,10 @@ class i18n_messages(Command):
             },
             "hbacsvc": {
                 "add": _("Add HBAC service"),
+                "add_hbacsvcgroups": _(
+                    "Add HBAC service '${primary_key}' into HBAC service "
+                    "groups"
+                ),
                 "remove": _("Remove HBAC services"),
                 "remove_from_hbacsvcgroups": _(
                     "Remove HBAC service '${primary_key}' from HBAC service "
@@ -819,6 +823,10 @@ class i18n_messages(Command):
             },
             "hbacsvcgroup": {
                 "add": _("Add HBAC service group"),
+                "add_hbacsvcs": _(
+                    "Add HBAC services into HBAC service group "
+                    "'${primary_key}'"
+                ),
                 "remove": _("Remove HBAC service groups"),
                 "remove_hbacsvcs": _(
                     "Remove HBAC services from HBAC service group "
