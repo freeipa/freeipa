@@ -21,10 +21,15 @@
 Range tests
 """
 
+import pytest
+
 import ipatests.test_webui.test_trust as trust_mod
 from ipatests.test_webui.ui_driver import screenshot
-from ipatests.test_webui.task_range import range_tasks
-import pytest
+from ipatests.test_webui.task_range import (
+    range_tasks,
+    LOCAL_ID_RANGE,
+    TRUSTED_ID_RANGE,
+)
 
 ENTITY = 'idrange'
 PKEY = 'itest-range'
@@ -33,13 +38,20 @@ PKEY = 'itest-range'
 @pytest.mark.tier1
 class test_range(range_tasks):
 
+    def setup(self):
+        super(test_range, self).setup()
+        self.init_app()
+        self.get_shifts()
+
+        self.range_types = [LOCAL_ID_RANGE]
+        if self.has_trusts():
+            self.range_types.append(TRUSTED_ID_RANGE)
+
     @screenshot
     def test_crud(self):
         """
         Basic CRUD: range
         """
-        self.init_app()
-        self.get_shifts()
         self.basic_crud(ENTITY, self.get_data(PKEY), mod=False)
 
     @screenshot
@@ -48,16 +60,11 @@ class test_range(range_tasks):
         Test mod operating in a new range
         """
 
-        self.init_app()
         self.navigate_to_entity(ENTITY)
-        self.get_shifts()
 
-        add = self.get_add_data(PKEY)
-        data = self.get_data(PKEY, add_data=add)
+        data = self.get_data(PKEY)
 
-        self.add_record(ENTITY, data, facet='search', navigate=False,
-                        facet_btn='add', dialog_name='add',
-                        dialog_btn='add')
+        self.add_record(ENTITY, data, navigate=False)
         self.navigate_to_record(PKEY)
 
         # changes idrange and tries to save it
@@ -88,15 +95,12 @@ class test_range(range_tasks):
         - 'ipa-ad-winsync' and 'ipa-ipa-trust' and  are not supported yet
           https://fedorahosted.org/freeipa/ticket/4323
         """
-        self.init_app()
-        self.get_shifts()
 
         pkey_local = 'itest-local'
         pkey_ad = 'itest-ad'
         column = 'iparangetype'
 
-        add = self.get_add_data(pkey_local)
-        data = self.get_data(pkey_local, add_data=add)
+        data = self.get_data(pkey_local)
         self.add_record(ENTITY, data)
         self.assert_record_value('local domain range', pkey_local, column)
 
@@ -111,13 +115,64 @@ class test_range(range_tasks):
 
             self.navigate_to_entity(ENTITY)
 
-            add = self.get_add_data(pkey_ad, range_type='ipa-ad-trust', domain=domain)
-            data = self.get_data(pkey_ad, add_data=add)
+            data = self.get_data(pkey_ad, range_type=TRUSTED_ID_RANGE,
+                                 domain=domain)
             self.add_record(ENTITY, data, navigate=False)
-            self.assert_record_value('Active Directory domain range', pkey_ad, column)
+            self.assert_record_value('Active Directory domain range', pkey_ad,
+                                     column)
 
             self.delete(trust_mod.ENTITY, [trust_data])
             self.navigate_to_entity(ENTITY)
             self.delete_record(pkey_ad)
 
         self.delete_record(pkey_local)
+
+    @screenshot
+    def test_add_range_with_existing_name(self):
+        """
+        Test creating ID Range with existing range name
+        """
+        self.navigate_to_entity(ENTITY)
+
+        for range_type in self.range_types:
+            pkey = 'itest-range-{}'.format(range_type)
+            data = self.get_data(pkey, range_type=range_type)
+
+            self.add_record(ENTITY, data, navigate=False)
+            self.add_record(ENTITY, data, navigate=False, negative=True,
+                            pre_delete=False)
+
+            dialog = self.get_last_error_dialog()
+
+            try:
+                assert ('range with name "{}" already exists'.format(pkey)
+                        in dialog.text)
+            finally:
+                self.delete_record(pkey)
+
+    @screenshot
+    def test_add_range_with_existing_base_id(self):
+        """
+        Test creating ID Range with existing base ID
+        """
+        self.navigate_to_entity(ENTITY)
+
+        for range_type in self.range_types:
+            pkey = 'itest-range-original'
+            form_data = self.get_add_form_data(pkey)
+            data = self.get_data(pkey, form_data=form_data)
+            form_data.range_type = range_type
+            duplicated_data = self.get_data(form_data=form_data)
+
+            self.add_record(ENTITY, data, navigate=False)
+            self.add_record(ENTITY, duplicated_data, navigate=False,
+                            negative=True, pre_delete=False)
+
+            dialog = self.get_last_error_dialog()
+
+            try:
+                assert ('Constraint violation: '
+                        'New base range overlaps with existing base range.'
+                        in dialog.text)
+            finally:
+                self.delete_record(pkey)
