@@ -155,6 +155,7 @@ return {
                     width: '100px'
                 }
             ],
+            add_title: '@i18n:objects.hbacsvc.add_hbacsvcgroups',
             remove_title: '@i18n:objects.hbacsvc.remove_from_hbacsvcgroups'
         }
     ],
@@ -219,6 +220,7 @@ return {
                     width: '100px'
                 }
             ],
+            add_title: '@i18n:objects.hbacsvcgroup.add_hbacsvcs',
             remove_title: '@i18n:objects.hbacsvcgroup.remove_hbacsvcs'
         }
     ],
