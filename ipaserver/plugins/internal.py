@@ -1235,6 +1235,21 @@ class i18n_messages(Command):
                 "account_status": _("Account Status"),
                 "activeuser_label": _("Active users"),
                 "add": _("Add user"),
+                "add_into_groups": _(
+                    "Add user '${primary_key}' into user groups"
+                ),
+                "add_into_hbac": _(
+                    "Add user '${primary_key}' into HBAC rules"
+                ),
+                "add_into_netgroups": _(
+                    "Add user '${primary_key}' into netgroups"
+                ),
+                "add_into_roles": _(
+                    "Add user '${primary_key}' into roles"
+                ),
+                "add_into_sudo": _(
+                    "Add user '${primary_key}' into sudo rules"
+                ),
                 "contact": _("Contact Settings"),
                 "delete_mode": _("Delete mode"),
                 "employee": _("Employee Information"),
