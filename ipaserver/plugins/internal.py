@@ -419,6 +419,9 @@ class i18n_messages(Command):
             },
             "acipermission": {
                 "add": _("Add permission"),
+                "add_privileges": _(
+                    "Add privileges into permission '${primary_key}'"
+                ),
                 "remove": _("Remove permissions"),
                 "remove_privileges": _(
                     "Remove privileges from permission '${primary_key}'"
@@ -426,6 +429,12 @@ class i18n_messages(Command):
             },
             "aciprivilege": {
                 "add": _("Add privilege"),
+                "add_into_permissions": _(
+                    "Add privilege '${primary_key}' into permissions"
+                ),
+                "add_roles": _(
+                    "Add roles into privilege '${primary_key}'"
+                ),
                 "remove": _("Remove privileges"),
                 "remove_from_permissions": _(
                     "Remove privilege '${primary_key}' from permissions"
@@ -437,6 +446,24 @@ class i18n_messages(Command):
             "acirole": {
                 "identity": _("Role Settings"),
                 "add": _("Add role"),
+                "add_groups": _(
+                    "Add user groups into role '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into role '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into role '${primary_key}'"
+                ),
+                "add_into_privileges": _(
+                    "Add role '${primary_key}' into privileges"
+                ),
+                "add_services": _(
+                    "Add services into role '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into role '${primary_key}'"
+                ),
                 "remove": _("Remove roles"),
                 "remove_from_privileges": _(
                     "Remove role '${primary_key}' from privileges"
