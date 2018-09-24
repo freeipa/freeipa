@@ -583,6 +583,9 @@ class i18n_messages(Command):
                 "issue_for_host": _(
                     "Issue new certificate for host '${primary_key}'"
                 ),
+                "issue_for_service": _(
+                    "Issue new certificate for service '${primary_key}'"
+                ),
                 "issue_for_user": _(
                     "Issue new certificate for user '${primary_key}'"
                 ),
@@ -1082,6 +1085,12 @@ class i18n_messages(Command):
             },
             "service": {
                 "add": _("Add service"),
+                "add_hosts_managing": _(
+                    "Add hosts managing service '${primary_key}'"
+                ),
+                "add_into_roles": _(
+                    "Add service '${primary_key}' into roles"
+                ),
                 "certificate": _("Service Certificate"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
                 "details": _("Service Settings"),
