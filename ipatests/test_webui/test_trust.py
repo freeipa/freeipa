@@ -127,9 +127,9 @@ class test_trust(trust_tasks):
         r_tasks.driver = self.driver
         r_tasks.config = self.config
         r_tasks.get_shifts()
-        range_add = r_tasks.get_add_data('')
-        base_id = range_add[2][2]
-        range_size = range_add[3][2]
+        range_form = r_tasks.get_add_form_data('')
+        base_id = range_form.base_id
+        range_size = range_form.size
         range_pkey = self.get_range_name()
         column = 'iparangetype'
 
