@@ -158,8 +158,8 @@ def isvalid_base64(data):
 
     data = ''.join(data.split())
 
-    if len(data) % 4 > 0 or \
-        re.match('^[a-zA-Z0-9\+\/]+\={0,2}$', data) is None:
+    if (len(data) % 4 > 0 or
+            re.match(r'^[a-zA-Z0-9\+\/]+\={0,2}$', data) is None):
         return False
     else:
         return True
