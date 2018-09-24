@@ -718,10 +718,8 @@ idviews.apply_action = function(spec) {
 
         var pkey = facet.get_pkey();
         var other_entity = reg.entity.get(that.other_entity);
-        var other_entity_label = other_entity.metadata.label;
         var exclude = that.get_exclude(facet);
         var title = text.get(that.dialog_title);
-        title = title.replace('${entity}', other_entity_label);
         title = title.replace('${primary_key}', pkey);
 
         var dialog = IPA.association_adder_dialog({

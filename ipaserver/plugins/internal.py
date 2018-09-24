@@ -966,9 +966,13 @@ class i18n_messages(Command):
                 "appliedtohosts": _("Applied to hosts"),
                 "appliedtohosts_title": _("Applied to hosts"),
                 "apply_hostgroups": _("Apply to host groups"),
-                "apply_hostgroups_title": _("Apply ID View ${primary_key} on hosts of ${entity}"),
+                "apply_hostgroups_title": _(
+                    "Apply ID view '${primary_key}' on hosts of host groups"
+                ),
                 "apply_hosts": _("Apply to hosts"),
-                "apply_hosts_title": _("Apply ID view ${primary_key} on ${entity}"),
+                "apply_hosts_title": _(
+                    "Apply ID view '${primary_key}' on hosts"
+                ),
                 "ipaassignedidview": _("Assigned ID View"),
                 "overrides_tab": _("${primary_key} overrides:"),
                 "remove": _("Remove ID views"),
@@ -976,12 +980,13 @@ class i18n_messages(Command):
                 "remove_groups": _("Remove group ID overrides"),
                 "unapply_hostgroups": _("Un-apply from host groups"),
                 "unapply_hostgroups_all_title": _("Un-apply ID Views from hosts of hostgroups"),
-                "unapply_hostgroups_title": _("Un-apply ID View ${primary_key} from hosts of ${entity}"),
                 "unapply_hosts": _("Un-apply"),
                 "unapply_hosts_all": _("Un-apply from hosts"),
                 "unapply_hosts_all_title": _("Un-apply ID Views from hosts"),
                 "unapply_hosts_confirm": _("Are you sure you want to un-apply ID view from selected entries?"),
-                "unapply_hosts_title": _("Un-apply ID View ${primary_key} from hosts"),
+                "unapply_hosts_title": _(
+                    "Un-apply ID view '${primary_key}' from hosts"
+                ),
             },
             "krbtpolicy": {
                 "identity": _("Kerberos Ticket Policy"),
