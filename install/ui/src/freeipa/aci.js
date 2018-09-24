@@ -206,6 +206,7 @@ return {
             $type: 'association',
             name: 'member_privilege',
             facet_group: 'privilege',
+            add_title: '@i18n:objects.acipermission.add_privileges',
             remove_title: '@i18n:objects.acipermission.remove_privileges'
         }
     ],
@@ -354,6 +355,7 @@ return {
             name: 'member_role',
             facet_group: 'role',
             add_method: 'add_privilege',
+            add_title: '@i18n:objects.aciprivilege.add_roles',
             remove_method: 'remove_privilege',
             associator: IPA.serial_associator,
             remove_title: '@i18n:objects.aciprivilege.remove_roles'
@@ -363,6 +365,7 @@ return {
             name: 'memberof_permission',
             facet_group: 'permission',
             add_method: 'add_permission',
+            add_title: '@i18n:objects.aciprivilege.add_into_permissions',
             remove_method: 'remove_permission',
             remove_title: '@i18n:objects.aciprivilege.remove_from_permissions'
         }
@@ -414,26 +417,31 @@ return {
         {
             $type: 'association',
             name: 'member_user',
+            add_title: '@i18n:objects.acirole.add_users',
             remove_title: '@i18n:objects.acirole.remove_users'
         },
         {
             $type: 'association',
             name: 'member_group',
+            add_title: '@i18n:objects.acirole.add_groups',
             remove_title: '@i18n:objects.acirole.remove_groups'
         },
         {
             $type: 'association',
             name: 'member_host',
+            add_title: '@i18n:objects.acirole.add_hosts',
             remove_title: '@i18n:objects.acirole.remove_hosts'
         },
         {
             $type: 'association',
             name: 'member_hostgroup',
+            add_title: '@i18n:objects.acirole.add_hostgroups',
             remove_title: '@i18n:objects.acirole.remove_hostgroups'
         },
         {
             $type: 'association',
             name: 'member_service',
+            add_title: '@i18n:objects.acirole.add_services',
             remove_title: '@i18n:objects.acirole.remove_services'
         },
         {
@@ -441,6 +449,7 @@ return {
             name: 'memberof_privilege',
             facet_group: 'privilege',
             add_method: 'add_privilege',
+            add_title: '@i18n:objects.acirole.add_into_privileges',
             remove_method: 'remove_privilege',
             remove_title: '@i18n:objects.acirole.remove_from_privileges'
         }
