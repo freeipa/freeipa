@@ -389,7 +389,8 @@ class test_rpcclient_context(PluginTester):
         """
         Test that session_cookie is set in `ipalib.rpc.rpcclient.connect`
         """
-        fuzzy_cookie = Fuzzy('^ipa_session=MagBearerToken=[A-Za-z0-9+\/]+=*;$')
+        fuzzy_cookie = Fuzzy(
+            r'^ipa_session=MagBearerToken=[A-Za-z0-9+\/]+=*;$')
 
         session_cookie = getattr(context, 'session_cookie', None)
         # pylint-2 is incorrectly spewing Too many positional arguments

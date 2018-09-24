@@ -144,7 +144,7 @@ class update_ipaconfigstring_dnsversion_to_ipadnsversion(Updater):
         container_entry['objectclass'].append('ipadnscontainer')
         version = 0
         for config_option in container_entry.get("ipaConfigString", []):
-            matched = re.match("^DNSVersion\s+(?P<version>\d+)$",
+            matched = re.match(r"^DNSVersion\s+(?P<version>\d+)$",
                                config_option, flags=re.I)
             if matched:
                 version = int(matched.group("version"))
