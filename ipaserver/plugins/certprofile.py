@@ -86,7 +86,7 @@ def ca_enabled_check(_api):
         raise errors.NotFound(reason=_('CA is not configured'))
 
 
-profile_id_pattern = re.compile('^[a-zA-Z]\w*$')
+profile_id_pattern = re.compile(r'^[a-zA-Z]\w*$')
 
 
 def validate_profile_id(ugettext, value):
@@ -230,7 +230,7 @@ class certprofile_import(LDAPCreate):
         ),
     )
 
-    PROFILE_ID_PATTERN = re.compile('^profileId=([a-zA-Z]\w*)', re.MULTILINE)
+    PROFILE_ID_PATTERN = re.compile(r'^profileId=([a-zA-Z]\w*)', re.MULTILINE)
 
     def pre_callback(self, ldap, dn, entry, entry_attrs, *keys, **options):
         ca_enabled_check(self.api)

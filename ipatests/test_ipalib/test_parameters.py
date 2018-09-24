@@ -866,7 +866,7 @@ class test_Bytes(ClassChecker):
         Test the `ipalib.parameters.Bytes._rule_pattern` method.
         """
         # Test our assumptions about Python re module and Unicode:
-        pat = b'\w+$'
+        pat = br'\w+$'
         r = re.compile(pat)
         assert r.match(b'Hello_World') is not None
         assert r.match(utf8_bytes) is None
@@ -1016,7 +1016,7 @@ class test_Str(ClassChecker):
         Test the `ipalib.parameters.Str._rule_pattern` method.
         """
         # Test our assumptions about Python re module and Unicode:
-        pat = '\w{5}$'
+        pat = r'\w{5}$'
         r1 = re.compile(pat)
         r2 = re.compile(pat, re.UNICODE)
         if six.PY2:

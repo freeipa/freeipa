@@ -914,7 +914,7 @@ class UI_driver(object):
                 self.del_multivalued(name, value, parent)
 
     def check_option(self, name, value=None, parent=None):
-        """
+        r"""
         Find checkbox or radio with name which matches ^NAME\d$ and
         check it by clicking on a label.
         """
@@ -929,7 +929,7 @@ class UI_driver(object):
         # Select only the one which matches exactly the name
         for o in opts:
             n = o.get_attribute("name")
-            if n == name or re.match("^%s\d+$" % name, n):
+            if n == name or re.match(r"^%s\d+$" % name, n):
                 s = "label[for='%s']" % o.get_attribute("id")
                 label = self.find(s, By.CSS_SELECTOR, parent, strict=True)
                 checkbox = o

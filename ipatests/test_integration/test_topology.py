@@ -31,13 +31,13 @@ def find_segment(master, replica):
 class TestTopologyOptions(IntegrationTest):
     num_replicas = 2
     topology = 'star'
-    rawsegment_re = ('Segment name: (?P<name>.*?)',
-                     '\s+Left node: (?P<lnode>.*?)',
-                     '\s+Right node: (?P<rnode>.*?)',
-                     '\s+Connectivity: (?P<connectivity>\S+)')
+    rawsegment_re = (r'Segment name: (?P<name>.*?)',
+                     r'\s+Left node: (?P<lnode>.*?)',
+                     r'\s+Right node: (?P<rnode>.*?)',
+                     r'\s+Connectivity: (?P<connectivity>\S+)')
     segment_re = re.compile("\n".join(rawsegment_re))
-    noentries_re = re.compile("Number of entries returned (\d+)")
-    segmentnames_re = re.compile('.*Segment name: (\S+?)\n.*')
+    noentries_re = re.compile(r"Number of entries returned (\d+)")
+    segmentnames_re = re.compile(r'.*Segment name: (\S+?)\n.*')
 
     @classmethod
     def install(cls, mh):
@@ -196,7 +196,7 @@ class TestCASpecificRUVs(IntegrationTest):
                "Certificate Server Replica"
                " Update Vectors" in res1.stdout_text), (
                "CA-specific RUVs are not displayed")
-        ruvid_re = re.compile(".*%s:389: (\d+).*" % replica.hostname)
+        ruvid_re = re.compile(r".*%s:389: (\d+).*" % replica.hostname)
         replica_ruvs = ruvid_re.findall(res1.stdout_text)
         # Find out the number of RUVids
         assert(len(replica_ruvs) == 2), (
@@ -271,7 +271,7 @@ class TestReplicaManageDel(IntegrationTest):
         num_ruvs = result.stdout_text.count(replica.hostname)
         assert(num_ruvs == 1), ("Expected to find 1 replica's RUV, found %s" %
                                 num_ruvs)
-        ruvid_re = re.compile(".*%s:389: (\d+).*" % replica.hostname)
+        ruvid_re = re.compile(r".*%s:389: (\d+).*" % replica.hostname)
         replica_ruvs = ruvid_re.findall(result.stdout_text)
         master.run_command(['ipa-replica-manage', 'clean-ruv', '-f',
                             '-p', master.config.dirman_password,
@@ -294,7 +294,7 @@ class TestReplicaManageDel(IntegrationTest):
                             master.config.dirman_password, replica.hostname])
         result1 = master.run_command(['ipa-replica-manage', 'list-ruv', '-p',
                                       master.config.dirman_password])
-        ruvid_re = re.compile(".*%s:389: (\d+).*" % replica.hostname)
+        ruvid_re = re.compile(r".*%s:389: (\d+).*" % replica.hostname)
         assert(ruvid_re.search(result1.stdout_text)), (
             "Replica's RUV should not be removed under domain level 0")
         master.run_command(['ipa-replica-manage', 'clean-dangling-ruv', '-p',

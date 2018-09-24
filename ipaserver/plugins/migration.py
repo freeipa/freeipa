@@ -469,7 +469,7 @@ def construct_filter(template, oc_list):
     return template % oc_subfilter
 
 def validate_ldapuri(ugettext, ldapuri):
-    m = re.match('^ldaps?://[-\w\.]+(:\d+)?$', ldapuri)
+    m = re.match(r'^ldaps?://[-\w\.]+(:\d+)?$', ldapuri)
     if not m:
         err_msg = _('Invalid LDAP URI.')
         raise errors.ValidationError(name='ldap_uri', error=err_msg)

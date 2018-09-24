@@ -358,8 +358,12 @@ class baseuser(LDAPObject):
         ),
         Str('preferredlanguage?',
             label=_('Preferred Language'),
-            pattern='^(([a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?(;q\=((0(\.[0-9]{0,3})?)|(1(\.0{0,3})?)))?' \
-             + '(\s*,\s*[a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?(;q\=((0(\.[0-9]{0,3})?)|(1(\.0{0,3})?)))?)*)|(\*))$',
+            pattern=(
+                r'^(([a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?'
+                r'(;q\=((0(\.[0-9]{0,3})?)|(1(\.0{0,3})?)))?'
+                r'(\s*,\s*[a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?'
+                r'(;q\=((0(\.[0-9]{0,3})?)|(1(\.0{0,3})?)))?)*)|(\*))$'
+            ),
             pattern_errmsg='must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"',
         ),
         Certificate('usercertificate*',
