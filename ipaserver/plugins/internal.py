@@ -1202,6 +1202,10 @@ class i18n_messages(Command):
             },
             "sudocmd": {
                 "add": _("Add sudo command"),
+                "add_into_sudocmdgroups": _(
+                    "Add sudo command '${primary_key}' into sudo command "
+                    "groups"
+                ),
                 "groups": _("Groups"),
                 "remove": _("Remove sudo commands"),
                 "remove_from_sudocmdgroups": _(
@@ -1211,6 +1215,10 @@ class i18n_messages(Command):
             },
             "sudocmdgroup": {
                 "add": _("Add sudo command group"),
+                "add_sudocmds": _(
+                    "Add sudo commands into sudo command group "
+                    "'${primary_key}'"
+                ),
                 "commands": _("Commands"),
                 "remove": _("Remove sudo command groups"),
                 "remove_sudocmds": _(
