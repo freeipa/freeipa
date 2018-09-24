@@ -123,16 +123,19 @@ return {
                     primary_key: true
                 }
             ],
+            add_title: '@i18n:objects.group.add_users',
             remove_title: '@i18n:objects.group.remove_users'
         },
         {
             $type: 'association',
             name: 'member_group',
+            add_title: '@i18n:objects.group.add_groups',
             remove_title: '@i18n:objects.group.remove_groups'
         },
         {
             $type: 'association',
             name: 'member_service',
+            add_title: '@i18n:objects.group.add_services',
             remove_title: '@i18n:objects.group.remove_services'
         },
         {
@@ -152,18 +155,21 @@ return {
             $type: 'association',
             name: 'memberof_group',
             associator: IPA.serial_associator,
+            add_title: '@i18n:objects.group.add_into_groups',
             remove_title: '@i18n:objects.group.remove_from_groups'
         },
         {
             $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator,
+            add_title: '@i18n:objects.group.add_into_netgroups',
             remove_title: '@i18n:objects.group.remove_from_netgroups'
         },
         {
             $type: 'association',
             name: 'memberof_role',
             associator: IPA.serial_associator,
+            add_title: '@i18n:objects.group.add_into_roles',
             remove_title: '@i18n:objects.group.remove_from_roles'
         },
         {
@@ -171,6 +177,7 @@ return {
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
+            add_title: '@i18n:objects.group.add_into_hbac',
             remove_method: 'remove_user',
             remove_title: '@i18n:objects.group.remove_from_hbac'
         },
@@ -179,6 +186,7 @@ return {
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
+            add_title: '@i18n:objects.group.add_into_sudo',
             remove_method: 'remove_user',
             remove_title: '@i18n:objects.group.remove_from_sudo'
         }

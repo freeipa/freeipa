@@ -716,6 +716,30 @@ class i18n_messages(Command):
             },
             "group": {
                 "add": _("Add user group"),
+                "add_groups": _(
+                    "Add user groups into user group '${primary_key}'"
+                ),
+                "add_into_groups": _(
+                    "Add user group '${primary_key}' into user groups"
+                ),
+                "add_into_hbac": _(
+                    "Add user group '${primary_key}' into HBAC rules"
+                ),
+                "add_into_netgroups": _(
+                    "Add user group '${primary_key}' into netgroups"
+                ),
+                "add_into_roles": _(
+                    "Add user group '${primary_key}' into roles"
+                ),
+                "add_into_sudo": _(
+                    "Add user group '${primary_key}' into sudo rules"
+                ),
+                "add_services": _(
+                    "Add services into user group '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into user group '${primary_key}'"
+                ),
                 "details": _("Group Settings"),
                 "external": _("External"),
                 "groups": _("Groups"),
@@ -883,6 +907,24 @@ class i18n_messages(Command):
             },
             "hostgroup": {
                 "add": _("Add host group"),
+                "add_hosts": _(
+                    "Add hosts into host group '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into host group '${primary_key}'"
+                ),
+                "add_into_hostgroups": _(
+                    "Add host group '${primary_key}' into host groups"
+                ),
+                "add_into_hbac": _(
+                    "Add host group '${primary_key}' into HBAC rules"
+                ),
+                "add_into_netgroups": _(
+                    "Add host group '${primary_key}' into netgroups"
+                ),
+                "add_into_sudo": _(
+                    "Add host group '${primary_key}' into sudo rules"
+                ),
                 "host_group": _("Host Groups"),
                 "identity": _("Host Group Settings"),
                 "remove": _("Remove host groups"),
@@ -946,6 +988,12 @@ class i18n_messages(Command):
             },
             "netgroup": {
                 "add": _("Add netgroup"),
+                "add_into_netgroups": _(
+                    "Add netgroup '${primary_key}' into netgroups"
+                ),
+                "add_netgroups": _(
+                    "Add netgroups into netgroup '${primary_key}'"
+                ),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "external": _("External"),
