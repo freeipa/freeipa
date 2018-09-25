@@ -2103,7 +2103,7 @@ IPA.option_widget_base = function(spec, that) {
         var enabled = that.enabled && option.enabled;
 
         var opt_cont = construct.create('span', {
-            "class": that.intput_type + '-cnt'
+            "class": that.input_type + '-cnt'
         });
 
         option.input_node = construct.create('input', {
