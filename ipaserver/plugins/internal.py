@@ -1056,6 +1056,18 @@ class i18n_messages(Command):
                 "add_netgroups": _(
                     "Add netgroups into netgroup '${primary_key}'"
                 ),
+                "add_groups": _(
+                    "Add user groups into netgroup '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into netgroup '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into netgroup '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into netgroup '${primary_key}'"
+                ),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "external": _("External"),
