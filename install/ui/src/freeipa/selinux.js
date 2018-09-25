@@ -221,7 +221,7 @@ var add_selinux_details_facet_widgets = function (spec) {
                             name: 'memberuser_user',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.selinuxusermap.add_users',
                             remove_title: '@i18n:objects.selinuxusermap.remove_users'
                         },
                         {
@@ -230,7 +230,7 @@ var add_selinux_details_facet_widgets = function (spec) {
                             name: 'memberuser_group',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.selinuxusermap.add_groups',
                             remove_title: '@i18n:objects.selinuxusermap.remove_groups'
                         }
                     ]
@@ -294,7 +294,7 @@ var add_selinux_details_facet_widgets = function (spec) {
                             name: 'memberhost_host',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.selinuxusermap.add_hosts',
                             remove_title: '@i18n:objects.selinuxusermap.remove_hosts'
                         },
                         {
@@ -303,7 +303,7 @@ var add_selinux_details_facet_widgets = function (spec) {
                             name: 'memberhost_hostgroup',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.selinuxusermap.add_hostgroups',
                             remove_title: '@i18n:objects.selinuxusermap.remove_hostgroups'
                         }
                     ]
