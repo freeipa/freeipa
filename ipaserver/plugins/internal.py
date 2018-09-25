@@ -1331,6 +1331,9 @@ class i18n_messages(Command):
             },
             "topologylocation": {
                 "add": _("Add IPA location"),
+                "add_server": _(
+                    "Add IPA server into IPA location '${primary_key}'"
+                ),
                 "remove": _("Remove IPA locations"),
                 "remove_servers": _(
                     "Remove IPA servers from IPA location '${primary_key}'"
