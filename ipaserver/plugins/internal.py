@@ -1312,6 +1312,43 @@ class i18n_messages(Command):
             "sudorule": {
                 "add": _("Add sudo rule"),
                 "add_option": _("Add sudo option"),
+                "add_allow_cmds": _(
+                    "Add allow sudo commands into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_allow_cmdgroups": _(
+                    "Add allow sudo command groups into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_deny_cmds": _(
+                    "Add deny sudo commands into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_deny_cmdgroups": _(
+                    "Add deny sudo command groups into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_groups": _(
+                    "Add user groups into sudo rule '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into sudo rule '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into sudo rule '${primary_key}'"
+                ),
+                "add_runas_users": _(
+                    "Add RunAs users into sudo rule '${primary_key}'"
+                ),
+                "add_runas_usergroups": _(
+                    "Add RunAs user groups into sudo rule '${primary_key}'"
+                ),
+                "add_runas_groups": _(
+                    "Add RunAs groups into sudo rule '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into sudo rule '${primary_key}'"
+                ),
                 "allow": _("Allow"),
                 "any_command": _("Any Command"),
                 "any_group": _("Any Group"),
