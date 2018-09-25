@@ -558,6 +558,28 @@ class i18n_messages(Command):
             },
             "caacl": {
                 "add": _("Add CA ACL"),
+                "add_ca": _(
+                    "Add Certificate Authorities into CA ACL "
+                    "'${primary_key}'"
+                ),
+                "add_groups": _(
+                    "Add user groups into CA ACL '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into CA ACL '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into CA ACL '${primary_key}'"
+                ),
+                "add_profiles": _(
+                    "Add certificate profiles into CA ACL '${primary_key}'"
+                ),
+                "add_services": _(
+                    "Add services into CA ACL '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into CA ACL '${primary_key}'"
+                ),
                 "all": _("All"),
                 "any_ca": _("Any CA"),
                 "any_host": _("Any Host"),
