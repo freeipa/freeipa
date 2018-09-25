@@ -184,7 +184,7 @@ IPA.attribute_adder_dialog = function(spec) {
             required: true
         }
     ];
-    spec.title = spec.title || text.get('@i18n:dialogs.add_title').replace('${entity}', metadata.label);
+    spec.title = spec.title || text.get('@i18n:dialogs.add_title_default');
     spec.subject = metadata.label;
 
     var that = IPA.entity_adder_dialog(spec);
@@ -638,14 +638,10 @@ IPA.association_table_widget = function (spec) {
 
     that.create_add_dialog = function() {
 
-        var entity_label = that.entity.metadata.label_singular;
         var pkey = that.facet.get_pkey();
-        var other_entity_label = that.other_entity.metadata.label;
 
         var title = that.add_title;
-        title = title.replace('${entity}', entity_label);
         title = title.replace('${primary_key}', pkey);
-        title = title.replace('${other_entity}', other_entity_label);
 
         return IPA.association_adder_dialog({
             title: title,
