@@ -331,7 +331,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             name: 'memberuser_user',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.hbacrule.add_users',
                             remove_title: '@i18n:objects.hbacrule.remove_users'
                         },
                         {
@@ -340,7 +340,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             name: 'memberuser_group',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.hbacrule.add_groups',
                             remove_title: '@i18n:objects.hbacrule.remove_groups'
                         }
                     ]
@@ -404,7 +404,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             name: 'memberhost_host',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.hbacrule.add_hosts',
                             remove_title: '@i18n:objects.hbacrule.remove_hosts'
                         },
                         {
@@ -413,7 +413,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             name: 'memberhost_hostgroup',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.hbacrule.add_hostgroups',
                             remove_title: '@i18n:objects.hbacrule.remove_hostgroups'
                         }
                     ]
@@ -471,7 +471,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             name: 'memberservice_hbacsvc',
                             add_method: 'add_service',
                             remove_method: 'remove_service',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.hbacrule.add_services',
                             remove_title: '@i18n:objects.hbacrule.remove_services'
                         },
                         {
@@ -480,7 +480,7 @@ var add_hbacrule_details_facet_widgets = function (spec) {
                             name: 'memberservice_hbacsvcgroup',
                             add_method: 'add_service',
                             remove_method: 'remove_service',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.hbacrule.add_servicegroups',
                             remove_title: '@i18n:objects.hbacrule.remove_servicegroups'
                         }
                     ]
