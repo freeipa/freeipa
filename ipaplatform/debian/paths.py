@@ -84,8 +84,6 @@ class DebianPathNamespace(BasePathNamespace):
     IPA_ODS_EXPORTER = "/usr/lib/ipa/ipa-ods-exporter"
     IPA_HTTPD_PASSWD_READER = "/usr/lib/ipa/ipa-httpd-pwdreader"
     HTTPD = "/usr/sbin/apache2ctl"
-    REMOVE_DS_PL = "/usr/sbin/remove-ds"
-    SETUP_DS_PL = "/usr/sbin/setup-ds"
     FONTS_DIR = "/usr/share/fonts/truetype"
     VAR_KERBEROS_KRB5KDC_DIR = "/var/lib/krb5kdc/"
     VAR_KRB5KDC_K5_REALM = "/var/lib/krb5kdc/.k5."
