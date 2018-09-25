@@ -1536,6 +1536,24 @@ class i18n_messages(Command):
             },
             "vault": {
                 "add": _("Add vault"),
+                "add_member_groups": _(
+                    "Add user groups into members of vault '${primary_key}'"
+                ),
+                "add_member_services": _(
+                    "Add services into members of vault '${primary_key}'"
+                ),
+                "add_member_users": _(
+                    "Add users into members of vault '${primary_key}'"
+                ),
+                "add_owner_groups": _(
+                    "Add user groups into owners of vault '${primary_key}'"
+                ),
+                "add_owner_services": _(
+                    "Add services into owners of vault '${primary_key}'"
+                ),
+                "add_owner_users": _(
+                    "Add users into owners of vault '${primary_key}'"
+                ),
                 "add_warn_arch_ret": _(
                     "Secrets can be added/retrieved to vault only by using "
                     "vault-archive and vault-retrieve from CLI."

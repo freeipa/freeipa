@@ -89,6 +89,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.user'
                             }
                         ],
+                        add_title: '@i18n:objects.vault.add_member_users',
                         remove_title: '@i18n:objects.vault.remove_member_users'
                     },
                     {
@@ -103,6 +104,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.group'
                             }
                         ],
+                        add_title: '@i18n:objects.vault.add_member_groups',
                         remove_title: '@i18n:objects.vault.remove_member_groups'
                     },
                     {
@@ -118,6 +120,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.service'
                             }
                         ],
+                        add_title: '@i18n:objects.vault.add_member_services',
                         remove_title: '@i18n:objects.vault.remove_member_services'
                     }
                 ]
@@ -141,6 +144,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.user'
                             }
                         ],
+                        add_title: '@i18n:objects.vault.add_owner_users',
                         remove_title: '@i18n:objects.vault.remove_owner_users'
                     },
                     {
@@ -157,6 +161,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.group'
                             }
                         ],
+                        add_title: '@i18n:objects.vault.add_owner_groups',
                         remove_title: '@i18n:objects.vault.remove_owner_groups'
                     },
                     {
@@ -174,6 +179,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.service'
                             }
                         ],
+                        add_title: '@i18n:objects.vault.add_owner_services',
                         remove_title: '@i18n:objects.vault.remove_owner_services'
                     }
                 ]
