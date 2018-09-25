@@ -827,6 +827,25 @@ class i18n_messages(Command):
             },
             "hbacrule": {
                 "add": _("Add HBAC rule"),
+                "add_groups": _(
+                    "Add user groups into HBAC rule '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into HBAC rule '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into HBAC rule '${primary_key}'"
+                ),
+                "add_servicegroups": _(
+                    "Add HBAC service groups into HBAC rule "
+                    "'${primary_key}'"
+                ),
+                "add_services": _(
+                    "Add HBAC services into HBAC rule '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into HBAC rule '${primary_key}'"
+                ),
                 "any_host": _("Any Host"),
                 "any_service": _("Any Service"),
                 "anyone": _("Anyone"),
