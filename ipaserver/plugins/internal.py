@@ -1197,6 +1197,18 @@ class i18n_messages(Command):
             },
             "selinuxusermap": {
                 "add": _("Add SELinux user map"),
+                "add_groups": _(
+                    "Add user groups into SELinux user map '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into SELinux user map '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into SELinux user map '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into SELinux user map '${primary_key}'"
+                ),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "host": _("Host"),
