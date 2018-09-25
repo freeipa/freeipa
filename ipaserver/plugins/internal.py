@@ -306,8 +306,30 @@ class i18n_messages(Command):
         },
         "false": _("False"),
         "keytab": {
-            "add_create": _("Allow ${other_entity} to create keytab of ${primary_key}"),
-            "add_retrive": _("Allow ${other_entity} to retrieve keytab of ${primary_key}"),
+            "add_groups_create": _(
+                "Allow user groups to create keytab of '${primary_key}'"
+            ),
+            "add_groups_retrieve": _(
+                "Allow user groups to retrieve keytab of '${primary_key}'"
+            ),
+            "add_hostgroups_create": _(
+                "Allow host groups to create keytab of '${primary_key}'"
+            ),
+            "add_hostgroups_retrieve": _(
+                "Allow host groups to retrieve keytab of '${primary_key}'"
+            ),
+            "add_hosts_create": _(
+                "Allow hosts to create keytab of '${primary_key}'"
+            ),
+            "add_hosts_retrieve": _(
+                "Allow hosts to retrieve keytab of '${primary_key}'"
+            ),
+            "add_users_create": _(
+                "Allow users to create keytab of '${primary_key}'"
+            ),
+            "add_users_retrieve": _(
+                "Allow users to retrieve keytab of '${primary_key}'"
+            ),
             "allowed_to_create": _("Allowed to create keytab"),
             "allowed_to_retrieve": _("Allowed to retrieve keytab"),
             "remove_groups_create": _(
