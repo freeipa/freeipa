@@ -501,7 +501,7 @@ class CAInstance(DogtagInstance):
                 os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
             # generate pin which we know can be used for FIPS NSS database
             pki_pin = ipautil.ipa_generate_password()
-            cfg['pki_pin'] = pki_pin
+            cfg['pki_server_database_password'] = pki_pin
         else:
             pki_pin = None
 
