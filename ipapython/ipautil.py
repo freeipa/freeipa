@@ -1439,13 +1439,13 @@ if six.PY2:
         Decode argument using the file system encoding, as returned by
         `sys.getfilesystemencoding()`.
         """
-        if isinstance(value, six.binary_type):
+        if isinstance(value, bytes):
             return value.decode(sys.getfilesystemencoding())
         elif isinstance(value, str):
             return value
         else:
             raise TypeError("expect {0} or {1}, not {2}".format(
-                six.binary_type.__name__,
+                bytes.__name__,
                 str.__name__,
                 type(value).__name__))
 else:
