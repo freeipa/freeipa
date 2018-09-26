@@ -169,15 +169,13 @@ class KRAInstance(DogtagInstance):
             pki_client_pkcs12_password=self.admin_password,
             pki_import_admin_cert=False,
             pki_client_admin_cert_p12=admin_p12_file,
-            pki_ds_secure_connection=True,  # always LDAPS
-            pki_ds_create_new_db=False,
         )
 
         if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
                 os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
             # generate pin which we know can be used for FIPS NSS database
             pki_pin = ipautil.ipa_generate_password()
-            cfg['pki_pin'] = pki_pin
+            cfg['pki_server_database_password'] = pki_pin
         else:
             pki_pin = None
 
