@@ -1687,7 +1687,7 @@ def _create_idn_filter(cmd, ldap, term=None, **options):
         config = ldap.get_ipa_config()
         config_attrs = config.get(cmd.obj.search_attributes_config, [])
         if len(config_attrs) == 1 and (isinstance(config_attrs[0],
-                                                  six.string_types)):
+                                                  str)):
             search_attrs = config_attrs[0].split(',')
 
     search_kw['objectclass'] = cmd.obj.object_class

@@ -521,7 +521,7 @@ class group_find(LDAPSearch):
             search_kw = {}
             config = ldap.get_ipa_config()
             attrs = config.get(self.obj.search_attributes_config, [])
-            if len(attrs) == 1 and isinstance(attrs[0], six.string_types):
+            if len(attrs) == 1 and isinstance(attrs[0], str):
                 search_attrs = attrs[0].split(',')
                 for a in search_attrs:
                     search_kw[a] = criteria

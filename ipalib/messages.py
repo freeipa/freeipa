@@ -71,7 +71,7 @@ def process_message_arguments(obj, format=None, message=None, **kw):
             obj.format = format
         obj.forwarded = False
         obj.msg = obj.format % kw
-        if isinstance(obj.format, six.string_types):
+        if isinstance(obj.format, str):
             obj.strerror = ugettext(obj.format) % kw
         else:
             obj.strerror = obj.format % kw

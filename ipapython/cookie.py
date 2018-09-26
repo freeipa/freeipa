@@ -394,7 +394,7 @@ class Cookie:
             self._timestamp = value
         elif isinstance(value, (six.integer_types, float)):
             self._timestamp = datetime.datetime.utcfromtimestamp(value)
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             self._timestamp = Cookie.parse_datetime(value)
         else:
             raise TypeError('value must be datetime, int, long, float, basestring or None, not %s' % \
@@ -420,7 +420,7 @@ class Cookie:
             self._expires = value
         elif isinstance(value, (six.integer_types, float)):
             self._expires = datetime.datetime.utcfromtimestamp(value)
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             self._expires = Cookie.parse_datetime(value)
         else:
             raise TypeError('value must be datetime, int, long, float, basestring or None, not %s' % \

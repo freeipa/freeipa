@@ -67,11 +67,11 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
         """ Check for non-empty unicode string for the required attributes
         in the init method """
 
-        if not (isinstance(givenname, six.string_types) and givenname):
+        if not (isinstance(givenname, str) and givenname):
             raise ValueError(
                 "Invalid first name provided: {!r}".format(givenname)
                 )
-        if not (isinstance(sn, six.string_types) and sn):
+        if not (isinstance(sn, str) and sn):
             raise ValueError("Invalid second name provided: {!r}".format(sn))
 
         super(UserTracker, self).__init__(default_version=None)

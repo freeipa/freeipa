@@ -415,8 +415,8 @@ class Param(ReadOnly):
         ('cli_name', str, None),
         ('cli_short_name', str, None),
         ('deprecated_cli_aliases', frozenset, frozenset()),
-        ('label', (six.string_types, Gettext), None),
-        ('doc', (six.string_types, Gettext), None),
+        ('label', (str, Gettext), None),
+        ('doc', (str, Gettext), None),
         ('required', bool, True),
         ('multivalue', bool, False),
         ('primary_key', bool, False),
@@ -1007,7 +1007,7 @@ class Bool(Param):
         """
         if type(value) in self.allowed_types:
             return value
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = value.lower()
         if value in self.truths:
             return True
@@ -1188,7 +1188,7 @@ class Decimal(Number):
             value = kw.get(kwparam)
             if value is None:
                 continue
-            if isinstance(value, (six.string_types, float)):
+            if isinstance(value, (str, float)):
                 try:
                     value = decimal.Decimal(value)
                 except Exception as e:
@@ -1282,7 +1282,7 @@ class Decimal(Number):
         return value
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, (six.string_types, float)):
+        if isinstance(value, (str, float)):
             try:
                 value = decimal.Decimal(value)
             except decimal.DecimalException as e:
@@ -1313,7 +1313,7 @@ class Data(Param):
         ('minlength', int, None),
         ('maxlength', int, None),
         ('length', int, None),
-        ('pattern_errmsg', (six.string_types,), None),
+        ('pattern_errmsg', (str,), None),
     )
 
     re = None
@@ -1542,7 +1542,7 @@ class Str(Data):
     """
 
     kwargs = Data.kwargs + (
-        ('pattern', (six.string_types,), None),
+        ('pattern', (str,), None),
         ('noextrawhitespace', bool, True),
     )
 
@@ -1630,7 +1630,7 @@ class IA5Str(Str):
         super(IA5Str, self).__init__(name, *rules, **kw)
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             for char in value:
                 if ord(char) > 127:
                     raise ConversionError(name=self.get_param_name(),
@@ -1805,7 +1805,7 @@ class DateTime(Param):
     type_error = _('must be datetime value')
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             if value == u'now':
                 time = datetime.datetime.utcnow()
                 return time

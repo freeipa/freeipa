@@ -372,7 +372,7 @@ class LDAPEntry(MutableMapping):
             self._not_list.discard(name)
 
     def _attr_name(self, name):
-        if not isinstance(name, six.string_types):
+        if not isinstance(name, str):
             raise TypeError(
                 "attribute name must be unicode or str, got %s object %r" % (
                     name.__class__.__name__, name))

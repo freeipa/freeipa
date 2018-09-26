@@ -71,7 +71,7 @@ class Principal:
                 "Cannot create a principal object from bytes: {!r}".format(
                     components)
             )
-        elif isinstance(components, six.string_types):
+        elif isinstance(components, str):
             # parse principal components from realm
             self.components, self.realm = self._parse_from_text(
                 components, realm)

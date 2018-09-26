@@ -23,8 +23,6 @@ import time
 import warnings
 import sys
 
-import six
-
 # Module exports
 __all__ = ['log_mgr', 'root_logger', 'standard_logging_setup',
            'ISO8601_UTC_DATETIME_FMT',
@@ -93,7 +91,7 @@ class _DeprecatedLogger:
 
 
 def get_logger(who, bind_logger_names=False):
-    if isinstance(who, six.string_types):
+    if isinstance(who, str):
         warnings.warn(
             "{}.log_mgr.get_logger is deprecated, use "
             "logging.getLogger".format(__name__),
@@ -109,7 +107,7 @@ def get_logger(who, bind_logger_names=False):
 
     logger = logging.getLogger(logger_name)
 
-    if not isinstance(who, six.string_types):
+    if not isinstance(who, str):
         obj_name = '%s.%s' % (who.__module__, who.__class__.__name__)
         logger = _DeprecatedLogger(logger, obj_name)
 

@@ -830,7 +830,7 @@ def _check_single_value_attrs(params, entry_attrs):
 # required, make sure we enforce that.
 def _check_empty_attrs(params, entry_attrs):
     for (a, v) in entry_attrs.items():
-        if v is None or (isinstance(v, six.string_types) and len(v) == 0):
+        if v is None or (isinstance(v, str) and len(v) == 0):
             if a in params and params[a].required:
                 raise errors.RequirementError(name=a)
 
@@ -1973,7 +1973,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             config_attrs = config.get(
                 self.obj.search_attributes_config, [])
             if len(config_attrs) == 1 and (
-              isinstance(config_attrs[0], six.string_types)):
+                    isinstance(config_attrs[0], str)):
                 search_attrs = config_attrs[0].split(',')
 
         search_kw = {}
