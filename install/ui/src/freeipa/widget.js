@@ -4346,7 +4346,7 @@ IPA.attribute_table_widget = function(spec) {
         var dialog = IPA.deleter_dialog({
             entity: that.entity,
             values: selected_values,
-            title: title,
+            title: title
         });
 
         dialog.execute = function() {

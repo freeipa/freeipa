@@ -66,24 +66,24 @@ return {
         {
             $type: 'association',
             name: 'member_host',
-            remove_title: '@i18n:objects.hostgroup.remove_hosts',
+            remove_title: '@i18n:objects.hostgroup.remove_hosts'
         },
         {
             $type: 'association',
             name: 'member_hostgroup',
-            remove_title: '@i18n:objects.hostgroup.remove_hostgroups',
+            remove_title: '@i18n:objects.hostgroup.remove_hostgroups'
         },
         {
             $type: 'association',
             name: 'memberof_hostgroup',
             associator: IPA.serial_associator,
-            remove_title: '@i18n:objects.hostgroup.remove_from_hostgroups',
+            remove_title: '@i18n:objects.hostgroup.remove_from_hostgroups'
         },
         {
             $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator,
-            remove_title: '@i18n:objects.hostgroup.remove_from_netgroups',
+            remove_title: '@i18n:objects.hostgroup.remove_from_netgroups'
         },
         {
             $type: 'association',
@@ -91,7 +91,7 @@ return {
             associator: IPA.serial_associator,
             add_method: 'add_host',
             remove_method: 'remove_host',
-            remove_title: '@i18n:objects.hostgroup.remove_from_hbac',
+            remove_title: '@i18n:objects.hostgroup.remove_from_hbac'
         },
         {
             $type: 'association',
@@ -99,7 +99,7 @@ return {
             associator: IPA.serial_associator,
             add_method: 'add_host',
             remove_method: 'remove_host',
-            remove_title: '@i18n:objects.hostgroup.remove_from_sudo',
+            remove_title: '@i18n:objects.hostgroup.remove_from_sudo'
         }
     ],
     standard_association_facets: true,
@@ -113,8 +113,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.hostgroup.remove',
-    },
+        title: '@i18n:objects.hostgroup.remove'
+    }
 };};
 
 
