@@ -185,7 +185,7 @@ endif
 	@ # just tests, aci, api and pylint on Python 3
 	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ipatests/ipa-run-tests \
 	    --ipaclient-unittests
-	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint pylint
+	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint pylint jslint check
 	@echo "All tests passed."
 
 .PHONY: fastcheck fasttest fastlint
