@@ -34,4 +34,6 @@ $DIR/build.sh webui
 # don't stop at error. Some dependency errors are expected.
 $DIR/compile.sh --release lib --layer freeipa/core --output $IPA_DIR/core.js
 $DIR/compile.sh --release lib --layer freeipa/app --output $IPA_DIR/app.js
+$DIR/compile.sh --release lib --layer freeipa/ssbrowser --output $IPA_DIR/ssbrowser.js
+$DIR/compile.sh --release lib --layer freeipa/unauthorized --output $IPA_DIR/unauthorized.js
 $DIR/clean.sh

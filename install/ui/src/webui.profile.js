@@ -120,6 +120,12 @@ var profile = (function(){
             },
             "freeipa/app": {
                 include: ["freeipa/app", "freeipa/extend"]
+            },
+            "freeipa/ssbrowser": {
+                include: ["freeipa/ssbrowser"]
+            },
+            "freeipa/unauthorized": {
+                include: ["freeipa/unauthorized"]
             }
         }
     };
