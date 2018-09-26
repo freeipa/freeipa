@@ -60,13 +60,13 @@ var spec = {
         {
             $type: 'association',
             name: 'member_netgroup',
-            remove_title: '@i18n:objects.netgroup.remove_netgroups',
+            remove_title: '@i18n:objects.netgroup.remove_netgroups'
         },
         {
             $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator,
-            remove_title: '@i18n:objects.netgroup.remove_from_netgroups',
+            remove_title: '@i18n:objects.netgroup.remove_from_netgroups'
         }
     ],
     standard_association_facets: true,
@@ -80,8 +80,8 @@ var spec = {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.netgroup.remove',
-    },
+        title: '@i18n:objects.netgroup.remove'
+    }
 };
 
     add_netgroup_details_facet_widgets(spec.facets[1]);

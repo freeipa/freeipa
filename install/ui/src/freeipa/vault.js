@@ -89,7 +89,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.user'
                             }
                         ],
-                        remove_title: '@i18n:objects.vault.remove_member_users',
+                        remove_title: '@i18n:objects.vault.remove_member_users'
                     },
                     {
                         $type: 'association_table',
@@ -103,7 +103,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.group'
                             }
                         ],
-                        remove_title: '@i18n:objects.vault.remove_member_groups',
+                        remove_title: '@i18n:objects.vault.remove_member_groups'
                     },
                     {
                         $type: 'association_table',
@@ -118,7 +118,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.service'
                             }
                         ],
-                        remove_title: '@i18n:objects.vault.remove_member_services',
+                        remove_title: '@i18n:objects.vault.remove_member_services'
                     }
                 ]
             },
@@ -141,7 +141,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.user'
                             }
                         ],
-                        remove_title: '@i18n:objects.vault.remove_owner_users',
+                        remove_title: '@i18n:objects.vault.remove_owner_users'
                     },
                     {
                         $type: 'association_table',
@@ -157,7 +157,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.group'
                             }
                         ],
-                        remove_title: '@i18n:objects.vault.remove_owner_groups',
+                        remove_title: '@i18n:objects.vault.remove_owner_groups'
                     },
                     {
                         $type: 'association_table',
@@ -174,7 +174,7 @@ var make_vaults_details_page_spec = function() {
                                 label: '@i18n:objects.vault.service'
                             }
                         ],
-                        remove_title: '@i18n:objects.vault.remove_owner_services',
+                        remove_title: '@i18n:objects.vault.remove_owner_services'
                     }
                 ]
             }
@@ -232,7 +232,7 @@ var make_my_vault_spec = function() {
             // I.e. facet with user vaults get column with name 'service', then
             // the value of 'service' column will be also added to command options.
             additional_table_attrs: ['username', 'service', 'shared'],
-            title: '@i18n:objects.vault.remove',
+            title: '@i18n:objects.vault.remove'
         }
     };
 

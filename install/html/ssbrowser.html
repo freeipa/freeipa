@@ -26,7 +26,7 @@
         };
         (function() {
             var icons = [
-                '../ui/favicon.ico',
+                '../ui/favicon.ico'
             ];
             var styles = [
                 '../ui/css/patternfly.css',
@@ -35,17 +35,17 @@
             var scripts = [
                 '../ui/js/libs/jquery.js',
                 '../ui/js/libs/jquery.ordered-map.js',
-                '../ui/js/dojo/dojo.js',
+                '../ui/js/dojo/dojo.js'
             ];
             ipa_loader.scripts(scripts, function() {
                 require([
                     'dojo/dom',
                     'freeipa/core',
-                    'dojo/domReady!',
+                    'dojo/domReady!'
                     ],
                     function(dom) {
                         var text = require('freeipa/text');
-                        msg = "".concat(
+                        var msg = "".concat(
                             text.get('@i18n:ssbrowser-page.header'),
                             text.get('@i18n:ssbrowser-page.firefox-header'),
                             text.get('@i18n:ssbrowser-page.firefox-actions'),
@@ -53,8 +53,8 @@
                             text.get('@i18n:ssbrowser-page.chrome-certificate'),
                             text.get('@i18n:ssbrowser-page.chrome-spnego'),
                             text.get('@i18n:ssbrowser-page.ie-header'),
-                            text.get('@i18n:ssbrowser-page.ie-actions'),
-                        )
+                            text.get('@i18n:ssbrowser-page.ie-actions')
+                        );
                         dom.byId('ssbrowser-msg').innerHTML=msg;
                     });
             });

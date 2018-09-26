@@ -107,8 +107,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.radiusproxy.remove',
-    },
+        title: '@i18n:objects.radiusproxy.remove'
+    }
 };};
 
 /**
