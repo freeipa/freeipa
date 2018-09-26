@@ -2165,7 +2165,7 @@ class DNSZoneBase_add(LDAPCreate):
             try:
                 check_zone_overlap(keys[-1], raise_on_error=False)
             except ValueError as e:
-                raise errors.InvocationError(six.text_type(e))
+                raise errors.InvocationError(str(e))
 
         return dn
 

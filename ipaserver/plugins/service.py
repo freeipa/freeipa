@@ -546,7 +546,7 @@ class service(LDAPObject):
 
     def get_dn(self, *keys, **kwargs):
         key = keys[0]
-        if isinstance(key, six.text_type):
+        if isinstance(key, str):
             key = kerberos.Principal(key)
 
         key = unicode(normalize_principal(key))

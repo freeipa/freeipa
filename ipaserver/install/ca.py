@@ -84,7 +84,7 @@ def lookup_ca_subject(api, subject_base):
         # installutils.default_ca_subject_dn is NOT used here in
         # case the default changes in the future.
         ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
-    return six.text_type(ca_subject)
+    return str(ca_subject)
 
 
 def set_subject_base_in_config(subject_base):
@@ -130,7 +130,7 @@ def install_check(standalone, replica_config, options):
         _api = api if standalone else options._remote_api
 
         # for replica-install the knobs cannot be written, hence leading '_'
-        options._subject_base = six.text_type(replica_config.subject_base)
+        options._subject_base = str(replica_config.subject_base)
         options._ca_subject = lookup_ca_subject(_api, options._subject_base)
 
     if replica_config is not None and not replica_config.setup_ca:

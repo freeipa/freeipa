@@ -4,7 +4,6 @@
 import logging
 import time
 import pytest
-import six
 import dns.resolver
 import dns.rrset
 import dns.rdatatype
@@ -39,7 +38,7 @@ IPA_DEFAULT_ADTRUST_SRV_REC = (
 )
 
 IPA_CA_A_REC = (
-    (DNSName(six.text_type(IPA_CA_RECORD))),
+    (DNSName(str(IPA_CA_RECORD))),
 )
 
 

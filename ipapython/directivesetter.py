@@ -2,8 +2,6 @@
 # Copyright (C) 2018 FreeIPA Contributors see COPYING for license
 #
 
-import six
-
 import io
 import os
 import re
@@ -47,7 +45,7 @@ class DirectiveSetter:
         fd, name = tempfile.mkstemp(prefix=prefix, dir=directory, text=True)
         with io.open(fd, mode='w', closefd=True) as f:
             for line in self.lines:
-                if not isinstance(line, six.text_type):
+                if not isinstance(line, str):
                     line = line.decode('utf-8')
                 f.write(line)
             self.lines = None

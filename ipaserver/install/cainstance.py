@@ -38,7 +38,6 @@ import syslog
 import time
 import tempfile
 
-import six
 # pylint: disable=import-error
 from six.moves.configparser import RawConfigParser
 # pylint: enable=import-error
@@ -548,7 +547,7 @@ class CAInstance(DogtagInstance):
         # Directory server
         config.set("CA", "pki_ds_ldap_port", "389")
         config.set("CA", "pki_ds_password", self.dm_password)
-        config.set("CA", "pki_ds_base_dn", six.text_type(self.basedn))
+        config.set("CA", "pki_ds_base_dn", str(self.basedn))
         config.set("CA", "pki_ds_database", "ipaca")
 
         if self.use_ldaps:
@@ -2038,7 +2037,7 @@ class MSCSTemplateV1(MSCSTemplate):
         if len(parts) > 1:
             raise ValueError(
                 "Cannot specify certificate template version when using name.")
-        self.asn1obj = char.BMPString(six.text_type(parts[0]))
+        self.asn1obj = char.BMPString(str(parts[0]))
 
 
 class MSCSTemplateV2(MSCSTemplate):

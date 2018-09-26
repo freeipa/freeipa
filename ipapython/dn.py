@@ -454,7 +454,7 @@ def _normalize_ava_input(val):
     if six.PY3 and isinstance(val, bytes):
         raise TypeError('expected str, got bytes: %r' % val)
     elif not isinstance(val, str):
-        val = val_encode(six.text_type(val))
+        val = val_encode(str(val))
     elif six.PY2 and isinstance(val, unicode):
         val = val.encode('utf-8')
     return val
@@ -882,7 +882,7 @@ class RDN:
         if len(self._avas) == 0:
             raise IndexError("No AVA's in this RDN")
 
-        self._avas[0][0] = val_encode(six.text_type(new_attr))
+        self._avas[0][0] = val_encode(str(new_attr))
 
     attr  = property(_get_attr)
 
@@ -894,7 +894,7 @@ class RDN:
     def _set_value(self, new_value):
         if len(self._avas) == 0:
             raise IndexError("No AVA's in this RDN")
-        self._avas[0][1] = val_encode(six.text_type(new_value))
+        self._avas[0][1] = val_encode(str(new_value))
 
     value = property(_get_value)
 
@@ -1114,7 +1114,7 @@ class DN:
     def _rdns_from_value(self, value):
         if isinstance(value, str):
             try:
-                if isinstance(value, six.text_type):
+                if isinstance(value, str):
                     value = val_encode(value)
                 rdns = str2dn(value)
             except DECODING_ERROR:
