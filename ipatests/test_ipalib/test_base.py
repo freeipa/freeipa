@@ -108,7 +108,7 @@ def test_lock():
     assert str(e) == 'already locked: %r' % o
 
     # Test with another class implemented locking protocol:
-    class Lockable(object):
+    class Lockable:
         __locked = False
         def __lock__(self):
             self.__locked = True
@@ -122,7 +122,7 @@ def test_lock():
     assert str(e) == 'already locked: %r' % o
 
     # Test with a class incorrectly implementing the locking protocol:
-    class Broken(object):
+    class Broken:
         def __lock__(self):
             pass
         def __islocked__(self):
@@ -145,7 +145,7 @@ def test_islocked():
     assert f(o) is True
 
     # Test with another class implemented locking protocol:
-    class Lockable(object):
+    class Lockable:
         __locked = False
         def __lock__(self):
             self.__locked = True
@@ -157,7 +157,7 @@ def test_islocked():
     assert f(o) is True
 
     # Test with a class incorrectly implementing the locking protocol:
-    class Broken(object):
+    class Broken:
         __lock__ = False
         def __islocked__(self):
             return False
@@ -207,7 +207,7 @@ def membername(i):
     return 'member%03d' % i
 
 
-class DummyMember(object):
+class DummyMember:
     def __init__(self, i):
         self.i = i
         self.name = self.__name__ = membername(i)

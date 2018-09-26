@@ -28,7 +28,7 @@ from pytest_sourceorder import ordered
 @ordered
 @pytest.mark.usefixtures('mh')
 @pytest.mark.usefixtures('integration_logs')
-class IntegrationTest(object):
+class IntegrationTest:
     num_replicas = 0
     num_clients = 0
     num_ad_domains = 0

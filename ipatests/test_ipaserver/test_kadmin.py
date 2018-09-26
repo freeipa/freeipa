@@ -80,7 +80,7 @@ def service(request):
 
 @pytest.mark.skipif(
     os.getuid() != 0, reason="kadmin.local is accesible only to root")
-class TestKadmin(object):
+class TestKadmin:
     def assert_success(self, command, *args):
         """
         Since kadmin.local returns 0 also when internal errors occur, we have

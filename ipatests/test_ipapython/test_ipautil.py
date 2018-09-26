@@ -84,7 +84,7 @@ def test_ip_address(addr, words, prefixlen):
         assert ip.prefixlen == prefixlen
 
 
-class TestCIDict(object):
+class TestCIDict:
     def setup(self):
         self.cidict = ipautil.CIDict()
         self.cidict["Key1"] = "val1"
@@ -333,7 +333,7 @@ class TestCIDict(object):
         assert list(dct.values()) == [None] * 3
 
 
-class TestTimeParser(object):
+class TestTimeParser:
     def test_simple(self):
         timestr = "20070803"
 

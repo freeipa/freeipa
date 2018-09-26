@@ -14,7 +14,7 @@ from ipaserver.install import cainstance
 pytestmark = pytest.mark.tier0
 
 
-class test_ExternalCAProfile(object):
+class test_ExternalCAProfile:
     def test_MSCSTemplateV1_good(self):
         o = cainstance.MSCSTemplateV1("MySubCA")
         assert hexlify(o.get_ext_data()) == b'1e0e004d007900530075006200430041'

@@ -546,7 +546,7 @@ class vault_mod(Local):
         return response
 
 
-class _TransportCertCache(object):
+class _TransportCertCache:
     def __init__(self):
         self._dirname = os.path.join(
                 USER_CACHE_PATH, 'ipa', 'kra-transport-certs'

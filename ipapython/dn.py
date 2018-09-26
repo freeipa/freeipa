@@ -557,7 +557,7 @@ else:
 
 
 @functools.total_ordering
-class AVA(object):
+class AVA:
     '''
     AVA(arg0, ...)
 
@@ -706,7 +706,7 @@ class AVA(object):
 
 
 @functools.total_ordering
-class RDN(object):
+class RDN:
     '''
     RDN(arg0, ...)
 
@@ -951,7 +951,7 @@ class RDN(object):
 
 
 @functools.total_ordering
-class DN(object):
+class DN:
     '''
     DN(arg0, ...)
 

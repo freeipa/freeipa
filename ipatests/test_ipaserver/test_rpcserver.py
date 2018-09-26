@@ -35,7 +35,8 @@ if six.PY3:
 
 pytestmark = pytest.mark.tier0
 
-class StartResponse(object):
+
+class StartResponse:
     def __init__(self):
         self.reset()
 
@@ -135,7 +136,7 @@ def test_params_2_args_options():
     assert f([args, options]) == (args, options)
 
 
-class test_session(object):
+class test_session:
     klass = rpcserver.wsgi_dispatch
 
     def test_route(self):

@@ -66,7 +66,8 @@ escaping and unescapin.
 
 #-------------------------------------------------------------------------------
 
-class Cookie(object):
+
+class Cookie:
     '''
     A Cookie object has the following attributes:
 

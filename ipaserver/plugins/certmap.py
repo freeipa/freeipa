@@ -402,7 +402,7 @@ DBUS_SSSD_USERS_IF = 'org.freedesktop.sssd.infopipe.Users'
 DBUS_SSSD_USER_IF = 'org.freedesktop.sssd.infopipe.Users.User'
 
 
-class _sssd(object):
+class _sssd:
     """
     Auxiliary class for SSSD infopipe DBus.
     """

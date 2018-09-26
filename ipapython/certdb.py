@@ -221,7 +221,7 @@ KEY_RE = re.compile(
 )
 
 
-class NSSDatabase(object):
+class NSSDatabase:
     """A general-purpose wrapper around a NSS cert database
 
     For permanent NSS databases, pass the cert DB directory to __init__

@@ -205,7 +205,7 @@ def assert_is_member(entry, value, key='member'):
 # has already been called we continue gracefully. Other errors will be
 # raised.
 
-class XMLRPC_test(object):
+class XMLRPC_test:
     """
     Base class for all XML-RPC plugin tests
     """

@@ -57,7 +57,7 @@ CCACHE_FILE = None
 KRB5_CONFIG = None
 
 
-class SshExec(object):
+class SshExec:
     def __init__(self, user, addr):
         self.user = user
         self.addr = addr
@@ -95,7 +95,7 @@ class SshExec(object):
                            capture_output=True, capture_error=True)
 
 
-class CheckedPort(object):
+class CheckedPort:
     def __init__(self, port, port_type, description):
         self.port = port
         self.port_type = port_type

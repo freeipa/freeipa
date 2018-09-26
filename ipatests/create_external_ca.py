@@ -30,7 +30,8 @@ import six
 
 ISSUER_CN = 'example.test'
 
-class ExternalCA(object):
+
+class ExternalCA:
     """
     Provide external CA for testing
     """

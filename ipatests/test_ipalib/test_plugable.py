@@ -35,6 +35,7 @@ import pytest
 
 pytestmark = pytest.mark.tier0
 
+
 class test_Plugin(ClassChecker):
     """
     Test the `ipalib.plugable.Plugin` class.
@@ -88,7 +89,7 @@ class test_Plugin(ClassChecker):
         """
         Test the `ipalib.plugable.Plugin.finalize` method.
         """
-        class api(object):
+        class api:
             @staticmethod
             def is_production_mode():
                 return False
@@ -102,14 +103,15 @@ def test_Registry():
     """
     Test the `ipalib.plugable.Registry` class
     """
-    class Base1(object):
-        pass
-    class Base2(object):
+    class Base1:
         pass
 
+    class Base2:
+        pass
 
     class plugin1(Base1):
         pass
+
     class plugin2(Base2):
         pass
 
