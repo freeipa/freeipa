@@ -133,7 +133,7 @@ def safe_output(attr, values):
     return values
 
 
-class LDAPUpdate(object):
+class LDAPUpdate:
     action_keywords = ["default", "add", "remove", "only", "onlyifexist", "deleteentry", "replace", "addifnew", "addifexist"]
 
     def __init__(self, dm_password=None, sub_dict={},

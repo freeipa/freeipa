@@ -112,7 +112,7 @@ def screenshot(fn):
     return screenshot_wrapper
 
 
-class UI_driver(object):
+class UI_driver:
     """
     Base class for all UI integration tests
     """

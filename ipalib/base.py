@@ -29,7 +29,7 @@ from ipalib.constants import NAME_REGEX, NAME_ERROR
 from ipalib.constants import TYPE_ERROR, SET_ERROR, DEL_ERROR, OVERRIDE_ERROR
 
 
-class ReadOnly(object):
+class ReadOnly:
     """
     Base class for classes that can be locked into a read-only state.
 
@@ -269,7 +269,7 @@ class NameSpace(ReadOnly):
     through a dictionary interface.  For example, say we create a `NameSpace`
     instance from a list containing a single member, like this:
 
-    >>> class my_member(object):
+    >>> class my_member:
     ...     name = 'my_name'
     ...
     >>> namespace = NameSpace([my_member])
@@ -287,7 +287,7 @@ class NameSpace(ReadOnly):
     For a more detailed example, say we create a `NameSpace` instance from a
     generator like this:
 
-    >>> class Member(object):
+    >>> class Member:
     ...     def __init__(self, i):
     ...         self.i = i
     ...         self.name = self.__name__ = 'member%d' % i

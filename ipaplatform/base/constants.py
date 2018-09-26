@@ -8,7 +8,7 @@ This base platform module exports platform dependant constants.
 import sys
 
 
-class BaseConstantsNamespace(object):
+class BaseConstantsNamespace:
     IS_64BITS = sys.maxsize > 2 ** 32
     DS_USER = 'dirsrv'
     DS_GROUP = 'dirsrv'

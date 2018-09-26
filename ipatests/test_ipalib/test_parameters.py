@@ -173,7 +173,7 @@ def test_parse_param_spec():
     assert str(e) == TYPE_ERROR % ('spec', str, bad_value, type(bad_value))
 
 
-class DummyRule(object):
+class DummyRule:
     def __init__(self, error=None):
         assert error is None or type(error) is unicode
         self.error = error
@@ -581,7 +581,7 @@ class test_Param(ClassChecker):
         """
         Test the `ipalib.parameters.Param.get_default` method.
         """
-        class PassThrough(object):
+        class PassThrough:
             value = None
 
             def __call__(self, value):

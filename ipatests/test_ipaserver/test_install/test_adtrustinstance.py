@@ -29,7 +29,7 @@ if six.PY3:
 
 
 @pytest.mark.tier0
-class test_adtrustinstance(object):
+class test_adtrustinstance:
     """
     Test `adtrustinstance`.
     """

@@ -15,7 +15,7 @@ from ipapython.ipautil import unescape_seq, escape_seq
 _SENTINEL = object()
 
 
-class DirectiveSetter(object):
+class DirectiveSetter:
     """Safe directive setter
 
     with DirectiveSetter('/path/to/conf') as ds:

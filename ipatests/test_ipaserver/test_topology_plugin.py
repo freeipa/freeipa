@@ -11,7 +11,7 @@ import pytest
 
 
 @pytest.mark.tier1
-class TestTopologyPlugin(object):
+class TestTopologyPlugin:
     """
     Test Topology plugin from the DS point of view
     Testcase: http://www.freeipa.org/page/V4/Manage_replication_topology/

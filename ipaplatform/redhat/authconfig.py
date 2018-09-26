@@ -38,7 +38,7 @@ def get_auth_tool():
 
 
 @six.add_metaclass(abc.ABCMeta)
-class RedHatAuthToolBase(object):
+class RedHatAuthToolBase:
 
     @abc.abstractmethod
     def configure(self, sssd, mkhomedir, statestore, sudo=True):

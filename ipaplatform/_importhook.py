@@ -10,7 +10,7 @@ import sys
 from ipaplatform.osinfo import osinfo
 
 
-class IpaMetaImporter(object):
+class IpaMetaImporter:
     modules = {
         'ipaplatform.constants',
         'ipaplatform.paths',

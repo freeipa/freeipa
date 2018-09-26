@@ -22,7 +22,7 @@ class KerberosAliasError(Exception):
     pass
 
 
-class KerberosAliasMixin(object):
+class KerberosAliasMixin:
     """KerberosAliasMixin"""
 
     def _make_add_alias_cmd(self):

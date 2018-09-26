@@ -69,7 +69,7 @@ def selinux_enabled():
 
 
 @total_ordering
-class IPAVersion(object):
+class IPAVersion:
     _rpmvercmp_func = None
 
     @classmethod

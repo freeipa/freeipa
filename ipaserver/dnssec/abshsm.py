@@ -174,7 +174,7 @@ def ldap2p11helper_api_params(ldap_key):
     return unwrap_params
 
 
-class AbstractHSM(object):
+class AbstractHSM:
     def _filter_replica_keys(self, all_keys):
         replica_keys = {}
         for key_id, key in all_keys.items():

@@ -49,7 +49,7 @@ class test_Backend(ClassChecker):
         assert self.cls.__bases__ == (plugable.Plugin,)
 
 
-class Disconnect(object):
+class Disconnect:
     called = False
 
     def __init__(self, id=None):

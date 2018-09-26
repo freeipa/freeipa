@@ -211,6 +211,18 @@ def verify_kdc_cert_validity(kdc_cert, ca_certs, realm):
 
 
 class NSSDatabase(object):
+CERT_RE = re.compile(
+    r'^(?P<nick>.+?)\s+(?P<flags>\w*,\w*,\w*)\s*$'
+)
+KEY_RE = re.compile(
+    r'^<\s*(?P<slot>\d+)>'
+    r'\s+(?P<algo>\w+)'
+    r'\s+(?P<keyid>[0-9a-z]+)'
+    r'\s+(?P<nick>.*?)\s*$'
+)
+
+
+class NSSDatabase:
     """A general-purpose wrapper around a NSS cert database
 
     For permanent NSS databases, pass the cert DB directory to __init__

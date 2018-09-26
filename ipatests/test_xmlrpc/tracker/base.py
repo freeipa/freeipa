@@ -15,7 +15,7 @@ from ipapython.version import API_VERSION
 from ipatests.util import Fuzzy
 
 
-class BaseTracker(object):
+class BaseTracker:
     _override_me_msg = "This method needs to be overridden in a subclass"
 
     def __init__(self, default_version=None):

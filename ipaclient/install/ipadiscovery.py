@@ -99,7 +99,7 @@ def get_ipa_basedn(conn):
     return None
 
 
-class IPADiscovery(object):
+class IPADiscovery:
 
     def __init__(self):
         self.realm = None

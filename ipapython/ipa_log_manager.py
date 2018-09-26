@@ -57,7 +57,7 @@ LOGGING_FORMAT_STANDARD_CONSOLE = '%(name)-12s: %(levelname)-8s %(message)s'
 LOGGING_FORMAT_STANDARD_FILE = '%(asctime)s %(levelname)s %(message)s'
 
 
-class _DeprecatedLogger(object):
+class _DeprecatedLogger:
     def __init__(self, logger, name):
         self._logger = logger
         self._name = name
@@ -133,7 +133,7 @@ def get_logger(who, bind_logger_names=False):
     return logger
 
 
-class Filter(object):
+class Filter:
     def __init__(self, regexp, level):
         self.regexp = re.compile(regexp)
         self.level = level

@@ -75,7 +75,7 @@ class IPAExtension(jinja2.ext.Extension):
         return data
 
 
-class Formatter(object):
+class Formatter:
     """
     Class for processing a set of CSR generation rules into a template.
 
@@ -258,7 +258,7 @@ class OpenSSLFormatter(Formatter):
         return self.SyntaxRule(prepared_template, is_extension)
 
 
-class FieldMapping(object):
+class FieldMapping:
     """Representation of the rules needed to construct a complete cert field.
 
     Attributes:
@@ -276,7 +276,7 @@ class FieldMapping(object):
         self.data_rules = data_rules
 
 
-class Rule(object):
+class Rule:
     __slots__ = ['name', 'template', 'options']
 
     def __init__(self, name, template, options):
@@ -285,7 +285,7 @@ class Rule(object):
         self.options = options
 
 
-class RuleProvider(object):
+class RuleProvider:
     def rules_for_profile(self, profile_id):
         """
         Return the rules needed to build a CSR using the given profile.
@@ -368,7 +368,7 @@ class FileRuleProvider(RuleProvider):
         return field_mappings
 
 
-class CSRGenerator(object):
+class CSRGenerator:
     def __init__(self, rule_provider, formatter_class=OpenSSLFormatter):
         self.rule_provider = rule_provider
         self.formatter = formatter_class()
@@ -389,7 +389,7 @@ class CSRGenerator(object):
         return config
 
 
-class CSRLibraryAdaptor(object):
+class CSRLibraryAdaptor:
     def get_subject_public_key_info(self):
         raise NotImplementedError('Use a subclass of CSRLibraryAdaptor')
 
@@ -401,7 +401,7 @@ class CSRLibraryAdaptor(object):
         raise NotImplementedError('Use a subclass of CSRLibraryAdaptor')
 
 
-class OpenSSLAdaptor(object):
+class OpenSSLAdaptor:
     def __init__(self, key=None, key_filename=None, password_filename=None):
         """
         Must provide either ``key_filename`` or ``key``.
@@ -458,7 +458,7 @@ class OpenSSLAdaptor(object):
         return encoder.encode(csr)
 
 
-class NSSAdaptor(object):
+class NSSAdaptor:
     def __init__(self, database, password_filename):
         self.database = database
         self.password_filename = password_filename

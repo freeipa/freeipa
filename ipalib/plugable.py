@@ -89,7 +89,7 @@ def find_modules_in_dir(src_dir):
         yield module
 
 
-class Registry(object):
+class Registry:
     """A decorator that makes plugins available to the API
 
     Usage::
@@ -240,7 +240,7 @@ class Plugin(ReadOnly):
             if not self.__finalized:
                 self.finalize()
 
-    class finalize_attr(object):
+    class finalize_attr:
         """
         Create a stub object for plugin attribute that isn't set until the
         finalization of the plugin initialization.

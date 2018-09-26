@@ -53,7 +53,8 @@ from ipalib import errors
 if six.PY3:
     unicode = str
 
-class Env(object):
+
+class Env:
     """
     Store and retrieve environment variables.
 

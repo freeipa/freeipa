@@ -106,7 +106,7 @@ def get_ccname():
     return krb5_unparse_ccache(scheme, location)
 
 
-class KRBCheater(object):
+class KRBCheater:
     """Add KRB5CCNAME to WSGI environ
     """
     def __init__(self, app, ccname):

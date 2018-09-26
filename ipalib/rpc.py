@@ -491,7 +491,7 @@ def xml_loads(data, encoding='UTF-8'):
         raise decode_fault(e)
 
 
-class DummyParser(object):
+class DummyParser:
     def __init__(self):
         self.data = []
 
@@ -1203,7 +1203,7 @@ class xmlclient(RPCClient):
         return xml_unwrap(result)
 
 
-class JSONServerProxy(object):
+class JSONServerProxy:
     def __init__(self, uri, transport, encoding, verbose, allow_none):
         split_uri = urllib.parse.urlsplit(uri)
         if split_uri.scheme not in ("http", "https"):

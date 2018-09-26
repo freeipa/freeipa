@@ -111,7 +111,7 @@ class UpgradeMissingVersionError(UpgradeVersionError):
     pass
 
 
-class ReplicaConfig(object):
+class ReplicaConfig:
     def __init__(self, top_dir=None):
         self.realm_name = ""
         self.domain_name = ""

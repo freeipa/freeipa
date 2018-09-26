@@ -83,7 +83,7 @@ SAN_KRB5PRINCIPALNAME = '1.3.6.1.5.2.2'
 
 
 @crypto_utils.register_interface(crypto_x509.Certificate)
-class IPACertificate(object):
+class IPACertificate:
     """
     A proxy class wrapping a python-cryptography certificate representation for
     FreeIPA purposes

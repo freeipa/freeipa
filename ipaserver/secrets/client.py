@@ -17,7 +17,7 @@ import urllib3
 import requests
 
 
-class CustodiaClient(object):
+class CustodiaClient:
 
     def _client_keys(self):
         return self.ikk.server_keys

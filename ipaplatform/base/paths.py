@@ -22,7 +22,7 @@ This base platform module exports default filesystem paths.
 '''
 
 
-class BasePathNamespace(object):
+class BasePathNamespace:
     BASH = "/bin/bash"
     BIN_HOSTNAMECTL = "/bin/hostnamectl"
     ECHO = "/bin/echo"

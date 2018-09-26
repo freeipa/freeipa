@@ -33,7 +33,7 @@ def tempdir(request):
     return tempdir
 
 
-class test_set_directive_lines(object):
+class test_set_directive_lines:
     def test_remove_directive(self):
         lines = directivesetter.set_directive_lines(
             False, '=', 'foo', None, EXAMPLE_CONFIG, comment="#")
@@ -50,7 +50,7 @@ class test_set_directive_lines(object):
         assert list(lines) == ['foo=3\n', 'foobar=2\n']
 
 
-class test_set_directive_lines_whitespace(object):
+class test_set_directive_lines_whitespace:
     def test_remove_directive(self):
         lines = directivesetter.set_directive_lines(
             False, ' ', 'foo', None, WHITESPACE_CONFIG, comment="#")
@@ -72,7 +72,7 @@ class test_set_directive_lines_whitespace(object):
         assert list(lines) == ['foo 1\n', 'foobar 6\n']
 
 
-class test_set_directive(object):
+class test_set_directive:
     def test_set_directive(self):
         """Check that set_directive writes the new data and preserves mode."""
         fd, filename = tempfile.mkstemp()
@@ -100,7 +100,7 @@ class test_set_directive(object):
             os.remove(filename)
 
 
-class test_get_directive(object):
+class test_get_directive:
     def test_get_directive(self, tmpdir):
         configfile = tmpdir.join('config')
         configfile.write(''.join(EXAMPLE_CONFIG))
@@ -113,7 +113,7 @@ class test_get_directive(object):
                                                     separator='=')
 
 
-class test_get_directive_whitespace(object):
+class test_get_directive_whitespace:
     def test_get_directive(self, tmpdir):
         configfile = tmpdir.join('config')
         configfile.write(''.join(WHITESPACE_CONFIG))

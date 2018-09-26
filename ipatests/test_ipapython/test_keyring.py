@@ -35,7 +35,8 @@ SIZE_256 = 'abcdefgh' * 32
 SIZE_512 = 'abcdefgh' * 64
 SIZE_1024 = 'abcdefgh' * 128
 
-class test_keyring(object):
+
+class test_keyring:
     """
     Test the kernel keyring interface
     """

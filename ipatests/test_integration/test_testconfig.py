@@ -82,7 +82,7 @@ def extend_dict(defaults, *others, **kwargs):
     return copy.deepcopy(result)
 
 
-class CheckConfig(object):
+class CheckConfig:
     def check_config(self, conf):
         pass
 

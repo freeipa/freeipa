@@ -24,7 +24,8 @@ from six.moves import urllib
 
 from ipalib import api, util
 
-class Unauthorized_HTTP_test(object):
+
+class Unauthorized_HTTP_test:
     """
     Base class for simple HTTP request tests executed against URI
     with no required authorization

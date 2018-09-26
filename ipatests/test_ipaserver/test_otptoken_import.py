@@ -27,7 +27,7 @@ from ipaserver.install.ipa_otptoken_import import convertHashName
 basename = os.path.join(os.path.dirname(__file__), "data")
 
 @pytest.mark.tier1
-class test_otptoken_import(object):
+class test_otptoken_import:
     def test_figure3(self):
         doc = PSKCDocument(os.path.join(basename, "pskc-figure3.xml"))
         assert doc.keyname is None

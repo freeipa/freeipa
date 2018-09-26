@@ -31,7 +31,8 @@ time_bindfmt = '%Y%m%d%H%M%S'
 FILE_PERM = (stat.S_IRUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IWUSR)
 DIR_PERM = (stat.S_IRWXU | stat.S_IRWXG)
 
-class BINDMgr(object):
+
+class BINDMgr:
     """BIND key manager. It does LDAP->BIND key files synchronization.
 
     One LDAP object with idnsSecKey object class will produce

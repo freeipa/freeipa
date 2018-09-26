@@ -62,7 +62,7 @@ class IPADomainIsNotManagedByIPAError(Exception):
     pass
 
 
-class IPASystemRecords(object):
+class IPASystemRecords:
 
     # fixme do it configurable
     PRIORITY_HIGH = 0

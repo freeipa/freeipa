@@ -154,7 +154,7 @@ def create_translation(key):
     return translation
 
 
-class LazyText(object):
+class LazyText:
     """
     Base class for deferred translation.
 
@@ -319,7 +319,7 @@ class FixMe(Gettext):
     creates conspicuous looking UI labels that remind the programmer to
     "fix-me!".  For example, the typical usage would be something like this:
 
-    >>> class Plugin(object):
+    >>> class Plugin:
     ...     label = None
     ...     def __init__(self):
     ...         self.name = self.__class__.__name__
@@ -485,7 +485,7 @@ class NGettext(LazyText):
 
 
 @six.python_2_unicode_compatible
-class ConcatenatedLazyText(object):
+class ConcatenatedLazyText:
     """Concatenation of multiple strings, or any objects convertible to unicode
 
     Used to concatenate several LazyTexts together.
@@ -525,7 +525,7 @@ class ConcatenatedLazyText(object):
             return ConcatenatedLazyText(*[other] + self.components)
 
 
-class GettextFactory(object):
+class GettextFactory:
     """
     Factory for creating ``_()`` functions.
 

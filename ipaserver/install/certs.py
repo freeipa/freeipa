@@ -136,7 +136,7 @@ def is_ipa_issued_cert(api, cert):
     return DN(cert.issuer) == cacert_subject
 
 
-class CertDB(object):
+class CertDB:
     """An IPA-server-specific wrapper around NSS
 
     This class knows IPA-specific details such as nssdir location, or the
@@ -711,7 +711,7 @@ class CertDB(object):
         self.nssdb.convert_db()
 
 
-class _CrossProcessLock(object):
+class _CrossProcessLock:
     _DATETIME_FORMAT = '%Y%m%d%H%M%S%f'
 
     def __init__(self, filename):

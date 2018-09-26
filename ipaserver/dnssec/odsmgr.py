@@ -19,7 +19,7 @@ ENTRYUUID_PREFIX = "/var/lib/ipa/dns/zone/entryUUID/"
 ENTRYUUID_PREFIX_LEN = len(ENTRYUUID_PREFIX)
 
 
-class ZoneListReader(object):
+class ZoneListReader:
     def __init__(self):
         self.names = set()  # dns.name
         self.uuids = set()  # UUID strings
@@ -119,7 +119,7 @@ class LDAPZoneListReader(ZoneListReader):
             self._del_zone(zone_ldap['idnsname'][0], uuid)
 
 
-class ODSMgr(object):
+class ODSMgr:
     """OpenDNSSEC zone manager. It does LDAP->ODS synchronization.
 
     Zones with idnsSecInlineSigning attribute = TRUE in LDAP are added

@@ -89,7 +89,7 @@ parser.add_argument(
 )
 
 
-class IPACustodiaTester(object):
+class IPACustodiaTester:
     files = [
         paths.IPA_DEFAULT_CONF,
         paths.KRB5_KEYTAB,

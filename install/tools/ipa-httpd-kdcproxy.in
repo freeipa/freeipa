@@ -63,7 +63,7 @@ class FatalError(Error):
     """
 
 
-class KDCProxyConfig(object):
+class KDCProxyConfig:
     ipaconfig_flag = 'ipaKDCProxyEnabled'
 
     def __init__(self, time_limit=TIME_LIMIT):

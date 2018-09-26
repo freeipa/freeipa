@@ -160,7 +160,8 @@ QUs1Hx1wL7mL4U8fKCFDKA+ds2B2xWgoZg==
 -----END CERTIFICATE-----
 '''
 
-class test_x509(object):
+
+class test_x509:
     """
     Test `ipalib.x509`
 

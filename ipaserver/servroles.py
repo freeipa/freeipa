@@ -91,7 +91,7 @@ ABSENT = u'absent'
 
 
 @six.add_metaclass(abc.ABCMeta)
-class LDAPBasedProperty(object):
+class LDAPBasedProperty:
     """
     base class for all master properties defined by LDAP content
     :param attr_name: attribute name

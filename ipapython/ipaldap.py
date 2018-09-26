@@ -126,7 +126,7 @@ def ldap_initialize(uri, cacertfile=None):
     return conn
 
 
-class _ServerSchema(object):
+class _ServerSchema:
     '''
     Properties of a schema retrieved from an LDAP server.
     '''
@@ -137,7 +137,7 @@ class _ServerSchema(object):
         self.retrieve_timestamp = time.time()
 
 
-class SchemaCache(object):
+class SchemaCache:
     '''
     Cache the schema's from individual LDAP servers.
     '''
@@ -635,7 +635,7 @@ class SingleValueLDAPEntryView(LDAPEntryView):
             self._entry[name] = [value]
 
 
-class LDAPClient(object):
+class LDAPClient:
     """LDAP backend class
 
     This class abstracts a LDAP connection, providing methods that work with

@@ -705,7 +705,7 @@ def _set_wrapping_mech_parameters(mech_type, mech):
 ########################################################################
 # P11_Helper object
 #
-class P11_Helper(object):
+class P11_Helper:
     @property
     def p11(self):
         return self.p11_ptr[0]
