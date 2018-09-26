@@ -206,7 +206,7 @@ return {
             $type: 'association',
             name: 'member_privilege',
             facet_group: 'privilege',
-            remove_title: '@i18n:objects.acipermission.remove_privileges',
+            remove_title: '@i18n:objects.acipermission.remove_privileges'
         }
     ],
     adder_dialog: {
@@ -301,8 +301,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.acipermission.remove',
-    },
+        title: '@i18n:objects.acipermission.remove'
+    }
 };};
 
 /**
@@ -355,7 +355,7 @@ return {
             add_method: 'add_privilege',
             remove_method: 'remove_privilege',
             associator: IPA.serial_associator,
-            remove_title: '@i18n:objects.aciprivilege.remove_roles',
+            remove_title: '@i18n:objects.aciprivilege.remove_roles'
         },
         {
             $type: 'association',
@@ -363,7 +363,7 @@ return {
             facet_group: 'permission',
             add_method: 'add_permission',
             remove_method: 'remove_permission',
-            remove_title: '@i18n:objects.aciprivilege.remove_from_permissions',
+            remove_title: '@i18n:objects.aciprivilege.remove_from_permissions'
         }
     ],
     standard_association_facets: true,
@@ -377,8 +377,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.aciprivilege.remove',
-    },
+        title: '@i18n:objects.aciprivilege.remove'
+    }
 };};
 
 var make_role_spec = function() {
@@ -412,27 +412,27 @@ return {
         {
             $type: 'association',
             name: 'member_user',
-            remove_title: '@i18n:objects.acirole.remove_users',
+            remove_title: '@i18n:objects.acirole.remove_users'
         },
         {
             $type: 'association',
             name: 'member_group',
-            remove_title: '@i18n:objects.acirole.remove_groups',
+            remove_title: '@i18n:objects.acirole.remove_groups'
         },
         {
             $type: 'association',
             name: 'member_host',
-            remove_title: '@i18n:objects.acirole.remove_hosts',
+            remove_title: '@i18n:objects.acirole.remove_hosts'
         },
         {
             $type: 'association',
             name: 'member_hostgroup',
-            remove_title: '@i18n:objects.acirole.remove_hostgroups',
+            remove_title: '@i18n:objects.acirole.remove_hostgroups'
         },
         {
             $type: 'association',
             name: 'member_service',
-            remove_title: '@i18n:objects.acirole.remove_services',
+            remove_title: '@i18n:objects.acirole.remove_services'
         },
         {
             $type: 'association',
@@ -440,7 +440,7 @@ return {
             facet_group: 'privilege',
             add_method: 'add_privilege',
             remove_method: 'remove_privilege',
-            remove_title: '@i18n:objects.acirole.remove_from_privileges',
+            remove_title: '@i18n:objects.acirole.remove_from_privileges'
         }
     ],
     standard_association_facets: true,
@@ -454,8 +454,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.acirole.remove',
-    },
+        title: '@i18n:objects.acirole.remove'
+    }
 };};
 
 var make_selfservice_spec = function() {
@@ -497,8 +497,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.aciselfservice.remove',
-    },
+        title: '@i18n:objects.aciselfservice.remove'
+    }
 };};
 
 
@@ -577,8 +577,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.acidelegation.remove',
-    },
+        title: '@i18n:objects.acidelegation.remove'
+    }
 };};
 
 aci.attributes_widget = function(spec) {

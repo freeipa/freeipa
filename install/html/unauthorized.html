@@ -26,7 +26,7 @@
         };
         (function() {
             var icons = [
-                '../ui/favicon.ico',
+                '../ui/favicon.ico'
             ];
             var styles = [
                 '../ui/css/patternfly.css',
@@ -35,18 +35,19 @@
             var scripts = [
                 '../ui/js/libs/jquery.js',
                 '../ui/js/libs/jquery.ordered-map.js',
-                '../ui/js/dojo/dojo.js',
+                '../ui/js/dojo/dojo.js'
             ];
 
             ipa_loader.scripts(scripts, function() {
                 require([
                     'dojo/dom',
                     'freeipa/core',
-                    'dojo/domReady!',
+                    'dojo/domReady!'
                     ],
                     function(dom) {
                         var text = require('freeipa/text');
-                        if (msg = text.get('@i18n:unauthorized-page')) {
+                        var msg = text.get('@i18n:unauthorized-page');
+                        if (msg) {
                             dom.byId('unauthorized-msg').innerHTML=msg;
                         }
                     });
