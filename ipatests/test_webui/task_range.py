@@ -31,6 +31,16 @@ TRUSTED_ID_RANGE = 'ipa-ad-trust'
 
 class range_tasks(UI_driver):
 
+    BASE_RANGE_OVERLAPS_ERROR = (
+        'Constraint violation: '
+        'New base range overlaps with existing base range.'
+    )
+
+    PRIMARY_RID_RANGE_OVERLAPS_ERROR = (
+        'Constraint violation: '
+        'New primary rid range overlaps with existing primary rid range.'
+    )
+
     def get_shifts(self):
         result = self.execute_api_from_ui('idrange_find', [], {})
         idranges = result['result']['result']

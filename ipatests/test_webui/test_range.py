@@ -171,9 +171,38 @@ class test_range(range_tasks):
             dialog = self.get_last_error_dialog()
 
             try:
-                assert ('Constraint violation: '
-                        'New base range overlaps with existing base range.'
-                        in dialog.text)
+                assert self.BASE_RANGE_OVERLAPS_ERROR in dialog.text
+            finally:
+                self.delete_record(pkey)
+
+    @screenshot
+    def test_add_range_overlaps_with_existing(self):
+        """
+        Test creating ID Range with overlapping of existing range
+        """
+        self.navigate_to_entity(ENTITY)
+
+        for range_type in self.range_types:
+            pkey = 'itest-range'
+            pkey_overlaps = 'itest-range-overlaps'
+
+            form_data = self.get_add_form_data(pkey)
+            data = self.get_data(pkey, form_data=form_data)
+            form_data_overlaps = self.get_add_form_data(
+                pkey_overlaps,
+                base_id=form_data.base_id + form_data.size - 1,
+                range_type=range_type
+            )
+            data_overlaps = self.get_data(form_data=form_data_overlaps)
+
+            self.add_record(ENTITY, data, navigate=False)
+            self.add_record(ENTITY, data_overlaps, navigate=False,
+                            negative=True, pre_delete=False)
+
+            dialog = self.get_last_error_dialog()
+
+            try:
+                assert self.BASE_RANGE_OVERLAPS_ERROR in dialog.text
             finally:
                 self.delete_record(pkey)
 
@@ -197,9 +226,7 @@ class test_range(range_tasks):
         dialog = self.get_last_error_dialog()
 
         try:
-            assert ('Constraint violation: '
-                    'New primary rid range overlaps with existing primary rid range.'
-                    in dialog.text)
+            assert self.PRIMARY_RID_RANGE_OVERLAPS_ERROR in dialog.text
         finally:
             self.delete_record(pkey)
 
