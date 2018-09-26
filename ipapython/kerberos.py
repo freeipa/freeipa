@@ -66,7 +66,7 @@ class Principal:
     Container for the principal name and realm according to RFC 1510
     """
     def __init__(self, components, realm=None):
-        if isinstance(components, six.binary_type):
+        if isinstance(components, bytes):
             raise TypeError(
                 "Cannot create a principal object from bytes: {!r}".format(
                     components)
