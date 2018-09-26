@@ -194,7 +194,7 @@ if WITH_PYTHON3
 	@ # just tests, aci, api and pylint on Python 3
 	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON3) ipatests/ipa-run-tests \
 	    --ipaclient-unittests
-	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) acilint apilint polint pylint
+	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) acilint apilint polint pylint jslint check
 else
 	@echo "WARNING: python3 not available"
 endif
