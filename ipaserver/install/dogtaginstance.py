@@ -608,7 +608,6 @@ class DogtagInstance(service.Service):
             subsystem=self.subsystem,
             fqdn=self.fqdn,
             domain=api.env.domain,
-            basedn=self.basedn,  # o=ipaca / o=kra,o=ipaca
             subject_base=self.subject_base,
             ca_subject=self.ca_subject,
             admin_user=self.admin_user,
@@ -627,9 +626,6 @@ class PKIIniLoader:
         paths.USR_SHARE_IPA_DIR, 'ipaca_customize.ini'
     )
 
-    security_domain_name = 'IPA'
-    ipaca_database = 'ipaca'
-    admin_nickname = 'ipa-ca-agent'
     token_stanzas = [
         'pki_audit_signing_token',
         'pki_subsystem_token',
@@ -639,16 +635,12 @@ class PKIIniLoader:
         'pki_transport_token',
     ]
 
-    def __init__(self, subsystem, fqdn, domain, basedn,
+    def __init__(self, subsystem, fqdn, domain,
                  subject_base, ca_subject, admin_user, admin_password,
                  dm_password, pki_config_override=None):
         self.pki_config_override = pki_config_override
         self.defaults = dict(
             # pretty much static
-            ipa_security_domain_name=self.security_domain_name,
-            ipa_ds_database=self.ipaca_database,
-            ipa_ds_base_dn=basedn,
-            ipa_admin_nickname=self.admin_nickname,
             ipa_ca_pem_file=paths.IPA_CA_CRT,
             # variable
             ipa_ca_subject=ca_subject,
@@ -729,7 +721,7 @@ class PKIIniLoader:
         }
 
         # add ipaca_customize overlay,
-        #  These are settings that can be modified by a user, too. We use
+        # These are settings that can be modified by a user, too. We use
         # ipaca_customize.ini to set sensible defaults.
         with open(self.ipaca_customize) as f:
             cfgtpl.read_file(f)
@@ -776,11 +768,17 @@ class PKIIniLoader:
 def test():
     import sys
 
-    loader = PKIIniLoader(
-        subsystem='CA',
+    sharedir = os.path.abspath(os.path.join(
+        os.path.dirname(os.path.join(__file__)),
+        os.pardir,
+        os.pardir,
+        'install',
+        'share',
+    ))
+
+    base_settings = dict(
         fqdn='replica.ipa.example',
         domain='ipa.example',
-        basedn='o=ipaca',
         subject_base='o=IPA,o=EXAMPLE',
         ca_subject='cn=CA,o=IPA,o=EXAMPLE',
         admin_user='admin',
@@ -788,12 +786,14 @@ def test():
         dm_password='Secret2',
         pki_config_override='install/share/ipaca_softhsm2.ini',
     )
-    loader.ipaca_default = 'install/share/ipaca_default.ini'
-    loader.ipaca_customize = 'install/share/ipaca_customize.ini'
-    config = loader.create_spawn_config(dict(
-        pki_external=True
-    ))
-    config.write(sys.stdout, False)
+
+    for subsystem in ('CA', 'KRA'):
+        print('-' * 78)
+        loader = PKIIniLoader(subsystem=subsystem, **base_settings)
+        loader.ipaca_default = os.path.join(sharedir, 'ipaca_default.ini')
+        loader.ipaca_customize = os.path.join(sharedir, 'ipaca_customize.ini')
+        config = loader.create_spawn_config({})
+        config.write(sys.stdout, False)
 
 
 if __name__ == '__main__':
