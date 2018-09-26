@@ -278,7 +278,7 @@ class Fuzzy:
         :param test: A callable used to perform equality test, e.g.
             ``lambda other: other >= 18``
         """
-        assert regex is None or isinstance(regex, six.string_types)
+        assert regex is None or isinstance(regex, str)
         assert test is None or callable(test)
         if regex is None:
             self.re = None
@@ -286,7 +286,7 @@ class Fuzzy:
             self.re = re.compile(regex)
             if type is None:
                 type = unicode
-            assert type in (unicode, bytes, six.string_types)
+            assert type in (unicode, bytes, str)
         self.regex = regex
         self.type = type
         self.test = test
@@ -398,7 +398,7 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     if isinstance(got, tuple):
         got = list(got)
     if isinstance(expected, DN):
-        if isinstance(got, six.string_types):
+        if isinstance(got, str):
             got = DN(got)
     if (
         not (isinstance(expected, Fuzzy)

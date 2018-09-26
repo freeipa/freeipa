@@ -165,7 +165,7 @@ class ACI:
                 raise SyntaxError("invalid permission: '%s'" % p)
         if not self.name:
             raise SyntaxError("name must be set")
-        if not isinstance(self.name, six.string_types):
+        if not isinstance(self.name, str):
             raise SyntaxError("name must be a string")
         if not isinstance(self.target, dict) or len(self.target) == 0:
             raise SyntaxError("target must be a non-empty dictionary")
