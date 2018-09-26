@@ -1441,12 +1441,12 @@ if six.PY2:
         """
         if isinstance(value, six.binary_type):
             return value.decode(sys.getfilesystemencoding())
-        elif isinstance(value, six.text_type):
+        elif isinstance(value, str):
             return value
         else:
             raise TypeError("expect {0} or {1}, not {2}".format(
                 six.binary_type.__name__,
-                six.text_type.__name__,
+                str.__name__,
                 type(value).__name__))
 else:
     fsdecode = os.fsdecode  #pylint: disable=no-member
@@ -1522,7 +1522,7 @@ def decode_json(data):
         # default
         return 'utf-8'
 
-    if isinstance(data, six.text_type):
+    if isinstance(data, str):
         return data
 
     return data.decode(detect_encoding(data), 'surrogatepass')

@@ -210,7 +210,7 @@ class Fuzzy:
     Use of a regular expression by default implies the ``unicode`` type, so
     comparing with an ``str`` instance will evaluate to ``False``:
 
-    >>> phone.type is six.text_type
+    >>> phone.type is str
     True
     >>> b'123-456-7890' == phone
     False
