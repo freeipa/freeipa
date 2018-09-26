@@ -123,17 +123,17 @@ return {
                     primary_key: true
                 }
             ],
-            remove_title: '@i18n:objects.group.remove_users',
+            remove_title: '@i18n:objects.group.remove_users'
         },
         {
             $type: 'association',
             name: 'member_group',
-            remove_title: '@i18n:objects.group.remove_groups',
+            remove_title: '@i18n:objects.group.remove_groups'
         },
         {
             $type: 'association',
             name: 'member_service',
-            remove_title: '@i18n:objects.group.remove_services',
+            remove_title: '@i18n:objects.group.remove_services'
         },
         {
             $type: 'attribute',
@@ -152,19 +152,19 @@ return {
             $type: 'association',
             name: 'memberof_group',
             associator: IPA.serial_associator,
-            remove_title: '@i18n:objects.group.remove_from_groups',
+            remove_title: '@i18n:objects.group.remove_from_groups'
         },
         {
             $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator,
-            remove_title: '@i18n:objects.group.remove_from_netgroups',
+            remove_title: '@i18n:objects.group.remove_from_netgroups'
         },
         {
             $type: 'association',
             name: 'memberof_role',
             associator: IPA.serial_associator,
-            remove_title: '@i18n:objects.group.remove_from_roles',
+            remove_title: '@i18n:objects.group.remove_from_roles'
         },
         {
             $type: 'association',
@@ -172,7 +172,7 @@ return {
             associator: IPA.serial_associator,
             add_method: 'add_user',
             remove_method: 'remove_user',
-            remove_title: '@i18n:objects.group.remove_from_hbac',
+            remove_title: '@i18n:objects.group.remove_from_hbac'
         },
         {
             $type: 'association',
@@ -180,7 +180,7 @@ return {
             associator: IPA.serial_associator,
             add_method: 'add_user',
             remove_method: 'remove_user',
-            remove_title: '@i18n:objects.group.remove_from_sudo',
+            remove_title: '@i18n:objects.group.remove_from_sudo'
         }
     ],
     standard_association_facets: true,
@@ -217,8 +217,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.group.remove',
-    },
+        title: '@i18n:objects.group.remove'
+    }
 };};
 
 IPA.group_adder_dialog = function(spec) {

@@ -227,7 +227,7 @@ return {
             name: 'managedby_user',
             add_method: 'add_managedby',
             remove_method: 'remove_managedby',
-            remove_title: '@i18n:objects.otptoken.remove_users_managing',
+            remove_title: '@i18n:objects.otptoken.remove_users_managing'
         }
     ],
 
@@ -308,8 +308,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.otptoken.remove',
-    },
+        title: '@i18n:objects.otptoken.remove'
+    }
 };};
 
 otptoken.adder_policy = function(spec) {

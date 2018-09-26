@@ -60,8 +60,8 @@ return {
         }
     ],
     deleter_dialog: {
-        title: '@i18n:objects.caprofile.remove',
-    },
+        title: '@i18n:objects.caprofile.remove'
+    }
 };};
 
 

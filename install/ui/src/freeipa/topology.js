@@ -192,8 +192,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.topologysegment.remove',
-    },
+        title: '@i18n:objects.topologysegment.remove'
+    }
 };};
 
 var make_server_spec = function() {
@@ -449,7 +449,7 @@ return {
                                     name: 'service_relative_weight'
                                 }
                             ],
-                            remove_title: '@i18n:objects.topologylocation.remove_servers',
+                            remove_title: '@i18n:objects.topologylocation.remove_servers'
                         }
                     ]
                 }
@@ -467,8 +467,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.topologylocation.remove',
-    },
+        title: '@i18n:objects.topologylocation.remove'
+    }
 };};
 
 topology.location_adapter = declare([mod_field.Adapter], {

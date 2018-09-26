@@ -369,14 +369,14 @@ return {
         {
             $type: 'association',
             name: 'memberof_role',
-            remove_title: '@i18n:objects.service.remove_from_roles',
+            remove_title: '@i18n:objects.service.remove_from_roles'
         },
         {
             $type: 'association',
             name: 'managedby_host',
             add_method: 'add_host',
             remove_method: 'remove_host',
-            remove_title: '@i18n:objects.service.remove_hosts_managing',
+            remove_title: '@i18n:objects.service.remove_hosts_managing'
         }
     ],
     standard_association_facets: true,
@@ -432,8 +432,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.service.remove',
-    },
+        title: '@i18n:objects.service.remove'
+    }
 };};
 
 

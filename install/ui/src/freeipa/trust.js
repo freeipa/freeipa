@@ -70,7 +70,7 @@ return {
             search_all_entries: true,
             deleter_dialog: {
                 title: '@i18n:objects.trust.remove_domains',
-                $factory: IPA.search_deleter_dialog,
+                $factory: IPA.search_deleter_dialog
             },
             actions: [
                 {
@@ -337,8 +337,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.trust.remove',
-    },
+        title: '@i18n:objects.trust.remove'
+    }
 };};
 
 IPA.trust.adder_dialog = function(spec) {
