@@ -128,7 +128,7 @@ def _format_topology_errors(topo_errors):
     return "\n".join(msg_lines)
 
 
-class TopologyConnectivity(object):
+class TopologyConnectivity:
     """
     a simple class abstracting the replication connectivity in managed topology
     """

@@ -33,7 +33,7 @@ def mkuri(priority, weight, target):
     )
 
 
-class TestSortSRV(object):
+class TestSortSRV:
     def test_empty(self):
         assert dnsutil.sort_prio_weight([]) == []
 
@@ -96,7 +96,7 @@ class TestSortSRV(object):
         assert len(dnsutil.sort_prio_weight(records)) == len(records)
 
 
-class TestSortURI(object):
+class TestSortURI:
     def test_prio(self):
         h1 = mkuri(1, 0, u"https://host1/api")
         h2 = mkuri(2, 0, u"https://host2/api")

@@ -579,7 +579,7 @@ def ensure_dnsserver_container_exists(ldap, api_instance, logger=logger):
         logger.debug('cn=servers,cn=dns container already exists')
 
 
-class DnsBackup(object):
+class DnsBackup:
     def __init__(self, service):
         self.service = service
         self.zones = {}

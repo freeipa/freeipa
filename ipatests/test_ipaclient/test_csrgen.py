@@ -54,7 +54,7 @@ class IdentityFormatter(csrgen.Formatter):
         return {'options': syntax_rules}
 
 
-class test_Formatter(object):
+class test_Formatter:
     def test_prepare_data_rule_with_data_source(self, formatter):
         data_rule = csrgen.Rule('uid', '{{subject.uid.0}}',
                                 {'data_source': 'subject.uid.0'})
@@ -135,7 +135,7 @@ class test_Formatter(object):
         assert prepared == 'rule1,rule2'
 
 
-class test_FileRuleProvider(object):
+class test_FileRuleProvider:
     def test_rule_basic(self, rule_provider):
         rule_name = 'basic'
 
@@ -168,7 +168,7 @@ class test_FileRuleProvider(object):
             rule_provider.rules_for_profile('nosuchprofile')
 
 
-class test_CSRGenerator(object):
+class test_CSRGenerator:
     def test_userCert_OpenSSL(self, generator):
         principal = {
             'uid': ['testuser'],
@@ -264,7 +264,7 @@ class test_CSRGenerator(object):
                 config.encode('utf-8'), adaptor.get_subject_public_key_info())
 
 
-class test_rule_handling(object):
+class test_rule_handling:
     def test_optionalAttributeMissing(self, generator):
         principal = {'uid': 'testuser'}
         rule_provider = StubRuleProvider()

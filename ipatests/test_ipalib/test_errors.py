@@ -41,7 +41,7 @@ if six.PY3:
 pytestmark = pytest.mark.tier0
 
 
-class PrivateExceptionTester(object):
+class PrivateExceptionTester:
     _klass = None
     __klass = None
 
@@ -193,7 +193,7 @@ class test_PluginMissingOverrideError(PrivateExceptionTester):
 ##############################################################################
 # Unit tests for public errors:
 
-class PublicExceptionTester(object):
+class PublicExceptionTester:
     _klass = None
     __klass = None
 
@@ -338,7 +338,7 @@ class test_PublicError(PublicExceptionTester):
         assert_equal(list(inst_match),list(instructions))
 
 
-class BaseMessagesTest(object):
+class BaseMessagesTest:
     """Generic test for all of a module's errors or messages
     """
     def test_public_messages(self):
@@ -367,7 +367,7 @@ class BaseMessagesTest(object):
         pass
 
 
-class test_PublicErrors(object):
+class test_PublicErrors:
     message_list = errors.public_errors
     errno_range = list(range(900, 5999))
     required_classes = (Exception, errors.PublicError)

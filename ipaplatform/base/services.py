@@ -96,7 +96,7 @@ class KnownServices(Mapping):
             raise AttributeError(name)
 
 
-class PlatformService(object):
+class PlatformService:
     """
     PlatformService abstracts out external process running on the system
     which is possible to administer (start, stop, check status, etc).

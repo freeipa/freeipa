@@ -95,7 +95,7 @@ class _SchemaObject(Object):
     pass
 
 
-class _SchemaPlugin(object):
+class _SchemaPlugin:
     bases = None
     schema_key = None
 
@@ -352,7 +352,7 @@ class NotAvailable(Exception):
     pass
 
 
-class Schema(object):
+class Schema:
     """
     Store and provide schema for commands and topics
 

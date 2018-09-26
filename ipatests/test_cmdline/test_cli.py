@@ -25,7 +25,7 @@ BASE_DIR = os.path.abspath(os.path.join(HERE, os.pardir, os.pardir))
 
 @pytest.mark.tier0
 @pytest.mark.needs_ipaapi
-class TestCLIParsing(object):
+class TestCLIParsing:
     """Tests that commandlines are correctly parsed to Command keyword args
     """
     def check_command(self, commandline, expected_command_name, **kw_expected):

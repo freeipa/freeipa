@@ -11,7 +11,7 @@ import sys
 import six
 
 
-class from_(object):
+class from_:
     """
     Wrapper for delegating to a subgenerator.
 

@@ -202,7 +202,7 @@ class TestAddRemoveCertmap(XMLRPC_test):
         certmap_user.remove_certmap(ipacertmapdata=u'rawdata')
 
 
-class EWE(object):
+class EWE:
     """
     Context manager that checks the outcome of wrapped statement executed
     under specified user against specified expected outcome based on permission

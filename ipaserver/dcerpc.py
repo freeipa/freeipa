@@ -193,7 +193,7 @@ class ExtendedDNControl(LDAPControl):
         )
 
 
-class DomainValidator(object):
+class DomainValidator:
     ATTR_FLATNAME = 'ipantflatname'
     ATTR_SID = 'ipantsecurityidentifier'
     ATTR_TRUSTED_SID = 'ipanttrusteddomainsid'
@@ -824,7 +824,7 @@ def string_to_array(what):
     return [ord(v) for v in what]
 
 
-class TrustDomainInstance(object):
+class TrustDomainInstance:
 
     def __init__(self, hostname, creds=None):
         self.parm = param.LoadParm()
@@ -1569,7 +1569,7 @@ def retrieve_remote_domain(hostname, local_flatname,
     return rd
 
 
-class TrustDomainJoins(object):
+class TrustDomainJoins:
     def __init__(self, api):
         self.api = api
         self.local_domain = None

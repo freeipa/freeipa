@@ -6,7 +6,8 @@ import errno
 import shutil
 import tempfile
 
-class TemporaryDirectory(object):
+
+class TemporaryDirectory:
     def __init__(self, root):
         self.root = root
 

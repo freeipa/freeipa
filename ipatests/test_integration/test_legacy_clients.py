@@ -35,7 +35,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration import test_trust as trust_tests
 
 
-class BaseTestLegacyClient(object):
+class BaseTestLegacyClient:
     """
     Tests legacy client support.
     """
@@ -470,14 +470,14 @@ class BaseTestLegacyClient(object):
 
 # Base classes with attributes that are specific for each legacy client test
 
-class BaseTestLegacySSSDBefore19RedHat(object):
+class BaseTestLegacySSSDBefore19RedHat:
 
     advice_id = 'config-redhat-sssd-before-1-9'
     required_extra_roles = ['legacy_client_sssd_redhat']
     optional_extra_roles = ['ad_subdomain', 'ad_treedomain']
 
 
-class BaseTestLegacyNssPamLdapdRedHat(object):
+class BaseTestLegacyNssPamLdapdRedHat:
 
     advice_id = 'config-redhat-nss-pam-ldapd'
     required_extra_roles = ['legacy_client_nss_pam_ldapd_redhat']
@@ -487,7 +487,7 @@ class BaseTestLegacyNssPamLdapdRedHat(object):
         tasks.clear_sssd_cache(self.master)
 
 
-class BaseTestLegacyNssLdapRedHat(object):
+class BaseTestLegacyNssLdapRedHat:
 
     advice_id = 'config-redhat-nss-ldap'
     required_extra_roles = ['legacy_client_nss_ldap_redhat']
@@ -529,7 +529,7 @@ class BaseTestLegacyClientNonPosix(BaseTestLegacyClient,
         pass
 
 
-class BaseTestSSSDMixin(object):
+class BaseTestSSSDMixin:
 
     def test_apply_advice(self):
         super(BaseTestSSSDMixin, self).test_apply_advice()

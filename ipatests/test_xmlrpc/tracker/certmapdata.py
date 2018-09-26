@@ -12,7 +12,7 @@ from ipapython.dn import DN
 from ipatests.util import assert_deepequal
 
 
-class CertmapdataMixin(object):
+class CertmapdataMixin:
     certmapdata_options = {u'issuer', u'subject', u'certificate',
                            u'ipacertmapdata'}
 

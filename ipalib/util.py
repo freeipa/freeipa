@@ -994,7 +994,7 @@ def has_managed_topology(api):
     return domainlevel > DOMAIN_LEVEL_0
 
 
-class classproperty(object):
+class classproperty:
     __slots__ = ('__doc__', 'fget')
 
     def __init__(self, fget=None, doc=None):

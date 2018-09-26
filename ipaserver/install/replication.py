@@ -215,7 +215,7 @@ def wait_for_entry(connection, dn, timeout, attr=None, attrvalue='*',
             time.sleep(1)
 
 
-class ReplicationManager(object):
+class ReplicationManager:
     """Manage replication agreements
 
     between DS servers, and sync  agreements with Windows servers

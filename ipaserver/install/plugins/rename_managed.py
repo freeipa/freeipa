@@ -53,7 +53,7 @@ def entry_to_update(entry):
     return update
 
 
-class GenerateUpdateMixin(object):
+class GenerateUpdateMixin:
     def _dn_suffix_replace(self, dn, old_suffix, new_suffix):
         """Replace all occurences of "old" AVAs in a DN by "new"
 

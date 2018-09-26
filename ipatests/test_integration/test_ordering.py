@@ -29,7 +29,7 @@ from pytest_sourceorder import ordered
 
 
 @ordered
-class TestBase(object):
+class TestBase:
     @classmethod
     def setup_class(cls):
         cls.value = 'unchanged'

@@ -281,7 +281,7 @@ def enable_services(fqdn):
             logger.debug("Enabled service %s for %s", name, fqdn)
 
 
-class Service(object):
+class Service:
     def __init__(self, service_name, service_desc=None, sstore=None,
                  fstore=None, api=api, realm_name=None,
                  service_user=None, service_prefix=None,
