@@ -909,8 +909,7 @@ class LDAPClient:
                 return b'TRUE'
             else:
                 return b'FALSE'
-        elif isinstance(val, (unicode, six.integer_types, Decimal, DN,
-                              Principal)):
+        elif isinstance(val, (unicode, int, Decimal, DN, Principal)):
             return six.text_type(val).encode('utf-8')
         elif isinstance(val, DNSName):
             return val.to_text().encode('ascii')

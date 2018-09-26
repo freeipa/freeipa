@@ -132,7 +132,7 @@ from ipapython.dnsutil import DNSName
 def _is_null(value):
     if value:
         return False
-    elif isinstance(value, six.integer_types + (float, decimal.Decimal)):
+    elif isinstance(value, (int, float, decimal.Decimal)):
         # 0 is not NULL
         return False
     else:
@@ -597,7 +597,7 @@ class Param(ReadOnly):
             value = self.__kw[key]
             if callable(value) and hasattr(value, '__name__'):
                 value = value.__name__
-            elif isinstance(value, six.integer_types):
+            elif isinstance(value, int):
                 value = str(value)
             elif isinstance(value, (tuple, set, frozenset)):
                 value = apirepr(list(value))
@@ -1072,7 +1072,7 @@ class Number(Param):
         """
         if type(value) in self.allowed_types:
             return value
-        if type(value) in (unicode, float) + six.integer_types:
+        if type(value) in (unicode, float, int):
             try:
                 return self.type(value)
             except ValueError:
@@ -1089,12 +1089,12 @@ class Int(Number):
     """
 
     type = int
-    allowed_types = six.integer_types
+    allowed_types = (int,)
     type_error = _('must be an integer')
 
     kwargs = Param.kwargs + (
-        ('minvalue', six.integer_types, int(MININT)),
-        ('maxvalue', six.integer_types, int(MAXINT)),
+        ('minvalue', int, int(MININT)),
+        ('maxvalue', int, int(MAXINT)),
     )
 
     @staticmethod
@@ -1138,7 +1138,7 @@ class Int(Number):
         """
         Check min constraint.
         """
-        assert type(value) in six.integer_types
+        assert isinstance(value, int)
         if value < self.minvalue:
             return _('must be at least %(minvalue)d') % dict(
                 minvalue=self.minvalue,
@@ -1150,7 +1150,7 @@ class Int(Number):
         """
         Check max constraint.
         """
-        assert type(value) in six.integer_types
+        assert isinstance(value, int)
         if value > self.maxvalue:
             return _('can be at most %(maxvalue)d') % dict(
                 maxvalue=self.maxvalue,
@@ -1563,7 +1563,7 @@ class Str(Data):
         """
         if type(value) in self.allowed_types:
             return value
-        if type(value) in (float, decimal.Decimal) + six.integer_types:
+        if type(value) in (int, float, decimal.Decimal):
             return self.type(value)
         if type(value) in (tuple, list):
             raise ConversionError(name=self.name,
@@ -1721,7 +1721,7 @@ class IntEnum(Enum):
     """
 
     type = int
-    allowed_types = six.integer_types
+    allowed_types = (int,)
     type_error = Int.type_error
 
     def _convert_scalar(self, value, index=None):

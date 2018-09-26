@@ -86,7 +86,7 @@ def json_serialize(obj):
         return [json_serialize(o) for o in obj]
     if isinstance(obj, dict):
         return {k: json_serialize(v) for (k, v) in obj.items()}
-    if isinstance(obj, (bool, float, unicode, type(None), six.integer_types)):
+    if isinstance(obj, (int, bool, float, unicode, type(None))):
         return obj
     if isinstance(obj, str):
         return obj.decode('utf-8')

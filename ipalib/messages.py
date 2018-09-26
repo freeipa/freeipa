@@ -50,7 +50,7 @@ def add_message(version, result, message):
 
 def process_message_arguments(obj, format=None, message=None, **kw):
     for key, value in kw.items():
-        if not isinstance(value, six.integer_types):
+        if not isinstance(value, int):
             try:
                 kw[key] = unicode(value)
             except UnicodeError:

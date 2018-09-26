@@ -1243,7 +1243,7 @@ class test_Int(ClassChecker):
         # Test with no kwargs:
         o = self.cls('my_number')
         assert o.type == int
-        assert o.allowed_types == six.integer_types
+        assert o.allowed_types == (int,)
         assert isinstance(o, parameters.Int)
         assert o.minvalue == int(MININT)
         assert o.maxvalue == int(MAXINT)

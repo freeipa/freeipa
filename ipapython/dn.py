@@ -860,7 +860,7 @@ class RDN:
         return len(self._avas)
 
     def __getitem__(self, key):
-        if isinstance(key, six.integer_types):
+        if isinstance(key, int):
             return self._get_ava(self._avas[key])
         if isinstance(key, slice):
             return [self._get_ava(ava) for ava in self._avas[key]]
@@ -1178,7 +1178,7 @@ class DN:
         return len(self.rdns)
 
     def __getitem__(self, key):
-        if isinstance(key, six.integer_types):
+        if isinstance(key, int):
             return self._get_rdn(self.rdns[key])
         if isinstance(key, slice):
             cls = self.__class__
