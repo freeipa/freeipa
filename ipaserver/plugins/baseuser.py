@@ -80,7 +80,7 @@ def validate_nsaccountlock(entry_attrs):
     if 'nsaccountlock' in entry_attrs:
         nsaccountlock = entry_attrs['nsaccountlock']
         if not isinstance(nsaccountlock, (bool, Bool)):
-            if not isinstance(nsaccountlock, six.string_types):
+            if not isinstance(nsaccountlock, str):
                 raise errors.OnlyOneValueAllowed(attr='nsaccountlock')
             if nsaccountlock.lower() not in ('true', 'false'):
                 raise errors.ValidationError(name='nsaccountlock',
@@ -391,7 +391,7 @@ class baseuser(LDAPObject):
             if not isinstance(email, (list, tuple)):
                 email = [email]
             for m in email:
-                if isinstance(m, six.string_types):
+                if isinstance(m, str):
                     if '@' not in m and defaultdomain:
                         m = m + u'@' + defaultdomain
                     if not Email(m):

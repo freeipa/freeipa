@@ -253,7 +253,7 @@ class Env:
             )
         # pylint: enable=no-member
         assert not hasattr(self, key)
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = value.strip()
             if isinstance(value, bytes):
                 value = value.decode('utf-8')

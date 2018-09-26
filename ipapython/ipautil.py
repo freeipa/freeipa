@@ -447,7 +447,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     p_out = None
     p_err = None
 
-    if isinstance(nolog, six.string_types):
+    if isinstance(nolog, str):
         # We expect a tuple (or list, or other iterable) of nolog strings.
         # Passing just a single string is bad: strings are iterable, so this
         # would result in every individual character of that string being
@@ -585,7 +585,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
 def nolog_replace(string, nolog):
     """Replace occurences of strings given in `nolog` with XXXXXXXX"""
     for value in nolog:
-        if not value or not isinstance(value, six.string_types):
+        if not value or not isinstance(value, str):
             continue
 
         quoted = urllib.parse.quote(value)
@@ -954,7 +954,7 @@ def user_input(prompt, default = None, allow_empty = True):
                     return ''
                 raise RuntimeError("Failed to get user input")
 
-    if isinstance(default, six.string_types):
+    if isinstance(default, str):
         while True:
             try:
                 ret = input("%s [%s]: " % (prompt, default))
