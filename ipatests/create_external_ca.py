@@ -26,7 +26,6 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
 import datetime
-import six
 
 ISSUER_CN = 'example.test'
 
@@ -53,7 +52,7 @@ class ExternalCA:
         self.ca_public_key = self.ca_key.public_key()
 
         subject = self.issuer = x509.Name([
-            x509.NameAttribute(NameOID.COMMON_NAME, six.text_type(cn)),
+            x509.NameAttribute(NameOID.COMMON_NAME, str(cn)),
         ])
 
         builder = x509.CertificateBuilder()

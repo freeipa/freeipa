@@ -910,7 +910,7 @@ class LDAPClient:
             else:
                 return b'FALSE'
         elif isinstance(val, (unicode, int, Decimal, DN, Principal)):
-            return six.text_type(val).encode('utf-8')
+            return str(val).encode('utf-8')
         elif isinstance(val, DNSName):
             return val.to_text().encode('ascii')
         elif isinstance(val, bytes):
@@ -1295,7 +1295,7 @@ class LDAPClient:
                 value = u'\\'.join(
                     value[i:i+2] for i in six.moves.range(-2, len(value), 2))
             else:
-                value = six.text_type(value)
+                value = str(value)
                 value = ldap.filter.escape_filter_chars(value)
 
             if not exact:
