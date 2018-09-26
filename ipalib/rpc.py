@@ -171,7 +171,7 @@ def xml_wrap(value, version):
     if type(value) is Decimal:
         # transfer Decimal as a string
         return unicode(value)
-    if isinstance(value, six.integer_types) and (value < MININT or value > MAXINT):
+    if isinstance(value, int) and (value < MININT or value > MAXINT):
         return unicode(value)
     if isinstance(value, DN):
         return str(value)
@@ -200,7 +200,7 @@ def xml_wrap(value, version):
         return base64.b64encode(
             value.public_bytes(x509_Encoding.DER)).decode('ascii')
 
-    assert type(value) in (unicode, float, bool, type(None)) + six.integer_types
+    assert type(value) in (unicode, float, int, bool, type(None))
     return value
 
 
@@ -320,6 +320,7 @@ class _JSONPrimer(dict):
         self.update({
             unicode: _identity,
             bool: _identity,
+            int: _identity,
             type(None): _identity,
             float: _identity,
             Decimal: unicode,
@@ -334,9 +335,6 @@ class _JSONPrimer(dict):
             crypto_x509.Certificate: self._enc_certificate,
             crypto_x509.CertificateSigningRequest: self._enc_certificate,
         })
-        # int, long
-        for t in six.integer_types:
-            self[t] = _identity
 
     def __missing__(self, typ):
         # walk MRO to find best match
