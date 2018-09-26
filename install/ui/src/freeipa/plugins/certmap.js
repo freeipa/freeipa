@@ -167,8 +167,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.certmap.remove',
-    },
+        title: '@i18n:objects.certmap.remove'
+    }
 };};
 
 

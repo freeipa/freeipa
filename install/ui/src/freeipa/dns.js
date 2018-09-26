@@ -329,8 +329,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.dnszone.remove',
-    },
+        title: '@i18n:objects.dnszone.remove'
+    }
 };};
 
 var make_forwardzone_spec = function() {
@@ -504,8 +504,8 @@ return {
         ]
     },
     deleter_dialog: {
-        title: '@i18n:objects.dnsforwardzone.remove',
-    },
+        title: '@i18n:objects.dnsforwardzone.remove'
+    }
 };};
 
 
@@ -1384,8 +1384,8 @@ return {
     },
     deleter_dialog: {
         title: '@i18n:objects.dnsrecord.remove',
-        $factory: IPA.dns.record_search_deleter_dialog,
-    },
+        $factory: IPA.dns.record_search_deleter_dialog
+    }
 };};
 
 IPA.dns.record_adder_dialog = function(spec) {
