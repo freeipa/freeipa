@@ -36,12 +36,12 @@ class TestHttpKdcProxy(IntegrationTest):
             '--dport', '88', '-j', 'DROP'])
         # configure client
         cls.clients[0].run_command(
-            "sed -i 's/ kdc = .*$/ kdc = https:\/\/%s\/KdcProxy/' %s" % (
+            r"sed -i 's/ kdc = .*$/ kdc = https:\/\/%s\/KdcProxy/' %s" % (
                 cls.master.hostname, paths.KRB5_CONF)
             )
         cls.clients[0].run_command(
-            "sed -i 's/master_kdc = .*$/master_kdc"
-            " = https:\/\/%s\/KdcProxy/' %s" % (
+            r"sed -i 's/master_kdc = .*$/master_kdc"
+            r" = https:\/\/%s\/KdcProxy/' %s" % (
                 cls.master.hostname, paths.KRB5_CONF)
             )
         # Workaround for https://fedorahosted.org/freeipa/ticket/6443

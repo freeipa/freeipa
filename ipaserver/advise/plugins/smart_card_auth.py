@@ -167,8 +167,8 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
             ],
             commands_to_run_when_false=[
                 self._interpolate_ocsp_directive_file_into_command(
-                    "sed -i.ipabkp '/<\/VirtualHost>/i {directive} on' "
-                    "{filename}")
+                    r"sed -i.ipabkp '/<\/VirtualHost>/i {directive} on' "
+                    r"{filename}")
             ]
         )
 
