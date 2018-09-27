@@ -133,6 +133,9 @@ class range_tasks(UI_driver):
             callback=self.check_range_type_mod
         )
 
+    def get_mod_form_data(self, **kwargs):
+        return RangeModifyFormData(**kwargs)
+
     def check_range_type_mod(self, range_type):
         if range_type == LOCAL_ID_RANGE:
             self.assert_disabled("[name=ipanttrusteddomainname]")
@@ -145,7 +148,7 @@ class range_tasks(UI_driver):
 
 class RangeAddFormData(object):
     """
-    Class for ID Range form data storing and serializing.
+    Class for storing and serializing of new ID Range form data.
 
     Warning: Only for data transformation.
              Do not put any additional logic here!
@@ -179,6 +182,35 @@ class RangeAddFormData(object):
                                'ipanttrusteddomainname',
                                self.domain))
         else:
+            serialized.append(('textbox',
+                               'ipasecondarybaserid',
+                               str(self.secondary_base_rid)))
+
+        return serialized
+
+
+class RangeModifyFormData(object):
+    """
+    Class for storing and serializing of modified ID Range form data.
+    """
+
+    def __init__(self, base_id=None, base_rid=None, secondary_base_rid=None,
+                 size=None):
+        self.base_id = base_id
+        self.base_rid = base_rid
+        self.secondary_base_rid = secondary_base_rid
+        self.size = size
+
+    def serialize(self):
+        serialized = []
+
+        if self.base_id is not None:
+            serialized.append(('textbox', 'ipabaseid', str(self.base_id)))
+        if self.size is not None:
+            serialized.append(('textbox', 'ipaidrangesize', str(self.size)))
+        if self.base_rid is not None:
+            serialized.append(('textbox', 'ipabaserid', str(self.base_rid)))
+        if self.secondary_base_rid is not None:
             serialized.append(('textbox',
                                'ipasecondarybaserid',
                                str(self.secondary_base_rid)))
