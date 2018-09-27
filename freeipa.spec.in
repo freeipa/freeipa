@@ -80,6 +80,10 @@
 # https://bugzilla.redhat.com/show_bug.cgi?id=1568271
 %global nss_version 3.36.1-1.1
 
+# One-Way Trust authenticated by trust secret
+# https://bugzilla.redhat.com/show_bug.cgi?id=1345975#c20
+%global sssd_version 1.16.3-2
+
 %define krb5_base_version %(LC_ALL=C rpm -q --qf '%%{VERSION}' krb5-devel | grep -Eo '^[^.]+\.[^.]+')
 
 %global plugin_dir %{_libdir}/dirsrv/plugins
@@ -143,8 +147,7 @@ BuildRequires:  libtevent-devel
 BuildRequires:  libuuid-devel
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_certmap-devel
-# 1.15.3: sss_nss_getlistbycert (https://pagure.io/SSSD/sssd/issue/3050)
-BuildRequires:  libsss_nss_idmap-devel >= 1.15.3
+BuildRequires:  libsss_nss_idmap-devel >= %{sssd_version}
 BuildRequires:  nodejs
 BuildRequires:  uglify-js
 BuildRequires:  libverto-devel
@@ -214,7 +217,7 @@ BuildRequires:  python3-samba
 BuildRequires:  python3-six
 BuildRequires:  python3-sss
 BuildRequires:  python3-sss-murmur
-BuildRequires:  python3-sssdconfig
+BuildRequires:  python3-sssdconfig >= %{sssd_version}
 BuildRequires:  python3-systemd
 BuildRequires:  python3-yubico
 %endif # with_lint
@@ -297,8 +300,7 @@ Requires: gzip
 Requires: oddjob
 # 0.7.0-2: https://pagure.io/gssproxy/pull-request/172
 Requires: gssproxy >= 0.7.0-2
-# 1.15.2: FindByNameAndCertificate (https://pagure.io/SSSD/sssd/issue/3050)
-Requires: sssd-dbus >= 1.15.2
+Requires: sssd-dbus >= %{sssd_version}
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
@@ -343,7 +345,7 @@ Requires: python3-kdcproxy >= 0.3
 Requires: python3-lxml
 Requires: python3-pki >= %{pki_version}
 Requires: python3-pyasn1 >= 0.3.2-2
-Requires: python3-sssdconfig
+Requires: python3-sssdconfig >= %{sssd_version}
 Requires: rpm-libs
 
 %description -n python3-ipaserver
@@ -445,7 +447,7 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python3-gssapi >= 1.2.0-5
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ldap >= %{python_ldap_version}
-Requires: python3-sssdconfig
+Requires: python3-sssdconfig >= %{sssd_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: chrony
 Requires: krb5-workstation >= %{krb5_version}
@@ -459,7 +461,7 @@ Requires: initscripts
 %endif
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
-Requires: sssd >= 1.14.0
+Requires: sssd-ipa >= %{sssd_version}
 Requires: certmonger >= 0.79.5-1
 Requires: nss-tools >= %{nss_version}
 Requires: bind-utils
@@ -468,7 +470,7 @@ Requires: libsss_autofs
 Requires: autofs
 Requires: libnfsidmap
 Requires: nfs-utils
-Requires: sssd-tools
+Requires: sssd-tools >= %{sssd_version}
 Requires(post): policycoreutils
 
 Provides: %{alt_name}-client = %{version}
@@ -648,7 +650,7 @@ Requires: python3-polib
 Requires: python3-pytest >= 2.6
 Requires: python3-pytest-multihost >= 0.5
 Requires: python3-pytest-sourceorder
-Requires: python3-sssdconfig
+Requires: python3-sssdconfig >= %{sssd_version}
 Requires: tar
 Requires: xz
 
