@@ -1,7 +1,7 @@
 import six
 from ipalib import _
 if six.PY3:
-    unicode = six.text_type
+    unicode = str
 
 # Both constants can be used as masks against trust direction
 # because bi-directional has two lower bits set.

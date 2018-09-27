@@ -447,7 +447,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     p_out = None
     p_err = None
 
-    if isinstance(nolog, six.string_types):
+    if isinstance(nolog, str):
         # We expect a tuple (or list, or other iterable) of nolog strings.
         # Passing just a single string is bad: strings are iterable, so this
         # would result in every individual character of that string being
@@ -585,7 +585,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
 def nolog_replace(string, nolog):
     """Replace occurences of strings given in `nolog` with XXXXXXXX"""
     for value in nolog:
-        if not value or not isinstance(value, six.string_types):
+        if not value or not isinstance(value, str):
             continue
 
         quoted = urllib.parse.quote(value)
@@ -954,7 +954,7 @@ def user_input(prompt, default = None, allow_empty = True):
                     return ''
                 raise RuntimeError("Failed to get user input")
 
-    if isinstance(default, six.string_types):
+    if isinstance(default, str):
         while True:
             try:
                 ret = input("%s [%s]: " % (prompt, default))
@@ -1439,14 +1439,14 @@ if six.PY2:
         Decode argument using the file system encoding, as returned by
         `sys.getfilesystemencoding()`.
         """
-        if isinstance(value, six.binary_type):
+        if isinstance(value, bytes):
             return value.decode(sys.getfilesystemencoding())
-        elif isinstance(value, six.text_type):
+        elif isinstance(value, str):
             return value
         else:
             raise TypeError("expect {0} or {1}, not {2}".format(
-                six.binary_type.__name__,
-                six.text_type.__name__,
+                bytes.__name__,
+                str.__name__,
                 type(value).__name__))
 else:
     fsdecode = os.fsdecode  #pylint: disable=no-member
@@ -1522,7 +1522,7 @@ def decode_json(data):
         # default
         return 'utf-8'
 
-    if isinstance(data, six.text_type):
+    if isinstance(data, str):
         return data
 
     return data.decode(detect_encoding(data), 'surrogatepass')

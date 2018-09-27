@@ -143,7 +143,7 @@ def install_check(standalone, api, replica, options, hostname):
             dnsutil.check_zone_overlap(reverse_zone)
         except ValueError as e:
             if options.force or options.allow_zone_overlap:
-                logger.warning('%s', six.text_type(e))
+                logger.warning('%s', str(e))
             else:
                 raise e
 

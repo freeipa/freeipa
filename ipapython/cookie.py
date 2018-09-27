@@ -22,7 +22,6 @@ import datetime
 import email.utils
 from calendar import timegm
 
-import six
 # pylint: disable=import-error
 from six.moves.urllib.parse import urlparse
 # pylint: enable=import-error
@@ -392,9 +391,9 @@ class Cookie:
             self._timestamp = None
         elif isinstance(value, datetime.datetime):
             self._timestamp = value
-        elif isinstance(value, (six.integer_types, float)):
+        elif isinstance(value, (int, float)):
             self._timestamp = datetime.datetime.utcfromtimestamp(value)
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             self._timestamp = Cookie.parse_datetime(value)
         else:
             raise TypeError('value must be datetime, int, long, float, basestring or None, not %s' % \
@@ -418,9 +417,9 @@ class Cookie:
             self._expires = None
         elif isinstance(value, datetime.datetime):
             self._expires = value
-        elif isinstance(value, (six.integer_types, float)):
+        elif isinstance(value, (int, float)):
             self._expires = datetime.datetime.utcfromtimestamp(value)
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             self._expires = Cookie.parse_datetime(value)
         else:
             raise TypeError('value must be datetime, int, long, float, basestring or None, not %s' % \

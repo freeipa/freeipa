@@ -43,7 +43,7 @@ else:
 # Matches a gidnumber like '1391016742'
 # FIXME: Does it make more sense to return gidnumber, uidnumber, etc. as `int`
 # or `long`?  If not, we still need to return them as `unicode` instead of `str`.
-fuzzy_digits = Fuzzy(r'^\d+$', type=six.string_types)
+fuzzy_digits = Fuzzy(r'^\d+$', type=str)
 
 uuid_re = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 
@@ -109,18 +109,16 @@ fuzzy_caid = fuzzy_uuid
 fuzzy_ipauniqueid = Fuzzy('(?i)ipauniqueid=%s' % uuid_re)
 
 # Matches a hash signature, not enforcing length
-fuzzy_hash = Fuzzy(
-    r'^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=six.string_types
-)
+fuzzy_hash = Fuzzy(r'^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=str)
 
 # Matches a date, like Tue Apr 26 17:45:35 2016 UTC
 fuzzy_date = Fuzzy(
     r'^[a-zA-Z]{3} [a-zA-Z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4} UTC$'
 )
 
-fuzzy_issuer = Fuzzy(type=six.string_types)
+fuzzy_issuer = Fuzzy(type=str)
 
-fuzzy_hex = Fuzzy(r'^0x[0-9a-fA-F]+$', type=six.string_types)
+fuzzy_hex = Fuzzy(r'^0x[0-9a-fA-F]+$', type=str)
 
 # Matches password - password consists of all printable characters without
 # whitespaces. The only exception is space, but space cannot be at the
@@ -131,7 +129,7 @@ fuzzy_password = Fuzzy(r'^\S([\S ]*\S)*$')
 fuzzy_dergeneralizedtime = Fuzzy(type=datetime.datetime)
 
 # match any string
-fuzzy_string = Fuzzy(type=six.string_types)
+fuzzy_string = Fuzzy(type=str)
 
 fuzzy_bytes = Fuzzy(type=bytes)
 

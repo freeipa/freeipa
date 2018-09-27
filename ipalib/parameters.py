@@ -132,7 +132,7 @@ from ipapython.dnsutil import DNSName
 def _is_null(value):
     if value:
         return False
-    elif isinstance(value, six.integer_types + (float, decimal.Decimal)):
+    elif isinstance(value, (int, float, decimal.Decimal)):
         # 0 is not NULL
         return False
     else:
@@ -415,8 +415,8 @@ class Param(ReadOnly):
         ('cli_name', str, None),
         ('cli_short_name', str, None),
         ('deprecated_cli_aliases', frozenset, frozenset()),
-        ('label', (six.string_types, Gettext), None),
-        ('doc', (six.string_types, Gettext), None),
+        ('label', (str, Gettext), None),
+        ('doc', (str, Gettext), None),
         ('required', bool, True),
         ('multivalue', bool, False),
         ('primary_key', bool, False),
@@ -597,7 +597,7 @@ class Param(ReadOnly):
             value = self.__kw[key]
             if callable(value) and hasattr(value, '__name__'):
                 value = value.__name__
-            elif isinstance(value, six.integer_types):
+            elif isinstance(value, int):
                 value = str(value)
             elif isinstance(value, (tuple, set, frozenset)):
                 value = apirepr(list(value))
@@ -1007,7 +1007,7 @@ class Bool(Param):
         """
         if type(value) in self.allowed_types:
             return value
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = value.lower()
         if value in self.truths:
             return True
@@ -1072,7 +1072,7 @@ class Number(Param):
         """
         if type(value) in self.allowed_types:
             return value
-        if type(value) in (unicode, float) + six.integer_types:
+        if type(value) in (unicode, float, int):
             try:
                 return self.type(value)
             except ValueError:
@@ -1089,12 +1089,12 @@ class Int(Number):
     """
 
     type = int
-    allowed_types = six.integer_types
+    allowed_types = (int,)
     type_error = _('must be an integer')
 
     kwargs = Param.kwargs + (
-        ('minvalue', six.integer_types, int(MININT)),
-        ('maxvalue', six.integer_types, int(MAXINT)),
+        ('minvalue', int, int(MININT)),
+        ('maxvalue', int, int(MAXINT)),
     )
 
     @staticmethod
@@ -1138,7 +1138,7 @@ class Int(Number):
         """
         Check min constraint.
         """
-        assert type(value) in six.integer_types
+        assert isinstance(value, int)
         if value < self.minvalue:
             return _('must be at least %(minvalue)d') % dict(
                 minvalue=self.minvalue,
@@ -1150,7 +1150,7 @@ class Int(Number):
         """
         Check max constraint.
         """
-        assert type(value) in six.integer_types
+        assert isinstance(value, int)
         if value > self.maxvalue:
             return _('can be at most %(maxvalue)d') % dict(
                 maxvalue=self.maxvalue,
@@ -1188,7 +1188,7 @@ class Decimal(Number):
             value = kw.get(kwparam)
             if value is None:
                 continue
-            if isinstance(value, (six.string_types, float)):
+            if isinstance(value, (str, float)):
                 try:
                     value = decimal.Decimal(value)
                 except Exception as e:
@@ -1282,7 +1282,7 @@ class Decimal(Number):
         return value
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, (six.string_types, float)):
+        if isinstance(value, (str, float)):
             try:
                 value = decimal.Decimal(value)
             except decimal.DecimalException as e:
@@ -1313,7 +1313,7 @@ class Data(Param):
         ('minlength', int, None),
         ('maxlength', int, None),
         ('length', int, None),
-        ('pattern_errmsg', (six.string_types,), None),
+        ('pattern_errmsg', (str,), None),
     )
 
     re = None
@@ -1542,7 +1542,7 @@ class Str(Data):
     """
 
     kwargs = Data.kwargs + (
-        ('pattern', (six.string_types,), None),
+        ('pattern', (str,), None),
         ('noextrawhitespace', bool, True),
     )
 
@@ -1563,7 +1563,7 @@ class Str(Data):
         """
         if type(value) in self.allowed_types:
             return value
-        if type(value) in (float, decimal.Decimal) + six.integer_types:
+        if type(value) in (int, float, decimal.Decimal):
             return self.type(value)
         if type(value) in (tuple, list):
             raise ConversionError(name=self.name,
@@ -1630,7 +1630,7 @@ class IA5Str(Str):
         super(IA5Str, self).__init__(name, *rules, **kw)
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             for char in value:
                 if ord(char) > 127:
                     raise ConversionError(name=self.get_param_name(),
@@ -1721,7 +1721,7 @@ class IntEnum(Enum):
     """
 
     type = int
-    allowed_types = six.integer_types
+    allowed_types = (int,)
     type_error = Int.type_error
 
     def _convert_scalar(self, value, index=None):
@@ -1805,7 +1805,7 @@ class DateTime(Param):
     type_error = _('must be datetime value')
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             if value == u'now':
                 time = datetime.datetime.utcnow()
                 return time

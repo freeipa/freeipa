@@ -66,12 +66,12 @@ class Principal:
     Container for the principal name and realm according to RFC 1510
     """
     def __init__(self, components, realm=None):
-        if isinstance(components, six.binary_type):
+        if isinstance(components, bytes):
             raise TypeError(
                 "Cannot create a principal object from bytes: {!r}".format(
                     components)
             )
-        elif isinstance(components, six.string_types):
+        elif isinstance(components, str):
             # parse principal components from realm
             self.components, self.realm = self._parse_from_text(
                 components, realm)

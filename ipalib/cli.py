@@ -311,7 +311,7 @@ class textui(backend.Backend):
           objectClass: top
           objectClass: someClass
         """
-        assert isinstance(attr, six.string_types)
+        assert isinstance(attr, str)
         if not isinstance(value, (list, tuple)):
             # single-value attribute
             self.print_indented(format % (attr, self.encode_binary(value)), indent)
@@ -450,7 +450,7 @@ class textui(backend.Backend):
         ------------------
         Only dashed above.
         """
-        assert isinstance(dash, six.string_types)
+        assert isinstance(dash, str)
         assert len(dash) == 1
         dashes = dash * len(string)
         if above:

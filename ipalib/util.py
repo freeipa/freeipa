@@ -86,7 +86,7 @@ def json_serialize(obj):
         return [json_serialize(o) for o in obj]
     if isinstance(obj, dict):
         return {k: json_serialize(v) for (k, v) in obj.items()}
-    if isinstance(obj, (bool, float, unicode, type(None), six.integer_types)):
+    if isinstance(obj, (int, bool, float, unicode, type(None))):
         return obj
     if isinstance(obj, str):
         return obj.decode('utf-8')
@@ -214,7 +214,7 @@ def check_writable_file(filename):
         raise errors.FileError(reason=str(e))
 
 def normalize_zonemgr(zonemgr):
-    if not zonemgr or not isinstance(zonemgr, six.string_types):
+    if not zonemgr or not isinstance(zonemgr, str):
         return zonemgr
     if '@' in zonemgr:
         # local-part needs to be normalized
@@ -763,8 +763,8 @@ def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
     :param flag_cd: requires dnssec=True, adds flag CD
     :raise DNSException: if error occurs
     """
-    assert isinstance(nameserver_ip, six.string_types) or nameserver_ip is None
-    assert isinstance(rtype, six.string_types)
+    assert isinstance(nameserver_ip, str) or nameserver_ip is None
+    assert isinstance(rtype, str)
 
     res = dns.resolver.Resolver()
     if nameserver_ip:

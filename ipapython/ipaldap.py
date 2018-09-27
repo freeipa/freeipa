@@ -372,7 +372,7 @@ class LDAPEntry(MutableMapping):
             self._not_list.discard(name)
 
     def _attr_name(self, name):
-        if not isinstance(name, six.string_types):
+        if not isinstance(name, str):
             raise TypeError(
                 "attribute name must be unicode or str, got %s object %r" % (
                     name.__class__.__name__, name))
@@ -909,9 +909,8 @@ class LDAPClient:
                 return b'TRUE'
             else:
                 return b'FALSE'
-        elif isinstance(val, (unicode, six.integer_types, Decimal, DN,
-                              Principal)):
-            return six.text_type(val).encode('utf-8')
+        elif isinstance(val, (unicode, int, Decimal, DN, Principal)):
+            return str(val).encode('utf-8')
         elif isinstance(val, DNSName):
             return val.to_text().encode('ascii')
         elif isinstance(val, bytes):
@@ -1296,7 +1295,7 @@ class LDAPClient:
                 value = u'\\'.join(
                     value[i:i+2] for i in six.moves.range(-2, len(value), 2))
             else:
-                value = six.text_type(value)
+                value = str(value)
                 value = ldap.filter.escape_filter_chars(value)
 
             if not exact:
