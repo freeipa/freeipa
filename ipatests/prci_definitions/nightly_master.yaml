@@ -1192,3 +1192,15 @@ jobs:
         template: *ci-master-f29
         timeout: 3600
         topology: *ipaserver
+
+  fedora-29/test_ntp_options:
+    requires: [fedora-29/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-29/build_url}'
+        test_suite: test_integration/test_ntp_options.py::TestNTPoptions
+        template: *ci-master-f29
+        timeout: 7200
+        topology: *master_1repl_1client
