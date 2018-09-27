@@ -37,7 +37,7 @@ pytestmark = pytest.mark.needs_ipaapi
 
 
 @pytest.mark.tier0
-class CLITestContext(object):
+class CLITestContext:
     """Context manager that replaces stdout & stderr, and catches SystemExit
 
     Whatever was printed to the streams is available in ``stdout`` and

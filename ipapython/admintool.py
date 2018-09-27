@@ -53,7 +53,7 @@ class ScriptError(Exception):
         return str(self)
 
 
-class AdminTool(object):
+class AdminTool:
     """Base class for command-line admin tools
 
     To run the tool, call the main() classmethod with a list of command-line

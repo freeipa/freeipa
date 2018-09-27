@@ -7,7 +7,7 @@ import ldap.filter
 from ipapython.ipaldap import ldap_initialize
 
 
-class iSecLdap(object):
+class iSecLdap:
 
     def __init__(self, uri, auth_type=None):
         self.uri = uri

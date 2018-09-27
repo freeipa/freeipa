@@ -4,7 +4,7 @@
 from collections import deque
 
 
-class Graph(object):
+class Graph:
     """
     Simple oriented graph structure
 

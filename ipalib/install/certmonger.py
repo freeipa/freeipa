@@ -47,7 +47,7 @@ DBUS_CM_CA_IF = 'org.fedorahosted.certmonger.ca'
 DBUS_PROPERTY_IF = 'org.freedesktop.DBus.Properties'
 
 
-class _cm_dbus_object(object):
+class _cm_dbus_object:
     """
     Auxiliary class for convenient DBus object handling.
     """

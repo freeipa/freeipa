@@ -1937,7 +1937,7 @@ def update_ipa_conf():
         parser.write(f)
 
 
-class ExternalCAProfile(object):
+class ExternalCAProfile:
     """
     An external CA profile configuration.  Currently the only
     subclasses are for Microsoft CAs, for providing data in the

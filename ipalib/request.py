@@ -33,7 +33,7 @@ from ipalib.constants import CALLABLE_ERROR
 context = threading.local()
 
 
-class _FrameContext(object):
+class _FrameContext:
     pass
 
 

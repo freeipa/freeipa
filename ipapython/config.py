@@ -152,7 +152,7 @@ def verify_args(parser, args, needed_args = None):
         parser.error("no %s specified" % needed_list[len_have])
 
 
-class IPAConfig(object):
+class IPAConfig:
     def __init__(self):
         self.default_realm = None
         self.default_server = []

@@ -50,7 +50,7 @@ def test_create_translation():
     assert context.__dict__[key] is t
 
 
-class test_TestLang(object):
+class test_TestLang:
     lang_env_vars = {'LC_ALL', 'LC_MESSAGES', 'LANGUAGE', 'LANG'}
 
     def setup_lang(self):
@@ -148,7 +148,8 @@ class test_TestLang(object):
         result = self.po_file_iterate(self.po_file, get_msgstr, get_msgstr_plural)
         assert result == 0
 
-class test_LazyText(object):
+
+class test_LazyText:
 
     klass = text.LazyText
 
@@ -159,7 +160,7 @@ class test_LazyText(object):
         assert inst.key == ('foo', 'bar')
 
 
-class test_FixMe(object):
+class test_FixMe:
     klass = text.FixMe
 
     def test_init(self):
@@ -178,7 +179,7 @@ class test_FixMe(object):
         assert type(unicode(inst)) is unicode
 
 
-class test_Gettext(object):
+class test_Gettext:
 
     klass = text.Gettext
 
@@ -240,7 +241,7 @@ class test_Gettext(object):
         assert (inst4 != inst1) is True
 
 
-class test_NGettext(object):
+class test_NGettext:
 
     klass = text.NGettext
 
@@ -318,7 +319,7 @@ class test_NGettext(object):
         assert (inst4 != inst1) is True
 
 
-class test_GettextFactory(object):
+class test_GettextFactory:
 
     klass = text.GettextFactory
 
@@ -351,7 +352,7 @@ class test_GettextFactory(object):
         assert g.localedir == 'bar'
 
 
-class test_NGettextFactory(object):
+class test_NGettextFactory:
 
     klass = text.NGettextFactory
 
@@ -385,7 +386,7 @@ class test_NGettextFactory(object):
         assert ng.localedir == 'bar'
 
 
-class test_ConcatenatedText(object):
+class test_ConcatenatedText:
 
     klass = text.ConcatenatedLazyText
 

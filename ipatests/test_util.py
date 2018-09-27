@@ -49,7 +49,7 @@ else:
 pattern_type = type(re.compile(""))
 
 
-class Prop(object):
+class Prop:
     def __init__(self, *ops):
         self.__ops = frozenset(ops)
         self.__prop = 'prop value'
@@ -72,7 +72,7 @@ class Prop(object):
     prop = property(__get_prop, __set_prop, __del_prop)
 
 
-class test_Fuzzy(object):
+class test_Fuzzy:
     klass = util.Fuzzy
 
     def test_init(self):

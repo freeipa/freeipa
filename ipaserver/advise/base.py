@@ -81,7 +81,7 @@ As a result, you can redirect the advice's output directly to a script file.
 DEFAULT_INDENTATION_INCREMENT = 2
 
 
-class _IndentationTracker(object):
+class _IndentationTracker:
     """
     A simple wrapper that tracks the indentation level of the generated bash
     commands
@@ -130,7 +130,7 @@ class _IndentationTracker(object):
         self._recompute_indentation_level()
 
 
-class CompoundStatement(object):
+class CompoundStatement:
     """
     Wrapper around indented blocks of Bash statements.
 
@@ -221,7 +221,7 @@ class ForLoop(CompoundStatement):
         self.advice_output.command('done')
 
 
-class _AdviceOutput(object):
+class _AdviceOutput:
 
     def __init__(self):
         self.content = []

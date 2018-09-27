@@ -91,7 +91,7 @@ def p11(request, token_path):
     return p11
 
 
-class test_p11helper(object):
+class test_p11helper:
     def test_generate_master_key(self, p11):
         assert p11.generate_master_key(master_key_label, master_key_id,
                                        key_length=16, cka_wrap=True,

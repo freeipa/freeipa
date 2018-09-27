@@ -93,7 +93,7 @@ def check_no_ipaapi(reason="Skip tests that needs an IPA API"):
             raise pytest.skip(reason)
 
 
-class TempDir(object):
+class TempDir:
     def __init__(self):
         self.__path = tempfile.mkdtemp(prefix='ipa.tests.')
         assert self.path == self.__path
@@ -183,7 +183,7 @@ def assert_not_equal(val1, val2):
     assert val1 != val2, '%r == %r' % (val1, val2)
 
 
-class Fuzzy(object):
+class Fuzzy:
     """
     Perform a fuzzy (non-strict) equality tests.
 
@@ -521,7 +521,7 @@ def is_prop(prop):
     return type(prop) is property
 
 
-class ClassChecker(object):
+class ClassChecker:
     __cls = None
     __subcls = None
 
@@ -582,7 +582,7 @@ def create_test_api(**kw):
     return (api, home)
 
 
-class PluginTester(object):
+class PluginTester:
     __plugin = None
 
     def __get_plugin(self):
@@ -624,7 +624,7 @@ class PluginTester(object):
         context.__dict__.clear()
 
 
-class dummy_ugettext(object):
+class dummy_ugettext:
     __called = False
 
     def __init__(self, translation=None):
@@ -653,7 +653,7 @@ class dummy_ugettext(object):
         self.__called = False
 
 
-class dummy_ungettext(object):
+class dummy_ungettext:
     __called = False
 
     def __init__(self):
@@ -674,7 +674,7 @@ class dummy_ungettext(object):
         return self.translation_plural
 
 
-class DummyMethod(object):
+class DummyMethod:
     def __init__(self, callback, name):
         self.__callback = callback
         self.__name = name
@@ -683,7 +683,7 @@ class DummyMethod(object):
         return self.__callback(self.__name, args, kw)
 
 
-class DummyClass(object):
+class DummyClass:
     def __init__(self, *calls):
         self.__calls = calls
         self.__i = 0
@@ -727,7 +727,7 @@ class DummyClass(object):
         return self.__i == len(self.__calls)
 
 
-class MockLDAP(object):
+class MockLDAP:
     def __init__(self):
         self.connection = ldap_initialize(
             'ldap://{host}'.format(host=ipalib.api.env.host)

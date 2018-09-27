@@ -33,7 +33,8 @@ version_strings = [
 def versions(request):
     return request.param
 
-class TestVersionComparsion(object):
+
+class TestVersionComparsion:
 
     def test_versions(self, versions):
         version_string1, version_string2, expected_comparison = versions

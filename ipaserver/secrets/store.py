@@ -19,7 +19,7 @@ class UnknownKeyName(Exception):
     pass
 
 
-class DBMAPHandler(object):
+class DBMAPHandler:
 
     def __init__(self, config, dbmap, nickname):
         raise NotImplementedError
