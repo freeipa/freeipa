@@ -64,9 +64,8 @@ class CertRetrieveOverride(MethodOverride):
             if options.get('chain', False):
                 certs = result['result']['certificate_chain']
             else:
-                certs = [result['result']['certificate']]
-            certs = (x509.load_der_x509_certificate(base64.b64decode(cert))
-                     for cert in certs)
+                certs = [base64.b64decode(result['result']['certificate'])]
+            certs = (x509.load_der_x509_certificate(cert) for cert in certs)
             x509.write_certificate_list(certs, certificate_out)
 
         return result
