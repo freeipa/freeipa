@@ -19,11 +19,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from io import StringIO
 import struct
 import subprocess
 import sys
-
-from six import StringIO
 
 try:
     from pyrad import packet

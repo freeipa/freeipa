@@ -30,11 +30,10 @@ import re
 import os
 from functools import wraps
 import unittest
+from urllib.error import URLError
+
 import paramiko
 
-# pylint: disable=import-error
-from six.moves.urllib.error import URLError
-# pylint: enable=import-error
 
 try:
     from selenium import webdriver

@@ -31,6 +31,7 @@ import os
 import socket
 import traceback
 import errno
+import urllib
 import sys
 
 from ctypes.util import find_library
@@ -38,7 +39,6 @@ from functools import total_ordering
 from subprocess import CalledProcessError
 
 from pyasn1.error import PyAsn1Error
-from six.moves import urllib
 
 from ipapython import directivesetter
 from ipapython import ipautil

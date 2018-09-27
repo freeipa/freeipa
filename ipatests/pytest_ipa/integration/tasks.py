@@ -23,6 +23,7 @@ from __future__ import absolute_import
 
 import logging
 import os
+from io import StringIO
 import textwrap
 import re
 import collections
@@ -34,7 +35,6 @@ import dns
 from ldif import LDIFWriter
 import pytest
 from SSSDConfig import SSSDConfig
-from six import StringIO
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend

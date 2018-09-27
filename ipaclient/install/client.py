@@ -29,10 +29,8 @@ import tempfile
 import time
 import traceback
 
-# pylint: disable=import-error
-from six.moves.configparser import RawConfigParser
-from six.moves.urllib.parse import urlparse, urlunparse
-# pylint: enable=import-error
+from configparser import RawConfigParser
+from urllib.parse import urlparse, urlunparse
 
 from ipalib import api, errors, x509
 from ipalib.install import certmonger, certstore, service, sysrestore

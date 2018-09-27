@@ -24,9 +24,7 @@ import os
 import tempfile
 import shutil
 
-# pylint: disable=import-error
-from six.moves.urllib.parse import urlsplit
-# pylint: enable=import-error
+from urllib.parse import urlsplit
 
 from ipalib.install import certmonger, certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab

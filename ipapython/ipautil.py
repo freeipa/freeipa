@@ -41,13 +41,13 @@ import grp
 from contextlib import contextmanager
 import locale
 import collections
+import urllib
 
 from dns import resolver, reversename
 from dns.exception import DNSException
 
 import six
 from six.moves import input
-from six.moves import urllib
 
 from ipapython.dn import DN
 

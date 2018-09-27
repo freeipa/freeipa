@@ -21,10 +21,8 @@ import re
 import datetime
 import email.utils
 from calendar import timegm
+from urllib.parse import urlparse
 
-# pylint: disable=import-error
-from six.moves.urllib.parse import urlparse
-# pylint: enable=import-error
 
 '''
 Core Python has two cookie libraries, Cookie.py targeted to server

@@ -42,13 +42,13 @@ import json
 import re
 import socket
 import gzip
-from cryptography import x509 as crypto_x509
+import urllib
+from ssl import SSLError
 
+from cryptography import x509 as crypto_x509
 import gssapi
 from dns.exception import DNSException
-from ssl import SSLError
 import six
-from six.moves import urllib
 
 from ipalib.backend import Connectible
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT

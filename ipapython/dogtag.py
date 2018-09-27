@@ -21,13 +21,11 @@ import collections
 import gzip
 import io
 import logging
+from urllib.parse import urlencode
 import xml.dom.minidom
 import zlib
 
 import six
-# pylint: disable=import-error
-from six.moves.urllib.parse import urlencode
-# pylint: enable=import-error
 
 # pylint: disable=ipa-forbidden-import
 from ipalib import api, errors

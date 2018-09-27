@@ -20,7 +20,7 @@
 Base class for HTTP request tests
 """
 
-from six.moves import urllib
+import urllib
 
 from ipalib import api, util
 

@@ -37,10 +37,8 @@ import sys
 import syslog
 import time
 import tempfile
+from configparser import RawConfigParser
 
-# pylint: disable=import-error
-from six.moves.configparser import RawConfigParser
-# pylint: enable=import-error
 from pyasn1.codec.der import encoder
 from pyasn1.type import char, univ, namedtype
 import pyasn1.error

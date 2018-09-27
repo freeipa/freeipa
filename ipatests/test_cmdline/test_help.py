@@ -19,11 +19,11 @@
 
 import sys
 import os
+from io import StringIO
 import shutil
 import errno
 
 import six
-from six import StringIO
 
 from ipalib import api, errors
 from ipaserver.plugins.user import user_add

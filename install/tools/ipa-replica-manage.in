@@ -23,16 +23,13 @@ from __future__ import print_function
 import logging
 import sys
 import os
-
 import re
-import ldap
 import socket
 import traceback
+from urllib.parse import urlparse
+from xmlrpc.client import MAXINT
 
-# pylint: disable=import-error
-from six.moves.urllib.parse import urlparse
-from six.moves.xmlrpc_client import MAXINT
-# pylint: enable=import-error
+import ldap
 
 from ipaclient.install import ipadiscovery
 from ipapython import ipautil

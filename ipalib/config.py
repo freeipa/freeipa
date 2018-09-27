@@ -33,12 +33,10 @@ from __future__ import absolute_import
 import os
 from os import path
 import sys
+from urllib.parse import urlparse, urlunparse
+from configparser import RawConfigParser, ParsingError
 
 import six
-# pylint: disable=import-error
-from six.moves.urllib.parse import urlparse, urlunparse
-from six.moves.configparser import RawConfigParser, ParsingError
-# pylint: enable=import-error
 
 from ipaplatform.tasks import tasks
 from ipapython.dn import DN

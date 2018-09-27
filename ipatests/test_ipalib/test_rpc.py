@@ -23,13 +23,11 @@ Test the `ipalib.rpc` module.
 from __future__ import print_function
 
 import unittest
+from xmlrpc.client import Binary, Fault, dumps, loads
+import urllib
 
 import pytest
 import six
-# pylint: disable=import-error
-from six.moves.xmlrpc_client import Binary, Fault, dumps, loads
-# pylint: enable=import-error
-from six.moves import urllib
 
 from ipatests.util import raises, assert_equal, PluginTester, DummyClass
 from ipatests.util import Fuzzy

@@ -33,8 +33,8 @@ import locale
 import qrcode
 
 import six
-from six import StringIO
-from six.moves import urllib
+from io import StringIO
+import urllib
 
 if six.PY3:
     unicode = str
