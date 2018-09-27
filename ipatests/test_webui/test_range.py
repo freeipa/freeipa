@@ -264,3 +264,50 @@ class test_range(range_tasks):
         data = self.get_data(pkey, base_rid='', secondary_base_rid='')
         self.add_record(ENTITY, data, navigate=False)
         self.delete_record(pkey)
+
+    @screenshot
+    def test_modify_range_with_invalid_or_missing_values(self):
+        """
+        Test modification ID range with empty values of options
+        """
+        cases = [
+            # Empty values
+            {
+                'base_id': '',
+                'base_rid': '',
+                'secondary_base_rid': '',
+                'size': '',
+            },
+            # Out of range
+            {'base_id': 2 ** 32},
+            {'size': 2 ** 32},
+            {'base_rid': 2 ** 32},
+            {'secondary_base_rid': 2 ** 32},
+            # Invalid value
+            {'base_id': 1.1},
+            {'size': 1.1},
+            {'base_rid': 1.1},
+            {'secondary_base_rid': 1.1},
+        ]
+
+        self.navigate_to_entity(ENTITY)
+
+        data = self.get_data(PKEY)
+        self.add_record(ENTITY, data, navigate=False)
+        self.navigate_to_record(PKEY)
+
+        for values in cases:
+            form_data = self.get_mod_form_data(**values)
+
+            self.fill_fields(form_data.serialize(), undo=True)
+            self.assert_facet_button_enabled('save')
+            self.facet_button_click('save')
+
+            self.assert_notification(
+                type='danger',
+                assert_text='Input form contains invalid or missing values.'
+            )
+            self.close_notifications()
+            self.facet_button_click('revert')
+
+        self.delete_record(PKEY)

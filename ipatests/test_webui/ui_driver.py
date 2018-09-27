@@ -768,7 +768,8 @@ class UI_driver:
             parent = self.get_form()
         tb = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
         try:
-            tb.clear()
+            tb.send_keys(Keys.CONTROL + 'a')
+            tb.send_keys(Keys.DELETE)
             tb.send_keys(value)
         except InvalidElementStateException as e:
             msg = "Invalid Element State, el: %s, value: %s, error: %s" % (selector, value, e)
