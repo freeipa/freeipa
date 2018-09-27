@@ -103,11 +103,9 @@ import re
 import decimal
 import base64
 import datetime
+from xmlrpc.client import MAXINT, MININT
 
 import six
-# pylint: disable=import-error
-from six.moves.xmlrpc_client import MAXINT, MININT
-# pylint: enable=import-error
 from cryptography import x509 as crypto_x509
 
 from ipalib.text import _ as ugettext

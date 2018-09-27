@@ -35,20 +35,14 @@ import shutil
 import traceback
 import textwrap
 from contextlib import contextmanager
+from configparser import ConfigParser as SafeConfigParser
+from configparser import NoOptionError
 
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 import ldap
 import ldapurl
 import six
-# pylint: disable=import-error
-if six.PY3:
-    # The SafeConfigParser class has been renamed to ConfigParser in Py3
-    from configparser import ConfigParser as SafeConfigParser
-else:
-    from ConfigParser import SafeConfigParser
-from six.moves.configparser import NoOptionError
-# pylint: enable=import-error
 
 from ipalib.install import sysrestore
 from ipalib.install.kinit import kinit_password

@@ -25,10 +25,7 @@ import pwd
 import shutil
 import tempfile
 import base64
-
-# pylint: disable=import-error
-from six.moves.configparser import RawConfigParser
-# pylint: enable=import-error
+from configparser import RawConfigParser
 
 from ipalib import api
 from ipalib import x509
