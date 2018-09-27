@@ -30,11 +30,11 @@ from ipalib.request import context
 from ipapython.dn import DN
 
 import base64
+import urllib
 import uuid
 import os
 
 import six
-from six.moves import urllib
 
 if six.PY3:
     unicode = str

@@ -29,11 +29,8 @@ from copy import deepcopy
 import contextlib
 import os
 import pwd
+from urllib.parse import urlparse
 import warnings
-
-# pylint: disable=import-error
-from six.moves.urllib.parse import urlparse
-# pylint: enable=import-error
 
 from cryptography import x509 as crypto_x509
 

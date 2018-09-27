@@ -5,6 +5,7 @@
 """
 Test LoginScreen widget and all it's views
 """
+import urllib
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
@@ -18,7 +19,6 @@ except ImportError:
     pass
 
 import pytest
-from six.moves import urllib
 
 
 @pytest.mark.tier1

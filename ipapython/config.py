@@ -23,15 +23,13 @@ from optparse import (
     Option, Values, OptionParser, IndentedHelpFormatter, OptionValueError)
 # pylint: enable=deprecated-module
 from copy import copy
+from configparser import SafeConfigParser
+from urllib.parse import urlsplit
 import socket
 import functools
 
 from dns.exception import DNSException
 import dns.name
-# pylint: disable=import-error
-from six.moves.configparser import SafeConfigParser
-from six.moves.urllib.parse import urlsplit
-# pylint: enable=import-error
 
 from ipaplatform.paths import paths
 from ipapython.dn import DN
