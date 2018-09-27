@@ -55,7 +55,7 @@ steps:
   - sed -ri "s/mode = production/mode = development/" /etc/ipa/default.conf
   - systemctl restart httpd.service
   lint:
-  - make V=0 pylint
+  - make V=0 lint
   webui_unit:
   - dnf install -y npm
   - cd ${container_working_dir}/install/ui/js/libs && make
