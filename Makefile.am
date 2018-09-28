@@ -169,7 +169,7 @@ endif WITH_PYLINT
 if WITH_JSLINT
 JSLINT_TARGET = jslint
 endif WITH_JSLINT
-lint: acilint apilint $(POLINT_TARGET) $(PYLINT_TARGET) $(JSLINT_TARGET)
+lint: acilint apilint $(POLINT_TARGET) $(PYLINT_TARGET) $(JSLINT_TARGET) rpmlint yamllint
 
 .PHONY: devcheck
 devcheck: all
@@ -185,12 +185,12 @@ endif
 	@ # just tests, aci, api and pylint on Python 3
 	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ipatests/ipa-run-tests \
 	    --ipaclient-unittests
-	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint pylint jslint check
+	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint pylint jslint rpmlint yamllint check
 	@echo "All tests passed."
 
 .PHONY: fastcheck fasttest fastlint
 fastcheck:
-	@$(MAKE) -j1 $(AM_MAKEFLAGS) fastlint fasttest apilint acilint
+	@$(MAKE) -j1 $(AM_MAKEFLAGS) fastlint rpmlint yamllint fasttest apilint acilint
 
 fasttest: $(GENERATED_PYTHON_FILES) ipasetup.py
 	@ # --ignore doubles speed of total test run compared to pytest.skip()
@@ -246,6 +246,21 @@ apilint: $(GENERATED_PYTHON_FILES)
 polint:
 	$(MAKE) -C $(srcdir)/po PYTHON=$(PYTHON) \
 	    validate-src-strings validate-po test-gettext
+
+.PHONY: rpmlint
+rpmlint: freeipa.spec
+	rpmlint ./$<
+
+YAML_FILES = \
+	$(top_srcdir)/.travis.yml \
+	$(wildcard $(top_srcdir)/.*.yaml) \
+	$(wildcard $(top_srcdir)/ipatests/prci_definitions/*.yaml)
+
+.PHONY: yamllint
+yamllint: $(YAML_FILES)
+	@for YAML in $^; do \
+		$(PYTHON) -c "import yaml; f = open('$${YAML}'); yaml.safe_load(f); f.close()" || exit 1; \
+	done
 
 # Run pylint for all python files. Finds all python files/packages, skips
 # folders rpmbuild, freeipa-* and dist. Skip (match, but don't print) .*,
