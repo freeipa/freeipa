@@ -185,6 +185,7 @@ BuildRequires:  python3-wheel
 #
 %if 0%{?with_lint}
 BuildRequires:  jsl
+BuildRequires:  rpmlint
 BuildRequires:  softhsm
 BuildRequires:  python3-augeas
 BuildRequires:  python3-cffi
