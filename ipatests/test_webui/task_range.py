@@ -32,23 +32,28 @@ TRUSTED_ID_RANGE = 'ipa-ad-trust'
 class range_tasks(UI_driver):
 
     BASE_RANGE_OVERLAPS_ERROR = (
-        'Constraint violation: '
-        'New base range overlaps with existing base range.'
+        "Constraint violation: "
+        "New base range overlaps with existing base range."
     )
 
     PRIMARY_RID_RANGE_OVERLAPS_ERROR = (
-        'Constraint violation: '
-        'New primary rid range overlaps with existing primary rid range.'
+        "Constraint violation: "
+        "New primary rid range overlaps with existing primary rid range."
     )
 
     SECONDARY_RID_RANGE_OVERLAPS_ERROR = (
-        'Constraint violation: '
-        'New secondary rid range overlaps with existing secondary rid range.'
+        "Constraint violation: "
+        "New secondary rid range overlaps with existing secondary rid range."
     )
 
     PRIMARY_AND_SECONDARY_RID_OVERLAP_ERROR = (
         "invalid 'ID Range setup': "
         "Primary RID range and secondary RID range cannot overlap"
+    )
+
+    DELETE_PRIMARY_LOCAL_RANGE_ERROR = (
+        "invalid 'ipabaseid,ipaidrangesize': range modification "
+        "leaving objects with ID out of the defined range is not allowed"
     )
 
     def get_shifts(self):
