@@ -381,6 +381,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.service.add',
         $factory: IPA.service_adder_dialog,
         height: 350,
         sections: [
