@@ -186,6 +186,20 @@ output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
+command: automember_find_orphans/1
+args: 1,7,4
+arg: Str('criteria?')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('description?', autofill=False, cli_name='desc')
+option: Flag('pkey_only?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('remove?', autofill=True, default=False)
+option: StrEnum('type', values=[u'group', u'hostgroup'])
+option: Str('version?')
+output: Output('count', type=[<type 'int'>])
+output: ListOfEntries('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('truncated', type=[<type 'bool'>])
 command: automember_mod/1
 args: 1,9,3
 arg: Str('cn', cli_name='automember_rule')
@@ -6503,6 +6517,7 @@ default: automember_default_group_set/1
 default: automember_default_group_show/1
 default: automember_del/1
 default: automember_find/1
+default: automember_find_orphans/1
 default: automember_mod/1
 default: automember_rebuild/1
 default: automember_remove_condition/1
