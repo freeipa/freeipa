@@ -59,12 +59,9 @@ class test_range(range_tasks):
         """
         Test mod operating in a new range
         """
-
-        self.navigate_to_entity(ENTITY)
-
         data = self.get_data(PKEY)
 
-        self.add_record(ENTITY, data, navigate=False)
+        self.add_record(ENTITY, data)
         self.navigate_to_record(PKEY)
 
         # changes idrange and tries to save it
@@ -140,13 +137,11 @@ class test_range(range_tasks):
         """
         Test creating ID Range with existing range name
         """
-        self.navigate_to_entity(ENTITY)
-
         for range_type in self.range_types:
             pkey = 'itest-range-{}'.format(range_type)
             data = self.get_data(pkey, range_type=range_type)
 
-            self.add_record(ENTITY, data, navigate=False)
+            self.add_record(ENTITY, data)
             self.add_record(ENTITY, data, navigate=False, negative=True,
                             pre_delete=False)
 
@@ -163,8 +158,6 @@ class test_range(range_tasks):
         """
         Test creating ID Range with existing base ID
         """
-        self.navigate_to_entity(ENTITY)
-
         for range_type in self.range_types:
             pkey = 'itest-range-original'
             form_data = self.get_add_form_data(pkey)
@@ -172,7 +165,7 @@ class test_range(range_tasks):
             form_data.range_type = range_type
             duplicated_data = self.get_data(form_data=form_data)
 
-            self.add_record(ENTITY, data, navigate=False)
+            self.add_record(ENTITY, data)
             self.add_record(ENTITY, duplicated_data, navigate=False,
                             negative=True, pre_delete=False)
 
@@ -188,8 +181,6 @@ class test_range(range_tasks):
         """
         Test creating ID Range with overlapping of existing range
         """
-        self.navigate_to_entity(ENTITY)
-
         for range_type in self.range_types:
             pkey = 'itest-range'
             pkey_overlaps = 'itest-range-overlaps'
@@ -203,7 +194,7 @@ class test_range(range_tasks):
             )
             data_overlaps = self.get_data(form_data=form_data_overlaps)
 
-            self.add_record(ENTITY, data, navigate=False)
+            self.add_record(ENTITY, data)
             self.add_record(ENTITY, data_overlaps, navigate=False,
                             negative=True, pre_delete=False)
 
@@ -236,14 +227,13 @@ class test_range(range_tasks):
         """
         Test creating ID Range with existing primary RID base
         """
-        self.navigate_to_entity(ENTITY)
-
         form_data = self.get_add_form_data(PKEY)
         data = self.get_data(PKEY, form_data=form_data)
+
         # Get RID base from previous form
         duplicated_data = self.get_data(base_rid=form_data.base_rid)
 
-        self.add_record(ENTITY, data, navigate=False)
+        self.add_record(ENTITY, data)
         self.add_record(ENTITY, duplicated_data, navigate=False, negative=True,
                         pre_delete=False)
 
@@ -259,8 +249,6 @@ class test_range(range_tasks):
         """
         Test creating ID Range with existing secondary RID base
         """
-        self.navigate_to_entity(ENTITY)
-
         form_data = self.get_add_form_data(PKEY)
         data = self.get_data(PKEY, form_data=form_data)
         # Get RID base from previous form
@@ -268,7 +256,7 @@ class test_range(range_tasks):
             secondary_base_rid=form_data.secondary_base_rid
         )
 
-        self.add_record(ENTITY, data, navigate=False)
+        self.add_record(ENTITY, data)
         self.add_record(ENTITY, duplicated_data, navigate=False, negative=True,
                         pre_delete=False)
 
@@ -285,13 +273,11 @@ class test_range(range_tasks):
         Test creating ID Range without giving rid-base or/and
         secondary-rid-base values
         """
-        self.navigate_to_entity(ENTITY)
-
         pkey = 'itest-range-without-rid'
 
         # Without primary RID base
         data = self.get_data(pkey, base_rid='')
-        self.add_record(ENTITY, data, navigate=False, negative=True)
+        self.add_record(ENTITY, data, negative=True)
         try:
             assert self.has_form_error('ipabaserid')
         finally:
@@ -338,11 +324,9 @@ class test_range(range_tasks):
             {'base_rid': 1.1},
             {'secondary_base_rid': 1.1},
         ]
-
-        self.navigate_to_entity(ENTITY)
-
         data = self.get_data(PKEY)
-        self.add_record(ENTITY, data, navigate=False)
+
+        self.add_record(ENTITY, data)
         self.navigate_to_record(PKEY)
 
         for values in cases:
@@ -360,3 +344,19 @@ class test_range(range_tasks):
             self.facet_button_click('revert')
 
         self.delete_record(PKEY)
+
+    @screenshot
+    def test_delete_primary_local_range(self):
+        """
+        Test deleting primary local ID range
+        """
+        ipa_realm = self.config.get('ipa_realm')
+        pkey = '{}_id_range'.format(ipa_realm)
+
+        self.navigate_to_entity(ENTITY)
+        self.delete_record(pkey)
+
+        self.assert_last_error_dialog(
+            self.DELETE_PRIMARY_LOCAL_RANGE_ERROR,
+            details=True
+        )
