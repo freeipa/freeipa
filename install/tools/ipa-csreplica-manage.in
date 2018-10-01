@@ -134,16 +134,18 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
         print('%s' % entry.single_value.get('nsds5replicahost'))
 
         if verbose:
-            print("  last init status: %s" % entry.single_value.get(
-                'nsds5replicalastinitstatus'))
-            print("  last init ended: %s" % str(
-                ipautil.parse_generalized_time(
-                    entry.single_value['nsds5replicalastinitend'])))
+            initstatus = entry.single_value.get('nsds5replicalastinitstatus')
+            if initstatus is not None:
+                print("  last init status: %s" % initstatus)
+                print("  last init ended: %s" % str(
+                    ipautil.parse_generalized_time(
+                        entry.single_value['nsds5replicalastinitend'])))
             print("  last update status: %s" % entry.single_value.get(
                 'nsds5replicalastupdatestatus'))
             print("  last update ended: %s" % str(
                 ipautil.parse_generalized_time(
                     entry.single_value['nsds5replicalastupdateend'])))
+
 
 def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
