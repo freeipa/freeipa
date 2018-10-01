@@ -479,3 +479,22 @@ class TestInstallMasterReservedIPasForwarder(IntegrationTest):
         exp_str = ("Invalid IP Address 0.0.0.0: cannot use IANA reserved "
                    "IP address 0.0.0.0")
         assert exp_str in cmd.stdout_text
+
+
+class TestIPAServerInstallUnattendedMode(IntegrationTest):
+    """
+    Test ipa-server-install when mandatory params not specified.
+
+    When installing ipa-server in unattended mode (i.e -U option),
+    some manadatory params should be specified with the install
+    commands like -p, -r and -a etc. If we don't specify these
+    params, installation will fail.
+    """
+    def test_install_ipa_server_unattended_without_mandatory_param(self):
+
+        args = ['ipa-server-install', '-U']
+        result = self.master.run_command(args, raiseonerr=False)
+        err = ("In unattended mode you need to"
+               " provide at least -r, -p and -a options")
+        assert result.returncode != 0
+        assert err in result.stderr_text
