@@ -128,6 +128,14 @@ class test_range(range_tasks):
         self.delete_record(pkey_local)
 
     @screenshot
+    def test_add_range_with_special_characters_in_name(self):
+        """
+        Test creating ID Range with special characters in name
+        """
+        data = self.get_data('itest-range-!@#$%^&*')
+        self.add_record(ENTITY, data, delete=True)
+
+    @screenshot
     def test_add_range_with_existing_name(self):
         """
         Test creating ID Range with existing range name
@@ -213,9 +221,8 @@ class test_range(range_tasks):
         """
         self.navigate_to_entity(ENTITY)
 
-        pkey = 'itest-range-original'
-        form_data = self.get_add_form_data(pkey)
-        data = self.get_data(pkey, form_data=form_data)
+        form_data = self.get_add_form_data(PKEY)
+        data = self.get_data(PKEY, form_data=form_data)
         # Get RID base from previous form
         duplicated_data = self.get_data(base_rid=form_data.base_rid)
 
@@ -228,7 +235,32 @@ class test_range(range_tasks):
         try:
             assert self.PRIMARY_RID_RANGE_OVERLAPS_ERROR in dialog.text
         finally:
-            self.delete_record(pkey)
+            self.delete_record(PKEY)
+
+    @screenshot
+    def test_add_range_with_existing_secondary_rid(self):
+        """
+        Test creating ID Range with existing secondary RID base
+        """
+        self.navigate_to_entity(ENTITY)
+
+        form_data = self.get_add_form_data(PKEY)
+        data = self.get_data(PKEY, form_data=form_data)
+        # Get RID base from previous form
+        duplicated_data = self.get_data(
+            secondary_base_rid=form_data.secondary_base_rid
+        )
+
+        self.add_record(ENTITY, data, navigate=False)
+        self.add_record(ENTITY, duplicated_data, navigate=False, negative=True,
+                        pre_delete=False)
+
+        dialog = self.get_last_error_dialog()
+
+        try:
+            assert self.SECONDARY_RID_RANGE_OVERLAPS_ERROR in dialog.text
+        finally:
+            self.delete_record(PKEY)
 
     @screenshot
     def test_add_range_without_rid(self):
