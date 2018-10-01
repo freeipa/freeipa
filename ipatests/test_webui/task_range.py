@@ -41,6 +41,11 @@ class range_tasks(UI_driver):
         'New primary rid range overlaps with existing primary rid range.'
     )
 
+    SECONDARY_RID_RANGE_OVERLAPS_ERROR = (
+        'Constraint violation: '
+        'New secondary rid range overlaps with existing secondary rid range.'
+    )
+
     def get_shifts(self):
         result = self.execute_api_from_ui('idrange_find', [], {})
         idranges = result['result']['result']
@@ -104,6 +109,8 @@ class range_tasks(UI_driver):
         """
         Generate RangeAddFormData instance with initial data based on existing
         ID ranges.
+        :param kwargs: overrides default fields values (base_id, base_rid,
+                       secondary_base_rid)
         """
 
         shift = 100
