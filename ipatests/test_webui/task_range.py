@@ -46,6 +46,11 @@ class range_tasks(UI_driver):
         'New secondary rid range overlaps with existing secondary rid range.'
     )
 
+    PRIMARY_AND_SECONDARY_RID_OVERLAP_ERROR = (
+        "invalid 'ID Range setup': "
+        "Primary RID range and secondary RID range cannot overlap"
+    )
+
     def get_shifts(self):
         result = self.execute_api_from_ui('idrange_find', [], {})
         idranges = result['result']['result']
