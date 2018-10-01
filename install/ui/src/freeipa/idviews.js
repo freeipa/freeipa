@@ -208,6 +208,7 @@ return {
     ],
 
     adder_dialog: {
+        title: '@i18n:objects.idview.add',
         fields: [
             'cn',
             {
@@ -291,6 +292,7 @@ return {
     ],
 
     adder_dialog: {
+        title: '@i18n:objects.idview.add_user',
         policies: [
             { $factory: idviews.idoverride_adder_policy }
         ],
@@ -386,6 +388,7 @@ return {
     ],
 
     adder_dialog: {
+        title: '@i18n:objects.idview.add_group',
         policies: [
             { $factory: idviews.idoverride_adder_policy }
         ],

@@ -264,7 +264,7 @@ class i18n_messages(Command):
         "dialogs": {
             "add_confirmation": _("${entity} successfully added"),
             "add_custom_value": _("Add custom value"),
-            "add_title": _("Add ${entity}"),
+            "add_title_default": _("Add"),
             "available": _("Available"),
             "batch_error_message": _("Some operations failed."),
             "batch_error_title": _("Operations Error"),
@@ -422,15 +422,18 @@ class i18n_messages(Command):
                 "attribute": _("Attribute"),
             },
             "acidelegation": {
+                "add": _("Add delegation"),
                 "remove": _("Remove delegations"),
             },
             "acipermission": {
+                "add": _("Add permission"),
                 "remove": _("Remove permissions"),
                 "remove_privileges": _(
                     "Remove privileges from permission '${primary_key}'"
                 ),
             },
             "aciprivilege": {
+                "add": _("Add privilege"),
                 "remove": _("Remove privileges"),
                 "remove_from_permissions": _(
                     "Remove privilege '${primary_key}' from permissions"
@@ -441,6 +444,7 @@ class i18n_messages(Command):
             },
             "acirole": {
                 "identity": _("Role Settings"),
+                "add": _("Add role"),
                 "remove": _("Remove roles"),
                 "remove_from_privileges": _(
                     "Remove role '${primary_key}' from privileges"
@@ -462,11 +466,17 @@ class i18n_messages(Command):
                 ),
             },
             "aciselfservice": {
+                "add": _("Add self service permission"),
                 "remove": _("Remove self service permissions"),
             },
             "automember": {
-                "add_condition": _("Add Condition into ${pkey}"),
-                "add_rule": _("Add Rule"),
+                "add": _("Add rule"),
+                "add_inc_condition": _(
+                    "Add inclusive condition into '${primary_key}'"
+                ),
+                "add_exc_condition": _(
+                    "Add exclusive condition into '${primary_key}'"
+                ),
                 "attribute": _("Attribute"),
                 "default_host_group": _("Default host group"),
                 "default_user_group": _("Default user group"),
@@ -486,22 +496,27 @@ class i18n_messages(Command):
                 "usergrouprules": _("User group rules"),
             },
             "automountkey": {
+                "add": _("Add automount key"),
                 "remove": _("Remove automount keys"),
             },
             "automountlocation": {
+                "add": _("Add automount location"),
                 "identity": _("Automount Location Settings"),
                 "remove": _("Remove automount locations"),
             },
             "automountmap": {
+                "add": _("Add automount map"),
                 "map_type": _("Map Type"),
                 "direct": _("Direct"),
                 "indirect": _("Indirect"),
                 "remove": _("Remove automount maps"),
             },
             "ca": {
+                "add": _("Add certificate authority"),
                 "remove": _("Remove certificate authorities"),
             },
             "caacl": {
+                "add": _("Add CA ACL"),
                 "all": _("All"),
                 "any_ca": _("Any CA"),
                 "any_host": _("Any Host"),
@@ -625,12 +640,13 @@ class i18n_messages(Command):
                 "userlogin": _("User Login"),
             },
             "certmap": {
-                "adder_title": _("Add Certificate Mapping Data"),
+                "add": _("Add certificate identity mapping rule"),
+                "adder_title": _("Add certificate mapping data"),
                 "data_label": _("Certificate mapping data"),
                 "certificate": _("Certificate"),
                 "conf_str": _("Configuration string"),
                 "deleter_content": _("Do you want to remove certificate mapping data ${data}?"),
-                "deleter_title": _("Remove Certificate Mapping Data"),
+                "deleter_title": _("Remove certificate mapping data"),
                 "issuer": _("Issuer"),
                 "issuer_subject": _("Issuer and subject"),
                 "remove": _("Remove certificate identity mapping rules"),
@@ -656,9 +672,11 @@ class i18n_messages(Command):
                 "updated_dns": _("System DNS records updated"),
             },
             "dnsforwardzone": {
+                "add": _("Add DNS forward zone"),
                 "remove": _("Remove DNS forward zones"),
             },
             "dnsrecord": {
+                "add": _("Add DNS resource record"),
                 "data": _("Data"),
                 "deleted_no_data": _("DNS record was deleted because it contained no data."),
                 "other": _("Other Record Types"),
@@ -680,9 +698,10 @@ class i18n_messages(Command):
                 "type": _("Record Type"),
             },
             "dnszone": {
-                "identity": _("DNS Zone Settings"),
-                "add_permission":_("Add Permission"),
+                "add": _("Add DNS zone"),
+                "add_permission": _("Add permission"),
                 "add_permission_confirm":_("Are you sure you want to add permission for DNS Zone ${object}?"),
+                "identity": _("DNS Zone Settings"),
                 "remove": _("Remove DNS zones"),
                 "remove_permission": _("Remove Permission"),
                 "remove_permission_confirm": _("Are you sure you want to remove permission for DNS Zone ${object}?"),
@@ -698,6 +717,7 @@ class i18n_messages(Command):
                 "set": _("Set Domain Level"),
             },
             "group": {
+                "add": _("Add user group"),
                 "details": _("Group Settings"),
                 "external": _("External"),
                 "groups": _("Groups"),
@@ -735,6 +755,7 @@ class i18n_messages(Command):
                 "user_groups": _("User Groups"),
             },
             "hbacrule": {
+                "add": _("Add HBAC rule"),
                 "any_host": _("Any Host"),
                 "any_service": _("Any Service"),
                 "anyone": _("Anyone"),
@@ -767,6 +788,7 @@ class i18n_messages(Command):
                 "user": _("Who"),
             },
             "hbacsvc": {
+                "add": _("Add HBAC service"),
                 "remove": _("Remove HBAC services"),
                 "remove_from_hbacsvcgroups": _(
                     "Remove HBAC service '${primary_key}' from HBAC service "
@@ -774,6 +796,7 @@ class i18n_messages(Command):
                 ),
             },
             "hbacsvcgroup": {
+                "add": _("Add HBAC service group"),
                 "remove": _("Remove HBAC service groups"),
                 "remove_hbacsvcs": _(
                     "Remove HBAC services from HBAC service group "
@@ -796,6 +819,7 @@ class i18n_messages(Command):
                 "unmatched": _("Unmatched"),
             },
             "host": {
+                "add": _("Add host"),
                 "certificate": _("Host Certificate"),
                 "cn": _("Host Name"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
@@ -842,6 +866,7 @@ class i18n_messages(Command):
                 "unprovisioned": _("Host unprovisioned"),
             },
             "hostgroup": {
+                "add": _("Add host group"),
                 "host_group": _("Host Groups"),
                 "identity": _("Host Group Settings"),
                 "remove": _("Remove host groups"),
@@ -876,6 +901,9 @@ class i18n_messages(Command):
                 "anchor_tooltip_ad": _("Enter trusted group name."),
             },
             "idview": {
+                "add": _("Add ID view"),
+                "add_group": _("Add group ID override"),
+                "add_user": _("Add user ID override"),
                 "appliesto_tab": _("${primary_key} applies to:"),
                 "appliedtohosts": _("Applied to hosts"),
                 "appliedtohosts_title": _("Applied to hosts"),
@@ -901,6 +929,7 @@ class i18n_messages(Command):
                 "identity": _("Kerberos Ticket Policy"),
             },
             "netgroup": {
+                "add": _("Add netgroup"),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "external": _("External"),
@@ -935,7 +964,7 @@ class i18n_messages(Command):
                 "users": _("Users"),
             },
             "otptoken": {
-                "add_token": _("Add OTP Token"),
+                "add": _("Add OTP token"),
                 "app_link": _("You can use <a href=\"${link}\" target=\"_blank\">FreeOTP<a/> as a software OTP token application."),
                 "config_title": _("Configure your token"),
                 "config_instructions": _("Configure your token by scanning the QR code below. Click on the QR code if you see this on the device you want to configure."),
@@ -972,10 +1001,12 @@ class i18n_messages(Command):
                 "status_new_s": _("New: key set"),
             },
             "pwpolicy": {
+                "add": _("Add password policy"),
                 "identity": _("Password Policy"),
                 "remove": _("Remove password policies"),
             },
             "idrange": {
+                "add": _("Add ID range"),
                 "details": _("Range Settings"),
                 "ipabaseid": _("Base ID"),
                 "ipabaserid": _("Primary RID base"),
@@ -992,6 +1023,7 @@ class i18n_messages(Command):
                 "type_winsync": _("Active Directory winsync"),
             },
             "radiusproxy": {
+                "add": _("Add RADIUS server"),
                 "details": _("RADIUS Proxy Server Settings"),
                 "remove": _("Remove RADIUS servers"),
             },
@@ -1004,6 +1036,7 @@ class i18n_messages(Command):
             "selfservice": {
             },
             "selinuxusermap": {
+                "add": _("Add SELinux user map"),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "host": _("Host"),
@@ -1035,6 +1068,7 @@ class i18n_messages(Command):
                 "remove_server_msg": _("Deleting a server removes it permanently from the topology. Note that this is a non-reversible action.")
             },
             "service": {
+                "add": _("Add service"),
                 "certificate": _("Service Certificate"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
                 "details": _("Service Settings"),
@@ -1070,6 +1104,7 @@ class i18n_messages(Command):
                 "activate_confirm": _("Are you sure you want to activate selected users?"),
                 "activate_one_confirm": _("Are you sure you want to activate ${object}?"),
                 "activate_success": _("${count} user(s) activated"),
+                "add": _("Add stage user"),
                 "label": _("Stage users"),
                 "preserved_label": _("Preserved users"),
                 "preserved_remove": _("Remove preserved users"),
@@ -1083,6 +1118,7 @@ class i18n_messages(Command):
                 "user_categories": _("User categories"),
             },
             "sudocmd": {
+                "add": _("Add sudo command"),
                 "groups": _("Groups"),
                 "remove": _("Remove sudo commands"),
                 "remove_from_sudocmdgroups": _(
@@ -1091,6 +1127,7 @@ class i18n_messages(Command):
                 ),
             },
             "sudocmdgroup": {
+                "add": _("Add sudo command group"),
                 "commands": _("Commands"),
                 "remove": _("Remove sudo command groups"),
                 "remove_sudocmds": _(
@@ -1099,6 +1136,8 @@ class i18n_messages(Command):
                 ),
             },
             "sudorule": {
+                "add": _("Add sudo rule"),
+                "add_option": _("Add sudo option"),
                 "allow": _("Allow"),
                 "any_command": _("Any Command"),
                 "any_group": _("Any Group"),
@@ -1167,16 +1206,19 @@ class i18n_messages(Command):
                 "insufficient_domain_level" : _("Managed topology requires minimal domain level ${domainlevel}"),
             },
             "topologylocation": {
+                "add": _("Add IPA location"),
                 "remove": _("Remove IPA locations"),
                 "remove_servers": _(
                     "Remove IPA servers from IPA location '${primary_key}'"
                 ),
             },
             "topologysegment": {
+                "add": _("Add topology segment"),
                 "remove": _("Remove topology segments"),
             },
             "trust": {
                 "account": _("Account"),
+                "add": _("Add trust"),
                 "admin_account": _("Administrative account"),
                 "blacklists": _("SID blacklists"),
                 "details": _("Trust Settings"),
@@ -1200,6 +1242,7 @@ class i18n_messages(Command):
                 "account": _("Account Settings"),
                 "account_status": _("Account Status"),
                 "activeuser_label": _("Active users"),
+                "add": _("Add user"),
                 "contact": _("Contact Settings"),
                 "delete_mode": _("Delete mode"),
                 "employee": _("Employee Information"),
@@ -1232,6 +1275,7 @@ class i18n_messages(Command):
                 "unlock_confirm": _("Are you sure you want to unlock user ${object}?"),
             },
             "vault": {
+                "add": _("Add vault"),
                 "add_warn_arch_ret": _(
                     "Secrets can be added/retrieved to vault only by using "
                     "vault-archive and vault-retrieve from CLI."

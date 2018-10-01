@@ -4418,11 +4418,10 @@ IPA.attribute_table_widget = function(spec) {
             $.extend(dialog_spec, that.adder_dialog_spec);
         }
 
-        var label = that.entity.metadata.label_singular;
         var pkey = that.facet.get_pkey();
-        dialog_spec.title = text.get(dialog_spec.title || '@i18n:dialogs.add_title');
-        dialog_spec.title = dialog_spec.title.replace('${entity}', label);
-        dialog_spec.title = dialog_spec.title.replace('${pkey}', pkey);
+        dialog_spec.title = text.get(dialog_spec.title ||
+                                         '@i18n:dialogs.add_title_default');
+        dialog_spec.title = dialog_spec.title.replace('${primary_key}', pkey);
 
 
         var factory = dialog_spec.$factory || IPA.entity_adder_dialog;

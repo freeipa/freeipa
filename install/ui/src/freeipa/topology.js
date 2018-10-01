@@ -457,6 +457,7 @@ return {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.topologylocation.add',
         fields: [
             {
                 $type: 'text',
@@ -1015,10 +1016,7 @@ topology.create_add_dialog = function(spec) {
 
     spec.entity = spec.entity || 'topologysegment';
 
-    var entity = reg.entity.get('topologysegment');
-    var title = text.get('@i18n:dialogs.add_title');
-    var label = entity.metadata.label_singular;
-    spec.title = title.replace('${entity}', label);
+    spec.title = text.get('@i18n:objects.topologysegment.add');
 
     spec.fields = spec.fields || [
         {

@@ -97,6 +97,7 @@ var spec = {
         }
     ],
     adder_dialog: {
+        title: '@i18n:objects.sudorule.add',
         fields: [ 'cn' ]
     },
     deleter_dialog: {
@@ -160,6 +161,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.sudocmd.add',
         fields: [
             'sudocmd',
             {
@@ -224,6 +226,7 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
+        title: '@i18n:objects.sudocmdgroup.add',
         fields: [
             'cn',
             {
@@ -804,12 +807,9 @@ IPA.sudo.options_section = function(spec) {
 
         var label = IPA.get_command_option('sudorule_add_option', 'ipasudoopt').label;
 
-        var title = text.get('@i18n:dialogs.add_title');
-        title = title.replace('${entity}', label);
-
         var dialog = IPA.dialog({
             name: 'option-adder-dialog',
-            title: title,
+            title: text.get('@i18n:objects.sudorule.add_option'),
             sections: [
                 {
                     fields: [
