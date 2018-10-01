@@ -715,3 +715,51 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
 
         defaultgroup1.ensure_missing()
         defaulthostgroup1.ensure_missing()
+
+
+@pytest.mark.tier1
+class TestAutomemberFindOrphans(XMLRPC_test):
+    def test_create_deps_for_find_orphans(self, hostgroup1, host1,
+                                          automember_hostgroup):
+        """ Create host, hostgroup, and automember tracker for this class
+        of tests. """
+
+        # Create hostgroup1 and automember rule with condition
+        hostgroup1.ensure_exists()
+        host1.ensure_exists()
+
+        # Manually create automember rule and condition, racker will try to
+        # remove the automember rule in the end, which is failing as the rule
+        # is already removed
+        api.Command['automember_add'](hostgroup1.cn, type=u'hostgroup')
+        api.Command['automember_add_condition'](
+            hostgroup1.cn,
+            key=u'fqdn', type=u'hostgroup',
+            automemberinclusiveregex=[hostgroup_include_regex]
+        )
+
+        hostgroup1.retrieve()
+
+    def test_find_orphan_automember_rules(self, hostgroup1):
+        """ Remove hostgroup1, find and remove obsolete automember rules. """
+        # Remove hostgroup1
+
+        hostgroup1.ensure_missing()
+
+        # Find obsolete automember rules
+        result = api.Command['automember_find_orphans'](type=u'hostgroup')
+        assert result['count'] == 1
+
+        # Find and remove obsolete automember rules
+        result = api.Command['automember_find_orphans'](type=u'hostgroup',
+                                                        remove=True)
+        assert result['count'] == 1
+
+        # Find obsolete automember rules
+        result = api.Command['automember_find_orphans'](type=u'hostgroup')
+        assert result['count'] == 0
+
+        # Final cleanup of automember rule if it still exists
+        with raises_exact(errors.NotFound(
+                reason=u'%s: Automember rule not found' % hostgroup1.cn)):
+            api.Command['automember_del'](hostgroup1.cn, type=u'hostgroup')
