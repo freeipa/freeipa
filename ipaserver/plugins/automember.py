@@ -117,6 +117,11 @@ EXAMPLES:
  Find all of the automember rules:
     ipa automember-find
 """) + _("""
+ Find all of the orphan automember rules:
+    ipa automember-find-orphans --type=hostgroup
+ Find all of the orphan automember rules and remove them:
+    ipa automember-find-orphans --type=hostgroup --remove
+""") + _("""
  Display a automember rule:
     ipa automember-show --type=hostgroup webservers
     ipa automember-show --type=group devel
@@ -817,3 +822,57 @@ class automember_rebuild(Method):
             result=result,
             summary=unicode(summary),
             value=pkey_to_value(None, options))
+
+
+@register()
+class automember_find_orphans(LDAPSearch):
+    __doc__ = _("""
+    Search for orphan automember rules. The command might need to be run as
+    a privileged user user to get all orphan rules.
+    """)
+    takes_options = group_type + (
+        Flag(
+            'remove?',
+            doc=_("Remove orphan automember rules"),
+        ),
+    )
+
+    msg_summary = ngettext(
+        '%(count)d rules matched', '%(count)d rules matched', 0
+    )
+
+    def execute(self, *keys, **options):
+        results = super().execute(*keys, **options)
+
+        remove_option = options.get('remove')
+        pkey_only = options.get('pkey_only', False)
+        ldap = self.obj.backend
+        orphans = []
+        for entry in results["result"]:
+            am_dn_entry = entry['automembertargetgroup'][0]
+            # Make DN for --raw option
+            if not isinstance(am_dn_entry, DN):
+                am_dn_entry = DN(am_dn_entry)
+            try:
+                ldap.get_entry(am_dn_entry)
+            except errors.NotFound:
+                if pkey_only:
+                    # For pkey_only remove automembertargetgroup
+                    del(entry['automembertargetgroup'])
+                orphans.append(entry)
+                if remove_option:
+                    ldap.delete_entry(entry['dn'])
+
+        results["result"][:] = orphans
+        results["count"] = len(orphans)
+        return results
+
+    def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args,
+                     **options):
+        assert isinstance(base_dn, DN)
+        scope = ldap.SCOPE_SUBTREE
+        ndn = DN(('cn', options['type']), base_dn)
+        if options.get('pkey_only', False):
+            # For pkey_only add automembertargetgroup
+            attrs_list.append('automembertargetgroup')
+        return filters, ndn, scope
