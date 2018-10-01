@@ -215,6 +215,23 @@ class test_range(range_tasks):
                 self.delete_record(pkey)
 
     @screenshot
+    def test_add_range_with_overlapping_primary_and_secondary_rid(self):
+        """
+        Test creating ID Range with overlapping of primary and secondary RID
+        """
+        form_data = self.get_add_form_data(PKEY)
+        form_data.secondary_base_rid = form_data.base_rid
+        data = self.get_data(PKEY, form_data=form_data)
+
+        self.add_record(ENTITY, data, negative=True)
+        dialog = self.get_last_error_dialog()
+
+        try:
+            assert self.PRIMARY_AND_SECONDARY_RID_OVERLAP_ERROR in dialog.text
+        finally:
+            self.delete_record(PKEY)
+
+    @screenshot
     def test_add_range_with_existing_base_rid(self):
         """
         Test creating ID Range with existing primary RID base
