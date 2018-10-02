@@ -509,7 +509,6 @@ class TestServerInstall(CALessBase):
                      'ipa-server-install: error: You must specify '
                      '--dirsrv-pin with --dirsrv-cert-file')
 
-    @pytest.mark.xfail(reason='freeipa ticket 5378', strict=True)
     @server_install_teardown
     def test_incorect_http_pin(self):
         "IPA server install with incorrect HTTP PKCS#12 password"
@@ -520,7 +519,6 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pin='bad<pin>')
         assert_error(result, 'incorrect password for pkcs#12 file server.p12')
 
-    @pytest.mark.xfail(reason='freeipa ticket 5378', strict=True)
     @server_install_teardown
     def test_incorect_ds_pin(self):
         "IPA server install with incorrect DS PKCS#12 password"
@@ -863,7 +861,6 @@ class TestReplicaInstall(CALessBase):
         assert_error(result, 'Failed to open %s/does_not_exist' %
                      self.master.config.test_dir)
 
-    @pytest.mark.xfail(reason='freeipa ticket 5378', strict=True)
     @replica_install_teardown
     def test_incorect_http_pin(self):
         "IPA replica install with incorrect HTTP PKCS#12 password"
@@ -874,7 +871,6 @@ class TestReplicaInstall(CALessBase):
         assert result.returncode > 0
         assert_error(result, 'incorrect password for pkcs#12 file replica.p12')
 
-    @pytest.mark.xfail(reason='freeipa ticket 5378', strict=True)
     @replica_install_teardown
     def test_incorect_ds_pin(self):
         "IPA replica install with incorrect DS PKCS#12 password"
@@ -1359,7 +1355,6 @@ class TestCertInstall(CALessBase):
                                   cert_exists=False)
         assert_error(result, 'Failed to open does_not_exist')
 
-    @pytest.mark.xfail(reason='freeipa ticket 5378', strict=True)
     def test_incorect_http_pin(self):
         "Install new HTTP certificate with incorrect PKCS#12 password"
 
@@ -1367,7 +1362,6 @@ class TestCertInstall(CALessBase):
         assert_error(result,
                      'incorrect password for pkcs#12 file server.p12')
 
-    @pytest.mark.xfail(reason='freeipa ticket 5378', strict=True)
     def test_incorect_dirsrv_pin(self):
         "Install new DS certificate with incorrect PKCS#12 password"
 
