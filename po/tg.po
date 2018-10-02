@@ -1,9 +1,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.90.pre2\n"
+"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-05-15 14:59-0400\n"
+"POT-Creation-Date: 2018-10-01 23:02+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Tajik\n"
 "Language: tg\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=1; plural=0\n"
 
 #, python-format

@@ -5,17 +5,17 @@
 # Yuri Chornoivan <yurchor@ukr.net>, 2018. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.90.pre2\n"
+"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-05-15 14:59-0400\n"
+"POT-Creation-Date: 2018-10-01 23:02+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-05-16 02:15+0000\n"
-"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"PO-Revision-Date: 2018-10-01 01:33+0000\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
 "Language: uk\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
 
@@ -88,7 +88,6 @@ msgstr ""
 "    Додати умови до правила автоматичної участі.\n"
 "    "
 
-#, python-brace-format
 msgid ""
 "\n"
 "    Add new ID range.\n"
@@ -110,7 +109,6 @@ msgid ""
 "\n"
 "    must be given to add a new range for a trusted AD domain.\n"
 "\n"
-"{0}\n"
 msgstr ""
 "\n"
 "    Додати новий діапазон ідентифікаторів.\n"
@@ -132,7 +130,6 @@ msgstr ""
 "\n"
 "    слід вказати для додавання нового діапазону для довіреного домену AD.\n"
 "\n"
-"{0}\n"
 
 msgid ""
 "\n"
@@ -540,6 +537,15 @@ msgstr ""
 
 msgid ""
 "\n"
+"  Show implicit IPA master role:\n"
+"    ipa server-role-find --include-master\n"
+msgstr ""
+"\n"
+"  Показати неявну основну роль IPA:\n"
+"    ipa server-role-find --include-master\n"
+
+msgid ""
+"\n"
 "  Show specific location:\n"
 "    ipa location-show location\n"
 msgstr ""
@@ -577,11 +583,13 @@ msgstr ""
 msgid ""
 "\n"
 "  Show status of all roles containing 'AD' on a server:\n"
-"    ipa server-role-find --server ipa.example.com --role='AD'\n"
+"    ipa server-role-find --server ipa.example.com --role=\"AD trust "
+"controller\"\n"
 msgstr ""
 "\n"
 "  Показати стан усіх ролей, назва яких містить «AD», на сервері:\n"
-"    ipa server-role-find --server ipa.example.com --role='AD'\n"
+"      ipa server-role-find --server ipa.example.com --role=\"AD trust "
+"controller\"\n"
 
 msgid ""
 "\n"
@@ -7893,7 +7901,6 @@ msgstr ""
 "IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config» так, щоб\n"
 "він відповідав новому діапазону.\n"
 
-#, python-brace-format
 msgid ""
 "\n"
 "ID ranges\n"
@@ -8025,7 +8032,6 @@ msgid ""
 "user. RIDs are unique in a domain, 32bit values and are used for users and\n"
 "groups.\n"
 "\n"
-"{0}\n"
 msgstr ""
 "\n"
 "Діапазони ідентифікаторів\n"
@@ -8158,8 +8164,6 @@ msgstr ""
 "користувача\n"
 "буде 1010. RID є унікальними в межах домену, є 32-бітовими значенням і\n"
 "використовуються для користувачів і груп.\n"
-"\n"
-"{0}\n"
 
 msgid ""
 "\n"
@@ -10542,6 +10546,69 @@ msgstr ""
 
 msgid ""
 "\n"
+"Plugin to make multiple ipa calls via one remote procedure call\n"
+"\n"
+"To run this code in the lite-server\n"
+"\n"
+"curl   -H \"Content-Type:application/json\"          -H \"Accept:application/"
+"json\" -H \"Accept-Language:en\"        --negotiate -u :          --cacert /"
+"etc/ipa/ca.crt           -d  @batch_request.json -X POST       http://"
+"localhost:8888/ipa/json\n"
+"\n"
+"where the contents of the file batch_request.json follow the below example\n"
+"\n"
+"{\"method\":\"batch\",\"params\":[[\n"
+"        {\"method\":\"group_find\",\"params\":[[],{}]},\n"
+"        {\"method\":\"user_find\",\"params\":[[],{\"whoami\":\"true\",\"all"
+"\":\"true\"}]},\n"
+"        {\"method\":\"user_show\",\"params\":[[\"admin\"],{\"all\":true}]}\n"
+"        ],{}],\"id\":1}\n"
+"\n"
+"The format of the response is nested the same way.  At the top you will see\n"
+"  \"error\": null,\n"
+"    \"id\": 1,\n"
+"    \"result\": {\n"
+"        \"count\": 3,\n"
+"            \"results\": [\n"
+"\n"
+"\n"
+"And then a nested response for each IPA command method sent in the request\n"
+"\n"
+msgstr ""
+"\n"
+"Додаток для виконання декількох викликів ipa за допомогою одного віддаленого "
+"виклику процедури\n"
+"\n"
+"Щоб запустити цей код на легкому сервері, віддайте такі команди:\n"
+"\n"
+"curl   -H \"Content-Type:application/json\"          -H \"Accept:application/"
+"json\" -H \"Accept-Language:en\"        --negotiate -u :          --cacert /"
+"etc/ipa/ca.crt           -d  @batch_request.json -X POST       http://"
+"localhost:8888/ipa/json\n"
+"\n"
+"де у файлі batch_request.json міститься десь такий код:\n"
+"\n"
+"{\"method\":\"batch\",\"params\":[[\n"
+"        {\"method\":\"group_find\",\"params\":[[],{}]},\n"
+"        {\"method\":\"user_find\",\"params\":[[],{\"whoami\":\"true\",\"all"
+"\":\"true\"}]},\n"
+"        {\"method\":\"user_show\",\"params\":[[\"admin\"],{\"all\":true}]}\n"
+"        ],{}],\"id\":1}\n"
+"\n"
+"Формат відповіді має бути розподілений за рівнями вкладеності у подібний же "
+"спосіб. На початку ви побачите таке:\n"
+"  \"error\": null,\n"
+"    \"id\": 1,\n"
+"    \"result\": {\n"
+"        \"count\": 3,\n"
+"            \"results\": [\n"
+"\n"
+"\n"
+"а далі буде вкладена відповідь для кожного методу команди IPA, який було "
+"надіслано у запиті\n"
+
+msgid ""
+"\n"
 "Plugins not accessible directly through the CLI, commands used internally\n"
 msgstr ""
 "\n"
@@ -11910,6 +11977,13 @@ msgstr ""
 " Створити і отримати вміст сховища ключів для служби IPA:\n"
 "   ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/"
 "httpd.keytab\n"
+
+msgid ""
+"\n"
+"Session Support for IPA\n"
+msgstr ""
+"\n"
+"Підтримка сеансів для IPA\n"
 
 msgid ""
 "\n"
@@ -14672,6 +14746,13 @@ msgstr ""
 
 msgid ""
 "\n"
+"The status of a role is either enabled, configured, or absent.\n"
+msgstr ""
+"\n"
+"Стан ролі може бути одним зі значень: enabled, configured або absent.\n"
+
+msgid ""
+"\n"
 "There are a number of allowed targets:\n"
 "1. subtree: a DN; the permission applies to the subtree under this DN\n"
 "2. target filter: an LDAP filter\n"
@@ -15022,10 +15103,14 @@ msgstr ""
 
 msgid ""
 "\n"
-"Vault is a secure place to store a secret.\n"
+"Vault is a secure place to store a secret. One vault can only\n"
+"store one secret. When archiving a secret in a vault, the\n"
+"existing secret (if any) is overwritten.\n"
 msgstr ""
 "\n"
-"Сховище — безпечне місце для зберігання ключів і паролів.\n"
+"Сховище — безпечне місце для зберігання ключа. Одне сховище\n"
+"може містити лише один ключ. При архівуванні ключа до сховища,\n"
+"наявний ключ (якщо такий існує) буде перезаписано.\n"
 
 msgid ""
 "\n"
@@ -16271,6 +16356,259 @@ msgid "<all IPA DNS servers>"
 msgstr "<усі сервери DNS IPA>"
 
 msgid ""
+"<h1>Browser Kerberos Setup</h1>\n"
+"\n"
+msgstr ""
+"<h1>Налаштування браузера для Kerberos</h1>\n"
+"\n"
+
+msgid ""
+"<h1>Password Migration</h1><p>If you have been sent here by your "
+"administrator, your personal information is being migrated to a new identity "
+"management solution (IPA).</p><p>Please, enter your credentials in the form "
+"to complete the process. Upon successful login your kerberos account will be "
+"activated.</p>"
+msgstr ""
+"<h1>Перенесення паролів</h1><p>Якщо вас було спрямовано на цю сторінку вашим "
+"адміністратором, ваші особисті дані було перенесено до нового рішення з "
+"керування профілями користувачів (IPA).</p><p>Будь ласка, введіть ваші "
+"реєстраційні дані до форми, щоб завершити процес. Після успішного входу до "
+"системи ваш обліковий запис kerberos буде активовано.</p>"
+
+msgid ""
+"<h1>Unable to verify your Kerberos credentials</h1>\n"
+"<p>\n"
+"            Please make sure that you have valid Kerberos tickets "
+"(obtainable via <strong>kinit</strong>), and that you have configured your "
+"browser correctly.\n"
+"</p>\n"
+"\n"
+"<h2>Browser configuration</h2>\n"
+"\n"
+"<div id=\"first-time\">\n"
+"<p>\n"
+"                If this is your first time, please <a href=\"ssbrowser.html"
+"\">configure your browser</a>.\n"
+"</p>\n"
+"</div>\n"
+msgstr ""
+"<h1>Не вдалося перевірити ваші реєстраційні дані Kerberos</h1>\n"
+"<p>\n"
+"            Будь ласка, переконайтеся, що у вас є чинні квитки Kerberos (їх "
+"можна отримати за допомогою <strong>kinit</strong>), і що ви налаштували ваш "
+"браузер належним чином.\n"
+"</p>\n"
+"\n"
+"<h2>Налаштовування браузера</h2>\n"
+"\n"
+"<div id=\"first-time\">\n"
+"<p>\n"
+"                Якщо це вперше, будь ласка, <a href=\"ssbrowser.html"
+"\">налаштуйте ваш браузер</a>.\n"
+"</p>\n"
+"</div>\n"
+
+msgid ""
+"<h2>Chrome</h2>\n"
+"\n"
+"<p>\n"
+"            You can configure Chrome to use Kerberos for Single Sign-on. The "
+"following instructions will guide you in configuring your web browser to "
+"send your Kerberos credentials to the appropriate Key Distribution Center "
+"which enables Single Sign-on.\n"
+"</p>\n"
+"\n"
+msgstr ""
+"<h2>Chrome\n"
+"\n"
+"<p>\n"
+"            Ви можете налаштувати Chrome на використання Kerberos для служби "
+"універсального входу. Нижче наведено настанови, які допоможуть вам "
+"налаштувати ваш браузер на надсилання реєстраційних даних Kerberos до "
+"відповідного центру розповсюдження ключів, який надає доступ до служи "
+"універсального входу.\n"
+"</p>\n"
+"\n"
+
+msgid ""
+"<h2>Firefox</h2>\n"
+"\n"
+"<p>\n"
+"            You can configure Firefox to use Kerberos for Single Sign-on. "
+"The following instructions will guide you in configuring your web browser to "
+"send your Kerberos credentials to the appropriate Key Distribution Center "
+"which enables Single Sign-on.\n"
+"</p>\n"
+"\n"
+msgstr ""
+"<h2>Firefox</h2>\n"
+"\n"
+"<p>\n"
+"            Ви можете налаштувати Firefox на використання Kerberos для "
+"служби універсального входу. Нижче наведено настанови, які допоможуть вам "
+"налаштувати ваш браузер на надсилання реєстраційних даних Kerberos до "
+"відповідного центру розповсюдження ключів, який надає доступ до служи "
+"універсального входу.\n"
+"</p>\n"
+"\n"
+
+msgid ""
+"<h2>Internet Explorer</h2>\n"
+"<p><strong>WARNING:</strong> Internet Explorer is no longer a supported "
+"browser.</p>\n"
+"<p>\n"
+"            Once you are able to log into the workstation with your kerberos "
+"key you are now able to use that ticket in Internet Explorer.\n"
+"</p>\n"
+"<p>\n"
+msgstr ""
+"<h2>Internet Explorer</h2>\n"
+"<p><strong>ПОПЕРЕДЖЕННЯ:</strong> підтримку браузера Internet Explorer "
+"припинено.</p>\n"
+"<p>\n"
+"            Якщо ви здатні увійти до робочої станції за допомогою вашого "
+"ключа kerberos, ви можете скористатися отриманим квитком у Internet "
+"Explorer.\n"
+"</p>\n"
+"<p>\n"
+
+msgid ""
+"<h3>\n"
+"            Enable SPNEGO (Simple and Protected GSSAPI Negotiation "
+"Mechanism) to Use Kerberos Authentication\n"
+"            in Chrome\n"
+"</h3>\n"
+"<ol>\n"
+"<li>\n"
+"                Make sure you have the necessary directory created by "
+"running:\n"
+"<div><code>\n"
+"                    [root@client]# mkdir -p /etc/opt/chrome/policies/"
+"managed/\n"
+"</code></div>\n"
+"</li>\n"
+"<li>\n"
+"                Create a new <code>/etc/opt/chrome/policies/managed/mydomain."
+"json</code> file with write privileges limited to the system administrator "
+"or root, and include the following line:\n"
+"<div><code>\n"
+"                    { \"AuthServerWhitelist\": \"*<span class=\"example-"
+"domain\">.example.com.</span>\" }\n"
+"</code></div>\n"
+"<div>\n"
+"                    You can do this by running:\n"
+"</div>\n"
+"<div><code>\n"
+"                    [root@server]# echo '{ \"AuthServerWhitelist\": \"*<span "
+"class=\"example-domain\">.example.com.</span>\" }' > /etc/opt/chrome/"
+"policies/managed/mydomain.json\n"
+"</code></div>\n"
+"</li>\n"
+"</ol>\n"
+"<ol>\n"
+"<p>\n"
+"<strong>Note:</strong> If using Chromium, use <code>/etc/chromium/policies/"
+"managed/</code> instead of <code>/etc/opt/chrome/policies/managed/</code> "
+"for the two SPNEGO Chrome configuration steps above.\n"
+"</p>\n"
+"</ol>\n"
+"\n"
+msgstr ""
+"<h3>\n"
+"            Вмикання SPNEGO (Simple and Protected GSSAPI Negotiation "
+"Mechanism) для використання розпізнавання Kerberos\n"
+"            у Chrome\n"
+"</h3>\n"
+"<ol>\n"
+"<li>\n"
+"                Переконайтеся, що у вас є потрібний каталог, за допомогою "
+"такої команди:\n"
+"<div><code>\n"
+"                    [root@client]# mkdir -p /etc/opt/chrome/policies/"
+"managed/\n"
+"</code></div>\n"
+"</li>\n"
+"<li>\n"
+"                Створіть файл <code>/etc/opt/chrome/policies/managed/"
+"mydomain.json</code> із правами доступу на запис, обмеженими адміністратором "
+"системи або root, із таким рядком вмісту:\n"
+"<div><code>\n"
+"                    { \"AuthServerWhitelist\": \"*<span class=\"example-"
+"domain\">.example.com.</span>\" }\n"
+"</code></div>\n"
+"<div>\n"
+"                    Зробити це можна за допомогою такої команди:\n"
+"</div>\n"
+"<div><code>\n"
+"                    [root@server]# echo '{ \"AuthServerWhitelist\": \"*<span "
+"class=\"example-domain\">.example.com.</span>\" }' > /etc/opt/chrome/"
+"policies/managed/mydomain.json\n"
+"</code></div>\n"
+"</li>\n"
+"</ol>\n"
+"<ol>\n"
+"<p>\n"
+"<strong>Зауваження:</strong> якщо ви користуєтеся Chromium, скористайтеся "
+"<code>/etc/chromium/policies/managed/</code> замість <code>/etc/opt/chrome/"
+"policies/managed/</code> для двох кроків налаштовування для SPNEGO Chrome.\n"
+"</p>\n"
+"</ol>\n"
+"\n"
+
+msgid ""
+"<h3>Import CA Certificate</h3>\n"
+"<ol>\n"
+"<li>\n"
+"                Download the <a href=\"ca.crt\">CA certificate</a>. "
+"Alternatively, if the host is also an IdM client, you can find the "
+"certificate in /etc/ipa/ca.crt.\n"
+"</li>\n"
+"<li>\n"
+"                Click the menu button with the <em>Customize and control "
+"Google Chrome</em> tooltip, which is by default in the top right-hand corner "
+"of Chrome, and click <em>Settings</em>.\n"
+"</li>\n"
+"<li>\n"
+"                Click <em>Show advanced settings</em> to display more "
+"options, and then click the <em>Manage certificates</em> button located "
+"under the HTTPS/SSL heading.\n"
+"</li>\n"
+"<li>\n"
+"                In the <em>Authorities</em> tab, click the <em>Import</em> "
+"button at the bottom.\n"
+"</li>\n"
+"<li>Select the CA certificate file that you downloaded in the first step.</"
+"li>\n"
+"</ol>\n"
+"\n"
+msgstr ""
+"<h3>Імпортування сертифіката служби сертифікації</h3>\n"
+"<ol>\n"
+"<li>\n"
+"                Отримайте <a href=\"ca.crt\">сертифікат служби сертифікації</"
+"a>. Крім того, якщо вузол є також клієнтом IdM, можете просто взяти цей "
+"сертифікат з /etc/ipa/ca.crt.\n"
+"</li>\n"
+"<li>\n"
+"                Натисніть кнопку меню із підказкою <em>Налаштування та "
+"керування Google Chrome</em>, яку типово розташовано у верхньому правому "
+"куті вікна Chrome, потім натисніть <em>Налаштування</em>.\n"
+"</li>\n"
+"<li>\n"
+"                Натисніть пункт <em>Розширені</em>, щоб отримати доступ до "
+"ширшого списку параметрів, потім натисніть кнопку <em>Керування "
+"сертифікатами</em>, яку розташовано у списку із заголовком «HTTPS/SSL».\n"
+"</li>\n"
+"<li>\n"
+"                На вкладці <em>Центри сертифікації</em> натисніть кнопку "
+"<em>Імпортувати</em> у нижній частині сторінки.\n"
+"</li>\n"
+"<li>Виберіть сертифікат служби сертифікації, який ви отримали на першому "
+"кроці.</li>\n"
+"</ol>\n"
+"\n"
+
+msgid ""
 "<i class=\"fa fa-info-circle\"></i> <strong>One-Time-Password(OTP):</strong> "
 "Generate new OTP code for each OTP field."
 msgstr ""
@@ -16281,14 +16619,22 @@ msgstr ""
 msgid ""
 "<i class=\"fa fa-info-circle\"></i> To log in with <strong>Kerberos</"
 "strong>, please make sure you have valid tickets (obtainable via kinit) and "
-"<a href='http://${host}/ipa/config/unauthorized.html'>configured</a> the "
+"<a href='http://${host}/ipa/config/ssbrowser.html'>configured</a> the "
 "browser correctly, then click 'Log in'."
 msgstr ""
 "<i class=\"fa fa-info-circle\"></i>Щоб увійти за допомогою <strong>Kerberos</"
 "strong>, будь ласка, переконайтеся, що маєте чинні квитки (ці квитки можна "
 "отримати за допомогою kinit) і що програму для перегляду сторінок інтернету "
-"<a href='http://${host}/ipa/config/unauthorized.html'>налаштовано</a> "
-"належним чином, а потім натисніть кнопку «Увійти»."
+"<a href='http://${host}/ipa/config/ssbrowser.html'>налаштовано</a> належним "
+"чином, а потім натисніть кнопку «Увійти»."
+
+msgid ""
+"<i class=\"fa fa-info-circle\"></i> To log in with <strong>certificate</"
+"strong>, please make sure you have valid personal certificate. "
+msgstr ""
+"<i class=\"fa fa-info-circle\"></i> Щоб увійти за допомогою "
+"<strong>сертифіката</strong>, будь ласка, переконайтеся, що у вас є чинний "
+"особистий сертифікат. "
 
 msgid ""
 "<i class=\"fa fa-info-circle\"></i> To log in with <strong>username and "
@@ -16298,6 +16644,72 @@ msgstr ""
 "<i class=\"fa fa-info-circle\"></i> Щоб увійти за допомогою <strong>імені "
 "користувача і пароля</strong>, вкажіть ці дані у відповідних полях, потім "
 "натисніть кнопку «Увійти»."
+
+msgid ""
+"<ol>\n"
+"<li>\n"
+"<p>\n"
+"<a href=\"ca.crt\" id=\"ca-link\" class=\"btn btn-default\">Import "
+"Certificate Authority certificate</a>\n"
+"</p>\n"
+"<p>\n"
+"                    Make sure you select <b>all three</b> checkboxes.\n"
+"</p>\n"
+"</li>\n"
+"<li>\n"
+"                In the address bar of Firefox, type <code>about:config</"
+"code> to display the list of current configuration options.\n"
+"</li>\n"
+"<li>\n"
+"                In the Filter field, type <code>negotiate</code> to restrict "
+"the list of options.\n"
+"</li>\n"
+"<li>\n"
+"                Double-click the <code>network.negotiate-auth.trusted-uris</"
+"code> entry to display the Enter string value dialog box.\n"
+"</li>\n"
+"<li>\n"
+"                Enter the name of the domain against which you want to "
+"authenticate, for example, <code class=\"example-domain\">.example.com.</"
+"code>\n"
+"</li>\n"
+"<li><a href=\"../ui/index.html\" id=\"return-link\" class=\"btn btn-default"
+"\">Return to Web UI</a></li>\n"
+"</ol>\n"
+"\n"
+msgstr ""
+"<ol>\n"
+"<li>\n"
+"<p>\n"
+"<a href=\"ca.crt\" id=\"ca-link\" class=\"btn btn-default\">Імпортування "
+"сертифіката служби сертифікації</a>\n"
+"</p>\n"
+"<p>\n"
+"                    Позначте <b>усі три</b> пункти.\n"
+"</p>\n"
+"</li>\n"
+"<li>\n"
+"                До поля адреси у Firefox введіть адресу <code>about:config</"
+"code>, щоб переглянути список поточних параметрів налаштовування.\n"
+"</li>\n"
+"<li>\n"
+"                До поля «Фільтр» введіть <code>negotiate</code>, щоб звузити "
+"список показаних параметрів.\n"
+"</li>\n"
+"<li>\n"
+"                Двічі клацніть на записі <code>network.negotiate-auth."
+"trusted-uris</code>, щоб відкрити діалогову панель введення рядкового "
+"значення.\n"
+"</li>\n"
+"<li>\n"
+"                Введіть назву домену, на якому ви хочете проходити "
+"розпізнавання, наприклад, <code class=\"example-domain\">.example.com.</"
+"code>\n"
+"</li>\n"
+"<li><a href=\"../ui/index.html\" id=\"return-link\" class=\"btn btn-default"
+"\">Повернутися до вебінтерфейсу</a></li>\n"
+"</ol>\n"
+"\n"
 
 #, python-brace-format
 msgid ""
@@ -16355,6 +16767,100 @@ msgstr ""
 "із іншим типом:</strong> у Kerberos завжди використовується RADIUS, а у LDAP "
 "він не використовується ніколи. LDAP розпізнає лише варіанти розпізнавання "
 "за паролем або двофакторне розпізнавання.</p>"
+
+msgid ""
+"<strong>Log into the Windows machine using an account of your Kerberos realm "
+"(administrative domain)</strong>\n"
+"</p>\n"
+"<p>\n"
+"<strong>In Internet Explorer, click Tools, and then click Internet Options.</"
+"strong>\n"
+"</p>\n"
+"<div>\n"
+"<ol>\n"
+"<li>Click the Security tab</li>\n"
+"<li>Click Local intranet</li>\n"
+"<li>Click Sites </li>\n"
+"<li>Click Advanced </li>\n"
+"<li>Add your domain to the list</li>\n"
+"</ol>\n"
+"<ol>\n"
+"<li>Click the Security tab</li>\n"
+"<li>Click Local intranet</li>\n"
+"<li>Click Custom Level</li>\n"
+"<li>Select Automatic logon only in Intranet zone</li>\n"
+"</ol>\n"
+"\n"
+"<ol>\n"
+"<li> Visit a kerberized web site using IE (You must use the fully-qualified "
+"Domain Name in the URL)</li>\n"
+"<li><strong> You are all set.</strong></li>\n"
+"</ol>\n"
+"</div>\n"
+"\n"
+msgstr ""
+"<strong>Увійдіть до системи Windows за допомогою облікового запису вашої "
+"області Kerberos (адміністративного домену)</strong>\n"
+"</p>\n"
+"<p>\n"
+"<strong>У Internet Explorer виберіть меню «Інструменти», потім пункт "
+"«Параметри інтернету».</strong>\n"
+"</p>\n"
+"<div>\n"
+"<ol>\n"
+"<li>Відкрийте вкладку «Безпека»</li>\n"
+"<li>Натисніть «Локальна мережа»</li>\n"
+"<li>Натисніть «Сайти»</li>\n"
+"<li>Натисніть «Додатково»</li>\n"
+"<li>Додайте ваш домен до списку</li>\n"
+"</ol>\n"
+"<ol>\n"
+"<li>Відкрийте вкладку «Безпека»</li>\n"
+"<li>Натисніть «Локальна мережа»</li>\n"
+"<li>Натисніть «Нетиповий рівень»</li>\n"
+"<li>Виберіть «Автоматичний вхід лише у локальній зоні»</li>\n"
+"</ol>\n"
+"\n"
+"<ol>\n"
+"<li>Відкрийте kerberізований сайт за допомогою IE (вам слід використати у "
+"адресі повноцінну назву домену)</li>\n"
+"<li><strong>Ось і усе.</strong></li>\n"
+"</ol>\n"
+"</div>\n"
+"\n"
+
+msgid ""
+"=======\n"
+"WARNING:\n"
+"\n"
+"DNA plugin in 389-ds will allocate IDs based on the ranges configured for "
+"the\n"
+"local domain. Currently the DNA plugin *cannot* be reconfigured itself "
+"based\n"
+"on the local ranges set via this family of commands.\n"
+"\n"
+"Manual configuration change has to be done in the DNA plugin configuration "
+"for\n"
+"the new local range. Specifically, The dnaNextRange attribute of 'cn=Posix\n"
+"IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to "
+"be\n"
+"modified to match the new range.\n"
+"=======\n"
+msgstr ""
+"=======\n"
+"ПОПЕРЕДЖЕННЯ:\n"
+"\n"
+"Додаток DNA у 389-ds розподілятиме ідентифікатори на основі діапазонів,\n"
+"налаштованих для локального домену. У поточній версії додаток DNA *не може*\n"
+"переналаштуватися на основі локальних діапазонів, встановлених цим\n"
+"сімейством команд.\n"
+"\n"
+"Для використання нового локального діапазону до налаштувань додатка DNA\n"
+"слід внести зміни вручну. Зокрема, слід змінити атрибут dnaNextRange "
+"'cn=Posix\n"
+"IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' так, щоб\n"
+"він відповідав новому діапазону.\n"
+"=======\n"
 
 msgid "A Create reverse"
 msgstr "Створити зворотний A"
@@ -16484,6 +16990,9 @@ msgstr "ACI"
 
 msgid "ACI name"
 msgstr "Назва ACI"
+
+msgid "ACI object."
+msgstr "Об'єкт ACI."
 
 #, python-format
 msgid "ACI of permission %s was not found"
@@ -16635,10 +17144,6 @@ msgid "Add"
 msgstr "Додати"
 
 #, python-brace-format
-msgid "Add ${entity}"
-msgstr "Додати ${entity}"
-
-#, python-brace-format
 msgid "Add ${entity} ${primary_key} into ${other_entity}"
 msgstr "Додати ${entity} ${primary_key} до ${other_entity}"
 
@@ -16657,12 +17162,8 @@ msgstr "Додано дозвіл ${other_entity} до ${entity} ${primary_key}"
 msgid "Add CAs to a CA ACL."
 msgstr "Додати CA до ACL CA."
 
-msgid "Add Certificate Mapping Data"
-msgstr "Додати дані прив’язки до сертифіката"
-
-#, python-brace-format
-msgid "Add Condition into ${pkey}"
-msgstr "Додати умову до ${pkey}"
+msgid "Add Class of Service entry"
+msgstr "Додати запис класу служби"
 
 msgid "Add Custom Attribute"
 msgstr "Додати нетиповий атрибут"
@@ -16679,15 +17180,6 @@ msgstr "Додати псевдонім реєстраційного запис�
 
 msgid "Add Many"
 msgstr "Додати багато"
-
-msgid "Add OTP Token"
-msgstr "Додати жетон OTP"
-
-msgid "Add Permission"
-msgstr "Додати права доступу"
-
-msgid "Add Rule"
-msgstr "Додати правило"
 
 #, python-brace-format
 msgid "Add RunAs ${other_entity} into ${entity} ${primary_key}"
@@ -16794,6 +17286,9 @@ msgstr "Додати права доступу до системи без ACI"
 
 msgid "Add a system permission without an ACI (internal command)"
 msgstr "Додати системні права доступу без ACI (внутрішня команда)"
+
+msgid "Add a vault."
+msgstr "Додати сховище."
 
 msgid ""
 "Add an attribute/value pair. Format is attr=value. The attribute\n"
@@ -16947,6 +17442,9 @@ msgstr "Додати служби до правила HBAC."
 
 msgid "Add source hosts and hostgroups from a HBAC rule."
 msgstr "Додати вузли джерела та групи вузлів з правила HBAC."
+
+msgid "Add source hosts and hostgroups to an HBAC rule."
+msgstr "Додати вузли джерела та групи вузлів до правила HBAC."
 
 msgid "Add target hosts and hostgroups to a CA ACL."
 msgstr "Додати вузли і групи вузлів призначення до CA ACL."
@@ -17634,6 +18132,9 @@ msgstr "Атрибути, до яких застосовується прави�
 msgid "Audit"
 msgstr "Аудит"
 
+msgid "Authenticating"
+msgstr "Розпізнавання"
+
 msgid "Authentication"
 msgstr "Розпізнавання"
 
@@ -17645,6 +18146,12 @@ msgstr "Індикатор розпізнавання"
 
 msgid "Authentication indicators"
 msgstr "Індикатори розпізнавання"
+
+msgid "Authentication with Kerberos failed"
+msgstr "Не вдалося пройти розпізнавання за допомогою Kerberos"
+
+msgid "Authentication with personal certificate failed"
+msgstr "Не вдалося пройти розпізнавання за особистим сертифікатом"
 
 msgid "Authoritative nameserver"
 msgstr "Основний сервер назв"
@@ -18106,10 +18613,6 @@ msgstr "Профілі сертифікатів не можна переймен
 msgid "Certificate requested"
 msgstr "Надіслано запит щодо сертифікації"
 
-#, c-format
-msgid "Certificate subject base is: %s\n"
-msgstr "Базовий об’єкт сертифікації: %s\n"
-
 #, python-format
 msgid ""
 "Certificate with serial number %(serial)s issued by CA '%(ca)s' not found"
@@ -18169,11 +18672,18 @@ msgstr "Перевіряє, чи увімкнено на якомусь із с�
 msgid "Checks if any of the servers has the DNS service enabled."
 msgstr "Перевіряє, чи увімкнено на якомусь із серверів службу DNS."
 
+msgid "Checks if any of the servers has the KRA service enabled"
+msgstr "Перевіряє, чи увімкнено на якомусь із серверів службу KRA."
+
 msgid "City"
 msgstr "Місто"
 
 msgid "Class"
 msgstr "Клас"
+
+msgid "Class of Service object used for linking policies with groups"
+msgstr ""
+"Клас об'єкта служби, який використовується для прив'язування правил до груп"
 
 msgid "Clear"
 msgstr "Спорожнити"
@@ -18458,6 +18968,9 @@ msgstr ""
 
 msgid "Continue"
 msgstr "Продовжити"
+
+msgid "Continue to next page"
+msgstr "Перейти до наступної сторінки"
 
 msgid "Continuous mode: Don't stop on errors."
 msgstr "Режим неперервної роботи: не зупинятися у разі помилок."
@@ -18986,6 +19499,9 @@ msgstr "Вилучити значення «%(value)s» %(name)s?"
 
 msgid "Delete ACI."
 msgstr "Вилучити ACI."
+
+msgid "Delete Class of Service entry"
+msgstr "Вилучити запис класу служби"
 
 msgid "Delete DNS forward zone."
 msgstr "Вилучити зону переспрямовування DNS."
@@ -19581,12 +20097,38 @@ msgid "Disabled user account \"%(value)s\""
 msgstr "Вимкнено обліковий запис користувача «%(value)s»"
 
 #, python-brace-format
-msgid "Disallow ${other_entity} to create keytab of ${primary_key}"
-msgstr "Заборонити ${other_entity} створювати таблицю ключів ${primary_key}"
+msgid "Disallow host groups to create keytab of '${primary_key}'"
+msgstr "Заборонити групам вузлів створювати таблицю ключів «${primary_key}»"
 
 #, python-brace-format
-msgid "Disallow ${other_entity} to retrieve keytab of ${primary_key}"
-msgstr "Заборонити ${other_entity} отримувати таблицю ключів ${primary_key}"
+msgid "Disallow host groups to retrieve keytab of '${primary_key}'"
+msgstr "Заборонити групам вузлів отримувати таблицю ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Disallow hosts to create keytab of '${primary_key}'"
+msgstr "Заборонити вузлам створювати таблицю ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Disallow hosts to retrieve keytab of '${primary_key}'"
+msgstr "Заборонити вузлам отримувати таблицю ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Disallow user groups to create keytab of '${primary_key}'"
+msgstr ""
+"Заборонити групам користувачів створювати таблицю ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Disallow user groups to retrieve keytab of '${primary_key}'"
+msgstr ""
+"Заборонити групам користувачів отримувати таблицю ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Disallow users to create keytab of '${primary_key}'"
+msgstr "Заборонити користувачам створювати таблицю ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Disallow users to retrieve keytab of '${primary_key}'"
+msgstr "Заборонити користувачам отримувати таблицю ключів «${primary_key}»"
 
 msgid ""
 "Disallow users, groups, hosts or host groups to create a keytab of this host."
@@ -19614,6 +20156,9 @@ msgid ""
 msgstr ""
 "Заборонити користувачам, групам, вузлам і групам вузлів отримувати таблицю "
 "ключів цієї служби."
+
+msgid "Display Class of Service entry"
+msgstr "Показати запис класу служби"
 
 msgid "Display DNS resource."
 msgstr "Показати ресурс DNS."
@@ -21139,14 +21684,13 @@ msgstr ""
 "іншого типу. Будь ласка, вилучіть попередній діапазон вручну або не "
 "визначайте тип у примусовому порядку за допомогою параметра --range-type."
 
+msgid "ID range type, one of allowed values"
+msgstr "Тип діапазону ідентифікаторів, одне з дозволених значень"
+
 msgid "ID range type, one of ipa-ad-trust-posix, ipa-ad-trust, ipa-local"
 msgstr ""
 "Тип діапазону ідентифікаторів. Можливі варіанти: ipa-ad-trust-posix, ipa-ad-"
 "trust, ipa-local"
-
-#, python-brace-format
-msgid "ID range type, one of {vals}"
-msgstr "Тип діапазону ідентифікаторів, одне з таких значень: {vals}"
 
 msgid ""
 "ID range with the same name but different domain SID already exists. The ID "
@@ -21418,6 +21962,9 @@ msgstr "Включення вимкнено"
 msgid "Include Enabled"
 msgstr "Включення увімкнено"
 
+msgid "Include IPA master entries"
+msgstr "Включити основні записи IPA"
+
 msgid "Include all disabled IPA rules into test"
 msgstr "Перевірити всі вимкнені правила IPA"
 
@@ -21566,6 +22113,9 @@ msgstr "Недостатні права доступу для внесення �
 
 msgid "Internal Error"
 msgstr "Внутрішня помилка"
+
+msgid "Internationalization messages"
+msgstr "Повідомлення перекладу"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
@@ -21732,6 +22282,9 @@ msgstr "Маємо ключ Kerberos, вузол передбачено"
 
 msgid "Kerberos Key Present, Service Provisioned"
 msgstr "Маємо ключ Kerberos, службу передбачено"
+
+msgid "Kerberos Principal you entered is expired"
+msgstr "Строк дії введених вами реєстраційних даних Kerberos вичерпано"
 
 msgid "Kerberos Service Principal Name"
 msgstr "Назва реєстраційного запису служби Kerberos"
@@ -21952,6 +22505,9 @@ msgstr ""
 msgid "Load CA certificate of LDAP server from FILE"
 msgstr "Завантажити сертифікат CA сервера LDAP з вказаного файла"
 
+msgid "Loading"
+msgstr "Завантаження"
+
 msgid "Loading data"
 msgstr "Завантажуємо дані"
 
@@ -21973,8 +22529,14 @@ msgstr "Розташування ACI"
 msgid "Lockout duration"
 msgstr "Тривалість блокування"
 
+msgid "Log In Using Certificate"
+msgstr "Увійти за допомогою сертифіката"
+
 msgid "Log in"
 msgstr "Увійти"
+
+msgid "Log in using personal certificate"
+msgstr "Увійти за допомогою персонального сертифіката"
 
 msgid "Log out"
 msgstr "Вийти"
@@ -21984,6 +22546,9 @@ msgstr "Помилка під час спроби вийти"
 
 msgid "Logged In As"
 msgstr "Вхід до системи від імені"
+
+msgid "Login failed due to an unknown reason"
+msgstr "Не вдалося увійти з невідомої причини"
 
 msgid "Login shell"
 msgstr "Оболонка входу"
@@ -22021,6 +22586,11 @@ msgstr "Запис MX"
 
 msgid "Mailing Address"
 msgstr "Адреса ел. пошти"
+
+msgid "Make multiple ipa calls via one remote procedure call"
+msgstr ""
+"Виконати декілька викликів ipa за допомогою одного віддаленого виклику "
+"процедури"
 
 msgid "Malformed DN"
 msgstr "Помилкове форматування DN"
@@ -22089,6 +22659,9 @@ msgstr "Основний файл"
 
 msgid "Match"
 msgstr "Відповідність"
+
+msgid "Match cn attribute in subject"
+msgstr "Порівняти із атрибутом cn у темі"
 
 msgid "Match users according to certificate."
 msgstr "Встановити відповідність користувачів за сертифікатом."
@@ -22280,8 +22853,14 @@ msgstr "Назва методу"
 msgid "Method of"
 msgstr "Метод"
 
+msgid "Migrate"
+msgstr "Перенести"
+
 msgid "Migrate users and groups from DS to IPA."
 msgstr "Перенести дані користувачів і груп з DS до IPA."
+
+msgid "Migrating"
+msgstr "Перенесення"
 
 msgid ""
 "Migration mode is disabled.\n"
@@ -22553,6 +23132,9 @@ msgstr "Змінити налаштування прив’язки сертиф
 msgid "Modify Certificate Profile configuration."
 msgstr "Змінити налаштування профілю сертифікатів."
 
+msgid "Modify Class of Service entry"
+msgstr "Змінити запис класу служби"
+
 msgid "Modify DNS forward zone."
 msgstr "Змінити зону переспрямовування DNS."
 
@@ -22565,15 +23147,12 @@ msgstr "Змінити зону DNS (запис SOA)."
 msgid "Modify ID range."
 msgstr "Змінити діапазон ідентифікаторів."
 
-#, python-brace-format
 msgid ""
 "Modify ID range.\n"
 "\n"
-"{0}\n"
 msgstr ""
 "Змінити діапазон ідентифікаторів.\n"
 "\n"
-"{0}\n"
 
 msgid "Modify Kerberos ticket policy."
 msgstr "Змінити правила квитків Kerberos."
@@ -23481,6 +24060,12 @@ msgstr "Обмеження терміну дії пароля"
 msgid "Password history size"
 msgstr "Розмір журналу паролів"
 
+msgid "Password migration was not successful"
+msgstr "Не вдалося перенести паролі"
+
+msgid "Password migration was successful"
+msgstr "Пароль успішно перенесено"
+
 msgid "Password or Password+One-Time-Password"
 msgstr "Пароль або Пароль+Одноразовий-пароль"
 
@@ -24226,31 +24811,21 @@ msgstr "Назва вузла віддаленого сервера IPA"
 msgid "Remote server name"
 msgstr "Назва віддаленого сервера"
 
-#, python-brace-format
-msgid "Remove ${entity}"
-msgstr "Вилучити ${entity}"
-
-#, python-brace-format
-msgid "Remove ${entity} ${primary_key} from ${other_entity}"
-msgstr "Вилучити ${entity} ${primary_key} з ${other_entity}"
-
-#, python-brace-format
-msgid "Remove ${other_entity} Managing ${entity} ${primary_key}"
-msgstr "Вилучити ${other_entity}, керування ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Remove ${other_entity} from ${entity} ${primary_key}"
-msgstr "Вилучити ${other_entity} з ${entity} ${primary_key}"
+msgid "Remove"
+msgstr "Вилучити"
 
 msgid "Remove A, AAAA, SSHFP and PTR records of the host(s) managed by IPA DNS"
 msgstr "Вилучити записи A, AAAA, SSHFP і PTR вузлів, керованих DNS IPA"
 
-#, python-brace-format
-msgid "Remove Allow ${other_entity} from ${entity} ${primary_key}"
-msgstr "Вилучити дозвіл ${other_entity} з ${entity} ${primary_key}"
+msgid "Remove CA ACLs"
+msgstr "Вилучити ACL служб сертифікації"
 
 msgid "Remove CAs from a CA ACL."
 msgstr "Вилучити CA з ACL CA."
+
+#, python-brace-format
+msgid "Remove Certificate Authorities from CA ACL '${primary_key}'"
+msgstr "Вилучити служби сертифікації з ACL CA «${primary_key}»"
 
 msgid "Remove Certificate Hold"
 msgstr "Вилучити затримання сертифіката"
@@ -24259,29 +24834,79 @@ msgstr "Вилучити затримання сертифіката"
 msgid "Remove Certificate Hold for ${entity} ${primary_key}"
 msgstr "Вилучити затримання сертифіката для ${primary_key} ${entity}"
 
-msgid "Remove Certificate Mapping Data"
-msgstr "Вилучити дані прив’язки до сертифікатів"
+msgid "Remove DNS forward zones"
+msgstr "Вилучити зони переспрямовування DNS"
+
+msgid "Remove DNS resource records"
+msgstr "Вилучити записи ресурсів DNS"
+
+msgid "Remove DNS zones"
+msgstr "Вилучити зони DNS"
+
+msgid "Remove HBAC rules"
+msgstr "Вилучити правила HBAC"
 
 #, python-brace-format
-msgid "Remove Deny ${other_entity} from ${entity} ${primary_key}"
-msgstr "Вилучити заборону ${other_entity} з ${entity} ${primary_key}"
+msgid "Remove HBAC service '${primary_key}' from HBAC service groups"
+msgstr "Вилучити службу HBAC «${primary_key}» з груп служб HBAC"
+
+msgid "Remove HBAC service groups"
+msgstr "Вилучити групи служб HBAC"
+
+#, python-brace-format
+msgid "Remove HBAC service groups from HBAC rule '${primary_key}'"
+msgstr "Вилучити групи служб HBAC з правила HBAC «${primary_key}»"
+
+msgid "Remove HBAC services"
+msgstr "Вилучити служби HBAC"
+
+#, python-brace-format
+msgid "Remove HBAC services from HBAC rule '${primary_key}'"
+msgstr "Вилучити служби HBAC з правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove HBAC services from HBAC service group '${primary_key}'"
+msgstr "Вилучити служби HBAC з групи служб HBAC «${primary_key}»"
 
 msgid "Remove Hold"
 msgstr "Вилучити затримання"
 
+msgid "Remove ID ranges"
+msgstr "Вилучити діапазони ідентифікаторів"
+
+msgid "Remove ID views"
+msgstr "Вилучити перегляди ідентифікаторів"
+
+msgid "Remove IPA locations"
+msgstr "Вилучити місця IPA"
+
+#, python-brace-format
+msgid "Remove IPA servers from IPA location '${primary_key}'"
+msgstr "Вилучити сервери IPA з місця IPA «${primary_key}»"
+
 msgid "Remove Kerberos Alias"
 msgstr "Вилучити псевдонім Kerberos"
+
+msgid "Remove OTP tokens"
+msgstr "Вилучити ключі OTP"
 
 msgid "Remove Permission"
 msgstr "Вилучити права доступу"
 
-#, python-brace-format
-msgid "Remove RunAs ${other_entity} from ${entity} ${primary_key}"
-msgstr "Вилучити ${other_entity} запуску від імені з ${entity} ${primary_key}"
+msgid "Remove RADIUS servers"
+msgstr "Вилучити сервери RADIUS"
 
 #, python-brace-format
-msgid "Remove RunAs Groups from ${entity} ${primary_key}"
-msgstr "Вилучити групи запуску від імені з ${entity} ${primary_key}"
+msgid "Remove RunAs groups from sudo rule '${primary_key}'"
+msgstr "Вилучити групи RunAs з правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove RunAs user groups from sudo rule '${primary_key}'"
+msgstr "Вилучити групи користувачів RunAs з правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove RunAs users from sudo rule '${primary_key}'"
+msgstr "Вилучити користувачів RunAs з правила sudo «${primary_key}»"
 
 msgid "Remove a manager to the stage user entry"
 msgstr "Вилучити керування із запису користувача етапу"
@@ -24300,8 +24925,41 @@ msgstr "Вилучити права доступу до надання дост�
 msgid "Remove all principals in this realm"
 msgstr "Вилучити всі реєстраційні записи у цій області"
 
+#, python-brace-format
+msgid "Remove allow sudo command groups from sudo rule '${primary_key}'"
+msgstr "Вилучити групи дозволу команд sudo з правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove allow sudo commands from sudo rule '${primary_key}'"
+msgstr "Вилучити команди дозволу sudo з правила sudo «${primary_key}»"
+
 msgid "Remove an option from Sudo Rule."
 msgstr "Вилучити пункт з правила sudo."
+
+msgid "Remove auto membership rules"
+msgstr "Вилучити правила автоматичної участі"
+
+msgid "Remove automount keys"
+msgstr "Вилучити ключі автоматичного монтування"
+
+msgid "Remove automount locations"
+msgstr "Вилучити місця автоматичного монтування"
+
+msgid "Remove automount maps"
+msgstr "Вилучити карти автоматичного монтування"
+
+msgid "Remove certificate authorities"
+msgstr "Вилучити служби сертифікації"
+
+msgid "Remove certificate identity mapping rules"
+msgstr "Вилучити правила прив'язки профілів сертифікації"
+
+msgid "Remove certificate profiles"
+msgstr "Вилучити профілі сертифікації"
+
+#, python-brace-format
+msgid "Remove certificate profiles from CA ACL '${primary_key}'"
+msgstr "Вилучити профілі сертифікації з ACL CA «${primary_key}»"
 
 msgid "Remove certificates from a service"
 msgstr "Вилучити сертифікати із запису служби"
@@ -24318,11 +24976,32 @@ msgstr "Вилучити умови з правила автоматичної �
 msgid "Remove default (fallback) group for all unmatched entries."
 msgstr "Вилучити типову (резервну) групу для невідповідних записів."
 
+msgid "Remove delegations"
+msgstr "Вилучити уповноваження"
+
+#, python-brace-format
+msgid "Remove deny sudo command groups from sudo rule '${primary_key}'"
+msgstr "Вилучити групи заборони команд sudo з правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove deny sudo commands from sudo rule '${primary_key}'"
+msgstr "Вилучити команди заборони sudo з правила sudo «${primary_key}»"
+
+msgid "Remove domains"
+msgstr "Вилучити домени"
+
 msgid "Remove entries from DNS"
 msgstr "Вилучити записи з DNS"
 
+#, python-brace-format
+msgid "Remove exclusive conditions from rule '${primary_key}'"
+msgstr "Вилучити умови виключення з правила «${primary_key}»"
+
 msgid "Remove from CRL"
 msgstr "Вилучити з CRL"
+
+msgid "Remove group ID overrides"
+msgstr "Вилучити перевизначення ідентифікаторів груп"
 
 msgid "Remove group for Sudo to execute as."
 msgstr "Вилучити групу виконання з запису sudo."
@@ -24330,14 +25009,125 @@ msgstr "Вилучити групу виконання з запису sudo."
 msgid "Remove hold"
 msgstr "Вилучити затримання"
 
+#, python-brace-format
+msgid "Remove host '${primary_key}' from HBAC rules"
+msgstr "Вилучити вузол «${primary_key}» з правил HBAC"
+
+#, python-brace-format
+msgid "Remove host '${primary_key}' from host groups"
+msgstr "Вилучити вузол «${primary_key}» з груп вузлів"
+
+#, python-brace-format
+msgid "Remove host '${primary_key}' from netgroups"
+msgstr "Вилучити вузол «${primary_key}» з мережевих груп"
+
+#, python-brace-format
+msgid "Remove host '${primary_key}' from roles"
+msgstr "Вилучити вузол «${primary_key}» з ролей"
+
+#, python-brace-format
+msgid "Remove host '${primary_key}' from sudo rules"
+msgstr "Вилучити вузол «${primary_key}» з правил sudo"
+
+#, python-brace-format
+msgid "Remove host group '${primary_key}' from HBAC rules"
+msgstr "Вилучити групу вузлів «${primary_key}» з правил HBAC"
+
+#, python-brace-format
+msgid "Remove host group '${primary_key}' from host groups"
+msgstr "Вилучити групу вузлів «${primary_key}» з груп вузлів"
+
+#, python-brace-format
+msgid "Remove host group '${primary_key}' from netgroups"
+msgstr "Вилучити групу вузлів «${primary_key}» з мережевих груп"
+
+#, python-brace-format
+msgid "Remove host group '${primary_key}' from sudo rules"
+msgstr "Вилучити групу вузлів «${primary_key}» з правил sudo"
+
+msgid "Remove host groups"
+msgstr "Вилучити групи вузлів"
+
+#, python-brace-format
+msgid "Remove host groups from CA ACL '${primary_key}'"
+msgstr "Вилучити групи вузлів з ACL CA «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove host groups from HBAC rule '${primary_key}'"
+msgstr "Вилучити групи вузлів з правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove host groups from SELinux user map '${primary_key}'"
+msgstr ""
+"Вилучити групи вузлів з прив'язки користувачів SELinux «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove host groups from host group '${primary_key}'"
+msgstr "Вилучити групи вузлів з групи вузлів «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove host groups from netgroup '${primary_key}'"
+msgstr "Вилучити групи вузлів з мережевої групи «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove host groups from role '${primary_key}'"
+msgstr "Вилучити групи вузлів з ролі «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove host groups from sudo rule '${primary_key}'"
+msgstr "Вилучити групи вузлів з правила sudo «${primary_key}»"
+
+msgid "Remove hosts"
+msgstr "Вилучити вузли"
+
 msgid "Remove hosts and hostgroups affected by Sudo Rule."
 msgstr "Вилучити вузли та групи вузлів, яких стосується правило sudo."
+
+#, python-brace-format
+msgid "Remove hosts from CA ACL '${primary_key}'"
+msgstr "Вилучити вузли з ACL CA «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove hosts from HBAC rule '${primary_key}'"
+msgstr "Вилучити вузли з правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove hosts from SELinux user map '${primary_key}'"
+msgstr "Вилучити вузли з прив'язки користувачів SELinux «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove hosts from host group '${primary_key}'"
+msgstr "Вилучити вузли з групи вузлів «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove hosts from netgroup '${primary_key}'"
+msgstr "Вилучити вузли з мережевої групи «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove hosts from role '${primary_key}'"
+msgstr "Вилучити вузли з ролі «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove hosts from sudo rule '${primary_key}'"
+msgstr "Вилучити вузли з правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove hosts managing host '${primary_key}'"
+msgstr "Вилучити вузол керування вузлами «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove hosts managing service '${primary_key}'"
+msgstr "Вилучити службу керування вузлами «${primary_key}»"
 
 msgid "Remove hosts that can manage this host."
 msgstr "Вилучити записи вузлів, які можуть керувати цим вузлом."
 
 msgid "Remove hosts that can manage this service."
 msgstr "Вилучити вузли, які можуть керувати цією службою."
+
+#, python-brace-format
+msgid "Remove inclusive conditions from rule '${primary_key}'"
+msgstr "Вилучити умови включення з правила «${primary_key}»"
 
 msgid "Remove information about the domain associated with the trust."
 msgstr "Вилучити дані щодо домену, пов’язаного з цим правилом довіри."
@@ -24378,6 +25168,17 @@ msgstr "Вилучити записи учасників сховища."
 msgid "Remove members from an HBAC service group."
 msgstr "Вилучити учасників з групи служб HBAC."
 
+#, python-brace-format
+msgid "Remove netgroup '${primary_key}' from netgroups"
+msgstr "Вилучити мережеву групу «${primary_key}» з мережевих груп"
+
+msgid "Remove netgroups"
+msgstr "Вилучити мережеві групи"
+
+#, python-brace-format
+msgid "Remove netgroups from netgroup '${primary_key}'"
+msgstr "Вилучити мережеві групи з мережевої групи «${primary_key}»"
+
 msgid "Remove one or more certificate mappings from the stage user entry."
 msgstr ""
 "Вилучити одну або декілька прив’язок сертифікатів із запису користувача "
@@ -24402,8 +25203,17 @@ msgstr "Вилучити записи власників із контейнер
 msgid "Remove owners from a vault."
 msgstr "Вилучити записи власників сховища."
 
+msgid "Remove password policies"
+msgstr "Вилучити правила паролів"
+
+msgid "Remove permissions"
+msgstr "Вилучити дозволи"
+
 msgid "Remove permissions from a privilege."
 msgstr "Вилучити права доступу з привілею."
+
+msgid "Remove preserved users"
+msgstr "Вилучити збережених користувачів"
 
 msgid "Remove principal alias from a host entry"
 msgstr "Вилучити псевдонім реєстраційного запису із запису вузла"
@@ -24417,20 +25227,98 @@ msgstr "Вилучити псевдонім реєстраційного зап�
 msgid "Remove principal alias from the user entry"
 msgstr "Вилучити псевдонім реєстраційного запису із запису користувача"
 
+#, python-brace-format
+msgid "Remove privilege '${primary_key}' from permissions"
+msgstr "Вилучити привілеї «${primary_key}» з дозволів"
+
+msgid "Remove privileges"
+msgstr "Вилучити привілеї"
+
 msgid "Remove privileges from a role."
 msgstr "Вилучити привілеї з запису ролі."
+
+#, python-brace-format
+msgid "Remove privileges from permission '${primary_key}'"
+msgstr "Вилучити привілеї з дозволів «${primary_key}»"
 
 msgid "Remove profiles from a CA ACL."
 msgstr "Вилучити профілі із CA ACL."
 
+#, python-brace-format
+msgid "Remove role '${primary_key}' from privileges"
+msgstr "Вилучити роль «${primary_key}» з привілеїв"
+
+msgid "Remove roles"
+msgstr "Вилучити ролі"
+
+#, python-brace-format
+msgid "Remove roles from privilege '${primary_key}'"
+msgstr "Вилучити ролі з привілеїв «${primary_key}»"
+
+msgid "Remove self service permissions"
+msgstr "Вилучити дозволи на самообслуговування"
+
+msgid "Remove selinux user maps"
+msgstr "Вилучити прив'язки користувачів selinux"
+
+#, python-brace-format
+msgid "Remove service '${primary_key}' from roles"
+msgstr "Вилучити службу «${primary_key}» з ролей"
+
 msgid "Remove service and service groups from an HBAC rule."
 msgstr "Вилучити служби та групи служб з правила HBAC."
+
+msgid "Remove services"
+msgstr "Вилучити служби"
+
+#, python-brace-format
+msgid "Remove services from CA ACL '${primary_key}'"
+msgstr "Вилучити служби з ACL CA «${primary_key}»"
 
 msgid "Remove services from a CA ACL."
 msgstr "Вилучити служби з CA ACL."
 
+#, python-brace-format
+msgid "Remove services from members of vault '${primary_key}'"
+msgstr "Вилучити служби зі списку учасників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove services from owners of vault '${primary_key}'"
+msgstr "Вилучити служби зі списку власників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove services from role '${primary_key}'"
+msgstr "Вилучити служби з ролі «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove services from user group '${primary_key}'"
+msgstr "Вилучити служби з групи користувачів «${primary_key}»"
+
 msgid "Remove source hosts and hostgroups from an HBAC rule."
 msgstr "Вилучити вузли джерела та групи вузлів з правила HBAC."
+
+msgid "Remove stage users"
+msgstr "Вилучити користувачів етапів"
+
+#, python-brace-format
+msgid "Remove sudo command '${primary_key}' from sudo command groups"
+msgstr "Вилучити команду sudo «${primary_key}» з груп команд sudo"
+
+msgid "Remove sudo command groups"
+msgstr "Вилучити групи команд sudo"
+
+msgid "Remove sudo commands"
+msgstr "Вилучити команди sudo"
+
+#, python-brace-format
+msgid "Remove sudo commands from sudo command group '${primary_key}'"
+msgstr "Вилучити команди sudo з групи команд sudo «${primary_key}»"
+
+msgid "Remove sudo options"
+msgstr "Вилучити параметри sudo"
+
+msgid "Remove sudo rules"
+msgstr "Вилучити правила sudo"
 
 msgid "Remove target from a named service delegation rule."
 msgstr "Вилучити ціль із іменованого правила делегування служб."
@@ -24445,6 +25333,101 @@ msgid "Remove target hosts and hostgroups from an SELinux User Map rule."
 msgstr ""
 "Вилучити вузли призначення та групи вузлів з правила карти користувачів "
 "SELinux."
+
+msgid "Remove topology segments"
+msgstr "Вилучити елементи топології"
+
+msgid "Remove trusts"
+msgstr "Вилучити записи довіри"
+
+#, python-brace-format
+msgid "Remove user '${primary_key}' from HBAC rules"
+msgstr "Вилучити користувача «${primary_key}» з правил HBAC"
+
+#, python-brace-format
+msgid "Remove user '${primary_key}' from netgroups"
+msgstr "Вилучити користувача «${primary_key}» з мережевих груп"
+
+#, python-brace-format
+msgid "Remove user '${primary_key}' from roles"
+msgstr "Вилучити користувача «${primary_key}» з ролей"
+
+#, python-brace-format
+msgid "Remove user '${primary_key}' from sudo rules"
+msgstr "Вилучити користувача «${primary_key}» з правил sudo"
+
+#, python-brace-format
+msgid "Remove user '${primary_key}' from user groups"
+msgstr "Вилучити користувача «${primary_key}» з груп користувачів"
+
+msgid "Remove user ID overrides"
+msgstr "Вилучити перевизначення ідентифікаторів користувачів"
+
+#, python-brace-format
+msgid "Remove user group '${primary_key}' from HBAC rules"
+msgstr "Вилучити групу користувачів «${primary_key}» зі правил HBAC"
+
+#, python-brace-format
+msgid "Remove user group '${primary_key}' from netgroups"
+msgstr "Вилучити групу користувачів «${primary_key}» зі списку мережевих груп"
+
+#, python-brace-format
+msgid "Remove user group '${primary_key}' from roles"
+msgstr "Вилучити групу користувачів «${primary_key}» зі списку ролей"
+
+#, python-brace-format
+msgid "Remove user group '${primary_key}' from sudo rules"
+msgstr "Вилучити групу користувачів «${primary_key}» зі правил sudo"
+
+#, python-brace-format
+msgid "Remove user group '${primary_key}' from user groups"
+msgstr ""
+"Вилучити групу користувачів «${primary_key}» зі списку груп користувачів"
+
+msgid "Remove user groups"
+msgstr "Вилучити групи користувачів"
+
+#, python-brace-format
+msgid "Remove user groups from CA ACL '${primary_key}'"
+msgstr "Вилучити групи користувачів з ACL CA «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove user groups from HBAC rule '${primary_key}'"
+msgstr "Вилучити групи користувачів з правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove user groups from SELinux user map '${primary_key}'"
+msgstr ""
+"Вилучити групи користувачів з прив'язки користувачів SELinux «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove user groups from members of vault '${primary_key}'"
+msgstr ""
+"Вилучити групи користувачів зі списку учасників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove user groups from netgroup '${primary_key}'"
+msgstr "Вилучити групи користувачів з мережевої групи «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove user groups from owners of vault '${primary_key}'"
+msgstr ""
+"Вилучити групи користувачів зі списку власників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove user groups from role '${primary_key}'"
+msgstr "Вилучити групи користувачів з ролі «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove user groups from sudo rule '${primary_key}'"
+msgstr "Вилучити групи користувачів з правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove user groups from user group '${primary_key}'"
+msgstr "Вилучити групи користувачів з групи користувачів «${primary_key}»"
+
+msgid "Remove users"
+msgstr "Вилучити користувачів"
 
 msgid "Remove users and groups affected by Sudo Rule."
 msgstr "Вилучити записи користувачів та груп, яких стосується правило sudo."
@@ -24462,8 +25445,52 @@ msgstr "Вилучити користувачів і групи з правил�
 msgid "Remove users and groups from an SELinux User Map rule."
 msgstr "Вилучити користувачів і групи з правила карти користувачів SELinux."
 
+#, python-brace-format
+msgid "Remove users from CA ACL '${primary_key}'"
+msgstr "Вилучити користувачів з ACL CA «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove users from HBAC rule '${primary_key}'"
+msgstr "Вилучити користувачів з правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove users from SELinux user map '${primary_key}'"
+msgstr ""
+"Вилучити користувачів з прив'язки користувачів SELinux «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove users from members of vault '${primary_key}'"
+msgstr "Вилучити користувачів зі списку учасників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove users from netgroup '${primary_key}'"
+msgstr "Вилучити користувачів з мережевої групи «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove users from owners of vault '${primary_key}'"
+msgstr "Вилучити користувачів зі списку власників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove users from role '${primary_key}'"
+msgstr "Вилучити користувачів з ролі «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove users from sudo rule '${primary_key}'"
+msgstr "Вилучити користувачів з правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove users from user group '${primary_key}'"
+msgstr "Вилучити користувачів з групи користувачів «${primary_key}»"
+
+#, python-brace-format
+msgid "Remove users managing OTP token '${primary_key}'"
+msgstr "Вилучити ключ керування записами користувачів OTP «${primary_key}»"
+
 msgid "Remove users that can manage this token."
 msgstr "Вилучити записи користувачів, які можуть керувати цим жетоном."
+
+msgid "Remove vaults"
+msgstr "Вилучити сховища"
 
 #, python-format
 msgid "Removed aliases from host \"%(value)s\""
@@ -24679,7 +25706,7 @@ msgstr "Скинути одноразовий пароль"
 msgid "Reset Password"
 msgstr "Скинути пароль"
 
-msgid "Reset Password and Login"
+msgid "Reset Password and Log in"
 msgstr "Скинути пароль і увійти"
 
 msgid "Reset your password."
@@ -24800,6 +25827,9 @@ msgstr ""
 msgid "Retrieve current keys without changing them"
 msgstr "Отримувати поточні ключі без внесення до них змін"
 
+msgid "Retrieve data from a vault."
+msgstr "Отримати дані зі сховища."
+
 msgid "Retrieve the entitlement certs."
 msgstr "Отримати сертифікати іменування."
 
@@ -24828,6 +25858,9 @@ msgid "Retrying with pre-4.0 keytab retrieval method...\n"
 msgstr ""
 "Повторюємо спробу з використанням способу отримання сховища ключів, який "
 "використовувався до версії 4.0…\n"
+
+msgid "Return command defaults"
+msgstr "Повернути типові параметри команди"
 
 msgid "Return to the main page and retry the operation"
 msgstr "Повернутися до головної сторінки і повторити спробу"
@@ -25260,6 +26293,9 @@ msgstr "Шукати правила прив’язування сертифік
 msgid "Search for Certificate Profiles."
 msgstr "Шукати профілі сертифікатів."
 
+msgid "Search for Class of Service entry"
+msgstr "Шукати запис класу служби"
+
 msgid "Search for DNS forward zones."
 msgstr "Пошук зон переспрямовування DNS."
 
@@ -25511,12 +26547,6 @@ msgstr "Шукати вузли без цих правил sudo участі."
 
 msgid "Search for hosts."
 msgstr "Шукати вузли."
-
-#, c-format
-msgid "Search for ipaCertificateSubjectBase failed with error %d"
-msgstr ""
-"Спроба пошуку ipaCertificateSubjectBase завершилася невдало з повідомлення "
-"про помилку %d"
 
 msgid "Search for netgroups with these member groups."
 msgstr "Шукати мережеві групи із вказаними групами-учасниками."
@@ -26180,6 +27210,9 @@ msgstr "Визначає, де слід зберігати дані таблиц
 msgid "Specify external ${entity}"
 msgstr "Вкажіть зовнішній ${entity}"
 
+msgid "Split DNS record to parts"
+msgstr "Поділити запис DNS на частини"
+
 msgid "Stage"
 msgstr "Етап"
 
@@ -26221,6 +27254,9 @@ msgstr "Зупинити вже почате оновлення вибраних
 #, python-format
 msgid "Stopping of replication refresh for segment: \"%(pkey)s\" requested."
 msgstr "Зупиняємо реплікацію для сегмента: надіслано запит щодо «%(pkey)s»."
+
+msgid "Store and provide schema for commands and topics"
+msgstr "Збереження і надання схеми для команд і тем"
 
 msgid "Store issued certificates"
 msgstr "Зберігати видані сертифікати"
@@ -26365,6 +27401,9 @@ msgstr "Синхронізувати жетон OTP"
 
 msgid "Synchronize an OTP token."
 msgstr "Синхронізувати жетон OTP."
+
+msgid "Synchronizing"
+msgstr "Синхронізація"
 
 #, python-format
 msgid "Syntax Error: %(error)s"
@@ -26607,8 +27646,8 @@ msgstr "Найпоширенішими типами для цього типу �
 msgid "The number of times to retry authentication"
 msgstr "Кількість спроб пройти розпізнавання"
 
-msgid "The password or username you entered is incorrect."
-msgstr "Вами введено помилкове ім’я користувача або пароль."
+msgid "The password or username you entered is incorrect"
+msgstr "Вами введено помилкове ім'я користувача або пароль"
 
 msgid "The primary_key value of the entry, e.g. 'jdoe' for a user"
 msgstr ""
@@ -26678,6 +27717,9 @@ msgstr "Назва теми або команди."
 msgid "The total timeout across all retries (in seconds)"
 msgstr "Загальний час очікування за усіма спробами (у секундах)"
 
+msgid "The user account you entered is locked"
+msgstr "Введений вами обліковий запис заблоковано"
+
 msgid "The username attribute on the user object"
 msgstr "Атрибут імені користувача об’єкта користувача"
 
@@ -26691,6 +27733,10 @@ msgid ""
 msgstr ""
 "Відносини довіри із {ipa_domain} вже встановлено із непідтримуваним типом "
 "{trust_type}. Будь ласка, вилучте запис цих відносин вручну на боці AD DC."
+
+msgid "There was a problem with your request. Please, try again later."
+msgstr ""
+"Із вашим запитом виникли проблеми. Будь ласка, повторіть спробу пізніше."
 
 msgid ""
 "This command can not be used to change ID allocation for local IPA domain. "
@@ -26968,16 +28014,15 @@ msgstr ""
 msgid "Type of the token"
 msgstr "Тип ключа"
 
+msgid "Type of trusted domain ID range, one of allowed values"
+msgstr ""
+"Тип діапазону ідентифікаторів довіреного домену, одне з дозволених значень"
+
 msgid ""
 "Type of trusted domain ID range, one of ipa-ad-trust-posix, ipa-ad-trust"
 msgstr ""
 "Тип діапазону ідентифікаторів довіреного домену, одне з таких значень: ipa-"
 "ad-trust-posix, ipa-ad-trust"
-
-#, python-brace-format
-msgid "Type of trusted domain ID range, one of {vals}"
-msgstr ""
-"Тип діапазону ідентифікаторів довіреного домену, одне з таких значень: {vals}"
 
 msgid "Types of supported user authentication"
 msgstr "Типи підтримуваного розпізнавання користувачів"
@@ -27039,10 +28084,6 @@ msgstr "Не вдалося створити закриту групу. Груп
 msgid "Unable to determine IPA server from %s\n"
 msgstr "Не вдалося визначити сервер IPA з %s\n"
 
-#, c-format
-msgid "Unable to determine certificate subject of %s\n"
-msgstr "Не вдалося визначити призначення сертифіката %s\n"
-
 #, python-format
 msgid ""
 "Unable to determine if Kerberos principal %s already exists. Use 'ipa user-"
@@ -27072,16 +28113,12 @@ msgid "Unable to generate Kerberos Credential Cache\n"
 msgstr "Не вдалося створити кеш реєстраційних даних Kerberos\n"
 
 #, c-format
-msgid "Unable to init connection to %s\n"
-msgstr "Не вдалося ініціалізувати з’єднання з %s\n"
-
-#, c-format
 msgid "Unable to initialize STARTTLS session\n"
 msgstr "Не вдалося ініціалізувати сеанс STARTTLS\n"
 
 #, c-format
-msgid "Unable to initialize connection to ldap server: %s"
-msgstr "Не вдалося ініціалізувати з’єднання з сервером LDAP: %s"
+msgid "Unable to initialize connection to ldap server %1$s: %2$s\n"
+msgstr "Не вдалося ініціалізувати з'єднання із сервером ldap %1$s: %2$s\n"
 
 #, c-format
 msgid "Unable to initialize ldap library!\n"
@@ -27126,10 +28163,6 @@ msgid "Unable to resolve domain controller for {domain} domain. "
 msgstr "Не вдалося визначити контролер домену для домену {domain}. "
 
 #, c-format
-msgid "Unable to set LDAP version\n"
-msgstr "Не вдалося встановити версію LDAP\n"
-
-#, c-format
 msgid "Unable to set LDAP_OPT_PROTOCOL_VERSION\n"
 msgstr "Не вдалося встановити LDAP_OPT_PROTOCOL_VERSION\n"
 
@@ -27138,12 +28171,16 @@ msgid "Unable to set LDAP_OPT_X_SASL_NOCANON\n"
 msgstr "Не вдалося встановити LDAP_OPT_X_SASL_NOCANON\n"
 
 #, c-format
-msgid "Unable to set LDAP_OPT_X_TLS\n"
-msgstr "Не вдалося встановити LDAP_OPT_X_TLS\n"
+msgid "Unable to set LDAP_OPT_X_TLS_CACERTFILE\n"
+msgstr "Не вдалося встановити LDAP_OPT_X_TLS_CACERTFILE\n"
 
 #, c-format
-msgid "Unable to set LDAP_OPT_X_TLS_CERTIFICATE\n"
-msgstr "Не вдалося встановити LDAP_OPT_X_TLS_CERTIFICATE\n"
+msgid "Unable to set LDAP_OPT_X_TLS_NEWCTX\n"
+msgstr "Не вдалося встановити LDAP_OPT_X_TLS_NEWCTX\n"
+
+#, c-format
+msgid "Unable to set LDAP_OPT_X_TLS_PROTOCOL_MIN\n"
+msgstr "Не вдалося встановити LDAP_OPT_X_TLS_PROTOCOL_MIN\n"
 
 #, c-format
 msgid "Unable to set LDAP_OPT_X_TLS_REQUIRE_CERT\n"
@@ -27208,9 +28245,11 @@ msgstr "Невідповідний"
 msgid "Unprovision"
 msgstr "Скасування передбачення"
 
-#, python-brace-format
-msgid "Unprovisioning ${entity}"
-msgstr "Скасування передбачення ${entity}"
+msgid "Unprovisioning host"
+msgstr "Вузол скасовування передбачення"
+
+msgid "Unprovisioning service"
+msgstr "Служба скасовування передбачення"
 
 #, python-format
 msgid "Unrecognized attributes: %(attrs)s"
@@ -27614,12 +28653,19 @@ msgstr ""
 "Вам слід вказати обидва параметри, rid-base і secondary-rid-base, оскільки "
 "вже запущено ipa-adtrust-install."
 
+#, python-brace-format
+msgid "You will be redirected in ${count}s"
+msgstr "Вас буде переспрямовано за ${count} с"
+
 msgid "You will be redirected to DNS Zone."
 msgstr "Вас буде переспрямовано до зони DNS."
 
 #, python-brace-format
 msgid "Your password expires in ${days} days."
 msgstr "Строк дії вашого пароля буде вичерпано за ${days} днів."
+
+msgid "Your password has expired. Please enter a new password."
+msgstr "Термін дії вашого паролю вичерпано. Будь ласка, введіть новий пароль."
 
 msgid "Your session has expired. Please log in again."
 msgstr ""
@@ -28059,6 +29105,10 @@ msgstr "порожня мітка DNS"
 
 msgid "empty filter"
 msgstr "порожній фільтр"
+
+msgid "enabledService/configuredService not in ipaConfigString kdc entry"
+msgstr ""
+"enabledService/configuredService не перебуває у записі kdc ipaConfigString"
 
 msgid "entries"
 msgstr "записи"
@@ -28563,6 +29613,9 @@ msgstr "має бути принаймні %(minvalue)s"
 
 msgid "must be at least 1"
 msgstr "має бути принаймні 1"
+
+msgid "must be at least 10"
+msgstr "має бути принаймні 10"
 
 msgid "must be binary data"
 msgstr "має бути бінарними даними"

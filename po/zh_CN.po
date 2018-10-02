@@ -4,9 +4,9 @@
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.90.pre2\n"
+"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-05-15 14:59-0400\n"
+"POT-Creation-Date: 2018-10-01 23:02+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Last-Translator: Pavel Vomacka <pvomacka@redhat.com>\n"
 "Language-Team: Chinese (China)\n"
 "Language: zh_CN\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=1; plural=0\n"
 
 msgid ""
@@ -701,13 +701,6 @@ msgstr ""
 "\n"
 "用户库被特定用户拥有并使用。私有库被当前用户拥有。服务库被一个服务拥有。共享"
 "库被管理员拥有但可以被其他用户或服务使用。\n"
-
-msgid ""
-"\n"
-"Vault is a secure place to store a secret.\n"
-msgstr ""
-"\n"
-"库是一个用来存储密码的安全地方。\n"
 
 msgid ""
 "\n"
@@ -1614,10 +1607,6 @@ msgid "Add"
 msgstr "添加"
 
 #, python-brace-format
-msgid "Add ${entity}"
-msgstr "添加${entity}"
-
-#, python-brace-format
 msgid "Add ${entity} ${primary_key} into ${other_entity}"
 msgstr "添加${entity} ${primary_key}到${other_entity}"
 
@@ -1636,10 +1625,6 @@ msgstr "添加允许${other_entity}到${entity} ${primary_key}"
 msgid "Add CAs to a CA ACL."
 msgstr "向一个CA ACL中添加CAs。"
 
-#, python-brace-format
-msgid "Add Condition into ${pkey}"
-msgstr "添加条件到${pkey}"
-
 msgid "Add Custom Attribute"
 msgstr "添加自定义属性"
 
@@ -1655,15 +1640,6 @@ msgstr "添加Kerberos主体别名"
 
 msgid "Add Many"
 msgstr "添加多个"
-
-msgid "Add OTP Token"
-msgstr "添加OTP令牌"
-
-msgid "Add Permission"
-msgstr "添加权限"
-
-msgid "Add Rule"
-msgstr "添加规则"
 
 #, python-brace-format
 msgid "Add RunAs ${other_entity} into ${entity} ${primary_key}"
@@ -2860,10 +2836,6 @@ msgstr "证书配置文件不能被重命名"
 
 msgid "Certificate requested"
 msgstr "证书请求"
-
-#, c-format
-msgid "Certificate subject base is: %s\n"
-msgstr "证书基主题是：%s\n"
 
 #, python-format
 msgid ""
@@ -4170,14 +4142,6 @@ msgstr "已禁用信任域\"%(value)s\""
 #, python-format
 msgid "Disabled user account \"%(value)s\""
 msgstr "已禁用用户账户\"%(value)s\""
-
-#, python-brace-format
-msgid "Disallow ${other_entity} to create keytab of ${primary_key}"
-msgstr "不允许${other_entity}创建${primary_key}的keytab"
-
-#, python-brace-format
-msgid "Disallow ${other_entity} to retrieve keytab of ${primary_key}"
-msgstr "不允许${other_entity}检索${primary_key}的keytab"
 
 msgid ""
 "Disallow users, groups, hosts or host groups to create a keytab of this host."
@@ -5514,10 +5478,6 @@ msgstr ""
 msgid "ID range type, one of ipa-ad-trust-posix, ipa-ad-trust, ipa-local"
 msgstr "ID范围类型，是ipa-ad-trust-posix，ipa-ad-trust，ipa-local中的一个"
 
-#, python-brace-format
-msgid "ID range type, one of {vals}"
-msgstr "ID范围类型，其中之一{vals}"
-
 msgid ""
 "ID range with the same name but different domain SID already exists. The ID "
 "range for the new trusted domain must be created manually."
@@ -6723,16 +6683,6 @@ msgstr "修改DNS区域（SOA记录）。"
 
 msgid "Modify ID range."
 msgstr "修改ID范围。"
-
-#, python-brace-format
-msgid ""
-"Modify ID range.\n"
-"\n"
-"{0}\n"
-msgstr ""
-"修改ID范围。\n"
-"\n"
-"{0}\n"
 
 msgid "Modify Kerberos ticket policy."
 msgstr "修改Kerberos票据策略。"
@@ -8152,28 +8102,8 @@ msgstr "远程IPA服务器主机名"
 msgid "Remote server name"
 msgstr "远程服务器名称"
 
-#, python-brace-format
-msgid "Remove ${entity}"
-msgstr "删除${entity}"
-
-#, python-brace-format
-msgid "Remove ${entity} ${primary_key} from ${other_entity}"
-msgstr "从${other_entity}中移除${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Remove ${other_entity} Managing ${entity} ${primary_key}"
-msgstr "移除${other_entity}管理${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Remove ${other_entity} from ${entity} ${primary_key}"
-msgstr "从${entity} ${primary_key}中移除${other_entity}"
-
 msgid "Remove A, AAAA, SSHFP and PTR records of the host(s) managed by IPA DNS"
 msgstr "移除被IPA DNS管理的主机的A，AAAA，SSHFP和PTR记录"
-
-#, python-brace-format
-msgid "Remove Allow ${other_entity} from ${entity} ${primary_key}"
-msgstr "从${entity} ${primary_key}中移除允许${other_entity}"
 
 msgid "Remove CAs from a CA ACL."
 msgstr "从一个CA ACL中移除CAs。"
@@ -8185,10 +8115,6 @@ msgstr "删除证书持有"
 msgid "Remove Certificate Hold for ${entity} ${primary_key}"
 msgstr "为${entity} ${primary_key}删除证书持有"
 
-#, python-brace-format
-msgid "Remove Deny ${other_entity} from ${entity} ${primary_key}"
-msgstr "从${entity} ${primary_key}中移除阻止${other_entity}"
-
 msgid "Remove Hold"
 msgstr "删除持有"
 
@@ -8197,14 +8123,6 @@ msgstr "删除Kerberos别名"
 
 msgid "Remove Permission"
 msgstr "删除权限"
-
-#, python-brace-format
-msgid "Remove RunAs ${other_entity} from ${entity} ${primary_key}"
-msgstr "从${entity} ${primary_key}中移除RunAs ${other_entity}"
-
-#, python-brace-format
-msgid "Remove RunAs Groups from ${entity} ${primary_key}"
-msgstr "从${entity} ${primary_key}中移除RunAs用户组"
 
 msgid "Remove a manager to the stage user entry"
 msgstr "从一个计划用户条目中移除一个管理员"
@@ -8549,9 +8467,6 @@ msgstr "重置一次性密码"
 
 msgid "Reset Password"
 msgstr "重置密码"
-
-msgid "Reset Password and Login"
-msgstr "重置密码并登录"
 
 msgid "Reset your password."
 msgstr "重置你的密码。"
@@ -9328,10 +9243,6 @@ msgstr "查找不包含这些sudo规则成员的主机。"
 
 msgid "Search for hosts."
 msgstr "查找主机。"
-
-#, c-format
-msgid "Search for ipaCertificateSubjectBase failed with error %d"
-msgstr "查找ipa证书根主题失败，错误%d"
 
 msgid "Search for netgroups with these member groups."
 msgstr "查找包含这些成员用户组的网络组。"
@@ -10260,9 +10171,6 @@ msgstr "这种区域的最常见类型是： %s\n"
 msgid "The number of times to retry authentication"
 msgstr "重试认证的次数"
 
-msgid "The password or username you entered is incorrect."
-msgstr "你输入的密码或用户名不正确。"
-
 msgid "The principal for this request doesn't exist."
 msgstr "该请求的主题不存在。"
 
@@ -10574,10 +10482,6 @@ msgid ""
 "Type of trusted domain ID range, one of ipa-ad-trust-posix, ipa-ad-trust"
 msgstr "信任域ID范围的类型，是ipa-ad-trust-posix和ipa-ad-trust中的一个"
 
-#, python-brace-format
-msgid "Type of trusted domain ID range, one of {vals}"
-msgstr "信任域ID范围类型，是{vals}其中之一"
-
 msgid "Types of supported user authentication"
 msgstr "支持的用户认证类型"
 
@@ -10625,10 +10529,6 @@ msgstr "不能创建私有组。组'%(group)s'已存在。"
 msgid "Unable to determine IPA server from %s\n"
 msgstr "无法从%s中确定IPA主机\n"
 
-#, c-format
-msgid "Unable to determine certificate subject of %s\n"
-msgstr "无法确定%s的证书主题\n"
-
 #, python-format
 msgid ""
 "Unable to determine if Kerberos principal %s already exists. Use 'ipa user-"
@@ -10651,10 +10551,6 @@ msgstr "在LDAP中不能启用SSL\n"
 #, c-format
 msgid "Unable to generate Kerberos Credential Cache\n"
 msgstr "无法生成Kerberos凭证缓存\n"
-
-#, c-format
-msgid "Unable to initialize connection to ldap server: %s"
-msgstr "不能初始化连接到ldap服务器：%s"
 
 #, c-format
 msgid "Unable to initialize ldap library!\n"
@@ -10691,24 +10587,12 @@ msgid "Unable to remove entry\n"
 msgstr "无法删除条目\n"
 
 #, c-format
-msgid "Unable to set LDAP version\n"
-msgstr "不能设置LDAP版本\n"
-
-#, c-format
 msgid "Unable to set LDAP_OPT_PROTOCOL_VERSION\n"
 msgstr "不能设置LDAP_OPT_PROTOCOL_VERSION\n"
 
 #, c-format
 msgid "Unable to set LDAP_OPT_X_SASL_NOCANON\n"
 msgstr "不能设置LDAP_OPT_X_SASL_NOCANON\n"
-
-#, c-format
-msgid "Unable to set LDAP_OPT_X_TLS\n"
-msgstr "不能设置LDAP_OPT_X_TLS\n"
-
-#, c-format
-msgid "Unable to set LDAP_OPT_X_TLS_CERTIFICATE\n"
-msgstr "不能设置LDAP_OPT_X_TLS_CERTIFICATE\n"
 
 msgid "Unable to verify write permissions to the AD"
 msgstr "不能在AD中验证写权限"
@@ -10768,10 +10652,6 @@ msgstr "不匹配"
 
 msgid "Unprovision"
 msgstr "取消供应"
-
-#, python-brace-format
-msgid "Unprovisioning ${entity}"
-msgstr "取消供应${entity}"
 
 msgid "Unresolved rules in --rules"
 msgstr "在--rules中不能解析的规则"
