@@ -60,12 +60,14 @@ var spec = {
         {
             $type: 'association',
             name: 'member_netgroup',
+            add_title: '@i18n:objects.netgroup.add_netgroups',
             remove_title: '@i18n:objects.netgroup.remove_netgroups'
         },
         {
             $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator,
+            add_title: '@i18n:objects.netgroup.add_into_netgroups',
             remove_title: '@i18n:objects.netgroup.remove_from_netgroups'
         }
     ],
@@ -188,7 +190,7 @@ var add_netgroup_details_facet_widgets = function (spec) {
                             name: 'memberuser_user',
                             add_method: 'add_member',
                             remove_method: 'remove_member',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.netgroup.add_users',
                             remove_title: '@i18n:objects.netgroup.remove_users',
                             columns: [
                                 {
@@ -204,7 +206,7 @@ var add_netgroup_details_facet_widgets = function (spec) {
                             name: 'memberuser_group',
                             add_method: 'add_member',
                             remove_method: 'remove_member',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.netgroup.add_groups',
                             remove_title: '@i18n:objects.netgroup.remove_groups',
                             columns: [
                                 {
@@ -277,7 +279,7 @@ var add_netgroup_details_facet_widgets = function (spec) {
                             add_method: 'add_member',
                             remove_method: 'remove_member',
                             external: 'externalhost',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.netgroup.add_hosts',
                             remove_title: '@i18n:objects.netgroup.remove_hosts',
                             columns: [
                                 {
@@ -299,7 +301,7 @@ var add_netgroup_details_facet_widgets = function (spec) {
                             name: 'memberhost_hostgroup',
                             add_method: 'add_member',
                             remove_method: 'remove_member',
-                            add_title: '@i18n:association.add.member',
+                            add_title: '@i18n:objects.netgroup.add_hostgroups',
                             remove_title: '@i18n:objects.netgroup.remove_hostgroups',
                             columns: [
                                 {

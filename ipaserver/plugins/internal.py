@@ -169,15 +169,7 @@ class i18n_messages(Command):
             "title": _("Actions"),
         },
         "association": {
-            "add": {
-                "ipasudorunas": _("Add RunAs ${other_entity} into ${entity} ${primary_key}"),
-                "ipasudorunasgroup": _("Add RunAs Groups into ${entity} ${primary_key}"),
-                "managedby": _("Add ${other_entity} Managing ${entity} ${primary_key}"),
-                "member": _("Add ${other_entity} into ${entity} ${primary_key}"),
-                "memberallowcmd": _("Add Allow ${other_entity} into ${entity} ${primary_key}"),
-                "memberdenycmd": _("Add Deny ${other_entity} into ${entity} ${primary_key}"),
-                "memberof": _("Add ${entity} ${primary_key} into ${other_entity}"),
-            },
+            "add_title_default": _("Add"),
             "added": _("${count} item(s) added"),
             "direct_membership": _("Direct Membership"),
             "filter_placeholder": _("Filter available ${other_entity}"),
@@ -314,8 +306,30 @@ class i18n_messages(Command):
         },
         "false": _("False"),
         "keytab": {
-            "add_create": _("Allow ${other_entity} to create keytab of ${primary_key}"),
-            "add_retrive": _("Allow ${other_entity} to retrieve keytab of ${primary_key}"),
+            "add_groups_create": _(
+                "Allow user groups to create keytab of '${primary_key}'"
+            ),
+            "add_groups_retrieve": _(
+                "Allow user groups to retrieve keytab of '${primary_key}'"
+            ),
+            "add_hostgroups_create": _(
+                "Allow host groups to create keytab of '${primary_key}'"
+            ),
+            "add_hostgroups_retrieve": _(
+                "Allow host groups to retrieve keytab of '${primary_key}'"
+            ),
+            "add_hosts_create": _(
+                "Allow hosts to create keytab of '${primary_key}'"
+            ),
+            "add_hosts_retrieve": _(
+                "Allow hosts to retrieve keytab of '${primary_key}'"
+            ),
+            "add_users_create": _(
+                "Allow users to create keytab of '${primary_key}'"
+            ),
+            "add_users_retrieve": _(
+                "Allow users to retrieve keytab of '${primary_key}'"
+            ),
             "allowed_to_create": _("Allowed to create keytab"),
             "allowed_to_retrieve": _("Allowed to retrieve keytab"),
             "remove_groups_create": _(
@@ -427,6 +441,9 @@ class i18n_messages(Command):
             },
             "acipermission": {
                 "add": _("Add permission"),
+                "add_privileges": _(
+                    "Add privileges into permission '${primary_key}'"
+                ),
                 "remove": _("Remove permissions"),
                 "remove_privileges": _(
                     "Remove privileges from permission '${primary_key}'"
@@ -434,6 +451,12 @@ class i18n_messages(Command):
             },
             "aciprivilege": {
                 "add": _("Add privilege"),
+                "add_into_permissions": _(
+                    "Add privilege '${primary_key}' into permissions"
+                ),
+                "add_roles": _(
+                    "Add roles into privilege '${primary_key}'"
+                ),
                 "remove": _("Remove privileges"),
                 "remove_from_permissions": _(
                     "Remove privilege '${primary_key}' from permissions"
@@ -445,6 +468,24 @@ class i18n_messages(Command):
             "acirole": {
                 "identity": _("Role Settings"),
                 "add": _("Add role"),
+                "add_groups": _(
+                    "Add user groups into role '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into role '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into role '${primary_key}'"
+                ),
+                "add_into_privileges": _(
+                    "Add role '${primary_key}' into privileges"
+                ),
+                "add_services": _(
+                    "Add services into role '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into role '${primary_key}'"
+                ),
                 "remove": _("Remove roles"),
                 "remove_from_privileges": _(
                     "Remove role '${primary_key}' from privileges"
@@ -517,6 +558,28 @@ class i18n_messages(Command):
             },
             "caacl": {
                 "add": _("Add CA ACL"),
+                "add_ca": _(
+                    "Add Certificate Authorities into CA ACL "
+                    "'${primary_key}'"
+                ),
+                "add_groups": _(
+                    "Add user groups into CA ACL '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into CA ACL '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into CA ACL '${primary_key}'"
+                ),
+                "add_profiles": _(
+                    "Add certificate profiles into CA ACL '${primary_key}'"
+                ),
+                "add_services": _(
+                    "Add services into CA ACL '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into CA ACL '${primary_key}'"
+                ),
                 "all": _("All"),
                 "any_ca": _("Any CA"),
                 "any_host": _("Any Host"),
@@ -588,8 +651,16 @@ class i18n_messages(Command):
                 "fingerprints": _("Fingerprints"),
                 "get_certificate": _("Get Certificate"),
                 "hold_removed": _("Certificate Hold Removed"),
-                "issue_certificate": _("Issue New Certificate for ${entity} ${primary_key}"),
-                "issue_certificate_generic": _("Issue New Certificate"),
+                "issue_for_host": _(
+                    "Issue new certificate for host '${primary_key}'"
+                ),
+                "issue_for_service": _(
+                    "Issue new certificate for service '${primary_key}'"
+                ),
+                "issue_for_user": _(
+                    "Issue new certificate for user '${primary_key}'"
+                ),
+                "issue_certificate_generic": _("Issue new certificate"),
                 "issued_by": _("Issued By"),
                 "issued_on": _("Issued On"),
                 "issued_to": _("Issued To"),
@@ -603,17 +674,15 @@ class i18n_messages(Command):
                 "present": _("${count} certificate(s) present"),
                 "privilege_withdrawn": _("Privilege Withdrawn"),
                 "reason": _("Reason for Revocation"),
-                "remove_hold": _("Remove Hold"),
-                "remove_certificate_hold": _("Remove Certificate Hold for ${entity} ${primary_key}"),
-                "remove_certificate_hold_simple": _("Remove Certificate Hold"),
+                "remove_hold": _("Remove hold"),
+                "remove_certificate_hold_simple": _("Remove certificate hold"),
                 "remove_certificate_hold_confirmation": _("Do you want to remove the certificate hold?"),
                 "remove_from_crl": _("Remove from CRL"),
                 "request_message": _("<ol> <li>Create a certificate database or use an existing one. To create a new database:<br/> <code># certutil -N -d &lt;database path&gt;</code> </li> <li>Create a CSR with subject <em>CN=&lt;${cn_name}&gt;,O=&lt;realm&gt;</em>, for example:<br/> <code># certutil -R -d &lt;database path&gt; -a -g &lt;key size&gt; -s 'CN=${cn},O=${realm}'${san}</code> </li> <li> Copy and paste the CSR (from <em>-----BEGIN NEW CERTIFICATE REQUEST-----</em> to <em>-----END NEW CERTIFICATE REQUEST-----</em>) into the text area below: </li> </ol>"),
                 "request_message_san": _(" -8 '${cn}'"),
                 "requested": _("Certificate requested"),
                 "revocation_reason": _("Revocation reason"),
-                "revoke_certificate": _("Revoke Certificate for ${entity} ${primary_key}"),
-                "revoke_certificate_simple": _("Revoke Certificate"),
+                "revoke_certificate_simple": _("Revoke certificate"),
                 "revoke_confirmation": _("Do you want to revoke this certificate? Select a reason from the pull-down list."),
                 "revoked": _("Certificate Revoked"),
                 "revoked_status": _("REVOKED"),
@@ -718,6 +787,30 @@ class i18n_messages(Command):
             },
             "group": {
                 "add": _("Add user group"),
+                "add_groups": _(
+                    "Add user groups into user group '${primary_key}'"
+                ),
+                "add_into_groups": _(
+                    "Add user group '${primary_key}' into user groups"
+                ),
+                "add_into_hbac": _(
+                    "Add user group '${primary_key}' into HBAC rules"
+                ),
+                "add_into_netgroups": _(
+                    "Add user group '${primary_key}' into netgroups"
+                ),
+                "add_into_roles": _(
+                    "Add user group '${primary_key}' into roles"
+                ),
+                "add_into_sudo": _(
+                    "Add user group '${primary_key}' into sudo rules"
+                ),
+                "add_services": _(
+                    "Add services into user group '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into user group '${primary_key}'"
+                ),
                 "details": _("Group Settings"),
                 "external": _("External"),
                 "groups": _("Groups"),
@@ -756,6 +849,25 @@ class i18n_messages(Command):
             },
             "hbacrule": {
                 "add": _("Add HBAC rule"),
+                "add_groups": _(
+                    "Add user groups into HBAC rule '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into HBAC rule '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into HBAC rule '${primary_key}'"
+                ),
+                "add_servicegroups": _(
+                    "Add HBAC service groups into HBAC rule "
+                    "'${primary_key}'"
+                ),
+                "add_services": _(
+                    "Add HBAC services into HBAC rule '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into HBAC rule '${primary_key}'"
+                ),
                 "any_host": _("Any Host"),
                 "any_service": _("Any Service"),
                 "anyone": _("Anyone"),
@@ -789,6 +901,10 @@ class i18n_messages(Command):
             },
             "hbacsvc": {
                 "add": _("Add HBAC service"),
+                "add_hbacsvcgroups": _(
+                    "Add HBAC service '${primary_key}' into HBAC service "
+                    "groups"
+                ),
                 "remove": _("Remove HBAC services"),
                 "remove_from_hbacsvcgroups": _(
                     "Remove HBAC service '${primary_key}' from HBAC service "
@@ -797,6 +913,10 @@ class i18n_messages(Command):
             },
             "hbacsvcgroup": {
                 "add": _("Add HBAC service group"),
+                "add_hbacsvcs": _(
+                    "Add HBAC services into HBAC service group "
+                    "'${primary_key}'"
+                ),
                 "remove": _("Remove HBAC service groups"),
                 "remove_hbacsvcs": _(
                     "Remove HBAC services from HBAC service group "
@@ -820,6 +940,24 @@ class i18n_messages(Command):
             },
             "host": {
                 "add": _("Add host"),
+                "add_hosts_managing": _(
+                    "Add hosts managing host '${primary_key}'"
+                ),
+                "add_into_groups": _(
+                    "Add host '${primary_key}' into host groups"
+                ),
+                "add_into_hbac": _(
+                    "Add host '${primary_key}' into HBAC rules"
+                ),
+                "add_into_netgroups": _(
+                    "Add host '${primary_key}' into netgroups"
+                ),
+                "add_into_roles": _(
+                    "Add host '${primary_key}' into roles"
+                ),
+                "add_into_sudo": _(
+                    "Add host '${primary_key}' into sudo rules"
+                ),
                 "certificate": _("Host Certificate"),
                 "cn": _("Host Name"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
@@ -867,6 +1005,24 @@ class i18n_messages(Command):
             },
             "hostgroup": {
                 "add": _("Add host group"),
+                "add_hosts": _(
+                    "Add hosts into host group '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into host group '${primary_key}'"
+                ),
+                "add_into_hostgroups": _(
+                    "Add host group '${primary_key}' into host groups"
+                ),
+                "add_into_hbac": _(
+                    "Add host group '${primary_key}' into HBAC rules"
+                ),
+                "add_into_netgroups": _(
+                    "Add host group '${primary_key}' into netgroups"
+                ),
+                "add_into_sudo": _(
+                    "Add host group '${primary_key}' into sudo rules"
+                ),
                 "host_group": _("Host Groups"),
                 "identity": _("Host Group Settings"),
                 "remove": _("Remove host groups"),
@@ -908,9 +1064,13 @@ class i18n_messages(Command):
                 "appliedtohosts": _("Applied to hosts"),
                 "appliedtohosts_title": _("Applied to hosts"),
                 "apply_hostgroups": _("Apply to host groups"),
-                "apply_hostgroups_title": _("Apply ID View ${primary_key} on hosts of ${entity}"),
+                "apply_hostgroups_title": _(
+                    "Apply ID view '${primary_key}' on hosts of host groups"
+                ),
                 "apply_hosts": _("Apply to hosts"),
-                "apply_hosts_title": _("Apply ID view ${primary_key} on ${entity}"),
+                "apply_hosts_title": _(
+                    "Apply ID view '${primary_key}' on hosts"
+                ),
                 "ipaassignedidview": _("Assigned ID View"),
                 "overrides_tab": _("${primary_key} overrides:"),
                 "remove": _("Remove ID views"),
@@ -918,18 +1078,37 @@ class i18n_messages(Command):
                 "remove_groups": _("Remove group ID overrides"),
                 "unapply_hostgroups": _("Un-apply from host groups"),
                 "unapply_hostgroups_all_title": _("Un-apply ID Views from hosts of hostgroups"),
-                "unapply_hostgroups_title": _("Un-apply ID View ${primary_key} from hosts of ${entity}"),
                 "unapply_hosts": _("Un-apply"),
                 "unapply_hosts_all": _("Un-apply from hosts"),
                 "unapply_hosts_all_title": _("Un-apply ID Views from hosts"),
                 "unapply_hosts_confirm": _("Are you sure you want to un-apply ID view from selected entries?"),
-                "unapply_hosts_title": _("Un-apply ID View ${primary_key} from hosts"),
+                "unapply_hosts_title": _(
+                    "Un-apply ID view '${primary_key}' from hosts"
+                ),
             },
             "krbtpolicy": {
                 "identity": _("Kerberos Ticket Policy"),
             },
             "netgroup": {
                 "add": _("Add netgroup"),
+                "add_into_netgroups": _(
+                    "Add netgroup '${primary_key}' into netgroups"
+                ),
+                "add_netgroups": _(
+                    "Add netgroups into netgroup '${primary_key}'"
+                ),
+                "add_groups": _(
+                    "Add user groups into netgroup '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into netgroup '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into netgroup '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into netgroup '${primary_key}'"
+                ),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "external": _("External"),
@@ -965,6 +1144,9 @@ class i18n_messages(Command):
             },
             "otptoken": {
                 "add": _("Add OTP token"),
+                "add_users_managing": _(
+                    "Add users managing OTP token '${primary_key}'"
+                ),
                 "app_link": _("You can use <a href=\"${link}\" target=\"_blank\">FreeOTP<a/> as a software OTP token application."),
                 "config_title": _("Configure your token"),
                 "config_instructions": _("Configure your token by scanning the QR code below. Click on the QR code if you see this on the device you want to configure."),
@@ -1037,6 +1219,18 @@ class i18n_messages(Command):
             },
             "selinuxusermap": {
                 "add": _("Add SELinux user map"),
+                "add_groups": _(
+                    "Add user groups into SELinux user map '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into SELinux user map '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into SELinux user map '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into SELinux user map '${primary_key}'"
+                ),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "host": _("Host"),
@@ -1069,6 +1263,12 @@ class i18n_messages(Command):
             },
             "service": {
                 "add": _("Add service"),
+                "add_hosts_managing": _(
+                    "Add hosts managing service '${primary_key}'"
+                ),
+                "add_into_roles": _(
+                    "Add service '${primary_key}' into roles"
+                ),
                 "certificate": _("Service Certificate"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
                 "details": _("Service Settings"),
@@ -1119,6 +1319,10 @@ class i18n_messages(Command):
             },
             "sudocmd": {
                 "add": _("Add sudo command"),
+                "add_into_sudocmdgroups": _(
+                    "Add sudo command '${primary_key}' into sudo command "
+                    "groups"
+                ),
                 "groups": _("Groups"),
                 "remove": _("Remove sudo commands"),
                 "remove_from_sudocmdgroups": _(
@@ -1128,6 +1332,10 @@ class i18n_messages(Command):
             },
             "sudocmdgroup": {
                 "add": _("Add sudo command group"),
+                "add_sudocmds": _(
+                    "Add sudo commands into sudo command group "
+                    "'${primary_key}'"
+                ),
                 "commands": _("Commands"),
                 "remove": _("Remove sudo command groups"),
                 "remove_sudocmds": _(
@@ -1138,6 +1346,43 @@ class i18n_messages(Command):
             "sudorule": {
                 "add": _("Add sudo rule"),
                 "add_option": _("Add sudo option"),
+                "add_allow_cmds": _(
+                    "Add allow sudo commands into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_allow_cmdgroups": _(
+                    "Add allow sudo command groups into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_deny_cmds": _(
+                    "Add deny sudo commands into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_deny_cmdgroups": _(
+                    "Add deny sudo command groups into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_groups": _(
+                    "Add user groups into sudo rule '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into sudo rule '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into sudo rule '${primary_key}'"
+                ),
+                "add_runas_users": _(
+                    "Add RunAs users into sudo rule '${primary_key}'"
+                ),
+                "add_runas_usergroups": _(
+                    "Add RunAs user groups into sudo rule '${primary_key}'"
+                ),
+                "add_runas_groups": _(
+                    "Add RunAs groups into sudo rule '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into sudo rule '${primary_key}'"
+                ),
                 "allow": _("Allow"),
                 "any_command": _("Any Command"),
                 "any_group": _("Any Group"),
@@ -1207,6 +1452,9 @@ class i18n_messages(Command):
             },
             "topologylocation": {
                 "add": _("Add IPA location"),
+                "add_server": _(
+                    "Add IPA server into IPA location '${primary_key}'"
+                ),
                 "remove": _("Remove IPA locations"),
                 "remove_servers": _(
                     "Remove IPA servers from IPA location '${primary_key}'"
@@ -1243,6 +1491,21 @@ class i18n_messages(Command):
                 "account_status": _("Account Status"),
                 "activeuser_label": _("Active users"),
                 "add": _("Add user"),
+                "add_into_groups": _(
+                    "Add user '${primary_key}' into user groups"
+                ),
+                "add_into_hbac": _(
+                    "Add user '${primary_key}' into HBAC rules"
+                ),
+                "add_into_netgroups": _(
+                    "Add user '${primary_key}' into netgroups"
+                ),
+                "add_into_roles": _(
+                    "Add user '${primary_key}' into roles"
+                ),
+                "add_into_sudo": _(
+                    "Add user '${primary_key}' into sudo rules"
+                ),
                 "contact": _("Contact Settings"),
                 "delete_mode": _("Delete mode"),
                 "employee": _("Employee Information"),
@@ -1276,6 +1539,24 @@ class i18n_messages(Command):
             },
             "vault": {
                 "add": _("Add vault"),
+                "add_member_groups": _(
+                    "Add user groups into members of vault '${primary_key}'"
+                ),
+                "add_member_services": _(
+                    "Add services into members of vault '${primary_key}'"
+                ),
+                "add_member_users": _(
+                    "Add users into members of vault '${primary_key}'"
+                ),
+                "add_owner_groups": _(
+                    "Add user groups into owners of vault '${primary_key}'"
+                ),
+                "add_owner_services": _(
+                    "Add services into owners of vault '${primary_key}'"
+                ),
+                "add_owner_users": _(
+                    "Add users into owners of vault '${primary_key}'"
+                ),
                 "add_warn_arch_ret": _(
                     "Secrets can be added/retrieved to vault only by using "
                     "vault-archive and vault-retrieve from CLI."
