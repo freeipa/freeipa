@@ -11,7 +11,7 @@ PYTHON = @PYTHON@
 .PHONY: strip-po
 strip-po:
 	for po_file in $(POFILES); do \
-		$(MSGATTRIB) --translated --no-fuzzy --no-location $$po_file > $$po_file.tmp || exit 1; \
+		$(MSGATTRIB) --translated --no-fuzzy --no-location -s $$po_file > $$po_file.tmp || exit 1; \
 		mv $$po_file.tmp $$po_file || exit 1; \
 	done
 	export FILES_TO_REMOVE=`find $(srcdir) -name '*.po' -empty` || exit 1; \
