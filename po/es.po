@@ -4,17 +4,17 @@
 # Emilio Herrera <ehespinosa57@gmail.com>, 2018. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.90.pre2\n"
+"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-05-15 14:59-0400\n"
+"POT-Creation-Date: 2018-10-01 23:02+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-06-25 03:45+0000\n"
+"PO-Revision-Date: 2018-09-30 04:50+0000\n"
 "Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
 msgid ""
@@ -131,12 +131,30 @@ msgstr ""
 
 msgid ""
 "\n"
+"  Show configuration of a specific DNS server:\n"
+"    ipa dnsserver-show\n"
+msgstr ""
+"\n"
+"  Mostar la configuración de un servidor DNS especifico:\n"
+"    ipa dnsserver-show\n"
+
+msgid ""
+"\n"
 "  Show specific server:\n"
 "    ipa server-show ipa.example.com\n"
 msgstr ""
 "\n"
 "  Mostrar un servidor específico:\n"
 "    ipa server-show ipa.example.com\n"
+
+msgid ""
+"\n"
+"  Update configuration of a specific DNS server:\n"
+"    ipa dnsserver-mod\n"
+msgstr ""
+"\n"
+"  Actualizar la configuración de un servidor DNS especifico:\n"
+"    ipa dnsserver-mod\n"
 
 msgid ""
 "\n"
@@ -282,6 +300,13 @@ msgstr ""
 
 msgid ""
 "\n"
+"DNS server configuration\n"
+msgstr ""
+"\n"
+"Configuración del servidor DNS\n"
+
+msgid ""
+"\n"
 "EXAMPLES:\n"
 msgstr ""
 "\n"
@@ -416,6 +441,209 @@ msgstr ""
 "\n"
 " Mostrat un Grupo de Comando Sudo:\n"
 "   ipa group-show localadmins\n"
+
+msgid ""
+"\n"
+"Groups of users\n"
+"\n"
+"Manage groups of users, groups, or services. By default, new groups are "
+"POSIX\n"
+"groups. You can add the --nonposix option to the group-add command to mark "
+"a\n"
+"new group as non-POSIX. You can use the --posix argument with the group-mod\n"
+"command to convert a non-POSIX group into a POSIX group. POSIX groups cannot "
+"be\n"
+"converted to non-POSIX groups.\n"
+"\n"
+"Every group must have a description.\n"
+"\n"
+"POSIX groups must have a Group ID (GID) number. Changing a GID is\n"
+"supported but can have an impact on your file permissions. It is not "
+"necessary\n"
+"to supply a GID when creating a group. IPA will generate one automatically\n"
+"if it is not provided.\n"
+"\n"
+"Groups members can be users, other groups, and Kerberos services. In POSIX\n"
+"environments only users will be visible as group members, but nested groups "
+"and\n"
+"groups of services can be used for IPA management purposes.\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" Add a new group:\n"
+"   ipa group-add --desc='local administrators' localadmins\n"
+"\n"
+" Add a new non-POSIX group:\n"
+"   ipa group-add --nonposix --desc='remote administrators' remoteadmins\n"
+"\n"
+" Convert a non-POSIX group to posix:\n"
+"   ipa group-mod --posix remoteadmins\n"
+"\n"
+" Add a new POSIX group with a specific Group ID number:\n"
+"   ipa group-add --gid=500 --desc='unix admins' unixadmins\n"
+"\n"
+" Add a new POSIX group and let IPA assign a Group ID number:\n"
+"   ipa group-add --desc='printer admins' printeradmins\n"
+"\n"
+" Remove a group:\n"
+"   ipa group-del unixadmins\n"
+"\n"
+" To add the \"remoteadmins\" group to the \"localadmins\" group:\n"
+"   ipa group-add-member --groups=remoteadmins localadmins\n"
+"\n"
+" Add multiple users to the \"localadmins\" group:\n"
+"   ipa group-add-member --users=test1 --users=test2 localadmins\n"
+"\n"
+" To add Kerberos services to the \"printer admins\" group:\n"
+"   ipa group-add-member --services=CUPS/some.host printeradmins\n"
+"\n"
+" Remove a user from the \"localadmins\" group:\n"
+"   ipa group-remove-member --users=test2 localadmins\n"
+"\n"
+" Display information about a named group.\n"
+"   ipa group-show localadmins\n"
+"\n"
+"External group membership is designed to allow users from trusted domains\n"
+"to be mapped to local POSIX groups in order to actually use IPA resources.\n"
+"External members should be added to groups that specifically created as\n"
+"external and non-POSIX. Such group later should be included into one of "
+"POSIX\n"
+"groups.\n"
+"\n"
+"An external group member is currently a Security Identifier (SID) as defined "
+"by\n"
+"the trusted domain. When adding external group members, it is possible to\n"
+"specify them in either SID, or DOM\\name, or name@domain format. IPA will "
+"attempt\n"
+"to resolve passed name to SID with the use of Global Catalog of the trusted "
+"domain.\n"
+"\n"
+"Example:\n"
+"\n"
+"1. Create group for the trusted domain admins' mapping and their local POSIX "
+"group:\n"
+"\n"
+"   ipa group-add --desc='<ad.domain> admins external map' ad_admins_external "
+"--external\n"
+"   ipa group-add --desc='<ad.domain> admins' ad_admins\n"
+"\n"
+"2. Add security identifier of Domain Admins of the <ad.domain> to the "
+"ad_admins_external\n"
+"   group:\n"
+"\n"
+"   ipa group-add-member ad_admins_external --external 'AD\\Domain Admins'\n"
+"\n"
+"3. Allow members of ad_admins_external group to be associated with ad_admins "
+"POSIX group:\n"
+"\n"
+"   ipa group-add-member ad_admins --groups ad_admins_external\n"
+"\n"
+"4. List members of external members of ad_admins_external group to see their "
+"SIDs:\n"
+"\n"
+"   ipa group-show ad_admins_external\n"
+msgstr ""
+"\n"
+"Grupos de usuarios\n"
+"\n"
+"Gestiona grupos de usuarios, grupos o servicios. Por defecto, los nuevos "
+"grupos\n"
+"son grupos POXIS. Puede añadir la opción --nonposix al comando group-add "
+"para\n"
+"marcar un nuevo grupo como no POSIX. Puede usar el argumento --posix con el\n"
+"comando group-mod para convertir un grupo no POSIX en un grupo POSIX. Los\n"
+"grupos POXIS no pueden ser convertidos en grupos no POXIS.\n"
+"\n"
+"Cada grupo debe tener una descripción.\n"
+"\n"
+"Los grupos POSIX deben tener un número Group ID (GID). El cambio de GID "
+"está\n"
+"soportado pero puede tener impacto en los permisos de ficheros. No es "
+"necesario\n"
+"suministrar un GID cuando cree un grupo. IPA generará uno automáticamente si "
+"no\n"
+"se ha suministrado.\n"
+"\n"
+"Los miembros de grupos pueden ser usuarios, otros grupos y servicios "
+"Kerberos.\n"
+"En entornos POXIS solo serán visibles como miembros de grupos los usuarios,\n"
+"mientras que los grupos anidados y los grupos de servicios pueden ser usados "
+"por  IPA con propósitos de gestión.\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+" Añadir un nuevo grupo:\n"
+"   ipa group-add --desc='local administrators' localadmins\n"
+"\n"
+" Añadir un nuevo grupo no POSIX:\n"
+"   ipa group-add --nonposix --desc='remote administrators' remoteadmins\n"
+"\n"
+" Convertir un grupo no POXIS en poxis:\n"
+"   ipa group-mod --posix remoteadmins\n"
+"\n"
+" Añadir un nuevo grupo POSIX con un número Group ID especifico:\n"
+"   ipa group-add --gid=500 --desc='unix admins' unixadmins\n"
+"\n"
+" Añadir un nuevo grupo POSIX y deja a IPA asignar un número Group ID:\n"
+"   ipa group-add --desc='printer admins' printeradmins\n"
+"\n"
+" Borrar un  grupo:\n"
+"   ipa group-del unixadmins\n"
+"\n"
+" Para añadir el grupo \"remoteadmins\" al grupo \"localadmins\":\n"
+"   ipa group-add-member --groups=remoteadmins localadmins\n"
+"\n"
+" Añadir múltiples usuarios al grupo \"localadmins\":\n"
+"   ipa group-add-member --users=test1 --users=test2 localadmins\n"
+"\n"
+" Para añadir servicios Kerberos al grupo \"printer admins\":\n"
+"   ipa group-add-member --services=CUPS/some.host printeradmins\n"
+"\n"
+" Borrar un usuario del grupo \"localadmins\":\n"
+"   ipa group-remove-member --users=test2 localadmins\n"
+"\n"
+" Visualizar información sobre un grupo denominado.\n"
+"   ipa group-show localadmins\n"
+"\n"
+"La pertenencia grupo externo está diseñada para permitir que los usuarios "
+"de\n"
+"dominios de confianza sea mapeados a los grupos locales POSIX con el "
+"objetivo.\n"
+"de usar los recursos IPA actuales. Los miembros externos serían añadidos a "
+"los\n"
+"grupos que específicamente se han creado como externos y no POSIX. Dichos\n"
+" grupos serían incluidos más tarde en uno de los grupos POSIX.\n"
+"\n"
+"Un miembro de grupo externos tiene normalmente un Security Identifier (SID)\n"
+"definido por el dominio de confianza. Cuando se añaden miembros externos al\n"
+"grupo, es posible especificarlos en formato SID, o DOM\\name o name@domain.\n"
+"IPA intentará resolver el nombre pasado a SID con el uso del Global Catalog "
+"del dominio de confianza.\n"
+"\n"
+"Ejemplo:\n"
+"\n"
+"1. Crear un grupo para el dominio de confianza de mapeo de administradores y "
+"su grupo POSIX local:\n"
+"\n"
+"   ipa group-add --desc='<ad.domain> admins external map' ad_admins_external "
+"--external\n"
+"   ipa group-add --desc='<ad.domain> admins' ad_admins\n"
+"\n"
+"2. Añadir un identificador de seguridad de Domain Admins al <ad.domain> para "
+"el\n"
+"   grupo ad_admins_external:\n"
+"\n"
+"   ipa group-add-member ad_admins_external --external 'AD\\Domain Admins'\n"
+"\n"
+"3. Permitir a los miembros del grupo ad_admins_external asociarse con el "
+"grupo POSIX ad_admins:\n"
+"\n"
+"   ipa group-add-member ad_admins --groups ad_admins_external\n"
+"\n"
+"4. Listar los miembros del grupo de miembros externos ad_admins_external "
+"para ver sus SIDs:\n"
+"\n"
+"   ipa group-show ad_admins_external\n"
 
 msgid ""
 "\n"
@@ -882,6 +1110,124 @@ msgstr ""
 
 msgid ""
 "\n"
+"Manage Certificate Profiles\n"
+"\n"
+"Certificate Profiles are used by Certificate Authority (CA) in the signing "
+"of\n"
+"certificates to determine if a Certificate Signing Request (CSR) is "
+"acceptable,\n"
+"and if so what features and extensions will be present on the certificate.\n"
+"\n"
+"The Certificate Profile format is the property-list format understood by "
+"the\n"
+"Dogtag or Red Hat Certificate System CA.\n"
+"\n"
+"PROFILE ID SYNTAX:\n"
+"\n"
+"A Profile ID is a string without spaces or punctuation starting with a "
+"letter\n"
+"and followed by a sequence of letters, digits or underscore (\"_\").\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+"  Import a profile that will not store issued certificates:\n"
+"    ipa certprofile-import ShortLivedUserCert \\\n"
+"      --file UserCert.profile --desc \"User Certificates\" \\\n"
+"      --store=false\n"
+"\n"
+"  Delete a certificate profile:\n"
+"    ipa certprofile-del ShortLivedUserCert\n"
+"\n"
+"  Show information about a profile:\n"
+"    ipa certprofile-show ShortLivedUserCert\n"
+"\n"
+"  Save profile configuration to a file:\n"
+"    ipa certprofile-show caIPAserviceCert --out caIPAserviceCert.cfg\n"
+"\n"
+"  Search for profiles that do not store certificates:\n"
+"    ipa certprofile-find --store=false\n"
+"\n"
+"PROFILE CONFIGURATION FORMAT:\n"
+"\n"
+"The profile configuration format is the raw property-list format\n"
+"used by Dogtag Certificate System.  The XML format is not supported.\n"
+"\n"
+"The following restrictions apply to profiles managed by FreeIPA:\n"
+"\n"
+"- When importing a profile the \"profileId\" field, if present, must\n"
+"  match the ID given on the command line.\n"
+"\n"
+"- The \"classId\" field must be set to \"caEnrollImpl\"\n"
+"\n"
+"- The \"auth.instance_id\" field must be set to \"raCertAuth\"\n"
+"\n"
+"- The \"certReqInputImpl\" input class and \"certOutputImpl\" output\n"
+"  class must be used.\n"
+"\n"
+msgstr ""
+"\n"
+"Gestión de los Certificados de Perfil\n"
+"\n"
+"LOs Certificados de Perfil son usados por una Autoridad de Certificación "
+"(CA) en la\n"
+"firma de certificados si una Petición de Firma de Certificado (CSR) es "
+"aceptable y\n"
+"que características y extensiones estarán presentes en el certificado.\n"
+"\n"
+"El formato del Cetificado de Perfil es la lista de propiedad entendida por "
+"Dogtag\n"
+"o Red Hat Certificate System CA.\n"
+"\n"
+"SINTAXIS DEL ID DE PERFIL:\n"
+"\n"
+"Una ID de Perfil es una cadena sin espacios o puntuación que empieza con "
+"una\n"
+"letra y seguida por una secuencia de letras, dígitos o guiones bajos (\"_"
+"\").\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+"  Importar un perfil que no almacenará los certificados enviados:\n"
+"    ipa certprofile-import ShortLivedUserCert \\\n"
+"      --file UserCert.profile --desc \"User Certificates\" \\\n"
+"      --store=false\n"
+"\n"
+"  Borrar un certificado de perfil:\n"
+"    ipa certprofile-del ShortLivedUserCert\n"
+"\n"
+"  Mostrar información sobre un perfil:\n"
+"    ipa certprofile-show ShortLivedUserCert\n"
+"\n"
+"  Guardar la configuración del perfil en un fichero:\n"
+"    ipa certprofile-show caIPAserviceCert --out caIPAserviceCert.cfg\n"
+"\n"
+"  Búsqueda de perfiles que almacenan certificados:\n"
+"    ipa certprofile-find --store=false\n"
+"\n"
+"FORMATO DE CONFIGURACIÓN DE PERFIL:\n"
+"\n"
+"El formato de configuración de perfil es el formato crudo de lista de "
+"propiedad\n"
+"usado por Dogtag Certificate System.  No está soportado el formato XML.\n"
+"\n"
+"A los perfiles manejados por FreeIPA se les aplican las siguientes "
+"restricciones:\n"
+"\n"
+"- Cuando se importa un perfil el campo \"profileId\", si está presente, debe "
+"coincidir\n"
+"  con la ID dada en la linea de comandos.\n"
+"\n"
+"- El campo \"classId\" debe estar fijado a \"caEnrollImpl\"\n"
+"\n"
+"- El campo \"auth.instance_id\" debe estar fijado a \"raCertAuth\"\n"
+"\n"
+"- La clase de entrada \"certReqInputImpl\" y la de salida \"certOutputImpl\" "
+"se deben\n"
+"  usar.\n"
+"\n"
+
+msgid ""
+"\n"
 "Manage YubiKey tokens.\n"
 msgstr ""
 "\n"
@@ -893,6 +1239,13 @@ msgid ""
 msgstr ""
 "\n"
 "Manejar bóvedas.\n"
+
+msgid ""
+"\n"
+"Manipulate DNS server configuration\n"
+msgstr ""
+"\n"
+"Manipular la configuración del servidor DNS\n"
 
 msgid ""
 "\n"
@@ -1715,13 +2068,6 @@ msgstr ""
 
 msgid ""
 "\n"
-"Vault is a secure place to store a secret.\n"
-msgstr ""
-"\n"
-"La bóveda es un lugar seguro para almacenar un secreto.\n"
-
-msgid ""
-"\n"
 "Vaults\n"
 msgstr ""
 "\n"
@@ -1896,6 +2242,12 @@ msgid "%(count)d privilege matched"
 msgid_plural "%(count)d privileges matched"
 msgstr[0] "%(count)d privilegio coincidente"
 msgstr[1] "%(count)d privilegios coincidentes"
+
+#, python-format
+msgid "%(count)d profile matched"
+msgid_plural "%(count)d profiles matched"
+msgstr[0] "%(count)d perfil coincidente"
+msgstr[1] "%(count)d perfiles coincidentes"
 
 #, python-format
 msgid "%(count)d role matched"
@@ -2191,10 +2543,6 @@ msgid "Add"
 msgstr "Agregar"
 
 #, python-brace-format
-msgid "Add ${entity}"
-msgstr "Añadir ${entity}"
-
-#, python-brace-format
 msgid "Add ${entity} ${primary_key} into ${other_entity}"
 msgstr "Añadir ${entity} ${primary_key} en ${other_entity}"
 
@@ -2216,9 +2564,6 @@ msgstr "Añadir Denegar ${other_entity} en ${entity} ${primary_key}"
 
 msgid "Add Many"
 msgstr "Añadir Muchos"
-
-msgid "Add Rule"
-msgstr "Añadir una regla"
 
 #, python-brace-format
 msgid "Add RunAs ${other_entity} into ${entity} ${primary_key}"
@@ -2484,6 +2829,10 @@ msgstr "Todos los comandos deberían por lo menos tener un resultado"
 msgid "Allow"
 msgstr "Permitir"
 
+msgid "Allow adding external non-IPA members from trusted domains"
+msgstr ""
+"Permitir el añadido de miembros externos no IPA desde dominios de confianza"
+
 msgid "Allow dynamic updates."
 msgstr "Permitir actualizaciones dinámicas."
 
@@ -2516,6 +2865,9 @@ msgstr "Cualquiera"
 
 msgid "Apply ACI to your own entry (self)"
 msgstr "Aplique ACI a su propia entrada (usted)"
+
+msgid "Archive data into a vault."
+msgstr "Datos archivados en una bóveda"
 
 #, python-brace-format
 msgid ""
@@ -2657,6 +3009,9 @@ msgstr "Certificado del servidor codificado con base-64"
 msgid "Base64 decoding failed: %(reason)s"
 msgstr "Falló la decodificación base64: %(reason)s"
 
+msgid "Binary data to archive"
+msgstr "Datos binarios para archivar"
+
 msgid "Bind DN"
 msgstr "Asociar DN"
 
@@ -2668,8 +3023,14 @@ msgstr "Falló enlace:%s\n"
 msgid "Bind password required when using a bind DN.\n"
 msgstr "Vincular contraseña requerida mediante un enlace DN.\n"
 
+msgid "Brief description of this profile"
+msgstr "Breve descripción de este perfil"
+
 msgid "CA Compromise"
 msgstr "CA de transacción"
+
+msgid "CA is not configured"
+msgstr "CA no está configurado"
 
 msgid "CSR"
 msgstr "CSR"
@@ -2683,6 +3044,22 @@ msgstr "Cancelar"
 #, python-format
 msgid "Cannot decode file '%(filename)s': %(exc)s"
 msgstr "No puede decodificar fichero '%(filename)s': %(exc)s"
+
+msgid ""
+"Cannot perform external member validation without Samba 4 support installed. "
+"Make sure you have installed server-trust-ad sub-package of IPA on the server"
+msgstr ""
+"No se puede llevar a cabo la validación del miembro externo sin el soporte "
+"para Samba 4 instalado. Asegúrese de que tiene instalado el sub-paquete "
+"server-trust-ad de IPA en el servidor"
+
+msgid ""
+"Cannot perform join operation without own domain configured. Make sure you "
+"have run ipa-adtrust-install on the IPA server first"
+msgstr ""
+"No puede llevar a cabo la operación de unión si el dominio propio "
+"configurado. Asegúrese primero que está corriendo ipa-adtrust-install sobre "
+"el servidor IPA"
 
 msgid "Cannot query Directory Manager with API"
 msgstr "No se puede cosultar al Administrador de Directorios con API"
@@ -2712,6 +3089,12 @@ msgstr "Certificado"
 msgid "Certificate Hold"
 msgstr "Certificado retenido"
 
+msgid "Certificate Profile"
+msgstr "Certificado de Perfil"
+
+msgid "Certificate Profiles"
+msgstr "Certificado de Perfiles"
+
 msgid "Certificate Revoked"
 msgstr "Certificado revocado"
 
@@ -2733,9 +3116,8 @@ msgstr "Error de certificado de formato: %(error)s "
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "La operación certificada no puede ser completada: %(error)s"
 
-#, c-format
-msgid "Certificate subject base is: %s\n"
-msgstr "Asunto de certificado es:%s\n"
+msgid "Certificate profiles cannot be renamed"
+msgstr "Certificado de los perfiles no pueden ser renombrado"
 
 #, python-format
 msgid "Certificate(s) stored in file '%(file)s'"
@@ -3019,6 +3401,9 @@ msgstr "Registro de tipo de recurso DNS "
 msgid "DNS resource records"
 msgstr "Registros de recurso DNS"
 
+msgid "DNS server"
+msgstr "Servidor DNS"
+
 #, python-format
 msgid ""
 "DNS server %(server)s does not support DNSSEC: %(error)s.\n"
@@ -3040,6 +3425,9 @@ msgstr ""
 #, python-format
 msgid "DNS server %(server)s: %(error)s."
 msgstr "Servidor DNS %(server)s: %(error)s."
+
+msgid "DNS servers"
+msgstr "Servidores DNS"
 
 msgid "DNS zone"
 msgstr "zona DNS"
@@ -3144,6 +3532,9 @@ msgstr "Borrar Comando Sudo."
 
 msgid "Delete Sudo Rule."
 msgstr "Borrar Regla Sudo."
+
+msgid "Delete a Certificate Profile."
+msgstr "Borrar un Certificado Perfil"
 
 msgid "Delete a delegation."
 msgstr "Borrar una delegación."
@@ -3300,6 +3691,10 @@ msgstr "Permiso borrado \"%(value)s\""
 #, python-format
 msgid "Deleted privilege \"%(value)s\""
 msgstr "Privilegio eliminado \"%(value)s \""
+
+#, python-format
+msgid "Deleted profile \"%(value)s\""
+msgstr "Perfil borrado \"%(value)s\""
 
 #, python-format
 msgid "Deleted record \"%(value)s\""
@@ -3506,6 +3901,9 @@ msgstr ""
 msgid "Display the current Kerberos ticket policy."
 msgstr "Mostrar la actual entrada de política Kerberos."
 
+msgid "Display the properties of a Certificate Profile."
+msgstr "Muestra las propiedades de un Certificado de Perfil"
+
 msgid "Display the properties of an HBAC rule."
 msgstr "Mostrar las propiedades de una regla HBAC."
 
@@ -3678,6 +4076,9 @@ msgstr "Usuario Externo la regla aplica a (sudorule-find sólo)"
 msgid "External host"
 msgstr "Equipo externo"
 
+msgid "External member"
+msgstr "Miembro externo"
+
 msgid "Extra hashes to generate in password plug-in"
 msgstr "Hashes extra para generar en el plugin de contraseña"
 
@@ -3846,6 +4247,12 @@ msgid "File containing a password for the private key or database"
 msgstr ""
 "Archivo que contiene una contraseña para una clave privada o base de datos"
 
+msgid "File containing data to archive"
+msgstr "Fichero conteniendo datos para archivar"
+
+msgid "File containing profile configuration"
+msgstr "Fichero que contiene la configuración del perfil"
+
 msgid "File containing the new vault password"
 msgstr "Fichero que contiene la nueva contraseña de bóveda"
 
@@ -3875,6 +4282,9 @@ msgstr "Archivo para almacenar el certificado"
 
 msgid "Filename is empty"
 msgstr "El nombre de fichero está vacío"
+
+msgid "Filename of a raw profile. The XML format is not supported."
+msgstr "Nombre de fichero de un perfil crudo. El formato XML no se soporta"
 
 msgid "Filter"
 msgstr "Filtro"
@@ -4260,6 +4670,9 @@ msgstr "%(src)s a %(dst)s ignorados"
 msgid "Ignored keys:"
 msgstr "Llaves ignoradas: "
 
+msgid "Import a Certificate Profile."
+msgstr "Importar un Certificado Perfil"
+
 msgid "Import an entitlement certificate."
 msgstr "Importar un certificado de derecho."
 
@@ -4271,6 +4684,10 @@ msgstr "Llaves (keys) importadas"
 
 msgid "Imported maps:"
 msgstr "Mapas importados"
+
+#, python-format
+msgid "Imported profile \"%(value)s\""
+msgstr "Perfil importado \"%(value)s\""
 
 msgid "Include Disabled"
 msgstr "Include Deshabilitado"
@@ -4345,6 +4762,9 @@ msgstr "La entrada contiene valores no válidos o desaparecidos."
 #, python-format
 msgid "Insufficient access: %(info)s"
 msgstr "Acceso insuficiente: %(info)s"
+
+msgid "Insufficient privilege to modify a certificate profile."
+msgstr "Privilegio insuficiente para modificar un certificado perfil"
 
 msgid "Internal Error"
 msgstr "Error Interno"
@@ -4762,6 +5182,9 @@ msgstr "Miembro del grupo de usuarios"
 msgid "Member users"
 msgstr "Usuarios miembros"
 
+msgid "Members of a trusted domain in DOM\\name or name@domain form"
+msgstr "Miembros de un dominio de confianza en formato DOM\\name o name@domain"
+
 msgid "Members that could not be added"
 msgstr "Miembros que no han podido ser añadidos"
 
@@ -4839,6 +5262,10 @@ msgstr "Número de teléfono celular"
 #, python-format
 msgid "Modified ACI \"%(value)s\""
 msgstr "Ha sido modificado ACI \"%(value)s\""
+
+#, python-format
+msgid "Modified Certificate Profile \"%(value)s\""
+msgstr "Modificado Certificado Perfil \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC rule \"%(value)s\""
@@ -4927,6 +5354,9 @@ msgstr "Ha sido modificado el usuario \"%(value)s\""
 #, python-format
 msgid "Modify %(name)s '%(value)s'?"
 msgstr "Modificar  %(name)s '%(value)s'?"
+
+msgid "Modify Certificate Profile configuration."
+msgstr "Modificar la configuración del Certificado Perfil"
 
 msgid "Modify DNS zone (SOA record)."
 msgstr "Modificar zona DNS (registro SOA)."
@@ -5346,6 +5776,9 @@ msgstr ""
 "Anular una lista predeterminada de tipos PAC soportados. Use 'NONE' para "
 "deshabilitar eñ soporte PAC para este servicio"
 
+msgid "Override existing password"
+msgstr "Anular contraseña existente"
+
 msgid "Overwrite GID"
 msgstr "Sobrescribir GID"
 
@@ -5495,6 +5928,10 @@ msgstr "Argumentos posicionales"
 msgid "Pre-shared password"
 msgstr "Contraseña precompartida"
 
+#, python-format
+msgid "Predefined profile '%(profile_id)s' cannot be deleted"
+msgstr "El perfil predefinido '%(profile_id)s' no puede ser borrado"
+
 msgid "Preference"
 msgstr "Preferencia"
 
@@ -5573,8 +6010,27 @@ msgid "Profile ID"
 msgstr "ID del Perfil"
 
 #, python-format
+msgid "Profile ID '%(cli_value)s' does not match profile data '%(file_value)s'"
+msgstr ""
+"ID de perfil '%(cli_value)s' no coincide con los datos de perfil "
+"'%(file_value)s'"
+
+msgid "Profile ID for referring to this profile"
+msgstr "ID de Perfil para referirse a este perfil"
+
+msgid "Profile configuration"
+msgstr "Configuración de perfil"
+
+#, python-format
 msgid "Profile configuration stored in file '%(file)s'"
 msgstr "Perfil de configuración guardado en el archivo '%(file)s'"
+
+#, python-format
+msgid "Profile data specifies profileId multiple times: %(values)s"
+msgstr "Los datos del perfil especifican profileId múltiples veces: %(values)s"
+
+msgid "Profile description"
+msgstr "Descripción del perfil"
 
 msgid "Prompt to set the user password"
 msgstr "Solicita establecer la contraseña de usuario"
@@ -5700,38 +6156,6 @@ msgstr ""
 msgid "Relative weight for server services (counts per location)"
 msgstr ""
 "Pero relativo para los servicios del servidor (cuentas por localización)"
-
-#, python-brace-format
-msgid "Remove ${entity}"
-msgstr "Quitar ${entity}"
-
-#, python-brace-format
-msgid "Remove ${entity} ${primary_key} from ${other_entity}"
-msgstr "Quitar ${entity} ${primary_key} de ${other_entity}"
-
-#, python-brace-format
-msgid "Remove ${other_entity} Managing ${entity} ${primary_key}"
-msgstr "Quitar ${other_entity} Gestionando ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Remove ${other_entity} from ${entity} ${primary_key}"
-msgstr "Retirar ${other_entity} de ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Remove Allow ${other_entity} from ${entity} ${primary_key}"
-msgstr "Quitar Permitir ${other_entity} de ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Remove Deny ${other_entity} from ${entity} ${primary_key}"
-msgstr "Quitar Denegar ${other_entity} de ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Remove RunAs ${other_entity} from ${entity} ${primary_key}"
-msgstr "Quitar RunAs ${other_entity} de ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Remove RunAs Groups from ${entity} ${primary_key}"
-msgstr "Quitar Grupos RunAs de ${entity} ${primary_key}"
 
 msgid "Remove all principals in this realm"
 msgstr "Quite todos los principales en este ámbito"
@@ -6119,6 +6543,9 @@ msgstr "Opciones de Búsqueda"
 msgid "Search for %1$s on rootdse failed with error %2$d\n"
 msgstr "Búsqueda de %1$s en rootdse falló con error %2$d\n"
 
+msgid "Search for Certificate Profiles."
+msgstr "Búsqueda de Certificados de Perfiles"
+
 msgid "Search for DNS resources."
 msgstr "Buscar recursos DNS."
 
@@ -6188,10 +6615,6 @@ msgstr "Buscar grupos de host."
 
 msgid "Search for hosts."
 msgstr "Buscar hosts."
-
-#, c-format
-msgid "Search for ipaCertificateSubjectBase failed with error %d"
-msgstr "Búsqueda de ipaCertificateSubjectBase falló con error %d"
 
 msgid "Search for permissions."
 msgstr "Buscar permisos."
@@ -6485,6 +6908,9 @@ msgstr "Estado / Provincia"
 msgid "Status"
 msgstr "Estatus"
 
+msgid "Store issued certificates"
+msgstr "Almacén de certificados enviados"
+
 msgid "Street address"
 msgstr "Dirección postal"
 
@@ -6564,6 +6990,15 @@ msgstr "Sincronice una ficha OTP"
 #, python-format
 msgid "Syntax Error: %(error)s"
 msgstr "Error de sintaxis:%(error)s "
+
+#, python-format
+msgid ""
+"System encoding must be UTF-8, '%(encoding)s' is not supported. Set LC_ALL="
+"\"C.UTF-8\", or LC_ALL=\"\" and LC_CTYPE=\"C.UTF-8\"."
+msgstr ""
+"La codificación del sistema debe ser UTF-8, '%(encoding)s' no está(n) "
+"soportada(s). Ajuste LC_ALL=\"C.UTF-8\", o LC_ALL=\"\" y LC_CTYPE=\"C."
+"UTF-8\"."
 
 msgid "Take a revoked certificate off hold."
 msgstr "Tomar un certificado revocado de espera."
@@ -6824,10 +7259,6 @@ msgid "Unable to determine IPA server from %s\n"
 msgstr "No se puede determinar servidor de la IPA de%s\n"
 
 #, c-format
-msgid "Unable to determine certificate subject of %s\n"
-msgstr "No se puede determinar asunto del certificado de%s\n"
-
-#, c-format
 msgid "Unable to determine root DN of %s\n"
 msgstr "No se puede determinar DN de root de%s\n"
 
@@ -6847,16 +7278,8 @@ msgid "Unable to generate Kerberos Credential Cache\n"
 msgstr "No se puede generar la cache de credenciales de Kerberos\n"
 
 #, c-format
-msgid "Unable to init connection to %s\n"
-msgstr "Incapaz de iniciar conexión a %s\n"
-
-#, c-format
 msgid "Unable to initialize STARTTLS session\n"
 msgstr "Incapaz de inicializar la sesión STARTTLS\n"
-
-#, c-format
-msgid "Unable to initialize connection to ldap server: %s"
-msgstr "No se puede iniciar con servidor IDAP:%s"
 
 #, c-format
 msgid "Unable to initialize ldap library!\n"
@@ -6897,24 +7320,12 @@ msgid "Unable to remove entry\n"
 msgstr "No se puede eliminar la entrada\n"
 
 #, c-format
-msgid "Unable to set LDAP version\n"
-msgstr "No se puede establecer la versión de LDAP\n"
-
-#, c-format
 msgid "Unable to set LDAP_OPT_PROTOCOL_VERSION\n"
 msgstr "Incapaz de ajustar LDAP_OPT_PROTOCOL_VERSION\n"
 
 #, c-format
 msgid "Unable to set LDAP_OPT_X_SASL_NOCANON\n"
 msgstr "Incapaz de fijar LDAP_OPT_X_SASL_NOCANON \n"
-
-#, c-format
-msgid "Unable to set LDAP_OPT_X_TLS\n"
-msgstr "Incapaz de ajustar LDAP_OPT_X_TLS\n"
-
-#, c-format
-msgid "Unable to set LDAP_OPT_X_TLS_CERTIFICATE\n"
-msgstr "Incapaz de ajustar LDAP_OPT_X_TLS_CERTIFICATE\n"
 
 #, c-format
 msgid "Unable to set LDAP_OPT_X_TLS_REQUIRE_CERT\n"
@@ -6950,10 +7361,6 @@ msgstr "Desemparejado"
 
 msgid "Unprovision"
 msgstr "Unprovision"
-
-#, python-brace-format
-msgid "Unprovisioning ${entity}"
-msgstr "Cancelación ${entity}"
 
 msgid "Unresolved rules in --rules"
 msgstr "Eliminar miembro desde un grupo."
@@ -7105,6 +7512,9 @@ msgstr ""
 "Cuando se migra un grupo que ya existe en el dominio IPA se sobrescribe el "
 "GID de grupo e informa como conseguido"
 
+msgid "Whether to store certs issued using this profile"
+msgstr "Si se almacenan los certificados enviados usando este perfil"
+
 msgid "Who"
 msgstr "¿Quién?"
 
@@ -7113,6 +7523,9 @@ msgstr "Escribir CertificationRequestInfo a un fichero"
 
 msgid "Write certificate (chain if --chain used) to file"
 msgstr "Escribir certificado (chain if --chain used) a archivo"
+
+msgid "Write profile configuration to file"
+msgstr "Escribir configuración de perfil a fichero"
 
 msgid "You must enroll a host in order to create a host service"
 msgstr "Debe registrar el equipo para poder generar un servicio de host"
@@ -7271,6 +7684,10 @@ msgstr "la modificación choca con otra modificación diferente"
 
 msgid "change to a POSIX group"
 msgstr "Cambiar a un grupo POSIX"
+
+msgid "change to support external non-IPA members from trusted domains"
+msgstr ""
+"cambio para soportar miembros externos no IPA desde dominios de confianza"
 
 #, c-format
 msgid "child exited with %d\n"
@@ -7451,6 +7868,9 @@ msgstr ""
 "NS apropiada en zona autorizada \"%(authzone)s\". Por favor añada registro "
 "NS record \"%(ns_rec)s\" a la zona padre \"%(authzone)s\"."
 
+msgid "gid cannot be set for external group"
+msgstr "gid no puede ser fijado para un grupo externo"
+
 msgid "group"
 msgstr "grupo"
 
@@ -7510,6 +7930,9 @@ msgstr ""
 
 msgid "invalid IP network format"
 msgstr "formato no válido de red IP"
+
+msgid "invalid Profile ID"
+msgstr "ID de perfil no válido"
 
 msgid "invalid SSH public key"
 msgstr "clave SSH pública no válida"
@@ -7828,6 +8251,9 @@ msgstr ""
 msgid "privilege"
 msgstr "privilegio"
 
+msgid "privileged group"
+msgstr "grupo privilegiado"
+
 msgid "privileges"
 msgstr "privilegios"
 
@@ -7886,8 +8312,21 @@ msgstr "rol"
 msgid "roles"
 msgstr "roles"
 
+msgid "search for POSIX groups"
+msgstr "buscar por grupos POXIS"
+
+msgid ""
+"search for groups with support of external non-IPA members from trusted "
+"domains"
+msgstr ""
+"búsqueda de grupos con soporte de miembros externos no IPA desde dominios de "
+"confianza"
+
 msgid "search for managed groups"
 msgstr "buscar grupos gestionados"
+
+msgid "search for non-POSIX groups"
+msgstr "búsqueda de grupos no POSIX"
 
 msgid "search for private groups"
 msgstr "Búsqueda de grupos privados"

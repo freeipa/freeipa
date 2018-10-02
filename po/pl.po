@@ -1,9 +1,9 @@
 # Piotr Drąg <piotrdrag@gmail.com>, 2016. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.90.pre2\n"
+"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-05-15 14:59-0400\n"
+"POT-Creation-Date: 2018-10-01 23:02+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2)\n"
 
@@ -239,10 +239,6 @@ msgstr "Błąd formatu certyfikatu: %(error)s"
 #, python-format
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "Nie można ukończyć działania na certyfikacie: %(error)s"
-
-#, c-format
-msgid "Certificate subject base is: %s\n"
-msgstr "Podstawa tematu certyfikatu: %s\n"
 
 #, python-format
 msgid "Changed password for \"%(value)s\""
@@ -1093,10 +1089,6 @@ msgstr "Numer seryjny SOA"
 msgid "Search"
 msgstr "Wyszukaj"
 
-#, c-format
-msgid "Search for ipaCertificateSubjectBase failed with error %d"
-msgstr "Wyszukiwanie ipaCertificateSubjectBase się nie powiodło z błędem %d"
-
 msgid "Search size limit"
 msgstr "Ograniczenie rozmiaru wyszukiwania"
 
@@ -1271,10 +1263,6 @@ msgid "Unable to determine IPA server from %s\n"
 msgstr "Nie można ustalić serwera IPA z %s\n"
 
 #, c-format
-msgid "Unable to determine certificate subject of %s\n"
-msgstr "Nie można ustalić tematu certyfikatu %s\n"
-
-#, c-format
 msgid "Unable to determine root DN of %s\n"
 msgstr "Nie można ustalić głównego DN %s\n"
 
@@ -1322,10 +1310,6 @@ msgstr "Nie można przetworzyć nazwy naczelnika\n"
 #, c-format
 msgid "Unable to remove entry\n"
 msgstr "Nie można usunąć wpisu\n"
-
-#, c-format
-msgid "Unable to set LDAP version\n"
-msgstr "Nie można ustawić wersji LDAP\n"
 
 msgid "Unenroll this host from IPA server"
 msgstr "Wypisuje ten komputer z serwera IPA"

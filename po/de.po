@@ -6,9 +6,9 @@
 # Paul Ritter <paul-ritter@gmx.net>, 2018. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.90.pre2\n"
+"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-05-15 14:59-0400\n"
+"POT-Creation-Date: 2018-10-01 23:02+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Last-Translator: Paul Ritter <paul-ritter@gmx.net>\n"
 "Language-Team: German\n"
 "Language: de\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
 msgid ""
@@ -585,18 +585,8 @@ msgstr "Aktive Zone"
 msgid "Add"
 msgstr "Hinzufügen"
 
-#, python-brace-format
-msgid "Add ${entity}"
-msgstr "${entity} hinzufügen"
-
 msgid "Add Many"
 msgstr "Mehrere hinzufügen"
-
-msgid "Add OTP Token"
-msgstr "OTP-Token hinzufügen"
-
-msgid "Add Rule"
-msgstr "Regel hinzufügen"
 
 msgid "Add a manager to the stage user entry"
 msgstr "Manager zum vorbereiteten Benutzer hinzufügen"
@@ -3126,10 +3116,6 @@ msgstr "Regulärer Ausdruck"
 msgid "Reload the browser."
 msgstr "Browser neu laden."
 
-#, python-brace-format
-msgid "Remove ${entity}"
-msgstr "${entity} entfernen"
-
 msgid "Remove a manager to the user entry"
 msgstr "Manager vom Benutzer entfernen"
 
@@ -3218,9 +3204,6 @@ msgstr "Einmalpasswort zurücksetzen"
 
 msgid "Reset Password"
 msgstr "Passwort zurücksetzen"
-
-msgid "Reset Password and Login"
-msgstr "Passwort zurücksetzen und Einloggen"
 
 msgid "Reset your password."
 msgstr "Passwort zurücksetzen."
@@ -3733,9 +3716,6 @@ msgstr "Die vorgegebene Benutzergruppe kann nicht entfernt werden"
 msgid "The group doesn't exist"
 msgstr "Die Gruppe existiert nicht"
 
-msgid "The password or username you entered is incorrect."
-msgstr "Das Passwort oder der Benutzername waren falsch."
-
 msgid "The primary_key value of the entry, e.g. 'jdoe' for a user"
 msgstr ""
 "Der Wert von »primary_key« des Eintrags, z.B. »jdoe« für einen Benutzer"
@@ -3929,16 +3909,8 @@ msgstr ""
 "Anmeldedaten-Zwischenspeicher für Kerberos konnte nicht erzeugt werden\n"
 
 #, c-format
-msgid "Unable to initialize connection to ldap server: %s"
-msgstr "Verbindung zum LDAP-Server konnte nicht initialisiert werden: %s"
-
-#, c-format
 msgid "Unable to initialize ldap library!\n"
 msgstr "ldap-Bibliothek konnte nicht initialisiert werden!\n"
-
-#, c-format
-msgid "Unable to set LDAP version\n"
-msgstr "LDAP-Version konnte nicht gesetzt werden\n"
 
 msgid "Undelete a delete user account."
 msgstr "Gelöschten Benutzer wiederherstellen"
