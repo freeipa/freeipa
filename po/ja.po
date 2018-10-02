@@ -14,205 +14,6 @@ msgstr ""
 "X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=1; plural=0\n"
 
-#, c-format
-msgid "Passwords do not match!"
-msgstr "パスワードが違います。"
-
-msgid "ACI name"
-msgstr "ACI 名"
-
-msgid "User group"
-msgstr "ユーザーグループ"
-
-msgid "Permissions"
-msgstr "権限"
-
-msgid "Member of a group"
-msgstr "グループのメンバー"
-
-msgid "Filter"
-msgstr "フィルター"
-
-msgid "IP Address"
-msgstr "IP アドレス"
-
-msgid "Port"
-msgstr "ポート"
-
-msgid "Fingerprint"
-msgstr "フィンガープリント"
-
-msgid "Text Data"
-msgstr "テキストデータ"
-
-msgid "Create a new group."
-msgstr "新しいグループを作成します。"
-
-msgid "Delete group."
-msgstr "グループを削除します。"
-
-msgid "Search for groups."
-msgstr "グループを検索します。"
-
-msgid "user"
-msgstr "ユーザー"
-
-msgid "group"
-msgstr "グループ"
-
-msgid "role"
-msgstr "役割"
-
-msgid "sudo rule"
-msgstr "sudo ルール"
-
-msgid "Modify a group."
-msgstr "グループを変更します。"
-
-msgid "Create a new HBAC rule."
-msgstr "新しい HBAC ルールを作成します。"
-
-msgid "Delete an HBAC rule."
-msgstr "HBAC ルールを削除します。"
-
-msgid "Disable an HBAC rule."
-msgstr "HBAC ルールを無効化します。"
-
-msgid "Enable an HBAC rule."
-msgstr "HBAC ルールを有効化します。"
-
-msgid "Search for HBAC rules."
-msgstr "HBAC ルールを検索します。"
-
-msgid "Modify an HBAC rule."
-msgstr "HBAC ルールを変更します。"
-
-msgid "Display the properties of an HBAC rule."
-msgstr "HBAC ルールのプロパティーを表示します。"
-
-msgid "Add a new HBAC service."
-msgstr "新しい HBAC サービスを追加します。"
-
-msgid "Delete an existing HBAC service."
-msgstr "既存の HBAC サービスを削除します。"
-
-msgid "Search for HBAC services."
-msgstr "HBAC サービスを検索します。"
-
-msgid "Modify an HBAC service."
-msgstr "HBAC サービスを変更します。"
-
-msgid "Display information about an HBAC service."
-msgstr "HBAC サービスに関する情報を表示します。"
-
-msgid "Add a new HBAC service group."
-msgstr "新しい HBAC サービスグループを追加します。"
-
-msgid "Add members to an HBAC service group."
-msgstr "HBAC サービスグループにメンバーを追加します。"
-
-msgid "Delete an HBAC service group."
-msgstr "HBAC サービスグループを削除します。"
-
-msgid "Search for an HBAC service group."
-msgstr "HBAC サービスグループを検索します。"
-
-msgid "Modify an HBAC service group."
-msgstr "HBAC サービスグループを変更します。"
-
-msgid "Remove members from an HBAC service group."
-msgstr "HBAC サービスグループからメンバーを削除します。"
-
-msgid "Display information about an HBAC service group."
-msgstr "HBAC サービスグループに関する情報を表示します。"
-
-msgid "Add a new host."
-msgstr "新しいホストを追加します。"
-
-msgid "Delete a host."
-msgstr "ホストを削除します。"
-
-msgid "Search for hosts."
-msgstr "ホストを検索します。"
-
-msgid "host group"
-msgstr "ホストグループ"
-
-msgid "host"
-msgstr "ホスト"
-
-msgid "hosts"
-msgstr "ホスト"
-
-msgid "Add a new role."
-msgstr "新しい役割を追加します。"
-
-msgid "Delete a role."
-msgstr "役割を削除します。"
-
-msgid "Search for roles."
-msgstr "役割を検索します。"
-
-msgid "Modify a role."
-msgstr "役割を変更します。"
-
-msgid "Display information about a role."
-msgstr "役割に関する情報を表示します。"
-
-msgid "Sudo Command"
-msgstr "sudo コマンド"
-
-msgid "Add a new user."
-msgstr "新しいユーザーを追加します。"
-
-msgid "Delete a user."
-msgstr "ユーザーを削除します。"
-
-msgid "Disable a user account."
-msgstr "ユーザーアカウントを無効化します。"
-
-msgid "Enable a user account."
-msgstr "ユーザーアカウントを有効化します。"
-
-msgid "Modify a user."
-msgstr "ユーザーを変更します。"
-
-#, python-format
-msgid "Enter %(label)s again to verify: "
-msgstr "確認のため再び %(label)s を入力してください: "
-
-#, python-format
-msgid "unknown error %(code)d from %(server)s: %(error)s"
-msgstr "%(server)s から未知のエラー %(code)d: %(error)s"
-
-msgid "an internal error has occurred"
-msgstr "内部エラーが発生しました"
-
-#, python-format
-msgid "Invalid JSON-RPC request: %(error)s"
-msgstr "無効な JSON-RPC リクエスト: %(error)s"
-
-#, python-format
-msgid "Kerberos error: %(major)s/%(minor)s"
-msgstr "Kerberos エラー: %(major)s/%(minor)s"
-
-msgid "Passwords do not match"
-msgstr "パスワードが違います"
-
-msgid "Command not implemented"
-msgstr "コマンドが実装されていません"
-
-#, python-format
-msgid "%(reason)s"
-msgstr "%(reason)s"
-
-msgid "This entry already exists"
-msgstr "このエントリーはすでに存在します"
-
-#, python-format
-msgid "Base64 decoding failed: %(reason)s"
-msgstr "Base64 形式のデコードに失敗: %(reason)s"
-
 #, python-format
 msgid "%(desc)s: %(info)s"
 msgstr "%(desc)s: %(info)s"
@@ -221,63 +22,23 @@ msgstr "%(desc)s: %(info)s"
 msgid "%(info)s"
 msgstr "%(info)s"
 
-msgid "must be an integer"
-msgstr "整数である必要があります"
+#, python-format
+msgid "%(reason)s"
+msgstr "%(reason)s"
 
 #, python-format
-msgid "must be at least %(minvalue)d"
-msgstr "少なくとも %(minvalue)d である必要があります"
+msgid "%s Record"
+msgstr "%s レコード"
 
 #, python-format
-msgid "must match pattern \"%(pattern)s\""
-msgstr "パターン \"%(pattern)s\" が一致する必要があります"
-
-msgid "must be binary data"
-msgstr "バイナリーデータである必要があります"
-
-#, python-format
-msgid "must be at least %(minlength)d bytes"
-msgstr "少なくとも %(minlength)d バイトである必要があります"
-
-#, python-format
-msgid "can be at most %(maxlength)d bytes"
-msgstr "大きくても %(maxlength)d バイトである必要があります"
-
-#, python-format
-msgid "must be exactly %(length)d bytes"
-msgstr "ちょうど %(length)d バイトである必要があります"
-
-msgid "must be Unicode text"
-msgstr "Unicode テキストである必要があります"
-
-#, python-format
-msgid "must be at least %(minlength)d characters"
-msgstr "少なくとも %(minlength)d 文字である必要があります"
-
-#, python-format
-msgid "must be exactly %(length)d characters"
-msgstr "ちょうど %(length)d 文字である必要があります"
-
-msgid "invalid SSH public key"
-msgstr "無効な SSH 公開鍵"
-
-#, python-format
-msgid "invalid domain-name: %s"
-msgstr "無効なドメイン名: %s"
+msgid "%s record"
+msgstr "%s レコード"
 
 msgid "A list of ACI values"
 msgstr "ACI 値の一覧"
 
-msgid ""
-"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
-"required"
-msgstr ""
-"少なくとも type, filter, subtree, targetgroup, attrs または memberof のどれか"
-"が必要です"
-
-#, python-format
-msgid "Group '%s' does not exist"
-msgstr "グループ '%s' が存在しません"
+msgid "ACI name"
+msgstr "ACI 名"
 
 #, python-format
 msgid "ACI with name \"%s\" not found"
@@ -286,89 +47,48 @@ msgstr "名前 \"%s\" の ACI が見つかりませんでした"
 msgid "ACIs"
 msgstr "ACI"
 
-msgid "Fingerprint (SHA1)"
-msgstr "フィンガープリント (SHA1)"
+msgid "Account"
+msgstr "アカウント"
 
-msgid "sudo command"
-msgstr "sudo コマンド"
-
-msgid "sudo commands"
-msgstr "sudo コマンド"
-
-msgid "Sudo Commands"
-msgstr "sudo コマンド"
-
-#, python-format
-msgid "%s record"
-msgstr "%s レコード"
-
-#, python-format
-msgid "%s Record"
-msgstr "%s レコード"
-
-msgid "groups"
-msgstr "グループ"
-
-msgid "User Group"
-msgstr "ユーザーグループ"
-
-msgid "HBAC services"
-msgstr "HBAC サービス"
-
-msgid "HBAC Service"
-msgstr "HBAC サービス"
-
-msgid "HBAC service group"
-msgstr "HBAC サービスグループ"
-
-msgid "HBAC service groups"
-msgstr "HBAC サービスグループ"
-
-msgid "HBAC Service Groups"
-msgstr "HBAC サービスグループ"
-
-msgid "HBAC Service Group"
-msgstr "HBAC サービスグループ"
-
-msgid "Host"
-msgstr "ホスト"
-
-msgid "host groups"
-msgstr "ホストグループ"
-
-msgid "Host Group"
-msgstr "ホストグループ"
-
-msgid "Refresh"
-msgstr "更新"
-
-msgid "Set"
-msgstr "設定"
-
-#, python-brace-format
-msgid "Edit ${entity}"
-msgstr "${entity} の編集"
-
-msgid "Validation error"
-msgstr "検証エラー"
-
-msgid "HTTP Error"
-msgstr "HTTP エラー"
-
-msgid "Internal Error"
-msgstr "内部エラー"
-
-msgid "IPA Error"
-msgstr "IPA エラー"
-
-msgid "Unknown Error"
-msgstr "未知のエラー"
-
-msgid "URL"
-msgstr "URL"
+msgid "Account Status"
+msgstr "アカウント状態"
 
 msgid "Add Rule"
 msgstr "ルールの追加"
+
+msgid "Add a new HBAC service group."
+msgstr "新しい HBAC サービスグループを追加します。"
+
+msgid "Add a new HBAC service."
+msgstr "新しい HBAC サービスを追加します。"
+
+msgid "Add a new host."
+msgstr "新しいホストを追加します。"
+
+msgid "Add a new role."
+msgstr "新しい役割を追加します。"
+
+msgid "Add a new user."
+msgstr "新しいユーザーを追加します。"
+
+msgid "Add members to an HBAC service group."
+msgstr "HBAC サービスグループにメンバーを追加します。"
+
+#, python-format
+msgid "Base64 decoding failed: %(reason)s"
+msgstr "Base64 形式のデコードに失敗: %(reason)s"
+
+msgid "Certificates"
+msgstr "証明書"
+
+msgid "Command not implemented"
+msgstr "コマンドが実装されていません"
+
+msgid "Create a new HBAC rule."
+msgstr "新しい HBAC ルールを作成します。"
+
+msgid "Create a new group."
+msgstr "新しいグループを作成します。"
 
 msgid "Default host group"
 msgstr "標準のホストグループ"
@@ -376,26 +96,142 @@ msgstr "標準のホストグループ"
 msgid "Default user group"
 msgstr "標準のユーザーグループ"
 
-msgid "Certificates"
-msgstr "証明書"
+msgid "Delete a host."
+msgstr "ホストを削除します。"
+
+msgid "Delete a role."
+msgstr "役割を削除します。"
+
+msgid "Delete a user."
+msgstr "ユーザーを削除します。"
+
+msgid "Delete an HBAC rule."
+msgstr "HBAC ルールを削除します。"
+
+msgid "Delete an HBAC service group."
+msgstr "HBAC サービスグループを削除します。"
+
+msgid "Delete an existing HBAC service."
+msgstr "既存の HBAC サービスを削除します。"
+
+msgid "Delete group."
+msgstr "グループを削除します。"
+
+msgid "Disable a user account."
+msgstr "ユーザーアカウントを無効化します。"
+
+msgid "Disable an HBAC rule."
+msgstr "HBAC ルールを無効化します。"
+
+msgid "Display information about a role."
+msgstr "役割に関する情報を表示します。"
+
+msgid "Display information about an HBAC service group."
+msgstr "HBAC サービスグループに関する情報を表示します。"
+
+msgid "Display information about an HBAC service."
+msgstr "HBAC サービスに関する情報を表示します。"
+
+msgid "Display the properties of an HBAC rule."
+msgstr "HBAC ルールのプロパティーを表示します。"
+
+#, python-brace-format
+msgid "Edit ${entity}"
+msgstr "${entity} の編集"
+
+msgid "Enable a user account."
+msgstr "ユーザーアカウントを有効化します。"
+
+msgid "Enable an HBAC rule."
+msgstr "HBAC ルールを有効化します。"
+
+#, python-format
+msgid "Enter %(label)s again to verify: "
+msgstr "確認のため再び %(label)s を入力してください: "
+
+msgid "Filter"
+msgstr "フィルター"
+
+msgid "Fingerprint"
+msgstr "フィンガープリント"
+
+msgid "Fingerprint (SHA1)"
+msgstr "フィンガープリント (SHA1)"
+
+#, python-format
+msgid "Group '%s' does not exist"
+msgstr "グループ '%s' が存在しません"
 
 msgid "Group Options"
 msgstr "グループオプション"
 
-msgid "Search Options"
-msgstr "検索オプション"
+msgid "HBAC Service"
+msgstr "HBAC サービス"
 
-msgid "User Options"
-msgstr "ユーザーオプション"
+msgid "HBAC Service Group"
+msgstr "HBAC サービスグループ"
 
-msgid "Options"
-msgstr "オプション"
+msgid "HBAC Service Groups"
+msgstr "HBAC サービスグループ"
 
-msgid "Rules"
-msgstr "ルール"
+msgid "HBAC service group"
+msgstr "HBAC サービスグループ"
+
+msgid "HBAC service groups"
+msgstr "HBAC サービスグループ"
+
+msgid "HBAC services"
+msgstr "HBAC サービス"
+
+msgid "HTTP Error"
+msgstr "HTTP エラー"
+
+msgid "Host"
+msgstr "ホスト"
+
+msgid "Host Group"
+msgstr "ホストグループ"
+
+msgid "IP Address"
+msgstr "IP アドレス"
+
+msgid "IPA Error"
+msgstr "IPA エラー"
+
+msgid "Internal Error"
+msgstr "内部エラー"
+
+#, python-format
+msgid "Invalid JSON-RPC request: %(error)s"
+msgstr "無効な JSON-RPC リクエスト: %(error)s"
 
 msgid "Kerberos Key"
 msgstr "Kerberos キー"
+
+#, python-format
+msgid "Kerberos error: %(major)s/%(minor)s"
+msgstr "Kerberos エラー: %(major)s/%(minor)s"
+
+msgid "Member of a group"
+msgstr "グループのメンバー"
+
+msgid "Modify a group."
+msgstr "グループを変更します。"
+
+msgid "Modify a role."
+msgstr "役割を変更します。"
+
+msgid "Modify a user."
+msgstr "ユーザーを変更します。"
+
+msgid "Modify an HBAC rule."
+msgstr "HBAC ルールを変更します。"
+
+msgid "Modify an HBAC service group."
+msgstr "HBAC サービスグループを変更します。"
+
+msgid "Modify an HBAC service."
+msgstr "HBAC サービスを変更します。"
 
 msgid "One-Time-Password"
 msgstr "ワンタイムパスワード"
@@ -406,47 +242,211 @@ msgstr "ワンタイムパスワードが存在しません"
 msgid "One-Time-Password Present"
 msgstr "ワンタイムパスワードが存在します"
 
-msgid "Reset OTP"
-msgstr "OTP のリセット"
-
-msgid "Reset One-Time-Password"
-msgstr "ワンタイムパスワードをリセットします"
-
-msgid "Set One-Time-Password"
-msgstr "ワンタイムパスワードを設定します"
-
-msgid "Account"
-msgstr "アカウント"
-
-msgid "Account Status"
-msgstr "アカウント状態"
-
-msgid "password policy"
-msgstr "パスワードポリシー"
-
-msgid "password policies"
-msgstr "パスワードポリシー"
-
-msgid "Password Policies"
-msgstr "パスワードポリシー"
-
-msgid "roles"
-msgstr "役割"
-
-msgid "sudo rules"
-msgstr "sudo ルール"
-
-msgid "Sudo Rules"
-msgstr "sudo ルール"
-
-msgid "Sudo Rule"
-msgstr "sudo ルール"
-
-msgid "users"
-msgstr "ユーザー"
+msgid "Options"
+msgstr "オプション"
 
 msgid "Out of memory\n"
 msgstr "メモリー不足\n"
 
 msgid "Out of memory!?\n"
 msgstr "メモリー不足!?\n"
+
+msgid "Password Policies"
+msgstr "パスワードポリシー"
+
+msgid "Passwords do not match"
+msgstr "パスワードが違います"
+
+#, c-format
+msgid "Passwords do not match!"
+msgstr "パスワードが違います。"
+
+msgid "Permissions"
+msgstr "権限"
+
+msgid "Port"
+msgstr "ポート"
+
+msgid "Refresh"
+msgstr "更新"
+
+msgid "Remove members from an HBAC service group."
+msgstr "HBAC サービスグループからメンバーを削除します。"
+
+msgid "Reset OTP"
+msgstr "OTP のリセット"
+
+msgid "Reset One-Time-Password"
+msgstr "ワンタイムパスワードをリセットします"
+
+msgid "Rules"
+msgstr "ルール"
+
+msgid "Search Options"
+msgstr "検索オプション"
+
+msgid "Search for HBAC rules."
+msgstr "HBAC ルールを検索します。"
+
+msgid "Search for HBAC services."
+msgstr "HBAC サービスを検索します。"
+
+msgid "Search for an HBAC service group."
+msgstr "HBAC サービスグループを検索します。"
+
+msgid "Search for groups."
+msgstr "グループを検索します。"
+
+msgid "Search for hosts."
+msgstr "ホストを検索します。"
+
+msgid "Search for roles."
+msgstr "役割を検索します。"
+
+msgid "Set"
+msgstr "設定"
+
+msgid "Set One-Time-Password"
+msgstr "ワンタイムパスワードを設定します"
+
+msgid "Sudo Command"
+msgstr "sudo コマンド"
+
+msgid "Sudo Commands"
+msgstr "sudo コマンド"
+
+msgid "Sudo Rule"
+msgstr "sudo ルール"
+
+msgid "Sudo Rules"
+msgstr "sudo ルール"
+
+msgid "Text Data"
+msgstr "テキストデータ"
+
+msgid "This entry already exists"
+msgstr "このエントリーはすでに存在します"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Unknown Error"
+msgstr "未知のエラー"
+
+msgid "User Group"
+msgstr "ユーザーグループ"
+
+msgid "User Options"
+msgstr "ユーザーオプション"
+
+msgid "User group"
+msgstr "ユーザーグループ"
+
+msgid "Validation error"
+msgstr "検証エラー"
+
+msgid "an internal error has occurred"
+msgstr "内部エラーが発生しました"
+
+msgid ""
+"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
+"required"
+msgstr ""
+"少なくとも type, filter, subtree, targetgroup, attrs または memberof のどれか"
+"が必要です"
+
+#, python-format
+msgid "can be at most %(maxlength)d bytes"
+msgstr "大きくても %(maxlength)d バイトである必要があります"
+
+msgid "group"
+msgstr "グループ"
+
+msgid "groups"
+msgstr "グループ"
+
+msgid "host"
+msgstr "ホスト"
+
+msgid "host group"
+msgstr "ホストグループ"
+
+msgid "host groups"
+msgstr "ホストグループ"
+
+msgid "hosts"
+msgstr "ホスト"
+
+msgid "invalid SSH public key"
+msgstr "無効な SSH 公開鍵"
+
+#, python-format
+msgid "invalid domain-name: %s"
+msgstr "無効なドメイン名: %s"
+
+msgid "must be Unicode text"
+msgstr "Unicode テキストである必要があります"
+
+msgid "must be an integer"
+msgstr "整数である必要があります"
+
+#, python-format
+msgid "must be at least %(minlength)d bytes"
+msgstr "少なくとも %(minlength)d バイトである必要があります"
+
+#, python-format
+msgid "must be at least %(minlength)d characters"
+msgstr "少なくとも %(minlength)d 文字である必要があります"
+
+#, python-format
+msgid "must be at least %(minvalue)d"
+msgstr "少なくとも %(minvalue)d である必要があります"
+
+msgid "must be binary data"
+msgstr "バイナリーデータである必要があります"
+
+#, python-format
+msgid "must be exactly %(length)d bytes"
+msgstr "ちょうど %(length)d バイトである必要があります"
+
+#, python-format
+msgid "must be exactly %(length)d characters"
+msgstr "ちょうど %(length)d 文字である必要があります"
+
+#, python-format
+msgid "must match pattern \"%(pattern)s\""
+msgstr "パターン \"%(pattern)s\" が一致する必要があります"
+
+msgid "password policies"
+msgstr "パスワードポリシー"
+
+msgid "password policy"
+msgstr "パスワードポリシー"
+
+msgid "role"
+msgstr "役割"
+
+msgid "roles"
+msgstr "役割"
+
+msgid "sudo command"
+msgstr "sudo コマンド"
+
+msgid "sudo commands"
+msgstr "sudo コマンド"
+
+msgid "sudo rule"
+msgstr "sudo ルール"
+
+msgid "sudo rules"
+msgstr "sudo ルール"
+
+#, python-format
+msgid "unknown error %(code)d from %(server)s: %(error)s"
+msgstr "%(server)s から未知のエラー %(code)d: %(error)s"
+
+msgid "user"
+msgstr "ユーザー"
+
+msgid "users"
+msgstr "ユーザー"
