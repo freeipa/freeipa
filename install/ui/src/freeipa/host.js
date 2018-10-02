@@ -201,7 +201,7 @@ return {
                             flags: ['w_if_no_aci'],
                             add_method: 'allow_retrieve_keytab',
                             remove_method: 'disallow_retrieve_keytab',
-                            add_title: '@i18n:keytab.add_retrive',
+                            add_title: '@i18n:keytab.add_users_retrieve',
                             remove_title: '@i18n:keytab.remove_users_retrieve',
                             columns: [
                                 {
@@ -218,7 +218,7 @@ return {
                             flags: ['w_if_no_aci'],
                             add_method: 'allow_retrieve_keytab',
                             remove_method: 'disallow_retrieve_keytab',
-                            add_title: '@i18n:keytab.add_retrive',
+                            add_title: '@i18n:keytab.add_groups_retrieve',
                             remove_title: '@i18n:keytab.remove_groups_retrieve',
                             columns: [
                                 {
@@ -235,7 +235,7 @@ return {
                             flags: ['w_if_no_aci'],
                             add_method: 'allow_retrieve_keytab',
                             remove_method: 'disallow_retrieve_keytab',
-                            add_title: '@i18n:keytab.add_retrive',
+                            add_title: '@i18n:keytab.add_hosts_retrieve',
                             remove_title: '@i18n:keytab.remove_hosts_retrieve',
                             columns: [
                                 {
@@ -252,7 +252,7 @@ return {
                             flags: ['w_if_no_aci'],
                             add_method: 'allow_retrieve_keytab',
                             remove_method: 'disallow_retrieve_keytab',
-                            add_title: '@i18n:keytab.add_retrive',
+                            add_title: '@i18n:keytab.add_hostgroups_retrieve',
                             remove_title: '@i18n:keytab.remove_hostgroups_retrieve',
                             columns: [
                                 {
@@ -276,7 +276,7 @@ return {
                             flags: ['w_if_no_aci'],
                             add_method: 'allow_create_keytab',
                             remove_method: 'disallow_create_keytab',
-                            add_title: '@i18n:keytab.add_create',
+                            add_title: '@i18n:keytab.add_users_create',
                             remove_title: '@i18n:keytab.remove_users_create',
                             columns: [
                                 {
@@ -293,7 +293,7 @@ return {
                             flags: ['w_if_no_aci'],
                             add_method: 'allow_create_keytab',
                             remove_method: 'disallow_create_keytab',
-                            add_title: '@i18n:keytab.add_create',
+                            add_title: '@i18n:keytab.add_groups_create',
                             remove_title: '@i18n:keytab.remove_groups_create',
                             columns: [
                                 {
@@ -310,7 +310,7 @@ return {
                             flags: ['w_if_no_aci'],
                             add_method: 'allow_create_keytab',
                             remove_method: 'disallow_create_keytab',
-                            add_title: '@i18n:keytab.add_create',
+                            add_title: '@i18n:keytab.add_hosts_create',
                             remove_title: '@i18n:keytab.remove_hosts_create',
                             columns: [
                                 {
@@ -327,7 +327,7 @@ return {
                             flags: ['w_if_no_aci'],
                             add_method: 'allow_create_keytab',
                             remove_method: 'disallow_create_keytab',
-                            add_title: '@i18n:keytab.add_create',
+                            add_title: '@i18n:keytab.add_hostgroups_create',
                             remove_title: '@i18n:keytab.remove_hostgroups_create',
                             columns: [
                                 {

@@ -314,8 +314,30 @@ class i18n_messages(Command):
         },
         "false": _("False"),
         "keytab": {
-            "add_create": _("Allow ${other_entity} to create keytab of ${primary_key}"),
-            "add_retrive": _("Allow ${other_entity} to retrieve keytab of ${primary_key}"),
+            "add_groups_create": _(
+                "Allow user groups to create keytab of '${primary_key}'"
+            ),
+            "add_groups_retrieve": _(
+                "Allow user groups to retrieve keytab of '${primary_key}'"
+            ),
+            "add_hostgroups_create": _(
+                "Allow host groups to create keytab of '${primary_key}'"
+            ),
+            "add_hostgroups_retrieve": _(
+                "Allow host groups to retrieve keytab of '${primary_key}'"
+            ),
+            "add_hosts_create": _(
+                "Allow hosts to create keytab of '${primary_key}'"
+            ),
+            "add_hosts_retrieve": _(
+                "Allow hosts to retrieve keytab of '${primary_key}'"
+            ),
+            "add_users_create": _(
+                "Allow users to create keytab of '${primary_key}'"
+            ),
+            "add_users_retrieve": _(
+                "Allow users to retrieve keytab of '${primary_key}'"
+            ),
             "allowed_to_create": _("Allowed to create keytab"),
             "allowed_to_retrieve": _("Allowed to retrieve keytab"),
             "remove_groups_create": _(
@@ -517,6 +539,28 @@ class i18n_messages(Command):
             },
             "caacl": {
                 "add": _("Add CA ACL"),
+                "add_ca": _(
+                    "Add Certificate Authorities into CA ACL "
+                    "'${primary_key}'"
+                ),
+                "add_groups": _(
+                    "Add user groups into CA ACL '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into CA ACL '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into CA ACL '${primary_key}'"
+                ),
+                "add_profiles": _(
+                    "Add certificate profiles into CA ACL '${primary_key}'"
+                ),
+                "add_services": _(
+                    "Add services into CA ACL '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into CA ACL '${primary_key}'"
+                ),
                 "all": _("All"),
                 "any_ca": _("Any CA"),
                 "any_host": _("Any Host"),
@@ -756,6 +800,25 @@ class i18n_messages(Command):
             },
             "hbacrule": {
                 "add": _("Add HBAC rule"),
+                "add_groups": _(
+                    "Add user groups into HBAC rule '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into HBAC rule '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into HBAC rule '${primary_key}'"
+                ),
+                "add_servicegroups": _(
+                    "Add HBAC service groups into HBAC rule "
+                    "'${primary_key}'"
+                ),
+                "add_services": _(
+                    "Add HBAC services into HBAC rule '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into HBAC rule '${primary_key}'"
+                ),
                 "any_host": _("Any Host"),
                 "any_service": _("Any Service"),
                 "anyone": _("Anyone"),
@@ -930,6 +993,18 @@ class i18n_messages(Command):
             },
             "netgroup": {
                 "add": _("Add netgroup"),
+                "add_groups": _(
+                    "Add user groups into netgroup '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into netgroup '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into netgroup '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into netgroup '${primary_key}'"
+                ),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "external": _("External"),
@@ -1037,6 +1112,18 @@ class i18n_messages(Command):
             },
             "selinuxusermap": {
                 "add": _("Add SELinux user map"),
+                "add_groups": _(
+                    "Add user groups into SELinux user map '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into SELinux user map '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into SELinux user map '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into SELinux user map '${primary_key}'"
+                ),
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
                 "host": _("Host"),
@@ -1138,6 +1225,43 @@ class i18n_messages(Command):
             "sudorule": {
                 "add": _("Add sudo rule"),
                 "add_option": _("Add sudo option"),
+                "add_allow_cmds": _(
+                    "Add allow sudo commands into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_allow_cmdgroups": _(
+                    "Add allow sudo command groups into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_deny_cmds": _(
+                    "Add deny sudo commands into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_deny_cmdgroups": _(
+                    "Add deny sudo command groups into sudo rule "
+                    "'${primary_key}'"
+                ),
+                "add_groups": _(
+                    "Add user groups into sudo rule '${primary_key}'"
+                ),
+                "add_hostgroups": _(
+                    "Add host groups into sudo rule '${primary_key}'"
+                ),
+                "add_hosts": _(
+                    "Add hosts into sudo rule '${primary_key}'"
+                ),
+                "add_runas_users": _(
+                    "Add RunAs users into sudo rule '${primary_key}'"
+                ),
+                "add_runas_usergroups": _(
+                    "Add RunAs user groups into sudo rule '${primary_key}'"
+                ),
+                "add_runas_groups": _(
+                    "Add RunAs groups into sudo rule '${primary_key}'"
+                ),
+                "add_users": _(
+                    "Add users into sudo rule '${primary_key}'"
+                ),
                 "allow": _("Allow"),
                 "any_command": _("Any Command"),
                 "any_group": _("Any Group"),
@@ -1207,6 +1331,9 @@ class i18n_messages(Command):
             },
             "topologylocation": {
                 "add": _("Add IPA location"),
+                "add_server": _(
+                    "Add IPA server into IPA location '${primary_key}'"
+                ),
                 "remove": _("Remove IPA locations"),
                 "remove_servers": _(
                     "Remove IPA servers from IPA location '${primary_key}'"
@@ -1276,6 +1403,24 @@ class i18n_messages(Command):
             },
             "vault": {
                 "add": _("Add vault"),
+                "add_member_groups": _(
+                    "Add user groups into members of vault '${primary_key}'"
+                ),
+                "add_member_services": _(
+                    "Add services into members of vault '${primary_key}'"
+                ),
+                "add_member_users": _(
+                    "Add users into members of vault '${primary_key}'"
+                ),
+                "add_owner_groups": _(
+                    "Add user groups into owners of vault '${primary_key}'"
+                ),
+                "add_owner_services": _(
+                    "Add services into owners of vault '${primary_key}'"
+                ),
+                "add_owner_users": _(
+                    "Add users into owners of vault '${primary_key}'"
+                ),
                 "add_warn_arch_ret": _(
                     "Secrets can be added/retrieved to vault only by using "
                     "vault-archive and vault-retrieve from CLI."
