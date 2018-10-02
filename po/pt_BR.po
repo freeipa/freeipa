@@ -14,30 +14,11 @@ msgstr ""
 "X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#, c-format
-msgid "Passwords do not match!"
-msgstr "As senhas não coincidem!"
-
-msgid "No matching entries found"
-msgstr "Não foram encontradas entradas coincidentes"
-
-msgid "Topic or Command"
-msgstr "Tópico ou comando"
-
-msgid "The topic or command name."
-msgstr "O nome do tópico ou comando."
-
-msgid "Topic commands:"
-msgstr "Comandos do tópico:"
-
-msgid "To get command help, use:"
-msgstr "Para obter ajuda do comando, use:"
-
 msgid "Command name"
 msgstr "Nome do comando"
 
-msgid "Positional arguments"
-msgstr "Argumentos posicionais"
+msgid "Command not implemented"
+msgstr "Comando não implementado"
 
 msgid "Deprecated options"
 msgstr "Opções obsoletas"
@@ -45,8 +26,27 @@ msgstr "Opções obsoletas"
 msgid "No file to read"
 msgstr "Nenhum arquivo para ler"
 
+msgid "No matching entries found"
+msgstr "Não foram encontradas entradas coincidentes"
+
 msgid "Passwords do not match"
 msgstr "As senhas não coincidem."
 
-msgid "Command not implemented"
-msgstr "Comando não implementado"
+#, c-format
+msgid "Passwords do not match!"
+msgstr "As senhas não coincidem!"
+
+msgid "Positional arguments"
+msgstr "Argumentos posicionais"
+
+msgid "The topic or command name."
+msgstr "O nome do tópico ou comando."
+
+msgid "To get command help, use:"
+msgstr "Para obter ajuda do comando, use:"
+
+msgid "Topic commands:"
+msgstr "Comandos do tópico:"
+
+msgid "Topic or Command"
+msgstr "Tópico ou comando"

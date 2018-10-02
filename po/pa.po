@@ -14,49 +14,46 @@ msgstr ""
 "X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#, c-format
-msgid "Out of memory!\n"
-msgstr "ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋਈ!\n"
-
-msgid "New vault password"
-msgstr "ਨਵਾਂ ਵਾਲਟ ਪਾਸਵਰਡ"
-
-msgid "File containing the new vault password"
-msgstr "ਫ਼ਾਈਲ ਨਵਾਂ ਵਾਲਟ ਪਾਸਵਰਡ ਰੱਖਦੀ ਹੈ"
-
-msgid "Old vault private key"
-msgstr "ਪੁਰਾਣੀ ਵਾਲਟ ਪ੍ਰਾਈਵੇਟ ਕੁੰਜੀ"
-
-msgid "Invalid vault type"
-msgstr "ਗ਼ਲਤ ਵਾਲਟ ਕਿਸਮ"
-
-#, python-format
-msgid "Unknown option: %(option)s"
-msgstr "ਅਣਪਛਾਤੀ ਚੋਣ: %(option)s"
+msgid "AD domain controller"
+msgstr "AD ਡੋਮੇਨ ਕੰਟਰੋਲਰ"
 
 msgid "CIFS server denied your credentials"
 msgstr "CIFS ਨੇ ਤੁਹਾਡੀ ਸਨਦ ਤੋਂ ਇਨਕਾਰ ਕੀਤਾ"
 
-msgid "AD domain controller"
-msgstr "AD ਡੋਮੇਨ ਕੰਟਰੋਲਰ"
+msgid "Failed to create key!\n"
+msgstr "ਕੁੰਜੀ ਬਣਾਉਣ ਲਈ ਅਸਫ਼ਲ ਹੈ!\n"
 
-msgid "no trusted domain is configured"
-msgstr "ਕੋਈ ਟਰੱਸਟਡ ਡੋਮੇਨ ਸੰਰਚਿਤ ਨਹੀਂ ਕੀਤੀ ਹੈ"
-
-msgid "domain is not configured"
-msgstr "ਡੋਮੇਨ ਸੰਰਚਿਤ ਨਹੀਂ ਹੈ"
-
-msgid "Trust setup"
-msgstr "ਟਰੱਸਟ ਸੈਟਅੱਪ"
-
-msgid "Our domain is not configured"
-msgstr "ਸਾਡੀ ਡੋਮੇਨ ਸੰਰਚਿਤ ਨਹੀਂ ਹੈ"
+msgid "File containing the new vault password"
+msgstr "ਫ਼ਾਈਲ ਨਵਾਂ ਵਾਲਟ ਪਾਸਵਰਡ ਰੱਖਦੀ ਹੈ"
 
 msgid "Hello world"
 msgstr "ਹੈਲੋ ਵਰਲਡ"
 
+msgid "Invalid vault type"
+msgstr "ਗ਼ਲਤ ਵਾਲਟ ਕਿਸਮ"
+
+msgid "New vault password"
+msgstr "ਨਵਾਂ ਵਾਲਟ ਪਾਸਵਰਡ"
+
+msgid "Old vault private key"
+msgstr "ਪੁਰਾਣੀ ਵਾਲਟ ਪ੍ਰਾਈਵੇਟ ਕੁੰਜੀ"
+
+msgid "Our domain is not configured"
+msgstr "ਸਾਡੀ ਡੋਮੇਨ ਸੰਰਚਿਤ ਨਹੀਂ ਹੈ"
+
 msgid "Out of memory\n"
 msgstr "ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋਈ\n"
+
+#, c-format
+msgid "Out of memory!\n"
+msgstr "ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋਈ!\n"
+
+msgid "Trust setup"
+msgstr "ਟਰੱਸਟ ਸੈਟਅੱਪ"
+
+#, python-format
+msgid "Unknown option: %(option)s"
+msgstr "ਅਣਪਛਾਤੀ ਚੋਣ: %(option)s"
 
 msgid "Warning unrecognized encryption type.\n"
 msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ ਇੰਕ੍ਰਿਪਸ਼ਨ ਕਿਸਮ।\n"
@@ -64,5 +61,8 @@ msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ ਇੰਕ੍ਰਿਪਸ਼ਨ 
 msgid "Warning unrecognized salt type.\n"
 msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ salt ਕਿਸਮ ਹੈ।\n"
 
-msgid "Failed to create key!\n"
-msgstr "ਕੁੰਜੀ ਬਣਾਉਣ ਲਈ ਅਸਫ਼ਲ ਹੈ!\n"
+msgid "domain is not configured"
+msgstr "ਡੋਮੇਨ ਸੰਰਚਿਤ ਨਹੀਂ ਹੈ"
+
+msgid "no trusted domain is configured"
+msgstr "ਕੋਈ ਟਰੱਸਟਡ ਡੋਮੇਨ ਸੰਰਚਿਤ ਨਹੀਂ ਕੀਤੀ ਹੈ"

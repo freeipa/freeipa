@@ -15,14 +15,6 @@ msgstr ""
 "X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-msgid "Show environment variables."
-msgstr "Show environment variables."
-
-msgid ""
-"retrieve and print all attributes from the server. Affects command output."
-msgstr ""
-"retrieve and print all attributes from the server. Affects command output."
-
 #, python-format
 msgid "%(count)d variables"
 msgstr "%(count)d variables"
@@ -36,17 +28,25 @@ msgid "Retrieving CA cert chain failed: %s"
 msgstr "Retrieving CA cert chain failed: %s"
 
 #, python-format
-msgid "request failed with HTTP status %d"
-msgstr "request failed with HTTP status %d"
+msgid "Retrieving CA status failed with status %d"
+msgstr "Retrieving CA status failed with status %d"
 
 #, python-format
 msgid "Retrieving CA status failed: %s"
 msgstr "Retrieving CA status failed: %s"
 
-#, python-format
-msgid "Retrieving CA status failed with status %d"
-msgstr "Retrieving CA status failed with status %d"
+msgid "Show environment variables."
+msgstr "Show environment variables."
 
 #, python-format
 msgid "objectclass %s not found"
 msgstr "objectclass %s not found"
+
+#, python-format
+msgid "request failed with HTTP status %d"
+msgstr "request failed with HTTP status %d"
+
+msgid ""
+"retrieve and print all attributes from the server. Affects command output."
+msgstr ""
+"retrieve and print all attributes from the server. Affects command output."
