@@ -1,9 +1,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.90.pre2\n"
+"Project-Id-Version: freeipa 4.7.0.dev201810012005+gitbcf922369\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-05-15 14:59-0400\n"
+"POT-Creation-Date: 2018-10-01 23:06+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -11,22 +11,8 @@ msgstr ""
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Bengali (India)\n"
 "Language: bn_IN\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-
-msgid "Passwords do not match"
-msgstr "পাসওয়ার্ড দুটি মিলছে না"
-
-msgid "This is already a posix group"
-msgstr "একটি পসিক্স (posix) গ্রুপ আগে থেকে উপস্থিত"
-
-#, python-format
-msgid "%(info)s"
-msgstr "%(info)s"
-
-#, python-format
-msgid "%(count)d variables"
-msgstr "%(count)d ভেরিয়াবেল"
 
 #, python-format
 msgid "%(count)d plugin loaded"
@@ -34,15 +20,29 @@ msgid_plural "%(count)d plugins loaded"
 msgstr[0] "%(count)d প্লাগ-ইন লোড করা হয়েছে"
 msgstr[1] "%(count)d প্লাগ-ইন লোড করা হয়েছে"
 
-msgid "incorrect type"
-msgstr "ভুল প্রকার"
+#, python-format
+msgid "%(count)d variables"
+msgstr "%(count)d ভেরিয়াবেল"
 
-msgid "Only one value is allowed"
-msgstr "কেবলমাত্র একটি মান অনুমদিত"
-
-msgid "must be a decimal number"
-msgstr "একটি দশমিক সংখ্যা হওয়া জরুরি"
+#, python-format
+msgid "%(info)s"
+msgstr "%(info)s"
 
 #, python-format
 msgid "Added user \"%(value)s\""
 msgstr "\"%(value)s\" ব্যবহারকারী যোগ করা হয়েছে"
+
+msgid "Only one value is allowed"
+msgstr "কেবলমাত্র একটি মান অনুমদিত"
+
+msgid "Passwords do not match"
+msgstr "পাসওয়ার্ড দুটি মিলছে না"
+
+msgid "This is already a posix group"
+msgstr "একটি পসিক্স (posix) গ্রুপ আগে থেকে উপস্থিত"
+
+msgid "incorrect type"
+msgstr "ভুল প্রকার"
+
+msgid "must be a decimal number"
+msgstr "একটি দশমিক সংখ্যা হওয়া জরুরি"
