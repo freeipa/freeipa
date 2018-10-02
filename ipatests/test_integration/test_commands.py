@@ -17,6 +17,9 @@ import time
 import paramiko
 import pytest
 
+from cryptography.hazmat.backends import default_backend
+from cryptography import x509
+
 from ipaplatform.paths import paths
 
 from ipatests.test_integration.base import IntegrationTest
@@ -403,3 +406,26 @@ class TestIPACommand(IntegrationTest):
 
         # cleanup
         self.master.run_command(['ipa', 'user-del', test_user])
+
+    def test_certificate_out_write_to_file(self):
+        # commands to test; name of temporary file will be appended
+        commands = [
+            ['ipa', 'cert-show', '1', '--certificate-out'],
+            ['ipa', 'cert-show', '1', '--chain', '--certificate-out'],
+            ['ipa', 'ca-show', 'ipa', '--certificate-out'],
+            ['ipa', 'ca-show', 'ipa', '--chain', '--certificate-out'],
+        ]
+
+        for command in commands:
+            cmd = self.master.run_command(['mktemp'])
+            filename = cmd.stdout_text.strip()
+
+            self.master.run_command(command + [filename])
+
+            # Check that a PEM file was written.  If --chain was
+            # used, load_pem_x509_certificate will return the
+            # first certificate, which is fine for this test.
+            data = self.master.get_file_contents(filename)
+            x509.load_pem_x509_certificate(data, backend=default_backend())
+
+            self.master.run_command(['rm', '-f', filename])
