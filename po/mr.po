@@ -14,37 +14,43 @@ msgstr ""
 "X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#, c-format
-msgid "Passwords do not match!"
-msgstr "पासवर्ड जुळत नाही!"
+msgid "  ipa <command> --help"
+msgstr " ipa <command> --help"
 
 msgid "A string searched in all relevant object attributes"
 msgstr "एक शब्द सर्व संबंधित ऑब्जेक्ट गुणधर्मात शोधला"
+
+msgid "Command name"
+msgstr "आदेशाचे नाव "
+
+msgid "Deprecated options"
+msgstr "वापरात नसलेले पर्याय"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
 msgstr "सत्यापित करण्यासाठी आपण पुन्हा %(label)s प्रविष्ट करा:"
 
+#, python-format
+msgid "Invalid JSON-RPC request: %(error)s"
+msgstr "अवैध JSON-RPC विनंती : %(error)s"
+
+#, python-format
+msgid "Kerberos error: %(major)s/%(minor)s"
+msgstr "Kerberos त्रुटी: %(major)s/%(minor)s"
+
+#, python-format
+msgid "Missing or invalid HTTP Referer, %(referer)s"
+msgstr "न आढळलेले किंवा अवैध HTTP Referer, %(referer)s"
+
+msgid "No file to read"
+msgstr "कोणतीही फाइल वाचण्यासाठी नाही "
+
 msgid "No matching entries found"
 msgstr "कोणतेही जुळणारे नोंदी आढळले"
 
-msgid "Topic or Command"
-msgstr "विषय किंवा आदेश"
-
-msgid "The topic or command name."
-msgstr "विषय किंवा आदेशाचे नाव"
-
-msgid "Topic commands:"
-msgstr "विषय आदेश:"
-
-msgid "To get command help, use:"
-msgstr "आदेशा संबधित मिळवण्यासाठी, वापरा:"
-
-msgid "  ipa <command> --help"
-msgstr " ipa <command> --help"
-
-msgid "Command name"
-msgstr "आदेशाचे नाव "
+#, c-format
+msgid "Passwords do not match!"
+msgstr "पासवर्ड जुळत नाही!"
 
 msgid "Positional arguments"
 msgstr "positional वितर्क"
@@ -53,11 +59,21 @@ msgstr "positional वितर्क"
 msgid "Same as --%s"
 msgstr "--%s सारखा"
 
-msgid "Deprecated options"
-msgstr "वापरात नसलेले पर्याय"
+#, python-format
+msgid "Service '%(service)s' not found in Kerberos database"
+msgstr "सेवा '%(service)s' Kerberos माहितीकोष आढली नाही"
 
-msgid "No file to read"
-msgstr "कोणतीही फाइल वाचण्यासाठी नाही "
+msgid "The topic or command name."
+msgstr "विषय किंवा आदेशाचे नाव"
+
+msgid "To get command help, use:"
+msgstr "आदेशा संबधित मिळवण्यासाठी, वापरा:"
+
+msgid "Topic commands:"
+msgstr "विषय आदेश:"
+
+msgid "Topic or Command"
+msgstr "विषय किंवा आदेश"
 
 msgid "an internal error has occurred"
 msgstr "एक अंतर्गत त्रुटी आली आहे"
@@ -67,32 +83,16 @@ msgid "an internal error has occurred on server at '%(server)s'"
 msgstr "एक अंतर्गत त्रुटी '%(server)s' वरील सर्व्हर वर आली आहे "
 
 #, python-format
-msgid "unknown command '%(name)s'"
-msgstr "अनोळखी आदेश '%(name)s'"
+msgid "cannot connect to '%(uri)s': %(error)s"
+msgstr "'%(uri)s' ला जोडणी अपयशी : %(error)s"
+
+msgid "did not receive Kerberos credentials"
+msgstr "Kerberos credentials प्राप्त झाले नाहीत"
 
 #, python-format
 msgid "error on server '%(server)s': %(error)s"
 msgstr "सर्व्हरवर त्रुटी '%(server)s': %(error)s"
 
 #, python-format
-msgid "cannot connect to '%(uri)s': %(error)s"
-msgstr "'%(uri)s' ला जोडणी अपयशी : %(error)s"
-
-#, python-format
-msgid "Invalid JSON-RPC request: %(error)s"
-msgstr "अवैध JSON-RPC विनंती : %(error)s"
-
-#, python-format
-msgid "Missing or invalid HTTP Referer, %(referer)s"
-msgstr "न आढळलेले किंवा अवैध HTTP Referer, %(referer)s"
-
-#, python-format
-msgid "Kerberos error: %(major)s/%(minor)s"
-msgstr "Kerberos त्रुटी: %(major)s/%(minor)s"
-
-msgid "did not receive Kerberos credentials"
-msgstr "Kerberos credentials प्राप्त झाले नाहीत"
-
-#, python-format
-msgid "Service '%(service)s' not found in Kerberos database"
-msgstr "सेवा '%(service)s' Kerberos माहितीकोष आढली नाही"
+msgid "unknown command '%(name)s'"
+msgstr "अनोळखी आदेश '%(name)s'"
