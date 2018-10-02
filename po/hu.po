@@ -14,26 +14,29 @@ msgstr ""
 "X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-msgid "User group"
-msgstr "Felhasználói csport"
+msgid "A group may not be a member of itself"
+msgstr "Egy csoport nem lehet tagja önmagának"
 
-msgid "Permissions"
-msgstr "Jogosultságok"
+msgid "A list of LDAP entries"
+msgstr "LDAP-bejegyzések listája"
 
-msgid "Description"
-msgstr "Leírás"
+#, python-format
+msgid "Added service \"%(value)s\""
+msgstr "A %(value)s szolgáltatás hozzáadva"
 
-msgid "Subject"
-msgstr "Tárgy"
+#, python-format
+msgid "Base64 decoding failed: %(reason)s"
+msgstr "Base64 kicsomagolás sikertelen: %(reason)s"
 
-msgid "Reason"
-msgstr "Ok"
+msgid "Certificate"
+msgstr "Tanúsítvány"
 
-msgid "Serial number"
-msgstr "Sorozatszám"
+#, python-format
+msgid "Certificate format error: %(error)s"
+msgstr "Tanúsítványhiba: %(error)s"
 
-msgid "Request id"
-msgstr "Igénylés azonosítója"
+msgid "Character classes"
+msgstr "Karakterosztályok"
 
 msgid "Default shell"
 msgstr "Alapértelmezett shell"
@@ -41,11 +44,15 @@ msgstr "Alapértelmezett shell"
 msgid "Default users group"
 msgstr "Alapértelmezett csoport"
 
-msgid "Zone name (FQDN)"
-msgstr "Zóna neve (FQDN)"
+#, python-format
+msgid "Deleted service \"%(value)s\""
+msgstr "A %(value)s szolgáltatás eltávolítva"
 
-msgid "SOA serial"
-msgstr "SOA sorozatszám"
+msgid "Description"
+msgstr "Leírás"
+
+msgid "Fingerprint (SHA1)"
+msgstr "Ujjlenyomat (SHA1)"
 
 msgid "GID"
 msgstr "GID"
@@ -53,29 +60,15 @@ msgstr "GID"
 msgid "GID (use this option to set it manually)"
 msgstr "GID (kézzel történő beállításhoz)"
 
-msgid "change to a POSIX group"
-msgstr "POSIX-csoportra módosít"
-
-msgid "Rule name"
-msgstr "Szabály neve"
-
-msgid "Services"
-msgstr "Szolgáltatások"
-
-msgid "Service Groups"
-msgstr "Szolgáltatás-csoportok"
-
-msgid "Service name"
-msgstr "Szolgáltatás neve"
-
-msgid "Service group name"
-msgstr "Szolgáltatás-csoport neve"
+#, python-format
+msgid "Group '%s' does not exist"
+msgstr "A '%s' csoport nem létezik"
 
 msgid "HBAC service group description"
 msgstr "HBAC szolgáltatás-csoport leírása"
 
-msgid "Certificate"
-msgstr "Tanúsítvány"
+msgid "Issuer"
+msgstr "Kibocsátó"
 
 msgid "LDAP URI"
 msgstr "LDAP URI"
@@ -92,14 +85,62 @@ msgstr "Minimális élettartam (óra)"
 msgid "Minimum password lifetime (in hours)"
 msgstr "Jelszó minimális élettartama (óra)"
 
+msgid "Not After"
+msgstr "Érvényesség vége"
+
+msgid "Not Before"
+msgstr "Érvényesség kezdete"
+
 msgid "Password history size"
 msgstr "Megőrzött jelszavak (darab)"
 
-msgid "Character classes"
-msgstr "Karakterosztályok"
-
 msgid "Passwords do not match"
 msgstr "A jelszavak nem egyeznek meg"
+
+msgid "Permissions"
+msgstr "Jogosultságok"
+
+msgid "Reason"
+msgstr "Ok"
+
+msgid "Request id"
+msgstr "Igénylés azonosítója"
+
+msgid "Request status"
+msgstr "Igénylés állapota"
+
+msgid "Revocation reason"
+msgstr "Visszavonás oka"
+
+msgid "Revoked"
+msgstr "Visszavont"
+
+msgid "Rule name"
+msgstr "Szabály neve"
+
+msgid "SOA serial"
+msgstr "SOA sorozatszám"
+
+msgid "Serial number"
+msgstr "Sorozatszám"
+
+msgid "Service Groups"
+msgstr "Szolgáltatás-csoportok"
+
+msgid "Service group name"
+msgstr "Szolgáltatás-csoport neve"
+
+msgid "Service name"
+msgstr "Szolgáltatás neve"
+
+msgid "Services"
+msgstr "Szolgáltatások"
+
+msgid "Subject"
+msgstr "Tárgy"
+
+msgid "The default users group cannot be removed"
+msgstr "Az alapértelmezett csoport nem távolítható el"
 
 msgid "This command requires root access"
 msgstr "Ez a parancs rendszergazdai jogosultságot igényel"
@@ -107,52 +148,11 @@ msgstr "Ez a parancs rendszergazdai jogosultságot igényel"
 msgid "This is already a posix group"
 msgstr "Ez egy létező POSIX csoport"
 
-msgid "A group may not be a member of itself"
-msgstr "Egy csoport nem lehet tagja önmagának"
+msgid "User group"
+msgstr "Felhasználói csport"
 
-#, python-format
-msgid "Base64 decoding failed: %(reason)s"
-msgstr "Base64 kicsomagolás sikertelen: %(reason)s"
+msgid "Zone name (FQDN)"
+msgstr "Zóna neve (FQDN)"
 
-msgid "The default users group cannot be removed"
-msgstr "Az alapértelmezett csoport nem távolítható el"
-
-#, python-format
-msgid "Certificate format error: %(error)s"
-msgstr "Tanúsítványhiba: %(error)s"
-
-msgid "A list of LDAP entries"
-msgstr "LDAP-bejegyzések listája"
-
-#, python-format
-msgid "Group '%s' does not exist"
-msgstr "A '%s' csoport nem létezik"
-
-msgid "Issuer"
-msgstr "Kibocsátó"
-
-msgid "Not Before"
-msgstr "Érvényesség kezdete"
-
-msgid "Not After"
-msgstr "Érvényesség vége"
-
-msgid "Fingerprint (SHA1)"
-msgstr "Ujjlenyomat (SHA1)"
-
-msgid "Request status"
-msgstr "Igénylés állapota"
-
-msgid "Revoked"
-msgstr "Visszavont"
-
-msgid "Revocation reason"
-msgstr "Visszavonás oka"
-
-#, python-format
-msgid "Added service \"%(value)s\""
-msgstr "A %(value)s szolgáltatás hozzáadva"
-
-#, python-format
-msgid "Deleted service \"%(value)s\""
-msgstr "A %(value)s szolgáltatás eltávolítva"
+msgid "change to a POSIX group"
+msgstr "POSIX-csoportra módosít"

@@ -14,36 +14,43 @@ msgstr ""
 "X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#, c-format
-msgid "Passwords do not match!"
-msgstr "पासवर्ड मेल नहीं खाते"
+msgid "A group may not be a member of itself"
+msgstr "एक समूह खुद के ही सदस्य नहीं हो सकता"
+
+msgid "A list of LDAP entries"
+msgstr "LDAP प्रविष्टियों की सूची"
+
+msgid "All commands should at least have a result"
+msgstr "सभी आदेशों का कम से कम परिणाम होना चाहिए"
+
+msgid "Bad format in credentials cache"
+msgstr "क्रेडेंशियल्स कैश में बुरा प्रारूप"
+
+#, python-format
+msgid "Base64 decoding failed: %(reason)s"
+msgstr "बेस६४ डिकोडिंग विफल: %(reason)s"
+
+msgid "Cannot resolve KDC for requested realm"
+msgstr "अनुरोधित दायरे के लिए KDC हल नहीं कर सकता"
+
+msgid "Credentials cache permissions incorrect"
+msgstr "क्रेडेंशियल्स कैश अनुमतियाँ गलत"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
 msgstr "सत्यापित करने के लिए फिर से %(label)s दर्ज करें:"
 
-msgid "an internal error has occurred"
-msgstr "एक आंतरिक त्रुटि हुई है"
-
-msgid "did not receive Kerberos credentials"
-msgstr "कर्बेरॉस क्रेडेंशियल्स प्राप्त नहीं हुआ"
-
 msgid "No credentials cache found"
 msgstr "कैश क्रेडेंशियल्स नहीं मिली"
 
-msgid "Ticket expired"
-msgstr "टिकट समाप्त"
-
-msgid "Credentials cache permissions incorrect"
-msgstr "क्रेडेंशियल्स कैश अनुमतियाँ गलत"
-
-msgid "Bad format in credentials cache"
-msgstr "क्रेडेंशियल्स कैश में बुरा प्रारूप"
-
-msgid "Cannot resolve KDC for requested realm"
-msgstr "अनुरोधित दायरे के लिए KDC हल नहीं कर सकता"
+msgid "Only one value is allowed"
+msgstr "केवल एक मान की अनुमति है"
 
 msgid "Passwords do not match"
+msgstr "पासवर्ड मेल नहीं खाते"
+
+#, c-format
+msgid "Passwords do not match!"
 msgstr "पासवर्ड मेल नहीं खाते"
 
 msgid "This command requires root access"
@@ -52,24 +59,17 @@ msgstr "इस आदेश को रूट मूल अभिगम की �
 msgid "This is already a posix group"
 msgstr "यह पहले से ही एक पोसिक्स समूह है"
 
-msgid "A group may not be a member of itself"
-msgstr "एक समूह खुद के ही सदस्य नहीं हो सकता"
+msgid "Ticket expired"
+msgstr "टिकट समाप्त"
 
-#, python-format
-msgid "Base64 decoding failed: %(reason)s"
-msgstr "बेस६४ डिकोडिंग विफल: %(reason)s"
+msgid "an internal error has occurred"
+msgstr "एक आंतरिक त्रुटि हुई है"
 
-msgid "A list of LDAP entries"
-msgstr "LDAP प्रविष्टियों की सूची"
-
-msgid "All commands should at least have a result"
-msgstr "सभी आदेशों का कम से कम परिणाम होना चाहिए"
+msgid "did not receive Kerberos credentials"
+msgstr "कर्बेरॉस क्रेडेंशियल्स प्राप्त नहीं हुआ"
 
 msgid "incorrect type"
 msgstr "गलत प्रकार"
-
-msgid "Only one value is allowed"
-msgstr "केवल एक मान की अनुमति है"
 
 msgid "must be True or False"
 msgstr "सही या गलत होना चाहिए"
