@@ -222,6 +222,24 @@ KEY_RE = re.compile(
 )
 
 
+class Pkcs12ImportIncorrectPasswordError(RuntimeError):
+    """ Raised when import_pkcs12 fails because of a wrong password.
+    """
+    pass
+
+
+class Pkcs12ImportOpenError(RuntimeError):
+    """ Raised when import_pkcs12 fails trying to open the file.
+    """
+    pass
+
+
+class Pkcs12ImportUnknownError(RuntimeError):
+    """ Raised when import_pkcs12 fails because of an unknown error.
+    """
+    pass
+
+
 class NSSDatabase:
     """A general-purpose wrapper around a NSS cert database
 
@@ -575,13 +593,15 @@ class NSSDatabase:
         try:
             self.run_pk12util(args)
         except ipautil.CalledProcessError as e:
-            if e.returncode == 17:
-                raise RuntimeError("incorrect password for pkcs#12 file %s" %
-                    pkcs12_filename)
+            if e.returncode == 17 or e.returncode == 18:
+                raise Pkcs12ImportIncorrectPasswordError(
+                    "incorrect password for pkcs#12 file %s" % pkcs12_filename)
             elif e.returncode == 10:
-                raise RuntimeError("Failed to open %s" % pkcs12_filename)
+                raise Pkcs12ImportOpenError(
+                    "Failed to open %s" % pkcs12_filename)
             else:
-                raise RuntimeError("unknown error import pkcs#12 file %s" %
+                raise Pkcs12ImportUnknownError(
+                    "unknown error import pkcs#12 file %s" %
                     pkcs12_filename)
         finally:
             if pkcs12_password_file is not None:
@@ -719,8 +739,13 @@ class NSSDatabase:
             if import_keys:
                 try:
                     self.import_pkcs12(filename, key_password)
-                except RuntimeError:
+                except Pkcs12ImportUnknownError:
+                    # the file may not be a PKCS#12 file,
+                    # go to the generic error about unrecognized format
                     pass
+                except RuntimeError as e:
+                    raise RuntimeError("Failed to load %s: %s" %
+                                       (filename, str(e)))
                 else:
                     if key_file:
                         raise RuntimeError(
@@ -746,7 +771,9 @@ class NSSDatabase:
 
                     continue
 
-            raise RuntimeError("Failed to load %s" % filename)
+            # Supported formats were tried but none succeeded
+            raise RuntimeError("Failed to load %s: unrecognized format" %
+                               filename)
 
         if import_keys and not key_file:
             raise RuntimeError(
