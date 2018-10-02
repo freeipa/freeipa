@@ -5,9 +5,9 @@
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.90.pre2\n"
+"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-05-15 14:59-0400\n"
+"POT-Creation-Date: 2018-10-01 23:02+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Last-Translator: Pavel Vomacka <pvomacka@redhat.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
 
 msgid ""
@@ -86,55 +86,6 @@ msgstr ""
 "\n"
 "    Ajouter des conditions à une règle d'auto-adhésion.\n"
 "    "
-
-#, python-brace-format
-msgid ""
-"\n"
-"    Add new ID range.\n"
-"\n"
-"    To add a new ID range you always have to specify\n"
-"\n"
-"        --base-id\n"
-"        --range-size\n"
-"\n"
-"    Additionally\n"
-"\n"
-"        --rid-base\n"
-"        --secondary-rid-base\n"
-"\n"
-"    may be given for a new ID range for the local domain while\n"
-"\n"
-"        --rid-base\n"
-"        --dom-sid\n"
-"\n"
-"    must be given to add a new range for a trusted AD domain.\n"
-"\n"
-"{0}\n"
-msgstr ""
-"\n"
-"Ajouter une nouvelle plage d''identifiants.\n"
-"\n"
-"Pour ajouter une nouvelle plage d''identifiants vous devez toujours "
-"préciser\n"
-"\n"
-"--base-id\n"
-"--range-size\n"
-"\n"
-"En outre,\n"
-"\n"
-"--rid-base\n"
-"--secondary-rid-base\n"
-"\n"
-"seront indiqués pour une nouvelle plage d''identifiants dans le domaine "
-"local alors que\n"
-"\n"
-"--rid-base\n"
-"--dom-sid\n"
-"\n"
-"doivent l''être pour ajouter une nouvelle plage pour un domaine AD de "
-"confiance.\n"
-"\n"
-"{0}\n"
 
 msgid ""
 "\n"
@@ -472,15 +423,6 @@ msgstr ""
 "\n"
 "  Afficher l'état de tous les rôles configurés sur un serveur :\n"
 "    ipa server-role-find ipa.example.com\n"
-
-msgid ""
-"\n"
-"  Show status of all roles containing 'AD' on a server:\n"
-"    ipa server-role-find --server ipa.example.com --role='AD'\n"
-msgstr ""
-"\n"
-"  Afficher l'état de tous les rôles contenant « AD » sur un serveur :\n"
-"    ipa server-role-find --server ipa.example.com --role='AD'\n"
 
 msgid ""
 "\n"
@@ -6320,13 +6262,6 @@ msgstr ""
 
 msgid ""
 "\n"
-"Vault is a secure place to store a secret.\n"
-msgstr ""
-"\n"
-"Le coffre est une emplacement sécurisé destiné à stocker un secret.\n"
-
-msgid ""
-"\n"
 "Vaults\n"
 msgstr ""
 "\n"
@@ -7377,10 +7312,6 @@ msgid "Add"
 msgstr "Ajouter"
 
 #, python-brace-format
-msgid "Add ${entity}"
-msgstr "Ajouter ${entity}"
-
-#, python-brace-format
 msgid "Add ${entity} ${primary_key} into ${other_entity}"
 msgstr "Ajouter ${primary_key} de ${entity} à ${other_entity}"
 
@@ -7399,10 +7330,6 @@ msgstr "Ajouter « Allow ${other_entity} » à ${primary_key} de ${entity}"
 msgid "Add CAs to a CA ACL."
 msgstr "Ajouter des AC à une LCA d'AC"
 
-#, python-brace-format
-msgid "Add Condition into ${pkey}"
-msgstr "Ajouter une condition à ${pkey}"
-
 msgid "Add Custom Attribute"
 msgstr "Ajouter un attribut personnalisé"
 
@@ -7418,15 +7345,6 @@ msgstr "Ajouter un nouvel alias de principal Kerberos"
 
 msgid "Add Many"
 msgstr "Ajouter plusieurs"
-
-msgid "Add OTP Token"
-msgstr "Ajouter un jeton OTP"
-
-msgid "Add Permission"
-msgstr "Ajouter une permission"
-
-msgid "Add Rule"
-msgstr "Ajouter une règle"
 
 #, python-brace-format
 msgid "Add RunAs ${other_entity} into ${entity} ${primary_key}"
@@ -8740,10 +8658,6 @@ msgstr "Les profils de certificats ne peuvent être renommés"
 msgid "Certificate requested"
 msgstr "Certificat demandé"
 
-#, c-format
-msgid "Certificate subject base is: %s\n"
-msgstr "La base du sujet du certificat est : %s\n"
-
 #, python-format
 msgid ""
 "Certificate with serial number %(serial)s issued by CA '%(ca)s' not found"
@@ -9985,17 +9899,6 @@ msgstr "domaine approuvé « %(value)s » désactivé"
 #, python-format
 msgid "Disabled user account \"%(value)s\""
 msgstr "Compte utilisateur « %(value)s » désactivé"
-
-#, python-brace-format
-msgid "Disallow ${other_entity} to create keytab of ${primary_key}"
-msgstr ""
-"Ne pas autoriser ${other_entity} à créer un tableau de clés de ${primary_key}"
-
-#, python-brace-format
-msgid "Disallow ${other_entity} to retrieve keytab of ${primary_key}"
-msgstr ""
-"Ne pas autoriser ${other_entity} à récupérer un tableau de clés de "
-"${primary_key}"
 
 msgid ""
 "Disallow users, groups, hosts or host groups to create a keytab of this host."
@@ -11440,10 +11343,6 @@ msgstr ""
 "Type de plage d'identifiants, doit être ipa-ad-trust-posix, ipa-ad-trust ou "
 "ipa-local"
 
-#, python-brace-format
-msgid "ID range type, one of {vals}"
-msgstr "Type de plage d'ID, une valeur parmi {vals}"
-
 msgid ""
 "ID range with the same name but different domain SID already exists. The ID "
 "range for the new trusted domain must be created manually."
@@ -12673,16 +12572,6 @@ msgstr "Modifier la zone DNS (enregistrement SOA)."
 
 msgid "Modify ID range."
 msgstr "Modifier une plage."
-
-#, python-brace-format
-msgid ""
-"Modify ID range.\n"
-"\n"
-"{0}\n"
-msgstr ""
-"Modifier une plage d''identifiants.\n"
-"\n"
-"{0}\n"
 
 msgid "Modify Kerberos ticket policy."
 msgstr "Modifier la politique de tickets Kerberos."
@@ -14167,30 +14056,10 @@ msgstr "Nom d'hôte du serveur IPA distant"
 msgid "Remote server name"
 msgstr "Nom du serveur distant"
 
-#, python-brace-format
-msgid "Remove ${entity}"
-msgstr "Supprimer ${entity}"
-
-#, python-brace-format
-msgid "Remove ${entity} ${primary_key} from ${other_entity}"
-msgstr "Supprimer ${primary_key} de ${entity} depuis ${other_entity}"
-
-#, python-brace-format
-msgid "Remove ${other_entity} Managing ${entity} ${primary_key}"
-msgstr "Supprimer ${other_entity} gérant ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Remove ${other_entity} from ${entity} ${primary_key}"
-msgstr "Supprimer ${other_entity} de ${primary_key} de ${entity}"
-
 msgid "Remove A, AAAA, SSHFP and PTR records of the host(s) managed by IPA DNS"
 msgstr ""
 "Supprimer les enregistrements A, AAAA, SSHFP et PTR de l'hôte géré par le "
 "DNS de IPA."
-
-#, python-brace-format
-msgid "Remove Allow ${other_entity} from ${entity} ${primary_key}"
-msgstr "Supprimer « Allow ${other_entity} » de ${primary_key} de ${entity}"
 
 msgid "Remove CAs from a CA ACL."
 msgstr "Supprimer des AC d'une LCA d'AC"
@@ -14202,10 +14071,6 @@ msgstr "Supprimer le blocage du certificat"
 msgid "Remove Certificate Hold for ${entity} ${primary_key}"
 msgstr "Supprimer le blocage de certificat pour ${entity} ${primary_key}"
 
-#, python-brace-format
-msgid "Remove Deny ${other_entity} from ${entity} ${primary_key}"
-msgstr "Supprimer « Deny ${other_entity} » de ${primary_key} de ${entity}"
-
 msgid "Remove Hold"
 msgstr "Supprimer le blocage"
 
@@ -14214,14 +14079,6 @@ msgstr "Supprimer un alias Kerberos"
 
 msgid "Remove Permission"
 msgstr "Supprimer une permission"
-
-#, python-brace-format
-msgid "Remove RunAs ${other_entity} from ${entity} ${primary_key}"
-msgstr "Supprimer « RunAs ${other_entity} » de ${primary_key} de ${entity}"
-
-#, python-brace-format
-msgid "Remove RunAs Groups from ${entity} ${primary_key}"
-msgstr "Supprimer « RunAs Groups » de ${primary_key} de ${entity}"
 
 msgid "Remove a manager to the stage user entry"
 msgstr "Supprimer un responsable de l'entrée de l'utilisateur en attente."
@@ -14545,9 +14402,6 @@ msgstr "Remise à zéro du mot de passe à usage unique"
 
 msgid "Reset Password"
 msgstr "Réinitialiser le mot de passe"
-
-msgid "Reset Password and Login"
-msgstr "Réinitialisation du mot de passe et de l'identifiant de connexion"
 
 msgid "Reset your password."
 msgstr "Réinitialiser votre mot de passe."
@@ -15184,11 +15038,6 @@ msgstr "Rechercher des systèmes sans ces membres de règles sudo."
 
 msgid "Search for hosts."
 msgstr "Rechercher des hôtes."
-
-#, c-format
-msgid "Search for ipaCertificateSubjectBase failed with error %d"
-msgstr ""
-"La recherche de « ipaCertificateSubjectBase » a échoué avec l'erreur %d"
 
 msgid "Search for netgroups with these member groups."
 msgstr "Rechercher des groupes réseaux dont les membres sont ces groupes."
@@ -16078,9 +15927,6 @@ msgstr "Les types les plus courants pour ce type de zone sont : %s\n"
 msgid "The number of times to retry authentication"
 msgstr "Le nombre de fois autorisées pour tenter une authentification"
 
-msgid "The password or username you entered is incorrect."
-msgstr "Le mot de passe ou le nom d'utilisateur entré est incorrect."
-
 msgid "The primary_key value of the entry, e.g. 'jdoe' for a user"
 msgstr ""
 "La valeur de la clé principale de l'entrée, par ex. « jdoe » pour un "
@@ -16415,11 +16261,6 @@ msgstr ""
 msgid "Type of the token"
 msgstr "Type du jeton"
 
-#, python-brace-format
-msgid "Type of trusted domain ID range, one of {vals}"
-msgstr ""
-"Type de plage d'ID de domaine approuvé, une valeur à prendre parmi {vals}"
-
 msgid "Types of supported user authentication"
 msgstr "Types d'authentification utilisateur pris en charge"
 
@@ -16475,10 +16316,6 @@ msgstr ""
 msgid "Unable to determine IPA server from %s\n"
 msgstr "Impossible de déterminer le serveur IPA depuis %s\n"
 
-#, c-format
-msgid "Unable to determine certificate subject of %s\n"
-msgstr "Impossible de déterminer le sujet du certificat de %s\n"
-
 #, python-format
 msgid ""
 "Unable to determine if Kerberos principal %s already exists. Use 'ipa user-"
@@ -16505,10 +16342,6 @@ msgstr "Impossible d'activer SSL dans LDAP\n"
 #, c-format
 msgid "Unable to generate Kerberos Credential Cache\n"
 msgstr "Impossible de créer le cache des justificatifs d'identité Kerberos\n"
-
-#, c-format
-msgid "Unable to initialize connection to ldap server: %s"
-msgstr "Impossible d'établir la connexion sur le serveur LDAP : %s"
 
 #, c-format
 msgid "Unable to initialize ldap library!\n"
@@ -16551,24 +16384,12 @@ msgid "Unable to remove entry\n"
 msgstr "Impossible de supprimer l'entrée\n"
 
 #, c-format
-msgid "Unable to set LDAP version\n"
-msgstr "Impossible de définir une version LDAP\n"
-
-#, c-format
 msgid "Unable to set LDAP_OPT_PROTOCOL_VERSION\n"
 msgstr "Impossible de définir LDAP_OPT_PROTOCOL_VERSION\n"
 
 #, c-format
 msgid "Unable to set LDAP_OPT_X_SASL_NOCANON\n"
 msgstr "Impossible de définir LDAP_OPT_X_SASL_NOCANON\n"
-
-#, c-format
-msgid "Unable to set LDAP_OPT_X_TLS\n"
-msgstr "Impossible de paramétrer LDAP_OPT_X_TLS\n"
-
-#, c-format
-msgid "Unable to set LDAP_OPT_X_TLS_CERTIFICATE\n"
-msgstr "Impossible de paramétrer LDAP_OPT_X_TLS_CERTIFICATE\n"
 
 msgid "Unable to verify write permissions to the AD"
 msgstr "Impossible de vérifier les permissions en écriture vers AD"
@@ -16628,10 +16449,6 @@ msgstr "Pas de correspondance"
 
 msgid "Unprovision"
 msgstr "Suppression des permissions"
-
-#, python-brace-format
-msgid "Unprovisioning ${entity}"
-msgstr "Suppression des permissions de ${entity} en cours"
 
 msgid "Unresolved rules in --rules"
 msgstr "Règles non résolues dans « --rules »"
