@@ -15,146 +15,615 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2)\n"
 
-#, c-format
-msgid "cannot open configuration file %s\n"
-msgstr "nie można otworzyć pliku konfiguracji %s\n"
+#, python-format
+msgid "%(attr)s does not contain '%(value)s'"
+msgstr "%(attr)s nie zawiera „%(value)s”"
+
+#, python-format
+msgid "%(count)d ACI matched"
+msgid_plural "%(count)d ACIs matched"
+msgstr[0] "Pasuje %(count)d ACI"
+msgstr[1] "Pasują %(count)d ACI"
+msgstr[2] "Pasuje %(count)d ACI"
+
+#, python-format
+msgid "%(count)d group matched"
+msgid_plural "%(count)d groups matched"
+msgstr[0] "Pasuje %(count)d grupa"
+msgstr[1] "Pasują %(count)d grupy"
+msgstr[2] "Pasuje %(count)d grup"
+
+#, python-format
+msgid "%(count)d host matched"
+msgid_plural "%(count)d hosts matched"
+msgstr[0] "Pasuje %(count)d komputer"
+msgstr[1] "Pasuje %(count)d komputery"
+msgstr[2] "Pasuje %(count)d komputerów"
+
+#, python-format
+msgid "%(count)d hostgroup matched"
+msgid_plural "%(count)d hostgroups matched"
+msgstr[0] "Pasuje %(count)d grupa komputerów"
+msgstr[1] "Pasują %(count)d grupy komputerów"
+msgstr[2] "Pasuje %(count)d grup komputerów"
+
+#, python-format
+msgid "%(count)d plugin loaded"
+msgid_plural "%(count)d plugins loaded"
+msgstr[0] "Wczytano %(count)d wtyczkę"
+msgstr[1] "Wczytano %(count)d wtyczki"
+msgstr[2] "Wczytano %(count)d wtyczek"
+
+#, python-format
+msgid "%(count)d service matched"
+msgid_plural "%(count)d services matched"
+msgstr[0] "Pasuje %(count)d usługa"
+msgstr[1] "Pasuje %(count)d usługi"
+msgstr[2] "Pasuje %(count)d usług"
+
+#, python-format
+msgid "%(count)d user matched"
+msgid_plural "%(count)d users matched"
+msgstr[0] "Pasuje %(count)d użytkownik"
+msgstr[1] "Pasuje %(count)d użytkowników"
+msgstr[2] "Pasuje %(count)d użytkowników"
+
+#, python-format
+msgid "%(count)d variables"
+msgstr "%(count)d zmiennych"
+
+#, python-format
+msgid "%(info)s"
+msgstr "%(info)s"
+
+#, python-format
+msgid "%(parent)s: %(oname)s not found"
+msgstr "%(parent)s: nie odnaleziono %(oname)s"
+
+#, python-format
+msgid "%(pkey)s: %(oname)s not found"
+msgstr "%(pkey)s: nie odnaleziono %(oname)s"
+
+#, python-format
+msgid "%(reason)s"
+msgstr "%(reason)s"
+
+msgid "A description of this command"
+msgstr "Opis tego polecenia"
+
+msgid "A description of this host"
+msgstr "Opis tego komputera"
+
+msgid "A description of this host-group"
+msgstr "Opis tej grupy komputerów"
+
+msgid "A description of this role-group"
+msgstr "Opis tej grupy rol"
+
+msgid "A dictionary representing an LDAP entry"
+msgstr "Słownik reprezentujący wpis LDAP"
+
+msgid "A group may not be a member of itself"
+msgstr "Grupa nie może być własnym elementem"
+
+msgid "A group may not be added as a member of itself"
+msgstr "Nie można dodać grupy jako elementu jej samej"
+
+msgid "A list of ACI values"
+msgstr "Lista wartości ACI"
+
+msgid "A list of LDAP entries"
+msgstr "Lista wpisów LDAP"
+
+msgid "ACI name"
+msgstr "Nazwa ACI"
+
+#, python-format
+msgid "ACI with name \"%s\" not found"
+msgstr "Nie odnaleziono ACI o nazwie „%s”"
+
+msgid "ACIs"
+msgstr "ACI"
+
+msgid "Access time"
+msgstr "Czas dostępu"
+
+msgid "Account Settings"
+msgstr "Ustawienia konta"
+
+msgid "Active zone"
+msgstr "Aktywna strefa"
+
+msgid "Add"
+msgstr "Dodaj"
+
+msgid "Add and Close"
+msgstr "Dodaj i zamknij"
+
+msgid "Add and Edit"
+msgstr "Dodaj i edytuj"
+
+#, python-format
+msgid "Added group \"%(value)s\""
+msgstr "Dodano grupę „%(value)s”"
+
+#, python-format
+msgid "Added host \"%(value)s\""
+msgstr "Dodano komputer „%(value)s”"
+
+#, python-format
+msgid "Added hostgroup \"%(value)s\""
+msgstr "Dodano grupę komputerów „%(value)s”"
+
+#, python-format
+msgid "Added service \"%(value)s\""
+msgstr "Dodano usługę „%(value)s”"
+
+#, python-format
+msgid "Added user \"%(value)s\""
+msgstr "Dodano użytkownika „%(value)s”"
+
+msgid "Administrator e-mail address"
+msgstr "Adres e-mail administratora"
+
+msgid "All commands should at least have a result"
+msgstr "Wszystkie polecenia powinny powiadać przynajmniej wynik"
+
+msgid "Apply ACI to your own entry (self)"
+msgstr "Zastosowanie ACI do własnego wpisu („self”)"
+
+msgid "Asks for a non-random password to use for the principal"
+msgstr "Pyta o nielosowe hasło do użycia z naczelnikiem"
+
+msgid "Attribute"
+msgstr "Atrybut"
+
+msgid "Attributes"
+msgstr "Atrybuty"
+
+msgid "Automount"
+msgstr "Automatyczne montowanie"
+
+msgid "Automount Keys"
+msgstr "Automatyczne montowanie kluczy"
+
+msgid "Automount Maps"
+msgstr "Automatyczne montowanie map"
+
+msgid "BIND update policy"
+msgstr "Polityka aktualizacji BIND"
+
+msgid "Back to Top"
+msgstr "Wróć na górę"
+
+msgid "Bad format in credentials cache"
+msgstr "Błędny format w pamięci podręcznej danych uwierzytelniających"
+
+msgid "Base-64 encoded server certificate"
+msgstr "Certyfikat serwera zakodowany za pomocą Base-64"
+
+#, python-format
+msgid "Base64 decoding failed: %(reason)s"
+msgstr "Dekodowanie base64 się nie powiodło: %(reason)s"
+
+msgid "Bind DN"
+msgstr "DN dowiązania"
 
 #, c-format
-msgid "cannot stat() configuration file %s\n"
-msgstr "nie można wykonać stat() na pliku konfiguracji %s\n"
+msgid "Bind failed: %s\n"
+msgstr "Dowiązanie się nie powiodło: %s\n"
 
 #, c-format
-msgid "read error\n"
-msgstr "błąd odczytu\n"
+msgid "Bind password required when using a bind DN.\n"
+msgstr "Hasło dowiązania jest wymagane podczas używania dowiązania DN.\n"
+
+msgid "Cancel"
+msgstr "Anuluj"
+
+msgid "Cannot resolve KDC for requested realm"
+msgstr "Nie można rozwiązać KDC dla żądanego obszaru"
+
+msgid "Certificate"
+msgstr "Certyfikat"
+
+msgid "Certificate Revoked"
+msgstr "Odrzucono certyfikat"
+
+msgid "Certificate Subject base"
+msgstr "Podstawa tematu certyfikatu"
+
+#, python-format
+msgid "Certificate format error: %(error)s"
+msgstr "Błąd formatu certyfikatu: %(error)s"
+
+#, python-format
+msgid "Certificate operation cannot be completed: %(error)s"
+msgstr "Nie można ukończyć działania na certyfikacie: %(error)s"
 
 #, c-format
-msgid "No keys accepted by KDC\n"
-msgstr "Żadne klucze nie zostały zaakceptowane przez KDC\n"
+msgid "Certificate subject base is: %s\n"
+msgstr "Podstawa tematu certyfikatu: %s\n"
+
+#, python-format
+msgid "Changed password for \"%(value)s\""
+msgstr "Zmieniono hasło dla „%(value)s”"
+
+msgid "Character classes"
+msgstr "Klasy znaków"
+
+msgid "City"
+msgstr "Miasto"
+
+msgid "Class"
+msgstr "Klasa"
+
+msgid "Close"
+msgstr "Zamknij"
 
 #, c-format
-msgid "Out of memory \n"
-msgstr "Brak pamięci \n"
+msgid "Closing keytab failed\n"
+msgstr "Zamknięcie tablicy kluczy się nie powiodło\n"
+
+msgid "Comma separated encryption types list"
+msgstr "Lista typów szyfrowania oddzielonych przecinkami"
+
+msgid "Command not implemented"
+msgstr "Polecenie nie jest zaimplementowane"
+
+msgid "Commands"
+msgstr "Polecenia"
+
+msgid "Configuration"
+msgstr "Konfiguracja"
+
+msgid "Contact this specific KDC Server"
+msgstr "Kontaktuje się z konkretnym serwerem KDC"
+
+msgid "Continuous mode: Don't stop on errors."
+msgstr "Tryb ciągły: bez zatrzymywania po błędach."
+
+#, python-format
+msgid "Created ACI \"%(value)s\""
+msgstr "Utworzono ACI „%(value)s”"
+
+msgid "Credentials cache permissions incorrect"
+msgstr ""
+"Uprawnienia pamięci podręcznej danych uwierzytelniających są niepoprawne"
+
+msgid "DN to bind as if not using kerberos"
+msgstr "DN do dowiązania, jeśli nie jest używany Kerberos"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "DNS Zone Settings"
+msgstr "Ustawienia strefy DNS"
+
+msgid "DNS is not configured"
+msgstr "DNS nie jest skonfigurowany"
+
+msgid "Data"
+msgstr "Dane"
+
+msgid "Debugging output"
+msgstr "Wyjście debugowania"
+
+msgid "Default group for new users"
+msgstr "Domyślna grupa dla nowych użytkowników"
+
+msgid "Default shell"
+msgstr "Domyślna powłoka"
+
+msgid "Default shell for new users"
+msgstr "Domyślna powłoka dla nowych użytkowników"
+
+msgid "Default users group"
+msgstr "Domyślna grupa użytkowników"
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid "Delete all associated records"
+msgstr "Usuń wszystkie powiązane wpisy"
+
+msgid "Delete all?"
+msgstr "Usunąć wszystko?"
+
+#, python-format
+msgid "Deleted ACI \"%(value)s\""
+msgstr "Usunięto ACI „%(value)s”"
+
+#, python-format
+msgid "Deleted group \"%(value)s\""
+msgstr "Usunięto grupę „%(value)s”"
+
+#, python-format
+msgid "Deleted host \"%(value)s\""
+msgstr "Usunięto komputer „%(value)s”"
+
+#, python-format
+msgid "Deleted hostgroup \"%(value)s\""
+msgstr "Usunięto grupę komputerów „%(value)s”"
+
+#, python-format
+msgid "Deleted service \"%(value)s\""
+msgstr "Usunięto usługę „%(value)s”"
+
+#, python-format
+msgid "Deleted user \"%(value)s\""
+msgstr "Usunięto użytkownika „%(value)s”"
+
+msgid "Deleting a managed group is not allowed. It must be detached first."
+msgstr ""
+"Usuwanie zarządzanej grupy nie jest dozwolone. Musi zostać najpierw "
+"odłączona."
+
+msgid "Description"
+msgstr "Opis"
+
+#, python-format
+msgid "Detached group \"%(value)s\" from user \"%(value)s\""
+msgstr "Odłączono grupę „%(value)s” od użytkownika „%(value)s”"
+
+msgid "Dict of I18N messages"
+msgstr "Słownik komunikatów umiędzynaradawiania"
+
+msgid "Dict of JSON encoded IPA Objects"
+msgstr "Słownik obiektów IPA zakodowanych w formacie JSON"
+
+msgid "Dictionary mapping variable name to value"
+msgstr "Nazwa zmiennej mapowania słownika do ustawienia jako wartość"
+
+#, python-format
+msgid "Disabled user account \"%(value)s\""
+msgstr "Wyłączono konto użytkownika „%(value)s”"
+
+msgid "Display effective policy for a specific user"
+msgstr "Wyświetlanie aktywnej polityki dla podanego użytkownika"
+
+msgid "Display user record for current Kerberos principal"
+msgstr "Wyświetlenie wpisu użytkownika dla bieżącego naczelnika Kerberosa"
+
+msgid "Email address"
+msgstr "Adres e-mail"
+
+msgid "Enabled"
+msgstr "Włączone"
+
+#, python-format
+msgid "Enabled user account \"%(value)s\""
+msgstr "Włączono konto użytkownika „%(value)s”"
+
+msgid "Encryption types to request"
+msgstr "Typy szyfrowania do zażądania"
+
+msgid "Enctype comparison failed!\n"
+msgstr "Porównanie typów szyfrowania się nie powiodło.\n"
+
+#, python-format
+msgid "Enter %(label)s again to verify: "
+msgstr "Proszę podać %(label)s ponownie, aby sprawdzić: "
+
+msgid "Error"
+msgstr "Błąd"
 
 #, c-format
-msgid "Unable to initialize ldap library!\n"
-msgstr "Nie można zainicjować biblioteki LDAP.\n"
+msgid "Error obtaining initial credentials: %s.\n"
+msgstr ""
+"Błąd podczas uzyskiwania początkowych danych uwierzytelniających: %s.\n"
 
 #, c-format
-msgid "Simple bind failed\n"
-msgstr "Proste dowiązanie się nie powiodło\n"
+msgid "Error resolving keytab: %s.\n"
+msgstr "Błąd podczas rozwiązywania tablicy kluczy: %s.\n"
 
 #, c-format
-msgid "Missing reply control!\n"
-msgstr "Brak kontroli odpowiedzi.\n"
+msgid "Error storing creds in credential cache: %s.\n"
+msgstr ""
+"Błąd podczas przechowywania danych uwierzytelniających w pamięci podręcznej: "
+"%s.\n"
+
+msgid "External host"
+msgstr "Zewnętrzny komputer"
+
+msgid "Failed members"
+msgstr "Elementy, które się nie powiodły"
 
 #, c-format
-msgid "Out of Memory!\n"
-msgstr "Brak pamięci.\n"
+msgid "Failed to add key to the keytab\n"
+msgstr "Dodanie klucza do tablicy kluczy się nie powiodło\n"
+
+msgid ""
+"Failed to add user to the default group. Use 'ipa group-add-member' to add "
+"manually."
+msgstr ""
+"Dodanie użytkownika do domyślnej grupy się nie powiodło. Należy użyć "
+"polecenia „ipa group-add-member”, aby dodać go ręcznie."
+
+#, c-format
+msgid "Failed to close the keytab\n"
+msgstr "Zamknięcie tablicy kluczy się nie powiodło\n"
 
 #, c-format
 msgid "Failed to create control!\n"
 msgstr "Utworzenie kontroli się nie powiodło.\n"
 
 #, c-format
-msgid "ber_init() failed, Invalid control ?!\n"
-msgstr "ber_init() się nie powiodło, nieprawidłowa kontrola?\n"
+msgid "Failed to create key material\n"
+msgstr "Utworzenie materiału klucza się nie powiodło\n"
 
-msgid "New Principal Password"
-msgstr "Nowe hasło naczelnika"
+msgid "Failed to create key!\n"
+msgstr "Utworzenie klucza się nie powiodło.\n"
 
-msgid "Verify Principal Password"
-msgstr "Sprawdzenie hasła naczelnika"
-
-#, c-format
-msgid "Passwords do not match!"
-msgstr "Hasła się nie zgadzają."
-
-msgid "Print as little as possible"
-msgstr "Wyświetla tak mało, jak to możliwe"
-
-msgid "Output only on errors"
-msgstr "Wyświetla tylko błędy"
-
-msgid "Contact this specific KDC Server"
-msgstr "Kontaktuje się z konkretnym serwerem KDC"
-
-msgid "Server Name"
-msgstr "Nazwa serwera"
-
-msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
-msgstr ""
-"Naczelnik, dla którego uzyskać tablicę kluczy (np.: ftp/ftp.example."
-"com@EXAMPLE.COM)"
-
-msgid "Kerberos Service Principal Name"
-msgstr "Nazwa naczelnika usługi Kerberos"
-
-msgid "Keytab File Name"
-msgstr "Nazwa pliku tablicy kluczy"
-
-msgid "Encryption types to request"
-msgstr "Typy szyfrowania do zażądania"
-
-msgid "Comma separated encryption types list"
-msgstr "Lista typów szyfrowania oddzielonych przecinkami"
-
-msgid "Show the list of permitted encryption types and exit"
-msgstr "Wyświetla listę dozwolonych typów szyfrowania i kończy działanie"
-
-msgid "Permitted Encryption Types"
-msgstr "Dozwolone typy szyfrowania"
-
-msgid "Asks for a non-random password to use for the principal"
-msgstr "Pyta o nielosowe hasło do użycia z naczelnikiem"
-
-msgid "LDAP DN"
-msgstr "DN LDAP"
-
-msgid "DN to bind as if not using kerberos"
-msgstr "DN do dowiązania, jeśli nie jest używany Kerberos"
-
-msgid "LDAP password"
-msgstr "Hasło LDAP"
-
-msgid "password to use if not using kerberos"
-msgstr "hasło do użycia, jeśli nie jest używany Kerberos"
+msgid "Failed to create random key!\n"
+msgstr "Utworzenie losowego klucza się nie powiodło.\n"
 
 #, c-format
-msgid "Kerberos context initialization failed\n"
-msgstr "Zainicjowanie kontekstu Kerberosa się nie powiodło\n"
+msgid "Failed to open Keytab\n"
+msgstr "Otwarcie tablicy kluczy się nie powiodło\n"
 
 #, c-format
-msgid "No system preferred enctypes ?!\n"
-msgstr "Brak typów szyfrowania preferowanych przez system?\n"
+msgid "Failed to open keytab\n"
+msgstr "Otwarcie tablicy kluczy się nie powiodło\n"
+
+#, python-format
+msgid "Failure decoding Certificate Signing Request: %s"
+msgstr "Dekodowanie żądania podpisywania certyfikatu się nie powiodło: %s"
+
+msgid "False if migration mode was disabled."
+msgstr "Fałsz, jeśli wyłączono tryb migracji"
+
+msgid "Fax Number"
+msgstr "Numer faksu"
+
+#, python-format
+msgid "File %(file)s not found"
+msgstr "Nie odnaleziono pliku %(file)s"
+
+msgid "Filter"
+msgstr "Filtr"
+
+msgid "Find"
+msgstr "Znajdź"
+
+msgid "Fingerprint (SHA1)"
+msgstr "Odcisk (SHA1)"
+
+msgid "First name"
+msgstr "Imię"
+
+msgid "Forward to server instead of running locally"
+msgstr "Przekazanie do serwera zamiast uruchamiania lokalnie"
+
+#, python-format
+msgid "Found '%(value)s'"
+msgstr "Odnaleziono „%(value)s”"
+
+msgid "Full name"
+msgstr "Pełna nazwa"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "GID (use this option to set it manually)"
+msgstr "GID (ta opcja umożliwia jego ręczne ustawienie)"
+
+msgid "Group"
+msgstr "Grupa"
+
+#, python-format
+msgid "Group '%s' does not exist"
+msgstr "Grupa „%s” nie istnieje"
+
+msgid "Group container"
+msgstr "Kontener grupy"
+
+msgid "Group description"
+msgstr "Opis grupy"
+
+msgid "Group name"
+msgstr "Nazwa grupy"
+
+msgid "Group to apply ACI to"
+msgstr "Grupa, do której zastosować ACI"
+
+msgid "Groups"
+msgstr "Grupy"
+
+msgid "HBAC service group description"
+msgstr "Opis grupy usługi HBAC"
+
+msgid "Hardware platform of the host (e.g. Lenovo T61)"
+msgstr "Platforma sprzętowa komputera (np. Lenovo T61)"
+
+msgid "History size"
+msgstr "Rozmiar historii"
+
+msgid "Home directory"
+msgstr "Katalog domowy"
+
+msgid "Home directory base"
+msgstr "Podstawa katalogu domowego"
+
+#, python-format
+msgid "Host '%(host)s' not found"
+msgstr "Nie odnaleziono komputera „%(host)s”"
+
+msgid "Host Groups"
+msgstr "Grupy komputerów"
+
+msgid "Host Name"
+msgstr "Nazwa komputera"
+
+msgid "Host category"
+msgstr "Kategoria komputerów"
+
+msgid "Host category the rule applies to"
+msgstr "Kategoria komputerów, do których zastosowywana jest reguła"
+
+msgid "Host hardware platform (e.g. \"Lenovo T61\")"
+msgstr "Platforma sprzętowa komputera (np. „Lenovo T61”)"
 
 #, c-format
-msgid "Supported encryption types:\n"
-msgstr "Obsługiwane typy szyfrowania:\n"
+msgid "Host is already joined.\n"
+msgstr "Komputer jest już dołączony.\n"
+
+msgid "Host locality (e.g. \"Baltimore, MD\")"
+msgstr "Lokalizacja komputera (np. „Baltimore, MD”)"
+
+msgid "Host location (e.g. \"Lab 2\")"
+msgstr "Położenie komputera (np. „Laboratorium nr 2”)"
+
+msgid "Host name"
+msgstr "Nazwa komputera"
+
+msgid "Host operating system and version (e.g. \"Fedora 9\")"
+msgstr "System operacyjny komputera i jego wersja (np. „Fedora 9”)"
+
+msgid "Host-group"
+msgstr "Grupa komputerów"
+
+msgid "Hostname"
+msgstr "Nazwa komputera"
+
+msgid "Hosts"
+msgstr "Komputery"
+
+msgid "IPA Server to use"
+msgstr "Serwer IPA do użycia"
+
+msgid "IPA unique ID"
+msgstr "Unikalny identyfikator IPA"
 
 #, c-format
-msgid "Warning: failed to convert type (#%d)\n"
-msgstr "Ostrzeżenie: przekonwertowanie typu (#%d) się nie powiodło\n"
+msgid "Incorrect password.\n"
+msgstr "Niepoprawne hasło.\n"
 
-#, c-format
-msgid "Bind password required when using a bind DN.\n"
-msgstr "Hasło dowiązania jest wymagane podczas używania dowiązania DN.\n"
+#, python-format
+msgid "Insufficient access: %(info)s"
+msgstr "Niewystarczający dostęp: %(info)s"
 
-#, c-format
-msgid ""
-"Warning: salt types are not honored with randomized passwords (see opt. -P)\n"
-msgstr ""
-"Ostrzeżenie: typy salt nie są uwzględniane z losowymi hasłami (proszę "
-"zobaczyć opcję -P)\n"
+#, python-format
+msgid "Invalid JSON-RPC request: %(error)s"
+msgstr "Nieprawidłowe żądanie JSON-RPC: %(error)s"
 
 #, c-format
 msgid "Invalid Service Principal Name\n"
 msgstr "Nieprawidłowa nazwa naczelnika usługi\n"
+
+msgid "Issuer"
+msgstr "Wydawca"
 
 #, c-format
 msgid "Kerberos Credential Cache not found. Do you have a Kerberos Ticket?\n"
 msgstr ""
 "Nie odnaleziono pamięci podręcznej danych uwierzytelniających. Istnieje "
 "zgłoszenie Kerberosa?\n"
+
+msgid "Kerberos Service Principal Name"
+msgstr "Nazwa naczelnika usługi Kerberos"
+
+msgid "Kerberos Ticket Policy"
+msgstr "Polityka zgłoszeń Kerberosa"
 
 #, c-format
 msgid ""
@@ -164,99 +633,654 @@ msgstr ""
 "podręczna danych uwierzytelniających?\n"
 
 #, c-format
-msgid "Failed to open Keytab\n"
-msgstr "Otwarcie tablicy kluczy się nie powiodło\n"
+msgid "Kerberos context initialization failed\n"
+msgstr "Zainicjowanie kontekstu Kerberosa się nie powiodło\n"
 
-#, c-format
-msgid "Failed to create key material\n"
-msgstr "Utworzenie materiału klucza się nie powiodło\n"
+#, python-format
+msgid "Kerberos error: %(major)s/%(minor)s"
+msgstr "Błąd Kerberosa: %(major)s/%(minor)s"
 
-#, c-format
-msgid "Failed to add key to the keytab\n"
-msgstr "Dodanie klucza do tablicy kluczy się nie powiodło\n"
+msgid "Kerberos principal"
+msgstr "Naczelnik Kerberosa"
 
-#, c-format
-msgid "Failed to close the keytab\n"
-msgstr "Zamknięcie tablicy kluczy się nie powiodło\n"
+#, python-format
+msgid ""
+"Kerberos principal %s already exists. Use 'ipa user-mod' to set it manually."
+msgstr ""
+"Naczelnik Kerberosa %s już istnieje. Należy użyć polecenia „ipa user-mod”, "
+"aby ustawić go ręcznie."
+
+msgid "Kerberos principal name for this host"
+msgstr "Nazwa naczelnika Kerberosa dla tego komputera"
+
+msgid "Key"
+msgstr "Klucz"
+
+msgid "Keytab"
+msgstr "Tabela kluczy"
+
+msgid "Keytab File Name"
+msgstr "Nazwa pliku tablicy kluczy"
 
 #, c-format
 msgid "Keytab successfully retrieved and stored in: %s\n"
 msgstr "Pomyślnie pobrano tablicę kluczy i przechowano ją w: %s\n"
+
+msgid "LDAP DN"
+msgstr "DN LDAP"
+
+msgid "LDAP URI"
+msgstr "Adres URI LDAP"
+
+msgid "LDAP URI of DS server to migrate from"
+msgstr "Adres URI LDAP serwera DS, z którego migrować"
+
+msgid "LDAP password"
+msgstr "Hasło LDAP"
+
+msgid "LDAP schema"
+msgstr "Schemat LDAP"
+
+msgid "Last name"
+msgstr "Nazwisko"
+
+msgid "Legal LDAP filter (e.g. ou=Engineering)"
+msgstr "Dozwolony filtr LDAP (np. ou=Inżynieria)"
+
+msgid "Lists of objects migrated; categorized by type."
+msgstr "Lista migrowanych obiektów, ułożonych w kategorie według typu."
+
+msgid "Lists of objects that could not be migrated; categorized by type."
+msgstr ""
+"Lista obiektów, które nie mogły zostać migrowane, ułożonych w kategorie "
+"według typu."
+
+msgid "Locality"
+msgstr "Lokalizacja"
+
+msgid "Location"
+msgstr "Położenie"
+
+msgid "Logged In As"
+msgstr "Zalogowano jako"
+
+msgid "Login shell"
+msgstr "Powłoka logowania"
+
+msgid "Mailing Address"
+msgstr "Adres pocztowy"
+
+msgid "Manage password policy for specific group"
+msgstr "Zarządzanie polityką haseł dla podanej grupy"
+
+msgid "Manage ticket policy for specific user"
+msgstr "Zarządzanie polityką zgłoszeń dla podanego użytkownika"
+
+msgid "Map"
+msgstr "Mapa"
+
+msgid "Max life"
+msgstr "Maksymalny czas życia"
+
+msgid "Max lifetime (days)"
+msgstr "Maksymalny czas życia (w dniach)"
+
+msgid "Max renew"
+msgstr "Maksymalne odnowienie"
+
+msgid "Maximum number of entries returned"
+msgstr "Maksymalna liczba zwróconych wpisów"
+
+msgid "Maximum password life must be greater than minimum."
+msgstr "Maksymalny czas życia hasła musi być wyższy niż minimalny."
+
+msgid "Maximum password lifetime (in days)"
+msgstr "Maksymalny czas życia hasła (w dniach)"
+
+msgid "Maximum renewable age (seconds)"
+msgstr "Maksymalny czas, w którym możliwe jest odnowienie (sekundy)"
+
+msgid "Maximum ticket life (seconds)"
+msgstr "Minimalny czas życia zgłoszenia (sekundy)"
+
+msgid "Member Host"
+msgstr "Komputer elementu"
+
+msgid "Member groups"
+msgstr "Elementy grupy"
+
+msgid "Member host-groups"
+msgstr "Element grupy komputerów"
+
+msgid "Member hosts"
+msgstr "Element komputerów"
+
+msgid "Member of"
+msgstr "Element"
+
+msgid "Member of a group"
+msgstr "Element grupy"
+
+msgid "Member of group"
+msgstr "Członek grupy"
+
+msgid "Member of groups"
+msgstr "Członek grup"
+
+msgid "Member of host-groups"
+msgstr "Element grupy komputerów"
+
+msgid "Member service groups"
+msgstr "Grupy usługi elementów"
+
+msgid "Member services"
+msgstr "Usługi elementów"
+
+msgid "Member users"
+msgstr "Elementy użytkowników"
+
+msgid "Members that could not be added"
+msgstr "Elementy, które nie mogły zostać dodane"
+
+msgid "Members that could not be removed"
+msgstr "Liczba elementów, które nie mogły zostać usunięte"
+
+msgid "Min length"
+msgstr "Minimalna długość"
+
+msgid "Min lifetime (hours)"
+msgstr "Minimalny czas życia (w godzinach)"
+
+msgid "Minimum length of password"
+msgstr "Minimalna długość hasła"
+
+msgid "Minimum number of character classes"
+msgstr "Minimalna liczba klas znaków"
+
+msgid "Minimum password lifetime (in hours)"
+msgstr "Minimalny czas życia hasła (w godzinach)"
+
+msgid "Misc. Information"
+msgstr "Różne informacje"
+
+#, c-format
+msgid "Missing reply control!\n"
+msgstr "Brak kontroli odpowiedzi.\n"
+
+msgid "Mobile Telephone Number"
+msgstr "Numer telefonu komórkowego"
+
+#, python-format
+msgid "Modified ACI \"%(value)s\""
+msgstr "Zmodyfikowano ACI „%(value)s”"
+
+#, python-format
+msgid "Modified group \"%(value)s\""
+msgstr "Zmodyfikowano grupę „%(value)s”"
+
+#, python-format
+msgid "Modified host \"%(value)s\""
+msgstr "Zmodyfikowano komputer „%(value)s”"
+
+#, python-format
+msgid "Modified hostgroup \"%(value)s\""
+msgstr "Zmodyfikowano grupę komputerów „%(value)s”"
+
+#, python-format
+msgid "Modified service \"%(value)s\""
+msgstr "Zmodyfikowano usługę „%(value)s”"
+
+#, python-format
+msgid "Modified user \"%(value)s\""
+msgstr "Zmodyfikowano użytkownika „%(value)s”"
+
+msgid "Mount information"
+msgstr "Informacje o montowaniu"
+
+msgid "Mount point"
+msgstr "Punkt montowania"
+
+msgid "NIS domain name"
+msgstr "Nazwa domeny NIS"
+
+msgid "Name of host-group"
+msgstr "Nazwa grupy komputerów"
+
+msgid "Name of object to export"
+msgstr "Nazwa obiektu do wyeksportowania"
+
+msgid "Netgroup description"
+msgstr "Opis grupy sieciowej"
+
+msgid "Netgroup name"
+msgstr "Nazwa grupy sieciowej"
+
+msgid "Netgroups"
+msgstr "Grupy sieciowe"
+
+msgid "New Certificate"
+msgstr "Nowy certyfikat"
+
+msgid "New Password"
+msgstr "Nowe hasło"
+
+msgid "New Principal Password"
+msgstr "Nowe hasło naczelnika"
+
+msgid "No credentials cache found"
+msgstr "Nie odnaleziono pamięci podręcznej danych uwierzytelniających"
+
+#, c-format
+msgid "No keys accepted by KDC\n"
+msgstr "Żadne klucze nie zostały zaakceptowane przez KDC\n"
 
 #, c-format
 msgid "No permission to join this host to the IPA domain.\n"
 msgstr "Brak uprawnienia do dołączenia do tego komputera w domenie IPA.\n"
 
 #, c-format
-msgid "No write permissions on keytab file '%s'\n"
-msgstr "Brak uprawnień do zapisu pliku tablicy kluczy „%s”\n"
-
-#, c-format
-msgid "Unable to enable SSL in LDAP\n"
-msgstr "Nie można włączyć SSL w LDAP\n"
-
-#, c-format
-msgid "Unable to set LDAP version\n"
-msgstr "Nie można ustawić wersji LDAP\n"
-
-#, c-format
-msgid "Bind failed: %s\n"
-msgstr "Dowiązanie się nie powiodło: %s\n"
+msgid "No system preferred enctypes ?!\n"
+msgstr "Brak typów szyfrowania preferowanych przez system?\n"
 
 #, c-format
 msgid "No values for %s"
 msgstr "Brak wartości dla %s"
 
 #, c-format
+msgid "No write permissions on keytab file '%s'\n"
+msgstr "Brak uprawnień do zapisu pliku tablicy kluczy „%s”\n"
+
+msgid "Not After"
+msgstr "Nie po"
+
+msgid "Not Before"
+msgstr "Nie wcześniej"
+
+msgid "Not a managed group"
+msgstr "Nie jest zarządzaną grupą"
+
+msgid "Number of members added"
+msgstr "Liczba dodanych elementów"
+
+msgid "Number of members removed"
+msgstr "Liczba usuniętych elementów"
+
+msgid "Number of plugins loaded"
+msgstr "Liczba wczytanych wtyczek"
+
+msgid "Number of variables returned (<= total)"
+msgstr "Liczba zwróconych zmiennych (<= razem)"
+
+msgid "Only one value is allowed"
+msgstr "Dozwolona jest tylko jedna wartość"
+
+msgid "Operating System and version of the host (e.g. Fedora 9)"
+msgstr "System operacyjny komputera i jego wersja (np. Fedora 9)"
+
+msgid "Operating system"
+msgstr "System operacyjny"
+
+#, c-format
+msgid "Out of Memory!\n"
+msgstr "Brak pamięci.\n"
+
+msgid "Out of memory\n"
+msgstr "Brak pamięci\n"
+
+#, c-format
+msgid "Out of memory \n"
+msgstr "Brak pamięci \n"
+
+#, c-format
 msgid "Out of memory!\n"
 msgstr "Brak pamięci.\n"
+
+msgid "Out of memory!?\n"
+msgstr "Brak pamięci?\n"
+
+msgid "Output only on errors"
+msgstr "Wyświetla tylko błędy"
+
+msgid "Pager Number"
+msgstr "Numer pagera"
+
+msgid "Parent map"
+msgstr "Mapa nadrzędna"
+
+msgid "Password"
+msgstr "Hasło"
+
+msgid "Password Policy"
+msgstr "Polityka haseł"
+
+msgid "Password change complete"
+msgstr "Ukończono zmianę hasła"
+
+msgid "Password history size"
+msgstr "Rozmiar historii haseł"
+
+msgid "Password used in bulk enrollment"
+msgstr "Hasło używane w zapisywaniu większej części"
+
+msgid "Passwords do not match"
+msgstr "Hasła się nie zgadzają"
+
+#, c-format
+msgid "Passwords do not match!"
+msgstr "Hasła się nie zgadzają."
+
+msgid ""
+"Passwords have been migrated in pre-hashed format.\n"
+"IPA is unable to generate Kerberos keys unless provided\n"
+"with clear text passwords. All migrated users need to\n"
+"login at https://your.domain/ipa/migration/ before they\n"
+"can use their Kerberos accounts."
+msgstr ""
+"Hasła zostały migrowane w formacie sprzed mieszania.\n"
+"Program IPA nie może utworzyć kluczy Kerberosa, chyba\n"
+"że zostały podane z hasłami w zwykłym tekście. Wszyscy\n"
+"migrowani użytkownicy muszą zalogować się na stronie\n"
+"https://twoja.domena/ipa/migration/, zanim będą mogli\n"
+"używać swoich kont Kerberosa."
+
+msgid "Passwords must match"
+msgstr "Hasła muszą się zgadzać"
+
+msgid "Permissions"
+msgstr "Uprawnienia"
+
+msgid "Permitted Encryption Types"
+msgstr "Dozwolone typy szyfrowania"
+
+msgid "Platform"
+msgstr "Platforma"
+
+msgid "Principal"
+msgstr "Naczelnik"
+
+msgid "Principal name"
+msgstr "Nazwa naczelnika"
+
+msgid "Print as little as possible"
+msgstr "Wyświetla tak mało, jak to możliwe"
+
+msgid "Print debugging information"
+msgstr "Wyświetlanie informacji o debugowaniu"
+
+msgid "Priority"
+msgstr "Priorytet"
+
+msgid "Priority of the policy (higher number means lower priority"
+msgstr "Priorytet polityki (wyższy numer równa się niższemu priorytetowi"
+
+msgid "Quick Links"
+msgstr "Szybkie odnośniki"
+
+msgid "Realm name"
+msgstr "Nazwa obszaru"
+
+msgid "Reason"
+msgstr "Przyczyna"
+
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "Przyczyna unieważnienia certyfikatu (0-10)"
+
+msgid "Remove all principals in this realm"
+msgstr "Usuwa wszystkich naczelników w tym obszarze"
+
+#, c-format
+msgid "Removing principal %s\n"
+msgstr "Usuwanie naczelnika %s\n"
+
+msgid "Request id"
+msgstr "Identyfikator żądania"
+
+msgid "Request status"
+msgstr "Stan żądania"
+
+msgid "Reset"
+msgstr "Przywróć"
+
+msgid "Restore"
+msgstr "Przywróć"
+
+msgid "Results are truncated, try a more specific search"
+msgstr ""
+"Wyniki zostały obcięte, proszę spróbować bardziej konkretnego wyszukiwania"
+
+msgid "Retry"
+msgstr "Ponów"
+
+msgid "Revocation reason"
+msgstr "Przyczyna unieważnienia"
+
+msgid "Revoke a certificate."
+msgstr "Odrzuć certyfikat."
+
+msgid "Revoked"
+msgstr "Unieważniono"
+
+msgid "Rights"
+msgstr "Uprawnienia"
+
+msgid "Roles"
+msgstr "Role"
+
+msgid "Rule name"
+msgstr "Nazwa reguły"
+
+msgid "Rule type"
+msgstr "Typ reguły"
+
+msgid "SOA class"
+msgstr "Klasa SOA"
+
+msgid "SOA expire"
+msgstr "Wygaszenie SOA"
+
+msgid "SOA minimum"
+msgstr "Minimalne SOA"
+
+msgid "SOA refresh"
+msgstr "Odświeżenie SOA"
+
+msgid "SOA retry"
+msgstr "Ponowienie SOA"
+
+msgid "SOA serial"
+msgstr "Numer seryjny SOA"
+
+msgid "Search"
+msgstr "Wyszukaj"
 
 #, c-format
 msgid "Search for ipaCertificateSubjectBase failed with error %d"
 msgstr "Wyszukiwanie ipaCertificateSubjectBase się nie powiodło z błędem %d"
 
-#, c-format
-msgid "Unable to determine root DN of %s\n"
-msgstr "Nie można ustalić głównego DN %s\n"
+msgid "Search size limit"
+msgstr "Ograniczenie rozmiaru wyszukiwania"
+
+msgid "Search time limit"
+msgstr "Ograniczenie czasu wyszukiwania"
+
+msgid "Select All"
+msgstr "Zaznacz wszystko"
+
+msgid "Self"
+msgstr "Własny"
+
+msgid "Serial number"
+msgstr "Numer seryjny"
+
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr ""
+"Numer seryjny w formie dziesiętnej lub szesnastkowej, jeśli poprzedzone 0x"
+
+msgid "Server Name"
+msgstr "Nazwa serwera"
+
+msgid "Service Groups"
+msgstr "Grupy usług"
+
+msgid "Service category"
+msgstr "Kategoria usług"
+
+msgid "Service category the rule applies to"
+msgstr "Kategoria usług, do których zastosowywana jest reguła"
+
+msgid "Service group name"
+msgstr "Nazwa grupy usługi"
+
+msgid "Service name"
+msgstr "Nazwa usługi"
+
+msgid "Service principal"
+msgstr "Naczelnik usługi"
+
+msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
+msgstr "Naczelnik usługi dla tego certyfikatu (np. HTTP/test.przykład.pl)"
+
+#, python-format
+msgid ""
+"Service principal is not of the form: service/fully-qualified host name: "
+"%(reason)s"
+msgstr ""
+"Naczelnik usługi nie jest w formacie: usługa/w pełni kwalifikowana nazwa "
+"komputera: %(reason)s"
+
+msgid "Services"
+msgstr "Usługi"
+
+msgid "Set OTP"
+msgstr "Ustaw OTP"
+
+msgid "Settings"
+msgstr "Ustawienia"
+
+msgid "Show the list of permitted encryption types and exit"
+msgstr "Wyświetla listę dozwolonych typów szyfrowania i kończy działanie"
 
 #, c-format
-msgid "Incorrect password.\n"
-msgstr "Niepoprawne hasło.\n"
+msgid "Simple bind failed\n"
+msgstr "Proste dowiązanie się nie powiodło\n"
+
+msgid "Size Limit"
+msgstr "Ograniczenie rozmiaru"
+
+msgid "Status"
+msgstr "Stan"
+
+msgid "Street address"
+msgstr "Adres zamieszkania"
+
+msgid "Subject"
+msgstr "Temat"
+
+msgid "Subtree"
+msgstr "Poddrzewo"
+
+msgid "Subtree to apply ACI to"
+msgstr "Poddrzewo, do którego zastosować ACI"
+
+msgid "Sudo Allow Commands"
+msgstr "Polecenia zezwolone sudo"
+
+msgid "Sudo Command"
+msgstr "Polecenie sudo"
+
+msgid "Sudo Command Groups"
+msgstr "Grupy polecenia sudo"
+
+msgid "Sudo Deny Commands"
+msgstr "Polecenia zabronione sudo"
 
 #, c-format
-msgid "Unable to determine certificate subject of %s\n"
-msgstr "Nie można ustalić tematu certyfikatu %s\n"
+msgid "Supported encryption types:\n"
+msgstr "Obsługiwane typy szyfrowania:\n"
+
+#, python-format
+msgid "Syntax Error: %(error)s"
+msgstr "Błąd składni: %(error)s"
+
+msgid "Target"
+msgstr "Cel"
+
+msgid "Target group"
+msgstr "Grupa docelowa"
+
+msgid "Target your own entry (self)"
+msgstr "Cel własnego wpisu („self”)"
+
+msgid "Telephone Number"
+msgstr "Numer telefonu"
+
+msgid "The IPA realm"
+msgstr "Obszar IPA"
+
+msgid "The default users group cannot be removed"
+msgstr "Nie można usunąć domyślnej grupy użytkowników"
 
 #, c-format
-msgid "principal not found in XML-RPC response\n"
-msgstr "nie odnaleziono naczelnika w odpowiedzi XML-RPC\n"
+msgid "The hostname must be fully-qualified: %s\n"
+msgstr "Nazwa komputera musi być w pełni kwalifikowana: %s\n"
 
-#, c-format
-msgid "Host is already joined.\n"
-msgstr "Komputer jest już dołączony.\n"
+msgid "The hostname to register as"
+msgstr "Nazwa komputera, pod jaką zarejestrować"
+
+msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
+msgstr ""
+"Naczelnik, dla którego uzyskać tablicę kluczy (np.: ftp/ftp.example."
+"com@EXAMPLE.COM)"
+
+msgid ""
+"The realm for the principal does not match the realm for this IPA server"
+msgstr "Obszar naczelnika nie zgadza się z obszarem dla tego serwera IPA"
+
+msgid "This command requires root access"
+msgstr "To polecenie wymaga dostępu roota"
+
+msgid "This entry already exists"
+msgstr "Ten wpis już istnieje"
+
+msgid "This is already a posix group"
+msgstr "To jest już grupa POSIX"
+
+msgid "Ticket expired"
+msgstr "Zgłoszenie wygasło"
+
+msgid "Time Limit"
+msgstr "Ograniczenie czasu"
+
+msgid "Time limit of search in seconds"
+msgstr "Ograniczenie czasu wyszukiwania w sekundach"
+
+msgid "Time to live"
+msgstr "Czas życia"
+
+msgid "Total number of variables env (>= count)"
+msgstr "Całkowita liczba zmiennych środowiskowych (>= licznik)"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "UID"
+msgstr "UID"
 
 #, c-format
 msgid "Unable to determine IPA server from %s\n"
 msgstr "Nie można ustalić serwera IPA z %s\n"
 
 #, c-format
-msgid "The hostname must be fully-qualified: %s\n"
-msgstr "Nazwa komputera musi być w pełni kwalifikowana: %s\n"
+msgid "Unable to determine certificate subject of %s\n"
+msgstr "Nie można ustalić tematu certyfikatu %s\n"
 
 #, c-format
-msgid "Unable to join host: Kerberos context initialization failed\n"
-msgstr ""
-"Nie można dołączyć do komputera: zainicjowanie kontekstu Kerberosa się nie "
-"powiodło\n"
+msgid "Unable to determine root DN of %s\n"
+msgstr "Nie można ustalić głównego DN %s\n"
 
 #, c-format
-msgid "Error resolving keytab: %s.\n"
-msgstr "Błąd podczas rozwiązywania tablicy kluczy: %s.\n"
-
-#, c-format
-msgid "Error obtaining initial credentials: %s.\n"
-msgstr ""
-"Błąd podczas uzyskiwania początkowych danych uwierzytelniających: %s.\n"
+msgid "Unable to enable SSL in LDAP\n"
+msgstr "Nie można włączyć SSL w LDAP\n"
 
 #, c-format
 msgid "Unable to generate Kerberos Credential Cache\n"
@@ -264,22 +1288,8 @@ msgstr ""
 "Nie można utworzyć pamięci podręcznej danych uwierzytelniających Kerberosa\n"
 
 #, c-format
-msgid "Error storing creds in credential cache: %s.\n"
-msgstr ""
-"Błąd podczas przechowywania danych uwierzytelniających w pamięci podręcznej: "
-"%s.\n"
-
-#, c-format
-msgid "Unenrollment successful.\n"
-msgstr "Pomyślnie wypisano.\n"
-
-#, c-format
-msgid "Unenrollment failed.\n"
-msgstr "Wypisanie się nie powiodło.\n"
-
-#, c-format
-msgid "result not found in XML-RPC response\n"
-msgstr "nie odnaleziono wyniku w odpowiedzi XML-RPC\n"
+msgid "Unable to initialize ldap library!\n"
+msgstr "Nie można zainicjować biblioteki LDAP.\n"
 
 #, c-format
 msgid "Unable to join host: Kerberos Credential Cache not found\n"
@@ -296,361 +1306,57 @@ msgstr ""
 "Kerberosa oraz nie podano hasła komputera.\n"
 
 #, c-format
-msgid "fork() failed\n"
-msgstr "fork() się nie powiodło\n"
+msgid "Unable to join host: Kerberos context initialization failed\n"
+msgstr ""
+"Nie można dołączyć do komputera: zainicjowanie kontekstu Kerberosa się nie "
+"powiodło\n"
 
 #, c-format
-msgid "ipa-getkeytab not found\n"
-msgstr "nie odnaleziono ipa-getkeytab\n"
-
-#, c-format
-msgid "ipa-getkeytab has bad permissions?\n"
-msgstr "ipa-getkeytab ma błędne uprawnienia?\n"
-
-#, c-format
-msgid "executing ipa-getkeytab failed, errno %d\n"
-msgstr "wykonanie ipa-getkeytab się nie powiodło, errno %d\n"
-
-#, c-format
-msgid "child exited with %d\n"
-msgstr "potomek został zakończony z %d\n"
-
-#, c-format
-msgid "Certificate subject base is: %s\n"
-msgstr "Podstawa tematu certyfikatu: %s\n"
-
-msgid "Unenroll this host from IPA server"
-msgstr "Wypisuje ten komputer z serwera IPA"
-
-msgid "IPA Server to use"
-msgstr "Serwer IPA do użycia"
-
-msgid "password"
-msgstr "hasło"
+msgid "Unable to parse principal\n"
+msgstr "Nie można przetworzyć naczelnika\n"
 
 #, c-format
 msgid "Unable to parse principal name\n"
 msgstr "Nie można przetworzyć nazwy naczelnika\n"
 
 #, c-format
-msgid "Removing principal %s\n"
-msgstr "Usuwanie naczelnika %s\n"
-
-#, c-format
-msgid "Failed to open keytab\n"
-msgstr "Otwarcie tablicy kluczy się nie powiodło\n"
-
-#, c-format
-msgid "principal not found\n"
-msgstr "nie odnaleziono naczelnika\n"
-
-#, c-format
 msgid "Unable to remove entry\n"
 msgstr "Nie można usunąć wpisu\n"
 
 #, c-format
-msgid "kvno %d\n"
-msgstr "kvno %d\n"
+msgid "Unable to set LDAP version\n"
+msgstr "Nie można ustawić wersji LDAP\n"
+
+msgid "Unenroll this host from IPA server"
+msgstr "Wypisuje ten komputer z serwera IPA"
 
 #, c-format
-msgid "Unable to parse principal\n"
-msgstr "Nie można przetworzyć naczelnika\n"
-
-msgid "Print debugging information"
-msgstr "Wyświetlanie informacji o debugowaniu"
-
-msgid "Debugging output"
-msgstr "Wyjście debugowania"
-
-msgid "Remove all principals in this realm"
-msgstr "Usuwa wszystkich naczelników w tym obszarze"
-
-msgid "Realm name"
-msgstr "Nazwa obszaru"
+msgid "Unenrollment failed.\n"
+msgstr "Wypisanie się nie powiodło.\n"
 
 #, c-format
-msgid "Closing keytab failed\n"
-msgstr "Zamknięcie tablicy kluczy się nie powiodło\n"
-
-#, python-format
-msgid "File %(file)s not found"
-msgstr "Nie odnaleziono pliku %(file)s"
+msgid "Unenrollment successful.\n"
+msgstr "Pomyślnie wypisano.\n"
 
 msgid "Unrevoked"
 msgstr "Cofnięto unieważnienie"
 
-msgid "Error"
-msgstr "Błąd"
+msgid "Unselect All"
+msgstr "Odznacz wszystko"
 
-msgid "Principal"
-msgstr "Naczelnik"
+msgid "Update"
+msgstr "Zaktualizuj"
 
-msgid "Dictionary mapping variable name to value"
-msgstr "Nazwa zmiennej mapowania słownika do ustawienia jako wartość"
+msgid "User"
+msgstr "Użytkownik"
 
-msgid "Delete all?"
-msgstr "Usunąć wszystko?"
+msgid "User Groups"
+msgstr "Grupy użytkowników"
 
-msgid ""
-"Passwords have been migrated in pre-hashed format.\n"
-"IPA is unable to generate Kerberos keys unless provided\n"
-"with clear text passwords. All migrated users need to\n"
-"login at https://your.domain/ipa/migration/ before they\n"
-"can use their Kerberos accounts."
+msgid "User ID Number (system will assign one if not provided)"
 msgstr ""
-"Hasła zostały migrowane w formacie sprzed mieszania.\n"
-"Program IPA nie może utworzyć kluczy Kerberosa, chyba\n"
-"że zostały podane z hasłami w zwykłym tekście. Wszyscy\n"
-"migrowani użytkownicy muszą zalogować się na stronie\n"
-"https://twoja.domena/ipa/migration/, zanim będą mogli\n"
-"używać swoich kont Kerberosa."
-
-msgid "Password"
-msgstr "Hasło"
-
-msgid "Data"
-msgstr "Dane"
-
-msgid "ACI name"
-msgstr "Nazwa ACI"
-
-msgid "User group"
-msgstr "Grupa użytkowników"
-
-msgid "User group ACI grants access to"
-msgstr "Grupa użytkowników, do której ACI zapewnia dostęp"
-
-msgid "Permissions"
-msgstr "Uprawnienia"
-
-msgid "Attributes"
-msgstr "Atrybuty"
-
-msgid "Type"
-msgstr "Typ"
-
-msgid "Member of"
-msgstr "Element"
-
-msgid "Member of a group"
-msgstr "Element grupy"
-
-msgid "Filter"
-msgstr "Filtr"
-
-msgid "Legal LDAP filter (e.g. ou=Engineering)"
-msgstr "Dozwolony filtr LDAP (np. ou=Inżynieria)"
-
-msgid "Subtree"
-msgstr "Poddrzewo"
-
-msgid "Subtree to apply ACI to"
-msgstr "Poddrzewo, do którego zastosować ACI"
-
-msgid "Target group"
-msgstr "Grupa docelowa"
-
-msgid "Group to apply ACI to"
-msgstr "Grupa, do której zastosować ACI"
-
-msgid "Target your own entry (self)"
-msgstr "Cel własnego wpisu („self”)"
-
-msgid "Apply ACI to your own entry (self)"
-msgstr "Zastosowanie ACI do własnego wpisu („self”)"
-
-msgid "Description"
-msgstr "Opis"
-
-msgid "Rights"
-msgstr "Uprawnienia"
-
-msgid "Users"
-msgstr "Użytkownicy"
-
-msgid "Hosts"
-msgstr "Komputery"
-
-msgid "Key"
-msgstr "Klucz"
-
-msgid "Mount information"
-msgstr "Informacje o montowaniu"
-
-msgid "description"
-msgstr "opis"
-
-msgid "Location"
-msgstr "Położenie"
-
-msgid "Map"
-msgstr "Mapa"
-
-msgid "Continuous mode: Don't stop on errors."
-msgstr "Tryb ciągły: bez zatrzymywania po błędach."
-
-msgid "Time Limit"
-msgstr "Ograniczenie czasu"
-
-msgid "Time limit of search in seconds"
-msgstr "Ograniczenie czasu wyszukiwania w sekundach"
-
-msgid "Size Limit"
-msgstr "Ograniczenie rozmiaru"
-
-msgid "Maximum number of entries returned"
-msgstr "Maksymalna liczba zwróconych wpisów"
-
-msgid "Mount point"
-msgstr "Punkt montowania"
-
-msgid "Parent map"
-msgstr "Mapa nadrzędna"
-
-msgid "Subject"
-msgstr "Temat"
-
-msgid "Reason"
-msgstr "Przyczyna"
-
-msgid "Reason for revoking the certificate (0-10)"
-msgstr "Przyczyna unieważnienia certyfikatu (0-10)"
-
-msgid "Serial number"
-msgstr "Numer seryjny"
-
-msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
-msgstr ""
-"Numer seryjny w formie dziesiętnej lub szesnastkowej, jeśli poprzedzone 0x"
-
-msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
-msgstr "Naczelnik usługi dla tego certyfikatu (np. HTTP/test.przykład.pl)"
-
-msgid "automatically add the principal if it doesn't exist"
-msgstr "automatycznie dodaj naczelnika, jeśli nie istnieje"
-
-msgid "Revoke a certificate."
-msgstr "Odrzuć certyfikat."
-
-msgid "Request id"
-msgstr "Identyfikator żądania"
-
-msgid "Home directory base"
-msgstr "Podstawa katalogu domowego"
-
-msgid "Default shell"
-msgstr "Domyślna powłoka"
-
-msgid "Default shell for new users"
-msgstr "Domyślna powłoka dla nowych użytkowników"
-
-msgid "Default users group"
-msgstr "Domyślna grupa użytkowników"
-
-msgid "Default group for new users"
-msgstr "Domyślna grupa dla nowych użytkowników"
-
-msgid "Search time limit"
-msgstr "Ograniczenie czasu wyszukiwania"
-
-msgid "Search size limit"
-msgstr "Ograniczenie rozmiaru wyszukiwania"
-
-msgid "User search fields"
-msgstr "Pola wyszukiwania użytkowników"
-
-msgid "Certificate Subject base"
-msgstr "Podstawa tematu certyfikatu"
-
-msgid "Zone name"
-msgstr "Nazwa strefy"
-
-msgid "Zone name (FQDN)"
-msgstr "Nazwa strefy (FQDN)"
-
-msgid "Active zone"
-msgstr "Aktywna strefa"
-
-msgid "Time to live"
-msgstr "Czas życia"
-
-msgid "Hostname"
-msgstr "Nazwa komputera"
-
-msgid "Target"
-msgstr "Cel"
-
-msgid "Priority"
-msgstr "Priorytet"
-
-msgid "Administrator e-mail address"
-msgstr "Adres e-mail administratora"
-
-msgid "SOA serial"
-msgstr "Numer seryjny SOA"
-
-msgid "SOA refresh"
-msgstr "Odświeżenie SOA"
-
-msgid "SOA retry"
-msgstr "Ponowienie SOA"
-
-msgid "SOA expire"
-msgstr "Wygaszenie SOA"
-
-msgid "SOA minimum"
-msgstr "Minimalne SOA"
-
-msgid "BIND update policy"
-msgstr "Polityka aktualizacji BIND"
-
-msgid "Delete all associated records"
-msgstr "Usuń wszystkie powiązane wpisy"
-
-msgid "Group name"
-msgstr "Nazwa grupy"
-
-msgid "Group description"
-msgstr "Opis grupy"
-
-msgid "GID"
-msgstr "GID"
-
-msgid "GID (use this option to set it manually)"
-msgstr "GID (ta opcja umożliwia jego ręczne ustawienie)"
-
-msgid "Member users"
-msgstr "Elementy użytkowników"
-
-msgid "Member groups"
-msgstr "Elementy grupy"
-
-msgid "Member of groups"
-msgstr "Członek grup"
-
-msgid "Roles"
-msgstr "Role"
-
-msgid "Members that could not be added"
-msgstr "Elementy, które nie mogły zostać dodane"
-
-msgid "Number of members added"
-msgstr "Liczba dodanych elementów"
-
-msgid "change to a POSIX group"
-msgstr "zmiana na grupę POSIX"
-
-msgid "Members that could not be removed"
-msgstr "Liczba elementów, które nie mogły zostać usunięte"
-
-msgid "Number of members removed"
-msgstr "Liczba usuniętych elementów"
-
-msgid "Rule name"
-msgstr "Nazwa reguły"
-
-msgid "Rule type"
-msgstr "Typ reguły"
+"Numer identyfikacyjny użytkownika (system go przydzieli, jeśli nie zostanie "
+"podany)"
 
 msgid "User category"
 msgstr "Kategoria użytkowników"
@@ -658,568 +1364,55 @@ msgstr "Kategoria użytkowników"
 msgid "User category the rule applies to"
 msgstr "Kategoria użytkowników, do których zastosowywana jest reguła"
 
-msgid "Host category"
-msgstr "Kategoria komputerów"
+msgid "User container"
+msgstr "Kontener użytkownika"
 
-msgid "Host category the rule applies to"
-msgstr "Kategoria komputerów, do których zastosowywana jest reguła"
+msgid "User group"
+msgstr "Grupa użytkowników"
 
-msgid "Service category"
-msgstr "Kategoria usług"
-
-msgid "Service category the rule applies to"
-msgstr "Kategoria usług, do których zastosowywana jest reguła"
-
-msgid "Enabled"
-msgstr "Włączone"
-
-msgid "User Groups"
-msgstr "Grupy użytkowników"
-
-msgid "Host Groups"
-msgstr "Grupy komputerów"
-
-msgid "Services"
-msgstr "Usługi"
-
-msgid "Service Groups"
-msgstr "Grupy usług"
-
-msgid "External host"
-msgstr "Zewnętrzny komputer"
-
-msgid "Service name"
-msgstr "Nazwa usługi"
-
-msgid "Service group name"
-msgstr "Nazwa grupy usługi"
-
-msgid "HBAC service group description"
-msgstr "Opis grupy usługi HBAC"
-
-msgid "User name"
-msgstr "Nazwa użytkownika"
-
-msgid "Host name"
-msgstr "Nazwa komputera"
-
-msgid "A description of this host"
-msgstr "Opis tego komputera"
-
-msgid "Locality"
-msgstr "Lokalizacja"
-
-msgid "Host locality (e.g. \"Baltimore, MD\")"
-msgstr "Lokalizacja komputera (np. „Baltimore, MD”)"
-
-msgid "Host location (e.g. \"Lab 2\")"
-msgstr "Położenie komputera (np. „Laboratorium nr 2”)"
-
-msgid "Platform"
-msgstr "Platforma"
-
-msgid "Host hardware platform (e.g. \"Lenovo T61\")"
-msgstr "Platforma sprzętowa komputera (np. „Lenovo T61”)"
-
-msgid "Operating system"
-msgstr "System operacyjny"
-
-msgid "Host operating system and version (e.g. \"Fedora 9\")"
-msgstr "System operacyjny komputera i jego wersja (np. „Fedora 9”)"
-
-msgid "User password"
-msgstr "Hasło użytkownika"
-
-msgid "Password used in bulk enrollment"
-msgstr "Hasło używane w zapisywaniu większej części"
-
-msgid "Certificate"
-msgstr "Certyfikat"
-
-msgid "Base-64 encoded server certificate"
-msgstr "Certyfikat serwera zakodowany za pomocą Base-64"
-
-msgid "Principal name"
-msgstr "Nazwa naczelnika"
-
-msgid "Class"
-msgstr "Klasa"
-
-msgid "Member of host-groups"
-msgstr "Element grupy komputerów"
-
-msgid "Keytab"
-msgstr "Tabela kluczy"
-
-msgid "force host name even if not in DNS"
-msgstr "wymuszenie nazwy komputera, nawet jeśli nie w DNS"
-
-msgid "Kerberos principal name for this host"
-msgstr "Nazwa naczelnika Kerberosa dla tego komputera"
-
-msgid "Host-group"
-msgstr "Grupa komputerów"
-
-msgid "Name of host-group"
-msgstr "Nazwa grupy komputerów"
-
-msgid "A description of this host-group"
-msgstr "Opis tej grupy komputerów"
-
-msgid "Member hosts"
-msgstr "Element komputerów"
-
-msgid "Member host-groups"
-msgstr "Element grupy komputerów"
+msgid "User group ACI grants access to"
+msgstr "Grupa użytkowników, do której ACI zapewnia dostęp"
 
 msgid "User login"
 msgstr "Login użytkownika"
 
-msgid "UID"
-msgstr "UID"
+msgid "User name"
+msgstr "Nazwa użytkownika"
 
-msgid "Home directory"
-msgstr "Katalog domowy"
+msgid "User password"
+msgstr "Hasło użytkownika"
 
-msgid "Login shell"
-msgstr "Powłoka logowania"
+msgid "User search fields"
+msgstr "Pola wyszukiwania użytkowników"
 
-msgid "Dict of I18N messages"
-msgstr "Słownik komunikatów umiędzynaradawiania"
+msgid "Users"
+msgstr "Użytkownicy"
 
-msgid "Name of object to export"
-msgstr "Nazwa obiektu do wyeksportowania"
+msgid "Verify Principal Password"
+msgstr "Sprawdzenie hasła naczelnika"
 
-msgid "Dict of JSON encoded IPA Objects"
-msgstr "Słownik obiektów IPA zakodowanych w formacie JSON"
+#, c-format
+msgid "Warning: failed to convert type (#%d)\n"
+msgstr "Ostrzeżenie: przekonwertowanie typu (#%d) się nie powiodło\n"
 
-msgid "The hostname to register as"
-msgstr "Nazwa komputera, pod jaką zarejestrować"
-
-msgid "The IPA realm"
-msgstr "Obszar IPA"
-
-msgid "Hardware platform of the host (e.g. Lenovo T61)"
-msgstr "Platforma sprzętowa komputera (np. Lenovo T61)"
-
-msgid "Operating System and version of the host (e.g. Fedora 9)"
-msgstr "System operacyjny komputera i jego wersja (np. Fedora 9)"
-
-msgid "Manage ticket policy for specific user"
-msgstr "Zarządzanie polityką zgłoszeń dla podanego użytkownika"
-
-msgid "Max life"
-msgstr "Maksymalny czas życia"
-
-msgid "Maximum ticket life (seconds)"
-msgstr "Minimalny czas życia zgłoszenia (sekundy)"
-
-msgid "Max renew"
-msgstr "Maksymalne odnowienie"
-
-msgid "Maximum renewable age (seconds)"
-msgstr "Maksymalny czas, w którym możliwe jest odnowienie (sekundy)"
-
-msgid "LDAP URI"
-msgstr "Adres URI LDAP"
-
-msgid "LDAP URI of DS server to migrate from"
-msgstr "Adres URI LDAP serwera DS, z którego migrować"
-
-msgid "bind password"
-msgstr "hasło Bind"
-
-msgid "Bind DN"
-msgstr "DN dowiązania"
-
-msgid "User container"
-msgstr "Kontener użytkownika"
-
-msgid "Group container"
-msgstr "Kontener grupy"
-
-msgid "LDAP schema"
-msgstr "Schemat LDAP"
-
-msgid "Lists of objects migrated; categorized by type."
-msgstr "Lista migrowanych obiektów, ułożonych w kategorie według typu."
-
-msgid "Lists of objects that could not be migrated; categorized by type."
+#, c-format
+msgid ""
+"Warning: salt types are not honored with randomized passwords (see opt. -P)\n"
 msgstr ""
-"Lista obiektów, które nie mogły zostać migrowane, ułożonych w kategorie "
-"według typu."
-
-msgid "False if migration mode was disabled."
-msgstr "Fałsz, jeśli wyłączono tryb migracji"
-
-msgid "Forward to server instead of running locally"
-msgstr "Przekazanie do serwera zamiast uruchamiania lokalnie"
-
-msgid "Total number of variables env (>= count)"
-msgstr "Całkowita liczba zmiennych środowiskowych (>= licznik)"
-
-msgid "Number of variables returned (<= total)"
-msgstr "Liczba zwróconych zmiennych (<= razem)"
-
-msgid "Number of plugins loaded"
-msgstr "Liczba wczytanych wtyczek"
-
-msgid "Netgroup name"
-msgstr "Nazwa grupy sieciowej"
-
-msgid "Netgroup description"
-msgstr "Opis grupy sieciowej"
-
-msgid "NIS domain name"
-msgstr "Nazwa domeny NIS"
-
-msgid "IPA unique ID"
-msgstr "Unikalny identyfikator IPA"
-
-msgid "Member Host"
-msgstr "Komputer elementu"
-
-msgid "New Password"
-msgstr "Nowe hasło"
-
-msgid "Member of group"
-msgstr "Członek grupy"
-
-msgid "Group"
-msgstr "Grupa"
-
-msgid "Manage password policy for specific group"
-msgstr "Zarządzanie polityką haseł dla podanej grupy"
-
-msgid "Max lifetime (days)"
-msgstr "Maksymalny czas życia (w dniach)"
-
-msgid "Maximum password lifetime (in days)"
-msgstr "Maksymalny czas życia hasła (w dniach)"
-
-msgid "Min lifetime (hours)"
-msgstr "Minimalny czas życia (w godzinach)"
-
-msgid "Minimum password lifetime (in hours)"
-msgstr "Minimalny czas życia hasła (w godzinach)"
-
-msgid "History size"
-msgstr "Rozmiar historii"
-
-msgid "Password history size"
-msgstr "Rozmiar historii haseł"
-
-msgid "Character classes"
-msgstr "Klasy znaków"
-
-msgid "Minimum number of character classes"
-msgstr "Minimalna liczba klas znaków"
-
-msgid "Min length"
-msgstr "Minimalna długość"
-
-msgid "Minimum length of password"
-msgstr "Minimalna długość hasła"
-
-msgid "Priority of the policy (higher number means lower priority"
-msgstr "Priorytet polityki (wyższy numer równa się niższemu priorytetowi"
-
-msgid "User"
-msgstr "Użytkownik"
-
-msgid "Display effective policy for a specific user"
-msgstr "Wyświetlanie aktywnej polityki dla podanego użytkownika"
-
-msgid "A description of this role-group"
-msgstr "Opis tej grupy rol"
-
-msgid "Member services"
-msgstr "Usługi elementów"
-
-msgid "Service principal"
-msgstr "Naczelnik usługi"
-
-msgid "force principal name even if not in DNS"
-msgstr "wymuszenie nazwy naczelnika, nawet jeśli nie w DNS"
-
-msgid "Sudo Command"
-msgstr "Polecenie sudo"
-
-msgid "A description of this command"
-msgstr "Opis tego polecenia"
-
-msgid "Sudo Command Groups"
-msgstr "Grupy polecenia sudo"
-
-msgid "Commands"
-msgstr "Polecenia"
-
-msgid "Sudo Allow Commands"
-msgstr "Polecenia zezwolone sudo"
-
-msgid "Sudo Deny Commands"
-msgstr "Polecenia zabronione sudo"
-
-msgid "First name"
-msgstr "Imię"
-
-msgid "Last name"
-msgstr "Nazwisko"
-
-msgid "Full name"
-msgstr "Pełna nazwa"
-
-msgid "Kerberos principal"
-msgstr "Naczelnik Kerberosa"
-
-msgid "Email address"
-msgstr "Adres e-mail"
-
-msgid "User ID Number (system will assign one if not provided)"
-msgstr ""
-"Numer identyfikacyjny użytkownika (system go przydzieli, jeśli nie zostanie "
-"podany)"
-
-msgid "Street address"
-msgstr "Adres zamieszkania"
-
-msgid "City"
-msgstr "Miasto"
-
-msgid "Telephone Number"
-msgstr "Numer telefonu"
-
-msgid "Mobile Telephone Number"
-msgstr "Numer telefonu komórkowego"
-
-msgid "Pager Number"
-msgstr "Numer pagera"
-
-msgid "Fax Number"
-msgstr "Numer faksu"
-
-msgid "Self"
-msgstr "Własny"
-
-msgid "Display user record for current Kerberos principal"
-msgstr "Wyświetlenie wpisu użytkownika dla bieżącego naczelnika Kerberosa"
-
-msgid "SOA class"
-msgstr "Klasa SOA"
-
-msgid "Failed members"
-msgstr "Elementy, które się nie powiodły"
-
-#, python-format
-msgid "Enter %(label)s again to verify: "
-msgstr "Proszę podać %(label)s ponownie, aby sprawdzić: "
-
-#, python-format
-msgid "unknown error %(code)d from %(server)s: %(error)s"
-msgstr "nieznany błąd %(code)d z %(server)s: %(error)s"
-
-msgid "an internal error has occurred"
-msgstr "wystąpił wewnętrzny błąd"
-
-#, python-format
-msgid "Invalid JSON-RPC request: %(error)s"
-msgstr "Nieprawidłowe żądanie JSON-RPC: %(error)s"
-
-#, python-format
-msgid "Kerberos error: %(major)s/%(minor)s"
-msgstr "Błąd Kerberosa: %(major)s/%(minor)s"
-
-msgid "did not receive Kerberos credentials"
-msgstr "nie otrzymano danych uwierzytelniających Kerberosa"
-
-msgid "No credentials cache found"
-msgstr "Nie odnaleziono pamięci podręcznej danych uwierzytelniających"
-
-msgid "Ticket expired"
-msgstr "Zgłoszenie wygasło"
-
-msgid "Credentials cache permissions incorrect"
-msgstr ""
-"Uprawnienia pamięci podręcznej danych uwierzytelniających są niepoprawne"
-
-msgid "Bad format in credentials cache"
-msgstr "Błędny format w pamięci podręcznej danych uwierzytelniających"
-
-msgid "Cannot resolve KDC for requested realm"
-msgstr "Nie można rozwiązać KDC dla żądanego obszaru"
-
-#, python-format
-msgid "Insufficient access: %(info)s"
-msgstr "Niewystarczający dostęp: %(info)s"
-
-msgid "Passwords do not match"
-msgstr "Hasła się nie zgadzają"
-
-msgid "Command not implemented"
-msgstr "Polecenie nie jest zaimplementowane"
-
-#, python-format
-msgid "%(reason)s"
-msgstr "%(reason)s"
-
-msgid "This entry already exists"
-msgstr "Ten wpis już istnieje"
+"Ostrzeżenie: typy salt nie są uwzględniane z losowymi hasłami (proszę "
+"zobaczyć opcję -P)\n"
 
 msgid "You must enroll a host in order to create a host service"
 msgstr "Należy zapisać się do komputera, aby utworzyć jego usługę"
 
-#, python-format
-msgid ""
-"Service principal is not of the form: service/fully-qualified host name: "
-"%(reason)s"
-msgstr ""
-"Naczelnik usługi nie jest w formacie: usługa/w pełni kwalifikowana nazwa "
-"komputera: %(reason)s"
+msgid "Zone name"
+msgstr "Nazwa strefy"
 
-msgid ""
-"The realm for the principal does not match the realm for this IPA server"
-msgstr "Obszar naczelnika nie zgadza się z obszarem dla tego serwera IPA"
+msgid "Zone name (FQDN)"
+msgstr "Nazwa strefy (FQDN)"
 
-msgid "This command requires root access"
-msgstr "To polecenie wymaga dostępu roota"
-
-msgid "This is already a posix group"
-msgstr "To jest już grupa POSIX"
-
-msgid "A group may not be a member of itself"
-msgstr "Grupa nie może być własnym elementem"
-
-#, python-format
-msgid "Base64 decoding failed: %(reason)s"
-msgstr "Dekodowanie base64 się nie powiodło: %(reason)s"
-
-msgid "A group may not be added as a member of itself"
-msgstr "Nie można dodać grupy jako elementu jej samej"
-
-msgid "The default users group cannot be removed"
-msgstr "Nie można usunąć domyślnej grupy użytkowników"
-
-msgid "Deleting a managed group is not allowed. It must be detached first."
-msgstr ""
-"Usuwanie zarządzanej grupy nie jest dozwolone. Musi zostać najpierw "
-"odłączona."
-
-#, python-format
-msgid "%(attr)s does not contain '%(value)s'"
-msgstr "%(attr)s nie zawiera „%(value)s”"
-
-msgid "change collided with another change"
-msgstr "zmiana koliduje z inną zmianą"
-
-msgid "no modifications to be performed"
-msgstr "żadne modyfikacje nie zostaną wykonane"
-
-msgid "limits exceeded for this query"
-msgstr "przekroczono ograniczenia dla tego zapytania"
-
-#, python-format
-msgid "%(info)s"
-msgstr "%(info)s"
-
-#, python-format
-msgid "Certificate operation cannot be completed: %(error)s"
-msgstr "Nie można ukończyć działania na certyfikacie: %(error)s"
-
-#, python-format
-msgid "Certificate format error: %(error)s"
-msgstr "Błąd formatu certyfikatu: %(error)s"
-
-msgid "Results are truncated, try a more specific search"
-msgstr ""
-"Wyniki zostały obcięte, proszę spróbować bardziej konkretnego wyszukiwania"
-
-#, python-format
-msgid "%(count)d variables"
-msgstr "%(count)d zmiennych"
-
-#, python-format
-msgid "%(count)d plugin loaded"
-msgid_plural "%(count)d plugins loaded"
-msgstr[0] "Wczytano %(count)d wtyczkę"
-msgstr[1] "Wczytano %(count)d wtyczki"
-msgstr[2] "Wczytano %(count)d wtyczek"
-
-msgid "A dictionary representing an LDAP entry"
-msgstr "Słownik reprezentujący wpis LDAP"
-
-msgid "A list of LDAP entries"
-msgstr "Lista wpisów LDAP"
-
-msgid "All commands should at least have a result"
-msgstr "Wszystkie polecenia powinny powiadać przynajmniej wynik"
-
-msgid "incorrect type"
-msgstr "niepoprawny typ"
-
-msgid "Only one value is allowed"
-msgstr "Dozwolona jest tylko jedna wartość"
-
-msgid "must be True or False"
-msgstr "musi być prawdą lub fałszem"
-
-msgid "must be an integer"
-msgstr "musi być liczba całkowitą"
-
-#, python-format
-msgid "must be at least %(minvalue)d"
-msgstr "musi wynosić co najmniej %(minvalue)d"
-
-#, python-format
-msgid "can be at most %(maxvalue)d"
-msgstr "może wynosić co najwyżej %(maxvalue)d"
-
-msgid "must be a decimal number"
-msgstr "musi być liczbą dziesiętną"
-
-#, python-format
-msgid "must match pattern \"%(pattern)s\""
-msgstr "musi pasować do wzorca „%(pattern)s”"
-
-msgid "must be binary data"
-msgstr "musi być danymi binarnymi"
-
-#, python-format
-msgid "must be at least %(minlength)d bytes"
-msgstr "musi wynosić co najmniej %(minlength)d bajtów"
-
-#, python-format
-msgid "can be at most %(maxlength)d bytes"
-msgstr "może wynosić co najwyżej %(maxlength)d bajtów"
-
-#, python-format
-msgid "must be exactly %(length)d bytes"
-msgstr "musi wynosić dokładnie %(length)d bajtów"
-
-#, python-format
-msgid "Failure decoding Certificate Signing Request: %s"
-msgstr "Dekodowanie żądania podpisywania certyfikatu się nie powiodło: %s"
-
-msgid "must be Unicode text"
-msgstr "musi być tekstem w unikodzie"
-
-#, python-format
-msgid "must be at least %(minlength)d characters"
-msgstr "musi wynosić co najmniej %(minlength)d znaków"
-
-#, python-format
-msgid "can be at most %(maxlength)d characters"
-msgstr "może wynosić co najwyżej %(maxlength)d znaków"
-
-#, python-format
-msgid "must be exactly %(length)d characters"
-msgstr "musi wynosić dokładnie %(length)d znaków"
-
-msgid "A list of ACI values"
-msgstr "Lista wartości ACI"
-
-msgid "type, filter, subtree and targetgroup are mutually exclusive"
-msgstr ""
-"wartości „type”, „filter”, „subtree” i „targetgroup” są wzajemnie wyłączne"
+msgid "an internal error has occurred"
+msgstr "wystąpił wewnętrzny błąd"
 
 msgid ""
 "at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
@@ -1228,308 +1421,156 @@ msgstr ""
 "co najmniej jedna z wartości: „type”, „filter”, „subtree”, „targetgroup”, "
 "„attrs” lub „memberof” jest wymagana"
 
-#, python-format
-msgid "Group '%s' does not exist"
-msgstr "Grupa „%s” nie istnieje"
+msgid "automatically add the principal if it doesn't exist"
+msgstr "automatycznie dodaj naczelnika, jeśli nie istnieje"
+
+#, c-format
+msgid "ber_init() failed, Invalid control ?!\n"
+msgstr "ber_init() się nie powiodło, nieprawidłowa kontrola?\n"
+
+msgid "bind password"
+msgstr "hasło Bind"
 
 #, python-format
-msgid "Syntax Error: %(error)s"
-msgstr "Błąd składni: %(error)s"
+msgid "can be at most %(maxlength)d bytes"
+msgstr "może wynosić co najwyżej %(maxlength)d bajtów"
 
 #, python-format
-msgid "ACI with name \"%s\" not found"
-msgstr "Nie odnaleziono ACI o nazwie „%s”"
-
-msgid "ACIs"
-msgstr "ACI"
+msgid "can be at most %(maxlength)d characters"
+msgstr "może wynosić co najwyżej %(maxlength)d znaków"
 
 #, python-format
-msgid "Created ACI \"%(value)s\""
-msgstr "Utworzono ACI „%(value)s”"
+msgid "can be at most %(maxvalue)d"
+msgstr "może wynosić co najwyżej %(maxvalue)d"
 
-#, python-format
-msgid "Deleted ACI \"%(value)s\""
-msgstr "Usunięto ACI „%(value)s”"
+#, c-format
+msgid "cannot open configuration file %s\n"
+msgstr "nie można otworzyć pliku konfiguracji %s\n"
 
-#, python-format
-msgid "Modified ACI \"%(value)s\""
-msgstr "Zmodyfikowano ACI „%(value)s”"
+#, c-format
+msgid "cannot stat() configuration file %s\n"
+msgstr "nie można wykonać stat() na pliku konfiguracji %s\n"
 
-#, python-format
-msgid "%(count)d ACI matched"
-msgid_plural "%(count)d ACIs matched"
-msgstr[0] "Pasuje %(count)d ACI"
-msgstr[1] "Pasują %(count)d ACI"
-msgstr[2] "Pasuje %(count)d ACI"
+msgid "change collided with another change"
+msgstr "zmiana koliduje z inną zmianą"
 
-msgid "Automount Maps"
-msgstr "Automatyczne montowanie map"
+msgid "change to a POSIX group"
+msgstr "zmiana na grupę POSIX"
 
-msgid "Automount Keys"
-msgstr "Automatyczne montowanie kluczy"
-
-msgid "Member service groups"
-msgstr "Grupy usługi elementów"
+#, c-format
+msgid "child exited with %d\n"
+msgstr "potomek został zakończony z %d\n"
 
 #, python-format
 msgid "container entry (%(container)s) not found"
 msgstr "nie odnaleziono wpisu kontenera (%(container)s)"
 
-#, python-format
-msgid "%(parent)s: %(oname)s not found"
-msgstr "%(parent)s: nie odnaleziono %(oname)s"
+msgid "description"
+msgstr "opis"
 
-#, python-format
-msgid "%(pkey)s: %(oname)s not found"
-msgstr "%(pkey)s: nie odnaleziono %(oname)s"
+msgid "did not receive Kerberos credentials"
+msgstr "nie otrzymano danych uwierzytelniających Kerberosa"
 
-msgid "the entry was deleted while being modified"
-msgstr "wpis został usunięty podczas modyfikowania"
+#, c-format
+msgid "executing ipa-getkeytab failed, errno %d\n"
+msgstr "wykonanie ipa-getkeytab się nie powiodło, errno %d\n"
+
+msgid "force host name even if not in DNS"
+msgstr "wymuszenie nazwy komputera, nawet jeśli nie w DNS"
+
+msgid "force principal name even if not in DNS"
+msgstr "wymuszenie nazwy naczelnika, nawet jeśli nie w DNS"
+
+#, c-format
+msgid "fork() failed\n"
+msgstr "fork() się nie powiodło\n"
+
+msgid "incorrect type"
+msgstr "niepoprawny typ"
+
+#, c-format
+msgid "ipa-getkeytab has bad permissions?\n"
+msgstr "ipa-getkeytab ma błędne uprawnienia?\n"
+
+#, c-format
+msgid "ipa-getkeytab not found\n"
+msgstr "nie odnaleziono ipa-getkeytab\n"
+
+#, c-format
+msgid "kvno %d\n"
+msgstr "kvno %d\n"
+
+msgid "limits exceeded for this query"
+msgstr "przekroczono ograniczenia dla tego zapytania"
 
 #, python-format
 msgid "member %s"
 msgstr "członek %s"
 
-msgid "Issuer"
-msgstr "Wydawca"
+msgid "must be True or False"
+msgstr "musi być prawdą lub fałszem"
 
-msgid "Not Before"
-msgstr "Nie wcześniej"
+msgid "must be Unicode text"
+msgstr "musi być tekstem w unikodzie"
 
-msgid "Not After"
-msgstr "Nie po"
+msgid "must be a decimal number"
+msgstr "musi być liczbą dziesiętną"
 
-msgid "Fingerprint (SHA1)"
-msgstr "Odcisk (SHA1)"
-
-msgid "Request status"
-msgstr "Stan żądania"
-
-msgid "Status"
-msgstr "Stan"
-
-msgid "Revoked"
-msgstr "Unieważniono"
-
-msgid "Revocation reason"
-msgstr "Przyczyna unieważnienia"
+msgid "must be an integer"
+msgstr "musi być liczba całkowitą"
 
 #, python-format
-msgid "%(count)d user matched"
-msgid_plural "%(count)d users matched"
-msgstr[0] "Pasuje %(count)d użytkownik"
-msgstr[1] "Pasuje %(count)d użytkowników"
-msgstr[2] "Pasuje %(count)d użytkowników"
-
-msgid "Configuration"
-msgstr "Konfiguracja"
-
-msgid "DNS is not configured"
-msgstr "DNS nie jest skonfigurowany"
+msgid "must be at least %(minlength)d bytes"
+msgstr "musi wynosić co najmniej %(minlength)d bajtów"
 
 #, python-format
-msgid "Found '%(value)s'"
-msgstr "Odnaleziono „%(value)s”"
+msgid "must be at least %(minlength)d characters"
+msgstr "musi wynosić co najmniej %(minlength)d znaków"
 
 #, python-format
-msgid "Host '%(host)s' not found"
-msgstr "Nie odnaleziono komputera „%(host)s”"
+msgid "must be at least %(minvalue)d"
+msgstr "musi wynosić co najmniej %(minvalue)d"
+
+msgid "must be binary data"
+msgstr "musi być danymi binarnymi"
 
 #, python-format
-msgid "Added group \"%(value)s\""
-msgstr "Dodano grupę „%(value)s”"
+msgid "must be exactly %(length)d bytes"
+msgstr "musi wynosić dokładnie %(length)d bajtów"
 
 #, python-format
-msgid "Deleted group \"%(value)s\""
-msgstr "Usunięto grupę „%(value)s”"
+msgid "must be exactly %(length)d characters"
+msgstr "musi wynosić dokładnie %(length)d znaków"
 
 #, python-format
-msgid "Modified group \"%(value)s\""
-msgstr "Zmodyfikowano grupę „%(value)s”"
+msgid "must match pattern \"%(pattern)s\""
+msgstr "musi pasować do wzorca „%(pattern)s”"
 
-#, python-format
-msgid "%(count)d group matched"
-msgid_plural "%(count)d groups matched"
-msgstr[0] "Pasuje %(count)d grupa"
-msgstr[1] "Pasują %(count)d grupy"
-msgstr[2] "Pasuje %(count)d grup"
-
-#, python-format
-msgid "Detached group \"%(value)s\" from user \"%(value)s\""
-msgstr "Odłączono grupę „%(value)s” od użytkownika „%(value)s”"
-
-msgid "not allowed to modify user entries"
-msgstr "modyfikowanie wpisów użytkowników nie jest dozwolone"
+msgid "no modifications to be performed"
+msgstr "żadne modyfikacje nie zostaną wykonane"
 
 msgid "not allowed to modify group entries"
 msgstr "modyfikowanie wpisów grup nie jest dozwolone"
 
-msgid "Not a managed group"
-msgstr "Nie jest zarządzaną grupą"
+msgid "not allowed to modify user entries"
+msgstr "modyfikowanie wpisów użytkowników nie jest dozwolone"
 
-msgid "Access time"
-msgstr "Czas dostępu"
+msgid "password"
+msgstr "hasło"
 
-#, python-format
-msgid "Added host \"%(value)s\""
-msgstr "Dodano komputer „%(value)s”"
+msgid "password to use if not using kerberos"
+msgstr "hasło do użycia, jeśli nie jest używany Kerberos"
 
-#, python-format
-msgid "Deleted host \"%(value)s\""
-msgstr "Usunięto komputer „%(value)s”"
+#, c-format
+msgid "principal not found\n"
+msgstr "nie odnaleziono naczelnika\n"
 
-#, python-format
-msgid "Modified host \"%(value)s\""
-msgstr "Zmodyfikowano komputer „%(value)s”"
+#, c-format
+msgid "principal not found in XML-RPC response\n"
+msgstr "nie odnaleziono naczelnika w odpowiedzi XML-RPC\n"
 
-#, python-format
-msgid "%(count)d host matched"
-msgid_plural "%(count)d hosts matched"
-msgstr[0] "Pasuje %(count)d komputer"
-msgstr[1] "Pasuje %(count)d komputery"
-msgstr[2] "Pasuje %(count)d komputerów"
-
-#, python-format
-msgid "Added hostgroup \"%(value)s\""
-msgstr "Dodano grupę komputerów „%(value)s”"
-
-#, python-format
-msgid "Deleted hostgroup \"%(value)s\""
-msgstr "Usunięto grupę komputerów „%(value)s”"
-
-#, python-format
-msgid "Modified hostgroup \"%(value)s\""
-msgstr "Zmodyfikowano grupę komputerów „%(value)s”"
-
-#, python-format
-msgid "%(count)d hostgroup matched"
-msgid_plural "%(count)d hostgroups matched"
-msgstr[0] "Pasuje %(count)d grupa komputerów"
-msgstr[1] "Pasują %(count)d grupy komputerów"
-msgstr[2] "Pasuje %(count)d grup komputerów"
-
-msgid "Add"
-msgstr "Dodaj"
-
-msgid "Add and Close"
-msgstr "Dodaj i zamknij"
-
-msgid "Add and Edit"
-msgstr "Dodaj i edytuj"
-
-msgid "Cancel"
-msgstr "Anuluj"
-
-msgid "Close"
-msgstr "Zamknij"
-
-msgid "Find"
-msgstr "Znajdź"
-
-msgid "Delete"
-msgstr "Usuń"
-
-msgid "Reset"
-msgstr "Przywróć"
-
-msgid "Restore"
-msgstr "Przywróć"
-
-msgid "Retry"
-msgstr "Ponów"
-
-msgid "Update"
-msgstr "Zaktualizuj"
-
-msgid "Back to Top"
-msgstr "Wróć na górę"
-
-msgid "Settings"
-msgstr "Ustawienia"
-
-msgid "Search"
-msgstr "Wyszukaj"
-
-msgid "Logged In As"
-msgstr "Zalogowano jako"
-
-msgid "Attribute"
-msgstr "Atrybut"
-
-msgid "New Certificate"
-msgstr "Nowy certyfikat"
-
-msgid "Certificate Revoked"
-msgstr "Odrzucono certyfikat"
-
-msgid "DNS Zone Settings"
-msgstr "Ustawienia strefy DNS"
-
-msgid "Groups"
-msgstr "Grupy"
-
-msgid "Host Name"
-msgstr "Nazwa komputera"
-
-msgid "Set OTP"
-msgstr "Ustaw OTP"
-
-msgid "Kerberos Ticket Policy"
-msgstr "Polityka zgłoszeń Kerberosa"
-
-msgid "Netgroups"
-msgstr "Grupy sieciowe"
-
-msgid "Password Policy"
-msgstr "Polityka haseł"
-
-msgid "Account Settings"
-msgstr "Ustawienia konta"
-
-msgid "Mailing Address"
-msgstr "Adres pocztowy"
-
-msgid "Misc. Information"
-msgstr "Różne informacje"
-
-msgid "Password change complete"
-msgstr "Ukończono zmianę hasła"
-
-msgid "Passwords must match"
-msgstr "Hasła muszą się zgadzać"
-
-msgid "Quick Links"
-msgstr "Szybkie odnośniki"
-
-msgid "Select All"
-msgstr "Zaznacz wszystko"
-
-msgid "Unselect All"
-msgstr "Odznacz wszystko"
-
-msgid "Automount"
-msgstr "Automatyczne montowanie"
-
-msgid "DNS"
-msgstr "DNS"
-
-#, python-format
-msgid ""
-"Kerberos principal %s already exists. Use 'ipa user-mod' to set it manually."
-msgstr ""
-"Naczelnik Kerberosa %s już istnieje. Należy użyć polecenia „ipa user-mod”, "
-"aby ustawić go ręcznie."
-
-msgid ""
-"Failed to add user to the default group. Use 'ipa group-add-member' to add "
-"manually."
-msgstr ""
-"Dodanie użytkownika do domyślnej grupy się nie powiodło. Należy użyć "
-"polecenia „ipa group-add-member”, aby dodać go ręcznie."
-
-#, python-format
-msgid "Changed password for \"%(value)s\""
-msgstr "Zmieniono hasło dla „%(value)s”"
+msgid "priority cannot be set on global policy"
+msgstr "nie można ustawiać priorytetu dla globalnej polityki"
 
 #, python-format
 msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
@@ -1537,62 +1578,21 @@ msgstr ""
 "priorytet musi być unikalną wartością (%(prio)d jest już używane przez "
 "%(gname)s)"
 
-msgid "Maximum password life must be greater than minimum."
-msgstr "Maksymalny czas życia hasła musi być wyższy niż minimalny."
+#, c-format
+msgid "read error\n"
+msgstr "błąd odczytu\n"
 
-msgid "priority cannot be set on global policy"
-msgstr "nie można ustawiać priorytetu dla globalnej polityki"
+#, c-format
+msgid "result not found in XML-RPC response\n"
+msgstr "nie odnaleziono wyniku w odpowiedzi XML-RPC\n"
 
-#, python-format
-msgid "Added service \"%(value)s\""
-msgstr "Dodano usługę „%(value)s”"
+msgid "the entry was deleted while being modified"
+msgstr "wpis został usunięty podczas modyfikowania"
 
-#, python-format
-msgid "Deleted service \"%(value)s\""
-msgstr "Usunięto usługę „%(value)s”"
-
-#, python-format
-msgid "Modified service \"%(value)s\""
-msgstr "Zmodyfikowano usługę „%(value)s”"
+msgid "type, filter, subtree and targetgroup are mutually exclusive"
+msgstr ""
+"wartości „type”, „filter”, „subtree” i „targetgroup” są wzajemnie wyłączne"
 
 #, python-format
-msgid "%(count)d service matched"
-msgid_plural "%(count)d services matched"
-msgstr[0] "Pasuje %(count)d usługa"
-msgstr[1] "Pasuje %(count)d usługi"
-msgstr[2] "Pasuje %(count)d usług"
-
-#, python-format
-msgid "Added user \"%(value)s\""
-msgstr "Dodano użytkownika „%(value)s”"
-
-#, python-format
-msgid "Deleted user \"%(value)s\""
-msgstr "Usunięto użytkownika „%(value)s”"
-
-#, python-format
-msgid "Modified user \"%(value)s\""
-msgstr "Zmodyfikowano użytkownika „%(value)s”"
-
-#, python-format
-msgid "Disabled user account \"%(value)s\""
-msgstr "Wyłączono konto użytkownika „%(value)s”"
-
-#, python-format
-msgid "Enabled user account \"%(value)s\""
-msgstr "Włączono konto użytkownika „%(value)s”"
-
-msgid "Out of memory\n"
-msgstr "Brak pamięci\n"
-
-msgid "Out of memory!?\n"
-msgstr "Brak pamięci?\n"
-
-msgid "Enctype comparison failed!\n"
-msgstr "Porównanie typów szyfrowania się nie powiodło.\n"
-
-msgid "Failed to create random key!\n"
-msgstr "Utworzenie losowego klucza się nie powiodło.\n"
-
-msgid "Failed to create key!\n"
-msgstr "Utworzenie klucza się nie powiodło.\n"
+msgid "unknown error %(code)d from %(server)s: %(error)s"
+msgstr "nieznany błąd %(code)d z %(server)s: %(error)s"
