@@ -100,6 +100,7 @@ Developers:
 	Jan Pazdziora
 	W. Michael Petullo
 	Pavel Picka
+	Orion Poplawski
 	Gowrishankar Rajaiyan
 	realsobek
 	Michal Reznik
@@ -108,6 +109,7 @@ Developers:
 	Lynn Root
 	Pete Rowley
 	Lenka Ryznarova
+	Alexander Scheel
 	Thorsten Scherf
 	shanyin
 	Kaleemullah Siddiqui
@@ -121,12 +123,14 @@ Developers:
 	David Spångberg
 	Justin Stephenson
 	Diane Trout
+	Serhii Tsymbaliuk
 	Fraser Tweedale
 	Petr Viktorin
 	Petr Voborník
 	Felipe Volpone
 	Pavel Vomáčka
 	Andrew Wnuk
+	Thomas Woerner
 	Jason Woods
 	Adam Young
 	Mohammad Rizwan Yusuf
@@ -157,15 +161,26 @@ Testing:
 	Yi Zhang
 
 Translators:
-	Héctor Daniel Cabrera
-	Yuri Chornoivan
-	Teguh DC
-	Piotr Drąg
-	Jérôme Fenal
-	Gundachandru
-	Jake Li
+	Abhijeet Kasurde
+	Andi Chandler
 	Andrew Martynov
+	A S Alam
+	Emilio Herrera
+	Gundachandru
+	Héctor Daniel Cabrera
+	Jake Li
+	Jérôme Fenal
+	Marco Aurélio Krause
+	Martin Bašti
+	Olesya Gerasimenko
+	Paul Ritter
+	Pavel Vomacka
+	Piotr Drąg
+	Robert Antoni Buj Gelonch
 	Sankarshan Mukhopadhyay
+	Teguh DC
+	Yuri Chornoivan
+	Zdenek
 
 Wiki, Solution and Idea Contributors:
 	James Hogarth
