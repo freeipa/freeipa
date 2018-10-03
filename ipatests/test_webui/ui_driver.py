@@ -42,6 +42,7 @@ try:
     from selenium.common.exceptions import StaleElementReferenceException
     from selenium.common.exceptions import WebDriverException
     from selenium.common.exceptions import ElementClickInterceptedException
+    from selenium.webdriver.common.action_chains import ActionChains
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.by import By
@@ -806,6 +807,11 @@ class UI_driver:
         if not parent:
                 parent = self.get_form()
         self.fill_text(search_field_s, value, parent)
+
+    def apply_search_filter(self, value):
+        self.fill_search_filter(value)
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.ENTER).perform()
 
     def add_multivalued(self, name, value, parent=None):
         """
