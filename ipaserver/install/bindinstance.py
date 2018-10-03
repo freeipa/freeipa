@@ -437,26 +437,32 @@ def zonemgr_callback(option, opt_str, value, parser):
     """
     if value is not None:
         # validate the value first
-        try:
-            # IDNA support requires unicode
-            encoding = getattr(sys.stdin, 'encoding', None)
-            if encoding is None:
-                encoding = 'utf-8'
+        if six.PY3:
+            try:
+                validate_zonemgr_str(value)
+            except ValueError as e:
+                parser.error("invalid zonemgr: {}".format(e))
+        else:
+            try:
+                # IDNA support requires unicode
+                encoding = getattr(sys.stdin, 'encoding', None)
+                if encoding is None:
+                    encoding = 'utf-8'
 
-            # value is of a string type in both py2 and py3
-            if not isinstance(value, unicode):
-                value = value.decode(encoding)
+                # value is of a string type in both py2 and py3
+                if not isinstance(value, unicode):
+                    value = value.decode(encoding)
 
-            validate_zonemgr_str(value)
-        except ValueError as e:
-            # FIXME we can do this in better way
-            # https://fedorahosted.org/freeipa/ticket/4804
-            # decode to proper stderr encoding
-            stderr_encoding = getattr(sys.stderr, 'encoding', None)
-            if stderr_encoding is None:
-                stderr_encoding = 'utf-8'
-            error = unicode(e).encode(stderr_encoding)
-            parser.error(b"invalid zonemgr: " + error)
+                validate_zonemgr_str(value)
+            except ValueError as e:
+                # FIXME we can do this in better way
+                # https://fedorahosted.org/freeipa/ticket/4804
+                # decode to proper stderr encoding
+                stderr_encoding = getattr(sys.stderr, 'encoding', None)
+                if stderr_encoding is None:
+                    stderr_encoding = 'utf-8'
+                error = unicode(e).encode(stderr_encoding)
+                parser.error(b"invalid zonemgr: " + error)
 
     parser.values.zonemgr = value
 
