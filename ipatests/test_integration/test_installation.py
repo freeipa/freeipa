@@ -10,6 +10,8 @@ installed.
 from __future__ import absolute_import
 
 import os
+from datetime import datetime, timedelta
+import time
 import pytest
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipaplatform.constants import constants
@@ -18,6 +20,7 @@ from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
+from ipalib import x509
 
 config = get_global_config()
 
@@ -486,3 +489,63 @@ class TestInstallMasterReservedIPasForwarder(IntegrationTest):
         exp_str = ("Invalid IP Address 0.0.0.0: cannot use IANA reserved "
                    "IP address 0.0.0.0")
         assert exp_str in cmd.stdout_text
+
+
+class TestKRAinstallAfterCertRenew(IntegrationTest):
+    """ Test KRA installtion after ca agent cert renewal
+
+    KRA installation was failing after ca-agent cert gets renewed.
+    This test checks if the symptoms no longer exist.
+
+    related ticket: https://pagure.io/freeipa/issue/7288
+    """
+
+    def test_KRA_install_after_cert_renew(self):
+
+        tasks.install_master(self.master)
+
+        # get ca-agent cert and load as pem
+        dm_pass = self.master.config.dirman_password
+        admin_pass = self.master.config.admin_password
+        args = [paths.OPENSSL, "pkcs12", "-in",
+                paths.DOGTAG_ADMIN_P12, "-nodes",
+                "-passin", "pass:{}".format(dm_pass)]
+        cmd = self.master.run_command(args)
+
+        certs = x509.load_certificate_list(cmd.stdout_text.encode('utf-8'))
+
+        # get expiry date of agent cert
+        cert_expiry = certs[0].not_valid_after
+
+        # move date to grace period so that certs get renewed
+        self.master.run_command(['systemctl', 'stop', 'chronyd'])
+        grace_date = cert_expiry - timedelta(days=10)
+        grace_date = datetime.strftime(grace_date, "%Y-%m-%d %H:%M:%S")
+        self.master.run_command(['date', '-s', grace_date])
+
+        # get the count of certs track by certmonger
+        cmd = self.master.run_command(['getcert', 'list'])
+        cert_count = cmd.stdout_text.count('Request ID')
+        timeout = 600
+        count = 0
+        start = time.time()
+        # wait sometime for cert renewal
+        while time.time() - start < timeout:
+            cmd = self.master.run_command(['getcert', 'list'])
+            count = cmd.stdout_text.count('status: MONITORING')
+            if count == cert_count:
+                break
+            time.sleep(100)
+        else:
+            # timeout
+            raise AssertionError('TimeOut: Failed to renew all the certs')
+
+        # move date after 3 days of actual expiry
+        cert_expiry = cert_expiry + timedelta(days=3)
+        cert_expiry = datetime.strftime(cert_expiry, "%Y-%m-%d %H:%M:%S")
+        self.master.run_command(['date', '-s', cert_expiry])
+
+        passwd = "{passwd}\n{passwd}\n{passwd}".format(passwd=admin_pass)
+        self.master.run_command(['kinit', 'admin'], stdin_text=passwd)
+        cmd = self.master.run_command(['ipa-kra-install', '-p', dm_pass, '-U'])
+        self.master.run_command(['systemctl', 'start', 'chronyd'])
