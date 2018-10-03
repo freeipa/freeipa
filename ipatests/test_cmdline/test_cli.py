@@ -1,5 +1,6 @@
 import contextlib
 import os
+from io import StringIO
 import shlex
 import subprocess
 import sys
@@ -7,7 +8,6 @@ import tempfile
 import unittest
 
 import six
-from six import StringIO
 
 from ipatests import util
 from ipatests.test_ipalib.test_x509 import goodcert_headers

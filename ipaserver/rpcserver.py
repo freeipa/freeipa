@@ -29,6 +29,9 @@ import logging
 from xml.sax.saxutils import escape
 import os
 import traceback
+from io import BytesIO
+from urllib.parse import parse_qs
+from xmlrpc.client import Fault
 
 import gssapi
 import requests
@@ -37,11 +40,6 @@ import ldap.controls
 from pyasn1.type import univ, namedtype
 from pyasn1.codec.ber import encoder
 import six
-# pylint: disable=import-error
-from six.moves.urllib.parse import parse_qs
-from six.moves.xmlrpc_client import Fault
-# pylint: enable=import-error
-from six import BytesIO
 
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES

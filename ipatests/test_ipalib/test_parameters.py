@@ -31,12 +31,11 @@ import re
 import sys
 from decimal import Decimal
 from inspect import isclass
+from xmlrpc.client import MAXINT, MININT
+
 import pytest
 
 import six
-# pylint: disable=import-error
-from six.moves.xmlrpc_client import MAXINT, MININT
-# pylint: enable=import-error
 from cryptography import x509 as crypto_x509
 from cryptography.hazmat.backends import default_backend
 

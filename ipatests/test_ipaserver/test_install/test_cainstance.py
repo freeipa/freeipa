@@ -3,11 +3,9 @@
 #
 
 from binascii import hexlify
+from io import StringIO
 import pickle
-# pylint: disable=import-error
-from six.moves.configparser import RawConfigParser
-# pylint: enable=import-error
-from six import StringIO
+from configparser import RawConfigParser
 import pytest
 from ipaserver.install import cainstance
 

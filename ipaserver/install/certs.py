@@ -19,6 +19,7 @@
 
 from __future__ import absolute_import
 
+import configparser
 import logging
 import os
 import stat
@@ -34,7 +35,6 @@ import time
 import datetime
 
 import six
-from six.moves import configparser
 
 from ipalib.install import certmonger, sysrestore
 from ipapython import dogtag
