@@ -51,23 +51,32 @@ HOST_GROUP_DATA = {
 
 
 @pytest.mark.tier1
-class test_automember(UI_driver):
+class TestAutomember(UI_driver):
 
     def setup(self):
-        super(test_automember, self).setup()
+        super(TestAutomember, self).setup()
         self.init_app()
 
-    def add_user_group_rule(self, pkey):
+    def add_user_group_rules(self, *pkeys):
+        # We implicitly trigger "Add and Add Another" by passing multiple
+        # records to add_record method.
+        # TODO: Create more transparent mechanism to test "Add <entity>" dialog
         self.add_record(
             ENTITY,
-            {'pkey': pkey, 'add': [('combobox', 'cn', pkey)]},
+            [{
+                'pkey': pkey,
+                'add': [('combobox', 'cn', pkey)],
+            } for pkey in pkeys],
             facet='searchgroup'
         )
 
-    def add_host_group_rule(self, pkey):
+    def add_host_group_rules(self, *pkeys):
         self.add_record(
             ENTITY,
-            {'pkey': pkey, 'add': [('combobox', 'cn', pkey)]},
+            [{
+                'pkey': pkey,
+                'add': [('combobox', 'cn', pkey)],
+            } for pkey in pkeys],
             facet='searchhostgroup'
         )
 
@@ -81,7 +90,7 @@ class test_automember(UI_driver):
             ]
         })
 
-    def add_user_group(self, pkey, description):
+    def add_user_group(self, pkey, description=''):
         self.add_record('group', {
             'pkey': pkey,
             'add': [
@@ -90,7 +99,7 @@ class test_automember(UI_driver):
             ]
         })
 
-    def add_host_group(self, pkey, description):
+    def add_host_group(self, pkey, description=''):
         self.add_record('hostgroup', {
             'pkey': pkey,
             'add': [
@@ -99,11 +108,19 @@ class test_automember(UI_driver):
             ]
         })
 
-    def delete_user_group_rule(self, pkey):
-        self.delete(ENTITY, [{'pkey': pkey}], facet='searchgroup')
+    def delete_user_groups(self, *pkeys):
+        self.delete('group', [{'pkey': pkey} for pkey in pkeys])
 
-    def delete_host_group_rule(self, pkey):
-        self.delete(ENTITY, [{'pkey': pkey}], facet='searchhostgroup')
+    def delete_user_group_rules(self, *pkeys):
+        self.delete(ENTITY, [{'pkey': pkey} for pkey in pkeys],
+                    facet='searchgroup')
+
+    def delete_host_groups(self, *pkeys):
+        self.delete('hostgroup', [{'pkey': pkey} for pkey in pkeys])
+
+    def delete_host_group_rules(self, *pkeys):
+        self.delete(ENTITY, [{'pkey': pkey} for pkey in pkeys],
+                    facet='searchhostgroup')
 
     @screenshot
     def test_crud(self):
@@ -158,7 +175,7 @@ class test_automember(UI_driver):
         self.add_record('host', host_util.get_data("web2", domain))
 
         # Add an automember rule
-        self.add_host_group_rule('webservers')
+        self.add_host_group_rules('webservers')
 
         # Add a condition for automember rule
         self.navigate_to_record('webservers')
@@ -209,9 +226,9 @@ class test_automember(UI_driver):
         self.assert_record(host2)
 
         # Delete hostgroup, hosts and automember rule
-        self.delete('hostgroup', [{'pkey': 'webservers'}])
+        self.delete_host_groups('webservers')
         self.delete('host', [{'pkey': host1}, {'pkey': host2}])
-        self.delete_host_group_rule('webservers')
+        self.delete_host_group_rules('webservers')
 
     @screenshot
     def test_rebuild_membership_users(self):
@@ -222,14 +239,12 @@ class test_automember(UI_driver):
         # Add a group
         self.add_user_group('devel', 'devel')
 
-        # Add a user
+        # Add users
         self.add_user('dev1', 'Dev', 'One')
-
-        # Add another user
         self.add_user('dev2', 'Dev', 'Two')
 
         # Add an automember rule
-        self.add_user_group_rule('devel')
+        self.add_user_group_rules('devel')
 
         # Add a condition for automember rule
         self.navigate_to_record('devel')
@@ -280,15 +295,47 @@ class test_automember(UI_driver):
         self.assert_record('dev2')
 
         # Delete group, users and automember rule
-        self.delete('group', [{'pkey': 'devel'}])
+        self.delete_user_groups('devel')
         self.delete('user', [{'pkey': 'dev1'}, {'pkey': 'dev2'}])
-        self.delete_user_group_rule('devel')
+        self.delete_user_group_rules('devel')
+
+    @screenshot
+    def test_add_multiple_user_group_rules(self):
+        """
+        Test creating and deleting multiple user group rules
+        """
+
+        groups = ['group1', 'group2', 'group3']
+
+        for group in groups:
+            self.add_user_group(group)
+
+        self.add_user_group_rules(*groups)
+        self.delete_user_group_rules(*groups)
+
+    @screenshot
+    def test_add_multiple_host_group_rules(self):
+        """
+        Test creating and deleting multiple host group rules
+        """
+
+        groups = ['group1', 'group2', 'group3']
+
+        for group in groups:
+            self.add_host_group(group)
+
+        self.add_host_group_rules(*groups)
+        self.delete_host_group_rules(*groups)
 
     @screenshot
     def test_search_user_group_rule(self):
+        """
+        Test searching user group rules using filter
+        """
+
         pkey = 'search123'
         self.add_user_group(pkey, '')
-        self.add_user_group_rule(pkey)
+        self.add_user_group_rules(pkey)
 
         for text in ['search123', 'search', ' search ', 'SEARCH', '123']:
             self.apply_search_filter(text)
@@ -300,14 +347,18 @@ class test_automember(UI_driver):
             self.wait_for_request()
             self.assert_record(pkey, negative=True)
 
-        self.delete_user_group_rule(pkey)
-        self.delete('group', [{'pkey': pkey}])
+        self.delete_user_group_rules(pkey)
+        self.delete_user_groups(pkey)
 
     @screenshot
     def test_search_host_group_rule(self):
+        """
+        Test searching host group rules using filter
+        """
+
         pkey = 'search123'
         self.add_host_group(pkey, '')
-        self.add_host_group_rule(pkey)
+        self.add_host_group_rules(pkey)
 
         for text in ['search123', 'search', ' search ', 'SEARCH', '123']:
             self.apply_search_filter(text)
@@ -319,5 +370,5 @@ class test_automember(UI_driver):
             self.wait_for_request()
             self.assert_record(pkey, negative=True)
 
-        self.delete_host_group_rule(pkey)
-        self.delete('hostgroup', [{'pkey': pkey}])
+        self.delete_host_group_rules(pkey)
+        self.delete_host_groups(pkey)
