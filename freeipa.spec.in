@@ -58,6 +58,8 @@
 %global selinux_policy_version 3.12.1-153
 %global slapi_nis_version 0.56.0-4
 %global python2_ldap_version 2.4.15
+# 10.5.9-5: https://bugzilla.redhat.com/show_bug.cgi?id=1596629
+%global pki_version 10.5.9-5
 %else
 # 1.15.1-7: certauth (http://krbdev.mit.edu/rt/Ticket/Display.html?id=8561)
 %global krb5_version 1.15.1-7
@@ -73,6 +75,8 @@
 %global python2_ldap_version 2.4.25-9
 # fix for segfault in python-ldap, https://pagure.io/freeipa/issue/7324
 %global python3_ldap_version 2.4.37-4
+# 10.5.12: https://pagure.io/dogtagpki/issue/3043
+%global pki_version 10.5.12
 
 %endif
 
@@ -217,7 +221,7 @@ BuildRequires:  python2-dns >= 1.15
 BuildRequires:  jsl
 BuildRequires:  python2-yubico
 # pki Python package
-BuildRequires:  pki-base-python2 >= 10.5.1-2
+BuildRequires:  pki-base-python2 >= %{pki_version}
 BuildRequires:  python2-pytest-multihost
 BuildRequires:  python2-pytest-sourceorder
 # 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
@@ -259,7 +263,7 @@ BuildRequires:  python3-qrcode-core >= 5.0.0
 BuildRequires:  python3-dns >= 1.15
 BuildRequires:  python3-yubico
 # pki Python package
-BuildRequires:  pki-base-python3 >= 10.5.1-2
+BuildRequires:  pki-base-python3 >= %{pki_version}
 BuildRequires:  python3-pytest-multihost
 BuildRequires:  python3-pytest-sourceorder
 # 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
@@ -361,8 +365,8 @@ Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
 Requires: slapi-nis >= %{slapi_nis_version}
 # 10.5.1-2 contains Python 3 vault fix
-Requires: pki-ca >= 10.5.1-2
-Requires: pki-kra >= 10.5.1-2
+Requires: pki-ca >= %{pki_version}
+Requires: pki-kra >= %{pki_version}
 Requires(preun): systemd-units
 Requires(postun): systemd-units
 Requires: policycoreutils >= 2.1.12-5
@@ -432,7 +436,7 @@ BuildRequires:  dbus-python
 Requires: python2-dns >= 1.15
 Requires: python2-kdcproxy >= 0.3
 Requires: rpm-libs
-Requires: pki-base-python2 >= 10.5.1-2
+Requires: pki-base-python2 >= %{pki_version}
 Requires: python2-augeas
 
 %description -n python2-ipaserver
@@ -467,7 +471,7 @@ Requires: python3-dns >= 1.15
 Requires: python3-kdcproxy >= 0.3
 Requires: python3-augeas
 Requires: rpm-libs
-Requires: pki-base-python3 >= 10.5.1-2
+Requires: pki-base-python3 >= %{pki_version}
 
 %description -n python3-ipaserver
 IPA is an integrated solution to provide centrally managed Identity (users,
