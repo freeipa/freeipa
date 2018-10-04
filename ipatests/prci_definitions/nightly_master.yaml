@@ -508,18 +508,6 @@ jobs:
         timeout: 7200
         topology: *master_3repl_1client
 
-  fedora-28/test_topology_TestReplicaManageDel:
-    requires: [fedora-28/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-28/build_url}'
-        test_suite: test_integration/test_topology.py::TestReplicaManageDel
-        template: *ci-master-f28
-        timeout: 7200
-        topology: *master_3repl_1client
-
   fedora-28/test_replication_layouts_TestLineTopologyWithoutCA:
     requires: [fedora-28/build]
     priority: 50
