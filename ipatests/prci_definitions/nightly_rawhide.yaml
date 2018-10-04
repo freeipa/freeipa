@@ -820,3 +820,16 @@ jobs:
         template: *ci-master-frawhide
         timeout: 3600
         topology: *ipaserver
+
+
+  fedora-rawhide/test_ntp_options:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_ntp_options.py::TestNTPoptions
+        template: *ci-master-f29
+        timeout: 7200
+        topology: *master_1repl_1client
