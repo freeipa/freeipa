@@ -49,6 +49,10 @@ HOST_GROUP_DATA = {
     ],
 }
 
+# Condition types
+INCLUSIVE = 'inclusive'
+EXCLUSIVE = 'exclusive'
+
 
 @pytest.mark.tier1
 class TestAutomember(UI_driver):
@@ -122,6 +126,60 @@ class TestAutomember(UI_driver):
         self.delete(ENTITY, [{'pkey': pkey} for pkey in pkeys],
                     facet='searchhostgroup')
 
+    def add_conditions(self, conditions, condition_type):
+        """
+        Add conditions to a rule
+
+        :param conditions: list of conditions where condition is a pair
+                           (attribute, expression)
+        :param condition_type: can be 'inclusive' or 'exclusive'
+        """
+
+        name = 'automember{}regex'.format(condition_type)
+
+        attribute, expression = conditions[0]
+        another_conditions = conditions[1:]
+        another_conditions.reverse()
+
+        self.add_table_record(name, {'fields': [
+            ('selectbox', 'key', attribute),
+            ('textbox', name, expression)
+        ]}, add_another=bool(another_conditions))
+
+        while another_conditions:
+            attribute, expression = another_conditions.pop()
+            self.add_another_table_record(
+                {'fields': [
+                    ('selectbox', 'key', attribute),
+                    ('textbox', name, expression)
+                ]},
+                add_another=bool(another_conditions)
+            )
+
+    def delete_conditions(self, conditions, condition_type):
+        """
+        Delete rule conditions
+
+        :param conditions: list of conditions where condition is a pair
+                           (attribute, expression)
+        :param condition_type: can be 'inclusive' or 'exclusive'
+        """
+
+        self.delete_record(
+            ['{}={}'.format(attr, exp) for attr, exp in conditions],
+            parent=self.get_facet(),
+            table_name='automember{}regex'.format(condition_type)
+        )
+
+    def open_new_condition_dialog(self, condition_type):
+        table = self.find_by_selector(
+            "table[name='automember{}regex'].table".format(condition_type),
+            strict=True
+        )
+        btn = self.find_by_selector(".btn[name=add]", table, strict=True)
+        btn.click()
+        self.wait()
+
     @screenshot
     def test_crud(self):
         """
@@ -179,13 +237,7 @@ class TestAutomember(UI_driver):
 
         # Add a condition for automember rule
         self.navigate_to_record('webservers')
-        self.add_table_record(
-            'automemberinclusiveregex',
-            {'fields': [
-                ('selectbox', 'key', 'fqdn'),
-                ('textbox', 'automemberinclusiveregex', '^web[1-9]+')
-            ]}
-        )
+        self.add_conditions([('fqdn', '^web[1-9]+')], condition_type=INCLUSIVE)
 
         # Assert that hosts are not members of hostgroup
         self.navigate_to_record('webservers', entity='hostgroup')
@@ -248,13 +300,7 @@ class TestAutomember(UI_driver):
 
         # Add a condition for automember rule
         self.navigate_to_record('devel')
-        self.add_table_record(
-            'automemberinclusiveregex',
-            {'fields': [
-                ('selectbox', 'key', 'uid'),
-                ('textbox', 'automemberinclusiveregex', '^dev[1-9]+')
-            ]}
-        )
+        self.add_conditions([('uid', '^dev[1-9]+')], condition_type=INCLUSIVE)
 
         # Assert that users are not members of group
         self.navigate_to_record('devel', entity='group')
@@ -369,6 +415,118 @@ class TestAutomember(UI_driver):
             self.apply_search_filter(text)
             self.wait_for_request()
             self.assert_record(pkey, negative=True)
+
+        self.delete_host_group_rules(pkey)
+        self.delete_host_groups(pkey)
+
+    @screenshot
+    def test_add_user_group_rule_conditions(self):
+        """
+        Test creating and deleting user group rule conditions
+        """
+
+        pkey = 'devel'
+        one_inc_condition = ('employeetype', '*engineer*')
+        inc_conditions = [
+            ('cn', 'inclusive-expression'),
+            ('description', 'other-inclusive-expression'),
+        ]
+        one_exc_condition = ('employeetype', '*manager*')
+        exc_conditions = [
+            ('cn', 'exclusive-expression'),
+            ('description', 'other-exclusive-expression'),
+        ]
+
+        self.add_user_group(pkey)
+        self.add_user_group_rules(pkey)
+
+        self.navigate_to_record(pkey)
+
+        self.add_conditions([one_inc_condition], condition_type=INCLUSIVE)
+        self.add_conditions(inc_conditions, condition_type=INCLUSIVE)
+        self.add_conditions([one_exc_condition], condition_type=EXCLUSIVE)
+        self.add_conditions(exc_conditions, condition_type=EXCLUSIVE)
+
+        self.delete_conditions([one_inc_condition], condition_type=INCLUSIVE)
+        self.delete_conditions(inc_conditions, condition_type=INCLUSIVE)
+        self.delete_conditions([one_exc_condition], condition_type=EXCLUSIVE)
+        self.delete_conditions(inc_conditions, condition_type=EXCLUSIVE)
+
+        self.delete_user_group_rules(pkey)
+        self.delete_user_groups(pkey)
+
+    @screenshot
+    def test_add_host_group_rule_conditions(self):
+        """
+        Test creating and deleting user group rule conditions
+        """
+
+        pkey = 'devel'
+        one_inc_condition = ('ipaclientversion', '4.8')
+        inc_conditions = [
+            ('cn', 'inclusive-expression'),
+            ('description', 'other-inclusive-expression'),
+        ]
+        one_exc_condition = ('ipaclientversion', '4.7')
+        exc_conditions = [
+            ('cn', 'exclusive-expression'),
+            ('description', 'other-exclusive-expression'),
+        ]
+
+        self.add_host_group(pkey)
+        self.add_host_group_rules(pkey)
+
+        self.navigate_to_record(pkey)
+
+        self.add_conditions([one_inc_condition], condition_type=INCLUSIVE)
+        self.add_conditions(inc_conditions, condition_type=INCLUSIVE)
+        self.add_conditions([one_exc_condition], condition_type=EXCLUSIVE)
+        self.add_conditions(exc_conditions, condition_type=EXCLUSIVE)
+
+        self.delete_conditions([one_inc_condition], condition_type=INCLUSIVE)
+        self.delete_conditions(inc_conditions, condition_type=INCLUSIVE)
+        self.delete_conditions([one_exc_condition], condition_type=EXCLUSIVE)
+        self.delete_conditions(inc_conditions, condition_type=EXCLUSIVE)
+
+        self.delete_host_group_rules(pkey)
+        self.delete_host_groups(pkey)
+
+    @screenshot
+    def test_cancel_new_user_group_rule_condition_dialog(self):
+        """
+        Test canceling of creating new user group rule condition
+        """
+
+        pkey = 'devel'
+
+        self.add_user_group(pkey)
+        self.add_user_group_rules(pkey)
+        self.navigate_to_record(pkey)
+
+        for condition_type in [INCLUSIVE, EXCLUSIVE]:
+            self.open_new_condition_dialog(condition_type)
+            self.fill_fields([('selectbox', 'key', 'title')])
+            self.dialog_button_click('cancel')
+
+        self.delete_user_group_rules(pkey)
+        self.delete_user_groups(pkey)
+
+    @screenshot
+    def test_cancel_new_host_group_rule_condition_dialog(self):
+        """
+        Test canceling of creating new host group rule condition
+        """
+
+        pkey = 'devel'
+
+        self.add_host_group(pkey)
+        self.add_host_group_rules(pkey)
+        self.navigate_to_record(pkey)
+
+        for condition_type in [INCLUSIVE, EXCLUSIVE]:
+            self.open_new_condition_dialog(condition_type)
+            self.fill_fields([('selectbox', 'key', 'serverhostname')])
+            self.dialog_button_click('cancel')
 
         self.delete_host_group_rules(pkey)
         self.delete_host_groups(pkey)
