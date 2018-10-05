@@ -270,6 +270,10 @@ class UI_driver:
 
         return result
 
+    def find_by_selector(self, expression, context=None, **kwargs):
+        return self.find(expression, by=By.CSS_SELECTOR, context=context,
+                         **kwargs)
+
     def files_loaded(self):
         """
         Test if dependencies were loaded. (Checks if UI has been rendered)
@@ -1547,7 +1551,7 @@ class UI_driver:
             self.delete_record(pkey, data.get('del'))
             self.close_notifications()
 
-    def add_table_record(self, name, data, parent=None):
+    def add_table_record(self, name, data, parent=None, add_another=False):
         """
         Add record to dnsrecord table, association table and similar
         """
@@ -1560,8 +1564,24 @@ class UI_driver:
         btn.click()
         self.wait()
         self.fill_fields(data['fields'])
-        self.dialog_button_click('add')
+
+        if not add_another:
+            self.dialog_button_click('add')
+            self.wait_for_request()
+
+    def add_another_table_record(self, data, add_another=False):
+        """
+        Add table record after creating previous one in the same dialog
+        TODO: Create class to manipulate such type of dialog
+        """
+        self.dialog_button_click('add_and_add_another')
         self.wait_for_request()
+
+        self.fill_fields(data['fields'])
+
+        if not add_another:
+            self.dialog_button_click('add')
+            self.wait_for_request()
 
     def prepare_associations(
             self, pkeys, facet=None, facet_btn='add', member_pkeys=None,
