@@ -118,7 +118,6 @@ class InstallTestBase2(IntegrationTest):
     def test_replica2_ipa_ca_install(self):
         tasks.install_ca(self.replicas[2])
 
-    @pytest.mark.xfail(reason='Ticket 7654', strict=True)
     def test_replica2_ipa_kra_install(self):
         tasks.install_kra(self.replicas[2])
 
