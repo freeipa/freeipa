@@ -112,6 +112,9 @@ class TestAutomember(UI_driver):
             ]
         })
 
+    def delete_users(self, *pkeys):
+        self.delete('user', [{'pkey': pkey} for pkey in pkeys])
+
     def delete_user_groups(self, *pkeys):
         self.delete('group', [{'pkey': pkey} for pkey in pkeys])
 
@@ -180,6 +183,12 @@ class TestAutomember(UI_driver):
         btn.click()
         self.wait()
 
+    def get_host_util(self):
+        host_util = host_tasks()
+        host_util.driver = self.driver
+        host_util.config = self.config
+        return host_util
+
     @screenshot
     def test_crud(self):
         """
@@ -218,9 +227,7 @@ class TestAutomember(UI_driver):
         Test automember rebuild membership feature for hosts
         """
 
-        host_util = host_tasks()
-        host_util.driver = self.driver
-        host_util.config = self.config
+        host_util = self.get_host_util()
         domain = self.config.get('ipa_domain')
         host1 = 'web1.%s' % domain
         host2 = 'web2.%s' % domain
@@ -342,7 +349,7 @@ class TestAutomember(UI_driver):
 
         # Delete group, users and automember rule
         self.delete_user_groups('devel')
-        self.delete('user', [{'pkey': 'dev1'}, {'pkey': 'dev2'}])
+        self.delete_users('dev1', 'dev2')
         self.delete_user_group_rules('devel')
 
     @screenshot
@@ -529,4 +536,48 @@ class TestAutomember(UI_driver):
             self.dialog_button_click('cancel')
 
         self.delete_host_group_rules(pkey)
+        self.delete_host_groups(pkey)
+
+    @screenshot
+    def test_set_default_user_group(self):
+        """
+        Test setting default user group
+        """
+
+        pkey = 'default-user-group'
+        user_pkey = 'some-user'
+
+        self.add_user_group(pkey)
+        self.navigate_by_menu('identity/automember/amgroup')
+        self.select_combobox('automemberdefaultgroup', pkey)
+
+        self.add_user(user_pkey, 'Some', 'User')
+        self.navigate_to_record(user_pkey)
+        self.switch_to_facet('memberof_group')
+        self.assert_record(pkey)
+
+        self.delete_users(user_pkey)
+        self.delete_user_groups(pkey)
+
+    @screenshot
+    def test_set_default_host_group(self):
+        """
+        Test setting default host group
+        """
+
+        pkey = 'default-host-group'
+        host_util = self.get_host_util()
+        domain = self.config.get('ipa_domain')
+
+        self.add_host_group(pkey)
+        self.navigate_by_menu('identity/automember/amhostgroup')
+        self.select_combobox('automemberdefaultgroup', pkey)
+
+        host_data = host_util.get_data('some-host', domain)
+        self.add_record('host', host_data)
+        self.navigate_to_record(host_data['pkey'])
+        self.switch_to_facet('memberof_hostgroup')
+        self.assert_record(pkey)
+
+        self.delete('host', [{'pkey': host_data['pkey']}])
         self.delete_host_groups(pkey)
