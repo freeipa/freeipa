@@ -57,11 +57,15 @@ EXCLUSIVE = 'exclusive'
 @pytest.mark.tier1
 class TestAutomember(UI_driver):
 
+    AUTOMEMBER_RULE_EXISTS_ERROR = (
+        'Automember rule with name "{}" already exists'
+    )
+
     def setup(self):
         super(TestAutomember, self).setup()
         self.init_app()
 
-    def add_user_group_rules(self, *pkeys):
+    def add_user_group_rules(self, *pkeys, **kwargs):
         # We implicitly trigger "Add and Add Another" by passing multiple
         # records to add_record method.
         # TODO: Create more transparent mechanism to test "Add <entity>" dialog
@@ -71,17 +75,19 @@ class TestAutomember(UI_driver):
                 'pkey': pkey,
                 'add': [('combobox', 'cn', pkey)],
             } for pkey in pkeys],
-            facet='searchgroup'
+            facet='searchgroup',
+            **kwargs
         )
 
-    def add_host_group_rules(self, *pkeys):
+    def add_host_group_rules(self, *pkeys, **kwargs):
         self.add_record(
             ENTITY,
             [{
                 'pkey': pkey,
                 'add': [('combobox', 'cn', pkey)],
             } for pkey in pkeys],
-            facet='searchhostgroup'
+            facet='searchhostgroup',
+            **kwargs
         )
 
     def add_user(self, pkey, name, surname):
@@ -581,3 +587,70 @@ class TestAutomember(UI_driver):
 
         self.delete('host', [{'pkey': host_data['pkey']}])
         self.delete_host_groups(pkey)
+
+    @screenshot
+    def test_add_user_group_rule_with_no_group(self):
+
+        self.add_record(
+            ENTITY,
+            {'pkey': 'empty-user-group', 'add': []},
+            facet='searchgroup',
+            negative=True
+        )
+
+    @screenshot
+    def test_add_host_group_rule_with_no_group(self):
+
+        self.add_record(
+            ENTITY,
+            {'pkey': 'empty-host-group', 'add': []},
+            facet='searchhostgroup',
+            negative=True
+        )
+
+    @screenshot
+    def test_add_user_group_rules_for_same_group(self):
+        """
+        Test creating user group rules for same group
+        """
+
+        group_name = 'some-user-group'
+
+        self.add_user_group(group_name)
+        self.add_user_group_rules(group_name)
+        self.add_user_group_rules(group_name, negative=True, pre_delete=False)
+
+        self.assert_last_error_dialog(
+            self.AUTOMEMBER_RULE_EXISTS_ERROR.format(group_name)
+        )
+
+        self.delete_user_group_rules(group_name)
+        self.delete_user_groups(group_name)
+
+    @screenshot
+    def test_add_host_group_rules_for_same_group(self):
+        """
+        Test creating host group rules for same group
+        """
+
+        group_name = 'some-host-group'
+
+        self.add_host_group(group_name)
+        self.add_host_group_rules(group_name)
+        self.add_host_group_rules(group_name, negative=True, pre_delete=False)
+
+        self.assert_last_error_dialog(
+            self.AUTOMEMBER_RULE_EXISTS_ERROR.format(group_name)
+        )
+
+        self.delete_host_group_rules(group_name)
+        self.delete_host_groups(group_name)
+
+    @screenshot
+    def test_cancel_group_rule_creating(self):
+        """
+        Test canceling of creating new automember group rule
+        """
+
+        self.add_user_group_rules('some-user-group', dialog_btn='cancel')
+        self.add_host_group_rules('some-host-group', dialog_btn='cancel')
