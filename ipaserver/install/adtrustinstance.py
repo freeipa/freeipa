@@ -845,8 +845,6 @@ class ADTRUSTInstance(service.Service):
                   self.__create_samba_domain_object)
         self.step("creating samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
-        self.step("map BUILTIN\\Guests to nobody group",
-                  self.__map_Guests_to_nobody)
         self.step("adding cifs Kerberos principal",
                   self.request_service_keytab)
         self.step("adding cifs and host Kerberos principals to the adtrust agents group", \
@@ -858,6 +856,8 @@ class ADTRUSTInstance(service.Service):
         self.step("updating Kerberos config", self.__update_krb5_conf)
         self.step("activating CLDAP plugin", self.__add_cldap_module)
         self.step("activating sidgen task", self.__add_sidgen_task)
+        self.step("map BUILTIN\\Guests to nobody group",
+                  self.__map_Guests_to_nobody)
         self.step("configuring smbd to start on boot", self.__enable)
         self.step("adding special DNS service records", \
                   self.__add_dns_service_records)
