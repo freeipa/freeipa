@@ -213,6 +213,7 @@ class TestInstallWithCA2(InstallTestBase2):
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
+    @pytest.mark.xfail(reason='Ticket 7651', strict=True)
     def test_replica0_with_ca_kra_dns_install(self):
         super(TestInstallWithCA2, self).test_replica0_with_ca_kra_dns_install()
 
@@ -274,6 +275,7 @@ class TestInstallWithCA_DNS2(InstallTestBase2):
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
+    @pytest.mark.xfail(reason='Ticket 7651', strict=True)
     def test_replica0_with_ca_kra_dns_install(self):
         super(
             TestInstallWithCA_DNS2, self
