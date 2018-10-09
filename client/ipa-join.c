@@ -197,33 +197,31 @@ callRPC(char * user_agent,
 
 /* The caller is responsible for unbinding the connection if ld is not NULL */
 static LDAP *
-connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
+connect_ldap(const char *hostname, const char *binddn, const char *bindpw,
+             int *ret) {
     LDAP *ld = NULL;
-    int ret;
-    int ldapdebug = 0;
-    char *uri;
+    int ldapdebug = 2;
+    char *uri = NULL;
     struct berval bindpw_bv;
 
-    if (debug) {
-        ldapdebug = 2;
-        ret = ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &ldapdebug);
-        if (ret != LDAP_OPT_SUCCESS) {
-            goto fail;
-        }
+    *ret = ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &ldapdebug);
+    if (*ret != LDAP_OPT_SUCCESS) {
+        goto fail;
     }
 
-    ret = asprintf(&uri, "ldaps://%s:636", hostname);
-    if (ret == -1) {
+    *ret = asprintf(&uri, "ldaps://%s:636", hostname);
+    if (*ret == -1) {
         fprintf(stderr, _("Out of memory!"));
+        *ret = LDAP_NO_MEMORY;
         goto fail;
     }
 
-    ret = ipa_ldap_init(&ld, uri);
-    if (ret != LDAP_SUCCESS) {
+    *ret = ipa_ldap_init(&ld, uri);
+    if (*ret != LDAP_SUCCESS) {
         goto fail;
     }
-    ret = ipa_tls_ssl_init(ld, uri, DEFAULT_CA_CERT_FILE);
-    if (ret != LDAP_SUCCESS) {
+    *ret = ipa_tls_ssl_init(ld, uri, DEFAULT_CA_CERT_FILE);
+    if (*ret != LDAP_SUCCESS) {
         fprintf(stderr, _("Unable to enable SSL in LDAP\n"));
         goto fail;
     }
@@ -238,15 +236,11 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
         bindpw_bv.bv_len = 0;
     }
 
-    ret = ldap_sasl_bind_s(ld, binddn, LDAP_SASL_SIMPLE, &bindpw_bv,
-                           NULL, NULL, NULL);
+    *ret = ldap_sasl_bind_s(ld, binddn, LDAP_SASL_SIMPLE, &bindpw_bv,
+                            NULL, NULL, NULL);
 
-    if (ret != LDAP_SUCCESS) {
-        int err;
-
-        ldap_get_option(ld, LDAP_OPT_RESULT_CODE, &err);
-        if (debug)
-            fprintf(stderr, _("Bind failed: %s\n"), ldap_err2string(err));
+    if (*ret != LDAP_SUCCESS) {
+        fprintf(stderr, _("Bind failed: %s\n"), ldap_err2string(*ret));
         goto fail;
     }
 
@@ -309,7 +303,7 @@ get_root_dn(const char *ipaserver, char **ldap_base)
     struct berval **defvals;
     int ret, rval = 0;
 
-    ld = connect_ldap(ipaserver, NULL, NULL);
+    ld = connect_ldap(ipaserver, NULL, NULL, &ret);
     if (!ld) {
         rval = 14;
         goto done;
@@ -429,11 +423,23 @@ join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bin
         rval = 3;
         goto done;
     }
-    ld = connect_ldap(ipaserver, *binddn, bindpw);
+    ld = connect_ldap(ipaserver, *binddn, bindpw, &ret);
     if (!ld) {
-        if (!quiet)
-            fprintf(stderr, _("Incorrect password.\n"));
-        rval = 15;
+        if (quiet)
+            goto done;
+
+        switch(ret) {
+            case LDAP_NO_MEMORY:
+                rval = 3;
+                break;
+            case LDAP_INVALID_CREDENTIALS: /* incorrect password */
+            case LDAP_INAPPROPRIATE_AUTH: /* no password set */
+                rval = 15;
+                break;
+            default: /* LDAP connection error catch-all */
+                rval = 14;
+                break;
+        }
         goto done;
     }
 
