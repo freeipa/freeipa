@@ -1125,11 +1125,14 @@ def ensure_krbcanonicalname_set(ldap, entry_attrs):
 def check_client_configuration():
     """
     Check if IPA client is configured on the system.
+
+    Hardcode return code to avoid recursive imports
     """
     if (not os.path.isfile(paths.IPA_DEFAULT_CONF) or
             not os.path.isdir(paths.IPA_CLIENT_SYSRESTORE) or
             not os.listdir(paths.IPA_CLIENT_SYSRESTORE)):
-        raise ScriptError('IPA client is not configured on this system')
+        raise ScriptError('IPA client is not configured on this system',
+                          2)  # CLIENT_NOT_CONFIGURED
 
 
 def check_principal_realm_in_trust_namespace(api_instance, *keys):
