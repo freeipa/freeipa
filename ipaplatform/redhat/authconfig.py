@@ -141,7 +141,7 @@ class RedHatAuthSelect(RedHatAuthToolBase):
     def unconfigure(
         self, fstore, statestore, was_sssd_installed, was_sssd_configured
     ):
-        if not statestore.has_state('authselect'):
+        if not statestore.has_state('authselect') and was_sssd_installed:
             logger.warning(
                 "WARNING: Unable to revert to the pre-installation state "
                 "('authconfig' tool has been deprecated in favor of "
