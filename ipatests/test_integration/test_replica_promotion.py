@@ -206,6 +206,36 @@ class TestWrongClientDomain(IntegrationTest):
         assert(result1.returncode == 0), (
             'Failed to promote the client installed with the upcase domain name')
 
+    def test_client_rollback(self):
+        """Test that bogus error msgs are not in output on rollback.
+
+           FIXME: including in this suite to avoid setting up a
+                  master just to test a client install failure. If
+                  a pure client install suite is added this can be
+                  moved.
+
+           Ticket https://pagure.io/freeipa/issue/7729
+        """
+        client = self.replicas[0]
+
+        # Cleanup previous run
+        client.run_command(['ipa-server-install',
+                            '--uninstall', '-U'], raiseonerr=False)
+
+        result = client.run_command(['ipa-client-install', '-U',
+                                     '--server', self.master.hostname,
+                                     '--domain', client.domain.name,
+                                     '-w', 'foo'], raiseonerr=False)
+
+        assert(result.returncode == 1)
+
+        assert("Unconfigured automount client failed" not in
+               result.stdout_text)
+
+        assert("WARNING: Unable to revert" not in result.stdout_text)
+
+        assert("An error occurred while removing SSSD" not in
+               result.stdout_text)
 
 class TestRenewalMaster(IntegrationTest):
 

@@ -3282,13 +3282,14 @@ def uninstall(options):
     remove_file(paths.SSSD_MC_GROUP)
     remove_file(paths.SSSD_MC_PASSWD)
 
-    try:
-        run([paths.SSSCTL, "cache-remove", "-o", "--stop", "--start"])
-    except Exception:
-        logger.info(
-            "An error occurred while removing SSSD's cache."
-            "Please remove the cache manually by executing "
-            "sssctl cache-remove -o.")
+    if was_sssd_installed:
+        try:
+            run([paths.SSSCTL, "cache-remove", "-o", "--stop", "--start"])
+        except Exception:
+            logger.info(
+                "An error occurred while removing SSSD's cache."
+                "Please remove the cache manually by executing "
+                "sssctl cache-remove -o.")
 
     if ipa_domain:
         sssd_domain_ldb = "cache_" + ipa_domain + ".ldb"
@@ -3352,7 +3353,8 @@ def uninstall(options):
 
     # SSSD was not installed before our installation, and no other domains
     # than IPA are configured in sssd.conf - make sure config file is removed
-    elif not was_sssd_installed and not was_sssd_configured:
+    elif not was_sssd_installed and not was_sssd_configured \
+            and os.path.exists(paths.SSSD_CONF):
         try:
             os.rename(paths.SSSD_CONF, paths.SSSD_CONF_DELETED)
         except OSError:
