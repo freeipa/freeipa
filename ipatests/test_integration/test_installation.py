@@ -104,10 +104,6 @@ class InstallTestBase2(IntegrationTest):
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=False)
 
-    def test_replica0_with_ca_kra_dns_install(self):
-        tasks.install_replica(self.master, self.replicas[0], setup_ca=True,
-                              setup_kra=True, setup_dns=True)
-
     def test_replica1_with_ca_dns_install(self):
         tasks.install_replica(self.master, self.replicas[1], setup_ca=True,
                               setup_dns=True)
@@ -184,12 +180,6 @@ class TestInstallWithCA2(InstallTestBase2):
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
-    @pytest.mark.xfail(reason='Ticket 7651', strict=True)
-    def test_replica0_with_ca_kra_dns_install(self):
-        super(TestInstallWithCA2, self).test_replica0_with_ca_kra_dns_install()
-
-    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
-                        reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica1_ipa_kra_install(self):
         super(TestInstallWithCA2, self).test_replica1_ipa_kra_install()
 
@@ -244,14 +234,6 @@ class TestInstallWithCA_DNS2(InstallTestBase2):
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True)
-
-    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
-                        reason='does not work on DOMAIN_LEVEL_0 by design')
-    @pytest.mark.xfail(reason='Ticket 7651', strict=True)
-    def test_replica0_with_ca_kra_dns_install(self):
-        super(
-            TestInstallWithCA_DNS2, self
-        ).test_replica0_with_ca_kra_dns_install()
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
