@@ -14,7 +14,7 @@ Domain level 0 is not supported anymore.
 
 To create a replica, the machine only needs to be enrolled in the FreeIPA domain first. This process of turning the IPA client into a replica is also referred to as replica promotion.
 
-If you're starting with an existing IPA client, simply run ipa\-replica\-install to have it promoted into a replica.
+If you're starting with an existing IPA client, simply run ipa\-replica\-install to have it promoted into a replica. The NTP configuration cannot be updated during client promotion. 
 
 To promote a blank machine into a replica, you have two options, you can either run ipa\-client\-install in a separate step, or pass the enrollment related options to the ipa\-replica\-install (see CLIENT ENROLLMENT OPTIONS). In the latter case, ipa\-replica\-install will join the machine to the IPA realm automatically and will proceed with the promotion step.
 
