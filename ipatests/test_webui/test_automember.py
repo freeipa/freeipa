@@ -49,6 +49,29 @@ HOST_GROUP_DATA = {
     ],
 }
 
+SEARCH_CASES = {
+    'name': 'search-123',
+    'description': 'Short description !@#$%^&*()',
+    'positive': [
+        'search-123',
+        'search',
+        'search ',
+        ' search',
+        'SEARCH',
+        '123',
+        '!@#$%^&*()',
+        'hort descr',
+        'description  !',
+    ],
+    'negative': [
+        'searc-123',
+        '321',
+        'search 123',
+        'search Short',
+        'description!',
+    ],
+}
+
 # Condition types
 INCLUSIVE = 'inclusive'
 EXCLUSIVE = 'exclusive'
@@ -392,16 +415,21 @@ class TestAutomember(UI_driver):
         Test searching user group rules using filter
         """
 
-        pkey = 'search123'
+        pkey = SEARCH_CASES['name']
         self.add_user_group(pkey, '')
         self.add_user_group_rules(pkey)
+        self.navigate_to_record(pkey)
+        self.mod_record(ENTITY, {'mod': [
+            ('textarea', 'description', SEARCH_CASES['description']),
+        ]}, facet='usergrouprule')
+        self.navigate_to_entity(ENTITY, facet='searchgroup')
 
-        for text in ['search123', 'search', ' search ', 'SEARCH', '123']:
+        for text in SEARCH_CASES['positive']:
             self.apply_search_filter(text)
             self.wait_for_request()
             self.assert_record(pkey)
 
-        for text in ['search1234', '321']:
+        for text in SEARCH_CASES['negative']:
             self.apply_search_filter(text)
             self.wait_for_request()
             self.assert_record(pkey, negative=True)
@@ -415,16 +443,21 @@ class TestAutomember(UI_driver):
         Test searching host group rules using filter
         """
 
-        pkey = 'search123'
+        pkey = SEARCH_CASES['name']
         self.add_host_group(pkey, '')
-        self.add_host_group_rules(pkey)
+        self.add_host_group_rules(pkey, navigate=True)
+        self.navigate_to_record(pkey)
+        self.mod_record(ENTITY, {'mod': [
+            ('textarea', 'description', SEARCH_CASES['description']),
+        ]}, facet='hostgrouprule')
+        self.navigate_to_entity(ENTITY, facet='searchhostgroup')
 
-        for text in ['search123', 'search', ' search ', 'SEARCH', '123']:
+        for text in SEARCH_CASES['positive']:
             self.apply_search_filter(text)
             self.wait_for_request()
             self.assert_record(pkey)
 
-        for text in ['search1234', '321']:
+        for text in SEARCH_CASES['negative']:
             self.apply_search_filter(text)
             self.wait_for_request()
             self.assert_record(pkey, negative=True)
