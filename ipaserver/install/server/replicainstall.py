@@ -717,6 +717,11 @@ def ensure_enrolled(installer):
         for ip in installer.ip_addresses:
             # installer.ip_addresses is of type [CheckedIPAddress]
             args.extend(("--ip-address", str(ip)))
+    if installer.ntp_servers:
+        for server in installer.ntp_servers:
+            args.extend(("--ntp-server", server))
+    if installer.ntp_pool:
+        args.extend(("--ntp-pool", installer.ntp_pool))
 
     try:
         # Call client install script
@@ -773,6 +778,11 @@ def promote_check(installer):
             print("IPA client is already configured on this system, ignoring "
                   "the --domain, --server, --realm, --hostname, --password "
                   "and --keytab options.")
+
+        # The NTP configuration can not be touched on pre-installed client:
+        if options.no_ntp or options.ntp_servers or options.ntp_pool:
+                raise ScriptError(
+                    "NTP configuration cannot be updated during promotion")
 
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
