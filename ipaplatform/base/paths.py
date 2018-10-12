@@ -350,7 +350,7 @@ class BasePathNamespace:
     OPENDNSSEC_KASP_DB = "/var/opendnssec/kasp.db"
     IPA_ODS_EXPORTER_CCACHE = "/var/opendnssec/tmp/ipa-ods-exporter.ccache"
     VAR_RUN_DIRSRV_DIR = "/var/run/dirsrv"
-    IPA_CCACHES = "/var/run/ipa/ccaches"
+    IPA_CCACHES = "/run/ipa/ccaches"
     HTTP_CCACHE = "/var/lib/ipa/gssproxy/http.ccache"
     CA_BUNDLE_PEM = "/var/lib/ipa-client/pki/ca-bundle.pem"
     KDC_CA_BUNDLE_PEM = "/var/lib/ipa-client/pki/kdc-ca-bundle.pem"

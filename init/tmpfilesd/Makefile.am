@@ -7,4 +7,4 @@ systemdtmpfiles_DATA =         \
 CLEANFILES = $(systemdtmpfiles_DATA)
 
 %: %.in Makefile
-	sed -e 's|@localstatedir[@]|$(localstatedir)|g' '$(srcdir)/$@.in' >$@
+	cp '$(srcdir)/$@.in' $@
