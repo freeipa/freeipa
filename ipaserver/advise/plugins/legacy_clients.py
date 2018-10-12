@@ -28,6 +28,9 @@ from ipapython.ipautil import template_file
 
 register = Registry()
 
+CACERTDIR_REHASH_URL = ('https://pagure.io/authconfig/raw/master/f/'
+                        'cacertdir_rehash')
+
 
 class config_base_legacy_client(Advice):
     def get_uri_and_base(self):
@@ -50,8 +53,6 @@ class config_base_legacy_client(Advice):
                          'location. If this value is different on your system '
                          'the script needs to be modified accordingly.\n')
 
-        cacertdir_rehash = ('https://fedorahosted.org/authconfig/browser/'
-                            'cacertdir_rehash?format=txt')
         self.log.comment('Download the CA certificate of the IPA server')
         self.log.command('mkdir -p -m 755 /etc/openldap/cacerts')
         self.log.command('curl http://%s/ipa/config/ca.crt -o '
@@ -60,7 +61,8 @@ class config_base_legacy_client(Advice):
         self.log.comment('Generate hashes for the openldap library')
         self.log.command('command -v cacertdir_rehash')
         self.log.command('if [ $? -ne 0 ] ; then')
-        self.log.command(' curl "%s" -o cacertdir_rehash ;' % cacertdir_rehash)
+        self.log.command(' curl "%s" -o cacertdir_rehash ;' %
+                         CACERTDIR_REHASH_URL)
         self.log.command(' chmod 755 ./cacertdir_rehash ;')
         self.log.command(' ./cacertdir_rehash /etc/openldap/cacerts/ ;')
         self.log.command('else')
