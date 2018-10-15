@@ -39,7 +39,7 @@ PKEY = 'itest-range'
 class test_range(range_tasks):
 
     def setup(self):
-        super(test_range, self).setup()
+        super().setup()
         self.init_app()
         self.get_shifts()
 

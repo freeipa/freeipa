@@ -163,7 +163,7 @@ class range_tasks(UI_driver):
             self.assert_disabled("[name=ipasecondarybaserid]")
 
 
-class RangeAddFormData(object):
+class RangeAddFormData:
     """
     Class for storing and serializing of new ID Range form data.
 
@@ -206,7 +206,7 @@ class RangeAddFormData(object):
         return serialized
 
 
-class RangeModifyFormData(object):
+class RangeModifyFormData:
     """
     Class for storing and serializing of modified ID Range form data.
     """
