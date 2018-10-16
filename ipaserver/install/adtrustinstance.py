@@ -114,8 +114,8 @@ def make_netbios_name(s):
 
 def map_Guests_to_nobody():
     env = {'LC_ALL': 'C'}
-    args = [paths.NET, 'groupmap', 'add', 'sid=S-1-5-32-546',
-            'unixgroup=nobody', 'type=builtin']
+    args = [paths.NET, '-s', '/dev/null', 'groupmap', 'add',
+            'sid=S-1-5-32-546', 'unixgroup=nobody', 'type=builtin']
 
     logger.debug("Map BUILTIN\\Guests to a group 'nobody'")
     ipautil.run(args, env=env, raiseonerr=False, capture_error=True)
