@@ -136,7 +136,6 @@ class TestClientInstallation(IntegrationTest):
         # by default
         result = self._uninstall_client()
         assert result.returncode == 0
-        assert self.msg_warn_uninstall in result.stderr_text
         check_authselect_profile(self.client, default_profile)
 
     def test_install_client_preconfigured_profile(self):
