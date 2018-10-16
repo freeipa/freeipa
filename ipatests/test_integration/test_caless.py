@@ -517,7 +517,8 @@ class TestServerInstall(CALessBase):
         self.prepare_cacert('ca1')
 
         result = self.install_server(http_pin='bad<pin>')
-        assert_error(result, 'incorrect password for pkcs#12 file server.p12')
+        assert_error(result, 'incorrect password for pkcs#12 file %s' %
+                     os.path.join(self.master.config.test_dir, 'server.p12'))
 
     @server_install_teardown
     def test_incorect_ds_pin(self):
@@ -527,7 +528,8 @@ class TestServerInstall(CALessBase):
         self.prepare_cacert('ca1')
 
         result = self.install_server(dirsrv_pin='bad<pin>')
-        assert_error(result, 'incorrect password for pkcs#12 file server.p12')
+        assert_error(result, 'incorrect password for pkcs#12 file %s' %
+                     os.path.join(self.master.config.test_dir, 'server.p12'))
 
     @server_install_teardown
     def test_invalid_http_cn(self):
@@ -869,7 +871,9 @@ class TestReplicaInstall(CALessBase):
 
         result = self.prepare_replica(http_pin='bad<pin>')
         assert result.returncode > 0
-        assert_error(result, 'incorrect password for pkcs#12 file replica.p12')
+        assert_error(result, 'incorrect password for pkcs#12 file %s' %
+                     os.path.join(self.replicas[0].config.test_dir,
+                                  'replica.p12'))
 
     @replica_install_teardown
     def test_incorect_ds_pin(self):
@@ -878,7 +882,9 @@ class TestReplicaInstall(CALessBase):
         self.create_pkcs12('ca1/replica', filename='replica.p12')
 
         result = self.prepare_replica(dirsrv_pin='bad<pin>')
-        assert_error(result, 'incorrect password for pkcs#12 file replica.p12')
+        assert_error(result, 'incorrect password for pkcs#12 file %s' %
+                     os.path.join(self.replicas[0].config.test_dir,
+                                  'replica.p12'))
 
     @replica_install_teardown
     def test_http_unknown_ca(self):
