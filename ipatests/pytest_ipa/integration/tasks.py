@@ -69,11 +69,12 @@ def setup_server_logs_collecting(host):
 
     # IPA install logs
     host.collect_log(paths.IPASERVER_INSTALL_LOG)
+    host.collect_log(paths.IPASERVER_UNINSTALL_LOG)
     host.collect_log(paths.IPACLIENT_INSTALL_LOG)
+    host.collect_log(paths.IPACLIENT_UNINSTALL_LOG)
     host.collect_log(paths.IPAREPLICA_INSTALL_LOG)
     host.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
     host.collect_log(paths.IPAREPLICA_CA_INSTALL_LOG)
-    host.collect_log(paths.IPACLIENT_INSTALL_LOG)
     host.collect_log(paths.IPASERVER_KRA_INSTALL_LOG)
     host.collect_log(paths.IPA_CUSTODIA_AUDIT_LOG)
 
