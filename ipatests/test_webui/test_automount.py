@@ -61,9 +61,89 @@ KEY_DATA = {
     ]
 }
 
+DIRECT_MAPS = [
+    {
+        'pkey': 'map1',
+        'add': [
+            ('radio', 'method', 'add'),
+            ('textbox', 'automountmapname', 'map1'),
+            ('textarea', 'description', 'foobar'),
+        ],
+    },
+    {
+        'pkey': 'map2',
+        'add': [
+            ('radio', 'method', 'add'),
+            ('textbox', 'automountmapname', 'map2'),
+            ('textarea', 'description', 'foobar'),
+        ],
+    },
+    {
+        'pkey': 'map3',
+        'add': [
+            ('radio', 'method', 'add'),
+            ('textbox', 'automountmapname', 'map3'),
+            ('textarea', 'description', 'foobar'),
+        ],
+    },
+    {
+        'pkey': 'map4',
+        'add': [
+            ('radio', 'method', 'add'),
+            ('textbox', 'automountmapname', 'map4'),
+            ('textarea', 'description', 'foobar'),
+        ],
+    },
+]
+
+INDIRECT_MAPS = [
+    {
+        'pkey': 'map1',
+        'add': [
+            ('radio', 'method', 'add'),
+            ('textbox', 'automountmapname', 'map1'),
+            ('textarea', 'description', 'foobar'),
+        ],
+    },
+    {
+        'pkey': 'map2',
+        'add': [
+            ('radio', 'method', 'add_indirect'),
+            ('textbox', 'automountmapname', 'map2'),
+            ('textarea', 'description', 'foobar'),
+            ('textbox', 'key', 'mount1'),
+            ('textbox', 'parentmap', 'map1'),
+        ],
+    },
+    {
+        'pkey': 'map3',
+        'add': [
+            ('radio', 'method', 'add_indirect'),
+            ('textbox', 'automountmapname', 'map3'),
+            ('textarea', 'description', 'foobar'),
+            ('textbox', 'key', 'mount2'),
+            ('textbox', 'parentmap', 'map1'),
+        ],
+    },
+    {
+        'pkey': 'map4',
+        'add': [
+            ('radio', 'method', 'add_indirect'),
+            ('textbox', 'automountmapname', 'map4'),
+            ('textarea', 'description', 'foobar'),
+            ('textbox', 'key', 'mount3'),
+            ('textbox', 'parentmap', 'map1'),
+        ],
+    },
+]
+
 
 @pytest.mark.tier1
-class test_automount(UI_driver):
+class TestAutomount(UI_driver):
+
+    def setup(self):
+        super().setup()
+        self.init_app()
 
     @screenshot
     def test_crud(self):
@@ -142,4 +222,99 @@ class test_automount(UI_driver):
         self.delete_record(direct_pkey)
         self.delete_record(indirect_pkey)
         self.navigate_by_breadcrumb('Automount Locations')
+        self.delete_record(LOC_PKEY)
+
+    def test_add_location_dialog(self):
+        """
+        Test 'Add Automount Location' dialog behaviour
+        """
+
+        pkeys = ['loc1', 'loc2', 'loc3', 'loc4']
+        locations = [{
+            'pkey': pkey,
+            'add': [('textbox', 'cn', pkey)]
+        } for pkey in pkeys]
+
+        self.navigate_to_entity(LOC_ENTITY)
+
+        # Add and add another
+        self.add_record(LOC_ENTITY, [locations[0], locations[1]],
+                        navigate=False)
+        self.assert_record(locations[0]['pkey'])
+        self.assert_record(locations[1]['pkey'])
+
+        # Add and edit
+        self.add_record(LOC_ENTITY, locations[2], dialog_btn='add_and_edit',
+                        navigate=False)
+        self.assert_facet(LOC_ENTITY, facet='maps')
+
+        # Cancel dialog
+        self.add_record(LOC_ENTITY, locations[3], dialog_btn='cancel')
+        self.assert_record(locations[3]['pkey'], negative=True)
+
+        self.delete_record(pkeys)
+
+    @pytest.mark.parametrize('maps', [DIRECT_MAPS, INDIRECT_MAPS])
+    def test_add_map_dialog(self, maps):
+        """
+        Test 'Add Automount Map' dialog behaviour
+        """
+
+        self.add_record(LOC_ENTITY, LOC_DATA)
+        self.navigate_to_record(LOC_PKEY)
+
+        # Add and add another
+        self.add_record(LOC_ENTITY, [maps[0], maps[1]],
+                        facet='maps', navigate=False)
+        self.assert_record(maps[0]['pkey'])
+        self.assert_record(maps[1]['pkey'])
+
+        # Add and edit
+        self.add_record(LOC_ENTITY, maps[2], dialog_btn='add_and_edit',
+                        facet='maps', navigate=False)
+        self.assert_facet(MAP_ENTITY, facet='keys')
+
+        # Cancel dialog
+        self.add_record(LOC_ENTITY, maps[3], facet='maps', dialog_btn='cancel')
+        self.assert_record(maps[3]['pkey'], negative=True)
+
+        self.delete_record(LOC_PKEY)
+
+    def test_add_key_dialog(self):
+        """
+        Test 'Add Automount Key' dialog behaviour
+        """
+
+        pkeys = ['key1', 'key2', 'key3', 'key4']
+
+        keys = [
+            {
+                'pkey': pkey,
+                'add': [
+                    ('textbox', 'automountkey', pkey),
+                    ('textbox', 'automountinformation', '/itest/%s' % pkey),
+                ],
+            } for pkey in pkeys
+        ]
+
+        self.add_record(LOC_ENTITY, LOC_DATA)
+        self.navigate_to_record(LOC_PKEY)
+        self.add_record(LOC_ENTITY, MAP_DATA, facet='maps', navigate=False)
+        self.navigate_to_record(MAP_PKEY)
+
+        # Add and add another
+        self.add_record(MAP_ENTITY, [keys[0], keys[1]],
+                        facet='keys', navigate=False)
+        self.assert_record(keys[0]['pkey'])
+        self.assert_record(keys[1]['pkey'])
+
+        # Add and edit
+        self.add_record(MAP_ENTITY, keys[2], dialog_btn='add_and_edit',
+                        facet='keys', navigate=False)
+        self.assert_facet(KEY_ENTITY, facet='details')
+
+        # Cancel dialog
+        self.add_record(MAP_ENTITY, keys[3], facet='keys', dialog_btn='cancel')
+        self.assert_record(keys[3]['pkey'], negative=True)
+
         self.delete_record(LOC_PKEY)
