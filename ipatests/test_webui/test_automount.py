@@ -114,6 +114,9 @@ INDIRECT_MAPS = [
             ('textbox', 'key', 'mount1'),
             ('textbox', 'parentmap', 'map1'),
         ],
+        'mod': [
+            ('textarea', 'description', 'modified'),
+        ]
     },
     {
         'pkey': 'map3',
@@ -136,6 +139,31 @@ INDIRECT_MAPS = [
         ],
     },
 ]
+
+DIRECT_MAP_MOD = {
+    'pkey': 'map1',
+    'add': [
+        ('radio', 'method', 'add'),
+        ('textbox', 'automountmapname', 'map1'),
+        ('textarea', 'description', 'desc'),
+    ],
+    'mod': [
+        ('textarea', 'description', 'modified'),
+    ]
+}
+
+INDIRECT_MAP_MOD = {
+    'pkey': 'map1',
+    'add': [
+        ('radio', 'method', 'add_indirect'),
+        ('textbox', 'automountmapname', 'map1'),
+        ('textarea', 'description', 'desc'),
+        ('textbox', 'key', 'mount1'),
+    ],
+    'mod': [
+        ('textarea', 'description', 'modified'),
+    ]
+}
 
 
 @pytest.mark.tier1
@@ -280,6 +308,32 @@ class TestAutomount(UI_driver):
 
         self.delete_record(LOC_PKEY)
 
+    @pytest.mark.parametrize('map_data', [DIRECT_MAP_MOD, INDIRECT_MAP_MOD])
+    def test_modify_map(self, map_data):
+        """
+        Test automount map 'Settings' tab
+        """
+
+        self.add_record(LOC_ENTITY, LOC_DATA)
+        self.navigate_to_record(LOC_PKEY)
+
+        self.add_record(LOC_ENTITY, map_data,
+                        facet='maps', navigate=False)
+        self.navigate_to_record(map_data['pkey'])
+        self.switch_to_facet('details')
+
+        # Refresh
+        self.fill_fields(map_data['mod'], undo=True)
+        self.assert_facet_button_enabled('refresh')
+        self.facet_button_click('refresh')
+        self.wait_for_request()
+        self.assert_facet_button_enabled('refresh')
+
+        # Revert
+        self.mod_record(MAP_ENTITY, map_data, facet_btn='revert')
+
+        self.delete_record(LOC_PKEY)
+
     def test_add_key_dialog(self):
         """
         Test 'Add Automount Key' dialog behaviour
@@ -316,5 +370,31 @@ class TestAutomount(UI_driver):
         # Cancel dialog
         self.add_record(MAP_ENTITY, keys[3], facet='keys', dialog_btn='cancel')
         self.assert_record(keys[3]['pkey'], negative=True)
+
+        self.delete_record(LOC_PKEY)
+
+    def test_modify_key(self):
+        """
+        Test automount key 'Settings'
+        """
+
+        self.add_record(LOC_ENTITY, LOC_DATA)
+        self.navigate_to_record(LOC_PKEY)
+
+        self.add_record(LOC_ENTITY, MAP_DATA, facet='maps', navigate=False)
+        self.navigate_to_record(MAP_PKEY)
+
+        self.add_record(MAP_ENTITY, KEY_DATA, facet='keys', navigate=False)
+        self.navigate_to_record(KEY_PKEY)
+
+        # Refresh
+        self.fill_fields(KEY_DATA['mod'])
+        self.assert_facet_button_enabled('refresh')
+        self.facet_button_click('refresh')
+        self.wait_for_request()
+        self.assert_facet_button_enabled('refresh')
+
+        # Revert
+        self.mod_record(KEY_ENTITY, KEY_DATA, facet_btn='revert')
 
         self.delete_record(LOC_PKEY)
