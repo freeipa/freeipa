@@ -420,6 +420,38 @@ class TestAutomount(UI_driver):
         self.navigate_to_entity(LOC_ENTITY)
         self.delete_record(LOC_PKEY)
 
+    def test_add_key_with_missing_fields(self):
+        """
+        Test creating automount key without key name and mount information
+        """
+
+        keys = {
+            'automountkey': {
+                'pkey': 'key1',
+                'add': [('textbox', 'automountinformation', '/itest/key')],
+            },
+            'automountinformation': {
+                'pkey': 'key2',
+                'add': [('textbox', 'automountkey', 'key2')],
+            },
+        }
+
+        self.add_record(LOC_ENTITY, LOC_DATA)
+        self.navigate_to_record(LOC_PKEY)
+
+        self.add_record(LOC_ENTITY, MAP_DATA, facet='maps', navigate=False)
+        self.navigate_to_record(MAP_PKEY)
+
+        for missing_field, key in keys.items():
+            self.add_record(MAP_ENTITY, key, negative=True,
+                            facet='keys', navigate=False)
+            assert self.has_form_error(missing_field)
+            self.dialog_button_click('cancel')
+            self.assert_record(key['pkey'], negative=True)
+
+        self.navigate_to_entity(LOC_ENTITY)
+        self.delete_record(LOC_PKEY)
+
     def test_modify_key(self):
         """
         Test automount key 'Settings'
