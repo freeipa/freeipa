@@ -166,12 +166,36 @@ INDIRECT_MAP_MOD = {
 }
 
 
+class Location:
+    def __init__(self, location, ui):
+        self.ui = ui
+        self.location = location
+
+    def __enter__(self):
+        self.ui.add_record(LOC_ENTITY, self.location)
+        self.ui.navigate_to_record(self.location['pkey'])
+        return self
+
+    def __exit__(self, *args):
+        self.ui.delete(LOC_ENTITY, [self.location])
+        return False
+
+
 @pytest.mark.tier1
 class TestAutomount(UI_driver):
 
     def setup(self):
         super().setup()
         self.init_app()
+
+    def add_key(self, key, mount_info, **kwargs):
+        self.add_record(MAP_ENTITY, {
+            'pkey': key,
+            'add': [
+                ('textbox', 'automountkey', key),
+                ('textbox', 'automountinformation', mount_info),
+            ],
+        }, facet='keys', **kwargs)
 
     @screenshot
     def test_crud(self):
@@ -252,6 +276,7 @@ class TestAutomount(UI_driver):
         self.navigate_by_breadcrumb('Automount Locations')
         self.delete_record(LOC_PKEY)
 
+    @screenshot
     def test_add_location_dialog(self):
         """
         Test 'Add Automount Location' dialog behaviour
@@ -283,36 +308,34 @@ class TestAutomount(UI_driver):
         # Delete multiple locations
         self.delete_record(pkeys)
 
+    @screenshot
     @pytest.mark.parametrize('maps', [DIRECT_MAPS, INDIRECT_MAPS])
     def test_add_map_dialog(self, maps):
         """
         Test 'Add Automount Map' dialog behaviour
         """
 
-        self.add_record(LOC_ENTITY, LOC_DATA)
-        self.navigate_to_record(LOC_PKEY)
+        with Location(LOC_DATA, ui=self):
+            # Add and add another
+            self.add_record(LOC_ENTITY, [maps[0], maps[1]],
+                            facet='maps', navigate=False)
+            self.assert_record(maps[0]['pkey'])
+            self.assert_record(maps[1]['pkey'])
 
-        # Add and add another
-        self.add_record(LOC_ENTITY, [maps[0], maps[1]],
-                        facet='maps', navigate=False)
-        self.assert_record(maps[0]['pkey'])
-        self.assert_record(maps[1]['pkey'])
+            # Add and edit
+            self.add_record(LOC_ENTITY, maps[2], dialog_btn='add_and_edit',
+                            facet='maps', navigate=False)
+            self.assert_facet(MAP_ENTITY, facet='keys')
 
-        # Add and edit
-        self.add_record(LOC_ENTITY, maps[2], dialog_btn='add_and_edit',
-                        facet='maps', navigate=False)
-        self.assert_facet(MAP_ENTITY, facet='keys')
+            # Cancel dialog
+            self.add_record(LOC_ENTITY, maps[3], facet='maps',
+                            dialog_btn='cancel')
+            self.assert_record(maps[3]['pkey'], negative=True)
 
-        # Cancel dialog
-        self.add_record(LOC_ENTITY, maps[3], facet='maps', dialog_btn='cancel')
-        self.assert_record(maps[3]['pkey'], negative=True)
+            # Delete multiple maps
+            self.delete_record([m['pkey'] for m in maps])
 
-        # Delete multiple maps
-        self.delete_record([m['pkey'] for m in maps])
-
-        self.navigate_to_entity(LOC_ENTITY)
-        self.delete_record(LOC_PKEY)
-
+    @screenshot
     def test_add_indirect_map_with_missing_fields(self):
         """
         Test creating automount map without mapname and mountpoint
@@ -337,46 +360,87 @@ class TestAutomount(UI_driver):
             }
         }
 
-        self.add_record(LOC_ENTITY, LOC_DATA)
-        self.navigate_to_record(LOC_PKEY)
+        with Location(LOC_DATA, ui=self):
+            for missing_field, map_data in maps.items():
+                self.add_record(LOC_ENTITY, map_data, negative=True,
+                                facet='maps', navigate=False)
+                assert self.has_form_error(missing_field)
+                self.dialog_button_click('cancel')
+                self.assert_record(map_data['pkey'], negative=True)
 
-        for missing_field, map_data in maps.items():
-            self.add_record(LOC_ENTITY, map_data, negative=True,
-                            facet='maps', navigate=False)
-            assert self.has_form_error(missing_field)
-            self.dialog_button_click('cancel')
-            self.assert_record(map_data['pkey'], negative=True)
+    @screenshot
+    def test_add_duplicated_indirect_map(self):
+        """
+        Test creating indirect automount map with duplicated field values
+        """
 
-        self.navigate_to_entity(LOC_ENTITY)
-        self.delete_record(LOC_PKEY)
+        original_name = 'map1'
+        original_key = 'mount1'
 
+        with Location(LOC_DATA, ui=self):
+            self.add_record(LOC_ENTITY, {
+                'pkey': original_name,
+                'add': [
+                    ('radio', 'method', 'add_indirect'),
+                    ('textbox', 'automountmapname', original_name),
+                    ('textarea', 'description', 'desc'),
+                    ('textbox', 'key', original_key),
+                ],
+            }, facet='maps', navigate=False)
+
+            self.add_record(LOC_ENTITY, {
+                'pkey': 'map2',
+                'add': [
+                    ('radio', 'method', 'add_indirect'),
+                    ('textbox', 'automountmapname', original_name),
+                    ('textarea', 'description', 'desc'),
+                    ('textbox', 'key', 'mount2'),
+                ],
+            }, negative=True, facet='maps', navigate=False, pre_delete=False)
+            self.assert_last_error_dialog(
+                'automount map with name "{}" already exists'
+                .format(original_name)
+            )
+            self.close_all_dialogs()
+
+            self.add_record(LOC_ENTITY, {
+                'pkey': 'map3',
+                'add': [
+                    ('radio', 'method', 'add_indirect'),
+                    ('textbox', 'automountmapname', 'map3'),
+                    ('textarea', 'description', 'desc'),
+                    ('textbox', 'key', original_key),
+                ],
+            }, negative=True, facet='maps', navigate=False, pre_delete=False)
+            self.assert_last_error_dialog(
+                'key named {} already exists'.format(original_key)
+            )
+            self.close_all_dialogs()
+
+    @screenshot
     @pytest.mark.parametrize('map_data', [DIRECT_MAP_MOD, INDIRECT_MAP_MOD])
     def test_modify_map(self, map_data):
         """
         Test automount map 'Settings' tab
         """
 
-        self.add_record(LOC_ENTITY, LOC_DATA)
-        self.navigate_to_record(LOC_PKEY)
+        with Location(LOC_DATA, ui=self):
+            self.add_record(LOC_ENTITY, map_data,
+                            facet='maps', navigate=False)
+            self.navigate_to_record(map_data['pkey'])
+            self.switch_to_facet('details')
 
-        self.add_record(LOC_ENTITY, map_data,
-                        facet='maps', navigate=False)
-        self.navigate_to_record(map_data['pkey'])
-        self.switch_to_facet('details')
+            # Refresh
+            self.fill_fields(map_data['mod'], undo=True)
+            self.assert_facet_button_enabled('refresh')
+            self.facet_button_click('refresh')
+            self.wait_for_request()
+            self.assert_facet_button_enabled('refresh')
 
-        # Refresh
-        self.fill_fields(map_data['mod'], undo=True)
-        self.assert_facet_button_enabled('refresh')
-        self.facet_button_click('refresh')
-        self.wait_for_request()
-        self.assert_facet_button_enabled('refresh')
+            # Revert
+            self.mod_record(MAP_ENTITY, map_data, facet_btn='revert')
 
-        # Revert
-        self.mod_record(MAP_ENTITY, map_data, facet_btn='revert')
-
-        self.navigate_to_entity(LOC_ENTITY)
-        self.delete_record(LOC_PKEY)
-
+    @screenshot
     def test_add_key_dialog(self):
         """
         Test 'Add Automount Key' dialog behaviour
@@ -394,32 +458,30 @@ class TestAutomount(UI_driver):
             } for pkey in pkeys
         ]
 
-        self.add_record(LOC_ENTITY, LOC_DATA)
-        self.navigate_to_record(LOC_PKEY)
-        self.add_record(LOC_ENTITY, MAP_DATA, facet='maps', navigate=False)
-        self.navigate_to_record(MAP_PKEY)
+        with Location(LOC_DATA, ui=self):
+            self.add_record(LOC_ENTITY, MAP_DATA, facet='maps', navigate=False)
+            self.navigate_to_record(MAP_PKEY)
 
-        # Add and add another
-        self.add_record(MAP_ENTITY, [keys[0], keys[1]],
-                        facet='keys', navigate=False)
-        self.assert_record(keys[0]['pkey'])
-        self.assert_record(keys[1]['pkey'])
+            # Add and add another
+            self.add_record(MAP_ENTITY, [keys[0], keys[1]],
+                            facet='keys', navigate=False)
+            self.assert_record(keys[0]['pkey'])
+            self.assert_record(keys[1]['pkey'])
 
-        # Add and edit
-        self.add_record(MAP_ENTITY, keys[2], dialog_btn='add_and_edit',
-                        facet='keys', navigate=False)
-        self.assert_facet(KEY_ENTITY, facet='details')
+            # Add and edit
+            self.add_record(MAP_ENTITY, keys[2], dialog_btn='add_and_edit',
+                            facet='keys', navigate=False)
+            self.assert_facet(KEY_ENTITY, facet='details')
 
-        # Cancel dialog
-        self.add_record(MAP_ENTITY, keys[3], facet='keys', dialog_btn='cancel')
-        self.assert_record(keys[3]['pkey'], negative=True)
+            # Cancel dialog
+            self.add_record(MAP_ENTITY, keys[3], facet='keys',
+                            dialog_btn='cancel')
+            self.assert_record(keys[3]['pkey'], negative=True)
 
-        # Delete multiple keys
-        self.delete_record(pkeys)
+            # Delete multiple keys
+            self.delete_record(pkeys)
 
-        self.navigate_to_entity(LOC_ENTITY)
-        self.delete_record(LOC_PKEY)
-
+    @screenshot
     def test_add_key_with_missing_fields(self):
         """
         Test creating automount key without key name and mount information
@@ -436,45 +498,56 @@ class TestAutomount(UI_driver):
             },
         }
 
-        self.add_record(LOC_ENTITY, LOC_DATA)
-        self.navigate_to_record(LOC_PKEY)
+        with Location(LOC_DATA, ui=self):
+            self.add_record(LOC_ENTITY, MAP_DATA, facet='maps', navigate=False)
+            self.navigate_to_record(MAP_PKEY)
 
-        self.add_record(LOC_ENTITY, MAP_DATA, facet='maps', navigate=False)
-        self.navigate_to_record(MAP_PKEY)
+            for missing_field, key in keys.items():
+                self.add_record(MAP_ENTITY, key, negative=True,
+                                facet='keys', navigate=False)
+                assert self.has_form_error(missing_field)
+                self.dialog_button_click('cancel')
+                self.assert_record(key['pkey'], negative=True)
 
-        for missing_field, key in keys.items():
-            self.add_record(MAP_ENTITY, key, negative=True,
-                            facet='keys', navigate=False)
-            assert self.has_form_error(missing_field)
-            self.dialog_button_click('cancel')
-            self.assert_record(key['pkey'], negative=True)
+    @screenshot
+    def test_add_duplicated_key(self):
+        """
+        Test creating automount key with duplicated field values
+        """
 
-        self.navigate_to_entity(LOC_ENTITY)
-        self.delete_record(LOC_PKEY)
+        with Location(LOC_DATA, ui=self):
+            self.add_record(LOC_ENTITY, MAP_DATA, facet='maps', navigate=False)
+            self.navigate_to_record(MAP_PKEY)
 
+            key = 'mount1'
+
+            self.add_key(key, '/itest/key', navigate=False)
+            self.add_key(key, '/itest/key2', negative=True, navigate=False,
+                         pre_delete=False)
+            self.assert_last_error_dialog(
+                'key named {} already exists'.format(key)
+            )
+            self.close_all_dialogs()
+
+    @screenshot
     def test_modify_key(self):
         """
         Test automount key 'Settings'
         """
 
-        self.add_record(LOC_ENTITY, LOC_DATA)
-        self.navigate_to_record(LOC_PKEY)
+        with Location(LOC_DATA, ui=self):
+            self.add_record(LOC_ENTITY, MAP_DATA, facet='maps', navigate=False)
+            self.navigate_to_record(MAP_PKEY)
 
-        self.add_record(LOC_ENTITY, MAP_DATA, facet='maps', navigate=False)
-        self.navigate_to_record(MAP_PKEY)
+            self.add_record(MAP_ENTITY, KEY_DATA, facet='keys', navigate=False)
+            self.navigate_to_record(KEY_PKEY)
 
-        self.add_record(MAP_ENTITY, KEY_DATA, facet='keys', navigate=False)
-        self.navigate_to_record(KEY_PKEY)
+            # Refresh
+            self.fill_fields(KEY_DATA['mod'])
+            self.assert_facet_button_enabled('refresh')
+            self.facet_button_click('refresh')
+            self.wait_for_request()
+            self.assert_facet_button_enabled('refresh')
 
-        # Refresh
-        self.fill_fields(KEY_DATA['mod'])
-        self.assert_facet_button_enabled('refresh')
-        self.facet_button_click('refresh')
-        self.wait_for_request()
-        self.assert_facet_button_enabled('refresh')
-
-        # Revert
-        self.mod_record(KEY_ENTITY, KEY_DATA, facet_btn='revert')
-
-        self.navigate_to_entity(LOC_ENTITY)
-        self.delete_record(LOC_PKEY)
+            # Revert
+            self.mod_record(KEY_ENTITY, KEY_DATA, facet_btn='revert')
