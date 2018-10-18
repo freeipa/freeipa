@@ -313,6 +313,43 @@ class TestAutomount(UI_driver):
         self.navigate_to_entity(LOC_ENTITY)
         self.delete_record(LOC_PKEY)
 
+    def test_add_indirect_map_with_missing_fields(self):
+        """
+        Test creating automount map without mapname and mountpoint
+        """
+
+        maps = {
+            'automountmapname': {
+                'pkey': 'map1',
+                'add': [
+                    ('radio', 'method', 'add_indirect'),
+                    ('textarea', 'description', 'desc'),
+                    ('textbox', 'key', 'mount1'),
+                ],
+            },
+            'key': {
+                'pkey': 'map2',
+                'add': [
+                    ('radio', 'method', 'add_indirect'),
+                    ('textbox', 'automountmapname', 'map1'),
+                    ('textarea', 'description', 'desc'),
+                ],
+            }
+        }
+
+        self.add_record(LOC_ENTITY, LOC_DATA)
+        self.navigate_to_record(LOC_PKEY)
+
+        for missing_field, map_data in maps.items():
+            self.add_record(LOC_ENTITY, map_data, negative=True,
+                            facet='maps', navigate=False)
+            assert self.has_form_error(missing_field)
+            self.dialog_button_click('cancel')
+            self.assert_record(map_data['pkey'], negative=True)
+
+        self.navigate_to_entity(LOC_ENTITY)
+        self.delete_record(LOC_PKEY)
+
     @pytest.mark.parametrize('map_data', [DIRECT_MAP_MOD, INDIRECT_MAP_MOD])
     def test_modify_map(self, map_data):
         """
