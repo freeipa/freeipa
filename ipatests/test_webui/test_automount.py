@@ -280,6 +280,7 @@ class TestAutomount(UI_driver):
         self.add_record(LOC_ENTITY, locations[3], dialog_btn='cancel')
         self.assert_record(locations[3]['pkey'], negative=True)
 
+        # Delete multiple locations
         self.delete_record(pkeys)
 
     @pytest.mark.parametrize('maps', [DIRECT_MAPS, INDIRECT_MAPS])
@@ -306,6 +307,10 @@ class TestAutomount(UI_driver):
         self.add_record(LOC_ENTITY, maps[3], facet='maps', dialog_btn='cancel')
         self.assert_record(maps[3]['pkey'], negative=True)
 
+        # Delete multiple maps
+        self.delete_record([m['pkey'] for m in maps])
+
+        self.navigate_to_entity(LOC_ENTITY)
         self.delete_record(LOC_PKEY)
 
     @pytest.mark.parametrize('map_data', [DIRECT_MAP_MOD, INDIRECT_MAP_MOD])
@@ -332,6 +337,7 @@ class TestAutomount(UI_driver):
         # Revert
         self.mod_record(MAP_ENTITY, map_data, facet_btn='revert')
 
+        self.navigate_to_entity(LOC_ENTITY)
         self.delete_record(LOC_PKEY)
 
     def test_add_key_dialog(self):
@@ -371,6 +377,10 @@ class TestAutomount(UI_driver):
         self.add_record(MAP_ENTITY, keys[3], facet='keys', dialog_btn='cancel')
         self.assert_record(keys[3]['pkey'], negative=True)
 
+        # Delete multiple keys
+        self.delete_record(pkeys)
+
+        self.navigate_to_entity(LOC_ENTITY)
         self.delete_record(LOC_PKEY)
 
     def test_modify_key(self):
@@ -397,4 +407,5 @@ class TestAutomount(UI_driver):
         # Revert
         self.mod_record(KEY_ENTITY, KEY_DATA, facet_btn='revert')
 
+        self.navigate_to_entity(LOC_ENTITY)
         self.delete_record(LOC_PKEY)
