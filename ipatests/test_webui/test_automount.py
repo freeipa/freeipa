@@ -305,6 +305,21 @@ class TestAutomount(UI_driver):
         self.add_record(LOC_ENTITY, locations[3], dialog_btn='cancel')
         self.assert_record(locations[3]['pkey'], negative=True)
 
+        # Add duplicated
+        self.add_record(LOC_ENTITY, locations[0], navigate=False,
+                        negative=True, pre_delete=False)
+        self.assert_last_error_dialog(
+            'automount location with name "{}" already exists'
+            .format(locations[0]['pkey'])
+        )
+        self.close_all_dialogs()
+
+        # Missing field
+        self.add_record(LOC_ENTITY, {'pkey': 'loc5', 'add': []},
+                        navigate=False, negative=True)
+        assert self.has_form_error('cn')
+        self.close_all_dialogs()
+
         # Delete multiple locations
         self.delete_record(pkeys)
 
