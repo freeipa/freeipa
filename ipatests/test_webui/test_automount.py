@@ -21,8 +21,8 @@
 Automount tests
 """
 
-from ipatests.test_webui.ui_driver import UI_driver
-from ipatests.test_webui.ui_driver import screenshot
+from ipatests.test_webui.ui_driver import UI_driver, screenshot
+from ipatests.test_webui.ui_driver import Keys
 import pytest
 
 LOC_ENTITY = 'automountlocation'
@@ -196,6 +196,30 @@ class TestAutomount(UI_driver):
                 ('textbox', 'automountinformation', mount_info),
             ],
         }, facet='keys', **kwargs)
+
+    def _add_record_with_enter_key(self, record):
+        self.delete_record(record['pkey'])
+
+        self.assert_no_dialog()
+        self.facet_button_click('add')
+        self.assert_dialog('add')
+        self.fill_fields(record['add'])
+
+        dialog = self.get_dialog('add')
+        dialog.send_keys(Keys.ENTER)
+        self.wait_for_request()
+
+    def _delete_record_with_enter_key(self, pkey):
+        assert self.has_record(pkey)
+
+        self.select_record(pkey)
+        self.facet_button_click('remove')
+
+        dialog = self.get_dialog('add')
+        dialog.send_keys(Keys.ENTER)
+        self.wait_for_request(n=2)
+        self.wait()
+
 
     @screenshot
     def test_crud(self):
@@ -566,3 +590,32 @@ class TestAutomount(UI_driver):
 
             # Revert
             self.mod_record(KEY_ENTITY, KEY_DATA, facet_btn='revert')
+
+    @screenshot
+    def test_confirm_dialogs_with_enter_key(self):
+        """
+        Test dialogs can be closed by pressing ENTER
+        """
+
+        # Add location
+        self.navigate_to_entity(LOC_ENTITY, 'search')
+        self._add_record_with_enter_key(LOC_DATA)
+
+        # Add map
+        self.navigate_to_record(LOC_PKEY)
+        self._add_record_with_enter_key(MAP_DATA)
+
+        # Add key
+        self.navigate_to_record(MAP_PKEY)
+        self._add_record_with_enter_key(KEY_DATA)
+
+        # Delete key
+        self._delete_record_with_enter_key(KEY_PKEY)
+
+        # Delete map
+        self.navigate_by_breadcrumb(LOC_PKEY)
+        self._delete_record_with_enter_key(MAP_PKEY)
+
+        # Delete location
+        self.navigate_to_entity(LOC_ENTITY)
+        self._delete_record_with_enter_key(LOC_PKEY)
