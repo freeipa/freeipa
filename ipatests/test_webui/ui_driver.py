@@ -95,9 +95,9 @@ def screenshot(fn):
     Should be applied on methods of UI_driver subclasses
     """
     @wraps(fn)
-    def screenshot_wrapper(*args):
+    def screenshot_wrapper(*args, **kwargs):
         try:
-            return fn(*args)
+            return fn(*args, **kwargs)
         except unittest.SkipTest:
             raise
         except Exception:
