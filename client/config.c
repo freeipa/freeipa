@@ -123,17 +123,18 @@ get_config_entry(char * in_data, const char *section, const char *key)
             line++;
             p = strchr(line, ']');
             if (p) {
-                tmp = strndup(line, p - line);
                 if (in_section) {
                     /* We exited the matching section without a match */
                     free(data);
                     return NULL;
                 }
+                tmp = strndup(line, p - line);
                 if (strcmp(section, tmp) == 0) {
                     free(tmp);
                     in_section = 1;
                     continue;
                 }
+                free(tmp);
             }
         } /* [ */
 
