@@ -260,6 +260,10 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
             if (req->kvps.pairs[i].value.bv_val[len-1] == '.') {
                 len--;
             }
+            if (domain != NULL) {
+                free(domain);
+                domain = NULL;
+            }
             domain = strndup(req->kvps.pairs[i].value.bv_val, len);
             if (!domain) {
                 ret = ENOMEM;
