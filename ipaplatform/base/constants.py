@@ -15,6 +15,7 @@ class BaseConstantsNamespace(object):
     HTTPD_USER = "apache"
     HTTPD_GROUP = "apache"
     GSSPROXY_USER = "root"
+    IPA_ADTRUST_PACKAGE_NAME = "freeipa-server-trust-ad"
     IPA_DNS_PACKAGE_NAME = "freeipa-server-dns"
     KDCPROXY_USER = "kdcproxy"
     NAMED_USER = "named"
