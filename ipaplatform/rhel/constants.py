@@ -13,6 +13,7 @@ from ipaplatform.redhat.constants import RedHatConstantsNamespace
 
 
 class RHELConstantsNamespace(RedHatConstantsNamespace):
+    IPA_ADTRUST_PACKAGE_NAME = "ipa-server-trust-ad"
     IPA_DNS_PACKAGE_NAME = "ipa-server-dns"
 
 constants = RHELConstantsNamespace()
