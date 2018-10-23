@@ -72,6 +72,15 @@ def check_inst():
                   "start the installation again")
             return False
 
+    # Check that ipa-server-trust-ad package is installed,
+    # by looking for the file /usr/share/ipa/smb.conf.empty
+    if not os.path.exists(os.path.join(paths.USR_SHARE_IPA_DIR,
+                                       "smb.conf.empty")):
+        print("AD Trust requires the '%s' package" %
+              constants.IPA_ADTRUST_PACKAGE_NAME)
+        print("Please install the package and start the installation again")
+        return False
+
     #TODO: Add check for needed samba4 libraries
 
     return True
