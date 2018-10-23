@@ -79,6 +79,8 @@ clean-local:
 	rm -rf "$(top_builddir)/.tox"
 	rm -rf "$(top_srcdir)/__pycache__"
 	rm -f "$(top_builddir)"/$(PACKAGE)-*.tar.gz
+	rm -rf "$(top_srcdir)/cov-int"
+	rm -f "$(top_srcdir)/freeipa.tgz"
 
 # convenience targets for RPM build
 .PHONY: rpmroot rpmdistdir version-update _dist-version-bakein _rpms-prep \
@@ -381,6 +383,31 @@ python_install:
 .PHONY:
 strip-po:
 	$(MAKE) -C po strip-po
+
+.PHONY: cov-scan
+cov-scan:
+	$(MAKE) clean
+	@# analyse C code with workaround for missing _Float types
+	@# https://stackoverflow.com/questions/50434236/coverity-scan-fails-to-build-stdlib-h-with-gnu-source-defined
+	cov-build --dir cov-int $(MAKE) all \
+	    CFLAGS="-D_Float32=float -D_Float32x=double -D_Float64=double -D_Float64x='long double' -D_Float128='long double'"
+	@# remove build directories and analyse Python
+	rm -rf ipa*/build
+	cov-build --dir cov-int --no-command \
+		$(foreach d,$(PYTHON_SUBDIRS),--fs-capture-search $(d))
+	@# analyze JS files
+	cov-build --dir cov-int --no-command --fs-capture-search install/ui
+	@# compress and upload
+	tar czvf freeipa.tgz cov-int
+	if [ -n "$${COVERITY_SCAN_TOKEN}" ]; then \
+	    curl --progress-bar --output /dev/null \
+	        --form token=$${COVERITY_SCAN_TOKEN} \
+	        --form email=scan@mg.freeipa.org \
+	        --form file=@freeipa.tgz \
+	        --form version="$(VERSION)" \
+	        --form description="FreeIPA" \
+	        "https://scan.coverity.com/builds?project=freeipa%2Ffreeipa"; \
+	fi
 
 PYTHON_SHEBANG = 					\
 	ipa	\
