@@ -30,6 +30,7 @@ steps:
   - "dnf makecache || :"
   - dnf builddep -y ${builddep_opts} -D "with_wheels 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
   - dnf install -y gdb
+  - dnf update -y annobin
   cleanup:
   - chown -R ${uid}:${gid} ${container_working_dir}
   - journalctl -b --no-pager > systemd_journal.log
