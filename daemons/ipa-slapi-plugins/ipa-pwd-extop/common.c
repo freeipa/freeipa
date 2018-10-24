@@ -1003,7 +1003,7 @@ int ipapwd_set_extradata(const char *dn,
     xdata[5] = (unixtime & 0xff000000) >> 24;
 
     /* append the principal name */
-    strncpy(&xdata[6], principal, p_len);
+    memcpy(&xdata[6], principal, p_len);
 
     xdata[xd_len -1] = 0;
 

@@ -110,7 +110,7 @@ static char *ipadb_realm_to_ldapi_uri(char *realm)
     /* copy path and escape '/' to '%2f' */
     for (q = LDAPIDIR; *q; q++) {
         if (*q == '/') {
-            strncpy(p, "%2f", 3);
+            memcpy(p, "%2f", 3);
             p += 3;
         } else {
             *p = *q;
