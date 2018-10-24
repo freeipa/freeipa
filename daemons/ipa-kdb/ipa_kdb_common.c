@@ -634,10 +634,12 @@ krb5_error_code ipadb_multires_init(LDAP *lcontext, struct ipadb_multires **r)
 
 void ipadb_multires_free(struct ipadb_multires *r)
 {
-    for (int i = 0; i < r->count; i++) {
-        ldap_msgfree(r->res[i]);
+    if (r != NULL) {
+        for (int i = 0; i < r->count; i++) {
+            ldap_msgfree(r->res[i]);
+        }
+        free(r);
     }
-    free(r);
 }
 
 LDAPMessage *ipadb_multires_next_entry(struct ipadb_multires *r)
@@ -670,8 +672,11 @@ krb5_error_code ipadb_multibase_search(struct ipadb_context *ipactx,
     if (ret != 0) return ret;
 
     ret = ipadb_check_connection(ipactx);
-    if (ret != 0)
+    if (ret != 0) {
+        ipadb_multires_free(*res);
+        *res = NULL;
         return ipadb_simple_ldap_to_kerr(ret);
+    }
 
     for (int b = 0; basedns[b]; b++) {
         LDAPMessage *r;

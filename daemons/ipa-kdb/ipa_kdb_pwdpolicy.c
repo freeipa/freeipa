@@ -141,7 +141,7 @@ krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
     char *esc_name = NULL;
     char *src_filter = NULL;
     krb5_error_code kerr;
-    struct ipadb_multires *res;
+    struct ipadb_multires *res = NULL;
     LDAPMessage *lentry;
     osa_policy_ent_t pentry = NULL;
     uint32_t result;
