@@ -22,6 +22,7 @@ path_classifiers:
   install:
     - install
 extraction:
+  # https://lgtm.com/help/lgtm/cpp-extraction
   cpp:
     prepare:
       packages:
@@ -31,13 +32,16 @@ extraction:
         - autopoint
         - libtool
         - gettext
-        - python-all-dev
+        - git
+        - python3-dev
         - python3-distutils
-        - python3-setutools
         - python3-lesscpy
+        - python3-setuptools
+        - python3-wheel
         - nodejs
         - uglifyjs
         - systemd
+        - 389-ds-base-dev
         - libssl-dev
         - libsasl2-dev
         - libldap2-dev
@@ -58,3 +62,87 @@ extraction:
     index:
       build_command:
         - make -j2 -s
+  # https://lgtm.com/help/lgtm/python-extraction
+  python:
+    prepare:
+      packages:
+        - build-essential
+        - autoconf
+        - automake
+        - autopoint
+        - libtool
+        - gettext
+        - git
+        - python3-dev
+        - python3-distutils
+        - python3-lesscpy
+        - python3-setuptools
+        - python3-wheel
+        - nodejs
+        - uglifyjs
+        - systemd
+        - 389-ds-base-dev
+        - libssl-dev
+        - libsasl2-dev
+        - libldap2-dev
+        - libkrb5-dev
+        - libkrad-dev
+        - libini-config-dev
+        - libnss3-dev
+        - libsss-certmap-dev
+        - libsss-idmap-dev
+        - libsss-nss-idmap-dev
+        - libunistring-dev
+        - libxmlrpc-core-c3-dev
+        - samba-dev
+        - uuid-dev
+        # extra dependencies for Python packages
+        - libaugeas-dev
+        - augeas-lenses
+        - libdbus-1-dev
+        - libffi-dev
+        - libxslt1-dev
+        - python3-libsss-nss-idmap
+        - python3-sss
+    after_prepare:
+      - ./autogen.sh --with-ipaplatform=debian
+    python_setup:
+      version: 3
+      setup_py: false
+      requirements:
+        - cffi
+        - cryptography
+        - custodia
+        - dbus-python
+        - dnspython
+        - jinja2
+        - jwcrypto
+        - lxml
+        - gssapi
+        - netaddr
+        - netifaces
+        - polib
+        - requests
+        - python-augeas
+        - pyasn1
+        - pyasn1-modules
+        - pytest
+        - pytest_multihost
+        - python-ldap
+        - python-yubico
+        - pyusb
+        - pyyaml
+        - qrcode
+        - six
+    before_index:
+      # Let LGTM pick up our packages
+      - export PYTHONPATH=$LGTM_SRC
+    index:
+      exclude:
+        # auto-generated files
+        - ipaclient/remote_plugins/2_114
+        - ipaclient/remote_plugins/2_156
+        - ipaclient/remote_plugins/2_164
+        - ipaclient/remote_plugins/2_49
+        # packaging helpers
+        - pypi
