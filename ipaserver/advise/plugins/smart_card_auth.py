@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import
 
+import sys
+
 from ipalib.plugable import Registry
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -186,9 +188,9 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
     def record_httpd_ocsp_status(self):
         self.log.comment('store the OCSP upgrade state')
         self.log.command(
-            "python3 -c 'from ipaserver.install import sysupgrade; "
+            "{} -c 'from ipaserver.install import sysupgrade; "
             "sysupgrade.set_upgrade_state(\"httpd\", "
-            "\"{}\", True)'".format(OCSP_ENABLED))
+            "\"{}\", True)'".format(sys.executable, OCSP_ENABLED))
 
     def check_and_enable_pkinit(self):
         self.log.comment('check whether PKINIT is configured on the master')
@@ -310,10 +312,10 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
     def configure_pam_cert_auth(self):
         self.log.comment('Set pam_cert_auth=True in /etc/sssd/sssd.conf')
         self.log.command(
-            "python3 -c 'from SSSDConfig import SSSDConfig; "
+            "{} -c 'from SSSDConfig import SSSDConfig; "
             "c = SSSDConfig(); c.import_config(); "
             "c.set(\"pam\", \"pam_cert_auth\", \"True\"); "
-            "c.write()'")
+            "c.write()'".format(sys.executable))
 
     def restart_sssd(self):
         self.log.command('systemctl restart sssd.service')
