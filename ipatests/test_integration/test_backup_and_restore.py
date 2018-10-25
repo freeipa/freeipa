@@ -147,6 +147,12 @@ def backup(host):
     """Run backup on host, return the path to the backup directory"""
     result = host.run_command(['ipa-backup', '-v'])
 
+    # Test for ticket 7632: check that services are restarted
+    # before the backup is compressed
+    pattern = r'.*gzip.*Starting IPA service.*'
+    if (re.match(pattern, result.stderr_text, re.DOTALL)):
+        raise AssertionError('IPA Services are started after compression')
+
     # Get the backup location from the command's output
     for line in result.stderr_text.splitlines():
         prefix = 'ipaserver.install.ipa_backup: INFO: Backed up to '
