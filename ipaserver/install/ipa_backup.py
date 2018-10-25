@@ -296,6 +296,7 @@ class Backup(admintool.AdminTool):
         os.mkdir(self.dir)
         os.chmod(self.dir, 0o750)
         os.chown(self.dir, pent.pw_uid, pent.pw_gid)
+        self.tarfile = None
 
         self.header = os.path.join(self.top_dir, 'header')
 
@@ -332,7 +333,6 @@ class Backup(admintool.AdminTool):
                 auth_backup_path = os.path.join(paths.VAR_LIB_IPA, 'auth_backup')
                 tasks.backup_auth_configuration(auth_backup_path)
                 self.file_backup(options)
-            self.finalize_backup(options.data_only, options.gpg, options.gpg_keyring)
 
             if options.data_only:
                 if not options.online:
@@ -341,6 +341,14 @@ class Backup(admintool.AdminTool):
             else:
                 logger.info('Starting IPA service')
                 run([paths.IPACTL, 'start'])
+
+            # Compress after services are restarted to minimize
+            # the unavailability window
+            if not options.data_only:
+                self.compress_file_backup()
+
+            self.finalize_backup(options.data_only, options.gpg,
+                                 options.gpg_keyring)
 
         finally:
             try:
@@ -499,7 +507,7 @@ class Backup(admintool.AdminTool):
         def verify_directories(dirs):
             return [s for s in dirs if os.path.exists(s)]
 
-        tarfile = os.path.join(self.dir, 'files.tar')
+        self.tarfile = os.path.join(self.dir, 'files.tar')
 
         logger.info("Backing up files")
         args = ['tar',
@@ -507,7 +515,7 @@ class Backup(admintool.AdminTool):
                 '--xattrs',
                 '--selinux',
                 '-cf',
-                tarfile
+                self.tarfile
                ]
 
         args.extend(verify_directories(self.dirs))
@@ -533,7 +541,7 @@ class Backup(admintool.AdminTool):
                     '--selinux',
                     '--no-recursion',
                     '-rf',  # -r appends to an existing archive
-                    tarfile,
+                    self.tarfile,
                    ]
             args.extend(missing_directories)
 
@@ -544,17 +552,20 @@ class Backup(admintool.AdminTool):
                     'when adding directory structure: %s' %
                     (result.returncode, result.error_log))
 
+    def compress_file_backup(self):
+
         # Compress the archive. This is done separately, since 'tar' cannot
         # append to a compressed archive.
-        result = run([paths.GZIP, tarfile], raiseonerr=False)
-        if result.returncode != 0:
-            raise admintool.ScriptError(
-                'gzip returned non-zero code %d '
-                'when compressing the backup: %s' %
-                (result.returncode, result.error_log))
+        if self.tarfile:
+            result = run([paths.GZIP, self.tarfile], raiseonerr=False)
+            if result.returncode != 0:
+                raise admintool.ScriptError(
+                    'gzip returned non-zero code %d '
+                    'when compressing the backup: %s' %
+                    (result.returncode, result.error_log))
 
-        # Rename the archive back to files.tar to preserve compatibility
-        os.rename(os.path.join(self.dir, 'files.tar.gz'), tarfile)
+            # Rename the archive back to files.tar to preserve compatibility
+            os.rename(os.path.join(self.dir, 'files.tar.gz'), self.tarfile)
 
 
     def create_header(self, data_only):
