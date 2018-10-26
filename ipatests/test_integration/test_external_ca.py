@@ -70,24 +70,12 @@ def match_in_journal(host, string, since='today', services=('certmonger',)):
 
 
 def install_server_external_ca_step1(host):
-    """funtion for step 1 to install the ipa server with external ca"""
-
-    args = ['ipa-server-install', '-U',
-            '-a', host.config.admin_password,
-            '-p', host.config.dirman_password,
-            '--setup-dns', '--no-forwarders',
-            '-n', host.domain.name,
-            '-r', host.domain.realm,
-            '--domain-level=%i' % host.config.domain_level,
-            '--external-ca']
-
-    cmd = host.run_command(args)
-    return cmd
+    """Step 1 to install the ipa server with external ca"""
+    return tasks.install_master(host, external_ca=True)
 
 
 def install_server_external_ca_step2(host, ipa_ca_cert, root_ca_cert):
-    """funtion for step 2 to install the ipa server with external ca"""
-
+    """Step 2 to install the ipa server with external ca"""
     args = ['ipa-server-install',
             '-a', host.config.admin_password,
             '-p', host.config.dirman_password,
