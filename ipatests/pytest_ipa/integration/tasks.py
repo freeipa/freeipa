@@ -292,7 +292,7 @@ def set_default_ttl_for_ipa_dns_zone(host, raiseonerr=True):
 
 def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
                    extra_args=(), domain_level=None, unattended=True,
-                   stdin_text=None, raiseonerr=True):
+                   external_ca=False, stdin_text=None, raiseonerr=True):
     if domain_level is None:
         domain_level = host.config.domain_level
     check_domain_level(domain_level)
@@ -321,11 +321,14 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         args.append('--setup-kra')
     if setup_adtrust:
         args.append('--setup-adtrust')
+    if external_ca:
+        args.append('--external-ca')
 
     args.extend(extra_args)
     result = host.run_command(args, raiseonerr=raiseonerr,
                               stdin_text=stdin_text)
-    if result.returncode == 0:
+    if result.returncode == 0 and not external_ca:
+        # external CA step 1 doesn't have DS and KDC fully configured, yet
         enable_replication_debugging(host)
         setup_sssd_debugging(host)
         kinit_admin(host)
