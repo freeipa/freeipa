@@ -480,7 +480,12 @@ class CAInstance(DogtagInstance):
         try:
             self.start_creation(runtime=runtime)
         finally:
-            self.clean_pkispawn_files()
+            if self.external == 1:
+                # Don't remove client DB in external CA step 1
+                # https://pagure.io/freeipa/issue/7742
+                logger.debug("Keep pkispawn files for step 2")
+            else:
+                self.clean_pkispawn_files()
 
     def __spawn_instance(self):
         """
