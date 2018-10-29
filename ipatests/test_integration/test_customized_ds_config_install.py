@@ -47,26 +47,8 @@ nsslapd-dbcachesize: 10000001
 CONFIG_LDIF_PATH = "/root/dirsrv-config-mod.ldif"
 
 
-class TestCustomInstallMaster(IntegrationTest):
-    """
-    Install master with customized DS config
-    """
-    topology = 'star'
-
-    @classmethod
-    def install(cls, mh):
-        # just prepare LDIF file on both master and replica
-        cls.master.put_file_contents(CONFIG_LDIF_PATH, DIRSRV_CONFIG_MODS)
-
-    def test_customized_ds_install_master(self):
-        tasks.install_master(self.master, setup_dns=False, extra_args=[
-            '--dirsrv-config-file', CONFIG_LDIF_PATH
-        ])
-
-
-class TestCustomInstallReplica(IntegrationTest):
-    """
-    Install replica with customized DS config
+class TestCustomDSConfigInstall(IntegrationTest):
+    """Install master and replica with custom DS config
     """
     topology = 'star'
     num_replicas = 1
@@ -74,8 +56,14 @@ class TestCustomInstallReplica(IntegrationTest):
     @classmethod
     def install(cls, mh):
         # just prepare LDIF file on both master and replica
-        cls.replicas[0].put_file_contents(CONFIG_LDIF_PATH, DIRSRV_CONFIG_MODS)
-        tasks.install_master(cls.master)
+        cls.master.put_file_contents(CONFIG_LDIF_PATH, DIRSRV_CONFIG_MODS)
+        cls.replicas[0].put_file_contents(CONFIG_LDIF_PATH,
+                                          DIRSRV_CONFIG_MODS)
+
+    def test_customized_ds_install_master(self):
+        tasks.install_master(self.master, setup_dns=False, extra_args=[
+            '--dirsrv-config-file', CONFIG_LDIF_PATH
+        ])
 
     def test_customized_ds_install_replica(self):
         tasks.install_replica(
