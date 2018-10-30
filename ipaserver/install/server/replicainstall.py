@@ -181,7 +181,7 @@ def install_dns_records(config, options, remote_api, fstore=None):
             reverse_zone = bindinstance.find_reverse_zone(ip, remote_api)
 
             bind.add_master_dns_records(config.host_name,
-                                        str(ip),
+                                        [str(ip)],
                                         config.realm_name,
                                         config.domain_name,
                                         reverse_zone)
