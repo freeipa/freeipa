@@ -81,7 +81,9 @@ ReplicaInstall = cli.install_tool(
     CompatServerReplicaInstall,
     command_name='ipa-replica-install',
     log_file_name=paths.IPAREPLICA_INSTALL_LOG,
+    console_format='%(message)s',
     debug_option=True,
+    verbose=True,
 )
 
 
