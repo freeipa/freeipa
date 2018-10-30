@@ -266,6 +266,8 @@ def install_step_0(standalone, replica_config, options, custodia):
 
         pkcs12_info = None
         master_host = None
+        if options.server:
+            master_host = options.server
         master_replication_port = None
         ra_p12 = None
         ra_only = False
