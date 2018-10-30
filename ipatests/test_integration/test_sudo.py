@@ -80,6 +80,11 @@ class TestSudo(IntegrationTest):
                                 'defaults',
                                 '--sudooption', "!authenticate"])
 
+        # Create test user -- member of group admins
+        cls.master.run_command(['ipa', 'user-add', 'admin2',
+                                '--first', 'Admin', '--last', 'Second'])
+        cls.master.run_command(['ipa', 'group-add-member', 'admins',
+                                '--users', 'admin2'])
 
     @classmethod
     def uninstall(cls, mh):
@@ -116,6 +121,34 @@ class TestSudo(IntegrationTest):
                                           raiseonerr=False)
 
         return result
+
+    # testcases test_admins_group_does_not_have_sudo_permission and
+    # test_advise_script_enable_sudo_admins must be run before any other sudo
+    # rules are applied
+    def test_admins_group_does_not_have_sudo_permission(self):
+        result = self.list_sudo_commands('admin2', raiseonerr=False)
+        assert result.returncode == 1
+        assert "Sorry, user admin2 may not run sudo on {}.".format(
+            self.clientname) in result.stderr_text
+
+    def test_advise_script_enable_sudo_admins(self):
+        """
+            Test for advise scipt to add sudo permissions for admin users
+            https://pagure.io/freeipa/issue/7538
+        """
+        result = self.master.run_command('ipa-advise enable_admins_sudo')
+        script = result.stdout_text
+        self.master.run_command('bash', stdin_text=script)
+        try:
+            result = self.list_sudo_commands('admin2')
+            assert '(root) ALL' in result.stdout_text
+        finally:
+            result1 = self.master.run_command(
+                ['ipa', 'sudorule-del', 'admins_all'], raiseonerr=False)
+            result2 = self.master.run_command(
+                ['ipa', 'hbacrule-del', 'admins_sudo'], raiseonerr=False)
+            assert result1.returncode == 0 and result2.returncode == 0,\
+                'rules cleanup failed'
 
     def test_nisdomainname(self):
         result = self.client.run_command('nisdomainname')
