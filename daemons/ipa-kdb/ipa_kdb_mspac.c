@@ -2586,6 +2586,12 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
         }
 
         /* We should have a single AVA in the domain RDN */
+        if (rdn == NULL) {
+            ldap_dnfree(dn);
+            ret = EINVAL;
+            goto done;
+        }
+
         t[n].parent_name = strndup(rdn[0]->la_value.bv_val, rdn[0]->la_value.bv_len);
 
         ldap_dnfree(dn);
