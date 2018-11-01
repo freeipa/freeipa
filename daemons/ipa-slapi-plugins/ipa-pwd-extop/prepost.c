@@ -176,7 +176,11 @@ static bool has_krbprincipalkey(Slapi_Entry *entry) {
 
             if (rc || (num_keys <= 0)) {
                 /* this one is not valid, ignore it */
-                if (keys) ipa_krb5_free_key_data(keys, num_keys);
+                if (keys) {
+                    ipa_krb5_free_key_data(keys, num_keys);
+                    keys = NULL;
+                    num_keys = 0;
+                }
             } else {
                 /* It exists at least this one that is valid, no need to continue */
                 if (keys) ipa_krb5_free_key_data(keys, num_keys);
