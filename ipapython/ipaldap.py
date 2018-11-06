@@ -562,10 +562,13 @@ class LDAPEntry(MutableMapping):
                     raise errors.OnlyOneValueAllowed(attr=name)
                 modlist.append((ldap.MOD_REPLACE, name, adds))
             else:
-                if adds:
-                    modlist.append((ldap.MOD_ADD, name, adds))
+                # dels before adds, in case the same value occurs in
+                # both due to encoding differences
+                # (https://pagure.io/freeipa/issue/7750)
                 if dels:
                     modlist.append((ldap.MOD_DELETE, name, dels))
+                if adds:
+                    modlist.append((ldap.MOD_ADD, name, adds))
 
         # Usually the modlist order does not matter.
         # However, for schema updates, we want 'attributetypes' before
