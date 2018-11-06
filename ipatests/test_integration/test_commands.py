@@ -20,6 +20,8 @@ import pytest
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509
 
+from ipalib.constants import IPAAPI_USER
+
 from ipaplatform.paths import paths
 
 from ipatests.test_integration.base import IntegrationTest
@@ -27,6 +29,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipatests.create_external_ca import ExternalCA
 
 logger = logging.getLogger(__name__)
+
 
 class TestIPACommand(IntegrationTest):
     """
@@ -429,3 +432,31 @@ class TestIPACommand(IntegrationTest):
             x509.load_pem_x509_certificate(data, backend=default_backend())
 
             self.master.run_command(['rm', '-f', filename])
+
+    def test_sssd_ifp_access_ipaapi(self):
+        # check that ipaapi is allowed to access sssd-ifp for smartcard auth
+        # https://pagure.io/freeipa/issue/7751
+        username = 'admin'
+        # get UID for user
+        result = self.master.run_command(['ipa', 'user-show', username])
+        mo = re.search(r'UID: (\d+)', result.stdout_text)
+        assert mo is not None, result.stdout_text
+        uid = mo.group(1)
+
+        cmd = [
+            'dbus-send',
+            '--print-reply', '--system',
+            '--dest=org.freedesktop.sssd.infopipe',
+            '/org/freedesktop/sssd/infopipe/Users',
+            'org.freedesktop.sssd.infopipe.Users.FindByName',
+            'string:{}'.format(username)
+        ]
+        # test IFP as root
+        result = self.master.run_command(cmd)
+        assert uid in result.stdout_text
+
+        # test IFP as ipaapi
+        result = self.master.run_command(
+            ['sudo', '-u', IPAAPI_USER, '--'] + cmd
+        )
+        assert uid in result.stdout_text

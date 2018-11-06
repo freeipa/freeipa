@@ -33,6 +33,7 @@ from configparser import RawConfigParser
 from urllib.parse import urlparse, urlunparse
 
 from ipalib import api, errors, x509
+from ipalib.constants import IPAAPI_USER
 from ipalib.install import certmonger, certstore, service, sysrestore
 from ipalib.install import hostname as hostname_
 from ipalib.install.kinit import kinit_keytab, kinit_password
@@ -912,7 +913,7 @@ def configure_sssd_conf(
         domain = sssdconfig.new_domain(cli_domain)
 
     if options.on_master:
-        sssd_enable_service(sssdconfig, 'ifp')
+        sssd_enable_ifp(sssdconfig)
 
     if (
         (options.conf_ssh and os.path.isfile(paths.SSH_CONFIG)) or
@@ -1016,21 +1017,47 @@ def configure_sssd_conf(
     return 0
 
 
-def sssd_enable_service(sssdconfig, service):
+def sssd_enable_service(sssdconfig, name):
     try:
-        sssdconfig.new_service(service)
+        sssdconfig.new_service(name)
     except SSSDConfig.ServiceAlreadyExists:
         pass
     except SSSDConfig.ServiceNotRecognizedError:
         logger.error(
-            "Unable to activate the %s service in SSSD config.", service)
+            "Unable to activate the '%s' service in SSSD config.", name)
         logger.info(
             "Please make sure you have SSSD built with %s support "
-            "installed.", service)
+            "installed.", name)
         logger.info(
-            "Configure %s support manually in /etc/sssd/sssd.conf.", service)
+            "Configure %s support manually in /etc/sssd/sssd.conf.", name)
+        return None
 
-    sssdconfig.activate_service(service)
+    sssdconfig.activate_service(name)
+    return sssdconfig.get_service(name)
+
+
+def sssd_enable_ifp(sssdconfig):
+    """Enable and configure libsss_simpleifp plugin
+    """
+    service = sssd_enable_service(sssdconfig, 'ifp')
+    if service is None:
+        # unrecognized service
+        return
+
+    try:
+        uids = service.get_option('allowed_uids')
+    except SSSDConfig.NoOptionError:
+        uids = set()
+    else:
+        uids = {s.strip() for s in uids.split(',') if s.strip()}
+    # SSSD supports numeric and string UIDs
+    # ensure that root is allowed to access IFP, might be 0 or root
+    if uids.isdisjoint({'0', 'root'}):
+        uids.add('root')
+    # allow IPA API to access IFP
+    uids.add(IPAAPI_USER)
+    service.set_option('allowed_uids', ', '.join(sorted(uids)))
+    sssdconfig.save_service(service)
 
 
 def change_ssh_config(filename, changes, sections):
