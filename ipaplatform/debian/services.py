@@ -153,8 +153,6 @@ def debian_service_class_factory(name, api=None):
         return DebianNoService(name, api)
     if name == 'ipa':
         return redhat_services.RedHatIPAService(name, api)
-    if name == 'messagebus':
-        return DebianNoService(name, api)
     if name == 'ntpd':
         return DebianSysvService("ntp", api)
     return DebianService(name, api)
