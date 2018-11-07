@@ -139,6 +139,19 @@ def user_npg2(request, group):
 
 
 @pytest.fixture(scope='class')
+def user_radius(request):
+    """ User tracker fixture for testing users with radius user name """
+    tracker = UserTracker(name=u'radiususer', givenname=u'radiususer',
+                          sn=u'radiususer1',
+                          ipatokenradiususername=u'radiususer')
+    tracker.track_create()
+    tracker.attrs.update(
+        objectclass=objectclasses.user + [u'ipatokenradiusproxyuser']
+    )
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
 def group(request):
     tracker = GroupTracker(name=u'group1')
     return tracker.make_fixture(request)
@@ -448,6 +461,15 @@ class TestUpdate(XMLRPC_test):
                 error=u'may only include letters, numbers, _, -, . and $')):
             command()
 
+    def test_add_radius_username(self, user):
+        """ Test for ticket 7569: Try to add --radius-username """
+        user.ensure_exists()
+        command = user.make_update_command(
+            updates=dict(ipatokenradiususername=u'radiususer')
+        )
+        command()
+        user.delete()
+
 
 @pytest.mark.tier1
 class TestCreate(XMLRPC_test):
@@ -662,6 +684,13 @@ class TestCreate(XMLRPC_test):
                 error=u'may only include letters, numbers, _, -, . and $',
         )):
             testuser.create()
+
+    def test_create_with_radius_username(self, user_radius):
+        """Test for issue 7569: try to create a user with --radius-username"""
+        command = user_radius.make_create_command()
+        result = command()
+        user_radius.check_create(result)
+        user_radius.delete()
 
 
 @pytest.mark.tier1
