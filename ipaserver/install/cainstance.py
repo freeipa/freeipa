@@ -1046,7 +1046,7 @@ class CAInstance(DogtagInstance):
         # cause files to have a new owner.
         self.restore_state("user_exists")
 
-        services.knownservices.messagebus.start()
+        services.knownservices.dbus.start()
         cmonger = services.knownservices.certmonger
         cmonger.start()
 

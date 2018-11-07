@@ -266,7 +266,7 @@ class DogtagInstance(service.Service):
         """
         cmonger = services.knownservices.certmonger
         cmonger.enable()
-        services.knownservices.messagebus.start()
+        services.knownservices.dbus.start()
         cmonger.start()
 
         bus = dbus.SystemBus()
@@ -338,7 +338,7 @@ class DogtagInstance(service.Service):
             "for %s", self.subsystem)
 
         cmonger = services.knownservices.certmonger
-        services.knownservices.messagebus.start()
+        services.knownservices.dbus.start()
         cmonger.start()
 
         nicknames = list(self.tracking_reqs)

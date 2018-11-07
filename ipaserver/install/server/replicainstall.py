@@ -361,11 +361,11 @@ def check_dns_resolution(host_name, dns_servers):
 
 
 def configure_certmonger():
-    messagebus = services.knownservices.messagebus
+    dbus = services.knownservices.dbus
     try:
-        messagebus.start()
+        dbus.start()
     except Exception as e:
-        raise ScriptError("Messagebus service unavailable: %s" % str(e),
+        raise ScriptError("dbus service unavailable: %s" % str(e),
                           rval=3)
 
     # Ensure that certmonger has been started at least once to generate the
