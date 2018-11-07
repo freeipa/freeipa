@@ -340,8 +340,14 @@ def test_cli_fsencoding():
         env=env,
     )
     out, err = p.communicate()
-    assert p.returncode > 0, (out, err)
-    assert b'System encoding must be UTF-8' in err, (out, err)
+
+    if sys.version_info >= (3, 7):
+        # Python 3.7+ has PEP 538: Legacy C Locale Coercion
+        assert p.returncode == 0, (out, err)
+    else:
+        # Python 3.6 does not support UTF-8 fs encoding with non-UTF LC
+        assert p.returncode != 0, (out, err)
+        assert b'System encoding must be UTF-8' in err, (out, err)
 
 
 IPA_NOT_CONFIGURED = b'IPA is not configured on this system'
