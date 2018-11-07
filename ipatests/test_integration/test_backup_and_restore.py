@@ -24,6 +24,7 @@ import os
 import re
 import contextlib
 from tempfile import NamedTemporaryFile
+import pytest
 
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -137,6 +138,8 @@ def restore_checker(host):
 
     yield
 
+    tasks.kinit_admin(host)
+
     for (check, assert_func), expected in zip(CHECKS, results):
         logger.info('Checking result for %s', check.__name__)
         got = check(host)
@@ -162,6 +165,24 @@ def backup(host):
             return backup_path
     else:
         raise AssertionError('Backup directory not found in output')
+
+
+@pytest.yield_fixture(scope="function")
+def cert_sign_request(request):
+    master = request.instance.master
+    hosts = [master] + request.instance.replicas
+    csrs = {}
+    for host in hosts:
+        request_path = host.run_command(['mktemp']).stdout_text.strip()
+        openssl_command = [
+            'openssl', 'req', '-new', '-nodes', '-out', request_path,
+            '-subj', '/CN=' + master.hostname
+        ]
+        host.run_command(openssl_command)
+        csrs[host.hostname] = request_path
+    yield csrs
+    for host in hosts:
+        host.run_command(['rm', csrs[host.hostname]])
 
 
 class TestBackupAndRestore(IntegrationTest):
@@ -446,36 +467,92 @@ class TestBackupReinstallRestoreWithKRA(BaseBackupAndRestoreWithKRA):
 
 
 class TestBackupAndRestoreWithReplica(IntegrationTest):
-    """Regression test for https://pagure.io/freeipa/issue/7234"""
-    num_replicas = 1
+    """Regression tests for issues 7234 and 7455
+
+    https://pagure.io/freeipa/issue/7234
+        - check that oddjobd service is started after restore
+        - check new replica  setup after restore
+    https://pagure.io/freeipa/issue/7455
+        check that after restore and replication reinitialization
+            - users and CA data are at state before backup
+            - CA can be installed on existing replica
+            - new replica with CA can be setup
+    """
+    num_replicas = 2
     topology = "star"
 
     @classmethod
     def install(cls, mh):
+        cls.replica1 = cls.replicas[0]
+        cls.replica2 = cls.replicas[1]
         if cls.domain_level is None:
             domain_level = cls.master.config.domain_level
         else:
             domain_level = cls.domain_level
+        # Configure only master and one replica.
+        # Replica is configured without CA
+        tasks.install_topo(
+            cls.topology, cls.master, [cls.replica1],
+            cls.clients, domain_level,
+            setup_replica_cas=False
+        )
 
-        if cls.topology is None:
-            return
-        else:
-            tasks.install_topo(
-                cls.topology, cls.master, [],
-                cls.clients, domain_level
-            )
+    def get_users(self, host):
+        res = host.run_command(['ipa', 'user-find'])
+        users = set()
+        for line in res.stdout_text.splitlines():
+            k, _unused, v = line.strip().partition(': ')
+            if k == 'User login':
+                users.add(v)
+        return users
 
-    def test_full_backup_and_restore_with_replica(self):
-        replica = self.replicas[0]
+    def check_replication_error(self, host):
+        status = r'Error \(19\) Replication error acquiring replica: ' \
+                 'Replica has different database generation ID'
+        tasks.wait_for_replication(
+            host.ldap_connect(), target_status_re=status,
+            raise_on_timeout=True)
+
+    def check_replication_success(self, host):
+        status = r'Error \(0\) Replica acquired successfully: ' \
+                 'Incremental update succeeded'
+        tasks.wait_for_replication(
+            host.ldap_connect(), target_status_re=status,
+            raise_on_timeout=True)
+
+    def request_test_service_cert(self, host, request_path,
+                                  expect_connection_error=False):
+        res = host.run_command([
+            'ipa', 'cert-request', '--principal=TEST/' + self.master.hostname,
+            request_path
+        ], raiseonerr=not expect_connection_error)
+        if expect_connection_error:
+            assert (1 == res.returncode and
+                    '[Errno 111] Connection refused' in res.stderr_text)
+
+    def test_full_backup_and_restore_with_replica(self, cert_sign_request):
+        # check prerequisites
+        self.check_replication_success(self.master)
+        self.check_replication_success(self.replica1)
+
+        self.master.run_command(
+            ['ipa', 'service-add', 'TEST/' + self.master.hostname])
+
+        tasks.user_add(self.master, 'test1_master')
+        tasks.user_add(self.replica1, 'test1_replica')
 
         with restore_checker(self.master):
             backup_path = backup(self.master)
 
-            logger.info("Backup path for %s is %s", self.master, backup_path)
+            # change data after backup
+            self.master.run_command(['ipa', 'user-del', 'test1_master'])
+            self.replica1.run_command(['ipa', 'user-del', 'test1_replica'])
+            tasks.user_add(self.master, 'test2_master')
+            tasks.user_add(self.replica1, 'test2_replica')
 
-            self.master.run_command([
-                "ipa-server-install", "--uninstall", "-U"
-            ])
+            # simulate master crash
+            self.master.run_command(['ipactl', 'stop'])
+            tasks.uninstall_master(self.master, clean=False)
 
             logger.info("Stopping and disabling oddjobd service")
             self.master.run_command([
@@ -485,18 +562,76 @@ class TestBackupAndRestoreWithReplica(IntegrationTest):
                 "systemctl", "disable", "oddjobd"
             ])
 
-            self.master.run_command(
-                ["ipa-restore", backup_path],
-                stdin_text='yes'
-            )
+            self.master.run_command(['ipa-restore', '-U', backup_path])
 
-            status = self.master.run_command([
-                "systemctl", "status", "oddjobd"
-            ])
-            assert "active (running)" in status.stdout_text
+        status = self.master.run_command([
+            "systemctl", "status", "oddjobd"
+        ])
+        assert "active (running)" in status.stdout_text
 
-        tasks.install_replica(self.master, replica)
-        check_replication(self.master, replica, "testuser1")
+        # replication should not work after restoration
+        # create users to force master and replica to try to replicate
+        tasks.user_add(self.master, 'test3_master')
+        tasks.user_add(self.replica1, 'test3_replica')
+        self.check_replication_error(self.master)
+        self.check_replication_error(self.replica1)
+        assert {'admin', 'test1_master', 'test1_replica', 'test3_master'} == \
+            self.get_users(self.master)
+        assert {'admin', 'test2_master', 'test2_replica', 'test3_replica'} == \
+            self.get_users(self.replica1)
+
+        # reestablish and check replication
+        self.replica1.run_command(['ipa-replica-manage', 're-initialize',
+                                  '--from', self.master.hostname])
+        # create users to force master and replica to try to replicate
+        tasks.user_add(self.master, 'test4_master')
+        tasks.user_add(self.replica1, 'test4_replica')
+        self.check_replication_success(self.master)
+        self.check_replication_success(self.replica1)
+        assert {'admin', 'test1_master', 'test1_replica',
+                'test3_master', 'test4_master', 'test4_replica'} == \
+            self.get_users(self.master)
+        assert {'admin', 'test1_master', 'test1_replica',
+                'test3_master', 'test4_master', 'test4_replica'} == \
+            self.get_users(self.replica1)
+
+        # CA on master should be accesible from master and replica
+        self.request_test_service_cert(
+            self.master, cert_sign_request[self.master.hostname])
+        self.request_test_service_cert(
+            self.replica1, cert_sign_request[self.replica1.hostname])
+
+        # replica should not be able to sign certificates without CA on master
+        self.master.run_command(['ipactl', 'stop'])
+        try:
+            self.request_test_service_cert(
+                self.replica1, cert_sign_request[self.replica1.hostname],
+                expect_connection_error=True)
+        finally:
+            self.master.run_command(['ipactl', 'start'])
+
+        tasks.install_ca(self.replica1)
+
+        # now replica should be able to sign certificates without CA on master
+        self.master.run_command(['ipactl', 'stop'])
+        self.request_test_service_cert(
+            self.replica1, cert_sign_request[self.replica1.hostname])
+        self.master.run_command(['ipactl', 'start'])
+
+        # check installation of new replica
+        tasks.install_replica(self.master, self.replica2, setup_ca=True)
+        check_replication(self.master, self.replica2, "testuser")
+
+        # new replica should be able to sign certificates without CA on master
+        # and old replica
+        self.master.run_command(['ipactl', 'stop'])
+        self.replica1.run_command(['ipactl', 'stop'])
+        try:
+            self.request_test_service_cert(
+                self.replica2, cert_sign_request[self.replica2.hostname])
+        finally:
+            self.replica1.run_command(['ipactl', 'start'])
+            self.master.run_command(['ipactl', 'start'])
 
 
 class TestUserRootFilesOwnershipPermission(IntegrationTest):
