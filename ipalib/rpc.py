@@ -710,8 +710,15 @@ class KerbTransport(SSLTransport):
                     response = h.getresponse()
 
                 if response.status != 200:
-                    if (response.getheader("content-length", 0)):
-                        response.read()
+                    # Must read response (even if it is empty)
+                    # before sending another request.
+                    #
+                    # https://docs.python.org/3/library/http.client.html
+                    #   #http.client.HTTPConnection.getresponse
+                    #
+                    # https://pagure.io/freeipa/issue/7752
+                    #
+                    response.read()
 
                     if response.status == 401:
                         if not self._auth_complete(response):
