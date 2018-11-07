@@ -29,6 +29,7 @@ from ipalib import errors
 from ipalib.plugable import Registry
 from ipalib.util import validate_hostname, validate_ipaddr
 from ipalib.errors import ValidationError
+from ipapython.dn import DN
 import re
 
 __doc__ = _("""
@@ -146,6 +147,24 @@ class radiusproxy(LDAPObject):
             doc=_('The username attribute on the user object'),
         ),
     )
+
+    managed_permissions = {
+        'System: Read Radius Servers': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'objectclass', 'ipatokenradiusserver', 'description',
+                'ipatokenradiustimeout', 'ipatokenradiusretries',
+                'ipatokenusermapattribute'
+            },
+            'ipapermlocation': DN(container_dn, api.env.basedn),
+            'ipapermtargetfilter': {
+                '(objectclass=ipatokenradiusconfiguration)'},
+            'default_privileges': {
+                'User Administrators',
+                'Stage User Administrators'},
+        }
+    }
 
 @register()
 class radiusproxy_add(LDAPCreate):
