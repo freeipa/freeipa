@@ -95,7 +95,6 @@ def set_and_check_netbios_name(netbios_name, unattended, api):
     cur_netbios_name = None
     gen_netbios_name = None
     reset_netbios_name = False
-    entry = None
 
     if api.Backend.ldap2.isconnected():
         cur_netbios_name = retrieve_netbios_name(api)
@@ -133,7 +132,7 @@ def set_and_check_netbios_name(netbios_name, unattended, api):
             gen_netbios_name = adtrustinstance.make_netbios_name(
                 api.env.domain)
 
-        if entry is not None:
+        if gen_netbios_name is not None:
             # Fix existing trust configuration
             print("Trust is configured but no NetBIOS domain name found, "
                   "setting it now.")
