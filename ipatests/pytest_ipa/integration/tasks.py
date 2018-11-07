@@ -1121,19 +1121,26 @@ def _entries_to_ldif(entries):
     return io.getvalue()
 
 
-def wait_for_replication(ldap, timeout=30):
-    """Wait until updates on all replication agreements are done (or failed)
+def wait_for_replication(ldap, timeout=30,
+                         target_status_re=r'^0 |^Error \(0\) ',
+                         raise_on_timeout=False):
+    """Wait for all replication agreements to reach desired state
 
+    With defaults waits until updates on all replication agreements are
+    done (or failed) and exits without exception
     :param ldap: LDAP client
         autenticated with necessary rights to read the mapping tree
     :param timeout: Maximum time to wait, in seconds
+    :param target_status_re: Regexp of status to wait for
+    :param raise_on_timeout: if True, raises AssertionError if status not
+        reached in specified time
 
     Note that this waits for updates originating on this host, not those
     coming from other hosts.
     """
     logger.debug('Waiting for replication to finish')
-    for i in range(timeout):
-        time.sleep(1)
+    start = time.time()
+    while True:
         status_attr = 'nsds5replicaLastUpdateStatus'
         progress_attr = 'nsds5replicaUpdateInProgress'
         entries = ldap.get_entries(
@@ -1141,25 +1148,24 @@ def wait_for_replication(ldap, timeout=30):
             filter='(objectclass=nsds5replicationagreement)',
             attrs_list=[status_attr, progress_attr])
         logger.debug('Replication agreements: \n%s', _entries_to_ldif(entries))
-        if any(
-                not (
-                    # older DS format
-                    e.single_value[status_attr].startswith('0 ') or
-                    # newer DS format
-                    e.single_value[status_attr].startswith('Error (0) ')
-                )
-            for e in entries
-        ):
-            logger.error('Replication error')
-            continue
+        statuses = [entry.single_value[status_attr] for entry in entries]
+        wrong_statuses = [s for s in statuses
+                          if not re.match(target_status_re, s)]
         if any(e.single_value[progress_attr] == 'TRUE' for e in entries):
-            logger.debug('Replication in progress (waited %s/%ss)',
-                         i, timeout)
+            msg = 'Replication not finished'
+            logger.debug(msg)
+        elif wrong_statuses:
+            msg = 'Unexpected replication status: %s' % wrong_statuses[0]
+            logger.debug(msg)
         else:
             logger.debug('Replication finished')
+            return
+        if time.time() - start > timeout:
+            logger.error('Giving up wait for replication to finish')
+            if raise_on_timeout:
+                raise AssertionError(msg)
             break
-    else:
-        logger.error('Giving up wait for replication to finish')
+        time.sleep(1)
 
 
 def wait_for_cleanallruv_tasks(ldap, timeout=30):
@@ -1555,3 +1561,11 @@ def strip_cert_header(pem):
         return s.group(1)
     else:
         return pem
+
+
+def user_add(host, login):
+    host.run_command([
+        "ipa", "user-add", login,
+        "--first", "test",
+        "--last", "user"
+    ])
