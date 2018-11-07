@@ -98,6 +98,49 @@ class TestUserPermissions(IntegrationTest):
         result = self.master.run_command(['ipa', 'stageuser-show', stageuser])
         assert 'Kerberos keys available: True' in result.stdout_text
 
+    def test_user_add_withradius(self):
+        """
+        Test that a user with User Administrator role can call
+        ipa user-add --radius myradius
+        to create a user with an assigned Radius Proxy Server.
+
+        This is a test case for issue 7570
+        """
+        # kinit admin
+        tasks.kinit_admin(self.master)
+
+        # Create a radius proxy server
+        radiusproxy = 'myradius'
+        secret = 'Secret123'
+        radius_secret_confirmation = "%s\n%s\n" % (secret, secret)
+        self.master.run_command(
+            ['ipa', 'radiusproxy-add', radiusproxy,
+             '--server', 'radius.example.com', '--secret'],
+            stdin_text=radius_secret_confirmation)
+
+        # Create a user with 'User Administrator' role
+        altuser = 'specialuser'
+        password = 'SpecialUser123'
+        password_confirmation = "%s\n%s\n" % (password, password)
+        self.master.run_command(
+            ['ipa', 'user-add', altuser, '--first', altuser, '--last', altuser,
+             '--password'],
+            stdin_text=password_confirmation)
+        self.master.run_command(
+            ['ipa', 'role-add-member', "User Administrator",
+             '--user', altuser])
+
+        # kinit as altuser to initialize the password
+        altuser_kinit = "%s\n%s\n%s\n" % (password, password, password)
+        self.master.run_command(['kinit', altuser], stdin_text=altuser_kinit)
+        # call ipa user-add with --radius=...
+        # this call requires read access to radius proxy servers
+        self.master.run_command(
+            ['ipa', 'user-add', '--first', 'test', '--last', 'test',
+             '--user-auth-type', 'radius', '--radius-username', 'testradius',
+             'testradius', '--radius', radiusproxy])
+
+
 
 class TestInstallClientNoAdmin(IntegrationTest):
     num_clients = 1
