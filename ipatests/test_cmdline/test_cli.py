@@ -333,6 +333,9 @@ def test_cli_fsencoding():
     }
     env['LC_ALL'] = 'C'
     env['PYTHONPATH'] = BASE_DIR
+    # override confdir so test always fails and does not depend on an
+    # existing installation.
+    env['IPA_CONFDIR'] = '/'
     p = subprocess.Popen(
         [sys.executable, '-m', 'ipaclient', 'help'],
         stdout=subprocess.PIPE,
@@ -341,12 +344,12 @@ def test_cli_fsencoding():
     )
     out, err = p.communicate()
 
+    assert p.returncode != 0, (out, err)
     if sys.version_info >= (3, 7):
         # Python 3.7+ has PEP 538: Legacy C Locale Coercion
-        assert p.returncode == 0, (out, err)
+        assert b'IPA client is not configured' in err, (out, err)
     else:
         # Python 3.6 does not support UTF-8 fs encoding with non-UTF LC
-        assert p.returncode != 0, (out, err)
         assert b'System encoding must be UTF-8' in err, (out, err)
 
 
