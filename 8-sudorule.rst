@@ -14,6 +14,10 @@ simplify management, Sudo rules can refer to User Groups, Host
 Groups and *Command Groups* as well as individual users, hosts and
 commands.
 
+Older versions of sudo did not require pam access for passwordless
+rules (e.g. rules with the NOPASSWD keyword).
+sudo-1.8.23 and newer require pam access for all rules.
+
 The goal of this unit is to allow ``alice`` (being a ``sysadmin``)
 to run any command on any FreeIPA-enrolled machine, and to allow
 ``bob`` (who is merely a web server administrator) to control
@@ -94,19 +98,50 @@ Permitting ``bob`` to run web administration commands
 
 Now let us turn our attention to ``bob``.  The goal is to allow
 ``bob`` and other web servers administrators to run commands related
-to web server administration (and only such commands).  First, let's
-observe that ``bob`` currently cannot restart Apache::
+to web server administration (and only such commands).
+
+First, create a new User Group named ``webadmin`` and add ``bob`` as a
+member.  Add an ``hbacrule`` that allows ``bob`` to log into hosts
+that are members of the ``webservers`` Host Group using the ``sshd``
+service.
+
+Once this is done you should be able to login, but not use ``su -l``::
 
   [client]$ su -l bob
   Password:
 
+  [bob@client]$ su -l bob
+  Password:
+  su: Permission denied
+
+Then, let's observe that ``bob`` currently cannot restart Apache::
+
+  [bob@client]$ sudo systemctl restart httpd
+  [sudo] password for bob:
+  sudo: PAM account management error: Permission denied
+
+Take note that the error is different from the one alice got, which was::
+
+  alice is not allowed to run sudo on client.  This incident will be reported.
+
+While the HBAC rule alice uses (sysadmin_webservers) was created with
+"--servicecat=all", the HBAC rule for bob was created with sshd in mind,
+like this::
+
+  [server]$ ipa hbacrule-add-service webadmin_webservers --hbacsvcs=sshd
+
+As bob needs to run both ``su -l`` and ``sudo``, add both commands to
+the list of allowed services in your access control rule, for instance::
+
+  [server]$ ipa hbacrule-add-service webadmin_webservers \
+      --hbacsvcs=sudo --hbacsvcs=su-l
+
+Now login and logout as bob. Not only bob should now be able to use
+``su -l``, but the error message from ``sudo`` should change::
+
   [bob@client]$ sudo systemctl restart httpd
   [sudo] password for bob:
   Sorry, user bob is not allowed to execute '/bin/systemctl restart httpd' as root on client.ipademo.local.
-
-Make a new User Group named ``webadmin`` and add ``bob`` as a
-member.  Add an ``hbacrule`` that allows ``bob`` to log into hosts
-that are members of the ``webservers`` Host Group.
 
 Now define the ``webadmin_sudo`` rule.  Note that we *do not* use
 ``--hostcat=all`` or ``cmdcat=all`` this time.
