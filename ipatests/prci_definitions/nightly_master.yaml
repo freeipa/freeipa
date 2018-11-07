@@ -13,8 +13,8 @@ topologies:
     memory: 6700
   ipaserver: &ipaserver
     name: ipaserver
-    cpu: 1
-    memory: 2400
+    cpu: 2
+    memory: 4800
   master_2repl_1client: &master_2repl_1client
     name: master_2repl_1client
     cpu: 5
