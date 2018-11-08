@@ -486,7 +486,7 @@ class permission(baseldap.LDAPObject):
 
             if old_client:
                 for old_name, new_name in _DEPRECATED_OPTION_ALIASES.items():
-                    if new_name in entry:
+                    if new_name in rights:
                         rights[old_name] = rights[new_name]
                         del rights[new_name]
 

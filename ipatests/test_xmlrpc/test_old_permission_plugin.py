@@ -73,8 +73,8 @@ permission3_attributelevelrights = {
                                      'ipapermbindruletype': u'rscwo',
                                      'ipapermdefaultattr': u'rscwo',
                                      'ipapermexcludedattr': u'rscwo',
-                                     'ipapermlocation': u'rscwo',
-                                     'ipapermright': u'rscwo',
+                                     'subtree': u'rscwo',  # old
+                                     'permissions': u'rscwo',  # old
                                      'ipapermtarget': u'rscwo',
                                      'ipapermtargetfilter': u'rscwo',
                                      'ipapermtargetto': u'rscwo',
