@@ -22,7 +22,9 @@ ipa\-cacert\-manage \- Manage CA certificates in IPA
 .SH "SYNOPSIS"
 \fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] renew
 .RE
-\fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] install \fICERTFILE\fR
+\fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] install \fICERTFILE\fR...
+.RE
+\fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] list
 .SH "DESCRIPTION"
 \fBipa\-cacert\-manage\fR can be used to manage CA certificates in IPA.
 .SH "COMMANDS"
@@ -41,14 +43,22 @@ When the IPA CA is not configured, this command is not available.
 .RE
 .TP
 \fBinstall\fR
-\- Install a CA certificate
+\- Install one or more CA certificates
 .sp
 .RS
-This command can be used to install the certificate contained in \fICERTFILE\fR as an additional CA certificate to IPA.
+This command can be used to install the certificates contained in \fICERTFILE\fR as additional CA certificates to IPA.
 .sp
 Important: this does not replace IPA CA but adds the provided certificate as a known CA. This is useful for instance when using ipa-server-certinstall to replace HTTP/LDAP certificates with third-party certificates signed by this additional CA.
 .sp
 Please do not forget to run ipa-certupdate on the master, all the replicas and all the clients after this command in order to update IPA certificates databases.
+.sp
+The supported formats for the certificate files are DER, PEM and PKCS#7 format.
+.RE
+\fBlist\fR
+\- List the stored CA certificates
+.sp
+.RS
+Display a list of the nicknames or subjects of the CA certificates that have been installed.
 .RE
 .SH "COMMON OPTIONS"
 .TP
@@ -106,7 +116,7 @@ File containing the IPA CA certificate and the external CA certificate chain. Th
 .SH "INSTALL OPTIONS"
 .TP
 \fB\-n\fR \fINICKNAME\fR, \fB\-\-nickname\fR=\fINICKNAME\fR
-Nickname for the certificate.
+Nickname for the certificate. Applicable only when a single certificate is being installed.
 .TP
 \fB\-t\fR \fITRUST_FLAGS\fR, \fB\-\-trust\-flags\fR=\fITRUST_FLAGS\fR
 Trust flags for the certificate in certutil format. Trust flags are of the form "A,B,C" or "A,B,C,D" where A is for SSL, B is for S/MIME, C is for code signing, and D is for PKINIT. Use ",," for no explicit trust.
