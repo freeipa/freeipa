@@ -53,6 +53,7 @@ from ipalib.constants import (
 from ipatests.create_external_ca import ExternalCA
 from .env_config import env_to_script
 from .host import Host
+from .firewall import Firewall
 
 logger = logging.getLogger(__name__)
 
@@ -330,6 +331,8 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
     setup_server_logs_collecting(host)
     apply_common_fixes(host)
     fix_apache_semaphores(host)
+    fw = Firewall(host)
+    fw_services = ["freeipa-ldap", "freeipa-ldaps"]
 
     args = [
         'ipa-server-install',
@@ -348,16 +351,20 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
             '--forwarder', host.config.dns_forwarder,
             '--auto-reverse'
         ])
+        fw_services.append("dns")
     if setup_kra:
         args.append('--setup-kra')
     if setup_adtrust:
         args.append('--setup-adtrust')
+        fw_services.append("freeipa-trust")
     if external_ca:
         args.append('--external-ca')
 
     args.extend(extra_args)
     result = host.run_command(args, raiseonerr=raiseonerr,
                               stdin_text=stdin_text)
+    if result.returncode == 0:
+        fw.enable_services(fw_services)
     if result.returncode == 0 and not external_ca:
         # external CA step 1 doesn't have DS and KDC fully configured, yet
         enable_replication_debugging(host)
@@ -430,6 +437,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     apply_common_fixes(replica)
     setup_server_logs_collecting(replica)
     allow_sync_ptr(master)
+    fw = Firewall(replica)
+    fw_services = ["freeipa-ldap", "freeipa-ldaps"]
     # Otherwise ipa-client-install would not create a PTR
     # and replica installation would fail
     args = ['ipa-replica-install',
@@ -447,8 +456,10 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
             '--setup-dns',
             '--forwarder', replica.config.dns_forwarder
         ])
+        fw_services.append("dns")
     if setup_adtrust:
         args.append('--setup-adtrust')
+        fw_services.append("freeipa-trust")
     if master_authoritative_for_client_domain(master, replica):
         args.extend(['--ip-address', replica.ip])
 
@@ -458,6 +469,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     install_client(master, replica)
     fix_apache_semaphores(replica)
     args.extend(['-r', replica.domain.realm])
+    fw.enable_services(fw_services)
 
     result = replica.run_command(args, raiseonerr=raiseonerr,
                                  stdin_text=stdin_text)
@@ -465,6 +477,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         enable_replication_debugging(replica)
         setup_sssd_debugging(replica)
         kinit_admin(replica)
+    else:
+        fw.disable_services(fw_services)
     return result
 
 
@@ -512,6 +526,8 @@ def install_adtrust(host):
                       '--netbios-name', host.netbios,
                       '-a', host.config.admin_password,
                       '--add-sids'])
+
+    Firewall(host).enable_service("freeipa-trust")
 
     # Restart named because it lost connection to dirsrv
     # (Directory server restarts during the ipa-adtrust-install)
@@ -777,6 +793,8 @@ def uninstall_master(host, ignore_topology_disconnect=True,
 
     result = host.run_command(uninstall_cmd)
     assert "Traceback" not in result.stdout_text
+    Firewall(host).disable_services(["freeipa-ldap", "freeipa-ldaps",
+                                     "freeipa-trust", "dns"])
 
     host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
                      raiseonerr=False)
@@ -1320,7 +1338,9 @@ def install_dns(host, raiseonerr=True):
         "--forwarder", host.config.dns_forwarder,
         "-U",
     ]
-    return host.run_command(args, raiseonerr=raiseonerr)
+    ret = host.run_command(args, raiseonerr=raiseonerr)
+    Firewall(host).enable_service("dns")
+    return ret
 
 
 def uninstall_replica(master, replica):
