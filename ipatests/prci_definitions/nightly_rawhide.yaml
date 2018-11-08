@@ -628,16 +628,139 @@ jobs:
         timeout: 3600
         topology: *master_1repl_1client
 
-  fedora-rawhide/test_webui:
+  fedora-rawhide/test_webui_cert:
     requires: [fedora-rawhide/build]
     priority: 50
     job:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
-        test_suite: test_webui/
+        test_suite: test_webui/test_cert.py
         template: *ci-master-frawhide
-        timeout: 7200
+        timeout: 1800
+        topology: *ipaserver
+
+  fedora-rawhide/test_webui_general:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: >
+          test_webui/test_loginscreen.py
+          test_webui/test_misc_cases.py
+          test_webui/test_navigation.py
+          test_webui/test_translation.py
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-rawhide/test_webui_hosts:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: >
+          test_webui/test_host.py
+          test_webui/test_hostgroup.py
+          test_webui/test_netgroup.py
+          test_webui/test_service.py
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-rawhide/test_webui_identity:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: >
+          test_webui/test_automember.py
+          test_webui/test_idviews.py
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-rawhide/test_webui_network:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: >
+          test_webui/test_automount.py
+          test_webui/test_dns.py
+          test_webui/test_vault.py
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-rawhide/test_webui_policy:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: >
+          test_webui/test_hbac.py
+          test_webui/test_krbtpolicy.py
+          test_webui/test_pwpolicy.py
+          test_webui/test_selinuxusermap.py
+          test_webui/test_sudo.py
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-rawhide/test_webui_rbac:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: >
+          test_webui/test_delegation.py
+          test_webui/test_rbac.py
+          test_webui/test_selfservice.py
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-rawhide/test_webui_server:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: >
+          test_webui/test_config.py
+          test_webui/test_range.py
+          test_webui/test_realmdomains.py
+          test_webui/test_trust.py
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-rawhide/test_webui_users:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: >
+          test_webui/test_group.py
+          test_webui/test_user.py
+        template: *ci-master-frawhide
+        timeout: 3600
         topology: *ipaserver
 
   fedora-rawhide/customized_ds_config_install:
