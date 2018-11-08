@@ -110,6 +110,8 @@ class CACertManage(admintool.AdminTool):
         elif command == 'install':
             if len(self.args) < 2:
                 parser.error("certificate file name not provided")
+        elif command == 'list':
+            pass
         else:
             parser.error("unknown command \"%s\"" % command)
 
@@ -126,6 +128,8 @@ class CACertManage(admintool.AdminTool):
                 return self.renew()
             elif command == 'install':
                 return self.install()
+            elif command == 'list':
+                return self.list()
             else:
                 raise NotImplementedError
         finally:
@@ -379,17 +383,6 @@ class CACertManage(admintool.AdminTool):
         print("Installing CA certificate, please wait")
 
         options = self.options
-        cert_filename = self.args[1]
-
-        try:
-            cert = x509.load_certificate_from_file(cert_filename)
-        except IOError as e:
-            raise admintool.ScriptError(
-                "Can't open \"%s\": %s" % (cert_filename, e))
-        except (TypeError, ValueError) as e:
-            raise admintool.ScriptError("Not a valid certificate: %s" % e)
-
-        nickname = options.nickname or str(DN(cert.subject))
 
         ca_certs = certstore.get_ca_certs_nss(api.Backend.ldap2,
                                               api.env.basedn,
@@ -398,45 +391,80 @@ class CACertManage(admintool.AdminTool):
 
         with certs.NSSDatabase() as tmpdb:
             tmpdb.create_db()
-            tmpdb.add_cert(cert, nickname, EXTERNAL_CA_TRUST_FLAGS)
+            tmpdb.import_files(self.args[1:])
+            imported = tmpdb.list_certs()
+            logger.debug("loaded raw certs '%s'", imported)
+
+            if len(imported) > 1 and options.nickname:
+                raise admintool.ScriptError(
+                    "Nickname can only be used if only a single "
+                    "certificate is loaded")
+
+            # If a nickname was provided re-import the cert
+            if options.nickname:
+                (nickname, trust_flags) = imported[0]
+                cert = tmpdb.get_cert(nickname)
+                tmpdb.delete_cert(nickname)
+                tmpdb.add_cert(cert, options.nickname, EXTERNAL_CA_TRUST_FLAGS)
+                imported = tmpdb.list_certs()
+
             for ca_cert, ca_nickname, ca_trust_flags in ca_certs:
                 tmpdb.add_cert(ca_cert, ca_nickname, ca_trust_flags)
 
-            try:
-                tmpdb.verify_ca_cert_validity(nickname)
-            except ValueError as e:
-                raise admintool.ScriptError(
-                    "Not a valid CA certificate: %s (visit "
-                    "http://www.freeipa.org/page/Troubleshooting for "
-                    "troubleshooting guide)" % e)
+            for nickname, trust_flags in imported:
+                if trust_flags.has_key:
+                    continue
+                tmpdb.trust_root_cert(nickname, EXTERNAL_CA_TRUST_FLAGS)
 
-        trust_flags = options.trust_flags.split(',')
-        if (set(options.trust_flags) - set(',CPTcgpuw') or
-                len(trust_flags) not in [3, 4]):
-            raise admintool.ScriptError("Invalid trust flags")
+            for nickname, trust_flags in imported:
+                try:
+                    tmpdb.verify_ca_cert_validity(nickname)
+                except ValueError as e:
+                    raise admintool.ScriptError(
+                        "Not a valid CA certificate: %s (visit "
+                        "http://www.freeipa.org/page/Troubleshooting for "
+                        "troubleshooting guide)" % e)
+                else:
+                    print("Verified %s" % nickname)
 
-        extra_flags = trust_flags[3:]
-        extra_usages = set()
-        if extra_flags:
-            if 'C' in extra_flags[0]:
-                extra_usages.add(x509.EKU_PKINIT_KDC)
-            if 'T' in extra_flags[0]:
-                extra_usages.add(x509.EKU_PKINIT_CLIENT_AUTH)
+            trust_flags = options.trust_flags.split(',')
+            if (set(options.trust_flags) - set(',CPTcgpuw') or
+                    len(trust_flags) not in [3, 4]):
+                raise admintool.ScriptError("Invalid trust flags")
 
-        trust_flags = parse_trust_flags(','.join(trust_flags[:3]))
-        trust_flags = TrustFlags(trust_flags.has_key,
-                                 trust_flags.trusted,
-                                 trust_flags.ca,
-                                 trust_flags.usages | extra_usages)
+            extra_flags = trust_flags[3:]
+            extra_usages = set()
+            if extra_flags:
+                if 'C' in extra_flags[0]:
+                    extra_usages.add(x509.EKU_PKINIT_KDC)
+                if 'T' in extra_flags[0]:
+                    extra_usages.add(x509.EKU_PKINIT_CLIENT_AUTH)
 
-        try:
-            certstore.put_ca_cert_nss(
-                api.Backend.ldap2, api.env.basedn, cert, nickname, trust_flags)
-        except ValueError as e:
-            raise admintool.ScriptError(
-                "Failed to install the certificate: %s" % e)
+            trust_flags = parse_trust_flags(','.join(trust_flags[:3]))
+            trust_flags = TrustFlags(trust_flags.has_key,
+                                     trust_flags.trusted,
+                                     trust_flags.ca,
+                                     trust_flags.usages | extra_usages)
+
+            for nickname, _trust_flags in imported:
+                try:
+                    cert = tmpdb.get_cert(nickname)
+                    certstore.put_ca_cert_nss(
+                        api.Backend.ldap2, api.env.basedn, cert, nickname,
+                        trust_flags)
+                except ValueError as e:
+                    raise admintool.ScriptError(
+                        "Failed to install the certificate: %s" % e)
 
         print("CA certificate successfully installed")
+
+    def list(self):
+        ca_certs = certstore.get_ca_certs_nss(api.Backend.ldap2,
+                                              api.env.basedn,
+                                              api.env.realm,
+                                              False)
+        for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
+            print(ca_nickname)
 
 
 def update_ipa_ca_entry(api, cert):
