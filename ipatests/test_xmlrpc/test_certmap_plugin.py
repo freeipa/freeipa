@@ -109,7 +109,7 @@ class TestCRUD(XMLRPC_test):
     @pytest.mark.parametrize('update', [
             dict(u) for l in range(1, len(certmaprule_update_params)+1)
             for u in itertools.combinations(
-                certmaprule_update_params.items(), l)
+                list(certmaprule_update_params.items()), l)
         ],
         ids=update_idfn,
     )
@@ -187,7 +187,7 @@ class TestAddRemoveCertmap(XMLRPC_test):
         'options', [
             dict(o) for l in range(len(certmapdata_create_params)+1)
             for o in itertools.combinations(
-                certmapdata_create_params.items(), l)
+                list(certmapdata_create_params.items()), l)
         ],
         ids=addcertmap_id,
     )
@@ -313,10 +313,10 @@ def bindtype_permission(request):
 
 @pytest.fixture(
     scope='class',
-    params=itertools.chain(*[
-            itertools.combinations(certmaprule_permissions.values(), l)
-            for l in range(len(certmaprule_permissions.values())+1)
-    ]),
+    params=itertools.chain(
+        *[itertools.combinations(list(certmaprule_permissions.values()), l)
+          for l in range(len(list(certmaprule_permissions.values())) + 1)]
+    ),
     ids=permissions_idfn,
 )
 def certmap_user_permissions(request, bindtype_permission):
