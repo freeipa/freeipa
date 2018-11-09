@@ -863,7 +863,7 @@
                   "ipausers"
                ],
                "ipaselinuxusermaporder" : [
-                  "guest_u:s0$xguest_u:s0$user_u:s0$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023"
+                  "guest_u:s0$xguest_u:s0$user_u:s0$staff_u:s0-s0:c0.c1023$sysadm_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023"
                ],
                "ca_renewal_master_server" : [
                   "vm.example.com"
