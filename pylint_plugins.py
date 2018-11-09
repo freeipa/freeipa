@@ -504,6 +504,10 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.interactive = True
     api.env.ipalib = ''  # object
     api.env.kinit_lifetime = None
+    api.env.lite_pem = ''
+    api.env.lite_profiler = ''
+    api.env.lite_host = ''
+    api.env.lite_port = 0
     api.env.log = ''  # object
     api.env.logdir = ''  # object
     api.env.mode = ''
