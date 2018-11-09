@@ -210,7 +210,7 @@ class UI_driver(object):
                 raise nose.SkipTest('Error while establishing webdriver: %s' % e)
         else:
             try:
-                if browser == 'chrome' or browser == 'chromium':
+                if browser in {'chrome', 'chromium'}:
                     driver = webdriver.Chrome(chrome_options=options)
                 elif browser == 'ie':
                     driver = webdriver.Ie()
