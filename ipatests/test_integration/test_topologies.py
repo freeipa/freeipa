@@ -22,7 +22,7 @@ from ipatests.pytest_ipa.integration import tasks
 
 def test_topology_star():
     topo = tasks.get_topo('star')
-    assert topo == tasks.star_topo
+    assert topo is tasks.star_topo
     assert list(topo('M', [1, 2, 3, 4, 5])) == [
         ('M', 1),
         ('M', 2),
@@ -35,7 +35,7 @@ def test_topology_star():
 
 def test_topology_line():
     topo = tasks.get_topo('line')
-    assert topo == tasks.line_topo
+    assert topo is tasks.line_topo
     assert list(topo('M', [1, 2, 3, 4, 5])) == [
         ('M', 1),
         (1, 2),
@@ -48,7 +48,7 @@ def test_topology_line():
 
 def test_topology_tree():
     topo = tasks.get_topo('tree')
-    assert topo == tasks.tree_topo
+    assert topo is tasks.tree_topo
     assert list(topo('M', [1, 2, 3, 4, 5])) == [
         ('M', 1),
         ('M', 2),
@@ -73,7 +73,7 @@ def test_topology_tree():
 
 def test_topology_tree2():
     topo = tasks.get_topo('tree2')
-    assert topo == tasks.tree2_topo
+    assert topo is tasks.tree2_topo
     assert list(topo('M', [1, 2, 3, 4, 5])) == [
         ('M', 1),
         ('M', 2),
@@ -86,7 +86,7 @@ def test_topology_tree2():
 
 def test_topology_complete():
     topo = tasks.get_topo('complete')
-    assert topo == tasks.complete_topo
+    assert topo is tasks.complete_topo
     assert list(topo('M', [1, 2, 3])) == [
         ('M', 1),
         ('M', 2),
@@ -100,7 +100,7 @@ def test_topology_complete():
 
 def test_topology_two_connected():
     topo = tasks.get_topo('2-connected')
-    assert topo == tasks.two_connected_topo
+    assert topo is tasks.two_connected_topo
     assert list(topo('M', [1, 2, 3, 4, 5, 6, 7, 8])) == [
         ('M', 1),
         ('M', 2),
@@ -120,7 +120,7 @@ def test_topology_two_connected():
 
 def test_topology_double_circle_topo():
     topo = tasks.get_topo('double-circle')
-    assert topo == tasks.double_circle_topo
+    assert topo is tasks.double_circle_topo
     assert list(topo('M', list(range(1, 30)))) == [
         ('M', 1),
         (1, 6),
