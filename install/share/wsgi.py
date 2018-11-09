@@ -60,3 +60,4 @@ else:
         else:
             logger.error("IPA does not work with the threaded MPM, "
                          "use the pre-fork MPM")
+            raise RuntimeError('threaded MPM detected')

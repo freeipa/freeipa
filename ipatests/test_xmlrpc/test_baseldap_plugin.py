@@ -187,13 +187,15 @@ def test_entry_to_dict():
     class FakeSchema:
         def get_obj(self, type, name):
             if type != ldap.schema.AttributeType:
-                return
+                return None
             if name == 'binaryattr':
                 return FakeAttributeType(name, '1.3.6.1.4.1.1466.115.121.1.40')
             elif name == 'textattr':
                 return FakeAttributeType(name, '1.3.6.1.4.1.1466.115.121.1.15')
             elif name == 'dnattr':
                 return FakeAttributeType(name, '1.3.6.1.4.1.1466.115.121.1.12')
+            else:
+                return None
 
     class FakeLDAPClient(ipaldap.LDAPClient):
         def __init__(self):

@@ -272,9 +272,10 @@ class EWE:
             if self.expected and self.returned:
                 assert_deepequal(self.expected, self.value)
             elif self.expected:
-                assert False, "Value expected but not provided"
+                raise AssertionError("Value expected but not provided")
             elif self.returned:
-                assert False, "Value provided but not expected"
+                raise AssertionError("Value provided but not expected")
+            return None
 
 
 def permissions_idfn(perms):
