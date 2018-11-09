@@ -160,7 +160,7 @@ class StageUserTracker(KerberosAliasMixin, Tracker):
             elif key == u'ipasshpubkey':
                 self.attrs[u'sshpubkeyfp'] = [sshpubkeyfp]
                 self.attrs[key] = [self.kwargs[key]]
-            elif key == u'random' or key == u'userpassword':
+            elif key in {u'random', u'userpassword'}:
                 self.attrs[u'krbextradata'] = [Fuzzy(type=bytes)]
                 self.attrs[u'krbpasswordexpiration'] = [
                     fuzzy_dergeneralizedtime]

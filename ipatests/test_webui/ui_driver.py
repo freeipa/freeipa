@@ -215,7 +215,7 @@ class UI_driver:
                 )
         else:
             try:
-                if browser == 'chrome' or browser == 'chromium':
+                if browser in {'chrome', 'chromium'}:
                     driver = webdriver.Chrome(chrome_options=options)
                 elif browser == 'ie':
                     driver = webdriver.Ie()
