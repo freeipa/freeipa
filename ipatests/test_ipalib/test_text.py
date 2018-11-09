@@ -214,6 +214,7 @@ class test_Gettext:
         inst3 = self.klass('Hello world', 'foo', 'bar')
         inst4 = self.klass('what up?', 'foo', 'baz')
 
+        # pylint: disable=comparison-with-itself
         assert (inst1 == inst1) is True
         assert (inst1 == inst2) is True
         assert (inst1 == inst3) is False
@@ -292,6 +293,7 @@ class test_NGettext:
         inst3 = self.klass(singular, '%(count)d thingies', 'foo', 'bar')
         inst4 = self.klass(singular, plural, 'foo', 'baz')
 
+        # pylint: disable=comparison-with-itself
         assert (inst1 == inst1) is True
         assert (inst1 == inst2) is True
         assert (inst1 == inst3) is False

@@ -913,6 +913,7 @@ class TestDN(unittest.TestCase):
 
         # Test "in" membership
         self.assertTrue(self.container_rdn1 in container_dn)
+        # pylint: disable=comparison-with-itself
         self.assertTrue(container_dn in container_dn)
         self.assertFalse(self.base_rdn1 in container_dn)
 
