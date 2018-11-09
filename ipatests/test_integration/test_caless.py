@@ -1452,18 +1452,24 @@ class TestCertInstall(CALessBase):
 
         assert result.returncode > 0
 
+    @pytest.mark.xfail(reason='freeipa ticket 7759', strict=True)
     def test_http_intermediate_ca(self):
         "Install new HTTP certificate issued by intermediate CA"
 
         result = self.certinstall('w', 'ca1/subca/server')
-        assert result.returncode == 0, result.stderr_text
+        # As the intermediate CA is not trusted, command must fail
+        assert_error(result,
+                     "Peer's certificate issuer is not trusted")
 
-    @pytest.mark.xfail(reason='freeipa ticket 6959', strict=True)
     def test_ds_intermediate_ca(self):
         "Install new DS certificate issued by intermediate CA"
 
         result = self.certinstall('d', 'ca1/subca/server')
-        assert result.returncode == 0, result.stderr_text
+        # As the intermediate CA is not trusted, command must fail
+        assert_error(result,
+                     "Peer's certificate issuer is not trusted "
+                     "(certutil: certificate is invalid: Peer's Certificate "
+                     "issuer is not recognized.")
 
     def test_self_signed(self):
         "Install new self-signed certificate"
