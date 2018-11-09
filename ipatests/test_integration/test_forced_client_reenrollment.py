@@ -173,33 +173,36 @@ class TestForcedClientReenrollment(IntegrationTest):
         self.clients[0].run_command(['touch', CLIENT_KEYTAB])
         self.reenroll_client(force_join=True)
 
-    def uninstall_client(self):
+    def uninstall_client(self, unshare=False):
+        """Uninstall client
+        Set unshare to unshare the network namespace. This means that the
+        uninstall command will not have network access.
+        """
+        args = []
+        if unshare:
+            args = ['unshare', '--net']
+        args.extend(['ipa-client-install', '--uninstall', '-U'])
         self.clients[0].run_command(
-            ['ipa-client-install', '--uninstall', '-U'],
+            args,
             set_env=False,
             raiseonerr=False
         )
 
     def restore_client(self):
-        client = self.clients[0]
+        # As machine-level backup and restore is difficult to automate for
+        # testing purposes, restoring the client from backup can be simulated
+        # by performing the following step:
+        #   unshare -n ip ipa-client-install --uninstall -U
+        # Or the following steps:
+        #   iptables -A INPUT -j REJECT -p all --source $MASTER_IP
+        #   ipa-client-install --uninstall -U
+        #   iptables -F
+        # The steps described above will sever communication between server
+        # and client, and then uninstall the client. As a consequence, the
+        # client's host entry will remain on the server, ensuring that the
+        # forced re-enrollment feature works.
 
-        client.run_command([
-            'iptables',
-            '-A', 'INPUT',
-            '-j', 'ACCEPT',
-            '-p', 'tcp',
-            '--dport', '22'
-        ])
-        for host in [self.master] + self.replicas:
-            client.run_command([
-                'iptables',
-                '-A', 'INPUT',
-                '-j', 'REJECT',
-                '-p', 'all',
-                '--source', host.ip
-            ])
-        self.uninstall_client()
-        client.run_command(['iptables', '-F'])
+        self.uninstall_client(unshare=True)
 
     def reenroll_client(self, keytab=None, to_replica=False, force_join=False,
                         expect_fail=False):
