@@ -87,6 +87,8 @@ def assert_realmdomain_and_txt_record_not_present(response):
         api.Command['dnsrecord_show'](zone, u'_kerberos')
     except errors.NotFound:
         return True
+    else:
+        return False
 
 
 @pytest.mark.tier1

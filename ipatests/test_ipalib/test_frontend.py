@@ -206,6 +206,8 @@ class test_Command(ClassChecker):
             def __call__(self, _, value):
                 if value != self.name:
                     return _('must equal %r') % self.name
+                else:
+                    return None
 
         default_from = parameters.DefaultFrom(
                 lambda arg: arg,

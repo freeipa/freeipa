@@ -26,6 +26,7 @@ def find_segment(master, replica):
     for segment in allsegments:
         if master.hostname in segment and replica.hostname in segment:
             return '-to-'.join(segment)
+    return None
 
 
 def remove_segment(master, host1, host2):
