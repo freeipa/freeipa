@@ -1377,12 +1377,10 @@ def run_repeatedly(host, command, assert_zero_rc=True, test=None,
 
 
 def get_host_ip_with_hostmask(host):
-    """
-    Detects the IP of the host including the hostmask.
+    """Detects the IP of the host including the hostmask
 
     Returns None if the IP could not be detected.
     """
-
     ip = host.ip
     result = host.run_command(['ip', 'addr'])
     full_ip_regex = r'(?P<full_ip>%s/\d{1,2}) ' % re.escape(ip)
@@ -1390,6 +1388,8 @@ def get_host_ip_with_hostmask(host):
 
     if match:
         return match.group('full_ip')
+    else:
+        return None
 
 
 def ldappasswd_user_change(user, oldpw, newpw, master):

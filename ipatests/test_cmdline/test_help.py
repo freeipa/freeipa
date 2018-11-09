@@ -66,6 +66,8 @@ class CLITestContext:
                 return False
             self.exception = exc_value
             return True
+        else:
+            return None
 
 
 def test_ipa_help():

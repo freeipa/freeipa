@@ -52,6 +52,7 @@ class build_py(setuptools_build_py):
                 os.unlink(outfile)
             except OSError:
                 pass
+            return None
         else:
             return setuptools_build_py.build_module(self, module,
                                                     module_file, package)
