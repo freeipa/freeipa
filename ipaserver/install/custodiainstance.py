@@ -77,7 +77,7 @@ def get_custodia_instance(config, mode):
     elif mode == CustodiaModes.FIRST_MASTER:
         custodia_peer = None
     else:
-        raise RuntimeError("Unknown custodia mode %s", mode)
+        raise RuntimeError("Unknown custodia mode %s" % mode)
 
     if custodia_peer is None:
         # use ldapi with local dirsrv instance
