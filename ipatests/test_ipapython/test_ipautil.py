@@ -182,7 +182,8 @@ class TestCIDict:
         assert ("Key1", "val1") in items_set
         assert ("key2", "val2") in items_set
         assert ("KEY3", "VAL3") in items_set
-
+        # pylint: disable=dict-iter-method
+        # pylint: disable=dict-keys-not-iterating, dict-values-not-iterating
         assert list(self.cidict.items()) == list(self.cidict.iteritems()) == list(zip(
             self.cidict.keys(), self.cidict.values()))
 
@@ -192,8 +193,9 @@ class TestCIDict:
 
     def test_iteritems(self):
         items = []
-        for (k,v) in self.cidict.iteritems():
-            items.append((k,v))
+        # pylint: disable=dict-iter-method
+        for k, v in self.cidict.iteritems():
+            items.append((k, v))
         assert_equal(3, len(items))
         items_set = set(items)
         assert ("Key1", "val1") in items_set
@@ -202,6 +204,7 @@ class TestCIDict:
 
     def test_iterkeys(self):
         keys = []
+        # pylint: disable=dict-iter-method
         for k in self.cidict.iterkeys():
             keys.append(k)
         assert_equal(3, len(keys))
@@ -212,6 +215,7 @@ class TestCIDict:
 
     def test_itervalues(self):
         values = []
+        # pylint: disable=dict-iter-method
         for k in self.cidict.itervalues():
             values.append(k)
         assert_equal(3, len(values))
@@ -227,7 +231,7 @@ class TestCIDict:
         assert "Key1" in keys_set
         assert "key2" in keys_set
         assert "KEY3" in keys_set
-
+        # pylint: disable=dict-iter-method
         assert list(self.cidict.keys()) == list(self.cidict.iterkeys())
 
     def test_values(self):
@@ -237,7 +241,7 @@ class TestCIDict:
         assert "val1" in values_set
         assert "val2" in values_set
         assert "VAL3" in values_set
-
+        # pylint: disable=dict-iter-method
         assert list(self.cidict.values()) == list(self.cidict.itervalues())
 
     def test_update(self):
