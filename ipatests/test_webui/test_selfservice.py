@@ -23,7 +23,7 @@ Selfservice tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
-import ipatests.test_webui.data_selfservice as data_selfservice
+from ipatests.test_webui import data_selfservice
 import ipatests.test_webui.data_user as user
 import pytest
 
