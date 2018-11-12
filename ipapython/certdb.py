@@ -921,10 +921,13 @@ class NSSDatabase:
             raise ValueError("not a CA certificate")
 
         try:
-            cert.extensions.get_extension_for_class(
+            ski = cert.extensions.get_extension_for_class(
                     cryptography.x509.SubjectKeyIdentifier)
         except cryptography.x509.ExtensionNotFound:
             raise ValueError("missing subject key identifier extension")
+        else:
+            if len(ski.value.digest) == 0:
+                raise ValueError("subject key identifier must not be empty")
 
         try:
             self.run_certutil(['-V', '-n', nickname, '-u', 'L'],
