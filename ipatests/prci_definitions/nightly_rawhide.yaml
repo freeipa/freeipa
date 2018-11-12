@@ -280,6 +280,30 @@ jobs:
         timeout: 5400
         topology: *master_1repl
 
+  fedora-rawhide/test_caless_TestReplicaCALessToCAFull:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_caless.py::TestReplicaCALessToCAFull
+        template: *ci-master-frawhide
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-rawhide/test_caless_TestServerCALessToExternalCA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_caless.py::TestServerCALessToExternalCA
+        template: *ci-master-frawhide
+        timeout: 5400
+        topology: *master_1repl
+
   fedora-rawhide/test_backup_and_restore_TestUserrootFilesOwnership:
     requires: [fedora-rawhide/build]
     priority: 50
