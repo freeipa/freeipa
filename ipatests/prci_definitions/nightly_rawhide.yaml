@@ -304,14 +304,14 @@ jobs:
         timeout: 5400
         topology: *master_1repl
 
-  fedora-rawhide/test_backup_and_restore_TestUserrootFilesOwnership:
+  fedora-rawhide/test_backup_and_restore_TestUserRootFilesOwnershipPermission:
     requires: [fedora-rawhide/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
-        test_suite: test_integration/test_backup_and_restore.py::TestUserrootFilesOwnership
+        test_suite: test_integration/test_backup_and_restore.py::TestUserRootFilesOwnershipPermission
         template: *ci-master-frawhide
         timeout: 7200
         topology: *master_1repl
@@ -399,6 +399,42 @@ jobs:
         template: *ci-master-frawhide
         timeout: 7200
         topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestBackupAndRestoreWithReplica:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestBackupAndRestoreDMPassword:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreDMPassword
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestReplicaInstallAfterRestore:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestReplicaInstallAfterRestore
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_2repl_1client
 
   fedora-rawhide/test_dnssec:
     requires: [fedora-rawhide/build]
