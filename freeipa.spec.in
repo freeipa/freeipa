@@ -215,7 +215,12 @@ BuildRequires:  python3-polib
 BuildRequires:  python3-pyasn1
 BuildRequires:  python3-pyasn1-modules
 BuildRequires:  python3-pycodestyle
+%if 0%{?fedora} >= 29
+# https://bugzilla.redhat.com/show_bug.cgi?id=1648299
+BuildRequires:  python3-pylint >= 2.1.1-2
+%else
 BuildRequires:  python3-pylint >= 1.7
+%endif
 BuildRequires:  python3-pytest-multihost
 BuildRequires:  python3-pytest-sourceorder
 BuildRequires:  python3-qrcode-core >= 5.0.0
