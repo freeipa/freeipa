@@ -446,7 +446,6 @@ class TestServerInstall(CALessBase):
                      'The full certificate chain is not present in '
                      '%s/server.p12' % self.master.config.test_dir)
 
-    @pytest.mark.xfail(reason='Ticket N 6289', strict=True)
     @server_install_teardown
     def test_ca_2_certs(self):
         "IPA server install with CA PEM file with 2 certificates"
@@ -459,7 +458,13 @@ class TestServerInstall(CALessBase):
                 ca1.write(ca2.read())
 
         result = self.install_server()
-        assert_error(result, 'root.pem contains more than one certificate')
+        assert result.returncode == 0
+        # Check that ca2 has not been added to /etc/ipa/ca.crt
+        # because it is not needed in the cert chain
+        with open(os.path.join(self.cert_dir, self.ca2_crt), 'r') as ca2:
+            ca2_body = ca2.read()
+        result = self.master.run_command(['cat', '/etc/ipa/ca.crt'])
+        assert ca2_body not in result.stdout_text
 
     @server_install_teardown
     def test_nonexistent_http_pkcs12_file(self):
