@@ -5,9 +5,9 @@
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
+"Project-Id-Version: freeipa 4.7.90.dev201811131342+git61e1d7a83\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-10-01 23:02+0300\n"
+"POT-Creation-Date: 2018-11-13 15:44+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -7311,22 +7311,6 @@ msgstr "Zone active"
 msgid "Add"
 msgstr "Ajouter"
 
-#, python-brace-format
-msgid "Add ${entity} ${primary_key} into ${other_entity}"
-msgstr "Ajouter ${primary_key} de ${entity} à ${other_entity}"
-
-#, python-brace-format
-msgid "Add ${other_entity} Managing ${entity} ${primary_key}"
-msgstr "Ajouter ${other_entity} gérant ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add ${other_entity} into ${entity} ${primary_key}"
-msgstr "Ajouter ${other_entity} à ${primary_key} de ${entity}"
-
-#, python-brace-format
-msgid "Add Allow ${other_entity} into ${entity} ${primary_key}"
-msgstr "Ajouter « Allow ${other_entity} » à ${primary_key} de ${entity}"
-
 msgid "Add CAs to a CA ACL."
 msgstr "Ajouter des AC à une LCA d'AC"
 
@@ -7336,23 +7320,11 @@ msgstr "Ajouter un attribut personnalisé"
 msgid "Add Custom Authentication Indicator"
 msgstr "Ajouter un indicateur d'authentification personnalisé"
 
-#, python-brace-format
-msgid "Add Deny ${other_entity} into ${entity} ${primary_key}"
-msgstr "Ajouter « Deny ${other_entity} » à ${primary_key} de ${entity}"
-
 msgid "Add Kerberos Principal Alias"
 msgstr "Ajouter un nouvel alias de principal Kerberos"
 
 msgid "Add Many"
 msgstr "Ajouter plusieurs"
-
-#, python-brace-format
-msgid "Add RunAs ${other_entity} into ${entity} ${primary_key}"
-msgstr "Ajouter « RunAs ${other_entity} » à ${primary_key} de ${entity}"
-
-#, python-brace-format
-msgid "Add RunAs Groups into ${entity} ${primary_key}"
-msgstr "Ajouter « RunAs Groups » à ${primary_key} de ${entity}"
 
 msgid "Add a manager to the stage user entry"
 msgstr "Ajouter un responsable à l'entrée d'utilisateur en attente"
@@ -7868,15 +7840,6 @@ msgstr ""
 msgid "Allow"
 msgstr "Autoriser"
 
-#, python-brace-format
-msgid "Allow ${other_entity} to create keytab of ${primary_key}"
-msgstr "Autoriser ${other_entity} à créer un tableau de clés de ${primary_key}"
-
-#, python-brace-format
-msgid "Allow ${other_entity} to retrieve keytab of ${primary_key}"
-msgstr ""
-"Autoriser ${other_entity} à récupérer un tableau de clés de ${primary_key}"
-
 msgid "Allow PTR sync"
 msgstr "Autoriser la synchronisation PTR"
 
@@ -8055,15 +8018,6 @@ msgstr "Appliquer"
 
 msgid "Apply ACI to your own entry (self)"
 msgstr "Appliquer l'ACI à votre propre entrée (« self »)"
-
-#, python-brace-format
-msgid "Apply ID View ${primary_key} on hosts of ${entity}"
-msgstr ""
-"Applique la vue d'identifiants ${primary_key} sur les hôtes de ${entity}"
-
-#, python-brace-format
-msgid "Apply ID view ${primary_key} on ${entity}"
-msgstr "Applique la vue ${primary_key} à ${entity}"
 
 msgid "Apply to host groups"
 msgstr "Appliquée aux groupes d'hôtes"
@@ -11606,10 +11560,6 @@ msgstr "« Regex » d'inclusion"
 msgid "Incompatible options provided (-r and -P)\n"
 msgstr "Options incompatibles indiquées (-r et -P)\n"
 
-#, c-format
-msgid "Incorrect password.\n"
-msgstr "Mot de passe incorrect.\n"
-
 msgid "Indirect"
 msgstr "Indirect"
 
@@ -11747,13 +11697,6 @@ msgstr "La zone est-elle active ?"
 
 msgid "Issue"
 msgstr "Émettre"
-
-msgid "Issue New Certificate"
-msgstr "Émettre un nouveau certificat"
-
-#, python-brace-format
-msgid "Issue New Certificate for ${entity} ${primary_key}"
-msgstr "Émettre un nouveau certificat pour ${primary_key} de ${entity}"
 
 msgid "Issued By"
 msgstr "Émis par"
@@ -14064,16 +14007,6 @@ msgstr ""
 msgid "Remove CAs from a CA ACL."
 msgstr "Supprimer des AC d'une LCA d'AC"
 
-msgid "Remove Certificate Hold"
-msgstr "Supprimer le blocage du certificat"
-
-#, python-brace-format
-msgid "Remove Certificate Hold for ${entity} ${primary_key}"
-msgstr "Supprimer le blocage de certificat pour ${entity} ${primary_key}"
-
-msgid "Remove Hold"
-msgstr "Supprimer le blocage"
-
 msgid "Remove Kerberos Alias"
 msgstr "Supprimer un alias Kerberos"
 
@@ -14575,13 +14508,6 @@ msgstr "Raison de la révocation"
 
 msgid "Revoke"
 msgstr "Révoquer"
-
-msgid "Revoke Certificate"
-msgstr "Révoquer le certificat"
-
-#, python-brace-format
-msgid "Revoke Certificate for ${entity} ${primary_key}"
-msgstr "Révoquer un certificat pour ${primary_key} de ${entity}"
 
 msgid "Revoke a certificate."
 msgstr "Révoquer un certificat."
@@ -16278,14 +16204,6 @@ msgstr "URL"
 
 msgid "Un-apply"
 msgstr "Ne  plus appliquer"
-
-#, python-brace-format
-msgid "Un-apply ID View ${primary_key} from hosts"
-msgstr "Retirer l'application de la vue d'identifiants ${primary_key} d'hôtes"
-
-#, python-brace-format
-msgid "Un-apply ID View ${primary_key} from hosts of ${entity}"
-msgstr "Retirer l'application de la vue ${primary_key} des hôtes de ${entity}"
 
 msgid "Un-apply ID Views from hosts"
 msgstr "Retirer l'application de la vue d'identifiants d'hôtes"
