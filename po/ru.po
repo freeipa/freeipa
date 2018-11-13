@@ -3,9 +3,9 @@
 # Olesya Gerasimenko <gammaray@basealt.ru>, 2018. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
+"Project-Id-Version: freeipa 4.7.90.dev201811131342+git61e1d7a83\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-10-01 23:02+0300\n"
+"POT-Creation-Date: 2018-11-13 15:44+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -16986,22 +16986,6 @@ msgstr "Активная зона"
 msgid "Add"
 msgstr "Добавить"
 
-#, python-brace-format
-msgid "Add ${entity} ${primary_key} into ${other_entity}"
-msgstr "Добавить ${entity} ${primary_key} в ${other_entity}"
-
-#, python-brace-format
-msgid "Add ${other_entity} Managing ${entity} ${primary_key}"
-msgstr "Добавить ${other_entity} управления ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add ${other_entity} into ${entity} ${primary_key}"
-msgstr "Добавить ${other_entity} в ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add Allow ${other_entity} into ${entity} ${primary_key}"
-msgstr "Добавить разрешение ${other_entity} в ${entity} ${primary_key}"
-
 msgid "Add CA ACL"
 msgstr "Добавить CA ACL"
 
@@ -17025,10 +17009,6 @@ msgstr "Добавить запись ресурса DNS"
 
 msgid "Add DNS zone"
 msgstr "Добавить зону DNS"
-
-#, python-brace-format
-msgid "Add Deny ${other_entity} into ${entity} ${primary_key}"
-msgstr "Добавить запрет ${other_entity} в ${entity} ${primary_key}"
 
 msgid "Add HBAC rule"
 msgstr "Добавить правило HBAC"
@@ -17059,14 +17039,6 @@ msgstr "Добавить токен OTP"
 
 msgid "Add RADIUS server"
 msgstr "Добавить сервер RADIUS"
-
-#, python-brace-format
-msgid "Add RunAs ${other_entity} into ${entity} ${primary_key}"
-msgstr "Добавить запуск от имени ${other_entity} в ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add RunAs Groups into ${entity} ${primary_key}"
-msgstr "Добавить группы запуска от имени в ${entity} ${primary_key}"
 
 msgid "Add SELinux user map"
 msgstr "Добавить список пользователей SELinux"
@@ -17748,14 +17720,6 @@ msgstr "Все фильтры целей, включая те, которые п
 msgid "Allow"
 msgstr "Разрешить"
 
-#, python-brace-format
-msgid "Allow ${other_entity} to create keytab of ${primary_key}"
-msgstr "Разрешить ${other_entity} создавать таблицу ключей ${primary_key}"
-
-#, python-brace-format
-msgid "Allow ${other_entity} to retrieve keytab of ${primary_key}"
-msgstr "Разрешить ${other_entity} получать таблицу ключей ${primary_key}"
-
 msgid "Allow PTR sync"
 msgstr "Разрешить PTR-синхронизацию"
 
@@ -17929,14 +17893,6 @@ msgstr "Применить"
 
 msgid "Apply ACI to your own entry (self)"
 msgstr "Применить ACI к своей собственной записи (self)"
-
-#, python-brace-format
-msgid "Apply ID View ${primary_key} on hosts of ${entity}"
-msgstr "Применить ${primary_key} представления ID к узлам ${entity}"
-
-#, python-brace-format
-msgid "Apply ID view ${primary_key} on ${entity}"
-msgstr "Применить ${primary_key} представления ID к ${entity}"
 
 msgid "Apply to host groups"
 msgstr "Применить к группам узлов"
@@ -22000,10 +21956,6 @@ msgstr "Включающие регулярные выражения"
 msgid "Incompatible options provided (-r and -P)\n"
 msgstr "Указаны несовместимые параметры (-r и -P)\n"
 
-#, c-format
-msgid "Incorrect password.\n"
-msgstr "Неверный пароль.\n"
-
 msgid "Indirect"
 msgstr "Непрямой"
 
@@ -22188,13 +22140,6 @@ msgstr "Зона активна?"
 
 msgid "Issue"
 msgstr "Выдать"
-
-msgid "Issue New Certificate"
-msgstr "Выдать новый сертификат"
-
-#, python-brace-format
-msgid "Issue New Certificate for ${entity} ${primary_key}"
-msgstr "Выдать новый сертификат для ${primary_key} ${entity} "
 
 msgid "Issued By"
 msgstr "Выдан (издатель)"
@@ -24859,14 +24804,6 @@ msgstr "Удалить CA из CA ACL."
 msgid "Remove Certificate Authorities from CA ACL '${primary_key}'"
 msgstr "Удалить центры сертификации из CA ACL '${primary_key}'"
 
-msgid "Remove Certificate Hold"
-msgstr "Отменить приостановку действия сертификата"
-
-#, python-brace-format
-msgid "Remove Certificate Hold for ${entity} ${primary_key}"
-msgstr ""
-"Отменить приостановку действия сертификата для ${primary_key} ${entity}"
-
 msgid "Remove DNS forward zones"
 msgstr "Удалить зоны перенаправления DNS"
 
@@ -24900,9 +24837,6 @@ msgstr "Удалить службы HBAC из правила HBAC '${primary_key
 #, python-brace-format
 msgid "Remove HBAC services from HBAC service group '${primary_key}'"
 msgstr "Удалить службы HBAC из группы служб HBAC '${primary_key}'"
-
-msgid "Remove Hold"
-msgstr "Отменить приостановку действия "
 
 msgid "Remove ID ranges"
 msgstr "Удалить диапазоны идентификаторов"
@@ -25953,13 +25887,6 @@ msgstr "Причина отзыва"
 
 msgid "Revoke"
 msgstr "Отозвать"
-
-msgid "Revoke Certificate"
-msgstr "Отозвать сертификат"
-
-#, python-brace-format
-msgid "Revoke Certificate for ${entity} ${primary_key}"
-msgstr "Отозвать сертификат для ${primary_key} ${entity}"
 
 msgid "Revoke a certificate."
 msgstr "Отозвать сертификат."
@@ -28136,14 +28063,6 @@ msgstr "UUID"
 
 msgid "Un-apply"
 msgstr "Отменить применение"
-
-#, python-brace-format
-msgid "Un-apply ID View ${primary_key} from hosts"
-msgstr "Отменить применение ${primary_key} представлений ID к узлам"
-
-#, python-brace-format
-msgid "Un-apply ID View ${primary_key} from hosts of ${entity}"
-msgstr "Отменить применение ${primary_key} представлений ID к узлам ${entity}"
 
 msgid "Un-apply ID Views from hosts"
 msgstr "Отменить применение представлений ID к узлам"

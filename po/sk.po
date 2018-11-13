@@ -1,9 +1,9 @@
 # Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
+"Project-Id-Version: freeipa 4.7.90.dev201811131342+git61e1d7a83\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-10-01 23:02+0300\n"
+"POT-Creation-Date: 2018-11-13 15:44+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1323,10 +1323,6 @@ msgstr "Zahrnúť všetky deaktivované IPA pravidlá do testu"
 msgid "Included attributes"
 msgstr "Zahrnuté atribúty"
 
-#, c-format
-msgid "Incorrect password.\n"
-msgstr "Nesprávne heslo.\n"
-
 msgid "Indirect"
 msgstr "Nepriame"
 
@@ -1365,13 +1361,6 @@ msgstr "Je zóna aktívna?"
 
 msgid "Issue"
 msgstr "Vydať"
-
-msgid "Issue New Certificate"
-msgstr "Vydať nový certifikát"
-
-#, python-brace-format
-msgid "Issue New Certificate for ${entity} ${primary_key}"
-msgstr "Vydať nový certifikát pre ${entity} ${primary_key}"
 
 msgid "Job Title"
 msgstr "Pracovná pozícia"
@@ -1849,9 +1838,6 @@ msgstr "Znovu načítať stránku."
 msgid "Reload current settings from the server."
 msgstr "Znovu načítať aktuálne nastavenia zo servera."
 
-msgid "Remove Certificate Hold"
-msgstr "Odstrániť držanie certifikátu"
-
 msgid "Remove Permission"
 msgstr "Odstrániť povolenie"
 
@@ -1908,9 +1894,6 @@ msgstr "Získanie CA stavu zlyhalo: %s"
 
 msgid "Revert"
 msgstr "Vrátiť"
-
-msgid "Revoke Certificate"
-msgstr "Revokovať certifikát"
 
 msgid "Revoke a certificate."
 msgstr "Revokácia certifikátu."
