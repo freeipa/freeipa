@@ -930,8 +930,15 @@ class NSSDatabase:
                 raise ValueError("subject key identifier must not be empty")
 
         try:
-            self.run_certutil(['-V', '-n', nickname, '-u', 'L'],
-                              capture_output=True)
+            self.run_certutil(
+                [
+                    '-V',       # check validity of cert and attrs
+                    '-n', nickname,
+                    '-u', 'L',  # usage; 'L' means "SSL CA"
+                    '-e',       # check signature(s); this checks
+                                # key sizes, sig algorithm, etc.
+                ],
+                capture_output=True)
         except ipautil.CalledProcessError as e:
             # certutil output in case of error is
             # 'certutil: certificate is invalid: <ERROR_STRING>\n'
