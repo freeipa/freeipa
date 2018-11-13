@@ -4,9 +4,9 @@
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.90.dev201810012001+gite89493e26\n"
+"Project-Id-Version: freeipa 4.7.90.dev201811131342+git61e1d7a83\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-10-01 23:02+0300\n"
+"POT-Creation-Date: 2018-11-13 15:44+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1606,22 +1606,6 @@ msgstr "活跃区"
 msgid "Add"
 msgstr "添加"
 
-#, python-brace-format
-msgid "Add ${entity} ${primary_key} into ${other_entity}"
-msgstr "添加${entity} ${primary_key}到${other_entity}"
-
-#, python-brace-format
-msgid "Add ${other_entity} Managing ${entity} ${primary_key}"
-msgstr "添加${other_entity}管理${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add ${other_entity} into ${entity} ${primary_key}"
-msgstr "添加${other_entity}到${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add Allow ${other_entity} into ${entity} ${primary_key}"
-msgstr "添加允许${other_entity}到${entity} ${primary_key}"
-
 msgid "Add CAs to a CA ACL."
 msgstr "向一个CA ACL中添加CAs。"
 
@@ -1631,23 +1615,11 @@ msgstr "添加自定义属性"
 msgid "Add Custom Authentication Indicator"
 msgstr "添加自定义认证机构"
 
-#, python-brace-format
-msgid "Add Deny ${other_entity} into ${entity} ${primary_key}"
-msgstr "添加阻止${other_entity}到${entity} ${primary_key}"
-
 msgid "Add Kerberos Principal Alias"
 msgstr "添加Kerberos主体别名"
 
 msgid "Add Many"
 msgstr "添加多个"
-
-#, python-brace-format
-msgid "Add RunAs ${other_entity} into ${entity} ${primary_key}"
-msgstr "添加RunAs ${other_entity}到${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add RunAs Groups into ${entity} ${primary_key}"
-msgstr "添加RunAs用户组到${entity} ${primary_key}"
 
 msgid "Add a manager to the stage user entry"
 msgstr "向一个计划用户条目中添加一个管理员"
@@ -2150,14 +2122,6 @@ msgstr "所有命令至少有一个返回值"
 msgid "Allow"
 msgstr "允许"
 
-#, python-brace-format
-msgid "Allow ${other_entity} to create keytab of ${primary_key}"
-msgstr "允许${other_entity}创建${primary_key}的keytab"
-
-#, python-brace-format
-msgid "Allow ${other_entity} to retrieve keytab of ${primary_key}"
-msgstr "允许${other_entity}检索${primary_key}的keytab"
-
 msgid "Allow PTR sync"
 msgstr "允许PTR同步"
 
@@ -2312,14 +2276,6 @@ msgstr "应用"
 
 msgid "Apply ACI to your own entry (self)"
 msgstr "应用ACI到你自己的条目"
-
-#, python-brace-format
-msgid "Apply ID View ${primary_key} on hosts of ${entity}"
-msgstr "在主机${entity}中应用ID视图${primary_key}"
-
-#, python-brace-format
-msgid "Apply ID view ${primary_key} on ${entity}"
-msgstr "在${entity}上应用ID视图${primary_key}"
 
 msgid "Apply to host groups"
 msgstr "适用的主机组"
@@ -5735,10 +5691,6 @@ msgstr "兼容的正则表达式"
 msgid "Incompatible options provided (-r and -P)\n"
 msgstr "提供了不兼容的选项（-r和-P）\n"
 
-#, c-format
-msgid "Incorrect password.\n"
-msgstr "不正确的密码。\n"
-
 msgid "Indirect"
 msgstr "间接的"
 
@@ -5885,13 +5837,6 @@ msgstr "区域活跃吗？"
 
 msgid "Issue"
 msgstr "发布"
-
-msgid "Issue New Certificate"
-msgstr "发布新证书"
-
-#, python-brace-format
-msgid "Issue New Certificate for ${entity} ${primary_key}"
-msgstr "为${entity} ${primary_key}发布新证书"
 
 msgid "Issued By"
 msgstr "发布方"
@@ -8108,16 +8053,6 @@ msgstr "移除被IPA DNS管理的主机的A，AAAA，SSHFP和PTR记录"
 msgid "Remove CAs from a CA ACL."
 msgstr "从一个CA ACL中移除CAs。"
 
-msgid "Remove Certificate Hold"
-msgstr "删除证书持有"
-
-#, python-brace-format
-msgid "Remove Certificate Hold for ${entity} ${primary_key}"
-msgstr "为${entity} ${primary_key}删除证书持有"
-
-msgid "Remove Hold"
-msgstr "删除持有"
-
 msgid "Remove Kerberos Alias"
 msgstr "删除Kerberos别名"
 
@@ -8636,13 +8571,6 @@ msgstr "撤消原因"
 
 msgid "Revoke"
 msgstr "撤回"
-
-msgid "Revoke Certificate"
-msgstr "撤销证书"
-
-#, python-brace-format
-msgid "Revoke Certificate for ${entity} ${primary_key}"
-msgstr "为${entity} ${primary_key}撤销证书"
 
 msgid "Revoke a certificate."
 msgstr "撤销证书。"
@@ -10493,14 +10421,6 @@ msgstr "UPN后缀"
 
 msgid "Un-apply"
 msgstr "不适用的"
-
-#, python-brace-format
-msgid "Un-apply ID View ${primary_key} from hosts"
-msgstr "不将ID视图${primary_key}应用到主机"
-
-#, python-brace-format
-msgid "Un-apply ID View ${primary_key} from hosts of ${entity}"
-msgstr "不将ID视图${primary_key}应用到主机${entity}"
 
 msgid "Un-apply ID Views from hosts"
 msgstr "不将ID视图应用到主机"
