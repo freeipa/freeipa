@@ -893,8 +893,15 @@ class NSSDatabase:
         cert = self.get_cert(nickname)
 
         try:
-            self.run_certutil(['-V', '-n', nickname, '-u', 'V'],
-                              capture_output=True)
+            self.run_certutil(
+                [
+                    '-V',  # check validity of cert and attrs
+                    '-n', nickname,
+                    '-u', 'V',  # usage; 'V' means "SSL server"
+                    '-e',  # check signature(s); this checks
+                    # key sizes, sig algorithm, etc.
+                ],
+                capture_output=True)
         except ipautil.CalledProcessError as e:
             # certutil output in case of error is
             # 'certutil: certificate is invalid: <ERROR_STRING>\n'
