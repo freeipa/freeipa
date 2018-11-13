@@ -1043,6 +1043,7 @@ def load_external_cert(files, ca_subject):
             try:
                 nssdb.verify_ca_cert_validity(nickname)
             except ValueError as e:
+                cert, subject, issuer = cache[nickname]
                 raise ScriptError(
                     "CA certificate %s in %s is not valid: %s" %
                     (subject, ", ".join(files), e))
