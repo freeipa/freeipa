@@ -242,15 +242,3 @@ jobs:
         template: *ci-master-f28
         timeout: 3600
         topology: *master_1repl
-
-  fedora-28/test_caless_TestCertInstall:
-    requires: [fedora-28/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-28/build_url}'
-        test_suite: test_integration/test_caless.py::TestCertInstall
-        template: *ci-master-f28
-        timeout: 5400
-        topology: *master_1repl
