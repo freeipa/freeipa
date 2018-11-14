@@ -204,6 +204,7 @@ BuildRequires:  python3-jinja2
 BuildRequires:  python3-jwcrypto >= 0.4.2
 BuildRequires:  python3-ldap >= %{python_ldap_version}
 BuildRequires:  python3-ldap >= %{python_ldap_version}
+BuildRequires:  python3-lib389 >= %{ds_version}
 BuildRequires:  python3-libipa_hbac
 BuildRequires:  python3-libsss_nss_idmap
 BuildRequires:  python3-lxml
