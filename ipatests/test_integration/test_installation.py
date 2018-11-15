@@ -170,6 +170,33 @@ class TestInstallWithCA1(InstallTestBase1):
     def test_replica2_ipa_dns_install(self):
         super(TestInstallWithCA1, self).test_replica2_ipa_dns_install()
 
+    def test_install_with_bad_ldap_conf(self):
+        """
+        Test a client install with a non standard ldap.config
+        https://pagure.io/freeipa/issue/7418
+        """
+        ldap_conf = paths.OPENLDAP_LDAP_CONF
+        base_dn = self.master.domain.basedn  # pylint: disable=no-member
+        client = self.replicas[0]
+        tasks.uninstall_master(client)
+        expected_msg1 = "contains deprecated and unsupported " \
+                        "entries: HOST, PORT"
+        file_backup = client.get_file_contents(ldap_conf, encoding='utf-8')
+        constants = "URI ldaps://{}\nBASE {}\nHOST {}\nPORT 636".format(
+            self.master.hostname, base_dn,
+            self.master.hostname)
+        modifications = "{}\n{}".format(file_backup, constants)
+        client.put_file_contents(paths.OPENLDAP_LDAP_CONF, modifications)
+        result = client.run_command(['ipa-client-install', '-U',
+                                     '--domain', client.domain.name,
+                                     '--realm', client.domain.realm,
+                                     '-p', client.config.admin_name,
+                                     '-w', client.config.admin_password,
+                                     '--server', self.master.hostname],
+                                    raiseonerr=False)
+        assert expected_msg1 in result.stderr_text
+        client.put_file_contents(ldap_conf, file_backup)
+
 
 class TestInstallWithCA2(InstallTestBase2):
 
@@ -203,7 +230,6 @@ class TestInstallWithCA_KRA2(InstallTestBase2):
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=False, setup_kra=True)
-
 
 
 class TestInstallWithCA_DNS1(InstallTestBase1):
