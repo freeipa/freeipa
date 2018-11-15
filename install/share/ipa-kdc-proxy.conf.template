@@ -1,3 +1,6 @@
+#
+# VERSION 2 - DO NOT REMOVE THIS LINE
+#
 # Kerberos over HTTP / MS-KKDCP support (Kerberos KDC Proxy)
 #
 # The symlink from /etc/ipa/kdcproxy/ to /etc/httpd/conf.d/ is maintained
@@ -23,8 +26,7 @@ WSGIScriptReloading Off
 
 <Location "/KdcProxy">
   Satisfy Any
-  Order Deny,Allow
-  Allow from all
+  Require all granted
   WSGIProcessGroup kdcproxy
   WSGIApplicationGroup kdcproxy
 </Location>

@@ -1,5 +1,5 @@
 #
-# VERSION 29 - DO NOT REMOVE THIS LINE
+# VERSION 30 - DO NOT REMOVE THIS LINE
 #
 # This file may be overwritten on upgrades.
 #
@@ -108,8 +108,7 @@ Alias /ipa/session/cookie "/usr/share/ipa/gssapi.login"
 # Turn off Apache authentication for password/token based login pages
 <Location "/ipa/session/login_password">
   Satisfy Any
-  Order Deny,Allow
-  Allow from all
+  Require all granted
 </Location>
 
 # Login with user certificate/smartcard configuration
@@ -138,14 +137,12 @@ Alias /ipa/session/cookie "/usr/share/ipa/gssapi.login"
 
 <Location "/ipa/session/change_password">
   Satisfy Any
-  Order Deny,Allow
-  Allow from all
+  Require all granted
 </Location>
 
 <Location "/ipa/session/sync_token">
   Satisfy Any
-  Order Deny,Allow
-  Allow from all
+  Require all granted
 </Location>
 
 # Custodia stuff is redirected to the custodia daemon
