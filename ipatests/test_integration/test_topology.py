@@ -6,6 +6,7 @@ import re
 
 import pytest
 
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.env_config import get_global_config
@@ -260,6 +261,10 @@ class TestCASpecificRUVs(IntegrationTest):
             "Did not find proper number of replica hostname (%s) occurrencies"
             " in the command output: %s" % (replica.hostname, res1))
         tasks.uninstall_master(replica)
+        # ipa-replica-manage del launches a clean-ruv task which is
+        # ASYNCHRONOUS
+        # wait for the task to finish before checking list-ruv
+        tasks.wait_for_cleanallruv_tasks(self.master.ldap_connect())
         res2 = master.run_command(['ipa-replica-manage', 'list-ruv', '-p',
                                   master.config.dirman_password]).stdout_text
         assert(replica.hostname not in res2), (
