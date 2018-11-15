@@ -130,7 +130,7 @@ def pytest_cmdline_main(config):
 
 
 def pytest_runtest_setup(item):
-    if isinstance(item, item.Function):
+    if isinstance(item, pytest.Function):
         if item.get_marker('skip_ipaclient_unittest'):
             # pylint: disable=no-member
             if pytest.config.option.ipaclient_unittests:
