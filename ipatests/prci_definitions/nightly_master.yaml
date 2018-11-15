@@ -719,7 +719,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-28/build_url}'
-        test_suite: >
+        test_suite: >-
           test_webui/test_loginscreen.py
           test_webui/test_misc_cases.py
           test_webui/test_navigation.py
@@ -735,7 +735,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-28/build_url}'
-        test_suite: >
+        test_suite: >-
           test_webui/test_host.py
           test_webui/test_hostgroup.py
           test_webui/test_netgroup.py
@@ -751,7 +751,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-28/build_url}'
-        test_suite: >
+        test_suite: >-
           test_webui/test_automember.py
           test_webui/test_idviews.py
         template: *ci-master-f28
@@ -765,7 +765,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-28/build_url}'
-        test_suite: >
+        test_suite: >-
           test_webui/test_automount.py
           test_webui/test_dns.py
           test_webui/test_vault.py
@@ -780,7 +780,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-28/build_url}'
-        test_suite: >
+        test_suite: >-
           test_webui/test_hbac.py
           test_webui/test_krbtpolicy.py
           test_webui/test_pwpolicy.py
@@ -797,7 +797,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-28/build_url}'
-        test_suite: >
+        test_suite: >-
           test_webui/test_delegation.py
           test_webui/test_rbac.py
           test_webui/test_selfservice.py
@@ -812,7 +812,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-28/build_url}'
-        test_suite: >
+        test_suite: >-
           test_webui/test_config.py
           test_webui/test_range.py
           test_webui/test_realmdomains.py
@@ -828,7 +828,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-28/build_url}'
-        test_suite: >
+        test_suite: >-
           test_webui/test_group.py
           test_webui/test_user.py
         template: *ci-master-f28
