@@ -1790,7 +1790,8 @@ def upgrade_configuration():
         GSSAPI_SESSION_KEY=paths.GSSAPI_SESSION_KEY,
         FONTS_DIR=paths.FONTS_DIR,
         IPA_CCACHES=paths.IPA_CCACHES,
-        IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET
+        IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET,
+        KDCPROXY_CONFIG=paths.KDCPROXY_CONFIG,
     )
 
     subject_base = find_subject_base()
@@ -1830,6 +1831,9 @@ def upgrade_configuration():
         upgrade_file(sub_dict, paths.HTTPD_IPA_REWRITE_CONF,
                      os.path.join(paths.USR_SHARE_IPA_DIR,
                                   "ipa-rewrite.conf.template"))
+        upgrade_file(sub_dict, paths.HTTPD_IPA_KDCPROXY_CONF,
+                     os.path.join(paths.USR_SHARE_IPA_DIR,
+                                  "ipa-kdc-proxy.conf.template"))
         if ca.is_configured():
             upgrade_file(
                 sub_dict,
