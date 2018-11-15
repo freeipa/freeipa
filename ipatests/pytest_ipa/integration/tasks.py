@@ -1162,6 +1162,40 @@ def wait_for_replication(ldap, timeout=30):
         logger.error('Giving up wait for replication to finish')
 
 
+def wait_for_cleanallruv_tasks(ldap, timeout=30):
+    """Wait until cleanallruv tasks are finished
+    """
+    logger.debug('Waiting for cleanallruv tasks to finish')
+    success_status = 'Successfully cleaned rid'
+    for i in range(timeout):
+        status_attr = 'nstaskstatus'
+        try:
+            entries = ldap.get_entries(
+                DN(('cn', 'cleanallruv'), ('cn', 'tasks'), ('cn', 'config')),
+                scope=ldap.SCOPE_ONELEVEL,
+                attrs_list=[status_attr])
+        except errors.EmptyResult:
+            logger.debug("No cleanallruv tasks")
+            break
+        # Check status
+        if all(
+            e.single_value[status_attr].startswith(success_status)
+            for e in entries
+        ):
+            logger.debug("All cleanallruv tasks finished successfully")
+            break
+        else:
+            logger.debug("cleanallruv task in progress, (waited %s/%ss)",
+                         i, timeout)
+        time.sleep(1)
+    else:
+        logger.error('Giving up waiting for cleanallruv to finish')
+        for e in entries:
+            stat_str = e.single_value[status_attr]
+            if not stat_str.startswith(success_status):
+                logger.debug('%s status: %s', e.dn, stat_str)
+
+
 def add_a_records_for_hosts_in_master_domain(master):
     for host in master.domain.hosts:
         # We don't need to take care of the zone creation since it is master
