@@ -23,7 +23,7 @@
 #include "ipa_kdb.h"
 #include <unicase.h>
 
-static struct timeval std_timeout = {300, 0};
+static struct timeval std_timeout = {30, 0};
 
 char *ipadb_filter_escape(const char *input, bool star)
 {
