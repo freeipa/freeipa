@@ -45,6 +45,7 @@ from ipalib.util import (
     verify_host_resolvable,
 )
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipapython import certdb, kernel_keyring, ipaldap, ipautil
@@ -1036,8 +1037,13 @@ def sssd_enable_service(sssdconfig, name):
     return sssdconfig.get_service(name)
 
 
-def sssd_enable_ifp(sssdconfig):
+def sssd_enable_ifp(sssdconfig, allow_httpd=False):
     """Enable and configure libsss_simpleifp plugin
+
+    Allow the ``ipaapi`` user to access IFP. In case allow_httpd is true,
+    the Apache HTTPd user is also allowed to access IFP. For smart card
+    authentication, mod_lookup_identity must be allowed to access user
+    information.
     """
     service = sssd_enable_service(sssdconfig, 'ifp')
     if service is None:
@@ -1056,6 +1062,8 @@ def sssd_enable_ifp(sssdconfig):
         uids.add('root')
     # allow IPA API to access IFP
     uids.add(IPAAPI_USER)
+    if allow_httpd:
+        uids.add(constants.HTTPD_USER)
     service.set_option('allowed_uids', ', '.join(sorted(uids)))
     sssdconfig.save_service(service)
 
