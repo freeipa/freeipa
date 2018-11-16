@@ -1399,15 +1399,6 @@ def fix_schema_file_syntax():
     sysupgrade.set_upgrade_state('ds', 'fix_schema_syntax', True)
 
 
-def set_sssd_domain_option(option, value):
-    sssdconfig = SSSDConfig.SSSDConfig()
-    sssdconfig.import_config()
-    domain = sssdconfig.get_domain(str(api.env.domain))
-    domain.set_option(option, value)
-    sssdconfig.save_domain(domain)
-    sssdconfig.write(paths.SSSD_CONF)
-
-
 def sssd_update():
     sssdconfig = SSSDConfig.SSSDConfig()
     sssdconfig.import_config()
