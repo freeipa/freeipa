@@ -165,7 +165,7 @@ def install_replica(safe_options, options):
     api.Backend.ldap2.connect()
 
     config = ReplicaConfig()
-    config.ca_host_name = None
+    config.ca_host_name = api.env.server
     config.realm_name = api.env.realm
     config.host_name = api.env.host
     config.domain_name = api.env.domain
