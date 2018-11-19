@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Host class for integration testing"""
+import subprocess
 
 import pytest_multihost.host
 
@@ -59,6 +60,24 @@ class Host(pytest_multihost.host.Host):
     def to_env(self, **kwargs):
         from ipatests.pytest_ipa.integration.env_config import host_to_env
         return host_to_env(self, **kwargs)
+
+    def run_command(self, argv, set_env=True, stdin_text=None,
+                    log_stdout=True, raiseonerr=True,
+                    cwd=None, bg=False, encoding='utf-8'):
+        # Wrap run_command to log stderr on raiseonerr=True
+        result = super().run_command(
+            argv, set_env=set_env, stdin_text=stdin_text,
+            log_stdout=log_stdout, raiseonerr=False, cwd=cwd, bg=bg,
+            encoding=encoding
+        )
+        if result.returncode and raiseonerr:
+            result.log.error('stderr: %s', result.stderr_text)
+            raise subprocess.CalledProcessError(
+                result.returncode, argv,
+                result.stdout_text, result.stderr_text
+            )
+        else:
+            return result
 
 
 class WinHost(pytest_multihost.host.WinHost):
