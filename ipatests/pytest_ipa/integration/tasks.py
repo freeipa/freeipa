@@ -160,15 +160,32 @@ def prepare_host(host):
         host.put_file_contents(env_filename, env_to_script(host.to_env()))
 
 
-def allow_sync_ptr(host):
-    kinit_admin(host)
-    host.run_command(["ipa", "dnsconfig-mod", "--allow-sync-ptr=true"],
-                     raiseonerr=False)
+def rpcbind_kadmin_workaround(host):
+    """Restart rpcbind in case it blocks 749/UDP
+
+    See https://pagure.io/freeipa/issue/7769
+    See https://bugzilla.redhat.com/show_bug.cgi?id=1592883
+    """
+    for _i in range(5):
+        result = host.run_command(['ss', '-ulnp', 'sport', '=', '749'])
+        if 'rpcbind' in result.stdout_text:
+            logger.error("rpcbind blocks 749/UDP, restarting service")
+            host.run_command(['systemctl', 'restart', 'rpcbind.service'])
+            time.sleep(2)
+        else:
+            break
 
 
 def apply_common_fixes(host):
     prepare_host(host)
     fix_hostname(host)
+    rpcbind_kadmin_workaround(host)
+
+
+def allow_sync_ptr(host):
+    kinit_admin(host)
+    host.run_command(["ipa", "dnsconfig-mod", "--allow-sync-ptr=true"],
+                     raiseonerr=False)
 
 
 def backup_file(host, filename):
