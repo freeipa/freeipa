@@ -771,6 +771,10 @@ def promote_check(installer):
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if not client_fstore.has_files():
+        # One-step replica installation
+        if options.password and options.admin_password:
+            raise ScriptError("--password and --admin-password options are "
+                              "mutually exclusive")
         ensure_enrolled(installer)
     else:
         if (options.domain_name or options.server or options.realm_name or
