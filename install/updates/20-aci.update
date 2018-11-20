@@ -36,6 +36,10 @@ remove:aci:(targetfilter="(objectclass=nsContainer)")(version 3.0; acl "Deny rea
 dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
 add:aci:(targetfilter="(objectclass=nsContainer)")(targetattr="objectclass || cn")(version 3.0; acl "Read access to masters"; allow(read, search, compare) userdn = "ldap:///all";)
 
+# Allow users to discover enabled services
+dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
+add:aci:(targetfilter = "(ipaConfigString=enabledService)")(targetattrs = "ipaConfigString")(version 3.0; acl "Find enabled services"; allow(read, search, compare) userdn = "ldap:///all";)
+
 # Allow hosts to read masters service configuration
 dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
 add:aci:(targetfilter = "(objectclass=nsContainer)")(targetattr = "ipaConfigString")(version 3.0; acl "Allow hosts to read masters service configuration"; allow(read, search, compare) userdn = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX";)
