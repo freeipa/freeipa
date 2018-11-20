@@ -25,14 +25,19 @@ class TestInstallKRA(IntegrationTest):
     vault_password = "password"
     vault_data = "SSBsb3ZlIENJIHRlc3RzCg=="
     vault_data2 = 'dmVyeSBzZWNyZXQ='
+    vault_user = "vault_user"
+    vault_user_password = "vault_user_password"
     vault_name_master = "ci_test_vault_master"
     vault_name_master2 = "ci_test_vault_master2"
     vault_name_master3 = "ci_test_vault_master3"
     vault_name_master4 = "ci_test_vault_master4"
     vault_name_replica_without_KRA = "ci_test_vault_replica_without_kra"
+    shared_vault_name_replica_without_KRA = ("ci_test_shared"
+                                             "_vault_replica_without_kra")
     vault_name_replica_with_KRA = "ci_test_vault_replica_with_kra"
     vault_name_replica_KRA_uninstall = "ci_test_vault_replica_KRA_uninstall"
     vault_name_existing_warning = "ci_test_vault_existing_warning"
+    vault_name_replica_KRA_uninstalled = "ci_test_vault_replica_KRA_uninstalled"
 
     @classmethod
     def install(cls, mh):
@@ -94,6 +99,66 @@ class TestInstallKRA(IntegrationTest):
         time.sleep(WAIT_AFTER_ARCHIVE)
 
         self._retrieve_secret([self.vault_name_replica_without_KRA])
+
+    def test_create_and_retrieve_shared_vault_replica_without_kra(self):
+        # create vault
+        self.replicas[0].run_command([
+            "ipa", "vault-add",
+            self.shared_vault_name_replica_without_KRA,
+            "--shared",
+            "--type", "standard",
+        ])
+
+        # archive secret
+        self.replicas[0].run_command([
+            "ipa", "vault-archive",
+            self.shared_vault_name_replica_without_KRA,
+            "--shared",
+            "--data", self.vault_data,
+        ])
+        time.sleep(WAIT_AFTER_ARCHIVE)
+
+        # add non-admin user
+        self.replicas[0].run_command([
+            'ipa', 'user-add', self.vault_user,
+            '--first', self.vault_user,
+            '--last', self.vault_user,
+            '--password'],
+            stdin_text=self.vault_user_password)
+
+        # add it to vault
+        self.replicas[0].run_command([
+            "ipa", "vault-add-member",
+            self.shared_vault_name_replica_without_KRA,
+            "--shared",
+            "--users", self.vault_user,
+        ])
+
+        self.replicas[0].run_command([
+            'kdestroy', '-A'])
+
+        user_kinit = "%s\n%s\n%s\n" % (self.vault_user_password,
+                                       self.vault_user_password,
+                                       self.vault_user_password)
+
+        self.replicas[0].run_command([
+            'kinit', self.vault_user],
+            stdin_text=user_kinit)
+
+        # TODO: possibly refactor with:
+        # self._retrieve_secret([self.vault_name_replica_without_KRA])
+
+        self.replicas[0].run_command([
+            "ipa", "vault-retrieve",
+            "--shared",
+            self.shared_vault_name_replica_without_KRA,
+            "--out=test.txt"])
+
+        self.replicas[0].run_command([
+            'kdestroy', '-A'])
+
+        tasks.kinit_admin(self.replicas[0])
+
 
     def test_create_and_retrieve_vault_replica_with_kra(self):
 
@@ -172,4 +237,4 @@ class TestInstallKRA(IntegrationTest):
             "--data", self.vault_data2,
         ])
         time.sleep(WAIT_AFTER_ARCHIVE)
-        assert 'OVERWRITE_WARN_MESG' in result.stdout_text
+        assert OVERWRITE_WARN_MESG in result.stdout_text
