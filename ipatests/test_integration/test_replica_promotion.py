@@ -49,6 +49,26 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
     domain_level = DOMAIN_LEVEL_1
 
     @replicas_cleanup
+    def test_one_step_install_pwd_and_admin_pwd(self):
+        """--password and --admin-password options are mutually exclusive
+
+        Test for ticket 6353
+        """
+        expected_err = "--password and --admin-password options are " \
+                       "mutually exclusive"
+        result = self.replicas[0].run_command([
+            'ipa-replica-install', '-w',
+            self.master.config.admin_password,
+            '-p', 'OTPpwd',
+            '-n', self.master.domain.name,
+            '-r', self.master.domain.realm,
+            '--server', self.master.hostname,
+            '-U'],
+            raiseonerr=False)
+        assert result.returncode == 1
+        assert expected_err in result.stderr_text
+
+    @replicas_cleanup
     def test_one_command_installation(self):
         """
         TestCase:
