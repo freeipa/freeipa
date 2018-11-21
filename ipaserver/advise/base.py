@@ -227,6 +227,7 @@ class _AdviceOutput:
         self.content = []
         self.prefix = '# '
         self.options = None
+        self.pkgmgr_detected = False
         self._indentation_tracker = _IndentationTracker(
             spaces_per_indent=DEFAULT_INDENTATION_INCREMENT)
 
@@ -311,6 +312,41 @@ class _AdviceOutput:
                 self.command(self._format_error(error_message_line))
 
             self.command('exit 1')
+
+    def detect_pkgmgr(self):
+        self.commands_on_predicate(
+            'which yum >/dev/null',
+            commands_to_run_when_true=['PKGMGR=yum'],
+            commands_to_run_when_false=['PKGMGR=dnf']
+        )
+        self.pkgmgr_detected = True
+
+    def install_packages(self, names, error_message_lines):
+        assert isinstance(names, list)
+        self.detect_pkgmgr()
+        self.command('rpm -qi {} > /dev/null'.format(' '.join(names)))
+        self.commands_on_predicate(
+            '[ "$?" -ne "0" ]',
+            ['$PKGMGR install -y {}'.format(' '.join(names))]
+        )
+        self.exit_on_predicate(
+            '[ "$?" -ne "0" ]',
+            error_message_lines
+        )
+
+    def remove_package(self, name, error_message_lines):
+        # remove only supports one package name
+        assert ' ' not in name
+        self.detect_pkgmgr()
+        self.command('rpm -qi {} > /dev/null'.format(name))
+        self.commands_on_predicate(
+            '[ "$?" -eq "0" ]',
+            ['$PKGMGR remove -y {} || exit 1'.format(name)]
+        )
+        self.exit_on_predicate(
+            '[ "$?" -ne "0" ]',
+            error_message_lines
+        )
 
     @contextmanager
     def unbranched_if(self, predicate):

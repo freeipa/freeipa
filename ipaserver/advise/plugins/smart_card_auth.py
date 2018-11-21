@@ -135,9 +135,10 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
 
         self.log.comment('make sure bind-utils are installed so that we can '
                          'dig for ipa-ca records')
-        self.log.exit_on_failed_command(
-            'yum install -y bind-utils',
-            ['Failed to install bind-utils'])
+        self.log.install_packages(
+            ['bind-utils'],
+            ['Failed to install bind-utils']
+        )
 
         self.log.comment('make sure ipa-ca records are resolvable, '
                          'otherwise error out and instruct')
@@ -272,26 +273,23 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
         self.restart_sssd()
 
     def check_and_remove_pam_pkcs11(self):
-        self.log.command('rpm -qi pam_pkcs11 > /dev/null')
-        self.log.commands_on_predicate(
-            '[ "$?" -eq "0" ]',
-            [
-                'yum remove -y pam_pkcs11'
-            ]
+        self.log.remove_package(
+            'pam_pkcs11',
+            ['Could not remove pam_pkcs11 package']
         )
 
     def install_opensc_and_dconf_packages(self):
         self.log.comment(
             'authconfig often complains about missing dconf, '
             'install it explicitly')
-        self.log.exit_on_failed_command(
-            'yum install -y {} dconf'.format(self.opensc_module_name.lower()),
+        self.log.install_packages(
+            [self.opensc_module_name.lower(), 'dconf'],
             ['Could not install OpenSC package']
         )
 
     def install_krb5_client_dependencies(self):
-        self.log.exit_on_failed_command(
-            'yum install -y krb5-pkinit-openssl',
+        self.log.install_packages(
+            ['krb5-pkinit-openssl'],
             ['Failed to install Kerberos client PKINIT extensions.']
         )
 
