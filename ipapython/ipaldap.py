@@ -35,6 +35,7 @@ from six.moves.urllib.parse import urlparse
 # pylint: enable=import-error
 
 from cryptography import x509 as crypto_x509
+from cryptography.hazmat.primitives import serialization
 
 import ldap
 import ldap.sasl
@@ -1284,6 +1285,8 @@ class LDAPClient(object):
             ]
             return cls.combine_filters(flts, rules)
         elif value is not None:
+            if isinstance(value, crypto_x509.Certificate):
+                value = value.public_bytes(serialization.Encoding.DER)
             if isinstance(value, bytes):
                 value = binascii.hexlify(value).decode('ascii')
                 # value[-2:0] is empty string for the initial '\\'
