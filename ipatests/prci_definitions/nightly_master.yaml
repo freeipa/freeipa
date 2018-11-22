@@ -434,7 +434,7 @@ jobs:
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
         template: *ci-master-f28
         timeout: 7200
-        topology: *master_1repl
+        topology: *master_2repl_1client
 
   fedora-28/test_backup_and_restore_TestBackupAndRestoreDMPassword:
     requires: [fedora-28/build]
