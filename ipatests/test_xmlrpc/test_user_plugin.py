@@ -25,6 +25,7 @@ Test the `ipaserver/plugins/user.py` module.
 """
 
 import pytest
+import base64
 import datetime
 import ldap
 import re
@@ -231,6 +232,36 @@ class TestUser(XMLRPC_test):
             'user_mod', user.uid, **dict(userclass=u'')
         )
         user.check_update(result)
+        user.delete()
+
+    def test_find_cert(self, user):
+        """ Add a usercertificate and perform a user-find --certificate """
+        user_cert = (
+            u"MIICszCCAZugAwIBAgICM24wDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
+            "RVhBTVBMRS5PUkcxCzAJBgNVBAMTAkNBMB4XDTE3MDExOTEwMjUyOVoXDTE3M\r\n"
+            "DQxOTEwMjUyOVowFjEUMBIGA1UEAxMLc3RhZ2V1c2VyLTEwggEiMA0GCSqGSI\r\n"
+            "b3DQEBAQUAA4IBDwAwggEKAoIBAQCq03FRQQBvq4HwYMKP8USLZuOkKzuIs2V\r\n"
+            "Pt8k/+nO1dADrzMogKDiUDjCwYoG2UM/sj6P+PJUUCNDLh5eRRI+aR5VE5y2a\r\n"
+            "K95iCsj1ByDWrugAUXgr8GUUr+UbaGc0XxHCMnQBkYhzbXY3u91KYRRh5l3lx\r\n"
+            "RSICcVeJFJ/tiMS14Vsor1DWykHGz1wm0Zjwg1XDV3oea+uwrSz5Pa6RNPlgC\r\n"
+            "+GGW6B7+8qC2XdSSEwvY7y1SAGgqyOxN/FLwvqqMDNU0uX7fww587uZ57IfYz\r\n"
+            "b8Xn5DAprRFNk40FDc46rMlkPBT+Tij1I0jedD8h2e6WEa7JRU6SGToYDbRm4\r\n"
+            "RL9xAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAHqm1jXzYer9oSjYs9qh1jWpM\r\n"
+            "vTcN+0/z1uuX++Wezh3lG7IzYtypbZNxlXDECyrkUh+9oxzMJqdlZ562ko2br\r\n"
+            "uK6X5csbbM9uVsUva8NCsPPfZXDhrYaMKFvQGFY4pO3uhFGhccob037VN5Ifm\r\n"
+            "aKGM8aJ40cw2PQh38QPDdemizyVCThQ9Pcr+WgWKiG+t2Gd9NldJRLEhky0bW\r\n"
+            "2fc4zWZVbGq5nFXy1k+d/bgkHbVzf255eFZOKKy0NgZwig+uSlhVWPJjS4Z1w\r\n"
+            "LbpBKxTZp/xD0yEARs0u1ZcCELO/BkgQM50EDKmahIM4mdCs/7j1B/DdWs2i3\r\n"
+            "5lnbjxYYiUiyA=")
+        user.ensure_exists()
+        user.update(dict(usercertificate=user_cert),
+                    expected_updates=dict(
+                        usercertificate=[base64.b64decode(user_cert)])
+                    )
+        command = user.make_find_command(uid=user.name,
+                                         usercertificate=user_cert)
+        res = command()['result']
+        assert len(res) == 1
         user.delete()
 
 

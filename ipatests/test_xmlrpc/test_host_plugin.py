@@ -251,6 +251,11 @@ class TestCRUD(XMLRPC_test):
                         valid_not_after=fuzzy_date,
                     ))
         host.retrieve()
+        # test host-find with --certificate
+        command = host.make_find_command(
+            fqdn=host.fqdn, usercertificate=host_cert)
+        res = command()['result']
+        assert len(res) == 1
 
     def test_try_rename(self, host):
         host.ensure_exists()
