@@ -157,7 +157,6 @@ class TrustTopologyConflictSolved(Exception):
     No separate errno is assigned as this error should
     not be visible outside the dcerpc.py code.
     """
-    pass
 
 
 def assess_dcerpc_error(error):

@@ -525,7 +525,6 @@ def configure_dns_for_trust(master, ad):
     configuration on IPA master according to the relationship of the IPA's
     and AD's domains.
     """
-    pass
 
 
 def establish_trust_with_ad(master, ad_domain, extra_args=()):
