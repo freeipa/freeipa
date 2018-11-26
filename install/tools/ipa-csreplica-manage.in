@@ -70,8 +70,7 @@ def parse_options():
 
     if len(args):
         n = len(args) - 1
-        k = commands.keys()
-        for cmd in k:
+        for cmd in commands:
             if cmd == args[0]:
                 v = commands[cmd]
                 err = None
