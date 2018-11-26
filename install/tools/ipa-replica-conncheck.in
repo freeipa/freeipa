@@ -637,6 +637,7 @@ def main():
             time.sleep(3600)
             logger.info(
                 "Connection check timeout: terminating listening program")
+    return 0
 
 
 if __name__ == "__main__":
