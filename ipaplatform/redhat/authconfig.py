@@ -56,7 +56,6 @@ class RedHatAuthToolBase(object):
         Backup the system authentication resources configuration
         :param path: directory where the backup will be stored
         """
-        pass
 
     @abc.abstractmethod
     def restore(self, path):
@@ -64,7 +63,6 @@ class RedHatAuthToolBase(object):
         Restore the system authentication resources configuration from a backup
         :param path: directory where the backup is stored
         """
-        pass
 
     @abc.abstractmethod
     def set_nisdomain(self, nisdomain):
