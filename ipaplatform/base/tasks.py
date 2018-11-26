@@ -177,7 +177,6 @@ class BaseTaskNamespace:
         """
         Migrate pam stack configuration to authselect.
         """
-        pass
 
     def set_selinux_booleans(self, required_settings, backup_func=None):
         """Set the specified SELinux booleans

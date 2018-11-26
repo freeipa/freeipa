@@ -212,7 +212,6 @@ class AdminTool:
 
         Any options that might be asked for should also be validated here.
         """
-        pass
 
     def setup_logging(self, log_file_mode='w'):
         """Set up logging

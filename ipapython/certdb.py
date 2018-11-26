@@ -225,19 +225,16 @@ KEY_RE = re.compile(
 class Pkcs12ImportIncorrectPasswordError(RuntimeError):
     """ Raised when import_pkcs12 fails because of a wrong password.
     """
-    pass
 
 
 class Pkcs12ImportOpenError(RuntimeError):
     """ Raised when import_pkcs12 fails trying to open the file.
     """
-    pass
 
 
 class Pkcs12ImportUnknownError(RuntimeError):
     """ Raised when import_pkcs12 fails because of an unknown error.
     """
-    pass
 
 
 class NSSDatabase:

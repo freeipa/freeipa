@@ -230,7 +230,6 @@ class Plugin(ReadOnly):
         This method is called from `finalize()`. Subclasses can override this
         method in order to add custom finalization.
         """
-        pass
 
     def ensure_finalized(self):
         """

@@ -392,4 +392,3 @@ class Tracker(RetrievalTracker, SearchTracker, ModificationTracker,
     A missing method will cause a NotImplementedError during runtime
     as a result.
     """
-    pass
