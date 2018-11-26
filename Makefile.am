@@ -274,6 +274,8 @@ yamllint: $(YAML_FILES)
 
 if WITH_PYLINT
 pylint: $(GENERATED_PYTHON_FILES) ipasetup.py
+	@# build CLI scripts
+	$(MAKE) -C $(top_builddir)/install/tools
 	FILES=`find $(top_srcdir) \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
 		-path './rpmbuild' -prune -o \
