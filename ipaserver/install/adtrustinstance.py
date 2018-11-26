@@ -551,7 +551,6 @@ class ADTRUSTInstance(service.Service):
         """
         Do not re-set ownership of samba keytab
         """
-        pass
 
     def clean_samba_keytab(self):
         if os.path.exists(self.keytab):
