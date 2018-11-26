@@ -965,7 +965,8 @@ class UI_driver:
         self.wait_for_request()
 
         list_cnt = self.find('.combobox-widget-list', By.CSS_SELECTOR, cb, strict=True)
-        opt_s = "select[name=list] option[value='%s']" % value
+        opt_s = 'select[name=list] option'
+        opt_s += "[value='%s']" % value if value else ':not([value])'
         option = self.find(opt_s, By.CSS_SELECTOR, cb)
 
         if combobox_input:
