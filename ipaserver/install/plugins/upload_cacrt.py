@@ -115,7 +115,18 @@ class update_upload_cacrt(Updater):
                 entry.single_value['cACertificate;binary'] = ca_cert
                 ldap.add_entry(entry)
             else:
-                if b'' in entry['cACertificate;binary']:
+                force_write = False
+                try:
+                    _cert_bin = entry['cACertificate;binary']
+                except ValueError:
+                    # BZ 1644874
+                    # sometimes the cert is badly stored, twice encoded
+                    # force write to fix the value
+                    logger.debug('Fixing the value of cACertificate;binary '
+                                 'in entry %s', entry.dn)
+                    force_write = True
+
+                if force_write or b'' in entry['cACertificate;binary']:
                     entry.single_value['cACertificate;binary'] = ca_cert
                     ldap.update_entry(entry)
 
