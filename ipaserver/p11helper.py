@@ -521,23 +521,20 @@ CONST_RSA_PKCS_OAEP_PARAMS_ptr = new_ptr(CK_RSA_PKCS_OAEP_PARAMS, dict(
 #
 class P11HelperException(Exception):
     """parent class for all exceptions"""
-    pass
+
 P11HelperException.__name__ = 'Exception'
 
 
 class Error(P11HelperException):
     """general error"""
-    pass
 
 
 class NotFound(P11HelperException):
     """key not found"""
-    pass
 
 
 class DuplicationError(P11HelperException):
     """key already exists"""
-    pass
 
 
 ########################################################################

@@ -39,14 +39,14 @@ if 'in_server' in api.env and api.env.in_server is False:
 
         class rpcclient(xmlclient):
             """xmlclient renamed to 'rpcclient'"""
-            pass
+
         register()(rpcclient)
 
     elif api.env.rpc_protocol == 'jsonrpc':
 
         class rpcclient(jsonclient):
             """jsonclient renamed to 'rpcclient'"""
-            pass
+
         register()(rpcclient)
 
     else:

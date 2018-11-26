@@ -352,7 +352,6 @@ class TestADTrustInstall(ADTrustInstallTestBase):
     class for more details) against plain IPA master (no DNS, no KRA, no AD
     trust)
     """
-    pass
 
 
 class TestADTrustInstallWithDNS_KRA_ADTrust(ADTrustInstallTestBase):
