@@ -6,23 +6,23 @@ topologies:
   master_1repl: &master_1repl
     name: master_1repl
     cpu: 4
-    memory: 5750
+    memory: 6450
   master_1repl_1client: &master_1repl_1client
     name: master_1repl_1client
     cpu: 4
-    memory: 6700
+    memory: 7400
   ipaserver: &ipaserver
     name: ipaserver
     cpu: 2
-    memory: 4800
+    memory: 2400
   master_2repl_1client: &master_2repl_1client
     name: master_2repl_1client
     cpu: 5
-    memory: 9100
+    memory: 10150
   master_3repl_1client: &master_3repl_1client
     name: master_3repl_1client
     cpu: 6
-    memory: 11500
+    memory: 12900
 
 jobs:
   fedora-28/build:
