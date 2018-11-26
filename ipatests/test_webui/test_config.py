@@ -84,9 +84,9 @@ class test_config(UI_driver):
         self.add_record(user_data.ENTITY, user_data.DATA2)
         self.navigate_to_record(user_data.DATA2['pkey'])
         if multivalued:
-            s = "div[name={}] input[name={}-0]".format(field, field)
+            s = "div[name={0}] input[name={0}-0]".format(field)
         else:
-            s = "div[name={}] input[name={}]".format(field, field)
+            s = "div[name={0}] input[name={0}]".format(field)
         assert self.get_value(s) == name
         self.delete(user_data.ENTITY, [user_data.DATA2])
 
