@@ -161,15 +161,29 @@ def prepare_host(host):
 
 
 def rpcbind_kadmin_workaround(host):
-    """Restart rpcbind in case it blocks 749/UDP
+    """Restart rpcbind in case it blocks 749/TCP, 464/UDP, or 464/TCP
 
     See https://pagure.io/freeipa/issue/7769
     See https://bugzilla.redhat.com/show_bug.cgi?id=1592883
     """
+    cmd = [
+        'ss',
+        '--all',  # listening and non-listening sockets
+        '--tcp', '--udp',  # only TCP and UDP sockets
+        '--numeric',  # don't resolve host and service names
+        '--processes',  # show processes
+    ]
+    # run once to list all ports for debugging
+    host.run_command(cmd)
+    # check for blocked kadmin port
+    cmd.extend((
+        '-o', 'state', 'all',  # ports in any state, not just listening
+        '( sport = :749 or dport = :749 or sport = :464 or dport = :464 )'
+    ))
     for _i in range(5):
-        result = host.run_command(['ss', '-ulnp', 'sport', '=', '749'])
+        result = host.run_command(cmd)
         if 'rpcbind' in result.stdout_text:
-            logger.error("rpcbind blocks 749/UDP, restarting service")
+            logger.error("rpcbind blocks 749, restarting")
             host.run_command(['systemctl', 'restart', 'rpcbind.service'])
             time.sleep(2)
         else:
