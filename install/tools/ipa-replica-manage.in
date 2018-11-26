@@ -111,8 +111,7 @@ def parse_options():
 
     if len(args):
         n = len(args) - 1
-        k = commands.keys()
-        for cmd in k:
+        for cmd in commands:
             if cmd == args[0]:
                 v = commands[cmd]
                 err = None
@@ -432,7 +431,7 @@ def get_ruv_both_suffixes(realm, host, dirman_passwd, verbose, nolookup=False):
                 print(err)
         logger.debug('%s', err)
 
-    if not ruvs.keys():
+    if not ruvs:
         raise NoRUVsFound("No RUV records found.")
 
     return ruvs
@@ -480,6 +479,7 @@ def get_rid_by_host(realm, sourcehost, host, dirman_passwd, nolookup=False):
     for (netloc, rid) in servers:
         if '%s:389' % host == netloc:
             return int(rid)
+    return None
 
 
 def clean_ruv(realm, ruv, options):
@@ -717,15 +717,15 @@ def clean_dangling_ruvs(realm, host, options):
             # get_ruv_both_suffixes returns server names with :port
             # This needs needs to be split off
             if ruv_dict.get('domain'):
-                master_info['ruvs'] = set([
+                master_info['ruvs'] = {
                     (re.sub(':\d+', '', x), y)
                     for (x, y) in ruv_dict['domain']
-                    ])
+                }
             if ruv_dict.get('ca'):
-                master_info['csruvs'] = set([
+                master_info['csruvs'] = {
                     (re.sub(':\d+', '', x), y)
                     for (x, y) in ruv_dict['ca']
-                    ])
+                }
         except Exception as e:
             sys.exit("Failed to obtain information from '{host}': {error}"
                      .format(host=master_cn, error=str(e)))

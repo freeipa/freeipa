@@ -209,6 +209,8 @@ def main(debug=DEBUG, time_limit=TIME_LIMIT):
     except Exception as e:
         logger.error('%s', str(e))
         return 1
+    else:
+        return 0
 
 
 if __name__ == '__main__':
