@@ -595,6 +595,10 @@ class TestAutomember(UI_driver):
         self.switch_to_facet('memberof_group')
         self.assert_record(pkey)
 
+        # Clear default user group
+        self.navigate_by_menu('identity/automember/amgroup')
+        self.select_combobox('automemberdefaultgroup', '')
+
         self.delete_users(user_pkey)
         self.delete_user_groups(pkey)
 
@@ -617,6 +621,10 @@ class TestAutomember(UI_driver):
         self.navigate_to_record(host_data['pkey'])
         self.switch_to_facet('memberof_hostgroup')
         self.assert_record(pkey)
+
+        # Clear default host group
+        self.navigate_by_menu('identity/automember/amhostgroup')
+        self.select_combobox('automemberdefaultgroup', '')
 
         self.delete('host', [{'pkey': host_data['pkey']}])
         self.delete_host_groups(pkey)
