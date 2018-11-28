@@ -158,15 +158,26 @@ class RedHatAuthSelect(RedHatAuthToolBase):
                 " ".join(args))
 
             profile = 'sssd'
-            features = ''
+            features = []
         else:
-            profile = \
-                statestore.restore_state('authselect', 'profile') or 'sssd'
-            features = \
-                statestore.restore_state('authselect', 'features_list') or ''
+            profile = statestore.restore_state('authselect', 'profile')
+            if not profile:
+                profile = 'sssd'
+            features_state = statestore.restore_state(
+                'authselect', 'features_list'
+            )
             statestore.delete_state('authselect', 'mkhomedir')
+            # only non-empty features, https://pagure.io/freeipa/issue/7776
+            if features_state is not None:
+                features = [
+                    f.strip() for f in features_state.split(' ') if f.strip()
+                ]
+            else:
+                features = []
 
-        cmd = [paths.AUTHSELECT, "select", profile, features, "--force"]
+        cmd = [paths.AUTHSELECT, "select", profile]
+        cmd.extend(features)
+        cmd.append("--force")
         ipautil.run(cmd)
 
     def backup(self, path):
@@ -186,10 +197,9 @@ class RedHatAuthSelect(RedHatAuthToolBase):
 
         if cfg:
             profile = cfg[0]
-
-            cmd = [
-                paths.AUTHSELECT, "select", profile,
-                " ".join(cfg[1]), "--force"]
+            cmd = [paths.AUTHSELECT, "select", profile]
+            cmd.extend(cfg[1])
+            cmd.append("--force")
             ipautil.run(cmd)
 
     def set_nisdomain(self, nisdomain):
