@@ -220,8 +220,7 @@ def create_ipa_conf(fstore, config, ca_enabled, master=None):
     else:
         xmlrpc_uri = 'https://{0}/ipa/xml'.format(
                         ipautil.format_netloc(config.host_name))
-    ldapi_uri = 'ldapi://%2fvar%2frun%2fslapd-{0}.socket\n'.format(
-                    installutils.realm_to_serverid(config.realm_name))
+    ldapi_uri = ipaldap.realm_to_ldapi_uri(config.realm_name)
 
     # [global] section
     gopts = [
@@ -802,7 +801,7 @@ def promote_check(installer):
     api.bootstrap(in_server=True,
                   context='installer',
                   confdir=paths.ETC_IPA,
-                  ldap_uri=installutils.realm_to_ldapi_uri(env.realm),
+                  ldap_uri=ipaldap.realm_to_ldapi_uri(env.realm),
                   xmlrpc_uri=xmlrpc_uri)
     # pylint: enable=no-member
     api.finalize()

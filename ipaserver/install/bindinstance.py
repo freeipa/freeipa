@@ -40,6 +40,7 @@ from ipaserver.dns_data_management import (
 from ipaserver.install import installutils
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
+from ipapython import ipaldap
 from ipapython import ipautil
 from ipapython import dnsutil
 from ipapython.dnsutil import DNSName
@@ -803,7 +804,7 @@ class BindInstance(service.Service):
 
         self.sub_dict = dict(
             FQDN=self.fqdn,
-            SERVER_ID=installutils.realm_to_serverid(self.realm),
+            SERVER_ID=ipaldap.realm_to_serverid(self.realm),
             SUFFIX=self.suffix,
             BINDKEYS_FILE=paths.NAMED_BINDKEYS_FILE,
             MANAGED_KEYS_DIR=paths.NAMED_MANAGED_KEYS_DIR,

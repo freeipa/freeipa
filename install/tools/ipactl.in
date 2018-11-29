@@ -30,7 +30,7 @@ from ipaserver.install import service, installutils
 from ipaserver.install.dsinstance import config_dirname
 from ipaserver.install.installutils import is_ipa_configured, ScriptError
 from ipalib import api, errors
-from ipapython.ipaldap import LDAPClient
+from ipapython.ipaldap import LDAPClient, realm_to_serverid
 from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
 from ipapython.ipautil import run
 from ipapython import config
@@ -75,7 +75,7 @@ def is_dirsrv_debugging_enabled():
     returns True or False
     """
     debugging = False
-    serverid = installutils.realm_to_serverid(api.env.realm)
+    serverid = realm_to_serverid(api.env.realm)
     dselist = [config_dirname(serverid)]
     for dse in dselist:
         try:

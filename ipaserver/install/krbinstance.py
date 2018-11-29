@@ -262,7 +262,7 @@ class KrbInstance(service.Service):
                              SUFFIX=self.suffix,
                              DOMAIN=self.domain,
                              HOST=self.host,
-                             SERVER_ID=installutils.realm_to_serverid(self.realm),
+                             SERVER_ID=ipaldap.realm_to_serverid(self.realm),
                              REALM=self.realm,
                              KRB5KDC_KADM5_ACL=paths.KRB5KDC_KADM5_ACL,
                              DICT_WORDS=paths.DICT_WORDS,

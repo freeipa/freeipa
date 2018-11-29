@@ -279,7 +279,7 @@ class LDAPUpdate:
             self.realm = api.env.realm
             suffix = ipautil.realm_to_suffix(self.realm) if self.realm else None
 
-        self.ldapuri = installutils.realm_to_ldapi_uri(self.realm)
+        self.ldapuri = ipaldap.realm_to_ldapi_uri(self.realm)
         if suffix is not None:
             assert isinstance(suffix, DN)
 
