@@ -268,7 +268,7 @@ class DsInstance(service.Service):
                   idstart, idmax, pkcs12_info, ca_file=None,
                   setup_pkinit=False):
         self.realm = realm_name.upper()
-        self.serverid = installutils.realm_to_serverid(self.realm)
+        self.serverid = ipaldap.realm_to_serverid(self.realm)
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.fqdn = fqdn
         self.dm_password = dm_password
@@ -1195,7 +1195,8 @@ class DsInstance(service.Service):
         # shutdown the server
         self.stop()
 
-        dirname = config_dirname(installutils.realm_to_serverid(self.realm))
+        dirname = config_dirname(
+            ipaldap.realm_to_serverid(self.realm))
         certdb = certs.CertDB(
             self.realm,
             nssdir=dirname,
@@ -1340,7 +1341,7 @@ class DsInstance(service.Service):
 
 def write_certmap_conf(realm, ca_subject):
     """(Re)write certmap.conf with given CA subject DN."""
-    serverid = installutils.realm_to_serverid(realm)
+    serverid = ipaldap.realm_to_serverid(realm)
     ds_dirname = config_dirname(serverid)
     certmap_filename = os.path.join(ds_dirname, "certmap.conf")
     shutil.copyfile(

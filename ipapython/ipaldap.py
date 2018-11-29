@@ -39,12 +39,14 @@ import ldap
 import ldap.sasl
 import ldap.filter
 from ldap.controls import SimplePagedResultsControl, GetEffectiveRightsControl
+import ldapurl
 import six
 
 # pylint: disable=ipa-forbidden-import
 from ipalib import errors, x509, _
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 # pylint: enable=ipa-forbidden-import
+from ipaplatform.paths import paths
 from ipapython.ipautil import format_netloc, CIDict
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -88,6 +90,18 @@ if six.PY2 and hasattr(ldap, 'LDAPBytesWarning'):
         action="ignore",
         category=ldap.LDAPBytesWarning,  # pylint: disable=no-member
     )
+
+
+def realm_to_serverid(realm_name):
+    """Convert Kerberos realm name to 389-DS server id"""
+    return "-".join(realm_name.split("."))
+
+
+def realm_to_ldapi_uri(realm_name):
+    """Get ldapi:// URI to 389-DS's Unix socket"""
+    serverid = realm_to_serverid(realm_name)
+    socketname = paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % (serverid,)
+    return 'ldapi://' + ldapurl.ldapUrlEscape(socketname)
 
 
 def ldap_initialize(uri, cacertfile=None):

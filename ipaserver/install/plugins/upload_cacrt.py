@@ -21,7 +21,7 @@ import logging
 
 from ipalib.install import certstore
 from ipaserver.install import certs, dsinstance
-from ipaserver.install.installutils import realm_to_serverid
+from ipapython.ipaldap import realm_to_serverid
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython import certdb
