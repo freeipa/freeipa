@@ -465,7 +465,7 @@ class Restore(admintool.AdminTool):
         '''
         Create an ldapi connection and bind to it using autobind as root.
         '''
-        instance_name = installutils.realm_to_serverid(api.env.realm)
+        instance_name = ipaldap.realm_to_serverid(api.env.realm)
 
         if not services.knownservices.dirsrv.is_running(instance_name):
             raise admintool.ScriptError(
@@ -879,7 +879,7 @@ class Restore(admintool.AdminTool):
         httpinstance.HTTPInstance().stop_tracking_certificates()
         try:
             dsinstance.DsInstance().stop_tracking_certificates(
-                installutils.realm_to_serverid(api.env.realm))
+                ipaldap.realm_to_serverid(api.env.realm))
         except (OSError, IOError):
             # When IPA is not installed, DS NSS DB does not exist
             pass
@@ -910,13 +910,13 @@ class Restore(admintool.AdminTool):
         api.bootstrap(in_server=True, context='restore', **overrides)
         api.finalize()
 
-        self.instances = [installutils.realm_to_serverid(api.env.realm)]
+        self.instances = [ipaldap.realm_to_serverid(api.env.realm)]
         self.backends = ['userRoot', 'ipaca']
 
         # no IPA config means we are reinstalling from nothing so
         # there is nothing to test the DM password against.
         if os.path.exists(paths.IPA_DEFAULT_CONF):
-            instance_name = installutils.realm_to_serverid(api.env.realm)
+            instance_name = ipapython.ipaldap.realm_to_serverid(api.env.realm)
             if not services.knownservices.dirsrv.is_running(instance_name):
                 raise admintool.ScriptError(
                     "directory server instance is not running"

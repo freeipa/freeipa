@@ -22,6 +22,7 @@ from ipalib.install import certmonger, sysrestore
 from ipapython import ipautil, version
 from ipapython.ipautil import (
     ipa_generate_password, run, user_input)
+from ipapython import ipaldap
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -591,8 +592,7 @@ def install_check(installer):
 
     xmlrpc_uri = 'https://{0}/ipa/xml'.format(
                     ipautil.format_netloc(host_name))
-    ldapi_uri = 'ldapi://%2fvar%2frun%2fslapd-{0}.socket\n'.format(
-                    installutils.realm_to_serverid(realm_name))
+    ldapi_uri = ipaldap.realm_to_ldapi_uri(realm_name)
 
     # [global] section
     gopts = [
@@ -1166,7 +1166,7 @@ def uninstall(installer):
 
     # Note that this name will be wrong after the first uninstall.
     dirname = dsinstance.config_dirname(
-        installutils.realm_to_serverid(api.env.realm))
+        ipaldap.realm_to_serverid(api.env.realm))
     dirs = [dirname, paths.PKI_TOMCAT_ALIAS_DIR, paths.HTTPD_ALIAS_DIR]
     ids = certmonger.check_state(dirs)
     if ids:

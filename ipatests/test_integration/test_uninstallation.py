@@ -18,7 +18,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
 from ipaserver.install import dsinstance
-from ipaserver.install.installutils import realm_to_serverid
+from ipapython.ipaldap import realm_to_serverid
 
 
 class TestUninstallBase(IntegrationTest):
