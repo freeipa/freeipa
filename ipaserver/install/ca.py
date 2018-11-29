@@ -22,6 +22,7 @@ from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
 from ipaserver.install import cainstance, bindinstance, dsinstance
 from ipapython import ipautil, certdb
+from ipapython import ipaldap
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -209,7 +210,7 @@ def install_check(standalone, replica_config, options):
 
     if standalone:
         dirname = dsinstance.config_dirname(
-            installutils.realm_to_serverid(realm_name))
+            ipaldap.realm_to_serverid(realm_name))
         cadb = certs.CertDB(realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
                             subject_base=options._subject_base)
         dsdb = certs.CertDB(
@@ -343,7 +344,7 @@ def install_step_1(standalone, replica_config, options, custodia):
     #
     ca.setup_lightweight_ca_key_retrieval()
 
-    serverid = installutils.realm_to_serverid(realm_name)
+    serverid = ipaldap.realm_to_serverid(realm_name)
 
     if standalone and replica_config is None:
         dirname = dsinstance.config_dirname(serverid)

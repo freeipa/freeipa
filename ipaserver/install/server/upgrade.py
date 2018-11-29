@@ -18,6 +18,7 @@ import tempfile
 from contextlib import contextmanager
 from augeas import Augeas
 import dns.exception
+
 from ipalib import api, x509
 from ipalib.install import certmonger, sysrestore
 import SSSDConfig
@@ -28,6 +29,7 @@ from ipaclient.install.client import sssd_enable_ifp
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipapython import ipautil, version
+from ipapython import ipaldap
 from ipapython import dnsutil, directivesetter
 from ipapython.dn import DN
 from ipaplatform.constants import constants
@@ -949,7 +951,7 @@ def certificate_renewal_update(ca, ds, http):
     """
 
     template = paths.CERTMONGER_COMMAND_TEMPLATE
-    serverid = installutils.realm_to_serverid(api.env.realm)
+    serverid = ipaldap.realm_to_serverid(api.env.realm)
 
     requests = [
         {
@@ -1367,7 +1369,7 @@ def fix_schema_file_syntax():
         logger.info('Syntax already fixed')
         return
 
-    serverid = installutils.realm_to_serverid(api.env.realm)
+    serverid = ipaldap.realm_to_serverid(api.env.realm)
     ds_dir = dsinstance.config_dirname(serverid)
 
     # 1. 60ipadns.ldif: Add parenthesis to idnsRecord
@@ -1444,7 +1446,7 @@ def remove_ds_ra_cert(subject_base):
         return
 
     dbdir = dsinstance.config_dirname(
-        installutils.realm_to_serverid(api.env.realm))
+        ipaldap.realm_to_serverid(api.env.realm))
     dsdb = certs.CertDB(api.env.realm, nssdir=dbdir, subject_base=subject_base)
 
     nickname = 'CN=IPA RA,%s' % subject_base
@@ -1810,7 +1812,7 @@ def upgrade_configuration():
     fqdn = api.env.host
 
     # Ok, we are an IPA server, do the additional tests
-    ds_serverid = installutils.realm_to_serverid(api.env.realm)
+    ds_serverid = ipaldap.realm_to_serverid(api.env.realm)
     ds = dsinstance.DsInstance()
 
     # start DS, CA will not start without running DS, and cause error
@@ -2098,7 +2100,7 @@ def upgrade_configuration():
                         SUFFIX=krb.suffix,
                         DOMAIN=api.env.domain,
                         HOST=api.env.host,
-                        SERVER_ID=installutils.realm_to_serverid(krb.realm),
+                        SERVER_ID=ipaldap.realm_to_serverid(krb.realm),
                         REALM=krb.realm,
                         KRB5KDC_KADM5_ACL=paths.KRB5KDC_KADM5_ACL,
                         DICT_WORDS=paths.DICT_WORDS,

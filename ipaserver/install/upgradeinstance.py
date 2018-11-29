@@ -25,9 +25,11 @@ import ldif
 import shutil
 import random
 import traceback
+
 from ipalib import api
 from ipaplatform.paths import paths
 from ipaplatform import services
+from ipapython import ipaldap
 
 from ipaserver.install import installutils
 from ipaserver.install import schemaupdate
@@ -88,7 +90,7 @@ class IPAUpgrade(service.Service):
             h = "%02x" % rand.randint(0,255)
             ext += h
         super(IPAUpgrade, self).__init__("dirsrv", realm_name=realm_name)
-        serverid = installutils.realm_to_serverid(realm_name)
+        serverid = ipaldap.realm_to_serverid(realm_name)
         self.filename = '%s/%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE)
         self.savefilename = '%s/%s.ipa.%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE, ext)
         self.files = files

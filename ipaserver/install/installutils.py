@@ -34,6 +34,7 @@ import tempfile
 import shutil
 import traceback
 import textwrap
+import warnings
 from contextlib import contextmanager
 from configparser import ConfigParser as SafeConfigParser
 from configparser import NoOptionError
@@ -41,16 +42,14 @@ from configparser import NoOptionError
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 import ldap
-import ldapurl
 import six
 
 from ipalib.install import sysrestore
 from ipalib.install.kinit import kinit_password
 import ipaplatform
-from ipapython import ipautil, admintool, version
+from ipapython import ipautil, admintool, version, ipaldap
 from ipapython.admintool import ScriptError, SERVER_NOT_CONFIGURED  # noqa: E402
 from ipapython.certdb import EXTERNAL_CA_TRUST_FLAGS
-from ipapython.ipaldap import DIRMAN_DN, LDAPClient
 from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
 from ipapython.dn import DN
@@ -338,9 +337,9 @@ def validate_dm_password_ldap(password):
     Validate DM password by attempting to connect to LDAP. api.env has to
     contain valid ldap_uri.
     """
-    client = LDAPClient(api.env.ldap_uri, cacert=paths.IPA_CA_CRT)
+    client = ipaldap.LDAPClient(api.env.ldap_uri, cacert=paths.IPA_CA_CRT)
     try:
-        client.simple_bind(DIRMAN_DN, password)
+        client.simple_bind(ipaldap.DIRMAN_DN, password)
     except errors.ACIError:
         raise ValueError("Invalid Directory Manager password")
     else:
@@ -1106,14 +1105,23 @@ def check_version():
     else:
         raise UpgradeMissingVersionError("no data_version stored")
 
+
 def realm_to_serverid(realm_name):
-    return "-".join(realm_name.split("."))
+    warnings.warn(
+        "Use 'ipapython.ipaldap.realm_to_serverid'",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return ipaldap.realm_to_serverid(realm_name)
 
 
 def realm_to_ldapi_uri(realm_name):
-    serverid = realm_to_serverid(realm_name)
-    socketname = paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % (serverid,)
-    return 'ldapi://' + ldapurl.ldapUrlEscape(socketname)
+    warnings.warn(
+        "Use 'ipapython.ipaldap.realm_to_ldapi_uri'",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return ipaldap.realm_to_ldapi_uri(realm_name)
 
 
 def check_creds(options, realm_name):

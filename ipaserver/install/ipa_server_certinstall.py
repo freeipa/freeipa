@@ -30,6 +30,7 @@ from ipaplatform.paths import paths
 from ipapython import admintool
 from ipapython.certdb import NSSDatabase, get_ca_nickname
 from ipapython.dn import DN
+from ipapython import ipaldap
 from ipalib import api, errors
 from ipaserver.install import certs, dsinstance, installutils, krbinstance
 
@@ -125,7 +126,7 @@ class ServerCertInstall(admintool.AdminTool):
         api.Backend.ldap2.disconnect()
 
     def install_dirsrv_cert(self):
-        serverid = installutils.realm_to_serverid(api.env.realm)
+        serverid = ipaldap.realm_to_serverid(api.env.realm)
         dirname = dsinstance.config_dirname(serverid)
 
         conn = api.Backend.ldap2

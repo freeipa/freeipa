@@ -320,7 +320,7 @@ class Backup(admintool.AdminTool):
                 logger.info('Stopping IPA services')
                 run([paths.IPACTL, 'stop'])
 
-            instance = installutils.realm_to_serverid(api.env.realm)
+            instance = ipaldap.realm_to_serverid(api.env.realm)
             if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
                               instance):
                 if os.path.exists(paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
@@ -364,7 +364,7 @@ class Backup(admintool.AdminTool):
 
         NOTE: this adds some things that may not get backed up.
         '''
-        serverid = installutils.realm_to_serverid(api.env.realm)
+        serverid = ipaldap.realm_to_serverid(api.env.realm)
 
         for dir in [paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid,
                     paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % serverid,
