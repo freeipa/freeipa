@@ -162,6 +162,17 @@ def update_server(certs):
     if request_id is not None:
         timeout = api.env.startup_timeout + 60
 
+        # The dogtag-ipa-ca-renew-agent-reuse Certmonger CA never
+        # actually renews the certificate; it only pulls it from the
+        # ca_renewal LDAP cert store.
+        #
+        # Why is this needed?  If the CA cert gets renewed long
+        # before its notAfter (expiry) date (e.g. to switch from
+        # self-signed to external, or to switch to new external CA),
+        # then the other (i.e. not caRenewalMaster) CA replicas will
+        # not promptly pick up the new CA cert.  So we make
+        # ipa-certupdate always check for an updated CA cert.
+        #
         logger.debug("resubmitting certmonger request '%s'", request_id)
         certmonger.resubmit_request(
             request_id, ca='dogtag-ipa-ca-renew-agent-reuse', profile='')
