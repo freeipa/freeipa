@@ -400,7 +400,7 @@ class Backup(admintool.AdminTool):
             self._conn.external_bind()
         except Exception as e:
             logger.error("Unable to bind to LDAP server %s: %s",
-                         self._conn.host, e)
+                         self._conn.ldap_uri, e)
 
         return self._conn
 
@@ -594,7 +594,7 @@ class Backup(admintool.AdminTool):
               "Unable to obtain list of master services, continuing anyway")
         except Exception as e:
             logger.error("Failed to read services from '%s': %s",
-                         conn.host, e)
+                         conn.ldap_uri, e)
         else:
             services_cns = [s.single_value['cn'] for s in services]
 
