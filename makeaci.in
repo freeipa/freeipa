@@ -50,7 +50,7 @@ def generate_aci_lines(api):
     """Yields ACI lines as they appear in ACI.txt, with trailing newline"""
     update_plugin = api.Updater['update_managed_permissions']
     perm_plugin = api.Object['permission']
-    fake_ldap = LDAPClient('', force_schema_updates=False, no_schema=True)
+    fake_ldap = LDAPClient(None, force_schema_updates=False, no_schema=True)
     for name, template, obj in update_plugin.get_templates():
         dn = perm_plugin.get_dn(name)
         entry = fake_ldap.make_entry(dn)

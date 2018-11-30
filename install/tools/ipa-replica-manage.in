@@ -1218,7 +1218,6 @@ def re_initialize(realm, thishost, fromhost, dirman_passwd, nolookup=False):
         # we did not replicate memberOf, do so now.
         if not agreement.single_value.get('nsDS5ReplicatedAttributeListTotal'):
             ds = dsinstance.DsInstance(realm_name=realm)
-            ds.ldapi = os.getegid() == 0
             ds.init_memberof()
 
 def force_sync(realm, thishost, fromhost, dirman_passwd, nolookup=False):
@@ -1238,7 +1237,6 @@ def force_sync(realm, thishost, fromhost, dirman_passwd, nolookup=False):
         repl.force_sync(repl.conn, fromhost)
     else:
         ds = dsinstance.DsInstance(realm_name=realm)
-        ds.ldapi = os.getegid() == 0
         ds.replica_manage_time_skew(prevent=False)
         repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
         repl.force_sync(repl.conn, thishost)
