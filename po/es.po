@@ -4,9 +4,9 @@
 # Emilio Herrera <ehespinosa57@gmail.com>, 2018. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.0.dev201810012005+gitbcf922369\n"
+"Project-Id-Version: freeipa 4.7.1.dev201811131352+git918dbdfee\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-10-01 23:06+0300\n"
+"POT-Creation-Date: 2018-11-13 15:52+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -2542,36 +2542,8 @@ msgstr "Activar zona"
 msgid "Add"
 msgstr "Agregar"
 
-#, python-brace-format
-msgid "Add ${entity} ${primary_key} into ${other_entity}"
-msgstr "Añadir ${entity} ${primary_key} en ${other_entity}"
-
-#, python-brace-format
-msgid "Add ${other_entity} Managing ${entity} ${primary_key}"
-msgstr "Añadir ${other_entity} Gestionando ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add ${other_entity} into ${entity} ${primary_key}"
-msgstr "Añadir ${other_entity} a ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add Allow ${other_entity} into ${entity} ${primary_key}"
-msgstr "Añadir Permitir ${other_entity} en ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add Deny ${other_entity} into ${entity} ${primary_key}"
-msgstr "Añadir Denegar ${other_entity} en ${entity} ${primary_key}"
-
 msgid "Add Many"
 msgstr "Añadir Muchos"
-
-#, python-brace-format
-msgid "Add RunAs ${other_entity} into ${entity} ${primary_key}"
-msgstr "Añadir RunAs ${other_entity} en ${entity} ${primary_key}"
-
-#, python-brace-format
-msgid "Add RunAs Groups into ${entity} ${primary_key}"
-msgstr "Añadir RunAs Grupos en ${entity} ${primary_key}"
 
 msgid "Add a new HBAC service group."
 msgstr "Añadir un nuevo grupo de servicio HBAC."
@@ -4708,10 +4680,6 @@ msgstr "Regex inclusivo"
 msgid "Incompatible options provided (-r and -P)\n"
 msgstr "Opciones suministradas incompatibles (-r y -P)\n"
 
-#, c-format
-msgid "Incorrect password.\n"
-msgstr "Contraseña incorrecta.\n"
-
 msgid "Indirect"
 msgstr "Indirecto"
 
@@ -4803,10 +4771,6 @@ msgstr "¿Está la zona activa?"
 
 msgid "Issue"
 msgstr "Tema"
-
-#, python-brace-format
-msgid "Issue New Certificate for ${entity} ${primary_key}"
-msgstr "Enviar Nuevo Certificado para ${entity} ${primary_key}"
 
 msgid "Issued By"
 msgstr "Expedido por"
@@ -6394,13 +6358,6 @@ msgstr "Motivo de la revocación"
 
 msgid "Revoke"
 msgstr "Revocar"
-
-msgid "Revoke Certificate"
-msgstr "Revocar certificado"
-
-#, python-brace-format
-msgid "Revoke Certificate for ${entity} ${primary_key}"
-msgstr "Revocar certificado por ${entity} ${primary_key}"
 
 msgid "Revoke a certificate."
 msgstr "Revocar un certificado."
