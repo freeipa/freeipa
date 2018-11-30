@@ -996,6 +996,7 @@ class TestDeniedBindWithExpiredPrincipal(XMLRPC_test):
         cls.connection = ldap_initialize(
             'ldap://{host}'.format(host=api.env.host)
         )
+        cls.connection.start_tls_s()
 
     @classmethod
     def teardown_class(cls):

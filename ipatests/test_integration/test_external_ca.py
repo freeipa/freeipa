@@ -128,8 +128,9 @@ class TestExternalCA(IntegrationTest):
         result = self.master.run_command([
             'ldapsearch',
             '-x',
-            '-D',
-            'cn=directory manager',
+            '-ZZ',
+            '-h', self.master.hostname,
+            '-D', 'cn=directory manager',
             '-w', self.master.config.dirman_password,
             '-b', 'cn=mapping tree,cn=config',
             '(cn=replica)',

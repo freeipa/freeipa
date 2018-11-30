@@ -403,6 +403,7 @@ class TestReplicaInstallWithExistingEntry(IntegrationTest):
             realm=replica.domain.name.upper())
         master.put_file_contents(ldif_file, entry_ldif)
         arg = ['ldapmodify',
+               '-ZZ',
                '-h', master.hostname,
                '-p', '389', '-D',
                str(master.config.dirman_dn),   # pylint: disable=no-member
