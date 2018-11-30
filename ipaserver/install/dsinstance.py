@@ -326,6 +326,7 @@ class DsInstance(service.Service):
                       self.__import_ca_certs)
         # set min SSF after DS is configured for TLS
         self.step("require minimal SSF", self.__min_ssf)
+        self.step("require secure binds", self.__secure_binds)
         self.step("restarting directory server", self.__restart_instance)
 
         self.start_creation()
@@ -1245,6 +1246,9 @@ class DsInstance(service.Service):
 
     def __min_ssf(self):
         self._ldap_mod("min-ssf.ldif")
+
+    def __secure_binds(self):
+        self._ldap_mod("secure-binds.ldif")
 
     def __add_sudo_binduser(self):
         self._ldap_mod("sudobind.ldif", self.sub_dict)

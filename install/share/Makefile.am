@@ -81,6 +81,7 @@ dist_app_DATA =				\
 	replica-automember.ldif		\
 	sasl-mapping-fallback.ldif	\
 	schema-update.ldif		\
+	secure-binds.ldif		\
 	vault.ldif			\
 	kdcproxy-enable.uldif		\
 	kdcproxy-disable.uldif		\

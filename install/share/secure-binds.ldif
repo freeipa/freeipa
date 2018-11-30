@@ -1,0 +1,6 @@
+# config
+dn: cn=config
+changetype: modify
+replace: nsslapd-require-secure-binds
+nsslapd-require-secure-binds: on
+
