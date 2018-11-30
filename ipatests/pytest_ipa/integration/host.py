@@ -45,8 +45,7 @@ class Host(pytest_multihost.host.Host):
         """Return an LDAPClient authenticated to this host as directory manager
         """
         self.log.info('Connecting to LDAP at %s', self.external_hostname)
-        ldap_uri = ipaldap.get_ldap_uri(self.external_hostname)
-        ldap = ipaldap.LDAPClient(ldap_uri)
+        ldap = ipaldap.LDAPClient.from_hostname_secure(self.external_hostname)
         binddn = self.config.dirman_dn
         self.log.info('LDAP bind as %s' % binddn)
         ldap.simple_bind(binddn, self.config.dirman_password)

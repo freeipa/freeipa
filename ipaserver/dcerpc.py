@@ -724,9 +724,10 @@ class DomainValidator:
                 entries = None
 
                 try:
-                    ldap_uri = ipaldap.get_ldap_uri(host)
-                    conn = ipaldap.LDAPClient(
-                        ldap_uri,
+                    # AD does not support SASL + TLS at the same time
+                    # https://msdn.microsoft.com/en-us/library/cc223500.aspx
+                    conn = ipaldap.LDAPClient.from_hostname_plain(
+                        host,
                         no_schema=True,
                         decode_attrs=False
                     )
