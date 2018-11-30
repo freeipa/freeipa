@@ -467,7 +467,7 @@ if __name__ == '__main__':
 
     # LDAP initialization
     dns_dn = DN(ipalib.api.env.container_dns, ipalib.api.env.basedn)
-    ldap = ipaldap.LDAPClient(ipalib.api.env.ldap_uri)
+    ldap = ipaldap.LDAPClient(ipalib.api.env.ldap_uri, start_tls=True)
     logger.debug('Connecting to LDAP')
     # GSSAPI will be used, used has to be kinited already
     ldap.gssapi_bind()

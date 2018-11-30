@@ -55,7 +55,7 @@ def bind(ldap_uri, base_dn, username, password):
         raise IOError(errno.EIO, 'Cannot get Base DN')
     bind_dn = DN(('uid', username), ('cn', 'users'), ('cn', 'accounts'), base_dn)
     try:
-        conn = ipaldap.LDAPClient(ldap_uri)
+        conn = ipaldap.LDAPClient(ldap_uri, start_tls=True)
         conn.simple_bind(bind_dn, password)
     except (errors.ACIError, errors.DatabaseError, errors.NotFound) as e:
         logger.error(

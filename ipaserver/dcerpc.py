@@ -723,9 +723,8 @@ class DomainValidator:
                 entries = None
 
                 try:
-                    ldap_uri = ipaldap.get_ldap_uri(host)
-                    conn = ipaldap.LDAPClient(
-                        ldap_uri,
+                    conn = ipaldap.LDAPClient.from_hostname_secure(
+                        host,
                         no_schema=True,
                         decode_attrs=False
                     )
