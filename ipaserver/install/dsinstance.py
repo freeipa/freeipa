@@ -350,6 +350,7 @@ class DsInstance(service.Service):
         else:
             self.step("importing CA certificates from LDAP",
                       self.__import_ca_certs)
+        self.step("require secure binds", self.__secure_binds)
         self.step("restarting directory server", self.__restart_instance)
 
         self.start_creation()
@@ -1228,6 +1229,9 @@ class DsInstance(service.Service):
         self._ldap_mod("root-autobind.ldif",
                        ldap_uri="ldap://localhost",
                        dm_password=self.dm_password)
+
+    def __secure_binds(self):
+        self._ldap_mod("secure-binds.ldif")
 
     def __add_sudo_binduser(self):
         self._ldap_mod("sudobind.ldif", self.sub_dict)
