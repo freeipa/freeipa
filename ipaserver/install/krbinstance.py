@@ -77,7 +77,7 @@ def is_pkinit_enabled():
     if os.path.exists(paths.KDC_CERT):
         pkinit_request_ca = get_pkinit_request_ca()
 
-        if pkinit_request_ca != "SelfSign":
+        if pkinit_request_ca and pkinit_request_ca != "SelfSign":
             return True
 
     return False
@@ -602,6 +602,10 @@ class KrbInstance(service.Service):
     def stop_tracking_certs(self):
         certmonger.stop_tracking(certfile=paths.KDC_CERT)
 
+    def delete_pkinit_cert(self):
+        installutils.remove_file(paths.KDC_CERT)
+        installutils.remove_file(paths.KDC_KEY)
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring %s" % self.service_name)
@@ -627,8 +631,7 @@ class KrbInstance(service.Service):
         # stop tracking and remove certificates
         self.stop_tracking_certs()
         installutils.remove_file(paths.CACERT_PEM)
-        installutils.remove_file(paths.KDC_CERT)
-        installutils.remove_file(paths.KDC_KEY)
+        self.delete_pkinit_cert()
 
         if running:
             self.restart()
