@@ -627,3 +627,15 @@ jobs:
         template: *ci-master-frawhide
         timeout: 7200
         topology: *ipaserver
+
+  fedora-rawhide/test_pkinit_manage:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_pkinit_manage.py
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *master_1repl
