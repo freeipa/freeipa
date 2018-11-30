@@ -12,6 +12,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.tasks import (
     assert_error, replicas_cleanup)
+from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipalib.constants import (
     DOMAIN_LEVEL_1, IPA_CA_NICKNAME)
@@ -67,6 +68,8 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
             raiseonerr=False)
         assert result.returncode == 1
         assert expected_err in result.stderr_text
+        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
+                                                    "freeipa-ldaps"])
 
     @replicas_cleanup
     def test_one_command_installation(self):
@@ -81,6 +84,8 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
                                      '-r', self.master.domain.realm,
                                      '--server', self.master.hostname,
                                      '-U'])
+        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
+                                                    "freeipa-ldaps"])
         # Ensure that pkinit is properly configured, test for 7566
         result = self.replicas[0].run_command(['ipa-pkinit-manage', 'status'])
         assert "PKINIT is enabled" in result.stdout_text
@@ -149,6 +154,8 @@ class TestUnprivilegedUserPermissions(IntegrationTest):
                                       '-n', self.master.domain.name,
                                       '-r', self.master.domain.realm,
                                       '-U'])
+        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
+                                                    "freeipa-ldaps"])
 
 
 class TestProhibitReplicaUninstallation(IntegrationTest):
@@ -169,6 +176,8 @@ class TestProhibitReplicaUninstallation(IntegrationTest):
                              " topology" % self.replicas[0].hostname, 1)
         self.replicas[0].run_command(['ipa-server-install', '--uninstall',
                                       '-U', '--ignore-topology-disconnect'])
+        Firewall(self.replicas[0]).disable_services(["freeipa-ldap",
+                                                     "freeipa-ldaps"])
 
 
 class TestWrongClientDomain(IntegrationTest):
