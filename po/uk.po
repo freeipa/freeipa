@@ -11,7 +11,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-10-03 09:33+0000\n"
+"PO-Revision-Date: 2018-11-13 05:44+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
 "Language: uk\n"
@@ -301,6 +301,18 @@ msgid ""
 msgstr ""
 "\n"
 "    Шукати правила автоматичної участі.\n"
+"    "
+
+msgid ""
+"\n"
+"    Search for orphan automember rules. The command might need to be run as\n"
+"    a privileged user user to get all orphan rules.\n"
+"    "
+msgstr ""
+"\n"
+"    Виконати пошук осиротілих правил автоматичної участі. Можливо, команду\n"
+"    слід запускати від імені привілейованого користувача, щоб отримати усі "
+"правила.\n"
 "    "
 
 msgid ""
@@ -1430,6 +1442,19 @@ msgstr ""
 "\n"
 " Знайти усіх правила автоматичної участі:\n"
 "    ipa automember-find\n"
+
+msgid ""
+"\n"
+" Find all of the orphan automember rules:\n"
+"    ipa automember-find-orphans --type=hostgroup\n"
+" Find all of the orphan automember rules and remove them:\n"
+"    ipa automember-find-orphans --type=hostgroup --remove\n"
+msgstr ""
+"\n"
+" Знайти усі осиротілі правила автоматичної участі:\n"
+"    ipa automember-find-orphans --type=hostgroup\n"
+" Знайти усі осиротілі правила автоматичної участі і вилучити їх:\n"
+"    ipa automember-find-orphans --type=hostgroup --remove\n"
 
 msgid ""
 "\n"
@@ -17149,6 +17174,10 @@ msgstr "Додати ACL CA"
 msgid "Add CAs to a CA ACL."
 msgstr "Додати CA до ACL CA."
 
+#, python-brace-format
+msgid "Add Certificate Authorities into CA ACL '${primary_key}'"
+msgstr "Додати служби сертифікації до ACL CA «${primary_key}»"
+
 msgid "Add Class of Service entry"
 msgstr "Додати запис класу служби"
 
@@ -17173,8 +17202,24 @@ msgstr "Додати правило HBAC"
 msgid "Add HBAC service"
 msgstr "Додати службу HBAC"
 
+#, python-brace-format
+msgid "Add HBAC service '${primary_key}' into HBAC service groups"
+msgstr "Додати службу HBAC «${primary_key}» до груп служб HBAC"
+
 msgid "Add HBAC service group"
 msgstr "Додати групу служб HBAC"
+
+#, python-brace-format
+msgid "Add HBAC service groups into HBAC rule '${primary_key}'"
+msgstr "Додати групи служб HBAC до правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Add HBAC services into HBAC rule '${primary_key}'"
+msgstr "Додати служби HBAC до правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Add HBAC services into HBAC service group '${primary_key}'"
+msgstr "Додати служби HBAC до групи служб HBAC «${primary_key}»"
 
 msgid "Add ID range"
 msgstr "Додати діапазон ідентифікаторів"
@@ -17184,6 +17229,10 @@ msgstr "Додати перегляд ідентифікатора"
 
 msgid "Add IPA location"
 msgstr "Додати місце IPA"
+
+#, python-brace-format
+msgid "Add IPA server into IPA location '${primary_key}'"
+msgstr "Додати сервер IPA до місця IPA «${primary_key}»"
 
 msgid "Add Kerberos Principal Alias"
 msgstr "Додати псевдонім реєстраційного запису Kerberos"
@@ -17196,6 +17245,18 @@ msgstr "Додати жетон OTP"
 
 msgid "Add RADIUS server"
 msgstr "Додати сервер RADIUS"
+
+#, python-brace-format
+msgid "Add RunAs groups into sudo rule '${primary_key}'"
+msgstr "Додати групи RunAs до правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Add RunAs user groups into sudo rule '${primary_key}'"
+msgstr "Додати групи користувачів RunAs до правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Add RunAs users into sudo rule '${primary_key}'"
+msgstr "Додати користувачів RunAs до правила sudo «${primary_key}»"
 
 msgid "Add SELinux user map"
 msgstr "Додати карту користувачів SELinux"
@@ -17301,6 +17362,14 @@ msgstr "Додати системні права доступу без ACI (вн
 msgid "Add a vault."
 msgstr "Додати сховище."
 
+#, python-brace-format
+msgid "Add allow sudo command groups into sudo rule '${primary_key}'"
+msgstr "Додати групи дозволу команд sudo до правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Add allow sudo commands into sudo rule '${primary_key}'"
+msgstr "Додати команди дозволу sudo до правила sudo «${primary_key}»"
+
 msgid ""
 "Add an attribute/value pair. Format is attr=value. The attribute\n"
 "must be part of the schema."
@@ -17341,6 +17410,10 @@ msgstr "Додати правило прив'язки сертифіката д�
 msgid "Add certificate mapping data"
 msgstr "Додати дані прив'язки сертифіката"
 
+#, python-brace-format
+msgid "Add certificate profiles into CA ACL '${primary_key}'"
+msgstr "Додати профілі сертифікації до ACL CA «${primary_key}»"
+
 msgid "Add certificates to host entry"
 msgstr "Додати сертифікати до запису вузла"
 
@@ -17355,6 +17428,14 @@ msgstr "Додати нетипове значення"
 
 msgid "Add delegation"
 msgstr "Додати уповноваження"
+
+#, python-brace-format
+msgid "Add deny sudo command groups into sudo rule '${primary_key}'"
+msgstr "Додати групи заборони команд sudo до правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Add deny sudo commands into sudo rule '${primary_key}'"
+msgstr "Додати команди заборони sudo до правила sudo «${primary_key}»"
 
 msgid "Add domain"
 msgstr "Додати домен"
@@ -17376,11 +17457,111 @@ msgstr "Додати групу виконання до запису sudo."
 msgid "Add host"
 msgstr "Додати вузол"
 
+#, python-brace-format
+msgid "Add host '${primary_key}' into HBAC rules"
+msgstr "Додати вузол «${primary_key}» до правил HBAC"
+
+#, python-brace-format
+msgid "Add host '${primary_key}' into host groups"
+msgstr "Додати вузол «${primary_key}» до груп вузлів"
+
+#, python-brace-format
+msgid "Add host '${primary_key}' into netgroups"
+msgstr "Додати вузол «${primary_key}» до мережевих груп"
+
+#, python-brace-format
+msgid "Add host '${primary_key}' into roles"
+msgstr "Додати вузол «${primary_key}» до ролей"
+
+#, python-brace-format
+msgid "Add host '${primary_key}' into sudo rules"
+msgstr "Додати вузол «${primary_key}» до правил sudo"
+
 msgid "Add host group"
 msgstr "Додати групу вузлів"
 
+#, python-brace-format
+msgid "Add host group '${primary_key}' into HBAC rules"
+msgstr "Додати групу вузлів «${primary_key}» до правил HBAC"
+
+#, python-brace-format
+msgid "Add host group '${primary_key}' into host groups"
+msgstr "Додати групу вузлів «${primary_key}» до груп вузлів"
+
+#, python-brace-format
+msgid "Add host group '${primary_key}' into netgroups"
+msgstr "Додати групу вузлів «${primary_key}» до мережевих груп"
+
+#, python-brace-format
+msgid "Add host group '${primary_key}' into sudo rules"
+msgstr "Додати групу вузлів «${primary_key}» до правил sudo"
+
+#, python-brace-format
+msgid "Add host groups into CA ACL '${primary_key}'"
+msgstr "Додати групи вузлів до ACL CA «${primary_key}»"
+
+#, python-brace-format
+msgid "Add host groups into HBAC rule '${primary_key}'"
+msgstr "Додати групи вузлів до правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Add host groups into SELinux user map '${primary_key}'"
+msgstr "Додати групи вузлів до прив'язки користувачів SELinux «${primary_key}»"
+
+#, python-brace-format
+msgid "Add host groups into host group '${primary_key}'"
+msgstr "Додати групи вузлів до групи вузлів «${primary_key}»"
+
+#, python-brace-format
+msgid "Add host groups into netgroup '${primary_key}'"
+msgstr "Додати групи вузлів до мережевої групи «${primary_key}»"
+
+#, python-brace-format
+msgid "Add host groups into role '${primary_key}'"
+msgstr "Додати групи вузлів до ролі «${primary_key}»"
+
+#, python-brace-format
+msgid "Add host groups into sudo rule '${primary_key}'"
+msgstr "Додати групи вузлів до правила sudo «${primary_key}»"
+
 msgid "Add hosts and hostgroups affected by Sudo Rule."
 msgstr "Додати вузли та групи вузлів, яких стосується правило sudo."
+
+#, python-brace-format
+msgid "Add hosts into CA ACL '${primary_key}'"
+msgstr "Додати вузли до ACL CA «${primary_key}»"
+
+#, python-brace-format
+msgid "Add hosts into HBAC rule '${primary_key}'"
+msgstr "Додати вузли до правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Add hosts into SELinux user map '${primary_key}'"
+msgstr "Додати вузли до прив'язки користувачів SELinux «${primary_key}»"
+
+#, python-brace-format
+msgid "Add hosts into host group '${primary_key}'"
+msgstr "Додати вузли до групи вузлів «${primary_key}»"
+
+#, python-brace-format
+msgid "Add hosts into netgroup '${primary_key}'"
+msgstr "Додати вузли до мережевої групи «${primary_key}»"
+
+#, python-brace-format
+msgid "Add hosts into role '${primary_key}'"
+msgstr "Додати вузли до ролі «${primary_key}»"
+
+#, python-brace-format
+msgid "Add hosts into sudo rule '${primary_key}'"
+msgstr "Додати вузли до правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Add hosts managing host '${primary_key}'"
+msgstr "Додати вузол керування вузлами «${primary_key}»"
+
+#, python-brace-format
+msgid "Add hosts managing service '${primary_key}'"
+msgstr "Додати службу керування вузлами «${primary_key}»"
 
 msgid "Add hosts that can manage this host."
 msgstr "Додати записи вузлів, які можуть керувати цим вузлом."
@@ -17432,6 +17613,14 @@ msgstr ""
 
 msgid "Add netgroup"
 msgstr "Додати мережеву групу"
+
+#, python-brace-format
+msgid "Add netgroup '${primary_key}' into netgroups"
+msgstr "Додати мережеву групу «${primary_key}» до мережевих груп"
+
+#, python-brace-format
+msgid "Add netgroups into netgroup '${primary_key}'"
+msgstr "Додати мережеві групи до мережевої групи «${primary_key}»"
 
 msgid "Add new DNS resource record."
 msgstr "Додати новий запис ресурсу DNS."
@@ -17489,6 +17678,14 @@ msgstr "Додати реєстраційний запис"
 msgid "Add privilege"
 msgstr "Додати привілеї"
 
+#, python-brace-format
+msgid "Add privilege '${primary_key}' into permissions"
+msgstr "Додати привілеї «${primary_key}» до дозволів"
+
+#, python-brace-format
+msgid "Add privileges into permission '${primary_key}'"
+msgstr "Додати привілеї до дозволів «${primary_key}»"
+
 msgid "Add privileges to a role."
 msgstr "Додати привілеї до запису ролі."
 
@@ -17498,6 +17695,14 @@ msgstr "Додати профілі до CA ACL."
 msgid "Add role"
 msgstr "Додати роль"
 
+#, python-brace-format
+msgid "Add role '${primary_key}' into privileges"
+msgstr "Додати роль «${primary_key}» до привілеїв"
+
+#, python-brace-format
+msgid "Add roles into privilege '${primary_key}'"
+msgstr "Додати ролі до привілеїв «${primary_key}»"
+
 msgid "Add rule"
 msgstr "Додати правило"
 
@@ -17506,6 +17711,30 @@ msgstr "Додати права автослужби"
 
 msgid "Add service"
 msgstr "Додати службу"
+
+#, python-brace-format
+msgid "Add service '${primary_key}' into roles"
+msgstr "Додати службу «${primary_key}» до ролей"
+
+#, python-brace-format
+msgid "Add services into CA ACL '${primary_key}'"
+msgstr "Додати служби до ACL CA «${primary_key}»"
+
+#, python-brace-format
+msgid "Add services into members of vault '${primary_key}'"
+msgstr "Додати служби до списку учасників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Add services into owners of vault '${primary_key}'"
+msgstr "Додати служби до списку власників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Add services into role '${primary_key}'"
+msgstr "Додати служби до ролі «${primary_key}»"
+
+#, python-brace-format
+msgid "Add services into user group '${primary_key}'"
+msgstr "Додати служби до групи користувачів «${primary_key}»"
 
 msgid "Add services to a CA ACL."
 msgstr "Додати служби до CA ACL."
@@ -17525,8 +17754,16 @@ msgstr "Додати користувача етапу"
 msgid "Add sudo command"
 msgstr "Додати команду sudo"
 
+#, python-brace-format
+msgid "Add sudo command '${primary_key}' into sudo command groups"
+msgstr "Додати команду sudo «${primary_key}» до груп команд sudo"
+
 msgid "Add sudo command group"
 msgstr "Додати групу команд sudo"
+
+#, python-brace-format
+msgid "Add sudo commands into sudo command group '${primary_key}'"
+msgstr "Додати команди sudo до групи команд sudo «${primary_key}»"
 
 msgid "Add sudo option"
 msgstr "Додати параметр sudo"
@@ -17566,11 +17803,88 @@ msgstr "Додати довіру"
 msgid "Add user"
 msgstr "Додати користувача"
 
+#, python-brace-format
+msgid "Add user '${primary_key}' into HBAC rules"
+msgstr "Додати користувача «${primary_key}» до правил HBAC"
+
+#, python-brace-format
+msgid "Add user '${primary_key}' into netgroups"
+msgstr "Додати користувача «${primary_key}» до списку мережевих груп"
+
+#, python-brace-format
+msgid "Add user '${primary_key}' into roles"
+msgstr "Додати користувача «${primary_key}» до ролей"
+
+#, python-brace-format
+msgid "Add user '${primary_key}' into sudo rules"
+msgstr "Додати користувача «${primary_key}» до правил sudo"
+
+#, python-brace-format
+msgid "Add user '${primary_key}' into user groups"
+msgstr "Додати користувача «${primary_key}» до списку груп користувачів"
+
 msgid "Add user ID override"
 msgstr "Додати перевизначення ідентифікатора користувача"
 
 msgid "Add user group"
 msgstr "Додати групу користувачів"
+
+#, python-brace-format
+msgid "Add user group '${primary_key}' into HBAC rules"
+msgstr "Додати групу користувачів «${primary_key}» до правил HBAC"
+
+#, python-brace-format
+msgid "Add user group '${primary_key}' into netgroups"
+msgstr "Додати групу користувачів «${primary_key}» до списку мережевих груп"
+
+#, python-brace-format
+msgid "Add user group '${primary_key}' into roles"
+msgstr "Додати групу користувачів «${primary_key}» до списку ролей"
+
+#, python-brace-format
+msgid "Add user group '${primary_key}' into sudo rules"
+msgstr "Додати групу користувачів «${primary_key}» до правил sudo"
+
+#, python-brace-format
+msgid "Add user group '${primary_key}' into user groups"
+msgstr "Додати групу користувачів «${primary_key}» до списку груп користувачів"
+
+#, python-brace-format
+msgid "Add user groups into CA ACL '${primary_key}'"
+msgstr "Додати групи користувачів до ACL CA «${primary_key}»"
+
+#, python-brace-format
+msgid "Add user groups into HBAC rule '${primary_key}'"
+msgstr "Додати групи користувачів до правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Add user groups into SELinux user map '${primary_key}'"
+msgstr ""
+"Додати групи користувачів до прив'язки користувачів SELinux «${primary_key}»"
+
+#, python-brace-format
+msgid "Add user groups into members of vault '${primary_key}'"
+msgstr "Додати групи користувачів до списку учасників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Add user groups into netgroup '${primary_key}'"
+msgstr "Додати групи користувачів до мережевої групи «${primary_key}»"
+
+#, python-brace-format
+msgid "Add user groups into owners of vault '${primary_key}'"
+msgstr "Додати групи користувачів до списку власників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Add user groups into role '${primary_key}'"
+msgstr "Додати групи користувачів до ролі «${primary_key}»"
+
+#, python-brace-format
+msgid "Add user groups into sudo rule '${primary_key}'"
+msgstr "Додати групи користувачів до правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Add user groups into user group '${primary_key}'"
+msgstr "Додати групи користувачів до групи користувачів «${primary_key}»"
 
 msgid "Add users and groups affected by Sudo Rule."
 msgstr "Додати записи користувачів та груп, яких стосується правило sudo."
@@ -17587,6 +17901,46 @@ msgstr "Додати користувачів та групи до правил�
 
 msgid "Add users and groups to an SELinux User Map rule."
 msgstr "Додати користувачів і групи до правила карти користувачів SELinux."
+
+#, python-brace-format
+msgid "Add users into CA ACL '${primary_key}'"
+msgstr "Додати користувачів до ACL CA «${primary_key}»"
+
+#, python-brace-format
+msgid "Add users into HBAC rule '${primary_key}'"
+msgstr "Додати користувачів до правила HBAC «${primary_key}»"
+
+#, python-brace-format
+msgid "Add users into SELinux user map '${primary_key}'"
+msgstr "Додати користувачів до прив'язки користувачів SELinux «${primary_key}»"
+
+#, python-brace-format
+msgid "Add users into members of vault '${primary_key}'"
+msgstr "Додати користувачів до списку учасників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Add users into netgroup '${primary_key}'"
+msgstr "Додати користувачів до мережевої групи «${primary_key}»"
+
+#, python-brace-format
+msgid "Add users into owners of vault '${primary_key}'"
+msgstr "Додати користувачів до списку власників сховища «${primary_key}»"
+
+#, python-brace-format
+msgid "Add users into role '${primary_key}'"
+msgstr "Додати користувачів до ролі «${primary_key}»"
+
+#, python-brace-format
+msgid "Add users into sudo rule '${primary_key}'"
+msgstr "Додати користувачів до правила sudo «${primary_key}»"
+
+#, python-brace-format
+msgid "Add users into user group '${primary_key}'"
+msgstr "Додати користувачів до групи користувачів «${primary_key}»"
+
+#, python-brace-format
+msgid "Add users managing OTP token '${primary_key}'"
+msgstr "Додати ключ керування записами користувачів OTP «${primary_key}»"
 
 msgid "Add users that can manage this token."
 msgstr "Додати записи користувачів, які можуть керувати цим жетоном."
@@ -17884,6 +18238,22 @@ msgstr ""
 "Дозволити повернення до резервного варіанта LDAP DC AD під час визначення "
 "адрес довірених об’єктів AD. Лише для двобічних відносин довіри."
 
+#, python-brace-format
+msgid "Allow host groups to create keytab of '${primary_key}'"
+msgstr "Дозволити групам вузлів створювати таблицю ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Allow host groups to retrieve keytab of '${primary_key}'"
+msgstr "Дозволити групам вузлів отримувати таблицю ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Allow hosts to create keytab of '${primary_key}'"
+msgstr "Дозволити вузлам створювати таблицю ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Allow hosts to retrieve keytab of '${primary_key}'"
+msgstr "Дозволити вузлам отримувати таблицю ключів «${primary_key}»"
+
 msgid "Allow in-line DNSSEC signing"
 msgstr "Дозволити вбудоване підписування DNSSEC"
 
@@ -17907,6 +18277,24 @@ msgstr "Дозволити перенесення"
 
 msgid "Allow use of IPA resources by the domain of the trust"
 msgstr "Дозволити використання ресурсів IPA доменом правила довіри"
+
+#, python-brace-format
+msgid "Allow user groups to create keytab of '${primary_key}'"
+msgstr ""
+"Дозволити групам користувачів створювати сховище ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Allow user groups to retrieve keytab of '${primary_key}'"
+msgstr ""
+"Дозволити групам користувачів отримувати сховище ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Allow users to create keytab of '${primary_key}'"
+msgstr "Дозволити користувачам створювати таблицю ключів «${primary_key}»"
+
+#, python-brace-format
+msgid "Allow users to retrieve keytab of '${primary_key}'"
+msgstr "Дозволити користувачам отримувати таблицю ключів «${primary_key}»"
 
 msgid ""
 "Allow users, groups, hosts or host groups to create a keytab of this host."
@@ -18036,6 +18424,15 @@ msgstr "Застосувати"
 
 msgid "Apply ACI to your own entry (self)"
 msgstr "Застосувати ACI до вашого власного запису (self)"
+
+#, python-brace-format
+msgid "Apply ID view '${primary_key}' on hosts"
+msgstr "Застосувати ${primary_key} перегляду ідентифікаторів до вузлів"
+
+#, python-brace-format
+msgid "Apply ID view '${primary_key}' on hosts of host groups"
+msgstr ""
+"Застосувати ${primary_key} перегляду ідентифікаторів до вузлів груп вузлів"
 
 msgid "Apply to host groups"
 msgstr "Застосувати до груп вузлів"
@@ -22262,6 +22659,21 @@ msgstr "Чи є зона активною?"
 msgid "Issue"
 msgstr "Створити"
 
+msgid "Issue new certificate"
+msgstr "Видати новий сертифікат"
+
+#, python-brace-format
+msgid "Issue new certificate for host '${primary_key}'"
+msgstr "Видати новий сертифікат для вузла «${primary_key}»"
+
+#, python-brace-format
+msgid "Issue new certificate for service '${primary_key}'"
+msgstr "Видати новий сертифікат для служби «${primary_key}»"
+
+#, python-brace-format
+msgid "Issue new certificate for user '${primary_key}'"
+msgstr "Видати новий сертифікат для користувача «${primary_key}»"
+
 msgid "Issued By"
 msgstr "Видавець"
 
@@ -25019,6 +25431,9 @@ msgstr "Вилучити карти автоматичного монтуван�
 msgid "Remove certificate authorities"
 msgstr "Вилучити служби сертифікації"
 
+msgid "Remove certificate hold"
+msgstr "Вилучити затримання сертифіката"
+
 msgid "Remove certificate identity mapping rules"
 msgstr "Вилучити правила прив'язки профілів сертифікації"
 
@@ -25267,6 +25682,9 @@ msgstr "Вилучити один або декілька сертифікаті
 
 msgid "Remove one or more certificates to the user entry"
 msgstr "Вилучити один або декілька сертифікатів запису користувача"
+
+msgid "Remove orphan automember rules"
+msgstr "Вилучити осиротілі правила автоматичної участі"
 
 msgid "Remove owners from a vault container."
 msgstr "Вилучити записи власників із контейнера сховища."
@@ -25972,6 +26390,9 @@ msgstr "Відкликати"
 
 msgid "Revoke a certificate."
 msgstr "Відкликати сертифікат."
+
+msgid "Revoke certificate"
+msgstr "Відкликати сертифікат"
 
 msgid "Revoked"
 msgstr "Анульований"
@@ -28115,6 +28536,11 @@ msgstr "Скасувати застосування переглядів іде�
 msgid "Un-apply ID Views from hosts of hostgroups"
 msgstr ""
 "Скасувати застосування переглядів ідентифікаторів до вузлів груп вузлів"
+
+#, python-brace-format
+msgid "Un-apply ID view '${primary_key}' from hosts"
+msgstr ""
+"Скасувати застосування перегляду ідентифікаторів «${primary_key}» до вузлів"
 
 msgid "Un-apply from host groups"
 msgstr "Скасувати застосування до груп вузлів"
