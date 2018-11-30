@@ -29,7 +29,6 @@ from copy import deepcopy
 import contextlib
 import os
 import pwd
-from urllib.parse import urlparse
 import warnings
 
 from cryptography import x509 as crypto_x509
@@ -778,15 +777,9 @@ class LDAPClient:
             syntax.
         """
         if ldap_uri is not None:
+            # special case for ldap2 server plugin
             self.ldap_uri = ldap_uri
-            self.host = 'localhost'
-            self.port = None
-            url_data = urlparse(ldap_uri)
-            self._protocol = url_data.scheme
-            if self._protocol in ('ldap', 'ldaps'):
-                self.host = url_data.hostname
-                self.port = url_data.port
-
+            assert self.protocol in {'ldaps', 'ldapi', 'ldap'}
         self._start_tls = start_tls
         self._force_schema_updates = force_schema_updates
         self._no_schema = no_schema
@@ -797,7 +790,50 @@ class LDAPClient:
         self._has_schema = False
         self._schema = None
 
-        self._conn = self._connect()
+        if ldap_uri is not None:
+            self._conn = self._connect()
+
+    @classmethod
+    def from_realm(cls, realm_name, **kwargs):
+        """Create a LDAPI connection to local 389-DS instance
+        """
+        uri = realm_to_ldapi_uri(realm_name)
+        return cls(uri, start_tls=False, cacert=None, **kwargs)
+
+    @classmethod
+    def from_hostname_secure(cls, hostname, cacert=paths.IPA_CA_CRT,
+                             start_tls=True, **kwargs):
+        """Create LDAP or LDAPS connection to a remote 389-DS instance
+
+        This constructor is opinionated and doesn't let you shoot yourself in
+        the foot. It always creates a secure connection. By default it
+        returns a LDAP connection to port 389 and performs STARTTLS using the
+        default CA cert. With start_tls=False, it creates a LDAPS connection
+        to port 636 instead.
+
+        Note: Microsoft AD does not support SASL encryption and integrity
+        verification with a TLS connection. For AD, use a plain connection
+        with GSSAPI and a MIN_SSF >= 56. SASL GSSAPI and SASL GSS SPNEGO
+        ensure data integrity and confidentiality with SSF > 1. Also see
+        https://msdn.microsoft.com/en-us/library/cc223500.aspx
+        """
+        if start_tls:
+            uri = 'ldap://%s' % format_netloc(hostname, 389)
+        else:
+            uri = 'ldaps://%s' % format_netloc(hostname, 636)
+        return cls(uri, start_tls=start_tls, cacert=cacert, **kwargs)
+
+    @classmethod
+    def from_hostname_plain(cls, hostname, **kwargs):
+        """Create a plain LDAP connection with TLS/SSL
+
+        Note: A plain TLS connection should only be used in combination with
+        GSSAPI bind.
+        """
+        assert 'start_tls' not in kwargs
+        assert 'cacert' not in kwargs
+        uri = 'ldap://%s' % format_netloc(hostname, 389)
+        return cls(uri, **kwargs)
 
     def __str__(self):
         return self.ldap_uri
@@ -812,6 +848,13 @@ class LDAPClient:
     @property
     def conn(self):
         return self._conn
+
+    @property
+    def protocol(self):
+        if self.ldap_uri:
+            return self.ldap_uri.split('://', 1)[0]
+        else:
+            return None
 
     def _get_schema(self):
         if self._no_schema:
@@ -1156,7 +1199,8 @@ class LDAPClient:
             if not self._sasl_nocanon:
                 conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_OFF)
 
-            if self._start_tls:
+            if self._start_tls and self.protocol == 'ldap':
+                # STARTTLS applies only to ldap:// connections
                 conn.start_tls_s()
 
         return conn
@@ -1166,6 +1210,9 @@ class LDAPClient:
         """
         Perform simple bind operation.
         """
+        if self.protocol == 'ldap' and not self._start_tls and bind_password:
+            # non-empty bind must use a secure connection
+            raise ValueError('simple_bind over insecure LDAP connection')
         with self.error_handler():
             self._flush_schema()
             assert isinstance(bind_dn, DN)
@@ -1190,7 +1237,7 @@ class LDAPClient:
         Perform SASL bind operation using the SASL GSSAPI mechanism.
         """
         with self.error_handler():
-            if self._protocol == 'ldapi':
+            if self.protocol == 'ldapi':
                 auth_tokens = SASL_GSS_SPNEGO
             else:
                 auth_tokens = SASL_GSSAPI
