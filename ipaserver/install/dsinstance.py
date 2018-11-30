@@ -225,7 +225,6 @@ class DsInstance(service.Service):
     def __common_setup(self):
 
         self.step("creating directory server instance", self.__create_instance)
-        self.step("enabling ldapi", self.__enable_ldapi)
         self.step("configure autobind for root", self.__root_autobind)
         self.step("stopping directory server", self.__stop_instance)
         self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
@@ -558,9 +557,21 @@ class DsInstance(service.Service):
         # Get the instance ....
 
         inst = DirSrv(verbose=True, external_log=logger)
-        inst.remote_simple_allocate(
-            ldapuri=ipaldap.get_ldap_uri(self.fqdn),
-            password=self.dm_password)
+        inst.local_simple_allocate(
+            serverid=self.serverid,
+            ldapuri=ipaldap.get_ldap_uri(realm=self.realm, protocol='ldapi'),
+            password=self.dm_password
+        )
+
+        # local_simple_allocate() configures LDAPI but doesn't set up the
+        # DirSrv object to use LDAPI. Modify the DirSrv() object to use
+        # LDAPI with password bind. autobind is not available, yet.
+        inst.ldapi_enabled = 'on'
+        inst.ldapi_socket = paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % (
+            self.serverid
+        )
+        inst.ldapi_autobind = 'off'
+
         # This actually opens the conn and binds.
         inst.open()
 
@@ -993,11 +1004,6 @@ class DsInstance(service.Service):
             str(self.subject_base)
         )
 
-    def __enable_ldapi(self):
-        self._ldap_mod("ldapi.ldif", self.sub_dict,
-                       ldap_uri="ldap://localhost",
-                       dm_password=self.dm_password)
-
     def __enable_sasl_mapping_fallback(self):
         self._ldap_mod("sasl-mapping-fallback.ldif", self.sub_dict)
 
@@ -1199,9 +1205,12 @@ class DsInstance(service.Service):
         return status
 
     def __root_autobind(self):
-        self._ldap_mod("root-autobind.ldif",
-                       ldap_uri="ldap://localhost",
-                       dm_password=self.dm_password)
+        self._ldap_mod(
+            "root-autobind.ldif",
+            ldap_uri=ipaldap.get_ldap_uri(realm=self.realm, protocol='ldapi'),
+            # must simple bind until auto bind is configured
+            dm_password=self.dm_password
+        )
 
     def __add_sudo_binduser(self):
         self._ldap_mod("sudobind.ldif", self.sub_dict)

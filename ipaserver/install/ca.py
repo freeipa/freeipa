@@ -298,6 +298,10 @@ def install_step_0(standalone, replica_config, options, custodia):
         'certmap.conf', 'subject_base', str(subject_base))
     dsinstance.write_certmap_conf(realm_name, ca_subject)
 
+    # use secure ldaps when installing a replica or upgrading to CA-ful
+    # In both cases, 389-DS is already configured to have a trusted cert.
+    use_ldaps = standalone or replica_config is not None
+
     ca = cainstance.CAInstance(
         realm=realm_name, host_name=host_name, custodia=custodia
     )
@@ -316,7 +320,7 @@ def install_step_0(standalone, replica_config, options, custodia):
                           ra_p12=ra_p12,
                           ra_only=ra_only,
                           promote=promote,
-                          use_ldaps=standalone)
+                          use_ldaps=use_ldaps)
 
 
 def install_step_1(standalone, replica_config, options, custodia):
