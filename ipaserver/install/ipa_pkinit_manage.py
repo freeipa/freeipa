@@ -72,6 +72,8 @@ class PKINITManage(AdminTool):
                 if ca_enabled:
                     logger.warning(
                         "Failed to stop tracking certificates: %s", e)
+            # remove the cert and key
+            krb.delete_pkinit_cert()
 
             krb.enable_ssl()
 
