@@ -319,17 +319,37 @@ def uninstall(fstore, statestore):
         running = statestore.restore_state('rpcidmapd', 'running')
         rpcidmapd = services.knownservices.rpcidmapd
         if not enabled:
-            rpcidmapd.disable()
+            try:
+                rpcidmapd.disable()
+            except Exception as e:
+                logger.error(
+                    "Failed to disable automatic startup of the %s daemon (%s)",
+                    rpcidmapd.service_name, e)
         if not running:
-            rpcidmapd.stop()
+            try:
+                rpcidmapd.stop()
+            except Exception as e:
+                logger.error(
+                    "Failed to stop the %s daemon (%s)",
+                    rpcidmapd.service_name, e)
     if statestore.has_state('rpcgssd'):
         enabled = statestore.restore_state('rpcgssd', 'enabled')
         running = statestore.restore_state('rpcgssd', 'running')
         rpcgssd = services.knownservices.rpcgssd
         if not enabled:
-            rpcgssd.disable()
+            try:
+                rpcgssd.disable()
+            except Exception as e:
+                logger.error(
+                    "Failed to disable automatic startup of the %s daemon (%s)",
+                    rpcgssd.service_name, e)
         if not running:
-            rpcgssd.stop()
+            try:
+                rpcgssd.stop()
+            except Exception as e:
+                logger.error(
+                    "Failed to stop the %s daemon (%s)",
+                    rpcgssd.service_name, e)
 
     return 0
 
