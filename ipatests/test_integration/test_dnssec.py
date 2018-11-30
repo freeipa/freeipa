@@ -13,6 +13,7 @@ import dns.name
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipaplatform.paths import paths
 
 logger = logging.getLogger(__name__)
@@ -262,6 +263,9 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "-U",
         ]
         cls.master.run_command(args)
+        # Enable dns service on master as it has been installed without dns
+        # support before
+        Firewall(cls.master).enable_services(["dns"])
 
         tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
 
@@ -447,6 +451,9 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             "-U",
         ]
         cls.master.run_command(args)
+        # No need to enable dns service in the firewall as master has been
+        # installed with dns support enabled
+        # Firewall(cls.master).enable_services(["dns"])
         tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
 
     def test_migrate_dnssec_master(self):
@@ -491,6 +498,8 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             "-U",
         ]
         self.replicas[0].run_command(args)
+        # Enable the dns service in the firewall on the replica
+        Firewall(self.replicas[0]).enable_services(["dns"])
 
         # wait until zone is signed
         assert wait_until_record_is_signed(
