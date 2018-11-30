@@ -137,8 +137,7 @@ def enable_replication_version_checking(realm, dirman_passwd):
     enabled then enable it and restart 389-ds. If it is enabled
     the do nothing.
     """
-    ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=realm)
-    conn = ipaldap.LDAPClient(ldap_uri)
+    conn = ipaldap.LDAPClient.from_realm(realm)
     if dirman_passwd:
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=dirman_passwd)
@@ -619,8 +618,9 @@ class ReplicationManager:
         """
         self._finalize_replica_settings(self.conn)
 
-        ldap_uri = ipaldap.get_ldap_uri(r_hostname)
-        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=cacert)
+        r_conn = ipaldap.LDAPClient.from_hostname_secure(
+            r_hostname, cacert=cacert
+        )
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
@@ -1148,12 +1148,7 @@ class ReplicationManager:
             local_port = r_port
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
-        ldap_uri = ipaldap.get_ldap_uri(r_hostname, r_port,
-                                        cacert=paths.IPA_CA_CRT,
-                                        protocol='ldap')
-        r_conn = ipaldap.LDAPClient(ldap_uri,
-                                    cacert=paths.IPA_CA_CRT,
-                                    start_tls=True)
+        r_conn = ipaldap.LDAPClient.from_hostname_secure(r_hostname)
 
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
@@ -1259,9 +1254,7 @@ class ReplicationManager:
             raise RuntimeError("Failed to start replication")
 
     def convert_to_gssapi_replication(self, r_hostname, r_binddn, r_bindpw):
-        ldap_uri = ipaldap.get_ldap_uri(r_hostname, PORT,
-                                        cacert=paths.IPA_CA_CRT)
-        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
+        r_conn = ipaldap.LDAPClient.from_hostname_secure(r_hostname)
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
@@ -1289,11 +1282,7 @@ class ReplicationManager:
         Only usable to connect 2 existing replicas (needs existing kerberos
         principals)
         """
-        # note - there appears to be a bug in python-ldap - it does not
-        # allow connections using two different CA certs
-        ldap_uri = ipaldap.get_ldap_uri(r_hostname, PORT,
-                                        cacert=paths.IPA_CA_CRT)
-        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
+        r_conn = ipaldap.LDAPClient.from_hostname_secure(r_hostname)
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
@@ -1789,10 +1778,8 @@ class ReplicationManager:
 
     def setup_promote_replication(self, r_hostname, r_binddn=None,
                                   r_bindpw=None, cacert=paths.IPA_CA_CRT):
-        # note - there appears to be a bug in python-ldap - it does not
-        # allow connections using two different CA certs
-        ldap_uri = ipaldap.get_ldap_uri(r_hostname)
-        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=cacert)
+        r_conn = ipaldap.LDAPClient.from_hostname_secure(
+            r_hostname, cacert=cacert)
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
@@ -1931,8 +1918,7 @@ class CAReplicationManager(ReplicationManager):
 
     def __init__(self, realm, hostname):
         # Always connect to self over ldapi
-        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=realm)
-        conn = ipaldap.LDAPClient(ldap_uri)
+        conn = ipaldap.LDAPClient.from_realm(realm)
         conn.external_bind()
         super(CAReplicationManager, self).__init__(
             realm, hostname, None, port=DEFAULT_PORT, conn=conn)
@@ -1944,8 +1930,7 @@ class CAReplicationManager(ReplicationManager):
         Assumes a promote replica with working GSSAPI for replication
         and unified DS instance.
         """
-        ldap_uri = ipaldap.get_ldap_uri(r_hostname)
-        r_conn = ipaldap.LDAPClient(ldap_uri)
+        r_conn = ipaldap.LDAPClient.from_hostname_secure(r_hostname)
         r_conn.gssapi_bind()
 
         # Setup the first half

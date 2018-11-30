@@ -70,8 +70,7 @@ def run_with_args(api):
 
     """
     server = urlsplit(api.env.jsonrpc_uri).hostname
-    ldap_uri = ipaldap.get_ldap_uri(server)
-    ldap = ipaldap.LDAPClient(ldap_uri)
+    ldap = ipaldap.LDAPClient.from_hostname_secure(server)
 
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
     ccache_name = os.path.join(tmpdir, 'ccache')

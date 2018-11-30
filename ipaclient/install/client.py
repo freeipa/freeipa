@@ -1637,8 +1637,7 @@ def cert_summary(msg, certs, indent='    '):
 
 
 def get_certs_from_ldap(server, base_dn, realm, ca_enabled):
-    ldap_uri = ipaldap.get_ldap_uri(server)
-    conn = ipaldap.LDAPClient(ldap_uri)
+    conn = ipaldap.LDAPClient.from_hostname_plain(server)
     try:
         conn.gssapi_bind()
         certs = certstore.get_ca_certs(conn, base_dn, realm, ca_enabled)
