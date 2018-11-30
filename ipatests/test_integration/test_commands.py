@@ -140,6 +140,7 @@ class TestIPACommand(IntegrationTest):
             original_passwd=original_passwd)
         master.put_file_contents(ldif_file, entry_ldif)
         arg = ['ldapmodify',
+               '-ZZ',
                '-h', master.hostname,
                '-p', '389', '-D',
                str(master.config.dirman_dn),   # pylint: disable=no-member
@@ -173,7 +174,9 @@ class TestIPACommand(IntegrationTest):
         master.run_command(['kinit', user], stdin_text=user_kinit_stdin_text)
         # Retrieve krblastpwdchange and krbpasswordexpiration
         search_cmd = [
-            'ldapsearch', '-x',
+            'ldapsearch', '-x', '-ZZ',
+            '-h', master.hostname,
+            '-p', '389',
             '-D', 'cn=directory manager',
             '-w', master.config.dirman_password,
             '-s', 'base',
@@ -208,6 +211,7 @@ class TestIPACommand(IntegrationTest):
             new_passwd=new_passwd)
         master.put_file_contents(ldif_file, entry_ldif)
         arg = ['ldapmodify',
+               '-ZZ',
                '-h', master.hostname,
                '-p', '389', '-D',
                str(master.config.dirman_dn),   # pylint: disable=no-member
