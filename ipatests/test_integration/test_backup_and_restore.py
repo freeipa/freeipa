@@ -815,6 +815,7 @@ class TestReplicaInstallAfterRestore(IntegrationTest):
 
         # disable replication agreement
         arg = ['ldapmodify',
+               '-ZZ',
                '-h', master.hostname,
                '-p', '389', '-D',
                str(master.config.dirman_dn),  # pylint: disable=no-member

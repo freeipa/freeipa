@@ -303,7 +303,7 @@ def enable_replication_debugging(host, log_level=0):
         replace: nsslapd-errorlog-level
         nsslapd-errorlog-level: {log_level}
         """.format(log_level=log_level))
-    host.run_command(['ldapmodify', '-x',
+    host.run_command(['ldapmodify', '-x', '-ZZ',
                       '-D', str(host.config.dirman_dn),
                       '-w', host.config.dirman_password,
                       ],
