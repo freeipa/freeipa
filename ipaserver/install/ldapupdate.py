@@ -54,8 +54,12 @@ UPDATE_SEARCH_TIME_LIMIT = 30  # seconds
 
 def connect(ldapi=False, realm=None, fqdn=None, dm_password=None):
     """Create a connection for updates"""
-    ldap_uri = ipaldap.get_ldap_uri(fqdn, ldapi=ldapi, realm=realm)
-    conn = ipaldap.LDAPClient(ldap_uri, decode_attrs=False)
+    if ldapi:
+        conn = ipaldap.LDAPClient.from_realm(realm, decode_attrs=False)
+    else:
+        conn = ipaldap.LDAPClient.from_hostname_secure(
+            fqdn, decode_attrs=False
+        )
     try:
         if dm_password:
             conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,

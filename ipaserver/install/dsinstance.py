@@ -162,18 +162,17 @@ def is_ds_running(server_id=''):
 
 
 def get_domain_level(api=api):
-    ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=api.env.realm)
-    conn = ipaldap.LDAPClient(ldap_uri)
-    conn.external_bind()
-
     dn = DN(('cn', 'Domain Level'),
             ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
 
-    try:
-        entry = conn.get_entry(dn, ['ipaDomainLevel'])
-    except errors.NotFound:
-        return constants.DOMAIN_LEVEL_0
-    return int(entry.single_value['ipaDomainLevel'])
+    with ipaldap.LDAPClient.from_realm(api.env.realm) as conn:
+        conn.external_bind()
+        try:
+            entry = conn.get_entry(dn, ['ipaDomainLevel'])
+        except errors.NotFound:
+            return constants.DOMAIN_LEVEL_0
+        else:
+            return int(entry.single_value['ipaDomainLevel'])
 
 
 def get_all_external_schema_files(root):
@@ -392,8 +391,7 @@ class DsInstance(service.Service):
 
     def _get_replication_manager(self):
         # Always connect to self over ldapi
-        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=self.realm)
-        conn = ipaldap.LDAPClient(ldap_uri)
+        conn = ipaldap.LDAPClient.from_realm(self.realm)
         conn.external_bind()
         repl = replication.ReplicationManager(
             self.realm, self.fqdn, self.dm_password, conn=conn
@@ -684,7 +682,6 @@ class DsInstance(service.Service):
         self._ldap_mod("memberof-conf.ldif")
 
     def init_memberof(self):
-
         if not self.run_init_memberof:
             return
 
@@ -693,15 +690,9 @@ class DsInstance(service.Service):
         dn = DN(('cn', 'IPA install %s' % self.sub_dict["TIME"]), ('cn', 'memberof task'),
                 ('cn', 'tasks'), ('cn', 'config'))
         logger.debug("Waiting for memberof task to complete.")
-        ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
-        conn = ipaldap.LDAPClient(ldap_uri)
-        if self.dm_password:
-            conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
-                             bind_password=self.dm_password)
-        else:
-            conn.gssapi_bind()
-        replication.wait_for_task(conn, dn)
-        conn.unbind()
+        with ipaldap.LDAPClient.from_realm(self.realm) as conn:
+            conn.external_bind()
+            replication.wait_for_task(conn, dn)
 
     def apply_updates(self):
         schema_files = get_all_external_schema_files(paths.EXTERNAL_SCHEMA_DIR)
@@ -865,10 +856,9 @@ class DsInstance(service.Service):
 
         self.cacert_name = dsdb.cacert_name
 
-        ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
-        conn = ipaldap.LDAPClient(ldap_uri)
-        conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
-                         bind_password=self.dm_password)
+        # use LDAPI?
+        conn = ipaldap.LDAPClient.from_realm(self.realm)
+        conn.external_bind()
 
         encrypt_entry = conn.make_entry(
             DN(('cn', 'encryption'), ('cn', 'config')),
@@ -921,10 +911,8 @@ class DsInstance(service.Service):
                             subject_base=self.subject_base)
         trust_flags = dict(reversed(dsdb.list_certs()))
 
-        ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
-        conn = ipaldap.LDAPClient(ldap_uri)
-        conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
-                         bind_password=self.dm_password)
+        conn = ipaldap.LDAPClient.from_realm(self.realm)
+        conn.external_bind()
 
         nicknames = dsdb.find_root_cert(self.cacert_name)[:-1]
         for nickname in nicknames:
@@ -955,14 +943,9 @@ class DsInstance(service.Service):
         dsdb = certs.CertDB(self.realm, nssdir=dirname,
                             subject_base=self.subject_base)
 
-        ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
-        conn = ipaldap.LDAPClient(ldap_uri)
-        conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
-                         bind_password=self.dm_password)
-
-        self.export_ca_certs_nssdb(dsdb, self.ca_is_configured, conn)
-
-        conn.unbind()
+        with ipaldap.LDAPClient.from_realm(self.realm) as conn:
+            conn.external_bind()
+            self.export_ca_certs_nssdb(dsdb, self.ca_is_configured, conn)
 
     def __add_default_layout(self):
         self._ldap_mod("bootstrap-template.ldif", self.sub_dict)

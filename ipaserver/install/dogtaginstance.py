@@ -386,8 +386,7 @@ class DogtagInstance(service.Service):
         conn = None
 
         try:
-            ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=self.realm)
-            conn = ipaldap.LDAPClient(ldap_uri)
+            conn = ipaldap.LDAPClient.from_realm(self.realm)
             conn.external_bind()
 
             entry_attrs = conn.get_entry(self.admin_dn, ['usercertificate'])
@@ -465,8 +464,9 @@ class DogtagInstance(service.Service):
                 wait_groups.append(group_dn)
 
         # Now wait until the other server gets replicated this data
-        ldap_uri = ipaldap.get_ldap_uri(self.master_host)
-        master_conn = ipaldap.LDAPClient(ldap_uri, start_tls=True)
+        master_conn = ipaldap.LDAPClient.from_hostname_secure(
+            self.master_host
+        )
         logger.debug(
             "Waiting for %s to appear on %s", self.admin_dn, master_conn
         )

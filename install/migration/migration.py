@@ -54,8 +54,11 @@ def bind(ldap_uri, base_dn, username, password):
         logger.error('migration unable to get base dn')
         raise IOError(errno.EIO, 'Cannot get Base DN')
     bind_dn = DN(('uid', username), ('cn', 'users'), ('cn', 'accounts'), base_dn)
+    # ldap_uri should be ldapi:// in all common cases. Enforce start_tls just
+    # in case it's a plain LDAP connection.
+    start_tls = ldap_uri.startswith('ldap://')
     try:
-        conn = ipaldap.LDAPClient(ldap_uri)
+        conn = ipaldap.LDAPClient(ldap_uri, start_tls=start_tls)
         conn.simple_bind(bind_dn, password)
     except (errors.ACIError, errors.DatabaseError, errors.NotFound) as e:
         logger.error(
