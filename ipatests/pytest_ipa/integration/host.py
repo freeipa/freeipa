@@ -19,9 +19,11 @@
 
 """Host class for integration testing"""
 import subprocess
+import tempfile
 
 import pytest_multihost.host
 
+from ipaplatform.paths import paths
 from ipapython import ipaldap
 
 
@@ -45,11 +47,21 @@ class Host(pytest_multihost.host.Host):
         """Return an LDAPClient authenticated to this host as directory manager
         """
         self.log.info('Connecting to LDAP at %s', self.external_hostname)
-        ldap = ipaldap.LDAPClient.from_hostname_secure(self.external_hostname)
+        # get IPA CA cert to establish a secure connection
+        cacert = self.get_file_contents(paths.IPA_CA_CRT)
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(cacert)
+            f.flush()
+
+            conn = ipaldap.LDAPClient.from_hostname_secure(
+                self.external_hostname,
+                cacert=f.name
+            )
+
         binddn = self.config.dirman_dn
-        self.log.info('LDAP bind as %s' % binddn)
-        ldap.simple_bind(binddn, self.config.dirman_password)
-        return ldap
+        self.log.info('LDAP bind as %s', binddn)
+        conn.simple_bind(binddn, self.config.dirman_password)
+        return conn
 
     @classmethod
     def from_env(cls, env, domain, hostname, role, index, domain_index):
