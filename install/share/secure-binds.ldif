@@ -1,6 +1,20 @@
 # config
+# Require LDAPI, LDAPS, or STARTTLS for password-based simple bind.
 dn: cn=config
 changetype: modify
 replace: nsslapd-require-secure-binds
 nsslapd-require-secure-binds: on
 
+# pretended SSF for LDAPI connections
+# nsslapd-localssf must be equal to or greater than nsslapd-minssf
+dn: cn=config
+changetype: modify
+replace: nsslapd-localssf
+nsslapd-localssf: 128
+
+# minimum security strength factor for SASL and TLS
+# 112: 3DES, 128: AES
+dn: cn=config
+changetype: modify
+replace: nsslapd-minssf
+nsslapd-minssf: 128
