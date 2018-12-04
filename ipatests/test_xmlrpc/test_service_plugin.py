@@ -42,6 +42,7 @@ fqdn2 = u'testhost2.%s' % api.env.domain
 fqdn3 = u'TestHost3.%s' % api.env.domain
 service1_no_realm = u'HTTP/%s' % fqdn1
 service1 = u'%s@%s' % (service1_no_realm, api.env.realm)
+badservice = u'badservice@%s' % api.env.realm  # no hostname
 hostprincipal1 = u'host/%s@%s'  % (fqdn1, api.env.realm)
 service1dn = DN(('krbprincipalname',service1),('cn','services'),('cn','accounts'),api.env.basedn)
 host1dn = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),api.env.basedn)
@@ -119,6 +120,12 @@ class test_service(Declarative):
                 reason=u'%s: service not found' % service1),
         ),
 
+        dict(
+            desc='Try to delete service without hostname %r' % badservice,
+            command=('service_del', [badservice], {}),
+            expected=errors.NotFound(
+                reason=u'%s: service not found' % badservice),
+        ),
 
         dict(
             desc='Create %r' % fqdn1,
@@ -757,6 +764,16 @@ class test_service(Declarative):
                 reason=u'%s: service not found' % service1),
         ),
 
+        dict(
+            desc='Try to update service without hostname %r' % badservice,
+            command=(
+                'service_mod',
+                [badservice],
+                dict(usercertificate=servercert)
+            ),
+            expected=errors.NotFound(
+                reason=u'%s: service not found' % badservice),
+        ),
 
         dict(
             desc='Try to delete non-existent %r' % service1,
