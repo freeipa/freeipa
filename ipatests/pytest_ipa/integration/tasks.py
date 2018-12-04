@@ -793,8 +793,9 @@ def uninstall_master(host, ignore_topology_disconnect=True,
 
     result = host.run_command(uninstall_cmd)
     assert "Traceback" not in result.stdout_text
-    Firewall(host).disable_services(["freeipa-ldap", "freeipa-ldaps",
-                                     "freeipa-trust", "dns"])
+    if clean:
+        Firewall(host).disable_services(["freeipa-ldap", "freeipa-ldaps",
+                                         "freeipa-trust", "dns"])
 
     host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
                      raiseonerr=False)
