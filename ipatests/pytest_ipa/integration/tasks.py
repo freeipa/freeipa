@@ -425,7 +425,11 @@ def config_replica_resolvconf_with_master_data(master, replica):
 def install_replica(master, replica, setup_ca=True, setup_dns=False,
                     setup_kra=False, setup_adtrust=False, extra_args=(),
                     domain_level=None, unattended=True, stdin_text=None,
-                    raiseonerr=True):
+                    raiseonerr=True, promote=True):
+    """
+    This task installs client and then promote it to the replica
+    """
+    replica_args = list(extra_args)  # needed for client's ntp options
     if domain_level is None:
         domain_level = domainlevel(master)
     check_domain_level(domain_level)
@@ -437,8 +441,25 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     # Otherwise ipa-client-install would not create a PTR
     # and replica installation would fail
     args = ['ipa-replica-install',
-            '-p', replica.config.dirman_password,
-            '-w', replica.config.admin_password]
+            '--admin-password', replica.config.admin_password]
+
+    if promote:  # while promoting we use directory manager password
+        args.extend(['--password', replica.config.dirman_password])
+        # install client on a replica machine and then promote it to replica
+        # to configure ntp options we have to pass them to client installation
+        # because promotion does not support NTP options
+        ntp_args = [arg for arg in replica_args if "-ntp" in arg]
+
+        for ntp_arg in ntp_args:
+            replica_args.remove(ntp_arg)
+
+        install_client(master, replica, extra_args=ntp_args)
+    else:
+        # for one step installation of replica we need authorized user
+        # to enroll a replica and master server to contact
+        args.extend(['--principal', replica.config.admin_name,
+                     '--server', master.hostname])
+
     if unattended:
         args.append('-U')
     if setup_ca:
@@ -458,12 +479,11 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     if master_authoritative_for_client_domain(master, replica):
         args.extend(['--ip-address', replica.ip])
 
-    args.extend(extra_args)
+    args.extend(replica_args)  # append extra arguments to installation
 
-    # install client on a replica machine and then promote it to replica
-    install_client(master, replica)
     fix_apache_semaphores(replica)
-    args.extend(['-r', replica.domain.realm])
+    args.extend(['--realm', replica.domain.realm,
+                 '--domain', replica.domain.name])
     fw.enable_services(fw_services)
 
     result = replica.run_command(args, raiseonerr=raiseonerr,
@@ -495,16 +515,19 @@ def install_client(master, client, extra_args=(),
     if password is None:
         password = client.config.admin_password
 
-    client.run_command(['ipa-client-install', '-U',
-                        '--domain', client.domain.name,
-                        '--realm', client.domain.realm,
-                        '-p', user,
-                        '-w', password,
-                        '--server', master.hostname]
-                       + list(extra_args))
+    result = client.run_command([
+        'ipa-client-install', '-U',
+        '--domain', client.domain.name,
+        '--realm', client.domain.realm,
+        '-p', user,
+        '-w', password,
+        '--server', master.hostname] + list(extra_args)
+    )
 
     setup_sssd_debugging(client)
     kinit_admin(client)
+
+    return result
 
 
 def install_adtrust(host):
