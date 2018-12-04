@@ -49,6 +49,8 @@ class TestUpgrade(IntegrationTest):
         # try the upgrade
         self.master.run_command(['ipa-server-upgrade'])
 
+        # reconnect to the master (upgrade stops 389-ds)
+        ldap = self.master.ldap_connect()
         # read the value after upgrade, should be fixed
         entry = ldap.get_entry(dn)  # pylint: disable=no-member
         try:
