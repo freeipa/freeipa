@@ -12,6 +12,7 @@ from __future__ import absolute_import
 import os
 import re
 import textwrap
+import sys
 import time
 from datetime import datetime, timedelta
 
@@ -20,6 +21,7 @@ from cryptography.hazmat.primitives import hashes
 
 from ipalib import x509
 from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.constants import PKI_GSSAPI_SERVICE_NAME
 from ipaplatform.constants import constants
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
@@ -588,6 +590,97 @@ class TestInstallMaster(IntegrationTest):
                 result.stdout_text, re.MULTILINE)
             msg = "rpm -V found group issues for the following files: {}"
             assert group_warnings == [], msg.format(group_warnings)
+
+    @pytest.mark.parametrize(
+        "keytab, owner, mod",
+        [
+            (os.path.join(
+                paths.PKI_TOMCAT, PKI_GSSAPI_SERVICE_NAME + '.keytab'),
+             constants.PKI_USER, oct(0o600)),
+            (paths.DS_KEYTAB, constants.DS_USER, oct(0o600)),
+            (paths.HTTP_KEYTAB, constants.GSSPROXY_USER, oct(0o600)),
+            (paths.IPA_DNSKEYSYNCD_KEYTAB, constants.ODS_USER, oct(0o440)),
+            (paths.NAMED_KEYTAB, constants.NAMED_USER, oct(0o400)),
+        ])
+    def test_service_keytab_permissions(self, keytab, owner, mod):
+        assert owner
+        assert keytab
+        test_source = textwrap.dedent(r"""
+        import os, pwd, stat
+
+        def assert_equal(act, exp):
+            assert act == exp, \
+            '\\n  Actual: {{}}\\nExpected: {{}}'.format(act, exp)
+
+        def assert_in(val, vals):
+            assert val in vals, \
+            '\\n Value: {{}}\\nNot in: {{}}'.format(val, vals)
+        pw = pwd.getpwnam('{owner}')
+        uid = pw.pw_uid
+        gid = pw.pw_gid
+        # drop root privs if it needs
+        if uid > 0:
+            # need to read traceback
+            os.chmod(__file__, 0o644)
+            os.setgroups([])
+            os.setresgid(gid, gid, gid)
+            os.setresuid(uid, uid, uid)
+            assert_equal(os.getresgid(), (gid, gid, gid))
+            assert_equal(os.getresuid(), (uid, uid, uid))
+        # keytab should be at least readable
+        assert os.access('{path}', os.R_OK)
+        # keytab belongs either to root or our user
+        stats = os.stat('{path}')
+        mode = stats.st_mode
+        assert_in(stats.st_uid, [0, uid])
+        assert_in(stats.st_gid, [0, gid])
+        # keytab has permissions
+        assert stat.S_ISREG(mode)
+        assert_equal(oct(stat.S_IMODE(mode)), oct({mod}))
+
+        # parent dir
+        dir_stats = os.stat(os.path.dirname('{path}'))
+        mode = dir_stats.st_mode
+
+        # belongs either to root or our user
+        assert_in(dir_stats.st_uid, [0, uid])
+        assert_in(dir_stats.st_gid, [0, gid])
+
+        # at least parent directory is not world writable
+        assert not dir_stats.st_mode & stat.S_IWOTH
+        """).format(
+            owner=owner,
+            path=keytab,
+            mod=mod,
+        )
+        exec_source = textwrap.dedent("""
+        import os
+        import subprocess
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(
+                mode="w", dir="/tmp", prefix="test_", suffix=".py") as f:
+            code = \"\"\"{code}\"\"\"
+            f.write(code)
+            f.flush()
+            os.fsync(f.fileno())
+            args = [
+                "{python}",
+                "-c",
+                "import runpy;runpy.run_path('{{}}')".format(f.name),
+            ]
+            subprocess.check_call(args)
+        """).format(
+            python=sys.executable,
+            code=test_source,
+        )
+
+        args = [
+            sys.executable,
+            '-c',
+            exec_source,
+        ]
+        self.master.run_command(args)
 
 
 class TestInstallMasterKRA(IntegrationTest):
