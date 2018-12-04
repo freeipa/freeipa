@@ -238,6 +238,9 @@ class BaseTaskNamespace:
     def configure_http_gssproxy_conf(self, ipauser):
         raise NotImplementedError()
 
+    def configure_ipa_gssproxy_dir(self):
+        raise NotImplementedError()
+
     def remove_httpd_service_ipa_conf(self):
         """Remove configuration of httpd service of IPA"""
         raise NotImplementedError()

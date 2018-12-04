@@ -1170,7 +1170,7 @@ fi
 %{_usr}/share/ipa/updates/*
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/backup
-%attr(700,root,root) %dir %{_localstatedir}/lib/ipa/gssproxy
+%ghost %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/gssproxy
 %attr(711,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysupgrade
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca
