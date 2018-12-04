@@ -814,7 +814,7 @@ class TestReplicaInstallAfterRestore(IntegrationTest):
         master.run_command(arg)
 
         # uninstall master.
-        tasks.uninstall_master(master)
+        tasks.uninstall_master(master, clean=False)
 
         # master restore.
         dirman_password = master.config.dirman_password
