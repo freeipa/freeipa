@@ -135,7 +135,14 @@ def safe_output(attr, values):
 
 
 class LDAPUpdate(object):
-    action_keywords = ["default", "add", "remove", "only", "onlyifexist", "deleteentry", "replace", "addifnew", "addifexist"]
+    action_keywords = [
+        "default", "add", "remove", "only", "onlyifexist", "deleteentry",
+        "replace", "addifnew", "addifexist"
+    ]
+    index_suffix = DN(
+        ('cn', 'index'), ('cn', 'userRoot'), ('cn', 'ldbm database'),
+        ('cn', 'plugins'), ('cn', 'config')
+    )
 
     def __init__(self, dm_password=None, sub_dict={},
                  online=True, ldapi=False):
@@ -529,8 +536,8 @@ class LDAPUpdate(object):
 
         return all_updates
 
-    def create_index_task(self, attribute):
-        """Create a task to update an index for an attribute"""
+    def create_index_task(self, *attributes):
+        """Create a task to update an index for attributes"""
 
         # Sleep a bit to ensure previous operations are complete
         time.sleep(5)
@@ -539,7 +546,7 @@ class LDAPUpdate(object):
         # cn_uuid.time is in nanoseconds, but other users of LDAPUpdate expect
         # seconds in 'TIME' so scale the value down
         self.sub_dict['TIME'] = int(cn_uuid.time/1e9)
-        cn = "indextask_%s_%s_%s" % (attribute, cn_uuid.time, cn_uuid.clock_seq)
+        cn = "indextask_%s_%s" % (cn_uuid.time, cn_uuid.clock_seq)
         dn = DN(('cn', cn), ('cn', 'index'), ('cn', 'tasks'), ('cn', 'config'))
 
         e = self.conn.make_entry(
@@ -547,11 +554,13 @@ class LDAPUpdate(object):
             objectClass=['top', 'extensibleObject'],
             cn=[cn],
             nsInstance=['userRoot'],
-            nsIndexAttribute=[attribute],
+            nsIndexAttribute=list(attributes),
         )
 
-        logger.debug("Creating task to index attribute: %s", attribute)
-        logger.debug("Task id: %s", dn)
+        logger.info(
+            "Creating task %s to index attributes: %s",
+            dn, ', '.join(attributes)
+        )
 
         self.conn.add_entry(e)
 
@@ -585,8 +594,8 @@ class LDAPUpdate(object):
                 time.sleep(1)
                 continue
 
-            if status.lower().find("finished") > -1:
-                logger.debug("Indexing finished")
+            if "finished" in status.lower():
+                logger.info("Indexing finished")
                 break
 
             logger.debug("Indexing in progress")
@@ -806,7 +815,7 @@ class LDAPUpdate(object):
         entry = self._apply_update_disposition(update.get('updates'), entry)
         if entry is None:
             # It might be None if it is just deleting an entry
-            return
+            return None, False
 
         self.print_entity(entry, "Final value after applying updates")
 
@@ -825,7 +834,7 @@ class LDAPUpdate(object):
                         # this may not be an error (e.g. entries in NIS container)
                         logger.error("Parent DN of %s may not exist, cannot "
                                      "create the entry", entry.dn)
-                        return
+                        return entry, False
                 added = True
                 self.modified = True
             except Exception as e:
@@ -860,12 +869,7 @@ class LDAPUpdate(object):
             if updated:
                 self.modified = True
 
-        if entry.dn.endswith(DN(('cn', 'index'), ('cn', 'userRoot'),
-                                ('cn', 'ldbm database'), ('cn', 'plugins'),
-                                ('cn', 'config'))) and (added or updated):
-            taskid = self.create_index_task(entry.single_value['cn'])
-            self.monitor_index_task(taskid)
-        return
+        return entry, added or updated
 
     def _delete_record(self, updates):
         """
@@ -917,13 +921,24 @@ class LDAPUpdate(object):
             raise RuntimeError("Offline updates are not supported.")
 
     def _run_updates(self, all_updates):
+        index_attributes = set()
         for update in all_updates:
             if 'deleteentry' in update:
                 self._delete_record(update)
             elif 'plugin' in update:
                 self._run_update_plugin(update['plugin'])
             else:
-                self._update_record(update)
+                entry, modified = self._update_record(update)
+                if modified and entry.dn.endswith(self.index_suffix):
+                    index_attributes.add(entry.single_value['cn'])
+
+        if index_attributes:
+            # The LDAPUpdate framework now keeps record of all changed/added
+            # indices and batches all changed attribute in a single index
+            # task. This makes updates much faster when multiple indices are
+            # added or modified.
+            task_dn = self.create_index_task(*sorted(index_attributes))
+            self.monitor_index_task(task_dn)
 
     def update(self, files, ordered=True):
         """Execute the update. files is a list of the update files to use.
