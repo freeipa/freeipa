@@ -1596,9 +1596,19 @@ def strip_cert_header(pem):
         return pem
 
 
-def user_add(host, login):
-    host.run_command([
+def user_add(host, login, first='test', last='user', extra_args=()):
+    cmd = [
         "ipa", "user-add", login,
-        "--first", "test",
-        "--last", "user"
-    ])
+        "--first", first,
+        "--last", last
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def group_add(host, groupname, extra_args=()):
+    cmd = [
+        "ipa", "group-add", groupname,
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
