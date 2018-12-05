@@ -151,6 +151,36 @@ default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
 default:nsIndexType: eq
+add:nsIndexType: pres
+
+dn: cn=automountMapName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default: cn: automountMapName
+default: ObjectClass: top
+default: ObjectClass: nsIndex
+default: nsSystemIndex: false
+default: nsIndexType: eq
+
+dn: cn=ipaConfigString,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default: cn: ipaConfigString
+default: objectClass:top
+default: objectClass:nsIndex
+default: nsSystemIndex: false
+default: nsIndexType: eq
+
+dn: cn=ipaEnabledFlag,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default: cn: ipaEnabledFlag
+default: objectClass:top
+default: objectClass:nsIndex
+default: nsSystemIndex: false
+default: nsIndexType: eq
+
+dn: cn=ipaKrbAuthzData,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default: cn: ipaKrbAuthzData
+default: objectClass: top
+default: objectClass: nsIndex
+default: nsSystemIndex: false
+default: nsIndexType: eq
+default: nsIndexType: sub
 
 dn: cn=ipakrbprincipalalias,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: ipakrbprincipalalias
@@ -313,5 +343,19 @@ dn: cn=ipServicePort,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default: cn: ipServicePort
 default: objectClass: top
 default: objectClass: nsIndex
+default: nsSystemIndex: false
+default: nsIndexType: eq
+
+dn: cn=accessRuleType,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default: cn: accessRuleType
+default: objectClass:top
+default: objectClass:nsIndex
+default: nsSystemIndex: false
+default: nsIndexType: eq
+
+dn: cn=hostCategory,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default: cn: hostCategory
+default: objectClass:top
+default: objectClass:nsIndex
 default: nsSystemIndex: false
 default: nsIndexType: eq
