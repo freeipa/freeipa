@@ -766,6 +766,40 @@ class baseidoverride(LDAPObject):
                     error=_('Default Trust View cannot contain IPA users')
                     )
 
+    def filter_for_anchor(self, ldap, filter, options, obj_type):
+        """Modify filter to support user and group names
+
+        Allow users to pass in an IPA user/group name and resolve it to an
+        anchor name.
+
+        :param ldap: ldap connection
+        :param filter: pre_callback filter
+        :param options: option dict
+        :param obj_type: 'user' or 'group'
+        :return: modified or same filter
+        """
+        anchor = options.get('ipaanchoruuid', None)
+        # return original filter if anchor is absent or correct
+        if anchor is None or ANCHOR_REGEX.match(anchor):
+            return filter
+        try:
+            resolved_anchor = resolve_object_to_anchor(
+                ldap, obj_type, anchor,
+                options.get('fallback_to_ldap', False)
+            )
+        except (errors.NotFound, errors.ValidationError):
+            # anchor cannot be resolved, let it pass through
+            return filter
+        else:
+            return ldap.make_filter(
+                {
+                    'objectClass': self.object_class,
+                    'ipaanchoruuid': resolved_anchor,
+                },
+                rules=ldap.MATCH_ALL
+            )
+
+
 class baseidoverride_add(LDAPCreate):
     __doc__ = _('Add a new ID override.')
     msg_summary = _('Added ID override "%(value)s"')
@@ -1128,6 +1162,15 @@ class idoverrideuser_find(baseidoverride_find):
     msg_summary = ngettext('%(count)d User ID override matched',
                            '%(count)d User ID overrides matched', 0)
 
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args,
+                     **options):
+        result = super(idoverrideuser_find, self).pre_callback(
+            ldap, filter, attrs_list, base_dn, scope, *args, **options
+        )
+        filter, base_dn, scope = result
+        filter = self.obj.filter_for_anchor(ldap, filter, options, 'user')
+        return filter, base_dn, scope
+
     def post_callback(self, ldap, entries, truncated, *args, **options):
         truncated = super(idoverrideuser_find, self).post_callback(
             ldap, entries, truncated, *args, **options)
@@ -1172,6 +1215,15 @@ class idoverridegroup_find(baseidoverride_find):
     __doc__ = _('Search for an Group ID override.')
     msg_summary = ngettext('%(count)d Group ID override matched',
                            '%(count)d Group ID overrides matched', 0)
+
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args,
+                     **options):
+        result = super(idoverridegroup_find, self).pre_callback(
+            ldap, filter, attrs_list, base_dn, scope, *args, **options
+        )
+        filter, base_dn, scope = result
+        filter = self.obj.filter_for_anchor(ldap, filter, options, 'group')
+        return filter, base_dn, scope
 
 
 @register()
