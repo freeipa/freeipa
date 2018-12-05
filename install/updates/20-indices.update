@@ -359,3 +359,10 @@ default: objectClass:top
 default: objectClass:nsIndex
 default: nsSystemIndex: false
 default: nsIndexType: eq
+
+dn: cn=idnsName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default: cn: idnsName
+default: objectClass: top
+default: objectClass: nsIndex
+default: nsSystemIndex: false
+default: nsIndexType: eq
