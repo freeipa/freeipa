@@ -37,6 +37,7 @@ import sys
 import ssl
 import termios
 import fcntl
+import shutil
 import struct
 import subprocess
 
@@ -1203,17 +1204,27 @@ def get_terminal_height(fd=1):
         return os.environ.get("LINES", 25)
 
 
-def open_in_pager(data):
+def get_pager():
+    """ Get path to a pager
+
+    :return: path to the file if it exists otherwise None
+    :rtype: str or None
+    """
+    pager = os.environ.get('PAGER', 'less')
+    return shutil.which(pager)
+
+
+def open_in_pager(data, pager):
     """
     Open text data in pager
 
     Args:
         data (bytes): data to view in pager
+        pager (str): path to the pager
 
     Returns:
         None
     """
-    pager = os.environ.get("PAGER", "less")
     pager_process = subprocess.Popen([pager], stdin=subprocess.PIPE)
 
     try:
