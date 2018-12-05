@@ -393,3 +393,11 @@ objectClass:top
 objectClass:nsIndex
 nsSystemIndex: false
 nsIndexType: eq
+
+dn: cn=idnsName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: idnsName
+objectClass: top
+objectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
