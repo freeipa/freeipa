@@ -55,6 +55,9 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
 
         Test for ticket 6353
         """
+        # Configure firewall first
+        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
+                                                    "freeipa-ldaps"])
         expected_err = "--password and --admin-password options are " \
                        "mutually exclusive"
         result = self.replicas[0].run_command([
@@ -68,8 +71,6 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
             raiseonerr=False)
         assert result.returncode == 1
         assert expected_err in result.stderr_text
-        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
-                                                    "freeipa-ldaps"])
 
     @replicas_cleanup
     def test_one_command_installation(self):
@@ -78,14 +79,15 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
         http://www.freeipa.org/page/V4/Replica_Promotion/Test_plan
         #Test_case:_Replica_can_be_installed_using_one_command
         """
+        # Configure firewall first
+        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
+                                                    "freeipa-ldaps"])
         self.replicas[0].run_command(['ipa-replica-install', '-w',
                                      self.master.config.admin_password,
                                      '-n', self.master.domain.name,
                                      '-r', self.master.domain.realm,
                                      '--server', self.master.hostname,
                                      '-U'])
-        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
-                                                    "freeipa-ldaps"])
         # Ensure that pkinit is properly configured, test for 7566
         result = self.replicas[0].run_command(['ipa-pkinit-manage', 'status'])
         assert "PKINIT is enabled" in result.stdout_text
@@ -135,6 +137,9 @@ class TestUnprivilegedUserPermissions(IntegrationTest):
     def test_replica_promotion_by_unprivileged_user(self):
         replica = self.replicas[0]
         tasks.install_client(self.master, replica)
+        # Configure firewall first
+        Firewall(replica).enable_services(["freeipa-ldap",
+                                           "freeipa-ldaps"])
         result2 = replica.run_command(['ipa-replica-install',
                                        '-P', self.username,
                                        '-p', self.new_password,
@@ -148,14 +153,15 @@ class TestUnprivilegedUserPermissions(IntegrationTest):
         self.master.run_command(['ipa', 'group-add-member', 'admins',
                                  '--users=%s' % self.username])
 
+        # Configure firewall first
+        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
+                                                    "freeipa-ldaps"])
         self.replicas[0].run_command(['ipa-replica-install',
                                       '-P', self.username,
                                       '-p', self.new_password,
                                       '-n', self.master.domain.name,
                                       '-r', self.master.domain.realm,
                                       '-U'])
-        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
-                                                    "freeipa-ldaps"])
 
 
 class TestProhibitReplicaUninstallation(IntegrationTest):
@@ -211,6 +217,9 @@ class TestWrongClientDomain(IntegrationTest):
                             '-w', self.master.config.admin_password,
                             '--server', self.master.hostname,
                             '--force-join'])
+        # Configure firewall first
+        Firewall(client).enable_services(["freeipa-ldap",
+                                          "freeipa-ldaps"])
         result = client.run_command(['ipa-replica-install', '-U', '-w',
                                      self.master.config.dirman_password],
                                     raiseonerr=False)
@@ -229,6 +238,9 @@ class TestWrongClientDomain(IntegrationTest):
                                      '--force-join'], raiseonerr=False)
         assert(result.returncode == 0), (
             'Failed to setup client with the upcase domain name')
+        # Configure firewall first
+        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
+                                                    "freeipa-ldaps"])
         result1 = client.run_command(['ipa-replica-install', '-U', '-w',
                                       self.master.config.dirman_password],
                                      raiseonerr=False)
