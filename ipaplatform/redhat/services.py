@@ -45,8 +45,8 @@ logger = logging.getLogger(__name__)
 redhat_system_units = dict((x, "%s.service" % x)
                            for x in base_services.wellknownservices)
 
-redhat_system_units['rpcgssd'] = 'nfs-secure.service'
-redhat_system_units['rpcidmapd'] = 'nfs-idmap.service'
+redhat_system_units['rpcgssd'] = 'rpc-gssd.service'
+redhat_system_units['rpcidmapd'] = 'nfs-idmapd.service'
 redhat_system_units['domainname'] = 'nis-domainname.service'
 
 # Rewrite dirsrv and pki-tomcatd services as they support instances via separate
