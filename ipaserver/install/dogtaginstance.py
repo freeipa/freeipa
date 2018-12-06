@@ -43,6 +43,7 @@ from ipapython import ipautil
 from ipapython.dn import DN
 from ipaserver.install import service
 from ipaserver.install import installutils
+from ipaserver.install import sysupgrade
 from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
 
@@ -530,3 +531,48 @@ class DogtagInstance(service.Service):
             raise RuntimeError(
                 "Dogtag must be stopped when creating backup of %s" % path)
         shutil.copy(path, path + '.ipabkp')
+
+    def reindex_task(self, force=False):
+        """Reindex ipaca entries
+
+        pkispawn sometimes does not run its indextasks. This leads to slow
+        unindexed filters on attributes such as description, which is used
+        to log in with a certificate. Explicitly reindex attribute that
+        should have been reindexed by CA's indextasks.ldif.
+
+        See https://pagure.io/dogtagpki/issue/3083
+        """
+        state_name = 'reindex_task'
+        if not force and sysupgrade.get_upgrade_state('dogtag', state_name):
+            return
+
+        cn = "indextask_ipaca_{}".format(int(time.time()))
+        dn = DN(
+            ('cn', cn), ('cn', 'index'), ('cn', 'tasks'), ('cn', 'config')
+        )
+        entry = api.Backend.ldap2.make_entry(
+            dn,
+            objectClass=['top', 'extensibleObject'],
+            cn=[cn],
+            nsInstance=['ipaca'],  # Dogtag PKI database
+            nsIndexAttribute=[
+                # from pki/base/ca/shared/conf/indextasks.ldif
+                'archivedBy', 'certstatus', 'clientId', 'dataType',
+                'dateOfCreate', 'description', 'duration', 'extension',
+                'issuedby', 'issuername', 'metaInfo', 'notafter',
+                'notbefore', 'ownername', 'publicKeyData', 'requestid',
+                'requestowner', 'requestsourceid', 'requeststate',
+                'requesttype', 'revInfo', 'revokedOn', 'revokedby',
+                'serialno', 'status', 'subjectname',
+            ],
+            ttl=[10],
+        )
+        logger.debug('Creating ipaca reindex task %s', dn)
+        api.Backend.ldap2.add_entry(entry)
+        logger.debug('Waiting for task...')
+        exitcode = replication.wait_for_task(api.Backend.ldap2, dn)
+        logger.debug(
+            'Task %s has finished with exit code %i',
+            dn, exitcode
+        )
+        sysupgrade.set_upgrade_state('dogtag', state_name, True)

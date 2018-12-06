@@ -397,6 +397,7 @@ class CAInstance(DogtagInstance):
                 self.step("creating installation admin user", self.setup_admin)
             self.step("configuring certificate server instance",
                       self.__spawn_instance)
+            self.step("reindex attributes", self.reindex_task)
             self.step("exporting Dogtag certificate store pin",
                       self.create_certstore_passwdfile)
             self.step("stopping certificate server instance to update CS.cfg",
