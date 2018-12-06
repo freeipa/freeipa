@@ -1976,6 +1976,7 @@ def upgrade_configuration():
     add_default_caacl(ca)
 
     if ca.is_configured():
+        ca.reindex_task()
         cainstance.repair_profile_caIPAserviceCert()
         ca.setup_lightweight_ca_key_retrieval()
         cainstance.ensure_ipa_authority_entry()
