@@ -543,7 +543,7 @@ class LDAPUpdate(object):
             nsIndexAttribute=list(attributes),
         )
 
-        logger.info(
+        logger.debug(
             "Creating task %s to index attributes: %s",
             dn, ', '.join(attributes)
         )
@@ -581,7 +581,7 @@ class LDAPUpdate(object):
                 continue
 
             if "finished" in status.lower():
-                logger.info("Indexing finished")
+                logger.debug("Indexing finished")
                 break
 
             logger.debug("Indexing in progress")
