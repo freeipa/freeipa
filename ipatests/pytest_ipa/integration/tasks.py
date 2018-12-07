@@ -418,7 +418,7 @@ def master_authoritative_for_client_domain(master, client):
     return result.returncode == 0
 
 
-def _config_replica_resolvconf_with_master_data(master, replica):
+def config_replica_resolvconf_with_master_data(master, replica):
     """
     Configure replica /etc/resolv.conf to use master as DNS server
     """
