@@ -5,11 +5,15 @@
 """
 
 import os
-from unittest import mock
 
 import pytest
 
 from ipalib.util import get_pager
+
+try:
+    from unittest.mock import patch  # pylint: disable=import-error
+except ImportError:
+    from mock import patch  # pylint: disable=import-error
 
 
 @pytest.mark.parametrize('pager,expected_result', [
@@ -21,5 +25,5 @@ from ipalib.util import get_pager
     ('', None)
 ])
 def test_get_pager(pager, expected_result):
-    with mock.patch.dict(os.environ, {'PAGER': pager}):
+    with patch.dict(os.environ, {'PAGER': pager}):
         assert get_pager() == expected_result
