@@ -34,6 +34,12 @@ objectClass: top
 objectClass: nsContainer
 cn: hostgroups
 
+dn: cn=ipservices,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: ipservices
+
 dn: cn=alt,$SUFFIX
 changetype: add
 objectClass: nsContainer
