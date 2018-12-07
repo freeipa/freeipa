@@ -37,7 +37,6 @@ import sys
 import ssl
 import termios
 import fcntl
-import shutil
 import struct
 import subprocess
 
@@ -75,6 +74,39 @@ else:
 
 if six.PY3:
     unicode = str
+
+    from shutil import which  # pylint: disable=no-name-in-module
+else:
+    def which(cmd):
+        """ Port of `which` function to python 2, it is a simplifed version
+        of `shutil.which` from python 3.3+
+
+        :param cmd: shell command
+        :type cmd: str
+        :return: path to the executable if it exists otherwise None
+        :rtype: str or None
+        """
+        def _check_path(fpath):
+            return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+        # if cmd is actually a path to the executable, check it
+        if os.path.dirname(cmd):
+            if _check_path(cmd):
+                return cmd
+            return None
+
+        path = os.environ.get('PATH', os.defpath)
+        path = path.split(os.pathsep)
+
+        seen = set()
+        for _dir in path:
+            if _dir not in seen:
+                seen.add(_dir)
+                fpath = os.path.join(_dir, cmd)
+                if _check_path(fpath):
+                    return fpath
+
+        return None
 
 _IPA_CLIENT_SYSRESTORE = "/var/lib/ipa-client/sysrestore"
 _IPA_DEFAULT_CONF = "/etc/ipa/default.conf"
@@ -1211,7 +1243,7 @@ def get_pager():
     :rtype: str or None
     """
     pager = os.environ.get('PAGER', 'less')
-    return shutil.which(pager)
+    return which(pager)
 
 
 def open_in_pager(data, pager):
