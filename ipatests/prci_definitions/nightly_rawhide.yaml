@@ -399,7 +399,7 @@ jobs:
         timeout: 10800
         topology: *master_1repl
 
-  fedora-28/test_idviews:
+  fedora-rawhide/test_idviews:
     requires: [fedora-rawhide/build]
     priority: 50
     job:
