@@ -253,12 +253,16 @@ def mh(request, class_integration_logs):
     setup_class(cls, mh)
     mh._pytestmh_request.addfinalizer(lambda: teardown_class(cls))
 
-    yield mh.install()
-
-    for host in cls.get_all_hosts():
-        host.remove_log_collector(collect_log)
-
-    collect_test_logs(request.node, class_integration_logs, request.config)
+    try:
+        yield mh.install()
+    finally:
+        hosts = list(cls.get_all_hosts())
+        for host in hosts:
+            host.remove_log_collector(collect_log)
+        collect_test_logs(
+            request.node, class_integration_logs, request.config
+        )
+        collect_systemd_journal(request.node, hosts, request.config)
 
 
 def setup_class(cls, mh):
