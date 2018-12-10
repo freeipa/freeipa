@@ -12,6 +12,8 @@ topologies:
     cpu: 4
     memory: 7400
 
+
+
 jobs:
   fedora-29/build:
     requires: []
@@ -242,4 +244,3 @@ jobs:
         template: *ci-master-f29
         timeout: 3600
         topology: *master_1repl
-
