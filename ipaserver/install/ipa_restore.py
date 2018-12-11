@@ -144,8 +144,12 @@ class Restore(admintool.AdminTool):
         paths.DNSSEC_TOKENS_DIR,
     ]
 
-    FILES_TO_BE_REMOVED = [
-        paths.HTTPD_NSS_CONF,
+    FILES_TO_BE_REMOVED = []
+
+    # files listed here cannot be removed and these files will be
+    # replaced with zero-length files
+    FILES_TO_BE_CLEARED = [
+        paths.HTTPD_NSS_CONF
     ]
 
     def __init__(self, options, args):
@@ -404,6 +408,7 @@ class Restore(admintool.AdminTool):
             # We do either a full file restore or we restore data.
             if restore_type == 'FULL':
                 self.remove_old_files()
+                self.clear_old_files()
                 self.cert_restore_prepare()
                 self.file_restore(options.no_logs)
                 self.cert_restore()
@@ -720,6 +725,17 @@ class Restore(admintool.AdminTool):
             except OSError as e:
                 if e.errno != 2:  # 2: file does not exist
                     logger.warning("Could not remove file: %s (%s)", f, e)
+
+    def clear_old_files(self):
+        """
+        Replace exist files that cannot be removed with zero-length files
+        before backup
+        """
+        for f in self.FILES_TO_BE_CLEARED:
+            if os.access(f, os.W_OK):
+                open(f, 'w').close()
+            else:
+                logger.warning('Could not open file for writing: %s', f)
 
     def file_restore(self, nologs=False):
         '''
