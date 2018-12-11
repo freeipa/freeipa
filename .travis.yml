@@ -47,6 +47,7 @@ before_install:
     - ls /proc/net
     - cat /proc/net/if_inet6
 #    - ip addr show dev lo | grep -q inet6 || (echo "No IPv6 address found"; exit 1)
+    - docker pull $TEST_RUNNER_IMAGE
 
 install:
     - pip3 install --upgrade pip
