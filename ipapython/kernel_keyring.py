@@ -23,6 +23,7 @@ import os
 
 from ipapython.ipautil import run
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 
 # NOTE: Absolute path not required for keyctl since we reset the environment
 #       in ipautil.run.
@@ -73,10 +74,14 @@ def get_persistent_key(key):
     return result.raw_output.rstrip()
 
 
-def is_persistent_keyring_supported():
+def is_persistent_keyring_supported(check_container=True):
+    """Returns True if the kernel persistent keyring is supported.
+
+    If check_container is True and a containerized environment is detected,
+    return False. There is no support for keyring namespace isolation yet.
     """
-    Returns True if the kernel persistent keyring is supported.
-    """
+    if check_container and tasks.detect_container() is not None:
+        return False
     uid = os.geteuid()
     try:
         get_persistent_key(str(uid))
