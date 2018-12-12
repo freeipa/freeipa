@@ -672,6 +672,56 @@ int read_ipa_config(struct ipa_config **ipacfg)
     return 0;
 }
 
+static int resolve_ktname(const char *keytab, char **ktname, char **err_msg)
+{
+	char keytab_resolved[PATH_MAX + 1];
+	struct stat st;
+	struct stat lst;
+	int ret;
+
+	*err_msg = NULL;
+
+    /* Resolve keytab symlink to support dangling symlinks, see
+     * https://pagure.io/freeipa/issue/4607. To prevent symlink attacks,
+     * the symlink is only resolved owned by the current user or by
+     * root. For simplicity, only one level if indirection is resolved.
+     */
+    if ((stat(keytab, &st) == -1) &&
+            (errno = ENOENT) &&
+            (lstat(keytab, &lst) == 0) &&
+            (S_ISLNK(lst.st_mode))) {
+        /* keytab is a dangling symlink. */
+        if (((lst.st_uid == 0) && (lst.st_gid == 0)) ||
+                ((lst.st_uid == geteuid()) && (lst.st_gid == getegid()))) {
+            /* Either root or current user owns symlink, resolve symlink and
+             * return the resolved symlink. */
+            ret = readlink(keytab, keytab_resolved, PATH_MAX + 1);
+            if ((ret == -1) || (ret > PATH_MAX)) {
+                *err_msg = _("Failed to resolve symlink to keytab.\n");
+                return ENOENT;
+            }
+            keytab_resolved[ret] = '\0';
+            ret = asprintf(ktname, "WRFILE:%s", keytab_resolved);
+            if (ret == -1) {
+                *err_msg = strerror(errno);
+                return ENOMEM;
+            }
+            return 0;
+        } else {
+            *err_msg = _("keytab is a dangling symlink and owned by another "
+                         "user.\n");
+            return EINVAL;
+        }
+    } else {
+        ret = asprintf(ktname, "WRFILE:%s", keytab);
+        if (ret == -1) {
+            *err_msg = strerror(errno);
+            return ENOMEM;
+        }
+        return 0;
+    }
+}
+
 int main(int argc, const char *argv[])
 {
 	static const char *server = NULL;
@@ -860,11 +910,6 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-	ret = asprintf(&ktname, "WRFILE:%s", keytab);
-	if (ret == -1) {
-		exit(3);
-	}
-
 	krberr = krb5_parse_name(krbctx, principal, &sprinc);
 	if (krberr) {
 		fprintf(stderr, _("Invalid Service Principal Name\n"));
@@ -887,6 +932,12 @@ int main(int argc, const char *argv[])
 				  "Do you have a valid Credential Cache?\n"));
 			exit(6);
 		}
+	}
+
+	ret = resolve_ktname(keytab, &ktname, &err_msg);
+	if (krberr) {
+		fprintf(stderr, "%s", err_msg);
+		exit(ret);
 	}
 
 	krberr = krb5_kt_resolve(krbctx, ktname, &kt);
