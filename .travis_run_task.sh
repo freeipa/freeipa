@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 #
 # Copyright (C) 2017 FreeIPA Contributors see COPYING for license
 #
@@ -45,8 +45,10 @@ then
     popd
 fi
 
+echo Trying to pull docker image
 docker pull $TEST_RUNNER_IMAGE
 
+echo "Executing test runner for ${TASK_TO_RUN}"
 ipa-docker-test-runner -l $CI_RESULTS_LOG \
     -c $TEST_RUNNER_CONFIG \
     $developer_mode_opt \
