@@ -30,6 +30,7 @@ class BasePathNamespace(object):
     LS = "/bin/ls"
     SH = "/bin/sh"
     SYSTEMCTL = "/bin/systemctl"
+    SYSTEMD_DETECT_VIRT = "/bin/systemd-detect-virt"
     TAR = "/bin/tar"
     AUTOFS_LDAP_AUTH_CONF = "/etc/autofs_ldap_auth.conf"
     ETC_DIRSRV = "/etc/dirsrv"

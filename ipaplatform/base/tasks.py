@@ -106,6 +106,14 @@ class BaseTaskNamespace(object):
 
         raise NotImplementedError()
 
+    def detect_container(self):
+        """Check if running inside a container
+
+        :returns: container runtime or None
+        :rtype: str, None
+        """
+        raise NotImplementedError
+
     def restore_hostname(self, fstore, statestore):
         """
         Restores the original hostname as backed up in the

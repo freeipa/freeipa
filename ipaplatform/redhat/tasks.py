@@ -31,6 +31,8 @@ import os
 import socket
 import traceback
 import errno
+import urllib
+import subprocess
 import sys
 
 from ctypes.util import find_library
@@ -182,6 +184,26 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                  "interface that has ::1 address assigned. Add ::1 address "
                  "resolution to 'lo' interface. You might need to enable IPv6 "
                  "on the interface 'lo' in sysctl.conf.")
+
+    def detect_container(self):
+        """Check if running inside a container
+
+        :returns: container runtime or None
+        :rtype: str, None
+        """
+        try:
+            output = subprocess.check_output(
+                [paths.SYSTEMD_DETECT_VIRT, '--container'],
+                stderr=subprocess.STDOUT
+            )
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 1:
+                # No container runtime detected
+                return None
+            else:
+                raise
+        else:
+            return output.decode('utf-8').strip()
 
     def restore_pre_ipa_client_configuration(self, fstore, statestore,
                                              was_sssd_installed,
