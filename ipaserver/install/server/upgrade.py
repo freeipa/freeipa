@@ -1399,15 +1399,6 @@ def fix_schema_file_syntax():
     sysupgrade.set_upgrade_state('ds', 'fix_schema_syntax', True)
 
 
-def set_sssd_domain_option(option, value):
-    sssdconfig = SSSDConfig.SSSDConfig()
-    sssdconfig.import_config()
-    domain = sssdconfig.get_domain(str(api.env.domain))
-    domain.set_option(option, value)
-    sssdconfig.save_domain(domain)
-    sssdconfig.write(paths.SSSD_CONF)
-
-
 def sssd_update():
     sssdconfig = SSSDConfig.SSSDConfig()
     sssdconfig.import_config()
@@ -1416,8 +1407,17 @@ def sssd_update():
     domain.set_option('ipa_server_mode', 'True')
     domain.set_option('ipa_server', api.env.host)
     sssdconfig.save_domain(domain)
+    # check if service has ok_to_auth_as_delegate
+    service = 'HTTP/{}'.format(api.env.host)
+    result = api.Command.service_show(service, all=True)
+    flag = result['result'].get('ipakrboktoauthasdelegate', False)
+    if flag:
+        logger.debug(
+            "%s has ok_to_auth_as_delegate, allow Apache to access IFP",
+            services
+        )
     # enable and configure IFP plugin
-    sssd_enable_ifp(sssdconfig)
+    sssd_enable_ifp(sssdconfig, allow_httpd=flag)
     # write config and restart service
     sssdconfig.write(paths.SSSD_CONF)
     sssd = services.service('sssd', api)

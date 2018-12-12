@@ -333,3 +333,13 @@ objectClass: nsindex
 nssystemindex: false
 nsindextype: eq
 nsindextype: sub
+
+# NOTE: There is no index on ipServiceProtocol because the index would have
+# poor selectivity. An ipService entry has either 'tcp' or 'udp' as protocol.
+dn: cn=ipServicePort,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipServicePort
+objectClass: top
+objectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq

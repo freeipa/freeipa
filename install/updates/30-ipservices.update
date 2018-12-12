@@ -1,0 +1,6 @@
+# container for RFC 2307 IP services
+
+dn: cn=ipservices,cn=accounts,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: ipservices

@@ -105,6 +105,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
     ssl_conf = paths.HTTPD_SSL_CONF
     ssl_ocsp_directive = OCSP_DIRECTIVE
     kdc_service_name = services.knownservices.krb5kdc.systemd_name
+    httpd_service_name = services.knownservices.httpd.systemd_name
 
     def get_info(self):
         self.log.exit_on_nonroot_euid()
@@ -117,6 +118,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
         self.record_httpd_ocsp_status()
         self.check_and_enable_pkinit()
         self.enable_ok_to_auth_as_delegate_on_http_principal()
+        self.allow_httpd_ifp()
         self.upload_smartcard_ca_certificates_to_systemwide_db()
         self.install_smart_card_signing_ca_certs()
         self.update_ipa_ca_certificate_store()
@@ -133,9 +135,10 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
 
         self.log.comment('make sure bind-utils are installed so that we can '
                          'dig for ipa-ca records')
-        self.log.exit_on_failed_command(
-            'yum install -y bind-utils',
-            ['Failed to install bind-utils'])
+        self.log.install_packages(
+            ['bind-utils'],
+            ['Failed to install bind-utils']
+        )
 
         self.log.comment('make sure ipa-ca records are resolvable, '
                          'otherwise error out and instruct')
@@ -183,7 +186,9 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
 
     def restart_httpd(self):
         self.log.comment('finally restart apache')
-        self.log.command('systemctl restart httpd')
+        self.log.command(
+            'systemctl restart {}'.format(self.httpd_service_name)
+        )
 
     def record_httpd_ocsp_status(self):
         self.log.comment('store the OCSP upgrade state')
@@ -213,6 +218,21 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
             '-z "$(echo $output | grep \'no modifications\')" ]',
             ["Failed to set OK_AS_AUTH_AS_DELEGATE flag on HTTP principal"]
         )
+
+    def allow_httpd_ifp(self):
+        self.log.comment('Allow Apache to access SSSD IFP')
+        self.log.exit_on_failed_command(
+            '{} -c "import SSSDConfig; '
+            'from ipaclient.install.client import sssd_enable_ifp; '
+            'from ipaplatform.paths import paths; '
+            'c = SSSDConfig.SSSDConfig(); '
+            'c.import_config(); '
+            'sssd_enable_ifp(c, allow_httpd=True); '
+            'c.write(paths.SSSD_CONF)"'.format(sys.executable),
+            ['Failed to modify SSSD config']
+        )
+        self.log.comment('Restart sssd')
+        self.log.command('systemctl restart sssd')
 
     def restart_kdc(self):
         self.log.exit_on_failed_command(
@@ -253,26 +273,23 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
         self.restart_sssd()
 
     def check_and_remove_pam_pkcs11(self):
-        self.log.command('rpm -qi pam_pkcs11 > /dev/null')
-        self.log.commands_on_predicate(
-            '[ "$?" -eq "0" ]',
-            [
-                'yum remove -y pam_pkcs11'
-            ]
+        self.log.remove_package(
+            'pam_pkcs11',
+            ['Could not remove pam_pkcs11 package']
         )
 
     def install_opensc_and_dconf_packages(self):
         self.log.comment(
             'authconfig often complains about missing dconf, '
             'install it explicitly')
-        self.log.exit_on_failed_command(
-            'yum install -y {} dconf'.format(self.opensc_module_name.lower()),
+        self.log.install_packages(
+            [self.opensc_module_name.lower(), 'dconf'],
             ['Could not install OpenSC package']
         )
 
     def install_krb5_client_dependencies(self):
-        self.log.exit_on_failed_command(
-            'yum install -y krb5-pkinit-openssl',
+        self.log.install_packages(
+            ['krb5-pkinit-openssl'],
             ['Failed to install Kerberos client PKINIT extensions.']
         )
 
