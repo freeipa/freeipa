@@ -49,7 +49,8 @@ echo Trying to pull docker image
 docker pull $TEST_RUNNER_IMAGE
 
 echo "Executing test runner for ${TASK_TO_RUN}"
-ipa-docker-test-runner -l $CI_RESULTS_LOG \
+timeout --kill-after=30s 40m \
+    ipa-docker-test-runner -l $CI_RESULTS_LOG \
     -c $TEST_RUNNER_CONFIG \
     $developer_mode_opt \
     --container-environment "RPMBUILD_OPTS=$env_opt" \
