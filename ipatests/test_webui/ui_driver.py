@@ -40,6 +40,7 @@ try:
     from selenium.common.exceptions import NoSuchElementException
     from selenium.common.exceptions import InvalidElementStateException
     from selenium.common.exceptions import StaleElementReferenceException
+    from selenium.common.exceptions import UnexpectedAlertPresentException
     from selenium.common.exceptions import WebDriverException
     from selenium.common.exceptions import ElementClickInterceptedException
     from selenium.webdriver.common.action_chains import ActionChains
@@ -47,6 +48,7 @@ try:
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.by import By
     from selenium.webdriver.chrome.options import Options as ChromeOptions
+    from selenium.webdriver.support.expected_conditions import alert_is_present
     from selenium.webdriver.support.wait import WebDriverWait
     from selenium.webdriver.support.ui import Select
     NO_SELENIUM = False
@@ -110,6 +112,28 @@ def screenshot(fn):
             raise
 
     return screenshot_wrapper
+
+
+def dismiss_unexpected_alert(fn):
+    """
+    Temporary fix for UnexpectedAlertPresentException.
+    It is regression in Firefox 55
+    Fixed in Firefox 65:
+    https://bugzilla.mozilla.org/show_bug.cgi?id=1503015
+    """
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        self = args[0]
+        try:
+            return fn(*args, **kwargs)
+        except UnexpectedAlertPresentException:
+            if alert_is_present()(self.driver):
+                self.driver.switch_to.alert.dismiss()
+            # One retry is enough for now.
+            # But in the case of catching two alerts at the same time
+            # loop or recursive call should be used.
+            return fn(*args, **kwargs)
+    return wrapped
 
 
 class UI_driver:
@@ -236,6 +260,7 @@ class UI_driver:
 
         return driver
 
+    @dismiss_unexpected_alert
     def find(self, expression, by='id', context=None, many=False, strict=False):
         """
         Helper which calls selenium find_element_by_xxx methods.
@@ -1925,6 +1950,7 @@ class UI_driver:
         finally:
             ssh.close()
 
+    @dismiss_unexpected_alert
     def has_class(self, el, cls):
         """
         Check if el has CSS class

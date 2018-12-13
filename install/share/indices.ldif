@@ -216,6 +216,40 @@ ObjectClass: top
 ObjectClass: nsIndex
 nsSystemIndex: false
 nsIndexType: eq
+nsIndexType: pres
+
+dn: cn=automountMapName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: automountMapName
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+
+dn: cn=ipaConfigString,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipaConfigString
+objectClass:top
+objectClass:nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+
+dn: cn=ipaEnabledFlag,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipaEnabledFlag
+objectClass:top
+objectClass:nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+
+dn: cn=ipaKrbAuthzData,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipaKrbAuthzData
+objectClass: top
+objectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: sub
 
 dn: cn=ipakrbprincipalalias,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: add
@@ -341,5 +375,21 @@ changetype: add
 cn: ipServicePort
 objectClass: top
 objectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+
+dn: cn=accessRuleType,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: accessRuleType
+objectClass:top
+objectClass:nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+
+dn: cn=hostCategory,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: hostCategory
+objectClass:top
+objectClass:nsIndex
 nsSystemIndex: false
 nsIndexType: eq
