@@ -215,6 +215,22 @@ def wait_for_entry(connection, dn, timeout, attr=None, attrvalue='*',
             time.sleep(1)
 
 
+def get_ds_version(conn):
+    """Returns the DS version
+
+    Retrieves the DS version from the vendorVersion attribute stored in LDAP.
+    :param conn: LDAP connection established and authenticated to the server
+                 for which we need the version
+    :return: a tuple containing the DS version
+    """
+    # Find which 389-ds is installed
+    rootdse = conn.get_entry(DN(''), ['vendorVersion'])
+    version = rootdse.single_value.get('vendorVersion')
+    mo = re.search(r'(\d+)\.(\d+)\.(\d+)[\.\d]*', version)
+    vendor_version = tuple(int(v) for v in mo.groups())
+    return vendor_version
+
+
 class ReplicationManager:
     """Manage replication agreements
 
@@ -527,8 +543,16 @@ class ReplicationManager:
             # Add the new replication manager
             binddns.append(replica_binddn)
 
-        for key, value in REPLICA_CREATION_SETTINGS.items():
-            entry[key] = value
+        # If the remote server has 389-ds < 1.3, it does not
+        # support the attributes we are trying to set.
+        # Find which 389-ds is installed
+        vendor_version = get_ds_version(conn)
+        if vendor_version >= (1, 3, 0):
+            for key, value in REPLICA_CREATION_SETTINGS.items():
+                entry[key] = value
+        else:
+            logger.debug("replication attributes not supported "
+                         "on remote master, skipping update.")
 
         try:
             conn.update_entry(entry)
@@ -604,10 +628,7 @@ class ReplicationManager:
         # If the remote server has 389-ds < 1.3, it does not
         # support the attributes we are trying to set.
         # Find which 389-ds is installed
-        rootdse = r_conn.get_entry(DN(''), ['vendorVersion'])
-        version = rootdse.single_value.get('vendorVersion')
-        mo = re.search(r'(\d+)\.(\d+)\.(\d+)[\.\d]*', version)
-        vendor_version = tuple(int(v) for v in mo.groups())
+        vendor_version = get_ds_version(r_conn)
         if vendor_version >= (1, 3, 0):
             # 389-ds understands the replication attributes,
             # we can safely modify them
