@@ -314,23 +314,21 @@ def uninstall(fstore, statestore):
                 print('Unable to restore SSSD configuration: %s' % str(e))
                 logger.debug('Unable to restore SSSD configuration: %s',
                              str(e))
+ 
+    # rpcidmapd and rpcgssd are static units now
     if statestore.has_state('rpcidmapd'):
-        enabled = statestore.restore_state('rpcidmapd', 'enabled')
-        running = statestore.restore_state('rpcidmapd', 'running')
-        rpcidmapd = services.knownservices.rpcidmapd
-        if not enabled:
-            rpcidmapd.disable()
-        if not running:
-            rpcidmapd.stop()
+        statestore.delete_state('rpcidmapd','enabled')
+        statestore.delete_state('rpcidmapd','running')
     if statestore.has_state('rpcgssd'):
-        enabled = statestore.restore_state('rpcgssd', 'enabled')
-        running = statestore.restore_state('rpcgssd', 'running')
-        rpcgssd = services.knownservices.rpcgssd
-        if not enabled:
-            rpcgssd.disable()
-        if not running:
-            rpcgssd.stop()
+        statestore.delete_state('rpcgssd','enabled')
+        statestore.delete_state('rpcgssd','running')
 
+    nfsutils = services.knownservices['nfs-utils']
+    try:
+        nfsutils.restart()
+    except Exception as e:
+        logger.error("Failed to restart nfs client services (%s)" % str(e))
+        return 1
     return 0
 
 def configure_nfs(fstore, statestore):
@@ -365,35 +363,18 @@ def configure_nfs(fstore, statestore):
 
     print("Configured %s" % paths.IDMAPD_CONF)
 
-    rpcidmapd = services.knownservices.rpcidmapd
-    statestore.backup_state('rpcidmapd', 'enabled', rpcidmapd.is_enabled())
-    statestore.backup_state('rpcidmapd', 'running', rpcidmapd.is_running())
-    try:
-        rpcidmapd.restart()
-        print("Started %s" % rpcidmapd.service_name)
-    except Exception as e:
-        logger.error("%s failed to restart: %s", rpcidmapd.service_name, e)
-    try:
-        rpcidmapd.enable()
-    except Exception as e:
-        print("Failed to configure automatic startup of the %s daemon" % (rpcidmapd.service_name))
-        logger.error("Failed to enable automatic startup of the %s daemon: %s",
-                     rpcidmapd.service_name, str(e))
-
     rpcgssd = services.knownservices.rpcgssd
-    statestore.backup_state('rpcgssd', 'enabled', rpcgssd.is_enabled())
-    statestore.backup_state('rpcgssd', 'running', rpcgssd.is_running())
     try:
         rpcgssd.restart()
-        print("Started %s" % rpcgssd.service_name)
     except Exception as e:
-        logger.error("%s failed to restart: %s", rpcgssd.service_name, e)
+        logger.error("Failed to restart rpc-gssd (%s)" % str(e))
+        return 1
+    nfsutils = services.knownservices['nfs-utils']
     try:
-        rpcgssd.enable()
+        nfsutils.restart()
     except Exception as e:
-        print("Failed to configure automatic startup of the %s daemon" % (rpcgssd.service_name))
-        logger.error("Failed to enable automatic startup of the %s daemon: %s",
-                     rpcgssd.service_name, str(e))
+        logger.error("Failed to restart nfs client services (%s)" % str(e))
+        return 1
 
 def main():
     try:

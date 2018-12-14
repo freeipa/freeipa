@@ -63,7 +63,7 @@ struct worker_ctx {
     struct range_info **ranges;
 };
 
-static const char *fetch_attr(Slapi_Entry *e, const char *attrname,
+static const char *ipa_sidgen_fetch_attr(Slapi_Entry *e, const char *attrname,
                                               const char *default_val)
 {
     Slapi_Attr *attr;
@@ -242,7 +242,7 @@ int sidgen_task_add(Slapi_PBlock *pb, Slapi_Entry *e,
 
     worker_ctx->plugin_id = global_sidgen_plugin_id;
 
-    str = fetch_attr(e, "delay", NULL);
+    str = ipa_sidgen_fetch_attr(e, "delay", NULL);
     if (str != NULL) {
         errno = 0;
         worker_ctx->delay = strtol(str, &endptr, 10);
@@ -255,7 +255,7 @@ int sidgen_task_add(Slapi_PBlock *pb, Slapi_Entry *e,
     }
     LOG("delay is [%li].\n", worker_ctx->delay);
 
-    str = fetch_attr(e, "nsslapd-basedn", NULL);
+    str = ipa_sidgen_fetch_attr(e, "nsslapd-basedn", NULL);
     if (str == NULL) {
         LOG_FATAL("Missing nsslapd-basedn!\n");
         *returncode = LDAP_CONSTRAINT_VIOLATION;
