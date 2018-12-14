@@ -36,6 +36,11 @@ class IntegrationTest:
     topology = None
     domain_level = None
 
+    setup_replica_cas = True
+    setup_kra = False
+    setup_master_dns = True
+    setup_replica_dns = False
+
     @classmethod
     def setup_class(cls):
         pass
@@ -67,9 +72,15 @@ class IntegrationTest:
         if cls.topology is None:
             return
         else:
-            tasks.install_topo(cls.topology,
-                               cls.master, cls.replicas,
-                               cls.clients, domain_level)
+            tasks.install_topo(
+                cls.topology,
+                cls.master, cls.replicas, cls.clients,
+                domain_level,
+                setup_replica_cas=cls.setup_replica_cas,
+                setup_replica_kras=cls.setup_kra,
+                setup_master_dns=cls.setup_master_dns,
+                setup_replica_dns=cls.setup_replica_dns
+            )
     @classmethod
     def teardown_class(cls):
         pass

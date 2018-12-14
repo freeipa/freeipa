@@ -87,6 +87,9 @@ class ServerDelBase(IntegrationTest):
 
 class TestServerDel(ServerDelBase):
 
+    # avoid 'Deleting this server will leave your installation without DNS'
+    setup_replica_dns = True
+
     @classmethod
     def install(cls, mh):
         super(TestServerDel, cls).install(mh)
@@ -236,11 +239,7 @@ class TestLastServices(ServerDelBase):
     domain_level = DOMAIN_LEVEL_1
     topology = 'line'
 
-    @classmethod
-    def install(cls, mh):
-        tasks.install_topo(
-            cls.topology, cls.master, cls.replicas, [],
-            domain_level=cls.domain_level, setup_replica_cas=False)
+    setup_replica_cas = False
 
     def test_removal_of_master_raises_error_about_last_dns(self):
         """

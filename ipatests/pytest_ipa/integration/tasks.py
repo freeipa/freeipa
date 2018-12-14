@@ -1105,7 +1105,8 @@ def double_circle_topo(master, replicas, site_size=6):
 
 def install_topo(topo, master, replicas, clients, domain_level=None,
                  skip_master=False, setup_replica_cas=True,
-                 setup_replica_kras=False):
+                 setup_replica_kras=False,
+                 setup_master_dns=True, setup_replica_dns=False):
     """Install IPA servers and clients in the given topology"""
     if setup_replica_kras and not setup_replica_cas:
         raise ValueError("Option 'setup_replica_kras' requires "
@@ -1116,6 +1117,7 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
         install_master(
             master,
             domain_level=domain_level,
+            setup_dns=setup_master_dns,
             setup_kra=setup_replica_kras
         )
 
@@ -1129,6 +1131,7 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
             logger.info('Installing replica %s from %s', parent, child)
             install_replica(
                 parent, child,
+                setup_dns=setup_replica_dns,
                 setup_ca=setup_replica_cas,
                 setup_kra=setup_replica_kras
             )
