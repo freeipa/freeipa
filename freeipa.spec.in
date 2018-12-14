@@ -82,9 +82,13 @@
 # and https://pagure.io/dogtagpki/issue/3073
 %global pki_version 10.6.8-3
 
-# NSS release with fix for CKA_LABEL import bug in shared SQL database.
-# https://bugzilla.redhat.com/show_bug.cgi?id=1568271
-%global nss_version 3.36.1-1.1
+# NSS release with fix for p11-kit-proxy issue, affects F28
+# https://pagure.io/freeipa/issue/7810
+%if 0%{?fedora} == 28
+%global nss_version 3.41.0-3
+%else
+%global nss_version 3.41.0-1
+%endif
 
 # One-Way Trust authenticated by trust secret
 # https://bugzilla.redhat.com/show_bug.cgi?id=1345975#c20
