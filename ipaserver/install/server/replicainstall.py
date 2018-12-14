@@ -812,7 +812,8 @@ def promote_check(installer):
     config.host_name = api.env.host
     config.domain_name = api.env.domain
     config.master_host_name = api.env.server
-    config.ca_host_name = api.env.ca_host
+    # Try to use same master for CA install
+    config.ca_host_name = api.env.server
     config.kra_host_name = config.ca_host_name
     config.ca_ds_port = 389
     config.setup_ca = options.setup_ca
