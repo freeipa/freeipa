@@ -1121,7 +1121,8 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
             setup_kra=setup_replica_kras
         )
 
-    add_a_records_for_hosts_in_master_domain(master)
+    if setup_master_dns:
+        add_a_records_for_hosts_in_master_domain(master)
 
     for parent, child in get_topo(topo)(master, replicas):
         if child in installed:
