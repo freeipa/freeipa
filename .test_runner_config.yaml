@@ -50,8 +50,6 @@ steps:
   install_packages:
   - sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf
   - dnf install -y ${container_working_dir}/dist/rpms/*.rpm --best --allowerasing
-  # nss-p11-kit causes OpenLDAP's TLSMC patch to block
-  - rm -f /etc/crypto-policies/local.d/nss-p11-kit.config && update-crypto-policies
   install_server:
   - ipa-server-install -U --domain ${server_domain} --realm ${server_realm} -p ${server_password}
     -a ${server_password} --setup-dns --setup-kra --auto-forwarders
