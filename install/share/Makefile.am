@@ -65,7 +65,6 @@ dist_app_DATA =				\
 	opendnssec_conf.template	\
 	opendnssec_kasp.template	\
 	unique-attributes.ldif		\
-	ldapi.ldif			\
 	wsgi.py				\
 	repoint-managed-entries.ldif	\
 	managed-entries.ldif		\
