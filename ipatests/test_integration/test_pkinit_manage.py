@@ -92,6 +92,8 @@ class TestPkinitManage(IntegrationTest):
     certificate that is tracked by certmonger with the SelfSigned helper.
     """
 
+    num_replicas = 1
+
     @classmethod
     def install(cls, mh):
         # Install the master with PKINIT disabled
@@ -109,3 +111,18 @@ class TestPkinitManage(IntegrationTest):
     def test_pkinit_reenable(self):
         self.master.run_command(['ipa-pkinit-manage', 'enable'])
         check_pkinit(self.master, enabled=True)
+
+    def test_pkinit_on_replica(self):
+        """Test pkinit enable on a replica without CA
+
+        Test case for ticket 7795.
+        Install a replica with --no-pkinit (without CA)
+        then call ipa-pkinit-manage enable. The replica must contact
+        a master with a CA instance to get its KDC cert.
+        """
+        tasks.install_replica(self.master, self.replicas[0], setup_ca=False,
+                              extra_args=['--no-pkinit'])
+        check_pkinit(self.replicas[0], enabled=False)
+
+        self.replicas[0].run_command(['ipa-pkinit-manage', 'enable'])
+        check_pkinit(self.replicas[0], enabled=True)
