@@ -45,6 +45,7 @@ from ipaserver.install import replication
 from ipaserver.install import ldapupdate
 
 from ipaserver.install import certs
+from ipaserver.masters import find_providing_servers
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
@@ -428,10 +429,13 @@ class KrbInstance(service.Service):
             prev_helper = None
             # on the first CA-ful master without '--no-pkinit', we issue the
             # certificate by contacting Dogtag directly
+            localhost_has_ca = self.fqdn in find_providing_servers(
+                'CA', conn=self.api.Backend.ldap2, api=self.api)
             use_dogtag_submit = all(
                 [self.master_fqdn is None,
                  self.pkcs12_info is None,
-                 self.config_pkinit])
+                 self.config_pkinit,
+                 localhost_has_ca])
 
             if use_dogtag_submit:
                 ca_args = [
