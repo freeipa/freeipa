@@ -293,6 +293,7 @@ class BasePathNamespace(object):
     SSSD_DB = "/var/lib/sss/db"
     SSSD_MC_GROUP = "/var/lib/sss/mc/group"
     SSSD_MC_PASSWD = "/var/lib/sss/mc/passwd"
+    SSSD_PUBCONF_DIR = "/var/lib/sss/pubconf"
     SSSD_PUBCONF_KNOWN_HOSTS = "/var/lib/sss/pubconf/known_hosts"
     SSSD_PUBCONF_KRB5_INCLUDE_D_DIR = "/var/lib/sss/pubconf/krb5.include.d/"
     VAR_LOG_AUDIT = "/var/log/audit/audit.log"
