@@ -118,7 +118,7 @@ class FileStore:
         if len(self.files) == 0:
             logger.debug("  -> no files, removing file")
             if os.path.exists(self._index):
-                os.remove(self._index)
+                os.unlink(self._index)
             return
 
         p = SafeConfigParser()
@@ -247,7 +247,7 @@ class FileStore:
             path = new_path
 
         shutil.copy(backup_path, path)  # SELinux needs copy
-        os.remove(backup_path)
+        os.unlink(backup_path)
 
         os.chown(path, int(uid), int(gid))
         os.chmod(path, int(mode))
@@ -281,7 +281,7 @@ class FileStore:
                 continue
 
             shutil.copy(backup_path, path)  # SELinux needs copy
-            os.remove(backup_path)
+            os.unlink(backup_path)
 
             os.chown(path, int(uid), int(gid))
             os.chmod(path, int(mode))
@@ -411,7 +411,7 @@ class StateFile:
         if len(self.modules) == 0:
             logger.debug("  -> no modules, removing file")
             if os.path.exists(self._path):
-                os.remove(self._path)
+                os.unlink(self._path)
             return
 
         p = SafeConfigParser()
