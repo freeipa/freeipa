@@ -1882,3 +1882,21 @@ def get_logsize(host, logfile):
     """ get current logsize"""
     logsize = len(host.get_file_contents(logfile))
     return logsize
+
+
+def ldapmodify_dm(host, ldif_text, **kwargs):
+    """Run ldapmodify as Directory Manager
+
+    :param host: host object
+    :param ldif_text: ldif string
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    # no hard-coded hostname, let ldapmodify pick up the host from ldap.conf.
+    args = [
+        'ldapmodify',
+        '-x',
+        '-D', str(host.config.dirman_dn),  # pylint: disable=no-member
+        '-w', host.config.dirman_password
+    ]
+    return host.run_command(args, stdin_text=ldif_text, **kwargs)
