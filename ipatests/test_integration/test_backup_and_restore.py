@@ -23,7 +23,6 @@ import logging
 import os
 import re
 import contextlib
-from tempfile import NamedTemporaryFile
 import pytest
 
 from ipaplatform.constants import constants
@@ -794,8 +793,6 @@ class TestReplicaInstallAfterRestore(IntegrationTest):
 
         suffix = ipautil.realm_to_suffix(master.domain.realm)
         suffix = escape_dn_chars(str(suffix))
-        tf = NamedTemporaryFile()
-        ldif_file = tf.name
         entry_ldif = (
             "dn: cn=meTo{hostname},cn=replica,"
             "cn={suffix},"
@@ -811,17 +808,8 @@ class TestReplicaInstallAfterRestore(IntegrationTest):
             "nsds5ReplicaEnabled: off").format(
             hostname=replica1.hostname,
             suffix=suffix)
-        master.put_file_contents(ldif_file, entry_ldif)
-
         # disable replication agreement
-        arg = ['ldapmodify',
-               '-ZZ',
-               '-h', master.hostname,
-               '-p', '389', '-D',
-               str(master.config.dirman_dn),  # pylint: disable=no-member
-               '-w', master.config.dirman_password,
-               '-f', ldif_file]
-        master.run_command(arg)
+        tasks.ldapmodify_dm(master, entry_ldif)
 
         # uninstall master.
         tasks.uninstall_master(master, clean=False)

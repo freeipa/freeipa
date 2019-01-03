@@ -130,18 +130,11 @@ class TestExternalCA(IntegrationTest):
         tasks.install_replica(self.master, self.replicas[0])
 
         # check that nsds5ReplicaReleaseTimeout option was set
-        result = self.master.run_command([
-            'ldapsearch',
-            '-x',
-            '-ZZ',
-            '-h', self.master.hostname,
-            '-D', 'cn=directory manager',
-            '-w', self.master.config.dirman_password,
-            '-b', 'cn=mapping tree,cn=config',
-            '(cn=replica)',
-            '-LLL',
-            '-o',
-            'ldif-wrap=no'])
+        result = tasks.ldapsearch_dm(
+            self.master,
+            'cn=mapping tree,cn=config',
+            ['(cn=replica)'],
+        )
         # case insensitive match
         text = result.stdout_text.lower()
         # see ipaserver.install.replication.REPLICA_FINAL_SETTINGS

@@ -303,12 +303,7 @@ def enable_replication_debugging(host, log_level=0):
         replace: nsslapd-errorlog-level
         nsslapd-errorlog-level: {log_level}
         """.format(log_level=log_level))
-    host.run_command(['ldapmodify', '-x', '-ZZ',
-                      '-D', str(host.config.dirman_dn),
-                      '-w', host.config.dirman_password,
-                      ],
-                     stdin_text=logging_ldif)
-
+    ldapmodify_dm(host, logging_ldif)
 
 def set_default_ttl_for_ipa_dns_zone(host, raiseonerr=True):
     args = [
@@ -1613,3 +1608,47 @@ def group_add(host, groupname, extra_args=()):
     ]
     cmd.extend(extra_args)
     return host.run_command(cmd)
+
+
+def ldapmodify_dm(host, ldif_text, **kwargs):
+    """Run ldapmodify as Directory Manager
+
+    :param host: host object
+    :param ldif_text: ldif string
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    # no hard-coded hostname, let ldapmodify pick up the host from ldap.conf.
+    args = [
+        'ldapmodify',
+        '-x',
+        '-D', str(host.config.dirman_dn),  # pylint: disable=no-member
+        '-w', host.config.dirman_password
+    ]
+    return host.run_command(args, stdin_text=ldif_text, **kwargs)
+
+
+def ldapsearch_dm(host, base, ldap_args, scope='sub', **kwargs):
+    """Run ldapsearch as Directory Manager
+
+    :param host: host object
+    :param base: Base DN
+    :param ldap_args: additional arguments to ldapsearch (filter, attributes)
+    :param scope: search scope (base, sub, one)
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapsearch',
+        '-x', '-ZZ',
+        '-h', host.hostname,
+        '-p', '389',
+        '-D', str(host.config.dirman_dn),  # pylint: disable=no-member
+        '-w', host.config.dirman_password,
+        '-s', scope,
+        '-b', base,
+        '-o', 'ldif-wrap=no',
+        '-LLL',
+    ]
+    args.extend(ldap_args)
+    return host.run_command(args, **kwargs)

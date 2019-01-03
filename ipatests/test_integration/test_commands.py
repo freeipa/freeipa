@@ -10,7 +10,6 @@ import re
 import os
 import logging
 import ssl
-from tempfile import NamedTemporaryFile
 from itertools import chain, repeat
 import textwrap
 import time
@@ -124,8 +123,6 @@ class TestIPACommand(IntegrationTest):
         master = self.master
 
         base_dn = str(master.domain.basedn)  # pylint: disable=no-member
-        tf = NamedTemporaryFile()
-        ldif_file = tf.name
         entry_ldif = textwrap.dedent("""
             dn: uid=system,cn=sysaccounts,cn=etc,{base_dn}
             changetype: add
@@ -138,18 +135,28 @@ class TestIPACommand(IntegrationTest):
         """).format(
             base_dn=base_dn,
             original_passwd=original_passwd)
-        master.put_file_contents(ldif_file, entry_ldif)
-        arg = ['ldapmodify',
-               '-ZZ',
-               '-h', master.hostname,
-               '-p', '389', '-D',
-               str(master.config.dirman_dn),   # pylint: disable=no-member
-               '-w', master.config.dirman_password,
-               '-f', ldif_file]
-        master.run_command(arg)
+        tasks.ldapmodify_dm(master, entry_ldif)
 
         tasks.ldappasswd_sysaccount_change(sysuser, original_passwd,
                                            new_passwd, master)
+
+    def get_krbinfo(self, user):
+        base_dn = str(self.master.domain.basedn)  # pylint: disable=no-member
+        result = tasks.ldapsearch_dm(
+            self.master,
+            'uid={user},cn=users,cn=accounts,{base_dn}'.format(
+                user=user, base_dn=base_dn),
+            ['krblastpwdchange', 'krbpasswordexpiration'],
+            scope='base'
+        )
+        output = result.stdout_text.lower()
+
+        # extract krblastpwdchange and krbpasswordexpiration
+        krbchg_pattern = 'krblastpwdchange: (.+)\n'
+        krbexp_pattern = 'krbpasswordexpiration: (.+)\n'
+        krblastpwdchange = re.findall(krbchg_pattern, output)[0]
+        krbexp = re.findall(krbexp_pattern, output)[0]
+        return krblastpwdchange, krbexp
 
     def test_ldapmodify_password_issue7601(self):
         user = 'ipauser'
@@ -173,33 +180,12 @@ class TestIPACommand(IntegrationTest):
             new=original_passwd)
         master.run_command(['kinit', user], stdin_text=user_kinit_stdin_text)
         # Retrieve krblastpwdchange and krbpasswordexpiration
-        search_cmd = [
-            'ldapsearch', '-x', '-ZZ',
-            '-h', master.hostname,
-            '-p', '389',
-            '-D', 'cn=directory manager',
-            '-w', master.config.dirman_password,
-            '-s', 'base',
-            '-b', 'uid={user},cn=users,cn=accounts,{base_dn}'.format(
-                user=user, base_dn=base_dn),
-            '-o', 'ldif-wrap=no',
-            '-LLL',
-            'krblastpwdchange',
-            'krbpasswordexpiration']
-        output = master.run_command(search_cmd).stdout_text.lower()
-
-        # extract krblastpwdchange and krbpasswordexpiration
-        krbchg_pattern = 'krblastpwdchange: (.+)\n'
-        krbexp_pattern = 'krbpasswordexpiration: (.+)\n'
-        krblastpwdchange = re.findall(krbchg_pattern, output)[0]
-        krbexp = re.findall(krbexp_pattern, output)[0]
+        krblastpwdchange, krbexp = self.get_krbinfo(user)
 
         # sleep 1 sec (krblastpwdchange and krbpasswordexpiration have at most
         # a 1s precision)
         time.sleep(1)
         # perform ldapmodify on userpassword as dir mgr
-        mod = NamedTemporaryFile()
-        ldif_file = mod.name
         entry_ldif = textwrap.dedent("""
             dn: uid={user},cn=users,cn=accounts,{base_dn}
             changetype: modify
@@ -209,25 +195,13 @@ class TestIPACommand(IntegrationTest):
             user=user,
             base_dn=base_dn,
             new_passwd=new_passwd)
-        master.put_file_contents(ldif_file, entry_ldif)
-        arg = ['ldapmodify',
-               '-ZZ',
-               '-h', master.hostname,
-               '-p', '389', '-D',
-               str(master.config.dirman_dn),   # pylint: disable=no-member
-               '-w', master.config.dirman_password,
-               '-f', ldif_file]
-        master.run_command(arg)
+        tasks.ldapmodify_dm(master, entry_ldif)
 
         # Test new password with kinit
         master.run_command(['kinit', user], stdin_text=new_passwd)
-        # Retrieve krblastpwdchange and krbpasswordexpiration
-        output = master.run_command(search_cmd).stdout_text.lower()
-        # extract krblastpwdchange and krbpasswordexpiration
-        newkrblastpwdchange = re.findall(krbchg_pattern, output)[0]
-        newkrbexp = re.findall(krbexp_pattern, output)[0]
 
         # both should have changed
+        newkrblastpwdchange, newkrbexp = self.get_krbinfo(user)
         assert newkrblastpwdchange != krblastpwdchange
         assert newkrbexp != krbexp
 
@@ -246,13 +220,9 @@ class TestIPACommand(IntegrationTest):
         )
         # Test new password with kinit
         master.run_command(['kinit', user], stdin_text=new_passwd2)
-        # Retrieve krblastpwdchange and krbpasswordexpiration
-        output = master.run_command(search_cmd).stdout_text.lower()
-        # extract krblastpwdchange and krbpasswordexpiration
-        newkrblastpwdchange2 = re.findall(krbchg_pattern, output)[0]
-        newkrbexp2 = re.findall(krbexp_pattern, output)[0]
 
         # both should have changed
+        newkrblastpwdchange2, newkrbexp2 = self.get_krbinfo(user)
         assert newkrblastpwdchange != newkrblastpwdchange2
         assert newkrbexp != newkrbexp2
 
