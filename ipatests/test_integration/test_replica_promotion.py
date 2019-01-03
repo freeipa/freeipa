@@ -6,7 +6,6 @@ from __future__ import absolute_import
 
 import time
 import re
-from tempfile import NamedTemporaryFile
 import textwrap
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -388,8 +387,6 @@ class TestReplicaInstallWithExistingEntry(IntegrationTest):
         master = self.master
         tasks.install_master(master)
         replica = self.replicas[0]
-        tf = NamedTemporaryFile()
-        ldif_file = tf.name
         base_dn = "dc=%s" % (",dc=".join(replica.domain.name.split(".")))
         # adding entry for replica on master so that master will have it before
         # replica installtion begins and creates a situation for pagure-7174
@@ -405,15 +402,7 @@ class TestReplicaInstallWithExistingEntry(IntegrationTest):
             memberPrincipal: ldap/{hostname}@{realm}""").format(
             base_dn=base_dn, hostname=replica.hostname,
             realm=replica.domain.name.upper())
-        master.put_file_contents(ldif_file, entry_ldif)
-        arg = ['ldapmodify',
-               '-ZZ',
-               '-h', master.hostname,
-               '-p', '389', '-D',
-               str(master.config.dirman_dn),   # pylint: disable=no-member
-               '-w', master.config.dirman_password,
-               '-f', ldif_file]
-        master.run_command(arg)
+        tasks.ldapmodify_dm(master, entry_ldif)
 
         tasks.install_replica(master, replica)
 
