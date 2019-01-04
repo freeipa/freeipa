@@ -72,23 +72,6 @@ from ipaserver.masters import ENABLED_SERVICE
 
 logger = logging.getLogger(__name__)
 
-# We need to reset the template because the CA uses the regular boot
-# information
-INF_TEMPLATE = """
-[General]
-FullMachineName=   $FQDN
-SuiteSpotUserID=   $USER
-SuiteSpotGroup=    $GROUP
-ServerRoot=    $SERVER_ROOT
-[slapd]
-ServerPort=   $DSPORT
-ServerIdentifier=   $SERVERID
-Suffix=   $SUFFIX
-RootDN=   cn=Directory Manager
-RootDNPwd= $PASSWORD
-ConfigFile = /usr/share/pki/ca/conf/database.ldif
-"""
-
 
 ADMIN_GROUPS = [
     'Enterprise CA Administrators',
