@@ -96,6 +96,11 @@
 # https://pagure.io/389-ds-base/issue/49818
 %global ds_version 1.4.0.16-1
 
+# Don't use Fedora's Python dependency generator on Fedora 30/rawhide yet.
+# Some packages don't provide new dist aliases.
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/Python/
+%{?python_disable_dependency_generator}
+
 %endif  # Fedora
 
 # Require Dogtag PKI 10.6.8-3 (10.6.7 was never pushed to stable)
