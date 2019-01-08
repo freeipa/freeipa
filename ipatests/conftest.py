@@ -131,11 +131,17 @@ def pytest_cmdline_main(config):
 
 def pytest_runtest_setup(item):
     if isinstance(item, pytest.Function):
-        if item.get_marker('skip_ipaclient_unittest'):
+        # pytest 3.6 has deprecated get_marker in 3.6. The method was
+        # removed in 4.x and replaced with get_closest_marker.
+        if hasattr(item, 'get_closest_marker'):
+            get_marker = item.get_closest_marker  # pylint: disable=no-member
+        else:
+            get_marker = item.get_marker  # pylint: disable=no-member
+        if get_marker('skip_ipaclient_unittest'):
             # pylint: disable=no-member
             if pytest.config.option.ipaclient_unittests:
                 pytest.skip("Skip in ipaclient unittest mode")
-        if item.get_marker('needs_ipaapi'):
+        if get_marker('needs_ipaapi'):
             # pylint: disable=no-member
             if pytest.config.option.skip_ipaapi:
                 pytest.skip("Skip tests that needs an IPA API")
