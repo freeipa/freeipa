@@ -1456,7 +1456,7 @@ def run(api):
         (_options, argv) = api.bootstrap_with_global_options(context='cli')
 
         try:
-            check_client_configuration()
+            check_client_configuration(env=api.env)
         except ScriptError as e:
             sys.exit(e)
 
