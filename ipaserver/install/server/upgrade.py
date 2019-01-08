@@ -1670,20 +1670,20 @@ def ntpd_cleanup(fqdn, fstore):
             instance.disable()
             instance.stop()
         except Exception as e:
-            logger.info("Service ntpd was not disabled or stopped")
+            logger.debug("Service ntpd was not disabled or stopped")
 
     for ntpd_file in [paths.NTP_CONF, paths.NTP_STEP_TICKERS,
                       paths.SYSCONFIG_NTPD]:
         try:
             fstore.restore_file(ntpd_file)
         except ValueError as e:
-            logger.warning(e)
+            logger.debug(e)
 
     try:
         api.Backend.ldap2.delete_entry(DN(('cn', 'NTP'), ('cn', fqdn),
                                        api.env.container_masters))
     except ipalib.errors.NotFound:
-        logger.warning("Warning: NTP service entry was not found in LDAP.")
+        logger.debug("NTP service entry was not found in LDAP.")
 
     ntp_role_instance = servroles.ServiceBasedRole(
          u"ntp_server_server",
