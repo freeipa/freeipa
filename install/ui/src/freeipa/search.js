@@ -291,7 +291,8 @@ IPA.search_facet = function(spec, no_init) {
             name: that.get_search_command_name(),
             entity: that.managed_entity.name,
             method: 'find',
-            args: args
+            args: args,
+            suppress_warnings: [rpc.errors.search_result_truncated]
         });
 
         command.set_options(that.get_refresh_command_options());
