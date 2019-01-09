@@ -1105,5 +1105,14 @@ rpc.extract_objects = function(values) {
     return values;
 };
 
+/**
+ * Server side error/warning codes
+ *
+ * Add new errors from ipalib.messages only if necessary.
+ */
+rpc.errors = {
+    search_result_truncated: 13017
+};
+
 return rpc;
 });
