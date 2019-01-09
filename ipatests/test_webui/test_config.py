@@ -165,6 +165,32 @@ class test_config(UI_driver):
         self.facet_button_click('save')
 
     @screenshot
+    def test_size_limit_notification(self):
+        """
+        Test if no notification is shown when size limit exceeded
+        """
+        self.init_app()
+        self.navigate_to_entity(config_data.ENTITY)
+
+        size_limit_s = 'ipasearchrecordslimit'
+        def_val = self.get_field_value(size_limit_s)
+
+        self.fill_input(size_limit_s, '10')
+        self.facet_button_click('save')
+
+        self.navigate_to_entity('cert')
+        # wait for a half sec for notification to appear
+        self.wait(0.5)
+        warning = self.find_by_selector('div.notification-area .alert-warning')
+        try:
+            assert not warning, "Warning present: {}".format(warning.text)
+        finally:
+            # restore previous value
+            self.navigate_to_entity(config_data.ENTITY)
+            self.fill_input(size_limit_s, def_val)
+            self.facet_button_click('save')
+
+    @screenshot
     def test_time_limits(self):
         """
         Test "Search time limit" field
