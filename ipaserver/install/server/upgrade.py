@@ -1687,6 +1687,41 @@ def update_replica_config(db_suffix):
         logger.info("Updated entry %s", dn)
 
 
+def add_systemd_user_hbac():
+    logger.info('[Create systemd-user hbac service and rule]')
+    rule = 'allow_systemd-user'
+    service = 'systemd-user'
+    try:
+        api.Command.hbacsvc_add(
+            service,
+            description='pam_systemd and systemd user@.service'
+        )
+    except ipalib.errors.DuplicateEntry:
+        logger.info('hbac service %s already exists', service)
+        # Don't create hbac rule when hbacsvc already exists, so the rule
+        # does not get re-created after it has been deleted by an admin.
+        return
+    else:
+        logger.info('Created hbacsvc %s', service)
+
+    try:
+        api.Command.hbacrule_add(
+            rule,
+            description=('Allow pam_systemd to run user@.service to create '
+                         'a system user session'),
+            usercategory='all',
+            hostcategory='all',
+        )
+    except ipalib.errors.DuplicateEntry:
+        logger.info('hbac rule %s already exists', rule)
+    else:
+        api.Command.hbacrule_add_service(
+            rule,
+            hbacsvc=(service,)
+        )
+        logger.info('Created hbac rule %s with hbacsvc=%s', rule, service)
+
+
 def fix_permissions():
     """Fix permission of public accessible files and directories
 
@@ -1992,6 +2027,8 @@ def upgrade_configuration():
         cainstance.repair_profile_caIPAserviceCert()
         ca.setup_lightweight_ca_key_retrieval()
         cainstance.ensure_ipa_authority_entry()
+
+    add_systemd_user_hbac()
 
     sssd_update()
 
