@@ -50,11 +50,14 @@ steps:
   install_packages:
   - sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf
   - dnf install -y ${container_working_dir}/dist/rpms/*.rpm --best --allowerasing
+  - dnf install -y firewalld
+  - systemctl --now enable firewalld
   install_server:
   - ipa-server-install -U --domain ${server_domain} --realm ${server_realm} -p ${server_password}
     -a ${server_password} --setup-dns --setup-kra --auto-forwarders
   - sed -ri "s/mode = production/mode = development/" /etc/ipa/default.conf
   - systemctl restart httpd.service
+  - firewall-cmd --add-service={freeipa-ldap,freeipa-ldaps,dns}
   lint:
   - make V=0 lint
   webui_unit:
@@ -78,6 +81,7 @@ steps:
   - ipa-server-install --uninstall -U
   # second uninstall to verify that --uninstall without installation works
   - ipa-server-install --uninstall -U
+  - firewall-cmd --remove-service={freeipa-ldap,freeipa-ldaps,dns}
 tests:
   ignore:
   - test_integration
