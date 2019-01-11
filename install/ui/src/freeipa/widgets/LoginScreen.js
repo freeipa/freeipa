@@ -60,7 +60,7 @@ define(['dojo/_base/declare',
         kerberos_msg: "<i class=\"fa fa-info-circle\"></i> To log in with " +
             "<strong>Kerberos</strong>, please make sure you" +
             " have valid tickets (obtainable via kinit) and <a href=" +
-            "'http://${host}/ipa/config/ssbrowser.html'>configured</a>" +
+            "'${protocol}//${host}/ipa/config/ssbrowser.html'>configured</a>" +
             " the browser correctly, then click Login. ",
         cert_msg: "<i class=\"fa fa-info-circle\"></i> To log in with " +
             "<strong>certificate</strong>, please make sure you have valid " +
@@ -582,9 +582,9 @@ define(['dojo/_base/declare',
                 this.continue_msg
             );
 
-            this.kerberos_msg = this.kerberos_msg.replace(
-                '${host}', window.location.hostname
-            );
+            this.kerberos_msg = this.kerberos_msg
+                .replace('${protocol}', window.location.protocol)
+                .replace('${host}', window.location.hostname);
 
             this.password_change_complete = text.get(
                 spec.password_change_complete ||
