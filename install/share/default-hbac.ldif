@@ -12,3 +12,16 @@ ipaenabledflag: TRUE
 description: Allow all users to access any host from any host
 ipauniqueid: autogenerate
 
+# default HBAC policy for pam_systemd
+dn: ipauniqueid=autogenerate,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipaassociation
+objectclass: ipahbacrule
+cn: allow_systemd-user
+accessruletype: allow
+usercategory: all
+hostcategory: all
+servicecategory: systemd-user
+ipaenabledflag: TRUE
+description: Allow pam_systemd to run user@.service to create a system user session
+ipauniqueid: autogenerate
