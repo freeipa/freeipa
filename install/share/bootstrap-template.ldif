@@ -346,6 +346,14 @@ cn: sudo-i
 description: sudo-i
 ipauniqueid:autogenerate
 
+dn: cn=systemd-user,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: systemd-user
+description: pam_systemd and systemd user@.service
+ipauniqueid:autogenerate
+
 dn: cn=gdm,cn=hbacservices,cn=hbac,$SUFFIX
 changetype: add
 objectclass: ipahbacservice
