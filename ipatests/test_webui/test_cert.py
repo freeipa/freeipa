@@ -44,26 +44,6 @@ def search_pkey(self, pkey):
     self.wait_for_request(n=2)
 
 
-def add_cert(self, principal, csr):
-    self.facet_button_click('request_cert')
-    self.fill_textbox('principal', principal)
-    self.check_option('add', 'checked')
-    self.fill_textarea('csr', csr)
-    self.dialog_button_click('issue')
-    self.assert_notification(assert_text='Certificate requested')
-    self.navigate_to_entity(ENTITY)
-    rows = self.get_rows()
-    return rows[-1]
-
-
-def revoke_cert(self, record, reason):
-    self.navigate_to_entity(ENTITY)
-    self.navigate_to_row_record(record)
-    self.action_list_action('revoke_cert', False)
-    self.select('select[name=revocation_reason]', reason)
-    self.dialog_button_click('ok')
-
-
 def check_option_negative(self, date, option):
     self.navigate_to_entity(ENTITY)
     self.select('select[name=search_option]', option)
@@ -108,6 +88,29 @@ class test_cert(UI_driver):
 
         if not self.has_ca():
             self.skip('CA not configured')
+
+    def _add_and_revoke_cert(self, reason='1'):
+        hostname = self.config.get('ipa_server')
+        csr = generate_csr(hostname)
+
+        self.navigate_to_entity(ENTITY)
+        self.facet_button_click('request_cert')
+        self.fill_textbox('principal', 'HTTP/{}'.format(hostname))
+        self.check_option('add', 'checked')
+        self.fill_textarea('csr', csr)
+        self.dialog_button_click('issue')
+        self.assert_notification(assert_text='Certificate requested')
+        self.navigate_to_entity(ENTITY)
+        rows = self.get_rows()
+        cert = rows[-1]
+
+        self.navigate_to_row_record(cert)
+        self.action_list_action('revoke_cert', False)
+        self.select('select[name=revocation_reason]', reason)
+        self.dialog_button_click('ok')
+        self.navigate_to_entity(ENTITY)
+
+        return cert
 
     @screenshot
     def test_read(self):
@@ -160,18 +163,11 @@ class test_cert(UI_driver):
         Try to search certificates by revocation reason
         """
         self.init_app()
-        self.navigate_to_entity(ENTITY)
 
-        # add a new cert
-        hostname = self.config.get('ipa_server')
-        csr = generate_csr(hostname)
-        record = add_cert(self, 'HTTP/{}'.format(hostname), csr)
-
-        # revoke added cert
-        revoke_cert(self, record, '1')
+        # revoke new certificate
+        self._add_and_revoke_cert()
 
         # search cert by revocation reason
-        self.navigate_to_entity(ENTITY)
         self.select('select[name=search_option]', 'revocation_reason')
         search_pkey(self, '1')
         rows = self.get_rows()
@@ -248,7 +244,10 @@ class test_cert(UI_driver):
         """
         today = date.today()
         self.init_app()
-        self.navigate_to_entity(ENTITY)
+
+        # revoke new certificate
+        self._add_and_revoke_cert()
+
         self.select('select[name=search_option]', 'validnotafter_from')
         search_pkey(self, str(today))
         rows = self.get_rows()
@@ -284,7 +283,10 @@ class test_cert(UI_driver):
         """
         today = date.today()
         self.init_app()
-        self.navigate_to_entity(ENTITY)
+
+        # revoke new certificate
+        self._add_and_revoke_cert()
+
         self.select('select[name=search_option]', 'validnotafter_to')
         search_pkey(self, str(today + timedelta(weeks=52 * 30)))
         rows = self.get_rows()
@@ -320,7 +322,10 @@ class test_cert(UI_driver):
         """
         today = date.today()
         self.init_app()
-        self.navigate_to_entity(ENTITY)
+
+        # revoke new certificate
+        self._add_and_revoke_cert()
+
         self.select('select[name=search_option]', 'validnotbefore_from')
         search_pkey(self, str(today))
         rows = self.get_rows()
@@ -356,7 +361,10 @@ class test_cert(UI_driver):
         """
         today = date.today()
         self.init_app()
-        self.navigate_to_entity(ENTITY)
+
+        # revoke new certificate
+        self._add_and_revoke_cert()
+
         self.select('select[name=search_option]', 'validnotbefore_to')
         search_pkey(self, str(today + timedelta(weeks=52 * 30)))
         rows = self.get_rows()
@@ -392,7 +400,10 @@ class test_cert(UI_driver):
         """
         today = date.today()
         self.init_app()
-        self.navigate_to_entity(ENTITY)
+
+        # revoke new certificate
+        self._add_and_revoke_cert()
+
         self.select('select[name=search_option]', 'issuedon_from')
         search_pkey(self, str(today))
         rows = self.get_rows()
@@ -424,7 +435,10 @@ class test_cert(UI_driver):
         """
         today = date.today()
         self.init_app()
-        self.navigate_to_entity(ENTITY)
+
+        # revoke new certificate
+        self._add_and_revoke_cert()
+
         self.select('select[name=search_option]', 'issuedon_to')
         search_pkey(self, str(today))
         rows = self.get_rows()
@@ -456,7 +470,10 @@ class test_cert(UI_driver):
         """
         today = date.today()
         self.init_app()
-        self.navigate_to_entity(ENTITY)
+
+        # revoke new certificate
+        self._add_and_revoke_cert()
+
         self.select('select[name=search_option]', 'revokedon_from')
         search_pkey(self, str(today))
         rows = self.get_rows()
@@ -488,7 +505,10 @@ class test_cert(UI_driver):
         """
         today = date.today()
         self.init_app()
-        self.navigate_to_entity(ENTITY)
+
+        # revoke new certificate
+        self._add_and_revoke_cert()
+
         self.select('select[name=search_option]', 'revokedon_to')
         search_pkey(self, str(today))
         rows = self.get_rows()
