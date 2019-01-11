@@ -175,6 +175,8 @@ class test_service(sevice_tasks):
         self.wait_for_request(n=2, d=3)
         self.assert_visible(cert_widget_sel)
 
+        widget = self.find(cert_widget_sel, By.CSS_SELECTOR)
+
         # cert view
         self.action_list_action('view', confirm=False,
                                 parents_css_sel=cert_widget_sel)
@@ -215,7 +217,8 @@ class test_service(sevice_tasks):
         self.wait()
         self.select('select', '6')
         self.dialog_button_click('ok')
-        self.wait_for_request(n=2, d=3)
+        self.wait_while_working(widget)
+
         self.assert_visible(cert_widget_sel + " div.watermark")
 
         # check that revoke action is not enabled
@@ -238,7 +241,7 @@ class test_service(sevice_tasks):
                                 parents_css_sel=cert_widget_sel)
         self.wait()
         self.dialog_button_click('ok')
-        self.wait_for_request(n=2)
+        self.wait_while_working(widget)
 
         # check that revoke action is enabled
         self.assert_action_list_action('revoke',
@@ -263,6 +266,8 @@ class test_service(sevice_tasks):
         self.wait()
         self.select('select', '1')
         self.dialog_button_click('ok')
+        self.close_notifications()
+        self.wait_while_working(widget)
 
         # check that revoke action is not enabled
         self.assert_action_list_action('revoke', enabled=False,
