@@ -358,6 +358,19 @@ class UI_driver(object):
             self.wait()
         self.wait(d)
 
+    def wait_while_working(self, widget, implicit=0.2):
+        """
+        Wait while working widget active
+        """
+
+        working_widget = self.find('.working-widget', By.CSS_SELECTOR, widget)
+
+        self.wait(implicit)
+        WebDriverWait(self.driver, self.request_timeout).until_not(
+            lambda d: working_widget.is_displayed()
+        )
+        self.wait(0.5)
+
     def xpath_has_val(self, attr, val):
         """
         Create xpath expression for matching a presence of item in attribute
