@@ -389,9 +389,9 @@ class i18n_messages(Command):
             "krb_auth_msg": _(
                 "<i class=\"fa fa-info-circle\"></i> To log in with "
                 "<strong>Kerberos</strong>, please make sure you have valid "
-                "tickets (obtainable via kinit) and <a href='http://${host}/"
-                "ipa/config/ssbrowser.html'>configured</a> the browser "
-                "correctly, then click 'Log in'."),
+                "tickets (obtainable via kinit) and <a href='${protocol}//"
+                "${host}/ipa/config/ssbrowser.html'>configured</a> the browser"
+                " correctly, then click 'Log in'."),
             "loading": _("Loading"),
             "krbprincipal_expired": _(
                 "Kerberos Principal you entered is expired"),
