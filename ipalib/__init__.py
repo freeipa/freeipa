@@ -722,7 +722,7 @@ Key            Example value                  Description
 =============  =============================  =======================
 bin            '/usr/bin'                     Dir. containing script
 dot_ipa        '/home/jderose/.ipa'           User config directory
-home           os.environ['HOME']             User home dir.
+home           os.path.expanduser('~')        User home dir.
 ipalib         '.../site-packages/ipalib'     Dir. of ipalib package
 mode           'unit_test'                    The mode ipalib is in
 script         sys.argv[0]                    Path of script
