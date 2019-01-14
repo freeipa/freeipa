@@ -225,7 +225,7 @@ DEFAULT_CONFIG = (
     ('site_packages', object),  # The directory contaning ipalib
     ('script', object),  # sys.argv[0]
     ('bin', object),  # The directory containing the script
-    ('home', object),  # $HOME
+    ('home', object),  # os.path.expanduser('~')
 
     # Vars set in Env._bootstrap():
     ('in_tree', object),  # Whether or not running in-tree (bool)
@@ -313,13 +313,7 @@ TLS_VERSION_MINIMAL = "tls1.0"
 # Use cache path
 USER_CACHE_PATH = (
     os.environ.get('XDG_CACHE_HOME') or
-    os.path.join(
-        os.environ.get(
-            'HOME',
-            os.path.expanduser('~')
-        ),
-        '.cache'
-    )
+    os.path.expanduser('~/.cache')
 )
 
 SOFTHSM_DNSSEC_TOKEN_LABEL = u'ipaDNSSEC'
