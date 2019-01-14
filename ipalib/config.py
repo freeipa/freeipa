@@ -450,7 +450,8 @@ class Env:
         self.site_packages = path.dirname(self.ipalib)
         self.script = path.abspath(sys.argv[0])
         self.bin = path.dirname(self.script)
-        self.home = os.environ.get('HOME', None)
+        home = os.path.expanduser('~')
+        self.home = home if not home.startswith('~') else None
         self.fips_mode = tasks.is_fips_enabled()
 
         # Merge in overrides:
