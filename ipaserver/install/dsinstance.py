@@ -526,6 +526,10 @@ class DsInstance(service.Service):
         self.backup_state("serverid", self.serverid)
         self.fstore.backup_file(paths.SYSCONFIG_DIRSRV)
 
+        # workaround for https://pagure.io/389-ds-base/issue/50152
+        if 'HOME' not in os.environ:
+            os.environ['HOME'] = api.env.home
+
         # The new installer is api driven. We can pass it a log function
         # and it will use it. Because of this, we can pass verbose true,
         # and allow our logger to control the display based on level.
