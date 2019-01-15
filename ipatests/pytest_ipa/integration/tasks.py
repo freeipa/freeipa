@@ -482,8 +482,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     return result
 
 
-def install_client(master, client, extra_args=(),
-                   user=None, password=None):
+def install_client(master, client, extra_args=(), user=None, password=None,
+                   raiseonerr=True):
     client.collect_log(paths.IPACLIENT_INSTALL_LOG)
 
     apply_common_fixes(client)
@@ -500,16 +500,21 @@ def install_client(master, client, extra_args=(),
     if password is None:
         password = client.config.admin_password
 
-    client.run_command(['ipa-client-install', '-U',
-                        '--domain', client.domain.name,
-                        '--realm', client.domain.realm,
-                        '-p', user,
-                        '-w', password,
-                        '--server', master.hostname]
-                       + list(extra_args))
-
+    result = client.run_command(
+        [
+            'ipa-client-install', '-U',
+            '--domain', client.domain.name,
+            '--realm', client.domain.realm,
+            '-p', user,
+            '-w', password,
+            '--server', master.hostname
+        ] + list(extra_args),
+        raiseonerr=raiseonerr
+    )
     setup_sssd_debugging(client)
-    kinit_admin(client)
+    if result.returncode == 0:
+        kinit_admin(client)
+    return result
 
 
 def install_adtrust(host):

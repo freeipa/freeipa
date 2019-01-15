@@ -1,7 +1,6 @@
 #
 # Copyright (C) 2018  FreeIPA Contributors see COPYING for license
 #
-
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
@@ -22,20 +21,20 @@ class TestNTPoptions(IntegrationTest):
         cls.client = cls.clients[0]
         cls.replica = cls.replicas[0]
 
+    def teardown_method(self, method):
+        tasks.uninstall_client(self.client)
+        tasks.uninstall_master(self.replica)
+        tasks.uninstall_master(self.master)
+
     def install_client(self, *args):
-        cmd = ['ipa-client-install', '-U',
-               '--domain', self.client.domain.name,
-               '--realm', self.client.domain.realm,
-               '-p', self.client.config.admin_name,
-               '-w', self.client.config.admin_password,
-               '--server', self.master.hostname, *args]
-        return self.client.run_command(cmd, raiseonerr=False)
+        return tasks.install_client(
+            self.master, self.client, extra_args=args, raiseonerr=False
+        )
 
     def install_replica(self, *args):
-        cmd = ['ipa-replica-install', '-w', self.master.config.admin_password,
-               '-n', self.master.domain.name, '-r', self.master.domain.realm,
-               '--server', self.master.hostname, '-U', *args]
-        return self.replica.run_command(cmd, raiseonerr=False)
+        return tasks.install_replica(
+            self.master, self.replica, extra_args=args, raiseonerr=False
+        )
 
     def test_server_client_install_without_options(self):
         """
@@ -54,8 +53,6 @@ class TestNTPoptions(IntegrationTest):
         assert expected_msg1 in client_install.stderr_text
         assert expected_msg2 in client_install.stdout_text
 
-        self.cleanup()
-
     def test_server_client_install_no_ntp(self):
         """
         test to verify that ipa-server and ipa-client install invoked with
@@ -71,8 +68,6 @@ class TestNTPoptions(IntegrationTest):
 
         client_install = self.install_client('--no-ntp')
         assert expected_msg2 not in client_install.stdout_text
-
-        self.cleanup()
 
     def test_server_client_install_with_multiple_ntp_srv(self):
         """
@@ -98,8 +93,6 @@ class TestNTPoptions(IntegrationTest):
         cmd = self.client.run_command(['cat', paths.CHRONY_CONF])
         assert ntp_server1 in cmd.stdout_text
         assert ntp_server2 in cmd.stdout_text
-
-        self.cleanup()
 
     def test_server_replica_client_install_with_pool_and_srv(self):
         """
@@ -133,8 +126,6 @@ class TestNTPoptions(IntegrationTest):
         assert ntp_pool in cmd.stdout_text
         assert ntp_server in cmd.stdout_text
         tasks.uninstall_master(self.replica)
-
-        self.cleanup()
 
     def test_server_client_install_mixed_options(self):
         """
@@ -175,27 +166,22 @@ class TestNTPoptions(IntegrationTest):
         tasks.install_master(self.master, setup_dns=False)
         tasks.install_client(self.master, self.replica)
 
-        try:
-            replica_install = self.replica.run_command(
-                ['ipa-replica-install', '-N'], raiseonerr=False)
-            assert replica_install.returncode == 1
-            assert exp_str in replica_install.stderr_text
+        replica_install = self.replica.run_command(
+            ['ipa-replica-install', '-N'], raiseonerr=False)
+        assert replica_install.returncode == 1
+        assert exp_str in replica_install.stderr_text
 
-            replica_install = self.replica.run_command(
-                ['ipa-replica-install', '--ntp-server=%s' % ntp_server],
-                raiseonerr=False)
-            assert replica_install.returncode == 1
-            assert exp_str in replica_install.stderr_text
+        replica_install = self.replica.run_command(
+            ['ipa-replica-install', '--ntp-server=%s' % ntp_server],
+            raiseonerr=False)
+        assert replica_install.returncode == 1
+        assert exp_str in replica_install.stderr_text
 
-            replica_install = self.replica.run_command(
-                ['ipa-replica-install', '--ntp-pool=%s' % ntp_pool],
-                raiseonerr=False)
-            assert replica_install.returncode == 1
-            assert exp_str in replica_install.stderr_text
-
-        finally:
-            tasks.uninstall_master(self.replica)
-            self.cleanup()
+        replica_install = self.replica.run_command(
+            ['ipa-replica-install', '--ntp-pool=%s' % ntp_pool],
+            raiseonerr=False)
+        assert replica_install.returncode == 1
+        assert exp_str in replica_install.stderr_text
 
     def test_replica_promotion_without_ntp(self):
         """
@@ -211,17 +197,11 @@ class TestNTPoptions(IntegrationTest):
         tasks.install_client(self.master, self.replica,
                              extra_args=['--ntp-pool=%s' % ntp_pool])
 
-        replica_install = self.replica.run_command(
-            ['ipa-replica-install'], raiseonerr=False)
+        replica_install = tasks.install_replica(
+            self.master, self.replica, setup_dns=False
+        )
         assert exp_str in replica_install.stderr_text
         cmd = self.replica.run_command(['cat', paths.CHRONY_CONF])
         assert ntp_pool in cmd.stdout_text
 
         tasks.uninstall_master(self.replica)
-
-    def cleanup(self):
-        """
-        Uninstall ipa-server and ipa-client
-        """
-        tasks.uninstall_client(self.client)
-        tasks.uninstall_master(self.master)
