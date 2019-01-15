@@ -880,10 +880,13 @@ class BindInstance(service.Service):
 
         # Add forward and reverse records to self
         for addr in addrs:
-            try:
+            # Check first if the zone is a master zone
+            # (if it is a forward zone, dns_zone_exists will return False)
+            if dns_zone_exists(zone, api=self.api):
                 add_fwd_rr(zone, host, addr, self.api)
-            except errors.NotFound:
-                pass
+            else:
+                logger.debug("Skip adding record %s to a zone %s "
+                             "not managed by IPA", addr, zone)
 
             reverse_zone = find_reverse_zone(addr, self.api)
             if reverse_zone:
@@ -1098,6 +1101,10 @@ class BindInstance(service.Service):
         self.host = host
         self.fqdn = fqdn
         self.domain = domain_name
+
+        if not dns_zone_exists(zone, api=self.api):
+            # Zone may be a forward zone, skip update
+            return
 
         areclist = get_fwd_rr(zone, host, api=self.api)
         for rdata in areclist:
