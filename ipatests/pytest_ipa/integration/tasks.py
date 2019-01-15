@@ -430,7 +430,7 @@ def config_replica_resolvconf_with_master_data(master, replica):
 def install_replica(master, replica, setup_ca=True, setup_dns=False,
                     setup_kra=False, setup_adtrust=False, extra_args=(),
                     domain_level=None, unattended=True, stdin_text=None,
-                    raiseonerr=True):
+                    raiseonerr=True, promote=False):
     if domain_level is None:
         domain_level = domainlevel(master)
     check_domain_level(domain_level)
@@ -441,9 +441,12 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     fw_services = ["freeipa-ldap", "freeipa-ldaps"]
     # Otherwise ipa-client-install would not create a PTR
     # and replica installation would fail
-    args = ['ipa-replica-install',
+    args = ['ipa-replica-install']
+    if not promote:
+        args.extend([
             '-p', replica.config.dirman_password,
-            '-w', replica.config.admin_password]
+            '-w', replica.config.admin_password
+        ])
     if unattended:
         args.append('-U')
     if setup_ca:

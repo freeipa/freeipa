@@ -52,7 +52,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-29/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
+        test_suite: test_integration/test_ntp_options.py::TestNTPoptions
         template: *ci-master-f29
-        timeout: 3600
+        timeout: 7200
         topology: *master_1repl_1client

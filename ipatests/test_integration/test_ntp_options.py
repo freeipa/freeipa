@@ -24,16 +24,19 @@ class TestNTPoptions(IntegrationTest):
     def teardown_method(self, method):
         tasks.uninstall_client(self.client)
         tasks.uninstall_master(self.replica)
+        tasks.uninstall_client(self.replica)
         tasks.uninstall_master(self.master)
 
-    def install_client(self, *args):
+    def install_client(self, extra_args=()):
         return tasks.install_client(
-            self.master, self.client, extra_args=args, raiseonerr=False
+            self.master, self.client, extra_args=extra_args,
+            raiseonerr=False
         )
 
-    def install_replica(self, *args):
+    def install_replica(self, extra_args=(), promote=False):
         return tasks.install_replica(
-            self.master, self.replica, extra_args=args, raiseonerr=False
+            self.master, self.replica, extra_args=extra_args,
+            setup_dns=False, promote=promote, raiseonerr=False
         )
 
     def test_server_client_install_without_options(self):
@@ -66,7 +69,7 @@ class TestNTPoptions(IntegrationTest):
         assert expected_msg1 in server_install.stdout_text
         assert expected_msg2 not in server_install.stdout_text
 
-        client_install = self.install_client('--no-ntp')
+        client_install = self.install_client(['--no-ntp'])
         assert expected_msg2 not in client_install.stdout_text
 
     def test_server_client_install_with_multiple_ntp_srv(self):
@@ -87,8 +90,9 @@ class TestNTPoptions(IntegrationTest):
         assert ntp_server1 in cmd.stdout_text
         assert ntp_server2 in cmd.stdout_text
 
-        client_install = self.install_client('--ntp-server=%s' % ntp_server1,
-                                             '--ntp-server=%s' % ntp_server2)
+        client_install = self.install_client(
+            ['--ntp-server=%s' % ntp_server1, '--ntp-server=%s' % ntp_server2]
+        )
         assert expected_msg in client_install.stderr_text
         cmd = self.client.run_command(['cat', paths.CHRONY_CONF])
         assert ntp_server1 in cmd.stdout_text
@@ -112,20 +116,22 @@ class TestNTPoptions(IntegrationTest):
         assert ntp_pool in cmd.stdout_text
         assert ntp_server in cmd.stdout_text
 
-        replica_install = self.install_replica('--ntp-pool=%s' % ntp_pool,
-                                               '--ntp-server=%s' % ntp_server)
+        replica_install = self.install_replica(
+            ['--ntp-pool=%s' % ntp_pool, '--ntp-server=%s' % ntp_server],
+            promote=False
+        )
         assert expected_msg in replica_install.stderr_text
         cmd = self.replica.run_command(['cat', paths.CHRONY_CONF])
         assert ntp_pool in cmd.stdout_text
         assert ntp_server in cmd.stdout_text
 
-        client_install = self.install_client('--ntp-pool=%s' % ntp_pool,
-                                             '--ntp-server=%s' % ntp_server)
+        client_install = self.install_client(
+            ['--ntp-pool=%s' % ntp_pool, '--ntp-server=%s' % ntp_server]
+        )
         assert expected_msg in client_install.stderr_text
         cmd = self.client.run_command(['cat', paths.CHRONY_CONF])
         assert ntp_pool in cmd.stdout_text
         assert ntp_server in cmd.stdout_text
-        tasks.uninstall_master(self.replica)
 
     def test_server_client_install_mixed_options(self):
         """
@@ -194,14 +200,12 @@ class TestNTPoptions(IntegrationTest):
         exp_str = "ipa-replica-install command was successful"
 
         tasks.install_master(self.master, setup_dns=False)
-        tasks.install_client(self.master, self.replica,
-                             extra_args=['--ntp-pool=%s' % ntp_pool])
-
-        replica_install = tasks.install_replica(
-            self.master, self.replica, setup_dns=False
+        tasks.install_client(
+            self.master, self.replica,
+            extra_args=['--ntp-pool=%s' % ntp_pool]
         )
+
+        replica_install = self.install_replica(promote=True)
         assert exp_str in replica_install.stderr_text
         cmd = self.replica.run_command(['cat', paths.CHRONY_CONF])
         assert ntp_pool in cmd.stdout_text
-
-        tasks.uninstall_master(self.replica)
