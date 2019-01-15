@@ -438,11 +438,17 @@ class TestIPACommand(IntegrationTest):
         tasks.kinit_admin(self.master)
         # check for presence
         self.master.run_command(
-            ['ipa', 'hbacrule-show', 'allow_systemd-user']
-        )
-        self.master.run_command(
             ['ipa', 'hbacsvc-show', 'systemd-user']
         )
+        result = self.master.run_command(
+            ['ipa', 'hbacrule-show', 'allow_systemd-user', '--all']
+        )
+        lines = set(l.strip() for l in result.stdout_text.split('\n'))
+        assert 'User category: all' in lines
+        assert 'Host category: all' in lines
+        assert 'Enabled: TRUE' in lines
+        assert 'Services: systemd-user' in lines
+        assert 'accessruletype: allow' in lines
 
         # delete both
         self.master.run_command(
