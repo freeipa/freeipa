@@ -21,7 +21,7 @@ cn: allow_systemd-user
 accessruletype: allow
 usercategory: all
 hostcategory: all
-servicecategory: systemd-user
+memberService: cn=systemd-user,cn=hbacservices,cn=hbac,$SUFFIX
 ipaenabledflag: TRUE
 description: Allow pam_systemd to run user@.service to create a system user session
 ipauniqueid: autogenerate
