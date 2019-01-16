@@ -89,28 +89,6 @@ class TestClientInstallation(IntegrationTest):
             ['ipa-client-install', '--uninstall', '-U'],
             raiseonerr=False)
 
-    @pytest.mark.skip(reason="Option --no-sssd has been removed")
-    def test_install_client_no_sssd(self):
-        """
-        Test client installation with --no-sssd option.
-        This must be rejected as this option is incompatible with authselect.
-        """
-        result = self._install_client(extraargs=['--no-sssd'])
-        assert result.returncode == 1
-        msg = "Option '--no-sssd' is incompatible with the 'authselect' tool"
-        assert msg in result.stderr_text
-
-    @pytest.mark.skip(reason="Option --noac has been removed")
-    def test_install_client_no_ac(self):
-        """
-        Test client installation with --noac option.
-        This must be rejected as this option is incompatible with authselect.
-        """
-        result = self._install_client(extraargs=['--noac'])
-        assert result.returncode == 1
-        msg = "Option '--noac' is incompatible with the 'authselect' tool"
-        assert msg in result.stderr_text
-
     def test_install_client_no_preconfigured_profile(self):
         """
         Test client installation on an upgraded system.
