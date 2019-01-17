@@ -38,7 +38,7 @@ jobs:
           version: 0.2.0
         timeout: 1800
         topology: *build
-        
+
   fedora-29/simple_replication:
     requires: [fedora-29/build]
     priority: 50
@@ -759,6 +759,18 @@ jobs:
         template: *ci-master-f29
         timeout: 7200
         topology: *master_2repl_1client
+
+  fedora-29/test_replica_promotion_TestReplicaInForwardZone:
+    requires: [fedora-29/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-29/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaInForwardZone
+        template: *ci-master-f29
+        timeout: 7200
+        topology: *master_1repl
 
   fedora-29/test_upgrade:
     requires: [fedora-29/build]
