@@ -1,6 +1,7 @@
 #
 # Copyright (C) 2018  FreeIPA Contributors see COPYING for license
 #
+import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -197,6 +198,7 @@ class TestNTPoptions(IntegrationTest):
             tasks.uninstall_master(self.replica)
             self.cleanup()
 
+    @pytest.mark.xfail(reason='freeipa ticket 7719', strict=True)
     def test_replica_promotion_without_ntp(self):
         """
         test to verify that replica promotion without ntp options
