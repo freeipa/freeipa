@@ -4,6 +4,7 @@
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipaplatform.paths import paths
 
 
@@ -35,6 +36,8 @@ class TestNTPoptions(IntegrationTest):
         cmd = ['ipa-replica-install', '-w', self.master.config.admin_password,
                '-n', self.master.domain.name, '-r', self.master.domain.realm,
                '--server', self.master.hostname, '-U', *args]
+        Firewall(self.replica).enable_services(["freeipa-ldap",
+                                                "freeipa-ldaps"])
         return self.replica.run_command(cmd, raiseonerr=False)
 
     def test_server_client_install_without_options(self):
@@ -147,6 +150,9 @@ class TestNTPoptions(IntegrationTest):
         exp_pool_str = ("error: --ntp-pool cannot be used"
                         " together with --no-ntp")
 
+        # Testing command line options that may not be used together, there
+        # is no need to configure the firewall in this case as the firewall
+        # is configured only after the server has been installed.
         args1 = ['ipa-server-install', '-N', '--ntp-server=%s' % ntp_server]
         server_install = self.master.run_command(args1, raiseonerr=False)
         assert server_install.returncode == 2
@@ -175,6 +181,13 @@ class TestNTPoptions(IntegrationTest):
         tasks.install_master(self.master, setup_dns=False)
         tasks.install_client(self.master, self.replica)
 
+        # Testing command line options that may not be used together, there
+        # is theoretical no need to configure the firewall in this case,
+        # because the installation will not succeed. But it has been added
+        # to make sure that the test will not fail because of the missing
+        # firewall configuration if the options will not conflict.
+        Firewall(self.replica).enable_services(["freeipa-ldap",
+                                                "freeipa-ldaps"])
         try:
             replica_install = self.replica.run_command(
                 ['ipa-replica-install', '-N'], raiseonerr=False)
@@ -211,6 +224,8 @@ class TestNTPoptions(IntegrationTest):
         tasks.install_client(self.master, self.replica,
                              extra_args=['--ntp-pool=%s' % ntp_pool])
 
+        Firewall(self.replica).enable_services(["freeipa-ldap",
+                                                "freeipa-ldaps"])
         replica_install = self.replica.run_command(
             ['ipa-replica-install'], raiseonerr=False)
         assert exp_str in replica_install.stderr_text
