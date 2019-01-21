@@ -95,6 +95,11 @@ def service_control_dirsrv(host, function):
     assert cmd.returncode == 0
 
 
+def check_ipaca_issuerDN(host, expected_dn):
+    result = host.run_command(['ipa', 'ca-show', 'ipa'])
+    assert "Issuer DN: {}".format(expected_dn) in result.stdout_text
+
+
 class TestExternalCA(IntegrationTest):
     """
     Test of FreeIPA server installation with external CA
@@ -207,8 +212,7 @@ class TestSelfExternalSelf(IntegrationTest):
         This test checks if issuer DN is updated properly after CA is
         renewed from self-signed to external-ca
         """
-        result = self.master.run_command(['ipa', 'ca-show', 'ipa'])
-        assert "Issuer DN: CN={}".format(ISSUER_CN) in result.stdout_text
+        check_ipaca_issuerDN(self.master, "CN={}".format(ISSUER_CN))
 
     def test_switch_back_to_self_signed(self):
 
@@ -233,6 +237,16 @@ class TestSelfExternalSelf(IntegrationTest):
 
         result = self.master.run_command([paths.IPA_CERTUPDATE])
         assert result.returncode == 0
+
+    def test_issuerDN_after_renew_to_self_signed(self):
+        """ Check if issuer DN is updated after external-ca > self-signed
+
+        This test checks if issuer DN is updated properly after CA is
+        renewed back from external-ca to self-signed
+        """
+        issuer_dn = 'CN=Certificate Authority,O={}'.format(
+            self.master.domain.realm)
+        check_ipaca_issuerDN(self.master, issuer_dn)
 
 
 class TestExternalCAdirsrvStop(IntegrationTest):
