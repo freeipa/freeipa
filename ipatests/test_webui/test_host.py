@@ -24,7 +24,7 @@ Host tests
 import uuid
 from random import randint
 
-from ipatests.test_webui.crypto_utils import generate_csr
+from ipatests.test_webui.crypto_utils import generate_certificate, generate_csr
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_hostgroup as hostgroup
@@ -257,15 +257,8 @@ class test_host(host_tasks):
     def test_arbitrary_certificates(self):
         """
         Test managing host arbitrary certificate.
-
-        Requires to have 'arbitrary_cert_path' configuration set.
         """
-        cert_path = self.config.get('arbitrary_cert_path')
-        if not cert_path:
-            self.skip('Arbitrary certificate file is not configured')
-
         self.init_app()
-        cert = self.load_file(cert_path)
         self.add_record(ENTITY, self.data)
 
         self.navigate_to_record(self.pkey)
@@ -276,6 +269,8 @@ class test_host(host_tasks):
         # add certificate
         self.button_click('add', parents_css_sel="div[name='certificate']")
         self.assert_dialog()
+
+        cert = generate_certificate(self.pkey)
         self.fill_textarea('new_cert', cert)
         self.dialog_button_click('add')
 

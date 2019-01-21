@@ -21,6 +21,7 @@
 Service tests
 """
 
+from ipatests.test_webui.crypto_utils import generate_certificate, generate_csr
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 import pytest
@@ -147,21 +148,17 @@ class test_service(sevice_tasks):
         """
         Test service certificate actions
 
-        Requires to have CA installed and 'service_csr_path' configuration
-        option set.
+        Requires to have CA installed.
         """
 
         if not self.has_ca():
             self.skip('CA is not configured')
 
-        csr_path = self.config.get('service_csr_path')
-        if not csr_path:
-            self.skip('CSR file is not configured')
-
         self.init_app()
         data = self.prep_data()
         pkey = data.get('pkey')
-        csr = self.load_file(csr_path)
+        hostname = self.config.get('ipa_server')
+        csr = generate_csr(hostname)
         cert_widget_sel = "div.certificate-widget"
 
         self.add_record(ENTITY, data)
@@ -290,17 +287,12 @@ class test_service(sevice_tasks):
     def test_arbitrary_certificates(self):
         """
         Test managing service arbitrary certificate.
-
-        Requires to have 'arbitrary_cert_path' configuration set.
         """
-        cert_path = self.config.get('arbitrary_cert_path')
-        if not cert_path:
-            self.skip('Arbitrary certificate file is not configured')
-
         self.init_app()
         data = self.prep_data()
         pkey = data.get('pkey')
-        cert = self.load_file(cert_path)
+        hostname = self.config.get('ipa_server')
+        cert = generate_certificate(hostname)
         cert_widget_sel = "div.certificate-widget"
 
         self.add_record(ENTITY, data)
@@ -631,11 +623,8 @@ class test_service(sevice_tasks):
         if not self.has_ca():
             self.skip('CA is not configured')
 
-        csr_path = self.config.get('service_csr_path')
-        if not csr_path:
-            self.skip('CSR file is not configured')
-
-        csr = self.load_file(csr_path)
+        hostname = self.config.get('ipa_server')
+        csr = generate_csr(hostname)
 
         self.init_app()
         pkey = self.get_service_pkey('cifs')
