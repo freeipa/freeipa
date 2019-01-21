@@ -956,7 +956,19 @@ jobs:
         timeout: 3600
         topology: *ipaserver
 
-  fedora-29/test_webui_hosts:
+  fedora-29/test_webui_host:
+    requires: [fedora-29/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-29/build_url}'
+        test_suite: test_webui/test_host.py
+        template: *ci-master-f29
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-29/test_webui_host_net_groups:
     requires: [fedora-29/build]
     priority: 50
     job:
@@ -964,10 +976,8 @@ jobs:
       args:
         build_url: '{fedora-29/build_url}'
         test_suite: >-
-          test_webui/test_host.py
           test_webui/test_hostgroup.py
           test_webui/test_netgroup.py
-          test_webui/test_service.py
         template: *ci-master-f29
         timeout: 3600
         topology: *ipaserver
@@ -1047,6 +1057,18 @@ jobs:
           test_webui/test_trust.py
         template: *ci-master-f29
         timeout: 3600
+        topology: *ipaserver
+
+  fedora-29/test_webui_service:
+    requires: [fedora-29/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-29/build_url}'
+        test_suite: test_webui/test_service.py
+        template: *ci-master-f29
+        timeout: 1800
         topology: *ipaserver
 
   fedora-29/test_webui_users:
