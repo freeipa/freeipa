@@ -21,6 +21,7 @@
 User tests
 """
 
+from ipatests.test_webui.crypto_utils import generate_csr
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_user as user
@@ -220,26 +221,21 @@ class test_user(user_tasks):
         """
         Test user certificate actions
 
-        Requires to have CA installed and 'user_csr_path' configuration option
-        set.
+        Requires to have CA installed.
         """
 
         if not self.has_ca():
             self.skip('CA is not configured')
 
-        csr_path = self.config.get('user_csr_path')
-        if not csr_path:
-            self.skip('CSR file is not configured')
-
         self.init_app()
-        # ENHANCEMENT: generate csr dynamically
-        csr = self.load_file(csr_path)
         cert_widget_sel = "div.certificate-widget"
 
         self.add_record(user.ENTITY, user.DATA)
         self.navigate_to_record(user.PKEY)
 
         # cert request
+        csr = generate_csr(user.PKEY, False)
+
         self.action_list_action('request_cert', confirm=False)
         self.assert_dialog()
         self.fill_text("textarea[name='csr']", csr)
