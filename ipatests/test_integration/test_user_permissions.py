@@ -4,11 +4,10 @@
 
 from __future__ import absolute_import
 
-
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
-
+import paramiko
 
 class TestUserPermissions(IntegrationTest):
     topology = 'star'
@@ -67,6 +66,47 @@ class TestUserPermissions(IntegrationTest):
 
         # call ipa user-del --preserve
         self.master.run_command(['ipa', 'user-del', '--preserve', testuser])
+
+    def test_selinux_user_optimized(self):
+        """
+        Check that SELinux login context is set on first login for the
+        user, even if the user is not mapped to a specific SELinux user.
+
+        Related ticket https://pagure.io/SSSD/sssd/issue/3819.
+        """
+        # Scenario: add an IPA user with non-default home dir, login through
+        # ssh as this user and check that there is a SELinux user mapping
+        # for the user with `semanage login -l`.
+
+        # kinit admin
+        tasks.kinit_admin(self.master)
+
+        testuser = 'testuser_selinux'
+        password = 'Secret123'
+        testuser_password_confirmation = "%s\n%s\n" % (password,
+                                                       password)
+        self.master.run_command(['ipa', 'user-add', testuser,
+                                 '--first', testuser,
+                                 '--last', testuser,
+                                 '--password',
+                                 '--homedir',
+                                 '/root/{}'.format(testuser)],
+                                stdin_text=testuser_password_confirmation)
+
+        # login to the system
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(self.master.hostname,
+                       username=testuser,
+                       password=password)
+        client.close()
+
+        # check if user listed in output
+        cmd = self.master.run_command(['semanage', 'login', '-l'])
+        assert testuser in cmd.stdout_text
+
+        # call ipa user-del
+        self.master.run_command(['ipa', 'user-del', testuser])
 
     def test_stageuser_show_as_alternate_admin(self):
         """
