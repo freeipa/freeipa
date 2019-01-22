@@ -1440,7 +1440,7 @@ def ldappasswd_user_change(user, oldpw, newpw, master):
     basedn = master.domain.basedn
 
     userdn = "uid={},{},{}".format(user, container_user, basedn)
-    master_ldap_uri = "ldap://{}".format(master.external_hostname)
+    master_ldap_uri = "ldap://{}".format(master.hostname)
 
     args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
             '-s', newpw, '-x', '-H', master_ldap_uri]
@@ -1452,7 +1452,7 @@ def ldappasswd_sysaccount_change(user, oldpw, newpw, master):
     basedn = master.domain.basedn
 
     userdn = "uid={},{},{}".format(user, container_sysaccounts, basedn)
-    master_ldap_uri = "ldap://{}".format(master.external_hostname)
+    master_ldap_uri = "ldap://{}".format(master.hostname)
 
     args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
             '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri]
