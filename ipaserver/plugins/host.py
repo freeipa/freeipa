@@ -899,7 +899,9 @@ class host_mod(LDAPUpdate):
             old_certs = entry_attrs_old.get('usercertificate', [])
             removed_certs = set(old_certs) - set(certs)
             for cert in removed_certs:
-                rm_certs = api.Command.cert_find(certificate=cert)['result']
+                rm_certs = api.Command.cert_find(
+                    certificate=cert,
+                    host=keys)['result']
                 revoke_certs(rm_certs)
 
         if certs:
@@ -1335,7 +1337,9 @@ class host_remove_cert(LDAPRemoveAttributeViaOption):
         assert isinstance(dn, DN)
 
         for cert in options.get('usercertificate', []):
-            revoke_certs(api.Command.cert_find(certificate=cert)['result'])
+            revoke_certs(api.Command.cert_find(
+                certificate=cert,
+                host=keys)['result'])
 
         return dn
 
