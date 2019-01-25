@@ -703,7 +703,8 @@ class service_mod(LDAPUpdate):
             removed_certs = set(old_certs) - set(certs)
             for cert in removed_certs:
                 rm_certs = api.Command.cert_find(
-                    certificate=cert.public_bytes(x509.Encoding.DER))['result']
+                    certificate=cert.public_bytes(x509.Encoding.DER),
+                    service=keys)['result']
                 revoke_certs(rm_certs)
 
         if certs:
@@ -983,7 +984,9 @@ class service_remove_cert(LDAPRemoveAttributeViaOption):
         assert isinstance(dn, DN)
 
         for cert in options.get('usercertificate', []):
-            revoke_certs(api.Command.cert_find(certificate=cert)['result'])
+            revoke_certs(api.Command.cert_find(
+                certificate=cert,
+                service=keys)['result'])
 
         return dn
 
