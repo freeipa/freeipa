@@ -1466,6 +1466,22 @@ class cert_find(Search, CertMethod):
         result = collections.OrderedDict()
         complete = bool(ra_options)
 
+        # workaround for RHBZ#1669012
+        # Improve performance for service and host case by also searching
+        # for subject. This limits the amount of certificate retrieved from
+        # Dogtag. The special case is only used, when no ra_options are set
+        # and exactly one service or host is supplied.
+        # The complete flag is left to False.
+        if not ra_options:
+            services = options.get('service', ())
+            hosts = options.get('host', ())
+            if len(services) == 1 and not hosts:
+                principal = kerberos.Principal(options['service'][0])
+                if principal.is_service:
+                    ra_options['subject'] = principal.hostname
+            elif len(hosts) == 1 and not services:
+                ra_options['subject'] = options['host'][0]
+
         try:
             ca_enabled_check(self.api)
         except errors.NotFound:
