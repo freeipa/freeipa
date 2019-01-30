@@ -6,6 +6,7 @@ NULL =
 
 SUBDIRS =			\
         certmonger		\
+        custodia		\
         html			\
         migration		\
         share			\
