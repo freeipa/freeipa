@@ -1,18 +1,14 @@
 # Copyright (C) 2015  IPA Project Contributors, see COPYING for license
 
 from __future__ import print_function, absolute_import
-from base64 import b64encode, b64decode
-from custodia.store.interface import CSStore  # pylint: disable=relative-import
-from jwcrypto.common import json_decode, json_encode
-from ipaplatform.paths import paths
-from ipapython import ipautil
-from ipapython.certdb import NSSDatabase
-from ipaserver.secrets.common import iSecLdap
-import ldap
 import os
-import shutil
 import sys
-import tempfile
+
+from custodia.plugin import CSStore
+
+from ipaplatform.paths import paths
+from ipaplatform.constants import constants
+from ipapython import ipautil
 
 
 class UnknownKeyName(Exception):
@@ -20,240 +16,141 @@ class UnknownKeyName(Exception):
 
 
 class DBMAPHandler:
+    dbtype = None
 
     def __init__(self, config, dbmap, nickname):
-        raise NotImplementedError
+        dbtype = dbmap.get('type')
+        if dbtype is None or dbtype != self.dbtype:
+            raise ValueError(
+                "Invalid type '{}', expected '{}'".format(
+                    dbtype, self.dbtype
+                )
+            )
+        self.config = config
+        self.dbmap = dbmap
+        self.nickname = nickname
 
     def export_key(self):
         raise NotImplementedError
 
     def import_key(self, value):
         raise NotImplementedError
+
+
+class DBMAPCommandHandler(DBMAPHandler):
+    def __init__(self, config, dbmap, nickname):
+        super().__init__(config, dbmap, nickname)
+        self.runas = dbmap.get('runas')
+        self.command = os.path.join(
+            paths.IPA_CUSTODIA_HANDLER,
+            dbmap['command']
+        )
+
+    def run_handler(self, extra_args=(), stdin=None):
+        """Run handler script to export / import key material
+        """
+        args = [self.command]
+        args.extend(extra_args)
+        kwargs = dict(
+            runas=self.runas,
+            encoding='utf-8',
+        )
+
+        if stdin:
+            args.extend(['--import', '-'])
+            kwargs.update(stdin=stdin)
+        else:
+            args.extend(['--export', '-'])
+            kwargs.update(capture_output=True)
+
+        result = ipautil.run(args, **kwargs)
+
+        if stdin is None:
+            return result.output
+        else:
+            return None
 
 
 def log_error(error):
     print(error, file=sys.stderr)
 
 
-class NSSWrappedCertDB(DBMAPHandler):
-    '''
+class NSSWrappedCertDB(DBMAPCommandHandler):
+    """
     Store that extracts private keys from an NSSDB, wrapped with the
     private key of the primary CA.
-    '''
-
-    def __init__(self, config, dbmap, nickname):
-        if 'path' not in dbmap:
-            raise ValueError(
-                'Configuration does not provide NSSDB path')
-        if 'pwdfile' not in dbmap:
-            raise ValueError('Configuration does not provide password file')
-        if 'wrap_nick' not in dbmap:
-            raise ValueError(
-                'Configuration does not provide nickname of wrapping key')
-        self.nssdb_path = dbmap['path']
-        self.nssdb_pwdfile = dbmap['pwdfile']
-        self.wrap_nick = dbmap['wrap_nick']
-        self.target_nick = nickname
+    """
+    dbtype = 'NSSDB'
 
     def export_key(self):
-        tdir = tempfile.mkdtemp(dir=paths.TMP)
-        try:
-            wrapped_key_file = os.path.join(tdir, 'wrapped_key')
-            certificate_file = os.path.join(tdir, 'certificate')
-            ipautil.run([
-                paths.PKI, '-d', self.nssdb_path, '-C', self.nssdb_pwdfile,
-                'ca-authority-key-export',
-                '--wrap-nickname', self.wrap_nick,
-                '--target-nickname', self.target_nick,
-                '-o', wrapped_key_file])
-            nssdb = NSSDatabase(self.nssdb_path)
-            nssdb.run_certutil([
-                '-L', '-n', self.target_nick,
-                '-a', '-o', certificate_file,
-            ])
-            with open(wrapped_key_file, 'rb') as f:
-                wrapped_key = f.read()
-            with open(certificate_file, 'r') as f:
-                certificate = f.read()
-        finally:
-            shutil.rmtree(tdir)
-        return json_encode({
-            'wrapped_key': b64encode(wrapped_key).decode('ascii'),
-            'certificate': certificate})
+        return self.run_handler(['--nickname', self.nickname])
 
 
-class NSSCertDB(DBMAPHandler):
-
-    def __init__(self, config, dbmap, nickname):
-        if 'type' not in dbmap or dbmap['type'] != 'NSSDB':
-            raise ValueError('Invalid type "%s",'
-                             ' expected "NSSDB"' % (dbmap['type'],))
-        if 'path' not in dbmap:
-            raise ValueError('Configuration does not provide NSSDB path')
-        if 'pwdfile' not in dbmap:
-            raise ValueError('Configuration does not provide password file')
-        self.nssdb_path = dbmap['path']
-        self.nssdb_pwdfile = dbmap['pwdfile']
-        self.nickname = nickname
+class NSSCertDB(DBMAPCommandHandler):
+    dbtype = 'NSSDB'
 
     def export_key(self):
-        tdir = tempfile.mkdtemp(dir=paths.TMP)
-        try:
-            pk12pwfile = os.path.join(tdir, 'pk12pwfile')
-            password = ipautil.ipa_generate_password()
-            with open(pk12pwfile, 'w') as f:
-                f.write(password)
-            pk12file = os.path.join(tdir, 'pk12file')
-            nssdb = NSSDatabase(self.nssdb_path)
-            nssdb.run_pk12util([
-                "-o", pk12file,
-                "-n", self.nickname,
-                "-k", self.nssdb_pwdfile,
-                "-w", pk12pwfile,
-            ])
-            with open(pk12file, 'rb') as f:
-                data = f.read()
-        finally:
-            shutil.rmtree(tdir)
-        return json_encode({'export password': password,
-                            'pkcs12 data': b64encode(data).decode('ascii')})
+        return self.run_handler(['--nickname', self.nickname])
 
     def import_key(self, value):
-        v = json_decode(value)
-        tdir = tempfile.mkdtemp(dir=paths.TMP)
-        try:
-            pk12pwfile = os.path.join(tdir, 'pk12pwfile')
-            with open(pk12pwfile, 'w') as f:
-                f.write(v['export password'])
-            pk12file = os.path.join(tdir, 'pk12file')
-            with open(pk12file, 'wb') as f:
-                f.write(b64decode(v['pkcs12 data']))
-            nssdb = NSSDatabase(self.nssdb_path)
-            nssdb.run_pk12util([
-                "-i", pk12file,
-                "-n", self.nickname,
-                "-k", self.nssdb_pwdfile,
-                "-w", pk12pwfile,
-            ])
-        finally:
-            shutil.rmtree(tdir)
+        return self.run_handler(
+            ['--nickname', self.nickname],
+            stdin=value
+        )
 
 
 # Exfiltrate the DM password Hash so it can be set in replica's and this
 # way let a replica be install without knowing the DM password and yet
 # still keep the DM password synchronized across replicas
-class DMLDAP(DBMAPHandler):
+class DMLDAP(DBMAPCommandHandler):
+    dbtype = 'DMLDAP'
 
     def __init__(self, config, dbmap, nickname):
-        if 'type' not in dbmap or dbmap['type'] != 'DMLDAP':
-            raise ValueError('Invalid type "%s",'
-                             ' expected "DMLDAP"' % (dbmap['type'],))
+        super().__init__(config, dbmap, nickname)
         if nickname != 'DMHash':
             raise UnknownKeyName("Unknown Key Named '%s'" % nickname)
-        self.ldap = iSecLdap(config['ldap_uri'],
-                             config.get('auth_type', None))
 
     def export_key(self):
-        conn = self.ldap.connect()
-        r = conn.search_s('cn=config', ldap.SCOPE_BASE,
-                          attrlist=['nsslapd-rootpw'])
-        if len(r) != 1:
-            raise RuntimeError('DM Hash not found!')
-        rootpw = r[0][1]['nsslapd-rootpw'][0]
-        return json_encode({'dmhash': rootpw.decode('ascii')})
+        return self.run_handler()
 
     def import_key(self, value):
-        v = json_decode(value)
-        rootpw = v['dmhash'].encode('ascii')
-        conn = self.ldap.connect()
-        mods = [(ldap.MOD_REPLACE, 'nsslapd-rootpw', rootpw)]
-        conn.modify_s('cn=config', mods)
+        self.run_handler(stdin=value)
 
 
-class PEMFileHandler(DBMAPHandler):
-    def __init__(self, config, dbmap, nickname=None):
-        if 'type' not in dbmap or dbmap['type'] != 'PEM':
-            raise ValueError('Invalid type "{t}", expected PEM'
-                             .format(t=dbmap['type']))
-        self.certfile = dbmap['certfile']
-        self.keyfile = dbmap.get('keyfile')
+class PEMFileHandler(DBMAPCommandHandler):
+    dbtype = 'PEM'
 
     def export_key(self):
-        _fd, tmpfile = tempfile.mkstemp(dir=paths.TMP)
-        password = ipautil.ipa_generate_password()
-        args = [
-            paths.OPENSSL,
-            "pkcs12", "-export",
-            "-in", self.certfile,
-            "-out", tmpfile,
-            "-password", "pass:{pwd}".format(pwd=password)
-        ]
-        if self.keyfile is not None:
-            args.extend(["-inkey", self.keyfile])
-
-        try:
-            ipautil.run(args, nolog=(password, ))
-            with open(tmpfile, 'rb') as f:
-                data = f.read()
-        finally:
-            os.remove(tmpfile)
-        return json_encode({'export password': password,
-                            'pkcs12 data': b64encode(data).decode('ascii')})
+        return self.run_handler()
 
     def import_key(self, value):
-        v = json_decode(value)
-        data = b64decode(v['pkcs12 data'])
-        password = v['export password']
-        fd, tmpdata = tempfile.mkstemp(dir=paths.TMP)
-        os.close(fd)
-        try:
-            with open(tmpdata, 'wb') as f:
-                f.write(data)
-
-            # get the certificate from the file
-            ipautil.run([paths.OPENSSL,
-                         "pkcs12",
-                         "-in", tmpdata,
-                         "-clcerts", "-nokeys",
-                         "-out", self.certfile,
-                         "-passin", "pass:{pwd}".format(pwd=password)],
-                        nolog=(password, ))
-
-            if self.keyfile is not None:
-                # get the private key from the file
-                ipautil.run([paths.OPENSSL,
-                             "pkcs12",
-                             "-in", tmpdata,
-                             "-nocerts", "-nodes",
-                             "-out", self.keyfile,
-                             "-passin", "pass:{pwd}".format(pwd=password)],
-                            nolog=(password, ))
-        finally:
-            os.remove(tmpdata)
+        return self.run_handler(stdin=value)
 
 
 NAME_DB_MAP = {
     'ca': {
         'type': 'NSSDB',
-        'path': paths.PKI_TOMCAT_ALIAS_DIR,
         'handler': NSSCertDB,
-        'pwdfile': paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
+        'command': 'ipa-custodia-pki-tomcat',
+        'runas': constants.PKI_USER,
     },
     'ca_wrapped': {
+        'type': 'NSSDB',
         'handler': NSSWrappedCertDB,
-        'path': paths.PKI_TOMCAT_ALIAS_DIR,
-        'pwdfile': paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
-        'wrap_nick': 'caSigningCert cert-pki-ca',
+        'command': 'ipa-custodia-pki-tomcat-wrapped',
+        'runas': constants.PKI_USER,
     },
     'ra': {
         'type': 'PEM',
         'handler': PEMFileHandler,
-        'certfile': paths.RA_AGENT_PEM,
-        'keyfile': paths.RA_AGENT_KEY,
+        'command': 'ipa-custodia-ra-agent',
+        'runas': None,  # import needs root permission to write to directory
     },
     'dm': {
         'type': 'DMLDAP',
         'handler': DMLDAP,
+        'command': 'ipa-custodia-dmldap',
+        'runas': None,  # root
     }
 }
 

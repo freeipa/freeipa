@@ -39,6 +39,7 @@ if __name__ == '__main__':
             'ipaserver.dnssec',
             'ipaserver.plugins',
             'ipaserver.secrets',
+            'ipaserver.secrets.handlers',
             'ipaserver.install',
             'ipaserver.install.plugins',
             'ipaserver.install.server',

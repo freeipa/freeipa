@@ -1,0 +1,8 @@
+@PYTHONSHEBANG@
+#
+# Copyright (C) 2019  IPA Project Contributors, see COPYING for license
+#
+
+from ipaserver.secrets.handlers.nsswrappedcert import main, pki_tomcat_parser
+
+main(pki_tomcat_parser())

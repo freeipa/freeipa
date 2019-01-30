@@ -132,6 +132,10 @@ daemons/dnssec/ipa-dnskeysync-replica
 daemons/dnssec/ipa-ods-exporter
 install/certmonger/dogtag-ipa-ca-renew-agent-submit
 install/certmonger/ipa-server-guard
+install/custodia/ipa-custodia-dmldap
+install/custodia/ipa-custodia-pki-tomcat
+install/custodia/ipa-custodia-pki-tomcat-wrapped
+install/custodia/ipa-custodia-ra-agent
 install/oddjob/com.redhat.idm.trust-fetch-domains
 install/oddjob/etc/oddjobd.conf.d/ipa-server.conf
 install/oddjob/etc/oddjobd.conf.d/oddjobd-ipa-trust.conf
