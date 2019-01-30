@@ -538,6 +538,7 @@ AC_CONFIG_FILES([
     init/Makefile
     install/Makefile
     install/certmonger/Makefile
+    install/custodia/Makefile
     install/html/Makefile
     install/migration/Makefile
     install/share/Makefile
