@@ -90,12 +90,13 @@
 
 # fix for segfault in python3-ldap, https://pagure.io/freeipa/issue/7324
 %global python_ldap_version 3.1.0-1
-
-# Fix for "Crash when failing to read from SASL connection"
-# https://pagure.io/389-ds-base/issue/49639
-# Fix for "Installation fails: Replica Busy"
-# https://pagure.io/389-ds-base/issue/49818
-%global ds_version 1.4.0.16-1
+# Fix for create suffix
+# https://pagure.io/389-ds-base/issue/49984
+%if 0%{?fedora} >= 30
+%global ds_version 1.4.1.1
+%else
+%global ds_version 1.4.0.21
+%endif
 
 # Don't use Fedora's Python dependency generator on Fedora 30/rawhide yet.
 # Some packages don't provide new dist aliases.
