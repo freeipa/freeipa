@@ -31,6 +31,12 @@ from ipaserver.install.dsinstance import DS_USER
 from ipaserver.install.cainstance import PKI_USER
 from ipapython import services
 
+# for mod_nss
+from ipaserver.install.httpinstance import NSS_CONF
+from ipaserver.install.httpinstance import HTTPInstance
+from ipaserver.install import installutils
+from ipapython import sysrestore
+
 SERVERID = "PKI-IPA"
 SCHEMA_FILENAMES = (
     "60kerberos.ldif",
@@ -100,6 +106,77 @@ def restart_pki_ds():
     services.service('dirsrv').restart(SERVERID)
 
 
+# The ipa-3-0 set_directive() has very loose comparision of directive
+# which would cause multiple NSSCipherSuite to be added so provide
+# a custom function for it.
+def set_directive(filename, directive, value, quotes=True, separator=' '):
+    """Set a name/value pair directive in a configuration file.
+
+       A value of None means to drop the directive.
+
+       This has only been tested with nss.conf
+    """
+    valueset = False
+    st = os.stat(filename)
+    fd = open(filename)
+    newfile = []
+    for line in fd:
+        if line.lstrip().startswith(directive):
+            valueset = True
+            if value is not None:
+                if quotes:
+                    newfile.append('%s%s"%s"\n' %
+                                   (directive, separator, value))
+                else:
+                    newfile.append('%s%s%s\n' % (directive, separator, value))
+        else:
+            newfile.append(line)
+    fd.close()
+    if not valueset:
+        if value is not None:
+            if quotes:
+                newfile.append('%s%s"%s"\n' % (directive, separator, value))
+            else:
+                newfile.append('%s%s%s\n' % (directive, separator, value))
+
+    fd = open(filename, "w")
+    fd.write("".join(newfile))
+    fd.close()
+    os.chown(filename, st.st_uid, st.st_gid)  # reset perms
+
+
+def update_mod_nss_cipher_suite():
+    add_ciphers = ['ecdhe_rsa_aes_128_sha', 'ecdhe_rsa_aes_256_sha']
+    ciphers = installutils.get_directive(NSS_CONF, 'NSSCipherSuite')
+
+    # Run through once to see if any of the new ciphers are there but
+    # disabled. If they are then enable them.
+    lciphers = ciphers.split(',')
+    new_ciphers = []
+    for cipher in lciphers:
+        for add in add_ciphers:
+            if cipher.endswith(add):
+                if cipher.startswith('-'):
+                    cipher = '+%s' % add
+        new_ciphers.append(cipher)
+
+    # Run through again and add remaining ciphers as enabled.
+    for add in add_ciphers:
+        if add not in ciphers:
+            new_ciphers.append('+%s' % add)
+
+    ciphers = ','.join(new_ciphers)
+    set_directive(NSS_CONF, 'NSSCipherSuite', ciphers, False)
+    root_logger.info('Updated Apache cipher list')
+
+
+def restart_http():
+    root_logger.info('Restarting HTTP')
+    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    http = HTTPInstance(fstore)
+    http.restart()
+
+
 def main():
     if os.getegid() != 0:
         sys.exit("Must be root to run this script")
@@ -110,6 +187,8 @@ def main():
 
     add_ca_schema()
     restart_pki_ds()
+    update_mod_nss_cipher_suite()
+    restart_http()
 
     root_logger.info('Schema updated successfully')
 
