@@ -257,6 +257,7 @@ class TestAutomemberRebuildHostMembership(XMLRPC_test):
         )
         hostgroup1.retrieve()
 
+    @pytest.mark.xfail(reason='freeipa ticket 7855', strict=True)
     def test_rebuild_membership_hostgroups(self, automember_hostgroup,
                                            hostgroup1, host1):
         """ Rebuild automember membership for hosts, both synchonously and
@@ -307,6 +308,7 @@ class TestAutomemberRebuildGroupMembership(XMLRPC_test):
         )
         group1.retrieve()
 
+    @pytest.mark.xfail(reason='freeipa ticket 7855', strict=True)
     def test_rebuild_membership_groups(self, automember_group, group1, user1):
         """ Rebuild automember membership for groups, both synchonously and
         asynchronously. Check the user has been added to the group. """
