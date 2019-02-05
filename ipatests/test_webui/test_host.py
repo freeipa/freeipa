@@ -265,11 +265,11 @@ class test_host(host_tasks):
 
         # add certificate
         self.button_click('add', parents_css_sel="div[name='certificate']")
-        self.assert_dialog()
+        self.assert_dialog('cert-add-dialog')
 
         cert = generate_certificate(self.pkey)
         self.fill_textarea('new_cert', cert)
-        self.dialog_button_click('add')
+        self.dialog_button_click('ok')
 
         self.assert_visible("div.certificate-widget")
 
