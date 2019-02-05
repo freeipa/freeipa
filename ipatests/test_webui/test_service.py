@@ -303,9 +303,9 @@ class test_service(sevice_tasks):
 
         # add certificate
         self.button_click('add', parents_css_sel="div[name='certificate']")
-        self.assert_dialog()
+        self.assert_dialog('cert-add-dialog')
         self.fill_textarea('new_cert', cert)
-        self.dialog_button_click('add')
+        self.dialog_button_click('ok')
 
         self.assert_visible(cert_widget_sel)
 
