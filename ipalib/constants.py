@@ -314,6 +314,9 @@ TLS_VERSIONS = [
 ]
 TLS_VERSION_MINIMAL = "tls1.0"
 
+# minimum SASL secure strength factor for LDAP connections
+# 56 provides backwards compatibility with old libraries.
+LDAP_SSF_MIN_THRESHOLD = 56
 
 # Use cache path
 USER_CACHE_PATH = (
