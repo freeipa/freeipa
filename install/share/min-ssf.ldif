@@ -1,0 +1,14 @@
+# config
+# pretend SSF for LDAPI connections
+# nsslapd-localssf must be equal to or greater than nsslapd-minssf
+dn: cn=config
+changetype: modify
+replace: nsslapd-localssf
+nsslapd-localssf: 256
+
+# minimum security strength factor for SASL and TLS
+# 56 is considered weak, but some old clients announce wrong SSF.
+dn: cn=config
+changetype: modify
+replace: nsslapd-minssf
+nsslapd-minssf: 56
