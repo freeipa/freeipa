@@ -1,5 +1,6 @@
 #pragma once
 
+#include <time.h>
 #include <lber.h>
 #include <krb5/krb5.h>
 #include <kdb.h>
