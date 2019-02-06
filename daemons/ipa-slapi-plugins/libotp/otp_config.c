@@ -217,7 +217,7 @@ struct otp_config *otp_config_init(Slapi_ComponentId *plugin_id)
     void *node = NULL;
     int search_result = 0;
 
-    cfg = (typeof(cfg)) slapi_ch_calloc(1, sizeof(*cfg));
+    cfg = (struct otp_config *) slapi_ch_calloc(1, sizeof(*cfg));
     cfg->plugin_id = plugin_id;
 
     /* Build the config table. */
@@ -229,7 +229,7 @@ struct otp_config *otp_config_init(Slapi_ComponentId *plugin_id)
             struct record *rec;
 
             /* Create the config entry. */
-            rec = (typeof(rec)) slapi_ch_calloc(1, sizeof(*rec));
+            rec = (struct record *) slapi_ch_calloc(1, sizeof(*rec));
             rec->spec = specs[i];
             rec->sdn = make_sdn(rec->spec->prefix, sfx);
 
