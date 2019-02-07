@@ -230,7 +230,11 @@ BuildRequires:  python2-six
 BuildRequires:  dbus-glib-devel
 BuildRequires:  libffi-devel
 BuildRequires:  python3-tox
+%if 0%{?fedora} <= 28
 BuildRequires:  python3-twine
+%else
+BuildRequires:  twine
+%endif
 BuildRequires:  python3-wheel
 %endif # with_wheels
 
