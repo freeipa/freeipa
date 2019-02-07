@@ -2266,7 +2266,6 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 	if (dummy == NULL) {
 		DEBUG(9, ("Attribute %s not present.\n",
 			  LDAP_ATTRIBUTE_TRUST_SID));
-		ZERO_STRUCT(td->security_identifier);
 	} else {
 		err = sss_idmap_sid_to_smb_sid(ipasam_state->idmap_ctx,
 					       dummy, &sid);
