@@ -22,12 +22,16 @@ import re
 import time
 import tempfile
 
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipaplatform.paths import paths
 
 from itertools import chain, repeat
 from ipatests.create_external_ca import ExternalCA, ISSUER_CN
+from ipaserver.install.cainstance import MSCSTemplateV1
 
 IPA_CA = 'ipa_ca.crt'
 ROOT_CA = 'root_ca.crt'
@@ -69,9 +73,11 @@ def match_in_journal(host, string, since='today', services=('certmonger',)):
     return match
 
 
-def install_server_external_ca_step1(host):
+def install_server_external_ca_step1(host, extra_args=()):
     """Step 1 to install the ipa server with external ca"""
-    return tasks.install_master(host, external_ca=True)
+    return tasks.install_master(
+        host, external_ca=True, extra_args=extra_args
+    )
 
 
 def install_server_external_ca_step2(host, ipa_ca_cert, root_ca_cert):
@@ -100,6 +106,16 @@ def check_ipaca_issuerDN(host, expected_dn):
     assert "Issuer DN: {}".format(expected_dn) in result.stdout_text
 
 
+def check_mscs_extension(ipa_csr, template):
+    csr = x509.load_pem_x509_csr(ipa_csr, default_backend())
+    extensions = [
+        ext for ext in csr.extensions
+        if ext.oid.dotted_string == template.ext_oid
+    ]
+    assert extensions
+    assert extensions[0].value.value == template.get_ext_data()
+
+
 class TestExternalCA(IntegrationTest):
     """
     Test of FreeIPA server installation with external CA
@@ -109,8 +125,14 @@ class TestExternalCA(IntegrationTest):
 
     def test_external_ca(self):
         # Step 1 of ipa-server-install.
-        result = install_server_external_ca_step1(self.master)
+        result = install_server_external_ca_step1(
+            self.master, extra_args=['--external-ca-type=ms-cs']
+        )
         assert result.returncode == 0
+
+        # check CSR for extension
+        ipa_csr = self.master.get_file_contents(paths.ROOT_IPA_CSR)
+        check_mscs_extension(ipa_csr, MSCSTemplateV1(u'SubCA'))
 
         # Sign CA, transport it to the host and get ipa a root ca paths.
         root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
