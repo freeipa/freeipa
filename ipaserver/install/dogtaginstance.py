@@ -137,7 +137,6 @@ class DogtagInstance(service.Service):
         # replication parameters
         self.master_host = None
         self.master_replication_port = 389
-        self.subject_base = None
         self.nss_db = nss_db
         self.config = config  # Path to CS.cfg
 
@@ -619,21 +618,70 @@ class DogtagInstance(service.Service):
 
 
 class PKIIniLoader:
+    # supported subsystems
+    subsystems = ('CA', 'KRA')
+    # default, hard-coded, and immutable settings
     ipaca_default = os.path.join(
         paths.USR_SHARE_IPA_DIR, 'ipaca_default.ini'
     )
+    # customizable settings
     ipaca_customize = os.path.join(
         paths.USR_SHARE_IPA_DIR, 'ipaca_customize.ini'
     )
-
-    token_stanzas = [
+    # keys that may be stored in a HSM token
+    token_stanzas = (
         'pki_audit_signing_token',
         'pki_subsystem_token',
         'pki_ca_signing_token',
         'pki_ocsp_signing_token',
         'pki_storage_token',
         'pki_transport_token',
-    ]
+    )
+    # Set of immutable keys, initialized on demand
+    _immutable_keys = None
+    # Set of immutable config keys that are defined in dynamic code instead
+    # of ipaca_default config file.
+    _immutable_code_keys = frozenset({
+        # dogtaginstance
+        'pki_admin_password',
+        'pki_ds_password',
+        'pki_dns_domainname',
+        'pki_hostname',
+        'pki_subsystem',
+        'pki_subsystem_type',
+        # clone settings
+        'pki_security_domain_hostname',
+        'pki_security_domain_https_port',
+        'pki_security_domain_user',
+        'pki_security_domain_password',
+        'pki_clone',
+        'pki_clone_pkcs12_path',
+        'pki_clone_pkcs12_password',
+        'pki_clone_replication_security',
+        'pki_clone_replication_master_port',
+        'pki_clone_replication_clone_port',
+        'pki_clone_replicate_schema',
+        'pki_clone_uri',
+        # cainstance
+        'pki_ds_secure_connection',
+        'pki_server_database_password',
+        'pki_ds_create_new_db',
+        'pki_clone_setup_replication',
+        'pki_clone_reindex_data',
+        'pki_external',
+        'pki_ca_signing_csr_path',
+        'pki_ca_signing_cert_path',
+        'pki_cert_chain_path',
+        'pki_external_step_two',
+        # krainstance
+        'pki_issuing_ca_uri',
+        'pki_client_database_dir',
+        'pki_client_database_password',
+        'pki_client_database_purge',
+        'pki_client_pkcs12_password',
+        'pki_import_admin_cert',
+        'pki_client_admin_cert_p12',
+    })
 
     def __init__(self, subsystem, fqdn, domain,
                  subject_base, ca_subject, admin_user, admin_password,
@@ -662,6 +710,75 @@ class PKIIniLoader:
             softhsm2_so=paths.LIBSOFTHSM2_SO
         )
 
+    @classmethod
+    def get_immutable_keys(cls):
+        """Get set of immutable keys
+
+        Immutable keys are calculated from 'ipaca_default' config file
+        and known keys that are defined in code.
+        """
+        if cls._immutable_keys is None:
+            immutable = set()
+            immutable.update(cls._immutable_code_keys)
+            cfg = RawConfigParser()
+            with open(cls.ipaca_default) as f:
+                cfg.read_file(f)
+            for section in cls.subsystems:
+                for k, _v in cfg.items(section, raw=True):
+                    if k.startswith('pki_'):
+                        immutable.add(k)
+            cls._immutable_keys = frozenset(immutable)
+        return cls._immutable_keys
+
+    @classmethod
+    def verify_pki_config_override(cls, filename):
+        """Verify pki config override file
+
+        * filename must be an absolute path to an existing file
+        * file must be a valid ini file
+        * ini file must not override immutable settings
+
+        TODO: The checker does not verify config interpolation values, yet.
+        The validator does not have access to all settings.
+
+        :param filename: path to pki.ini
+        """
+        if not os.path.isfile(filename):
+            raise ValueError(
+                "Config file '{}' does not exist.".format(filename)
+            )
+        if not os.path.isabs(filename):
+            raise ValueError(
+                "Config file '{}' is not an absolute path.".format(filename)
+            )
+
+        try:
+            cfg = RawConfigParser()
+            with open(filename) as f:
+                cfg.read_file(f)
+        except Exception as e:
+            raise ValueError(
+                "Invalid config '{}': {}".format(filename, e)
+            )
+
+        immutable_keys = cls.get_immutable_keys()
+        invalid_keys = set()
+        sections = [cfg.default_section]
+        sections.extend(cls.subsystems)
+        for section in sections:
+            if not cfg.has_section(section):
+                continue
+            for k, _v in cfg.items(section, raw=True):
+                if k in immutable_keys:
+                    invalid_keys.add(k)
+
+        if invalid_keys:
+            raise ValueError(
+                "'{}' overrides immutable options: {}".format(
+                    filename, ', '.join(sorted(invalid_keys))
+                )
+            )
+
     def _mangle_values(self, dct):
         """Stringify and quote % as %% to avoid interpolation errors
 
@@ -678,26 +795,12 @@ class PKIIniLoader:
             result[k] = v.replace('%', '%%')
         return result
 
-    def _verify_immutable(self, config, immutable_settings, filename):
-        section_name = self.defaults['pki_subsystem']
-        errors = []
-        for key, isvalue in sorted(immutable_settings.items()):
-            cfgvalue = config.get(section_name, key)
-            if isvalue != cfgvalue:
-                errors.append(f"{key}: '{cfgvalue}' != '{isvalue}'")
-        if errors:
-            raise ValueError(
-                '{} overrides immutable options:\n{}'.format(
-                    filename, '\n'.join(errors)
-                )
-            )
+    def _get_default_config(self):
+        """Load default config
 
-    def create_spawn_config(self, subsystem_config):
-        """Create config instance
+        :return: config parser, immutable keys
         """
-        section_name = self.defaults['pki_subsystem']
         defaults = self._mangle_values(self.defaults)
-
         # create a config template with interpolation support
         # read base config
         cfgtpl = ConfigParser(defaults=defaults)
@@ -709,15 +812,45 @@ class PKIIniLoader:
         for key, value in defaults.items():
             cfgtpl.set(DEFAULTSECT, key, value)
 
+        # all keys in default conf + known keys defined in code are
+        # considered immutable.
+        immutable_keys = set()
+        immutable_keys.update(self._immutable_code_keys)
+        for section_name in self.subsystems:
+            for k, _v in cfgtpl.items(section_name, raw=True):
+                immutable_keys.add(k)
+
+        return cfgtpl, immutable_keys
+
+    def _verify_immutable(self, config, immutable_settings, filename):
+        section_name = self.defaults['pki_subsystem']
+        errs = []
+        for key, isvalue in immutable_settings.items():
+            cfgvalue = config.get(section_name, key)
+            if isvalue != cfgvalue:
+                errs.append(f"{key}: '{cfgvalue}' != '{isvalue}'")
+        if errs:
+            raise ValueError(
+                '{} overrides immutable options:\n{}'.format(
+                    filename, '\n'.join(errors)
+                )
+            )
+
+    def create_spawn_config(self, subsystem_config):
+        """Create config instance
+        """
+        section_name = self.defaults['pki_subsystem']
+        cfgtpl, immutable_keys = self._get_default_config()
+
         # overwrite CA/KRA config with subsystem settings
         subsystem_config = self._mangle_values(subsystem_config)
         for key, value in subsystem_config.items():
             cfgtpl.set(section_name, key, value)
 
-        # get a list of settings that cannot be modified by users
+        # get a mapping of settings that cannot be modified by users
         immutable_settings = {
-            k: v for k, v in cfgtpl.items(section=section_name)
-            if k.startswith('pki_')
+            k: v for k, v in cfgtpl.items(section_name)
+            if k in immutable_keys
         }
 
         # add ipaca_customize overlay,
@@ -726,18 +859,15 @@ class PKIIniLoader:
         with open(self.ipaca_customize) as f:
             cfgtpl.read_file(f)
 
-        # sanity check
-        self._verify_immutable(
-            cfgtpl, immutable_settings, self.ipaca_customize
-        )
-
         # load external overlay from command line
         if self.pki_config_override is not None:
             with open(self.pki_config_override) as f:
                 cfgtpl.read_file(f)
-            self._verify_immutable(
-                cfgtpl, immutable_settings, self.pki_config_override
-            )
+
+        # verify again
+        self._verify_immutable(
+            cfgtpl, immutable_settings, self.pki_config_override
+        )
 
         # key backup is not compatible with HSM support
         if (cfgtpl.has_option(section_name, 'pki_hsm_enable') and
@@ -776,6 +906,12 @@ def test():
         'share',
     ))
 
+    class TestPKIIniLoader(PKIIniLoader):
+        ipaca_default = os.path.join(sharedir, 'ipaca_default.ini')
+        ipaca_customize = os.path.join(sharedir, 'ipaca_customize.ini')
+
+    override = os.path.join(sharedir, 'ipaca_softhsm2.ini')
+
     base_settings = dict(
         fqdn='replica.ipa.example',
         domain='ipa.example',
@@ -784,14 +920,14 @@ def test():
         admin_user='admin',
         admin_password='Secret1',
         dm_password='Secret2',
-        pki_config_override='install/share/ipaca_softhsm2.ini',
+        pki_config_override=override,
     )
 
-    for subsystem in ('CA', 'KRA'):
+    for subsystem in TestPKIIniLoader.subsystems:
         print('-' * 78)
-        loader = PKIIniLoader(subsystem=subsystem, **base_settings)
-        loader.ipaca_default = os.path.join(sharedir, 'ipaca_default.ini')
-        loader.ipaca_customize = os.path.join(sharedir, 'ipaca_customize.ini')
+        loader = TestPKIIniLoader(subsystem=subsystem, **base_settings)
+        loader.verify_pki_config_override(loader.ipaca_customize)
+        loader.verify_pki_config_override(override)
         config = loader.create_spawn_config({})
         config.write(sys.stdout, False)
 
