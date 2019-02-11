@@ -48,7 +48,9 @@ if __name__ == '__main__':
             "custodia",
             "dbus-python",
             "dnspython",
-            "dogtag-pki",
+            # dogtag-pki is just the client package on PyPI. ipaserver
+            # requires the full pki package.
+            # "dogtag-pki",
             "ipaclient",
             "ipalib",
             "ipaplatform",
