@@ -1377,6 +1377,33 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
         return deferred.promise;
     },
 
+    _find_common_domain: function(nodes) {
+        if (nodes.length < 2) {
+            return '';
+        }
+
+        var common_labels = null;
+
+        for (var i=0, l=nodes.length; i<l; i++) {
+            var node = nodes[i];
+            var labels = node.id.split('.').reverse();
+
+            if (common_labels === null) {
+                common_labels = labels;
+                continue;
+            }
+
+            for (var j=0; j<common_labels.length; j++) {
+                if (labels[j] !== common_labels[j]) {
+                    common_labels = common_labels.slice(0, j);
+                    break;
+                }
+            }
+        }
+
+        return common_labels.reverse().join('.');
+    },
+
     /**
      * @param {Object} size - dict contains height and width value. (optional)
      */
@@ -1386,6 +1413,43 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
         if (IPA.domain_level < topology.required_domain_level) return;
 
         when(this._get_data()).then(function(data) {
+            // remove common domain labels from node FQDN
+            // Example #1:
+            //   nodes:
+            //    - master.ipa.example.com
+            //    - replica.ipa.example.com
+            //   common domain: ipa.example.com
+            //   captions: master, replica
+            //
+            // Example #2:
+            //   nodes:
+            //    - master.net1.example.com
+            //    - replica.net1.example.com
+            //    - replica.net2.example.com
+            //   common domain: example.com
+            //   captions: master.net1, replica.net1, replica.net2
+            //
+            var common_domain = this._find_common_domain(data.nodes);
+
+            if (this.parent) {
+                var title = this.parent.title;
+                if (common_domain) {
+                    title += ' (' + common_domain + ')';
+                }
+                this.parent.header.title_widget.update({text: title});
+            }
+
+            for (var i=0,l=data.nodes.length; i<l; i++) {
+                var node = data.nodes[i];
+                if (l > 1 && common_domain.length > 0) {
+                    node.caption = node.id.substring(
+                        0, node.id.length - common_domain.length - 1
+                    );
+                } else {
+                    node.caption = node.id;
+                }
+            }
+
             if (!this.graph) {
                 this.graph = new topology_graph.TopoGraph({
                     nodes: data.nodes,
