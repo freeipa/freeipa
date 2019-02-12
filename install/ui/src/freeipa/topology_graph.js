@@ -180,7 +180,6 @@ topology_graph.TopoGraph = declare([Evented], {
         this._target_node = null;
         this.restart();
     },
-
     _create_svg: function(container) {
         var self = this;
 
@@ -804,7 +803,7 @@ topology_graph.TopoGraph = declare([Evented], {
             .attr('class', 'id')
             .attr('fill', '#002235')
             .text(function(d) {
-                return d.id.split('.')[0];
+                return d.caption;
             });
 
         // remove old nodes
