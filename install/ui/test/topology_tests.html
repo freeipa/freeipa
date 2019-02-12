@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Topology Test Suite</title>
+    <link rel="stylesheet" href="qunit.css" type="text/css" media="screen">
+    <script type="text/javascript" src="qunit.js"></script>
+    <script type="text/javascript" src="../js/libs/loader.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.ordered-map.js"></script>
+    <script type="text/javascript" src="config.js"></script>
+    <script type="text/javascript" src="../js/dojo/dojo.js"></script>
+
+    <script type="text/javascript">
+        require(['test/topology_tests'], function(tests){ tests() });
+    </script>
+</head>
+<body>
+    <h1 id="qunit-header">Topology Test Suite</h1>
+    <h2 id="qunit-banner"></h2>
+    <div id="qunit-testrunner-toolbar"></div>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>
+    <div id="qunit-fixture"></div>
+</body>
+</html>
