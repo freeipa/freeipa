@@ -26,7 +26,8 @@
             'test/utils_tests',
             'test/build_tests',
             'test/binding_tests',
-        ], function(om, ipa, details, entity, as, nav, cert, aci, wid, ip, ut, bt, bi){
+            'test/topology_tests',
+        ], function(om, ipa, details, entity, as, nav, cert, aci, wid, ip, ut, bt, bi, topo){
             om();
             ipa();
             details();
@@ -40,6 +41,7 @@
             ut();
             bt();
             bi();
+            topo();
         });
     </script>
 </head>
