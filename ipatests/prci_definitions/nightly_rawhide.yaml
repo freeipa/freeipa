@@ -949,7 +949,7 @@ jobs:
         build_url: '{fedora-rawhide/build_url}'
         test_suite: test_webui/test_cert.py
         template: *ci-master-frawhide
-        timeout: 1800
+        timeout: 2400
         topology: *ipaserver
 
   fedora-rawhide/test_webui_general:
@@ -1080,7 +1080,7 @@ jobs:
         build_url: '{fedora-rawhide/build_url}'
         test_suite: test_webui/test_service.py
         template: *ci-master-frawhide
-        timeout: 1800
+        timeout: 2400
         topology: *ipaserver
 
   fedora-rawhide/test_webui_users:
@@ -1094,7 +1094,7 @@ jobs:
           test_webui/test_group.py
           test_webui/test_user.py
         template: *ci-master-frawhide
-        timeout: 3600
+        timeout: 4800
         topology: *ipaserver
 
   fedora-rawhide/customized_ds_config_install:
