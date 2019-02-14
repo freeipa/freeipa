@@ -625,7 +625,7 @@ jobs:
         build_url: '{fedora-29/build_url}'
         test_suite: test_webui/test_cert.py
         template: *pki-master-f29
-        timeout: 1800
+        timeout: 2400
         topology: *ipaserver
 
   fedora-29/test_webui_identity:
