@@ -4,10 +4,13 @@
 
 from __future__ import absolute_import
 
+import paramiko
+import pytest
+
+from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
-import paramiko
 
 class TestUserPermissions(IntegrationTest):
     topology = 'star'
@@ -67,6 +70,8 @@ class TestUserPermissions(IntegrationTest):
         # call ipa user-del --preserve
         self.master.run_command(['ipa', 'user-del', '--preserve', testuser])
 
+    @pytest.mark.xfail(osinfo.id == 'fedora' and int(osinfo.version_id) <= 28,
+                       reason='sssd ticket 3819', strict=True)
     def test_selinux_user_optimized(self):
         """
         Check that SELinux login context is set on first login for the
