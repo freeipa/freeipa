@@ -483,7 +483,6 @@ class CAInstance(DogtagInstance):
         (cfg_fd, cfg_file) = tempfile.mkstemp()
         os.close(cfg_fd)
         pent = pwd.getpwnam(self.service_user)
-        os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
 
         # Create CA configuration
         config = RawConfigParser()
@@ -646,6 +645,9 @@ class CAInstance(DogtagInstance):
         # Generate configuration file
         with open(cfg_file, "w") as f:
             config.write(f)
+
+        # Finally chown the config file (rhbz#1677027)
+        os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
 
         self.backup_state('installed', True)
         try:
