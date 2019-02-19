@@ -126,3 +126,20 @@ class TestPkinitManage(IntegrationTest):
 
         self.replicas[0].run_command(['ipa-pkinit-manage', 'enable'])
         check_pkinit(self.replicas[0], enabled=True)
+
+
+class TestPkinitInstall(IntegrationTest):
+    """Tests that ipa-server-install properly configures pkinit.
+
+    Non-regression test for issue 7795.
+    """
+    num_replicas = 0
+
+    @classmethod
+    def install(cls, mh):
+        # Install the master
+        tasks.install_master(cls.master)
+
+    def test_pkinit(self):
+        # Ensure that pkinit is properly configured
+        check_pkinit(self.master, enabled=True)
