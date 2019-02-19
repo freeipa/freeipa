@@ -19,7 +19,6 @@
 #include <util/data_blob.h>
 #include <util/time.h>
 #include <util/debug.h>
-#include <util/talloc_stack.h>
 
 #ifndef _SAMBA_UTIL_H_
 bool trim_string(char *s, const char *front, const char *back);
@@ -902,8 +901,12 @@ static bool ipasam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
 	struct dom_sid *user_sid = NULL;
 	int rc;
 	enum idmap_error_code err;
-	TALLOC_CTX *tmp_ctx = talloc_stackframe();
 	struct unixid id;
+
+	TALLOC_CTX *tmp_ctx = talloc_new(priv);
+	if (tmp_ctx == NULL) {
+		goto done;
+	}
 
 	/* Fast fail if we get a request for uidNumber=0 because it currently
 	 * will never exist in the directory
@@ -989,8 +992,12 @@ static bool ipasam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
 	size_t c;
 	int rc;
 	enum idmap_error_code err;
-	TALLOC_CTX *tmp_ctx = talloc_stackframe();
 	struct unixid id;
+
+	TALLOC_CTX *tmp_ctx = talloc_new(priv);
+	if (tmp_ctx == NULL) {
+		goto done;
+	}
 
 	filter = talloc_asprintf(tmp_ctx,
 				 "(|(&(gidNumber=%u)"
@@ -3768,7 +3775,8 @@ static void ipasam_free_private_data(void **vp)
 		(*ipasam_state)->result = NULL;
 	}
 	if ((*ipasam_state)->domain_dn != NULL) {
-		SAFE_FREE((*ipasam_state)->domain_dn);
+		free((*ipasam_state)->domain_dn);
+		(*ipasam_state)->domain_dn = NULL;
 	}
 
 	*ipasam_state = NULL;
