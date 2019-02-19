@@ -429,13 +429,14 @@ class KrbInstance(service.Service):
             prev_helper = None
             # on the first CA-ful master without '--no-pkinit', we issue the
             # certificate by contacting Dogtag directly
-            localhost_has_ca = self.fqdn in find_providing_servers(
+            ca_instances = find_providing_servers(
                 'CA', conn=self.api.Backend.ldap2, api=self.api)
+
             use_dogtag_submit = all(
                 [self.master_fqdn is None,
                  self.pkcs12_info is None,
                  self.config_pkinit,
-                 localhost_has_ca])
+                 len(ca_instances) == 0])
 
             if use_dogtag_submit:
                 ca_args = [
