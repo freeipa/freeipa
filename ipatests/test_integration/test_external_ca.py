@@ -74,10 +74,10 @@ def match_in_journal(host, string, since='today', services=('certmonger',)):
     return match
 
 
-def install_server_external_ca_step1(host, extra_args=()):
+def install_server_external_ca_step1(host, extra_args=(), raiseonerr=True):
     """Step 1 to install the ipa server with external ca"""
     return tasks.install_master(
-        host, external_ca=True, extra_args=extra_args
+        host, external_ca=True, extra_args=extra_args, raiseonerr=raiseonerr,
     )
 
 
@@ -478,3 +478,96 @@ class TestMultipleExternalCA(IntegrationTest):
             'certutil', '-L', '-d', paths.PKI_TOMCAT_ALIAS_DIR,
             '-n', cert_nick])
         assert "CN=RootCA2" in result.stdout_text
+
+
+def _step1_profile(master, s):
+    return install_server_external_ca_step1(
+        master,
+        extra_args=['--external-ca-type=ms-cs', f'--external-ca-profile={s}'],
+        raiseonerr=False,
+    )
+
+
+def _test_invalid_profile(master, profile):
+    result = _step1_profile(master, profile)
+    assert result.returncode != 0
+    assert '--external-ca-profile' in result.stderr_text
+
+
+def _test_valid_profile(master, profile_cls, profile):
+    result = _step1_profile(master, profile)
+    assert result.returncode == 0
+    ipa_csr = master.get_file_contents(paths.ROOT_IPA_CSR)
+    check_mscs_extension(ipa_csr, profile_cls(profile))
+
+
+class TestExternalCAProfileV1(IntegrationTest):
+    """
+    Test that --external-ca-profile=Foo gets propagated to the CSR.
+
+    The default template extension when --external-ca-type=ms-cs,
+    a V1 extension with value "SubCA", already gets tested by the
+    ``TestExternalCA`` class.
+
+    We only need to do Step 1 of installation, then check the CSR.
+
+    """
+    def test_invalid_v1_template(self):
+        _test_invalid_profile(self.master, 'NotAnOid:1')
+
+    def test_valid_v1_template(self):
+        _test_valid_profile(
+            self.master, ipa_x509.MSCSTemplateV1, 'TemplateOfAwesome')
+
+
+class TestExternalCAProfileV2MajorOnly(IntegrationTest):
+    """
+    Test that V2 template specifiers without minor version get
+    propagated to CSR.  This class also tests all error modes in
+    specifying a V2 template, those being:
+
+    - no major version specified
+    - too many parts specified (i.e. major, minor, and then some more)
+    - major version is not an int
+    - major version is negative
+    - minor version is not an int
+    - minor version is negative
+
+    We only need to do Step 1 of installation, then check the CSR.
+
+    """
+    def test_v2_template_too_few_parts(self):
+        _test_invalid_profile(self.master, '1.2.3.4')
+
+    def test_v2_template_too_many_parts(self):
+        _test_invalid_profile(self.master, '1.2.3.4:100:200:300')
+
+    def test_v2_template_major_version_not_int(self):
+        _test_invalid_profile(self.master, '1.2.3.4:wat:200')
+
+    def test_v2_template_major_version_negative(self):
+        _test_invalid_profile(self.master, '1.2.3.4:-1:200')
+
+    def test_v2_template_minor_version_not_int(self):
+        _test_invalid_profile(self.master, '1.2.3.4:100:wat')
+
+    def test_v2_template_minor_version_negative(self):
+        _test_invalid_profile(self.master, '1.2.3.4:100:-2')
+
+    def test_v2_template_valid_major_only(self):
+        _test_valid_profile(
+            self.master, ipa_x509.MSCSTemplateV2, '1.2.3.4:100')
+
+
+class TestExternalCAProfileV2MajorMinor(IntegrationTest):
+    """
+    Test that V2 template specifiers _with_ minor version get
+    propagated to CSR.  All error modes of V2 template specifiers
+    were tested in ``TestExternalCAProfileV2Major``.
+
+    We only need to do Step 1 of installation, then check the CSR.
+
+    """
+    def test_v2_template_valid_major_minor(self):
+        _test_valid_profile(
+            self.master, ipa_x509.MSCSTemplateV2, '1.2.3.4:100:200')
