@@ -219,6 +219,13 @@ def user_alice(request):
     return user.make_fixture(request)
 
 
+# Patterns for ValidationError messages
+PAT_FWD = "unreachable from DNS names"
+PAT_REV = "does not have PTR record"
+PAT_LOOP = "does not match A/AAAA records"
+PAT_USER = "forbidden for user principals"
+
+
 @pytest.mark.tier1
 class TestIPAddressSANIssuance(XMLRPC_test):
     """
@@ -241,19 +248,19 @@ class TestIPAddressSANIssuance(XMLRPC_test):
         host.run_command('cert_request', csr_ipv4_ipv6, principal=host_princ)
 
     def test_failure_extra_ip(self, host, ipv4_a, ipv4_ptr, csr_extra_ipv4):
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_FWD):
             host.run_command(
                 'cert_request', csr_extra_ipv4, principal=host_princ)
 
     def test_failure_no_dnsname(self, host, ipv4_a, ipv4_ptr, csr_no_dnsname):
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_FWD):
             host.run_command(
                 'cert_request', csr_no_dnsname, principal=host_princ)
 
     def test_failure_user_princ(
             self, host, ipv4_a, ipv4_ptr, csr_alice, user_alice):
         user_alice.ensure_exists()
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_USER):
             host.run_command(
                 'cert_request', csr_alice, principal=user_alice.uid)
 
@@ -267,7 +274,7 @@ class TestIPAddressSANMissingARecord(XMLRPC_test):
     def test_issuance_ipv4(
             self, host, ipv6_aaaa, ipv6_ptr, ipv4_ptr, csr_ipv4):
         """Issuing with IPv4 address fails."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_FWD):
             host.run_command('cert_request', csr_ipv4, principal=host_princ)
 
     def test_issuance_ipv6(
@@ -278,7 +285,7 @@ class TestIPAddressSANMissingARecord(XMLRPC_test):
     def test_issuance_ipv4_ipv6(
             self, host, ipv6_aaaa, ipv4_ptr, ipv6_ptr, csr_ipv4_ipv6):
         """Issuing with IPv4 *and* IPv6 address fails."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_FWD):
             host.run_command(
                 'cert_request', csr_ipv4_ipv6, principal=host_princ)
 
@@ -297,13 +304,13 @@ class TestIPAddressSANMissingAAAARecord(XMLRPC_test):
     def test_issuance_ipv6(
             self, host, ipv4_a, ipv6_ptr, ipv4_ptr, csr_ipv6):
         """Issuing with IPv6 address fails."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_FWD):
             host.run_command('cert_request', csr_ipv6, principal=host_princ)
 
     def test_issuance_ipv4_ipv6(
             self, host, ipv4_a, ipv4_ptr, ipv6_ptr, csr_ipv4_ipv6):
         """Issuing with IPv4 *and* IPv6 address fails."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_FWD):
             host.run_command(
                 'cert_request', csr_ipv4_ipv6, principal=host_princ)
 
@@ -317,7 +324,7 @@ class TestIPAddressSANMissingIPv4Ptr(XMLRPC_test):
     def test_issuance_ipv4(
             self, host, ipv4_a, ipv6_aaaa, ipv6_ptr, csr_ipv4):
         """Issuing with IPv4 address fails."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_REV):
             host.run_command('cert_request', csr_ipv4, principal=host_princ)
 
     def test_issuance_ipv6(
@@ -328,7 +335,7 @@ class TestIPAddressSANMissingIPv4Ptr(XMLRPC_test):
     def test_issuance_ipv4_ipv6(
             self, host, ipv4_a, ipv6_aaaa, ipv6_ptr, csr_ipv4_ipv6):
         """Issuing with IPv4 *and* IPv6 address fails."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_REV):
             host.run_command(
                 'cert_request', csr_ipv4_ipv6, principal=host_princ)
 
@@ -347,13 +354,13 @@ class TestIPAddressSANMissingIPv6Ptr(XMLRPC_test):
     def test_issuance_ipv6(
             self, host, ipv4_a, ipv6_aaaa, ipv4_ptr, csr_ipv6):
         """Issuing with IPv6 address fails."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_REV):
             host.run_command('cert_request', csr_ipv6, principal=host_princ)
 
     def test_issuance_ipv4_ipv6(
             self, host, ipv4_a, ipv6_aaaa, ipv4_ptr, csr_ipv4_ipv6):
         """Issuing with IPv4 *and* IPv6 address fails."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_REV):
             host.run_command(
                 'cert_request', csr_ipv4_ipv6, principal=host_princ)
 
@@ -374,13 +381,13 @@ class TestIPAddressSANOtherForwardRecords(XMLRPC_test):
     def test_issuance_ipv4(
             self, host, other_forward_records, ipv4_ptr, ipv6_ptr, csr_ipv4):
         """Issuing with IPv4 address fails."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_FWD):
             host.run_command('cert_request', csr_ipv4, principal=host_princ)
 
     def test_issuance_ipv6(
             self, host, other_forward_records, ipv4_ptr, ipv6_ptr, csr_ipv6):
         """Issuing with IPv6 address fails."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_FWD):
             host.run_command('cert_request', csr_ipv6, principal=host_princ)
 
 
@@ -403,7 +410,7 @@ class TestIPAddressPTRLoopback(XMLRPC_test):
 
     def test_failure(self, host, ipv4_a, ipv4_ptr_other, csr_iptest_other):
         """The A and PTR records are not symmetric."""
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_LOOP):
             host.run_command(
                 'cert_request', csr_iptest_other, principal=host_princ)
 
@@ -441,5 +448,5 @@ class TestIPAddressCNAME(XMLRPC_test):
         host.run_command('cert_request', csr_cname1, principal=host_princ)
 
     def test_two_levels(self, host, csr_cname2):
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ValidationError, match=PAT_FWD):
             host.run_command('cert_request', csr_cname2, principal=host_princ)
