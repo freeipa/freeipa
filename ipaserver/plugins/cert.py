@@ -1115,39 +1115,63 @@ def _validate_san_ips(san_ipaddrs, san_dnsnames):
         address.
 
     """
+    san_ip_set = frozenset(unicode(ip) for ip in san_ipaddrs)
 
-    # Collect the IP addresses for each SAN dNSName
-    san_dns_ips = set()
+    # Build a dict of IPs that are reachable from the SAN dNSNames
+    reachable = {}
     for name in san_dnsnames:
-        san_dns_ips.update(_san_dnsname_ips(name, cname_depth=1))
+        _san_ip_update_reachable(reachable, name, cname_depth=1)
 
-    # Each SAN iPAddressName must appear in the addresses we just collected
-    unmatched_ips = set(unicode(ip) for ip in san_ipaddrs) - san_dns_ips
-    if len(unmatched_ips) > 0:
+    # Each iPAddressName must be reachable from a dNSName
+    unreachable_ips = san_ip_set - six.viewkeys(reachable)
+    if len(unreachable_ips) > 0:
         raise errors.ValidationError(
             name='csr',
             error=_(
-                "IP address in subjectAltName (%s) does not match any DNS name"
-            ) % ', '.join(unmatched_ips)
+                "IP address in subjectAltName (%s) unreachable from DNS names"
+            ) % ', '.join(unreachable_ips)
         )
 
+    # Collect PTR records for each IP address
+    ptrs_by_ip = {}
+    for ip in san_ipaddrs:
+        ptrs = _ip_ptr_records(unicode(ip))
+        if len(ptrs) > 0:
+            ptrs_by_ip[unicode(ip)] = set(s.rstrip('.') for s in ptrs)
 
-def _san_dnsname_ips(dnsname, cname_depth):
+    # Each iPAddressName must have a corresponding PTR record.
+    missing_ptrs = san_ip_set - six.viewkeys(ptrs_by_ip)
+    if len(missing_ptrs) > 0:
+        raise errors.ValidationError(
+            name='csr',
+            error=_(
+                "IP address in subjectAltName (%s) does not have PTR record"
+            ) % ', '.join(missing_ptrs)
+        )
+
+    # PTRs and forward records must form a loop
+    for ip, ptrs in ptrs_by_ip.items():
+        # PTR value must appear in the set of names that resolve to
+        # this IP address (via A/AAAA records)
+        if len(ptrs - reachable.get(ip, set())) > 0:
+            raise errors.ValidationError(
+                name='csr',
+                error=_(
+                    "PTR record for SAN IP (%s) does not match A/AAAA records"
+                ) % ip
+            )
+
+
+def _san_ip_update_reachable(reachable, dnsname, cname_depth):
     """
-    Resolve a DNS name to its IP address(es).
+    Update dict of reachable IPs and the names that reach them.
 
-    The name is assumed to be fully qualified.
-
-    Returns a set of IP addresses, managed by this IPA instance,
-    that correspond to the DNS name (from the subjectAltName).
-
-    :param dnsname: The DNS name (text) for which to resolve the IP addresses
-    :param cname_depth: How many cnames are we allowed to follow?
-
-    :return: The set of IP addresses resolved from the DNS name
+    :param reachable: the dict to update. Keys are IP addresses,
+                      values are sets of DNS names.
+    :param dnsname: the DNS name to resolve
+    :param cname_depth: How many levels of CNAME indirection are permitted.
 
     """
-    ips = set()
     fqdn = dnsutil.DNSName(dnsname).make_absolute()
     zone = dnsutil.DNSName(resolver.zone_for_name(fqdn))
     name = fqdn.relativize(zone)
@@ -1155,34 +1179,27 @@ def _san_dnsname_ips(dnsname, cname_depth):
         result = api.Command['dnsrecord_show'](zone, name)['result']
     except errors.NotFound as nf:
         logger.debug("Skipping IPs for %s: %s", dnsname, nf)
-        return ips
+        return  # nothing to do
+
     for ip in itertools.chain(result.get('arecord', ()),
                               result.get('aaaarecord', ())):
-        if _ip_rdns_ok(ip, fqdn):
-            ips.add(ip)
+        # add this forward relationship to the 'reachable' dict
+        names = reachable.get(ip, set())
+        names.add(dnsname.rstrip('.'))
+        reachable[ip] = names
 
     if cname_depth > 0:
         for cname in result.get('cnamerecord', []):
             if not cname.endswith('.'):
                 cname = u'%s.%s' % (cname, zone)
-            ips.update(_san_dnsname_ips(cname, cname_depth=cname_depth - 1))
-
-    return ips
+            _san_ip_update_reachable(reachable, cname, cname_depth - 1)
 
 
-def _ip_rdns_ok(ip, fqdn):
+def _ip_ptr_records(ip):
     """
-    Check an IP address's reverse DNS record.
+    Look up PTR record(s) for IP address.
 
-    Determines whether the IP address has a reverse DNS entry (managed
-    by this IPA instance) that points to the FQDN.
-
-    :param ip: The IP address to check
-    :param fqdn: The FQDN (A/AAAA record) to which the reverse record should
-        point
-
-    :return: True if the IP address's reverse DNS record checks out, False if
-        it does not
+    :return: a ``set`` of IP addresses, possibly empty.
 
     """
     rname = dnsutil.DNSName(reversename.from_address(ip))
@@ -1191,16 +1208,10 @@ def _ip_rdns_ok(ip, fqdn):
     try:
         result = api.Command['dnsrecord_show'](zone, name)['result']
     except errors.NotFound:
-        logger.debug("Skipping IP %s: reverse DNS record not found", ip)
-        return False
-
-    # Require the PTR record to match the expected hostname
-    if any(ptr == fqdn.to_unicode() for ptr in result.get('ptrrecord', [])):
-        return True
+        ptrs = set()
     else:
-        logger.debug("Skipping IP: %s: reverse DNS doesn't match FQDN %s",
-                     ip, fqdn)
-        return False
+        ptrs = set(result.get('ptrrecord', []))
+    return ptrs
 
 
 @register()
