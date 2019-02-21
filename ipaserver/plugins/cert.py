@@ -1121,18 +1121,21 @@ def _validate_san_ips(san_ipaddrs, san_dnsnames):
         address.
 
     """
+
+    # Collect the IP addresses for each SAN dNSName
     san_dns_ips = set()
     for name in san_dnsnames:
         san_dns_ips.update(_san_dnsname_ips(name, cname_depth=1))
-    for ip in san_ipaddrs:
-        if unicode(ip) not in san_dns_ips:
-            raise errors.ValidationError(
-                name='csr',
-                error=_(
-                    "IP address in subjectAltName (%s) does not "
-                    "match any DNS name"
-                ) % name.value
-            )
+
+    # Each SAN iPAddressName must appear in the addresses we just collected
+    unmatched_ips = set(unicode(ip) for ip in san_ipaddrs) - san_dns_ips
+    if len(unmatched_ips) > 0:
+        raise errors.ValidationError(
+            name='csr',
+            error=_(
+                "IP address in subjectAltName (%s) does not match any DNS name"
+            ) % ', '.join(unmatched_ips)
+        )
 
 
 def _san_dnsname_ips(dnsname, cname_depth):
