@@ -256,6 +256,10 @@ def is_ca_installed_locally():
     return os.path.exists(paths.CA_CS_CFG_PATH)
 
 
+class InconsistentCRLGenConfigException(Exception):
+    pass
+
+
 class CAInstance(DogtagInstance):
     """
     When using a dogtag CA the DS database contains just the
@@ -278,6 +282,14 @@ class CAInstance(DogtagInstance):
                      'subsystemCert cert-pki-ca',
                      'caSigningCert cert-pki-ca')
     server_cert_name = 'Server-Cert cert-pki-ca'
+    # The following must be aligned with the RewriteRule defined in
+    # install/share/ipa-pki-proxy.conf.template
+    crl_rewrite_pattern = r"^\s*(RewriteRule\s+\^/ipa/crl/MasterCRL.bin\s.*)$"
+    crl_rewrite_comment = r"^#\s*RewriteRule\s+\^/ipa/crl/MasterCRL.bin\s.*$"
+    crl_rewriterule = "\nRewriteRule ^/ipa/crl/MasterCRL.bin " \
+        "http://{}/ca/ee/ca/getCRL?" \
+        "op=getCRL&crlIssuingPoint=MasterCRL " \
+        "[L,R=301,NC]"
 
     def __init__(self, realm=None, host_name=None, custodia=None):
         super(CAInstance, self).__init__(
@@ -1386,6 +1398,155 @@ class CAInstance(DogtagInstance):
                                 '50-dogtag10-migration.update')]
                   )
 
+    def is_crlgen_enabled(self):
+        """Check if the local CA instance is generating CRL
+
+        Three conditions must be met to consider that the local CA is CRL
+        generation master:
+        - in CS.cfg ca.crl.MasterCRL.enableCRLCache=true
+        - in CS.cfg ca.crl.MasterCRL.enableCRLUpdates=true
+        - in /etc/httpd/conf.d/ipa-pki-proxy.conf the RewriteRule
+        ^/ipa/crl/MasterCRL.bin is disabled (commented or removed)
+
+        If the values are inconsistent, an exception is raised
+        :returns: True/False
+        :raises: InconsistentCRLGenConfigException if the config is
+                 inconsistent
+        """
+        try:
+            cache = directivesetter.get_directive(
+                self.config, 'ca.crl.MasterCRL.enableCRLCache', '=')
+            enableCRLCache = cache.lower() == 'true'
+            updates = directivesetter.get_directive(
+                self.config, 'ca.crl.MasterCRL.enableCRLUpdates', '=')
+            enableCRLUpdates = updates.lower() == 'true'
+
+            # If the values are different, the config is inconsistent
+            if enableCRLCache != enableCRLUpdates:
+                raise InconsistentCRLGenConfigException(
+                    "Configuration is inconsistent, please check "
+                    "ca.crl.MasterCRL.enableCRLCache and "
+                    "ca.crl.MasterCRL.enableCRLUpdates in {} and "
+                    "run ipa-crlgen-manage [enable|disable] to repair".format(
+                        self.config))
+        except IOError:
+            raise RuntimeError(
+                "Unable to read {}".format(self.config))
+
+        # At this point enableCRLCache and enableCRLUpdates have the same value
+        try:
+            rewriteRuleDisabled = True
+            p = re.compile(self.crl_rewrite_pattern)
+            with open(paths.HTTPD_IPA_PKI_PROXY_CONF) as f:
+                for line in f.readlines():
+                    if p.search(line):
+                        rewriteRuleDisabled = False
+                        break
+        except IOError:
+            raise RuntimeError(
+                "Unable to read {}".format(paths.HTTPD_IPA_PKI_PROXY_CONF))
+
+        # if enableCRLUpdates and rewriteRuleDisabled are different, the config
+        # is inconsistent
+        if enableCRLUpdates != rewriteRuleDisabled:
+            raise InconsistentCRLGenConfigException(
+                "Configuration is inconsistent, please check "
+                "ca.crl.MasterCRL.enableCRLCache in {} and the "
+                "RewriteRule ^/ipa/crl/MasterCRL.bin in {} and "
+                "run ipa-crlgen-manage [enable|disable] to repair".format(
+                    self.config, paths.HTTPD_IPA_PKI_PROXY_CONF))
+        return enableCRLUpdates
+
+    def setup_crlgen(self, setup_crlgen):
+        """Configure the local host for CRL generation
+
+        :param setup_crlgen: if True enable CRL generation, if False, disable
+        """
+        try:
+            crlgen_enabled = self.is_crlgen_enabled()
+            if crlgen_enabled == setup_crlgen:
+                logger.info(
+                    "Nothing to do, CRL generation already %s",
+                    "enabled" if crlgen_enabled else "disabled")
+                return
+        except InconsistentCRLGenConfigException:
+            logger.warning("CRL generation is partially enabled, repairing...")
+
+        # Stop PKI
+        logger.info("Stopping %s", self.service_name)
+        self.stop_instance()
+        logger.debug("%s successfully stopped", self.service_name)
+
+        # Edit the CS.cfg directives
+        logger.info("Editing %s", self.config)
+        with directivesetter.DirectiveSetter(
+                self.config, quotes=False, separator='=') as ds:
+            # Convert the bool setup_crlgen to a lowercase string
+            str_value = str(setup_crlgen).lower()
+            ds.set('ca.crl.MasterCRL.enableCRLCache', str_value)
+            ds.set('ca.crl.MasterCRL.enableCRLUpdates', str_value)
+
+        # Start pki-tomcat
+        logger.info("Starting %s", self.service_name)
+        self.start_instance()
+        logger.debug("%s successfully started", self.service_name)
+
+        # Edit the RewriteRule
+        def comment_rewriterule():
+            logger.info("Editing %s", paths.HTTPD_IPA_PKI_PROXY_CONF)
+            # look for the pattern RewriteRule ^/ipa/crl/MasterCRL.bin ..
+            # and comment out
+            p = re.compile(self.crl_rewrite_pattern, re.MULTILINE)
+            with open(paths.HTTPD_IPA_PKI_PROXY_CONF) as f:
+                content = f.read()
+            new_content = p.sub(r"#\1", content)
+            with open(paths.HTTPD_IPA_PKI_PROXY_CONF, 'w') as f:
+                f.write(new_content)
+
+        def uncomment_rewriterule():
+            logger.info("Editing %s", paths.HTTPD_IPA_PKI_PROXY_CONF)
+            # check if the pattern RewriteRule ^/ipa/crl/MasterCRL.bin ..
+            # is already present
+            present = False
+            p = re.compile(self.crl_rewrite_pattern, re.MULTILINE)
+            with open(paths.HTTPD_IPA_PKI_PROXY_CONF) as f:
+                content = f.read()
+            present = p.search(content)
+            # Remove the comment
+            p_comment = re.compile(self.crl_rewrite_comment, re.MULTILINE)
+            new_content = p_comment.sub("", content)
+            # If not already present, add RewriteRule
+            if not present:
+                new_content += self.crl_rewriterule.format(api.env.host)
+            # Finally write the file
+            with open(paths.HTTPD_IPA_PKI_PROXY_CONF, 'w') as f:
+                f.write(new_content)
+
+        try:
+            if setup_crlgen:
+                comment_rewriterule()
+            else:
+                uncomment_rewriterule()
+
+        except IOError:
+            raise RuntimeError(
+                "Unable to access {}".format(paths.HTTPD_IPA_PKI_PROXY_CONF))
+
+        # Restart httpd
+        http_service = services.knownservices.httpd
+        logger.info("Restarting %s", http_service.service_name)
+        http_service.restart()
+        logger.debug("%s successfully restarted", http_service.service_name)
+
+        # make sure a CRL is generated if setup_crl is True
+        if setup_crlgen:
+            logger.info("Forcing CRL update")
+            api.Backend.ra.override_port = 8443
+            result = api.Backend.ra.updateCRL(wait='true')
+            if result.get('crlUpdate', 'Failure') == 'Success':
+                logger.debug("Successfully updated CRL")
+            api.Backend.ra.override_port = None
+
 
 def __update_entry_from_cert(make_filter, make_entry, cert):
     """
@@ -1465,7 +1626,6 @@ def __update_entry_from_cert(make_filter, make_entry, cert):
         return False
 
     return True
-
 
 def update_people_entry(cert):
     """
