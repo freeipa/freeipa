@@ -111,6 +111,9 @@
 # and https://pagure.io/dogtagpki/issue/3073
 %global pki_version 10.6.8-3
 
+# https://pagure.io/certmonger/issue/90
+%global certmonger_version 0.79.7-1
+
 # NSS release with fix for p11-kit-proxy issue, affects F28
 # https://pagure.io/freeipa/issue/7810
 %if 0%{?fedora} == 28
@@ -403,7 +406,7 @@ Requires(preun): systemd-units
 Requires(postun): systemd-units
 Requires: policycoreutils >= 2.1.12-5
 Requires: tar
-Requires(pre): certmonger >= 0.79.5-1
+Requires(pre): certmonger >= %{certmonger_version}
 Requires(pre): 389-ds-base >= %{ds_version}
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
@@ -629,7 +632,7 @@ Requires: initscripts
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
 Requires: sssd-ipa >= %{sssd_version}
-Requires: certmonger >= 0.79.5-1
+Requires: certmonger >= %{certmonger_version}
 Requires: nss-tools >= %{nss_version}
 Requires: bind-utils
 Requires: oddjob-mkhomedir
