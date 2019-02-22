@@ -996,6 +996,7 @@ install/tools/ipa-backup
 install/tools/ipa-ca-install
 install/tools/ipa-cacert-manage
 install/tools/ipa-compat-manage
+install/tools/ipa-crlgen-manage
 install/tools/ipa-csreplica-manage
 install/tools/ipa-custodia
 install/tools/ipa-custodia-check
@@ -1381,6 +1382,7 @@ fi
 %{_sbindir}/ipa-cacert-manage
 %{_sbindir}/ipa-winsync-migrate
 %{_sbindir}/ipa-pkinit-manage
+%{_sbindir}/ipa-crlgen-manage
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/certmonger/ipa-server-guard
 %dir %{_libexecdir}/ipa
@@ -1445,6 +1447,7 @@ fi
 %{_mandir}/man1/ipa-cacert-manage.1*
 %{_mandir}/man1/ipa-winsync-migrate.1*
 %{_mandir}/man1/ipa-pkinit-manage.1*
+%{_mandir}/man1/ipa-crlgen-manage.1*
 
 
 %files -n python2-ipaserver

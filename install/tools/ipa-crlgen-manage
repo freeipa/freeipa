@@ -1,0 +1,8 @@
+#! /usr/bin/python2 -E
+#
+# Copyright (C) 2019  FreeIPA Contributors see COPYING for license
+#
+
+from ipaserver.install.ipa_crlgen_manage import CRLGenManage
+
+CRLGenManage.run_cli()
