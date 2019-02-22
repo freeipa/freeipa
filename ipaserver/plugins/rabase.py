@@ -123,3 +123,12 @@ class rabase(Backend):
         :param options: dictionary of search options
         """
         raise errors.NotImplementedError(name='%s.find' % self.name)
+
+    def updateCRL(self, wait='false'):
+        """
+        Force update of the CRL
+
+        :param wait: if true, the call will be synchronous and return only
+                     when the CRL has been generated
+        """
+        raise errors.NotImplementedError(name='%s.updateCRL' % self.name)
