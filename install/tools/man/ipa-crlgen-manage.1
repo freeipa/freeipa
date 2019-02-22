@@ -1,0 +1,47 @@
+.\"
+.\" Copyright (C) 2019  FreeIPA Contributors see COPYING for license
+.\"
+.TH "ipa-crlgen-manage" "1" "Feb 12 2019" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-crlgen\-manage \- Enables or disables CRL generation
+.SH "SYNOPSIS"
+ipa\-crlgen\-manage [options] <enable|disable|status>
+.SH "DESCRIPTION"
+Run the command with the \fBenable\fR option to enable CRL generation on the
+local host. This requires that the IPA server is already installed and
+configured, including a CA. The command will restart Dogtag and Apache.
+
+Run the command with the \fBdisable\fR option to disable CRL generation on the
+local host. The command will restart Dogtag and Apache.
+
+Run the command with the \fBstatus\fR option to determine the current status
+of CRL generation. If the local host is configured for CRL generation, the
+command also prints the last CRL generation date and number.
+
+Important: the administrator must ensure that there is only one IPA server
+generating CRLs. In order to transfer the CRL generation from one server to
+another, please run \fBipa-crlgen-manage disable\fR on the current CRL
+generation master, followed by \fBipa-crlgen-manage enable\fR on the new
+CRL generation master.
+.SH "OPTIONS"
+.TP
+\fB\-\-version\fR
+Show the program's version and exit.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show the help for this program.
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Print debugging information.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors.
+.TP
+\fB\-\-log\-file\fR=\fIFILE\fR
+Log to the given file.
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
+
+2 if the local host is not an IPA server

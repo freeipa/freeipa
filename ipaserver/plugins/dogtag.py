@@ -1148,6 +1148,67 @@ def parse_unrevoke_cert_xml(doc):
     return response
 
 
+def parse_updateCRL_xml(doc):
+    '''
+    :param doc: The root node of the xml document to parse
+    :returns:   result dict
+    :except ValueError:
+
+    After parsing the results are returned in a result dict. The following
+    table illustrates the mapping from the CMS data item to what may be found
+    in the result dict. If a CMS data item is absent it will also be absent in
+    the result dict.
+
+    If the requestStatus is not SUCCESS then the response dict will have the
+    contents described in `parse_error_template_xml`.
+
+    +-----------------+-------------+-----------------------+---------------+
+    |cms name         |cms type     |result name            |result type    |
+    +=================+=============+=======================+===============+
+    |crlIssuingPoint  |string       |crl_issuing_point      |unicode        |
+    +-----------------+-------------+-----------------------+---------------+
+    |crlUpdate        |string       |crl_update [1]         |unicode        |
+    +-----------------+-------------+-----------------------+---------------+
+
+    .. [1] crlUpdate may be one of:
+
+           - "Success"
+           - "Failure"
+           - "missingParameters"
+           - "testingNotEnabled"
+           - "testingInProgress"
+           - "Scheduled"
+           - "inProgress"
+           - "disabled"
+           - "notInitialized"
+
+    '''
+
+    request_status = get_request_status_xml(doc)
+
+    if request_status != CMS_STATUS_SUCCESS:
+        response = parse_error_template_xml(doc)
+        return response
+
+    response = {}
+    response['request_status'] = request_status
+
+    crl_issuing_point = doc.xpath('//xml/header/crlIssuingPoint[1]')
+    if len(crl_issuing_point) == 1:
+        crl_issuing_point = etree.tostring(
+            crl_issuing_point[0], method='text',
+            encoding=unicode).strip()
+        response['crl_issuing_point'] = crl_issuing_point
+
+    crl_update = doc.xpath('//xml/header/crlUpdate[1]')
+    if len(crl_update) == 1:
+        crl_update = etree.tostring(crl_update[0], method='text',
+                                    encoding=unicode).strip()
+        response['crl_update'] = crl_update
+
+    return response
+
+
 #-------------------------------------------------------------------------------
 
 from ipalib import Registry, errors, SkipPluginModule
@@ -1922,6 +1983,47 @@ class ra(rabase.rabase, RestClient):
             results.append(response_request)
 
         return results
+
+    def updateCRL(self, wait='false'):
+        """
+        Force update of the CRL
+
+        :param wait: if true, the call will be synchronous and return only
+                     when the CRL has been generated
+        """
+        logger.debug('%s.updateCRL()', type(self).__name__)
+        # Call CMS
+        http_status, _http_headers, http_body = (
+            self._sslget('/ca/agent/ca/updateCRL',
+                         self.override_port or self.env.ca_agent_port,
+                         crlIssuingPoint='MasterCRL',
+                         waitForUpdate=wait,
+                         xml='true')
+        )
+
+        # Parse and handle errors
+        if http_status != 200:
+            self.raise_certificate_operation_error('updateCRL',
+                                                   detail=http_status)
+
+        parse_result = self.get_parse_result_xml(http_body,
+                                                 parse_updateCRL_xml)
+        request_status = parse_result['request_status']
+        if request_status != CMS_STATUS_SUCCESS:
+            self.raise_certificate_operation_error(
+                'updateCRL',
+                cms_request_status_to_string(request_status),
+                parse_result.get('error_string'))
+
+        # Return command result
+        cmd_result = {}
+
+        if 'crl_issuing_point' in parse_result:
+            cmd_result['crlIssuingPoint'] = parse_result['crl_issuing_point']
+        if 'crl_update' in parse_result:
+            cmd_result['crlUpdate'] = parse_result['crl_update']
+
+        return cmd_result
 
 
 # ----------------------------------------------------------------------------
