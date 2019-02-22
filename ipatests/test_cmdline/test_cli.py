@@ -377,6 +377,7 @@ IPA_CLIENT_NOT_CONFIGURED = b'IPA client is not configured on this system'
         (['ipa-ca-install'], 1, None,
          b'IPA server is not configured on this system'),
         (['ipa-compat-manage'], 2, None, IPA_NOT_CONFIGURED),
+        (['ipa-crlgen-manage'], 2, None, IPA_NOT_CONFIGURED),
         (['ipa-csreplica-manage'], 1, None, IPA_NOT_CONFIGURED),
         (['ipactl', 'status'], 4, None, b'IPA is not configured'),
         (['ipa-dns-install'], 2, None, IPA_NOT_CONFIGURED),
