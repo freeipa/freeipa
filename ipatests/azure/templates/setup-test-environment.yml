@@ -1,0 +1,35 @@
+parameters:
+  pythonVersion: '3.6'
+  architecture: 'x64'
+  pythonExec: 'python3'
+  logsPath: 'logs'
+  logsArtifact: 'logs-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitrecture)'
+steps:
+- script: |
+    echo '{ "ipv6": true, "fixed-cidr-v6": "2001:db8::/64" }' > docker-daemon.json
+    sudo cp docker-daemon.json /etc/docker/daemon.json
+    sudo chown root:root /etc/docker/daemon.json
+    sudo systemctl restart docker
+  displayName: Configure containerization to allow IPv6 network
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: ${{parameters.pythonVersion}}
+    architecture: ${{parameters.architecture}}
+- script: |
+    ${{parameters.pythonExec}} -m pip install --upgrade pip setuptools pycodestyle
+  displayName: 'Install prerequisites'
+- task: DownloadPipelineArtifact@0
+  displayName: Download prebuilt packages
+  inputs:
+    artifactName: 'packages-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)'
+    targetPath: $(Agent.BuildDirectory)/s/dist
+- task: DownloadPipelineArtifact@0
+  displayName: Download pre-built container
+  inputs:
+    artifactName: 'image-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)'
+    targetPath: $(Agent.BuildDirectory)/s
+- script: |
+    docker load --input $(Agent.BuildDirectory)/s/freeipa-fedora-builder-container.tar.gz
+    docker images
+    docker inspect freeipa-fedora-builder:latest
+  displayName: Import pre-built container to the engine

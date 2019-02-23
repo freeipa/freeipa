@@ -1,0 +1,11 @@
+parameters:
+  logsPath: 'logs'
+  logsArtifact: 'logs-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitrecture)'
+steps:
+- task: PublishPipelineArtifact@0
+  displayName: Publish logs
+  inputs:
+    artifactName: ${{parameters.logsArtifact}}
+    targetPath: ${{parameters.logsPath}}
+  condition: always()
+
