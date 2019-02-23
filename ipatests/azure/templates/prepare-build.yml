@@ -1,0 +1,11 @@
+steps:
+- script: |
+    sudo rm -rf /var/cache/dnf/*
+    echo 'Disable modular repositories'
+    sudo dnf config-manager '*modular*' --set-disabled
+    sudo dnf makecache || :
+    echo "Installing base development environment"
+    sudo dnf install -y gdb make autoconf rpm-build gettext-devel automake libtool 'nodejs(abi) < 11' docker python3-paramiko || :
+    echo "Installing FreeIPA development dependencies"
+    sudo dnf builddep -y --skip-broken -D "with_wheels 1" -D "with_lint 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False || :
+  displayName: Prepare build environment
