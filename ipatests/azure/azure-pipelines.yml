@@ -1,0 +1,165 @@
+trigger:
+- master
+
+variables:
+  TEST_RUNNER_IMAGE: freeipa-fedora-builder:latest
+  TEST_RUNNER_CONFIG: .test_runner_azure.yaml
+  PEP8_ERROR_LOG: pycodestyle_errors.log
+  CI_RESULTS_LOG: ci_results_$(System.PullRequest.PullRequestNumber).log
+  CI_BACKLOG_SIZE: 5000
+  CI_RUNNER_LOGS_DIR: logs
+  CI_RUNNER_LOG_ARCHIVE: $(System.PullRequest.PullRequestNumber)-job-$(Build.BuildId).tar.gz
+  TRAVIS_EVENT_TYPE: $(Build.Reason)
+  TRAVIS_BRANCH: $(System.PullRequest.TargetBranch)
+  localsdir: $(Build.Repository.LocalPath)
+  builddir: /__w/1/s
+
+jobs:
+- job: Build
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  container:
+    image: registry.fedoraproject.org/f30/fedora-toolbox
+    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
+  steps:
+    - template: templates/prepare-build.yml
+    - script: |
+        echo "Running autoconf generator"
+        ./autogen.sh
+      displayName: Configure the project
+    - script: |
+        echo "Running make target 'rpms'"
+        make V=0 rpms LOG_COMPILE='gdb -return-child-result -ex run -ex "thread apply all bt" -ex "quit" --args'
+      displayName: Build packages
+    - script: |
+        mkdir container
+        cp -pr dist container/
+        cp ipatests/azure/Dockerfile.build-container container/Dockerfile
+        cd container
+        docker build -t freeipa-fedora-builder .
+        docker save freeipa-fedora-builder | gzip > '$(builddir)/freeipa-fedora-builder-container.tar.gz'
+      displayName: Create container image for test
+    - template: templates/publish-build.yml
+
+- job: Lint
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  container:
+    image: registry.fedoraproject.org/f30/fedora-toolbox
+    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
+  steps:
+    - template: templates/prepare-build.yml
+    - script: |
+        echo "Running autoconf generator"
+        ./autogen.sh
+      displayName: Configure the project
+    - script: |
+        echo "Running make target 'lint'"
+        make V=0 lint
+      displayName: Lint sources
+
+- job: Tox
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  container:
+    image: registry.fedoraproject.org/f30/fedora-toolbox
+    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
+  steps:
+    - template: templates/prepare-build.yml
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: 3.6
+        architecture: x64
+    - script: |
+        sudo dnf -y install nss-tools
+        python3 -m pip install --upgrade pip setuptools pycodestyle
+      displayName: 'Install prerequisites'
+    - script: |
+        echo "Running tox"
+        export LANG=en_US.utf8
+        export LC_CTYPE=en_US.utf8
+        locale
+        tox -e py36,pypi,pylint3
+      displayName: Tox
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: '.tox/**/junit-*.xml'
+        testRunTitle: 'Tox results'
+      condition: succeededOrFailed()
+
+- job: WebUI_Unit_Tests
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  container:
+    image: registry.fedoraproject.org/f30/fedora-toolbox
+    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
+  steps:
+    - template: templates/prepare-build.yml
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: 3.6
+        architecture: x64
+    - script: |
+        sudo dnf -y install npm fontconfig
+      displayName: 'Install prerequisites'
+    - script: |
+        echo "Running autoconf generator"
+        ./autogen.sh
+      displayName: Configure the project
+    - script: |
+        echo "Running WebUI unit tests"
+        cd $(builddir)/install/ui/js/libs && make
+        cd $(builddir)/install/ui && npm install
+        cd $(builddir)/install/ui && node_modules/grunt/bin/grunt --verbose test
+      displayName: WebUI Unit Tests
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: 'install/ui/_build/test-reports/TEST-*.xml'
+        testRunTitle: 'Web UI unit test results'
+      condition: succeededOrFailed()
+
+- job: Test
+  dependsOn: Build
+  condition: succeeded()
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  strategy:
+    matrix:
+        Base_tests:
+          TEST_TITLE: 'Base'
+          TASK_TO_RUN: run-tests
+          TESTS_TO_RUN: "test_cmdline
+                test_install
+                test_ipaclient
+                test_ipalib
+                test_ipaplatform
+                test_ipapython
+                test_ipaserver"
+        XMLRPC_tests:
+          TEST_TITLE: 'XMLRPC'
+          TASK_TO_RUN: run-tests
+          TESTS_TO_RUN: "test_xmlrpc/test_*.py"
+  steps:
+    - template: templates/setup-test-environment.yml
+      parameters:
+        pythonVersion: '3.6'
+        architecture: 'x64'
+        logsPath: '$(CI_RUNNER_LOGS_DIR)'
+    - script: |
+        sudo modprobe ip6_tables
+      displayName: Make sure IPv6 firewall support is allowed
+    - template: templates/run-test.yml
+      parameters:
+        containerName: 'freeipa-fedora-builder:latest'
+        logsPath: '$(CI_RUNNER_LOGS_DIR)'
+        testToRun: '$(TASK_TO_RUN)'
+        testParams: '$(TESTS_TO_RUN)'
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: 'nosetests.xml'
+        testRunTitle: 'XMLRPC test results'
+      condition: succeededOrFailed()
+    - template: templates/save-test-artifacts.yml
+      parameters:
+        logsPath: '$(CI_RUNNER_LOGS_DIR)'
+        logsArtifact: '$(TEST_TITLE)-logs-$(CI_RUNNER_LOG_ARCHIVE)'

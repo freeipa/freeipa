@@ -1,0 +1,23 @@
+parameters:
+  imageName: 'freeipa-fedora-builder:latest'
+  containerName: 'container'
+  logsPath: 'logs'
+  testToRun: 'lint'
+  testParams: ''
+
+steps:
+- script: |
+    cnt=`docker create --hostname ipa.example.test --privileged -v $(Build.Repository.LocalPath):/freeipa -t  ${{parameters.imageName}} /usr/sbin/init`
+    echo "##vso[task.setvariable variable=containerName;isOutput=true]$cnt"
+  name: createContainer
+  displayName: Create container for running a test
+- script: |
+    docker start $(createContainer.containerName)
+    docker inspect $(createContainer.containerName)
+  displayName: Start container for running a test
+- script: |
+    docker exec --env TESTS_TO_RUN='${{parameters.testParams}}' \
+                --privileged -t \
+                $(createContainer.containerName) \
+                /bin/bash --noprofile --norc -x /freeipa/ipatests/azure/azure-${{parameters.testToRun}}.sh
+  displayName: Run test
