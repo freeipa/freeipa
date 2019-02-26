@@ -26,6 +26,7 @@ in Fedora-based systems.
 from __future__ import absolute_import
 
 from ipaplatform.redhat.paths import RedHatPathNamespace
+from ipaplatform.fedora.constants import HAS_NFS_CONF
 
 
 class FedoraPathNamespace(RedHatPathNamespace):
@@ -33,6 +34,8 @@ class FedoraPathNamespace(RedHatPathNamespace):
         "/etc/httpd/conf.modules.d/02-ipa-wsgi.conf"
     )
     NAMED_CRYPTO_POLICY_FILE = "/etc/crypto-policies/back-ends/bind.config"
+    if HAS_NFS_CONF:
+        SYSCONFIG_NFS = '/etc/nfs.conf'
 
 
 paths = FedoraPathNamespace()
