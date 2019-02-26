@@ -335,14 +335,16 @@ def configure_nfs(fstore, statestore):
     """
     Configure secure NFS
     """
-    replacevars = {
-        constants.SECURE_NFS_VAR: 'yes',
-    }
-    ipautil.backup_config_and_replace_variables(fstore,
-        paths.SYSCONFIG_NFS, replacevars=replacevars)
-    tasks.restore_context(paths.SYSCONFIG_NFS)
-
-    print("Configured %s" % paths.SYSCONFIG_NFS)
+    # Newer Fedora releases ship /etc/nfs.conf instead of /etc/sysconfig/nfs
+    # and do not require changes there. On these, SECURE_NFS_VAR == None
+    if constants.SECURE_NFS_VAR:
+        replacevars = {
+            constants.SECURE_NFS_VAR: 'yes',
+        }
+        ipautil.backup_config_and_replace_variables(fstore,
+            paths.SYSCONFIG_NFS, replacevars=replacevars)
+        tasks.restore_context(paths.SYSCONFIG_NFS)
+        print("Configured %s" % paths.SYSCONFIG_NFS)
 
     # Prepare the changes
     # We need to use IPAChangeConf as simple regexp substitution
