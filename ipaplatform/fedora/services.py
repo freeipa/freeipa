@@ -34,7 +34,7 @@ fedora_system_units = redhat_services.redhat_system_units.copy()
 # Fedora 28 and earlier have fedora-domainname.service. Starting from
 # Fedora 29, the service is called nis-domainname.service as defined in
 # ipaplatform.redhat.services.
-HAS_FEDORA_DOMAINNAME_SERVICE = int(osinfo.version_id) <= 28
+HAS_FEDORA_DOMAINNAME_SERVICE = osinfo.version_number <= (28,)
 
 if HAS_FEDORA_DOMAINNAME_SERVICE:
     fedora_system_units['domainname'] = 'fedora-domainname.service'

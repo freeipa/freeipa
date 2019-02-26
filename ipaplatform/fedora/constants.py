@@ -10,6 +10,12 @@ This Fedora base platform module exports platform related constants.
 from __future__ import absolute_import
 
 from ipaplatform.redhat.constants import RedHatConstantsNamespace
+from ipaplatform.osinfo import osinfo
+
+# Fedora 28 and earlier use /etc/sysconfig/nfs
+# Fedora 30 and later use /etc/nfs.conf
+# Fedora 29 has both
+HAS_NFS_CONF = osinfo.version_number >= (30,)
 
 
 class FedoraConstantsNamespace(RedHatConstantsNamespace):
@@ -22,6 +28,7 @@ class FedoraConstantsNamespace(RedHatConstantsNamespace):
     # secure remote password, and DSA cert authentication.
     # see https://fedoraproject.org/wiki/Changes/CryptoPolicy
     TLS_HIGH_CIPHERS = "PROFILE=SYSTEM:!3DES:!PSK:!SRP:!aDSS"
-
+    if HAS_NFS_CONF:
+        SECURE_NFS_VAR = None
 
 constants = FedoraConstantsNamespace()
