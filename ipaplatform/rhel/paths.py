@@ -26,10 +26,12 @@ in RHEL-based systems.
 from __future__ import absolute_import
 
 from ipaplatform.redhat.paths import RedHatPathNamespace
+from ipaplatform.rhel.constants import HAS_NFS_CONF
 
 
 class RHELPathNamespace(RedHatPathNamespace):
-    pass
+    if HAS_NFS_CONF:
+        SYSCONFIG_NFS = '/etc/nfs.conf'
 
 
 paths = RHELPathNamespace()
