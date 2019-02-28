@@ -10,7 +10,7 @@ from ipaplatform.osinfo import osinfo
 CERTNICK = 'testcert'
 
 if osinfo.id == 'fedora':
-    if int(osinfo.version_id) >= 28:
+    if osinfo.version_number >= (28,):
         NSS_DEFAULT = 'sql'
     else:
         NSS_DEFAULT = 'dbm'
