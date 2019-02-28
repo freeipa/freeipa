@@ -70,8 +70,9 @@ class TestUserPermissions(IntegrationTest):
         # call ipa user-del --preserve
         self.master.run_command(['ipa', 'user-del', '--preserve', testuser])
 
-    @pytest.mark.xfail(osinfo.id == 'fedora' and int(osinfo.version_id) <= 28,
-                       reason='sssd ticket 3819', strict=True)
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number <= (28,),
+        reason='sssd ticket 3819', strict=True)
     def test_selinux_user_optimized(self):
         """
         Check that SELinux login context is set on first login for the
