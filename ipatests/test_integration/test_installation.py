@@ -398,3 +398,49 @@ class TestInstallMasterReservedIPasForwarder(IntegrationTest):
         exp_str = ("Invalid IP Address 0.0.0.0: cannot use IANA reserved "
                    "IP address 0.0.0.0")
         assert exp_str in cmd.stdout_text
+
+
+class TestMaskInstall(IntegrationTest):
+    """ Test master and replica installation with wrong mask
+
+    This test checks that master/replica installation fails (expectedly) if
+    mask > 022.
+
+    related ticket: https://pagure.io/freeipa/issue/7193
+    """
+
+    num_replicas = 0
+
+    @classmethod
+    def install(cls, mh):
+        super(TestMaskInstall, cls).install(mh)
+        cls.bashrc_file = cls.master.get_file_contents('/root/.bashrc')
+
+    def test_install_master(self):
+        self.master.run_command('echo "umask 0027" >> /root/.bashrc')
+        result = self.master.run_command(['umask'])
+        assert '0027' in result.stdout_text
+
+        cmd = tasks.install_master(
+            self.master, setup_dns=False, raiseonerr=False
+        )
+        exp_str = ("Unexpected system mask")
+        assert (exp_str in cmd.stderr_text and cmd.returncode != 0)
+
+    def test_install_replica(self):
+        result = self.master.run_command(['umask'])
+        assert '0027' in result.stdout_text
+
+        cmd = self.master.run_command([
+            'ipa-replica-install', '-w', self.master.config.admin_password,
+            '-n', self.master.domain.name, '-r', self.master.domain.realm,
+            '--server', 'dummy_master.%s' % self.master.domain.name,
+            '-U'], raiseonerr=False
+        )
+        exp_str = ("Unexpected system mask")
+        assert (exp_str in cmd.stderr_text and cmd.returncode != 0)
+
+    def test_files_ownership_and_permission_teardown(self):
+        """ Method to restore the default bashrc contents"""
+        if self.bashrc_file is not None:
+            self.master.put_file_contents('/root/.bashrc', self.bashrc_file)
