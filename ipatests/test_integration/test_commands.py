@@ -287,7 +287,8 @@ class TestIPACommand(IntegrationTest):
         """
 
         test_user = 'test-ssh'
-        master = self.master.hostname
+        external_master_hostname = \
+            self.master.external_hostname  # pylint: disable=no-member
 
         pub_keys = []
 
@@ -317,13 +318,13 @@ class TestIPACommand(IntegrationTest):
         # first connection attempt is a workaround for
         # https://pagure.io/SSSD/sssd/issue/3669
         try:
-            sshcon.connect(master, username=test_user,
+            sshcon.connect(external_master_hostname, username=test_user,
                            key_filename=first_priv_key_path, timeout=1)
         except (paramiko.AuthenticationException, paramiko.SSHException):
             pass
 
         try:
-            sshcon.connect(master, username=test_user,
+            sshcon.connect(external_master_hostname, username=test_user,
                            key_filename=first_priv_key_path, timeout=1)
         except (paramiko.AuthenticationException,
                 paramiko.SSHException) as e:
