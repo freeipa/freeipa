@@ -3554,6 +3554,89 @@ done:
 	return status;
 }
 
+/*
+ * lookup of an account by SID
+ *
+ * Samba may ask for an account based on a SID value. Implement a callback to
+ * return a result of such lookup since we should have SID for every domain
+ * account that is supposed to be usable through SMB protocol.
+ */
+static NTSTATUS ipasam_getsampwsid(struct pdb_methods *methods,
+				    struct samu *user,
+				    const struct dom_sid *sid)
+{
+	struct ipasam_private *ipasam_state =
+			talloc_get_type_abort(methods->private_data, struct ipasam_private);
+	TALLOC_CTX *tmp_ctx;
+	NTSTATUS status;
+	char *filter = NULL;
+	char *sid_str = NULL;
+	LDAPMessage *result = NULL;
+	LDAPMessage *entry = NULL;
+	int ret;
+	int count;
+
+	tmp_ctx = talloc_new(NULL);
+	if (tmp_ctx == NULL) {
+		return NT_STATUS_NO_MEMORY;
+	}
+
+	sid_str = sid_talloc_string(ipasam_state->idmap_ctx, tmp_ctx, sid);
+	if (sid_str == NULL) {
+		status = NT_STATUS_NO_MEMORY;
+		goto done;
+	}
+
+	filter = talloc_asprintf(tmp_ctx, "(&(|(%s=%s)(%s=%s))(%s=%s))",
+					  LDAP_ATTRIBUTE_OBJECTCLASS,
+					  LDAP_OBJ_SAMBASAMACCOUNT,
+					  LDAP_ATTRIBUTE_OBJECTCLASS,
+					  LDAP_OBJ_ID_OBJECT,
+					  LDAP_ATTRIBUTE_SID, sid_str);
+	if (filter == NULL) {
+		status = NT_STATUS_NO_MEMORY;
+		goto done;
+	}
+
+	ret = smbldap_search(ipasam_state->ldap_state,
+			     ipasam_state->base_dn,
+			     LDAP_SCOPE_SUBTREE, filter, NULL, 0,
+			     &result);
+	if (ret != LDAP_SUCCESS) {
+		status = NT_STATUS_NO_SUCH_USER;
+		goto done;
+	}
+
+	count = ldap_count_entries(priv2ld(ipasam_state), result);
+	if (count != 1) {
+		DEBUG(3, ("Expected single entry returned for a SID lookup. "
+			  "Got %d. Refuse lookup by SID %s", count, sid_str));
+		status = NT_STATUS_NO_SUCH_USER;
+		goto done;
+	}
+
+	entry = ldap_first_entry(priv2ld(ipasam_state), result);
+	if (entry == NULL) {
+		status = NT_STATUS_NO_SUCH_USER;
+		goto done;
+	}
+
+	if (!init_sam_from_ldap(ipasam_state, user, entry)) {
+		status = NT_STATUS_NO_SUCH_USER;
+		goto done;
+	}
+
+	status = NT_STATUS_OK;
+
+done:
+	if (result != NULL) {
+		ldap_msgfree(result);
+	}
+	talloc_free(tmp_ctx);
+	return status;
+}
+
+
 static NTSTATUS ipasam_getsampwnam(struct pdb_methods *methods,
 				    struct samu *user,
 				    const char *sname)
@@ -4864,6 +4947,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	ipasam_state->supported_enctypes = enctypes;
 
 	(*pdb_method)->getsampwnam = ipasam_getsampwnam;
+	(*pdb_method)->getsampwsid = ipasam_getsampwsid;
 	(*pdb_method)->search_users = ipasam_search_users;
 	(*pdb_method)->search_groups = ipasam_search_groups;
 	(*pdb_method)->search_aliases = ipasam_search_aliases;
