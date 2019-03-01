@@ -63,7 +63,8 @@ from ipapython.ipautil import (
 from ipapython.ssh import SSHPublicKey
 from ipapython import version
 
-from . import automount, ipadiscovery, timeconf, sssd
+from . import automount, timeconf, sssd
+from ipaclient import discovery
 from .ipachangeconf import IPAChangeConf
 
 NoneType = type(None)
@@ -2179,7 +2180,7 @@ def install_check(options):
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     # Create the discovery instance
-    ds = ipadiscovery.IPADiscovery()
+    ds = discovery.IPADiscovery()
 
     ret = ds.search(
         domain=options.domain,
@@ -2202,22 +2203,22 @@ def install_check(options):
         print_port_conf_info()
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
-    if ret == ipadiscovery.BAD_HOST_CONFIG:
+    if ret == discovery.BAD_HOST_CONFIG:
         logger.error("Can't get the fully qualified name of this host")
         logger.info("Check that the client is properly configured")
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
-    if ret == ipadiscovery.NOT_FQDN:
+    if ret == discovery.NOT_FQDN:
         raise ScriptError(
             "{} is not a fully-qualified hostname".format(hostname),
             rval=CLIENT_INSTALL_ERROR)
-    if ret in (ipadiscovery.NO_LDAP_SERVER, ipadiscovery.NOT_IPA_SERVER) \
+    if ret in (discovery.NO_LDAP_SERVER, discovery.NOT_IPA_SERVER) \
             or not ds.domain:
-        if ret == ipadiscovery.NO_LDAP_SERVER:
+        if ret == discovery.NO_LDAP_SERVER:
             if ds.server:
                 logger.debug("%s is not an LDAP server", ds.server)
             else:
                 logger.debug("No LDAP server found")
-        elif ret == ipadiscovery.NOT_IPA_SERVER:
+        elif ret == discovery.NOT_IPA_SERVER:
             if ds.server:
                 logger.debug("%s is not an IPA server", ds.server)
             else:
@@ -2254,7 +2255,7 @@ def install_check(options):
 
     client_domain = hostname[hostname.find(".")+1:]
 
-    if ret in (ipadiscovery.NO_LDAP_SERVER, ipadiscovery.NOT_IPA_SERVER) \
+    if ret in (discovery.NO_LDAP_SERVER, discovery.NOT_IPA_SERVER) \
             or not ds.server:
         logger.debug("IPA Server not found")
         if options.server:
@@ -2306,13 +2307,13 @@ def install_check(options):
             cli_server_source = ds.server_source
             logger.debug("will use discovered server: %s", cli_server[0])
 
-    if ret == ipadiscovery.NOT_IPA_SERVER:
+    if ret == discovery.NOT_IPA_SERVER:
         logger.error("%s is not an IPA v2 Server.", cli_server[0])
         print_port_conf_info()
         logger.debug("(%s: %s)", cli_server[0], cli_server_source)
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
-    if ret == ipadiscovery.NO_ACCESS_TO_LDAP:
+    if ret == discovery.NO_ACCESS_TO_LDAP:
         logger.warning("Anonymous access to the LDAP server is disabled.")
         logger.info("Proceeding without strict verification.")
         logger.info(
@@ -2320,7 +2321,7 @@ def install_check(options):
             "has been explicitly restricted.")
         ret = 0
 
-    if ret == ipadiscovery.NO_TLS_LDAP:
+    if ret == discovery.NO_TLS_LDAP:
         logger.warning(
             "The LDAP server requires TLS is but we do not have the CA.")
         logger.info("Proceeding without strict verification.")
@@ -2472,7 +2473,7 @@ def sync_time(options, fstore, statestore):
     logger.info('Synchronizing time')
 
     if not options.ntp_servers:
-        ds = ipadiscovery.IPADiscovery()
+        ds = discovery.IPADiscovery()
         ntp_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp',
                                            None, break_on_first=False)
     else:
