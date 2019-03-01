@@ -401,6 +401,8 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     bool is_host = false;
     bool is_user = false;
     bool is_service = false;
+    bool is_ipauser = false;
+    bool is_idobject = false;
     krb5_principal princ;
     krb5_data *data;
 
@@ -417,10 +419,23 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
             if (strcasecmp(objectclasses[c], "ipaNTUserAttrs") == 0) {
                 is_user = true;
             }
+            if (strcasecmp(objectclasses[c], "ipaIDObject") == 0) {
+                is_idobject = true;
+            }
+            if (strcasecmp(objectclasses[c], "ipaUser") == 0) {
+                is_ipauser = true;
+            }
             free(objectclasses[c]);
         }
     }
     free(objectclasses);
+
+    /* SMB service on IPA domain member will have both ipaIDOjbect and ipaUser
+     * object classes. Such service will have to be treated as a user in order
+     * to issue MS-PAC record for it. */
+    if (is_idobject && is_ipauser) {
+        is_user = true;
+    }
 
     if (!is_host && !is_user && !is_service) {
         /* We only handle users and hosts, and services */
