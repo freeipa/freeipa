@@ -3343,6 +3343,7 @@ static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 				LDAPMessage * entry)
 {
 	char *username = NULL;
+	struct berval **usernames = NULL;
 	char *domain = NULL;
 	char *nt_username = NULL;
 	char *fullname = NULL;
@@ -3353,7 +3354,11 @@ static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 	char *temp = NULL;
 	bool ret = false;
 	bool retval = false;
+	bool machine_account = false;
 	int status;
+	int len = 0;
+	int idx = 0;
+	size_t conv_size = 0;
 	DATA_BLOB nthash;
 	struct dom_sid *group_sid;
 
@@ -3372,10 +3377,42 @@ static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 		goto fn_exit;
 	}
 
-	if (!(username = smbldap_talloc_first_attribute(priv2ld(ipasam_state),
-					entry, LDAP_ATTRIBUTE_UID, tmp_ctx))) {
+	usernames = ldap_get_values_len(priv2ld(ipasam_state), entry,
+					LDAP_ATTRIBUTE_UID);
+
+	if (usernames == NULL) {
 		DEBUG(1, ("init_sam_from_ldap: No uid attribute found for "
 			  "this user!\n"));
+		goto fn_exit;
+	}
+
+	len = ldap_count_values_len(usernames);
+	if (len > 1) {
+		/* Extract machine account as a user name if exists.
+		 * If not, extract the first returned value */
+		for (int i=0; i < len; i++) {
+			if (usernames[i] != NULL &&
+			    usernames[i]->bv_len > 0 &&
+			    usernames[i]->bv_val[usernames[i]->bv_len-1] == '$') {
+				idx = i;
+				machine_account = true;
+				break;
+			}
+		}
+	}
+
+	/* convert_string_talloc() will eventually call smb_iconv() which will
+	 * implicitly allocate space for NULL-termination in an encoding we use,
+	 * thus we are OK with passing non-NULL-terminated source string. */
+	retval = convert_string_talloc(tmp_ctx,
+				       CH_UTF8, CH_UNIX,
+				       usernames[idx]->bv_val,
+				       usernames[idx]->bv_len,
+				       (void**)&username,
+				       &conv_size);
+
+	if (!retval) {
+		DEBUG(1, ("init_sam_from_ldap: error converting uid to UNIX encoding!\n"));
 		goto fn_exit;
 	}
 
@@ -3449,7 +3486,9 @@ static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 	}
 
 
-	pdb_set_acct_ctrl(sampass, ACB_NORMAL, PDB_SET);
+	/* Force machine accounts to be workstation trust type */
+	pdb_set_acct_ctrl(sampass, machine_account ? ACB_WSTRUST : ACB_NORMAL,
+			  PDB_SET);
 
 	retval = smbldap_talloc_single_blob(tmp_ctx,
 					priv2ld(ipasam_state),
@@ -3492,6 +3531,9 @@ static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 
 fn_exit:
 
+	if (usernames != NULL) {
+		ldap_value_free_len(usernames);
+	}
 	talloc_free(tmp_ctx);
 	return ret;
 }
