@@ -273,6 +273,8 @@ aci: (targetattr = "krbcanonicalname || krbprincipalname")(targetfilter = "(obje
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbprincipalauthind || usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Modify Services";allow (write) groupdn = "ldap:///cn=System: Modify Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || entryusn || gecos || gidnumber || homedirectory || ipantsecurityidentifier || loginshell || modifytimestamp || objectclass || uid || uidnumber")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Read POSIX details of SMB services";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "createtimestamp || entryusn || ipakrbauthzdata || ipakrbprincipalalias || ipauniqueid || krbcanonicalname || krblastpwdchange || krbobjectreferences || krbpasswordexpiration || krbprincipalaliases || krbprincipalauthind || krbprincipalexpiration || krbprincipalname || managedby || memberof || modifytimestamp || objectclass || usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Read Services";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Remove Services";allow (delete) groupdn = "ldap:///cn=System: Remove Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)

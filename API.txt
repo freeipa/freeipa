@@ -4537,6 +4537,22 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: service_add_smb/1
+args: 2,9,3
+arg: Str('fqdn', cli_name='hostname')
+arg: Str('ipantflatname?', cli_name='netbiosname')
+option: Str('addattr*', cli_name='addattr')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Bool('ipakrbokasdelegate?', cli_name='ok_as_delegate')
+option: Bool('ipakrboktoauthasdelegate?', cli_name='ok_to_auth_as_delegate')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('setattr*', cli_name='setattr')
+option: Certificate('usercertificate*', cli_name='certificate')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: service_allow_create_keytab/1
 args: 1,8,3
 arg: Principal('krbcanonicalname', cli_name='canonical_principal')
@@ -6922,6 +6938,7 @@ default: service_add/1
 default: service_add_cert/1
 default: service_add_host/1
 default: service_add_principal/1
+default: service_add_smb/1
 default: service_allow_create_keytab/1
 default: service_allow_retrieve_keytab/1
 default: service_del/1
