@@ -30,7 +30,7 @@ from ipaserver.install.replication import replica_conn_check
 from ipalib import api, errors
 from ipapython.dn import DN
 
-from . import conncheck, dogtag
+from . import conncheck, dogtag, cainstance
 
 if six.PY3:
     unicode = str
@@ -94,6 +94,37 @@ def set_subject_base_in_config(subject_base):
         api.Backend.ldap2.update_entry(entry_attrs)
     except errors.EmptyModlist:
         pass
+
+
+def uninstall_check(options):
+    """Check if the host is CRL generation master"""
+    # Skip the checks if the host is not a CA instance
+    ca = cainstance.CAInstance(api.env.realm)
+    if not (api.Command.ca_is_enabled()['result'] and
+       cainstance.is_ca_installed_locally()):
+        return
+
+    # skip the checks if the host is the last master
+    ipa_config = api.Command.config_show()['result']
+    ipa_masters = ipa_config['ipa_master_server']
+    if len(ipa_masters) <= 1:
+        return
+
+    try:
+        crlgen_enabled = ca.is_crlgen_enabled()
+    except cainstance.InconsistentCRLGenConfigException:
+        # If config is inconsistent, let's be safe and act as if
+        # crl gen was enabled
+        crlgen_enabled = True
+
+    if crlgen_enabled:
+        print("Deleting this server will leave your installation "
+              "without a CRL generation master.")
+        if (options.unattended and not options.ignore_last_of_role) or \
+           not (options.unattended or ipautil.user_input(
+                "Are you sure you want to continue with the uninstall "
+                "procedure?", False)):
+            raise ScriptError("Aborting uninstall operation.")
 
 
 def install_check(standalone, replica_config, options):
