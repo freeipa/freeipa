@@ -1027,6 +1027,8 @@ def uninstall_check(installer):
     else:
         dns.uninstall_check(options)
 
+        ca.uninstall_check(options)
+
         if domain_level == DOMAIN_LEVEL_0:
             rm = replication.ReplicationManager(
                 realm=api.env.realm,
