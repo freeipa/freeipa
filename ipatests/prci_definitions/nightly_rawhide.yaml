@@ -1216,3 +1216,15 @@ jobs:
         template: *ci-master-frawhide
         timeout: 3600
         topology: *ipaserver
+
+  fedora-rawhide/nfs:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_nfs.py::TestNFS
+        template: *ci-master-frawhide
+        timeout: 9000
+        topology: *master_3repl_1client
