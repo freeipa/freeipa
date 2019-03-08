@@ -157,6 +157,8 @@ struct ipa_extdom_ctx {
     char *base_dn;
     size_t max_nss_buf_size;
     struct nss_ops_ctx *nss_ctx;
+    Slapi_Counter *extdom_instance_counter;
+    size_t extdom_max_instances;
 };
 
 struct domain_info {
