@@ -62,8 +62,112 @@ static char *ipa_extdom_name_list[] = {
     NULL
 };
 
+#define NSSLAPD_THREADNUMBER "nsslapd-threadnumber"
+static int ipa_get_threadnumber(Slapi_ComponentId *plugin_id, size_t *threadnumber)
+{
+    Slapi_PBlock *search_pb = NULL;
+    int search_result;
+    Slapi_Entry **search_entries = NULL;
+    int ret;
+    char *attrs[] = { NSSLAPD_THREADNUMBER, NULL };
+
+    search_pb = slapi_pblock_new();
+    if (search_pb == NULL) {
+        LOG_FATAL("Failed to create new pblock.\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    slapi_search_internal_set_pb(search_pb, "cn=config",
+                                 LDAP_SCOPE_BASE, "objectclass=*",
+                                 attrs, 0, NULL, NULL, plugin_id, 0);
+
+    ret = slapi_search_internal_pb(search_pb);
+    if (ret != 0) {
+        LOG_FATAL("Starting internal search failed.\n");
+        goto done;
+    }
+
+    ret = slapi_pblock_get(search_pb, SLAPI_PLUGIN_INTOP_RESULT,
+                           &search_result);
+    if (ret != 0 || search_result != LDAP_SUCCESS) {
+        LOG_FATAL("Internal search failed [%d][%d].\n", ret, search_result);
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ret = slapi_pblock_get(search_pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES,
+                           &search_entries);
+    if (ret != 0) {
+        LOG_FATAL("Failed to read searched entries.\n");
+        goto done;
+    }
+
+    if (search_entries == NULL || search_entries[0] == NULL) {
+        LOG("No existing entries.\n");
+        ret = LDAP_NO_SUCH_OBJECT;
+        goto done;
+    }
+
+    if (search_entries[1] != NULL) {
+        LOG("Too many results found.\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    *threadnumber = slapi_entry_attr_get_uint(search_entries[0],
+                                              NSSLAPD_THREADNUMBER);
+
+    if (threadnumber <= 0) {
+        LOG_FATAL("No thread number found.\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    LOG("Found thread number [%zu].\n", *threadnumber);
+    ret = 0;
+
+done:
+    slapi_free_search_results_internal(search_pb);
+    slapi_pblock_destroy(search_pb);
+
+    return ret;
+}
+
 static int ipa_extdom_start(Slapi_PBlock *pb)
 {
+    int ret;
+    struct ipa_extdom_ctx *ctx;
+    size_t threadnumber;
+
+    ret = slapi_pblock_get(pb, SLAPI_PLUGIN_PRIVATE, &ctx);
+    if (ret != 0) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = ipa_get_threadnumber(ctx->plugin_id, &threadnumber);
+    if (ret != 0) {
+        LOG("Unable to get thread number [%d]!\n", ret);
+        return ret;
+    }
+
+    if (ctx->extdom_max_instances >= threadnumber) {
+        LOG("Option ipaExtdomMaxInstances [%zu] is larger or equal the number "
+            "of worker threads [%zu], using defaults.\n",
+            ctx->extdom_max_instances, threadnumber);
+        ctx->extdom_max_instances = 0;
+    }
+
+    if (ctx->extdom_max_instances == 0) {
+        ctx->extdom_max_instances = (size_t)(threadnumber * 0.8);
+        if (ctx->extdom_max_instances == 0) {
+            ctx->extdom_max_instances = 1;
+        }
+    }
+
+    LOG("Using maximal [%zu] extdom instances for [%zu] threads.\n",
+        ctx->extdom_max_instances, threadnumber);
+
     return LDAP_SUCCESS;
 }
 
@@ -78,6 +182,7 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
     struct extdom_req *req = NULL;
     struct ipa_extdom_ctx *ctx;
     enum extdom_version version;
+    bool counter_set = false;
 
     ret = slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_OID, &oid);
     if (ret != 0) {
@@ -108,6 +213,16 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
         err_msg = "Missing plugin context.\n";
         goto done;
     }
+
+    if (slapi_counter_get_value(ctx->extdom_instance_counter)
+                                                  > ctx->extdom_max_instances) {
+        rc = LDAP_BUSY;
+        err_msg = "Too many extdom instances running.\n";
+        goto done;
+    }
+
+    slapi_counter_increment(ctx->extdom_instance_counter);
+    counter_set = true;
 
     ret = parse_request_data(req_val, &req);
     if (ret != LDAP_SUCCESS) {
@@ -151,6 +266,14 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
     rc = LDAP_SUCCESS;
 
 done:
+    if (counter_set) {
+        if (slapi_counter_get_value(ctx->extdom_instance_counter) == 0) {
+            LOG("Instance counter already 0, this is unexpected.\n");
+        } else {
+            slapi_counter_decrement(ctx->extdom_instance_counter);
+        }
+    }
+
     if ((req != NULL) && (req->err_msg != NULL)) {
         err_msg = req->err_msg;
     }
@@ -218,6 +341,16 @@ static int ipa_extdom_init_ctx(Slapi_PBlock *pb, struct ipa_extdom_ctx **_ctx)
     }
     back_extdom_set_timeout(ctx->nss_ctx, timeout);
     LOG("Maximal nss timeout (in ms) set to [%u]!\n", timeout);
+
+    ctx->extdom_max_instances = slapi_entry_attr_get_uint(e, "ipaExtdomMaxInstances");
+    LOG("Maximal instances from config [%zu]!\n", ctx->extdom_max_instances);
+
+    ctx->extdom_instance_counter = slapi_counter_new();
+    if (ctx->extdom_instance_counter == NULL) {
+        LOG("Unable to initialize instance counter!\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
 
     ret = 0;
 
