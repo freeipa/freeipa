@@ -206,7 +206,7 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	Slapi_Value *objectclass=NULL;
 	char *attrlist[] = {"*", "passwordHistory", NULL };
 	struct ipapwd_data pwdata;
-	int is_krb, is_smb, is_ipant;
+	int is_krb, is_smb, is_ipant, is_memberof;
 	char *principal = NULL;
 	Slapi_PBlock *chpwop_pb = NULL;
 	Slapi_DN     *target_sdn = NULL;
@@ -332,7 +332,7 @@ parse_req_done:
 	/* Determine the target DN for this operation */
 	slapi_pblock_get(pb, SLAPI_TARGET_SDN, &target_sdn);
 	if (target_sdn != NULL) {
-		/* If there is a TARGET_DN we are consuming it */
+		/* If there is a TARGET_SDN we are consuming it */
 		slapi_pblock_set(pb, SLAPI_TARGET_SDN, NULL);
 		target_dn = slapi_sdn_get_ndn(target_sdn);
 	}
@@ -356,11 +356,11 @@ parse_req_done:
 	}
 	slapi_sdn_free(&target_sdn);
 
-	 if (slapi_pblock_set( pb, SLAPI_ORIGINAL_TARGET, dn )) {
-		LOG_FATAL("slapi_pblock_set failed!\n");
-		rc = LDAP_OPERATIONS_ERROR;
-		goto free_and_return;
-	 }
+        if (slapi_pblock_set( pb, SLAPI_ORIGINAL_TARGET, dn )) {
+            LOG_FATAL("slapi_pblock_set failed!\n");
+            rc = LDAP_OPERATIONS_ERROR;
+            goto free_and_return;
+        }
 
 	if (usetxn) {
                 Slapi_DN *sdn = slapi_sdn_new_dn_byref(dn);
@@ -469,6 +469,7 @@ parse_req_done:
 
 	 rc = ipapwd_entry_checks(pb, targetEntry,
 				&is_root, &is_krb, &is_smb, &is_ipant,
+				&is_memberof,
 				SLAPI_USERPWD_ATTR, SLAPI_ACL_WRITE);
 	 if (rc) {
 		goto free_and_return;
@@ -564,16 +565,21 @@ parse_req_done:
 	/* check the policy */
 	ret = ipapwd_CheckPolicy(&pwdata);
 	if (ret) {
-		errMesg = ipapwd_error2string(ret);
 		if (ret == IPAPWD_POLICY_ERROR) {
 			errMesg = "Internal error";
 			rc = ret;
-		} else {
+			goto free_and_return;
+		}
+		/* ipapwd_CheckPolicy happily will try to apply a policy
+		 * even if it doesn't need to be applied for Directory Manager
+		 * or passsync managers, filter that error out */
+		if (pwdata.changetype != IPA_CHANGETYPE_DSMGR) {
+			errMesg = ipapwd_error2string(ret);
 			ret = ipapwd_to_ldap_pwpolicy_error(ret);
 			slapi_pwpolicy_make_response_control(pb, -1, -1, ret);
 			rc = LDAP_CONSTRAINT_VIOLATION;
+			goto free_and_return;
 		}
-		goto free_and_return;
 	}
 
 	/* Now we're ready to set the kerberos key material */
