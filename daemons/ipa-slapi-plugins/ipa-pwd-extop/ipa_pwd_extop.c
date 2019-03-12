@@ -382,15 +382,18 @@ parse_req_done:
 		}
 	}
 
-	 /* Now we have the DN, look for the entry */
-	 ret = ipapwd_getEntry(dn, &targetEntry, attrlist);
-	 /* If we can't find the entry, then that's an error */
-	 if (ret) {
-	 	/* Couldn't find the entry, fail */
-		errMesg = "No such Entry exists.\n" ;
-		rc = LDAP_NO_SUCH_OBJECT;
-		goto free_and_return;
-	 }
+        /* Now we have the DN, look for the entry */
+        target_sdn = slapi_sdn_new_dn_byval(dn);
+        ret = ipapwd_getEntry(target_sdn, &targetEntry, attrlist);
+        slapi_sdn_free(&target_sdn);
+
+        /* If we can't find the entry, then that's an error */
+        if (ret) {
+            /* Couldn't find the entry, fail */
+            errMesg = "No such Entry exists.\n" ;
+            rc = LDAP_NO_SUCH_OBJECT;
+            goto free_and_return;
+        }
 
     if (dn) {
         Slapi_DN *bind_sdn;
@@ -1821,7 +1824,7 @@ static int ipapwd_start( Slapi_PBlock *pb )
     krb5_context krbctx = NULL;
     krb5_error_code krberr;
     char *realm = NULL;
-    char *config_dn;
+    Slapi_DN *config_sdn = NULL;
     Slapi_Entry *config_entry = NULL;
     int ret;
 
@@ -1834,13 +1837,13 @@ static int ipapwd_start( Slapi_PBlock *pb )
         return LDAP_SUCCESS;
     }
 
-    if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &config_dn) != 0) {
+    if (slapi_pblock_get(pb, SLAPI_TARGET_SDN, &config_sdn) != 0) {
         LOG_FATAL("No config DN?\n");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
 
-    if (ipapwd_getEntry(config_dn, &config_entry, NULL) != LDAP_SUCCESS) {
+    if (ipapwd_getEntry(config_sdn, &config_entry, NULL) != LDAP_SUCCESS) {
         LOG_FATAL("No config Entry extop?\n");
         ret = LDAP_SUCCESS;
         goto done;
@@ -1869,7 +1872,7 @@ static int ipapwd_start( Slapi_PBlock *pb )
         goto done;
     }
 
-    ipa_pwd_config_dn = slapi_ch_strdup(config_dn);
+    ipa_pwd_config_dn = slapi_ch_strdup(slapi_sdn_get_dn(config_sdn));
     if (!ipa_pwd_config_dn) {
         LOG_OOM();
         ret = LDAP_OPERATIONS_ERROR;
