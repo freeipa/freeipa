@@ -72,6 +72,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     Slapi_Entry *config_entry = NULL;
     Slapi_Attr *a;
     Slapi_Value *v;
+    Slapi_DN *sdn = NULL;
     BerElement *be = NULL;
     ber_tag_t tag, tvno;
     ber_int_t ttype;
@@ -107,7 +108,9 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     }
 
     /* get the Realm Container entry */
-    ret = ipapwd_getEntry(ipa_realm_dn, &realm_entry, NULL);
+    sdn = slapi_sdn_new_dn_byval(ipa_realm_dn);
+    ret = ipapwd_getEntry(sdn, &realm_entry, NULL);
+    slapi_sdn_free(&sdn);
     if (ret != LDAP_SUCCESS) {
         LOG_FATAL("No realm Entry?\n");
         goto free_and_error;
@@ -212,7 +215,9 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     slapi_entry_free(realm_entry);
 
     /* get the Realm Container entry */
-    ret = ipapwd_getEntry(ipa_pwd_config_dn, &config_entry, NULL);
+    sdn = slapi_sdn_new_dn_byval(ipa_pwd_config_dn);
+    ret = ipapwd_getEntry(sdn, &config_entry, NULL);
+    slapi_sdn_free(&sdn);
     if (ret != LDAP_SUCCESS) {
         LOG_FATAL("No config Entry? Impossible!\n");
         goto free_and_error;
@@ -236,7 +241,9 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     if (ipapwd_fips_enabled()) {
         LOG("FIPS mode is enabled, NT hashes are not allowed.\n");
     } else {
-        ret = ipapwd_getEntry(ipa_etc_config_dn, &config_entry, NULL);
+        sdn = slapi_sdn_new_dn_byval(ipa_etc_config_dn);
+        ret = ipapwd_getEntry(sdn, &config_entry, NULL);
+        slapi_sdn_free(&sdn);
         if (ret != LDAP_SUCCESS) {
             LOG_FATAL("No config Entry?\n");
             goto free_and_error;
@@ -639,22 +646,28 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
  *  If found     : fills in slapi_entry structure and returns 0
  *  If NOT found : returns the search result as LDAP_NO_SUCH_OBJECT
  */
-int ipapwd_getEntry(const char *dn, Slapi_Entry **e2, char **attrlist)
+int ipapwd_getEntry(Slapi_DN *sdn, Slapi_Entry **e2, char **attrlist)
 {
-    Slapi_DN *sdn;
     int search_result = 0;
+    Slapi_DN *local_sdn = NULL;
 
     LOG_TRACE("=>\n");
 
-    sdn = slapi_sdn_new_dn_byref(dn);
-    search_result = slapi_search_internal_get_entry(sdn, attrlist, e2,
-                                                    ipapwd_plugin_id);
-    if (search_result != LDAP_SUCCESS) {
-        LOG_TRACE("No such entry-(%s), err (%d)\n", dn, search_result);
+    if (sdn == NULL) {
+        LOG_TRACE("No entry to fetch!\n");
+	return LDAP_PARAM_ERROR;
     }
 
-    slapi_sdn_free(&sdn);
+    local_sdn = slapi_sdn_dup(sdn);
+    search_result = slapi_search_internal_get_entry(local_sdn, attrlist, e2,
+                                                    ipapwd_plugin_id);
+    if (search_result != LDAP_SUCCESS) {
+        LOG_TRACE("No such entry-(%s), err (%d)\n",
+                  slapi_sdn_get_dn(sdn), search_result);
+    }
+
     LOG_TRACE("<= result: %d\n", search_result);
+    slapi_sdn_free(&local_sdn);
     return search_result;
 }
 
