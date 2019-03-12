@@ -80,6 +80,8 @@ struct ipapwd_op_ext {
     int object_type;     /* handle to the extended object */
     int handle;          /* extension handle              */
 };
+
+
 /*****************************************************************************
  * pre/post operations to intercept writes to userPassword
  ****************************************************************************/
@@ -217,7 +219,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     Slapi_DN *sdn = NULL;
     struct ipapwd_operation *pwdop = NULL;
     void *op;
-    int is_repl_op, is_root, is_krb, is_smb, is_ipant;
+    int is_repl_op, is_root, is_krb, is_smb, is_ipant, is_memberof;
     int ret;
     int rc = LDAP_SUCCESS;
 
@@ -242,8 +244,8 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     /* check this is something interesting for us first */
     userpw = slapi_entry_attr_get_charptr(e, SLAPI_USERPWD_ATTR);
     if (!userpw) {
-	/* nothing interesting here */
-	return 0;
+        /* nothing interesting here */
+        return 0;
     }
 
     /* Ok this is interesting,
@@ -312,6 +314,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
 
     rc = ipapwd_entry_checks(pb, e,
                              &is_root, &is_krb, &is_smb, &is_ipant,
+                             &is_memberof,
                              NULL, SLAPI_ACL_ADD);
     if (rc != LDAP_SUCCESS) {
         goto done;
@@ -346,6 +349,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
 
     pwdop->pwd_op = IPAPWD_OP_ADD;
     pwdop->pwdata.password = slapi_ch_strdup(userpw);
+    pwdop->is_memberof = is_memberof;
 
     if (is_root) {
         pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
@@ -367,12 +371,15 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         }
     }
 
-    pwdop->pwdata.dn = slapi_ch_strdup(dn);
+    pwdop->pwdata.dn = slapi_ch_strdup(slapi_sdn_get_dn(sdn));
     pwdop->pwdata.timeNow = time(NULL);
     pwdop->pwdata.target = e;
 
     ret = ipapwd_CheckPolicy(&pwdop->pwdata);
-    if (ret) {
+    /* For accounts created by cn=Directory Manager or a passsync
+     * managers, ignore result of a policy check */
+    if ((pwdop->pwdata.changetype != IPA_CHANGETYPE_DSMGR) &&
+        (ret != 0) ) {
         errMesg = ipapwd_error2string(ret);
         rc = LDAP_CONSTRAINT_VIOLATION;
         goto done;
@@ -474,7 +481,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     struct slapi_entry *e = NULL;
     struct ipapwd_operation *pwdop = NULL;
     void *op;
-    int is_repl_op, is_pwd_op, is_root, is_krb, is_smb, is_ipant;
+    int is_repl_op, is_pwd_op, is_root, is_krb, is_smb, is_ipant, is_memberof;
     int has_krb_keys = 0;
     int has_history = 0;
     int gen_krb_keys = 0;
@@ -606,6 +613,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 
     rc = ipapwd_entry_checks(pb, e,
                              &is_root, &is_krb, &is_smb, &is_ipant,
+                             &is_memberof,
                              is_pwd_op ? SLAPI_USERPWD_ATTR : "ipaNTHash",
                              SLAPI_ACL_WRITE);
     if (rc) {
@@ -808,6 +816,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     }
 
     pwdop->is_krb = is_krb;
+    pwdop->is_memberof = is_memberof;
     pwdop->pwd_op = IPAPWD_OP_MOD;
     pwdop->pwdata.password = slapi_ch_strdup(unhashedpw);
     pwdop->pwdata.changetype = IPA_CHANGETYPE_NORMAL;
@@ -852,11 +861,13 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     pwdop->pwdata.target = e;
 
     /* if krb keys are being set by an external agent we assume password
-     * policies have been properly checked already, so we check them only
-     * if no krb keys are available */
+     * policies have been properly checked already. We check them only if no
+     * krb keys are available and raise error if the change is not done by a
+     * cn=Directory Manager or one of passsync managers */
     if (has_krb_keys == 0) {
         ret = ipapwd_CheckPolicy(&pwdop->pwdata);
-        if (ret) {
+        if ((pwdop->pwdata.changetype != IPA_CHANGETYPE_DSMGR) &&
+            (ret != 0)) {
             errMesg = ipapwd_error2string(ret);
             rc = LDAP_CONSTRAINT_VIOLATION;
             goto done;
@@ -1066,7 +1077,7 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
     if (IPAPWD_OP_NULL == pwdop->pwd_op)
         return 0;
 
-    if ( ! (pwdop->is_krb)) {
+    if ( !pwdop->is_krb || pwdop->is_memberof) {
         LOG("Not a kerberos user, ignore krb attributes\n");
         return 0;
     }
@@ -1425,6 +1436,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     ret = ipapwd_getEntry(sdn, &entry, (char **) attrs_list);
     if (ret) {
         LOG("failed to retrieve user entry: %s\n", dn);
+        slapi_sdn_free(&sdn);
         return 0;
     }
 
@@ -1449,6 +1461,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
             if (current_time > expire_time && expire_time > 0) {
                 LOG_FATAL("kerberos principal in %s is expired\n", dn);
                 slapi_entry_free(entry);
+                slapi_sdn_free(&sdn);
                 slapi_send_ldap_result(pb, LDAP_UNWILLING_TO_PERFORM, NULL,
                                        "Account (Kerberos principal) is expired",
                                         0, NULL);
@@ -1471,6 +1484,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     ret = ipapwd_authenticate(dn, entry, credentials);
     if (ret) {
         slapi_entry_free(entry);
+        slapi_sdn_free(&sdn);
         return 0;
     }
 
