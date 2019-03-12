@@ -41,7 +41,7 @@ from ipaserver.install import (
 from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
     is_ipa_configured, load_pkcs12, read_password, verify_fqdn,
-    update_hosts_file)
+    update_hosts_file, validate_mask)
 
 if six.PY3:
     unicode = str
@@ -314,6 +314,16 @@ def install_check(installer):
     tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
     check_ldap_conf()
+
+    mask_str = validate_mask()
+    if mask_str:
+        print("Unexpected system mask: %s, expected 0022" % mask_str)
+        if installer.interactive:
+            if not user_input("Do you want to continue anyway?", True):
+                raise ScriptError(
+                    "Unexpected system mask: %s" % mask_str)
+        else:
+            raise ScriptError("Unexpected system mask: %s" % mask_str)
 
     if options.master_password:
         msg = ("WARNING:\noption '-P/--master-password' is deprecated. "
