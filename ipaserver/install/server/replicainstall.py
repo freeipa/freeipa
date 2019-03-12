@@ -42,7 +42,8 @@ from ipaserver.install import (
     installutils, kra, krbinstance,
     ntpinstance, otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import (
-    create_replica_config, ReplicaConfig, load_pkcs12, is_ipa_configured)
+    create_replica_config, ReplicaConfig, load_pkcs12, is_ipa_configured,
+    validate_mask)
 from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
 import SSSDConfig
@@ -574,6 +575,11 @@ def check_remote_version(client, local_version):
 def common_check(no_ntp):
     tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
+
+    mask_str = validate_mask()
+    if mask_str:
+        raise ScriptError(
+            "Unexpected system mask: %s, expected 0022" % mask_str)
 
     if is_ipa_configured():
         raise ScriptError(
