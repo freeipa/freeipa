@@ -90,6 +90,7 @@ struct ipapwd_operation {
     struct ipapwd_data pwdata;
     int pwd_op;
     int is_krb;
+    int is_memberof;
     int skip_keys;
     int skip_history;
 };
@@ -113,6 +114,7 @@ struct ipapwd_krbcfg {
 
 int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
                         int *is_root, int *is_krb, int *is_smb, int *is_ipant,
+			int *is_memberof,
                         char *attr, int access);
 int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
                       struct ipapwd_krbcfg **config, int check_flags);
