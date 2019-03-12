@@ -129,6 +129,7 @@ static char *ipapwd_getIpaConfigAttr(const char *attr)
     const char *attrs_list[] = {attr, 0};
     char *value = NULL;
     char *dn = NULL;
+    Slapi_DN *sdn = NULL;
     int ret;
 
     dn = slapi_ch_smprintf("cn=ipaconfig,cn=etc,%s", ipa_realm_tree);
@@ -137,9 +138,12 @@ static char *ipapwd_getIpaConfigAttr(const char *attr)
         goto done;
     }
 
-    ret = ipapwd_getEntry(dn, &entry, (char **) attrs_list);
+    /* _byref() will take ownership of the dn */
+    sdn = slapi_sdn_new_dn_byref(dn);
+
+    ret = ipapwd_getEntry(sdn, &entry, (char **) attrs_list);
     if (ret) {
-        LOG("failed to retrieve config entry: %s\n", dn);
+        LOG("failed to retrieve config entry: %s\n", slapi_sdn_get_dn(sdn));
         goto done;
     }
 
@@ -147,7 +151,7 @@ static char *ipapwd_getIpaConfigAttr(const char *attr)
 
 done:
     slapi_entry_free(entry);
-    slapi_ch_free_string(&dn);
+    slapi_sdn_free(&sdn);
     return value;
 }
 
@@ -210,7 +214,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     char *errMesg = "Internal operations error\n";
     struct slapi_entry *e = NULL;
     char *userpw = NULL;
-    char *dn = NULL;
+    Slapi_DN *sdn = NULL;
     struct ipapwd_operation *pwdop = NULL;
     void *op;
     int is_repl_op, is_root, is_krb, is_smb, is_ipant;
@@ -292,8 +296,10 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
                  * a valid krbPrincipalKey
                  */
                 if (has_krbprincipalkey(e)) {
-                    slapi_pblock_get(pb, SLAPI_TARGET_DN, &dn);
-                    LOG("User Life Cycle: %s is a activated stage user (with prehashed password and krb keys)\n", dn ? dn : "unknown");
+                    slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
+                    LOG("User Life Cycle: %s is a activated stage user "
+                        "(with prehashed password and krb keys)\n",
+                        sdn ? slapi_sdn_get_dn(sdn) : "unknown");
                     return 0;
                 }
 
@@ -317,7 +323,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     }
 
     /* Get target DN */
-    ret = slapi_pblock_get(pb, SLAPI_TARGET_DN, &dn);
+    ret = slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
     if (ret) {
         rc = LDAP_OPERATIONS_ERROR;
         goto done;
@@ -441,7 +447,7 @@ done:
 #define NTHASH_REGEN_VAL "MagicRegen"
 #define NTHASH_REGEN_LEN sizeof(NTHASH_REGEN_VAL)
 static int ipapwd_regen_nthash(Slapi_PBlock *pb, Slapi_Mods *smods,
-                               char *dn, struct slapi_entry *entry,
+                               const char *dn, struct slapi_entry *entry,
                                struct ipapwd_krbcfg *krbcfg);
 
 /* PRE MOD Operation:
@@ -463,8 +469,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     Slapi_Mods *smods = NULL;
     char *userpw = NULL;
     char *unhashedpw = NULL;
-    char *dn = NULL;
-    Slapi_DN *tmp_dn;
+    Slapi_DN *sdn = NULL;
+    Slapi_DN *tmp_sdn;
     struct slapi_entry *e = NULL;
     struct ipapwd_operation *pwdop = NULL;
     void *op;
@@ -570,14 +576,14 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
      * pre-requisites */
 
     /* Get target DN */
-    ret = slapi_pblock_get(pb, SLAPI_TARGET_DN, &dn);
+    ret = slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
     if (ret) {
         rc = LDAP_OPERATIONS_ERROR;
         goto done;
     }
 
-    tmp_dn = slapi_sdn_new_dn_byref(dn);
-    if (tmp_dn) {
+    tmp_sdn = slapi_sdn_dup(sdn);
+    if (tmp_sdn) {
         /* xxxPAR: Ideally SLAPI_MODIFY_EXISTING_ENTRY should be
          * available but it turns out that is only true if you are
          * a dbm backend pre-op plugin - lucky dbm backend pre-op
@@ -589,8 +595,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
          *
          slapi_pblock_get( pb, SLAPI_MODIFY_EXISTING_ENTRY, &e);
          */
-        ret = slapi_search_internal_get_entry(tmp_dn, 0, &e, ipapwd_plugin_id);
-        slapi_sdn_free(&tmp_dn);
+        ret = slapi_search_internal_get_entry(tmp_sdn, 0, &e, ipapwd_plugin_id);
+        slapi_sdn_free(&tmp_sdn);
         if (ret != LDAP_SUCCESS) {
             LOG("Failed to retrieve entry?!\n");
            rc = LDAP_NO_SUCH_OBJECT;
@@ -617,7 +623,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             /* Make sense to call only if this entry has krb keys to source
              * the nthash from */
             if (is_krb) {
-                rc = ipapwd_regen_nthash(pb, smods, dn, e, krbcfg);
+                rc = ipapwd_regen_nthash(pb, smods, slapi_sdn_get_dn(sdn), e, krbcfg);
             } else {
                 rc = LDAP_UNWILLING_TO_PERFORM;
             }
@@ -818,7 +824,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         /* Check Bind DN */
         slapi_pblock_get(pb, SLAPI_CONN_DN, &binddn);
         bdn = slapi_sdn_new_dn_byref(binddn);
-        tdn = slapi_sdn_new_dn_byref(dn);
+        tdn = slapi_sdn_dup(sdn);
 
         /* if the change is performed by someone else,
          * it is an admin change that will require a new
@@ -841,7 +847,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 
     }
 
-    pwdop->pwdata.dn = slapi_ch_strdup(dn);
+    pwdop->pwdata.dn = slapi_ch_strdup(slapi_sdn_get_dn(sdn));
     pwdop->pwdata.timeNow = time(NULL);
     pwdop->pwdata.target = e;
 
@@ -932,7 +938,7 @@ done:
 }
 
 static int ipapwd_regen_nthash(Slapi_PBlock *pb, Slapi_Mods *smods,
-                               char *dn, struct slapi_entry *entry,
+                               const char *dn, struct slapi_entry *entry,
                                struct ipapwd_krbcfg *krbcfg)
 {
     Slapi_Attr *attr;
@@ -1388,7 +1394,9 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     };
     struct berval *credentials = NULL;
     Slapi_Entry *entry = NULL;
-    char *dn = NULL;
+    Slapi_DN *target_sdn = NULL;
+    Slapi_DN *sdn = NULL;
+    const char *dn = NULL;
     int method = 0;
     bool syncreq;
     bool otpreq;
@@ -1399,7 +1407,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     struct tm expire_tm;
 
     /* get BIND parameters */
-    ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET, &dn);
+    ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET_SDN, &target_sdn);
     ret |= slapi_pblock_get(pb, SLAPI_BIND_METHOD, &method);
     ret |= slapi_pblock_get(pb, SLAPI_BIND_CREDENTIALS, &credentials);
     if (ret) {
@@ -1412,7 +1420,9 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         return 0;
 
     /* Retrieve the user's entry. */
-    ret = ipapwd_getEntry(dn, &entry, (char **) attrs_list);
+    sdn = slapi_sdn_dup(target_sdn);
+    dn = slapi_sdn_get_dn(sdn);
+    ret = ipapwd_getEntry(sdn, &entry, (char **) attrs_list);
     if (ret) {
         LOG("failed to retrieve user entry: %s\n", dn);
         return 0;
@@ -1469,13 +1479,15 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         goto invalid_creds;
 
     /* Attempt to write out kerberos keys for the user. */
-    ipapwd_write_krb_keys(pb, dn, entry, credentials);
+    ipapwd_write_krb_keys(pb, discard_const(dn), entry, credentials);
 
     slapi_entry_free(entry);
+    slapi_sdn_free(&sdn);
     return 0;
 
 invalid_creds:
     slapi_entry_free(entry);
+    slapi_sdn_free(&sdn);
     slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
                            NULL, NULL, 0, NULL);
     return 1;
