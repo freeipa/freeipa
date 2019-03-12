@@ -422,6 +422,7 @@ done:
 
 int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
                         int *is_root, int *is_krb, int *is_smb, int *is_ipant,
+                        int *is_memberof,
                         char *attr, int acc)
 {
     Slapi_Value *sval;
@@ -440,6 +441,10 @@ int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
         }
     }
 
+    /* Default to not setting memberof flag: only set it for non-Kerberos principals
+     * when they have krbPrincipalAux but no krbPrincipalName */
+    *is_memberof = 0;
+
     /* Check if this is a krbPrincial and therefore needs us to generate other
      * hashes */
     sval = slapi_value_new_string("krbPrincipalAux");
@@ -449,6 +454,24 @@ int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
     }
     *is_krb = slapi_entry_attr_has_syntax_value(e, SLAPI_ATTR_OBJECTCLASS, sval);
     slapi_value_free(&sval);
+
+    /* If entry has krbPrincipalAux object class but lacks krbPrincipalName and
+     * memberOf attributes consider this not a Kerberos principal object. In
+     * FreeIPA krbPrincipalAux allows to store krbPwdPolicyReference attribute
+     * which is added by a CoS plugin configuration based on a memberOf
+     * attribute value.
+     * Note that slapi_entry_attr_find() returns 0 if attr exists, -1 for absence
+     */
+    if (*is_krb) {
+        Slapi_Attr *attr_prname = NULL;
+        Slapi_Attr *attr_memberof = NULL;
+        int has_prname = slapi_entry_attr_find(e, "krbPrincipalName", &attr_prname);
+        int has_memberOf = slapi_entry_attr_find(e, "memberOf", &attr_memberof);
+        if ((has_prname == -1) && (has_memberOf == 0)) {
+            *is_memberof = 1;
+            *is_krb = 0;
+        }
+    }
 
     sval = slapi_value_new_string("sambaSamAccount");
     if (!sval) {
@@ -655,7 +678,7 @@ int ipapwd_getEntry(Slapi_DN *sdn, Slapi_Entry **e2, char **attrlist)
 
     if (sdn == NULL) {
         LOG_TRACE("No entry to fetch!\n");
-	return LDAP_PARAM_ERROR;
+        return LDAP_PARAM_ERROR;
     }
 
     local_sdn = slapi_sdn_dup(sdn);
