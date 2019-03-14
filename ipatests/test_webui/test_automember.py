@@ -296,11 +296,15 @@ class TestAutomember(UI_driver):
         # Remove host from hostgroup
         self.delete_record(host1)
 
-        # Assert that host is not a member of hostgroup
+        # Assert that host was re-added to the group.
+        # The behavior is expected with the plugin default setting:
+        # the entry cn=Auto Membership Plugin,cn=plugins,cn=config has
+        # a default value autoMemberProcessModifyOps: on
+        #
+        # See https://www.port389.org/docs/389ds/design/automember-postop-modify-design.html # noqa: E501
         self.facet_button_click('refresh')
         self.wait_for_request()
-        self.assert_record(host1, negative=True)
-        self.assert_record(host2, negative=True)
+        self.assert_record(host1)
 
         # Rebuild membership for all hosts, using action on hosts search facet
         self.navigate_by_menu('identity/host')
@@ -314,9 +318,9 @@ class TestAutomember(UI_driver):
         self.assert_record(host2)
 
         # Delete hostgroup, hosts and automember rule
-        self.delete_host_groups('webservers')
         self.delete('host', [{'pkey': host1}, {'pkey': host2}])
         self.delete_host_group_rules('webservers')
+        self.delete_host_groups('webservers')
 
     @screenshot
     def test_rebuild_membership_users(self):
@@ -359,11 +363,15 @@ class TestAutomember(UI_driver):
         # Remove user from group
         self.delete_record('dev1')
 
-        # Assert that user is not a member of group
+        # Assert that user was re-added to the group
+        # The behavior is expected with the plugin default setting:
+        # the entry cn=Auto Membership Plugin,cn=plugins,cn=config has
+        # a default value autoMemberProcessModifyOps: on
+        #
+        # See https://www.port389.org/docs/389ds/design/automember-postop-modify-design.html # noqa: E501
         self.facet_button_click('refresh')
         self.wait_for_request()
-        self.assert_record('dev1', negative=True)
-        self.assert_record('dev2', negative=True)
+        self.assert_record('dev1')
 
         # Rebuild membership for all users, using action on users search facet
         self.navigate_by_menu('identity/user_search')
@@ -377,9 +385,9 @@ class TestAutomember(UI_driver):
         self.assert_record('dev2')
 
         # Delete group, users and automember rule
-        self.delete_user_groups('devel')
         self.delete_users('dev1', 'dev2')
         self.delete_user_group_rules('devel')
+        self.delete_user_groups('devel')
 
     @screenshot
     def test_add_multiple_user_group_rules(self):
