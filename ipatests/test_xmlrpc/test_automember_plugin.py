@@ -28,10 +28,19 @@ from ipatests.test_xmlrpc.tracker.hostgroup_plugin import HostGroupTracker
 from ipatests.test_xmlrpc.tracker.automember_plugin import AutomemberTracker
 from ipalib import api, errors
 from ipapython.dn import DN
+from ipapython.ipautil import run
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 from ipatests.util import assert_deepequal
 
 import pytest
+import unittest
+
+try:
+    from ipaserver.plugins.ldap2 import ldap2
+except ImportError:
+    have_ldap2 = False
+else:
+    have_ldap2 = True
 
 user_does_not_exist = u'does_not_exist'
 fqdn_does_not_exist = u'does_not_exist.%s' % api.env.domain
@@ -242,6 +251,30 @@ class TestCRUDFOnAutomember(XMLRPC_test):
         automember_hostgroup.delete()
 
 
+def set_automember_process_modify_ops(value):
+    """Configure the auto member plugin to process modifyOps
+
+    Set the value for the attribute autoMemberProcessModifyOps of the entry
+    cn=Auto Membership Plugin,cn=plugins,cn=config.
+    :param value: can be either on or off
+    """
+    if not have_ldap2:
+        raise unittest.SkipTest('server plugin not available')
+    ldap = ldap2(api)
+    ldap.connect()
+    plugin_entry = ldap.get_entry(
+        DN("cn=Auto Membership Plugin,cn=plugins,cn=config"))
+    plugin_entry['autoMemberProcessModifyOps'] = value
+    try:
+        ldap.update_entry(plugin_entry)
+    except errors.EmptyModlist:
+        pass
+    # Requires a 389-ds restart
+    dashed_domain = api.env.realm.replace(".", "-")
+    cmd = ['systemctl', 'restart', 'dirsrv@{}'.format(dashed_domain)]
+    run(cmd)
+
+
 @pytest.mark.tier1
 class TestAutomemberRebuildHostMembership(XMLRPC_test):
     def test_create_deps_for_rebuilding_hostgroups(self, hostgroup1, host1,
@@ -257,17 +290,45 @@ class TestAutomemberRebuildHostMembership(XMLRPC_test):
         )
         hostgroup1.retrieve()
 
-    @pytest.mark.xfail(reason='freeipa ticket 7855', strict=True)
     def test_rebuild_membership_hostgroups(self, automember_hostgroup,
                                            hostgroup1, host1):
         """ Rebuild automember membership for hosts, both synchonously and
         asynchronously. Check the host has been added to the hostgroup. """
+        # In the first part of test,
+        # auto member process modify ops is disabled
+        # This means that we can manually remove a member without
+        # triggering the auto member plugin
+        try:
+            set_automember_process_modify_ops(value=b'off')
+            automember_hostgroup.rebuild()
+            automember_hostgroup.rebuild(no_wait=True)
+            # After rebuild, the member is added, and we need to update
+            # the tracker obj
+            hostgroup1.attrs.update(member_host=[host1.fqdn])
+            hostgroup1.retrieve()
+            # Now try to remove the member
+            hostgroup1.remove_member(dict(host=host1.fqdn))
+            hostgroup1.retrieve()
+        finally:
+            set_automember_process_modify_ops(value=b'on')
+
+        # Rebuild membership to re-add the member
         automember_hostgroup.rebuild()
         automember_hostgroup.rebuild(no_wait=True)
+        # After rebuild, the member is added, and we need to update
+        # the tracker obj
         hostgroup1.attrs.update(member_host=[host1.fqdn])
         hostgroup1.retrieve()
-        hostgroup1.remove_member(dict(host=host1.fqdn))
-        hostgroup1.retrieve()
+
+        # In the second part of the test,
+        # enable auto member process modify ops
+        # This means that a manual removal of a member will return success
+        # but the member gets re-added by the auto member plugin
+        # Expecting to raise an error as the member gets re-added
+        with pytest.raises(AssertionError) as error:
+            hostgroup1.remove_member(dict(host=host1.fqdn))
+        assert "extra keys = ['member_host']" in str(error.value)
+
 
     def test_rebuild_membership_for_host(self, host1, automember_hostgroup,
                                          hostgroup1):
@@ -308,16 +369,44 @@ class TestAutomemberRebuildGroupMembership(XMLRPC_test):
         )
         group1.retrieve()
 
-    @pytest.mark.xfail(reason='freeipa ticket 7855', strict=True)
     def test_rebuild_membership_groups(self, automember_group, group1, user1):
         """ Rebuild automember membership for groups, both synchonously and
         asynchronously. Check the user has been added to the group. """
+        # In the first part of test,
+        # auto member process modify ops is disabled
+        # This means that we can manually remove a member without
+        # triggering the auto member plugin
+        try:
+            set_automember_process_modify_ops(value=b'off')
+            automember_group.rebuild()
+            automember_group.rebuild(no_wait=True)
+            # After rebuild, the member is added, and we need to update
+            # the tracker obj
+            group1.attrs.update(member_user=[user1.name])
+            group1.retrieve()
+            # Now try to remove the member
+            group1.remove_member(dict(user=user1.name))
+            group1.retrieve()
+        finally:
+            set_automember_process_modify_ops(value=b'on')
+
+        # Rebuild membership to re-add the member
         automember_group.rebuild()
         automember_group.rebuild(no_wait=True)
+        # After rebuild, the member is added, and we need to update
+        # the tracker obj
         group1.attrs.update(member_user=[user1.name])
         group1.retrieve()
-        group1.remove_member(dict(user=user1.name))
-        group1.retrieve()
+
+        # In the second part of the test,
+        # auto member process modify ops is enabled
+        # This means that a manual removal of a member will return success
+        # but the member gets re-added by the auto member plugin
+        # Expecting to raise an error as the member gets re-added
+        with pytest.raises(AssertionError) as error:
+            group1.remove_member(dict(user=user1.name))
+        assert "extra keys = ['member_user']" in str(error.value)
+
 
     def test_rebuild_membership_for_user(self, user1, automember_group,
                                          group1):
