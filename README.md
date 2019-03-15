@@ -75,5 +75,5 @@ Please see the file called COPYING.
   https://pagure.io/freeipa/issues
 * If you want to participate in actively developing IPA please
   subscribe to the freeipa-devel mailing list at
-  https://www.redhat.com/mailman/listinfo/freeipa-devel/ or join
+  https://lists.fedoraproject.org/archives/list/freeipa-devel@lists.fedorahosted.org/ or join
   us in IRC at <irc://irc.freenode.net/freeipa>
