@@ -229,7 +229,7 @@ def _httplib_request(
 
     try:
         conn = connection_factory(host, port, **connection_options)
-        conn.request(method, uri, body=request_body, headers=headers)
+        conn.request(method, path, body=request_body, headers=headers)
         res = conn.getresponse()
 
         http_status = res.status
