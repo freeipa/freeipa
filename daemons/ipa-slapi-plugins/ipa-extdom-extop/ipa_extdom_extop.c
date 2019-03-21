@@ -118,7 +118,7 @@ static int ipa_get_threadnumber(Slapi_ComponentId *plugin_id, size_t *threadnumb
     *threadnumber = slapi_entry_attr_get_uint(search_entries[0],
                                               NSSLAPD_THREADNUMBER);
 
-    if (threadnumber <= 0) {
+    if (*threadnumber <= 0) {
         LOG_FATAL("No thread number found.\n");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
