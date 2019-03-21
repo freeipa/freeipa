@@ -687,7 +687,7 @@ static int resolve_ktname(const char *keytab, char **ktname, char **err_msg)
      * root. For simplicity, only one level if indirection is resolved.
      */
     if ((stat(keytab, &st) == -1) &&
-            (errno = ENOENT) &&
+            (errno == ENOENT) &&
             (lstat(keytab, &lst) == 0) &&
             (S_ISLNK(lst.st_mode))) {
         /* keytab is a dangling symlink. */
