@@ -85,20 +85,8 @@ def get_nickname():
 
     ca_subject_dn = ca.lookup_ca_subject(api, subject_base)
 
-    nickname_by_subject_dn = {
-        DN(ca_subject_dn): 'caSigningCert cert-pki-ca',
-        DN('CN=CA Audit', subject_base): 'auditSigningCert cert-pki-ca',
-        DN('CN=OCSP Subsystem', subject_base): 'ocspSigningCert cert-pki-ca',
-        DN('CN=CA Subsystem', subject_base): 'subsystemCert cert-pki-ca',
-        DN('CN=KRA Audit', subject_base): 'auditSigningCert cert-pki-kra',
-        DN('CN=KRA Transport Certificate', subject_base):
-            'transportCert cert-pki-kra',
-        DN('CN=KRA Storage Certificate', subject_base):
-            'storageCert cert-pki-kra',
-        DN('CN=IPA RA', subject_base): 'ipaCert',
-    }
-
-    return nickname_by_subject_dn.get(DN(subject))
+    return cainstance.get_ca_renewal_nickname(
+        subject_base, ca_subject_dn, DN(subject))
 
 
 def is_replicated():
