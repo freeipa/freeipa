@@ -70,7 +70,7 @@ class server_role(Object):
             cli_name='status',
             label=_('Role status'),
             doc=_('Status of the role'),
-            values=(u'enabled', u'configured', u'absent'),
+            values=(u'enabled', u'configured', u'hidden', u'absent'),
             default=u'enabled',
             flags={'virtual_attribute', 'no_create', 'no_update'}
         )
