@@ -17,6 +17,11 @@ from ipalib.constants import (
     DOMAIN_LEVEL_1, IPA_CA_NICKNAME)
 from ipaplatform.paths import paths
 from ipapython import certdb
+from ipatests.test_integration.test_backup_and_restore import backup
+from ipatests.test_integration.test_dns_locations import (
+    logger, resolve_records_from_server
+)
+
 
 config = get_global_config()
 
@@ -713,3 +718,82 @@ class TestReplicaInForwardZone(IntegrationTest):
             # Restore /etc/hosts on master and replica
             restore_etc_hosts(master)
             restore_etc_hosts(replica)
+
+
+class TestHiddenReplicaPromotion(ReplicaPromotionBase):
+    """
+    Test hidden replica features
+    """
+
+    topology = 'star'
+    num_replicas = 1
+
+    @replicas_cleanup
+    def test_hidden_replica_install(self):
+        self.replicas[0].run_command([
+            'ipa-replica-install', '-w',
+            self.master.config.admin_password,
+            '-U',
+            '--hidden-replica'
+        ])
+        expected_txt = 'hidden'
+        result = self.replicas[0].run_command([
+            'ipa', 'ipa server-role-find',
+            '--server', self.replicas[0].fqdn
+        ])
+        assert expected_txt in result.stdout
+        dnsrname = '.'.join(('_kerberos._udp', self.master.domain.name))
+        dnsrtype = 'SRV'
+        nameserver = self.master.ip
+        query = resolve_records_from_server(dnsrname, dnsrtype, nameserver)
+        assert self.master.hostname in query
+        assert self.replicas[0].hostname not in query
+
+    def test_hidden_replica_promote(self):
+        self.replicas[0].run_command([
+            'ipa', 'server-mod', '--state=enabled'
+        ])
+        unexpected_txt = 'hidden'
+        result = self.replicas[0].run_command([
+            'ipa', 'ipa server-role-find',
+            '--server', self.replicas[0].fqdn
+        ])
+        assert unexpected_txt not in result.stdout
+
+    def test_hidden_replica_demote(self):
+        self.replicas[0].run_command([
+            'ipa', 'server-mod', '--state=hidden'
+        ])
+        expected_txt = 'hidden'
+        result = self.replicas[0].run_command([
+            'ipa', 'ipa server-role-find',
+            '--server', self.replicas[0].fqdn
+        ])
+        assert expected_txt in result.stdout
+
+    def test_hidden_replica_backup_and_restore(self):
+        """
+        Exercises backup+restore and hidden replica uninstall
+        """
+        # set expectations
+        expected_txt = 'hidden'
+        result = self.replicas[0].run_command([
+            'ipa', 'ipa server-role-find',
+            '--server', self.replicas[0].fqdn
+        ])
+        assert expected_txt in result.stdout
+        # backup
+        backup_path = backup(self.replicas[0])
+        # uninstall
+        result = self.replicas[0].run_command([
+            'ipa-server-uninstall', '-U', 'hidden-replica'
+        ])
+        # restore
+        dirman_password = self.master.config.dirman_password
+        self.replicas[0].run_command(
+            ['ipa-restore', backup_path], stdin_text=dirman_password + '\nyes'
+        )
+        # check that the resulting server can be promoted to enabled
+        self.replicas[0].run_command([
+            'ipa', 'server-mod', '--state=enabled'
+        ])
