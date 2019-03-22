@@ -148,6 +148,7 @@ install/tools/ipa-ca-install
 install/tools/ipa-compat-manage
 install/tools/ipa-csreplica-manage
 install/tools/ipactl
+install/tools/ipa-crlgen-manage
 install/tools/ipa-custodia
 install/tools/ipa-custodia-check
 install/tools/ipa-dns-install
