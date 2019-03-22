@@ -29,6 +29,7 @@ dist_noinst_DATA =		\
 	ipa-winsync-migrate.in	\
 	ipa-pkinit-manage.in	\
 	ipa-crlgen-manage.in	\
+	ipa-cert-fix.in		\
 	ipa-custodia.in		\
 	ipa-custodia-check.in	\
 	ipa-httpd-kdcproxy.in	\
@@ -61,6 +62,7 @@ nodist_sbin_SCRIPTS =		\
 	ipa-winsync-migrate	\
 	ipa-pkinit-manage	\
 	ipa-crlgen-manage	\
+	ipa-cert-fix		\
 	$(NULL)
 
 appdir = $(libexecdir)/ipa/
