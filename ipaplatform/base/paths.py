@@ -253,7 +253,6 @@ class BasePathNamespace:
     IPA_JS_PLUGINS_DIR = "/usr/share/ipa/ui/js/plugins"
     UPDATES_DIR = "/usr/share/ipa/updates/"
     DICT_WORDS = "/usr/share/dict/words"
-    CACHE_IPA_SESSIONS = "/var/cache/ipa/sessions"
     VAR_KERBEROS_KRB5KDC_DIR = "/var/kerberos/krb5kdc/"
     VAR_KRB5KDC_K5_REALM = "/var/kerberos/krb5kdc/.k5."
     CACERT_PEM = "/var/kerberos/krb5kdc/cacert.pem"

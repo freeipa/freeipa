@@ -889,7 +889,6 @@ def install(installer):
             subject_base=options.subject_base,
             auto_redirect=not options.no_ui_redirect,
             ca_is_configured=setup_ca)
-    tasks.restore_context(paths.CACHE_IPA_SESSIONS)
 
     ca.set_subject_base_in_config(options.subject_base)
 
