@@ -139,6 +139,7 @@ bool E_md4hash(const char *passwd, uint8_t p16[16]); /* available in libcliauth-
 #define LDAP_ATTRIBUTE_OBJECTCLASS "objectClass"
 #define LDAP_ATTRIBUTE_HOME_DRIVE "ipaNTHomeDirectoryDrive"
 #define LDAP_ATTRIBUTE_HOME_PATH "ipaNTHomeDirectory"
+#define LDAP_ATTRIBUTE_HOMEDIRECTORY "homeDirectory"
 #define LDAP_ATTRIBUTE_LOGON_SCRIPT "ipaNTLogonScript"
 #define LDAP_ATTRIBUTE_PROFILE_PATH "ipaNTProfilePath"
 #define LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING "ipaNTSIDBlacklistIncoming"
@@ -1804,9 +1805,10 @@ done:
 #define KRB_PRINC_CREATE_DISABLED           0x00000001
 #define KRB_PRINC_CREATE_AGENT_PERMISSION   0x00000002
 
+
 static bool set_krb_princ(struct ipasam_private *ipasam_state,
 			  TALLOC_CTX *mem_ctx,
-			  const char *princ, const char *saltprinc,
+			  const char *princ, const char *alias,
 			  const char *pwd,
 			  const char *base_dn,
 			  uint32_t   create_flags)
@@ -1864,14 +1866,15 @@ static bool set_krb_princ(struct ipasam_private *ipasam_state,
 			 LDAP_ATTRIBUTE_KRB_CANONICAL, princ);
 	smbldap_set_mod(&mods, LDAP_MOD_ADD,
 			 LDAP_ATTRIBUTE_KRB_PRINCIPAL, princ);
-        if (saltprinc) {
-	    smbldap_set_mod(&mods, LDAP_MOD_ADD,
-			    LDAP_ATTRIBUTE_KRB_PRINCIPAL, saltprinc);
-        }
+	if (alias) {
+		smbldap_set_mod(&mods, LDAP_MOD_ADD,
+				LDAP_ATTRIBUTE_KRB_PRINCIPAL, alias);
+	}
 
 	if ((create_flags & KRB_PRINC_CREATE_DISABLED)) {
-		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
-				LDAP_ATTRIBUTE_KRB_TICKET_FLAGS, __TALLOC_STRING_LINE2__(IPASAM_DISALLOW_ALL_TIX));
+		smbldap_set_mod(&mods, LDAP_MOD_ADD,
+				LDAP_ATTRIBUTE_KRB_TICKET_FLAGS,
+				__TALLOC_STRING_LINE2__(IPASAM_DISALLOW_ALL_TIX));
 	}
 
 	if ((create_flags & KRB_PRINC_CREATE_AGENT_PERMISSION)) {
@@ -1884,17 +1887,18 @@ static bool set_krb_princ(struct ipasam_private *ipasam_state,
 		smbldap_set_mod(&mods, LDAP_MOD_ADD,
 				LDAP_ATTRIBUTE_OBJECTCLASS,
 				LDAP_OBJ_IPAOPALLOW);
-		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
-				LDAP_ATTRIBUTE_IPAOPALLOW, agent_dn);
+		smbldap_set_mod(&mods, LDAP_MOD_ADD,
+				LDAP_ATTRIBUTE_IPAOPALLOW,
+				agent_dn);
 		agent_dn = talloc_asprintf(mem_ctx, LDAP_CN_ADTRUST_ADMINS",%s", ipasam_state->base_dn);
 		if (agent_dn == NULL) {
 			DEBUG(1, ("error configuring cross realm principal data for trust admins!\n"));
 			return false;
 		}
-		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
-				LDAP_ATTRIBUTE_IPAOPALLOW, agent_dn);
+		smbldap_set_mod(&mods, LDAP_MOD_ADD,
+				LDAP_ATTRIBUTE_IPAOPALLOW,
+				agent_dn);
 	}
-
 
 	if (entry == NULL) {
 		ret = smbldap_add(ipasam_state->ldap_state, dn, mods);
@@ -1906,7 +1910,7 @@ static bool set_krb_princ(struct ipasam_private *ipasam_state,
 		return false;
 	}
 
-	ret = set_cross_realm_pw(ipasam_state, saltprinc ? saltprinc : princ, pwd);
+	ret = set_cross_realm_pw(ipasam_state, princ, pwd);
 	if (ret != 0) {
 		DEBUG(1, ("set_cross_realm_pw failed.\n"));
 		return false;
@@ -1948,18 +1952,21 @@ enum princ_mod {
 };
 
 static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
-				      const char *domain, const char *pwd,
+				      const char *domain, const char *flat_name,
+				      const char *pwd_incoming,
+				      const char *pwd_outgoing,
 				      uint32_t trust_direction,
 				      enum princ_mod mod)
 {
 	char *trusted_dn;
 	char *princ_l;
 	char *princ_r;
-	char *princ_tdo;
-	char *saltprinc_tdo;
+	char *princ_r_tdo, *princ_l_tdo;
 	char *remote_realm;
 	bool ok;
+        int failed = 0;
 	TALLOC_CTX *tmp_ctx;
+	const char *r_tdo_alias, *l_tdo_alias;
 
 	tmp_ctx = talloc_new(NULL);
 	if (tmp_ctx == NULL) {
@@ -1974,46 +1981,111 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 
 	trusted_dn = trusted_domain_dn(tmp_ctx, ipasam_state, domain);
 
-	princ_l = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s", remote_realm,
-			ipasam_state->realm);
+	princ_l = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
+				  remote_realm, ipasam_state->realm);
+	princ_l_tdo = talloc_asprintf(tmp_ctx, "%s$@%s",
+				      flat_name, ipasam_state->realm);
+	l_tdo_alias = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
+				      flat_name, ipasam_state->realm);
+
 	princ_r = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
-			ipasam_state->realm, remote_realm);
+				  ipasam_state->realm, remote_realm);
+	princ_r_tdo = talloc_asprintf(tmp_ctx, "%s$@%s",
+				      ipasam_state->flat_name, remote_realm);
 
-	princ_tdo = talloc_asprintf(tmp_ctx, "%s$@%s",
+	r_tdo_alias = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
 			ipasam_state->flat_name, remote_realm);
 
-	saltprinc_tdo = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
-			ipasam_state->flat_name, remote_realm);
-
-	if (trusted_dn == NULL || princ_l == NULL ||
-	    princ_r == NULL || princ_tdo == NULL || saltprinc_tdo == NULL) {
+	if (trusted_dn == NULL || princ_l == NULL || princ_l_tdo == NULL ||
+		l_tdo_alias == NULL || princ_r == NULL || princ_r_tdo == NULL ||
+		r_tdo_alias == NULL) {
 		ok = false;
 		goto done;
 	}
 
 	switch (mod) {
 		case SET_PRINC:
-			/* Create Kerberos principal for inbound trust, enabled by default */
-			ok   = set_krb_princ(ipasam_state, tmp_ctx, princ_r, NULL, pwd, trusted_dn, KRB_PRINC_CREATE_DEFAULT);
-			/* Create Kerberos principal corresponding to TDO in AD for SSSD usage, disabled by default */
-			ok |= set_krb_princ(ipasam_state, tmp_ctx, princ_tdo, saltprinc_tdo, pwd, trusted_dn,
-					    KRB_PRINC_CREATE_DISABLED | KRB_PRINC_CREATE_AGENT_PERMISSION);
-			if ((trust_direction & LSA_TRUST_DIRECTION_OUTBOUND) != 0) {
-				/* Create Kerberos principal for outbound trust, enabled by default */
-				ok |= set_krb_princ(ipasam_state, tmp_ctx, princ_l, NULL, pwd, trusted_dn, KRB_PRINC_CREATE_DEFAULT);
+			/* We must use two sets by two principals here because
+			 * they are used for different needs and must have
+			 * different salts */
+
+			failed = 0;
+			/* INBOUND TRUST */
+			if ((trust_direction & LSA_TRUST_DIRECTION_INBOUND) != 0) {
+				/* First: krbtgt/<OUR REALM>@<REMOTE REALM>, enabled by default
+				 * in case of the inboud trust */
+				failed += !set_krb_princ(ipasam_state, tmp_ctx, princ_r, NULL,
+							 pwd_outgoing, trusted_dn,
+							 KRB_PRINC_CREATE_DEFAULT);
+
+				/* Second: <OUR FLATNAME$>@<REMOTE REALM> is only used
+				 * for SSSD to be able to talk to AD DCs but it has to
+				 * have canonical name set to <OUR FLATNAME>$ because
+				 * this is the salt used by AD DCs when using this
+				 * principal, otherwise authentication will fail.
+				 *
+				 * *disable* use of this principal on our side as it is
+				 * only used to retrieve trusted domain credentials by
+				 * AD Trust Agents across the IPA topology */
+				failed += !set_krb_princ(ipasam_state, tmp_ctx,
+							 r_tdo_alias, princ_r_tdo,
+							 pwd_incoming, trusted_dn,
+							 (KRB_PRINC_CREATE_DISABLED |
+							  KRB_PRINC_CREATE_AGENT_PERMISSION));
+
+	                        ok = (failed == 0);
+				if (!ok) {
+					goto done;
+				}
 			}
-			if (!ok) {
-				goto done;
+
+			failed = 0;
+			/* OUTBOUND TRUST */
+			if ((trust_direction & LSA_TRUST_DIRECTION_OUTBOUND) != 0) {
+				/* First: krbtgt/<REMOTE REALM>@<OUR REALM>, enabled by default */
+				failed += !set_krb_princ(ipasam_state, tmp_ctx,
+							 princ_l, NULL,
+							 pwd_outgoing, trusted_dn,
+							 KRB_PRINC_CREATE_DEFAULT);
+
+				/* Second: <REMOTE FLAT NAME>$@<OUR REALM>, enabled by default
+				 * as it is used for a remote DC to authenticate against IPA Samba
+				 *
+				 * A local account for the outbound trust must have
+				 * POSIX and SMB identities associated with our domain but we associate
+				 * them with the trust domain object itself */
+				failed += !set_krb_princ(ipasam_state, tmp_ctx,
+							 princ_l_tdo, l_tdo_alias,
+							 pwd_incoming, trusted_dn,
+							 KRB_PRINC_CREATE_DEFAULT);
+
+	                        ok = (failed == 0);
+				if (!ok) {
+					goto done;
+				}
 			}
 			break;
 		case DEL_PRINC:
-			ok  = del_krb_princ(ipasam_state, tmp_ctx, princ_r, trusted_dn);
-			ok |= del_krb_princ(ipasam_state, tmp_ctx, princ_tdo, trusted_dn);
-			if ((trust_direction & LSA_TRUST_DIRECTION_OUTBOUND) != 0) {
-				ok |= del_krb_princ(ipasam_state, tmp_ctx, princ_l, trusted_dn);
+			failed = 0;
+			if ((trust_direction & LSA_TRUST_DIRECTION_INBOUND) != 0) {
+				failed += !del_krb_princ(ipasam_state, tmp_ctx, princ_r, trusted_dn);
+				failed += !del_krb_princ(ipasam_state, tmp_ctx, princ_r_tdo, trusted_dn);
+
+	                        ok = (failed == 0);
+				if (!ok) {
+					goto done;
+				}
 			}
-			if (!ok) {
-				goto done;
+
+			failed = 0;
+			if ((trust_direction & LSA_TRUST_DIRECTION_OUTBOUND) != 0) {
+				failed += !del_krb_princ(ipasam_state, tmp_ctx, princ_l, trusted_dn);
+				failed += !del_krb_princ(ipasam_state, tmp_ctx, princ_l_tdo, trusted_dn);
+
+	                        ok = (failed == 0);
+				if (!ok) {
+					goto done;
+				}
 			}
 			break;
 		default:
@@ -2029,16 +2101,22 @@ done:
 }
 
 static bool set_cross_realm_princs(struct ipasam_private *ipasam_state,
-				   const char *domain, const char *pwd, uint32_t trust_direction)
+				   const char *domain, const char* flat_name,
+				   const char *pwd_incoming, const char *pwd_outgoing,
+				   uint32_t trust_direction)
 {
-	return handle_cross_realm_princs(ipasam_state, domain, pwd, trust_direction, SET_PRINC);
+	return handle_cross_realm_princs(ipasam_state, domain, flat_name,
+					 pwd_incoming,
+					 pwd_outgoing,
+					 trust_direction, SET_PRINC);
 }
 
 static bool del_cross_realm_princs(struct ipasam_private *ipasam_state,
-				   const char *domain)
+				   const char *domain, const char *flat_name)
 {
 	uint32_t trust_direction = LSA_TRUST_DIRECTION_INBOUND | LSA_TRUST_DIRECTION_OUTBOUND;
-	return handle_cross_realm_princs(ipasam_state, domain, NULL, trust_direction, DEL_PRINC);
+	return handle_cross_realm_princs(ipasam_state, domain, flat_name,
+					 NULL, NULL, trust_direction, DEL_PRINC);
 }
 
 static bool get_trusted_domain_int(struct ipasam_private *ipasam_state,
@@ -2445,8 +2523,8 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	int ret, i, count;
 	NTSTATUS status;
 	TALLOC_CTX *tmp_ctx;
-	char *trustpw;
-	char *sid;
+	char *trustpw_incoming, *trustpw_outgoing;
+	char *sid, *tda_name;
 	char **in_blacklist = NULL;
 	char **out_blacklist = NULL;
 	uint32_t enctypes, trust_offset;
@@ -2471,6 +2549,8 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 				 LDAP_OBJ_TRUSTED_DOMAIN);
 		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods, "objectClass",
 				 LDAP_OBJ_ID_OBJECT);
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods, "objectClass",
+				 LDAP_OBJ_POSIXACCOUNT);
 	}
 
 	if (entry != NULL) {
@@ -2483,12 +2563,23 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 		                 LDAP_ATTRIBUTE_GIDNUMBER,
 				 ipasam_state->fallback_primary_group_gid_str);
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
+		                 LDAP_ATTRIBUTE_HOMEDIRECTORY,
+				 "/dev/null");
 	}
 
 	if (td->netbios_name != NULL) {
+		tda_name = talloc_asprintf(tmp_ctx, "%s$", td->netbios_name);
+		if (!tda_name) {
+			status = NT_STATUS_UNSUCCESSFUL;
+			goto done;
+		}
 		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 				 LDAP_ATTRIBUTE_FLAT_NAME,
 				 td->netbios_name);
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
+				 LDAP_ATTRIBUTE_UID,
+				 tda_name);
 	}
 
 	if (td->domain_name != NULL) {
@@ -2624,13 +2715,38 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 
 	if (entry == NULL) { /* FIXME: allow password updates here */
 		status = get_trust_pwd(tmp_ctx, &td->trust_auth_incoming,
-				       &trustpw, NULL);
+				       &trustpw_incoming, NULL);
 		if (!NT_STATUS_IS_OK(status)) {
 			goto done;
 		}
-		res = set_cross_realm_princs(ipasam_state, td->domain_name,
-					     trustpw, td->trust_direction);
-		memset(trustpw, 0, strlen(trustpw));
+		status = get_trust_pwd(tmp_ctx, &td->trust_auth_outgoing,
+				       &trustpw_outgoing, NULL);
+		if (!NT_STATUS_IS_OK(status)) {
+			goto done;
+		}
+		res = set_cross_realm_princs(ipasam_state, td->domain_name, td->netbios_name,
+					     trustpw_incoming, trustpw_outgoing,
+					     td->trust_direction);
+		{
+			/* Replace memset() use by an explicit loop to avoid
+			 * both compile time and link time optimisations.
+			 * We could have used memset_s() from C++11 but it is
+			 * currently not implemented by GCC or glibc.
+			 */
+			volatile char *p = (void *) trustpw_incoming;
+			volatile char *q = (void *) trustpw_outgoing;
+			size_t plen = strlen(trustpw_incoming);
+			size_t qlen = strlen(trustpw_outgoing);
+
+			while (plen--) {
+				*p++ = '\0';
+			}
+
+			while (qlen--) {
+				*q++ = '\0';
+			}
+		}
+
 		if (!res) {
 			DEBUG(1, ("error writing cross realm principals!\n"));
 			status = NT_STATUS_UNSUCCESSFUL;
@@ -2699,7 +2815,7 @@ static NTSTATUS ipasam_del_trusted_domain(struct pdb_methods *methods,
 		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	LDAPMessage *entry = NULL;
 	char *dn;
-	const char *domain_name;
+	const char *domain_name, *flat_name;
 	TALLOC_CTX *tmp_ctx;
 	NTSTATUS status;
 
@@ -2737,7 +2853,17 @@ static NTSTATUS ipasam_del_trusted_domain(struct pdb_methods *methods,
 		goto done;
 	}
 
-	if (!del_cross_realm_princs(ipasam_state, domain_name)) {
+	flat_name = get_single_attribute(tmp_ctx, priv2ld(ipasam_state), entry,
+					 LDAP_ATTRIBUTE_FLAT_NAME);
+	if (flat_name == NULL) {
+		DEBUG(1, ("Attribute %s not present.\n",
+			  LDAP_ATTRIBUTE_FLAT_NAME));
+		status = NT_STATUS_INVALID_PARAMETER;
+		goto done;
+	}
+
+
+	if (!del_cross_realm_princs(ipasam_state, domain_name, flat_name)) {
 		DEBUG(1, ("error deleting cross realm principals!\n"));
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
