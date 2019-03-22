@@ -772,7 +772,7 @@ jobs:
         timeout: 7200
         topology: *master_1repl
 
-   fedora-29/test_replica_promotion_TestHiddenReplicaPromotion:
+  fedora-29/test_replica_promotion_TestHiddenReplicaPromotion:
     requires: [fedora-29/build]
     priority: 50
     job:

@@ -19,9 +19,10 @@ from ipaplatform.paths import paths
 from ipapython import certdb
 from ipatests.test_integration.test_backup_and_restore import backup
 from ipatests.test_integration.test_dns_locations import (
-    logger, resolve_records_from_server
+    resolve_records_from_server
 )
-
+# pylint: disable=unused-import
+from ipatests.test_integration.test_dns_locations import logger
 
 config = get_global_config()
 
@@ -720,7 +721,7 @@ class TestReplicaInForwardZone(IntegrationTest):
             restore_etc_hosts(replica)
 
 
-class TestHiddenReplicaPromotion(ReplicaPromotionBase):
+class TestHiddenReplicaPromotion(IntegrationTest):
     """
     Test hidden replica features
     """
@@ -728,26 +729,48 @@ class TestHiddenReplicaPromotion(ReplicaPromotionBase):
     topology = 'star'
     num_replicas = 1
 
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
+
     @replicas_cleanup
     def test_hidden_replica_install(self):
         self.replicas[0].run_command([
+            'ipa-client-install',
+            '-p', 'admin',
+            '-w', self.master.config.admin_password,
+            '--domain', self.master.domain.name,
+            '--realm', self.master.domain.realm,
+            '--server', self.master.hostname,
+            '-U'
+        ])
+        self.replicas[0].run_command([
             'ipa-replica-install', '-w',
             self.master.config.admin_password,
-            '-U',
-            '--hidden-replica'
+            '-n', self.master.domain.name,
+            '-r', self.master.domain.realm,
+            '--server', self.master.hostname,
+            '--setup-ca',
+            '--setup-dns', '--no-forwarders',
+            '--hidden-replica',
+            '--setup-kra',
+            '-U'
         ])
         expected_txt = 'hidden'
         result = self.replicas[0].run_command([
             'ipa', 'ipa server-role-find',
-            '--server', self.replicas[0].fqdn
+            '--server', self.replicas[0].hostname
         ])
         assert expected_txt in result.stdout
         dnsrname = '.'.join(('_kerberos._udp', self.master.domain.name))
         dnsrtype = 'SRV'
         nameserver = self.master.ip
-        query = resolve_records_from_server(dnsrname, dnsrtype, nameserver)
-        assert self.master.hostname in query
-        assert self.replicas[0].hostname not in query
+        srvr = resolve_records_from_server(dnsrname, dnsrtype, nameserver)
+        active_replica = re.findall(
+            '|'.join((self.master.hostname, self.replicas[0].hostname)), srvr
+        )
+        assert self.master.hostname in active_replica
+        assert self.replicas[0].hostname not in active_replica
 
     def test_hidden_replica_promote(self):
         self.replicas[0].run_command([
@@ -756,7 +779,7 @@ class TestHiddenReplicaPromotion(ReplicaPromotionBase):
         unexpected_txt = 'hidden'
         result = self.replicas[0].run_command([
             'ipa', 'ipa server-role-find',
-            '--server', self.replicas[0].fqdn
+            '--server', self.replicas[0].hostname
         ])
         assert unexpected_txt not in result.stdout
 
@@ -767,7 +790,7 @@ class TestHiddenReplicaPromotion(ReplicaPromotionBase):
         expected_txt = 'hidden'
         result = self.replicas[0].run_command([
             'ipa', 'ipa server-role-find',
-            '--server', self.replicas[0].fqdn
+            '--server', self.replicas[0].hostname
         ])
         assert expected_txt in result.stdout
 
@@ -779,7 +802,7 @@ class TestHiddenReplicaPromotion(ReplicaPromotionBase):
         expected_txt = 'hidden'
         result = self.replicas[0].run_command([
             'ipa', 'ipa server-role-find',
-            '--server', self.replicas[0].fqdn
+            '--server', self.replicas[0].hostname
         ])
         assert expected_txt in result.stdout
         # backup

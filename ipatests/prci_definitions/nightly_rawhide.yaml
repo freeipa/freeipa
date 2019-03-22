@@ -772,7 +772,7 @@ jobs:
         timeout: 7200
         topology: *master_1repl
 
-   fedora-rawhide/test_replica_promotion_TestHiddenReplicaPromotion:
+  fedora-rawhide/test_replica_promotion_TestHiddenReplicaPromotion:
     requires: [fedora-rawhide/build]
     priority: 50
     job:
