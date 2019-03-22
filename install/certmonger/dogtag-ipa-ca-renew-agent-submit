@@ -270,23 +270,9 @@ def store_cert(**kwargs):
         return (REJECTED, "New certificate requests not supported")
     cert = x509.load_pem_x509_certificate(cert.encode('ascii'))
 
-    dn = DN(('cn', nickname), ('cn', 'ca_renewal'),
-            ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
     try:
         with ldap_connect() as conn:
-            try:
-                entry = conn.get_entry(dn, ['usercertificate'])
-                entry['usercertificate'] = [cert]
-                conn.update_entry(entry)
-            except errors.NotFound:
-                entry = conn.make_entry(
-                    dn,
-                    objectclass=['top', 'pkiuser', 'nscontainer'],
-                    cn=[nickname],
-                    usercertificate=[cert])
-                conn.add_entry(entry)
-            except errors.EmptyModlist:
-                pass
+            cainstance.update_ca_renewal_entry(conn, nickname, cert)
     except Exception as e:
         attempts += 1
         if attempts < 10:

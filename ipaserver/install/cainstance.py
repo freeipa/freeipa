@@ -1711,6 +1711,32 @@ def update_authority_entry(cert):
     return __update_entry_from_cert(make_filter, make_entry, cert)
 
 
+def update_ca_renewal_entry(conn, nickname, cert):
+    """
+    Update the ca_renewal entry for the given nickname.
+
+    :param conn: A *connected* LDAP handle
+    :param nickname: NSSDB nickname
+    :param cert: python-cryptography X509Certificate
+
+    """
+    dn = DN(('cn', nickname), ('cn', 'ca_renewal'),
+            ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    try:
+        entry = conn.get_entry(dn, ['usercertificate'])
+        entry['usercertificate'] = [cert]
+        conn.update_entry(entry)
+    except errors.NotFound:
+        entry = conn.make_entry(
+            dn,
+            objectclass=['top', 'pkiuser', 'nscontainer'],
+            cn=[nickname],
+            usercertificate=[cert])
+        conn.add_entry(entry)
+    except errors.EmptyModlist:
+        pass
+
+
 def ensure_ldap_profiles_container():
     ensure_entry(
         DN(('ou', 'certificateProfiles'), ('ou', 'ca'), ('o', 'ipaca')),
