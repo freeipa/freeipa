@@ -1241,7 +1241,7 @@ def force_sync(realm, thishost, fromhost, dirman_passwd, nolookup=False):
         repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
         repl.force_sync(repl.conn, thishost)
         agreement = repl.get_replication_agreement(thishost)
-        repl.wait_for_repl_init(repl.conn, agreement.dn)
+        repl.wait_for_repl_update(repl.conn, agreement.dn)
         ds.replica_manage_time_skew(prevent=True)
 
 def show_DNA_ranges(hostname, master, realm, dirman_passwd, nextrange=False,
