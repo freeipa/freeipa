@@ -1,30 +1,26 @@
-# Authors:
-#   Martin Kosek <mkosek@redhat.com>
-#
-# Copyright (C) 2012  Red Hat
-# see file 'COPYING' for use and warranty information
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright (C) 2012-2019  FreeIPA Contributors see COPYING for license
 
 import logging
 
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
+from ipapython import ipautil
+from ipaplatform.paths import paths
 from ipaserver.install import sysupgrade
 from ipaserver.install.adtrustinstance import (
     ADTRUSTInstance, map_Guests_to_nobody)
+from ipaserver.dcerpc_common import TRUST_BIDIRECTIONAL
+
+try:
+    from samba.ndr import ndr_unpack
+    from samba.dcerpc import lsa, drsblobs
+except ImportError:
+    # If samba.ndr is not available, this machine is not provisioned
+    # for serving a trust to Active Directory. As result, it does
+    # not matter what ndr_unpack does but we save on pylint checks
+    def ndr_unpack(x):
+        raise NotImplementedError
 
 logger = logging.getLogger(__name__)
 
@@ -325,6 +321,28 @@ class update_sids(Updater):
         return False, ()
 
 
+def get_gidNumber(ldap, env):
+    # Read the gidnumber of the fallback group and returns a list with it
+    dn = DN(('cn', ADTRUSTInstance.FALLBACK_GROUP_NAME),
+            env.container_group,
+            env.basedn)
+
+    try:
+        entry = ldap.get_entry(dn, ['gidnumber'])
+        gidNumber = entry.get('gidnumber')
+    except errors.NotFound:
+        logger.error("%s not found",
+                     ADTRUSTInstance.FALLBACK_GROUP_NAME)
+        return None
+
+    if gidNumber is None:
+        logger.error("%s does not have a gidnumber",
+                     ADTRUSTInstance.FALLBACK_GROUP_NAME)
+        return None
+
+    return gidNumber
+
+
 @register()
 class update_tdo_gidnumber(Updater):
     """
@@ -340,43 +358,55 @@ class update_tdo_gidnumber(Updater):
             logger.debug('AD Trusts are not enabled on this server')
             return False, []
 
-        # Read the gidnumber of the fallback group
-        dn = DN(('cn', ADTRUSTInstance.FALLBACK_GROUP_NAME),
-                self.api.env.container_group,
-                self.api.env.basedn)
-
-        try:
-            entry = ldap.get_entry(dn, ['gidnumber'])
-            gidNumber = entry.get('gidnumber')
-        except errors.NotFound:
-            logger.error("%s not found",
-                         ADTRUSTInstance.FALLBACK_GROUP_NAME)
-            return False, ()
-
+        gidNumber = get_gidNumber(ldap, self.api.env)
         if not gidNumber:
             logger.error("%s does not have a gidnumber",
                          ADTRUSTInstance.FALLBACK_GROUP_NAME)
             return False, ()
 
-        # For each trusted domain object, add gidNumber
+        # For each trusted domain object, add posix attributes
+        # to allow use of a trusted domain account by AD DCs
+        # to authenticate against our Samba instance
         try:
             tdos = ldap.get_entries(
                 DN(self.api.env.container_adtrusts, self.api.env.basedn),
                 scope=ldap.SCOPE_ONELEVEL,
-                filter="(objectclass=ipaNTTrustedDomain)",
-                attrs_list=['gidnumber'])
+                filter="(&(objectclass=ipaNTTrustedDomain)"
+                       "(objectclass=ipaIDObject))",
+                attrs_list=['gidnumber', 'uidnumber', 'objectclass',
+                            'ipantsecurityidentifier',
+                            'ipaNTTrustDirection'
+                            'uid', 'cn', 'ipantflatname'])
             for tdo in tdos:
                 # if the trusted domain object does not contain gidnumber,
                 # add the default fallback group gidnumber
                 if not tdo.get('gidnumber'):
-                    try:
-                        tdo['gidnumber'] = gidNumber
-                        ldap.update_entry(tdo)
-                        logger.debug("Added gidnumber %s to %s",
-                                     gidNumber, tdo.dn)
-                    except Exception:
-                        logger.warning(
-                            "Failed to add gidnumber to %s", tdo.dn)
+                    tdo['gidnumber'] = gidNumber
+
+                # Generate uidNumber and ipaNTSecurityIdentifier if
+                # uidNumber is missing. We rely on sidgen plugin here
+                # to generate ipaNTSecurityIdentifier.
+                if not tdo.get('uidnumber'):
+                    tdo['uidnumber'] = ['-1']
+
+                if 'posixAccount' not in tdo.get('objectclass'):
+                    tdo['objectclass'].extend(['posixAccount'])
+                # Based on the flat name of a TDO,
+                # add user name FLATNAME$ (note dollar sign)
+                # to allow SSSD to map this TDO to a POSIX account
+                if not tdo.get('uid'):
+                    tdo['uid'] = ["{flatname}$".format(
+                                  flatname=tdo.single_value['ipantflatname'])]
+                if not tdo.get('homedirectory'):
+                    tdo['homedirectory'] = ['/dev/null']
+
+                # Store resulted entry
+                try:
+                    ldap.update_entry(tdo)
+                except errors.ExecutionError as e:
+                    logger.warning(
+                        "Failed to update trusted domain object %s", tdo.dn)
+                    logger.debug("Exception during TDO update: %s", str(e))
 
         except errors.NotFound:
             logger.debug("No trusted domain object to update")
@@ -399,4 +429,260 @@ class update_mapping_Guests_to_nobody(Updater):
             return False, []
 
         map_Guests_to_nobody()
+        return False, []
+
+
+@register()
+class update_tdo_to_new_layout(Updater):
+    """
+    Transform trusted domain objects into a new layout
+
+    There are now two Kerberos principals per direction of trust:
+
+    INBOUND:
+     - krbtgt/<OUR REALM>@<REMOTE REALM>, enabled by default
+
+     - <OUR FLATNAME$>@<REMOTE REALM>, disabled by default on our side
+       as it is only used by SSSD to retrieve TDO creds when operating
+       as an AD Trust agent across IPA topology
+
+    OUTBOUND:
+     - krbtgt/<REMOTE REALM>@<OUR REALM>, enabled by default
+
+     - <REMOTE FLATNAME$>@<OUR REALM>, enabled by default and
+       used by remote trusted DCs to authenticate against us
+
+       This principal also has krbtgt/<REMOTE FLATNAME>@<OUR REALM> defined
+       as a Kerberos principal alias. This is due to how Kerberos
+       key salt is derived for cross-realm principals on AD side
+
+    Finally, Samba requires <REMOTE FLATNAME$> account to also possess POSIX
+    and SMB identities. We ensure this by making the trusted domain object to
+    be this account with 'uid' and 'cn' attributes being '<REMOTE FLATNAME$>'
+    and uidNumber/gidNumber generated automatically. Also, we ensure the
+    trusted domain object is given a SID.
+
+    The update to <REMOTE FLATNAME$> POSIX/SMB identities is done through
+    the update plugin update_tdo_gidnumber.
+    """
+    tgt_principal_template = "krbtgt/{remote}@{local}"
+    nbt_principal_template = "{nbt}$@{realm}"
+    trust_filter = \
+        "(&(objectClass=ipaNTTrustedDomain)(objectClass=ipaIDObject))"
+    trust_attrs = ("ipaNTFlatName", "ipaNTTrustPartner", "ipaNTTrustDirection",
+                   "cn", "ipaNTTrustAttributes", "ipaNTAdditionalSuffixes",
+                   "ipaNTTrustedDomainSID", "ipaNTTrustType",
+                   "ipaNTTrustAuthIncoming", "ipaNTTrustAuthOutgoing")
+    change_password_template = \
+        "change_password -pw {password} " \
+        "-e aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96 " \
+        "{principal}"
+
+    KRB_PRINC_CREATE_DEFAULT = 0x00000000
+    KRB_PRINC_CREATE_DISABLED = 0x00000001
+    KRB_PRINC_CREATE_AGENT_PERMISSION = 0x00000002
+    KRB_PRINC_CREATE_IDENTITY = 0x00000004
+    KRB_PRINC_MUST_EXIST = 0x00000008
+
+    # This is a flag for krbTicketFlags attribute
+    # to disallow creating any tickets using this principal
+    KRB_DISALLOW_ALL_TIX = 0x00000040
+
+    def retrieve_trust_password(self, packed):
+        # The structure of the trust secret is described at
+        # https://github.com/samba-team/samba/blob/master/
+        # librpc/idl/drsblobs.idl#L516-L569
+        # In our case in LDAP TDO object stores
+        # `struct trustAuthInOutBlob` that has `count` and
+        # the `current` of `AuthenticationInformationArray` struct
+        # which has own `count` and `array` of `AuthenticationInformation`
+        # structs that have `AuthType` field which should be equal to
+        # `LSA_TRUST_AUTH_TYPE_CLEAR`.
+        # Then AuthInfo field would contain a password as an array of bytes
+        assert(packed.count != 0)
+        assert(packed.current.count != 0)
+        assert(packed.current.array[0].AuthType == lsa.TRUST_AUTH_TYPE_CLEAR)
+        clear_value = packed.current.array[0].AuthInfo.password
+
+        return ''.join(map(chr, clear_value))
+
+    def set_krb_principal(self, principals, password, trustdn, flags=None):
+
+        ldap = self.api.Backend.ldap2
+
+        if isinstance(principals, (list, tuple)):
+            trust_principal = principals[0]
+            aliases = principals[1:]
+        else:
+            trust_principal = principals
+            aliases = []
+
+        try:
+            entry = ldap.get_entry(
+                DN(('krbprincipalname', trust_principal), trustdn))
+            dn = entry.dn
+            action = ldap.update_entry
+            logger.debug("Updating Kerberos principal entry for %s",
+                         trust_principal)
+        except errors.NotFound:
+            # For a principal that must exist, we re-raise the exception
+            # to let the caller to handle this situation
+            if flags & self.KRB_PRINC_MUST_EXIST:
+                raise
+
+            dn = DN(('krbprincipalname', trust_principal), trustdn)
+            entry = ldap.make_entry(dn)
+            logger.debug("Adding Kerberos principal entry for %s",
+                         trust_principal)
+            action = ldap.add_entry
+
+        entry_data = {
+            'objectclass':
+                ['krbPrincipal', 'krbPrincipalAux',
+                 'krbTicketPolicyAux', 'top'],
+            'krbcanonicalname': [trust_principal],
+            'krbprincipalname': [trust_principal],
+        }
+
+        entry_data['krbprincipalname'].extend(aliases)
+
+        if flags & self.KRB_PRINC_CREATE_DISABLED:
+            flg = int(entry.single_value.get('krbticketflags', 0))
+            entry_data['krbticketflags'] = flg | self.KRB_DISALLOW_ALL_TIX
+
+        if flags & self.KRB_PRINC_CREATE_AGENT_PERMISSION:
+            entry_data['objectclass'].extend(['ipaAllowedOperations'])
+
+        entry.update(entry_data)
+        try:
+            action(entry)
+        except errors.EmptyModlist:
+            logger.debug("No update was required for Kerberos principal %s",
+                         trust_principal)
+
+        # If entry existed, no need to set Kerberos keys on it
+        if action == ldap.update_entry:
+            logger.debug("No need to update Kerberos keys for "
+                         "existing Kerberos principal %s",
+                         trust_principal)
+            return
+
+        # Now that entry is updated, set its Kerberos keys.
+        #
+        # It would be a complication to use ipa-getkeytab LDAP extended control
+        # here because we would need to encode the request in ASN.1 sequence
+        # and we don't have the code to do so exposed in Python bindings.
+        # Instead, as we run on IPA master, we can use kadmin.local for that
+        # directly.
+        # We pass the command as a stdin to both avoid shell interpolation
+        # of the passwords and also to avoid its exposure to other processes
+        # Since we don't want to record the output, make also a redacted log
+        change_password = self.change_password_template.format(
+            password=password,
+            principal=trust_principal)
+
+        redacted = self.change_password_template.format(
+            password='<REDACTED OUT>',
+            principal=trust_principal)
+        logger.debug("Updating Kerberos keys for %s with the following "
+                     "kadmin command:\n\t%s", trust_principal, redacted)
+
+        ipautil.run([paths.KADMIN_LOCAL, "-x",
+                    "ipa-setup-override-restrictions"],
+                    stdin=change_password, skip_output=True)
+
+    def execute(self, **options):
+        # First, see if trusts are enabled on the server
+        if not self.api.Command.adtrust_is_enabled()['result']:
+            logger.debug('AD Trusts are not enabled on this server')
+            return False, []
+
+        ldap = self.api.Backend.ldap2
+        gidNumber = get_gidNumber(ldap, self.api.env)
+        if gidNumber is None:
+            return False, []
+
+        result = self.api.Command.trustconfig_show()['result']
+        our_nbt_name = result.get('ipantflatname', [None])[0]
+        if not our_nbt_name:
+            return False, []
+
+        trusts_dn = self.api.env.container_adtrusts + self.api.env.basedn
+
+        trusts = ldap.get_entries(
+            base_dn=trusts_dn,
+            scope=ldap.SCOPE_ONELEVEL,
+            filter=self.trust_filter,
+            attrs_list=self.trust_attrs)
+
+        # For every trust, retrieve its principals and convert
+        for t_entry in trusts:
+            t_dn = t_entry.dn
+            logger.debug('Processing trust domain object %s', str(t_dn))
+            t_realm = t_entry.single_value.get('ipaNTTrustPartner').upper()
+            direction = int(t_entry.single_value.get('ipaNTTrustDirection'))
+            passwd_incoming = self.retrieve_trust_password(
+                ndr_unpack(drsblobs.trustAuthInOutBlob,
+                           t_entry.single_value.get('ipaNTTrustAuthIncoming')))
+            passwd_outgoing = self.retrieve_trust_password(
+                ndr_unpack(drsblobs.trustAuthInOutBlob,
+                           t_entry.single_value.get('ipaNTTrustAuthOutgoing')))
+            # For outbound and inbound trusts, process four principals total
+            if (direction & TRUST_BIDIRECTIONAL) == TRUST_BIDIRECTIONAL:
+                # 1. OUTBOUND: krbtgt/<REMOTE REALM>@<OUR REALM> must exist
+                trust_principal = self.tgt_principal_template.format(
+                    remote=t_realm, local=self.api.env.realm)
+                try:
+                    self.set_krb_principal(trust_principal,
+                                           passwd_outgoing,
+                                           t_dn,
+                                           flags=self.KRB_PRINC_CREATE_DEFAULT)
+                except errors.NotFound:
+                    # It makes no sense to convert this one, skip the trust
+                    # completely, better to re-establish one
+                    logger.error(
+                        "Broken trust to AD: %s not found, "
+                        "please re-establish the trust to %s",
+                        trust_principal, t_realm)
+                    continue
+
+                # 2. Create <REMOTE FLATNAME$>@<OUR REALM>
+                nbt_name = t_entry.single_value.get('ipaNTFlatName')
+                nbt_principal = self.nbt_principal_template.format(
+                    nbt=nbt_name, realm=self.api.env.realm)
+                tgt_principal = self.tgt_principal_template.format(
+                    remote=nbt_name, local=self.api.env.realm)
+                self.set_krb_principal([nbt_principal, tgt_principal],
+                                       passwd_incoming,
+                                       t_dn,
+                                       flags=self.KRB_PRINC_CREATE_DEFAULT)
+
+            # 3. INBOUND: krbtgt/<OUR REALM>@<REMOTE REALM> must exist
+            trust_principal = self.tgt_principal_template.format(
+                remote=self.api.env.realm, local=t_realm)
+            try:
+                self.set_krb_principal(trust_principal, passwd_outgoing,
+                                       t_dn,
+                                       flags=self.KRB_PRINC_CREATE_DEFAULT)
+            except errors.NotFound:
+                # It makes no sense to convert this one, skip the trust
+                # completely, better to re-establish one
+                logger.error(
+                    "Broken trust to AD: %s not found, "
+                    "please re-establish the trust to %s",
+                    trust_principal, t_realm)
+                continue
+
+            # 4. Create <OUR FLATNAME$>@<REMOTE REALM>, disabled
+            nbt_principal = self.nbt_principal_template.format(
+                nbt=our_nbt_name, realm=t_realm)
+            tgt_principal = self.tgt_principal_template.format(
+                remote=our_nbt_name, local=t_realm)
+            self.set_krb_principal([nbt_principal, tgt_principal],
+                                   passwd_incoming,
+                                   t_dn,
+                                   flags=self.KRB_PRINC_CREATE_DEFAULT |
+                                   self.KRB_PRINC_CREATE_AGENT_PERMISSION |
+                                   self.KRB_PRINC_CREATE_DISABLED)
+
         return False, []
