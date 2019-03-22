@@ -995,6 +995,7 @@ install/tools/ipa-adtrust-install
 install/tools/ipa-backup
 install/tools/ipa-ca-install
 install/tools/ipa-cacert-manage
+install/tools/ipa-cert-fix
 install/tools/ipa-compat-manage
 install/tools/ipa-crlgen-manage
 install/tools/ipa-csreplica-manage
@@ -1383,6 +1384,7 @@ fi
 %{_sbindir}/ipa-winsync-migrate
 %{_sbindir}/ipa-pkinit-manage
 %{_sbindir}/ipa-crlgen-manage
+%{_sbindir}/ipa-cert-fix
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/certmonger/ipa-server-guard
 %dir %{_libexecdir}/ipa

@@ -30,6 +30,7 @@ dist_sbin_SCRIPTS =		\
 	ipa-winsync-migrate	\
 	ipa-pkinit-manage	\
 	ipa-crlgen-manage	\
+	ipa-cert-fix		\
 	$(NULL)
 
 appdir = $(libexecdir)/ipa/
