@@ -29,6 +29,7 @@ import ldapurl
 from ipaserver.install import service, installutils
 from ipaserver.install.dsinstance import config_dirname
 from ipaserver.install.installutils import is_ipa_configured, ScriptError
+from ipaserver.masters import ENABLED_SERVICE, HIDDEN_SERVICE
 from ipalib import api, errors
 from ipapython.ipaldap import LDAPClient
 from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
@@ -162,7 +163,16 @@ def version_check():
 
 def get_config(dirsrv):
     base = DN(('cn', api.env.host), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-    srcfilter = '(ipaConfigString=enabledService)'
+    srcfilter = LDAPClient.combine_filters(
+        [
+            LDAPClient.make_filter({'objectClass': 'ipaConfigObject'}),
+            LDAPClient.make_filter(
+                {'ipaConfigString': [ENABLED_SERVICE, HIDDEN_SERVICE]},
+                rules=LDAPClient.MATCH_ANY
+            ),
+        ],
+        rules=LDAPClient.MATCH_ALL
+    )
     attrs = ['cn', 'ipaConfigString']
     if not dirsrv.is_running():
         raise IpactlError("Failed to get list of services to probe status:\n" +

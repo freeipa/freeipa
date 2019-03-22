@@ -240,6 +240,13 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
     )
     master_password = master_install_only(master_password)
 
+    hidden_replica = knob(
+        None,
+        cli_names='--hidden-replica',
+        description="Install a hidden replica",
+    )
+    hidden_replica = replica_install_only(hidden_replica)
+
     domain_level = knob(
         int, constants.MAX_DOMAIN_LEVEL,
         description="IPA domain level",

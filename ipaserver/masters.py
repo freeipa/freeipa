@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 # constants for ipaConfigString
 CONFIGURED_SERVICE = u'configuredService'
 ENABLED_SERVICE = u'enabledService'
+HIDDEN_SERVICE = u'hiddenService'
 
 # The service name as stored in cn=masters,cn=ipa,cn=etc. The values are:
 # 0: systemd service name
@@ -68,30 +69,53 @@ def find_providing_servers(svcname, conn=None, preferred_hosts=(), api=api):
         conn = api.Backend.ldap2
 
     dn = DN(api.env.container_masters, api.env.basedn)
-    query_filter = conn.make_filter(
-        {
-            'objectClass': 'ipaConfigObject',
-            'ipaConfigString': ENABLED_SERVICE,
-            'cn': svcname
-        },
-        rules='&'
+
+    query_filter = conn.combine_filters(
+        [
+            conn.make_filter(
+                {
+                    'objectClass': 'ipaConfigObject',
+                    'cn': svcname
+                },
+                rules=conn.MATCH_ALL,
+            ),
+            conn.make_filter(
+                {
+                    'ipaConfigString': [ENABLED_SERVICE, HIDDEN_SERVICE]
+                },
+                rules=conn.MATCH_ANY
+            ),
+        ],
+        rules=conn.MATCH_ALL
     )
+
     try:
         entries, _trunc = conn.find_entries(
             filter=query_filter,
-            attrs_list=[],
+            attrs_list=['ipaConfigString'],
             base_dn=dn
         )
     except errors.NotFound:
         return []
 
-    # unique list of host names, DNS is case insensitive
-    servers = list(set(entry.dn[1].value.lower() for entry in entries))
+    # DNS is case insensitive
+    preferred_hosts = list(host_name.lower() for host_name in preferred_hosts)
+    servers = []
+    for entry in entries:
+        servername = entry.dn[1].value.lower()
+        cfgstrings = entry.get('ipaConfigString', [])
+        # always consider enabled services
+        if ENABLED_SERVICE in cfgstrings:
+            servers.append(servername)
+        # use hidden services on preferred hosts
+        elif HIDDEN_SERVICE in cfgstrings and servername in preferred_hosts:
+            servers.append(servername)
+    # unique list of host names
+    servers = list(set(servers))
     # shuffle the list like DNS SRV would randomize it
     random.shuffle(servers)
     # Move preferred hosts to front
     for host_name in reversed(preferred_hosts):
-        host_name = host_name.lower()
         try:
             servers.remove(host_name)
         except ValueError:
