@@ -39,7 +39,7 @@ from ipalib import api, errors, x509
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.masters import (
-    CONFIGURED_SERVICE, ENABLED_SERVICE, SERVICE_LIST
+    CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE, SERVICE_LIST
 )
 
 logger = logging.getLogger(__name__)
@@ -180,7 +180,7 @@ def set_service_entry_config(name, fqdn, config_values,
 
 
 def enable_services(fqdn):
-    """Change all configured services to enabled
+    """Change all services to enabled state
 
     Server.ldap_configure() only marks a service as configured. Services
     are enabled at the very end of installation.
@@ -189,15 +189,46 @@ def enable_services(fqdn):
 
     :param fqdn: hostname of server
     """
+    _set_services_state(fqdn, ENABLED_SERVICE)
+
+
+def hide_services(fqdn):
+    """Change all services to hidden state
+
+    Note: DNS records must be updated with dns_update_system_records, too.
+
+    :param fqdn: hostname of server
+    """
+    _set_services_state(fqdn, HIDDEN_SERVICE)
+
+
+def _set_services_state(fqdn, dest_state):
+    """Change all services of a host
+
+    :param fqdn: hostname of server
+    :param dest_state: destination state
+    """
     ldap2 = api.Backend.ldap2
     search_base = DN(('cn', fqdn), api.env.container_masters, api.env.basedn)
-    search_filter = ldap2.make_filter(
-        {
-            'objectClass': 'ipaConfigObject',
-            'ipaConfigString': CONFIGURED_SERVICE
-        },
-        rules='&'
+
+    source_states = {
+        CONFIGURED_SERVICE.lower(),
+        ENABLED_SERVICE.lower(),
+        HIDDEN_SERVICE.lower()
+    }
+    source_states.remove(dest_state.lower())
+
+    search_filter = ldap2.combine_filters(
+        [
+            ldap2.make_filter({'objectClass': 'ipaConfigObject'}),
+            ldap2.make_filter(
+                {'ipaConfigString': list(source_states)},
+                rules=ldap2.MATCH_ANY
+            ),
+        ],
+        rules=ldap2.MATCH_ALL
     )
+
     entries = ldap2.get_entries(
         search_base,
         filter=search_filter,
@@ -208,10 +239,10 @@ def enable_services(fqdn):
         name = entry['cn']
         cfgstrings = entry.setdefault('ipaConfigString', [])
         for value in list(cfgstrings):
-            if value.lower() == CONFIGURED_SERVICE.lower():
+            if value.lower() in source_states:
                 cfgstrings.remove(value)
-        if not case_insensitive_attr_has_value(cfgstrings, ENABLED_SERVICE):
-            cfgstrings.append(ENABLED_SERVICE)
+        if not case_insensitive_attr_has_value(cfgstrings, dest_state):
+            cfgstrings.append(dest_state)
 
         try:
             ldap2.update_entry(entry)
@@ -221,7 +252,9 @@ def enable_services(fqdn):
             logger.exception("failed to set service %s config values", name)
             raise
         else:
-            logger.debug("Enabled service %s for %s", name, fqdn)
+            logger.debug(
+                "Set service %s for %s to %s", name, fqdn, dest_state
+            )
 
 
 class Service:

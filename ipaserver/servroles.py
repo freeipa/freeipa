@@ -79,7 +79,7 @@ import six
 
 from ipalib import _, errors
 from ipapython.dn import DN
-from ipaserver.masters import ENABLED_SERVICE
+from ipaserver.masters import ENABLED_SERVICE, HIDDEN_SERVICE
 
 if six.PY3:
     unicode = str
@@ -87,6 +87,7 @@ if six.PY3:
 
 ENABLED = u'enabled'
 CONFIGURED = u'configured'
+HIDDEN = u'hidden'
 ABSENT = u'absent'
 
 
@@ -190,6 +191,7 @@ class BaseServerRole(LDAPBasedProperty):
         :returns: * 'enabled' if the role is enabled on the master
                   * 'configured' if it is not enabled but has
                     been configured by installer
+                  * 'hidden' if the role is not advertised
                   * 'absent' otherwise
         """
         ldap2 = api_instance.Backend.ldap2
@@ -442,7 +444,7 @@ class SingleValuedServerAttribute(ServerAttribute):
         return masters
 
 
-_Service = namedtuple('Service', ['name', 'enabled'])
+_Service = namedtuple('Service', ['name', 'enabled', 'hidden'])
 
 
 class ServiceBasedRole(BaseServerRole):
@@ -470,8 +472,9 @@ class ServiceBasedRole(BaseServerRole):
         entry_cn = entry['cn'][0]
 
         enabled = self._is_service_enabled(entry)
+        hidden = self._is_service_hidden(entry)
 
-        return _Service(name=entry_cn, enabled=enabled)
+        return _Service(name=entry_cn, enabled=enabled, hidden=hidden)
 
     def _is_service_enabled(self, entry):
         """
@@ -485,6 +488,15 @@ class ServiceBasedRole(BaseServerRole):
         """
         ipaconfigstring_values = set(entry.get('ipaConfigString', []))
         return ENABLED_SERVICE in ipaconfigstring_values
+
+    def _is_service_hidden(self, entry):
+        """Determine if service is hidden
+
+        :param entry: LDAPEntry of the service
+        :returns: True if the service entry is enabled, False otherwise
+        """
+        ipaconfigstring_values = set(entry.get('ipaConfigString', []))
+        return HIDDEN_SERVICE in ipaconfigstring_values
 
     def _get_services_by_masters(self, entries):
         """
@@ -509,9 +521,12 @@ class ServiceBasedRole(BaseServerRole):
             except ValueError:
                 continue
 
-            status = (
-                ENABLED if all(s.enabled for s in services) else
-                CONFIGURED)
+            if all(s.enabled for s in services):
+                status = ENABLED
+            elif all(s.hidden for s in services):
+                status = HIDDEN
+            else:
+                status = CONFIGURED
 
             result.append(self.create_role_status_dict(master, status))
 
