@@ -1001,6 +1001,7 @@ fi
 %{_sbindir}/ipa-winsync-migrate
 %{_sbindir}/ipa-pkinit-manage
 %{_sbindir}/ipa-crlgen-manage
+%{_sbindir}/ipa-cert-fix
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/certmonger/ipa-server-guard
 %{_libexecdir}/ipa/custodia/ipa-custodia-dmldap
