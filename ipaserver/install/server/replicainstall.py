@@ -829,6 +829,7 @@ def promote_check(installer):
     config.setup_kra = options.setup_kra
     config.dir = installer._top_dir
     config.basedn = api.env.basedn
+    config.hidden_replica = options.hidden_replica
 
     http_pkcs12_file = None
     http_pkcs12_info = None
@@ -1300,9 +1301,16 @@ def install(installer):
     if options.setup_adtrust:
         adtrust.install(False, options, fstore, api)
 
-    # Enable configured services and update DNS SRV records
-    service.enable_services(config.host_name)
+    if options.hidden_replica:
+        # Set services to hidden
+        service.hide_services(config.host_name)
+    else:
+        # Enable configured services
+        service.enable_services(config.host_name)
+    # update DNS SRV records. Although it's only really necessary in
+    # enabled-service case, also perform update in hidden replica case.
     api.Command.dns_update_system_records()
+
     ca_servers = find_providing_servers('CA', api.Backend.ldap2, api=api)
     api.Backend.ldap2.disconnect()
 
