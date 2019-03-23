@@ -762,15 +762,24 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             '--server', self.replicas[0].hostname
         ])
         assert expected_txt in result.stdout
-        dnsrname = '.'.join(('_kerberos._udp', self.master.domain.name))
-        dnsrtype = 'SRV'
+        dnsrecords = {
+            '.'.join(('_kerberos._udp', self.master.domain.name)): 'SRV',
+            '.'.join(('_kerberos._tcp', self.master.domain.name)): 'SRV',
+            '.'.join(('_ldap._tcp', self.master.domain.name)): 'SRV',
+            self.master.domain.name: 'NS'
+        }
         nameserver = self.master.ip
-        srvr = resolve_records_from_server(dnsrname, dnsrtype, nameserver)
-        active_replica = re.findall(
-            '|'.join((self.master.hostname, self.replicas[0].hostname)), srvr
-        )
-        assert self.master.hostname in active_replica
-        assert self.replicas[0].hostname not in active_replica
+        results = []
+        for record in dnsrecords:
+            srvr = resolve_records_from_server(
+                record, dnsrecords[record], nameserver
+            )
+            results.extend(re.findall(
+                '|'.join((self.master.hostname, self.replicas[0].hostname)),
+                srvr)
+            )
+        assert self.master.hostname in results
+        assert self.replicas[0].hostname not in results
 
     def test_hidden_replica_promote(self):
         self.replicas[0].run_command([
