@@ -1406,6 +1406,7 @@ fi
 %{_mandir}/man1/ipa-winsync-migrate.1*
 %{_mandir}/man1/ipa-pkinit-manage.1*
 %{_mandir}/man1/ipa-crlgen-manage.1*
+%{_mandir}/man1/ipa-cert-fix.1*
 
 %if 0%{?with_python2} && 0%{?fedora} < 29
 # Fedora 29 workaround: don't build python2-ipaserver, python2-pki is n/a
