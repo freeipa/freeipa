@@ -104,6 +104,12 @@ class LDAPBasedProperty(object):
     def __init__(self, attr_name, name):
         self.attr_name = attr_name
         self.name = name
+        # for hidden services, insert hidden before '_server' suffix
+        if attr_name.endswith(u'_server'):
+            parts = attr_name.rsplit(u'_', 1)
+            self.attr_name_hidden = u'{}_hidden_server'.format(parts[0])
+        else:
+            self.attr_name_hidden = None
 
 
 @six.add_metaclass(abc.ABCMeta)
