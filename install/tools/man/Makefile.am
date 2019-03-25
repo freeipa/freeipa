@@ -28,6 +28,7 @@ dist_man1_MANS = 			\
 	ipa-winsync-migrate.1		\
 	ipa-pkinit-manage.1		\
 	ipa-crlgen-manage.1		\
+	ipa-cert-fix.1			\
         $(NULL)
 
 dist_man8_MANS =			\
