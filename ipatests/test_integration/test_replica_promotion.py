@@ -760,7 +760,7 @@ class TestHiddenReplicaPromotion(IntegrationTest):
     def _check_server_role(self, host, status):
         roles = [u'IPA master', u'CA server', u'KRA server', u'DNS server']
         for role in roles:
-            result = self.master.run_command([
+            result = self.replicas[0].run_command([
                 'ipa', 'server-role-find',
                 '--server', host.hostname,
                 '--role', role
@@ -776,7 +776,7 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             'IPA DNS servers'
         ]
 
-        result = self.master.run_command(['ipa', 'config-show'])
+        result = self.replicas[0].run_command(['ipa', 'config-show'])
         values = {}
         for line in result.stdout_text.split('\n'):
             if ':' not in line:
@@ -785,8 +785,9 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             values[k.strip()] = {item.strip() for item in v.split(',')}
 
         for service in services:
-            assert values[service] == enabled
-            assert values['Hidden {}'.format(service)] == hidden
+            hservice = 'Hidden {}'.format(service)
+            assert values.get(service, set()) == enabled
+            assert values.get(hservice, set()) == hidden
 
     def test_hidden_replica_install(self):
         # TODO: check that all services are running on hidden replica
@@ -826,19 +827,26 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         # backup
         backup_path = backup(self.replicas[0])
         # uninstall
-        tasks.uninstall_replica(self.master, self.replicas[0])
+        tasks.uninstall_master(self.replicas[0])
         # restore
         dirman_password = self.master.config.dirman_password
         self.replicas[0].run_command(
             ['ipa-restore', backup_path],
             stdin_text=dirman_password + '\nyes'
         )
+        # give replication some time
+        time.sleep(5)
+
         # check that role is still hidden
+        tasks.kinit_admin(self.replicas[0])
+        self._check_config([self.master], [self.replicas[0]])
         self._check_server_role(self.replicas[0], 'hidden')
         self._check_dnsrecords([self.master], [self.replicas[0]])
+
         # check that the resulting server can be promoted to enabled
         self.replicas[0].run_command([
             'ipa', 'server-mod', self.replicas[0].hostname, '--state=enabled'
         ])
+        self._check_config([self.master, self.replicas[0]])
         self._check_server_role(self.replicas[0], 'enabled')
         self._check_dnsrecords([self.master, self.replicas[0]])
