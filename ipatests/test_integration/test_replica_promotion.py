@@ -19,10 +19,10 @@ from ipaplatform.paths import paths
 from ipapython import certdb
 from ipatests.test_integration.test_backup_and_restore import backup
 from ipatests.test_integration.test_dns_locations import (
-    resolve_records_from_server
+    resolve_records_from_server, IPA_DEFAULT_MASTER_SRV_REC
 )
-# pylint: disable=unused-import
-from ipatests.test_integration.test_dns_locations import logger
+from ipapython.dnsutil import DNSName
+from ipalib.constants import IPA_CA_RECORD
 
 config = get_global_config()
 
@@ -708,110 +708,100 @@ class TestReplicaInForwardZone(IntegrationTest):
 
 
 class TestHiddenReplicaPromotion(IntegrationTest):
+    """Test hidden replica features
     """
-    Test hidden replica features
-    """
-
     topology = 'star'
     num_replicas = 1
 
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
+        tasks.install_replica(
+            cls.master, cls.replicas[0],
+            setup_dns=True, setup_kra=True,
+            extra_args=('--hidden-replica',)
+        )
 
-    @replicas_cleanup
+    def _check_dnsrecords(self, hosts_expected, hosts_unexpected=()):
+        domain = DNSName(self.master.domain.name).make_absolute()
+        rset = [
+            (rname, 'SRV')
+            for rname, _port in IPA_DEFAULT_MASTER_SRV_REC
+        ]
+        rset.append((DNSName(IPA_CA_RECORD), 'A'))
+
+        for rname, rtype in rset:
+            name_abs = rname.derelativize(domain)
+            query = resolve_records_from_server(
+                name_abs, rtype, self.master.ip
+            )
+            txt = query.to_text()
+            for host in hosts_expected:
+                value = host.hostname if rtype == 'SRV' else host.ip
+                assert value in txt
+            for host in hosts_unexpected:
+                value = host.hostname if rtype == 'SRV' else host.ip
+                assert value not in txt
+
+    def _check_server_role(self, host, status):
+        roles = [u'IPA master', u'CA server', u'KRA server', u'DNS server']
+        for role in roles:
+            result = self.master.run_command([
+                'ipa', 'server-role-find',
+                '--server', host.hostname,
+                '--role', role
+            ])
+            expected = 'Role status: {}'.format(status)
+            assert expected in result.stdout_text
+
     def test_hidden_replica_install(self):
-        self.replicas[0].run_command([
-            'ipa-client-install',
-            '-p', 'admin',
-            '-w', self.master.config.admin_password,
-            '--domain', self.master.domain.name,
-            '--realm', self.master.domain.realm,
-            '--server', self.master.hostname,
-            '-U'
-        ])
-        self.replicas[0].run_command([
-            'ipa-replica-install', '-w',
-            self.master.config.admin_password,
-            '-n', self.master.domain.name,
-            '-r', self.master.domain.realm,
-            '--server', self.master.hostname,
-            '--setup-ca',
-            '--setup-dns', '--no-forwarders',
-            '--hidden-replica',
-            '--setup-kra',
-            '-U'
-        ])
-        expected_txt = 'hidden'
-        result = self.replicas[0].run_command([
-            'ipa', 'ipa server-role-find',
-            '--server', self.replicas[0].hostname
-        ])
-        assert expected_txt in result.stdout
-        dnsrecords = {
-            '.'.join(('_kerberos._udp', self.master.domain.name)): 'SRV',
-            '.'.join(('_kerberos._tcp', self.master.domain.name)): 'SRV',
-            '.'.join(('_ldap._tcp', self.master.domain.name)): 'SRV',
-            self.master.domain.name: 'NS'
-        }
-        nameserver = self.master.ip
-        results = []
-        for record in dnsrecords:
-            srvr = resolve_records_from_server(
-                record, dnsrecords[record], nameserver
-            )
-            results.extend(re.findall(
-                '|'.join((self.master.hostname, self.replicas[0].hostname)),
-                srvr)
-            )
-        assert self.master.hostname in results
-        assert self.replicas[0].hostname not in results
+        # TODO: check that all services are running on hidden replica
+        self._check_server_role(self.master, 'enabled')
+        self._check_server_role(self.replicas[0], 'hidden')
+        self._check_dnsrecords([self.master], [self.replicas[0]])
 
     def test_hidden_replica_promote(self):
         self.replicas[0].run_command([
-            'ipa', 'server-mod', '--state=enabled'
+            'ipa', 'server-state',
+            self.replicas[0].hostname, '--state=enabled'
         ])
-        unexpected_txt = 'hidden'
+        self._check_server_role(self.replicas[0], 'enabled')
+        self._check_dnsrecords([self.master, self.replicas[0]])
         result = self.replicas[0].run_command([
-            'ipa', 'ipa server-role-find',
-            '--server', self.replicas[0].hostname
-        ])
-        assert unexpected_txt not in result.stdout
+            'ipa', 'server-state',
+            self.replicas[0].hostname, '--state=enabled'
+        ], raiseonerr=False)
+        assert result.returncode == 1
+        assert 'no modifications to be performed' in result.stderr_text
 
     def test_hidden_replica_demote(self):
         self.replicas[0].run_command([
-            'ipa', 'server-mod', '--state=hidden'
+            'ipa', 'server-state',
+            self.replicas[0].hostname, '--state=hidden'
         ])
-        expected_txt = 'hidden'
-        result = self.replicas[0].run_command([
-            'ipa', 'ipa server-role-find',
-            '--server', self.replicas[0].hostname
-        ])
-        assert expected_txt in result.stdout
+        self._check_server_role(self.replicas[0], 'hidden')
+        self._check_dnsrecords([self.master], [self.replicas[0]])
 
     def test_hidden_replica_backup_and_restore(self):
+        """Exercises backup+restore and hidden replica uninstall
         """
-        Exercises backup+restore and hidden replica uninstall
-        """
-        # set expectations
-        expected_txt = 'hidden'
-        result = self.replicas[0].run_command([
-            'ipa', 'ipa server-role-find',
-            '--server', self.replicas[0].hostname
-        ])
-        assert expected_txt in result.stdout
+        self._check_server_role(self.replicas[0], 'hidden')
         # backup
         backup_path = backup(self.replicas[0])
         # uninstall
-        result = self.replicas[0].run_command([
-            'ipa-server-uninstall', '-U', 'hidden-replica'
-        ])
+        tasks.uninstall_replica(self.master, self.replicas[0])
         # restore
         dirman_password = self.master.config.dirman_password
         self.replicas[0].run_command(
-            ['ipa-restore', backup_path], stdin_text=dirman_password + '\nyes'
+            ['ipa-restore', backup_path],
+            stdin_text=dirman_password + '\nyes'
         )
+        # check that role is still hidden
+        self._check_server_role(self.replicas[0], 'hidden')
+        self._check_dnsrecords([self.master], [self.replicas[0]])
         # check that the resulting server can be promoted to enabled
         self.replicas[0].run_command([
-            'ipa', 'server-mod', '--state=enabled'
+            'ipa', 'server-mod', self.replicas[0].hostname, '--state=enabled'
         ])
+        self._check_server_role(self.replicas[0], 'enabled')
+        self._check_dnsrecords([self.master, self.replicas[0]])
