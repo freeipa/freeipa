@@ -45,7 +45,9 @@ import six
 from ipalib import errors, _
 from ipalib.backend import Backend
 from ipalib.plugable import Registry
-from ipaserver.servroles import (attribute_instances, ENABLED, role_instances)
+from ipaserver.servroles import (
+    attribute_instances, ENABLED, HIDDEN, role_instances
+)
 from ipaserver.servroles import SingleValuedServerAttribute
 
 
@@ -81,16 +83,25 @@ class serverroles(Backend):
             raise errors.NotFound(
                 reason=_("{role}: role not found").format(role=role_name))
 
-    def _get_enabled_masters(self, role_name):
+    def _get_masters(self, role_name, include_hidden):
         result = {}
         role = self._get_role(role_name)
+        role_states = role.status(self.api, server=None)
 
         enabled_masters = [
-            r[u'server_server'] for r in role.status(self.api, server=None) if
-            r[u'status'] == ENABLED]
-
+            r[u'server_server'] for r in role_states if
+            r[u'status'] == ENABLED
+        ]
         if enabled_masters:
             result.update({role.attr_name: enabled_masters})
+
+        if include_hidden and role.attr_name_hidden is not None:
+            hidden_masters = [
+                r[u'server_server'] for r in role_states if
+                r[u'status'] == HIDDEN
+            ]
+            if hidden_masters:
+                result.update({role.attr_name_hidden: hidden_masters})
 
         return result
 
@@ -131,8 +142,8 @@ class serverroles(Backend):
         return self._get_role(role_servrole).status(
             self.api, server=server_server)
 
-    def config_retrieve(self, servrole):
-        result = self._get_enabled_masters(servrole)
+    def config_retrieve(self, servrole, include_hidden=True):
+        result = self._get_masters(servrole, include_hidden=include_hidden)
 
         try:
             assoc_attributes = self._get_assoc_attributes(servrole)
