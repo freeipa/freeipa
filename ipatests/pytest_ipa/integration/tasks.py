@@ -558,10 +558,47 @@ def install_adtrust(host):
 
 def configure_dns_for_trust(master, ad):
     """
-    This method is intentionally left empty. Originally it served for DNS
-    configuration on IPA master according to the relationship of the IPA's
-    and AD's domains.
+    This configures DNS on IPA master according to the relationship of the
+    IPA's and AD's domains.
     """
+
+    def is_subdomain(subdomain, domain):
+        subdomain_unpacked = subdomain.split('.')
+        domain_unpacked = domain.split('.')
+
+        subdomain_unpacked.reverse()
+        domain_unpacked.reverse()
+
+        subdomain = False
+
+        if len(subdomain_unpacked) > len(domain_unpacked):
+            subdomain = True
+
+            for subdomain_segment, domain_segment in zip(subdomain_unpacked,
+                                                         domain_unpacked):
+                subdomain = subdomain and subdomain_segment == domain_segment
+
+        return subdomain
+
+    kinit_admin(master)
+
+    if is_subdomain(ad.domain.name, master.domain.name):
+        master.run_command(['ipa', 'dnsrecord-add', master.domain.name,
+                            '%s.%s' % (ad.shortname, ad.netbios),
+                            '--a-ip-address', ad.ip])
+
+        master.run_command(['ipa', 'dnsrecord-add', master.domain.name,
+                            ad.netbios,
+                            '--ns-hostname',
+                            '%s.%s' % (ad.shortname, ad.netbios)])
+
+        master.run_command(['ipa', 'dnszone-mod', master.domain.name,
+                            '--allow-transfer', ad.ip])
+    else:
+        master.run_command(['ipa', 'dnsforwardzone-add', ad.domain.name,
+                            '--forwarder', ad.ip,
+                            '--forward-policy', 'only',
+                            ])
 
 
 def establish_trust_with_ad(master, ad_domain, extra_args=()):
