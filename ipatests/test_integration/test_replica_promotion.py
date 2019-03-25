@@ -768,11 +768,32 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             expected = 'Role status: {}'.format(status)
             assert expected in result.stdout_text
 
+    def _check_config(self, enabled=(), hidden=()):
+        enabled = {host.hostname for host in enabled}
+        hidden = {host.hostname for host in hidden}
+        services = [
+            'IPA masters', 'IPA CA servers', 'IPA KRA servers',
+            'IPA DNS servers'
+        ]
+
+        result = self.master.run_command(['ipa', 'config-show'])
+        values = {}
+        for line in result.stdout_text.split('\n'):
+            if ':' not in line:
+                continue
+            k, v = line.split(':', 1)
+            values[k.strip()] = {item.strip() for item in v.split(',')}
+
+        for service in services:
+            assert values[service] == enabled
+            assert values['Hidden {}'.format(service)] == hidden
+
     def test_hidden_replica_install(self):
         # TODO: check that all services are running on hidden replica
         self._check_server_role(self.master, 'enabled')
         self._check_server_role(self.replicas[0], 'hidden')
         self._check_dnsrecords([self.master], [self.replicas[0]])
+        self._check_config([self.master], [self.replicas[0]])
 
     def test_hidden_replica_promote(self):
         self.replicas[0].run_command([
@@ -781,6 +802,8 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         ])
         self._check_server_role(self.replicas[0], 'enabled')
         self._check_dnsrecords([self.master, self.replicas[0]])
+        self._check_config([self.master, self.replicas[0]])
+
         result = self.replicas[0].run_command([
             'ipa', 'server-state',
             self.replicas[0].hostname, '--state=enabled'
