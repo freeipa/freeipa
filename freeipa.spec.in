@@ -1450,6 +1450,7 @@ fi
 %{_mandir}/man1/ipa-winsync-migrate.1*
 %{_mandir}/man1/ipa-pkinit-manage.1*
 %{_mandir}/man1/ipa-crlgen-manage.1*
+%{_mandir}/man1/ipa-cert-fix.1*
 
 
 %files -n python2-ipaserver
