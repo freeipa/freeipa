@@ -12,7 +12,7 @@ import ldap
 import time
 
 from ipalib import api, crud, errors, messages
-from ipalib import Int, Flag, Str, DNSNameParam
+from ipalib import Int, Flag, Str, StrEnum, DNSNameParam
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPSearch,
@@ -28,8 +28,9 @@ from ipaplatform import services
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipaserver import topology
-from ipaserver.servroles import ENABLED
+from ipaserver.servroles import ENABLED, HIDDEN
 from ipaserver.install import bindinstance, dnskeysyncinstance
+from ipaserver.install.service import hide_services, enable_services
 
 __doc__ = _("""
 IPA servers
@@ -949,3 +950,56 @@ class server_conncheck(crud.PKQuery):
                                  messages.ExternalCommandOutput(line=line))
 
         return result
+
+
+@register()
+class server_state(crud.PKQuery):
+    __doc__ = _("Set enabled/hidden state of a server.")
+
+    takes_options = (
+        StrEnum(
+            'state',
+            values=(u'enabled', u'hidden'),
+            label=_('State'),
+            doc=_('Server state'),
+            flags={'virtual_attribute', 'no_create', 'no_search'},
+        ),
+    )
+
+    msg_summary = _('Changed server state of "%(value)s".')
+
+    has_output = output.standard_boolean
+
+    def execute(self, *keys, **options):
+        fqdn = keys[0]
+        if options['state'] == u'enabled':
+            to_status = ENABLED
+            from_status = HIDDEN
+        else:
+            to_status = HIDDEN
+            from_status = ENABLED
+
+        roles = self.api.Command.server_role_find(
+            server_server=fqdn,
+            status=from_status,
+            include_master=True,
+        )['result']
+        from_roles = [r[u'role_servrole'] for r in roles]
+        if not from_roles:
+            # no server role is in source status
+            raise errors.EmptyModlist
+
+        if to_status == ENABLED:
+            enable_services(fqdn)
+        else:
+            hide_services(fqdn)
+
+        # update system roles
+        result = self.api.Command.dns_update_system_records()
+        if not result.get('value'):
+            self.add_message(messages.AutomaticDNSRecordsUpdateFailed())
+
+        return {
+            'value': fqdn,
+            'result': True,
+        }
