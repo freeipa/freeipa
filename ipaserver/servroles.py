@@ -338,12 +338,13 @@ class ServerAttribute(LDAPBasedProperty):
         ldap.update_entry(service_entry)
 
     def _get_assoc_role_providers(self, api_instance):
-        """
-        get list of all servers on which the associated role is enabled
+        """get list of all servers on which the associated role is enabled
+
+        Consider a hidden server as a valid provider for a role.
         """
         return [
             r[u'server_server'] for r in self.associated_role.status(
-                api_instance) if r[u'status'] == ENABLED]
+                api_instance) if r[u'status'] in {ENABLED, HIDDEN}]
 
     def _remove(self, api_instance, masters):
         """
