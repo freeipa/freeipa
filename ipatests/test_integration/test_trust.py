@@ -110,7 +110,7 @@ class ADTrustBase(IntegrationTest):
         # Check that all trustdomains appear in the result
         assert self.ad_domain in result.stdout_text
         assert self.ad_subdomain in result.stdout_text
-        assert self.ad_treedomain in result.stdout_text
+        assert "Number of entries returned 2" in result.stdout_text
 
 
 class ADTrustSubdomainBase(ADTrustBase):
