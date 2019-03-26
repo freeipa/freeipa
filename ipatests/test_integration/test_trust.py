@@ -86,7 +86,7 @@ class ADTrustBase(IntegrationTest):
 
     @classmethod
     def configure_dns_and_time(cls):
-        tasks.configure_dns_for_trust(cls.master, cls.ad_domain)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
         tasks.sync_time(cls.master, cls.ad)
 
     def test_establish_trust(self):
@@ -120,7 +120,7 @@ class ADTrustSubdomainBase(ADTrustBase):
 
     @classmethod
     def configure_dns_and_time(cls):
-        tasks.configure_dns_for_trust(cls.master, cls.ad_subdomain)
+        tasks.configure_dns_for_trust(cls.master, cls.child_ad)
         tasks.sync_time(cls.master, cls.child_ad)
 
     @classmethod
@@ -137,7 +137,7 @@ class ADTrustTreedomainBase(ADTrustBase):
 
     @classmethod
     def configure_dns_and_time(cls):
-        tasks.configure_dns_for_trust(cls.master, cls.ad_treedomain)
+        tasks.configure_dns_for_trust(cls.master, cls.tree_ad)
         tasks.sync_time(cls.master, cls.tree_ad)
 
     @classmethod
