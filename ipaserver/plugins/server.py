@@ -972,6 +972,35 @@ class server_state(crud.PKQuery):
 
     has_output = output.standard_boolean
 
+    def _check_hide_server(self, fqdn):
+        result = self.api.Command.config_show()['result']
+        err = []
+        # single value entries
+        if result.get("ca_renewal_master_server") == fqdn:
+            err.append(_("Cannot hide CA renewal master."))
+        if result.get("dnssec_key_master_server") == fqdn:
+            err.append(_("Cannot hide DNSSec key master."))
+        # multi value entries, only fail if we are the last one
+        checks = [
+            ("ca_server_server", "CA"),
+            ("dns_server_server", "DNS"),
+            ("ipa_master_server", "IPA"),
+            ("kra_server_server", "KRA"),
+        ]
+        for key, name in checks:
+            values = result.get(key, [])
+            if values == [fqdn]:  # fqdn is the only entry
+                err.append(
+                    _("Cannot hide last enabled %(name)s server.") % {
+                        'name': name
+                    }
+                )
+        if err:
+            raise errors.ValidationError(
+                name=fqdn,
+                error=' '.join(str(e) for e in err)
+            )
+
     def execute(self, *keys, **options):
         fqdn = keys[0]
         if options['state'] == u'enabled':
@@ -994,6 +1023,7 @@ class server_state(crud.PKQuery):
         if to_status == ENABLED:
             enable_services(fqdn)
         else:
+            self._check_hide_server(fqdn)
             hide_services(fqdn)
 
         # update system roles
