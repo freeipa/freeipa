@@ -441,6 +441,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.container_automember = DN()
     api.env.container_automount = DN()
     api.env.container_ca = DN()
+    api.env.container_ca_renewal = DN()
     api.env.container_caacl = DN()
     api.env.container_certmap = DN()
     api.env.container_certmaprules = DN()
