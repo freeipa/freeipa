@@ -213,7 +213,7 @@ def main():
     adtrust.install(True, options, fstore, api)
 
     # Enable configured services and update DNS SRV records
-    service.enable_services(api.env.host)
+    service.sync_services_state(api.env.host)
     api.Command.dns_update_system_records()
 
     print("""

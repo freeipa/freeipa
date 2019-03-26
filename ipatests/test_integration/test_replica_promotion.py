@@ -633,9 +633,11 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         # hidden replica with CA and DNS
         tasks.install_replica(
             cls.master, cls.replicas[0],
-            setup_dns=True, setup_kra=True,
+            setup_dns=True, setup_kra=False,
             extra_args=('--hidden-replica',)
         )
+        # manually install KRA to verify that hidden state is synced
+        tasks.install_kra(cls.replicas[0])
 
     def _check_dnsrecords(self, hosts_expected, hosts_unexpected=()):
         domain = DNSName(self.master.domain.name).make_absolute()
