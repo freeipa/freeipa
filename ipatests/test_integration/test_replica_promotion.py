@@ -812,7 +812,15 @@ class TestHiddenReplicaPromotion(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        # master with DNSSEC master
         tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
+        cls.master.run_command([
+            "ipa-dns-install",
+            "--dnssec-master",
+            "--forwarder", cls.master.config.dns_forwarder,
+            "-U",
+        ])
+        # hidden replica with CA and DNS
         tasks.install_replica(
             cls.master, cls.replicas[0],
             setup_dns=True, setup_kra=True,
@@ -878,6 +886,29 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         self._check_server_role(self.replicas[0], 'hidden')
         self._check_dnsrecords([self.master], [self.replicas[0]])
         self._check_config([self.master], [self.replicas[0]])
+
+    def test_hide_master_fails(self):
+        # verify state
+        self._check_config([self.master], [self.replicas[0]])
+        # nothing to do
+        result = self.master.run_command([
+            'ipa', 'server-state',
+            self.master.hostname, '--state=enabled'
+        ], raiseonerr=False)
+        assert result.returncode == 1
+        assert "no modifications to be performed" in result.stderr_text
+        # hiding the last master fails
+        result = self.master.run_command([
+            'ipa', 'server-state',
+            self.master.hostname, '--state=hidden'
+        ], raiseonerr=False)
+        assert result.returncode == 1
+        keys = [
+            "CA renewal master", "DNSSec key master", "CA server",
+            "KRA server", "DNS server", "IPA server"
+        ]
+        for key in keys:
+            assert key in result.stderr_text
 
     def test_hidden_replica_promote(self):
         self.replicas[0].run_command([
