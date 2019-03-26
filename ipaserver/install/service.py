@@ -41,6 +41,7 @@ from ipaplatform.paths import paths
 from ipaserver.masters import (
     CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE, SERVICE_LIST
 )
+from ipaserver.servroles import HIDDEN
 
 logger = logging.getLogger(__name__)
 
@@ -200,6 +201,27 @@ def hide_services(fqdn):
     :param fqdn: hostname of server
     """
     _set_services_state(fqdn, HIDDEN_SERVICE)
+
+
+def sync_services_state(fqdn):
+    """Synchronize services state from IPA master role state
+
+    Hide all services if the IPA master role state is in hidden state.
+    Otherwise enable all services.
+
+    :param fqdn: hostname of server
+    """
+    result = api.Command.server_role_find(
+        server_server=fqdn,
+        role_servrole='IPA master',
+        status=HIDDEN
+    )
+    if result['count']:
+        # one hidden server role
+        hide_services(fqdn)
+    else:
+        # IPA master is either enabled or configured, enable all
+        enable_services(fqdn)
 
 
 def _set_services_state(fqdn, dest_state):
