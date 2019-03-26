@@ -482,7 +482,7 @@ class server_del(LDAPDelete):
 
         ipa_config = self.api.Command.config_show()['result']
 
-        ipa_masters = ipa_config['ipa_master_server']
+        ipa_masters = ipa_config.get('ipa_master_server', [])
 
         # skip these checks if the last master is being removed
         if len(ipa_masters) <= 1:
