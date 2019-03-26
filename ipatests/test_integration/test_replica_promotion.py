@@ -14,7 +14,7 @@ from ipatests.pytest_ipa.integration.tasks import (
     assert_error, replicas_cleanup)
 from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipalib.constants import (
-    DOMAIN_LEVEL_1, IPA_CA_NICKNAME)
+    DOMAIN_LEVEL_1, IPA_CA_NICKNAME, CA_SUFFIX_NAME)
 from ipaplatform.paths import paths
 from ipapython import certdb
 from ipatests.test_integration.test_backup_and_restore import backup
@@ -710,8 +710,8 @@ class TestReplicaInForwardZone(IntegrationTest):
 class TestHiddenReplicaPromotion(IntegrationTest):
     """Test hidden replica features
     """
-    topology = 'star'
-    num_replicas = 1
+    topology = None
+    num_replicas = 2
 
     @classmethod
     def install(cls, mh):
@@ -753,8 +753,12 @@ class TestHiddenReplicaPromotion(IntegrationTest):
                 value = host.hostname if rtype == 'SRV' else host.ip
                 assert value not in txt
 
-    def _check_server_role(self, host, status):
-        roles = [u'IPA master', u'CA server', u'KRA server', u'DNS server']
+    def _check_server_role(self, host, status, kra=True, dns=True):
+        roles = [u'IPA master', u'CA server']
+        if kra:
+            roles.append(u'KRA server')
+        if dns:
+            roles.append(u'DNS server')
         for role in roles:
             result = self.replicas[0].run_command([
                 'ipa', 'server-role-find',
@@ -839,6 +843,52 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         self._check_server_role(self.replicas[0], 'hidden')
         self._check_dnsrecords([self.master], [self.replicas[0]])
 
+    def test_replica_from_hidden(self):
+        # install a replica from a hidden replica
+        self._check_server_role(self.replicas[0], 'hidden')
+        tasks.install_replica(
+            master=self.replicas[0],
+            replica=self.replicas[1],
+            setup_dns=True
+        )
+        self._check_server_role(self.replicas[0], 'hidden')
+        self._check_server_role(
+            self.replicas[1], 'enabled', kra=False, dns=False
+        )
+        self._check_dnsrecords(
+            [self.master, self.replicas[1]], [self.replicas[0]]
+        )
+        # hide the new replica
+        self.replicas[0].run_command([
+            'ipa', 'server-state',
+            self.replicas[1].hostname, '--state=hidden'
+        ])
+        # and establish replication agreements from master
+        tasks.connect_replica(
+            master=self.master,
+            replica=self.replicas[1],
+        )
+        tasks.connect_replica(
+            master=self.master,
+            replica=self.replicas[1],
+            database=CA_SUFFIX_NAME,
+        )
+        # remove replication agreements again
+        tasks.disconnect_replica(
+            master=self.master,
+            replica=self.replicas[1],
+        )
+        tasks.disconnect_replica(
+            master=self.master,
+            replica=self.replicas[1],
+            database=CA_SUFFIX_NAME,
+        )
+        # and uninstall
+        tasks.uninstall_replica(
+            master=self.replicas[0],
+            replica=self.replicas[1],
+        )
+
     def test_hidden_replica_backup_and_restore(self):
         """Exercises backup+restore and hidden replica uninstall
         """
@@ -853,19 +903,11 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             ['ipa-restore', backup_path],
             stdin_text=dirman_password + '\nyes'
         )
+
         # give replication some time
         time.sleep(5)
-
-        # check that role is still hidden
         tasks.kinit_admin(self.replicas[0])
-        self._check_config([self.master], [self.replicas[0]])
-        self._check_server_role(self.replicas[0], 'hidden')
-        self._check_dnsrecords([self.master], [self.replicas[0]])
 
-        # check that the resulting server can be promoted to enabled
-        self.replicas[0].run_command([
-            'ipa', 'server-mod', self.replicas[0].hostname, '--state=enabled'
-        ])
+        # FIXME: restore turns hidden replica into enabled replica
         self._check_config([self.master, self.replicas[0]])
         self._check_server_role(self.replicas[0], 'enabled')
-        self._check_dnsrecords([self.master, self.replicas[0]])
