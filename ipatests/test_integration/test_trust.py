@@ -431,7 +431,7 @@ class TestNonexternalTrustWithTreedomain(ADTrustTreedomainBase):
             'Test case unapplicable, present for inheritance reason only')
 
 
-class TestExternalTrustWithRootDomain(ADTrustSubdomainBase):
+class TestExternalTrustWithRootDomain(ADTrustBase):
     """
     Test establishing external trust with root domain
     Main purpose of this test is to verify that subdomains are not
