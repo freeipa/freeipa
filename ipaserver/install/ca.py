@@ -106,7 +106,7 @@ def uninstall_check(options):
 
     # skip the checks if the host is the last master
     ipa_config = api.Command.config_show()['result']
-    ipa_masters = ipa_config['ipa_master_server']
+    ipa_masters = ipa_config.get('ipa_master_server', [])
     if len(ipa_masters) <= 1:
         return
 
