@@ -91,7 +91,7 @@ class pkinit_status(Search):
         if server is not None:
             servers = [server]
         else:
-            servers = ipa_master_config['ipa_master_server']
+            servers = ipa_master_config.get('ipa_master_server', [])
 
         pkinit_servers = ipa_master_config.get('pkinit_server_server')
         if pkinit_servers is None:
