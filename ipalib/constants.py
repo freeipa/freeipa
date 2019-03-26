@@ -129,6 +129,7 @@ DEFAULT_CONFIG = (
     ('container_sysaccounts', DN(('cn', 'sysaccounts'), ('cn', 'etc'))),
     ('container_certmap', DN(('cn', 'certmap'))),
     ('container_certmaprules', DN(('cn', 'certmaprules'), ('cn', 'certmap'))),
+    ('container_ca_renewal', DN(('cn', 'ca_renewal'), ('cn', 'ipa'), ('cn', 'etc'))),
 
     # Ports, hosts, and URIs:
     # Following values do not have any reasonable default.

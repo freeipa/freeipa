@@ -1746,8 +1746,7 @@ def update_ca_renewal_entry(conn, nickname, cert):
     :param cert: python-cryptography X509Certificate
 
     """
-    dn = DN(('cn', nickname), ('cn', 'ca_renewal'),
-            ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    dn = DN(('cn', nickname), api.env.container_ca_renewal, api.env.basedn)
     try:
         entry = conn.get_entry(dn, ['usercertificate'])
         entry['usercertificate'] = [cert]
