@@ -736,30 +736,40 @@ def sync_time(host, server):
                       'pidfile /tmp/chronyd.pid', 'bindcmdaddress /'])
 
 
-def connect_replica(master, replica, domain_level=None):
+def connect_replica(master, replica, domain_level=None,
+                    database=DOMAIN_SUFFIX_NAME):
     if domain_level is None:
         domain_level = master.config.domain_level
     check_domain_level(domain_level)
     if domain_level == DOMAIN_LEVEL_0:
-        replica.run_command(['ipa-replica-manage', 'connect', master.hostname])
+        if database == DOMAIN_SUFFIX_NAME:
+            cmd = 'ipa-replica-manage'
+        else:
+            cmd = 'ipa-csreplica-manage'
+        replica.run_command([cmd, 'connect', master.hostname])
     else:
         kinit_admin(master)
-        master.run_command(["ipa", "topologysegment-add", DOMAIN_SUFFIX_NAME,
+        master.run_command(["ipa", "topologysegment-add", database,
                             "%s-to-%s" % (master.hostname, replica.hostname),
                             "--leftnode=%s" % master.hostname,
                             "--rightnode=%s" % replica.hostname
                             ])
 
 
-def disconnect_replica(master, replica, domain_level=None):
+def disconnect_replica(master, replica, domain_level=None,
+                       database=DOMAIN_SUFFIX_NAME):
     if domain_level is None:
         domain_level = master.config.domain_level
     check_domain_level(domain_level)
     if domain_level == DOMAIN_LEVEL_0:
-        replica.run_command(['ipa-replica-manage', 'disconnect', master.hostname])
+        if database == DOMAIN_SUFFIX_NAME:
+            cmd = 'ipa-replica-manage'
+        else:
+            cmd = 'ipa-csreplica-manage'
+        replica.run_command([cmd, 'disconnect', master.hostname])
     else:
         kinit_admin(master)
-        master.run_command(["ipa", "topologysegment-del", DOMAIN_SUFFIX_NAME,
+        master.run_command(["ipa", "topologysegment-del", database,
                             "%s-to-%s" % (master.hostname, replica.hostname),
                             "--continue"
                             ])
