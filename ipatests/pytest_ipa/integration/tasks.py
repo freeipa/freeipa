@@ -801,8 +801,10 @@ def sync_time(host, server):
 
     host.run_command(['systemctl', 'stop', 'chronyd'])
     host.run_command(['chronyd', '-q',
-                      "server {srv} iburst".format(srv=server.hostname),
-                      'pidfile /tmp/chronyd.pid', 'bindcmdaddress /'])
+                      "server {srv} iburst maxdelay 1000".format(
+                          srv=server.hostname),
+                      'pidfile /tmp/chronyd.pid', 'bindcmdaddress /',
+                      'maxdistance 1000', 'maxjitter 1000'])
 
 
 def connect_replica(master, replica, domain_level=None,
