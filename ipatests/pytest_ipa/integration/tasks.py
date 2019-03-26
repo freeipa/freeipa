@@ -556,6 +556,14 @@ def install_adtrust(host):
     run_repeatedly(host, dig_command, test=dig_test)
 
 
+def disable_dnssec_validation(host):
+    named_conf = host.get_file_contents(paths.NAMED_CONF)
+    named_conf = re.sub(br'dnssec-validation\s*yes;', b'dnssec-validation no;',
+                        named_conf)
+    host.put_file_contents(paths.NAMED_CONF, named_conf)
+    restart_named(host)
+
+
 def configure_dns_for_trust(master, ad):
     """
     This configures DNS on IPA master according to the relationship of the
@@ -595,6 +603,7 @@ def configure_dns_for_trust(master, ad):
         master.run_command(['ipa', 'dnszone-mod', master.domain.name,
                             '--allow-transfer', ad.ip])
     else:
+        disable_dnssec_validation(master)
         master.run_command(['ipa', 'dnsforwardzone-add', ad.domain.name,
                             '--forwarder', ad.ip,
                             '--forward-policy', 'only',
