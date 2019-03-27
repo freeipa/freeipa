@@ -53,7 +53,9 @@ from ipalib import output
 from ipapython import dnsutil, kerberos
 from ipapython.dn import DN
 from ipaserver.plugins.service import normalize_principal, validate_realm
-from ipaserver.masters import ENABLED_SERVICE, CONFIGURED_SERVICE
+from ipaserver.masters import (
+    ENABLED_SERVICE, CONFIGURED_SERVICE, is_service_enabled
+)
 
 try:
     import pyhbac
@@ -1904,14 +1906,5 @@ class ca_is_enabled(Command):
     has_output = output.standard_value
 
     def execute(self, *args, **options):
-        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                     self.api.env.basedn)
-        filter = '(&(objectClass=ipaConfigObject)(cn=CA))'
-        try:
-            self.api.Backend.ldap2.find_entries(
-                base_dn=base_dn, filter=filter, attrs_list=[])
-        except errors.NotFound:
-            result = False
-        else:
-            result = True
+        result = is_service_enabled('CA', conn=self.api.Backend.ldap2)
         return dict(result=result, value=pkey_to_value(None, options))

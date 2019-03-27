@@ -120,3 +120,54 @@ def find_providing_server(svcname, conn=None, preferred_hosts=(), api=api):
         return None
     else:
         return servers[0]
+
+
+def get_masters(conn=None, api=api):
+    """Get all master hostnames
+
+    :param conn: a connection to the LDAP server
+    :param api: ipalib.API instance
+    :return: list of hostnames
+    """
+    if conn is None:
+        conn = api.Backend.ldap2
+
+    dn = DN(api.env.container_masters, api.env.basedn)
+    entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL, None, ['cn'])
+    return list(e['cn'][0] for e in entries)
+
+
+def is_service_enabled(svcname, conn=None, api=api):
+    """Check if service is enabled on any master
+
+    The check function only looks for presence of service entries. It
+    ignores enabled/hidden flags.
+
+    :param svcname: The service to find
+    :param conn: a connection to the LDAP server
+    :param api: ipalib.API instance
+    :return: True/False
+    """
+    if svcname not in SERVICE_LIST:
+        raise ValueError("Unknown service '{}'.".format(svcname))
+    if conn is None:
+        conn = api.Backend.ldap2
+
+    dn = DN(api.env.container_masters, api.env.basedn)
+    query_filter = conn.make_filter(
+        {
+            'objectClass': 'ipaConfigObject',
+            'cn': svcname
+        },
+        rules='&'
+    )
+    try:
+        conn.find_entries(
+            filter=query_filter,
+            attrs_list=[],
+            base_dn=dn
+        )
+    except errors.NotFound:
+        return False
+    else:
+        return True
