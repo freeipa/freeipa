@@ -584,7 +584,8 @@ class Backup(admintool.AdminTool):
         config.set('ipa', 'ipa_version', str(version.VERSION))
         config.set('ipa', 'version', '1')
 
-        dn = DN(('cn', api.env.host), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+        dn = DN(('cn', api.env.host), api.env.container_masters,
+                api.env.basedn)
         services_cns = []
         try:
             conn = self.get_connection()
