@@ -43,6 +43,7 @@ from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance, httpinstance, cainstance, krbinstance
+from ipaserver.masters import get_masters
 from ipapython import ipaldap
 import ipapython.errors
 from ipaplatform.constants import constants
@@ -498,16 +499,7 @@ class Restore(admintool.AdminTool):
             logger.error('Unable to get connection, skipping disabling '
                          'agreements: %s', e)
             return
-        masters = []
-        dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-        try:
-            entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
-        except Exception as e:
-            raise admintool.ScriptError(
-                "Failed to read master data: %s" % e)
-        else:
-            masters = [ent.single_value['cn'] for ent in entries]
-
+        masters = get_masters(conn)
         for master in masters:
             if master == api.env.host:
                 continue
