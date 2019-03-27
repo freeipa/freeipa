@@ -86,6 +86,7 @@ from ipaserver.dns_data_management import (
     IPASystemRecords,
     IPADomainIsNotManagedByIPAError,
 )
+from ipaserver.masters import find_providing_servers, is_service_enabled
 
 if six.PY3:
     unicode = str
@@ -1593,19 +1594,7 @@ def dnssec_installed(ldap):
     :param ldap: ldap connection
     :return: True if DNSSEC was installed, otherwise False
     """
-    dn = DN(api.env.container_masters, api.env.basedn)
-
-    filter_attrs = {
-        u'cn': u'DNSSEC',
-        u'objectclass': u'ipaConfigObject',
-    }
-    only_masters_f = ldap.make_filter(filter_attrs, rules=ldap.MATCH_ALL)
-
-    try:
-        ldap.find_entries(filter=only_masters_f, base_dn=dn)
-    except errors.NotFound:
-        return False
-    return True
+    return is_service_enabled('DNSSEC', conn=ldap)
 
 
 def default_zone_update_policy(zone):
@@ -3191,24 +3180,9 @@ class dnsrecord(LDAPObject):
         return cliname
 
     def get_dns_masters(self):
-        ldap = self.api.Backend.ldap2
-        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), self.api.env.basedn)
-        ldap_filter = '(&(objectClass=ipaConfigObject)(cn=DNS))'
-        dns_masters = []
-
-        try:
-            entries = ldap.find_entries(filter=ldap_filter, base_dn=base_dn)[0]
-
-            for entry in entries:
-                try:
-                    master = entry.dn[1]['cn']
-                    dns_masters.append(master)
-                except (IndexError, KeyError):
-                    pass
-        except errors.NotFound:
-            return []
-
-        return dns_masters
+        return find_providing_servers(
+            'DNS', self.api.Backend.ldap2, preferred_hosts=[api.env.host]
+        )
 
     def get_record_entry_attrs(self, entry_attrs):
         entry_attrs = entry_attrs.copy()
@@ -4077,19 +4051,8 @@ class dns_is_enabled(Command):
     NO_CLI = True
     has_output = output.standard_value
 
-    base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-    filter = '(&(objectClass=ipaConfigObject)(cn=DNS))'
-
     def execute(self, *args, **options):
-        ldap = self.api.Backend.ldap2
-        dns_enabled = False
-
-        try:
-            ldap.find_entries(filter=self.filter, base_dn=self.base_dn)
-            dns_enabled = True
-        except errors.EmptyResult:
-            dns_enabled = False
-
+        dns_enabled = is_service_enabled('DNS', conn=self.api.Backend.ldap2)
         return dict(result=dns_enabled, value=pkey_to_value(None, options))
 
 
