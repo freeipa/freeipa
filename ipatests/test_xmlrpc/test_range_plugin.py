@@ -23,7 +23,8 @@ Test the `ipaserver/plugins/idrange.py` module, and XML-RPC in general.
 
 import six
 
-from ipalib import api, errors
+from ipalib import api, errors, messages
+from ipaplatform import services
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import MockLDAP
@@ -786,6 +787,12 @@ class test_range(Declarative):
             command=('idrange_mod', [domain3range2],
                      dict(ipabaseid=domain3range1_base_id)),
             expected=dict(
+                messages=(
+                    messages.ServiceRestartRequired(
+                        service=services.knownservices['sssd'].systemd_name,
+                        server=domain3range2
+                    ).to_dict(),
+                ),
                 result=dict(
                     cn=[domain3range2],
                     ipabaseid=[unicode(domain3range1_base_id)],
@@ -851,6 +858,12 @@ class test_range(Declarative):
             command=('idrange_mod', [domain2range1],
                      dict(ipabaserid=domain5range1_base_rid)),
             expected=dict(
+                messages=(
+                    messages.ServiceRestartRequired(
+                        service=services.knownservices['sssd'].systemd_name,
+                        server=domain2range1
+                    ).to_dict(),
+                ),
                 result=dict(
                     cn=[domain2range1],
                     ipabaseid=[unicode(domain2range1_base_id)],
