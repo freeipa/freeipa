@@ -73,25 +73,18 @@ def check_conflict_entries(ldap, api, desired_value):
     except errors.NotFound:
         pass
 
+
 def get_master_entries(ldap, api):
     """
     Returns list of LDAPEntries representing IPA masters.
     """
-
-    container_masters = DN(
-        ('cn', 'masters'),
-        ('cn', 'ipa'),
-        ('cn', 'etc'),
-        api.env.basedn
-    )
-
+    dn = DN(api.env.container_masters, api.env.basedn)
     masters, _dummy = ldap.find_entries(
         filter="(cn=*)",
-        base_dn=container_masters,
+        base_dn=dn,
         scope=ldap.SCOPE_ONELEVEL,
         paged_search=True,  # we need to make sure to get all of them
     )
-
     return masters
 
 

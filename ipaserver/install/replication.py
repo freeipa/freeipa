@@ -1419,8 +1419,7 @@ class ReplicationManager(object):
 
         # delete master entry with all active services
         try:
-            dn = DN(('cn', replica), ('cn', 'masters'), ('cn', 'ipa'),
-                    ('cn', 'etc'), self.suffix)
+            dn = DN(('cn', replica), api.env.container_masters, self.suffix)
             entries = self.conn.get_entries(dn, ldap.SCOPE_SUBTREE)
             if entries:
                 entries.sort(key=lambda x: len(x.dn), reverse=True)

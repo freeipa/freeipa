@@ -98,8 +98,8 @@ def _disable_dnssec():
                                                api.env.basedn)
 
     conn = api.Backend.ldap2
-    dn = DN(('cn', 'DNSSEC'), ('cn', api.env.host), ('cn', 'masters'),
-            ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    dn = DN(('cn', 'DNSSEC'), ('cn', api.env.host),
+            api.env.container_masters, api.env.basedn)
     try:
         entry = conn.get_entry(dn)
     except errors.NotFound:
