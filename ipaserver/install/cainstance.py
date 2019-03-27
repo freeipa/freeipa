@@ -1187,8 +1187,8 @@ class CAInstance(DogtagInstance):
         if fqdn is None:
             fqdn = api.env.host
 
-        dn = DN(('cn', 'CA'), ('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'),
-                ('cn', 'etc'), api.env.basedn)
+        dn = DN(('cn', 'CA'), ('cn', fqdn), api.env.container_masters,
+                api.env.basedn)
         renewal_filter = '(ipaConfigString=caRenewalMaster)'
         try:
             api.Backend.ldap2.get_entries(base_dn=dn, filter=renewal_filter,
@@ -1202,8 +1202,7 @@ class CAInstance(DogtagInstance):
         if fqdn is None:
             fqdn = api.env.host
 
-        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                     api.env.basedn)
+        base_dn = DN(api.env.container_masters, api.env.basedn)
         filter = '(&(cn=CA)(ipaConfigString=caRenewalMaster))'
         try:
             entries = api.Backend.ldap2.get_entries(

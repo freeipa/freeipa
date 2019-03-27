@@ -520,7 +520,8 @@ class Restore(admintool.AdminTool):
                                 master, e)
                 continue
 
-            master_dn = DN(('cn', master), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+            master_dn = DN(('cn', master), api.env.container_masters,
+                           api.env.basedn)
             try:
                 services = repl.conn.get_entries(master_dn,
                                                  repl.conn.SCOPE_ONELEVEL)
