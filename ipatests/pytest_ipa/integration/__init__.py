@@ -218,11 +218,17 @@ def mh(request, class_integration_logs):
     for _i in range(cls.num_ad_domains):
         domain_descriptions.append({
             'type': 'AD',
-            'hosts': {
-                'ad': 1,
-                'ad_subdomain': cls.num_ad_domains,
-                'ad_treedomain': cls.num_ad_domains,
-            }
+            'hosts': {'ad': 1}
+        })
+    for _i in range(cls.num_ad_subdomains):
+        domain_descriptions.append({
+            'type': 'AD_SUBDOMAIN',
+            'hosts': {'ad_subdomain': 1}
+        })
+    for _i in range(cls.num_ad_treedomains):
+        domain_descriptions.append({
+            'type': 'AD_TREEDOMAIN',
+            'hosts': {'ad_treedomain': 1}
         })
 
     mh = make_multihost_fixture(
@@ -236,6 +242,17 @@ def mh(request, class_integration_logs):
     [mh.master] = mh.domain.hosts_by_role('master')
     mh.replicas = mh.domain.hosts_by_role('replica')
     mh.clients = mh.domain.hosts_by_role('client')
+    ad_domains = mh.config.ad_domains
+    if ad_domains:
+        mh.ads = []
+        for domain in ad_domains:
+            mh.ads.extend(domain.hosts_by_role('ad'))
+        mh.ad_subdomains = []
+        for domain in ad_domains:
+            mh.ad_subdomains.extend(domain.hosts_by_role('ad_subdomain'))
+        mh.ad_treedomains = []
+        for domain in ad_domains:
+            mh.ad_treedomains.extend(domain.hosts_by_role('ad_treedomain'))
 
     cls.logs_to_collect = class_integration_logs
 
@@ -272,6 +289,10 @@ def setup_class(cls, mh):
     cls.replicas = mh.replicas
     cls.clients = mh.clients
     cls.ad_domains = mh.config.ad_domains
+    if cls.ad_domains:
+        cls.ads = mh.ads
+        cls.ad_subdomains = mh.ad_subdomains
+        cls.ad_treedomains = mh.ad_treedomains
 
 
 def teardown_class(cls):
@@ -283,5 +304,9 @@ def teardown_class(cls):
     del cls.master
     del cls.replicas
     del cls.clients
-    del cls.ad_domains
     del cls.domain
+    if cls.ad_domains:
+        del cls.ads
+        del cls.ad_subdomains
+        del cls.ad_treedomains
+    del cls.ad_domains
