@@ -22,8 +22,9 @@ import six
 from ipalib.plugable import Registry
 from .baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
                                      LDAPRetrieve, LDAPSearch, LDAPUpdate)
-from ipalib import api, Int, Str, StrEnum, _, ngettext
+from ipalib import api, Int, Str, StrEnum, _, ngettext, messages
 from ipalib import errors
+from ipaplatform import services
 from ipapython.dn import DN
 
 if six.PY3:
@@ -764,4 +765,10 @@ class idrange_mod(LDAPUpdate):
         assert isinstance(dn, DN)
         self.obj.handle_ipabaserid(entry_attrs, options)
         self.obj.handle_iparangetype(entry_attrs, options)
+        self.add_message(
+            messages.ServiceRestartRequired(
+                service=services.knownservices['sssd'].systemd_name,
+                server=keys[0]
+            )
+        )
         return dn
