@@ -237,6 +237,15 @@ class TestComplexConfig(CheckConfig):
                 dict(name='master.ipadomain2.test', ip='192.0.2.65',
                      host_type=None),
             ]),
+            dict(name='adsubdomain.test', type='AD_SUBDOMAIN', hosts=[
+                dict(name='child_ad', ip='192.0.2.77', role='ad_subdomain',
+                     host_type=None),
+            ]),
+            dict(name='adtreedomain.test', type='AD_TREEDOMAIN', hosts=[
+                dict(name='tree_ad', ip='192.0.2.88', role='ad_treedomain',
+                     host_type=None),
+            ]),
+
         ],
     )
     extra_input_env = dict(
@@ -262,6 +271,12 @@ class TestComplexConfig(CheckConfig):
 
         MASTER_env3='master.ipadomain2.test',
         BEAKERMASTER1_IP_env3='192.0.2.65',
+
+        AD_SUBDOMAIN_env4='child_ad.adsubdomain.test',
+        BEAKERAD_SUBDOMAIN1_IP_env4='192.0.2.77',
+
+        AD_TREEDOMAIN_env5='tree_ad.adtreedomain.test',
+        BEAKERAD_TREEDOMAIN1_IP_env5='192.0.2.88',
     )
     extra_output_dict = dict(
         domains=[
@@ -353,9 +368,37 @@ class TestComplexConfig(CheckConfig):
                     ),
                 ],
             ),
+            dict(
+                type="AD_SUBDOMAIN",
+                name="adsubdomain.test",
+                hosts=[
+                    dict(
+                        name='child_ad.adsubdomain.test',
+                        ip="192.0.2.77",
+                        external_hostname="child_ad.adsubdomain.test",
+                        role="ad_subdomain",
+                        host_type=None,
+                    ),
+                ],
+            ),
+            dict(
+                type="AD_TREEDOMAIN",
+                name="adtreedomain.test",
+                hosts=[
+                    dict(
+                        name='tree_ad.adtreedomain.test',
+                        ip="192.0.2.88",
+                        external_hostname="tree_ad.adtreedomain.test",
+                        role="ad_treedomain",
+                        host_type=None,
+                    ),
+                ],
+            ),
+
         ],
     )
-    extra_output_env = extend_dict(extra_input_env,
+    extra_output_env = extend_dict(
+        extra_input_env,
         DOMAIN_env1="ipadomain.test",
         RELM_env1="IPADOMAIN.TEST",
         BASEDN_env1="dc=ipadomain,dc=test",
@@ -434,10 +477,30 @@ class TestComplexConfig(CheckConfig):
         MASTER1_env3="master.ipadomain2.test",
         BEAKERMASTER1_env3="master.ipadomain2.test",
         BEAKERMASTER1_IP_env3="192.0.2.65",
+
+        DOMAIN_env4="adsubdomain.test",
+        RELM_env4="ADSUBDOMAIN.TEST",
+        AD_SUBDOMAIN_env4='child_ad.adsubdomain.test',
+        AD_SUBDOMAIN1_env4='child_ad.adsubdomain.test',
+        BEAKERAD_SUBDOMAIN1_IP_env4='192.0.2.77',
+        BEAKERAD_SUBDOMAIN1_env4='child_ad.adsubdomain.test',
+        BEAKERAD_SUBDOMAIN_IP_env4='192.0.2.77',
+        BEAKERAD_SUBDOMAIN_env4='child_ad.adsubdomain.test',
+        BASEDN_env4='dc=adsubdomain,dc=test',
+
+        DOMAIN_env5="adtreedomain.test",
+        RELM_env5="ADTREEDOMAIN.TEST",
+        AD_TREEDOMAIN_env5='tree_ad.adtreedomain.test',
+        AD_TREEDOMAIN1_env5='tree_ad.adtreedomain.test',
+        BEAKERAD_TREEDOMAIN1_IP_env5='192.0.2.88',
+        BEAKERAD_TREEDOMAIN1_env5='tree_ad.adtreedomain.test',
+        BEAKERAD_TREEDOMAIN_IP_env5='192.0.2.88',
+        BEAKERAD_TREEDOMAIN_env5='tree_ad.adtreedomain.test',
+        BASEDN_env5='dc=adtreedomain,dc=test',
     )
 
     def check_config(self, conf):
-        assert len(conf.domains) == 3
+        assert len(conf.domains) == 5
         main_dom = conf.domains[0]
         (client1, client2, extra, extram1, extram2, _master,
          replica1, replica2) = sorted(main_dom.hosts, key=lambda h: h.role)
@@ -463,3 +526,13 @@ class TestComplexConfig(CheckConfig):
         assert ad_dom.roles == ['ad']
         assert ad_dom.static_roles == ('ad',)
         assert ad_dom.extra_roles == []
+
+        ad_sub_domain = conf.domains[3]
+        assert ad_sub_domain.roles == ['ad_subdomain']
+        assert ad_sub_domain.static_roles == ('ad_subdomain',)
+        assert ad_sub_domain.extra_roles == []
+
+        ad_tree_domain = conf.domains[4]
+        assert ad_tree_domain.roles == ['ad_treedomain']
+        assert ad_tree_domain.static_roles == ('ad_treedomain',)
+        assert ad_tree_domain.extra_roles == []
