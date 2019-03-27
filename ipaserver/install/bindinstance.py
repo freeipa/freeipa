@@ -40,6 +40,7 @@ from ipaserver.dns_data_management import (
 from ipaserver.install import installutils
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
+from ipaserver.masters import get_masters
 from ipapython import ipautil
 from ipapython import dnsutil
 from ipapython.dnsutil import DNSName
@@ -1037,13 +1038,8 @@ class BindInstance(service.Service):
             cname_fqdn[cname] = fqdn
 
         # get FQDNs of all IPA masters
-        ldap = self.api.Backend.ldap2
         try:
-            entries = ldap.get_entries(
-                DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                   self.api.env.basedn),
-                ldap.SCOPE_ONELEVEL, None, ['cn'])
-            masters = set(e['cn'][0] for e in entries)
+            masters = set(get_masters(self.api.Backend.ldap2))
         except errors.NotFound:
             masters = set()
 
