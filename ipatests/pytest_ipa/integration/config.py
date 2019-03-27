@@ -78,7 +78,7 @@ class Config(pytest_multihost.config.Config):
 
     @property
     def ad_domains(self):
-        return [d for d in self.domains if d.type == 'AD']
+        return [d for d in self.domains if d.is_ad_type]
 
     def get_all_hosts(self):
         for domain in self.domains:
@@ -122,9 +122,17 @@ class Domain(pytest_multihost.config.Domain):
         self.name = str(name)
         self.hosts = []
 
-        assert domain_type in ('IPA', 'AD')
+        assert self.is_ipa_type or self.is_ad_type
         self.realm = self.name.upper()
         self.basedn = DN(*(('dc', p) for p in name.split('.')))
+
+    @property
+    def is_ipa_type(self):
+        return self.type == 'IPA'
+
+    @property
+    def is_ad_type(self):
+        return self.type == 'AD' or self.type.startswith('AD_')
 
     @property
     def static_roles(self):
@@ -133,15 +141,19 @@ class Domain(pytest_multihost.config.Domain):
             return ('master', 'replica', 'client', 'other')
         elif self.type == 'AD':
             return ('ad',)
+        elif self.type == 'AD_SUBDOMAIN':
+            return ('ad_subdomain',)
+        elif self.type == 'AD_TREEDOMAIN':
+            return ('ad_treedomain',)
         else:
             raise LookupError(self.type)
 
     def get_host_class(self, host_dict):
         from ipatests.pytest_ipa.integration.host import Host, WinHost
 
-        if self.type == 'IPA':
+        if self.is_ipa_type:
             return Host
-        elif self.type == 'AD':
+        elif self.is_ad_type:
             return WinHost
         else:
             raise LookupError(self.type)
