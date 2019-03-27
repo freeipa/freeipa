@@ -32,7 +32,8 @@ class ADTrustBase(IntegrationTest):
 
     topology = 'line'
     num_ad_domains = 1
-    optional_extra_roles = ['ad_subdomain', 'ad_treedomain']
+    num_ad_subdomains = 1
+    num_ad_treedomains = 1
 
     @classmethod
     def install(cls, mh):
@@ -40,26 +41,15 @@ class ADTrustBase(IntegrationTest):
             raise unittest.SkipTest("Package samba-client not available "
                                 "on {}".format(cls.master.hostname))
         super(ADTrustBase, cls).install(mh)
-        cls.ad = cls.ad_domains[0].ads[0]
+        cls.ad = cls.ads[0]
         cls.ad_domain = cls.ad.domain.name
         cls.install_adtrust()
         cls.check_sid_generation()
 
-        # Determine whether the subdomain AD is available
-        try:
-            cls.child_ad = cls.host_by_role(cls.optional_extra_roles[0])
-            cls.ad_subdomain = '.'.join(
-                                   cls.child_ad.hostname.split('.')[1:])
-        except LookupError:
-            cls.ad_subdomain = None
-
-        # Determine whether the tree domain AD is available
-        try:
-            cls.tree_ad = cls.host_by_role(cls.optional_extra_roles[1])
-            cls.ad_treedomain = '.'.join(
-                                    cls.tree_ad.hostname.split('.')[1:])
-        except LookupError:
-            cls.ad_treedomain = None
+        cls.child_ad = cls.ad_subdomains[0]
+        cls.ad_subdomain = cls.child_ad.domain.name
+        cls.tree_ad = cls.ad_treedomains[0]
+        cls.ad_treedomain = cls.tree_ad.domain.name
 
         cls.configure_dns_and_time()
 
@@ -99,10 +89,6 @@ class ADTrustBase(IntegrationTest):
         """
         Tests that all trustdomains can be found.
         """
-
-        if self.ad_subdomain is None:
-            raise unittest.SkipTest('AD subdomain is not available.')
-
         result = self.master.run_command(['ipa',
                                           'trustdomain-find',
                                           self.ad_domain])
@@ -123,12 +109,6 @@ class ADTrustSubdomainBase(ADTrustBase):
         tasks.configure_dns_for_trust(cls.master, cls.child_ad)
         tasks.sync_time(cls.master, cls.child_ad)
 
-    @classmethod
-    def install(cls, mh):
-        super(ADTrustSubdomainBase, cls).install(mh)
-        if not cls.ad_subdomain:
-            raise unittest.SkipTest('AD subdomain is not available.')
-
 
 class ADTrustTreedomainBase(ADTrustBase):
     """
@@ -139,12 +119,6 @@ class ADTrustTreedomainBase(ADTrustBase):
     def configure_dns_and_time(cls):
         tasks.configure_dns_for_trust(cls.master, cls.tree_ad)
         tasks.sync_time(cls.master, cls.tree_ad)
-
-    @classmethod
-    def install(cls, mh):
-        super(ADTrustTreedomainBase, cls).install(mh)
-        if not cls.ad_treedomain:
-            raise unittest.SkipTest('AD tree root domain is not available.')
 
 
 class TestBasicADTrust(ADTrustBase):
