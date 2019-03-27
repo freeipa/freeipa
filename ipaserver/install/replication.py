@@ -1199,6 +1199,46 @@ class ReplicationManager:
         if ret != 0:
             raise RuntimeError("Failed to start replication")
 
+    def unhashed_password_log(self, conn, value):
+        if not conn:
+            raise RuntimeError("unhashed_password_log no connection")
+
+        if not value:
+            return
+
+        # Check the validity of the value
+        if value.lower() not in ['off', 'on', 'nolog']:
+            return
+
+        # Change the value if needed
+        entry = conn.get_entry(DN(('cn', 'config')),
+                               ['nsslapd-unhashed-pw-switch'])
+        toggle = entry.single_value.get("nsslapd-unhashed-pw-switch")
+        if not toggle or not (toggle.lower() == value.lower()):
+            entry["nsslapd-unhashed-pw-switch"] = value.lower()
+            conn.update_entry(entry)
+
+        # if unhashed password are being logged, display a warning
+        if value.lower() == 'on':
+            try:
+                entry = conn.get_entry(
+                    DN(('cn', 'changelog5'),
+                       ('cn', 'config')),
+                    ['nsslapd-changelogdir'])
+                cldb = entry.single_value.get("nsslapd-changelogdir")
+                logger.warning("This configuration (\"--winsync\") may imply "
+                               "that the log file contains clear text "
+                               "passwords.\n"
+                               "Please ensure that these files can be accessed"
+                               " only by trusted accounts.\n"
+                               "Log files are under %s", cldb)
+            except errors.NotFound:
+                logger.warning("This configuration (\"--winsync\") may imply "
+                               "that the log file contains clear text "
+                               "passwords.\n"
+                               "Please ensure that these files can be accessed"
+                               " only by trusted accounts.")
+
     def setup_winsync_replication(self,
                                   ad_dc_name, ad_binddn, ad_pwd,
                                   passsync_pw, ad_subtree,
@@ -1259,6 +1299,11 @@ class ReplicationManager:
             self.conn.add_entry(entry)
         except Exception as e:
             logger.info("Failed to create public entry for winsync replica")
+
+        # For winsync, unhashed passwords needs to be in replication changelog
+        # Time to alarm about a security risk
+        self.unhashed_password_log(self.conn, 'on')
+
 
         #Finally start replication
         ret = self.start_replication(self.conn, ad_dc_name)
