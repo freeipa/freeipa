@@ -134,8 +134,7 @@ def set_service_entry_config(name, fqdn, config_values,
     assert isinstance(ldap_suffix, DN)
 
     entry_name = DN(
-        ('cn', name), ('cn', fqdn), ('cn', 'masters'),
-        ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
+        ('cn', name), ('cn', fqdn), api.env.container_masters, ldap_suffix)
 
     # enable disabled service
     try:
@@ -577,8 +576,8 @@ class Service(object):
     def ldap_disable(self, name, fqdn, ldap_suffix):
         assert isinstance(ldap_suffix, DN)
 
-        entry_dn = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'),
-                        ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
+        entry_dn = DN(('cn', name), ('cn', fqdn), api.env.container_masters,
+                      ldap_suffix)
         search_kw = {'ipaConfigString': ENABLED_SERVICE}
         filter = api.Backend.ldap2.make_filter(search_kw)
         try:
@@ -611,8 +610,8 @@ class Service(object):
         logger.debug("service %s startup entry disabled", name)
 
     def ldap_remove_service_container(self, name, fqdn, ldap_suffix):
-        entry_dn = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'),
-                        ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
+        entry_dn = DN(('cn', name), ('cn', fqdn),
+                      self.api.env.container_masters, ldap_suffix)
         try:
             api.Backend.ldap2.delete_entry(entry_dn)
         except errors.NotFound:

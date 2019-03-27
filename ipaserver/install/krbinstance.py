@@ -470,11 +470,7 @@ class KrbInstance(service.Service):
         unadvertise enabled PKINIT feature in master's KDC entry in LDAP
         """
         ldap = api.Backend.ldap2
-        dn = DN(('cn', 'KDC'),
-                ('cn', self.fqdn),
-                ('cn', 'masters'),
-                ('cn', 'ipa'),
-                ('cn', 'etc'),
+        dn = DN(('cn', 'KDC'), ('cn', self.fqdn), api.env.container_masters,
                 self.suffix)
 
         entry = ldap.get_entry(dn, ['ipaConfigString'])
