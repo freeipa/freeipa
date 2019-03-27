@@ -69,6 +69,7 @@ from ipapython.dn import DN
 from ipapython.ipaldap import LDAPClient
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipalib.capabilities import client_has_capability
+from ipaserver.masters import get_masters
 
 if six.PY3:
     unicode = str
@@ -1105,21 +1106,11 @@ class user_status(LDAPQuery):
         attr_list = ['krbloginfailedcount', 'krblastsuccessfulauth', 'krblastfailedauth', 'nsaccountlock']
 
         disabled = False
-        masters = []
-        # Get list of masters
-        try:
-            masters, _truncated = ldap.find_entries(
-                None, ['*'], DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn),
-                ldap.SCOPE_ONELEVEL
-            )
-        except errors.NotFound:
-            # If this happens we have some pretty serious problems
-            logger.error('No IPA masters found!')
+        masters = get_masters(ldap)
 
         entries = []
         count = 0
-        for master in masters:
-            host = master['cn'][0]
+        for host in masters:
             if host == api.env.host:
                 other_ldap = self.obj.backend
             else:
