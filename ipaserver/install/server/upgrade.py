@@ -1261,8 +1261,8 @@ def uninstall_dogtag_9(ds, http):
         logger.debug('Dogtag is version 10 or above')
         return
 
-    dn = DN(('cn', 'CA'), ('cn', api.env.host), ('cn', 'masters'),
-            ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    dn = DN(('cn', 'CA'), ('cn', api.env.host), api.env.container_masters,
+            api.env.basedn)
     try:
         api.Backend.ldap2.delete_entry(dn)
     except ipalib.errors.PublicError as e:
