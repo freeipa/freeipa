@@ -34,6 +34,7 @@ from .service import normalize_principal, validate_realm
 from ipalib import _, ngettext
 from ipapython import kerberos
 from ipapython.dn import DN
+from ipaserver.masters import is_service_enabled
 
 if api.env.in_server:
     import pki.account
@@ -1225,14 +1226,5 @@ class kra_is_enabled(Command):
     has_output = output.standard_value
 
     def execute(self, *args, **options):
-        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                     self.api.env.basedn)
-        filter = '(&(objectClass=ipaConfigObject)(cn=KRA))'
-        try:
-            self.api.Backend.ldap2.find_entries(
-                base_dn=base_dn, filter=filter, attrs_list=[])
-        except errors.NotFound:
-            result = False
-        else:
-            result = True
+        result = is_service_enabled('KRA', conn=self.api.Backend.ldap2)
         return dict(result=result, value=pkey_to_value(None, options))
