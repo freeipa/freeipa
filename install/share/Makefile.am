@@ -77,6 +77,7 @@ dist_app_DATA =				\
 	modrdn-krbprinc.ldif		\
 	entryusn.ldif			\
 	root-autobind.ldif		\
+	pw-logging-conf.ldif	\
 	sudobind.ldif			\
 	automember.ldif			\
 	replica-automember.ldif		\

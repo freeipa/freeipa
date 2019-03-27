@@ -35,3 +35,4 @@ plugin: update_passync_privilege_update
 plugin: update_dnsserver_configuration_into_ldap
 plugin: update_ldap_server_list
 plugin: update_dna_shared_config
+plugin: update_unhashed_password
