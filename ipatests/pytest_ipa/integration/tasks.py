@@ -557,6 +557,7 @@ def install_adtrust(host):
 
 
 def disable_dnssec_validation(host):
+    backup_file(host, paths.NAMED_CONF)
     named_conf = host.get_file_contents(paths.NAMED_CONF)
     named_conf = re.sub(br'dnssec-validation\s*yes;', b'dnssec-validation no;',
                         named_conf)
@@ -564,29 +565,34 @@ def disable_dnssec_validation(host):
     restart_named(host)
 
 
+def restore_dnssec_validation(host):
+    restore_files(host)
+    restart_named(host)
+
+
+def is_subdomain(subdomain, domain):
+    subdomain_unpacked = subdomain.split('.')
+    domain_unpacked = domain.split('.')
+
+    subdomain_unpacked.reverse()
+    domain_unpacked.reverse()
+
+    subdomain = False
+
+    if len(subdomain_unpacked) > len(domain_unpacked):
+        subdomain = True
+
+        for subdomain_segment, domain_segment in zip(subdomain_unpacked,
+                                                     domain_unpacked):
+            subdomain = subdomain and subdomain_segment == domain_segment
+
+    return subdomain
+
 def configure_dns_for_trust(master, ad):
     """
     This configures DNS on IPA master according to the relationship of the
     IPA's and AD's domains.
     """
-
-    def is_subdomain(subdomain, domain):
-        subdomain_unpacked = subdomain.split('.')
-        domain_unpacked = domain.split('.')
-
-        subdomain_unpacked.reverse()
-        domain_unpacked.reverse()
-
-        subdomain = False
-
-        if len(subdomain_unpacked) > len(domain_unpacked):
-            subdomain = True
-
-            for subdomain_segment, domain_segment in zip(subdomain_unpacked,
-                                                         domain_unpacked):
-                subdomain = subdomain and subdomain_segment == domain_segment
-
-        return subdomain
 
     kinit_admin(master)
 
@@ -608,6 +614,23 @@ def configure_dns_for_trust(master, ad):
                             '--forwarder', ad.ip,
                             '--forward-policy', 'only',
                             ])
+
+
+def unconfigure_dns_for_trust(master, ad):
+    """
+    This undoes changes made by configure_dns_for_trust
+    """
+    kinit_admin(master)
+    if is_subdomain(ad.domain.name, master.domain.name):
+        master.run_command(['ipa', 'dnsrecord-del', master.domain.name,
+                            '%s.%s' % (ad.shortname, ad.netbios),
+                            '--a-rec', ad.ip])
+        master.run_command(['ipa', 'dnsrecord-del', master.domain.name,
+                            ad.netbios,
+                            '--ns-rec', '%s.%s' % (ad.shortname, ad.netbios)])
+    else:
+        master.run_command(['ipa', 'dnsforwardzone-del', ad.domain.name])
+        restore_dnssec_validation(master)
 
 
 def establish_trust_with_ad(master, ad_domain, extra_args=()):
