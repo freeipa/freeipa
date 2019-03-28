@@ -837,6 +837,15 @@ class TestAutomemberFindOrphans(XMLRPC_test):
 
         hostgroup1.ensure_missing()
 
+        # Test rebuild (is failing)
+        try:
+            api.Command['automember_rebuild'](type=u'hostgroup')
+        except errors.DatabaseError:
+            pass
+        else:
+            pytest.fail("automember_rebuild was not failing with "
+                        "an orphan automember rule")
+
         # Find obsolete automember rules
         result = api.Command['automember_find_orphans'](type=u'hostgroup')
         assert result['count'] == 1
@@ -849,6 +858,12 @@ class TestAutomemberFindOrphans(XMLRPC_test):
         # Find obsolete automember rules
         result = api.Command['automember_find_orphans'](type=u'hostgroup')
         assert result['count'] == 0
+
+        # Test rebuild (may not be failing)
+        try:
+            api.Command['automember_rebuild'](type=u'hostgroup')
+        except errors.DatabaseError:
+            assert False
 
         # Final cleanup of automember rule if it still exists
         with raises_exact(errors.NotFound(
