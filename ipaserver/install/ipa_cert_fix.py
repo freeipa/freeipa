@@ -71,11 +71,11 @@ class IPACertFix(AdminTool):
     def run(self):
         if not is_ipa_configured():
             print("IPA is not configured.")
-            return 0  # not really an error
+            return 2
 
         if not cainstance.is_ca_installed_locally():
             print("CA is not installed on this server.")
-            return 0  # not really an error
+            return 1
 
         try:
             ipautil.run(['pki-server', 'cert-fix', '--help'], raiseonerr=True)
