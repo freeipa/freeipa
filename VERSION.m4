@@ -83,8 +83,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 230)
-# Last change: Added `automember-find-orphans' command
+define(IPA_API_VERSION_MINOR, 231)
+# Last change: Added admin creds to trust-fetch-domains
 
 
 ########################################################

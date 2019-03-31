@@ -418,9 +418,19 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
     return range_type, range_size, base_id
 
 
-def fetch_trusted_domains_over_dbus(myapi, forest_name):
+def fetch_trusted_domains_over_dbus(myapi, *keys, **options):
     if not _bindings_installed:
         return
+
+    forest_name = keys[0]
+    method_options = []
+    if 'realm_server' in options:
+        method_options.extend(['--server', options['realm_server']])
+    if 'realm_admin' in options:
+        method_options.extend(['--admin', options['realm_admin']])
+    if 'realm_passwd' in options:
+        method_options.extend(['--password', options['realm_passwd']])
+
     # Calling oddjobd-activated service via DBus has some quirks:
     # - Oddjobd registers multiple canonical names on the same address
     # - python-dbus only follows name owner changes when mainloop is in use
@@ -436,7 +446,8 @@ def fetch_trusted_domains_over_dbus(myapi, forest_name):
         fetch_domains_method = intf.get_dbus_method(
                 'fetch_domains',
                 dbus_interface=DBUS_IFACE_TRUST)
-        (_ret, _stdout, _stderr) = fetch_domains_method(forest_name)
+        (_ret, _stdout, _stderr) = fetch_domains_method(
+            [forest_name] + method_options)
     except dbus.DBusException as e:
         logger.error('Failed to call %s.fetch_domains helper.'
                      'DBus exception is %s.', DBUS_IFACE_TRUST, str(e))
@@ -1760,10 +1771,20 @@ class trust_fetch_domains(LDAPRetrieve):
 
     has_output = output.standard_list_of_entries
     takes_options = LDAPRetrieve.takes_options + (
+        Str('realm_admin?',
+            cli_name='admin',
+            label=_("Active Directory domain administrator"),
+            ),
+        Password('realm_passwd?',
+                 cli_name='password',
+                 label=_("Active Directory domain administrator's password"),
+                 confirm=False,
+                 ),
         Str('realm_server?',
             cli_name='server',
-            label=_('Domain controller for the Active Directory domain (optional)'),
-        ),
+            label=_('Domain controller for the Active Directory domain '
+                    '(optional)'),
+            ),
     )
 
     def execute(self, *keys, **options):
@@ -1784,7 +1805,7 @@ class trust_fetch_domains(LDAPRetrieve):
         # With privilege separation we also cannot authenticate as
         # HTTP/ principal because we have no access to its key material.
         # Thus, we'll use DBus call out to oddjobd helper in all cases
-        fetch_trusted_domains_over_dbus(self.api, keys[0])
+        fetch_trusted_domains_over_dbus(self.api, *keys, **options)
         result['summary'] = unicode(_('List of trust domains successfully '
                                       'refreshed. Use trustdomain-find '
                                       'command to list them.'))
