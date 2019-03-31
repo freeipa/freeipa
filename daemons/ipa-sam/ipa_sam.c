@@ -105,8 +105,6 @@ enum ndr_err_code ndr_pull_trustAuthInOutBlob(struct ndr_pull *ndr, int ndr_flag
 bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so */
 /* available in libpdb.so, renamed from sid_check_is_domain() in c43505b621725c9a754f0ee98318d451b093f2ed */
 bool sid_linearize(char *outbuf, size_t len, const struct dom_sid *sid); /* available in libsmbconf.so */
-char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* available in libsmbconf.so */
-char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
 bool secrets_store(const char *key, const void *data, size_t size); /* available in libpdb.so */
 void idmap_cache_set_sid2unixid(const struct dom_sid *sid, struct unixid *unix_id); /* available in libsmbconf.so */
@@ -260,6 +258,18 @@ static bool sid_compose(struct dom_sid *dst, const struct dom_sid *dom_sid,
 	dst->sub_auths[dst->num_auths++] = rid;
 
 	return true;
+}
+
+static char *sid_talloc_string(struct sss_idmap_ctx *ctx, void *final_ctx, const struct dom_sid *dom_sid)
+{
+	enum idmap_error_code ret;
+	char *result = NULL;
+	ret = sss_idmap_smb_sid_to_sid(ctx, discard_const(dom_sid), &result);
+	if (ret != IDMAP_SUCCESS) {
+		return NULL;
+	}
+
+	return talloc_move(final_ctx, &result);
 }
 
 static bool is_null_sid(const struct dom_sid *sid)
@@ -520,8 +530,18 @@ static bool ldapsam_extract_rid_from_entry(LDAP *ldap_struct,
 	}
 
 	if (dom_sid_compare_domain(sid, domain_sid) != 0) {
-		DEBUG(10, ("SID %s is not in expected domain %s\n",
-			   str, sid_string_dbg(domain_sid)));
+		char *debug_domain_sid = NULL;
+		err = sss_idmap_smb_sid_to_sid(idmap_ctx,
+					       discard_const(domain_sid),
+					       &debug_domain_sid);
+		if (err != IDMAP_SUCCESS) {
+			DEBUG(10, ("SID %s is not in expected domain.\n",
+				   str));
+		} else {
+			DEBUG(10, ("SID %s is not in expected domain %s\n",
+				   str, debug_domain_sid));
+			talloc_free(debug_domain_sid);
+		}
 		res = false;
 		goto done;
 	}
@@ -590,7 +610,7 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 		allsids = talloc_asprintf_append_buffer(
 			allsids, "(%s=%s)",
 			LDAP_ATTRIBUTE_SID,
-			sid_string_talloc(mem_ctx, &sid));
+			sid_talloc_string(ipasam_state->idmap_ctx, mem_ctx, &sid));
 		if (allsids == NULL) {
 			goto done;
 		}
@@ -791,7 +811,8 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 	filter = talloc_asprintf(mem_ctx,
 				 "(&(%s=%s)"
 				 "(|(objectClass=%s)(objectClass=%s)))",
-				 LDAP_ATTRIBUTE_SID, sid_string_talloc(mem_ctx, sid),
+				 LDAP_ATTRIBUTE_SID,
+				 sid_talloc_string(priv->idmap_ctx, mem_ctx, sid),
 				 LDAP_OBJ_GROUPMAP, LDAP_OBJ_SAMBASAMACCOUNT);
 	if (filter == NULL) {
 		DEBUG(5, ("talloc_asprintf failed\n"));
@@ -933,7 +954,7 @@ static bool ipasam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
 	err = sss_idmap_sid_to_smb_sid(priv->idmap_ctx,
 				       user_sid_string, &user_sid);
 	if (err != IDMAP_SUCCESS) {
-		DEBUG(3, ("Error calling sid_string_talloc for sid '%s'\n",
+		DEBUG(3, ("Error creating sid structure for sid '%s'\n",
 			  user_sid_string));
 		goto done;
 	}
@@ -1045,7 +1066,7 @@ found:
 	err = sss_idmap_sid_to_smb_sid(priv->idmap_ctx,
 				       group_sid_string, &group_sid);
 	if (err != IDMAP_SUCCESS) {
-		DEBUG(3, ("Error calling sid_string_talloc for sid '%s'\n",
+		DEBUG(3, ("Error creating sid structure for sid '%s'\n",
 			  group_sid_string));
 		goto done;
 	}
@@ -1588,11 +1609,11 @@ static bool ipasam_search_grouptype(struct pdb_methods *methods,
 	state->base = talloc_strdup(search, ipasam_state->base_dn);
 	state->connection = ipasam_state->ldap_state;
 	state->scope = LDAP_SCOPE_SUBTREE;
-	state->filter =	talloc_asprintf(search, "(&(objectclass=%s)"
-					"(%s=%s*))",
-					 LDAP_OBJ_GROUPMAP,
-					 LDAP_ATTRIBUTE_SID,
-					 sid_string_talloc(search, sid));
+	state->filter =	talloc_asprintf(search, "(&(objectclass=%s)(%s=%s*))",
+					LDAP_OBJ_GROUPMAP, LDAP_ATTRIBUTE_SID,
+					sid_talloc_string(
+						ipasam_state->idmap_ctx,
+						search, sid));
 	state->attrs = talloc_attrs(search, "cn", LDAP_ATTRIBUTE_SID,
 				    "displayName", "description",
 				     NULL);
@@ -2403,7 +2424,7 @@ static NTSTATUS ipasam_get_trusted_domain_by_sid(struct pdb_methods *methods,
 	char *sid_str;
 	bool ok;
 
-	sid_str = sid_string_talloc(mem_ctx, sid);
+	sid_str = sid_talloc_string(ipasam_state->idmap_ctx, mem_ctx, sid);
 	if (sid_str == NULL) {
 		return NT_STATUS_NO_MEMORY;
 	}
@@ -2584,7 +2605,8 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	if (!is_null_sid(&td->security_identifier)) {
 		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 				 LDAP_ATTRIBUTE_TRUST_SID,
-				 sid_string_talloc(tmp_ctx, &td->security_identifier));
+				 sid_talloc_string(ipasam_state->idmap_ctx,
+						   tmp_ctx, &td->security_identifier));
 	}
 
 	if (td->trust_type != 0) {
