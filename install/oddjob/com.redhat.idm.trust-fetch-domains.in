@@ -14,10 +14,30 @@ import pwd
 import six
 import gssapi
 
-from ipalib.install.kinit import kinit_keytab
+from ipalib.install.kinit import kinit_keytab, kinit_password
 
 if six.PY3:
     unicode = str
+
+
+def parse_options():
+    usage = "%prog <trusted domain name>\n"
+    parser = config.IPAOptionParser(usage=usage,
+                                    formatter=config.IPAFormatter())
+
+    parser.add_option("-d", "--debug", action="store_true", dest="debug",
+                      help="Display debugging information")
+    parser.add_option("-s", "--server", action="store", dest="server",
+                      help="Domain controller for the Active Directory domain (optional)")
+    parser.add_option("-a", "--admin", action="store", dest="admin",
+                      help="Active Directory administrator (optional)")
+    parser.add_option("-p", "--password", action="store", dest="password",
+                      help="Display debugging information")
+
+    options, args = parser.parse_args()
+    safe_options = parser.get_safe_opts(options)
+
+    return safe_options, options, args
 
 def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
     getkeytab_args = ["/usr/sbin/ipa-getkeytab",
@@ -40,7 +60,7 @@ def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
         pass
 
 
-def get_forest_root_domain(api_instance, trusted_domain):
+def get_forest_root_domain(api_instance, trusted_domain, server=None):
     """
     retrieve trusted forest root domain for given domain name
 
@@ -53,24 +73,10 @@ def get_forest_root_domain(api_instance, trusted_domain):
     flatname = trustconfig_show()['result']['ipantflatname'][0]
 
     remote_domain = dcerpc.retrieve_remote_domain(
-        api_instance.env.host, flatname, trusted_domain)
+        api_instance.env.host, flatname, trusted_domain,
+        realm_server=server)
 
     return remote_domain.info['dns_forest']
-
-
-def parse_options():
-    usage = "%prog <trusted domain name>\n"
-    parser = config.IPAOptionParser(usage=usage,
-                                    formatter=config.IPAFormatter())
-
-    parser.add_option("-d", "--debug", action="store_true", dest="debug",
-                      help="Display debugging information")
-
-    options, args = parser.parse_args()
-    safe_options = parser.get_safe_opts(options)
-
-    return safe_options, options, args
-
 
 if not is_ipa_configured():
     # LSB status code 6: program is not configured
@@ -153,32 +159,37 @@ trusted_domain = trusted_domain_entry.single_value.get('cn').lower()
 # At this point if we didn't find trusted forest name, an exception will be raised
 # and script will quit. This is actually intended.
 
-oneway_keytab_name = '/var/lib/sss/keytabs/' + trusted_domain + '.keytab'
-oneway_principal = str('%s$@%s' % (own_trust_flatname, trusted_domain.upper()))
+if not (options.admin and options.password):
+    oneway_keytab_name = '/var/lib/sss/keytabs/' + trusted_domain + '.keytab'
+    oneway_principal = str('%s$@%s' % (own_trust_flatname, trusted_domain.upper()))
 
-# If keytab does not exist, retrieve it
-if not os.path.isfile(oneway_keytab_name):
-    retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
+    # If keytab does not exist, retrieve it
+    if not os.path.isfile(oneway_keytab_name):
+        retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
 
-try:
-    have_ccache = False
     try:
-        # The keytab may have stale key material (from older trust-add run)
-        cred = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
-        if cred.lifetime > 0:
-            have_ccache = True
-    except gssapi.exceptions.ExpiredCredentialsError:
-        pass
-    if not have_ccache:
+        have_ccache = False
+        try:
+            # The keytab may have stale key material (from older trust-add run)
+            cred = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+            if cred.lifetime > 0:
+                have_ccache = True
+        except gssapi.exceptions.ExpiredCredentialsError:
+            pass
+        if not have_ccache:
+            if os.path.exists(oneway_ccache_name):
+                os.unlink(oneway_ccache_name)
+            kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+    except gssapi.exceptions.GSSError:
+        # If there was failure on using keytab, assume it is stale and retrieve again
+        retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
         if os.path.exists(oneway_ccache_name):
             os.unlink(oneway_ccache_name)
         kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
-except gssapi.exceptions.GSSError:
-    # If there was failure on using keytab, assume it is stale and retrieve again
-    retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
-    if os.path.exists(oneway_ccache_name):
-        os.unlink(oneway_ccache_name)
-    kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+else:
+    cred = kinit_password(options.admin, options.password,
+                          oneway_ccache_name,
+                          canonicalize=True, enterprise=True)
 
 # We are done: we have ccache with TDO credentials and can fetch domains
 ipa_domain = api.env.domain
@@ -186,9 +197,9 @@ os.environ['KRB5CCNAME'] = oneway_ccache_name
 
 # retrieve the forest root domain name and contact it to retrieve trust
 # topology info
-forest_root = get_forest_root_domain(api, trusted_domain)
+forest_root = get_forest_root_domain(api, trusted_domain, server=options.server)
 
-domains = dcerpc.fetch_domains(api, ipa_domain, forest_root, creds=True)
+domains = dcerpc.fetch_domains(api, ipa_domain, forest_root, creds=True, server=options.server)
 trust_domain_object = api.Command.trust_show(trusted_domain, raw=True)['result']
 trust.add_new_domains_from_trust(api, None, trust_domain_object, domains)
 
