@@ -5765,10 +5765,12 @@ output: Output('result', type=[<type 'dict'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: trust_fetch_domains/1
-args: 1,5,4
+args: 1,7,4
 arg: Str('cn', cli_name='realm')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('realm_admin?', cli_name='admin')
+option: Password('realm_passwd?', cli_name='password', confirm=False)
 option: Str('realm_server?', cli_name='server')
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
