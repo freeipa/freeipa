@@ -925,4 +925,3 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         # FIXME: restore turns hidden replica into enabled replica
         self._check_config([self.master, self.replicas[0]])
         self._check_server_role(self.replicas[0], 'enabled')
-        self._check_dnsrecords([self.master, self.replicas[0]])
