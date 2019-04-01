@@ -213,7 +213,7 @@ def sync_services_state(fqdn):
     """
     result = api.Command.server_role_find(
         server_server=fqdn,
-        role_servrole='IPA master',
+        role_servrole=u'IPA master',
         status=HIDDEN
     )
     if result['count']:
