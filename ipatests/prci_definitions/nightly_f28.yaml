@@ -833,6 +833,18 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
+  fedora-28/test_pki_config_override:
+    requires: [fedora-28/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-28/build_url}'
+        test_suite: test_integration/test_pki_config_override.py
+        template: *ci-master-f28
+        timeout: 3600
+        topology: *master_1repl
+
   fedora-28/mask:
     requires: [fedora-28/build]
     priority: 50
