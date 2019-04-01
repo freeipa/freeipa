@@ -1,0 +1,1024 @@
+topologies:
+  build: &build
+    name: build
+    cpu: 2
+    memory: 3800
+  master_1repl: &master_1repl
+    name: master_1repl
+    cpu: 4
+    memory: 6450
+  master_1repl_1client: &master_1repl_1client
+    name: master_1repl_1client
+    cpu: 4
+    memory: 7400
+  ipaserver: &ipaserver
+    name: ipaserver
+    cpu: 2
+    memory: 2400
+  master_2repl_1client: &master_2repl_1client
+    name: master_2repl_1client
+    cpu: 5
+    memory: 10150
+  master_3repl_1client: &master_3repl_1client
+    name: master_3repl_1client
+    cpu: 6
+    memory: 12900
+
+jobs:
+  fedora-27/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &ci-master-f27
+          name: freeipa/ci-ipa-4-6-f27
+          version: 1.0.1
+        timeout: 1800
+        topology: *build
+
+  fedora-27/simple_replication:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_simple_replication.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/external_ca_1:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_external_ca.py::TestExternalCA
+        template: *ci-master-f27
+        timeout: 4800
+        topology: *master_1repl_1client
+
+  fedora-27/external_ca_2:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/test_topologies:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_topologies.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/test_sudo:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_sudo.py
+        template: *ci-master-f27
+        timeout: 4800
+        topology: *master_1repl_1client
+
+  fedora-27/test_commands:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_commands.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/test_kerberos_flags:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_kerberos_flags.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl_1client
+
+  fedora-27/test_http_kdc_proxy:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_http_kdc_proxy.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl_1client
+
+  fedora-27/test_forced_client_enrolment:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_forced_client_reenrollment.py
+        template: *ci-master-f27
+        timeout: 4800
+        topology: *master_1repl_1client
+
+  fedora-27/test_advise:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_advise.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl_1client
+
+  fedora-27/test_testconfig:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_testconfig.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/test_service_permissions:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_service_permissions.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/test_netgroup:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_netgroup.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/test_vault:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_vault.py
+        template: *ci-master-f27
+        timeout: 6300
+        topology: *master_1repl
+
+  fedora-27/test_installation_TestInstallWithCA1:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA1
+        template: *ci-master-f27
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-27/test_installation_TestInstallWithCA2:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA2
+        template: *ci-master-f27
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-27/test_installation_TestInstallWithCA_DNS1:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS1
+        template: *ci-master-f27
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-27/test_installation_TestInstallWithCA_DNS2:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS2
+        template: *ci-master-f27
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-27/test_installation_TestInstallWithCA_DNS3:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS3
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/test_installation_TestInstallWithCA_DNS4:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS4
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/test_installation_TestInstallMaster:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMaster
+        template: *ci-master-f27
+        timeout: 10800
+        topology: *master_1repl
+
+  fedora-27/test_installation_TestInstallMasterKRA:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMasterKRA
+        template: *ci-master-f27
+        timeout: 10800
+        topology: *master_1repl
+
+  fedora-27/test_installation_TestInstallMasterDNS:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMasterDNS
+        template: *ci-master-f27
+        timeout: 10800
+        topology: *master_1repl
+
+  fedora-27/test_installation_TestInstallMasterReservedIPasForwarder:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMasterReservedIPasForwarder
+        template: *ci-master-f27
+        timeout: 10800
+        topology: *master_1repl
+
+  fedora-27/test_idviews:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_idviews.py::TestIDViews
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl_1client
+
+  fedora-27/test_caless_TestServerInstall:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_caless.py::TestServerInstall
+        template: *ci-master-f27
+        timeout: 12000
+        topology: *master_1repl
+
+  fedora-27/test_caless_TestReplicaInstall:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_caless.py::TestReplicaInstall
+        template: *ci-master-f27
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-27/test_caless_TestClientInstall:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_caless.py::TestClientInstall
+        template: *ci-master-f27
+        timeout: 5400
+        # actually master_1client
+        topology: *master_1repl_1client
+
+  fedora-27/test_caless_TestIPACommands:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_caless.py::TestIPACommands
+        template: *ci-master-f27
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-27/test_caless_TestCertInstall:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_caless.py::TestCertInstall
+        template: *ci-master-f27
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-27/test_caless_TestPKINIT:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_caless.py::TestPKINIT
+        template: *ci-master-f27
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-27/test_caless_TestServerReplicaCALessToCAFull:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
+        template: *ci-master-f27
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-27/test_caless_TestReplicaCALessToCAFull:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_caless.py::TestReplicaCALessToCAFull
+        template: *ci-master-f27
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-27/test_caless_TestServerCALessToExternalCA:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_caless.py::TestServerCALessToExternalCA
+        template: *ci-master-f27
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-27/test_backup_and_restore_TestUserRootFilesOwnershipPermission:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestUserRootFilesOwnershipPermission
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_backup_and_restore_TestBackupAndRestore:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestore
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_backup_and_restore_TestBackupAndRestoreWithDNSSEC:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNSSEC
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_backup_and_restore_TestBackupReinstallRestoreWithDNSSEC:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNSSEC
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_backup_and_restore_TestBackupAndRestoreWithDNS:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNS
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_backup_and_restore_TestBackupReinstallRestoreWithDNS:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNS
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_backup_and_restore_TestBackupAndRestoreWithKRA:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithKRA
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_backup_and_restore_TestBackupReinstallRestoreWithKRA:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithKRA
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_backup_and_restore_TestBackupAndRestoreWithReplica:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_2repl_1client
+
+  fedora-27/test_backup_and_restore_TestBackupAndRestoreDMPassword:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreDMPassword
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_backup_and_restore_TestReplicaInstallAfterRestore:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestReplicaInstallAfterRestore
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_2repl_1client
+
+  fedora-27/test_dnssec:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_dnssec.py
+        template: *ci-master-f27
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-27/test_replica_promotion_TestReplicaPromotionLevel1:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_replica_promotion_TestUnprivilegedUserPermissions:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestUnprivilegedUserPermissions
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_replica_promotion_TestProhibitReplicaUninstallation:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestProhibitReplicaUninstallation
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_2repl_1client
+
+  fedora-27/test_replica_promotion_TestWrongClientDomain:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestWrongClientDomain
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_replica_promotion_TestRenewalMaster:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestRenewalMaster
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_replica_promotion_TestReplicaInstallWithExistingEntry:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallWithExistingEntry
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_replica_promotion_TestSubCAkeyReplication:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_replica_promotion_TestReplicaInstallCustodia:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallCustodia
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_2repl_1client
+
+  fedora-27/test_replica_promotion_TestReplicaInForwardZone:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaInForwardZone
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_replica_promotion_TestHiddenReplicaPromotion:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestHiddenReplicaPromotion
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_2repl_1client
+
+  fedora-27/test_upgrade:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_upgrade.py
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-27/test_topology_TestCASpecificRUVs:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_topology.py::TestCASpecificRUVs
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-27/test_topology_TestTopologyOptions:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_topology.py::TestTopologyOptions
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-27/test_replication_layouts_TestLineTopologyWithoutCA:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-27/test_replication_layouts.py_TestStarTopologyWithoutCA:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithoutCA
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-27/test_replication_layouts_TestCompleteTopologyWithoutCA:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithoutCA
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-27/test_client_uninstallation:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_uninstallation.py
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl_1client
+
+  fedora-27/test_user_permissions:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_user_permissions.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl_1client
+
+  fedora-27/test_webui_cert:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_webui/test_cert.py
+        template: *ci-master-f27
+        timeout: 2400
+        topology: *ipaserver
+
+  fedora-27/test_webui_general:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: >-
+          test_webui/test_misc_cases.py
+          test_webui/test_navigation.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-27/test_webui_host:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_webui/test_host.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-27/test_webui_host_net_groups:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: >-
+          test_webui/test_hostgroup.py
+          test_webui/test_netgroup.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-27/test_webui_identity:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: >-
+          test_webui/test_automember.py
+          test_webui/test_idviews.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-27/test_webui_network:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: >-
+          test_webui/test_automount.py
+          test_webui/test_dns.py
+          test_webui/test_vault.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-27/test_webui_policy:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: >-
+          test_webui/test_hbac.py
+          test_webui/test_krbtpolicy.py
+          test_webui/test_pwpolicy.py
+          test_webui/test_selinuxusermap.py
+          test_webui/test_sudo.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-27/test_webui_rbac:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: >-
+          test_webui/test_delegation.py
+          test_webui/test_rbac.py
+          test_webui/test_selfservice.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-27/test_webui_server:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: >-
+          test_webui/test_config.py
+          test_webui/test_range.py
+          test_webui/test_realmdomains.py
+          test_webui/test_trust.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *ipaserver
+
+  fedora-27/test_webui_service:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_webui/test_service.py
+        template: *ci-master-f27
+        timeout: 2400
+        topology: *ipaserver
+
+  fedora-27/test_webui_users:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: >-
+          test_webui/test_group.py
+          test_webui/test_user.py
+        template: *ci-master-f27
+        timeout: 4800
+        topology: *ipaserver
+
+  fedora-27/customized_ds_config_install:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_customized_ds_config_install.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/dns_locations:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_dns_locations.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_2repl_1client
+
+  fedora-27/external_ca_TestExternalCAdirsrvStop:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_external_ca.py::TestExternalCAdirsrvStop
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/test_pkinit_manage:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_pkinit_manage.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-27/mask:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_installation.py::TestMaskInstall
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *ipaserver
