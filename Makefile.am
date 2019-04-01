@@ -11,7 +11,7 @@ if WITH_IPATESTS
     IPATESTS_SUBDIRS = ipatests
 endif
 
-IPACLIENT_SUBDIRS = ipaclient ipalib ipaplatform ipapython
+IPACLIENT_SUBDIRS = ipaapi ipaclient ipalib ipaplatform ipapython
 PYTHON_SUBDIRS = $(IPACLIENT_SUBDIRS) $(IPATESTS_SUBDIRS) $(IPASERVER_SUBDIRS)
 PYTHON_SCRIPT_SUBDIRS = \
         $(top_builddir) \

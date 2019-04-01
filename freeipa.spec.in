@@ -1344,6 +1344,13 @@ fi
 %files -n python3-ipaclient
 %doc README.md Contributors.txt
 %license COPYING
+%dir %{python3_sitelib}/ipaapi
+%{python3_sitelib}/ipaapi/*.py
+%{python3_sitelib}/ipaapi/__pycache__/*.py*
+%dir %{python3_sitelib}/ipaapi/_internal
+%{python3_sitelib}/ipaapi/_internal/*.py
+%{python3_sitelib}/ipaapi/_internal/__pycache__/*.py*
+%{python3_sitelib}/ipaapi-*.egg-info
 %dir %{python3_sitelib}/ipaclient
 %{python3_sitelib}/ipaclient/*.py
 %{python3_sitelib}/ipaclient/__pycache__/*.py*

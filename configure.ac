@@ -594,6 +594,7 @@ AC_CONFIG_FILES([
     install/restart_scripts/Makefile
     install/wsgi/Makefile
     install/oddjob/Makefile
+    ipaapi/Makefile
     ipaclient/Makefile
     ipalib/Makefile
     ipaplatform/Makefile
