@@ -1737,12 +1737,12 @@ def migrate_to_authselect():
 
 def add_systemd_user_hbac():
     logger.info('[Create systemd-user hbac service and rule]')
-    rule = 'allow_systemd-user'
-    service = 'systemd-user'
+    rule = u'allow_systemd-user'
+    service = u'systemd-user'
     try:
         api.Command.hbacsvc_add(
             service,
-            description='pam_systemd and systemd user@.service'
+            description=u'pam_systemd and systemd user@.service'
         )
     except ipalib.errors.DuplicateEntry:
         logger.info('hbac service %s already exists', service)
@@ -1755,10 +1755,10 @@ def add_systemd_user_hbac():
     try:
         api.Command.hbacrule_add(
             rule,
-            description=('Allow pam_systemd to run user@.service to create '
+            description=(u'Allow pam_systemd to run user@.service to create '
                          'a system user session'),
-            usercategory='all',
-            hostcategory='all',
+            usercategory=u'all',
+            hostcategory=u'all',
         )
     except ipalib.errors.DuplicateEntry:
         logger.info('hbac rule %s already exists', rule)
