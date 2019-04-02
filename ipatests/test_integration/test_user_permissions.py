@@ -190,7 +190,7 @@ class TestInstallClientNoAdmin(IntegrationTest):
             extra_args=['--request-cert'],
             user=username, password=password
         )
-        msg = "args=['/usr/bin/getent', 'passwd', '%s@%s']" % \
+        msg = "args=/usr/bin/getent passwd %s@%s" % \
               (username, client.domain.name)
         install_log = client.get_file_contents(paths.IPACLIENT_INSTALL_LOG,
                                                encoding='utf-8')
