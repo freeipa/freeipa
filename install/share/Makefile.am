@@ -39,6 +39,7 @@ dist_app_DATA =				\
 	replica-acis.ldif		\
 	replica-prevent-time-skew.ldif  \
 	ds-nfiles.ldif			\
+	ds-ipa-env.conf.template	\
 	dns.ldif			\
 	dnssec.ldif			\
 	domainlevel.ldif			\

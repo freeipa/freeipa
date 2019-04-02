@@ -375,6 +375,7 @@ class Backup(admintool.AdminTool):
         for file in (
             paths.SYSCONFIG_DIRSRV_INSTANCE % serverid,
             paths.ETC_TMPFILESD_DIRSRV % serverid,
+            paths.SLAPD_INSTANCE_SYSTEMD_IPA_ENV_TEMPLATE % serverid,
         ):
             if os.path.exists(file):
                 self.files.append(file)
