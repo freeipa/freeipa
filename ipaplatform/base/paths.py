@@ -384,6 +384,8 @@ class BasePathNamespace(object):
     AUTHCONFIG = None
     AUTHSELECT = None
     SYSCONF_NETWORK = None
+    SLAPD_INSTANCE_SYSTEMD_IPA_ENV_TEMPLATE = \
+        "/etc/systemd/system/dirsrv@%s.service.d/ipa-env.conf"
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
     KEYCTL = '/usr/bin/keyctl'
     GETENT = '/usr/bin/getent'
