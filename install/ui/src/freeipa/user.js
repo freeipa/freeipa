@@ -361,6 +361,42 @@ return {
                     fields: [
                         { $type: 'multivalued', name: 'carlicense' }
                     ]
+                },
+                {
+                    name: 'smb_attributes',
+                    label: '@i18n:objects.smb_attributes.title',
+                    show_cond: ['oc_ipantuserattrs'],
+                    fields: [{
+                            name: 'ipantlogonscript',
+                            tooltip: {
+                                title: '@i18n:objects.smb_attributes.ipantlogonscript_tooltip'
+                            }
+                        },
+                        {
+                            name: 'ipantprofilepath',
+                            tooltip: {
+                                title: '@i18n:objects.smb_attributes.ipantprofilepath_tooltip'
+                            }
+                        },
+                        {
+                            name: 'ipanthomedirectory',
+                            tooltip: {
+                                title: '@i18n:objects.smb_attributes.ipanthomedirectory_tooltip'
+                            }
+                        },
+                        {
+                            name: 'ipanthomedirectorydrive',
+                            $type: 'select',
+                            options: IPA.create_options([
+                                'A:', 'B:', 'C:', 'D:', 'E:', 'F:', 'G:', 'H:', 'I:',
+                                'J:', 'K:', 'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:',
+                                'S:', 'T:', 'U:', 'V:', 'W:', 'X:', 'Y:', 'Z:'
+                            ]),
+                            tooltip: {
+                                title: '@i18n:objects.smb_attributes.ipanthomedirectorydrive_tooltip'
+                            }
+                        }
+                    ]
                 }
             ],
             actions: [
@@ -444,6 +480,7 @@ return {
                     IPA.user.self_service_other_user_evaluator,
                     IPA.user.preserved_user_evaluator,
                     IPA.user.no_password_evaluator,
+                    IPA.object_class_evaluator,
                     IPA.cert.certificate_evaluator
                 ],
                 summary_conditions: [
@@ -576,6 +613,7 @@ IPA.user.details_facet = function(spec, no_init) {
         });
 
         var user_command = that.details_facet_create_refresh_command();
+
         batch.add_command(user_command);
 
         var pwpolicy_command = rpc.command({
