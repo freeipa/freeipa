@@ -28,6 +28,7 @@ import pwd
 import socket
 import sys
 import tempfile
+import textwrap
 
 import pytest
 import six
@@ -577,3 +578,32 @@ def test_check_port_bindable_udp(udp_listen):
     assert not ipautil.check_port_bindable(port, socket.SOCK_DGRAM)
     sock.close()
     assert ipautil.check_port_bindable(port, socket.SOCK_DGRAM)
+
+
+def test_config_replace_variables(tempdir):
+    conffile = os.path.join(tempdir, 'test.conf')
+
+    conf = textwrap.dedent("""
+    replaced=foo
+    removed=gone
+    """)
+    expected = textwrap.dedent("""
+    replaced=bar
+    addreplaced=baz
+    """)
+
+    with open(conffile, 'w') as f:
+        f.write(conf)
+
+    result = ipautil.config_replace_variables(
+        conffile,
+        replacevars=dict(replaced="bar", addreplaced="baz"),
+        removevars={'removed'}
+    )
+    assert result == {
+        'removed': 'gone', 'replaced': 'foo'
+    }
+
+    with open(conffile, 'r') as f:
+        newconf = f.read()
+    assert newconf == expected

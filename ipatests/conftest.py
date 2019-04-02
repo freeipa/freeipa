@@ -5,7 +5,9 @@ from __future__ import print_function
 
 import os
 import pprint
+import shutil
 import sys
+import tempfile
 
 import pytest
 
@@ -145,3 +147,14 @@ def pytest_runtest_setup(item):
             # pylint: disable=no-member
             if pytest.config.option.skip_ipaapi:
                 pytest.skip("Skip tests that needs an IPA API")
+
+
+@pytest.fixture
+def tempdir(request):
+    tempdir = tempfile.mkdtemp()
+
+    def fin():
+        shutil.rmtree(tempdir)
+
+    request.addfinalizer(fin)
+    return tempdir
