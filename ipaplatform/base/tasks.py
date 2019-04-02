@@ -251,5 +251,9 @@ class BaseTaskNamespace(object):
     def setup_httpd_logging(self):
         raise NotImplementedError()
 
+    def systemd_daemon_reload(self):
+        """Tell systemd to reload config files"""
+        raise NotImplementedError
+
 
 tasks = BaseTaskNamespace()
