@@ -1,0 +1,5 @@
+# Add an explicit self-service ACI to allow writing to manage trust attributes
+# for the owner of the object
+dn: cn=users,cn=accounts,$SUFFIX
+add:aci:(targetattr = "ipantlogonscript || ipantprofilepath || ipanthomedirectory || ipanthomedirectorydrive")(version 3.0;acl "system:Allow trust agents to read user SMB attributes";allow (read) groupdn = "ldap:///cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX";)
+add:aci:(targetattr = "ipantlogonscript || ipantprofilepath || ipanthomedirectory || ipanthomedirectorydrive")(version 3.0;acl "selfservice:Users can manage their SMB attributes";allow (write) userdn = "ldap:///self";)

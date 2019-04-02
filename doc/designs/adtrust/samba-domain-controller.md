@@ -129,7 +129,85 @@ The SMB service object needs to have:
  - NT attributes, including `ipaNTSecurityIdentifier`
 
 `ipaNTSecurityIdentifier` is filled in by the SID generation plugin at the
-object creation time.
+object creation time for SMB service.
+
+`ipaNTSecurityIdentifier` attribute is a part of `ipaNTUserAttrs` object class
+for users and SMB services. IPA groups also can contain the attribute via
+`ipaNTGroupAttrs` object class.
+
+With the help of the `sidgen` plugin, ipaNTSecurityIdentifier attribute is only
+added when:
+ - the object has POSIX attributes `uidNumber` and `gidNumber`
+ - the values of those attributes are within 32-bit unsigned integer
+ - the object has any of the following object classes: `ipaIDObject`,
+   `posixAccount`, or `posixGroup`
+ - the object has no `ipaNTSecurityIdentifier` attribute already.
+
+`sidgen` plugin will add `ipaNTUserAttrs` object class for non-group objects and
+`ipaNTGroupAttr` for the group object type. A plugin is triggered at an object
+creation or via an LDAP task. One can trigger task run by running
+`ipa-adtrust-install --add-sids` on the trust controller.
+
+LDAP object class `ipaNTUserAttrs` defines few other attributes. These
+attributes, called below 'SMB attributes', are required by the domain controller
+to define content of an NT token for an authenticated identity (user or a
+machine account).
+
+SMB attributes are:
+ - `ipaNTLogonScript`
+   : Path to a script executed on a Windows system at logon
+ - `ipaNTProfilePath`
+   : Path to a user profile, in UNC format `\\server\share\`
+ - `ipaNTHomeDirectory`
+   : Path to a user's home directory, in UNC format `\\server\share`
+ - `ipaNTHomeDirectoryDrive`
+   : a letter `[A-Z]` for the drive to mount the home directory to on a Windows system
+
+All SMB attributes require the presence of `ipaNTUserAttrs` object class in the
+user object LDAP entry. This object class cannot be added without
+`ipaNTSecurityIdentifier`. Adding SID requires to consume IDs from a range
+suitable for SIDs and this logic is recorded in the `sidgen` plugin. Thus, until
+SID is generated, no attributes can be set on the user entry.
+
+As result of it, SMB attributes are not available at `ipa user-add` or
+`ipa stageuser-add` level. Instead, it is possible to modify a user object with
+`ipa user-mod` or `ipa stageuser-mod` commands:
+
+```
+$ ipa user-mod --help
+Usage: ipa [global-options] user-mod LOGIN [options]
+
+Modify a user.
+Options:
+...
+  --smb-logon-script=STR    SMB logon script path
+  --smb-profile-path=STR    SMB profile path
+  --smb-home-dir=STR        SMB Home Directory
+  --smb-home-drive=['A:', 'B:', 'C:', 'D:', 'E:', 'F:', 'G:', 'H:', 'I:', 'J:', 'K:',
+                    'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:', 'S:', 'T:', 'U:', 'V:',
+                    'W:', 'X:', 'Y:', 'Z:']
+                   SMB Home Directory Drive
+...
+
+$ ipa stageuser-mod --help
+Usage: ipa [global-options] stageuser-mod LOGIN [options]
+
+Modify a stage user.
+Options:
+...
+  --smb-logon-script=STR    SMB logon script path
+  --smb-profile-path=STR    SMB profile path
+  --smb-home-dir=STR        SMB Home Directory
+  --smb-home-drive=['A:', 'B:', 'C:', 'D:', 'E:', 'F:', 'G:', 'H:', 'I:', 'J:', 'K:',
+                    'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:', 'S:', 'T:', 'U:', 'V:',
+                    'W:', 'X:', 'Y:', 'Z:']
+                   SMB Home Directory Drive
+...
+```
+
+Due to limitations on how SMB attributes can be added, Web UI shows the section
+"User attributes for SMB services" without any values for those users who have
+no SID assigned.
 
 ### Changes to LDAP storage
 
@@ -139,7 +217,7 @@ Since SMB service belongs to `cn=services,cn=accounts,$basedn` subtree, new ACI
 has to be added.
 
 ```
-'System: Read POSIX details of the services': {
+'System: Read POSIX details of the SMB services': {
     'replaces_global_anonymous_aci': True,
     'ipapermbindruletype': 'all',
     'ipapermright': {'read', 'search', 'compare'},
@@ -150,6 +228,11 @@ has to be added.
     },
 }
 ```
+
+SMB attributes for users are now accessible for self-modification and also
+readable by the members of `cn=adtrust agents,cn=sysaccounts,cn=etc,$basedn`
+group which contains, among others, service principals of the domain
+controllers.
 
 ### Changes to LDAP plugins
 
