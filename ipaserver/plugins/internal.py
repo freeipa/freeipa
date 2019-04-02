@@ -1483,6 +1483,23 @@ class i18n_messages(Command):
                 "trusttype": _("Trust type"),
                 "ipantadditionalsuffixes": _("Alternative UPN suffixes"),
             },
+            'smb_attributes': {
+                "title": _(
+                    "User attributes for SMB services"
+                ),
+                "ipantlogonscript_tooltip": _(
+                    "Path to a script executed on a Windows system at logon"
+                ),
+                "ipantprofilepath_tooltip": _(
+                    "Path to a user profile, in UNC format \\\\server\\share\\"
+                ),
+                "ipanthomedirectory_tooltip": _(
+                    "Path to a user home directory, in UNC format"
+                ),
+                "ipanthomedirectorydrive_tooltip": _(
+                    "Drive to mount a home directory"
+                ),
+            },
             "trustconfig": {
                 "options": _("Options"),
             },
