@@ -35,6 +35,7 @@ import six
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 
 # pylint: disable=no-name-in-module, import-error
 if six.PY3:
@@ -452,7 +453,7 @@ class SystemdService(PlatformService):
                         # Link exists and it is broken, make new one
                         os.unlink(srv_lnk)
                         os.symlink(self.lib_path, srv_lnk)
-                ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"])
+                tasks.systemd_daemon_reload()
             except Exception:
                 pass
         else:
@@ -475,7 +476,7 @@ class SystemdService(PlatformService):
                 if os.path.isdir(srv_tgt):
                     if os.path.islink(srv_lnk):
                         os.unlink(srv_lnk)
-                ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"])
+                tasks.systemd_daemon_reload()
             except Exception:
                 pass
         else:

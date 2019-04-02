@@ -498,9 +498,11 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         os.chmod(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF, 0o644)
         self.restore_context(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF)
+        self.systemd_daemon_reload()
 
-        ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"],
-                    raiseonerr=False)
+    def systemd_daemon_reload(self):
+        """Tell systemd to reload config files"""
+        ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"])
 
     def configure_http_gssproxy_conf(self, ipaapi_user):
         ipautil.copy_template_file(
@@ -564,8 +566,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 )
             return
 
-        ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"],
-                    raiseonerr=False)
+        self.systemd_daemon_reload()
 
     def set_hostname(self, hostname):
         ipautil.run([paths.BIN_HOSTNAMECTL, 'set-hostname', hostname])
