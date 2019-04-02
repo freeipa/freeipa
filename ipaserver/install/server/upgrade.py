@@ -1810,13 +1810,12 @@ def upgrade_configuration():
     fqdn = api.env.host
 
     # Ok, we are an IPA server, do the additional tests
-    ds_serverid = installutils.realm_to_serverid(api.env.realm)
-    ds = dsinstance.DsInstance()
+    ds = dsinstance.DsInstance(realm_name=api.env.realm)
 
     # start DS, CA will not start without running DS, and cause error
     ds_running = ds.is_running()
     if not ds_running:
-        ds.start(ds_serverid)
+        ds.start(ds.serverid)
 
     if not sysupgrade.get_upgrade_state('ntpd', 'ntpd_cleaned'):
         ntpd_cleanup(fqdn, fstore)
@@ -1870,7 +1869,7 @@ def upgrade_configuration():
                 paths.CA_CS_CFG_PATH, 'ca.crl.MasterCRL.enableCRLUpdates', '=')
             sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
 
-        ds_dirname = dsinstance.config_dirname(ds_serverid)
+        ds_dirname = dsinstance.config_dirname(ds.serverid)
 
         upgrade_file(sub_dict, paths.HTTPD_IPA_CONF,
                      os.path.join(paths.USR_SHARE_IPA_DIR,
@@ -1946,16 +1945,16 @@ def upgrade_configuration():
 
     http.enable_and_start_oddjobd()
 
-    ds.configure_dirsrv_ccache()
+    ds.configure_systemd_ipa_env()
 
     update_replica_config(ipautil.realm_to_suffix(api.env.realm))
     if ca.is_configured():
         update_replica_config(DN(('o', 'ipaca')))
 
-    ds.stop(ds_serverid)
+    ds.stop(ds.serverid)
     fix_schema_file_syntax()
     remove_ds_ra_cert(subject_base)
-    ds.start(ds_serverid)
+    ds.start(ds.serverid)
 
     ds.fqdn = fqdn
     ds.realm = api.env.realm
@@ -2114,7 +2113,7 @@ def upgrade_configuration():
     enable_certauth(krb)
 
     if not ds_running:
-        ds.stop(ds_serverid)
+        ds.stop(ds.serverid)
 
     if ca.is_configured():
         if ca_running and not ca.is_running():

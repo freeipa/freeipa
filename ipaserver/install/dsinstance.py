@@ -27,7 +27,6 @@ import os
 import re
 import time
 import tempfile
-import stat
 import fnmatch
 
 import ldap
@@ -229,7 +228,6 @@ class DsInstance(service.Service):
         self.nickname = 'Server-Cert'
         self.sub_dict = None
         self.domain = domain_name
-        self.serverid = None
         self.master_fqdn = None
         self.pkcs12_info = None
         self.cacert_name = None
@@ -245,9 +243,11 @@ class DsInstance(service.Service):
         self.domainlevel = domainlevel
         if realm_name:
             self.suffix = ipautil.realm_to_suffix(self.realm)
+            self.serverid = installutils.realm_to_serverid(self.realm)
             self.__setup_sub_dict()
         else:
             self.suffix = DN()
+            self.serverid = None
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
@@ -275,7 +275,8 @@ class DsInstance(service.Service):
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("configure new location for managed entries", self.__repoint_managed_entries)
-        self.step("configure dirsrv ccache", self.configure_dirsrv_ccache)
+        self.step("configure dirsrv ccache and keytab",
+                  self.configure_systemd_ipa_env)
         self.step("enabling SASL mapping fallback",
                   self.__enable_sasl_mapping_fallback)
 
@@ -553,7 +554,6 @@ class DsInstance(service.Service):
         pent = pwd.getpwnam(DS_USER)
 
         self.backup_state("serverid", self.serverid)
-        self.fstore.backup_file(paths.SYSCONFIG_DIRSRV)
 
         self.sub_dict['BASEDC'] = self.realm.split('.')[0].lower()
         base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
@@ -767,21 +767,39 @@ class DsInstance(service.Service):
     def __repoint_managed_entries(self):
         self._ldap_mod("repoint-managed-entries.ldif", self.sub_dict)
 
-    def configure_dirsrv_ccache(self):
+    def configure_systemd_ipa_env(self):
         pent = pwd.getpwnam(platformconstants.DS_USER)
-        ccache = paths.TMP_KRB5CC % pent.pw_uid
-        filepath = paths.SYSCONFIG_DIRSRV
-        if not os.path.exists(filepath):
-            # file doesn't exist; create it with correct ownership & mode
-            open(filepath, 'a').close()
-            os.chmod(filepath,
-                stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-            os.chown(filepath, 0, 0)
+        template = os.path.join(
+            paths.USR_SHARE_IPA_DIR, "ds-ipa-env.conf.template"
+        )
+        sub_dict = dict(
+            KRB5_KTNAME=paths.DS_KEYTAB,
+            KRB5CCNAME=paths.TMP_KRB5CC % pent.pw_uid
+        )
+        conf = ipautil.template_file(template, sub_dict)
 
-        replacevars = {'KRB5CCNAME': ccache}
-        ipautil.backup_config_and_replace_variables(
-            self.fstore, filepath, replacevars=replacevars)
-        tasks.restore_context(filepath)
+        destfile = paths.SLAPD_INSTANCE_SYSTEMD_IPA_ENV_TEMPLATE % (
+            self.serverid
+        )
+        destdir = os.path.dirname(destfile)
+
+        if not os.path.isdir(destdir):
+            # create dirsrv-$SERVERID.service.d
+            os.mkdir(destdir, 0o755)
+        with open(destfile, 'w') as f:
+            os.fchmod(f.fileno(), 0o644)
+            f.write(conf)
+        tasks.restore_context(destfile)
+
+        # remove variables from old /etc/sysconfig/dirsrv file
+        if os.path.isfile(paths.SYSCONFIG_DIRSRV):
+            self.fstore.backup_file(paths.SYSCONFIG_DIRSRV)
+            ipautil.config_replace_variables(
+                paths.SYSCONFIG_DIRSRV,
+                removevars={'KRB5_KTNAME', 'KRB5CCNAME'}
+            )
+        # reload systemd to materialize new config file
+        tasks.systemd_daemon_reload()
 
     def __managed_entries(self):
         self._ldap_mod("managed-entries.ldif", self.sub_dict)
@@ -1079,6 +1097,17 @@ class DsInstance(service.Service):
             scripts = paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % (
                 serverid)
             installutils.rmtree(scripts)
+
+            # remove systemd unit file
+            unitfile = paths.SLAPD_INSTANCE_SYSTEMD_IPA_ENV_TEMPLATE % (
+                serverid
+            )
+            installutils.remove_file(unitfile)
+            try:
+                os.rmdir(os.path.dirname(unitfile))
+            except OSError:
+                # not empty
+                pass
 
         # Just eat this state
         self.restore_state("user_exists")

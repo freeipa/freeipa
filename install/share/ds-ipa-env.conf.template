@@ -1,0 +1,5 @@
+# Installed and maintained by ipa update tools, please do not modify
+
+[Service]
+Environment=KRB5_KTNAME=$KRB5_KTNAME
+Environment=KRB5CCNAME=$KRB5CCNAME
