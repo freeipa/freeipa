@@ -4,10 +4,7 @@
 from __future__ import absolute_import
 
 import os
-import shutil
 import tempfile
-
-import pytest
 
 from ipapython import directivesetter
 
@@ -20,17 +17,6 @@ WHITESPACE_CONFIG = [
     'foo 1\n',
     'foobar\t2\n',
 ]
-
-
-@pytest.fixture
-def tempdir(request):
-    tempdir = tempfile.mkdtemp()
-
-    def fin():
-        shutil.rmtree(tempdir)
-
-    request.addfinalizer(fin)
-    return tempdir
 
 
 class test_set_directive_lines(object):
