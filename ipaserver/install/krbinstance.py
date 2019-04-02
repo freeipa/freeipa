@@ -386,10 +386,6 @@ class KrbInstance(service.Service):
 
         self.fstore.backup_file(paths.DS_KEYTAB)
         installutils.create_keytab(paths.DS_KEYTAB, ldap_principal)
-
-        vardict = {"KRB5_KTNAME": paths.DS_KEYTAB}
-        ipautil.config_replace_variables(paths.SYSCONFIG_DIRSRV,
-                                         replacevars=vardict)
         pent = pwd.getpwnam(constants.DS_USER)
         os.chown(paths.DS_KEYTAB, pent.pw_uid, pent.pw_gid)
 
