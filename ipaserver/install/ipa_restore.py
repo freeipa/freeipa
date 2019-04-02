@@ -451,7 +451,7 @@ class Restore(admintool.AdminTool):
                 oddjobd.start()
                 http.remove_httpd_ccaches()
                 # have the daemons pick up their restored configs
-                run([paths.SYSTEMCTL, "--system", "daemon-reload"])
+                tasks.systemd_daemon_reload()
         finally:
             try:
                 os.chdir(cwd)
