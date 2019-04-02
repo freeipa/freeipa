@@ -1483,6 +1483,23 @@ class i18n_messages(Command):
                 "trusttype": _("Trust type"),
                 "ipantadditionalsuffixes": _("Alternative UPN suffixes"),
             },
+            'trust_attributes': {
+                "title": _(
+                    "User attributes for Active Directory integration"
+                ),
+                "logonscript_tooltip": _(
+                    "Path to a script executed on a Windows system at logon"
+                ),
+                "profilepath_tooltip": _(
+                    "Path to a user profile, in UNC format \\\\server\\share\\"
+                ),
+                "homedir_tooltip": _(
+                    "Path to a user home directory, in UNC format"
+                ),
+                "homedrive_tooltip": _(
+                    "Drive to mount a home directory"
+                ),
+            },
             "trustconfig": {
                 "options": _("Options"),
             },

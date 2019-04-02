@@ -149,7 +149,8 @@ class baseuser(LDAPObject):
         'ipatokenradiusconfiglink', 'ipatokenradiususername',
         'krbprincipalexpiration', 'usercertificate;binary',
         'krbprincipalname', 'krbcanonicalname',
-        'ipacertmapdata'
+        'ipacertmapdata', 'ipantlogonscript', 'ipantprofilepath',
+        'nthomedir', 'nthomedrive'
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'krbcanonicalname',
@@ -378,6 +379,26 @@ class baseuser(LDAPObject):
             doc=_('Certificate mapping data'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
+        Str('ipantlogonscript?',
+            cli_name='logon_script',
+            label=_('Logon script'),
+            ),
+        Str('ipantprofilepath?',
+            cli_name='profile_path',
+            label=_('Profile path'),
+            ),
+        Str('nthomedir?',
+            cli_name='nt_home_directory',
+            label=_('NT Home Directory'),
+            ),
+        StrEnum('nthomedrive?',
+                cli_name='nt_home_drive',
+                label=_('NT Home Directory Drive'),
+                values=(
+                    'A:', 'B:', 'C:', 'D:', 'E:', 'F:', 'G:', 'H:', 'I:',
+                    'J:', 'K:', 'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:',
+                    'S:', 'T:', 'U:', 'V:', 'W:', 'X:', 'Y:', 'Z:'),
+                ),
     )
 
     def normalize_and_validate_email(self, email, config=None):

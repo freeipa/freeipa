@@ -361,6 +361,41 @@ return {
                     fields: [
                         { $type: 'multivalued', name: 'carlicense' }
                     ]
+                },
+                {
+                    name: 'trust attributes',
+                    label: '@i18n:objects.trust_attributes.title',
+                    fields: [{
+                            name: 'ipantlogonscript',
+                            tooltip: {
+                                title: '@i18n:objects.trust_attributes.logonscript_tooltip'
+                            }
+                        },
+                        {
+                            name: 'ipantprofilepath',
+                            tooltip: {
+                                title: '@i18n:objects.trust_attributes.profilepath_tooltip'
+                            }
+                        },
+                        {
+                            name: 'nthomedir',
+                            tooltip: {
+                                title: '@i18n:objects.trust_attributes.homedir_tooltip'
+                            }
+                        },
+                        {
+                            name: 'nthomedrive',
+                            $type: 'select',
+                            options: IPA.create_options([
+                                'A:', 'B:', 'C:', 'D:', 'E:', 'F:', 'G:', 'H:', 'I:',
+                                'J:', 'K:', 'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:',
+                                'S:', 'T:', 'U:', 'V:', 'W:', 'X:', 'Y:', 'Z:'
+                            ]),
+                            tooltip: {
+                                title: '@i18n:objects.trust_attributes.homedrive_tooltip'
+                            }
+                        }
+                    ]
                 }
             ],
             actions: [

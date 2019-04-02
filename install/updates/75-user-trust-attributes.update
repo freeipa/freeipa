@@ -1,0 +1,4 @@
+# Add an explicit self-service ACI to allow writing to manage trust attributes
+# for the owner of the object
+dn: cn=users,cn=accounts,$SUFFIX
+add:aci:(targetattr = "ipantlogonscript || ipantprofilepath || nthomedir || nthomedrive")(version 3.0;acl "selfservice:Users can manage their own NT properties";allow (write) userdn = "ldap:///self";)
