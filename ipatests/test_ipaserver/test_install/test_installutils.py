@@ -6,9 +6,7 @@ from __future__ import absolute_import
 import binascii
 import os
 import re
-import shutil
 import subprocess
-import tempfile
 import textwrap
 
 import pytest
@@ -18,17 +16,6 @@ from ipapython import ipautil
 from ipaserver.install import installutils
 from ipaserver.install import ipa_backup
 from ipaserver.install import ipa_restore
-
-
-@pytest.fixture
-def tempdir(request):
-    tempdir = tempfile.mkdtemp()
-
-    def fin():
-        shutil.rmtree(tempdir)
-
-    request.addfinalizer(fin)
-    return tempdir
 
 
 GPG_GENKEY = textwrap.dedent("""
