@@ -538,6 +538,9 @@ class NSSDatabase:
     def get_trust_chain(self, nickname):
         """Return names of certs in a given cert's trust chain
 
+        The list starts with root ca, then first intermediate CA, second
+        intermediate, and so on.
+
         :param nickname: Name of the cert
         :return: List of certificate names
         """
@@ -909,7 +912,7 @@ class NSSDatabase:
         except ValueError:
             raise ValueError('invalid for server %s' % hostname)
 
-    def verify_ca_cert_validity(self, nickname):
+    def verify_ca_cert_validity(self, nickname, minpathlen=None):
         cert = self.get_cert(nickname)
 
         if not cert.subject:
@@ -923,6 +926,15 @@ class NSSDatabase:
 
         if not bc.value.ca:
             raise ValueError("not a CA certificate")
+        if minpathlen is not None:
+            # path_length is None means no limitation
+            pl = bc.value.path_length
+            if pl is not None and pl < minpathlen:
+                raise ValueError(
+                    "basic contraint pathlen {}, must be at least {}".format(
+                        pl, minpathlen
+                    )
+                )
 
         try:
             ski = cert.extensions.get_extension_for_class(

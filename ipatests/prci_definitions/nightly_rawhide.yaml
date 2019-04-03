@@ -1152,7 +1152,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
-        test_suite: test_integration/test_external_ca.py::TestExternalCAInvalidCert
+        test_suite: test_integration/test_external_ca.py::TestExternalCAInvalidCert test_integration/test_external_ca.py::TestExternalCAInvalidIntermediate
         template: *ci-master-frawhide
         timeout: 3600
         topology: *master_1repl
