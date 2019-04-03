@@ -80,7 +80,8 @@ def install_server_external_ca_step1(host, extra_args=()):
     )
 
 
-def install_server_external_ca_step2(host, ipa_ca_cert, root_ca_cert):
+def install_server_external_ca_step2(host, ipa_ca_cert, root_ca_cert,
+                                     raiseonerr=True):
     """Step 2 to install the ipa server with external ca"""
     args = ['ipa-server-install',
             '-a', host.config.admin_password,
@@ -88,7 +89,7 @@ def install_server_external_ca_step2(host, ipa_ca_cert, root_ca_cert):
             '--external-cert-file', ipa_ca_cert,
             '--external-cert-file', root_ca_cert]
 
-    cmd = host.run_command(args)
+    cmd = host.run_command(args, raiseonerr=raiseonerr)
     return cmd
 
 
@@ -337,6 +338,22 @@ class TestExternalCAInvalidCert(IntegrationTest):
                invalid_cert, '--external-cert-file', root_ca_fname]
         result = self.master.run_command(cmd, raiseonerr=False)
         assert result.returncode == 1
+
+
+class TestExternalCAInvalidIntermediate(IntegrationTest):
+    """Test case for https://pagure.io/freeipa/issue/7877"""
+
+    def test_invalid_intermediate(self):
+        install_server_external_ca_step1(self.master)
+        root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
+            self.master, paths.ROOT_IPA_CSR, ROOT_CA, IPA_CA,
+            root_ca_path_length=0
+        )
+        result = install_server_external_ca_step2(
+            self.master, ipa_ca_fname, root_ca_fname, raiseonerr=False
+        )
+        assert result.returncode > 0
+        assert "basic contraint pathlen" in result.stderr_text
 
 
 class TestExternalCAInstall(IntegrationTest):

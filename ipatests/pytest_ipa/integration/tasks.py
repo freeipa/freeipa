@@ -1616,7 +1616,8 @@ def add_dns_zone(master, zone, skip_overlap_check=False,
         logger.debug('Zone %s already added.', zone)
 
 
-def sign_ca_and_transport(host, csr_name, root_ca_name, ipa_ca_name):
+def sign_ca_and_transport(host, csr_name, root_ca_name, ipa_ca_name,
+                          root_ca_path_length=None, ipa_ca_path_length=1):
     """
     Sign ipa csr and save signed CA together with root CA back to the host.
     Returns root CA and IPA CA paths on the host.
@@ -1629,9 +1630,9 @@ def sign_ca_and_transport(host, csr_name, root_ca_name, ipa_ca_name):
 
     external_ca = ExternalCA()
     # Create root CA
-    root_ca = external_ca.create_ca()
+    root_ca = external_ca.create_ca(path_length=root_ca_path_length)
     # Sign CSR
-    ipa_ca = external_ca.sign_csr(ipa_csr)
+    ipa_ca = external_ca.sign_csr(ipa_csr, path_length=ipa_ca_path_length)
 
     root_ca_fname = os.path.join(test_dir, root_ca_name)
     ipa_ca_fname = os.path.join(test_dir, ipa_ca_name)
@@ -1640,7 +1641,7 @@ def sign_ca_and_transport(host, csr_name, root_ca_name, ipa_ca_name):
     host.put_file_contents(root_ca_fname, root_ca)
     host.put_file_contents(ipa_ca_fname, ipa_ca)
 
-    return (root_ca_fname, ipa_ca_fname)
+    return root_ca_fname, ipa_ca_fname
 
 
 def generate_ssh_keypair():
