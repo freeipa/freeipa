@@ -38,7 +38,7 @@ class ExternalCA:
         self.now = datetime.datetime.utcnow()
         self.delta = datetime.timedelta(days=days)
 
-    def create_ca(self, cn=ISSUER_CN):
+    def create_ca(self, cn=ISSUER_CN, path_length=None):
         """Create root CA.
 
         :returns: bytes -- Root CA in PEM format.
@@ -79,7 +79,7 @@ class ExternalCA:
         )
 
         builder = builder.add_extension(
-            x509.BasicConstraints(ca=True, path_length=None),
+            x509.BasicConstraints(ca=True, path_length=path_length),
             critical=True,
         )
 
