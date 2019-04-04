@@ -22,26 +22,6 @@ env:
     matrix:
         - TASK_TO_RUN="lint"
           TEST_RUNNER_CONFIG=".test_runner_config.yaml"
-        - TASK_TO_RUN="webui-unit"
-          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
-        - TASK_TO_RUN="run-tests"
-          PYTHON=/usr/bin/python3
-          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
-          TESTS_TO_RUN="test_xmlrpc/test_[a-k]*.py"
-        - TASK_TO_RUN="run-tests"
-          PYTHON=/usr/bin/python3
-          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
-          TESTS_TO_RUN="test_cmdline
-                test_install
-                test_ipaclient
-                test_ipalib
-                test_ipaplatform
-                test_ipapython
-                test_ipaserver
-                test_ipatests_plugins
-                test_xmlrpc/test_[l-z]*.py"
-        - TASK_TO_RUN="tox"
-          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
 
 before_install:
     - ip addr show
