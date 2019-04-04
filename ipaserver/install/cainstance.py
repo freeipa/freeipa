@@ -581,6 +581,7 @@ class CAInstance(DogtagInstance):
         nolog_list = [self.dm_password, self.admin_password, pki_pin]
 
         config = self._create_spawn_config(cfg)
+        self.set_hsm_state(config)
         pent = pwd.getpwnam(self.service_user)
         with tempfile.NamedTemporaryFile('w') as f:
             config.write(f)
@@ -974,6 +975,7 @@ class CAInstance(DogtagInstance):
     def uninstall(self):
         # just eat state
         self.restore_state("enabled")
+        self.restore_hsm_state()
 
         DogtagInstance.uninstall(self)
 

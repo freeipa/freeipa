@@ -100,9 +100,8 @@ class DogtagInstance(service.Service):
     # dict.  The profile MUST be specified.
     tracking_reqs = dict()
 
-    # token for CA and subsystem certificates. For now, only internal token
-    # is supported.
-    token_name = "internal"
+    # HSM state is shared between CA and KRA
+    dogtag_sstore = 'dogtag'
 
     # override token for specific nicknames
     token_names = dict()
@@ -586,6 +585,35 @@ class DogtagInstance(service.Service):
             dn, exitcode
         )
         sysupgrade.set_upgrade_state('dogtag', state_name, True)
+
+    def set_hsm_state(self, config):
+        section_name = self.subsystem.upper()
+        assert section_name == 'CA'
+        if (config.has_option(section_name, 'pki_hsm_enable') and
+                config.getboolean(section_name, 'pki_hsm_enable')):
+            state = True
+            token_name = config.get(section_name, 'pki_token_name')
+        else:
+            state = False
+            token_name = "internal"
+        self.sstore.backup_state(self.dogtag_sstore, "hsm_enable", state)
+        self.sstore.backup_state(self.dogtag_sstore, "token_name", token_name)
+
+    def restore_hsm_state(self):
+        return (
+            self.sstore.restore_state(self.dogtag_sstore, "hsm_enable"),
+            self.sstore.restore_state(self.dogtag_sstore, "token_name"),
+        )
+
+    @property
+    def hsm_enabled(self):
+        """Is HSM support enabled?"""
+        return self.sstore.get_state(self.dogtag_sstore, "hsm_enable")
+
+    @property
+    def token_name(self):
+        """HSM token name"""
+        return self.sstore.get_state(self.dogtag_sstore, "token_name")
 
     def _configure_clone(self, subsystem_config, security_domain_hostname,
                          clone_pkcs12_path):

@@ -1514,9 +1514,10 @@ def run_certutil(host, args, reqdir, dbtype=None,
                             stdin_text=stdin)
 
 
-def certutil_certs_keys(host, reqdir, pwd_file, token_name=None):
+def certutil_certs_keys(host, reqdir, password, token_name=None):
     """Run certutils and get mappings of cert and key files
     """
+    pwd_file = upload_temp_contents(host, password)
     base_args = ['-f', pwd_file]
     if token_name is not None:
         base_args.extend(['-h', token_name])
@@ -1531,6 +1532,7 @@ def certutil_certs_keys(host, reqdir, pwd_file, token_name=None):
             certs[mo.group('nick')] = mo.group('flags')
 
     result = run_certutil(host, key_args, reqdir)
+    host.run_command(['rm', '-f', pwd_file])
     assert 'orphan' not in result.stdout_text
     keys = {}
     for line in result.stdout_text.splitlines():
