@@ -21,7 +21,7 @@
 .SH "NAME"
 ipa\-getkeytab \- Get a keytab for a Kerberos principal
 .SH "SYNOPSIS"
-ipa\-getkeytab \fB\-p\fR \fIprincipal\-name\fR \fB\-k\fR \fIkeytab\-file\fR [ \fB\-e\fR \fIencryption\-types\fR ] [ \fB\-s\fR \fIipaserver\fR ] [ \fB\-q\fR ] [ \fB\-D\fR|\fB\-\-binddn\fR \fIBINDDN\fR ] [ \fB\-w|\-\-bindpw\fR ] [ \fB\-P\fR|\fB\-\-password\fR \fIPASSWORD\fR ] [ \fB\-\-cacert \fICACERT\fR ] [ \fB\-H|\-\-ldapuri \fIURI\fR ] [ \fB\-Y|\-\-mech \fIGSSAPI|EXTERNAL\fR ] [ \fB\-r\fR ]
+ipa\-getkeytab \fB\-p\fR \fIprincipal\-name\fR \fB\-k\fR \fIkeytab\-file\fR [ \fB\-e\fR \fIencryption\-types\fR ] [ \fB\-s\fR \fIipaserver\fR ] [ \fB\-q\fR ] [ \fB\-D\fR|\fB\-\-binddn\fR \fIBINDDN\fR ] [ \fB\-w|\-\-bindpw\fR ] [ \fB-W\fR ] [ \fB\-P\fR|\fB\-\-password\fR \fIPASSWORD\fR ] [ \fB\-\-cacert \fICACERT\fR ] [ \fB\-H|\-\-ldapuri \fIURI\fR ] [ \fB\-Y|\-\-mech \fIGSSAPI|EXTERNAL\fR ] [ \fB\-r\fR ]
 
 .SH "DESCRIPTION"
 Retrieves a Kerberos \fIkeytab\fR.
@@ -44,7 +44,7 @@ provided, so the principal name is just the service
 name and hostname (ldap/foo.example.com from the
 example above).
 
-ipa-getkeytab is used during IPA client enrollment to retrieve a host service principal and store it in /etc/krb5.keytab. It is possible to retrieve the keytab without Kerberos credentials if the host was pre\-created with a one\-time password. The keytab can be retrieved by binding as the host and authenticating with this one\-time password. The \fB\-D|\-\-binddn\fR and \fB\-w|\-\-bindpw\fR options are used for this authentication.
+ipa-getkeytab is used during IPA client enrollment to retrieve a host service principal and store it in /etc/krb5.keytab. It is possible to retrieve the keytab without Kerberos credentials if the host was pre\-created with a one\-time password. The keytab can be retrieved by binding as the host and authenticating with this one\-time password. The \fB\-D|\-\-binddn\fR \fB\-w|\-\-bindpw\fR options are used for this authentication. \fB-W\fR can be used instead of \fB\-w|\-\-bindpw\fR to interactively prompt for the bind password.
 
 \fBWARNING:\fR retrieving the keytab resets the secret for the Kerberos principal.
 This renders all other keytabs for that principal invalid.
@@ -98,10 +98,13 @@ DES cbc mode with RSA\-MD4
 Use this password for the key instead of one randomly generated.
 .TP
 \fB\-D, \-\-binddn\fR
-The LDAP DN to bind as when retrieving a keytab without Kerberos credentials. Generally used with the \fB\-w\fR option.
+The LDAP DN to bind as when retrieving a keytab without Kerberos credentials. Generally used with the \fB\-w\fR or \fB\-W\fR options.
 .TP
 \fB\-w, \-\-bindpw\fR
 The LDAP password to use when not binding with Kerberos. \fB\-D\fR and \fB\-w\fR can not be used together with \fB\-Y\fR.
+.TP
+\fB\-W\fR
+Interactive prompt for the bind password. \fB\-D\fR and \fB\-W\fR can not be used together with \fB\-Y\fR
 .TP
 \fB\-\-cacert\fR
 The path to the IPA CA certificate used to validate LDAPS/STARTTLS connections.
