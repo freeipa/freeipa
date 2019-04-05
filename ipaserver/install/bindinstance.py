@@ -50,6 +50,7 @@ import ipalib
 from ipalib import api, errors
 from ipalib.constants import IPA_CA_RECORD
 from ipaplatform import services
+from ipaplatform.tasks import tasks
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
@@ -1006,32 +1007,25 @@ class BindInstance(service.Service):
         sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
 
     def __setup_resolv_conf(self):
-        if not self.fstore.has_file(paths.RESOLV_CONF):
-            self.fstore.backup_file(paths.RESOLV_CONF)
-
-        resolv_txt = "search "+self.domain+"\n"
+        searchdomains = [self.domain]
+        nameservers = []
 
         for ip_address in self.ip_addresses:
             if ip_address.version == 4:
-                resolv_txt += "nameserver 127.0.0.1\n"
-                break
+                nameservers.append("127.0.0.1")
+            elif ip_address.version == 6:
+                nameservers.append("::1")
 
-        for ip_address in self.ip_addresses:
-            if ip_address.version == 6:
-                resolv_txt += "nameserver ::1\n"
-                break
         try:
-            resolv_fd = open(paths.RESOLV_CONF, 'w')
-            resolv_fd.seek(0)
-            resolv_fd.truncate(0)
-            resolv_fd.write(resolv_txt)
-            resolv_fd.close()
+            tasks.configure_dns_resolver(
+                nameservers, searchdomains, fstore=self.fstore
+            )
         except IOError as e:
-            logger.error('Could not write to resolv.conf: %s', e)
+            logger.error('Could not update DNS config: %s', e)
         else:
             # python DNS might have global resolver cached in this variable
             # we have to re-initialize it because resolv.conf has changed
-            dns.resolver.default_resolver = None
+            dns.resolver.reset_default_resolver()
 
     def __generate_rndc_key(self):
         installutils.check_entropy()
@@ -1211,11 +1205,15 @@ class BindInstance(service.Service):
 
         self.dns_backup.clear_records(self.api.Backend.ldap2.isconnected())
 
-        for f in [paths.NAMED_CONF, paths.RESOLV_CONF]:
-            try:
-                self.fstore.restore_file(f)
-            except ValueError as error:
-                logger.debug('%s', error)
+        try:
+            self.fstore.restore_file(paths.NAMED_CONF)
+        except ValueError as error:
+            logger.debug('%s', error)
+
+        try:
+            tasks.unconfigure_dns_resolver(fstore=self.fstore)
+        except Exception:
+            logger.exception("Failed to unconfigure DNS resolver")
 
         installutils.rmtree(paths.BIND_LDAP_DNS_IPA_WORKDIR)
 
