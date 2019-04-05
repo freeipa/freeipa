@@ -255,5 +255,22 @@ class BaseTaskNamespace(object):
         """Tell systemd to reload config files"""
         raise NotImplementedError
 
+    def configure_dns_resolver(self, nameservers, searchdomains, fstore=None):
+        """Configure global DNS resolver (e.g. /etc/resolv.conf)
+
+        :param nameservers: list of IP addresses
+        :param searchdomains: list of search domaons
+        :param fstore: optional file store for backup
+        """
+        raise NotImplementedError
+
+    def unconfigure_dns_resolver(self, fstore=None):
+        """Unconfigure global DNS resolver (e.g. /etc/resolv.conf)
+
+        :param fstore: optional file store for restore
+        """
+        if fstore is not None and fstore.has_file(paths.RESOLV_CONF):
+            fstore.restore_file(paths.RESOLV_CONF)
+
 
 tasks = BaseTaskNamespace()
