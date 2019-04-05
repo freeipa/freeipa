@@ -390,15 +390,6 @@ def install_check(standalone, options, api):
                                       default=False,
                                       allow_empty=False):
                 raise ScriptError("Aborting installation.")
-    elif os.path.exists(paths.SMB_CONF):
-        print("WARNING: The smb.conf already exists. Running "
-              "ipa-adtrust-install will break your existing samba "
-              "configuration.\n\n")
-        if not options.unattended:
-            if not ipautil.user_input("Do you wish to continue?",
-                                      default=False,
-                                      allow_empty=False):
-                raise ScriptError("Aborting installation.")
 
     if not options.unattended and not options.enable_compat:
         options.enable_compat = enable_compat_tree()
