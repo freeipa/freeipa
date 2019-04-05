@@ -348,6 +348,7 @@ class BasePathNamespace:
     KDCPROXY_CONFIG = '/etc/ipa/kdcproxy/kdcproxy.conf'
     CERTMONGER = '/usr/sbin/certmonger'
     NETWORK_MANAGER_CONFIG_DIR = '/etc/NetworkManager/conf.d'
+    NETWORK_MANAGER_IPA_CONF = '/etc/NetworkManager/conf.d/zzz-ipa.conf'
     IPA_CUSTODIA_CONF_DIR = '/etc/ipa/custodia'
     IPA_CUSTODIA_CONF = '/etc/ipa/custodia/custodia.conf'
     IPA_CUSTODIA_KEYS = '/etc/ipa/custodia/server.keys'

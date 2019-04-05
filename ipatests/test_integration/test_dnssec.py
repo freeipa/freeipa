@@ -424,6 +424,12 @@ class TestInstallDNSSECFirst(IntegrationTest):
         self.master.run_command(args)
         self.replicas[0].run_command(args)
 
+    def test_resolvconf(self):
+        # check that resolv.conf contains IP address for localhost
+        for host in [self.master, self.replicas[0]]:
+            resolvconf = host.get_file_contents(paths.RESOLV_CONF, 'utf-8')
+            assert any(ip in resolvconf for ip in ('127.0.0.1', '::1'))
+
 
 class TestMigrateDNSSECMaster(IntegrationTest):
     """test DNSSEC master migration
