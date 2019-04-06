@@ -1352,14 +1352,6 @@ class DsInstance(service.Service):
         if self.domainlevel is not None:
             self._ldap_mod("domainlevel.ldif", self.sub_dict)
 
-    def request_service_keytab(self):
-        super(DsInstance, self).request_service_keytab()
-
-        # Configure DS to use the keytab
-        vardict = {"KRB5_KTNAME": self.keytab}
-        ipautil.config_replace_variables(paths.SYSCONFIG_DIRSRV,
-                                         replacevars=vardict)
-
 
 def write_certmap_conf(realm, ca_subject):
     """(Re)write certmap.conf with given CA subject DN."""
