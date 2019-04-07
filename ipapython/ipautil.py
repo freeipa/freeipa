@@ -34,7 +34,6 @@ import socket
 import re
 import datetime
 import netaddr
-import netifaces
 import time
 import pwd
 import grp
@@ -48,6 +47,11 @@ from dns.exception import DNSException
 import six
 from six.moves import input
 from six.moves import urllib
+
+try:
+    import netifaces
+except ImportError:
+    netifaces = None
 
 from ipapython.dn import DN
 
@@ -197,6 +201,8 @@ class CheckedIPAddress(UnsafeIPAddress):
         :return: InterfaceDetails named tuple or None if no interface has
         this address
         """
+        if netifaces is None:
+            raise ImportError("netifaces")
         logger.debug("Searching for an interface of IP address: %s", self)
         if self.version == 4:
             family = netifaces.AF_INET
