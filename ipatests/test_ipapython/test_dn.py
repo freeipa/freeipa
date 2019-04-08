@@ -1,3 +1,4 @@
+
 import contextlib
 import unittest
 import pytest
@@ -5,7 +6,9 @@ import pytest
 from cryptography import x509
 import six
 
-from ipapython.dn import DN, RDN, AVA
+from ipapython.dn import DN, RDN, AVA, str2dn, dn2str, DECODING_ERROR
+from ipapython import dn_ctypes
+
 
 if six.PY3:
     unicode = str
@@ -1343,6 +1346,59 @@ class TestInternationalization(unittest.TestCase):
             self.assertIsInstance(dn1[0].value, unicode)
             self.assertEqual(dn1[0].value, self.arabic_hello_unicode)
             self.assertEqual(str(dn1), b'cn=' + self.arabic_hello_utf8)
+
+
+# 1: LDAP_AVA_STRING
+# 4: LDAP_AVA_NONPRINTABLE
+@pytest.mark.parametrize(
+    'dnstring,expected',
+    [
+        ('', []),
+        ('cn=bob', [[('cn', 'bob', 1)]]),
+        ('cn=Bob', [[('cn', 'Bob', 1)]]),
+        (u'cn=b\xf6b', [[('cn', u'b\xf6b', 4)]]),
+        ('cn=bob,sn=builder', [[('cn', 'bob', 1)], [('sn', 'builder', 1)]]),
+        (u'cn=b\xf6b,sn=builder', [
+            [('cn', u'b\xf6b', 4)], [('sn', 'builder', 1)]
+        ]),
+        ('cn=bob+sn=builder', [[('cn', 'bob', 1), ('sn', 'builder', 1)]]),
+        ('dc=ipa,dc=example', [[('dc', 'ipa', 1)], [('dc', 'example', 1)]]),
+        ('cn=R\\,W privilege', [[('cn', 'R,W privilege', 1)]]),
+    ]
+)
+def test_str2dn2str(dnstring, expected):
+    dn = str2dn(dnstring)
+    assert dn == expected
+    assert dn2str(dn) == dnstring
+    assert dn_ctypes.str2dn(dnstring) == dn
+    assert dn_ctypes.dn2str(dn) == dnstring
+
+
+@pytest.mark.parametrize(
+    'dnstring',
+    [
+        'cn',
+        'cn=foo,',
+        'cn=foo+bar',
+    ]
+)
+def test_str2dn_errors(dnstring):
+    with pytest.raises(DECODING_ERROR):
+        str2dn(dnstring)
+    with pytest.raises(dn_ctypes.DECODING_ERROR):
+        dn_ctypes.str2dn(dnstring)
+
+
+def test_dn2str_special():
+    dnstring = 'cn=R\\2cW privilege'
+    dnstring2 = 'cn=R\\,W privilege'
+    expected = [[('cn', 'R,W privilege', 1)]]
+
+    dn = str2dn(dnstring)
+    assert dn == expected
+    assert dn2str(dn) == dnstring2
+    assert dn_ctypes.str2dn(dnstring) == dn
+    assert dn_ctypes.dn2str(dn) == dnstring2
 
 
 if __name__ == '__main__':

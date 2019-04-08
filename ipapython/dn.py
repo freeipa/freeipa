@@ -423,9 +423,15 @@ import sys
 import functools
 
 import cryptography.x509
-from ldap.dn import str2dn, dn2str
-from ldap import DECODING_ERROR
 import six
+
+try:
+    from ldap import DECODING_ERROR
+except ImportError:
+    from ipapython.dn_ctypes import str2dn, dn2str, DECODING_ERROR
+else:
+    from ldap.dn import str2dn, dn2str
+
 
 if six.PY3:
     unicode = str
