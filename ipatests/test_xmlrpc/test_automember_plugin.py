@@ -831,6 +831,7 @@ class TestAutomemberFindOrphans(XMLRPC_test):
 
         hostgroup1.retrieve()
 
+    @pytest.mark.skip(reason="Fails with 389-DS 1.4.0.22, see issue 7902")
     def test_find_orphan_automember_rules(self, hostgroup1):
         """ Remove hostgroup1, find and remove obsolete automember rules. """
         # Remove hostgroup1
