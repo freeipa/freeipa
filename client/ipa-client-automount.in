@@ -26,6 +26,7 @@ from __future__ import print_function
 import logging
 import sys
 import os
+import shutil
 import time
 import tempfile
 import gssapi
@@ -487,8 +488,7 @@ def main():
         except errors.PublicError as e:
             sys.exit("Cannot connect to the server due to generic error: %s" % str(e))
     finally:
-        os.remove(ccache_name)
-        os.rmdir(ccache_dir)
+        shutil.rmtree(ccache_dir)
 
     if not options.unattended and not ipautil.user_input("Continue to configure the system with these values?", False):
         sys.exit("Installation aborted")
