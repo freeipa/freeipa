@@ -34,6 +34,7 @@ from ipatests.util import assert_deepequal
 
 import pytest
 import unittest
+from lib389.utils import ds_is_older
 
 try:
     from ipaserver.plugins.ldap2 import ldap2
@@ -838,22 +839,26 @@ class TestAutomemberFindOrphans(XMLRPC_test):
         hostgroup1.ensure_missing()
 
         # Test rebuild (is failing)
-        try:
-            api.Command['automember_rebuild'](type=u'hostgroup')
-        except errors.DatabaseError:
-            pass
-        else:
-            pytest.fail("automember_rebuild was not failing with "
-                        "an orphan automember rule")
+        # Only run this test for 389-ds older than 1.4.0.22 where unmembering
+        # feature was implemented: https://pagure.io/389-ds-base/issue/50077
+        # As of today (2019-04-08), 1.3.9 is not released with this change yet
+        if ds_is_older('1.4.0.22'):
+            try:
+                api.Command['automember_rebuild'](type=u'hostgroup')
+            except errors.DatabaseError:
+                pass
+            else:
+                pytest.fail("automember_rebuild was not failing with "
+                            "an orphan automember rule")
 
-        # Find obsolete automember rules
-        result = api.Command['automember_find_orphans'](type=u'hostgroup')
-        assert result['count'] == 1
+            # Find obsolete automember rules
+            result = api.Command['automember_find_orphans'](type=u'hostgroup')
+            assert result['count'] == 1
 
-        # Find and remove obsolete automember rules
-        result = api.Command['automember_find_orphans'](type=u'hostgroup',
-                                                        remove=True)
-        assert result['count'] == 1
+            # Find and remove obsolete automember rules
+            result = api.Command['automember_find_orphans'](type=u'hostgroup',
+                                                            remove=True)
+            assert result['count'] == 1
 
         # Find obsolete automember rules
         result = api.Command['automember_find_orphans'](type=u'hostgroup')
