@@ -446,8 +446,15 @@ def fetch_trusted_domains_over_dbus(myapi, *keys, **options):
         fetch_domains_method = intf.get_dbus_method(
                 'fetch_domains',
                 dbus_interface=DBUS_IFACE_TRUST)
-        (_ret, _stdout, _stderr) = fetch_domains_method(
-            [forest_name] + method_options)
+        # Oddjobd D-BUS method definition only accepts fixed number
+        # of arguments on the command line. Thus, we need to pass
+        # remaining ones as ''. There are 30 slots to allow for extension
+        # and the number comes from the 'arguments' definition in
+        # install/oddjob/etc/oddjobd.conf.d/oddjobd-ipa-trust.conf
+        method_arguments = [forest_name]
+        method_arguments.extend(method_options)
+        method_arguments.extend([''] * (30 - len(method_arguments)))
+        (_ret, _stdout, _stderr) = fetch_domains_method(*method_arguments)
     except dbus.DBusException as e:
         logger.error('Failed to call %s.fetch_domains helper.'
                      'DBus exception is %s.', DBUS_IFACE_TRUST, str(e))
