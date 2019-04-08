@@ -5,6 +5,7 @@ from ipaserver.install.installutils import is_ipa_configured, ScriptError
 from ipapython import config, ipautil
 from ipalib import api
 from ipapython.dn import DN
+from ipapython.dnsutil import DNSName
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 import sys
@@ -37,7 +38,17 @@ def parse_options():
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
 
-    return safe_options, options, args
+    # We only use first argument of the passed args but as D-BUS interface
+    # in oddjobd cannot expose optional, we fill in empty slots from IPA side
+    # and filter them here.
+    trusted_domain = ipautil.fsdecode(args[0]).lower()
+
+    # Accept domain names that at least have two labels. We do not support
+    # single label Active Directory domains. This also catches empty args.
+    if len(DNSName(trusted_domain).labels) < 2:
+        # LSB status code 2: invalid or excess argument(s)
+        raise ScriptError("You must specify a valid trusted domain name", 2)
+    return safe_options, options, trusted_domain
 
 def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
     getkeytab_args = ["/usr/sbin/ipa-getkeytab",
@@ -87,13 +98,7 @@ if not os.getegid() == 0:
     # LSB status code 4: user had insufficient privilege
     raise ScriptError("You must be root to run ipactl.", 4)
 
-safe_options, options, args = parse_options()
-
-if len(args) != 1:
-    # LSB status code 2: invalid or excess argument(s)
-    raise ScriptError("You must specify trusted domain name", 2)
-
-trusted_domain = ipautil.fsdecode(args[0]).lower()
+safe_options, options, trusted_domain = parse_options()
 
 api.bootstrap(in_server=True, log=None,
               context='server', confdir=paths.ETC_IPA)
