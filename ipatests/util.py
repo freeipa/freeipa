@@ -35,18 +35,13 @@ from contextlib import contextmanager
 from pprint import pformat
 
 import six
-import ldap
-import ldap.sasl
-import ldap.modlist
 
 import ipalib
 from ipalib import api
 from ipalib.plugable import Plugin
 from ipalib.request import context
 from ipapython.dn import DN
-from ipapython.ipaldap import ldap_initialize
 from ipapython.ipautil import run
-
 
 try:
     # not available with client-only wheel packages
@@ -60,6 +55,15 @@ try:
 except ImportError:
     paths = None
 
+try:
+    # not available with optional python-ldap
+    import ldap
+except ImportError:
+    pass
+else:
+    import ldap.sasl
+    import ldap.modlist
+    from ipapython.ipaldap import ldap_initialize
 
 if six.PY3:
     unicode = str
