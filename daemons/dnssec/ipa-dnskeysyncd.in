@@ -97,7 +97,7 @@ while watcher_running:
     except ldap.INVALID_CREDENTIALS as e:
         logger.exception('Login to LDAP server failed: %s', e)
         sys.exit(1)
-    except ldap.SERVER_DOWN as e:
+    except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR) as e:
         logger.exception('LDAP server is down, going to retry: %s', e)
         time.sleep(5)
         continue
@@ -116,5 +116,5 @@ while watcher_running:
         while ldap_connection.syncrepl_poll(all=1, msgid=ldap_search):
             pass
     except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR) as e:
-        logger.exception('syncrepl_poll: LDAP error (%s)', e)
+        logger.error('syncrepl_poll: LDAP error (%s)', e)
         sys.exit(1)
