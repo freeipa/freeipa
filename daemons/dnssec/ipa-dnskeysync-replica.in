@@ -14,6 +14,7 @@ import os
 import sys
 
 import ipalib
+from ipalib import errors
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
@@ -162,23 +163,33 @@ except GSSError as e:
 os.environ['KRB5CCNAME'] = ccache_filename
 logger.debug('Got TGT')
 
-# LDAP initialization
-ldap = ipaldap.LDAPClient(ipalib.api.env.ldap_uri)
-logger.debug('Connecting to LDAP')
-ldap.gssapi_bind()
-logger.debug('Connected')
+keys_dn = DN(
+    ('cn', 'keys'), ('cn', 'sec'),
+    ipalib.api.env.container_dns,
+    ipalib.api.env.basedn
+)
 
+with open(paths.DNSSEC_SOFTHSM_PIN) as f:
+    localhsm = LocalHSM(
+        paths.LIBSOFTHSM2_SO,
+        SOFTHSM_DNSSEC_TOKEN_LABEL,
+        f.read()
+    )
 
-### DNSSEC master: key synchronization
-ldapkeydb = LdapKeyDB(ldap, DN(('cn', 'keys'),
-                               ('cn', 'sec'),
-                               ipalib.api.env.container_dns,
-                               ipalib.api.env.basedn))
+try:
+    # LDAP initialization
+    ldap = ipaldap.LDAPClient(ipalib.api.env.ldap_uri)
+    logger.debug('Connecting to LDAP')
+    ldap.gssapi_bind()
+    logger.debug('Connected')
 
-localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, SOFTHSM_DNSSEC_TOKEN_LABEL,
-        open(paths.DNSSEC_SOFTHSM_PIN).read())
-
-ldap2replica_master_keys_sync(ldapkeydb, localhsm)
-ldap2replica_zone_keys_sync(ldapkeydb, localhsm)
-
-sys.exit(0)
+    ### DNSSEC master: key synchronization
+    ldapkeydb = LdapKeyDB(ldap, keys_dn)
+    ldap2replica_master_keys_sync(ldapkeydb, localhsm)
+    ldap2replica_zone_keys_sync(ldapkeydb, localhsm)
+except (errors.NetworkError, errors.DatabaseError) as e:
+    # SERVER_DOWN, CONNECT_ERROR
+    logger.error("LDAP server is down: %s", e)
+    sys.exit(1)
+else:
+    sys.exit(0)
