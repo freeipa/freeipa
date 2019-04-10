@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 set -o errexit
 
 pushd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

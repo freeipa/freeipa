@@ -156,8 +156,8 @@ class TestSudo(IntegrationTest):
 
     def test_add_sudo_commands(self):
         # Group: Readers
-        self.master.run_command(['ipa', 'sudocmd-add', '/usr/bin/cat'])
-        self.master.run_command(['ipa', 'sudocmd-add', '/usr/bin/tail'])
+        self.master.run_command(['ipa', 'sudocmd-add', '/bin/cat'])
+        self.master.run_command(['ipa', 'sudocmd-add', '/bin/tail'])
 
         # No group
         self.master.run_command(['ipa', 'sudocmd-add', '/usr/bin/yum'])
@@ -167,10 +167,10 @@ class TestSudo(IntegrationTest):
                                  '--desc', '"Applications that read"'])
 
         self.master.run_command(['ipa', 'sudocmdgroup-add-member', 'readers',
-                                 '--sudocmds', '/usr/bin/cat'])
+                                 '--sudocmds', '/bin/cat'])
 
         self.master.run_command(['ipa', 'sudocmdgroup-add-member', 'readers',
-                                 '--sudocmds', '/usr/bin/tail'])
+                                 '--sudocmds', '/bin/tail'])
 
     def test_create_allow_all_rule(self):
         # Create rule that allows everything
@@ -441,8 +441,8 @@ class TestSudo(IntegrationTest):
         result1 = self.list_sudo_commands("testuser1")
         assert "(ALL : ALL) NOPASSWD:" in result1.stdout_text
         assert "/usr/bin/yum" in result1.stdout_text
-        assert "/usr/bin/tail" in result1.stdout_text
-        assert "/usr/bin/cat" in result1.stdout_text
+        assert "/bin/tail" in result1.stdout_text
+        assert "/bin/cat" in result1.stdout_text
 
     def test_setting_category_to_all_with_valid_entries_command(self):
         result = self.reset_rule_categories(safe_delete=False)

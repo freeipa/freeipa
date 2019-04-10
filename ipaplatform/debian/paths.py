@@ -63,7 +63,6 @@ class DebianPathNamespace(BasePathNamespace):
     DNSSEC_TRUSTED_KEY = "/etc/bind/trusted-key.key"
     GSSAPI_SESSION_KEY = "/etc/apache2/ipasession.key"
     OLD_KRA_AGENT_PEM = "/etc/apache2/nssdb/kra-agent.pem"
-    KEYCTL = "/bin/keyctl"
     SBIN_SERVICE = "/usr/sbin/service"
     CERTMONGER_COMMAND_TEMPLATE = "/usr/lib/ipa/certmonger/%s"
     UPDATE_CA_TRUST = "/usr/sbin/update-ca-certificates"
