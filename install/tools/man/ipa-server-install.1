@@ -152,6 +152,9 @@ Name of the Kerberos KDC SSL certificate to install.
 \fB\-\-ca\-cert\-file\fR=\fIFILE\fR
 File containing the CA certificate of the CA which issued the Directory Server, Apache Server and Kerberos KDC certificates. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times. Use this option if the CA certificate is not present in the certificate files.
 .TP
+\fB\-\-pki\-config\-override\fR=\fIFILE\fR
+File containing overrides for CA and KRA installation.
+.TP
 \fB\-\-ca\-subject\fR=\fISUBJECT\fR
 The CA certificate subject DN (default CN=Certificate Authority,O=REALM.NAME). RDNs are in LDAP order (most specific RDN first).
 .TP
