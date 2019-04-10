@@ -18,12 +18,13 @@ except ImportError:
 
 @pytest.mark.parametrize('pager,expected_result', [
     # Valid values
-    ('cat', '/usr/bin/cat'),
-    ('/usr/bin/cat', '/usr/bin/cat'),
+    ('cat', '/bin/cat'),
+    ('/bin/cat', '/bin/cat'),
     # Invalid values (wrong command, package is not installed, etc)
     ('cat_', None),
     ('', None)
 ])
 def test_get_pager(pager, expected_result):
     with patch.dict(os.environ, {'PAGER': pager}):
-        assert get_pager() == expected_result
+        pager = get_pager()
+        assert(pager == expected_result or pager.endswith(expected_result))
