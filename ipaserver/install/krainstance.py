@@ -150,11 +150,6 @@ class KRAInstance(DogtagInstance):
         parameters and passes it to the base class to call pkispawn
         """
 
-        # Create an empty and secured file
-        (cfg_fd, cfg_file) = tempfile.mkstemp()
-        os.close(cfg_fd)
-        pent = pwd.getpwnam(self.service_user)
-        os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
         self.tmp_agent_db = tempfile.mkdtemp(
                 prefix="tmp-", dir=paths.VAR_LIB_IPA)
         tmp_agent_pwd = ipautil.ipa_generate_password()
@@ -289,8 +284,11 @@ class KRAInstance(DogtagInstance):
                 )
 
         # Generate configuration file
-        with open(cfg_file, "w") as f:
+        pent = pwd.getpwnam(self.service_user)
+        with tempfile.NamedTemporaryFile('w', delete=False) as f:
             config.write(f)
+            os.fchown(f.fileno(), pent.pw_uid, pent.pw_gid)
+            cfg_file = f.name
 
         try:
             DogtagInstance.spawn_instance(
