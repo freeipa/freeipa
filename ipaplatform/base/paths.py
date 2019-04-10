@@ -26,7 +26,7 @@ class BasePathNamespace(object):
     BASH = "/bin/bash"
     BIN_HOSTNAMECTL = "/bin/hostnamectl"
     ECHO = "/bin/echo"
-    GZIP = "/usr/bin/gzip"
+    GZIP = "/bin/gzip"
     LS = "/bin/ls"
     SH = "/bin/sh"
     SYSTEMCTL = "/bin/systemctl"
@@ -388,7 +388,7 @@ class BasePathNamespace(object):
     SLAPD_INSTANCE_SYSTEMD_IPA_ENV_TEMPLATE = \
         "/etc/systemd/system/dirsrv@%s.service.d/ipa-env.conf"
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
-    KEYCTL = '/usr/bin/keyctl'
+    KEYCTL = '/bin/keyctl'
     GETENT = '/usr/bin/getent'
     SSHD = '/usr/sbin/sshd'
     SSSCTL = '/usr/sbin/sssctl'
