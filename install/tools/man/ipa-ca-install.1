@@ -73,6 +73,9 @@ The CA certificate subject DN (default CN=Certificate Authority,O=REALM.NAME).  
 \fB\-\-subject\-base\fR=\fISUBJECT\fR
 The subject base for certificates issued by IPA (default O=REALM.NAME).  RDNs are in LDAP order (most specific RDN first).
 .TP
+\fB\-\-pki\-config\-override\fR=\fIFILE\fR
+File containing overrides for CA installation.
+.TP
 \fB\-\-ca\-signing\-algorithm\fR=\fIALGORITHM\fR
 Signing algorithm of the IPA CA certificate. Possible values are SHA1withRSA, SHA256withRSA, SHA512withRSA. Default value is SHA256withRSA. Use this option with --external-ca if the external CA does not support the default signing algorithm.
 .TP
