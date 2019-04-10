@@ -32,7 +32,7 @@ def create_broken_resolv_conf(master):
     # Force a broken resolv.conf to simulate a bad response to
     # reverse zone lookups
     master.run_command([
-        '/usr/bin/mv',
+        '/bin/mv',
         paths.RESOLV_CONF,
         '%s.sav' % paths.RESOLV_CONF
     ])
@@ -44,7 +44,7 @@ def create_broken_resolv_conf(master):
 def restore_resolv_conf(master):
     if os.path.exists('%s.sav' % paths.RESOLV_CONF):
         master.run_command([
-            '/usr/bin/mv',
+            '/bin/mv',
             '%s.sav' % paths.RESOLV_CONF,
             paths.RESOLV_CONF
         ])

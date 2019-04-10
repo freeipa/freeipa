@@ -528,7 +528,7 @@ def update_etc_hosts(host, ip, old_hostname, new_hostname):
     :param new_hostname the new hostname to put in /etc/hosts
     '''
     # Make a backup
-    host.run_command(['/usr/bin/cp',
+    host.run_command(['/bin/cp',
                       paths.HOSTS,
                       '%s.sav' % paths.HOSTS])
     contents = host.get_file_contents(paths.HOSTS, encoding='utf-8')
@@ -548,7 +548,7 @@ def update_etc_hosts(host, ip, old_hostname, new_hostname):
 def restore_etc_hosts(host):
     '''Restores /etc/hosts.sav into /etc/hosts
     '''
-    host.run_command(['/usr/bin/mv',
+    host.run_command(['/bin/mv',
                       '%s.sav' % paths.HOSTS,
                       paths.HOSTS],
                      raiseonerr=False)

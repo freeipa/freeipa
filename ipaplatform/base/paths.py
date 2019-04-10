@@ -26,7 +26,7 @@ class BasePathNamespace:
     BASH = "/bin/bash"
     BIN_HOSTNAMECTL = "/bin/hostnamectl"
     ECHO = "/bin/echo"
-    GZIP = "/usr/bin/gzip"
+    GZIP = "/bin/gzip"
     LS = "/bin/ls"
     SH = "/bin/sh"
     SYSTEMCTL = "/bin/systemctl"
@@ -391,7 +391,7 @@ class BasePathNamespace:
     BAK2DB = '/usr/sbin/bak2db'
     DB2BAK = '/usr/sbin/db2bak'
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
-    KEYCTL = '/usr/bin/keyctl'
+    KEYCTL = '/bin/keyctl'
     GETENT = '/usr/bin/getent'
     SSHD = '/usr/sbin/sshd'
     SSSCTL = '/usr/sbin/sssctl'
