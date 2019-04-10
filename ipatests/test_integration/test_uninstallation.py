@@ -72,7 +72,7 @@ class TestUninstallBase(IntegrationTest):
             # uninstaller to raise an exception and return with a
             # non-zero return code.
             self.master.run_command([
-                '/usr/bin/mv',
+                '/bin/mv',
                 '%s/%s' % (paths.ETC_DIRSRV, instance_name),
                 '%s/%s.test' % (paths.ETC_DIRSRV, instance_name)
             ])
@@ -95,7 +95,7 @@ class TestUninstallBase(IntegrationTest):
             # Moving it back should allow the uninstall to finish
             # successfully.
             self.master.run_command([
-                '/usr/bin/mv',
+                '/bin/mv',
                 '%s/%s.test' % (paths.ETC_DIRSRV, instance_name),
                 '%s/%s' % (paths.ETC_DIRSRV, instance_name)
             ])
