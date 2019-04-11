@@ -29,32 +29,42 @@ from dns.exception import DNSException
 from ipalib import errors
 from ipalib.util import validate_domain_name
 from ipapython.dnsutil import query_srv
-from ipapython import ipaldap
+
 from ipaplatform.paths import paths
 from ipapython.ipautil import valid_ip, realm_to_suffix
 from ipapython.dn import DN
 
+try:
+    import ldap  # pylint: disable=unused-import
+except ImportError:
+    ipaldap = None
+else:
+    from ipapython import ipaldap
+
 logger = logging.getLogger(__name__)
 
+SUCCESS = 0
 NOT_FQDN = -1
 NO_LDAP_SERVER = -2
 REALM_NOT_FOUND = -3
 NOT_IPA_SERVER = -4
 NO_ACCESS_TO_LDAP = -5
 NO_TLS_LDAP = -6
+PYTHON_LDAP_NOT_INSTALLED = -7
 BAD_HOST_CONFIG = -10
 UNKNOWN_ERROR = -15
 
 IPA_BASEDN_INFO = 'ipa v2.0'
 
 error_names = {
-    0: 'Success',
+    SUCCESS: 'Success',
     NOT_FQDN: 'NOT_FQDN',
     NO_LDAP_SERVER: 'NO_LDAP_SERVER',
     REALM_NOT_FOUND: 'REALM_NOT_FOUND',
     NOT_IPA_SERVER: 'NOT_IPA_SERVER',
     NO_ACCESS_TO_LDAP: 'NO_ACCESS_TO_LDAP',
     NO_TLS_LDAP: 'NO_TLS_LDAP',
+    PYTHON_LDAP_NOT_INSTALLED: 'PYTHON_LDAP_NOT_INSTALLED',
     BAD_HOST_CONFIG: 'BAD_HOST_CONFIG',
     UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 }
@@ -310,7 +320,7 @@ class IPADiscovery:
                 server, self.realm, ca_cert_path=ca_cert_path
             )
 
-            if ldapret[0] == 0:
+            if ldapret[0] == SUCCESS:
                 # Make sure that realm is not single-label
                 try:
                     validate_domain_name(ldapret[2], entity='realm')
@@ -330,7 +340,8 @@ class IPADiscovery:
                         # No need to keep verifying servers if we discovered
                         # them via DNS
                         break
-            elif ldapret[0] == NO_ACCESS_TO_LDAP or ldapret[0] == NO_TLS_LDAP:
+            elif ldapret[0] in (NO_ACCESS_TO_LDAP, NO_TLS_LDAP,
+                                PYTHON_LDAP_NOT_INSTALLED):
                 ldapaccess = False
                 valid_servers.append(server)
                 # we may set verified_servers below, we don't have it yet
@@ -381,7 +392,7 @@ class IPADiscovery:
         # to indicate success.
         if valid_servers:
             self.server = servers[0]
-            ldapret[0] = 0
+            ldapret[0] = SUCCESS
 
         return ldapret[0]
 
@@ -393,10 +404,10 @@ class IPADiscovery:
         Returns a list [errno, host, realm] or an empty list on error.
         Errno is an error number:
             0 means all ok
-            1 means we could not check the info in LDAP (may happend when
-                anonymous binds are disabled)
-            2 means the server is certainly not an IPA server
+            negative number means something went wrong
         """
+        if ipaldap is None:
+            return [PYTHON_LDAP_NOT_INSTALLED]
 
         lrealms = []
 
@@ -460,7 +471,7 @@ class IPADiscovery:
             if trealm:
                 for r in lrealms:
                     if trealm == r:
-                        return [0, thost, trealm]
+                        return [SUCCESS, thost, trealm]
                 # must match or something is very wrong
                 logger.debug("Realm %s does not match any realm in LDAP "
                              "database", trealm)
@@ -474,7 +485,7 @@ class IPADiscovery:
                         "is the correct realm without working DNS")
                     return [REALM_NOT_FOUND]
                 else:
-                    return [0, thost, lrealms[0]]
+                    return [SUCCESS, thost, lrealms[0]]
 
             # we shouldn't get here
             assert False, "Unknown error in ipadiscovery"
