@@ -1654,36 +1654,17 @@ def setup_spake(krb):
         aug.close()
 
 
-def enable_certauth(krb):
-    logger.info("[Enable certauth]")
+# Currently, this doesn't support templating.
+def enable_server_snippet():
+    logger.info("[Enable server krb5.conf snippet]")
+    template = os.path.join(
+        paths.USR_SHARE_IPA_DIR,
+        os.path.basename(paths.KRB5_FREEIPA_SERVER) + ".template"
+    )
+    shutil.copy(template, paths.KRB5_FREEIPA_SERVER)
+    os.chmod(paths.KRB5_FREEIPA_SERVER, 0o644)
 
-    aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD,
-                 loadpath=paths.USR_SHARE_IPA_DIR)
-    try:
-        aug.transform('IPAKrb5', paths.KRB5_CONF)
-        aug.load()
-
-        path = '/files{}/plugins/certauth'.format(paths.KRB5_CONF)
-        modified = False
-
-        if not aug.match(path):
-            aug.set('{}/module'.format(path), 'ipakdb:kdb/ipadb.so')
-            aug.set('{}/enable_only'.format(path), 'ipakdb')
-            modified = True
-
-        if modified:
-            try:
-                aug.save()
-            except IOError:
-                for error_path in aug.match('/augeas//error'):
-                    logger.error('augeas: %s', aug.get(error_path))
-                raise
-
-            if krb.is_running():
-                krb.stop()
-            krb.start()
-    finally:
-        aug.close()
+    tasks.restore_context(paths.KRB5_FREEIPA_SERVER)
 
 
 def ntpd_cleanup(fqdn, fstore):
@@ -2144,7 +2125,7 @@ def upgrade_configuration():
     krb.add_anonymous_principal()
     setup_spake(krb)
     setup_pkinit(krb)
-    enable_certauth(krb)
+    enable_server_snippet()
 
     if not ds_running:
         ds.stop(ds.serverid)
