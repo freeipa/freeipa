@@ -27,6 +27,7 @@ import six
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 from ipalib import errors
+from ipalib.util import validate_domain_name
 from ipapython.dnsutil import query_srv
 from ipapython import ipaldap
 from ipaplatform.paths import paths
@@ -233,6 +234,13 @@ class IPADiscovery(object):
                 domains = [(domain, 'domain of the hostname')] + domains
                 tried = set()
                 for domain, reason in domains:
+                    # Domain name should not be single-label
+                    try:
+                        validate_domain_name(domain)
+                    except ValueError as e:
+                        logger.debug("Skipping invalid domain '%s' (%s)",
+                                     domain, e)
+                        continue
                     servers, domain = self.check_domain(domain, tried, reason)
                     if servers:
                         autodiscovered = True
@@ -300,17 +308,25 @@ class IPADiscovery(object):
             ldapret = self.ipacheckldap(server, self.realm, ca_cert_path=ca_cert_path)
 
             if ldapret[0] == 0:
-                self.server = ldapret[1]
-                self.realm = ldapret[2]
-                self.server_source = self.realm_source = (
-                    'Discovered from LDAP DNS records in %s' % self.server)
-                valid_servers.append(server)
-                # verified, we actually talked to the remote server and it
-                # is definetely an IPA server
-                if autodiscovered:
-                    # No need to keep verifying servers if we discovered them
-                    # via DNS
-                    break
+                # Make sure that realm is not single-label
+                try:
+                    validate_domain_name(ldapret[2], entity='realm')
+                except ValueError as e:
+                    logger.debug("Skipping invalid realm '%s' (%s)",
+                                 ldapret[2], e)
+                    ldapret = [NOT_IPA_SERVER]
+                else:
+                    self.server = ldapret[1]
+                    self.realm = ldapret[2]
+                    self.server_source = self.realm_source = (
+                        'Discovered from LDAP DNS records in %s' % self.server)
+                    valid_servers.append(server)
+                    # verified, we actually talked to the remote server and it
+                    # is definetely an IPA server
+                    if autodiscovered:
+                        # No need to keep verifying servers if we discovered
+                        # them via DNS
+                        break
             elif ldapret[0] == NO_ACCESS_TO_LDAP or ldapret[0] == NO_TLS_LDAP:
                 ldapaccess = False
                 valid_servers.append(server)
@@ -548,6 +564,13 @@ class IPADiscovery(object):
                         'A TXT record cannot be decoded as UTF-8: %s', e)
                     continue
                 if realm:
+                    # Make sure that the realm is not single-label
+                    try:
+                        validate_domain_name(realm, entity='realm')
+                    except ValueError as e:
+                        logger.debug("Skipping invalid realm '%s' (%s)",
+                                     realm, e)
+                        continue
                     return realm
         return None
 
