@@ -46,7 +46,6 @@ from ipalib.base import ReadOnly, lock, islocked
 from ipalib.constants import DEFAULT_CONFIG
 from ipapython import ipa_log_manager, ipautil
 from ipapython.ipa_log_manager import (
-    log_mgr,
     LOGGING_FORMAT_FILE,
     LOGGING_FORMAT_STDERR)
 from ipapython.version import VERSION, API_VERSION, DEFAULT_PLUGINS
@@ -144,7 +143,6 @@ class Plugin(ReadOnly):
         self.__finalize_called = False
         self.__finalized = False
         self.__finalize_lock = threading.RLock()
-        log_mgr.get_logger(self, True)
 
     @classmethod
     def __name_getter(cls):
@@ -438,7 +436,6 @@ class API(ReadOnly):
         Initialize environment variables and logging.
         """
         self.__doing('bootstrap')
-        self.log = log_mgr.get_logger(self)
         self.env._bootstrap(**overrides)
         self.env._finalize_core(**dict(DEFAULT_CONFIG))
 

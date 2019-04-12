@@ -20,11 +20,9 @@ import logging
 import os
 import re
 import time
-import warnings
-import sys
 
 # Module exports
-__all__ = ['log_mgr', 'root_logger', 'standard_logging_setup',
+__all__ = ['standard_logging_setup',
            'ISO8601_UTC_DATETIME_FMT',
            'LOGGING_FORMAT_STDERR', 'LOGGING_FORMAT_STDOUT', 'LOGGING_FORMAT_FILE']
 
@@ -53,82 +51,6 @@ LOGGING_FORMAT_STANDARD_CONSOLE = '%(name)-12s: %(levelname)-8s %(message)s'
 
 # Used by standard_logging_setup() for file message
 LOGGING_FORMAT_STANDARD_FILE = '%(asctime)s %(levelname)s %(message)s'
-
-
-class _DeprecatedLogger:
-    def __init__(self, logger, name):
-        self._logger = logger
-        self._name = name
-
-    def _warn(self):
-        warnings.warn(
-            "{} is deprecated, use a module-level logger".format(self._name),
-            DeprecationWarning)
-
-    def debug(self, *args, **kwargs):
-        self._warn()
-        self._logger.debug(*args, **kwargs)
-
-    def info(self, *args, **kwargs):
-        self._warn()
-        self._logger.info(*args, **kwargs)
-
-    def warning(self, *args, **kwargs):
-        self._warn()
-        self._logger.warning(*args, **kwargs)
-
-    def error(self, *args, **kwargs):
-        self._warn()
-        self._logger.error(*args, **kwargs)
-
-    def critical(self, *args, **kwargs):
-        self._warn()
-        self._logger.critical(*args, **kwargs)
-
-    def exception(self, *args, **kwargs):
-        self._warn()
-        self._logger.exception(*args, **kwargs)
-
-
-def get_logger(who, bind_logger_names=False):
-    if isinstance(who, str):
-        warnings.warn(
-            "{}.log_mgr.get_logger is deprecated, use "
-            "logging.getLogger".format(__name__),
-            DeprecationWarning)
-
-        logger_name = who
-    else:
-        caller_globals = sys._getframe(1).f_globals
-        logger_name = caller_globals.get('__name__', '__main__')
-        if logger_name == '__main__':
-            logger_name = caller_globals.get('__file__', logger_name)
-            logger_name = os.path.basename(logger_name)
-
-    logger = logging.getLogger(logger_name)
-
-    if not isinstance(who, str):
-        obj_name = '%s.%s' % (who.__module__, who.__class__.__name__)
-        logger = _DeprecatedLogger(logger, obj_name)
-
-    if bind_logger_names:
-        method = 'log'
-        if hasattr(who, method):
-            raise ValueError('%s is already bound to %s' % (method, repr(who)))
-        setattr(who, method, logger)
-
-        for method in ('debug',
-                       'info',
-                       'warning',
-                       'error',
-                       'exception',
-                       'critical'):
-            if hasattr(who, method):
-                raise ValueError(
-                    '%s is already bound to %s' % (method, repr(who)))
-            setattr(who, method, getattr(logger, method))
-
-    return logger
 
 
 class Filter:
@@ -195,10 +117,3 @@ def convert_log_level(value):
         except KeyError:
             raise ValueError('unknown log level (%s)' % value)
     return level
-
-
-# Single shared instance of log manager
-log_mgr = sys.modules[__name__]
-
-root_logger = _DeprecatedLogger(logging.getLogger(),
-                                '{}.log_mgr.root_logger'.format(__name__))
