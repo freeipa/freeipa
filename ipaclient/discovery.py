@@ -602,3 +602,44 @@ class IPADiscovery:
             kdc = None
 
         return kdc
+
+
+def main():
+    import argparse
+    import os
+    from ipapython.ipa_log_manager import standard_logging_setup
+
+    parser = argparse.ArgumentParser(__name__)
+
+    if os.path.isfile(paths.IPA_CA_CRT):
+        default_ca = paths.IPA_CA_CRT
+    else:
+        default_ca = None
+    parser.add_argument('--ca-cert', default=default_ca)
+    parser.add_argument('--debug', action='store_true')
+    parser.add_argument('domain')
+
+    args = parser.parse_args()
+
+    standard_logging_setup(debug=args.debug)
+
+    discover = IPADiscovery()
+    result = discover.search(args.domain, ca_cert_path=args.ca_cert)
+
+    for key in ['realm', 'domain', 'basedn', 'server', 'servers']:
+        value = str(getattr(discover, key))
+        source_key = "{}_source".format(key)
+        source = getattr(discover, source_key, None)
+        if source is not None:
+            print("{:<8} {:<32}\t({})".format(key, value, source))
+        else:
+            print("{:<8} {:<32}".format(key, value))
+
+    parser.exit(
+        abs(result),
+        "{}\n".format(error_names.get(result, result))
+    )
+
+
+if __name__ == '__main__':
+    main()
