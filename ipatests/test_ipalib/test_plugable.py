@@ -77,14 +77,6 @@ class test_Plugin(ClassChecker):
         assert o.summary == u'<%s.%s>' % (another_subclass.__module__,
                                           another_subclass.__name__)
 
-        # Test that Plugin makes sure the subclass hasn't defined attributes
-        # whose names conflict with the logger methods set in Plugin.__init__():
-        class check(self.cls):
-            info = 'whatever'
-        e = raises(Exception, check, api)
-        assert str(e) == \
-            "info is already bound to ipatests.test_ipalib.test_plugable.check()"
-
     def test_finalize(self):
         """
         Test the `ipalib.plugable.Plugin.finalize` method.
