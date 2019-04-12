@@ -41,6 +41,12 @@ dn: $SUFFIX
 add:aci: (targetattr = "ipaNTHash")(version 3.0; acl "Samba system principals can read and write NT passwords"; allow (read,write) groupdn="ldap:///cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX";)
 remove:aci: (targetattr = "ipaNTHash")(version 3.0; acl "Samba system principals can read NT passwords"; allow (read) groupdn="ldap:///cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX";)
 
+# For Samba as a domain member setup we need to allow synchronizing ipaNTHash value
+dn: cn=services,cn=accounts,$SUFFIX
+add:aci: (target="ldap:///krbprincipalname=cifs/($$dn),cn=services,cn=accounts,$SUFFIX")(targetattr="ipaNTHash")(version 3.0; acl "CIFS service can modify own ipaNTHash"; allow(write) userdn="ldap:///krbprincipalname=cifs/($$dn),cn=services,cn=accounts,$SUFFIX" or userattr="managedby#SELFDN";)
+add:aci: (target="ldap:///krbprincipalname=cifs/($$dn),cn=services,cn=accounts,$SUFFIX")(targattrfilters="add=objectClass:(objectClass=ipaNTUserAttrs)")(version 3.0; acl "CIFS service can add ipaNTUserAttrs to itself"; allow(write) userdn="ldap:///krbprincipalname=cifs/($$dn),cn=services,cn=accounts,$SUFFIX" or userattr="managedby#SELFDN";)
+
+
 # Add the default PAC type to configuration
 dn: cn=ipaConfig,cn=etc,$SUFFIX
 addifnew: ipaKrbAuthzData: MS-PAC

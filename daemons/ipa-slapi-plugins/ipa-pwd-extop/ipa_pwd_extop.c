@@ -97,7 +97,8 @@ void *ipapwd_get_plugin_id(void)
 }
 
 static void filter_keys(struct ipapwd_krbcfg *krbcfg,
-                        struct ipapwd_keyset *kset)
+                        struct ipapwd_keyset *kset,
+                        bool allow_nthash)
 {
     int i, j;
 
@@ -108,6 +109,14 @@ static void filter_keys(struct ipapwd_krbcfg *krbcfg,
                 break;
             }
         }
+
+        /* if requested by the caller, allow arcfour-hmac even
+         * if it is missing in the list of supported enctypes. */
+        if (allow_nthash &&
+            (ENCTYPE_ARCFOUR_HMAC == kset->keys[i].key_data_type[0])) {
+            break;
+        }
+
         if (j == krbcfg->num_supp_encsalts) { /* not valid */
 
             /* free key */
@@ -130,7 +139,8 @@ static void filter_keys(struct ipapwd_krbcfg *krbcfg,
 
 static void filter_enctypes(struct ipapwd_krbcfg *krbcfg,
                             krb5_key_salt_tuple *kenctypes,
-                            int *num_kenctypes)
+                            int *num_kenctypes,
+                            bool allow_nthash)
 {
     /* first filter for duplicates */
     for (int i = 0; i + 1 < *num_kenctypes; i++) {
@@ -157,6 +167,12 @@ static void filter_enctypes(struct ipapwd_krbcfg *krbcfg,
                                     krbcfg->supp_encsalts[j].ks_enctype) {
                 break;
             }
+        }
+        /* if requested by the caller, allow arcfour-hmac even
+         * if it is missing in the list of supported enctypes. */
+        if (allow_nthash &&
+            (ENCTYPE_ARCFOUR_HMAC == kenctypes[i].ks_enctype)) {
+            break;
         }
         if (j == krbcfg->num_supp_encsalts) {
             /* Unsupported, filter out */
@@ -1198,6 +1214,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     int kvno;
     char *svcname;
     bool allowed_access = false;
+    bool is_nthash_allowed = false;
     struct berval *bvp = NULL;
     LDAPControl new_ctrl;
 
@@ -1270,7 +1287,12 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     for (int i = 0; i < kset->num_keys; i++) {
         kset->keys[i].key_data_kvno = kvno;
     }
-    filter_keys(krbcfg, kset);
+
+    /* Only allow generating arcfour-hmac keys for cifs/.. services
+     * unless the enctype is allowed by the IPA configuration for use
+     * by the all principals */
+    is_nthash_allowed = (0 == strncmp("cifs/", serviceName, 5));
+    filter_keys(krbcfg, kset, is_nthash_allowed);
 
 	/* check if we have any left */
 	if (kset->num_keys == 0) {
@@ -1579,6 +1601,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     struct berval *bvp = NULL;
     LDAPControl new_ctrl;
     bool wantold = false;
+    bool is_nthash_allowed = false;
 
     /* Get Bind DN */
     slapi_pblock_get(pb, SLAPI_CONN_DN, &bind_dn);
@@ -1664,7 +1687,11 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
             goto free_and_return;
         }
 
-        filter_enctypes(krbcfg, kenctypes, &num_kenctypes);
+        /* Only allow generating arcfour-hmac keys for cifs/.. services
+         * unless the enctype is allowed by the IPA configuration for use
+         * by the all principals */
+        is_nthash_allowed = (0 == strncmp("cifs/", service_name, 5));
+        filter_enctypes(krbcfg, kenctypes, &num_kenctypes, is_nthash_allowed);
 
         /* check if we have any left */
         if (num_kenctypes == 0 && kenctypes != NULL) {
