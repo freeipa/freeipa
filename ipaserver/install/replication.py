@@ -1070,11 +1070,23 @@ class ReplicationManager:
             inprogress = entry.single_value.get('nsds5replicaUpdateInProgress')
             status = entry.single_value.get('nsds5ReplicaLastUpdateStatus')
             try:
-                start = int(entry.single_value['nsds5ReplicaLastUpdateStart'])
+                # nsds5ReplicaLastUpdateStart is either a GMT time
+                # ending with Z or 0 (see 389-ds ticket 47836)
+                # Remove the Z and convert to int
+                start = entry.single_value['nsds5ReplicaLastUpdateStart']
+                if start.endswith('Z'):
+                    start = start[:-1]
+                start = int(start)
             except (ValueError, TypeError, KeyError):
                 start = 0
             try:
-                end = int(entry.single_value['nsds5ReplicaLastUpdateEnd'])
+                # nsds5ReplicaLastUpdateEnd is either a GMT time
+                # ending with Z or 0 (see 389-ds ticket 47836)
+                # Remove the Z and convert to int
+                end = entry.single_value['nsds5ReplicaLastUpdateEnd']
+                if end.endswith('Z'):
+                    end = end[:-1]
+                end = int(end)
             except (ValueError, TypeError, KeyError):
                 end = 0
             # incremental update is done if inprogress is false and end >= start
