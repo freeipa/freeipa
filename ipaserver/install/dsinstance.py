@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import logging
 import shutil
@@ -41,6 +41,7 @@ from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
                               TrustFlags)
 from ipapython import ipautil, ipaldap
 from ipapython import dogtag
+from ipapython.ipa_log_manager import CommandOutput
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import certs
@@ -58,6 +59,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 DS_USER = platformconstants.DS_USER
 DS_GROUP = platformconstants.DS_GROUP
@@ -1052,7 +1054,7 @@ class DsInstance(service.Service):
                 ipautil.run(args, env=env)
                 logger.debug("ldappasswd done")
             except ipautil.CalledProcessError as e:
-                print("Unable to set admin password", e)
+                logcm("Unable to set admin password %s", e)
                 logger.debug("Unable to set admin password %s", e)
 
     def uninstall(self):
