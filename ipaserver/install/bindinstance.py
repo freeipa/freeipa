@@ -18,7 +18,6 @@
 #
 
 from __future__ import absolute_import
-from __future__ import print_function
 
 import logging
 import tempfile
@@ -47,6 +46,7 @@ from ipapython import dnsutil
 from ipapython.dnsutil import DNSName
 from ipapython.dn import DN
 from ipapython.admintool import ScriptError
+from ipapython.ipa_log_manager import CommandOutput
 import ipalib
 from ipalib import api, errors
 from ipalib.constants import IPA_CA_RECORD
@@ -66,6 +66,7 @@ if six.PY3:
     unicode = str
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 named_conf_section_ipa_start_re = re.compile('\s*dyndb\s+"ipa"\s+"[^"]+"\s+{')
 named_conf_section_options_start_re = re.compile('\s*options\s+{')
@@ -531,7 +532,7 @@ def check_reverse_zones(ip_addresses, reverse_zones, options, unattended,
 
 
 def check_forwarders(dns_forwarders):
-    print("Checking DNS forwarders, please wait ...")
+    logcm("Checking DNS forwarders, please wait ...")
     forwarders_dnssec_valid = True
     for forwarder in dns_forwarders:
         logger.debug("Checking DNS server: %s", forwarder)
@@ -545,16 +546,18 @@ def check_forwarders(dns_forwarders):
                            "DNSSEC support.\n"
                            "(For BIND 9 add directive \"dnssec-enable yes;\" "
                            "to \"options {}\")")
-            print("DNS server %s: %s" % (forwarder, e))
-            print("Please fix forwarder configuration to enable DNSSEC support.")
-            print("(For BIND 9 add directive \"dnssec-enable yes;\" to \"options {}\")")
+            logcm("DNS server %s: %s" % (forwarder, e))
+            logcm("Please fix forwarder configuration to enable DNSSEC "
+                  "support.")
+            logcm("(For BIND 9 add directive \"dnssec-enable yes;\" to "
+                  "\"options {}\")")
         except EDNS0UnsupportedError as e:
             forwarders_dnssec_valid = False
             logger.warning("DNS server %s does not support ENDS0 "
                            "(RFC 6891): %s", forwarder, e)
             logger.warning("Please fix forwarder configuration. "
                            "DNSSEC support cannot be enabled without EDNS0")
-            print(("WARNING: DNS server %s does not support EDNS0 "
+            logcm(("WARNING: DNS server %s does not support EDNS0 "
                    "(RFC 6891): %s" % (forwarder, e)))
         except UnresolvableRecordError as e:
             logger.error("DNS server %s: %s", forwarder, e)
@@ -709,7 +712,7 @@ class BindInstance(service.Service):
                 suffix=".db", delete=False
         ) as f:
             f.write(text)
-            print("Please add records in this file to your DNS system:",
+            logcm("Please add records in this file to your DNS system:",
                   f.name)
 
     def create_instance(self):
@@ -764,7 +767,7 @@ class BindInstance(service.Service):
             self.restart()
         except Exception as e:
             logger.error("Named service failed to start (%s)", e)
-            print("named service failed to start")
+            logcm("named service failed to start")
 
     def __enable(self):
         if self.get_state("enabled") is None:
@@ -1176,14 +1179,16 @@ class BindInstance(service.Service):
         )
 
         if not global_conf_set:
-            print("Global DNS configuration in LDAP server is empty")
-            print("You can use 'dnsconfig-mod' command to set global DNS options that")
-            print("would override settings in local named.conf files")
+            logcm("Global DNS configuration in LDAP server is empty")
+            logcm("You can use 'dnsconfig-mod' command to set global DNS "
+                  "options that")
+            logcm("would override settings in local named.conf files")
             return
 
-        print("Global DNS configuration in LDAP server is not empty")
-        print("The following configuration options override local settings in named.conf:")
-        print("")
+        logcm("Global DNS configuration in LDAP server is not empty")
+        logcm("The following configuration options override local settings "
+              "in named.conf:")
+        logcm("")
         textui = ipalib.cli.textui(self.api)
         self.api.Command.dnsconfig_show.output_for_cli(textui, result, None,
                                                        reverse=False)
