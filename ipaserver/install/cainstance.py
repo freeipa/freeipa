@@ -69,7 +69,6 @@ from ipaserver.install import sysupgrade
 from ipaserver.install.dogtaginstance import DogtagInstance
 from ipaserver.plugins import ldap2
 from ipaserver.masters import ENABLED_SERVICE
-from ipaserver.install.installutils import remove_file
 
 logger = logging.getLogger(__name__)
 
@@ -514,20 +513,14 @@ class CAInstance(DogtagInstance):
                     pki_clone_reindex_data=True,
                 )
 
-            cafile = self.pkcs12_info[0]
-
-            # if paths.TMP_CA_P12 exists and is not owned by root,
-            # shutil.copy will fail if when fs.protected_regular=1
-            # so remove the file first
-            remove_file(paths.TMP_CA_P12)
-            shutil.copy(cafile, paths.TMP_CA_P12)
-            pent = pwd.getpwnam(self.service_user)
-            os.chown(paths.TMP_CA_P12, pent.pw_uid, pent.pw_gid)
+            ca_p12 = ipautil.tmpmgr.copyto(
+                self.service_user, self.pkcs12_info[0]
+            )
 
             self._configure_clone(
                 cfg,
                 security_domain_hostname=self.master_host,
-                clone_pkcs12_path=paths.TMP_CA_P12,
+                clone_pkcs12_path=ca_p12,
             )
 
         # External CA

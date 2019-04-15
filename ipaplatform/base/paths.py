@@ -157,7 +157,6 @@ class BasePathNamespace:
     SBIN_RESTORECON = "/sbin/restorecon"
     SBIN_SERVICE = "/sbin/service"
     TMP = "/tmp"
-    TMP_CA_P12 = "/tmp/ca.p12"
     TMP_KRB5CC = "/tmp/krb5cc_%d"
     USR_DIR = "/usr"
     CERTMONGER_COMMAND_TEMPLATE = "/usr/libexec/ipa/certmonger/%s"
