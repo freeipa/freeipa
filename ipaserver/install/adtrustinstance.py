@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import logging
 import os
@@ -43,6 +43,7 @@ from ipapython.dn import DN
 from ipapython import ipaldap
 from ipapython import ipautil
 import ipapython.errors
+from ipapython.ipa_log_manager import CommandOutput
 
 import ipaclient.install.ipachangeconf
 from ipaplatform import services
@@ -54,6 +55,7 @@ if six.PY3:
     unicode = str
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits + '-'
 
@@ -68,8 +70,8 @@ and re-run ipa-adtrust-instal again afterwards.
 def check_inst():
     for smbfile in [paths.SMBD, paths.NET]:
         if not os.path.exists(smbfile):
-            print("%s was not found on this system" % smbfile)
-            print("Please install the 'samba' packages and " \
+            logcm("%s was not found on this system" % smbfile)
+            logcm("Please install the 'samba' packages and "
                   "start the installation again")
             return False
 
@@ -77,9 +79,9 @@ def check_inst():
     # by looking for the file /usr/share/ipa/smb.conf.empty
     if not os.path.exists(os.path.join(paths.USR_SHARE_IPA_DIR,
                                        "smb.conf.empty")):
-        print("AD Trust requires the '%s' package" %
+        logcm("AD Trust requires the '%s' package" %
               constants.IPA_ADTRUST_PACKAGE_NAME)
-        print("Please install the package and start the installation again")
+        logcm("Please install the package and start the installation again")
         return False
 
     #TODO: Add check for needed samba4 libraries
