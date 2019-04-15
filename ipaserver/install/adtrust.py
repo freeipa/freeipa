@@ -6,7 +6,7 @@
 AD trust installer module
 """
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import logging
 import os
@@ -21,6 +21,7 @@ from ipaplatform.paths import paths
 from ipapython.admintool import ScriptError
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
+from ipapython.ipa_log_manager import CommandOutput
 from ipapython.install.core import group, knob
 from ipaserver.install import adtrustinstance
 from ipaserver.install import service
@@ -30,6 +31,7 @@ if six.PY3:
     unicode = str
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 netbios_name = None
 reset_netbios_name = False
@@ -45,18 +47,18 @@ def netbios_name_error(name):
 def read_netbios_name(netbios_default):
     netbios_name = ""
 
-    print("Enter the NetBIOS name for the IPA domain.")
-    print("Only up to 15 uppercase ASCII letters, digits "
+    logcm("Enter the NetBIOS name for the IPA domain.")
+    logcm("Only up to 15 uppercase ASCII letters, digits "
           "and dashes are allowed.")
-    print("Example: EXAMPLE.")
-    print("")
-    print("")
+    logcm("Example: EXAMPLE.")
+    logcm("")
+    logcm("")
     if not netbios_default:
         netbios_default = "EXAMPLE"
     while True:
         netbios_name = ipautil.user_input(
             "NetBIOS domain name", netbios_default, allow_empty=False)
-        print("")
+        logcm("")
         if adtrustinstance.check_netbios_name(netbios_name):
             break
 
@@ -108,16 +110,16 @@ def set_and_check_netbios_name(netbios_name, unattended, api):
         reset_netbios_name = False
     elif cur_netbios_name and cur_netbios_name != netbios_name:
         # change the NetBIOS name
-        print("Current NetBIOS domain name is %s, new name is %s.\n"
+        logcm("Current NetBIOS domain name is %s, new name is %s.\n"
               % (cur_netbios_name, netbios_name))
-        print("Please note that changing the NetBIOS name might "
+        logcm("Please note that changing the NetBIOS name might "
               "break existing trust relationships.")
         if unattended:
             reset_netbios_name = True
-            print("NetBIOS domain name will be changed to %s.\n"
+            logcm("NetBIOS domain name will be changed to %s.\n"
                   % netbios_name)
         else:
-            print("Say 'yes' if the NetBIOS shall be changed and "
+            logcm("Say 'yes' if the NetBIOS shall be changed and "
                   "'no' if the old one shall be kept.")
             reset_netbios_name = ipautil.user_input(
                             'Do you want to reset the NetBIOS domain name?',
@@ -134,7 +136,7 @@ def set_and_check_netbios_name(netbios_name, unattended, api):
 
         if gen_netbios_name is not None:
             # Fix existing trust configuration
-            print("Trust is configured but no NetBIOS domain name found, "
+            logcm("Trust is configured but no NetBIOS domain name found, "
                   "setting it now.")
             reset_netbios_name = True
         else:
@@ -163,16 +165,16 @@ def set_and_check_netbios_name(netbios_name, unattended, api):
 
 
 def enable_compat_tree():
-    print("Do you want to enable support for trusted domains in Schema "
+    logcm("Do you want to enable support for trusted domains in Schema "
           "Compatibility plugin?")
-    print("This will allow clients older than SSSD 1.9 and non-Linux "
+    logcm("This will allow clients older than SSSD 1.9 and non-Linux "
           "clients to work with trusted users.")
-    print("")
+    logcm("")
     enable_compat = ipautil.user_input(
         "Enable trusted domains support in slapi-nis?",
         default=False,
         allow_empty=False)
-    print("")
+    logcm("")
     return enable_compat
 
 
@@ -221,21 +223,21 @@ def retrieve_and_ask_about_sids(api, options):
 
     object_count = len(entries)
     if object_count > 0:
-        print("")
-        print("WARNING: %d existing users or groups do not have "
+        logcm("")
+        logcm("WARNING: %d existing users or groups do not have "
               "a SID identifier assigned." % len(entries))
-        print("Installer can run a task to have ipa-sidgen "
+        logcm("Installer can run a task to have ipa-sidgen "
               "Directory Server plugin generate")
-        print("the SID identifier for all these users. Please note, "
+        logcm("the SID identifier for all these users. Please note, "
               "in case of a high")
-        print("number of users and groups, the operation might "
+        logcm("number of users and groups, the operation might "
               "lead to high replication")
-        print("traffic and performance degradation. Refer to "
+        logcm("traffic and performance degradation. Refer to "
               "ipa-adtrust-install(1) man page")
-        print("for details.")
-        print("")
+        logcm("for details.")
+        logcm("")
         if options.unattended:
-            print("Unattended mode was selected, installer will "
+            logcm("Unattended mode was selected, installer will "
                   "NOT run ipa-sidgen task!")
         else:
             if ipautil.user_input(
@@ -312,20 +314,20 @@ def add_new_adtrust_agents(api, options):
     potential_agents_cns = retrieve_potential_adtrust_agents(api)
 
     if potential_agents_cns:
-        print("")
-        print("WARNING: %d IPA masters are not yet able to serve "
+        logcm("")
+        logcm("WARNING: %d IPA masters are not yet able to serve "
               "information about users from trusted forests."
               % len(potential_agents_cns))
-        print("Installer can add them to the list of IPA masters "
+        logcm("Installer can add them to the list of IPA masters "
               "allowed to access information about trusts.")
-        print("If you choose to do so, you also need to restart "
+        logcm("If you choose to do so, you also need to restart "
               "LDAP service on those masters.")
-        print("Refer to ipa-adtrust-install(1) man page for details.")
-        print("")
+        logcm("Refer to ipa-adtrust-install(1) man page for details.")
+        logcm("")
         if options.unattended:
-            print("Unattended mode was selected, installer will NOT "
+            logcm("Unattended mode was selected, installer will NOT "
                   "add other IPA masters to the list of allowed to")
-            print("access information about trusted forests!")
+            logcm("access information about trusted forests!")
             return
 
     new_agents = []
@@ -340,12 +342,12 @@ def add_new_adtrust_agents(api, options):
     if new_agents:
         add_hosts_to_adtrust_agents(api, new_agents)
 
-        print("""
+        logcm("""
 WARNING: you MUST restart (e.g. ipactl restart) the following IPA masters in
 order to activate them to serve information about users from trusted forests:
 """)
         for x in new_agents:
-            print(x)
+            logcm(x)
 
 
 def install_check(standalone, options, api):
@@ -358,7 +360,7 @@ def install_check(standalone, options, api):
     realm_not_matching_domain = (api.env.domain.upper() != api.env.realm)
 
     if realm_not_matching_domain:
-        print("WARNING: Realm name does not match the domain name.\n"
+        logcm("WARNING: Realm name does not match the domain name.\n"
               "You will not be able to establish trusts with Active "
               "Directory unless\nthe realm name of the IPA server matches its "
               "domain name.\n\n")
@@ -369,18 +371,18 @@ def install_check(standalone, options, api):
                 raise ScriptError("Aborting installation.")
 
     # Check if /etc/samba/smb.conf already exists. In case it was not generated
-    # by IPA, print a warning that we will break existing configuration.
+    # by IPA, logcm a warning that we will break existing configuration.
 
     if adtrustinstance.ipa_smb_conf_exists():
         if not options.unattended:
-            print("IPA generated smb.conf detected.")
+            logcm("IPA generated smb.conf detected.")
             if not ipautil.user_input("Overwrite smb.conf?",
                                       default=False,
                                       allow_empty=False):
                 raise ScriptError("Aborting installation.")
 
     elif os.path.exists(paths.SMB_CONF):
-        print("WARNING: The smb.conf already exists. Running "
+        logcm("WARNING: The smb.conf already exists. Running "
               "ipa-adtrust-install will break your existing samba "
               "configuration.\n\n")
         if not options.unattended:
@@ -389,7 +391,7 @@ def install_check(standalone, options, api):
                                       allow_empty=False):
                 raise ScriptError("Aborting installation.")
     elif os.path.exists(paths.SMB_CONF):
-        print("WARNING: The smb.conf already exists. Running "
+        logcm("WARNING: The smb.conf already exists. Running "
               "ipa-adtrust-install will break your existing samba "
               "configuration.\n\n")
         if not options.unattended:
@@ -410,10 +412,10 @@ def install_check(standalone, options, api):
 
 def install(standalone, options, fstore, api):
     if not options.unattended and standalone:
-        print("")
-        print("The following operations may take some minutes to complete.")
-        print("Please wait until the prompt is returned.")
-        print("")
+        logcm("")
+        logcm("The following operations may take some minutes to complete.")
+        logcm("Please wait until the prompt is returned.")
+        logcm("")
 
     smb = adtrustinstance.ADTRUSTInstance(fstore)
     smb.realm = api.env.realm
