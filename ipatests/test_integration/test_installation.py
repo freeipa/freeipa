@@ -12,7 +12,10 @@ from __future__ import absolute_import
 import os
 from datetime import datetime, timedelta
 import time
+
+from cryptography.hazmat.primitives import hashes
 import pytest
+
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -427,6 +430,43 @@ class TestInstallMaster(IntegrationTest):
         assert cmd.returncode != 0
         exp_str = ("ipa: ERROR: No YubiKey found")
         assert exp_str in cmd.stderr_text
+
+    def test_pki_certs(self):
+        certs, keys = tasks.certutil_certs_keys(
+            self.master,
+            paths.PKI_TOMCAT_ALIAS_DIR,
+            paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT
+        )
+
+        expected_certs = {
+            # CA
+            'caSigningCert cert-pki-ca': 'CTu,Cu,Cu',
+            'ocspSigningCert cert-pki-ca': 'u,u,u',
+            'subsystemCert cert-pki-ca': 'u,u,u',
+            'auditSigningCert cert-pki-ca': 'u,u,Pu',  # why P?
+            # KRA
+            'transportCert cert-pki-kra': 'u,u,u',
+            'storageCert cert-pki-kra': 'u,u,u',
+            'auditSigningCert cert-pki-kra': 'u,u,Pu',
+            # server
+            'Server-Cert cert-pki-ca': 'u,u,u',
+        }
+        assert certs == expected_certs
+        assert len(certs) == len(keys)
+
+        for nickname in sorted(certs):
+            cert = tasks.certutil_fetch_cert(
+                self.master,
+                paths.PKI_TOMCAT_ALIAS_DIR,
+                paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
+                nickname
+            )
+            key_size = cert.public_key().key_size
+            if nickname == 'caSigningCert cert-pki-ca':
+                assert key_size == 3072
+            else:
+                assert key_size == 2048
+            assert cert.signature_hash_algorithm.name == hashes.SHA256.name
 
 
 class TestInstallMasterKRA(IntegrationTest):
