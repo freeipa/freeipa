@@ -35,6 +35,7 @@ import dns
 from ldif import LDIFWriter
 import pytest
 from SSSDConfig import SSSDConfig
+from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
@@ -1520,6 +1521,23 @@ def certutil_certs_keys(host, reqdir, pwd_file, token_name=None):
         if mo:
             keys[mo.group('nick')] = mo.group('keyid')
     return certs, keys
+
+
+def certutil_fetch_cert(host, reqdir, pwd_file, nickname, token_name=None):
+    """Run certutil and retrieve a cert as cryptography.x509 object
+    """
+    args = ['-f', pwd_file, '-L', '-a', '-n']
+    if token_name is not None:
+        args.extend([
+            '{}:{}'.format(token_name, nickname),
+            '-h', token_name
+        ])
+    else:
+        args.append(nickname)
+    result = run_certutil(host, args, reqdir)
+    return x509.load_pem_x509_certificate(
+        result.stdout_bytes, default_backend()
+    )
 
 
 def upload_temp_contents(host, contents, encoding='utf-8'):
