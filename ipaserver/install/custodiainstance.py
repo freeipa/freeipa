@@ -1,6 +1,6 @@
 # Copyright (C) 2015 FreeIPa Project Contributors, see 'COPYING' for license.
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import enum
 import logging
@@ -14,6 +14,7 @@ from ipaserver.install.service import SimpleServiceInstance
 from ipapython import ipautil
 from ipapython import ipaldap
 from ipapython.certdb import NSSDatabase
+from ipapython.ipa_log_manager import CommandOutput
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import sysupgrade
@@ -25,6 +26,7 @@ import time
 import pwd
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 
 class CustodiaModes(enum.Enum):
@@ -227,10 +229,9 @@ class CustodiaInstance(SimpleServiceInstance):
                 if saved_e is None:
                     # FIXME: Change once there's better way to show this
                     # message in installer output,
-                    print(
-                        "  Waiting for keys to appear on host: {}, please "
-                        "wait until this has completed.".format(
-                            self.ldap_uri)
+                    logcm(
+                        "  Waiting for keys to appear on host: %s, please "
+                        "wait until this has completed.", self.ldap_uri
                     )
                 # log only once for the same error
                 if not isinstance(e, type(saved_e)):
