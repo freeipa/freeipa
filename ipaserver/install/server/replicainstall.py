@@ -29,6 +29,7 @@ from ipalib.install import certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
+from ipapython.ipa_log_manager import CommandOutput
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.tasks import tasks
@@ -54,6 +55,7 @@ if six.PY3:
 NoneType = type(None)
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 
 def get_dirman_password():
@@ -404,7 +406,7 @@ def common_cleanup(func):
         except KeyboardInterrupt:
             raise ScriptError()
         except Exception:
-            print(
+            logcm(
                 "Your system may be partly configured.\n"
                 "Run /usr/sbin/ipa-server-install --uninstall to clean up.\n")
             raise
@@ -435,10 +437,10 @@ def uninstall_client():
     An unsuccessful attempt to uninstall is ignored (no exception raised).
     """
 
-    print("Removing client side components")
+    logcm("Removing client side components")
     ipautil.run([paths.IPA_CLIENT_INSTALL, "--unattended", "--uninstall"],
                 raiseonerr=False, redirect_output=True)
-    print()
+    logcm("")
 
 
 def promote_sssd(host_name):
@@ -587,9 +589,9 @@ def common_check(no_ntp):
         try:
             ipaclient.install.timeconf.check_timedate_services()
         except ipaclient.install.timeconf.NTPConflictingService as e:
-            print("WARNING: conflicting time&date synchronization service "
-                  "'{svc}' will\nbe disabled in favor of chronyd\n"
-                  .format(svc=e.conflicting_service))
+            logcm("WARNING: conflicting time&date synchronization service "
+                  "'%s' will\nbe disabled in favor of chronyd\n" %
+                  e.conflicting_service)
         except ipaclient.install.timeconf.NTPConfigurationError:
             pass
 
@@ -733,7 +735,7 @@ def ensure_enrolled(installer):
         service.print_msg("Configuring client side components")
         installer._enrollment_performed = True
         ipautil.run(args, stdin=stdin, nolog=nolog, redirect_output=True)
-        print()
+        logcm("")
     except ipautil.CalledProcessError:
         raise ScriptError("Configuration of client side components failed!")
 
@@ -784,7 +786,7 @@ def promote_check(installer):
     else:
         if (options.domain_name or options.server or options.realm_name or
                 options.host_name or options.password or options.keytab):
-            print("IPA client is already configured on this system, ignoring "
+            logcm("IPA client is already configured on this system, ignoring "
                   "the --domain, --server, --realm, --hostname, --password "
                   "and --keytab options.")
 
