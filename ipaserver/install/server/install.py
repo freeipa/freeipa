@@ -2,7 +2,7 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import errno
 import logging
@@ -24,6 +24,7 @@ from ipapython.ipautil import (
     ipa_generate_password, run, user_input)
 from ipapython import ipaldap
 from ipapython.admintool import ScriptError
+from ipapython.ipa_log_manager import CommandOutput
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
@@ -56,6 +57,7 @@ except ImportError:
 NoneType = type(None)
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 SYSRESTORE_DIR_PATH = paths.SYSRESTORE
 
@@ -161,35 +163,35 @@ def write_cache(options):
 
 
 def read_host_name(host_default, no_host_dns=False):
-    print("Enter the fully qualified domain name of the computer")
-    print("on which you're setting up server software. Using the form")
-    print("<hostname>.<domainname>")
-    print("Example: master.example.com.")
-    print("")
-    print("")
+    logcm("Enter the fully qualified domain name of the computer")
+    logcm("on which you're setting up server software. Using the form")
+    logcm("<hostname>.<domainname>")
+    logcm("Example: master.example.com.")
+    logcm("")
+    logcm("")
     if host_default == "":
         host_default = "master.example.com"
     host_name = user_input("Server host name", host_default, allow_empty=False)
-    print("")
+    logcm("")
     verify_fqdn(host_name, no_host_dns)
 
     return host_name
 
 
 def read_domain_name(domain_name, unattended):
-    print("The domain name has been determined based on the host name.")
-    print("")
+    logcm("The domain name has been determined based on the host name.")
+    logcm("")
     if not unattended:
         domain_name = str(user_input("Please confirm the domain name",
                                      domain_name))
-        print("")
+        logcm("")
     return domain_name
 
 
 def read_realm_name(domain_name, unattended):
-    print("The kerberos protocol requires a Realm name to be defined.")
-    print("This is typically the domain name converted to uppercase.")
-    print("")
+    logcm("The kerberos protocol requires a Realm name to be defined.")
+    logcm("This is typically the domain name converted to uppercase.")
+    logcm("")
 
     if unattended:
         return domain_name.upper()
@@ -197,26 +199,27 @@ def read_realm_name(domain_name, unattended):
                                 domain_name.upper()))
     upper_dom = realm_name.upper()
     if upper_dom != realm_name:
-        print("An upper-case realm name is required.")
+        logcm("An upper-case realm name is required.")
         if not user_input("Do you want to use " + upper_dom +
                           " as realm name?", True):
             raise ScriptError(
                 "An upper-case realm name is required. Unable to continue.")
         else:
             realm_name = upper_dom
-        print("")
+        logcm("")
     return realm_name
 
 
 def read_dm_password():
-    print("Certain directory server operations require an administrative user.")
-    print("This user is referred to as the Directory Manager and has full "
+    logcm("Certain directory server operations require an administrative "
+          "user.")
+    logcm("This user is referred to as the Directory Manager and has full "
           "access")
-    print("to the Directory for system management tasks and will be added to "
+    logcm("to the Directory for system management tasks and will be added to "
           "the")
-    print("instance of directory server created for IPA.")
-    print("The password must be at least 8 characters long.")
-    print("")
+    logcm("instance of directory server created for IPA.")
+    logcm("The password must be at least 8 characters long.")
+    logcm("")
     # TODO: provide the option of generating a random password
     dm_password = read_password("Directory Manager",
                                 validator=validate_dm_password)
@@ -224,10 +227,10 @@ def read_dm_password():
 
 
 def read_admin_password():
-    print("The IPA server requires an administrative user, named 'admin'.")
-    print("This user is a regular system account used for IPA server "
+    logcm("The IPA server requires an administrative user, named 'admin'.")
+    logcm("This user is a regular system account used for IPA server "
           "administration.")
-    print("")
+    logcm("")
     # TODO: provide the option of generating a random password
     admin_password = read_password("IPA admin",
                                    validator=validate_admin_password)
@@ -255,9 +258,9 @@ def common_cleanup(func):
             success = True
         except KeyboardInterrupt:
             ds = installer._ds
-            print("\nCleaning up...")
+            logcm("\nCleaning up...")
             if ds:
-                print("Removing configuration for %s instance" % ds.serverid)
+                logcm("Removing configuration for %s instance" % ds.serverid)
                 ds.stop()
                 if ds.serverid:
                     try:
@@ -318,7 +321,7 @@ def install_check(installer):
 
     mask_str = validate_mask()
     if mask_str:
-        print("Unexpected system mask: %s, expected 0022" % mask_str)
+        logcm("Unexpected system mask: %s, expected 0022" % mask_str)
         if installer.interactive:
             if not user_input("Do you want to continue anyway?", True):
                 raise ScriptError(
@@ -331,11 +334,11 @@ def install_check(installer):
                "KDC master password of sufficient strength is autogenerated "
                "during IPA server installation and should not be set "
                "manually.")
-        print(textwrap.fill(msg, width=79, replace_whitespace=False))
+        logcm(textwrap.fill(msg, width=79, replace_whitespace=False))
 
     installer._installation_cleanup = True
 
-    print("\nThe log file for this installation can be found in "
+    logcm("\nThe log file for this installation can be found in "
           "/var/log/ipaserver-install.log")
     if (not options.external_ca and not options.external_cert_files and
             is_ipa_configured()):
@@ -390,36 +393,36 @@ def install_check(installer):
         raise ScriptError(
             "--setup-kra cannot be used with CA-less installation")
 
-    print("======================================="
+    logcm("======================================="
           "=======================================")
-    print("This program will set up the FreeIPA Server.")
-    print("Version {}".format(version.VERSION))
-    print("")
-    print("This includes:")
+    logcm("This program will set up the FreeIPA Server.")
+    logcm("Version %s" % version.VERSION)
+    logcm("")
+    logcm("This includes:")
     if setup_ca:
-        print("  * Configure a stand-alone CA (dogtag) for certificate "
+        logcm("  * Configure a stand-alone CA (dogtag) for certificate "
               "management")
     if not options.no_ntp:
-        print("  * Configure the NTP client (chronyd)")
-    print("  * Create and configure an instance of Directory Server")
-    print("  * Create and configure a Kerberos Key Distribution Center (KDC)")
-    print("  * Configure Apache (httpd)")
+        logcm("  * Configure the NTP client (chronyd)")
+    logcm("  * Create and configure an instance of Directory Server")
+    logcm("  * Create and configure a Kerberos Key Distribution Center (KDC)")
+    logcm("  * Configure Apache (httpd)")
     if options.setup_kra:
-        print("  * Configure KRA (dogtag) for secret management")
+        logcm("  * Configure KRA (dogtag) for secret management")
     if options.setup_dns:
-        print("  * Configure DNS (bind)")
+        logcm("  * Configure DNS (bind)")
     if options.setup_adtrust:
-        print("  * Configure Samba (smb) and winbind for managing AD trusts")
+        logcm("  * Configure Samba (smb) and winbind for managing AD trusts")
     if not options.no_pkinit:
-        print("  * Configure the KDC to enable PKINIT")
+        logcm("  * Configure the KDC to enable PKINIT")
     if options.no_ntp:
-        print("")
-        print("Excluded by options:")
-        print("  * Configure the NTP client (chronyd)")
+        logcm("")
+        logcm("Excluded by options:")
+        logcm("  * Configure the NTP client (chronyd)")
     if installer.interactive:
-        print("")
-        print("To accept the default shown in brackets, press the Enter key.")
-    print("")
+        logcm("")
+        logcm("To accept the default shown in brackets, press the Enter key.")
+    logcm("")
 
     if not options.external_cert_files:
         # Make sure the 389-ds ports are available
@@ -429,10 +432,10 @@ def install_check(installer):
         try:
             ipaclient.install.timeconf.check_timedate_services()
         except ipaclient.install.timeconf.NTPConflictingService as e:
-            print("WARNING: conflicting time&date synchronization service '{}'"
-                  " will be disabled".format(e.conflicting_service))
-            print("in favor of chronyd")
-            print("")
+            logcm("WARNING: conflicting time&date synchronization service '%s'"
+                  " will be disabled" % e.conflicting_service)
+            logcm("in favor of chronyd")
+            logcm("")
         except ipaclient.install.timeconf.NTPConfigurationError:
             pass
 
@@ -440,7 +443,7 @@ def install_check(installer):
         if ipautil.user_input("Do you want to configure integrated DNS "
                               "(BIND)?", False):
             options.setup_dns = True
-        print("")
+        logcm("")
 
     # check bind packages are installed
     if options.setup_dns:
@@ -672,30 +675,30 @@ def install_check(installer):
     if options.ip_addresses or options.setup_dns:
         installer._update_hosts_file = True
 
-    print()
-    print("The IPA Master Server will be configured with:")
-    print("Hostname:       %s" % host_name)
-    print("IP address(es): %s" % ", ".join(str(ip) for ip in ip_addresses))
-    print("Domain name:    %s" % domain_name)
-    print("Realm name:     %s" % realm_name)
-    print()
+    logcm("")
+    logcm("The IPA Master Server will be configured with:")
+    logcm("Hostname:       %s" % host_name)
+    logcm("IP address(es): %s" % ", ".join(str(ip) for ip in ip_addresses))
+    logcm("Domain name:    %s" % domain_name)
+    logcm("Realm name:     %s" % realm_name)
+    logcm("")
 
     if setup_ca:
         ca.print_ca_configuration(options)
-        print()
+        logcm("")
 
     if options.setup_dns:
-        print("BIND DNS server will be configured to serve IPA domain with:")
-        print("Forwarders:       %s" % (
+        logcm("BIND DNS server will be configured to serve IPA domain with:")
+        logcm("Forwarders:       %s" % (
             "No forwarders" if not options.forwarders
             else ", ".join([str(ip) for ip in options.forwarders])
         ))
-        print('Forward policy:   %s' % options.forward_policy)
-        print("Reverse zone(s):  %s" % (
+        logcm('Forward policy:   %s' % options.forward_policy)
+        logcm("Reverse zone(s):  %s" % (
             "No reverse zone" if options.no_reverse or not dns.reverse_zones
             else ", ".join(str(rz) for rz in dns.reverse_zones)
         ))
-        print()
+        logcm("")
 
     if not options.setup_adtrust:
         # If domain name and realm does not match, IPA server will not be able
@@ -704,7 +707,7 @@ def install_check(installer):
         realm_not_matching_domain = (domain_name.upper() != realm_name)
 
         if realm_not_matching_domain:
-            print("WARNING: Realm name does not match the domain name.\n"
+            logcm("WARNING: Realm name does not match the domain name.\n"
                   "You will not be able to establish trusts with Active "
                   "Directory unless\nthe realm name of the IPA server matches "
                   "its domain name.\n\n")
@@ -759,10 +762,10 @@ def install(installer):
     installer._installation_cleanup = False
 
     if installer.interactive:
-        print("")
-        print("The following operations may take some minutes to complete.")
-        print("Please wait until the prompt is returned.")
-        print("")
+        logcm("")
+        logcm("The following operations may take some minutes to complete.")
+        logcm("Please wait until the prompt is returned.")
+        logcm("")
 
     # set hostname (transient and static) if user instructed us to do so
     if options._host_name_overridden:
@@ -780,8 +783,8 @@ def install(installer):
         # the ipa-server-install --uninstall
         if not options.no_ntp:
             if not ipaclient.install.client.sync_time(options, fstore, sstore):
-                print("Warning: IPA was unable to sync time with chrony!")
-                print("         Time synchronization is required for IPA "
+                logcm("Warning: IPA was unable to sync time with chrony!")
+                logcm("         Time synchronization is required for IPA "
                       "to work correctly")
 
         if options.dirsrv_cert_files:
@@ -937,7 +940,7 @@ def install(installer):
         dur = time.time() - start
         logger.debug("Client install duration: %0.3f", dur,
                      extra={'timing': ('clientinstall', None, None, dur)})
-        print()
+        logcm("")
     except Exception:
         raise ScriptError("Configuration of client side components failed!")
 
@@ -954,43 +957,43 @@ def install(installer):
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
 
-    print("======================================="
+    logcm("======================================="
           "=======================================")
-    print("Setup complete")
-    print("")
-    print("Next steps:")
-    print("\t1. You must make sure these network ports are open:")
-    print("\t\tTCP Ports:")
-    print("\t\t  * 80, 443: HTTP/HTTPS")
-    print("\t\t  * 389, 636: LDAP/LDAPS")
-    print("\t\t  * 88, 464: kerberos")
+    logcm("Setup complete")
+    logcm("")
+    logcm("Next steps:")
+    logcm("\t1. You must make sure these network ports are open:")
+    logcm("\t\tTCP Ports:")
+    logcm("\t\t  * 80, 443: HTTP/HTTPS")
+    logcm("\t\t  * 389, 636: LDAP/LDAPS")
+    logcm("\t\t  * 88, 464: kerberos")
     if options.setup_dns:
-        print("\t\t  * 53: bind")
-    print("\t\tUDP Ports:")
-    print("\t\t  * 88, 464: kerberos")
+        logcm("\t\t  * 53: bind")
+    logcm("\t\tUDP Ports:")
+    logcm("\t\t  * 88, 464: kerberos")
     if options.setup_dns:
-        print("\t\t  * 53: bind")
+        logcm("\t\t  * 53: bind")
     if not options.no_ntp:
-        print("\t\t  * 123: ntp")
-    print("")
-    print("\t2. You can now obtain a kerberos ticket using the command: "
+        logcm("\t\t  * 123: ntp")
+    logcm("")
+    logcm("\t2. You can now obtain a kerberos ticket using the command: "
           "'kinit admin'")
-    print("\t   This ticket will allow you to use the IPA tools (e.g., ipa "
+    logcm("\t   This ticket will allow you to use the IPA tools (e.g., ipa "
           "user-add)")
-    print("\t   and the web user interface.")
+    logcm("\t   and the web user interface.")
 
     if not services.knownservices.chronyd.is_running():
-        print("\t3. Kerberos requires time synchronization between clients")
-        print("\t   and servers for correct operation. You should consider "
+        logcm("\t3. Kerberos requires time synchronization between clients")
+        logcm("\t   and servers for correct operation. You should consider "
               "enabling chronyd.")
 
-    print("")
+    logcm("")
     if setup_ca:
-        print(("Be sure to back up the CA certificates stored in " +
+        logcm(("Be sure to back up the CA certificates stored in " +
               paths.CACERT_P12))
-        print("These files are required to create replicas. The password for "
+        logcm("These files are required to create replicas. The password for "
               "these")
-        print("files is the Directory Manager password")
+        logcm("files is the Directory Manager password")
 
     if os.path.isfile(paths.ROOT_IPA_CACHE):
         os.remove(paths.ROOT_IPA_CACHE)
@@ -1005,7 +1008,7 @@ def uninstall_check(installer):
     installer._installation_cleanup = False
 
     if not is_ipa_configured():
-        print("WARNING:\nIPA server is not configured on this system. "
+        logcm("WARNING:\nIPA server is not configured on this system. "
               "If you want to install the\nIPA server, please install "
               "it using 'ipa-server-install'.")
 
@@ -1026,7 +1029,7 @@ def uninstall_check(installer):
     api.finalize()
 
     if installer.interactive:
-        print("\nThis is a NON REVERSIBLE operation and will delete all data "
+        logcm("\nThis is a NON REVERSIBLE operation and will delete all data "
               "and configuration!\nIt is highly recommended to take a backup of "
               "existing data and configuration using ipa-backup utility "
               "before proceeding.\n")
@@ -1046,7 +1049,7 @@ def uninstall_check(installer):
                "If this server is the last instance of CA, KRA, or DNSSEC "
                "master, uninstallation may result in data loss.\n\n"
         )
-        print(textwrap.fill(msg, width=80, replace_whitespace=False))
+        logcm(textwrap.fill(msg, width=80, replace_whitespace=False))
 
         if (installer.interactive and not user_input(
                 "Are you sure you want to continue with the uninstall "
@@ -1077,8 +1080,8 @@ def uninstall_check(installer):
                         other_masters)
                 )
                 cmd = "$ ipa-replica-manage del %s\n" % api.env.host
-                print(textwrap.fill(msg, width=80, replace_whitespace=False))
-                print(cmd)
+                logcm(textwrap.fill(msg, width=80, replace_whitespace=False))
+                logcm(cmd)
                 if (installer.interactive and
                         not user_input("Are you sure you want to continue with"
                                        " the uninstall procedure?", False)):
@@ -1099,7 +1102,7 @@ def uninstall(installer):
 
     rv = 0
 
-    print("Shutting down all IPA services")
+    logcm("Shutting down all IPA services")
     try:
         services.knownservices.ipa.stop()
     except Exception:
@@ -1199,7 +1202,7 @@ def uninstall(installer):
             logger.warning("Failed to remove file %s: %s",
                            paths.IPA_RENEWAL_LOCK, e)
 
-    print("Removing IPA client configuration")
+    logcm("Removing IPA client configuration")
     try:
         result = run([paths.IPA_CLIENT_INSTALL, "--on-master",
                       "--unattended", "--uninstall"],
@@ -1208,7 +1211,7 @@ def uninstall(installer):
             raise RuntimeError("Failed to configure the client")
     except Exception:
         rv = 1
-        print("Uninstall of client side components failed!")
+        logcm("Uninstall of client side components failed!")
 
     sys.exit(rv)
 
