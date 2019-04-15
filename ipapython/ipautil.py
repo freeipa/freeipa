@@ -19,6 +19,7 @@
 
 from __future__ import print_function
 
+import atexit
 import codecs
 import logging
 import string
@@ -1571,3 +1572,107 @@ class APIVersion(tuple):
     @property
     def minor(self):
         return self[1]
+
+
+class _TemporaryDirectoryManager:
+    """File manager for shared temporary files
+
+    The temporary directory manager simplifies the handling of temporary
+    files that are shared with other processes or kept through out the life
+    time of the current process. It should only be used in case
+    tempfile.NamedTemporaryFile is not up for the task.
+
+    The manager creates a new temporary directory for each user. The
+    directory and all its files are accessible by the target user and the
+    root group ($uid:root / 0o770 / 0o660) to avoid DAC override capability.
+    The temporary directory is automatically removed on process exit.
+    """
+    def __init__(self):
+        # pw_name -> temp dir
+        self._tmpdirs = {}
+        # pw_name -> struct_passwd
+        self._name_uid = {}
+        atexit.register(self._cleanup)
+
+    def open(self, owner, filename, mode='r', **kwargs):
+        """Open a temporary file
+
+        :param owner: owner of the file
+        :param filename: file name
+        :param mode: file mode
+        :param kwargs: additional keyword arguments for open()
+        :return: file object
+        """
+        if os.pathsep in filename:
+            raise ValueError(filename)
+        pw = self._lookup_user(owner)
+        tmpdir = self._lookup_tmpdir(pw)
+        filename = os.path.join(tmpdir, filename)
+        logger.debug("opening temporary file %s for %s", filename, owner)
+        f = open(filename, mode=mode, **kwargs)
+        # make file accessible to root
+        os.fchown(f.fileno(), pw.pw_uid, 0)
+        os.fchmod(f.fileno(), 0o660)
+        return f
+
+    def copyto(self, owner, src, dst=None):
+        """Copy a file into the temporary directory
+
+        :param owner: owner of the file
+        :param src: source file
+        :param dst: destination file name
+        :return: absolute file name to destination
+        """
+        if dst is None:
+            dst = os.path.basename(src)
+        with self.open(owner, dst, mode='wb') as fdst:
+            dstname = fdst.name
+            with open(src, 'rb') as fsrc:
+                shutil.copyfileobj(fsrc, fdst)
+        return dstname
+
+    def _cleanup(self):
+        for name, tmpdir in list(self._tmpdirs.items()):
+            try:
+                shutil.rmtree(tmpdir)
+            except Exception as e:
+                logger.error("Failed to remove %s: %s", tmpdir, e)
+            else:
+                logger.debug("Removed temporary directory %s", tmpdir)
+                self._tmpdirs.pop(name)
+        # try again, this time ignore errors to remove as many files as
+        # possible.
+        for name, tmpdir in list(self._tmpdirs.items()):
+            shutil.rmtree(tmpdir, ignore_errors=True)
+            self._tmpdirs.pop(name)
+
+    def _lookup_user(self, username):
+        entry = self._name_uid.get(username)
+        if entry is None:
+            entry = pwd.getpwnam(username)
+            self._name_uid[entry.pw_name] = entry
+        return entry
+
+    def _lookup_tmpdir(self, pw):
+        tmpdir = self._tmpdirs.get(pw.pw_name)
+        if tmpdir is None:
+            prefix = 'tmp-ipa-{}-{}-'.format(os.getpid(), pw.pw_name)
+            tmpdir = tempfile.mkdtemp(prefix=prefix)
+            logger.debug("Created temporary directory %s", tmpdir)
+            # make directory accessible to root
+            try:
+                os.chown(tmpdir, pw.pw_uid, 0)
+                os.chmod(tmpdir, 0o770)
+            except OSError:
+                os.rmdir(tmpdir)
+            if self._tmpdirs.setdefault(pw.pw_name, tmpdir) != tmpdir:
+                # in-flight collision
+                os.rmdir(tmpdir)
+        return tmpdir
+
+
+# The temporary directory manager only works when running as root
+if os.geteuid() == 0:
+    tmpmgr = _TemporaryDirectoryManager()
+else:
+    tmpmgr = None
