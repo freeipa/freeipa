@@ -6,8 +6,7 @@
 Server installer module
 """
 
-from __future__ import print_function
-
+import logging
 import collections
 import os.path
 import random
@@ -27,6 +26,7 @@ from ipapython.dnsutil import check_zone_overlap
 from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
 from ipapython.install.common import step
+from ipapython.ipa_log_manager import CommandOutput
 
 from .install import validate_admin_password, validate_dm_password
 from .install import init as master_init
@@ -40,6 +40,8 @@ from .upgrade import upgrade_check, upgrade
 
 from .. import adtrust, ca, conncheck, dns, kra
 
+logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 @group
 class ServerUninstallInterface(service.ServiceInstallInterface):
@@ -522,7 +524,7 @@ class ServerMasterInstall(ServerMasterInstallInterface):
     def domain_name(self, value):
         if (self.setup_dns and
                 not self.allow_zone_overlap):
-            print("Checking DNS domain %s, please wait ..." % value)
+            logcm("Checking DNS domain %s, please wait ..." % value)
             check_zone_overlap(value, False)
 
     dm_password = extend_knob(
