@@ -2,7 +2,7 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import errno
 import logging
@@ -32,6 +32,7 @@ from ipapython import ipautil, version
 from ipapython import ipaldap
 from ipapython import dnsutil, directivesetter
 from ipapython.dn import DN
+from ipapython.ipa_log_manager import CommandOutput
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaserver import servroles
@@ -69,6 +70,7 @@ if six.PY3:
 
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 
 class KpasswdInstance(service.SimpleServiceInstance):
@@ -2199,7 +2201,7 @@ def upgrade():
         else:
             logger.info('Update complete, no data were modified')
 
-    print('Upgrading IPA services')
+    logcm('Upgrading IPA services')
     logger.info('Upgrading the configuration of the IPA services')
     with empty_ccache():
         upgrade_configuration()
