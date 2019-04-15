@@ -2,7 +2,7 @@
 # Copyright (C) 2019  FreeIPA Contributors see COPYING for license
 #
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import os
 import logging
@@ -13,10 +13,12 @@ from ipalib import api
 from ipalib.errors import NetworkError
 from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool
+from ipapython.ipa_log_manager import CommandOutput
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 
 class CRLGenManage(AdminTool):
@@ -96,23 +98,23 @@ class CRLGenManage(AdminTool):
     def status(self, ca):
         # When the local node is not a CA, return "disabled"
         if not self.check_local_ca_instance():
-            print("CRL generation: disabled")
+            logcm("CRL generation: disabled")
             return
 
         # Local node is a CA, check its configuration
         if ca.is_crlgen_enabled():
-            print("CRL generation: enabled")
+            logcm("CRL generation: enabled")
             try:
                 crl_filename = os.path.join(paths.PKI_CA_PUBLISH_DIR,
                                             'MasterCRL.bin')
                 with open(crl_filename, 'rb') as f:
                     crl = x509.load_der_x509_crl(f.read(), default_backend())
-                    print("Last CRL update: {}".format(crl.last_update))
+                    logcm("Last CRL update: %s" % crl.last_update)
                     for ext in crl.extensions:
                         if ext.oid == x509.oid.ExtensionOID.CRL_NUMBER:
-                            print("Last CRL Number: {}".format(
-                                ext.value.crl_number))
+                            logcm("Last CRL Number: %s" %
+                                  ext.value.crl_number)
             except IOError:
                 logger.error("Unable to find last CRL")
         else:
-            print("CRL generation: disabled")
+            logcm("CRL generation: disabled")
