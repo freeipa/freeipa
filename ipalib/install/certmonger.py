@@ -590,6 +590,18 @@ def resubmit_request(
             update['template-is-ca'] = True
             update['template-ca-path-length'] = -1  # no path length
 
+        # TODO: certmonger assumes some hard-coded defaults like RSA 2048.
+        # Try to fetch values from current cert rather.
+        for key, convert in [('key-size', int), ('key-type', str)]:
+            try:
+                value = request.prop_if.Get(DBUS_CM_REQUEST_IF, key)
+            except dbus.DBusException:
+                continue
+            else:
+                if value:
+                    # convert dbus.Int64() to int, dbus.String() to str
+                    update[key] = convert(value)
+
         if len(update) > 0:
             request.obj_if.modify(update)
         request.obj_if.resubmit()
