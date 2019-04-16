@@ -50,6 +50,7 @@ from ipaserver.install import service
 from ipaserver.install import sysupgrade
 from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
+from ipapython.dogtag import ca_status
 
 
 
@@ -187,6 +188,19 @@ class DogtagInstance(service.Service):
 
     def restart_instance(self):
         self.restart('pki-tomcat')
+        # Wait for dogtag to come back after a restart
+        for tries in range(1, api.env.http_timeout // 2):
+            try:
+                status = ca_status()
+            except errors.RemoteRetrieveError:
+                time.sleep(2)
+            else:
+                break
+            finally:
+                if status is None:
+                    logger.critical(
+                        "Unable to access pki-tomcat HTTP end-point "
+                        "after %d retries", tries)
 
     def start_instance(self):
         self.start('pki-tomcat')
