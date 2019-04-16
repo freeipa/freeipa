@@ -31,26 +31,44 @@ ISSUER_CN = 'example.test'
 
 
 class ExternalCA:
+    """Provide external CA for testing
     """
-    Provide external CA for testing
-    """
+
     def __init__(self, days=365):
         self.now = datetime.datetime.utcnow()
         self.delta = datetime.timedelta(days=days)
+        self.ca_key = None
+        self.ca_public_key = None
+        self.issuer = None
+
+    def create_ca_key(self, key_size=2048):
+        """Create private and public key for CA
+
+        Note: The test still creates 2048 although IPA CA uses 3072 bit RSA
+        by default. This also tests that IPA supports an external signing CA
+        with weaker keys than the IPA base CA.
+        """
+        self.ca_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=key_size,
+            backend=default_backend(),
+        )
+        self.ca_public_key = self.ca_key.public_key()
+
+    def sign(self, builder):
+        return builder.sign(
+            private_key=self.ca_key,
+            algorithm=hashes.SHA256(),
+            backend=default_backend(),
+        )
 
     def create_ca(self, cn=ISSUER_CN, path_length=None):
         """Create root CA.
 
         :returns: bytes -- Root CA in PEM format.
         """
-        self.ca_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048,
-            backend=default_backend(),
-        )
-
-        self.ca_public_key = self.ca_key.public_key()
-
+        if self.ca_key is None:
+            self.create_ca_key()
         subject = self.issuer = x509.Name([
             x509.NameAttribute(NameOID.COMMON_NAME, str(cn)),
         ])
@@ -151,11 +169,7 @@ class ExternalCA:
             critical=True,
         )
 
-        cert = builder.sign(
-            private_key=self.ca_key,
-            algorithm=hashes.SHA256(),
-            backend=default_backend(),
-        )
+        cert = self.sign(builder)
 
         return cert.public_bytes(serialization.Encoding.PEM)
 
