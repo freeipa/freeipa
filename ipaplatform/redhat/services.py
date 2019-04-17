@@ -186,18 +186,6 @@ class RedHatCAService(RedHatService):
         else:
             raise RuntimeError('CA did not start in %ss' % timeout)
 
-    def start(self, instance_name="", capture_output=True, wait=True):
-        super(RedHatCAService, self).start(
-            instance_name, capture_output=capture_output, wait=wait)
-        if wait:
-            self.wait_until_running()
-
-    def restart(self, instance_name="", capture_output=True, wait=True):
-        super(RedHatCAService, self).restart(
-            instance_name, capture_output=capture_output, wait=wait)
-        if wait:
-            self.wait_until_running()
-
     def is_running(self, instance_name="", wait=True):
         if instance_name:
             return super(RedHatCAService, self).is_running(instance_name)

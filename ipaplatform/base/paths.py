@@ -140,6 +140,8 @@ class BasePathNamespace:
     SYSTEMD_IPA_SERVICE = "/etc/systemd/system/multi-user.target.wants/ipa.service"
     SYSTEMD_SSSD_SERVICE = "/etc/systemd/system/multi-user.target.wants/sssd.service"
     SYSTEMD_PKI_TOMCAT_SERVICE = "/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service"
+    SYSTEMD_PKI_TOMCAT_IPA_CONF = \
+        "/etc/systemd/system/pki-tomcatd@pki-tomcat.service.d/ipa.conf"
     ETC_TMPFILESD_DIRSRV = "/etc/tmpfiles.d/dirsrv-%s.conf"
     DNSSEC_TRUSTED_KEY = "/etc/trusted-key.key"
     HOME_DIR = "/home"
@@ -213,6 +215,7 @@ class BasePathNamespace:
     IPA_HTTPD_KDCPROXY = "/usr/libexec/ipa/ipa-httpd-kdcproxy"
     IPA_ODS_EXPORTER = "/usr/libexec/ipa/ipa-ods-exporter"
     IPA_HTTPD_PASSWD_READER = "/usr/libexec/ipa/ipa-httpd-pwdreader"
+    IPA_PKI_WAIT_RUNNING = "/usr/libexec/ipa/ipa-pki-wait-running"
     DNSSEC_KEYFROMLABEL = "/usr/sbin/dnssec-keyfromlabel-pkcs11"
     GETSEBOOL = "/usr/sbin/getsebool"
     GROUPADD = "/usr/sbin/groupadd"
