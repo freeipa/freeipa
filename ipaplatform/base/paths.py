@@ -185,6 +185,8 @@ class BasePathNamespace:
     NSUPDATE = "/usr/bin/nsupdate"
     ODS_KSMUTIL = "/usr/bin/ods-ksmutil"
     ODS_SIGNER = "/usr/sbin/ods-signer"
+    ODS_ENFORCER = None
+    ODS_ENFORCER_SETUP = None
     OPENSSL = "/usr/bin/openssl"
     PK12UTIL = "/usr/bin/pk12util"
     SOFTHSM2_UTIL = "/usr/bin/softhsm2-util"
