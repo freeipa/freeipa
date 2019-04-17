@@ -82,6 +82,7 @@ class DebianPathNamespace(BasePathNamespace):
     IPA_HTTPD_KDCPROXY = "/usr/lib/ipa/ipa-httpd-kdcproxy"
     IPA_ODS_EXPORTER = "/usr/lib/ipa/ipa-ods-exporter"
     IPA_HTTPD_PASSWD_READER = "/usr/lib/ipa/ipa-httpd-pwdreader"
+    IPA_PKI_WAIT_RUNNING = "/usr/lib/ipa/ipa-pki-wait-running"
     HTTPD = "/usr/sbin/apache2ctl"
     FONTS_DIR = "/usr/share/fonts/truetype"
     VAR_KERBEROS_KRB5KDC_DIR = "/var/lib/krb5kdc/"
