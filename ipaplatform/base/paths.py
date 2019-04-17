@@ -241,6 +241,8 @@ class BasePathNamespace:
     SMBD = "/usr/sbin/smbd"
     USERADD = "/usr/sbin/useradd"
     FONTS_DIR = "/usr/share/fonts"
+    FONTS_OPENSANS_DIR = "/usr/share/fonts/open-sans"
+    FONTS_FONTAWESOME_DIR = "/usr/share/fonts/font-awesome"
     USR_SHARE_IPA_DIR = "/usr/share/ipa/"
     USR_SHARE_IPA_CLIENT_DIR = "/usr/share/ipa/client"
     CA_TOPOLOGY_ULDIF = "/usr/share/ipa/ca-topology.uldif"

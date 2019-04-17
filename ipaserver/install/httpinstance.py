@@ -104,6 +104,8 @@ class HTTPInstance(service.Service):
             AUTOREDIR='' if auto_redirect else '#',
             CRL_PUBLISH_PATH=paths.PKI_CA_PUBLISH_DIR,
             FONTS_DIR=paths.FONTS_DIR,
+            FONTS_OPENSANS_DIR=paths.FONTS_OPENSANS_DIR,
+            FONTS_FONTAWESOME_DIR=paths.FONTS_FONTAWESOME_DIR,
             GSSAPI_SESSION_KEY=paths.GSSAPI_SESSION_KEY,
             IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET,
             IPA_CCACHES=paths.IPA_CCACHES,
