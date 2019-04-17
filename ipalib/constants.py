@@ -145,8 +145,10 @@ DEFAULT_CONFIG = (
     ('tls_version_min', 'tls1.0'),
     ('tls_version_max', 'tls1.2'),
 
-    # Time to wait for a service to start, in seconds
-    ('startup_timeout', 300),
+    # Time to wait for a service to start, in seconds.
+    # Note that systemd has a DefaultTimeoutStartSec of 90 seconds. Higher
+    # values are not effective unless systemd is reconfigured, too.
+    ('startup_timeout', 120),
     # How long http connection should wait for reply [seconds].
     ('http_timeout', 30),
     # How long to wait for an entry to appear on a replica
