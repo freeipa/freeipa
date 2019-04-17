@@ -11,6 +11,7 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 from ipapython import ipa_log_manager, ipautil
+from ipaplatform.paths import paths
 
 logger = logging.getLogger(__name__)
 
@@ -130,11 +131,15 @@ class ODSMgr(object):
         self.zl_ldap = LDAPZoneListReader()
 
     def ksmutil(self, params):
-        """Call ods-ksmutil with given parameters and return stdout.
+        """Call ods-ksmutil / ods-enforcer with parameters and return stdout.
 
         Raises CalledProcessError if returncode != 0.
         """
-        cmd = ['ods-ksmutil'] + params
+        if paths.ODS_ENFORCER is not None:
+            cmd = [paths.ODS_ENFORCER]
+        else:
+            cmd = [paths.ODS_KSMUTIL]
+        cmd.extend(params)
         result = ipautil.run(cmd, capture_output=True)
         return result.output
 

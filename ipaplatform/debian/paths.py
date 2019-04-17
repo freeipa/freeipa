@@ -65,6 +65,9 @@ class DebianPathNamespace(BasePathNamespace):
     OLD_KRA_AGENT_PEM = "/etc/apache2/nssdb/kra-agent.pem"
     SBIN_SERVICE = "/usr/sbin/service"
     CERTMONGER_COMMAND_TEMPLATE = "/usr/lib/ipa/certmonger/%s"
+    ODS_KSMUTIL = None
+    ODS_ENFORCER = "/usr/sbin/ods-enforcer"
+    ODS_ENFORCER_SETUP = "/usr/sbin/ods-enforcer-db-setup"
     UPDATE_CA_TRUST = "/usr/sbin/update-ca-certificates"
     BIND_LDAP_DNS_IPA_WORKDIR = "/var/cache/bind/dyndb-ldap/ipa/"
     BIND_LDAP_DNS_ZONE_WORKDIR = "/var/cache/bind/dyndb-ldap/ipa/master/"
