@@ -15,11 +15,10 @@ EXTRA_DIST =                            \
         $(app_DATA)                     \
         $(NULL)
 
-ipa := $(wildcard ../less/*.less)		\
-	../less/font-awesome/variables.less	\
-	../less/patternfly/variables.less	\
-	../less/bootstrap/variables.less	\
-	../less/variables.less
+ipa := \
+    $(wildcard ../less/*.less)		\
+    $(wildcard ../less/*/*.less)		\
+	$(NULL)
 
 ipa.css: $(ipa)
-	$(srcdir)/../util/make-css.sh
+	$(PYTHON) -m lesscpy -x ../less/ipa.less > $@
