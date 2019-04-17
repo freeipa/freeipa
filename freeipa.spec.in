@@ -1353,6 +1353,7 @@ fi
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
 %{_libexecdir}/ipa/ipa-httpd-pwdreader
 %{_libexecdir}/ipa/ipa-pki-retrieve-key
+%{_libexecdir}/ipa/ipa-pki-wait-running
 %{_libexecdir}/ipa/ipa-otpd
 %dir %{_libexecdir}/ipa/oddjob
 %attr(0755,root,root) %{_libexecdir}/ipa/oddjob/org.freeipa.server.conncheck

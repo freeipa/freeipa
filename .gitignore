@@ -160,6 +160,7 @@ install/tools/ipa-nis-manage
 install/tools/ipa-otptoken-import
 install/tools/ipa-pkinit-manage
 install/tools/ipa-pki-retrieve-key
+install/tools/ipa-pki-wait-running
 install/tools/ipa-replica-conncheck
 install/tools/ipa-replica-install
 install/tools/ipa-replica-manage

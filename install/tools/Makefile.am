@@ -33,6 +33,7 @@ dist_noinst_DATA =		\
 	ipa-custodia-check.in	\
 	ipa-httpd-kdcproxy.in	\
 	ipa-pki-retrieve-key.in	\
+	ipa-pki-wait-running.in	\
 	$(NULL)
 
 nodist_sbin_SCRIPTS =		\
@@ -68,6 +69,7 @@ nodist_app_SCRIPTS =		\
 	ipa-custodia-check	\
 	ipa-httpd-kdcproxy	\
 	ipa-pki-retrieve-key	\
+	ipa-pki-wait-running	\
 	$(NULL)
 
 dist_app_SCRIPTS =		\

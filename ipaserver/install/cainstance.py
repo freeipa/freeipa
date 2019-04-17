@@ -419,6 +419,7 @@ class CAInstance(DogtagInstance):
                 self.step("creating installation admin user", self.setup_admin)
             self.step("configuring certificate server instance",
                       self.__spawn_instance)
+            self.step("Add ipa-pki-wait-running", self.add_ipa_wait)
             self.step("reindex attributes", self.reindex_task)
             self.step("exporting Dogtag certificate store pin",
                       self.create_certstore_passwdfile)
@@ -707,6 +708,18 @@ class CAInstance(DogtagInstance):
                         paths.CACERT_P12)
 
         logger.debug("completed creating ca instance")
+
+    def add_ipa_wait(self):
+        """Add ipa-pki-wait-running to pki-tomcatd service
+        """
+        conf = paths.SYSTEMD_PKI_TOMCAT_IPA_CONF
+        directory = os.path.dirname(conf)
+        if not os.path.isdir(directory):
+            os.mkdir(directory)
+        with open(conf, 'w') as f:
+            f.write('[Service]\n')
+            f.write('ExecStartPost={}\n'.format(paths.IPA_PKI_WAIT_RUNNING))
+        tasks.systemd_daemon_reload()
 
     def safe_backup_config(self):
         """
@@ -1086,6 +1099,14 @@ class CAInstance(DogtagInstance):
                 iface.remove_known_ca(path)
 
         cmonger.stop()
+
+        # remove ipa-pki-wait-running config
+        remove_file(paths.SYSTEMD_PKI_TOMCAT_IPA_CONF)
+        try:
+            os.rmdir(os.path.dirname(paths.SYSTEMD_PKI_TOMCAT_IPA_CONF))
+        except OSError:
+            pass
+        tasks.systemd_daemon_reload()
 
         # remove CRL files
         logger.debug("Remove old CRL files")
