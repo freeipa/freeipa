@@ -87,6 +87,8 @@ class DebianPathNamespace(BasePathNamespace):
     REMOVE_DS_PL = "/usr/sbin/remove-ds"
     SETUP_DS_PL = "/usr/sbin/setup-ds"
     FONTS_DIR = "/usr/share/fonts/truetype"
+    FONTS_OPENSANS_DIR = "/usr/share/fonts/truetype/open-sans"
+    FONTS_FONTAWESOME_DIR = "/usr/share/fonts/truetype/fontawesome"
     VAR_KERBEROS_KRB5KDC_DIR = "/var/lib/krb5kdc/"
     VAR_KRB5KDC_K5_REALM = "/var/lib/krb5kdc/.k5."
     CACERT_PEM = "/var/lib/krb5kdc/cacert.pem"
