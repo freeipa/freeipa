@@ -2,3 +2,6 @@
 $(PYTHON_SHEBANG):%: %.in Makefile
 	$(AM_V_GEN)sed -e 's|@PYTHONSHEBANG[@]|#!$(PYTHON) -E|g' $< > $@
 	$(AM_V_GEN)chmod +x $@
+
+.PHONY: python_scripts_sub
+python_scripts_sub: $(PYTHON_SHEBANG)
