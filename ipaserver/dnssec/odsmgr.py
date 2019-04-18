@@ -11,7 +11,7 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 from ipapython import ipa_log_manager, ipautil
-from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 
 logger = logging.getLogger(__name__)
 
@@ -135,12 +135,7 @@ class ODSMgr:
 
         Raises CalledProcessError if returncode != 0.
         """
-        if paths.ODS_ENFORCER is not None:
-            cmd = [paths.ODS_ENFORCER]
-        else:
-            cmd = [paths.ODS_KSMUTIL]
-        cmd.extend(params)
-        result = ipautil.run(cmd, capture_output=True)
+        result = tasks.run_ods_manager(params, capture_output=True)
         return result.output
 
     def get_ods_zonelist(self):
