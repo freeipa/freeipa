@@ -21,6 +21,7 @@ from ipapython import ipautil
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 from ipalib import errors, api
 from ipaserver import p11helper
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
@@ -279,11 +280,6 @@ class OpenDNSSECInstance(service.Service):
         if not self.fstore.has_file(paths.OPENDNSSEC_KASP_DB):
             self.fstore.backup_file(paths.OPENDNSSEC_KASP_DB)
 
-        if paths.ODS_ENFORCER is not None:
-            ods_cmd = paths.ODS_ENFORCER
-        else:
-            ods_cmd = paths.ODS_KSMUTIL
-
         if self.kasp_db_file:
             # copy user specified kasp.db to proper location and set proper
             # privileges
@@ -292,20 +288,16 @@ class OpenDNSSECInstance(service.Service):
             os.chmod(paths.OPENDNSSEC_KASP_DB, 0o660)
 
             # regenerate zonelist.xml
-            cmd = [ods_cmd, 'zonelist', 'export']
-            result = ipautil.run(
-                cmd, runas=constants.ODS_USER, capture_output=True
+            result = tasks.run_ods_manager(
+                ['zonelist', 'export'], capture_output=True
             )
-            if paths.ODS_ENFORCER is not None:
-                with open(paths.OPENDNSSEC_ZONELIST_FILE, 'w') as f:
-                    f.write(result.output)
-                    os.fchown(f.fileno(), self.ods_uid, self.ods_gid)
-                    os.fchmod(f.fileno(), 0o660)
-
+            with open(paths.OPENDNSSEC_ZONELIST_FILE, 'w') as f:
+                f.write(result.output)
+                os.fchown(f.fileno(), self.ods_uid, self.ods_gid)
+                os.fchmod(f.fileno(), 0o660)
         else:
             # initialize new kasp.db
-            cmd = [ods_cmd, 'setup']
-            ipautil.run(cmd, stdin="y", runas=constants.ODS_USER)
+            tasks.run_ods_setup()
 
     def __setup_dnskeysyncd(self):
         # set up dnskeysyncd this is DNSSEC master
