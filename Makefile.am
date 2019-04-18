@@ -13,6 +13,16 @@ endif
 
 IPACLIENT_SUBDIRS = ipaclient ipalib ipaplatform ipapython
 PYTHON_SUBDIRS = $(IPACLIENT_SUBDIRS) $(IPATESTS_SUBDIRS) $(IPASERVER_SUBDIRS)
+PYTHON_SCRIPT_SUBDIRS = \
+        $(top_builddir) \
+        $(top_builddir)/client \
+        $(top_builddir)/daemons/dnssec \
+        $(top_builddir)/install/certmonger \
+        $(top_builddir)/install/oddjob \
+        $(top_builddir)/install/restart_scripts \
+        $(top_builddir)/install/tools \
+        $(NULL)
+
 IPA_PLACEHOLDERS = freeipa ipa ipaserver ipatests
 SUBDIRS = asn1 util client contrib po pypi $(PYTHON_SUBDIRS) $(SERVER_SUBDIRS)
 
@@ -274,9 +284,7 @@ polint:
 .PHONY: pylint
 
 if WITH_PYLINT
-pylint: $(GENERATED_PYTHON_FILES) ipasetup.py
-	@# build CLI scripts
-	$(MAKE) -C $(top_builddir)/install/tools
+pylint: $(GENERATED_PYTHON_FILES) ipasetup.py python_scripts
 	FILES=`find $(top_srcdir) \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
 		-path './rpmbuild' -prune -o \
@@ -381,6 +389,12 @@ pypi_packages: $(WHEELPYPIDIR) .wheelconstraints
 python_install:
 	for dir in $(PYTHON_SUBDIRS); do \
 	    $(MAKE) $(AM_MAKEFLAGS) -C $${dir} install || exit 1; \
+	done
+
+.PHONY: python_scripts
+python_scripts:
+	for dir in $(PYTHON_SCRIPT_SUBDIRS); do \
+	    $(MAKE) $(AM_MAKEFLAGS) -C $${dir} python_scripts_sub || exit 1; \
 	done
 
 .PHONY:
