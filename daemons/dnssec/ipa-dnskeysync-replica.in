@@ -58,6 +58,7 @@ def find_unwrapping_key(localhsm, wrapping_key_uri):
         unwrap_keys = localhsm.find_keys(id=key_id, cka_unwrap=True)
         if len(unwrap_keys) > 0:
             return unwrap_keys.popitem()[1]
+    return None
 
 def ldap2replica_master_keys_sync(ldapkeydb, localhsm):
     ## LDAP -> replica master key synchronization
