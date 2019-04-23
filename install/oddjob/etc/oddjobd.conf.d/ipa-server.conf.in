@@ -6,7 +6,7 @@
     <object name="/">
       <interface name="org.freeipa.server">
         <method name="conncheck">
-          <helper exec="/usr/libexec/ipa/oddjob/org.freeipa.server.conncheck"
+          <helper exec="@ODDJOBDIR@/org.freeipa.server.conncheck"
                   arguments="1"
                   prepend_user_name="no"
                   argument_passing_method="cmdline"/>
