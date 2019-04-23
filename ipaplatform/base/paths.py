@@ -221,6 +221,7 @@ class BasePathNamespace(object):
     IPA_DNSKEYSYNCD = "/usr/libexec/ipa/ipa-dnskeysyncd"
     IPA_HTTPD_KDCPROXY = "/usr/libexec/ipa/ipa-httpd-kdcproxy"
     IPA_ODS_EXPORTER = "/usr/libexec/ipa/ipa-ods-exporter"
+    IPA_PKI_RETRIEVE_KEY = "/usr/libexec/ipa/ipa-pki-retrieve-key"
     IPA_HTTPD_PASSWD_READER = "/usr/libexec/ipa/ipa-httpd-pwdreader"
     IPA_PKI_WAIT_RUNNING = "/usr/libexec/ipa/ipa-pki-wait-running"
     DNSSEC_KEYFROMLABEL = "/usr/sbin/dnssec-keyfromlabel-pkcs11"
