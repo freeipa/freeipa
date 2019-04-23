@@ -3691,6 +3691,7 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
 
     request_cert = knob(
         None,
+        deprecated=True,
         description="request certificate for the machine",
     )
     request_cert = prepare_only(request_cert)
@@ -3703,7 +3704,10 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
                 "--server cannot be used without providing --domain")
 
         if self.force_ntpd:
-            logger.warning("Option --force-ntpd has been deprecated")
+            logger.warning(
+                "Option --force-ntpd has been deprecated and will be "
+                "removed in a future release."
+            )
 
         if self.ntp_servers and self.no_ntp:
             raise RuntimeError(
@@ -3712,6 +3716,12 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
         if self.ntp_pool and self.no_ntp:
             raise RuntimeError(
                 "--ntp-pool cannot be used together with --no-ntp")
+
+        if self.request_cert:
+            logger.warning(
+                "Option --request-cert has been deprecated and will be "
+                "removed in a future release."
+            )
 
         if self.no_nisdomain and self.nisdomain:
             raise RuntimeError(
