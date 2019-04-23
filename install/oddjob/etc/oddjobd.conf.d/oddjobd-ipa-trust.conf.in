@@ -10,7 +10,7 @@
       </interface>
       <interface name="com.redhat.idm.trust">
         <method name="fetch_domains">
-          <helper exec="/usr/libexec/ipa/oddjob/com.redhat.idm.trust-fetch-domains"
+          <helper exec="@ODDJOBDIR@/com.redhat.idm.trust-fetch-domains"
 		  arguments="30"
                   argument_passing_method="cmdline"
 		  prepend_user_name="no"/>
