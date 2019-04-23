@@ -2,15 +2,16 @@
 # Omar Berroterán S. <omarberroteranlkf@gmail.com>, 2016. #zanata
 # Emilio Herrera <ehespinosa57@gmail.com>, 2017. #zanata
 # Emilio Herrera <ehespinosa57@gmail.com>, 2018. #zanata
+# Emilio Herrera <ehespinosa57@gmail.com>, 2019. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.90.dev201811131342+git61e1d7a83\n"
+"Project-Id-Version: freeipa 4.7.90.dev201904231605+git36c65c4aa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-11-13 15:44+0200\n"
+"POT-Creation-Date: 2019-04-23 19:06+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-11-23 06:39+0000\n"
+"PO-Revision-Date: 2019-04-23 03:22+0000\n"
 "Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -72,6 +73,62 @@ msgstr ""
 "\n"
 "    Muestra información sobre una regla automiembro.\n"
 "    "
+
+msgid ""
+"\n"
+"    Lockout status of a user account\n"
+"\n"
+"    An account may become locked if the password is entered incorrectly too\n"
+"    many times within a specific time period as controlled by password\n"
+"    policy. A locked account is a temporary condition and may be unlocked "
+"by\n"
+"    an administrator.\n"
+"\n"
+"    This connects to each IPA master and displays the lockout status on\n"
+"    each one.\n"
+"\n"
+"    To determine whether an account is locked on a given server you need\n"
+"    to compare the number of failed logins and the time of the last "
+"failure.\n"
+"    For an account to be locked it must exceed the maxfail failures within\n"
+"    the failinterval duration as specified in the password policy "
+"associated\n"
+"    with the user.\n"
+"\n"
+"    The failed login counter is modified only when a user attempts a log in\n"
+"    so it is possible that an account may appear locked but the last failed\n"
+"    login attempt is older than the lockouttime of the password policy. "
+"This\n"
+"    means that the user may attempt a login again. "
+msgstr ""
+"\n"
+"    Estado de bloqueo de una cuenta de usuario\n"
+"\n"
+"    Una cuenta de usuario puede resultar bloqueada si la contraseña se "
+"introduce\n"
+"    incorrectamente muchas veces dentro de un período especifico de tiempo\n"
+"    controlado por la política de contraseña. Un bloqueo de cuenta es una "
+"condición\n"
+"    temporal y debe ser desbloqueada por un administrador.\n"
+"\n"
+"    Esto conecta con el máster IPA y muestra el estado de bloqueo de cada "
+"uno.\n"
+"\n"
+"    Para determinar si una cuenta está bloqueada en un servidor dado usted\n"
+"    necesita comparar el número de accesos fallido y la hora del último "
+"fallo. Para\n"
+"    que una cuenta se bloquee debe exceder maxfail dentro de la duración\n"
+"    failinterval según se especifique en la política de contraseña asociada "
+"con el\n"
+"    usuario.\n"
+"\n"
+"   El contador de acceso fallado se modifica solo cuando un usuario intenta "
+"acceder\n"
+"   por lo que es posible que una cuenta puede aparecer bloqueada pero el "
+"último\n"
+"   acceso fallado sea más antiguo que el lockouttime de la política de "
+"contraseña.\n"
+"   Esto significa que el usuario puede intentar acceder otra vez."
 
 msgid ""
 "\n"
@@ -408,6 +465,265 @@ msgstr ""
 "\n"
 "Las fechas se tratan como GMT para coincidir con las fechas de los "
 "certificados.\n"
+
+msgid ""
+"\n"
+"Directory Server Access Control Instructions (ACIs)\n"
+"\n"
+"ACIs are used to allow or deny access to information. This module is\n"
+"currently designed to allow, not deny, access.\n"
+"\n"
+"The aci commands are designed to grant permissions that allow updating\n"
+"existing entries or adding or deleting new ones. The goal of the ACIs\n"
+"that ship with IPA is to provide a set of low-level permissions that\n"
+"grant access to special groups called taskgroups. These low-level\n"
+"permissions can be combined into roles that grant broader access. These\n"
+"roles are another type of group, roles.\n"
+"\n"
+"For example, if you have taskgroups that allow adding and modifying users "
+"you\n"
+"could create a role, useradmin. You would assign users to the useradmin\n"
+"role to allow them to do the operations defined by the taskgroups.\n"
+"\n"
+"You can create ACIs that delegate permission so users in group A can write\n"
+"attributes on group B.\n"
+"\n"
+"The type option is a map that applies to all entries in the users, groups "
+"or\n"
+"host location. It is primarily designed to be used when granting add\n"
+"permissions (to write new entries).\n"
+"\n"
+"An ACI consists of three parts:\n"
+"1. target\n"
+"2. permissions\n"
+"3. bind rules\n"
+"\n"
+"The target is a set of rules that define which LDAP objects are being\n"
+"targeted. This can include a list of attributes, an area of that LDAP\n"
+"tree or an LDAP filter.\n"
+"\n"
+"The targets include:\n"
+"- attrs: list of attributes affected\n"
+"- type: an object type (user, group, host, service, etc)\n"
+"- memberof: members of a group\n"
+"- targetgroup: grant access to modify a specific group. This is primarily\n"
+"  designed to enable users to add or remove members of a specific group.\n"
+"- filter: A legal LDAP filter used to narrow the scope of the target.\n"
+"- subtree: Used to apply a rule across an entire set of objects. For "
+"example,\n"
+"  to allow adding users you need to grant \"add\" permission to the subtree\n"
+"  ldap://uid=*,cn=users,cn=accounts,dc=example,dc=com. The subtree option\n"
+"  is a fail-safe for objects that may not be covered by the type option.\n"
+"\n"
+"The permissions define what the ACI is allowed to do, and are one or\n"
+"more of:\n"
+"1. write - write one or more attributes\n"
+"2. read - read one or more attributes\n"
+"3. add - add a new entry to the tree\n"
+"4. delete - delete an existing entry\n"
+"5. all - all permissions are granted\n"
+"\n"
+"Note the distinction between attributes and entries. The permissions are\n"
+"independent, so being able to add a user does not mean that the user will\n"
+"be editable.\n"
+"\n"
+"The bind rule defines who this ACI grants permissions to. The LDAP server\n"
+"allows this to be any valid LDAP entry but we encourage the use of\n"
+"taskgroups so that the rights can be easily shared through roles.\n"
+"\n"
+"For a more thorough description of access controls see\n"
+"http://www.redhat.com/docs/manuals/dir-server/ag/8.0/Managing_Access_Control."
+"html\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+"NOTE: ACIs are now added via the permission plugin. These examples are to\n"
+"demonstrate how the various options work but this is done via the "
+"permission\n"
+"command-line now (see last example).\n"
+"\n"
+" Add an ACI so that the group \"secretaries\" can update the address on any "
+"user:\n"
+"   ipa group-add --desc=\"Office secretaries\" secretaries\n"
+"   ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries "
+"--permissions=write --prefix=none \"Secretaries write addresses\"\n"
+"\n"
+" Show the new ACI:\n"
+"   ipa aci-show --prefix=none \"Secretaries write addresses\"\n"
+"\n"
+" Add an ACI that allows members of the \"addusers\" permission to add new "
+"users:\n"
+"   ipa aci-add --type=user --permission=addusers --permissions=add --"
+"prefix=none \"Add new users\"\n"
+"\n"
+" Add an ACI that allows members of the editors manage members of the admins "
+"group:\n"
+"   ipa aci-add --permissions=write --attrs=member --targetgroup=admins --"
+"group=editors --prefix=none \"Editors manage admins\"\n"
+"\n"
+" Add an ACI that allows members of the admins group to manage the street and "
+"zip code of those in the editors group:\n"
+"   ipa aci-add --permissions=write --memberof=editors --group=admins --"
+"attrs=street --attrs=postalcode --prefix=none \"admins edit the address of "
+"editors\"\n"
+"\n"
+" Add an ACI that allows the admins group manage the street and zipcode of "
+"those who work for the boss:\n"
+"   ipa aci-add --permissions=write --group=admins --attrs=street --"
+"attrs=postalcode --filter=\"(manager=uid=boss,cn=users,cn=accounts,"
+"dc=example,dc=com)\" --prefix=none \"Edit the address of those who work for "
+"the boss\"\n"
+"\n"
+" Add an entirely new kind of record to IPA that isn't covered by any of the "
+"--type options, creating a permission:\n"
+"   ipa permission-add  --permissions=add --subtree=\"cn=*,cn=orange,"
+"cn=accounts,dc=example,dc=com\" --desc=\"Add Orange Entries\" add_orange\n"
+"\n"
+"\n"
+"The show command shows the raw 389-ds ACI.\n"
+"\n"
+"IMPORTANT: When modifying the target attributes of an existing ACI you\n"
+"must include all existing attributes as well. When doing an aci-mod the\n"
+"targetattr REPLACES the current attributes, it does not add to them.\n"
+msgstr ""
+"\n"
+"Instrucciones de Control de Acceso al Servidor de Directorio (ACIs)\n"
+"\n"
+"ACIs son usados para permitir o denegar acceso a la información. Este módulo "
+"está\n"
+" actualmente diseñado para permitir, no denegar, acceso.\n"
+"\n"
+"Los comandos aci están diseñados para conceder permisos que permitan la\n"
+"actualización de entradas existentes o el añadido o borrado de nuevas. El "
+"objetivo\n"
+"de los ACIs que van con IPA es suministrar un conjunto de permisos de bajo "
+"nivel\n"
+"que conceden acceso a grupos espaciales llamados grupos de tareas. Estos\n"
+"permisos de bajo nivel pueden ser combinados en roles que conceden un "
+"acceso\n"
+"más amplio. Estos roles son otro tipo de grupo, roles.\n"
+"\n"
+"Por ejemplo, si usted tiene un grupo de tareas que le permiten añadir y "
+"modificar\n"
+"usuarios usted podría crear un role, useradmin. Debería asignar usuarios al "
+"role\n"
+"useradmin que les permitirá hacer operaciones definidas en el grupo de "
+"tareas.\n"
+"\n"
+"Usted puede crear ACIs que deleguen permisos así usuarios del grupo A "
+"pueden\n"
+"escribir atributos en el grupo B.\n"
+"\n"
+"La opción type es un mapa que aplica a todas las entradas en la localización "
+"de\n"
+"usuarios, grupos o host. Está diseñada principalmente para ser usada cuando "
+"se\n"
+"otorgan permisos de añadir (para escribir nuevas entradas).\n"
+"\n"
+"Un ACI consta de tres partes:\n"
+"1. objetivo\n"
+"2. permisos\n"
+"3. reglas de enlace\n"
+"\n"
+"El objetivo es un conjunto de reglas que definen que objetos LDAP son "
+"objetivos.\n"
+"Esto puede incluir una lista de atributos, un área del árbol LDAP o un "
+"filtro LDAP.\n"
+"\n"
+"Los objetivos incluyen:\n"
+"- attrs: lista de atributos afectados\n"
+"- type: un tipo de objeto (usuario, grupo, host, servicio, etc)\n"
+"- memberof: miembros de un grupo\n"
+"- targetgroup: concede acceso para modificar un grupo específico. Está "
+"diseñado\n"
+"  principalmente para habilitar a los usuarios para añadir o borrar miembros "
+"de un\n"
+"  grupo específico.\n"
+"- filter: Un filtro LDAP legal usado para reducir el alcance del objetivo.\n"
+"- subtree: Usado para aplicar una regla a lo largo de un conjunto de "
+"objetos. Por\n"
+"  ejemplo, para añadir usuarios usted necesita conceder permisos \"add\" al "
+"subtree\n"
+"  ldap://uid=*,cn=users,cn=accounts,dc=example,dc=com. La opción subtree es "
+"a\n"
+"  prueba de fallos para objetos que pueden no estar cubiertos por la opción "
+"type.\n"
+"\n"
+"Los permisos definidos que ACI tiene permitidos hacer son uno o más de:\n"
+"1. write - escribir uno o mas atributos\n"
+"2. read - leer uno o más atributos\n"
+"3. add - añadir una nueva entrada al árbol\n"
+"4. delete - borrar una entrada existente\n"
+"5. all - se conceden todos los permisos\n"
+"\n"
+"Advierta la diferencia entre atributos y entradas. Los permisos son "
+"independientes,\n"
+"de esta manera ser capaz de añadir un usuario no significa que el usuario "
+"será\n"
+"editable.\n"
+"\n"
+"La regla bind define a quien concede ACI estos permisos. El servidor LDAP "
+"permite\n"
+"esto para cualquier entrada LDAP válida pero recomendamos el uso de grupos "
+"de\n"
+"tareas de modo que los derechos puedan ser fácilmente compartidos entre los\n"
+"roles.\n"
+"\n"
+"Para una descripción más completa de los controles de acceso vea\n"
+"http://www.redhat.com/docs/manuals/dir-server/ag/8.0/Managing_Access_Control."
+"html\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+"AVISO: Los ACIs se añaden ahora por medio del plugin permisos. Estos "
+"ejemplos\n"
+"son para demostrar como trabajan diversas opciones pero esto está hecho por\n"
+"medio de los permisos de linea de comandos ahora (vea último ejemplo).\n"
+"\n"
+" Añadir un ACI de modo que el grupo \"secretaries\" pueda actualizar la "
+"dirección de cualquier usuario:\n"
+"   ipa group-add --desc=\"Office secretaries\" secretaries\n"
+"   ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries "
+"--permissions=write --prefix=none \"Secretaries write addresses\"\n"
+"\n"
+" Mostrar el nuevo ACI:\n"
+"   ipa aci-show --prefix=none \"Secretaries write addresses\"\n"
+"\n"
+" Añadir un ACI que permita a los  miembros del permiso \"addusers\" añadir "
+"nuevos usuarios:\n"
+"   ipa aci-add --type=user --permission=addusers --permissions=add --"
+"prefix=none \"Add new users\"\n"
+"\n"
+" Añadir un ACI que permita a los miembros de los editores manejar miembros "
+"del grupo admins:\n"
+"   ipa aci-add --permissions=write --attrs=member --targetgroup=admins --"
+"group=editors --prefix=none \"Editors manage admins\"\n"
+"\n"
+" Añadir un ACI que permita a los miembros del grupo admins manejar la calle "
+"y el código postal de los que estén en el grupo editors:\n"
+"   ipa aci-add --permissions=write --memberof=editors --group=admins --"
+"attrs=street --attrs=postalcode --prefix=none \"admins edit the address of "
+"editors\"\n"
+"\n"
+" Añadir un ACI que permita a los miembros del grupo admins manejar la calle "
+"y el código postal de aquellos que trabajan para el jefe:\n"
+"   ipa aci-add --permissions=write --group=admins --attrs=street --"
+"attrs=postalcode --filter=\"(manager=uid=boss,cn=users,cn=accounts,"
+"dc=example,dc=com)\" --prefix=none \"Edit the address of those who work for "
+"the boss\"\n"
+"\n"
+" Añadir un clase de registro totalmente nueva para IPA que no esté cubierta "
+"por ninguna de las opciones –type, creando un permiso:\n"
+"   ipa permission-add  --permissions=add --subtree=\"cn=*,cn=orange,"
+"cn=accounts,dc=example,dc=com\" --desc=\"Add Orange Entries\" add_orange\n"
+"\n"
+"\n"
+"El comando show muestra el ACI 389-ds en bruto.\n"
+"\n"
+"IMPORTANTE: Cuando modifique los atributos target de un ACI existente debe\n"
+"incluir todos los atributos existentes también. Cuando haga un aci-mod "
+"targetattr\n"
+"REEMPLAZA los atributos actuales, no los añade.\n"
 
 msgid ""
 "\n"
@@ -1130,6 +1446,13 @@ msgstr ""
 
 msgid ""
 "\n"
+"Joining an IPA domain\n"
+msgstr ""
+"\n"
+"Uniendo un dominio IPA\n"
+
+msgid ""
+"\n"
 "Kerberos pkinit options\n"
 "\n"
 "Enable or disable anonymous pkinit using the principal\n"
@@ -1379,6 +1702,57 @@ msgid ""
 msgstr ""
 "\n"
 "Misc plug-ins\n"
+
+msgid ""
+"\n"
+"OTP configuration\n"
+"\n"
+"Manage the default values that IPA uses for OTP tokens.\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" Show basic OTP configuration:\n"
+"   ipa otpconfig-show\n"
+"\n"
+" Show all OTP configuration options:\n"
+"   ipa otpconfig-show --all\n"
+"\n"
+" Change maximum TOTP authentication window to 10 minutes:\n"
+"   ipa otpconfig-mod --totp-auth-window=600\n"
+"\n"
+" Change maximum TOTP synchronization window to 12 hours:\n"
+"   ipa otpconfig-mod --totp-sync-window=43200\n"
+"\n"
+" Change maximum HOTP authentication window to 5:\n"
+"   ipa hotpconfig-mod --hotp-auth-window=5\n"
+"\n"
+" Change maximum HOTP synchronization window to 50:\n"
+"   ipa hotpconfig-mod --hotp-sync-window=50\n"
+msgstr ""
+"\n"
+"Configuración OTP\n"
+"\n"
+"Gestiona los valores por defecto que IPA usa para las fichas OTP.\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+" Muestra a configuración OTP básica:\n"
+"   ipa otpconfig-show\n"
+"\n"
+" Muestra todas las opciones de configuración OTP:\n"
+"   ipa otpconfig-show --all\n"
+"\n"
+" Cambia la ventana máxima de autenticación TOTP a 10 minutos:\n"
+"   ipa otpconfig-mod --totp-auth-window=600\n"
+"\n"
+" Cambia la ventana máxima de sincronización TOTP a 12 horas:\n"
+"   ipa otpconfig-mod --totp-sync-window=43200\n"
+"\n"
+" Cambia la ventana máxima de autenticación HOTP a 5:\n"
+"   ipa hotpconfig-mod --hotp-auth-window=5\n"
+"\n"
+" Cambia la ventana máxima de sincronización a 50:\n"
+"   ipa hotpconfig-mod --hotp-sync-window=50\n"
 
 msgid ""
 "\n"
@@ -1841,6 +2215,50 @@ msgstr ""
 
 msgid ""
 "\n"
+"Search for ACIs.\n"
+"\n"
+"    Returns a list of ACIs\n"
+"\n"
+"    EXAMPLES:\n"
+"\n"
+"     To find all ACIs that apply directly to members of the group ipausers:\n"
+"       ipa aci-find --memberof=ipausers\n"
+"\n"
+"     To find all ACIs that grant add access:\n"
+"       ipa aci-find --permissions=add\n"
+"\n"
+"    Note that the find command only looks for the given text in the set of\n"
+"    ACIs, it does not evaluate the ACIs to see if something would apply.\n"
+"    For example, searching on memberof=ipausers will find all ACIs that\n"
+"    have ipausers as a memberof. There may be other ACIs that apply to\n"
+"    members of that group indirectly.\n"
+"    "
+msgstr ""
+"\n"
+"Buscar ACIs.\n"
+"\n"
+"    Devolver una lista de ACIs\n"
+"\n"
+"    EJEMPLOS:\n"
+"\n"
+"     Para encontrar todos los ACIs que se aplican directamente a miembros "
+"del grupo ipausers:\n"
+"       ipa aci-find --memberof=ipausers\n"
+"\n"
+"     Para encontrar todos los ACIs que obtienen acceso añadir:\n"
+"       ipa aci-find --permissions=add\n"
+"\n"
+"    Advierta que el comando find solo busca el texto dado en el conjunto de "
+"ACIs, no\n"
+"    evalúa los ACIs a ver si aplicaría alguno.\n"
+"    Por ejemplo, la búsqueda sobre memberof=ipausers encontrará todos los "
+"ACIs\n"
+"    que tengan ipausers como memberof. Allí puede haber otros ACIs que se\n"
+"    apliquen a miembros de ese grupo indirectamente.\n"
+"    "
+
+msgid ""
+"\n"
 "Self-service Permissions\n"
 "\n"
 "A permission enables fine-grained delegation of permissions. Access Control\n"
@@ -2218,6 +2636,99 @@ msgstr ""
 
 msgid ""
 "\n"
+"Users\n"
+"\n"
+"Manage user entries. All users are POSIX users.\n"
+"\n"
+"IPA supports a wide range of username formats, but you need to be aware of "
+"any\n"
+"restrictions that may apply to your particular environment. For example,\n"
+"usernames that start with a digit or usernames that exceed a certain length\n"
+"may cause problems for some UNIX systems.\n"
+"Use 'ipa config-mod' to change the username format allowed by IPA tools.\n"
+"\n"
+"Disabling a user account prevents that user from obtaining new Kerberos\n"
+"credentials. It does not invalidate any credentials that have already\n"
+"been issued.\n"
+"\n"
+"Password management is not a part of this module. For more information\n"
+"about this topic please see: ipa help passwd\n"
+"\n"
+"Account lockout on password failure happens per IPA master. The user-status\n"
+"command can be used to identify which master the user is locked out on.\n"
+"It is on that master the administrator must unlock the user.\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" Add a new user:\n"
+"   ipa user-add --first=Tim --last=User --password tuser1\n"
+"\n"
+" Find all users whose entries include the string \"Tim\":\n"
+"   ipa user-find Tim\n"
+"\n"
+" Find all users with \"Tim\" as the first name:\n"
+"   ipa user-find --first=Tim\n"
+"\n"
+" Disable a user account:\n"
+"   ipa user-disable tuser1\n"
+"\n"
+" Enable a user account:\n"
+"   ipa user-enable tuser1\n"
+"\n"
+" Delete a user:\n"
+"   ipa user-del tuser1\n"
+msgstr ""
+"\n"
+"Usuarios\n"
+"\n"
+"Gestiona entradas de usuario. Todos los usuarios son usuarios POXIS.\n"
+"\n"
+"IPA soporta un amplio rango de formatos de nombre de usuario, pero usted "
+"debe estar atento a cualquier restricción que se pueda aplicar a su entorno "
+"concreto. Por ejemplo, nombres de usuario que empiezan con un dígito o "
+"nombres de usuario que superan cierta longitud pueden causar problemas en "
+"algunos sistemas UNIX.\n"
+"Use 'ipa config-mod' para cambiar el nombre de usuario permitido por las "
+"herramientas IPA.\n"
+"\n"
+"Deshabilitando una cuenta de usuario evita que el usuario obtenga nuevas\n"
+"credenciales Kerberos. Esto no invalida cualquier credencial que ya hay "
+"sido\n"
+"enviada.\n"
+"\n"
+"La gestión de contraseña no es parte de este módulo. Para más información "
+"sobre \n"
+"este punto vea por favor: ipa help passwd\n"
+"\n"
+"El cierre de una cuenta ante un fallo de contraseña sucede por el master "
+"IPA. El\n"
+"comando user-status se puede usar para identificar en que master está "
+"bloqueado\n"
+"el usuario. Y sobre ese master debe el administrador desbloquear al "
+"usuario.\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+" Añadir un nuevo usuario:\n"
+"   ipa user-add --first=Tim --last=User --password tuser1\n"
+"\n"
+" Encontrar todos los usuarios cuyas entradas incluyen la cadena \"Tim\":\n"
+"   ipa user-find Tim\n"
+"\n"
+" Encontrar todos los usuarios con “Tim” como primer nombre:\n"
+"   ipa user-find --first=Tim\n"
+"\n"
+" Deshabilitar una cuenta de usuario:\n"
+"   ipa user-disable tuser1\n"
+"\n"
+" Habilitar una cuenta de usuario\n"
+"   ipa user-enable tuser1\n"
+"\n"
+" Borrar un usuario:\n"
+"   ipa user-del tuser1\n"
+
+msgid ""
+"\n"
 "Vaults\n"
 msgstr ""
 "\n"
@@ -2243,8 +2754,20 @@ msgid "  ipa <command> --help"
 msgstr "  ipa <command> --help"
 
 #, python-brace-format
+msgid "${count} item(s) added"
+msgstr "${count} item(s) añadido"
+
+#, python-brace-format
+msgid "${count} item(s) removed"
+msgstr "${count} item(s) borrado"
+
+#, python-brace-format
 msgid "${entity} ${primary_key} Settings"
 msgstr "Configuraciones de  ${entity} ${primary_key}"
+
+#, python-brace-format
+msgid "${entity} ${primary_key} updated"
+msgstr "${entity} ${primary_key} actualizado"
 
 #, python-brace-format
 msgid "${entity} successfully added"
@@ -2261,6 +2784,10 @@ msgstr "${primary_key} es gestionada por:"
 #, python-brace-format
 msgid "${primary_key} members:"
 msgstr "${primary_key} miembros:"
+
+#, python-brace-format
+msgid "${product}, version: ${version}"
+msgstr "${product}, versión: ${version}"
 
 #, python-format
 msgid "%(attr)s does not contain '%(value)s'"
@@ -2459,6 +2986,14 @@ msgid "%(filename)s: file not found"
 msgstr "%(filename)s: fichero no encontrado"
 
 #, python-format
+msgid "%(host)s failed"
+msgstr "%(host)s falló"
+
+#, python-format
+msgid "%(host)s failed: %(error)s"
+msgstr "%(host)s falló: %(error)s"
+
+#, python-format
 msgid "%(info)s"
 msgstr "%(info)s"
 
@@ -2547,6 +3082,10 @@ msgstr "%s a eliminar"
 msgid "%s: RADIUS proxy server not found"
 msgstr "%s: servidor proxy RADIUS no encontrado"
 
+#, python-format
+msgid "%s: user is already preserved"
+msgstr "%s: usuario ya preservado"
+
 #, python-brace-format
 msgid "'${port}' is not a valid port"
 msgstr "«${port}» no es un puerto válido"
@@ -2580,6 +3119,56 @@ msgstr ""
 
 msgid "7 is not a valid revocation reason"
 msgstr "7 no es una razón válida de revocación"
+
+msgid ""
+"<i class=\"fa fa-info-circle\"></i> To log in with <strong>certificate</"
+"strong>, please make sure you have valid personal certificate. "
+msgstr ""
+"<i class=\"fa fa-info-circle\"></i> Para acceder con <strong>certificado</"
+"strong>, por favor asegúrese de tener un certificado personal valido. "
+
+msgid ""
+"<i class=\"fa fa-info-circle\"></i> To log in with <strong>username and "
+"password</strong>, enter them in the corresponding fields, then click 'Log "
+"in'."
+msgstr ""
+"<i class=\"fa fa-info-circle\"></i> Para acceder con <strong>nombre de "
+"usuario y contraseña</strong>, introduzcalos en los correspondientes campos "
+"después pulse 'Entrar'."
+
+msgid ""
+"<p>Implicit method (password) will be used if no method is chosen.</"
+"p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow "
+"authentication with either one of the authentication types but Kerberos uses "
+"pre-authentication method which requires to use armor ccache.</"
+"p><p><strong>RADIUS with another type:</strong> Kerberos always use RADIUS, "
+"but LDAP never does. LDAP only recognize the password and two-factor "
+"authentication options.</p>"
+msgstr ""
+"<p>Método implícito (conraseña) será usado si no se ha elegido método.</"
+"p><p><strong>Contraseña + Dos factores:</strong> LDAP y Kerberos permiten la "
+"autenticación con uno de lostipos de autenticación pero Kerberos usa un "
+"método de pre autenticacion que requiere usar armadura ccache.</"
+"p><p><strong>RADIUS con otro tipo:</strong> Kerberos siempre usa RADIUS, "
+"pero LDAP nunca lo hace. LDAP solo reconoce las opciones de contraseña y dos "
+"factores.</p>"
+
+msgid ""
+"<p>Per-user setting, overwrites the global setting if any option is checked."
+"</p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow "
+"authentication with either one of the authentication types but Kerberos uses "
+"pre-authentication method which requires to use armor ccache.</"
+"p><p><strong>RADIUS with another type:</strong> Kerberos always use RADIUS, "
+"but LDAP never does. LDAP only recognize the password and two-factor "
+"authentication options.</p>"
+msgstr ""
+"<p>Configuración por uso, sobre escribe la configuracion global si cualquier "
+"opción esta marcada.</p><p><strong>Contraseña + Dos factores:</strong> LDAP "
+"y Kerberos permiten la autenticación con uno de lostipos de autenticación "
+"pero Kerberos usa un método de pre autenticacion que requiere usar armadura "
+"ccache</p><p><strong>RADIUS con otro tipo:</strong> Kerberos siempre usa "
+"RADIUS, pero LDAP nunca lo hace. LDAP solo reconoce las opciones de "
+"autenticación contraseña y dos factores.</p>"
 
 msgid "A comma-separated list of fields to search in when searching for groups"
 msgstr ""
@@ -2644,6 +3233,9 @@ msgstr "ACI"
 msgid "ACI name"
 msgstr "Nombre de ACI"
 
+msgid "ACI object."
+msgstr "Objeto ACI."
+
 msgid "ACI prefix"
 msgstr "Prefijo ACI"
 
@@ -2664,6 +3256,9 @@ msgid ""
 msgstr ""
 "Número de Versión API no fue enviado, la compatibilidad de envío no está "
 "garantizada. Asumiendo la versión API del servidor, %(server_version)s"
+
+msgid "About"
+msgstr "Sobre"
 
 msgid "Access Denied"
 msgstr "Acceso Denegado"
@@ -2696,6 +3291,16 @@ msgstr "Estado de Cuenta"
 msgid "Account disabled"
 msgstr "Cuenta inhabilitada "
 
+#, python-format
+msgid "Account disabled: %(disabled)s"
+msgstr "Cuenta deshabilitada: %(disabled)s"
+
+msgid "Actions"
+msgstr "Acciones"
+
+msgid "Activate"
+msgstr "Activar"
+
 msgid "Active Directory domain range"
 msgstr "Intervalo de dominios de Active Directory"
 
@@ -2708,8 +3313,17 @@ msgstr "Agregar"
 msgid "Add Class of Service entry"
 msgstr "Añadir entrada Class of Service"
 
+msgid "Add Custom Authentication Indicator"
+msgstr "Añadir Indicador de Autenticación Personal"
+
+msgid "Add Kerberos Principal Alias"
+msgstr "Añadir Alias Principal Kerberos"
+
 msgid "Add Many"
 msgstr "Añadir Muchos"
+
+msgid "Add a manager to the user entry"
+msgstr "Añade un gestor a entrada de usuario"
 
 msgid "Add a new HBAC service group."
 msgstr "Añadir un nuevo grupo de servicio HBAC."
@@ -2778,6 +3392,9 @@ msgstr "Agregar y Editar"
 msgid "Add commands and sudo command groups affected by Sudo Rule."
 msgstr "Añadir comandos y grupos de comando sudo afectados por Regla Sudo."
 
+msgid "Add custom value"
+msgstr "Añadir valor personal"
+
 msgid "Add group for Sudo to execute as."
 msgstr "Añadir grupo para Sudo a ejecutar como."
 
@@ -2816,6 +3433,15 @@ msgstr "Añadir miembros a un grupo de servicio HBAC."
 
 msgid "Add new DNS resource record."
 msgstr "Añadir nuevo registro de recurso DNS."
+
+msgid "Add new principal alias to the user entry"
+msgstr "Añade un nuevo alias principal a la entrada de usuario"
+
+msgid "Add one or more certificate mappings to the user entry."
+msgstr "Añade uno o más mapeados de certificados a la entrada de usuario."
+
+msgid "Add one or more certificates to the user entry"
+msgstr "Añade uno o más certificados a la entrada del usuario"
 
 msgid "Add permissions to a privilege."
 msgstr "Añadir permisos a un privilegio."
@@ -2898,6 +3524,10 @@ msgid "Added automount map \"%(value)s\""
 msgstr "Añadido mapa de automontaje \"%(value)s\""
 
 #, python-format
+msgid "Added certificates to user \"%(value)s\""
+msgstr "Añadidos certificados al usuario \"%(value)s\""
+
+#, python-format
 msgid "Added condition(s) to \"%(value)s\""
 msgstr "Añadida condición(es) a \"%(value)s\""
 
@@ -2920,6 +3550,10 @@ msgstr "Ha sido agregado el grupo de equipo \"%(value)s\""
 #, python-format
 msgid "Added netgroup \"%(value)s\""
 msgstr "\"%(value)s\"netgroup añadido"
+
+#, python-format
+msgid "Added new aliases to user \"%(value)s\""
+msgstr "Añade nuevos alias al usuario \"%(value)s\""
 
 #, python-format
 msgid "Added option \"%(option)s\" to Sudo Rule \"%(rule)s\""
@@ -2974,17 +3608,61 @@ msgstr ""
 msgid "Allow dynamic updates."
 msgstr "Permitir actualizaciones dinámicas."
 
+#, python-brace-format
+msgid "Allow host groups to create keytab of '${primary_key}'"
+msgstr "Permitir a grupos de host crear tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Allow host groups to retrieve keytab of '${primary_key}'"
+msgstr ""
+"Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Allow hosts to create keytab of '${primary_key}'"
+msgstr "Permitir a hosts crear tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Allow hosts to retrieve keytab of '${primary_key}'"
+msgstr "Permitir a hosts recuperar tabla de teclas de '${primary_key}'"
+
 msgid "Allow query"
 msgstr "Permitir consulta"
 
 msgid "Allow transfer"
 msgstr "Permitir transferencia"
 
+#, python-brace-format
+msgid "Allow user groups to create keytab of '${primary_key}'"
+msgstr "Permitir a grupos de usuario crear tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Allow user groups to retrieve keytab of '${primary_key}'"
+msgstr ""
+"Permitir a grupo de usuarios recuperar tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Allow users to create keytab of '${primary_key}'"
+msgstr "Permitir a los usuarios crear tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Allow users to retrieve keytab of '${primary_key}'"
+msgstr "Permitir a los usuarios recuperar tabla de teclas de '${primary_key}'"
+
+msgid "Allowed to create keytab"
+msgstr "Permitido crear tabla de teclas"
+
+msgid "Allowed to retrieve keytab"
+msgstr "Permitido recuperar tabla de teclas"
+
 msgid "Already registered"
 msgstr "Ya está registrado"
 
 msgid "Altitude"
 msgstr "Altitud"
+
+#, python-brace-format
+msgid "An error has occurred (${error})"
+msgstr "Ha ocurrido un error (${error})"
 
 msgid "Any Command"
 msgstr "Cualquier comando"
@@ -3001,6 +3679,9 @@ msgstr "Cualquier servicio"
 msgid "Anyone"
 msgstr "Cualquiera"
 
+msgid "Apply"
+msgstr "Aplicar"
+
 msgid "Apply ACI to your own entry (self)"
 msgstr "Aplique ACI a su propia entrada (usted)"
 
@@ -3015,8 +3696,26 @@ msgstr ""
 "¿Está seguro que desea ${action} el usuario?<br/>El cambio tendrá efecto "
 "inmediatamente."
 
+#, python-brace-format
+msgid "Are you sure you want to delete ${object}?"
+msgstr "¿Está seguro de que desea borrar ${object}?"
+
 msgid "Are you sure you want to delete selected entries?"
 msgstr "¿Está seguro que desea eliminar las entradas seleccionadas?"
+
+#, python-brace-format
+msgid "Are you sure you want to disable ${object}?"
+msgstr "¿Está seguro de que desea deshabilitar ${object}?"
+
+#, python-brace-format
+msgid "Are you sure you want to enable ${object}?"
+msgstr "Está seguro de que desea habilitar ${object}?"
+
+msgid "Are you sure you want to proceed with the action?"
+msgstr "¿Está seguro de que desea seguir adelante con la acción?"
+
+msgid "Are you sure you want to rebuild auto membership?"
+msgstr "¿Está seguro de que quiere reconstruir la auto membresía?"
 
 msgid "Are you sure you want to unprovision this host?"
 msgstr "¿Está seguro que desea unprovision este equipo?"
@@ -3049,8 +3748,26 @@ msgstr ""
 msgid "Attributes"
 msgstr "Atributos"
 
+msgid "Attributes to which the permission applies"
+msgstr "Atributos a los que aplican los permisos"
+
 msgid "Audit"
 msgstr "Auditoría"
+
+msgid "Authenticating"
+msgstr "Autenticando"
+
+msgid "Authentication indicator"
+msgstr "Indicador de autenticación"
+
+msgid "Authentication indicators"
+msgstr "Indicadores de autenticación"
+
+msgid "Authentication with Kerberos failed"
+msgstr "Autenticación con Kerberos fallada"
+
+msgid "Authentication with personal certificate failed"
+msgstr "Autenticación con certificado persona falló"
 
 msgid "Authoritative nameserver"
 msgstr "Nombre de servidor autoritativo"
@@ -3078,6 +3795,9 @@ msgstr ""
 
 msgid "Automember Rule"
 msgstr "Regla Automiembro"
+
+msgid "Automember rebuild membership task completed"
+msgstr "Tarea completada de reconstruir la membresía del miembro"
 
 msgid "Automount"
 msgstr "Montaje automático"
@@ -3124,6 +3844,9 @@ msgstr "Disponible"
 msgid "BIND update policy"
 msgstr "Política de actualización de BIND"
 
+msgid "Back"
+msgstr "Atrás"
+
 msgid "Back to Top"
 msgstr "Volver al comienzo"
 
@@ -3156,10 +3879,6 @@ msgstr "Asociar DN"
 #, c-format
 msgid "Bind failed: %s\n"
 msgstr "Falló enlace:%s\n"
-
-#, c-format
-msgid "Bind password required when using a bind DN.\n"
-msgstr "Vincular contraseña requerida mediante un enlace DN.\n"
 
 msgid "Brief description of this profile"
 msgstr "Breve descripción de este perfil"
@@ -3298,6 +4017,12 @@ msgstr "Clase"
 msgid "Class of Service object used for linking policies with groups"
 msgstr "Objeto Class of Service enlazando políticas con grupos"
 
+msgid "Clear"
+msgstr "Limpiar"
+
+msgid "Clear all fields on the page."
+msgstr "Limpiar todos los campos en la página."
+
 #, python-brace-format
 msgid "Click to ${action}"
 msgstr "Pulse para ${action}"
@@ -3390,6 +4115,9 @@ msgstr "Contactar este servidor KDC específico"
 msgid "Continue"
 msgstr "Continuar"
 
+msgid "Continue to next page"
+msgstr "Continúe a la siguiente página"
+
 msgid "Continuous mode: Don't stop on errors."
 msgstr "Modo continuo: No se detenga en los errores."
 
@@ -3436,6 +4164,9 @@ msgstr "  Crear como un grupo no POSIX"
 msgid "Create dns record"
 msgstr "Crear registro DNS"
 
+msgid "Create new ACI."
+msgstr "Crear nuevo ACI."
+
 msgid "Create new DNS zone (SOA record)."
 msgstr "Crear nueva zona DNS (registro SOA)."
 
@@ -3466,6 +4197,12 @@ msgstr "Contraseña Actual"
 
 msgid "Current password is required"
 msgstr "Se necesita contraseña actual"
+
+msgid "Custom value"
+msgstr "Valor personal"
+
+msgid "Customization"
+msgstr "Personalización"
 
 msgid "DER-encoded SubjectPublicKeyInfo structure"
 msgstr "Estructura DER-encoded SubjectPublicKeyInfo"
@@ -3610,6 +4347,12 @@ msgstr "Dominio de correo electrónico por defecto"
 msgid "Default group for new users"
 msgstr "Grupo predeterminado para usuarios nuevos"
 
+msgid "Default group for new users is not POSIX"
+msgstr "El grupo predeterminado para nuevos usuarios no es POSIX"
+
+msgid "Default group for new users not found"
+msgstr "Grupo predeterminado para nuevos usuarios no encontrado"
+
 msgid "Default group objectclasses"
 msgstr "Grupo predeterminado objectclass"
 
@@ -3655,6 +4398,9 @@ msgstr "Eliminar"
 #, python-format
 msgid "Delete %(name)s '%(value)s'?"
 msgstr "Borrar %(name)s '%(value)s'?"
+
+msgid "Delete ACI."
+msgstr "Borrar ACI."
 
 msgid "Delete Class of Service entry"
 msgstr "Borrar entrada Class of Service"
@@ -3925,6 +4671,9 @@ msgstr "Deshabilitar una cuenta de usuario."
 msgid "Disable an HBAC rule."
 msgstr "Deshabilitar una regla HBAC."
 
+msgid "Disable per-user override"
+msgstr "Deshabilitar la anulación por uso"
+
 msgid "Disable the Kerberos key and SSL certificate of a service."
 msgstr "Deshabilitar la clave Kerberos y el certificado SSL de un servicio."
 
@@ -3960,6 +4709,43 @@ msgstr "Servicio  inhabilitado \"%(value)s\""
 msgid "Disabled user account \"%(value)s\""
 msgstr " \"%(value)s\" de cuenta de usuario desactivada"
 
+#, python-brace-format
+msgid "Disallow host groups to create keytab of '${primary_key}'"
+msgstr ""
+"Rechazar que los grupos de host creen tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Disallow host groups to retrieve keytab of '${primary_key}'"
+msgstr ""
+"Rechazar que los grupos de host recuperen tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Disallow hosts to create keytab of '${primary_key}'"
+msgstr "Rechazar que los hosts creen tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Disallow hosts to retrieve keytab of '${primary_key}'"
+msgstr "Rechazar que los hosts recuperen tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Disallow user groups to create keytab of '${primary_key}'"
+msgstr ""
+"Rechazar que los grupos de usuario creen tabla de tecla de '${primary_key}'"
+
+#, python-brace-format
+msgid "Disallow user groups to retrieve keytab of '${primary_key}'"
+msgstr ""
+"Rechazar que los grupos de usuario recuperen tabla de teclas de "
+"'${primary_key}'"
+
+#, python-brace-format
+msgid "Disallow users to create keytab of '${primary_key}'"
+msgstr "Rechazar que los usuarios creen tabla de teclas de '${primary_key}'"
+
+#, python-brace-format
+msgid "Disallow users to retrieve keytab of '${primary_key}'"
+msgstr "Rechazar que los usuarios recuperen taa de teclas de '${primary_key}'"
+
 msgid "Display Class of Service entry"
 msgstr "Visualizar entrada Class of Service"
 
@@ -3974,6 +4760,9 @@ msgstr "Mostrar Comando Sudo."
 
 msgid "Display Sudo Rule."
 msgstr "Mostrar Regla Sudo."
+
+msgid "Display a single ACI given an ACI name."
+msgstr "Muestra un único ACI dando un nombre de ACI."
 
 msgid "Display an automount key."
 msgstr "Mostrar una clave de automontaje."
@@ -4060,6 +4849,10 @@ msgstr "Mostrar las propiedades de una regla HBAC."
 msgid "Display user record for current Kerberos principal"
 msgstr "Muestra el registro del usuario para el principal de Kerberos actual"
 
+#, python-brace-format
+msgid "Do you want to remove kerberos alias ${alias}?"
+msgstr "¿Desea quitar el alias kerberos ${alias}?"
+
 msgid "Domain"
 msgstr "Dominio"
 
@@ -4072,6 +4865,12 @@ msgstr "SID de dominio del dominio de confianza"
 
 msgid "Don't create user private group"
 msgstr "No crear grupo privado de usuario"
+
+msgid "Download"
+msgstr "Descargar"
+
+msgid "Download certificate as PEM formatted file."
+msgstr "Descargar certificado como fichero formateado PEM."
 
 msgid "Duplicate keys skipped:"
 msgstr "Llaves duplicadas omitidas"
@@ -4439,6 +5238,10 @@ msgstr "Nombre de fichero de un perfil crudo. El formato XML no se soporta"
 msgid "Filter"
 msgstr "Filtro"
 
+#, python-brace-format
+msgid "Filter available ${other_entity}"
+msgstr "Filtro disponible ${other_entity}"
+
 msgid "Find"
 msgstr "Buscar"
 
@@ -4640,6 +5443,18 @@ msgstr "Grupos de servicio HBAC"
 msgid "HBAC services"
 msgstr "Servicios HBAC"
 
+msgid "HOTP Authentication Window"
+msgstr "Ventana de Autenticación HOTP"
+
+msgid "HOTP Synchronization Window"
+msgstr "Ventana de Sincronización HOTP"
+
+msgid "HOTP authentication skip-ahead"
+msgstr "Vaya directamente a la autenticación HOTP"
+
+msgid "HOTP synchronization skip-ahead"
+msgstr "Vaya directamente a la sincronización HOTP"
+
 msgid "HTTP Error"
 msgstr "Error HTTP"
 
@@ -4648,6 +5463,9 @@ msgstr "Plataforma de hardware del equipo (p. ej. Lenovo T61)"
 
 msgid "Hello world"
 msgstr "Hola mundo"
+
+msgid "Hide"
+msgstr "Ocultar"
 
 msgid "Hide details"
 msgstr "Esconder detalles"
@@ -4792,6 +5610,10 @@ msgstr "Identidad"
 msgid "Identity Settings"
 msgstr "Configuración de identidad"
 
+msgid "If the problem persists please contact the system administrator."
+msgstr ""
+"Si el problema persiste por favor contacte con el administrador del sistema."
+
 msgid "Ignore check for last remaining CA or DNS server"
 msgstr "Ignorar la comprobación del último servidor CA o DNS que queda"
 
@@ -4893,6 +5715,9 @@ msgstr "Usuarios indirectos miembros"
 msgid "Indirect Membership"
 msgstr "Afiliación Indirecta"
 
+msgid "Inherited from server configuration"
+msgstr "Heredado de la configuración del servidor"
+
 msgid "Initials"
 msgstr "Iniciales"
 
@@ -4906,6 +5731,14 @@ msgid "Input form contains invalid or missing values."
 msgstr "La entrada contiene valores no válidos o desaparecidos."
 
 #, python-format
+msgid ""
+"Insufficient 'write' privilege to the 'krbLastPwdChange' attribute of entry "
+"'%s'."
+msgstr ""
+"Privilegio 'write' insuficiente al atributo 'krbLastPwdChange' de la entrada "
+"'%s'."
+
+#, python-format
 msgid "Insufficient access: %(info)s"
 msgstr "Acceso insuficiente: %(info)s"
 
@@ -4914,6 +5747,9 @@ msgstr "Privilegio insuficiente para modificar un certificado perfil"
 
 msgid "Internal Error"
 msgstr "Error Interno"
+
+msgid "Internationalization messages"
+msgstr "Mensajes de internacionalización"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
@@ -4965,6 +5801,9 @@ msgstr "Emisor"
 msgid "Job Title"
 msgstr "Cargo"
 
+msgid "Join an IPA domain"
+msgstr "Unir un dominio IPA"
+
 #, c-format
 msgid "Kerberos Credential Cache not found. Do you have a Kerberos Ticket?\n"
 msgstr ""
@@ -4982,6 +5821,9 @@ msgstr "Claves de Kerberos presente, Host aprovisionado"
 
 msgid "Kerberos Key Present, Service Provisioned"
 msgstr "Claves de Kerberos actuales, Servicio suministrado"
+
+msgid "Kerberos Principal you entered is expired"
+msgstr "Kerberos Principal su entrada ha expirado"
 
 msgid "Kerberos Service Principal Name"
 msgstr "Nombre principal del servicio de kerberos"
@@ -5073,8 +5915,14 @@ msgstr "Tiempo de espera LDAP"
 msgid "LDAP uri to connect to. Mutually exclusive with --server"
 msgstr "LDAP uri para conectar a. Mutuamente exclusiva con --server"
 
+msgid "Last failed authentication"
+msgstr "Última autenticación fallada"
+
 msgid "Last name"
 msgstr "Apellido"
+
+msgid "Last successful authentication"
+msgstr "Última autenticación exitosa"
 
 msgid "Leading and trailing spaces are not allowed"
 msgstr "No están permitidos espacios iniciales ni finales"
@@ -5094,23 +5942,41 @@ msgstr "Lista de objetos migrados; clasificados por tipo."
 msgid "Lists of objects that could not be migrated; categorized by type."
 msgstr "Lista de objetos que no pueden ser migrados; categorizados por tipo."
 
+msgid "Loading"
+msgstr "Cargando"
+
+msgid "Loading data"
+msgstr "Cargando datos"
+
 msgid "Locality"
 msgstr "Localidad"
 
 msgid "Location"
 msgstr "Ubicación"
 
+msgid "Location of the ACI"
+msgstr "Localización del ACI"
+
 msgid "Lockout duration"
 msgstr "Duración de bloqueo"
 
+msgid "Log in"
+msgstr "Iniciar sesión"
+
 msgid "Logged In As"
 msgstr "Registrado como"
+
+msgid "Login failed due to an unknown reason"
+msgstr "Acceso fallado debido a una razón desconocida"
 
 msgid "Login shell"
 msgstr "Shell de ingreso"
 
 msgid "MAC address"
 msgstr "Dirección MAC"
+
+msgid "MS-PAC"
+msgstr "MS-PAC"
 
 msgid "Mailing Address"
 msgstr "Dirección de correo"
@@ -5153,6 +6019,12 @@ msgstr ""
 
 msgid "Master file"
 msgstr "    Archivo maestro"
+
+msgid "Match"
+msgstr "Emparejar"
+
+msgid "Match users according to certificate."
+msgstr "Emparejar usuarios de acuerdo al certificado"
 
 msgid "Matched"
 msgstr "Emparejado"
@@ -5333,6 +6205,9 @@ msgstr "Miembros que no han podido ser añadidos"
 msgid "Members that could not be removed"
 msgstr "Miembros que no han podido ser eliminados"
 
+msgid "Migrate"
+msgstr "Migrar"
+
 msgid "Migrate users and groups from DS to IPA."
 msgstr "Migrar usuarios y grupos de DS a IPA."
 
@@ -5497,6 +6372,9 @@ msgstr "Ha sido modificado el usuario \"%(value)s\""
 msgid "Modify %(name)s '%(value)s'?"
 msgstr "Modificar  %(name)s '%(value)s'?"
 
+msgid "Modify ACI."
+msgstr "Modificar ACI."
+
 msgid "Modify Certificate Profile configuration."
 msgstr "Modificar la configuración del Certificado Perfil"
 
@@ -5511,6 +6389,9 @@ msgstr "Modificar rango de ID."
 
 msgid "Modify Kerberos ticket policy."
 msgstr "Modificar entrada de política Kerberos."
+
+msgid "Modify OTP configuration options."
+msgstr "Modificar opciones de configuración OTP."
 
 msgid "Modify Sudo Command Group."
 msgstr "Modificar Grupo de Comando Sudo."
@@ -5598,6 +6479,9 @@ msgstr "Información de montaje"
 msgid "Mount point"
 msgstr "Punto de montaje"
 
+msgid "Move deleted user into staged area"
+msgstr "Mover el usuario borrado al área de escena"
+
 msgid "Must be an integer"
 msgstr "Debe ser un entero"
 
@@ -5673,6 +6557,9 @@ msgstr "Nueva contraseña principal"
 
 msgid "New Test"
 msgstr "Nueva Prueba"
+
+msgid "New kerberos principal alias"
+msgstr "Nuevo alias principal Kerberos"
 
 msgid "New mount information"
 msgstr "Nueva información de montaje"
@@ -5826,6 +6713,15 @@ msgstr "Cantidad de variables devueltas (<= total)"
 msgid "OK"
 msgstr "Aceptar"
 
+msgid "OTP"
+msgstr "OTP"
+
+msgid "OTP Configuration"
+msgstr "Configuración OTP"
+
+msgid "OTP configuration options"
+msgstr "Opciones de configuración OTP"
+
 msgid "Object class name"
 msgstr "Nombre de clase objeto"
 
@@ -5927,11 +6823,17 @@ msgstr ""
 msgid "Override existing password"
 msgstr "Anular contraseña existente"
 
+msgid "Override inherited settings"
+msgstr "Anular la configuración heredada"
+
 msgid "Overwrite GID"
 msgstr "Sobrescribir GID"
 
 msgid "PAC type"
 msgstr "Tipo PAC"
+
+msgid "PAD"
+msgstr "PAD"
 
 msgid "PKINIT"
 msgstr ""
@@ -5949,6 +6851,9 @@ msgstr "Página"
 
 msgid "Pager Number"
 msgstr "Número de página"
+
+msgid "Pagination Size"
+msgstr "Tamaño de Paginación"
 
 msgid "Parent map"
 msgstr "Mapa del padre"
@@ -6052,6 +6957,9 @@ msgstr "Tipo de permiso"
 msgid "Permissions"
 msgstr "Permisos"
 
+msgid "Permissions to grant(read, write, add, delete, all)"
+msgstr "Permisos a obtener(lectura, escritura, añadir, borrar, todos)"
+
 msgid "Permitted Encryption Types"
 msgstr "Tipos de cifrado permitidos"
 
@@ -6063,6 +6971,9 @@ msgstr "Plataforma"
 
 msgid "Please choose a type of DNS resource record to be added"
 msgstr "Por favor seleccione un tipo de origen de DNS para ser agregado"
+
+msgid "Please try the following options:"
+msgstr "Por favor intentar las siguientes opciones:"
 
 msgid "Policy"
 msgstr "Política"
@@ -6089,6 +7000,9 @@ msgid ""
 msgstr ""
 "Prefijo utilizado para distinguir los tipos de ACI (permiso,delegación, "
 "autoservicio, ninguno)"
+
+msgid "Preserved user"
+msgstr "Usuario preservado"
 
 msgid "Prev"
 msgstr "Anterior"
@@ -6219,6 +7133,9 @@ msgstr "Enlaces rápidos"
 msgid "Quiet mode. Only errors are displayed."
 msgstr "Modo silencioso. Sólo se muestran los errores."
 
+msgid "RADIUS"
+msgstr "RADIUS"
+
 #, python-format
 msgid "RADIUS proxy server with name \"%s\" already exists"
 msgstr "Servidor proxy RADIUS con nombre \"%s\" ya existe"
@@ -6247,6 +7164,9 @@ msgstr "Motivo de la revocación"
 
 msgid "Reason for revoking the certificate (0-10)"
 msgstr "Motivo por el cual el certificado ha sido revocado (0-10)"
+
+msgid "Rebuild auto membership"
+msgstr "Reconstruir auto membresía"
 
 msgid "Recommended maximum number of agreements per replica exceeded"
 msgstr "Número máximo de acuerdo recomendados por replica sobrepasado"
@@ -6281,6 +7201,9 @@ msgstr "Redirección "
 msgid "Refresh"
 msgstr "Actualizar"
 
+msgid "Refresh the page."
+msgstr "Refrescar la página."
+
 msgid "Register to the entitlement system."
 msgstr "Registro al sistema de derechos."
 
@@ -6305,6 +7228,21 @@ msgid "Relative weight for server services (counts per location)"
 msgstr ""
 "Pero relativo para los servicios del servidor (cuentas por localización)"
 
+msgid "Reload current settings from the server."
+msgstr "Recargar ajustes actuales desde el servidor."
+
+msgid "Reload the browser."
+msgstr "Recargar el navegador."
+
+msgid "Remove"
+msgstr "Borrar"
+
+msgid "Remove Kerberos Alias"
+msgstr "Quitar Alias Kerberos"
+
+msgid "Remove a manager to the user entry"
+msgstr "Borra un gestor a la entrada de usuario"
+
 msgid "Remove all principals in this realm"
 msgstr "Quite todos los principales en este ámbito"
 
@@ -6322,6 +7260,9 @@ msgstr "Borrar de CRL"
 
 msgid "Remove group for Sudo to execute as."
 msgstr "Quitar grupo para Sudo a ejecutar como."
+
+msgid "Remove hold"
+msgstr "Quitar espera"
 
 msgid "Remove hosts and hostgroups affected by Sudo Rule."
 msgstr "Quitar hosts y grupos de hosts afectados por Regla Sudo."
@@ -6353,8 +7294,17 @@ msgstr "Borrar miembros de un rol."
 msgid "Remove members from an HBAC service group."
 msgstr "Borrar miembros de un grupo de servicio HBAC."
 
+msgid "Remove one or more certificate mappings from the user entry."
+msgstr "Borra uno o más mapeados de certificados de la entrada de usuario."
+
+msgid "Remove one or more certificates to the user entry"
+msgstr "Borra uno o más certificados de la entrada de usuario"
+
 msgid "Remove permissions from a privilege."
 msgstr "Borrar permisos de un privilegio."
+
+msgid "Remove principal alias from the user entry"
+msgstr "Borra el alias principal de la entrada de usuario"
 
 msgid "Remove privileges from a role."
 msgstr "Borrar privilegios de un rol."
@@ -6375,6 +7325,14 @@ msgid "Remove users and groups from an HBAC rule."
 msgstr "Borrar usuarios y grupos de una regla HBAC."
 
 #, python-format
+msgid "Removed aliases from user \"%(value)s\""
+msgstr "Borrados alias del usuario \"%(value)s\""
+
+#, python-format
+msgid "Removed certificates from user \"%(value)s\""
+msgstr "Certificados borrados del usuario \"%(value)s\""
+
+#, python-format
 msgid "Removed condition(s) from \"%(value)s\""
 msgstr "Condición(es) eliminada(s) de «%(value)s»"
 
@@ -6392,6 +7350,9 @@ msgstr "Eliminando %s principales\n"
 
 msgid "Rename"
 msgstr "Cambiar el nombre de"
+
+msgid "Rename an ACI."
+msgstr "Renombrar un ACI."
 
 #, python-format
 msgid "Rename the %(ldap_obj_name)s object"
@@ -6456,11 +7417,17 @@ msgstr "Reajustar Contraseña de Una Vez"
 msgid "Reset Password"
 msgstr "Restablecer contraseña"
 
+msgid "Reset Password and Log in"
+msgstr "Resetear la Contraseña y Acceder"
+
 msgid "Resolve a host name in DNS."
 msgstr "Resolver un nombre de host en DNS."
 
 msgid "Restore"
 msgstr "Restaurar"
+
+msgid "Result"
+msgstr "Resultado"
 
 msgid "Result of simulation"
 msgstr "Resultado de la simulación"
@@ -6530,6 +7497,9 @@ msgstr "Reintentar"
 msgid "Retrying with pre-4.0 keytab retrieval method...\n"
 msgstr "Reintentando con el método de recuperacióm pre-4.0 keytab...\n"
 
+msgid "Return to the main page and retry the operation"
+msgstr "Volver a la página principal y reintentar la operación"
+
 msgid "Reverse zone IP network"
 msgstr "Zona reversa de red IP"
 
@@ -6540,6 +7510,9 @@ msgid ""
 msgstr ""
 "La zona invertida para registro PTR debería ser una sub-zona de uno de los "
 "siguientes dominios integramente cualificados: %s"
+
+msgid "Revert"
+msgstr "Revertir"
 
 msgid "Revocation reason"
 msgstr "Motivo de la revocación"
@@ -6673,6 +7646,9 @@ msgstr "Clave pública SSH"
 #, python-format
 msgid "Same as --%s"
 msgstr "Lo mismo que --%s"
+
+msgid "Save"
+msgstr "Guardar"
 
 #, python-format
 msgid "Schema is up to date (FP '%(fingerprint)s', TTL %(ttl)s s)"
@@ -6969,6 +7945,9 @@ msgstr ""
 msgid "Settings"
 msgstr "Configuración"
 
+msgid "Show"
+msgstr "Mostrar"
+
 msgid "Show IPA server."
 msgstr "Mostrar servidor IPA."
 
@@ -6983,6 +7962,9 @@ msgstr "Mostrar detalles"
 
 msgid "Show environment variables."
 msgstr "Mostrar variables de entorno."
+
+msgid "Show the current OTP configuration."
+msgstr "Mostrar la configuración OTP actual."
 
 msgid "Show the current configuration."
 msgstr "Muestra la configuración actual"
@@ -7047,6 +8029,13 @@ msgstr "Especifica dónde almacenar la información de tabla de claves."
 msgid "Specify external ${entity}"
 msgstr "Especificar ${entity} externa"
 
+msgid "Stage"
+msgstr "Escenario"
+
+#, python-format
+msgid "Staged user account \"%(value)s\""
+msgstr "Cuenta de usuario por etapas \"%(value)s\""
+
 msgid "Standard Record Types"
 msgstr "Tipos de Registro Estándar"
 
@@ -7085,6 +8074,9 @@ msgstr "Subárbol para aplicar permisos"
 
 msgid "Subtype"
 msgstr "Subtipo"
+
+msgid "Success"
+msgstr "Éxito"
 
 msgid "Sudo"
 msgstr "Sudo"
@@ -7147,6 +8139,18 @@ msgstr ""
 "La codificación del sistema debe ser UTF-8, '%(encoding)s' no está(n) "
 "soportada(s). Ajuste LC_ALL=\"C.UTF-8\", o LC_ALL=\"\" y LC_CTYPE=\"C."
 "UTF-8\"."
+
+msgid "TOTP Synchronization Window"
+msgstr "Ventana de Sincronización TOTP"
+
+msgid "TOTP authentication Window"
+msgstr "Ventana de autenticación TOTP"
+
+msgid "TOTP authentication time variance (seconds)"
+msgstr "Variación del tiempo de autenticación TOTP (segundos)"
+
+msgid "TOTP synchronization time variance (seconds)"
+msgstr "Variación del tiempo de sincronización TOTP (segundos)"
 
 msgid "Take a revoked certificate off hold."
 msgstr "Tomar un certificado revocado de espera."
@@ -7349,6 +8353,9 @@ msgstr "Tiempo límite"
 msgid "Time limit of search in seconds"
 msgstr "Tiempo máximo de búsqueda en segundos"
 
+msgid "Time now"
+msgstr "Ahora"
+
 msgid "Time to live"
 msgstr "Tiempo para abandonar"
 
@@ -7387,6 +8394,9 @@ msgstr "Verdadero si no todos los resultados se devolvieron"
 
 msgid "True means the operation was successful"
 msgstr "«Verdadero» significa que la operación fue exitosa"
+
+msgid "Two factor authentication (password + OTP)"
+msgstr "Autenticación dos factores (contraseña + OTP)"
 
 msgid "Type"
 msgstr "Tipo"
@@ -7490,6 +8500,13 @@ msgstr "Incapaz de fijar LDAP_OPT_X_SASL_NOCANON \n"
 #, c-format
 msgid "Unable to set LDAP_OPT_X_TLS_REQUIRE_CERT\n"
 msgstr "Incapaz de ajustar LDAP_OPT_X_TLS_REQUIRE_CERT\n"
+
+msgid "Undelete a delete user account."
+msgstr "Recuperar una cuenta de usuario borrada."
+
+#, python-format
+msgid "Undeleted user account \"%(value)s\""
+msgstr "Recuperada cuenta de usuario \"%(value)s\""
 
 msgid "Unenroll this host from IPA server"
 msgstr "Cancelar registro de host de servidor IPA"
@@ -7692,6 +8709,9 @@ msgstr "Debe registrar el equipo para poder generar un servicio de host"
 
 msgid "You will be redirected to DNS Zone."
 msgstr "Será redirigido a Zona DNS."
+
+msgid "Your session has expired. Please log in again."
+msgstr "Su sesión ha expirado. Por favor acceda otra vez."
 
 #, python-format
 msgid ""
@@ -8078,6 +9098,10 @@ msgstr "entero para ordenar las reglas Sudo"
 #, python-format
 msgid "invalid '%(name)s': %(error)s"
 msgstr "'%(name)s' inválido: %(error)s"
+
+#, python-format
+msgid "invalid DN (%s)"
+msgstr "DN no válido (%s)"
 
 msgid "invalid IP address format"
 msgstr "formato no válido de dirección IP"
@@ -8579,6 +9603,10 @@ msgstr "url"
 
 msgid "user"
 msgstr "usuario"
+
+#, python-format
+msgid "user \"%s\" is already active"
+msgstr "usuario \"%s\" ya está activo"
 
 msgid "users"
 msgstr "usuarios"
