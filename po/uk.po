@@ -5,14 +5,14 @@
 # Yuri Chornoivan <yurchor@ukr.net>, 2018. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.90.dev201811131342+git61e1d7a83\n"
+"Project-Id-Version: freeipa 4.7.90.dev201904231605+git36c65c4aa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-11-13 15:44+0200\n"
+"POT-Creation-Date: 2019-04-23 19:06+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2018-11-13 05:44+0000\n"
-"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
 "Language: uk\n"
 "X-Generator: Zanata 4.6.2\n"
@@ -16640,19 +16640,6 @@ msgstr ""
 "<i class=\"fa fa-info-circle\"></i> <strong>Одноразовий пароль (OTP):</"
 "strong> створити новий код OTP для кожного з полів OTP."
 
-#, python-brace-format
-msgid ""
-"<i class=\"fa fa-info-circle\"></i> To log in with <strong>Kerberos</"
-"strong>, please make sure you have valid tickets (obtainable via kinit) and "
-"<a href='http://${host}/ipa/config/ssbrowser.html'>configured</a> the "
-"browser correctly, then click 'Log in'."
-msgstr ""
-"<i class=\"fa fa-info-circle\"></i>Щоб увійти за допомогою <strong>Kerberos</"
-"strong>, будь ласка, переконайтеся, що маєте чинні квитки (ці квитки можна "
-"отримати за допомогою kinit) і що програму для перегляду сторінок інтернету "
-"<a href='http://${host}/ipa/config/ssbrowser.html'>налаштовано</a> належним "
-"чином, а потім натисніть кнопку «Увійти»."
-
 msgid ""
 "<i class=\"fa fa-info-circle\"></i> To log in with <strong>certificate</"
 "strong>, please make sure you have valid personal certificate. "
@@ -18788,10 +18775,6 @@ msgstr "DN для прив'язки"
 #, c-format
 msgid "Bind failed: %s\n"
 msgstr "Невдала спроба прив’язки: %s\n"
-
-#, c-format
-msgid "Bind password required when using a bind DN.\n"
-msgstr "У разі використання прив’язки DN слід вказати пароль прив’язки.\n"
 
 msgid "Bind rule type"
 msgstr "Тип правила прив’язування"
