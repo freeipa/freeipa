@@ -1,15 +1,16 @@
 # Josef Hruška <hrusjos@gmail.com>, 2015. #zanata
 # Zdenek <chmelarz@gmail.com>, 2017. #zanata
+# Pavel Borecki <pavel.borecki@gmail.com>, 2019. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.90.dev201811131342+git61e1d7a83\n"
+"Project-Id-Version: freeipa 4.7.90.dev201904231605+git36c65c4aa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-11-13 15:44+0200\n"
+"POT-Creation-Date: 2019-04-23 19:06+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2017-09-04 03:01+0000\n"
-"Last-Translator: Zdenek <chmelarz@gmail.com>\n"
+"PO-Revision-Date: 2019-04-22 07:33+0000\n"
+"Last-Translator: Pavel Borecki <pavel.borecki@gmail.com>\n"
 "Language-Team: Czech\n"
 "Language: cs\n"
 "X-Generator: Zanata 4.6.2\n"
@@ -626,6 +627,9 @@ msgstr "chyba na serveru '%(server)s': %(error)s"
 # auto translated by TM merge from project: Fedora Cheat Cubes, version: master, DocId: Fedora_Cheat_Cube_Users
 msgid "group"
 msgstr "skupinu"
+
+msgid "incorrect type"
+msgstr "nesprávný typ"
 
 # auto translated by TM merge from project: anaconda, version: rhel7-branch, DocId: anaconda
 msgid "password"
