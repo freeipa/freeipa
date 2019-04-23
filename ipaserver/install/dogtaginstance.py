@@ -92,6 +92,10 @@ class DogtagInstance(service.Service):
     tracking_reqs = None
     server_cert_name = None
 
+    # token for CA and subsystem certificates. For now, only internal token
+    # is supported.
+    token_name = "internal"
+
     ipaca_groups = DN(('ou', 'groups'), ('o', 'ipaca'))
     ipaca_people = DN(('ou', 'people'), ('o', 'ipaca'))
     groups_aci = (
@@ -195,6 +199,12 @@ class DogtagInstance(service.Service):
         """
         Enable client auth connection to the internal db.
         """
+        sub_system_nickname = "subsystemCert cert-pki-ca"
+        if self.token_name != "internal":
+            # TODO: Dogtag 10.6.9 does not like "internal" prefix.
+            sub_system_nickname = '{}:{}'.format(
+                self.token_name, sub_system_nickname
+            )
 
         with stopped_service('pki-tomcatd', 'pki-tomcat'):
             directivesetter.set_directive(
@@ -204,7 +214,7 @@ class DogtagInstance(service.Service):
             directivesetter.set_directive(
                 self.config,
                 'authz.instance.DirAclAuthz.ldap.ldapauth.clientCertNickname',
-                'subsystemCert cert-pki-ca', quotes=False, separator='=')
+                sub_system_nickname, quotes=False, separator='=')
             directivesetter.set_directive(
                 self.config,
                 'authz.instance.DirAclAuthz.ldap.ldapconn.port', '636',
@@ -222,7 +232,7 @@ class DogtagInstance(service.Service):
             directivesetter.set_directive(
                 self.config,
                 'internaldb.ldapauth.clientCertNickname',
-                'subsystemCert cert-pki-ca', quotes=False, separator='=')
+                sub_system_nickname, quotes=False, separator='=')
             directivesetter.set_directive(
                 self.config,
                 'internaldb.ldapconn.port', '636', quotes=False, separator='=')
@@ -289,9 +299,9 @@ class DogtagInstance(service.Service):
                     # Give dogtag extra time to generate cert
                     timeout=CA_DBUS_TIMEOUT)
 
-    def __get_pin(self):
+    def __get_pin(self, token_name="internal"):
         try:
-            return certmonger.get_pin('internal')
+            return certmonger.get_pin(token_name)
         except IOError as e:
             logger.debug(
                 'Unable to determine PIN for the Dogtag instance: %s', e)
@@ -299,7 +309,7 @@ class DogtagInstance(service.Service):
 
     def configure_renewal(self):
         """ Configure certmonger to renew system certs """
-        pin = self.__get_pin()
+        pin = self.__get_pin(self.token_name)
 
         for nickname in self.tracking_reqs:
             try:
@@ -307,6 +317,7 @@ class DogtagInstance(service.Service):
                     certpath=self.nss_db,
                     ca='dogtag-ipa-ca-renew-agent',
                     nickname=nickname,
+                    token_name=self.token_name,
                     pin=pin,
                     pre_command='stop_pkicad',
                     post_command='renew_ca_cert "%s"' % nickname,
@@ -321,15 +332,19 @@ class DogtagInstance(service.Service):
         done by the renewal script, renew_ca_cert once all the subsystem
         certificates are renewed.
         """
-        pin = self.__get_pin()
+        # server cert is always stored in internal token
+        token_name = "internal"
+        pin = self.__get_pin(token_name)
         try:
             certmonger.start_tracking(
                 certpath=self.nss_db,
                 ca='dogtag-ipa-ca-renew-agent',
                 nickname=self.server_cert_name,
+                token_name=token_name,
                 pin=pin,
                 pre_command='stop_pkicad',
-                post_command='renew_ca_cert "%s"' % self.server_cert_name)
+                post_command='renew_ca_cert "%s"' % self.server_cert_name
+            )
         except RuntimeError as e:
             logger.error(
                 "certmonger failed to start tracking certificate: %s", e)
