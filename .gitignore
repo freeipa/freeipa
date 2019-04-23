@@ -133,6 +133,8 @@ daemons/dnssec/ipa-ods-exporter
 install/certmonger/dogtag-ipa-ca-renew-agent-submit
 install/certmonger/ipa-server-guard
 install/oddjob/com.redhat.idm.trust-fetch-domains
+install/oddjob/etc/oddjobd.conf.d/ipa-server.conf
+install/oddjob/etc/oddjobd.conf.d/oddjobd-ipa-trust.conf
 install/restart_scripts/renew_ca_cert
 install/restart_scripts/renew_kdc_cert
 install/restart_scripts/renew_ra_cert
