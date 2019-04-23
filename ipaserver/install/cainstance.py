@@ -1260,7 +1260,7 @@ class CAInstance(DogtagInstance):
             ('features.authority.keyRetrieverClass',
                 'com.netscape.ca.ExternalProcessKeyRetriever'),
             ('features.authority.keyRetrieverConfig.executable',
-                '/usr/libexec/ipa/ipa-pki-retrieve-key'),
+                paths.IPA_PKI_RETRIEVE_KEY),
         ]
         for k, v in directives:
             directivesetter.set_directive(
