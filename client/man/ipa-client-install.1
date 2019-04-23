@@ -168,6 +168,8 @@ authoritative and will be installed without checking to see if it's
 valid for the IPA domain.
 .TP
 \fB\-\-request\-cert\fR
+\fBDEPRECATED:\fR The option is deprecated and will be removed in a future release.
+
 Request certificate for the machine. The certificate will be stored in /etc/ipa/nssdb under the nickname "Local IPA host".
 
 Using this option requires that D-Bus is properly configured or not configured
@@ -269,6 +271,11 @@ Files updated, existing content is maintained:
 /etc/krb5.keytab
 .br
 /etc/sysconfig/network
+
+.SH "DEPRECATED OPTIONS"
+.TP
+\fB\-\-request\-cert\fR
+
 .SH "EXIT STATUS"
 0 if the installation was successful
 
