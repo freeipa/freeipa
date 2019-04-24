@@ -468,6 +468,15 @@ class TestInstallMaster(IntegrationTest):
                 assert key_size == 2048
             assert cert.signature_hash_algorithm.name == hashes.SHA256.name
 
+    def test_p11_kit_softhsm2(self):
+        # check that p11-kit-proxy does not inject SoftHSM2
+        result = self.master.run_command([
+            "modutil", "-dbdir", paths.PKI_TOMCAT_ALIAS_DIR, "-list"
+        ])
+        assert "softhsm" not in result.stdout_text.lower()
+        assert "opendnssec" not in result.stdout_text.lower()
+
+
 
 class TestInstallMasterKRA(IntegrationTest):
 
