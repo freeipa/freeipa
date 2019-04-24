@@ -366,6 +366,8 @@ class BasePathNamespace:
     AUTHCONFIG = None
     AUTHSELECT = None
     SYSCONF_NETWORK = None
+    CRYPTO_POLICY_P11_KIT_CONFIG = None
+    UPDATE_CRYPTO_POLICY = None
     # 389 DS related commands.
     DSCREATE = '/usr/sbin/dscreate'
     DSCTL = '/usr/sbin/dsctl'

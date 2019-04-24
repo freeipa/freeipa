@@ -272,5 +272,23 @@ class BaseTaskNamespace:
         if fstore is not None and fstore.has_file(paths.RESOLV_CONF):
             fstore.restore_file(paths.RESOLV_CONF)
 
+    def disable_p11_kit(self, fstore):
+        """Disable global p11-kit configuration for NSS
+
+        The p11-kit configuration injects p11-kit-proxy into all NSS
+        databases. Amongst other p11-kit loads SoftHSM2 PKCS#11 provider.
+        This interferes with 389-DS, certmonger, Dogtag and other services.
+        For example certmonger tries to open OpenDNSSEC's SoftHSM2 token,
+        although it doesn't use it at all. It also breaks Dogtag HSM support
+        testing with SoftHSM2.
+
+        IPA server does neither need nor use p11-kit.
+        """
+        raise NotImplementedError
+
+    def restore_p11_kit(self, fstore):
+        """Restore global p11-kit configuration for NSS
+        """
+        raise NotImplementedError
 
 tasks = BaseTaskNamespace()

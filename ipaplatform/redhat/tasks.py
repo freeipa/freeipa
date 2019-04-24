@@ -679,5 +679,37 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             if nm.is_enabled():
                 nm.reload_or_restart()
 
+    def disable_p11_kit(self, fstore):
+        """Disable global p11-kit configuration for NSS
+        """
+        cfg = paths.CRYPTO_POLICY_P11_KIT_CONFIG
+        if fstore.has_file(cfg):
+            logger.debug("'%s' is already backed up.", cfg)
+            return False
+        if not os.path.isfile(paths.CRYPTO_POLICY_P11_KIT_CONFIG):
+            logger.debug("'%s' does not exists.", cfg)
+            return False
+
+        fstore.backup_file(paths.CRYPTO_POLICY_P11_KIT_CONFIG)
+        with open(paths.CRYPTO_POLICY_P11_KIT_CONFIG, "w") as f:
+            f.write("# p11-kit-proxy disabled by IPA")
+            f.write("")
+            os.fchmod(f.fileno(), 0o644)
+        logger.debug("Modified '%s' to disable p11-kit", cfg)
+        # run without arguments to regenerate policy
+        ipautil.run([paths.UPDATE_CRYPTO_POLICY])
+        return True
+
+    def restore_p11_kit(self, fstore):
+        """Restore global p11-kit configuration for NSS
+        """
+        cfg = paths.CRYPTO_POLICY_P11_KIT_CONFIG
+        if not fstore.has_file(cfg):
+            logger.debug("'%s' is not backed up.", cfg)
+            return False
+        fstore.restore_file(cfg)
+        # run without arguments to regenerate policy
+        ipautil.run([paths.UPDATE_CRYPTO_POLICY])
+        return True
 
 tasks = RedHatTaskNamespace()

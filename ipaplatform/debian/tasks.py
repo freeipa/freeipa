@@ -69,5 +69,11 @@ class DebianTaskNamespace(RedHatTaskNamespace):
         # Debian handles httpd logging differently
         pass
 
+    def disable_p11_kit(self, fstore):
+        # Debian doesn't use p11-kit
+        pass
+
+    def restore_p11_kit(self, fstore):
+        pass
 
 tasks = DebianTaskNamespace()

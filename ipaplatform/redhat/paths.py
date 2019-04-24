@@ -39,6 +39,9 @@ class RedHatPathNamespace(BasePathNamespace):
     AUTHCONFIG = '/usr/sbin/authconfig'
     AUTHSELECT = '/usr/bin/authselect'
     SYSCONF_NETWORK = '/etc/sysconfig/network'
+    CRYPTO_POLICY_P11_KIT_CONFIG = \
+        "/etc/crypto-policies/local.d/nss-p11-kit.config"
+    UPDATE_CRYPTO_POLICY = "/usr/bin/update-crypto-policies"
 
 
 paths = RedHatPathNamespace()
