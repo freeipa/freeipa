@@ -4,140 +4,147 @@ The following people have contributed to the FreeIPA project.
 (Listed in alphabetical order within category)
 
 Developers:
-	Timo Aaltonen
-	Gabe Alford
-	Jr Aquino
-	Tomáš Babej
-	Martin Babinsky
-	Kyle Baker
-	Felipe Barreto
-	Jan Barta
-	Martin Bašti
-	Sylvain Baubeau
-	Florence Blanc-Renaud
+	Abhijeet Kasurde
+	Adam Misnyovszki
+	Adam Williamson
+	Adam Young
+	Ade Lee
+	Aleksei Slaikovskii
+	Ales 'alich' Marecek
+	Alex Zeleznikov
 	Alexander Bokovoy
-	Thierry Bordaz
-	Sumit Bose
-	François Cami
-	Petr Čech
-	Xiao-Long Chen
-	Jan Cholasta
-	Yuri Chornoivan
-	Brian Cook
-	Rob Crittenden
-	Frank Cusack
-	Nalin Dahyabhai
-	Rishabh Dave
-	Don Davis
-	Nikhil Dehadrai
-	John Dennis
-	Jason Gerard DeRose
-	Günther Deschner
-	Endi Sukma Dewata
-	Lenka Doudova
+	Alexander Koksharov
+	Alexander Scheel
+	Alexey Slaykovsky
+	Amit Kumar
+	Ana Krivokapić
+	Andrew Wnuk
+	Anuja More
+	Armando Neto
+	Ben Lipton
 	Benjamin Drung
-	Patrice Duc-Jacquet
-	Tibor Dudlák
-	Lewis Eason
+	Brian Cook
+	Brian J. Murrell
+	Christian Heimes
+	David Kreitschmann
+	David Kupka
+	David O'Brien
+	David Spångberg
+	Diane Trout
+	Diogo Nunes
+	Dmitri Pal
+	Don Davis
 	Drew Erny
-	Oleg Fayans
-	Jérôme Fenal
+	Endi Sukma Dewata
 	Fabiano Fidêncio
-	Stephen Gallagher
-	René Genz
+	Felipe Volpone
+	Filip Skola
+	Florence Blanc-Renaud
+	Francesco Marella
+	Francisco Trivino
+	François Cami
+	Frank Cusack
+	Fraser Tweedale
+	Gabe Alford
+	Ganna Kaihorodova
+	Gowrishankar Rajaiyan
+	Günther Deschner
+	Ian Kumlien
+	Ian Pilcher
+	Jakub Hrozek
 	James Groffen
+	Jan Barta
+	Jan Cholasta
+	Jan Pazdziora
+	Jan Zelený
+	Jason Gerard DeRose
+	Jason Woods
+	Jérôme Fenal
+	Jim Meyering
+	John Dennis
+	John L
+	John Morris
+	Jr Aquino
+	Justin Stephenson
+	Kaleemullah Siddiqui
+	Karl MacMillan
+	Kevin McCarthy
+	Krzysztof Klimonda
+	Kyle Baker
+	Lars Sjostrom
+	Lenka Doudova
+	Lenka Ryznarova
+	Lewis Eason
+	Lubomír Rintel
+	Ludwig Krispenz
+	Lukáš Slebodník
+	Lynn Root
+	Mark McLoughlin
+	Marko Myllynen
+	Martin Babinsky
+	Martin Bašti
+	Martin Košek
+	Martin Nagy
+	Matt Rogers
+	Michael Simacek
+	Michal Reznik
+	Michal Židek
+	Milan Kubík
+	Mohammad Rizwan Yusuf
+	Nalin Dahyabhai
+	Nathan Kinder
+	Nathaniel McCallum
+	Nick Hatch
+	Nikhil Dehadrai
+	Nikolai Kondrashov
+	Niranjan Mallapadi
+	Niranjan MR
+	Oleg Fayans
+	Oleg Kozlov
 	Oliver Gutierrez
 	Ondřej Hamada
-	Robbie Harwood
-	Nick Hatch
-	Christian Heimes
-	Jakub Hrozek
-	Ganna Kaihorodova
-	Abhijeet Kasurde
-	Nathan Kinder
-	Krzysztof Klimonda
-	Alexander Koksharov
-	Nikolai Kondrashov
-	Martin Košek
-	David Kreitschmann
-	Ludwig Krispenz
-	Ana Krivokapić
-	Tomáš Křížek
-	Milan Kubík
-	Amit Kumar
-	Ian Kumlien
-	David Kupka
-	Robert Kuska
-	John L
-	Peter Lacko
-	Stanislav Laznicka
-	Ade Lee
-	Stanislav Levin
-	Ben Lipton
-	Karl MacMillan
-	Niranjan Mallapadi
-	Ales 'alich' Marecek
-	Francesco Marella
-	Nathaniel McCallum
-	William Jon McCann
-	Kevin McCarthy
-	Mark McLoughlin
-	Rich Megginson
-	Sudhir Menon
-	Jim Meyering
-	Adam Misnyovszki
-	Takeshi MIZUTA
-	Anuja More
-	John Morris
-	Niranjan MR
-	Brian J. Murrell
-	Varun Mylaraiah
-	Marko Myllynen
-	Martin Nagy
-	Armando Neto
-	David O'Brien
-	Dmitri Pal
-	Jan Pazdziora
-	W. Michael Petullo
-	Pavel Picka
 	Orion Poplawski
-	Gowrishankar Rajaiyan
-	realsobek
-	Michal Reznik
-	Lubomír Rintel
-	Matt Rogers
-	Lynn Root
+	Patrice Duc-Jacquet
+	Pavel Picka
+	Pavel Vomáčka
+	Pavel Zůna
 	Pete Rowley
-	Lenka Ryznarova
-	Alexander Scheel
-	Thorsten Scherf
-	shanyin
-	Kaleemullah Siddiqui
-	Michael Simacek
-	Lars Sjostrom
-	Filip Skola
-	Aleksei Slaikovskii
-	Lukáš Slebodník
-	Simo Sorce
+	Peter Lacko
+	Petr Čech
 	Petr Špaček
-	David Spångberg
-	Justin Stephenson
-	Diane Trout
-	Serhii Tsymbaliuk
-	Fraser Tweedale
 	Petr Viktorin
 	Petr Voborník
-	Felipe Volpone
-	Pavel Vomáčka
-	Andrew Wnuk
+	realsobek
+	René Genz
+	Rich Megginson
+	Rishabh Dave
+	Rob Crittenden
+	Robbie Harwood
+	Robert Kuska
+	Sergey Orlov
+	Serhii Tsymbaliuk
+	shanyin
+	Simo Sorce
+	Stanislav Laznicka
+	Stanislav Levin
+	Stephen Gallagher
+	sudharsanomprakash
+	Sudhir Menon
+	Sumit Bose
+	Sylvain Baubeau
+	Takeshi MIZUTA
+	Thierry Bordaz
 	Thomas Woerner
-	Jason Woods
-	Adam Young
-	Mohammad Rizwan Yusuf
-	Jan Zelený
-	Alex Zeleznikov
-	Michal Židek
-	Pavel Zůna
+	Thorsten Scherf
+	Tibor Dudlák
+	Timo Aaltonen
+	Tomáš Babej
+	Tomáš Křížek
+	Varun Mylaraiah
+	W. Michael Petullo
+	William Jon McCann
+	Xiao-Long Chen
+	Yuri Chornoivan
 
 Documentation:
 	Gabe Alford
