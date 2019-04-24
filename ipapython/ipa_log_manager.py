@@ -22,7 +22,7 @@ import re
 import time
 
 # Module exports
-__all__ = ['standard_logging_setup',
+__all__ = ['standard_logging_setup', 'CommandOutput',
            'ISO8601_UTC_DATETIME_FMT',
            'LOGGING_FORMAT_STDERR', 'LOGGING_FORMAT_STDOUT', 'LOGGING_FORMAT_FILE']
 
@@ -52,6 +52,55 @@ LOGGING_FORMAT_STANDARD_CONSOLE = '%(name)-12s: %(levelname)-8s %(message)s'
 # Used by standard_logging_setup() for file message
 LOGGING_FORMAT_STANDARD_FILE = '%(asctime)s %(levelname)s %(message)s'
 
+# Used by standard_logging_setup() for command line output
+LOGGING_FORMAT_CMD_OUTPUT = '%(message)s'
+
+
+class CommandOutput:
+    """Command output -- log and print to user
+
+    The CommandOutput type is a wrapper for a logger instance. It
+    marks log calls to be printed out on stdout.
+
+    Usage:
+
+        import logging
+        from ipapython.ipa_log_manager import CommandOutput
+
+        logger = logging.getLogger(__name__)
+        logcm = CommandOutput(logger)
+
+        def install():
+            logcm("Installing ...")
+
+    Design note
+    -----------
+
+    The command logger instance is called ``logcm``, because the name has the
+    same length as the ``print`` function. It may not be the prettiest name,
+    but it avoids code reformatting and therefore merge conflicts.
+
+    At first we considered to add a ``log_cmd`` method to all loggers.
+    The ``logging.setLoggerClass`` is the public function to set a new logger
+    class. To make it work, is has to be called before the first logger
+    objects is instantiated. It's not appropriate to modify the logger
+    early in ``ipalib``, because ``ipalib`` is also designed to get embedded
+    into applications. And monkey-patching the ``logging.Logger`` class is
+    a hack.
+    """
+    __slots__ = ('_logger',)
+
+    def __init__(self, logger):
+        self._logger = logger
+
+    def __call__(self, msg, *args, **kwargs):
+        if 'extra' not in kwargs:
+            kwargs["extra"] = {"cmd_output": True}
+        else:
+            kwargs["extra"]["cmd_output"] = True
+        level = kwargs.pop("level", logging.INFO)
+        self._logger.log(level, msg, *args, **kwargs)
+
 
 class Filter:
     def __init__(self, regexp, level):
@@ -68,6 +117,29 @@ class Formatter(logging.Formatter):
             self, fmt=LOGGING_FORMAT_STDOUT, datefmt=ISO8601_UTC_DATETIME_FMT):
         super(Formatter, self).__init__(fmt, datefmt)
         self.converter = time.gmtime
+
+
+class ConsoleFormatter(logging.Formatter):
+    def __init__(
+            self, fmt=LOGGING_FORMAT_STDOUT, datefmt=ISO8601_UTC_DATETIME_FMT):
+        super().__init__(fmt, datefmt)
+        self.converter = time.gmtime
+        self.cmd_output_formatter = logging.Formatter(
+            LOGGING_FORMAT_CMD_OUTPUT)
+
+    def format(self, record):
+        """
+        Format the specified record as text.
+
+        Uses LOGGING_FORMAT_CMD_OUTPUT for info_cmd, otherwise normal logging
+        format. For info_cmd record.__dict__["cmd_output"] is set to True.
+        """
+        if record.levelno >= logging.INFO and \
+           getattr(record, "cmd_output", False):
+            return self.cmd_output_formatter.format(record)
+
+        # Return normal format
+        return super().format(record)
 
 
 def standard_logging_setup(filename=None, verbose=False, debug=False,
@@ -97,7 +169,7 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
 
     console_handler = logging.StreamHandler()
     console_handler.setLevel(level)
-    console_handler.setFormatter(Formatter(console_format))
+    console_handler.setFormatter(ConsoleFormatter(console_format))
     root_logger.addHandler(console_handler)
 
 
