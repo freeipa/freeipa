@@ -129,6 +129,15 @@ def map_Guests_to_nobody():
     logger.debug("Map BUILTIN\\Guests to a group 'nobody'")
     ipautil.run(args, env=env, raiseonerr=False, capture_error=True)
 
+
+def get_idmap_range(realm):
+    idrange = api.Command.idrange_show('{}_id_range'.format(realm))['result']
+    range_start = int(idrange['ipabaseid'][0])
+    range_size = int(idrange['ipaidrangesize'][0])
+    range_fmt = '{} - {}'.format(range_start, range_start + range_size)
+    return range_fmt
+
+
 class ADTRUSTInstance(service.Service):
 
     ATTR_SID = "ipaNTSecurityIdentifier"
@@ -837,12 +846,18 @@ class ADTRUSTInstance(service.Service):
         )
         api.Backend.ldap2.add_entry(entry)
 
+    def __retrieve_local_range(self):
+        """Retrieves local IPA ID range to make sure
+        """
+        self.sub_dict['IPA_LOCAL_RANGE'] = get_idmap_range(self.realm)
+
     def create_instance(self):
         self.step("validate server hostname",
                   self.__validate_server_hostname)
         self.step("stopping smbd", self.__stop)
         self.step("creating samba domain object", \
                   self.__create_samba_domain_object)
+        self.step("retrieve local idmap range", self.__retrieve_local_range)
         self.step("creating samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
         self.step("adding cifs Kerberos principal",
