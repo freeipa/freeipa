@@ -3,15 +3,16 @@
 # Yuri Chornoivan <yurchor@ukr.net>, 2016. #zanata
 # Yuri Chornoivan <yurchor@ukr.net>, 2017. #zanata
 # Yuri Chornoivan <yurchor@ukr.net>, 2018. #zanata
+# Yuri Chornoivan <yurchor@ukr.net>, 2019. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.1.dev201811131352+git918dbdfee\n"
+"Project-Id-Version: freeipa 4.7.2.dev201904240756+gita2b40ab0e\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-11-13 15:52+0200\n"
+"POT-Creation-Date: 2019-04-24 11:14+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-11-13 05:47+0000\n"
+"PO-Revision-Date: 2019-04-24 08:17+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
 "Language: uk\n"
@@ -18922,6 +18923,12 @@ msgstr ""
 msgid "Cannot find specified domain or server name"
 msgstr "Не вдалося знайти домену або сервера з вказаною назвою"
 
+msgid "Cannot hide CA renewal master."
+msgstr "Не можна приховувати основний сервер оновлення CA."
+
+msgid "Cannot hide DNSSec key master."
+msgstr "Не можна приховувати основний сервер ключів DNSSec."
+
 msgid ""
 "Cannot perform SID validation without Samba 4 support installed. Make sure "
 "you have installed server-trust-ad sub-package of IPA on the server"
@@ -19136,6 +19143,10 @@ msgstr "Змінити на зовнішню групу"
 #, python-format
 msgid "Changed password for \"%(value)s\""
 msgstr "Змінити пароль «%(value)s»"
+
+#, python-format
+msgid "Changed server state of \"%(value)s\"."
+msgstr "Змінено стан сервера «%(value)s»."
 
 msgid "Character classes"
 msgstr "Класи символів"
@@ -27335,6 +27346,9 @@ msgstr "Не надано назви сервера, сервер недосту
 msgid "Server removal aborted: %(reason)s."
 msgstr "Вилучення сервера перервано: %(reason)s."
 
+msgid "Server state"
+msgstr "Стан сервера"
+
 msgid "Server will check DNS forwarder(s)."
 msgstr "Сервер перевірятиме засоби переспрямовування DNS."
 
@@ -27500,6 +27514,9 @@ msgstr "Встановити типову (резервну) групу для �
 #, python-format
 msgid "Set default (fallback) group for automember \"%(value)s\""
 msgstr "Встановити типову (резервну) групу для автоматичної участі «%(value)s»"
+
+msgid "Set enabled/hidden state of a server."
+msgstr "Встановити стан увімкнено/приховано для сервера."
 
 msgid "Set public key"
 msgstr "Встановити відкритий ключ"
@@ -27723,6 +27740,9 @@ msgstr "Стандартне"
 
 msgid "Standard Record Types"
 msgstr "Стандартні типи записів"
+
+msgid "State"
+msgstr "Стан"
 
 msgid "State/Province"
 msgstr "Область/провінція"
