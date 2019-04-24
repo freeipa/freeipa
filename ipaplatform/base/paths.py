@@ -371,6 +371,7 @@ class BasePathNamespace:
     AUTHCONFIG = None
     AUTHSELECT = None
     SYSCONF_NETWORK = None
+    ETC_PKCS11_MODULES_DIR = "/etc/pkcs11/modules"
     # 389 DS related commands.
     DSCREATE = '/usr/sbin/dscreate'
     DSCTL = '/usr/sbin/dsctl'
