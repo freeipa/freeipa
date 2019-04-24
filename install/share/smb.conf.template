@@ -28,3 +28,7 @@ rpc_server:netlogon = external
 rpc_server:tcpip = yes
 rpc_daemon:epmd = fork
 rpc_daemon:lsasd = fork
+idmap config * : backend = tdb
+idmap config * : range =  0 - 0
+idmap config $NETBIOS_NAME : backend = sss
+idmap config $NETBIOS_NAME : range = $IPA_LOCAL_RANGE
