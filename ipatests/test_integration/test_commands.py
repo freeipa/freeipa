@@ -285,7 +285,7 @@ class TestIPACommand(IntegrationTest):
         """
         Integration test for https://pagure.io/SSSD/sssd/issue/3747
         """
-
+        tmpdir = str(tmpdir)
         test_user = 'test-ssh'
         external_master_hostname = \
             self.master.external_hostname  # pylint: disable=no-member
