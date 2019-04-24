@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import base64
 import binascii
@@ -57,7 +57,7 @@ from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.certdb import get_ca_nickname
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import standard_logging_setup
+from ipapython.ipa_log_manager import standard_logging_setup, CommandOutput
 from ipaserver.secrets.kem import IPAKEMKeys
 
 from ipaserver.install import certs
@@ -72,6 +72,7 @@ from ipaserver.masters import ENABLED_SERVICE
 from ipaserver.install.installutils import remove_file
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 
 ADMIN_GROUPS = [
@@ -596,8 +597,11 @@ class CAInstance(DogtagInstance):
             )
 
         if self.external == 1:
-            print("The next step is to get %s signed by your CA and re-run %s as:" % (self.csr_file, sys.argv[0]))
-            print("%s --external-cert-file=/path/to/signed_certificate --external-cert-file=/path/to/external_ca_certificate" % sys.argv[0])
+            logcm("The next step is to get %s signed by your CA and "
+                  "re-run %s as:" % (self.csr_file, sys.argv[0]))
+            logcm("%s --external-cert-file=/path/to/signed_certificate "
+                  "--external-cert-file=/path/to/external_ca_certificate" %
+                  sys.argv[0])
             sys.exit(0)
         else:
             shutil.move(paths.CA_BACKUP_KEYS_P12,
