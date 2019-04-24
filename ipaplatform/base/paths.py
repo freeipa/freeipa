@@ -393,6 +393,7 @@ class BasePathNamespace(object):
     AUTHCONFIG = None
     AUTHSELECT = None
     SYSCONF_NETWORK = None
+    ETC_PKCS11_MODULES_DIR = "/etc/pkcs11/modules"
     SLAPD_INSTANCE_SYSTEMD_IPA_ENV_TEMPLATE = \
         "/etc/systemd/system/dirsrv@%s.service.d/ipa-env.conf"
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'

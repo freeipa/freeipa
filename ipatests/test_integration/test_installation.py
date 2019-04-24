@@ -428,6 +428,14 @@ class TestInstallMaster(IntegrationTest):
         exp_str = ("ipa: ERROR: No YubiKey found")
         assert exp_str in cmd.stderr_text
 
+    def test_p11_kit_softhsm2(self):
+        # check that p11-kit-proxy does not inject SoftHSM2
+        result = self.master.run_command([
+            "modutil", "-dbdir", paths.PKI_TOMCAT_ALIAS_DIR, "-list"
+        ])
+        assert "softhsm" not in result.stdout_text.lower()
+        assert "opendnssec" not in result.stdout_text.lower()
+
 
 class TestInstallMasterKRA(IntegrationTest):
 

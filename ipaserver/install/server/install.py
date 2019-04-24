@@ -772,6 +772,9 @@ def install(installer):
     if installer._update_hosts_file:
         update_hosts_file(ip_addresses, host_name, fstore)
 
+    if tasks.configure_pkcs11_modules(fstore):
+        print("Disabled p11-kit-proxy")
+
     # Create a directory server instance
     if not options.external_cert_files:
         # We have to sync time before certificate handling on master.
@@ -1151,6 +1154,8 @@ def uninstall(installer):
 
     # remove upgrade state file
     sysupgrade.remove_upgrade_file()
+
+    tasks.restore_pkcs11_modules(fstore)
 
     if fstore.has_files():
         logger.error('Some files have not been restored, see '
