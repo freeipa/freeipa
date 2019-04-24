@@ -32,3 +32,4 @@ idmap config * : backend = tdb
 idmap config * : range =  0 - 0
 idmap config $NETBIOS_NAME : backend = sss
 idmap config $NETBIOS_NAME : range = $IPA_LOCAL_RANGE
+max smbd processes = 1000

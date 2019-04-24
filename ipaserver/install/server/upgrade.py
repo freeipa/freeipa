@@ -333,6 +333,25 @@ def upgrade_adtrust_config():
     except ipautil.CalledProcessError as e:
         logger.warning("Error updating Samba registry: %s", e)
 
+    logger.info("[Update 'max smbd processes' in Samba configuration "
+                "to prevent unlimited SMBLoris attack amplification]")
+
+    args = [paths.NET, "conf", "getparm", "global", "max smbd processes"]
+
+    try:
+        ipautil.run(args)
+    except ipautil.CalledProcessError as e:
+        if e.returncode == 255:
+            # 'max smbd processes' does not exist
+            args = [paths.NET, "conf", "setparm", "global",
+                    "max smbd processes", "1000"]
+            try:
+                ipautil.run(args)
+            except ipautil.CalledProcessError as e:
+                logger.warning("Error updating Samba registry: %s", e)
+        else:
+            logger.warning("Error updating Samba registry: %s", e)
+
 
 def ca_configure_profiles_acl(ca):
     logger.info('[Authorizing RA Agent to modify profiles]')
