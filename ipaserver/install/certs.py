@@ -33,6 +33,7 @@ import base64
 import fcntl
 import time
 import datetime
+import re
 
 import six
 
@@ -735,6 +736,9 @@ class _CrossProcessLock:
         if self._locked and now >= self._expire:
             self._locked = False
 
+        if self._locked and not self._owner_exists():
+            self._locked = False
+
         if self._locked:
             return False
 
@@ -810,5 +814,32 @@ class _CrossProcessLock:
             p.set('lock', 'expire', expire)
 
         p.write(fileobj)
+
+    def _owner_exists(self):
+        sep = '\x00'
+        owner_name, owner_pid = re.findall(r'^(.+)\[(\d+)\]$', self._owner)[0]
+        try:
+            with open("/proc/{}/cmdline".format(owner_pid)) as f:
+                cmdline = f.read()
+        except FileNotFoundError:
+            return False
+        # hidepid=1/2
+        except PermissionError:
+            return True
+
+        # zombie-process
+        if not cmdline:
+            return False
+
+        try:
+            exe_name = ""
+            for arg in cmdline.split(sep)[1:]:
+                # first non option argument
+                if not arg.startswith("-"):
+                    exe_name = os.path.basename(arg)
+                    break
+        except IndexError:
+            return False
+        return owner_name == exe_name
 
 renewal_lock = _CrossProcessLock(paths.IPA_RENEWAL_LOCK)
