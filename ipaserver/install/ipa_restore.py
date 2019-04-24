@@ -324,6 +324,28 @@ class Restore(admintool.AdminTool):
                     not user_input("Continue to restore?", False)):
                 raise admintool.ScriptError("Aborted")
 
+        # Check have optional dependencies been installed for extra
+        # features from backup
+        if restore_type == 'FULL':
+            if 'ADTRUST' in self.backup_services:
+                if not adtrustinstance or not adtrustinstance.check_inst():
+                    raise admintool.ScriptError(
+                        "Backup includes AD trust feature, it requires '{}' "
+                        "package. Please install the package and "
+                        "run ipa-restore again.".format(
+                            constants.IPA_ADTRUST_PACKAGE_NAME
+                        )
+                    )
+            if 'DNS' in self.backup_services:
+                if not os.path.isfile(paths.IPA_DNS_INSTALL):
+                    raise admintool.ScriptError(
+                        "Backup includes Integrated DNS feature, it requires "
+                        "'{}' package. Please install the package and "
+                        "run ipa-restore again.".format(
+                            constants.IPA_DNS_PACKAGE_NAME
+                        )
+                    )
+
         pent = pwd.getpwnam(constants.DS_USER)
 
         # Temporary directory for decrypting files before restoring
