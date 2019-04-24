@@ -306,5 +306,24 @@ class BaseTaskNamespace:
 
         return ipautil.run(cmd, **kwargs)
 
+    def configure_pkcs11_modules(self, fstore):
+        """Disable p11-kit modules
+
+        The p11-kit configuration injects p11-kit-proxy into all NSS
+        databases. Amongst other p11-kit loads SoftHSM2 PKCS#11 provider.
+        This interferes with 389-DS, certmonger, Dogtag and other services.
+        For example certmonger tries to open OpenDNSSEC's SoftHSM2 token,
+        although it doesn't use it at all. It also breaks Dogtag HSM support
+        testing with SoftHSM2.
+
+        IPA server does neither need nor use SoftHSM2 proxied by p11-kit.
+        """
+        raise NotImplementedError
+
+    def restore_pkcs11_modules(self, fstore):
+        """Restore global p11-kit modules for NSS
+        """
+        raise NotImplementedError
+
 
 tasks = BaseTaskNamespace()

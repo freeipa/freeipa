@@ -1841,6 +1841,9 @@ def upgrade_configuration():
     if not sysupgrade.get_upgrade_state('ntpd', 'ntpd_cleaned'):
         ntpd_cleanup(fqdn, fstore)
 
+    if tasks.configure_pkcs11_modules(fstore):
+        print("Disabled p11-kit-proxy")
+
     check_certs()
     fix_permissions()
 

@@ -1167,6 +1167,9 @@ def install(installer):
     conn = remote_api.Backend.ldap2
     ccache = os.environ['KRB5CCNAME']
 
+    if tasks.configure_pkcs11_modules(fstore):
+        print("Disabled p11-kit-proxy")
+
     if installer._add_to_ipaservers:
         try:
             conn.connect(ccache=installer._ccache)
