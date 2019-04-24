@@ -5,6 +5,8 @@
 """
 from __future__ import absolute_import
 
+from cryptography.hazmat.primitives import hashes
+
 from ipalib.x509 import load_pem_x509_certificate
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
@@ -13,7 +15,9 @@ from ipatests.pytest_ipa.integration import tasks
 
 KEY_OVERRIDE = """
 [DEFAULT]
-ipa_key_size=4096
+ipa_ca_key_size=4096
+ipa_ca_key_algorithm=SHA512withRSA
+ipa_ca_signing_algorithm=SHA512withRSA
 """
 
 
@@ -35,3 +39,4 @@ class TestPKIConfigOverride(IntegrationTest):
         )
         cert = load_pem_x509_certificate(ca_pem)
         assert cert.public_key().key_size == 4096
+        assert cert.signature_hash_algorithm.name == hashes.SHA512.name
