@@ -91,16 +91,24 @@ class BaseTaskNamespace:
 
         return paths.SVC_LIST_FILE
 
-    def check_selinux_status(self):
+    def is_selinux_enabled(self):
+        """Check if SELinux is available and enabled
+
+        :return: True if SELinux is available and enabled
         """
-        Checks if SELinux is available on the platform. If it is, this task
-        also makes sure that restorecon tool is available.
+        return False
+
+    def check_selinux_status(self):
+        """Checks if SELinux is available on the platform.
+
+        If it is, this task also makes sure that restorecon tool is available.
 
         If SELinux is available, but restorcon tool is not installed, raises
         an RuntimeError, which suggest installing the package containing
         restorecon and rerunning the installation.
-        """
 
+        :return: True if SELinux is available and enabled
+        """
         raise NotImplementedError()
 
     def check_ipv6_stack_enabled(self):
