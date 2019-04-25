@@ -123,6 +123,26 @@ def fix_addressbook_permission_bindrule(name, template, is_new,
         template['ipapermbindruletype'] = 'anonymous'
 
 
+def update_samba_attrs(ldap, dn, entry_attrs, **options):
+    samba_attrs = {'ipantlogonscript', 'ipantprofilepath',
+                   'nthomedir', 'nthomedrive'}
+
+    for attr in samba_attrs:
+        if options.get(attr, None):
+            user_entry = ldap.get_entry(dn)
+
+            if 'ipaNTUserAttrs'.lower() in user_entry['objectclass']:
+                user_entry[attr] = [options[attr]]
+                ldap.update_entry(user_entry)
+            else:
+                raise errors.ValidationError(
+                    name=attr,
+                    error=_(
+                        'Object class ipaNTUserAttrs is missing, '
+                        'user entry cannot have Samba attributes.'
+                    )
+                )
+
 
 class baseuser(LDAPObject):
     """
@@ -516,6 +536,8 @@ class baseuser_add(LDAPCreate):
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         convert_sshpubkey_post(entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
+        update_samba_attrs(ldap, dn, entry_attrs, **options)
+
 
 class baseuser_del(LDAPDelete):
     """
@@ -653,6 +675,7 @@ class baseuser_mod(LDAPUpdate):
         self.check_objectclass(ldap, dn, entry_attrs)
         self.obj.convert_usercertificate_pre(entry_attrs)
         self.preserve_krbprincipalname_pre(ldap, entry_attrs, *keys, **options)
+        update_samba_attrs(ldap, dn, entry_attrs, **options)
 
     def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
