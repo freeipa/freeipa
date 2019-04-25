@@ -971,7 +971,7 @@ class console(frontend.Command):
         history = os.path.join(api.env.dot_ipa, "console.history")
         try:
             readline.read_history_file(history)
-        except OSError:
+        except IOError:
             pass
 
         def save_history():
@@ -981,7 +981,7 @@ class console(frontend.Command):
             readline.set_history_length(50)
             try:
                 readline.write_history_file(history)
-            except OSError:
+            except IOError:
                 logger.exception("Unable to store history %s", history)
 
         atexit.register(save_history)
