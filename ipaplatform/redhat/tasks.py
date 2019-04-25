@@ -76,22 +76,6 @@ NM_IPA_CONF = textwrap.dedent("""
 """)
 
 
-def selinux_enabled():
-    """
-    Check if SELinux is enabled.
-    """
-    if os.path.exists(paths.SELINUXENABLED):
-        try:
-            ipautil.run([paths.SELINUXENABLED])
-            return True
-        except ipautil.CalledProcessError:
-            # selinuxenabled returns 1 if not enabled
-            return False
-    else:
-        # No selinuxenabled, no SELinux
-        return False
-
-
 @total_ordering
 class IPAVersion(object):
     _rpmvercmp_func = None
@@ -144,7 +128,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         ipautil.run() will do the logging.
         """
         restorecon = paths.SBIN_RESTORECON
-        if not selinux_enabled() or not os.path.exists(restorecon):
+        if not self.is_selinux_enabled() or not os.path.exists(restorecon):
             return
 
         # Force reset of context to match file_context for customizable
@@ -156,6 +140,20 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         args.append(filepath)
         ipautil.run(args, raiseonerr=False)
 
+    def is_selinux_enabled(self):
+        """Check if SELinux is available and enabled
+        """
+        try:
+            ipautil.run([paths.SELINUXENABLED])
+        except ipautil.CalledProcessError:
+            # selinuxenabled returns 1 if not enabled
+            return False
+        except OSError:
+            # selinuxenabled binary not available
+            return False
+        else:
+            return True
+
     def check_selinux_status(self, restorecon=paths.RESTORECON):
         """
         We don't have a specific package requirement for policycoreutils
@@ -166,13 +164,14 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         This function returns nothing but may raise a Runtime exception
         if SELinux is enabled but restorecon is not available.
         """
-        if not selinux_enabled():
-            return
+        if not self.is_selinux_enabled():
+            return False
 
         if not os.path.exists(restorecon):
             raise RuntimeError('SELinux is enabled but %s does not exist.\n'
                                'Install the policycoreutils package and start '
                                'the installation again.' % restorecon)
+        return True
 
     def check_ipv6_stack_enabled(self):
         """Checks whether IPv6 kernel module is loaded.
@@ -459,7 +458,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
             return args
 
-        if not selinux_enabled():
+        if not self.is_selinux_enabled():
             return False
 
         updated_vars = {}
