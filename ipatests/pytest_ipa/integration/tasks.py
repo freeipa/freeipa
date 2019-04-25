@@ -1433,12 +1433,13 @@ def install_ca(host, domain_level=None, first_instance=False,
     return result
 
 
-def install_dns(host, raiseonerr=True):
+def install_dns(host, raiseonerr=True, extra_args=()):
     args = [
         "ipa-dns-install",
         "--forwarder", host.config.dns_forwarder,
         "-U",
     ]
+    args.extend(extra_args)
     ret = host.run_command(args, raiseonerr=raiseonerr)
     Firewall(host).enable_service("dns")
     return ret
