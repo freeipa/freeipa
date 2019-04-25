@@ -19,6 +19,7 @@ import pytest
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks as platformtasks
 from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -396,7 +397,10 @@ class TestInstallMaster(IntegrationTest):
         tasks.install_kra(self.master, first_instance=True)
 
     def test_install_dns(self):
-        tasks.install_dns(self.master)
+        tasks.install_dns(
+            self.master,
+            extra_args=['--dnssec-master', '--no-dnssec-validation']
+        )
 
     def test_WSGI_worker_process(self):
         """ Test if WSGI worker process count is set to 4
@@ -476,6 +480,23 @@ class TestInstallMaster(IntegrationTest):
         assert "softhsm" not in result.stdout_text.lower()
         assert "opendnssec" not in result.stdout_text.lower()
 
+    @pytest.mark.skipif(
+        not platformtasks.is_selinux_enabled(),
+        reason="Test needs SELinux enabled")
+    def test_selinux_avcs(self):
+        # Use journalctl instead of ausearch. The ausearch command is not
+        # installed by default and journalctl gives us all AVCs.
+        result = self.master.run_command([
+            "journalctl", "--full", "--grep=AVC", "--since=yesterday"
+        ])
+        avcs = list(
+            line.strip() for line in result.stdout_text.split('\n')
+            if "AVC avc:" in line
+        )
+        if avcs:
+            print('\n'.join(avcs))
+            # Use expected failure until all SELinux violations are fixed
+            pytest.xfail("{} AVCs found".format(len(avcs)))
 
 
 class TestInstallMasterKRA(IntegrationTest):
