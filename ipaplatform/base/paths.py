@@ -21,6 +21,8 @@
 This base platform module exports default filesystem paths.
 '''
 
+import os
+
 
 class BasePathNamespace:
     BASH = "/bin/bash"
@@ -207,11 +209,13 @@ class BasePathNamespace:
     LIB64_FIREFOX = "/usr/lib64/firefox"
     LIBSOFTHSM2_SO_64 = "/usr/lib64/pkcs11/libsofthsm2.so"
     PAM_KRB5_SO_64 = "/usr/lib64/security/pam_krb5.so"
+    LIBEXEC_CERTMONGER_DIR = "/usr/libexec/certmonger"
     DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT = "/usr/libexec/certmonger/dogtag-ipa-ca-renew-agent-submit"
     DOGTAG_IPA_RENEW_AGENT_SUBMIT = "/usr/libexec/certmonger/dogtag-ipa-renew-agent-submit"
     CERTMONGER_DOGTAG_SUBMIT = "/usr/libexec/certmonger/dogtag-submit"
     IPA_SERVER_GUARD = "/usr/libexec/certmonger/ipa-server-guard"
     GENERATE_RNDC_KEY = "/usr/libexec/generate-rndc-key.sh"
+    LIBEXEC_IPA_DIR = "/usr/libexec/ipa"
     IPA_DNSKEYSYNCD_REPLICA = "/usr/libexec/ipa/ipa-dnskeysync-replica"
     IPA_DNSKEYSYNCD = "/usr/libexec/ipa/ipa-dnskeysyncd"
     IPA_HTTPD_KDCPROXY = "/usr/libexec/ipa/ipa-httpd-kdcproxy"
@@ -405,6 +409,31 @@ class BasePathNamespace:
     SSHD = '/usr/sbin/sshd'
     SSSCTL = '/usr/sbin/sssctl'
     LIBARCH = "64"
+
+    def check_paths(self):
+        """Check paths for missing files
+
+        python3 -c 'from ipaplatform.paths import paths; paths.check_paths()'
+        """
+        executables = (
+            "/bin", "/sbin", "/usr/bin", "/usr/sbin",
+            self.LIBEXEC_IPA_DIR, self.LIBEXEC_CERTMONGER_DIR
+        )
+        for name in sorted(dir(self)):
+            if not name[0].isupper():
+                continue
+
+            value = getattr(self, name)
+            if not value or not isinstance(value, str):
+                # skip empty values
+                continue
+            if "%" in value or "{" in value:
+                # skip templates
+                continue
+
+            if value.startswith(executables) and value not in executables:
+                if not os.path.isfile(value):
+                    print("Missing executable {}={}".format(name, value))
 
 
 paths = BasePathNamespace()
