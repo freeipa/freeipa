@@ -75,11 +75,13 @@ class DebianPathNamespace(BasePathNamespace):
     LIBSOFTHSM2_SO = "/usr/lib/softhsm/libsofthsm2.so"
     PAM_KRB5_SO = "/usr/lib/{0}/security/pam_krb5.so".format(MULTIARCH)
     LIB_SYSTEMD_SYSTEMD_DIR = "/lib/systemd/system/"
+    LIBEXEC_CERTMONGER_DIR = "/usr/lib/certmonger"
     DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT = "/usr/lib/certmonger/dogtag-ipa-ca-renew-agent-submit"
     DOGTAG_IPA_RENEW_AGENT_SUBMIT = "/usr/lib/certmonger/dogtag-ipa-renew-agent-submit"
     CERTMONGER_DOGTAG_SUBMIT = "/usr/lib/certmonger/dogtag-submit"
     IPA_SERVER_GUARD = "/usr/lib/certmonger/ipa-server-guard"
     GENERATE_RNDC_KEY = "/bin/true"
+    LIBEXEC_IPA_DIR = "/usr/lib/ipa"
     IPA_DNSKEYSYNCD_REPLICA = "/usr/lib/ipa/ipa-dnskeysync-replica"
     IPA_DNSKEYSYNCD = "/usr/lib/ipa/ipa-dnskeysyncd"
     IPA_HTTPD_KDCPROXY = "/usr/lib/ipa/ipa-httpd-kdcproxy"
