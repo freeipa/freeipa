@@ -24,6 +24,12 @@ from ipalib.constants import IPAAPI_USER
 
 from ipaplatform.paths import paths
 
+from ipapython.dn import DN
+
+from ipaserver.masters import (
+    CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE
+)
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.create_external_ca import ExternalCA
@@ -561,3 +567,38 @@ class TestIPACommand(IntegrationTest):
         )
         assert result.returncode != 0
         assert 'HBAC rule not found' in result.stderr_text
+
+    def test_config_show_configured_services(self):
+        # https://pagure.io/freeipa/issue/7929
+        states = {CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE}
+        dn = DN(
+            ('cn', 'HTTP'), ('cn', self.master.hostname), ('cn', 'masters'),
+            ('cn', 'ipa'), ('cn', 'etc'),
+            self.master.domain.basedn  # pylint: disable=no-member
+        )
+
+        conn = self.master.ldap_connect()
+        entry = conn.get_entry(dn)  # pylint: disable=no-member
+
+        # original setting and all settings without state
+        orig_cfg = list(entry['ipaConfigString'])
+        other_cfg = [item for item in orig_cfg if item not in states]
+
+        try:
+            # test with hidden
+            cfg = [HIDDEN_SERVICE]
+            cfg.extend(other_cfg)
+            entry['ipaConfigString'] = cfg
+            conn.update_entry(entry)  # pylint: disable=no-member
+            self.master.run_command(['ipa', 'config-show'])
+
+            # test with configured
+            cfg = [CONFIGURED_SERVICE]
+            cfg.extend(other_cfg)
+            entry['ipaConfigString'] = cfg
+            conn.update_entry(entry)  # pylint: disable=no-member
+            self.master.run_command(['ipa', 'config-show'])
+        finally:
+            # reset
+            entry['ipaConfigString'] = orig_cfg
+            conn.update_entry(entry)  # pylint: disable=no-member
