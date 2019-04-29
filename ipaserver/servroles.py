@@ -346,11 +346,14 @@ class ServerAttribute(LDAPBasedProperty):
     def _get_assoc_role_providers(self, api_instance):
         """get list of all servers on which the associated role is enabled
 
-        Consider a hidden server as a valid provider for a role.
+        Consider a hidden and configured server as a valid provider for a
+        role, as all services are started.
         """
         return [
-            r[u'server_server'] for r in self.associated_role.status(
-                api_instance) if r[u'status'] in {ENABLED, HIDDEN}]
+            r[u'server_server']
+            for r in self.associated_role.status(api_instance)
+            if r[u'status'] in {ENABLED, HIDDEN, CONFIGURED}
+        ]
 
     def _remove(self, api_instance, masters):
         """
