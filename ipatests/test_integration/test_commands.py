@@ -24,10 +24,15 @@ from ipalib.constants import IPAAPI_USER
 
 from ipaplatform.paths import paths
 
+from ipapython.dn import DN
+
+from ipaserver.masters import (
+    CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE
+)
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.create_external_ca import ExternalCA
-from ipatests.test_ipalib.test_x509 import good_pkcs7, badcert
 
 logger = logging.getLogger(__name__)
 
@@ -500,36 +505,37 @@ class TestIPACommand(IntegrationTest):
         assert result.returncode != 0
         assert 'HBAC rule not found' in result.stderr_text
 
-    def test_ipa_cacert_manage_install(self):
-        # Re-install the IPA CA
-        self.master.run_command([
-            paths.IPA_CACERT_MANAGE,
-            'install',
-            paths.IPA_CA_CRT])
+    def test_config_show_configured_services(self):
+        # https://pagure.io/freeipa/issue/7929
+        states = {CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE}
+        dn = DN(
+            ('cn', 'HTTP'), ('cn', self.master.hostname), ('cn', 'masters'),
+            ('cn', 'ipa'), ('cn', 'etc'),
+            self.master.domain.basedn  # pylint: disable=no-member
+        )
 
-        # Test a non-existent file
-        result = self.master.run_command([
-            paths.IPA_CACERT_MANAGE,
-            'install',
-            '/var/run/cert_not_found'], raiseonerr=False)
-        assert result.returncode == 1
+        conn = self.master.ldap_connect()
+        entry = conn.get_entry(dn)  # pylint: disable=no-member
 
-        cmd = self.master.run_command(['mktemp'])
-        filename = cmd.stdout_text.strip()
+        # original setting and all settings without state
+        orig_cfg = list(entry['ipaConfigString'])
+        other_cfg = [item for item in orig_cfg if item not in states]
 
-        for contents in (good_pkcs7,):
-            self.master.put_file_contents(filename, contents)
-            result = self.master.run_command([
-                paths.IPA_CACERT_MANAGE,
-                'install',
-                filename])
+        try:
+            # test with hidden
+            cfg = [HIDDEN_SERVICE]
+            cfg.extend(other_cfg)
+            entry['ipaConfigString'] = cfg
+            conn.update_entry(entry)  # pylint: disable=no-member
+            self.master.run_command(['ipa', 'config-show'])
 
-        for contents in (badcert,):
-            self.master.put_file_contents(filename, contents)
-            result = self.master.run_command([
-                paths.IPA_CACERT_MANAGE,
-                'install',
-                filename], raiseonerr=False)
-            assert result.returncode == 1
-
-        self.master.run_command(['rm', '-f', filename])
+            # test with configured
+            cfg = [CONFIGURED_SERVICE]
+            cfg.extend(other_cfg)
+            entry['ipaConfigString'] = cfg
+            conn.update_entry(entry)  # pylint: disable=no-member
+            self.master.run_command(['ipa', 'config-show'])
+        finally:
+            # reset
+            entry['ipaConfigString'] = orig_cfg
+            conn.update_entry(entry)  # pylint: disable=no-member
