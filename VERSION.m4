@@ -31,7 +31,7 @@ define(IPA_VERSION_RELEASE, 90)
 # e.g. define(IPA_VERSION_PRE_RELEASE, rc1)            #
 #  ->  "1.0.0rc1"                                      #
 ########################################################
-define(IPA_VERSION_PRE_RELEASE, .pre1)
+define(IPA_VERSION_PRE_RELEASE, )
 
 ########################################################
 # To mark GIT snapshots this should be set to 'yes'    #
@@ -46,7 +46,7 @@ define(IPA_VERSION_PRE_RELEASE, .pre1)
 # This option works only with GNU m4:                  #
 # it requires esyscmd m4 macro.                        #
 ########################################################
-define(IPA_VERSION_IS_GIT_SNAPSHOT, no)
+define(IPA_VERSION_IS_GIT_SNAPSHOT, yes)
 
 ########################################################
 # git development branch:                              #
