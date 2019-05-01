@@ -43,9 +43,7 @@ import six
 
 # pylint: disable=ipa-forbidden-import
 from ipalib import errors, x509, _
-from ipalib.constants import (
-    LDAP_GENERALIZED_TIME_FORMAT, LDAP_SSF_MIN_THRESHOLD
-)
+from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 # pylint: enable=ipa-forbidden-import
 from ipaplatform.paths import paths
 from ipapython.ipautil import format_netloc, CIDict
@@ -105,8 +103,7 @@ def realm_to_ldapi_uri(realm_name):
     return 'ldapi://' + ldapurl.ldapUrlEscape(socketname)
 
 
-def ldap_initialize(uri, cacertfile=None,
-                    ssf_min_threshold=LDAP_SSF_MIN_THRESHOLD):
+def ldap_initialize(uri, cacertfile=None):
     """Wrapper around ldap.initialize()
 
     The function undoes global and local ldap.conf settings that may cause
@@ -117,10 +114,6 @@ def ldap_initialize(uri, cacertfile=None,
       locations, also known as system-wide trust store.
     * Cert validation is enforced.
     * SSLv2 and SSLv3 are disabled.
-    * Require a minimum SASL security factor of 56. That level ensures
-      data integrity and confidentiality. Although at least AES128 is
-      enforced pretty much everywhere, 56 is required for backwards
-      compatibility with systems that announce wrong SSF.
     """
     conn = ldap.initialize(uri)
 
@@ -128,12 +121,6 @@ def ldap_initialize(uri, cacertfile=None,
     conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
 
     if not uri.startswith('ldapi://'):
-        # require a minimum SSF for TCP connections, but don't lower SSF_MIN
-        # if the current value is already larger.
-        cur_min_ssf = conn.get_option(ldap.OPT_X_SASL_SSF_MIN)
-        if cur_min_ssf < ssf_min_threshold:
-            conn.set_option(ldap.OPT_X_SASL_SSF_MIN, ssf_min_threshold)
-
         if cacertfile:
             if not os.path.isfile(cacertfile):
                 raise IOError(errno.ENOENT, cacertfile)
