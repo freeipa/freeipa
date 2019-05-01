@@ -22,6 +22,7 @@ from __future__ import absolute_import
 import base64
 import logging
 import time
+import socket
 
 import ldap
 import os
@@ -727,7 +728,9 @@ class PKIIniLoader:
             pki_subsystem_type=subsystem.lower(),
             home_dir=os.path.expanduser("~"),
             # for softhsm2 testing
-            softhsm2_so=paths.LIBSOFTHSM2_SO
+            softhsm2_so=paths.LIBSOFTHSM2_SO,
+            # prefer IPv6 localhost for AJP connector
+            pki_ajp_host=self._get_ajp_host(),
         )
 
     @classmethod
@@ -855,6 +858,34 @@ class PKIIniLoader:
                     filename, '\n'.join(errors)
                 )
             )
+
+    def _get_ajp_host(self):
+        """Try to find IPv6 localhost6 for AJP connector
+        """
+        default = 'localhost'
+        ipv6_localhost = 'localhost6'
+        try:
+            info = socket.getaddrinfo(
+                ipv6_localhost, 8009, socket.AF_INET6, socket.SOCK_STREAM
+            )
+        except socket.gaierror:
+            logger.debug(
+                "cannot resolve %s, using %s for AJP host",
+                ipv6_localhost, default
+            )
+            return default
+        addr = info[0][4][0]
+        check = ipautil.CheckedIPAddress(addr, allow_loopback=True)
+        iface = check.get_matching_interface()
+        if iface is not None and iface.name == 'lo':
+            logger.debug("Using IPv6 %s for AJP", ipv6_localhost)
+            return ipv6_localhost
+        else:
+            logger.debug(
+                "%s not bound to lo, using %s instead",
+                ipv6_localhost, default
+            )
+            return default
 
     def create_spawn_config(self, subsystem_config):
         """Create config instance
