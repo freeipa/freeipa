@@ -50,6 +50,7 @@ import ipaplatform
 from ipapython import ipautil, admintool, version, ipaldap
 from ipapython.admintool import ScriptError, SERVER_NOT_CONFIGURED  # noqa: E402
 from ipapython.certdb import EXTERNAL_CA_TRUST_FLAGS
+from ipalib.constants import MAXHOSTNAMELEN
 from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
 from ipapython.dn import DN
@@ -154,7 +155,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
 
     try:
         # make sure that the host name meets the requirements in ipalib
-        validate_hostname(host_name)
+        validate_hostname(host_name, maxlen=MAXHOSTNAMELEN)
     except ValueError as e:
         raise BadHostError("Invalid hostname '%s', %s" % (host_name, unicode(e)))
 

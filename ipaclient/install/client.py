@@ -33,7 +33,7 @@ from configparser import RawConfigParser
 from urllib.parse import urlparse, urlunparse
 
 from ipalib import api, errors, x509
-from ipalib.constants import IPAAPI_USER
+from ipalib.constants import IPAAPI_USER, MAXHOSTNAMELEN
 from ipalib.install import certmonger, certstore, service, sysrestore
 from ipalib.install import hostname as hostname_
 from ipalib.install.kinit import kinit_keytab, kinit_password
@@ -42,6 +42,7 @@ from ipalib.rpc import delete_persistent_client_session_data
 from ipalib.util import (
     normalize_hostname,
     no_matching_interface_for_ip_address_warning,
+    validate_hostname,
     verify_host_resolvable,
 )
 from ipaplatform import services
@@ -2117,6 +2118,13 @@ def install_check(options):
     if hostname in ('localhost', 'localhost.localdomain'):
         raise ScriptError(
             "Invalid hostname, '{}' must not be used.".format(hostname),
+            rval=CLIENT_INSTALL_ERROR)
+
+    try:
+        validate_hostname(hostname, maxlen=MAXHOSTNAMELEN)
+    except ValueError as e:
+        raise ScriptError(
+            'invalid hostname: {}'.format(e),
             rval=CLIENT_INSTALL_ERROR)
 
     # --no-sssd is not supported any more for rhel-based distros

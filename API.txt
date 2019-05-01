@@ -1075,7 +1075,7 @@ args: 0,1,1
 option: Str('version?')
 output: Output('result')
 command: config_mod/1
-args: 0,27,3
+args: 0,28,3
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('ca_renewal_master_server?', autofill=False)
@@ -1089,6 +1089,7 @@ option: Str('ipagroupobjectclasses*', autofill=False, cli_name='groupobjectclass
 option: IA5Str('ipagroupsearchfields?', autofill=False, cli_name='groupsearch')
 option: IA5Str('ipahomesrootdir?', autofill=False, cli_name='homedirectory')
 option: StrEnum('ipakrbauthzdata*', autofill=False, cli_name='pac_type', values=[u'MS-PAC', u'PAD', u'nfs:NONE'])
+option: Int('ipamaxhostnamelength?', autofill=False, cli_name='maxhostname')
 option: Int('ipamaxusernamelength?', autofill=False, cli_name='maxusername')
 option: Bool('ipamigrationenabled?', autofill=False, cli_name='enable_migration')
 option: Int('ipapwdexpadvnotify?', autofill=False, cli_name='pwdexpnotify')
