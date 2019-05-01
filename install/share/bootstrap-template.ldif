@@ -405,6 +405,7 @@ ipaHomesRootDir: /home
 ipaDefaultLoginShell: /bin/sh
 ipaDefaultPrimaryGroup: ipausers
 ipaMaxUsernameLength: 32
+ipaMaxHostnameLength: 64
 ipaPwdExpAdvNotify: 4
 ipaGroupObjectClasses: top
 ipaGroupObjectClasses: groupofnames
