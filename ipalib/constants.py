@@ -289,6 +289,9 @@ RENEWAL_REUSE_CA_NAME = 'dogtag-ipa-ca-renew-agent-reuse'
 # How long dbus clients should wait for CA certificate RPCs [seconds]
 CA_DBUS_TIMEOUT = 120
 
+# Maximum hostname length in Linux
+MAXHOSTNAMELEN = 64
+
 # regexp definitions
 PATTERN_GROUPUSER_NAME = (
     '(?!^[0-9]+$)^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*[a-zA-Z0-9_.$-]?$'

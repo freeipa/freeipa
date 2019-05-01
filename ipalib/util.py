@@ -466,14 +466,28 @@ def validate_zonemgr_str(zonemgr):
     zonemgr = DNSName(zonemgr)
     return validate_zonemgr(zonemgr)
 
-def validate_hostname(hostname, check_fqdn=True, allow_underscore=False, allow_slash=False):
+
+def validate_hostname(hostname, check_fqdn=True, allow_underscore=False,
+                      allow_slash=False, maxlen=255):
     """ See RFC 952, 1123
+
+    Length limit of 64 imposed by MAXHOSTNAMELEN on Linux.
+
+    DNS and other operating systems has a max length of 255. Default to
+    the theoretical max unless explicitly told to limit. The cases
+    where a limit would be set might include:
+     * *-install --hostname
+     * ipa host-add
+
+    The *-install commands by definition are executed on Linux hosts so
+    the maximum length needs to be limited.
 
     :param hostname Checked value
     :param check_fqdn Check if hostname is fully qualified
     """
-    if len(hostname) > 255:
-        raise ValueError(_('cannot be longer that 255 characters'))
+    if len(hostname) > maxlen:
+        raise ValueError(_('cannot be longer that {} characters'.format(
+                         maxlen)))
 
     if hostname.endswith('.'):
         hostname = hostname[:-1]
@@ -1061,9 +1075,16 @@ def normalize_hostname(hostname):
     return hostname
 
 
-def hostname_validator(ugettext, value):
+def hostname_validator(ugettext, value, maxlen=255):
+    """Validator used by plugins to ensure hostname compliance.
+
+       In Linux the maximum hostname length is 64. In DNS and
+       other operaring systems (Solaris) it is 255. If not explicitly
+       checking a Linux hostname (e.g. the server) use the DNS
+       default.
+    """
     try:
-        validate_hostname(value)
+        validate_hostname(value, maxlen=maxlen)
     except ValueError as e:
         return _('invalid domain-name: %s') % unicode(e)
 
