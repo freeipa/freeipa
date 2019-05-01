@@ -21,6 +21,7 @@
 from ipalib import api
 from ipalib import Bool, Int, Str, IA5Str, StrEnum, DNParam
 from ipalib import errors
+from ipalib.constants import MAXHOSTNAMELEN
 from ipalib.plugable import Registry
 from ipalib.util import validate_domain_name
 from .baseldap import (
@@ -59,6 +60,12 @@ Password plug-in features: currently defines additional hashes that the
 When setting the order list for mapping SELinux users you may need to
 quote the value so it isn't interpreted by the shell.
 
+The maximum length of a hostname in Linux is controlled by
+MAXHOSTNAMELEN in the kernel and defaults to 64. Some other operating
+systems, Solaris for example, allows hostnames up to 255 characters.
+This option will allow flexibility in length but by default limiting
+to the Linux maximum length.
+
 EXAMPLES:
 
  Show basic server configuration:
@@ -69,6 +76,9 @@ EXAMPLES:
 
  Change maximum username length to 99 characters:
    ipa config-mod --maxusername=99
+
+ Change maximum host name length to 255 characters:
+   ipa config-mod --maxhostname=255
 
  Increase default time and size limits for maximum IPA server search:
    ipa config-mod --searchtimelimit=10 --searchrecordslimit=2000
@@ -110,7 +120,7 @@ class config(LDAPObject):
         'ipamigrationenabled', 'ipacertificatesubjectbase',
         'ipapwdexpadvnotify', 'ipaselinuxusermaporder',
         'ipaselinuxusermapdefault', 'ipaconfigstring', 'ipakrbauthzdata',
-        'ipauserauthtype', 'ipadomainresolutionorder'
+        'ipauserauthtype', 'ipadomainresolutionorder', 'ipamaxhostnamelength',
     ]
     container_dn = DN(('cn', 'ipaconfig'), ('cn', 'etc'))
     permission_filter_objectclasses = ['ipaguiconfig']
@@ -132,6 +142,7 @@ class config(LDAPObject):
                 'ipasearchrecordslimit', 'ipasearchtimelimit',
                 'ipauserauthtype', 'ipauserobjectclasses',
                 'ipausersearchfields', 'ipacustomfields',
+                'ipamaxhostnamelength',
             },
         },
     }
@@ -146,6 +157,11 @@ class config(LDAPObject):
             minvalue=1,
             maxvalue=255,
         ),
+        Int('ipamaxhostnamelength',
+            cli_name='maxhostname',
+            label=_('Maximum hostname length'),
+            minvalue=MAXHOSTNAMELEN,
+            maxvalue=255,),
         IA5Str('ipahomesrootdir',
             cli_name='homedirectory',
             label=_('Home directory base'),
