@@ -25,7 +25,9 @@ def get_windows_certificate(ad_host):
 def convert_crt_to_cer(data):
     header = b'-----BEGIN CERTIFICATE-----\n'
     trailer = b'-----END CERTIFICATE-----\n'
-    return header + base64.encodebytes(data) + trailer
+    # pylint: disable=deprecated-method
+    return header + base64.encodestring(data) + trailer
+    # pylint: enable=deprecated-method
 
 
 def establish_winsync_agreement(master, ad):
