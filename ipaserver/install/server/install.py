@@ -16,7 +16,9 @@ import textwrap
 
 import six
 
-from ipaclient.install.client import check_ldap_conf
+from ipaclient.install import timeconf
+from ipaclient.install.client import (
+    check_ldap_conf, sync_time, restore_time_sync)
 from ipaclient.install.ipachangeconf import IPAChangeConf
 from ipalib.install import certmonger, sysrestore
 from ipapython import ipautil, version
@@ -33,7 +35,6 @@ from ipalib.util import (
     validate_domain_name,
     no_matching_interface_for_ip_address_warning,
 )
-import ipaclient.install.timeconf
 from ipaserver.install import (
     adtrust, bindinstance, ca, dns, dsinstance,
     httpinstance, installutils, kra, krbinstance,
@@ -427,13 +428,15 @@ def install_check(installer):
 
     if not options.no_ntp:
         try:
-            ipaclient.install.timeconf.check_timedate_services()
-        except ipaclient.install.timeconf.NTPConflictingService as e:
-            print("WARNING: conflicting time&date synchronization service '{}'"
-                  " will be disabled".format(e.conflicting_service))
-            print("in favor of chronyd")
-            print("")
-        except ipaclient.install.timeconf.NTPConfigurationError:
+            timeconf.check_timedate_services()
+        except timeconf.NTPConflictingService as e:
+            print(
+                "WARNING: conflicting time&date synchronization service "
+                "'{}' will be disabled in favor of chronyd\n".format(
+                    e.conflicting_service
+                )
+            )
+        except timeconf.NTPConfigurationError:
             pass
 
     if not options.setup_dns and installer.interactive:
@@ -672,6 +675,10 @@ def install_check(installer):
     if options.ip_addresses or options.setup_dns:
         installer._update_hosts_file = True
 
+    if not options.no_ntp and not options.unattended and not (
+            options.ntp_servers or options.ntp_pool):
+        options.ntp_servers, options.ntp_pool = timeconf.get_time_source()
+
     print()
     print("The IPA Master Server will be configured with:")
     print("Hostname:       %s" % host_name)
@@ -708,6 +715,14 @@ def install_check(installer):
                   "You will not be able to establish trusts with Active "
                   "Directory unless\nthe realm name of the IPA server matches "
                   "its domain name.\n\n")
+
+    if options.ntp_servers or options.ntp_pool:
+        if options.ntp_servers:
+            for server in options.ntp_servers:
+                print("NTP server:\t{}".format(server))
+
+        if options.ntp_pool:
+            print("NTP pool:\t{}".format(options.ntp_pool))
 
     if installer.interactive and not user_input(
             "Continue to configure the system with these values?", False):
@@ -781,11 +796,11 @@ def install(installer):
         # As chrony configuration is moved from client here, unconfiguration of
         # chrony will be handled here in uninstall() method as well by invoking
         # the ipa-server-install --uninstall
-        if not options.no_ntp:
-            if not ipaclient.install.client.sync_time(options, fstore, sstore):
-                print("Warning: IPA was unable to sync time with chrony!")
-                print("         Time synchronization is required for IPA "
-                      "to work correctly")
+        if not options.no_ntp and not sync_time(
+                options.ntp_servers, options.ntp_pool, fstore, sstore):
+            print("Warning: IPA was unable to sync time with chrony!")
+            print("         Time synchronization is required for IPA "
+                  "to work correctly")
 
         if options.dirsrv_cert_files:
             ds = dsinstance.DsInstance(fstore=fstore,
@@ -1112,7 +1127,7 @@ def uninstall(installer):
         except Exception:
             pass
 
-    ipaclient.install.client.restore_time_sync(sstore, fstore)
+    restore_time_sync(sstore, fstore)
 
     kra.uninstall()
 
@@ -1144,7 +1159,7 @@ def uninstall(installer):
 
     sstore._load()
 
-    ipaclient.install.timeconf.restore_forced_timeservices(sstore)
+    timeconf.restore_forced_timeservices(sstore)
 
     # Clean up group_exists (unused since IPA 2.2, not being set since 4.1)
     sstore.restore_state("install", "group_exists")
