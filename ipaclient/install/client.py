@@ -2087,10 +2087,13 @@ def install_check(options):
         try:
             timeconf.check_timedate_services()
         except timeconf.NTPConflictingService as e:
-            print("WARNING: conflicting time&date synchronization service '{}'"
-                  " will be disabled".format(e.conflicting_service))
-            print("in favor of chronyd")
-            print("")
+            print(
+                "WARNING: conflicting time&date synchronization service "
+                "'{}' will be disabled in favor of chronyd\n".format(
+                    e.conflicting_service
+                )
+            )
+
         except timeconf.NTPConfigurationError:
             pass
 
@@ -2376,6 +2379,11 @@ def install_check(options):
                 "Proceed with fixed values and no DNS discovery?", False):
             raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
+    if options.conf_ntp:
+        if not options.on_master and not options.unattended and not (
+                options.ntp_servers or options.ntp_pool):
+            options.ntp_servers, options.ntp_pool = timeconf.get_time_source()
+
     cli_realm = ds.realm
     cli_realm_source = ds.realm_source
     logger.debug("will use discovered realm: %s", cli_realm)
@@ -2402,6 +2410,14 @@ def install_check(options):
     logger.debug("IPA Server source: %s", cli_server_source)
     logger.info("BaseDN: %s", cli_basedn)
     logger.debug("BaseDN source: %s", cli_basedn_source)
+
+    if not options.on_master:
+        if options.ntp_servers:
+            for server in options.ntp_servers:
+                logger.info("NTP server: %s", server)
+
+        if options.ntp_pool:
+            logger.info("NTP pool: %s", options.ntp_pool)
 
     # ipa-join would fail with IP address instead of a FQDN
     for srv in cli_server:
@@ -2468,7 +2484,7 @@ def update_ipa_nssdb():
                                    (nickname, sys_db.secdir, e))
 
 
-def sync_time(options, fstore, statestore):
+def sync_time(ntp_servers, ntp_pool, fstore, statestore):
     """
     Will disable any other time synchronization service and configure chrony
     with given ntp(chrony) server and/or pool using Augeas.
@@ -2480,21 +2496,24 @@ def sync_time(options, fstore, statestore):
     # disable other time&date services first
     timeconf.force_chrony(statestore)
 
-    if not options.ntp_servers and not options.ntp_pool:
+    if not ntp_servers and not ntp_pool:
+        # autodiscovery happens in case that NTP configuration isn't explicitly
+        # disabled and user did not provide any NTP server addresses or
+        # NTP pool address to the installer interactively or as an cli argument
         ds = ipadiscovery.IPADiscovery()
-        ntp_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp',
-                                           None, break_on_first=False)
-        if not ntp_servers and not options.unattended:
-            options.ntp_servers, options.ntp_pool = timeconf.get_time_source()
-        else:
-            options.ntp_servers = ntp_servers
+        ntp_servers = ds.ipadns_search_srv(
+            cli_domain, '_ntp._udp', None, break_on_first=False
+        )
+        if ntp_servers:
+            for server in ntp_servers:
+                # when autodiscovery found server records
+                logger.debug("Found DNS record for NTP server: \t%s", server)
 
     logger.info('Synchronizing time')
 
     configured = False
-    if options.ntp_servers or options.ntp_pool:
-        configured = timeconf.configure_chrony(options.ntp_servers,
-                                               options.ntp_pool,
+    if ntp_servers or ntp_pool:
+        configured = timeconf.configure_chrony(ntp_servers, ntp_pool,
                                                fstore, statestore)
     else:
         logger.warning("No SRV records of NTP servers found and no NTP server "
@@ -2579,7 +2598,7 @@ def _install(options):
 
     if options.conf_ntp:
         # Attempt to configure and sync time with NTP server (chrony).
-        sync_time(options, fstore, statestore)
+        sync_time(options.ntp_servers, options.ntp_pool, fstore, statestore)
     elif options.on_master:
         # If we're on master skipping the time sync here because it was done
         # in ipa-server-install
