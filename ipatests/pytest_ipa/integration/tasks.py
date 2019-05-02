@@ -803,19 +803,21 @@ def kinit_admin(host, raiseonerr=True):
 
 
 def uninstall_master(host, ignore_topology_disconnect=True,
-                     ignore_last_of_role=True, clean=True, verbose=False):
+                     ignore_last_of_role=True, clean=True, verbose=False,
+                     domain_level=None):
     host.collect_log(paths.IPASERVER_UNINSTALL_LOG)
     uninstall_cmd = ['ipa-server-install', '--uninstall', '-U']
 
-    host_domain_level = domainlevel(host)
+    if domain_level is None:
+        domain_level = domainlevel(host)
 
-    if ignore_topology_disconnect and host_domain_level != DOMAIN_LEVEL_0:
+    if ignore_topology_disconnect and domain_level != DOMAIN_LEVEL_0:
         uninstall_cmd.append('--ignore-topology-disconnect')
 
-    if ignore_last_of_role and host_domain_level != DOMAIN_LEVEL_0:
+    if ignore_last_of_role and domain_level != DOMAIN_LEVEL_0:
         uninstall_cmd.append('--ignore-last-of-role')
 
-    if verbose and host_domain_level != DOMAIN_LEVEL_0:
+    if verbose and domain_level != DOMAIN_LEVEL_0:
         uninstall_cmd.append('-v')
 
     result = host.run_command(uninstall_cmd)

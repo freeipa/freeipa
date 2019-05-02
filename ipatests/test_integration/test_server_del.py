@@ -103,6 +103,7 @@ class TestServerDel(ServerDelBase):
         #                    \
         #   replica1------- replica2
 
+
         tasks.create_segment(cls.client, cls.replica1, cls.replica2)
         tasks.create_segment(cls.client, cls.replica1, cls.replica2,
                              suffix=CA_SUFFIX_NAME)
@@ -179,7 +180,7 @@ class TestServerDel(ServerDelBase):
         )
 
         # reinstall the replica
-        tasks.uninstall_master(self.replica1)
+        tasks.uninstall_master(self.replica1, domain_level=self.domain_level)
         tasks.install_replica(self.master, self.replica1, setup_ca=True)
 
     def test_ignore_topology_disconnect_replica2(self):
@@ -194,7 +195,8 @@ class TestServerDel(ServerDelBase):
         )
 
         # reinstall the replica
-        tasks.uninstall_master(self.replica2, verbose=True)
+        tasks.uninstall_master(self.replica2, verbose=True,
+                               domain_level=self.domain_level)
         tasks.install_replica(self.master, self.replica2, setup_ca=True)
 
     def test_removal_of_master_disconnects_both_topologies(self):
