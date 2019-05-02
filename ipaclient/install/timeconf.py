@@ -65,7 +65,7 @@ def get_time_source():
         ntp_pool = user_input("Enter a NTP source pool address, "
                               "or press Enter to skip", allow_empty=True)
         if ntp_pool:  # if user input is not '' (empty)
-            logger.debug("User provided NTP pool:\n\t%s", ntp_pool)
+            logger.debug("User provided NTP pool:\t%s", ntp_pool)
 
     return ntp_servers, ntp_pool
 
