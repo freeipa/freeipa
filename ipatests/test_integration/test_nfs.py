@@ -9,8 +9,7 @@
    * add automount direct and indirect maps
    * add automount /home for the "seattle" location only
    * validate it is not available in another location
-   * krb5 /home for IdM users in test_krb5_nfs_manual_configuration
-   * krb5 /home for IdM users in test_automount_location
+   * krb5 /home for IdM users in test_automount
    * store nfs configuration in a single place
 """
 
@@ -189,9 +188,7 @@ class TestNFS(TestInit):
             "%s:/exports/home" % nfssrv.hostname, "/home", "-v"
         ])
 
-        # TODO leverage users
-
-    def test_automount_location(self):
+    def test_automount(self):
         """
         Test if ipa-client-automount behaves as expected
         """
@@ -236,6 +233,12 @@ class TestNFS(TestInit):
         # maybe re-use m1.group(0) if it exists.
         assert m1 is None
 
+        # https://pagure.io/freeipa/issue/7918
+        # check whether idmapd.conf was setup using the IPA domain
+        automntclt.run_command([
+            "grep", "Domain = %s" % self.master.domain.name, "/etc/idmapd.conf"
+        ])
+
         time.sleep(WAIT_AFTER_INSTALL)
 
         automntclt.run_command([
@@ -243,15 +246,48 @@ class TestNFS(TestInit):
             "%s:/exports/home" % nfssrv.hostname, "/home", "-v"
         ])
 
+        # TODO leverage users
+
         automntclt.run_command(["umount", "-a", "-t", "nfs4"])
 
         result2 = automntclt.run_command([
-            'ipa-client-automount', '--uninstall',
-            '-U', '--debug'
+            'ipa-client-automount', '--uninstall', '-U', '--debug'
         ])
-
         m2 = re.search(r'(?<=stderr\=Failed).+', result2.stderr_text)
         assert m2 is None
 
         time.sleep(WAIT_AFTER_UNINSTALL)
+
+        # https://pagure.io/freeipa/issue/7918
+        # test for --idmap-domain DNS
+        automntclt.run_command([
+            'ipa-client-automount', '--location', 'default',
+            '-U', '--debug', "--idmap-domain", "DNS"
+        ])
+        # check whether idmapd.conf was setup properly:
+        # grep must not find any configured Domain.
+        result = automntclt.run_command(
+            ["grep", "^Domain =", "/etc/idmapd.conf"], raiseonerr=False
+        )
+        assert result.returncode == 1
+
+        automntclt.run_command([
+            'ipa-client-automount', '--uninstall', '-U', '--debug'
+        ])
+
+        # https://pagure.io/freeipa/issue/7918
+        # test for --idmap-domain exampledomain.net
+        nfs_domain = "exampledomain.net"
+        automntclt.run_command([
+            'ipa-client-automount', '--location', 'default',
+            '-U', '--debug', "--idmap-domain", nfs_domain
+        ])
+        # check whether idmapd.conf was setup using nfs_domain
+        automntclt.run_command([
+            "grep", "Domain = %s" % nfs_domain, "/etc/idmapd.conf"
+        ])
+
+        automntclt.run_command([
+            'ipa-client-automount', '--uninstall', '-U', '--debug'
+        ])
         self.cleanup()
