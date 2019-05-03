@@ -12,3 +12,6 @@ attributeTypes: (2.16.840.1.113730.3.8.22.1.5 NAME 'ipaCertMapPriority' DESC 'Ru
 objectClasses: (2.16.840.1.113730.3.8.22.2.1 NAME 'ipaCertMapConfigObject' DESC 'IPA Certificate Mapping global config options' AUXILIARY MAY ipaCertMapPromptUsername X-ORIGIN 'IPA v4.5' )
 objectClasses: (2.16.840.1.113730.3.8.22.2.2 NAME 'ipaCertMapRule' DESC 'IPA Certificate Mapping rule' SUP top STRUCTURAL MUST cn MAY ( description $ ipaCertMapMapRule $ ipaCertMapMatchRule $ associatedDomain $ ipaCertMapPriority $ ipaEnabledFlag ) X-ORIGIN 'IPA v4.5' )
 objectClasses: (2.16.840.1.113730.3.8.22.2.3 NAME 'ipaCertMapObject' DESC 'IPA Object for Certificate Mapping' AUXILIARY MAY ipaCertMapData X-ORIGIN 'IPA v4.5' )
+# altSecurityIdentities attribute is from MS-WSPP AD schema
+# we define it here to have proper indexed searches
+attributeTypes: (1.2.840.113556.1.4.867 NAME 'altSecurityIdentities' DESC 'Alt-Security-Identities' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'MS-WSPP')
