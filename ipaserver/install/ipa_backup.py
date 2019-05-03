@@ -512,7 +512,7 @@ class Backup(admintool.AdminTool):
 
         logger.info("Backing up files")
         args = ['tar',
-                '--exclude=/var/lib/ipa/backup',
+                '--exclude=%s' % paths.IPA_BACKUP_DIR,
                 '--xattrs',
                 '--selinux',
                 '-cf',
@@ -537,7 +537,7 @@ class Backup(admintool.AdminTool):
 
         if missing_directories:
             args = ['tar',
-                    '--exclude=/var/lib/ipa/backup',
+                    '--exclude=%s' % paths.IPA_BACKUP_DIR,
                     '--xattrs',
                     '--selinux',
                     '--no-recursion',
@@ -615,7 +615,7 @@ class Backup(admintool.AdminTool):
         the db2bak output and an LDIF.
 
         These, along with the header, are moved into a new subdirectory
-        in /var/lib/ipa/backup.
+        in paths.IPA_BACKUP_DIR (/var/lib/ipa/backup).
         '''
 
         if data_only:
