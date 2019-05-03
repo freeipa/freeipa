@@ -30,19 +30,15 @@ import shutil
 import time
 import tempfile
 import gssapi
-
 try:
     from xml.etree import cElementTree as etree
 except ImportError:
     from xml.etree import ElementTree as etree
-
 import SSSDConfig
 # pylint: disable=import-error
 from six.moves.urllib.parse import urlsplit
 # pylint: enable=import-error
-
 from optparse import OptionParser  # pylint: disable=deprecated-module
-
 from ipaclient.install import ipachangeconf, ipadiscovery
 from ipaclient.install.client import (CLIENT_NOT_CONFIGURED,
     CLIENT_ALREADY_CONFIGURED)
@@ -66,19 +62,34 @@ logger = logging.getLogger(os.path.basename(__file__))
 def parse_options():
     usage = "%prog [options]\n"
     parser = OptionParser(usage=usage)
-    parser.add_option("--server", dest="server", help="FQDN of IPA server")
-    parser.add_option("--location", dest="location", help="Automount location",
-        default="default")
-    parser.add_option("-S", "--no-sssd", dest="sssd",
-                      action="store_false", default=True,
-                      help="Do not configure the client to use SSSD for automount")
-    parser.add_option("--debug", dest="debug", action="store_true",
-        default=False, help="enable debugging")
-    parser.add_option("-U", "--unattended", dest="unattended",
-        action="store_true", default=False,
-        help="unattended installation never prompts the user")
-    parser.add_option("--uninstall", dest="uninstall", action="store_true",
-        default=False, help="Unconfigure automount")
+    parser.add_option(
+        "--server", dest="server", help="FQDN of IPA server"
+    )
+    parser.add_option(
+        "--location", dest="location", default="default",
+        help="Automount location"
+    )
+    parser.add_option(
+        "-S", "--no-sssd", dest="sssd", action="store_false", default=True,
+        help="Do not configure the client to use SSSD for automount"
+    )
+    parser.add_option(
+        "--idmap-domain", dest="idmapdomain", default=None,
+        help="nfs domain for idmap.conf"
+    )
+    parser.add_option(
+        "--debug", dest="debug", action="store_true", default=False,
+        help="enable debugging"
+    )
+    parser.add_option(
+        "-U", "--unattended", dest="unattended", action="store_true",
+        default=False,
+        help="unattended installation never prompts the user"
+    )
+    parser.add_option(
+        "--uninstall", dest="uninstall", action="store_true", default=False,
+        help="Unconfigure automount"
+    )
 
     options, args = parser.parse_args()
     return options, args
@@ -332,7 +343,7 @@ def uninstall(fstore, statestore):
         return 1
     return 0
 
-def configure_nfs(fstore, statestore):
+def configure_nfs(fstore, statestore, options):
     """
     Configure secure NFS
     """
@@ -355,16 +366,23 @@ def configure_nfs(fstore, statestore):
     conf.setOptionAssignment(" = ")
     conf.setSectionNameDelimiters(("[", "]"))
 
-    changes = [conf.setOption('Domain', api.env.domain)]
-    section_with_changes = [conf.setSection('General', changes)]
+    if options.idmapdomain is None:
+        # Set NFSv4 domain to the IPA domain
+        changes = [conf.setOption('Domain', api.env.domain)]
+    elif options.idmapdomain == 'DNS':
+        # Rely on idmapd auto-detection (DNS)
+        changes = None
+    else:
+        # Set NFSv4 domain to what was provided
+        changes = [conf.setOption('Domain', options.idmapdomain)]
 
-    # Backup the file and apply the changes
-    fstore.backup_file(paths.IDMAPD_CONF)
-    conf.changeConf(paths.IDMAPD_CONF, section_with_changes)
-
-    tasks.restore_context(paths.IDMAPD_CONF)
-
-    print("Configured %s" % paths.IDMAPD_CONF)
+    if changes is not None:
+        section_with_changes = [conf.setSection('General', changes)]
+        # Backup the file and apply the changes
+        fstore.backup_file(paths.IDMAPD_CONF)
+        conf.changeConf(paths.IDMAPD_CONF, section_with_changes)
+        tasks.restore_context(paths.IDMAPD_CONF)
+        print("Configured %s" % paths.IDMAPD_CONF)
 
     rpcgssd = services.knownservices.rpcgssd
     try:
@@ -496,7 +514,7 @@ def main():
     try:
         if not options.sssd:
             configure_nsswitch(fstore, options)
-        configure_nfs(fstore, statestore)
+        configure_nfs(fstore, statestore, options)
         if options.sssd:
             configure_autofs_sssd(fstore, statestore, autodiscover, options)
         else:
