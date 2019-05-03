@@ -401,3 +401,19 @@ objectClass: top
 objectClass: nsIndex
 nsSystemIndex: false
 nsIndexType: eq
+
+dn: cn=ipaCertmapData,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipaCertmapData
+objectClass: top
+objectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+
+dn: cn=altSecurityIdentities,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: altSecurityIdentities
+objectClass: top
+objectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
