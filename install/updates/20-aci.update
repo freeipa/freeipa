@@ -25,6 +25,10 @@ add:aci:(targetfilter="(objectclass=domain)")(targetattr="objectclass || dc || i
 dn: $SUFFIX
 add:aci:(targetattr="parentid")(version 3.0; acl "Anonymous read access to parentID information"; allow(read, search, compare) userdn = "ldap:///anyone";)
 
+# Read access to altSecurityIdentities to allow filter optimizations in 389-ds
+dn: $SUFFIX
+add:aci:(targetattr="altSecurityIdentities")(version 3.0; acl "Authenticated read access to altSecurityIdentities information"; allow(read, search, compare) userdn = "ldap:///all";)
+
 # Read access to containers
 dn: $SUFFIX
 add:aci:(targetfilter="(&(objectclass=nsContainer)(!(objectclass=krbPwdPolicy)))")(target!="ldap:///cn=masters,cn=ipa,cn=etc,$SUFFIX")(targetattr="objectclass || cn")(version 3.0; acl "Anonymous read access to containers"; allow(read, search, compare) userdn = "ldap:///anyone";)
