@@ -91,6 +91,67 @@ EXAMPLES:
 register = Registry()
 
 
+def check_maprule_is_for_trusted_domain(api_inst, options, entry_attrs):
+    """
+    Check that the certmap rule references altSecurityIdentities and
+    associateddomain in options is a trusted domain.
+
+    :param api_inst: API instance
+    :param options: options passed to the command
+                    at least ipacertmapmaprule and
+                    associateddomain options are expected for the check
+
+    :raises: ValidationError if altSecurityIdentities is present in the
+             rule but no Active Directory trusted domain listed in
+             associated domains
+    """
+    is_trusted_domain_required = False
+
+    # If no explicit option passed, fallback to the content of the entry.
+    # This helps to catch cases when an associated domain value is removed
+    # while the rule requires its presence.
+    #
+    # In certmap-mod pre-callback we pass LDAPEntry instance instead of a dict
+    # LDAEntry.get() returns lists, even for single valued attrs. Using
+    # LDAPEntry.single_value would give us a single-valued result instead.
+    maprule_entry = entry_attrs
+    if not isinstance(maprule_entry, dict):
+        maprule_entry = entry_attrs.single_value
+
+    maprule = options.get('ipacertmapmaprule',
+                          maprule_entry.get('ipacertmapmaprule'))
+
+    if maprule:
+        if 'altsecurityidentities' in maprule.lower():
+            is_trusted_domain_required = True
+
+    if is_trusted_domain_required:
+        domains = options.get('associateddomain',
+                              entry_attrs.get('associateddomain'))
+        if domains:
+            trusted_domains = api_inst.Object.config.gather_trusted_domains()
+            trust_suffix_namespace = {dom_name.lower() for dom_name in
+                                      trusted_domains}
+
+            candidates = {str(dom).lower() for dom in domains}
+            invalid = candidates - trust_suffix_namespace
+
+            if invalid == candidates or len(trust_suffix_namespace) == 0:
+                raise errors.ValidationError(
+                    name=_('domain'),
+                    error=_('The domain(s) "%s" cannot be used to apply '
+                            'altSecurityIdentities check.') %
+                    ", ".join(list(invalid))
+                )
+        else:
+            raise errors.ValidationError(
+                name=_('domain'),
+                error=_('The mapping rule with altSecurityIdentities '
+                        'should be applied to a trusted Active Directory '
+                        'domain but no domain was associated with the rule.')
+            )
+
+
 def check_associateddomain_is_trusted(api_inst, options):
     """
     Check that the associateddomain in options are either IPA domain or
@@ -299,6 +360,7 @@ class certmaprule_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
                      **options):
         check_associateddomain_is_trusted(self.api, options)
+        check_maprule_is_for_trusted_domain(self.api, options, entry_attrs)
         return dn
 
 
@@ -311,6 +373,17 @@ class certmaprule_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
                      **options):
         check_associateddomain_is_trusted(self.api, options)
+        # For update of the existing certmaprule we need to retrieve
+        # content of the LDAP entry because modification may affect two cases:
+        # - altSecurityIdentities might be removed by the modification
+        # - trusted domains may be removed by the modification while they
+        #   should be in place
+        #
+        # For both these cases we need to know actual content of the entry but
+        # LDAPUpdate.execute() provides us with entry_attrs built from the
+        # options, not the original content.
+        entry = ldap.get_entry(dn)
+        check_maprule_is_for_trusted_domain(self.api, options, entry)
         return dn
 
 
