@@ -170,7 +170,7 @@ BuildRequires:  libuuid-devel
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_certmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= %{sssd_version}
-BuildRequires:  nodejs
+BuildRequires:  nodejs(abi) < 11
 BuildRequires:  uglify-js
 BuildRequires:  libverto-devel
 BuildRequires:  libunistring-devel
