@@ -28,6 +28,17 @@ certmaprule_create_params = {
         u'ipacertmappriority': u'1',
 }
 
+certmaprule_create_trusted_params = {
+    u'cn': u'test_trusted_rule',
+    u'description': u'Certificate mapping and matching rule for test '
+                    u'purposes for trusted domain',
+    u'ipacertmapmaprule': u'altsecurityidentities=X509:<some map>',
+    u'ipacertmapmatchrule': u'arbitrary free-form matching rule defined '
+                            u'and consumed by SSSD',
+    u'associateddomain': api.env.domain,
+    u'ipacertmappriority': u'1',
+}
+
 certmaprule_update_params = {
         u'description': u'Changed description',
         u'ipacertmapmaprule': u'changed arbitrary mapping rule',
@@ -78,6 +89,12 @@ def certmap_rule(request):
 
 
 @pytest.fixture(scope='class')
+def certmap_rule_trusted_domain(request):
+    tracker = CertmapruleTracker(**certmaprule_create_trusted_params)
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
 def certmap_config(request):
     tracker = CertmapconfigTracker()
     return tracker.make_fixture(request)
@@ -122,6 +139,18 @@ class TestCRUD(XMLRPC_test):
     def test_delete(self, certmap_rule):
         certmap_rule.ensure_exists()
         certmap_rule.delete()
+
+    def test_failed_create(self, certmap_rule_trusted_domain):
+        certmap_rule_trusted_domain.ensure_missing()
+        try:
+            certmap_rule_trusted_domain.create([])
+        except errors.ValidationError:
+            certmap_rule_trusted_domain.exists = False
+        else:
+            certmap_rule_trusted_domain.exists = True
+            certmap_rule_trusted_domain.ensure_missing()
+            raise AssertionError("Expected validation error for "
+                                 "altSecurityIdentities used for IPA domain")
 
 
 class TestEnableDisable(XMLRPC_test):
