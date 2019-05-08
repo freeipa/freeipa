@@ -6,6 +6,29 @@ from ipalib import errors
 _ffi = FFI()
 
 _ffi.cdef('''
+unsigned long OpenSSL_version_num(void);
+unsigned long SSLeay(void);
+''')
+
+_libcrypto = _ffi.dlopen(ctypes.util.find_library('crypto'))
+
+# SSLeay has been renamed with OpenSSL_version_num in OpenSSL 1.1.0
+try:
+    OpenSSL_version_num = _libcrypto.OpenSSL_version_num
+except AttributeError:
+    OpenSSL_version_num = _libcrypto.SSLeay
+
+# OpenSSL_version_num()/SSLeay() returns the value of OPENSSL_VERSION_NUMBER
+#
+# OPENSSL_VERSION_NUMBER is a numeric release version identifier:
+# MNNFFPPS: major minor fix patch status
+# For example,
+# 0x000906000 == 0.9.6 dev
+# 0x000906023 == 0.9.6b beta 3
+# 0x00090605f == 0.9.6e release
+_openssl_version = OpenSSL_version_num()
+
+_ffi.cdef('''
 typedef ... CONF;
 typedef ... CONF_METHOD;
 typedef ... BIO;
@@ -59,7 +82,6 @@ typedef ... ASN1_INTEGER;
 typedef ... ASN1_BIT_STRING;
 typedef ... ASN1_OBJECT;
 typedef ... X509;
-typedef ... X509_ALGOR;
 typedef ... X509_CRL;
 typedef ... X509_NAME;
 typedef ... X509_PUBKEY;
@@ -73,14 +95,23 @@ typedef struct X509_req_info_st {
     /*  d=2 hl=2 l=  0 cons: cont: 00 */
     ipa_STACK_OF_X509_ATTRIBUTE *attributes; /* [ 0 ] */
 } X509_REQ_INFO;
+''')
 
-typedef struct X509_req_st {
-    X509_REQ_INFO *req_info;
-    X509_ALGOR *sig_alg;
-    ASN1_BIT_STRING *signature;
-    int references;
-} X509_REQ;
+# since OpenSSL 1.1.0 req_info field is no longer pointer to X509_REQ_INFO
+if _openssl_version >= 0x10100000:
+    _ffi.cdef('''
+    typedef struct X509_req_st {
+        X509_REQ_INFO req_info;
+    } X509_REQ;
+    ''')
+else:
+    _ffi.cdef('''
+    typedef struct X509_req_st {
+        X509_REQ_INFO *req_info;
+    } X509_REQ;
+    ''')
 
+_ffi.cdef('''
 X509_REQ *X509_REQ_new(void);
 void X509_REQ_free(X509_REQ *);
 EVP_PKEY *d2i_PUBKEY_bio(BIO *bp, EVP_PKEY **a);
@@ -118,10 +149,7 @@ unsigned long ERR_get_error(void);
 char *ERR_error_string(unsigned long e, char *buf);
 ''')  # noqa: E501
 
-_libcrypto = _ffi.dlopen(ctypes.util.find_library('crypto'))
-
 NULL = _ffi.NULL
-
 # openssl/conf.h
 NCONF_new = _libcrypto.NCONF_new
 NCONF_free = _libcrypto.NCONF_free
@@ -306,13 +334,22 @@ def build_requestinfo(config, public_key_info):
                     reqdata, ext_ctx, extn_section, req):
                 _raise_openssl_errors()
 
-        der_len = i2d_X509_REQ_INFO(req.req_info, NULL)
+        if _openssl_version < 0x10100000:
+            der_len = i2d_X509_REQ_INFO(req.req_info, NULL)
+        else:
+            req_info = _ffi.new("X509_REQ_INFO *", req.req_info)
+            der_len = i2d_X509_REQ_INFO(req_info, NULL)
+            req.req_info = req_info[0]
         if der_len < 0:
             _raise_openssl_errors()
 
         der_buf = _ffi.new("unsigned char[%d]" % der_len)
         der_out = _ffi.new("unsigned char **", der_buf)
-        der_len = i2d_X509_REQ_INFO(req.req_info, der_out)
+        if _openssl_version < 0x10100000:
+            der_len = i2d_X509_REQ_INFO(req.req_info, der_out)
+        else:
+            der_len = i2d_X509_REQ_INFO(req_info, der_out)
+            req.req_info = req_info[0]
         if der_len < 0:
             _raise_openssl_errors()
 
