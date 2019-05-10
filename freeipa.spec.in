@@ -85,11 +85,9 @@
 
 %endif  # Fedora
 
-# Require Dogtag PKI 10.6.8-3 (10.6.7 was never pushed to stable)
-# 10.6.7 fixes UpdateNumberRange clone installation issue
-# https://pagure.io/freeipa/issue/7654 and empty token issue
-# and https://pagure.io/dogtagpki/issue/3073
-%global pki_version 10.6.8-3
+# 10.7 includes 'pki-server cert-fix' enhancements required
+# by ipa-cert-fix: https://pagure.io/freeipa/issue/7885
+%global pki_version 10.7.0-1
 
 # https://pagure.io/certmonger/issue/90
 %global certmonger_version 0.79.7-1
