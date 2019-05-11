@@ -610,11 +610,17 @@ class update_tdo_to_new_layout(Updater):
 
         trusts_dn = self.api.env.container_adtrusts + self.api.env.basedn
 
-        trusts = ldap.get_entries(
-            base_dn=trusts_dn,
-            scope=ldap.SCOPE_ONELEVEL,
-            filter=self.trust_filter,
-            attrs_list=self.trust_attrs)
+        # We might be in a situation when no trusts exist yet
+        # In such case there is nothing to upgrade but we have to catch
+        # an exception or it will abort the whole upgrade process
+        try:
+            trusts = ldap.get_entries(
+                base_dn=trusts_dn,
+                scope=ldap.SCOPE_ONELEVEL,
+                filter=self.trust_filter,
+                attrs_list=self.trust_attrs)
+        except errors.EmptyResult:
+            trusts = []
 
         # For every trust, retrieve its principals and convert
         for t_entry in trusts:
