@@ -251,7 +251,10 @@ var IPA = function () {
             on_success: function(data, text_status, xhr) {
                 that.whoami.metadata = data.result || data;
                 var wa_data = that.whoami.metadata;
-
+                // This AJAX request has no synchronization point,
+                // so we set async = false to make sure that init_metadata
+                // doesn't start before we get whoami response.
+                $.ajaxSetup({async: false});
                 rpc.command({
                     method: wa_data.details || wa_data.command,
                     args: wa_data.arguments,
@@ -275,6 +278,8 @@ var IPA = function () {
                         }
                     }
                 }).execute();
+                // Restore AJAX options
+                $.ajaxSetup(that.ajax_options);
             }
         });
     };
