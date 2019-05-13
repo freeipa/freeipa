@@ -596,7 +596,7 @@ def write_pem_private_key(priv_key, filename, passwd=None):
             os.fchmod(fp.fileno(), 0o600)
             fp.write(priv_key.private_bytes(
                 Encoding.PEM,
-                PrivateFormat.TraditionalOpenSSL,
+                PrivateFormat.PKCS8,
                 encryption_algorithm=enc_alg))
     except (IOError, OSError) as e:
         raise errors.FileError(reason=str(e))
