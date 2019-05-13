@@ -1718,6 +1718,7 @@ def generate_ssh_keypair():
 
     pem = key.private_bytes(
         encoding=serialization.Encoding.PEM,
+        # paramiko does not support PKCS#8 format, yet.
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption()
     )
