@@ -6,13 +6,32 @@ from ipalib import errors
 _ffi = FFI()
 
 _ffi.cdef('''
+/* libcrypto/crypto.h */
 unsigned long OpenSSL_version_num(void);
 unsigned long SSLeay(void);
+const char * OpenSSL_version(int t);
+const char * SSLeay_version(int t);
+
+#define OPENSSL_VERSION 0
 ''')
 
 _libcrypto = _ffi.dlopen(ctypes.util.find_library('crypto'))
 
+# SSLeay_version has been renamed with OpenSSL_version in OpenSSL 1.1.0
+# LibreSSL has OpenSSL_version since 2.7.0
+try:
+    OpenSSL_version = _libcrypto.OpenSSL_version
+except AttributeError:
+    OpenSSL_version = _libcrypto.SSLeay_version
+
+_version = OpenSSL_version(_libcrypto.OPENSSL_VERSION)
+_version = _ffi.string(_version).decode('utf-8')
+LIBRESSL = _version.startswith('LibreSSL')
+if not _version.startswith("OpenSSL") and not LIBRESSL:
+    raise ImportError("Only LibreSSL and OpenSSL are supported")
+
 # SSLeay has been renamed with OpenSSL_version_num in OpenSSL 1.1.0
+# LibreSSL has OpenSSL_version_num since 2.7.0
 try:
     OpenSSL_version_num = _libcrypto.OpenSSL_version_num
 except AttributeError:
@@ -98,7 +117,7 @@ typedef struct X509_req_info_st {
 ''')
 
 # since OpenSSL 1.1.0 req_info field is no longer pointer to X509_REQ_INFO
-if _openssl_version >= 0x10100000:
+if _openssl_version >= 0x10100000 and not LIBRESSL:
     _ffi.cdef('''
     typedef struct X509_req_st {
         X509_REQ_INFO req_info;
@@ -334,7 +353,7 @@ def build_requestinfo(config, public_key_info):
                     reqdata, ext_ctx, extn_section, req):
                 _raise_openssl_errors()
 
-        if _openssl_version < 0x10100000:
+        if _openssl_version < 0x10100000 or LIBRESSL:
             der_len = i2d_X509_REQ_INFO(req.req_info, NULL)
         else:
             req_info = _ffi.new("X509_REQ_INFO *", req.req_info)
@@ -345,7 +364,7 @@ def build_requestinfo(config, public_key_info):
 
         der_buf = _ffi.new("unsigned char[%d]" % der_len)
         der_out = _ffi.new("unsigned char **", der_buf)
-        if _openssl_version < 0x10100000:
+        if _openssl_version < 0x10100000 or LIBRESSL:
             der_len = i2d_X509_REQ_INFO(req.req_info, der_out)
         else:
             der_len = i2d_X509_REQ_INFO(req_info, der_out)
