@@ -11,6 +11,10 @@ topologies:
     name: master_1repl_1client
     cpu: 4
     memory: 7400
+  master_3repl_1client: &master_3repl_1client
+    name: master_3repl_1client
+    cpu: 6
+    memory: 12900
 
 jobs:
   fedora-27/build:
@@ -27,62 +31,14 @@ jobs:
         timeout: 1800
         topology: *build
 
-  fedora-27/simple_replication:
+  fedora-27/test_installation:
     requires: [fedora-27/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-27/build_url}'
-        test_suite: test_integration/test_simple_replication.py
+        test_suite: test_integration/test_installation.py
         template: *ci-master-f27
-        timeout: 3600
-        topology: *master_1repl
-
-  fedora-27/caless:
-    requires: [fedora-27/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-27/build_url}'
-        test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
-        template: *ci-master-f27
-        timeout: 3600
-        topology: *master_1repl
-
-  fedora-27/external_ca:
-    requires: [fedora-27/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-27/build_url}'
-        test_suite: test_integration/test_external_ca.py::TestExternalCA
-        template: *ci-master-f27
-        timeout: 4800
-        topology: *master_1repl_1client
-
-  fedora-27/test_ipa_commands:
-    requires: [fedora-27/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-27/build_url}'
-        test_suite: test_integration/test_commands.py
-        template: *ci-master-f27
-        timeout: 3600
-        topology: *master_1repl
-
-  fedora-27/dnssec:
-    requires: [fedora-27/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-27/build_url}'
-        test_suite: test_integration/test_dnssec.py::TestInstallDNSSECFirst
-        template: *ci-master-f27
-        timeout: 3600
-        topology: *master_1repl
+        timeout: 10800
+        topology: *master_3repl_1client
