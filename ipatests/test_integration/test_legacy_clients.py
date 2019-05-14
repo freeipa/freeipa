@@ -500,8 +500,8 @@ class BaseTestLegacyNssLdapRedHat:
 # Base classes that join legacy client specific steps with steps required
 # to setup IPA with trust (both with and without using the POSIX attributes)
 
-class BaseTestLegacyClientPosix(BaseTestLegacyClient,
-                                trust_tests.TestEnforcedPosixADTrust):
+class BaseTestLegacyClientPosix(trust_tests.BaseTestTrust,
+                                BaseTestLegacyClient):
 
     testuser_uid_regex = '10042'
     testuser_gid_regex = '10047'
@@ -515,8 +515,8 @@ class BaseTestLegacyClientPosix(BaseTestLegacyClient,
         pass
 
 
-class BaseTestLegacyClientNonPosix(BaseTestLegacyClient,
-                                   trust_tests.TestBasicADTrust):
+class BaseTestLegacyClientNonPosix(trust_tests.BaseTestTrust,
+                                   BaseTestLegacyClient):
 
     testuser_uid_regex = r'(?!10042)(\d+)'
     testuser_gid_regex = r'(?!10047)(\d+)'
