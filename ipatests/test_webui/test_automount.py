@@ -22,7 +22,10 @@ Automount tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver, screenshot
-from ipatests.test_webui.ui_driver import Keys
+try:
+    from selenium.webdriver.common.keys import Keys
+except ImportError:
+    pass
 import pytest
 
 LOC_ENTITY = 'automountlocation'
