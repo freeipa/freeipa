@@ -802,6 +802,8 @@ class NSSDatabase:
                     '-out', out_file.name,
                     '-passin', 'file:' + self.pwd_file,
                     '-passout', 'file:' + out_pwdfile.name,
+                    '-certpbe', 'aes-128-cbc',
+                    '-keypbe', 'aes-128-cbc',
                 ]
                 try:
                     ipautil.run(args)
