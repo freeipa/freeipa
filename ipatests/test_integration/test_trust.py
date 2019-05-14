@@ -9,7 +9,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
 
-class TestTrust(IntegrationTest):
+class BaseTestTrust(IntegrationTest):
     topology = 'line'
     num_ad_domains = 1
     num_ad_subdomains = 1
@@ -26,7 +26,7 @@ class TestTrust(IntegrationTest):
         if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
             raise unittest.SkipTest("Package samba-client not available "
                                     "on {}".format(cls.master.hostname))
-        super(TestTrust, cls).install(mh)
+        super(BaseTestTrust, cls).install(mh)
         cls.ad = cls.ads[0]  # pylint: disable=no-member
         cls.ad_domain = cls.ad.domain.name
         tasks.install_adtrust(cls.master)
@@ -79,8 +79,9 @@ class TestTrust(IntegrationTest):
         tasks.unconfigure_dns_for_trust(self.master, ad)
         tasks.clear_sssd_cache(self.master)
 
-    # Tests for non-posix AD trust
 
+# Tests for non-posix AD trust
+class TestTrust(BaseTestTrust):
     def test_establish_nonposix_trust(self):
         self.configure_dns_and_time(self.ad)
         tasks.establish_trust_with_ad(
