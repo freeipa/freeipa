@@ -1477,15 +1477,15 @@ fi
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-kdc-proxy.conf
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/ipa-kdc-proxy.conf
-%ghost %attr(0644,root,apache) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
-%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.con
-%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb5.ini
-%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krbrealm.con
+%ghost %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
+%ghost %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
+%ghost %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-kdc-proxy.conf
+%ghost %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
+%ghost %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/ipa-kdc-proxy.conf
+%ghost %attr(0644,root,root) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
+%ghost %attr(0644,root,root) %{_usr}/share/ipa/html/krb.con
+%ghost %attr(0644,root,root) %{_usr}/share/ipa/html/krb5.ini
+%ghost %attr(0644,root,root) %{_usr}/share/ipa/html/krbrealm.con
 %dir %{_usr}/share/ipa/updates/
 %{_usr}/share/ipa/updates/*
 %dir %{_localstatedir}/lib/ipa
@@ -1497,8 +1497,8 @@ fi
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/certs
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/private
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/passwds
-%ghost %{_localstatedir}/lib/ipa/pki-ca/publish
-%ghost %{_localstatedir}/named/dyndb-ldap/ipa
+%ghost %attr(775,root,pkiuser) %{_localstatedir}/lib/ipa/pki-ca/publish
+%ghost %attr(770,named,named) %{_localstatedir}/named/dyndb-ldap/ipa
 %dir %attr(0700,root,root) %{_sysconfdir}/ipa/custodia
 %dir %{_usr}/share/ipa/schema.d
 %attr(0644,root,root) %{_usr}/share/ipa/schema.d/README
@@ -1612,19 +1612,19 @@ fi
 %doc README.md Contributors.txt
 %license COPYING
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
+%ghost %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ipa/default.conf
+%ghost %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/nssdb
 # old dbm format
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert8.db
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key3.db
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
+%ghost %attr(644,root,root) %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert8.db
+%ghost %attr(644,root,root) %config(noreplace) %{_sysconfdir}/ipa/nssdb/key3.db
+%ghost %attr(644,root,root) %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
 # new sql format
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert9.db
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key4.db
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pkcs11.txt
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pwdfile.txt
-%ghost %config(noreplace) %{_sysconfdir}/pki/ca-trust/source/ipa.p11-kit
+%ghost %attr(644,root,root) %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert9.db
+%ghost %attr(644,root,root) %config(noreplace) %{_sysconfdir}/ipa/nssdb/key4.db
+%ghost %attr(644,root,root) %config(noreplace) %{_sysconfdir}/ipa/nssdb/pkcs11.txt
+%ghost %attr(600,root,root) %config(noreplace) %{_sysconfdir}/ipa/nssdb/pwdfile.txt
+%ghost %attr(644,root,root) %config(noreplace) %{_sysconfdir}/pki/ca-trust/source/ipa.p11-kit
 %dir %{_localstatedir}/lib/ipa-client
 %dir %{_localstatedir}/lib/ipa-client/pki
 %dir %{_localstatedir}/lib/ipa-client/sysrestore
