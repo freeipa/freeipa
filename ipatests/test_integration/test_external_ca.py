@@ -31,7 +31,6 @@ from ipaplatform.paths import paths
 
 from itertools import chain, repeat
 from ipatests.create_external_ca import ExternalCA, ISSUER_CN
-from ipaserver.install.cainstance import MSCSTemplateV1
 
 IPA_CA = 'ipa_ca.crt'
 ROOT_CA = 'root_ca.crt'
@@ -107,14 +106,14 @@ def check_ipaca_issuerDN(host, expected_dn):
     assert "Issuer DN: {}".format(expected_dn) in result.stdout_text
 
 
-def check_mscs_extension(ipa_csr, template):
+def check_mscs_extension(ipa_csr, oid, value):
     csr = x509.load_pem_x509_csr(ipa_csr, default_backend())
     extensions = [
         ext for ext in csr.extensions
-        if ext.oid.dotted_string == template.ext_oid
+        if ext.oid.dotted_string == oid
     ]
     assert extensions
-    assert extensions[0].value.value == template.get_ext_data()
+    assert extensions[0].value.value == value
 
 
 class TestExternalCA(IntegrationTest):
@@ -133,7 +132,10 @@ class TestExternalCA(IntegrationTest):
 
         # check CSR for extension
         ipa_csr = self.master.get_file_contents(paths.ROOT_IPA_CSR)
-        check_mscs_extension(ipa_csr, MSCSTemplateV1(u'SubCA'))
+        # Values for MSCSTemplateV1('SubCA')
+        oid = "1.3.6.1.4.1.311.20.2"
+        value = b'\x1e\n\x00S\x00u\x00b\x00C\x00A'
+        check_mscs_extension(ipa_csr, oid, value)
 
         # Sign CA, transport it to the host and get ipa a root ca paths.
         root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
