@@ -4,7 +4,8 @@ server_domain=example.test
 server_password=Secret123
 
 # Expand list of tests into -k...  -k... -k... .. sequence
-tests_to_run=$(eval "eval echo -k{$(echo $TESTS_TO_RUN | sed -e 's/[ \t]+*/,/g')}")
+# If remaining string still has { or } characters that shell did not expand, remove them
+tests_to_run=$(eval "eval echo -k{$(echo $TESTS_TO_RUN | sed -e 's/[ \t]+*/,/g')}" | tr -d '{}')
 
 systemctl --now enable firewalld
 ipa-server-install -U --domain ${server_domain} --realm ${server_realm} -p ${server_password} -a ${server_password} --setup-dns --setup-kra --auto-forwarders
