@@ -34,7 +34,6 @@ import time
 import dns
 from ldif import LDIFWriter
 import pytest
-from SSSDConfig import SSSDConfig
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -762,6 +761,7 @@ def modify_sssd_conf(host, domain, mod_dict, provider='ipa',
     :param provider_subtype: backend subtype (e.g. id or sudo), will be added
         to the domain config if not present
     """
+    from SSSDConfig import SSSDConfig
     fd, temp_config_file = tempfile.mkstemp()
     os.close(fd)
     try:
