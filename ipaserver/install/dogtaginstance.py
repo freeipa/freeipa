@@ -278,6 +278,7 @@ class DogtagInstance(service.Service):
         template = ipautil.template_file(template_filename, sub_dict)
         with open(paths.HTTPD_IPA_PKI_PROXY_CONF, "w") as fd:
             fd.write(template)
+            os.fchmod(fd.fileno(), 0o644)
 
     def configure_certmonger_renewal(self):
         """
