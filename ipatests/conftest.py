@@ -16,11 +16,7 @@ try:
     import ipaplatform  # pylint: disable=unused-import
 except ImportError:
     ipaplatform = None
-try:
-    import ipaserver
-    from ipaserver.install import installutils
-except ImportError:
-    ipaserver = None
+
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -29,10 +25,8 @@ pytest_plugins = [
     'ipatests.pytest_ipa.beakerlib',
     'ipatests.pytest_ipa.declarative',
     'ipatests.pytest_ipa.nose_compat',
+    'ipatests.pytest_ipa.integration'
 ]
-# The integration plugin is not available in client-only builds.
-if ipaserver is not None:
-    pytest_plugins.append('ipatests.pytest_ipa.integration')
 
 
 MARKERS = [
@@ -112,7 +106,7 @@ def pytest_cmdline_main(config):
 
     # XXX workaround until https://fedorahosted.org/freeipa/ticket/6408 has
     # been resolved.
-    if ipaserver is not None and installutils.is_ipa_configured():
+    if os.path.isfile(api.env.conf_default):
         api.finalize()
 
     if config.option.verbose:
