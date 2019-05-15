@@ -26,15 +26,16 @@ from ipaplatform.paths import paths
 
 from ipapython.dn import DN
 
-from ipaserver.masters import (
-    CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE
-)
-
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.create_external_ca import ExternalCA
 
 logger = logging.getLogger(__name__)
+
+# from ipaserver.masters
+CONFIGURED_SERVICE = u'configuredService'
+ENABLED_SERVICE = u'enabledService'
+HIDDEN_SERVICE = u'hiddenService'
 
 
 class TestIPACommand(IntegrationTest):
