@@ -10,8 +10,11 @@ installed.
 from __future__ import absolute_import
 
 import os
+import re
+
 import pytest
 from ipalib.constants import DOMAIN_LEVEL_0
+import ipaplatform
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration.env_config import get_global_config
@@ -403,6 +406,58 @@ class TestInstallMaster(IntegrationTest):
         assert cmd.returncode != 0
         exp_str = ("ipa: ERROR: No YubiKey found")
         assert exp_str in cmd.stderr_text
+
+    def test_file_permissions(self):
+        args = [
+            "rpm", "-V",
+            "python3-ipaclient",
+            "python3-ipalib",
+            "python3-ipaserver",
+            "python2-ipaclient",
+            "python2-ipalib",
+            "python2-ipaserver"
+        ]
+
+        if ipaplatform.NAME == 'fedora':
+            args.extend([
+                "freeipa-client",
+                "freeipa-client-common",
+                "freeipa-common",
+                "freeipa-server",
+                "freeipa-server-common",
+                "freeipa-server-dns",
+                "freeipa-server-trust-ad"
+            ])
+        else:
+            args.extend([
+                "ipa-client",
+                "ipa-client-common",
+                "ipa-common",
+                "ipa-server",
+                "ipa-server-common",
+                "ipa-server-dns"
+            ])
+
+        result = self.master.run_command(args, raiseonerr=False)
+        if result.returncode != 0:
+            # Check the mode errors
+            mode_warnings = re.findall(
+                r"^.M.......  [cdglr ]+ (?P<filename>.*)$",
+                result.stdout_text, re.MULTILINE)
+            msg = "rpm -V found mode issues for the following files: {}"
+            assert mode_warnings == [], msg.format(mode_warnings)
+            # Check the owner errors
+            user_warnings = re.findall(
+                r"^.....U...  [cdglr ]+ (?P<filename>.*)$",
+                result.stdout_text, re.MULTILINE)
+            msg = "rpm -V found ownership issues for the following files: {}"
+            assert user_warnings == [], msg.format(user_warnings)
+            # Check the group errors
+            group_warnings = re.findall(
+                r"^......G..  [cdglr ]+ (?P<filename>.*)$",
+                result.stdout_text, re.MULTILINE)
+            msg = "rpm -V found group issues for the following files: {}"
+            assert group_warnings == [], msg.format(group_warnings)
 
 
 class TestInstallMasterKRA(IntegrationTest):
