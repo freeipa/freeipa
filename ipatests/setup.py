@@ -70,13 +70,14 @@ if __name__ == '__main__':
             "polib",
             "pytest",
             "pytest_multihost",
+            "python-ldap",
             "six",
         ],
         extras_require={
             "integration": ["dbus-python", "pyyaml", "ipaserver"],
             "ipaserver": ["ipaserver"],
             "webui": ["selenium", "pyyaml", "ipaserver"],
-            "xmlrpc": ["ipaserver", "python-ldap"],
+            "xmlrpc": ["ipaserver"],
             ":python_version<'3'": ["mock"],
         }
     )
