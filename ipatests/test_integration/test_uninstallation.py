@@ -17,8 +17,10 @@ import os
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
-from ipaserver.install import dsinstance
 from ipapython.ipaldap import realm_to_serverid
+
+# from ipaserver.install.dsinstance
+DS_INSTANCE_PREFIX = 'slapd-'
 
 
 class TestUninstallBase(IntegrationTest):
@@ -65,7 +67,7 @@ class TestUninstallBase(IntegrationTest):
         self.master.run_command(['ipactl', 'stop'])
 
         serverid = realm_to_serverid(self.master.domain.realm)
-        instance_name = ''.join([dsinstance.DS_INSTANCE_PREFIX, serverid])
+        instance_name = ''.join([DS_INSTANCE_PREFIX, serverid])
 
         try:
             # Moving the DS instance out of the way will cause the
