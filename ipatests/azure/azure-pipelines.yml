@@ -138,7 +138,8 @@ jobs:
         XMLRPC_tests:
           TEST_TITLE: 'XMLRPC'
           TASK_TO_RUN: run-tests
-          TESTS_TO_RUN: "test_xmlrpc/test_*.py"
+          TESTS_TO_RUN: "test_xmlrpc"
+
   steps:
     - template: templates/setup-test-environment.yml
       parameters:
