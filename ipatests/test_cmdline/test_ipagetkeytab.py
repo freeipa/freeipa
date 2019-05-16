@@ -390,7 +390,6 @@ def test_smb_svc(request, test_host):
 
 
 @pytest.mark.tier0
-@pytest.mark.xfail(reason="freeipa ticket 7953", strict=True)
 @pytest.mark.skipif(u'ipantuserattrs' not in add_oc([], u'ipantuserattrs'),
                     reason="Must have trust support enabled for this test")
 class test_smb_service(KeytabRetrievalTest):
