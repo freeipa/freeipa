@@ -460,7 +460,9 @@ class NSSDatabase(object):
         :return: List of certificate names
         """
         root_nicknames = []
-        result = self.run_certutil(["-O", "-n", nickname], capture_output=True)
+        result = self.run_certutil(
+            ["-O", "--simple-self-signed", "-n", nickname],
+            capture_output=True)
         chain = result.output.splitlines()
 
         for c in chain:
