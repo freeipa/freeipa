@@ -1151,9 +1151,9 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
         entry_attrs = ldap.make_entry(
             dn, self.args_options_2_entry(*keys, **options))
 
-        self.process_attr_options(entry_attrs, None, keys, options)
-
         entry_attrs['objectclass'] = deepcopy(self.obj.object_class)
+
+        self.process_attr_options(entry_attrs, None, keys, options)
 
         if self.obj.object_class_config:
             config = ldap.get_ipa_config()
