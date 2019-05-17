@@ -102,7 +102,8 @@ class TempDir(object):
 
     def __get_path(self):
         assert path.abspath(self.__path) == self.__path
-        assert self.__path.startswith('/tmp/ipa.tests.')
+        assert self.__path.startswith(path.join(tempfile.gettempdir(),
+                                                'ipa.tests.'))
         assert path.isdir(self.__path) and not path.islink(self.__path)
         return self.__path
     path = property(__get_path)
