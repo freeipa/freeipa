@@ -218,6 +218,19 @@ class test_ipagetkeytab(KeytabRetrievalTest):
             os.unlink(symlink_target)
 
 
+def retrieve_dm_password():
+    dmpw_file = os.path.join(api.env.dot_ipa, '.dmpw')
+
+    if not os.path.isfile(dmpw_file):
+        raise errors.NotFound(reason='{} file required '
+                              'for this test'.format(dmpw_file))
+
+    with open(dmpw_file, 'r') as f:
+        dm_password = f.read().strip()
+
+    return dm_password
+
+
 class TestBindMethods(KeytabRetrievalTest):
     """
     Class that tests '-c'/'-H'/'-Y' flags
@@ -230,13 +243,10 @@ class TestBindMethods(KeytabRetrievalTest):
     def setup_class(cls):
         super(TestBindMethods, cls).setup_class()
 
-        dmpw_file = os.path.join(api.env.dot_ipa, '.dmpw')
-
-        if not os.path.isfile(dmpw_file):
-            pytest.skip('{} file required for this test'.format(dmpw_file))
-
-        with open(dmpw_file, 'r') as f:
-            cls.dm_password = f.read().strip()
+        try:
+            cls.dm_password = retrieve_dm_password()
+        except errors.NotFound as e:
+            pytest.skip(e.args)
 
         tempfd, temp_ca_cert = tempfile.mkstemp()
 
