@@ -970,48 +970,27 @@ def certificate_renewal_update(ca, ds, http):
     template = paths.CERTMONGER_COMMAND_TEMPLATE
     serverid = installutils.realm_to_serverid(api.env.realm)
 
-    requests = [
-        {
+    requests = []
+
+    dogtag_system_nicks = (
+        list(cainstance.CAInstance.tracking_reqs) +
+        [cainstance.CAInstance.server_cert_name]
+    )
+    for nick in dogtag_system_nicks:
+        req = {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
-            'cert-nickname': 'auditSigningCert cert-pki-ca',
+            'cert-nickname': nick,
             'ca-name': 'dogtag-ipa-ca-renew-agent',
             'cert-presave-command': template % 'stop_pkicad',
             'cert-postsave-command':
-                (template % 'renew_ca_cert "auditSigningCert cert-pki-ca"'),
-        },
-        {
-            'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
-            'cert-nickname': 'ocspSigningCert cert-pki-ca',
-            'ca-name': 'dogtag-ipa-ca-renew-agent',
-            'cert-presave-command': template % 'stop_pkicad',
-            'cert-postsave-command':
-                (template % 'renew_ca_cert "ocspSigningCert cert-pki-ca"'),
-        },
-        {
-            'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
-            'cert-nickname': 'subsystemCert cert-pki-ca',
-            'ca-name': 'dogtag-ipa-ca-renew-agent',
-            'cert-presave-command': template % 'stop_pkicad',
-            'cert-postsave-command':
-                (template % 'renew_ca_cert "subsystemCert cert-pki-ca"'),
-        },
-        {
-            'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
-            'cert-nickname': 'caSigningCert cert-pki-ca',
-            'ca-name': 'dogtag-ipa-ca-renew-agent',
-            'cert-presave-command': template % 'stop_pkicad',
-            'cert-postsave-command':
-                (template % 'renew_ca_cert "caSigningCert cert-pki-ca"'),
-            'template-profile': None,
-        },
-        {
-            'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
-            'cert-nickname': 'Server-Cert cert-pki-ca',
-            'ca-name': 'dogtag-ipa-ca-renew-agent',
-            'cert-presave-command': template % 'stop_pkicad',
-            'cert-postsave-command':
-                (template % 'renew_ca_cert "Server-Cert cert-pki-ca"'),
-        },
+                (template % 'renew_ca_cert "{}"'.format(nick)),
+        }
+        profile = cainstance.CAInstance.tracking_reqs.get(nick)
+        if profile:
+            req['template-profile'] = profile
+        requests.append(req)
+
+    requests.append(
         {
             'cert-file': paths.RA_AGENT_PEM,
             'key-file': paths.RA_AGENT_KEY,
@@ -1019,7 +998,7 @@ def certificate_renewal_update(ca, ds, http):
             'cert-presave-command': template % 'renew_ra_cert_pre',
             'cert-postsave-command': template % 'renew_ra_cert',
         },
-    ]
+    )
 
     logger.info("[Update certmonger certificate renewal configuration]")
     if not ca.is_configured():

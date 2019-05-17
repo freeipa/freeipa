@@ -298,6 +298,9 @@ class CAInstance(DogtagInstance):
        2 = have signed cert, continue installation
     """
 
+    # Mapping of nicknames for tracking requests, and the profile to
+    # use for that certificate.  'configure_renewal()' reads this
+    # dict.  The profile MUST be specified.
     tracking_reqs = {
         'auditSigningCert cert-pki-ca': 'caSignedLogCert',
         'ocspSigningCert cert-pki-ca': 'caOCSPCert',

@@ -65,6 +65,9 @@ class KRAInstance(DogtagInstance):
     be the same for both the CA and KRA.
     """
 
+    # Mapping of nicknames for tracking requests, and the profile to
+    # use for that certificate.  'configure_renewal()' reads this
+    # dict.  The profile MUST be specified.
     tracking_reqs = {
         'auditSigningCert cert-pki-kra': 'caInternalAuthAuditSigningCert',
         'transportCert cert-pki-kra': 'caInternalAuthTransportCert',
