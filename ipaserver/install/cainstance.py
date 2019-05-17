@@ -296,10 +296,12 @@ class CAInstance(DogtagInstance):
        2 = have signed cert, continue installation
     """
 
-    tracking_reqs = ('auditSigningCert cert-pki-ca',
-                     'ocspSigningCert cert-pki-ca',
-                     'subsystemCert cert-pki-ca',
-                     'caSigningCert cert-pki-ca')
+    tracking_reqs = {
+        'auditSigningCert cert-pki-ca': 'caSignedLogCert',
+        'ocspSigningCert cert-pki-ca': 'caOCSPCert',
+        'subsystemCert cert-pki-ca': 'caSubsystemCert',
+        'caSigningCert cert-pki-ca': 'caCACert',
+    }
     server_cert_name = 'Server-Cert cert-pki-ca'
     # The following must be aligned with the RewriteRule defined in
     # install/share/ipa-pki-proxy.conf.template
