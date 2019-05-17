@@ -2,8 +2,9 @@ parameters:
   imageName: 'freeipa-fedora-builder:latest'
   containerName: 'container'
   logsPath: 'logs'
-  testToRun: 'lint'
-  testParams: ''
+  taskToRun: 'run-tests'
+  testsToRun: ''
+  testsToIgnore: ''
 
 steps:
 - script: |
@@ -16,8 +17,10 @@ steps:
     docker inspect $(createContainer.containerName)
   displayName: Start container for running a test
 - script: |
-    docker exec --env TESTS_TO_RUN='${{parameters.testParams}}' \
+    docker exec --env TESTS_TO_RUN="${{ parameters.testsToRun }}" \
+                --env TESTS_TO_IGNORE="${{ parameters.testsToIgnore }}" \
+                --env CI_RUNNER_LOGS_DIR="${{ parameters.logsPath }}" \
                 --privileged -t \
                 $(createContainer.containerName) \
-                /bin/bash --noprofile --norc -x /freeipa/ipatests/azure/azure-${{parameters.testToRun}}.sh
+                /bin/bash --noprofile --norc -x /freeipa/ipatests/azure/azure-${{parameters.taskToRun}}.sh
   displayName: Run test

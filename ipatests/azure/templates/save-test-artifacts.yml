@@ -1,6 +1,6 @@
 parameters:
   logsPath: 'logs'
-  logsArtifact: 'logs-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitrecture)'
+  logsArtifact: ''
 steps:
 - task: PublishPipelineArtifact@0
   displayName: Publish logs

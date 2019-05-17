@@ -1,0 +1,31 @@
+parameters:
+  jobName: ''
+  jobTitle: ''
+  testsToIgnore: []
+  testsToRun: []
+  taskToRun: ''
+
+jobs:
+- job: ${{ parameters.jobName }}
+  displayName: ${{ parameters.jobTitle }}
+  dependsOn: Build
+  condition: succeeded()
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+    - template: setup-test-environment.yml
+    - template: run-test.yml
+      parameters:
+        containerName: 'freeipa-fedora-builder:latest'
+        logsPath: $(CI_RUNNER_LOGS_DIR)
+        taskToRun: ${{ parameters.taskToRun}}
+        testsToRun: ${{ join(' ', parameters.testsToRun ) }}
+        testsToIgnore: ${{ join(' ', parameters.testsToIgnore ) }}
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: $(CI_RUNNER_LOGS_DIR)/nosetests.xml
+        testRunTitle: ${{parameters.jobTitle}} results
+      condition: succeededOrFailed()
+    - template: save-test-artifacts.yml
+      parameters:
+        logsArtifact: logs-${{parameters.jobName}}-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)

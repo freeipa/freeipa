@@ -2,15 +2,7 @@ trigger:
 - master
 
 variables:
-  TEST_RUNNER_IMAGE: freeipa-fedora-builder:latest
-  TEST_RUNNER_CONFIG: .test_runner_azure.yaml
-  PEP8_ERROR_LOG: pycodestyle_errors.log
-  CI_RESULTS_LOG: ci_results_$(System.PullRequest.PullRequestNumber).log
-  CI_BACKLOG_SIZE: 5000
   CI_RUNNER_LOGS_DIR: logs
-  CI_RUNNER_LOG_ARCHIVE: $(System.PullRequest.PullRequestNumber)-job-$(Build.BuildId).tar.gz
-  TRAVIS_EVENT_TYPE: $(Build.Reason)
-  TRAVIS_BRANCH: $(System.PullRequest.TargetBranch)
   localsdir: $(Build.Repository.LocalPath)
   builddir: /__w/1/s
 
@@ -118,49 +110,31 @@ jobs:
         testRunTitle: 'Web UI unit test results'
       condition: succeededOrFailed()
 
-- job: Test
-  dependsOn: Build
-  condition: succeeded()
-  pool:
-    vmImage: 'Ubuntu-16.04'
-  strategy:
-    matrix:
-        Base_tests:
-          TEST_TITLE: 'Base'
-          TASK_TO_RUN: run-tests
-          TESTS_TO_RUN: "test_cmdline
-                test_install
-                test_ipaclient
-                test_ipalib
-                test_ipaplatform
-                test_ipapython
-                test_ipaserver"
-        XMLRPC_tests:
-          TEST_TITLE: 'XMLRPC'
-          TASK_TO_RUN: run-tests
-          TESTS_TO_RUN: "test_xmlrpc"
+- template: templates/test-jobs.yml
+  parameters:
+    jobName: Base
+    jobTitle: Base tests
+    testsToRun:
+    - test_cmdline
+    - test_install
+    - test_ipaclient
+    - test_ipalib
+    - test_ipaplatform
+    - test_ipapython
+    testsToIgnore:
+    - test_integration
+    - test_webui
+    - test_ipapython/test_keyring.py
+    taskToRun: run-tests
 
-  steps:
-    - template: templates/setup-test-environment.yml
-      parameters:
-        pythonVersion: '3.6'
-        architecture: 'x64'
-        logsPath: '$(CI_RUNNER_LOGS_DIR)'
-    - script: |
-        sudo modprobe ip6_tables
-      displayName: Make sure IPv6 firewall support is allowed
-    - template: templates/run-test.yml
-      parameters:
-        containerName: 'freeipa-fedora-builder:latest'
-        logsPath: '$(CI_RUNNER_LOGS_DIR)'
-        testToRun: '$(TASK_TO_RUN)'
-        testParams: '$(TESTS_TO_RUN)'
-    - task: PublishTestResults@2
-      inputs:
-        testResultsFiles: 'nosetests.xml'
-        testRunTitle: 'XMLRPC test results'
-      condition: succeededOrFailed()
-    - template: templates/save-test-artifacts.yml
-      parameters:
-        logsPath: '$(CI_RUNNER_LOGS_DIR)'
-        logsArtifact: '$(TEST_TITLE)-logs-$(CI_RUNNER_LOG_ARCHIVE)'
+- template: templates/test-jobs.yml
+  parameters:
+    jobName: XMLRPC
+    jobTitle: XMLRPC tests
+    testsToRun:
+    - test_xmlrpc
+    testsToIgnore:
+    - test_integration
+    - test_webui
+    - test_ipapython/test_keyring.py
+    taskToRun: run-tests
