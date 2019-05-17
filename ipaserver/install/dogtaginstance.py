@@ -89,7 +89,12 @@ class DogtagInstance(service.Service):
     CA, KRA, and eventually TKS and TPS.
     """
 
-    tracking_reqs = None
+    # Mapping of nicknames for tracking requests, and the profile to use for
+    # that certificate.  'configure_renewal()' reads this dict and adds the
+    # profile if configured.  Certificates that use the default profile
+    # ("caServerCert", as defined by dogtag-ipa-renew-agent which is part of
+    # Certmonger) are omitted.
+    tracking_reqs = dict()
     server_cert_name = None
 
     # token for CA and subsystem certificates. For now, only internal token
@@ -316,6 +321,7 @@ class DogtagInstance(service.Service):
                     pin=pin,
                     pre_command='stop_pkicad',
                     post_command='renew_ca_cert "%s"' % nickname,
+                    profile=self.tracking_reqs[nickname],
                 )
             except RuntimeError as e:
                 logger.error(
