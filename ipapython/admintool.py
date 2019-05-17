@@ -161,6 +161,7 @@ class AdminTool(object):
     def __init__(self, options, args):
         self.options = options
         self.args = args
+        self.log_file_initialized = False
         self.safe_options = self.option_parser.get_safe_opts(options)
 
     def execute(self):
@@ -247,12 +248,15 @@ class AdminTool(object):
                 break
 
         self._setup_logging(log_file_mode=log_file_mode)
+        if self.log_file_name:
+            self.log_file_initialized = True
 
     def _setup_logging(self, log_file_mode='w', no_file=False):
         if no_file:
             log_file_name = None
         elif self.options.log_file:
             log_file_name = self.options.log_file
+            self.log_file_name = log_file_name
         else:
             log_file_name = self.log_file_name
         if self.options.verbose:
@@ -313,7 +317,7 @@ class AdminTool(object):
             # ipa-server-install.
             return
         message = "The %s command failed." % self.command_name
-        if self.log_file_name and return_value != 2:
+        if self.log_file_initialized and return_value != 2:
             # magic value because this is common between server and client
             # but imports are not straigthforward
             message += " See %s for more information" % self.log_file_name
