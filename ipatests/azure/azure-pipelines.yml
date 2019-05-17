@@ -20,6 +20,11 @@ jobs:
         ./autogen.sh
       displayName: Configure the project
     - script: |
+        git update-ref refs/heads/$(System.PullRequest.TargetBranch) origin/$(System.PullRequest.TargetBranch)
+        make V=0 "GIT_BRANCH=$(System.PullRequest.TargetBranch)" fastlint
+      displayName: Quick code style check
+      condition: eq(variables['Build.Reason'], 'PullRequest')
+    - script: |
         echo "Running make target 'rpms'"
         make V=0 rpms LOG_COMPILE='gdb -return-child-result -ex run -ex "thread apply all bt" -ex "quit" --args'
       displayName: Build packages
