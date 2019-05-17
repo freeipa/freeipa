@@ -205,7 +205,7 @@ def request_cert(reuse_existing, **kwargs):
             sys.argv[1:] +
             ['--submit-option', "requestor_name=IPA"])
     if os.environ.get('CERTMONGER_CA_PROFILE') == 'caCACert':
-        args += ['-N', '-O', 'bypassCAnotafter=true']
+        args += ['--force-new', '--approval-option', 'bypassCAnotafter=true']
     result = ipautil.run(args, raiseonerr=False, env=os.environ,
                          capture_output=True)
     if six.PY2:
