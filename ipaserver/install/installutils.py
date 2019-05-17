@@ -670,7 +670,7 @@ def check_server_configuration():
     Most convenient use case for the function is in install tools that require
     configured IPA for its function.
     """
-    server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    server_fstore = sysrestore.FileStore()
     if not server_fstore.has_files():
         raise ScriptError("IPA is not configured on this system.",
                           rval=SERVER_NOT_CONFIGURED)
@@ -705,8 +705,8 @@ def is_ipa_configured():
     """
     installed = False
 
-    sstore = sysrestore.StateFile(paths.SYSRESTORE)
-    fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    sstore = sysrestore.StateFile()
+    fstore = sysrestore.FileStore()
 
     for module in IPA_MODULES:
         if sstore.has_state(module):

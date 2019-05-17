@@ -200,7 +200,7 @@ class CertDB:
         if fstore:
             self.fstore = fstore
         else:
-            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
+            self.fstore = sysrestore.FileStore()
 
     ca_subject = ipautil.dn_attribute_property('_ca_subject')
     subject_base = ipautil.dn_attribute_property('_subject_base')

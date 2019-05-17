@@ -3183,7 +3183,7 @@ def uninstall_check(options):
             "IPA client is not configured on this system.",
             rval=rval)
 
-    server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    server_fstore = sysrestore.FileStore()
     if server_fstore.has_files() and not options.on_master:
         logger.error(
             "IPA client is configured as a part of IPA server on this system.")

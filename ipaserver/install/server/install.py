@@ -354,8 +354,8 @@ def install_check(installer):
             "Please uninstall it before configuring the IPA server, "
             "using 'ipa-client-install --uninstall'")
 
-    fstore = sysrestore.FileStore(SYSRESTORE_DIR_PATH)
-    sstore = sysrestore.StateFile(SYSRESTORE_DIR_PATH)
+    fstore = sysrestore.FileStore()
+    sstore = sysrestore.StateFile()
 
     # This will override any settings passed in on the cmdline
     if os.path.isfile(paths.ROOT_IPA_CACHE):
@@ -1027,8 +1027,8 @@ def uninstall_check(installer):
               "If you want to install the\nIPA server, please install "
               "it using 'ipa-server-install'.")
 
-    fstore = sysrestore.FileStore(SYSRESTORE_DIR_PATH)
-    sstore = sysrestore.StateFile(SYSRESTORE_DIR_PATH)
+    fstore = sysrestore.FileStore()
+    sstore = sysrestore.StateFile()
 
     # Configuration for ipalib, we will bootstrap and finalize later, after
     # we are sure we have the configuration file ready.

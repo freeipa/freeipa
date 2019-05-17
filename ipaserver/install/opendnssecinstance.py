@@ -84,7 +84,7 @@ class OpenDNSSECInstance(service.Service):
         if fstore:
             self.fstore = fstore
         else:
-            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
+            self.fstore = sysrestore.FileStore()
 
     suffix = ipautil.dn_attribute_property('_suffix')
 

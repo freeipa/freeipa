@@ -795,9 +795,9 @@ def promote_check(installer):
                 raise ScriptError(
                     "NTP configuration cannot be updated during promotion")
 
-    sstore = sysrestore.StateFile(paths.SYSRESTORE)
+    sstore = sysrestore.StateFile()
 
-    fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    fstore = sysrestore.FileStore()
 
     env = Env()
     env._bootstrap(context='installer', confdir=paths.ETC_IPA, log=None)

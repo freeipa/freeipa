@@ -104,7 +104,7 @@ def run_with_args(api):
             os.environ['KRB5CCNAME'] = old_krb5ccname
         shutil.rmtree(tmpdir)
 
-    server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    server_fstore = sysrestore.FileStore()
     if server_fstore.has_files():
         update_server(certs)
         try:

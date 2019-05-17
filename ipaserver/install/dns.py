@@ -77,7 +77,7 @@ def _is_master():
 
 
 def _disable_dnssec():
-    fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    fstore = sysrestore.FileStore()
 
     ods = opendnssecinstance.OpenDNSSECInstance(fstore)
     ods.realm = api.env.realm
@@ -114,7 +114,7 @@ def _disable_dnssec():
 def install_check(standalone, api, replica, options, hostname):
     global ip_addresses
     global reverse_zones
-    fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    fstore = sysrestore.FileStore()
 
     if not os.path.isfile(paths.IPA_DNS_INSTALL):
         raise RuntimeError("Integrated DNS requires '%s' package" %
@@ -319,7 +319,7 @@ def install_check(standalone, api, replica, options, hostname):
 
 
 def install(standalone, replica, options, api=api):
-    fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    fstore = sysrestore.FileStore()
 
     if standalone:
         # otherwise this is done by server/replica installer
@@ -396,7 +396,7 @@ def uninstall_check(options):
 
 
 def uninstall():
-    fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    fstore = sysrestore.FileStore()
     ods = opendnssecinstance.OpenDNSSECInstance(fstore)
     if ods.is_configured():
         ods.uninstall()
