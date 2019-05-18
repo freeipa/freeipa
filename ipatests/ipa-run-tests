@@ -30,6 +30,7 @@ so any relative paths given will be based on the ipatests module's path
 import os
 import copy
 import sys
+import glob
 
 import pytest
 
@@ -59,6 +60,7 @@ class ArgsManglePlugin(object):
             # No file or directory found, run all tests
             args.append(HERE)
         else:
+            vargs = []
             for name in ns.file_or_dir:
                 idx = args.index(name)
                 # split on pytest separator
@@ -67,17 +69,48 @@ class ArgsManglePlugin(object):
                 # a file or directory relative to cwd or already absolute
                 if os.path.exists(filename):
                     continue
-                # a file or directory relative to ipatests package
-                args[idx] = sep.join((os.path.join(HERE, filename), suffix))
+                if '*' in filename:
+                    # Expand a glob, we'll flatten the list later
+                    paths = glob.glob(os.path.join(HERE, filename))
+                    vargs.append([idx, paths])
+                else:
+                    # a file or directory relative to ipatests package
+                    args[idx] = sep.join((os.path.join(HERE, filename), suffix))
+            # flatten and insert all expanded file names
+            base = 0
+            for idx, items in vargs:
+                args.pop(base + idx)
+                for item in items:
+                    args.insert(base + idx, item)
+                base += len(items)
 
         # replace ignores, e.g. "--ignore test_integration" is changed to
         # "--ignore path/to/ipatests/test_integration"
         if ns.ignore:
+            vargs = []
             for ignore in ns.ignore:
                 idx = args.index(ignore)
                 if os.path.exists(ignore):
                     continue
-                args[idx] = os.path.join(HERE, ignore)
+                if '*' in ignore:
+                    # expand a glob, we'll flatten the list later
+                    paths = glob.glob(os.path.join(HERE, ignore))
+                    vargs.append([idx, paths])
+                else:
+                    args[idx] = os.path.join(HERE, ignore)
+            # flatten and insert all expanded file names
+            base = 0
+            for idx, items in vargs:
+                # since we are expanding, remove old pair
+                # --ignore and old file name
+                args.pop(base + idx)
+                args.pop(base + idx)
+                for item in items:
+                    # careful: we need to add a pair
+                    # --ignore and new filename
+                    args.insert(base + idx, '--ignore')
+                    args.insert(base + idx, item)
+                base += len(items) * 2 - 1
 
         # rebuild early_config's known args with new args. The known args
         # are used for initial conftest.py from ipatests, which adds
