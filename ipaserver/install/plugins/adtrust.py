@@ -740,7 +740,7 @@ class update_host_cifs_keytabs(Updater):
 
     def extract_key_refs(self, keytab):
         host_princ = self.host_princ_template.format(
-            master=self.api.host, realm=self.api.realm)
+            master=self.api.env.host, realm=self.api.env.realm)
         result = ipautil.run([paths.KLIST, "-etK", "-k", keytab],
                              capture_output=True, raiseonerr=False,
                              nolog_output=True)
