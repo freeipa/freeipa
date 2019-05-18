@@ -301,7 +301,7 @@ class ldap2(CrudBackend, LDAPClient):
 
         attrs = self.get_effective_rights(dn, [attr])
         if 'attributelevelrights' in attrs:
-            attr_rights = attrs.get('attributelevelrights')[0].decode('UTF-8')
+            attr_rights = attrs.get('attributelevelrights')[0]
             (attr, rights) = attr_rights.split(':')
             if 'r' in rights:
                 return True
