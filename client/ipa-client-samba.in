@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+#
+# Copyright (C) 2019  FreeIPA Contributors see COPYING for license
+#
+# Configure the Samba suite to operate as domain member in IPA domain
+
+import os
+import sys
+from ipaclient.install import ipa_client_samba
+
+try:
+    if not os.geteuid() == 0:
+        sys.exit("\nMust be run as root\n")
+
+    sys.exit(ipa_client_samba.run())
+except SystemExit as e:
+    sys.exit(e)
+except RuntimeError as e:
+    sys.exit(e)
+except (KeyboardInterrupt, EOFError):
+    sys.exit(1)

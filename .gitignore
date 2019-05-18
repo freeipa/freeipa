@@ -127,6 +127,7 @@ makeapi
 client/ipa-certupdate
 client/ipa-client-automount
 client/ipa-client-install
+client/ipa-client-samba
 daemons/dnssec/ipa-dnskeysyncd
 daemons/dnssec/ipa-dnskeysync-replica
 daemons/dnssec/ipa-ods-exporter
