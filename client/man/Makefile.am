@@ -7,6 +7,7 @@ dist_man1_MANS =			\
 		ipa-rmkeytab.1		\
 		ipa-client-install.1	\
 		ipa-client-automount.1	\
+		ipa-client-samba.1	\
 		ipa-certupdate.1	\
 		ipa-join.1		\
 		ipa.1
