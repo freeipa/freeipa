@@ -312,6 +312,7 @@ class test_host(host_tasks):
         self.delete_record(self.pkey, self.data.get('del'))
 
     @screenshot
+    @pytest.mark.caless
     def test_ca_less(self):
         """
         Test host certificate actions in CA-less install

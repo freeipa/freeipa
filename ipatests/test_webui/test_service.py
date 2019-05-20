@@ -343,6 +343,7 @@ class test_service(sevice_tasks):
         self.delete_record(pkey, data.get('del'))
 
     @screenshot
+    @pytest.mark.caless
     def test_ca_less(self):
         """
         Test service certificate actions in CA-less install
