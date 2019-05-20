@@ -1050,3 +1050,15 @@ jobs:
         template: *ci-master-f27
         timeout: 7200
         topology: *master_1repl
+
+  fedora-27/automember:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_automember.py
+        template: *ci-master-f27
+        timeout: 3600
+        topology: *master_1repl
