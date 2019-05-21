@@ -92,7 +92,7 @@ class update_upload_cacrt(Updater):
                 config = entry.setdefault('ipaConfigString', [])
                 if ca_enabled:
                     config.append('ipaCa')
-                config.append('ipaCa')
+                config.append('compatCA')
 
             try:
                 ldap.add_entry(entry)
