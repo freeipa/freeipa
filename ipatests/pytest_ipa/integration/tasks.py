@@ -632,7 +632,17 @@ def unconfigure_dns_for_trust(master, ad):
         restore_dnssec_validation(master)
 
 
-def establish_trust_with_ad(master, ad_domain, extra_args=()):
+def configure_windows_dns_for_trust(ad, master):
+    ad.run_command(['dnscmd', '/zoneadd', master.domain.name,
+                    '/Forwarder', master.ip])
+
+
+def unconfigure_windows_dns_for_trust(ad, master):
+    ad.run_command(['dnscmd', '/zonedelete', master.domain.name, '/f'])
+
+
+def establish_trust_with_ad(master, ad_domain, extra_args=(),
+                            shared_secret=None):
     """
     Establishes trust with Active Directory. Trust type is detected depending
     on the presence of SfU (Services for Unix) support on the AD.
@@ -642,6 +652,7 @@ def establish_trust_with_ad(master, ad_domain, extra_args=()):
     """
 
     # Force KDC to reload MS-PAC info by trying to get TGT for HTTP
+    extra_args = list(extra_args)
     master.run_command(['kinit', '-kt', paths.HTTP_KEYTAB,
                         'HTTP/%s' % master.hostname])
     master.run_command(['systemctl', 'restart', 'krb5kdc.service'])
@@ -651,12 +662,15 @@ def establish_trust_with_ad(master, ad_domain, extra_args=()):
     master.run_command(['klist'])
     master.run_command(['smbcontrol', 'all', 'debug', '100'])
 
-    run_repeatedly(master,
-                   ['ipa', 'trust-add',
-                    '--type', 'ad', ad_domain,
-                    '--admin', 'Administrator',
-                    '--password'] + list(extra_args),
-                   stdin_text=master.config.ad_admin_password)
+    if shared_secret:
+        extra_args += ['--trust-secret']
+        stdin_text = shared_secret
+    else:
+        extra_args += ['--admin', 'Administrator', '--password']
+        stdin_text = master.config.ad_admin_password
+    run_repeatedly(
+        master, ['ipa', 'trust-add', '--type', 'ad', ad_domain] + extra_args,
+        stdin_text=stdin_text)
     master.run_command(['smbcontrol', 'all', 'debug', '1'])
     clear_sssd_cache(master)
     master.run_command(['systemctl', 'restart', 'krb5kdc.service'])
