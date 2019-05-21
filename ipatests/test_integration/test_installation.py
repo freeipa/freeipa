@@ -377,6 +377,16 @@ class TestADTrustInstallWithDNS_KRA_ADTrust(ADTrustInstallTestBase):
         self.install_replica(self.replicas[1], setup_ca=True, setup_kra=True)
 
 
+def get_pki_tomcatd_pid(host):
+    pid = ''
+    cmd = host.run_command(['systemctl', 'status', 'pki-tomcatd@pki-tomcat'])
+    for line in cmd.stdout_text.split('\n'):
+        if "Main PID" in line:
+            pid = line.split()[2]
+            break
+    return(pid)
+
+
 ##
 # Rest of master installation tests
 ##
@@ -400,6 +410,34 @@ class TestInstallMaster(IntegrationTest):
             self.master,
             extra_args=['--dnssec-master', '--no-dnssec-validation']
         )
+
+    def test_ipactl_restart_pki_tomcat(self):
+        """ Test if ipactl restart restarts the pki-tomcatd
+
+        Wrong logic was triggering the start instead of restart
+        for pki-tomcatd. This test validates that restart
+        called on pki-tomcat properly.
+
+        related ticket : https://pagure.io/freeipa/issue/7927
+        """
+        # get process id of pki-tomcatd
+        pki_pid = get_pki_tomcatd_pid(self.master)
+
+        # check if pki-tomcad restarted
+        cmd = self.master.run_command(['ipactl', 'restart'])
+        assert "Restarting pki-tomcatd Service" in cmd.stdout_text
+
+        # check if pid for pki-tomcad changed
+        pki_pid_after_restart = get_pki_tomcatd_pid(self.master)
+        assert pki_pid != pki_pid_after_restart
+
+        # check if pki-tomcad restarted
+        cmd = self.master.run_command(['ipactl', 'restart'])
+        assert "Restarting pki-tomcatd Service" in cmd.stdout_text
+
+        # check if pid for pki-tomcad changed
+        pki_pid_after_restart_2 = get_pki_tomcatd_pid(self.master)
+        assert pki_pid_after_restart != pki_pid_after_restart_2
 
     def test_WSGI_worker_process(self):
         """ Test if WSGI worker process count is set to 4
