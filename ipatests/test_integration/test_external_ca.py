@@ -22,7 +22,9 @@ import time
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
+from ipalib import x509 as ipa_x509
 from ipaplatform.paths import paths
+from ipapython.dn import DN
 
 from itertools import chain, repeat
 from ipatests.pytest_ipa.integration.create_external_ca import ISSUER_CN
@@ -177,6 +179,32 @@ class TestExternalCA(IntegrationTest):
              '-U'])
 
 
+def verify_caentry(host, cert):
+    """
+    Verify the content of cn=DOMAIN IPA CA,cn=certificates,cn=ipa,cn=etc,basedn
+    and make sure that ipaConfigString contains the expected values.
+    Verify the content of cn=cacert,cn=certificates,cn=ipa,cn=etc,basedn
+    and make sure that it contains the expected certificate.
+    """
+    # Check the LDAP entry
+    ldap = host.ldap_connect()
+    # cn=DOMAIN IPA CA must contain ipaConfigString: ipaCa, compatCA
+    ca_nick = '{} IPA CA'.format(host.domain.realm)
+    entry = ldap.get_entry(DN(('cn', ca_nick), ('cn', 'certificates'),
+                              ('cn', 'ipa'), ('cn', 'etc'),
+                              host.domain.basedn))
+    ipaconfigstring = [x.lower() for x in entry.get('ipaconfigstring')]
+    expected = ['compatca', 'ipaca']
+    assert expected == sorted(ipaconfigstring)
+
+    # cn=cacert,cn=certificates,cn=etc,basedn must contain the latest
+    # IPA CA
+    entry2 = ldap.get_entry(DN(('cn', 'CACert'), ('cn', 'ipa'),
+                               ('cn', 'etc'), host.domain.basedn))
+    cert_from_ldap = entry2.single_value['cACertificate']
+    assert cert == cert_from_ldap
+
+
 class TestSelfExternalSelf(IntegrationTest):
     """
     Test self-signed > external CA > self-signed test case.
@@ -184,6 +212,11 @@ class TestSelfExternalSelf(IntegrationTest):
     def test_install_master(self):
         result = tasks.install_master(self.master)
         assert result.returncode == 0
+
+        # Check the content of the ldap entries for the CA
+        remote_cacrt = self.master.get_file_contents(paths.IPA_CA_CRT)
+        cacrt = ipa_x509.load_pem_x509_certificate(remote_cacrt)
+        verify_caentry(self.master, cacrt)
 
     def test_switch_to_external_ca(self):
 
@@ -210,6 +243,11 @@ class TestSelfExternalSelf(IntegrationTest):
         # Check if external CA have "C" flag after the switch
         result = check_CA_flag(self.master)
         assert bool(result), ('External CA does not have "C" flag')
+
+        # Check that ldap entries for the CA have been updated
+        remote_cacrt = self.master.get_file_contents(ipa_ca_fname)
+        cacrt = ipa_x509.load_pem_x509_certificate(remote_cacrt)
+        verify_caentry(self.master, cacrt)
 
     def test_issuerDN_after_renew_to_external(self):
         """ Check if issuer DN is updated after self-signed > external-ca
