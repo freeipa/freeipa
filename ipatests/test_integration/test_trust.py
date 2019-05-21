@@ -21,6 +21,8 @@ class TestTrust(IntegrationTest):
     upn_principal = '{}@{}'.format(upn_username, upn_suffix)
     upn_password = 'Secret123456'
 
+    shared_secret = 'qwertyuiopQq!1'
+
     @classmethod
     def install(cls, mh):
         if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
@@ -36,6 +38,13 @@ class TestTrust(IntegrationTest):
         cls.ad_subdomain = cls.child_ad.domain.name
         cls.tree_ad = cls.ad_treedomains[0]  # pylint: disable=no-member
         cls.ad_treedomain = cls.tree_ad.domain.name
+
+        # values used in workaround for
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1711958
+        cls.srv_gc_record_name = \
+            '_ldap._tcp.Default-First-Site-Name._sites.gc._msdcs'
+        cls.srv_gc_record_value = '0 100 389 {}.'.format(cls.master.hostname)
+
 
     @classmethod
     def check_sid_generation(cls):
@@ -343,3 +352,121 @@ class TestTrust(IntegrationTest):
 
     def test_remove_external_rootdomain_trust(self):
         self.remove_trust(self.ad)
+
+    # Test for one-way forest trust with shared secret
+
+    def test_establish_forest_trust_with_shared_secret(self):
+        self.configure_dns_and_time(self.ad)
+        tasks.configure_windows_dns_for_trust(self.ad, self.master)
+
+        # this is a workaround for
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1711958
+        self.master.run_command(
+            ['ipa', 'dnsrecord-add', self.master.domain.name,
+             self.srv_gc_record_name,
+             '--srv-rec', self.srv_gc_record_value])
+
+        # create windows side of trust using powershell bindings
+        # to .Net functions
+        ps_cmd = (
+            '[System.DirectoryServices.ActiveDirectory.Forest]'
+            '::getCurrentForest()'
+            '.CreateLocalSideOfTrustRelationship("{}", 1, "{}")'.format(
+                self.master.domain.name, self.shared_secret))
+        self.ad.run_command(['powershell', '-c', ps_cmd])
+
+        # create ipa side of trust
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_domain, shared_secret=self.shared_secret)
+
+    def test_trustdomains_found_in_forest_trust_with_shared_secret(self):
+        result = self.master.run_command(
+            ['ipa', 'trust-fetch-domains', self.ad.domain.name],
+            raiseonerr=False)
+        assert result.returncode == 1
+        self.check_trustdomains(
+            self.ad_domain, [self.ad_domain, self.ad_subdomain])
+
+    def test_user_gid_uid_resolution_in_forest_trust_with_shared_secret(self):
+        """Check that user has SID-generated UID"""
+        # Using domain name since it is lowercased realm name for AD domains
+        testuser = 'testuser@%s' % self.ad_domain
+        result = self.master.run_command(['getent', 'passwd', testuser])
+
+        # This regex checks that Test User does not have UID 10042 nor belongs
+        # to the group with GID 10047
+        testuser_regex = r"^testuser@%s:\*:(?!10042)(\d+):(?!10047)(\d+):"\
+                         r"Test User:/home/%s/testuser:/bin/sh$"\
+                         % (re.escape(self.ad_domain),
+                            re.escape(self.ad_domain))
+
+        assert re.search(
+            testuser_regex, result.stdout_text), result.stdout_text
+
+    def test_remove_forest_trust_with_shared_secret(self):
+        ps_cmd = (
+            '[System.DirectoryServices.ActiveDirectory.Forest]'
+            '::getCurrentForest()'
+            '.DeleteLocalSideOfTrustRelationship("{}")'.format(
+                self.master.domain.name))
+        self.ad.run_command(['powershell', '-c', ps_cmd])
+
+        self.remove_trust(self.ad)
+
+        # this is cleanup for workaround for
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1711958
+        self.master.run_command(
+            ['ipa', 'dnsrecord-del', self.master.domain.name,
+             self.srv_gc_record_name, '--srv-rec',
+             self.srv_gc_record_value])
+
+        tasks.unconfigure_windows_dns_for_trust(self.ad, self.master)
+
+    # Test for one-way external trust with shared secret
+
+    def test_establish_external_trust_with_shared_secret(self):
+        self.configure_dns_and_time(self.ad)
+        tasks.configure_windows_dns_for_trust(self.ad, self.master)
+
+        # create windows side of trust using netdom.exe utility
+        self.ad.run_command(
+            ['netdom.exe', 'trust', self.master.domain.name,
+             '/d:' + self.ad.domain.name,
+             '/passwordt:' + self.shared_secret, '/add', '/oneside:TRUSTED'])
+
+        # create ipa side of trust
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_domain, shared_secret=self.shared_secret,
+            extra_args=['--range-type', 'ipa-ad-trust', '--external=True'])
+
+    def test_trustdomains_found_in_external_trust_with_shared_secret(self):
+        result = self.master.run_command(
+            ['ipa', 'trust-fetch-domains', self.ad.domain.name],
+            raiseonerr=False)
+        assert result.returncode == 1
+        self.check_trustdomains(
+            self.ad_domain, [self.ad_domain])
+
+    def test_user_uid_resolution_in_external_trust_with_shared_secret(self):
+        """Check that user has SID-generated UID"""
+        # Using domain name since it is lowercased realm name for AD domains
+        testuser = 'testuser@%s' % self.ad_domain
+        result = self.master.run_command(['getent', 'passwd', testuser])
+
+        # This regex checks that Test User does not have UID 10042 nor belongs
+        # to the group with GID 10047
+        testuser_regex = r"^testuser@%s:\*:(?!10042)(\d+):(?!10047)(\d+):"\
+                         r"Test User:/home/%s/testuser:/bin/sh$"\
+                         % (re.escape(self.ad_domain),
+                            re.escape(self.ad_domain))
+
+        assert re.search(
+            testuser_regex, result.stdout_text), result.stdout_text
+
+    def test_remove_external_trust_with_shared_secret(self):
+        self.ad.run_command(
+            ['netdom.exe', 'trust', self.master.domain.name,
+             '/d:' + self.ad.domain.name, '/remove', '/oneside:TRUSTED']
+        )
+        self.remove_trust(self.ad)
+        tasks.unconfigure_windows_dns_for_trust(self.ad, self.master)
