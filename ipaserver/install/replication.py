@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import logging
 import itertools
@@ -39,6 +39,7 @@ from ipapython import ipautil, ipaldap
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipapython.ipaldap import ldap_initialize
+from ipapython.ipa_log_manager import CommandOutput
 from ipaplatform.paths import paths
 from ipaserver.install import installutils
 
@@ -46,6 +47,7 @@ if six.PY3:
     unicode = str
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 # the default container used by AD for user entries
 WIN_USER_CONTAINER = DN(('cn', 'Users'))
@@ -100,7 +102,7 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
 
     Does not return a value, will raise ScriptError on failure.
     """
-    print("Run connection check to master")
+    logcm("Run connection check to master")
     args = [paths.IPA_REPLICA_CONNCHECK, "--master", master_host,
             "--auto-master-check", "--realm", realm,
             "--hostname", host_name]
@@ -128,7 +130,7 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
             "\nSee /var/log/ipareplica-conncheck.log for more information."
             "\nIf the check results are not valid it can be skipped with --skip-conncheck parameter.")
     else:
-        print("Connection check OK")
+        logcm("Connection check OK")
 
 
 def enable_replication_version_checking(realm, dirman_passwd):
@@ -666,7 +668,7 @@ class ReplicationManager:
             except errors.DuplicateEntry:
                 benum += 1
             except errors.ExecutionError as e:
-                print("Could not add backend entry " + dn, e)
+                logcm("Could not add backend entry %s %s" % (dn, e))
                 raise
 
         return cn
@@ -720,13 +722,14 @@ class ReplicationManager:
 
     def add_passsync_user(self, conn, password):
         pass_dn = DN(('uid', 'passsync'), ('cn', 'sysaccounts'), ('cn', 'etc'), self.suffix)
-        print("The user for the Windows PassSync service is %s" % pass_dn)
+        logcm("The user for the Windows PassSync service is %s" % pass_dn)
         try:
             conn.get_entry(pass_dn)
-            print("Windows PassSync system account exists, not resetting password")
+            logcm("Windows PassSync system account exists, not resetting "
+                  "password")
         except errors.NotFound:
             # The user doesn't exist, add it
-            print("Adding Windows PassSync system account")
+            logcm("Adding Windows PassSync system account")
             entry = conn.make_entry(
                 pass_dn,
                 objectclass=["account", "simplesecurityobject", "inetUser"],
@@ -1022,7 +1025,7 @@ class ReplicationManager:
                     'nsds5ReplicaLastInitEnd']
         entry = conn.get_entry(agmtdn, attrlist)
         if not entry:
-            print("Error reading status from agreement", agmtdn)
+            logcm("Error reading status from agreement %s" % agmtdn)
             hasError = 1
         else:
             refresh = entry.single_value.get('nsds5BeginReplicaRefresh')
@@ -1030,19 +1033,19 @@ class ReplicationManager:
             status = entry.single_value.get('nsds5ReplicaLastInitStatus')
             if not refresh: # done - check status
                 if not status:
-                    print("No status yet")
+                    logcm("No status yet")
                 elif status.find("replica busy") > -1:
-                    print("[%s] reports: Replica Busy! Status: [%s]"
+                    logcm("[%s] reports: Replica Busy! Status: [%s]"
                           % (conn.ldap_uri, status))
                     done = True
                     hasError = 2
                 elif status.find("Total update succeeded") > -1:
-                    print("\nUpdate succeeded")
+                    logcm("\nUpdate succeeded")
                     done = True
                 elif inprogress.lower() == 'true':
-                    print("\nUpdate in progress yet not in progress")
+                    logcm("\nUpdate in progress yet not in progress")
                 else:
-                    print("\n[%s] reports: Update failed! Status: [%s]"
+                    logcm("\n[%s] reports: Update failed! Status: [%s]"
                           % (conn.ldap_uri, status))
                     hasError = 1
                     done = True
@@ -1064,7 +1067,7 @@ class ReplicationManager:
                     'nsds5ReplicaLastUpdateEnd']
         entry = conn.get_entry(agmtdn, attrlist)
         if not entry:
-            print("Error reading status from agreement", agmtdn)
+            logcm("Error reading status from agreement %s" % agmtdn)
             hasError = 1
         else:
             inprogress = entry.single_value.get('nsds5replicaUpdateInProgress')
@@ -1118,7 +1121,7 @@ class ReplicationManager:
         while not done and not haserror:
             time.sleep(1)  # give it a few seconds to get going
             done, haserror = self.check_repl_init(conn, agmtdn, start)
-        print("")
+        logcm("")
         return haserror
 
     def wait_for_repl_update(self, conn, agmtdn, maxtries=600):
@@ -1130,12 +1133,14 @@ class ReplicationManager:
             done, haserror, error_message = self.check_repl_update(conn, agmtdn)
             maxtries -= 1
         if maxtries == 0: # too many tries
-            print("Error: timeout: could not determine agreement status: please check your directory server logs for possible errors")
+            logcm("Error: timeout: could not determine agreement status: "
+                  "please check your directory server logs for possible "
+                  "errors")
             haserror = 1
         return haserror, error_message
 
     def start_replication(self, conn, hostname=None, master=None):
-        print("Starting replication, please wait until this has completed.")
+        logcm("Starting replication, please wait until this has completed.")
         if hostname is None:
             hostname = self.hostname
         _cn, dn = self.agreement_dn(hostname, master)
@@ -1528,11 +1533,13 @@ class ReplicationManager:
         try:
             self.conn.add_entry(e)
         except errors.DuplicateEntry:
-            print("CLEANALLRUV task for replica id %d already exists." % replicaId)
+            logcm("CLEANALLRUV task for replica id %d already exists." %
+                  replicaId)
         else:
-            print("Background task created to clean replication data. This may take a while.")
+            logcm("Background task created to clean replication data. This "
+                  "may take a while.")
 
-        print("This may be safely interrupted with Ctrl+C")
+        logcm("This may be safely interrupted with Ctrl+C")
 
         wait_for_task(self.conn, dn)
 
@@ -1557,11 +1564,12 @@ class ReplicationManager:
         try:
             self.conn.add_entry(e)
         except errors.DuplicateEntry:
-            print("An abort CLEANALLRUV task for replica id %d already exists." % replicaId)
+            logcm("An abort CLEANALLRUV task for replica id %d already "
+                  "exists." % replicaId)
         else:
-            print("Background task created. This may take a while.")
+            logcm("Background task created. This may take a while.")
 
-        print("This may be safely interrupted with Ctrl+C")
+        logcm("This may be safely interrupted with Ctrl+C")
 
         wait_for_task(self.conn, dn)
 

@@ -54,6 +54,7 @@ from ipalib.constants import MAXHOSTNAMELEN
 from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
 from ipapython.dn import DN
+from ipapython.ipa_log_manager import CommandOutput
 from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -63,6 +64,7 @@ if six.PY3:
     unicode = str
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 # Used to determine install status
 IPA_MODULES = [
@@ -176,7 +178,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
                 e.errno, e.strerror)  # pylint: disable=no-member
 
     if no_host_dns:
-        print("Warning: skipping DNS resolution of host", host_name)
+        logcm("Warning: skipping DNS resolution of host %s", host_name)
         return
 
     try:
@@ -255,7 +257,7 @@ def record_in_hosts(ip, host_name=None, conf_file=paths.HOSTS):
                     return None
             return (hosts_ip, names)
         except IndexError:
-            print("Warning: Erroneous line '%s' in %s" % (line, conf_file))
+            logcm("Warning: Erroneous line '%s' in %s", line, conf_file)
             continue
 
     return None
@@ -279,7 +281,7 @@ def read_ip_addresses():
         try:
             ip_parsed = ipautil.CheckedIPAddress(ip)
         except Exception as e:
-            print("Error: Invalid IP Address %s: %s" % (ip, e))
+            logcm("Error: Invalid IP Address %s: %s", ip, e)
             continue
         ips.append(ip_parsed)
 
@@ -289,12 +291,12 @@ def read_ip_addresses():
 def read_dns_forwarders():
     addrs = []
     if ipautil.user_input("Do you want to configure DNS forwarders?", True):
-        print("Following DNS servers are configured in /etc/resolv.conf: %s" %
+        logcm("Following DNS servers are configured in /etc/resolv.conf: %s",
                 ", ".join(resolver.get_default_resolver().nameservers))
         if ipautil.user_input("Do you want to configure these servers as DNS "
                 "forwarders?", True):
             addrs = resolver.default_resolver.nameservers[:]
-            print("All DNS servers from /etc/resolv.conf were added. You can "
+            logcm("All DNS servers from /etc/resolv.conf were added. You can "
                   "enter additional addresses now:")
         while True:
             ip = ipautil.user_input("Enter an IP address for a DNS forwarder, "
@@ -304,15 +306,15 @@ def read_dns_forwarders():
             try:
                 ip_parsed = ipautil.CheckedIPAddress(ip, parse_netmask=False)
             except Exception as e:
-                print("Error: Invalid IP Address %s: %s" % (ip, e))
-                print("DNS forwarder %s not added." % ip)
+                logcm("Error: Invalid IP Address %s: %s", ip, e)
+                logcm("DNS forwarder %s not added.", ip)
                 continue
 
-            print("DNS forwarder %s added. You may add another." % ip)
+            logcm("DNS forwarder %s added. You may add another.", ip)
             addrs.append(str(ip_parsed))
 
     if not addrs:
-        print("No DNS forwarders configured")
+        logcm("No DNS forwarders configured")
 
     return addrs
 
@@ -361,7 +363,7 @@ def read_password(user, confirm=True, validate=True, retry=True, validator=_read
                 try:
                     validator(pwd)
                 except ValueError as e:
-                    print(str(e))
+                    logcm(str(e))
                     pwd = None
                     continue
             if not confirm:
@@ -369,15 +371,15 @@ def read_password(user, confirm=True, validate=True, retry=True, validator=_read
                 continue
             pwd_confirm = get_password("Password (confirm): ")
             if pwd != pwd_confirm:
-                print("Password mismatch!")
-                print("")
+                logcm("Password mismatch!")
+                logcm("")
                 pwd = None
             else:
                 correct = True
     except EOFError:
         return None
     finally:
-        print("")
+        logcm("")
     return pwd
 
 def update_file(filename, orig, subst):
@@ -394,7 +396,7 @@ def update_file(filename, orig, subst):
         os.chown(filename, st.st_uid, st.st_gid) # reset perms
         return 0
     else:
-        print("File %s doesn't exist." % filename)
+        logcm("File %s doesn't exist.", filename)
         return 1
 
 
@@ -545,8 +547,8 @@ def update_hosts_file(ip_addresses, host_name, fstore):
     for ip_address in ip_addresses:
         if record_in_hosts(str(ip_address)):
             continue
-        print("Adding [{address!s} {name}] to your /etc/hosts file".format(
-            address=ip_address, name=host_name))
+        logcm("Adding [%s %s] to your /etc/hosts file", ip_address,
+              host_name)
         add_record_to_hosts(str(ip_address), host_name)
 
 
@@ -760,7 +762,7 @@ def run_script(main_function, operation_name, log_file_name=None,
                 logger.debug('The %s command failed, exception: %s: %s',
                              operation_name, type(e).__name__, e)
                 if fail_message and not isinstance(e, SystemExit):
-                    print(fail_message)
+                    logcm(fail_message)
                 raise
         else:
             if return_value:

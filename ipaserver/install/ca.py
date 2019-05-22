@@ -6,7 +6,7 @@
 CA installer module
 """
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import enum
 import logging
@@ -24,6 +24,7 @@ from ipaserver.install import cainstance, bindinstance, dsinstance
 from ipapython import ipautil, certdb
 from ipapython import ipaldap
 from ipapython.admintool import ScriptError
+from ipapython.ipa_log_manager import CommandOutput
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
@@ -46,6 +47,7 @@ VALID_SUBJECT_BASE_ATTRS = {
 VALID_SUBJECT_ATTRS = {'cn'} | VALID_SUBJECT_BASE_ATTRS
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 external_cert_file = None
 external_ca_file = None
@@ -103,16 +105,16 @@ def print_ca_configuration(options):
     Does not print trailing empty line.
 
     """
-    print("The CA will be configured with:")
-    print("Subject DN:   {}".format(options.ca_subject))
-    print("Subject base: {}".format(options.subject_base))
+    logcm("The CA will be configured with:")
+    logcm("Subject DN:   %s" % options.ca_subject)
+    logcm("Subject base: %s" % options.subject_base)
     if options.external_ca:
         chaining = "externally signed (two-step installation)"
     elif options.external_cert_files:
         chaining = "externally signed"
     else:
         chaining = "self-signed"
-    print("Chaining:     {}".format(chaining))
+    logcm("Chaining:     %s" % chaining)
 
 
 def uninstall_check(options):
@@ -137,7 +139,7 @@ def uninstall_check(options):
         crlgen_enabled = True
 
     if crlgen_enabled:
-        print("Deleting this server will leave your installation "
+        logcm("Deleting this server will leave your installation "
               "without a CRL generation master.")
         if (options.unattended and not options.ignore_last_of_role) or \
            not (options.unattended or ipautil.user_input(
@@ -233,7 +235,7 @@ def install_check(standalone, replica_config, options):
 
     if not options.external_cert_files:
         if not cainstance.check_ports():
-            print(
+            logcm(
                 "IPA requires ports 8080 and 8443 for PKI, but one or more "
                 "are currently in use."
             )

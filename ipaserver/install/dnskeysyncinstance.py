@@ -2,7 +2,7 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
 
 import logging
 import errno
@@ -21,6 +21,7 @@ from ipaserver.install import installutils
 from ipapython.dn import DN
 from ipapython import directivesetter
 from ipapython import ipautil
+from ipapython.ipa_log_manager import CommandOutput
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib import errors, api
@@ -28,6 +29,7 @@ from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipaserver.install.bindinstance import dns_container_exists
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 replica_keylabel_template = u"dnssec-replica:%s"
 
@@ -97,7 +99,7 @@ class DNSKeySyncInstance(service.Service):
             ldap.delete_entry(entry)
 
     def start_dnskeysyncd(self):
-        print("Restarting ipa-dnskeysyncd")
+        logcm("Restarting ipa-dnskeysyncd")
         self.__start()
 
     def create_instance(self, fqdn, realm_name):
@@ -439,7 +441,7 @@ class DNSKeySyncInstance(service.Service):
         try:
             self.restart()
         except Exception as e:
-            print("Failed to start ipa-dnskeysyncd")
+            logcm("Failed to start ipa-dnskeysyncd")
             logger.debug("Failed to start ipa-dnskeysyncd: %s", e)
 
 

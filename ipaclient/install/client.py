@@ -9,7 +9,6 @@ Provides methods for installation, uninstallation of IPA client
 """
 
 from __future__ import (
-    print_function,
     absolute_import,
 )
 
@@ -61,6 +60,7 @@ from ipapython.ipautil import (
     run,
     user_input,
 )
+from ipapython.ipa_log_manager import CommandOutput
 from ipapython.ssh import SSHPublicKey
 from ipapython import version
 
@@ -71,6 +71,7 @@ from .ipachangeconf import IPAChangeConf
 NoneType = type(None)
 
 logger = logging.getLogger(__name__)
+logcm = CommandOutput(logger)
 
 SUCCESS = 0
 CLIENT_INSTALL_ERROR = 1
@@ -2056,9 +2057,9 @@ def install_check(options):
     global client_domain
     global cli_basedn
 
-    print("This program will set up FreeIPA client.")
-    print("Version {}".format(version.VERSION))
-    print("")
+    logcm("This program will set up FreeIPA client.")
+    logcm("Version %s", version.VERSION)
+    logcm("")
 
     cli_domain_source = 'Unknown source'
     cli_server_source = 'Unknown source'
@@ -2085,10 +2086,10 @@ def install_check(options):
         try:
             timeconf.check_timedate_services()
         except timeconf.NTPConflictingService as e:
-            print("WARNING: conflicting time&date synchronization service '{}'"
-                  " will be disabled".format(e.conflicting_service))
-            print("in favor of chronyd")
-            print("")
+            logcm("WARNING: conflicting time&date synchronization service '%s'"
+                  " will be disabled", e.conflicting_service)
+            logcm("in favor of chronyd")
+            logcm("")
         except timeconf.NTPConfigurationError:
             pass
 
@@ -2414,14 +2415,14 @@ def install_check(options):
                 is_ipaddr = False
 
         if is_ipaddr:
-            print()
+            logcm("")
             logger.warning(
                 "It seems that you are using an IP address "
                 "instead of FQDN as an argument to --server. The "
                 "installation may fail.")
             break
 
-    print()
+    logcm("")
     if not options.unattended and not user_input(
             "Continue to configure the system with these values?", False):
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
@@ -2499,7 +2500,7 @@ def sync_time(options, fstore, statestore):
                        "or pool address was provided.")
 
     if not configured:
-        print("Using default chrony configuration.")
+        logcm("Using default chrony configuration.")
 
     return timeconf.sync_chrony()
 
