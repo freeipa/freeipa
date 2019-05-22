@@ -1211,7 +1211,7 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
             logger.info('Connecting replica %s to %s', parent, child)
             connect_replica(parent, child)
         else:
-            logger.info('Installing replica %s from %s', parent, child)
+            logger.info('Installing replica %s from %s', child, parent)
             install_replica(
                 parent, child,
                 setup_ca=setup_replica_cas,
