@@ -123,7 +123,7 @@ class HTTPInstance(service.Service):
         self.step("disabling nss.conf", self.disable_nss_conf)
         self.step("configuring mod_ssl certificate paths",
                   self.configure_mod_ssl_certs)
-        self.step("setting mod_ssl protocol list to TLSv1.0 - TLSv1.2",
+        self.step("setting mod_ssl protocol list",
                   self.set_mod_ssl_protocol)
         self.step("configuring mod_ssl log directory",
                   self.set_mod_ssl_logdir)
@@ -244,9 +244,7 @@ class HTTPInstance(service.Service):
         open(paths.HTTPD_NSS_CONF, 'w').close()
 
     def set_mod_ssl_protocol(self):
-        directivesetter.set_directive(paths.HTTPD_SSL_CONF,
-                                   'SSLProtocol',
-                                   '+TLSv1 +TLSv1.1 +TLSv1.2', False)
+        tasks.configure_httpd_protocol()
 
     def set_mod_ssl_logdir(self):
         tasks.setup_httpd_logging()

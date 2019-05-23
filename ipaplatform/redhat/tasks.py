@@ -589,6 +589,12 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         self.systemd_daemon_reload()
 
+    def configure_httpd_protocol(self):
+        """Drop SSLProtocol directive and let crypto policy handle it"""
+        directivesetter.set_directive(paths.HTTPD_SSL_CONF,
+                                      'SSLProtocol',
+                                      None, False)
+
     def set_hostname(self, hostname):
         ipautil.run([paths.BIN_HOSTNAMECTL, 'set-hostname', hostname])
 
