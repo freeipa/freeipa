@@ -10,7 +10,9 @@ from __future__ import absolute_import
 
 from ipaplatform.base.tasks import BaseTaskNamespace
 from ipaplatform.redhat.tasks import RedHatTaskNamespace
+from ipaplatform.paths import paths
 
+from ipapython import directivesetter
 from ipapython import ipautil
 
 class DebianTaskNamespace(RedHatTaskNamespace):
@@ -68,6 +70,11 @@ class DebianTaskNamespace(RedHatTaskNamespace):
     def configure_httpd_wsgi_conf(self):
         # Debian doesn't require special mod_wsgi configuration
         pass
+
+    def configure_httpd_protocol(self):
+        directivesetter.set_directive(paths.HTTPD_SSL_CONF,
+                                      'SSLProtocol',
+                                      'all -SSLv3', False)
 
     def setup_httpd_logging(self):
         # Debian handles httpd logging differently
