@@ -246,6 +246,10 @@ class BaseTaskNamespace:
         """Configure WSGI for correct Python version"""
         raise NotImplementedError()
 
+    def configure_httpd_protocol(self):
+        """Configure TLS protocols in Apache"""
+        raise NotImplementedError()
+
     def is_fips_enabled(self):
         return False
 
