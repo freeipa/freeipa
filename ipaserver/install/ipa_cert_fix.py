@@ -36,7 +36,8 @@ from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool
 from ipapython.certdb import NSSDatabase, EMPTY_TRUST_FLAGS
 from ipapython.dn import DN
-from ipaserver.install import ca, cainstance, dsinstance, installutils
+from ipapython.ipaldap import realm_to_serverid
+from ipaserver.install import ca, cainstance, dsinstance
 from ipaserver.install.installutils import is_ipa_configured
 from ipapython import ipautil
 
@@ -194,8 +195,7 @@ def expired_ipa_certs(now):
         certs.append((IPACertType.HTTPS, cert))
 
     # LDAPS
-    ds_dbdir = dsinstance.config_dirname(
-        installutils.realm_to_serverid(api.env.realm))
+    ds_dbdir = dsinstance.config_dirname(realm_to_serverid(api.env.realm))
     db = NSSDatabase(nssdir=ds_dbdir)
     cert = db.get_cert('Server-Cert')
     if cert.not_valid_after <= now:
@@ -270,7 +270,7 @@ def install_ipa_certs(subject_base, ca_subject_dn, certs):
             shutil.copyfile(cert_path, paths.HTTPD_CERT_FILE)
         elif certtype is IPACertType.LDAPS:
             ds_dbdir = dsinstance.config_dirname(
-                installutils.realm_to_serverid(api.env.realm))
+                realm_to_serverid(api.env.realm))
             db = NSSDatabase(nssdir=ds_dbdir)
             db.delete_cert('Server-Cert')
             db.import_pem_cert('Server-Cert', EMPTY_TRUST_FLAGS, cert_path)
