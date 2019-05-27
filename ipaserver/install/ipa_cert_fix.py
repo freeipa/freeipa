@@ -128,7 +128,7 @@ class IPACertFix(AdminTool):
         replicate_dogtag_certs(subject_base, ca_subject_dn, certs)
         install_ipa_certs(subject_base, ca_subject_dn, extra_certs)
 
-        if any(x != 'sslserver' for x in certs) \
+        if any(x[0] != 'sslserver' for x in certs) \
                 or any(x[0] is IPACertType.IPARA for x in extra_certs):
             # we renewed a "shared" certificate, therefore we must
             # become the renewal master
