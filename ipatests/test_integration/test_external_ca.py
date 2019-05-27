@@ -373,6 +373,19 @@ class TestExternalCAInvalidCert(IntegrationTest):
         result = self.master.run_command(cmd, raiseonerr=False)
         assert result.returncode == 1
 
+    def test_external_ca_with_too_small_key(self):
+        # reuse the existing deployment and renewal CSR
+        root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
+            self.master, paths.IPA_CA_CSR, ROOT_CA, IPA_CA, key_size=1024)
+
+        cmd = [
+            paths.IPA_CACERT_MANAGE, 'renew',
+            '--external-cert-file', ipa_ca_fname,
+            '--external-cert-file', root_ca_fname,
+        ]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 1
+
 
 class TestExternalCAInvalidIntermediate(IntegrationTest):
     """Test case for https://pagure.io/freeipa/issue/7877"""
