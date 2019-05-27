@@ -34,14 +34,15 @@ class ExternalCA:
     """Provide external CA for testing
     """
 
-    def __init__(self, days=365):
+    def __init__(self, days=365, key_size=None):
         self.now = datetime.datetime.utcnow()
         self.delta = datetime.timedelta(days=days)
         self.ca_key = None
         self.ca_public_key = None
         self.issuer = None
+        self.key_size = key_size or 2048
 
-    def create_ca_key(self, key_size=2048):
+    def create_ca_key(self):
         """Create private and public key for CA
 
         Note: The test still creates 2048 although IPA CA uses 3072 bit RSA
@@ -50,7 +51,7 @@ class ExternalCA:
         """
         self.ca_key = rsa.generate_private_key(
             public_exponent=65537,
-            key_size=key_size,
+            key_size=self.key_size,
             backend=default_backend(),
         )
         self.ca_public_key = self.ca_key.public_key()
