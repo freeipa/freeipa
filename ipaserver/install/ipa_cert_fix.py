@@ -113,7 +113,17 @@ class IPACertFix(AdminTool):
             return 0
         print("Proceeding.")
 
-        run_cert_fix(certs, extra_certs)
+        try:
+            run_cert_fix(certs, extra_certs)
+        except ipautil.CalledProcessError:
+            if any(x[0] is IPACertType.LDAPS for x in extra_certs):
+                # The DS cert was expired.  This will cause
+                # 'pki-server cert-fix' to fail at the final
+                # restart.  Therefore ignore the CalledProcessError
+                # and proceed to installing the IPA-specific certs.
+                pass
+            else:
+                raise  # otherwise re-raise
 
         replicate_dogtag_certs(subject_base, ca_subject_dn, certs)
         install_ipa_certs(subject_base, ca_subject_dn, extra_certs)
