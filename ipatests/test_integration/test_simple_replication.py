@@ -72,6 +72,28 @@ class TestSimpleReplication(IntegrationTest):
         """Test user replication replica -> master"""
         check_replication(self.replicas[0], self.master, 'testuser2')
 
+    def test_replica_manage(self):
+        """Test ipa-replica-manage list
+
+        Ensure that ipa-replica-manage list -v <node> does not print
+        last init status: None
+        last init ended: 1970-01-01 00:00:00+00:00
+        when the node never had any total update.
+        Test for ticket 7716.
+        """
+        msg1 = "last init ended: 1970-01-01 00:00:00+00:00"
+        msg2 = "last init status: None"
+        result = self.master.run_command(
+            ["ipa-replica-manage", "list", "-v", self.replicas[0].hostname])
+        assert msg1 not in result.stdout_text
+        assert msg2 not in result.stdout_text
+
+        result = self.master.run_command(
+            ["ipa-replica-manage", "list", "-v", self.replicas[0].hostname],
+            stdin_text=self.master.config.dirman_password)
+        assert msg1 not in result.stdout_text
+        assert msg2 not in result.stdout_text
+
     def test_replica_removal(self):
         """Test replica removal"""
         result = self.master.run_command(['ipa-replica-manage', 'list'])
