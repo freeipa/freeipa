@@ -661,10 +661,16 @@ class TestDN(unittest.TestCase):
         self.base_container_dn = DN((self.attr1, self.value1),
                                     self.container_dn, self.base_dn)
 
-        self.x500name = x509.Name([
-            x509.NameAttribute(
-                x509.NameOID.ORGANIZATIONAL_UNIT_NAME, self.value2),
-            x509.NameAttribute(x509.NameOID.COMMON_NAME, self.value1),
+        ou = x509.NameAttribute(
+            x509.NameOID.ORGANIZATIONAL_UNIT_NAME, self.value2)
+        cn = x509.NameAttribute(x509.NameOID.COMMON_NAME, self.value1)
+        c = x509.NameAttribute(x509.NameOID.COUNTRY_NAME, 'AU')
+        st = x509.NameAttribute(
+            x509.NameOID.STATE_OR_PROVINCE_NAME, 'Queensland')
+        self.x500name = x509.Name([ou, cn])
+        self.x500nameMultiRDN = x509.Name([
+            x509.RelativeDistinguishedName([c, st]),
+            x509.RelativeDistinguishedName([cn]),
         ])
 
     def assertExpectedClass(self, klass, obj, component):
@@ -816,6 +822,15 @@ class TestDN(unittest.TestCase):
             self.assertIsInstance(dn1[i].value, unicode)
         self.assertEqual(dn1[0], self.rdn1)
         self.assertEqual(dn1[1], self.rdn2)
+
+        # Create from 'Name' with multi-valued RDN
+        dn1 = DN(self.x500nameMultiRDN)
+        self.assertEqual(len(dn1), 2)
+        self.assertEqual(len(dn1[1]), 2)
+        self.assertIn(AVA('c', 'au'), dn1[1])
+        self.assertIn(AVA('st', 'queensland'), dn1[1])
+        self.assertEqual(len(dn1[0]), 1)
+        self.assertIn(self.ava1, dn1[0])
 
         # Create with RDN, and 2 DN's (e.g. attr + container + base)
         dn1 = DN((self.attr1, self.value1), self.container_dn, self.base_dn)
