@@ -1138,8 +1138,8 @@ class DN:
             rdns = list(reversed([
                 [get_ava(
                     ATTR_NAME_BY_OID.get(ava.oid, ava.oid.dotted_string),
-                    ava.value)]
-                for ava in value
+                    ava.value) for ava in rdn]
+                for rdn in value.rdns
             ]))
         else:
             raise TypeError(
