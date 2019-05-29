@@ -672,6 +672,10 @@ class TestDN(unittest.TestCase):
             x509.RelativeDistinguishedName([c, st]),
             x509.RelativeDistinguishedName([cn]),
         ])
+        self.x500nameMultiRDN2 = x509.Name([
+            x509.RelativeDistinguishedName([st, c]),
+            x509.RelativeDistinguishedName([cn]),
+        ])
 
     def assertExpectedClass(self, klass, obj, component):
         self.assertIs(obj.__class__, expected_class(klass, component))
@@ -945,6 +949,23 @@ class TestDN(unittest.TestCase):
                         base_container_dn)
 
         self.assertFalse(self.container_rdn1 in self.base_dn)
+
+    def test_eq_multi_rdn(self):
+        dn1 = DN(self.ava1, 'ST=Queensland+C=AU')
+        dn2 = DN(self.ava1, 'C=AU+ST=Queensland')
+        self.assertEqual(dn1, dn2)
+
+        # ensure AVAs get sorted when constructing from x509.Name
+        dn3 = DN(self.x500nameMultiRDN)
+        dn4 = DN(self.x500nameMultiRDN2)
+        self.assertEqual(dn3, dn4)
+
+        # ensure AVAs get sorted in the same way regardless of what
+        # the DN was constructed from
+        self.assertEqual(dn1, dn3)
+        self.assertEqual(dn1, dn4)
+        self.assertEqual(dn2, dn3)
+        self.assertEqual(dn2, dn4)
 
     def test_indexing(self):
         dn1 = DN(self.dn1)
