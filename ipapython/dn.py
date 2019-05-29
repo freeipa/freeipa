@@ -1135,6 +1135,8 @@ class DN(object):
                     ava.value) for ava in rdn]
                 for rdn in value.rdns
             ]))
+            for rdn in rdns:
+                sort_avas(rdn)
         else:
             raise TypeError(
                 "must be str, unicode, tuple, Name, RDN or DN, got %s instead"
