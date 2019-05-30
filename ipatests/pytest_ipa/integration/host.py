@@ -21,10 +21,38 @@
 import subprocess
 import tempfile
 
+import ldap
 import pytest_multihost.host
 
 from ipaplatform.paths import paths
 from ipapython import ipaldap
+
+
+class LDAPClientWithoutCertCheck(ipaldap.LDAPClient):
+    """Adds an option to disable certificate check for TLS connection
+
+    To disable certificate validity check create client with added option
+    no_certificate_check:
+    client = LDAPClientWithoutCertCheck(..., no_certificate_check=True)
+    """
+    def __init__(self, *args, **kwargs):
+        self._no_certificate_check = kwargs.pop(
+            'no_certificate_check', False)
+        super(LDAPClientWithoutCertCheck, self).__init__(*args, **kwargs)
+
+    def _connect(self):
+        if (self._start_tls and self.protocol == 'ldap' and
+                self._no_certificate_check):
+            with self.error_handler():
+                conn = ipaldap.ldap_initialize(
+                    self.ldap_uri, cacertfile=self._cacert)
+                conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT,
+                                ldap.OPT_X_TLS_NEVER)
+                conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
+                conn.start_tls_s()
+                return conn
+        else:
+            return super(LDAPClientWithoutCertCheck, self)._connect()
 
 
 class Host(pytest_multihost.host.Host):
@@ -53,11 +81,11 @@ class Host(pytest_multihost.host.Host):
             f.write(cacert)
             f.flush()
 
-            conn = ipaldap.LDAPClient.from_hostname_secure(
+            hostnames_mismatch = self.hostname != self.external_hostname
+            conn = LDAPClientWithoutCertCheck.from_hostname_secure(
                 self.external_hostname,
-                cacert=f.name
-            )
-
+                cacert=f.name,
+                no_certificate_check=hostnames_mismatch)
             binddn = self.config.dirman_dn
             self.log.info('LDAP bind as %s', binddn)
             conn.simple_bind(binddn, self.config.dirman_password)
