@@ -9,6 +9,7 @@ from jwcrypto.jwk import JWK
 from ipaserver.secrets.kem import IPAKEMKeys
 from ipaserver.secrets.store import iSecStore
 from ipaplatform.paths import paths
+from ipapython.ipautil import private_ccache
 from base64 import b64encode
 import ldapurl
 import gssapi
@@ -53,7 +54,7 @@ class CustodiaClient:
         # Init creds immediately to make sure they are valid.  Creds
         # can also be re-inited by _auth_header to avoid expiry.
         #
-        self.creds = self.init_creds()
+        self.creds, self.ccname = self.init_creds()
 
         self.service_name = gssapi.Name('HTTP@%s' % (server,),
                                         gssapi.NameType.hostbased_service)
@@ -61,8 +62,11 @@ class CustodiaClient:
 
         self.ikk = IPAKEMKeys({'server_keys': keyfile, 'ldap_uri': ldap_uri})
 
-        self.kemcli = KEMClient(self._server_keys(server, realm),
-                                self._client_keys())
+        # Use the acquired credentials to look up keys in LDAP by
+        # temporarily setting KRB5CCNAME.
+        with private_ccache(self.ccname):
+            self.kemcli = KEMClient(self._server_keys(server, realm),
+                                    self._client_keys())
 
         self.keystore = self._keystore(realm, ldap_uri, auth_type)
 
@@ -73,14 +77,15 @@ class CustodiaClient:
     def init_creds(self):
         name = gssapi.Name(self.client_service,
                            gssapi.NameType.hostbased_service)
-        store = {'client_keytab': self.keytab,
-                 'ccache': 'MEMORY:Custodia_%s' % b64encode(
-                     os.urandom(8)).decode('ascii')}
-        return gssapi.Credentials(name=name, store=store, usage='initiate')
+        ccname = "MEMORY:Custodia_{}".format(
+            b64encode(os.urandom(8)).decode('ascii'))
+        store = {'client_keytab': self.keytab, 'ccache': ccname}
+        creds = gssapi.Credentials(name=name, store=store, usage='initiate')
+        return creds, ccname
 
     def _auth_header(self):
         if not self.creds or self.creds.lifetime < 300:
-            self.creds = self.init_creds()
+            self.creds, self.ccname = self.init_creds()
         ctx = gssapi.SecurityContext(name=self.service_name, creds=self.creds)
         authtok = ctx.step()
         return {'Authorization': 'Negotiate %s' % b64encode(
