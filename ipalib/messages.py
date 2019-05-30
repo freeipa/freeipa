@@ -487,6 +487,15 @@ class FailedToAddHostDNSRecords(PublicMessage):
                "%(reason)s")
 
 
+class LightweightCACertificateNotAvailable(PublicMessage):
+    """
+    **13031** Certificate is not available
+    """
+    errno = 13031
+    type = "error"
+    format = _("The certificate for %(ca)s is not available on this server.")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
