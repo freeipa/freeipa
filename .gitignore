@@ -151,6 +151,7 @@ install/tools/ipa-advise
 install/tools/ipa-backup
 install/tools/ipa-cacert-manage
 install/tools/ipa-ca-install
+install/tools/ipa-cert-fix
 install/tools/ipa-compat-manage
 install/tools/ipa-csreplica-manage
 install/tools/ipactl
