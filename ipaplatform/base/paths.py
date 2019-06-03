@@ -399,11 +399,6 @@ class BasePathNamespace:
     SLAPD_INSTANCE_ERROR_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/errors"
     SLAPD_INSTANCE_SYSTEMD_IPA_ENV_TEMPLATE = \
         "/etc/systemd/system/dirsrv@%s.service.d/ipa-env.conf"
-    # Legacy 389 commands
-    LDIF2DB = '/usr/sbin/ldif2db'
-    DB2LDIF = '/usr/sbin/db2ldif'
-    BAK2DB = '/usr/sbin/bak2db'
-    DB2BAK = '/usr/sbin/db2bak'
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
     KEYCTL = '/bin/keyctl'
     GETENT = '/usr/bin/getent'
