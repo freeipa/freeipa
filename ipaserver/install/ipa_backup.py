@@ -452,11 +452,12 @@ class Backup(admintool.AdminTool):
                 )
 
         else:
-            args = [paths.DB2LDIF,
-                    '-Z', instance,
-                    '-r',
-                    '-n', backend,
-                    '-a', ldiffile]
+            args = [paths.DSCTL,
+                    instance,
+                    'db2ldif',
+                    '--replication',
+                    backend,
+                    ldiffile]
             result = run(args, raiseonerr=False)
             if result.returncode != 0:
                 raise admintool.ScriptError(
@@ -519,7 +520,10 @@ class Backup(admintool.AdminTool):
                 )
 
         else:
-            args = [paths.DB2BAK, bakdir, '-Z', instance]
+            args = [paths.DSCTL,
+                    instance,
+                    'db2bak',
+                    bakdir]
             result = run(args, raiseonerr=False)
             if result.returncode != 0:
                 raise admintool.ScriptError(

@@ -634,10 +634,11 @@ class Restore(admintool.AdminTool):
             # Restore SELinux context of template_dir
             tasks.restore_context(template_dir)
 
-            args = [paths.LDIF2DB,
-                    '-Z', instance,
-                    '-i', ldiffile,
-                    '-n', backend]
+            args = [paths.DSCTL,
+                    instance,
+                    'ldif2db',
+                    backend,
+                    ldiffile]
             result = run(args, raiseonerr=False)
             if result.returncode != 0:
                 logger.critical("ldif2db failed: %s", result.error_log)
@@ -647,7 +648,7 @@ class Restore(admintool.AdminTool):
         '''
         Restore a BAK backup of the data and changelog in this instance.
 
-        If backend is None then all backends are restored.
+        For offline restore backend is not used. All backends are restored.
 
         If executed online create a task and wait for it to complete.
 
@@ -687,12 +688,10 @@ class Restore(admintool.AdminTool):
             logger.info("Waiting for restore to finish")
             wait_for_task(conn, dn)
         else:
-            args = [paths.BAK2DB,
-                    '-Z', instance,
+            args = [paths.DSCTL,
+                    instance,
+                    'bak2db',
                     os.path.join(self.dir, instance)]
-            if backend is not None:
-                args.append('-n')
-                args.append(backend)
             result = run(args, raiseonerr=False)
             if result.returncode != 0:
                 logger.critical("bak2db failed: %s", result.error_log)
