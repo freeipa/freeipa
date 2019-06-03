@@ -1563,12 +1563,13 @@ def update_ssh_keys(hostname, ssh_dir, create_sshfp):
             continue
 
         for line in f:
-            line = line[:-1].lstrip()
+            line = line.strip()
             if not line or line.startswith('#'):
                 continue
             try:
                 pubkey = SSHPublicKey(line)
-            except (ValueError, UnicodeDecodeError):
+            except (ValueError, UnicodeDecodeError) as e:
+                logger.debug("Decoding line '%s' failed: %s", line, e)
                 continue
             logger.info("Adding SSH public key from %s", filename)
             pubkeys.append(pubkey)
