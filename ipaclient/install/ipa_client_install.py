@@ -62,7 +62,6 @@ ClientInstall = cli.install_tool(
     verbose=True,
     console_format='%(message)s',
     uninstall_log_file_name=paths.IPACLIENT_UNINSTALL_LOG,
-    ignore_return_codes=(client.CLIENT_NOT_CONFIGURED,),
 )
 
 
