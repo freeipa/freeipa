@@ -58,8 +58,7 @@ def _get_usage(configurable_class):
 
 def install_tool(configurable_class, command_name, log_file_name,
                  debug_option=False, verbose=False, console_format=None,
-                 use_private_ccache=True, uninstall_log_file_name=None,
-                 ignore_return_codes=()):
+                 use_private_ccache=True, uninstall_log_file_name=None):
     """
     Some commands represent multiple related tools, e.g.
     ``ipa-server-install`` and ``ipa-server-install --uninstall`` would be
@@ -73,8 +72,6 @@ def install_tool(configurable_class, command_name, log_file_name,
     :param console_format: logging format for stderr
     :param use_private_ccache: a temporary ccache is created and used
     :param uninstall_log_file_name: if not None the log for uninstall
-    :param ignore_return_codes: tuple of error codes to not log errors
-                                for. Let the caller do it if it wants.
     """
     if uninstall_log_file_name is not None:
         uninstall_kwargs = dict(
@@ -84,7 +81,6 @@ def install_tool(configurable_class, command_name, log_file_name,
             debug_option=debug_option,
             verbose=verbose,
             console_format=console_format,
-            ignore_return_codes=ignore_return_codes,
         )
     else:
         uninstall_kwargs = None
@@ -102,14 +98,12 @@ def install_tool(configurable_class, command_name, log_file_name,
             console_format=console_format,
             uninstall_kwargs=uninstall_kwargs,
             use_private_ccache=use_private_ccache,
-            ignore_return_codes=ignore_return_codes,
         )
     )
 
 
 def uninstall_tool(configurable_class, command_name, log_file_name,
-                   debug_option=False, verbose=False, console_format=None,
-                   ignore_return_codes=()):
+                   debug_option=False, verbose=False, console_format=None):
     return type(
         'uninstall_tool({0})'.format(configurable_class.__name__),
         (UninstallTool,),
@@ -121,7 +115,6 @@ def uninstall_tool(configurable_class, command_name, log_file_name,
             debug_option=debug_option,
             verbose=verbose,
             console_format=console_format,
-            ignore_return_codes=ignore_return_codes,
         )
     )
 
