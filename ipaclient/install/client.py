@@ -3177,9 +3177,13 @@ def uninstall_check(options):
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
 
     if not is_ipa_client_installed(fstore):
+        if options.on_master:
+            rval = SUCCESS
+        else:
+            rval = CLIENT_NOT_CONFIGURED
         raise ScriptError(
             "IPA client is not configured on this system.",
-            rval=CLIENT_NOT_CONFIGURED)
+            rval=rval)
 
     server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
     if server_fstore.has_files() and not options.on_master:

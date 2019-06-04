@@ -279,7 +279,7 @@ class AdminTool(object):
         """Given an exception, return a message (or None) and process exit code
         """
         if isinstance(exception, ScriptError):
-            return exception.msg, exception.rval or 1
+            return exception.msg, exception.rval
         elif isinstance(exception, SystemExit):
             if isinstance(exception.code, int):
                 return None, exception.code
@@ -307,6 +307,11 @@ class AdminTool(object):
                      self.command_name, type(exception).__name__, exception)
         if error_message:
             logger.error('%s', error_message)
+        if return_value == 0:
+            # A script may raise an exception but still want quit gracefully,
+            # like the case of ipa-client-install called from
+            # ipa-server-install.
+            return
         message = "The %s command failed." % self.command_name
         if self.log_file_name and return_value != 2:
             # magic value because this is common between server and client
