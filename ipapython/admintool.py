@@ -93,7 +93,6 @@ class AdminTool:
     log_file_name = None
     usage = None
     description = None
-    ignore_return_codes = ()
 
     _option_parsers = dict()
 
@@ -184,7 +183,7 @@ class AdminTool:
                     return_value = exception.rval  # pylint: disable=no-member
             traceback = sys.exc_info()[2]
             error_message, return_value = self.handle_error(exception)
-            if return_value and return_value not in self.ignore_return_codes:
+            if return_value:
                 self.log_failure(error_message, return_value, exception,
                     traceback)
                 return return_value
