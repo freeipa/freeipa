@@ -713,3 +713,40 @@ class TestSudo(IntegrationTest):
                                           '--groups', 'testgroup2'],
                                           raiseonerr=False)
         assert result.returncode != 0
+
+    def test_domain_resolution_order(self):
+        """Test sudo with runAsUser and domain resolution order.
+
+        Regression test for bug https://pagure.io/SSSD/sssd/issue/3957.
+        Running commands with sudo as specific user should succeed
+        when sudo rule has ipasudorunas field defined with value of that user
+        and domain-resolution-order is defined in ipa config.
+        """
+        self.master.run_command(
+            ['ipa', 'config-mod', '--domain-resolution-order',
+             self.domain.name])  # pylint: disable=no-member
+        try:
+            # prepare the sudo rule: set only one user for ipasudorunas
+            self.reset_rule_categories()
+            self.master.run_command(
+                ['ipa', 'sudorule-mod', 'testrule',
+                 '--runasgroupcat=', '--runasusercat='],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['ipa', 'sudorule-add-runasuser', 'testrule',
+                 '--users', 'testuser2'])
+
+            # check that testuser1 is allowed to run commands as testuser2
+            # according to listing of allowed commands
+            result = self.list_sudo_commands('testuser1')
+            expected_rule = ('(testuser2@%s) NOPASSWD: ALL'
+                             % self.domain.name)  # pylint: disable=no-member
+            assert expected_rule in result.stdout_text
+
+            # check that testuser1 can actually run commands as testuser2
+            self.client.run_command(
+                ['su', 'testuser1', '-c', 'sudo -u testuser2 true'])
+        finally:
+            self.master.run_command(
+                ['ipa', 'config-mod', '--domain-resolution-order='])
