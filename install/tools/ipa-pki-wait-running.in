@@ -58,8 +58,10 @@ def get_conn(hostname, subsystem):
     """Create a connection object
     """
     conn = PKIConnection(
+        protocol='http',
         hostname=hostname,
-        subsystem=subsystem
+        subsystem=subsystem,
+        port='8080',
     )
     logger.info(
         "Created connection %s://%s:%s/%s",

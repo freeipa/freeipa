@@ -343,6 +343,10 @@ def create_https_connection(
         # configure ciphers, uses system crypto policies on RH platforms.
         ctx.set_ciphers(constants.TLS_HIGH_CIPHERS)
 
+    # Enable post handshake authentication for TLS 1.3
+    if getattr(ctx, "post_handshake_auth", None) is not None:
+        ctx.post_handshake_auth = True
+
     # pylint: enable=no-member
     # set up the correct TLS version flags for the SSL context
     for version in TLS_VERSIONS:

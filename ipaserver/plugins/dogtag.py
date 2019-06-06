@@ -258,8 +258,8 @@ from ipapython import dogtag, ipautil, certdb
 from ipaserver.masters import find_providing_server
 
 if api.env.in_server:
+    from ipaserver.install.dogtaginstance import get_pki_connection
     import pki
-    from pki.client import PKIConnection
     import pki.crypto as cryptoutil
     from pki.kra import KRAClient
 
@@ -2078,11 +2078,11 @@ class kra(Backend):
 
         # TODO: obtain KRA host & port from IPA service list or point to KRA load balancer
         # https://fedorahosted.org/freeipa/ticket/4557
-        connection = PKIConnection(
-            'https',
-            self.kra_host,
-            str(self.kra_port),
-            'kra')
+        connection = get_pki_connection(
+            hostname=self.kra_host,
+            port=str(self.kra_port),
+            subsystem="kra"
+        )
 
         connection.session.cert = (paths.RA_AGENT_PEM, paths.RA_AGENT_KEY)
         # uncomment the following when this commit makes it to release

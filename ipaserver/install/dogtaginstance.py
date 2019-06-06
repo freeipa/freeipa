@@ -26,6 +26,7 @@ import time
 import ldap
 import os
 import shutil
+import ssl
 import traceback
 import dbus
 
@@ -35,6 +36,7 @@ import six
 
 from pki.client import PKIConnection
 import pki.system
+from requests.adapters import HTTPAdapter
 
 from ipalib import api, errors, x509
 from ipalib.install import certmonger
@@ -58,16 +60,51 @@ logger = logging.getLogger(__name__)
 INTERNAL_TOKEN = "internal"
 
 
+class SSLContextAdapter(HTTPAdapter):
+    """Custom SSLContext Adapter for requests
+
+    Based on Cory Benfield's example
+    https://github.com/kennethreitz/requests/issues/3774#issuecomment-267871876
+    """
+    def init_poolmanager(self, *args, **kwargs):
+        context = ssl.SSLContext(
+            ssl.PROTOCOL_TLS  # pylint: disable=no-member
+        )
+        if (api.env.tls_ca_cert is not None and
+                os.path.isfile(api.env.tls_ca_cert)):
+            context.load_verify_locations(api.env.tls_ca_cert)
+        # Enable post handshake authentication for TLS 1.3
+        if getattr(context, "post_handshake_auth", None) is not None:
+            context.post_handshake_auth = True
+
+        kwargs['ssl_context'] = context
+        return super().init_poolmanager(*args, **kwargs)
+
+
+def get_pki_connection(hostname=None, port=8443, **kwargs):
+    """Create PKIConnection
+
+    :param api: ipalib.api instance
+    :return: pki.client.PKIConnection instance
+    """
+    if hostname is None:
+        hostname = api.env.ca_host
+    connection = PKIConnection(
+        protocol='https',
+        hostname=hostname,
+        port=str(port),
+        **kwargs
+    )
+    connection.session.mount("https://", SSLContextAdapter())
+    return connection
+
+
 def get_security_domain():
     """
     Get the security domain from the REST interface on the local Dogtag CA
     This function will succeed if the local dogtag CA is up.
     """
-    connection = PKIConnection(
-        protocol='https',
-        hostname=api.env.ca_host,
-        port='8443'
-    )
+    connection = get_pki_connection(port='8443')
     domain_client = pki.system.SecurityDomainClient(connection)
     info = domain_client.get_security_domain_info()
     return info
