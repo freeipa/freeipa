@@ -367,8 +367,8 @@ IPA_CLIENT_NOT_CONFIGURED = b'IPA client is not configured on this system'
     [
         # Commands delivered by the client pkg
         (['ipa'], 1, None, IPA_CLIENT_NOT_CONFIGURED),
-        (['ipa-certupdate'], 1, None, IPA_CLIENT_NOT_CONFIGURED),
-        (['ipa-client-automount'], 1, IPA_CLIENT_NOT_CONFIGURED, None),
+        (['ipa-certupdate'], 2, None, IPA_CLIENT_NOT_CONFIGURED),
+        (['ipa-client-automount'], 2, IPA_CLIENT_NOT_CONFIGURED, None),
         # Commands delivered by the server pkg
         (['ipa-adtrust-install'], 2, None, IPA_NOT_CONFIGURED),
         (['ipa-advise'], 2, None, IPA_NOT_CONFIGURED),
