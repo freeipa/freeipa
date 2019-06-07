@@ -61,6 +61,7 @@ def get_install_stdin(cert_passwords=()):
     ]
     lines.extend(cert_passwords)  # Enter foo.p12 unlock password
     lines += [
+        'no',   # configure chrony with NTP server or pool address?
         'yes',  # Continue with these values?
     ]
     return '\n'.join(lines + [''])
