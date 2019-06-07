@@ -61,6 +61,7 @@ def get_install_stdin(cert_passwords=()):
     ]
     lines.extend(cert_passwords)  # Enter foo.p12 unlock password
     lines += [
+        'no',   # configure chrony with NTP server or pool address?
         'yes',  # Continue with these values?
     ]
     return '\n'.join(lines + [''])
@@ -1357,24 +1358,18 @@ class TestCertInstall(CALessBase):
                      'The server certificate in server.p12 is not valid: {err}'
                      .format(err=BAD_USAGE_MSG))
 
-    @pytest.mark.xfail(reason='freeipa ticket 7759', strict=True)
     def test_http_intermediate_ca(self):
         "Install new HTTP certificate issued by intermediate CA"
 
         result = self.certinstall('w', 'ca1/subca/server')
-        # As the intermediate CA is not trusted, command must fail
-        assert_error(result,
-                     "Peer's certificate issuer is not trusted")
+        assert result.returncode == 0, result.stderr_text
 
+    @pytest.mark.xfail(reason='freeipa ticket 6959', strict=True)
     def test_ds_intermediate_ca(self):
         "Install new DS certificate issued by intermediate CA"
 
         result = self.certinstall('d', 'ca1/subca/server')
-        # As the intermediate CA is not trusted, command must fail
-        assert_error(result,
-                     "Peer's certificate issuer is not trusted "
-                     "(certutil: certificate is invalid: Peer's Certificate "
-                     "issuer is not recognized.")
+        assert result.returncode == 0, result.stderr_text
 
     def test_self_signed(self):
         "Install new self-signed certificate"
