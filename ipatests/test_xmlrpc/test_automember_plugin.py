@@ -31,7 +31,9 @@ from ipapython.dn import DN
 from ipapython.ipautil import run
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 from ipatests.util import assert_deepequal
+from ipaserver.plugins.automember import REBUILD_TASK_CONTAINER
 
+import time
 import pytest
 import unittest
 
@@ -275,6 +277,52 @@ def set_automember_process_modify_ops(value):
     run(cmd)
 
 
+def wait_automember_rebuild():
+    """Wait for an asynchronous automember rebuild to finish
+
+    Lookup the rebuild taskid and then loop until it is finished.
+
+    If no task is found assume that the task is already finished.
+    """
+    if not have_ldap2:
+        raise unittest.SkipTest('server plugin not available')
+    ldap = ldap2(api)
+    ldap.connect()
+
+    # give the task a chance to start
+    time.sleep(1)
+
+    try:
+        task_entries, unused = ldap.find_entries(
+            base_dn=REBUILD_TASK_CONTAINER,
+            filter='(&(!(nstaskexitcode=0))(scope=*))')
+    except errors.NotFound:
+        # either it's done already or it never started
+        return
+
+    # we run these serially so there should be only one at a time
+    assert len(task_entries) == 1
+
+    task_dn = task_entries[0].dn
+
+    start_time = time.time()
+    while True:
+        try:
+            task = ldap.get_entry(task_dn)
+        except errors.NotFound:
+            # not likely but let's hope the task disappered because it's
+            # finished
+            break
+
+        if 'nstaskexitcode' in task:
+            # a non-zero exit code means something broke
+            assert task.single_value['nstaskexitcode'] == '0'
+            break
+        time.sleep(1)
+        # same arbitrary wait time as hardcoded in automember plugin
+        assert time.time() < (start_time + 60)
+
+
 @pytest.mark.tier1
 class TestAutomemberRebuildHostMembership(XMLRPC_test):
     def test_create_deps_for_rebuilding_hostgroups(self, hostgroup1, host1,
@@ -302,6 +350,7 @@ class TestAutomemberRebuildHostMembership(XMLRPC_test):
             set_automember_process_modify_ops(value=b'off')
             automember_hostgroup.rebuild()
             automember_hostgroup.rebuild(no_wait=True)
+            wait_automember_rebuild()
             # After rebuild, the member is added, and we need to update
             # the tracker obj
             hostgroup1.attrs.update(member_host=[host1.fqdn])
@@ -315,6 +364,7 @@ class TestAutomemberRebuildHostMembership(XMLRPC_test):
         # Rebuild membership to re-add the member
         automember_hostgroup.rebuild()
         automember_hostgroup.rebuild(no_wait=True)
+        wait_automember_rebuild()
         # After rebuild, the member is added, and we need to update
         # the tracker obj
         hostgroup1.attrs.update(member_host=[host1.fqdn])
@@ -342,6 +392,7 @@ class TestAutomemberRebuildHostMembership(XMLRPC_test):
                                                             no_wait=True)
         result = command()
         automember_hostgroup.check_rebuild(result, no_wait=True)
+        wait_automember_rebuild()
 
         hostgroup1.attrs.update(member_host=[host1.fqdn])
         hostgroup1.retrieve()
@@ -380,6 +431,7 @@ class TestAutomemberRebuildGroupMembership(XMLRPC_test):
             set_automember_process_modify_ops(value=b'off')
             automember_group.rebuild()
             automember_group.rebuild(no_wait=True)
+            wait_automember_rebuild()
             # After rebuild, the member is added, and we need to update
             # the tracker obj
             group1.attrs.update(member_user=[user1.name])
@@ -393,6 +445,7 @@ class TestAutomemberRebuildGroupMembership(XMLRPC_test):
         # Rebuild membership to re-add the member
         automember_group.rebuild()
         automember_group.rebuild(no_wait=True)
+        wait_automember_rebuild()
         # After rebuild, the member is added, and we need to update
         # the tracker obj
         group1.attrs.update(member_user=[user1.name])
@@ -419,6 +472,7 @@ class TestAutomemberRebuildGroupMembership(XMLRPC_test):
                                                         no_wait=True)
         result = command()
         automember_group.check_rebuild(result, no_wait=True)
+        wait_automember_rebuild()
         group1.attrs.update(member_user=[user1.name])
         group1.retrieve()
 
