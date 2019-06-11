@@ -319,6 +319,8 @@ class BasePathNamespace:
     IPABACKUP_LOG = "/var/log/ipabackup.log"
     IPACLIENT_INSTALL_LOG = "/var/log/ipaclient-install.log"
     IPACLIENT_UNINSTALL_LOG = "/var/log/ipaclient-uninstall.log"
+    IPACLIENTSAMBA_INSTALL_LOG = "/var/log/ipaclientsamba-install.log"
+    IPACLIENTSAMBA_UNINSTALL_LOG = "/var/log/ipaclientsamba-uninstall.log"
     IPAREPLICA_CA_INSTALL_LOG = "/var/log/ipareplica-ca-install.log"
     IPAREPLICA_CONNCHECK_LOG = "/var/log/ipareplica-conncheck.log"
     IPAREPLICA_INSTALL_LOG = "/var/log/ipareplica-install.log"

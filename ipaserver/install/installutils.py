@@ -20,7 +20,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import errno
 import logging
 import socket
 import getpass
@@ -679,23 +678,24 @@ def check_server_configuration():
 def remove_file(filename):
     """Remove a file and log any exceptions raised.
     """
-    try:
-        os.unlink(filename)
-    except Exception as e:
-        # ignore missing file
-        if getattr(e, 'errno', None) != errno.ENOENT:
-            logger.error('Error removing %s: %s', filename, str(e))
+    warnings.warn(
+        "Use 'ipapython.ipautil.remove_file'",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return ipautil.remove_file(filename)
 
 
 def rmtree(path):
     """
     Remove a directory structure and log any exceptions raised.
     """
-    try:
-        if os.path.exists(path):
-            shutil.rmtree(path)
-    except Exception as e:
-        logger.error('Error removing %s: %s', path, str(e))
+    warnings.warn(
+        "Use 'ipapython.ipautil.rmtree'",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return ipautil.rmtree(path)
 
 
 def is_ipa_configured():
@@ -1349,14 +1349,12 @@ def remove_keytab(keytab_path):
 
     :param keytab_path: path to the keytab file
     """
-    try:
-        logger.debug("Removing service keytab: %s", keytab_path)
-        os.remove(keytab_path)
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            logger.warning("Failed to remove Kerberos keytab '%s': %s",
-                           keytab_path, e)
-            logger.warning("You may have to remove it manually")
+    warnings.warn(
+        "Use 'ipapython.ipautil.remove_keytab'",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return ipautil.remove_keytab(keytab_path)
 
 
 def remove_ccache(ccache_path=None, run_as=None):
@@ -1366,17 +1364,12 @@ def remove_ccache(ccache_path=None, run_as=None):
     :param ccache_path: path to the ccache file
     :param run_as: run kdestroy as this user
     """
-    logger.debug("Removing service credentials cache")
-    kdestroy_cmd = [paths.KDESTROY]
-    if ccache_path is not None:
-        logger.debug("Ccache path: '%s'", ccache_path)
-        kdestroy_cmd.extend(['-c', ccache_path])
-
-    try:
-        ipautil.run(kdestroy_cmd, runas=run_as, env={})
-    except ipautil.CalledProcessError as e:
-        logger.warning(
-            "Failed to clear Kerberos credentials cache: %s", e)
+    warnings.warn(
+        "Use 'ipapython.ipautil.remove_ccache'",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return ipautil.remove_ccache(ccache_path=ccache_path, run_as=run_as)
 
 
 def restart_dirsrv(instance_name="", capture_output=True):

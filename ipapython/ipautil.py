@@ -28,6 +28,7 @@ import random
 import math
 import os
 import sys
+import errno
 import copy
 import shutil
 import socket
@@ -54,6 +55,7 @@ except ImportError:
     netifaces = None
 
 from ipapython.dn import DN
+from ipaplatform.paths import paths
 
 logger = logging.getLogger(__name__)
 
@@ -1571,3 +1573,61 @@ class APIVersion(tuple):
     @property
     def minor(self):
         return self[1]
+
+
+def remove_keytab(keytab_path):
+    """
+    Remove Kerberos keytab and issue a warning if the procedure fails
+
+    :param keytab_path: path to the keytab file
+    """
+    try:
+        logger.debug("Removing service keytab: %s", keytab_path)
+        os.remove(keytab_path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            logger.warning("Failed to remove Kerberos keytab '%s': %s",
+                           keytab_path, e)
+            logger.warning("You may have to remove it manually")
+
+
+def remove_ccache(ccache_path=None, run_as=None):
+    """
+    remove Kerberos credential cache, essentially a wrapper around kdestroy.
+
+    :param ccache_path: path to the ccache file
+    :param run_as: run kdestroy as this user
+    """
+    logger.debug("Removing service credentials cache")
+    kdestroy_cmd = [paths.KDESTROY]
+    if ccache_path is not None:
+        logger.debug("Ccache path: '%s'", ccache_path)
+        kdestroy_cmd.extend(['-c', ccache_path])
+
+    try:
+        run(kdestroy_cmd, runas=run_as, env={})
+    except CalledProcessError as e:
+        logger.warning(
+            "Failed to clear Kerberos credentials cache: %s", e)
+
+
+def remove_file(filename):
+    """Remove a file and log any exceptions raised.
+    """
+    try:
+        os.unlink(filename)
+    except Exception as e:
+        # ignore missing file
+        if getattr(e, 'errno', None) != errno.ENOENT:
+            logger.error('Error removing %s: %s', filename, str(e))
+
+
+def rmtree(path):
+    """
+    Remove a directory structure and log any exceptions raised.
+    """
+    try:
+        if os.path.exists(path):
+            shutil.rmtree(path)
+    except Exception as e:
+        logger.error('Error removing %s: %s', path, str(e))

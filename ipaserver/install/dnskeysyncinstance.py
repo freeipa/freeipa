@@ -390,7 +390,7 @@ class DNSKeySyncInstance(service.Service):
 
     def __setup_principal(self):
         assert self.ods_gid is not None
-        installutils.remove_keytab(self.keytab)
+        ipautil.remove_keytab(self.keytab)
         installutils.kadmin_addprinc(self.principal)
 
         # Store the keytab on disk
@@ -465,8 +465,8 @@ class DNSKeySyncInstance(service.Service):
         # remove softhsm pin, to make sure new installation will generate
         # new token database
         # do not delete *so pin*, user can need it to get token data
-        installutils.remove_file(paths.DNSSEC_SOFTHSM_PIN)
-        installutils.remove_file(paths.DNSSEC_SOFTHSM2_CONF)
+        ipautil.remove_file(paths.DNSSEC_SOFTHSM_PIN)
+        ipautil.remove_file(paths.DNSSEC_SOFTHSM2_CONF)
 
         try:
             shutil.rmtree(paths.DNSSEC_TOKENS_DIR)
@@ -476,4 +476,4 @@ class DNSKeySyncInstance(service.Service):
                     "Failed to remove %s", paths.DNSSEC_TOKENS_DIR
                 )
 
-        installutils.remove_keytab(self.keytab)
+        ipautil.remove_keytab(self.keytab)
