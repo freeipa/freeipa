@@ -14,7 +14,6 @@ from ipaserver.install.service import SimpleServiceInstance
 from ipapython import ipautil
 from ipapython import ipaldap
 from ipapython.certdb import NSSDatabase
-from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import sysupgrade
 from base64 import b64decode
@@ -150,7 +149,7 @@ class CustodiaInstance(SimpleServiceInstance):
             'ldap_uri': self.ldap_uri
         })
         keystore.remove_server_keys_file()
-        installutils.remove_file(self.config_file)
+        ipautil.remove_file(self.config_file)
         sysupgrade.set_upgrade_state('custodia', 'installed', False)
 
     def __gen_keys(self):

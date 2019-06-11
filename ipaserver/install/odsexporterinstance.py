@@ -186,5 +186,5 @@ class ODSExporterInstance(service.Service):
         if signerd_running:
             signerd_service.start()
 
-        installutils.remove_keytab(self.keytab)
-        installutils.remove_ccache(ccache_path=paths.IPA_ODS_EXPORTER_CCACHE)
+        ipautil.remove_keytab(self.keytab)
+        ipautil.remove_ccache(ccache_path=paths.IPA_ODS_EXPORTER_CCACHE)

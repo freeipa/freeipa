@@ -600,8 +600,8 @@ class KrbInstance(service.Service):
         certmonger.stop_tracking(certfile=paths.KDC_CERT)
 
     def delete_pkinit_cert(self):
-        installutils.remove_file(paths.KDC_CERT)
-        installutils.remove_file(paths.KDC_KEY)
+        ipautil.remove_file(paths.KDC_CERT)
+        ipautil.remove_file(paths.KDC_KEY)
 
     def uninstall(self):
         if self.is_configured():
@@ -627,7 +627,7 @@ class KrbInstance(service.Service):
 
         # stop tracking and remove certificates
         self.stop_tracking_certs()
-        installutils.remove_file(paths.CACERT_PEM)
+        ipautil.remove_file(paths.CACERT_PEM)
         self.delete_pkinit_cert()
 
         if running:

@@ -43,6 +43,17 @@ class BaseConstantsNamespace:
         'httpd_run_ipa': 'on',
         'httpd_dbus_sssd': 'on',
     }
+    # Unlike above, there are multiple use cases for SMB sharing
+    # SELINUX_BOOLEAN_SMBSERVICE is a dictionary of dictionaries
+    # to define set of booleans for each use case
+    SELINUX_BOOLEAN_SMBSERVICE = {
+        'share_home_dirs': {
+            'samba_enable_home_dirs': 'on',
+        },
+        'reshare_nfs_with_samba': {
+            'samba_share_nfs': 'on',
+        },
+    }
     SSSD_USER = "sssd"
     # WSGI module override, only used on Fedora
     MOD_WSGI_PYTHON2 = None

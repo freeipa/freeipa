@@ -1217,7 +1217,7 @@ class BindInstance(service.Service):
         except Exception:
             logger.exception("Failed to unconfigure DNS resolver")
 
-        installutils.rmtree(paths.BIND_LDAP_DNS_IPA_WORKDIR)
+        ipautil.rmtree(paths.BIND_LDAP_DNS_IPA_WORKDIR)
 
         # disabled by default, by ldap_configure()
         if enabled:
@@ -1237,5 +1237,5 @@ class BindInstance(service.Service):
         if named_regular_running:
             self.named_regular.start()
 
-        installutils.remove_keytab(self.keytab)
-        installutils.remove_ccache(run_as=self.service_user)
+        ipautil.remove_keytab(self.keytab)
+        ipautil.remove_ccache(run_as=self.service_user)
