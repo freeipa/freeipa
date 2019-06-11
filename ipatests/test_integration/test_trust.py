@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import re
 import unittest
 
+from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -196,6 +197,37 @@ class TestTrust(IntegrationTest):
 
         # Getent exits with 2 for non-existent user
         assert result.returncode == 2
+
+    def test_override_homedir(self):
+        """Check that POSIX attributes, such as shell or
+        home directory should not be overwritten or missing.
+
+        Related ticket https://pagure.io/SSSD/sssd/issue/2474
+        """
+        tasks.backup_file(self.master, paths.SSSD_CONF)
+        testuser = 'testuser@%s' % self.ad_domain
+        try:
+            domain = self.master.domain
+            tasks.modify_sssd_conf(
+                self.master,
+                domain.name,
+                {
+                    'subdomain_homedir': '%o'
+                }
+            )
+            tasks.clear_sssd_cache(self.master)
+            self.master.run_command(['getent', 'initgroups', '-s', 'sss', testuser])
+
+            result = self.master.run_command(['getent', 'passwd', testuser])
+            assert "/home/testuser" in result.stdout_text
+            log_file = "/var/log/sssd/sssd_{0}.log" .format(self.master.domain.name)
+            sssd_debug_log = self.master.get_file_contents(
+                log_file, encoding='utf-8'
+            )
+            assert 'get_subdomain_homedir_of_user failed' not in sssd_debug_log
+        finally:
+            tasks.restore_files(self.master)
+            tasks.clear_sssd_cache(self.master)
 
     def test_remove_posix_trust(self):
         self.remove_trust(self.ad)
