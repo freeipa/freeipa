@@ -9,6 +9,7 @@ import pytest
 
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks as platformtasks
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -70,6 +71,9 @@ class TestUserPermissions(IntegrationTest):
         # call ipa user-del --preserve
         self.master.run_command(['ipa', 'user-del', '--preserve', testuser])
 
+    @pytest.mark.skipif(
+        not platformtasks.is_selinux_enabled(),
+        reason="Test needs SELinux enabled")
     @pytest.mark.xfail(
         osinfo.id == 'fedora' and osinfo.version_number <= (28,),
         reason='sssd ticket 3819', strict=True)
