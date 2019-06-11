@@ -69,7 +69,6 @@ from ipaserver.install import sysupgrade
 from ipaserver.install.dogtaginstance import DogtagInstance
 from ipaserver.plugins import ldap2
 from ipaserver.masters import ENABLED_SERVICE
-from ipaserver.install.installutils import remove_file
 
 logger = logging.getLogger(__name__)
 
@@ -520,7 +519,7 @@ class CAInstance(DogtagInstance):
             # if paths.TMP_CA_P12 exists and is not owned by root,
             # shutil.copy will fail if when fs.protected_regular=1
             # so remove the file first
-            remove_file(paths.TMP_CA_P12)
+            ipautil.remove_file(paths.TMP_CA_P12)
             shutil.copy(cafile, paths.TMP_CA_P12)
             pent = pwd.getpwnam(self.service_user)
             os.chown(paths.TMP_CA_P12, pent.pw_uid, pent.pw_gid)
@@ -1000,7 +999,7 @@ class CAInstance(DogtagInstance):
         cmonger.stop()
 
         # remove ipa-pki-wait-running config
-        remove_file(paths.SYSTEMD_PKI_TOMCAT_IPA_CONF)
+        ipautil.remove_file(paths.SYSTEMD_PKI_TOMCAT_IPA_CONF)
         try:
             os.rmdir(os.path.dirname(paths.SYSTEMD_PKI_TOMCAT_IPA_CONF))
         except OSError:
@@ -1012,7 +1011,7 @@ class CAInstance(DogtagInstance):
         try:
             for f in get_crl_files():
                 logger.debug("Remove %s", f)
-                installutils.remove_file(f)
+                ipautil.remove_file(f)
         except OSError as e:
             logger.warning("Error while removing old CRL files: %s", e)
 

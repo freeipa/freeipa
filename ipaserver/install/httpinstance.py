@@ -171,7 +171,7 @@ class HTTPInstance(service.Service):
         # Clean up existing ccaches
         # Make sure that empty env is passed to avoid passing KRB5CCNAME from
         # current env
-        installutils.remove_file(paths.HTTP_CCACHE)
+        ipautil.remove_file(paths.HTTP_CCACHE)
         for f in os.listdir(paths.IPA_CCACHES):
             os.remove(os.path.join(paths.IPA_CCACHES, f))
 
@@ -529,7 +529,7 @@ class HTTPInstance(service.Service):
                 logger.debug("%s", error)
 
         # Remove the configuration files we create
-        installutils.remove_keytab(self.keytab)
+        ipautil.remove_keytab(self.keytab)
         remove_files = [
             paths.HTTP_CCACHE,
             paths.HTTPD_CERT_FILE,
@@ -553,7 +553,7 @@ class HTTPInstance(service.Service):
             remove_files.append(paths.HTTPD_IPA_WSGI_MODULES_CONF)
 
         for filename in remove_files:
-            installutils.remove_file(filename)
+            ipautil.remove_file(filename)
 
         try:
             os.rmdir(paths.SYSTEMD_SYSTEM_HTTPD_D_DIR)

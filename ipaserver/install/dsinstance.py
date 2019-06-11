@@ -1098,20 +1098,20 @@ class DsInstance(service.Service):
             logger.error("Failed to remove DS instance. No serverid present "
                          "in sysrestore file.")
 
-        installutils.remove_keytab(paths.DS_KEYTAB)
-        installutils.remove_ccache(run_as=DS_USER)
+        ipautil.remove_keytab(paths.DS_KEYTAB)
+        ipautil.remove_ccache(run_as=DS_USER)
 
         if serverid is None:
             # Remove scripts dir
             scripts = paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % (
                 serverid)
-            installutils.rmtree(scripts)
+            ipautil.rmtree(scripts)
 
             # remove systemd unit file
             unitfile = paths.SLAPD_INSTANCE_SYSTEMD_IPA_ENV_TEMPLATE % (
                 serverid
             )
-            installutils.remove_file(unitfile)
+            ipautil.remove_file(unitfile)
             try:
                 os.rmdir(os.path.dirname(unitfile))
             except OSError:

@@ -267,7 +267,7 @@ def cleanup_kdc(fstore):
     logger.info('[Checking for deprecated KDC configuration files]')
     for file in ['kpasswd.keytab', 'ldappwd']:
         filename = os.path.join(paths.VAR_KERBEROS_KRB5KDC_DIR, file)
-        installutils.remove_file(filename)
+        ipautil.remove_file(filename)
         if fstore.has_file(filename):
             fstore.untrack_file(filename)
             logger.debug('Uninstalling %s', filename)
@@ -1090,7 +1090,7 @@ def certificate_renewal_update(ca, ds, http):
     if os.path.exists(filename):
         with installutils.stopped_service('certmonger'):
             logger.info("Removing %s", filename)
-            installutils.remove_file(filename)
+            ipautil.remove_file(filename)
 
     ca.configure_certmonger_renewal()
     ca.configure_renewal()
