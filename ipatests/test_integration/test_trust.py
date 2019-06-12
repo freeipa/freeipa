@@ -15,8 +15,6 @@ from ipatests.pytest_ipa.integration import tasks
 class BaseTestTrust(IntegrationTest):
     topology = 'line'
     num_ad_domains = 1
-    num_ad_subdomains = 1
-    num_ad_treedomains = 1
 
     upn_suffix = 'UPNsuffix.com'
     upn_username = 'upnuser'
@@ -37,11 +35,6 @@ class BaseTestTrust(IntegrationTest):
         cls.ad_domain = cls.ad.domain.name
         tasks.install_adtrust(cls.master)
         cls.check_sid_generation()
-
-        cls.child_ad = cls.ad_subdomains[0]  # pylint: disable=no-member
-        cls.ad_subdomain = cls.child_ad.domain.name
-        cls.tree_ad = cls.ad_treedomains[0]  # pylint: disable=no-member
-        cls.ad_treedomain = cls.tree_ad.domain.name
 
         # values used in workaround for
         # https://bugzilla.redhat.com/show_bug.cgi?id=1711958
@@ -104,7 +97,7 @@ class TestTrust(BaseTestTrust):
 
     def test_trustdomains_found_in_nonposix_trust(self):
         self.check_trustdomains(
-            self.ad_domain, [self.ad_domain, self.ad_subdomain])
+            self.ad_domain, [self.ad_domain])
 
     def test_range_properties_in_nonposix_trust(self):
         self.check_range_properties(self.ad_domain, 'ipa-ad-trust', 200000)
@@ -190,7 +183,7 @@ class TestTrust(BaseTestTrust):
     def test_trustdomains_found_in_posix_trust(self):
         """Tests that all trustdomains can be found."""
         self.check_trustdomains(
-            self.ad_domain, [self.ad_domain, self.ad_subdomain])
+            self.ad_domain, [self.ad_domain])
 
     def test_range_properties_in_posix_trust(self):
         """Check the properties of the created range"""
@@ -445,7 +438,7 @@ class TestTrust(BaseTestTrust):
             raiseonerr=False)
         assert result.returncode == 1
         self.check_trustdomains(
-            self.ad_domain, [self.ad_domain, self.ad_subdomain])
+            self.ad_domain, [self.ad_domain])
 
     def test_user_gid_uid_resolution_in_forest_trust_with_shared_secret(self):
         """Check that user has SID-generated UID"""
