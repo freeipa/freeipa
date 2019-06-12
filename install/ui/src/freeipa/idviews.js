@@ -472,6 +472,17 @@ idviews.id_override_user_details_facet = function(spec) {
         that.refresh();
     };
 
+    that.load = function(data) {
+        var is_trust_view = that.get_pkeys()[0] === idviews.DEFAULT_TRUST_VIEW;
+        var widget = that.fields.get_field('ipaanchoruuid').widget;
+
+        // Disable link for AD users
+        widget.no_check = is_trust_view;
+        widget.is_link = !is_trust_view;
+
+        that.details_facet_load(data);
+    };
+
     return that;
 };
 
