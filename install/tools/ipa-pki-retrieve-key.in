@@ -2,9 +2,8 @@
 
 from __future__ import print_function
 
+import argparse
 import os
-import sys
-import traceback
 
 from ipalib import constants
 from ipalib.config import Env
@@ -16,27 +15,37 @@ def main():
     env = Env()
     env._finalize()
 
-    keyname = "ca_wrapped/" + sys.argv[1]
-    servername = sys.argv[2]
+    parser = argparse.ArgumentParser("ipa-pki-retrieve-key")
+    parser.add_argument("keyname", type=str)
+    parser.add_argument("servername", type=str)
+
+    args = parser.parse_args()
+    keyname = "ca_wrapped/{}".format(args.keyname)
 
     service = constants.PKI_GSSAPI_SERVICE_NAME
     client_keyfile = os.path.join(paths.PKI_TOMCAT, service + '.keys')
     client_keytab = os.path.join(paths.PKI_TOMCAT, service + '.keytab')
 
+    for filename in [client_keyfile, client_keytab]:
+        if not os.access(filename, os.R_OK):
+            parser.error(
+                "File '{}' missing or not readable.\n".format(filename)
+            )
+
     # pylint: disable=no-member
     client = CustodiaClient(
-        client_service='%s@%s' % (service, env.host), server=servername,
-        realm=env.realm, ldap_uri="ldaps://" + env.host,
-        keyfile=client_keyfile, keytab=client_keytab,
-        )
+        client_service="{}@{}".format(service, env.host),
+        server=args.servername,
+        realm=env.realm,
+        ldap_uri="ldaps://" + env.host,
+        keyfile=client_keyfile,
+        keytab=client_keytab,
+    )
 
     # Print the response JSON to stdout; it is already in the format
     # that Dogtag's ExternalProcessKeyRetriever expects
     print(client.fetch_key(keyname, store=False))
 
 
-try:
+if __name__ == '__main__':
     main()
-except BaseException:
-    traceback.print_exc()
-    sys.exit(1)
