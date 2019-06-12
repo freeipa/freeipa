@@ -53,7 +53,7 @@ install:
     - pip3 install pycodestyle
     - >
       pip3 install
-      git+https://github.com/freeipa/ipa-docker-test-runner@release-0-3-1
+      git+https://github.com/freeipa/ipa-docker-test-runner@release-0-3-2
 
 script:
     - mkdir -p $CI_RUNNER_LOGS_DIR
