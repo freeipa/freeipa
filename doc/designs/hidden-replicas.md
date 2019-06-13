@@ -71,7 +71,7 @@ A new hidden replica can be installed with
 A new command ``ipa server-state`` can be used to modify the state of a
 replica. An existing replica can be demoted to a hidden replica by
 executing ``ipa server-state $HOST --state=hidden``. The command
-``ipa server-state $HOST --state=enable`` turns a hidden replica
+``ipa server-state $HOST --state=enabled`` turns a hidden replica
 into an enabled, visible replica.
 
 A *CA renewal master* or *DNSSEC key master* can't be demoted to hidden
