@@ -1775,8 +1775,13 @@ class ReplicationManager(object):
         try:
             conn.get_entry(self.repl_man_group_dn)
         except errors.NotFound:
-            self._add_replica_bind_dn(conn, my_dn)
             self._add_replication_managers(conn)
+
+        # On IPA 3.x masters (ds version < 1.3.3),
+        # add replica bind DN directly into the replica entry
+        vendor_version = get_ds_version(conn)
+        if vendor_version < (1, 3, 3):
+            self._add_replica_bind_dn(conn, my_dn)
 
         self._add_dn_to_replication_managers(conn, my_dn)
         self._add_dn_to_replication_managers(conn, remote_dn)
