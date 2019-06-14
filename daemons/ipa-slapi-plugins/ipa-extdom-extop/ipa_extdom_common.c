@@ -523,7 +523,7 @@ int pack_ber_user(struct ipa_extdom_ctx *ctx,
         if (strcasecmp(locat+1, domain_name) == 0  ) {
             locat[0] = '\0';
         } else {
-            ret = LDAP_NO_SUCH_OBJECT;
+            ret = LDAP_INVALID_SYNTAX;
             goto done;
         }
     }
@@ -568,10 +568,12 @@ int pack_ber_user(struct ipa_extdom_ctx *ctx,
             ret = getgrgid_r_wrapper(ctx,
                                      groups[c], &grp, &buf, &buf_len);
             if (ret != 0) {
-                if (ret == ENOMEM || ret == ERANGE) {
-                    ret = LDAP_OPERATIONS_ERROR;
-                } else {
+                if (ret == ENOENT) {
                     ret = LDAP_NO_SUCH_OBJECT;
+                } else if (ret == ETIMEDOUT) {
+                    ret = LDAP_TIMELIMIT_EXCEEDED;
+                } else {
+                    ret = LDAP_OPERATIONS_ERROR;
                 }
                 goto done;
             }
@@ -634,7 +636,7 @@ int pack_ber_group(enum response_types response_type,
         if (strcasecmp(locat+1, domain_name) == 0  ) {
             locat[0] = '\0';
         } else {
-            ret = LDAP_NO_SUCH_OBJECT;
+            ret = LDAP_INVALID_SYNTAX;
             goto done;
         }
     }
@@ -836,6 +838,8 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
                             || id_type == SSS_ID_TYPE_BOTH)) {
             if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
+            } else if (ret == ETIMEDOUT || ret == ETIME) {
+                ret = LDAP_TIMELIMIT_EXCEEDED;
             } else {
                 set_err_msg(req, "Failed to lookup SID by UID");
                 ret = LDAP_OPERATIONS_ERROR;
@@ -847,10 +851,12 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
     } else {
         ret = getpwuid_r_wrapper(ctx, uid, &pwd, &buf, &buf_len);
         if (ret != 0) {
-            if (ret == ENOMEM || ret == ERANGE) {
-                ret = LDAP_OPERATIONS_ERROR;
-            } else {
+            if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
+            } else if (ret == ETIMEDOUT) {
+                ret = LDAP_TIMELIMIT_EXCEEDED;
+            } else {
+                ret = LDAP_OPERATIONS_ERROR;
             }
             goto done;
         }
@@ -862,6 +868,8 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
                 set_err_msg(req, "Failed to read original data");
                 if (ret == ENOENT) {
                     ret = LDAP_NO_SUCH_OBJECT;
+                } else if (ret == ETIMEDOUT || ret == ETIME) {
+                    ret = LDAP_TIMELIMIT_EXCEEDED;
                 } else {
                     ret = LDAP_OPERATIONS_ERROR;
                 }
@@ -907,6 +915,8 @@ static int handle_gid_request(struct ipa_extdom_ctx *ctx,
         if (ret != 0 || id_type != SSS_ID_TYPE_GID) {
             if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
+            } else if (ret == ETIMEDOUT || ret == ETIME) {
+                ret = LDAP_TIMELIMIT_EXCEEDED;
             } else {
                 set_err_msg(req, "Failed to lookup SID by GID");
                 ret = LDAP_OPERATIONS_ERROR;
@@ -918,10 +928,12 @@ static int handle_gid_request(struct ipa_extdom_ctx *ctx,
     } else {
         ret = getgrgid_r_wrapper(ctx, gid, &grp, &buf, &buf_len);
         if (ret != 0) {
-            if (ret == ENOMEM || ret == ERANGE) {
-                ret = LDAP_OPERATIONS_ERROR;
-            } else {
+            if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
+            } else if (ret == ETIMEDOUT) {
+                ret = LDAP_TIMELIMIT_EXCEEDED;
+            } else {
+                ret = LDAP_OPERATIONS_ERROR;
             }
             goto done;
         }
@@ -933,6 +945,8 @@ static int handle_gid_request(struct ipa_extdom_ctx *ctx,
                 set_err_msg(req, "Failed to read original data");
                 if (ret == ENOENT) {
                     ret = LDAP_NO_SUCH_OBJECT;
+                } else if (ret == ETIMEDOUT || ret == ETIME) {
+                    ret = LDAP_TIMELIMIT_EXCEEDED;
                 } else {
                     ret = LDAP_OPERATIONS_ERROR;
                 }
@@ -976,6 +990,8 @@ static int handle_cert_request(struct ipa_extdom_ctx *ctx,
     if (ret != 0) {
         if (ret == ENOENT) {
             ret = LDAP_NO_SUCH_OBJECT;
+        } else if (ret == ETIMEDOUT || ret == ETIME) {
+            ret = LDAP_TIMELIMIT_EXCEEDED;
         } else {
             set_err_msg(req, "Failed to lookup name by certificate");
             ret = LDAP_OPERATIONS_ERROR;
@@ -1020,6 +1036,8 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
     if (ret != 0) {
         if (ret == ENOENT) {
             ret = LDAP_NO_SUCH_OBJECT;
+        } else if (ret == ETIMEDOUT || ret == ETIME) {
+            ret = LDAP_TIMELIMIT_EXCEEDED;
         } else {
             set_err_msg(req, "Failed to lookup name by SID");
             ret = LDAP_OPERATIONS_ERROR;
@@ -1057,10 +1075,12 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
     case SSS_ID_TYPE_BOTH:
         ret = getpwnam_r_wrapper(ctx, fq_name, &pwd, &buf, &buf_len);
         if (ret != 0) {
-            if (ret == ENOMEM || ret == ERANGE) {
-                ret = LDAP_OPERATIONS_ERROR;
-            } else {
+            if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
+            } else if (ret == ETIMEDOUT) {
+                ret = LDAP_TIMELIMIT_EXCEEDED;
+            } else {
+                ret = LDAP_OPERATIONS_ERROR;
             }
             goto done;
         }
@@ -1072,6 +1092,8 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
                 set_err_msg(req, "Failed to read original data");
                 if (ret == ENOENT) {
                     ret = LDAP_NO_SUCH_OBJECT;
+                } else if (ret == ETIMEDOUT || ret == ETIME) {
+                    ret = LDAP_TIMELIMIT_EXCEEDED;
                 } else {
                     ret = LDAP_OPERATIONS_ERROR;
                 }
@@ -1089,10 +1111,12 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
     case SSS_ID_TYPE_GID:
         ret = getgrnam_r_wrapper(ctx, fq_name, &grp, &buf, &buf_len);
         if (ret != 0) {
-            if (ret == ENOMEM || ret == ERANGE) {
-                ret = LDAP_OPERATIONS_ERROR;
-            } else {
+            if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
+            } else if (ret == ETIMEDOUT) {
+                ret = LDAP_TIMELIMIT_EXCEEDED;
+            } else {
+                ret = LDAP_OPERATIONS_ERROR;
             }
             goto done;
         }
@@ -1104,6 +1128,8 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
                 set_err_msg(req, "Failed to read original data");
                 if (ret == ENOENT) {
                     ret = LDAP_NO_SUCH_OBJECT;
+                } else if (ret == ETIMEDOUT || ret == ETIME) {
+                    ret = LDAP_TIMELIMIT_EXCEEDED;
                 } else {
                     ret = LDAP_OPERATIONS_ERROR;
                 }
@@ -1167,6 +1193,8 @@ static int handle_name_request(struct ipa_extdom_ctx *ctx,
         if (ret != 0) {
             if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
+            } else if (ret == ETIMEDOUT || ret == ETIME) {
+                ret = LDAP_TIMELIMIT_EXCEEDED;
             } else {
                 set_err_msg(req, "Failed to lookup SID by name");
                 ret = LDAP_OPERATIONS_ERROR;
@@ -1190,6 +1218,8 @@ static int handle_name_request(struct ipa_extdom_ctx *ctx,
                     set_err_msg(req, "Failed to read original data");
                     if (ret == ENOENT) {
                         ret = LDAP_NO_SUCH_OBJECT;
+                    } else if (ret == ETIMEDOUT || ret == ETIME) {
+                        ret = LDAP_TIMELIMIT_EXCEEDED;
                     } else {
                         ret = LDAP_OPERATIONS_ERROR;
                     }
@@ -1205,6 +1235,9 @@ static int handle_name_request(struct ipa_extdom_ctx *ctx,
         } else if (ret == ENOMEM || ret == ERANGE) {
             ret = LDAP_OPERATIONS_ERROR;
             goto done;
+        } else if (ret == ETIMEDOUT) {
+            ret = LDAP_TIMELIMIT_EXCEEDED;
+            goto done;
         } else { /* no user entry found */
             /* according to the getpwnam() man page there are a couple of
              * error codes which can indicate that the user was not found. To
@@ -1212,10 +1245,12 @@ static int handle_name_request(struct ipa_extdom_ctx *ctx,
              * errors. */
             ret = getgrnam_r_wrapper(ctx, fq_name, &grp, &buf, &buf_len);
             if (ret != 0) {
-                if (ret == ENOMEM || ret == ERANGE) {
-                    ret = LDAP_OPERATIONS_ERROR;
-                } else {
+                if (ret == ENOENT) {
                     ret = LDAP_NO_SUCH_OBJECT;
+                } else if (ret == ETIMEDOUT) {
+                    ret = LDAP_TIMELIMIT_EXCEEDED;
+                } else {
+                    ret = LDAP_OPERATIONS_ERROR;
                 }
                 goto done;
             }
@@ -1226,6 +1261,8 @@ static int handle_name_request(struct ipa_extdom_ctx *ctx,
                                     || id_type == SSS_ID_TYPE_BOTH)) {
                     if (ret == ENOENT) {
                         ret = LDAP_NO_SUCH_OBJECT;
+                    } else if (ret == ETIMEDOUT || ret == ETIME) {
+                        ret = LDAP_TIMELIMIT_EXCEEDED;
                     } else {
                         set_err_msg(req, "Failed to read original data");
                         ret = LDAP_OPERATIONS_ERROR;
