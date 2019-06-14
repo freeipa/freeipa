@@ -13,7 +13,7 @@ python:
 cache: pip
 env:
     global:
-        - TEST_RUNNER_IMAGE="freeipa/freeipa-test-runner:master-latest"
+        - TEST_RUNNER_IMAGE="freeipa/freeipa-test-runner:ipa-4-7_f28"
           PEP8_ERROR_LOG="pycodestyle_errors.log"
           CI_RESULTS_LOG="ci_results_${TRAVIS_BRANCH}.log"
           CI_BACKLOG_SIZE=5000
