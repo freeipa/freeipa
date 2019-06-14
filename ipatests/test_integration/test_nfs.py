@@ -117,7 +117,7 @@ class TestNFS(TestInit):
                 "ipa", "user-add",
                 "%s" % user, "--first", "%s" % user,
                 "--last", "%s" % users[user],
-                '--password'], stdin_text=temp_pass
+                '--password'], stdin_text="%s\n%s\n" % (temp_pass, temp_pass)
             )
             self.master.run_command(["kdestroy", "-A"])
             password = "Secret123"
