@@ -2,8 +2,8 @@
 set -ex
 
 FLAVOR="$1"
-ENVPYTHON="$2"
-ENVSITEPACKAGESDIR="$3"
+ENVPYTHON="$(realpath "$2")"
+ENVSITEPACKAGESDIR="$(realpath "$3")"
 # 3...end are package requirements
 shift 3
 
