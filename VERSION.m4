@@ -21,12 +21,15 @@
 ########################################################
 define(IPA_VERSION_MAJOR, 4)
 define(IPA_VERSION_MINOR, 7)
-define(IPA_VERSION_RELEASE, 90)
+define(IPA_VERSION_RELEASE, 91)
 
 ########################################################
 # For 'pre' releases the version will be               #
 #                                                      #
 # <MAJOR>.<MINOR>.<RELEASE><PRE_RELEASE>               #
+#                                                      #
+# pre releases start with RELEASE 90. After pre1 has   #
+# been released, RELEASE is bumpled to 91, and so on   #
 #                                                      #
 # e.g. define(IPA_VERSION_PRE_RELEASE, rc1)            #
 #  ->  "1.0.0rc1"                                      #
