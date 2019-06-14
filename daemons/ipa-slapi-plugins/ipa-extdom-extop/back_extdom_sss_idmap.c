@@ -47,10 +47,10 @@ static enum nss_status __convert_sss_nss2nss_status(int errcode) {
         return NSS_STATUS_SUCCESS;
     case ENOENT:
         return NSS_STATUS_NOTFOUND;
-    case ETIME:
-        /* fall-through */
     case ERANGE:
         return NSS_STATUS_TRYAGAIN;
+    case ETIME:
+        /* fall-through */
     case ETIMEDOUT:
         /* fall-through */
     default:
