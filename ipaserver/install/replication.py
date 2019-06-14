@@ -28,6 +28,7 @@ import time
 import datetime
 import sys
 import os
+import json
 from random import randint
 
 import ldap
@@ -1058,6 +1059,7 @@ class ReplicationManager:
         attrlist = ['cn', 'nsds5BeginReplicaRefresh',
                     'nsds5replicaUpdateInProgress',
                     'nsds5ReplicaLastInitStatus',
+                    'nsds5ReplicaLastInitStatusJSON',
                     'nsds5ReplicaLastInitStart',
                     'nsds5ReplicaLastInitEnd']
         entry = conn.get_entry(agmtdn, attrlist)
@@ -1068,7 +1070,14 @@ class ReplicationManager:
             refresh = entry.single_value.get('nsds5BeginReplicaRefresh')
             inprogress = entry.single_value.get('nsds5replicaUpdateInProgress')
             status = entry.single_value.get('nsds5ReplicaLastInitStatus')
-            if not refresh: # done - check status
+            json_status = \
+                entry.single_value.get('nsds5ReplicaLastInitStatusJSON')
+            if not refresh:  # done - check status
+                if json_status:
+                    # Just reset status with the JSON 'message'
+                    status_obj = json.loads(json_status)
+                    status = status_obj['message']
+
                 if not status:
                     print("No status yet")
                 elif status.find("replica busy") > -1:
@@ -1099,8 +1108,11 @@ class ReplicationManager:
         done = False
         hasError = 0
         error_message = ''
-        attrlist = ['cn', 'nsds5replicaUpdateInProgress',
-                    'nsds5ReplicaLastUpdateStatus', 'nsds5ReplicaLastUpdateStart',
+        attrlist = ['cn',
+                    'nsds5replicaUpdateInProgress',
+                    'nsds5ReplicaLastUpdateStatus',
+                    'nsds5ReplicaLastUpdateStatusjson',
+                    'nsds5ReplicaLastUpdateStart',
                     'nsds5ReplicaLastUpdateEnd']
         entry = conn.get_entry(agmtdn, attrlist)
         if not entry:
@@ -1109,6 +1121,8 @@ class ReplicationManager:
         else:
             inprogress = entry.single_value.get('nsds5replicaUpdateInProgress')
             status = entry.single_value.get('nsds5ReplicaLastUpdateStatus')
+            json_status = \
+                entry.single_value.get('nsds5ReplicaLastUpdateStatusjson')
             try:
                 # nsds5ReplicaLastUpdateStart is either a GMT time
                 # ending with Z or 0 (see 389-ds ticket 47836)
@@ -1134,7 +1148,15 @@ class ReplicationManager:
             logger.info("Replication Update in progress: %s: status: %s: "
                         "start: %d: end: %d",
                         inprogress, status, start, end)
-            if status: # always check for errors
+            if json_status:
+                # In 389-ds-base 1.4.1.4 we have the status message available
+                # to us in a json object
+                status_obj = json.loads(json_status)
+                if status_obj['state'] != 'green':
+                    hasError = 1
+                    error_message = status_obj['message']
+                    done = True
+            elif status:  # always check for errors
                 # status will usually be a number followed by a string
                 # number != 0 means error
                 # Since 389-ds-base 1.3.5 it is 'Error (%d) %s'
