@@ -242,6 +242,8 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
     if (ret != LDAP_SUCCESS) {
         if (ret == LDAP_NO_SUCH_OBJECT) {
             rc = LDAP_NO_SUCH_OBJECT;
+        } else if (ret == LDAP_TIMELIMIT_EXCEEDED) {
+            rc = LDAP_TIMELIMIT_EXCEEDED;
         } else {
             rc = LDAP_OPERATIONS_ERROR;
             err_msg = "Failed to handle the request.\n";
