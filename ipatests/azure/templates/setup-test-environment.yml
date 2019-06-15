@@ -1,5 +1,6 @@
 steps:
 - script: |
+    set -e
     echo '{ "ipv6": true, "fixed-cidr-v6": "2001:db8::/64" }' > docker-daemon.json
     sudo mkdir -p /etc/docker
     sudo cp docker-daemon.json /etc/docker/daemon.json
@@ -18,6 +19,7 @@ steps:
     artifactName: 'image-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)'
     targetPath: $(Agent.BuildDirectory)/s
 - script: |
+    set -e
     docker load --input $(Agent.BuildDirectory)/s/freeipa-fedora-builder-container.tar.gz
     docker images
     docker inspect freeipa-fedora-builder:latest
