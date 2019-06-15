@@ -1,5 +1,6 @@
 steps:
 - script: |
+    set -e
     sudo rm -rf /var/cache/dnf/*
     echo 'Disable modular repositories'
     sudo dnf config-manager '*modular*' --set-disabled
