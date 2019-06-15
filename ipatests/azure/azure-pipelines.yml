@@ -16,19 +16,23 @@ jobs:
   steps:
     - template: templates/prepare-build.yml
     - script: |
+        set -e
         echo "Running autoconf generator"
         ./autogen.sh
       displayName: Configure the project
     - script: |
+        set -e
         git update-ref refs/heads/$(System.PullRequest.TargetBranch) origin/$(System.PullRequest.TargetBranch)
         make V=0 "GIT_BRANCH=$(System.PullRequest.TargetBranch)" fastlint
       displayName: Quick code style check
       condition: eq(variables['Build.Reason'], 'PullRequest')
     - script: |
+        set -e
         echo "Running make target 'rpms'"
         make V=0 rpms LOG_COMPILE='gdb -return-child-result -ex run -ex "thread apply all bt" -ex "quit" --args'
       displayName: Build packages
     - script: |
+        set -e
         mkdir container
         cp -pr dist container/
         cp ipatests/azure/Dockerfile.build-container container/Dockerfile
@@ -47,10 +51,12 @@ jobs:
   steps:
     - template: templates/prepare-build.yml
     - script: |
+        set -e
         echo "Running autoconf generator"
         ./autogen.sh
       displayName: Configure the project
     - script: |
+        set -e
         echo "Running make target 'lint'"
         make V=0 lint
       displayName: Lint sources
@@ -68,10 +74,12 @@ jobs:
         versionSpec: 3.6
         architecture: x64
     - script: |
+        set -e
         sudo dnf -y install nss-tools
         python3 -m pip install --upgrade pip setuptools pycodestyle
       displayName: 'Install prerequisites'
     - script: |
+        set -e
         echo "Running tox"
         export LANG=en_US.utf8
         export LC_CTYPE=en_US.utf8
@@ -97,13 +105,16 @@ jobs:
         versionSpec: 3.6
         architecture: x64
     - script: |
+        set -e
         sudo dnf -y install npm fontconfig
       displayName: 'Install prerequisites'
     - script: |
+        set -e
         echo "Running autoconf generator"
         ./autogen.sh
       displayName: Configure the project
     - script: |
+        set -e
         echo "Running WebUI unit tests"
         cd $(builddir)/install/ui/js/libs && make
         cd $(builddir)/install/ui && npm install
