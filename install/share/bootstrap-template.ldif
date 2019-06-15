@@ -237,7 +237,7 @@ sn: Administrator
 uidNumber: $IDSTART
 gidNumber: $IDSTART
 homeDirectory: /home/admin
-loginShell: /bin/bash
+loginShell: $DEFAULT_ADMIN_SHELL
 gecos: Administrator
 nsAccountLock: FALSE
 ipaUniqueID: autogenerate
@@ -402,7 +402,7 @@ ipaGroupSearchFields: cn,description
 ipaSearchTimeLimit: 2
 ipaSearchRecordsLimit: 100
 ipaHomesRootDir: /home
-ipaDefaultLoginShell: /bin/sh
+ipaDefaultLoginShell: $DEFAULT_SHELL
 ipaDefaultPrimaryGroup: ipausers
 ipaMaxUsernameLength: 32
 ipaMaxHostnameLength: 64

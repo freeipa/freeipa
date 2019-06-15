@@ -55,6 +55,7 @@ from ipalib.util import set_krbcanonicalname
 from ipalib import _, ngettext
 from ipalib import output
 from ipaplatform.paths import paths
+from ipaplatform.constants import constants as platformconstants
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipalib.capabilities import client_has_capability
 
@@ -329,7 +330,8 @@ class stageuser_add(baseuser_add):
                         len = int(config.get('ipamaxusernamelength')[0])
                     )
                 )
-        default_shell = config.get('ipadefaultloginshell', [paths.SH])[0]
+        default_shell = config.get('ipadefaultloginshell',
+                                   [platformconstants.DEFAULT_SHELL])[0]
         entry_attrs.setdefault('loginshell', default_shell)
         # hack so we can request separate first and last name in CLI
         full_name = '%s %s' % (entry_attrs['givenname'], entry_attrs['sn'])
@@ -532,7 +534,8 @@ class stageuser_activate(LDAPQuery):
                     )
                 )
         if 'loginshell' not in entry_from:
-            default_shell = config.get('ipadefaultloginshell', [paths.SH])[0]
+            default_shell = config.get('ipadefaultloginshell',
+                                       [platformconstants.DEFAULT_SHELL])[0]
             if default_shell:
                 entry_to.setdefault('loginshell', default_shell)
 

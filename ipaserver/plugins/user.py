@@ -65,6 +65,7 @@ from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
 from ipaplatform.paths import paths
+from ipaplatform.constants import constants as platformconstants
 from ipapython.dn import DN
 from ipapython.ipaldap import LDAPClient
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
@@ -516,7 +517,8 @@ class user_add(baseuser_add):
                         len = int(config.get('ipamaxusernamelength')[0])
                     )
                 )
-        default_shell = config.get('ipadefaultloginshell', [paths.SH])[0]
+        default_shell = config.get('ipadefaultloginshell',
+                                   [platformconstants.DEFAULT_SHELL])[0]
         entry_attrs.setdefault('loginshell', default_shell)
         # hack so we can request separate first and last name in CLI
         full_name = '%s %s' % (entry_attrs['givenname'], entry_attrs['sn'])
