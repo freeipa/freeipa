@@ -31,6 +31,7 @@ import ldap
 import re
 
 from ipalib import api, errors
+from ipaplatform.constants import constants as platformconstants
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import (
     assert_deepequal, assert_equal, assert_not_equal, raises)
@@ -612,7 +613,8 @@ class TestCreate(XMLRPC_test):
         result = command()
         user.check_create(result)
         user.run_command(
-            'config_mod', **{u'ipadefaultloginshell': u'/bin/sh'}
+            'config_mod',
+            **{u'ipadefaultloginshell': platformconstants.DEFAULT_SHELL}
         )
         user.delete()
 
@@ -1067,7 +1069,7 @@ def get_user_result(uid, givenname, sn, operation='show', omit=[],
     cn[0] = cn[0].strip()
     result = add_sid(dict(
         homedirectory=[u'/home/%s' % uid],
-        loginshell=[u'/bin/sh'],
+        loginshell=[platformconstants.DEFAULT_SHELL],
         uid=[uid],
         uidnumber=[fuzzy_digits],
         gidnumber=[fuzzy_digits],
@@ -1116,12 +1118,13 @@ def get_admin_result(operation='show', **overrides):
 
     Any additional or non-default values can be given in ``overrides``.
     """
-    result = get_user_result(u'admin', None, u'Administrator', operation,
-                             omit=['mail'],
-                             has_keytab=True,
-                             has_password=True,
-                             loginshell=[u'/bin/bash'],
-                             **overrides)
+    result = get_user_result(
+        u'admin', None, u'Administrator', operation,
+        omit=['mail'],
+        has_keytab=True,
+        has_password=True,
+        loginshell=[platformconstants.DEFAULT_ADMIN_SHELL],
+        **overrides)
     return result
 
 

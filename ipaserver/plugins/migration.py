@@ -38,6 +38,7 @@ from ipapython.ipautil import write_tmp_file
 from ipapython.kerberos import Principal
 import datetime
 from ipaplatform.paths import paths
+from ipaplatform.constants import constants as platformconstants
 
 if six.PY3:
     unicode = str
@@ -233,7 +234,8 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
         entry_attrs['homedirectory'] = home_dir
 
     if 'loginshell' not in entry_attrs:
-        default_shell = config.get('ipadefaultloginshell', [paths.SH])[0]
+        default_shell = config.get('ipadefaultloginshell',
+                                   [platformconstants.DEFAULT_SHELL])[0]
         entry_attrs.setdefault('loginshell', default_shell)
 
     # do not migrate all attributes

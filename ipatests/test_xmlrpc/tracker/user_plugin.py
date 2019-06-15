@@ -3,6 +3,7 @@
 #
 
 from ipalib import api, errors
+from ipaplatform.constants import constants as platformconstants
 from ipapython.dn import DN
 
 import six
@@ -181,7 +182,7 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
             krbcanonicalname=[u'%s@%s' % (self.uid, self.api.env.realm)],
             mail=[u'%s@%s' % (self.uid, self.api.env.domain)],
             gecos=[u'%s %s' % (self.givenname, self.sn)],
-            loginshell=[u'/bin/sh'],
+            loginshell=[platformconstants.DEFAULT_SHELL],
             has_keytab=False,
             has_password=False,
             mepmanagedentry=[get_group_dn(self.uid)],

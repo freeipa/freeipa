@@ -5,6 +5,7 @@
 import six
 
 from ipalib import api, errors
+from ipaplatform.constants import constants as platformconstants
 
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
@@ -143,7 +144,7 @@ class StageUserTracker(KerberosAliasMixin, Tracker):
             krbcanonicalname=[u'%s@%s' % (self.uid, self.api.env.realm)],
             mail=[u'%s@%s' % (self.uid, self.api.env.domain)],
             gecos=[u'%s %s' % (self.givenname, self.sn)],
-            loginshell=[u'/bin/sh'],
+            loginshell=[platformconstants.DEFAULT_SHELL],
             has_keytab=False,
             has_password=False,
             nsaccountlock=[u'true'],

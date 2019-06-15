@@ -12,6 +12,7 @@ import six
 
 from collections import OrderedDict
 from ipalib import api, errors
+from ipaplatform.constants import constants as platformconstants
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 
@@ -49,7 +50,7 @@ options_def = OrderedDict([
     ('display name', {u'displayname': u'display'}),
     ('home directory', {u'homedirectory': u'/home/homedir'}),
     ('GECOS', {u'gecos': u'gecos'}),
-    ('shell', {u'loginshell': u'/bin/shell'}),
+    ('shell', {u'loginshell': platformconstants.DEFAULT_SHELL}),
     ('email address', {u'mail': u'email@email.email'}),
     ('job title', {u'title': u'newbie'}),
     ('kerberos principal', {
