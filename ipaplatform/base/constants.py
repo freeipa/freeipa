@@ -10,6 +10,8 @@ import sys
 
 class BaseConstantsNamespace:
     IS_64BITS = sys.maxsize > 2 ** 32
+    DEFAULT_ADMIN_SHELL = '/bin/bash'
+    DEFAULT_SHELL = '/bin/sh'
     DS_USER = 'dirsrv'
     DS_GROUP = 'dirsrv'
     HTTPD_USER = "apache"

@@ -10,6 +10,8 @@ import re
 
 import pytest
 
+from ipaplatform.constants import constants as platformconstants
+
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
@@ -56,6 +58,7 @@ class TestWinsyncMigrate(IntegrationTest):
 
     ipa_group = 'ipa_group'
     ad_user = 'testuser'
+    default_shell = platformconstants.DEFAULT_SHELL
     test_role = 'test_role'
     test_hbac_rule = 'test_hbac_rule'
     test_selinux_map = 'test_selinux_map'
@@ -81,8 +84,10 @@ class TestWinsyncMigrate(IntegrationTest):
         # store user uid and gid
         result = cls.master.run_command(['getent', 'passwd', cls.ad_user])
         testuser_regex = (
-            r"^{0}:\*:(\d+):(\d+):{0}:/home/{0}:/bin/sh$".format(
-                cls.ad_user))
+            r"^{0}:\*:(\d+):(\d+):{0}:/home/{0}:{1}$".format(
+                cls.ad_user, cls.default_shell,
+            )
+        )
         m = re.match(testuser_regex, result.stdout_text)
         cls.test_user_uid, cls.test_user_gid = m.groups()
 
@@ -150,10 +155,12 @@ class TestWinsyncMigrate(IntegrationTest):
         result = self.master.run_command(['getent', 'passwd',
                                           self.trust_test_user])
         passwd_template = (
-            '{trust_user}:*:{uid}:{gid}:{user}:/home/{domain}/{user}:/bin/sh')
+            '{trust_user}:*:{uid}:{gid}:{user}:/home/{domain}/{user}:{shell}')
         expected_result = passwd_template.format(
             user=self.ad_user, uid=self.test_user_uid, gid=self.test_user_gid,
-            domain=self.ad.domain.name, trust_user=self.trust_test_user)
+            domain=self.ad.domain.name, trust_user=self.trust_test_user,
+            shell=self.default_shell,
+        )
         assert result.stdout_text.strip() == expected_result
 
     def test_idoverride(self):
@@ -168,8 +175,7 @@ class TestWinsyncMigrate(IntegrationTest):
             'uidnumber: %s' % self.test_user_uid,
             'gidnumber: %s' % self.test_user_gid,
             'gecos: %s' % self.ad_user,
-            'loginshell: /bin/sh'
-
+            'loginshell: %s' % self.default_shell,
         ]
         assert sorted(idoverride_fields) == sorted(expected_fields)
 

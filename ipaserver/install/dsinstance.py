@@ -519,6 +519,8 @@ class DsInstance(service.Service):
             ' '.join(replication.EXCLUDES),
             TOTAL_EXCLUDES='(objectclass=*) $ EXCLUDE ' +
             ' '.join(replication.TOTAL_EXCLUDES),
+            DEFAULT_SHELL=platformconstants.DEFAULT_SHELL,
+            DEFAULT_ADMIN_SHELL=platformconstants.DEFAULT_ADMIN_SHELL,
         )
 
     def __create_instance(self):

@@ -25,12 +25,10 @@ import os
 
 
 class BasePathNamespace:
-    BASH = "/bin/bash"
     BIN_HOSTNAMECTL = "/bin/hostnamectl"
     ECHO = "/bin/echo"
     GZIP = "/bin/gzip"
     LS = "/bin/ls"
-    SH = "/bin/sh"
     SYSTEMCTL = "/bin/systemctl"
     SYSTEMD_DETECT_VIRT = "/usr/bin/systemd-detect-virt"
     TAR = "/bin/tar"

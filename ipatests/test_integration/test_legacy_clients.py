@@ -26,6 +26,7 @@ import os
 import re
 import unittest
 
+from ipaplatform.constants import constants as platformconstants
 from ipaplatform.paths import paths
 
 from ipatests.pytest_ipa.integration import tasks
@@ -49,6 +50,7 @@ class BaseTestLegacyClient:
                     paths.SSSD_CONF]
 
     homedir_template = "/home/{domain}/{username}"
+    default_shell = platformconstants.DEFAULT_SHELL
     required_extra_roles = ()
     optional_extra_roles = ()
 
@@ -91,7 +93,9 @@ class BaseTestLegacyClient:
         result = self.legacy_client.run_command(['getent', 'passwd', 'admin'])
 
         admin_regex = r"admin:\*:(\d+):(\d+):"\
-                      r"Administrator:/home/admin:/bin/bash"
+                      r"Administrator:/home/admin:{}".format(
+                          platformconstants.DEFAULT_ADMIN_SHELL,
+                      )
 
         assert re.search(admin_regex, result.stdout_text)
 
@@ -121,13 +125,14 @@ class BaseTestLegacyClient:
         result = self.legacy_client.run_command(['getent', 'passwd', testuser])
 
         testuser_regex = r"testuser@%s:\*:%s:%s:"\
-                         r"Test User:%s:/bin/sh"\
+                         r"Test User:%s:%s"\
                          % (re.escape(self.ad.domain.name),
                             self.testuser_uid_regex,
                             self.testuser_gid_regex,
                             self.homedir_template.format(
                                 username='testuser',
-                                domain=re.escape(self.ad.domain.name))
+                                domain=re.escape(self.ad.domain.name)),
+                            self.default_shell,
                             )
 
         assert re.search(testuser_regex, result.stdout_text)
@@ -241,13 +246,14 @@ class BaseTestLegacyClient:
 
         testuser_regex = r"subdomaintestuser@%s:\*:%s:%s:"\
                          r"Subdomaintest User:%s:"\
-                         r"/bin/sh"\
+                         r"%s"\
                          % (re.escape(self.ad_subdomain),
                             self.subdomain_testuser_uid_regex,
                             self.subdomain_testuser_gid_regex,
                             self.homedir_template.format(
                                 username='subdomaintestuser',
-                                domain=re.escape(self.ad_subdomain))
+                                domain=re.escape(self.ad_subdomain)),
+                            self.default_shell,
                             )
 
         assert re.search(testuser_regex, result.stdout_text)
@@ -339,10 +345,12 @@ class BaseTestLegacyClient:
         result = self.legacy_client.run_command(['getent', 'passwd', testuser])
 
         testuser_regex = (r"treetestuser@{0}:\*:{1}:{2}:TreeTest User:"
-                          r"/home/{0}/treetestuser:/bin/sh".format(
+                          r"/home/{0}/treetestuser:{3}".format(
                               re.escape(self.ad_treedomain),
                               self.treedomain_testuser_uid_regex,
-                              self.treedomain_testuser_gid_regex))
+                              self.treedomain_testuser_gid_regex,
+                              self.default_shell,
+                          ))
 
         assert re.search(testuser_regex, result.stdout_text)
 
