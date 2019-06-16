@@ -391,7 +391,8 @@ class CalledProcessError(subprocess.CalledProcessError):
 def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         capture_output=False, skip_output=False, cwd=None,
         runas=None, suplementary_groups=[],
-        capture_error=False, encoding=None, redirect_output=False, umask=None):
+        capture_error=False, encoding=None, redirect_output=False,
+        umask=None, nolog_output=False, nolog_error=False):
     """
     Execute an external command.
 
@@ -423,6 +424,8 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         suplementary groups for subporcess.
         The option runas must be specified together with this option.
     :param capture_error: Capture stderr
+    :param nolog_output: do not log stdout even if it is being captured
+    :param nolog_error: do not log stderr even if it is being captured
     :param encoding: For Python 3, the encoding to use for output,
         error_output, and (if it's not bytes) stdin.
         If None, the current encoding according to locale is used.
@@ -551,15 +554,24 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
                                        errors='replace')
         else:
             output_log = stdout
+
         if six.PY3:
             error_log = stderr.decode(locale.getpreferredencoding(),
                                       errors='replace')
         else:
             error_log = stderr
+
         output_log = nolog_replace(output_log, nolog)
-        logger.debug('stdout=%s', output_log)
+        if nolog_output:
+            logger.debug('stdout=<REDACTED>')
+        else:
+            logger.debug('stdout=%s', output_log)
+
         error_log = nolog_replace(error_log, nolog)
-        logger.debug('stderr=%s', error_log)
+        if nolog_error:
+            logger.debug('stderr=<REDACTED>')
+        else:
+            logger.debug('stderr=%s', error_log)
 
     if capture_output:
         if six.PY2:
