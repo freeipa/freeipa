@@ -176,6 +176,7 @@ class BasePathNamespace:
     KDESTROY = "/usr/bin/kdestroy"
     KINIT = "/usr/bin/kinit"
     KLIST = "/usr/bin/klist"
+    KTUTIL = "/usr/bin/ktutil"
     BIN_KVNO = "/usr/bin/kvno"
     LDAPMODIFY = "/usr/bin/ldapmodify"
     LDAPPASSWD = "/usr/bin/ldappasswd"

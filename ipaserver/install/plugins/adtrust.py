@@ -1,6 +1,8 @@
 # Copyright (C) 2012-2019  FreeIPA Contributors see COPYING for license
 
 import logging
+from collections import namedtuple
+from textwrap import dedent
 
 from ipalib import Registry, errors
 from ipalib import Updater
@@ -714,5 +716,98 @@ class update_tdo_to_new_layout(Updater):
                                    flags=self.KRB_PRINC_CREATE_DEFAULT |
                                    self.KRB_PRINC_CREATE_AGENT_PERMISSION |
                                    self.KRB_PRINC_CREATE_DISABLED)
+
+        return False, []
+
+
+KeyEntry = namedtuple('KeyEntry',
+                      ['kvno', 'date', 'time', 'principal', 'etype', 'key'])
+
+
+@register()
+class update_host_cifs_keytabs(Updater):
+    """Synchronize host keytab and Samba keytab
+
+    Samba needs access to host/domain.controller principal keys to allow
+    validation of DCE RPC requests sent by domain members since those use a
+    service ticket to host/domain.controller principal because in Active
+    Directory service keys are the same as the machine account credentials
+    and services are just aliases to the machine account object.
+    """
+
+    host_princ_template = "host/{master}@{realm}"
+    valid_etypes = ['aes256-cts-hmac-sha1-96', 'aes128-cts-hmac-sha1-96']
+
+    def extract_key_refs(self, keytab):
+        host_princ = self.host_princ_template.format(
+            master=self.api.host, realm=self.api.realm)
+        result = ipautil.run([paths.KLIST, "-etK", "-k", keytab],
+                             capture_output=True, raiseonerr=False,
+                             nolog_output=True)
+        if result.returncode != 0:
+            return None
+
+        keys_to_sync = []
+        for l in result.output.splitlines():
+            if (host_princ in l and any(e in l for e in self.valid_etypes)):
+
+                els = l.split()
+                els[4] = els[4].strip('()')
+                els[5] = els[5].strip('()')
+                keys_to_sync.append(KeyEntry._make(els))
+
+        return keys_to_sync
+
+    def copy_key(self, keytab, keyentry):
+        # keyentry.key is a hex value of the actual key
+        # prefixed with 0x, as produced by klist -K -k.
+        # However, ktutil accepts hex value without 0x, so
+        # we should strip first two characters.
+        stdin = dedent("""\
+        rkt {keytab}
+        addent -key -p {principal} -k {kvno} -e {etype}
+        {key}
+        wkt {keytab}
+        """).format(keytab=keytab, principal=keyentry.principal,
+                    kvno=keyentry.kvno, etype=keyentry.etype,
+                    key=keyentry.key[2:])
+
+        result = ipautil.run([paths.KTUTIL], stdin=stdin, raiseonerr=False,
+                             umask=0o077, nolog_output=True)
+
+        if result.returncode != 0:
+            logger.warning('Unable to update %s with new keys', keytab)
+
+    def execute(self, **options):
+        # First, see if trusts are enabled on the server
+        if not self.api.Command.adtrust_is_enabled()['result']:
+            logger.debug('AD Trusts are not enabled on this server')
+            return False, []
+
+        # Extract keys from the host and samba keytabs
+        hostkeys = self.extract_key_refs(paths.KRB5_KEYTAB)
+        cifskeys = self.extract_key_refs(paths.SAMBA_KEYTAB)
+        if any([hostkeys is None, cifskeys is None]):
+            logger.warning('Either %s or %s are missing or unreadable',
+                           paths.KRB5_KEYTAB, paths.SAMBA_KEYTAB)
+            return False, []
+
+        # If there are missing host keys in the samba keytab, copy them over
+        # Also copy those keys that differ in the content and/or KVNO
+        for hostkey in hostkeys:
+            copied = False
+            uptodate = False
+            for cifskey in cifskeys:
+                if all([cifskey.principal == hostkey.principal,
+                        cifskey.etype == hostkey.etype]):
+                    if any([cifskey.key != hostkey.key,
+                            cifskey.kvno != hostkey.kvno]):
+                        self.copy_key(paths.SAMBA_KEYTAB, hostkey)
+                        copied = True
+                        break
+                    else:
+                        uptodate = True
+            if not (copied or uptodate):
+                self.copy_key(paths.SAMBA_KEYTAB, hostkey)
 
         return False, []
