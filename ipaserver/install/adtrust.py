@@ -22,8 +22,10 @@ from ipapython.admintool import ScriptError
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
 from ipapython.install.core import group, knob
+from ipaserver.install import installutils
 from ipaserver.install import adtrustinstance
 from ipaserver.install import service
+from ipaserver.install.plugins.adtrust import update_host_cifs_keytabs
 
 
 if six.PY3:
@@ -425,6 +427,16 @@ def install(standalone, options, fstore, api):
               enable_compat=options.enable_compat)
     smb.find_local_id_range()
     smb.create_instance()
+
+    # Update Samba keytab with host keys
+    ad_update = update_host_cifs_keytabs(api)
+    if ad_update:
+        result = ad_update()
+        # this particular update does not require restarting DS but
+        # the plugin might require that in future
+        if result[0]:
+            logger.debug('Restarting directory server to apply updates')
+            installutils.restart_dirsrv()
 
     if options.add_agents:
         # Find out IPA masters which are not part of the cn=adtrust agents
