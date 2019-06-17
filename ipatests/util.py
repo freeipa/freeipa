@@ -67,12 +67,16 @@ if six.PY3:
 
 PYTEST_VERSION = tuple(int(v) for v in pytest.__version__.split('.'))
 
+# settings are configured by conftest
+IPACLIENT_UNITTESTS = None
+SKIP_IPAAPI = None
+PRETTY_PRINT = None
+
 
 def check_ipaclient_unittests(reason="Skip in ipaclient unittest mode"):
     """Call this in a package to skip the package in ipaclient-unittest mode
     """
-    config = pytest.config  # pylint: disable=no-member
-    if config.getoption('ipaclient_unittests', False):
+    if IPACLIENT_UNITTESTS:
         if PYTEST_VERSION[0] >= 3:
             # pytest 3+ does no longer allow pytest.skip() on module level
             # pylint: disable=unexpected-keyword-arg
@@ -85,8 +89,7 @@ def check_ipaclient_unittests(reason="Skip in ipaclient unittest mode"):
 def check_no_ipaapi(reason="Skip tests that needs an IPA API"):
     """Call this in a package to skip the package in no-ipaapi mode
     """
-    config = pytest.config  # pylint: disable=no-member
-    if config.getoption('skip_ipaapi', False):
+    if SKIP_IPAAPI:
         if PYTEST_VERSION[0] >= 3:
             # pylint: disable=unexpected-keyword-arg
             raise pytest.skip.Exception(reason, allow_module_level=True)
@@ -384,12 +387,7 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     Note that lists and tuples are considered equivalent, and the order of
     their elements does not matter.
     """
-    try:
-        pretty_print = pytest.config.getoption("pretty_print")
-    except (AttributeError, ValueError):
-        pretty_print = False
-
-    if pretty_print:
+    if PRETTY_PRINT:
         expected_str = struct_to_string(expected, EXPECTED_LEN)
         got_str = struct_to_string(got, GOT_LEN)
     else:
