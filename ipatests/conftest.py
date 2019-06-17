@@ -13,6 +13,7 @@ import pytest
 
 from ipalib import api
 from ipalib.cli import cli_plugins
+import ipatests.util
 
 try:
     import ipaplatform  # pylint: disable=unused-import
@@ -84,6 +85,11 @@ def pytest_configure(config):
     # always run doc tests
     config.option.doctestmodules = True
 
+    # apply global options
+    ipatests.util.SKIP_IPAAPI = config.option.skip_ipaapi
+    ipatests.util.IPACLIENT_UNITTESTS = config.option.ipaclient_unittests
+    ipatests.util.PRETTY_PRINT = config.option.pretty_print
+
 
 def pytest_addoption(parser):
     group = parser.getgroup("IPA integration tests")
@@ -135,11 +141,11 @@ def pytest_runtest_setup(item):
             get_marker = item.get_marker  # pylint: disable=no-member
         if get_marker('skip_ipaclient_unittest'):
             # pylint: disable=no-member
-            if pytest.config.option.ipaclient_unittests:
+            if item.config.option.ipaclient_unittests:
                 pytest.skip("Skip in ipaclient unittest mode")
         if get_marker('needs_ipaapi'):
             # pylint: disable=no-member
-            if pytest.config.option.skip_ipaapi:
+            if item.config.option.skip_ipaapi:
                 pytest.skip("Skip tests that needs an IPA API")
 
 

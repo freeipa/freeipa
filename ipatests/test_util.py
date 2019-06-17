@@ -152,10 +152,10 @@ class test_Fuzzy:
         assert (None == self.klass()) is True
 
 
-def test_assert_deepequal():
+def test_assert_deepequal(pytestconfig):
     f = util.assert_deepequal
     try:  # pylint: disable=no-member
-        pretty = pytest.config.getoption("pretty_print")
+        pretty = pytestconfig.getoption("pretty_print")
     except (AttributeError, ValueError):
         pretty = False
 
