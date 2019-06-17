@@ -259,7 +259,7 @@ class test_CSRGenerator(object):
 
         with pytest.raises(
                 errors.CSRTemplateError,
-                message='unrecognised attribute type: X'):
+                match=r'^unrecognised attribute type: X$'):
             csrgen_ffi.build_requestinfo(
                 config.encode('utf-8'), adaptor.get_subject_public_key_info())
 
