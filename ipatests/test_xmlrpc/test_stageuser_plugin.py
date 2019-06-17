@@ -9,6 +9,7 @@ Test the `ipaserver/plugins/stageuser.py` module.
 import pytest
 
 import six
+import unittest
 
 from collections import OrderedDict
 from ipalib import api, errors
@@ -19,6 +20,13 @@ from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 from ipatests.test_xmlrpc.tracker.group_plugin import GroupTracker
 from ipatests.test_xmlrpc.tracker.stageuser_plugin import StageUserTracker
+
+try:
+    from ipaserver.plugins.ldap2 import ldap2
+except ImportError:
+    have_ldap2 = False
+else:
+    have_ldap2 = True
 
 if six.PY3:
     unicode = str
@@ -112,6 +120,12 @@ def stageduser3(request):
 @pytest.fixture(scope='class')
 def stageduser4(request):
     tracker = StageUserTracker(u'tuser', u'test', u'user')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def stageduser_notposix(request):
+    tracker = StageUserTracker(u'notposix', u'notposix', u'notposix')
     return tracker.make_fixture(request)
 
 
@@ -293,6 +307,31 @@ class TestStagedUser(XMLRPC_test):
                           expected_updates=dict(
                               uidnumber=[uid], gidnumber=[gid]))
         stageduser.retrieve()
+
+    def test_without_posixaccount(self, stageduser_notposix):
+        """Test stageuser-find when the staged user is not a posixaccount.
+        """
+        stageduser_notposix.ensure_missing()
+
+        # Directly create the user using ldapmod
+        # without the posixaccount objectclass
+        if not have_ldap2:
+            raise unittest.SkipTest('server plugin not available')
+        ldap = ldap2(api)
+        ldap.connect()
+        ldap.create(
+            dn=stageduser_notposix.dn,
+            objectclass=[u'inetorgperson', u'organizationalperson', u'person'],
+            uid=stageduser_notposix.uid,
+            sn=stageduser_notposix.sn,
+            givenname=stageduser_notposix.givenname,
+            cn=stageduser_notposix.uid
+        )
+        # Check that stageuser-find correctly finds the user
+        command = stageduser_notposix.make_find_command(
+            uid=stageduser_notposix.uid)
+        result = command()
+        assert result['count'] == 1
 
 
 @pytest.mark.tier1
