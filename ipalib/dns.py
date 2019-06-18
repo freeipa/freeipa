@@ -55,7 +55,7 @@ def get_extra_rrtype(name):
 
 
 def has_cli_options(cmd, options, no_option_msg, allow_empty_attrs=False):
-    sufficient = ('setattr', 'addattr', 'delattr', 'rename')
+    sufficient = ('setattr', 'addattr', 'delattr', 'rename', 'dnsttl')
     if any(k in options for k in sufficient):
         return
 
