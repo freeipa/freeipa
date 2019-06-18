@@ -1948,6 +1948,34 @@ class test_dns(Declarative):
             },
         ),
 
+        dict(
+            desc='Modify ttl of record %r in zone %r' % (name1, zone1),
+            command=('dnsrecord_mod', [zone1, name1], {'dnsttl': 500}),
+            expected={
+                'value': name1_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [name1_dnsname],
+                    'dnsttl': ['500'],
+                    'arecord': [revname2_ip],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Delete ttl of record %r in zone %r' % (name1, zone1),
+            command=('dnsrecord_mod', [zone1, name1], {'dnsttl': None}),
+            expected={
+                'value': name1_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [name1_dnsname],
+                    'arecord': [revname2_ip],
+                },
+            },
+        ),
+
 
         dict(
             desc='Try to add per-zone permission for unknown zone',
