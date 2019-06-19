@@ -13,6 +13,7 @@ from custodia.message.kem import KEMClient, KEY_USAGE_SIG, KEY_USAGE_ENC
 from jwcrypto.common import json_decode
 from jwcrypto.jwk import JWK
 from ipalib.krb_utils import krb5_format_service_principal_name
+from ipaserver.install.installutils import realm_to_ldapi_uri
 from ipaserver.secrets.kem import IPAKEMKeys
 from ipaserver.secrets.store import IPASecStore
 from ipaplatform.paths import paths
@@ -46,7 +47,7 @@ class CustodiaClient(object):
         self.keytab = keytab
         self.server = server
         self.realm = realm
-        self.ldap_uri = ldap_uri
+        self.ldap_uri = ldap_uri or realm_to_ldapi_uri(realm)
         self.auth_type = auth_type
         self.service_name = gssapi.Name(
             'HTTP@{}'.format(server), gssapi.NameType.hostbased_service
