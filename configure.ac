@@ -509,6 +509,7 @@ AC_CONFIG_FILES([
     client/Makefile
     client/share/Makefile
     client/man/Makefile
+    client/sysconfig/Makefile
     contrib/completion/Makefile
     contrib/Makefile
     daemons/dnssec/Makefile
