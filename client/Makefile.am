@@ -92,6 +92,7 @@ ipa_join_LDADD = 		\
 SUBDIRS =			\
 	share		\
 	man			\
+	sysconfig	\
 	$(NULL)
 
 noinst_HEADERS =		\
