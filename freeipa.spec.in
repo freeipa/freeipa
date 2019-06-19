@@ -1546,6 +1546,7 @@ fi
 %{_sbindir}/ipa-join
 %{_bindir}/ipa
 %config %{_sysconfdir}/bash_completion.d
+%config %{_sysconfdir}/sysconfig/certmonger
 %{_mandir}/man1/ipa.1*
 %{_mandir}/man1/ipa-getkeytab.1*
 %{_mandir}/man1/ipa-rmkeytab.1*
