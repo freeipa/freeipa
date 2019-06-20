@@ -72,10 +72,10 @@ def service_in_service_subtree(request):
     return princ
 
 
-@pytest.fixture(params=[service_in_kerberos_subtree,
-                        service_in_service_subtree])
+@pytest.fixture(params=["service_in_kerberos_subtree",
+                        "service_in_service_subtree"])
 def service(request):
-    return request.param(request)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.mark.skipif(

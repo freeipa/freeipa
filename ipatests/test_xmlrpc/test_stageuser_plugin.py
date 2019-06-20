@@ -89,48 +89,48 @@ options_ids = list(options_def.keys())
 
 
 @pytest.fixture(scope='class')
-def stageduser(request):
+def stageduser(request, xmlrpc_setup):
     tracker = StageUserTracker(name=u'suser1', givenname=u'staged', sn=u'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def stageduser_min(request):
+def stageduser_min(request, xmlrpc_setup):
     tracker = StageUserTracker(givenname=u'stagedmin', sn=u'usermin')
     return tracker.make_fixture(request)
 
 @pytest.fixture(scope='class', params=options_ok, ids=options_ids)
-def stageduser2(request):
+def stageduser2(request, xmlrpc_setup):
     tracker = StageUserTracker(u'suser2', u'staged', u'user', **request.param)
     return tracker.make_fixture_activate(request)
 
 
 @pytest.fixture(scope='class')
-def user_activated(request):
+def user_activated(request, xmlrpc_setup):
     tracker = UserTracker(u'suser2', u'staged', u'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def stageduser3(request):
+def stageduser3(request, xmlrpc_setup):
     tracker = StageUserTracker(name=u'suser3', givenname=u'staged', sn=u'user')
     return tracker.make_fixture_activate(request)
 
 
 @pytest.fixture(scope='class')
-def stageduser4(request):
+def stageduser4(request, xmlrpc_setup):
     tracker = StageUserTracker(u'tuser', u'test', u'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def stageduser_notposix(request):
+def stageduser_notposix(request, xmlrpc_setup):
     tracker = StageUserTracker(u'notposix', u'notposix', u'notposix')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def stageduser_customattr(request):
+def stageduser_customattr(request, xmlrpc_setup):
     tracker = StageUserTracker(u'customattr', u'customattr', u'customattr',
                                setattr=u'businesscategory=BusinessCat')
     tracker.track_create()
@@ -141,43 +141,43 @@ def stageduser_customattr(request):
 
 
 @pytest.fixture(scope='class')
-def user(request):
+def user(request, xmlrpc_setup):
     tracker = UserTracker(u'auser1', u'active', u'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user2(request):
+def user2(request, xmlrpc_setup):
     tracker = UserTracker(u'suser3', u'staged', u'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user3(request):
+def user3(request, xmlrpc_setup):
     tracker = UserTracker(u'auser2', u'active', u'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user4(request):
+def user4(request, xmlrpc_setup):
     tracker = UserTracker(u'tuser', u'test', u'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user5(request):
+def user5(request, xmlrpc_setup):
     tracker = UserTracker(u'tuser', u'test', u'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user6(request):
+def user6(request, xmlrpc_setup):
     tracker = UserTracker(u'suser2', u'staged', u'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user7(request):
+def user7(request, xmlrpc_setup):
     tracker = UserTracker(u'puser1', u'preserved', u'user')
     return tracker.make_fixture_restore(request)
 
@@ -734,7 +734,7 @@ class TestDuplicates(XMLRPC_test):
 
 
 @pytest.fixture(scope='class')
-def group(request):
+def group(request, xmlrpc_setup):
     tracker = GroupTracker(u'testgroup')
     return tracker.make_fixture(request)
 

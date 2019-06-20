@@ -30,34 +30,34 @@ import pytest
 
 
 @pytest.fixture(scope='class')
-def sudocmd1(request):
+def sudocmd1(request, xmlrpc_setup):
     tracker = SudoCmdTracker(command=u'/usr/bin/sudotestcmd1',
                              description=u'Test sudo command 1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def sudocmd2(request):
+def sudocmd2(request, xmlrpc_setup):
     tracker = SudoCmdTracker(command=u'/usr/bin/sudoTestCmd1',
                              description=u'Test sudo command 2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def sudocmd_plus(request):
+def sudocmd_plus(request, xmlrpc_setup):
     tracker = SudoCmdTracker(command=u'/bin/ls -l /lost+found/*',
                              description=u'Test sudo command 3')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def sudocmdgroup1(request):
+def sudocmdgroup1(request, xmlrpc_setup):
     tracker = SudoCmdGroupTracker(u'testsudocmdgroup1', u'Test desc1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def sudocmdgroup2(request):
+def sudocmdgroup2(request, xmlrpc_setup):
     tracker = SudoCmdGroupTracker(u'testsudocmdgroup2', u'Test desc2')
     return tracker.make_fixture(request)
 
