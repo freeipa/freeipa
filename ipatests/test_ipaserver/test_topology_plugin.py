@@ -20,15 +20,17 @@ class TestTopologyPlugin:
     """
     pwfile = os.path.join(api.env.dot_ipa, ".dmpw")
 
-    def setup(self):
+    @pytest.fixture(autouse=True)
+    def topologyplugin_setup(self, request):
         """
         setup for test
         """
         self.conn = None
 
-    def teardown(self):
-        if self.conn and self.conn.isconnected():
-            self.conn.disconnect()
+        def fin():
+            if self.conn and self.conn.isconnected():
+                self.conn.disconnect()
+        request.addfinalizer(fin)
 
     @pytest.mark.skipif(os.path.isfile(pwfile) is False,
                         reason="You did not provide a .dmpw file with the DM password")

@@ -41,7 +41,8 @@ class test_keyring:
     Test the kernel keyring interface
     """
 
-    def setup(self):
+    @pytest.fixture(autouse=True)
+    def keyring_setup(self):
         try:
             kernel_keyring.del_key(TEST_KEY)
         except ValueError:

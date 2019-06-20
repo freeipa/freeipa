@@ -63,7 +63,7 @@ def generate_user_csr(username, domain=None):
 
 
 @pytest.fixture(scope='class')
-def smime_profile(request):
+def smime_profile(request, xmlrpc_setup):
     profile_path = prepare_config(
             SMIME_PROFILE_TEMPLATE,
             dict(ipadomain=api.env.domain, iparealm=api.env.realm))
@@ -76,7 +76,7 @@ def smime_profile(request):
 
 
 @pytest.fixture(scope='class')
-def smime_acl(request):
+def smime_acl(request, xmlrpc_setup):
     tracker = CAACLTracker(u'smime_acl')
 
     return tracker.make_fixture(request)
@@ -86,7 +86,7 @@ def smime_acl(request):
 # UserTracker has problems while setting passwords.
 # Until fixed, will use this fixture.
 @pytest.fixture(scope='class')
-def smime_user(request):
+def smime_user(request, xmlrpc_setup):
     username = u'alice'
     api.Command.user_add(uid=username, givenname=u'Alice', sn=u'SMIME',
                          userpassword=SMIME_USER_INIT_PW)
@@ -101,7 +101,7 @@ def smime_user(request):
 
 
 @pytest.fixture(scope='class')
-def smime_group(request):
+def smime_group(request, xmlrpc_setup):
     api.Command.group_add(u'smime_users')
 
     def fin():
@@ -259,7 +259,7 @@ class TestSignWithChangedProfile(XMLRPC_test):
 
 
 @pytest.fixture(scope='class')
-def smime_signing_ca(request):
+def smime_signing_ca(request, xmlrpc_setup):
     name = u'smime-signing-ca'
     subject = u'CN=SMIME CA,O=test industries Inc.'
     return CATracker(name, subject).make_fixture(request)
@@ -368,7 +368,7 @@ class TestCertSignMIMEwithSubCA(XMLRPC_test):
 
 
 @pytest.fixture(scope='class')
-def santest_subca(request):
+def santest_subca(request, xmlrpc_setup):
     name = u'default-profile-subca'
     subject = u'CN={},O=test'.format(name)
     tr = CATracker(name, subject)
@@ -376,19 +376,19 @@ def santest_subca(request):
 
 
 @pytest.fixture(scope='class')
-def santest_subca_acl(request):
+def santest_subca_acl(request, xmlrpc_setup):
     tr = CAACLTracker(u'default_profile_subca')
     return tr.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def santest_host_1(request):
+def santest_host_1(request, xmlrpc_setup):
     tr = HostTracker(u'santest-host-1')
     return tr.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def santest_host_2(request):
+def santest_host_2(request, xmlrpc_setup):
     tr = HostTracker(u'santest-host-2')
     return tr.make_fixture(request)
 

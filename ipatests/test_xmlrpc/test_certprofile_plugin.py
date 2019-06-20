@@ -44,7 +44,7 @@ RENAME_ERR_TEMPL = (
 
 
 @pytest.fixture(scope='class')
-def default_profile(request):
+def default_profile(request, xmlrpc_setup):
     name = 'caIPAserviceCert'
     desc = u'Standard profile for network services'
     tracker = CertprofileTracker(name, store=True, desc=desc)
@@ -53,7 +53,7 @@ def default_profile(request):
 
 
 @pytest.fixture(scope='class')
-def user_profile(request):
+def user_profile(request, xmlrpc_setup):
     name = 'caIPAserviceCert_mod'
     profile_path = prepare_config(
         CA_IPA_SERVICE_MODIFIED_TEMPLATE,
@@ -70,7 +70,7 @@ def user_profile(request):
 
 
 @pytest.fixture(scope='class')
-def malformed(request):
+def malformed(request, xmlrpc_setup):
     name = u'caIPAserviceCert_mal'
     profile_path = prepare_config(
         CA_IPA_SERVICE_MALFORMED_TEMPLATE,
@@ -86,7 +86,7 @@ def malformed(request):
 
 
 @pytest.fixture(scope='class')
-def xmlprofile(request):
+def xmlprofile(request, xmlrpc_setup):
     name = u'caIPAserviceCert_xml'
     profile_path = prepare_config(
         CA_IPA_SERVICE_XML_TEMPLATE,

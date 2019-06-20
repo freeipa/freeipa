@@ -29,7 +29,7 @@ import pytest
 
 
 @pytest.fixture(scope='class')
-def user(request):
+def user(request, xmlrpc_setup):
     tracker = UserTracker(name=u'user1', givenname=u'Test', sn=u'User1')
     return tracker.make_fixture(request)
 

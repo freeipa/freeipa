@@ -83,32 +83,32 @@ isodate_re = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
 
 
 @pytest.fixture(scope='class')
-def user_min(request):
+def user_min(request, xmlrpc_setup):
     """ User tracker fixture for testing user with uid no specified """
     tracker = UserTracker(givenname=u'Testmin', sn=u'Usermin')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user(request):
+def user(request, xmlrpc_setup):
     tracker = UserTracker(name=u'user1', givenname=u'Test', sn=u'User1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user2(request):
+def user2(request, xmlrpc_setup):
     tracker = UserTracker(name=u'user2', givenname=u'Test2', sn=u'User2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def renameduser(request):
+def renameduser(request, xmlrpc_setup):
     tracker = UserTracker(name=u'ruser1', givenname=u'Ruser', sn=u'Ruser1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def admin2(request):
+def admin2(request, xmlrpc_setup):
     tracker = UserTracker(name=u'admin2', givenname=u'Second', sn=u'Admin')
     return tracker.make_fixture(request)
 
@@ -142,7 +142,7 @@ def user_npg2(request, group):
 
 
 @pytest.fixture(scope='class')
-def user_radius(request):
+def user_radius(request, xmlrpc_setup):
     """ User tracker fixture for testing users with radius user name """
     tracker = UserTracker(name=u'radiususer', givenname=u'radiususer',
                           sn=u'radiususer1',
@@ -155,7 +155,7 @@ def user_radius(request):
 
 
 @pytest.fixture(scope='class')
-def group(request):
+def group(request, xmlrpc_setup):
     tracker = GroupTracker(name=u'group1')
     return tracker.make_fixture(request)
 
@@ -797,15 +797,14 @@ class TestUserWithUPGDisabled(XMLRPC_test):
         assert action in ('enable', 'disable')
         ipautil.run(['ipa-managed-entries', '-e', 'UPG Definition', action])
 
-    @classmethod
-    def setup_class(cls):
-        super(TestUserWithUPGDisabled, cls).setup_class()
+    @pytest.fixture(autouse=True, scope="class")
+    def user_with_upg_disabled_setup(self, request, xmlrpc_setup):
+        cls = request.cls
         cls.managed_entries_upg(action='disable')
 
-    @classmethod
-    def teardown_class(cls):
-        cls.managed_entries_upg(action='enable')
-        super(TestUserWithUPGDisabled, cls).teardown_class()
+        def fin():
+            cls.managed_entries_upg(action='enable')
+        request.addfinalizer(fin)
 
     def test_create_without_upg(self):
         """ Try to create user without User's Primary GID
@@ -1073,19 +1072,15 @@ class TestValidation(XMLRPC_test):
 class TestDeniedBindWithExpiredPrincipal(XMLRPC_test):
 
     password = u'random'
+    connection = None
 
-    @classmethod
-    def setup_class(cls):
-        super(TestDeniedBindWithExpiredPrincipal, cls).setup_class()
-
+    @pytest.fixture(autouse=True, scope="class")
+    def bind_with_expired_principal_setup(self, request, xmlrpc_setup):
+        cls = request.cls
         cls.connection = ldap_initialize(
             'ldap://{host}'.format(host=api.env.host)
         )
         cls.connection.start_tls_s()
-
-    @classmethod
-    def teardown_class(cls):
-        super(TestDeniedBindWithExpiredPrincipal, cls).teardown_class()
 
     def test_bind_as_test_user(self, user):
         """ Bind as user """

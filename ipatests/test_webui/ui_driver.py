@@ -162,19 +162,22 @@ class UI_driver:
 
     request_timeout = 60
 
-    @classmethod
-    def setup_class(cls):
+    @pytest.fixture(autouse=True, scope="class")
+    def ui_driver_setup(self, request):
+        cls = request.cls
         if NO_SELENIUM:
             raise unittest.SkipTest('Selenium not installed')
         cls.load_config()
 
-    def setup(self):
+    @pytest.fixture(autouse=True)
+    def ui_driver_fsetup(self, request):
         self.driver = self.get_driver()
         self.driver.maximize_window()
 
-    def teardown(self):
-        self.driver.delete_all_cookies()
-        self.driver.quit()
+        def fin():
+            self.driver.delete_all_cookies()
+            self.driver.quit()
+        request.addfinalizer(fin)
 
     @classmethod
     def load_config(cls):

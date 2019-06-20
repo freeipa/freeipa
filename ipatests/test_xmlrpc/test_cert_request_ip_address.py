@@ -46,7 +46,7 @@ ipv6_revrec_s = 'a.f.5.9.9.9.2.4.b.a.d.b.8.1.f.8'
 
 
 @pytest.fixture(scope='class')
-def host(request):
+def host(request, xmlrpc_setup):
     tr = HostTracker('iptest')
     return tr.make_fixture(request)
 

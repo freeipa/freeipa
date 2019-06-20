@@ -9,6 +9,8 @@ from abc import ABCMeta, abstractproperty
 from collections import namedtuple
 import itertools
 
+import pytest
+
 from ipatests.util import assert_equal
 from ipaserver.install.ipa_replica_install import ReplicaInstall
 
@@ -23,16 +25,18 @@ class InstallerTestBase(six.with_metaclass(ABCMeta, object)):
     def tested_cls(self):
         return None
 
-    def setup_class(self):
+    @pytest.fixture(autouse=True, scope="class")
+    def installer_setup(self, request):
         """Initializes the tested class so that it can be used later on
         """
-        self.tested_cls.make_parser()
+        cls = request.cls
+        cls.tested_cls.make_parser()
         assert \
-            getattr(self.tested_cls, 'option_parser', False), \
+            getattr(cls.tested_cls, 'option_parser', False), \
             ("Unable to generate option parser for {}"
-             .format(self.tested_cls.__name__))
+             .format(cls.tested_cls.__name__))
 
-        self._populate_opts_dict()
+        cls._populate_opts_dict()
 
     @classmethod
     def _populate_opts_dict(cls):

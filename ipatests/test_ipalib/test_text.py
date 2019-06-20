@@ -77,7 +77,8 @@ class test_TestLang:
 
         os.environ.update(self.saved_locale)
 
-    def setup(self):
+    @pytest.fixture(autouse=True)
+    def testlang_setup(self, request):
         self.tmp_dir = None
         self.setup_lang()
 
@@ -117,11 +118,12 @@ class test_TestLang:
 
         self.po_file_iterate = po_file_iterate
 
-    def teardown(self):
-        self.teardown_lang()
+        def fin():
+            self.teardown_lang()
 
-        if self.tmp_dir is not None:
-            shutil.rmtree(self.tmp_dir)
+            if self.tmp_dir is not None:
+                shutil.rmtree(self.tmp_dir)
+        request.addfinalizer(fin)
 
     def test_test_lang(self):
         print("test_test_lang")

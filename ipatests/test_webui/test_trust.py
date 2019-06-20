@@ -45,6 +45,10 @@ CONFIG_DATA2 = {
 @pytest.mark.tier1
 class trust_tasks(UI_driver):
 
+    @pytest.fixture(autouse=True)
+    def trusttasks_setup(self, ui_driver_fsetup):
+        pass
+
     def get_data(self, add_data=None):
 
         domain = self.config.get('ad_domain')
@@ -100,8 +104,8 @@ class test_trust(trust_tasks):
 
     request_timeout = 120
 
-    def setup(self, *args, **kwargs):
-        super(test_trust, self).setup(*args, **kwargs)
+    @pytest.fixture(autouse=True)
+    def trust_setup(self, trusttasks_setup):
         if not self.has_trusts():
             self.skip('Trusts not configured')
 

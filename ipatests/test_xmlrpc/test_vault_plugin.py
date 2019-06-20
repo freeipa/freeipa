@@ -134,16 +134,13 @@ veCYju6ok4ZWnMiH8MR1jgC39RWtjJZwynCuPXUP2/vZkoVf1tCZyz7dSm8TdS/2
 
 @pytest.mark.tier1
 class test_vault_plugin(Declarative):
-
-    @classmethod
-    def setup_class(cls):
+    @pytest.fixture(autouse=True, scope="class")
+    def vault_plugin_setup(self, declarative_setup):
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect()
 
         if not api.Command.kra_is_enabled()['result']:
             raise unittest.SkipTest('KRA service is not enabled')
-
-        super(test_vault_plugin, cls).setup_class()
 
     cleanup_commands = [
         ('vault_del', [vault_name], {'continue': True}),

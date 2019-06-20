@@ -187,8 +187,8 @@ class Location:
 @pytest.mark.tier1
 class TestAutomount(UI_driver):
 
-    def setup(self):
-        super().setup()
+    @pytest.fixture(autouse=True)
+    def automount_setup(self, ui_driver_fsetup):
         self.init_app()
 
     def add_key(self, key, mount_info, **kwargs):

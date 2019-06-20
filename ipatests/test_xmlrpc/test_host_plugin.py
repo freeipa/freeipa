@@ -108,37 +108,37 @@ ipv4_in_missingrevzone_ip = u'172.16.30.22'
 
 
 @pytest.fixture(scope='class')
-def host(request):
+def host(request, xmlrpc_setup):
     tracker = HostTracker(name=u'testhost1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def host2(request):
+def host2(request, xmlrpc_setup):
     tracker = HostTracker(name=u'testhost2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def host3(request):
+def host3(request, xmlrpc_setup):
     tracker = HostTracker(name=u'testhost3')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def host4(request):
+def host4(request, xmlrpc_setup):
     tracker = HostTracker(name=u'testhost4')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def host5(request):
+def host5(request, xmlrpc_setup):
     tracker = HostTracker(name=u'testhost5')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def lab_host(request):
+def lab_host(request, xmlrpc_setup):
     name = u'testhost1'
     tracker = HostTracker(name=name,
                           fqdn=u'%s.lab.%s' % (name, api.env.domain))
@@ -146,7 +146,7 @@ def lab_host(request):
 
 
 @pytest.fixture(scope='class')
-def this_host(request):
+def this_host(request, xmlrpc_setup):
     """Fixture for the current master"""
     tracker = HostTracker(name=api.env.host.partition('.')[0],
                           fqdn=api.env.host)
@@ -158,41 +158,41 @@ def this_host(request):
 
 
 @pytest.fixture(scope='class')
-def invalid_host(request):
+def invalid_host(request, xmlrpc_setup):
     tracker = HostTracker(name='foo_bar',)
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def ipv6only_host(request):
+def ipv6only_host(request, xmlrpc_setup):
     name = u'testipv6onlyhost'
     tracker = HostTracker(name=name, fqdn=u'%s.%s' % (name, dnszone))
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def ipv4only_host(request):
+def ipv4only_host(request, xmlrpc_setup):
     name = u'testipv4onlyhost'
     tracker = HostTracker(name=name, fqdn=u'%s.%s' % (name, dnszone))
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def ipv46both_host(request):
+def ipv46both_host(request, xmlrpc_setup):
     name = u'testipv4and6host'
     tracker = HostTracker(name=name, fqdn=u'%s.%s' % (name, dnszone))
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def ipv4_fromip_host(request):
+def ipv4_fromip_host(request, xmlrpc_setup):
     name = u'testipv4fromip'
     tracker = HostTracker(name=name, fqdn=u'%s.%s' % (name, dnszone))
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def ipv6_fromip_host(request):
+def ipv6_fromip_host(request, xmlrpc_setup):
     name = u'testipv6fromip'
     tracker = HostTracker(name=name, fqdn=u'%s.%s' % (name, dnszone))
     return tracker.make_fixture(request)

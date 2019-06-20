@@ -368,10 +368,38 @@ IPA_LOCAL_RANGE_MOD_ERR = (
 
 @pytest.mark.tier1
 class test_range(Declarative):
-    @classmethod
-    def setup_class(cls):
-        super(test_range, cls).setup_class()
-        cls.teardown_class()
+    mockldap = None
+
+    @pytest.fixture(autouse=True, scope="class")
+    def range_setup(self, request, declarative_setup):
+        cls = request.cls
+
+        def fin():
+            cls.mockldap = MockLDAP()
+
+            cls.mockldap.del_entry(domain2_dn)
+            cls.mockldap.del_entry(domain3_dn)
+            cls.mockldap.del_entry(domain4_dn)
+            cls.mockldap.del_entry(domain5_dn)
+            cls.mockldap.del_entry(domain6_dn)
+            cls.mockldap.del_entry(domain7_dn)
+
+            cls.mockldap.del_entry(domain1range1_dn)
+            cls.mockldap.del_entry(domain2range1_dn)
+            cls.mockldap.del_entry(domain2range2_dn)
+            cls.mockldap.del_entry(domain3range1_dn)
+            cls.mockldap.del_entry(domain3range2_dn)
+            cls.mockldap.del_entry(domain4range1_dn)
+            cls.mockldap.del_entry(domain5range1_dn)
+            cls.mockldap.del_entry(domain5range2_dn)
+            cls.mockldap.del_entry(domain6range1_dn)
+            cls.mockldap.del_entry(domain7range1_dn)
+            cls.mockldap.del_entry(trust_container_dn)
+            cls.mockldap.del_entry(trust_local_dn)
+            cls.mockldap.del_entry(smb_cont_dn)
+            cls.mockldap.unbind()
+
+        fin()
         cls.mockldap = MockLDAP()
         cls.mockldap.add_entry(trust_container_dn, trust_container_add)
         cls.mockldap.add_entry(smb_cont_dn, smb_cont_add)
@@ -395,31 +423,7 @@ class test_range(Declarative):
         cls.mockldap.add_entry(domain6range1_dn, domain6range1_add)
         cls.mockldap.unbind()
 
-    @classmethod
-    def teardown_class(cls):
-        cls.mockldap = MockLDAP()
-
-        cls.mockldap.del_entry(domain2_dn)
-        cls.mockldap.del_entry(domain3_dn)
-        cls.mockldap.del_entry(domain4_dn)
-        cls.mockldap.del_entry(domain5_dn)
-        cls.mockldap.del_entry(domain6_dn)
-        cls.mockldap.del_entry(domain7_dn)
-
-        cls.mockldap.del_entry(domain1range1_dn)
-        cls.mockldap.del_entry(domain2range1_dn)
-        cls.mockldap.del_entry(domain2range2_dn)
-        cls.mockldap.del_entry(domain3range1_dn)
-        cls.mockldap.del_entry(domain3range2_dn)
-        cls.mockldap.del_entry(domain4range1_dn)
-        cls.mockldap.del_entry(domain5range1_dn)
-        cls.mockldap.del_entry(domain5range2_dn)
-        cls.mockldap.del_entry(domain6range1_dn)
-        cls.mockldap.del_entry(domain7range1_dn)
-        cls.mockldap.del_entry(trust_container_dn)
-        cls.mockldap.del_entry(trust_local_dn)
-        cls.mockldap.del_entry(smb_cont_dn)
-        cls.mockldap.unbind()
+        request.addfinalizer(fin)
 
     cleanup_commands = [
         ('idrange_del', [testrange1, testrange2, testrange3, testrange4,

@@ -78,11 +78,13 @@ def is_db_configured():
 class BaseCert(XMLRPC_test):
     host_fqdn = u'ipatestcert.%s' % api.env.domain
     service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
+    certfile = None
+    nssdb = None
+    reqfile = None
+    subject = None
 
-    @classmethod
-    def setup_class(cls):
-        super(BaseCert, cls).setup_class()
-
+    @pytest.fixture(autouse=True, scope="class")
+    def basecert_setup(self, request, xmlrpc_setup):
         if 'cert_request' not in api.Command:
             raise unittest.SkipTest('cert_request not registered')
         if 'cert_show' not in api.Command:
@@ -90,7 +92,8 @@ class BaseCert(XMLRPC_test):
 
         is_db_configured()
 
-    def setup(self):
+    @pytest.fixture(autouse=True)
+    def basecert_fsetup(self, request):
         self.nssdb = NSSDatabase()
         secdir = self.nssdb.secdir
         self.reqfile = os.path.join(secdir, "test.csr")
@@ -99,8 +102,9 @@ class BaseCert(XMLRPC_test):
         self.nssdb.create_db()
         self.subject = DN(('CN', self.host_fqdn), subject_base())
 
-    def teardown(self):
-        self.nssdb.close()  # remove tempdir
+        def fin():
+            self.nssdb.close()
+        request.addfinalizer(fin)
 
     def generateCSR(self, subject):
         self.nssdb.run_certutil([
@@ -115,11 +119,6 @@ class BaseCert(XMLRPC_test):
 
 @pytest.mark.tier1
 class test_cert(BaseCert):
-
-    @classmethod
-    def setup_class(cls):
-        super(test_cert, cls).setup_class()
-
     """
     Test the `cert` plugin.
     """
@@ -270,11 +269,11 @@ class test_cert(BaseCert):
 
 @pytest.mark.tier1
 class test_cert_find(XMLRPC_test):
-
-    @classmethod
-    def setup_class(cls):
-        super(test_cert_find, cls).setup_class()
-
+    """
+    Test the `cert-find` command.
+    """
+    @pytest.fixture(autouse=True, scope="class")
+    def certfind_setup(self, request, xmlrpc_setup):
         if 'cert_find' not in api.Command:
             raise unittest.SkipTest('cert_find not registered')
 
@@ -283,9 +282,6 @@ class test_cert_find(XMLRPC_test):
 
         is_db_configured()
 
-    """
-    Test the `cert-find` command.
-    """
     short = api.env.host.split('.')[0]
 
     def test_0001_find_all(self):
@@ -455,10 +451,6 @@ class test_cert_find(XMLRPC_test):
 
 @pytest.mark.tier1
 class test_cert_revocation(BaseCert):
-
-    @classmethod
-    def setup_class(cls):
-        super(test_cert_revocation, cls).setup_class()
 
     # create CSR, request cert, revoke cert, check cert attributes
     def revoke_cert(self, reason):

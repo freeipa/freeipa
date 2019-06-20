@@ -20,21 +20,21 @@ class test_migratepw(XMLRPC_test, Unauthorized_HTTP_test):
     """
     app_uri = '/ipa/migration/migration.py'
 
-    def setup(self):
+    @pytest.fixture(autouse=True)
+    def migratepw_setup(self, request):
         """
         Prepare for tests
         """
         api.Command['user_add'](uid=testuser, givenname=u'Test', sn=u'User')
         api.Command['passwd'](testuser, password=password)
 
-    def teardown(self):
-        """
-        Clean up
-        """
-        try:
-            api.Command['user_del']([testuser])
-        except errors.NotFound:
-            pass
+        def fin():
+            try:
+                api.Command['user_del']([testuser])
+            except errors.NotFound:
+                pass
+
+        request.addfinalizer(fin)
 
     def _migratepw(self, user, password, method='POST'):
         """

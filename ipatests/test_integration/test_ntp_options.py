@@ -1,6 +1,9 @@
 #
 # Copyright (C) 2018  FreeIPA Contributors see COPYING for license
 #
+
+import pytest
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
@@ -37,6 +40,17 @@ class TestNTPoptions(IntegrationTest):
                    "together with --no-ntp"
 
     exp_prom_err = "NTP configuration cannot be updated during promotion"
+
+    @pytest.fixture(autouse=True)
+    def ntpoptions_setup(self, request):
+        def fin():
+            """
+            Uninstall ipa-server, ipa-replica and ipa-client
+            """
+            tasks.uninstall_client(self.client)
+            tasks.uninstall_master(self.replica)
+            tasks.uninstall_master(self.master)
+        request.addfinalizer(fin)
 
     @classmethod
     def install(cls, mh):
@@ -380,14 +394,6 @@ class TestNTPoptions(IntegrationTest):
         assert client_install.returncode == 0
         assert self.exp_records_msg in client_install.stderr_text
         assert self.exp_chrony_msg in client_install.stdout_text
-
-    def teardown_method(self, method):
-        """
-        Uninstall ipa-server, ipa-replica and ipa-client
-        """
-        tasks.uninstall_client(self.client)
-        tasks.uninstall_master(self.replica)
-        tasks.uninstall_master(self.master)
 
     @classmethod
     def uninstall(cls, mh):

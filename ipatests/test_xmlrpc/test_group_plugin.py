@@ -41,13 +41,13 @@ external_sid1 = u'S-1-1-123456-789-1'
 
 
 @pytest.fixture(scope='class')
-def group(request):
+def group(request, xmlrpc_setup):
     tracker = GroupTracker(name=u'testgroup1', description=u'Test desc1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def group2(request):
+def group2(request, xmlrpc_setup):
     tracker = GroupTracker(name=u'testgroup2', description=u'Test desc2')
     return tracker.make_fixture(request)
 
@@ -65,7 +65,7 @@ def managed_group(request, user):
 
 
 @pytest.fixture(scope='class')
-def user(request):
+def user(request, xmlrpc_setup):
     tracker = UserTracker(name=u'user1', givenname=u'Test', sn=u'User1')
     return tracker.make_fixture(request)
 
@@ -85,7 +85,7 @@ def user_npg2(request, group):
 
 
 @pytest.fixture(scope='class')
-def admins(request):
+def admins(request, xmlrpc_setup):
     # Track the admins group
     tracker = GroupTracker(
         name=u'admins', description=u'Account administrators group'
@@ -97,7 +97,7 @@ def admins(request):
 
 
 @pytest.fixture(scope='class')
-def trustadmins(request):
+def trustadmins(request, xmlrpc_setup):
     # Track the 'trust admins' group
     tracker = GroupTracker(
         name=u'trust admins', description=u'Trusts administrators group'

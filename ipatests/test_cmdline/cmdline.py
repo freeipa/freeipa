@@ -27,6 +27,8 @@ import distutils.spawn
 import os
 import unittest
 
+import pytest
+
 from ipalib import api
 from ipalib import errors
 from ipaplatform.paths import paths
@@ -51,11 +53,12 @@ class cmdline_test(XMLRPC_test):
     # some reasonable default command
     command = paths.LS
 
-    @classmethod
-    def setup_class(cls):
+    @pytest.fixture(autouse=True, scope="class")
+    def cmdline_setup(self, request, xmlrpc_setup):
         # Find the executable in $PATH
         # This is neded because ipautil.run resets the PATH to
         # a system default.
+        cls = request.cls
         original_command = cls.command
         if not os.path.isabs(cls.command):
             cls.command = distutils.spawn.find_executable(cls.command)
@@ -65,7 +68,6 @@ class cmdline_test(XMLRPC_test):
             raise AssertionError(
                 'Command %r not available' % original_command
             )
-        super(cmdline_test, cls).setup_class()
         if not server_available:
             raise unittest.SkipTest(
                 'Server not available: %r' % api.env.xmlrpc_uri
