@@ -326,9 +326,10 @@ def get_auto_reverse_zones(ip_addresses, allow_zone_overlap=False):
         if not allow_zone_overlap:
             try:
                 dnsutil.check_zone_overlap(default_reverse)
-            except ValueError:
+            except ValueError as e:
                 logger.info("Reverse zone %s for IP address %s already exists",
                             default_reverse, ip)
+                logger.debug('%s', e)
                 continue
         auto_zones.append((ip, default_reverse))
     return auto_zones
