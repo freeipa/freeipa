@@ -38,8 +38,8 @@ PKEY = 'itest-range'
 @pytest.mark.tier1
 class test_range(range_tasks):
 
-    def setup(self):
-        super().setup()
+    @pytest.fixture(autouse=True)
+    def range_setup(self, ui_driver_fsetup):
         self.init_app()
         self.get_shifts()
 

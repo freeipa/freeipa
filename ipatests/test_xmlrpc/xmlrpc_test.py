@@ -27,10 +27,11 @@ import inspect
 import unittest
 
 import contextlib
+import pytest
 import six
 
 from ipatests.util import assert_deepequal, Fuzzy
-from ipalib import api, request, errors
+from ipalib import api, request as ipa_request, errors
 from ipapython.version import API_VERSION
 
 # pylint: disable=no-name-in-module, import-error
@@ -207,18 +208,18 @@ class XMLRPC_test:
     """
     Base class for all XML-RPC plugin tests
     """
-
-    @classmethod
-    def setup_class(cls):
+    @pytest.fixture(autouse=True, scope="class")
+    def xmlrpc_setup(self, request):
         if not server_available:
             raise unittest.SkipTest('%r: Server not available: %r' %
-                                (cls.__module__, api.env.xmlrpc_uri))
+                                    (request.cls.__module__,
+                                     api.env.xmlrpc_uri))
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect()
 
-    @classmethod
-    def teardown_class(cls):
-        request.destroy_context()
+        def fin():
+            ipa_request.destroy_context()
+        request.addfinalizer(fin)
 
     def failsafe_add(self, obj, pk, **options):
         """
@@ -306,17 +307,13 @@ class Declarative(XMLRPC_test):
     cleanup_commands = tuple()
     tests = tuple()
 
-    @classmethod
-    def setup_class(cls):
-        super(Declarative, cls).setup_class()
-        for command in cls.cleanup_commands:
-            cls.cleanup(command)
-
-    @classmethod
-    def teardown_class(cls):
-        for command in cls.cleanup_commands:
-            cls.cleanup(command)
-        super(Declarative, cls).teardown_class()
+    @pytest.fixture(autouse=True, scope="class")
+    def declarative_setup(self, request, xmlrpc_setup):
+        def fin():
+            for command in request.cls.cleanup_commands:
+                request.cls.cleanup(command)
+        fin()
+        request.addfinalizer(fin)
 
     @classmethod
     def cleanup(cls, command):

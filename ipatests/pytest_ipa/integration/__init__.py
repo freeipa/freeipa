@@ -267,8 +267,11 @@ def mh(request, class_integration_logs):
         logger.info('Preparing host %s', host.hostname)
         tasks.prepare_host(host)
 
-    setup_class(cls, mh)
-    mh._pytestmh_request.addfinalizer(lambda: teardown_class(cls))
+    add_compat_attrs(cls, mh)
+
+    def fin():
+        del_compat_attrs(cls)
+    mh._pytestmh_request.addfinalizer(fin)
 
     try:
         yield mh.install()
@@ -282,7 +285,7 @@ def mh(request, class_integration_logs):
         collect_systemd_journal(request.node, hosts, request.config)
 
 
-def setup_class(cls, mh):
+def add_compat_attrs(cls, mh):
     """Add convenience attributes to the test class
 
     This is deprecated in favor of the mh fixture.
@@ -299,7 +302,7 @@ def setup_class(cls, mh):
         cls.ad_treedomains = mh.ad_treedomains
 
 
-def teardown_class(cls):
+def del_compat_attrs(cls):
     """Remove convenience attributes from the test class
 
     This is deprecated in favor of the mh fixture.

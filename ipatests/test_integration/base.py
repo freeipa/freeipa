@@ -41,10 +41,6 @@ class IntegrationTest:
     fips_mode = None
 
     @classmethod
-    def setup_class(cls):
-        pass
-
-    @classmethod
     def host_by_role(cls, role):
         for domain in cls.get_domains():
             try:
@@ -92,10 +88,6 @@ class IntegrationTest:
             tasks.install_topo(cls.topology,
                                cls.master, cls.replicas,
                                cls.clients, domain_level)
-    @classmethod
-    def teardown_class(cls):
-        pass
-
     @classmethod
     def uninstall(cls, mh):
         for replica in cls.replicas:
