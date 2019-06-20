@@ -29,67 +29,67 @@ import pytest
 
 
 @pytest.fixture(scope='class')
-def user1(request):
+def user1(request, xmlrpc_setup):
     tracker = UserTracker(name=u'tuser1', givenname=u'Test1', sn=u'User1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user2(request):
+def user2(request, xmlrpc_setup):
     tracker = UserTracker(name=u'tuser2', givenname=u'Test2', sn=u'User2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user3(request):
+def user3(request, xmlrpc_setup):
     tracker = UserTracker(name=u'tuser3', givenname=u'Test3', sn=u'User3')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def user4(request):
+def user4(request, xmlrpc_setup):
     tracker = UserTracker(name=u'tuser4', givenname=u'Test4', sn=u'User4')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def group1(request):
+def group1(request, xmlrpc_setup):
     tracker = GroupTracker(name=u'testgroup1', description=u'Test desc1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def group2(request):
+def group2(request, xmlrpc_setup):
     tracker = GroupTracker(name=u'testgroup2', description=u'Test desc2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def group3(request):
+def group3(request, xmlrpc_setup):
     tracker = GroupTracker(name=u'testgroup3', description=u'Test desc3')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def group4(request):
+def group4(request, xmlrpc_setup):
     tracker = GroupTracker(name=u'testgroup4', description=u'Test desc4')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def host1(request):
+def host1(request, xmlrpc_setup):
     tracker = HostTracker(name=u'host1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def hostgroup1(request):
+def hostgroup1(request, xmlrpc_setup):
     tracker = HostGroupTracker(name=u'hostgroup1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def hostgroup2(request):
+def hostgroup2(request, xmlrpc_setup):
     tracker = HostGroupTracker(name=u'hostgroup2')
     return tracker.make_fixture(request)
 

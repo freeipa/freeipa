@@ -19,6 +19,8 @@ import os
 import re
 import time
 
+import pytest
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -280,8 +282,11 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True)
 
-    def teardown_method(self, method):
-        tasks.uninstall_client(self.clients[0])
+    @pytest.fixture(autouse=True)
+    def automountfile_restore_setup(self, request):
+        def fin():
+            tasks.uninstall_client(self.clients[0])
+        request.addfinalizer(fin)
 
     def nsswitch_backup_restore(
         self,

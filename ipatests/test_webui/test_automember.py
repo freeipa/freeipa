@@ -84,8 +84,8 @@ class TestAutomember(UI_driver):
         'Automember rule with name "{}" already exists'
     )
 
-    def setup(self):
-        super(TestAutomember, self).setup()
+    @pytest.fixture(autouse=True)
+    def automember_setup(self, ui_driver_fsetup):
         self.init_app()
 
     def add_user_group_rules(self, *pkeys, **kwargs):

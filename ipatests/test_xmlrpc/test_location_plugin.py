@@ -17,25 +17,25 @@ from ipapython.dnsutil import DNSName
 
 
 @pytest.fixture(scope='class', params=[u'location1', u'sk\xfa\u0161ka.idna'])
-def location(request):
+def location(request, xmlrpc_setup):
     tracker = LocationTracker(request.param)
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def location_invalid(request):
+def location_invalid(request, xmlrpc_setup):
     tracker = LocationTracker(u'invalid..location')
     return tracker
 
 
 @pytest.fixture(scope='class')
-def location_absolute(request):
+def location_absolute(request, xmlrpc_setup):
     tracker = LocationTracker(u'invalid.absolute.')
     return tracker
 
 
 @pytest.fixture(scope='class')
-def server(request):
+def server(request, xmlrpc_setup):
     tracker = ServerTracker(api.env.host)
     return tracker.make_fixture_clean_location(request)
 

@@ -16,24 +16,24 @@ from ipatests.test_xmlrpc.tracker.idview_plugin import IdviewTracker
 
 
 @pytest.fixture(scope='class')
-def idview(request):
+def idview(request, xmlrpc_setup):
     tracker = IdviewTracker(cn=u'MyView')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def testuser(request):
+def testuser(request, xmlrpc_setup):
     tracker = UserTracker(name=u'testuser', givenname=u'John', sn=u'Donne')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
-def cert1(request):
+def cert1(request, xmlrpc_setup):
     return get_testcert(DN(('CN', u'testuser')), u'testuser')
 
 
 @pytest.fixture(scope='class')
-def cert2(request):
+def cert2(request, xmlrpc_setup):
     return get_testcert(DN(('CN', u'testuser')), u'testuser')
 
 
@@ -52,6 +52,15 @@ class CertManipCmdTestBase(XMLRPC_test):
         entity_add=None,
         caacl=None,
     )
+
+    certs = None
+    certs_remainder = None
+    certs_subset = None
+    invalid_b64 = None
+    malformed_cert = None
+    mixed_certs = None
+    nonexistent_certs = None
+
     cert_add_cmd = None
     cert_del_cmd = None
 
@@ -100,9 +109,9 @@ class CertManipCmdTestBase(XMLRPC_test):
     def remove_caacl(cls):
         pass
 
-    @classmethod
-    def setup_class(cls):
-        super(CertManipCmdTestBase, cls).setup_class()
+    @pytest.fixture(autouse=True, scope="class")
+    def certmanipcmd_setup(self, request, xmlrpc_setup):
+        cls = request.cls
 
         cls.delete_entity()
 
@@ -215,16 +224,15 @@ class CertManipCmdTestBase(XMLRPC_test):
         cls.malformed_cert = [base64.b64encode(b'malformed cert')]
 
         # store entity info for the final test
-        cls.entity_attrs = api.Command['%s_show' % cls.entity_class](
-            cls.entity_pkey)
+        cls.entity_attrs = api.Command[
+            '%s_show' % cls.entity_class](cls.entity_pkey)
 
-    @classmethod
-    def teardown_class(cls):
-        cls.delete_entity()
-        cls.remove_caacl()
+        def fin():
+            cls.delete_entity()
+            cls.remove_caacl()
+            cls.restore_profile_store()
 
-        cls.restore_profile_store()
-        super(CertManipCmdTestBase, cls).teardown_class()
+        request.addfinalizer(fin)
 
     def add_certs(self, certs):
         # pylint: disable=E1102

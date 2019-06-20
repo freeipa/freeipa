@@ -86,7 +86,8 @@ def test_ip_address(addr, words, prefixlen):
 
 
 class TestCIDict:
-    def setup(self):
+    @pytest.fixture(autouse=True)
+    def cidict_setup(self):
         self.cidict = ipautil.CIDict()
         self.cidict["Key1"] = "val1"
         self.cidict["key2"] = "val2"

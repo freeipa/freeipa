@@ -45,7 +45,7 @@ def default_ca(request):
 
 
 @pytest.fixture(scope='class')
-def crud_subca(request):
+def crud_subca(request, xmlrpc_setup):
     name = u'crud-subca'
     subject = u'CN=crud subca test,O=crud testing inc'
     tracker = CATracker(name, subject)
@@ -54,7 +54,7 @@ def crud_subca(request):
 
 
 @pytest.fixture(scope='class')
-def subject_conflict_subca(request):
+def subject_conflict_subca(request, xmlrpc_setup):
     name = u'crud-subca-2'
     subject = u'CN=crud subca test,O=crud testing inc'
     tracker = CATracker(name, subject)
@@ -64,7 +64,7 @@ def subject_conflict_subca(request):
 
 
 @pytest.fixture(scope='class')
-def unrecognised_subject_dn_attrs_subca(request):
+def unrecognised_subject_dn_attrs_subca(request, xmlrpc_setup):
     name = u'crud-subca-3'
     subject = u'CN=crud subca test,DN=example.com,O=crud testing inc'
     tracker = CATracker(name, subject)
