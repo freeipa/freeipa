@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 #
 # Copyright (C) 2019  IPA Project Contributors, see COPYING for license
 #

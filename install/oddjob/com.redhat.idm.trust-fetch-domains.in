@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 
 from ipaserver import dcerpc
 from ipaserver.install.installutils import is_ipa_configured, ScriptError

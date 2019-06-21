@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 # Authors: Tomas Babej <tbabej@redhat.com>
 #
 # Copyright (C) 2013  Red Hat
