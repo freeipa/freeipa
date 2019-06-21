@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 # Authors: Simo Sorce <ssorce@redhat.com>
 #          Karl MacMillan <kmacmillan@mentalrootkit.com>
 #
