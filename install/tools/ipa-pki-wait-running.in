@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 """Wait until pki-tomcatd is up
 
 The script polls on Dogtag's HTTP port and wait until the admin interface

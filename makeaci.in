@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 # Authors:
 #   Petr Viktorin <pviktori@redhat.com>
 #   John Dennis <jdennis@redhat.com>
