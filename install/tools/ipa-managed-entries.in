@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 # Authors: Jr Aquino <jr.aquino@citrix.com>
 #
 # Copyright (C) 2011  Red Hat

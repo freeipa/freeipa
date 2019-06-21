@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 # Authors: Ade Lee <alee@redhat.com>
 #
 # Copyright (C) 2014  Red Hat
