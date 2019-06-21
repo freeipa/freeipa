@@ -6,6 +6,7 @@ from __future__ import absolute_import
 import pytest
 
 from ipalib import errors, api
+from ipaplatform.services import knownservices
 from ipatests.test_xmlrpc.tracker.location_plugin import LocationTracker
 from ipatests.test_xmlrpc.tracker.server_plugin import ServerTracker
 from ipatests.test_xmlrpc.xmlrpc_test import (
@@ -126,11 +127,12 @@ class TestCRUD(XMLRPC_test):
     not api.Command.dns_is_enabled()['result'], reason='DNS not configured')
 class TestLocationsServer(XMLRPC_test):
     messages = [{
-        u'data': {u'service': u'named-pkcs11.service',
-                  u'server': u'%s' % api.env.host},
-        u'message': (u'Service named-pkcs11.service requires restart '
+        u'data': {u'service': knownservices.named.systemd_name,
+                  u'server': api.env.host},
+        u'message': (u'Service %s requires restart '
                      u'on IPA server %s to apply configuration '
-                     u'changes.' % api.env.host),
+                     u'changes.' % (knownservices.named.systemd_name,
+                                    api.env.host)),
         u'code': 13025,
         u'type': u'warning',
         u'name': u'ServiceRestartRequired'}]

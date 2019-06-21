@@ -42,6 +42,7 @@ from cryptography.hazmat.backends import default_backend
 from ipapython import certdb
 from ipapython import ipautil
 from ipaplatform.paths import paths
+from ipaplatform.services import knownservices
 from ipapython.dn import DN
 from ipalib import errors
 from ipalib.util import get_reverse_zone_default, verify_host_resolvable
@@ -549,14 +550,8 @@ def install_adtrust(host):
 
     # Restart named because it lost connection to dirsrv
     # (Directory server restarts during the ipa-adtrust-install)
-    # we use two services named and named-pkcs11,
-    # if named is masked restart named-pkcs11
-    result = host.run_command(['systemctl', 'is-enabled', 'named'],
-                              raiseonerr=False)
-    if result.stdout_text.startswith("masked"):
-        host.run_command(['systemctl', 'restart', 'named-pkcs11'])
-    else:
-        host.run_command(['systemctl', 'restart', 'named'])
+    host.run_command(['systemctl', 'restart',
+                      knownservices.named.systemd_name])
 
     # Check that named is running and has loaded the information from LDAP
     dig_command = ['dig', 'SRV', '+short', '@localhost',
@@ -1581,7 +1576,8 @@ def assert_error(result, stderr_text, returncode=None):
 def restart_named(*args):
     time.sleep(20)  # give a time to DNSSEC daemons to provide keys for named
     for host in args:
-        host.run_command(["systemctl", "restart", "named-pkcs11.service"])
+        host.run_command(['systemctl', 'restart',
+                          knownservices.named.systemd_name])
     time.sleep(20)  # give a time to named to be ready (zone loading)
 
 
