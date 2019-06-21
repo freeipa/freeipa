@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 # Authors: Rob Crittenden <rcritten@redhat.com>
 #
 # Copyright (C) 2013  Red Hat

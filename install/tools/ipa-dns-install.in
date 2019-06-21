@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 # Authors: Martin Nagy <mnagy@redhat.com>
 # Based on ipa-server-install by Karl MacMillan <kmacmillan@mentalrootkit.com>
 #

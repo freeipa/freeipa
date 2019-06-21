@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 # Authors: Martin Kosek <mkosek@redhat.com>
 #
 # Copyright (C) 2011  Red Hat

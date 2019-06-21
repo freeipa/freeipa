@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 #
 # Authors:
 #   Jan Cholasta <jcholast@redhat.com>

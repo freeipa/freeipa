@@ -1,4 +1,4 @@
-@PYTHONSHEBANG@
+#!/usr/bin/python3
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
 #   John Dennis <jdennis@redhat.com>
