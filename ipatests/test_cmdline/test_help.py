@@ -174,3 +174,18 @@ def test_multiline_description():
         api.Backend.cli.run(['trust-add', '-h'])
 
     assert unicode(api.Command.trust_add.doc).strip() in help_ctx.stdout
+
+
+def test_bz1428690():
+    """
+    Test for BZ#1428690 - ipa-backup does not create log file at /var/log/
+    :return: None
+    :raises: AssertionError if the test fails
+    """
+    with CLITestContext(exception=SystemExit) as ctx:
+        api.Backend.cli.run(['backup'])
+    assert ctx.exception.code == 1
+    assert ctx.stdout == ''
+    assert 'not configured' in ctx.stderr
+    assert '/var/log' not in ctx.stderr
+
