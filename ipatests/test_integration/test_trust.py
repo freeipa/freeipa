@@ -6,6 +6,7 @@ import re
 import unittest
 
 from ipaplatform.constants import constants as platformconstants
+from ipaplatform.paths import paths
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -47,7 +48,6 @@ class BaseTestTrust(IntegrationTest):
         cls.srv_gc_record_name = \
             '_ldap._tcp.Default-First-Site-Name._sites.gc._msdcs'
         cls.srv_gc_record_value = '0 100 389 {}.'.format(cls.master.hostname)
-
 
     @classmethod
     def check_sid_generation(cls):
@@ -222,6 +222,50 @@ class TestTrust(BaseTestTrust):
 
         # Getent exits with 2 for non-existent user
         assert result.returncode == 2
+
+    def test_override_homedir(self):
+        """POSIX attributes should not be overwritten or missing.
+
+        Regression test for bug https://pagure.io/SSSD/sssd/issue/2474
+
+        When there is IPA-AD trust with POSIX attributes,
+        including the home directory set in the AD LDAP and in sssd.conf
+        subdomain_homedir = %o is added after initgroup call home directory
+        should be correct and do not report in logs like,
+        'get_subdomain_homedir_of_user failed: * [Home directory is NULL]'
+        """
+        tasks.backup_file(self.master, paths.SSSD_CONF)
+        log_file = '{0}/sssd_{1}.log' .format(paths.VAR_LOG_SSSD_DIR,
+                                              self.master.domain.name)
+
+        logsize = len(self.master.get_file_contents(log_file))
+
+        try:
+            testuser = 'testuser@%s' % self.ad_domain
+            domain = self.master.domain
+            tasks.modify_sssd_conf(
+                self.master,
+                domain.name,
+                {
+                    'subdomain_homedir': '%o'
+                }
+            )
+
+            tasks.clear_sssd_cache(self.master)
+            # The initgroups operation now uses the LDAP connection because
+            # the LDAP AD DS server contains the POSIX attributes
+            self.master.run_command(['getent', 'initgroups', '-s', 'sss',
+                                     testuser])
+
+            result = self.master.run_command(['getent', 'passwd', testuser])
+            assert '/home/testuser' in result.stdout_text
+
+            sssd_log2 = self.master.get_file_contents(log_file)[logsize:]
+
+            assert b'get_subdomain_homedir_of_user failed' not in sssd_log2
+        finally:
+            tasks.restore_files(self.master)
+            tasks.clear_sssd_cache(self.master)
 
     def test_remove_posix_trust(self):
         self.remove_trust(self.ad)
