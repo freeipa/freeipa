@@ -9,6 +9,7 @@ import base64
 import re
 import os
 import logging
+import random
 import ssl
 from tempfile import NamedTemporaryFile
 from itertools import chain, repeat
@@ -28,6 +29,7 @@ from ipapython.dn import DN
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipaplatform.tasks import tasks as platform_tasks
 from ipatests.create_external_ca import ExternalCA
 from ipatests.test_ipalib.test_x509 import good_pkcs7, badcert
 
@@ -688,3 +690,67 @@ class TestIPACommand(IntegrationTest):
             backup.restore()
             self.master.run_command(['rm', '-f', pem_file, user_key,
                                      '{}.pub'.format(user_key)])
+
+    def test_ssh_from_controller(self):
+        """https://pagure.io/SSSD/sssd/issue/3979
+        Test ssh from test controller after adding
+        ldap_deref_threshold=0 to sssd.conf on master
+
+        Steps:
+        1. setup a master
+        2. add ldap_deref_threshold=0 to sssd.conf on master
+        3. add an ipa user
+        4. ssh from controller to master using the user created in step 3
+        """
+        sssd_version = ''
+        cmd_output = self.master.run_command(['sssd', '--version'])
+        sssd_version = platform_tasks.\
+            parse_ipa_version(cmd_output.stdout_text.strip())
+        if sssd_version.version < '2.2.0':
+            pytest.xfail(reason="sssd 2.2.0 unavailable in F29 nightly")
+
+        username = "testuser" + str(random.randint(200000, 9999999))
+        # add ldap_deref_threshold=0 to /etc/sssd/sssd.conf
+        domain = self.master.domain
+        tasks.modify_sssd_conf(
+            self.master,
+            domain.name,
+            {
+                'ldap_deref_threshold': 0
+            },
+        )
+        try:
+            self.master.run_command(['systemctl', 'restart', 'sssd.service'])
+
+            # kinit admin
+            tasks.kinit_admin(self.master)
+
+            # add ipa user
+            cmd = ['ipa', 'user-add',
+                   '--first', username,
+                   '--last', username,
+                   '--password', username]
+            input_passwd = 'Secret123\nSecret123\n'
+            cmd_output = self.master.run_command(cmd, stdin_text=input_passwd)
+            assert 'Added user "%s"' % username in cmd_output.stdout_text
+            input_passwd = 'Secret123\nSecret123\nSecret123\n'
+            self.master.run_command(['kinit', username],
+                                    stdin_text=input_passwd)
+
+            client = paramiko.SSHClient()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.connect(self.master.hostname,
+                           username=username,
+                           password='Secret123')
+            client.close()
+        finally:
+            # revert back to original ldap config
+            # remove ldap_deref_threshold=0
+            tasks.modify_sssd_conf(
+                self.master,
+                domain.name,
+                {
+                    'ldap_deref_threshold': None
+                },
+            )
+            self.master.run_command(['systemctl', 'restart', 'sssd.service'])
