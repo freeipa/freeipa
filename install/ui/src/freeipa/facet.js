@@ -2175,14 +2175,12 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         pkeys_map = pkeys_map.slice(start-1, end);
 
         var columns = that.table.columns.values;
-        if (columns.length == 1) { // show primary keys only
-            that.load_records(records_map.values);
-            return;
-        }
-
-        if (that.search_all_entries) {
-            // map contains the primary keys and the complete records
-            that.load_records(records_map.values);
+        if (columns.length == 1 || that.search_all_entries) {
+            // All needed pkeys/objects are already fetched from server,
+            // so we just filter and show them.
+            that.load_records(pkeys_map.keys.map(function(x) {
+                return records_map.get(x);
+            }));
             return;
         }
 
