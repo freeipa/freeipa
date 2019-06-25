@@ -2039,11 +2039,13 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 							 pwd_outgoing, trusted_dn,
 							 KRB_PRINC_CREATE_DEFAULT);
 
-				/* Second: <OUR FLATNAME$>@<REMOTE REALM> is only used
-				 * for SSSD to be able to talk to AD DCs but it has to
-				 * have canonical name set to <OUR FLATNAME>$ because
-				 * this is the salt used by AD DCs when using this
-				 * principal, otherwise authentication will fail.
+				/* Second: krbtgt/<OUR FLATNAME>@<REMOTE REALM>
+				 * is only used for SSSD to be able to talk to
+				 * AD DCs but it has to have canonical name set
+				 * to krbtgt/<OUR FLATNAME> and alias it to
+				 * <OUR FLATNAME$> because it is the salt used
+				 * by AD DCs when using this principal,
+				 * otherwise authentication will fail.
 				 *
 				 * *disable* use of this principal on our side as it is
 				 * only used to retrieve trusted domain credentials by

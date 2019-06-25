@@ -679,12 +679,12 @@ class update_tdo_to_new_layout(Updater):
                     trust_principal, t_realm)
                 continue
 
-            # 4. Create <OUR FLATNAME$>@<REMOTE REALM>, disabled
+            # 4. Create krbtgt/<OUR FLATNAME>@<REMOTE REALM>, disabled
             nbt_principal = self.nbt_principal_template.format(
                 nbt=our_nbt_name, realm=t_realm)
             tgt_principal = self.tgt_principal_template.format(
                 remote=our_nbt_name, local=t_realm)
-            self.set_krb_principal([nbt_principal, tgt_principal],
+            self.set_krb_principal([tgt_principal, nbt_principal],
                                    passwd_incoming,
                                    t_dn,
                                    flags=self.KRB_PRINC_CREATE_DEFAULT |
