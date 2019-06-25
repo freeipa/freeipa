@@ -224,6 +224,8 @@ class TestNFS(TestInit):
             '-U', '--debug'
         ])
 
+        time.sleep(WAIT_AFTER_INSTALL)
+
         # systemctl non-fatal errors will show up like this:
         # stderr=Failed to restart nfs-secure.service: \
         #        Unit nfs-secure.service not found.
@@ -238,8 +240,6 @@ class TestNFS(TestInit):
         automntclt.run_command([
             "grep", "Domain = %s" % self.master.domain.name, "/etc/idmapd.conf"
         ])
-
-        time.sleep(WAIT_AFTER_INSTALL)
 
         automntclt.run_command([
             "mount", "-t", "nfs4", "-o", "sec=krb5p,vers=4.0",
@@ -264,6 +264,9 @@ class TestNFS(TestInit):
             'ipa-client-automount', '--location', 'default',
             '-U', '--debug', "--idmap-domain", "DNS"
         ])
+
+        time.sleep(WAIT_AFTER_INSTALL)
+
         # check whether idmapd.conf was setup properly:
         # grep must not find any configured Domain.
         result = automntclt.run_command(
@@ -274,6 +277,8 @@ class TestNFS(TestInit):
         automntclt.run_command([
             'ipa-client-automount', '--uninstall', '-U', '--debug'
         ])
+
+        time.sleep(WAIT_AFTER_UNINSTALL)
 
         # https://pagure.io/freeipa/issue/7918
         # test for --idmap-domain exampledomain.net
@@ -287,7 +292,12 @@ class TestNFS(TestInit):
             "grep", "Domain = %s" % nfs_domain, "/etc/idmapd.conf"
         ])
 
+        time.sleep(WAIT_AFTER_INSTALL)
+
         automntclt.run_command([
             'ipa-client-automount', '--uninstall', '-U', '--debug'
         ])
+
+        time.sleep(WAIT_AFTER_UNINSTALL)
+
         self.cleanup()
