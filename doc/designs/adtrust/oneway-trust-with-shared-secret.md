@@ -131,16 +131,18 @@ and `LOCAL-FLAT` is the NetBIOS name of the FreeIPA primary domain (e.g.
   REMOTE-FLAT$@LOCAL | Trusted domain object account for the Active Directory forest root domain
   krbtgt/REMOTE-FLAT@LOCAL | Alias to REMOTE-FLAT$ TDO
   krbtgt/LOCAL@REMOTE | Cross-realm principal representing IPA domain in Active Directory forest to allow crross-realm TGT issuance from IPA KDC side
-  LOCAL-FLAT$@REMOTE | Trusted domain object account for IPA domain in Active Directory forest
-  krbtgt/LOCAL-FLAT@REMOTE | Alias to LOCAL-FLAT$
+  krbtgt/LOCAL-FLAT@REMOTE | Trusted domain object account for IPA domain in Active Directory forest
+  LOCAL-FLAT$@REMOTE | Alias to krbtgt/LOCAL-FLAT@REMOTE
 
 For inbound trust `ipasam` module creates following principals:
   * `krbtgt/LOCAL@REMOTE`, enabled by default
-  * `LOCAL-FLAT$@REMOTE`, used by SSSD to talk to Active Directory domain
-    controllers, with canonical name set to `LOCAL-FLAT$` because Kerberos KDC
-    must use this salt when issuing tickets for this principal. The use of this
-    principal is disabled on IPA side (IPA KDC does not issue tickets in this name)
-    --- we only retrieve a keytab for the principal in SSSD.
+  * `krbtgt/LOCAL-FLAT@REMOTE`, used by SSSD to talk to Active Directory domain
+    controllers, with canonical name set to `krbtgt/LOCAL-FLAT@REMOTE` because
+    Kerberos KDC must use this salt when issuing tickets for this principal. The
+    use of this principal is disabled on IPA side (IPA KDC does not issue tickets
+    in this name) --- we only retrieve a keytab for the principal in SSSD. SSSD
+    retrieves a keytab for this principal using `LOCAL-FLAT$@REMOTE` Principal
+    name.
 
 For outbound trust `ipasam` module creates following principals:
   * `krbtgt/REMOTE@LOCAL`, enabled by default.
