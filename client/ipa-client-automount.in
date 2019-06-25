@@ -371,7 +371,7 @@ def configure_nfs(fstore, statestore, options):
         changes = [conf.setOption('Domain', api.env.domain)]
     elif options.idmapdomain == 'DNS':
         # Rely on idmapd auto-detection (DNS)
-        changes = None
+        changes = [conf.rmOption('Domain')]
     else:
         # Set NFSv4 domain to what was provided
         changes = [conf.setOption('Domain', options.idmapdomain)]
