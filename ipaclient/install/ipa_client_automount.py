@@ -1,9 +1,8 @@
-#!/usr/bin/python3
 #
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
 #
-# Copyright (C) 2012  Red Hat
+# Copyright (C) 2012, 2019 Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -30,18 +29,23 @@ import shutil
 import time
 import tempfile
 import gssapi
+
 try:
     from xml.etree import cElementTree as etree
 except ImportError:
     from xml.etree import ElementTree as etree
 import SSSDConfig
+
 # pylint: disable=import-error
 from six.moves.urllib.parse import urlsplit
+
 # pylint: enable=import-error
 from optparse import OptionParser  # pylint: disable=deprecated-module
 from ipaclient.install import ipachangeconf, ipadiscovery
-from ipaclient.install.client import (CLIENT_NOT_CONFIGURED,
-    CLIENT_ALREADY_CONFIGURED)
+from ipaclient.install.client import (
+    CLIENT_NOT_CONFIGURED,
+    CLIENT_ALREADY_CONFIGURED,
+)
 from ipalib import api, errors
 from ipalib.install import sysrestore
 from ipalib.install.kinit import kinit_keytab
@@ -62,37 +66,53 @@ logger = logging.getLogger(os.path.basename(__file__))
 def parse_options():
     usage = "%prog [options]\n"
     parser = OptionParser(usage=usage)
+    parser.add_option("--server", dest="server", help="FQDN of IPA server")
     parser.add_option(
-        "--server", dest="server", help="FQDN of IPA server"
+        "--location",
+        dest="location",
+        default="default",
+        help="Automount location",
     )
     parser.add_option(
-        "--location", dest="location", default="default",
-        help="Automount location"
+        "-S",
+        "--no-sssd",
+        dest="sssd",
+        action="store_false",
+        default=True,
+        help="Do not configure the client to use SSSD for automount",
     )
     parser.add_option(
-        "-S", "--no-sssd", dest="sssd", action="store_false", default=True,
-        help="Do not configure the client to use SSSD for automount"
+        "--idmap-domain",
+        dest="idmapdomain",
+        default=None,
+        help="nfs domain for idmap.conf",
     )
     parser.add_option(
-        "--idmap-domain", dest="idmapdomain", default=None,
-        help="nfs domain for idmap.conf"
-    )
-    parser.add_option(
-        "--debug", dest="debug", action="store_true", default=False,
-        help="enable debugging"
-    )
-    parser.add_option(
-        "-U", "--unattended", dest="unattended", action="store_true",
+        "--debug",
+        dest="debug",
+        action="store_true",
         default=False,
-        help="unattended installation never prompts the user"
+        help="enable debugging",
     )
     parser.add_option(
-        "--uninstall", dest="uninstall", action="store_true", default=False,
-        help="Unconfigure automount"
+        "-U",
+        "--unattended",
+        dest="unattended",
+        action="store_true",
+        default=False,
+        help="unattended installation never prompts the user",
+    )
+    parser.add_option(
+        "--uninstall",
+        dest="uninstall",
+        action="store_true",
+        default=False,
+        help="Unconfigure automount",
     )
 
     options, args = parser.parse_args()
     return options, args
+
 
 def wait_for_sssd():
     """
@@ -114,11 +134,17 @@ def wait_for_sssd():
 
     # This should never happen but if it does, may as well warn the user
     if not found:
-        err_msg = ("Unable to find 'admin' user with "
-                   "'getent passwd admin@%s'!" % api.env.realm)
+        err_msg = (
+            "Unable to find 'admin' user with "
+            "'getent passwd admin@%s'!" % api.env.realm
+        )
         logger.debug('%s', err_msg)
         print(err_msg)
-        print("This may mean that sssd didn't re-start properly after the configuration changes.")
+        print(
+            "This may mean that sssd didn't re-start properly after "
+            "the configuration changes."
+        )
+
 
 def configure_xml(fstore):
     authconf = paths.AUTOFS_LDAP_AUTH_CONF
@@ -150,6 +176,7 @@ def configure_xml(fstore):
     else:
         print("Configured %s" % authconf)
 
+
 def configure_nsswitch(fstore, options):
     """
     Point automount to ldap in nsswitch.conf. This function is for non-SSSD
@@ -162,12 +189,20 @@ def configure_nsswitch(fstore, options):
 
     nss_value = ' files ldap'
 
-    opts = [{'name':'automount', 'type':'option', 'action':'set', 'value':nss_value},
-            {'name':'empty', 'type':'empty'}]
+    opts = [
+        {
+            'name': 'automount',
+            'type': 'option',
+            'action': 'set',
+            'value': nss_value,
+        },
+        {'name': 'empty', 'type': 'empty'},
+    ]
 
     conf.changeConf(paths.NSSWITCH_CONF, opts)
 
     print("Configured %s" % paths.NSSWITCH_CONF)
+
 
 def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     try:
@@ -185,9 +220,11 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
         logger.error("Unable to activate the Autofs service in SSSD config.")
         logger.info(
             "Please make sure you have SSSD built with autofs support "
-            "installed.")
+            "installed."
+        )
         logger.info(
-            "Configure autofs support manually in /etc/sssd/sssd.conf.")
+            "Configure autofs support manually in /etc/sssd/sssd.conf."
+        )
         sys.exit("Cannot create the autofs service in sssd.conf")
 
     sssdconfig.activate_service('autofs')
@@ -221,6 +258,7 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     print("Restarting sssd, waiting for it to become available.")
     wait_for_sssd()
 
+
 def configure_autofs(fstore, statestore, autodiscover, server, options):
     """
     fstore: the FileStore to back up files in
@@ -232,7 +270,13 @@ def configure_autofs(fstore, statestore, autodiscover, server, options):
     else:
         ldap_uri = "ldap:///%s" % api.env.basedn
 
-    search_base = str(DN(('cn', options.location), api.env.container_automount, api.env.basedn))
+    search_base = str(
+        DN(
+            ('cn', options.location),
+            api.env.container_automount,
+            api.env.basedn,
+        )
+    )
     replacevars = {
         'MAP_OBJECT_CLASS': 'automountMap',
         'ENTRY_OBJECT_CLASS': 'automount',
@@ -243,12 +287,14 @@ def configure_autofs(fstore, statestore, autodiscover, server, options):
         'LDAP_URI': ldap_uri,
     }
 
-    ipautil.backup_config_and_replace_variables(fstore,
-        paths.SYSCONFIG_AUTOFS, replacevars=replacevars)
+    ipautil.backup_config_and_replace_variables(
+        fstore, paths.SYSCONFIG_AUTOFS, replacevars=replacevars
+    )
     tasks.restore_context(paths.SYSCONFIG_AUTOFS)
     statestore.backup_state('autofs', 'sssd', False)
 
     print("Configured %s" % paths.SYSCONFIG_AUTOFS)
+
 
 def configure_autofs_common(fstore, statestore, options):
     autofs = services.knownservices.autofs
@@ -262,28 +308,37 @@ def configure_autofs_common(fstore, statestore, options):
     try:
         autofs.enable()
     except Exception as e:
-        print("Failed to configure automatic startup of the %s daemon" % (autofs.service_name))
-        logger.error("Failed to enable automatic startup of the %s daemon: %s",
-                     autofs.service_name, str(e))
+        print(
+            "Failed to configure automatic startup of the %s daemon"
+            % (autofs.service_name)
+        )
+        logger.error(
+            "Failed to enable automatic startup of the %s daemon: %s",
+            autofs.service_name,
+            str(e),
+        )
+
 
 def uninstall(fstore, statestore):
-    RESTORE_FILES=[
-       paths.SYSCONFIG_AUTOFS,
-       paths.NSSWITCH_CONF,
-       paths.AUTOFS_LDAP_AUTH_CONF,
-       paths.SYSCONFIG_NFS,
-       paths.IDMAPD_CONF,
+    RESTORE_FILES = [
+        paths.SYSCONFIG_AUTOFS,
+        paths.NSSWITCH_CONF,
+        paths.AUTOFS_LDAP_AUTH_CONF,
+        paths.SYSCONFIG_NFS,
+        paths.IDMAPD_CONF,
     ]
-    STATES=['autofs', 'rpcidmapd', 'rpcgssd']
+    STATES = ['autofs', 'rpcidmapd', 'rpcgssd']
 
     # automount only touches /etc/nsswitch.conf if LDAP is
     # used. Don't restore it otherwise.
-    if (statestore.get_state('authconfig', 'sssd') or
-            (statestore.get_state('authselect', 'profile') == 'sssd')):
+    if statestore.get_state('authconfig', 'sssd') or (
+        statestore.get_state('authselect', 'profile') == 'sssd'
+    ):
         RESTORE_FILES.remove(paths.NSSWITCH_CONF)
 
-    if (not any(fstore.has_file(f) for f in RESTORE_FILES) or
-             not any(statestore.has_state(s) for s in STATES)):
+    if not any(fstore.has_file(f) for f in RESTORE_FILES) or not any(
+        statestore.has_state(s) for s in STATES
+    ):
         print("IPA automount is not configured on this system")
         return CLIENT_NOT_CONFIGURED
 
@@ -325,15 +380,16 @@ def uninstall(fstore, statestore):
             except Exception as e:
                 print('Unable to restore SSSD configuration: %s' % str(e))
                 logger.debug(
-                    'Unable to restore SSSD configuration: %s', str(e))
+                    'Unable to restore SSSD configuration: %s', str(e)
+                )
 
     # rpcidmapd and rpcgssd are static units now
     if statestore.has_state('rpcidmapd'):
-        statestore.delete_state('rpcidmapd','enabled')
-        statestore.delete_state('rpcidmapd','running')
+        statestore.delete_state('rpcidmapd', 'enabled')
+        statestore.delete_state('rpcidmapd', 'running')
     if statestore.has_state('rpcgssd'):
-        statestore.delete_state('rpcgssd','enabled')
-        statestore.delete_state('rpcgssd','running')
+        statestore.delete_state('rpcgssd', 'enabled')
+        statestore.delete_state('rpcgssd', 'running')
 
     nfsutils = services.knownservices['nfs-utils']
     try:
@@ -343,6 +399,7 @@ def uninstall(fstore, statestore):
         return 1
     return 0
 
+
 def configure_nfs(fstore, statestore, options):
     """
     Configure secure NFS
@@ -350,11 +407,10 @@ def configure_nfs(fstore, statestore, options):
     # Newer Fedora releases ship /etc/nfs.conf instead of /etc/sysconfig/nfs
     # and do not require changes there. On these, SECURE_NFS_VAR == None
     if constants.SECURE_NFS_VAR:
-        replacevars = {
-            constants.SECURE_NFS_VAR: 'yes',
-        }
-        ipautil.backup_config_and_replace_variables(fstore,
-            paths.SYSCONFIG_NFS, replacevars=replacevars)
+        replacevars = {constants.SECURE_NFS_VAR: 'yes'}
+        ipautil.backup_config_and_replace_variables(
+            fstore, paths.SYSCONFIG_NFS, replacevars=replacevars
+        )
         tasks.restore_context(paths.SYSCONFIG_NFS)
         print("Configured %s" % paths.SYSCONFIG_NFS)
 
@@ -395,7 +451,8 @@ def configure_nfs(fstore, statestore, options):
     except Exception as e:
         logger.error("Failed to restart nfs client services (%s)", str(e))
 
-def main():
+
+def configure_automount():
     try:
         check_client_configuration()
     except ScriptError as e:
@@ -408,8 +465,12 @@ def main():
     options, _args = parse_options()
 
     standard_logging_setup(
-        paths.IPACLIENT_INSTALL_LOG, verbose=False, debug=options.debug,
-        filemode='a', console_format='%(message)s')
+        paths.IPACLIENT_INSTALL_LOG,
+        verbose=False,
+        debug=options.debug,
+        filemode='a',
+        console_format='%(message)s',
+    )
 
     cfg = dict(
         context='cli_installer',
@@ -447,9 +508,13 @@ def main():
         else:
             autodiscover = True
             if not ds.servers:
-                sys.exit('Autodiscovery was successful but didn\'t return a server')
-            logger.debug('Autodiscovery success, possible servers %s',
-                         ','.join(ds.servers))
+                sys.exit(
+                    'Autodiscovery was successful but didn\'t return a server'
+                )
+            logger.debug(
+                'Autodiscovery success, possible servers %s',
+                ','.join(ds.servers),
+            )
             server = ds.servers[0]
     else:
         server = options.server
@@ -458,7 +523,10 @@ def main():
         if ldapret[0] == ipadiscovery.NO_ACCESS_TO_LDAP:
             print("Anonymous access to the LDAP server is disabled.")
             print("Proceeding without strict verification.")
-            print("Note: This is not an error if anonymous access has been explicitly restricted.")
+            print(
+                "Note: This is not an error if anonymous access has been "
+                "explicitly restricted."
+            )
         elif ldapret[0] == ipadiscovery.NO_TLS_LDAP:
             logger.warning("Unencrypted access to LDAP is not supported.")
         elif ldapret[0] != 0:
@@ -502,13 +570,20 @@ def main():
         except errors.VersionError as e:
             sys.exit('This client is incompatible: ' + str(e))
         except errors.NotFound:
-            sys.exit("Automount location '%s' does not exist" % options.location)
+            sys.exit(
+                "Automount location '%s' does not exist" % options.location
+            )
         except errors.PublicError as e:
-            sys.exit("Cannot connect to the server due to generic error: %s" % str(e))
+            sys.exit(
+                "Cannot connect to the server due to generic error: %s"
+                % str(e)
+            )
     finally:
         shutil.rmtree(ccache_dir)
 
-    if not options.unattended and not ipautil.user_input("Continue to configure the system with these values?", False):
+    if not options.unattended and not ipautil.user_input(
+        "Continue to configure the system with these values?", False
+    ):
         sys.exit("Installation aborted")
 
     try:
@@ -519,7 +594,9 @@ def main():
             configure_autofs_sssd(fstore, statestore, autodiscover, options)
         else:
             configure_xml(fstore)
-            configure_autofs(fstore, statestore, autodiscover, server, options)
+            configure_autofs(
+                fstore, statestore, autodiscover, server, options
+            )
         configure_autofs_common(fstore, statestore, options)
     except Exception as e:
         logger.debug('Raised exception %s', e)
@@ -529,14 +606,15 @@ def main():
 
     return 0
 
-try:
-    if not os.geteuid()==0:
-        sys.exit("\nMust be run as root\n")
 
-    sys.exit(main())
-except SystemExit as e:
-    sys.exit(e)
-except RuntimeError as e:
-    sys.exit(e)
-except (KeyboardInterrupt, EOFError):
-    sys.exit(1)
+def main():
+    try:
+        if not os.geteuid() == 0:
+            sys.exit("\nMust be run as root\n")
+        configure_automount()
+    except SystemExit as e:
+        sys.exit(e)
+    except RuntimeError as e:
+        sys.exit(e)
+    except (KeyboardInterrupt, EOFError):
+        sys.exit(1)
