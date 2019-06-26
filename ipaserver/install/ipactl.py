@@ -1,7 +1,6 @@
-#!/usr/bin/python3
 # Authors: Simo Sorce <ssorce@redhat.com>
 #
-# Copyright (C) 2008-2010  Red Hat
+# Copyright (C) 2008-2019  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -49,11 +48,16 @@ MSG_HINT_IGNORE_SERVICE_FAILURE = (
 class IpactlError(ScriptError):
     pass
 
+
 def check_IPA_configuration():
     if not is_ipa_configured():
         # LSB status code 6: program is not configured
-        raise IpactlError("IPA is not configured " +
-                          "(see man pages of ipa-server-install for help)", 6)
+        raise IpactlError(
+            "IPA is not configured "
+            "(see man pages of ipa-server-install for help)",
+            6,
+        )
+
 
 def deduplicate(lst):
     """Remove duplicates and preserve order.
@@ -68,6 +72,7 @@ def deduplicate(lst):
 
     return new_lst
 
+
 def is_dirsrv_debugging_enabled():
     """
     Check the 389-ds instance to see if debugging is enabled.
@@ -80,18 +85,19 @@ def is_dirsrv_debugging_enabled():
     dselist = [config_dirname(serverid)]
     for dse in dselist:
         try:
-            fd = open(dse + 'dse.ldif', 'r')
+            fd = open(dse + "dse.ldif", "r")
         except IOError:
             continue
         lines = fd.readlines()
         fd.close()
         for line in lines:
-            if line.lower().startswith('nsslapd-errorlog-level'):
-                _option, value = line.split(':')
+            if line.lower().startswith("nsslapd-errorlog-level"):
+                _option, value = line.split(":")
                 if int(value) > 0:
                     debugging = True
 
     return debugging
+
 
 def get_capture_output(service, debug):
     """
@@ -99,29 +105,48 @@ def get_capture_output(service, debug):
     exception of 389-ds when debugging is enabled because it outputs
     tons and tons of information.
     """
-    if service == 'dirsrv' and not debug and is_dirsrv_debugging_enabled():
-        print('    debugging enabled, suppressing output.')
+    if service == "dirsrv" and not debug and is_dirsrv_debugging_enabled():
+        print("    debugging enabled, suppressing output.")
         return True
     else:
         return False
 
+
 def parse_options():
     usage = "%prog start|stop|restart|status\n"
-    parser = config.IPAOptionParser(usage=usage,
-                                    formatter=config.IPAFormatter())
+    parser = config.IPAOptionParser(
+        usage=usage, formatter=config.IPAFormatter()
+    )
 
-    parser.add_option("-d", "--debug", action="store_true", dest="debug",
-                      help="Display debugging information")
-    parser.add_option("-f", "--force", action="store_true", dest="force",
-                      help="Force IPA to start. Combine options "
-                           "--skip-version-check and --ignore-service-failures")
-    parser.add_option("--ignore-service-failures", action="store_true",
-                      dest="ignore_service_failures",
-                      help="If any service start fails, do not rollback the "
-                           "services, continue with the operation")
-    parser.add_option("--skip-version-check", action="store_true",
-                      dest="skip_version_check", default=False,
-                      help="skip version check")
+    parser.add_option(
+        "-d",
+        "--debug",
+        action="store_true",
+        dest="debug",
+        help="Display debugging information",
+    )
+    parser.add_option(
+        "-f",
+        "--force",
+        action="store_true",
+        dest="force",
+        help="Force IPA to start. Combine options "
+        "--skip-version-check and --ignore-service-failures",
+    )
+    parser.add_option(
+        "--ignore-service-failures",
+        action="store_true",
+        dest="ignore_service_failures",
+        help="If any service start fails, do not rollback the "
+        "services, continue with the operation",
+    )
+    parser.add_option(
+        "--skip-version-check",
+        action="store_true",
+        dest="skip_version_check",
+        default=False,
+        help="skip version check",
+    )
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -132,62 +157,85 @@ def parse_options():
 
     return safe_options, options, args
 
+
 def emit_err(err):
-    sys.stderr.write(err + '\n')
+    sys.stderr.write(err + "\n")
 
 
 def version_check():
     try:
         installutils.check_version()
-    except (installutils.UpgradeMissingVersionError,
-            installutils.UpgradeDataOlderVersionError) as exc:
+    except (
+        installutils.UpgradeMissingVersionError,
+        installutils.UpgradeDataOlderVersionError,
+    ) as exc:
         emit_err("IPA version error: %s" % exc)
     except installutils.UpgradeVersionError as e:
         emit_err("IPA version error: %s" % e)
     else:
         return
 
-    emit_err("Automatically running upgrade, for details see {}".format(
-             paths.IPAUPGRADE_LOG))
+    emit_err(
+        "Automatically running upgrade, for details see {}".format(
+            paths.IPAUPGRADE_LOG
+        )
+    )
     emit_err("Be patient, this may take a few minutes.")
 
     # Fork out to call ipa-server-upgrade so that logging is sane.
-    result = run([paths.IPA_SERVER_UPGRADE], raiseonerr=False,
-                  capture_error=True)
+    result = run(
+        [paths.IPA_SERVER_UPGRADE], raiseonerr=False, capture_error=True
+    )
     if result.returncode != 0:
         emit_err("Automatic upgrade failed: %s" % result.error_output)
-        emit_err("See the upgrade log for more details and/or run {} again".
-                 format(paths.IPA_SERVER_UPGRADE))
+        emit_err(
+            "See the upgrade log for more details and/or run {} again".format(
+                paths.IPA_SERVER_UPGRADE
+            )
+        )
         raise IpactlError("Aborting ipactl")
 
 
 def get_config(dirsrv):
-    base = DN(('cn', api.env.host), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    base = DN(
+        ("cn", api.env.host),
+        ("cn", "masters"),
+        ("cn", "ipa"),
+        ("cn", "etc"),
+        api.env.basedn,
+    )
     srcfilter = LDAPClient.combine_filters(
         [
-            LDAPClient.make_filter({'objectClass': 'ipaConfigObject'}),
+            LDAPClient.make_filter({"objectClass": "ipaConfigObject"}),
             LDAPClient.make_filter(
-                {'ipaConfigString': [ENABLED_SERVICE, HIDDEN_SERVICE]},
-                rules=LDAPClient.MATCH_ANY
+                {"ipaConfigString": [ENABLED_SERVICE, HIDDEN_SERVICE]},
+                rules=LDAPClient.MATCH_ANY,
             ),
         ],
-        rules=LDAPClient.MATCH_ALL
+        rules=LDAPClient.MATCH_ALL,
     )
-    attrs = ['cn', 'ipaConfigString']
+    attrs = ["cn", "ipaConfigString"]
     if not dirsrv.is_running():
-        raise IpactlError("Failed to get list of services to probe status:\n" +
-                          "Directory Server is stopped", 3)
+        raise IpactlError(
+            "Failed to get list of services to probe status:\n"
+            "Directory Server is stopped",
+            3,
+        )
 
     try:
         # The start/restart functions already wait for the server to be
         # started. What we are doing with this wait is really checking to see
         # if the server is listening at all.
         lurl = ldapurl.LDAPUrl(api.env.ldap_uri)
-        if lurl.urlscheme == 'ldapi':
-            wait_for_open_socket(lurl.hostport, timeout=api.env.startup_timeout)
+        if lurl.urlscheme == "ldapi":
+            wait_for_open_socket(
+                lurl.hostport, timeout=api.env.startup_timeout
+            )
         else:
-            (host, port) = lurl.hostport.split(':')
-            wait_for_open_ports(host, [int(port)], timeout=api.env.startup_timeout)
+            (host, port) = lurl.hostport.split(":")
+            wait_for_open_ports(
+                host, [int(port)], timeout=api.env.startup_timeout
+            )
         con = LDAPClient(api.env.ldap_uri)
         con.external_bind()
         res = con.get_entries(
@@ -195,42 +243,59 @@ def get_config(dirsrv):
             filter=srcfilter,
             attrs_list=attrs,
             scope=con.SCOPE_SUBTREE,
-            time_limit=10)
+            time_limit=10,
+        )
     except errors.NetworkError:
         # LSB status code 3: program is not running
-        raise IpactlError("Failed to get list of services to probe status:\n" +
-                          "Directory Server is stopped", 3)
+        raise IpactlError(
+            "Failed to get list of services to probe status:\n"
+            "Directory Server is stopped",
+            3,
+        )
     except errors.NotFound:
         masters_list = []
-        dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-        attrs = ['cn']
+        dn = DN(
+            ("cn", "masters"), ("cn", "ipa"), ("cn", "etc"), api.env.basedn
+        )
+        attrs = ["cn"]
         try:
-            entries = con.get_entries(dn, con.SCOPE_ONELEVEL, attrs_list=attrs)
+            entries = con.get_entries(
+                dn, con.SCOPE_ONELEVEL, attrs_list=attrs
+            )
         except Exception as e:
-            masters_list.append("No master found because of error: %s" % str(e))
+            masters_list.append(
+                "No master found because of error: %s" % str(e)
+            )
         else:
             for master_entry in entries:
-                masters_list.append(master_entry.single_value['cn'])
+                masters_list.append(master_entry.single_value["cn"])
 
         masters = "\n".join(masters_list)
 
-        raise IpactlError("Failed to get list of services to probe status!\n"
-                          "Configured hostname '%s' does not match any master server in LDAP:\n%s"
-                          % (api.env.host, masters))
+        raise IpactlError(
+            "Failed to get list of services to probe status!\n"
+            "Configured hostname '%s' does not match any master server in "
+            "LDAP:\n%s"
+            % (api.env.host, masters)
+        )
     except Exception as e:
-        raise IpactlError("Unknown error when retrieving list of services from LDAP: " + str(e))
+        raise IpactlError(
+            "Unknown error when retrieving list of services from LDAP: %s"
+            % str(e)
+        )
 
     svc_list = []
 
     for entry in res:
-        name = entry.single_value['cn']
-        for p in entry['ipaConfigString']:
-            if p.startswith('startOrder '):
+        name = entry.single_value["cn"]
+        for p in entry["ipaConfigString"]:
+            if p.startswith("startOrder "):
                 try:
                     order = int(p.split()[1])
                 except ValueError:
-                    raise IpactlError("Expected order as integer in: %s:%s" % (
-                        name, p))
+                    raise IpactlError(
+                        "Expected order as integer in: %s:%s" % (name, p)
+                    )
         svc_list.append([order, name])
 
     ordered_list = []
@@ -239,15 +304,19 @@ def get_config(dirsrv):
             ordered_list.append(service.SERVICE_LIST[svc].systemd_name)
     return deduplicate(ordered_list)
 
+
 def get_config_from_file():
 
     svc_list = []
 
     try:
-        f = open(tasks.get_svc_list_file(), 'r')
+        f = open(tasks.get_svc_list_file(), "r")
         svc_list = json.load(f)
     except Exception as e:
-        raise IpactlError("Unknown error when retrieving list of services from file: " + str(e))
+        raise IpactlError(
+            "Unknown error when retrieving list of services from file: %s"
+            % str(e)
+        )
 
     # the framework can start/stop a number of related services we are not
     # authoritative for, so filter the list through SERVICES_LIST and order it
@@ -302,7 +371,9 @@ def ipa_start(options):
     dirsrv = services.knownservices.dirsrv
     try:
         print("Starting Directory Service")
-        dirsrv.start(capture_output=get_capture_output('dirsrv', options.debug))
+        dirsrv.start(
+            capture_output=get_capture_output("dirsrv", options.debug)
+        )
     except Exception as e:
         raise IpactlError("Failed to start Directory Service: " + str(e))
 
@@ -329,13 +400,19 @@ def ipa_start(options):
         svchandle = services.service(svc, api=api)
         try:
             print("Starting %s Service" % svc)
-            svchandle.start(capture_output=get_capture_output(svc, options.debug))
+            svchandle.start(
+                capture_output=get_capture_output(svc, options.debug)
+            )
         except Exception:
             emit_err("Failed to start %s Service" % svc)
             # if ignore_service_failures is specified, skip rollback and
             # continue with the next service
             if options.ignore_service_failures:
-                emit_err("Forced start, ignoring %s Service, continuing normal operation" % svc)
+                emit_err(
+                    "Forced start, ignoring %s Service, "
+                    "continuing normal operation"
+                    % svc
+                )
                 continue
 
             emit_err("Shutting down")
@@ -344,6 +421,7 @@ def ipa_start(options):
 
             emit_err(MSG_HINT_IGNORE_SERVICE_FAILURE)
             raise IpactlError("Aborting ipactl")
+
 
 def ipa_stop(options):
     dirsrv = services.knownservices.dirsrv
@@ -406,7 +484,9 @@ def ipa_restart(options):
     if not dirsrv.is_running():
         try:
             print("Starting Directory Service")
-            dirsrv.start(capture_output=get_capture_output('dirsrv', options.debug))
+            dirsrv.start(
+                capture_output=get_capture_output("dirsrv", options.debug)
+            )
             dirsrv_restart = False
         except Exception as e:
             raise IpactlError("Failed to start Directory Service: " + str(e))
@@ -440,7 +520,7 @@ def ipa_restart(options):
         if s in old_svc_list:
             svc_list.append(s)
 
-    #remove commons
+    # remove commons
     for s in svc_list:
         if s in old_svc_list:
             old_svc_list.remove(s)
@@ -461,7 +541,9 @@ def ipa_restart(options):
     try:
         if dirsrv_restart:
             print("Restarting Directory Service")
-            dirsrv.restart(capture_output=get_capture_output('dirsrv', options.debug))
+            dirsrv.restart(
+                capture_output=get_capture_output("dirsrv", options.debug)
+            )
     except Exception as e:
         emit_err("Failed to restart Directory Service: " + str(e))
         emit_err("Shutting down")
@@ -478,13 +560,19 @@ def ipa_restart(options):
             svchandle = services.service(svc, api=api)
             try:
                 print("Restarting %s Service" % svc)
-                svchandle.restart(capture_output=get_capture_output(svc, options.debug))
+                svchandle.restart(
+                    capture_output=get_capture_output(svc, options.debug)
+                )
             except Exception:
                 emit_err("Failed to restart %s Service" % svc)
                 # if ignore_service_failures is specified,
                 # skip rollback and continue with the next service
                 if options.ignore_service_failures:
-                    emit_err("Forced restart, ignoring %s Service, continuing normal operation" % svc)
+                    emit_err(
+                        "Forced restart, ignoring %s Service, "
+                        "continuing normal operation"
+                        % svc
+                    )
                     continue
 
                 emit_err("Shutting down")
@@ -500,13 +588,19 @@ def ipa_restart(options):
             svchandle = services.service(svc, api=api)
             try:
                 print("Starting %s Service" % svc)
-                svchandle.start(capture_output=get_capture_output(svc, options.debug))
+                svchandle.start(
+                    capture_output=get_capture_output(svc, options.debug)
+                )
             except Exception:
                 emit_err("Failed to start %s Service" % svc)
                 # if ignore_service_failures is specified, skip rollback and
                 # continue with the next service
                 if options.ignore_service_failures:
-                    emit_err("Forced start, ignoring %s Service, continuing normal operation" % svc)
+                    emit_err(
+                        "Forced start, ignoring %s Service, "
+                        "continuing normal operation"
+                        % svc
+                    )
                     continue
 
                 emit_err("Shutting down")
@@ -515,6 +609,7 @@ def ipa_restart(options):
 
                 emit_err(MSG_HINT_IGNORE_SERVICE_FAILURE)
                 raise IpactlError("Aborting ipactl")
+
 
 def ipa_status(options):
 
@@ -530,7 +625,9 @@ def ipa_status(options):
         else:
             svc_list = []
     except Exception as e:
-        raise IpactlError("Failed to get list of services to probe status: " + str(e))
+        raise IpactlError(
+            "Failed to get list of services to probe status: " + str(e)
+        )
 
     dirsrv = services.knownservices.dirsrv
     try:
@@ -539,9 +636,13 @@ def ipa_status(options):
         else:
             print("Directory Service: STOPPED")
             if len(svc_list) == 0:
-                print(("Directory Service must be running in order to " +
-                      "obtain status of other services"))
-    except:
+                print(
+                    (
+                        "Directory Service must be running in order to "
+                        "obtain status of other services"
+                    )
+                )
+    except Exception as e:
         raise IpactlError("Failed to get Directory Service status")
 
     if len(svc_list) == 0:
@@ -557,6 +658,7 @@ def ipa_status(options):
         except Exception:
             emit_err("Failed to get %s Service status" % svc)
 
+
 def main():
     if not os.getegid() == 0:
         # LSB status code 4: user had insufficient privilege
@@ -567,7 +669,7 @@ def main():
     if len(args) != 1:
         # LSB status code 2: invalid or excess argument(s)
         raise IpactlError("You must specify one action", 2)
-    elif args[0] != "start" and args[0] != "stop" and args[0] != "restart" and args[0] != "status":
+    elif args[0] not in ("start", "stop", "restart", "status"):
         raise IpactlError("Unrecognized action [" + args[0] + "]", 2)
 
     # check if IPA is configured at all
@@ -584,15 +686,19 @@ def main():
         else:
             raise e
 
-    api.bootstrap(in_server=True,
-                  context='ipactl',
-                  confdir=paths.ETC_IPA,
-                  debug=options.debug)
+    api.bootstrap(
+        in_server=True,
+        context="ipactl",
+        confdir=paths.ETC_IPA,
+        debug=options.debug,
+    )
     api.finalize()
 
-    if '.' not in api.env.host:
-        raise IpactlError("Invalid hostname '%s' in IPA configuration!\n"
-                          "The hostname must be fully-qualified" % api.env.host)
+    if "." not in api.env.host:
+        raise IpactlError(
+            "Invalid hostname '%s' in IPA configuration!\n"
+            "The hostname must be fully-qualified" % api.env.host
+        )
 
     if args[0].lower() == "start":
         ipa_start(options)
@@ -602,7 +708,3 @@ def main():
         ipa_restart(options)
     elif args[0].lower() == "status":
         ipa_status(options)
-
-
-if __name__ == '__main__':
-    installutils.run_script(main, operation_name='ipactl')
