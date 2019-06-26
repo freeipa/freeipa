@@ -91,7 +91,7 @@ class DogtagInstance(service.Service):
 
     # Mapping of nicknames for tracking requests, and the profile to
     # use for that certificate.  'configure_renewal()' reads this
-    # dict and adds the profile if configured.
+    # dict.  The profile MUST be specified.
     tracking_reqs = dict()
 
     # token for CA and subsystem certificates. For now, only internal token
