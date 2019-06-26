@@ -54,6 +54,9 @@ from ipaserver.install.installutils import stopped_service
 logger = logging.getLogger(__name__)
 
 
+INTERNAL_TOKEN = "internal"
+
+
 def get_security_domain():
     """
     Get the security domain from the REST interface on the local Dogtag CA
@@ -93,13 +96,21 @@ class DogtagInstance(service.Service):
     CA, KRA, and eventually TKS and TPS.
     """
 
-    # Mapping of nicknames for tracking requests, and the profile to use for
-    # that certificate.  'configure_renewal()' reads this dict and adds the
-    # profile if configured.  Certificates that use the default profile
-    # ("caServerCert", as defined by dogtag-ipa-renew-agent which is part of
-    # Certmonger) are omitted.
+    # Mapping of nicknames for tracking requests, and the profile to
+    # use for that certificate.  'configure_renewal()' reads this
+    # dict and adds the profile if configured.
     tracking_reqs = dict()
-    server_cert_name = None
+
+    # token for CA and subsystem certificates. For now, only internal token
+    # is supported.
+    token_name = "internal"
+
+    # override token for specific nicknames
+    token_names = dict()
+
+    def get_token_name(self, nickname):
+        """Look up token name for nickname."""
+        return self.token_names.get(nickname, self.token_name)
 
     ipaca_groups = DN(('ou', 'groups'), ('o', 'ipaca'))
     ipaca_people = DN(('ou', 'people'), ('o', 'ipaca'))
@@ -368,9 +379,9 @@ class DogtagInstance(service.Service):
                     # Give dogtag extra time to generate cert
                     timeout=CA_DBUS_TIMEOUT)
 
-    def __get_pin(self):
+    def __get_pin(self, token_name=INTERNAL_TOKEN):
         try:
-            return certmonger.get_pin('internal')
+            return certmonger.get_pin(token_name)
         except IOError as e:
             logger.debug(
                 'Unable to determine PIN for the Dogtag instance: %s', e)
@@ -378,9 +389,10 @@ class DogtagInstance(service.Service):
 
     def configure_renewal(self):
         """ Configure certmonger to renew system certs """
-        pin = self.__get_pin()
 
         for nickname in self.tracking_reqs:
+            token_name = self.get_token_name(nickname)
+            pin = self.__get_pin(token_name)
             try:
                 certmonger.start_tracking(
                     certpath=self.nss_db,
@@ -395,25 +407,6 @@ class DogtagInstance(service.Service):
                 logger.error(
                     "certmonger failed to start tracking certificate: %s", e)
 
-    def track_servercert(self):
-        """
-        Specifically do not tell certmonger to restart the CA. This will be
-        done by the renewal script, renew_ca_cert once all the subsystem
-        certificates are renewed.
-        """
-        pin = self.__get_pin()
-        try:
-            certmonger.start_tracking(
-                certpath=self.nss_db,
-                ca='dogtag-ipa-ca-renew-agent',
-                nickname=self.server_cert_name,
-                pin=pin,
-                pre_command='stop_pkicad',
-                post_command='renew_ca_cert "%s"' % self.server_cert_name)
-        except RuntimeError as e:
-            logger.error(
-                "certmonger failed to start tracking certificate: %s", e)
-
     def stop_tracking_certificates(self, stop_certmonger=True):
         """Stop tracking our certificates. Called on uninstall.
         """
@@ -425,11 +418,7 @@ class DogtagInstance(service.Service):
         services.knownservices.messagebus.start()
         cmonger.start()
 
-        nicknames = list(self.tracking_reqs)
-        if self.server_cert_name is not None:
-            nicknames.append(self.server_cert_name)
-
-        for nickname in nicknames:
+        for nickname in self.tracking_reqs:
             try:
                 certmonger.stop_tracking(
                     self.nss_db, nickname=nickname)
