@@ -296,6 +296,8 @@ class CAInstance(DogtagInstance):
        2 = have signed cert, continue installation
     """
 
+    server_cert_name = 'Server-Cert cert-pki-ca'
+
     # Mapping of nicknames for tracking requests, and the profile to
     # use for that certificate.  'configure_renewal()' reads this
     # dict.  The profile MUST be specified.
@@ -304,8 +306,12 @@ class CAInstance(DogtagInstance):
         'ocspSigningCert cert-pki-ca': 'caOCSPCert',
         'subsystemCert cert-pki-ca': 'caSubsystemCert',
         'caSigningCert cert-pki-ca': 'caCACert',
+        server_cert_name: 'caServerCert',
     }
-    server_cert_name = 'Server-Cert cert-pki-ca'
+    token_names = {
+        server_cert_name: 'internal',  # Server-Cert always on internal token
+    }
+
     # The following must be aligned with the RewriteRule defined in
     # install/share/ipa-pki-proxy.conf.template
     crl_rewrite_pattern = r"^\s*(RewriteRule\s+\^/ipa/crl/MasterCRL.bin\s.*)$"
@@ -464,7 +470,6 @@ class CAInstance(DogtagInstance):
                         "Ensuring backward compatibility",
                         self.__dogtag10_migration)
                 self.step("configure certificate renewals", self.configure_renewal)
-                self.step("configure Server-Cert certificate renewal", self.track_servercert)
                 self.step("Configure HTTP to proxy connections",
                           self.http_proxy)
                 self.step("restarting certificate server", self.restart_instance)
