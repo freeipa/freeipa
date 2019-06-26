@@ -974,11 +974,7 @@ def certificate_renewal_update(ca, ds, http):
 
     requests = []
 
-    dogtag_system_nicks = (
-        list(cainstance.CAInstance.tracking_reqs) +
-        [cainstance.CAInstance.server_cert_name]
-    )
-    for nick in dogtag_system_nicks:
+    for nick in cainstance.CAInstance.tracking_reqs:
         req = {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': nick,
@@ -1074,7 +1070,6 @@ def certificate_renewal_update(ca, ds, http):
     ca.configure_certmonger_renewal()
     ca.configure_renewal()
     ca.configure_agent_renewal()
-    ca.track_servercert()
     ca.add_lightweight_ca_tracking_requests()
     ds.start_tracking_certificates(serverid)
     http.start_tracking_certificates()
