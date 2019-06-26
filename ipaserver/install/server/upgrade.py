@@ -956,7 +956,7 @@ def certificate_renewal_update(ca, ds, http):
 
     requests = []
 
-    for nick in cainstance.CAInstance.tracking_reqs:
+    for nick, profile in cainstance.CAInstance.tracking_reqs.items():
         req = {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': nick,
@@ -964,10 +964,8 @@ def certificate_renewal_update(ca, ds, http):
             'cert-presave-command': template % 'stop_pkicad',
             'cert-postsave-command':
                 (template % 'renew_ca_cert "{}"'.format(nick)),
+            'template-profile': profile,
         }
-        profile = cainstance.CAInstance.tracking_reqs.get(nick)
-        if profile:
-            req['template-profile'] = profile
         requests.append(req)
 
     requests.append(
