@@ -5,6 +5,7 @@
 from __future__ import print_function, absolute_import
 
 import errno
+import itertools
 import logging
 import re
 import os
@@ -962,7 +963,7 @@ def named_add_crypto_policy():
     return True
 
 
-def certificate_renewal_update(ca, ds, http):
+def certificate_renewal_update(ca, kra, ds, http):
     """
     Update certmonger certificate renewal configuration.
     """
@@ -972,7 +973,11 @@ def certificate_renewal_update(ca, ds, http):
 
     requests = []
 
-    for nick, profile in cainstance.CAInstance.tracking_reqs.items():
+    dogtag_reqs = ca.tracking_reqs.items()
+    if kra.is_installed():
+        dogtag_reqs = itertools.chain(dogtag_reqs, kra.tracking_reqs.items())
+
+    for nick, profile in dogtag_reqs:
         req = {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': nick,
@@ -1054,6 +1059,8 @@ def certificate_renewal_update(ca, ds, http):
     # Ok, now we need to stop tracking, then we can start tracking them
     # again with new configuration:
     ca.stop_tracking_certificates()
+    if kra.is_installed():
+        kra.stop_tracking_certificates()
     ds.stop_tracking_certificates(serverid)
     http.stop_tracking_certificates()
 
@@ -1067,6 +1074,8 @@ def certificate_renewal_update(ca, ds, http):
     ca.configure_renewal()
     ca.configure_agent_renewal()
     ca.add_lightweight_ca_tracking_requests()
+    if kra.is_installed():
+        kra.configure_renewal()
     ds.start_tracking_certificates(serverid)
     http.start_tracking_certificates()
 
@@ -2048,7 +2057,7 @@ def upgrade_configuration():
         ca_restart,
         ca_upgrade_schema(ca),
         upgrade_ca_audit_cert_validity(ca),
-        certificate_renewal_update(ca, ds, http),
+        certificate_renewal_update(ca, kra, ds, http),
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
         ca_configure_lightweight_ca_acls(ca),
