@@ -1049,14 +1049,27 @@ def certificate_renewal_update(ca, kra, ds, http):
             )
 
     # State not set, lets see if we are already configured
+    missing_or_misconfigured_requests = []
     for request in requests:
         request_id = certmonger.get_request_id(request)
         if request_id is None:
-            break
-    else:
+            missing_or_misconfigured_requests.append(request)
+
+    if len(missing_or_misconfigured_requests) == 0:
         logger.info("Certmonger certificate renewal configuration already "
                     "up-to-date")
         return False
+
+    # Print info about missing requests
+    logger.info("Missing or incorrect tracking request for certificates:")
+    for request in missing_or_misconfigured_requests:
+        cert = None
+        if 'cert-file' in request:
+            cert = request['cert-file']
+        elif 'cert-database' in request and 'cert-nickname' in request:
+            cert = '{cert-database}:{cert-nickname}'.format(**request)
+        if cert is not None:
+            logger.info("  %s", cert)
 
     # Ok, now we need to stop tracking, then we can start tracking them
     # again with new configuration:
