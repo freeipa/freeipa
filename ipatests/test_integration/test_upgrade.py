@@ -14,6 +14,13 @@ from ipatests.pytest_ipa.integration import tasks
 
 
 class TestUpgrade(IntegrationTest):
+    """
+    Test ipa-server-upgrade.
+
+    Note that ipa-server-upgrade on a CA-less installation is tested
+    in ``test_caless.TestIPACommands.test_invoke_upgrader``.
+
+    """
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=False)
