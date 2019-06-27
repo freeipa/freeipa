@@ -396,7 +396,7 @@ class DogtagInstance(service.Service):
             try:
                 certmonger.start_tracking(
                     certpath=self.nss_db,
-                    ca='dogtag-ipa-ca-renew-agent',
+                    ca=RENEWAL_CA_NAME,
                     nickname=nickname,
                     pin=pin,
                     pre_command='stop_pkicad',
