@@ -20,6 +20,7 @@ from contextlib import contextmanager
 from augeas import Augeas
 import dns.exception
 from ipalib import api
+from ipalib.constants import RA_AGENT_PROFILE
 from ipalib.install import certmonger, sysrestore
 import SSSDConfig
 import ipalib.util
@@ -978,6 +979,7 @@ def certificate_renewal_update(ca, kra, ds, http):
             'cert-file': paths.RA_AGENT_PEM,
             'key-file': paths.RA_AGENT_KEY,
             'ca-name': 'dogtag-ipa-ca-renew-agent',
+            'template-profile': RA_AGENT_PROFILE,
             'cert-presave-command': template % 'renew_ra_cert_pre',
             'cert-postsave-command': template % 'renew_ra_cert',
         },
