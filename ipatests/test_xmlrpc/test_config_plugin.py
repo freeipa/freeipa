@@ -23,6 +23,7 @@ Test the `ipaserver/plugins/config.py` module.
 """
 
 from ipalib import api, errors
+from ipaplatform.constants import constants as platformconstants
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 import pytest
 
@@ -109,8 +110,11 @@ class test_config(Declarative):
             desc='Try to set invalid ipaselinuxusermapdefault',
             command=('config_mod', [],
                 dict(ipaselinuxusermapdefault=u'foo')),
-            expected=errors.ValidationError(name='ipaselinuxusermapdefault',
-                error='Invalid MLS value, must match s[0-15](-s[0-15])'),
+            expected=errors.ValidationError(
+                name='ipaselinuxusermapdefault',
+                error='Invalid MLS value, must match {}, where max level '
+                      '{}'.format(platformconstants.SELINUX_MLS_REGEX,
+                                  platformconstants.SELINUX_MLS_MAX)),
         ),
 
         dict(
@@ -140,10 +144,13 @@ class test_config(Declarative):
         dict(
             desc='Try to set invalid selinux user in ipaselinuxusermaporder',
             command=('config_mod', [],
-                dict(ipaselinuxusermaporder=u'unconfined_u:s0-s0:c0.c1023$baduser$guest_u:s0')),
-            expected=errors.ValidationError(name='ipaselinuxusermaporder',
+                     dict(ipaselinuxusermaporder=u'baduser')),
+            expected=errors.ValidationError(
+                name='ipaselinuxusermaporder',
                 error='SELinux user \'baduser\' is not valid: Invalid MLS '
-                      'value, must match s[0-15](-s[0-15])'),
+                      'value, must match {}, where max level {}'.format(
+                          platformconstants.SELINUX_MLS_REGEX,
+                          platformconstants.SELINUX_MLS_MAX)),
         ),
 
         dict(
@@ -151,9 +158,7 @@ class test_config(Declarative):
             command=(
                 'config_mod', [],
                 dict(
-                    ipaselinuxusermaporder=u'xguest_u:s0$guest_u:s0'
-                    u'$user_u:s0-s0:c0.c1023$staff_u:s0-s0:c0.c1023'
-                    u'$sysadm_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023',
+                    ipaselinuxusermaporder=u'foo:s0',
                     ipaselinuxusermapdefault=u'unknown_u:s0')),
             expected=errors.ValidationError(name='ipaselinuxusermapdefault',
                 error='SELinux user map default user not in order list'),

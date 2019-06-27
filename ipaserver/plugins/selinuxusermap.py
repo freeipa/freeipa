@@ -37,6 +37,7 @@ from ipalib import _, ngettext
 from ipalib import output
 from .hbacrule import is_all
 from ipapython.dn import DN
+from ipaplatform.constants import constants as platformconstants
 
 __doc__ = _("""
 SELinux User Mapping
@@ -92,36 +93,61 @@ def validate_selinuxuser(ugettext, user):
     """
     An SELinux user has 3 components: user:MLS:MCS. user and MLS are required.
     user traditionally ends with _u but this is not mandatory.
-      The regex is ^[a-zA-Z][a-zA-Z_\.]*
+      The regex is {name}
 
     The MLS part can only be:
-      Level: s[0-15](-s[0-15])
+      Level: {mls}
+      MaxLevel: {mls_max}
 
-    Then MCS could be c[0-1023].c[0-1023] and/or c[0-1023]-c[0-c0123]
-    Meaning
-    s0 s0-s1 s0-s15:c0.c1023 s0-s1:c0,c2,c15.c26 s0-s0:c0.c1023
+    Then MCS could be {mcs}
+    MaxCat: {mcs_max}
 
     Returns a message on invalid, returns nothing on valid.
-    """
-    regex_name = re.compile(r'^[a-zA-Z][a-zA-Z_\.]*$')
-    regex_mls = re.compile(r'^s[0-9][1-5]{0,1}(-s[0-9][1-5]{0,1}){0,1}$')
-    regex_mcs = re.compile(r'^c(\d+)([.,-]c(\d+))*?$')
+    """.format(
+        name=platformconstants.SELINUX_USER_REGEX,
+        mls=platformconstants.SELINUX_MLS_REGEX,
+        mls_max=platformconstants.SELINUX_MLS_MAX,
+        mcs=platformconstants.SELINUX_MCS_REGEX,
+        mcs_max=platformconstants.SELINUX_MCS_MAX,
+    )
+    SELINUX_MCS_MAX = platformconstants.SELINUX_MCS_MAX
+    SELINUX_MCS_REGEX = platformconstants.SELINUX_MCS_REGEX
+    SELINUX_MLS_MAX = platformconstants.SELINUX_MLS_MAX
+    SELINUX_MLS_REGEX = platformconstants.SELINUX_MLS_REGEX
+    SELINUX_USER_REGEX = platformconstants.SELINUX_USER_REGEX
+
+    regex_name = re.compile(SELINUX_USER_REGEX)
+    regex_mls = re.compile(SELINUX_MLS_REGEX)
+    regex_mcs = re.compile(SELINUX_MCS_REGEX)
 
     # If we add in ::: we don't have to check to see if some values are
     # empty
     (name, mls, mcs, _ignore) = (user + ':::').split(':', 3)
 
     if not regex_name.match(name):
-        return _('Invalid SELinux user name, only a-Z, _ and . are allowed')
-    if not mls or not regex_mls.match(mls):
-        return _('Invalid MLS value, must match s[0-15](-s[0-15])')
-    m = regex_mcs.match(mcs)
-    if mcs and (not m or (m.group(3) and (int(m.group(3)) > 1023))):
-        return _('Invalid MCS value, must match c[0-1023].c[0-1023] '
-                 'and/or c[0-1023]-c[0-c0123]')
+        return _('Invalid SELinux user name, must match {}').format(
+            SELINUX_USER_REGEX)
+
+    def _validate_level(level, level_regex, upper_limit):
+        if not level_regex.match(level):
+            return False
+
+        for m in re.finditer(r'\d+', level):
+            if int(m.group()) > upper_limit:
+                return False
+        return True
+
+    if not mls or not _validate_level(mls, regex_mls, SELINUX_MLS_MAX):
+        return _(
+            'Invalid MLS value, must match {mls}, where max level '
+            '{mls_max}').format(mls=SELINUX_MLS_REGEX, mls_max=SELINUX_MLS_MAX)
+
+    if mcs and not _validate_level(mcs, regex_mcs, SELINUX_MCS_MAX):
+        return _(
+            'Invalid MCS value, must match {mcs}, where max category '
+            '{mcs_max}').format(mcs=SELINUX_MCS_REGEX, mcs_max=SELINUX_MCS_MAX)
 
     return None
-
 
 def validate_selinuxuser_inlist(ldap, user):
     """
