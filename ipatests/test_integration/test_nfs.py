@@ -57,15 +57,15 @@ class TestInit(IntegrationTest):
 
 class TestNFS(TestInit):
 
-    num_replicas = 2
-    num_clients = 1
+    num_replicas = 3
+    num_clients = 0
     topology = 'star'
 
     @classmethod
     def install(cls, mh):
 
         tasks.install_master(cls.master, setup_dns=True)
-        clients = (cls.clients[0], cls.replicas[0], cls.replicas[1])
+        clients = (cls.replicas[0], cls.replicas[1], cls.replicas[2])
         for client in clients:
             cls.fix_resolv_conf(client, cls.master)
             tasks.install_client(cls.master, client)
@@ -73,9 +73,9 @@ class TestNFS(TestInit):
 
     def cleanup(self):
 
-        nfssrv = self.clients[0]
         nfsclt = self.replicas[0]
         automntclt = self.replicas[1]
+        nfssrv = self.replicas[2]
 
         nfsclt.run_command(["umount", "-a", "-t", "nfs4"])
         nfsclt.run_command(["systemctl", "stop", "rpc-gssd"])
@@ -130,7 +130,7 @@ class TestNFS(TestInit):
 
     def test_krb5_nfsd(self):
 
-        nfssrv = self.clients[0]
+        nfssrv = self.replicas[2]
 
         # NFS keytab management
         self.master.run_command([
@@ -165,7 +165,7 @@ class TestNFS(TestInit):
 
     def test_krb5_nfs_manual_configuration(self):
 
-        nfssrv = self.clients[0]
+        nfssrv = self.replicas[2]
         nfsclt = self.replicas[0]
 
         nfsclt.run_command(["systemctl", "restart", "rpc-gssd"])
@@ -193,7 +193,7 @@ class TestNFS(TestInit):
         Test if ipa-client-automount behaves as expected
         """
 
-        nfssrv = self.clients[0]
+        nfssrv = self.replicas[2]
         automntclt = self.replicas[1]
 
         self.master.run_command([
