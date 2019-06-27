@@ -1299,6 +1299,10 @@ class TestIPACommands(CALessBase):
         with self.host():
             self.master.run_command(['ipa', 'host-del', self.test_hostname])
 
+    def test_invoke_upgrader(self):
+        """Test that ipa-server-upgrade runs without error."""
+        self.master.run_command(['ipa-server-upgrade'], raiseonerr=True)
+
 
 class TestCertInstall(CALessBase):
     @classmethod
