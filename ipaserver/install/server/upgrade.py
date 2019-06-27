@@ -20,7 +20,7 @@ from contextlib import contextmanager
 from augeas import Augeas
 import dns.exception
 from ipalib import api, x509
-from ipalib.constants import RA_AGENT_PROFILE
+from ipalib.constants import RENEWAL_CA_NAME, RA_AGENT_PROFILE
 from ipalib.install import certmonger, sysrestore
 import SSSDConfig
 import ipalib.util
@@ -982,7 +982,7 @@ def certificate_renewal_update(ca, kra, ds, http):
         req = {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': nick,
-            'ca-name': 'dogtag-ipa-ca-renew-agent',
+            'ca-name': RENEWAL_CA_NAME,
             'cert-presave-command': template % 'stop_pkicad',
             'cert-postsave-command':
                 (template % 'renew_ca_cert "{}"'.format(nick)),
@@ -994,7 +994,7 @@ def certificate_renewal_update(ca, kra, ds, http):
         {
             'cert-file': paths.RA_AGENT_PEM,
             'key-file': paths.RA_AGENT_KEY,
-            'ca-name': 'dogtag-ipa-ca-renew-agent',
+            'ca-name': RENEWAL_CA_NAME,
             'template-profile': RA_AGENT_PROFILE,
             'cert-presave-command': template % 'renew_ra_cert_pre',
             'cert-postsave-command': template % 'renew_ra_cert',
@@ -1040,7 +1040,7 @@ def certificate_renewal_update(ca, kra, ds, http):
                 {
                     'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
                     'cert-nickname': nickname,
-                    'ca-name': 'dogtag-ipa-ca-renew-agent',
+                    'ca-name': RENEWAL_CA_NAME,
                     'cert-presave-command': template % 'stop_pkicad',
                     'cert-postsave-command':
                         (template % ('renew_ca_cert "%s"' % nickname)),

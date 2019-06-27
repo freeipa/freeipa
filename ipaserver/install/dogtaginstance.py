@@ -34,7 +34,7 @@ import pki.system
 
 from ipalib import api, errors, x509
 from ipalib.install import certmonger
-from ipalib.constants import CA_DBUS_TIMEOUT
+from ipalib.constants import CA_DBUS_TIMEOUT, RENEWAL_CA_NAME
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -297,7 +297,7 @@ class DogtagInstance(service.Service):
                              '/org/fedorahosted/certmonger')
         iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
         for suffix, args in [('', ''), ('-reuse', ' --reuse-existing')]:
-            name = 'dogtag-ipa-ca-renew-agent' + suffix
+            name = RENEWAL_CA_NAME + suffix
             path = iface.find_ca_by_nickname(name)
             if not path:
                 command = paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT + args
@@ -325,7 +325,7 @@ class DogtagInstance(service.Service):
             try:
                 certmonger.start_tracking(
                     certpath=self.nss_db,
-                    ca='dogtag-ipa-ca-renew-agent',
+                    ca=RENEWAL_CA_NAME,
                     nickname=nickname,
                     token_name=token_name,
                     pin=pin,
