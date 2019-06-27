@@ -1010,7 +1010,7 @@ def certificate_renewal_update(ca, kra, ds, http):
         requests.append(
             {
                 'cert-file': paths.HTTPD_CERT_FILE,
-                'key-storage': paths.HTTPD_KEY_FILE,
+                'key-file': paths.HTTPD_KEY_FILE,
                 'ca-name': 'IPA',
                 'cert-postsave-command': template % 'restart_httpd',
             }
