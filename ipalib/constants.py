@@ -306,6 +306,7 @@ IPA_CA_RECORD = "ipa-ca"
 IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
 RENEWAL_CA_NAME = 'dogtag-ipa-ca-renew-agent'
 RENEWAL_REUSE_CA_NAME = 'dogtag-ipa-ca-renew-agent-reuse'
+RA_AGENT_PROFILE = 'caServerCert'
 # How long dbus clients should wait for CA certificate RPCs [seconds]
 CA_DBUS_TIMEOUT = 120
 
