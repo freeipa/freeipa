@@ -424,11 +424,11 @@ def fetch_trusted_domains_over_dbus(myapi, *keys, **options):
 
     forest_name = keys[0]
     method_options = []
-    if 'realm_server' in options:
+    if options.get('realm_server', None):
         method_options.extend(['--server', options['realm_server']])
-    if 'realm_admin' in options:
+    if options.get('realm_admin', None):
         method_options.extend(['--admin', options['realm_admin']])
-    if 'realm_passwd' in options:
+    if options.get('realm_passwd', None):
         method_options.extend(['--password', options['realm_passwd']])
 
     # Calling oddjobd-activated service via DBus has some quirks:
@@ -458,11 +458,15 @@ def fetch_trusted_domains_over_dbus(myapi, *keys, **options):
     except dbus.DBusException as e:
         logger.error('Failed to call %s.fetch_domains helper.'
                      'DBus exception is %s.', DBUS_IFACE_TRUST, str(e))
-        if _ret != 0:
-            logger.error('Helper was called for forest %s, return code is %d',
-                         forest_name, _ret)
-            logger.error('Standard output from the helper:\n%s---\n', _stdout)
-            logger.error('Error output from the helper:\n%s--\n', _stderr)
+        _ret = 2
+        _stdout = '<not available>'
+        _stderr = '<not available>'
+
+    if _ret != 0:
+        logger.error('Helper fetch_domains was called for forest %s, '
+                     'return code is %d', forest_name, _ret)
+        logger.error('Standard output from the helper:\n%s---\n', _stdout)
+        logger.error('Error output from the helper:\n%s--\n', _stderr)
         raise errors.ServerCommandError(
             server=myapi.env.host,
             error=_('Fetching domains from trusted forest failed. '
@@ -801,7 +805,13 @@ ipa idrange-del before retrying the command with the desired range type.
                 # object credentials to authenticate to AD with Kerberos,
                 # run DCE RPC calls to do discovery and will call
                 # add_new_domains_from_trust() on its own.
-                fetch_trusted_domains_over_dbus(self.api, result['value'])
+                # We only pass through the realm_server option because we need
+                # to reach the specified Active Directory domain controller
+                # No need to pass through admin credentials as we have TDO
+                # credentials at this point already
+                fetch_trusted_domains_over_dbus(self.api, result['value'],
+                                                realm_server=options.get(
+                                                    'realm_server', None))
 
         # Format the output into human-readable values unless `--raw` is given
         self._format_trust_attrs(result, **options)
