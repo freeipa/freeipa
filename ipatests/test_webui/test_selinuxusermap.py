@@ -21,6 +21,7 @@
 SELinux user map tests
 """
 
+from ipaplatform.constants import constants as platformconstants
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_user as user
@@ -41,10 +42,14 @@ RULE_ALR_EXIST = 'SELinux User Map rule with name "{}" already exists'
 RULE_UPDATED = 'SELinux User Map {} updated'
 RULE_ADDED = 'SELinux User Map successfully added'
 INVALID_SEUSER = 'SELinux user {} not found in ordering list (in config)'
-INVALID_MCS = ("invalid 'selinuxuser': Invalid MCS value, must match c[0-1023]"
-               ".c[0-1023] and/or c[0-1023]-c[0-c0123]")
-INVALID_MLS = ("invalid 'selinuxuser': Invalid MLS value, must match "
-               "s[0-15](-s[0-15])")
+INVALID_MCS = ("invalid 'selinuxuser': Invalid MCS value, must match {}, "
+               "where max category {}").format(
+                   platformconstants.SELINUX_MCS_REGEX,
+                   platformconstants.SELINUX_MCS_MAX)
+INVALID_MLS = ("invalid 'selinuxuser': Invalid MLS value, must match {}, "
+               "where max level {}").format(
+                   platformconstants.SELINUX_MLS_REGEX,
+                   platformconstants.SELINUX_MLS_MAX)
 HBAC_DEL_ERR = ('{} cannot be deleted because SELinux User Map {} requires '
                 'it')
 HBAC_MEMBER_ERR = 'HBAC rule and local members cannot both be set'

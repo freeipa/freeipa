@@ -521,6 +521,8 @@ class DsInstance(service.Service):
             ' '.join(replication.TOTAL_EXCLUDES),
             DEFAULT_SHELL=platformconstants.DEFAULT_SHELL,
             DEFAULT_ADMIN_SHELL=platformconstants.DEFAULT_ADMIN_SHELL,
+            SELINUX_USERMAP_DEFAULT=platformconstants.SELINUX_USERMAP_DEFAULT,
+            SELINUX_USERMAP_ORDER=platformconstants.SELINUX_USERMAP_ORDER,
         )
 
     def __create_instance(self):

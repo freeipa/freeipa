@@ -1,7 +1,7 @@
 dn: cn=ipaConfig,cn=etc,$SUFFIX
 replace: ipaSELinuxUserMapOrder: ipaSELinuxUserMapOrder: guest_u:s0$$xguest_u:s0$$user_u:s0$$staff_u:s0-s0:c0.c1023$$unconfined_u:s0-s0:c0.c1023::guest_u:s0$$xguest_u:s0$$user_u:s0$$staff_u:s0-s0:c0.c1023$$unconfined_u:s0-s0:c0.c1023
 replace: ipaSELinuxUserMapOrder: guest_u:s0$$xguest_u:s0$$user_u:s0-s0:c0.c1023$$staff_u:s0-s0:c0.c1023$$unconfined_u:s0-s0:c0.c1023::guest_u:s0$$xguest_u:s0$$user_u:s0$$staff_u:s0-s0:c0.c1023$$unconfined_u:s0-s0:c0.c1023
-add:ipaSELinuxUserMapDefault: unconfined_u:s0-s0:c0.c1023
+add:ipaSELinuxUserMapDefault: $SELINUX_USERMAP_DEFAULT
 add:ipaUserObjectClasses: ipasshuser
 remove:ipaConfigString:AllowLMhash
 add:objectClass: ipaUserAuthTypeClass
