@@ -1162,6 +1162,7 @@ class CAInstance(DogtagInstance):
             certmonger.start_tracking(
                 certpath=(paths.RA_AGENT_PEM, paths.RA_AGENT_KEY),
                 ca='dogtag-ipa-ca-renew-agent',
+                profile=ipalib.constants.RA_AGENT_PROFILE,
                 pre_command='renew_ra_cert_pre',
                 post_command='renew_ra_cert',
                 storage='FILE')
