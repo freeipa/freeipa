@@ -1227,7 +1227,7 @@ jobs:
         test_suite: test_integration/test_nfs.py::TestNFS
         template: *ci-master-frawhide
         timeout: 9000
-        topology: *master_3repl_1client
+        topology: *master_2repl_1client
 
   fedora-rawhide/automember:
     requires: [fedora-rawhide/build]
