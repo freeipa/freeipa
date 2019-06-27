@@ -1482,13 +1482,14 @@ def fix_trust_flags():
 def update_mod_nss_protocol(http):
     logger.info('[Updating mod_nss protocol versions]')
 
-    if sysupgrade.get_upgrade_state('nss.conf', 'protocol_updated_tls12'):
+    if sysupgrade.get_upgrade_state('nss.conf', 'protocol_remove_tls_1.0_1.1'):
         logger.info("Protocol versions already updated")
         return
 
     http.set_mod_nss_protocol()
 
-    sysupgrade.set_upgrade_state('nss.conf', 'protocol_updated_tls12', True)
+    sysupgrade.set_upgrade_state('nss.conf', 'protocol_remove_tls_1.0_1.1',
+                                 True)
 
 
 def disable_mod_nss_ocsp(http):
