@@ -59,6 +59,7 @@ class TestWinsyncMigrate(IntegrationTest):
     ipa_group = 'ipa_group'
     ad_user = 'testuser'
     default_shell = platformconstants.DEFAULT_SHELL
+    selinuxuser = platformconstants.SELINUX_USERMAP_ORDER.split("$$")[0]
     test_role = 'test_role'
     test_hbac_rule = 'test_hbac_rule'
     test_selinux_map = 'test_selinux_map'
@@ -102,7 +103,7 @@ class TestWinsyncMigrate(IntegrationTest):
         cls.master.run_command(['ipa', 'hbacrule-add', cls.test_hbac_rule])
         cls.master.run_command([
             'ipa', 'selinuxusermap-add', cls.test_selinux_map,
-            '--selinuxuser', 'guest_u:s0'])
+            '--selinuxuser', cls.selinuxuser])
 
     @classmethod
     def setup_user_memberships(cls, user):

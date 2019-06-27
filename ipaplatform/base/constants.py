@@ -54,6 +54,20 @@ class BaseConstantsNamespace:
             'samba_share_nfs': 'on',
         },
     }
+    SELINUX_MCS_MAX = 1023
+    SELINUX_MCS_REGEX = r"^c(\d+)([.,-]c(\d+))*$"
+    SELINUX_MLS_MAX = 15
+    SELINUX_MLS_REGEX = r"^s(\d+)(-s(\d+))?$"
+    SELINUX_USER_REGEX = r"^[a-zA-Z][a-zA-Z_\.]*$"
+    SELINUX_USERMAP_DEFAULT = "unconfined_u:s0-s0:c0.c1023"
+    SELINUX_USERMAP_ORDER = (
+        "guest_u:s0"
+        "$$xguest_u:s0"
+        "$$user_u:s0"
+        "$$staff_u:s0-s0:c0.c1023"
+        "$$sysadm_u:s0-s0:c0.c1023"
+        "$$unconfined_u:s0-s0:c0.c1023"
+    )
     SSSD_USER = "sssd"
     # WSGI module override, only used on Fedora
     MOD_WSGI_PYTHON2 = None

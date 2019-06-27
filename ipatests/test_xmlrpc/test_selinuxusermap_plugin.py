@@ -21,6 +21,8 @@ Test the `ipaserver/plugins/selinuxusermap.py` module.
 """
 
 from ipalib import api, errors
+from ipaplatform.constants import constants as platformconstants
+
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
                                               fuzzy_uuid)
@@ -30,8 +32,16 @@ from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 import pytest
 
 rule1 = u'selinuxrule1'
-selinuxuser1 = u'guest_u:s0'
-selinuxuser2 = u'xguest_u:s0'
+selinuxuser1 = platformconstants.SELINUX_USERMAP_ORDER.split("$$")[0]
+selinuxuser2 = platformconstants.SELINUX_USERMAP_ORDER.split("$$")[1]
+
+INVALID_MCS = "Invalid MCS value, must match {}, where max category {}".format(
+    platformconstants.SELINUX_MCS_REGEX,
+    platformconstants.SELINUX_MCS_MAX)
+
+INVALID_MLS = "Invalid MLS value, must match {}, where max level {}".format(
+    platformconstants.SELINUX_MLS_REGEX,
+    platformconstants.SELINUX_MLS_MAX)
 
 user1 = u'tuser1'
 group1 = u'testgroup1'
@@ -623,44 +633,46 @@ class test_selinuxusermap(Declarative):
             ),
             expected=errors.ValidationError(
                 name='selinuxuser',
-                error=u'Invalid SELinux user name, only a-Z, _ '
-                      'and . are allowed'
+                error=u'Invalid SELinux user name, must match {}'.format(
+                    platformconstants.SELINUX_USER_REGEX)
             ),
         ),
 
 
         dict(
-            desc='Create rule with invalid MCS xguest_u:s999',
+            desc='Create rule with invalid MLS foo:s{}'.format(
+                platformconstants.SELINUX_MLS_MAX + 1),
             command=(
                 'selinuxusermap_add', [rule1],
-                     dict(ipaselinuxuser=u'xguest_u:s999')
+                dict(ipaselinuxuser=u'foo:s{}'.format(
+                    platformconstants.SELINUX_MLS_MAX + 1))
             ),
             expected=errors.ValidationError(name='selinuxuser',
-                error=u'Invalid MLS value, must match s[0-15](-s[0-15])'),
+                                            error=INVALID_MLS),
         ),
 
 
         dict(
-            desc='Create rule with invalid MLS xguest_u:s0:p88',
+            desc='Create rule with invalid MCS foo:s0:p88',
             command=(
                 'selinuxusermap_add', [rule1],
-                    dict(ipaselinuxuser=u'xguest_u:s0:p88')
+                dict(ipaselinuxuser=u'foo:s0:p88')
             ),
             expected=errors.ValidationError(name='selinuxuser',
-                error=u'Invalid MCS value, must match c[0-1023].c[0-1023] ' +
-                    u'and/or c[0-1023]-c[0-c0123]'),
+                                            error=INVALID_MCS),
         ),
 
 
         dict(
-            desc='Create rule with invalid MLS xguest_u:s0:c0.c1028',
+            desc='Create rule with invalid MCS foo:s0:c0.c{}'.format(
+                platformconstants.SELINUX_MCS_MAX + 1),
             command=(
                 'selinuxusermap_add', [rule1],
-                    dict(ipaselinuxuser=u'xguest_u:s0-s0:c0.c1028')
+                dict(ipaselinuxuser=u'foo:s0-s0:c0.c{}'.format(
+                    platformconstants.SELINUX_MCS_MAX + 1))
             ),
             expected=errors.ValidationError(name='selinuxuser',
-                error=u'Invalid MCS value, must match c[0-1023].c[0-1023] ' +
-                    u'and/or c[0-1023]-c[0-c0123]'),
+                                            error=INVALID_MCS),
         ),
 
 
@@ -671,7 +683,7 @@ class test_selinuxusermap(Declarative):
                     dict(setattr=u'ipaselinuxuser=deny')
             ),
             expected=errors.ValidationError(name='ipaselinuxuser',
-                error=u'Invalid MLS value, must match s[0-15](-s[0-15])'),
+                                            error=INVALID_MLS),
         ),
 
         dict(
