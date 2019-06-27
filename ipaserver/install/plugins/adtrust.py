@@ -512,16 +512,19 @@ class update_tdo_to_new_layout(Updater):
 
         if isinstance(principals, (list, tuple)):
             trust_principal = principals[0]
-            aliases = principals[1:]
+            alias = principals[1]
         else:
             trust_principal = principals
-            aliases = []
+            alias = None
 
+        entry = None
+        en = None
         try:
             entry = ldap.get_entry(
                 DN(('krbprincipalname', trust_principal), trustdn))
             dn = entry.dn
             action = ldap.update_entry
+            ticket_flags = int(entry.single_value.get('krbticketflags', 0))
             logger.debug("Updating Kerberos principal entry for %s",
                          trust_principal)
         except errors.NotFound:
@@ -529,6 +532,19 @@ class update_tdo_to_new_layout(Updater):
             # to let the caller to handle this situation
             if flags & self.KRB_PRINC_MUST_EXIST:
                 raise
+
+            ticket_flags = 0
+            if alias:
+                try:
+                    en = ldap.get_entry(
+                        DN(('krbprincipalname', alias), trustdn))
+                    ldap.delete_entry(en.dn)
+                    ticket_flags = int(en.single_value.get(
+                        'krbticketflags', 0))
+                except errors.NotFound:
+                    logger.debug("Entry for alias TDO does not exist for "
+                                 "trusted domain object %s, skip it",
+                                 alias)
 
             dn = DN(('krbprincipalname', trust_principal), trustdn)
             entry = ldap.make_entry(dn)
@@ -544,14 +560,22 @@ class update_tdo_to_new_layout(Updater):
             'krbprincipalname': [trust_principal],
         }
 
-        entry_data['krbprincipalname'].extend(aliases)
-
         if flags & self.KRB_PRINC_CREATE_DISABLED:
-            flg = int(entry.single_value.get('krbticketflags', 0))
-            entry_data['krbticketflags'] = flg | self.KRB_DISALLOW_ALL_TIX
+            entry_data['krbticketflags'] = (ticket_flags |
+                                            self.KRB_DISALLOW_ALL_TIX)
 
         if flags & self.KRB_PRINC_CREATE_AGENT_PERMISSION:
             entry_data['objectclass'].extend(['ipaAllowedOperations'])
+
+        if alias:
+            entry_data['krbprincipalname'].extend([alias])
+            if en:
+                entry_data['krbprincipalkey'] = en.single_value.get(
+                    'krbprincipalkey')
+                entry_data['krbextradata'] = en.single_value.get(
+                    'krbextradata')
+                entry_data['ipaAllowedToPerform;read_keys'] = en.get(
+                    'ipaAllowedToPerform;read_keys', [])
 
         entry.update(entry_data)
         try:
