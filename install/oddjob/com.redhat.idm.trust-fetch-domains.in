@@ -8,9 +8,12 @@ from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
+import io
 import sys
 import os
 import pwd
+import tempfile
+import textwrap
 
 import six
 import gssapi
@@ -23,17 +26,38 @@ if six.PY3:
 
 def parse_options():
     usage = "%prog <trusted domain name>\n"
-    parser = config.IPAOptionParser(usage=usage,
-                                    formatter=config.IPAFormatter())
+    parser = config.IPAOptionParser(
+        usage=usage, formatter=config.IPAFormatter()
+    )
 
-    parser.add_option("-d", "--debug", action="store_true", dest="debug",
-                      help="Display debugging information")
-    parser.add_option("-s", "--server", action="store", dest="server",
-                      help="Domain controller for the Active Directory domain (optional)")
-    parser.add_option("-a", "--admin", action="store", dest="admin",
-                      help="Active Directory administrator (optional)")
-    parser.add_option("-p", "--password", action="store", dest="password",
-                      help="Display debugging information")
+    parser.add_option(
+        "-d",
+        "--debug",
+        action="store_true",
+        dest="debug",
+        help="Display debugging information",
+    )
+    parser.add_option(
+        "-s",
+        "--server",
+        action="store",
+        dest="server",
+        help="Domain controller for the Active Directory domain (optional)",
+    )
+    parser.add_option(
+        "-a",
+        "--admin",
+        action="store",
+        dest="admin",
+        help="Active Directory administrator (optional)",
+    )
+    parser.add_option(
+        "-p",
+        "--password",
+        action="store",
+        dest="password",
+        help="Display debugging information",
+    )
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -50,17 +74,26 @@ def parse_options():
         raise ScriptError("You must specify a valid trusted domain name", 2)
     return safe_options, options, trusted_domain
 
+
 def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
-    getkeytab_args = ["/usr/sbin/ipa-getkeytab",
-                      "-s", api.env.host,
-                      "-p", oneway_principal,
-                      "-k", oneway_keytab_name,
-                      "-r"]
+    getkeytab_args = [
+        "/usr/sbin/ipa-getkeytab",
+        "-s",
+        api.env.host,
+        "-p",
+        oneway_principal,
+        "-k",
+        oneway_keytab_name,
+        "-r",
+    ]
     if os.path.isfile(oneway_keytab_name):
         os.unlink(oneway_keytab_name)
 
-    ipautil.run(getkeytab_args, env={'KRB5CCNAME': ccache_name, 'LANG': 'C'},
-                raiseonerr=False)
+    ipautil.run(
+        getkeytab_args,
+        env={"KRB5CCNAME": ccache_name, "LANG": "C"},
+        raiseonerr=False,
+    )
     # Make sure SSSD is able to read the keytab
     try:
         sssd = pwd.getpwnam(constants.SSSD_USER)
@@ -72,8 +105,7 @@ def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
 
 
 def get_forest_root_domain(api_instance, trusted_domain, server=None):
-    """
-    retrieve trusted forest root domain for given domain name
+    """Retrieve trusted forest root domain for given domain name
 
     :param api_instance: IPA API instance
     :param trusted_domain: trusted domain name
@@ -81,18 +113,51 @@ def get_forest_root_domain(api_instance, trusted_domain, server=None):
     :returns: forest root domain DNS name
     """
     trustconfig_show = api_instance.Command.trustconfig_show
-    flatname = trustconfig_show()['result']['ipantflatname'][0]
+    flatname = trustconfig_show()["result"]["ipantflatname"][0]
 
     remote_domain = dcerpc.retrieve_remote_domain(
-        api_instance.env.host, flatname, trusted_domain,
-        realm_server=server)
+        api_instance.env.host, flatname, trusted_domain, realm_server=server
+    )
 
-    return remote_domain.info['dns_forest']
+    return remote_domain.info["dns_forest"]
+
+
+def generate_krb5_config(realm, server):
+    """Generate override krb5 config file for trusted domain DC access
+
+    :param realm: realm of the trusted AD domain
+    :param server: server to override KDC to
+
+    :returns: tuple (temporary config file name, KRB5_CONFIG string)
+    """
+    cfg = paths.KRB5_CONF
+    tcfg = None
+    if server:
+        content = textwrap.dedent(u"""
+            [realms]
+               %s = {
+                   kdc = %s
+               }
+            """) % (
+            realm.upper(),
+            server,
+        )
+
+        (fd, tcfg) = tempfile.mkstemp(dir="/var/run/ipa",
+                prefix="krb5conf", text=True)
+        with io.open(fd, mode='w', encoding='utf-8') as o:
+            o.write(content)
+        cfg = ":".join([tcfg, cfg])
+    return (tcfg, cfg)
+
 
 if not is_ipa_configured():
     # LSB status code 6: program is not configured
-    raise ScriptError("IPA is not configured " +
-                      "(see man pages of ipa-server-install for help)", 6)
+    raise ScriptError(
+        "IPA is not configured "
+        + "(see man pages of ipa-server-install for help)",
+        6,
+    )
 
 if not os.getegid() == 0:
     # LSB status code 4: user had insufficient privilege
@@ -100,8 +165,9 @@ if not os.getegid() == 0:
 
 safe_options, options, trusted_domain = parse_options()
 
-api.bootstrap(in_server=True, log=None,
-              context='server', confdir=paths.ETC_IPA)
+api.bootstrap(
+    in_server=True, log=None, context="server", confdir=paths.ETC_IPA
+)
 api.finalize()
 
 # Only import trust plugin after api is initialized or internal imports
@@ -121,12 +187,12 @@ from ipaserver.plugins import trust
 # and retrieve our own NetBIOS domain name and use cifs/ipa.master@IPA.REALM to
 # retrieve the keys to oneway_keytab_name.
 
-keytab_name = '/etc/samba/samba.keytab'
+keytab_name = "/etc/samba/samba.keytab"
 
-principal = str('cifs/' + api.env.host)
+principal = str("cifs/" + api.env.host)
 
-oneway_ccache_name = '/var/run/ipa/krb5cc_oddjob_trusts_fetch'
-ccache_name = '/var/run/ipa/krb5cc_oddjob_trusts'
+oneway_ccache_name = "/var/run/ipa/krb5cc_oddjob_trusts_fetch"
+ccache_name = "/var/run/ipa/krb5cc_oddjob_trusts"
 
 # Standard sequence:
 # - check if ccache exists
@@ -140,33 +206,45 @@ try:
     cred = kinit_keytab(principal, keytab_name, ccache_name)
     if cred.lifetime > 0:
         have_ccache = True
-except gssapi.exceptions.ExpiredCredentialsError:
+except (gssapi.exceptions.ExpiredCredentialsError, gssapi.raw.misc.GSSError):
     pass
 if not have_ccache:
     # delete stale ccache and try again
-    if os.path.exists(oneway_ccache_name):
+    if os.path.exists(ccache_name):
         os.unlink(ccache_name)
     cred = kinit_keytab(principal, keytab_name, ccache_name)
 
-old_ccache = os.environ.get('KRB5CCNAME')
+old_ccache = os.environ.get("KRB5CCNAME")
+old_config = os.environ.get("KRB5_CONFIG")
 api.Backend.ldap2.connect(ccache_name)
 
 # Retrieve own NetBIOS name and trusted forest's name.
 # We use script's input to retrieve the trusted forest's name to sanitize input
 # for file-level access as we might need to wipe out keytab in /var/lib/sss/keytabs
-own_trust_dn = DN(('cn', api.env.domain),('cn','ad'), ('cn', 'etc'), api.env.basedn)
-own_trust_entry = api.Backend.ldap2.get_entry(own_trust_dn, ['ipantflatname'])
-own_trust_flatname = own_trust_entry.single_value.get('ipantflatname').upper()
-trusted_domain_dn = DN(('cn', trusted_domain.lower()), api.env.container_adtrusts, api.env.basedn)
-trusted_domain_entry = api.Backend.ldap2.get_entry(trusted_domain_dn, ['cn'])
-trusted_domain = trusted_domain_entry.single_value.get('cn').lower()
+own_trust_dn = DN(
+    ("cn", api.env.domain), ("cn", "ad"), ("cn", "etc"), api.env.basedn
+)
+own_trust_entry = api.Backend.ldap2.get_entry(own_trust_dn, ["ipantflatname"])
+own_trust_flatname = own_trust_entry.single_value.get("ipantflatname").upper()
+trusted_domain_dn = DN(
+    ("cn", trusted_domain.lower()), api.env.container_adtrusts, api.env.basedn
+)
+trusted_domain_entry = api.Backend.ldap2.get_entry(trusted_domain_dn, ["cn"])
+trusted_domain = trusted_domain_entry.single_value.get("cn").lower()
 
 # At this point if we didn't find trusted forest name, an exception will be raised
 # and script will quit. This is actually intended.
 
+# Generate MIT Kerberos configuration file that potentially overlays
+# the KDC to connect to for a trusted domain to allow --server option
+# to take precedence.
+cfg_file, cfg = generate_krb5_config(trusted_domain, options.server)
+
 if not (options.admin and options.password):
-    oneway_keytab_name = '/var/lib/sss/keytabs/' + trusted_domain + '.keytab'
-    oneway_principal = str('%s$@%s' % (own_trust_flatname, trusted_domain.upper()))
+    oneway_keytab_name = "/var/lib/sss/keytabs/" + trusted_domain + ".keytab"
+    oneway_principal = str(
+        "%s$@%s" % (own_trust_flatname, trusted_domain.upper())
+    )
 
     # If keytab does not exist, retrieve it
     if not os.path.isfile(oneway_keytab_name):
@@ -176,39 +254,78 @@ if not (options.admin and options.password):
         have_ccache = False
         try:
             # The keytab may have stale key material (from older trust-add run)
-            cred = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+            cred = kinit_keytab(
+                oneway_principal,
+                oneway_keytab_name,
+                oneway_ccache_name,
+                config=cfg,
+            )
             if cred.lifetime > 0:
                 have_ccache = True
-        except gssapi.exceptions.ExpiredCredentialsError:
+        except (gssapi.exceptions.ExpiredCredentialsError, gssapi.raw.misc.GSSError):
             pass
         if not have_ccache:
             if os.path.exists(oneway_ccache_name):
                 os.unlink(oneway_ccache_name)
-            kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
-    except gssapi.exceptions.GSSError:
+            kinit_keytab(
+                oneway_principal,
+                oneway_keytab_name,
+                oneway_ccache_name,
+                config=cfg,
+            )
+    except (gssapi.exceptions.GSSError, gssapi.raw.misc.GSSError):
         # If there was failure on using keytab, assume it is stale and retrieve again
         retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
         if os.path.exists(oneway_ccache_name):
             os.unlink(oneway_ccache_name)
-        kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+        cred = kinit_keytab(
+            oneway_principal,
+            oneway_keytab_name,
+            oneway_ccache_name,
+            config=cfg,
+        )
 else:
-    cred = kinit_password(options.admin, options.password,
-                          oneway_ccache_name,
-                          canonicalize=True, enterprise=True)
+    cred = kinit_password(
+        options.admin,
+        options.password,
+        oneway_ccache_name,
+        canonicalize=True,
+        enterprise=True,
+        config=cfg,
+    )
+
+if cred and cred.lifetime > 0:
+    have_ccache = True
+
+if not have_ccache:
+    sys.exit(1)
 
 # We are done: we have ccache with TDO credentials and can fetch domains
 ipa_domain = api.env.domain
-os.environ['KRB5CCNAME'] = oneway_ccache_name
+os.environ["KRB5CCNAME"] = oneway_ccache_name
+os.environ["KRB5_CONFIG"] = cfg
 
 # retrieve the forest root domain name and contact it to retrieve trust
 # topology info
-forest_root = get_forest_root_domain(api, trusted_domain, server=options.server)
-
-domains = dcerpc.fetch_domains(api, ipa_domain, forest_root, creds=True, server=options.server)
-trust_domain_object = api.Command.trust_show(trusted_domain, raw=True)['result']
-trust.add_new_domains_from_trust(api, None, trust_domain_object, domains)
+forest_root = get_forest_root_domain(
+    api, trusted_domain, server=options.server
+)
+domains = dcerpc.fetch_domains(
+    api, ipa_domain, forest_root, creds=True, server=options.server
+)
 
 if old_ccache:
-   os.environ['KRB5CCNAME'] = old_ccache
+    os.environ["KRB5CCNAME"] = old_ccache
+
+if old_config:
+    os.environ["KRB5_CONFIG"] = old_config
+
+if cfg_file:
+    os.remove(cfg_file)
+
+trust_domain_object = api.Command.trust_show(trusted_domain, raw=True)[
+    "result"
+]
+trust.add_new_domains_from_trust(api, None, trust_domain_object, domains)
 
 sys.exit(0)
