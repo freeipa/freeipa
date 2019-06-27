@@ -864,7 +864,7 @@ class CAInstance(DogtagInstance):
                 principal='host/%s' % self.fqdn,
                 subject=str(DN(('CN', 'IPA RA'), self.subject_base)),
                 ca=ipalib.constants.RENEWAL_CA_NAME,
-                profile='caServerCert',
+                profile=ipalib.constants.RA_AGENT_PROFILE,
                 pre_command='renew_ra_cert_pre',
                 post_command='renew_ra_cert',
                 storage="FILE",
@@ -991,7 +991,7 @@ class CAInstance(DogtagInstance):
                              '/org/fedorahosted/certmonger')
         iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
         for suffix in ['', '-reuse']:
-            name = 'dogtag-ipa-ca-renew-agent' + suffix
+            name = ipalib.constants.RENEWAL_CA_NAME + suffix
             path = iface.find_ca_by_nickname(name)
             if path:
                 iface.remove_known_ca(path)
@@ -1046,7 +1046,7 @@ class CAInstance(DogtagInstance):
         try:
             certmonger.start_tracking(
                 certpath=(paths.RA_AGENT_PEM, paths.RA_AGENT_KEY),
-                ca='dogtag-ipa-ca-renew-agent',
+                ca=ipalib.constants.RENEWAL_CA_NAME,
                 profile=ipalib.constants.RA_AGENT_PROFILE,
                 pre_command='renew_ra_cert_pre',
                 post_command='renew_ra_cert',
