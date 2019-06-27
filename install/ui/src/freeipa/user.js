@@ -407,6 +407,7 @@ return {
                     label: '@i18n:objects.user.unlock',
                     needs_confirm: true,
                     hide_cond: ['preserved-user'],
+                    disable_cond: ['no-password'],
                     confirm_msg: '@i18n:objects.user.unlock_confirm'
                 },
                 {
@@ -442,6 +443,7 @@ return {
                     },
                     IPA.user.self_service_other_user_evaluator,
                     IPA.user.preserved_user_evaluator,
+                    IPA.user.no_password_evaluator,
                     IPA.cert.certificate_evaluator
                 ],
                 summary_conditions: [
@@ -1073,6 +1075,35 @@ IPA.user.deleter_dialog = function(spec) {
         }
 
         return batch;
+    };
+
+    return that;
+};
+
+IPA.user.no_password_evaluator = function(spec) {
+
+    spec = spec || {};
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+    that.name = spec.name || 'no_password_evaluator';
+    that.param = spec.param || 'has_password';
+    that.adapter = builder.build('adapter', { $type: 'adapter'}, { context: that });
+
+    /**
+     * Evaluates if user has no password
+     */
+    that.on_event = function(data) {
+
+        var old_state = that.state;
+        that.state = [];
+
+        var has_password = that.adapter.load(data)[0];
+        if (!has_password) {
+            that.state.push('no-password');
+        }
+
+        that.notify_on_change(old_state);
     };
 
     return that;
