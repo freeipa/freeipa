@@ -219,8 +219,19 @@ endif
 	@echo "Fast linting with $(PYTHON) from branch '$(GIT_BRANCH)'"
 
 	@MERGEBASE=$$(git merge-base --fork-point $(GIT_BRANCH)); \
-	FILES=$$(git diff --name-only --diff-filter=d $${MERGEBASE} \
-	    | grep -E '\.py$$'); \
+	PYFILES=$$(git diff --name-only --diff-filter=d $${MERGEBASE} \
+	    | grep -E '\.py$$' ); \
+	INFILES=$$(git diff --name-only --diff-filter=d $${MERGEBASE} \
+	    | grep -E '\.in$$' \
+	    | xargs -n1 file 2>/dev/null | grep Python \
+	    | cut -d':' -f1; ); \
+	if [ -n "$${PYFILES}" ] && [ -n "$${INFILES}" ]; then \
+	    FILES="$$( printf $${PYFILES}\\n$${INFILES} )" ; \
+	elif [ -n "$${PYFILES}" ]; then \
+	    FILES="$${PYFILES}" ; \
+	else \
+	    FILES="$${INFILES}" ; \
+	fi ; \
 	if [ -n "$${FILES}" ]; then \
 	    echo -e "Fast linting files:\n$${FILES}\n"; \
 	    echo "pycodestyle"; \
