@@ -2,6 +2,13 @@ steps:
 - script: |
     set -e
     sudo rm -rf /var/cache/dnf/*
+    echo "dnf.conf: enable fastestmirror, use 8 download workers, lower timeout to fail faster, and add more retries"
+    sudo tee -a /etc/dnf/dnf.conf <<EOF > /dev/null
+    fastestmirror = True
+    max_parallel_downloads = 8
+    timeout = 8
+    retries = 20
+    EOF
     echo 'Disable modular repositories'
     sudo dnf config-manager '*modular*' --set-disabled
     sudo dnf makecache || :
