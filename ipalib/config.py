@@ -44,7 +44,7 @@ from ipalib.base import check_name
 from ipalib.constants import (
     CONFIG_SECTION,
     OVERRIDE_ERROR, SET_ERROR, DEL_ERROR,
-    TLS_VERSIONS
+    TLS_VERSIONS, TLS_VERSION_DEFAULT_MIN, TLS_VERSION_DEFAULT_MAX,
 )
 from ipalib import errors
 
@@ -632,14 +632,14 @@ class Env:
 
         # set the best known TLS version if min/max versions are not set
         if 'tls_version_min' not in self:
-            self.tls_version_min = TLS_VERSIONS[-1]
+            self.tls_version_min = TLS_VERSION_DEFAULT_MIN
         elif self.tls_version_min not in TLS_VERSIONS:
             raise errors.EnvironmentError(
                 "Unknown TLS version '{ver}' set in tls_version_min."
                 .format(ver=self.tls_version_min))
 
         if 'tls_version_max' not in self:
-            self.tls_version_max = TLS_VERSIONS[-1]
+            self.tls_version_max = TLS_VERSION_DEFAULT_MAX
         elif self.tls_version_max not in TLS_VERSIONS:
             raise errors.EnvironmentError(
                 "Unknown TLS version '{ver}' set in tls_version_max."
