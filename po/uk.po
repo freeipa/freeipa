@@ -3,6 +3,7 @@
 # Yuri Chornoivan <yurchor@ukr.net>, 2016. #zanata
 # Yuri Chornoivan <yurchor@ukr.net>, 2017. #zanata
 # Yuri Chornoivan <yurchor@ukr.net>, 2018. #zanata
+# Yuri Chornoivan <yurchor@ukr.net>, 2019. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.7.90.dev201904231605+git36c65c4aa\n"
@@ -11,8 +12,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-11-13 05:44+0000\n"
-"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
+"PO-Revision-Date: 2019-04-24 08:35+0000\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
 "Language: uk\n"
 "X-Generator: Zanata 4.6.2\n"
@@ -16640,6 +16641,19 @@ msgstr ""
 "<i class=\"fa fa-info-circle\"></i> <strong>Одноразовий пароль (OTP):</"
 "strong> створити новий код OTP для кожного з полів OTP."
 
+#, python-brace-format
+msgid ""
+"<i class=\"fa fa-info-circle\"></i> To log in with <strong>Kerberos</"
+"strong>, please make sure you have valid tickets (obtainable via kinit) and "
+"<a href='${protocol}//${host}/ipa/config/ssbrowser.html'>configured</a> the "
+"browser correctly, then click 'Log in'."
+msgstr ""
+"<i class=\"fa fa-info-circle\"></i> Щоб увійти до системи за допомогою "
+"<strong>Kerberos</strong>, будь ласка, переконайтеся, що у вас є коректні "
+"квитки (такі, які можна отримати за допомогою kinit) і <a href='${protocol}//"
+"${host}/ipa/config/ssbrowser.html'>налаштований</a> належним чином браузер. "
+"Далі натисніть кнопку «Увійти»."
+
 msgid ""
 "<i class=\"fa fa-info-circle\"></i> To log in with <strong>certificate</"
 "strong>, please make sure you have valid personal certificate. "
@@ -18776,6 +18790,14 @@ msgstr "DN для прив'язки"
 msgid "Bind failed: %s\n"
 msgstr "Невдала спроба прив’язки: %s\n"
 
+#, c-format
+msgid "Bind password already provided (-w).\n"
+msgstr "Пароль до Bind вже вказано (-w).\n"
+
+#, c-format
+msgid "Bind password required when using a bind DN (-w or -W).\n"
+msgstr "Для використання DN bind (-w або -W) потрібен пароль до bind.\n"
+
 msgid "Bind rule type"
 msgstr "Тип правила прив’язування"
 
@@ -18904,6 +18926,16 @@ msgstr ""
 
 msgid "Cannot find specified domain or server name"
 msgstr "Не вдалося знайти домену або сервера з вказаною назвою"
+
+msgid "Cannot hide CA renewal master."
+msgstr "Не можна приховувати основний сервер оновлення CA."
+
+msgid "Cannot hide DNSSec key master."
+msgstr "Не можна приховувати основний сервер ключів DNSSec."
+
+#, python-format
+msgid "Cannot hide last enabled %(name)s server."
+msgstr "Не можна приховувати останній увімкнений сервер %(name)s."
 
 msgid ""
 "Cannot perform SID validation without Samba 4 support installed. Make sure "
@@ -19119,6 +19151,10 @@ msgstr "Змінити на зовнішню групу"
 #, python-format
 msgid "Changed password for \"%(value)s\""
 msgstr "Змінити пароль «%(value)s»"
+
+#, python-format
+msgid "Changed server state of \"%(value)s\"."
+msgstr "Змінено стан сервера «%(value)s»."
 
 msgid "Character classes"
 msgstr "Класи символів"
@@ -19809,6 +19845,9 @@ msgstr ""
 "Не пройдено перевірку DNSSEC: %(error)s.\n"
 "Будь ласка, перевірте, чи правильно вказано налаштування DNSSEC, або "
 "вимкніть перевірку DNSSEC на усіх серверах IPA."
+
+msgid "DNSec key master"
+msgstr "Основний сервер ключів DNSec"
 
 msgid "DS Algorithm"
 msgstr "Алгоритм DS"
@@ -21068,6 +21107,9 @@ msgstr "Помилка реєстрування. %s\n"
 msgid "Enter %(label)s again to verify: "
 msgstr "Введіть %(label)s ще раз для перевірки: "
 
+msgid "Enter LDAP password"
+msgstr "Вкажіть пароль до LDAP"
+
 msgid "Enter trusted group name."
 msgstr "Введіть назву довіреної групи."
 
@@ -21390,6 +21432,9 @@ msgstr "Спроба вилучення зазнала невдачі"
 msgid "Failed to remove server %(master)s from server list: %(err)s"
 msgstr ""
 "Не вдалося вилучити запис сервера %(master)s зі списку серверів: %(err)s"
+
+msgid "Failed to resolve symlink to keytab.\n"
+msgstr "Не вдалося визначити таблицю ключів за символічним посиланням.\n"
 
 #, c-format
 msgid "Failed to retrieve any keys"
@@ -21920,6 +21965,27 @@ msgstr "Привіт, світе"
 msgid "Help topic"
 msgstr "Тема довідки"
 
+msgid "Hidden IPA CA servers"
+msgstr "Приховані сервери CA IPA"
+
+msgid "Hidden IPA DNS servers"
+msgstr "Приховані сервери DNS IPA"
+
+msgid "Hidden IPA KRA servers"
+msgstr "Приховані сервери KRA IPA"
+
+msgid "Hidden IPA masters"
+msgstr "Приховані основні сервери IPA"
+
+msgid "Hidden IPA servers configured as certificate authority"
+msgstr "Приховані сервери IPA, які налаштовано як служби сертифікації"
+
+msgid "Hidden IPA servers configured as domain name server"
+msgstr "Приховані сервери IPA, які налаштовано як сервери назв доменів"
+
+msgid "Hidden IPA servers configured as key recovery agent"
+msgstr "Приховані сервери IPA, які налаштовано як агенти відновлення ключів"
+
 msgid "Hide"
 msgstr "Приховати"
 
@@ -22176,6 +22242,14 @@ msgstr "IP-адреса"
 msgid "IP address %(ip)s is already assigned in domain %(domain)s."
 msgstr "IP-адресу %(ip)s вже призначено у домені %(domain)s."
 
+#, python-format
+msgid "IP address in subjectAltName (%s) does not have PTR record"
+msgstr "IP-адреса у subjectAltName (%s) не містить запису PTR"
+
+#, python-format
+msgid "IP address in subjectAltName (%s) unreachable from DNS names"
+msgstr "IP-адреса у subjectAltName (%s) є недоступною з назв DNS"
+
 msgid "IP network to create reverse zone name from"
 msgstr "Мережа IP для створення зворотних назв зони"
 
@@ -22340,6 +22414,12 @@ msgstr "Сервери IPA, які налаштовано як контроле�
 
 msgid "IPA servers configured as certificate authority"
 msgstr "Сервери IPA, які налаштовано як центри сертифікації"
+
+msgid "IPA servers configured as domain name server"
+msgstr "Сервери IPA, які налаштовано як сервери назв доменів (DNS)"
+
+msgid "IPA servers configured as key recovery agent"
+msgstr "Сервери IPA, які налаштовано як агенти відновлення ключів"
 
 msgid "IPA servers configured as key recovery agents"
 msgstr ""
@@ -22951,6 +23031,9 @@ msgstr "Список основних серверів IPA, які налашт�
 
 msgid "List of all IPA masters"
 msgstr "Список усіх основних вузлів IPA"
+
+msgid "List of all hidden IPA masters"
+msgstr "Список усіх прихованих основних серверів IPA"
 
 msgid "List of deletions that failed"
 msgstr "Список вилучень, які не вдалося виконати"
@@ -24485,6 +24568,10 @@ msgstr "Назва вузла PTR"
 msgid "PTR record"
 msgstr "Запис PTR"
 
+#, python-format
+msgid "PTR record for SAN IP (%s) does not match A/AAAA records"
+msgstr "PTR-запис для SAN IP (%s) не відповідає записам A/AAAA"
+
 msgid "Page"
 msgstr "Сторінка"
 
@@ -24876,6 +24963,9 @@ msgstr "Опис профілю"
 
 msgid "Profiles"
 msgstr "Профілі"
+
+msgid "Prompt for LDAP password"
+msgstr "Запит щодо пароля LDAP"
 
 msgid "Prompt for the username"
 msgstr "Запит щодо імені користувача"
@@ -27297,6 +27387,10 @@ msgstr "Роль сервера"
 msgid "Server Roles"
 msgstr "Ролі сервера"
 
+msgid "Server does not support domain level functionality"
+msgstr ""
+"На сервері не передбачено підтримки функціональних можливостей рівня домену"
+
 msgid "Server has already been deleted"
 msgstr "Запис сервера вже вилучено"
 
@@ -27317,6 +27411,9 @@ msgstr "Не надано назви сервера, сервер недосту
 #, python-format
 msgid "Server removal aborted: %(reason)s."
 msgstr "Вилучення сервера перервано: %(reason)s."
+
+msgid "Server state"
+msgstr "Стан сервера"
 
 msgid "Server will check DNS forwarder(s)."
 msgstr "Сервер перевірятиме засоби переспрямовування DNS."
@@ -27483,6 +27580,9 @@ msgstr "Встановити типову (резервну) групу для �
 #, python-format
 msgid "Set default (fallback) group for automember \"%(value)s\""
 msgstr "Встановити типову (резервну) групу для автоматичної участі «%(value)s»"
+
+msgid "Set enabled/hidden state of a server."
+msgstr "Встановити стан увімкнено/приховано для сервера."
 
 msgid "Set public key"
 msgstr "Встановити відкритий ключ"
@@ -27706,6 +27806,9 @@ msgstr "Стандартне"
 
 msgid "Standard Record Types"
 msgstr "Стандартні типи записів"
+
+msgid "State"
+msgstr "Стан"
 
 msgid "State/Province"
 msgstr "Область/провінція"
@@ -29884,6 +29987,11 @@ msgstr "запис ключа %(key)s вже існує"
 #, python-format
 msgid "key named %(key)s already exists"
 msgstr "ключ з назвою %(key)s вже існує"
+
+msgid "keytab is a dangling symlink and owned by another user.\n"
+msgstr ""
+"keytab є осиротілим символічним посиланням, яке належить іншому "
+"користувачу.\n"
 
 #, c-format
 msgid "krb5_kt_close %1$d: %2$s\n"
