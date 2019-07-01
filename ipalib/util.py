@@ -56,7 +56,8 @@ except ImportError:
 from ipalib import errors, messages
 from ipalib.constants import (
     DOMAIN_LEVEL_0,
-    TLS_VERSIONS, TLS_VERSION_MINIMAL, TLS_HIGH_CIPHERS
+    TLS_VERSIONS, TLS_VERSION_MINIMAL, TLS_HIGH_CIPHERS,
+    TLS_VERSION_DEFAULT_MIN, TLS_VERSION_DEFAULT_MAX,
 )
 from ipalib.text import _
 from ipaplatform.paths import paths
@@ -280,8 +281,8 @@ def create_https_connection(
     cafile=None,
     client_certfile=None, client_keyfile=None,
     keyfile_passwd=None,
-    tls_version_min="tls1.1",
-    tls_version_max="tls1.2",
+    tls_version_min=TLS_VERSION_DEFAULT_MIN,
+    tls_version_max=TLS_VERSION_DEFAULT_MAX,
     **kwargs
 ):
     """
@@ -311,6 +312,7 @@ def create_https_connection(
         "tls1.0": ssl.OP_NO_TLSv1,
         "tls1.1": ssl.OP_NO_TLSv1_1,
         "tls1.2": ssl.OP_NO_TLSv1_2,
+        "tls1.3": getattr(ssl, "OP_NO_TLSv1_3", 0),
     }
     # pylint: enable=no-member
 
