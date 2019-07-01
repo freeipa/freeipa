@@ -72,9 +72,10 @@ class DebianTaskNamespace(RedHatTaskNamespace):
         pass
 
     def configure_httpd_protocol(self):
+        # TLS 1.3 is not yet supported
         directivesetter.set_directive(paths.HTTPD_SSL_CONF,
                                       'SSLProtocol',
-                                      'all -SSLv3', False)
+                                      'TLSv1.2', False)
 
     def setup_httpd_logging(self):
         # Debian handles httpd logging differently

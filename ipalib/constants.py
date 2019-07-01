@@ -35,6 +35,24 @@ except Exception:
     except Exception:
         FQDN = None
 
+# TLS related constants
+# * SSL2 and SSL3 are broken.
+# * TLS1.0 and TLS1.1 are no longer state of the art.
+# * TLS1.3 support is not yet stable, e.g. issues with PHA.
+# Therefore only TLS 1.2 is enabled by default.
+
+TLS_VERSIONS = [
+    "ssl2",
+    "ssl3",
+    "tls1.0",
+    "tls1.1",
+    "tls1.2",
+    "tls1.3",
+]
+TLS_VERSION_MINIMAL = "tls1.0"
+TLS_VERSION_DEFAULT_MIN = "tls1.2"
+TLS_VERSION_DEFAULT_MAX = "tls1.2"
+
 # regular expression NameSpace member names must match:
 NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'
 
@@ -144,8 +162,8 @@ DEFAULT_CONFIG = (
     ('rpc_protocol', 'jsonrpc'),
 
     # Define an inclusive range of SSL/TLS version support
-    ('tls_version_min', 'tls1.0'),
-    ('tls_version_max', 'tls1.2'),
+    ('tls_version_min', TLS_VERSION_DEFAULT_MIN),
+    ('tls_version_max', TLS_VERSION_DEFAULT_MAX),
 
     # Time to wait for a service to start, in seconds.
     # Note that systemd has a DefaultTimeoutStartSec of 90 seconds. Higher
@@ -305,17 +323,6 @@ ANON_USER = 'WELLKNOWN/ANONYMOUS'
 # IPA API Framework user
 IPAAPI_USER = 'ipaapi'
 IPAAPI_GROUP = 'ipaapi'
-
-# TLS related constants
-TLS_VERSIONS = [
-    "ssl2",
-    "ssl3",
-    "tls1.0",
-    "tls1.1",
-    "tls1.2"
-]
-TLS_VERSION_MINIMAL = "tls1.0"
-
 
 # Use cache path
 USER_CACHE_PATH = (
