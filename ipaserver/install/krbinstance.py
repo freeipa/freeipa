@@ -273,7 +273,8 @@ class KrbInstance(service.Service):
                              CACERT_PEM=paths.CACERT_PEM,
                              KDC_CA_BUNDLE_PEM=paths.KDC_CA_BUNDLE_PEM,
                              CA_BUNDLE_PEM=paths.CA_BUNDLE_PEM,
-                             INCLUDES=includes)
+                             INCLUDES=includes,
+                             FIPS='#' if tasks.is_fips_enabled() else '')
 
         # IPA server/KDC is not a subdomain of default domain
         # Proper domain-realm mapping needs to be specified
