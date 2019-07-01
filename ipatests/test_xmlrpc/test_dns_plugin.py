@@ -1952,7 +1952,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [name1_dnsname],
-                    'dnsttl': ['500'],
+                    'dnsttl': [u'500'],
                     'arecord': [revname2_ip],
                 },
             },
