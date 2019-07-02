@@ -14,6 +14,10 @@ from ipaplatform.base.constants import BaseConstantsNamespace
 
 
 class RedHatConstantsNamespace(BaseConstantsNamespace):
-    pass
+    # System-wide crypto policy, but without TripleDES, pre-shared key,
+    # secure remote password, and DSA cert authentication.
+    # see https://fedoraproject.org/wiki/Changes/CryptoPolicy
+    TLS_HIGH_CIPHERS = "PROFILE=SYSTEM:!3DES:!PSK:!SRP:!aDSS"
+
 
 constants = RedHatConstantsNamespace()
