@@ -93,35 +93,82 @@ class batch(Command):
         Output('results', (list, tuple), doc='')
     )
 
+    def _validate_request(self, request):
+        """
+        Check that an individual request in a batch is parseable and the
+        commands exists.
+        """
+        if 'method' not in request:
+            raise errors.RequirementError(name='method')
+        if 'params' not in request:
+            raise errors.RequirementError(name='params')
+        name = request['method']
+        if (name not in self.api.Command or
+                isinstance(self.api.Command[name], Local)):
+            raise errors.CommandError(name=name)
+
+        # If params are not formated as a tuple(list, dict)
+        # the following lines will raise an exception
+        # that triggers an internal server error
+        # Raise a ConversionError instead to report the issue
+        # to the client
+        try:
+            a, kw = request['params']
+            newkw = dict((str(k), v) for k, v in kw.items())
+            api.Command[name].args_options_2_params(*a, **newkw)
+        except (AttributeError, ValueError, TypeError):
+            raise errors.ConversionError(
+                name='params',
+                error=_(u'must contain a tuple (list, dict)'))
+        except Exception as e:
+            raise errors.ConversionError(
+                name='params',
+                error=str(e))
+
+    def _repr_iter(self, **params):
+        """
+        Iterate through the request and use the Command _repr_intr so
+        that sensitive information (passwords) is not exposed.
+
+        In case of a malformatted request redact the entire thing.
+        """
+        exceptions = False
+        for arg in (params.get('methods', [])):
+            try:
+                self._validate_request(arg)
+            except Exception:
+                # redact the whole request since we don't know what's in it
+                exceptions = True
+                yield u'********'
+                continue
+
+            name = arg['method']
+            a, kw = arg['params']
+            newkw = dict((str(k), v) for k, v in kw.items())
+            param = api.Command[name].args_options_2_params(
+                *a, **newkw)
+
+            yield '{}({})'.format(
+                api.Command[name].name,
+                ', '.join(api.Command[name]._repr_iter(**param))
+            )
+
+        if exceptions:
+            logger.debug('batch: %s',
+                         ', '.join(super(batch, self)._repr_iter(**params)))
+
     def execute(self, methods=None, **options):
         results = []
         for arg in (methods or []):
             params = dict()
             name = None
             try:
-                if 'method' not in arg:
-                    raise errors.RequirementError(name='method')
-                if 'params' not in arg:
-                    raise errors.RequirementError(name='params')
+                self._validate_request(arg)
                 name = arg['method']
-                if (name not in self.api.Command or
-                        isinstance(self.api.Command[name], Local)):
-                    raise errors.CommandError(name=name)
-
-                # If params are not formated as a tuple(list, dict)
-                # the following lines will raise an exception
-                # that triggers an internal server error
-                # Raise a ConversionError instead to report the issue
-                # to the client
-                try:
-                    a, kw = arg['params']
-                    newkw = dict((str(k), v) for k, v in kw.items())
-                    params = api.Command[name].args_options_2_params(
-                        *a, **newkw)
-                except (AttributeError, ValueError, TypeError):
-                    raise errors.ConversionError(
-                        name='params',
-                        error=_(u'must contain a tuple (list, dict)'))
+                a, kw = arg['params']
+                newkw = dict((str(k), v) for k, v in kw.items())
+                params = api.Command[name].args_options_2_params(
+                    *a, **newkw)
                 newkw.setdefault('version', options['version'])
 
                 result = api.Command[name](*a, **newkw)
@@ -133,8 +180,9 @@ class batch(Command):
                 )
                 result['error']=None
             except Exception as e:
-                if isinstance(e, errors.RequirementError) or \
-                    isinstance(e, errors.CommandError):
+                if (isinstance(e, errors.RequirementError) or
+                        isinstance(e, errors.CommandError) or
+                        isinstance(e, errors.ConversionError)):
                     logger.info(
                         '%s: batch: %s',
                         context.principal,  # pylint: disable=no-member
