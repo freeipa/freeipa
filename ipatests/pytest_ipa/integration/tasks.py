@@ -1651,3 +1651,11 @@ def group_add(host, groupname, extra_args=()):
     ]
     cmd.extend(extra_args)
     return host.run_command(cmd)
+
+
+def create_temp_file(host, directory=None):
+    """Creates temproray file using mktemp."""
+    cmd = ['mktemp']
+    if directory is not None:
+        cmd += ['-p', directory]
+    return host.run_command(cmd).stdout_text
