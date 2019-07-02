@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import re
 import unittest
+import textwrap
 
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
@@ -514,3 +515,96 @@ class TestTrust(IntegrationTest):
         )
         self.remove_trust(self.ad)
         tasks.unconfigure_windows_dns_for_trust(self.ad, self.master)
+
+    def test_server_option_with_unreachable_ad(self):
+        """
+        Check trust can be established with partially unreachable AD topology
+
+        The SRV records for AD services can point to hosts unreachable for
+        ipa master. In this case we must be able to establish trust and
+        fetch domains list by using "--server" option.
+        This is the regression test for https://pagure.io/freeipa/issue/7895.
+        """
+        # To simulate Windows Server advertising unreachable hosts in SRV
+        # records we create specially crafted zone file for BIND DNS server
+        tasks.backup_file(self.master, paths.NAMED_CONF)
+        ad_zone = textwrap.dedent('''
+            $ORIGIN {ad_dom}.
+            $TTL 86400
+            @  IN A {ad_ip}
+               IN NS {ad_host}.
+               IN SOA {ad_host}. hostmaster.{ad_dom}. 39 900 600 86400 3600
+            _msdcs IN NS {ad_host}.
+            _gc._tcp.Default-First-Site-Name._sites IN SRV 0 100 3268 unreachable.{ad_dom}.
+            _kerberos._tcp.Default-First-Site-Name._sites IN SRV 0 100 88 unreachable.{ad_dom}.
+            _ldap._tcp.Default-First-Site-Name._sites IN SRV 0 100 389 unreachable.{ad_dom}.
+            _gc._tcp IN SRV 0 100 3268 unreachable.{ad_dom}.
+            _kerberos._tcp IN SRV 0 100 88 unreachable.{ad_dom}.
+            _kpasswd._tcp IN SRV 0 100 464 unreachable.{ad_dom}.
+            _ldap._tcp IN SRV 0 100 389 unreachable.{ad_dom}.
+            _kerberos._udp IN SRV 0 100 88 unreachable.{ad_dom}.
+            _kpasswd._udp IN SRV 0 100 464 unreachable.{ad_dom}.
+            ad1 IN A {ad_ip}
+            unreachable IN A {unreachable}
+            DomainDnsZones IN A {ad_ip}
+            _ldap._tcp.Default-First-Site-Name._sites.DomainDnsZones IN SRV 0 100 389 unreachable.{ad_dom}.
+            _ldap._tcp.DomainDnsZones IN SRV 0 100 389 unreachable.{ad_dom}.
+            ForestDnsZones IN A {ad_ip}
+            _ldap._tcp.Default-First-Site-Name._sites.ForestDnsZones IN SRV 0 100 389 unreachable.{ad_dom}.
+            _ldap._tcp.ForestDnsZones IN SRV 0 100 389 unreachable.{ad_dom}.
+        '''.format(  # noqa: E501
+            ad_ip=self.ad.ip, unreachable='192.168.254.254',
+            ad_host=self.ad.hostname, ad_dom=self.ad.domain.name))
+        ad_zone_file = tasks.create_temp_file(self.master, directory='/etc')
+        self.master.put_file_contents(ad_zone_file, ad_zone)
+        self.master.run_command(
+            ['chmod', '--reference', paths.NAMED_CONF, ad_zone_file])
+        self.master.run_command(
+            ['chown', '--reference', paths.NAMED_CONF, ad_zone_file])
+        named_conf = self.master.get_file_contents(paths.NAMED_CONF,
+                                                   encoding='utf-8')
+        named_conf += textwrap.dedent('''
+            zone "ad.test" {{
+                type master;
+                file "{}";
+            }};
+        '''.format(ad_zone_file))
+        self.master.put_file_contents(paths.NAMED_CONF, named_conf)
+        tasks.restart_named(self.master)
+        try:
+            # Check that trust can not be established without --server option
+            # This checks that our setup is correct
+            result = self.master.run_command(
+                ['ipa', 'trust-add', self.ad.domain.name,
+                 '--admin', 'Administrator', '--password'], raiseonerr=False)
+            assert result.returncode == 1
+            assert 'CIFS server communication error: code "3221225653", ' \
+                   'message "{Device Timeout}' in result.stderr_text
+
+            # Check that trust is successfully established with --server option
+            tasks.establish_trust_with_ad(
+                self.master, self.ad_domain,
+                extra_args=['--server', self.ad.hostname])
+
+            # Check domains can not be fetched without --server option
+            # This checks that our setup is correct
+            result = self.master.run_command(
+                ['ipa', 'trust-fetch-domains', self.ad.domain.name],
+                raiseonerr=False)
+            assert result.returncode == 1
+            assert ('Fetching domains from trusted forest failed'
+                    in result.stderr_text)
+
+            # Check that domains can be fetched with --server option
+            result = self.master.run_command(
+                ['ipa', 'trust-fetch-domains', self.ad.domain.name,
+                 '--server', self.ad.hostname],
+                raiseonerr=False)
+            assert result.returncode == 1
+            assert ('List of trust domains successfully refreshed'
+                    in result.stdout_text)
+        finally:
+            tasks.restore_files(self.master)
+            self.master.run_command(['rm', '-f', ad_zone_file])
+            tasks.restart_named(self.master)
+            tasks.remove_trust_with_ad(self.master, self.ad_domain)
