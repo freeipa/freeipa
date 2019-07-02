@@ -339,9 +339,9 @@ def create_https_connection(
         ssl.OP_SINGLE_ECDH_USE
     )
 
-    # high ciphers without RC4, MD5, TripleDES, pre-shared key and secure
-    # remote password. Uses system crypto policies on some platforms.
-    ctx.set_ciphers(constants.TLS_HIGH_CIPHERS)
+    if constants.TLS_HIGH_CIPHERS is not None:
+        # configure ciphers, uses system crypto policies on RH platforms.
+        ctx.set_ciphers(constants.TLS_HIGH_CIPHERS)
 
     # pylint: enable=no-member
     # set up the correct TLS version flags for the SSL context
