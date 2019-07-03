@@ -6,6 +6,9 @@ server_password=Secret123
 # Normalize spacing and expand the list afterwards. Remove {} for the single list element case
 tests_to_run=$(eval "echo {$(echo $TESTS_TO_RUN | sed -e 's/[ \t]+*/,/g')}" | tr -d '{}')
 tests_to_ignore=$(eval "echo --ignore\ {$(echo $TESTS_TO_IGNORE | sed -e 's/[ \t]+*/,/g')}" | tr -d '{}')
+tests_to_dedicate=
+[[ -n "$TESTS_TO_DEDICATE" ]] && \
+tests_to_dedicate=$(eval "echo --slice-dedicated={$(echo $TESTS_TO_DEDICATE | sed -e 's/[ \t]+*/,/g')}" | tr -d '{}')
 
 systemctl --now enable firewalld
 echo "Installing FreeIPA master for the domain ${server_domain} and realm ${server_realm}"
@@ -39,7 +42,11 @@ if [ "$install_result" -eq 0 ] ; then
 	ipa-test-task --help
 	ipa-run-tests --help
 
-	ipa-run-tests ${tests_to_ignore} --verbose --with-xunit '-k not test_dns_soa' ${tests_to_run}
+	ipa-run-tests ${tests_to_ignore} \
+            ${tests_to_dedicate} \
+            --slices=${SYSTEM_TOTALJOBSINPHASE:-1} \
+            --slice-num=${SYSTEM_JOBPOSITIONINPHASE:-1} \
+            --verbose --with-xunit '-k not test_dns_soa' ${tests_to_run}
 	tests_result=$?
 else
 	echo "ipa-server-install failed with code ${save_result}, skip IPA tests"
