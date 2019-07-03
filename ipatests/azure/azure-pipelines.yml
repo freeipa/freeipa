@@ -128,8 +128,8 @@ jobs:
 
 - template: templates/test-jobs.yml
   parameters:
-    jobName: Base
-    jobTitle: Base tests
+    jobName: BASE_XMLRPC
+    jobTitle: BASE and XMLRPC tests
     testsToRun:
     - test_cmdline
     - test_install
@@ -138,20 +138,12 @@ jobs:
     - test_ipaplatform
     - test_ipapython
     - test_ipatests_plugins
-    testsToIgnore:
-    - test_integration
-    - test_webui
-    - test_ipapython/test_keyring.py
-    taskToRun: run-tests
-
-- template: templates/test-jobs.yml
-  parameters:
-    jobName: XMLRPC
-    jobTitle: XMLRPC tests
-    testsToRun:
     - test_xmlrpc
     testsToIgnore:
     - test_integration
     - test_webui
     - test_ipapython/test_keyring.py
+    testsToDedicate:
+    - test_xmlrpc/test_dns_plugin.py
     taskToRun: run-tests
+    tasksParallel: 3

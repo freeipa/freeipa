@@ -5,6 +5,7 @@ parameters:
   taskToRun: 'run-tests'
   testsToRun: ''
   testsToIgnore: ''
+  testsToDedicate: ''
 
 steps:
 - script: |
@@ -22,7 +23,10 @@ steps:
     set -e
     docker exec --env TESTS_TO_RUN="${{ parameters.testsToRun }}" \
                 --env TESTS_TO_IGNORE="${{ parameters.testsToIgnore }}" \
+                --env TESTS_TO_DEDICATE="${{ parameters.testsToDedicate }}" \
                 --env CI_RUNNER_LOGS_DIR="${{ parameters.logsPath }}" \
+                --env SYSTEM_TOTALJOBSINPHASE=$(System.TotalJobsInPhase) \
+                --env SYSTEM_JOBPOSITIONINPHASE=$(System.JobPositionInPhase) \
                 --privileged -t \
                 $(createContainer.containerName) \
                 /bin/bash --noprofile --norc -x /freeipa/ipatests/azure/azure-${{parameters.taskToRun}}.sh
