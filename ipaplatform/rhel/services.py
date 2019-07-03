@@ -28,10 +28,7 @@ from ipaplatform.redhat import services as redhat_services
 
 # Mappings from service names as FreeIPA code references to these services
 # to their actual systemd service names
-rhel_system_units = redhat_services.redhat_system_units
-
-# Service that sets domainname on RHEL is called rhel-domainname.service
-rhel_system_units['domainname'] = 'rhel-domainname.service'
+rhel_system_units = redhat_services.redhat_system_units.copy()
 
 
 # Service classes that implement RHEL-specific behaviour
@@ -44,8 +41,6 @@ class RHELService(redhat_services.RedHatService):
 # of specified name
 
 def rhel_service_class_factory(name, api=None):
-    if name == 'domainname':
-        return RHELService(name, api)
     return redhat_services.redhat_service_class_factory(name, api)
 
 
