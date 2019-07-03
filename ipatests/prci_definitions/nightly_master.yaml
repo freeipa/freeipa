@@ -1241,13 +1241,13 @@ jobs:
         timeout: 3600
         topology: *ipaserver
 
-  fedora-29/automember:
-    requires: [fedora-29/build]
+  fedora-30/automember:
+    requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-29/build_url}'
+        build_url: '{fedora-30/build_url}'
         test_suite: test_integration/test_automember.py
         template: *ci-master-f30
         timeout: 3600
