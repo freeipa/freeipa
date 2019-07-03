@@ -11,6 +11,10 @@ steps:
     EOF
     echo 'Disable modular repositories'
     sudo dnf config-manager '*modular*' --set-disabled
+    echo "Fedora mirror metalink content:"
+    for metalink in $(sudo dnf repolist -v |grep Repo-metalink | awk '{print $2}' ) ; do echo '###############' ; echo '####' ; echo $metalink ; echo '####' ; curl $metalink ; done
+    echo "Fastestmirror results:"
+    sudo cat /var/cache/dnf/fastestmirror.cache
     sudo dnf makecache || :
     echo "Installing base development environment"
     sudo dnf install -y gdb make autoconf rpm-build gettext-devel automake libtool 'nodejs(abi) < 11' docker python3-paramiko || :
