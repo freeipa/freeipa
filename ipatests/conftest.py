@@ -25,6 +25,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 pytest_plugins = [
     'ipatests.pytest_ipa.additional_config',
+    'ipatests.pytest_ipa.slicing',
     'ipatests.pytest_ipa.beakerlib',
     'ipatests.pytest_ipa.declarative',
     'ipatests.pytest_ipa.nose_compat',
