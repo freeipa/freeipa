@@ -3,7 +3,9 @@ parameters:
   jobTitle: ''
   testsToIgnore: []
   testsToRun: []
+  testsToDedicate: []
   taskToRun: ''
+  tasksParallel: 1
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -12,6 +14,8 @@ jobs:
   condition: succeeded()
   pool:
     vmImage: 'Ubuntu-16.04'
+  strategy:
+    parallel: ${{ parameters.tasksParallel }}
   steps:
     - template: setup-test-environment.yml
     - template: run-test.yml
@@ -21,6 +25,7 @@ jobs:
         taskToRun: ${{ parameters.taskToRun}}
         testsToRun: ${{ join(' ', parameters.testsToRun ) }}
         testsToIgnore: ${{ join(' ', parameters.testsToIgnore ) }}
+        testsToDedicate: ${{ join(' ', parameters.testsToDedicate ) }}
     - task: PublishTestResults@2
       inputs:
         testResultsFiles: $(CI_RUNNER_LOGS_DIR)/nosetests.xml
@@ -28,4 +33,4 @@ jobs:
       condition: succeededOrFailed()
     - template: save-test-artifacts.yml
       parameters:
-        logsArtifact: logs-${{parameters.jobName}}-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)
+        logsArtifact: logs-${{parameters.jobName}}-$(Build.BuildId)-$(System.JobPositionInPhase)-$(Agent.OS)-$(Agent.OSArchitecture)
