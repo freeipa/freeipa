@@ -49,7 +49,7 @@ define(IPA_VERSION_PRE_RELEASE, )
 # This option works only with GNU m4:                  #
 # it requires esyscmd m4 macro.                        #
 ########################################################
-define(IPA_VERSION_IS_GIT_SNAPSHOT, no)
+define(IPA_VERSION_IS_GIT_SNAPSHOT, yes)
 
 ########################################################
 # git development branch:                              #
@@ -58,8 +58,8 @@ define(IPA_VERSION_IS_GIT_SNAPSHOT, no)
 # - ipa-X-X: define(IPA_GIT_BRANCH,                    #
 #       ipa-IPA_VERSION_MAJOR-IPA_VERSION_MINOR)       #
 ########################################################
-dnl define(IPA_GIT_BRANCH, master)
-define(IPA_GIT_BRANCH, ipa-IPA_VERSION_MAJOR-IPA_VERSION_MINOR)
+define(IPA_GIT_BRANCH, master)
+dnl define(IPA_GIT_BRANCH, ipa-IPA_VERSION_MAJOR-IPA_VERSION_MINOR)
 
 ########################################################
 # The version of IPA data. This is used to identify    #
