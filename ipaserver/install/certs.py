@@ -663,7 +663,7 @@ class CertDB:
     def request_service_cert(self, nickname, principal, host,
                              resubmit_timeout=None):
         if resubmit_timeout is None:
-            resubmit_timeout = api.env.replication_wait_timeout
+            resubmit_timeout = api.env.certmonger_wait_timeout
         return certmonger.request_and_wait_for_cert(
             certpath=self.secdir,
             storage='NSSDB',

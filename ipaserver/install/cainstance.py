@@ -874,7 +874,7 @@ class CAInstance(DogtagInstance):
                 pre_command='renew_ra_cert_pre',
                 post_command='renew_ra_cert',
                 storage="FILE",
-                resubmit_timeout=api.env.replication_wait_timeout
+                resubmit_timeout=api.env.certmonger_wait_timeout
             )
             self.__set_ra_cert_perms()
 
