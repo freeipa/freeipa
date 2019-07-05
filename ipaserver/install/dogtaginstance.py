@@ -482,7 +482,8 @@ class DogtagInstance(service.Service):
             self.master_host
         )
         logger.debug(
-            "Waiting for %s to appear on %s", self.admin_dn, master_conn
+            "Waiting %s seconds for %s to appear on %s",
+            api.env.replication_wait_timeout, self.admin_dn, master_conn
         )
         deadline = time.time() + api.env.replication_wait_timeout
         while time.time() < deadline:
@@ -498,6 +499,9 @@ class DogtagInstance(service.Service):
         else:
             logger.error(
                 "Unable to log in as %s on %s", self.admin_dn, master_conn
+            )
+            logger.info(
+                "[hint] tune with replication_wait_timeout"
             )
             raise errors.NotFound(
                 reason="{} did not replicate to {}".format(
