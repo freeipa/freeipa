@@ -77,6 +77,9 @@ Specifies the hostname of the dogtag CA server. The default is the hostname of t
 .B ca_port <port>
 Specifies the insecure CA end user port. The default is 8080.
 .TP
+.B certmonger_wait_timeout <seconds>
+The time to wait for a certmonger request to complete during installation. The default value is 300 seconds.
+.TP
 .B context <context>
 Specifies the context that IPA is being executed in. IPA may operate differently depending on the context. The current defined contexts are cli and server. Additionally this value is used to load /etc/ipa/\fBcontext\fR.conf to provide context\-specific configuration. For example, if you want to always perform client requests in verbose mode but do not want to have verbose enabled on the server, add the verbose option to \fI/etc/ipa/cli.conf\fR.
 .TP
@@ -97,6 +100,9 @@ Specifies whether an IPA client should attempt to fall back and try other servic
 .TP
 .B host <hostname>
 Specifies the local system hostname.
+.TP
+.B http_timeout <seconds>
+Timeout for HTTP blocking requests (e.g. connection). The default value is 30 seconds.
 .TP
 .B in_server <boolean>
 Specifies whether requests should be forwarded to an IPA server or handled locally. This is used internally by IPA in a similar way as context. The same IPA framework is used by the ipa command\-line tool and the server. This setting tells the framework whether it should execute the command as if on the server or forward it via XML\-RPC to a remote server.
@@ -159,6 +165,9 @@ Specifies the name of the CA back end to use. The current options are \fBdogtag\
 .TP
 .B realm <realm>
 Specifies the Kerberos realm.
+.TP
+.B replication_wait_timeout <seconds>
+The time to wait for a new entry to be replicated during replica installation. The default value is 300 seconds.
 .TP
 .B server <hostname>
 Specifies the IPA Server hostname.

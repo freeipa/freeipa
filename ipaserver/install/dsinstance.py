@@ -872,7 +872,7 @@ class DsInstance(service.Service):
                     profile=dogtag.DEFAULT_PROFILE,
                     dns=[self.fqdn],
                     post_command=cmd,
-                    resubmit_timeout=api.env.replication_wait_timeout
+                    resubmit_timeout=api.env.certmonger_wait_timeout
                 )
             finally:
                 if prev_helper is not None:
