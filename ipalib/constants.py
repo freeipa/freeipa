@@ -173,6 +173,8 @@ DEFAULT_CONFIG = (
     ('http_timeout', 30),
     # How long to wait for an entry to appear on a replica
     ('replication_wait_timeout', 300),
+    # How long to wait for a certmonger request to finish
+    ('certmonger_wait_timeout', 300),
 
     # Web Application mount points
     ('mount_ipa', '/ipa/'),

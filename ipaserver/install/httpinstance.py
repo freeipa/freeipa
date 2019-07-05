@@ -385,7 +385,7 @@ class HTTPInstance(service.Service):
                     post_command='restart_httpd',
                     storage='FILE',
                     passwd_fname=key_passwd_file,
-                    resubmit_timeout=api.env.replication_wait_timeout
+                    resubmit_timeout=api.env.certmonger_wait_timeout
                 )
             finally:
                 if prev_helper is not None:
