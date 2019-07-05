@@ -55,7 +55,7 @@ TLS_VERSION_DEFAULT_MAX = "tls1.2"
 
 # high ciphers without RC4, MD5, TripleDES, pre-shared key
 # and secure remote password
-TLS_HIGH_CIPHERS = "HIGH:!aNULL:!eNULL:!MD5:!RC4:!3DES:!PSK:!SRP"
+TLS_HIGH_CIPHERS = "HIGH:!aNULL:!eNULL:!MD5:!RC4:!3DES:!PSK:!SRP:!kECDH:!kDH"
 
 # regular expression NameSpace member names must match:
 NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'
