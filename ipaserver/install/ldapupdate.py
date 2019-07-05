@@ -322,6 +322,9 @@ class LDAPUpdate:
         if not self.sub_dict.get("SELINUX_USERMAP_DEFAULT"):
             self.sub_dict["SELINUX_USERMAP_DEFAULT"] = \
                 platformconstants.SELINUX_USERMAP_DEFAULT
+        if not self.sub_dict.get("SELINUX_USERMAP_ORDER"):
+            self.sub_dict["SELINUX_USERMAP_ORDER"] = \
+                platformconstants.SELINUX_USERMAP_ORDER
         self.api = create_api(mode=None)
         self.api.bootstrap(in_server=True,
                            context='updates',

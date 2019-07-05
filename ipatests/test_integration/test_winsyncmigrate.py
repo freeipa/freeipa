@@ -59,7 +59,7 @@ class TestWinsyncMigrate(IntegrationTest):
     ipa_group = 'ipa_group'
     ad_user = 'testuser'
     default_shell = platformconstants.DEFAULT_SHELL
-    selinuxuser = platformconstants.SELINUX_USERMAP_ORDER.split("$$")[0]
+    selinuxuser = platformconstants.SELINUX_USERMAP_ORDER.split("$")[0]
     test_role = 'test_role'
     test_hbac_rule = 'test_hbac_rule'
     test_selinux_map = 'test_selinux_map'
