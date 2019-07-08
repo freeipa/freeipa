@@ -28,7 +28,8 @@ pytest_plugins = [
     'ipatests.pytest_ipa.beakerlib',
     'ipatests.pytest_ipa.declarative',
     'ipatests.pytest_ipa.nose_compat',
-    'ipatests.pytest_ipa.integration'
+    'ipatests.pytest_ipa.integration',
+    'pytester',
 ]
 
 
