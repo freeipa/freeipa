@@ -889,6 +889,32 @@ class NSSDatabase:
     def delete_cert(self, nick):
         self.run_certutil(["-D", "-n", nick])
 
+    def delete_key_only(self, nick):
+        """Delete the key with provided nick
+
+        This commands removes the key but leaves the cert in the DB.
+        """
+        keys = self.list_keys()
+        # keys is a list of tuple(slot, algo, keyid, nickname)
+        for (_slot, _algo, keyid, nickname) in keys:
+            if nickname == nick:
+                # Key is present in the DB, delete the key
+                self.run_certutil(["-F", "-k", keyid])
+                break
+
+    def delete_key_and_cert(self, nick):
+        """Delete a cert and its key from the DB"""
+        try:
+            self.run_certutil(["-F", "-n", nick])
+        except ipautil.CalledProcessError:
+            # Using -F -k instead of -F -n because the latter fails if
+            # the DB contains only the key
+            self.delete_key_only(nick)
+        # Check that cert was deleted
+        for (certname, _flags) in self.list_certs():
+            if certname == nick:
+                self.delete_cert(nick)
+
     def verify_server_cert_validity(self, nickname, hostname):
         """Verify a certificate is valid for a SSL server with given hostname
 
