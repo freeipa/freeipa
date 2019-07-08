@@ -52,7 +52,7 @@ class update_ra_cert_store(Updater):
 
         # stop tracking the old cert and remove it
         certmonger.stop_tracking(paths.HTTPD_ALIAS_DIR, nickname=ra_nick)
-        certdb.delete_cert(ra_nick)
+        certdb.delete_key_and_cert(ra_nick)
         if os.path.exists(paths.OLD_KRA_AGENT_PEM):
             os.remove(paths.OLD_KRA_AGENT_PEM)
 
