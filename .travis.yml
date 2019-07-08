@@ -38,6 +38,7 @@ env:
                 test_ipaplatform
                 test_ipapython
                 test_ipaserver
+                test_ipatests_plugins
                 test_xmlrpc/test_[l-z]*.py"
         - TASK_TO_RUN="tox"
           TEST_RUNNER_CONFIG=".test_runner_config.yaml"
