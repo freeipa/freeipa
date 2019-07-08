@@ -137,6 +137,7 @@ jobs:
     - test_ipalib
     - test_ipaplatform
     - test_ipapython
+    - test_ipatests_plugins
     testsToIgnore:
     - test_integration
     - test_webui

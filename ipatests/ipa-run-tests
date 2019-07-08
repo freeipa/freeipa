@@ -22,15 +22,13 @@
 
 """Pytest wrapper for running an installed (not in-tree) IPA test suite
 
-Any command-line arguments are passed directly to py.test.
-The current directory is changed to the locaition of the ipatests package,
-so any relative paths given will be based on the ipatests module's path
+Any command-line arguments are passed directly to pytest.
+The current directory is changed to the location of the ipatests package,
+so any relative paths given will be based on the ipatests module's path.
 """
 
 import os
-import copy
 import sys
-import glob
 
 import pytest
 
@@ -41,82 +39,29 @@ os.environ['IPATEST_XUNIT_PATH'] = os.path.join(os.getcwd(), 'nosetests.xml')
 
 HERE = os.path.dirname(os.path.abspath(ipatests.__file__))
 
+def has_option(option):
+    if option in sys.argv:
+        return True
+    for arg in sys.argv:
+        for argi in arg.split("="):
+            if option in argi:
+                return True
+    return False
 
-class ArgsManglePlugin(object):
-    """Modify pytest arguments
+# don't override specified command line options
+if not has_option("confcutdir"):
+    sys.argv.insert(1, "--confcutdir={}".format(HERE))
+# for backward compatibility
+if not has_option("cache_dir"):
+    sys.argv[1:1] = ["-o", 'cache_dir={}'.format(os.path.join(os.getcwd(),
+                                                 ".pytest_cache"))]
 
-    * Add confcutdir if hasn't been set already
-    * Mangle paths to support tests both relative to basedir and ipatests/
-    * Default to ipatests/ if no tests are specified
-    """
-    def pytest_load_initial_conftests(self, early_config, parser, args):
-        # During initial loading, parser supports only basic options
-        ns = early_config.known_args_namespace
-        if not ns.confcutdir:
-            # add config cut directory to only load fixtures from ipatests/
-            args.insert(0, '--confcutdir={}'.format(HERE))
-
-        if not ns.file_or_dir:
-            # No file or directory found, run all tests
-            args.append(HERE)
-        else:
-            vargs = []
-            for name in ns.file_or_dir:
-                idx = args.index(name)
-                # split on pytest separator
-                # ipatests/test_ipaplatform/test_importhook.py::test_override
-                filename, sep, suffix = name.partition('::')
-                # a file or directory relative to cwd or already absolute
-                if os.path.exists(filename):
-                    continue
-                if '*' in filename:
-                    # Expand a glob, we'll flatten the list later
-                    paths = glob.glob(os.path.join(HERE, filename))
-                    vargs.append([idx, paths])
-                else:
-                    # a file or directory relative to ipatests package
-                    args[idx] = sep.join((os.path.join(HERE, filename), suffix))
-            # flatten and insert all expanded file names
-            base = 0
-            for idx, items in vargs:
-                args.pop(base + idx)
-                for item in items:
-                    args.insert(base + idx, item)
-                base += len(items)
-
-        # replace ignores, e.g. "--ignore test_integration" is changed to
-        # "--ignore path/to/ipatests/test_integration"
-        if ns.ignore:
-            vargs = []
-            for ignore in ns.ignore:
-                idx = args.index(ignore)
-                if os.path.exists(ignore):
-                    continue
-                if '*' in ignore:
-                    # expand a glob, we'll flatten the list later
-                    paths = glob.glob(os.path.join(HERE, ignore))
-                    vargs.append([idx, paths])
-                else:
-                    args[idx] = os.path.join(HERE, ignore)
-            # flatten and insert all expanded file names
-            base = 0
-            for idx, items in vargs:
-                # since we are expanding, remove old pair
-                # --ignore and old file name
-                args.pop(base + idx)
-                args.pop(base + idx)
-                for item in items:
-                    # careful: we need to add a pair
-                    # --ignore and new filename
-                    args.insert(base + idx, '--ignore')
-                    args.insert(base + idx, item)
-                base += len(items) * 2 - 1
-
-        # rebuild early_config's known args with new args. The known args
-        # are used for initial conftest.py from ipatests, which adds
-        # additional arguments.
-        early_config.known_args_namespace = parser.parse_known_args(
-            args, namespace=copy.copy(early_config.option))
-
-
-sys.exit(pytest.main(plugins=[ArgsManglePlugin()]))
+pyt_args = [sys.executable, "-c",
+            "import sys,pytest;sys.exit(pytest.main())"] + sys.argv[1:]
+# shell is needed to perform globbing
+sh_args = ["/bin/sh", "--norc", "--noprofile", "-c", "--"]
+pyt_args_esc = ["'{}'".format(x) if " " in x else x for x in pyt_args]
+args = sh_args + [" ".join(pyt_args_esc)]
+os.chdir(HERE)
+sys.stdout.flush()
+os.execv(args[0], args)
