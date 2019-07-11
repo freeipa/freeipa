@@ -4,8 +4,9 @@ set -ex
 FLAVOR="$1"
 ENVPYTHON="$(realpath "$2")"
 ENVSITEPACKAGESDIR="$(realpath "$3")"
-# 3...end are package requirements
-shift 3
+ENVDIR="$4"
+# 4...end are package requirements
+shift 4
 
 TOXINIDIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -25,9 +26,20 @@ if [ ! -f "${TOXINIDIR}/tox.ini" ]; then
     exit 3
 fi
 
+if [ ! -d "${ENVDIR}" ]; then
+    echo "${ENVDIR}: no such directory"
+    exit 4
+fi
+
 # https://pip.pypa.io/en/stable/user_guide/#environment-variables
 export PIP_CACHE_DIR="${TOXINIDIR}/.tox/cache"
 mkdir -p "${PIP_CACHE_DIR}"
+
+# /tmp could be mounted with noexec option.
+# pip checks if path is executable and if not then doesn't set such
+# permission bits
+export PIP_BUILD="${ENVDIR}/pip_build"
+rm -rf "${PIP_BUILD}"
 
 DISTBUNDLE="${TOXINIDIR}/dist/bundle"
 mkdir -p "${DISTBUNDLE}"
