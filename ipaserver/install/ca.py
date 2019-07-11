@@ -28,7 +28,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
 from ipaserver.install.replication import replica_conn_check
-from ipalib import api, errors
+from ipalib import api, errors, x509
 from ipapython.dn import DN
 
 from . import conncheck, dogtag, cainstance
@@ -216,8 +216,7 @@ def install_check(standalone, replica_config, options):
                 paths.ROOT_IPA_CSR)
 
         if not options.external_ca_type:
-            options.external_ca_type = \
-                cainstance.ExternalCAType.GENERIC.value
+            options.external_ca_type = x509.ExternalCAType.GENERIC.value
 
         if options.external_ca_profile is not None:
             # check that profile is valid for the external ca type
@@ -478,13 +477,11 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
     external_ca = master_install_only(external_ca)
 
     external_ca_type = knob(
-        cainstance.ExternalCAType, None,
-        description="Type of the external CA",
-    )
+        x509.ExternalCAType, None, description="Type of the external CA")
     external_ca_type = master_install_only(external_ca_type)
 
     external_ca_profile = knob(
-        type=cainstance.ExternalCAProfile,
+        type=x509.ExternalCAProfile,
         default=None,
         description=(
             "Specify the certificate profile/template to use at the "
