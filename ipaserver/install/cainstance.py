@@ -26,7 +26,6 @@ import binascii
 import logging
 
 import dbus
-import enum
 import ldap
 import os
 import pwd
@@ -38,10 +37,6 @@ import syslog
 import time
 import tempfile
 from configparser import RawConfigParser
-
-from pyasn1.codec.der import encoder
-from pyasn1.type import char, univ, namedtype
-import pyasn1.error
 
 from ipalib import api
 from ipalib import x509
@@ -78,11 +73,6 @@ ADMIN_GROUPS = [
     'Enterprise KRA Administrators',
     'Security Domain Administrators'
 ]
-
-
-class ExternalCAType(enum.Enum):
-    GENERIC = 'generic'
-    MS_CS = 'ms-cs'
 
 
 def check_ports():
@@ -367,7 +357,7 @@ class CAInstance(DogtagInstance):
         if ca_type is not None:
             self.ca_type = ca_type
         else:
-            self.ca_type = ExternalCAType.GENERIC.value
+            self.ca_type = x509.ExternalCAType.GENERIC.value
         self.external_ca_profile = external_ca_profile
 
         self.no_db_setup = promote
@@ -537,12 +527,12 @@ class CAInstance(DogtagInstance):
                 pki_ca_signing_csr_path=self.csr_file,
             )
 
-            if self.ca_type == ExternalCAType.MS_CS.value:
+            if self.ca_type == x509.ExternalCAType.MS_CS.value:
                 # Include MS template name extension in the CSR
                 template = self.external_ca_profile
                 if template is None:
                     # default template name
-                    template = MSCSTemplateV1(u"SubCA")
+                    template = x509.MSCSTemplateV1(u"SubCA")
 
                 ext_data = binascii.hexlify(template.get_ext_data())
                 cfg.update(
@@ -2079,170 +2069,6 @@ def update_ipa_conf():
     parser.remove_option('global', 'ca_host')
     with open(paths.IPA_DEFAULT_CONF, 'w') as f:
         parser.write(f)
-
-
-class ExternalCAProfile:
-    """
-    An external CA profile configuration.  Currently the only
-    subclasses are for Microsoft CAs, for providing data in the
-    "Certificate Template" extension.
-
-    Constructing this class will actually return an instance of a
-    subclass.
-
-    Subclasses MUST set ``valid_for``.
-
-    """
-    def __init__(self, s=None):
-        self.unparsed_input = s
-
-    # Which external CA types is the data valid for?
-    # A set of VALUES of the ExternalCAType enum.
-    valid_for = set()
-
-    def __new__(cls, s=None):
-        """Construct the ExternalCAProfile value.
-
-        Return an instance of a subclass determined by
-        the format of the argument.
-
-        """
-        # we are directly constructing a subclass; instantiate
-        # it and be done
-        if cls is not ExternalCAProfile:
-            return super(ExternalCAProfile, cls).__new__(cls)
-
-        # construction via the base class; therefore the string
-        # argument is required, and is used to determine which
-        # subclass to construct
-        if s is None:
-            raise ValueError('string argument is required')
-
-        parts = s.split(':')
-
-        try:
-            # Is the first part on OID?
-            _oid = univ.ObjectIdentifier(parts[0])
-
-            # It is; construct a V2 template
-            # pylint: disable=too-many-function-args
-            return MSCSTemplateV2.__new__(MSCSTemplateV2, s)
-
-        except pyasn1.error.PyAsn1Error:
-            # It is not an OID; treat as a template name
-            # pylint: disable=too-many-function-args
-            return MSCSTemplateV1.__new__(MSCSTemplateV1, s)
-
-    def __getstate__(self):
-        return self.unparsed_input
-
-    def __setstate__(self, state):
-        # explicitly call __init__ method to initialise object
-        self.__init__(state)
-
-
-class MSCSTemplate(ExternalCAProfile):
-    """
-    An Microsoft AD-CS Template specifier.
-
-    Subclasses MUST set ext_oid.
-
-    Subclass constructors MUST set asn1obj.
-
-    """
-    valid_for = set([ExternalCAType.MS_CS.value])
-
-    ext_oid = None  # extension OID, as a Python str
-    asn1obj = None  # unencoded extension data
-
-    def get_ext_data(self):
-        """Return DER-encoded extension data."""
-        return encoder.encode(self.asn1obj)
-
-
-class MSCSTemplateV1(MSCSTemplate):
-    """
-    A v1 template specifier, per
-    https://msdn.microsoft.com/en-us/library/cc250011.aspx.
-
-    ::
-
-        CertificateTemplateName ::= SEQUENCE {
-           Name            UTF8String
-        }
-
-    But note that a bare BMPString is used in practice.
-
-    """
-    ext_oid = "1.3.6.1.4.1.311.20.2"
-
-    def __init__(self, s):
-        super(MSCSTemplateV1, self).__init__(s)
-        parts = s.split(':')
-        if len(parts) > 1:
-            raise ValueError(
-                "Cannot specify certificate template version when using name.")
-        self.asn1obj = char.BMPString(str(parts[0]))
-
-
-class MSCSTemplateV2(MSCSTemplate):
-    """
-    A v2 template specifier, per
-    https://msdn.microsoft.com/en-us/library/windows/desktop/aa378274(v=vs.85).aspx
-
-    ::
-
-        CertificateTemplate ::= SEQUENCE {
-            templateID              EncodedObjectID,
-            templateMajorVersion    TemplateVersion,
-            templateMinorVersion    TemplateVersion OPTIONAL
-        }
-
-        TemplateVersion ::= INTEGER (0..4294967295)
-
-    """
-    ext_oid = "1.3.6.1.4.1.311.21.7"
-
-    @staticmethod
-    def check_version_in_range(desc, n):
-        if n < 0 or n >= 2**32:
-            raise ValueError(
-                "Template {} version must be in range 0..4294967295"
-                .format(desc))
-
-    def __init__(self, s):
-        super(MSCSTemplateV2, self).__init__(s)
-
-        parts = s.split(':')
-
-        obj = CertificateTemplateV2()
-        if len(parts) < 2 or len(parts) > 3:
-            raise ValueError(
-                "Incorrect template specification; required format is: "
-                "<oid>:<majorVersion>[:<minorVersion>]")
-        try:
-            obj['templateID'] = univ.ObjectIdentifier(parts[0])
-
-            major = int(parts[1])
-            self.check_version_in_range("major", major)
-            obj['templateMajorVersion'] = major
-
-            if len(parts) > 2:
-                minor = int(parts[2])
-                self.check_version_in_range("minor", minor)
-                obj['templateMinorVersion'] = int(parts[2])
-
-        except pyasn1.error.PyAsn1Error:
-            raise ValueError("Could not parse certificate template specifier.")
-        self.asn1obj = obj
-
-
-class CertificateTemplateV2(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('templateID', univ.ObjectIdentifier()),
-        namedtype.NamedType('templateMajorVersion', univ.Integer()),
-        namedtype.OptionalNamedType('templateMinorVersion', univ.Integer())
-    )
 
 
 if __name__ == "__main__":
