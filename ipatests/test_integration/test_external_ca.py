@@ -501,8 +501,18 @@ def _test_valid_profile(master, profile_cls, profile):
     check_mscs_extension(ipa_csr, profile_cls(profile))
 
 
-class TestExternalCAProfileV1(IntegrationTest):
+class TestExternalCAProfileScenarios(IntegrationTest):
     """
+    Test the various --external-ca-profile scenarios.
+    This test is broken into sections, with each section first
+    testing invalid arguments, then a valid argument, and finally
+    uninstalling the half-installed IPA.
+
+    """
+
+    '''
+    Tranche 1: version 1 templates.
+
     Test that --external-ca-profile=Foo gets propagated to the CSR.
 
     The default template extension when --external-ca-type=ms-cs,
@@ -511,7 +521,7 @@ class TestExternalCAProfileV1(IntegrationTest):
 
     We only need to do Step 1 of installation, then check the CSR.
 
-    """
+    '''
     def test_invalid_v1_template(self):
         _test_invalid_profile(self.master, 'NotAnOid:1')
 
@@ -519,9 +529,12 @@ class TestExternalCAProfileV1(IntegrationTest):
         _test_valid_profile(
             self.master, ipa_x509.MSCSTemplateV1, 'TemplateOfAwesome')
 
+    def test_uninstall_1(self):
+        tasks.uninstall_master(self.master)
 
-class TestExternalCAProfileV2MajorOnly(IntegrationTest):
-    """
+    '''
+    Tranche 2: V2 templates without minor version.
+
     Test that V2 template specifiers without minor version get
     propagated to CSR.  This class also tests all error modes in
     specifying a V2 template, those being:
@@ -535,7 +548,7 @@ class TestExternalCAProfileV2MajorOnly(IntegrationTest):
 
     We only need to do Step 1 of installation, then check the CSR.
 
-    """
+    '''
     def test_v2_template_too_few_parts(self):
         _test_invalid_profile(self.master, '1.2.3.4')
 
@@ -558,16 +571,21 @@ class TestExternalCAProfileV2MajorOnly(IntegrationTest):
         _test_valid_profile(
             self.master, ipa_x509.MSCSTemplateV2, '1.2.3.4:100')
 
+    def test_uninstall_2(self):
+        tasks.uninstall_master(self.master)
 
-class TestExternalCAProfileV2MajorMinor(IntegrationTest):
-    """
+    '''
+    Tranche 3: V2 templates with minor version.
+
     Test that V2 template specifiers _with_ minor version get
     propagated to CSR.  All error modes of V2 template specifiers
     were tested in ``TestExternalCAProfileV2Major``.
 
     We only need to do Step 1 of installation, then check the CSR.
 
-    """
+    '''
     def test_v2_template_valid_major_minor(self):
         _test_valid_profile(
             self.master, ipa_x509.MSCSTemplateV2, '1.2.3.4:100:200')
+
+    # this is the end; no need to uninstall.
