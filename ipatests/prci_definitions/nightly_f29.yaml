@@ -75,6 +75,18 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
+  fedora-29/external_ca_templates:
+    requires: [fedora-29/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-29/build_url}'
+        test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
+        template: *ci-master-f29
+        timeout: 3600
+        topology: *master_1repl
+
   fedora-29/test_topologies:
     requires: [fedora-29/build]
     priority: 50
