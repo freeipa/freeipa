@@ -65,7 +65,7 @@ class CACertManage(admintool.AdminTool):
             "--external-ca", dest='self_signed',
             action='store_false',
             help="Sign the renewed certificate by external CA")
-        ext_cas = tuple(x.value for x in cainstance.ExternalCAType)
+        ext_cas = tuple(x.value for x in x509.ExternalCAType)
         renew_group.add_option(
             "--external-ca-type", dest="external_ca_type",
             type="choice", choices=ext_cas,
@@ -73,7 +73,7 @@ class CACertManage(admintool.AdminTool):
             help="Type of the external CA. Default: generic")
         renew_group.add_option(
             "--external-ca-profile", dest="external_ca_profile",
-            type='constructor', constructor=cainstance.ExternalCAProfile,
+            type='constructor', constructor=x509.ExternalCAProfile,
             default=None, metavar="PROFILE-SPEC",
             help="Specify the certificate profile/template to use "
                  "at the external CA")
@@ -224,11 +224,11 @@ class CACertManage(admintool.AdminTool):
         options = self.options
 
         if not options.external_ca_type:
-            options.external_ca_type = cainstance.ExternalCAType.GENERIC.value
+            options.external_ca_type = x509.ExternalCAType.GENERIC.value
 
-        if options.external_ca_type == cainstance.ExternalCAType.MS_CS.value \
+        if options.external_ca_type == x509.ExternalCAType.MS_CS.value \
                 and options.external_ca_profile is None:
-            options.external_ca_profile = cainstance.MSCSTemplateV1(u"SubCA")
+            options.external_ca_profile = x509.MSCSTemplateV1(u"SubCA")
 
         if options.external_ca_profile is not None:
             # check that profile is valid for the external ca type
@@ -352,11 +352,11 @@ class CACertManage(admintool.AdminTool):
         timeout = api.env.startup_timeout + 60
 
         cm_profile = None
-        if isinstance(profile, cainstance.MSCSTemplateV1):
+        if isinstance(profile, x509.MSCSTemplateV1):
             cm_profile = profile.unparsed_input
 
         cm_template = None
-        if isinstance(profile, cainstance.MSCSTemplateV2):
+        if isinstance(profile, x509.MSCSTemplateV2):
             cm_template = profile.unparsed_input
 
         logger.debug("resubmitting certmonger request '%s'", self.request_id)
