@@ -37,7 +37,7 @@ from ipaserver.install import cainstance, service
 from ipaserver.install import custodiainstance
 from ipaserver.masters import find_providing_server
 from ipapython import version
-from ipalib import api
+from ipalib import api, x509
 from ipalib.constants import DOMAIN_LEVEL_1
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import standard_logging_setup
@@ -68,13 +68,13 @@ def parse_options():
                       default=False, help="unattended installation never prompts the user")
     parser.add_option("--external-ca", dest="external_ca", action="store_true",
                       default=False, help="Generate a CSR to be signed by an external CA")
-    ext_cas = tuple(x.value for x in cainstance.ExternalCAType)
+    ext_cas = tuple(x.value for x in x509.ExternalCAType)
     parser.add_option("--external-ca-type", dest="external_ca_type",
                       type="choice", choices=ext_cas,
                       metavar="{{{0}}}".format(",".join(ext_cas)),
                       help="Type of the external CA. Default: generic")
     parser.add_option("--external-ca-profile", dest="external_ca_profile",
-                      type='constructor', constructor=cainstance.ExternalCAProfile,
+                      type='constructor', constructor=x509.ExternalCAProfile,
                       default=None, metavar="PROFILE-SPEC",
                       help="Specify the certificate profile/template to use "
                            "at the external CA")
