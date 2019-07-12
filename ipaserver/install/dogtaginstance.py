@@ -853,7 +853,7 @@ class PKIIniLoader:
         if errs:
             raise ValueError(
                 '{} overrides immutable options:\n{}'.format(
-                    filename, '\n'.join(errors)
+                    filename, '\n'.join(errs)
                 )
             )
 
