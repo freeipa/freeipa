@@ -11,22 +11,24 @@ from __future__ import absolute_import
 
 import os
 import re
-from datetime import datetime, timedelta
+import textwrap
 import time
+from datetime import datetime, timedelta
 
-from cryptography.hazmat.primitives import hashes
 import pytest
+from cryptography.hazmat.primitives import hashes
 
+from ipalib import x509
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipaplatform.constants import constants
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks as platformtasks
+from ipapython import ipautil
+from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
-from ipalib import x509
 
 config = get_global_config()
 
@@ -772,3 +774,76 @@ class TestMaskInstall(IntegrationTest):
         """ Method to restore the default bashrc contents"""
         if self.bashrc_file is not None:
             self.master.put_file_contents('/root/.bashrc', self.bashrc_file)
+
+
+class TestInstallMasterReplica(IntegrationTest):
+    """https://pagure.io/freeipa/issue/7929
+    Problem:
+    If a replica installation fails before all the services
+    have been enabled then
+    it could leave things in a bad state.
+
+    ipa-replica-manage del --cleanup --force
+    invalid 'PKINIT enabled server': all masters must have
+    IPA master role enabled
+
+    Root cause was that configuredServices were being
+    considered when determining what masters provide
+    what services, so a partially installed master
+    could cause operations to fail on other masters,
+    to the point where a broken master couldn't be removed.
+    """
+    num_replicas = 1
+    topology = 'star'
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_kra=True)
+        # do not install KRA on replica, it is part of test
+        tasks.install_replica(cls.master, cls.replicas[0], setup_kra=False)
+
+    def test_replicamanage_del(self):
+        """Test Steps:
+        1. Setup server
+        2. Setup replica
+        3. modify the replica entry on Master:
+           ldapmodify -D cn="Directory Manager"-w <passwd>
+           dn: cn=KDC,cn=<replicaFQDN>,cn=masters,cn=ipa,cn=etc,<baseDN>
+           changetype: modify
+           delete: ipaconfigstring
+           ipaconfigstring: enabledService
+
+           dn: cn=KDC,cn=<replicaFQDN>,cn=masters,cn=ipa,cn=etc,<baseDN>
+           add: ipaconfigstring
+           ipaconfigstring: configuredService
+        4. On master,
+           run ipa-replica-manage del <replicaFQDN> --cleanup --force
+        """
+        # https://pagure.io/freeipa/issue/7929
+        # modify the replica entry on Master
+        cmd_output = None
+        dn_entry = 'dn: cn=KDC,cn=%s,cn=masters,cn=ipa,' \
+                   'cn=etc,%s' % \
+                   (self.replicas[0].hostname,
+                    ipautil.realm_to_suffix(
+                        self.replicas[0].domain.realm).ldap_text())
+        entry_ldif = textwrap.dedent("""
+            {dn}
+            changetype: modify
+            delete: ipaconfigstring
+            ipaconfigstring: enabledService
+
+            {dn}
+            add: ipaconfigstring
+            ipaconfigstring: configuredService
+        """).format(dn=dn_entry)
+        cmd_output = tasks.ldapmodify_dm(self.master, entry_ldif)
+        assert 'modifying entry' in cmd_output.stdout_text
+
+        cmd_output = self.master.run_command([
+            'ipa-replica-manage', 'del',
+            self.replicas[0].hostname, '--cleanup', '--force'
+        ])
+
+        assert_text = 'Deleted IPA server "%s"' % self.replicas[0].hostname
+        assert assert_text in cmd_output.stdout_text
