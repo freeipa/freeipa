@@ -83,7 +83,8 @@
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Python/
 %{?python_disable_dependency_generator}
 
-%endif  # Fedora
+# Fedora
+%endif
 
 # 10.7 includes 'pki-server cert-fix' enhancements required
 # by ipa-cert-fix: https://pagure.io/freeipa/issue/7885
@@ -175,7 +176,9 @@ BuildRequires:  libunistring-devel
 # 0.13.0: https://bugzilla.redhat.com/show_bug.cgi?id=1584773
 # 0.13.0-2: fix for missing dependency on python-six
 BuildRequires:  python3-lesscpy >= 0.13.0-2
-%endif # ONLY_CLIENT
+
+# ONLY_CLIENT
+%endif
 
 #
 # Build dependencies for makeapi/makeaci
@@ -202,7 +205,8 @@ BuildRequires:  python3-twine
 BuildRequires:  twine
 %endif
 BuildRequires:  python3-wheel
-%endif # with_wheels
+# with_wheels
+%endif
 
 #
 # Build dependencies for lint and fastcheck
@@ -251,7 +255,8 @@ BuildRequires:  python3-sss-murmur
 BuildRequires:  python3-sssdconfig >= %{sssd_version}
 BuildRequires:  python3-systemd
 BuildRequires:  python3-yubico
-%endif # with_lint
+# with_lint
+%endif
 
 #
 # Build dependencies for unit tests
@@ -260,7 +265,8 @@ BuildRequires:  python3-yubico
 BuildRequires:  libcmocka-devel
 # Required by ipa_kdb_tests
 BuildRequires:  %{_libdir}/krb5/plugins/kdb/db2.so
-%endif # ONLY_CLIENT
+# ONLY_CLIENT
+%endif
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -462,7 +468,8 @@ Cross-realm trusts with Active Directory in IPA require working Samba 4
 installation. This package is provided for convenience to install all required
 dependencies at once.
 
-%endif # ONLY_CLIENT
+# ONLY_CLIENT
+%endif
 
 
 %package client
@@ -704,7 +711,8 @@ features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 This package contains tests that verify IPA functionality under Python 3.
 
-%endif # with_ipatests
+# with_ipatests
+%endif
 
 
 %prep
@@ -753,7 +761,8 @@ ln -rs %{buildroot}%{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bi
 ln -frs %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version} %{buildroot}%{_bindir}/ipa-run-tests
 ln -frs %{buildroot}%{_bindir}/ipa-test-config-%{python3_version} %{buildroot}%{_bindir}/ipa-test-config
 ln -frs %{buildroot}%{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bindir}/ipa-test-task
-%endif # with_ipatests
+# with_ipatests
+%endif
 
 # remove files which are useful only for make uninstall
 find %{buildroot} -wholename '*/site-packages/*/install_files.txt' -exec rm {} \;
@@ -796,14 +805,16 @@ mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 
-%endif # ONLY_CLIENT
+# ONLY_CLIENT
+%endif
 
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/ca.crt
 
 %if ! %{ONLY_CLIENT}
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d
-%endif # ONLY_CLIENT
+# ONLY_CLIENT
+%endif
 
 
 %clean
@@ -920,7 +931,8 @@ if [ $1 -eq 0 ]; then
     /bin/systemctl reload-or-try-restart oddjobd
 fi
 
-%endif # ONLY_CLIENT
+# ONLY_CLIENT
+%endif
 
 
 %post client
@@ -1200,7 +1212,8 @@ fi
 %{_sysconfdir}/oddjobd.conf.d/oddjobd-ipa-trust.conf
 %%attr(755,root,root) %{_libexecdir}/ipa/oddjob/com.redhat.idm.trust-fetch-domains
 
-%endif # ONLY_CLIENT
+# ONLY_CLIENT
+%endif
 
 
 %files client
@@ -1326,7 +1339,8 @@ fi
 %{_mandir}/man1/ipa-test-config.1*
 %{_mandir}/man1/ipa-test-task.1*
 
-%endif # with_ipatests
+# with_ipatests
+%endif
 
 
 %changelog
