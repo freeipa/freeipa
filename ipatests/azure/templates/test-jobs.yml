@@ -33,4 +33,4 @@ jobs:
       condition: succeededOrFailed()
     - template: save-test-artifacts.yml
       parameters:
-        logsArtifact: logs-${{parameters.jobName}}-$(Build.BuildId)-$(System.JobPositionInPhase)-$(Agent.OS)-$(Agent.OSArchitecture)
+        logsArtifact: logs-${{parameters.jobName}}-$(Build.BuildId)-$(System.StageAttempt)-$(System.PhaseAttempt)-$(System.JobPositionInPhase)-$(Agent.OS)-$(Agent.OSArchitecture)
