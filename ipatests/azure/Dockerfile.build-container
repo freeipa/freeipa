@@ -6,7 +6,6 @@ ADD dist /root
 RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
     && dnf update -y dnf \
     && dnf install -y dnf-plugins-core sudo wget systemd firewalld nss-tools iptables \
-    && dnf config-manager '*modular*' --set-disabled \
     && sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf \
     && dnf install -y /root/rpms/*.rpm \
     && dnf clean all && rm -rf /root/rpms /root/srpms \
