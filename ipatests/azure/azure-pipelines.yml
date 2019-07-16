@@ -11,7 +11,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   container:
-    image: registry.fedoraproject.org/f30/fedora-toolbox
+    image: registry.fedoraproject.org/f31/fedora-toolbox
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
   steps:
     - template: templates/prepare-build.yml
