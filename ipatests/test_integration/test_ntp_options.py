@@ -20,6 +20,12 @@ class TestNTPoptions(IntegrationTest):
     ntp_server1 = "1.pool.ntp.org"
     ntp_server2 = "2.pool.ntp.org"
 
+    print_chrony_conf = ['cat', paths.CHRONY_CONF]
+
+    exp_records_msg = "No SRV records of NTP servers found and " \
+                      "no NTP server or pool address was provided."
+    exp_chrony_msg = "Using default chrony configuration."
+
     @classmethod
     def install(cls, mh):
         cls.client = cls.clients[0]
@@ -225,6 +231,157 @@ class TestNTPoptions(IntegrationTest):
 
         cmd = self.replica.run_command(['cat', paths.CHRONY_CONF])
         assert self.ntp_pool in cmd.stdout_text
+
+    def test_interactive_ntp_set_opt(self):
+        """
+        Test to verify that ipa installations with ntp options passed
+        interactively (without -U/--nattended) will be successful
+        - ipa-server-install
+        - ipa-client-install
+        Both NTP servers and pool passed interactively to options.
+        """
+        server_input = (
+            # Do you want to configure integrated DNS (BIND)? [no]:
+            "No\n"
+            # Server host name [hostname]:
+            "\n"
+            # Do you want to configure chrony with NTP server
+            #   or pool address? [no]:
+            "Yes\n"
+            # Enter NTP source server addresses separated by comma,
+            #   or press Enter to skip:
+            "{},{}\n".format(self.ntp_server2, self.ntp_server1) +
+            # Enter a NTP source pool address, or press Enter to skip:
+            "{}\n".format(self.ntp_pool) +
+            # Continue to configure the system with these values? [no]:
+            "Yes"
+        )
+
+        client_input = (
+            # Proceed with fixed values and no DNS discovery? [no]:
+            "Yes\n"
+            # Do you want to configure chrony with NTP server
+            #   or pool address? [no]:
+            "Yes\n"
+            # Enter NTP source server addresses separated by comma,
+            #   or press Enter to skip:
+            "{},{}\n".format(self.ntp_server2, self.ntp_server1) +
+            # Enter a NTP source pool address, or press Enter to skip:
+            "{}\n".format(self.ntp_pool) +
+            # Continue to configure the system with these values? [no]:
+            "Yes"
+        )
+
+        server_install = tasks.install_master(self.master,
+                                              setup_dns=False,
+                                              unattended=False,
+                                              stdin_text=server_input)
+
+        assert server_install.returncode == 0
+        assert self.ntp_pool in server_install.stdout_text
+        assert self.ntp_server1 in server_install.stdout_text
+        assert self.ntp_server2 in server_install.stdout_text
+
+        cmd = self.master.run_command(self.print_chrony_conf)
+        assert self.ntp_pool in cmd.stdout_text
+        assert self.ntp_server1 in cmd.stdout_text
+        assert self.ntp_server2 in cmd.stdout_text
+
+        client_install = tasks.install_client(self.master,
+                                              self.client,
+                                              unattended=False,
+                                              stdin_text=client_input)
+
+        assert client_install.returncode == 0
+
+        cmd = self.client.run_command(self.print_chrony_conf)
+        assert self.ntp_pool in cmd.stdout_text
+        assert self.ntp_server1 in cmd.stdout_text
+        assert self.ntp_server2 in cmd.stdout_text
+
+    def test_interactive_ntp_no_opt(self):
+        """
+        Test to verify that ipa installations without ntp options passed
+        interactively (without -U/--nattended) will be successful
+        - ipa-server-install
+        - ipa-client-install
+        Both NTP servers and pool configuration skipped interactively.
+        """
+
+        server_input = (
+            "No\n"
+            "\n"
+            "Yes\n"
+            "\n"
+            "\n"
+            "Yes"
+        )
+
+        client_input = (
+            "Yes\n"
+            "Yes\n"
+            "\n"
+            "\n"
+            "Yes"
+        )
+
+        server_install = tasks.install_master(self.master,
+                                              setup_dns=False,
+                                              unattended=False,
+                                              stdin_text=server_input)
+
+        assert server_install.returncode == 0
+        assert self.exp_records_msg in server_install.stderr_text
+        assert self.exp_chrony_msg in server_install.stdout_text
+
+        client_install = tasks.install_client(self.master,
+                                              self.client,
+                                              unattended=False,
+                                              stdin_text=client_input)
+
+        assert client_install.returncode == 0
+        assert self.exp_records_msg in client_install.stderr_text
+        assert self.exp_chrony_msg in client_install.stdout_text
+
+    def test_interactive_ntp_no_conf(self):
+        """
+        Test to verify that ipa installations without selecting
+        to configure ntp options interactively (without -U/--nattended)
+        will be successful
+        - ipa-server-install
+        - ipa-client-install
+        """
+
+        server_input = (
+            "\n" +
+            "\n"
+            "No\n"
+            "Yes"
+        )
+
+        client_input = (
+            "Yes\n"
+            "No\n"
+            "Yes"
+        )
+
+        server_install = tasks.install_master(self.master,
+                                              setup_dns=False,
+                                              unattended=False,
+                                              stdin_text=server_input)
+
+        assert server_install.returncode == 0
+        assert self.exp_records_msg in server_install.stderr_text
+        assert self.exp_chrony_msg in server_install.stdout_text
+
+        client_install = tasks.install_client(self.master,
+                                              self.client,
+                                              unattended=False,
+                                              stdin_text=client_input)
+
+        assert client_install.returncode == 0
+        assert self.exp_records_msg in client_install.stderr_text
+        assert self.exp_chrony_msg in client_install.stdout_text
 
     def teardown_method(self, method):
         """
