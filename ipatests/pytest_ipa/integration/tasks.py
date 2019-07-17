@@ -498,7 +498,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     return result
 
 
-def install_client(master, client, extra_args=(), user=None,
+def install_client(master, client, extra_args=[], user=None,
                    password=None, unattended=True, stdin_text=None):
     client.collect_log(paths.IPACLIENT_INSTALL_LOG)
 
@@ -528,7 +528,9 @@ def install_client(master, client, extra_args=(), user=None,
     if unattended:
         args.append('-U')
 
-    result = client.run_command(args + list(extra_args), stdin_text=stdin_text)
+    args.extend(extra_args)
+
+    result = client.run_command(args, stdin_text=stdin_text)
 
     setup_sssd_debugging(client)
     kinit_admin(client)
