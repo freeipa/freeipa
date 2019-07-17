@@ -585,11 +585,14 @@ class HTTPInstance(service.Service):
                          str(e))
 
     def start_tracking_certificates(self):
+        key_passwd_file = paths.HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)
         cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
         if certs.is_ipa_issued_cert(api, cert):
             request_id = certmonger.start_tracking(
                 certpath=(paths.HTTPD_CERT_FILE, paths.HTTPD_KEY_FILE),
-                post_command='restart_httpd', storage='FILE'
+                post_command='restart_httpd', storage='FILE',
+                profile=dogtag.DEFAULT_PROFILE,
+                pinfile=key_passwd_file,
             )
             subject = str(DN(cert.subject))
             certmonger.add_principal(request_id, self.principal)
