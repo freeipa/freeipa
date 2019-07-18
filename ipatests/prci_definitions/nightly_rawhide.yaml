@@ -231,6 +231,18 @@ jobs:
         timeout: 4800
         topology: *master_1repl_1client
 
+  fedora-rawhide/test_smb:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_smb.py
+        template: *ci-master-frawhide
+        timeout: 4800
+        topology: *master_1repl_1client
+
   fedora-rawhide/test_server_del:
     requires: [fedora-rawhide/build]
     priority: 50
@@ -1249,6 +1261,18 @@ jobs:
       args:
         build_url: '{fedora-rawhide/build_url}'
         test_suite: test_integration/test_automember.py
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *master_1repl
+
+  fedora-rawhide/test_crlgen_manage:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_crlgen_manage.py
         template: *ci-master-frawhide
         timeout: 3600
         topology: *master_1repl
