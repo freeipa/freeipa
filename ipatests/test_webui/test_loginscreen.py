@@ -157,7 +157,7 @@ class TestLoginScreen(UI_driver):
         new_pass_field.send_keys(new_password)
         verify_pass_field.send_keys(new_password)
         verify_pass_field.send_keys(Keys.RETURN)
-        self.wait()
+        self.wait(0.5)
         self.assert_notification(assert_text='Password change complete',
                                  link_text=link_text, link_url=link_url)
 
@@ -369,6 +369,7 @@ class TestLoginScreen(UI_driver):
         # check click on 'Cancel' button
         self.check_cancel()
         self.button_click_on_login_screen('login')
+        self.wait_for_request()
 
         # check if user is not logged
         assert not self.logged_in()
