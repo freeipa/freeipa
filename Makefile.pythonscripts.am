@@ -1,6 +1,6 @@
 # special handling of Python scripts with auto-generated shebang line
 $(PYTHON_SHEBANG):%: %.in Makefile
-	$(AM_V_GEN)sed -e 's|^#!/usr/bin/python3.*|#!$(PYTHON) -E|g' $< > $@
+	$(AM_V_GEN)sed -e 's|^#!/usr/bin/python3.*|#!$(PYTHON) -I|g' $< > $@
 	$(AM_V_GEN)chmod +x $@
 
 .PHONY: python_scripts_sub
