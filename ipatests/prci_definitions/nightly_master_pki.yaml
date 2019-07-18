@@ -717,3 +717,15 @@ jobs:
         template: *pki-master-f29
         timeout: 3600
         topology: *master_1repl
+
+  fedora-29/test_crlgen_manage:
+    requires: [fedora-29/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-29/build_url}'
+        test_suite: test_integration/test_crlgen_manage.py
+        template: *pki-master-f29
+        timeout: 3600
+        topology: *master_1repl
