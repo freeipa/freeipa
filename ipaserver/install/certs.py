@@ -377,14 +377,16 @@ class CertDB:
         except ipautil.CalledProcessError:
             return None
 
-    def track_server_cert(self, nickname, principal, password_file=None, command=None):
+    def track_server_cert(
+            self, nickname, principal,
+            password_file=None, command=None, profile=None):
         """
         Tell certmonger to track the given certificate nickname.
         """
         try:
             request_id = certmonger.start_tracking(
                 self.secdir, nickname=nickname, pinfile=password_file,
-                post_command=command)
+                post_command=command, profile=profile)
         except RuntimeError as e:
             logger.error("certmonger failed starting to track certificate: %s",
                          str(e))
