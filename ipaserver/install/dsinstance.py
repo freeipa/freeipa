@@ -1142,9 +1142,12 @@ class DsInstance(service.Service):
         dirname = config_dirname(serverid)[:-1]
         dsdb = certs.CertDB(self.realm, nssdir=dirname)
         if dsdb.is_ipa_issued_cert(api, nickname):
-            dsdb.track_server_cert(nickname, self.principal,
-                                   dsdb.passwd_fname,
-                                   'restart_dirsrv %s' % serverid)
+            dsdb.track_server_cert(
+                nickname,
+                self.principal,
+                password_file=dsdb.passwd_fname,
+                command='restart_dirsrv %s' % serverid,
+                profile=dogtag.DEFAULT_PROFILE)
         else:
             logger.debug("Will not track DS server certificate %s as it is "
                          "not issued by IPA", nickname)
