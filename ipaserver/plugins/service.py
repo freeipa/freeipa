@@ -889,7 +889,6 @@ class service_find(LDAPSearch):
         assert isinstance(base_dn, DN)
         # lisp style!
         custom_filter = '(&(objectclass=ipaService)' \
-                          '(!(objectClass=posixAccount))' \
                           '(!(|(krbprincipalname=kadmin/*)' \
                               '(krbprincipalname=K/M@*)' \
                               '(krbprincipalname=krbtgt/*))' \
