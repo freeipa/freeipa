@@ -28,7 +28,7 @@ steps:
   builddep:
   - rm -rf /var/cache/dnf/*
   - "dnf makecache || :"
-  - dnf builddep -y ${builddep_opts} -D "with_wheels 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
+  - dnf builddep -y ${builddep_opts} -D "with_python2 0" -D "with_wheels 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
   - dnf install -y gdb
   - dnf update -y annobin
   cleanup:
@@ -56,7 +56,6 @@ steps:
   - sed -ri "s/mode = production/mode = development/" /etc/ipa/default.conf
   - systemctl restart httpd.service
   lint:
-  - make PYTHON=/usr/bin/python2 V=0 lint
   - make PYTHON=/usr/bin/python3 V=0 pylint
   webui_unit:
   - dnf install -y npm
@@ -65,7 +64,7 @@ steps:
   - cd ${container_working_dir}/install/ui && node_modules/grunt/bin/grunt --verbose test
   tox:
   # just run one pylint and one Python 3 target (time/coverage trade-off)
-  - tox -e py27,py36,pypi,pylint3
+  - tox -e py36,pypi,pylint3
   prepare_tests:
   - echo ${server_password} | kinit admin && ipa ping
   - cp -r /etc/ipa/* ~/.ipa/

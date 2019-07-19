@@ -13,7 +13,7 @@ python:
 cache: pip
 env:
     global:
-        - TEST_RUNNER_IMAGE="freeipa/freeipa-test-runner:ipa-4-7_f28"
+        - TEST_RUNNER_IMAGE="freeipa/freeipa-test-runner:ipa-4-7_f29"
           PEP8_ERROR_LOG="pycodestyle_errors.log"
           CI_RESULTS_LOG="ci_results_${TRAVIS_BRANCH}.log"
           CI_BACKLOG_SIZE=5000
@@ -25,27 +25,12 @@ env:
         - TASK_TO_RUN="webui-unit"
           TEST_RUNNER_CONFIG=".test_runner_config.yaml"
         - TASK_TO_RUN="run-tests"
-          PYTHON=/usr/bin/python2
+          PYTHON=/usr/bin/python3
           TEST_RUNNER_CONFIG=".test_runner_config.yaml"
           TESTS_TO_RUN="test_xmlrpc/test_[a-k]*.py"
         - TASK_TO_RUN="run-tests"
-          PYTHON=/usr/bin/python2
+          PYTHON=/usr/bin/python3
           TEST_RUNNER_CONFIG=".test_runner_config.yaml"
-          TESTS_TO_RUN="test_cmdline
-            test_install
-            test_ipaclient
-            test_ipalib
-            test_ipaplatform
-            test_ipapython
-            test_ipaserver
-            test_xmlrpc/test_[l-z]*.py"
-        - TASK_TO_RUN="run-tests"
-          PYTHON=/usr/bin/python3
-          TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"
-          TESTS_TO_RUN="test_xmlrpc/test_[a-k]*.py"
-        - TASK_TO_RUN="run-tests"
-          PYTHON=/usr/bin/python3
-          TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"
           TESTS_TO_RUN="test_cmdline
                 test_install
                 test_ipaclient
