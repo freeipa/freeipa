@@ -471,12 +471,14 @@ def loadLibrary(module):
         # pylint: disable=no-member
         pDynLib = _ffi.dlopen(module, _ffi.RTLD_NOW | _ffi.RTLD_LOCAL)
     else:
-        raise Exception()
+        raise Error("PKCS#11 module name is empty")
 
     # Retrieve the entry point for C_GetFunctionList
     pGetFunctionList = pDynLib.C_GetFunctionList
     if pGetFunctionList == NULL:
-        raise Exception()
+        raise Error(
+            f"Module '{module}' has no function 'C_GetFunctionList'."
+        )
 
     # Store the handle so we can dlclose it later
 
@@ -843,7 +845,7 @@ class P11_Helper:
         try:
             pGetFunctionList, module_handle = loadLibrary(library_path)
         except Exception:
-            raise Error("Could not load the library.")
+            raise Error(f"Could not load the library '{library_path}'.")
 
         self.module_handle = module_handle
 
