@@ -50,6 +50,24 @@ return {
                     ]
                 },
                 {
+                    name: 'server',
+                    label: '@i18n:objects.config.server',
+                    fields: [
+                        {
+                            $type: 'entity_select',
+                            name: 'ca_renewal_master_server',
+                            other_entity: 'server',
+                            other_field: 'cn',
+                            flags: ['w_if_no_aci']
+                        },
+                        {
+                            $type: 'multivalued',
+                            name: 'pkinit_server_server',
+                            read_only: true
+                        }
+                    ]
+                },
+                {
                     name: 'user',
                     label: '@i18n:objects.config.user',
                     fields: [
@@ -99,13 +117,6 @@ return {
                         {
                             $type: 'multivalued',
                             name: 'ipauserobjectclasses'
-                        },
-                        {
-                            $type: 'entity_select',
-                            name: 'ca_renewal_master_server',
-                            other_entity: 'server',
-                            other_field: 'cn',
-                            flags: ['w_if_no_aci']
                         }
                     ]
                 },
