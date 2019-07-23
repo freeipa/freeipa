@@ -104,6 +104,10 @@ class UpgradeMissingVersionError(UpgradeVersionError):
     pass
 
 
+class OrderHostsError(Exception):
+    pass
+
+
 class ReplicaConfig:
     def __init__(self, top_dir=None):
         self.realm_name = ""
@@ -162,11 +166,18 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         try:
             logger.debug('Check if %s is a primary hostname for localhost',
                          host_name)
-            ex_name = socket.gethostbyaddr(host_name)
+            ex_name, aliases = socket.gethostbyaddr(host_name)[:2]
             logger.debug('Primary hostname for localhost: %s', ex_name[0])
-            if host_name != ex_name[0]:
-                raise HostLookupError("The host name %s does not match the primary host name %s. "\
-                        "Please check /etc/hosts or DNS name resolution" % (host_name, ex_name[0]))
+            # if FQDN is not the first item on the /etc/hosts file
+            if host_name != ex_name:
+                if host_name in aliases:
+                    # correct the order of hosts file to user
+                    order_hosts_file(host_name)
+                else:
+                    raise HostLookupError(
+                        "The host name %s does not match the primary host "
+                        "name %s. Please check /etc/hosts or DNS name "
+                        "resolution" % (host_name, ex_name[0]))
         except socket.gaierror:
             pass
         except socket.error as e:
@@ -258,6 +269,35 @@ def record_in_hosts(ip, host_name=None, conf_file=paths.HOSTS):
             continue
 
     return None
+
+
+def order_hosts_file(host_name):
+    """Read and overwrite /etc/hosts with FQDN at beginning, issue #8018"""
+    normalize_host = ''.join(host_name)
+    hostsfile = '/etc/hosts'
+    newfile = tempfile.NamedTemporaryFile(delete=False)
+
+    with open(hostsfile, 'r') as oldfile:
+        for line in oldfile:
+            if normalize_host in line:
+                restring = re.sub(r'%s( |$)' % normalize_host, '',
+                                  line.rstrip())
+                line = re.sub(r'(.*?) (.*)', r'\1 %s \2\n' % normalize_host,
+                              restring.rstrip())
+
+            newfile.write(line.encode())
+        newfile.close()
+
+    try:
+        shutil.copyfile(hostsfile, '%s.orig' % hostsfile)
+        shutil.copystat(hostsfile, newfile.name)
+        shutil.move(newfile.name, hostsfile)
+        tasks.restore_context(hostsfile, force=True)
+    except OSError:
+        raise OrderHostsError("Error while trying putting FQDN after IP "
+                              "Address on '/etc/hosts' file (e.g.: 10.0.0.1 "
+                              "server.example.com server).")
+
 
 def add_record_to_hosts(ip, host_name, conf_file=paths.HOSTS):
     hosts_fd = open(conf_file, 'r+')
