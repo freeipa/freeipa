@@ -921,7 +921,29 @@ class user_stage(LDAPMultiQuery):
     has_output = output.standard_multi_delete
     msg_summary = _('Staged user account "%(value)s"')
 
+    # when moving from preserved to stage, some attributes may be
+    # present in the preserved entry but cannot be provided to
+    # stageuser_add
+    # For instance: dn and uid are derived from LOGIN argument
+    #    has_keytab, has_password, preserved are virtual attributes
+    #    ipauniqueid, krbcanonicalname, sshpubkeyfp, krbextradata
+    #    are automatically generated
+    #    ipacertmapdata can only be provided with user_add_certmapdata
+    ignore_attrs = [u'dn', u'uid',
+                    u'has_keytab', u'has_password', u'preserved',
+                    u'ipauniqueid', u'krbcanonicalname',
+                    u'sshpubkeyfp', u'krbextradata',
+                    u'ipacertmapdata',
+                    u'nsaccountlock']
+
     def execute(self, *keys, **options):
+
+        def _build_setattr_arg(key, val):
+            if isinstance(val, bytes):
+                return u"{}={}".format(key, val.decode('UTF-8'))
+            else:
+                return u"{}={}".format(key, val)
+
         staged = []
         failed = []
 
@@ -942,8 +964,30 @@ class user_stage(LDAPMultiQuery):
                     value = value[0]
                 new_options[param.name] = value
 
+            # Some attributes may not be accessible through the Command
+            # options and need to be added with --setattr
+            set_attr = []
+            for userkey in user.keys():
+                if userkey in new_options or userkey in self.ignore_attrs:
+                    continue
+                value = user[userkey]
+
+                if isinstance(value, (list, tuple)):
+                    for val in value:
+                        set_attr.append(_build_setattr_arg(userkey, val))
+                else:
+                    set_attr.append(_build_setattr_arg(userkey, val))
+            if set_attr:
+                new_options[u'setattr'] = set_attr
+
             try:
                 self.api.Command.stageuser_add(*single_keys, **new_options)
+                # special handling for certmapdata
+                certmapdata = user.get(u'ipacertmapdata')
+                if certmapdata:
+                    self.api.Command.stageuser_add_certmapdata(
+                        *single_keys,
+                        ipacertmapdata=certmapdata)
                 try:
                     self.api.Command.user_del(*multi_keys, preserve=False)
                 except errors.ExecutionError:
