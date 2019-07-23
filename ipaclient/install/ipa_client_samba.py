@@ -433,8 +433,9 @@ def uninstall(fstore, statestore, options):
     ipautil.remove_ccache(ccache_path=paths.KRB5CC_SAMBA)
 
     # Remove samba's configuration file
-    ipautil.remove_file(paths.SMB_CONF)
-    fstore.restore_file(paths.SMB_CONF)
+    if fstore.has_file(paths.SMB_CONF):
+        ipautil.remove_file(paths.SMB_CONF)
+        fstore.restore_file(paths.SMB_CONF)
 
     # Remove samba's persistent and temporary tdb files
     tdb_files = [
@@ -624,7 +625,7 @@ def run():
             api.Command.service_del(api.env.smb_princ)
         except AttributeError:
             logger.error(
-                "Chosen IPA master %s does not have support to"
+                "Chosen IPA master %s does not have support to "
                 "set up Samba domain members", server,
             )
             return 1
