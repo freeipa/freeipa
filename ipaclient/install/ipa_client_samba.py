@@ -523,11 +523,25 @@ def run():
     if options.uninstall:
         if statestore.has_state("domain_member"):
             uninstall(fstore, statestore, options)
-            print(
-                "Samba configuration is reverted. "
-                "However, Samba databases were fully cleaned and "
-                "old configuration file will not be usable anymore."
-            )
+            try:
+                keys = (
+                    "configured", "hardening", "groupmap", "tdb",
+                    "service.principal", "smb.conf"
+                )
+                for key in keys:
+                    statestore.delete_state("domain_member", key)
+            except Exception as e:
+                print(
+                    "Error: Failed to remove the domain_member statestores: "
+                    "%s" % e
+                )
+                return 1
+            else:
+                print(
+                    "Samba configuration is reverted. "
+                    "However, Samba databases were fully cleaned and "
+                    "old configuration file will not be usable anymore."
+                )
         else:
             print("Samba domain member is not configured yet")
         return 0
