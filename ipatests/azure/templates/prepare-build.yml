@@ -16,7 +16,7 @@ steps:
     sudo dnf -y module enable nodejs:12
     sudo dnf makecache || :
     echo "Installing base development environment"
-    sudo dnf install -y gdb make autoconf rpm-build gettext-devel automake libtool docker python3-paramiko python3-pyyaml || :
+    sudo dnf install -y gdb make autoconf rpm-build gettext-devel automake libtool docker python3-paramiko python3-pyyaml
     echo "Installing FreeIPA development dependencies"
-    sudo dnf builddep -y --skip-broken -D "with_wheels 1" -D "with_lint 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False || :
+    sudo dnf builddep -y --skip-broken -D "with_wheels 1" -D "with_lint 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
   displayName: Prepare build environment
