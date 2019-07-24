@@ -26,6 +26,7 @@ def export_key(args, tmpdir):
         'ca-authority-key-export',
         '--wrap-nickname', args.wrap_nickname,
         '--target-nickname', args.nickname,
+        '--algorithm', args.algorithm,
         '-o', wrapped_key_file
     ])
 
@@ -95,6 +96,17 @@ def pki_tomcat_parser():
         help='nick name of target key',
         required=True
     )
+
+    # Caller must specify a cipher.  This gets passed on to
+    # the 'pki ca-authority-key-export' command (part of
+    # Dogtag) via its own --algorithm option.
+    parser.add_argument(
+        '--algorithm',
+        dest='algorithm',
+        help='OID of symmetric wrap algorithm',
+        required=True
+    )
+
     parser.set_defaults(
         nssdb_path=paths.PKI_TOMCAT_ALIAS_DIR,
         nssdb_pwdfile=paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,

@@ -86,9 +86,35 @@ class NSSWrappedCertDB(DBMAPCommandHandler):
     private key of the primary CA.
     """
     dbtype = 'NSSDB'
+    supports_extra_args = True
+
+    OID_DES_EDE3_CBC = '1.2.840.113549.3.7'
+
+    def __init__(self, config, dbmap, nickname, *extra_args):
+        super().__init__(config, dbmap, nickname)
+
+        # Extra args is either a single OID specifying desired wrap
+        # algorithm, or empty.  If empty, we must assume that the
+        # client is an old version that only supports DES-EDE3-CBC.
+        #
+        # Using either the client's requested algorithm or the
+        # default of DES-EDE3-CBC, we pass it along to the handler
+        # via the --algorithm option.  The handler, in turn, passes
+        # it along to the 'pki ca-authority-key-export' program
+        # (which is part of Dogtag).
+        #
+        if len(extra_args) > 1:
+            raise InvalidKeyArguments("Too many arguments")
+        if len(extra_args) == 1:
+            self.alg = extra_args[0]
+        else:
+            self.alg = self.OID_DES_EDE3_CBC
 
     def export_key(self):
-        return self.run_handler(['--nickname', self.nickname])
+        return self.run_handler([
+            '--nickname', self.nickname,
+            '--algorithm', self.alg,
+        ])
 
 
 class NSSCertDB(DBMAPCommandHandler):
