@@ -15,8 +15,13 @@ class UnknownKeyName(Exception):
     pass
 
 
+class InvalidKeyArguments(Exception):
+    pass
+
+
 class DBMAPHandler:
     dbtype = None
+    supports_extra_args = False
 
     def __init__(self, config, dbmap, nickname):
         dbtype = dbmap.get('type')
@@ -162,12 +167,15 @@ class IPASecStore(CSStore):
 
     def _get_handler(self, key):
         path = key.split('/', 3)
-        if len(path) != 3 or path[0] != 'keys':
+        if len(path) < 3 or path[0] != 'keys':
             raise ValueError('Invalid name')
         if path[1] not in NAME_DB_MAP:
             raise UnknownKeyName("Unknown DB named '%s'" % path[1])
         dbmap = NAME_DB_MAP[path[1]]
-        return dbmap['handler'](self.config, dbmap, path[2])
+        handler = dbmap['handler']
+        if len(path) > 3 and not handler.supports_extra_args:
+            raise InvalidKeyArguments('Handler does not support extra args')
+        return handler(self.config, dbmap, path[2], *path[3:])
 
     def get(self, key):
         try:
