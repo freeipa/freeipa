@@ -415,6 +415,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
                                         LDAPMessage *lentry,
                                         unsigned int flags,
                                         TALLOC_CTX *memctx,
+                                        krb5_timestamp authtime,
                                         struct netr_SamInfo3 *info3)
 {
     LDAP *lcontext = ipactx->lcontext;
@@ -518,9 +519,11 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         prigid = intres;
     }
 
+    /* krb5_timestamp must be converted to uint32_t to allow 64-bit time_t
+     * to handle time beyond year 2038. See <krb5.h> for details */
+    unix_to_nt_time(&info3->base.logon_time, (time_t)(uint32_t) authtime);
 
-    info3->base.logon_time = 0; /* do not have this info yet */
-    info3->base.logoff_time = -1; /* do not force logoff */
+    info3->base.logoff_time = INT64_MAX; /* do not force logoff */
 
 /* TODO: is krbPrinciplaExpiration what we want to use in kickoff_time ?
  * Needs more investigation */
@@ -538,7 +541,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         return ret;
     }
 #else
-    info3->base.kickoff_time = -1;
+    info3->base.kickoff_time = INT64_MAX;
 #endif
 
     ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
@@ -555,8 +558,9 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     }
 
     /* TODO: from pw policy (ied->pol) */
-    info3->base.allow_password_change = 0;
-    info3->base.force_password_change = -1;
+    /* AD DCs set allow_password_change to last_password_change, it seems */
+    info3->base.allow_password_change = info3->base.last_password_change;
+    info3->base.force_password_change = INT64_MAX;
 
     ret = ipadb_ldap_attr_to_str(lcontext, lentry, "cn", &strres);
     switch (ret) {
@@ -797,6 +801,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
 static krb5_error_code ipadb_get_pac(krb5_context kcontext,
                                      krb5_db_entry *client,
                                      unsigned int flags,
+                                     krb5_timestamp authtime,
                                      krb5_pac *pac)
 {
     TALLOC_CTX *tmpctx;
@@ -859,7 +864,7 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     }
 
     /* == Fill Info3 == */
-    kerr = ipadb_fill_info3(ipactx, lentry, flags, tmpctx,
+    kerr = ipadb_fill_info3(ipactx, lentry, flags, tmpctx, authtime,
                             &pac_info.logon_info.info->info3);
     if (kerr) {
         goto done;
@@ -2276,7 +2281,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
 
         (void)ipadb_reinit_mspac(ipactx, force_reinit_mspac);
 
-        kerr = ipadb_get_pac(context, client, flags, &pac);
+        kerr = ipadb_get_pac(context, client, flags, authtime, &pac);
         if (kerr != 0 && kerr != ENOENT) {
             goto done;
         }
@@ -2290,7 +2295,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         /* check or generate pac data */
         if ((pac_auth_data == NULL) || (pac_auth_data[0] == NULL)) {
             if (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION) {
-                kerr = ipadb_get_pac(context, client_entry, flags, &pac);
+                kerr = ipadb_get_pac(context, client_entry, flags, authtime, &pac);
                 if (kerr != 0 && kerr != ENOENT) {
                     goto done;
                 }
