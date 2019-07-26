@@ -129,6 +129,17 @@ def stageduser_notposix(request):
 
 
 @pytest.fixture(scope='class')
+def stageduser_customattr(request):
+    tracker = StageUserTracker(u'customattr', u'customattr', u'customattr',
+                               setattr=u'businesscategory=BusinessCat')
+    tracker.track_create()
+    tracker.attrs.update(
+        businesscategory=[u'BusinessCat']
+    )
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
 def user(request):
     tracker = UserTracker(u'auser1', u'active', u'user')
     return tracker.make_fixture(request)
@@ -571,6 +582,59 @@ class TestPreserved(XMLRPC_test):
         stageduser.check_retrieve(result)
 
         stageduser.delete()
+
+
+@pytest.mark.tier1
+class TestCustomAttr(XMLRPC_test):
+    """Test for pagure ticket 7597
+
+    When a staged user is activated, preserved and finally staged again,
+    the custom attributes are lost.
+    """
+    def test_stageduser_customattr(self, stageduser_customattr):
+        # Create a staged user with attributes not accessible
+        # through the options
+        # --setattr is needed here
+        command = stageduser_customattr.make_create_command()
+        result = command()
+        stageduser_customattr.check_create(result, [u'businesscategory'])
+
+        # Activate the staged user
+        user_customattr = UserTracker(
+            stageduser_customattr.uid, stageduser_customattr.givenname,
+            stageduser_customattr.sn)
+        user_customattr.create_from_staged(stageduser_customattr)
+        user_customattr.attrs[u'businesscategory'] = [u'BusinessCat']
+
+        command = stageduser_customattr.make_activate_command()
+        result = command()
+        user_customattr.check_activate(result)
+
+        # Check that the user contains businesscategory
+        command = user_customattr.make_retrieve_command(all=True)
+        result = command()
+        assert 'BusinessCat' in result['result'][u'businesscategory']
+
+        # delete the user with --preserve
+        command = user_customattr.make_delete_command(no_preserve=False,
+                                                      preserve=True)
+        result = command()
+        user_customattr.check_delete(result)
+
+        # Check that the preserved user contains businesscategory
+        command = user_customattr.make_retrieve_command(all=True)
+        result = command()
+        assert 'BusinessCat' in result['result'][u'businesscategory']
+
+        # Move the user from preserved to stage
+        command = user_customattr.make_stage_command()
+        result = command()
+        stageduser_customattr.check_restore_preserved(result)
+
+        # Check that the stage user contains businesscategory
+        command = stageduser_customattr.make_retrieve_command(all=True)
+        result = command()
+        assert 'BusinessCat' in result['result'][u'businesscategory']
 
 
 @pytest.mark.tier1
