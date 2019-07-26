@@ -176,12 +176,13 @@ class StageUserTracker(KerberosAliasMixin, Tracker):
 
         self.exists = True
 
-    def check_create(self, result):
+    def check_create(self, result, extra_keys=()):
         """ Check 'stageuser-add' command result """
+        expected = self.filter_attrs(self.create_keys | set(extra_keys))
         assert_deepequal(dict(
             value=self.uid,
             summary=u'Added stage user "%s"' % self.uid,
-            result=self.filter_attrs(self.create_keys),
+            result=self.filter_attrs(expected),
         ), result)
 
     def check_delete(self, result):
