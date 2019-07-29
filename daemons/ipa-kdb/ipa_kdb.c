@@ -193,6 +193,8 @@ static const struct {
     { "password", IPADB_USER_AUTH_PASSWORD },
     { "radius", IPADB_USER_AUTH_RADIUS },
     { "otp", IPADB_USER_AUTH_OTP },
+    { "pkinit", IPADB_USER_AUTH_PKINIT },
+    { "hardened", IPADB_USER_AUTH_HARDENED },
     { }
 };
 
