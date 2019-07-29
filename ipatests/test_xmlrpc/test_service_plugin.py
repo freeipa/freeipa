@@ -1481,17 +1481,20 @@ def indicators_service(request):
 class TestAuthenticationIndicators(XMLRPC_test):
     def test_create_service_with_otp_indicator(
             self, indicators_host, indicators_service):
-        """ Since range of authentication indicator values is not limited,
-        only 'otp' option is tested """
         indicators_host.create()
         indicators_service.create()
 
-    def test_adding_second_indicator(
+    def test_adding_all_indicators(
             self, indicators_host, indicators_service):
         indicators_host.create()
         indicators_service.create()
         indicators_service.update(
-            updates={u'krbprincipalauthind': [u'otp', u'radius']})
+            updates={
+                u'krbprincipalauthind': [
+                    u'otp', u'radius', u'pkinit', u'hardened'
+                ]
+            }
+        )
 
     def test_update_indicator(self, indicators_host, indicators_service):
         indicators_host.create()

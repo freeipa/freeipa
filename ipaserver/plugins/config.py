@@ -253,11 +253,13 @@ class config(LDAPObject):
             doc=_('Default types of PAC supported for services'),
             values=(u'MS-PAC', u'PAD', u'nfs:NONE'),
         ),
-        StrEnum('ipauserauthtype*',
+        StrEnum(
+            'ipauserauthtype*',
             cli_name='user_auth_type',
             label=_('Default user authentication types'),
             doc=_('Default types of supported user authentication'),
-            values=(u'password', u'radius', u'otp', u'disabled'),
+            values=(u'password', u'radius', u'otp',
+                    u'pkinit', u'hardened', u'disabled'),
         ),
         Str(
             'ipa_master_server*',

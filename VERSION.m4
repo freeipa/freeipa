@@ -86,9 +86,9 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 233)
-# Last change: Added service_add_smb command
-
+define(IPA_API_VERSION_MINOR, 234)
+# Last change: Added new auth indicators to ipauserauthtype and krbprincipalauthind.
+#              Converted krbprincipalauthind from Str() to StrEnum()
 
 ########################################################
 # Following values are auto-generated from values above
