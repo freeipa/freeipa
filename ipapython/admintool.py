@@ -317,9 +317,7 @@ class AdminTool:
             # ipa-server-install.
             return
         message = "The %s command failed." % self.command_name
-        if self.log_file_initialized and return_value != 2:
-            # magic value because this is common between server and client
-            # but imports are not straigthforward
+        if self.log_file_initialized and return_value != SERVER_NOT_CONFIGURED:
             message += " See %s for more information" % self.log_file_name
         logger.error('%s', message)
 
