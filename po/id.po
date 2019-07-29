@@ -1,22 +1,29 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.1.dev201712121258+gitb2d3b568c\n"
+"Project-Id-Version: freeipa 4.6.5.dev201907290557+git8334a8789\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-06-08 10:47-0400\n"
+"POT-Creation-Date: 2019-07-29 08:58+0300\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2015-01-05 01:10+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Indonesian\n"
 "Language: id\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=1; plural=0\n"
+
+#, python-format
+msgid "Enter %(label)s again to verify: "
+msgstr "Masukkan %(label)s lagi untuk verifikasi:"
 
 #, c-format
 msgid "Passwords do not match!"
 msgstr "Kata sandi tidak cocok!"
+
+msgid "Results are truncated, try a more specific search"
+msgstr "Hasil yang terpotong, coba cari dengan lebih spesifik"
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
@@ -86,19 +93,6 @@ msgstr "%(info)s"
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "Operasi sertifikat tidak dapat diselesaikan: %(error)s"
 
-#, python-format
-msgid "%(count)d variables"
-msgstr "%(count)d variabel"
-
-#, python-format
-msgid "%(count)d plugin loaded"
-msgid_plural "%(count)d plugins loaded"
-msgstr[0] "%(count)d pengaya telah dimuat"
-
-#, python-format
-msgid "Enter %(label)s again to verify: "
-msgstr "Masukkan %(label)s lagi untuk verifikasi:"
-
 msgid "incorrect type"
 msgstr "type salah"
 
@@ -160,13 +154,34 @@ msgstr "panjang maksimum yang diperbolehkan %(maxlength)d karakter"
 msgid "must be exactly %(length)d characters"
 msgstr "harus tepat %(length)d karakter"
 
-msgid "Results are truncated, try a more specific search"
-msgstr "Hasil yang terpotong, coba cari dengan lebih spesifik"
+#, python-format
+msgid "%(count)d variables"
+msgstr "%(count)d variabel"
+
+#, python-format
+msgid "%(count)d plugin loaded"
+msgid_plural "%(count)d plugins loaded"
+msgstr[0] "%(count)d pengaya telah dimuat"
 
 #, python-format
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
 msgstr[0] "%(count)d pengguna sesuai"
+
+msgid "priority cannot be set on global policy"
+msgstr "prioritas tidak dapat ditetapkan pada kebijakan global"
+
+#, python-format
+msgid "Added user \"%(value)s\""
+msgstr "Pengguna \"%(value)s\" telah ditambahkan"
+
+#, python-format
+msgid "Deleted user \"%(value)s\""
+msgstr "Pengguna \"%(value)s\" telah dihapus"
+
+#, python-format
+msgid "Modified user \"%(value)s\""
+msgstr "Pengguna \"%(value)s\" telah dimodifikasi"
 
 #, python-format
 msgid "Added group \"%(value)s\""
@@ -184,18 +199,6 @@ msgstr "Grup \"%(value)s\" telah dimodifikasi"
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
 msgstr[0] "%(count)d grup sesuai"
-
-#, python-format
-msgid "Added user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah ditambahkan"
-
-#, python-format
-msgid "Deleted user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah dihapus"
-
-#, python-format
-msgid "Modified user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah dimodifikasi"
 
 msgid ""
 "at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
@@ -245,9 +248,6 @@ msgstr "hostgroup \"%(value)s\" telah dimodifikasi"
 msgid "%(count)d hostgroup matched"
 msgid_plural "%(count)d hostgroups matched"
 msgstr[0] "%(count)d hostgroup sesuai"
-
-msgid "priority cannot be set on global policy"
-msgstr "prioritas tidak dapat ditetapkan pada kebijakan global"
 
 #, python-format
 msgid "Added host \"%(value)s\""
