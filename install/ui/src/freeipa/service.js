@@ -127,19 +127,25 @@ return {
                             ]
                         },
                         {
-                            $type: 'custom_checkboxes',
+                            $type: 'checkboxes',
                             label: '@i18n:authtype.auth_indicators',
                             name: 'krbprincipalauthind',
-                            add_dialog_title: '@i18n:authtype.custom_auth_ind_title',
-                            add_field_label: '@i18n:authtype.auth_indicator',
                             options: [
                                 {
-                                    label: 'otp',
+                                    label: '@i18n:authtype.type_otp',
                                     value: 'otp'
                                 },
                                 {
-                                    label: 'radius',
+                                    label: '@i18n:authtype.type_radius',
                                     value: 'radius'
+                                },
+                                {
+                                    label: '@i18n:authtype.type_pkinit',
+                                    value: 'pkinit'
+                                },
+                                {
+                                    label: '@i18n:authtype.type_hardened',
+                                    value: 'hardened'
                                 }
                             ],
                             tooltip: {

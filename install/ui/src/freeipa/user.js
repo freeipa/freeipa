@@ -237,7 +237,9 @@ return {
                             options: [
                                 { label: '@i18n:authtype.type_password', value: 'password' },
                                 { label: '@i18n:authtype.type_radius', value: 'radius' },
-                                { label: '@i18n:authtype.type_otp', value: 'otp' }
+                                { label: '@i18n:authtype.type_otp', value: 'otp' },
+                                { label: '@i18n:authtype.type_pkinit', value: 'pkinit' },
+                                { label: '@i18n:authtype.type_hardened', value: 'hardened' }
                             ],
                             tooltip: {
                                 title: '@i18n:authtype.user_tooltip',
