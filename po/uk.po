@@ -12,7 +12,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2019-04-24 08:17+0000\n"
+"PO-Revision-Date: 2019-04-27 01:47+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
 "Language: uk\n"
@@ -18929,6 +18929,10 @@ msgstr "Не можна приховувати основний сервер о�
 msgid "Cannot hide DNSSec key master."
 msgstr "Не можна приховувати основний сервер ключів DNSSec."
 
+#, python-format
+msgid "Cannot hide last enabled %(name)s server."
+msgstr "Не можна приховувати останній увімкнений сервер %(name)s."
+
 msgid ""
 "Cannot perform SID validation without Samba 4 support installed. Make sure "
 "you have installed server-trust-ad sub-package of IPA on the server"
@@ -19837,6 +19841,9 @@ msgstr ""
 "Не пройдено перевірку DNSSEC: %(error)s.\n"
 "Будь ласка, перевірте, чи правильно вказано налаштування DNSSEC, або "
 "вимкніть перевірку DNSSEC на усіх серверах IPA."
+
+msgid "DNSec key master"
+msgstr "Основний сервер ключів DNSec"
 
 msgid "DS Algorithm"
 msgstr "Алгоритм DS"
@@ -21419,6 +21426,9 @@ msgid "Failed to remove server %(master)s from server list: %(err)s"
 msgstr ""
 "Не вдалося вилучити запис сервера %(master)s зі списку серверів: %(err)s"
 
+msgid "Failed to resolve symlink to keytab.\n"
+msgstr "Не вдалося визначити таблицю ключів за символічним посиланням.\n"
+
 #, c-format
 msgid "Failed to retrieve any keys"
 msgstr "Не вдалося отримати жодного ключа"
@@ -21948,6 +21958,27 @@ msgstr "Привіт, світе"
 msgid "Help topic"
 msgstr "Тема довідки"
 
+msgid "Hidden IPA CA servers"
+msgstr "Приховані сервери CA IPA"
+
+msgid "Hidden IPA DNS servers"
+msgstr "Приховані сервери DNS IPA"
+
+msgid "Hidden IPA KRA servers"
+msgstr "Приховані сервери KRA IPA"
+
+msgid "Hidden IPA masters"
+msgstr "Приховані основні сервери IPA"
+
+msgid "Hidden IPA servers configured as certificate authority"
+msgstr "Приховані сервери IPA, які налаштовано як служби сертифікації"
+
+msgid "Hidden IPA servers configured as domain name server"
+msgstr "Приховані сервери IPA, які налаштовано як сервери назв доменів"
+
+msgid "Hidden IPA servers configured as key recovery agent"
+msgstr "Приховані сервери IPA, які налаштовано як агенти відновлення ключів"
+
 msgid "Hide"
 msgstr "Приховати"
 
@@ -22204,6 +22235,14 @@ msgstr "IP-адреса"
 msgid "IP address %(ip)s is already assigned in domain %(domain)s."
 msgstr "IP-адресу %(ip)s вже призначено у домені %(domain)s."
 
+#, python-format
+msgid "IP address in subjectAltName (%s) does not have PTR record"
+msgstr "IP-адреса у subjectAltName (%s) не містить запису PTR"
+
+#, python-format
+msgid "IP address in subjectAltName (%s) unreachable from DNS names"
+msgstr "IP-адреса у subjectAltName (%s) є недоступною з назв DNS"
+
 msgid "IP network to create reverse zone name from"
 msgstr "Мережа IP для створення зворотних назв зони"
 
@@ -22368,6 +22407,12 @@ msgstr "Сервери IPA, які налаштовано як контроле�
 
 msgid "IPA servers configured as certificate authority"
 msgstr "Сервери IPA, які налаштовано як центри сертифікації"
+
+msgid "IPA servers configured as domain name server"
+msgstr "Сервери IPA, які налаштовано як сервери назв доменів (DNS)"
+
+msgid "IPA servers configured as key recovery agent"
+msgstr "Сервери IPA, які налаштовано як агенти відновлення ключів"
 
 msgid "IPA servers configured as key recovery agents"
 msgstr ""
@@ -22979,6 +23024,9 @@ msgstr "Список основних серверів IPA, які налашт�
 
 msgid "List of all IPA masters"
 msgstr "Список усіх основних вузлів IPA"
+
+msgid "List of all hidden IPA masters"
+msgstr "Список усіх прихованих основних серверів IPA"
 
 msgid "List of deletions that failed"
 msgstr "Список вилучень, які не вдалося виконати"
@@ -24512,6 +24560,10 @@ msgstr "Назва вузла PTR"
 
 msgid "PTR record"
 msgstr "Запис PTR"
+
+#, python-format
+msgid "PTR record for SAN IP (%s) does not match A/AAAA records"
+msgstr "PTR-запис для SAN IP (%s) не відповідає записам A/AAAA"
 
 msgid "Page"
 msgstr "Сторінка"
@@ -27325,6 +27377,10 @@ msgstr "Роль сервера"
 msgid "Server Roles"
 msgstr "Ролі сервера"
 
+msgid "Server does not support domain level functionality"
+msgstr ""
+"На сервері не передбачено підтримки функціональних можливостей рівня домену"
+
 msgid "Server has already been deleted"
 msgstr "Запис сервера вже вилучено"
 
@@ -29921,6 +29977,11 @@ msgstr "запис ключа %(key)s вже існує"
 #, python-format
 msgid "key named %(key)s already exists"
 msgstr "ключ з назвою %(key)s вже існує"
+
+msgid "keytab is a dangling symlink and owned by another user.\n"
+msgstr ""
+"keytab є осиротілим символічним посиланням, яке належить іншому "
+"користувачу.\n"
 
 #, c-format
 msgid "krb5_kt_close %1$d: %2$s\n"
