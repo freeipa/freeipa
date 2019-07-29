@@ -460,9 +460,11 @@ class TestUpdate(XMLRPC_test):
             command()
 
     def test_set_ipauserauthtype(self, user):
-        """ Set ipauserauthtype to 'password' and than back to None """
+        """ Set ipauserauthtype to all valid types and than back to None """
         user.ensure_exists()
-        user.update(dict(ipauserauthtype=u'password'))
+        user.update(dict(ipauserauthtype=[
+            u'password', u'radius', u'otp', u'pkinit', u'hardened'
+        ]))
         user.retrieve()
 
         user.update(dict(ipauserauthtype=None))
