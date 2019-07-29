@@ -1,31 +1,63 @@
 # Josef Hruška <hrusjos@gmail.com>, 2015. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.1.dev201712121258+gitb2d3b568c\n"
+"Project-Id-Version: freeipa 4.6.5.dev201907290557+git8334a8789\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-06-08 10:47-0400\n"
+"POT-Creation-Date: 2019-07-29 08:58+0300\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2015-06-29 01:17+0000\n"
 "Last-Translator: Josef Hruška <hrusjos@gmail.com>\n"
 "Language-Team: Czech\n"
 "Language: cs\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2\n"
+
+#, python-format
+msgid "Enter %(label)s again to verify: "
+msgstr "Vložte znovu své %(label)s, aby se ověřila jeho správnost."
 
 #, c-format
 msgid "Passwords do not match!"
 msgstr "Hesla se neshodují!"
 
+msgid "No matching entries found"
+msgstr "Nenalezeny žádné shodné položky"
+
+msgid "Topic or Command"
+msgstr "Téma nebo příkaz"
+
+msgid "The topic or command name."
+msgstr "Název tématu nebo příkazu."
+
+msgid "Topic commands:"
+msgstr "Příkazy tématu:"
+
+msgid "To get command help, use:"
+msgstr "Chceteli získat nápovědu k příkazu, použijte:"
+
+msgid "  ipa <command> --help"
+msgstr "  ipa <command> --help"
+
+msgid "Command name"
+msgstr "Název příkazu"
+
+msgid "Positional arguments"
+msgstr "Poziční argumenty"
+
+#, python-format
+msgid "Same as --%s"
+msgstr "Stejné jako --%s"
+
+msgid "Deprecated options"
+msgstr "Zastaralé volby"
+
+msgid "No file to read"
+msgstr "Žádný soubor k přečtení"
+
 msgid "A string searched in all relevant object attributes"
 msgstr "Řetězec vyhledávaný ve všech odpovídajících atributech objektu"
-
-msgid "Operating system"
-msgstr "Operační systém"
-
-msgid "User password"
-msgstr "Uživatelské heslo"
 
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
@@ -86,40 +118,8 @@ msgstr "Nenalezena mezipamět ověřovacích údajů"
 msgid "%(reason)s"
 msgstr "%(reason)s"
 
-#, python-format
-msgid "Enter %(label)s again to verify: "
-msgstr "Vložte znovu své %(label)s, aby se ověřila jeho správnost."
+msgid "Operating system"
+msgstr "Operační systém"
 
-msgid "No matching entries found"
-msgstr "Nenalezeny žádné shodné položky"
-
-msgid "Topic or Command"
-msgstr "Téma nebo příkaz"
-
-msgid "The topic or command name."
-msgstr "Název tématu nebo příkazu."
-
-msgid "Topic commands:"
-msgstr "Příkazy tématu:"
-
-msgid "To get command help, use:"
-msgstr "Chceteli získat nápovědu k příkazu, použijte:"
-
-msgid "  ipa <command> --help"
-msgstr "  ipa <command> --help"
-
-msgid "Command name"
-msgstr "Název příkazu"
-
-msgid "Positional arguments"
-msgstr "Poziční argumenty"
-
-#, python-format
-msgid "Same as --%s"
-msgstr "Stejné jako --%s"
-
-msgid "Deprecated options"
-msgstr "Zastaralé volby"
-
-msgid "No file to read"
-msgstr "Žádný soubor k přečtení"
+msgid "User password"
+msgstr "Uživatelské heslo"

@@ -1,860 +1,48 @@
 # Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.1.dev201712121258+gitb2d3b568c\n"
+"Project-Id-Version: freeipa 4.6.5.dev201907290557+git8334a8789\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2018-06-08 10:47-0400\n"
+"POT-Creation-Date: 2019-07-29 08:58+0300\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2016-10-25 08:44+0000\n"
 "Last-Translator: Martin Bašti <mbasti@redhat.com>\n"
 "Language-Team: Slovak\n"
 "Language: sk\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Zanata 4.4.5\n"
+"X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2\n"
-
-#, c-format
-msgid "Incorrect password.\n"
-msgstr "Nesprávne heslo.\n"
-
-#, c-format
-msgid "Unable to set LDAP_OPT_X_TLS_CERTIFICATE\n"
-msgstr "Nie je možné nastaviť LDAP_OPT_X_TLS_CERTIFICATE\n"
 
 #, c-format
 msgid "Passwords do not match!"
 msgstr "Heslá sa nezhodujú!"
 
-#, python-format
-msgid "Disabled Sudo Rule \"%s\""
-msgstr "Deaktivované sudo pravidlá \"%s\""
+msgid "No matching entries found"
+msgstr "Nenašli sa žiadne zhodné položky"
 
-msgid "Delete a user"
-msgstr "Odstrániť používateľa"
+msgid "Topic or Command"
+msgstr "Téma alebo príkaz"
 
-#, python-format
-msgid "Certificate(s) stored in file '%(file)s'"
-msgstr "Certifikát(y) sú uložené v súbore '%(file)s'"
+msgid "Command name"
+msgstr "Názov príkazu"
 
-msgid "Failed to add"
-msgstr "Zlyhalo pridanie"
-
-msgid "Please choose a type of DNS resource record to be added"
-msgstr "Prosím vyberte typ DNS záznamu"
+msgid "Positional arguments"
+msgstr "Pozičný argument"
 
 #, python-format
-msgid "The most common types for this type of zone are: %s\n"
-msgstr "Najbežnejšie typy záznamov pre tento typ zóny sú: %s\n"
+msgid "Same as --%s"
+msgstr "Rovnaké ako --%s"
 
-msgid "DNS resource record type"
-msgstr "Typ DNS záznamu"
+msgid "Deprecated options"
+msgstr "Zastarané voľby"
 
-#, python-format
-msgid "Invalid or unsupported type. Allowed values are: %s"
-msgstr "Nesprávny alebo nepodporovaný typ. Povolené hodnoty sú: %s"
-
-msgid "Current DNS record contents:\n"
-msgstr "Aktuálny obsah DNS záznamu:\n"
+msgid "Results are truncated, try a more specific search"
+msgstr "Výsledky sú skrátené, vyskúšajte viac špecifické vyhľadávanie"
 
 #, python-format
-msgid "Modify %(name)s '%(value)s'?"
-msgstr "Upraviť %(name)s '%(value)s'?"
-
-msgid ""
-"Neither --del-all nor options to delete a specific record provided.\n"
-"Command help may be consulted for all supported record types."
-msgstr ""
-"Nebola zadaná ani voľba --del-all a ani voľby pre zmazanie špecifického "
-"záznamu.\n"
-"Príkaz help môže byť použitý pre zobrazenie podporovaných typov záznamov."
-
-msgid "No option to delete specific record provided."
-msgstr "Nebola poskytnutá žiadna voľba pre zmazanie špecifického záznamu"
-
-msgid "Delete all?"
-msgstr "Odstrániť všetko?"
-
-#, python-format
-msgid "Delete %(name)s '%(value)s'?"
-msgstr "Odstrániť %(name)s '%(value)s'?"
-
-msgid "Server will check DNS forwarder(s)."
-msgstr "Server skontroluje DNS forwarder(y)."
-
-msgid "This may take some time, please wait ..."
-msgstr "Toto môže trvať nejaký čas, prosím čakajte ..."
-
-msgid "Servers details:"
-msgstr "Detaily serverov:"
-
-msgid ""
-"\n"
-"YubiKey Tokens\n"
-msgstr ""
-"\n"
-"YubiKey Tokeny\n"
-
-msgid ""
-"\n"
-"Manage YubiKey tokens.\n"
-msgstr ""
-"\n"
-"Spravovať YubiKey tokeny.\n"
-
-msgid ""
-"\n"
-"EXAMPLES:\n"
-msgstr ""
-"\n"
-"PRÍKLADY:\n"
-
-msgid "Add a new YubiKey OTP token."
-msgstr "Pridať nový YubiKey OTP token."
-
-msgid "YubiKey slot"
-msgstr "YubiKey slot"
-
-msgid "No free YubiKey slot!"
-msgstr "Žiadny voľný YubiKey slot!"
-
-#, python-format
-msgid "Cannot read file '%(filename)s': %(exc)s"
-msgstr "Nie je možné čítať súbor '%(filename)s': %(exc)s"
-
-#, python-format
-msgid "Cannot decode file '%(filename)s': %(exc)s"
-msgstr "Nie je možné dekódovať súbor '%(filename)s': %(exc)s"
-
-msgid "Invalid credentials"
-msgstr "Nesprávne prihlasovacie údaje"
-
-msgid "Password can be specified only for symmetric vault"
-msgstr "Heslo môže byť špecifikované len pre symetrický vault"
-
-msgid "Public key can be specified only for asymmetric vault"
-msgstr "Verejný kľúč môže byť špecifikovný len pre asymetrický vault"
-
-msgid "Modify a vault."
-msgstr "Upraviť vault."
-
-msgid "Change password"
-msgstr "Zmeniť heslo"
-
-#, python-format
-msgid "File %(file)s not found"
-msgstr "Súbor %(file)s nenájdený"
-
-#, python-format
-msgid "key %(key)s already exists"
-msgstr "kľúč %(key)s už existuje"
-
-#, python-format
-msgid "map %(map)s already exists"
-msgstr "mapovanie %(map)s už existuje"
-
-#, python-format
-msgid "Added %(map)s"
-msgstr "Pridané %(map)s"
-
-msgid "Imported keys:"
-msgstr "Importované kľúče:"
-
-#, python-format
-msgid "Added %(src)s to %(dst)s"
-msgstr "Pridané %(src)s do %(dst)s"
-
-msgid "Ignored keys:"
-msgstr "Ignorované kľúče:"
-
-#, python-format
-msgid "Ignored %(src)s to %(dst)s"
-msgstr "Ignorované %(src)s do %(dst)s"
-
-#, python-format
-msgid "Skipped %(map)s"
-msgstr "Preskočené %(map)s"
-
-msgid "Duplicate keys skipped:"
-msgstr "Duplikované kľúče preskočené:"
-
-#, python-format
-msgid "Skipped %(key)s"
-msgstr "Preskočené %(key)s"
-
-#, python-format
-msgid "Profile configuration stored in file '%(file)s'"
-msgstr "Konfigurácia profilu bola uložená do súboru '%(file)s'"
-
-msgid "Synchronize an OTP token."
-msgstr "Synchronizovať OTP token"
-
-msgid "User ID"
-msgstr "ID používateľa"
-
-msgid "Password"
-msgstr "Heslo"
-
-msgid "First Code"
-msgstr "Prvý kód"
-
-msgid "Second Code"
-msgstr "Druhý kód"
-
-msgid "Token ID"
-msgstr "Token ID"
-
-#, python-format
-msgid "Removing %(servers)s from replication topology, please wait..."
-msgstr "Odstraňovanie %(servers)s z replikačnej topológie, prosím čakajte..."
-
-msgid "Topology is disconnected"
-msgstr "Topológia je odpojená"
-
-#, python-format
-msgid "Server %(srv)s can't contact servers: %(replicas)s"
-msgstr "Server %(srv)s nemôže kontaktovať servery: %(replicas)s"
-
-msgid "Profile ID"
-msgstr "ID profilu"
-
-msgid "ACI name"
-msgstr "ACI názov"
-
-msgid "Permission"
-msgstr "Povolenie"
-
-msgid "User group"
-msgstr "Používateľská skupina"
-
-msgid "User group ACI grants access to"
-msgstr "ACI používateľskej skupiny udeluje prístup k"
-
-msgid "Permissions"
-msgstr "Povolenia"
-
-msgid "Attributes"
-msgstr "Atribúty"
-
-msgid "Type"
-msgstr "Typ"
-
-msgid "Member of"
-msgstr "Členom"
-
-msgid "Member of a group"
-msgstr "Členom skupiny"
-
-msgid "Filter"
-msgstr "Filter"
-
-msgid "Subtree"
-msgstr "Podstrom"
-
-msgid "Target group"
-msgstr "Cieľová skupina"
-
-msgid "Number of entries returned"
-msgstr "Počet vrátených položiek"
-
-msgid "New ACI name"
-msgstr "Nový ACI názov"
-
-msgid "Location of the ACI"
-msgstr "Umiestnenie ACI"
-
-msgid "Description"
-msgstr "Popis"
-
-msgid "Automember Rule"
-msgstr "Automember pravidlo"
-
-msgid "List of deletions that failed"
-msgstr "Zoznam odstránení, ktoré zlyhaly"
-
-msgid "Users"
-msgstr "Používatelia"
-
-msgid "Rename"
-msgstr "Premenovať"
-
-msgid "Search for existing certificates."
-msgstr "Vyhľadávanie existujúcich certifikátov."
-
-msgid "Reason for revoking the certificate (0-10)"
-msgstr "Dôvod revokácie certifikátu (0-10)"
-
-msgid "minimum serial number"
-msgstr "minimálne sériové číslo"
-
-msgid "maximum serial number"
-msgstr "maximálne sériové číslo"
-
-msgid "Serial number"
-msgstr "Sériové číslo"
-
-msgid "Revoke a certificate."
-msgstr "Revokácia certifikátu."
-
-msgid "Retrieve an existing certificate."
-msgstr "Získať existujúci certifikát."
-
-msgid "Modify configuration options."
-msgstr "Upraviť konfiguračné voľby."
-
-msgid "Show the current configuration."
-msgstr "Zobraziť konfiguračné voľby"
-
-msgid "Group name"
-msgstr "Názov skupiny"
-
-msgid "Group description"
-msgstr "Popis skupiny"
-
-msgid "GID"
-msgstr "GID"
-
-msgid "Member groups"
-msgstr "Členské skupiny"
-
-msgid "Member of groups"
-msgstr "Člen skupín"
-
-msgid "Roles"
-msgstr "Role"
-
-msgid "Create a new group."
-msgstr "Vytvoriť novú skupinu."
-
-msgid "Delete group."
-msgstr "Odstrániť skupinu."
-
-msgid "Search for groups."
-msgstr "Vyhľadávať skupiny."
-
-msgid "group"
-msgstr "skupina"
-
-msgid "Modify a group."
-msgstr "Upraviť skupinu."
-
-msgid "Rule name"
-msgstr "Názov pravidla"
-
-msgid "User Groups"
-msgstr "Používateľské skupiny"
-
-msgid "Services"
-msgstr "Služby"
-
-msgid "Create a new HBAC rule."
-msgstr "Vytvoriť nové HBAC pravidlo"
-
-msgid "Add services to an HBAC rule."
-msgstr "Pridať služby do HBAC pravidla."
-
-msgid "Add users and groups to an HBAC rule."
-msgstr "Pridať používateľov a skupiny do HBAC pravidla."
-
-msgid "Delete an HBAC rule."
-msgstr "Odstrániť HBAC pravidlo."
-
-msgid "Disable an HBAC rule."
-msgstr "Deaktivovať HBAC pravidlo."
-
-msgid "Enable an HBAC rule."
-msgstr "Aktivovať HBAC pravidlo."
-
-msgid "Search for HBAC rules."
-msgstr "Vyhľadať HBAC pravidlá."
-
-msgid "Modify an HBAC rule."
-msgstr "Upraviť HBAC pravidlo."
-
-msgid "Remove service and service groups from an HBAC rule."
-msgstr "Odstrániť služby a skupiny služieb z HBAC pravidla."
-
-msgid "Remove users and groups from an HBAC rule."
-msgstr "Odstrániť používateľov a skupiny z HBAC pravidla."
-
-msgid "Service name"
-msgstr "Názov služby"
-
-msgid "HBAC service"
-msgstr "HBAC služba"
-
-msgid "HBAC service description"
-msgstr "HBAC popis služby"
-
-msgid "Add a new HBAC service."
-msgstr "Pridať novú HBAC službu."
-
-msgid "Delete an existing HBAC service."
-msgstr "Odstrániť existujúcu HBAC službu."
-
-msgid "Search for HBAC services."
-msgstr "Vyhľadať HBAC služby."
-
-msgid "Modify an HBAC service."
-msgstr "Upraviť HBAC službu."
-
-msgid "User name"
-msgstr "Používateľské meno"
-
-msgid "Service"
-msgstr "Služba"
-
-msgid "Include all disabled IPA rules into test"
-msgstr "Zahrnúť všetky deaktivované IPA pravidlá do testu"
-
-msgid "Warning"
-msgstr "Varovanie"
-
-msgid "Locality"
-msgstr "Lokalita"
-
-msgid "Operating system"
-msgstr "Operačný systém"
-
-msgid "User password"
-msgstr "Používateľské heslo"
-
-msgid "Certificate"
-msgstr "Certifikát"
-
-msgid "MAC address"
-msgstr "MAC adresa"
-
-msgid "SSH public key"
-msgstr "Verejný SSH kľúč"
-
-msgid "Keytab"
-msgstr "Keytab"
-
-msgid "Force"
-msgstr "Vynútiť"
-
-msgid "IP Address"
-msgstr "IP adresa"
-
-msgid "Update DNS entries"
-msgstr "Aktualizovať DNS položky."
-
-msgid "Dict of JSON encoded IPA Objects"
-msgstr "Slovník JSON zakódovaných IPA objektov"
-
-msgid "Dict of JSON encoded IPA Methods"
-msgstr "Slovník JSON zakódovaných IPA metód"
-
-msgid "Dict of JSON encoded IPA Commands"
-msgstr "Slovník JSON zakódovaných IPA príkazov"
-
-msgid "The IPA realm"
-msgstr "IPA realm"
-
-msgid "LDAP URI"
-msgstr "LDAP URI"
-
-msgid "Overwrite GID"
-msgstr "Prepísať GID"
-
-msgid "LDAP schema"
-msgstr "LDAP schéma"
-
-msgid "Continue"
-msgstr "Pokračovať"
-
-msgid "CA certificate"
-msgstr "CA certifikát"
-
-msgid "Load CA certificate of LDAP server from FILE"
-msgstr "Načítať CA certifikát LDAP servera zo súboru"
-
-msgid "NIS domain name"
-msgstr "NIS doménové meno"
-
-msgid "IPA unique ID"
-msgstr "IPA unikátne ID"
-
-msgid "Modify OTP configuration options."
-msgstr "Upraviť OTP konfiguračné voľby."
-
-msgid "Show the current OTP configuration."
-msgstr "Zobraziť aktuálnu OTP konfiguráciu."
-
-msgid "Unique ID"
-msgstr "Unikátne ID"
-
-msgid "Type of the token"
-msgstr "Typ tokenu"
-
-msgid "Owner"
-msgstr "Vlastník"
-
-msgid "Manager"
-msgstr "Manažér"
-
-msgid "Disabled"
-msgstr "Deaktivované"
-
-msgid "Mark the token as disabled (default: false)"
-msgstr "Označiť token ako deaktivovaný (predvolené: false)"
-
-msgid "Validity start"
-msgstr "Začiatok platnosti"
-
-msgid "Validity end"
-msgstr "Koniec platnosti"
-
-msgid "Length of TOTP token code validity"
-msgstr "Dĺžka platnosti TOTP token kódu"
-
-msgid "Add users that can manage this token."
-msgstr "Pridať používateľa, ktorý môže spravovať tento token."
-
-msgid "Delete an OTP token."
-msgstr "Odstrániť OTP token"
-
-msgid "Search for OTP token."
-msgstr "Vyhľadať OTP token"
-
-msgid "Modify a OTP token."
-msgstr "Upraviť OTP token"
-
-msgid "Set a user's password."
-msgstr "Nastaviť používateľské heslo."
-
-msgid "New Password"
-msgstr "Nové heslo"
-
-msgid "Current Password"
-msgstr "Súčasné heslo"
-
-msgid "OTP"
-msgstr "OTP"
-
-msgid "One Time Password"
-msgstr "Jednorázové heslo (OTP)"
-
-msgid "Included attributes"
-msgstr "Zahrnuté atribúty"
-
-msgid "Excluded attributes"
-msgstr "Vylúčené atribúty"
-
-msgid "Default attributes"
-msgstr "Predvolené atribúty"
-
-msgid "Target DN"
-msgstr "Cieľové DN"
-
-msgid "Search for permissions."
-msgstr "Vyhľadať povolenia."
-
-msgid "permission"
-msgstr "povolenie"
-
-msgid "Priority"
-msgstr "Priorita"
-
-msgid "User"
-msgstr "Používateľ"
-
-msgid "Domain"
-msgstr "Doména"
-
-msgid "Role name"
-msgstr "Názov role"
-
-msgid "SELinux User"
-msgstr "SELinux používateľ"
-
-msgid "Disable the Kerberos key and SSL certificate of a service."
-msgstr "Deaktivovať Kerberos kľúč a SSL certifikát služby."
-
-msgid "Search for Sudo Commands."
-msgstr "Vyhľadať sudo príkazy."
-
-msgid "Commands"
-msgstr "Príkazy"
-
-msgid "Domain NetBIOS name"
-msgstr "Doménové NetBIOS meno"
-
-msgid "NetBIOS name"
-msgstr "NetBIOS meno"
-
-msgid "Domain name"
-msgstr "Doménové meno"
-
-msgid "User login"
-msgstr "Prihlasovacie meno"
-
-msgid "First name"
-msgstr "Meno"
-
-msgid "Last name"
-msgstr "Priezvisko"
-
-msgid "Full name"
-msgstr "Celé meno"
-
-msgid "Display name"
-msgstr "Zobrazované meno"
-
-msgid "Initials"
-msgstr "Iniciály"
-
-msgid "Home directory"
-msgstr "Domovský priečinok"
-
-msgid "GECOS"
-msgstr "GECOS"
-
-msgid "Email address"
-msgstr "E-mailová adresa"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "User ID Number (system will assign one if not provided)"
-msgstr "ID používateľa (systém priradí automaticky ak nie je zadané) "
-
-msgid "Group ID Number"
-msgstr "ID skupiny"
-
-msgid "Street address"
-msgstr "Ulica"
-
-msgid "City"
-msgstr "Mesto"
-
-msgid "State/Province"
-msgstr "Štát/Provincia"
-
-msgid "ZIP"
-msgstr "PSČ"
-
-msgid "Telephone Number"
-msgstr "Telefónne číslo"
-
-msgid "Mobile Telephone Number"
-msgstr "Mobilné číslo"
-
-msgid "Pager Number"
-msgstr "Pager číslo"
-
-msgid "Fax Number"
-msgstr "Faxové číslo"
-
-msgid "Org. Unit"
-msgstr "Org. jednotka"
-
-msgid "Job Title"
-msgstr "Pracovná pozícia"
-
-msgid "Account disabled"
-msgstr "Účet deaktivovaný"
-
-msgid "User authentication types"
-msgstr "Typy autentifikácie používateľa"
-
-msgid "Types of supported user authentication"
-msgstr "Podporované typy autentifikácie používateľa"
-
-msgid "RADIUS proxy configuration"
-msgstr "RADIUS proxy konfigurácia"
-
-msgid "RADIUS proxy username"
-msgstr "RADIUS proxy používateľské meno"
-
-msgid "Department Number"
-msgstr "Číslo oddelenia"
-
-msgid "Employee Number"
-msgstr "Zamestnanecké číslo"
-
-msgid "Employee Type"
-msgstr "Typ zamestnanca"
-
-msgid "Preferred Language"
-msgstr "Preferovaný jazyk"
-
-msgid "Disable a user account."
-msgstr "Deaktivovať používateľský účet."
-
-msgid "Global forwarders"
-msgstr "Globálne forwardery"
-
-msgid ""
-"Global forwarders. A custom port can be specified for each forwarder using a "
-"standard format \"IP_ADDRESS port PORT\""
-msgstr ""
-"Globálne forwardery. Vlastný port môže byť nastavený použítím štandardného "
-"formátu \"IP_ADRESA port PORT\" pre každý forwarder "
-
-msgid ""
-"Global forwarding policy. Set to \"none\" to disable any configured global "
-"forwarders."
-msgstr ""
-"Globálna forward politika. Nastavením na \"none\" sa deaktivuje akýkoľvek "
-"nastavený globálny forwarder."
-
-msgid "Allow PTR sync"
-msgstr "Povoliť PTR synchronizáciu"
-
-msgid "Zone name"
-msgstr "Názov zóny"
-
-msgid "Zone name (FQDN)"
-msgstr "Názov zóny (FQDN)"
-
-msgid "Active zone"
-msgstr "Aktívna zóna"
-
-msgid "Is zone active?"
-msgstr "Je zóna aktívna?"
-
-msgid "Zone forwarders"
-msgstr "Zónové forwardery"
-
-msgid "Record name"
-msgstr "Názov záznamu"
-
-msgid "Records"
-msgstr "Záznamy"
-
-msgid "Record type"
-msgstr "Typ záznamu"
-
-msgid "Certificate Type"
-msgstr "Typ certifikátu"
-
-msgid "Size"
-msgstr "Veľkosť"
-
-msgid "Order"
-msgstr "Poradie"
-
-msgid "Weight"
-msgstr "Váha"
-
-msgid "Port"
-msgstr "Port"
-
-msgid "Authoritative nameserver"
-msgstr "Autoritatívny nameserver"
-
-msgid "Authoritative nameserver domain name"
-msgstr "Doménové meno autoritatívneho nameservera"
-
-msgid "Administrator e-mail address"
-msgstr "E-mailová adresa administrátora"
-
-msgid "SOA record serial number"
-msgstr "Sériové číslo SOA záznamu"
-
-msgid "Dynamic update"
-msgstr "Dynamické aktualizácie"
-
-msgid "Allow dynamic updates."
-msgstr "Povoliť dynamické aktualizácie"
-
-msgid "Allow query"
-msgstr "Povoliť dotazy"
-
-msgid "Allow transfer"
-msgstr "Povoliť prenos"
-
-msgid "Create new DNS forward zone."
-msgstr "Vytvoriť novú DNS forward zónu"
-
-msgid "Delete DNS forward zone."
-msgstr "Odstrániť DNS forward zónu."
-
-msgid "Disable DNS Forward Zone."
-msgstr "Deaktivovať DNS forward zónu."
-
-msgid "Search for DNS forward zones."
-msgstr "Vyhľadávať DNS forward zóny"
-
-msgid "Modify DNS forward zone."
-msgstr "Upraviť DNS forward zónu"
-
-msgid "Display information about a DNS forward zone."
-msgstr "Zobraziť informácie o DNS forward zóne"
-
-msgid "Add new DNS resource record."
-msgstr "Pridať nový DNS záznam"
-
-msgid "Structured"
-msgstr "Štrukturovane"
-
-msgid "Delete DNS resource record."
-msgstr "Odstrániť DNS záznam"
-
-msgid "Modify a DNS resource record."
-msgstr "Upraviť DNS záznam"
-
-msgid "Delete DNS zone (SOA record)."
-msgstr "Odstrániť DNS zónu (SOA záznam)."
-
-msgid "Disable DNS Zone."
-msgstr "Deaktivovať DNS zónu."
-
-msgid "Delete an ID range."
-msgstr "Zmazať ID rozsah."
-
-msgid "User ID Number"
-msgstr "ID používateľa"
-
-msgid "ID View Name"
-msgstr "Názov ID View"
-
-msgid "Add a new ID View."
-msgstr "Pridať nové ID View"
-
-msgid "Delete an ID View."
-msgstr "Odstrániť  ID View."
-
-msgid "Profiles"
-msgstr "Profily"
-
-msgid "Delete a CA ACL."
-msgstr "Odstrániť CA ACL."
-
-msgid "Disable a CA ACL."
-msgstr "Deaktivovať CA ACL."
-
-msgid "Delete a Certificate Profile."
-msgstr "Odstrániť certifikačný profil"
-
-msgid "Import a Certificate Profile."
-msgstr "Importovať certifikačný profil"
-
-msgid "Add to default group"
-msgstr "Pridať do predvolenej skupiny"
-
-msgid "Search scope"
-msgstr "Rozsah vyhľadávania"
-
-msgid "Add new certificates to a service"
-msgstr "Pridať nové certifikáty k službe"
-
-msgid "Remove certificates from a service"
-msgstr "Odstrániť certifikáty zo služby"
-
-msgid "Preserved user"
-msgstr "Uschovaný používateľ"
-
-msgid "Add one or more certificates to the user entry"
-msgstr "Pridať jeden alebo viac certifikátov do používateľskej položky"
-
-msgid "Remove one or more certificates to the user entry"
-msgstr "Odtrániť  jeden alebo viac certifikátov z používateľskej položky"
-
-msgid "Username"
-msgstr "Používateľské meno"
+msgid "Unknown option: %(option)s"
+msgstr "Neznáma voľba: %(option)s"
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
@@ -1017,24 +205,11 @@ msgstr "DNS kontrola zlyhala: Očakávané {%(expected)s} prijaté {%(got)s}"
 msgid "%(exception)s"
 msgstr "%(exception)s"
 
-msgid "No matching entries found"
-msgstr "Nenašli sa žiadne zhodné položky"
+msgid "Number of entries returned"
+msgstr "Počet vrátených položiek"
 
-msgid "Topic or Command"
-msgstr "Téma alebo príkaz"
-
-msgid "Command name"
-msgstr "Názov príkazu"
-
-msgid "Positional arguments"
-msgstr "Pozičný argument"
-
-#, python-format
-msgid "Same as --%s"
-msgstr "Rovnaké ako --%s"
-
-msgid "Deprecated options"
-msgstr "Zastarané voľby"
+msgid "List of deletions that failed"
+msgstr "Zoznam odstránení, ktoré zlyhaly"
 
 msgid "incorrect type"
 msgstr "Nesprávný typ"
@@ -1078,80 +253,6 @@ msgstr "musí byť Unicode text"
 
 msgid "Leading and trailing spaces are not allowed"
 msgstr "Počiatočné a koncové medzery nie sú povolené"
-
-msgid ""
-"DNS forwarder semantics changed since IPA 4.0.\n"
-"You may want to use forward zones (dnsforwardzone-*) instead.\n"
-"For more details read the docs."
-msgstr ""
-"Sémantika DNS forwarderov je zmenená od IPA 4.0.\n"
-"Pravdepodobne ste chceli použiť (dnsforwardzone-*).\n"
-"Pre viac informácií prosím prečítajte dokumentáciu."
-
-#, python-format
-msgid ""
-"DNSSEC support is experimental.\n"
-"%(additional_info)s"
-msgstr ""
-"DNSSEC podpora je experimentálna.\n"
-"%(additional_info)s"
-
-#, python-format
-msgid "'%(option)s' option is deprecated. %(additional_info)s"
-msgstr "'%(option)s'voľba je zastaraná. %(additional_info)s"
-
-#, python-format
-msgid ""
-"Semantic of %(label)s was changed. %(current_behavior)s\n"
-"%(hint)s"
-msgstr ""
-"Sémantika %(label)s bola zmenená. %(current_behavior)s\n"
-"%(hint)s"
-
-#, python-format
-msgid "DNS server %(server)s: %(error)s."
-msgstr "DNS server %(server)s: %(error)s."
-
-#, python-format
-msgid ""
-"DNS server %(server)s does not support DNSSEC: %(error)s.\n"
-"If DNSSEC validation is enabled on IPA server(s), please disable it."
-msgstr ""
-"DNS server %(server)s nepodporuje DNSSEC: %(error)s.\n"
-"Ak je DNSSEC validácia aktivovaná na IPA serveroch, prosím deaktivujte ju."
-
-#, python-format
-msgid ""
-"DNS server %(server)s does not support EDNS0 (RFC 6891): %(error)s.\n"
-"If DNSSEC validation is enabled on IPA server(s), please disable it."
-msgstr ""
-"DNS server %(server)s nepodporuje EDNS0 (RFC 6891): %(error)s.\n"
-"Ak je DNSSEC validácia aktivovaná na IPA serveroch, prosím deaktivujte ju."
-
-#, python-format
-msgid ""
-"DNSSEC validation failed: %(error)s.\n"
-"Please verify your DNSSEC configuration or disable DNSSEC validation on all "
-"IPA servers."
-msgstr ""
-"DNSSEC validácia zlyhala: %(error)s.\n"
-"Prosím overte Vašu DNSSEC konfiguráciu alebo deaktivujte DNSSEC validáciu na "
-"všetkých IPA serveroch."
-
-#, python-format
-msgid "'%(command)s' is deprecated. %(additional_info)s"
-msgstr "'%(command)s' príkaz je zastaraný %(additional_info)s"
-
-#, python-format
-msgid "%(line)s"
-msgstr "%(line)s"
-
-msgid "Results are truncated, try a more specific search"
-msgstr "Výsledky sú skrátené, vyskúšajte viac špecifické vyhľadávanie"
-
-#, python-format
-msgid "Unknown option: %(option)s"
-msgstr "Neznáma voľba: %(option)s"
 
 msgid "empty DNS label"
 msgstr "prázdny DNS label"
@@ -1227,6 +328,73 @@ msgstr "neplatný formát IP adresy"
 msgid "%(port)s is not a valid port"
 msgstr "%(port)s nie je platný port"
 
+msgid ""
+"DNS forwarder semantics changed since IPA 4.0.\n"
+"You may want to use forward zones (dnsforwardzone-*) instead.\n"
+"For more details read the docs."
+msgstr ""
+"Sémantika DNS forwarderov je zmenená od IPA 4.0.\n"
+"Pravdepodobne ste chceli použiť (dnsforwardzone-*).\n"
+"Pre viac informácií prosím prečítajte dokumentáciu."
+
+#, python-format
+msgid ""
+"DNSSEC support is experimental.\n"
+"%(additional_info)s"
+msgstr ""
+"DNSSEC podpora je experimentálna.\n"
+"%(additional_info)s"
+
+#, python-format
+msgid "'%(option)s' option is deprecated. %(additional_info)s"
+msgstr "'%(option)s'voľba je zastaraná. %(additional_info)s"
+
+#, python-format
+msgid ""
+"Semantic of %(label)s was changed. %(current_behavior)s\n"
+"%(hint)s"
+msgstr ""
+"Sémantika %(label)s bola zmenená. %(current_behavior)s\n"
+"%(hint)s"
+
+#, python-format
+msgid "DNS server %(server)s: %(error)s."
+msgstr "DNS server %(server)s: %(error)s."
+
+#, python-format
+msgid ""
+"DNS server %(server)s does not support DNSSEC: %(error)s.\n"
+"If DNSSEC validation is enabled on IPA server(s), please disable it."
+msgstr ""
+"DNS server %(server)s nepodporuje DNSSEC: %(error)s.\n"
+"Ak je DNSSEC validácia aktivovaná na IPA serveroch, prosím deaktivujte ju."
+
+#, python-format
+msgid ""
+"DNS server %(server)s does not support EDNS0 (RFC 6891): %(error)s.\n"
+"If DNSSEC validation is enabled on IPA server(s), please disable it."
+msgstr ""
+"DNS server %(server)s nepodporuje EDNS0 (RFC 6891): %(error)s.\n"
+"Ak je DNSSEC validácia aktivovaná na IPA serveroch, prosím deaktivujte ju."
+
+#, python-format
+msgid ""
+"DNSSEC validation failed: %(error)s.\n"
+"Please verify your DNSSEC configuration or disable DNSSEC validation on all "
+"IPA servers."
+msgstr ""
+"DNSSEC validácia zlyhala: %(error)s.\n"
+"Prosím overte Vašu DNSSEC konfiguráciu alebo deaktivujte DNSSEC validáciu na "
+"všetkých IPA serveroch."
+
+#, python-format
+msgid "'%(command)s' is deprecated. %(additional_info)s"
+msgstr "'%(command)s' príkaz je zastaraný %(additional_info)s"
+
+#, python-format
+msgid "%(line)s"
+msgstr "%(line)s"
+
 #, python-format
 msgid "request failed with HTTP status %d"
 msgstr "požiadavka zlyhala s HTTP stavom %d"
@@ -1239,55 +407,24 @@ msgstr "Získanie CA stavu zlyhalo: %s"
 msgid "objectclass %s not found"
 msgstr "objectclass %s nenájdená"
 
-msgid "IPA Server"
-msgstr "IPA Server"
+msgid "Description"
+msgstr "Popis"
 
-msgid "Weight for server services"
-msgstr "Váha pre služby servera"
+msgid "NIS domain name"
+msgstr "NIS doménové meno"
 
-msgid "IPA server role name"
-msgstr "Názov role servera"
-
-msgid "IPA role name"
-msgstr "Názov IPA role"
-
-msgid "Realm Domains"
-msgstr "Realm domény"
+msgid "IPA unique ID"
+msgstr "IPA unikátne ID"
 
 msgid "pkinit"
 msgstr "pkinit"
 
-msgid "Certificate Authority"
-msgstr "Certifikačná autorita"
-
-msgid "Certificate Authorities"
-msgstr "Certifikačné autority"
-
-msgid "Name"
-msgstr "Názov"
-
-msgid "Authority ID"
-msgstr "ID autority"
-
-msgid "Dogtag Authority ID"
-msgstr "ID Dogtag autority"
-
-msgid "Base-64 encoded certificate."
-msgstr "Base-64 zakódovaný certifikát."
-
-msgid "IPA CA cannot be deleted"
-msgstr "IPA CA nemôže byť odstránené"
-
-msgid "Modify CA configuration."
-msgstr "Upraviť CA konfiguráciu."
-
-#, python-format
-msgid "Deleted CA ACL \"%(value)s\""
-msgstr "Odstránené CA ACL \"%(value)s\""
-
-#, python-format
-msgid "Disabled CA ACL \"%(value)s\""
-msgstr "Deaktivované CA ACL \"%(value)s\""
+msgid ""
+"\n"
+"EXAMPLES:\n"
+msgstr ""
+"\n"
+"PRÍKLADY:\n"
 
 msgid "HBAC rules"
 msgstr "HBAC pravidlá"
@@ -1295,17 +432,41 @@ msgstr "HBAC pravidlá"
 msgid "HBAC Rules"
 msgstr "HBAC pravidlá"
 
+msgid "Rule name"
+msgstr "Názov pravidla"
+
+msgid "Users"
+msgstr "Používatelia"
+
+msgid "User Groups"
+msgstr "Používateľské skupiny"
+
+msgid "Services"
+msgstr "Služby"
+
+msgid "Create a new HBAC rule."
+msgstr "Vytvoriť nové HBAC pravidlo"
+
 #, python-format
 msgid "Added HBAC rule \"%(value)s\""
 msgstr "HBAC pravidlo \"%(value)s\" bolo pridané"
+
+msgid "Delete an HBAC rule."
+msgstr "Odstrániť HBAC pravidlo."
 
 #, python-format
 msgid "Deleted HBAC rule \"%(value)s\""
 msgstr "Odstránené HBAC pravidlo \"%(value)s\""
 
+msgid "Modify an HBAC rule."
+msgstr "Upraviť HBAC pravidlo."
+
 #, python-format
 msgid "Modified HBAC rule \"%(value)s\""
 msgstr "HBAC pravidlo \"%(value)s\" bolo upravené"
+
+msgid "Search for HBAC rules."
+msgstr "Vyhľadať HBAC pravidlá."
 
 #, python-format
 msgid "%(count)d HBAC rule matched"
@@ -1314,9 +475,15 @@ msgstr[0] "%(count)d HBAC pravidlo nájdené"
 msgstr[1] "%(count)d HBAC pravidiel nájdených"
 msgstr[2] "%(count)d HBAC pravidiel nájdených"
 
+msgid "Enable an HBAC rule."
+msgstr "Aktivovať HBAC pravidlo."
+
 #, python-format
 msgid "Enabled HBAC rule \"%(value)s\""
 msgstr "HBAC pravidlo \"%(value)s\" bolo aktivované"
+
+msgid "Disable an HBAC rule."
+msgstr "Deaktivovať HBAC pravidlo."
 
 #, python-format
 msgid "Disabled HBAC rule \"%(value)s\""
@@ -1325,31 +492,173 @@ msgstr "Deaktivované HBAC pravidlo \"%(value)s\""
 msgid "Access time"
 msgstr "Čas prístupu"
 
+msgid "Add users and groups to an HBAC rule."
+msgstr "Pridať používateľov a skupiny do HBAC pravidla."
+
+msgid "Remove users and groups from an HBAC rule."
+msgstr "Odstrániť používateľov a skupiny z HBAC pravidla."
+
+msgid "Add services to an HBAC rule."
+msgstr "Pridať služby do HBAC pravidla."
+
+msgid "Remove service and service groups from an HBAC rule."
+msgstr "Odstrániť služby a skupiny služieb z HBAC pravidla."
+
 msgid "ID Ranges"
 msgstr "ID rozsahy"
 
 msgid "ID Range"
 msgstr "ID rozsah"
 
-msgid "configuration options"
-msgstr "konfiguračné voľby"
+msgid "Delete an ID range."
+msgstr "Zmazať ID rozsah."
 
-msgid "Configuration"
-msgstr "Konfigurácia"
+msgid "Permissions"
+msgstr "Povolenia"
 
-#, python-brace-format
-msgid "{role}: role not found"
-msgstr "{role}: rola nenájdená"
+msgid "Attributes"
+msgstr "Atribúty"
 
-msgid "kerberos ticket policy settings"
-msgstr "nastavenia kerberos ticket policy"
+msgid "User group"
+msgstr "Používateľská skupina"
+
+msgid "User group ACI grants access to"
+msgstr "ACI používateľskej skupiny udeluje prístup k"
+
+msgid "ACI"
+msgstr "ACI"
+
+msgid ""
+"\n"
+"IPA locations\n"
+msgstr ""
+"\n"
+"IPA lokality\n"
+
+msgid ""
+"\n"
+"Manipulate DNS locations\n"
+msgstr ""
+"\n"
+"Narábanie s DNS lokalitami\n"
+
+msgid ""
+"\n"
+"  Find all locations:\n"
+"    ipa location-find\n"
+msgstr ""
+"\n"
+"  Nájdenie všetkých lokalít:\n"
+"    ipa location-find\n"
+
+msgid ""
+"\n"
+"  Show specific location:\n"
+"    ipa location-show location\n"
+msgstr ""
+"\n"
+"  Zobrazenie špecifickej lokality:\n"
+"    ipa location-show lokalita\n"
+
+msgid ""
+"\n"
+"  Add location:\n"
+"    ipa location-add location --description 'My location'\n"
+msgstr ""
+"\n"
+"  Pridanie lokality:\n"
+"    ipa location-add lokalita --description 'Moja lokalita'\n"
+
+msgid ""
+"\n"
+"  Delete location:\n"
+"    ipa location-del location\n"
+msgstr ""
+"\n"
+"  Odstránenie lokality:\n"
+"    ipa location-del lokalita\n"
+
+msgid "location"
+msgstr "lokalita"
+
+msgid "locations"
+msgstr "lokality"
+
+msgid "IPA Locations"
+msgstr "IPA lokality"
+
+msgid "IPA Location"
+msgstr "IPA lokalita"
+
+msgid "Location name"
+msgstr "Názov lokality"
+
+msgid "IPA location name"
+msgstr "Názov IPA lokality"
+
+msgid "IPA Location description"
+msgstr "Popis IPA lokality"
+
+msgid "Servers"
+msgstr "Servery"
+
+msgid "Servers that belongs to the IPA location"
+msgstr "Servery patriace do IPA lokality"
+
+msgid "Advertised by servers"
+msgstr "Oznamované servermi"
+
+msgid "List of servers which advertise the given location"
+msgstr "Zoznam serverov oznamujúcich danú lokalitu"
+
+msgid "Add a new IPA location."
+msgstr "Pridať novú IPA lokalitu."
 
 #, python-format
-msgid "%(pkey)s: %(oname)s not found"
-msgstr "%(pkey)s: %(oname)s nenájdený"
+msgid "Added IPA location \"%(value)s\""
+msgstr "Pridaná IPA lokalita \"%(value)s\""
 
-msgid "Required"
-msgstr "Povinné"
+msgid "Delete an IPA location."
+msgstr "Odstrániť IPA lokalitu."
+
+#, python-format
+msgid "Deleted IPA location \"%(value)s\""
+msgstr "Odstránená IPA lokalita \"%(value)s\""
+
+msgid "IPA Server"
+msgstr "IPA Server"
+
+msgid "Modify information about an IPA location."
+msgstr "Upraviť informácie o IPA lokalite."
+
+#, python-format
+msgid "Modified IPA location \"%(value)s\""
+msgstr "Upravená IPA lokalita \"%(value)s\""
+
+msgid "Search for IPA locations."
+msgstr "Vyhľadať IPA lokalitu."
+
+#, python-format
+msgid "%(count)d IPA location matched"
+msgid_plural "%(count)d IPA locations matched"
+msgstr[0] "%(count)d IPA lokalita nájdená"
+msgstr[1] "%(count)d IPA lokalít nájdených"
+msgstr[2] "%(count)d IPA lokalít nájdených"
+
+msgid "Display information about an IPA location."
+msgstr "Zobraziť informácie o IPA lokalite."
+
+msgid "Servers in location"
+msgstr "Servery v lokalite."
+
+msgid "Keytab"
+msgstr "Keytab"
+
+msgid "Service"
+msgstr "Služba"
+
+msgid "Certificate"
+msgstr "Certifikát"
 
 msgid "Base-64 encoded service certificate"
 msgstr "Base-64 zakódovaný certifikát služby"
@@ -1360,297 +669,152 @@ msgstr "Sériové číslo"
 msgid "Serial Number (hex)"
 msgstr "Sériové číslo (hexadecimálne)"
 
+msgid "Force"
+msgstr "Vynútiť"
+
+msgid "Disable the Kerberos key and SSL certificate of a service."
+msgstr "Deaktivovať Kerberos kľúč a SSL certifikát služby."
+
 #, python-format
 msgid "Disabled service \"%(value)s\""
 msgstr "Deaktivovaná služba \"%(value)s\""
 
-#, python-format
-msgid "\"%s\" is not a valid permission type"
-msgstr "\"%s\" nie je platný typ povolenia"
+msgid "Add new certificates to a service"
+msgstr "Pridať nové certifikáty k službe"
 
-msgid "ACI"
-msgstr "ACI"
+msgid "Remove certificates from a service"
+msgstr "Odstrániť certifikáty zo služby"
 
-msgid "A SYSTEM permission may not be modified or removed"
-msgstr "SYSTEM-ové povolenia nemožu byť upravené alebo odstránené"
+msgid "Domain NetBIOS name"
+msgstr "Doménové NetBIOS meno"
 
-#, python-format
-msgid "Entry %s not found"
-msgstr "Položka %s nenájdená"
+msgid "Domain"
+msgstr "Doména"
 
-#, python-format
-msgid "The ACI for permission %(name)s was not found in %(dn)s "
-msgstr "ACI pre oprávnenie %(name)s sa nenašlo v  %(dn)s "
+msgid "NetBIOS name"
+msgstr "NetBIOS meno"
 
-#, python-format
-msgid "%s: group not found"
-msgstr "%s: skupina nenájdená"
+msgid "Name"
+msgstr "Názov"
 
-#, python-format
-msgid "Entry %s does not exist"
-msgstr "Položka %s neexistuje"
+msgid "SID"
+msgstr "SID"
 
-#, python-format
-msgid "ACI of permission %s was not found"
-msgstr "ACI pre oprávnenie %s sa nenašlo"
+msgid "Domain name"
+msgstr "Doménové meno"
 
-#, python-format
-msgid "%(otype)s \"%(oname)s\" not found"
-msgstr "%(otype)s \"%(oname)s\" nenájdené"
+msgid "password policies"
+msgstr "Politky hesiel"
 
-#, python-format
-msgid "Added automember rule \"%(value)s\""
-msgstr "Pridané automember pravidlo \"%(value)s\""
+msgid "Password Policies"
+msgstr "Politiky hesiel"
 
-#, python-format
-msgid "Auto member rule: %s not found!"
-msgstr "Automember pravidlo: %s nenájdené!"
+msgid "Password Policy"
+msgstr "Politika hesiel"
 
-#, python-format
-msgid "Deleted automember rule \"%(value)s\""
-msgstr "Odstránené automember pravidlo \"%(value)s\""
+msgid "Priority"
+msgstr "Priorita"
 
-msgid "Automember rebuild membership task started"
-msgstr "Úloha obnovenia automember členstva začala"
+msgid "User"
+msgstr "Používateľ"
 
-msgid "Automember rebuild membership task completed"
-msgstr "Úloha obnovenia automember členstva dokončená"
-
-msgid "Automember"
-msgstr "Automember"
-
-msgid "invalid Profile ID"
-msgstr "nevalídne ID profilu"
-
-msgid "Certificate Profile"
-msgstr "Certifikačný profil"
-
-msgid "Certificate Profiles"
-msgstr "Certifikačné profily"
-
-msgid "Profile configuration"
-msgstr "Configurácia profilu"
+msgid "Full name"
+msgstr "Celé meno"
 
 #, python-format
-msgid "Deleted profile \"%(value)s\""
-msgstr "Odstránený profil \"%(value)s\""
+msgid "%(pkey)s: %(oname)s not found"
+msgstr "%(pkey)s: %(oname)s nenájdený"
 
-msgid "Certificate profiles cannot be renamed"
-msgstr "Certifikačné profily nemôžu byť premenované"
+msgid "Type"
+msgstr "Typ"
 
-msgid "invalid IP network format"
-msgstr "neplatný formát IP siete"
+msgid "Required"
+msgstr "Povinné"
 
-msgid "invalid address format"
-msgstr "neplatný formát adresy"
-
-msgid "algorithm value: allowed interval 0-255"
-msgstr "algoritmus: hodnota má povolený interval 0-255"
-
-msgid "flags value: allowed interval 0-255"
-msgstr "flagy: hodnota má povolený interval 0-255"
-
-msgid "iterations value: allowed interval 0-65535"
-msgstr "iterácie: hodnota má povolený interval 0-65535"
+msgid "SELinux User"
+msgstr "SELinux používateľ"
 
 #, python-format
-msgid "salt value: %(err)s"
-msgstr "salt hodnota: %(err)s"
+msgid "HBAC rule %(rule)s not found"
+msgstr "HBAC pravidlo %(rule)s nenájdené"
 
-msgid "invalid domain-name: not fully qualified"
-msgstr "neplatné doménové meno: nie je plne kvalifikované (FQDN)"
+msgid "group"
+msgstr "skupina"
 
-#, python-format
-msgid "DNS zone %(zone)s not found"
-msgstr "DNS zóna %(zone)s nenájdená"
+msgid "Account disabled"
+msgstr "Účet deaktivovaný"
 
-#, python-format
-msgid "%s record"
-msgstr "%s záznam"
-
-#, python-format
-msgid "%s Record"
-msgstr "%s záznam"
-
-#, python-format
-msgid "(see RFC %s for details)"
-msgstr "(pozrite RFC %s pre viac detailov)"
-
-msgid "Create reverse"
-msgstr "Vytvoriť reverzný"
-
-#, python-format
-msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
-msgstr "Nameserver '%(host)s' nemá zodpovedajúci A/AAAA záznam"
-
-msgid "DNS zone"
-msgstr "DNS zóna"
-
-msgid "DNS zones"
-msgstr "DNS zóny"
-
-msgid "DNS Zones"
-msgstr "DNS zóny"
-
-msgid "DNS Zone"
-msgstr "DNS zóna"
-
-#, python-format
-msgid "Deleted DNS zone \"%(value)s\""
-msgstr "Odstránená DNS zóna \"%(value)s\""
-
-msgid "is required"
-msgstr "je povinné"
-
-#, python-format
-msgid "Disabled DNS zone \"%(value)s\""
-msgstr "Deaktivovaná DNS zóna \"%(value)s\""
-
-#, python-format
-msgid "Deleted record \"%(value)s\""
-msgstr "Odstránený záznam \"%(value)s\""
-
-#, python-format
-msgid "Found '%(value)s'"
-msgstr "Nájdené '%(value)s'"
-
-msgid "DNS configuration options"
-msgstr "DNS konfiguračné voľby"
-
-msgid "DNS Global Configuration"
-msgstr "DNS globálne nastavenia"
-
-msgid "IPA DNS version"
-msgstr "Verzia IPA DNS"
-
-msgid "Global DNS configuration is empty"
-msgstr "Globálna DNS konfigurácia je prázdna,"
-
-msgid "DNS forward zone"
-msgstr "DNS forward zóna"
-
-msgid "DNS forward zones"
-msgstr "DNS forward zóny"
-
-msgid "DNS Forward Zones"
-msgstr "DNS forward zóny"
-
-msgid "DNS Forward Zone"
-msgstr "DNS forward zóna"
-
-msgid "Please specify forwarders."
-msgstr "Prosím špecifikujte forwardery."
-
-#, python-format
-msgid "Deleted DNS forward zone \"%(value)s\""
-msgstr "Odstránená DNS forward zóna \"%(value)s\""
-
-#, python-format
-msgid "Disabled DNS forward zone \"%(value)s\""
-msgstr "Deaktivovaná DNS forward zóna \"%(value)s\""
-
-msgid "IPA DNS records"
-msgstr "IPA DNS záznamy"
-
-msgid "DNS server"
-msgstr "DNS server"
-
-msgid "Forwarders"
-msgstr "Forwardery"
-
-msgid "Search for DNS servers."
-msgstr "Vyhľadať DNS servery"
-
-msgid "Malformed DN"
-msgstr "Poškodené DN"
-
-#, python-format
-msgid "%(user)s is not a POSIX user"
-msgstr "%(user)s nie je POSIX užívateľ"
-
-msgid "Invalid LDAP URI."
-msgstr "Neplatná LDAP URI."
+msgid "Preserved user"
+msgstr "Uschovaný používateľ"
 
 msgid "Default group for new users not found"
 msgstr "Predvolená skupina pre nových používateľov nenájdená"
 
+#, python-format
+msgid "%s: user is already preserved"
+msgstr "%s: používateľ  je už uschovaný"
+
+msgid "Disable a user account."
+msgstr "Deaktivovať používateľský účet."
+
+#, python-format
+msgid "Disabled user account \"%(value)s\""
+msgstr "Deaktivovaný používateľský účet \"%(value)s\""
+
+#, python-format
+msgid "Account disabled: %(disabled)s"
+msgstr "Účet deaktivovaný: %(disabled)s"
+
+msgid "Add one or more certificates to the user entry"
+msgstr "Pridať jeden alebo viac certifikátov do používateľskej položky"
+
+#, python-format
+msgid "Added certificates to user \"%(value)s\""
+msgstr "Certifikáty boli pridané k používateľovi \"%(value)s\""
+
+msgid "Remove one or more certificates to the user entry"
+msgstr "Odtrániť  jeden alebo viac certifikátov z používateľskej položky"
+
+#, python-format
+msgid "Removed certificates from user \"%(value)s\""
+msgstr "Certifikáty boli odstránené používateľovi  \"%(value)s\""
+
 msgid "Base-64 encoded user certificate"
 msgstr "Base-64 zakódovaný používateľský certifikát"
 
-msgid "groups"
-msgstr "skupiny"
+msgid "Weight for server services"
+msgstr "Váha pre služby servera"
 
-msgid "User Group"
-msgstr "Používateľská skupina"
+#, python-brace-format
+msgid "{role}: role not found"
+msgstr "{role}: rola nenájdená"
 
-#, python-format
-msgid "Added group \"%(value)s\""
-msgstr "Pridaná skupina \"%(value)s\""
+msgid "Role name"
+msgstr "Názov role"
 
-#, python-format
-msgid "Deleted group \"%(value)s\""
-msgstr "Odstránená skupina \"%(value)s\""
+msgid "IPA server role name"
+msgstr "Názov role servera"
 
-#, python-format
-msgid "Modified group \"%(value)s\""
-msgstr "Upravená skupina \"%(value)s\""
+msgid "IPA role name"
+msgstr "Názov IPA role"
 
-#, python-format
-msgid "Access granted: %s"
-msgstr "Prístup povolený: %s"
+msgid "Dict of JSON encoded IPA Objects"
+msgstr "Slovník JSON zakódovaných IPA objektov"
 
-msgid "ID Views"
-msgstr "ID Views"
+msgid "Dict of JSON encoded IPA Methods"
+msgstr "Slovník JSON zakódovaných IPA metód"
 
-#, python-format
-msgid "Added ID View \"%(value)s\""
-msgstr "Pridané ID View \"%(value)s\""
-
-#, python-format
-msgid "Deleted ID View \"%(value)s\""
-msgstr "Odstránené ID View \"%(value)s\""
-
-msgid "not found"
-msgstr "Nenašlo sa"
-
-msgid "value"
-msgstr "hodnota"
-
-msgid "IPA object"
-msgstr "IPA objekt"
-
-msgid "OTP configuration options"
-msgstr "OTP konfiguračné voľby"
-
-msgid "OTP Configuration"
-msgstr "OTP konfigurácia"
-
-msgid "HBAC services"
-msgstr "HBAC služby"
-
-msgid "HBAC Services"
-msgstr "HBAC služby"
-
-msgid "HBAC Service"
-msgstr "HBAC služba"
-
-#, python-format
-msgid "Added HBAC service \"%(value)s\""
-msgstr "HBAC služba \"%(value)s\" bola pridaná"
-
-#, python-format
-msgid "Deleted HBAC service \"%(value)s\""
-msgstr "HBAC služba \"%(value)s\" bola odstránená"
-
-#, python-format
-msgid "Modified HBAC service \"%(value)s\""
-msgstr "HBAC služba  \"%(value)s\" bola upravená."
+msgid "Dict of JSON encoded IPA Commands"
+msgstr "Slovník JSON zakódovaných IPA príkazov"
 
 msgid "Your session has expired. Please re-login."
 msgstr "Vaše prihlásenie vypršalo. Prosím znovu sa prihláste."
 
 msgid "Apply"
 msgstr "Použiť"
+
+msgid "Automember rebuild membership task completed"
+msgstr "Úloha obnovenia automember členstva dokončená"
 
 #, python-brace-format
 msgid "Are you sure you want to delete ${object}?"
@@ -1687,8 +851,14 @@ msgstr "${count} položiek odstránneých"
 msgid "Show Results"
 msgstr "Zobraz výsledky"
 
+msgid "OTP"
+msgstr "OTP"
+
 msgid "Two factor authentication (password + OTP)"
 msgstr "Dvojfaktorová autentifikácia (heslo + OTP)"
+
+msgid "Password"
+msgstr "Heslo"
 
 msgid "RADIUS"
 msgstr "RADIUS"
@@ -1713,6 +883,9 @@ msgstr "Deaktivovať"
 
 msgid "Edit"
 msgstr "Upraviť"
+
+msgid "Filter"
+msgstr "Filter"
 
 msgid "Find"
 msgstr "Hľadať"
@@ -1851,6 +1024,9 @@ msgstr "Chyba odhlasovania"
 msgid "Sync OTP Token"
 msgstr "Synchronizovať OTP Token"
 
+msgid "Username"
+msgstr "Používateľské meno"
+
 msgid "Default user group"
 msgstr "Predvolená používateľská skupina"
 
@@ -1880,6 +1056,9 @@ msgstr "Každý"
 
 msgid "Rule status"
 msgstr "Stav pravidla"
+
+msgid "Profiles"
+msgstr "Profily"
 
 msgid "Specified CAs"
 msgstr "Špecifikované CA"
@@ -2139,9 +1318,6 @@ msgstr "Zobraziť/Nastaviť kľúč"
 msgid "Modified"
 msgstr "Modifikované"
 
-msgid "Password Policy"
-msgstr "Politika hesiel"
-
 msgid "Range Settings"
 msgstr "Nastavenie rozsahu"
 
@@ -2165,6 +1341,9 @@ msgstr "Active Directory winsync"
 
 msgid "RADIUS Proxy Server Settings"
 msgstr "RADIUS Proxy serverové nastavenia"
+
+msgid "Realm Domains"
+msgstr "Realm domény"
 
 msgid "Check DNS"
 msgstr "Skontrolovať DNS"
@@ -2215,6 +1394,9 @@ msgstr "${count} používateľov obnovených"
 
 msgid "User categories"
 msgstr "Kategórie používateľov"
+
+msgid "Commands"
+msgstr "Príkazy"
 
 msgid "Allow"
 msgstr "Povoliť"
@@ -2301,6 +1483,9 @@ msgstr "Odomknúť"
 msgid "Are you sure you want to unlock user ${object}?"
 msgstr "Ste si istý/istá, že chcete odomknúť užívateľa ${object}?"
 
+msgid "Current Password"
+msgstr "Súčasné heslo"
+
 msgid "Current password is required"
 msgstr "Súčasné heslo je povinné"
 
@@ -2309,6 +1494,9 @@ msgstr "Prvé OTP"
 
 msgid "The password or username you entered is incorrect."
 msgstr "Zadané heslo alebo prihlasovacie meno je nesprávne."
+
+msgid "New Password"
+msgstr "Nové heslo"
 
 msgid "New password is required"
 msgstr "Nové heslo je povinné"
@@ -2343,6 +1531,9 @@ msgstr "Obnoviť Vaše heslo."
 msgid "Second OTP"
 msgstr "Druhé OTP"
 
+msgid "Token ID"
+msgstr "Token ID"
+
 msgid "Verify Password"
 msgstr "Overiť heslo"
 
@@ -2375,11 +1566,17 @@ msgstr "Označiť všetko"
 msgid "Unselect All"
 msgstr "Odznačiť všetko"
 
+msgid "Disabled"
+msgstr "Deaktivované"
+
 msgid "Audit"
 msgstr "Audit"
 
 msgid "Authentication"
 msgstr "Autentifikácia"
+
+msgid "Automember"
+msgstr "Automember"
 
 msgid "Automount"
 msgstr "Automount"
@@ -2447,24 +1644,377 @@ msgstr "Povinné pole"
 msgid "Unsupported value"
 msgstr "Nepodporovaná hodnota"
 
-msgid "sudo commands"
-msgstr "sudo príkazy"
+msgid "invalid IP network format"
+msgstr "neplatný formát IP siete"
 
-msgid "Sudo Commands"
-msgstr "Sudo príkazy"
+msgid "invalid address format"
+msgstr "neplatný formát adresy"
 
-msgid "sudo rules"
-msgstr "sudo pravidlá"
+msgid "algorithm value: allowed interval 0-255"
+msgstr "algoritmus: hodnota má povolený interval 0-255"
 
-msgid "Sudo Rules"
-msgstr "Sudo pravidlá"
+msgid "flags value: allowed interval 0-255"
+msgstr "flagy: hodnota má povolený interval 0-255"
+
+msgid "iterations value: allowed interval 0-65535"
+msgstr "iterácie: hodnota má povolený interval 0-65535"
 
 #, python-format
-msgid "Changed password for \"%(value)s\""
-msgstr "Zmenené heslo pre \"%(value)s\""
+msgid "salt value: %(err)s"
+msgstr "salt hodnota: %(err)s"
 
-msgid "SID"
-msgstr "SID"
+msgid "invalid domain-name: not fully qualified"
+msgstr "neplatné doménové meno: nie je plne kvalifikované (FQDN)"
+
+#, python-format
+msgid "DNS zone %(zone)s not found"
+msgstr "DNS zóna %(zone)s nenájdená"
+
+#, python-format
+msgid "%s record"
+msgstr "%s záznam"
+
+#, python-format
+msgid "%s Record"
+msgstr "%s záznam"
+
+#, python-format
+msgid "(see RFC %s for details)"
+msgstr "(pozrite RFC %s pre viac detailov)"
+
+msgid "Create reverse"
+msgstr "Vytvoriť reverzný"
+
+msgid "IP Address"
+msgstr "IP adresa"
+
+msgid "Certificate Type"
+msgstr "Typ certifikátu"
+
+msgid "Size"
+msgstr "Veľkosť"
+
+msgid "Order"
+msgstr "Poradie"
+
+msgid "Weight"
+msgstr "Váha"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Records"
+msgstr "Záznamy"
+
+msgid "Record type"
+msgstr "Typ záznamu"
+
+#, python-format
+msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
+msgstr "Nameserver '%(host)s' nemá zodpovedajúci A/AAAA záznam"
+
+msgid "Zone name"
+msgstr "Názov zóny"
+
+msgid "Zone name (FQDN)"
+msgstr "Názov zóny (FQDN)"
+
+msgid "Active zone"
+msgstr "Aktívna zóna"
+
+msgid "Is zone active?"
+msgstr "Je zóna aktívna?"
+
+msgid "Zone forwarders"
+msgstr "Zónové forwardery"
+
+msgid "DNS zone"
+msgstr "DNS zóna"
+
+msgid "DNS zones"
+msgstr "DNS zóny"
+
+msgid "DNS Zones"
+msgstr "DNS zóny"
+
+msgid "DNS Zone"
+msgstr "DNS zóna"
+
+msgid "Authoritative nameserver"
+msgstr "Autoritatívny nameserver"
+
+msgid "Authoritative nameserver domain name"
+msgstr "Doménové meno autoritatívneho nameservera"
+
+msgid "Administrator e-mail address"
+msgstr "E-mailová adresa administrátora"
+
+msgid "SOA record serial number"
+msgstr "Sériové číslo SOA záznamu"
+
+msgid "Dynamic update"
+msgstr "Dynamické aktualizácie"
+
+msgid "Allow dynamic updates."
+msgstr "Povoliť dynamické aktualizácie"
+
+msgid "Allow query"
+msgstr "Povoliť dotazy"
+
+msgid "Allow transfer"
+msgstr "Povoliť prenos"
+
+msgid "Allow PTR sync"
+msgstr "Povoliť PTR synchronizáciu"
+
+msgid "Delete DNS zone (SOA record)."
+msgstr "Odstrániť DNS zónu (SOA záznam)."
+
+#, python-format
+msgid "Deleted DNS zone \"%(value)s\""
+msgstr "Odstránená DNS zóna \"%(value)s\""
+
+msgid "is required"
+msgstr "je povinné"
+
+msgid "Disable DNS Zone."
+msgstr "Deaktivovať DNS zónu."
+
+#, python-format
+msgid "Disabled DNS zone \"%(value)s\""
+msgstr "Deaktivovaná DNS zóna \"%(value)s\""
+
+msgid "Record name"
+msgstr "Názov záznamu"
+
+msgid "Structured"
+msgstr "Štrukturovane"
+
+msgid "Add new DNS resource record."
+msgstr "Pridať nový DNS záznam"
+
+msgid "Modify a DNS resource record."
+msgstr "Upraviť DNS záznam"
+
+#, python-format
+msgid "Deleted record \"%(value)s\""
+msgstr "Odstránený záznam \"%(value)s\""
+
+msgid "Delete DNS resource record."
+msgstr "Odstrániť DNS záznam"
+
+msgid ""
+"Neither --del-all nor options to delete a specific record provided.\n"
+"Command help may be consulted for all supported record types."
+msgstr ""
+"Nebola zadaná ani voľba --del-all a ani voľby pre zmazanie špecifického "
+"záznamu.\n"
+"Príkaz help môže byť použitý pre zobrazenie podporovaných typov záznamov."
+
+#, python-format
+msgid "Found '%(value)s'"
+msgstr "Nájdené '%(value)s'"
+
+msgid "DNS configuration options"
+msgstr "DNS konfiguračné voľby"
+
+msgid "DNS Global Configuration"
+msgstr "DNS globálne nastavenia"
+
+msgid "Global forwarders"
+msgstr "Globálne forwardery"
+
+msgid ""
+"Global forwarders. A custom port can be specified for each forwarder using a "
+"standard format \"IP_ADDRESS port PORT\""
+msgstr ""
+"Globálne forwardery. Vlastný port môže byť nastavený použítím štandardného "
+"formátu \"IP_ADRESA port PORT\" pre každý forwarder "
+
+msgid ""
+"Global forwarding policy. Set to \"none\" to disable any configured global "
+"forwarders."
+msgstr ""
+"Globálna forward politika. Nastavením na \"none\" sa deaktivuje akýkoľvek "
+"nastavený globálny forwarder."
+
+msgid "IPA DNS version"
+msgstr "Verzia IPA DNS"
+
+msgid "Global DNS configuration is empty"
+msgstr "Globálna DNS konfigurácia je prázdna,"
+
+msgid "DNS forward zone"
+msgstr "DNS forward zóna"
+
+msgid "DNS forward zones"
+msgstr "DNS forward zóny"
+
+msgid "DNS Forward Zones"
+msgstr "DNS forward zóny"
+
+msgid "DNS Forward Zone"
+msgstr "DNS forward zóna"
+
+msgid "Create new DNS forward zone."
+msgstr "Vytvoriť novú DNS forward zónu"
+
+msgid "Please specify forwarders."
+msgstr "Prosím špecifikujte forwardery."
+
+msgid "Delete DNS forward zone."
+msgstr "Odstrániť DNS forward zónu."
+
+#, python-format
+msgid "Deleted DNS forward zone \"%(value)s\""
+msgstr "Odstránená DNS forward zóna \"%(value)s\""
+
+msgid "Modify DNS forward zone."
+msgstr "Upraviť DNS forward zónu"
+
+msgid "Search for DNS forward zones."
+msgstr "Vyhľadávať DNS forward zóny"
+
+msgid "Display information about a DNS forward zone."
+msgstr "Zobraziť informácie o DNS forward zóne"
+
+msgid "Disable DNS Forward Zone."
+msgstr "Deaktivovať DNS forward zónu."
+
+#, python-format
+msgid "Disabled DNS forward zone \"%(value)s\""
+msgstr "Deaktivovaná DNS forward zóna \"%(value)s\""
+
+msgid "IPA DNS records"
+msgstr "IPA DNS záznamy"
+
+msgid "HBAC service"
+msgstr "HBAC služba"
+
+msgid "HBAC services"
+msgstr "HBAC služby"
+
+msgid "HBAC Services"
+msgstr "HBAC služby"
+
+msgid "HBAC Service"
+msgstr "HBAC služba"
+
+msgid "Service name"
+msgstr "Názov služby"
+
+msgid "HBAC service description"
+msgstr "HBAC popis služby"
+
+msgid "Add a new HBAC service."
+msgstr "Pridať novú HBAC službu."
+
+#, python-format
+msgid "Added HBAC service \"%(value)s\""
+msgstr "HBAC služba \"%(value)s\" bola pridaná"
+
+msgid "Delete an existing HBAC service."
+msgstr "Odstrániť existujúcu HBAC službu."
+
+#, python-format
+msgid "Deleted HBAC service \"%(value)s\""
+msgstr "HBAC služba \"%(value)s\" bola odstránená"
+
+msgid "Modify an HBAC service."
+msgstr "Upraviť HBAC službu."
+
+#, python-format
+msgid "Modified HBAC service \"%(value)s\""
+msgstr "HBAC služba  \"%(value)s\" bola upravená."
+
+msgid "Search for HBAC services."
+msgstr "Vyhľadať HBAC služby."
+
+msgid "Warning"
+msgstr "Varovanie"
+
+msgid "User name"
+msgstr "Používateľské meno"
+
+msgid "Include all disabled IPA rules into test"
+msgstr "Zahrnúť všetky deaktivované IPA pravidlá do testu"
+
+#, python-format
+msgid "Access granted: %s"
+msgstr "Prístup povolený: %s"
+
+msgid "groups"
+msgstr "skupiny"
+
+msgid "User Group"
+msgstr "Používateľská skupina"
+
+msgid "Group name"
+msgstr "Názov skupiny"
+
+msgid "Group description"
+msgstr "Popis skupiny"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "Create a new group."
+msgstr "Vytvoriť novú skupinu."
+
+#, python-format
+msgid "Added group \"%(value)s\""
+msgstr "Pridaná skupina \"%(value)s\""
+
+msgid "Delete group."
+msgstr "Odstrániť skupinu."
+
+#, python-format
+msgid "Deleted group \"%(value)s\""
+msgstr "Odstránená skupina \"%(value)s\""
+
+msgid "Modify a group."
+msgstr "Upraviť skupinu."
+
+#, python-format
+msgid "Modified group \"%(value)s\""
+msgstr "Upravená skupina \"%(value)s\""
+
+msgid "Search for groups."
+msgstr "Vyhľadávať skupiny."
+
+msgid "Malformed DN"
+msgstr "Poškodené DN"
+
+#, python-format
+msgid "%(user)s is not a POSIX user"
+msgstr "%(user)s nie je POSIX užívateľ"
+
+msgid "Invalid LDAP URI."
+msgstr "Neplatná LDAP URI."
+
+msgid "LDAP URI"
+msgstr "LDAP URI"
+
+msgid "Overwrite GID"
+msgstr "Prepísať GID"
+
+msgid "LDAP schema"
+msgstr "LDAP schéma"
+
+msgid "Continue"
+msgstr "Pokračovať"
+
+msgid "CA certificate"
+msgstr "CA certifikát"
+
+msgid "Load CA certificate of LDAP server from FILE"
+msgstr "Načítať CA certifikát LDAP servera zo súboru"
+
+msgid "Add to default group"
+msgstr "Pridať do predvolenej skupiny"
+
+msgid "Search scope"
+msgstr "Rozsah vyhľadávania"
 
 msgid ""
 "\n"
@@ -2485,36 +2035,119 @@ msgstr "OTP tokeny"
 msgid "OTP Token"
 msgstr "OTP token"
 
+msgid "Unique ID"
+msgstr "Unikátne ID"
+
+msgid "Type of the token"
+msgstr "Typ tokenu"
+
+msgid "Owner"
+msgstr "Vlastník"
+
+msgid "Manager"
+msgstr "Manažér"
+
+msgid "Mark the token as disabled (default: false)"
+msgstr "Označiť token ako deaktivovaný (predvolené: false)"
+
+msgid "Validity start"
+msgstr "Začiatok platnosti"
+
+msgid "Validity end"
+msgstr "Koniec platnosti"
+
+msgid "Length of TOTP token code validity"
+msgstr "Dĺžka platnosti TOTP token kódu"
+
 msgid "URI"
 msgstr "URI"
+
+msgid "Delete an OTP token."
+msgstr "Odstrániť OTP token"
 
 #, python-format
 msgid "Deleted OTP token \"%(value)s\""
 msgstr "Odstránený OTP token \"%(value)s\""
 
+msgid "Modify a OTP token."
+msgstr "Upraviť OTP token"
+
 #, python-format
 msgid "Modified OTP token \"%(value)s\""
 msgstr "Upravený OTP token \"%(value)s\""
 
-#, python-format
-msgid "%s: user is already preserved"
-msgstr "%s: používateľ  je už uschovaný"
+msgid "Search for OTP token."
+msgstr "Vyhľadať OTP token"
+
+msgid "Add users that can manage this token."
+msgstr "Pridať používateľa, ktorý môže spravovať tento token."
 
 #, python-format
-msgid "Disabled user account \"%(value)s\""
-msgstr "Deaktivovaný používateľský účet \"%(value)s\""
+msgid "\"%s\" is not a valid permission type"
+msgstr "\"%s\" nie je platný typ povolenia"
+
+msgid "permission"
+msgstr "povolenie"
+
+msgid "Permission"
+msgstr "Povolenie"
+
+msgid "Included attributes"
+msgstr "Zahrnuté atribúty"
+
+msgid "Excluded attributes"
+msgstr "Vylúčené atribúty"
+
+msgid "Default attributes"
+msgstr "Predvolené atribúty"
+
+msgid "Subtree"
+msgstr "Podstrom"
+
+msgid "Target DN"
+msgstr "Cieľové DN"
+
+msgid "Target group"
+msgstr "Cieľová skupina"
+
+msgid "A SYSTEM permission may not be modified or removed"
+msgstr "SYSTEM-ové povolenia nemožu byť upravené alebo odstránené"
 
 #, python-format
-msgid "Account disabled: %(disabled)s"
-msgstr "Účet deaktivovaný: %(disabled)s"
+msgid "Entry %s not found"
+msgstr "Položka %s nenájdená"
 
 #, python-format
-msgid "Added certificates to user \"%(value)s\""
-msgstr "Certifikáty boli pridané k používateľovi \"%(value)s\""
+msgid "The ACI for permission %(name)s was not found in %(dn)s "
+msgstr "ACI pre oprávnenie %(name)s sa nenašlo v  %(dn)s "
 
 #, python-format
-msgid "Removed certificates from user \"%(value)s\""
-msgstr "Certifikáty boli odstránené používateľovi  \"%(value)s\""
+msgid "%s: group not found"
+msgstr "%s: skupina nenájdená"
+
+#, python-format
+msgid "Entry %s does not exist"
+msgstr "Položka %s neexistuje"
+
+#, python-format
+msgid "ACI of permission %s was not found"
+msgstr "ACI pre oprávnenie %s sa nenašlo"
+
+msgid "Search for permissions."
+msgstr "Vyhľadať povolenia."
+
+msgid "Set a user's password."
+msgstr "Nastaviť používateľské heslo."
+
+msgid "One Time Password"
+msgstr "Jednorázové heslo (OTP)"
+
+#, python-format
+msgid "Changed password for \"%(value)s\""
+msgstr "Zmenené heslo pre \"%(value)s\""
+
+msgid "Invalid credentials"
+msgstr "Nesprávne prihlasovacie údaje"
 
 #, python-format
 msgid "invalid DN (%s)"
@@ -2526,6 +2159,15 @@ msgstr "ACI s názvom \"%s\" nenájdené"
 
 msgid "ACIs"
 msgstr "ACI"
+
+msgid "ACI name"
+msgstr "ACI názov"
+
+msgid "Member of"
+msgstr "Členom"
+
+msgid "Member of a group"
+msgstr "Členom skupiny"
 
 #, python-format
 msgid "Created ACI \"%(value)s\""
@@ -2539,6 +2181,46 @@ msgstr "Odstránené ACI \"%(value)s\""
 msgid "Modified ACI \"%(value)s\""
 msgstr "Upravené ACI \"%(value)s\""
 
+msgid "Location of the ACI"
+msgstr "Umiestnenie ACI"
+
+msgid "New ACI name"
+msgstr "Nový ACI názov"
+
+msgid "Automember Rule"
+msgstr "Automember pravidlo"
+
+#, python-format
+msgid "%(otype)s \"%(oname)s\" not found"
+msgstr "%(otype)s \"%(oname)s\" nenájdené"
+
+#, python-format
+msgid "Added automember rule \"%(value)s\""
+msgstr "Pridané automember pravidlo \"%(value)s\""
+
+msgid "Failed to add"
+msgstr "Zlyhalo pridanie"
+
+#, python-format
+msgid "Auto member rule: %s not found!"
+msgstr "Automember pravidlo: %s nenájdené!"
+
+#, python-format
+msgid "Deleted automember rule \"%(value)s\""
+msgstr "Odstránené automember pravidlo \"%(value)s\""
+
+msgid "Automember rebuild membership task started"
+msgstr "Úloha obnovenia automember členstva začala"
+
+msgid "Member groups"
+msgstr "Členské skupiny"
+
+msgid "Member of groups"
+msgstr "Člen skupín"
+
+msgid "Roles"
+msgstr "Role"
+
 #, python-format
 msgid "container entry (%(container)s) not found"
 msgstr "kontajner (%(container)s) nenájdený"
@@ -2547,8 +2229,134 @@ msgstr "kontajner (%(container)s) nenájdený"
 msgid "%(parent)s: %(oname)s not found"
 msgstr "%(parent)s: %(oname)s nenájdený"
 
+msgid "Rename"
+msgstr "Premenovať"
+
+msgid "Base-64 encoded certificate."
+msgstr "Base-64 zakódovaný certifikát."
+
+msgid "Serial number"
+msgstr "Sériové číslo"
+
+msgid "Serial number (hex)"
+msgstr "Sériové číslo (hexadecimálne)"
+
+msgid "Profile ID"
+msgstr "ID profilu"
+
+msgid "Retrieve an existing certificate."
+msgstr "Získať existujúci certifikát."
+
+#, python-format
+msgid ""
+"Certificate with serial number %(serial)s issued by CA '%(ca)s' not found"
+msgstr ""
+"Certifikát so sériovým číslom %(serial)s vydaný CA '%(ca)s' sa nenašiel"
+
+msgid "Revoke a certificate."
+msgstr "Revokácia certifikátu."
+
+msgid "Search for existing certificates."
+msgstr "Vyhľadávanie existujúcich certifikátov."
+
+msgid "minimum serial number"
+msgstr "minimálne sériové číslo"
+
+msgid "maximum serial number"
+msgstr "maximálne sériové číslo"
+
+msgid "User login"
+msgstr "Prihlasovacie meno"
+
+msgid "First name"
+msgstr "Meno"
+
+msgid "Last name"
+msgstr "Priezvisko"
+
+msgid "Display name"
+msgstr "Zobrazované meno"
+
+msgid "Initials"
+msgstr "Iniciály"
+
+msgid "Home directory"
+msgstr "Domovský priečinok"
+
+msgid "GECOS"
+msgstr "GECOS"
+
+msgid "Email address"
+msgstr "E-mailová adresa"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "User ID Number (system will assign one if not provided)"
+msgstr "ID používateľa (systém priradí automaticky ak nie je zadané) "
+
+msgid "Group ID Number"
+msgstr "ID skupiny"
+
+msgid "Street address"
+msgstr "Ulica"
+
+msgid "City"
+msgstr "Mesto"
+
+msgid "State/Province"
+msgstr "Štát/Provincia"
+
+msgid "ZIP"
+msgstr "PSČ"
+
+msgid "Telephone Number"
+msgstr "Telefónne číslo"
+
+msgid "Mobile Telephone Number"
+msgstr "Mobilné číslo"
+
+msgid "Pager Number"
+msgstr "Pager číslo"
+
+msgid "Fax Number"
+msgstr "Faxové číslo"
+
+msgid "Org. Unit"
+msgstr "Org. jednotka"
+
+msgid "Job Title"
+msgstr "Pracovná pozícia"
+
+msgid "SSH public key"
+msgstr "Verejný SSH kľúč"
+
 msgid "SSH public key fingerprint"
 msgstr "Odtlačok verejného SSH kľúča (fingerprint)"
+
+msgid "User authentication types"
+msgstr "Typy autentifikácie používateľa"
+
+msgid "Types of supported user authentication"
+msgstr "Podporované typy autentifikácie používateľa"
+
+msgid "RADIUS proxy configuration"
+msgstr "RADIUS proxy konfigurácia"
+
+msgid "RADIUS proxy username"
+msgstr "RADIUS proxy používateľské meno"
+
+msgid "Department Number"
+msgstr "Číslo oddelenia"
+
+msgid "Employee Number"
+msgstr "Zamestnanecké číslo"
+
+msgid "Employee Type"
+msgstr "Typ zamestnanca"
+
+msgid "Preferred Language"
+msgstr "Preferovaný jazyk"
 
 #, python-format
 msgid "invalid e-mail format: %(email)s"
@@ -2558,153 +2366,341 @@ msgstr "neplatný formát e-mailovej adresy: %(email)s"
 msgid "manager %(manager)s not found"
 msgstr "manažér %(manager)s nenájdený"
 
-msgid "password policies"
-msgstr "Politky hesiel"
+msgid "Certificate Authority"
+msgstr "Certifikačná autorita"
 
-msgid "Password Policies"
-msgstr "Politiky hesiel"
+msgid "Certificate Authorities"
+msgstr "Certifikačné autority"
 
-msgid "Serial number (hex)"
-msgstr "Sériové číslo (hexadecimálne)"
+msgid "Authority ID"
+msgstr "ID autority"
 
-#, python-format
-msgid ""
-"Certificate with serial number %(serial)s issued by CA '%(ca)s' not found"
-msgstr ""
-"Certifikát so sériovým číslom %(serial)s vydaný CA '%(ca)s' sa nenašiel"
+msgid "Dogtag Authority ID"
+msgstr "ID Dogtag autority"
+
+msgid "IPA CA cannot be deleted"
+msgstr "IPA CA nemôže byť odstránené"
+
+msgid "Modify CA configuration."
+msgstr "Upraviť CA konfiguráciu."
+
+msgid "kerberos ticket policy settings"
+msgstr "nastavenia kerberos ticket policy"
+
+msgid "Locality"
+msgstr "Lokalita"
+
+msgid "Operating system"
+msgstr "Operačný systém"
+
+msgid "User password"
+msgstr "Používateľské heslo"
+
+msgid "MAC address"
+msgstr "MAC adresa"
 
 msgid "No A, AAAA, SSHFP or PTR records found."
 msgstr "Nenašli sa žiadne A, AAAA, SSHFP, alebo PTR záznamy."
 
+msgid "Update DNS entries"
+msgstr "Aktualizovať DNS položky."
+
 msgid "cn is immutable"
 msgstr "cn je nemeniteľné"
 
-msgid ""
-"\n"
-"IPA locations\n"
-msgstr ""
-"\n"
-"IPA lokality\n"
+msgid "sudo rules"
+msgstr "sudo pravidlá"
 
-msgid ""
-"\n"
-"Manipulate DNS locations\n"
-msgstr ""
-"\n"
-"Narábanie s DNS lokalitami\n"
+msgid "Sudo Rules"
+msgstr "Sudo pravidlá"
 
-msgid ""
-"\n"
-"  Find all locations:\n"
-"    ipa location-find\n"
-msgstr ""
-"\n"
-"  Nájdenie všetkých lokalít:\n"
-"    ipa location-find\n"
+msgid "OTP configuration options"
+msgstr "OTP konfiguračné voľby"
 
-msgid ""
-"\n"
-"  Show specific location:\n"
-"    ipa location-show location\n"
-msgstr ""
-"\n"
-"  Zobrazenie špecifickej lokality:\n"
-"    ipa location-show lokalita\n"
+msgid "OTP Configuration"
+msgstr "OTP konfigurácia"
 
-msgid ""
-"\n"
-"  Add location:\n"
-"    ipa location-add location --description 'My location'\n"
-msgstr ""
-"\n"
-"  Pridanie lokality:\n"
-"    ipa location-add lokalita --description 'Moja lokalita'\n"
+msgid "Modify OTP configuration options."
+msgstr "Upraviť OTP konfiguračné voľby."
 
-msgid ""
-"\n"
-"  Delete location:\n"
-"    ipa location-del location\n"
-msgstr ""
-"\n"
-"  Odstránenie lokality:\n"
-"    ipa location-del lokalita\n"
+msgid "Show the current OTP configuration."
+msgstr "Zobraziť aktuálnu OTP konfiguráciu."
 
-msgid "location"
-msgstr "lokalita"
+msgid "DNS server"
+msgstr "DNS server"
 
-msgid "locations"
-msgstr "lokality"
+msgid "Forwarders"
+msgstr "Forwardery"
 
-msgid "IPA Locations"
-msgstr "IPA lokality"
+msgid "Search for DNS servers."
+msgstr "Vyhľadať DNS servery"
 
-msgid "IPA Location"
-msgstr "IPA lokalita"
+msgid "ID Views"
+msgstr "ID Views"
 
-msgid "Location name"
-msgstr "Názov lokality"
+msgid "ID View Name"
+msgstr "Názov ID View"
 
-msgid "IPA location name"
-msgstr "Názov IPA lokality"
-
-msgid "IPA Location description"
-msgstr "Popis IPA lokality"
-
-msgid "Servers"
-msgstr "Servery"
-
-msgid "Servers that belongs to the IPA location"
-msgstr "Servery patriace do IPA lokality"
-
-msgid "Advertised by servers"
-msgstr "Oznamované servermi"
-
-msgid "List of servers which advertise the given location"
-msgstr "Zoznam serverov oznamujúcich danú lokalitu"
-
-msgid "Add a new IPA location."
-msgstr "Pridať novú IPA lokalitu."
+msgid "Add a new ID View."
+msgstr "Pridať nové ID View"
 
 #, python-format
-msgid "Added IPA location \"%(value)s\""
-msgstr "Pridaná IPA lokalita \"%(value)s\""
+msgid "Added ID View \"%(value)s\""
+msgstr "Pridané ID View \"%(value)s\""
 
-msgid "Delete an IPA location."
-msgstr "Odstrániť IPA lokalitu."
-
-#, python-format
-msgid "Deleted IPA location \"%(value)s\""
-msgstr "Odstránená IPA lokalita \"%(value)s\""
-
-msgid "Modify information about an IPA location."
-msgstr "Upraviť informácie o IPA lokalite."
+msgid "Delete an ID View."
+msgstr "Odstrániť  ID View."
 
 #, python-format
-msgid "Modified IPA location \"%(value)s\""
-msgstr "Upravená IPA lokalita \"%(value)s\""
+msgid "Deleted ID View \"%(value)s\""
+msgstr "Odstránené ID View \"%(value)s\""
 
-msgid "Search for IPA locations."
-msgstr "Vyhľadať IPA lokalitu."
+msgid "not found"
+msgstr "Nenašlo sa"
+
+msgid "value"
+msgstr "hodnota"
+
+msgid "IPA object"
+msgstr "IPA objekt"
+
+msgid "User ID Number"
+msgstr "ID používateľa"
+
+msgid "configuration options"
+msgstr "konfiguračné voľby"
+
+msgid "Configuration"
+msgstr "Konfigurácia"
+
+msgid "Modify configuration options."
+msgstr "Upraviť konfiguračné voľby."
+
+msgid "Show the current configuration."
+msgstr "Zobraziť konfiguračné voľby"
+
+msgid "sudo commands"
+msgstr "sudo príkazy"
+
+msgid "Sudo Commands"
+msgstr "Sudo príkazy"
+
+msgid "Search for Sudo Commands."
+msgstr "Vyhľadať sudo príkazy."
+
+msgid "The IPA realm"
+msgstr "IPA realm"
+
+msgid "Delete a CA ACL."
+msgstr "Odstrániť CA ACL."
 
 #, python-format
-msgid "%(count)d IPA location matched"
-msgid_plural "%(count)d IPA locations matched"
-msgstr[0] "%(count)d IPA lokalita nájdená"
-msgstr[1] "%(count)d IPA lokalít nájdených"
-msgstr[2] "%(count)d IPA lokalít nájdených"
+msgid "Deleted CA ACL \"%(value)s\""
+msgstr "Odstránené CA ACL \"%(value)s\""
 
-msgid "Display information about an IPA location."
-msgstr "Zobraziť informácie o IPA lokalite."
-
-msgid "Servers in location"
-msgstr "Servery v lokalite."
+msgid "Disable a CA ACL."
+msgstr "Deaktivovať CA ACL."
 
 #, python-format
-msgid "HBAC rule %(rule)s not found"
-msgstr "HBAC pravidlo %(rule)s nenájdené"
+msgid "Disabled CA ACL \"%(value)s\""
+msgstr "Deaktivované CA ACL \"%(value)s\""
+
+msgid "invalid Profile ID"
+msgstr "nevalídne ID profilu"
+
+msgid "Certificate Profile"
+msgstr "Certifikačný profil"
+
+msgid "Certificate Profiles"
+msgstr "Certifikačné profily"
+
+msgid "Profile configuration"
+msgstr "Configurácia profilu"
+
+msgid "Import a Certificate Profile."
+msgstr "Importovať certifikačný profil"
+
+msgid "Delete a Certificate Profile."
+msgstr "Odstrániť certifikačný profil"
+
+#, python-format
+msgid "Deleted profile \"%(value)s\""
+msgstr "Odstránený profil \"%(value)s\""
+
+msgid "Certificate profiles cannot be renamed"
+msgstr "Certifikačné profily nemôžu byť premenované"
 
 msgid "trusted domain object not found"
 msgstr "trust doménový objekt nenájdený"
 
 msgid "trusted domain user not found"
 msgstr "trust doménový užívateľ nenájdený"
+
+#, c-format
+msgid "Unable to set LDAP_OPT_X_TLS_CERTIFICATE\n"
+msgstr "Nie je možné nastaviť LDAP_OPT_X_TLS_CERTIFICATE\n"
+
+#, python-format
+msgid "File %(file)s not found"
+msgstr "Súbor %(file)s nenájdený"
+
+#, python-format
+msgid "key %(key)s already exists"
+msgstr "kľúč %(key)s už existuje"
+
+#, python-format
+msgid "map %(map)s already exists"
+msgstr "mapovanie %(map)s už existuje"
+
+#, python-format
+msgid "Added %(map)s"
+msgstr "Pridané %(map)s"
+
+msgid "Imported keys:"
+msgstr "Importované kľúče:"
+
+#, python-format
+msgid "Added %(src)s to %(dst)s"
+msgstr "Pridané %(src)s do %(dst)s"
+
+msgid "Ignored keys:"
+msgstr "Ignorované kľúče:"
+
+#, python-format
+msgid "Ignored %(src)s to %(dst)s"
+msgstr "Ignorované %(src)s do %(dst)s"
+
+#, python-format
+msgid "Skipped %(map)s"
+msgstr "Preskočené %(map)s"
+
+msgid "Duplicate keys skipped:"
+msgstr "Duplikované kľúče preskočené:"
+
+#, python-format
+msgid "Skipped %(key)s"
+msgstr "Preskočené %(key)s"
+
+#, python-format
+msgid "Profile configuration stored in file '%(file)s'"
+msgstr "Konfigurácia profilu bola uložená do súboru '%(file)s'"
+
+msgid "Servers details:"
+msgstr "Detaily serverov:"
+
+#, python-format
+msgid "Removing %(servers)s from replication topology, please wait..."
+msgstr "Odstraňovanie %(servers)s z replikačnej topológie, prosím čakajte..."
+
+#, python-format
+msgid "Disabled Sudo Rule \"%s\""
+msgstr "Deaktivované sudo pravidlá \"%s\""
+
+msgid "Topology is disconnected"
+msgstr "Topológia je odpojená"
+
+#, python-format
+msgid "Server %(srv)s can't contact servers: %(replicas)s"
+msgstr "Server %(srv)s nemôže kontaktovať servery: %(replicas)s"
+
+#, python-format
+msgid "Certificate(s) stored in file '%(file)s'"
+msgstr "Certifikát(y) sú uložené v súbore '%(file)s'"
+
+msgid "Delete a user"
+msgstr "Odstrániť používateľa"
+
+msgid "Synchronize an OTP token."
+msgstr "Synchronizovať OTP token"
+
+msgid "User ID"
+msgstr "ID používateľa"
+
+msgid "First Code"
+msgstr "Prvý kód"
+
+msgid "Second Code"
+msgstr "Druhý kód"
+
+msgid ""
+"\n"
+"YubiKey Tokens\n"
+msgstr ""
+"\n"
+"YubiKey Tokeny\n"
+
+msgid ""
+"\n"
+"Manage YubiKey tokens.\n"
+msgstr ""
+"\n"
+"Spravovať YubiKey tokeny.\n"
+
+msgid "Add a new YubiKey OTP token."
+msgstr "Pridať nový YubiKey OTP token."
+
+msgid "YubiKey slot"
+msgstr "YubiKey slot"
+
+msgid "No free YubiKey slot!"
+msgstr "Žiadny voľný YubiKey slot!"
+
+msgid "Please choose a type of DNS resource record to be added"
+msgstr "Prosím vyberte typ DNS záznamu"
+
+#, python-format
+msgid "The most common types for this type of zone are: %s\n"
+msgstr "Najbežnejšie typy záznamov pre tento typ zóny sú: %s\n"
+
+msgid "DNS resource record type"
+msgstr "Typ DNS záznamu"
+
+#, python-format
+msgid "Invalid or unsupported type. Allowed values are: %s"
+msgstr "Nesprávny alebo nepodporovaný typ. Povolené hodnoty sú: %s"
+
+msgid "Current DNS record contents:\n"
+msgstr "Aktuálny obsah DNS záznamu:\n"
+
+#, python-format
+msgid "Modify %(name)s '%(value)s'?"
+msgstr "Upraviť %(name)s '%(value)s'?"
+
+msgid "No option to delete specific record provided."
+msgstr "Nebola poskytnutá žiadna voľba pre zmazanie špecifického záznamu"
+
+msgid "Delete all?"
+msgstr "Odstrániť všetko?"
+
+#, python-format
+msgid "Delete %(name)s '%(value)s'?"
+msgstr "Odstrániť %(name)s '%(value)s'?"
+
+msgid "Server will check DNS forwarder(s)."
+msgstr "Server skontroluje DNS forwarder(y)."
+
+msgid "This may take some time, please wait ..."
+msgstr "Toto môže trvať nejaký čas, prosím čakajte ..."
+
+#, python-format
+msgid "Cannot read file '%(filename)s': %(exc)s"
+msgstr "Nie je možné čítať súbor '%(filename)s': %(exc)s"
+
+#, python-format
+msgid "Cannot decode file '%(filename)s': %(exc)s"
+msgstr "Nie je možné dekódovať súbor '%(filename)s': %(exc)s"
+
+msgid "Password can be specified only for symmetric vault"
+msgstr "Heslo môže byť špecifikované len pre symetrický vault"
+
+msgid "Public key can be specified only for asymmetric vault"
+msgstr "Verejný kľúč môže byť špecifikovný len pre asymetrický vault"
+
+msgid "Modify a vault."
+msgstr "Upraviť vault."
+
+msgid "Change password"
+msgstr "Zmeniť heslo"
+
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "Dôvod revokácie certifikátu (0-10)"
