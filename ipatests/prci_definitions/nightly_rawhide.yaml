@@ -27,6 +27,10 @@ topologies:
     name: master_3repl_1client
     cpu: 6
     memory: 12900
+  ad_master_2client: &ad_master_2client
+    name: ad_master_2client
+    cpu: 4
+    memory: 12000
 
 jobs:
   fedora-rawhide/build:
@@ -239,13 +243,13 @@ jobs:
     requires: [fedora-rawhide/build]
     priority: 50
     job:
-      class: RunPytest
+      class: RunADtest
       args:
         build_url: '{fedora-rawhide/build_url}'
         test_suite: test_integration/test_smb.py
         template: *ci-master-frawhide
         timeout: 4800
-        topology: *master_1repl_1client
+        topology: *ad_master_2client
 
   fedora-rawhide/test_server_del:
     requires: [fedora-rawhide/build]
