@@ -17,4 +17,7 @@
   pkinit_anchors = FILE:$KDC_CERT
   pkinit_anchors = FILE:$CACERT_PEM
   pkinit_pool = FILE:$CA_BUNDLE_PEM
+  pkinit_indicator = pkinit
+  spake_preauth_indicator = hardened
+  encrypted_challenge_indicator = hardened
  }
