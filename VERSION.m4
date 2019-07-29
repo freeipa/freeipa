@@ -21,7 +21,7 @@
 ########################################################
 define(IPA_VERSION_MAJOR, 4)
 define(IPA_VERSION_MINOR, 6)
-define(IPA_VERSION_RELEASE, 5)
+define(IPA_VERSION_RELEASE, 6)
 
 ########################################################
 # For 'pre' releases the version will be               #
@@ -46,7 +46,7 @@ define(IPA_VERSION_PRE_RELEASE, )
 # This option works only with GNU m4:                  #
 # it requires esyscmd m4 macro.                        #
 ########################################################
-define(IPA_VERSION_IS_GIT_SNAPSHOT, yes)
+define(IPA_VERSION_IS_GIT_SNAPSHOT, no)
 
 ########################################################
 # git development branch:                              #
