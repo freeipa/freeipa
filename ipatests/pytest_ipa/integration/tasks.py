@@ -1221,7 +1221,7 @@ def double_circle_topo(master, replicas, site_size=6):
 
 def install_topo(topo, master, replicas, clients, domain_level=None,
                  skip_master=False, setup_replica_cas=True,
-                 setup_replica_kras=False):
+                 setup_replica_kras=False, clients_extra_args=()):
     """Install IPA servers and clients in the given topology"""
     if setup_replica_kras and not setup_replica_cas:
         raise ValueError("Option 'setup_replica_kras' requires "
@@ -1249,15 +1249,15 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
                 setup_kra=setup_replica_kras
             )
         installed.add(child)
-    install_clients([master] + replicas, clients)
+    install_clients([master] + replicas, clients, clients_extra_args)
 
 
-def install_clients(servers, clients):
+def install_clients(servers, clients, extra_args=()):
     """Install IPA clients, distributing them among the given servers"""
     izip = getattr(itertools, 'izip', zip)
     for server, client in izip(itertools.cycle(servers), clients):
         logger.info('Installing client %s on %s', server, client)
-        install_client(server, client)
+        install_client(server, client, extra_args)
 
 
 def _entries_to_ldif(entries):
