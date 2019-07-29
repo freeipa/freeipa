@@ -98,6 +98,8 @@ class trust_tasks(UI_driver):
 @pytest.mark.tier1
 class test_trust(trust_tasks):
 
+    request_timeout = 120
+
     def setup(self, *args, **kwargs):
         super(test_trust, self).setup(*args, **kwargs)
         if not self.has_trusts():
@@ -143,7 +145,6 @@ class test_trust(trust_tasks):
         self.assert_record_value('Active Directory domain range', range_pkey, column)
         self.delete_record(range_pkey)
 
-        self.request_timeout = 60
         add = self.get_add_data('ipa-ad-trust-posix', base_id, range_size)
         data = self.get_data(add_data=add)
         self.add_record(ENTITY, data, delete=True)
