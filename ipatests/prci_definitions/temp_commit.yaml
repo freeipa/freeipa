@@ -33,6 +33,10 @@ topologies:
     name: master_3repl_1client
     cpu: 6
     memory: 12900
+  ad_master_2client: &ad_master_2client
+    name: ad_master_2client
+    cpu: 4
+    memory: 12000
 
 jobs:
   fedora-30/build:
