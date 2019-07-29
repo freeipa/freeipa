@@ -15,14 +15,13 @@
 
 from __future__ import absolute_import
 
-import time
+import os
 import re
+import time
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
-
-import os
 
 # give some time for units to stabilize
 # otherwise we get transient errors
@@ -30,32 +29,7 @@ WAIT_AFTER_INSTALL = 5
 WAIT_AFTER_UNINSTALL = WAIT_AFTER_INSTALL
 
 
-class TestInit(IntegrationTest):
-
-    @classmethod
-    def fix_resolv_conf(cls, client, server):
-
-        contents = client.get_file_contents(paths.RESOLV_CONF,
-                                            encoding='utf-8')
-        nameserver = 'nameserver %s\n' % server.ip
-        if not contents.startswith(nameserver):
-            contents = nameserver + contents.replace(nameserver, '')
-            client.run_command([
-                '/usr/bin/cp', paths.RESOLV_CONF,
-                '%s.sav' % paths.RESOLV_CONF
-            ])
-            client.put_file_contents(paths.RESOLV_CONF, contents)
-
-    @classmethod
-    def restore_resolv_conf(cls, client):
-        client.run_command([
-            '/usr/bin/cp',
-            '%s.sav' % paths.RESOLV_CONF,
-            paths.RESOLV_CONF
-        ])
-
-
-class TestNFS(TestInit):
+class TestNFS(IntegrationTest):
 
     num_replicas = 2
     num_clients = 1
@@ -67,7 +41,10 @@ class TestNFS(TestInit):
         tasks.install_master(cls.master, setup_dns=True)
         clients = (cls.clients[0], cls.replicas[0], cls.replicas[1])
         for client in clients:
-            cls.fix_resolv_conf(client, cls.master)
+            tasks.backup_file(client, paths.RESOLV_CONF)
+            tasks.config_replica_resolvconf_with_master_data(
+                cls.master, client
+            )
             tasks.install_client(cls.master, client)
             client.run_command(["cat", "/etc/resolv.conf"])
 
@@ -89,8 +66,6 @@ class TestNFS(TestInit):
 
         nfssrv.run_command(["rm", "-rf", "/exports"])
 
-        tasks.uninstall_client(nfsclt)
-        tasks.uninstall_client(nfssrv)
         self.master.run_command([
             "ipa", "host-mod", automntclt.hostname,
             "--location", "''"
@@ -101,9 +76,9 @@ class TestNFS(TestInit):
         ])
         nfsclt.run_command(["systemctl", "restart", "nfs-utils"])
         nfssrv.run_command(["systemctl", "restart", "nfs-utils"])
+
         for client in (nfssrv, nfsclt, automntclt):
-            self.restore_resolv_conf(client)
-        tasks.uninstall_master(self.master)
+            tasks.restore_files(client)
 
     def test_prepare_users(self):
 
