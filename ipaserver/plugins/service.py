@@ -534,13 +534,19 @@ class service(LDAPObject):
                   " e.g. this might be necessary for NFS services."),
             values=(u'MS-PAC', u'PAD', u'NONE'),
         ),
-        Str('krbprincipalauthind*',
+        StrEnum(
+            'krbprincipalauthind*',
             cli_name='auth_ind',
             label=_('Authentication Indicators'),
             doc=_("Defines a whitelist for Authentication Indicators."
                   " Use 'otp' to allow OTP-based 2FA authentications."
                   " Use 'radius' to allow RADIUS-based 2FA authentications."
-                  " Other values may be used for custom configurations."),
+                  " Use 'pkinit' to allow PKINIT-based 2FA authentications."
+                  " Use 'hardened' to allow brute-force hardened password"
+                  " authentication by SPAKE or FAST."
+                  " With no indicator specified,"
+                  " all authentication mechanisms are allowed."),
+            values=(u'radius', u'otp', u'pkinit', u'hardened'),
         ),
     ) + ticket_flags_params
 
