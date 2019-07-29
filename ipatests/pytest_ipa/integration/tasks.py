@@ -29,6 +29,7 @@ import collections
 import itertools
 import tempfile
 import time
+from pipes import quote
 
 import dns
 from ldif import LDIFWriter
@@ -1705,14 +1706,20 @@ def strip_cert_header(pem):
         return pem
 
 
-def user_add(host, login, first='test', last='user', extra_args=()):
+def user_add(host, login, first='test', last='user', extra_args=(),
+             password=None):
     cmd = [
         "ipa", "user-add", login,
         "--first", first,
         "--last", last
     ]
+    if password is not None:
+        cmd.append('--password')
+        stdin_text = '{0}\n{0}\n'.format(password)
+    else:
+        stdin_text = None
     cmd.extend(extra_args)
-    return host.run_command(cmd)
+    return host.run_command(cmd, stdin_text=stdin_text)
 
 
 def group_add(host, groupname, extra_args=()):
@@ -1729,3 +1736,36 @@ def create_temp_file(host, directory=None):
     if directory is not None:
         cmd += ['-p', directory]
     return host.run_command(cmd).stdout_text
+
+
+def create_active_user(host, login, password, first='test', last='user'):
+    """Create user and do login to set password"""
+    temp_password = 'Secret456789'
+    kinit_admin(host)
+    user_add(host, login, first=first, last=last, password=temp_password)
+    host.run_command(
+        ['kinit', login],
+        stdin_text='{0}\n{1}\n{1}\n'.format(temp_password, password))
+    kdestroy_all(host)
+
+
+def kdestroy_all(host):
+    return host.run_command(['kdestroy', '-A'])
+
+
+def run_command_as_user(host, user, command, *args, **kwargs):
+    """Run command on remote host using 'su -l'
+
+    Arguments are similar to Host.run_command
+    """
+    if not isinstance(command, str):
+        command = ' '.join(quote(s) for s in command)
+    cwd = kwargs.pop('cwd', None)
+    if cwd is not None:
+        command = 'cd {}; {}'.format(quote(cwd), command)
+    command = ['su', '-l', user, '-c', command]
+    return host.run_command(command, *args, **kwargs)
+
+
+def kinit_as_user(host, user, password):
+    host.run_command(['kinit', user], stdin_text=password + '\n')
