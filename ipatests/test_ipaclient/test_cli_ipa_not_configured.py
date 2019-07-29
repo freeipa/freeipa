@@ -1,5 +1,9 @@
 import subprocess
 
+import pytest
+
+from ipapython.admintool import SERVER_NOT_CONFIGURED
+
 
 class TestIPANotConfigured:
     """
@@ -24,6 +28,7 @@ class TestIPANotConfigured:
         if unexpected_error:
             assert unexpected_error not in err
 
+    @pytest.mark.xfail(reason="Mismatch in return code, SERVER_NOT_CONFIGURED is 2, but ipa backup returns 1")
     def test_var_log_message_with_ipa_backup(self):
         """
         Test for BZ1428690: ipa-backup does not create log file at /var/log
@@ -31,4 +36,4 @@ class TestIPANotConfigured:
         As the server is not configured yet, command should fail and stderr should not
         contain link to /var/log, as no such log is created
         """
-        self.run_command("ipa backup", 1, None, "not configured on this system", "/var/log")
+        self.run_command("ipa backup", SERVER_NOT_CONFIGURED, None, "not configured on this system", "/var/log")
