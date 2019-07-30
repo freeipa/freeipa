@@ -496,12 +496,12 @@ class TestBackupAndRestoreWithReplica(IntegrationTest):
         # Configure /etc/resolv.conf on each replica to use the master as DNS
         # Otherwise ipa-replica-manage re-initialize is unable to
         # resolve the master name
-        tasks.config_replica_resolvconf_with_master_data(
-            cls.master,
-            cls.replica1)
-        tasks.config_replica_resolvconf_with_master_data(
-            cls.master,
-            cls.replica2)
+        tasks.config_host_resolvconf_with_master_data(
+            cls.master, cls.replica1
+        )
+        tasks.config_host_resolvconf_with_master_data(
+            cls.master, cls.replica2
+        )
         # Configure only master and one replica.
         # Replica is configured without CA
         tasks.install_topo(
