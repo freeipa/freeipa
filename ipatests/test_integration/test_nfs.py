@@ -21,7 +21,6 @@ import time
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
-from ipaplatform.paths import paths
 
 # give some time for units to stabilize
 # otherwise we get transient errors
@@ -31,28 +30,14 @@ WAIT_AFTER_UNINSTALL = WAIT_AFTER_INSTALL
 
 class TestNFS(IntegrationTest):
 
-    num_replicas = 2
-    num_clients = 1
-    topology = 'star'
-
-    @classmethod
-    def install(cls, mh):
-
-        tasks.install_master(cls.master, setup_dns=True)
-        clients = (cls.clients[0], cls.replicas[0], cls.replicas[1])
-        for client in clients:
-            tasks.backup_file(client, paths.RESOLV_CONF)
-            tasks.config_host_resolvconf_with_master_data(
-                cls.master, client
-            )
-            tasks.install_client(cls.master, client)
-            client.run_command(["cat", "/etc/resolv.conf"])
+    num_clients = 3
+    topology = 'line'
 
     def cleanup(self):
 
         nfssrv = self.clients[0]
-        nfsclt = self.replicas[0]
-        automntclt = self.replicas[1]
+        nfsclt = self.clients[1]
+        automntclt = self.clients[2]
 
         nfsclt.run_command(["umount", "-a", "-t", "nfs4"])
         nfsclt.run_command(["systemctl", "stop", "rpc-gssd"])
@@ -76,9 +61,6 @@ class TestNFS(IntegrationTest):
         ])
         nfsclt.run_command(["systemctl", "restart", "nfs-utils"])
         nfssrv.run_command(["systemctl", "restart", "nfs-utils"])
-
-        for client in (nfssrv, nfsclt, automntclt):
-            tasks.restore_files(client)
 
     def test_prepare_users(self):
 
@@ -141,7 +123,7 @@ class TestNFS(IntegrationTest):
     def test_krb5_nfs_manual_configuration(self):
 
         nfssrv = self.clients[0]
-        nfsclt = self.replicas[0]
+        nfsclt = self.clients[1]
 
         nfsclt.run_command(["systemctl", "restart", "rpc-gssd"])
         time.sleep(WAIT_AFTER_INSTALL)
@@ -169,7 +151,7 @@ class TestNFS(IntegrationTest):
         """
 
         nfssrv = self.clients[0]
-        automntclt = self.replicas[1]
+        automntclt = self.clients[2]
 
         self.master.run_command([
             "ipa", "automountlocation-add", "seattle"
