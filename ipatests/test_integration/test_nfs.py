@@ -42,7 +42,7 @@ class TestNFS(IntegrationTest):
         clients = (cls.clients[0], cls.replicas[0], cls.replicas[1])
         for client in clients:
             tasks.backup_file(client, paths.RESOLV_CONF)
-            tasks.config_replica_resolvconf_with_master_data(
+            tasks.config_host_resolvconf_with_master_data(
                 cls.master, client
             )
             tasks.install_client(cls.master, client)
