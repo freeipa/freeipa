@@ -9,6 +9,10 @@ topologies:
     name: build
     cpu: 2
     memory: 3800
+  master_3client: &master_3client
+    name: master_3client
+    cpu: 5
+    memory: 10150
   master_1repl: &master_1repl
     name: master_1repl
     cpu: 4
