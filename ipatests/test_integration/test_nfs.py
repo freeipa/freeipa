@@ -32,15 +32,14 @@ WAIT_AFTER_UNINSTALL = WAIT_AFTER_INSTALL
 
 class TestNFS(IntegrationTest):
 
-    num_replicas = 2
-    num_clients = 1
+    num_clients = 3
     topology = 'star'
 
     def cleanup(self):
 
         nfssrv = self.clients[0]
-        nfsclt = self.replicas[0]
-        automntclt = self.replicas[1]
+        nfsclt = self.clients[1]
+        automntclt = self.clients[2]
 
         nfsclt.run_command(["umount", "-a", "-t", "nfs4"])
         nfsclt.run_command(["systemctl", "stop", "rpc-gssd"])
@@ -118,7 +117,7 @@ class TestNFS(IntegrationTest):
     def test_krb5_nfs_manual_configuration(self):
 
         nfssrv = self.clients[0]
-        nfsclt = self.replicas[0]
+        nfsclt = self.clients[1]
 
         nfsclt.run_command(["systemctl", "restart", "rpc-gssd"])
         time.sleep(WAIT_AFTER_INSTALL)
@@ -146,7 +145,7 @@ class TestNFS(IntegrationTest):
         """
 
         nfssrv = self.clients[0]
-        automntclt = self.replicas[1]
+        automntclt = self.clients[2]
 
         self.master.run_command([
             "ipa", "automountlocation-add", "seattle"
