@@ -414,13 +414,13 @@ def master_authoritative_for_client_domain(master, client):
     return result.returncode == 0
 
 
-def config_replica_resolvconf_with_master_data(master, replica):
+def config_host_resolvconf_with_master_data(master, host):
     """
-    Configure replica /etc/resolv.conf to use master as DNS server
+    Configure host /etc/resolv.conf to use master as DNS server
     """
     content = ('search {domain}\nnameserver {master_ip}'
                .format(domain=master.domain.name, master_ip=master.ip))
-    replica.put_file_contents(paths.RESOLV_CONF, content)
+    host.put_file_contents(paths.RESOLV_CONF, content)
 
 
 def install_replica(master, replica, setup_ca=True, setup_dns=False,
