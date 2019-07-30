@@ -52,7 +52,12 @@ class CustodiaClient(object):
         self.service_name = gssapi.Name(
             'HTTP@{}'.format(server), gssapi.NameType.hostbased_service
         )
-        self.keystore = IPASecStore()
+
+        config = {'ldap_uri': self.ldap_uri}
+        if auth_type is not None:
+            config['auth_type'] = auth_type
+        self.keystore = IPASecStore(config)
+
         # use in-process MEMORY ccache. Handler process don't need a TGT.
         token = b64encode(os.urandom(8)).decode('ascii')
         self.ccache = 'MEMORY:Custodia_{}'.format(token)
