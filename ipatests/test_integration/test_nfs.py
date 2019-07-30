@@ -30,46 +30,11 @@ WAIT_AFTER_INSTALL = 5
 WAIT_AFTER_UNINSTALL = WAIT_AFTER_INSTALL
 
 
-class TestInit(IntegrationTest):
-
-    @classmethod
-    def fix_resolv_conf(cls, client, server):
-
-        contents = client.get_file_contents(paths.RESOLV_CONF,
-                                            encoding='utf-8')
-        nameserver = 'nameserver %s\n' % server.ip
-        if not contents.startswith(nameserver):
-            contents = nameserver + contents.replace(nameserver, '')
-            client.run_command([
-                '/usr/bin/cp', paths.RESOLV_CONF,
-                '%s.sav' % paths.RESOLV_CONF
-            ])
-            client.put_file_contents(paths.RESOLV_CONF, contents)
-
-    @classmethod
-    def restore_resolv_conf(cls, client):
-        client.run_command([
-            '/usr/bin/cp',
-            '%s.sav' % paths.RESOLV_CONF,
-            paths.RESOLV_CONF
-        ])
-
-
-class TestNFS(TestInit):
+class TestNFS(IntegrationTest):
 
     num_replicas = 2
     num_clients = 1
     topology = 'star'
-
-    @classmethod
-    def install(cls, mh):
-
-        tasks.install_master(cls.master, setup_dns=True)
-        clients = (cls.clients[0], cls.replicas[0], cls.replicas[1])
-        for client in clients:
-            cls.fix_resolv_conf(client, cls.master)
-            tasks.install_client(cls.master, client)
-            client.run_command(["cat", "/etc/resolv.conf"])
 
     def cleanup(self):
 
@@ -89,21 +54,8 @@ class TestNFS(TestInit):
 
         nfssrv.run_command(["rm", "-rf", "/exports"])
 
-        tasks.uninstall_client(nfsclt)
-        tasks.uninstall_client(nfssrv)
-        self.master.run_command([
-            "ipa", "host-mod", automntclt.hostname,
-            "--location", "''"
-        ])
-        # not strictly necessary, but this exercises automountlocation-del
-        self.master.run_command([
-            "ipa", "automountlocation-del", "seattle"
-        ])
         nfsclt.run_command(["systemctl", "restart", "nfs-utils"])
         nfssrv.run_command(["systemctl", "restart", "nfs-utils"])
-        for client in (nfssrv, nfsclt, automntclt):
-            self.restore_resolv_conf(client)
-        tasks.uninstall_master(self.master)
 
     def test_prepare_users(self):
 
