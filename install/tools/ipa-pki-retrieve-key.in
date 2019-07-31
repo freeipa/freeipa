@@ -5,6 +5,8 @@ from __future__ import print_function
 import argparse
 import os
 
+from requests import HTTPError
+
 from ipalib import constants
 from ipalib.config import Env
 from ipaplatform.paths import paths
@@ -42,9 +44,37 @@ def main():
         keytab=client_keytab,
     )
 
+    OID_AES128_CBC = "2.16.840.1.101.3.4.1.2"
+
+    try:
+        # Initially request a key wrapped using AES128-CBC.
+        # This uses the recent ability to specify additional
+        # parameters to a Custodia resource.
+        path = f'{keyname}/{OID_AES128_CBC}'  # aes128-cbc
+        resp = client.fetch_key(path, store=False)
+    except HTTPError as e:
+        if e.response.status_code == 404:
+            # The 404 indicates one of two conditions:
+            #
+            # a) The server is an older version that does not support
+            #    extra Custodia parameters.  We should retry without
+            #    specifying an algorithm.
+            #
+            # b) The key does not exist.  At this point we cannot
+            #    distinguish (a) and (b) but if we retry without
+            #    specifying an algorithm, the second attempt will
+            #    also fail with status 404.
+            #
+            # So the correct way to handle both scenarios is to
+            # retry without the algorithm parameter.
+            #
+            resp = client.fetch_key(keyname, store=False)
+        else:
+            raise  # something else went wrong; re-raise
+
     # Print the response JSON to stdout; it is already in the format
     # that Dogtag's ExternalProcessKeyRetriever expects
-    print(client.fetch_key(keyname, store=False))
+    print(resp)
 
 
 if __name__ == '__main__':
