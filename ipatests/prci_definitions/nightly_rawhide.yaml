@@ -841,8 +841,8 @@ jobs:
       args:
         build_url: '{fedora-rawhide/build_url}'
         test_suite: test_integration/test_ntp_options.py::TestNTPoptions
-        template: *ci-master-f29
-        timeout: 7200
+        template: *ci-master-frawhide
+        timeout: 10800
         topology: *master_1repl_1client
 
   fedora-rawhide/nfs:
