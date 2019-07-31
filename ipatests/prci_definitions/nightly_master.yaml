@@ -1202,7 +1202,7 @@ jobs:
         build_url: '{fedora-30/build_url}'
         test_suite: test_integration/test_ntp_options.py::TestNTPoptions
         template: *ci-master-f30
-        timeout: 7200
+        timeout: 10800
         topology: *master_1repl_1client
 
   fedora-30/test_pkinit_manage:
