@@ -1,1 +1,19 @@
 This is the ipa krb5kdc database backend.
+
+As the KDB interfaces heavily with krb5, we inherit its code style as well.
+However, note the following changes:
+
+- no modelines (and different file preamble)
+- return types don't require their own line
+- single-statement blocks may optionally be braced
+- /* and */ do not ever get their own line
+- C99 for-loops are permitted (and encouraged)
+- a restricted set of other C99 features are permitted
+
+In particular, variable-length arrays, flexible array members, compound
+literals, universal character names, and //-style comments are not permitted.
+
+Use of regular malloc/free is preferred over talloc for new code.
+
+By and large, existing code mostly conforms to these requirements.  New code
+must conform to them.
