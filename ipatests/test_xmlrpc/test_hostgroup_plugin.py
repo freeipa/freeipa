@@ -29,6 +29,7 @@ from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
 from ipalib import errors
 import pytest
 
+renamedhostgroup1 = u'renamedhostgroup1'
 
 @pytest.fixture(scope='class')
 def hostgroup(request):
@@ -52,6 +53,20 @@ def hostgroup_single(request):
 def host(request):
     tracker = HostTracker(name=u'host')
     return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def ipaservers(request):
+    # Track the ipaservers hostgroup
+    # Since the hostgroup is protected, we cannot use 'make_fixture()' because
+    # it will try to delete the object when scope is destroyed and that will
+    # fail. Thus, we only create it here.
+    tracker = HostGroupTracker(
+        name=u'ipaservers', description=u'IPA server hosts'
+    )
+    tracker.exists = True
+    tracker.track_create()
+    return tracker
 
 
 class TestNonexistentHostGroup(XMLRPC_test):
@@ -103,6 +118,35 @@ class TestHostGroup(XMLRPC_test):
         with raises_exact(errors.DuplicateEntry(
                 message=u'host group with name "%s" already exists' %
                 hostgroup.cn)):
+            command()
+
+    def test_rename_hostgroup(self, hostgroup):
+        """ Rename a hostgroup and than rename it back """
+        origname = hostgroup.cn
+
+        command = hostgroup.make_command(
+            'hostgroup_mod', *[hostgroup.cn],
+            **dict(setattr=u'cn=%s' % renamedhostgroup1))
+        result = command()
+        hostgroup.attrs.update(cn=[renamedhostgroup1])
+        hostgroup.check_update(result)
+        hostgroup.cn = renamedhostgroup1
+
+        command = hostgroup.make_command(
+            'hostgroup_mod', *[hostgroup.cn],
+            **dict(setattr=u'cn=%s' % origname))
+        result = command()
+        hostgroup.attrs.update(cn=[origname])
+        hostgroup.check_update(result)
+        hostgroup.cn = origname
+
+    def test_rename_ipaservers(self, ipaservers):
+        """ Try to rename the protected ipaservers group """
+        command = ipaservers.make_command('hostgroup_mod', *[ipaservers.cn],
+                                          **dict(rename=renamedhostgroup1))
+        reason = u'privileged hostgroup'
+        with raises_exact(errors.ProtectedEntryError(label=u'hostgroup',
+                          key=ipaservers.cn, reason=reason)):
             command()
 
     def test_create_host_add_to_hostgroup(self, hostgroup, host):
