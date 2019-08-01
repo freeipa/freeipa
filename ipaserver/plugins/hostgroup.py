@@ -113,6 +113,7 @@ class hostgroup(LDAPObject):
         'memberofindirect', 'membermanager',
     ]
     uuid_attribute = 'ipauniqueid'
+    allow_rename = True
     attribute_members = {
         'member': ['host', 'hostgroup'],
         'membermanager': ['user', 'group'],
@@ -275,6 +276,16 @@ class hostgroup_mod(LDAPUpdate):
 
     has_output_params = LDAPUpdate.has_output_params + hostgroup_output_params
     msg_summary = _('Modified hostgroup "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list,
+                     *keys, **options):
+        assert isinstance(dn, DN)
+        if keys[0] in PROTECTED_HOSTGROUPS and 'rename' in options:
+            raise errors.ProtectedEntryError(label=_(u'hostgroup'),
+                                             key=keys[0],
+                                             reason=_(u'privileged hostgroup'))
+
+        return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
