@@ -19,13 +19,13 @@ AM_INIT_AUTOMAKE([foreign 1.9 tar-pax])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 
 dnl enable C11 extensions for features like memset_s()
-CFLAGS+=" -D__STDC_WANT_LIB_EXT1__=1"
+CFLAGS="$CFLAGS -D__STDC_WANT_LIB_EXT1__=1"
 dnl enable features like htole16()
-CFLAGS+=" -D_DEFAULT_SOURCE=1"
+CFLAGS="$CFLAGS -D_DEFAULT_SOURCE=1"
 dnl Enable features like strndup()
-CFLAGS+=" -D_POSIX_C_SOURCE=200809L"
+CFLAGS="$CFLAGS -D_POSIX_C_SOURCE=200809L"
 dnl fail hard when includes statements are missing
-CFLAGS+=" -Werror=implicit-function-declaration"
+CFLAGS="$CFLAGS -Werror=implicit-function-declaration"
 
 AC_PROG_CC_C99
 AC_DISABLE_STATIC
