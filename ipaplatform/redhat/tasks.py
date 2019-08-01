@@ -718,6 +718,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 # see man(5) pkcs11.conf
                 f.write("disable-in: {}\n".format(", ".join(disabled_in)))
                 os.fchmod(f.fileno(), 0o644)
+            self.restore_context(filename)
             logger.debug("Created PKCS#11 module config '%s'.", filename)
             filenames.append(filename)
 
