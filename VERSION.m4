@@ -86,8 +86,9 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 236)
-# Last change: Add trust_enable_agent.
+define(IPA_API_VERSION_MINOR, 237)
+# Last change: allow rename a hostgroup
+
 
 ########################################################
 # Following values are auto-generated from values above
