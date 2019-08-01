@@ -1061,7 +1061,8 @@ class host_find(LDAPSearch):
                         (filter, hosts_filter), ldap.MATCH_ALL
                     )
 
-        add_sshpubkey_to_attrs_pre(self.context, attrs_list)
+        if not options.get('pkey_only', False):
+            add_sshpubkey_to_attrs_pre(self.context, attrs_list)
 
         return (filter.replace('locality', 'l'), base_dn, scope)
 
