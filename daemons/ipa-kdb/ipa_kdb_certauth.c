@@ -39,7 +39,6 @@
 
 #include <errno.h>
 //#include <krb5/certauth_plugin.h>
-#include <syslog.h>
 #include <sss_certmap.h>
 
 #include "ipa_krb5.h"

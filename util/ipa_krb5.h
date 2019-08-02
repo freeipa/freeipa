@@ -3,6 +3,7 @@
 #include <lber.h>
 #include <krb5/krb5.h>
 #include <kdb.h>
+#include <syslog.h>
 
 struct krb_key_salt {
     krb5_enctype enctype;
