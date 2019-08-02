@@ -71,12 +71,12 @@ jobs:
     - template: templates/prepare-build.yml
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: 3.6
+        versionSpec: 3.7
         architecture: x64
     - script: |
         set -e
         sudo dnf -y install nss-tools
-        python3 -m pip install --upgrade pip setuptools pycodestyle
+        python3 -m pip install --user --upgrade pip setuptools pycodestyle
       displayName: 'Install prerequisites'
     - script: |
         set -e
@@ -84,7 +84,7 @@ jobs:
         export LANG=en_US.utf8
         export LC_CTYPE=en_US.utf8
         locale
-        tox -e py36,pypi,pylint3
+        tox -e py37,pypi,pylint3
       displayName: Tox
     - task: PublishTestResults@2
       inputs:
@@ -102,7 +102,7 @@ jobs:
     - template: templates/prepare-build.yml
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: 3.6
+        versionSpec: 3.7
         architecture: x64
     - script: |
         set -e
