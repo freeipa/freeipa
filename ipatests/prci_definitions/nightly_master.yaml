@@ -1292,3 +1292,15 @@ jobs:
         template: *ci-master-f30
         timeout: 3600
         topology: *master_1repl
+
+  fedora-30/test_integration_TestIPANotConfigured:
+    requires: [fedora-30/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-30/build_url}'
+        test_suite: test_integration/test_cli_ipa_not_configured.py::TestIPANotConfigured
+        template: *ci-master-f30
+        timeout: 10800
+        topology: *ipaserver
