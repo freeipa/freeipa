@@ -25,7 +25,6 @@
 #include "ipa_kdb.h"
 #include "ipa_mspac.h"
 #include <talloc.h>
-#include <syslog.h>
 #include <unicase.h>
 #include "util/time.h"
 #include "gen_ndr/ndr_krb5pac.h"
