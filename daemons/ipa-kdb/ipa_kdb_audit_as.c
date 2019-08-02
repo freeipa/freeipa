@@ -20,7 +20,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <syslog.h>
 #include "ipa_kdb.h"
 #include "ipa_pwd.h"
 
