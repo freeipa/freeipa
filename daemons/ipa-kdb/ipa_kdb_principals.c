@@ -318,15 +318,6 @@ static void ipadb_validate_radius(struct ipadb_context *ipactx,
         ldap_value_free_len(vals);
 }
 
-static void ipadb_validate_password(struct ipadb_context *ipactx,
-                                    LDAPMessage *lentry,
-                                    enum ipadb_user_auth *ua)
-{
-    /* If no mechanisms are set, use password. */
-    if (*ua == IPADB_USER_AUTH_NONE)
-        *ua |= IPADB_USER_AUTH_PASSWORD;
-}
-
 static enum ipadb_user_auth ipadb_get_user_auth(struct ipadb_context *ipactx,
                                                 LDAPMessage *lentry)
 {
@@ -354,7 +345,6 @@ static enum ipadb_user_auth ipadb_get_user_auth(struct ipadb_context *ipactx,
     /* Perform flag validation. */
     ipadb_validate_otp(ipactx, lentry, &ua);
     ipadb_validate_radius(ipactx, lentry, &ua);
-    ipadb_validate_password(ipactx, lentry, &ua);
 
     return ua;
 }
@@ -708,13 +698,6 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                       &res_key_data, &result, &mkvno);
     switch (ret) {
     case 0:
-        /* Only set a principal's key if password auth should be used. */
-        if (!(ua & IPADB_USER_AUTH_PASSWORD)) {
-            /* This is the same behavior as ENOENT below. */
-            ipa_krb5_free_key_data(res_key_data, result);
-            break;
-        }
-
         entry->key_data = res_key_data;
         entry->n_key_data = result;
         if (mkvno) {
@@ -850,6 +833,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     if (ret == 0) {
         ied->authz_data = authz_data_list;
     }
+
+    ied->user_auth = ua;
 
     /* If enabled, set the otp user string, enabling otp. */
     if (ua & IPADB_USER_AUTH_OTP) {
