@@ -141,6 +141,7 @@ struct ipadb_e_data {
     time_t last_admin_unlock;
     char **authz_data;
     bool has_tktpolaux;
+    enum ipadb_user_auth user_auth;
 };
 
 struct ipadb_context *ipadb_get_context(krb5_context kcontext);
