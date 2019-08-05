@@ -279,6 +279,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         return False
     except Exception as e:
         print("Failed to determine agreement type for '%s': %s" % (replica2, e))
+        return False
 
     if type1 == replication.IPA_REPLICA and managed_topology:
         exit_on_managed_topology(what)
