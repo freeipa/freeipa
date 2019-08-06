@@ -190,6 +190,36 @@ class TestExternalCA(IntegrationTest):
              '-U'])
 
 
+class TestExternalCAConstraints(IntegrationTest):
+    """Test of FreeIPA server installation with external CA and constraints
+    """
+    num_replicas = 0
+    num_clients = 1
+
+    def test_external_ca_constrained(self):
+        install_server_external_ca_step1(self.master)
+
+        # name constraints for IPA DNS domain (dot prefix)
+        nameconstraint = x509.NameConstraints(
+            permitted_subtrees=[
+                x509.DNSName("." + self.master.domain.name),
+            ],
+            excluded_subtrees=None
+        )
+
+        root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
+            self.master, paths.ROOT_IPA_CSR, ROOT_CA, IPA_CA,
+            root_ca_extensions=[nameconstraint],
+        )
+
+        install_server_external_ca_step2(
+            self.master, ipa_ca_fname, root_ca_fname
+        )
+
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'ping'])
+
+
 def verify_caentry(host, cert):
     """
     Verify the content of cn=DOMAIN IPA CA,cn=certificates,cn=ipa,cn=etc,basedn
