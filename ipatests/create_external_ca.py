@@ -63,7 +63,7 @@ class ExternalCA:
             backend=default_backend(),
         )
 
-    def create_ca(self, cn=ISSUER_CN, path_length=None):
+    def create_ca(self, cn=ISSUER_CN, path_length=None, extensions=()):
         """Create root CA.
 
         :returns: bytes -- Root CA in PEM format.
@@ -113,6 +113,9 @@ class ExternalCA:
                  ),
             critical=False,
         )
+
+        for extension in extensions:
+            builder = builder.add_extension(extension, critical=False)
 
         cert = builder.sign(self.ca_key, hashes.SHA256(), default_backend())
 
