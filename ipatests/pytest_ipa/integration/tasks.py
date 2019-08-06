@@ -1696,7 +1696,7 @@ def add_dns_zone(master, zone, skip_overlap_check=False,
 
 def sign_ca_and_transport(host, csr_name, root_ca_name, ipa_ca_name,
                           root_ca_path_length=None, ipa_ca_path_length=1,
-                          key_size=None,):
+                          key_size=None, root_ca_extensions=()):
     """
     Sign ipa csr and save signed CA together with root CA back to the host.
     Returns root CA and IPA CA paths on the host.
@@ -1709,7 +1709,10 @@ def sign_ca_and_transport(host, csr_name, root_ca_name, ipa_ca_name,
 
     external_ca = ExternalCA(key_size=key_size)
     # Create root CA
-    root_ca = external_ca.create_ca(path_length=root_ca_path_length)
+    root_ca = external_ca.create_ca(
+        path_length=root_ca_path_length,
+        extensions=root_ca_extensions,
+    )
     # Sign CSR
     ipa_ca = external_ca.sign_csr(ipa_csr, path_length=ipa_ca_path_length)
 
