@@ -857,7 +857,7 @@ class CAInstance(DogtagInstance):
             ipalib.constants.RENEWAL_CA_NAME, helper)
 
         try:
-            # The certificate must be requested using caServerCert profile
+            # The certificate must be requested using caSubsystemCert profile
             # because this profile does not require agent authentication
             reqId = certmonger.request_and_wait_for_cert(
                 certpath=(paths.RA_AGENT_PEM, paths.RA_AGENT_KEY),
