@@ -8,6 +8,7 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
   config.vm.provider :libvirt do |libvirt|
+    libvirt.qemu_use_session = false
     libvirt.memory = 1024
   end
 
