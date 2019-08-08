@@ -2389,7 +2389,6 @@ class dnszone(DNSZoneBase):
         'idnssoamname', 'idnssoarname', 'idnssoaserial', 'idnssoarefresh',
         'idnssoaretry', 'idnssoaexpire', 'idnssoaminimum', 'idnsallowquery',
         'idnsallowtransfer', 'idnssecinlinesigning', 'idnsallowdynupdate',
-        'idnsupdatepolicy'
     ] + _record_attributes
     label = _('DNS Zones')
     label_singular = _('DNS Zone')

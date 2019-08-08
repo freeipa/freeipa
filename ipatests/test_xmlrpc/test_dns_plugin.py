@@ -708,10 +708,6 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
                     'idnsallowquery': [u'any;'],
                     'idnsallowtransfer': [u'none;'],
                 },
@@ -737,10 +733,6 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
                     'idnsallowquery': [u'any;'],
                     'idnsallowtransfer': [u'none;'],
                 },
@@ -919,11 +911,6 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy':
-                        [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
-                            % dict(
-                                realm=api.env.realm, zone=revzone1_dnsname
-                            )],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
                 },
@@ -940,10 +927,6 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
                 }],
@@ -971,10 +954,6 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
                 }],
