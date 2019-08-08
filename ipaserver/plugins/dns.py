@@ -2388,7 +2388,8 @@ class dnszone(DNSZoneBase):
     default_attributes = DNSZoneBase.default_attributes + [
         'idnssoamname', 'idnssoarname', 'idnssoaserial', 'idnssoarefresh',
         'idnssoaretry', 'idnssoaexpire', 'idnssoaminimum', 'idnsallowquery',
-        'idnsallowtransfer', 'idnssecinlinesigning',
+        'idnsallowtransfer', 'idnssecinlinesigning', 'idnsallowdynupdate',
+        'idnsupdatepolicy'
     ] + _record_attributes
     label = _('DNS Zones')
     label_singular = _('DNS Zone')
