@@ -39,10 +39,14 @@ class BaseTestTrust(IntegrationTest):
         tasks.install_adtrust(cls.master)
         cls.check_sid_generation()
 
-        cls.child_ad = cls.ad_subdomains[0]  # pylint: disable=no-member
-        cls.ad_subdomain = cls.child_ad.domain.name
-        cls.tree_ad = cls.ad_treedomains[0]  # pylint: disable=no-member
-        cls.ad_treedomain = cls.tree_ad.domain.name
+        # pylint: disable=no-member
+        if cls.ad_subdomains:
+            cls.child_ad = cls.ad_subdomains[0]
+            cls.ad_subdomain = cls.child_ad.domain.name
+        if cls.ad_treedomains:
+            cls.tree_ad = cls.ad_treedomains[0]
+            cls.ad_treedomain = cls.tree_ad.domain.name
+        # pylint: enable=no-member
 
         # values used in workaround for
         # https://bugzilla.redhat.com/show_bug.cgi?id=1711958
@@ -299,6 +303,12 @@ class TestTrust(BaseTestTrust):
         finally:
             tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
+
+class TestTrustWithADSubdomain(BaseTestTrust):
+    num_ad_domains = 1
+    num_ad_subdomains = 1
+    num_ad_treedomains = 0
+
     # Tests for external trust with AD subdomain
 
     def test_establish_external_subdomain_trust(self):
@@ -348,6 +358,12 @@ class TestTrust(BaseTestTrust):
                 self.ad_subdomain) in result.stderr_text)
         finally:
             tasks.unconfigure_dns_for_trust(self.master, self.child_ad)
+
+
+class TestTrustWithTreeDomain(BaseTestTrust):
+    num_ad_domains = 1
+    num_ad_subdomains = 0
+    num_ad_treedomains = 1
 
     # Tests for external trust with tree domain
 
@@ -400,6 +416,12 @@ class TestTrust(BaseTestTrust):
         finally:
             tasks.unconfigure_dns_for_trust(self.master, self.tree_ad)
 
+
+class TestTrustWithRootDomain(BaseTestTrust):
+    num_ad_domains = 1
+    num_ad_subdomains = 0
+    num_ad_treedomains = 0
+
     # Tests for external trust with root domain
 
     def test_establish_external_rootdomain_trust(self):
@@ -445,8 +467,8 @@ class TestTrust(BaseTestTrust):
             ['ipa', 'trust-fetch-domains', self.ad.domain.name],
             raiseonerr=False)
         assert result.returncode == 1
-        self.check_trustdomains(
-            self.ad_domain, [self.ad_domain, self.ad_subdomain])
+        # Add `self.ad_subdomain` if cls.num_ad_subdomains == 1
+        self.check_trustdomains(self.ad_domain, [self.ad_domain])
 
     def test_user_gid_uid_resolution_in_forest_trust_with_shared_secret(self):
         """Check that user has SID-generated UID"""
