@@ -30,6 +30,7 @@ app_DATA =				\
 	21-ca_renewal_container.update	\
 	21-certstore_container.update	\
 	25-referint.update		\
+	30-ipservices.update		\
 	30-provisioning.update		\
 	30-s4u2proxy.update		\
 	37-locations.update		\
@@ -63,6 +64,7 @@ app_DATA =				\
 	73-custodia.update		\
 	73-winsync.update		\
 	73-certmap.update		\
+	75-user-trust-attributes.update	\
 	80-schema_compat.update \
 	90-post_upgrade_plugins.update	\
 	$(NULL)
