@@ -134,6 +134,7 @@ Developers:
 	Sumit Bose
 	Sylvain Baubeau
 	Takeshi MIZUTA
+	Theodor van Nahl
 	Thierry Bordaz
 	Thomas Woerner
 	Thorsten Scherf
