@@ -5,13 +5,13 @@
 # Emilio Herrera <ehespinosa57@gmail.com>, 2019. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.90.dev201904231605+git36c65c4aa\n"
+"Project-Id-Version: freeipa 4.8.0\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2019-04-23 19:06+0300\n"
+"POT-Creation-Date: 2019-08-12 10:48+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2019-06-29 04:25+0000\n"
+"PO-Revision-Date: 2019-07-21 03:38+0000\n"
 "Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -241,6 +241,24 @@ msgstr ""
 
 msgid ""
 "\n"
+"    Search for users matching the provided certificate.\n"
+"\n"
+"    This command relies on SSSD to retrieve the list of matching users and\n"
+"    may return cached data. For more information on purging SSSD cache,\n"
+"    please refer to sss_cache documentation.\n"
+"    "
+msgstr ""
+"\n"
+"    Buscar usuarios que coincidan con el certificado suministrado.\n"
+"\n"
+"    Este comando se basa en SSSD para recuperar la lista de los usuarios\n"
+"    coincidentes y puede devolver los datos en cache. Para más información "
+"sobre \n"
+"    la purga del cache SSSD, vea por favor la documentación sss_cache.\n"
+"    "
+
+msgid ""
+"\n"
 "    Unlock a user account\n"
 "\n"
 "    An account may become locked if the password is entered incorrectly too\n"
@@ -418,6 +436,15 @@ msgstr ""
 
 msgid ""
 "\n"
+" Add a new server:\n"
+"   ipa radiusproxy-add MyRADIUS --server=radius.example.com:1812\n"
+msgstr ""
+"\n"
+" Añadir un nuevo servidor:\n"
+"   ipa radiusproxy-add MyRADIUS --server=radius.example.com:1812\n"
+
+msgid ""
+"\n"
 " Add a new token:\n"
 "   ipa otptoken-add --type=totp --owner=jdoe --desc=\"My soft token\"\n"
 msgstr ""
@@ -466,6 +493,15 @@ msgstr ""
 
 msgid ""
 "\n"
+" Change the secret:\n"
+"   ipa radiusproxy-mod MyRADIUS --secret\n"
+msgstr ""
+"\n"
+" Cambiar el secreto:\n"
+"   ipa radiusproxy-mod MyRADIUS --secret\n"
+
+msgid ""
+"\n"
 " Change the vendor:\n"
 "   ipa otptoken-mod a93db710-a31a-4639-8647-f15b2c70b78a --vendor=\"Red Hat"
 "\"\n"
@@ -483,6 +519,35 @@ msgstr ""
 "\n"
 " Comprueba el estado de una petición de firma:\n"
 "   ipa cert-status 10\n"
+
+msgid ""
+"\n"
+" Create a new Certificate Identity Mapping Rule:\n"
+"   ipa certmaprule-add rule1 --desc=\"Link certificate with subject and "
+"issuer\"\n"
+msgstr ""
+"\n"
+" Crea una nueva Regla de Mapeo de Identidad de Certificado:\n"
+"   ipa certmaprule-add rule1 --desc=\"Link certificate with subject and "
+"issuer\"\n"
+
+msgid ""
+"\n"
+" Delete a Certificate Identity Mapping Rule:\n"
+"   ipa certmaprule-del rule1\n"
+msgstr ""
+"\n"
+" Borra una Regla de Mapeo de Identidad de Certificado:\n"
+"   ipa certmaprule-del rule1\n"
+
+msgid ""
+"\n"
+" Delete a configuration:\n"
+"   ipa radiusproxy-del MyRADIUS\n"
+msgstr ""
+"\n"
+" Borrar una configuración:\n"
+"   ipa radiusproxy-del MyRADIUS\n"
 
 msgid ""
 "\n"
@@ -504,6 +569,15 @@ msgstr ""
 
 msgid ""
 "\n"
+" Disable a Certificate Identity Mapping Rule:\n"
+"   ipa certmaprule-disable rule1\n"
+msgstr ""
+"\n"
+" Deshabilitar una Regla de Mapeo de Identidad de Certificado:\n"
+"   ipa certmaprule-disable rule1\n"
+
+msgid ""
+"\n"
 " Disable the host Kerberos key, SSL certificate and all of its services:\n"
 "   ipa host-disable test.example.com\n"
 msgstr ""
@@ -511,6 +585,42 @@ msgstr ""
 " Deshabilitar la clave Kerberos de host, el certificado SSL y todos sus "
 "servicios:\n"
 "   ipa host-disable test.example.com\n"
+
+msgid ""
+"\n"
+" Display information about a Certificate Identity Mapping Rule:\n"
+"   ipa certmaprule-show rule1\n"
+msgstr ""
+"\n"
+" Muestra información sobre una Regla de Mapeo de Identidad de Certificado:\n"
+"   ipa certmaprule-show rule1\n"
+
+msgid ""
+"\n"
+" Display the Certificate Identity Mapping global configuration:\n"
+"   ipa certmapconfig-show\n"
+msgstr ""
+"\n"
+" Mostrar la configuración global del Mapeo de Identidad de Certificado:\n"
+"   ipa certmapconfig-show\n"
+
+msgid ""
+"\n"
+" Enable a Certificate Identity Mapping Rule:\n"
+"   ipa certmaprule-enable rule1\n"
+msgstr ""
+"\n"
+" Habilitar una Regla de Mapeo de Identidad de Certificado:\n"
+"   ipa certmaprule-enable rule1\n"
+
+msgid ""
+"\n"
+" Examine the configuration:\n"
+"   ipa radiusproxy-show MyRADIUS\n"
+msgstr ""
+"\n"
+" Examinar la configuración:\n"
+"   ipa radiusproxy-show MyRADIUS\n"
 
 msgid ""
 "\n"
@@ -523,6 +633,26 @@ msgstr ""
 
 msgid ""
 "\n"
+" Find all Certificate Identity Mapping Rules with the specified domain:\n"
+"   ipa certmaprule-find --domain example.com\n"
+msgstr ""
+"\n"
+" Encuentra todas las Reglas de Mapeo de Identidad de Certificado con el "
+"dominio especificado:\n"
+"   ipa certmaprule-find --domain example.com\n"
+
+msgid ""
+"\n"
+" Find all servers whose entries include the string \"example.com\":\n"
+"   ipa radiusproxy-find example.com\n"
+msgstr ""
+"\n"
+" Encontrar todos los servidores cuyas entradas incluyan la cadena \"example."
+"com\":\n"
+"   ipa radiusproxy-find example.com\n"
+
+msgid ""
+"\n"
 " List vaults:\n"
 "   ipa vault-find\n"
 "       [--user <user>|--service <service>|--shared]\n"
@@ -531,6 +661,26 @@ msgstr ""
 " Listar bóvedas:\n"
 "   ipa vault-find\n"
 "       [--user <user>|--service <service>|--shared]\n"
+
+msgid ""
+"\n"
+" Modify Certificate Identity Mapping global configuration:\n"
+"   ipa certmapconfig-mod --promptusername=TRUE\n"
+msgstr ""
+"\n"
+" Modificar la configuración global del Mapeo de Identidad de Certificado:\n"
+"   ipa certmapconfig-mod --promptusername=TRUE\n"
+
+msgid ""
+"\n"
+" Modify a Certificate Identity Mapping Rule:\n"
+"   ipa certmaprule-mod rule1 --maprule=\"<ALT-SEC-ID-I-S:"
+"altSecurityIdentities>\"\n"
+msgstr ""
+"\n"
+" Modificar una Regla de Identidad de Certificado:\n"
+"   ipa certmaprule-mod rule1 --maprule=\"<ALT-SEC-ID-I-S:"
+"altSecurityIdentities>\"\n"
 
 msgid ""
 "\n"
@@ -1063,6 +1213,13 @@ msgstr ""
 "Las CAs están habilitadas en la creación, pero su uso está sujeto a las ACLs "
 "de CA\n"
 "a  no ser que el operador haya permitido saltarse las ACLs de CA.\n"
+
+msgid ""
+"\n"
+"Certificate Identity Mapping\n"
+msgstr ""
+"\n"
+"Mapeando la Identidad del Certificado\n"
 
 msgid ""
 "\n"
@@ -2455,6 +2612,37 @@ msgstr ""
 
 msgid ""
 "\n"
+"IPA supports the use of an external RADIUS proxy server for krb5 OTP\n"
+"authentications. This permits a great deal of flexibility when\n"
+"integrating with third-party authentication services.\n"
+msgstr ""
+"\n"
+"IPA soporta el uso de servidores proxy RADIUS externos para autenticaciones "
+"krb5\n"
+"OTP. Esto permite una gran oferta de flexibilidad cuando se integra con "
+"servicios de \n"
+"autenticación de tercera parte.\n"
+
+msgid ""
+"\n"
+"IPA supports the use of certificates for authentication. Certificates can\n"
+"either be stored in the user entry (full certificate in the usercertificate\n"
+"attribute), or simply linked to the user entry through a mapping.\n"
+"This code enables the management of the rules allowing to link a\n"
+"certificate to a user entry.\n"
+msgstr ""
+"\n"
+"IPA soporta el uso de certificados para la autenticación. Las certificados "
+"pueden ser\n"
+"bien almacenados en la entrada del usuario (el certificado completo en el "
+"atributo\n"
+"usercertificate) o simplemente enlazado a la entrada de usuario a través de "
+"un\n"
+"mapeo. Esta código habilita la gestión de las reglas permitiendo enlazar un\n"
+"certificado a una entrada de usuario.\n"
+
+msgid ""
+"\n"
 "Implements a set of commands for managing server SSL certificates.\n"
 msgstr ""
 "\n"
@@ -2474,6 +2662,46 @@ msgid ""
 msgstr ""
 "\n"
 "Uniendo un dominio IPA\n"
+
+msgid ""
+"\n"
+"Kerberos PKINIT feature status reporting tools.\n"
+"\n"
+"Report IPA masters on which Kerberos PKINIT is enabled or disabled\n"
+"\n"
+"EXAMPLES:\n"
+" List PKINIT status on all masters:\n"
+"   ipa pkinit-status\n"
+"\n"
+" Check PKINIT status on `ipa.example.com`:\n"
+"   ipa pkinit-status --server ipa.example.com\n"
+"\n"
+" List all IPA masters with disabled PKINIT:\n"
+"   ipa pkinit-status --status='disabled'\n"
+"\n"
+"For more info about PKINIT support see:\n"
+"\n"
+"https://www.freeipa.org/page/V4/Kerberos_PKINIT\n"
+msgstr ""
+"\n"
+"Herramientas de informe de estados de características Kerberos PKINIT.\n"
+"\n"
+"Informa de los másters IPA sobre los cuales Kerberos PKINIT está habilitado "
+"o deshabilitado\n"
+"\n"
+"EJEMPLOS:\n"
+" Lista el estado PKINIT sobre todos los másters:\n"
+"   ipa pkinit-status\n"
+"\n"
+" Comprueba el estado PKINIT sobre `ipa.example.com`:\n"
+"   ipa pkinit-status --server ipa.example.com\n"
+"\n"
+" Lista todos los másters IPA con PKINIT deshabilitado:\n"
+"   ipa pkinit-status --status='disabled'\n"
+"\n"
+"Para más información sobre soporte PKINIT vea:\n"
+"\n"
+"https://www.freeipa.org/page/V4/Kerberos_PKINIT\n"
 
 msgid ""
 "\n"
@@ -2587,6 +2815,14 @@ msgid ""
 msgstr ""
 "\n"
 "Manejar Autoridades de Certificado\n"
+
+msgid ""
+"\n"
+"Manage Certificate Identity Mapping configuration and rules.\n"
+msgstr ""
+"\n"
+"Gestionar la configuración y las reglas del Mapeo de Identidad del "
+"Certificado.\n"
 
 msgid ""
 "\n"
@@ -2715,6 +2951,13 @@ msgstr ""
 
 msgid ""
 "\n"
+"Manage RADIUS Proxy Servers.\n"
+msgstr ""
+"\n"
+"Gestionar Servidores Proxy RADIUS.\n"
+
+msgid ""
+"\n"
 "Manage YubiKey tokens.\n"
 msgstr ""
 "\n"
@@ -2754,6 +2997,53 @@ msgid ""
 msgstr ""
 "\n"
 "Misc plug-ins\n"
+
+msgid ""
+"\n"
+"Netgroups\n"
+"\n"
+"A netgroup is a group used for permission checking. It can contain both\n"
+"user and host values.\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" Add a new netgroup:\n"
+"   ipa netgroup-add --desc=\"NFS admins\" admins\n"
+"\n"
+" Add members to the netgroup:\n"
+"   ipa netgroup-add-member --users=tuser1 --users=tuser2 admins\n"
+"\n"
+" Remove a member from the netgroup:\n"
+"   ipa netgroup-remove-member --users=tuser2 admins\n"
+"\n"
+" Display information about a netgroup:\n"
+"   ipa netgroup-show admins\n"
+"\n"
+" Delete a netgroup:\n"
+"   ipa netgroup-del admins\n"
+msgstr ""
+"\n"
+"Netgroups\n"
+"\n"
+"Un netgroup es un grupo usado para comprobación de permisos. Puede contener\n"
+"valores tanto de usuario como de host.\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+" Añadir un nuevo netgroup:\n"
+"   ipa netgroup-add --desc=\"NFS admins\" admins\n"
+"\n"
+" Añadir miembros al netgroup:\n"
+"   ipa netgroup-add-member --users=tuser1 --users=tuser2 admins\n"
+"\n"
+" Quitar un miembro del netgroup:\n"
+"   ipa netgroup-remove-member --users=tuser2 admins\n"
+"\n"
+" Mostrar información sobre un netgroup:\n"
+"   ipa netgroup-show admins\n"
+"\n"
+" Borrar un netgroup:\n"
+"   ipa netgroup-del admins\n"
 
 msgid ""
 "\n"
@@ -3220,6 +3510,13 @@ msgstr ""
 "   \n"
 "\n"
 "\n"
+
+msgid ""
+"\n"
+"RADIUS Proxy Servers\n"
+msgstr ""
+"\n"
+"Servidores Proxy RADIUS\n"
 
 msgid ""
 "\n"
@@ -4232,6 +4529,12 @@ msgstr[0] "%(count)d CA coincidente"
 msgstr[1] "%(count)d CAs coincidentes"
 
 #, python-format
+msgid "%(count)d Certificate Identity Mapping Rule matched"
+msgid_plural "%(count)d Certificate Identity Mapping Rules matched"
+msgstr[0] "%(count)d Regla de Mapeo de Identidad de Certificado coincidente"
+msgstr[1] "%(count)d Reglas de Mapeo de Identidad de Certificado coincidentes"
+
+#, python-format
 msgid "%(count)d HBAC rule matched"
 msgid_plural "%(count)d HBAC rules matched"
 msgstr[0] "%(count)d regla coincidente de HBAC"
@@ -4266,6 +4569,12 @@ msgid "%(count)d OTP token matched"
 msgid_plural "%(count)d OTP tokens matched"
 msgstr[0] "%(count)d OTP ficha coincidente"
 msgstr[1] "%(count)d OTP fichas coincidentes"
+
+#, python-format
+msgid "%(count)d RADIUS proxy server matched"
+msgid_plural "%(count)d RADIUS proxy servers matched"
+msgstr[0] "%(count)d servidor proxy RADIUS coincidente"
+msgstr[1] "%(count)d servidores proxy RADIUS coincidentes"
 
 #, python-format
 msgid "%(count)d SELinux User Map matched"
@@ -4402,6 +4711,18 @@ msgstr[1] "%(count)d usuarios coincidentes"
 #, python-format
 msgid "%(count)d variables"
 msgstr "%(count)d variables"
+
+#, python-format
+msgid "%(count)s server matched"
+msgid_plural "%(count)s servers matched"
+msgstr[0] "%(count)s servidor coincide"
+msgstr[1] "%(count)s servidores coinciden"
+
+#, python-format
+msgid "%(count)s user matched"
+msgid_plural "%(count)s users matched"
+msgstr[0] "%(count)s usuario coincidente"
+msgstr[1] "%(count)s usuarios coincidentes"
 
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
@@ -4659,6 +4980,9 @@ msgstr ""
 "Una lista separada por comas de los campos a buscar cuando se está buscando "
 "usuarios"
 
+msgid "A description of this RADIUS proxy server"
+msgstr "Una descripción de este servidor proxy RADIUS"
+
 msgid "A description of this auto member rule"
 msgstr "Una descripción de esta regla auto miembro"
 
@@ -4826,6 +5150,9 @@ msgstr "Añadir un nuevo servicio nuevo IPA."
 msgid "Add a new OTP token."
 msgstr "Añadir una nueva ficha OTP."
 
+msgid "Add a new RADIUS proxy server."
+msgstr "Añadir un nuevo servidor proxy RADIUS."
+
 msgid "Add a new YubiKey OTP token."
 msgstr "Añadir una nueva ficha YubiKey OTP."
 
@@ -4991,6 +5318,10 @@ msgid "Added %(src)s to %(dst)s"
 msgstr "Agregado %(src)s a %(dst)s"
 
 #, python-format
+msgid "Added Certificate Identity Mapping Rule \"%(value)s\""
+msgstr "Añadida Regla de Mapeo de Identidad de Certificado \"%(value)s\""
+
+#, python-format
 msgid "Added HBAC rule \"%(value)s\""
 msgstr "Añadida regla HBAC \"%(value)s\""
 
@@ -5013,6 +5344,10 @@ msgstr "Añadida localización IPA \"%(value)s\""
 #, python-format
 msgid "Added OTP token \"%(value)s\""
 msgstr "Añadir ficha OTP \"%(value)s\""
+
+#, python-format
+msgid "Added RADIUS proxy server \"%(value)s\""
+msgstr "Añadido servidor proxy RADIUS \"%(value)s\""
 
 #, python-format
 msgid "Added SELinux User Map \"%(value)s\""
@@ -5457,6 +5792,9 @@ msgstr "Certificado de host codificado en Base-64"
 msgid "Base-64 encoded server certificate"
 msgstr "Certificado del servidor codificado con base-64"
 
+msgid "Base-64 encoded user certificate"
+msgstr "Certificado de usuario codificado en Base-64"
+
 #, python-format
 msgid "Base64 decoding failed: %(reason)s"
 msgstr "Falló la decodificación base64: %(reason)s"
@@ -5564,6 +5902,24 @@ msgstr "Autoridad de Certificado"
 
 msgid "Certificate Hold"
 msgstr "Certificado retenido"
+
+msgid "Certificate Identity Mapping Global Configuration"
+msgstr "Configuración Global del Mapeo de Identidad de Certificado"
+
+msgid "Certificate Identity Mapping Rule"
+msgstr "Regla de Mapeo de Identidad de Certificado"
+
+msgid "Certificate Identity Mapping Rule description"
+msgstr "Descripción de la Regla de Mapeo de Identidad de Certificado"
+
+msgid "Certificate Identity Mapping Rule name"
+msgstr "Nombre de Regla de Mapeo de Identidad de Certificado"
+
+msgid "Certificate Identity Mapping Rules"
+msgstr "Reglas de Mapeo de Identidad de Certificado"
+
+msgid "Certificate Identity Mapping configuration options"
+msgstr "Opciones de configuración del Mapeo de Identidad de Certificado"
 
 msgid "Certificate Profile"
 msgstr "Certificado de Perfil"
@@ -5770,6 +6126,9 @@ msgstr "Contador"
 
 msgid "Create a CA."
 msgstr "Crear una CA."
+
+msgid "Create a new Certificate Identity Mapping Rule."
+msgstr "Crear una nueva Regla de Mapeo de Identidad de Certificado."
 
 msgid "Create a new HBAC rule."
 msgstr "Crear una nueva regla HBAC."
@@ -6098,8 +6457,14 @@ msgstr "Borrar Regla Sudo."
 msgid "Delete a CA."
 msgstr "Borrar una CA."
 
+msgid "Delete a Certificate Identity Mapping Rule."
+msgstr "Borrar una Regla de Mapeo de Identidad de Certificado."
+
 msgid "Delete a Certificate Profile."
 msgstr "Borrar un Certificado Perfil"
+
+msgid "Delete a RADIUS proxy server."
+msgstr "Borrar un servidor proxy RADIUS."
 
 msgid "Delete a SELinux User Map."
 msgstr "Borrar un Mapa de Usuario SELinux."
@@ -6198,6 +6563,10 @@ msgid "Deleted CA \"%(value)s\""
 msgstr "Borrada CA \"%(value)s\""
 
 #, python-format
+msgid "Deleted Certificate Identity Mapping Rule \"%(value)s\""
+msgstr "Regla de Mapeo de Identidad de Certificado \"%(value)s\" borrada"
+
+#, python-format
 msgid "Deleted HBAC rule \"%(value)s\""
 msgstr "Suprimida regla HBAC \"%(value)s\""
 
@@ -6224,6 +6593,10 @@ msgstr "Eliminado servidor IPA \"%(value)s\""
 #, python-format
 msgid "Deleted OTP token \"%(value)s\""
 msgstr "Ficha OTP borrada \"%(value)s\""
+
+#, python-format
+msgid "Deleted RADIUS proxy server \"%(value)s\""
+msgstr "Borrado servidor proxy RADIUS \"%(value)s\""
 
 #, python-format
 msgid "Deleted SELinux User Map \"%(value)s\""
@@ -6392,6 +6765,9 @@ msgstr "Deshabilitar Zona DNS."
 msgid "Disable a CA."
 msgstr "Deshabilitar una CA."
 
+msgid "Disable a Certificate Identity Mapping Rule."
+msgstr "Deshabilitar una Regla de Mapeo de Identidad de Certificado."
+
 msgid "Disable a Sudo Rule."
 msgstr "Deshabilitar Regla Sudo."
 
@@ -6421,6 +6797,10 @@ msgstr "Desactivado"
 #, python-format
 msgid "Disabled CA \"%(value)s\""
 msgstr "Deshabilitada CA \"%(value)s\""
+
+#, python-format
+msgid "Disabled Certificate Identity Mapping Rule \"%(value)s\""
+msgstr "Regla de Mapeo de Identidad de Certificado \"%(value)s\" deshabilitada"
 
 #, python-format
 msgid "Disabled DNS zone \"%(value)s\""
@@ -6533,8 +6913,15 @@ msgstr "Mostrar los derechos actuales."
 msgid "Display effective policy for a specific user"
 msgstr "Ofrece la política efectiva para un determinado usuario"
 
+msgid "Display information about a Certificate Identity Mapping Rule."
+msgstr ""
+"Visualizar información sobre una Regla de Mapeo de Identidad de Certificado."
+
 msgid "Display information about a DNS zone (SOA record)."
 msgstr "Mostrar información sobre una zona DNS (registro SOA)."
+
+msgid "Display information about a RADIUS proxy server."
+msgstr "Muestra información sobre un servidor proxy RADIUS."
 
 msgid "Display information about a delegation."
 msgstr "Mostrar información sobre una delegación."
@@ -6638,6 +7025,12 @@ msgstr "Dominio '%(domain)s' no es el dominio raíz para el bosque '%(forest)s'"
 msgid "Domain SID of the trusted domain"
 msgstr "SID de dominio del dominio de confianza"
 
+msgid "Domain name"
+msgstr "Nombre de dominio"
+
+msgid "Domain where the user entry will be searched"
+msgstr "Dominio donde se buscará la entrada de usuario"
+
 msgid "Don't create user private group"
 msgstr "No crear grupo privado de usuario"
 
@@ -6681,6 +7074,9 @@ msgstr "Habilitar Zona DNS."
 msgid "Enable a CA."
 msgstr "Habilitar una CA."
 
+msgid "Enable a Certificate Identity Mapping Rule."
+msgstr "Habilitar una Regla de Mapeo de Identidad de Certificado."
+
 msgid "Enable a Sudo Rule."
 msgstr "Habilitar Regla Sudo."
 
@@ -6705,6 +7101,10 @@ msgstr "Habilitado"
 #, python-format
 msgid "Enabled CA \"%(value)s\""
 msgstr "Habilitada CA \"%(value)s\""
+
+#, python-format
+msgid "Enabled Certificate Identity Mapping Rule \"%(value)s\""
+msgstr "Regla de Mapeo de Identidad de Certificado \"%(value)s\" habilitada"
 
 #, python-format
 msgid "Enabled DNS zone \"%(value)s\""
@@ -6925,6 +7325,9 @@ msgstr "Fallo al limpiar principales/claves del servidor: %(err)s"
 msgid "Failed to close the keytab\n"
 msgstr "No se pudo cerrar la tabla de claves\n"
 
+msgid "Failed to connect to sssd over SystemBus. See details in the error_log"
+msgstr "Fallo al conectar sssd sobre SystemBus. Vea detalles en error_log"
+
 #, c-format
 msgid "Failed to create control!\n"
 msgstr "¡Falló crear control!\n"
@@ -6941,6 +7344,10 @@ msgstr "Falló la creación de clave aleatoria\n"
 
 msgid "Failed to decode control reply!\n"
 msgstr "Falló al decodificar la respuesta de control!\n"
+
+msgid "Failed to find users over SystemBus.  See details in the error_log"
+msgstr ""
+"Fallo al encontrar usuarios sobre SystemBus.  Vea detalles en error_log"
 
 #, c-format
 msgid "Failed to get keytab\n"
@@ -7716,21 +8123,9 @@ msgstr "Petición JSON-RPC no válida: %(error)s"
 msgid "Invalid LDAP URI."
 msgstr " URI LDAP no válida."
 
-msgid ""
-"Invalid MCS value, must match c[0-1023].c[0-1023] and/or c[0-1023]-c[0-c0123]"
-msgstr ""
-"Valor MCS no valido, debe coincidir c[0-1023].c[0-1023] y/o c[0-1023]-c[0-"
-"c0123]"
-
-msgid "Invalid MLS value, must match s[0-15](-s[0-15])"
-msgstr "Valor MLS no válido, debe coincidir s[0-15](-s[0-15])"
-
 #, c-format
 msgid "Invalid SASL bind mechanism\n"
 msgstr "Mecanismo de enlace SASL no válido\n"
-
-msgid "Invalid SELinux user name, only a-Z, _ and . are allowed"
-msgstr "Nombre de usuario SELinux no válido, solo a-Z, _ y . están permitidos"
 
 #, c-format
 msgid "Invalid Service Principal Name\n"
@@ -8006,6 +8401,9 @@ msgstr "Mapa"
 msgid "Map Type"
 msgstr "Tipo de Mapa"
 
+msgid "Mapping rule"
+msgstr "Regla de mapeo"
+
 #, python-format
 msgid ""
 "Mapping ruleset \"%(ruleset)s\" has more than one rule for the %(helper)s "
@@ -8031,6 +8429,9 @@ msgstr "Emparejado"
 
 msgid "Matched rules"
 msgstr "Reglas coincidentes"
+
+msgid "Matching rule"
+msgstr "Regla de coincidencia"
 
 msgid "Max domain level"
 msgstr "Nivel de dominio Max"
@@ -8061,6 +8462,9 @@ msgstr "Número máximo de acuerdos por replica"
 
 msgid "Maximum number of entries returned"
 msgstr "Cantidad máxima de entradas obtenidas"
+
+msgid "Maximum number of entries returned (0 is unlimited)"
+msgstr "Número máximo de entradas devueltas (0 es ilimitado)"
 
 msgid "Maximum number of records to search (-1 is unlimited)"
 msgstr "Máximo número de registros a buscar (-1 es ilimitado)"
@@ -8288,6 +8692,10 @@ msgid "Modified CA \"%(value)s\""
 msgstr "Modificada CA \"%(value)s\""
 
 #, python-format
+msgid "Modified Certificate Identity Mapping Rule \"%(value)s\""
+msgstr "Regla de Mapeo de Identidad de Certificado modificada \"%(value)s\""
+
+#, python-format
 msgid "Modified Certificate Profile \"%(value)s\""
 msgstr "Modificado Certificado Perfil \"%(value)s\""
 
@@ -8318,6 +8726,10 @@ msgstr "Modificado servidor IPA \"%(value)s\""
 #, python-format
 msgid "Modified OTP token \"%(value)s\""
 msgstr "Ficha OTP modificada \"%(value)s\""
+
+#, python-format
+msgid "Modified RADIUS proxy server \"%(value)s\""
+msgstr "Modificado servidor proxy RADIUS \"%(value)s\""
 
 #, python-format
 msgid "Modified SELinux User Map \"%(value)s\""
@@ -8401,6 +8813,9 @@ msgstr "Modificar ACI."
 msgid "Modify CA configuration."
 msgstr "Modificar configuración de CA."
 
+msgid "Modify Certificate Identity Mapping configuration."
+msgstr "Modificar la configuración de Mapeo de Identidad de Certificado."
+
 msgid "Modify Certificate Profile configuration."
 msgstr "Modificar la configuración del Certificado Perfil"
 
@@ -8435,11 +8850,17 @@ msgstr "Modificar Comando Sudo."
 msgid "Modify Sudo Rule."
 msgstr "Modificar Regla Sudo."
 
+msgid "Modify a Certificate Identity Mapping Rule."
+msgstr "Modificar una Regla de Mapeo de Identidad de Certificado."
+
 msgid "Modify a DNS resource record."
 msgstr "Modificar un registro de recurso DNS."
 
 msgid "Modify a OTP token."
 msgstr "MOdificar una ficha OTP."
+
+msgid "Modify a RADIUS proxy server."
+msgstr "Modificar un servidor proxy RADIUS."
 
 msgid "Modify a SELinux User Map."
 msgstr "Modificar un Mapa de Usuario SELinux."
@@ -8962,6 +9383,9 @@ msgstr ""
 "    Unicode  se normalizan.\n"
 "    "
 
+msgid "PKINIT status"
+msgstr "Estado PKINIT"
+
 msgid "POSIX"
 msgstr "POSIX"
 
@@ -9183,6 +9607,10 @@ msgid "Priority of the policy (higher number means lower priority"
 msgstr ""
 "Prioridad de la política (a mayor número corresponde una política menor)"
 
+msgid "Priority of the rule (higher number means lower priority"
+msgstr ""
+"Prioridad de la regla (el número más alto significa la prioridad más baja"
+
 msgid "Privilege"
 msgstr "Privilegio"
 
@@ -9229,6 +9657,15 @@ msgstr "Los datos del perfil especifican profileId múltiples veces: %(values)s"
 msgid "Profile description"
 msgstr "Descripción del perfil"
 
+msgid "Prompt for the username"
+msgstr "Pedir el nombre de usuario"
+
+msgid ""
+"Prompt for the username when multiple identities are mapped to a certificate"
+msgstr ""
+"Pedir el nombre de usuario cuando múltiples identidades están mapeadas a un "
+"certificado"
+
 msgid "Prompt to set the user password"
 msgstr "Solicita establecer la contraseña de usuario"
 
@@ -9271,9 +9708,24 @@ msgstr "Modo silencioso. Sólo se muestran los errores."
 msgid "RADIUS"
 msgstr "RADIUS"
 
+msgid "RADIUS Server"
+msgstr "Servidor RADIUS"
+
+msgid "RADIUS Servers"
+msgstr "Servidores RADIUS"
+
+msgid "RADIUS proxy server"
+msgstr "Servidor proxy RADIUS"
+
+msgid "RADIUS proxy server name"
+msgstr "Nombre del servidor proxy RADIUS"
+
 #, python-format
 msgid "RADIUS proxy server with name \"%s\" already exists"
 msgstr "Servidor proxy RADIUS con nombre \"%s\" ya existe"
+
+msgid "RADIUS proxy servers"
+msgstr "Servidores proxy RADIUS"
 
 msgid "Random password"
 msgstr "Contraseña aleatoria"
@@ -9561,6 +10013,9 @@ msgstr "La replica de la topología con sufijo \"%(suffix)s\" contiene errores."
 msgid "Replication topology of suffix \"%(suffix)s\" is in order."
 msgstr "La repica de la topologia de sufijo \"%(suffix)s\" está en orden."
 
+msgid "Report PKINIT status on the IPA masters"
+msgstr "Informa el estado PKINIT sobre los másters IPA"
+
 #, python-format
 msgid "Request failed with status %(status)s: %(reason)s"
 msgstr "Fallo en petición con estado %(status)s: %(reason)s"
@@ -9643,6 +10098,9 @@ msgid "Results should contain primary key attribute only (\"sudorule-name\")"
 msgstr ""
 "Los resultados deberían contener solo el atributo de clave primaria "
 "(\"sudorule-name\")"
+
+msgid "Retries"
+msgstr "Reintentos"
 
 msgid "Retrieve an existing certificate."
 msgstr "Recuperar un certificado existente."
@@ -9736,6 +10194,14 @@ msgstr "Tipo de regla"
 
 msgid "Rule type (allow)"
 msgstr "Tipo de regla (permitir)"
+
+msgid "Rule used to check if a certificate can be used for authentication"
+msgstr ""
+"Regla usada para comprobar si un certificado puede ser usado para "
+"autenticación"
+
+msgid "Rule used to map the certificate with a user entry"
+msgstr "Regla usada para mapear el certificado con una entrada de usuario"
 
 msgid "Rules"
 msgstr "Reglas"
@@ -9888,6 +10354,9 @@ msgstr "Búsqueda de %1$s en rootdse falló con error %2$d\n"
 msgid "Search for CAs."
 msgstr "Búsqueda de CAs."
 
+msgid "Search for Certificate Identity Mapping Rules."
+msgstr "Buscar Reglas de Mapeo de Identidad de Certificado."
+
 msgid "Search for Certificate Profiles."
 msgstr "Búsqueda de Certificados de Perfiles"
 
@@ -9921,6 +10390,9 @@ msgstr "Buscar servicios IPA."
 
 msgid "Search for OTP token."
 msgstr "Búsqueda de ficha OTP."
+
+msgid "Search for RADIUS proxy servers."
+msgstr "Búsqueda de servidores proxy RADIUS."
 
 msgid "Search for SELinux User Maps."
 msgstr "Búsqueda de Mapas de Usuario SELinux."
@@ -10009,6 +10481,9 @@ msgstr "Segundo Código"
 
 msgid "Seconds Latitude"
 msgstr "Latitud en segundos"
+
+msgid "Secret"
+msgstr "Secreto"
 
 msgid "Select All"
 msgstr " Seleccionar todo"
@@ -10210,6 +10685,9 @@ msgstr "Mostrar detalles"
 
 msgid "Show environment variables."
 msgstr "Mostrar variables de entorno."
+
+msgid "Show the current Certificate Identity Mapping configuration."
+msgstr "Muestra la configuración actual del Mapeo de Identidad de Certificado."
 
 msgid "Show the current OTP configuration."
 msgstr "Mostrar la configuración OTP actual."
@@ -10501,6 +10979,10 @@ msgid "The automount key %(key)s with info %(info)s does not exist"
 msgstr "La clave de montaje automático %(key)s con info %(info)s no existe"
 
 #, python-format
+msgid "The certificate for %(ca)s is not available on this server."
+msgstr "El certificado para %(ca)s no está disponible en este servidor."
+
+#, python-format
 msgid "The character %(char)r is not allowed."
 msgstr "El carácter %(char)r no está permitido."
 
@@ -10509,6 +10991,10 @@ msgstr "El grupo de usuarios predeterminado no puede ser eliminado"
 
 msgid "The deny type has been deprecated."
 msgstr "El tipo deny ha quedado obsoleto."
+
+#, python-format
+msgid "The domain %s is neither IPA domain nor a trusteddomain."
+msgstr "El dominio %s no es un dominio IPA ni un dominio de confianza."
 
 #, python-format
 msgid "The following domains do not belong to this realm: %(domains)s"
@@ -10528,6 +11014,9 @@ msgstr "El nombre de host debe ser totalmente calificado:%s\n"
 #, c-format
 msgid "The hostname must not be: %s\n"
 msgstr "El nombre del equipo no debe ser: %s\n"
+
+msgid "The hostname or IP (with or without port)"
+msgstr "El nombre de host o IP (con o sin puerto)"
 
 msgid "The hostname to register as"
 msgstr "El nombre del equipo a ser registrado como"
@@ -10552,6 +11041,9 @@ msgstr "El fichero keytab fpara borrar el principal(s) desde"
 #, python-format
 msgid "The most common types for this type of zone are: %s\n"
 msgstr "Los tipos mas comunes para este tipo de zona son: %s\n"
+
+msgid "The number of times to retry authentication"
+msgstr "El número de veces para reintentar la autenticación"
 
 msgid "The primary_key value of the entry, e.g. 'jdoe' for a user"
 msgstr "El valor de primary_key de la entrada, p.ej., «jperez» para un usuario"
@@ -10599,8 +11091,18 @@ msgstr ""
 "El criterio de búsqueda no fue bastante específico. Se esperaba 1 y se "
 "encontró %(found)d."
 
+msgid "The secret used to encrypt data"
+msgstr "El secreto usado para encriptar datos"
+
 msgid "The topic or command name."
 msgstr "Nombre de tópico o comando."
+
+msgid "The total timeout across all retries (in seconds)"
+msgstr ""
+"El tiempo de espera total después de todos los reintentos (en segundos)"
+
+msgid "The username attribute on the user object"
+msgstr "El atributo username sobre el objeto usuario"
 
 msgid ""
 "This command can not be used to change ID allocation for local IPA domain. "
@@ -10661,11 +11163,17 @@ msgstr "Tiempo límite"
 msgid "Time limit of search in seconds"
 msgstr "Tiempo máximo de búsqueda en segundos"
 
+msgid "Time limit of search in seconds (0 is unlimited)"
+msgstr "Tiempo límite de búsqueda en segundos (0 es ilimitado)"
+
 msgid "Time now"
 msgstr "Ahora"
 
 msgid "Time to live"
 msgstr "Tiempo para abandonar"
+
+msgid "Timeout"
+msgstr "Tiempo de espera"
 
 #, c-format
 msgid "Timeout exceeded."
@@ -10930,6 +11438,9 @@ msgstr ""
 msgid "User Options"
 msgstr "Opciones de Usuario"
 
+msgid "User attribute"
+msgstr "Atributo de usuario"
+
 msgid "User category"
 msgstr "Categoría de usuario"
 
@@ -10956,6 +11467,9 @@ msgstr "Usuario de grupo a aplicar permisos (establece target)"
 
 msgid "User login"
 msgstr "Ingreso de usuario"
+
+msgid "User logins"
+msgstr "Accesos de usuario"
 
 msgid "User name"
 msgstr "Nombre de usuario"
@@ -11057,6 +11571,9 @@ msgid ""
 msgstr ""
 "Cuando se migra un grupo que ya existe en el dominio IPA se sobrescribe el "
 "GID de grupo e informa como conseguido"
+
+msgid "Whether PKINIT is enabled or disabled"
+msgstr "Sí PKINIT está habilitado o deshabilitado"
 
 msgid "Whether to store certs issued using this profile"
 msgstr "Si se almacenan los certificados enviados usando este perfil"
@@ -11229,8 +11746,8 @@ msgstr "puede ser como mucho %(maxvalue)s"
 msgid "cannot be empty"
 msgstr "no puede estar vacío"
 
-msgid "cannot be longer that 255 characters"
-msgstr "no puede ser más larga de 255 caracteres"
+msgid "cannot be longer that {} characters"
+msgstr "no puede ser mayor de {} caracteres"
 
 #, python-format
 msgid "cannot connect to '%(uri)s': %(error)s"
@@ -11361,6 +11878,9 @@ msgstr "no se ha recibido ninguna credencial de Kerberos"
 msgid "does not match any of accepted formats: "
 msgstr "no coincide con ninguno de los formatos aceptados: "
 
+msgid "domain"
+msgstr "dominio"
+
 msgid "domain is not configured"
 msgstr "el dominio no está configurado"
 
@@ -11474,6 +11994,11 @@ msgstr "grupos"
 msgid "host"
 msgstr "host"
 
+msgid "host category cannot be set to 'all' while there are allowed hosts"
+msgstr ""
+"la categoría de host no puede ser establecida a 'all' mientras hay host "
+"permitidos"
+
 msgid "host group"
 msgstr "grupo de host"
 
@@ -11538,6 +12063,9 @@ msgstr "clave SSH pública no válida"
 msgid "invalid address format"
 msgstr "formato de dirección no válido"
 
+msgid "invalid attribute name"
+msgstr "nombre de atributo no válido"
+
 msgid "invalid domain name"
 msgstr "nombre de domino no válido"
 
@@ -11550,6 +12078,9 @@ msgstr "código de salida no válido en el nombre de dominio"
 
 msgid "invalid hostmask"
 msgstr "máscara de host no válida"
+
+msgid "invalid port number"
+msgstr "número de puerto no válido"
 
 #, c-format
 msgid "ipa-getkeytab has bad permissions?\n"
@@ -12063,6 +12594,11 @@ msgstr "usuario"
 #, python-format
 msgid "user \"%s\" is already active"
 msgstr "usuario \"%s\" ya está activo"
+
+msgid "user category cannot be set to 'all' while there are allowed users"
+msgstr ""
+"la categoría de usuario no puede ser establecida a 'all' mientras hay "
+"usuarios permitidos"
 
 msgid "users"
 msgstr "usuarios"
