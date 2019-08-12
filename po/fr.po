@@ -5,9 +5,9 @@
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.7.90.dev201904231605+git36c65c4aa\n"
+"Project-Id-Version: freeipa 4.8.0\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2019-04-23 19:06+0300\n"
+"POT-Creation-Date: 2019-08-12 10:48+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -11654,15 +11654,6 @@ msgstr "Requête JSON-RPC invalide : %(error)s"
 msgid "Invalid LDAP URI."
 msgstr "URI LDAP invalide."
 
-msgid ""
-"Invalid MCS value, must match c[0-1023].c[0-1023] and/or c[0-1023]-c[0-c0123]"
-msgstr ""
-"Valeur pour MLS invalide, doit correspondre à c[0-1023].c[0-1023] et/ou "
-"c[0-1023]-c[0-c0123]"
-
-msgid "Invalid MLS value, must match s[0-15](-s[0-15])"
-msgstr "Valeur pour MLS invalide, doit correspondre à s[0-15](-s[0-15])"
-
 #, c-format
 msgid "Invalid Service Principal Name\n"
 msgstr "Nom de principal de service invalide\n"
@@ -16891,9 +16882,6 @@ msgstr ""
 
 msgid "cannot be empty"
 msgstr "ne peut pas être vide"
-
-msgid "cannot be longer that 255 characters"
-msgstr "ne peut pas dépasser 255 caractères."
 
 #, python-format
 msgid "cannot connect to '%(uri)s': %(error)s"
