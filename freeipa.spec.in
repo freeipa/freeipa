@@ -86,9 +86,9 @@
 # Fedora
 %endif
 
-# 10.7 includes 'pki-server cert-fix' enhancements required
-# by ipa-cert-fix: https://pagure.io/freeipa/issue/7885
-%global pki_version 10.7.0-1
+# 10.7.3 supports LWCA key replication using AES
+# https://pagure.io/freeipa/issue/8020
+%global pki_version 10.7.3-1
 
 # https://pagure.io/certmonger/issue/90
 %global certmonger_version 0.79.7-1
