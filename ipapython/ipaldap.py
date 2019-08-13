@@ -1206,12 +1206,14 @@ class LDAPClient:
         return conn
 
     def simple_bind(self, bind_dn, bind_password, server_controls=None,
-                    client_controls=None):
+                    client_controls=None, insecure_bind=False):
         """
         Perform simple bind operation.
         """
-        if self.protocol == 'ldap' and not self._start_tls and bind_password:
-            # non-empty bind must use a secure connection
+        if (self.protocol == 'ldap' and not self._start_tls and
+                bind_password and not insecure_bind):
+            # non-empty bind must use a secure connection unless
+            # insecure bind is explicitly enabled
             raise ValueError('simple_bind over insecure LDAP connection')
         with self.error_handler():
             self._flush_schema()
