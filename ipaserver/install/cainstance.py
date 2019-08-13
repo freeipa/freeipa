@@ -599,8 +599,12 @@ class CAInstance(DogtagInstance):
             print("%s --external-cert-file=/path/to/signed_certificate --external-cert-file=/path/to/external_ca_certificate" % sys.argv[0])
             sys.exit(0)
         else:
-            shutil.move(paths.CA_BACKUP_KEYS_P12,
-                        paths.CACERT_P12)
+            if config.getboolean(
+                    self.subsystem, 'pki_backup_keys', fallback=True
+            ):
+                shutil.move(
+                    paths.CA_BACKUP_KEYS_P12, paths.CACERT_P12
+                )
 
         logger.debug("completed creating ca instance")
 
