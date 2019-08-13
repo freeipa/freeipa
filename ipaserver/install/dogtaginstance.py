@@ -875,8 +875,7 @@ class PKIIniLoader:
         )
 
         # key backup is not compatible with HSM support
-        if (cfgtpl.has_option(section_name, 'pki_hsm_enable') and
-                cfgtpl.getboolean(section_name, 'pki_hsm_enable')):
+        if cfgtpl.getboolean(section_name, 'pki_hsm_enable', fallback=False):
             cfgtpl.set(section_name, 'pki_backup_keys', 'False')
             cfgtpl.set(section_name, 'pki_backup_password', '')
 
