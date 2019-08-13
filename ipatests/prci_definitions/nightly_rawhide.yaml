@@ -471,6 +471,78 @@ jobs:
         timeout: 10800
         topology: *master_2repl_1client
 
+  fedora-rawhide/test_installation_TestInstallReplicaWithUnreachableMaster_0:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallReplicaWithUnreachableMaster_0
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-rawhide/test_installation_TestInstallReplicaWithUnreachableMaster_1:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallReplicaWithUnreachableMaster_1
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-rawhide/test_installation_TestInstallReplicaWithUnreachableMaster_2:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallReplicaWithUnreachableMaster_2
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-rawhide/test_installation_TestInstallReplicaWithUnreachableMaster_3:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallReplicaWithUnreachableMaster_3
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-rawhide/test_installation_TestInstallReplicaWithUnreachableMaster_4:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallReplicaWithUnreachableMaster_4
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-rawhide/test_installation_TestInstallReplicaWithUnreachableMaster_5:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallReplicaWithUnreachableMaster_5
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_2repl_1client
+
   fedora-rawhide/test_idviews:
     requires: [fedora-rawhide/build]
     priority: 50

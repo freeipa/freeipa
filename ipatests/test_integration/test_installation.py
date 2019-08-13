@@ -26,6 +26,7 @@ from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks as platformtasks
 from ipapython import ipautil
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
@@ -939,3 +940,102 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
                                             self.replicas[0].hostname],
                                            stdin_text=dirman_password)
         assert self.replicas[0].hostname not in cmd.stdout_text
+
+class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
+    """https://pagure.io/freeipa/issue/8039
+    Problem:
+    In some cases installing a replica will fail if the specific master it
+    chose to contact is unavailable.
+    """
+    num_replicas = 2  # master_2repl_1client
+
+    @classmethod
+    def fix_resolv_conf(cls, client, servers):
+        client.run_command(['hostname', '-f'])
+        client.run_command([
+            '/usr/bin/cp', paths.RESOLV_CONF,
+            '%s.sav' % paths.RESOLV_CONF
+        ])
+        tasks.config_host_resolvconf_with_masters_data(
+            masters=servers,
+            host=client
+        )
+        client.run_command(['cat', paths.RESOLV_CONF])
+
+    @classmethod
+    def restore_resolv_conf(cls, client):
+        client.run_command([
+            '/usr/bin/cp',
+            '%s.sav' % paths.RESOLV_CONF,
+            paths.RESOLV_CONF
+        ])
+
+    def test_install_replica(self):
+        """Test Steps:
+        1. Setup server
+        2. Setup replica
+        3. Shut down server
+        4. Try to install replica
+        """
+        # install master with all features
+        tasks.install_master(
+            self.master, setup_kra=True, setup_dns=True
+        )
+        # setup resolv.conf on both replica
+        # * master's IP comes first
+        # * this should allow nsupdate to work
+        for i in (0, 1):
+            self.fix_resolv_conf(
+                self.replicas[i],
+                [self.master, self.replicas[0]]
+            )
+
+        # install replica0 with all features
+        tasks.install_replica(
+            self.master, self.replicas[0],
+            setup_ca=True, setup_dns=True, setup_kra=True,
+            promote=False
+        )
+        # double-check DNS configuration
+        for dnsserver in (self.master.ip, self.replicas[0].ip):
+            # dig returns 9 on timeout
+            result = self.replicas[1].run_command([
+                'dig', '+short', '@%s' % dnsserver,
+                '-t', 'SRV',
+                '_ldap._tcp.{domain}'.format(domain=self.master.domain.name)
+            ])
+            assert self.master.ip in result.stdout_text
+            assert self.replicas[0].ip in result.stdout_text
+        # stop services on master
+        self.master.run_command([
+            'hostname', '-f'
+        ])
+        self.master.run_command([
+            'ipactl', 'stop'
+        ])
+        # install replica1 with all features
+        # * resolv.conf contains both master and replica0 IPs
+        # * do not use tasks.install_replica() because it specifies from
+        #   which master to replicate from
+        fw_services = ["freeipa-ldap", "freeipa-ldaps", "dns"]
+        fw = Firewall(self.replicas[1])
+        fw.enable_services(fw_services)
+        self.replicas[1].run_command([
+            'ipa-replica-install',
+            '--principal', 'admin',
+            '--admin-password', self.master.config.admin_password,
+            '--forwarder', self.master.config.dns_forwarder,
+            '--ip-address', self.replicas[1].ip,
+            '--realm', self.master.domain.realm,
+            '--domain', self.master.domain.name,
+            '--setup-ca', '--setup-kra', '--setup-dns', '-U'
+        ])
+        # cleanup in reverse order of installation
+        self.master.run_command([
+            'ipactl', 'start'
+        ])
+        for host in (self.replicas[1], self.replicas[0], self.master):
+            tasks.uninstall_master(host)
+        fw.disable_services(fw_services)
+        for i in (1, 0):
+            self.restore_resolv_conf(self.replicas[i])
