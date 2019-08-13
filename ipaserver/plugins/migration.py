@@ -901,20 +901,19 @@ migration process might be incomplete\n''')
             return dict(result={}, failed={}, enabled=False, compat=True)
 
         # connect to DS
-        cacert = None
         if options.get('cacertfile') is not None:
             # store CA cert into file
             tmp_ca_cert_f = write_tmp_file(options['cacertfile'])
             cacert = tmp_ca_cert_f.name
 
-            # start TLS connection
-            ds_ldap = LDAPClient(ldapuri, cacert=cacert)
+            # start TLS connection or STARTTLS
+            ds_ldap = LDAPClient(ldapuri, cacert=cacert, start_tls=True)
             ds_ldap.simple_bind(options['binddn'], bindpw)
 
             tmp_ca_cert_f.close()
         else:
-            ds_ldap = LDAPClient(ldapuri, cacert=cacert)
-            ds_ldap.simple_bind(options['binddn'], bindpw)
+            ds_ldap = LDAPClient(ldapuri)
+            ds_ldap.simple_bind(options['binddn'], bindpw, insecure_bind=True)
 
         # check whether the compat plugin is enabled
         if not options.get('compat'):
