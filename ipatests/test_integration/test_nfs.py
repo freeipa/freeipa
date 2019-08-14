@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import os
+import pytest
 import re
 import time
 
@@ -258,3 +259,87 @@ class TestNFS(IntegrationTest):
         time.sleep(WAIT_AFTER_UNINSTALL)
 
         self.cleanup()
+
+
+class TestIpaClientAutomountFileRestore(IntegrationTest):
+
+    num_clients = 1
+    topology = 'line'
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+
+    def nsswitch_backup_restore(
+        self,
+        no_sssd=False,
+        clear_automount_entry=False,
+        remove_sss_from_automount_entry=False,
+        invert_arguments_in_automount_entry=False
+    ):
+
+        if remove_sss_from_automount_entry:
+            self.clients[0].run_command([
+                "sed", "-i", "-e",
+                "s/sss files/files/g",
+                "/etc/nsswitch.conf"
+            ])
+        elif invert_arguments_in_automount_entry:
+            self.clients[0].run_command([
+                "sed", "-i", "-e",
+                "s/sss files/files sss/g",
+                "/etc/nsswitch.conf"
+            ])
+
+        sha256nsswitch_cmd = ["sha256sum", "/etc/nsswitch.conf"]
+        cmd = self.clients[0].run_command(sha256nsswitch_cmd)
+        orig_sha256 = cmd.stdout_text
+
+        grep_automount_command = \
+            "grep automount /etc/nsswitch.conf |cut -d: -f2"
+
+        tasks.install_client(self.master, self.clients[0])
+        if clear_automount_entry:
+            self.clients[0].run_command([
+                "sed", "-i", "-e", "s/automount:.*//", "/etc/nsswitch.conf"
+            ])
+        cmd = self.clients[0].run_command(grep_automount_command)
+        after_ipa_client_install = cmd.stdout_text.split()
+
+        if no_sssd:
+            ipa_client_automount_command = [
+                "ipa-client-automount", "--no-sssd", "-U"
+            ]
+        else:
+            ipa_client_automount_command = [
+                "ipa-client-automount", "-U"
+            ]
+        self.clients[0].run_command(ipa_client_automount_command)
+        cmd = self.clients[0].run_command(grep_automount_command)
+        after_ipa_client_automount = cmd.stdout_text.split()
+        if no_sssd:
+            assert after_ipa_client_automount == ['files', 'ldap']
+        else:
+            assert after_ipa_client_automount == ['sss', 'files']
+
+        self.clients[0].run_command([
+            "ipa-client-automount", "--uninstall", "-U"
+        ])
+        cmd = self.clients[0].run_command(grep_automount_command)
+        assert cmd.stdout_text.split() == after_ipa_client_install
+
+        tasks.uninstall_client(self.clients[0])
+        cmd = self.clients[0].run_command(sha256nsswitch_cmd)
+        assert cmd.stdout_text == orig_sha256
+
+    def test_nsswitch_backup_restore_no_sssd(self):
+        self.nsswitch_backup_restore(
+            no_sssd=True, remove_sss_from_automount_entry=True
+        )
+
+    @pytest.mark.xfail(reason="freeipa ticket 8042", strict=True)
+    def test_nsswitch_backup_restore_invert_automount_arguments(self):
+        self.nsswitch_backup_restore(invert_arguments_in_automount_entry=True)
+
+    def test_nsswitch_backup_restore_no_automount_entry(self):
+        self.nsswitch_backup_restore(clear_automount_entry=True)
