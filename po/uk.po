@@ -8,11 +8,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.8.0\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2019-08-12 10:48+0300\n"
+"POT-Creation-Date: 2019-08-14 11:52+0300\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2019-07-02 09:03+0000\n"
+"PO-Revision-Date: 2019-08-13 07:24+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
 "Language: uk\n"
@@ -27540,6 +27540,9 @@ msgstr "Сервер %(srv)s не може встановити зв’язок 
 msgid "Server Name"
 msgstr "Назва сервера"
 
+msgid "Server Options"
+msgstr "Параметри сервера"
+
 msgid "Server Role"
 msgstr "Роль сервера"
 
@@ -28323,6 +28326,13 @@ msgstr ""
 "цьому домені"
 
 #, python-format
+msgid ""
+"The domain(s) \"%s\" cannot be used to apply altSecurityIdentities check."
+msgstr ""
+"Домени «%s» не можна використовувати для застосування перевірки "
+"altSecurityIdentities."
+
+#, python-format
 msgid "The following domains do not belong to this realm: %(domains)s"
 msgstr "Вказані нижче домени не належать до цієї області: %(domains)s"
 
@@ -28372,6 +28382,13 @@ msgstr ""
 
 msgid "The keytab file to remove the principcal(s) from"
 msgstr "Файл таблиці ключів, звідки слід вилучити реєстраційні записи"
+
+msgid ""
+"The mapping rule with altSecurityIdentities should be applied to a trusted "
+"Active Directory domain but no domain was associated with the rule."
+msgstr ""
+"До довіреного домену Active Directory має бути застосовано правило прив'язки "
+"з altSecurityIdentities, але з цим правилом не пов'язано жодного домену."
 
 #, python-format
 msgid "The most common types for this type of zone are: %s\n"
