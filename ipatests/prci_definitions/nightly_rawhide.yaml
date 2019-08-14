@@ -1269,6 +1269,18 @@ jobs:
         timeout: 9000
         topology: *master_3client
 
+  fedora-rawhide/nfs_nsswitch_restore:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_nfs.py::TestIpaClientAutomountFileRestore
+        template: *ci-master-frawhide
+        timeout: 9000
+        topology: *master_3client
+
   fedora-rawhide/automember:
     requires: [fedora-rawhide/build]
     priority: 50
