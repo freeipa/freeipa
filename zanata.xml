@@ -2,7 +2,7 @@
 <config xmlns="http://zanata.org/namespace/config/">
   <url>https://fedora.zanata.org/</url>
   <project>freeipa</project>
-  <project-version>master</project-version>
+  <project-version>ipa-4-8</project-version>
   <project-type>gettext</project-type>
   <src-dir>.</src-dir>
   <trans-dir>.</trans-dir>
