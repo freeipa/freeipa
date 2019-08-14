@@ -26,6 +26,7 @@ Developers:
 	Brian Cook
 	Brian J. Murrell
 	Christian Heimes
+	Christian Hermann
 	David Kreitschmann
 	David Kupka
 	David O'Brien
@@ -47,6 +48,7 @@ Developers:
 	Fraser Tweedale
 	Gabe Alford
 	Ganna Kaihorodova
+	German Parente
 	Gowrishankar Rajaiyan
 	Günther Deschner
 	Ian Kumlien
@@ -131,6 +133,7 @@ Developers:
 	Stephen Gallagher
 	sudharsanomprakash
 	Sudhir Menon
+	Sumedh Sidhaye
 	Sumit Bose
 	Sylvain Baubeau
 	Takeshi MIZUTA
@@ -171,26 +174,38 @@ Testing:
 	Yi Zhang
 
 Translators:
+	A S Alam
 	Abhijeet Kasurde
+	Alex
+	Alexander Bokovoy
 	Andi Chandler
 	Andrew Martynov
-	A S Alam
+	Brian Curtich
+	David Kreitschmann
+	dominique
 	Emilio Herrera
 	Gundachandru
 	Héctor Daniel Cabrera
 	Jake Li
 	Jérôme Fenal
+	Josef Hruška
 	Marco Aurélio Krause
 	Martin Bašti
+	Martin Kosek
+	Martin Liu
 	Olesya Gerasimenko
+	Omar Berroterán S.
 	Paul Ritter
+	Pavel Borecki
 	Pavel Vomacka
 	Piotr Drąg
 	Robert Antoni Buj Gelonch
 	Sankarshan Mukhopadhyay
 	Teguh DC
+	Tomas Babej
 	Yuri Chornoivan
 	Zdenek
+	zhenglei
 
 Wiki, Solution and Idea Contributors:
 	James Hogarth
