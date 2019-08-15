@@ -281,6 +281,10 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         invert_arguments_in_automount_entry=False
     ):
 
+        sha256nsswitch_cmd = ["sha256sum", "/etc/nsswitch.conf"]
+        cmd = self.clients[0].run_command(sha256nsswitch_cmd)
+        print("Original sha256 of nsswitch.conf: %s" % cmd.stdout_text)
+
         if remove_sss_from_automount_entry:
             self.clients[0].run_command([
                 "sed", "-i", "-e",
@@ -294,7 +298,6 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
                 "/etc/nsswitch.conf"
             ])
 
-        sha256nsswitch_cmd = ["sha256sum", "/etc/nsswitch.conf"]
         cmd = self.clients[0].run_command(sha256nsswitch_cmd)
         orig_sha256 = cmd.stdout_text
 
@@ -308,6 +311,10 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
             ])
         cmd = self.clients[0].run_command(grep_automount_command)
         after_ipa_client_install = cmd.stdout_text.split()
+        print(
+            "After ipa-client-install, automount database contains: %s" %
+            after_ipa_client_install
+        )
 
         if no_sssd:
             ipa_client_automount_command = [
@@ -320,6 +327,10 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         self.clients[0].run_command(ipa_client_automount_command)
         cmd = self.clients[0].run_command(grep_automount_command)
         after_ipa_client_automount = cmd.stdout_text.split()
+        print(
+            "After ipa-client-automount, automount database contains: %s" %
+            after_ipa_client_automount
+        )
         if no_sssd:
             assert after_ipa_client_automount == ['files', 'ldap']
         else:
