@@ -302,7 +302,7 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         orig_sha256 = cmd.stdout_text
 
         grep_automount_command = \
-            "grep automount /etc/nsswitch.conf |cut -d: -f2"
+            "grep automount /etc/nsswitch.conf | cut -d: -f2"
 
         tasks.install_client(self.master, self.clients[0])
         if clear_automount_entry:
@@ -333,6 +333,10 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         )
         if no_sssd:
             assert after_ipa_client_automount == ['files', 'ldap']
+        elif clear_automount_entry:
+            # empty because user forced it to be empty. We don't add
+            # sssd options.
+            assert after_ipa_client_automount == []
         else:
             assert after_ipa_client_automount == ['sss', 'files']
 
