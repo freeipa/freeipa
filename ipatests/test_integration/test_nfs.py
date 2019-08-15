@@ -270,6 +270,9 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True)
 
+    def teardown_method(self, method):
+        tasks.uninstall_client(self.clients[0])
+
     def nsswitch_backup_restore(
         self,
         no_sssd=False,
