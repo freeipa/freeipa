@@ -12,16 +12,23 @@ Known Linux distros with /etc/os-release
 - fedora
 - rhel
 - ubuntu (like debian)
+
+The platform ids for ipaplatform providers are based on:
+
+1) IPAPLATFORM_OVERRIDE env var
+2) ipaplatform.override.OVERRIDE value
+3) ID field of /etc/os-release (Linux)
+4) ID_LIKE fields of /etc/os-release (Linux)
 """
 from __future__ import absolute_import
 
+from collections.abc import Mapping
 import importlib
-import io
 import re
+import os
 import sys
 import warnings
 
-import six
 
 import ipaplatform
 try:
@@ -29,13 +36,6 @@ try:
 except ImportError:
     OVERRIDE = None
 
-
-# pylint: disable=no-name-in-module, import-error
-if six.PY3:
-    from collections.abc import Mapping
-else:
-    from collections import Mapping
-# pylint: enable=no-name-in-module, import-error
 
 _osrelease_line = re.compile(
     u"^(?!#)(?P<name>[a-zA-Z0-9_]+)="
@@ -49,7 +49,7 @@ def _parse_osrelease(filename='/etc/os-release'):
     https://www.freedesktop.org/software/systemd/man/os-release.html
     """
     release = {}
-    with io.open(filename, encoding='utf-8') as f:
+    with open(filename) as f:
         for line in f:
             mo = _osrelease_line.match(line)
             if mo is not None:
@@ -186,10 +186,15 @@ class OSInfo(Mapping):
         """Ordered tuple of detected platforms (including override)
         """
         platforms = []
-        if OVERRIDE is not None:
+        # env var first
+        env = os.environ.get("IPAPLATFORM_OVERRIDE")
+        if env:
+            platforms.append(env)
+        # override from package definition
+        if OVERRIDE is not None and OVERRIDE not in platforms:
             # allow RPM and Debian packages to override platform
             platforms.append(OVERRIDE)
-        if OVERRIDE != self.id:
+        if self.id not in platforms:
             platforms.append(self.id)
         platforms.extend(self.id_like)
         return tuple(platforms)
