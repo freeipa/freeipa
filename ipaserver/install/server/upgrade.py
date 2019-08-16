@@ -473,6 +473,17 @@ def upgrade_ca_audit_cert_validity(ca):
         return False
 
 
+def ca_initialize_hsm_state(ca):
+    """Initializse HSM state as False / internal token
+    """
+    if not ca.sstore.has_state(ca.hsm_sstore):
+        section_name = ca.subsystem.upper()
+        config = SafeConfigParser()
+        config.add_section(section_name)
+        config.set(section_name, 'pki_hsm_enable', False)
+        ca.set_hsm_state(config)
+
+
 def named_remove_deprecated_options():
     """
     From IPA 3.3, persistent search is a default mechanism for new DNS zone
@@ -2104,6 +2115,7 @@ def upgrade_configuration():
         cainstance.repair_profile_caIPAserviceCert()
         ca.setup_lightweight_ca_key_retrieval()
         cainstance.ensure_ipa_authority_entry()
+        ca_initialize_hsm_state(ca)
 
     migrate_to_authselect()
     add_systemd_user_hbac()
