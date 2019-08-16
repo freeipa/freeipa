@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 import pytest
-from ipaclient.install.ipachangeconf import IPAChangeConf
+from ipapython.ipachangeconf import IPAChangeConf
 
 
 @pytest.fixture(scope='function')

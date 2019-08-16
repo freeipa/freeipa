@@ -40,11 +40,11 @@ from ipaserver.install.replication import wait_for_task
 from ipalib import errors, api
 from ipalib.util import normalize_zone
 from ipapython.dn import DN
+from ipapython import ipachangeconf
 from ipapython import ipaldap
 from ipapython import ipautil
 import ipapython.errors
 
-import ipaclient.install.ipachangeconf
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -639,7 +639,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("Cannot modify /etc/krb5.conf")
 
         krbconf = (
-            ipaclient.install.ipachangeconf.IPAChangeConf("IPA Installer"))
+            ipachangeconf.IPAChangeConf("IPA Installer"))
         krbconf.setOptionAssignment((" = ", " "))
         krbconf.setSectionNameDelimiters(("[", "]"))
         krbconf.setSubSectionDelimiters(("{", "}"))

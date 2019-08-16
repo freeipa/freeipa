@@ -23,13 +23,13 @@ from pkg_resources import parse_version
 import six
 
 from ipaclient.install.client import check_ldap_conf
-from ipaclient.install.ipachangeconf import IPAChangeConf
 import ipaclient.install.timeconf
 from ipalib.install import certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
 from ipapython.admintool import ScriptError
+from ipapython.ipachangeconf import IPAChangeConf
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
