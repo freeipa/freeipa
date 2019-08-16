@@ -39,6 +39,7 @@ class RedHatPathNamespace(BasePathNamespace):
     AUTHCONFIG = '/usr/sbin/authconfig'
     AUTHSELECT = '/usr/bin/authselect'
     SYSCONF_NETWORK = '/etc/sysconfig/network'
+    NSSWITCH_CONF = '/etc/authselect/user-nsswitch.conf'
 
 
 paths = RedHatPathNamespace()

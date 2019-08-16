@@ -744,4 +744,23 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         return filenames
 
+    def enable_ldap_automount(self, statestore):
+        """
+        Point automount to ldap in nsswitch.conf.
+        This function is for non-SSSD setups only.
+        """
+        super(RedHatTaskNamespace, self).enable_ldap_automount(statestore)
+
+        authselect_cmd = [paths.AUTHSELECT, "enable-feature",
+                          "with-custom-automount"]
+        ipautil.run(authselect_cmd)
+
+    def disable_ldap_automount(self, statestore):
+        """Disable ldap-based automount"""
+        super(RedHatTaskNamespace, self).disable_ldap_automount(statestore)
+
+        authselect_cmd = [paths.AUTHSELECT, "disable-feature",
+                          "with-custom-automount"]
+        ipautil.run(authselect_cmd)
+
 tasks = RedHatTaskNamespace()

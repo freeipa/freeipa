@@ -41,7 +41,8 @@ from six.moves.urllib.parse import urlsplit
 
 # pylint: enable=import-error
 from optparse import OptionParser  # pylint: disable=deprecated-module
-from ipaclient.install import ipachangeconf, ipadiscovery
+from ipapython import ipachangeconf
+from ipaclient.install import ipadiscovery
 from ipaclient.install.client import (
     CLIENT_NOT_CONFIGURED,
     CLIENT_ALREADY_CONFIGURED,
@@ -177,44 +178,6 @@ def configure_xml(fstore):
         print("Configured %s" % authconf)
 
 
-def configure_nsswitch(statestore, options):
-    """
-    Point automount to ldap in nsswitch.conf.
-    This function is for non-SSSD setups only.
-    """
-    conf = ipachangeconf.IPAChangeConf("IPA Installer")
-    conf.setOptionAssignment(':')
-
-    with open(paths.NSSWITCH_CONF, 'r') as f:
-        current_opts = conf.parse(f)
-        current_nss_value = conf.findOpts(
-            current_opts, name='automount', type='option'
-        )[1]
-        if current_nss_value is None:
-            # no automount database present
-            current_nss_value = False  # None cannot be backed up
-        else:
-            current_nss_value = current_nss_value['value']
-        statestore.backup_state(
-            'ipa-client-automount-nsswitch', 'previous-automount',
-            current_nss_value
-        )
-
-    nss_value = ' files ldap'
-    opts = [
-        {
-            'name': 'automount',
-            'type': 'option',
-            'action': 'set',
-            'value': nss_value,
-        },
-        {'name': 'empty', 'type': 'empty'},
-    ]
-    conf.changeConf(paths.NSSWITCH_CONF, opts)
-
-    print("Configured %s" % paths.NSSWITCH_CONF)
-
-
 def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     try:
         sssdconfig = SSSDConfig.SSSDConfig()
@@ -339,41 +302,8 @@ def uninstall(fstore, statestore):
     ]
     STATES = ['autofs', 'rpcidmapd', 'rpcgssd']
 
-    if statestore.get_state(
-        'ipa-client-automount-nsswitch', 'previous-automount'
-    ) is False:
-        # Previous nsswitch.conf had no automount database configured
-        # so remove it.
-        conf = ipachangeconf.IPAChangeConf("IPA automount installer")
-        conf.setOptionAssignment(':')
-        changes = [conf.rmOption('automount')]
-        conf.changeConf(paths.NSSWITCH_CONF, changes)
-        tasks.restore_context(paths.NSSWITCH_CONF)
-        statestore.delete_state(
-            'ipa-client-automount-nsswitch', 'previous-automount'
-        )
-    elif statestore.get_state(
-        'ipa-client-automount-nsswitch', 'previous-automount'
-    ) is not None:
-        nss_value = statestore.get_state(
-            'ipa-client-automount-nsswitch', 'previous-automount'
-        )
-        opts = [
-            {
-                'name': 'automount',
-                'type': 'option',
-                'action': 'set',
-                'value': nss_value,
-            },
-            {'name': 'empty', 'type': 'empty'},
-        ]
-        conf = ipachangeconf.IPAChangeConf("IPA automount installer")
-        conf.setOptionAssignment(':')
-        conf.changeConf(paths.NSSWITCH_CONF, opts)
-        tasks.restore_context(paths.NSSWITCH_CONF)
-        statestore.delete_state(
-            'ipa-client-automount-nsswitch', 'previous-automount'
-        )
+    if not statestore.get_state('autofs', 'sssd'):
+        tasks.disable_ldap_automount(statestore)
 
     if not any(fstore.has_file(f) for f in RESTORE_FILES) or not any(
         statestore.has_state(s) for s in STATES
@@ -627,7 +557,7 @@ def configure_automount():
 
     try:
         if not options.sssd:
-            configure_nsswitch(statestore, options)
+            tasks.enable_ldap_automount(statestore)
         configure_nfs(fstore, statestore, options)
         if options.sssd:
             configure_autofs_sssd(fstore, statestore, autodiscover, options)
