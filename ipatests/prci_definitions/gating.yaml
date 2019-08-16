@@ -22,8 +22,8 @@ jobs:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-master-f29
-          name: freeipa/ci-master-f29
-          version: 0.2.1
+          name: freeipa/ci-ipa-4-7-f29
+          version: 0.0.1
         timeout: 1800
         topology: *build
 
