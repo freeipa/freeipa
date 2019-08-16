@@ -66,7 +66,7 @@ from ipapython import version
 
 from . import automount, timeconf, sssd
 from ipaclient import discovery
-from .ipachangeconf import IPAChangeConf
+from ipapython.ipachangeconf import IPAChangeConf
 
 NoneType = type(None)
 
@@ -279,72 +279,6 @@ def is_ipa_client_installed(fstore, on_master=False):
     )
 
     return installed
-
-
-def configure_nsswitch_database(fstore, database, services, preserve=True,
-                                append=True, default_value=()):
-    """
-    Edits the specified nsswitch.conf database (e.g. passwd, group, sudoers)
-    to use the specified service(s).
-
-    Arguments:
-        fstore - FileStore to backup the nsswitch.conf
-        database - database configuration that should be ammended,
-                   e.g. 'sudoers'
-        service - list of services that should be added, e.g. ['sss']
-        preserve - if True, the already configured services will be preserved
-
-    The next arguments modify the behaviour if preserve=True:
-        append - if True, the services will be appended, if False, prepended
-        default_value - list of services that are considered as default (if
-                        the database is not mentioned in nsswitch.conf), e.g.
-                        ['files']
-    """
-
-    # Backup the original version of nsswitch.conf, we're going to edit it now
-    if not fstore.has_file(paths.NSSWITCH_CONF):
-        fstore.backup_file(paths.NSSWITCH_CONF)
-
-    conf = IPAChangeConf("IPA Installer")
-    conf.setOptionAssignment(':')
-
-    if preserve:
-        # Read the existing configuration
-        with open(paths.NSSWITCH_CONF, 'r') as f:
-            opts = conf.parse(f)
-            raw_database_entry = conf.findOpts(opts, 'option', database)[1]
-
-        # Detect the list of already configured services
-        if not raw_database_entry:
-            # If there is no database entry, database is not present in
-            # the nsswitch.conf. Set the list of services to the
-            # default list, if passed.
-            configured_services = list(default_value)
-        else:
-            configured_services = raw_database_entry['value'].strip().split()
-
-        # Make sure no service is added if already mentioned in the list
-        added_services = [s for s in services
-                          if s not in configured_services]
-
-        # Prepend / append the list of new services
-        if append:
-            new_value = ' ' + ' '.join(configured_services + added_services)
-        else:
-            new_value = ' ' + ' '.join(added_services + configured_services)
-
-    else:
-        # Preserve not set, let's rewrite existing configuration
-        new_value = ' ' + ' '.join(services)
-
-    # Set new services as sources for database
-    opts = [
-        conf.setOption(database, new_value),
-        conf.emptyLine(),
-    ]
-
-    conf.changeConf(paths.NSSWITCH_CONF, opts)
-    logger.info("Configured %s in %s", database, paths.NSSWITCH_CONF)
 
 
 def configure_ipa_conf(
@@ -948,9 +882,7 @@ def configure_sssd_conf(
                 "Unable to activate the SUDO service in SSSD config.")
 
         sssdconfig.activate_service('sudo')
-        configure_nsswitch_database(
-            fstore, 'sudoers', ['sss'],
-            default_value=['files'])
+        tasks.enable_sssd_sudo(fstore)
 
     domain.add_provider('ipa', 'id')
 
