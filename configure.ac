@@ -179,6 +179,42 @@ if test x"$try_xmlrpc_fallback" = xtrue; then
 fi
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for LIBCURL
+dnl ---------------------------------------------------------------------------
+PKG_CHECK_MODULES([LIBCURL], [libcurl], [],
+                  [try_curl_fallback=true])
+if test x"$try_curl_fallback" = xtrue; then
+    CURL_LIBS=
+    AC_CHECK_HEADER([curl/curl.h], [],
+                    [AC_MSG_ERROR([curl.h not found])])
+
+    AC_CHECK_LIB([curl], [curl_easy_perform],
+                 [CURL_LIBS="-lcurl"])
+    if test "x$CURL_LIBS" = "x" ; then
+        AC_MSG_ERROR([libcurl not found])
+    fi
+    AC_SUBST(LIBCURL_LIBS)
+fi
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for JSON-C
+dnl ---------------------------------------------------------------------------
+PKG_CHECK_MODULES([JSON], [json-c], [],
+                  [try_json_fallback=true])
+if test x"$try_json_fallback" = xtrue; then
+    JSON_LIBS=
+    AC_CHECK_HEADER([json-c/json_object.h], [],
+                    [AC_MSG_ERROR([json-c/json_object.h not found])])
+
+    AC_CHECK_LIB([json-c], [json_object_get],
+                 [JSON_LIBS="-ljson-c"])
+    if test "x$JSON_LIBS" = "x" ; then
+        AC_MSG_ERROR([json-c not found])
+    fi
+    AC_SUBST(JSON_LIBS)
+fi
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for libintl
 dnl ---------------------------------------------------------------------------
 SAVE_LIBS="$LIBS"

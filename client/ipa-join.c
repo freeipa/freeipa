@@ -34,6 +34,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <curl/curl.h>
+#include <json-c/json.h>
+#include <limits.h>
 
 #include "xmlrpc-c/base.h"
 #include "xmlrpc-c/client.h"
@@ -47,10 +50,15 @@
 
 #define IPA_CONFIG "/etc/ipa/default.conf"
 
+#define BUFSIZE 1024
+
 char * read_config_file(const char *filename);
 char * get_config_entry(char * data, const char *section, const char *key);
 
 static int debug = 0;
+static int use_json = 0;
+
+struct json_results *results = NULL;
 
 /*
  * Translate some IPA exceptions into specific errors in this context.
@@ -167,7 +175,7 @@ callRPC(char * user_agent,
     /* Have curl do SSL certificate validation */
     curlXportParmsP->no_ssl_verifypeer = 0;
     curlXportParmsP->no_ssl_verifyhost = 0;
-    curlXportParmsP->cainfo = "/etc/ipa/ca.crt";
+    curlXportParmsP->cainfo = DEFAULT_CA_CERT_FILE;
     curlXportParmsP->user_agent = user_agent;
     /* Enable GSSAPI credentials delegation */
     curlXportParmsP->gssapi_delegation = 1;
@@ -479,7 +487,7 @@ done:
 }
 
 static int
-join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
+join_krb5_xmlrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
     xmlrpc_env env;
     xmlrpc_value * argArrayP = NULL;
     xmlrpc_value * paramArrayP = NULL;
@@ -610,6 +618,133 @@ cleanup_xmlrpc:
     xmlrpc_client_cleanup();
 
     return rval;
+}
+
+size_t
+jsonrpc_handle_response(char *ptr, size_t size, size_t nmemb, void *userdata) {
+        struct json_object *jsonobj, *result, *krb5princ, *hostdn, *arr, *content;
+        size_t arr_length;
+        int ret = 0;
+
+        if (debug) {
+                fprintf(stdout, "JSONRPC CALL Respone:\n%s\n", ptr);
+        }
+
+        jsonobj = json_tokener_parse(ptr);
+        json_object_object_get_ex(jsonobj, "result", &result);
+
+        arr_length = json_object_array_length(result);
+
+        if (arr_length == 2) {
+            results = (struct json_results *) malloc(sizeof(struct json_results));
+
+            hostdn = json_object_array_get_idx(result, 0);
+            ret = asprintf(&results->hostdn, "%s", json_object_get_string(hostdn));
+
+            arr = json_object_array_get_idx(result, 1);
+            json_object_object_get_ex(arr, "krbprincipalname", &content);
+            krb5princ = json_object_array_get_idx(content, 0);
+            ret = asprintf(&results->krbprinc, "%s", json_object_get_string(krb5princ));
+        }
+
+        json_object_put(jsonobj);
+
+        return size * nmemb;
+}
+
+static int
+join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
+    CURL *curl;
+    CURLcode res;
+    struct curl_slist *chunk = NULL;
+    struct json_object *jsonobj, *array, *hostarr, *optsarr;
+    struct utsname uinfo;
+    char *host = NULL;
+    char buffer[BUFSIZE];
+
+    uname(&uinfo);
+
+    if (NULL == hostname) {
+        host = strdup(uinfo.nodename);
+    } else {
+        host = strdup(hostname);
+    }
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+
+    curl = curl_easy_init();
+    if (!curl) {
+            curl_global_cleanup();
+            return 1;
+    }
+
+    /* setting endpoint and custom headers */
+    snprintf(buffer, sizeof(buffer)-1, "https://%s/ipa/json", ipaserver);
+    curl_easy_setopt(curl, CURLOPT_URL, buffer);
+
+    snprintf(buffer, sizeof(buffer)-1, "referer: https://%s/ipa", ipaserver);
+    chunk = curl_slist_append(chunk, buffer);
+    snprintf(buffer, sizeof(buffer)-1, "User-Agent: %s/%s", NAME, VERSION);
+    chunk = curl_slist_append(chunk, buffer);
+
+    chunk = curl_slist_append(chunk, "Accept: application/json");
+    chunk = curl_slist_append(chunk, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+
+    curl_easy_setopt(curl, CURLOPT_CAINFO, DEFAULT_CA_CERT_FILE);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &jsonrpc_handle_response);
+
+    /* delegating authentication to gssapi */
+    curl_easy_setopt(curl, CURLOPT_GSSAPI_DELEGATION, CURLGSSAPI_DELEGATION_FLAG);
+    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_NEGOTIATE);
+    curl_easy_setopt(curl, CURLOPT_USERPWD, ":");
+
+    if (debug)
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+    /* making the payload using json-rpc */
+    jsonobj = json_object_new_object();
+
+    json_object_object_add(jsonobj, "method", json_object_new_string("join"));
+
+    array = json_object_new_array();
+
+    hostarr = json_object_new_array();
+    json_object_array_add(hostarr, json_object_new_string(host));
+    json_object_array_add(array, json_object_get(hostarr));
+
+    optsarr = json_object_new_object();
+    json_object_object_add(optsarr, "nsosversion", json_object_new_string(uinfo.release));
+    json_object_object_add(optsarr, "nshardwareplatform", json_object_new_string(uinfo.machine));
+    json_object_array_add(array, json_object_get(optsarr));
+
+    json_object_object_add(jsonobj, "params", json_object_get(array));
+
+    json_object_object_add(jsonobj, "id", json_object_new_int(0));
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_object_to_json_string(jsonobj));
+
+    /* Perform the call and check for errors if debug is setted */
+    res = curl_easy_perform(curl);
+    if (res != CURLE_OK && debug != 0)
+        fprintf(stderr, _("jsonrpc call failed: %s\n"), curl_easy_strerror(res));
+
+    json_object_put(optsarr);
+    json_object_put(hostarr);
+    json_object_put(array);
+    json_object_put(jsonobj);
+
+    curl_slist_free_all(chunk);
+
+    curl_easy_cleanup(curl);
+    curl_global_cleanup();
+
+    free(host);
+
+    return 0; 
 }
 
 static int
@@ -913,8 +1048,11 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
             rval = 6;
             goto cleanup;
         }
-        rval = join_krb5(ipaserver, host, &hostdn, &princ, force,
-                         quiet);
+
+        if (!use_json)
+            rval = join_krb5_xmlrpc(ipaserver, host, &hostdn, &princ, force, quiet);
+        else
+            rval = join_krb5_jsonrpc(ipaserver, host, &hostdn, &princ, force, quiet);
     }
 
     if (rval) goto cleanup;
@@ -938,12 +1076,12 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
         argv[arg++] = "-s";
         argv[arg++] = ipaserver;
         argv[arg++] = "-p";
-        argv[arg++] = (char *)princ;
+        argv[arg++] = use_json == 0 ? (char *)princ : (char *)results->krbprinc;
         argv[arg++] = "-k";
         argv[arg++] = (char *)keytab;
         if (bindpw) {
             argv[arg++] = "-D";
-            argv[arg++] = (char *)hostdn;
+            argv[arg++] = use_json == 0 ? (char *)hostdn : (char *)results->hostdn;
             argv[arg++] = "-w";
             argv[arg++] = (char *)bindpw;
         }
@@ -989,6 +1127,12 @@ cleanup:
     if (ccache) krb5_cc_close(krbctx, ccache);
     if (krbctx) krb5_free_context(krbctx);
 
+    if (results != NULL) {
+        free(results->hostdn);
+        free(results->krbprinc);
+        free(results);
+    }
+
     return rval;
 }
 
@@ -1027,6 +1171,8 @@ main(int argc, const char **argv) {
           _("LDAP password (if not using Kerberos)"), _("password") },
         { "basedn", 'b', POPT_ARG_STRING, &basedn, 0,
           _("LDAP basedn"), _("basedn") },
+        { "jsonrpc", 'j', POPT_ARG_NONE, &use_json, 0,
+          _("Use a JSON-RPC call instead of XML-RPC"), NULL },
         POPT_AUTOHELP
         POPT_TABLEEND
     };
