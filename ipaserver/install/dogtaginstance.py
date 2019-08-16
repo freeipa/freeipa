@@ -52,8 +52,10 @@ from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
 
 
-
 logger = logging.getLogger(__name__)
+
+
+INTERNAL_TOKEN = "internal"
 
 
 def get_security_domain():
@@ -100,9 +102,8 @@ class DogtagInstance(service.Service):
     # dict.  The profile MUST be specified.
     tracking_reqs = dict()
 
-    # token for CA and subsystem certificates. For now, only internal token
-    # is supported.
-    token_name = "internal"
+    # HSM state is shared between CA and KRA
+    hsm_sstore = 'pki_hsm'
 
     # override token for specific nicknames
     token_names = dict()
@@ -218,7 +219,7 @@ class DogtagInstance(service.Service):
         Enable client auth connection to the internal db.
         """
         sub_system_nickname = "subsystemCert cert-pki-ca"
-        if self.token_name != "internal":
+        if self.token_name != INTERNAL_TOKEN:
             # TODO: Dogtag 10.6.9 does not like "internal" prefix.
             sub_system_nickname = '{}:{}'.format(
                 self.token_name, sub_system_nickname
@@ -317,7 +318,7 @@ class DogtagInstance(service.Service):
                     # Give dogtag extra time to generate cert
                     timeout=CA_DBUS_TIMEOUT)
 
-    def __get_pin(self, token_name="internal"):
+    def __get_pin(self, token_name=INTERNAL_TOKEN):
         try:
             return certmonger.get_pin(token_name)
         except IOError as e:
@@ -586,6 +587,34 @@ class DogtagInstance(service.Service):
             dn, exitcode
         )
         sysupgrade.set_upgrade_state('dogtag', state_name, True)
+
+    def set_hsm_state(self, config):
+        section_name = self.subsystem.upper()
+        assert section_name == 'CA'
+        if config.getboolean(section_name, 'pki_hsm_enable', fallback=False):
+            enable = True
+            token_name = config.get(section_name, 'pki_token_name')
+        else:
+            enable = False
+            token_name = INTERNAL_TOKEN
+        self.sstore.backup_state(self.hsm_sstore, "enabled", enable)
+        self.sstore.backup_state(self.hsm_sstore, "token_name", token_name)
+
+    def restore_hsm_state(self):
+        return (
+            self.sstore.restore_state(self.hsm_sstore, "enabled"),
+            self.sstore.restore_state(self.hsm_sstore, "token_name"),
+        )
+
+    @property
+    def hsm_enabled(self):
+        """Is HSM support enabled?"""
+        return self.sstore.get_state(self.hsm_sstore, "enabled")
+
+    @property
+    def token_name(self):
+        """HSM token name"""
+        return self.sstore.get_state(self.hsm_sstore, "token_name")
 
     def _configure_clone(self, subsystem_config, security_domain_hostname,
                          clone_pkcs12_path):
