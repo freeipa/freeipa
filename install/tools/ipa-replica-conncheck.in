@@ -22,7 +22,7 @@ from __future__ import print_function
 
 import logging
 
-import ipaclient.install.ipachangeconf
+from ipapython import ipachangeconf
 from ipapython.config import IPAOptionParser
 from ipapython.dn import DN
 from ipapython import version
@@ -229,7 +229,7 @@ def sigterm_handler(signum, frame):
 
 def configure_krb5_conf(realm, kdc, filename):
 
-    krbconf = ipaclient.install.ipachangeconf.IPAChangeConf("IPA Installer")
+    krbconf = ipachangeconf.IPAChangeConf("IPA Installer")
     krbconf.setOptionAssignment((" = ", " "))
     krbconf.setSectionNameDelimiters(("[","]"))
     krbconf.setSubSectionDelimiters(("{","}"))

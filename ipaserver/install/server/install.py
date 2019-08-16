@@ -19,7 +19,7 @@ import six
 from ipaclient.install import timeconf
 from ipaclient.install.client import (
     check_ldap_conf, sync_time, restore_time_sync)
-from ipaclient.install.ipachangeconf import IPAChangeConf
+from ipapython.ipachangeconf import IPAChangeConf
 from ipalib.install import certmonger, sysrestore
 from ipapython import ipautil, version
 from ipapython.ipautil import (
