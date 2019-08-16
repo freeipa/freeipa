@@ -28,3 +28,8 @@
 #endif
 
 int init_gettext(void);
+
+struct json_results {
+        char *hostdn;
+        char *krbprinc;
+};

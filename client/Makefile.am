@@ -87,6 +87,8 @@ ipa_join_LDADD = 		\
 	$(LDAP_LIBS)		\
 	$(SASL_LIBS)		\
 	$(XMLRPC_LIBS)		\
+	$(JSON_LIBS)		\
+	$(LIBCURL_LIBS)		\
 	$(POPT_LIBS)		\
 	$(LIBINTL_LIBS)         \
 	$(NULL)
