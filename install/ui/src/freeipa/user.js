@@ -407,7 +407,7 @@ return {
                     label: '@i18n:objects.user.unlock',
                     needs_confirm: true,
                     hide_cond: ['preserved-user'],
-                    disable_cond: ['no-password'],
+                    enable_cond: ['is-locked'],
                     confirm_msg: '@i18n:objects.user.unlock_confirm'
                 },
                 {
@@ -443,7 +443,7 @@ return {
                     },
                     IPA.user.self_service_other_user_evaluator,
                     IPA.user.preserved_user_evaluator,
-                    IPA.user.no_password_evaluator,
+                    IPA.user.is_locked_evaluator,
                     IPA.cert.certificate_evaluator
                 ],
                 summary_conditions: [
@@ -1080,15 +1080,21 @@ IPA.user.deleter_dialog = function(spec) {
     return that;
 };
 
-IPA.user.no_password_evaluator = function(spec) {
+IPA.user.is_locked_evaluator = function(spec) {
 
     spec = spec || {};
     spec.event = spec.event || 'post_load';
 
     var that = IPA.state_evaluator(spec);
-    that.name = spec.name || 'no_password_evaluator';
-    that.param = spec.param || 'has_password';
-    that.adapter = builder.build('adapter', { $type: 'adapter'}, { context: that });
+    that.name = spec.name || 'is_locked_evaluator';
+    that.user_adapter = builder.build('adapter', {
+        $type: 'object_adapter',
+        result_index: 0
+    }, {});
+    that.pw_policy_adapter = builder.build('adapter', {
+        $type: 'object_adapter',
+        result_index: 1
+    }, {});
 
     /**
      * Evaluates if user has no password
@@ -1098,9 +1104,17 @@ IPA.user.no_password_evaluator = function(spec) {
         var old_state = that.state;
         that.state = [];
 
-        var has_password = that.adapter.load(data)[0];
-        if (!has_password) {
-            that.state.push('no-password');
+        var user = that.user_adapter.get_record(data);
+        var pw_policy = that.pw_policy_adapter.get_record(data);
+
+        if (user.krbloginfailedcount) {
+            // In case there is no permission to check password policy we
+            // allow to unlock user even if he has only one failed login.
+            var max_failure = pw_policy ? pw_policy.krbpwdmaxfailure[0] : 1;
+
+            if (user.krbloginfailedcount[0] >= max_failure) {
+                that.state.push('is-locked');
+            }
         }
 
         that.notify_on_change(old_state);
