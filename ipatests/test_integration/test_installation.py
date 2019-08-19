@@ -704,7 +704,7 @@ class TestInstallMaster(IntegrationTest):
         certs, keys = tasks.certutil_certs_keys(
             self.master,
             paths.PKI_TOMCAT_ALIAS_DIR,
-            paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT
+            pwd_file=paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT
         )
 
         expected_certs = {
