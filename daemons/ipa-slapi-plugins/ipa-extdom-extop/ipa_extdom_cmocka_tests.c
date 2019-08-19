@@ -493,6 +493,34 @@ void test_set_err_msg(void **state)
 #define TEST_SID "S-1-2-3-4"
 #define TEST_DOMAIN_NAME "DOMAIN"
 
+/* Always time out for test */
+static
+enum nss_status getgrgid_r_timeout(gid_t gid, struct group *result,
+                                   char *buffer, size_t buflen, int *errnop) {
+    return NSS_STATUS_UNAVAIL;
+}
+
+void test_pack_ber_user_timeout(void **state)
+{
+    int ret;
+    struct berval *resp_val = NULL;
+    struct test_data *test_data;
+    enum nss_status (*oldgetgrgid_r)(gid_t gid, struct group *result,
+                                     char *buffer, size_t buflen, int *errnop);
+
+    test_data = (struct test_data *) *state;
+
+    oldgetgrgid_r = test_data->ctx->nss_ctx->getgrgid_r;
+    test_data->ctx->nss_ctx->getgrgid_r = getgrgid_r_timeout;
+
+    ret = pack_ber_user(test_data->ctx, RESP_USER_GROUPLIST,
+                        TEST_DOMAIN_NAME, "member001", 12345, 54321,
+                        "gecos", "homedir", "shell", NULL, &resp_val);
+    test_data->ctx->nss_ctx->getgrgid_r = oldgetgrgid_r;
+    assert_int_equal(ret, LDAP_TIMELIMIT_EXCEEDED);
+    ber_bvfree(resp_val);
+}
+
 char res_sid[] = {0x30, 0x0e, 0x0a, 0x01, 0x01, 0x04, 0x09, 0x53, 0x2d, 0x31, \
                   0x2d, 0x32, 0x2d, 0x33, 0x2d, 0x34};
 char res_nam[] = {0x30, 0x13, 0x0a, 0x01, 0x02, 0x30, 0x0e, 0x04, 0x06, 0x44, \
@@ -614,6 +642,7 @@ void test_decode(void **state)
 int main(int argc, const char *argv[])
 {
     const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_pack_ber_user_timeout),
         cmocka_unit_test(test_getpwnam_r_wrapper),
         cmocka_unit_test(test_getpwuid_r_wrapper),
         cmocka_unit_test(test_getgrnam_r_wrapper),
