@@ -27,7 +27,13 @@ steps:
   - make V=0 ${make_target} LOG_COMPILE='gdb -return-child-result -ex run -ex "thread apply all bt" -ex "quit" --args'
   builddep:
   - rm -rf /var/cache/dnf/*
+  - echo "fastestmirror = True" >> /etc/dnf/dnf.conf
+  - echo "max_parallel_downloads = 8" >> /etc/dnf/dnf.conf
+  - echo "timeout = 8" >> /etc/dnf/dnf.conf
+  - echo "retries = 20" >> /etc/dnf/dnf.conf
   - "dnf makecache || :"
+  - dnf makecache
+  - cat /var/cache/dnf/fastestmirror.cache
   - dnf -y module enable nodejs:12
   - dnf builddep -y ${builddep_opts} -D "with_wheels 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
   - dnf install -y gdb
@@ -50,6 +56,7 @@ steps:
   - ./autogen.sh
   install_packages:
   - sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf
+  - dnf makecache
   - dnf install -y ${container_working_dir}/dist/rpms/*.rpm --best --allowerasing
   - dnf install -y firewalld
   - systemctl --now enable firewalld
