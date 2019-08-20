@@ -438,13 +438,21 @@ def master_authoritative_for_client_domain(master, client):
     return result.returncode == 0
 
 
+def config_host_resolvconf_with_masters_data(masters, host):
+    """
+    Configure host /etc/resolv.conf to use masters' as DNS servers
+    """
+    content = "search {domain}".format(domain=masters[0].domain.name)
+    for master in masters:
+        content += "\nnameserver {master_ip}".format(master_ip=master.ip)
+    host.put_file_contents(paths.RESOLV_CONF, content)
+
+
 def config_host_resolvconf_with_master_data(master, host):
     """
     Configure host /etc/resolv.conf to use master as DNS server
     """
-    content = ('search {domain}\nnameserver {master_ip}'
-               .format(domain=master.domain.name, master_ip=master.ip))
-    host.put_file_contents(paths.RESOLV_CONF, content)
+    config_host_resolvconf_with_masters_data([master], host)
 
 
 def install_replica(master, replica, setup_ca=True, setup_dns=False,
