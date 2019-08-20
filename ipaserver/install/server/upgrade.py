@@ -480,7 +480,7 @@ def ca_initialize_hsm_state(ca):
         section_name = ca.subsystem.upper()
         config = SafeConfigParser()
         config.add_section(section_name)
-        config.set(section_name, 'pki_hsm_enable', False)
+        config.set(section_name, 'pki_hsm_enable', 'False')
         ca.set_hsm_state(config)
 
 
