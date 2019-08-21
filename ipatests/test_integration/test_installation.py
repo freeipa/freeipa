@@ -941,36 +941,36 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
                                            stdin_text=dirman_password)
         assert self.replicas[0].hostname not in cmd.stdout_text
 
+
 class BaseTestInstallReplicaWithUnreachableMaster(IntegrationTest):
     """https://pagure.io/freeipa/issue/8039
     Problem:
     In some cases installing a replica will fail if the specific master it
     chose to contact is unavailable.
     """
+
     num_replicas = 2  # master_2repl_1client
 
     def fix_resolv_conf(self, client, servers):
-        client.run_command(['hostname', '-f'])
-        client.run_command([
-            '/usr/bin/cp', paths.RESOLV_CONF,
-            '%s.sav' % paths.RESOLV_CONF
-        ])
-        tasks.config_host_resolvconf_with_masters_data(
-            masters=servers,
-            host=client
+        client.run_command(["hostname", "-f"])
+        client.run_command(
+            ["/usr/bin/cp", paths.RESOLV_CONF, "%s.sav" % paths.RESOLV_CONF]
         )
-        client.run_command(['cat', paths.RESOLV_CONF])
+        tasks.config_host_resolvconf_with_masters_data(
+            masters=servers, host=client
+        )
+        client.run_command(["cat", paths.RESOLV_CONF])
 
     def restore_resolv_conf(self, client):
-        client.run_command([
-            '/usr/bin/cp',
-            '%s.sav' % paths.RESOLV_CONF,
-            paths.RESOLV_CONF
-        ])
+        client.run_command(
+            ["/usr/bin/cp", "%s.sav" % paths.RESOLV_CONF, paths.RESOLV_CONF]
+        )
 
     def install_replica_with_missing_master(
         self,
-        use_ipa_as_forwarders=False, reverse_forwarders=False, promote=False
+        use_ipa_as_forwarders=False,
+        reverse_forwarders=False,
+        promote=False,
     ):
         """Test Steps:
         1. Setup server
@@ -982,41 +982,44 @@ class BaseTestInstallReplicaWithUnreachableMaster(IntegrationTest):
         assert not (use_ipa_as_forwarders is False and reverse_forwarders)
 
         # install master with all features
-        tasks.install_master(
-            self.master, setup_kra=True, setup_dns=True
-        )
+        tasks.install_master(self.master, setup_kra=True, setup_dns=True)
         # setup resolv.conf on both replica
         # * master's IP comes first
         # * this should allow nsupdate to work
         for i in (0, 1):
             self.fix_resolv_conf(
-                self.replicas[i],
-                [self.master, self.replicas[0]]
+                self.replicas[i], [self.master, self.replicas[0]]
             )
 
         # install replica0 with all features
         tasks.install_replica(
-            self.master, self.replicas[0],
-            setup_ca=True, setup_dns=True, setup_kra=True,
-            promote=False
+            self.master,
+            self.replicas[0],
+            setup_ca=True,
+            setup_dns=True,
+            setup_kra=True,
+            promote=False,
         )
         # double-check DNS configuration
         for dnsserver in (self.master.ip, self.replicas[0].ip):
             # dig returns 9 on timeout
-            result = self.replicas[1].run_command([
-                'dig', '+short', '@%s' % dnsserver,
-                '-t', 'SRV',
-                '_ldap._tcp.{domain}'.format(domain=self.master.domain.name)
-            ])
+            result = self.replicas[1].run_command(
+                [
+                    "dig",
+                    "+short",
+                    "@%s" % dnsserver,
+                    "-t",
+                    "SRV",
+                    "_ldap._tcp.{domain}".format(
+                        domain=self.master.domain.name
+                    ),
+                ]
+            )
             assert self.master.hostname in result.stdout_text
             assert self.replicas[0].hostname in result.stdout_text
         # stop services on master
-        self.master.run_command([
-            'hostname', '-f'
-        ])
-        self.master.run_command([
-            'ipactl', 'stop'
-        ])
+        self.master.run_command(["hostname", "-f"])
+        self.master.run_command(["ipactl", "stop"])
         # install replica1 with all features
         # * resolv.conf contains both master and replica0 IPs
         # * do not use tasks.install_replica() because it specifies
@@ -1028,45 +1031,58 @@ class BaseTestInstallReplicaWithUnreachableMaster(IntegrationTest):
             # invoke ipa-client-install first
             pass
         replica_install_cmd = [
-            'ipa-replica-install',
-            '--principal', 'admin',
-            '--admin-password', self.master.config.admin_password,
-            '--ip-address', self.replicas[1].ip,
-            '--realm', self.master.domain.realm,
-            '--domain', self.master.domain.name,
-            '--setup-ca', '--setup-kra', '--setup-dns', '-U'
+            "ipa-replica-install",
+            "--principal",
+            "admin",
+            "--admin-password",
+            self.master.config.admin_password,
+            "--ip-address",
+            self.replicas[1].ip,
+            "--realm",
+            self.master.domain.realm,
+            "--domain",
+            self.master.domain.name,
+            "--setup-ca",
+            "--setup-kra",
+            "--setup-dns",
+            "-U",
         ]
         if use_ipa_as_forwarders:
             if reverse_forwarders:
                 forwarders = [
-                    '--forwarder', self.replicas[1].ip,
-                    '--forwarder', self.master.ip
+                    "--forwarder",
+                    self.replicas[1].ip,
+                    "--forwarder",
+                    self.master.ip,
                 ]
             else:
                 forwarders = [
-                    '--forwarder', self.master.ip,
-                    '--forwarder', self.replicas[1].ip
+                    "--forwarder",
+                    self.master.ip,
+                    "--forwarder",
+                    self.replicas[1].ip,
                 ]
         else:
-            forwarders = [
-                '--forwarder', self.master.config.dns_forwarder
-            ]
+            forwarders = ["--forwarder", self.master.config.dns_forwarder]
         replica_install_cmd.extend(forwarders)
         self.replicas[1].run_command(replica_install_cmd)
         # double-check DNS again
-        result = self.replicas[0].run_command([
-            'dig', '+short', '@%s' % self.replicas[1].ip,
-            '-t', 'SRV',
-            '_ldap._tcp.{domain}'.format(domain=self.master.domain.name)
-        ])
+        result = self.replicas[0].run_command(
+            [
+                "dig",
+                "+short",
+                "@%s" % self.replicas[1].ip,
+                "-t",
+                "SRV",
+                "_ldap._tcp.{domain}".format(domain=self.master.domain.name),
+            ]
+        )
         assert self.master.hostname in result.stdout_text
         assert self.replicas[0].hostname in result.stdout_text
         assert self.replicas[1].hostname in result.stdout_text
 
         # cleanup in reverse order of installation
-        self.master.run_command([
-            'ipactl', 'start'
-        ])
+        self.master.run_command(["ipactl", "start"])
         for host in (self.replicas[1], self.replicas[0], self.master):
             tasks.uninstall_master(host)
         fw.disable_services(fw_services)
@@ -1077,61 +1093,52 @@ class BaseTestInstallReplicaWithUnreachableMaster(IntegrationTest):
 class TestInstallReplicaWithUnreachableMaster_0(
     BaseTestInstallReplicaWithUnreachableMaster
 ):
-
     def test_with_ipa_forwarders(self):
         self.install_replica_with_missing_master(
-            use_ipa_as_forwarders=False, reverse_forwarders=False,
+            use_ipa_as_forwarders=False, reverse_forwarders=False
         )
 
 
 class TestInstallReplicaWithUnreachableMaster_1(
     BaseTestInstallReplicaWithUnreachableMaster
 ):
-
     def test_with_ipa_forwarders(self):
         self.install_replica_with_missing_master(
-            use_ipa_as_forwarders=True, reverse_forwarders=False,
+            use_ipa_as_forwarders=True, reverse_forwarders=False
         )
 
 
 class TestInstallReplicaWithUnreachableMaster_2(
     BaseTestInstallReplicaWithUnreachableMaster
 ):
-
     def test_with_ipa_forwarders(self):
         self.install_replica_with_missing_master(
-            use_ipa_as_forwarders=True, reverse_forwarders=True,
+            use_ipa_as_forwarders=True, reverse_forwarders=True
         )
 
 
 class TestInstallReplicaWithUnreachableMaster_3(
     BaseTestInstallReplicaWithUnreachableMaster
 ):
-
     def test_with_ipa_forwarders(self):
         self.install_replica_with_missing_master(
-            use_ipa_as_forwarders=False, reverse_forwarders=False,
-            promote=True
+            use_ipa_as_forwarders=False, reverse_forwarders=False, promote=True
         )
 
 
 class TestInstallReplicaWithUnreachableMaster_4(
     BaseTestInstallReplicaWithUnreachableMaster
 ):
-
     def test_with_ipa_forwarders(self):
         self.install_replica_with_missing_master(
-            use_ipa_as_forwarders=True, reverse_forwarders=False,
-            promote=True
+            use_ipa_as_forwarders=True, reverse_forwarders=False, promote=True
         )
 
 
 class TestInstallReplicaWithUnreachableMaster_5(
     BaseTestInstallReplicaWithUnreachableMaster
 ):
-
     def test_with_ipa_forwarders(self):
         self.install_replica_with_missing_master(
-            use_ipa_as_forwarders=True, reverse_forwarders=True,
-            promote=True
+            use_ipa_as_forwarders=True, reverse_forwarders=True, promote=True
         )
