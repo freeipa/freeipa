@@ -949,8 +949,7 @@ class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
     """
     num_replicas = 2  # master_2repl_1client
 
-    @classmethod
-    def fix_resolv_conf(cls, client, servers):
+    def fix_resolv_conf(self, client, servers):
         client.run_command(['hostname', '-f'])
         client.run_command([
             '/usr/bin/cp', paths.RESOLV_CONF,
@@ -962,8 +961,7 @@ class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
         )
         client.run_command(['cat', paths.RESOLV_CONF])
 
-    @classmethod
-    def restore_resolv_conf(cls, client):
+    def restore_resolv_conf(self, client):
         client.run_command([
             '/usr/bin/cp',
             '%s.sav' % paths.RESOLV_CONF,
@@ -1004,8 +1002,8 @@ class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
                 '-t', 'SRV',
                 '_ldap._tcp.{domain}'.format(domain=self.master.domain.name)
             ])
-            assert self.master.ip in result.stdout_text
-            assert self.replicas[0].ip in result.stdout_text
+            assert self.master.hostname in result.stdout_text
+            assert self.replicas[0].hostname in result.stdout_text
         # stop services on master
         self.master.run_command([
             'hostname', '-f'
@@ -1015,8 +1013,9 @@ class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
         ])
         # install replica1 with all features
         # * resolv.conf contains both master and replica0 IPs
-        # * do not use tasks.install_replica() because it specifies from
-        #   which master to replicate from
+        # * use master and replica0 as forwarders only
+        # * do not use tasks.install_replica() because it specifies
+        #   from which master to replicate from
         fw_services = ["freeipa-ldap", "freeipa-ldaps", "dns"]
         fw = Firewall(self.replicas[1])
         fw.enable_services(fw_services)
@@ -1024,12 +1023,23 @@ class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
             'ipa-replica-install',
             '--principal', 'admin',
             '--admin-password', self.master.config.admin_password,
-            '--forwarder', self.master.config.dns_forwarder,
+            '--forwarder', self.master.ip,
+            '--forwarder', self.replicas[1].ip,
             '--ip-address', self.replicas[1].ip,
             '--realm', self.master.domain.realm,
             '--domain', self.master.domain.name,
             '--setup-ca', '--setup-kra', '--setup-dns', '-U'
         ])
+        # double-check DNS again
+        result = self.replicas[0].run_command([
+            'dig', '+short', '@%s' % self.replicas[1].ip,
+            '-t', 'SRV',
+            '_ldap._tcp.{domain}'.format(domain=self.master.domain.name)
+        ])
+        assert self.master.hostname in result.stdout_text
+        assert self.replicas[0].hostname in result.stdout_text
+        assert self.replicas[1].hostname in result.stdout_text
+
         # cleanup in reverse order of installation
         self.master.run_command([
             'ipactl', 'start'
