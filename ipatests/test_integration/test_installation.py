@@ -968,13 +968,19 @@ class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
             paths.RESOLV_CONF
         ])
 
-    def test_install_replica(self):
+    def install_replica_with_missing_master(
+        self,
+        use_ipa_as_forwarders=False, reverse_forwarders=False, promote=False
+    ):
         """Test Steps:
         1. Setup server
         2. Setup replica
         3. Shut down server
         4. Try to install replica
         """
+        # reverse_forwarders only makes sense with use_ipa_as_forwarders
+        assert not (use_ipa_as_forwarders is False and reverse_forwarders)
+
         # install master with all features
         tasks.install_master(
             self.master, setup_kra=True, setup_dns=True
@@ -1013,23 +1019,40 @@ class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
         ])
         # install replica1 with all features
         # * resolv.conf contains both master and replica0 IPs
-        # * use master and replica0 as forwarders only
         # * do not use tasks.install_replica() because it specifies
         #   from which master to replicate from
         fw_services = ["freeipa-ldap", "freeipa-ldaps", "dns"]
         fw = Firewall(self.replicas[1])
         fw.enable_services(fw_services)
-        self.replicas[1].run_command([
+        if promote:
+            # invoke ipa-client-install first
+            pass
+        replica_install_cmd = [
             'ipa-replica-install',
             '--principal', 'admin',
             '--admin-password', self.master.config.admin_password,
-            '--forwarder', self.master.ip,
-            '--forwarder', self.replicas[1].ip,
             '--ip-address', self.replicas[1].ip,
             '--realm', self.master.domain.realm,
             '--domain', self.master.domain.name,
             '--setup-ca', '--setup-kra', '--setup-dns', '-U'
-        ])
+        ]
+        if use_ipa_as_forwarders:
+            if reverse_forwarders:
+                forwarders = [
+                    '--forwarder', self.replicas[1].ip,
+                    '--forwarder', self.master.ip
+                ]
+            else:
+                forwarders = [
+                    '--forwarder', self.master.ip,
+                    '--forwarder', self.replicas[1].ip
+                ]
+        else:
+            forwarders = [
+                '--forwarder', self.master.config.dns_forwarder
+            ]
+        replica_install_cmd.extend(forwarders)
+        self.replicas[1].run_command(replica_install_cmd)
         # double-check DNS again
         result = self.replicas[0].run_command([
             'dig', '+short', '@%s' % self.replicas[1].ip,
@@ -1049,3 +1072,9 @@ class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
         fw.disable_services(fw_services)
         for i in (1, 0):
             self.restore_resolv_conf(self.replicas[i])
+
+    def test_with_ipa_forwarders(self):
+        self.install_replica_with_missing_master(
+            use_ipa_as_forwarders=True, reverse_forwarders=False,
+            promote=False
+        )
