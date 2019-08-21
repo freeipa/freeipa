@@ -941,7 +941,7 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
                                            stdin_text=dirman_password)
         assert self.replicas[0].hostname not in cmd.stdout_text
 
-class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
+class BaseTestInstallReplicaWithUnreachableMaster(IntegrationTest):
     """https://pagure.io/freeipa/issue/8039
     Problem:
     In some cases installing a replica will fail if the specific master it
@@ -1073,8 +1073,65 @@ class TestInstallReplicaWithUnreachableMaster(IntegrationTest):
         for i in (1, 0):
             self.restore_resolv_conf(self.replicas[i])
 
+
+class TestInstallReplicaWithUnreachableMaster_0(
+    BaseTestInstallReplicaWithUnreachableMaster
+):
+
+    def test_with_ipa_forwarders(self):
+        self.install_replica_with_missing_master(
+            use_ipa_as_forwarders=False, reverse_forwarders=False,
+        )
+
+
+class TestInstallReplicaWithUnreachableMaster_1(
+    BaseTestInstallReplicaWithUnreachableMaster
+):
+
     def test_with_ipa_forwarders(self):
         self.install_replica_with_missing_master(
             use_ipa_as_forwarders=True, reverse_forwarders=False,
-            promote=False
+        )
+
+
+class TestInstallReplicaWithUnreachableMaster_2(
+    BaseTestInstallReplicaWithUnreachableMaster
+):
+
+    def test_with_ipa_forwarders(self):
+        self.install_replica_with_missing_master(
+            use_ipa_as_forwarders=True, reverse_forwarders=True,
+        )
+
+
+class TestInstallReplicaWithUnreachableMaster_3(
+    BaseTestInstallReplicaWithUnreachableMaster
+):
+
+    def test_with_ipa_forwarders(self):
+        self.install_replica_with_missing_master(
+            use_ipa_as_forwarders=False, reverse_forwarders=False,
+            promote=True
+        )
+
+
+class TestInstallReplicaWithUnreachableMaster_4(
+    BaseTestInstallReplicaWithUnreachableMaster
+):
+
+    def test_with_ipa_forwarders(self):
+        self.install_replica_with_missing_master(
+            use_ipa_as_forwarders=True, reverse_forwarders=False,
+            promote=True
+        )
+
+
+class TestInstallReplicaWithUnreachableMaster_5(
+    BaseTestInstallReplicaWithUnreachableMaster
+):
+
+    def test_with_ipa_forwarders(self):
+        self.install_replica_with_missing_master(
+            use_ipa_as_forwarders=True, reverse_forwarders=True,
+            promote=True
         )
