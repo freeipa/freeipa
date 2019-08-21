@@ -11,6 +11,8 @@ import dns.dnssec
 import dns.resolver
 import dns.name
 
+import pytest
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
@@ -312,6 +314,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
             self.replicas[0].ip, root_zone, timeout=300
         ), "Zone %s is not signed (replica)" % root_zone
 
+    @pytest.mark.xfail(reason='dnspython issue 343', strict=False)
     def test_chain_of_trust(self):
         """
         Validate signed DNS records, using our own signed root zone
