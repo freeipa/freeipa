@@ -45,18 +45,18 @@ jobs:
         git_refspec: '{git_refspec}'
         template: &ci-master-f30
           name: freeipa/ci-master-f30
-          version: 0.0.4
+          version: "'>=0'"
         timeout: 1800
         topology: *build
 
-  fedora-30/temp_commit:
+  fedora-30/test_commands:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
+        test_suite: test_integration/test_commands.py
         template: *ci-master-f30
         timeout: 3600
-        topology: *master_1repl_1client
+        topology: *master_1repl
