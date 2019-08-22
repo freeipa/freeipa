@@ -30,6 +30,7 @@ import collections
 import itertools
 import tempfile
 import time
+from pipes import quote
 
 import dns
 from ldif import LDIFWriter
@@ -1221,7 +1222,7 @@ def double_circle_topo(master, replicas, site_size=6):
 
 def install_topo(topo, master, replicas, clients, domain_level=None,
                  skip_master=False, setup_replica_cas=True,
-                 setup_replica_kras=False):
+                 setup_replica_kras=False, clients_extra_args=()):
     """Install IPA servers and clients in the given topology"""
     if setup_replica_kras and not setup_replica_cas:
         raise ValueError("Option 'setup_replica_kras' requires "
@@ -1249,15 +1250,15 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
                 setup_kra=setup_replica_kras
             )
         installed.add(child)
-    install_clients([master] + replicas, clients)
+    install_clients([master] + replicas, clients, clients_extra_args)
 
 
-def install_clients(servers, clients):
+def install_clients(servers, clients, extra_args=()):
     """Install IPA clients, distributing them among the given servers"""
     izip = getattr(itertools, 'izip', zip)
     for server, client in izip(itertools.cycle(servers), clients):
         logger.info('Installing client %s on %s', server, client)
-        install_client(server, client)
+        install_client(server, client, extra_args)
 
 
 def _entries_to_ldif(entries):
@@ -1764,14 +1765,20 @@ def strip_cert_header(pem):
         return pem
 
 
-def user_add(host, login, first='test', last='user', extra_args=()):
+def user_add(host, login, first='test', last='user', extra_args=(),
+             password=None):
     cmd = [
         "ipa", "user-add", login,
         "--first", first,
         "--last", last
     ]
+    if password is not None:
+        cmd.append('--password')
+        stdin_text = '{0}\n{0}\n'.format(password)
+    else:
+        stdin_text = None
     cmd.extend(extra_args)
-    return host.run_command(cmd)
+    return host.run_command(cmd, stdin_text=stdin_text)
 
 
 def group_add(host, groupname, extra_args=()):
@@ -1832,3 +1839,36 @@ def create_temp_file(host, directory=None):
     if directory is not None:
         cmd += ['-p', directory]
     return host.run_command(cmd).stdout_text
+
+
+def create_active_user(host, login, password, first='test', last='user'):
+    """Create user and do login to set password"""
+    temp_password = 'Secret456789'
+    kinit_admin(host)
+    user_add(host, login, first=first, last=last, password=temp_password)
+    host.run_command(
+        ['kinit', login],
+        stdin_text='{0}\n{1}\n{1}\n'.format(temp_password, password))
+    kdestroy_all(host)
+
+
+def kdestroy_all(host):
+    return host.run_command(['kdestroy', '-A'])
+
+
+def run_command_as_user(host, user, command, *args, **kwargs):
+    """Run command on remote host using 'su -l'
+
+    Arguments are similar to Host.run_command
+    """
+    if not isinstance(command, str):
+        command = ' '.join(quote(s) for s in command)
+    cwd = kwargs.pop('cwd', None)
+    if cwd is not None:
+        command = 'cd {}; {}'.format(quote(cwd), command)
+    command = ['su', '-l', user, '-c', command]
+    return host.run_command(command, *args, **kwargs)
+
+
+def kinit_as_user(host, user, password):
+    host.run_command(['kinit', user], stdin_text=password + '\n')
