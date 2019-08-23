@@ -131,7 +131,7 @@ def map_Guests_to_nobody():
 
 
 def get_idmap_range(realm):
-    idrange = api.Command.idrange_show('{}_id_range'.format(realm))['result']
+    idrange = api.Command.idrange_show(u'{}_id_range'.format(realm))['result']
     range_start = int(idrange['ipabaseid'][0])
     range_size = int(idrange['ipaidrangesize'][0])
     range_fmt = '{} - {}'.format(range_start, range_start + range_size)
