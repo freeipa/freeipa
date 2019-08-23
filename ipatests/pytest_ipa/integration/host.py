@@ -106,14 +106,22 @@ class Host(pytest_multihost.host.Host):
 
     def run_command(self, argv, set_env=True, stdin_text=None,
                     log_stdout=True, raiseonerr=True,
-                    cwd=None, bg=False, encoding='utf-8'):
-        # Wrap run_command to log stderr on raiseonerr=True
+                    cwd=None, bg=False, encoding='utf-8', ok_returncode=0):
+        """Wrapper around run_command to log stderr on raiseonerr=True
+
+        :param ok_returncode: return code considered to be correct,
+                              you can pass an integer or sequence of integers
+        """
         result = super().run_command(
             argv, set_env=set_env, stdin_text=stdin_text,
             log_stdout=log_stdout, raiseonerr=False, cwd=cwd, bg=bg,
             encoding=encoding
         )
-        if result.returncode and raiseonerr:
+        try:
+            result_ok = result.returncode in ok_returncode
+        except TypeError:
+            result_ok = result.returncode == ok_returncode
+        if not result_ok and raiseonerr:
             result.log.error('stderr: %s', result.stderr_text)
             raise subprocess.CalledProcessError(
                 result.returncode, argv,
