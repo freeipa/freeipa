@@ -19,7 +19,6 @@
 
 import pytest
 
-from ipaplatform.osinfo import osinfo
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.tasks import (
     clear_sssd_cache, get_host_ip_with_hostmask, modify_sssd_conf)
@@ -715,9 +714,6 @@ class TestSudo(IntegrationTest):
                                           raiseonerr=False)
         assert result.returncode != 0
 
-    @pytest.mark.xfail(
-        osinfo.id == 'fedora' and osinfo.version_number < (30,),
-        reason="https://pagure.io/SSSD/sssd/issue/3957", strict=True)
     def test_domain_resolution_order(self):
         """Test sudo with runAsUser and domain resolution order.
 
