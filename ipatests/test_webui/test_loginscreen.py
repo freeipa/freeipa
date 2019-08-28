@@ -124,6 +124,7 @@ class TestLoginScreen(UI_driver):
         WebDriverWait(self.driver, 10).until(
             lambda d: runner.files_loaded()
         )
+        self.wait()
 
     def relogin_with_new_password(self):
         """
