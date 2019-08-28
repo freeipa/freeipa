@@ -46,70 +46,37 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_simple_replication.py
         template: *389ds-master-f30
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/external_ca_1:
+  fedora-30/test_commands:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_external_ca.py::TestExternalCA
-        template: *389ds-master-f30
-        timeout: 4800
-        topology: *master_1repl_1client
-
-  fedora-30/external_ca_2:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
+        update_packages: True
+        test_suite: test_integration/test_commands.py
         template: *389ds-master-f30
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/external_ca_templates:
+  fedora-30/test_server_del:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
+        update_packages: True
+        test_suite: test_integration/test_server_del.py
         template: *389ds-master-f30
-        timeout: 3600
-        topology: *master_1repl
-
-  fedora-30/test_vault:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_vault.py
-        template: *389ds-master-f30
-        timeout: 6300
-        topology: *master_1repl
-
-  fedora-30/test_forced_client_enrolment:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_forced_client_reenrollment.py
-        template: *389ds-master-f30
-        timeout: 4800
-        topology: *master_1repl_1client
+        timeout: 10800
+        topology: *master_2repl_1client
 
   fedora-30/test_installation_TestInstallWithCA1:
     requires: [fedora-30/build]
@@ -118,166 +85,11 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA1
         template: *389ds-master-f30
         timeout: 10800
         topology: *master_3repl_1client
-
-  fedora-30/test_installation_TestInstallWithCA2:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallWithCA2
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_3repl_1client
-
-  fedora-30/test_installation_TestInstallWithCA_KRA1:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA1
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_3repl_1client
-
-  fedora-30/test_installation_TestInstallWithCA_KRA2:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA2
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_3repl_1client
-
-  fedora-30/test_installation_TestInstallWithCA_DNS1:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS1
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_3repl_1client
-
-  fedora-30/test_installation_TestInstallWithCA_DNS2:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS2
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_3repl_1client
-
-  fedora-30/test_installation_TestInstallWithCA_DNS3:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS3
-        template: *389ds-master-f30
-        timeout: 3600
-        topology: *master_1repl
-
-  fedora-30/test_installation_TestInstallWithCA_DNS4:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS4
-        template: *389ds-master-f30
-        timeout: 3600
-        topology: *master_1repl
-
-  fedora-30/test_installation_TestInstallWithCA_KRA_DNS1:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS1
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_3repl_1client
-
-  fedora-30/test_installation_TestInstallWithCA_KRA_DNS2:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS2
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_3repl_1client
-
-  fedora-30/test_installation_TestInstallMaster:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallMaster
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_1repl
-
-  fedora-30/test_installation_TestInstallMasterKRA:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallMasterKRA
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_1repl
-
-  fedora-30/test_installation_TestInstallMasterDNS:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallMasterDNS
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_1repl
-
-  fedora-30/test_installation_TestInstallMasterReservedIPasForwarder:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_installation.py::TestInstallMasterReservedIPasForwarder
-        template: *389ds-master-f30
-        timeout: 10800
-        topology: *master_1repl
 
   fedora-30/test_caless_TestServerInstall:
     requires: [fedora-30/build]
@@ -286,6 +98,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestServerInstall
         template: *389ds-master-f30
         timeout: 12000
@@ -298,6 +111,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestReplicaInstall
         template: *389ds-master-f30
         timeout: 5400
@@ -310,23 +124,12 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestClientInstall
         template: *389ds-master-f30
         timeout: 5400
         # actually master_1client
         topology: *master_1repl_1client
-
-  fedora-30/test_caless_TestIPACommands:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_caless.py::TestIPACommands
-        template: *389ds-master-f30
-        timeout: 5400
-        topology: *master_1repl
 
   fedora-30/test_caless_TestCertInstall:
     requires: [fedora-30/build]
@@ -335,57 +138,88 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestCertInstall
         template: *389ds-master-f30
         timeout: 5400
         topology: *master_1repl
 
-  fedora-30/test_caless_TestPKINIT:
+  fedora-30/test_backup_and_restore_TestUserRootFilesOwnershipPermission:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_caless.py::TestPKINIT
+        update_packages: True
+        test_suite: test_integration/test_backup_and_restore.py::TestUserRootFilesOwnershipPermission
         template: *389ds-master-f30
-        timeout: 5400
+        timeout: 7200
         topology: *master_1repl
 
-  fedora-30/test_caless_TestServerReplicaCALessToCAFull:
+  fedora-30/test_backup_and_restore_TestBackupAndRestore:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
+        update_packages: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestore
         template: *389ds-master-f30
-        timeout: 5400
+        timeout: 7200
         topology: *master_1repl
 
-  fedora-30/test_caless_TestReplicaCALessToCAFull:
+  fedora-30/test_backup_and_restore_TestBackupAndRestoreWithDNSSEC:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_caless.py::TestReplicaCALessToCAFull
+        update_packages: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNSSEC
         template: *389ds-master-f30
-        timeout: 5400
+        timeout: 7200
         topology: *master_1repl
 
-  fedora-30/test_caless_TestServerCALessToExternalCA:
+  fedora-30/test_backup_and_restore_TestBackupReinstallRestoreWithDNSSEC:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_caless.py::TestServerCALessToExternalCA
+        update_packages: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNSSEC
         template: *389ds-master-f30
-        timeout: 5400
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-30/test_backup_and_restore_TestBackupAndRestoreWithDNS:
+    requires: [fedora-30/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-30/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNS
+        template: *389ds-master-f30
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-30/test_backup_and_restore_TestBackupReinstallRestoreWithDNS:
+    requires: [fedora-30/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-30/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNS
+        template: *389ds-master-f30
+        timeout: 7200
         topology: *master_1repl
 
   fedora-30/test_backup_and_restore_TestBackupAndRestoreWithKRA:
@@ -395,6 +229,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithKRA
         template: *389ds-master-f30
         timeout: 7200
@@ -407,6 +242,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithKRA
         template: *389ds-master-f30
         timeout: 7200
@@ -419,10 +255,24 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
         template: *389ds-master-f30
         timeout: 7200
         topology: *master_2repl_1client
+
+  fedora-30/test_backup_and_restore_TestBackupAndRestoreDMPassword:
+    requires: [fedora-30/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-30/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreDMPassword
+        template: *389ds-master-f30
+        timeout: 7200
+        topology: *master_1repl
 
   fedora-30/test_backup_and_restore_TestReplicaInstallAfterRestore:
     requires: [fedora-30/build]
@@ -431,6 +281,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestReplicaInstallAfterRestore
         template: *389ds-master-f30
         timeout: 7200
@@ -443,43 +294,21 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
         template: *389ds-master-f30
         timeout: 7200
         topology: *master_1repl
 
-  fedora-30/test_replica_promotion_TestRenewalMaster:
+  fedora-30/test_replica_promotion_TestProhibitReplicaUninstallation:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_replica_promotion.py::TestRenewalMaster
-        template: *389ds-master-f30
-        timeout: 7200
-        topology: *master_1repl
-
-  fedora-30/test_replica_promotion_TestSubCAkeyReplication:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
-        template: *389ds-master-f30
-        timeout: 7200
-        topology: *master_1repl
-
-  fedora-30/test_replica_promotion_TestReplicaInstallCustodia:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallCustodia
+        update_packages: True
+        test_suite: test_integration/test_replica_promotion.py::TestProhibitReplicaUninstallation
         template: *389ds-master-f30
         timeout: 7200
         topology: *master_2repl_1client
@@ -491,6 +320,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_upgrade.py
         template: *389ds-master-f30
         timeout: 7200
@@ -503,7 +333,21 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_topology.py::TestCASpecificRUVs
+        template: *389ds-master-f30
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-30/test_topology_TestTopologyOptions:
+    requires: [fedora-30/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-30/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_topology.py::TestTopologyOptions
         template: *389ds-master-f30
         timeout: 7200
         topology: *master_3repl_1client
@@ -515,6 +359,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
         template: *389ds-master-f30
         timeout: 7200
@@ -527,6 +372,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCA
         template: *389ds-master-f30
         timeout: 10800
@@ -539,6 +385,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCAKRA
         template: *389ds-master-f30
         timeout: 10800
@@ -551,6 +398,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithoutCA
         template: *389ds-master-f30
         timeout: 7200
@@ -563,6 +411,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCA
         template: *389ds-master-f30
         timeout: 7200
@@ -575,6 +424,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCAKRA
         template: *389ds-master-f30
         timeout: 10800
@@ -587,6 +437,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithoutCA
         template: *389ds-master-f30
         timeout: 7200
@@ -599,6 +450,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCA
         template: *389ds-master-f30
         timeout: 7200
@@ -611,6 +463,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCAKRA
         template: *389ds-master-f30
         timeout: 7200
@@ -623,48 +476,24 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_uninstallation.py
         template: *389ds-master-f30
         timeout: 7200
         topology: *master_1repl_1client
 
-  fedora-30/test_webui_cert:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunWebuiTests
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_webui/test_cert.py
-        template: *389ds-master-f30
-        timeout: 2400
-        topology: *ipaserver
-
-  fedora-30/test_webui_identity:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunWebuiTests
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: >-
-          test_webui/test_automember.py
-          test_webui/test_idviews.py
-        template: *389ds-master-f30
-        timeout: 3600
-        topology: *ipaserver
-
-  fedora-30/dns_locations:
+  fedora-30/customized_ds_config_install:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_dns_locations.py
+        update_packages: True
+        test_suite: test_integration/test_customized_ds_config_install.py
         template: *389ds-master-f30
         timeout: 3600
-        topology: *master_2repl_1client
+        topology: *master_1repl
 
   fedora-30/external_ca_TestExternalCAdirsrvStop:
     requires: [fedora-30/build]
@@ -673,55 +502,34 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAdirsrvStop
         template: *389ds-master-f30
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/external_ca_TestExternalCAInvalidCert:
+  fedora-30/mask:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_external_ca.py::TestExternalCAInvalidCert
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestMaskInstall
         template: *389ds-master-f30
         timeout: 3600
-        topology: *master_1repl
+        topology: *ipaserver
 
-  fedora-30/external_ca_TestMultipleExternalCA:
+  fedora-30/automember:
     requires: [fedora-30/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_external_ca.py::TestMultipleExternalCA
-        template: *389ds-master-f30
-        timeout: 3600
-        topology: *master_1repl
-
-  fedora-30/test_pkinit_manage:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_pkinit_manage.py
-        template: *389ds-master-f30
-        timeout: 3600
-        topology: *master_1repl
-
-  fedora-30/test_crlgen_manage:
-    requires: [fedora-30/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-30/build_url}'
-        test_suite: test_integration/test_crlgen_manage.py
+        update_packages: True
+        test_suite: test_integration/test_automember.py
         template: *389ds-master-f30
         timeout: 3600
         topology: *master_1repl
