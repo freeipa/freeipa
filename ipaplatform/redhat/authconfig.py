@@ -167,6 +167,10 @@ class RedHatAuthSelect(RedHatAuthToolBase):
                 'authselect', 'features_list'
             )
             statestore.delete_state('authselect', 'mkhomedir')
+            # https://pagure.io/freeipa/issue/8054
+            if fstore.has_file(paths.NSSWITCH_CONF):
+                logger.info("Restoring user-nsswitch.conf")
+                fstore.restore_file(paths.NSSWITCH_CONF)
             # only non-empty features, https://pagure.io/freeipa/issue/7776
             if features_state is not None:
                 features = [
