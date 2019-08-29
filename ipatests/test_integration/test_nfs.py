@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import pytest
 import os
 import re
 import time
@@ -324,7 +323,6 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         cmd = self.clients[0].run_command(sha256nsswitch_cmd)
         assert cmd.stdout_text == orig_sha256
 
-    @pytest.mark.xfail(reason='freeipa ticket 8054', strict=True)
     def test_nsswitch_backup_restore_sssd(self):
         self.nsswitch_backup_restore()
 
