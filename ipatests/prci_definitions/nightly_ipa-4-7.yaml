@@ -1243,4 +1243,4 @@ jobs:
         test_suite: test_integration/test_cli_ipa_not_configured.py::TestIPANotConfigured
         template: *ci-master-f29
         timeout: 10800
-        topology: *ipaserver
+        topology: *master_1repl
