@@ -264,7 +264,7 @@ BuildRequires:  python3-yubico
 %if ! %{ONLY_CLIENT}
 BuildRequires:  libcmocka-devel
 # Required by ipa_kdb_tests
-BuildRequires:  %{_libdir}/krb5/plugins/kdb/db2.so
+BuildRequires:  krb5-server >= %{krb5_version}
 # ONLY_CLIENT
 %endif
 
