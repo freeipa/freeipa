@@ -24,26 +24,29 @@ Test the `ipalib.plugins.host` module.
 """
 from __future__ import print_function, absolute_import
 
+import base64
 import os
 import tempfile
-import base64
 
 import pytest
 
-from ipapython import ipautil
 from ipalib import api, errors, messages
+from ipalib.constants import MAXHOSTNAMELEN
+from ipaplatform.paths import paths
+from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipatests.test_util import yield_fixture
-from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test,
-    fuzzy_uuid, fuzzy_digits, fuzzy_hash, fuzzy_date, fuzzy_issuer,
-    fuzzy_hex, raises_exact)
-from ipatests.test_xmlrpc.test_user_plugin import get_group_dn
 from ipatests.test_xmlrpc import objectclasses
-from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
+from ipatests.test_xmlrpc.test_user_plugin import get_group_dn
 from ipatests.test_xmlrpc.testcert import get_testcert, subject_base
+from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
+from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test,
+                                              fuzzy_uuid, fuzzy_digits,
+                                              fuzzy_hash, fuzzy_date,
+                                              fuzzy_issuer,
+                                              fuzzy_hex, raises_exact)
 from ipatests.util import assert_deepequal
-from ipaplatform.paths import paths
 
 # Constants DNS integration tests
 # TODO: Use tracker fixtures for zones/records/users/groups
@@ -95,7 +98,7 @@ group2 = u'group2'
 group2_dn = get_group_dn(group2)
 hostgroup1 = u'testhostgroup1'
 hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
-                    api.env.basedn)
+                   api.env.basedn)
 
 host_cert = get_testcert(DN(('CN', api.env.host), subject_base()),
                          'host/%s@%s' % (api.env.host, api.env.realm))
@@ -236,20 +239,21 @@ class TestCRUD(XMLRPC_test):
 
     def test_update_simple(self, host):
         host.update(dict(
-                        description=u'Updated host 1',
-                        usercertificate=host_cert),
-                    expected_updates=dict(
-                        description=[u'Updated host 1'],
-                        usercertificate=[base64.b64decode(host_cert)],
-                        issuer=fuzzy_issuer,
-                        serial_number=fuzzy_digits,
-                        serial_number_hex=fuzzy_hex,
-                        sha1_fingerprint=fuzzy_hash,
-                        sha256_fingerprint=fuzzy_hash,
-                        subject=DN(('CN', api.env.host), subject_base()),
-                        valid_not_before=fuzzy_date,
-                        valid_not_after=fuzzy_date,
-                    ))
+            description=u'Updated host 1',
+            usercertificate=host_cert),
+            expected_updates=dict(
+                description=[u'Updated host 1'],
+                usercertificate=[base64.b64decode(host_cert)],
+                issuer=fuzzy_issuer,
+                serial_number=fuzzy_digits,
+                serial_number_hex=fuzzy_hex,
+                sha1_fingerprint=fuzzy_hash,
+                sha256_fingerprint=fuzzy_hash,
+                subject=DN(('CN', api.env.host), subject_base()),
+                valid_not_before=fuzzy_date,
+                valid_not_after=fuzzy_date,
+        )
+        )
         host.retrieve()
         # test host-find with --certificate
         command = host.make_find_command(
@@ -336,6 +340,96 @@ class TestCRUD(XMLRPC_test):
         result = command(userpassword=None)
         host.track_create()
         host.check_create(result)
+
+    @staticmethod
+    def modify_config_maxhostname(host_tracker, value):
+        try:
+            command = host_tracker.make_command(
+                'config_mod',
+                **dict(
+                    setattr=u'ipamaxhostnamelength={}'.format(value)))
+            command()
+        except errors.EmptyModlist:
+            pass
+
+    @staticmethod
+    def generate_hostname(total_length, label_len=5):
+        """Helper function to generate hostname given total length and
+        optional DNS label length
+        :param total_length: total length of fqdn
+        :param label_len: label length
+        :return: fqdn like string
+        """
+        if total_length < 9:
+            raise ArithmeticError("Total DNS length in theses tests"
+                                  "must be at least 9")
+        no_of_labels = total_length // (label_len + 1)
+        remainder = total_length % (label_len + 1)
+        return '{}{}{}'.format(
+            (no_of_labels - 1) * '{}.'.format(label_len * 'a'),
+            label_len * 'b' if remainder != 0 else (label_len + 1) * 'b',
+            ".{}".format(remainder * 'c') if remainder != 0 else "")
+
+    def test_config_maxhostname_invalid(self, host):
+        """Change config maxhostname to an invalid value
+        (lower than MAXHOSTNAMELEN). Should fail"""
+        with raises_exact(errors.ValidationError(
+                name='ipamaxhostnamelength',
+                error='must be at least {}'.format(MAXHOSTNAMELEN))):
+            self.modify_config_maxhostname(host, MAXHOSTNAMELEN // 2)
+
+    def test_raise_hostname_limit_above_maxhostnamelen(self, host):
+        """Raise config maxhostname to a value above the default
+        (MAXHOSTNAMELEN). Should pass"""
+        self.modify_config_maxhostname(host, MAXHOSTNAMELEN * 2)
+
+    def test_try_hostname_length_above_maxhostnamelimit(self):
+        """Try to create host with hostname length above
+        hostnamelength limit. Should fail"""
+        testhost = HostTracker(name=u'testhost',
+                               fqdn=u'{}'.format(
+                                   self.generate_hostname(MAXHOSTNAMELEN + 1)))
+        self.modify_config_maxhostname(testhost, MAXHOSTNAMELEN)
+        with raises_exact(errors.ValidationError(
+                name=u'hostname',
+                error=u'can be at most {} characters'.format(
+                    MAXHOSTNAMELEN))):
+            testhost.create()
+            testhost.ensure_missing()
+
+    def test_try_hostname_length_below_maximum(self):
+        """Try to create host with valid hostname. Should pass"""
+        valid_length = MAXHOSTNAMELEN // 2
+        testhost = HostTracker(name=u'testhost',
+                               fqdn=u'{}'.format(
+                                   self.generate_hostname(valid_length)))
+        self.modify_config_maxhostname(testhost, MAXHOSTNAMELEN)
+        testhost.create()
+        testhost.ensure_missing()
+
+    def test_raise_limit_above_and_try_hostname_len_above_limit(self):
+        """Raise limit above default and try to create host with hostname
+        length above the new-set limit. Should fail"""
+        testhost = HostTracker(name=u'testhost',
+                               fqdn=u'{}'.format(
+                                   self.generate_hostname(MAXHOSTNAMELEN * 3)))
+        self.modify_config_maxhostname(testhost, MAXHOSTNAMELEN * 2)
+        with raises_exact(errors.ValidationError(
+                name='hostname',
+                error=u'can be at most {} characters'.format(
+                    MAXHOSTNAMELEN * 2))):
+            testhost.create()
+            testhost.ensure_missing()
+
+    def test_raise_limit_and_try_valid_len_hostname(self):
+        """Raise limit above default and test hostname with length
+        in between default 64 and the new value. Should pass"""
+        testhost = HostTracker(name=u'testhost',
+                               fqdn=u'{}'.format(
+                                   self.generate_hostname(MAXHOSTNAMELEN + 1)))
+        self.modify_config_maxhostname(testhost, MAXHOSTNAMELEN * 2)
+        testhost.create()
+        testhost.ensure_missing()
 
 
 @pytest.mark.tier1
@@ -993,7 +1087,7 @@ class TestHostAllowedTo(XMLRPC_test):
             ),
             completed=1,
             result=host.filter_attrs(host.allowedto_keys),
-       ), result)
+        ), result)
 
         host.retrieve()
 
