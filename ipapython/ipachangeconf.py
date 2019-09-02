@@ -482,7 +482,7 @@ class IPAChangeConf:
                     error=e, fname=f.name, line=line.rstrip()))
 
         # Add last section if any
-        if len(sectopts) is not 0:
+        if len(sectopts) != 0:
             opts.append({'name': section,
                          'type': 'section',
                          'value': sectopts})
