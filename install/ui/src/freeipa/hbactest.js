@@ -263,12 +263,28 @@ IPA.hbac.test_select_facet = function(spec) {
         that.table.multivalued = false;
 
         that.table.set_values = function(values) {
-            if (values && values.length && values[0] === '__external__') {
-                if (that.external_radio) that.external_radio.prop('checked', true);
-            } else {
-                that.table.table_set_values(values);
+            var records = that.table.records;
+            var has_values = values && values.length;
+
+            if (has_values && values[0] === '__external__') {
+                if (that.external_radio) {
+                    that.external_radio.prop('checked', true);
+                }
+                return;
             }
+
+            that.table.table_set_values(values);
         };
+    };
+
+    that.show = function() {
+        that.facet_show();
+        that._make_sure_value_selected();
+    };
+
+    that.load_records = function(records) {
+        that.table_facet_load_records(records);
+        that._make_sure_value_selected();
     };
 
     that.create_content = function(container) {
@@ -384,7 +400,8 @@ IPA.hbac.test_select_facet = function(spec) {
     };
 
     that.reset = function() {
-        delete that.selected_values;
+        that.table.set_values([]);
+
         if (that.external_radio) that.external_radio.prop('checked', false);
         if (that.external_text) that.external_text.val('');
     };
@@ -404,6 +421,15 @@ IPA.hbac.test_select_facet = function(spec) {
         if (record[that.name]) return true;
 
         return false;
+    };
+
+    that._make_sure_value_selected = function() {
+        var records = that.table.records;
+        var values = that.get_selected_values();
+
+        if (!(values && values.length) && records && records.length) {
+            that.table.set_values(records[0][that.table.name]);
+        }
     };
 
     init();
@@ -475,7 +501,8 @@ IPA.hbac.test_rules_facet = function(spec) {
     };
 
     that.reset = function() {
-        delete that.selected_values;
+        that.table.set_values([]);
+
         if (that.enabled) that.enabled.prop('checked', false);
         if (that.disabled) that.disabled.prop('checked', false);
     };
