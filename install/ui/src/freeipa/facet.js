@@ -2510,6 +2510,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     if (!no_init) that.init_table_columns();
 
     that.table_facet_create_get_records_command = that.create_get_records_command;
+    that.table_facet_load_records = that.load_records;
 
     return that;
 };
