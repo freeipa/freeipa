@@ -155,10 +155,6 @@ class test_hbac(UI_driver):
             self.assert_dialog('message_dialog')
 
         __hbac_ui_click_on_run_test(self)
-        self.click_on_link('User name')
-        self.assert_facet('hbactest', 'user')
-
-        __hbac_ui_click_on_run_test(self)
         self.click_on_link('Target host')
         self.assert_facet('hbactest', 'targethost')
 
