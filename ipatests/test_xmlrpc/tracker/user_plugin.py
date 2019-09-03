@@ -227,7 +227,7 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
         result = command()
 
         for key, value in updates.items():
-            if value is None or value is '' or value is u'':
+            if value is None or value == '':
                 del self.attrs[key]
             elif key == 'rename':
                 new_principal = u'{0}@{1}'.format(value, self.api.env.realm)
@@ -241,7 +241,7 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
                 else:
                     self.attrs[key] = [value]
         for key, value in expected_updates.items():
-            if value is None or value is '' or value is u'':
+            if value is None or value == '':
                 del self.attrs[key]
             else:
                 self.attrs[key] = value
