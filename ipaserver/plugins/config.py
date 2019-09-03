@@ -503,12 +503,12 @@ class config_mod(LDAPUpdate):
 
         # Set ipasearchrecordslimit to -1 if 0 is used
         if 'ipasearchrecordslimit' in entry_attrs:
-            if entry_attrs['ipasearchrecordslimit'] is 0:
+            if entry_attrs['ipasearchrecordslimit'] == 0:
                  entry_attrs['ipasearchrecordslimit'] = -1
 
         # Set ipasearchtimelimit to -1 if 0 is used
         if 'ipasearchtimelimit' in entry_attrs:
-            if entry_attrs['ipasearchtimelimit'] is 0:
+            if entry_attrs['ipasearchtimelimit'] == 0:
                  entry_attrs['ipasearchtimelimit'] = -1
 
         for (attr, obj) in (('ipauserobjectclasses', 'user'),
