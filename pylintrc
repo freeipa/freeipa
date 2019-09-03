@@ -92,7 +92,6 @@ disable=
     singleton-comparison,
     len-as-condition,  # new in pylint 1.7
     no-else-return,  # new in pylint 1.7
-    literal-comparison,  # new in pylint 1.7
     single-string-used-for-slots,  # new in pylint 1.7
     useless-super-delegation,  # new in pylint 1.7
     redefined-argument-from-local,  # new in pylint 1.7
