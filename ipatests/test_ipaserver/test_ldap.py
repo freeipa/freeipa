@@ -233,7 +233,7 @@ class test_LDAPEntry:
         e = self.entry
         assert e.pop('cn') == self.cn1
         assert 'cn' not in e
-        assert e.pop('cn', 'default') is 'default'
+        assert e.pop('cn', 'default') == 'default'
         with pytest.raises(KeyError):
             e.pop('cn')
 
