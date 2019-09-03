@@ -451,7 +451,7 @@ class TestPermission(XMLRPC_test):
         ) as ewe:
             find = certmap_rule.make_find_command()
             res = find(**{k: v for k, v in certmaprule_create_params.items()
-                          if k is not u'dn'})
+                          if k != u'dn'})
             ewe.send(res)
 
     def test_update(self, certmap_rule, certmap_user_permissions):

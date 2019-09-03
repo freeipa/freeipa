@@ -187,7 +187,7 @@ class test_Gettext:
         inst = self.klass('what up?', 'foo', 'bar')
         assert inst.domain == 'foo'
         assert inst.localedir == 'bar'
-        assert inst.msg is 'what up?'
+        assert inst.msg == 'what up?'
         assert inst.args == ('what up?', 'foo', 'bar')
 
     def test_repr(self):
@@ -349,7 +349,7 @@ class test_GettextFactory:
         inst = self.klass('foo', 'bar')
         g = inst('what up?')
         assert type(g) is text.Gettext
-        assert g.msg is 'what up?'
+        assert g.msg == 'what up?'
         assert g.domain == 'foo'
         assert g.localedir == 'bar'
 
