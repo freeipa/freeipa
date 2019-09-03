@@ -63,6 +63,7 @@
 
 #define EXOP_EXTDOM_OID "2.16.840.1.113730.3.8.10.4"
 #define EXOP_EXTDOM_V1_OID "2.16.840.1.113730.3.8.10.4.1"
+#define EXOP_EXTDOM_V2_OID "2.16.840.1.113730.3.8.10.4.2"
 
 #define IPA_EXTDOM_PLUGIN_NAME   "ipa-extdom-extop"
 #define IPA_EXTDOM_FEATURE_DESC  "IPA trusted domain ID mapper"
@@ -72,7 +73,8 @@
 
 enum extdom_version {
     EXTDOM_V0 = 0,
-    EXTDOM_V1
+    EXTDOM_V1,
+    EXTDOM_V2
 };
 
 enum input_types {
@@ -80,7 +82,9 @@ enum input_types {
     INP_NAME,
     INP_POSIX_UID,
     INP_POSIX_GID,
-    INP_CERT
+    INP_CERT,
+    INP_USERNAME,
+    INP_GROUPNAME
 };
 
 enum request_types {
