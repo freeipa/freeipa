@@ -54,6 +54,7 @@ Slapi_PluginDesc ipa_extdom_plugin_desc = {
 static char *ipa_extdom_oid_list[] = {
     EXOP_EXTDOM_OID,
     EXOP_EXTDOM_V1_OID,
+    EXOP_EXTDOM_V2_OID,
     NULL
 };
 
@@ -196,6 +197,8 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
         version = EXTDOM_V0;
     } else if (strcasecmp(oid, EXOP_EXTDOM_V1_OID) == 0) {
         version = EXTDOM_V1;
+    } else if (strcasecmp(oid, EXOP_EXTDOM_V2_OID) == 0) {
+        version = EXTDOM_V2;
     } else {
         return SLAPI_PLUGIN_EXTENDED_NOT_HANDLED;
     }
