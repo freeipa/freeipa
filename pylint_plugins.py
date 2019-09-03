@@ -499,6 +499,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.force_schema_check = False
     api.env.home = ''  # object
     api.env.host = ''
+    api.env.host_princ = ''
     api.env.http_timeout = 0
     api.env.in_server = False  # object
     api.env.in_tree = False  # object
@@ -524,6 +525,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.script = ''  # object
     api.env.site_packages = ''  # object
     api.env.skip_version_check = False
+    api.env.smb_princ = ''
     api.env.startup_timeout = 0
     api.env.startup_traceback = False
     api.env.tls_ca_cert = ''  # object
