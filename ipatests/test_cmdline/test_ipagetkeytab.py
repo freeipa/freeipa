@@ -465,4 +465,4 @@ class test_smb_service(KeytabRetrievalTest):
         entry = conn.retrieve(test_smb_svc.dn, ['ipaNTHash'])
         ipanthash = entry.single_value.get('ipanthash')
         conn.disconnect()
-        assert ipanthash is not b'MagicRegen', 'LDBM backend entry corruption'
+        assert ipanthash != b'MagicRegen', 'LDBM backend entry corruption'
