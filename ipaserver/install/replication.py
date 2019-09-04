@@ -187,7 +187,7 @@ def wait_for_entry(connection, dn, timeout, attr=None, attrvalue='*',
     else:
         filterstr = "(objectclass=*)"
     log("Waiting up to %s seconds for replication (%s) %s %s",
-        connection, dn, filterstr)
+        timeout, connection, dn, filterstr)
     entry = []
     deadline = time.time() + timeout
     for i in itertools.count(start=1):
