@@ -1057,7 +1057,7 @@ static krb5_flags maybe_require_preauth(struct ipadb_context *ipactx,
     struct ipadb_e_data *ied;
 
     config = ipadb_get_global_config(ipactx);
-    if (config->disable_preauth_for_spns) {
+    if (config && config->disable_preauth_for_spns) {
         ied = (struct ipadb_e_data *)entry->e_data;
         if (ied && ied->ipa_user != true) {
             /* not a user, assume SPN */
