@@ -35,10 +35,23 @@ import six
 from ipapython import ipautil
 from ipaserver.install import certs
 
+# Return codes. Names of the constants are taken from
+# https://git.fedorahosted.org/cgit/certmonger.git/tree/src/submit-e.h
+OPERATION_NOT_SUPPORTED_BY_HELPER = 6
+
 
 def main():
     if len(sys.argv) < 2:
         raise RuntimeError("Not enough arguments")
+
+    # Avoid the lock if the operation is unsupported by ipa-submit
+    operation = os.environ.get('CERTMONGER_OPERATION')
+    if operation not in ('IDENTIFY',
+                         'FETCH-ROOTS',
+                         'GET-NEW-REQUEST-REQUIREMENTS',
+                         'SUBMIT',
+                         'POLL'):
+        return OPERATION_NOT_SUPPORTED_BY_HELPER
 
     with certs.renewal_lock:
         result = ipautil.run(sys.argv[1:], raiseonerr=False, env=os.environ)
