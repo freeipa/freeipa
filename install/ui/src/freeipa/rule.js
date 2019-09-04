@@ -35,6 +35,14 @@ IPA.rule_details_widget = function(spec) {
 
     spec = spec || {};
 
+    // Link association table with category option.
+    for (var i=0; i<spec.widgets.length; i++) {
+        var widget = spec.widgets[i];
+        if (widget.$type == 'rule_association_table') {
+            widget.category_name = spec.radio_name;
+        }
+    }
+
     var that = IPA.composite_widget(spec);
 
     that.radio_name = spec.radio_name;
@@ -126,6 +134,7 @@ IPA.rule_association_table_widget = function(spec) {
     var that = IPA.association_table_widget(spec);
 
     that.external = spec.external;
+    that.category_name = spec.category_name;
 
     that.setup_column = function(column, div, record) {
         var suppress_link = false;
@@ -175,6 +184,47 @@ IPA.rule_association_table_widget = function(spec) {
             external: that.external,
             exclude: exclude
         });
+    };
+
+    that.add = function(values, on_success, on_error) {
+
+        var pkey = that.facet.get_pkey();
+
+        var batch = rpc.batch_command({
+            name: 'add_association',
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        if (that.category_name) {
+            var category_field = that.facet.get_field(that.category_name);
+
+            // Save category option if the field value is changed.
+            if (category_field.dirty) {
+                var options = {};
+                options[that.category_name] = category_field.value[0];
+
+                command = rpc.command({
+                    entity: that.entity.name,
+                    method: 'mod',
+                    args: [pkey],
+                    options: options
+                });
+                batch.add_command(command);
+            }
+        }
+
+        var command = rpc.command({
+            entity: that.entity.name,
+            method: that.add_method,
+            args: [pkey]
+        });
+
+        that.join_additional_option(command);
+        that.handle_entity_option(command, values);
+        batch.add_command(command);
+
+        batch.execute();
     };
 
     return that;

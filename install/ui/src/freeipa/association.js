@@ -668,6 +668,7 @@ IPA.association_table_widget = function (spec) {
                 dialog.get_selected_values(),
                 function(data) {
                     that.refresh();
+                    that.facet.refresh();
                     dialog.close();
 
                     var succeeded = IPA.get_succeeded(data);
@@ -676,6 +677,7 @@ IPA.association_table_widget = function (spec) {
                 },
                 function() {
                     that.refresh();
+                    that.facet.refresh();
                     dialog.close();
                 }
             );
