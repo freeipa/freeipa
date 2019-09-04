@@ -53,6 +53,7 @@ INVALID_MLS = ("invalid 'selinuxuser': Invalid MLS value, must match {}, "
 HBAC_DEL_ERR = ('{} cannot be deleted because SELinux User Map {} requires '
                 'it')
 HBAC_MEMBER_ERR = 'HBAC rule and local members cannot both be set'
+BATCH_ERR = 'Some operations failed.'
 
 
 @pytest.mark.tier1
@@ -185,7 +186,7 @@ class test_selinuxusermap(UI_driver):
         self.navigate_to_record(selinuxmap.PKEY, entity=selinuxmap.ENTITY)
         self.add_table_associations('memberuser_user', ['admin'],
                                     negative=True)
-        self.assert_last_error_dialog(HBAC_MEMBER_ERR)
+        self.assert_last_error_dialog(BATCH_ERR)
         self.close_all_dialogs()
 
         # test adding HBAC rule together with user (should FAIL)
