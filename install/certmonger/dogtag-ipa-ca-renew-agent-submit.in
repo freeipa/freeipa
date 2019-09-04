@@ -473,12 +473,12 @@ def main():
     else:
         kwargs['reuse_existing'] = True
 
-    api.bootstrap(in_server=True, context='renew', confdir=paths.ETC_IPA)
-    api.finalize()
-
     operation = os.environ.get('CERTMONGER_OPERATION')
     if operation not in ('SUBMIT', 'POLL'):
         return OPERATION_NOT_SUPPORTED_BY_HELPER
+
+    api.bootstrap(in_server=True, context='renew', confdir=paths.ETC_IPA)
+    api.finalize()
 
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
     certs.renewal_lock.acquire()
