@@ -400,7 +400,7 @@ class config(LDAPObject):
             )
 
         try:
-            validate_domain_name(domain)
+            validate_domain_name(domain, check_sld=True)
         except ValueError as e:
             raise errors.ValidationError(
                 name=attr_name,

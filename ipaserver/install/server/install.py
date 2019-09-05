@@ -471,25 +471,25 @@ def install_check(installer):
         domain_name = read_domain_name(host_name[host_name.find(".")+1:],
                                        not installer.interactive)
         logger.debug("read domain_name: %s\n", domain_name)
-        try:
-            validate_domain_name(domain_name)
-        except ValueError as e:
-            raise ScriptError("Invalid domain name: %s" % unicode(e))
     else:
         domain_name = options.domain_name
 
     domain_name = domain_name.lower()
+    try:
+        validate_domain_name(domain_name, check_sld=True)
+    except ValueError as e:
+        raise ScriptError("Invalid domain name: %s" % unicode(e))
 
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, not installer.interactive)
         logger.debug("read realm_name: %s\n", realm_name)
 
-        try:
-            validate_domain_name(realm_name, entity="realm")
-        except ValueError as e:
-            raise ScriptError("Invalid realm name: {}".format(unicode(e)))
     else:
         realm_name = options.realm_name.upper()
+    try:
+        validate_domain_name(realm_name, entity="realm", check_sld=True)
+    except ValueError as e:
+        raise ScriptError("Invalid realm name: {}".format(unicode(e)))
 
     if not options.subject_base:
         options.subject_base = installutils.default_subject_base(realm_name)
