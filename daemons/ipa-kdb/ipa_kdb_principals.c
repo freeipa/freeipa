@@ -21,6 +21,7 @@
  */
 
 #include "ipa_kdb.h"
+#include "ipa_krb5.h"
 #include <unicase.h>
 
 /*
@@ -554,6 +555,17 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         return KRB5_KDB_DBNOTINITED;
     }
     lcontext = ipactx->lcontext;
+    if (!lcontext) {
+        krb5_klog_syslog(LOG_INFO,
+                         "No LDAP connection in ipadb_parse_ldap_entry(); retrying...\n");
+        ret = ipadb_get_connection(ipactx);
+        if (ret != 0) {
+            krb5_klog_syslog(LOG_ERR,
+                             "No LDAP connection on retry in ipadb_parse_ldap_entry()!\n");
+            kerr = KRB5_KDB_INTERNAL_ERROR;
+            goto done;
+        }
+    }
 
     entry->magic = KRB5_KDB_MAGIC_NUMBER;
     entry->len = KRB5_KDB_V1_BASE_LENGTH;
