@@ -9,9 +9,11 @@ import textwrap
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipapython.dn import DN
 
 
-class TestTrust(IntegrationTest):
+class BaseTestTrust(IntegrationTest):
+    num_clients = 1
     topology = 'line'
     num_ad_domains = 1
     num_ad_subdomains = 1
@@ -30,7 +32,7 @@ class TestTrust(IntegrationTest):
         if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
             raise unittest.SkipTest("Package samba-client not available "
                                     "on {}".format(cls.master.hostname))
-        super(TestTrust, cls).install(mh)
+        super(BaseTestTrust, cls).install(mh)
         cls.ad = cls.ads[0]  # pylint: disable=no-member
         cls.ad_domain = cls.ad.domain.name
         tasks.install_adtrust(cls.master)
@@ -255,6 +257,69 @@ class TestTrust(IntegrationTest):
         finally:
             tasks.restore_files(self.master)
             tasks.clear_sssd_cache(self.master)
+
+    def test_extdom_plugin(self):
+        """Extdom plugin should not return error (32)/'No such object'
+
+        Regression test for https://pagure.io/freeipa/issue/8044
+
+        If there is a timeout during a request to SSSD the extdom plugin
+        should not return error 'No such object' and the existing user should
+        not be added to negative cache on the client.
+        """
+        extdom_dn = DN(
+            ('cn', 'ipa_extdom_extop'), ('cn', 'plugins'),
+            ('cn', 'config')
+        )
+
+        client = self.clients[0]
+        tasks.backup_file(self.master, paths.SSSD_CONF)
+        log_file = '{0}/sssd_{1}.log'.format(paths.VAR_LOG_SSSD_DIR,
+                                             client.domain.name)
+        logsize = len(client.get_file_contents(log_file))
+        res = self.master.run_command(['pidof', 'sssd_be'])
+        pid = res.stdout_text.strip()
+        test_id = 'id testuser@%s' % self.ad_domain
+        client.run_command(test_id)
+
+        conn = self.master.ldap_connect()
+        entry = conn.get_entry(extdom_dn)  # pylint: disable=no-member
+        orig_extdom_timeout = entry.single_value.get('ipaextdommaxnsstimeout')
+
+        # set the extdom plugin timeout to 1s (1000)
+        entry.single_value['ipaextdommaxnsstimeout'] = 1000
+        conn.update_entry(entry)  # pylint: disable=no-member
+        self.master.run_command(['ipactl', 'restart'])
+
+        domain = self.master.domain
+        tasks.modify_sssd_conf(
+            self.master,
+            domain.name,
+            {
+                'timeout': '999999'
+            }
+        )
+        remove_cache = 'sss_cache -E'
+        self.master.run_command(remove_cache)
+        client.run_command(remove_cache)
+
+        try:
+            # stop sssd_be, needed to simulate a timeout in the extdom plugin.
+            stop_sssdbe = self.master.run_command('kill -STOP %s' % pid)
+            client.run_command(test_id)
+            error = 'ldap_extended_operation result: No such object(32)'
+            sssd_log2 = client.get_file_contents(log_file)[logsize:]
+            assert error.encode() not in sssd_log2
+        finally:
+            if stop_sssdbe.returncode == 0:
+                self.master.run_command('kill -CONT %s' % pid)
+            # reconnect and set back to default extdom plugin
+            conn = self.master.ldap_connect()
+            entry = conn.get_entry(extdom_dn)  # pylint: disable=no-member
+            entry.single_value['ipaextdommaxnsstimeout'] = orig_extdom_timeout
+            conn.update_entry(entry)  # pylint: disable=no-member
+            tasks.restore_files(self.master)
+            self.master.run_command(['ipactl', 'restart'])
 
     def test_remove_posix_trust(self):
         self.remove_trust(self.ad)
