@@ -269,6 +269,10 @@ attributetypes: ( 1.3.6.1.4.1.5322.21.2.4 NAME 'krbAllowedToDelegateTo' EQUALITY
 ##### A list of authentication indicator strings, one of which must be satisfied
 ##### to authenticate to the principal as a service.
 attributetypes: ( 2.16.840.1.113730.3.8.15.2.1 NAME 'krbPrincipalAuthInd' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
+##### The maximum ticket lifetime for a principal based on authentication indicator in seconds. Indicator is specified as an attribute option
+attributetypes: ( 2.16.840.1.113730.3.8.15.2.2 NAME 'krbAuthIndMaxTicketLife' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27)
+##### Maximum renewable lifetime for a principal's ticket based on authentication indicator in seconds. Indicator is specified as an attribute option
+attributetypes: ( 2.16.840.1.113730.3.8.15.2.3 NAME 'krbAuthIndMaxRenewableAge' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27)
 ########################################################################
 # 		        Object Class Definitions                       #
 ########################################################################
@@ -312,6 +316,6 @@ objectClasses: ( 2.16.840.1.113719.1.301.6.13.1 NAME 'krbAdmService' SUP ( krbSe
 objectClasses: ( 2.16.840.1.113719.1.301.6.14.1 NAME 'krbPwdPolicy' SUP top MUST ( cn ) MAY ( krbMaxPwdLife $ krbMinPwdLife $ krbPwdMinDiffChars $ krbPwdMinLength $ krbPwdHistoryLength $ krbPwdMaxFailure $ krbPwdFailureCountInterval $ krbPwdLockoutDuration $ krbPwdAttributes $ krbPwdMaxLife $ krbPwdMaxRenewableLife $ krbPwdAllowedKeysalts ) )
 ##### The krbTicketPolicyAux holds Kerberos ticket policy attributes.
 ##### This class can be attached to a principal object or realm object.
-objectClasses: ( 2.16.840.1.113719.1.301.6.16.1 NAME 'krbTicketPolicyAux' AUXILIARY MAY ( krbTicketFlags $ krbMaxTicketLife $ krbMaxRenewableAge ) )
+objectClasses: ( 2.16.840.1.113719.1.301.6.16.1 NAME 'krbTicketPolicyAux' AUXILIARY MAY ( krbTicketFlags $ krbMaxTicketLife $ krbMaxRenewableAge $ krbAuthIndMaxTicketLife $ krbAuthIndMaxRenewableAge ) )
 ##### The krbTicketPolicy object is an effective ticket policy that is associated with a realm or a principal
 objectClasses: ( 2.16.840.1.113719.1.301.6.17.1 NAME 'krbTicketPolicy' SUP top MUST ( cn ) )
