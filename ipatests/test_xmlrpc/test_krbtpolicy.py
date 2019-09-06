@@ -118,6 +118,20 @@ class test_krbtpolicy(Declarative):
 
 
         dict(
+            desc='Update user ticket policy for auth indicator pkinit',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxticketlife_pkinit=3600)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_pkinit=[u'3600'],
+                ),
+            ),
+        ),
+
+        dict(
             desc='Try updating other user attribute',
             command=(
                 'krbtpolicy_mod', [user1], dict(setattr=u'givenname=Pete')

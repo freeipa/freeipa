@@ -94,6 +94,14 @@ enum ipadb_user_auth {
   IPADB_USER_AUTH_HARDENED = 1 << 5,
 };
 
+enum ipadb_user_auth_idx {
+  IPADB_USER_AUTH_IDX_OTP = 0,
+  IPADB_USER_AUTH_IDX_RADIUS,
+  IPADB_USER_AUTH_IDX_PKINIT,
+  IPADB_USER_AUTH_IDX_HARDENED,
+  IPADB_USER_AUTH_IDX_MAX,
+};
+
 struct ipadb_global_config {
 	time_t last_update;
 	bool disable_last_success;
@@ -128,6 +136,11 @@ struct ipadb_context {
     struct ipadb_global_config config;
 };
 
+struct ipadb_e_pol_limits {
+    krb5_deltat max_life;
+    krb5_deltat max_renewable_life;
+};
+
 #define IPA_E_DATA_MAGIC 0x0eda7a
 struct ipadb_e_data {
     int magic;
@@ -142,6 +155,7 @@ struct ipadb_e_data {
     char **authz_data;
     bool has_tktpolaux;
     enum ipadb_user_auth user_auth;
+    struct ipadb_e_pol_limits pol_limits[IPADB_USER_AUTH_IDX_MAX];
 };
 
 struct ipadb_context *ipadb_get_context(krb5_context kcontext);
