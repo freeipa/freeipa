@@ -21,13 +21,12 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
     krb5_error_code kerr;
     enum ipadb_user_auth ua;
     struct ipadb_e_data *ied;
+    struct ipadb_e_pol_limits *pol_limits = NULL;
     int valid_auth_indicators = 0;
 
     *status = NULL;
     *lifetime_out = 0;
     *renew_lifetime_out = 0;
-
-    krb5_klog_syslog(LOG_INFO, "IPA kdcpolicy: checking AS-REQ.");
 
     ied = (struct ipadb_e_data *)client->e_data;
     if (ied == NULL || ied->magic != IPA_E_DATA_MAGIC) {
@@ -63,18 +62,21 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
                 *status = "OTP pre-authentication not allowed for this user.";
                 return KRB5KDC_ERR_POLICY;
             }
+            pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_OTP]);
         } else if (strcmp(auth_indicator, "radius") == 0) {
             valid_auth_indicators++;
             if (!(ua & IPADB_USER_AUTH_RADIUS)) {
                 *status = "OTP pre-authentication not allowed for this user.";
                 return KRB5KDC_ERR_POLICY;
             }
+            pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_RADIUS]);
         } else if (strcmp(auth_indicator, "pkinit") == 0) {
             valid_auth_indicators++;
             if (!(ua & IPADB_USER_AUTH_PKINIT)) {
                 *status = "PKINIT pre-authentication not allowed for this user.";
                 return KRB5KDC_ERR_POLICY;
             }
+            pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_PKINIT]);
         } else if (strcmp(auth_indicator, "hardened") == 0) {
             valid_auth_indicators++;
             /* Allow hardened even if only password pre-auth is allowed */
@@ -82,6 +84,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
                 *status = "Password pre-authentication not not allowed for this user.";
                 return KRB5KDC_ERR_POLICY;
             }
+            pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_HARDENED]);
         }
     }
 
@@ -91,6 +94,18 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
         if (!(ua & IPADB_USER_AUTH_PASSWORD)) {
             *status = "Non-hardened password authentication not allowed for this user.";
             return KRB5KDC_ERR_POLICY;
+        }
+    }
+
+    /* If there were policy limits associated with the authentication indicators,
+     * apply them */
+    if (pol_limits != NULL) {
+        if (pol_limits->max_life != 0) {
+            *lifetime_out = pol_limits->max_life;
+        }
+
+        if (pol_limits->max_renewable_life != 0) {
+            *renew_lifetime_out = pol_limits->max_renewable_life;
         }
     }
 
@@ -109,8 +124,6 @@ ipa_kdcpolicy_check_tgs(krb5_context context, krb5_kdcpolicy_moddata moddata,
     *status = NULL;
     *lifetime_out = 0;
     *renew_lifetime_out = 0;
-
-    krb5_klog_syslog(LOG_INFO, "IPA kdcpolicy: checking TGS-REQ.");
 
     return 0;
 }

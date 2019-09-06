@@ -70,6 +70,10 @@ _default_values = {
     'krbmaxrenewableage': 604800,
 }
 
+# These attributes never have non-optional values, so they should be
+# ignored in post callbacks
+_option_based_attrs = ('krbauthindmaxticketlife', 'krbauthindmaxrenewableage')
+_supported_options = ('otp', 'radius', 'pkinit', 'hardened')
 
 @register()
 class krbtpolicy(baseldap.LDAPObject):
@@ -78,7 +82,9 @@ class krbtpolicy(baseldap.LDAPObject):
     """
     container_dn = DN(('cn', api.env.realm), ('cn', 'kerberos'))
     object_name = _('kerberos ticket policy settings')
-    default_attributes = ['krbmaxticketlife', 'krbmaxrenewableage']
+    default_attributes = ['krbmaxticketlife', 'krbmaxrenewableage',
+                          'krbauthindmaxticketlife',
+                          'krbauthindmaxrenewableage']
     limit_object_classes = ['krbticketpolicyaux']
     # permission_filter_objectclasses is deliberately missing,
     # so it is not possible to create a permission of `--type krbtpolicy`.
@@ -94,7 +100,8 @@ class krbtpolicy(baseldap.LDAPObject):
             'ipapermdefaultattr': {
                 'krbdefaultencsalttypes', 'krbmaxrenewableage',
                 'krbmaxticketlife', 'krbsupportedencsalttypes',
-                'objectclass',
+                'objectclass', 'krbauthindmaxticketlife',
+                'krbauthindmaxrenewableage',
             },
             'default_privileges': {
                 'Kerberos Ticket Policy Readers',
@@ -108,6 +115,7 @@ class krbtpolicy(baseldap.LDAPObject):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'krbmaxrenewableage', 'krbmaxticketlife',
+                'krbauthindmaxticketlife', 'krbauthindmaxrenewableage',
             },
             'default_privileges': {
                 'Kerberos Ticket Policy Readers',
@@ -137,12 +145,73 @@ class krbtpolicy(baseldap.LDAPObject):
             doc=_('Maximum renewable age (seconds)'),
             minvalue=1,
         ),
+        Int('krbauthindmaxticketlife_otp?',
+            cli_name='otp_maxlife',
+            label=_('OTP max life'),
+            doc=_('OTP token maximum ticket life (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxrenewableage_otp?',
+            cli_name='otp_maxrenew',
+            label=_('OTP max renew'),
+            doc=_('OTP token ticket maximum renewable age (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxticketlife_radius?',
+            cli_name='radius_maxlife',
+            label=_('RADIUS max life'),
+            doc=_('RADIUS maximum ticket life (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxrenewableage_radius?',
+            cli_name='radius_maxrenew',
+            label=_('RADIUS max renew'),
+            doc=_('RADIUS ticket maximum renewable age (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxticketlife_pkinit?',
+            cli_name='pkinit_maxlife',
+            label=_('PKINIT max life'),
+            doc=_('PKINIT maximum ticket life (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxrenewableage_pkinit?',
+            cli_name='pkinit_maxrenew',
+            label=_('PKINIT max renew'),
+            doc=_('PKINIT ticket maximum renewable age (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxticketlife_hardened?',
+            cli_name='hardened_maxlife',
+            label=_('Hardened max life'),
+            doc=_('Hardened ticket maximum ticket life (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxrenewableage_hardened?',
+            cli_name='hardened_maxrenew',
+            label=_('Hardened max renew'),
+            doc=_('Hardened ticket maximum renewable age (seconds)'),
+            minvalue=1),
     )
 
     def get_dn(self, *keys, **kwargs):
         if keys[-1] is not None:
             return self.api.Object.user.get_dn(*keys, **kwargs)
         return DN(self.container_dn, api.env.basedn)
+
+
+def rename_authind_options_from_ldap(entry_attrs, options):
+    if options.get('raw', False):
+        return
+
+    for subtype in _supported_options:
+        for attr in _option_based_attrs:
+            name = '{};{}'.format(attr, subtype)
+            if name in entry_attrs:
+                new_name = '{}_{}'.format(attr, subtype)
+                entry_attrs[new_name] = entry_attrs.pop(name)
+
+
+def rename_authind_options_to_ldap(entry_attrs):
+    for subtype in _supported_options:
+        for attr in _option_based_attrs:
+            name = '{}_{}'.format(attr, subtype)
+            if name in entry_attrs:
+                new_name = '{};{}'.format(attr, subtype)
+                entry_attrs[new_name] = entry_attrs.pop(name)
 
 
 @register()
@@ -158,6 +227,15 @@ class krbtpolicy_mod(baseldap.LDAPUpdate):
         #  ticket policies are attached to objects with unrelated attributes
         if options.get('all'):
             options['all'] = False
+
+        # Rename authentication indicator-specific policy elements to LDAP
+        rename_authind_options_to_ldap(entry_attrs)
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        # Rename authentication indicator-specific policy elements from LDAP
+        rename_authind_options_from_ldap(entry_attrs, options)
         return dn
 
 
@@ -200,9 +278,18 @@ class krbtpolicy_show(baseldap.LDAPRetrieve):
                             default_entry = {}
                     if attrname in default_entry:
                         entry[attrname] = default_entry[attrname]
-            if attrname not in entry:
+                    elif attrname in _option_based_attrs:
+                        # If default entry contains option-based default attrs,
+                        # copy the options explicitly
+                        attrs = [(a, a.split(';')[0]) for a in default_entry]
+                        for a in attrs:
+                            if a[1] == attrname and a[0] not in entry:
+                                entry[a[0]] = default_entry[a[0]]
+            if attrname not in entry and attrname not in _option_based_attrs:
                 raise errors.ACIError(
                     info=_('Default ticket policy could not be read'))
+        # Rename authentication indicator-specific policy elements from LDAP
+        rename_authind_options_from_ldap(entry, options)
         return dn
 
 
@@ -239,5 +326,6 @@ class krbtpolicy_reset(baseldap.LDAPQuery):
         entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
+        rename_authind_options_from_ldap(entry_attrs, options)
 
         return dict(result=entry_attrs, value=pkey_to_value(uid, options))
