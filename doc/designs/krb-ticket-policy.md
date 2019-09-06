@@ -71,19 +71,17 @@ Tickets without an authentication indicator will have the default lifetime / ren
 
 Administrators can specify max life and renew for each auth indicator and global default via `ipa krbtpolicy-mod` command.
 
-e.g. `ipa krbtpolicy-mod --setattr otp-maxlife=604800 pkinit-maxtime=604800`
+e.g. `ipa krbtpolicy-mod --otp-maxlife=604800 --pkinit-maxlife=604800`
 
 Current `--maxlife` and `--maxrenew` options for `ipa krbtpolicy-mod` will set the default max life / renew respectively.
 
 After this, the output for `ipa krbtpolicy-show` will look like:
 
 ```
-Max life:
-  - default: 86400
-  - otp: 604800
-  - pkinit: 604800
-Max renew:
-  - default: 604800
+Max life: 86400
+OTP max life: 604800
+PKINIT max life: 604800
+Max renew: 604800
 ```
 
 #### WebUI Workflow:
@@ -110,7 +108,14 @@ but ticket lifecycle policy will require LDAP to store relations between authent
 and lifetime information. We have global ticket lifetime and renew time setting stored as attribute 
 `krbmaxticketlife` and `krbmaxrenewableage` inside the `cn=$REALM,cn=kerberos,$SUFFIX` subtree, 
 which represents the default lifetime policy.
-For each authentication indicator, there will be an attribute to store specific lifetime for that indicator,
-such as `krbmaxticketlifetop`, `krbmaxrenewableagepkinit`
-They are stored in the same location as default policy in LDAP.
 
+Two new multi-valued attributes are added to store an authentication
+indicator-specific maximum ticket life and ticket's maximum renewable age. The
+type of authentication indicator is specified as LDAP attribute option:
+
+```
+krbAuthIndMaxTicketLife;otp: 604800
+krbAuthIndMaxRenewableAge;pkinit: 604800
+```
+
+They are stored in the same policy object in LDAP.
