@@ -721,7 +721,7 @@ class update_tdo_to_new_layout(Updater):
 
 
 KeyEntry = namedtuple('KeyEntry',
-                      ['kvno', 'date', 'time', 'principal', 'etype', 'key'])
+                      ['kvno', 'principal', 'etype', 'key'])
 
 
 @register()
@@ -741,7 +741,7 @@ class update_host_cifs_keytabs(Updater):
     def extract_key_refs(self, keytab):
         host_princ = self.host_princ_template.format(
             master=self.api.env.host, realm=self.api.env.realm)
-        result = ipautil.run([paths.KLIST, "-etK", "-k", keytab],
+        result = ipautil.run([paths.KLIST, "-eK", "-k", keytab],
                              capture_output=True, raiseonerr=False,
                              nolog_output=True)
         if result.returncode != 0:
@@ -752,8 +752,8 @@ class update_host_cifs_keytabs(Updater):
             if (host_princ in l and any(e in l for e in self.valid_etypes)):
 
                 els = l.split()
-                els[4] = els[4].strip('()')
-                els[5] = els[5].strip('()')
+                els[-2] = els[-2].strip('()')
+                els[-1] = els[-1].strip('()')
                 keys_to_sync.append(KeyEntry._make(els))
 
         return keys_to_sync
