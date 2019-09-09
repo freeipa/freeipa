@@ -1024,6 +1024,8 @@ def promote_check(installer):
             print("IPA client is already configured on this system, ignoring "
                   "the --domain, --server, --realm, --hostname, --password "
                   "and --keytab options.")
+            # Make sure options.server is not used
+            options.server = None
 
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
@@ -1269,8 +1271,15 @@ def promote_check(installer):
             config.subject_base = DN(subject_base)
 
         # Find any server with a CA
+        # The order of preference is
+        # 1. the first server specified in --server, if any
+        # 2. the server specified in the config file
+        # 3. any other
+        preferred_cas = [config.ca_host_name]
+        if options.server:
+            preferred_cas.insert(0, options.server)
         ca_host = find_providing_server(
-            'CA', conn, [config.ca_host_name]
+            'CA', conn, preferred_cas
         )
         if ca_host is not None:
             config.ca_host_name = ca_host
@@ -1279,6 +1288,14 @@ def promote_check(installer):
                 logger.error("Certificates could not be provided when "
                              "CA is present on some master.")
                 raise ScriptError(rval=3)
+            if options.setup_ca and options.server and \
+               ca_host != options.server:
+                # Installer was provided with a specific master
+                # but this one doesn't provide CA
+                logger.error("The specified --server %s does not provide CA, "
+                             "please provide a server with the CA role",
+                             options.server)
+                raise ScriptError(rval=4)
         else:
             if options.setup_ca:
                 logger.error("The remote master does not have a CA "
@@ -1293,12 +1310,27 @@ def promote_check(installer):
                 raise ScriptError(rval=3)
 
         # Find any server with a KRA
+        # The order of preference is
+        # 1. the first server specified in --server, if any
+        # 2. the server specified in the config file
+        # 3. any other
+        preferred_kras = [config.kra_host_name]
+        if options.server:
+            preferred_kras.insert(0, options.server)
         kra_host = find_providing_server(
-            'KRA', conn, [config.kra_host_name]
+            'KRA', conn, preferred_kras
         )
         if kra_host is not None:
             config.kra_host_name = kra_host
             kra_enabled = True
+            if options.setup_kra and options.server and \
+               kra_host != options.server:
+                # Installer was provided with a specific master
+                # but this one doesn't provide KRA
+                logger.error("The specified --server %s does not provide KRA, "
+                             "please provide a server with the KRA role",
+                             options.server)
+                raise ScriptError(rval=4)
         else:
             if options.setup_kra:
                 logger.error("There is no active KRA server in the domain, "

@@ -51,7 +51,7 @@ One Time Password for joining a machine to the IPA realm.
 Path to host keytab.
 .TP
 \fB\-\-server\fR
-The fully qualified domain name of the IPA server to enroll to.
+The fully qualified domain name of the IPA server to enroll to. The IPA server must provide the CA role if \fB\-\-setup-ca\fR option is specified, and the KRA role if \fB\-\-setup-kra\fR option is specified.
 .TP
 \fB\-n\fR, \fB\-\-domain\fR=\fIDOMAIN\fR
 The primary DNS domain of an existing IPA deployment, e.g. example.com.
@@ -281,3 +281,5 @@ path.
 1 if an error occurred
 
 3 if the host exists in the IPA server or a replication agreement to the remote master already exists
+
+4 if the remote master specified for enrollment does not provide required services such as CA or KRA
