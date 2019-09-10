@@ -59,6 +59,7 @@
 #include <lber.h>
 #include <time.h>
 
+#define IPA_389DS_PLUGIN_HELPER_CALLS
 #include <sss_nss_idmap.h>
 
 #define EXOP_EXTDOM_OID "2.16.840.1.113730.3.8.10.4"
