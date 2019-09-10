@@ -852,7 +852,8 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
     }
 
     if (request_type == REQ_SIMPLE) {
-        ret = sss_nss_getsidbyid(uid, &sid_str, &id_type);
+        ret = sss_nss_getsidbyid_timeout(uid, get_timeout(ctx),
+                                         &sid_str, &id_type);
         if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                             || id_type == SSS_ID_TYPE_BOTH)) {
             if (ret == ENOENT) {
@@ -881,7 +882,8 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyname(pwd.pw_name, &kv_list, &id_type);
+            ret = sss_nss_getorigbyname_timeout(pwd.pw_name, get_timeout(ctx),
+                                                &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
                 set_err_msg(req, "Failed to read original data");
@@ -930,7 +932,8 @@ static int handle_gid_request(struct ipa_extdom_ctx *ctx,
     }
 
     if (request_type == REQ_SIMPLE) {
-        ret = sss_nss_getsidbyid(gid, &sid_str, &id_type);
+        ret = sss_nss_getsidbyid_timeout(gid, get_timeout(ctx),
+                                         &sid_str, &id_type);
         if (ret != 0 || id_type != SSS_ID_TYPE_GID) {
             if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
@@ -958,7 +961,8 @@ static int handle_gid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyname(grp.gr_name, &kv_list, &id_type);
+            ret = sss_nss_getorigbyname_timeout(grp.gr_name, get_timeout(ctx),
+                                                &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
                 set_err_msg(req, "Failed to read original data");
@@ -1005,7 +1009,8 @@ static int handle_cert_request(struct ipa_extdom_ctx *ctx,
         goto done;
     }
 
-    ret = sss_nss_getlistbycert(input, &fq_names, &id_types);
+    ret = sss_nss_getlistbycert_timeout(input, get_timeout(ctx),
+                                        &fq_names, &id_types);
     if (ret != 0) {
         if (ret == ENOENT) {
             ret = LDAP_NO_SUCH_OBJECT;
@@ -1051,7 +1056,8 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
     enum sss_id_type id_type;
     struct sss_nss_kv *kv_list = NULL;
 
-    ret = sss_nss_getnamebysid(input, &fq_name, &id_type);
+    ret = sss_nss_getnamebysid_timeout(input, get_timeout(ctx),
+                                       &fq_name, &id_type);
     if (ret != 0) {
         if (ret == ENOENT) {
             ret = LDAP_NO_SUCH_OBJECT;
@@ -1105,7 +1111,8 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyname(pwd.pw_name, &kv_list, &id_type);
+            ret = sss_nss_getorigbyname_timeout(pwd.pw_name, get_timeout(ctx),
+                                                &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
                 set_err_msg(req, "Failed to read original data");
@@ -1141,7 +1148,8 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyname(grp.gr_name, &kv_list, &id_type);
+            ret = sss_nss_getorigbyname_timeout(grp.gr_name, get_timeout(ctx),
+                                                &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
                 set_err_msg(req, "Failed to read original data");
@@ -1177,7 +1185,8 @@ done:
 }
 
 
-static int handle_simple_request(struct extdom_req *req,
+static int handle_simple_request(struct ipa_extdom_ctx *ctx,
+                                 struct extdom_req *req,
                                  const char *fq_name,
                                  struct berval **berval)
 {
@@ -1185,7 +1194,8 @@ static int handle_simple_request(struct extdom_req *req,
     char *sid_str = NULL;
     enum sss_id_type id_type;
 
-    ret = sss_nss_getsidbyname(fq_name, &sid_str, &id_type);
+    ret = sss_nss_getsidbyname_timeout(fq_name, get_timeout(ctx),
+                                       &sid_str, &id_type);
     switch(ret) {
     case 0:
         ret = pack_ber_sid(sid_str, berval);
@@ -1238,7 +1248,7 @@ static int handle_username_request(struct ipa_extdom_ctx *ctx,
 
     if (request_type == REQ_SIMPLE) {
         /* REQ_SIMPLE */
-        ret = handle_simple_request(req, fq_name, berval);
+        ret = handle_simple_request(ctx, req, fq_name, berval);
         goto done;
     }
 
@@ -1322,7 +1332,7 @@ static int handle_groupname_request(struct ipa_extdom_ctx *ctx,
 
     if (request_type == REQ_SIMPLE) {
         /* REQ_SIMPLE */
-        ret = handle_simple_request(req, fq_name, berval);
+        ret = handle_simple_request(ctx, req, fq_name, berval);
         goto done;
     }
 
@@ -1343,10 +1353,8 @@ static int handle_groupname_request(struct ipa_extdom_ctx *ctx,
     }
 
     if (request_type == REQ_FULL_WITH_GROUPS) {
-        ret = sss_nss_getorigbyname_timeout(grp.gr_name,
-                                            get_timeout(ctx),
-                                            &kv_list,
-                                            &id_type);
+        ret = sss_nss_getorigbyname_timeout(grp.gr_name, get_timeout(ctx),
+                                            &kv_list, &id_type);
         if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
                           || id_type == SSS_ID_TYPE_BOTH)) {
             if (ret == ENOENT) {
