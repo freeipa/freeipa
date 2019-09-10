@@ -120,12 +120,16 @@ fail:
 }
 
 
-/* Following three functions cannot be implemented with nss_sss.so.2
+/* Following four functions cannot be implemented with nss_sss.so.2
  * As result, we simply do nothing here */
 
 void back_extdom_set_timeout(struct nss_ops_ctx *nss_context,
                              unsigned int timeout) {
         /* no operation */
+}
+
+unsigned int back_extdom_get_timeout(struct nss_ops_ctx *nss_context) {
+    return DEFAULT_MAX_NSS_TIMEOUT;
 }
 
 void back_extdom_evict_user(struct nss_ops_ctx *nss_context,
@@ -273,4 +277,3 @@ enum nss_status back_extdom_getgrouplist(struct nss_ops_ctx *nss_context,
 
     return ret;
 }
-
