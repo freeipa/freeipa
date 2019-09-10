@@ -35,6 +35,9 @@ enum nss_status {
     NSS_STATUS_RETURN
 };
 
+/* default NSS operation timeout 10s (ipaExtdomMaxNssTimeout) */
+#define DEFAULT_MAX_NSS_TIMEOUT (10*1000)
+
 /* NSS backend operations implemented using either nss_sss.so.2 or libsss_nss_idmap API */
 struct nss_ops_ctx;
 
@@ -42,6 +45,7 @@ int back_extdom_init_context(struct nss_ops_ctx **nss_context);
 void back_extdom_free_context(struct nss_ops_ctx **nss_context);
 void back_extdom_set_timeout(struct nss_ops_ctx *nss_context,
                              unsigned int timeout);
+unsigned int back_extdom_get_timeout(struct nss_ops_ctx *nss_context);
 void back_extdom_evict_user(struct nss_ops_ctx *nss_context,
                             const char *name);
 void back_extdom_evict_group(struct nss_ops_ctx *nss_context,
