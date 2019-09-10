@@ -42,7 +42,6 @@
 #include "util.h"
 
 #define DEFAULT_MAX_NSS_BUFFER (128*1024*1024)
-#define DEFAULT_MAX_NSS_TIMEOUT (10*1000)
 
 Slapi_PluginDesc ipa_extdom_plugin_desc = {
     IPA_EXTDOM_FEATURE_DESC,
