@@ -854,7 +854,11 @@ def _check_limit_object_class(attributes, attrs, allow_only):
     """
     if len(attributes[0]) == 0 and len(attributes[1]) == 0:
         return
-    limitattrs = deepcopy(attrs)
+    # Remove options from the attributes names before validating
+    # LDAP schema does not enforce any of LDAP attribute options
+    # (e.g. attribute;option), thus we should avoid comparing
+    # attribute names with options directly.
+    limitattrs = [x.split(';')[0] for x in attrs]
     # Go through the MUST first
     for attr in attributes[0].values():
         if attr.names[0].lower() in limitattrs:
