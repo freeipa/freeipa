@@ -905,7 +905,11 @@ def promote_check(installer):
                            "certificate")
 
     installutils.verify_fqdn(config.host_name, options.no_host_dns)
-    installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
+    # Inside the container environment master's IP address does not
+    # resolve to its name. See https://pagure.io/freeipa/issue/6210
+    container_environment = tasks.detect_container() is not None
+    installutils.verify_fqdn(config.master_host_name, options.no_host_dns,
+                             local_hostname=not container_environment)
 
     ccache = os.environ['KRB5CCNAME']
     kinit_keytab('host/{env.host}@{env.realm}'.format(env=api.env),
