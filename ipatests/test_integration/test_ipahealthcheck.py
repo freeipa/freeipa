@@ -413,6 +413,82 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["kw"]["key"] == "crl_manager"
             assert check["kw"]["crlgen_enabled"] is False
 
+    def test_ipa_healthcheck_dna_plugin_returns_warning_pagure_issue_60(self):
+        """
+        This testcase checks that the status for IPADNARangeCheck on replica
+        changes from WARNING to SUCCESS when user is added on the replica
+        as the DNA range is set.
+        Issue: freeipa/freeipa-healthcheck#60
+        """
+        self.master.run_command(
+            [
+                "ipa-healthcheck",
+                "--source",
+                "ipahealthcheck.ipa.dna",
+                "--check",
+                "IPADNARangeCheck",
+                "--output-file",
+                HEALTHCHECK_OUTPUT_FILE,
+            ],
+            raiseonerr=False,
+        )
+        contents = self.master.get_file_contents(
+            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
+        )
+        data = json.loads(contents)
+        for check in data:
+            assert check["result"] == "SUCCESS"
+        # Install ipa-healthcheck rpm on replica
+        tasks.install_packages(self.replicas[0], HEALTHCHECK_PKG)
+        self.replicas[0].run_command(
+            [
+                "ipa-healthcheck",
+                "--source",
+                "ipahealthcheck.ipa.dna",
+                "--check",
+                "IPADNARangeCheck",
+                "--output-file",
+                HEALTHCHECK_OUTPUT_FILE,
+            ],
+            raiseonerr=False,
+        )
+        contents = self.replicas[0].get_file_contents(
+            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
+        )
+        data = json.loads(contents)
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert (
+                check["kw"]["msg"] == "No DNA range defined. If no masters "
+                "define a range then users and groups cannot be created."
+            )
+
+        # Now kinit as admin and add a user on replica which will create a
+        # DNA configuration.
+        tasks.kinit_admin(self.replicas[0])
+        tasks.user_add(
+            self.replicas[0], 'ipauser1', first='Test', last='User',
+        )
+        # Now run the ipa-healthcheck command again
+        self.replicas[0].run_command(
+            [
+                "ipa-healthcheck",
+                "--source",
+                "ipahealthcheck.ipa.dna",
+                "--check",
+                "IPADNARangeCheck",
+                "--output-file",
+                HEALTHCHECK_OUTPUT_FILE,
+            ],
+            raiseonerr=False,
+        )
+        contents = self.replicas[0].get_file_contents(
+            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
+        )
+        data = json.loads(contents)
+        for check in data:
+            assert check["result"] == "SUCCESS"
+
     def test_ipa_healthcheck_remove(self):
         """
         This testcase checks the removal of of healthcheck tool
