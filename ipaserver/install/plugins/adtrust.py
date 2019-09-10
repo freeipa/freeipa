@@ -28,6 +28,9 @@ logger = logging.getLogger(__name__)
 register = Registry()
 
 DEFAULT_ID_RANGE_SIZE = 200000
+trust_read_keys_template = \
+    ["cn=adtrust agents,cn=sysaccounts,cn=etc,{basedn}",
+     "cn=trust admins,cn=groups,cn=accounts,{basedn}"]
 
 
 @register()
@@ -575,8 +578,15 @@ class update_tdo_to_new_layout(Updater):
                     'krbprincipalkey')
                 entry_data['krbextradata'] = en.single_value.get(
                     'krbextradata')
-                entry_data['ipaAllowedToPerform;read_keys'] = en.get(
-                    'ipaAllowedToPerform;read_keys', [])
+                read_keys = en.get('ipaAllowedToPerform;read_keys', [])
+                if not read_keys:
+                    # Old style, no ipaAllowedToPerform;read_keys in the entry,
+                    # use defaults that ipasam should have set when creating a
+                    # trust
+                    read_keys = list(map(
+                        lambda x: x.format(basedn=self.api.env.basedn),
+                        trust_read_keys_template))
+                entry_data['ipaAllowedToPerform;read_keys'] = read_keys
 
         entry.update(entry_data)
         try:
