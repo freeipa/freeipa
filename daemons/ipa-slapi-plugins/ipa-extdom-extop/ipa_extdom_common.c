@@ -114,6 +114,13 @@ int __nss_to_err(enum nss_status errcode)
     }
 }
 
+static int get_timeout(struct ipa_extdom_ctx *ctx) {
+    if (ctx == NULL || ctx->nss_ctx == NULL) {
+        return DEFAULT_MAX_NSS_TIMEOUT;
+    }
+    return back_extdom_get_timeout(ctx->nss_ctx);
+}
+
 int getpwnam_r_wrapper(struct ipa_extdom_ctx *ctx, const char *name,
                        struct passwd *pwd, char **buf, size_t *buf_len)
 {
@@ -1245,7 +1252,9 @@ static int handle_username_request(struct ipa_extdom_ctx *ctx,
     switch(ret) {
     case 0:
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyname(pwd.pw_name, &kv_list, &id_type);
+            ret = sss_nss_getorigbyname_timeout(pwd.pw_name,
+                                                get_timeout(ctx),
+                                                &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                               || id_type == SSS_ID_TYPE_BOTH)) {
                 set_err_msg(req, "Failed to read original data");
@@ -1334,7 +1343,10 @@ static int handle_groupname_request(struct ipa_extdom_ctx *ctx,
     }
 
     if (request_type == REQ_FULL_WITH_GROUPS) {
-        ret = sss_nss_getorigbyname(grp.gr_name, &kv_list, &id_type);
+        ret = sss_nss_getorigbyname_timeout(grp.gr_name,
+                                            get_timeout(ctx),
+                                            &kv_list,
+                                            &id_type);
         if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
                           || id_type == SSS_ID_TYPE_BOTH)) {
             if (ret == ENOENT) {
