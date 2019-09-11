@@ -243,7 +243,7 @@ jobs:
     requires: [fedora-29/build]
     priority: 50
     job:
-      class: RunADtests
+      class: RunADTests
       args:
         build_url: '{fedora-29/build_url}'
         test_suite: test_integration/test_smb.py
