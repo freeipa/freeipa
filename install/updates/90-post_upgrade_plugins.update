@@ -12,6 +12,7 @@ plugin: update_default_range
 plugin: update_default_trust_view
 plugin: update_tdo_gidnumber
 plugin: update_tdo_to_new_layout
+plugin: update_tdo_default_read_keys_permissions
 plugin: update_ca_renewal_master
 plugin: update_idrange_type
 plugin: update_pacs
