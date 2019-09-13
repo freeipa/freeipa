@@ -1009,3 +1009,28 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         # FIXME: restore turns hidden replica into enabled replica
         self._check_config([self.master, self.replicas[0]])
         self._check_server_role(self.replicas[0], 'enabled')
+
+    def test_hidden_replica_automatic_crl(self):
+        """Exercises if automatic CRL configuration works with
+           hidden replica.
+        """
+        # Demoting Replica to be hidden.
+        self.replicas[0].run_command([
+            'ipa', 'server-state',
+            self.replicas[0].hostname, '--state=hidden'
+        ])
+        self._check_server_role(self.replicas[0], 'hidden')
+
+        # check CRL status
+        result = self.replicas[0].run_command([
+            'ipa-crlgen-manage', 'status'])
+        assert "CRL generation: disabled" in result.stdout_text
+
+        # Enbable CRL status on hidden replica
+        self.replicas[0].run_command([
+            'ipa-crlgen-manage', 'enable'])
+
+        # check CRL status
+        result = self.replicas[0].run_command([
+            'ipa-crlgen-manage', 'status'])
+        assert "CRL generation: enabled" in result.stdout_text
