@@ -583,6 +583,7 @@ class update_tdo_to_new_layout(Updater):
                     # Old style, no ipaAllowedToPerform;read_keys in the entry,
                     # use defaults that ipasam should have set when creating a
                     # trust
+                    # pylint: disable=deprecated-lambda
                     read_keys = list(map(
                         lambda x: x.format(basedn=self.api.env.basedn),
                         trust_read_keys_template))
@@ -770,6 +771,7 @@ class update_tdo_default_read_keys_permissions(Updater):
 
             read_keys = tdo.get('ipaAllowedToPerform;read_keys', [])
             if not read_keys:
+                # pylint: disable=deprecated-lambda
                 read_keys_values = list(map(
                     lambda x: x.format(basedn=self.api.env.basedn),
                     trust_read_keys_template))
