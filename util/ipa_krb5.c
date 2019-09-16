@@ -554,7 +554,7 @@ int ber_decode_krb5_key_data(struct berval *encoded, int *m_kvno,
         retag = ber_peek_tag(be, &setlen);
         if (retag == (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 2)) {
             /* not supported yet, skip */
-            retag = ber_scanf(be, "t[x]}");
+            retag = ber_scanf(be, "t[x]}", &tag);
         } else {
             retag = ber_scanf(be, "}");
         }
