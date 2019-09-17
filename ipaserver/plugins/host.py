@@ -254,6 +254,18 @@ def validate_ipaddr(ugettext, ipaddr):
     return None
 
 
+class HostPassword(Str):
+    """
+    A data type for host passwords to not log password values
+
+    The Password type cannot be used because it disallows
+    setting a password on the command-line which would break
+    backwards compatibility.
+    """
+    def safe_value(self, value):
+        return u'********'
+
+
 @register()
 class host(LDAPObject):
     """
@@ -470,10 +482,11 @@ class host(LDAPObject):
             label=_('Operating system'),
             doc=_('Host operating system and version (e.g. "Fedora 9")'),
         ),
-        Str('userpassword?',
-            cli_name='password',
-            label=_('User password'),
-            doc=_('Password used in bulk enrollment'),
+        HostPassword('userpassword?',
+                     cli_name='password',
+                     label=_('User password'),
+                     doc=_('Password used in bulk enrollment'),
+                     flags=('no_search',),
         ),
         Flag('random?',
             doc=_('Generate a random password to be used in bulk enrollment'),
