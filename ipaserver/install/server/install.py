@@ -1145,6 +1145,7 @@ def uninstall(installer):
     custodiainstance.CustodiaInstance(realm='REALM.INVALID').uninstall()
     otpdinstance.OtpdInstance().uninstall()
     tasks.restore_hostname(fstore, sstore)
+    tasks.restore_pkcs11_modules(fstore)
     fstore.restore_all_files()
     try:
         os.remove(paths.ROOT_IPA_CACHE)
@@ -1168,8 +1169,6 @@ def uninstall(installer):
 
     # remove upgrade state file
     sysupgrade.remove_upgrade_file()
-
-    tasks.restore_pkcs11_modules(fstore)
 
     if fstore.has_files():
         logger.error('Some files have not been restored, see '
