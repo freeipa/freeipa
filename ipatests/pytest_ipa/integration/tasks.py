@@ -30,6 +30,8 @@ import itertools
 import tempfile
 import time
 from pipes import quote
+import configparser
+from contextlib import contextmanager
 
 import dns
 from ldif import LDIFWriter
@@ -1707,3 +1709,71 @@ def run_command_as_user(host, user, command, *args, **kwargs):
 
 def kinit_as_user(host, user, password):
     host.run_command(['kinit', user], stdin_text=password + '\n')
+
+
+class FileBackup(object):
+    """Create file backup and do restore on remote host
+
+    Examples:
+
+        config_backup = FileBackup(host, '/etc/some.conf')
+        ... modify the file and do the test ...
+        config_backup.restore()
+
+    Use as a context manager:
+
+        with FileBackup(host, '/etc/some.conf'):
+            ... modify the file and do the test ...
+
+    """
+
+    def __init__(self, host, filename):
+        """Create file backup."""
+        self._host = host
+        self._filename = filename
+        self._backup = create_temp_file(host)
+        self._cp_cmd = ['cp']
+        if is_selinux_enabled(host):
+            self._cp_cmd.append('--preserve=context')
+        host.run_command(self._cp_cmd + [filename, self._backup])
+
+    def restore(self):
+        """Restore file. Can be called multiple times."""
+        self._host.run_command(self._cp_cmd + [self._backup, self._filename])
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.restore()
+
+
+@contextmanager
+def remote_ini_file(host, filename):
+    """Context manager for editing an ini file on a remote host.
+
+    It provides RawConfigParser object which is automatically serialized and
+    uploaded to remote host upon exit from the context.
+
+    If exception is raised inside the context then the ini file is NOT updated
+    on remote host.
+
+    Example:
+
+        with remote_ini_file(master, '/etc/some.conf') as some_conf:
+            some_conf.set('main', 'timeout', 10)
+
+
+    """
+    data = host.get_file_contents(filename, encoding='utf-8')
+    ini_file = configparser.RawConfigParser()
+    ini_file.read_string(data)
+    yield ini_file
+    data = StringIO()
+    ini_file.write(data)
+    host.put_file_contents(filename, data.getvalue())
+
+
+def is_selinux_enabled(host):
+    res = host.run_command('selinuxenabled', ok_returncode=(0, 1))
+    return res.returncode == 0
