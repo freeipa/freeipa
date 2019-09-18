@@ -31,6 +31,10 @@ topologies:
     name: ad_master_2client
     cpu: 4
     memory: 12000
+  ad_master: &ad_master
+   name: ad_master
+   cpu: 4
+   memory: 12000
 
 jobs:
   fedora-rawhide/build:
@@ -1320,3 +1324,15 @@ jobs:
         template: *ci-master-frawhide
         timeout: 10800
         topology: *master_1repl
+
+  fedora-30/test_sssd:
+    requires: [fedora-30/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-30/build_url}'
+        test_suite: test_integration/test_sssd.py
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *ad_master
