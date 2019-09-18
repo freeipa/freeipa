@@ -97,9 +97,7 @@ class TestSMB(IntegrationTest):
         smbserver.run_command(['mkdir', share_path])
         smbserver.run_command(['chmod', '777', share_path])
         # apply selinux context only if selinux is enabled
-        res = smbserver.run_command('selinuxenabled', ok_returncode=(0, 1))
-        selinux_enabled = res.returncode == 0
-        if selinux_enabled:
+        if tasks.is_selinux_enabled(smbserver):
             smbserver.run_command(['chcon', '-t', 'samba_share_t', share_path])
         smbconf_save_file = tasks.create_temp_file(smbserver)
         smbserver.run_command(['cp', paths.SMB_CONF, smbconf_save_file])
