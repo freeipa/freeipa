@@ -29,6 +29,7 @@ import shutil
 import time
 import tempfile
 import gssapi
+import warnings
 
 try:
     from xml.etree import cElementTree as etree
@@ -176,6 +177,21 @@ def configure_xml(fstore):
         print("Unable to write %s: %s" % (authconf, e))
     else:
         print("Configured %s" % authconf)
+
+
+def configure_nsswitch(statestore, options):
+    """
+    This function was deprecated. Use ipaplatform.tasks.
+
+    Point automount to ldap in nsswitch.conf.
+    This function is for non-SSSD setups only.
+    """
+    warnings.warn(
+        "Use ipaplatform.tasks.tasks.enable_ldap_automount",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return tasks.enable_ldap_automount(statestore)
 
 
 def configure_autofs_sssd(fstore, statestore, autodiscover, options):

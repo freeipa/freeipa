@@ -28,6 +28,7 @@ import sys
 import tempfile
 import time
 import traceback
+import warnings
 
 from configparser import RawConfigParser
 from urllib.parse import urlparse, urlunparse
@@ -279,6 +280,36 @@ def is_ipa_client_installed(fstore, on_master=False):
     )
 
     return installed
+
+
+def configure_nsswitch_database(fstore, database, services, preserve=True,
+                                append=True, default_value=()):
+    """
+    This function was deprecated. Use ipaplatform.tasks.
+
+    Edits the specified nsswitch.conf database (e.g. passwd, group, sudoers)
+    to use the specified service(s).
+
+    Arguments:
+        fstore - FileStore to backup the nsswitch.conf
+        database - database configuration that should be ammended,
+                    e.g. 'sudoers'
+        service - list of services that should be added, e.g. ['sss']
+        preserve - if True, the already configured services will be preserved
+
+    The next arguments modify the behaviour if preserve=True:
+        append - if True, the services will be appended, if False, prepended
+        default_value - list of services that are considered as default (if
+                        the database is not mentioned in nsswitch.conf), e.g.
+                        ['files']
+    """
+    warnings.warn(
+        "Use ipaplatform.tasks.tasks.configure_nsswitch_database",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return tasks.configure_nsswitch_database(fstore, database, services,
+                                             preserve, append, default_value)
 
 
 def configure_ipa_conf(
