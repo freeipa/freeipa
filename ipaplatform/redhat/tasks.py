@@ -744,6 +744,13 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         return filenames
 
+    def get_pkcs11_modules(self):
+        """Return the list of module config files setup by IPA
+        """
+        return tuple(os.path.join(paths.ETC_PKCS11_MODULES_DIR,
+                                  "{}.module".format(name))
+                     for name, _module, _disabled in PKCS11_MODULES)
+
     def enable_ldap_automount(self, statestore):
         """
         Point automount to ldap in nsswitch.conf.
