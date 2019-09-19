@@ -338,6 +338,11 @@ class BaseTaskNamespace:
         """
         raise NotImplementedError
 
+    def get_pkcs11_modules(self):
+        """Return the list of module config files setup by IPA.
+        """
+        return ()
+
     def configure_nsswitch_database(self, fstore, database, services,
                                     preserve=True, append=True,
                                     default_value=()):
