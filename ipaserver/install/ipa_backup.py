@@ -194,7 +194,7 @@ class Backup(admintool.AdminTool):
     ) + tuple(
         os.path.join(paths.IPA_NSSDB_DIR, file)
         for file in (certdb.NSS_DBM_FILES + certdb.NSS_SQL_FILES)
-    )
+    ) + tasks.get_pkcs11_modules()
 
     logs=(
       paths.VAR_LOG_PKI_DIR,
