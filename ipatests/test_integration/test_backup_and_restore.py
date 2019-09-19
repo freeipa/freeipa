@@ -116,6 +116,17 @@ def check_custodia_files(host):
     return True
 
 
+def check_pkcs11_modules(host):
+    """regression test for https://pagure.io/freeipa/issue/8073"""
+    # Return a dictionary with key = filename, value = file content
+    # containing all the PKCS11 modules modified by the installer
+    result = dict()
+    for filename in platformtasks.get_pkcs11_modules():
+        assert host.transport.file_exists(filename)
+        result[filename] = host.get_file_contents(filename)
+    return result
+
+
 CHECKS = [
     (check_admin_in_ldap, assert_entries_equal),
     (check_admin_in_cli, assert_results_equal),
@@ -123,7 +134,8 @@ CHECKS = [
     (check_certs, assert_results_equal),
     (check_dns, assert_results_equal),
     (check_kinit, assert_results_equal),
-    (check_custodia_files, assert_deepequal)
+    (check_custodia_files, assert_deepequal),
+    (check_pkcs11_modules, assert_deepequal)
 ]
 
 
