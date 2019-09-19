@@ -179,6 +179,9 @@ def _get_requests(criteria=dict()):
         for criterion in criteria:
             if criterion == 'ca-name':
                 ca_path = request.obj_if.get_ca()
+                if ca_path is None:
+                    raise RuntimeError("certmonger CA '%s' is not defined" %
+                                       criteria.get('ca-name'))
                 ca = _cm_dbus_object(cm.bus, cm, ca_path, DBUS_CM_CA_IF,
                                      DBUS_CM_IF)
                 value = ca.obj_if.get_nickname()
