@@ -337,5 +337,10 @@ class BaseTaskNamespace(object):
         """
         raise NotImplementedError
 
+    def get_pkcs11_modules(self):
+        """Return the list of module config files setup by IPA.
+        """
+        return ()
+
 
 tasks = BaseTaskNamespace()
