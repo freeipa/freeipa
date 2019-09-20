@@ -592,10 +592,14 @@ class Restore(admintool.AdminTool):
             logger.info("Waiting for LDIF to finish")
             wait_for_task(conn, dn)
         else:
+            template_dir = paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % instance
             try:
-                os.makedirs(paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % instance)
+                os.makedirs(template_dir)
             except OSError as e:
                 pass
+
+            os.chown(template_dir, pent.pw_uid, pent.pw_gid)
+            os.chmod(template_dir, 0o770)
 
             args = [paths.LDIF2DB,
                     '-Z', instance,
