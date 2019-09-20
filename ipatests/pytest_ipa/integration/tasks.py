@@ -71,6 +71,7 @@ def setup_server_logs_collecting(host):
     inst = host.domain.realm.replace('.', '-')
     host.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
     host.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
+    host.collect_log(paths.SLAPD_INSTANCE_AUDIT_LOG_TEMPLATE % inst)
 
     # IPA install logs
     host.collect_log(paths.IPASERVER_INSTALL_LOG)
@@ -309,6 +310,25 @@ def enable_replication_debugging(host, log_level=0):
         """.format(log_level=log_level))
     ldapmodify_dm(host, logging_ldif)
 
+
+def enable_ds_audit_log(host, enabled='on'):
+    """Enable 389-ds audit log and auditfail log
+
+    :param host: the host on which audit log is configured
+    :param enabled: a string (either 'on' or 'off')
+    """
+    logger.info('Set LDAP audit log')
+    logging_ldif = textwrap.dedent("""
+        dn: cn=config
+        changetype: modify
+        replace: nsslapd-auditlog-logging-enabled
+        nsslapd-auditlog-logging-enabled: {enabled}
+        -
+        replace: nsslapd-auditfaillog-logging-enabled
+        nsslapd-auditfaillog-logging-enabled: {enabled}
+        """.format(enabled=enabled))
+    ldapmodify_dm(host, logging_ldif)
+
 def set_default_ttl_for_ipa_dns_zone(host, raiseonerr=True):
     args = [
         'ipa', 'dnszone-mod', host.domain.name,
@@ -367,6 +387,7 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
     if result.returncode == 0 and not external_ca:
         # external CA step 1 doesn't have DS and KDC fully configured, yet
         enable_replication_debugging(host)
+        enable_ds_audit_log(host, 'on')
         setup_sssd_debugging(host)
         kinit_admin(host)
         if setup_dns:
@@ -494,6 +515,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
                                  stdin_text=stdin_text)
     if result.returncode == 0:
         enable_replication_debugging(replica)
+        enable_ds_audit_log(replica, 'on')
         setup_sssd_debugging(replica)
         kinit_admin(replica)
     else:
