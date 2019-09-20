@@ -610,6 +610,10 @@ class Restore(admintool.AdminTool):
                 os.makedirs(template_dir)
             except OSError as e:
                 pass
+
+            os.chown(template_dir, pent.pw_uid, pent.pw_gid)
+            os.chmod(template_dir, 0o770)
+
             # Restore SELinux context of template_dir
             tasks.restore_context(template_dir)
 
