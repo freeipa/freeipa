@@ -16,7 +16,7 @@ from ipapython.dnsutil import DNSName
 if six.PY3:
     unicode = str
 
-__doc__ = _("""
+__doc__ = _(r"""
 Auto Membership Rule.
 
 Bring clarity to the membership of hosts and users by configuring inclusive

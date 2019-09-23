@@ -140,7 +140,7 @@ def find_autoredirect(fqdn):
     """
     filename = paths.HTTPD_IPA_REWRITE_CONF
     if os.path.exists(filename):
-        pattern = "^RewriteRule \^/\$ https://%s/ipa/ui \[L,NC,R=301\]" % fqdn
+        pattern = r"^RewriteRule \^/\$ https://%s/ipa/ui \[L,NC,R=301\]" % fqdn
         p = re.compile(pattern)
         for line in fileinput.input(filename):
             if p.search(line):
@@ -157,7 +157,7 @@ def find_version(filename):
     If the file does not exist, returns -1.
     """
     if os.path.exists(filename):
-        pattern = "^[\s#]*VERSION\s+([0-9]+)\s+.*"
+        pattern = r"^[\s#]*VERSION\s+([0-9]+)\s+.*"
         p = re.compile(pattern)
         for line in fileinput.input(filename):
             if p.search(line):

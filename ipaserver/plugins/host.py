@@ -554,7 +554,7 @@ class host(LDAPObject):
         ),
         Str('macaddress*',
             normalizer=lambda value: value.upper(),
-            pattern='^([a-fA-F0-9]{2}[:|\-]?){5}[a-fA-F0-9]{2}$',
+            pattern=r'^([a-fA-F0-9]{2}[:|\-]?){5}[a-fA-F0-9]{2}$',
             pattern_errmsg=('Must be of the form HH:HH:HH:HH:HH:HH, where '
                             'each H is a hexadecimal character.'),
             label=_('MAC address'),

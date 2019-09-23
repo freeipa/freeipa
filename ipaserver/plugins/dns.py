@@ -1458,7 +1458,7 @@ class TXTRecord(DNSRecord):
 
 
 def _normalize_uri_target(uri_target):
-    """DNS-escape "\ characters and double-quote target."""
+    r"""DNS-escape "\ characters and double-quote target."""
     # is user-provided string is already quoted?
     if uri_target[0:1] == uri_target[-1:] == '"':
         uri_target = uri_target[1:-1]

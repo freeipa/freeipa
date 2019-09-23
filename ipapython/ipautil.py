@@ -310,7 +310,7 @@ def template_str(txt, vars):
     # eval() is a special string one can insert into a template to have the
     # Python interpreter evaluate the string. This is intended to allow
     # math to be performed in templates.
-    pattern = re.compile('(eval\s*\(([^()]*)\))')
+    pattern = re.compile(r'(eval\s*\(([^()]*)\))')
     val = pattern.sub(lambda x: str(eval(x.group(2))), val)
 
     return val
@@ -1145,7 +1145,7 @@ def config_replace_variables(filepath, replacevars=dict(), appendvars=dict(),
     One have to run restore_context(filepath) afterwards or
     security context of the file will not be correct after modification
     """
-    pattern = re.compile('''
+    pattern = re.compile(r'''
 (^
                         \s*
         (?P<option>     [^\#;]+?)
@@ -1220,7 +1220,7 @@ def inifile_replace_variables(filepath, section, replacevars=dict(), appendvars=
     One have to run restore_context(filepath) afterwards or
     security context of the file will not be correct after modification
     """
-    pattern = re.compile('''
+    pattern = re.compile(r'''
 (^
                         \[
         (?P<section>    .+) \]

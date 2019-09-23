@@ -51,7 +51,7 @@ def check_CA_flag(host, nssdb=paths.PKI_TOMCAT_ALIAS_DIR,
     text = result.stdout_text
 
     # match CN in cert nickname and C flag in SSL section of NSS flags table
-    match_CA_flag = re.compile('.*{}.*\s+C'.format(cn))
+    match_CA_flag = re.compile(r'.*{}.*\s+C'.format(cn))
     match = re.search(match_CA_flag, text)
 
     return match

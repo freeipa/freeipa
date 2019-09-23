@@ -2,6 +2,8 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import unicode_literals
+
 import importlib
 import os
 import re
@@ -42,19 +44,19 @@ def get_package(server_info, client):
     if not is_valid:
         if not client.isconnected():
             client.connect(verbose=False)
-        env = client.forward(u'env', u'api_version', version=u'2.0')
+        env = client.forward('env', 'api_version', version='2.0')
         try:
             server_version = env['result']['api_version']
         except KeyError:
-            ping = client.forward(u'ping', version=u'2.0')
+            ping = client.forward('ping', version='2.0')
             try:
-                match = re.search(u'API version (2\.[0-9]+)', ping['summary'])
+                match = re.search(r'API version (2\.[0-9]+)', ping['summary'])
             except KeyError:
                 match = None
             if match is not None:
                 server_version = match.group(1)
             else:
-                server_version = u'2.0'
+                server_version = '2.0'
         server_info['version'] = server_version
         server_info.update_validity()
 
