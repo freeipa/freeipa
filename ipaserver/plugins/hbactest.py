@@ -42,7 +42,7 @@ except ImportError:
 if six.PY3:
     unicode = str
 
-__doc__ = _("""
+__doc__ = _(r"""
 Simulate use of Host-based access controls
 
 HBAC rules control who can access what services on what hosts.

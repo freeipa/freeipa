@@ -70,11 +70,11 @@ EXAMPLES:
  Add the initial rule:
    ipa automember-add --type=hostgroup webservers
    ipa automember-add --type=group devel
-""") + _("""
+""") + _(r"""
  Add a condition to the rule:
    ipa automember-add-condition --key=fqdn --type=hostgroup --inclusive-regex=^web[1-9]+\.example\.com webservers
    ipa automember-add-condition --key=manager --type=group --inclusive-regex=^uid=mscott devel
-""") + _("""
+""") + _(r"""
  Add an exclusive condition to the rule to prevent auto assignment:
    ipa automember-add-condition --key=fqdn --type=hostgroup --exclusive-regex=^web5\.example\.com webservers
 """) + _("""
@@ -95,7 +95,7 @@ EXAMPLES:
       Description: Developers
       GID: 1004200000
       Member users: tuser
-""") + _("""
+""") + _(r"""
  Remove a condition from the rule:
    ipa automember-remove-condition --key=fqdn --type=hostgroup --inclusive-regex=^web[1-9]+\.example\.com webservers
 """) + _("""

@@ -22,7 +22,7 @@
 # Make sure we only run this module at the server where samba4-python
 # package is installed to avoid issues with unavailable modules
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import logging
 import re
@@ -634,7 +634,7 @@ class DomainValidator:
             struct.unpack('<I', sid[8+4*i:12+4*i])[0]
             for i in range(number_sub_id)
         ]
-        return u'S-%d-%d-%s' % (sid_rev_num, ia,
+        return 'S-%d-%d-%s' % (sid_rev_num, ia,
                                 '-'.join([str(s) for s in subs]),)
 
     def kinit_as_administrator(self, domain):
@@ -900,9 +900,9 @@ class TrustDomainInstance:
 
         We try NCACN_NP before NCACN_IP_TCP and use SMB2 before SMB1.
         """
-        transports = (u'ncacn_np', u'ncacn_ip_tcp')
-        options = (u'smb2,print', u'print')
-        return [u'%s:%s[%s]' % (t, remote_host, o)
+        transports = ('ncacn_np', 'ncacn_ip_tcp')
+        options = ('smb2,print', 'print')
+        return ['%s:%s[%s]' % (t, remote_host, o)
                 for t in transports for o in options]
 
     def retrieve_anonymously(self, remote_host,
@@ -976,7 +976,7 @@ class TrustDomainInstance:
         objectAttribute.sec_qos = lsa.QosInfo()
         try:
             self._policy_handle = \
-                self._pipe.OpenPolicy2(u"", objectAttribute,
+                self._pipe.OpenPolicy2("", objectAttribute,
                                        security.SEC_FLAG_MAXIMUM_ALLOWED)
             result = self._pipe.QueryInfoPolicy2(self._policy_handle,
                                                  lsa.LSA_POLICY_INFO_DNS)
@@ -1301,7 +1301,7 @@ class TrustDomainInstance:
         """
         if self.info['name'] == another_domain.info['name']:
             # Check that NetBIOS names do not clash
-            raise errors.ValidationError(name=u'AD Trust Setup',
+            raise errors.ValidationError(name='AD Trust Setup',
                                          error=_('the IPA server and the '
                                                  'remote domain cannot share '
                                                  'the same NetBIOS name: %s')
@@ -1597,7 +1597,7 @@ def retrieve_remote_domain(hostname, local_flatname,
                 # realm admin is in DOMAIN\user format
                 # strip DOMAIN part as we'll enforce the one discovered
                 realm_admin = names[-1]
-            auth_string = u"%s\%s%%%s" \
+            auth_string = r"%s\%s%%%s" \
                           % (rd.info['name'], realm_admin, realm_passwd)
             td = get_instance(local_flatname)
             td.creds.parse_string(auth_string)

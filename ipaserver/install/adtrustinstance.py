@@ -675,7 +675,8 @@ class ADTRUSTInstance(service.Service):
 
         has_dns_lookup_kdc_true = False
         for line in krb5conf:
-            if re.match("^\s*dns_lookup_kdc\s*=\s*[Tt][Rr][Uu][Ee]\s*$", line):
+            regex = r"^\s*dns_lookup_kdc\s*=\s*[Tt][Rr][Uu][Ee]\s*$"
+            if re.match(regex, line):
                 has_dns_lookup_kdc_true = True
                 break
         krb5conf.close()

@@ -390,7 +390,7 @@ class permission(baseldap.LDAPObject):
         # memberof
         memberof = []
         for targetfilter in ipapermtargetfilter:
-            match = re.match('^\(memberof=(.*)\)$', targetfilter, re.I)
+            match = re.match(r'^\(memberof=(.*)\)$', targetfilter, re.I)
             if match:
                 try:
                     dn = DN(match.group(1))

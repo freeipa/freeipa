@@ -24,6 +24,8 @@ The classes in this module make heavy use of Python container emulation. If
 you are unfamiliar with this Python feature, see
 http://docs.python.org/ref/sequence-types.html
 """
+from __future__ import unicode_literals
+
 import logging
 import operator
 import re
@@ -173,7 +175,7 @@ class Plugin(ReadOnly):
     def __summary_getter(cls):
         doc = cls.doc
         if not _(doc).msg:
-            return u'<%s.%s>' % (cls.__module__, cls.__name__)
+            return '<%s.%s>' % (cls.__module__, cls.__name__)
         else:
             return unicode(doc).split('\n\n', 1)[0].strip()
 
@@ -467,7 +469,7 @@ class API(ReadOnly):
             level = ipa_log_manager.convert_log_level(match.group(1))
 
             value = getattr(self.env, attr)
-            regexps = re.split('\s*,\s*', value)
+            regexps = re.split(r'\s*,\s*', value)
 
             # Add the regexp, it maps to the configured level
             for regexp in regexps:

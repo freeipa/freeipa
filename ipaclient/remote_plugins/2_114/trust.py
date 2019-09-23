@@ -16,7 +16,7 @@ from ipapython.dnsutil import DNSName
 if six.PY3:
     unicode = str
 
-__doc__ = _("""
+__doc__ = _(r"""
 Cross-realm trusts
 
 Manage trust relationship between IPA and Active Directory domains.

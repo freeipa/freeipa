@@ -76,7 +76,7 @@ def check_admin_in_cli(host):
     # LDAP do not guarantee any order, so the test cannot assume it. Based on
     # that, the code bellow order the 'Member of groups' field to able to
     # assert it latter.
-    data = dict(re.findall("\W*(.+):\W*(.+)\W*", result.stdout_text))
+    data = dict(re.findall(r"\W*(.+):\W*(.+)\W*", result.stdout_text))
     data["Member of groups"] = ', '.join(sorted(data["Member of groups"]
                                                 .split(", ")))
     result.stdout_text = ''.join([' {}: {}\n'.format(k, v)
