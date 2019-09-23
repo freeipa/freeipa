@@ -8,9 +8,9 @@ import os
 
 from ipalib import api
 from ipalib import errors
+from ipaplatform.paths import paths
 from ipapython.dn import DN
-from ipapython.ipaldap import LDAPClient
-from ipaserver.install.installutils import realm_to_ldapi_uri
+from ipapython.ipaldap import LDAPClient, realm_to_ldapi_uri
 from . import common
 
 CN_CONFIG = DN(('cn', 'config'))
@@ -46,7 +46,7 @@ def main():
 
     # create LDAP connection using LDAPI and EXTERNAL bind as root
     if not api.isdone('bootstrap'):
-        api.bootstrap()
+        api.bootstrap(confdir=paths.ETC_IPA, log=None)
     realm = api.env.realm
     ldap_uri = realm_to_ldapi_uri(realm)
     conn = LDAPClient(ldap_uri=ldap_uri, no_schema=True)
