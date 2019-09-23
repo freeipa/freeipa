@@ -46,6 +46,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_simple_replication.py
         template: *pki-master-f30
         timeout: 3600
@@ -58,6 +59,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestExternalCA
         template: *pki-master-f30
         timeout: 4800
@@ -70,6 +72,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
         template: *pki-master-f30
         timeout: 3600
@@ -82,6 +85,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
         template: *pki-master-f30
         timeout: 3600
@@ -94,6 +98,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_vault.py
         template: *pki-master-f30
         timeout: 6300
@@ -106,6 +111,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_forced_client_reenrollment.py
         template: *pki-master-f30
         timeout: 4800
@@ -118,6 +124,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA1
         template: *pki-master-f30
         timeout: 10800
@@ -130,6 +137,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA2
         template: *pki-master-f30
         timeout: 10800
@@ -142,6 +150,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA1
         template: *pki-master-f30
         timeout: 10800
@@ -154,6 +163,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA2
         template: *pki-master-f30
         timeout: 10800
@@ -166,6 +176,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS1
         template: *pki-master-f30
         timeout: 10800
@@ -178,6 +189,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS2
         template: *pki-master-f30
         timeout: 10800
@@ -190,6 +202,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS3
         template: *pki-master-f30
         timeout: 3600
@@ -202,6 +215,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS4
         template: *pki-master-f30
         timeout: 3600
@@ -214,6 +228,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS1
         template: *pki-master-f30
         timeout: 10800
@@ -226,6 +241,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS2
         template: *pki-master-f30
         timeout: 10800
@@ -238,6 +254,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallMaster
         template: *pki-master-f30
         timeout: 10800
@@ -250,6 +267,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallMasterKRA
         template: *pki-master-f30
         timeout: 10800
@@ -262,6 +280,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallMasterDNS
         template: *pki-master-f30
         timeout: 10800
@@ -274,6 +293,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallMasterReservedIPasForwarder
         template: *pki-master-f30
         timeout: 10800
@@ -286,6 +306,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestServerInstall
         template: *pki-master-f30
         timeout: 12000
@@ -298,6 +319,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestReplicaInstall
         template: *pki-master-f30
         timeout: 5400
@@ -310,6 +332,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestClientInstall
         template: *pki-master-f30
         timeout: 5400
@@ -323,6 +346,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestIPACommands
         template: *pki-master-f30
         timeout: 5400
@@ -335,6 +359,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestCertInstall
         template: *pki-master-f30
         timeout: 5400
@@ -347,6 +372,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestPKINIT
         template: *pki-master-f30
         timeout: 5400
@@ -359,6 +385,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
         template: *pki-master-f30
         timeout: 5400
@@ -371,6 +398,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestReplicaCALessToCAFull
         template: *pki-master-f30
         timeout: 5400
@@ -383,6 +411,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestServerCALessToExternalCA
         template: *pki-master-f30
         timeout: 5400
@@ -395,6 +424,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithKRA
         template: *pki-master-f30
         timeout: 7200
@@ -407,6 +437,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithKRA
         template: *pki-master-f30
         timeout: 7200
@@ -419,6 +450,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
         template: *pki-master-f30
         timeout: 7200
@@ -431,6 +463,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestReplicaInstallAfterRestore
         template: *pki-master-f30
         timeout: 7200
@@ -443,6 +476,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
         template: *pki-master-f30
         timeout: 7200
@@ -455,6 +489,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestRenewalMaster
         template: *pki-master-f30
         timeout: 7200
@@ -467,6 +502,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
         template: *pki-master-f30
         timeout: 7200
@@ -479,6 +515,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallCustodia
         template: *pki-master-f30
         timeout: 7200
@@ -491,6 +528,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_upgrade.py
         template: *pki-master-f30
         timeout: 7200
@@ -503,6 +541,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_topology.py::TestCASpecificRUVs
         template: *pki-master-f30
         timeout: 7200
@@ -515,6 +554,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
         template: *pki-master-f30
         timeout: 7200
@@ -527,6 +567,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCA
         template: *pki-master-f30
         timeout: 10800
@@ -539,6 +580,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCAKRA
         template: *pki-master-f30
         timeout: 10800
@@ -551,6 +593,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithoutCA
         template: *pki-master-f30
         timeout: 7200
@@ -563,6 +606,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCA
         template: *pki-master-f30
         timeout: 7200
@@ -575,6 +619,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCAKRA
         template: *pki-master-f30
         timeout: 10800
@@ -587,6 +632,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithoutCA
         template: *pki-master-f30
         timeout: 7200
@@ -599,6 +645,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCA
         template: *pki-master-f30
         timeout: 7200
@@ -611,6 +658,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCAKRA
         template: *pki-master-f30
         timeout: 7200
@@ -623,6 +671,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_uninstallation.py
         template: *pki-master-f30
         timeout: 7200
@@ -635,6 +684,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_webui/test_cert.py
         template: *pki-master-f30
         timeout: 2400
@@ -647,6 +697,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: >-
           test_webui/test_automember.py
           test_webui/test_idviews.py
@@ -661,6 +712,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_dns_locations.py
         template: *pki-master-f30
         timeout: 3600
@@ -673,6 +725,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAdirsrvStop
         template: *pki-master-f30
         timeout: 3600
@@ -685,6 +738,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAInvalidCert
         template: *pki-master-f30
         timeout: 3600
@@ -697,6 +751,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestMultipleExternalCA
         template: *pki-master-f30
         timeout: 3600
@@ -709,6 +764,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_pkinit_manage.py
         template: *pki-master-f30
         timeout: 3600
@@ -721,6 +777,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-30/build_url}'
+        update_packages: True
         test_suite: test_integration/test_crlgen_manage.py
         template: *pki-master-f30
         timeout: 3600
