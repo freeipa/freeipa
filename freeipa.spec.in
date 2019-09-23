@@ -119,7 +119,7 @@
 %define AT_SIGN @
 # redefine IPA_VERSION only if its value matches the Autoconf placeholder
 %if "%{IPA_VERSION}" == "%{AT_SIGN}VERSION%{AT_SIGN}"
-	%define IPA_VERSION nonsense.to.please.RPM.SPEC.parser
+    %define IPA_VERSION nonsense.to.please.RPM.SPEC.parser
 %endif
 
 Name:           %{package_name}
