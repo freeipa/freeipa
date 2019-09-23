@@ -2,7 +2,7 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import logging
 
@@ -31,23 +31,23 @@ logger = logging.getLogger(__name__)
 
 IPA_DEFAULT_MASTER_SRV_REC = (
     # srv record name, port
-    (DNSName(u'_ldap._tcp'), 389),
-    (DNSName(u'_kerberos._tcp'), 88),
-    (DNSName(u'_kerberos._udp'), 88),
-    (DNSName(u'_kerberos-master._tcp'), 88),
-    (DNSName(u'_kerberos-master._udp'), 88),
-    (DNSName(u'_kpasswd._tcp'), 464),
-    (DNSName(u'_kpasswd._udp'), 464),
+    (DNSName('_ldap._tcp'), 389),
+    (DNSName('_kerberos._tcp'), 88),
+    (DNSName('_kerberos._udp'), 88),
+    (DNSName('_kerberos-master._tcp'), 88),
+    (DNSName('_kerberos-master._udp'), 88),
+    (DNSName('_kpasswd._tcp'), 464),
+    (DNSName('_kpasswd._udp'), 464),
 )
 
 IPA_DEFAULT_ADTRUST_SRV_REC = (
     # srv record name, port
-    (DNSName(u'_ldap._tcp.Default-First-Site-Name._sites.dc._msdcs'), 389),
-    (DNSName(u'_ldap._tcp.dc._msdcs'), 389),
-    (DNSName(u'_kerberos._tcp.Default-First-Site-Name._sites.dc._msdcs'), 88),
-    (DNSName(u'_kerberos._udp.Default-First-Site-Name._sites.dc._msdcs'), 88),
-    (DNSName(u'_kerberos._tcp.dc._msdcs'), 88),
-    (DNSName(u'_kerberos._udp.dc._msdcs'), 88),
+    (DNSName('_ldap._tcp.Default-First-Site-Name._sites.dc._msdcs'), 389),
+    (DNSName('_ldap._tcp.dc._msdcs'), 389),
+    (DNSName('_kerberos._tcp.Default-First-Site-Name._sites.dc._msdcs'), 88),
+    (DNSName('_kerberos._udp.Default-First-Site-Name._sites.dc._msdcs'), 88),
+    (DNSName('_kerberos._tcp.dc._msdcs'), 88),
+    (DNSName('_kerberos._udp.dc._msdcs'), 88),
 )
 
 IPA_DEFAULT_NTP_SRV_REC = (
@@ -83,7 +83,7 @@ class IPASystemRecords:
         self.__init_data()
 
     def __get_server_attrs(self, server_result):
-        weight = int(server_result.get('ipaserviceweight', [u'100'])[0])
+        weight = int(server_result.get('ipaserviceweight', ['100'])[0])
         location = server_result.get('ipalocation_location', [None])[0]
         roles = set(server_result.get('enabled_role_servrole', ()))
 
@@ -98,7 +98,7 @@ class IPASystemRecords:
         kwargs = dict(no_members=False)
         if not all_servers:
             # only active, fully installed masters]
-            kwargs["servrole"] = u"IPA master"
+            kwargs["servrole"] = "IPA master"
         servers = self.api_instance.Command.server_find(**kwargs)
 
         for s in servers['result']:
@@ -277,10 +277,10 @@ class IPASystemRecords:
     ):
         update_dict = self.__prepare_records_update_dict(nodes)
         cname_template = {
-            'addattr': [u'objectclass=idnsTemplateObject'],
+            'addattr': ['objectclass=idnsTemplateObject'],
             'setattr': [
-                u'idnsTemplateAttribute;cnamerecord=%s'
-                u'.\{substitutionvariable_ipalocation\}._locations' %
+                r'idnsTemplateAttribute;cnamerecord=%s'
+                r'.\{substitutionvariable_ipalocation\}._locations' %
                 record_name.relativize(self.domain_abs)
             ]
         }
@@ -474,7 +474,7 @@ class IPASystemRecords:
         for rdataset in node:
             for rd in rdataset:
                 records.append(
-                    u'{name} {ttl} {rdclass} {rdtype} {rdata}'.format(
+                    '{name} {ttl} {rdclass} {rdtype} {rdata}'.format(
                         name=name.ToASCII(),
                         ttl=rdataset.ttl,
                         rdclass=rdataclass.to_text(rd.rdclass),

@@ -154,9 +154,9 @@ class BaseTestLegacyClient:
 
         # Only for POSIX trust testing does the testuser belong to the
         # testgroup
-        group_name = '\(%s\)' % testgroup if self.posix_trust else ''
+        group_name = r'\(%s\)' % testgroup if self.posix_trust else ''
 
-        uid_regex = "uid=%s\(%s\)" % (self.testuser_uid_regex, testuser)
+        uid_regex = r"uid=%s\(%s\)" % (self.testuser_uid_regex, testuser)
         gid_regex = "gid=%s%s" % (self.testuser_gid_regex, group_name)
         groups_regex = "groups=%s%s" % (self.testuser_gid_regex, group_name)
 
@@ -282,9 +282,9 @@ class BaseTestLegacyClient:
 
         # Only for POSIX trust testing does the testuser belong to the
         # testgroup
-        group_name = '\(%s\)' % testgroup if self.posix_trust else ''
+        group_name = r'\(%s\)' % testgroup if self.posix_trust else ''
 
-        uid_regex = "uid=%s\(%s\)" % (self.subdomain_testuser_uid_regex,
+        uid_regex = r"uid=%s\(%s\)" % (self.subdomain_testuser_uid_regex,
                                       testuser)
         gid_regex = "gid=%s%s" % (self.subdomain_testuser_gid_regex,
                                   group_name)
@@ -381,9 +381,9 @@ class BaseTestLegacyClient:
         # Only for POSIX trust testing does the testuser belong to the
         # testgroup
 
-        group_name = '\({}\)'.format(testgroup) if self.posix_trust else ''
+        group_name = r'\({}\)'.format(testgroup) if self.posix_trust else ''
 
-        uid_regex = "uid={0}\({1}\)".format(
+        uid_regex = r"uid={0}\({1}\)".format(
                     self.treedomain_testuser_uid_regex, testuser)
 
         gid_regex = "gid={0}{1}".format(

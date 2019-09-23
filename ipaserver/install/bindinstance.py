@@ -67,8 +67,8 @@ if six.PY3:
 
 logger = logging.getLogger(__name__)
 
-named_conf_section_ipa_start_re = re.compile('\s*dyndb\s+"ipa"\s+"[^"]+"\s+{')
-named_conf_section_options_start_re = re.compile('\s*options\s+{')
+named_conf_section_ipa_start_re = re.compile(r'\s*dyndb\s+"ipa"\s+"[^"]+"\s+{')
+named_conf_section_options_start_re = re.compile(r'\s*options\s+{')
 named_conf_section_end_re = re.compile('};')
 named_conf_arg_ipa_re = re.compile(
     r'(?P<indent>\s*)(?P<name>\S+)\s"(?P<value>[^"]+)";')

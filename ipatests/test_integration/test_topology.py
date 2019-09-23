@@ -20,8 +20,8 @@ reasoning = "Topology plugin disabled due to domain level 0"
 def find_segment(master, replica):
     result = master.run_command(['ipa', 'topologysegment-find',
                                  DOMAIN_SUFFIX_NAME]).stdout_text
-    segment_re = re.compile('Left node: (?P<left>\S+)\n.*Right node: '
-                            '(?P<right>\S+)\n')
+    segment_re = re.compile(r'Left node: (?P<left>\S+)\n.*Right node: '
+                            r'(?P<right>\S+)\n')
     allsegments = segment_re.findall(result)
     for segment in allsegments:
         if master.hostname in segment and replica.hostname in segment:
