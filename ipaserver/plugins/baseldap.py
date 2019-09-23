@@ -200,7 +200,7 @@ def validate_del_attribute(ugettext, attr):
     validate_attribute(ugettext, 'delattr', attr)
 
 def validate_attribute(ugettext, name, attr):
-    m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", attr)
+    m = re.match(r"\s*(.*?)\s*=\s*(.*?)\s*$", attr)
     if not m or len(m.groups()) != 2:
         raise errors.ValidationError(
             name=name, error=_('Invalid format. Should be name=value'))
@@ -919,7 +919,7 @@ last, after all sets and adds."""),
         elif type(attrs) not in (list, tuple):
             attrs = [attrs]
         for a in attrs:
-            m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", a)
+            m = re.match(r"\s*(.*?)\s*=\s*(.*?)\s*$", a)
             attr = str(m.group(1)).lower()
             value = m.group(2)
             if attr in self.obj.params and attr not in self.params:

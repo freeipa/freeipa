@@ -50,9 +50,9 @@ def pytest_addoption(parser):
 
 def _get_logname_from_node(node):
     name = node.nodeid
-    name = re.sub('\(\)/', '', name)      # remove ()/
-    name = re.sub('[()]', '', name)       # and standalone brackets
-    name = re.sub('(/|::)', '-', name)
+    name = re.sub(r'\(\)/', '', name)      # remove ()/
+    name = re.sub(r'[()]', '', name)       # and standalone brackets
+    name = re.sub(r'(/|::)', '-', name)
     return name
 
 
