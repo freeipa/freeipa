@@ -2,7 +2,7 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import logging
 

@@ -22,7 +22,7 @@
 # Make sure we only run this module at the server where samba4-python
 # package is installed to avoid issues with unavailable modules
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import logging
 import re
