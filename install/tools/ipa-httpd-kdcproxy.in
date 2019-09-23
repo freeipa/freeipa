@@ -186,8 +186,10 @@ class KDCProxyConfig:
 def main(debug=DEBUG, time_limit=TIME_LIMIT):
     # initialize API without file logging
     if not api.isdone('bootstrap'):
-        api.bootstrap(context='server', confdir=paths.ETC_IPA,
-                      log=None, debug=debug)
+        api.bootstrap(
+            context='server', confdir=paths.ETC_IPA, log=None,
+            debug=debug
+        )
         standard_logging_setup(verbose=True, debug=debug)
 
     try:
