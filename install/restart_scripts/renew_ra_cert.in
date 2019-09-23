@@ -34,7 +34,9 @@ from ipaplatform.paths import paths
 
 
 def _main():
-    api.bootstrap(in_server=True, context='restart', confdir=paths.ETC_IPA)
+    api.bootstrap(
+        in_server=True, context='restart', confdir=paths.ETC_IPA, log=None
+    )
     api.finalize()
 
     tmpdir = tempfile.mkdtemp(prefix="tmp-")

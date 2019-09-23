@@ -102,7 +102,7 @@ class IPACustodiaTester:
         self.args = args
         if not api.isdone('bootstrap'):
             # bootstrap to initialize api.env
-            api.bootstrap()
+            api.bootstrap(log=None)
             self.debug("IPA API bootstrapped")
         self.realm = api.env.realm
         self.host = api.env.host

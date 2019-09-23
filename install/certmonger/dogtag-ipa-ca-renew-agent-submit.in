@@ -477,7 +477,9 @@ def main():
     if operation not in ('SUBMIT', 'POLL'):
         return OPERATION_NOT_SUPPORTED_BY_HELPER
 
-    api.bootstrap(in_server=True, context='renew', confdir=paths.ETC_IPA)
+    api.bootstrap(
+        in_server=True, context='renew', confdir=paths.ETC_IPA, log=None
+    )
     api.finalize()
 
     tmpdir = tempfile.mkdtemp(prefix="tmp-")

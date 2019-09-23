@@ -43,7 +43,9 @@ from ipapython.certdb import TrustFlags
 def _main():
     nickname = sys.argv[1]
 
-    api.bootstrap(in_server=True, context='restart', confdir=paths.ETC_IPA)
+    api.bootstrap(
+        in_server=True, context='restart', confdir=paths.ETC_IPA, log=None
+    )
     api.finalize()
 
     dogtag_service = services.knownservices['pki_tomcatd']
