@@ -529,6 +529,34 @@ def named_remove_deprecated_options():
     return True
 
 
+def named_add_ipa_ext_conf_include():
+    """
+    Ensures named.conf does include the ipa-ext.conf file
+    """
+    if not bindinstance.named_conf_exists():
+        logger.info('DNS is not configured.')
+        return False
+
+    if not bindinstance.named_conf_include_exists(paths.NAMED_CUSTOM_CONFIG):
+        bindinstance.named_conf_add_include(paths.NAMED_CUSTOM_CONFIG)
+        return True
+    return False
+
+
+def named_add_ipa_ext_conf_file():
+    """
+    Wrapper around bindinstance.named_add_ext_conf_file().
+    Ensures named is configured before pushing the file.
+    """
+    if not bindinstance.named_conf_exists():
+        logger.info('DNS is not configured.')
+        return False
+
+    return bindinstance.named_add_ext_conf_file(
+        paths.NAMED_CUSTOM_CFG_SRC,
+        paths.NAMED_CUSTOM_CONFIG)
+
+
 def named_set_minimum_connections():
     """
     Sets the minimal number of connections.
@@ -2031,6 +2059,8 @@ def upgrade_configuration():
     # has been altered
     named_conf_changes = (
                           named_remove_deprecated_options(),
+                          named_add_ipa_ext_conf_file(),
+                          named_add_ipa_ext_conf_include(),
                           named_set_minimum_connections(),
                           named_update_gssapi_configuration(),
                           named_update_pid_file(),

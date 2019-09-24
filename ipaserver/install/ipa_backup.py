@@ -124,6 +124,7 @@ class Backup(admintool.AdminTool):
 
     files = (
         paths.NAMED_CONF,
+        paths.NAMED_CUSTOM_CONFIG,
         paths.NAMED_KEYTAB,
         paths.RESOLV_CONF,
         paths.SYSCONFIG_PKI_TOMCAT,

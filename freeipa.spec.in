@@ -1121,6 +1121,7 @@ fi
 %{_usr}/share/ipa/*.ldif
 %{_usr}/share/ipa/*.uldif
 %{_usr}/share/ipa/*.template
+%{_usr}/share/ipa/bind.ipa-ext.conf
 %dir %{_usr}/share/ipa/advise
 %dir %{_usr}/share/ipa/advise/legacy
 %{_usr}/share/ipa/advise/legacy/*.template
@@ -1165,6 +1166,7 @@ fi
 %ghost %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
 %ghost %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/ipa-kdc-proxy.conf
 %ghost %attr(0644,root,root) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
+%ghost %attr(0640,root,named) %config(noreplace) %{_sysconfdir}/named/ipa-ext.conf
 %ghost %attr(0644,root,root) %{_usr}/share/ipa/html/krb.con
 %ghost %attr(0644,root,root) %{_usr}/share/ipa/html/krb5.ini
 %ghost %attr(0644,root,root) %{_usr}/share/ipa/html/krbrealm.con
