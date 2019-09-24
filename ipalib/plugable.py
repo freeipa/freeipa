@@ -24,7 +24,6 @@ The classes in this module make heavy use of Python container emulation. If
 you are unfamiliar with this Python feature, see
 http://docs.python.org/ref/sequence-types.html
 """
-from __future__ import unicode_literals
 
 import logging
 import operator
