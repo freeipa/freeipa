@@ -101,6 +101,7 @@ DEFAULT_PKI_CA_CERTS = [
     "auditSigningCert cert-pki-ca",
     "Server-Cert cert-pki-ca",
 ]
+
 DEFAULT_PKI_KRA_CERTS = [
     "transportCert cert-pki-kra",
     "storageCert cert-pki-kra",
@@ -401,6 +402,28 @@ class TestIpaHealthCheck(IntegrationTest):
         assert returncode == 0
         for check in data:
             assert check["result"] == "SUCCESS"
+
+    def test_ipa_healthcheck_log_rotate_file_exist_issue35(self):
+        """
+        This test checks if log rotation has been added
+        for ipa-healthcheck tool so that logs are rotated
+        in /var/log/ipa/healthcheck folder.
+        The test also checks that the logrotate configuration
+        file is syntactically correct by calling logrotate --debug
+        This is a testcase for below pagure issue
+        https://github.com/freeipa/freeipa-healthcheck/issues/35
+        """
+        msg = "error: {}:".format(HEALTHCHECK_LOG_ROTATE_CONF)
+        tasks.uninstall_packages(self.master, HEALTHCHECK_PKG)
+        assert not self.master.transport.file_exists(
+            HEALTHCHECK_LOG_ROTATE_CONF
+        )
+        tasks.install_packages(self.master, HEALTHCHECK_PKG)
+        assert self.master.transport.file_exists(HEALTHCHECK_LOG_ROTATE_CONF)
+        cmd = self.master.run_command(
+            ['logrotate', '--debug', HEALTHCHECK_LOG_ROTATE_CONF]
+        )
+        assert msg not in cmd.stdout_text
 
     def test_ipa_healthcheck_remove(self):
         """
