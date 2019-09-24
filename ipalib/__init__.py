@@ -886,8 +886,10 @@ from ipapython.version import VERSION as __version__
 def _enable_warnings(error=False):
     """Enable additional warnings during development
     """
+    # pylint: disable=import-outside-toplevel
     import ctypes
     import warnings
+    # pylint: enable=import-outside-toplevel
 
     # get reference to Py_BytesWarningFlag from Python CAPI
     byteswarnings = ctypes.c_int.in_dll(  # pylint: disable=no-member
@@ -937,14 +939,23 @@ class API(plugable.API):
     def packages(self):
         if self.env.in_server:
             # pylint: disable=import-error,ipa-forbidden-import
+            # pylint: disable=import-outside-toplevel
             import ipaserver.plugins
             # pylint: enable=import-error,ipa-forbidden-import
+            # pylint: enable=import-outside-toplevel
             result = (
                 ipaserver.plugins,
             )
         else:
+            # disables immediately after an else clause
+            # do not work properly:
+            # https://github.com/PyCQA/pylint/issues/872
+            # Thus, below line was added as a workaround
+            result = None
+            # pylint: disable=import-outside-toplevel
             import ipaclient.remote_plugins
             import ipaclient.plugins
+            # pylint: enable=import-outside-toplevel
             result = (
                 ipaclient.remote_plugins.get_package(self),
                 ipaclient.plugins,
@@ -952,8 +963,10 @@ class API(plugable.API):
 
         if self.env.context in ('installer', 'updates'):
             # pylint: disable=import-error,ipa-forbidden-import
+            # pylint: disable=import-outside-toplevel
             import ipaserver.install.plugins
             # pylint: enable=import-error,ipa-forbidden-import
+            # pylint: enable=import-outside-toplevel
             result += (ipaserver.install.plugins,)
 
         return result
