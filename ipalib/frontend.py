@@ -575,7 +575,7 @@ class Command(HasParam):
             if self.params[name].attribute and name in kw:
                 value = kw[name]
                 if isinstance(value, tuple):
-                    yield (name, [v for v in value])
+                    yield (name, list(value))
                 else:
                     yield (name, kw[name])
 
@@ -1069,15 +1069,14 @@ class Command(HasParam):
 
             if o == 'value':
                 continue
-            elif o.lower() == 'count' and result == 0:
+            if o.lower() == 'count' and result == 0:
                 rv = 1
             elif o.lower() == 'failed':
                 if entry_count(result) == 0:
                     # Don't display an empty failed list
                     continue
-                else:
-                    # Return an error to the shell
-                    rv = 1
+                # Return an error to the shell
+                rv = 1
             if isinstance(outp, ListOfEntries):
                 textui.print_entries(result, order, labels, flags, print_all)
             elif isinstance(result, (tuple, list)):
@@ -1299,7 +1298,7 @@ class Object(HasParam):
         )
         if self.primary_key:
             json_dict['primary_key'] = self.primary_key.name
-        json_dict['methods'] = [m for m in self.methods]
+        json_dict['methods'] = list(self.methods)
         return json_dict
 
 
