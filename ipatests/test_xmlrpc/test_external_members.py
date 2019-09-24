@@ -21,8 +21,6 @@ Test adding/removing external members (trusted domain objects) to IPA groups.
 These tests are skipped if trust is not established.
 """
 
-from __future__ import unicode_literals
-
 import unittest
 
 from ipalib import api
