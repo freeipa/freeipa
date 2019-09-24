@@ -922,6 +922,7 @@ class CAInstance(DogtagInstance):
                 self.config, quotes=False, separator='=') as ds:
             # Enable file publishing, disable LDAP
             ds.set('ca.publish.enable', 'true')
+            ds.set('ca.publish.cert.enable', 'false')
             ds.set('ca.publish.ldappublish.enable', 'false')
 
             # Create the file publisher, der only, not b64
