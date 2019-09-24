@@ -8,8 +8,12 @@ options {
 	statistics-file		"${NAMED_DATA_DIR}named_stats.txt";
 	memstatistics-file	"${NAMED_DATA_DIR}named_mem_stats.txt";
 
-	// Any host is permitted to issue recursive queries
-	allow-recursion { any; };
+	// If not explicitly set, the ACLs for "allow-query-cache" and
+	// "allow-recursion" are set to "localnets; localhost;".
+	// If either "allow-query-cache" or "allow-recursion" is set,
+	// the other would be set the same value.
+	// Please refer to $CUSTOM_CONFIG
+	// for more informations
 
 	tkey-gssapi-keytab "$NAMED_KEYTAB";
 	pid-file "$NAMED_PID";
@@ -45,6 +49,9 @@ ${NAMED_ZONE_COMMENT}};
 
 include "$RFC1912_ZONES";
 include "$ROOT_KEY";
+
+/* custom configuration snippet */
+include "$CUSTOM_CONFIG";
 
 /* WARNING: This part of the config file is IPA-managed.
  * Modifications may break IPA setup or upgrades.

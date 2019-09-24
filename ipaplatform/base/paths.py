@@ -79,6 +79,8 @@ class BasePathNamespace:
     LDAP_CONF = "/etc/ldap.conf"
     LIBNSS_LDAP_CONF = "/etc/libnss-ldap.conf"
     NAMED_CONF = "/etc/named.conf"
+    NAMED_CUSTOM_CONFIG = "/etc/named/ipa-ext.conf"
+    NAMED_CUSTOM_CFG_SRC = '/usr/share/ipa/bind.ipa-ext.conf'
     NAMED_VAR_DIR = "/var/named"
     NAMED_KEYTAB = "/etc/named.keytab"
     NAMED_RFC1912_ZONES = "/etc/named.rfc1912.zones"
