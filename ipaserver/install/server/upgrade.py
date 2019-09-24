@@ -459,6 +459,28 @@ def ca_add_default_ocsp_uri(ca):
     return True  # restart needed
 
 
+def ca_disable_publish_cert(ca):
+    logger.info('[Disabling cert publishing]')
+    if not ca.is_configured():
+        logger.info('CA is not configured')
+        return False
+
+    value = directivesetter.get_directive(
+        paths.CA_CS_CFG_PATH,
+        'ca.publish.cert.enable',
+        separator='=')
+    if value:
+        return False  # already set; restart not needed
+
+    directivesetter.set_directive(
+        paths.CA_CS_CFG_PATH,
+        'ca.publish.cert.enable',
+        'false',
+        quotes=False,
+        separator='=')
+    return True  # restart needed
+
+
 def upgrade_ca_audit_cert_validity(ca):
     """
     Update the Dogtag audit signing certificate.
@@ -2072,6 +2094,7 @@ def upgrade_configuration():
         ca_configure_lightweight_ca_acls(ca),
         ca_ensure_lightweight_cas_container(ca),
         ca_add_default_ocsp_uri(ca),
+        ca_disable_publish_cert(ca),
     ])
 
     if ca_restart:
