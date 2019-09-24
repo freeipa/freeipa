@@ -45,6 +45,7 @@ dist_app_DATA =				\
 	domainlevel.ldif			\
 	kerberos.ldif			\
 	indices.ldif			\
+	bind.ipa-ext.conf		\
 	bind.named.conf.template	\
 	certmap.conf.template		\
 	kdc.conf.template		\
