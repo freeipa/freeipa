@@ -605,9 +605,11 @@ class IPADiscovery:
 
 
 def main():
+    # pylint: disable=import-outside-toplevel
     import argparse
     import os
     from ipapython.ipa_log_manager import standard_logging_setup
+    # pylint: enable=import-outside-toplevel
 
     parser = argparse.ArgumentParser(__name__)
 

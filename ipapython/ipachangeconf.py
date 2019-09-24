@@ -187,7 +187,7 @@ class IPAChangeConf:
                 if delim not in self.assign:
                     raise ValueError(
                         'Unknown delim "%s" must be one of "%s"' %
-                        (delim, " ".join([d for d in self.assign]))
+                        (delim, " ".join(list(self.assign)))
                     )
                 output.append(self._dump_line(self.indent[level],
                                               o['name'],
