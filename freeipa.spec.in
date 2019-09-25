@@ -49,8 +49,8 @@
 
 %global alt_name ipa
 %if 0%{?rhel}
-# 1.15.1-7: certauth (http://krbdev.mit.edu/rt/Ticket/Display.html?id=8561)
-%global krb5_version 1.15.1-4
+# 1.15.1-36: https://bugzilla.redhat.com/show_bug.cgi?id=1755223
+%global krb5_version 1.15.1-36
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.5-8
 # Require 4.7.0 which brings Python 3 bindings
