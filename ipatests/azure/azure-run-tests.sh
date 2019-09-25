@@ -1,4 +1,9 @@
 #!/bin/bash -ex
+
+# Setup DNS
+echo -e '127.0.0.1 localhost\n::1 localhost\n' > /etc/hosts
+echo 'nameserver 8.8.8.8' > /etc/resolv.conf
+
 server_realm=EXAMPLE.TEST
 server_domain=example.test
 server_password=Secret123
