@@ -28,6 +28,7 @@ import pytest
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks as platformtasks
+from ipapython.ipaldap import realm_to_serverid
 from ipapython.dn import DN
 from ipapython import ipautil
 from ipatests.test_integration.base import IntegrationTest
@@ -216,6 +217,15 @@ class TestBackupAndRestore(IntegrationTest):
             dirman_password = self.master.config.dirman_password
             self.master.run_command(['ipa-restore', backup_path],
                                     stdin_text=dirman_password + '\nyes')
+
+            # check the file permssion and ownership is set to 770 and
+            # dirsrv:dirsrv after restore on /var/log/dirsrv/slapd-<instance>
+            # related ticket : https://pagure.io/freeipa/issue/7725
+            instance = realm_to_serverid(self.master.domain.realm)
+            log_path = paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % instance
+            cmd = self.master.run_command(['stat', '-c',
+                                           '"%a %G:%U"', log_path])
+            assert "770 dirsrv:dirsrv" in cmd.stdout_text
 
     def test_full_backup_and_restore_with_removed_users(self):
         """regression test for https://fedorahosted.org/freeipa/ticket/3866"""
