@@ -810,10 +810,9 @@ class automember_rebuild(Method):
                     if str(task.single_value['nstaskexitcode']) == '0':
                         summary=task.single_value['nstaskstatus']
                         break
-                    else:
-                        raise errors.DatabaseError(
-                            desc=task.single_value['nstaskstatus'],
-                            info=_("Task DN = '%s'" % task_dn))
+                    raise errors.DatabaseError(
+                        desc=task.single_value['nstaskstatus'],
+                        info=_("Task DN = '%s'" % task_dn))
                 time.sleep(1)
                 if time.time() > (start_time + 60):
                    raise errors.TaskTimeout(task=_('Automember'), task_dn=task_dn)
