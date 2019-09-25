@@ -821,7 +821,7 @@ class DomainValidator:
 
 def string_to_array(what):
     if six.PY3 and isinstance(what, bytes):
-        return [v for v in what]
+        return list(what)
     return [ord(v) for v in what]
 
 
