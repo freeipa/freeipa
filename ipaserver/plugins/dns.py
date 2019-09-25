@@ -717,7 +717,7 @@ class DNSRecord(Str):
         for v in values:
             if v is None:
                 continue
-            elif isinstance(v, DNSName) and idna:
+            if isinstance(v, DNSName) and idna:
                 v = v.ToASCII()
             elif not isinstance(v, unicode):
                 v = unicode(v)
@@ -753,7 +753,7 @@ class DNSRecord(Str):
         return super(DNSRecord, self)._convert_scalar(value)
 
     def normalize(self, value):
-        if self.normalizedns:
+        if self.normalizedns:  # pylint: disable=using-constant-test
             if isinstance(value, (tuple, list)):
                 value = tuple(
                             self._normalize_parts(v) for v in value \
@@ -3439,11 +3439,10 @@ class dnsrecord(LDAPObject):
             except dns.resolver.NXDOMAIN as e:
                 if nxdomain:
                     continue
-                else:
-                    e = errors.DNSDataMismatch(expected=ldap_rrset,
-                                               got="NXDOMAIN")
-                    logger.error('%s', e)
-                    raise e
+                e = errors.DNSDataMismatch(expected=ldap_rrset,
+                                           got="NXDOMAIN")
+                logger.error('%s', e)
+                raise e
 
             except dns.resolver.NoNameservers as e:
                 # Do not raise exception if we have got SERVFAILs.
@@ -3848,10 +3847,10 @@ class dnsrecord_del(LDAPUpdate):
         for option in super(dnsrecord_del, self).get_options():
             if get_part_rrtype(option.name) or get_extra_rrtype(option.name):
                 continue
-            elif option.name in ('rename', ):
+            if option.name in ('rename', ):
                 # options only valid for dnsrecord-mod
                 continue
-            elif isinstance(option, DNSRecord):
+            if isinstance(option, DNSRecord):
                 yield option.clone(option_group=None)
                 continue
             yield option
@@ -3978,7 +3977,7 @@ class dnsrecord_find(LDAPSearch):
         for option in super(dnsrecord_find, self).get_options():
             if get_part_rrtype(option.name) or get_extra_rrtype(option.name):
                 continue
-            elif isinstance(option, DNSRecord):
+            if isinstance(option, DNSRecord):
                 yield option.clone(option_group=None)
                 continue
             yield option

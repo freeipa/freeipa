@@ -812,7 +812,7 @@ class LDAPObject(Object):
             attrlist.append(attr.names[0].lower())
         json_dict['aciattrs'] = attrlist
         attrlist.sort()
-        json_dict['methods'] = [m for m in self.methods]
+        json_dict['methods'] = list(self.methods)
         json_dict['can_have_permissions'] = bool(
             self.permission_filter_objectclasses)
         return json_dict
