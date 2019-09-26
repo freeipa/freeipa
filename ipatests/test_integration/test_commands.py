@@ -1136,3 +1136,37 @@ class TestIPACommand(IntegrationTest):
             raiseonerr=False
         )
         assert result.returncode == 0
+
+    def test_ipa_adtrust_install_with_locale_issue8066(self):
+        """
+        This test checks that ipa-adtrust-install command runs successfully
+        on a system with locale en_IN.UTF-8 without displaying error below
+        'IndexError: list index out of range'
+        This is a testcase for Pagure issue
+        https://pagure.io/freeipa/issue/8066
+        """
+        # Set locale to en_IN.UTF-8 in .bashrc file to avoid reboot
+        tasks.kinit_admin(self.master)
+        BASHRC_CFG = "/root/.bashrc"
+        bashrc_backup = tasks.FileBackup(self.master, BASHRC_CFG)
+        exp_msg = "en_IN.UTF-8"
+        try:
+            self.master.run_command(
+                'echo "export LC_TIME=en_IN.UTF-8" >> ' + BASHRC_CFG
+            )
+            result = self.master.run_command('echo "$LC_TIME"')
+            assert result.stdout_text.rstrip() == exp_msg
+            # Install ipa-server-adtrust and check status
+            msg1 = (
+                "Unexpected error - see /var/log/ipaserver-install.log"
+                "for details"
+            )
+            msg2 = "IndexError: list index out of range"
+            tasks.install_packages(self.master, ["*ipa-server-trust-ad"])
+            result = self.master.run_command(
+                ["ipa-adtrust-install", "-U"], raiseonerr=False
+            )
+            assert msg1 not in result.stderr_text
+            assert msg2 not in result.stderr_text
+        finally:
+            bashrc_backup.restore()
