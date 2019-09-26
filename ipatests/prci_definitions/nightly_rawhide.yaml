@@ -447,6 +447,18 @@ jobs:
         timeout: 10800
         topology: *master_1repl
 
+  fedora-rawhide/test_installation_TestInstallReplicaAgainstSpecificServer:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallReplicaAgainstSpecificServer
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_2repl_1client
+
   fedora-rawhide/test_idviews:
     requires: [fedora-rawhide/build]
     priority: 50
