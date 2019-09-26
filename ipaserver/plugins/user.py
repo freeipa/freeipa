@@ -474,7 +474,7 @@ class user_add(baseuser_add):
         else:
             raise self.obj.handle_duplicate_entry(*keys)
 
-        if not options.get('noprivate', False):
+        if not options.get('noprivate', False) and ldap.has_upg():
             try:
                 # The Managed Entries plugin will allow a user to be created
                 # even if a group has a duplicate name. This would leave a user
@@ -607,7 +607,8 @@ class user_add(baseuser_add):
         newentry = ldap.get_entry(dn, ['*'])
 
         # delete description attribute NO_UPG_MAGIC if present
-        if options.get('noprivate', False) and 'description' in newentry and \
+        if (options.get('noprivate', False) or not ldap.has_upg()) and \
+                'description' in newentry and \
                 NO_UPG_MAGIC in newentry['description']:
             newentry['description'].remove(NO_UPG_MAGIC)
             ldap.update_entry(newentry)
