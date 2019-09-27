@@ -759,13 +759,16 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             query = resolve_records_from_server(
                 name_abs, rtype, self.master.ip
             )
-            txt = query.to_text()
+            if rtype == 'SRV':
+                records = [q.target.to_text() for q in query]
+            else:
+                records = [q.address for q in query]
             for host in hosts_expected:
-                value = host.hostname if rtype == 'SRV' else host.ip
-                assert value in txt
+                value = host.hostname + "." if rtype == 'SRV' else host.ip
+                assert value in records
             for host in hosts_unexpected:
-                value = host.hostname if rtype == 'SRV' else host.ip
-                assert value not in txt
+                value = host.hostname + "." if rtype == 'SRV' else host.ip
+                assert value not in records
 
     def _check_server_role(self, host, status, kra=True, dns=True):
         roles = [u'IPA master', u'CA server']
