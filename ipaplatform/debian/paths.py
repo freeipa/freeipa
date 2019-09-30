@@ -43,6 +43,9 @@ class DebianPathNamespace(BasePathNamespace):
     NAMED_MANAGED_KEYS_DIR = "/var/cache/bind/dynamic"
     CHRONY_CONF = "/etc/chrony/chrony.conf"
     OPENLDAP_LDAP_CONF = "/etc/ldap/ldap.conf"
+    OPENSSL_DIR = "/usr/lib/ssl"
+    OPENSSL_CERTS_DIR = "/usr/lib/ssl/certs"
+    OPENSSL_PRIVATE_DIR = "/usr/lib/ssl/private"
     ETC_DEBIAN_VERSION = "/etc/debian_version"
     # Old versions of freeipa wrote all trusted certificates to a single
     # file, which is not supported by ca-certificates.
