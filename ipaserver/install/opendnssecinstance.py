@@ -269,7 +269,7 @@ class OpenDNSSECInstance(service.Service):
                     os.chown(dir_path, self.ods_uid, self.named_gid)  # chown to ods:named
                 for filename in files:
                     file_path = os.path.join(root, filename)
-                    os.chmod(file_path, 0o770 | stat.S_ISGID)
+                    os.chmod(file_path, 0o660 | stat.S_ISGID)
                     os.chown(file_path, self.ods_uid, self.named_gid)  # chown to ods:named
 
         finally:

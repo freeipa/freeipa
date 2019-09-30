@@ -164,6 +164,61 @@ class DNSKeySyncInstance(service.Service):
 
         self._ldap_mod("dnssec.ldif", {'SUFFIX': self.suffix, })
 
+    def setup_named_openssl_conf(self):
+        if constants.NAMED_OPENSSL_ENGINE is not None:
+            logger.debug("Setup OpenSSL config for BIND")
+            # setup OpenSSL config for BIND,
+            # this one is needed because FreeIPA installation
+            # disables p11-kit-proxy PKCS11 module
+            conf_file_dict = {
+                'OPENSSL_ENGINE': constants.NAMED_OPENSSL_ENGINE,
+                'SOFTHSM_MODULE': paths.LIBSOFTHSM2_SO,
+            }
+            named_openssl_txt = ipautil.template_file(
+                os.path.join(paths.USR_SHARE_IPA_DIR,
+                             "bind.openssl.cnf.template"),
+                conf_file_dict)
+            with open(paths.DNSSEC_OPENSSL_CONF, 'w') as f:
+                os.fchmod(f.fileno(), 0o640)
+                os.fchown(f.fileno(), 0, self.named_gid)
+                f.write(named_openssl_txt)
+
+    def setup_named_sysconfig(self):
+        logger.debug("Setup BIND sysconfig")
+        sysconfig = paths.SYSCONFIG_NAMED
+        self.fstore.backup_file(sysconfig)
+
+        directivesetter.set_directive(
+            sysconfig,
+            'SOFTHSM2_CONF', paths.DNSSEC_SOFTHSM2_CONF,
+            quotes=False, separator='=')
+
+        if constants.NAMED_OPENSSL_ENGINE is not None:
+            directivesetter.set_directive(
+                sysconfig,
+                'OPENSSL_CONF', paths.DNSSEC_OPENSSL_CONF,
+                quotes=False, separator='=')
+
+            engine_txt = "-E {}".format(constants.NAMED_OPENSSL_ENGINE)
+            directivesetter.set_directive(
+                sysconfig,
+                constants.NAMED_OPTIONS_VAR, engine_txt,
+                quotes=True, separator='=')
+
+    def setup_ipa_dnskeysyncd_sysconfig(self):
+        logger.debug("Setup ipa-dnskeysyncd sysconfig")
+        sysconfig = paths.SYSCONFIG_IPA_DNSKEYSYNCD
+        directivesetter.set_directive(
+            sysconfig,
+            'SOFTHSM2_CONF', paths.DNSSEC_SOFTHSM2_CONF,
+            quotes=False, separator='=')
+
+        if constants.NAMED_OPENSSL_ENGINE is not None:
+            directivesetter.set_directive(
+                sysconfig,
+                'OPENSSL_CONF', paths.DNSSEC_OPENSSL_CONF,
+                quotes=False, separator='=')
+
     def __setup_softhsm(self):
         assert self.ods_uid is not None
         assert self.named_gid is not None
@@ -186,23 +241,15 @@ class DNSKeySyncInstance(service.Service):
                                'tokens_dir': paths.DNSSEC_TOKENS_DIR
                             }
         logger.debug("Creating new softhsm config file")
-        named_fd = open(paths.DNSSEC_SOFTHSM2_CONF, 'w')
-        named_fd.seek(0)
-        named_fd.truncate(0)
-        named_fd.write(softhsm_conf_txt)
-        named_fd.close()
-        os.chmod(paths.DNSSEC_SOFTHSM2_CONF, 0o644)
+        with open(paths.DNSSEC_SOFTHSM2_CONF, 'w') as f:
+            os.fchmod(f.fileno(), 0o644)
+            f.write(softhsm_conf_txt)
 
-        # setting up named to use softhsm2
-        if not self.fstore.has_file(paths.SYSCONFIG_NAMED):
-            self.fstore.backup_file(paths.SYSCONFIG_NAMED)
-
-        # setting up named and ipa-dnskeysyncd to use our softhsm2 config
-        for sysconfig in [paths.SYSCONFIG_NAMED,
-                          paths.SYSCONFIG_IPA_DNSKEYSYNCD]:
-            directivesetter.set_directive(sysconfig, 'SOFTHSM2_CONF',
-                                          paths.DNSSEC_SOFTHSM2_CONF,
-                                          quotes=False, separator='=')
+        # setting up named and ipa-dnskeysyncd to use our softhsm2 and
+        # openssl configs
+        self.setup_named_openssl_conf()
+        self.setup_named_sysconfig()
+        self.setup_ipa_dnskeysyncd_sysconfig()
 
         if (token_dir_exists and os.path.exists(paths.DNSSEC_SOFTHSM_PIN) and
                 os.path.exists(paths.DNSSEC_SOFTHSM_PIN_SO)):
@@ -231,23 +278,17 @@ class DNSKeySyncInstance(service.Service):
             entropy_bits=0, special=None, min_len=pin_length)
 
         logger.debug("Saving user PIN to %s", paths.DNSSEC_SOFTHSM_PIN)
-        named_fd = open(paths.DNSSEC_SOFTHSM_PIN, 'w')
-        named_fd.seek(0)
-        named_fd.truncate(0)
-        named_fd.write(pin)
-        named_fd.close()
-        os.chmod(paths.DNSSEC_SOFTHSM_PIN, 0o770)
-        # chown to ods:named
-        os.chown(paths.DNSSEC_SOFTHSM_PIN, self.ods_uid, self.named_gid)
+        with open(paths.DNSSEC_SOFTHSM_PIN, 'w') as f:
+            # chown to ods:named
+            os.fchown(f.fileno(), self.ods_uid, self.named_gid)
+            os.fchmod(f.fileno(), 0o660)
+            f.write(pin)
 
         logger.debug("Saving SO PIN to %s", paths.DNSSEC_SOFTHSM_PIN_SO)
-        named_fd = open(paths.DNSSEC_SOFTHSM_PIN_SO, 'w')
-        named_fd.seek(0)
-        named_fd.truncate(0)
-        named_fd.write(pin_so)
-        named_fd.close()
-        # owner must be root
-        os.chmod(paths.DNSSEC_SOFTHSM_PIN_SO, 0o400)
+        with open(paths.DNSSEC_SOFTHSM_PIN_SO, 'w') as f:
+            # owner must be root
+            os.fchmod(f.fileno(), 0o400)
+            f.write(pin_so)
 
         # initialize SoftHSM
 
@@ -377,7 +418,7 @@ class DNSKeySyncInstance(service.Service):
                 os.chown(dir_path, self.ods_uid, self.named_gid)
             for filename in files:
                 file_path = os.path.join(root, filename)
-                os.chmod(file_path, 0o770 | stat.S_ISGID)
+                os.chmod(file_path, 0o660 | stat.S_ISGID)
                 # chown to ods:named
                 os.chown(file_path, self.ods_uid, self.named_gid)
 

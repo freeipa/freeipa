@@ -68,6 +68,7 @@ redhat_system_units['ipa-dnskeysyncd'] = 'ipa-dnskeysyncd.service'
 redhat_system_units['named-regular'] = 'named.service'
 redhat_system_units['named-pkcs11'] = 'named-pkcs11.service'
 redhat_system_units['named'] = redhat_system_units['named-pkcs11']
+redhat_system_units['named-conflict'] = redhat_system_units['named-regular']
 redhat_system_units['ods-enforcerd'] = 'ods-enforcerd.service'
 redhat_system_units['ods_enforcerd'] = redhat_system_units['ods-enforcerd']
 redhat_system_units['ods-signerd'] = 'ods-signerd.service'
