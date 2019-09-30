@@ -23,6 +23,8 @@ class BaseConstantsNamespace:
     NAMED_USER = "named"
     NAMED_GROUP = "named"
     NAMED_DATA_DIR = "data/"
+    NAMED_OPTIONS_VAR = "OPTIONS"
+    NAMED_OPENSSL_ENGINE = None
     NAMED_ZONE_COMMENT = ""
     PKI_USER = 'pkiuser'
     PKI_GROUP = 'pkiuser'

@@ -16,11 +16,14 @@ import stat
 import six
 
 import ipalib.constants
+
 from ipapython.dn import DN
 from ipapython import ipautil
+from ipaplatform.constants import constants as platformconstants
 from ipaplatform.paths import paths
 
 from ipaserver.dnssec.temp import TemporaryDirectory
+from ipaserver.install import installutils
 
 logger = logging.getLogger(__name__)
 
@@ -133,8 +136,11 @@ class BINDMgr:
             cmd.extend(['-f', 'KSK'])
         if attrs.get('idnsSecKeyRevoke', [b'FALSE'])[0].upper() == b'TRUE':
             cmd.extend(['-R', datetime.now().strftime(time_bindfmt)])
+        if platformconstants.NAMED_OPENSSL_ENGINE is not None:
+            cmd.extend(['-E', platformconstants.NAMED_OPENSSL_ENGINE])
         cmd.append(zone.to_text())
 
+        installutils.check_entropy()
         # keys has to be readable by ODS & named
         result = ipautil.run(cmd, capture_output=True)
         basename = result.output.strip()

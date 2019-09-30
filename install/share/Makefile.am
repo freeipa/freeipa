@@ -48,6 +48,7 @@ dist_app_DATA =				\
 	bind.ipa-ext.conf.template		\
 	bind.ipa-options-ext.conf.template	\
 	bind.named.conf.template	\
+	bind.openssl.cnf.template	\
 	certmap.conf.template		\
 	kdc.conf.template		\
 	kdc_extensions.template		\

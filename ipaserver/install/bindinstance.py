@@ -657,7 +657,7 @@ class BindInstance(service.Service):
         self.no_dnssec_validation = False
         self.sub_dict = None
         self.reverse_zones = ()
-        self.named_regular = services.service('named-regular', api)
+        self.named_conflict = services.service('named-conflict', api)
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
@@ -764,7 +764,7 @@ class BindInstance(service.Service):
         # named has to be started after softhsm initialization
         # self.step("restarting named", self.__start)
 
-        self.step("configuring named to start on boot", self.__enable)
+        self.step("configuring named to start on boot", self.switch_service)
         self.step("changing resolv.conf to point to ourselves", self.__setup_resolv_conf)
         self.start_creation()
 
@@ -774,19 +774,16 @@ class BindInstance(service.Service):
 
     def __start(self):
         try:
-            if self.get_state("running") is None:
-                # first time store status
-                self.backup_state("running", self.is_running())
             self.restart()
         except Exception as e:
             logger.error("Named service failed to start (%s)", e)
             print("named service failed to start")
 
+    def switch_service(self):
+        self.mask_conflict()
+        self.__enable()
+
     def __enable(self):
-        if self.get_state("enabled") is None:
-            self.backup_state("enabled", self.is_running())
-            self.backup_state("named-regular-enabled",
-                              self.named_regular.is_running())
         # We do not let the system start IPA components on its own,
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
@@ -797,20 +794,19 @@ class BindInstance(service.Service):
             # don't crash, just report error
             logger.error("DNS service already exists")
 
-        # disable named, we need to run named-pkcs11 only
-        if self.get_state("named-regular-running") is None:
-            # first time store status
-            self.backup_state("named-regular-running",
-                              self.named_regular.is_running())
+    def mask_conflict(self):
+        # disable named-conflict (either named or named-pkcs11)
         try:
-            self.named_regular.stop()
+            self.named_conflict.stop()
         except Exception as e:
-            logger.debug("Unable to stop named (%s)", e)
+            logger.debug("Unable to stop %s (%s)",
+                         self.named_conflict.systemd_name, e)
 
         try:
-            self.named_regular.mask()
+            self.named_conflict.mask()
         except Exception as e:
-            logger.debug("Unable to mask named (%s)", e)
+            logger.debug("Unable to mask %s (%s)",
+                         self.named_conflict.systemd_name, e)
 
     def _get_dnssec_validation(self):
         """get dnssec-validation value
@@ -1307,11 +1303,6 @@ class BindInstance(service.Service):
         if self.is_configured():
             self.print_msg("Unconfiguring %s" % self.service_name)
 
-        running = self.restore_state("running")
-        enabled = self.restore_state("enabled")
-        named_regular_running = self.restore_state("named-regular-running")
-        named_regular_enabled = self.restore_state("named-regular-enabled")
-
         self.dns_backup.clear_records(self.api.Backend.ldap2.isconnected())
 
         try:
@@ -1326,23 +1317,10 @@ class BindInstance(service.Service):
 
         ipautil.rmtree(paths.BIND_LDAP_DNS_IPA_WORKDIR)
 
-        # disabled by default, by ldap_configure()
-        if enabled:
-            self.enable()
-        else:
-            self.disable()
+        self.disable()
+        self.stop()
 
-        if running:
-            self.restart()
-        else:
-            self.stop()
-
-        self.named_regular.unmask()
-        if named_regular_enabled:
-            self.named_regular.enable()
-
-        if named_regular_running:
-            self.named_regular.start()
+        self.named_conflict.unmask()
 
         ipautil.remove_file(paths.NAMED_CONF_BAK)
         ipautil.remove_file(paths.NAMED_CUSTOM_CONF)

@@ -660,6 +660,7 @@ class Service:
         ]
         extra_config_opts.extend(config)
 
+        self.unmask()
         self.disable()
 
         set_service_entry_config(

@@ -185,6 +185,7 @@ class Backup(admintool.AdminTool):
         paths.OPENDNSSEC_KASP_FILE,
         paths.OPENDNSSEC_ZONELIST_FILE,
         paths.OPENDNSSEC_KASP_DB,
+        paths.DNSSEC_OPENSSL_CONF,
         paths.DNSSEC_SOFTHSM2_CONF,
         paths.DNSSEC_SOFTHSM_PIN_SO,
         paths.IPA_ODS_EXPORTER_KEYTAB,
