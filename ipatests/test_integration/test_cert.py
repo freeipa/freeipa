@@ -6,6 +6,8 @@
 Module provides tests which testing ability of various certificate
 related scenarios.
 """
+import os
+
 import ipaddress
 import pytest
 import random
@@ -78,11 +80,13 @@ class TestInstallMasterClient(IntegrationTest):
 
         related: https://pagure.io/freeipa/issue/8105
         """
-        cmd_arg = ['ipa-getcert', 'request',
-                   '-f', '/etc/pki/tls/certs/test.pem',
-                   '-k', '/etc/pki/tls/private/test.key',
-                   '-K', 'test/%s' % self.clients[0].hostname,
-                   '-F', '/etc/pki/tls/test.CA']
+        cmd_arg = [
+            "ipa-getcert", "request",
+            "-f", os.path.join(paths.OPENSSL_CERTS_DIR, "test.pem"),
+            "-k", os.path.join(paths.OPENSSL_PRIVATE_DIR, "test.key"),
+            "-K", "test/%s" % self.clients[0].hostname,
+            "-F", os.path.join(paths.OPENSSL_DIR, "test.CA"),
+        ]
         result = self.clients[0].run_command(cmd_arg)
         request_id = re.findall(r'\d+', result.stdout_text)
 
@@ -90,13 +94,15 @@ class TestInstallMasterClient(IntegrationTest):
         status = tasks.wait_for_request(self.clients[0], request_id[0], 50)
         assert status == "MONITORING"
 
-        self.clients[0].run_command(['ls', '-l', '/etc/pki/tls/test.CA'])
+        self.clients[0].run_command(
+            ["ls", "-l", os.path.join(paths.OPENSSL_DIR, "test.CA")]
+        )
 
     def test_ipa_getcert_san_aci(self):
         """Test for DNS and IP SAN extensions + ACIs
         """
         hostname = self.clients[0].hostname
-        certfile = '/etc/pki/tls/certs/test2.pem'
+        certfile = os.path.join(paths.OPENSSL_CERTS_DIR, "test2.pem")
 
         tasks.kinit_admin(self.master)
 
@@ -117,7 +123,7 @@ class TestInstallMasterClient(IntegrationTest):
         cmd_arg = [
             'ipa-getcert', 'request', '-v', '-w',
             '-f', certfile,
-            '-k', '/etc/pki/tls/private/test2.key',
+            '-k', os.path.join(paths.OPENSSL_PRIVATE_DIR, "test2.key"),
             '-K', f'test/{hostname}',
             '-D', hostname,
             '-A', self.clients[0].ip,
@@ -182,9 +188,11 @@ class TestInstallMasterClient(IntegrationTest):
         self.master.run_command(["ipa", "ca-disable", "mysubca"])
         self.master.run_command(["ipa", "ca-del", "mysubca"])
         self.master.run_command(
-            ["rm", "-fv", "/etc/pki/tls/private/test.key"]
+            ["rm", "-fv", os.path.join(paths.OPENSSL_PRIVATE_DIR, "test.key")]
         )
-        self.master.run_command(["rm", "-fv", "/etc/pki/tls/certs/test.pem"])
+        self.master.run_command(
+            ["rm", "-fv", os.path.join(paths.OPENSSL_CERTS_DIR, "test.pem")]
+        )
 
     def test_getcert_list_profile_using_subca(self, test_subca_certs):
         """
@@ -199,10 +207,8 @@ class TestInstallMasterClient(IntegrationTest):
             "ipa",
             "-I",
             "test-request",
-            "-k",
-            "/etc/pki/tls/private/test.key",
-            "-f",
-            "/etc/pki/tls/certs/test.pem",
+            "-k", os.path.join(paths.OPENSSL_PRIVATE_DIR, "test.key"),
+            "-f", os.path.join(paths.OPENSSL_CERTS_DIR, "test.pem"),
             "-D",
             self.master.hostname,
             "-K",
@@ -245,12 +251,21 @@ class TestCertmongerRekey(IntegrationTest):
                 string.ascii_lowercase
             ) for i in range(10)
         )
-        self.master.run_command([
-            'ipa-getcert', 'request',
-            '-f', '/etc/pki/tls/certs/{}.pem'.format(self.request_id),
-            '-k', '/etc/pki/tls/private/{}.key'.format(self.request_id),
-            '-I', self.request_id,
-            '-K', 'test/{}'.format(self.master.hostname)])
+        self.master.run_command(
+            [
+                'ipa-getcert', 'request',
+                '-f',
+                os.path.join(
+                    paths.OPENSSL_CERTS_DIR, f"{self.request_id}.pem",
+                ),
+                '-k',
+                os.path.join(
+                    paths.OPENSSL_PRIVATE_DIR, f"{self.request_id}.key"
+                ),
+                '-I', self.request_id,
+                '-K', 'test/{}'.format(self.master.hostname)
+            ]
+        )
         status = tasks.wait_for_request(self.master, self.request_id, 100)
         assert status == "MONITORING"
 
@@ -260,16 +275,20 @@ class TestCertmongerRekey(IntegrationTest):
                                  '-i', self.request_id])
         self.master.run_command(
             [
-                'rm',
-                '-rf',
-                '/etc/pki/tls/certs/{}.pem'.format(self.request_id)
+                "rm",
+                "-rf",
+                os.path.join(
+                    paths.OPENSSL_CERTS_DIR, f"{self.request_id}.pem"
+                ),
             ]
         )
         self.master.run_command(
             [
-                'rm',
-                '-rf',
-                '/etc/pki/tls/private/{}.key'.format(self.request_id)
+                "rm",
+                "-rf",
+                os.path.join(
+                    paths.OPENSSL_PRIVATE_DIR, f"{self.request_id}.key"
+                ),
             ]
         )
 
@@ -283,7 +302,7 @@ class TestCertmongerRekey(IntegrationTest):
         related: https://bugzilla.redhat.com/show_bug.cgi?id=1249165
         """
         certdata = self.master.get_file_contents(
-            '/etc/pki/tls/certs/{}.pem'.format(self.request_id)
+            os.path.join(paths.OPENSSL_CERTS_DIR, f"{self.request_id}.pem")
         )
         cert = x509.load_pem_x509_certificate(
             certdata, default_backend()
@@ -299,7 +318,7 @@ class TestCertmongerRekey(IntegrationTest):
         assert status == "MONITORING"
 
         certdata = self.master.get_file_contents(
-            '/etc/pki/tls/certs/{}.pem'.format(self.request_id)
+            os.path.join(paths.OPENSSL_CERTS_DIR, f"{self.request_id}.pem")
         )
         cert = x509.load_pem_x509_certificate(
             certdata, default_backend()
@@ -352,11 +371,14 @@ class TestCertmongerRekey(IntegrationTest):
 
         related: https://bugzilla.redhat.com/show_bug.cgi?id=1249165
         """
-        result = self.master.run_command([
-            'ipa-getcert', 'request',
-            '-f', '/etc/pki/tls/certs/test_dsa.pem',
-            '-k', '/etc/pki/tls/private/test_dsa.key',
-            '-K', 'test/{}'.format(self.master.hostname)])
+        result = self.master.run_command(
+            [
+                'ipa-getcert', 'request',
+                '-f', os.path.join(paths.OPENSSL_CERTS_DIR, "test_dsa.pem"),
+                '-k', os.path.join(paths.OPENSSL_PRIVATE_DIR, "test_dsa.key"),
+                '-K', 'test/{}'.format(self.master.hostname),
+            ]
+        )
         req_id = re.findall(r'\d+', result.stdout_text)
         status = tasks.wait_for_request(self.master, req_id[0], 100)
         assert status == "MONITORING"
@@ -369,7 +391,9 @@ class TestCertmongerRekey(IntegrationTest):
         time.sleep(100)
         # look for keytpe as DSA in request file
         self.master.run_command([
-            'grep', 'DSA', '/var/lib/certmonger/requests/{}'.format(req_id[0])
+            'grep',
+            'DSA',
+            os.path.join(paths.CERTMONGER_REQUESTS_DIR, req_id[0]),
         ])
 
         err_msg = 'Unable to create enrollment request: Invalid Request'
