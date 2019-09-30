@@ -498,9 +498,24 @@ done:
 	return unix_dn;
 }
 
+/* Samba removed unixid_* helpers in c906153cc7af21abe508ddd30c447642327d6a5d */
+static void ipasam_unixid_from_uid(struct unixid *id, uint32_t some_uid)
+{
+       if (id) {
+               id->id = some_uid;
+               id->type = ID_TYPE_UID;
+       }
+}
 
 
 
+static void ipasam_unixid_from_gid(struct unixid *id, uint32_t some_gid)
+{
+       if (id) {
+               id->id = some_gid;
+               id->type = ID_TYPE_GID;
+       }
+}
 
 static bool ldapsam_extract_rid_from_entry(LDAP *ldap_struct,
 					   LDAPMessage *entry,
@@ -858,7 +873,7 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 			goto done;
 		}
 
-		unixid_from_gid(id, strtoul(gid_str, NULL, 10));
+		ipasam_unixid_from_gid(id, strtoul(gid_str, NULL, 10));
 
 		idmap_cache_set_sid2unixid(sid, id);
 
@@ -876,7 +891,7 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 		goto done;
 	}
 
-	unixid_from_uid(id, strtoul(value, NULL, 10));
+	ipasam_unixid_from_uid(id, strtoul(value, NULL, 10));
 
 	idmap_cache_set_sid2unixid(sid, id);
 
@@ -964,7 +979,7 @@ static bool ipasam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
 
 	sid_copy(sid, user_sid);
 
-	unixid_from_uid(&id, uid);
+	ipasam_unixid_from_uid(&id, uid);
 
 	idmap_cache_set_sid2unixid(sid, &id);
 
@@ -1080,7 +1095,7 @@ found:
 
 	sid_copy(sid, group_sid);
 
-	unixid_from_gid(&id, gid);
+	ipasam_unixid_from_gid(&id, gid);
 
 	idmap_cache_set_sid2unixid(sid, &id);
 
@@ -3260,7 +3275,7 @@ static int ipasam_get_sid_by_gid(struct ipasam_private *ipasam_state,
 	}
 	sid_copy(_sid, sid);
 
-	unixid_from_gid(&id, gid);
+	ipasam_unixid_from_gid(&id, gid);
 
 	idmap_cache_set_sid2unixid(sid, &id);
 
@@ -3322,7 +3337,7 @@ static int ipasam_get_primary_group_sid(TALLOC_CTX *mem_ctx,
 		}
 	}
 
-	unixid_from_gid(&id, gid);
+	ipasam_unixid_from_gid(&id, gid);
 
 	idmap_cache_set_sid2unixid(group_sid, &id);
 
