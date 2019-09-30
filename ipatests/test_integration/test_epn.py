@@ -35,6 +35,7 @@ import textwrap
 
 from subprocess import CalledProcessError
 
+from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -108,11 +109,17 @@ def configure_starttls(host):
        Depends on configure_postfix() being executed first.
     """
 
-    host.run_command(r'rm -f /etc/pki/tls/private/postfix.key')
-    host.run_command(r'rm -f /etc/pki/tls/certs/postfix.pem')
+    host.run_command(
+        ["rm", "-f", os.path.join(paths.OPENSSL_PRIVATE_DIR, "postfix.key")]
+    )
+    host.run_command(
+        ["rm", "-f", os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem")]
+    )
     host.run_command(["ipa-getcert", "request",
-                      "-f", "/etc/pki/tls/certs/postfix.pem",
-                      "-k", "/etc/pki/tls/private/postfix.key",
+                      "-f",
+                      os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem"),
+                      "-k",
+                      os.path.join(paths.OPENSSL_PRIVATE_DIR, "postfix.key"),
                       "-K", "smtp/%s" % host.hostname,
                       "-D", host.hostname,
                       "-O", "postfix",
@@ -123,8 +130,18 @@ def configure_starttls(host):
                       ])
     postconf(host, 'smtpd_tls_loglevel = 1')
     postconf(host, 'smtpd_tls_auth_only = yes')
-    postconf(host, 'smtpd_tls_key_file = /etc/pki/tls/private/postfix.key')
-    postconf(host, 'smtpd_tls_cert_file = /etc/pki/tls/certs/postfix.pem')
+    postconf(
+        host,
+        "smtpd_tls_key_file = {}".format(
+            os.path.join(paths.OPENSSL_PRIVATE_DIR, "postfix.key")
+        )
+    )
+    postconf(
+        host,
+        "smtpd_tls_cert_file = {}".format(
+            os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem")
+        )
+    )
     postconf(host, 'smtpd_tls_received_header = yes')
     postconf(host, 'smtpd_tls_session_cache_timeout = 3600s')
 
@@ -246,10 +263,28 @@ class TestEPN(IntegrationTest):
         tasks.uninstall_packages(cls.clients[0], EPN_PKG)
         tasks.uninstall_packages(cls.clients[0], ["postfix"])
         cls.master.run_command(r'rm -f /etc/postfix/smtp.keytab')
-        cls.master.run_command(r'getcert stop-tracking -f '
-                               '/etc/pki/tls/certs/postfix.pem')
-        cls.master.run_command(r'rm -f /etc/pki/tls/private/postfix.key')
-        cls.master.run_command(r'rm -f /etc/pki/tls/certs/postfix.pem')
+        cls.master.run_command(
+            [
+                "getcert",
+                "stop-tracking",
+                "-f",
+                os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem"),
+            ]
+        )
+        cls.master.run_command(
+            [
+                "rm",
+                "-f",
+                os.path.join(paths.OPENSSL_PRIVATE_DIR, "postfix.key"),
+            ]
+        )
+        cls.master.run_command(
+            [
+                "rm",
+                "-f",
+                os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem"),
+            ]
+        )
 
     @pytest.mark.skip_if_platform(
         "debian", reason="Cannot check installed packages using RPM"
