@@ -252,7 +252,7 @@ jobs:
         build_url: '{fedora-rawhide/build_url}'
         test_suite: test_integration/test_smb.py
         template: *ci-master-frawhide
-        timeout: 4800
+        timeout: 7200
         topology: *ad_master_2client
 
   fedora-rawhide/test_server_del:

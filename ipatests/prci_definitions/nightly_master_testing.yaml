@@ -269,7 +269,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_smb.py
         template: *testing-master-f30
-        timeout: 4800
+        timeout: 7200
         topology: *ad_master_2client
 
   fedora-30/test_server_del:
