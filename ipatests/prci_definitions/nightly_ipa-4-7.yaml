@@ -1258,5 +1258,5 @@ jobs:
         build_url: '{fedora-29/build_url}'
         test_suite: test_integration/test_sssd.py
         template: *ci-master-f29
-        timeout: 3600
+        timeout: 7200
         topology: *ad_master
