@@ -252,7 +252,7 @@ jobs:
         build_url: '{fedora-30/build_url}'
         test_suite: test_integration/test_smb.py
         template: *ci-master-f30
-        timeout: 4800
+        timeout: 7200
         topology: *ad_master_2client
 
   fedora-30/test_server_del:
