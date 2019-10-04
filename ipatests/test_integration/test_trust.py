@@ -37,6 +37,7 @@ class BaseTestTrust(IntegrationTest):
         cls.ad_domain = cls.ad.domain.name
         tasks.install_adtrust(cls.master)
         cls.check_sid_generation()
+        tasks.sync_time(cls.master, cls.ad)
 
         cls.child_ad = cls.ad_subdomains[0]  # pylint: disable=no-member
         cls.ad_subdomain = cls.child_ad.domain.name
@@ -62,10 +63,6 @@ class BaseTestTrust(IntegrationTest):
         tasks.run_repeatedly(cls.master, command,
                              test=lambda x: re.search(stdout_re, x))
 
-    def configure_dns_and_time(self, ad_host):
-        tasks.configure_dns_for_trust(self.master, ad_host)
-        tasks.sync_time(self.master, ad_host)
-
     def check_trustdomains(self, realm, expected_ad_domains):
         """Check that ipa trustdomain-find lists all expected domains"""
         result = self.master.run_command(['ipa', 'trustdomain-find', realm])
@@ -88,13 +85,12 @@ class BaseTestTrust(IntegrationTest):
 
     def remove_trust(self, ad):
         tasks.remove_trust_with_ad(self.master, ad.domain.name)
-        tasks.unconfigure_dns_for_trust(self.master, ad)
         tasks.clear_sssd_cache(self.master)
 
     # Tests for non-posix AD trust
 
     def test_establish_nonposix_trust(self):
-        self.configure_dns_and_time(self.ad)
+        tasks.configure_dns_for_trust(self.master, self.ad)
         tasks.establish_trust_with_ad(
             self.master, self.ad_domain,
             extra_args=['--range-type', 'ipa-ad-trust'])
@@ -171,11 +167,12 @@ class BaseTestTrust(IntegrationTest):
 
     def test_remove_nonposix_trust(self):
         self.remove_trust(self.ad)
+        tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
     # Tests for posix AD trust
 
     def test_establish_posix_trust(self):
-        self.configure_dns_and_time(self.ad)
+        tasks.configure_dns_for_trust(self.master, self.ad)
         tasks.establish_trust_with_ad(
             self.master, self.ad_domain,
             extra_args=['--range-type', 'ipa-ad-trust-posix'])
@@ -323,6 +320,7 @@ class BaseTestTrust(IntegrationTest):
 
     def test_remove_posix_trust(self):
         self.remove_trust(self.ad)
+        tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
     # Tests for handling invalid trust types
 
@@ -334,7 +332,7 @@ class BaseTestTrust(IntegrationTest):
                                'random-invalid',
                                're@ll%ybad12!']
 
-        self.configure_dns_and_time(self.ad)
+        tasks.configure_dns_for_trust(self.master, self.ad)
         try:
             for range_type in invalid_range_types:
                 tasks.kinit_admin(self.master)
@@ -355,7 +353,7 @@ class BaseTestTrust(IntegrationTest):
     # Tests for external trust with AD subdomain
 
     def test_establish_external_subdomain_trust(self):
-        self.configure_dns_and_time(self.child_ad)
+        tasks.configure_dns_for_trust(self.master, self.ad)
         tasks.establish_trust_with_ad(
             self.master, self.ad_subdomain,
             extra_args=['--range-type', 'ipa-ad-trust', '--external=True'])
@@ -379,11 +377,12 @@ class BaseTestTrust(IntegrationTest):
 
     def test_remove_external_subdomain_trust(self):
         self.remove_trust(self.child_ad)
+        tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
     # Tests for non-external trust with AD subdomain
 
     def test_establish_nonexternal_subdomain_trust(self):
-        self.configure_dns_and_time(self.child_ad)
+        tasks.configure_dns_for_trust(self.master, self.ad)
         try:
             tasks.kinit_admin(self.master)
 
@@ -398,12 +397,12 @@ class BaseTestTrust(IntegrationTest):
             assert ("Domain '{0}' is not a root domain".format(
                 self.ad_subdomain) in result.stderr_text)
         finally:
-            tasks.unconfigure_dns_for_trust(self.master, self.child_ad)
+            tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
     # Tests for external trust with tree domain
 
     def test_establish_external_treedomain_trust(self):
-        self.configure_dns_and_time(self.tree_ad)
+        tasks.configure_dns_for_trust(self.master, self.ad, self.tree_ad)
         tasks.establish_trust_with_ad(
             self.master, self.ad_treedomain,
             extra_args=['--range-type', 'ipa-ad-trust', '--external=True'])
@@ -428,11 +427,12 @@ class BaseTestTrust(IntegrationTest):
 
     def test_remove_external_treedomain_trust(self):
         self.remove_trust(self.tree_ad)
+        tasks.unconfigure_dns_for_trust(self.master, self.ad, self.tree_ad)
 
     # Test for non-external trust with tree domain
 
     def test_establish_nonexternal_treedomain_trust(self):
-        self.configure_dns_and_time(self.tree_ad)
+        tasks.configure_dns_for_trust(self.master, self.ad, self.tree_ad)
         try:
             tasks.kinit_admin(self.master)
 
@@ -447,12 +447,12 @@ class BaseTestTrust(IntegrationTest):
             assert ("Domain '{0}' is not a root domain".format(
                 self.ad_treedomain) in result.stderr_text)
         finally:
-            tasks.unconfigure_dns_for_trust(self.master, self.tree_ad)
+            tasks.unconfigure_dns_for_trust(self.master, self.ad, self.tree_ad)
 
     # Tests for external trust with root domain
 
     def test_establish_external_rootdomain_trust(self):
-        self.configure_dns_and_time(self.ad)
+        tasks.configure_dns_for_trust(self.master, self.ad)
         tasks.establish_trust_with_ad(
             self.master, self.ad_domain,
             extra_args=['--range-type', 'ipa-ad-trust', '--external=True'])
@@ -462,11 +462,12 @@ class BaseTestTrust(IntegrationTest):
 
     def test_remove_external_rootdomain_trust(self):
         self.remove_trust(self.ad)
+        tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
     # Test for one-way forest trust with shared secret
 
     def test_establish_forest_trust_with_shared_secret(self):
-        self.configure_dns_and_time(self.ad)
+        tasks.configure_dns_for_trust(self.master, self.ad)
         tasks.configure_windows_dns_for_trust(self.ad, self.master)
 
         # this is a workaround for
@@ -531,11 +532,12 @@ class BaseTestTrust(IntegrationTest):
              self.srv_gc_record_value])
 
         tasks.unconfigure_windows_dns_for_trust(self.ad, self.master)
+        tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
     # Test for one-way external trust with shared secret
 
     def test_establish_external_trust_with_shared_secret(self):
-        self.configure_dns_and_time(self.ad)
+        tasks.configure_dns_for_trust(self.master, self.ad)
         tasks.configure_windows_dns_for_trust(self.ad, self.master)
 
         # create windows side of trust using netdom.exe utility
@@ -580,6 +582,7 @@ class BaseTestTrust(IntegrationTest):
         )
         self.remove_trust(self.ad)
         tasks.unconfigure_windows_dns_for_trust(self.ad, self.master)
+        tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
     def test_server_option_with_unreachable_ad(self):
         """
@@ -669,7 +672,7 @@ class BaseTestTrust(IntegrationTest):
             assert ('List of trust domains successfully refreshed'
                     in result.stdout_text)
         finally:
+            self.remove_trust(self.ad)
             tasks.restore_files(self.master)
             self.master.run_command(['rm', '-f', ad_zone_file])
             tasks.restart_named(self.master)
-            tasks.remove_trust_with_ad(self.master, self.ad_domain)
