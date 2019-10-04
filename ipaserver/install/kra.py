@@ -16,7 +16,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.install.core import group
-from ipaserver.install import cainstance
+from ipaserver.install import ca, cainstance
 from ipaserver.install import krainstance
 from ipaserver.install import dsinstance
 from ipaserver.install import service as _service
@@ -86,10 +86,13 @@ def install(api, replica_config, options, custodia):
         master_host = replica_config.kra_host_name
         promote = True
 
+    ca_subject = ca.lookup_ca_subject(api, subject_base)
+
     kra = krainstance.KRAInstance(realm_name)
     kra.configure_instance(
         realm_name, host_name, dm_password, dm_password,
         subject_base=subject_base,
+        ca_subject=ca_subject,
         pkcs12_info=pkcs12_info,
         master_host=master_host,
         promote=promote,
