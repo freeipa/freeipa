@@ -626,48 +626,57 @@ def is_subdomain(subdomain, domain):
 
     return subdomain
 
-def configure_dns_for_trust(master, ad):
+
+def configure_dns_for_trust(master, *ad_hosts):
     """
     This configures DNS on IPA master according to the relationship of the
     IPA's and AD's domains.
     """
 
     kinit_admin(master)
+    dnssec_disabled = False
+    for ad in ad_hosts:
+        if is_subdomain(ad.domain.name, master.domain.name):
+            master.run_command(['ipa', 'dnsrecord-add', master.domain.name,
+                                '%s.%s' % (ad.shortname, ad.netbios),
+                                '--a-ip-address', ad.ip])
 
-    if is_subdomain(ad.domain.name, master.domain.name):
-        master.run_command(['ipa', 'dnsrecord-add', master.domain.name,
-                            '%s.%s' % (ad.shortname, ad.netbios),
-                            '--a-ip-address', ad.ip])
+            master.run_command(['ipa', 'dnsrecord-add', master.domain.name,
+                                ad.netbios,
+                                '--ns-hostname',
+                                '%s.%s' % (ad.shortname, ad.netbios)])
 
-        master.run_command(['ipa', 'dnsrecord-add', master.domain.name,
-                            ad.netbios,
-                            '--ns-hostname',
-                            '%s.%s' % (ad.shortname, ad.netbios)])
-
-        master.run_command(['ipa', 'dnszone-mod', master.domain.name,
-                            '--allow-transfer', ad.ip])
-    else:
-        disable_dnssec_validation(master)
-        master.run_command(['ipa', 'dnsforwardzone-add', ad.domain.name,
-                            '--forwarder', ad.ip,
-                            '--forward-policy', 'only',
-                            ])
+            master.run_command(['ipa', 'dnszone-mod', master.domain.name,
+                                '--allow-transfer', ad.ip])
+        else:
+            if not dnssec_disabled:
+                disable_dnssec_validation(master)
+                dnssec_disabled = True
+            master.run_command(['ipa', 'dnsforwardzone-add', ad.domain.name,
+                                '--forwarder', ad.ip,
+                                '--forward-policy', 'only',
+                                ])
 
 
-def unconfigure_dns_for_trust(master, ad):
+def unconfigure_dns_for_trust(master, *ad_hosts):
     """
     This undoes changes made by configure_dns_for_trust
     """
     kinit_admin(master)
-    if is_subdomain(ad.domain.name, master.domain.name):
-        master.run_command(['ipa', 'dnsrecord-del', master.domain.name,
-                            '%s.%s' % (ad.shortname, ad.netbios),
-                            '--a-rec', ad.ip])
-        master.run_command(['ipa', 'dnsrecord-del', master.domain.name,
-                            ad.netbios,
-                            '--ns-rec', '%s.%s' % (ad.shortname, ad.netbios)])
-    else:
-        master.run_command(['ipa', 'dnsforwardzone-del', ad.domain.name])
+    dnssec_needs_restore = False
+    for ad in ad_hosts:
+        if is_subdomain(ad.domain.name, master.domain.name):
+            master.run_command(['ipa', 'dnsrecord-del', master.domain.name,
+                                '%s.%s' % (ad.shortname, ad.netbios),
+                                '--a-rec', ad.ip])
+            master.run_command(['ipa', 'dnsrecord-del', master.domain.name,
+                                ad.netbios,
+                                '--ns-rec',
+                                '%s.%s' % (ad.shortname, ad.netbios)])
+        else:
+            master.run_command(['ipa', 'dnsforwardzone-del', ad.domain.name])
+            dnssec_needs_restore = True
+    if dnssec_needs_restore:
         restore_dnssec_validation(master)
 
 
