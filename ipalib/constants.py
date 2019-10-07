@@ -340,3 +340,15 @@ SOFTHSM_DNSSEC_TOKEN_LABEL = u'ipaDNSSEC'
 # Apache's mod_ssl SSLVerifyDepth value (Maximum depth of CA
 # Certificates in Client Certificate verification)
 MOD_SSL_VERIFY_DEPTH = '5'
+
+# vault data wrapping algorithms
+VAULT_WRAPPING_3DES = 'des-ede3-cbc'
+VAULT_WRAPPING_AES128_CBC = 'aes-128-cbc'
+VAULT_WRAPPING_SUPPORTED_ALGOS = (
+    # old default was 3DES
+    VAULT_WRAPPING_3DES,
+    # supported since pki-kra >= 10.4
+    VAULT_WRAPPING_AES128_CBC,
+)
+# 3DES for backwards compatibility
+VAULT_WRAPPING_DEFAULT_ALGO = VAULT_WRAPPING_3DES

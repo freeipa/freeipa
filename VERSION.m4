@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 235)
-# Last change: Add memberManager to groups.
+define(IPA_API_VERSION_MINOR, 236)
+# Last change: Add wrapping algorithm to vault archive/retrieve
 
 ########################################################
 # Following values are auto-generated from values above

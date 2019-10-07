@@ -6403,7 +6403,7 @@ output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
 command: vault_archive_internal/1
-args: 1,9,3
+args: 1,10,3
 arg: Str('cn', cli_name='name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Bytes('nonce')
@@ -6414,6 +6414,7 @@ option: Flag('shared?', autofill=True, default=False)
 option: Str('username?', cli_name='user')
 option: Bytes('vault_data')
 option: Str('version?')
+option: StrEnum('wrapping_algo?', autofill=True, default=u'des-ede3-cbc', values=[u'des-ede3-cbc', u'aes-128-cbc'])
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
@@ -6504,7 +6505,7 @@ output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
 command: vault_retrieve_internal/1
-args: 1,7,3
+args: 1,8,3
 arg: Str('cn', cli_name='name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -6513,6 +6514,7 @@ option: Bytes('session_key')
 option: Flag('shared?', autofill=True, default=False)
 option: Str('username?', cli_name='user')
 option: Str('version?')
+option: StrEnum('wrapping_algo?', autofill=True, default=u'des-ede3-cbc', values=[u'des-ede3-cbc', u'aes-128-cbc'])
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
@@ -7172,6 +7174,7 @@ default: vaultcontainer_del/1
 default: vaultcontainer_remove_owner/1
 default: vaultcontainer_show/1
 default: whoami/1
+capability: vault_aes_keywrap 2.236
 capability: messages 2.52
 capability: optional_uid_params 2.54
 capability: permissions2 2.69

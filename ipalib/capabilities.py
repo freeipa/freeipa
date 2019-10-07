@@ -54,6 +54,10 @@ capabilities = dict(
 
     # dns_name_values: dnsnames as objects
     dns_name_values=u'2.88',
+
+    # vault supports aes key wrapping
+    vault_aes_keywrap='2.236'
+
 )
 
 
