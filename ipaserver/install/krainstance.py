@@ -50,6 +50,9 @@ ADMIN_GROUPS = [
     'Security Domain Administrators'
 ]
 
+KRA_BASEDN = DN(('o', 'kra'), ('o', 'ipaca'))
+KRA_AGENT_DN = DN(('uid', 'ipakra'), ('ou', 'people'), KRA_BASEDN)
+
 
 class KRAInstance(DogtagInstance):
     """
@@ -76,8 +79,6 @@ class KRAInstance(DogtagInstance):
             service_desc="KRA server",
             config=paths.KRA_CS_CFG_PATH,
         )
-
-        self.basedn = DN(('o', 'kra'), ('o', 'ipaca'))
 
     def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, pkcs12_info=None, master_host=None,
@@ -247,9 +248,8 @@ class KRAInstance(DogtagInstance):
         conn.connect(autobind=True)
 
         # create ipakra user with RA agent certificate
-        user_dn = DN(('uid', "ipakra"), ('ou', 'people'), self.basedn)
         entry = conn.make_entry(
-            user_dn,
+            KRA_AGENT_DN,
             objectClass=['top', 'person', 'organizationalPerson',
                          'inetOrgPerson', 'cmsuser'],
             uid=["ipakra"],
@@ -264,9 +264,10 @@ class KRAInstance(DogtagInstance):
         conn.add_entry(entry)
 
         # add ipakra user to Data Recovery Manager Agents group
-        group_dn = DN(('cn', 'Data Recovery Manager Agents'), ('ou', 'groups'),
-                self.basedn)
-        conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
+        group_dn = DN(
+            ('cn', 'Data Recovery Manager Agents'), ('ou', 'groups'),
+            KRA_BASEDN)
+        conn.add_entry_to_group(KRA_AGENT_DN, group_dn, 'uniqueMember')
 
         conn.disconnect()
 
