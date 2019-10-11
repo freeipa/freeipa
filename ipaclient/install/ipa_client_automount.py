@@ -87,7 +87,7 @@ def parse_options():
         "--idmap-domain",
         dest="idmapdomain",
         default=None,
-        help="nfs domain for idmap.conf",
+        help="nfs domain for idmapd.conf",
     )
     parser.add_option(
         "--debug",
