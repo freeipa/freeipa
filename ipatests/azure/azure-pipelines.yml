@@ -137,6 +137,7 @@ jobs:
     - test_ipalib
     - test_ipaplatform
     - test_ipapython
+    - test_ipaserver
     - test_ipatests_plugins
     - test_xmlrpc
     testsToIgnore:
