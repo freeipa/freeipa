@@ -50,6 +50,16 @@ protocol exchanges.
   protocol to allow mapping the identity of the updater to an LDAP object that
   has write privileges
 
+### Minimal Viable Product
+
+* Provide a tool to configure GC instance, `ipa-gc-install`
+* Provide a synchronization daemon to sync data from IPA LDAP to GC instance
+* Support IPA user and group objects in the synchronization daemon
+* Allow Windows machines to resolve users and groups from IPA in Security tab
+  when assigning permissions to resources on Windows machines
+* Allow IPA users to log into Windows machines enrolled into a trusted Active
+  Directory forest over bi-directional trust to AD
+
 ### Integration with primary FreeIPA data store
 
 Global Catalog instance is a separate 389-ds LDAP instance that has no direct
