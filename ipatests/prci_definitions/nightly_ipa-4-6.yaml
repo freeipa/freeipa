@@ -1038,3 +1038,15 @@ jobs:
         template: *ci-master-f27
         timeout: 3600
         topology: *ipaserver
+
+  fedora-27/test_ca_custom_sdn:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_ca_custom_sdn.py
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
