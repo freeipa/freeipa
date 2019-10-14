@@ -782,3 +782,16 @@ jobs:
         template: *pki-master-f30
         timeout: 3600
         topology: *master_1repl
+
+  fedora-30/test_ca_custom_sdn:
+    requires: [fedora-30/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-30/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_ca_custom_sdn.py
+        template: *pki-master-f30
+        timeout: 7200
+        topology: *master_1repl
