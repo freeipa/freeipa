@@ -4,8 +4,10 @@ from __future__ import print_function
 import ipaserver.install.adtrust as adtr
 from ipaserver.install.adtrust import set_and_check_netbios_name
 from collections import namedtuple
-from unittest import TestCase, mock
+from unittest import mock
 from io import StringIO
+
+import pytest
 
 
 class ApiMockup:
@@ -14,9 +16,12 @@ class ApiMockup:
     env = namedtuple('Environment', 'domain')
 
 
-class TestNetbiosName(TestCase):
-    @classmethod
-    def setUpClass(cls):
+class TestNetbiosName:
+    api = None
+
+    @pytest.fixture(autouse=True, scope="class")
+    def netbiosname_setup(self, request):
+        cls = request.cls
         api = ApiMockup()
         ldap2 = namedtuple('LDAP', 'isconnected')
         ldap2.isconnected = mock.MagicMock(return_value=True)
@@ -25,9 +30,9 @@ class TestNetbiosName(TestCase):
         adtr.retrieve_netbios_name = mock.MagicMock(return_value=None)
         cls.api = api
 
-    @classmethod
-    def tearDownClass(cls):
-        adtr.retrieve_netbios_name = cls.api.Calls.retrieve_netbios_name
+        def fin():
+            adtr.retrieve_netbios_name = cls.api.Calls.retrieve_netbios_name
+        request.addfinalizer(fin)
 
     def test_NetbiosName(self):
         """

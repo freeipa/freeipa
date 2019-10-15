@@ -24,7 +24,6 @@ Test the `ipaserver/plugins/permission.py` module.
 from __future__ import print_function
 
 import os
-import unittest
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
@@ -3445,7 +3444,7 @@ class test_managed_permissions(Declarative):
     @pytest.fixture(autouse=True, scope="class")
     def managed_perm_setup(self, declarative_setup):
         if not have_ldap2:
-            raise unittest.SkipTest('server plugin not available')
+            pytest.skip('server plugin not available')
 
     def add_managed_permission(self):
         """Add a managed permission and the corresponding ACI"""

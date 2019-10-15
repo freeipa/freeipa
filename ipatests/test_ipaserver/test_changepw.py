@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import unittest
-
 import pytest
 
 from ipatests.test_ipaserver.httptest import Unauthorized_HTTP_test
@@ -43,7 +41,7 @@ class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
             api.Command['user_add'](uid=testuser, givenname=u'Test', sn=u'User')
             api.Command['passwd'](testuser, password=u'old_password')
         except errors.ExecutionError as e:
-            raise unittest.SkipTest(
+            pytest.skip(
                 'Cannot set up test user: %s' % e
             )
 

@@ -9,7 +9,6 @@ Test the `ipaserver/plugins/stageuser.py` module.
 import pytest
 
 import six
-import unittest
 
 from collections import OrderedDict
 from ipalib import api, errors
@@ -327,7 +326,7 @@ class TestStagedUser(XMLRPC_test):
         # Directly create the user using ldapmod
         # without the posixaccount objectclass
         if not have_ldap2:
-            raise unittest.SkipTest('server plugin not available')
+            pytest.skip('server plugin not available')
         ldap = ldap2(api)
         ldap.connect()
         ldap.create(
