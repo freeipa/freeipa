@@ -1400,7 +1400,7 @@ class test_netgroup(Declarative):
 #            entries = conn.find_entries('cn=%s' % self.ng_cn,
 #                      base_dn='cn=ng,cn=compat,%s' % api.env.basedn)
 #        except errors.NotFound:
-#            raise unittest.SkipTest(
+#            pytest.skip(
 #                'compat and nis are not enabled, skipping test'
 #            )
 #        finally:

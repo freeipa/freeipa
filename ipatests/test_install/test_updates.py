@@ -23,7 +23,6 @@ Test the `ipaserver/install/ldapupdate.py` module.
 from __future__ import absolute_import
 
 import os
-import unittest
 
 import pytest
 
@@ -50,20 +49,20 @@ The DM password needs to be set in ~/.ipa/.dmpw
 
 @pytest.mark.tier0
 @pytest.mark.needs_ipaapi
-class test_update(unittest.TestCase):
+class TestUpdate:
     """
     Test the LDAP updater.
     """
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def update_setup(self, request):
         fqdn = installutils.get_fqdn()
         pwfile = api.env.dot_ipa + os.sep + ".dmpw"
         if os.path.isfile(pwfile):
-            fp = open(pwfile, "r")
-            self.dm_password = fp.read().rstrip()
-            fp.close()
+            with open(pwfile, "r") as fp:
+                self.dm_password = fp.read().rstrip()
         else:
-            raise unittest.SkipTest("No directory manager password")
+            pytest.skip("No directory manager password")
         self.updater = LDAPUpdate(dm_password=self.dm_password, sub_dict={})
         self.ld = ipaldap.LDAPClient.from_hostname_secure(fqdn)
         self.ld.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
@@ -71,14 +70,15 @@ class test_update(unittest.TestCase):
         self.testdir = os.path.abspath(os.path.dirname(__file__))
         if not os.path.isfile(os.path.join(self.testdir,
                                                 "0_reset.update")):
-            raise unittest.SkipTest("Unable to find test update files")
+            pytest.skip("Unable to find test update files")
 
         self.container_dn = DN(self.updater._template_str('cn=test, cn=accounts, $SUFFIX'))
         self.user_dn = DN(self.updater._template_str('uid=tuser, cn=test, cn=accounts, $SUFFIX'))
 
-    def tearDown(self):
-        if self.ld:
-            self.ld.unbind()
+        def fin():
+            if self.ld:
+                self.ld.unbind()
+        request.addfinalizer(fin)
 
     def test_0_reset(self):
         """
@@ -91,13 +91,13 @@ class test_update(unittest.TestCase):
             # Just means the entry doesn't exist yet
             modified = True
 
-        self.assertTrue(modified)
+        assert modified
 
-        with self.assertRaises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             self.ld.get_entries(
                 self.container_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
 
-        with self.assertRaises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             self.ld.get_entries(
                 self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
 
@@ -108,33 +108,33 @@ class test_update(unittest.TestCase):
         modified = self.updater.update([os.path.join(self.testdir,
                                                      "1_add.update")])
 
-        self.assertTrue(modified)
+        assert modified
 
         entries = self.ld.get_entries(
             self.container_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
-        self.assertEqual(len(entries), 1)
+        assert len(entries) == 1
         entry = entries[0]
 
         objectclasses = entry.get('objectclass')
         for item in ('top', 'nsContainer'):
-            self.assertTrue(item in objectclasses)
+            assert item in objectclasses
 
-        self.assertEqual(entry.single_value['cn'], 'test')
+        assert entry.single_value['cn'] == 'test'
 
         entries = self.ld.get_entries(
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
-        self.assertEqual(len(entries), 1)
+        assert len(entries) == 1
         entry = entries[0]
 
         objectclasses = entry.get('objectclass')
         for item in ('top', 'person', 'posixaccount', 'krbprincipalaux', 'inetuser'):
-            self.assertTrue(item in objectclasses)
+            assert item in objectclasses
 
-        self.assertEqual(entry.single_value['loginshell'],
-                         platformconstants.DEFAULT_ADMIN_SHELL)
-        self.assertEqual(entry.single_value['sn'], 'User')
-        self.assertEqual(entry.single_value['uid'], 'tuser')
-        self.assertEqual(entry.single_value['cn'], 'Test User')
+        actual = entry.single_value['loginshell']
+        assert actual == platformconstants.DEFAULT_ADMIN_SHELL
+        assert entry.single_value['sn'] == 'User'
+        assert entry.single_value['uid'] == 'tuser'
+        assert entry.single_value['cn'] == 'Test User'
 
 
     def test_2_update(self):
@@ -143,13 +143,13 @@ class test_update(unittest.TestCase):
         """
         modified = self.updater.update([os.path.join(self.testdir,
                                                      "2_update.update")])
-        self.assertTrue(modified)
+        assert modified
 
         entries = self.ld.get_entries(
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
-        self.assertEqual(len(entries), 1)
+        assert len(entries) == 1
         entry = entries[0]
-        self.assertEqual(entry.single_value['gecos'], 'Test User')
+        assert entry.single_value['gecos'] == 'Test User'
 
     def test_3_update(self):
         """
@@ -157,13 +157,13 @@ class test_update(unittest.TestCase):
         """
         modified = self.updater.update([os.path.join(self.testdir,
                                                      "3_update.update")])
-        self.assertTrue(modified)
+        assert modified
 
         entries = self.ld.get_entries(
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
-        self.assertEqual(len(entries), 1)
+        assert len(entries) == 1
         entry = entries[0]
-        self.assertEqual(entry.single_value['gecos'], 'Test User New')
+        assert entry.single_value['gecos'] == 'Test User New'
 
     def test_4_update(self):
         """
@@ -171,13 +171,13 @@ class test_update(unittest.TestCase):
         """
         modified = self.updater.update([os.path.join(self.testdir,
                                                      "4_update.update")])
-        self.assertTrue(modified)
+        assert modified
 
         entries = self.ld.get_entries(
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
-        self.assertEqual(len(entries), 1)
+        assert len(entries) == 1
         entry = entries[0]
-        self.assertEqual(entry.single_value['gecos'], 'Test User New2')
+        assert entry.single_value['gecos'] == 'Test User New2'
 
     def test_5_update(self):
         """
@@ -185,13 +185,15 @@ class test_update(unittest.TestCase):
         """
         modified = self.updater.update([os.path.join(self.testdir,
                                                      "5_update.update")])
-        self.assertTrue(modified)
+        assert modified
 
         entries = self.ld.get_entries(
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
-        self.assertEqual(len(entries), 1)
+        assert len(entries) == 1
         entry = entries[0]
-        self.assertEqual(sorted(entry.get('cn')), sorted(['Test User', 'Test User New']))
+        actual = sorted(entry.get('cn'))
+        expected = sorted(['Test User', 'Test User New'])
+        assert actual == expected
 
     def test_6_update(self):
         """
@@ -199,13 +201,13 @@ class test_update(unittest.TestCase):
         """
         modified = self.updater.update([os.path.join(self.testdir,
                                                      "6_update.update")])
-        self.assertTrue(modified)
+        assert modified
 
         entries = self.ld.get_entries(
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
-        self.assertEqual(len(entries), 1)
+        assert len(entries) == 1
         entry = entries[0]
-        self.assertEqual(sorted(entry.get('cn')), sorted(['Test User']))
+        assert sorted(entry.get('cn')) == sorted(['Test User'])
 
     def test_6_update_1(self):
         """
@@ -213,13 +215,13 @@ class test_update(unittest.TestCase):
         """
         modified = self.updater.update([os.path.join(self.testdir,
                                                      "6_update.update")])
-        self.assertFalse(modified)
+        assert not modified
 
         entries = self.ld.get_entries(
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
-        self.assertEqual(len(entries), 1)
+        assert len(entries) == 1
         entry = entries[0]
-        self.assertEqual(sorted(entry.get('cn')), sorted(['Test User']))
+        assert sorted(entry.get('cn')) == sorted(['Test User'])
 
     def test_7_cleanup(self):
         """
@@ -232,13 +234,13 @@ class test_update(unittest.TestCase):
             # Just means the entry doesn't exist yet
             modified = True
 
-        self.assertTrue(modified)
+        assert modified
 
-        with self.assertRaises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             self.ld.get_entries(
                 self.container_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
 
-        with self.assertRaises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             self.ld.get_entries(
                 self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
 
@@ -246,7 +248,7 @@ class test_update(unittest.TestCase):
         """
         Test the updater with an unknown keyword (test_8_badsyntax)
         """
-        with self.assertRaises(BadSyntax):
+        with pytest.raises(BadSyntax):
             self.updater.update(
                 [os.path.join(self.testdir, "8_badsyntax.update")])
 
@@ -254,6 +256,6 @@ class test_update(unittest.TestCase):
         """
         Test the updater with an incomplete line (test_9_badsyntax)
         """
-        with self.assertRaises(BadSyntax):
+        with pytest.raises(BadSyntax):
             self.updater.update(
                 [os.path.join(self.testdir, "9_badsyntax.update")])

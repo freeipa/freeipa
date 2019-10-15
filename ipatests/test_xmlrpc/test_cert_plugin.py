@@ -23,7 +23,6 @@ from __future__ import print_function, absolute_import
 
 import base64
 import os
-import unittest
 
 import pytest
 import six
@@ -57,7 +56,7 @@ def is_db_configured():
 
     if (api.env.xmlrpc_uri == u'http://localhost:8888/ipa/xml' and
        not os.path.isfile(aliasdir)):
-        raise unittest.SkipTest('developer CA not configured in %s' % aliasdir)
+        pytest.skip('developer CA not configured in %s' % aliasdir)
 
 # Test setup
 #
@@ -86,9 +85,9 @@ class BaseCert(XMLRPC_test):
     @pytest.fixture(autouse=True, scope="class")
     def basecert_setup(self, request, xmlrpc_setup):
         if 'cert_request' not in api.Command:
-            raise unittest.SkipTest('cert_request not registered')
+            pytest.skip('cert_request not registered')
         if 'cert_show' not in api.Command:
-            raise unittest.SkipTest('cert_show not registered')
+            pytest.skip('cert_show not registered')
 
         is_db_configured()
 
@@ -275,10 +274,10 @@ class test_cert_find(XMLRPC_test):
     @pytest.fixture(autouse=True, scope="class")
     def certfind_setup(self, request, xmlrpc_setup):
         if 'cert_find' not in api.Command:
-            raise unittest.SkipTest('cert_find not registered')
+            pytest.skip('cert_find not registered')
 
         if api.env.ra_plugin != 'dogtag':
-            raise unittest.SkipTest('cert_find for dogtag CA only')
+            pytest.skip('cert_find for dogtag CA only')
 
         is_db_configured()
 

@@ -29,7 +29,6 @@ from __future__ import absolute_import
 
 import os
 import sys
-import unittest
 
 import pytest
 import six
@@ -92,7 +91,7 @@ class test_ldap:
             with open(pwfile, "r") as fp:
                 dm_password = fp.read().rstrip()
         else:
-            raise unittest.SkipTest(
+            pytest.skip(
                 "No directory manager password in %s" % pwfile
             )
         self.conn = ldap2(api)
@@ -118,7 +117,7 @@ class test_ldap:
             with open(pwfile, "r") as fp:
                 dm_password = fp.read().rstrip()
         else:
-            raise unittest.SkipTest(
+            pytest.skip(
                 "No directory manager password in %s" % pwfile
             )
         myapi.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password)
@@ -136,7 +135,7 @@ class test_ldap:
         try:
             self.conn.connect(autobind=True)
         except errors.ACIError:
-            raise unittest.SkipTest("Only executed as root")
+            pytest.skip("Only executed as root")
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')[0]
         assert cert.serial_number is not None

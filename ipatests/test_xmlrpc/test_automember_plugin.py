@@ -36,7 +36,6 @@ from ipaserver.plugins.automember import REBUILD_TASK_CONTAINER
 import time
 import pytest
 import re
-import unittest
 from pkg_resources import parse_version
 
 try:
@@ -263,7 +262,7 @@ def set_automember_process_modify_ops(value):
     :param value: can be either on or off
     """
     if not have_ldap2:
-        raise unittest.SkipTest('server plugin not available')
+        pytest.skip('server plugin not available')
     ldap = ldap2(api)
     ldap.connect()
     plugin_entry = ldap.get_entry(
@@ -287,7 +286,7 @@ def wait_automember_rebuild():
     If no task is found assume that the task is already finished.
     """
     if not have_ldap2:
-        raise unittest.SkipTest('server plugin not available')
+        pytest.skip('server plugin not available')
     ldap = ldap2(api)
     ldap.connect()
 
@@ -897,7 +896,7 @@ class TestAutomemberFindOrphans(XMLRPC_test):
         # rebuild fails if 389-ds is older than 1.4.0.22 where unmembering
         # feature was implemented: https://pagure.io/389-ds-base/issue/50077
         if not have_ldap2:
-            raise unittest.SkipTest('server plugin not available')
+            pytest.skip('server plugin not available')
         ldap = ldap2(api)
         ldap.connect()
         rootdse = ldap.get_entry(DN(''), ['vendorVersion'])
