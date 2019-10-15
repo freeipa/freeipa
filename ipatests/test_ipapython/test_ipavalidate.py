@@ -19,72 +19,72 @@
 import sys
 sys.path.insert(0, ".")
 
-import unittest
 import pytest
 
 from ipapython import ipavalidate
 
 pytestmark = pytest.mark.tier0
 
-class TestValidate(unittest.TestCase):
+
+class TestValidate:
     def test_validEmail(self):
-        self.assertEqual(True, ipavalidate.Email("test@freeipa.org"))
-        self.assertEqual(True, ipavalidate.Email("", notEmpty=False))
+        assert ipavalidate.Email("test@freeipa.org") is True
+        assert ipavalidate.Email("", notEmpty=False) is True
 
     def test_invalidEmail(self):
-        self.assertEqual(False, ipavalidate.Email("test"))
-        self.assertEqual(False, ipavalidate.Email("test@freeipa"))
-        self.assertEqual(False, ipavalidate.Email("test@.com"))
-        self.assertEqual(False, ipavalidate.Email(""))
-        self.assertEqual(False, ipavalidate.Email(None))
+        assert ipavalidate.Email("test") is False
+        assert ipavalidate.Email("test@freeipa") is False
+        assert ipavalidate.Email("test@.com") is False
+        assert ipavalidate.Email("") is False
+        assert ipavalidate.Email(None) is False
 
     def test_validPlain(self):
-        self.assertEqual(True, ipavalidate.Plain("Joe User"))
-        self.assertEqual(True, ipavalidate.Plain("Joe O'Malley"))
-        self.assertEqual(True, ipavalidate.Plain("", notEmpty=False))
-        self.assertEqual(True, ipavalidate.Plain(None, notEmpty=False))
-        self.assertEqual(True, ipavalidate.Plain("JoeUser", allowSpaces=False))
-        self.assertEqual(True, ipavalidate.Plain("JoeUser", allowSpaces=True))
+        assert ipavalidate.Plain("Joe User") is True
+        assert ipavalidate.Plain("Joe O'Malley") is True
+        assert ipavalidate.Plain("", notEmpty=False) is True
+        assert ipavalidate.Plain(None, notEmpty=False) is True
+        assert ipavalidate.Plain("JoeUser", allowSpaces=False) is True
+        assert ipavalidate.Plain("JoeUser", allowSpaces=True) is True
 
     def test_invalidPlain(self):
-        self.assertEqual(False, ipavalidate.Plain("Joe (User)"))
-        self.assertEqual(False, ipavalidate.Plain("Joe C. User"))
-        self.assertEqual(False, ipavalidate.Plain("", notEmpty=True))
-        self.assertEqual(False, ipavalidate.Plain(None, notEmpty=True))
-        self.assertEqual(False, ipavalidate.Plain("Joe User", allowSpaces=False))
-        self.assertEqual(False, ipavalidate.Plain("Joe C. User"))
+        assert ipavalidate.Plain("Joe (User)") is False
+        assert ipavalidate.Plain("Joe C. User") is False
+        assert ipavalidate.Plain("", notEmpty=True) is False
+        assert ipavalidate.Plain(None, notEmpty=True) is False
+        assert ipavalidate.Plain("Joe User", allowSpaces=False) is False
+        assert ipavalidate.Plain("Joe C. User") is False
 
     def test_validString(self):
-        self.assertEqual(True, ipavalidate.String("Joe User"))
-        self.assertEqual(True, ipavalidate.String("Joe O'Malley"))
-        self.assertEqual(True, ipavalidate.String("", notEmpty=False))
-        self.assertEqual(True, ipavalidate.String(None, notEmpty=False))
-        self.assertEqual(True, ipavalidate.String("Joe C. User"))
+        assert ipavalidate.String("Joe User") is True
+        assert ipavalidate.String("Joe O'Malley") is True
+        assert ipavalidate.String("", notEmpty=False) is True
+        assert ipavalidate.String(None, notEmpty=False) is True
+        assert ipavalidate.String("Joe C. User") is True
 
     def test_invalidString(self):
-        self.assertEqual(False, ipavalidate.String("", notEmpty=True))
-        self.assertEqual(False, ipavalidate.String(None, notEmpty=True))
+        assert ipavalidate.String("", notEmpty=True) is False
+        assert ipavalidate.String(None, notEmpty=True) is False
 
     def test_validPath(self):
-        self.assertEqual(True, ipavalidate.Path("/"))
-        self.assertEqual(True, ipavalidate.Path("/home/user"))
-        self.assertEqual(True, ipavalidate.Path("../home/user"))
-        self.assertEqual(True, ipavalidate.Path("", notEmpty=False))
-        self.assertEqual(True, ipavalidate.Path(None, notEmpty=False))
+        assert ipavalidate.Path("/") is True
+        assert ipavalidate.Path("/home/user") is True
+        assert ipavalidate.Path("../home/user") is True
+        assert ipavalidate.Path("", notEmpty=False) is True
+        assert ipavalidate.Path(None, notEmpty=False) is True
 
     def test_invalidPath(self):
-        self.assertEqual(False, ipavalidate.Path("(foo)"))
-        self.assertEqual(False, ipavalidate.Path("", notEmpty=True))
-        self.assertEqual(False, ipavalidate.Path(None, notEmpty=True))
+        assert ipavalidate.Path("(foo)") is False
+        assert ipavalidate.Path("", notEmpty=True) is False
+        assert ipavalidate.Path(None, notEmpty=True) is False
 
     def test_validName(self):
-        self.assertEqual(True, ipavalidate.GoodName("foo"))
-        self.assertEqual(True, ipavalidate.GoodName("1foo"))
-        self.assertEqual(True, ipavalidate.GoodName("foo.bar"))
-        self.assertEqual(True, ipavalidate.GoodName("foo.bar$"))
+        assert ipavalidate.GoodName("foo") is True
+        assert ipavalidate.GoodName("1foo") is True
+        assert ipavalidate.GoodName("foo.bar") is True
+        assert ipavalidate.GoodName("foo.bar$") is True
 
     def test_invalidName(self):
-        self.assertEqual(False, ipavalidate.GoodName("foo bar"))
-        self.assertEqual(False, ipavalidate.GoodName("foo%bar"))
-        self.assertEqual(False, ipavalidate.GoodName("*foo"))
-        self.assertEqual(False, ipavalidate.GoodName("$foo.bar$"))
+        assert ipavalidate.GoodName("foo bar") is False
+        assert ipavalidate.GoodName("foo%bar") is False
+        assert ipavalidate.GoodName("*foo") is False
+        assert ipavalidate.GoodName("$foo.bar$") is False

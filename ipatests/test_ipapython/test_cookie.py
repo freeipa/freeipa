@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import unittest
 import datetime
 import email.utils
 import calendar
@@ -27,125 +26,127 @@ import pytest
 
 pytestmark = pytest.mark.tier0
 
-class TestParse(unittest.TestCase):
+
+class TestParse:
 
     def test_parse(self):
         # Empty string
         s = ''
         cookies = Cookie.parse(s)
-        self.assertEqual(len(cookies), 0)
+        assert len(cookies) == 0
 
         # Invalid single token
         s = 'color'
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             cookies = Cookie.parse(s)
 
         # Invalid single token that's keyword
         s = 'HttpOnly'
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             cookies = Cookie.parse(s)
 
         # Invalid key/value pair whose key is a keyword
         s = 'domain=example.com'
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             cookies = Cookie.parse(s)
 
         # 1 cookie with empty value
         s = 'color='
         cookies = Cookie.parse(s)
-        self.assertEqual(len(cookies), 1)
+        assert len(cookies) == 1
         cookie = cookies[0]
-        self.assertEqual(cookie.key, 'color')
-        self.assertEqual(cookie.value, '')
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, None)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, None)
-        self.assertEqual(str(cookie), "color=")
-        self.assertEqual(cookie.http_cookie(), "color=;")
+        assert cookie.key == 'color'
+        assert cookie.value == ''
+        assert cookie.domain is None
+        assert cookie.path is None
+        assert cookie.max_age is None
+        assert cookie.expires is None
+        assert cookie.secure is None
+        assert cookie.httponly is None
+        assert str(cookie) == "color="
+        assert cookie.http_cookie() == "color=;"
 
         # 1 cookie with name/value
         s = 'color=blue'
         cookies = Cookie.parse(s)
-        self.assertEqual(len(cookies), 1)
+        assert len(cookies) == 1
         cookie = cookies[0]
-        self.assertEqual(cookie.key, 'color')
-        self.assertEqual(cookie.value, 'blue')
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, None)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, None)
-        self.assertEqual(str(cookie), "color=blue")
-        self.assertEqual(cookie.http_cookie(), "color=blue;")
+        assert cookie.key == 'color'
+        assert cookie.value == 'blue'
+        assert cookie.domain is None
+        assert cookie.path is None
+        assert cookie.max_age is None
+        assert cookie.expires is None
+        assert cookie.secure is None
+        assert cookie.httponly is None
+        assert str(cookie) == "color=blue"
+        assert cookie.http_cookie() == "color=blue;"
 
         # 1 cookie with whose value is quoted
         # Use "get by name" utility to extract specific cookie
         s = 'color="blue"'
         cookie = Cookie.get_named_cookie_from_string(s, 'color')
-        self.assertIsNotNone(cookie)
-        self.assertIsNotNone(cookie, Cookie)
-        self.assertEqual(cookie.key, 'color')
-        self.assertEqual(cookie.value, 'blue')
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, None)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, None)
-        self.assertEqual(str(cookie), "color=blue")
-        self.assertEqual(cookie.http_cookie(), "color=blue;")
+        assert cookie is not None, Cookie
+        assert cookie.key == 'color'
+        assert cookie.value == 'blue'
+        assert cookie.domain is None
+        assert cookie.path is None
+        assert cookie.max_age is None
+        assert cookie.expires is None
+        assert cookie.secure is None
+        assert cookie.httponly is None
+        assert str(cookie) == "color=blue"
+        assert cookie.http_cookie() == "color=blue;"
 
         # 1 cookie with name/value and domain, path attributes.
         # Change up the whitespace a bit.
         s = 'color =blue; domain= example.com ; path = /toplevel '
         cookies = Cookie.parse(s)
-        self.assertEqual(len(cookies), 1)
+        assert len(cookies) == 1
         cookie = cookies[0]
-        self.assertEqual(cookie.key, 'color')
-        self.assertEqual(cookie.value, 'blue')
-        self.assertEqual(cookie.domain, 'example.com')
-        self.assertEqual(cookie.path, '/toplevel')
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, None)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, None)
-        self.assertEqual(str(cookie), "color=blue; Domain=example.com; Path=/toplevel")
-        self.assertEqual(cookie.http_cookie(), "color=blue;")
+        assert cookie.key == 'color'
+        assert cookie.value == 'blue'
+        assert cookie.domain == 'example.com'
+        assert cookie.path == '/toplevel'
+        assert cookie.max_age is None
+        assert cookie.expires is None
+        assert cookie.secure is None
+        assert cookie.httponly is None
+        assert str(cookie) == "color=blue; Domain=example.com; Path=/toplevel"
+        assert cookie.http_cookie() == "color=blue;"
 
         # 2 cookies, various attributes
         s = 'color=blue; Max-Age=3600; temperature=hot; HttpOnly'
         cookies = Cookie.parse(s)
-        self.assertEqual(len(cookies), 2)
+        assert len(cookies) == 2
         cookie = cookies[0]
-        self.assertEqual(cookie.key, 'color')
-        self.assertEqual(cookie.value, 'blue')
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
-        self.assertEqual(cookie.max_age, 3600)
-        self.assertEqual(cookie.expires, None)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, None)
-        self.assertEqual(str(cookie), "color=blue; Max-Age=3600")
-        self.assertEqual(cookie.http_cookie(), "color=blue;")
+        assert cookie.key == 'color'
+        assert cookie.value == 'blue'
+        assert cookie.domain is None
+        assert cookie.path is None
+        assert cookie.max_age == 3600
+        assert cookie.expires is None
+        assert cookie.secure is None
+        assert cookie.httponly is None
+        assert str(cookie) == "color=blue; Max-Age=3600"
+        assert cookie.http_cookie() == "color=blue;"
         cookie = cookies[1]
-        self.assertEqual(cookie.key, 'temperature')
-        self.assertEqual(cookie.value, 'hot')
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, None)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, True)
-        self.assertEqual(str(cookie), "temperature=hot; HttpOnly")
-        self.assertEqual(cookie.http_cookie(), "temperature=hot;")
+        assert cookie.key == 'temperature'
+        assert cookie.value == 'hot'
+        assert cookie.domain is None
+        assert cookie.path is None
+        assert cookie.max_age is None
+        assert cookie.expires is None
+        assert cookie.secure is None
+        assert cookie.httponly is True
+        assert str(cookie) == "temperature=hot; HttpOnly"
+        assert cookie.http_cookie() == "temperature=hot;"
 
-class TestExpires(unittest.TestCase):
 
-    def setUp(self):
+class TestExpires:
+
+    @pytest.fixture(autouse=True)
+    def expires_setup(self):
         # Force microseconds to zero because cookie timestamps only have second resolution
         self.now = datetime.datetime.utcnow().replace(microsecond=0)
         self.now_timestamp = calendar.timegm(self.now.utctimetuple())
@@ -164,233 +165,237 @@ class TestExpires(unittest.TestCase):
         # 1 cookie with name/value and no Max-Age and no Expires
         s = 'color=blue;'
         cookies = Cookie.parse(s)
-        self.assertEqual(len(cookies), 1)
+        assert len(cookies) == 1
         cookie = cookies[0]
         # Force timestamp to known value
         cookie.timestamp = self.now
-        self.assertEqual(cookie.key, 'color')
-        self.assertEqual(cookie.value, 'blue')
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, None)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, None)
-        self.assertEqual(str(cookie), "color=blue")
-        self.assertEqual(cookie.get_expiration(), None)
+        assert cookie.key == 'color'
+        assert cookie.value == 'blue'
+        assert cookie.domain is None
+        assert cookie.path is None
+        assert cookie.max_age is None
+        assert cookie.expires is None
+        assert cookie.secure is None
+        assert cookie.httponly is None
+        assert str(cookie) == "color=blue"
+        assert cookie.get_expiration() is None
         # Normalize
-        self.assertEqual(cookie.normalize_expiration(), None)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, None)
-        self.assertEqual(str(cookie), "color=blue")
+        assert cookie.normalize_expiration() is None
+        assert cookie.max_age is None
+        assert cookie.expires is None
+        assert str(cookie) == "color=blue"
 
         # 1 cookie with name/value and Max-Age
         s = 'color=blue; max-age=%d' % (self.max_age)
         cookies = Cookie.parse(s)
-        self.assertEqual(len(cookies), 1)
+        assert len(cookies) == 1
         cookie = cookies[0]
         # Force timestamp to known value
         cookie.timestamp = self.now
-        self.assertEqual(cookie.key, 'color')
-        self.assertEqual(cookie.value, 'blue')
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
-        self.assertEqual(cookie.max_age, self.max_age)
-        self.assertEqual(cookie.expires, None)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, None)
-        self.assertEqual(str(cookie), "color=blue; Max-Age=%d" % (self.max_age))
-        self.assertEqual(cookie.get_expiration(), self.age_expiration)
+        assert cookie.key == 'color'
+        assert cookie.value == 'blue'
+        assert cookie.domain is None
+        assert cookie.path is None
+        assert cookie.max_age == self.max_age
+        assert cookie.expires is None
+        assert cookie.secure is None
+        assert cookie.httponly is None
+        assert str(cookie) == "color=blue; Max-Age=%d" % (self.max_age)
+        assert cookie.get_expiration() == self.age_expiration
         # Normalize
-        self.assertEqual(cookie.normalize_expiration(), self.age_expiration)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, self.age_expiration)
-        self.assertEqual(str(cookie), "color=blue; Expires=%s" % (self.age_string))
+        assert cookie.normalize_expiration() == self.age_expiration
+        assert cookie.max_age is None
+        assert cookie.expires == self.age_expiration
+        assert str(cookie) == "color=blue; Expires=%s" % (self.age_string)
 
 
         # 1 cookie with name/value and Expires
         s = 'color=blue; Expires=%s' % (self.expires_string)
         cookies = Cookie.parse(s)
-        self.assertEqual(len(cookies), 1)
+        assert len(cookies) == 1
         cookie = cookies[0]
         # Force timestamp to known value
         cookie.timestamp = self.now
-        self.assertEqual(cookie.key, 'color')
-        self.assertEqual(cookie.value, 'blue')
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, self.expires)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, None)
-        self.assertEqual(str(cookie), "color=blue; Expires=%s" % (self.expires_string))
-        self.assertEqual(cookie.get_expiration(), self.expires)
+        assert cookie.key == 'color'
+        assert cookie.value == 'blue'
+        assert cookie.domain is None
+        assert cookie.path is None
+        assert cookie.max_age is None
+        assert cookie.expires == self.expires
+        assert cookie.secure is None
+        assert cookie.httponly is None
+        assert str(cookie) == "color=blue; Expires=%s" % (self.expires_string)
+        assert cookie.get_expiration() == self.expires
         # Normalize
-        self.assertEqual(cookie.normalize_expiration(), self.expires)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, self.expires)
-        self.assertEqual(str(cookie), "color=blue; Expires=%s" % (self.expires_string))
+        assert cookie.normalize_expiration() == self.expires
+        assert cookie.max_age is None
+        assert cookie.expires == self.expires
+        assert str(cookie) == "color=blue; Expires=%s" % (self.expires_string)
 
         # 1 cookie with name/value witht both Max-Age and Expires, Max-Age takes precedence
         s = 'color=blue; Expires=%s; max-age=%d' % (self.expires_string, self.max_age)
         cookies = Cookie.parse(s)
-        self.assertEqual(len(cookies), 1)
+        assert len(cookies) == 1
         cookie = cookies[0]
         # Force timestamp to known value
         cookie.timestamp = self.now
-        self.assertEqual(cookie.key, 'color')
-        self.assertEqual(cookie.value, 'blue')
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
-        self.assertEqual(cookie.max_age, self.max_age)
-        self.assertEqual(cookie.expires, self.expires)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, None)
-        self.assertEqual(str(cookie), "color=blue; Max-Age=%d; Expires=%s" % (self.max_age, self.expires_string))
-        self.assertEqual(cookie.get_expiration(), self.age_expiration)
+        assert cookie.key == 'color'
+        assert cookie.value == 'blue'
+        assert cookie.domain is None
+        assert cookie.path is None
+        assert cookie.max_age == self.max_age
+        assert cookie.expires == self.expires
+        assert cookie.secure is None
+        assert cookie.httponly is None
+        expected = "color=blue; Max-Age={}; Expires={}".format(
+            self.max_age, self.expires_string)
+        assert str(cookie) == expected
+        assert cookie.get_expiration() == self.age_expiration
         # Normalize
-        self.assertEqual(cookie.normalize_expiration(), self.age_expiration)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, self.age_expiration)
-        self.assertEqual(str(cookie), "color=blue; Expires=%s" % (self.age_string))
+        assert cookie.normalize_expiration() == self.age_expiration
+        assert cookie.max_age is None
+        assert cookie.expires == self.age_expiration
+        assert str(cookie) == "color=blue; Expires=%s" % (self.age_string)
 
         # Verify different types can be assigned to the timestamp and
         # expires attribute.
 
         cookie = Cookie('color', 'blue')
         cookie.timestamp = self.now
-        self.assertEqual(cookie.timestamp, self.now)
+        assert cookie.timestamp == self.now
         cookie.timestamp = self.now_timestamp
-        self.assertEqual(cookie.timestamp, self.now)
+        assert cookie.timestamp == self.now
         cookie.timestamp = self.now_string
-        self.assertEqual(cookie.timestamp, self.now)
+        assert cookie.timestamp == self.now
 
-        self.assertEqual(cookie.expires, None)
+        assert cookie.expires is None
 
         cookie.expires = self.expires
-        self.assertEqual(cookie.expires, self.expires)
+        assert cookie.expires == self.expires
         cookie.expires = self.expires_timestamp
-        self.assertEqual(cookie.expires, self.expires)
+        assert cookie.expires == self.expires
         cookie.expires = self.expires_string
-        self.assertEqual(cookie.expires, self.expires)
+        assert cookie.expires == self.expires
 
-class TestInvalidAttributes(unittest.TestCase):
+
+class TestInvalidAttributes:
     def test_invalid(self):
         # Invalid Max-Age
         s = 'color=blue; Max-Age=over-the-hill'
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Cookie.parse(s)
 
         cookie = Cookie('color', 'blue')
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             cookie.max_age = 'over-the-hill'
 
         # Invalid Expires
         s = 'color=blue; Expires=Sun, 06 Xxx 1994 08:49:37 GMT'
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Cookie.parse(s)
 
         cookie = Cookie('color', 'blue')
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             cookie.expires = 'Sun, 06 Xxx 1994 08:49:37 GMT'
 
 
-class TestAttributes(unittest.TestCase):
+class TestAttributes:
     def test_attributes(self):
         cookie = Cookie('color', 'blue')
-        self.assertEqual(cookie.key, 'color')
-        self.assertEqual(cookie.value, 'blue')
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
-        self.assertEqual(cookie.max_age, None)
-        self.assertEqual(cookie.expires, None)
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(cookie.httponly, None)
+        assert cookie.key == 'color'
+        assert cookie.value == 'blue'
+        assert cookie.domain is None
+        assert cookie.path is None
+        assert cookie.max_age is None
+        assert cookie.expires is None
+        assert cookie.secure is None
+        assert cookie.httponly is None
 
         cookie.domain = 'example.com'
-        self.assertEqual(cookie.domain, 'example.com')
+        assert cookie.domain == 'example.com'
         cookie.domain = None
-        self.assertEqual(cookie.domain, None)
+        assert cookie.domain is None
 
         cookie.path = '/toplevel'
-        self.assertEqual(cookie.path, '/toplevel')
+        assert cookie.path == '/toplevel'
         cookie.path = None
-        self.assertEqual(cookie.path, None)
+        assert cookie.path is None
 
         cookie.max_age = 400
-        self.assertEqual(cookie.max_age, 400)
+        assert cookie.max_age == 400
         cookie.max_age = None
-        self.assertEqual(cookie.max_age, None)
+        assert cookie.max_age is None
 
         cookie.expires = 'Sun, 06 Nov 1994 08:49:37 GMT'
-        self.assertEqual(cookie.expires, datetime.datetime(1994, 11, 6, 8, 49, 37))
+        assert cookie.expires == datetime.datetime(1994, 11, 6, 8, 49, 37)
         cookie.expires = None
-        self.assertEqual(cookie.expires, None)
+        assert cookie.expires is None
 
         cookie.secure = True
-        self.assertEqual(cookie.secure, True)
-        self.assertEqual(str(cookie), "color=blue; Secure")
+        assert cookie.secure is True
+        assert str(cookie) == "color=blue; Secure"
         cookie.secure = False
-        self.assertEqual(cookie.secure, False)
-        self.assertEqual(str(cookie), "color=blue")
+        assert cookie.secure is False
+        assert str(cookie) == "color=blue"
         cookie.secure = None
-        self.assertEqual(cookie.secure, None)
-        self.assertEqual(str(cookie), "color=blue")
+        assert cookie.secure is None
+        assert str(cookie) == "color=blue"
 
         cookie.httponly = True
-        self.assertEqual(cookie.httponly, True)
-        self.assertEqual(str(cookie), "color=blue; HttpOnly")
+        assert cookie.httponly is True
+        assert str(cookie) == "color=blue; HttpOnly"
         cookie.httponly = False
-        self.assertEqual(cookie.httponly, False)
-        self.assertEqual(str(cookie), "color=blue")
+        assert cookie.httponly is False
+        assert str(cookie) == "color=blue"
         cookie.httponly = None
-        self.assertEqual(cookie.httponly, None)
-        self.assertEqual(str(cookie), "color=blue")
+        assert cookie.httponly is None
+        assert str(cookie) == "color=blue"
 
 
-class TestHTTPReturn(unittest.TestCase):
-    def setUp(self):
+class TestHTTPReturn:
+    @pytest.fixture(autouse=True)
+    def http_return_setup(self):
         self.url = 'http://www.foo.bar.com/one/two'
 
     def test_no_attributes(self):
         cookie = Cookie('color', 'blue')
-        self.assertTrue(cookie.http_return_ok(self.url))
+        assert cookie.http_return_ok(self.url)
 
     def test_domain(self):
         cookie = Cookie('color', 'blue', domain='www.foo.bar.com')
-        self.assertTrue(cookie.http_return_ok(self.url))
+        assert cookie.http_return_ok(self.url)
 
         cookie = Cookie('color', 'blue', domain='.foo.bar.com')
-        self.assertTrue(cookie.http_return_ok(self.url))
+        assert cookie.http_return_ok(self.url)
 
         cookie = Cookie('color', 'blue', domain='.bar.com')
-        self.assertTrue(cookie.http_return_ok(self.url))
+        assert cookie.http_return_ok(self.url)
 
         cookie = Cookie('color', 'blue', domain='bar.com')
-        with self.assertRaises(Cookie.URLMismatch):
-            self.assertTrue(cookie.http_return_ok(self.url))
+        with pytest.raises(Cookie.URLMismatch):
+            assert cookie.http_return_ok(self.url)
 
         cookie = Cookie('color', 'blue', domain='bogus.com')
-        with self.assertRaises(Cookie.URLMismatch):
-            self.assertTrue(cookie.http_return_ok(self.url))
+        with pytest.raises(Cookie.URLMismatch):
+            assert cookie.http_return_ok(self.url)
 
         cookie = Cookie('color', 'blue', domain='www.foo.bar.com')
-        with self.assertRaises(Cookie.URLMismatch):
-            self.assertTrue(cookie.http_return_ok('http://192.168.1.1/one/two'))
+        with pytest.raises(Cookie.URLMismatch):
+            assert cookie.http_return_ok('http://192.168.1.1/one/two')
 
     def test_path(self):
         cookie = Cookie('color', 'blue')
-        self.assertTrue(cookie.http_return_ok(self.url))
+        assert cookie.http_return_ok(self.url)
 
         cookie = Cookie('color', 'blue', path='/')
-        self.assertTrue(cookie.http_return_ok(self.url))
+        assert cookie.http_return_ok(self.url)
 
         cookie = Cookie('color', 'blue', path='/one')
-        self.assertTrue(cookie.http_return_ok(self.url))
+        assert cookie.http_return_ok(self.url)
 
         cookie = Cookie('color', 'blue', path='/oneX')
-        with self.assertRaises(Cookie.URLMismatch):
-            self.assertTrue(cookie.http_return_ok(self.url))
+        with pytest.raises(Cookie.URLMismatch):
+            assert cookie.http_return_ok(self.url)
 
     def test_expires(self):
         now = datetime.datetime.utcnow().replace(microsecond=0)
@@ -399,32 +404,34 @@ class TestHTTPReturn(unittest.TestCase):
         expires = now + datetime.timedelta(days=1)
 
         cookie = Cookie('color', 'blue', expires=expires)
-        self.assertTrue(cookie.http_return_ok(self.url))
+        assert cookie.http_return_ok(self.url)
 
         # expired 1 day ago
         expires = now + datetime.timedelta(days=-1)
         cookie = Cookie('color', 'blue', expires=expires)
-        with self.assertRaises(Cookie.Expired):
-            self.assertTrue(cookie.http_return_ok(self.url))
+        with pytest.raises(Cookie.Expired):
+            assert cookie.http_return_ok(self.url)
 
 
     def test_httponly(self):
         cookie = Cookie('color', 'blue', httponly=True)
-        self.assertTrue(cookie.http_return_ok('http://example.com'))
-        self.assertTrue(cookie.http_return_ok('https://example.com'))
+        assert cookie.http_return_ok('http://example.com')
+        assert cookie.http_return_ok('https://example.com')
 
-        with self.assertRaises(Cookie.URLMismatch):
-            self.assertTrue(cookie.http_return_ok('ftp://example.com'))
+        with pytest.raises(Cookie.URLMismatch):
+            assert cookie.http_return_ok('ftp://example.com')
 
     def test_secure(self):
         cookie = Cookie('color', 'blue', secure=True)
-        self.assertTrue(cookie.http_return_ok('https://Xexample.com'))
+        assert cookie.http_return_ok('https://Xexample.com')
 
-        with self.assertRaises(Cookie.URLMismatch):
-            self.assertTrue(cookie.http_return_ok('http://Xexample.com'))
+        with pytest.raises(Cookie.URLMismatch):
+            assert cookie.http_return_ok('http://Xexample.com')
 
-class TestNormalization(unittest.TestCase):
-    def setUp(self):
+
+class TestNormalization:
+    @pytest.fixture(autouse=True)
+    def normalization_setup(self):
         # Force microseconds to zero because cookie timestamps only have second resolution
         self.now = datetime.datetime.utcnow().replace(microsecond=0)
         self.now_timestamp = calendar.timegm(self.now.utctimetuple())
@@ -440,58 +447,53 @@ class TestNormalization(unittest.TestCase):
         self.expires_string = email.utils.formatdate(self.expires_timestamp, usegmt=True)
 
     def test_path_normalization(self):
-        self.assertEqual(Cookie.normalize_url_path(''),          '/')
-        self.assertEqual(Cookie.normalize_url_path('foo'),       '/')
-        self.assertEqual(Cookie.normalize_url_path('foo/'),      '/')
-        self.assertEqual(Cookie.normalize_url_path('/foo'),      '/')
-        self.assertEqual(Cookie.normalize_url_path('/foo/'),     '/foo')
-        self.assertEqual(Cookie.normalize_url_path('/Foo/bar'),  '/foo')
-        self.assertEqual(Cookie.normalize_url_path('/foo/baR/'), '/foo/bar')
+        assert Cookie.normalize_url_path('') == '/'
+        assert Cookie.normalize_url_path('foo') == '/'
+        assert Cookie.normalize_url_path('foo/') == '/'
+        assert Cookie.normalize_url_path('/foo') == '/'
+        assert Cookie.normalize_url_path('/foo/') == '/foo'
+        assert Cookie.normalize_url_path('/Foo/bar') == '/foo'
+        assert Cookie.normalize_url_path('/foo/baR/') == '/foo/bar'
 
     def test_normalization(self):
         cookie = Cookie('color', 'blue', expires=self.expires)
         cookie.timestamp = self.now_timestamp
 
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
+        assert cookie.domain is None
+        assert cookie.path is None
 
         url = 'http://example.COM/foo'
         cookie.normalize(url)
-        self.assertEqual(cookie.domain, 'example.com')
-        self.assertEqual(cookie.path, '/')
-        self.assertEqual(cookie.expires, self.expires)
+        assert cookie.domain == 'example.com'
+        assert cookie.path == '/'
+        assert cookie.expires == self.expires
 
         cookie = Cookie('color', 'blue', max_age=self.max_age)
         cookie.timestamp = self.now_timestamp
 
-        self.assertEqual(cookie.domain, None)
-        self.assertEqual(cookie.path, None)
+        assert cookie.domain is None
+        assert cookie.path is None
 
         url = 'http://example.com/foo/'
         cookie.normalize(url)
-        self.assertEqual(cookie.domain, 'example.com')
-        self.assertEqual(cookie.path, '/foo')
-        self.assertEqual(cookie.expires, self.age_expiration)
+        assert cookie.domain == 'example.com'
+        assert cookie.path == '/foo'
+        assert cookie.expires == self.age_expiration
 
         cookie = Cookie('color', 'blue')
         url = 'http://example.com/foo'
         cookie.normalize(url)
-        self.assertEqual(cookie.domain, 'example.com')
-        self.assertEqual(cookie.path, '/')
+        assert cookie.domain == 'example.com'
+        assert cookie.path == '/'
 
         cookie = Cookie('color', 'blue')
         url = 'http://example.com/foo/bar'
         cookie.normalize(url)
-        self.assertEqual(cookie.domain, 'example.com')
-        self.assertEqual(cookie.path, '/foo')
+        assert cookie.domain == 'example.com'
+        assert cookie.path == '/foo'
 
         cookie = Cookie('color', 'blue')
         url = 'http://example.com/foo/bar/'
         cookie.normalize(url)
-        self.assertEqual(cookie.domain, 'example.com')
-        self.assertEqual(cookie.path, '/foo/bar')
-
-
-#-------------------------------------------------------------------------------
-if __name__ == '__main__':
-    unittest.main()
+        assert cookie.domain == 'example.com'
+        assert cookie.path == '/foo/bar'

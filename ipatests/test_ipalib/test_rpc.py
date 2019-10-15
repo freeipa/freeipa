@@ -22,7 +22,6 @@ Test the `ipalib.rpc` module.
 """
 from __future__ import print_function
 
-import unittest
 from xmlrpc.client import Binary, Fault, dumps, loads
 import urllib
 
@@ -266,8 +265,8 @@ class test_xml_introspection:
         try:
             api.Backend.xmlclient.connect()
         except (errors.NetworkError, IOError):
-            raise unittest.SkipTest('%r: Server not available: %r' %
-                                (__name__, api.env.xmlrpc_uri))
+            pytest.skip('%r: Server not available: %r' %
+                        (__name__, api.env.xmlrpc_uri))
 
         def fin():
             ipa_request.destroy_context()
@@ -356,8 +355,8 @@ class test_rpcclient_context(PluginTester):
         try:
             api.Backend.rpcclient.connect(ca_certfile='foo')
         except (errors.NetworkError, IOError):
-            raise unittest.SkipTest('%r: Server not available: %r' %
-                                (__name__, api.env.xmlrpc_uri))
+            pytest.skip('%r: Server not available: %r' %
+                        (__name__, api.env.xmlrpc_uri))
 
         def fin():
             if api.Backend.rpcclient.isconnected():

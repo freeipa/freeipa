@@ -6,7 +6,8 @@ import os
 import shutil
 import subprocess
 import tempfile
-import unittest
+
+import pytest
 
 
 def _test_password_callback():
@@ -15,9 +16,13 @@ def _test_password_callback():
     return password
 
 
-class TestiSecStore(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
+class TestiSecStore:
+    certdb = None
+    cert2db = None
+
+    @pytest.fixture(autouse=True, scope="class")
+    def isec_store_setup(self, request):
+        cls = request.cls
         cls.testdir = tempfile.mkdtemp(suffix='ipa-sec-store')
         pwfile = os.path.join(cls.testdir, 'pwfile')
         with open(pwfile, 'w') as f:
@@ -45,9 +50,9 @@ class TestiSecStore(unittest.TestCase):
             cwd=cls.testdir
         )
 
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.testdir)
+        def fin():
+            shutil.rmtree(cls.testdir)
+        request.addfinalizer(fin)
 
     def test_iSecStore(self):
         iss = iSecStore({})
