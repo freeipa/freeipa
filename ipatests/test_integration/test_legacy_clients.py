@@ -24,7 +24,8 @@ from __future__ import absolute_import
 
 import os
 import re
-import unittest
+
+import pytest
 
 from ipaplatform.constants import constants as platformconstants
 from ipaplatform.paths import paths
@@ -166,8 +167,8 @@ class BaseTestLegacyClient:
 
     def test_login_ipa_user(self):
         if not self.master.transport.file_exists('/usr/bin/sshpass'):
-            raise unittest.SkipTest('Package sshpass not available on %s'
-                                 % self.master.hostname)
+            pytest.skip('Package sshpass not available on %s'
+                        % self.master.hostname)
 
         result = self.master.run_command(
             'sshpass -p %s '
@@ -183,8 +184,8 @@ class BaseTestLegacyClient:
 
     def test_login_ad_user(self):
         if not self.master.transport.file_exists('/usr/bin/sshpass'):
-            raise unittest.SkipTest('Package sshpass not available on %s'
-                                 % self.master.hostname)
+            pytest.skip('Package sshpass not available on %s'
+                        % self.master.hostname)
 
         testuser = 'testuser@%s' % self.ad.domain.name
         result = self.master.run_command(
@@ -200,8 +201,8 @@ class BaseTestLegacyClient:
 
     def test_login_disabled_ipa_user(self):
         if not self.master.transport.file_exists('/usr/bin/sshpass'):
-            raise unittest.SkipTest('Package sshpass not available on %s'
-                                 % self.master.hostname)
+            pytest.skip('Package sshpass not available on %s'
+                        % self.master.hostname)
 
         self.clear_sssd_caches()
 
@@ -220,7 +221,7 @@ class BaseTestLegacyClient:
 
     def test_login_disabled_ad_user(self):
         if not self.master.transport.file_exists('/usr/bin/sshpass'):
-            raise unittest.SkipTest('Package sshpass not available on %s'
+            pytest.skip('Package sshpass not available on %s'
                                  % self.master.hostname)
 
         testuser = 'disabledaduser@%s' % self.ad.domain.name
@@ -238,7 +239,7 @@ class BaseTestLegacyClient:
 
     def test_getent_subdomain_ad_user(self):
         if not self.ad_subdomain:
-            raise unittest.SkipTest('AD for the subdomain is not available.')
+            pytest.skip('AD for the subdomain is not available.')
 
         self.clear_sssd_caches()
         testuser = 'subdomaintestuser@%s' % self.ad_subdomain
@@ -260,7 +261,7 @@ class BaseTestLegacyClient:
 
     def test_getent_subdomain_ad_group(self):
         if not self.ad_subdomain:
-            raise unittest.SkipTest('AD for the subdomain is not available.')
+            pytest.skip('AD for the subdomain is not available.')
 
         self.clear_sssd_caches()
         testgroup = 'subdomaintestgroup@%s' % self.ad_subdomain
@@ -272,7 +273,7 @@ class BaseTestLegacyClient:
 
     def test_id_subdomain_ad_user(self):
         if not self.ad_subdomain:
-            raise unittest.SkipTest('AD for the subdomain is not available.')
+            pytest.skip('AD for the subdomain is not available.')
 
         self.clear_sssd_caches()
         testuser = 'subdomaintestuser@%s' % self.ad_subdomain
@@ -297,11 +298,11 @@ class BaseTestLegacyClient:
 
     def test_login_subdomain_ad_user(self):
         if not self.ad_subdomain:
-            raise unittest.SkipTest('AD for the subdomain is not available.')
+            pytest.skip('AD for the subdomain is not available.')
 
         if not self.master.transport.file_exists('/usr/bin/sshpass'):
-            raise unittest.SkipTest('Package sshpass not available on %s'
-                                 % self.master.hostname)
+            pytest.skip('Package sshpass not available on %s'
+                        % self.master.hostname)
 
         testuser = 'subdomaintestuser@%s' % self.ad_subdomain
         result = self.master.run_command(
@@ -317,11 +318,11 @@ class BaseTestLegacyClient:
 
     def test_login_disabled_subdomain_ad_user(self):
         if not self.ad_subdomain:
-            raise unittest.SkipTest('AD for the subdomain is not available.')
+            pytest.skip('AD for the subdomain is not available.')
 
         if not self.master.transport.file_exists('/usr/bin/sshpass'):
-            raise unittest.SkipTest('Package sshpass not available on %s'
-                                 % self.master.hostname)
+            pytest.skip('Package sshpass not available on %s'
+                        % self.master.hostname)
 
         testuser = 'subdomaindisabledaduser@%s' % self.ad_subdomain
         result = self.master.run_command(
@@ -338,7 +339,7 @@ class BaseTestLegacyClient:
 
     def test_getent_treedomain_ad_user(self):
         if not self.ad_treedomain:
-            raise unittest.SkipTest('AD tree root domain is not available.')
+            pytest.skip('AD tree root domain is not available.')
 
         self.clear_sssd_caches()
         testuser = 'treetestuser@{0}'.format(self.ad_treedomain)
@@ -356,7 +357,7 @@ class BaseTestLegacyClient:
 
     def test_getent_treedomain_ad_group(self):
         if not self.ad_treedomain:
-            raise unittest.SkipTest('AD tree root domain is not available')
+            pytest.skip('AD tree root domain is not available')
 
         self.clear_sssd_caches()
         testgroup = 'treetestgroup@{0}'.format(self.ad_treedomain)
@@ -369,7 +370,7 @@ class BaseTestLegacyClient:
 
     def test_id_treedomain_ad_user(self):
         if not self.ad_treedomain:
-            raise unittest.SkipTest('AD tree root domain is not available')
+            pytest.skip('AD tree root domain is not available')
 
         self.clear_sssd_caches()
 
@@ -398,10 +399,10 @@ class BaseTestLegacyClient:
 
     def test_login_treedomain_ad_user(self):
         if not self.ad_treedomain:
-            raise unittest.SkipTest('AD tree root domain is not available.')
+            pytest.skip('AD tree root domain is not available.')
 
         if not self.master.transport.file_exists('/usr/bin/sshpass'):
-            raise unittest.SkipTest(
+            pytest.skip(
                 'Package sshpass not available on {}'.format(
                     self.master.hostname)
             )

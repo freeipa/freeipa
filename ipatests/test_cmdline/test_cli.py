@@ -5,7 +5,6 @@ import shlex
 import subprocess
 import sys
 import tempfile
-import unittest
 
 import six
 
@@ -45,8 +44,8 @@ class TestCLIParsing:
         try:
             api.Command[command_name](**kw)
         except errors.NetworkError:
-            raise unittest.SkipTest('%r: Server not available: %r' %
-                                (self.__module__, api.env.xmlrpc_uri))
+            pytest.skip('%r: Server not available: %r' %
+                        (self.__module__, api.env.xmlrpc_uri))
 
     @contextlib.contextmanager
     def fake_stdin(self, string_in):
@@ -124,7 +123,7 @@ class TestCLIParsing:
         try:
             self.run_command('dnszone_add', idnsname=TEST_ZONE)
         except errors.NotFound:
-            raise unittest.SkipTest('DNS is not configured')
+            pytest.skip('DNS is not configured')
         try:
             self.run_command('dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
@@ -152,7 +151,7 @@ class TestCLIParsing:
         try:
             self.run_command('dnszone_add', idnsname=TEST_ZONE)
         except errors.NotFound:
-            raise unittest.SkipTest('DNS is not configured')
+            pytest.skip('DNS is not configured')
         try:
             records = (u'1 1 E3B72BA346B90570EED94BE9334E34AA795CED23',
                        u'2 1 FD2693C1EFFC11A8D2BE57229212A04B45663791')
@@ -232,7 +231,7 @@ class TestCLIParsing:
             self.run_command(
                 'dnszone_add', idnsname=TEST_ZONE)
         except errors.NotFound:
-            raise unittest.SkipTest('DNS is not configured')
+            pytest.skip('DNS is not configured')
         try:
             self.run_command(
                 'dnsrecord_add',

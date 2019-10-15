@@ -21,8 +21,6 @@ Test adding/removing external members (trusted domain objects) to IPA groups.
 These tests are skipped if trust is not established.
 """
 
-import unittest
-
 from ipalib import api
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
@@ -53,7 +51,7 @@ class test_external_members(Declarative):
 
         trusts = api.Command['trust_find']()
         if trusts['count'] == 0:
-            raise unittest.SkipTest('Trust is not established')
+            pytest.skip('Trust is not established')
 
     cleanup_commands = [
         ('group_del', [group_name], {}),

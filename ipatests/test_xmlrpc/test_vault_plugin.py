@@ -21,8 +21,6 @@
 Test the `ipaserver/plugins/vault.py` module.
 """
 
-import unittest
-
 import pytest
 import six
 
@@ -140,7 +138,7 @@ class test_vault_plugin(Declarative):
             api.Backend.rpcclient.connect()
 
         if not api.Command.kra_is_enabled()['result']:
-            raise unittest.SkipTest('KRA service is not enabled')
+            pytest.skip('KRA service is not enabled')
 
     cleanup_commands = [
         ('vault_del', [vault_name], {'continue': True}),

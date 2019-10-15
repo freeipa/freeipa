@@ -25,7 +25,6 @@ from __future__ import absolute_import
 
 import distutils.spawn
 import os
-import unittest
 
 import pytest
 
@@ -69,6 +68,6 @@ class cmdline_test(XMLRPC_test):
                 'Command %r not available' % original_command
             )
         if not server_available:
-            raise unittest.SkipTest(
+            pytest.skip(
                 'Server not available: %r' % api.env.xmlrpc_uri
             )

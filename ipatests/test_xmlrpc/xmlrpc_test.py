@@ -24,7 +24,6 @@ from __future__ import print_function
 
 import datetime
 import inspect
-import unittest
 
 import contextlib
 import pytest
@@ -211,9 +210,9 @@ class XMLRPC_test:
     @pytest.fixture(autouse=True, scope="class")
     def xmlrpc_setup(self, request):
         if not server_available:
-            raise unittest.SkipTest('%r: Server not available: %r' %
-                                    (request.cls.__module__,
-                                     api.env.xmlrpc_uri))
+            pytest.skip('%r: Server not available: %r' %
+                        (request.cls.__module__,
+                         api.env.xmlrpc_uri))
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect()
 
@@ -320,7 +319,7 @@ class Declarative(XMLRPC_test):
         (cmd, args, options) = command
         print('Cleanup:', cmd, args, options)
         if cmd not in api.Command:
-            raise unittest.SkipTest(
+            pytest.skip(
                 'cleanup command %r not in api.Command' % cmd
             )
         try:
@@ -342,7 +341,7 @@ class Declarative(XMLRPC_test):
         (cmd, args, options) = command
         options.setdefault('version', self.default_version)
         if cmd not in api.Command:
-            raise unittest.SkipTest('%r not in api.Command' % cmd)
+            pytest.skip('%r not in api.Command' % cmd)
         if isinstance(expected, errors.PublicError):
             self.check_exception(nice, cmd, args, options, expected)
         elif hasattr(expected, '__call__'):
