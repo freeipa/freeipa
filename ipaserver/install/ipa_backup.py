@@ -294,7 +294,7 @@ class Backup(admintool.AdminTool):
         os.chown(self.top_dir, pent.pw_uid, pent.pw_gid)
         os.chmod(self.top_dir, 0o750)
         self.dir = os.path.join(self.top_dir, "ipa")
-        os.mkdir(self.dir, mode=0o750)
+        os.mkdir(self.dir, 0o750)
         os.chown(self.dir, pent.pw_uid, pent.pw_gid)
         self.tarfile = None
 
@@ -676,7 +676,7 @@ class Backup(admintool.AdminTool):
             filename = os.path.join(backup_dir, "ipa-full.tar")
 
         try:
-            os.mkdir(backup_dir, mode=0o700)
+            os.mkdir(backup_dir, 0o700)
         except (OSError, IOError) as e:
             raise admintool.ScriptError(
                 'Could not create backup directory: %s' % e
