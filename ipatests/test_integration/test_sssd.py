@@ -13,14 +13,11 @@ import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 
 
-class TestSSSDAuthCache(IntegrationTest):
-    """Regression tests for cached_auth_timeout option
-
-       https://bugzilla.redhat.com/show_bug.cgi?id=1685581
-   """
+class TestSSSDWithAdTrust(IntegrationTest):
 
     topology = 'star'
     num_ad_domains = 1
@@ -34,6 +31,9 @@ class TestSSSDAuthCache(IntegrationTest):
             'name_tmpl': 'testuser@{domain}',
             'password': 'Secret123'
         },
+        'fakeuser': {
+            'name': 'some_user@some.domain'
+        },
     }
     ipa_user = 'user1'
     ipa_user_password = 'SecretUser1'
@@ -43,7 +43,7 @@ class TestSSSDAuthCache(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
-        super(TestSSSDAuthCache, cls).install(mh)
+        super(TestSSSDWithAdTrust, cls).install(mh)
 
         cls.ad = cls.ads[0]  # pylint: disable=no-member
 
@@ -53,6 +53,9 @@ class TestSSSDAuthCache(IntegrationTest):
 
         cls.users['ad']['name'] = cls.users['ad']['name_tmpl'].format(
             domain=cls.ad.domain.name)
+
+        # Regression tests for cached_auth_timeout option
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1685581
         tasks.user_add(cls.master, cls.intermed_user)
         tasks.create_active_user(cls.master, cls.ipa_user,
                                  cls.ipa_user_password)
@@ -108,3 +111,40 @@ class TestSSSDAuthCache(IntegrationTest):
             assert self.is_auth_cached(self.users[user])
             time.sleep(10)
             assert not self.is_auth_cached(self.users[user])
+
+    @contextmanager
+    def filter_user_setup(self, user):
+        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        filter_user = {'filter_users': self.users[user]['name']}
+        try:
+            tasks.modify_sssd_conf(self.master, self.master.domain.name,
+                                   filter_user)
+            tasks.clear_sssd_cache(self.master)
+            yield
+        finally:
+            sssd_conf_backup.restore()
+            tasks.clear_sssd_cache(self.master)
+
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number <= (28,),
+        reason='https://pagure.io/SSSD/sssd/issue/3978')
+    @pytest.mark.parametrize('user', ['ad', 'fakeuser'])
+    def test_is_user_filtered(self, user):
+        """No lookup in data provider from 'filter_users' config option.
+
+        Test for https://bugzilla.redhat.com/show_bug.cgi?id=1685472
+        https://bugzilla.redhat.com/show_bug.cgi?id=1724088
+
+        When there are users in filter_users in domain section then no look
+        up should be in data provider.
+        """
+        with self.filter_user_setup(user=user):
+            log_file = '{0}/sssd_nss.log'.format(paths.VAR_LOG_SSSD_DIR)
+            logsize = tasks.get_logsize(self.master, log_file)
+            self.master.run_command(
+                ['getent', 'passwd', self.users[user]['name']],
+                ok_returncode=2)
+            sssd_log = self.master.get_file_contents(log_file)[logsize:]
+            dp_req = ("Looking up [{0}] in data provider".format(
+                self.users[user]['name']))
+            assert not dp_req.encode() in sssd_log
