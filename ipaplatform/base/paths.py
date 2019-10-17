@@ -254,6 +254,7 @@ class BasePathNamespace:
     FONTS_FONTAWESOME_DIR = "/usr/share/fonts/fontawesome"
     USR_SHARE_IPA_DIR = "/usr/share/ipa/"
     USR_SHARE_IPA_CLIENT_DIR = "/usr/share/ipa/client"
+    USR_SHARE_IPA_GC_DIR = "/usr/share/ipa/gc/base"
     CA_TOPOLOGY_ULDIF = "/usr/share/ipa/ca-topology.uldif"
     IPA_HTML_DIR = "/usr/share/ipa/html"
     CA_CRT = "/usr/share/ipa/html/ca.crt"
@@ -404,6 +405,8 @@ class BasePathNamespace:
     SLAPD_INSTANCE_AUDIT_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/audit"
     SLAPD_INSTANCE_SYSTEMD_IPA_ENV_TEMPLATE = \
         "/etc/systemd/system/dirsrv@%s.service.d/ipa-env.conf"
+    # Global Catalog constants
+    GC_KEYTAB = "/etc/dirsrv/gc.keytab"
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
     KEYCTL = '/bin/keyctl'
     GETENT = '/usr/bin/getent'

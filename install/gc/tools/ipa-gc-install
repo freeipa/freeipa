@@ -1,0 +1,8 @@
+#! /usr/bin/python3 -I
+#
+# Copyright (C) 2017-2019  FreeIPA Contributors see COPYING for license
+#
+
+from ipaserver.install import ipa_gc_install
+
+ipa_gc_install.run()

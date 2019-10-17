@@ -37,7 +37,7 @@ from ipalib.util import (
     no_matching_interface_for_ip_address_warning,
 )
 from ipaserver.install import (
-    adtrust, bindinstance, ca, dns, dsinstance,
+    adtrust, bindinstance, ca, dns, dsinstance, gc,
     httpinstance, installutils, kra, krbinstance,
     otpdinstance, custodiainstance, replication, service,
     sysupgrade)
@@ -1092,6 +1092,7 @@ def uninstall_check(installer):
                 "procedure?", False)):
             raise ScriptError("Aborting uninstall operation.")
     else:
+        gc.uninstall_check()
         dns.uninstall_check(options)
 
         ca.uninstall_check(options)
@@ -1137,6 +1138,9 @@ def uninstall(installer):
     sstore = installer._sstore
 
     rv = 0
+
+    print("Removing Global Catalog")
+    gc.uninstall(fstore)
 
     print("Shutting down all IPA services")
     try:

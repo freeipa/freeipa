@@ -157,6 +157,8 @@ def debian_service_class_factory(name, api=None):
         return redhat_services.RedHatCAService(name, api)
     if name == 'ntpd':
         return DebianSysvService("ntp", api)
+    if name == 'globalcatalog':
+        return redhat_services.RedHatGCService('globalcatalog', api)
     return DebianService(name, api)
 
 

@@ -73,6 +73,7 @@ redhat_system_units['ods_enforcerd'] = redhat_system_units['ods-enforcerd']
 redhat_system_units['ods-signerd'] = 'ods-signerd.service'
 redhat_system_units['ods_signerd'] = redhat_system_units['ods-signerd']
 redhat_system_units['gssproxy'] = 'gssproxy.service'
+redhat_system_units['globalcatalog'] = 'dirsrv@GLOBAL-CATALOG.service'
 
 
 # Service classes that implement Red Hat OS family-specific behaviour
@@ -157,6 +158,46 @@ class RedHatDirectoryService(RedHatService):
             yield wait
 
 
+class RedHatGCService(RedHatDirectoryService):
+    def _update_instance_name(self, args, kwargs):
+        """ Force the instance_name if not specified """
+        if len(args) == 0:
+            if 'instance_name' not in kwargs:
+                kwargs['instance_name'] = 'GLOBAL-CATALOG'
+
+    def start(self, *args, **kwargs):
+        self._update_instance_name(args, kwargs)
+        super(RedHatGCService, self).start(*args, **kwargs)
+
+    def stop(self, *args, **kwargs):
+        self._update_instance_name(args, kwargs)
+        super(RedHatGCService, self).stop(*args, **kwargs)
+
+    def reload_or_restart(self, *args, **kwargs):
+        self._update_instance_name(args, kwargs)
+        super(RedHatGCService, self).reload_or_restart(*args, **kwargs)
+
+    def restart(self, *args, **kwargs):
+        self._update_instance_name(args, kwargs)
+        super(RedHatGCService, self).restart(*args, **kwargs)
+
+    def enable(self, *args, **kwargs):
+        self._update_instance_name(args, kwargs)
+        super(RedHatGCService, self).enable(*args, **kwargs)
+
+    def disable(self, *args, **kwargs):
+        self._update_instance_name(args, kwargs)
+        super(RedHatGCService, self).disable(*args, **kwargs)
+
+    def is_running(self, *args, **kwargs):
+        self._update_instance_name(args, kwargs)
+        return super(RedHatGCService, self).is_running(*args, **kwargs)
+
+    def is_enabled(self, *args, **kwargs):
+        self._update_instance_name(args, kwargs)
+        return super(RedHatGCService, self).is_enabled(*args, **kwargs)
+
+
 class RedHatIPAService(RedHatService):
     # Enforce restart of IPA services when we do enable it
     # This gets around the fact that after ipa-server-install systemd thinks
@@ -214,6 +255,8 @@ def redhat_service_class_factory(name, api=None):
         return RedHatIPAService(name, api)
     if name in ('pki-tomcatd', 'pki_tomcatd'):
         return RedHatCAService(name, api)
+    if name == 'globalcatalog':
+        return RedHatGCService('globalcatalog', api)
     return RedHatService(name, api)
 
 
