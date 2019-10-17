@@ -564,6 +564,13 @@ AC_CONFIG_FILES([
     install/restart_scripts/Makefile
     install/wsgi/Makefile
     install/oddjob/Makefile
+    install/gc/Makefile
+    install/gc/share/Makefile
+    install/gc/share/base/Makefile
+    install/gc/share/schema.d/Makefile
+    install/gc/share/updates/Makefile
+    install/gc/tools/Makefile
+    install/gc/AD/Makefile
     ipaclient/Makefile
     ipalib/Makefile
     ipaplatform/Makefile

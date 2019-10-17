@@ -1235,6 +1235,9 @@ fi
 %license COPYING
 %{_sbindir}/ipa-adtrust-install
 %{_usr}/share/ipa/smb.conf.empty
+# We need the whole subtree in both cases below
+%{_usr}/share/ipa/gc
+%{_libexecdir}/ipa/gc
 %attr(755,root,root) %{_libdir}/samba/pdb/ipasam.so
 %{_mandir}/man1/ipa-adtrust-install.1*
 %ghost %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
