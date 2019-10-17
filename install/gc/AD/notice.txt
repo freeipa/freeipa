@@ -1,0 +1,40 @@
+# The following notice accompanies Classes and Attributes in the Active
+# Directory schema for Windows Server as provided for download by
+# https://www.microsoft.com/en-us/download/details.aspx?id=23782
+#
+# Intellectual Property Rights Notice for Open Specifications Documentation
+#
+# - Technical Documentation. Microsoft publishes Open Specifications
+#   documentation for protocols, file formats, languages, standards as well as
+#   overviews of the interaction among each of these technologies.
+# - No Trade Secrets. Microsoft does not claim any trade secret rights in this
+#   documentation.
+# - Trademarks. The names of companies and products contained in this
+#   documentation may be covered by trademarks or similar intellectual property
+#   rights. This notice does not grant any licenses under those rights.
+# - Fictitious Names. The example companies, organizations, products, domain
+#   names, e-mail addresses, logos, people, places, and events depicted in this
+#   documentation are fictitious.  No association with any real company,
+#   organization, product, domain name, email address, logo, person, place, or
+#   event is intended or should be inferred.
+#
+# Reservation of Rights. All other rights are reserved, and this notice does
+# not grant any rights other than specifically described above, whether by
+# implication, estoppel, or otherwise.
+#
+# Tools. The Open Specifications do not require the use of Microsoft
+# programming tools or programming environments in order for you to develop an
+# implementation. If you have access to Microsoft programming tools and
+# environments you are free to take advantage of them. Certain Open
+# Specifications are intended for use in conjunction with publicly available
+# standard specifications and network programming art, and assumes that the
+# reader either is familiar with the aforementioned material or has immediate
+# access to it.
+#
+# The following class schema definitions were generated from the Windows Server
+# 2016 version of Active Directory Lightweight Directory Services (AD LDS).
+#
+# The following attribute schema definitions were generated from the Windows
+# Server 2016 version of Active Directory Lightweight Directory Services (AD
+# LDS).
+
