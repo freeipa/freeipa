@@ -1,0 +1,629 @@
+#!/usr/bin/python3 -I
+
+# create AD-compatible schema (as a string) from WSPP documentation
+#
+# based on minschema.py and minschema_wspp
+#
+# this is adopted version of the Samba's ms_schema.py which deals
+# with 389-ds schema format details
+#
+"""Generate schema LDIF from WSPP documentation."""
+
+import re
+import base64
+import textwrap
+from collections import deque
+
+bitFields = {}
+
+# ADTS: 2.2.9
+# bit positions as labeled in the docs
+bitFields["searchflags"] = {
+    "fATTINDEX": 31,  # IX
+    "fPDNTATTINDEX": 30,  # PI
+    "fANR": 29,  # AR
+    "fPRESERVEONDELETE": 28,  # PR
+    "fCOPY": 27,  # CP
+    "fTUPLEINDEX": 26,  # TP
+    "fSUBTREEATTINDEX": 25,  # ST
+    "fCONFIDENTIAL": 24,  # CF
+    "fNEVERVALUEAUDIT": 23,  # NV
+    "fRODCAttribute": 22,  # RO
+    # missing in ADTS but required by LDIF
+    "fRODCFilteredAttribute": 22,  # RO ?
+    "fCONFIDENTAIL": 24,  # typo
+    "fRODCFILTEREDATTRIBUTE": 22,  # case
+}
+
+# ADTS: 2.2.10
+bitFields["systemflags"] = {
+    "FLAG_ATTR_NOT_REPLICATED": 31,
+    "FLAG_CR_NTDS_NC": 31,  # NR
+    "FLAG_ATTR_REQ_PARTIAL_SET_MEMBER": 30,
+    "FLAG_CR_NTDS_DOMAIN": 30,  # PS
+    "FLAG_ATTR_IS_CONSTRUCTED": 29,
+    "FLAG_CR_NTDS_NOT_GC_REPLICATED": 29,  # CS
+    "FLAG_ATTR_IS_OPERATIONAL": 28,  # OP
+    "FLAG_SCHEMA_BASE_OBJECT": 27,  # BS
+    "FLAG_ATTR_IS_RDN": 26,  # RD
+    "FLAG_DISALLOW_MOVE_ON_DELETE": 6,  # DE
+    "FLAG_DOMAIN_DISALLOW_MOVE": 5,  # DM
+    "FLAG_DOMAIN_DISALLOW_RENAME": 4,  # DR
+    "FLAG_CONFIG_ALLOW_LIMITED_MOVE": 3,  # AL
+    "FLAG_CONFIG_ALLOW_MOVE": 2,  # AM
+    "FLAG_CONFIG_ALLOW_RENAME": 1,  # AR
+    "FLAG_DISALLOW_DELETE": 0,  # DD
+}
+
+# ADTS: 2.2.11
+bitFields["schemaflagsex"] = {"FLAG_ATTR_IS_CRITICAL": 31}
+
+# ADTS: 3.1.1.2.2.2
+oMObjectClassBER = {
+    "1.3.12.2.1011.28.0.702": base64.b64encode(b"\x2B\x0C\x02\x87\x73\x1C\x00\x85\x3E"),
+    "1.2.840.113556.1.1.1.12": base64.b64encode(
+        b"\x2A\x86\x48\x86\xF7\x14\x01\x01\x01\x0C"
+    ),
+    "2.6.6.1.2.5.11.29": base64.b64encode(b"\x56\x06\x01\x02\x05\x0B\x1D"),
+    "1.2.840.113556.1.1.1.11": base64.b64encode(
+        b"\x2A\x86\x48\x86\xF7\x14\x01\x01\x01\x0B"
+    ),
+    "1.3.12.2.1011.28.0.714": base64.b64encode(b"\x2B\x0C\x02\x87\x73\x1C\x00\x85\x4A"),
+    "1.3.12.2.1011.28.0.732": base64.b64encode(b"\x2B\x0C\x02\x87\x73\x1C\x00\x85\x5C"),
+    "1.2.840.113556.1.1.1.6": base64.b64encode(
+        b"\x2A\x86\x48\x86\xF7\x14\x01\x01\x01\x06"
+    ),
+}
+
+# separated by commas in docs, and must be broken up
+multivalued_attrs = set(
+    [
+        "auxiliaryclass",
+        "maycontain",
+        "mustcontain",
+        "posssuperiors",
+        "systemauxiliaryclass",
+        "systemmaycontain",
+        "systemmustcontain",
+        "systemposssuperiors",
+    ]
+)
+
+invert = lambda mydict: {v: k for k, v in list(mydict.items())}
+
+oMObjectClassBERinvert = invert(oMObjectClassBER)
+
+oMRules = {}
+
+oMRules["EQ"] = {
+    "2.5.5.8": "booleanMatch",
+    "2.5.5.9": "integerMatch",
+    "2.5.5.16": "integerMatch",
+    "2.5.5.14": "distinguishedNameMatch",
+    "1.3.12.2.1011.28.0.702": "octetStringMatch",
+    "1.2.840.113556.1.1.1.12": "distinguishedNameMatch",
+    "2.5.5.7": "caseIgnoreMatch",
+    "2.6.6.1.2.5.11.29": "octetStringMatch",
+    "1.2.840.113556.1.1.1.11": "octetStringMatch",
+    "2.5.5.13": "caseIgnoreMatch",
+    "2.5.5.10": "octetStringMatch",
+    "2.5.5.3": "caseExactIA5Match",
+    "2.5.5.5": "caseIgnoreIA5Match",
+    "2.5.5.15": "octetStringMatch",
+    "2.5.5.6": "numericStringMatch",
+    "2.5.5.2": "objectIdentifierMatch",
+    "2.5.5.17": "caseExactMatch",
+    "2.5.5.12": "caseIgnoreMatch",
+    "2.5.5.11": "generalizedTimeMatch",
+}
+
+oMRules["SYN"] = {
+    "2.5.5.8": "1.3.6.1.4.1.1466.115.121.1.7",
+    "2.5.5.9": "1.3.6.1.4.1.1466.115.121.1.27",
+    "2.5.5.16": "1.3.6.1.4.1.1466.115.121.1.27",
+    "2.5.5.14": "1.3.6.1.4.1.1466.115.121.1.12",
+    "1.3.12.2.1011.28.0.702": "1.3.6.1.4.1.1466.115.121.1.5",
+    "1.2.840.113556.1.1.1.12": "1.3.6.1.4.1.1466.115.121.1.12",
+    "2.5.5.7": "1.3.6.1.4.1.1466.115.121.1.15",
+    "2.6.6.1.2.5.11.29": "1.3.6.1.4.1.1466.115.121.1.12",
+    "1.2.840.113556.1.1.1.11": "1.3.6.1.4.1.1466.115.121.1.12",
+    "2.5.5.13": "1.3.6.1.4.1.1466.115.121.1.15",
+    "1.3.12.2.1011.28.0.732": "1.3.6.1.4.1.1466.115.121.1.15",
+    "2.5.5.10": "1.3.6.1.4.1.1466.115.121.1.5",
+    "1.2.840.11.3556.1.1.1.6": "1.3.6.1.4.1.1466.115.121.1.5",
+    "2.5.5.3": "1.3.6.1.4.1.1466.115.121.1.15",
+    "2.5.5.5": "1.3.6.1.4.1.1466.115.121.1.26",
+    "2.5.5.15": "1.3.6.1.4.1.1466.115.121.1.40",
+    "2.5.5.6": "1.3.6.1.4.1.1466.115.121.1.36",
+    "2.5.5.2": "1.3.6.1.4.1.1466.115.121.1.38",
+    "2.5.5.17": "1.3.6.1.4.1.1466.115.121.1.15",
+    "2.5.5.12": "1.3.6.1.4.1.1466.115.121.1.15",
+    "2.5.5.11": "1.3.6.1.4.1.1466.115.121.1.24",
+}
+
+oMRules["ORD"] = {
+    "2.5.5.9": "integerOrderingMatch",
+    "2.5.5.16": "integerOrderingMatch",
+    "1.3.12.2.1011.28.0.702": "octetStringOrderingMatch",
+    "2.5.5.7": "caseIgnoreOrderingMatch",
+    "2.6.6.1.2.5.11.29": "octetStringOrderingMatch",
+    "1.2.840.113556.1.1.1.11": "octetStringOrderingMatch",
+    "2.5.5.13": "caseIgnoreOrderingMatch",
+    "2.5.5.10": "octetStringOrderingMatch",
+    "2.5.5.15": "octetStringOrderingMatch",
+    "2.5.5.6": "numericStringOrderingMatch",
+    "2.5.5.17": "caseExactOrderingMatch",
+    "2.5.5.12": "caseIgnoreOrderingMatch",
+    "2.5.5.11": "generalizedTimeOrderingMatch",
+}
+
+oMRules["TYPE"] = {
+    "0": "STRUCTURAL",  # default type is structural. ADSC uses 0 for 'any'
+    "1": "STRUCTURAL",
+    "2": "ABSTRACT",
+    "3": "AUXILIARY",
+}
+
+FILTER_BY_NAME = 1
+FILTER_BY_OID = 2
+FILTER_FULL_CONFLICT = 3
+
+# Filtering of object classes and attributes
+# dict amends original object class definition
+# 2.16.840.1.113730.3.8.23.* is temporary taken from FreeIPA OID range
+filteredClasses = {
+    'top': {
+        'lDAPDisplayName': 'nsTop',
+        'adminDescription': 'NSTop',
+        'governsID': '2.16.840.1.113730.3.8.23.1.1',
+    },
+    'domain': FILTER_BY_OID,
+    'mailRecepient': FILTER_BY_OID,
+    'inetOrgPerson': {
+        'lDAPDisplayName': 'nsInetOrgPerson',
+        'governsID': '2.16.840.1.113730.3.8.23.1.2',
+    },
+    'nisMap': FILTER_BY_OID,
+    'rFC822LocalPart': FILTER_BY_OID,
+}
+
+filteredAttrs = {
+    # Conflicting attributes by name
+    'streetAddress': FILTER_BY_NAME,
+    'name': FILTER_BY_NAME,
+    'co': FILTER_BY_NAME,
+    'personalTitle': FILTER_BY_NAME,
+    'info': FILTER_BY_NAME,
+    'homePostalAddress': FILTER_BY_NAME,
+    'displayName': FILTER_BY_NAME,
+    'employeeNumber': FILTER_BY_NAME,
+    'employeeType': FILTER_BY_NAME,
+    'userSMIMECertificate': FILTER_BY_NAME,
+    'homeDirectory': FILTER_BY_NAME,
+#    'managedBy': FILTER_BY_NAME,
+    # Conflicting attributes by OID
+    'fRSDirectoryFilter': FILTER_BY_OID,
+    'fRSFileFilter': FILTER_BY_OID,
+    'fRSUpdateTimeout': FILTER_BY_OID,
+    'schemaUpdate': FILTER_BY_OID,
+    'defaultGroup': FILTER_BY_OID,
+    'thumbnailLogo': FILTER_BY_OID,
+    'thumbnailPhoto': FILTER_BY_OID,
+    'middleName': FILTER_BY_OID,
+    'unixHomeDirectory': FILTER_BY_OID,
+}
+
+def read_folded_line(f, buffer):
+    """ reads a line from an LDIF file, unfolding it"""
+    line = buffer
+
+    while True:
+        l = f.readline()
+
+        if l[:1] == " ":
+            # continued line
+
+            # cannot fold an empty line
+            assert line not in ("", "\n")
+
+            # Merge lines together
+            line = line + l.strip() + " "
+        else:
+            # non-continued line
+            if line == "":
+                line = l
+
+                if l == "":
+                    # eof, definitely won't be folded
+                    break
+            else:
+                # marks end of a folded line
+                # line contains the now unfolded line
+                # buffer contains the start of the next possibly folded line
+                buffer = l
+                break
+
+    return (line, buffer)
+
+
+def read_raw_entries(f):
+    """reads an LDIF entry, only unfolding lines"""
+
+    # will not match options after the attribute type
+    attr_type_re = re.compile("^([A-Za-z]+[A-Za-z0-9-]*):")
+
+    buffer = ""
+
+    while True:
+        entry = []
+
+        while True:
+            (l, buffer) = read_folded_line(f, buffer)
+
+            if l[:1] == "#":
+                continue
+
+            if l in ("\n", ""):
+                break
+
+            m = attr_type_re.match(l)
+
+            if m:
+                if l[-1:] == "\n":
+                    l = l[:-1]
+
+                entry.append(l)
+            else:
+                print("Invalid line: %s" % l, end=' ', file=sys.stderr)
+                sys.exit(1)
+
+        if len(entry):
+            yield entry
+
+        if l == "":
+            break
+
+
+def fix_dn(dn):
+    """fix a string DN to use ${SCHEMADN}"""
+
+    # folding?
+    if dn.find("<RootDomainDN>") != -1:
+        dn = dn.replace("\n ", "")
+        dn = dn.replace(" ", "")
+        return dn.replace("CN=Schema,CN=Configuration,<RootDomainDN>", "${SCHEMADN}")
+    else:
+        return dn
+
+
+def convert_bitfield(key, value):
+    """Evaluate the OR expression in 'value'"""
+    assert isinstance(value, str)
+
+    value = value.replace("\n ", "")
+    value = value.replace(" ", "")
+
+    try:
+        # some attributes already have numeric values
+        o = int(value)
+    except ValueError:
+        o = 0
+        flags = value.split("|")
+        for f in flags:
+            bitpos = bitFields[key][f]
+            o = o | (1 << (31 - bitpos))
+
+    return str(o)
+
+
+def tab(s):
+    return s + "    "
+
+
+def format_text(text, ident):
+    return textwrap.fill(
+        textwrap.dedent(text).strip().replace("'", ""),
+        width=65,
+        initial_indent="",
+        subsequent_indent=ident,
+        break_on_hyphens=False,
+        break_long_words=False,
+    )
+
+def convert_attribute(entry):
+    e = dict(entry)
+    e["EQ"] = oMRules["EQ"].get(e["attributeSyntax"], None)
+    e["ORD"] = oMRules["ORD"].get(e["attributeSyntax"], None)
+
+    e["SYN"] = oMRules["SYN"].get(
+        e["attributeSyntax"], "1.3.6.1.4.1.1466.115.121.1.26"
+    )
+    return e
+
+def write_attr_one(entry):
+    """Generate definition of the attribute based on the LDIF-like schema"""
+    template = (
+        "attributeTypes: ("
+        + "{attributeID} "
+        + tab("NAME '{lDAPDisplayName}'\n")
+        + tab("DESC '{adminDescription}'\n")
+        + tab("EQUALITY {EQ}\n")
+        + tab("ORDERING {ORD}\n")
+        + "{MultiValue}"
+        + tab("SYNTAX {SYN}\n")
+        + "X-ORIGIN 'MS-WSPP')"
+    )
+
+    e = dict(entry)
+
+    if e["lDAPDisplayName"] in filteredAttrs:
+        attr_type = filteredAttrs[e["lDAPDisplayName"]]
+        if isinstance(attr_type, dict):
+            apply_filter(e, attr_type)
+        else:
+            return ""
+
+    if not e["EQ"]:
+        template = template.replace(tab("EQUALITY {EQ}\n"), "")
+
+    if not e["ORD"]:
+        template = template.replace(tab("ORDERING {ORD}\n"), "")
+
+    e["MultiValue"] = ""
+    if e["isSingleValued"] == "TRUE":
+        e["MultiValue"] = tab("SINGLE-VALUE\n")
+
+    e["adminDescription"] = format_text(e.get("adminDescription", ""), tab(tab("  ")))
+    return template.format(**e)
+
+
+def convert_class(entry):
+    e = dict(entry)
+    e["MustContain"] = []
+    e["MayContain"] = []
+
+    e["ClassType"] = oMRules["TYPE"][e["objectClassCategory"]]
+
+    tolist = lambda s: [s] if isinstance(s, str) else s
+
+    lst = []
+    if "mayContain" in e:
+        lst = tolist(e["mayContain"])
+    if "systemMayContain" in e:
+        lst += tolist(e["systemMayContain"])
+
+    if len(lst) > 0:
+        e["MayContain"] = lst
+
+    lst = []
+    if "mustContain" in e:
+        lst = tolist(e["mustContain"])
+    if "systemMustContain" in e:
+        lst += tolist(e["systemMustContain"])
+    if len(lst) > 0:
+        e["MustContain"] = lst
+
+    return e
+
+
+def apply_filter(entry, entry_filter):
+    for attr in entry_filter:
+        entry[attr] = entry_filter[attr]
+
+def write_class_one(entry):
+    """Generate definition of the class based on the LDIF-like schema"""
+    template = (
+        "objectClasses: ("
+        "{governsID} "
+        + tab("NAME '{lDAPDisplayName}'\n")
+        + tab("DESC '{adminDescription}'\n")
+        + "{hasSUP}"
+        + tab("{ClassType}\n")
+        + "{FinalMustList}"
+        + "{FinalMayList}"
+        + "X-ORIGIN 'MS-WSPP')"
+    )
+    e = dict(entry)
+
+    e["hasSUP"] = ""
+
+    if "subClassOf" in e:
+        if (
+            e["lDAPDisplayName"] != e["subClassOf"]
+        ):  # Specific case of 'top' object class
+            subclass = e['subClassOf']
+            if (subclass in filteredClasses and
+                isinstance(filteredClasses[subclass], dict)):
+                    subclass = filteredClasses[subclass]['lDAPDisplayName']
+            e["hasSUP"] = tab("SUP {value}\n".format(value=subclass))
+
+    if e["lDAPDisplayName"] in filteredClasses:
+        class_type = filteredClasses[e["lDAPDisplayName"]]
+        if isinstance(class_type, dict):
+            apply_filter(e, class_type)
+        else:
+            return ""
+
+
+    tolist = lambda s: s if isinstance(s, str) else " $ ".join(s)
+
+    mustContain = e.get("MustContain")
+    if mustContain:
+        e["FinalMustList"] = tab("MUST ( {value} )\n".format(
+            value=format_text(tolist(mustContain), tab(tab("  ")))))
+    else:
+        e['FinalMustList'] = ""
+
+    mayContain = e.get("MayContain")
+    if mayContain:
+        e["FinalMayList"] = tab("MAY ( {value} )\n".format(
+            value=format_text(tolist(mayContain), tab(tab("  ")))))
+    else:
+        e['FinalMayList'] = ""
+
+    e["adminDescription"] = format_text(e.get("adminDescription", ""), tab(tab("  ")))
+    return template.format(**e)
+
+
+def transform_entry(entry, objectClass):
+    """Perform transformations required to convert the LDIF-like schema
+       file entries to LDIF, including Samba-specific stuff."""
+
+    entry = [l.split(":", 1) for l in entry]
+
+    cn = ""
+
+    for l in entry:
+        key = l[0].lower()
+        l[1] = l[1].lstrip()
+        l[1] = l[1].rstrip()
+
+        if not cn and key == "cn":
+            cn = l[1]
+
+        if key in multivalued_attrs:
+            # unlike LDIF, these are comma-separated
+            l[1] = l[1].replace("\n ", "")
+            l[1] = l[1].replace(" ", "")
+
+            l[1] = l[1].split(",")
+
+        if key in bitFields:
+            l[1] = convert_bitfield(key, l[1])
+
+        if key == "omobjectclass":
+            if l[1][0] == ":":
+                l[1] = l[1][2:]
+            tag = l[1].strip()
+            cl = oMObjectClassBERinvert.get(tag, None) or oMObjectClassBER.get(
+                tag, None
+            )
+            l[1] = cl
+
+        if isinstance(l[1], str):
+            l[1] = fix_dn(l[1])
+
+    assert cn
+
+    return entry
+
+
+def parse_schema_file(filename, objectClass,
+                        convertor=None):
+    """Load and transform a schema file."""
+
+    out = []
+
+    f = open(filename, encoding='latin-1')
+    for entry in read_raw_entries(f):
+        lst = transform_entry(entry, objectClass)
+        e = {}
+        t = {}
+        for k, v in lst:
+            if isinstance(v, list):
+                v = v[0]
+            e.setdefault(k, []).append(v)
+        for k, v in e.items():
+            if len(v) == 1:
+                t[k] = v[0]
+            else:
+                t[k] = v
+        if convertor:
+            t = convertor(t)
+        out.append(t)
+
+    return out
+
+GRAY, BLACK = 0, 1
+
+# Topological sort copyright (c) 2014 Alexey Kachayev
+# Provided under The MIT License (MIT)
+
+def topological(graph):
+    order, enter, state = deque(), list(set(graph)), {}
+    enter.sort()
+
+    def dfs(node):
+        state[node] = GRAY
+        for k in graph.get(node, ()):
+            sk = state.get(k, None)
+            if sk == GRAY: raise ValueError("cycle: " + k)
+            if sk == BLACK: continue
+
+            enter.remove(k)
+            dfs(k)
+        order.appendleft(node)
+        state[node] = BLACK
+
+    while enter: dfs(enter.pop())
+    return order
+
+def build_dict(seq, key):
+    return dict((d[key], dict(d, index=index)) for (index, d) in enumerate(seq))
+
+def topological_sort(classes):
+    graph = {}
+    for c in classes:
+        classname = c['lDAPDisplayName']
+        subclasses = c['subClassOf']
+        graph[classname] = [subclasses]
+    # Break known cycle with 'top'
+    graph['top'] = []
+    order = topological(graph)
+    new_classes = []
+    cdict = build_dict(classes, key='lDAPDisplayName')
+
+    for o in order:
+        new_classes.append(cdict[o])
+    new_classes.reverse()
+    return new_classes
+
+def read_ms_schema(
+    attr_file, classes_file,
+    dump_attributes=True, dump_classes=True, debug=False
+):
+    """Read WSPP documentation-derived schema files."""
+
+    attrs = []
+    attrs_ldif = ""
+
+    classes = []
+    classes_ldif = ""
+
+    if dump_attributes:
+        attrs = parse_schema_file(
+            attr_file, "attributeSchema", convertor=convert_attribute
+        )
+        for a in attrs:
+            attr_ldif = write_attr_one(a)
+            if attr_ldif:
+                attrs_ldif += attr_ldif + "\n"
+
+    if dump_classes:
+        classes = parse_schema_file(
+            classes_file, "classSchema", convertor=convert_class
+        )
+        classes = topological_sort(classes)
+        for c in classes:
+            class_ldif = write_class_one(c)
+            if class_ldif:
+                classes_ldif += class_ldif + "\n"
+
+
+    return attrs_ldif + classes_ldif
+
+
+if __name__ == "__main__":
+    import sys
+
+    try:
+        attr_file = sys.argv[1]
+        classes_file = sys.argv[2]
+    except IndexError:
+        print(
+            "Usage: %s attr-file.txt classes-file.txt" % (sys.argv[0]), file=sys.stderr
+        )
+        sys.exit(1)
+
+    print("dn: cn=schema")
+    print(read_ms_schema(attr_file, classes_file))
