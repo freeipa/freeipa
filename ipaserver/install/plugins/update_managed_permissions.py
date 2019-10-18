@@ -560,8 +560,7 @@ class update_managed_permissions(Updater):
             if current_aci != default_aci:
                 logger.debug('ACIs not compatible')
                 continue
-            else:
-                all_incompatible = False
+            all_incompatible = False
 
             if attrs_in_all_defaults is None:
                 attrs_in_all_defaults = set(default_attrs)

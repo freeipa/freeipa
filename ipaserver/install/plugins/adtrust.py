@@ -815,8 +815,7 @@ class update_host_cifs_keytabs(Updater):
                         self.copy_key(paths.SAMBA_KEYTAB, hostkey)
                         copied = True
                         break
-                    else:
-                        uptodate = True
+                    uptodate = True
             if not (copied or uptodate):
                 self.copy_key(paths.SAMBA_KEYTAB, hostkey)
 
