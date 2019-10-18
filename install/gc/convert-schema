@@ -58,6 +58,8 @@ bitFields["systemflags"] = {
 # ADTS: 2.2.11
 bitFields["schemaflagsex"] = {"FLAG_ATTR_IS_CRITICAL": 31}
 
+REPLICATED_OR_CONSTRUCTED = ((1 << 30) | (1 << 29))
+
 # ADTS: 3.1.1.2.2.2
 oMObjectClassBER = {
     "1.3.12.2.1011.28.0.702": base64.b64encode(b"\x2B\x0C\x02\x87\x73\x1C\x00\x85\x3E"),
@@ -170,25 +172,83 @@ FILTER_FULL_CONFLICT = 3
 
 # Filtering of object classes and attributes
 # dict amends original object class definition
-# 2.16.840.1.113730.3.8.23.* is temporary taken from FreeIPA OID range
+# 2.16.840.1.113730.3.8.23.* are taken temporarily from FreeIPA OID range
 filteredClasses = {
     'top': {
-        'lDAPDisplayName': 'nsTop',
-        'adminDescription': 'NSTop',
+        'lDAPDisplayName': 'ad-top',
+        'adminDescription': 'ad-top',
         'governsID': '2.16.840.1.113730.3.8.23.1.1',
     },
-    'domain': FILTER_BY_OID,
-    'mailRecepient': FILTER_BY_OID,
     'inetOrgPerson': {
-        'lDAPDisplayName': 'nsInetOrgPerson',
+        'lDAPDisplayName': 'ad-inetOrgPerson',
         'governsID': '2.16.840.1.113730.3.8.23.1.2',
     },
+    'mailRecipient': {
+        'lDAPDisplayName': 'ad-mailRecipient',
+        'adminDescription': 'ad-mailReciipient',
+        'governsID': '2.16.840.1.113730.3.8.23.1.3',
+    },
+    'group': {
+        'lDAPDisplayName': 'ad-group',
+        'adminDescription': 'ad-group',
+        'governsID': '2.16.840.1.113730.3.8.23.1.4',
+    },
+    'organizationalPerson': {
+        'lDAPDisplayName': 'ad-organizationalPerson',
+        'adminDescription': 'ad-organizationalPerson',
+        'governsID': '2.16.840.1.113730.3.8.23.1.5',
+    },
+    'certificationAuthority': {
+        'lDAPDisplayName': 'ad-certificationAuthority',
+        'adminDescription': 'ad-certificationAuthority',
+        'governsID': '2.16.840.1.113730.3.8.23.1.6',
+    },
+    'cRLDistributionPoint': {
+        'lDAPDisplayName': 'ad-crlDistributionPoint',
+        'adminDescription': 'ad-crlDistributionPoint',
+        'governsID': '2.16.840.1.113730.3.8.23.1.7',
+    },
+    'domain': FILTER_BY_OID,
     'nisMap': FILTER_BY_OID,
     'rFC822LocalPart': FILTER_BY_OID,
+    'person': FILTER_BY_NAME,
+    'subSchema': FILTER_BY_NAME,
+    'simpleSecurityObject': FILTER_BY_NAME,
+    'shadowAccount': FILTER_BY_NAME,
+    'room': FILTER_BY_NAME,
+    'posixGroup': FILTER_BY_NAME,
+    'posixAccount': FILTER_BY_NAME,
+    'locality': FILTER_BY_NAME,
+    'organizationalUnit': FILTER_BY_NAME,
+    'organizationalRole': FILTER_BY_NAME,
+    'organization': FILTER_BY_NAME,
+    'oncRpc': FILTER_BY_NAME,
+    'nisObject': FILTER_BY_NAME,
+    'nisNetgroup': FILTER_BY_NAME,
+    'ipService': FILTER_BY_NAME,
+    'ipProtocol': FILTER_BY_NAME,
+    'ipNetwork': FILTER_BY_NAME,
+    'ipHost': FILTER_BY_NAME,
+    'ieee802Device': FILTER_BY_NAME,
+    'groupOfUniqueNames': FILTER_BY_NAME,
+    'groupOfNames': FILTER_BY_NAME,
+    'friendlyCountry': FILTER_BY_NAME,
+    'domainRelatedObject': FILTER_BY_NAME,
+    'documentSeries': FILTER_BY_NAME,
+    'document': FILTER_BY_NAME,
+    'device': FILTER_BY_NAME,
+    'bootableDevice': FILTER_BY_NAME,
+    'applicationProcess': FILTER_BY_NAME,
+    'account': FILTER_BY_NAME,
+    'country': FILTER_BY_NAME,
 }
 
 filteredAttrs = {
     # Conflicting attributes by name
+    'cn': FILTER_BY_NAME,
+    'dc': FILTER_BY_NAME,
+    'ou': FILTER_BY_NAME,
+    'o': FILTER_BY_NAME,
     'streetAddress': FILTER_BY_NAME,
     'name': FILTER_BY_NAME,
     'co': FILTER_BY_NAME,
@@ -200,7 +260,7 @@ filteredAttrs = {
     'employeeType': FILTER_BY_NAME,
     'userSMIMECertificate': FILTER_BY_NAME,
     'homeDirectory': FILTER_BY_NAME,
-#    'managedBy': FILTER_BY_NAME,
+    'managedBy': FILTER_BY_NAME,
     # Conflicting attributes by OID
     'fRSDirectoryFilter': FILTER_BY_OID,
     'fRSFileFilter': FILTER_BY_OID,
@@ -363,6 +423,10 @@ def write_attr_one(entry):
         else:
             return ""
 
+    # Ignore attributes which aren't replicated to GC
+    if not e.get('isMemberOfPartialAttributeSet'):
+        return ""
+
     if not e["EQ"]:
         template = template.replace(tab("EQUALITY {EQ}\n"), "")
 
@@ -410,7 +474,19 @@ def apply_filter(entry, entry_filter):
     for attr in entry_filter:
         entry[attr] = entry_filter[attr]
 
-def write_class_one(entry):
+
+def filterAttributes(attrs, attributes):
+    new_attrs = []
+    for attr in attrs:
+        if attr in attributes:
+            flags = int(attributes[attr].get('systemFlags', 0))
+            partial = attributes[attr].get('isMemberOfPartialAttributeSet', 'FALSE')
+            if (flags & REPLICATED_OR_CONSTRUCTED) or (partial == 'TRUE'):
+                new_attrs.append(attr)
+    return new_attrs
+
+
+def write_class_one(entry, attributes):
     """Generate definition of the class based on the LDIF-like schema"""
     template = (
         "objectClasses: ("
@@ -448,18 +524,20 @@ def write_class_one(entry):
     tolist = lambda s: s if isinstance(s, str) else " $ ".join(s)
 
     mustContain = e.get("MustContain")
+    e['FinalMustList'] = ""
     if mustContain:
-        e["FinalMustList"] = tab("MUST ( {value} )\n".format(
-            value=format_text(tolist(mustContain), tab(tab("  ")))))
-    else:
-        e['FinalMustList'] = ""
+        mustContain = filterAttributes(mustContain, attributes)
+        if mustContain:
+            e["FinalMustList"] = tab("MUST ( {value} )\n".format(
+                value=format_text(tolist(mustContain), tab(tab("  ")))))
 
     mayContain = e.get("MayContain")
+    e['FinalMayList'] = ""
     if mayContain:
-        e["FinalMayList"] = tab("MAY ( {value} )\n".format(
-            value=format_text(tolist(mayContain), tab(tab("  ")))))
-    else:
-        e['FinalMayList'] = ""
+        mayContain = filterAttributes(mayContain, attributes)
+        if mayContain:
+            e["FinalMayList"] = tab("MAY ( {value} )\n".format(
+                value=format_text(tolist(mayContain), tab(tab("  ")))))
 
     e["adminDescription"] = format_text(e.get("adminDescription", ""), tab(tab("  ")))
     return template.format(**e)
@@ -604,8 +682,9 @@ def read_ms_schema(
             classes_file, "classSchema", convertor=convert_class
         )
         classes = topological_sort(classes)
+        adict = build_dict(attrs, key='lDAPDisplayName')
         for c in classes:
-            class_ldif = write_class_one(c)
+            class_ldif = write_class_one(c, adict)
             if class_ldif:
                 classes_ldif += class_ldif + "\n"
 
