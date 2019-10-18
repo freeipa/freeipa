@@ -727,3 +727,56 @@ class TestIPACommand(IntegrationTest):
             ['ipa-adtrust-install', '-a', 'Secret123', '--add-sids', '-U'])
         res = self.master.run_command(['testparm', '-s'])
         assert 'ERROR' not in (res.stdout_text + res.stderr_text)
+
+    def test_sss_ssh_authorizedkeys(self):
+        """Login via Ssh using private-key for ipa-user should work.
+
+        Test for : https://pagure.io/SSSD/sssd/issue/3937
+        Steps:
+        1) setup user with ssh-key and certificate stored in ipaserver
+        2) simulate p11_child timeout
+        3) try to login via ssh using private key.
+        """
+        user = 'testsshuser'
+        passwd = 'Secret123'
+        user_key = tasks.create_temp_file(self.master, create_file=False)
+        pem_file = tasks.create_temp_file(self.master)
+        # Create a user with a password
+        tasks.create_active_user(self.master, user, passwd)
+        tasks.kinit_admin(self.master)
+        tasks.run_command_as_user(
+            self.master, user, ['ssh-keygen', '-N', '',
+                                '-f', user_key])
+        ssh_pub_key = self.master.get_file_contents('{}.pub'.format(
+            user_key), encoding='utf-8')
+        openssl_cmd = [
+            'openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-days', '365',
+            '-nodes', '-out', pem_file, '-subj', '/CN=' + user]
+        self.master.run_command(openssl_cmd)
+        cert_b64 = self.get_cert_base64(self.master, pem_file)
+        sssd_p11_child = '/usr/libexec/sssd/p11_child'
+        backup = tasks.FileBackup(self.master, sssd_p11_child)
+        try:
+            content = '#!/bin/bash\nsleep 999999'
+            # added sleep to simulate the timeout for p11_child
+            self.master.put_file_contents(sssd_p11_child, content)
+            self.master.run_command(
+                ['ipa', 'user-mod', user, '--ssh', ssh_pub_key])
+            self.master.run_command([
+                'ipa', 'user-add-cert', user, '--certificate', cert_b64])
+            # clear cache to avoid SSSD to check the user in old lookup
+            tasks.clear_sssd_cache(self.master)
+            result = self.master.run_command(
+                [paths.SSS_SSH_AUTHORIZEDKEYS, user])
+            assert ssh_pub_key in result.stdout_text
+            # login to the system
+            self.master.run_command(
+                ['ssh', '-o', 'PasswordAuthentication=no',
+                 '-o', 'IdentitiesOnly=yes', '-o', 'StrictHostKeyChecking=no',
+                 '-l', user, '-i', user_key, self.master.hostname, 'true'])
+        finally:
+            # cleanup
+            self.master.run_command(['ipa', 'user-del', user])
+            backup.restore()
+            self.master.run_command(['rm', '-f', pem_file, user_key,
+                                     '{}.pub'.format(user_key)])
