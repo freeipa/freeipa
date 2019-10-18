@@ -130,11 +130,11 @@ class CALessBase(IntegrationTest):
         cls.cert_password = cls.master.config.admin_password
         cls.crl_path = os.path.join(cls.master.config.test_dir, 'crl')
 
-        if cls.replicas:
+        if cls.replicas:  # pylint: disable=using-constant-test
             replica_hostname = cls.replicas[0].hostname
         else:
             replica_hostname = 'unused-replica.test'
-        if cls.clients:
+        if cls.clients:  # pylint: disable=using-constant-test
             client_hostname = cls.clients[0].hostname
         else:
             client_hostname = 'unused-client.test'
