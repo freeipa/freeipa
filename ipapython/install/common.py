@@ -35,12 +35,12 @@ class Installable(core.Configurable):
 
     def _get_components(self):
         components = super(Installable, self)._get_components()
-        if self.uninstalling:
+        if self.uninstalling:  # pylint: disable=using-constant-test
             components = reversed(list(components))
         return components
 
     def _configure(self):
-        if self.uninstalling:
+        if self.uninstalling:  # pylint: disable=using-constant-test
             return self._uninstall()
         else:
             return self._install()
