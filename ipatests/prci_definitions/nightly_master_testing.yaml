@@ -1452,7 +1452,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_sssd.py
         template: *testing-master-f30
-        timeout: 3600
+        timeout: 4800
         topology: *ad_master
 
   fedora-30/test_ca_custom_sdn:
