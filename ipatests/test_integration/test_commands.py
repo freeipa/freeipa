@@ -603,3 +603,23 @@ class TestIPACommand(IntegrationTest):
             # reset
             entry['ipaConfigString'] = orig_cfg
             conn.update_entry(entry)  # pylint: disable=no-member
+
+    def test_enabled_tls_protocols(self):
+        """Check that only TLS 1.2 is enabled in Apache.
+
+        This is the regression test for issue
+        https://pagure.io/freeipa/issue/7995.
+        """
+        def is_tls_version_enabled(tls_version):
+            res = self.master.run_command(
+                ['openssl', 's_client',
+                 '-connect', '{}:443'.format(self.master.hostname),
+                 '-{}'.format(tls_version)],
+                stdin_text='\n',
+                ok_returncode=[0, 1]
+            )
+            return res.returncode == 0
+
+        assert not is_tls_version_enabled('tls1')
+        assert not is_tls_version_enabled('tls1_1')
+        assert is_tls_version_enabled('tls1_2')
