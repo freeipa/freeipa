@@ -39,9 +39,9 @@ def ipatestdir(testdir):
     "nslices,nslices_d,groups",
     [(2, 0, [[x for x in range(MODS_NUM) if x % 2 == 0],
              [x for x in range(MODS_NUM) if x % 2 != 0]]),
-     (2, 1, [[0], [x for x in range(1, MODS_NUM)]]),
-     (1, 0, [[x for x in range(MODS_NUM)]]),
-     (1, 1, [[x for x in range(MODS_NUM)]]),
+     (2, 1, [[0], list(range(1, MODS_NUM))]),
+     (1, 0, [list(range(MODS_NUM))]),
+     (1, 1, [list(range(MODS_NUM))]),
      (MODS_NUM, MODS_NUM, [[x] for x in range(MODS_NUM)]),
      ])
 def test_slicing(ipatestdir, nslices, nslices_d, groups):

@@ -105,7 +105,7 @@ class selfservice(Object):
             (a, getattr(self, a)) for a in json_friendly_attributes
         )
         json_dict['primary_key'] = self.primary_key.name
-        json_dict['methods'] = [m for m in self.methods]
+        json_dict['methods'] = list(self.methods)
         return json_dict
 
     def postprocess_result(self, result):

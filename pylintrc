@@ -101,6 +101,7 @@ disable=
     keyword-arg-before-vararg,  # pylint 2.0, remove after dropping Python 2
     consider-using-enumerate,  # pylint 2.1, clean up tests later
     no-else-raise, # python 2.4.0
+    import-outside-toplevel, # pylint 2.4.2
 
 [REPORTS]
 
