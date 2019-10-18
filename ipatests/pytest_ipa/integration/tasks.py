@@ -1843,9 +1843,11 @@ def ldapsearch_dm(host, base, ldap_args, scope='sub', **kwargs):
     return host.run_command(args, **kwargs)
 
 
-def create_temp_file(host, directory=None):
+def create_temp_file(host, directory=None, create_file=True):
     """Creates temproray file using mktemp."""
     cmd = ['mktemp']
+    if create_file is False:
+        cmd += ['--dry-run']
     if directory is not None:
         cmd += ['-p', directory]
     return host.run_command(cmd).stdout_text.strip()
