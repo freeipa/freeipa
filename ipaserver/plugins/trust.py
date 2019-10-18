@@ -363,8 +363,7 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
             if info_list:
                 info = info_list[0]
                 break
-            else:
-                sleep(2)
+            sleep(2)
 
         required_msSFU_attrs = ['msSFU30MaxUidNumber', 'msSFU30OrderNumber']
 
