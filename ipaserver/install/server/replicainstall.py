@@ -495,7 +495,7 @@ def promote_openldap_conf(hostname, master):
         for opt in old_opts:
             if opt['type'] == 'comment' and master in opt['value']:
                 continue
-            elif (opt['type'] == 'option' and opt['name'] == 'URI' and
+            if (opt['type'] == 'option' and opt['name'] == 'URI' and
                     master in opt['value']):
                 continue
             new_opts.append(opt)
