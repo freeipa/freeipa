@@ -1346,7 +1346,7 @@ jobs:
         build_url: '{fedora-30/build_url}'
         test_suite: test_integration/test_sssd.py
         template: *ci-master-frawhide
-        timeout: 3600
+        timeout: 4800
         topology: *ad_master
 
   fedora-rawhide/test_ca_custom_sdn:
