@@ -750,3 +750,26 @@ class TestSudo(IntegrationTest):
         finally:
             self.master.run_command(
                 ['ipa', 'config-mod', '--domain-resolution-order='])
+
+    def test_sudooption_not_failing(self):
+        """Check there is no false error message when adding option to sudorule
+
+        Regression test for https://pagure.io/freeipa/issue/7649
+        """
+        rule_name = 'sudooption_rule'
+        try:
+            self.master.run_command(['ipa', 'sudorule-add', rule_name])
+            self.master.run_command(['ipa', 'sudorule-add-host', '--hosts',
+                                     self.master.hostname, rule_name])
+            self.master.run_command(['ipa', 'sudorule-add-user',
+                                     '--groups=admins', rule_name])
+            res = self.master.run_command([
+                'ipa', 'sudorule-add-option', '--sudooption=!authenticate',
+                rule_name])
+            assert 'Rule name: {}'.format(rule_name) in res.stdout_text
+            assert 'Sudo Option: !authenticate' in res.stdout_text
+            assert not res.stderr_text
+            assert 'Failed' not in res.stdout_text
+        finally:
+            self.master.run_command(['ipa', 'sudorule-del', rule_name],
+                                    raiseonerr=False)
