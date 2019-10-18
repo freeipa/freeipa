@@ -495,7 +495,7 @@ class config_mod(LDAPUpdate):
                               for field in entry_attrs[k].split(',')]
                 # test if all base types (without sub-types) are allowed
                 for a in attributes:
-                    a, _dummy, _dummy = a.partition(';')
+                    a, _unused1, _unused2 = a.partition(';')
                     if a not in allowed_attrs:
                         raise errors.ValidationError(
                             name=k, error=_('attribute "%s" not allowed') % a
@@ -527,7 +527,7 @@ class config_mod(LDAPUpdate):
                 if self.api.Object[obj].uuid_attribute:
                     checked_attrs = checked_attrs + [self.api.Object[obj].uuid_attribute]
                 for obj_attr in checked_attrs:
-                    obj_attr, _dummy, _dummy = obj_attr.partition(';')
+                    obj_attr, _unused1, _unused2 = obj_attr.partition(';')
                     if obj_attr in OPERATIONAL_ATTRIBUTES:
                         continue
                     if obj_attr in self.api.Object[obj].params and \

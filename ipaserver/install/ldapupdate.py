@@ -521,9 +521,8 @@ class LDAPUpdate:
                 if source_line.startswith(' '):
                     logical_line += source_line[1:]
                     continue
-                else:
-                    emit_item(logical_line)
-                    logical_line = source_line
+                emit_item(logical_line)
+                logical_line = source_line
 
         if dn is not None:
             emit_item(logical_line)

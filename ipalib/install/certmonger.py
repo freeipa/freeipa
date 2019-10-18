@@ -347,13 +347,13 @@ def request_and_wait_for_cert(
             # probably unrecoverable error
             logger.debug("Giving up on cert request %s", req_id)
             break
-        elif not resubmit_timeout:
+        if not resubmit_timeout:
             # no resubmit
             break
-        elif time.time() > deadline:
+        if time.time() > deadline:
             logger.debug("Request %s reached resubmit deadline", req_id)
             break
-        elif state == 'TIMEOUT':
+        if state == 'TIMEOUT':
             logger.debug("%s not in final state, continue waiting", req_id)
             time.sleep(10)
         else:

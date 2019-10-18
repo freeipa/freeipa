@@ -206,7 +206,7 @@ def certmap_user(request):
 
 def addcertmap_id(options):
     if options:
-        return u', '.join([k for k in options])
+        return u', '.join(list(options))
     else:
         return u' '
 
