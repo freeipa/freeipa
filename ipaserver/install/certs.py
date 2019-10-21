@@ -89,13 +89,6 @@ def install_key_from_p12(
     ipautil.run(args, umask=0o077)
 
 
-def export_pem_p12(pkcs12_fname, pkcs12_pwd_fname, nickname, pem_fname):
-    ipautil.run([paths.OPENSSL, "pkcs12",
-                 "-export", "-name", nickname,
-                 "-in", pem_fname, "-out", pkcs12_fname,
-                 "-passout", "file:" + pkcs12_pwd_fname])
-
-
 def pkcs12_to_certkeys(p12_fname, p12_passwd=None):
     """
     Deserializes pkcs12 file to python objects
