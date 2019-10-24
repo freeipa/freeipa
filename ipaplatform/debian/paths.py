@@ -109,6 +109,7 @@ class DebianPathNamespace(BasePathNamespace):
     IPA_ODS_EXPORTER_CCACHE = "/var/lib/opendnssec/tmp/ipa-ods-exporter.ccache"
     IPA_CUSTODIA_SOCKET = "/run/apache2/ipa-custodia.sock"
     IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
+    IPA_CUSTODIA_HANDLER = "/usr/lib/ipa/custodia"
     WSGI_PREFIX_DIR = "/run/apache2/wsgi"
 
 paths = DebianPathNamespace()
