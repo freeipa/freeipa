@@ -173,6 +173,9 @@ class PlatformService:
     def restart(self, instance_name="", capture_output=True, wait=True):
         pass
 
+    def try_restart(self, instance_name="", capture_output=True, wait=True):
+        pass
+
     def is_running(self, instance_name="", wait=True):
         return False
 
@@ -336,6 +339,10 @@ class SystemdService(PlatformService):
 
     def restart(self, instance_name="", capture_output=True, wait=True):
         self._restart_base(instance_name, "restart",
+                           capture_output, wait)
+
+    def try_restart(self, instance_name="", capture_output=True, wait=True):
+        self._restart_base(instance_name, "try-restart",
                            capture_output, wait)
 
     def is_running(self, instance_name="", wait=True):
