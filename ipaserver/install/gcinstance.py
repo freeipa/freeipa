@@ -11,6 +11,8 @@ import shutil
 import six
 import tempfile
 import time
+import uuid
+import base64
 
 from ipalib import api
 from ipalib import errors
@@ -44,6 +46,9 @@ from lib389 import DirSrv
 from lib389.idm.ipadomain import IpaDomain
 from lib389.instance.options import General2Base, Slapd2Base
 from lib389.instance.setup import SetupDs
+
+from samba.dcerpc.security import dom_sid
+from samba.ndr import ndr_pack, ndr_unpack, ndr_print
 
 logger = logging.getLogger(__name__)
 
@@ -270,6 +275,14 @@ class GCInstance(service.Service):
 
     def __setup_sub_dict(self):
         server_root = find_server_root()
+        trustconfig = api.Command.trustconfig_show()['result']
+        domainguid = base64.b64encode(
+            uuid.UUID(trustconfig['ipantdomainguid'][0]).bytes
+            ).decode('utf-8')
+        domainsid = base64.b64encode(ndr_pack(
+            dom_sid(trustconfig['ipantsecurityidentifier'][0]))
+            ).decode('utf-8')
+
         self.sub_dict = dict(
             FQDN=self.fqdn,
             SERVERID=self.serverid,
@@ -287,6 +300,9 @@ class GCInstance(service.Service):
             DOMAIN_LEVEL=self.domainlevel,
             MAX_DOMAIN_LEVEL=constants.MAX_DOMAIN_LEVEL,
             MIN_DOMAIN_LEVEL=constants.MIN_DOMAIN_LEVEL,
+            NAME=DN(self.suffix)[0].value,
+            DOMAINGUID=domainguid,
+            DOMAINSID=domainsid
         )
 
     def __create_instance(self):

@@ -1,0 +1,27 @@
+dn: $SUFFIX
+changetype: modify
+add: objectclass
+objectClass: ad-top
+objectClass: domainDNS
+objectClass: samDomainBase
+-
+add: instanceType
+instanceType: 5
+-
+add: name
+name: $NAME
+-
+add: objectCategory
+objectCategory: CN=Domain-DNS,CN=Schema,CN=Configuration,$SUFFIX
+-
+add: objectSid
+objectSid:: $DOMAINSID
+-
+add: objectGUID
+objectGUID:: $DOMAINGUID
+-
+add: nTSecurityDescriptor
+nTSecurityDescriptor: D:(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;DA)(A;;RPWPCRCCDCLCLOR
+ CWOWDSDDTSW;;;SY)(A;;RPLCLORC;;;AU)(OA;;WP;736e4812-af31-
+ 11d2-b7df-00805f48caeb;bf967ab8-0de6-11d0-a285-00aa003049
+ e2;CO)(A;;SD;;;CO)
