@@ -779,7 +779,16 @@ def configure_krb5_conf(
 def configure_certmonger(
         fstore, subject_base, cli_realm, hostname, options, ca_enabled):
 
+    cmonger = services.knownservices.certmonger
     if not options.request_cert:
+        # Conditionally restart certmonger to pick up the new IPA
+        # configuration.
+        try:
+            cmonger.try_restart()
+        except Exception as e:
+            logger.error(
+                "Failed to conditionally restart the %s daemon: %s",
+                cmonger.service_name, str(e))
         return
 
     if not ca_enabled:
@@ -794,7 +803,6 @@ def configure_certmonger(
         # which principal name to use when requesting certs.
         certmonger.add_principal_to_cas(principal)
 
-    cmonger = services.knownservices.certmonger
     try:
         cmonger.enable()
         cmonger.start()
