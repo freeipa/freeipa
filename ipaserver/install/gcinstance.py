@@ -141,6 +141,7 @@ class GCInstance(service.Service):
     def __common_setup(self):
         self.step("creating global catalog instance", self.__create_instance)
         self.step("configure autobind for root", self.__root_autobind)
+        self.step("Enable objectGUID generator", self.__add_objectguid_generator)
         self.step("stopping global catalog", self.__stop_instance)
         self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
         self.step("starting global catalog", self.__start_instance)
@@ -628,6 +629,11 @@ class GCInstance(service.Service):
 
     def __add_default_layout(self):
         self._ldap_mod("gc/base/00-ad-bootstrap-template.ldif", self.sub_dict,
+                       ldap_uri=self.ldap_uri)
+
+    def __add_objectguid_generator(self):
+        self._ldap_mod("uuid-conf.ldif", ldap_uri=self.ldap_uri)
+        self._ldap_mod("gc/base/objectguid.ldif", self.sub_dict,
                        ldap_uri=self.ldap_uri)
 
     def __enable_instance(self):

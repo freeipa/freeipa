@@ -1,0 +1,10 @@
+dn: cn=objectGUID Unique IDs,cn=IPA UUID,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: extensibleObject
+cn: objectGUID Unique IDs
+ipaUuidAttr: objectGUID
+ipaUuidMagicRegen: autogenerate
+ipaUuidFilter: (objectclass=ad-top)
+ipaUuidScope: $SUFFIX
+ipaUuidEncode: TRUE

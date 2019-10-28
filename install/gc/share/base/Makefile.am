@@ -12,6 +12,7 @@ dist_gcbase_DATA =                          \
         00-ad-bootstrap-template.ldif       \
 	00-ad-indices.ldif                  \
 	00-ad-schema-2016.ldif              \
+	objectguid.ldif                     \
 	$(NULL)
 
 .PHONY: $(SCHEMA_FILES)
