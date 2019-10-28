@@ -240,33 +240,36 @@ class GCInstance(service.Service):
 
         entry = self.conn.make_entry(
             DN(
-                ("cn", "Full Principal"),
+                ("cn", "Read-Only Full Principal"),
                 ("cn", "mapping"),
                 ("cn", "sasl"),
                 ("cn", "config"),
             ),
             objectclass=["top", "nsSaslMapping"],
-            cn=["Full Principal"],
+            cn=["Read-Only Full Principal"],
             nsSaslMapRegexString=[r'\(.*\)@\(.*\)'],
-            nsSaslMapBaseDNTemplate=[self.suffix],
-            nsSaslMapFilterTemplate=['(krbPrincipalName=\\1@\\2)'],
+            nsSaslMapBaseDNTemplate=[DN(('cn', 'configuration')) + self.suffix],
+            nsSaslMapFilterTemplate=['(uid=read-only-principal)'],
             nsSaslMapPriority=['10'],
         )
         self.conn.add_entry(entry)
 
         entry = self.conn.make_entry(
             DN(
-                ("cn", "Name Only"), ("cn", "mapping"), ("cn", "sasl"),
-                ("cn", "config")
+                ("cn", "Read-Only Name Only Principal"),
+                ("cn", "mapping"),
+                ("cn", "sasl"),
+                ("cn", "config"),
             ),
             objectclass=["top", "nsSaslMapping"],
-            cn=["Name Only"],
-            nsSaslMapRegexString=["^[^:@]+$"],
-            nsSaslMapBaseDNTemplate=[self.suffix],
-            nsSaslMapFilterTemplate=["(krbPrincipalName=&@%s)" % self.realm],
-            nsSaslMapPriority=["10"],
+            cn=["Read-Only Name Only Principal"],
+            nsSaslMapRegexString=[r'^[^:@]+$'],
+            nsSaslMapBaseDNTemplate=[DN(('cn', 'configuration')) + self.suffix],
+            nsSaslMapFilterTemplate=['(uid=read-only-principal)'],
+            nsSaslMapPriority=['10'],
         )
         self.conn.add_entry(entry)
+
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())

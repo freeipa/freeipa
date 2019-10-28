@@ -25,3 +25,71 @@ nTSecurityDescriptor: D:(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;DA)(A;;RPWPCRCCDCLCLOR
  CWOWDSDDTSW;;;SY)(A;;RPLCLORC;;;AU)(OA;;WP;736e4812-af31-
  11d2-b7df-00805f48caeb;bf967ab8-0de6-11d0-a285-00aa003049
  e2;CO)(A;;SD;;;CO)
+
+dn: cn=users,$SUFFIX
+changetype: add
+objectclass: top
+objectClass: ad-top
+objectClass: container
+cn: users
+instanceType: 4
+description: Default container for upgraded user accounts
+name: Users
+objectGUID: autogenerate
+objectCategory: CN=Container,CN=Schema,CN=Configuration,$SUFFIX
+nTSecurityDescriptor: D:(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;DA)(A;;RPWPCRCCDCLCLOR
+ CWOWDSDDTSW;;;SY)(A;;RPLCLORC;;;AU)(OA;;WP;736e4812-af31-
+ 11d2-b7df-00805f48caeb;bf967ab8-0de6-11d0-a285-00aa003049
+ e2;CO)(A;;SD;;;CO)
+
+dn: cn=computers,$SUFFIX
+changetype: add
+objectclass: top
+objectClass: ad-top
+objectClass: container
+cn: computers
+instanceType: 4
+description: Default container for upgraded user accounts
+name: Computers
+objectGUID: autogenerate
+objectCategory: CN=Container,CN=Schema,CN=Configuration,$SUFFIX
+nTSecurityDescriptor: D:(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;DA)(A;;RPWPCRCCDCLCLOR
+ CWOWDSDDTSW;;;SY)(A;;RPLCLORC;;;AU)(OA;;WP;736e4812-af31-
+ 11d2-b7df-00805f48caeb;bf967ab8-0de6-11d0-a285-00aa003049
+ e2;CO)(A;;SD;;;CO)
+
+dn: cn=configuration,$SUFFIX
+changetype: add
+objectClass: top
+objectclass: ad-top
+objectClass: configuration
+cn: configuration
+instanceType: 13
+name: Configuration
+objectGUID: autogenerate
+objectCategory: CN=Configuration,CN=Schema,CN=Configuration,$SUFFIX
+nTSecurityDescriptor: D:(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;DA)(A;;RPWPCRCCDCLCLOR
+ CWOWDSDDTSW;;;SY)(A;;RPLCLORC;;;AU)(OA;;WP;736e4812-af31-
+ 11d2-b7df-00805f48caeb;bf967ab8-0de6-11d0-a285-00aa003049
+ e2;CO)(A;;SD;;;CO)
+
+dn: cn=schema,cn=configuration,$SUFFIX
+changetype: add
+objectClass: top
+objectclass: ad-top
+objectClass: dMD
+cn: schema
+instanceType: 13
+name: Schema
+objectGUID: autogenerate
+objectCategory: CN=DMD,CN=Schema,CN=Configuration,$SUFFIX
+nTSecurityDescriptor: D:(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;DA)(A;;RPWPCRCCDCLCLOR
+ CWOWDSDDTSW;;;SY)(A;;RPLCLORC;;;AU)(OA;;WP;736e4812-af31-
+ 11d2-b7df-00805f48caeb;bf967ab8-0de6-11d0-a285-00aa003049
+ e2;CO)(A;;SD;;;CO)
+
+dn: uid=read-only-principal,cn=configuration,$SUFFIX
+changetype: add
+objectClass: account
+objectClass: top
+uid: read-only-principal
