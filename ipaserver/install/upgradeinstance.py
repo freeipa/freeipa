@@ -78,7 +78,7 @@ class IPAUpgrade(service.Service):
     listeners and updating over ldapi. This way we know the server is
     quiet.
     """
-    def __init__(self, realm_name, files=[], schema_files=[]):
+    def __init__(self, realm_name, files=[], schema_files=[], updates_dir=None):
         """
         realm_name: kerberos realm name, used to determine DS instance dir
         files: list of update files to process. If none use UPDATEDIR
@@ -97,6 +97,11 @@ class IPAUpgrade(service.Service):
         self.modified = False
         self.serverid = serverid
         self.schema_files = schema_files
+        self.updates_dir = updates_dir
+        if not self.updates_dir:
+            self.updates_dir = ldapupdate.UPDATES_DIR
+        if api.env.realm != self.realm:
+            self.realm = api.env.realm
 
     def __start(self):
         srv = services.service(self.service_name, api)
@@ -272,7 +277,7 @@ class IPAUpgrade(service.Service):
         try:
             ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True)
             if len(self.files) == 0:
-                self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
+                self.files = ld.get_all_files(self.updates_dir)
             self.modified = (ld.update(self.files) or self.modified)
         except ldapupdate.BadSyntax as e:
             logger.error('Bad syntax in upgrade %s', e)
