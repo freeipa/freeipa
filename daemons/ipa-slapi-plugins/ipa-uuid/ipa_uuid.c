@@ -44,10 +44,12 @@
 #include "prclist.h"
 #include "uuid/uuid.h"
 #include <pthread.h>
+#include <plbase64.h>
 
 #include "util.h"
 
 #define IPAUUID_STR_SIZE 36
+#define IPAUUID_BASE64_STR_SIZE ((16+2)/3*4)
 
 #define IPAUUID_PLUGIN_NAME "ipa-uuid-plugin"
 #define IPAUUID_PLUGIN_VERSION 0x00010000
@@ -66,6 +68,7 @@
 #define IPAUUID_SCOPE            "ipaUuidScope"
 #define IPAUUID_EXCLUDE_SUBTREE  "ipaUuidExcludeSubtree"
 #define IPAUUID_ENFORCE          "ipaUuidEnforce"
+#define IPAUUID_ENCODE           "ipaUuidEncode"
 
 #define IPAUUID_FEATURE_DESC      "IPA UUID"
 #define IPAUUID_PLUGIN_DESC       "IPA UUID plugin"
@@ -94,6 +97,7 @@ struct configEntry {
     char *scope;
     char *exclude_subtree;
     bool enforce;
+    bool encode;
 };
 
 static PRCList *ipauuid_global_config = NULL;
@@ -547,6 +551,16 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
     LOG_CONFIG("----------> %s [%s]\n",
                IPAUUID_ENFORCE, entry->enforce ? "True" : "False");
 
+    entry->encode = slapi_entry_attr_get_bool(e, IPAUUID_ENCODE);
+    LOG_CONFIG("----------> %s [%s]\n",
+               IPAUUID_ENCODE, entry->enforce ? "True" : "False");
+
+    if (entry->encode && entry->prefix) {
+        LOG_FATAL("The %s and %s are incompatible for %s.\n",
+                  IPAUUID_PREFIX, IPAUUID_ENCODE, entry->dn);
+        ret = EFAIL;
+        goto bail;
+    }
     /* If we were only called to validate config, we can
      * just bail out before applying the config changes */
     if (!apply) {
@@ -741,12 +755,17 @@ ipauuid_list_contains_attr(char **list, char *attr)
 
 /* this function must be passed a preallocated buffer of 37 characters in the
  * out parameter */
-static void ipauuid_generate_uuid(char *out)
+static void ipauuid_generate_uuid(char *out, bool encode)
 {
     uuid_t uu;
 
     uuid_generate_time(uu);
-    uuid_unparse_lower(uu, out);
+    if (!encode) {
+        uuid_unparse_lower(uu, out);
+    } else {
+        (void) PL_Base64Encode(uu, 16, out);
+        out[IPAUUID_BASE64_STR_SIZE] = '\0';
+    }
 }
 
 /* for mods and adds:
@@ -1088,7 +1107,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
                 ret = LDAP_OPERATIONS_ERROR;
                 goto done;
             }
-            ipauuid_generate_uuid(value);
+            ipauuid_generate_uuid(value, cfgentry->encode);
 
             if (cfgentry->prefix) {
                 new_value = slapi_ch_smprintf("%s%s",
