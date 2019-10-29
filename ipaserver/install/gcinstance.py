@@ -210,6 +210,7 @@ class GCInstance(service.Service):
         self.step("adding sasl mappings to the global catalog",
                   self.__configure_sasl_mappings)
         self.step("adding default layout", self.__add_default_layout)
+        self.step("adding default access controls", self.__add_default_aci)
         self.step("enabling global catalog", self.__enable_instance)
         self.__common_post_setup()
         self.step("configuring TLS for global catalog", self.__enable_ssl)
@@ -632,6 +633,10 @@ class GCInstance(service.Service):
 
     def __add_default_layout(self):
         self._ldap_mod("gc/base/00-ad-bootstrap-template.ldif", self.sub_dict,
+                       ldap_uri=self.ldap_uri)
+
+    def __add_default_aci(self):
+        self._ldap_mod("gc/base/default-aci.ldif", self.sub_dict,
                        ldap_uri=self.ldap_uri)
 
     def __add_objectguid_generator(self):

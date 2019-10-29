@@ -1,0 +1,11 @@
+dn: $SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "name || objectclass || cn || createtimestamp || description || objectguid || objectsid || objectcategory || instancetype || ntsecuritydescriptor")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Read Only base access";allow (compare,read,search) userdn = "ldap:///all";)
+
+dn: cn=users,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "useraccountcontrol || primarygroupid || samaccountname || samaccounttype || mail || sn || givenname || userprincipalname || displayname || msds-phoneticdisplayname")(version 3.0;acl "permission:System: Read Only account access";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "member || memberof || grouptype")(version 3.0;acl "permission:System: Read Only group membership access";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "uidnumber || gidnumber || homedirectory")(version 3.0;acl "permission:System: Read Only POSIX attributes access";allow (compare,read,search) userdn = "ldap:///all";)

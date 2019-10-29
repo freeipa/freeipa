@@ -13,6 +13,7 @@ dist_gcbase_DATA =                          \
 	00-ad-indices.ldif                  \
 	00-ad-schema-2016.ldif              \
 	objectguid.ldif                     \
+	default-aci.ldif                    \
 	$(NULL)
 
 .PHONY: $(SCHEMA_FILES)
