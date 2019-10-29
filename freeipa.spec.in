@@ -176,6 +176,7 @@ BuildRequires:  libunistring-devel
 # 0.13.0: https://bugzilla.redhat.com/show_bug.cgi?id=1584773
 # 0.13.0-2: fix for missing dependency on python-six
 BuildRequires:  python3-lesscpy >= 0.13.0-2
+BuildRequires:  web-assets-devel
 
 # ONLY_CLIENT
 %endif
@@ -333,6 +334,10 @@ Requires: oddjob
 # 0.7.0-2: https://pagure.io/gssproxy/pull-request/172
 Requires: gssproxy >= 0.7.0-2
 Requires: sssd-dbus >= %{sssd_version}
+
+# Dependencies for Web UI
+Requires: web-assets-httpd
+Requires: js-jquery2
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
