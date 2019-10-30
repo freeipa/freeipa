@@ -69,11 +69,11 @@ Valid values depend on the Kerberos library version and configuration.
 Common values are:
 aes256\-cts
 aes128\-cts
-des3\-hmac\-sha1
+aes256\-sha2
+aes128\-sha2
+camellia256\-cts\-cmac
+camellia128\-cts\-cmac
 arcfour\-hmac
-des\-hmac\-sha1
-des\-cbc\-md5
-des\-cbc\-crc
 .TP
 \fB\-s ipaserver\fR
 The IPA server to retrieve the keytab from (FQDN). If this option is not
@@ -88,11 +88,9 @@ This options returns a description of the permitted encryption types, like this:
 Supported encryption types:
 AES\-256 CTS mode with 96\-bit SHA\-1 HMAC
 AES\-128 CTS mode with 96\-bit SHA\-1 HMAC
-Triple DES cbc mode with HMAC/sha1
+AES\-128 CTS mode with 128\-bit SHA\-256 HMAC
+AES\-256 CTS mode with 192\-bit SHA\-384 HMAC
 ArcFour with HMAC/md5
-DES cbc mode with CRC\-32
-DES cbc mode with RSA\-MD5
-DES cbc mode with RSA\-MD4
 .TP
 \fB\-P, \-\-password\fR
 Use this password for the key instead of one randomly generated.
@@ -124,10 +122,10 @@ against a FreeIPA server more recent than version 3.3. The user requesting the
 keytab must have access to the keys for this operation to succeed.
 .SH "EXAMPLES"
 Add and retrieve a keytab for the NFS service principal on
-the host foo.example.com and save it in the file /tmp/nfs.keytab and retrieve just the des\-cbc\-crc key.
+the host foo.example.com and save it in the file /tmp/nfs.keytab and retrieve just the aes256\-sha2 key.
 
 .nf
-   # ipa\-getkeytab \-p nfs/foo.example.com \-k /tmp/nfs.keytab \-e des\-cbc\-crc
+   # ipa\-getkeytab \-p nfs/foo.example.com \-k /tmp/nfs.keytab \-e aes\-sha2
 .fi
 
 Add and retrieve a keytab for the ldap service principal on
