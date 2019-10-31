@@ -241,30 +241,14 @@ class GCInstance(service.Service):
 
         entry = self.conn.make_entry(
             DN(
-                ("cn", "Read-Only Full Principal"),
+                ("cn", "Read-Only Principal"),
                 ("cn", "mapping"),
                 ("cn", "sasl"),
                 ("cn", "config"),
             ),
             objectclass=["top", "nsSaslMapping"],
-            cn=["Read-Only Full Principal"],
-            nsSaslMapRegexString=[r'\(.*\)@\(.*\)'],
-            nsSaslMapBaseDNTemplate=[DN(('cn', 'configuration')) + self.suffix],
-            nsSaslMapFilterTemplate=['(uid=read-only-principal)'],
-            nsSaslMapPriority=['10'],
-        )
-        self.conn.add_entry(entry)
-
-        entry = self.conn.make_entry(
-            DN(
-                ("cn", "Read-Only Name Only Principal"),
-                ("cn", "mapping"),
-                ("cn", "sasl"),
-                ("cn", "config"),
-            ),
-            objectclass=["top", "nsSaslMapping"],
-            cn=["Read-Only Name Only Principal"],
-            nsSaslMapRegexString=[r'^[^:@]+$'],
+            cn=["Read-Only Principal"],
+            nsSaslMapRegexString=[r'^[^:]+$'],
             nsSaslMapBaseDNTemplate=[DN(('cn', 'configuration')) + self.suffix],
             nsSaslMapFilterTemplate=['(uid=read-only-principal)'],
             nsSaslMapPriority=['10'],
