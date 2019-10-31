@@ -1,7 +1,7 @@
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "name || objectclass || cn || createtimestamp || description || objectguid || objectsid || objectcategory || instancetype || ntsecuritydescriptor")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Read Only base access";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "name || objectclass || cn || createtimestamp || description || objectguid || objectsid || objectcategory || instancetype || ntsecuritydescriptor")(version 3.0;acl "permission:System: Read Only base access";allow (compare,read,search) userdn = "ldap:///all";)
 
 dn: cn=users,$SUFFIX
 changetype: modify
