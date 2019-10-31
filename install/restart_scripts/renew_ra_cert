@@ -27,8 +27,6 @@ import tempfile
 import shutil
 import traceback
 
-from cryptography.hazmat.primitives import serialization
-
 from ipalib.install.kinit import kinit_keytab
 from ipalib import api, x509
 from ipaserver.install import certs, cainstance
@@ -67,10 +65,8 @@ def _main():
                 )
                 sys.exit(1)
 
-            dercert = cert.public_bytes(serialization.Encoding.DER)
-
             # Load it into dogtag
-            cainstance.update_people_entry(dercert)
+            cainstance.update_people_entry(cert)
     finally:
         if api.Backend.ldap2.isconnected():
             api.Backend.ldap2.disconnect()
