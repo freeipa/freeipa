@@ -612,7 +612,7 @@ class BaseTestTrust(IntegrationTest):
             _ldap._tcp IN SRV 0 100 389 unreachable.{ad_dom}.
             _kerberos._udp IN SRV 0 100 88 unreachable.{ad_dom}.
             _kpasswd._udp IN SRV 0 100 464 unreachable.{ad_dom}.
-            ad1 IN A {ad_ip}
+            {ad_short} IN A {ad_ip}
             unreachable IN A {unreachable}
             DomainDnsZones IN A {ad_ip}
             _ldap._tcp.Default-First-Site-Name._sites.DomainDnsZones IN SRV 0 100 389 unreachable.{ad_dom}.
@@ -622,7 +622,8 @@ class BaseTestTrust(IntegrationTest):
             _ldap._tcp.ForestDnsZones IN SRV 0 100 389 unreachable.{ad_dom}.
         '''.format(  # noqa: E501
             ad_ip=self.ad.ip, unreachable='192.168.254.254',
-            ad_host=self.ad.hostname, ad_dom=self.ad.domain.name))
+            ad_host=self.ad.hostname, ad_dom=self.ad.domain.name,
+            ad_short=self.ad.shortname))
         ad_zone_file = tasks.create_temp_file(self.master, directory='/etc')
         self.master.put_file_contents(ad_zone_file, ad_zone)
         self.master.run_command(
