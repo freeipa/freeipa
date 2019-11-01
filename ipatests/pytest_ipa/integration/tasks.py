@@ -1745,7 +1745,7 @@ def create_temp_file(host, directory=None):
     cmd = ['mktemp']
     if directory is not None:
         cmd += ['-p', directory]
-    return host.run_command(cmd).stdout_text
+    return host.run_command(cmd).stdout_text.strip()
 
 
 def create_active_user(host, login, password, first='test', last='user'):
