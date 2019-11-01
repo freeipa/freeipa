@@ -18,6 +18,10 @@ krbSupportedEncSaltTypes: aes256-cts:normal
 krbSupportedEncSaltTypes: aes256-cts:special
 krbSupportedEncSaltTypes: aes128-cts:normal
 krbSupportedEncSaltTypes: aes128-cts:special
+krbSupportedEncSaltTypes: aes128-sha2:normal
+krbSupportedEncSaltTypes: aes128-sha2:special
+krbSupportedEncSaltTypes: aes256-sha2:normal
+krbSupportedEncSaltTypes: aes256-sha2:special
 ${FIPS}krbSupportedEncSaltTypes: camellia128-cts-cmac:normal
 ${FIPS}krbSupportedEncSaltTypes: camellia128-cts-cmac:special
 ${FIPS}krbSupportedEncSaltTypes: camellia256-cts-cmac:normal
