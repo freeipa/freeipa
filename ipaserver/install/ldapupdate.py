@@ -42,6 +42,7 @@ from ipalib import api, create_api
 from ipalib import constants
 from ipaplatform.constants import constants as platformconstants
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 from ipapython.dn import DN
 
 if six.PY3:
@@ -325,6 +326,8 @@ class LDAPUpdate:
         if not self.sub_dict.get("SELINUX_USERMAP_ORDER"):
             self.sub_dict["SELINUX_USERMAP_ORDER"] = \
                 platformconstants.SELINUX_USERMAP_ORDER
+        if "FIPS" not in self.sub_dict:
+            self.sub_dict["FIPS"] = '#' if tasks.is_fips_enabled() else ''
         self.api = create_api(mode=None)
         self.api.bootstrap(in_server=True,
                            context='updates',
