@@ -592,7 +592,7 @@ class TestIPACommand(IntegrationTest):
         assert 'User category: all' in lines
         assert 'Host category: all' in lines
         assert 'Enabled: TRUE' in lines
-        assert 'Services: systemd-user' in lines
+        assert 'HBAC Services: systemd-user' in lines
         assert 'accessruletype: allow' in lines
 
         # delete both
@@ -616,7 +616,7 @@ class TestIPACommand(IntegrationTest):
         assert 'User category: all' in lines
         assert 'Host category: all' in lines
         assert 'Enabled: TRUE' in lines
-        assert 'Services: systemd-user' in lines
+        assert 'HBAC Services: systemd-user' in lines
         assert 'accessruletype: allow' in lines
 
         self.master.run_command(
