@@ -371,6 +371,7 @@ class LDAPUpdate:
 
             * Strip leading & trailing whitespace
             * Substitute any variables
+            * Strip again and skip empty/commented lines after substitution
             * Get the action, attribute, and value
             * Each update has one list per disposition, append to specified disposition list
             '''
@@ -381,6 +382,12 @@ class LDAPUpdate:
 
             # Perform variable substitution on constructued line
             logical_line = self._template_str(logical_line)
+
+            # skip line if substitution has added a comment. FIPS mode
+            # disables some lines that way.
+            logical_line = logical_line.strip()
+            if not logical_line or logical_line.startswith('#'):
+                return
 
             items = logical_line.split(':', 2)
 
