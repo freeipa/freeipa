@@ -733,7 +733,11 @@ class UI_driver:
         disabled = btn.get_attribute("disabled")
         assert btn.is_displayed(), 'Button is not displayed: %s' % name
         assert not disabled, 'Invalid button state: disabled. Button: %s' % name
-        btn.click()
+        try:
+            btn.click()
+        except ElementClickInterceptedException:
+            self.close_notifications()
+            btn.click()
         self.wait_for_request()
 
     def move_to_element_in_page(self, element):
