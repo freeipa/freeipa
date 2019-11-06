@@ -58,6 +58,12 @@ EXAMPLES:
  Display a host group:
    ipa hostgroup-show baltimore
 
+ Add a member manager:
+   ipa hostgroup-add-member-manager --users=user1 baltimore
+
+ Remove a member manager
+   ipa hostgroup-remove-member-manager --users=user1 baltimore
+
  Delete a hostgroup:
    ipa hostgroup-del baltimore
 """)
@@ -75,6 +81,22 @@ register = Registry()
 PROTECTED_HOSTGROUPS = (u'ipaservers',)
 
 
+hostgroup_output_params = (
+    Str(
+        'membermanager_group',
+        label='Membership managed by groups',
+    ),
+    Str(
+        'membermanager_user',
+        label='Membership managed by users',
+    ),
+    Str(
+        'membermanager',
+        label=_('Failed membermanager'),
+    ),
+)
+
+
 @register()
 class hostgroup(LDAPObject):
     """
@@ -86,12 +108,14 @@ class hostgroup(LDAPObject):
     object_class = ['ipaobject', 'ipahostgroup']
     permission_filter_objectclasses = ['ipahostgroup']
     search_attributes = ['cn', 'description', 'member', 'memberof']
-    default_attributes = ['cn', 'description', 'member', 'memberof',
-        'memberindirect', 'memberofindirect',
+    default_attributes = [
+        'cn', 'description', 'member', 'memberof', 'memberindirect',
+        'memberofindirect', 'membermanager',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['host', 'hostgroup'],
+        'membermanager': ['user', 'group'],
         'memberof': ['hostgroup', 'netgroup', 'hbacrule', 'sudorule'],
         'memberindirect': ['host', 'hostgroup'],
         'memberofindirect': ['hostgroup', 'hbacrule', 'sudorule'],
@@ -103,7 +127,7 @@ class hostgroup(LDAPObject):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'businesscategory', 'cn', 'description', 'ipauniqueid', 'o',
-                'objectclass', 'ou', 'owner', 'seealso',
+                'objectclass', 'ou', 'owner', 'seealso', 'membermanager',
             },
         },
         'System: Read Hostgroup Membership': {
@@ -135,7 +159,7 @@ class hostgroup(LDAPObject):
         },
         'System: Modify Hostgroups': {
             'ipapermright': {'write'},
-            'ipapermdefaultattr': {'cn', 'description'},
+            'ipapermdefaultattr': {'cn', 'description', 'membermanager'},
             'replaces': [
                 '(targetattr = "cn || description")(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0; acl "permission:Modify Hostgroups";allow (write) groupdn = "ldap:///cn=Modify Hostgroups,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
@@ -194,6 +218,7 @@ class hostgroup(LDAPObject):
 class hostgroup_add(LDAPCreate):
     __doc__ = _('Add a new hostgroup.')
 
+    has_output_params = LDAPCreate.has_output_params + hostgroup_output_params
     msg_summary = _('Added hostgroup "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -248,6 +273,7 @@ class hostgroup_del(LDAPDelete):
 class hostgroup_mod(LDAPUpdate):
     __doc__ = _('Modify a hostgroup.')
 
+    has_output_params = LDAPUpdate.has_output_params + hostgroup_output_params
     msg_summary = _('Modified hostgroup "%(value)s"')
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -260,7 +286,8 @@ class hostgroup_mod(LDAPUpdate):
 class hostgroup_find(LDAPSearch):
     __doc__ = _('Search for hostgroups.')
 
-    member_attributes = ['member', 'memberof']
+    member_attributes = ['member', 'memberof', 'membermanager']
+    has_output_params = LDAPSearch.has_output_params + hostgroup_output_params
     msg_summary = ngettext(
         '%(count)d hostgroup matched', '%(count)d hostgroups matched', 0
     )
@@ -276,6 +303,10 @@ class hostgroup_find(LDAPSearch):
 @register()
 class hostgroup_show(LDAPRetrieve):
     __doc__ = _('Display information about a hostgroup.')
+
+    has_output_params = (
+        LDAPRetrieve.has_output_params + hostgroup_output_params
+    )
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
@@ -313,3 +344,23 @@ class hostgroup_remove_member(LDAPRemoveMember):
         assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return (completed, dn)
+
+
+@register()
+class hostgroup_add_member_manager(LDAPAddMember):
+    __doc__ = _('Add users that can manage members of this hostgroup.')
+
+    has_output_params = (
+        LDAPAddMember.has_output_params + hostgroup_output_params
+    )
+    member_attributes = ['membermanager']
+
+
+@register()
+class hostgroup_remove_member_manager(LDAPRemoveMember):
+    __doc__ = _('Remove users that can manage members of this hostgroup.')
+
+    has_output_params = (
+        LDAPRemoveMember.has_output_params + hostgroup_output_params
+    )
+    member_attributes = ['membermanager']

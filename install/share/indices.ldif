@@ -417,3 +417,12 @@ objectClass: top
 objectClass: nsIndex
 nsSystemIndex: false
 nsIndexType: eq
+
+dn: cn=memberManager,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: memberManager
+objectClass: top
+objectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres

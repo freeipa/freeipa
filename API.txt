@@ -1972,6 +1972,18 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: group_add_member_manager/1
+args: 1,6,3
+arg: Str('cn', cli_name='group_name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
 command: group_del/1
 args: 1,2,3
 arg: Str('cn+', cli_name='group_name')
@@ -1988,7 +2000,7 @@ output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: group_find/1
-args: 1,30,4
+args: 1,34,4
 arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('cn?', autofill=False, cli_name='group_name')
@@ -2001,6 +2013,8 @@ option: Str('in_hbacrule*', cli_name='in_hbacrules')
 option: Str('in_netgroup*', cli_name='in_netgroups')
 option: Str('in_role*', cli_name='in_roles')
 option: Str('in_sudorule*', cli_name='in_sudorules')
+option: Str('membermanager_group*', cli_name='membermanager_groups')
+option: Str('membermanager_user*', cli_name='membermanager_users')
 option: Str('no_group*', cli_name='no_groups')
 option: Flag('no_members', autofill=True, default=True)
 option: Principal('no_service*', cli_name='no_services')
@@ -2011,6 +2025,8 @@ option: Str('not_in_hbacrule*', cli_name='not_in_hbacrules')
 option: Str('not_in_netgroup*', cli_name='not_in_netgroups')
 option: Str('not_in_role*', cli_name='not_in_roles')
 option: Str('not_in_sudorule*', cli_name='not_in_sudorules')
+option: Str('not_membermanager_group*', cli_name='not_membermanager_groups')
+option: Str('not_membermanager_user*', cli_name='not_membermanager_users')
 option: Flag('pkey_only?', autofill=True, default=False)
 option: Flag('posix', autofill=True, cli_name='posix', default=False)
 option: Flag('private', autofill=True, cli_name='private', default=False)
@@ -2052,6 +2068,18 @@ option: Str('ipaexternalmember*', cli_name='external')
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('service*', alwaysask=True, cli_name='services')
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
+command: group_remove_member_manager/1
+args: 1,6,3
+arg: Str('cn', cli_name='group_name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('user*', alwaysask=True, cli_name='users')
 option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
@@ -2708,6 +2736,18 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: hostgroup_add_member_manager/1
+args: 1,6,3
+arg: Str('cn', cli_name='hostgroup_name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
 command: hostgroup_del/1
 args: 1,2,3
 arg: Str('cn+', cli_name='hostgroup_name')
@@ -2717,7 +2757,7 @@ output: Output('result', type=[<type 'dict'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: hostgroup_find/1
-args: 1,21,4
+args: 1,25,4
 arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('cn?', autofill=False, cli_name='hostgroup_name')
@@ -2728,6 +2768,8 @@ option: Str('in_hbacrule*', cli_name='in_hbacrules')
 option: Str('in_hostgroup*', cli_name='in_hostgroups')
 option: Str('in_netgroup*', cli_name='in_netgroups')
 option: Str('in_sudorule*', cli_name='in_sudorules')
+option: Str('membermanager_group*', cli_name='membermanager_groups')
+option: Str('membermanager_user*', cli_name='membermanager_users')
 option: Str('no_host*', cli_name='no_hosts')
 option: Str('no_hostgroup*', cli_name='no_hostgroups')
 option: Flag('no_members', autofill=True, default=True)
@@ -2735,6 +2777,8 @@ option: Str('not_in_hbacrule*', cli_name='not_in_hbacrules')
 option: Str('not_in_hostgroup*', cli_name='not_in_hostgroups')
 option: Str('not_in_netgroup*', cli_name='not_in_netgroups')
 option: Str('not_in_sudorule*', cli_name='not_in_sudorules')
+option: Str('not_membermanager_group*', cli_name='not_membermanager_groups')
+option: Str('not_membermanager_user*', cli_name='not_membermanager_users')
 option: Flag('pkey_only?', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Int('sizelimit?', autofill=False)
@@ -2767,6 +2811,18 @@ option: Str('host*', alwaysask=True, cli_name='hosts')
 option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
+command: hostgroup_remove_member_manager/1
+args: 1,6,3
+arg: Str('cn', cli_name='hostgroup_name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
 option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
@@ -6739,11 +6795,13 @@ default: env/1
 default: group/1
 default: group_add/1
 default: group_add_member/1
+default: group_add_member_manager/1
 default: group_del/1
 default: group_detach/1
 default: group_find/1
 default: group_mod/1
 default: group_remove_member/1
+default: group_remove_member_manager/1
 default: group_show/1
 default: hbacrule/1
 default: hbacrule_add/1
@@ -6796,10 +6854,12 @@ default: host_show/1
 default: hostgroup/1
 default: hostgroup_add/1
 default: hostgroup_add_member/1
+default: hostgroup_add_member_manager/1
 default: hostgroup_del/1
 default: hostgroup_find/1
 default: hostgroup_mod/1
 default: hostgroup_remove_member/1
+default: hostgroup_remove_member_manager/1
 default: hostgroup_show/1
 default: i18n_messages/1
 default: idoverridegroup/1

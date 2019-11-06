@@ -99,7 +99,7 @@ aci: (targetattr = "ipaexternalmember")(targetfilter = "(objectclass=ipaexternal
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "member")(targetfilter = "(&(!(cn=admins))(objectclass=ipausergroup))")(version 3.0;acl "permission:System: Modify Group Membership";allow (write) groupdn = "ldap:///cn=System: Modify Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "cn || description || gidnumber || ipauniqueid || mepmanagedby || objectclass")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Modify Groups";allow (write) groupdn = "ldap:///cn=System: Modify Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetattr = "cn || description || gidnumber || ipauniqueid || membermanager || mepmanagedby || objectclass")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Modify Groups";allow (write) groupdn = "ldap:///cn=System: Modify Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "ipaexternalmember")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read External Group Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: dc=ipa,dc=example
@@ -109,7 +109,7 @@ aci: (targetattr = "member || memberhost || memberof || memberuid || memberuser"
 dn: dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || gidnumber || memberuid || modifytimestamp || objectclass")(target = "ldap:///cn=groups,cn=*,cn=views,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Group Views Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "businesscategory || cn || createtimestamp || description || entryusn || gidnumber || ipaexternalmember || ipantsecurityidentifier || ipauniqueid || mepmanagedby || modifytimestamp || o || objectclass || ou || owner || seealso")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read Groups";allow (compare,read,search) userdn = "ldap:///anyone";)
+aci: (targetattr = "businesscategory || cn || createtimestamp || description || entryusn || gidnumber || ipaexternalmember || ipantsecurityidentifier || ipauniqueid || membermanager || mepmanagedby || modifytimestamp || o || objectclass || ou || owner || seealso")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read Groups";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Remove Groups";allow (delete) groupdn = "ldap:///cn=System: Remove Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hbac,dc=ipa,dc=example
@@ -169,11 +169,11 @@ aci: (targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:S
 dn: cn=hostgroups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "member")(targetfilter = "(&(!(cn=ipaservers))(objectclass=ipahostgroup))")(version 3.0;acl "permission:System: Modify Hostgroup Membership";allow (write) groupdn = "ldap:///cn=System: Modify Hostgroup Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hostgroups,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "cn || description")(targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:System: Modify Hostgroups";allow (write) groupdn = "ldap:///cn=System: Modify Hostgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetattr = "cn || description || membermanager")(targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:System: Modify Hostgroups";allow (write) groupdn = "ldap:///cn=System: Modify Hostgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hostgroups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "member || memberhost || memberof || memberuser")(targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:System: Read Hostgroup Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=hostgroups,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "businesscategory || cn || createtimestamp || description || entryusn || ipauniqueid || modifytimestamp || o || objectclass || ou || owner || seealso")(targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:System: Read Hostgroups";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "businesscategory || cn || createtimestamp || description || entryusn || ipauniqueid || membermanager || modifytimestamp || o || objectclass || ou || owner || seealso")(targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:System: Read Hostgroups";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=hostgroups,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:System: Remove Hostgroups";allow (delete) groupdn = "ldap:///cn=System: Remove Hostgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=views,cn=accounts,dc=ipa,dc=example

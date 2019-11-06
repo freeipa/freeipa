@@ -301,6 +301,7 @@ class i18n_messages(Command):
             "managedby": _("${primary_key} is managed by:"),
             "member": _("${primary_key} members:"),
             "memberof": _("${primary_key} is a member of:"),
+            "membermanager": _("${primary_key} member managers:"),
         },
         "facets": {
             "details": _("Settings"),
@@ -814,6 +815,22 @@ class i18n_messages(Command):
                 "add_users": _(
                     "Add users into user group '${primary_key}'"
                 ),
+                "add_membermanager_group": _(
+                    "Add groups as member managers for user group "
+                    "'${primary_key}'"
+                ),
+                "remove_membermanager_group": _(
+                    "Remove groups from member managers for user group "
+                    "'${primary_key}'"
+                ),
+                "add_membermanager_user": _(
+                    "Add users as member managers for user group "
+                    "'${primary_key}'"
+                ),
+                "remove_membermanager_user": _(
+                    "Remove users from member managers for user group "
+                    "'${primary_key}'"
+                ),
                 "details": _("Group Settings"),
                 "external": _("External"),
                 "groups": _("Groups"),
@@ -1025,6 +1042,22 @@ class i18n_messages(Command):
                 ),
                 "add_into_sudo": _(
                     "Add host group '${primary_key}' into sudo rules"
+                ),
+                "add_membermanager_group": _(
+                    "Add groups as member managers for host group "
+                    "'${primary_key}'"
+                ),
+                "remove_membermanager_group": _(
+                    "Remove groups from member managers for host group "
+                    "'${primary_key}'"
+                ),
+                "add_membermanager_user": _(
+                    "Add users as member managers for host group "
+                    "'${primary_key}'"
+                ),
+                "remove_membermanager_user": _(
+                    "Remove users from member managers for host group "
+                    "'${primary_key}'"
                 ),
                 "host_group": _("Host Groups"),
                 "identity": _("Host Group Settings"),
