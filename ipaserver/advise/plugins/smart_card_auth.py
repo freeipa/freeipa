@@ -319,8 +319,20 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
         )
 
     def run_authselect_to_configure_smart_card_auth(self):
+        # In order to be compatible with all clients, we check first
+        # if the client supports authselect.
+        # Otherwise authconfig will be used.
+        self.log.comment('Use either authselect or authconfig to enable '
+                         'Smart Card authentication')
+        self.log.commands_on_predicate(
+            '[ -f {} ]'.format(paths.AUTHSELECT),
+            ['AUTHCMD="authselect enable-feature with-smartcard"'],
+            ['AUTHCMD="authconfig --enablesssd --enablesssdauth '
+             '--enablesmartcard --smartcardmodule=sssd --smartcardaction=1 '
+             '--updateall"']
+        )
         self.log.exit_on_failed_command(
-            'authselect enable-feature with-smartcard',
+            '$AUTHCMD',
             [
                 'Failed to configure Smart Card authentication in SSSD'
             ]
@@ -328,11 +340,13 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
 
     def configure_pam_cert_auth(self):
         self.log.comment('Set pam_cert_auth=True in /etc/sssd/sssd.conf')
-        self.log.command(
-            "{} -c 'from SSSDConfig import SSSDConfig; "
-            "c = SSSDConfig(); c.import_config(); "
-            "c.set(\"pam\", \"pam_cert_auth\", \"True\"); "
-            "c.write()'".format(sys.executable))
+        self.log.comment('This step is required only when authselect is used')
+        self.log.commands_on_predicate(
+            '[ -f {} ]'.format(paths.AUTHSELECT),
+            ["{} -c 'from SSSDConfig import SSSDConfig; "
+             "c = SSSDConfig(); c.import_config(); "
+             "c.set(\"pam\", \"pam_cert_auth\", \"True\"); "
+             "c.write()'".format(sys.executable)])
 
     def restart_sssd(self):
         self.log.command('systemctl restart sssd.service')
