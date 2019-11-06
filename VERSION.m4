@@ -86,9 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 234)
-# Last change: Added new auth indicators to ipauserauthtype and krbprincipalauthind.
-#              Converted krbprincipalauthind from Str() to StrEnum()
+define(IPA_API_VERSION_MINOR, 235)
+# Last change: Add memberManager to groups.
 
 ########################################################
 # Following values are auto-generated from values above

@@ -2,6 +2,7 @@
 ##
 ## Attributes:		2.16.840.1.113730.3.8.3 - V2 base attributres
 ## ObjectClasses:	2.16.840.1.113730.3.8.4 - V2 base objectclasses
+## Attributes:		2.16.840.1.113730.3.8.23 - V4 base attributes
 ##
 dn: cn=schema
 attributeTypes: (2.16.840.1.113730.3.8.3.1 NAME 'ipaUniqueID' DESC 'Unique identifier' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
@@ -21,8 +22,10 @@ objectClasses: (2.16.840.1.113730.3.8.4.14 NAME 'ipaEntitlement' DESC 'IPA Entit
 objectClasses: (2.16.840.1.113730.3.8.4.15 NAME 'ipaPermission' DESC 'IPA Permission objectclass' AUXILIARY MAY ( ipaPermissionType ) X-ORIGIN 'IPA v2' )
 objectClasses: (2.16.840.1.113730.3.8.4.2 NAME 'ipaService' DESC 'IPA service objectclass' AUXILIARY MAY ( memberOf $ managedBy $ ipaKrbAuthzData) X-ORIGIN 'IPA v2' )
 objectClasses: (2.16.840.1.113730.3.8.4.3 NAME 'nestedGroup' DESC 'Group that supports nesting' SUP groupOfNames STRUCTURAL MAY memberOf X-ORIGIN 'IPA v2' )
-objectClasses: (2.16.840.1.113730.3.8.4.4 NAME 'ipaUserGroup' DESC 'IPA user group object class' SUP nestedGroup STRUCTURAL X-ORIGIN 'IPA v2' )
-objectClasses: (2.16.840.1.113730.3.8.4.5 NAME 'ipaHostGroup' DESC 'IPA host group object class' SUP nestedGroup STRUCTURAL X-ORIGIN 'IPA v2' )
+# Same for memberManager except it's actually v4 attribute
+attributeTypes: (2.16.840.1.113730.3.8.23.1 NAME 'memberManager' DESC 'DNs of entries allowed to manage group membership' SUP distinguishedName EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'IPA v4')
+objectClasses: (2.16.840.1.113730.3.8.4.4 NAME 'ipaUserGroup' DESC 'IPA user group object class' SUP nestedGroup STRUCTURAL MAY memberManager X-ORIGIN 'IPA v2' )
+objectClasses: (2.16.840.1.113730.3.8.4.5 NAME 'ipaHostGroup' DESC 'IPA host group object class' SUP nestedGroup STRUCTURAL MAY memberManager X-ORIGIN 'IPA v2' )
 attributeTypes: (2.16.840.1.113730.3.8.3.5 NAME 'memberUser' DESC 'Reference to a principal that performs an action (usually user).' SUP distinguishedName EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'IPA v2' )
 attributeTypes: (2.16.840.1.113730.3.8.3.6 NAME 'userCategory' DESC 'Additional classification for users' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
 attributeTypes: (2.16.840.1.113730.3.8.3.7 NAME 'memberHost' DESC 'Reference to a device where the operation takes place (usually host).' SUP distinguishedName EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'IPA v2' )

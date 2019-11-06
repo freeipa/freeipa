@@ -564,6 +564,11 @@ class LDAPObject(Object):
         'memberofindirect': (
             'Indirect Member Of', None, 'not_in_indirect_'
         ),
+        'membermanager': (
+            'Group membership managed by',
+            'membermanager_',
+            'not_membermanager_'
+        ),
     }
     label = _('Entry')
     label_singular = _('Entry')

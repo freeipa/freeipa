@@ -153,6 +153,20 @@ return {
         },
         {
             $type: 'association',
+            name: 'membermanager_group',
+            associator: IPA.serial_associator,
+            add_title: '@i18n:objects.group.add_membermanager_group',
+            remove_title: '@i18n:objects.group.remove_membermanager_group'
+        },
+        {
+            $type: 'association',
+            name: 'membermanager_user',
+            associator: IPA.serial_associator,
+            add_title: '@i18n:objects.group.add_membermanager_user',
+            remove_title: '@i18n:objects.group.remove_membermanager_user'
+        },
+        {
+            $type: 'association',
             name: 'memberof_group',
             associator: IPA.serial_associator,
             add_title: '@i18n:objects.group.add_into_groups',

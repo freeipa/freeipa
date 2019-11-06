@@ -114,6 +114,15 @@ EXAMPLES:
  Display information about a named group.
    ipa group-show localadmins
 
+Group membership managers are users or groups that can add members to a
+group or remove members from a group.
+
+ Allow user "test2" to add or remove members from group "localadmins":
+   ipa group-add-member-manager --users=test2 localadmins
+
+ Revoke membership management rights for user "test2" from "localadmins":
+   ipa group-remove-member-manager --users=test2 localadmins
+
 External group membership is designed to allow users from trusted domains
 to be mapped to local POSIX groups in order to actually use IPA resources.
 External members should be added to groups that specifically created as
@@ -159,6 +168,22 @@ ipaexternalmember_param = Str('ipaexternalmember*',
         )
 
 
+group_output_params = (
+    Str(
+        'membermanager_group',
+        label='Membership managed by groups',
+    ),
+    Str(
+        'membermanager_user',
+        label='Membership managed by users',
+    ),
+    Str(
+        'membermanager',
+        label=_('Failed membermanager'),
+    ),
+)
+
+
 @register()
 class group(LDAPObject):
     """
@@ -175,10 +200,12 @@ class group(LDAPObject):
     default_attributes = [
         'cn', 'description', 'gidnumber', 'member', 'memberof',
         'memberindirect', 'memberofindirect', 'ipaexternalmember',
+        'membermanager',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['user', 'group', 'service'],
+        'membermanager': ['user', 'group'],
         'memberof': ['group', 'netgroup', 'role', 'hbacrule', 'sudorule'],
         'memberindirect': ['user', 'group', 'service'],
         'memberofindirect': ['group', 'netgroup', 'role', 'hbacrule',
@@ -194,7 +221,7 @@ class group(LDAPObject):
                 'businesscategory', 'cn', 'description', 'gidnumber',
                 'ipaexternalmember', 'ipauniqueid', 'mepmanagedby', 'o',
                 'objectclass', 'ou', 'owner', 'seealso',
-                'ipantsecurityidentifier'
+                'ipantsecurityidentifier', 'membermanager',
             },
         },
         'System: Read Group Membership': {
@@ -248,7 +275,7 @@ class group(LDAPObject):
             'ipapermright': {'write'},
             'ipapermdefaultattr': {
                 'cn', 'description', 'gidnumber', 'ipauniqueid',
-                'mepmanagedby', 'objectclass'
+                'mepmanagedby', 'objectclass', 'membermanager',
             },
             'replaces': [
                 '(targetattr = "cn || description || gidnumber || objectclass || mepmanagedby || ipauniqueid")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Groups";allow (write) groupdn = "ldap:///cn=Modify Groups,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -316,6 +343,7 @@ class group(LDAPObject):
 class group_add(LDAPCreate):
     __doc__ = _('Create a new group.')
 
+    has_output_params = LDAPCreate.has_output_params + group_output_params
     msg_summary = _('Added group "%(value)s"')
 
     takes_options = LDAPCreate.takes_options + (
@@ -397,6 +425,7 @@ class group_del(LDAPDelete):
 class group_mod(LDAPUpdate):
     __doc__ = _('Modify a group.')
 
+    has_output_params = LDAPUpdate.has_output_params + group_output_params
     msg_summary = _('Modified group "%(value)s"')
 
     takes_options = LDAPUpdate.takes_options + (
@@ -468,8 +497,9 @@ class group_mod(LDAPUpdate):
 class group_find(LDAPSearch):
     __doc__ = _('Search for groups.')
 
-    member_attributes = ['member', 'memberof']
+    member_attributes = ['member', 'memberof', 'membermanager']
 
+    has_output_params = LDAPSearch.has_output_params + group_output_params
     msg_summary = ngettext(
         '%(count)d group matched', '%(count)d groups matched', 0
     )
@@ -537,6 +567,8 @@ class group_find(LDAPSearch):
 @register()
 class group_show(LDAPRetrieve):
     __doc__ = _('Display information about a named group.')
+
+    has_output_params = LDAPRetrieve.has_output_params + group_output_params
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
@@ -736,3 +768,21 @@ class group_detach(LDAPQuery):
             result=True,
             value=pkey_to_value(keys[0], options),
         )
+
+
+@register()
+class group_add_member_manager(LDAPAddMember):
+    __doc__ = _('Add users that can manage members of this group.')
+
+    has_output_params = LDAPAddMember.has_output_params + group_output_params
+    member_attributes = ['membermanager']
+
+
+@register()
+class group_remove_member_manager(LDAPRemoveMember):
+    __doc__ = _('Remove users that can manage members of this group.')
+
+    has_output_params = (
+        LDAPRemoveMember.has_output_params + group_output_params
+    )
+    member_attributes = ['membermanager']

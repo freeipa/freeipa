@@ -70,6 +70,19 @@ changetype: modify
 add: aci
 aci: (targetattr = "krbPrincipalKey || krbLastPwdChange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Admins can manage host keytab";allow (write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
+# Allow member managers to modify members of user groups
+dn: cn=groups,cn=accounts,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "member")(targetfilter = "(objectclass=ipaUserGroup)")(version 3.0; acl "Allow member managers to modify members of user groups"; allow (write) userattr = "memberManager#USERDN" or userattr = "memberManager#GROUPDN";)
+
+# Allow member managers to modify members of a host group
+dn: cn=hostgroups,cn=accounts,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "member")(targetfilter = "(objectclass=ipaHostGroup)")(version 3.0; acl "Allow member managers to modify members of host groups"; allow (write) userattr = "memberManager#USERDN" or userattr = "memberManager#GROUPDN";)
+
+
 # This is used for the host/service one-time passwordn and keytab indirectors.
 # We can do a query on a DN to see if an attribute exists.
 dn: cn=accounts,$SUFFIX
