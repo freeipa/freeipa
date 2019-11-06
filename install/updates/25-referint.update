@@ -20,3 +20,4 @@ add: referint-membership-attr: ipaallowedtarget
 add: referint-membership-attr: ipamemberca
 add: referint-membership-attr: ipamembercertprofile
 add: referint-membership-attr: ipalocation
+add: referint-membership-attr: membermanager

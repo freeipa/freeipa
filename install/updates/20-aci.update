@@ -132,6 +132,14 @@ add:aci: (targetfilter="(|(objectclass=ipaHost)(objectclass=ipaService))")(targe
 dn: $SUFFIX
 add:aci:(targetattr = "usercertificate")(version 3.0;acl "selfservice:Users can manage their own X.509 certificates";allow (write) userdn = "ldap:///self";)
 
+# Allow member managers to modify members of user groups
+dn: cn=groups,cn=accounts,$SUFFIX
+add:aci: (targetattr = "member")(targetfilter = "(objectclass=ipaUserGroup)")(version 3.0; acl "Allow member managers to modify members of user groups"; allow (write) userattr = "memberManager#USERDN";)
+
+# Allow member managers to modify members of host groups
+dn: cn=hostgroups,cn=accounts,$SUFFIX
+add:aci: (targetattr = "member")(targetfilter = "(objectclass=ipaHostGroup)")(version 3.0; acl "Allow member managers to modify members of host groups"; allow (write) userattr = "memberManager#USERDN";)
+
 # Hosts can add and delete their own services
 dn: cn=services,cn=accounts,$SUFFIX
 remove:aci: (target = "ldap:///krbprincipalname=*/($$dn)@$REALM,cn=services,cn=accounts,$SUFFIX")(targetfilter = "(objectClass=ipaKrbPrincipal)")(version 3.0;acl "Hosts can add own services"; allow(add) userdn="ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)
