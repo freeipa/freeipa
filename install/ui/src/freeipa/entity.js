@@ -442,7 +442,8 @@ exp.entity_builder = IPA.entity_builder = function(entity) {
         'member',
         'settings',
         'memberof',
-        'managedby'
+        'managedby',
+        'membermanager'
     ];
 
     /**
