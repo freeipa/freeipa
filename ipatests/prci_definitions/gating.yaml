@@ -15,6 +15,10 @@ topologies:
     name: ad_master_2client
     cpu: 4
     memory: 12000
+  ipaserver: &ipaserver
+    name: ipaserver
+    cpu: 2
+    memory: 2400
 
 jobs:
   fedora-30/build:
@@ -247,3 +251,14 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
+  fedora-30/membermanager:
+    requires: [fedora-30/build]
+    priority: 100
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-30/build_url}'
+        test_suite: test_integration/test_membermanager.py
+        template: *ci-master-f30
+        timeout: 1800
+        topology: *ipaserver
