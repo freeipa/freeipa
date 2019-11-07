@@ -1927,14 +1927,11 @@ class FileBackup:
         self._host = host
         self._filename = filename
         self._backup = create_temp_file(host)
-        self._cp_cmd = ['cp']
-        if is_selinux_enabled(host):
-            self._cp_cmd.append('--preserve=context')
-        host.run_command(self._cp_cmd + [filename, self._backup])
+        host.run_command(['cp', '--preserve=all', filename, self._backup])
 
     def restore(self):
         """Restore file. Can be called multiple times."""
-        self._host.run_command(self._cp_cmd + [self._backup, self._filename])
+        self._host.run_command(['mv', self._backup, self._filename])
 
     def __enter__(self):
         return self
