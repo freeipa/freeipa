@@ -757,3 +757,35 @@ class TestTrustAdminGroup(XMLRPC_test):
                           key=trustadmins.cn,
                           reason='Cannot support external non-IPA members')):
             command()
+
+
+@pytest.mark.tier1
+class TestGroupMemberManager(XMLRPC_test):
+    def test_add_member_manager_user(self, user, group):
+        user.ensure_exists()
+        group.ensure_exists()
+        group.add_member_manager({"user": user.uid})
+
+    def test_remove_member_manager_user(self, user, group):
+        user.ensure_exists()
+        group.ensure_exists()
+        group.remove_member_manager({"user": user.uid})
+
+    def test_add_member_manager_group(self, group, group2):
+        group.ensure_exists()
+        group2.ensure_exists()
+        group.add_member_manager({"group": group2.cn})
+
+    def test_remove_member_manager_group(self, group, group2):
+        group.ensure_exists()
+        group2.ensure_exists()
+        group.remove_member_manager({"group": group2.cn})
+
+    def test_member_manager_delete_user(self, user, group):
+        user.ensure_exists()
+        group.ensure_exists()
+        group.add_member_manager({"user": user.uid})
+        user.delete()
+        # deleting a user also deletes member manager reference
+        group.attrs.pop("membermanager_user")
+        group.retrieve()
