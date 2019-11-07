@@ -11,11 +11,13 @@ from ipatests.util import assert_deepequal, get_group_dn
 
 class GroupTracker(Tracker):
     """ Class for host plugin like tests """
-    retrieve_keys = {u'dn', u'cn', u'gidnumber', u'member_user',
-                     u'member_group', u'member_service', u'description',
-                     u'memberof_group', u'memberofindirect_group',
-                     u'memberindirect_group', u'memberindirect_user',
-                     u'memberindirect_service'}
+    retrieve_keys = {
+        'dn', 'cn', 'gidnumber', 'member_user', 'member_group',
+        'member_service', 'description', 'memberof_group',
+        'memberofindirect_group', 'memberindirect_group',
+        'memberindirect_user', 'memberindirect_service',
+        'membermanager_group', 'membermanager_user'
+    }
 
     retrieve_all_keys = retrieve_keys | {u'ipauniqueid', u'objectclass'}
 
@@ -68,6 +70,16 @@ class GroupTracker(Tracker):
         'group-detach' """
         self.exists = True
         return self.make_command('group_detach', self.cn)
+
+    def make_add_member_manager_command(self, options={}):
+        return self.make_command(
+            'group_add_member_manager', self.cn, **options
+        )
+
+    def make_remove_member_manager_command(self, options={}):
+        return self.make_command(
+            'group_remove_member_manager', self.cn, **options
+        )
 
     def track_create(self):
         """ Updates expected state for group creation"""
@@ -165,6 +177,40 @@ class GroupTracker(Tracker):
         command = self.make_remove_member_command(options)
         result = command()
         self.check_remove_member(result)
+
+    def add_member_manager(self, options):
+        """Add a member manager (user or group) and perform checks"""
+        if "user" in options:
+            members = self.attrs.setdefault("membermanager_user", [])
+            members.append(options["user"])
+        elif "group" in options:
+            members = self.attrs.setdefault("membermanager_group", [])
+            members.append(options["group"])
+
+        command = self.make_add_member_manager_command(options)
+        result = command()
+        self.check_add_member_manager(result)
+
+    def remove_member_manager(self, options):
+        if "user" in options:
+            members = self.attrs["membermanager_user"]
+            members.remove(options["user"])
+            if not members:
+                self.attrs.pop("membermanager_user")
+        elif "group" in options:
+            members = self.attrs["membermanager_group"]
+            members.remove(options["group"])
+            if not members:
+                self.attrs.pop("membermanager_group")
+
+        command = self.make_remove_member_manager_command(options)
+        result = command()
+        self.check_remove_member_manager(result)
+
+    def retrieve(self, all=False, raw=False):
+        command = self.make_retrieve_command(all=all, raw=raw)
+        result = command()
+        self.check_retrieve(result, all=all, raw=raw)
 
     def check_create(self, result):
         """ Checks 'group_add' command result """
@@ -273,6 +319,16 @@ class GroupTracker(Tracker):
     def check_remove_member(self, result):
         """ Checks 'group_remove_member' command result """
         self.check_add_member(result)
+
+    def check_add_member_manager(self, result):
+        assert_deepequal(dict(
+            completed=1,
+            failed={'membermanager': {'group': (), 'user': ()}},
+            result=self.filter_attrs(self.add_member_keys)
+        ), result)
+
+    def check_remove_member_manager(self, result):
+        self.check_add_member_manager(result)
 
     def check_detach(self, result):
         """ Checks 'group_detach' command result """
