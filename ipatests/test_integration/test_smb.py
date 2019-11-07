@@ -77,15 +77,13 @@ class TestSMB(IntegrationTest):
     @pytest.yield_fixture
     def enable_smb_client_dns_lookup_kdc(self):
         smbclient = self.smbclient
-        save_file = tasks.create_temp_file(smbclient)
-        smbclient.run_command(['cp', paths.KRB5_CONF, save_file])
-        krb5_conf = smbclient.get_file_contents(
-            paths.KRB5_CONF, encoding='utf-8')
-        krb5_conf = krb5_conf.replace(
-            'dns_lookup_kdc = false', 'dns_lookup_kdc = true')
-        smbclient.put_file_contents(paths.KRB5_CONF, krb5_conf)
-        yield
-        smbclient.run_command(['mv', save_file, paths.KRB5_CONF])
+        with tasks.FileBackup(smbclient, paths.KRB5_CONF):
+            krb5_conf = smbclient.get_file_contents(
+                paths.KRB5_CONF, encoding='utf-8')
+            krb5_conf = krb5_conf.replace(
+                'dns_lookup_kdc = false', 'dns_lookup_kdc = true')
+            smbclient.put_file_contents(paths.KRB5_CONF, krb5_conf)
+            yield
 
     @pytest.yield_fixture
     def samba_share_public(self):
@@ -99,25 +97,23 @@ class TestSMB(IntegrationTest):
         # apply selinux context only if selinux is enabled
         if tasks.is_selinux_enabled(smbserver):
             smbserver.run_command(['chcon', '-t', 'samba_share_t', share_path])
-        smbconf_save_file = tasks.create_temp_file(smbserver)
-        smbserver.run_command(['cp', paths.SMB_CONF, smbconf_save_file])
-        smb_conf = smbserver.get_file_contents(
-            paths.SMB_CONF, encoding='utf-8')
-        smb_conf += textwrap.dedent('''
-        [{name}]
-            path = {path}
-            writable = yes
-            browsable=yes
-        '''.format(name=share_name, path=share_path))
-        smbserver.put_file_contents(paths.SMB_CONF, smb_conf)
-        smbserver.run_command(['systemctl', 'restart', 'smb'])
-        wait_smbd_functional(smbserver)
-        yield {
-            'name': share_name,
-            'server_path': share_path,
-            'unc': '//{}/{}'.format(smbserver.hostname, share_name)
-        }
-        smbserver.run_command(['mv', smbconf_save_file, paths.SMB_CONF])
+        with tasks.FileBackup(smbserver, paths.SMB_CONF):
+            smb_conf = smbserver.get_file_contents(
+                paths.SMB_CONF, encoding='utf-8')
+            smb_conf += textwrap.dedent('''
+            [{name}]
+                path = {path}
+                writable = yes
+                browsable=yes
+            '''.format(name=share_name, path=share_path))
+            smbserver.put_file_contents(paths.SMB_CONF, smb_conf)
+            smbserver.run_command(['systemctl', 'restart', 'smb'])
+            wait_smbd_functional(smbserver)
+            yield {
+                'name': share_name,
+                'server_path': share_path,
+                'unc': '//{}/{}'.format(smbserver.hostname, share_name)
+            }
         smbserver.run_command(['systemctl', 'restart', 'smb'])
         wait_smbd_functional(smbserver)
         smbserver.run_command(['rmdir', share_path])
