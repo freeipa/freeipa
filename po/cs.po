@@ -5,16 +5,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.8.0\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2019-08-14 11:52+0300\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2019-04-22 07:33+0000\n"
+"POT-Creation-Date: 2019-08-14 10:13+0300\n"
+"PO-Revision-Date: 2019-08-31 07:01+0000\n"
 "Last-Translator: Pavel Borecki <pavel.borecki@gmail.com>\n"
 "Language-Team: Czech\n"
 "Language: cs\n"
-"X-Generator: Zanata 4.6.2\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2\n"
+"X-Generator: Zanata 4.6.2\n"
 
 msgid "  ipa <command> --help"
 msgstr "  ipa <command> --help"
@@ -29,7 +29,8 @@ msgstr ""
 msgid "%(reason)s"
 msgstr "%(reason)s"
 
-# auto translated by TM merge from project: libguestfs, version: master, DocId: po/libguestfs
+# auto translated by TM merge from project: libguestfs, version: master,
+# DocId: po/libguestfs
 #, python-format
 msgid "%s"
 msgstr "%s"
@@ -37,113 +38,139 @@ msgstr "%s"
 msgid "A string searched in all relevant object attributes"
 msgstr "Řetězec vyhledávaný ve všech odpovídajících atributech objektu"
 
-# auto translated by TM merge from project: Spacewalk Web UI, version: master, DocId: java/code/src/com/redhat/rhn/frontend/strings/java/StringResource
+# auto translated by TM merge from project: Spacewalk Web UI, version: master,
+# DocId: java/code/src/com/redhat/rhn/frontend/strings/java/StringResource
 msgid "Account"
 msgstr "Účet"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Add"
 msgstr "Přidat"
 
-# auto translated by TM merge from project: Fedora Elections Guide, version: master, DocId: Casting
+# auto translated by TM merge from project: Fedora Elections Guide, version:
+# master, DocId: Casting
 msgid "Any Group"
 msgstr "Jakákoli skupina"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Apply"
 msgstr "Použít"
 
-# auto translated by TM merge from project: system-config-audit, version: master, DocId: system-config-audit
+# auto translated by TM merge from project: system-config-audit, version:
+# master, DocId: system-config-audit
 msgid "Audit"
 msgstr "Auditovat"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "Authentication"
 msgstr "Autentizace"
 
-# auto translated by TM merge from project: libvirt, version: master, DocId: libvirt
+# auto translated by TM merge from project: libvirt, version: master, DocId:
+# libvirt
 msgid "Available"
 msgstr "Dostupný"
 
-# auto translated by TM merge from project: authconfig, version: master, DocId: po/authconfig
+# auto translated by TM merge from project: authconfig, version: master,
+# DocId: po/authconfig
 msgid "Back"
 msgstr "Zpět"
 
-# auto translated by TM merge from project: Cockpit, version: master, DocId: cockpit
+# auto translated by TM merge from project: Cockpit, version: master, DocId:
+# cockpit
 msgid "Cancel"
 msgstr "Zrušit"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "City"
 msgstr "Město"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Class"
 msgstr "Třída"
 
-# auto translated by TM merge from project: ibus-libpinyin, version: master, DocId: ibus-libpinyin
+# auto translated by TM merge from project: ibus-libpinyin, version: master,
+# DocId: ibus-libpinyin
 msgid "Clear"
 msgstr "Vymazat"
 
-# auto translated by TM merge from project: SETroubleShoot, version: stable, DocId: framework/po/setroubleshoot
+# auto translated by TM merge from project: SETroubleShoot, version: stable,
+# DocId: framework/po/setroubleshoot
 msgid "Close"
 msgstr "Zavřít"
 
 msgid "Command name"
 msgstr "Název příkazu"
 
-# auto translated by TM merge from project: system-config-audit, version: master, DocId: system-config-audit
+# auto translated by TM merge from project: system-config-audit, version:
+# master, DocId: system-config-audit
 msgid "Configuration"
 msgstr "Nastavení"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "Continue"
 msgstr "Pokračovat"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "DNS"
 msgstr "DNS"
 
-# auto translated by TM merge from project: ibus-input-pad, version: head, DocId: ibus-input-pad
+# auto translated by TM merge from project: ibus-input-pad, version: head,
+# DocId: ibus-input-pad
 msgid "Default"
 msgstr "Výchozí"
 
-# auto translated by TM merge from project: SETroubleShoot, version: master, DocId: framework/po/setroubleshoot
+# auto translated by TM merge from project: SETroubleShoot, version: master,
+# DocId: framework/po/setroubleshoot
 msgid "Delete"
 msgstr "Smazat"
 
 msgid "Deprecated options"
 msgstr "Zastaralé volby"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Description"
 msgstr "Popis"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Disable"
 msgstr "Zakázat"
 
-# auto translated by TM merge from project: Cockpit, version: master, DocId: cockpit
+# auto translated by TM merge from project: Cockpit, version: master, DocId:
+# cockpit
 msgid "Disabled"
 msgstr "Zakázáno"
 
-# auto translated by TM merge from project: Fedora Websites, version: alt.fedoraproject.org, DocId: po/alt.fedoraproject.org
+# auto translated by TM merge from project: Fedora Websites, version:
+# alt.fedoraproject.org, DocId: po/alt.fedoraproject.org
 msgid "Documentation"
 msgstr "Dokumentace"
 
-# auto translated by TM merge from project: Fedora Websites, version: alt.fedoraproject.org, DocId: po/alt.fedoraproject.org
+# auto translated by TM merge from project: Fedora Websites, version:
+# alt.fedoraproject.org, DocId: po/alt.fedoraproject.org
 msgid "Download"
 msgstr "Stáhnout"
 
-# auto translated by TM merge from project: ibus-libpinyin, version: master, DocId: ibus-libpinyin
+# auto translated by TM merge from project: ibus-libpinyin, version: master,
+# DocId: ibus-libpinyin
 msgid "Edit"
 msgstr "Upravit"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Enable"
 msgstr "Povolit"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Enabled"
 msgstr "Povoleno"
 
@@ -151,31 +178,38 @@ msgstr "Povoleno"
 msgid "Enter %(label)s again to verify: "
 msgstr "Vložte znovu své %(label)s, aby se ověřila jeho správnost."
 
-# auto translated by TM merge from project: firewalld, version: master, DocId: po/firewalld
+# auto translated by TM merge from project: firewalld, version: master, DocId:
+# po/firewalld
 msgid "Entry"
 msgstr "Položka"
 
-# auto translated by TM merge from project: python-simpleline, version: master, DocId: python-simpleline
+# auto translated by TM merge from project: python-simpleline, version:
+# master, DocId: python-simpleline
 msgid "Error"
 msgstr "Chyba"
 
-# auto translated by TM merge from project: audit-viewer, version: default, DocId: audit-viewer
+# auto translated by TM merge from project: audit-viewer, version: default,
+# DocId: audit-viewer
 msgid "Expression"
 msgstr "Výraz"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Filter"
 msgstr "Filtr"
 
-# auto translated by TM merge from project: system-config-printer, version: master, DocId: system-config-printer
+# auto translated by TM merge from project: system-config-printer, version:
+# master, DocId: system-config-printer
 msgid "Find"
 msgstr "Hledat"
 
-# auto translated by TM merge from project: Fedora Websites, version: getfedora.org, DocId: po/getfedora
+# auto translated by TM merge from project: Fedora Websites, version:
+# getfedora.org, DocId: po/getfedora
 msgid "Fingerprint"
 msgstr "Otisk"
 
-# auto translated by TM merge from project: Fedora Websites, version: fedoraproject.org, DocId: po/fedora-web
+# auto translated by TM merge from project: Fedora Websites, version:
+# fedoraproject.org, DocId: po/fedora-web
 msgid "First"
 msgstr "Prvenství "
 
@@ -183,15 +217,18 @@ msgstr "Prvenství "
 msgid "Flags"
 msgstr "Vlajky"
 
-# auto translated by TM merge from project: asknot-ng, version: 0.1, DocId: locale/asknot-ng
+# auto translated by TM merge from project: asknot-ng, version: 0.1, DocId:
+# locale/asknot-ng
 msgid "General"
 msgstr "Obecné"
 
-# auto translated by TM merge from project: dnf, version: master, DocId: po/dnf
+# auto translated by TM merge from project: dnf, version: master, DocId:
+# po/dnf
 msgid "Group"
 msgstr "Skupina"
 
-# auto translated by TM merge from project: libreport, version: rhel6, DocId: libreport
+# auto translated by TM merge from project: libreport, version: rhel6, DocId:
+# libreport
 msgid "Groups"
 msgstr "Skupiny"
 
@@ -199,19 +236,23 @@ msgstr "Skupiny"
 msgid "Hide"
 msgstr "Skrýt"
 
-# auto translated by TM merge from project: SETroubleShoot, version: master, DocId: framework/po/setroubleshoot
+# auto translated by TM merge from project: SETroubleShoot, version: master,
+# DocId: framework/po/setroubleshoot
 msgid "Host"
 msgstr "Počítač"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "Host Name"
 msgstr "Název počítače"
 
-# auto translated by TM merge from project: anaconda, version: rhel7-branch, DocId: anaconda
+# auto translated by TM merge from project: anaconda, version: rhel7-branch,
+# DocId: anaconda
 msgid "Host name"
 msgstr "Název počítače"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "IP Address"
 msgstr "IP adresa"
 
@@ -219,7 +260,8 @@ msgstr "IP adresa"
 msgid "Invalid JSON-RPC request: %(error)s"
 msgstr "Neplatný požadavek JSON-RPC: %(error)s"
 
-# auto translated by TM merge from project: authconfig, version: master, DocId: po/authconfig
+# auto translated by TM merge from project: authconfig, version: master,
+# DocId: po/authconfig
 msgid "Invalid LDAP URI."
 msgstr "Neplatné URI pro LDAP."
 
@@ -227,15 +269,18 @@ msgstr "Neplatné URI pro LDAP."
 msgid "Kerberos error: %(major)s/%(minor)s"
 msgstr "Chyba Kerberos: %(major)s/%(minor)s"
 
-# auto translated by TM merge from project: system-config-audit, version: master, DocId: system-config-audit
+# auto translated by TM merge from project: system-config-audit, version:
+# master, DocId: system-config-audit
 msgid "Key"
 msgstr "Klíč"
 
-# auto translated by TM merge from project: authconfig, version: master, DocId: po/authconfig
+# auto translated by TM merge from project: authconfig, version: master,
+# DocId: po/authconfig
 msgid "LDAP password"
 msgstr "LDAP heslo"
 
-# auto translated by TM merge from project: anaconda, version: rhel6-branch, DocId: anaconda
+# auto translated by TM merge from project: anaconda, version: rhel6-branch,
+# DocId: anaconda
 msgid "Label"
 msgstr "Název"
 
@@ -243,23 +288,28 @@ msgstr "Název"
 msgid "Last"
 msgstr "Poslední"
 
-# auto translated by TM merge from project: docbook-locales, version: master, DocId: locale
+# auto translated by TM merge from project: docbook-locales, version: master,
+# DocId: locale
 msgid "Level"
 msgstr "Úroveň"
 
-# auto translated by TM merge from project: system-config-printer, version: master, DocId: system-config-printer
+# auto translated by TM merge from project: system-config-printer, version:
+# master, DocId: system-config-printer
 msgid "Location"
 msgstr "Umístění"
 
-# auto translated by TM merge from project: libvirt, version: master, DocId: libvirt
+# auto translated by TM merge from project: libvirt, version: master, DocId:
+# libvirt
 msgid "MAC address"
 msgstr "MAC adresa"
 
-# auto translated by TM merge from project: Spacewalk Web UI, version: master, DocId: java/code/src/com/redhat/rhn/frontend/strings/java/StringResource
+# auto translated by TM merge from project: Spacewalk Web UI, version: master,
+# DocId: java/code/src/com/redhat/rhn/frontend/strings/java/StringResource
 msgid "Mailing Address"
 msgstr "Poštovní adresa"
 
-# auto translated by TM merge from project: system-config-printer, version: master, DocId: system-config-printer
+# auto translated by TM merge from project: system-config-printer, version:
+# master, DocId: system-config-printer
 msgid "Members"
 msgstr "Členové"
 
@@ -267,19 +317,23 @@ msgstr "Členové"
 msgid "Missing or invalid HTTP Referer, %(referer)s"
 msgstr "Chybějící nebo neplatný HTTP Referer, %(referer)s"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "Model"
 msgstr "Model"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "Mount point"
 msgstr "Místo připojení"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Name"
 msgstr "Název"
 
-# auto translated by TM merge from project: SETroubleShoot, version: master, DocId: framework/po/setroubleshoot
+# auto translated by TM merge from project: SETroubleShoot, version: master,
+# DocId: framework/po/setroubleshoot
 msgid "Next"
 msgstr "Další"
 
@@ -292,39 +346,47 @@ msgstr "Žádný soubor k přečtení"
 msgid "No matching entries found"
 msgstr "Nenalezeny žádné shodné položky"
 
-# auto translated by TM merge from project: System Administrator's Guide, version: master, DocId: Network_Interfaces
+# auto translated by TM merge from project: System Administrator's Guide,
+# version: master, DocId: Network_Interfaces
 msgid "Note"
 msgstr "Poznámka"
 
-# auto translated by TM merge from project: Fedora Websites, version: alt.fedoraproject.org, DocId: po/alt.fedoraproject.org
+# auto translated by TM merge from project: Fedora Websites, version:
+# alt.fedoraproject.org, DocId: po/alt.fedoraproject.org
 msgid "OK"
 msgstr "Budiž"
 
 msgid "Operating system"
 msgstr "Operační systém"
 
-# auto translated by TM merge from project: audit-viewer, version: default, DocId: audit-viewer
+# auto translated by TM merge from project: audit-viewer, version: default,
+# DocId: audit-viewer
 msgid "Options"
 msgstr "Přepínače"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "Order"
 msgstr "Další"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 #, c-format
 msgid "Out of memory!\n"
 msgstr "Nedostatek paměti\n"
 
-# auto translated by TM merge from project: docbook-locales, version: master, DocId: locale
+# auto translated by TM merge from project: docbook-locales, version: master,
+# DocId: locale
 msgid "Page"
 msgstr "Strana"
 
-# auto translated by TM merge from project: python-simpleline, version: master, DocId: python-simpleline
+# auto translated by TM merge from project: python-simpleline, version:
+# master, DocId: python-simpleline
 msgid "Password"
 msgstr "Heslo"
 
-# auto translated by TM merge from project: anaconda, version: rhel6-branch, DocId: anaconda
+# auto translated by TM merge from project: anaconda, version: rhel6-branch,
+# DocId: anaconda
 msgid "Passwords do not match"
 msgstr "Hesla nejsou stejná."
 
@@ -332,82 +394,101 @@ msgstr "Hesla nejsou stejná."
 msgid "Passwords do not match!"
 msgstr "Hesla se neshodují!"
 
-# auto translated by TM merge from project: SETroubleShoot, version: master, DocId: framework/po/setroubleshoot
+# auto translated by TM merge from project: SETroubleShoot, version: master,
+# DocId: framework/po/setroubleshoot
 msgid "Platform"
 msgstr "Platforma"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Port"
 msgstr "Port"
 
 msgid "Positional arguments"
 msgstr "Poziční argumenty"
 
-# auto translated by TM merge from project: docbook-locales, version: master, DocId: locale
+# auto translated by TM merge from project: docbook-locales, version: master,
+# DocId: locale
 msgid "Prev"
 msgstr "Předchozí"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Priority"
 msgstr "Priorita"
 
-# auto translated by TM merge from project: OSCAP Anaconda Addon, version: master, DocId: oscap-anaconda-addon
+# auto translated by TM merge from project: OSCAP Anaconda Addon, version:
+# master, DocId: oscap-anaconda-addon
 msgid "Profile"
 msgstr "Profil"
 
-# auto translated by TM merge from project: Spacewalk Web UI, version: master, DocId: java/code/src/com/redhat/rhn/frontend/strings/java/StringResource
+# auto translated by TM merge from project: Spacewalk Web UI, version: master,
+# DocId: java/code/src/com/redhat/rhn/frontend/strings/java/StringResource
 msgid "Profiles"
 msgstr "Profily"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Protocol"
 msgstr "Protokol"
 
-# auto translated by TM merge from project: Spacewalk Web UI, version: master, DocId: java/code/src/com/redhat/rhn/frontend/strings/database/StringResource
+# auto translated by TM merge from project: Spacewalk Web UI, version: master,
+# DocId: java/code/src/com/redhat/rhn/frontend/strings/database/StringResource
 msgid "Provisioning"
 msgstr "Zajištění"
 
-# auto translated by TM merge from project: system-config-firewall, version: master, DocId: po/system-config-firewall
+# auto translated by TM merge from project: system-config-firewall, version:
+# master, DocId: po/system-config-firewall
 msgid "RADIUS"
 msgstr "RADIUS"
 
-# auto translated by TM merge from project: audit-viewer, version: default, DocId: audit-viewer
+# auto translated by TM merge from project: audit-viewer, version: default,
+# DocId: audit-viewer
 msgid "Record Type"
 msgstr "Typ záznamu"
 
-# auto translated by TM merge from project: virt-viewer, version: master, DocId: virt-viewer
+# auto translated by TM merge from project: virt-viewer, version: master,
+# DocId: virt-viewer
 msgid "Refresh"
 msgstr "Obnovit"
 
-# auto translated by TM merge from project: system-config-printer, version: master, DocId: system-config-printer
+# auto translated by TM merge from project: system-config-printer, version:
+# master, DocId: system-config-printer
 msgid "Reset"
 msgstr "Reset"
 
-# auto translated by TM merge from project: Fedora Media Writer, version: master, DocId: mediawriter
+# auto translated by TM merge from project: Fedora Media Writer, version:
+# master, DocId: mediawriter
 msgid "Restore"
 msgstr "Obnovit"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Retry"
 msgstr "Opakovat"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Revert"
 msgstr "Vrátit"
 
-# auto translated by TM merge from project: dnf, version: master, DocId: po/dnf
+# auto translated by TM merge from project: dnf, version: master, DocId:
+# po/dnf
 msgid "Rights"
 msgstr "Práva"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Role"
 msgstr "Role"
 
-# auto translated by TM merge from project: firewalld, version: master, DocId: po/firewalld
+# auto translated by TM merge from project: firewalld, version: master, DocId:
+# po/firewalld
 msgid "Rules"
 msgstr "Pravidla"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "SELinux User"
 msgstr "Uživatel SELinuxu"
 
@@ -415,39 +496,48 @@ msgstr "Uživatel SELinuxu"
 msgid "Same as --%s"
 msgstr "Stejné jako --%s"
 
-# auto translated by TM merge from project: fedora-software, version: master, DocId: template/django
+# auto translated by TM merge from project: fedora-software, version: master,
+# DocId: template/django
 msgid "Save"
 msgstr "Uložit"
 
-# auto translated by TM merge from project: libreport, version: rhel6, DocId: libreport
+# auto translated by TM merge from project: libreport, version: rhel6, DocId:
+# libreport
 msgid "Search"
 msgstr "Hledat"
 
-# auto translated by TM merge from project: system-config-printer, version: master, DocId: system-config-printer
+# auto translated by TM merge from project: system-config-printer, version:
+# master, DocId: system-config-printer
 msgid "Secret"
 msgstr "Tajné"
 
-# auto translated by TM merge from project: system-config-printer, version: master, DocId: system-config-printer
+# auto translated by TM merge from project: system-config-printer, version:
+# master, DocId: system-config-printer
 msgid "Serial"
 msgstr "Sériový"
 
-# auto translated by TM merge from project: anaconda, version: rhel6-branch, DocId: anaconda
+# auto translated by TM merge from project: anaconda, version: rhel6-branch,
+# DocId: anaconda
 msgid "Serial Number"
 msgstr "Sériové číslo"
 
-# auto translated by TM merge from project: Fedora Websites, version: alt.fedoraproject.org, DocId: po/alt.fedoraproject.org
+# auto translated by TM merge from project: Fedora Websites, version:
+# alt.fedoraproject.org, DocId: po/alt.fedoraproject.org
 msgid "Server"
 msgstr "Server"
 
-# auto translated by TM merge from project: Fedora Websites, version: getfedora.org, DocId: po/getfedora
+# auto translated by TM merge from project: Fedora Websites, version:
+# getfedora.org, DocId: po/getfedora
 msgid "Server Roles"
 msgstr "Serverové role"
 
-# auto translated by TM merge from project: System Administrator's Guide, version: master, DocId: Deployment_Guide
+# auto translated by TM merge from project: System Administrator's Guide,
+# version: master, DocId: Deployment_Guide
 msgid "Servers"
 msgstr "Servery"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Service"
 msgstr "Služba"
 
@@ -455,62 +545,79 @@ msgstr "Služba"
 msgid "Service '%(service)s' not found in Kerberos database"
 msgstr "Služba '%(service)s' nenalezena v databázi Kerberosu"
 
-# auto translated by TM merge from project: system-config-firewall, version: master, DocId: po/system-config-firewall
+# auto translated by TM merge from project: system-config-firewall, version:
+# master, DocId: po/system-config-firewall
 msgid "Service Settings"
 msgstr "Nastavení služeb"
 
-# auto translated by TM merge from project: firewalld, version: master, DocId: po/firewalld
+# auto translated by TM merge from project: firewalld, version: master, DocId:
+# po/firewalld
 msgid "Services"
 msgstr "Služby"
 
-# auto translated by TM merge from project: docbook-locales, version: master, DocId: locale
+# auto translated by TM merge from project: docbook-locales, version: master,
+# DocId: locale
 msgid "Set"
 msgstr "Sada"
 
-# auto translated by TM merge from project: fedora-software, version: master, DocId: template/django
+# auto translated by TM merge from project: fedora-software, version: master,
+# DocId: template/django
 msgid "Settings"
 msgstr "Nastavení"
 
-# auto translated by TM merge from project: system-config-printer, version: master, DocId: system-config-printer
+# auto translated by TM merge from project: system-config-printer, version:
+# master, DocId: system-config-printer
 msgid "Shared"
 msgstr "Sdílená"
 
-# auto translated by TM merge from project: SETroubleShoot, version: master, DocId: framework/po/setroubleshoot
+# auto translated by TM merge from project: SETroubleShoot, version: master,
+# DocId: framework/po/setroubleshoot
 msgid "Show"
 msgstr "Ukázat"
 
-# auto translated by TM merge from project: blivet-gui, version: f23-branch, DocId: blivet-gui
+# auto translated by TM merge from project: blivet-gui, version: f23-branch,
+# DocId: blivet-gui
 msgid "Size"
 msgstr "Velikost"
 
-# auto translated by TM merge from project: Fedora Websites, version: labs.fedoraproject.org, DocId: po/labs.fedoraproject.org
+# auto translated by TM merge from project: Fedora Websites, version:
+# labs.fedoraproject.org, DocId: po/labs.fedoraproject.org
 msgid "Stage"
 msgstr "Stage"
 
-# auto translated by TM merge from project: ibus-libpinyin, version: master, DocId: ibus-libpinyin
+# auto translated by TM merge from project: ibus-libpinyin, version: master,
+# DocId: ibus-libpinyin
 msgid "Standard"
 msgstr "Standard"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Status"
 msgstr "Stav"
 
-# auto translated by TM merge from project: libreport, version: master, DocId: libreport
+# auto translated by TM merge from project: libreport, version: master, DocId:
+# libreport
 msgid "Subject"
 msgstr "Předmět"
 
-# auto translated by TM merge from project: Linux PAM, version: master, DocId: po/Linux-PAM
+# auto translated by TM merge from project: Linux PAM, version: master, DocId:
+# po/Linux-PAM
 msgid "Success"
 msgstr "Úspěch"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "Target"
 msgstr "Cíl"
 
 msgid "The topic or command name."
 msgstr "Název tématu nebo příkazu."
 
-# auto translated by TM merge from project: Pulseaudio, version: 6.0, DocId: pulseaudio.pot
+msgid "Ticket expired"
+msgstr "Platnost lístku skončila"
+
+# auto translated by TM merge from project: Pulseaudio, version: 6.0, DocId:
+# pulseaudio.pot
 msgid "Timeout"
 msgstr "Časový limit"
 
@@ -523,39 +630,48 @@ msgstr "Příkazy tématu:"
 msgid "Topic or Command"
 msgstr "Téma nebo příkaz"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Type"
 msgstr "Typ"
 
-# auto translated by TM merge from project: dnf, version: master, DocId: po/dnf
+# auto translated by TM merge from project: dnf, version: master, DocId:
+# po/dnf
 msgid "URL"
 msgstr "URL"
 
-# auto translated by TM merge from project: libvirt, version: master, DocId: libvirt
+# auto translated by TM merge from project: libvirt, version: master, DocId:
+# libvirt
 msgid "UUID"
 msgstr "UUID:"
 
-# auto translated by TM merge from project: anaconda, version: master, DocId: main
+# auto translated by TM merge from project: anaconda, version: master, DocId:
+# main
 msgid "Unknown"
 msgstr "Neznámý"
 
-# auto translated by TM merge from project: GSS NTLMSSP, version: master, DocId: gssntlmssp
+# auto translated by TM merge from project: GSS NTLMSSP, version: master,
+# DocId: gssntlmssp
 msgid "Unknown Error"
 msgstr "Neznámá chyba"
 
-# auto translated by TM merge from project: audit-viewer, version: default, DocId: audit-viewer
+# auto translated by TM merge from project: audit-viewer, version: default,
+# DocId: audit-viewer
 msgid "Unspecified"
 msgstr "Nespecifikováno"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Update"
 msgstr "Aktualizovat"
 
-# auto translated by TM merge from project: system-config-printer, version: master, DocId: system-config-printer
+# auto translated by TM merge from project: system-config-printer, version:
+# master, DocId: system-config-printer
 msgid "User"
 msgstr "Uživatel"
 
-# auto translated by TM merge from project: firewalld, version: master, DocId: po/firewalld
+# auto translated by TM merge from project: firewalld, version: master, DocId:
+# po/firewalld
 msgid "User ID"
 msgstr "ID uživatele"
 
@@ -566,27 +682,33 @@ msgstr "Uživatelské jméno"
 msgid "User password"
 msgstr "Uživatelské heslo"
 
-# auto translated by TM merge from project: anaconda, version: rhel6-branch, DocId: anaconda
+# auto translated by TM merge from project: anaconda, version: rhel6-branch,
+# DocId: anaconda
 msgid "Username"
 msgstr "Jméno uživatele"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Users"
 msgstr "Uživatelé"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "Vendor"
 msgstr "Výrobce"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "Version"
 msgstr "Verze"
 
-# auto translated by TM merge from project: authconfig, version: master, DocId: po/authconfig
+# auto translated by TM merge from project: authconfig, version: master,
+# DocId: po/authconfig
 msgid "Warning"
 msgstr "Varování"
 
-# auto translated by TM merge from project: anaconda, version: f25, DocId: main
+# auto translated by TM merge from project: anaconda, version: f25, DocId:
+# main
 msgid "Working"
 msgstr "Pracuje"
 
@@ -601,15 +723,18 @@ msgstr "na serveru '%(server)s' se vyskytla interní chyba"
 msgid "cannot connect to '%(uri)s': %(error)s"
 msgstr "nelze se připojit k '%(uri)s': %(error)s"
 
-# auto translated by TM merge from project: Fedora Cheat Cubes, version: master, DocId: Fedora_Cheat_Cube_Users
+# auto translated by TM merge from project: Fedora Cheat Cubes, version:
+# master, DocId: Fedora_Cheat_Cube_Users
 msgid "command"
 msgstr "příkaz"
 
-# auto translated by TM merge from project: selinux (policycoreutils), version: master, DocId: policycoreutils
+# auto translated by TM merge from project: selinux (policycoreutils),
+# version: master, DocId: policycoreutils
 msgid "commands"
 msgstr "příkazy"
 
-# auto translated by TM merge from project: anaconda, version: f22-branch, DocId: anaconda
+# auto translated by TM merge from project: anaconda, version: f22-branch,
+# DocId: anaconda
 msgid "description"
 msgstr "popis"
 
@@ -624,22 +749,26 @@ msgstr "chyba marshallingu dat pro přenos XML-RPC: %(error)s"
 msgid "error on server '%(server)s': %(error)s"
 msgstr "chyba na serveru '%(server)s': %(error)s"
 
-# auto translated by TM merge from project: Fedora Cheat Cubes, version: master, DocId: Fedora_Cheat_Cube_Users
+# auto translated by TM merge from project: Fedora Cheat Cubes, version:
+# master, DocId: Fedora_Cheat_Cube_Users
 msgid "group"
 msgstr "skupinu"
 
 msgid "incorrect type"
 msgstr "nesprávný typ"
 
-# auto translated by TM merge from project: anaconda, version: rhel7-branch, DocId: anaconda
+# auto translated by TM merge from project: anaconda, version: rhel7-branch,
+# DocId: anaconda
 msgid "password"
 msgstr "heslo"
 
-# auto translated by TM merge from project: virt-manager, version: master, DocId: virt-manager
+# auto translated by TM merge from project: virt-manager, version: master,
+# DocId: virt-manager
 msgid "seconds"
 msgstr "sekund"
 
-# auto translated by TM merge from project: Fedora Cheat Cubes, version: master, DocId: Fedora_Cheat_Cube_Users
+# auto translated by TM merge from project: Fedora Cheat Cubes, version:
+# master, DocId: Fedora_Cheat_Cube_Users
 msgid "service"
 msgstr "službu"
 
@@ -651,10 +780,12 @@ msgstr "neznámý příkaz '%(name)s'"
 msgid "unknown error %(code)d from %(server)s: %(error)s"
 msgstr "neznámý kód %(code)d chyby ze serveru %(server)s: %(error)s"
 
-# auto translated by TM merge from project: Spacewalk Web UI, version: master, DocId: java/code/src/com/redhat/rhn/frontend/strings/java/StringResource
+# auto translated by TM merge from project: Spacewalk Web UI, version: master,
+# DocId: java/code/src/com/redhat/rhn/frontend/strings/java/StringResource
 msgid "url"
 msgstr "url"
 
-# auto translated by TM merge from project: Fedora Cheat Cubes, version: master, DocId: Fedora_Cheat_Cube_Users
+# auto translated by TM merge from project: Fedora Cheat Cubes, version:
+# master, DocId: Fedora_Cheat_Cube_Users
 msgid "user"
 msgstr "uživatel"

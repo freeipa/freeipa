@@ -1,0 +1,238 @@
+# Manuela Silva <mmsrs@sky.com>, 2019. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2019-08-14 10:13+0300\n"
+"PO-Revision-Date: 2019-08-21 10:13+0000\n"
+"Last-Translator: Manuela Silva <mmsrs@sky.com>\n"
+"Language-Team: Portuguese\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Zanata 4.6.2\n"
+
+msgid ""
+"\n"
+"    Display information about an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Exibir informação acerca de uma regra de membro automática.\n"
+"    "
+
+msgid ""
+"\n"
+"Get information about installed IPA servers.\n"
+msgstr ""
+"\n"
+"Obter informação acerca dos servidores IPA.\n"
+
+#, python-format
+msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
+msgstr "Cliente %(cver)s incompatível com servidor %(sver)s no '%(server)s'"
+
+#, python-format
+msgid "%(exception)s"
+msgstr "%(exception)s"
+
+#, python-format
+msgid "%(info)s"
+msgstr "%(info)s"
+
+#, python-format
+msgid "%(line)s"
+msgstr "%(line)s"
+
+#, python-format
+msgid "%(reason)s"
+msgstr "%(reason)s"
+
+#, python-format
+msgid "'%(name)s' is required"
+msgstr "'%(name)s' é obrigatório"
+
+msgid "A list of LDAP entries"
+msgstr "Uma lista de entradas LDAP"
+
+msgid "Add password policy"
+msgstr "Adicionar política de palavra-passe"
+
+msgid "Already registered"
+msgstr "Já registado"
+
+msgid "Command name"
+msgstr "Nome do comando"
+
+msgid "Command not implemented"
+msgstr "Comando não implementado"
+
+msgid "Display information about a DNS forward zone."
+msgstr "Exibir informação acerca de uma zona de reencaminhamento DNS."
+
+msgid "Display information about a DNS zone (SOA record)."
+msgstr "Exibir informação acerca de uma zona DNS (registo SOA)."
+
+msgid "Display information about a RADIUS proxy server."
+msgstr "Exibir informação acerca do servidor proxy RADIUS."
+
+msgid "Display information about a delegation."
+msgstr "Exibir informação acerca de uma delegação."
+
+msgid "Display information about a named group."
+msgstr "Exibir informação acerca de um grupo nomeado."
+
+msgid "Display information about a self-service permission."
+msgstr "Exibir informação acerca de uma permissão de serviço automático."
+
+msgid "Display information about a user."
+msgstr "Exibir informação acerca de um utilizador."
+
+msgid "Display information about an IPA location."
+msgstr "Exibir informação acerca de uma localização IPA"
+
+msgid "Display information about password policy."
+msgstr "Exibir informação acerca da política de palavra-passe."
+
+msgid "Filename is empty"
+msgstr "O nome de ficheiro está em branco"
+
+msgid "Forward policy"
+msgstr "Política de reencaminhamento"
+
+msgid "GECOS field"
+msgstr "campo GECOS"
+
+msgid "Identity"
+msgstr "Identidade"
+
+msgid "Identity Settings"
+msgstr "Configurações de Identidade"
+
+#, python-format
+msgid "Insufficient access: %(info)s"
+msgstr "Acesso insuficiente: %(info)s"
+
+#, python-format
+msgid "Invalid JSON-RPC request: %(error)s"
+msgstr "Pedido JSON-RPC inválido: %(error)s"
+
+#, python-format
+msgid "Kerberos error: %(major)s/%(minor)s"
+msgstr "Erro Kerberos: %(major)s/%(minor)s"
+
+#, python-format
+msgid "Missing or invalid HTTP Referer, %(referer)s"
+msgstr "Referenciador HTTP ausente ou inválido,%(referer)s"
+
+msgid "Modify information about an IPA location."
+msgstr "Modificar informação acerca de uma localização IPA"
+
+msgid "Modify information about an IPA server."
+msgstr "Modificar informação acerca de um servidor IPA"
+
+msgid "Not registered yet"
+msgstr "Ainda não registado"
+
+msgid "Only one value is allowed"
+msgstr "Só é permitido um valor"
+
+msgid "Password Policy"
+msgstr "Política de Palavra-passe"
+
+msgid "Passwords do not match"
+msgstr "As palavras-passe não correspondem"
+
+msgid "Permission type"
+msgstr "Tipo de permissão"
+
+msgid "Policy"
+msgstr "Política"
+
+msgid "Remove trusts"
+msgstr "Remover interligações"
+
+msgid "Search for trusts."
+msgstr "Pesquisar por interligações."
+
+msgid "Session error"
+msgstr "Erro de sessão"
+
+msgid "The topic or command name."
+msgstr "O nome do tópico ou do comando"
+
+msgid "This command requires root access"
+msgstr "Este comando requer acesso \"root\""
+
+msgid "This entry already exists"
+msgstr "Esta entrada já existe"
+
+msgid "This entry cannot be enabled or disabled"
+msgstr "Esta entrada não pode estar ativada ou desativada"
+
+msgid "This entry is already a member"
+msgstr "Esta entrada já é um membro"
+
+msgid "This entry is already disabled"
+msgstr "Esta entrada já está desativada"
+
+msgid "This entry is already enabled"
+msgstr "Esta entrada já está ativada"
+
+msgid "This entry is not a member"
+msgstr "Esta entrada não é um membro"
+
+msgid "Ticket expired"
+msgstr "Pedido expirado"
+
+msgid "To get command help, use:"
+msgstr "Para obter ajuda do comando, utilize:"
+
+msgid "Topic commands:"
+msgstr "Comandos do tópico:"
+
+msgid "Topic or Command"
+msgstr "Tópico ou Comando"
+
+msgid "Trusts"
+msgstr "Interligações"
+
+msgid "an internal error has occurred"
+msgstr "ocorreu um erro interno "
+
+#, python-format
+msgid "an internal error has occurred on server at '%(server)s'"
+msgstr "ocorreu um erro interno no servidor em '%(server)s'"
+
+#, python-format
+msgid "cannot connect to '%(uri)s': %(error)s"
+msgstr "não é possível ligar a '%(uri)s': %(error)s"
+
+#, python-format
+msgid "error on server '%(server)s': %(error)s"
+msgstr "erro no servidor '%(server)s': %(error)s"
+
+msgid "incorrect type"
+msgstr "tipo incorreto"
+
+#, python-format
+msgid "invalid '%(name)s': %(error)s"
+msgstr "'%(name)s' inválido: %(error)s"
+
+msgid "invalid SSH public key"
+msgstr "chave SSh pública inválida"
+
+msgid "options are not allowed"
+msgstr "não são pertimidas opções"
+
+msgid "password policy"
+msgstr "política de palavra-passe"
+
+msgid "trusts"
+msgstr "interligações"
+
+#, python-format
+msgid "unknown command '%(name)s'"
+msgstr "comando desconhecido '%(name)s'"
