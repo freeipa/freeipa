@@ -1337,13 +1337,13 @@ jobs:
         timeout: 10800
         topology: *master_1repl
 
-  fedora-30/test_sssd:
-    requires: [fedora-30/build]
+  fedora-rawhide/test_sssd:
+    requires: [fedora-rawhide/build]
     priority: 50
     job:
       class: RunADTests
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-rawhide/build_url}'
         test_suite: test_integration/test_sssd.py
         template: *ci-master-frawhide
         timeout: 4800
@@ -1361,7 +1361,7 @@ jobs:
         timeout: 7200
         topology: *master_1repl
 
-  fedora-30/membermanager:
+  fedora-rawhide/membermanager:
     requires: [fedora-rawhide/build]
     priority: 50
     job:
