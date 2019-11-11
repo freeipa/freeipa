@@ -46,7 +46,7 @@ jobs:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &testing-master-latest
-          name: freeipa/testing-master-f30
+          name: freeipa/testing-master-f31
           version: 0.0.1
         timeout: 1800
         topology: *build

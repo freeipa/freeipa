@@ -34,7 +34,7 @@ jobs:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &389ds-master-latest
-          name: freeipa/389ds-master-f30
+          name: freeipa/389ds-master-f31
           version: 0.0.1
         timeout: 1800
         topology: *build
