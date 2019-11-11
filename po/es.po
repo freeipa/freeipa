@@ -8,15 +8,33 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
 "POT-Creation-Date: 2019-08-14 10:13+0300\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2019-07-21 03:38+0000\n"
+"PO-Revision-Date: 2019-11-10 03:45+0000\n"
 "Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
-"X-Generator: Zanata 4.6.2\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Zanata 4.6.2\n"
+
+msgid ""
+"\n"
+"\n"
+"EXAMPLES:\n"
+msgstr ""
+"\n"
+"\n"
+"EJEMPLOS:\n"
+
+msgid ""
+"\n"
+"\n"
+"GLOBAL DNS CONFIGURATION\n"
+msgstr ""
+"\n"
+"\n"
+"CONFIGURACIÓN GLOBAL DNS\n"
 
 msgid ""
 "\n"
@@ -279,6 +297,19 @@ msgstr ""
 
 msgid ""
 "\n"
+"   This is the equivalent of:\n"
+"     ipa dnszone-mod example.com --dynamic-update=TRUE \\\n"
+"      --update-policy=\"grant EXAMPLE.COM krb5-self * A; grant EXAMPLE.COM "
+"krb5-self * AAAA; grant EXAMPLE.COM krb5-self * SSHFP;\"\n"
+msgstr ""
+"\n"
+"   Este es el equivalente:\n"
+"     ipa dnszone-mod example.com --dynamic-update=TRUE \\\n"
+"      --update-policy=\"grant EXAMPLE.COM krb5-self * A; grant EXAMPLE.COM "
+"krb5-self * AAAA; grant EXAMPLE.COM krb5-self * SSHFP;\"\n"
+
+msgid ""
+"\n"
 "  Add location:\n"
 "    ipa location-add location --description 'My location'\n"
 msgstr ""
@@ -370,6 +401,15 @@ msgstr ""
 
 msgid ""
 "\n"
+"  Show implicit IPA master role:\n"
+"    ipa server-role-find --include-master\n"
+msgstr ""
+"\n"
+"  Muestra el rol maestro IPA implícito:\n"
+"    ipa server-role-find --include-master\n"
+
+msgid ""
+"\n"
 "  Show specific location:\n"
 "    ipa location-show location\n"
 msgstr ""
@@ -388,12 +428,53 @@ msgstr ""
 
 msgid ""
 "\n"
+"  Show status of 'DNS server' role on a server:\n"
+"    ipa server-role-show ipa.example.com \"DNS server\"\n"
+msgstr ""
+"\n"
+"  Muestra el estado del rol 'DNS server' sobre un servidor:\n"
+"    ipa server-role-show ipa.example.com \"DNS server\"\n"
+
+msgid ""
+"\n"
+"  Show status of all configured roles on a server:\n"
+"    ipa server-role-find ipa.example.com\n"
+msgstr ""
+"\n"
+"  Muestra el estado de todos los roles configurados en un servidor:\n"
+"    ipa server-role-find ipa.example.com\n"
+
+msgid ""
+"\n"
+"  Show status of all roles containing 'AD' on a server:\n"
+"    ipa server-role-find --server ipa.example.com --role=\"AD trust "
+"controller\"\n"
+msgstr ""
+"\n"
+"  Muestra el estado de todos los roles que contienen 'AD' sobre un "
+"servidor:\n"
+"    ipa server-role-find --server ipa.example.com --role=\"AD trust "
+"controller\"\n"
+
+msgid ""
+"\n"
 "  Update configuration of a specific DNS server:\n"
 "    ipa dnsserver-mod\n"
 msgstr ""
 "\n"
 "  Actualizar la configuración de un servidor DNS especifico:\n"
 "    ipa dnsserver-mod\n"
+
+msgid ""
+"\n"
+" Add LOC record for example.com:\n"
+"   ipa dnsrecord-add example.com @ --loc-rec=\"49 11 42.4 N 16 36 29.6 E "
+"227.64m\"\n"
+msgstr ""
+"\n"
+" Añadir registro LOC para example.com:\n"
+"   ipa dnsrecord-add example.com @ --loc-rec=\"49 11 42.4 N 16 36 29.6 E "
+"227.64m\"\n"
 
 msgid ""
 "\n"
@@ -404,6 +485,15 @@ msgstr ""
 " Añadir un host que pueda manejar la tabla de teclas y certificado del "
 "host:\n"
 "   ipa host-add-managedby --hosts=test2 test\n"
+
+msgid ""
+"\n"
+" Add a mail server for example.com:\n"
+"   ipa dnsrecord-add example.com @ --mx-rec=\"10 mail1\"\n"
+msgstr ""
+"\n"
+" Añadir un servidor de correo para example.com:\n"
+"   ipa dnsrecord-add example.com @ --mx-rec=\"10 mail1\"\n"
 
 msgid ""
 "\n"
@@ -484,12 +574,189 @@ msgstr ""
 
 msgid ""
 "\n"
+" Add another record using MX record specific options:\n"
+"  ipa dnsrecord-add example.com @ --mx-preference=20 --mx-exchanger=mail2\n"
+msgstr ""
+"\n"
+" Añadir otro registro usando las opciones específicas de registro MX:\n"
+"  ipa dnsrecord-add example.com @ --mx-preference=20 --mx-exchanger=mail2\n"
+
+msgid ""
+"\n"
+" Add another record using interactive mode (started when dnsrecord-add, "
+"dnsrecord-mod,\n"
+" or dnsrecord-del are executed with no options):\n"
+"  ipa dnsrecord-add example.com @\n"
+"  Please choose a type of DNS resource record to be added\n"
+"  The most common types for this type of zone are: NS, MX, LOC\n"
+"\n"
+"  DNS resource record type: MX\n"
+"  MX Preference: 30\n"
+"  MX Exchanger: mail3\n"
+"    Record name: example.com\n"
+"    MX record: 10 mail1, 20 mail2, 30 mail3\n"
+"    NS record: nameserver.example.com., nameserver2.example.com.\n"
+msgstr ""
+"\n"
+" Añadir otro registro usando el modo interactivo (iniciado cuando dnsrecord-"
+"add, dnsrecord-mod,\n"
+" o dnsrecord-del son ejecutados sin opciones:\n"
+"  ipa dnsrecord-add example.com @\n"
+"  Por favor elija un tipo de recurso de registro DNS a añadir\n"
+"  Los tipos más comunes para este tipo de zona son: NS, MX, LOC\n"
+"\n"
+"  DNS resource record type: MX\n"
+"  MX Preference: 30\n"
+"  MX Exchanger: mail3\n"
+"    Record name: example.com\n"
+"    MX record: 10 mail1, 20 mail2, 30 mail3\n"
+"    NS record: nameserver.example.com., nameserver2.example.com.\n"
+
+msgid ""
+"\n"
+" Add new A record for www.example.com. Create a reverse record in "
+"appropriate\n"
+" reverse zone as well. In this case a PTR record \"2\" pointing to www."
+"example.com\n"
+" will be created in zone 2.0.192.in-addr.arpa.\n"
+"   ipa dnsrecord-add example.com www --a-rec=192.0.2.2 --a-create-reverse\n"
+msgstr ""
+"\n"
+" Añadir un nuevo registro A para www.example.com. Crear un registro inverso "
+"en la zona\n"
+" inversa apropiada también. En esta caso un registro PTR \"2\" apuntando a "
+"www.example.com\n"
+" será creado en la zona 2.0.192.in-addr.arpa.\n"
+"   ipa dnsrecord-add example.com www --a-rec=192.0.2.2 --a-create-reverse\n"
+
+msgid ""
+"\n"
+" Add new PTR record for www.example.com\n"
+"   ipa dnsrecord-add 2.0.192.in-addr.arpa. 2 --ptr-rec=www.example.com.\n"
+msgstr ""
+"\n"
+" Añadir nuevo registro PTR para www.example.com\n"
+"   ipa dnsrecord-add 2.0.192.in-addr.arpa. 2 --ptr-rec=www.example.com.\n"
+
+msgid ""
+"\n"
+" Add new SRV records for LDAP servers. Three quarters of the requests\n"
+" should go to fast.example.com, one quarter to slow.example.com. If neither\n"
+" is available, switch to backup.example.com.\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"0 3 389 fast.example."
+"com\"\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"0 1 389 slow.example."
+"com\"\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"1 1 389 backup."
+"example.com\"\n"
+msgstr ""
+"\n"
+" Añadir nuevos registros SRV para servidores LDAP. Tres cuartos de las "
+"peticiones\n"
+"debería ir a fast.example.com, un cuarto a slow.example.com. Si ninguno "
+"está\n"
+"disponible conmutar a backup.example.com.\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"0 3 389 fast.example."
+"com\"\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"0 1 389 slow.example."
+"com\"\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"1 1 389 backup."
+"example.com\"\n"
+
+msgid ""
+"\n"
+" Add new reverse zone specified by network IP address:\n"
+"   ipa dnszone-add --name-from-ip=192.0.2.0/24\n"
+msgstr ""
+"\n"
+" Añadir nueva zona reversa especificada por la dirección IP de red:\n"
+"   ipa dnszone-add --name-from-ip=192.0.2.0/24\n"
+
+msgid ""
+"\n"
+" Add new zone:\n"
+"   ipa dnszone-add example.com --admin-email=admin@example.com\n"
+msgstr ""
+"\n"
+" Añadir nueva zona:\n"
+"   ipa dnszone-add example.com --admin-email=admin@example.com\n"
+
+msgid ""
+"\n"
+" Add second nameserver for example.com:\n"
+"   ipa dnsrecord-add example.com @ --ns-rec=nameserver2.example.com\n"
+msgstr ""
+"\n"
+" Añadir segundo servidor de nombres para example.com:\n"
+"   ipa dnsrecord-add example.com @ --ns-rec=nameserver2.example.com\n"
+
+msgid ""
+"\n"
+" Add system permission that can be used for per-zone privilege delegation:\n"
+"   ipa dnszone-add-permission example.com\n"
+msgstr ""
+"\n"
+" Añadir permiso de sistema que puede ser usado para delegación de privilegio "
+"por zona:\n"
+"   ipa dnszone-add-permission example.com\n"
+
+msgid ""
+"\n"
+" After this modification, three fifths of the requests should go to\n"
+" fast.example.com and two fifths to slow.example.com.\n"
+msgstr ""
+"\n"
+" Después de esta modificación tres quintos de las peticiones deberían ir a \n"
+" fast.example.com y dos quintos a slow.example.com.\n"
+
+msgid ""
+"\n"
 " Allow user to create a keytab:\n"
 "   ipa host-allow-create-keytab test2 --users=tuser1\n"
 msgstr ""
 "\n"
 " Permitir al usuario crear una tabla de teclas:\n"
 "   ipa host-allow-create-keytab test2 --users=tuser1\n"
+
+msgid ""
+"\n"
+" An example of the interactive mode for dnsrecord-del command:\n"
+"   ipa dnsrecord-del example.com www\n"
+"   No option to delete specific record provided.\n"
+"   Delete all? Yes/No (default No):     (do not delete all records)\n"
+"   Current DNS record contents:\n"
+"\n"
+"   A record: 192.0.2.2, 192.0.2.3\n"
+"\n"
+"   Delete A record '192.0.2.2'? Yes/No (default No):\n"
+"   Delete A record '192.0.2.3'? Yes/No (default No): y\n"
+"     Record name: www\n"
+"     A record: 192.0.2.2               (A record 192.0.2.3 has been "
+"deleted)\n"
+msgstr ""
+"\n"
+" Un ejemplo del modom interactivo para el comando dnsrecord-del:\n"
+"   ipa dnsrecord-del example.com www\n"
+"   No option to delete specific record provided.\n"
+"   Delete all? Yes/No (default No):     (do not delete all records)\n"
+"   Current DNS record contents:\n"
+"\n"
+"   A record: 192.0.2.2, 192.0.2.3\n"
+"\n"
+"   Delete A record '192.0.2.2'? Yes/No (default No):\n"
+"   Delete A record '192.0.2.3'? Yes/No (default No): y\n"
+"     Record name: www\n"
+"     A record: 192.0.2.2               (A record 192.0.2.3 has been "
+"deleted)\n"
+
+msgid ""
+"\n"
+" Change forward-policy for external.example.com:\n"
+"   ipa dnsforwardzone-mod external.example.com --forward-policy=only\n"
+msgstr ""
+"\n"
+" Cambia la política de reenvío para external.example.com:\n"
+"   ipa dnsforwardzone-mod external.example.com --forward-policy=only\n"
 
 msgid ""
 "\n"
@@ -533,6 +800,17 @@ msgstr ""
 
 msgid ""
 "\n"
+" Delegate zone sub.example to another nameserver:\n"
+"   ipa dnsrecord-add example.com ns.sub --a-rec=203.0.113.1\n"
+"   ipa dnsrecord-add example.com sub --ns-rec=ns.sub.example.com.\n"
+msgstr ""
+"\n"
+" Delegar zona sub.example a otro servidor de nombres:\n"
+"   ipa dnsrecord-add example.com ns.sub --a-rec=203.0.113.1\n"
+"   ipa dnsrecord-add example.com sub --ns-rec=ns.sub.example.com.\n"
+
+msgid ""
+"\n"
 " Delete a Certificate Identity Mapping Rule:\n"
 "   ipa certmaprule-del rule1\n"
 msgstr ""
@@ -569,12 +847,48 @@ msgstr ""
 
 msgid ""
 "\n"
+" Delete forward zone external.example.com:\n"
+"   ipa dnsforwardzone-del external.example.com\n"
+msgstr ""
+"\n"
+" Borra la zona de reenvío external.example.com:\n"
+"   ipa dnsforwardzone-del external.example.com\n"
+
+msgid ""
+"\n"
+" Delete previously added nameserver from example.com:\n"
+"   ipa dnsrecord-del example.com @ --ns-rec=nameserver2.example.com.\n"
+msgstr ""
+"\n"
+" Borrar ujn servidor de nombres previamente añadido desde example.com:\n"
+"   ipa dnsrecord-del example.com @ --ns-rec=nameserver2.example.com.\n"
+
+msgid ""
+"\n"
+" Delete zone example.com with all resource records:\n"
+"   ipa dnszone-del example.com\n"
+msgstr ""
+"\n"
+" Borrar zona example.com con todos los registros de recursos:\n"
+"   ipa dnszone-del example.com\n"
+
+msgid ""
+"\n"
 " Disable a Certificate Identity Mapping Rule:\n"
 "   ipa certmaprule-disable rule1\n"
 msgstr ""
 "\n"
 " Deshabilitar una Regla de Mapeo de Identidad de Certificado:\n"
 "   ipa certmaprule-disable rule1\n"
+
+msgid ""
+"\n"
+" Disable global forwarding for given sub-tree:\n"
+"   ipa dnszone-mod example.com --forward-policy=none\n"
+msgstr ""
+"\n"
+" Deshabilita el reenvío global para el sub-árbol dado:\n"
+"   ipa dnszone-mod example.com --forward-policy=none\n"
 
 msgid ""
 "\n"
@@ -633,6 +947,15 @@ msgstr ""
 
 msgid ""
 "\n"
+" Find A records with value 192.0.2.2 in zone example.com\n"
+"   ipa dnsrecord-find example.com --a-rec=192.0.2.2\n"
+msgstr ""
+"\n"
+" Encontrar registros A con el valor 192.0.2.2 en zona example.com\n"
+"   ipa dnsrecord-find example.com --a-rec=192.0.2.2\n"
+
+msgid ""
+"\n"
 " Find all Certificate Identity Mapping Rules with the specified domain:\n"
 "   ipa certmaprule-find --domain example.com\n"
 msgstr ""
@@ -650,6 +973,68 @@ msgstr ""
 " Encontrar todos los servidores cuyas entradas incluyan la cadena \"example."
 "com\":\n"
 "   ipa radiusproxy-find example.com\n"
+
+msgid ""
+"\n"
+" Find records for resources with \"www\" in their name in zone example.com:\n"
+"   ipa dnsrecord-find example.com www\n"
+msgstr ""
+"\n"
+" Encontrar registros para recursos con \"www\" en su nombre en la zona "
+"example.com:\n"
+"   ipa dnsrecord-find example.com www\n"
+
+msgid ""
+"\n"
+" Find zone with \"example\" in its domain name:\n"
+"   ipa dnszone-find example\n"
+msgstr ""
+"\n"
+" Encontrar una zona con \"example\" en su nombre de dominio:\n"
+"   ipa dnszone-find example\n"
+
+msgid ""
+"\n"
+" Forward all requests for the zone external.example.com to another "
+"forwarder\n"
+" using a \"first\" policy (it will send the queries to the selected "
+"forwarder\n"
+" and if not answered it will use global root servers):\n"
+"   ipa dnsforwardzone-add external.example.com --forward-policy=first \\\n"
+"                               --forwarder=203.0.113.1\n"
+msgstr ""
+"\n"
+" Reenvía todas las peticiones para la zona external.example.com a otro "
+"reenviador\n"
+" usando una política \"first\" (enviará las peticiones al reenviador "
+"seleccionado y si\n"
+" no hay respuesta usará los servidores raíz globales):\n"
+"   ipa dnsforwardzone-add external.example.com --forward-policy=first \\\n"
+"                               --forwarder=203.0.113.1\n"
+
+msgid ""
+"\n"
+" If a global forwarder is configured, all queries for which this server is "
+"not\n"
+" authoritative (e.g. sub.example.com) will be routed to the global "
+"forwarder.\n"
+" Global forwarding configuration can be overridden per-zone.\n"
+msgstr ""
+"\n"
+" Si se configura un reenviador global, todas las peticiones para las que "
+"este\n"
+" servidor no está autorizado (e.g. sub.example.com) serán enrutados al "
+"reenviador global.\n"
+" La configuración de reenvío global se puede anular por zona.\n"
+
+msgid ""
+"\n"
+" List all forward zones:\n"
+"   ipa dnsforwardzone-find\n"
+msgstr ""
+"\n"
+" Lista todas las zonas de reenvío:\n"
+"   ipa dnsforwardzone-find\n"
 
 msgid ""
 "\n"
@@ -684,12 +1069,43 @@ msgstr ""
 
 msgid ""
 "\n"
+" Modify global DNS configuration and set a list of global forwarders:\n"
+"   ipa dnsconfig-mod --forwarder=203.0.113.113\n"
+msgstr ""
+"\n"
+" Modifica la configuración DNS global y establece una lista de reenviadores "
+"globales:\n"
+"   ipa dnsconfig-mod --forwarder=203.0.113.113\n"
+
+msgid ""
+"\n"
 " Modify information about a host:\n"
 "   ipa host-mod --os='Fedora 12' test.example.com\n"
 msgstr ""
 "\n"
 " Modificar información sobre un host:\n"
 "   ipa host-mod --os='Fedora 12' test.example.com\n"
+
+msgid ""
+"\n"
+" Modify the zone to allow dynamic updates for hosts own records in realm "
+"EXAMPLE.COM:\n"
+"   ipa dnszone-mod example.com --dynamic-update=TRUE\n"
+msgstr ""
+"\n"
+" Modificar la zona para permitir actualizaciones dinámicas desde los propios "
+"registros del host en el reino EXAMPLE.COM:\n"
+"   ipa dnszone-mod example.com --dynamic-update=TRUE\n"
+
+msgid ""
+"\n"
+" Modify the zone to allow zone transfers for local network only:\n"
+"   ipa dnszone-mod example.com --allow-transfer=192.0.2.0/24\n"
+msgstr ""
+"\n"
+" Modificar la zona para permitir transferencias de zona solo para la red "
+"local:\n"
+"   ipa dnszone-mod example.com --allow-transfer=192.0.2.0/24\n"
 
 msgid ""
 "\n"
@@ -721,6 +1137,19 @@ msgstr ""
 
 msgid ""
 "\n"
+" Resolve a host name to see if it exists (will add default IPA domain\n"
+" if one is not included):\n"
+"   ipa dns-resolve www.example.com\n"
+"   ipa dns-resolve www\n"
+msgstr ""
+"\n"
+" Resuelve un nombre de host para ver si existe (añadirá el dominio IPA\n"
+" predeterminado si no se ha incluido ninguno):\n"
+"   ipa dns-resolve www.example.com\n"
+"   ipa dns-resolve www\n"
+
+msgid ""
+"\n"
 " Retrieve an existing certificate:\n"
 "   ipa cert-show 1032\n"
 msgstr ""
@@ -745,6 +1174,152 @@ msgstr ""
 "\n"
 " Búsqueda de certificados por nombre de host:\n"
 "   ipa cert-find --subject=ipaserver.example.com\n"
+
+msgid ""
+"\n"
+" Semantics of forwarding in IPA matches BIND semantics and depends on the "
+"type\n"
+" of zone:\n"
+"   * Master zone: local BIND replies authoritatively to queries for data in\n"
+"   the given zone (including authoritative NXDOMAIN answers) and forwarding\n"
+"   affects only queries for names below zone cuts (NS records) of locally\n"
+"   served zones.\n"
+"\n"
+"   * Forward zone: forward zone contains no authoritative data. BIND "
+"forwards\n"
+"   queries, which cannot be answered from its local cache, to configured\n"
+"   forwarders.\n"
+msgstr ""
+"\n"
+" La semántica de reenvío en IPA coincide con la semántica en BIND y depende "
+"del\n"
+" tipo de zona:\n"
+"   * Zona Maestra: BIND local responde con autoridad a las consultas de "
+"datos en la\n"
+"   zona dada (incluyendo las respuestas de autoridad NXDOMAIN) y el reenvío\n"
+"   afecta solo a las peticiones para nombres debajo de los cortes de zona "
+"(registros \n"
+"   NS) de las zonas servidas localmente.\n"
+"\n"
+"   * Zona de Reenvío:la zona de reenvío no contiene datos autorizados. las\n"
+"   las consultas de reenvío BIND, que no pueden ser contestadas desde su "
+"cache\n"
+"   local, para configurar reenviadores.\n"
+
+msgid ""
+"\n"
+" Semantics of the --forward-policy option:\n"
+"   * none - disable forwarding for the given zone.\n"
+"   * first - forward all queries to configured forwarders. If they fail,\n"
+"   do resolution using DNS root servers.\n"
+"   * only - forward all queries to configured forwarders and if they fail,\n"
+"   return failure.\n"
+msgstr ""
+"\n"
+" Semánticas de la opción --forward-policy:\n"
+"   * none - deshabilita el reenvío para una zona dada.\n"
+"   * first - reenvía todas las peticiones a los reenviadores configurados. "
+"Si fallan,\n"
+"   resuelven usando los servidores raíz DNS.\n"
+"   * only - reenvía todas las peticiones a los reenviadores configurados y "
+"si fallan,\n"
+"   devuelve un fallo.\n"
+
+msgid ""
+"\n"
+" Show forward zone external.example.com:\n"
+"   ipa dnsforwardzone-show external.example.com\n"
+msgstr ""
+"\n"
+" Muestra la zona de reenvío external.example.com:\n"
+"   ipa dnsforwardzone-show external.example.com\n"
+
+msgid ""
+"\n"
+" Show global DNS configuration:\n"
+"   ipa dnsconfig-show\n"
+msgstr ""
+"\n"
+" Muestra la configuración DNS global:\n"
+"   ipa dnsconfig-show\n"
+
+msgid ""
+"\n"
+" Show records for resource www in zone example.com\n"
+"   ipa dnsrecord-show example.com www\n"
+msgstr ""
+"\n"
+" Mostrar registros para el recurso www en zona example.com\n"
+"   ipa dnsrecord-show example.com www\n"
+
+msgid ""
+"\n"
+" Show zone example.com:\n"
+"   ipa dnszone-show example.com\n"
+msgstr ""
+"\n"
+" Mostrar zona example.com:\n"
+"   ipa dnszone-show example.com\n"
+
+msgid ""
+"\n"
+" The interactive mode can be used for easy modification:\n"
+"  ipa dnsrecord-mod example.com _ldap._tcp\n"
+"  No option to modify specific record provided.\n"
+"  Current DNS record contents:\n"
+"\n"
+"  SRV record: 0 3 389 fast.example.com, 0 1 389 slow.example.com, 1 1 389 "
+"backup.example.com\n"
+"\n"
+"  Modify SRV record '0 3 389 fast.example.com'? Yes/No (default No):\n"
+"  Modify SRV record '0 1 389 slow.example.com'? Yes/No (default No): y\n"
+"  SRV Priority [0]:                     (keep the default value)\n"
+"  SRV Weight [1]: 2                     (modified value)\n"
+"  SRV Port [389]:                       (keep the default value)\n"
+"  SRV Target [slow.example.com]:        (keep the default value)\n"
+"  1 SRV record skipped. Only one value per DNS record type can be modified "
+"at one time.\n"
+"    Record name: _ldap._tcp\n"
+"    SRV record: 0 3 389 fast.example.com, 1 1 389 backup.example.com, 0 2 "
+"389 slow.example.com\n"
+msgstr ""
+"\n"
+" El modo interactivo puede ser usado para modificación fácil:\n"
+"  ipa dnsrecord-mod example.com _ldap._tcp\n"
+"  No se suministra opción para modificar registro específico.\n"
+"  El registro actual DNS contiene:\n"
+"\n"
+"  SRV record: 0 3 389 fast.example.com, 0 1 389 slow.example.com, 1 1 389 "
+"backup.example.com\n"
+"\n"
+"  Modificar registro SRV '0 3 389 fast.example.com'? Si/No (predeterminado "
+"No):\n"
+"  Modificar registro SRV '0 1 389 slow.example.com'? Si/No (predeterminado "
+"No): y\n"
+"  SRV Priority [0]:                     (keep the default value)\n"
+"  SRV Weight [1]: 2                     (modified value)\n"
+"  SRV Port [389]:                       (keep the default value)\n"
+"  SRV Target [slow.example.com]:        (keep the default value)\n"
+"  1 SRV record skipped. Only one value per DNS record type can be modified "
+"at one time.\n"
+"    Record name: _ldap._tcp\n"
+"    SRV record: 0 3 389 fast.example.com, 1 1 389 backup.example.com, 0 2 "
+"389 slow.example.com\n"
+
+msgid ""
+"\n"
+" This configuration forwards all queries for names outside the example.com\n"
+" sub-tree to global forwarders. Normal recursive resolution process is used\n"
+" for names inside the example.com sub-tree (i.e. NS records are followed "
+"etc.).\n"
+msgstr ""
+"\n"
+" Esta configuración reenvia todas las peticiones para nombres fuera del sub "
+"árbol  example.com\n"
+" a reenviadores globales. Se utiliza el proceso de resolución recursiva "
+"normal para \n"
+" los nombres dentro del sub-árbol example.com (i.e. registros NS son "
+"seguidos etc.).\n"
 
 msgid ""
 "\n"
@@ -785,6 +1360,33 @@ msgstr ""
 
 msgid ""
 "\n"
+"A condition is a regular expression used by 389-ds to match a new incoming\n"
+"entry with an automember rule. If it matches an inclusive rule then the\n"
+"entry is added to the appropriate group or hostgroup.\n"
+msgstr ""
+"\n"
+"Una condición es una expresión regular usada por 389-ds para coincidir una "
+"nueva\n"
+"entrada entrtante con una regla de auto miembro. Si la coincidencia es una "
+"regla\n"
+"inclusiva la entrada se añade al grupo o grupo de host apopiado.\n"
+
+msgid ""
+"\n"
+"A default group or hostgroup could be specified for entries that do not\n"
+"match any rule. In case of user entries this group will be a fallback group\n"
+"because all users are by default members of group specified in IPA config.\n"
+msgstr ""
+"\n"
+"Se podría especificar un grupo o grupo de host predeterminado para las "
+"entradas\n"
+"que no coincidan con ninguna regla. En caso de entradas de usuario, este "
+"grupo\n"
+"será un grupo de reserva puesto que todos los usuarios son por defecto "
+"miembros del grupo especificado en la configuración IPA.\n"
+
+msgid ""
+"\n"
 "A permission enables fine-grained delegation of rights. A permission is\n"
 "a human-readable wrapper around a 389-ds Access Control Rule,\n"
 "or instruction (ACI).\n"
@@ -822,6 +1424,16 @@ msgid ""
 msgstr ""
 "\n"
 "Un permiso puede contener otros permisos.\n"
+
+msgid ""
+"\n"
+"A rule is directly associated with a group by name, so you cannot create\n"
+"a rule without an accompanying group or hostgroup.\n"
+msgstr ""
+"\n"
+"Un regla está directamente asociada con un grupo por nombre, de modo que "
+"usted\n"
+"no puede crear un regla sin un grupo o grupo de host que lo acompañen.\n"
 
 msgid ""
 "\n"
@@ -943,6 +1555,13 @@ msgstr ""
 "La bóveda asymmetric  es similar a la bóveda standard, pero\n"
 "encripta el secreto usando una clave pública antes del transporte.\n"
 "El secreto sólo se puede recuperar usando la clave privada.\n"
+
+msgid ""
+"\n"
+"Auto Membership Rule.\n"
+msgstr ""
+"\n"
+"Regla de Membresía Automática.\n"
 
 msgid ""
 "\n"
@@ -1195,6 +1814,20 @@ msgstr ""
 
 msgid ""
 "\n"
+"Bring clarity to the membership of hosts and users by configuring inclusive\n"
+"or exclusive regex patterns, you can automatically assign a new entries "
+"into\n"
+"a group or hostgroup based upon attribute information.\n"
+msgstr ""
+"\n"
+"Brinde claridad a la membresía de hosts y usuarios configurando patrones\n"
+"inclusivos o exclusivos de expresiones regulares, usted puede "
+"automáticamente\n"
+"asignar una nuevas entradas a un grupo o grupo de host en base a la "
+"información del atributo.\n"
+
+msgid ""
+"\n"
 "CAs (all except the 'IPA' CA) can be deleted.  Deleting a CA causes its "
 "signing\n"
 "certificate to be revoked and its private key deleted.\n"
@@ -1248,6 +1881,22 @@ msgid ""
 msgstr ""
 "\n"
 "Comandos para construir peticiones de certificado automáticamente\n"
+
+msgid ""
+"\n"
+"DNS configuration passed to command line install script is stored in a "
+"local\n"
+"configuration file on each IPA server where DNS service is configured. "
+"These\n"
+"local settings can be overridden with a common configuration stored in LDAP\n"
+"server:\n"
+msgstr ""
+"\n"
+"La configuración de DNS que se pasa al script de instalación de la línea de\n"
+"comandos está almacenado en un fichero de configuración local en cada "
+"servidor\n"
+"IPA donde el servicio DNS está configurado. Estos ajustes locales pueden ser "
+"anulados con una configuración común almacenada en el servidor LDAP:\n"
 
 msgid ""
 "\n"
@@ -1534,6 +2183,13 @@ msgstr ""
 
 msgid ""
 "\n"
+"Domain Name System (DNS)\n"
+msgstr ""
+"\n"
+"Sistema de Nombre de Dominio (DNS)\n"
+
+msgid ""
+"\n"
 "ENROLLMENT:\n"
 "\n"
 "There are three enrollment scenarios when enrolling a new client:\n"
@@ -1650,6 +2306,14 @@ msgid ""
 msgstr ""
 "\n"
 "Obtener información sobre los servidores IPA instalados.\n"
+
+msgid ""
+"\n"
+"Get status of roles (DNS server, CA, etc.) provided by IPA masters.\n"
+msgstr ""
+"\n"
+"Obtener el estado de los roles (servidor DNS, CA, etc.) suministrado por los "
+"IPA maestros.\n"
 
 msgid ""
 "\n"
@@ -2595,6 +3259,13 @@ msgstr ""
 
 msgid ""
 "\n"
+"IPA server roles\n"
+msgstr ""
+"\n"
+"Roles del servidor IPA\n"
+
+msgid ""
+"\n"
 "IPA servers\n"
 msgstr ""
 "\n"
@@ -2655,6 +3326,33 @@ msgid ""
 msgstr ""
 "\n"
 "Con el objetivo de pedir un certificado:\n"
+
+msgid ""
+"\n"
+"It may be difficult to manipulate such DNS records without making a mistake\n"
+"and entering an invalid value. DNS module provides an abstraction over "
+"these\n"
+"raw records and allows to manipulate each RR type with specific options. "
+"For\n"
+"each supported RR type, DNS module provides a standard option to manipulate\n"
+"a raw records with format --<rrtype>-rec, e.g. --mx-rec, and special "
+"options\n"
+"for every part of the RR structure with format --<rrtype>-<partname>, e.g.\n"
+"--mx-preference and --mx-exchanger.\n"
+msgstr ""
+"\n"
+"Puede ser difícil manipular estos registros DNS sin hacer un error e "
+"introducir un\n"
+"valor no válido. El módulo DNS suministra una abstracción sobre estos "
+"registros\n"
+"brutos y permite manipular cada tipo RR con opciones específicas. Por cada "
+"tipo\n"
+"RR soportado, el módulo DNS suministra una opción estándar para manipular\n"
+"unos registros brutos con el formato --<rrtype>-rec, e.g. --mx-rec y "
+"opciones\n"
+"especiales para cada parte de la estructura RR con formato --<rrtype>-"
+"<partname>,\n"
+"e. g. --mx-preference and --mx-exchanger.\n"
 
 msgid ""
 "\n"
@@ -2944,6 +3642,13 @@ msgstr ""
 
 msgid ""
 "\n"
+"Manage DNS zone and resource records.\n"
+msgstr ""
+"\n"
+"Gestionar zona DNS y registro de recursos.\n"
+
+msgid ""
+"\n"
 "Manage OTP tokens.\n"
 msgstr ""
 "\n"
@@ -2990,6 +3695,218 @@ msgid ""
 msgstr ""
 "\n"
 "Manipular la configuración del servidor DNS\n"
+
+msgid ""
+"\n"
+"Migration to IPA\n"
+"\n"
+"Migrate users and groups from an LDAP server to IPA.\n"
+"\n"
+"This performs an LDAP query against the remote server searching for\n"
+"users and groups in a container. In order to migrate passwords you need\n"
+"to bind as a user that can read the userPassword attribute on the remote\n"
+"server. This is generally restricted to high-level admins such as\n"
+"cn=Directory Manager in 389-ds (this is the default bind user).\n"
+"\n"
+"The default user container is ou=People.\n"
+"\n"
+"The default group container is ou=Groups.\n"
+"\n"
+"Users and groups that already exist on the IPA server are skipped.\n"
+"\n"
+"Two LDAP schemas define how group members are stored: RFC2307 and\n"
+"RFC2307bis. RFC2307bis uses member and uniquemember to specify group\n"
+"members, RFC2307 uses memberUid. The default schema is RFC2307bis.\n"
+"\n"
+"The schema compat feature allows IPA to reformat data for systems that\n"
+"do not support RFC2307bis. It is recommended that this feature is disabled\n"
+"during migration to reduce system overhead. It can be re-enabled after\n"
+"migration. To migrate with it enabled use the \"--with-compat\" option.\n"
+"\n"
+"Migrated users do not have Kerberos credentials, they have only their\n"
+"LDAP password. To complete the migration process, users need to go\n"
+"to http://ipa.example.com/ipa/migration and authenticate using their\n"
+"LDAP password in order to generate their Kerberos credentials.\n"
+"\n"
+"Migration is disabled by default. Use the command ipa config-mod to\n"
+"enable it:\n"
+"\n"
+" ipa config-mod --enable-migration=TRUE\n"
+"\n"
+"If a base DN is not provided with --basedn then IPA will use either\n"
+"the value of defaultNamingContext if it is set or the first value\n"
+"in namingContexts set in the root of the remote LDAP server.\n"
+"\n"
+"Users are added as members to the default user group. This can be a\n"
+"time-intensive task so during migration this is done in a batch\n"
+"mode for every 100 users. As a result there will be a window in which\n"
+"users will be added to IPA but will not be members of the default\n"
+"user group.\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" The simplest migration, accepting all defaults:\n"
+"   ipa migrate-ds ldap://ds.example.com:389\n"
+"\n"
+" Specify the user and group container. This can be used to migrate user\n"
+" and group data from an IPA v1 server:\n"
+"   ipa migrate-ds --user-container='cn=users,cn=accounts' \\\n"
+"       --group-container='cn=groups,cn=accounts' \\\n"
+"       ldap://ds.example.com:389\n"
+"\n"
+" Since IPA v2 server already contain predefined groups that may collide "
+"with\n"
+" groups in migrated (IPA v1) server (for example admins, ipausers), users\n"
+" having colliding group as their primary group may happen to belong to\n"
+" an unknown group on new IPA v2 server.\n"
+" Use --group-overwrite-gid option to overwrite GID of already existing "
+"groups\n"
+" to prevent this issue:\n"
+"    ipa migrate-ds --group-overwrite-gid \\\n"
+"        --user-container='cn=users,cn=accounts' \\\n"
+"        --group-container='cn=groups,cn=accounts' \\\n"
+"        ldap://ds.example.com:389\n"
+"\n"
+" Migrated users or groups may have object class and accompanied attributes\n"
+" unknown to the IPA v2 server. These object classes and attributes may be\n"
+" left out of the migration process:\n"
+"    ipa migrate-ds --user-container='cn=users,cn=accounts' \\\n"
+"       --group-container='cn=groups,cn=accounts' \\\n"
+"       --user-ignore-objectclass=radiusprofile \\\n"
+"       --user-ignore-attribute=radiusgroupname \\\n"
+"       ldap://ds.example.com:389\n"
+"\n"
+"LOGGING\n"
+"\n"
+"Migration will log warnings and errors to the Apache error log. This\n"
+"file should be evaluated post-migration to correct or investigate any\n"
+"issues that were discovered.\n"
+"\n"
+"For every 100 users migrated an info-level message will be displayed to\n"
+"give the current progress and duration to make it possible to track\n"
+"the progress of migration.\n"
+"\n"
+"If the log level is debug, either by setting debug = True in\n"
+"/etc/ipa/default.conf or /etc/ipa/server.conf, then an entry will be "
+"printed\n"
+"for each user added plus a summary when the default user group is\n"
+"updated.\n"
+msgstr ""
+"\n"
+"Migración a IPA\n"
+"\n"
+"Migrar usuarios y grupos desde un servidor LDAP a IPA.\n"
+"\n"
+"Esto lleva a cabo una consulta LDAP contra el servidor remoto buscando \n"
+"usuarios y grupos en un contenedor. Con el objetivo de migrar las "
+"contraseñas\n"
+"usted necesita enlazar como un usuario que pueda leer el atributo "
+"userPassword\n"
+"sobre el servidor remoto. Esto normalmente está restringido a "
+"administradores de\n"
+"alto nivel como cn=Directory Manager en 389-ds (este es el usuario de enlace "
+"por defecto).\n"
+"\n"
+"El contenedor de usuario por defecto es ou=People.\n"
+"\n"
+"El contenedor de grupo por defecto es ou=Groups.\n"
+"\n"
+"Los usuarios y grupos que ya existen en el servidor IPA son saltados.\n"
+"\n"
+"Dos esquemas LDAP definen como se almacenan los miembros del grupo:\n"
+"RFC2307 y RFC2307bis. RFC2307bis usa miembro y miembro único para\n"
+"especificar los miembros del grupo. RFC2307 usa memberUid. El esquema por "
+"defecto es RFC2307bis.\n"
+"\n"
+"La característica de compatibilidad de esquema permite a IPA reformatear "
+"datos\n"
+"para sistemas que no soportan RFC2307bis. Se recomienda deshabilitar esta\n"
+"característica durante la migración para reducir la sobrecarga del sistema. "
+"Puede\n"
+"ser rehabilitado después de la migración. Para migrar con esto habilitado "
+"use la opción \"--with-compat\".\n"
+"\n"
+"Los usuarios migrados no tienen credenciales Kerberos, solo tienen su "
+"contraseña\n"
+"LDAP. Para completar el proceso de migración los usuarios necesitan ir a\n"
+"to http://ipa.example.com/ipa/migration y autenticar usando su contraseña "
+"LDAP\n"
+" con el objetivo de generar sus credenciales Kerberos.\n"
+"\n"
+"La migración está deshabilitada por defecto. Use el comando ips config-mod "
+"para\n"
+" habilitarla:\n"
+"\n"
+" ipa config-mod --enable-migration=TRUE\n"
+"\n"
+"Si no se ha suministrado una base DN con –basedn IPA usará en su lugar el "
+"valor\n"
+"de defaultNamingContext si se ha establecido o el primer valor establecido "
+"en\n"
+"namingContexts en la raíz el servidor LDAP remoto.\n"
+"\n"
+"Los usuarios son añadidos como miembros del grupo de usuarios "
+"predeterminado.\n"
+"Esta puede ser una tarea que consuma mucho tiempo de modo que durante la\n"
+"migración se hace por lotes para cada 100 usuarios. Como resultado habrá una "
+"ventana en la que los usuarios se añadirán a IPA pero no serán miembros del\n"
+"grupo de usuario predeterminado.\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+" La migración más sencilla, aceptando todo lo predeterminado:\n"
+"   ipa migrate-ds ldap://ds.example.com:389\n"
+"\n"
+" Especificar el contenedor de usuario y grupo. Esto se puede usar para "
+"migrar datos\n"
+" de usuario y grupo desde un servidor IPA v1:\n"
+"   ipa migrate-ds --user-container='cn=users,cn=accounts' \\\n"
+"       --group-container='cn=groups,cn=accounts' \\\n"
+"       ldap://ds.example.com:389\n"
+"\n"
+"Puesto que el servidor IPA v2 ya contiene grupos predefinidos que pueden "
+"chocar\n"
+"con los grupos en servidor migrado (IPA v1) (por ejemplo admins, ipausers), "
+"los\n"
+"usuarios que tengan un grupo que choque con su grupo primario puede suceder\n"
+"que pertenezcan a un grupo desconocido sobre el nuevo servidor IPA v2\n"
+"Use la opción --group-overwrite-gid para sobreescribir la GID de los grupos "
+"ya\n"
+"existentes y evitar esta cuestión:\n"
+"    ipa migrate-ds --group-overwrite-gid \\\n"
+"        --user-container='cn=users,cn=accounts' \\\n"
+"        --group-container='cn=groups,cn=accounts' \\\n"
+"        ldap://ds.example.com:389\n"
+"\n"
+"Los usuarios o grupos migrados pueden tener objetos clase y atributos\n"
+"acompañantes desconocidos por el servidor IPS v2. Estos objetos clase y "
+"atributos\n"
+"pueden ser dejados fuera durante el proceso de migración:\n"
+"    ipa migrate-ds --user-container='cn=users,cn=accounts' \\\n"
+"       --group-container='cn=groups,cn=accounts' \\\n"
+"       --user-ignore-objectclass=radiusprofile \\\n"
+"       --user-ignore-attribute=radiusgroupname \\\n"
+"       ldap://ds.example.com:389\n"
+"\n"
+"REGISTRO\n"
+"\n"
+"La migración registrará alarmas y errores en el registro de error Apache. "
+"Este\n"
+"fichero debería ser evaluado después de la migración para corregir o "
+"investigar\n"
+"cualquier cuestión que se descubra.\n"
+"\n"
+"Por cada 100 usuarios migrados y mensaje de nivel informativo será mostrado\n"
+"dando el progreso actual y l duración para hacer posible rastrear el "
+"progreso de la\n"
+"migración.\n"
+"\n"
+"Si el nivel de registro es depuración, bien porque se haya fijado debug = "
+"True en\n"
+"etcipa/default.conf o etcipa/server.conf, se añadirá una entrada por cada "
+"usuario\n"
+"añadido más un resumen cuando el grupo de usuario predeterminado se haya\n"
+"actualizado.\n"
 
 msgid ""
 "\n"
@@ -3883,6 +4800,23 @@ msgstr ""
 
 msgid ""
 "\n"
+"SUPPORTED ZONE TYPES\n"
+"\n"
+" * Master zone (dnszone-*), contains authoritative data.\n"
+" * Forward zone (dnsforwardzone-*), forwards queries to configured "
+"forwarders\n"
+" (a set of DNS servers).\n"
+msgstr ""
+"\n"
+"TIPOS DE ZONA SOPORTADOS\n"
+"\n"
+" * Zona maestro (dnszone-*), contiene datos autoritativos.\n"
+" * Zona de información (dnsforwardzone-*), envía solicitudes a otros "
+"servidores \n"
+" (un conjunto de servidores DNS).\n"
+
+msgid ""
+"\n"
 "Search for ACIs.\n"
 "\n"
 "    Returns a list of ACIs\n"
@@ -3924,6 +4858,70 @@ msgstr ""
 "    que tengan ipausers como memberof. Allí puede haber otros ACIs que se\n"
 "    apliquen a miembros de ese grupo indirectamente.\n"
 "    "
+
+msgid ""
+"\n"
+"Self-service Permissions\n"
+"\n"
+"A permission enables fine-grained delegation of permissions. Access Control\n"
+"Rules, or instructions (ACIs), grant permission to permissions to perform\n"
+"given tasks such as adding a user, modifying a group, etc.\n"
+"\n"
+"A Self-service permission defines what an object can change in its own "
+"entry.\n"
+"\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" Add a self-service rule to allow users to manage their address (using Bash\n"
+" brace expansion):\n"
+"   ipa selfservice-add --permissions=write --attrs={street,postalCode,l,c,"
+"st} \"Users manage their own address\"\n"
+"\n"
+" When managing the list of attributes you need to include all attributes\n"
+" in the list, including existing ones.\n"
+" Add telephoneNumber to the list (using Bash brace expansion):\n"
+"   ipa selfservice-mod --attrs={street,postalCode,l,c,st,telephoneNumber} "
+"\"Users manage their own address\"\n"
+"\n"
+" Display our updated rule:\n"
+"   ipa selfservice-show \"Users manage their own address\"\n"
+"\n"
+" Delete a rule:\n"
+"   ipa selfservice-del \"Users manage their own address\"\n"
+msgstr ""
+"\n"
+"Permisos de Auto-Servicio\n"
+"\n"
+"Un permiso habilita una delegación de permisos de. Las Reglas de Control "
+"Acceso, o instrucciones (ACIs), conceden permiso a los permisos para llevar "
+"a cabo tareas\n"
+"dadas como añadir un usuario, modificar un grupo, etc.\n"
+"\n"
+"Un permiso de Auto-Servicio define que un objeto puede cambiar en su propia "
+"entrada.\n"
+"\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+" Añadir una regla de auto-servicio para permitir a los usuarios gestionar "
+"su\n"
+" dirección (usando una expresión Bash brace):\n"
+"   ipa selfservice-add --permissions=write --attrs={street,postalCode,l,c,"
+"st} \"Los usuarios gestionan sus propias direcciones\"\n"
+"\n"
+" Cuando está gestionando la lista de atributos usted necesita incluir todos "
+"los\n"
+" atributos en la lista, incluyendo los existentes.\n"
+" Añadir telephoneNumber a la lista (usando expansión Bash brace):\n"
+"   ipa selfservice-mod --attrs={street,postalCode,l,c,st,telephoneNumber} "
+"\"Los usuarios gestionan sus propias direcciones\"\n"
+"\n"
+" Mostrar nuestra regla actualizada:\n"
+"   ipa selfservice-show \"Los usuarios gestionan sus propias direcciones\"\n"
+"\n"
+" Borrar una regla:\n"
+"   ipa selfservice-del \"Los usuarios gestionan sus propias direcciones\"\n"
 
 msgid ""
 "\n"
@@ -4271,6 +5269,17 @@ msgstr ""
 
 msgid ""
 "\n"
+"The automember-rebuild command can be used to retroactively run automember "
+"rules\n"
+"against existing entries, thus rebuilding their membership.\n"
+msgstr ""
+"\n"
+"El comando de reconstrucción de auto miembro puede ser usado para ejecutar \n"
+"retroactivamente reglas de auto miembro contra las entradas existentes, así "
+"reconstruirá su membresía.\n"
+
+msgid ""
+"\n"
 "The date format is YYYY-mm-dd.\n"
 msgstr ""
 "\n"
@@ -4285,6 +5294,13 @@ msgstr ""
 "La placa de identidad CA usa el valor CN del CSR y fuerza al resto del "
 "sujeto a\n"
 "valores configurados en el servidor.\n"
+
+msgid ""
+"\n"
+"The status of a role is either enabled, configured, or absent.\n"
+msgstr ""
+"\n"
+"El estado de un rol es habilitado, configurado o ausente.\n"
 
 msgid ""
 "\n"
@@ -4303,6 +5319,24 @@ msgstr ""
 
 msgid ""
 "\n"
+"There are many structured DNS RR types where DNS data stored in LDAP server\n"
+"is not just a scalar value, for example an IP address or a domain name, but\n"
+"a data structure which may be often complex. A good example is a LOC record\n"
+"[RFC1876] which consists of many mandatory and optional parts (degrees,\n"
+"minutes, seconds of latitude and longitude, altitude or precision).\n"
+msgstr ""
+"\n"
+"Hay muchos tipos de DNS RR estructurados donde los datos DNS almacenados\n"
+"en el servidor LDAP no son solo un valor escalar, por ejemplo una dirección "
+"IP o\n"
+"un nombre de dominio, pero es una estructura de datos que puede ser con\n"
+"frecuencia compleja. Un buen ejemplo es un registro LOC [RFC1876] que "
+"consta\n"
+"de muchas partes obligatorias y opcionales (grados,minutos, segundos de "
+"latitud y longitud, altitud o precisión).\n"
+
+msgid ""
+"\n"
 "This code is an extension to the otptoken plugin and provides support for\n"
 "reading/writing YubiKey tokens directly.\n"
 msgstr ""
@@ -4310,6 +5344,13 @@ msgstr ""
 "Este código es una extensión del plugin otptoken y suministra el soporte "
 "para\n"
 " leer/escribir directamente en las fichasYubiKey.\n"
+
+msgid ""
+"\n"
+"USING STRUCTURED PER-TYPE OPTIONS\n"
+msgstr ""
+"\n"
+"USANDO OPCIONES ESTRUCTURADAS POR TIPO\n"
 
 msgid ""
 "\n"
@@ -4429,6 +5470,34 @@ msgstr ""
 
 msgid ""
 "\n"
+"When adding a record, either RR specific options or standard option for a "
+"raw\n"
+"value can be used, they just should not be combined in one add operation. "
+"When\n"
+"modifying an existing entry, new RR specific options can be used to change\n"
+"one part of a DNS record, where the standard option for raw value is used\n"
+"to specify the modified value. The following example demonstrates\n"
+"a modification of MX record preference from 0 to 1 in a record without\n"
+"modifying the exchanger:\n"
+"ipa dnsrecord-mod --mx-rec=\"0 mx.example.com.\" --mx-preference=1\n"
+msgstr ""
+"\n"
+"Cuando se añade un registro, cualquiera de las opciones RR especificas o\n"
+"estándar para un valor bruto se puede usar, simplemente no deben combinarse "
+"en\n"
+"operación de adicción. Cuando se modifica una entrada existente, se pueden "
+"usar\n"
+"nuevas opciones RR para cambiar una parte de un registro DNS, donde la "
+"opción\n"
+"estándar para el valor bruto se usa para especificar el valor modificado. El "
+"siguiente\n"
+"ejemplo muestra una modificación de la preferencia de un registro MX de 0 a "
+"1 en\n"
+"un registro sin modificación del intercambiador:\n"
+"ipa dnsrecord-mod --mx-rec=\"0 mx.example.com.\" --mx-preference=1\n"
+
+msgid ""
+"\n"
 "When searching on dates the _from date does a >= search and the _to date\n"
 "does a <= search. When combined these are done as an AND.\n"
 msgstr ""
@@ -4501,6 +5570,14 @@ msgstr "%(attr)s: sintaxis inválida."
 #, python-format
 msgid "%(attr)s: Only one value allowed."
 msgstr " %(attr)s : Solamente un valor permitido."
+
+#, python-format
+msgid ""
+"%(container)s LDAP search did not return any result (search base: "
+"%(search_base)s, objectclass: %(objectclass)s)"
+msgstr ""
+"%(container)s búsqueda LDAP no devolvió ningún resultado (buscar base: "
+"%(search_base)s, objectclass: %(objectclass)s)"
 
 #, python-format
 msgid ""
@@ -4719,6 +5796,12 @@ msgstr[0] "%(count)s servidor coincide"
 msgstr[1] "%(count)s servidores coinciden"
 
 #, python-format
+msgid "%(count)s server role matched"
+msgid_plural "%(count)s server roles matched"
+msgstr[0] "%(count)s rol servidor coincidente"
+msgstr[1] "%(count)s roles servidor coincidentes"
+
+#, python-format
 msgid "%(count)s user matched"
 msgid_plural "%(count)s users matched"
 msgstr[0] "%(count)s usuario coincidente"
@@ -4810,6 +5893,10 @@ msgid "%(task)s LDAP task timeout, Task DN: '%(task_dn)s'"
 msgstr "Tiempo de espera de la tares LDAP %(task)s, Task DN: '%(task_dn)s'"
 
 #, python-format
+msgid "%(user)s is not a POSIX user"
+msgstr "%(user)s no es un usuario POSIX"
+
+#, python-format
 msgid "%s"
 msgstr "%s"
 
@@ -4828,6 +5915,10 @@ msgstr "%s registro"
 #, python-format
 msgid "%s to add"
 msgstr "%s a añadir"
+
+#, python-format
+msgid "%s to exclude from migration"
+msgstr "%s a excluir desde la migración"
 
 #, python-format
 msgid "%s to remove"
@@ -4866,11 +5957,19 @@ msgid "'%(option)s' option is deprecated. %(additional_info)s"
 msgstr "'%(option)s' opción obsoleta. %(additional_info)s"
 
 #, python-format
+msgid "'%(required)s' must not be empty when '%(name)s' is set"
+msgstr "'%(required)s' no debe estar vacío cuando '%(name)s' está establecido"
+
+#, python-format
 msgid "'%s' is a required part of DNS record"
 msgstr "«%s» es una parte requerida del registro DNS"
 
 msgid "(deprecated)"
 msgstr "(obsoleto)"
+
+#, python-format
+msgid "(see RFC %s for details)"
+msgstr "(vea detalles en el RFC %s)"
 
 msgid ""
 ". Check GID of the existing group. Use --group-overwrite-gid option to "
@@ -4881,6 +5980,9 @@ msgstr ""
 
 msgid "7 is not a valid revocation reason"
 msgstr "7 no es una razón válida de revocación"
+
+msgid "<all IPA DNS servers>"
+msgstr "<all IPA DNS servers>"
 
 msgid ""
 "<i class=\"fa fa-info-circle\"></i> To log in with <strong>certificate</"
@@ -5006,6 +6108,15 @@ msgstr "Un grupo no puede ser miembro de sí mismo"
 
 msgid "A group may not be added as a member of itself"
 msgstr "Un grupo no puede ser agregado como miembro de sí mismo"
+
+msgid "A host willing to act as a key exchanger"
+msgstr "Un host dispuesto a actuar como un intercambiador clave"
+
+msgid "A host willing to act as a mail exchanger"
+msgstr "Un host dispuesto a actuar como un intercambiador de correo"
+
+msgid "A hostname which this alias hostname points to"
+msgstr "Un nombre de host al que este nombre de host alias apunta"
 
 msgid "A list of ACI values"
 msgstr "Una lista de valores ACI"
@@ -5186,6 +6297,12 @@ msgstr "Añadir un nuevo auto servicio de permiso."
 msgid "Add a new user."
 msgstr "Añadir un nuevo usuario."
 
+msgid "Add a permission for per-forward zone access delegation."
+msgstr "Añadir un permiso para una delegación de acceso a zona por reenvío."
+
+msgid "Add a permission for per-zone access delegation."
+msgstr "Añade un permiso para una delegación de acceso por zona."
+
 msgid "Add a system permission without an ACI"
 msgstr "Añadir un  permiso al sistema sin un ACI"
 
@@ -5259,6 +6376,11 @@ msgstr "Añadir miembros a un rol."
 msgid "Add members to an HBAC service group."
 msgstr "Añadir miembros a un grupo de servicio HBAC."
 
+msgid "Add migrated users without a group to a default group (default: true)"
+msgstr ""
+"Añadir usuarios migrados sin grupo a un grupo predeterminado (por defecto: "
+"true)"
+
 msgid "Add new DNS resource record."
 msgstr "Añadir nuevo registro de recurso DNS."
 
@@ -5293,6 +6415,9 @@ msgstr ""
 
 msgid "Add the host to DNS with this IP address"
 msgstr "Agregar el host de DNS con esta dirección IP"
+
+msgid "Add to default group"
+msgstr "Añadir a grupo predeterminado"
 
 msgid "Add users and groups affected by Sudo Rule."
 msgstr "Añadir usuarios y grupos afectados por Regla Sudo."
@@ -5450,6 +6575,10 @@ msgid "Added service \"%(value)s\""
 msgstr "Ha sido agregado el servicio \"%(value)s\""
 
 #, python-format
+msgid "Added system permission \"%(value)s\""
+msgstr "Añadido permiso de sistema \"%(value)s\""
+
+#, python-format
 msgid "Added user \"%(value)s\""
 msgstr "Ha sido agregado el usuario \"%(value)s\""
 
@@ -5477,6 +6606,13 @@ msgstr "Todos los atributos a los que aplica el permiso"
 msgid "All commands should at least have a result"
 msgstr "Todos los comandos deberían por lo menos tener un resultado"
 
+#, python-format
+msgid ""
+"All nameservers failed to answer the query for DNS reverse zone %(revdns)s"
+msgstr ""
+"Todos los servidores de nombre fallaron al responder a la consulta sobre la "
+"zona reversa DNS %(revdns)s"
+
 msgid "All target filters, including those implied by type and memberof"
 msgstr ""
 "Todos los filtros objetivo, incluyendo aquellos implicados por el tipo y "
@@ -5484,6 +6620,9 @@ msgstr ""
 
 msgid "Allow"
 msgstr "Permitir"
+
+msgid "Allow PTR sync"
+msgstr "Permitir sincronización PTR"
 
 msgid "Allow adding external non-IPA members from trusted domains"
 msgstr ""
@@ -5509,8 +6648,25 @@ msgstr "Permitir a hosts crear tabla de teclas de '${primary_key}'"
 msgid "Allow hosts to retrieve keytab of '${primary_key}'"
 msgstr "Permitir a hosts recuperar tabla de teclas de '${primary_key}'"
 
+msgid "Allow in-line DNSSEC signing"
+msgstr "Permitida la firma DNSSEC en línea"
+
+msgid "Allow inline DNSSEC signing of records in the zone"
+msgstr "Permitida la firma DNSSEC de registros en la zona"
+
 msgid "Allow query"
 msgstr "Permitir consulta"
+
+msgid "Allow synchronization of forward (A, AAAA) and reverse (PTR) records"
+msgstr ""
+"Permite la sincronización de registros de reenvío (A, AAAA) y reversa (PTR)"
+
+msgid ""
+"Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the "
+"zone"
+msgstr ""
+"Permitir la sincronización de registros adelante (A, AAAA) y atrás (PTR) en "
+"la zona"
 
 msgid "Allow transfer"
 msgstr "Permitir transferencia"
@@ -5550,6 +6706,10 @@ msgstr "Permitido crear tabla de teclas"
 msgid "Allowed to retrieve keytab"
 msgstr "Permitido recuperar tabla de teclas"
 
+msgid "Allows migration despite the usage of compat plugin"
+msgstr ""
+"Permitir la migración a pesar de la utilización del plugin de compatibilidad"
+
 msgid "Already registered"
 msgstr "Ya está registrado"
 
@@ -5559,6 +6719,11 @@ msgstr "Altitud"
 #, python-brace-format
 msgid "An error has occurred (${error})"
 msgstr "Ha ocurrido un error (${error})"
+
+msgid "An interval between regular polls of the name server for new DNS zones"
+msgstr ""
+"Un intervalo entre preguntas regulares del servidor de nombre sobre nuevas "
+"zonas DNS"
 
 msgid "Any Command"
 msgstr "Cualquier comando"
@@ -5653,6 +6818,12 @@ msgstr ""
 msgid "Attributes"
 msgstr "Atributos"
 
+msgid "Attributes to be ignored for group entries in DS"
+msgstr "Atributos a ignorar para las entradas de grupo en DS"
+
+msgid "Attributes to be ignored for user entries in DS"
+msgstr "Atributos a ignorar para las entradas de usuario en DS"
+
 msgid "Attributes to which the delegation applies"
 msgstr "Atributos a los que aplica la delegación"
 
@@ -5661,6 +6832,9 @@ msgstr "Atributos a los que aplican los permisos"
 
 msgid "Attributes to which the permission applies by default"
 msgstr "Atributos a los que el permiso se aplica por defecto"
+
+msgid "Attributes to which the permission applies."
+msgstr "Atributos a los que aplican los permisos."
 
 msgid "Audit"
 msgstr "Auditoría"
@@ -5780,6 +6954,12 @@ msgstr "Mal filtro de búsqueda"
 msgid "Bad search filter %(info)s"
 msgstr "%(info)s de filtro de búsqueda errado"
 
+msgid "Base DN"
+msgstr "Base DN"
+
+msgid "Base DN on remote LDAP server"
+msgstr "Base DN sobre servidor LDAP remoto"
+
 msgid "Base for certificate subjects (OU=Test,O=Example)"
 msgstr "Base para sujetos certificados (OU=Prueba,O=Ejemplo)"
 
@@ -5821,8 +7001,18 @@ msgstr "CA"
 msgid "CA Compromise"
 msgstr "CA de transacción"
 
+msgid "CA certificate"
+msgstr "Certificado CA"
+
 msgid "CA is not configured"
 msgstr "CA no está configurado"
+
+msgid ""
+"CNAME record is not allowed to coexist with any other record (RFC 1034, "
+"section 3.6.2)"
+msgstr ""
+"Registro CNAME no está permitido que coexista con ningún otro registro (RFC "
+"1034, sección 3.6.2)"
 
 msgid "CSR"
 msgstr "CSR"
@@ -5834,8 +7024,22 @@ msgid "Cancel"
 msgstr "Cancelar"
 
 #, python-format
+msgid "Cannot create reverse record for \"%(value)s\": %(exc)s"
+msgstr "No puede crear registro reverso para \"%(value)s\": %(exc)s"
+
+#, python-format
 msgid "Cannot decode file '%(filename)s': %(exc)s"
 msgstr "No puede decodificar fichero '%(filename)s': %(exc)s"
+
+msgid "Cannot hide CA renewal master."
+msgstr "No se puede ocultar el maestro de renovación de CA."
+
+msgid "Cannot hide DNSSec key master."
+msgstr "No se puede ocultar la clave maestra DNSSec."
+
+#, python-format
+msgid "Cannot hide last enabled %(name)s server."
+msgstr "No se puede ocultar el último servidor habilitado %(name)s."
 
 msgid ""
 "Cannot perform SID validation without Samba 4 support installed. Make sure "
@@ -5894,6 +7098,9 @@ msgstr "Licencia de conducción"
 msgid "Certificate"
 msgstr "Certificado"
 
+msgid "Certificate Association Data"
+msgstr "Datos de Asociación del Certificado"
+
 msgid "Certificate Authorities"
 msgstr "Autoridades de Certificado"
 
@@ -5936,6 +7143,9 @@ msgstr "Base de certificado de asunto"
 msgid "Certificate Type"
 msgstr "Tipo de certificado"
 
+msgid "Certificate Usage"
+msgstr "Utilización del Certificado"
+
 msgid "Certificate chain"
 msgstr "Cadena de certificado"
 
@@ -5977,14 +7187,25 @@ msgstr "Cambiar contraseña"
 msgid "Changed password for \"%(value)s\""
 msgstr "Cambio de contraseña para \"%(value)s\""
 
+#, python-format
+msgid "Changed server state of \"%(value)s\"."
+msgstr "Cambiado el estado del servidor de \"%(value)s\"."
+
 msgid "Character classes"
 msgstr "Clases de caracteres"
+
+msgid "Check connection to remote IPA server."
+msgstr "Comprobar la conexión al servidor IPA remoto."
 
 msgid "Check the status of a certificate signing request."
 msgstr "Verificar el estado de una solicitud de firma de certificado."
 
 msgid "Checking if record exists."
 msgstr "Comprobando que el registro existe."
+
+msgid "Checks if any of the servers has the DNS service enabled."
+msgstr ""
+"Comprueba si alguno de los servidores tiene un servicio DNS habilitado."
 
 msgid "City"
 msgstr "Ciudad"
@@ -6163,6 +7384,9 @@ msgstr "Crear registro DNS"
 msgid "Create new ACI."
 msgstr "Crear nuevo ACI."
 
+msgid "Create new DNS forward zone."
+msgstr "Crear una zona de envío DNS."
+
 msgid "Create new DNS zone (SOA record)."
 msgstr "Crear nueva zona DNS (registro SOA)."
 
@@ -6174,6 +7398,12 @@ msgstr "Crear un nuevo Comando Sudo."
 
 msgid "Create new Sudo Rule."
 msgstr "Crear nueva Regla Sudo."
+
+msgid "Create reverse"
+msgstr "Crear reversa"
+
+msgid "Create reverse record for this IP Address"
+msgstr "Crear registro reverso para esta Dirección IP"
 
 #, python-format
 msgid "Created ACI \"%(value)s\""
@@ -6214,14 +7444,30 @@ msgstr "Personalización"
 msgid "DER-encoded SubjectPublicKeyInfo structure"
 msgstr "Estructura DER-encoded SubjectPublicKeyInfo"
 
+msgid "DN of container for groups in DS relative to base DN"
+msgstr "DN de contenedor para grupos es DS relativo a DN"
+
+msgid "DN of container for users in DS relative to base DN"
+msgstr "DN de contendor para usuarios es DS relativo a base DN"
+
 msgid "DN to bind as if not using kerberos"
 msgstr "DN a vincular como si no usara kerberos"
 
 msgid "DNS"
 msgstr "DNS"
 
+msgid "DNS Forward Zone"
+msgstr "Zona de Envío DNS"
+
+msgid "DNS Forward Zones"
+msgstr "Zonas de Envío DNS"
+
 msgid "DNS Global Configuration"
 msgstr "Configuración global de DNS"
+
+#, python-format
+msgid "DNS RR type \"%s\" is not supported by bind-dyndb-ldap plugin"
+msgstr "Tipo DNS RR \"%s\" no es soportado por el complemento bind-dyndb-ldap"
 
 msgid "DNS Resource Record"
 msgstr "Registro de Recurso de DNS"
@@ -6248,6 +7494,12 @@ msgstr "Clase DNS"
 
 msgid "DNS configuration options"
 msgstr "Opciones de configuración de DNS"
+
+msgid "DNS forward zone"
+msgstr "Zona de envío DNS"
+
+msgid "DNS forward zones"
+msgstr "Zonas de envío DNS"
 
 msgid "DNS forwarder"
 msgstr "Reenviador DNS"
@@ -6277,6 +7529,9 @@ msgstr "Registro DNS fue borrado porque no contenía datos."
 msgid "DNS record(s) of host %(host)s could not be removed. (%(reason)s)"
 msgstr "Registro(s) DNS del host %(host)s podría no ser removido. (%(reason)s)"
 
+msgid "DNS records can be only updated one at a time"
+msgstr "Los registros DNS solo pueden ser actualizados de uno en uno"
+
 msgid "DNS resource record"
 msgstr "Registro de recursos DNS"
 
@@ -6285,6 +7540,14 @@ msgstr "Registro de tipo de recurso DNS "
 
 msgid "DNS resource records"
 msgstr "Registros de recurso DNS"
+
+#, python-format
+msgid ""
+"DNS reverse zone %(revzone)s for IP address %(addr)s is not managed by this "
+"server"
+msgstr ""
+"Zona reversa DNS %(revzone)s para dirección IP %(addr)s no está manejada por "
+"este servidor"
 
 msgid "DNS server"
 msgstr "Servidor DNS"
@@ -6329,6 +7592,9 @@ msgstr ""
 "La zona DNS para cada realmdomain debe contener registros SOA o NS. No se "
 "han encontrado registros para: %s"
 
+msgid "DNS zone root record cannot be renamed"
+msgstr "El registro DNS de zona raíz no puede ser renombrado"
+
 msgid "DNS zones"
 msgstr "zonas DNS"
 
@@ -6349,6 +7615,16 @@ msgstr ""
 "Fallo en la validación DNSSEC: %(error)s.\n"
 "Por favor verifique su configuración DNSSEC o deshabilite la validación "
 "DNSSEC en todos los servidores IPA."
+
+msgid "DS record must not be in zone apex (RFC 4035 section 2.4)"
+msgstr "El registro DS no debe estar en zona apéndice (RFC 4035 sección 2.4)"
+
+msgid ""
+"DS record requires to coexist with an NS record (RFC 4592 section 4.6, RFC "
+"4035 section 2.4)"
+msgstr ""
+"El registro DS requiere coexistir con un registro NS record (RFC 4592 "
+"sección 4.6, RFC 4035 sección 2.4)"
 
 msgid "Data"
 msgstr "Datos"
@@ -6389,6 +7665,9 @@ msgstr "Shell predeterminada para usuarios nuevos"
 msgid "Default ticket policy could not be read"
 msgstr "La política de entrada por defecto podría no ser leída"
 
+msgid "Default time to live"
+msgstr "Tiempo de vida predeterminado"
+
 msgid "Default user objectclasses"
 msgstr "Usuario predeterminado objectclasses"
 
@@ -6411,6 +7690,9 @@ msgstr ""
 msgid "Degrees Latitude"
 msgstr "Latitud en grados"
 
+msgid "Degrees Longitude"
+msgstr "Grados de Longitud"
+
 msgid "Delegation"
 msgstr "Delegación"
 
@@ -6432,6 +7714,12 @@ msgstr "Borrar ACI."
 
 msgid "Delete Class of Service entry"
 msgstr "Borrar entrada Class of Service"
+
+msgid "Delete DNS forward zone."
+msgstr "Borrar forma de reenvío DNS."
+
+msgid "Delete DNS record entry."
+msgstr "Borrar entrada de registro DNS."
 
 msgid "Delete DNS resource record."
 msgstr "Borrar un registro de recurso DNS."
@@ -6565,6 +7853,14 @@ msgstr "Borrada CA \"%(value)s\""
 #, python-format
 msgid "Deleted Certificate Identity Mapping Rule \"%(value)s\""
 msgstr "Regla de Mapeo de Identidad de Certificado \"%(value)s\" borrada"
+
+#, python-format
+msgid "Deleted DNS forward zone \"%(value)s\""
+msgstr "Borrada forma de reenvío DNS \"%(value)s\""
+
+#, python-format
+msgid "Deleted DNS zone \"%(value)s\""
+msgstr "Borrada zona DNS \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC rule \"%(value)s\""
@@ -6744,6 +8040,12 @@ msgstr "El dict de JSON ha codificado objetos IPA"
 msgid "Dictionary mapping variable name to value"
 msgstr "Nombre de la variable de mapeo de dicionario a valorizar "
 
+msgid "Digest"
+msgstr "Resumen"
+
+msgid "Digest Type"
+msgstr "Tipo de Resumen"
+
 msgid "Digits"
 msgstr "Dígitos"
 
@@ -6756,8 +8058,14 @@ msgstr "Afiliación Directa"
 msgid "Direction Latitude"
 msgstr "Latitud de dirección"
 
+msgid "Direction Longitude"
+msgstr "Dirección de la Longitud"
+
 msgid "Disable"
 msgstr "Desactivar"
+
+msgid "Disable DNS Forward Zone."
+msgstr "Deshabilitar la Zona de Reenvío DNS."
 
 msgid "Disable DNS Zone."
 msgstr "Deshabilitar Zona DNS."
@@ -6801,6 +8109,10 @@ msgstr "Deshabilitada CA \"%(value)s\""
 #, python-format
 msgid "Disabled Certificate Identity Mapping Rule \"%(value)s\""
 msgstr "Regla de Mapeo de Identidad de Certificado \"%(value)s\" deshabilitada"
+
+#, python-format
+msgid "Disabled DNS forward zone \"%(value)s\""
+msgstr "Deshabilitada zona de reenvío DNS \"%(value)s\""
 
 #, python-format
 msgid "Disabled DNS zone \"%(value)s\""
@@ -6917,6 +8229,9 @@ msgid "Display information about a Certificate Identity Mapping Rule."
 msgstr ""
 "Visualizar información sobre una Regla de Mapeo de Identidad de Certificado."
 
+msgid "Display information about a DNS forward zone."
+msgstr "Mostrar información sobre una zona de reenvío DNS."
+
 msgid "Display information about a DNS zone (SOA record)."
 msgstr "Mostrar información sobre una zona DNS (registro SOA)."
 
@@ -7008,6 +8323,9 @@ msgstr "Muestra el registro del usuario para el principal de Kerberos actual"
 msgid "Do not display QR code"
 msgstr "No visualiza código QR"
 
+msgid "Do not update records only return expected records"
+msgstr "No actualizar registros solo devolver registros esperados"
+
 #, python-brace-format
 msgid "Do you want to remove kerberos alias ${alias}?"
 msgstr "¿Desea quitar el alias kerberos ${alias}?"
@@ -7040,6 +8358,9 @@ msgstr "Descargar"
 msgid "Download certificate as PEM formatted file."
 msgstr "Descargar certificado como fichero formateado PEM."
 
+msgid "Dry run"
+msgstr "Correr en seco"
+
 msgid "Duplicate keys skipped:"
 msgstr "Llaves duplicadas omitidas"
 
@@ -7067,6 +8388,9 @@ msgstr "Información del Empleado"
 
 msgid "Enable"
 msgstr "Activar"
+
+msgid "Enable DNS Forward Zone."
+msgstr "Habilitar Zona de Reenvío DNS."
 
 msgid "Enable DNS Zone."
 msgstr "Habilitar Zona DNS."
@@ -7105,6 +8429,10 @@ msgstr "Habilitada CA \"%(value)s\""
 #, python-format
 msgid "Enabled Certificate Identity Mapping Rule \"%(value)s\""
 msgstr "Regla de Mapeo de Identidad de Certificado \"%(value)s\" habilitada"
+
+#, python-format
+msgid "Enabled DNS forward zone \"%(value)s\""
+msgstr "Habilitada zona de reenvío DNS \"%(value)s\""
 
 #, python-format
 msgid "Enabled DNS zone \"%(value)s\""
@@ -7191,6 +8519,9 @@ msgstr "Error de almacenamiento de credenciales en cache de credenciales:%s.\n"
 
 msgid "Exceeded number of tries to forward a request."
 msgstr "Excedido el número de intentos para enviar una petición."
+
+msgid "Exchanger"
+msgstr "Intercambiador"
 
 msgid "Excluded attributes"
 msgstr "Atributos excluidos"
@@ -7292,6 +8623,9 @@ msgid ""
 msgstr ""
 "Falló al intenatar agregar al usuario al grupo predeterminado. Utilice 'ipa "
 "group-add-member' para agregarlo manualmente.  "
+
+msgid "Failed to authenticate to CA REST API"
+msgstr "Falló al autenticarse a CA REST API"
 
 #, c-format
 msgid "Failed to bind to server!\n"
@@ -7424,6 +8758,11 @@ msgstr "Falló reajuste de intervalo"
 msgid "False"
 msgstr "Falso"
 
+msgid "False if migration fails because the compatibility plug-in is enabled."
+msgstr ""
+"False si la migración falla porque el plug-in de compatibilidad está "
+"habilitado."
+
 msgid "False if migration mode was disabled."
 msgstr "\"False\", si el modo de migración fue inhabilitado."
 
@@ -7487,6 +8826,9 @@ msgstr "Filtro disponible ${other_entity}"
 msgid "Find"
 msgstr "Buscar"
 
+msgid "Find a server role on a server(s)"
+msgstr "Encontrar un rol de servidor sobre un servidor(s)"
+
 msgid "Fingerprint"
 msgstr "Huella digital"
 
@@ -7520,11 +8862,38 @@ msgstr "Primera fecha/hora en que puede usar la ficha"
 msgid "First name"
 msgstr "Nombre"
 
+msgid "Flags"
+msgstr "Banderas"
+
+msgid "Following segments were not deleted:"
+msgstr "Los siguientes segmentos no fueron borrados:"
+
 msgid "Force"
 msgstr "Forzar"
 
+msgid "Force DNS zone creation even if it will overlap with an existing zone."
+msgstr ""
+"Fuerza la creación de zona DNS aún en el caso de que se superponga con una "
+"zona existente."
+
+msgid "Force DNS zone creation even if nameserver is not resolvable."
+msgstr ""
+"Fuerza la creación de zona DNS aunque el servidor de nombre no se pueda "
+"resolver."
+
+msgid ""
+"Force DNS zone creation even if nameserver is not resolvable. (Deprecated)"
+msgstr ""
+"Fuerza la creación de zona DNS aunque el servidor de nombre no se pueda "
+"resolver. (Obsoleto)"
+
 msgid "Force adding domain even if not in DNS"
 msgstr "Forzar el añadir un dominio aunque no esté en DNS"
+
+msgid "Force nameserver change even if nameserver not in DNS"
+msgstr ""
+"Fuerza el cambio del servidor de nombre aunque el servidor de nombre no en "
+"DNS"
 
 msgid "Force server removal"
 msgstr "Forzar la eliminación del servidor"
@@ -7546,6 +8915,9 @@ msgid ""
 msgstr ""
 "Bosque '%(forest)s' tiene confianza existente para forest(s) %(domains)s que "
 "evita una confianza en '%(conflict)s'"
+
+msgid "Forward policy"
+msgstr "Política de envío"
 
 msgid "Forward to server instead of running locally"
 msgstr "Reenvía al servidor en lugar de ejecutarse localmente"
@@ -7603,6 +8975,26 @@ msgstr "El CSR generado estaba vacío"
 
 msgid "Get"
 msgstr "Obtener"
+
+msgid "Global DNS configuration is empty"
+msgstr "La configuración global DNS está vacía"
+
+msgid "Global forwarders"
+msgstr "Promotores globales"
+
+msgid ""
+"Global forwarders. A custom port can be specified for each forwarder using a "
+"standard format \"IP_ADDRESS port PORT\""
+msgstr ""
+"Promotores globales. Se puede especificar un pueeto personalizado por cada "
+"promotor usando el formato estándar \"IP_ADDRESS port PORT\""
+
+msgid ""
+"Global forwarding policy. Set to \"none\" to disable any configured global "
+"forwarders."
+msgstr ""
+"Política de reenvío global. Establecer a \"none\" para deshabilitar "
+"cualquier promotor global."
 
 msgid "Granted rights"
 msgstr "Derechos concedidos"
@@ -7843,6 +9235,9 @@ msgstr "Grupo de equipo"
 msgid "Hostname"
 msgstr "Nombre del equipo anfitrión"
 
+msgid "Hostname (FQDN)"
+msgstr "Nombre de host (FQDN)"
+
 msgid "Hostname of this server"
 msgstr "Nombre de host de este servidor"
 
@@ -7870,6 +9265,10 @@ msgstr "Tipo de rango ID, uno de los siguientes valores"
 msgid "IP Address"
 msgstr "Dirección IP"
 
+#, python-format
+msgid "IP address %(ip)s is already assigned in domain %(domain)s."
+msgstr "Dirección IP %(ip)s ya está asignada en el dominio %(domain)s."
+
 msgid "IP network to create reverse zone name from"
 msgstr "Red IP para crear un nombre de zona reversa desde"
 
@@ -7881,6 +9280,18 @@ msgstr "IPA CA no puede ser deshabilitada"
 
 msgid "IPA CA certificate"
 msgstr "Certificado IPA CA"
+
+msgid "IPA DNS records"
+msgstr "Registros IPA DNS"
+
+msgid "IPA DNS servers"
+msgstr "Servidores IPA DNS"
+
+msgid "IPA DNS version"
+msgstr "Versión IPA DNS"
+
+msgid "IPA DNSSec key master"
+msgstr "Clave maestra IPA DNSSec"
 
 msgid "IPA Error"
 msgstr "Error IPA"
@@ -7911,6 +9322,12 @@ msgstr ""
 msgid "IPA Server"
 msgstr "Servidor IPA"
 
+msgid "IPA Server Role"
+msgstr "Rol de Servidor IPA"
+
+msgid "IPA Server Roles"
+msgstr "Roles de Servidor IPA"
+
 msgid "IPA Server to use"
 msgstr "Servidor de IPA a utilizar"
 
@@ -7928,9 +9345,18 @@ msgstr ""
 msgid "IPA location name"
 msgstr "Nombre de localización IPA"
 
+msgid "IPA location records"
+msgstr "Registros de ubicación IPA"
+
 #, c-format
 msgid "IPA namingContext not found\n"
 msgstr "IPA namingContext no encontrado \n"
+
+msgid "IPA role name"
+msgstr "Nombre de rol IPA"
+
+msgid "IPA server configured as DNSSec key master"
+msgstr "Servidor IPA configurado como clave maestra DNSSec"
 
 msgid "IPA server domain cannot be deleted"
 msgstr "Servidor de dominio IPA no puede ser borrado"
@@ -7940,6 +9366,9 @@ msgstr "Servidor de domino IPA no puede ser omitido"
 
 msgid "IPA server hostname"
 msgstr "Nombre de host del servidor IPA"
+
+msgid "IPA server role name"
+msgstr "Nombre de rol del servidor IPA"
 
 msgid "IPA unique ID"
 msgstr "ID unico de IPA"
@@ -7956,6 +9385,9 @@ msgstr ""
 
 msgid "Ignore check for last remaining CA or DNS server"
 msgstr "Ignorar la comprobación del último servidor CA o DNS que queda"
+
+msgid "Ignore compat plugin"
+msgstr "Ignorar plugin de compatibilidad"
 
 msgid "Ignore group attribute"
 msgstr "Ignorar atributo de grupo"
@@ -8012,6 +9444,9 @@ msgstr "Include Deshabilitado"
 
 msgid "Include Enabled"
 msgstr "Include Habilitado"
+
+msgid "Include IPA master entries"
+msgstr "Incluir entradas IPA maestro"
 
 msgid "Include all disabled IPA rules into test"
 msgstr "Incluir todas las reglas IPA deshabilitadas en la prueba"
@@ -8169,6 +9604,9 @@ msgstr "Editor DN"
 msgid "Issuer Distinguished Name"
 msgstr "Nombre Distinguido de Editor"
 
+msgid "It is used only for setting the SOA MNAME attribute."
+msgstr "ISe usa solo para el establecimiento del atributo SOA MNAME."
+
 msgid "Job Title"
 msgstr "Cargo"
 
@@ -8280,6 +9718,13 @@ msgstr "contraseña de LDAP (si no usa Kerberos)"
 msgid "LDAP schema"
 msgstr "Esquema LDAP"
 
+msgid ""
+"LDAP search scope for users and groups: base, onelevel, or subtree. Defaults "
+"to onelevel"
+msgstr ""
+"Alcance de búsqueda LDAP para usuarios y grupos: base, un nivel o sub árbol. "
+"Predeterminado a un nivel"
+
 msgid "LDAP timeout"
 msgstr "Tiempo de espera LDAP"
 
@@ -8307,6 +9752,9 @@ msgstr "Filtro legal LDAP (p.ej. ou=Ingeniería)"
 msgid "Length of TOTP token code validity"
 msgstr "Longitud de la ficha TOTP de validación de código"
 
+msgid "List of IPA masters configured as DNS servers"
+msgstr "Lista de los maestros IPA configurados como servidores DNS"
+
 msgid "List of deletions that failed"
 msgstr "Lista de eliminaciones fallidas"
 
@@ -8321,6 +9769,9 @@ msgstr "Lista de objetos migrados; clasificados por tipo."
 
 msgid "Lists of objects that could not be migrated; categorized by type."
 msgstr "Lista de objetos que no pueden ser migrados; categorizados por tipo."
+
+msgid "Load CA certificate of LDAP server from FILE"
+msgstr "Cargar certificado CA del servidor LDAP desde FILE"
 
 msgid "Loading"
 msgstr "Cargando"
@@ -8364,6 +9815,21 @@ msgstr "Acceso fallado debido a una razón desconocida"
 msgid "Login shell"
 msgstr "Shell de ingreso"
 
+msgid ""
+"Lower number means higher priority. Clients will attempt to contact the URI "
+"with the lowest-numbered priority they can reach."
+msgstr ""
+"El número más bajo significa la prioridad más alta. Los clientes intentarán "
+"contactar con la URI con la prioridad numerada más bajo que puedan alcanzar."
+
+msgid ""
+"Lower number means higher priority. Clients will attempt to contact the "
+"server with the lowest-numbered priority they can reach."
+msgstr ""
+"El número más bajo significa la prioridad más alta. Los clientes intentarán "
+"contactar con el servidor con la prioridad de número más bajo que ellos "
+"puedan alcanzar."
+
 msgid "MAC address"
 msgstr "Dirección MAC"
 
@@ -8391,6 +9857,9 @@ msgstr "Gestionado por"
 
 msgid "Managed suffixes"
 msgstr "Sufijos gestionados"
+
+msgid "Managedby permission"
+msgstr "Gestionado con permiso"
 
 msgid "Manager"
 msgstr "Manager"
@@ -8429,6 +9898,9 @@ msgstr "Emparejado"
 
 msgid "Matched rules"
 msgstr "Reglas coincidentes"
+
+msgid "Matching Type"
+msgstr "Tipo de Coincidencia"
 
 msgid "Matching rule"
 msgstr "Regla de coincidencia"
@@ -8653,6 +10125,9 @@ msgstr "Valor mínimo es ${value}"
 msgid "Minutes Latitude"
 msgstr "Latitud en minutos"
 
+msgid "Minutes Longitude"
+msgstr "Minutos de Longitud"
+
 msgid "Misc. Information"
 msgstr "Información diversa"
 
@@ -8822,6 +10297,9 @@ msgstr "Modificar la configuración del Certificado Perfil"
 msgid "Modify Class of Service entry"
 msgstr "Modificar entrada Class of Service"
 
+msgid "Modify DNS forward zone."
+msgstr "Modificar zona de reenvío DNS."
+
 msgid "Modify DNS zone (SOA record)."
 msgstr "Modificar zona DNS (registro SOA)."
 
@@ -8919,6 +10397,9 @@ msgstr "Modificar un servicio IPA existente."
 msgid "Modify configuration options."
 msgstr "Modificar opciones de configuración."
 
+msgid "Modify global DNS configuration."
+msgstr "Modificar la configuración global DNS."
+
 msgid "Modify information about a host."
 msgstr "Modificar información sobre un host."
 
@@ -8950,6 +10431,27 @@ msgstr "Debe ser un entero"
 
 msgid "NIS domain name"
 msgstr "Nombre del dominio NIS"
+
+#, python-format
+msgid ""
+"NS record is not allowed to coexist with an %(type)s record except when "
+"located in a zone root record (RFC 2181, section 6.1)"
+msgstr ""
+"El registro NS no está permitido que coexista con un registro %(type)s "
+"excepto cuando se localice en un registro de zona raíz (RFC 2181, sección "
+"6.1)"
+
+msgid "NS record(s) can be edited in zone apex - '@'. "
+msgstr "Registro(s) NS puede(n) ser editado(s) en zona apéndice - '@'. "
+
+msgid "NSEC3PARAM record"
+msgstr "Registro NSEC3PARAM"
+
+msgid ""
+"NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt"
+msgstr ""
+"Registro NSEC3PARAM rpara la zona en formato: hash_algorithm flags "
+"iterations salt"
 
 msgid "Name"
 msgstr "Nombre"
@@ -8984,6 +10486,11 @@ msgstr "Nombre del dominio de confianza"
 msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
 msgstr ""
 "El servidor de nombre '%(host)s' no tiene su correspondiente registro  A/AAAA"
+
+msgid "Nameserver for reverse zone cannot be a relative DNS name"
+msgstr ""
+"El servidor de nombre para la zona reversa no puede ser un nombre DNS "
+"relativo"
 
 msgid ""
 "Neither --del-all nor options to delete a specific record provided.\n"
@@ -9110,6 +10617,10 @@ msgstr "No hay valores para %s"
 msgid "No write permissions on keytab file '%s'\n"
 msgstr "No escribir permisos en archivo de tabla de claves'%s\n"
 
+#, python-format
+msgid "Non-2xx response from CA REST API: %(status)d. %(explanation)s"
+msgstr "No hay respuesta 2xx desde CA REST API: %(status)d. %(explanation)s"
+
 msgid "Non-existent or invalid rules"
 msgstr "Reglas no existentes o no válidas"
 
@@ -9212,6 +10723,18 @@ msgstr "Fichas OTP"
 msgid "Object class name"
 msgstr "Nombre de clase objeto"
 
+msgid "Objectclasses to be ignored for group entries in DS"
+msgstr "Objectclasses a ignorar para las entradas de grupo en DS"
+
+msgid "Objectclasses to be ignored for user entries in DS"
+msgstr "Objectclasses a se ignorado para entradas de usuario en DS"
+
+msgid "Objectclasses used to search for group entries in DS"
+msgstr "Objectclasses usado para buscar entradas de grupo en DS"
+
+msgid "Objectclasses used to search for user entries in DS"
+msgstr "Objectclasses usado para buscar entradas de usuario en DS"
+
 msgid "Old vault password"
 msgstr "Contraseña de bóveda antigua"
 
@@ -9235,6 +10758,9 @@ msgstr "Contraseña de Una Vez Presente"
 
 msgid "Only one value is allowed"
 msgstr "Sólo se permite un valor"
+
+msgid "Only one zone type is allowed per zone name"
+msgstr "Solo se permite un tipo de zona por nombre de zona"
 
 msgid "Operating System and version of the host (e.g. Fedora 9)"
 msgstr "Sistema operativo que utiliza el equipo y versión (p.ej. Fedora 9)"
@@ -9401,6 +10927,10 @@ msgstr "Tamaño de Paginación"
 msgid "Parent map"
 msgstr "Mapa del padre"
 
+msgid "Parse all raw DNS records and return them in a structured way"
+msgstr ""
+"Analiza todos los registros DNS crudos y los devuelve de modo estructurado"
+
 msgid "Password"
 msgstr "Contraseña"
 
@@ -9475,6 +11005,22 @@ msgstr "Ruta al archivo de clave privada"
 msgid "Path to the IPA CA certificate"
 msgstr "Ruta al certificado IPA CA"
 
+msgid ""
+"Per-zone conditional forwarding policy. Set to \"none\" to disable "
+"forwarding to global forwarder for this zone. In that case, conditional zone "
+"forwarders are disregarded."
+msgstr ""
+"Política de envío condicional por zona. Se establece a \"none\" para "
+"deshabilitar el envío a expedidores globales para esta zona. En este caso, "
+"la zona condicional de expedidores es ignorada."
+
+msgid ""
+"Per-zone forwarders. A custom port can be specified for each forwarder using "
+"a standard format \"IP_ADDRESS port PORT\""
+msgstr ""
+"Expedidores por zona. Se puede especificar un puerto personalizado para cada "
+"exedidor usando el formato estándar \"IP_ADDRESS port PORT\""
+
 msgid "Period after which failure count will be reset (seconds)"
 msgstr "Período tras el cual se restablecerá (segundos) el conteo de errores"
 
@@ -9499,6 +11045,9 @@ msgstr "Nombre de permiso"
 
 msgid "Permission type"
 msgstr "Tipo de permiso"
+
+msgid "Permission value"
+msgstr "Valor de permiso"
 
 #, python-format
 msgid "Permission with unknown flag %s may not be modified or removed"
@@ -9525,6 +11074,9 @@ msgstr "Plataforma"
 msgid "Please choose a type of DNS resource record to be added"
 msgstr "Por favor seleccione un tipo de origen de DNS para ser agregado"
 
+msgid "Please specify forwarders."
+msgstr "Por favor especifique los reenviadores."
+
 msgid "Please try the following options:"
 msgstr "Por favor intentar las siguientes opciones:"
 
@@ -9546,6 +11098,11 @@ msgstr "El perfil predefinido '%(profile_id)s' no puede ser borrado"
 
 msgid "Preference"
 msgstr "Preferencia"
+
+msgid "Preference given to this exchanger. Lower values are more preferred"
+msgstr ""
+"Se ha dado preferencia a este intercambiador. Se prefieren más los valores "
+"más bajos"
 
 msgid ""
 "Prefix used to distinguish ACI types (permission, delegation, selfservice, "
@@ -9602,6 +11159,9 @@ msgstr "Imprimir la salida cruda de XML-RPC en modo de GSSAPI"
 
 msgid "Priority"
 msgstr "Prioridad"
+
+msgid "Priority (order)"
+msgstr "Prioridad (orden)"
 
 msgid "Priority of the policy (higher number means lower priority"
 msgstr ""
@@ -9727,6 +11287,9 @@ msgstr "Servidor proxy RADIUS con nombre \"%s\" ya existe"
 msgid "RADIUS proxy servers"
 msgstr "Servidores proxy RADIUS"
 
+msgid "REST API is not logged in."
+msgstr "REST API no ha iniciado sesión."
+
 msgid "Random password"
 msgstr "Contraseña aleatoria"
 
@@ -9736,8 +11299,18 @@ msgstr "Nombre del intervalo"
 msgid "Range type"
 msgstr "Tipo de intervalo"
 
+#, python-format
+msgid "Raw %s records"
+msgstr "Registros brutos %s"
+
 msgid "Raw target filter"
 msgstr "Filtro objetivo en bruto"
+
+#, python-format
+msgid "Raw value of a DNS record was already set by \"%(name)s\" option"
+msgstr ""
+"El valor crudo de un registro DNS fue establecido siempre por la opción "
+"\"%(name)s\""
 
 msgid "Re-sync the local entitlement cache with the entitlement server."
 msgstr ""
@@ -9820,6 +11393,9 @@ msgstr ""
 "equivocación causada por un punto perdido al final de la especificación del "
 "nombre."
 
+msgid "Relative weight for entries with the same priority."
+msgstr "Peso relativo de las entradas con la misma prioridad."
+
 msgid "Relative weight for server services (counts per location)"
 msgstr ""
 "Pero relativo para los servicios del servidor (cuentas por localización)"
@@ -9829,6 +11405,12 @@ msgstr "Recargar ajustes actuales desde el servidor."
 
 msgid "Reload the browser."
 msgstr "Recargar el navegador."
+
+msgid "Remote IPA server hostname"
+msgstr "Nombre de host del servidor IPA remoto"
+
+msgid "Remote server name"
+msgstr "Nombre del servidor remoto"
 
 msgid "Remove"
 msgstr "Borrar"
@@ -9842,6 +11424,12 @@ msgstr "Quitar Alias Kerberos"
 
 msgid "Remove a manager to the user entry"
 msgstr "Borra un gestor a la entrada de usuario"
+
+msgid "Remove a permission for per-forward zone access delegation."
+msgstr "Quitar un permiso para una delegación de acceso a zona por reenvío."
+
+msgid "Remove a permission for per-zone access delegation."
+msgstr "Quita un permiso para una delegación de acceso por zona."
 
 msgid "Remove all principals in this realm"
 msgstr "Quite todos los principales en este ámbito"
@@ -9966,6 +11554,10 @@ msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
 msgstr "Quitada opción \"%(option)s\" de Sudo Rule \"%(rule)s\""
 
 #, python-format
+msgid "Removed system permission \"%(value)s\""
+msgstr "Quitado permiso de sistema \"%(value)s\""
+
+#, python-format
 msgid "Removing %(servers)s from replication topology, please wait..."
 msgstr "Quitando %(servers)s desde la copia de topología, por favor espere..."
 
@@ -10059,6 +11651,12 @@ msgstr "Resetear la Contraseña y Acceder"
 msgid "Resolve a host name in DNS."
 msgstr "Resolver un nombre de host en DNS."
 
+msgid "Resolve a host name in DNS. (Deprecated)"
+msgstr "Resuelve un nombre de host en DNS. (Obsoleto)"
+
+msgid "Response from CA was not valid JSON"
+msgstr "La respuesta desde CA no era JSON válido"
+
 msgid "Restore"
 msgstr "Restaurar"
 
@@ -10067,6 +11665,9 @@ msgstr "Resultado"
 
 msgid "Result of simulation"
 msgstr "Resultado de la simulación"
+
+msgid "Result of the command"
+msgstr "Resultado del comando"
 
 msgid "Results are truncated, try a more specific search"
 msgstr ""
@@ -10139,6 +11740,21 @@ msgstr "Reintentando con el método de recuperacióm pre-4.0 keytab...\n"
 msgid "Return to the main page and retry the operation"
 msgstr "Volver a la página principal y reintentar la operación"
 
+#, python-format
+msgid ""
+"Reverse record for IP address %(ip)s already exists in reverse zone %(zone)s."
+msgstr ""
+"Registro reverso para dirección IP %(ip)s ya existe en la zona reversa "
+"%(zone)s."
+
+#, python-format
+msgid ""
+"Reverse zone %(name)s requires exactly %(count)d IP address components, "
+"%(user_count)d given"
+msgstr ""
+"La zona reversa %(name)s requiere exactamente %(count)d direcciones IP "
+"componentes, %(user_count)d dado"
+
 msgid "Reverse zone IP network"
 msgstr "Zona reversa de red IP"
 
@@ -10179,6 +11795,9 @@ msgstr "Configuración de rol"
 
 msgid "Role name"
 msgstr "Nombre de rol"
+
+msgid "Role status"
+msgstr "Estado rol"
 
 msgid "Roles"
 msgstr "  Roles"
@@ -10363,6 +11982,9 @@ msgstr "Búsqueda de Certificados de Perfiles"
 msgid "Search for Class of Service entry"
 msgstr "Búsqueda de entrada Class of Service"
 
+msgid "Search for DNS forward zones."
+msgstr "Buscar zonas de reenvío DNS."
+
 msgid "Search for DNS resources."
 msgstr "Buscar recursos DNS."
 
@@ -10470,6 +12092,9 @@ msgstr "Buscar usuarios."
 msgid "Search result has been truncated: %(reason)s"
 msgstr "Los resultados de la búsqueda han sido truncados: %(reason)s"
 
+msgid "Search scope"
+msgstr "Alcance de búsqueda"
+
 msgid "Search size limit"
 msgstr "Límite del tamaño de la búsqueda"
 
@@ -10482,6 +12107,9 @@ msgstr "Segundo Código"
 msgid "Seconds Latitude"
 msgstr "Latitud en segundos"
 
+msgid "Seconds Longitude"
+msgstr "Segundos de Longitud"
+
 msgid "Secret"
 msgstr "Secreto"
 
@@ -10490,6 +12118,9 @@ msgstr " Seleccionar todo"
 
 msgid "Select entries to be removed."
 msgstr "Las entradas seleccionadas han sido quitadas."
+
+msgid "Selector"
+msgstr "Selector"
 
 msgid "Self"
 msgstr "Self"
@@ -10510,6 +12141,20 @@ msgid ""
 msgstr ""
 "La semántica de %(label)s fue cambiada. %(current_behavior)s\n"
 "%(hint)s"
+
+msgid ""
+"Semicolon separated list of IP addresses or networks which are allowed to "
+"issue queries"
+msgstr ""
+"Lista separada por punto y coma de direcciones IP o redes que tiene "
+"permitido enviar peticiones"
+
+msgid ""
+"Semicolon separated list of IP addresses or networks which are allowed to "
+"transfer the zone"
+msgstr ""
+"Lista separada por punto y coma de direcciones IP o redes que tiene "
+"permitido transferir la zona"
 
 msgid "Serial"
 msgstr "Serie"
@@ -10560,6 +12205,9 @@ msgstr "El nombre del servidor no se ha suministrado y es indisponible\n"
 #, python-format
 msgid "Server removal aborted: %(reason)s."
 msgstr "Borrado del servidor abortado: %(reason)s."
+
+msgid "Server state"
+msgstr "Estado del servidor"
 
 msgid "Server will check DNS forwarder(s)."
 msgstr "El servidor revisará los \"DNS forwarder(s)\"."
@@ -10665,6 +12313,9 @@ msgstr ""
 "Para los atributos de valor múltiple, el comando sustituye los valores ya "
 "presentes."
 
+msgid "Set enabled/hidden state of a server."
+msgstr "Establecer estado habilitado/escondido de un servidor."
+
 msgid "Settings"
 msgstr "Configuración"
 
@@ -10686,6 +12337,9 @@ msgstr "Mostrar detalles"
 msgid "Show environment variables."
 msgstr "Mostrar variables de entorno."
 
+msgid "Show role status on a server"
+msgstr "Muestra el rol de estado sobre un servidor"
+
 msgid "Show the current Certificate Identity Mapping configuration."
 msgstr "Muestra la configuración actual del Mapeo de Identidad de Certificado."
 
@@ -10694,6 +12348,9 @@ msgstr "Mostrar la configuración OTP actual."
 
 msgid "Show the current configuration."
 msgstr "Muestra la configuración actual"
+
+msgid "Show the current global DNS configuration."
+msgstr "Mostrar la configuración global DNS actual."
 
 msgid "Show the list of permitted encryption types and exit"
 msgstr "Mostrar la lista de los tipos cifrados permitidos y salir"
@@ -10759,6 +12416,9 @@ msgstr "Especifica dónde almacenar la información de tabla de claves."
 msgid "Specify external ${entity}"
 msgstr "Especificar ${entity} externa"
 
+msgid "Split DNS record to parts"
+msgstr "Divide registro DNS en partes"
+
 msgid "Stage"
 msgstr "Escenario"
 
@@ -10769,11 +12429,17 @@ msgstr "Cuenta de usuario por etapas \"%(value)s\""
 msgid "Standard Record Types"
 msgstr "Tipos de Registro Estándar"
 
+msgid "State"
+msgstr "Estado"
+
 msgid "State/Province"
 msgstr "Estado / Provincia"
 
 msgid "Status"
 msgstr "Estatus"
+
+msgid "Status of the role"
+msgstr "Estado del rol"
 
 msgid "Store issued certificates"
 msgstr "Almacén de certificados enviados"
@@ -10907,6 +12573,12 @@ msgstr "DN objetivo"
 msgid "Target DN subtree"
 msgstr "Sub-árbol DN objetivo"
 
+msgid "Target Uniform Resource Identifier"
+msgstr "Identificador Uniforme de Recursos Objetivo"
+
+msgid "Target Uniform Resource Identifier according to RFC 3986"
+msgstr "Identificador Uniforme de Recursos Objetivo de acuerdo al RFC 3986"
+
 msgid "Target group"
 msgstr "Grupo elegido"
 
@@ -10996,6 +12668,20 @@ msgstr "El tipo deny ha quedado obsoleto."
 msgid "The domain %s is neither IPA domain nor a trusteddomain."
 msgstr "El dominio %s no es un dominio IPA ni un dominio de confianza."
 
+msgid ""
+"The domain name of the target host or '.' if the service is decidedly not "
+"available at this domain"
+msgstr ""
+"El nombre de dominio del host objetivo o '.' si el servicio es decididamente "
+"no disponible en este dominio"
+
+#, python-format
+msgid ""
+"The domain(s) \"%s\" cannot be used to apply altSecurityIdentities check."
+msgstr ""
+"El dominio(s) \"%s\" no puede ser usado para aplicar la comprobación "
+"altSecurityIdentities."
+
 #, python-format
 msgid "The following domains do not belong to this realm: %(domains)s"
 msgstr "Los siguientes dominio no pertenecen a este reino: %(domains)s"
@@ -11018,6 +12704,9 @@ msgstr "El nombre del equipo no debe ser: %s\n"
 msgid "The hostname or IP (with or without port)"
 msgstr "El nombre de host o IP (con o sin puerto)"
 
+msgid "The hostname this reverse record points to"
+msgstr "El nombre de host al que apunta este registro inverso"
+
 msgid "The hostname to register as"
 msgstr "El nombre del equipo a ser registrado como"
 
@@ -11037,6 +12726,14 @@ msgstr ""
 
 msgid "The keytab file to remove the principcal(s) from"
 msgstr "El fichero keytab fpara borrar el principal(s) desde"
+
+msgid ""
+"The mapping rule with altSecurityIdentities should be applied to a trusted "
+"Active Directory domain but no domain was associated with the rule."
+msgstr ""
+"La regla de mapeo con altSecurityIdentities debería ser aplicada a un "
+"dominio Active Directory de confianza pero ningún dominio fue asociado con "
+"la regla."
 
 #, python-format
 msgid "The most common types for this type of zone are: %s\n"
@@ -11172,6 +12869,12 @@ msgstr "Ahora"
 msgid "Time to live"
 msgstr "Tiempo para abandonar"
 
+msgid "Time to live for records at zone apex"
+msgstr "Tiempo de vida de los registros en zona apéndice"
+
+msgid "Time to live for records without explicit TTL definition"
+msgstr "Tiempo de vida para los registros sin definición explícita TTL"
+
 msgid "Timeout"
 msgstr "Tiempo de espera"
 
@@ -11259,6 +12962,9 @@ msgstr "URL"
 msgid "UUID"
 msgstr "UUID"
 
+msgid "Unable to communicate with CMS"
+msgstr "Incapaz de comunicar con CMS"
+
 #, python-format
 msgid "Unable to communicate with CMS (status %d)"
 msgstr "Incapaz de comunicar con CMS (estado %d)"
@@ -11270,6 +12976,14 @@ msgstr "No se puede crear un grupo privado. Un grupo de '%(group)s' ya existe."
 #, c-format
 msgid "Unable to determine IPA server from %s\n"
 msgstr "No se puede determinar servidor de la IPA de%s\n"
+
+#, python-format
+msgid ""
+"Unable to determine if Kerberos principal %s already exists. Use 'ipa user-"
+"mod' to set it manually."
+msgstr ""
+"Incapaz de determinar si el principal Kerberos %s ya existe. Use 'ipa user-"
+"mod' para establecerlo manualmente."
 
 #, c-format
 msgid "Unable to determine root DN of %s\n"
@@ -11412,6 +13126,9 @@ msgstr "Actualizar"
 
 msgid "Update DNS entries"
 msgstr "Actualizar las entradas DNS"
+
+msgid "Update location and IPA server DNS records"
+msgstr "Actualizar registros de ubicación y servidor IPA DNS"
 
 #, python-format
 msgid "Update of system record '%(record)s' failed with error: %(error)s"
@@ -11562,6 +13279,9 @@ msgid ""
 msgstr ""
 "Advertencia: tipos salt no se aceptan con contraseñas aleatorias (ver opt.\n"
 
+msgid "Weight"
+msgstr "Peso"
+
 msgid "Weight for server services"
 msgstr "Peso para los servicios del servidor"
 
@@ -11626,6 +13346,9 @@ msgstr "Espacio YubiKey"
 msgid "ZIP"
 msgstr "Zona "
 
+msgid "Zone forwarders"
+msgstr "Zona de expedidores"
+
 msgid "Zone name"
 msgstr "Nombre de la zona"
 
@@ -11636,9 +13359,15 @@ msgstr "Nombre de la zona (FQDN)"
 msgid "Zone record '%s' cannot be deleted"
 msgstr "No se puede eliminar el registro de zona «%s»"
 
+msgid "Zone refresh interval"
+msgstr "Intervalo de refresco de zona"
+
 #, c-format
 msgid "access() on %1$s failed: errno = %2$d\n"
 msgstr "access() sobre %1$s falló: errno = %2$d\n"
+
+msgid "algorithm value: allowed interval 0-255"
+msgstr "valor del algoritmo: intervalo permitido 0-255"
 
 #, python-format
 msgid "all masters must have %(role)s role enabled"
@@ -11892,6 +13621,9 @@ msgstr ""
 msgid "domain name cannot be longer than 255 characters"
 msgstr "el nombre de dominio no puede ser mas largo de 255 caracteres"
 
+msgid "each ACL element must be terminated with a semicolon"
+msgstr "cada elemento ACL debe estar terminado con un punto y coma"
+
 msgid "empty DNS label"
 msgstr "etiqueta DNS vacía"
 
@@ -11916,6 +13648,13 @@ msgstr "error sobre el servidor '%(server)s': %(error)s"
 msgid "executing ipa-getkeytab failed, errno %d\n"
 msgstr "la ejecución de ipa-getkeytab falló, errno %d\n"
 
+msgid ""
+"expected format: <0-255> <0-255> <0-65535> even-"
+"length_hexadecimal_digits_or_hyphen"
+msgstr ""
+"formato esperado: <0-255> <0-255> <0-65535> even-"
+"length_hexadecimal_digits_or_hyphen"
+
 msgid "file to store DNS records in nsupdate format"
 msgstr "archivo para almacenar los registros DNS en formato nsupdate"
 
@@ -11927,6 +13666,12 @@ msgstr "nombre de archivo"
 
 msgid "filter and memberof are mutually exclusive"
 msgstr "filtro y memberof son mutuamente excluyentes"
+
+msgid "flags must be one of \"S\", \"A\", \"U\", or \"P\""
+msgstr "las banderas deben ser una de \"S\", \"A\", \"U\" o \"P\""
+
+msgid "flags value: allowed interval 0-255"
+msgstr "valor de banderas: intervalo permitido 0-255"
 
 msgid "force NS record creation even if its hostname is not in DNS"
 msgstr "Forzar la creación del registro DNS, aunque su nombre no sea absoluto"
@@ -11968,6 +13713,10 @@ msgstr ""
 "alt: [-100000.00 .. 42849672.95] BY .01 (altitud en metros)\n"
 "siz, hp, vp: [0 .. 90000000.00] (tamaño/precisión en metros)\n"
 "Vea RFC 1876 para detalles"
+
+#, python-format
+msgid "format must be specified as \"%(format)s\" %(rfcs)s"
+msgstr "el formato se debe especificar como \"%(format)s\" %(rfcs)s"
 
 #, python-format
 msgid ""
@@ -12073,6 +13822,9 @@ msgstr "nombre de domino no válido"
 msgid "invalid domain-name: %s"
 msgstr "nombre de dominio no válido: %s"
 
+msgid "invalid domain-name: not fully qualified"
+msgstr "nombre de dominio no válido: no totalmente cualificado"
+
 msgid "invalid escape code in domain name"
 msgstr "código de salida no válido en el nombre de dominio"
 
@@ -12089,6 +13841,12 @@ msgstr "¿Tiene ipa-getkeytab permisos errados?\n"
 #, c-format
 msgid "ipa-getkeytab not found\n"
 msgstr "ipa-getkeytab no se encuentra\n"
+
+msgid "is required"
+msgstr "se requiere"
+
+msgid "iterations value: allowed interval 0-65535"
+msgstr "iterations value: intervalo permitido 0-65535"
 
 msgid "kerberos ticket policy settings"
 msgstr "ajustes de la entrada de política kerberos"
@@ -12178,6 +13936,10 @@ msgstr "modificar la clave principal no está permitido"
 
 msgid "mount point is relative to parent map, cannot begin with /"
 msgstr "el punto de montaje es relativo al mapa padre, no puede empezar con /"
+
+#, python-format
+msgid "must be \"%s\""
+msgstr "debe ser \"%s\""
 
 #, python-format
 msgid "must be '%(value)s'"
@@ -12299,6 +14061,9 @@ msgstr "no se permite modificar las entradas de los usuarios"
 msgid "not allowed to perform operation: %s"
 msgstr "no está permitido llevar a cabo la operación: %s"
 
+msgid "not allowed to perform server connection check"
+msgstr "no permitido llevar a cabo la comprobación de conexión del servidor"
+
 msgid "not fully qualified"
 msgstr "no totalmente cualificado"
 
@@ -12331,6 +14096,15 @@ msgstr ""
 "sólo se permiten letras, números y %(chars)s. La etiqueta DNS no debe "
 "empezar ni terminar con %(chars2)s"
 
+msgid "only master zones can contain records"
+msgstr "solo las zonas maestras pueden contener registros"
+
+msgid "only one CNAME record is allowed per name (RFC 2136, section 1.1.5)"
+msgstr "solo se permite un registro CNAME por nombre (RFC 2136, sección 1.1.5)"
+
+msgid "only one DNAME record is allowed per name (RFC 6672, section 2.4)"
+msgstr "solo se permite un registro DNAME por nombre (RFC 6672, sección 2.4)"
+
 msgid "operation not defined"
 msgstr "operación no definida"
 
@@ -12345,9 +14119,24 @@ msgstr "las opciones no están permitidas"
 msgid "out of memory\n"
 msgstr "sin Memoria\n"
 
+msgid ""
+"out-of-zone data: record name must be a subdomain of the zone or a relative "
+"name"
+msgstr ""
+"datos fuera de zona: el nombre de registro debe ser un subdominio de la zona "
+"o un nombre relativo"
+
 #, python-format
 msgid "overlapping arguments and options: %(names)s"
 msgstr "superposición de argumentos y opciones: %(names)s"
+
+#, python-format
+msgid ""
+"owner of %(types)s records should not be a wildcard domain name (RFC 4592 "
+"section 4)"
+msgstr ""
+"el propietario de registros %(types)s no debería ser un nombre de dominio "
+"comodín (RFC 4592 sección 4)"
 
 msgid "params must be a list"
 msgstr "params debe ser una lista"
@@ -12375,6 +14164,10 @@ msgstr "Contraseña a usar si no usa kerberos"
 
 msgid "permission"
 msgstr "permiso"
+
+#, python-format
+msgid "permission \"%(value)s\" already exists"
+msgstr "permiso \"%(value)s\" ya existe"
 
 msgid "permissions"
 msgstr "permisos"
@@ -12476,6 +14269,10 @@ msgstr "rol"
 msgid "roles"
 msgstr "roles"
 
+#, python-format
+msgid "salt value: %(err)s"
+msgstr "valor salt: %(err)s"
+
 msgid "search for POSIX groups"
 msgstr "buscar por grupos POXIS"
 
@@ -12512,6 +14309,12 @@ msgstr "auto servicio de permisos"
 msgid "server"
 msgstr "servidor"
 
+msgid "server role"
+msgstr "rol servidor"
+
+msgid "server roles"
+msgstr "roles de servidor"
+
 msgid "servers"
 msgstr "servidores"
 
@@ -12520,6 +14323,12 @@ msgstr "servicio"
 
 msgid "services"
 msgstr "servicios"
+
+msgid "setting Authoritative nameserver"
+msgstr "Fijando el servidor de nombre Autoritario"
+
+msgid "should not be a wildcard domain name (RFC 4592 section 4)"
+msgstr "no debe ser un nombre de dominio comodín (RFC 4592 sección 4)"
 
 msgid "single label {}s are not supported"
 msgstr "etiqueta sencilla {}s no está soportada"
@@ -12553,6 +14362,9 @@ msgstr "target y targetgroup son mutuamente exclusivos"
 
 msgid "the entry was deleted while being modified"
 msgstr "la entrada fue eliminada mientras estaba siendo modificada"
+
+msgid "the value does not follow \"YYYYMMDDHHMMSS\" time format"
+msgstr "este valor no sigue el formato de hora \"YYYYMMDDHHMMSS\""
 
 msgid ""
 "there must be at least one target entry specifier (e.g. target, "
@@ -12605,3 +14417,11 @@ msgstr "usuarios"
 
 msgid "users cannot be added when user category='all'"
 msgstr "no se pueden añadir usuarios cuando la categoría de usuario='all'"
+
+#, python-brace-format
+msgid "{attr}: no such attribute"
+msgstr "{attr}: no existe tal atributo"
+
+#, python-brace-format
+msgid "{role}: role not found"
+msgstr "{role}: rol no encontrado"
