@@ -7,7 +7,7 @@ import pytest
 
 from ipalib import api, errors
 from ipapython.dn import DN
-from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 from ipatests.test_xmlrpc.tracker.certmap_plugin import (CertmapruleTracker,
                                                          CertmapconfigTracker)
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
@@ -229,6 +229,24 @@ class TestAddRemoveCertmap(XMLRPC_test):
         certmap_user.ensure_exists()
         certmap_user.add_certmap(ipacertmapdata=u'rawdata')
         certmap_user.remove_certmap(ipacertmapdata=u'rawdata')
+
+    def test_add_certmap_multiple_subject(self, certmap_user):
+        certmap_user.ensure_exists()
+        cmd = certmap_user.make_command('user_add_certmapdata',
+                                        certmap_user.name)
+        with raises_exact(errors.ConversionError(
+                name='subject',
+                error=u"Only one value is allowed")):
+            cmd(subject=(u'CN=subject1', u'CN=subject2'), issuer=u'CN=issuer')
+
+    def test_add_certmap_multiple_issuer(self, certmap_user):
+        certmap_user.ensure_exists()
+        cmd = certmap_user.make_command('user_add_certmapdata',
+                                        certmap_user.name)
+        with raises_exact(errors.ConversionError(
+                name='issuer',
+                error=u"Only one value is allowed")):
+            cmd(issuer=(u'CN=issuer1', u'CN=issuer2'), subject=u'CN=subject')
 
 
 class EWE:
