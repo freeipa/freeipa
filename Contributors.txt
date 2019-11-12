@@ -15,6 +15,7 @@ Developers:
 	Alexander Bokovoy
 	Alexander Koksharov
 	Alexander Scheel
+	Alexandre Mulatinho
 	Alexey Slaykovsky
 	Amit Kumar
 	Ana Krivokapić
@@ -25,6 +26,8 @@ Developers:
 	Benjamin Drung
 	Brian Cook
 	Brian J. Murrell
+	Cédric Jeanneret
+	Changmin Teng
 	Christian Heimes
 	Christian Hermann
 	David Kreitschmann
@@ -89,6 +92,7 @@ Developers:
 	Martin Nagy
 	Matt Rogers
 	Michael Simacek
+	Michal Polovka
 	Michal Reznik
 	Michal Židek
 	Milan Kubík
@@ -96,6 +100,7 @@ Developers:
 	Nalin Dahyabhai
 	Nathan Kinder
 	Nathaniel McCallum
+	ndehadra
 	Nick Hatch
 	Nikhil Dehadrai
 	Nikolai Kondrashov
@@ -117,6 +122,7 @@ Developers:
 	Petr Špaček
 	Petr Viktorin
 	Petr Voborník
+	Rafael Guterres Jeffman
 	realsobek
 	René Genz
 	Rich Megginson
@@ -128,6 +134,7 @@ Developers:
 	Serhii Tsymbaliuk
 	shanyin
 	Simo Sorce
+	Spencer E. Olson
 	Stanislav Laznicka
 	Stanislav Levin
 	Stephen Gallagher
@@ -144,6 +151,7 @@ Developers:
 	Tibor Dudlák
 	Timo Aaltonen
 	Tomáš Babej
+	Tomas Halman
 	Tomáš Křížek
 	Varun Mylaraiah
 	W. Michael Petullo
@@ -189,6 +197,7 @@ Translators:
 	Jake Li
 	Jérôme Fenal
 	Josef Hruška
+	Manuela Silva
 	Marco Aurélio Krause
 	Martin Bašti
 	Martin Kosek
