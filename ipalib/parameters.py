@@ -2015,6 +2015,10 @@ class DNParam(Param):
         if type(value) in self.allowed_types:
             return value
 
+        if type(value) in (tuple, list):
+            raise ConversionError(name=self.name,
+                                  error=ugettext(self.scalar_error))
+
         try:
             dn = DN(value)
         except Exception as e:
