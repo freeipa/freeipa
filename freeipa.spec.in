@@ -45,7 +45,7 @@
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
 %global samba_version 4.7.0
-%global selinux_policy_version 3.14.1-14
+%global selinux_policy_version 3.14.3-21
 %global slapi_nis_version 0.56.1-4
 %global python_ldap_version 3.1.0-1
 # python3-lib389
@@ -64,8 +64,8 @@
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
 %global samba_version 2:4.7.0
-# DNSSEC AVC violation, RHBZ#1537971
-%global selinux_policy_version 3.13.1-283.24
+# SELinux context for /etc/named directory, RHBZ#1759495
+%global selinux_policy_version 3.14.3-52
 %global slapi_nis_version 0.56.1
 
 # fix for segfault in python3-ldap, https://pagure.io/freeipa/issue/7324
