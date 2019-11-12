@@ -1093,7 +1093,6 @@ def configure_ssh_config(fstore, options):
         changes['GlobalKnownHostsFile'] = paths.SSSD_PUBCONF_KNOWN_HOSTS
     if options.trust_sshfp:
         changes['VerifyHostKeyDNS'] = 'yes'
-        changes['HostKeyAlgorithms'] = 'ssh-rsa,ssh-dss'
 
     change_ssh_config(paths.SSH_CONFIG, changes, ['Host', 'Match'])
     logger.info('Configured %s', paths.SSH_CONFIG)
