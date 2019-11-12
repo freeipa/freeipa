@@ -263,14 +263,14 @@ jobs:
         timeout: 1800
         topology: *ipaserver
 
-  fedora-30/test_smb:
-    requires: [fedora-30/build]
+  fedora-latest/test_smb:
+    requires: [fedora-latest/build]
     priority: 50
     job:
       class: RunADTests
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_smb.py
-        template: *ci-master-f30
+        template: *ci-master-latest
         timeout: 7200
         topology: *ad_master_2client
