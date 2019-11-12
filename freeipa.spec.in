@@ -963,6 +963,10 @@ if [ $1 -gt 1 ] ; then
     if [ $restore -ge 2 ]; then
         %{__python3} -c 'from ipaclient.install.client import update_ipa_nssdb; update_ipa_nssdb()' >>/var/log/ipaupgrade.log 2>&1
     fi
+
+    if [ $restore -ge 2 ]; then
+        sed -E --in-place=.orig 's/^(HostKeyAlgorithms ssh-rsa,ssh-dss)$/# disabled by ipa-client update\n# \1/' /etc/ssh/ssh_config
+    fi
 fi
 
 
