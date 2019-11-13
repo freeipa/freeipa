@@ -11,7 +11,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   container:
-    image: registry.fedoraproject.org/f30/fedora-toolbox
+    image: registry.fedoraproject.org/f31/fedora-toolbox
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
   steps:
     - template: templates/prepare-build.yml
@@ -29,7 +29,7 @@ jobs:
     - script: |
         set -e
         echo "Running make target 'rpms'"
-        make V=0 rpms LOG_COMPILE='gdb -return-child-result -ex run -ex "thread apply all bt" -ex "quit" --args'
+        make V=0 rpms LOG_COMPILE='gdb.minimal -return-child-result -ex run -ex "thread apply all bt" -ex "quit" --args'
       displayName: Build packages
     - script: |
         set -e
@@ -46,7 +46,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   container:
-    image: registry.fedoraproject.org/f30/fedora-toolbox
+    image: registry.fedoraproject.org/f31/fedora-toolbox
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
   steps:
     - template: templates/prepare-build.yml
@@ -65,7 +65,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   container:
-    image: registry.fedoraproject.org/f30/fedora-toolbox
+    image: registry.fedoraproject.org/f31/fedora-toolbox
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
   steps:
     - template: templates/prepare-build.yml
@@ -96,7 +96,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   container:
-    image: registry.fedoraproject.org/f30/fedora-toolbox
+    image: registry.fedoraproject.org/f31/fedora-toolbox
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
   steps:
     - template: templates/prepare-build.yml
