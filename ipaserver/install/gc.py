@@ -70,6 +70,10 @@ def install_check(api, installer):
             logger.debug("Unable to connect to the local instance: %s", e)
             raise RuntimeError("IPA must be running, please run ipactl start")
 
+    # Check that a trust is installed
+    if not api.Command['adtrust_is_enabled']()['result']:
+        raise RuntimeError("AD Trusts are not enabled on this server")
+
 
 def install(api, fstore, installer):
     options = installer
