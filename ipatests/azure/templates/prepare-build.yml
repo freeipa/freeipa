@@ -13,7 +13,7 @@ steps:
     for metalink in $(sudo dnf repolist -v |grep Repo-metalink | awk '{print $2}' ) ; do echo '###############' ; echo '####' ; echo $metalink ; echo '####' ; curl $metalink ; done
     echo "Fastestmirror results:"
     sudo cat /var/cache/dnf/fastestmirror.cache
-    sudo dnf -y module enable nodejs:12
+    # sudo dnf -y module enable nodejs:12
     sudo dnf makecache || :
     echo "Installing base development environment"
     sudo dnf install -y gdb make autoconf rpm-build gettext-devel automake libtool docker python3-paramiko python3-pyyaml
