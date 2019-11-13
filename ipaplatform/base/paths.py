@@ -172,6 +172,7 @@ class BasePathNamespace:
     FIREFOX = "/usr/bin/firefox"
     GETCERT = "/usr/bin/getcert"
     GPG2 = "/usr/bin/gpg2"
+    GPG_CONF = "/usr/bin/gpgconf"
     GPG_CONNECT_AGENT = "/usr/bin/gpg-connect-agent"
     GPG_AGENT = "/usr/bin/gpg-agent"
     IPA_GETCERT = "/usr/bin/ipa-getcert"
