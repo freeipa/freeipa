@@ -194,6 +194,7 @@ ipa_class_members = {
                 {'ad_admin_name': dir(str)},
                 {'ad_admin_password': dir(str)},
                 {'domain_level': dir(str)},
+                {'fips_mode': dir(bool)},
             ]},
             {'domain': [
                 {'realm': dir(str)},
