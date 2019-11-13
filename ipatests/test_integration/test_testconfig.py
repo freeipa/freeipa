@@ -43,6 +43,7 @@ DEFAULT_OUTPUT_DICT = {
     "admin_password": "Secret123",
     "domain_level": MAX_DOMAIN_LEVEL,
     "log_journal_since": "-1h",
+    "fips_mode": False,
 }
 
 DEFAULT_OUTPUT_ENV = {
@@ -62,6 +63,7 @@ DEFAULT_OUTPUT_ENV = {
     "IPADEBUG": "",
     "DOMAINLVL": str(MAX_DOMAIN_LEVEL),
     "LOG_JOURNAL_SINCE": "-1h",
+    "IPA_FIPS_MODE": "",
 }
 
 DEFAULT_INPUT_ENV = {

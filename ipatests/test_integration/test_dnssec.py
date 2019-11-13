@@ -98,6 +98,16 @@ def dnszone_add_dnssec(host, test_zone):
     return host.run_command(args)
 
 
+def dnssec_install_master(host):
+    args = [
+        "ipa-dns-install",
+        "--dnssec-master",
+        "--forwarder", host.config.dns_forwarder,
+        "-U",
+    ]
+    return host.run_command(args)
+
+
 class TestInstallDNSSECLast(IntegrationTest):
     """Simple DNSSEC test
 
@@ -114,13 +124,7 @@ class TestInstallDNSSECLast(IntegrationTest):
 
     def test_install_dnssec_master(self):
         """Both master and replica have DNS installed"""
-        args = [
-            "ipa-dns-install",
-            "--dnssec-master",
-            "--forwarder", self.master.config.dns_forwarder,
-            "-U",
-        ]
-        self.master.run_command(args)
+        dnssec_install_master(self.master)
 
     def test_if_zone_is_signed_master(self):
         # add zone with enabled DNSSEC signing on master

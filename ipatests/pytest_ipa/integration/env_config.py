@@ -63,6 +63,8 @@ _setting_infos = (
     _SettingInfo('domain_level', 'DOMAINLVL', MAX_DOMAIN_LEVEL),
 
     _SettingInfo('log_journal_since', 'LOG_JOURNAL_SINCE', '-1h'),
+    # userspace FIPS mode
+    _SettingInfo('fips_mode', 'IPA_FIPS_MODE', False),
 )
 
 
