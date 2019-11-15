@@ -44,15 +44,17 @@ textarea[readonly] {
 .notification-area {
     position: fixed;
     left: 50%;
+    right: 50%;
     top: 15px;
 }
 
 .notification-area div {
     position: relative;
-    left: -50%;
+    margin-left: -200px;
+    margin-right: -200px;
     z-index: 20;
     word-wrap: break-word;
-    max-width: 500px;
+    max-width: 400px;
 }
 
 /* ---- Facet ---- */
