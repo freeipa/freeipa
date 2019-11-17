@@ -23,6 +23,8 @@ except ImportError:
     def ndr_unpack(x):
         raise NotImplementedError
 
+    drsblobs = None
+
 logger = logging.getLogger(__name__)
 
 register = Registry()
@@ -630,6 +632,10 @@ class update_tdo_to_new_layout(Updater):
         # First, see if trusts are enabled on the server
         if not self.api.Command.adtrust_is_enabled()['result']:
             logger.debug('AD Trusts are not enabled on this server')
+            return False, []
+
+        # If we have no Samba bindings, this master is not a trust controller
+        if drsblobs is None:
             return False, []
 
         ldap = self.api.Backend.ldap2
