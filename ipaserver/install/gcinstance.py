@@ -30,6 +30,8 @@ from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
                               EXTERNAL_CA_TRUST_FLAGS)
 from ipapython.dn import DN
 from ipapython.kerberos import Principal
+from ipaserver.dns_data_management import IPA_DEFAULT_GC_SRV_REC
+from ipaserver.dns_data_management import IPADomainIsNotManagedByIPAError
 from ipaserver.install import certs
 from ipaserver.install import installutils
 from ipaserver.install import service
@@ -42,6 +44,7 @@ from ipaserver.install.dsinstance import (
     get_ds_instances,
     is_ds_running,
 )
+from ipapython.dnsutil import DNSName
 from lib389 import DirSrv
 from lib389.idm.ipadomain import IpaDomain
 from lib389.instance.options import General2Base, Slapd2Base
@@ -661,6 +664,21 @@ class GCInstance(service.Service):
         except errors.AttrValueNotFound:
             pass
 
+    def __remove_gc_dns_records(self):
+        # Remove all the Global Catalog DNS records
+        delkw = {'del_all': True}
+        domain_abs = DNSName(api.env.domain).make_absolute()
+        for record in IPA_DEFAULT_GC_SRV_REC:
+            try:
+                api.Command.dnsrecord_del(
+                    domain_abs,
+                    record[0].to_text(),
+                    **delkw)
+            except errors.NotFound:
+                pass
+            except IPADomainIsNotManagedByIPAError:
+                pass
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring global catalog")
@@ -676,6 +694,9 @@ class GCInstance(service.Service):
                          "you may need to remove service container and "
                          "service principal manually.")
         else:
+            # Remove the DNS records for global catalog
+            self.__remove_gc_dns_records()
+
             # Remove the service container entry
             self.ldap_remove_service_container(self.serverid, api.env.host,
                                                api.env.basedn)

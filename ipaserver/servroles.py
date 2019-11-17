@@ -627,6 +627,11 @@ role_instances = (
         u"kra_server_server",
         u"KRA server",
         component_services=['KRA']
+    ),
+    ServiceBasedRole(
+        u"gc_server_server",
+        u"Global Catalog server",
+        component_services=['GLOBAL-CATALOG']
     )
 )
 

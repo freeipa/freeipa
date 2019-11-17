@@ -50,6 +50,14 @@ IPA_DEFAULT_ADTRUST_SRV_REC = (
     (DNSName('_kerberos._udp.dc._msdcs'), 88),
 )
 
+IPA_DEFAULT_GC_SRV_REC = (
+    # srv record name, port
+    (DNSName('_ldap._tcp.Default-First-Site-Name._sites.gc._msdcs'), 3268),
+    (DNSName('_ldap._tcp.gc._msdcs'), 3268),
+    (DNSName('_gc._tcp.Default-First-Site-Name._sites'), 3268),
+    (DNSName('_gc._tcp'), 3268),
+)
+
 IPA_DEFAULT_NTP_SRV_REC = (
     # srv record name, port
     (DNSName("_ntp._udp"), 123),
@@ -205,6 +213,12 @@ class IPASystemRecords:
                 IPA_DEFAULT_ADTRUST_SRV_REC,
                 weight=server['weight']
             )
+
+        if 'Global Catalog server' in eff_roles:
+            self.__add_srv_records(
+                zone_obj, hostname_abs,
+                IPA_DEFAULT_GC_SRV_REC,
+                weight=server['weight'])
 
         if 'NTP server' in eff_roles:
             self.__add_srv_records(

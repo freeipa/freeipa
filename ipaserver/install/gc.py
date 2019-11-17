@@ -107,6 +107,10 @@ def install(api, fstore, installer):
     # gc.change_admin_password(admin_password)
 
     service.sync_services_state(api.env.host)
+    # After this point the Global Catalog is seen as enabled
+    # Add the DNS SRV entries for GC
+    api.Command.dns_update_system_records()
+
     print("======================================="
           "=======================================")
     print("Setup complete")
