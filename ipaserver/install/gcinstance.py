@@ -135,20 +135,21 @@ class GCInstance(service.Service):
                                          self.service_prefix)):
             return None
 
-        return unicode(
-            Principal(
-                (self.service_prefix, self.fqdn, self.domain), realm=self.realm))
+        return unicode(Principal(
+            (self.service_prefix, self.fqdn, self.domain), realm=self.realm))
 
     def __common_setup(self):
         self.step("creating global catalog instance", self.__create_instance)
         self.step("configure autobind for root", self.__root_autobind)
-        self.step("Enable objectGUID generator", self.__add_objectguid_generator)
+        self.step("Enable objectGUID generator",
+                  self.__add_objectguid_generator)
         self.step("stopping global catalog", self.__stop_instance)
         self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
         self.step("starting global catalog", self.__start_instance)
         self.step("adding default schema", self.__add_default_schemas)
         self.step("creating indices", self.__create_indices)
-        self.step("add global catalog service principal aliases", self.__add_service_alias)
+        self.step("add global catalog service principal aliases",
+                  self.__add_service_alias)
         self.step("configure dirsrv ccache and keytab",
                   self.configure_systemd_ipa_env)
         self.step("enabling SASL mapping fallback",
@@ -250,12 +251,12 @@ class GCInstance(service.Service):
             objectclass=["top", "nsSaslMapping"],
             cn=["Read-Only Principal"],
             nsSaslMapRegexString=[r'^[^:]+$'],
-            nsSaslMapBaseDNTemplate=[DN(('cn', 'configuration')) + self.suffix],
+            nsSaslMapBaseDNTemplate=[DN(('cn', 'configuration')) +
+                                     self.suffix],
             nsSaslMapFilterTemplate=['(uid=read-only-principal)'],
             nsSaslMapPriority=['10'],
         )
         self.conn.add_entry(entry)
-
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
@@ -271,10 +272,10 @@ class GCInstance(service.Service):
         trustconfig = api.Command.trustconfig_show()['result']
         domainguid = base64.b64encode(
             uuid.UUID(trustconfig['ipantdomainguid'][0]).bytes
-            ).decode('utf-8')
+        ).decode('utf-8')
         domainsid = base64.b64encode(ndr_pack(
             security.dom_sid(trustconfig['ipantsecurityidentifier'][0]))
-            ).decode('utf-8')
+        ).decode('utf-8')
 
         self.sub_dict = dict(
             FQDN=self.fqdn,

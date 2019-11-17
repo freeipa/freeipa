@@ -78,7 +78,8 @@ class IPAUpgrade(service.Service):
     listeners and updating over ldapi. This way we know the server is
     quiet.
     """
-    def __init__(self, realm_name, files=[], schema_files=[], updates_dir=None):
+    def __init__(self, realm_name, files=[], schema_files=[],
+                 updates_dir=None):
         """
         realm_name: kerberos realm name, used to determine DS instance dir
         files: list of update files to process. If none use UPDATEDIR
