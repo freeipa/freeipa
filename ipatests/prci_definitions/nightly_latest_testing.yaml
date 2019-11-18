@@ -1467,3 +1467,15 @@ jobs:
         template: *testing-master-latest
         timeout: 7200
         topology: *master_1repl
+
+  testing-fedora/test_membermanager:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        test_suite: test_integration/test_membermanager.py
+        template: *testing-master-latest
+        timeout: 1800
+        topology: *master_1repl

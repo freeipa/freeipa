@@ -24,6 +24,8 @@ HOSTGROUP1 = "testhostgroup1"
 class TestMemberManager(IntegrationTest):
     """Tests for member manager feature for groups and hostgroups
     """
+    topology = "line"
+
     @classmethod
     def install(cls, mh):
         super(TestMemberManager, cls).install(mh)
@@ -31,6 +33,7 @@ class TestMemberManager(IntegrationTest):
 
         tasks.create_active_user(master, USER_MM, PASSWORD)
         tasks.create_active_user(master, USER_INDIRECT, PASSWORD)
+        tasks.create_active_user(master, USER1, PASSWORD)
 
         tasks.kinit_admin(master)
         tasks.group_add(master, GROUP_INDIRECT)
@@ -38,7 +41,6 @@ class TestMemberManager(IntegrationTest):
             'ipa', 'group-add-member', GROUP_INDIRECT, '--users', USER_INDIRECT
         ])
 
-        tasks.user_add(master, USER1)
         tasks.user_add(master, USER2)
         tasks.group_add(master, GROUP1)
         tasks.group_add(master, GROUP2)
@@ -152,6 +154,22 @@ class TestMemberManager(IntegrationTest):
         result = master.run_command(['ipa', 'group-show', GROUP1])
         assert GROUP2 in result.stdout_text
 
+    def test_group_member_manager_nopermission(self):
+        master = self.master
+        tasks.kinit_as_user(master, USER1, PASSWORD)
+        result = master.run_command(
+            [
+                'ipa', 'group-add-member-manager', GROUP1, '--users', USER1
+            ],
+            raiseonerr=False
+        )
+        assert result.returncode != 0
+        expected = (
+            f"member user: {USER1}: Insufficient access: Insufficient "
+            "'write' privilege to the 'memberManager' attribute of entry"
+        )
+        assert expected in result.stdout_text
+
     def test_hostgroup_member_manager_user(self):
         master = self.master
         # mmuser: add a host to host group
@@ -177,3 +195,20 @@ class TestMemberManager(IntegrationTest):
         ])
         result = master.run_command(['ipa', 'hostgroup-show', HOSTGROUP1])
         assert master.hostname in result.stdout_text
+
+    def test_hostgroup_member_manager_nopermission(self):
+        master = self.master
+        tasks.kinit_as_user(master, USER1, PASSWORD)
+        result = master.run_command(
+            [
+                'ipa', 'hostgroup-add-member-manager', HOSTGROUP1,
+                '--users', USER1
+            ],
+            raiseonerr=False
+        )
+        assert result.returncode != 0
+        expected = (
+            f"member user: {USER1}: Insufficient access: Insufficient "
+            "'write' privilege to the 'memberManager' attribute of entry"
+        )
+        assert expected in result.stdout_text
