@@ -1373,7 +1373,7 @@ jobs:
         timeout: 7200
         topology: *master_1repl
 
-  fedora-30/membermanager:
+  fedora-30/test_membermanager:
     requires: [fedora-30/build]
     priority: 50
     job:
@@ -1383,4 +1383,4 @@ jobs:
         test_suite: test_integration/test_membermanager.py
         template: *ci-master-f30
         timeout: 1800
-        topology: *ipaserver
+        topology: *master_1repl
