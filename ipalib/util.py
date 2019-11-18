@@ -354,6 +354,10 @@ def create_https_connection(
             # disable all TLS versions not in tls_span
             ctx.options |= tls_cutoff_map[version]
 
+    # Enable TLS 1.3 post-handshake auth
+    if getattr(ctx, "post_handshake_auth", None) is not None:
+        ctx.post_handshake_auth = True
+
     ctx.verify_mode = ssl.CERT_REQUIRED
     ctx.check_hostname = True
     ctx.load_verify_locations(cafile)

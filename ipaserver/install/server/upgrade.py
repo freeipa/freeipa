@@ -2004,6 +2004,7 @@ def upgrade_configuration():
     http.realm = api.env.realm
     http.suffix = ipautil.realm_to_suffix(api.env.realm)
     http.configure_selinux_for_httpd()
+    http.set_mod_ssl_protocol()
 
     http.configure_certmonger_renewal_guard()
 
