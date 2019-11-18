@@ -65,6 +65,11 @@ class ClientMethod(ClientCommand, Method):
             'ipamemberca',
             label=_("Failed CAs"),
         ),
+        # group, hostgroup
+        Str(
+            'membermanager',
+            label=_("Failed member manager"),
+        ),
         # host
         Str(
             'managedby',

@@ -179,7 +179,7 @@ group_output_params = (
     ),
     Str(
         'membermanager',
-        label=_('Failed membermanager'),
+        label=_('Failed member manager'),
     ),
 )
 
