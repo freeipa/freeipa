@@ -46,6 +46,7 @@ from ipalib import parameters, text, errors, config, x509
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
 from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
+from ipapython.dn import DN
 
 if six.PY3:
     unicode = str
@@ -1750,3 +1751,87 @@ class test_CertificateSigningRequest(ClassChecker):
         # test that wrong type will not be accepted
         bad_value = datetime.date.today()
         raises(ConversionError, o.convert, bad_value)
+
+
+class test_DNParam(ClassChecker):
+    """
+    Test the `ipalib.parameters.DN` class.
+    """
+    _cls = parameters.DNParam
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.DN.__init__` method.
+        """
+        o = self.cls('my_dn')
+        assert o.type is DN
+        assert o.password is False
+
+    def test_convert_scalar(self):
+        """
+        Test the `ipalib.parameters.DNParam._convert_scalar` method.
+        """
+        o = self.cls('my_dn')
+        mthd = o._convert_scalar
+        # param can be built from a string or from a DN
+        good = [
+            'cn=dn,cn=suffix',
+            DN('cn=dn,cn=suffix')
+        ]
+        for value in good:
+            assert mthd(value) == DN(value)
+        # param cannot be built from a tuple or list if single-valued
+        bad = [
+            ['cn=dn,cn=suffix'],
+            ['cn=dn', 'cn=suffix'],
+            ('cn=dn', 'cn=suffix'),
+            (('cn', 'dn'), ('cn', 'suffix'))
+        ]
+        for value in bad:
+            e = raises(errors.ConversionError, mthd, value)
+            assert e.name == 'my_dn'
+            assert_equal(unicode(e.error), u'Only one value is allowed')
+        assert o.convert(None) is None
+
+    def test_convert_singlevalued(self):
+        """
+        Test the `DNParam.convert` method  with a single-valued param.
+        """
+        o = self.cls('my_dn?')
+        mthd = o.convert
+        # param can be built from a string or from a DN
+        good = [
+            'cn=dn,cn=suffix',
+            DN('cn=dn,cn=suffix')
+        ]
+        for value in good:
+            assert mthd(value) == DN(value)
+        # param cannot be built from a tuple or list if single-valued
+        bad = [
+            ['cn=dn,cn=suffix'],
+            ['cn=dn', 'cn=suffix'],
+            ('cn=dn', 'cn=suffix'),
+            (('cn', 'dn'), ('cn', 'suffix'))
+        ]
+        for value in bad:
+            e = raises(errors.ConversionError, mthd, value)
+            assert e.name == 'my_dn'
+            assert_equal(unicode(e.error), u'Only one value is allowed')
+        assert o.convert(None) is None
+
+    def test_convert_multivalued(self):
+        """
+        Test the `DNParam.convert` method with a multivalued param.
+        """
+        o = self.cls('my_dn*')
+        mthd = o.convert
+        # param can be built from a tuple/list
+        good = [
+            ('cn=dn1,cn=suffix',),
+            ('cn=dn1,cn=suffix', 'cn=dn2,cn=suffix'),
+            ['cn=dn1,cn=suffix'],
+            ['cn=dn1,cn=suffix', 'cn=dn2,cn=suffix'],
+        ]
+        for value in good:
+            assert mthd(value) == tuple(DN(oneval) for oneval in value)
+        assert o.convert(None) is None
