@@ -51,7 +51,7 @@ TLS_VERSIONS = [
 ]
 TLS_VERSION_MINIMAL = "tls1.0"
 TLS_VERSION_DEFAULT_MIN = "tls1.2"
-TLS_VERSION_DEFAULT_MAX = "tls1.2"
+TLS_VERSION_DEFAULT_MAX = "tls1.3"
 
 # regular expression NameSpace member names must match:
 NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'
