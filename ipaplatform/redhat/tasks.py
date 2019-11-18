@@ -590,10 +590,10 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         self.systemd_daemon_reload()
 
     def configure_httpd_protocol(self):
-        # TLS 1.3 is not yet supported
-        directivesetter.set_directive(paths.HTTPD_SSL_CONF,
-                                      'SSLProtocol',
-                                      'TLSv1.2', False)
+        # use default crypto policy for SSLProtocol
+        directivesetter.set_directive(
+            paths.HTTPD_SSL_CONF, 'SSLProtocol', None, False
+        )
 
     def set_hostname(self, hostname):
         ipautil.run([paths.BIN_HOSTNAMECTL, 'set-hostname', hostname])
