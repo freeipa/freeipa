@@ -66,28 +66,28 @@ return {
         {
             $type: 'association',
             name: 'membermanager_group',
-            associator: IPA.serial_associator,
+            add_method: 'add_member_manager',
+            remove_method: 'remove_member_manager',
             add_title: '@i18n:objects.hostgroup.add_membermanager_group',
             remove_title: '@i18n:objects.hostgroup.remove_membermanager_group'
         },
         {
             $type: 'association',
             name: 'membermanager_user',
-            associator: IPA.serial_associator,
+            add_method: 'add_member_manager',
+            remove_method: 'remove_member_manager',
             add_title: '@i18n:objects.hostgroup.add_membermanager_user',
             remove_title: '@i18n:objects.hostgroup.remove_membermanager_user'
         },
         {
             $type: 'association',
             name: 'member_host',
-            associator: IPA.serial_associator,
             add_title: '@i18n:objects.hostgroup.add_hosts',
             remove_title: '@i18n:objects.hostgroup.remove_hosts'
         },
         {
             $type: 'association',
             name: 'member_hostgroup',
-            associator: IPA.serial_associator,
             add_title: '@i18n:objects.hostgroup.add_hostgroups',
             remove_title: '@i18n:objects.hostgroup.remove_hostgroups'
         },
