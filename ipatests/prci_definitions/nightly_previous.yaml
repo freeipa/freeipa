@@ -1360,3 +1360,15 @@ jobs:
         template: *ci-master-previous
         timeout: 1800
         topology: *master_1repl
+
+  fedora-previous/krbtpolicy:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_krbtpolicy.py
+        template: *ci-master-previous
+        timeout: 3600
+        topology: *ipaserver
