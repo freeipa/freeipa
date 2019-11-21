@@ -887,3 +887,28 @@ def get_group_dn(cn):
 
 def get_user_dn(uid):
     return DN(('uid', uid), api.env.container_user, api.env.basedn)
+
+
+@contextmanager
+def xfail_context(condition, reason):
+    """Expect a block of code to fail.
+
+    This function provides functionality similar to pytest.mark.xfail
+    but for a block of code instead of the whole test function. This has
+    two benefits:
+    1) you can mark single line as expectedly failing without suppressing
+       all other errors in the test function
+    2) you can use conditions which can not be evaluated before the test start.
+
+    The check is always done in "strict" mode, i.e. if test is expected to
+    fail but succeeds then it will be marked as failing.
+    """
+    try:
+        yield
+    except Exception:
+        if condition:
+            pytest.xfail(reason)
+        raise
+    else:
+        if condition:
+            pytest.fail('XPASS(strict) reason: {}'.format(reason), False)
