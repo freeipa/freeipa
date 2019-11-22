@@ -52,6 +52,8 @@
 # Fix for "Installation fails: Replica Busy"
 # https://pagure.io/389-ds-base/issue/49818
 %global ds_version 1.4.0.16
+# Fix for TLS 1.3 PHA, RHBZ#1775158
+%global httpd_version 2.4.37-21
 
 %else
 # Fedora
@@ -76,6 +78,13 @@
 %global ds_version 1.4.1.1
 %else
 %global ds_version 1.4.0.21
+%endif
+
+# Fix for TLS 1.3 PHA, RHBZ#1775146
+%if 0%{?fedora} >= 31
+%global httpd_version 2.4.41-9
+%else
+%global httpd_version 2.4.41-6.1
 %endif
 
 # Don't use Fedora's Python dependency generator on Fedora 30/rawhide yet.
@@ -295,15 +304,15 @@ Requires(post): krb5-server >= %{krb5_base_version}, krb5-server < %{krb5_base_v
 Requires: krb5-pkinit-openssl >= %{krb5_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: chrony
-Requires: httpd >= 2.4.6-31
+Requires: httpd >= %{httpd_version}
 Requires(preun): python3
 Requires(postun): python3
 Requires: python3-gssapi >= 1.2.0-5
 Requires: python3-systemd
 Requires: python3-mod_wsgi
 Requires: mod_auth_gssapi >= 1.5.0
-Requires: mod_ssl
-Requires: mod_session
+Requires: mod_ssl >= %{httpd_version}
+Requires: mod_session >= %{httpd_version}
 # 0.9.9: https://github.com/adelton/mod_lookup_identity/pull/3
 Requires: mod_lookup_identity >= 0.9.9
 Requires: acl
@@ -401,7 +410,7 @@ Summary: Common files used by IPA server
 Group: System Environment/Base
 BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
-Requires: httpd >= 2.4.6-31
+Requires: httpd >= %{httpd_version}
 Requires: systemd-units >= 38
 Requires: custodia >= 0.3.1
 
