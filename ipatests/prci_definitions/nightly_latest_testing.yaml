@@ -1491,4 +1491,4 @@ jobs:
         test_suite: test_integration/test_krbtpolicy.py
         template: *testing-master-latest
         timeout: 3600
-        topology: *ipaserver
+        topology: *master_1repl
