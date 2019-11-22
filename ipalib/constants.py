@@ -38,8 +38,9 @@ except Exception:
 # TLS related constants
 # * SSL2 and SSL3 are broken.
 # * TLS1.0 and TLS1.1 are no longer state of the art.
-# * TLS1.3 support is not yet stable, e.g. issues with PHA.
-# Therefore only TLS 1.2 is enabled by default.
+# * TLS1.2 and 1.3 are secure and working properly
+# * Crypto policies restrict TLS range to 1.2 and 1.3. Python 3.6 cannot
+#   override the crypto policy.
 
 TLS_VERSIONS = [
     "ssl2",
@@ -49,9 +50,10 @@ TLS_VERSIONS = [
     "tls1.2",
     "tls1.3",
 ]
-TLS_VERSION_MINIMAL = "tls1.0"
-TLS_VERSION_DEFAULT_MIN = "tls1.2"
-TLS_VERSION_DEFAULT_MAX = "tls1.3"
+TLS_VERSION_MINIMAL = "tls1.2"
+TLS_VERSION_MAXIMAL = "tls1.3"
+TLS_VERSION_DEFAULT_MIN = None
+TLS_VERSION_DEFAULT_MAX = None
 
 # regular expression NameSpace member names must match:
 NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'
