@@ -683,7 +683,7 @@ class TestIPACommand(IntegrationTest):
         assert 'Last name: %s' % (modlast) in cmd.stdout_text
 
     def test_enabled_tls_protocols(self):
-        """Check that only TLS 1.2 is enabled in Apache.
+        """Check Apache has same TLS versions enabled as crypto policy
 
         This is the regression test for issue
         https://pagure.io/freeipa/issue/7995.
@@ -698,9 +698,24 @@ class TestIPACommand(IntegrationTest):
             )
             return res.returncode == 0
 
+        # get minimum version from current crypto-policy
+        openssl_cnf = self.master.get_file_contents(
+            "/etc/crypto-policies/back-ends/opensslcnf.config",
+            encoding="utf-8"
+        )
+        mo = re.search(r"MinProtocol\s*=\s*(TLSv[0-9.]+)", openssl_cnf)
+        assert mo
+        min_tls = mo.group(1)
+        # Fedora DEFAULT has TLS 1.0 enabled, NEXT has TLS 1.2
+        # even FUTURE crypto policy has TLS 1.2 as minimum version
+        assert min_tls in {"TLSv1", "TLSv1.2"}
+
+        # On Fedora FreeIPA still disables TLS 1.0 and 1.1 in ssl.conf.
+
         assert not is_tls_version_enabled('tls1')
         assert not is_tls_version_enabled('tls1_1')
         assert is_tls_version_enabled('tls1_2')
+        assert is_tls_version_enabled('tls1_3')
 
     def test_samba_config_file(self):
         """Check that ipa-adtrust-install generates sane smb.conf

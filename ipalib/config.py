@@ -633,19 +633,29 @@ class Env:
         # set the best known TLS version if min/max versions are not set
         if 'tls_version_min' not in self:
             self.tls_version_min = TLS_VERSION_DEFAULT_MIN
-        elif self.tls_version_min not in TLS_VERSIONS:
+        if (
+                self.tls_version_min is not None and
+                self.tls_version_min not in TLS_VERSIONS
+        ):
             raise errors.EnvironmentError(
                 "Unknown TLS version '{ver}' set in tls_version_min."
                 .format(ver=self.tls_version_min))
 
         if 'tls_version_max' not in self:
             self.tls_version_max = TLS_VERSION_DEFAULT_MAX
-        elif self.tls_version_max not in TLS_VERSIONS:
+        if (
+                self.tls_version_max is not None and
+                self.tls_version_max not in TLS_VERSIONS
+        ):
             raise errors.EnvironmentError(
                 "Unknown TLS version '{ver}' set in tls_version_max."
                 .format(ver=self.tls_version_max))
 
-        if self.tls_version_max < self.tls_version_min:
+        if (
+                self.tls_version_min is not None and
+                self.tls_version_max is not None and
+                self.tls_version_max < self.tls_version_min
+        ):
             raise errors.EnvironmentError(
                 "tls_version_min is set to a higher TLS version than "
                 "tls_version_max.")
