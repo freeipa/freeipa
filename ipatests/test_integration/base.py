@@ -20,6 +20,7 @@
 """Base class for FreeIPA integration tests"""
 
 import pytest
+import subprocess
 
 from ipatests.pytest_ipa.integration import tasks
 from pytest_sourceorder import ordered
@@ -97,9 +98,17 @@ class IntegrationTest:
 
     @classmethod
     def uninstall(cls, mh):
-        tasks.uninstall_master(cls.master)
         for replica in cls.replicas:
+            try:
+                tasks.run_server_del(
+                    cls.master, replica.hostname, force=True,
+                    ignore_topology_disconnect=True, ignore_last_of_role=True)
+            except subprocess.CalledProcessError:
+                # If the master has already been uninstalled,
+                # this call may fail
+                pass
             tasks.uninstall_master(replica)
+        tasks.uninstall_master(cls.master)
         for client in cls.clients:
             tasks.uninstall_client(client)
         if cls.fips_mode:
