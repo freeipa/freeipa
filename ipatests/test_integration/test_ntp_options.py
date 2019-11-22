@@ -388,3 +388,8 @@ class TestNTPoptions(IntegrationTest):
         tasks.uninstall_client(self.client)
         tasks.uninstall_master(self.replica)
         tasks.uninstall_master(self.master)
+
+    @classmethod
+    def uninstall(cls, mh):
+        # Cleanup already done in teardown_method
+        pass
