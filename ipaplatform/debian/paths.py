@@ -93,7 +93,7 @@ class DebianPathNamespace(BasePathNamespace):
     HTTPD = "/usr/sbin/apache2ctl"
     FONTS_DIR = "/usr/share/fonts/truetype"
     FONTS_OPENSANS_DIR = "/usr/share/fonts/truetype/open-sans"
-    FONTS_FONTAWESOME_DIR = "/usr/share/fonts/truetype/fontawesome"
+    FONTS_FONTAWESOME_DIR = "/usr/share/fonts/truetype/font-awesome"
     VAR_KERBEROS_KRB5KDC_DIR = "/var/lib/krb5kdc/"
     VAR_KRB5KDC_K5_REALM = "/var/lib/krb5kdc/.k5."
     CACERT_PEM = "/var/lib/ipa/certs/cacert.pem"
