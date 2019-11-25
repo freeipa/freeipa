@@ -1,0 +1,18 @@
+dn: CN={{ pkey }},CN=Users,{{ suffix }}
+objectClass: top
+objectClass: ad-top
+objectClass: group
+objectClass: securityprincipal
+cn: {{ pkey }}
+instanceType: 4
+name: {{ pkey }}
+objectGUID:: {{ guid }}
+objectSid:: {{ sid }}
+sAMAccountName:  {{ pkey }}
+sAMAccountType: 268435456
+objectCategory: CN=Group,CN=Schema,CN=Configuration,{{ suffix }}
+ntsecuritydescriptor: D:(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;DA)(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;SY)(A;;RPLCLORC;;;AU)(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;AO)(A;;RPLCLORC;;;PS)(OA;;CR;ab721a55-1e2f-11d0-9819-00aa0040529b;;AU)
+{%- for member in entry['member'] %}
+member: {{ member }}
+{%- endfor %}
+groupType: -2147483646

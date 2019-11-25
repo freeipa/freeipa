@@ -1,0 +1,48 @@
+{% macro first_val(attr) -%}
+    {{ entry[attr][0] }}
+{%- endmacro %}
+dn: CN={{ first_val('cn') }},CN=Users,{{ suffix }}
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: ad-top
+objectClass: ad-organizationalPerson
+objectClass: user
+objectClass: securityPrincipal
+objectClass: posixAccount
+objectClass: inetUser
+cn: {{ first_val('cn') }}
+sn: {{ first_val('sn') }}
+{%- if entry['givenname'] %}
+givenName: {{ first_val('givenname') }}
+{%- endif %}
+instanceType: 4
+{%- if entry['displayname'] %}
+displayName: {{ entry.single_value['displayname'] }}
+{%- endif %}
+name: {{ first_val('cn') }}
+objectGUID:: {{ guid }}
+userAccountControl: 66048
+primaryGroupID: 513
+objectSid:: {{ sid }}
+sAMAccountName: {{ pkey }}
+sAMAccountType: 805306368
+{%- if entry['krbcanonicalname'] %}
+userPrincipalName: {{ entry.single_value['krbcanonicalname'] }}
+{%- else %}
+userPrincipalName: {{ first_val('krbprincipalname') }}
+{%- endif %}
+objectCategory: CN=Person,CN=Schema,CN=Configuration,{{ suffix }}
+{%- if entry['mail'] %}
+mail: {{ first_val('mail') }}
+{%- endif %}
+uidnumber: {{ first_val('uidnumber') }}
+gidnumber: {{ first_val('gidnumber') }}
+{%- for uid in entry['uid'] %}
+uid: {{ uid }}
+{%- endfor %}
+homeDirectory: {{ first_val('homedirectory') }}
+{%- for group in entry['memberof'] %}
+memberof: {{ group }}
+{%- endfor %}
+nTSecurityDescriptor: D:(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;DA)(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;SY)(A;;RPLCLORC;;;AU)(OA;;WP;736e4812-af31-11d2-b7df-00805f48caeb;bf967ab8-0de6-11d0-a285-00aa003049e2;CO)(A;;SD;;;CO)

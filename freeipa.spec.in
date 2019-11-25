@@ -472,6 +472,7 @@ Requires(post): python3
 Requires: python3-samba
 Requires: python3-libsss_nss_idmap
 Requires: python3-sss
+Requires: python3-jinja2
 
 # We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
 # on the installes where server-trust-ad subpackage is installed because
@@ -1128,7 +1129,7 @@ fi
 %license COPYING
 %{python3_sitelib}/ipaserver
 %{python3_sitelib}/ipaserver-*.egg-info
-
+%exclude %{python3_sitelib}/ipaserver/globalcatalog
 
 %files server-common
 %doc README.md Contributors.txt
@@ -1244,6 +1245,7 @@ fi
 %{_sysconfdir}/dbus-1/system.d/oddjob-ipa-trust.conf
 %{_sysconfdir}/oddjobd.conf.d/oddjobd-ipa-trust.conf
 %%attr(755,root,root) %{_libexecdir}/ipa/oddjob/com.redhat.idm.trust-fetch-domains
+%{python3_sitelib}/ipaserver/globalcatalog
 
 # ONLY_CLIENT
 %endif
