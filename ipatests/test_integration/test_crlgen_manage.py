@@ -290,6 +290,10 @@ class TestCRLGenManage(IntegrationTest):
         expected_msg = "Deleting this server will leave your installation " \
                        "without a CRL generation master"
         assert expected_msg in result.stdout_text
+        tasks.run_server_del(
+            self.replicas[0], self.master.hostname, force=True,
+            ignore_topology_disconnect=True,
+            ignore_last_of_role=True)
 
     def test_uninstall_last_master_does_not_require_ignore_last_of_role(self):
         """Test uninstallation of the last master
@@ -301,4 +305,5 @@ class TestCRLGenManage(IntegrationTest):
         # Make sure CRL gen is enabled on the replica
         check_crlgen_enable(self.replicas[0])
         # call uninstall without --ignore-last-of-role, should be OK
-        self.master.run_command(['ipa-server-install', '--uninstall', '-U'])
+        self.replicas[0].run_command(
+            ['ipa-server-install', '--uninstall', '-U'])
