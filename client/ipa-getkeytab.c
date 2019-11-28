@@ -512,6 +512,7 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
     if (enctypes) {
         ret = ipa_string_to_enctypes(enctypes, &es, &num_es, err_msg);
         if (ret || num_es == 0) {
+            free(es);
             return LDAP_OPERATIONS_ERROR;
         }
     }
