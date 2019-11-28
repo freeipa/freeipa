@@ -103,6 +103,7 @@ int encode_nt_key(char *newPasswd, uint8_t *nt_key)
     }
 
     ret = 0;
+    free(ucs2Passwd);
 
 done:
     return ret;
