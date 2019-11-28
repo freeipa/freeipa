@@ -26,7 +26,6 @@ from ipalib.messages import add_message, ResultFormattingError
 from ipalib.plugable import Registry
 from ipalib.frontend import Local
 from ipalib.util import create_https_connection
-from ipapython.dn import DN
 from ipapython.version import API_VERSION
 
 import locale
@@ -162,13 +161,13 @@ class otptoken_sync(Local):
         sync_uri = urllib.parse.urlunparse(segments)
 
         # Prepare the query.
-        query = {k: v for k, v in kwargs.items()
-                    if k in {x.name for x in self.takes_options}}
+        options = {x.name for x in self.takes_options}
+        query = {k: v for k, v in kwargs.items() if k in options}
         if args and args[0] is not None:
-            obj = self.api.Object.otptoken
-            query['token'] = DN((obj.primary_key.name, args[0]),
-                                obj.container_dn, self.api.env.basedn)
+            # sync_token converts token name to token DN
+            query['token'] = args[0]
         query = urllib.parse.urlencode(query)
+        query = query.encode('utf-8')
 
         # Sync the token.
         # pylint: disable=E1101
