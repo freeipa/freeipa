@@ -436,6 +436,9 @@ class TestSubCAkeyReplication(IntegrationTest):
 
     SERVER_CERT_NICK = 'Server-Cert cert-pki-ca'
     SERVER_KEY_NICK = 'NSS Certificate DB:Server-Cert cert-pki-ca'
+    SERVER_KEY_NICK_FIPS = (
+        'NSS FIPS 140-2 Certificate DB:Server-Cert cert-pki-ca'
+    )
     EXPECTED_CERTS = {
         IPA_CA_NICKNAME: 'CTu,Cu,Cu',
         'ocspSigningCert cert-pki-ca': 'u,u,u',
@@ -498,10 +501,17 @@ class TestSubCAkeyReplication(IntegrationTest):
             nick = '{} {}'.format(IPA_CA_NICKNAME, auth_id)
             expected_certs[nick] = 'u,u,u'
 
+        if master.is_fips_mode:
+            # Mixed FIPS/non-FIPS installations are not supported
+            assert replica.is_fips_mode
+            key_nick = self.SERVER_KEY_NICK_FIPS
+        else:
+            key_nick = self.SERVER_KEY_NICK
+
         # expected keys, server key has different name
         expected_keys = set(expected_certs)
         expected_keys.remove(self.SERVER_CERT_NICK)
-        expected_keys.add(self.SERVER_KEY_NICK)
+        expected_keys.add(key_nick)
 
         # get certs and keys from Dogtag's NSSDB
         master_certs, master_keys = self.get_certinfo(master)
@@ -514,8 +524,8 @@ class TestSubCAkeyReplication(IntegrationTest):
         assert set(replica_keys) == expected_keys
 
         # server keys are different
-        master_server_key = master_keys.pop(self.SERVER_KEY_NICK)
-        replica_server_key = replica_keys.pop(self.SERVER_KEY_NICK)
+        master_server_key = master_keys.pop(key_nick)
+        replica_server_key = replica_keys.pop(key_nick)
         assert master_server_key != replica_server_key
         # but key ids of other keys are equal
         assert master_keys == replica_keys
