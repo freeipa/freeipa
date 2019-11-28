@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Host class for integration testing"""
+import re
 import subprocess
 import tempfile
 
@@ -30,6 +31,8 @@ from ipapython import ipaldap
 from .fips import (
     is_fips_enabled, enable_userspace_fips, disable_userspace_fips
 )
+
+FIPS_NOISE_RE = re.compile(br"FIPS mode initialized\r?\n?")
 
 
 class LDAPClientWithoutCertCheck(ipaldap.LDAPClient):
@@ -176,6 +179,9 @@ class Host(pytest_multihost.host.Host):
             log_stdout=log_stdout, raiseonerr=False, cwd=cwd, bg=bg,
             encoding=encoding
         )
+        # in FIPS mode SSH may print noise to stderr, remove the string
+        # "FIPS mode initialized" + optional newline.
+        result.stderr_bytes = FIPS_NOISE_RE.sub(b'', result.stderr_bytes)
         try:
             result_ok = result.returncode in ok_returncode
         except TypeError:
