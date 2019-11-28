@@ -296,6 +296,8 @@ class TestIPACommand(IntegrationTest):
         """
         Integration test for https://pagure.io/SSSD/sssd/issue/3747
         """
+        if self.master.is_fips_mode:  # pylint: disable=no-member
+            pytest.skip("paramiko is not compatible with FIPS mode")
 
         test_user = 'test-ssh'
         external_master_hostname = \

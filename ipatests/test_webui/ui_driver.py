@@ -33,7 +33,7 @@ import unittest
 from urllib.error import URLError
 
 import paramiko
-
+import pytest
 
 try:
     from selenium import webdriver
@@ -59,7 +59,9 @@ try:
     NO_YAML = False
 except ImportError:
     NO_YAML = True
+
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 
 ENV_MAP = {
     'MASTER': 'ipa_server',
@@ -1944,6 +1946,8 @@ class UI_driver:
 
         cmd (str): command to run
         """
+        if tasks.is_fips_enabled():
+            pytest.skip("paramiko is not compatible with FIPS mode")
 
         login = self.config.get('ipa_admin')
         hostname = self.config.get('ipa_server')
