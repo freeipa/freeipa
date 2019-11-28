@@ -84,6 +84,9 @@ class TestUserPermissions(IntegrationTest):
 
         Related ticket https://pagure.io/SSSD/sssd/issue/3819.
         """
+        if self.master.is_fips_mode:  # pylint: disable=no-member
+            pytest.skip("paramiko is not compatible with FIPS mode")
+
         # Scenario: add an IPA user with non-default home dir, login through
         # ssh as this user and check that there is a SELinux user mapping
         # for the user with `semanage login -l`.
