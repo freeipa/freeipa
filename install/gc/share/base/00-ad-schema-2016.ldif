@@ -2633,8 +2633,8 @@ objectClasses: (1.2.840.113556.1.5.157 NAME 'groupPolicyContainer'
     STRUCTURAL
     MAY ( versionNumber $ flags )
     X-ORIGIN 'MS-WSPP')
-objectClasses: (2.16.840.1.113730.3.8.26.4 NAME 'ad-group'
-    DESC 'ad-group'
+objectClasses: (1.2.840.113556.1.5.8 NAME 'group'
+    DESC 'Group'
     SUP ad-top
     STRUCTURAL
     MUST ( groupType )

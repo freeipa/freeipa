@@ -188,11 +188,11 @@ filteredClasses = {
         'adminDescription': 'ad-mailReciipient',
         'governsID': '2.16.840.1.113730.3.8.26.3',
     },
-    'group': {
-        'lDAPDisplayName': 'ad-group',
-        'adminDescription': 'ad-group',
-        'governsID': '2.16.840.1.113730.3.8.26.4',
-    },
+#    'group': {
+#        'lDAPDisplayName': 'ad-group',
+#        'adminDescription': 'ad-group',
+#        'governsID': '2.16.840.1.113730.3.8.26.4',
+#    },
     'organizationalPerson': {
         'lDAPDisplayName': 'ad-organizationalPerson',
         'adminDescription': 'ad-organizationalPerson',
