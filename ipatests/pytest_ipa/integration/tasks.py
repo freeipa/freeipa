@@ -2039,6 +2039,8 @@ def install_packages(host, pkgs):
     # Only supports RHEL 8+ and Fedora for now
     if platform in ('rhel', 'fedora'):
         install_cmd = ['/usr/bin/dnf', 'install', '-y']
+    elif platform in ('ubuntu'):
+        install_cmd = ['apt-get', 'install', '-y']
     else:
         raise ValueError('install_packages: unknown platform %s' % platform)
     host.run_command(install_cmd + pkgs)
@@ -2053,6 +2055,8 @@ def uninstall_packages(host, pkgs):
     # Only supports RHEL 8+ and Fedora for now
     if platform in ('rhel', 'fedora'):
         install_cmd = ['/usr/bin/dnf', 'remove', '-y']
+    elif platform in ('ubuntu'):
+        install_cmd = ['apt-get', 'remove', '-y']
     else:
         raise ValueError('install_packages: unknown platform %s' % platform)
     host.run_command(install_cmd + pkgs)

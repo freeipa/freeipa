@@ -1448,3 +1448,15 @@ jobs:
         template: *ci-master-previous
         timeout: 7200
         topology: *adroot_adchild_adtree_master_1client
+
+  fedora-previous/test_backup_and_restore_TestBackupAndRestoreTrust:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreTrust
+        template: *ci-master-previous
+        timeout: 7200
+        topology: *master_1repl
