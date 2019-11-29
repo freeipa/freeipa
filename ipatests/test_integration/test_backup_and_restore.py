@@ -297,7 +297,10 @@ class BaseBackupAndRestoreWithDNS(IntegrationTest):
         tasks.install_master(cls.master, setup_dns=True)
 
     def _full_backup_restore_with_DNS_zone(self, reinstall=False):
-        """backup, uninstall, restore"""
+        """backup, uninstall, restore.
+
+        Test for bug https://pagure.io/freeipa/issue/7630.
+        """
         with restore_checker(self.master):
             self.master.run_command([
                 'ipa', 'dnszone-add',
@@ -312,13 +315,20 @@ class BaseBackupAndRestoreWithDNS(IntegrationTest):
                                      '--uninstall',
                                      '-U'])
 
-            if reinstall:
-                tasks.install_master(self.master, setup_dns=True)
+            tasks.uninstall_packages(self.master, ['*ipa-server-dns'])
 
             dirman_password = self.master.config.dirman_password
+            result = self.master.run_command(
+                ['ipa-restore', backup_path],
+                stdin_text=dirman_password + '\nyes',
+                raiseonerr=False)
+            assert 'Please install the package' in result.stderr_text
+
+            tasks.install_packages(self.master, ['*ipa-server-dns'])
+            if reinstall:
+                tasks.install_master(self.master, setup_dns=True)
             self.master.run_command(['ipa-restore', backup_path],
                                     stdin_text=dirman_password + '\nyes')
-
             tasks.resolve_record(self.master.ip, self.example_test_zone)
 
             tasks.kinit_admin(self.master)
@@ -861,3 +871,39 @@ class TestReplicaInstallAfterRestore(IntegrationTest):
         # install second replica after restore
         tasks.install_replica(master, replica2)
         check_replication(master, replica2, "testuser2")
+
+
+class TestBackupAndRestoreTrust(IntegrationTest):
+    """Test for Backup and Restore for Trust scenario"""
+    topology = 'star'
+
+    def test_restore_trust_pkg_before_restore(self):
+        """Test restore with adtrust when trust-ad pkg is missing.
+
+        Test for bug https://pagure.io/freeipa/issue/7630.
+        """
+        tasks.install_packages(self.master, ['*ipa-server-trust-ad'])
+        self.master.run_command(['ipa-adtrust-install', '-U',
+                                 '--enable-compat', '--netbios-name', 'IPA',
+                                 '-a', self.master.config.admin_password,
+                                 '--add-sids'])
+
+        with restore_checker(self.master):
+            backup_path = backup(self.master)
+
+            self.master.run_command(['ipa-server-install',
+                                     '--uninstall',
+                                     '-U'])
+
+            tasks.uninstall_packages(self.master, ['*ipa-server-trust-ad'])
+
+            dirman_password = self.master.config.dirman_password
+            result = self.master.run_command(
+                ['ipa-restore', backup_path],
+                stdin_text=dirman_password + '\nyes',
+                raiseonerr=False)
+            assert 'Please install the package' in result.stderr_text
+
+            tasks.install_packages(self.master, ['*ipa-server-trust-ad'])
+            self.master.run_command(['ipa-restore', backup_path],
+                                    stdin_text=dirman_password + '\nyes')
