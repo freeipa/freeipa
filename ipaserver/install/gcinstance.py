@@ -4,6 +4,9 @@
 
 from __future__ import print_function
 
+from io import StringIO
+from ldap import SCOPE_SUBTREE
+from ldif import LDIFParser
 import logging
 import os
 import pwd
@@ -195,6 +198,7 @@ class GCInstance(service.Service):
         subject_base=None,
         ca_subject=None,
         ca_file=None,
+        populate=False
     ):
         self.init_info(
             realm_name,
@@ -219,6 +223,8 @@ class GCInstance(service.Service):
         self.step("importing CA certificates from LDAP",
                   self.__import_ca_certs)
         self.step("restarting global catalog", self.__restart_instance)
+        if populate:
+            self.step("Initializing global catalog content", self.__populate)
         self.start_creation()
 
     def __configure_sasl_mappings(self):
@@ -457,6 +463,83 @@ class GCInstance(service.Service):
 
     def __restart_instance(self):
         self.restart(self.serverid)
+
+    def __populate(self):
+        from ipaserver.globalcatalog.transfo import GCTransformer
+
+        class AddLDIF(LDIFParser):
+            def __init__(self, input, conn):
+                LDIFParser.__init__(self, StringIO(input))
+                self._conn = conn
+
+            def handle(self, dn, entry):
+                try:
+                    newentry = self._conn.make_entry(DN(dn), entry)
+                    self._conn.add_entry(newentry)
+                except errors.DuplicateEntry:
+                    logger.debug("Entry %s already exists", dn)
+
+        ldapuri_ds = ipaldap.get_ldap_uri(realm=api.env.realm,
+                                          protocol='ldapi')
+        ds_ldap = ipaldap.LDAPClient(ldapuri_ds)
+        ds_ldap.external_bind()
+
+        gc = GCTransformer(api, ds_ldap)
+
+        attrs = [
+            'objectclass',
+            'cn',
+            'displayname',
+            'gidnumber',
+            'givenname',
+            'homedirectory',
+            'ipantsecurityidentifier',
+            'ipauniqueid',
+            'krbcanonicalname',
+            'krbprincipalname',
+            'mail',
+            'memberof',
+            'sn',
+            'uid',
+            'uidnumber',
+        ]
+
+        users, truncated = ds_ldap.find_entries(
+            '(objectclass=person)', attrs,
+            DN(api.env.container_user, api.env.basedn), scope=SCOPE_SUBTREE,
+            time_limit=0, size_limit=-1)
+
+        if truncated:
+            logger.info("Initialization of Global Catalog may be incomplete, "
+                        "number of users exceeded size limit")
+
+        for entry in users:
+            ldif_add = gc.create_ldif_user(entry)
+            parser = AddLDIF(ldif_add, self.conn)
+            parser.parse()
+
+        attrs = [
+            'objectclass',
+            'cn',
+            'ipauniqueid',
+            'ipantsecurityidentifier',
+            'member',
+        ]
+
+        groups, truncated = ds_ldap.find_entries(
+            '(objectclass=groupofnames)', attrs,
+            DN(api.env.container_group, api.env.basedn), scope=SCOPE_SUBTREE,
+            time_limit=0, size_limit=-1)
+        if truncated:
+            logger.info("Initialization of Global Catalog may be incomplete, "
+                        "number of groups exceeded size limit")
+
+        for entry in groups:
+            ldif_add = gc.create_ldif_group(entry)
+            parser = AddLDIF(ldif_add, self.conn)
+            parser.parse()
+
+        logger.debug("Global catalog initialized")
 
     def configure_systemd_ipa_env(self):
         pent = pwd.getpwnam(platformconstants.DS_USER)
