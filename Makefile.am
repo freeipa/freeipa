@@ -276,7 +276,6 @@ rpmlint: freeipa.spec
 	rpmlint ./$<
 
 YAML_FILES = \
-	$(top_srcdir)/.travis.yml \
 	$(top_srcdir)/.lgtm.yml \
 	$(wildcard $(top_srcdir)/.*.yaml) \
 	$(wildcard $(top_srcdir)/ipatests/prci_definitions/*.yaml)
