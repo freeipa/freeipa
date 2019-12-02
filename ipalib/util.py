@@ -1164,12 +1164,31 @@ def check_client_configuration(env=None):
 
     Hardcode return code to avoid recursive imports
     """
-    if ((env is not None and not os.path.isfile(env.conf_default)) or
-       (not os.path.isfile(paths.IPA_DEFAULT_CONF) or
-            not os.path.isdir(paths.IPA_CLIENT_SYSRESTORE) or
-            not os.listdir(paths.IPA_CLIENT_SYSRESTORE))):
-        raise ScriptError('IPA client is not configured on this system',
-                          2)  # CLIENT_NOT_CONFIGURED
+    CLIENT_NOT_CONFIGURED = 2
+    if env is not None and env.confdir != paths.ETC_IPA:
+        # custom IPA conf dir, check for custom conf_default
+        if os.path.isfile(env.conf_default):
+            return True
+        else:
+            raise ScriptError(
+                f'IPA client is not configured on this system (confdir '
+                f'{env.confdir} is missing {env.conf_default})',
+                CLIENT_NOT_CONFIGURED
+            )
+    elif (
+            os.path.isfile(paths.IPA_DEFAULT_CONF) and
+            os.path.isfile(
+                os.path.join(paths.IPA_CLIENT_SYSRESTORE, 'sysrestore.state')
+            )
+    ):
+        # standard installation, check for config and client sysrestore state
+        return True
+    else:
+        # client not configured
+        raise ScriptError(
+            'IPA client is not configured on this system',
+            CLIENT_NOT_CONFIGURED
+        )
 
 
 def check_principal_realm_in_trust_namespace(api_instance, *keys):
