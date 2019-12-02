@@ -250,6 +250,10 @@ class ldap2(CrudBackend, LDAPClient):
         If the UPG Definition or its originfilter is not readable,
         an ACI error is raised.
         """
+        try:
+            return context.has_upg
+        except AttributeError:
+            pass
 
         upg_dn = DN(('cn', 'UPG Definition'), ('cn', 'Definitions'), ('cn', 'Managed Entries'),
                     ('cn', 'etc'), self.api.env.basedn)
@@ -266,7 +270,10 @@ class ldap2(CrudBackend, LDAPClient):
                 'Could not read UPG Definition originfilter. '
                 'Check your permissions.'))
         org_filter = upg_entries[0].single_value['originfilter']
-        return '(objectclass=disable)' not in org_filter
+
+        has_upg = '(objectclass=disable)' not in org_filter
+        context.has_upg = has_upg
+        return has_upg
 
     def get_effective_rights(self, dn, attrs_list):
         """Returns the rights the currently bound user has for the given DN.
