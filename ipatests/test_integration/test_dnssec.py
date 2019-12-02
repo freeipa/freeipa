@@ -5,6 +5,8 @@
 from __future__ import absolute_import
 
 import logging
+import re
+import subprocess
 import time
 
 import dns.dnssec
@@ -468,6 +470,37 @@ class TestMigrateDNSSECMaster(IntegrationTest):
         # installed with dns support enabled
         # Firewall(cls.master).enable_services(["dns"])
         tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
+
+    @classmethod
+    def uninstall(cls, mh):
+        # For this test, we need to uninstall DNSSEC master last
+        # Find which server is DNSSec master
+        result = cls.master.run_command(["ipa", "config-show"]).stdout_text
+        matches = list(re.finditer('IPA DNSSec key master: (.*)', result))
+        if len(matches) == 1:
+            # Found the DNSSec master
+            dnssec_master_hostname = matches[0].group(1)
+            for replica in cls.replicas + [cls.master]:
+                if replica.hostname == dnssec_master_hostname:
+                    dnssec_master = replica
+        else:
+            # By default consider that the master is DNSSEC
+            dnssec_master = cls.master
+
+        for replica in cls.replicas + [cls.master]:
+            if replica == dnssec_master:
+                # Skip this one
+                continue
+            try:
+                tasks.run_server_del(
+                    dnssec_master, replica.hostname, force=True,
+                    ignore_topology_disconnect=True, ignore_last_of_role=True)
+            except subprocess.CalledProcessError:
+                # If the master has already been uninstalled,
+                # this call may fail
+                pass
+            tasks.uninstall_master(replica)
+        tasks.uninstall_master(dnssec_master)
 
     def test_migrate_dnssec_master(self):
         """Both master and replica have DNS installed"""
