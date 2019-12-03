@@ -8,9 +8,11 @@ from ipalib import Updater
 from ipapython.dn import DN
 from ipapython import ipautil
 from ipaplatform.paths import paths
+from ipaserver.install import service
 from ipaserver.install import sysupgrade
 from ipaserver.install.adtrustinstance import (
     ADTRUSTInstance, map_Guests_to_nobody)
+
 from ipaserver.dcerpc_common import TRUST_BIDIRECTIONAL
 
 try:
@@ -787,5 +789,58 @@ class update_tdo_default_read_keys_permissions(Updater):
             except errors.EmptyModlist:
                 logger.debug("No update was required for TDO %s",
                              tdo.single_value.get('krbCanonicalName'))
+
+        return False, []
+
+
+@register()
+class update_adtrust_agents_members(Updater):
+    """ Ensure that each adtrust agent is a member of the adtrust agents group
+
+    cn=adtrust agents,cn=sysaccounts,cn=etc,$BASEDN must contain:
+    - member: krbprincipalname=cifs/master@realm,cn=services,cn=accounts,base
+    - member: fqdn=master,cn=computers,cn=accounts,base
+    """
+    def execute(self, **options):
+        ldap = self.api.Backend.ldap2
+
+        # First, see if trusts are enabled on the server
+        if not self.api.Command.adtrust_is_enabled()['result']:
+            logger.debug('AD Trusts are not enabled on this server')
+            return False, []
+
+        agents_dn = DN(
+            ('cn', 'adtrust agents'), ('cn', 'sysaccounts'),
+            ('cn', 'etc'), self.api.env.basedn)
+
+        try:
+            agents_entry = ldap.get_entry(agents_dn, ['member'])
+        except errors.NotFound:
+            logger.error("No adtrust agents group found")
+            return False, []
+
+        # Build a list of agents from the cifs/.. members
+        agents_list = []
+        members = agents_entry.get('member', [])
+        suffix = '@{}'.format(self.api.env.realm).lower()
+
+        for amember in members:
+            if amember[0].attr.lower() == 'krbprincipalname':
+                # Extract krbprincipalname=cifs/hostname@realm from the DN
+                value = amember[0].value
+                if (value.lower().startswith('cifs/') and
+                        value.lower().endswith(suffix)):
+                    # 5 = length of 'cifs/'
+                    hostname = value[5:-len(suffix)]
+                    agents_list.append(DN(('fqdn', hostname),
+                                       self.api.env.container_host,
+                                       self.api.env.basedn))
+
+        # Add the fqdn=hostname... to the group
+        service.add_principals_to_group(
+            ldap,
+            agents_dn,
+            "member",
+            agents_list)
 
         return False, []
