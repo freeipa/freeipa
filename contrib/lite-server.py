@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (C) 2017 FreeIPA Contributors see COPYING for license
 #
@@ -35,8 +35,7 @@ You may also have to enable a development COPR.
 
     $ sudo dnf install -y dnf-plugins-core
     $ sudo dnf builddep --spec freeipa.spec.in
-    $ sudo dnf install -y python-werkzeug python2-watchdog \
-        python3-werkzeug python3-watchdog
+    $ sudo dnf install -y python3-werkzeug python3-watchdog
     $ ./autogen.sh
 
 For more information see
@@ -61,6 +60,7 @@ from ipalib.errors import NetworkError
 from ipalib.krb_utils import krb5_parse_ccache
 from ipalib.krb_utils import krb5_unparse_ccache
 
+import gssapi
 # pylint: disable=import-error
 from werkzeug.contrib.profiler import ProfilerMiddleware
 from werkzeug.exceptions import NotFound
@@ -107,14 +107,19 @@ def get_ccname():
 
 
 class KRBCheater:
-    """Add KRB5CCNAME to WSGI environ
+    """Add KRB5CCNAME and GSS_NAME to WSGI environ
     """
     def __init__(self, app, ccname):
         self.app = app
         self.ccname = ccname
+        self.creds = gssapi.Credentials(
+            usage='initiate',
+            store={'ccache': ccname}
+        )
 
     def __call__(self, environ, start_response):
         environ['KRB5CCNAME'] = self.ccname
+        environ['GSS_NAME'] = self.creds.name
         return self.app(environ, start_response)
 
 
