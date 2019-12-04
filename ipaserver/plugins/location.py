@@ -225,10 +225,17 @@ class location_show(LDAPRetrieve):
                     dns_servers.append(s_name)
 
             for server in servers_additional_info.values():
-                server['service_relative_weight'] = [
-                    u'{:.1f}%'.format(
-                        int(server['ipaserviceweight'][0])*100.0/weight_sum)
-                ]
+                if weight_sum != 0:
+                    server['service_relative_weight'] = [
+                        u'{:.1f}%'.format(
+                            int(server['ipaserviceweight'][0]) * 100.0 /
+                            weight_sum
+                        )
+                    ]
+                else:
+                    server['service_relative_weight'] = [
+                        u'{:.1f}%'.format(int(100.0 / len(servers)))
+                    ]
             if servers_name:
                 result['result']['servers_server'] = servers_name
 
