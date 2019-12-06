@@ -201,6 +201,41 @@ class test_ipagetkeytab(KeytabRetrievalTest):
         except Exception as errmsg:
             assert('Unable to bind to LDAP. Error initializing principal' in str(errmsg))
 
+    def test_6_quiet_mode(self, test_service):
+        """
+        Try to use quiet mode
+        """
+        test_service.ensure_exists()
+        # getkeytab without quiet mode option enabled
+        result = self.run_ipagetkeytab(test_service.name)
+        err = result.error_output.split("\n")[0]
+        assert err == f"Keytab successfully retrieved and stored in:" \
+                      f" {self.keytabname}"
+        assert result.returncode == 0
+
+        # getkeytab with quiet mode option enabled
+        result1 = self.run_ipagetkeytab(test_service.name, args=tuple("-q"))
+        assert result1.returncode == 0
+
+    def test_7_server_name_check(self, test_service):
+        """
+        Try to use -s for server name
+        """
+        test_service.ensure_exists()
+        self.assert_success(test_service.name, args=["-s", api.env.host])
+
+    def test_8_keytab_encryption_check(self, test_service):
+        """
+        Try to use -e for different types of encryption check
+        """
+        encryptes_list = [
+            "aes256-cts-hmac-sha1-96",
+            "aes128-cts-hmac-sha256-128",
+        ]
+        self.assert_success(
+            test_service.name, args=["-e", ",".join(encryptes_list)]
+        )
+
     def test_dangling_symlink(self, test_service):
         # see https://pagure.io/freeipa/issue/4607
         test_service.ensure_exists()
