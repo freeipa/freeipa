@@ -10,6 +10,7 @@ import random
 
 from ipaclient.install import client
 from ipalib import constants
+from ipalib.util import validate_domain_name
 from ipalib.install import service
 from ipalib.install.service import (enroll_only,
                                     installs_master,
@@ -17,7 +18,6 @@ from ipalib.install.service import (enroll_only,
                                     master_install_only,
                                     prepare_only,
                                     replica_install_only)
-from ipapython.dnsutil import check_zone_overlap
 from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
 from ipapython.install.common import step
@@ -524,10 +524,13 @@ class ServerMasterInstall(ServerMasterInstallInterface):
 
     @domain_name.validator
     def domain_name(self, value):
-        if (self.setup_dns and
-                not self.allow_zone_overlap):
-            print("Checking DNS domain %s, please wait ..." % value)
-            check_zone_overlap(value, False)
+        # There might be an overlap but at this point we don't have
+        # complete installer object to verify that DNS is hosted
+        # by the same machine (i.e. we are already installed).
+        # Later, DNS.install_check will do its zone overlap check
+        # and will make sure to fail if overlap does really exist.
+        # At this point we only verify that value is a valid DNS syntax.
+        validate_domain_name(value)
 
     dm_password = extend_knob(
         ServerMasterInstallInterface.dm_password,
