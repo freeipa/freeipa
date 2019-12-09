@@ -282,6 +282,35 @@ class TestBackupAndRestore(IntegrationTest):
         assert 'httpd_can_network_connect --> on' in result.stdout_text
         assert 'httpd_manage_ipa --> on' in result.stdout_text
 
+    def test_enough_space_for_backup(self):
+        """Test if ipa-backup throws error if /var/lib/ipa/ runs out of space
+
+        ipa-backup throws error when /var/lib/ipa runs out of space. Earlier
+        the error was not so clear. Fix mentions about insufficient space.
+        related : https://pagure.io/freeipa/issue/7647
+        """
+        free_space = ''
+        result = self.master.run_command(['df', '-Ph', '/var/lib/ipa/backup'])
+        for line in result.stdout_text.split('\n'):
+            if 'dev' in line:
+                line = re.sub(' +', ' ', line)
+                free_space = line.split(' ')[3]
+                break
+
+        self.master.run_command(['fallocate', '-l',
+                                 free_space, '/var/lib/ipa/backup/temp.img'])
+        dashed_domain = self.master.domain.realm.replace(".", '-')
+        ldif_dir = paths.SLAPD_INSTANCE_LDIF_DIR_TEMPLATE % dashed_domain
+        err_msg = (f"Check if destination directory {ldif_dir}"
+                   " has enough space")
+
+        result = self.master.run_command(['ipa-backup'], raiseonerr=False)
+        assert result.returncode != 0
+        assert err_msg in result.stderr_text
+
+        # cleanup
+        self.master.run_command(['rm', '-f', '/var/lib/ipa/backup/temp.img'])
+
 
 class BaseBackupAndRestoreWithDNS(IntegrationTest):
     """
