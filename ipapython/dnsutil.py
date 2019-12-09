@@ -39,6 +39,12 @@ if six.PY3:
 logger = logging.getLogger(__name__)
 
 
+class DNSZoneAlreadyExists(dns.exception.DNSException):
+    supp_kwargs = {'zone', 'ns'}
+    fmt = (u"DNS zone {zone} already exists in DNS "
+           "and is handled by server(s): {ns}")
+
+
 @six.python_2_unicode_compatible
 class DNSName(dns.name.Name):
     labels = None  # make pylint happy
@@ -374,10 +380,7 @@ def check_zone_overlap(zone, raise_on_error=True):
                          zone, e)
             ns = []
 
-        msg = u"DNS zone {0} already exists in DNS".format(zone)
-        if ns:
-            msg += u" and is handled by server(s): {0}".format(', '.join(ns))
-        raise ValueError(msg)
+        raise DNSZoneAlreadyExists(zone=zone.to_text(), ns=ns)
 
 
 def _mix_weight(records):
