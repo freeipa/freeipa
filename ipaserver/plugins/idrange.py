@@ -158,7 +158,7 @@ for a different domain.
 
 (*) The RID is typically the last integer of a user or group SID which follows
 the domain SID. E.g. if the domain SID is S-1-5-21-123-456-789 and a user from
-this domain has the SID S-1-5-21-123-456-789-1010 then 1010 id the RID of the
+this domain has the SID S-1-5-21-123-456-789-1010 then 1010 is the RID of the
 user. RIDs are unique in a domain, 32bit values and are used for users and
 groups.
 
