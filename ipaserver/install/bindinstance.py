@@ -327,7 +327,7 @@ def read_reverse_zone(default, ip_address, allow_zone_overlap=False):
         if not allow_zone_overlap:
             try:
                 dnsutil.check_zone_overlap(zone, raise_on_error=False)
-            except ValueError as e:
+            except dnsutil.DNSZoneAlreadyExists as e:
                 logger.error("Reverse zone %s will not be used: %s",
                              zone, e)
                 continue
