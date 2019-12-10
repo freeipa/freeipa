@@ -38,9 +38,9 @@ topologies:
     cpu: 4
     memory: 12000
   ad_master: &ad_master
-   name: ad_master
-   cpu: 4
-   memory: 12000
+    name: ad_master
+    cpu: 4
+    memory: 12000
 
 jobs:
   fedora-latest/build:
