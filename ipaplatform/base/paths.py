@@ -407,6 +407,7 @@ class BasePathNamespace:
     DIRSRV_LOCK_DIR = "/run/lock/dirsrv"
     ALL_SLAPD_INSTANCE_SOCKETS = "/run/slapd-*.socket"
     VAR_LOG_DIRSRV_INSTANCE_TEMPLATE = "/var/log/dirsrv/slapd-%s"
+    VAR_LOG_DIRSRV = "/var/log/dirsrv/"
     SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/access"
     SLAPD_INSTANCE_ERROR_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/errors"
     SLAPD_INSTANCE_AUDIT_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/audit"
