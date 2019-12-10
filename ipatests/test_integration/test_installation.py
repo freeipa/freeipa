@@ -624,6 +624,29 @@ class TestInstallMasterDNS(IntegrationTest):
         tasks.install_kra(self.master, first_instance=True)
 
 
+class TestInstallMasterDNSRepeatedly(IntegrationTest):
+    """ Test that a repeated installation of the primary with DNS enabled
+    will lead to a already installed message and not in "DNS zone X
+    already exists in DNS" in check_zone_overlap.
+    The error is only occuring if domain is set explicitly in the command
+    line installer as check_zone_overlap is used in the domain_name
+    validator.
+    """
+
+    num_replicas = 0
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+
+    def test_install_master_releatedly(self):
+        cmd = tasks.install_master(self.master,
+                                   setup_dns=True,
+                                   raiseonerr=False)
+        exp_str = ("already exists in DNS")
+        assert (exp_str not in cmd.stderr_text and cmd.returncode != 2)
+
+
 class TestInstallMasterReservedIPasForwarder(IntegrationTest):
     """Test to check if IANA reserved IP doesn't accepted as DNS forwarder
 
