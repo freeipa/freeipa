@@ -106,6 +106,8 @@ def setup_server_logs_collecting(host):
 
     # SSSD debugging must be set after client is installed (function
     # setup_sssd_debugging)
+    host.collect_log(paths.RESOLV_CONF)
+    host.collect_log(paths.HOSTS)
 
 
 def collect_logs(func):
@@ -526,6 +528,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
 def install_client(master, client, extra_args=[], user=None,
                    password=None, unattended=True, stdin_text=None):
     client.collect_log(paths.IPACLIENT_INSTALL_LOG)
+    client.collect_log(paths.RESOLV_CONF)
+    client.collect_log(paths.HOSTS)
 
     apply_common_fixes(client)
     allow_sync_ptr(master)
