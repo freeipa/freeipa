@@ -64,52 +64,6 @@ from .firewall import Firewall
 logger = logging.getLogger(__name__)
 
 
-def setup_server_logs_collecting(host):
-    """
-    This function setup logs to be collected on host. We should collect all
-    possible logs that may be helpful to debug IPA server
-    """
-    # dirsrv logs
-    inst = host.domain.realm.replace('.', '-')
-    host.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
-    host.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
-    host.collect_log(paths.SLAPD_INSTANCE_AUDIT_LOG_TEMPLATE % inst)
-
-    # IPA install logs
-    host.collect_log(paths.IPASERVER_INSTALL_LOG)
-    host.collect_log(paths.IPASERVER_UNINSTALL_LOG)
-    host.collect_log(paths.IPACLIENT_INSTALL_LOG)
-    host.collect_log(paths.IPACLIENT_UNINSTALL_LOG)
-    host.collect_log(paths.IPAREPLICA_INSTALL_LOG)
-    host.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
-    host.collect_log(paths.IPAREPLICA_CA_INSTALL_LOG)
-    host.collect_log(paths.IPASERVER_KRA_INSTALL_LOG)
-    host.collect_log(paths.IPA_CUSTODIA_AUDIT_LOG)
-
-    # IPA uninstall logs
-    host.collect_log(paths.IPACLIENT_UNINSTALL_LOG)
-
-    # IPA backup and restore logs
-    host.collect_log(paths.IPARESTORE_LOG)
-    host.collect_log(paths.IPABACKUP_LOG)
-
-    # kerberos related logs
-    host.collect_log(paths.KADMIND_LOG)
-    host.collect_log(paths.KRB5KDC_LOG)
-
-    # httpd logs
-    host.collect_log(paths.VAR_LOG_HTTPD_ERROR)
-
-    # dogtag logs
-    host.collect_log(os.path.join(paths.VAR_LOG_PKI_DIR))
-
-    # selinux logs
-    host.collect_log(paths.VAR_LOG_AUDIT)
-
-    # SSSD debugging must be set after client is installed (function
-    # setup_sssd_debugging)
-
-
 def check_arguments_are(slice, instanceof):
     """
     :param: slice - tuple of integers denoting the beginning and the end
@@ -144,8 +98,6 @@ def prepare_host(host):
 
         # First we try to run simple echo command to test the connection
         host.run_command(['true'], set_env=False)
-
-        host.collect_log(env_filename)
         try:
             host.transport.mkdir_recursive(host.config.test_dir)
         except IOError:
@@ -337,7 +289,6 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
     if domain_level is None:
         domain_level = host.config.domain_level
     check_domain_level(domain_level)
-    setup_server_logs_collecting(host)
     apply_common_fixes(host)
     fix_apache_semaphores(host)
     fw = Firewall(host)
@@ -449,7 +400,6 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         domain_level = domainlevel(master)
     check_domain_level(domain_level)
     apply_common_fixes(replica)
-    setup_server_logs_collecting(replica)
     allow_sync_ptr(master)
     fw = Firewall(replica)
     fw_services = ["freeipa-ldap", "freeipa-ldaps"]
@@ -515,8 +465,6 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
 
 def install_client(master, client, extra_args=[], user=None,
                    password=None, unattended=True, stdin_text=None):
-    client.collect_log(paths.IPACLIENT_INSTALL_LOG)
-
     apply_common_fixes(client)
     allow_sync_ptr(master)
     # Now, for the situations where a client resides in a different subnet from
@@ -558,9 +506,6 @@ def install_adtrust(host):
     Runs ipa-adtrust-install on the client and generates SIDs for the entries.
     Configures the compat tree for the legacy clients.
     """
-
-    setup_server_logs_collecting(host)
-
     kinit_admin(host)
     host.run_command(['ipa-adtrust-install', '-U',
                       '--enable-compat',
@@ -782,8 +727,6 @@ def setup_sssd_debugging(host):
                       paths.SSSD_CONF],
                      raiseonerr=False)
 
-    host.collect_log(os.path.join(paths.VAR_LOG_SSSD_DIR))
-
     # Clear the cache and restart SSSD
     clear_sssd_cache(host)
 
@@ -988,7 +931,6 @@ def kinit_admin(host, raiseonerr=True):
 
 def uninstall_master(host, ignore_topology_disconnect=True,
                      ignore_last_of_role=True, clean=True, verbose=False):
-    host.collect_log(paths.IPASERVER_UNINSTALL_LOG)
     uninstall_cmd = ['ipa-server-install', '--uninstall', '-U']
 
     host_domain_level = domainlevel(host)
@@ -1028,8 +970,6 @@ def uninstall_master(host, ignore_topology_disconnect=True,
 
 
 def uninstall_client(host):
-    host.collect_log(paths.IPACLIENT_UNINSTALL_LOG)
-
     host.run_command(['ipa-client-install', '--uninstall', '-U'],
                      raiseonerr=False)
     unapply_fixes(host)
@@ -1544,10 +1484,7 @@ def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
         domain_level = domainlevel(host)
     check_domain_level(domain_level)
     command = ["ipa-kra-install", "-U", "-p", host.config.dirman_password]
-    try:
-        result = host.run_command(command, raiseonerr=raiseonerr)
-    finally:
-        setup_server_logs_collecting(host)
+    result = host.run_command(command, raiseonerr=raiseonerr)
     return result
 
 
@@ -1570,10 +1507,7 @@ def install_ca(
     if cert_files:
         for fname in cert_files:
             command.extend(['--external-cert-file', fname])
-    try:
-        result = host.run_command(command, raiseonerr=raiseonerr)
-    finally:
-        setup_server_logs_collecting(host)
+    result = host.run_command(command, raiseonerr=raiseonerr)
     return result
 
 
