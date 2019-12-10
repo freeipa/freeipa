@@ -691,7 +691,7 @@ class Service:
 
         # case insensitive
         for value in entry.get('ipaConfigString', []):
-            if value.lower() == ENABLED_SERVICE:
+            if value.lower() == ENABLED_SERVICE.lower():
                 entry['ipaConfigString'].remove(value)
                 break
 
