@@ -19,6 +19,7 @@
 from __future__ import absolute_import
 
 import collections
+import datetime
 import logging
 import os
 import io
@@ -918,12 +919,32 @@ class NSSDatabase:
             if certname == nick:
                 self.delete_cert(nick)
 
+    def _verify_cert_validity(self, cert):
+        """Common checks for cert validity
+        """
+        utcnow = datetime.datetime.utcnow()
+        if cert.not_valid_before > utcnow:
+            raise ValueError(
+                f"not valid before {cert.not_valid_before} UTC is in the "
+                "future."
+            )
+        if cert.not_valid_after < utcnow:
+            raise ValueError(
+                f"has expired {cert.not_valid_after} UTC"
+            )
+        # make sure the cert does not expire during installation
+        if cert.not_valid_after + datetime.timedelta(hours=1) < utcnow:
+            raise ValueError(
+                f"expires in less than one hour ({cert.not_valid_after} UTC)"
+            )
+
     def verify_server_cert_validity(self, nickname, hostname):
         """Verify a certificate is valid for a SSL server with given hostname
 
         Raises a ValueError if the certificate is invalid.
         """
         cert = self.get_cert(nickname)
+        self._verify_cert_validity(cert)
 
         try:
             self.run_certutil(
@@ -947,6 +968,7 @@ class NSSDatabase:
 
     def verify_ca_cert_validity(self, nickname, minpathlen=None):
         cert = self.get_cert(nickname)
+        self._verify_cert_validity(cert)
 
         if not cert.subject:
             raise ValueError("has empty subject")
