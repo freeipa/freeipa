@@ -435,6 +435,18 @@ jobs:
         timeout: 10800
         topology: *master_1repl
 
+  fedora-previous/test_installation_TestInstallMasterDNSRepeatedly:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMasterDNSRepeatedly
+        template: *ci-master-previous
+        timeout: 10800
+        topology: *master_1repl
+
   fedora-previous/test_installation_TestInstallMasterReservedIPasForwarder:
     requires: [fedora-previous/build]
     priority: 50
