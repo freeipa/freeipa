@@ -39,6 +39,8 @@ class TestNFS(IntegrationTest):
         nfsclt = self.clients[1]
         automntclt = self.clients[2]
 
+        time.sleep(WAIT_AFTER_UNINSTALL)
+
         nfsclt.run_command(["umount", "-a", "-t", "nfs4"])
         nfsclt.run_command(["systemctl", "stop", "rpc-gssd"])
 
@@ -204,6 +206,8 @@ class TestNFS(IntegrationTest):
         ])
 
         # TODO leverage users
+
+        time.sleep(WAIT_AFTER_UNINSTALL)
 
         automntclt.run_command(["umount", "-a", "-t", "nfs4"])
 
