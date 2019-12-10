@@ -9,6 +9,7 @@ from ipapython import ipautil
 from ipaplatform.osinfo import osinfo
 
 CERTNICK = 'testcert'
+CERTSAN = 'testcert.certdb.test'
 
 if osinfo.id == 'fedora':
     if osinfo.version_number >= (28,):
@@ -33,6 +34,7 @@ def create_selfsigned(nssdb):
             '-s', 'CN=testcert',
             '-n', CERTNICK,
             '-m', '365',
+            '--extSAN', f'dns:{CERTSAN}'
         ])
     finally:
         os.unlink(noisefile)
@@ -242,3 +244,14 @@ def test_delete_cert_and_key():
             assert len(nssdb.list_certs()) == 1
     finally:
         os.unlink(p12file)
+
+
+def test_check_validity():
+    with NSSDatabase() as nssdb:
+        nssdb.create_db()
+        create_selfsigned(nssdb)
+        with pytest.raises(ValueError):
+            nssdb.verify_ca_cert_validity(CERTNICK)
+        nssdb.verify_server_cert_validity(CERTNICK, CERTSAN)
+        with pytest.raises(ValueError):
+            nssdb.verify_server_cert_validity(CERTNICK, 'invalid.example')
