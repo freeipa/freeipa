@@ -5,10 +5,6 @@
 """
 Server installer module
 """
-
-from __future__ import print_function
-
-import collections
 import os.path
 import random
 
@@ -19,16 +15,15 @@ from ipalib.install.service import (enroll_only,
                                     installs_master,
                                     installs_replica,
                                     master_install_only,
-                                    prepares,
                                     prepare_only,
                                     replica_install_only)
-from ipapython import ipautil
 from ipapython.dnsutil import check_zone_overlap
 from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
 from ipapython.install.common import step
 
 from .install import validate_admin_password, validate_dm_password
+from .install import get_min_idstart
 from .install import init as master_init
 from .install import install as master_install
 from .install import install_check as master_install_check
@@ -478,6 +473,15 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                 raise RuntimeError(
                     "'--ignore-topology-disconnect/--ignore-last-of-role' "
                     "options can be used only during uninstallation")
+
+            min_idstart = get_min_idstart()
+            if self.idstart < min_idstart:
+                raise RuntimeError(
+                    "idstart (%i) must be larger than UID_MAX/GID_MAX (%i) "
+                    "setting in /etc/login.defs." % (
+                        self.idstart, min_idstart
+                    )
+                )
 
             if self.idmax < self.idstart:
                 raise RuntimeError(

@@ -8,6 +8,7 @@ import errno
 import logging
 import os
 import pickle
+import re
 import shutil
 import sys
 import time
@@ -99,6 +100,26 @@ def validate_admin_password(password):
     if any(c in bad_characters for c in password):
         raise ValueError('Password must not contain these characters: %s' %
                          ', '.join('"%s"' % c for c in bad_characters))
+
+
+def get_min_idstart(default_idstart=60000):
+    """Get mininum idstart value from /etc/login.defs
+    """
+    config = {}
+    # match decimal numbers
+    decimal_re = re.compile(r"^([A-Z][A-Z_]+)\s*([1-9]\d*)")
+    try:
+        with open('/etc/login.defs', 'r') as f:
+            for line in f:
+                mo = decimal_re.match(line)
+                if mo is not None:
+                    config[mo.group(1)] = int(mo.group(2))
+    except OSError:
+        return default_idstart
+    idstart = max(config.get("UID_MAX", 0), config.get("GID_MAX", 0))
+    if idstart == 0:
+        idstart = default_idstart
+    return idstart
 
 
 def read_cache(dm_password):
