@@ -87,6 +87,11 @@ class Config(pytest_multihost.config.Config):
             for host in domain.hosts:
                 yield host
 
+    def get_all_ipa_hosts(self):
+        for ipa_domain in (d for d in self.domains if d.is_ipa_type):
+            for ipa_host in ipa_domain.hosts:
+                yield ipa_host
+
     def to_dict(self):
         extra_args = self.extra_init_args - {'dirman_dn'}
         result = super(Config, self).to_dict(extra_args)
