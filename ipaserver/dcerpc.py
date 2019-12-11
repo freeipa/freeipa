@@ -63,7 +63,6 @@ import pysss
 import six
 from ipaplatform.paths import paths
 
-from ldap.filter import escape_filter_chars
 from time import sleep
 
 try:
@@ -491,9 +490,9 @@ class DomainValidator:
         # If unsuccessful, search AD DC LDAP
         logger.debug("Searching AD DC LDAP")
 
-        escaped_sid = escape_filter_chars(
-            security.dom_sid(sid).__ndr_pack__(),
-            2  # 2 means every character needs to be escaped
+        # escape_filter_chars(sid_bytes, 2) but for bytes
+        escaped_sid = "".join(
+            "\\%02x" % b for b in ndr_pack(security.dom_sid(sid))
         )
 
         attrs = ['sAMAccountName']
