@@ -342,8 +342,9 @@ def add_new_adtrust_agents(api, options):
         add_hosts_to_adtrust_agents(api, new_agents)
 
         print("""
-WARNING: you MUST restart (e.g. ipactl restart) the following IPA masters in
-order to activate them to serve information about users from trusted forests:
+WARNING: you MUST restart (both "ipactl restart" and "systemctl restart sssd")
+the following IPA masters in order to activate them to serve information about
+users from trusted forests:
 """)
         for x in new_agents:
             print(x)
