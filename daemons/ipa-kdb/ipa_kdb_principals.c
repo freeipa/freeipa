@@ -774,6 +774,22 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                       &res_key_data, &result, &mkvno);
     switch (ret) {
     case 0:
+        /* Only set a principal's key if password auth can be used. Otherwise
+         * the KDC would add pre-authentication methods to the NEEDED_PREAUTH
+         * reply for AS-REQs which indicate the password authentication is
+         * available. This might confuse applications like e.g. SSSD which try
+         * to determine suitable authentication methods and corresponding
+         * prompts with the help of MIT Kerberos' responder interface which
+         * acts on the returned pre-authentication methods. A typical example
+         * is enforced OTP authentication where of course keys are available
+         * for the first factor but password authentication should not be
+         * advertised by the KDC. */
+        if (!(ua & IPADB_USER_AUTH_PASSWORD) && (ua != IPADB_USER_AUTH_NONE)) {
+            /* This is the same behavior as ENOENT below. */
+            ipa_krb5_free_key_data(res_key_data, result);
+            break;
+        }
+
         entry->key_data = res_key_data;
         entry->n_key_data = result;
         if (mkvno) {
