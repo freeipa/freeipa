@@ -150,6 +150,13 @@ trust_keymap = {
 }
 
 
+trust_keymap_trustdomain = {
+    "netbios_name": "ipantflatname",
+    "domain_sid": "ipanttrusteddomainsid",
+    "domain_name": "cn",
+}
+
+
 def retrieve_domain_information(api):
     # Pull down default domain configuration
     # IPA master might be missing freeipa-server-trust-ad package
@@ -196,7 +203,7 @@ def retrieve_domain_information(api):
         for dom in r:
             r_dom = dict()
             for key in trust_keymap:
-                r_dom[key] = dom.get(trust_keymap[key], [None])[0]
+                r_dom[key] = dom.get(trust_keymap_trustdomain[key], [None])[0]
 
             r_idrange_name = "{realm}_id_range".format(
                 realm=r_dom["domain_name"].upper()
