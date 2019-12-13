@@ -742,7 +742,8 @@ class TestIPACommand(IntegrationTest):
         user_key = tasks.create_temp_file(self.master, create_file=False)
         pem_file = tasks.create_temp_file(self.master)
         # Create a user with a password
-        tasks.create_active_user(self.master, user, passwd)
+        tasks.create_active_user(self.master, user, passwd, extra_args=[
+            '--homedir', '/home/{}'.format(user)])
         tasks.kinit_admin(self.master)
         tasks.run_command_as_user(
             self.master, user, ['ssh-keygen', '-N', '',
@@ -773,7 +774,8 @@ class TestIPACommand(IntegrationTest):
             self.master.run_command(
                 ['ssh', '-o', 'PasswordAuthentication=no',
                  '-o', 'IdentitiesOnly=yes', '-o', 'StrictHostKeyChecking=no',
-                 '-l', user, '-i', user_key, self.master.hostname, 'true'])
+                 '-o', 'ConnectTimeout=10', '-l', user, '-i', user_key,
+                 self.master.hostname, 'true'])
         finally:
             # cleanup
             self.master.run_command(['ipa', 'user-del', user])
