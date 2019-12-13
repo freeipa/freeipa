@@ -1853,11 +1853,13 @@ def create_temp_file(host, directory=None, create_file=True):
     return host.run_command(cmd).stdout_text.strip()
 
 
-def create_active_user(host, login, password, first='test', last='user'):
+def create_active_user(host, login, password, first='test', last='user',
+                       extra_args=()):
     """Create user and do login to set password"""
     temp_password = 'Secret456789'
     kinit_admin(host)
-    user_add(host, login, first=first, last=last, password=temp_password)
+    user_add(host, login, first=first, last=last, extra_args=extra_args,
+             password=temp_password)
     host.run_command(
         ['kinit', login],
         stdin_text='{0}\n{1}\n{1}\n'.format(temp_password, password))
