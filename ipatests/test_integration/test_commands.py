@@ -758,12 +758,12 @@ class TestIPACommand(IntegrationTest):
         backup = tasks.FileBackup(self.master, sssd_p11_child)
         try:
             content = '#!/bin/bash\nsleep 999999'
-            # added sleep to simulate the timeout for p11_child
-            self.master.put_file_contents(sssd_p11_child, content)
             self.master.run_command(
                 ['ipa', 'user-mod', user, '--ssh', ssh_pub_key])
             self.master.run_command([
                 'ipa', 'user-add-cert', user, '--certificate', cert_b64])
+            # added sleep to simulate the timeout for p11_child
+            self.master.put_file_contents(sssd_p11_child, content)
             # clear cache to avoid SSSD to check the user in old lookup
             tasks.clear_sssd_cache(self.master)
             result = self.master.run_command(
