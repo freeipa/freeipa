@@ -193,6 +193,34 @@ class TestInstallWithCA2(InstallTestBase2):
         super(TestInstallWithCA2, self).test_replica2_ipa_kra_install()
 
 
+class TestInstallCA(IntegrationTest):
+    """
+    Tests for CA installation on a replica
+    """
+
+    num_replicas = 2
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=False)
+
+    def test_replica_ca_install_with_no_host_dns(self):
+        """
+        Test for ipa-ca-install --no-host-dns on a replica
+        """
+
+        tasks.install_replica(self.master, self.replicas[0], setup_ca=False)
+        tasks.install_ca(self.replicas[0], extra_args=["--no-host-dns"])
+
+    def test_replica_ca_install_with_skip_schema_check(self):
+        """
+        Test for ipa-ca-install --skip-schema-check on a replica
+        """
+
+        tasks.install_replica(self.master, self.replicas[1], setup_ca=False)
+        tasks.install_ca(self.replicas[1], extra_args=["--skip-schema-check"])
+
+
 @pytest.mark.xfail
 class TestInstallWithCA_KRA1(InstallTestBase1):
 
