@@ -135,15 +135,15 @@ def install_check(standalone, api, replica, options, hostname):
                 logger.warning("%s Please make sure that the domain is "
                                "properly delegated to this IPA server.",
                                e)
-
-            hst = dnsutil.DNSName(hostname).make_absolute().to_text()
-            if hst not in e.kwargs['ns']:
-                raise ValueError(str(e))
+            else:
+                hst = dnsutil.DNSName(hostname).make_absolute().to_text()
+                if hst not in e.kwargs['ns']:
+                    raise ValueError(str(e))
 
     for reverse_zone in options.reverse_zones:
         try:
             dnsutil.check_zone_overlap(reverse_zone)
-        except ValueError as e:
+        except dnsutil.DNSZoneAlreadyExists as e:
             if options.force or options.allow_zone_overlap:
                 logger.warning('%s', str(e))
             else:
