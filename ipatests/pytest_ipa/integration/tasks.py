@@ -1429,13 +1429,18 @@ def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
     return result
 
 
-def install_ca(host, domain_level=None, first_instance=False,
-               external_ca=False, cert_files=None, raiseonerr=True):
+def install_ca(
+        host, domain_level=None, first_instance=False, external_ca=False,
+        cert_files=None, raiseonerr=True, extra_args=()
+):
     if domain_level is None:
         domain_level = domainlevel(host)
     check_domain_level(domain_level)
     command = ["ipa-ca-install", "-U", "-p", host.config.dirman_password,
                "-P", 'admin', "-w", host.config.admin_password]
+    if not isinstance(extra_args, (tuple, list)):
+        raise TypeError("extra_args must be tuple or list")
+    command.extend(extra_args)
     # First step of ipa-ca-install --external-ca
     if external_ca:
         command.append('--external-ca')
