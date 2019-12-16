@@ -728,6 +728,7 @@ class TestIPACommand(IntegrationTest):
         res = self.master.run_command(['testparm', '-s'])
         assert 'ERROR' not in (res.stdout_text + res.stderr_text)
 
+    @pytest.mark.skip(reason='https://pagure.io/freeipa/issue/8151')
     def test_sss_ssh_authorizedkeys(self):
         """Login via Ssh using private-key for ipa-user should work.
 
