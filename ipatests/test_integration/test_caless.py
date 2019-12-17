@@ -22,6 +22,7 @@ from __future__ import absolute_import
 import functools
 import logging
 import os
+import re
 import tempfile
 import shutil
 import glob
@@ -50,7 +51,6 @@ _DEFAULT = object()
 assert_error = tasks.assert_error
 
 NSS_INVALID_FMT = "certutil: certificate is invalid: %s"
-CERT_EXPIRED_MSG = NSS_INVALID_FMT % "Peer's Certificate has expired."
 BAD_USAGE_MSG = NSS_INVALID_FMT % ("Certificate key usage inadequate for "
                                    "attempted operation.")
 
@@ -576,10 +576,12 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
-        assert_error(result,
-                     'The server certificate in {dir}/http.p12 is not valid: '
-                     '{err}'.format(dir=self.master.config.test_dir,
-                                    err=CERT_EXPIRED_MSG))
+
+        pattern = re.compile(
+            r'The server certificate in {dir}/http\.p12 is not valid: '
+            '.*has expired'.format(dir=re.escape(self.master.config.test_dir))
+        )
+        assert_error(result, pattern)
 
     @server_install_teardown
     def test_expired_ds(self):
@@ -591,10 +593,12 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
-        assert_error(result,
-                     'The server certificate in {dir}/dirsrv.p12 is not '
-                     'valid: {err}'.format(dir=self.master.config.test_dir,
-                                           err=CERT_EXPIRED_MSG))
+
+        pattern = re.compile(
+            r'The server certificate in {dir}/dirsrv\.p12 is not valid: '
+            '.*has expired'.format(dir=re.escape(self.master.config.test_dir))
+        )
+        assert_error(result, pattern)
 
     @server_install_teardown
     def test_http_bad_usage(self):
@@ -918,24 +922,28 @@ class TestReplicaInstall(CALessBase):
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
-        assert_error(result,
-                     'The server certificate in {dir}/http.p12 is not '
-                     'valid: {err}'.format(dir=self.master.config.test_dir,
-                                           err=CERT_EXPIRED_MSG))
+
+        pattern = re.compile(
+            r'The server certificate in {dir}/http\.p12 is not valid: '
+            '.*has expired'.format(dir=re.escape(self.master.config.test_dir))
+        )
+        assert_error(result, pattern)
 
     @replica_install_teardown
     def test_expired_ds(self):
         "IPA replica install with expired DS certificate"
 
-        self.create_pkcs12('ca1/replica-expired', filename='http.p12')
-        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica', filename='http.p12')
+        self.create_pkcs12('ca1/replica-expired', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
-        assert_error(result,
-                     'The server certificate in {dir}/http.p12 is not '
-                     'valid: {err}'.format(dir=self.master.config.test_dir,
-                                           err=CERT_EXPIRED_MSG))
+
+        pattern = re.compile(
+            r'The server certificate in {dir}/dirsrv\.p12 is not valid: '
+            '.*has expired'.format(dir=re.escape(self.master.config.test_dir))
+        )
+        assert_error(result, pattern)
 
     @replica_install_teardown
     def test_http_bad_usage(self):
@@ -1330,21 +1338,20 @@ class TestCertInstall(CALessBase):
                      'The server certificate in server.p12 is not valid: '
                      'invalid for server %s' % self.master.hostname)
 
-    def test_expired_http(self):
-        "Install new expired HTTP certificate"
+    def _test_expired_service_cert(self, w_or_d):
+        """Install new expired HTTP/DS certificate."""
+        result = self.certinstall(w_or_d, 'ca1/server-expired')
+        pattern = re.compile(
+            r'The server certificate in server\.p12 is not valid: '
+            '.*has expired'
+        )
+        assert_error(result, pattern)
 
-        result = self.certinstall('w', 'ca1/server-expired')
-        assert_error(result,
-                     'The server certificate in server.p12 is not valid: {err}'
-                     .format(err=CERT_EXPIRED_MSG))
+    def test_expired_http(self):
+        self._test_expired_service_cert('w')
 
     def test_expired_ds(self):
-        "Install new expired DS certificate"
-
-        result = self.certinstall('d', 'ca1/server-expired')
-        assert_error(result,
-                     'The server certificate in server.p12 is not valid: {err}'
-                     .format(err=CERT_EXPIRED_MSG))
+        self._test_expired_service_cert('d')
 
     def test_http_bad_usage(self):
         "Install new HTTP certificate with invalid key usage"
