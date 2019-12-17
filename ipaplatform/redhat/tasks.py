@@ -28,6 +28,7 @@ from __future__ import print_function, absolute_import
 import ctypes
 import logging
 import os
+from pathlib import Path
 import socket
 import traceback
 import errno
@@ -296,127 +297,120 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             logger.info("Systemwide CA database updated.")
             return True
 
-    def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
+    def platform_insert_ca_certs(self, ca_certs):
+        return any([
+            self.write_p11kit_certs(paths.IPA_P11_KIT, ca_certs),
+            self.remove_ca_certificates_bundle(
+                paths.SYSTEMWIDE_IPA_CA_CRT
+            ),
+        ])
+
+    def write_p11kit_certs(self, filename, ca_certs):
         # pylint: disable=ipa-forbidden-import
         from ipalib import x509  # FixMe: break import cycle
         from ipalib.errors import CertificateError
         # pylint: enable=ipa-forbidden-import
 
-        new_cacert_path = paths.SYSTEMWIDE_IPA_CA_CRT
-
-        if os.path.exists(new_cacert_path):
-            try:
-                os.remove(new_cacert_path)
-            except OSError as e:
-                logger.error(
-                    "Could not remove %s: %s", new_cacert_path, e)
-                return False
-
-        new_cacert_path = paths.IPA_P11_KIT
-
+        path = Path(filename)
         try:
-            f = open(new_cacert_path, 'w')
-            os.fchmod(f.fileno(), 0o644)
-        except IOError as e:
-            logger.info("Failed to open %s: %s", new_cacert_path, e)
-            return False
+            f = open(path, 'w')
+        except IOError:
+            logger.error("Failed to open %s", path)
+            raise
 
-        f.write("# This file was created by IPA. Do not edit.\n"
-                "\n")
+        with f:
+            f.write("# This file was created by IPA. Do not edit.\n"
+                    "\n")
 
-        has_eku = set()
-        for cert, nickname, trusted, _ext_key_usage in ca_certs:
             try:
-                subject = cert.subject_bytes
-                issuer = cert.issuer_bytes
-                serial_number = cert.serial_number_bytes
-                public_key_info = cert.public_key_info_bytes
-            except (PyAsn1Error, ValueError, CertificateError) as e:
-                logger.warning(
-                    "Failed to decode certificate \"%s\": %s", nickname, e)
-                continue
+                os.fchmod(f.fileno(), 0o644)
+            except IOError:
+                logger.error("Failed to set mode of %s", path)
+                raise
 
-            label = urllib.parse.quote(nickname)
-            subject = urllib.parse.quote(subject)
-            issuer = urllib.parse.quote(issuer)
-            serial_number = urllib.parse.quote(serial_number)
-            public_key_info = urllib.parse.quote(public_key_info)
-
-            obj = ("[p11-kit-object-v1]\n"
-                   "class: certificate\n"
-                   "certificate-type: x-509\n"
-                   "certificate-category: authority\n"
-                   "label: \"%(label)s\"\n"
-                   "subject: \"%(subject)s\"\n"
-                   "issuer: \"%(issuer)s\"\n"
-                   "serial-number: \"%(serial_number)s\"\n"
-                   "x-public-key-info: \"%(public_key_info)s\"\n" %
-                   dict(label=label,
-                        subject=subject,
-                        issuer=issuer,
-                        serial_number=serial_number,
-                        public_key_info=public_key_info))
-            if trusted is True:
-                obj += "trusted: true\n"
-            elif trusted is False:
-                obj += "x-distrusted: true\n"
-            obj += "{pem}\n\n".format(
-                pem=cert.public_bytes(x509.Encoding.PEM).decode('ascii'))
-            f.write(obj)
-
-            if (cert.extended_key_usage is not None and
-                    public_key_info not in has_eku):
+            has_eku = set()
+            for cert, nickname, trusted, _ext_key_usage in ca_certs:
                 try:
-                    ext_key_usage = cert.extended_key_usage_bytes
-                except PyAsn1Error as e:
-                    logger.warning(
-                        "Failed to encode extended key usage for \"%s\": %s",
-                        nickname, e)
-                    continue
-                value = urllib.parse.quote(ext_key_usage)
+                    subject = cert.subject_bytes
+                    issuer = cert.issuer_bytes
+                    serial_number = cert.serial_number_bytes
+                    public_key_info = cert.public_key_info_bytes
+                except (PyAsn1Error, ValueError, CertificateError):
+                    logger.error(
+                        "Failed to decode certificate \"%s\"", nickname)
+                    raise
+
+                label = urllib.parse.quote(nickname)
+                subject = urllib.parse.quote(subject)
+                issuer = urllib.parse.quote(issuer)
+                serial_number = urllib.parse.quote(serial_number)
+                public_key_info = urllib.parse.quote(public_key_info)
+
                 obj = ("[p11-kit-object-v1]\n"
-                       "class: x-certificate-extension\n"
-                       "label: \"ExtendedKeyUsage for %(label)s\"\n"
-                       "x-public-key-info: \"%(public_key_info)s\"\n"
-                       "object-id: 2.5.29.37\n"
-                       "value: \"%(value)s\"\n\n" %
+                       "class: certificate\n"
+                       "certificate-type: x-509\n"
+                       "certificate-category: authority\n"
+                       "label: \"%(label)s\"\n"
+                       "subject: \"%(subject)s\"\n"
+                       "issuer: \"%(issuer)s\"\n"
+                       "serial-number: \"%(serial_number)s\"\n"
+                       "x-public-key-info: \"%(public_key_info)s\"\n" %
                        dict(label=label,
-                            public_key_info=public_key_info,
-                            value=value))
+                            subject=subject,
+                            issuer=issuer,
+                            serial_number=serial_number,
+                            public_key_info=public_key_info))
+                if trusted is True:
+                    obj += "trusted: true\n"
+                elif trusted is False:
+                    obj += "x-distrusted: true\n"
+                obj += "{pem}\n\n".format(
+                    pem=cert.public_bytes(x509.Encoding.PEM).decode('ascii'))
+
                 f.write(obj)
-                has_eku.add(public_key_info)
 
-        f.close()
-
-        # Add the CA to the systemwide CA trust database
-        if not self.reload_systemwide_ca_store():
-            return False
+                if (cert.extended_key_usage is not None and
+                        public_key_info not in has_eku):
+                    try:
+                        ext_key_usage = cert.extended_key_usage_bytes
+                    except PyAsn1Error:
+                        logger.error(
+                            "Failed to encode extended key usage for \"%s\"",
+                            nickname)
+                        raise
+                    value = urllib.parse.quote(ext_key_usage)
+                    obj = ("[p11-kit-object-v1]\n"
+                           "class: x-certificate-extension\n"
+                           "label: \"ExtendedKeyUsage for %(label)s\"\n"
+                           "x-public-key-info: \"%(public_key_info)s\"\n"
+                           "object-id: 2.5.29.37\n"
+                           "value: \"%(value)s\"\n\n" %
+                           dict(label=label,
+                                public_key_info=public_key_info,
+                                value=value))
+                    f.write(obj)
+                    has_eku.add(public_key_info)
 
         return True
 
-    def remove_ca_certs_from_systemwide_ca_store(self):
-        result = True
-        update = False
+    def platform_remove_ca_certs(self):
+        return any([
+            self.remove_ca_certificates_bundle(paths.IPA_P11_KIT),
+            self.remove_ca_certificates_bundle(paths.SYSTEMWIDE_IPA_CA_CRT),
+        ])
 
-        # Remove CA cert from systemwide store
-        for new_cacert_path in (paths.IPA_P11_KIT,
-                                paths.SYSTEMWIDE_IPA_CA_CRT):
-            if not os.path.exists(new_cacert_path):
-                continue
-            try:
-                os.remove(new_cacert_path)
-            except OSError as e:
-                logger.error(
-                    "Could not remove %s: %s", new_cacert_path, e)
-                result = False
-            else:
-                update = True
+    def remove_ca_certificates_bundle(self, filename):
+        path = Path(filename)
+        if not path.is_file():
+            return False
 
-        if update:
-            if not self.reload_systemwide_ca_store():
-                return False
+        try:
+            path.unlink()
+        except Exception:
+            logger.error("Could not remove %s", path)
+            raise
 
-        return result
+        return True
 
     def backup_hostname(self, fstore, statestore):
         filepath = paths.ETC_HOSTNAME

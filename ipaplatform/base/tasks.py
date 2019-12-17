@@ -73,6 +73,23 @@ class BaseTaskNamespace:
         Returns True if the operation succeeded, False otherwise.
         """
 
+        try:
+            if self.platform_insert_ca_certs(ca_certs):
+                return self.reload_systemwide_ca_store()
+        except Exception:
+            logger.exception('Could not populate systemwide CA store')
+
+        return False
+
+    def platform_insert_ca_certs(self, ca_certs):
+        """
+        Platform implementations override this method to implement
+        population of the systemwide CA store.
+
+        Returns True if changes were made to the CA store, False otherwise.
+
+        Raises Exception if something went wrong.
+        """
         raise NotImplementedError()
 
     def remove_ca_certs_from_systemwide_ca_store(self):
@@ -83,6 +100,25 @@ class BaseTaskNamespace:
         Returns True if the operation succeeded, False otherwise.
         """
 
+        try:
+            if self.platform_remove_ca_certs():
+                return self.reload_systemwide_ca_store()
+        except Exception:
+            logger.exception(
+                'Could not remove certificates from systemwide CA store'
+            )
+
+        return False
+
+    def platform_remove_ca_certs(self):
+        """
+        Platform implementations override this method to implement
+        removal of certificates from the systemwide CA store.
+
+        Returns True if changes were made to the CA store, False otherwise.
+
+        Raises Exception if something went wrong.
+        """
         raise NotImplementedError()
 
     def get_svc_list_file(self):

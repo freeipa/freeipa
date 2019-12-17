@@ -101,8 +101,12 @@ class BasePathNamespace:
     OPENLDAP_LDAP_CONF = "/etc/openldap/ldap.conf"
     PAM_LDAP_CONF = "/etc/pam_ldap.conf"
     PASSWD = "/etc/passwd"
+    # Trusted CA certificates used to be written out to this file. In newer
+    # versions of FreeIPA, it has been replaced by IPA_P11_KIT.
     SYSTEMWIDE_IPA_CA_CRT = "/etc/pki/ca-trust/source/anchors/ipa-ca.crt"
     IPA_P11_KIT = "/etc/pki/ca-trust/source/ipa.p11-kit"
+    CA_CERTIFICATES_BUNDLE_PEM = None
+    CA_CERTIFICATES_DIR = None
     NSS_DB_DIR = "/etc/pki/nssdb"
     PKI_TOMCAT = "/etc/pki/pki-tomcat"
     PKI_TOMCAT_ALIAS_DIR = "/etc/pki/pki-tomcat/alias"
