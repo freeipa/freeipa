@@ -43,7 +43,13 @@ class DebianPathNamespace(BasePathNamespace):
     CHRONY_CONF = "/etc/chrony/chrony.conf"
     OPENLDAP_LDAP_CONF = "/etc/ldap/ldap.conf"
     ETC_DEBIAN_VERSION = "/etc/debian_version"
-    IPA_P11_KIT = "/usr/local/share/ca-certificates/ipa-ca.crt"
+    # Old versions of freeipa wrote all trusted certificates to a single
+    # file, which is not supported by ca-certificates.
+    CA_CERTIFICATES_BUNDLE_PEM = "/usr/local/share/ca-certificates/ipa-ca.crt"
+    CA_CERTIFICATES_DIR = "/usr/local/share/ca-certificates/ipa-ca"
+    # Debian's p11-kit does not use ipa.p11-kit, so the file is provided
+    # for information only.
+    IPA_P11_KIT = "/usr/local/share/ca-certificates/ipa.p11-kit"
     ETC_SYSCONFIG_DIR = "/etc/default"
     SYSCONFIG_AUTOFS = "/etc/default/autofs"
     SYSCONFIG_DIRSRV = "/etc/default/dirsrv"
