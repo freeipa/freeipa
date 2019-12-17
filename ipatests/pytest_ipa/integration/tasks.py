@@ -1604,9 +1604,19 @@ def upload_temp_contents(host, contents, encoding='utf-8'):
     return tmpname
 
 
-def assert_error(result, stderr_text, returncode=None):
-    "Assert that `result` command failed and its stderr contains `stderr_text`"
-    assert stderr_text in result.stderr_text, result.stderr_text
+def assert_error(result, pattern, returncode=None):
+    """
+    Assert that ``result`` command failed and its stderr contains ``pattern``.
+    ``pattern`` may be a ``str`` or a ``re.Pattern`` (regular expression).
+
+    """
+    if isinstance(pattern, re.Pattern):
+        assert pattern.search(result.stderr_text), \
+            f"pattern {pattern} not found in stderr {result.stderr_text!r}"
+    else:
+        assert pattern in result.stderr_text, \
+            f"substring {pattern!r} not found in stderr {result.stderr_text!r}"
+
     if returncode is not None:
         assert result.returncode == returncode
     else:
