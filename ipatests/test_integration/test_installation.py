@@ -21,6 +21,7 @@ from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
+from ipaplatform import services
 
 config = get_global_config()
 
@@ -391,6 +392,21 @@ def get_pki_tomcatd_pid(host):
     return(pid)
 
 
+def get_ipa_services_pids(host):
+    ipa_services_name = [
+        "krb5kdc", "kadmin", "named", "httpd", "ipa-custodia",
+        "pki_tomcatd", "ipa-dnskeysyncd"
+    ]
+    pids_of_ipa_services = {}
+    for name in ipa_services_name:
+        service_name = services.knownservices[name].systemd_name
+        result = host.run_command(
+            ["systemctl", "-p", "MainPID", "--value", "show", service_name]
+        )
+        pids_of_ipa_services[service_name] = int(result.stdout_text.strip())
+    return pids_of_ipa_services
+
+
 ##
 # Rest of master installation tests
 ##
@@ -439,6 +455,75 @@ class TestInstallMaster(IntegrationTest):
         # check if pid for pki-tomcad changed
         pki_pid_after_restart_2 = get_pki_tomcatd_pid(self.master)
         assert pki_pid_after_restart != pki_pid_after_restart_2
+
+    def test_ipactl_scenario_check(self):
+        """ Test if ipactl starts services stopped by systemctl
+        This will first check if all services are running then it will stop
+        few service. After that it will restart all services and then check
+        the status and pid of services.It will also compare pid after ipactl
+        start and restart in case of start it will remain unchanged on the
+        other hand in case of restart it will change.
+        """
+        # listing all services
+        services = [
+            "Directory", "krb5kdc", "kadmin", "named", "httpd", "ipa-custodia",
+            "pki-tomcatd", "ipa-otpd", "ipa-dnskeysyncd"
+        ]
+
+        # checking the service status
+        cmd = self.master.run_command(['ipactl', 'status'])
+        for service in services:
+            assert "{} Service: RUNNING".format(service) in cmd.stdout_text
+
+        # stopping few services
+        service_stop = ["krb5kdc", "kadmin", "httpd"]
+        for service in service_stop:
+            self.master.run_command(['systemctl', 'stop', service])
+
+        # checking service status
+        service_start = [
+            svcs for svcs in services if svcs not in service_stop
+        ]
+        cmd = self.master.run_command(['ipactl', 'status'])
+        for service in service_start:
+            assert "{} Service: RUNNING".format(service) in cmd.stdout_text
+        for service in service_stop:
+            assert '{} Service: STOPPED'.format(service) in cmd.stdout_text
+
+        # starting all services again
+        self.master.run_command(['ipactl', 'start'])
+
+        # checking service status
+        cmd = self.master.run_command(['ipactl', 'status'])
+        for service in services:
+            assert "{} Service: RUNNING".format(service) in cmd.stdout_text
+
+        # get process id of services
+        ipa_services_pids = get_ipa_services_pids(self.master)
+
+        # restarting all services again
+        self.master.run_command(['ipactl', 'restart'])
+
+        # checking service status
+        cmd = self.master.run_command(['ipactl', 'status'])
+        for service in services:
+            assert "{} Service: RUNNING".format(service) in cmd.stdout_text
+
+        # check if pid for services are different
+        svcs_pids_after_restart = get_ipa_services_pids(self.master)
+        assert ipa_services_pids != svcs_pids_after_restart
+
+        # starting all services again
+        self.master.run_command(['ipactl', 'start'])
+
+        # checking service status
+        cmd = self.master.run_command(['ipactl', 'status'])
+        for service in services:
+            assert "{} Service: RUNNING".format(service) in cmd.stdout_text
+
+        # check if pid for services are same
+        svcs_pids_after_start = get_ipa_services_pids(self.master)
+        assert svcs_pids_after_restart == svcs_pids_after_start
 
     def test_WSGI_worker_process(self):
         """ Test if WSGI worker process count is set to 4
