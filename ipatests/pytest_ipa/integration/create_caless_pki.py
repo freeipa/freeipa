@@ -409,6 +409,15 @@ def gen_server_certs(nick_base, hostname, org, ca=None):
              ]),
              ca, dns_name=hostname, warp=-2 * YEAR
              )
+    gen_cert(
+        profile_server, nick_base + u'-not-yet-valid',
+        x509.Name([
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'Future'),
+            x509.NameAttribute(NameOID.COMMON_NAME, hostname),
+        ]),
+        ca, dns_name=hostname, warp=1 * DAY,
+    )
     gen_cert(profile_server, nick_base + u'-badusage',
              x509.Name([
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
