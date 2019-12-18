@@ -1353,6 +1353,21 @@ class TestCertInstall(CALessBase):
     def test_expired_ds(self):
         self._test_expired_service_cert('d')
 
+    def _test_not_yet_valid_service_cert(self, w_or_d):
+        """Install new not-yet-valid HTTP/DS certificate."""
+        result = self.certinstall(w_or_d, 'ca1/server-not-yet-valid')
+        pattern = re.compile(
+            r'The server certificate in server\.p12 is not valid: '
+            '.*not valid before .* is in the future'
+        )
+        assert_error(result, pattern)
+
+    def test_not_yet_valid_http(self):
+        self._test_not_yet_valid_service_cert('w')
+
+    def test_not_yet_valid_ds(self):
+        self._test_not_yet_valid_service_cert('d')
+
     def test_http_bad_usage(self):
         "Install new HTTP certificate with invalid key usage"
 
