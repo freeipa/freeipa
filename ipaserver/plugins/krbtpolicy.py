@@ -68,6 +68,8 @@ register = Registry()
 _default_values = {
     'krbmaxticketlife': 86400,
     'krbmaxrenewableage': 604800,
+    'krbauthindmaxticketlife': 86400,
+    'krbauthindmaxrenewableage': 604800,
 }
 
 # These attributes never have non-optional values, so they should be
@@ -311,9 +313,26 @@ class krbtpolicy_reset(baseldap.LDAPQuery):
                 def_values[a] = None
         # if reseting global policy - set values to default
         else:
-            def_values = _default_values
+            def_values = _default_values.copy()
 
         entry = ldap.get_entry(dn, list(def_values))
+
+        # For per-indicator policies, drop them to defaults
+        for subtype in _supported_options:
+            for attr in _option_based_attrs:
+                name = '{};{}'.format(attr, subtype)
+                if name in entry:
+                    if uid is not None:
+                        def_values[name] = None
+                    else:
+                        def_values[name] = _default_values[attr]
+
+        # Remove non-subtyped attrs variants,
+        # they should never be used directly.
+        for attr in _option_based_attrs:
+            if attr in def_values:
+                del def_values[attr]
+
         entry.update(def_values)
         try:
             ldap.update_entry(entry)
