@@ -386,7 +386,7 @@ def replica_prepare(master, replica, extra_args=(),
 def install_replica(master, replica, setup_ca=True, setup_dns=False,
                     setup_kra=False, setup_adtrust=False, extra_args=(),
                     domain_level=None, unattended=True, stdin_text=None,
-                    raiseonerr=True):
+                    raiseonerr=True, promote=True):
     if domain_level is None:
         domain_level = domainlevel(master)
     apply_common_fixes(replica)
@@ -395,8 +395,17 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     # Otherwise ipa-client-install would not create a PTR
     # and replica installation would fail
     args = ['ipa-replica-install',
-            '-p', replica.config.dirman_password,
             '-w', replica.config.admin_password]
+
+    if promote:
+        # install client in replica first then promote it to be a replica
+        args.extend(['-p', replica.config.dirman_password])
+        install_client(master, replica)
+    else:
+        # provide authorize user and server to install against
+        args.extend(['--principal', replica.config.admin_name,
+                     '--server', master.hostname])
+
     if unattended:
         args.append('-U')
     if setup_ca:
@@ -425,10 +434,9 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         replica_filename = get_replica_filename(replica)
         args.append(replica_filename)
     else:
-        # install client on a replica machine and then promote it to replica
-        install_client(master, replica)
         fix_apache_semaphores(replica)
-        args.extend(['-r', replica.domain.realm])
+        args.extend(['-r', replica.domain.realm,
+                     '--domain', replica.domain.name])
 
     result = replica.run_command(args, raiseonerr=raiseonerr,
                                  stdin_text=stdin_text)

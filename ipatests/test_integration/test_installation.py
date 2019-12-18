@@ -639,7 +639,8 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
 
         # install replica1 without CA
         cmd = tasks.install_replica(cls.master, cls.replicas[0],
-                                    setup_ca=False, setup_dns=True)
+                                    setup_ca=False, setup_dns=True,
+                                    promote=False)
 
         # check for warning that CA is not installed on server
         warn = 'WARNING: The CA service is only installed on one server'
@@ -660,7 +661,7 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
             # install replica2 against replica1, as CA is not installed on
             # replica1, installation on replica2 should fail
             cmd = tasks.install_replica(self.replicas[0], self.replicas[1],
-                                        raiseonerr=False)
+                                        raiseonerr=False, promote=False)
             assert cmd.returncode == 4
             error = "please provide a server with the CA role"
             assert error in cmd.stderr_text
@@ -680,7 +681,8 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
             # install replica2 against replica1, as KRA is not installed on
             # replica1(CA installed), installation should fail on replica2
             cmd = tasks.install_replica(self.replicas[0], self.replicas[1],
-                                        setup_kra=True, raiseonerr=False)
+                                        setup_kra=True, raiseonerr=False,
+                                        promote=False)
             assert cmd.returncode == 4
             error = "please provide a server with the KRA role"
             assert error in cmd.stderr_text
@@ -694,7 +696,8 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
         """Replica install should succeed if specified server provide all
         the services"""
 
-        tasks.install_replica(self.master, self.replicas[1], setup_dns=True)
+        tasks.install_replica(self.master, self.replicas[1], setup_dns=True,
+                              promote=False)
 
         # check if replication agreement stablished between master
         # and replica2 only.
