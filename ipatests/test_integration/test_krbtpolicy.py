@@ -112,3 +112,16 @@ class TestPWPolicy(IntegrationTest):
         assert maxlife_within_policy(result.stdout_text, 1200) is True
 
         tasks.kdestroy_all(master)
+
+    def test_krbtpolicy_reset(self):
+        """Test a hardened kerberos ticket policy reset"""
+        master = self.master
+
+        tasks.kinit_admin(master)
+        master.run_command(['ipa', 'krbtpolicy-reset', USER2])
+        master.run_command(['kinit', USER2],
+                           stdin_text=PASSWORD + '\n')
+        result = master.run_command('klist | grep krbtgt')
+        assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
+
+        tasks.kdestroy_all(master)
