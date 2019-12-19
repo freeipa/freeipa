@@ -8,9 +8,11 @@ Module provides tests for Kerberos ticket policy options
 
 from __future__ import absolute_import
 
+import time
 from datetime import datetime
 
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration.test_otp import add_otptoken, del_otptoken
 from ipatests.pytest_ipa.integration import tasks
 
 PASSWORD = "Secret123"
@@ -36,6 +38,14 @@ def maxlife_within_policy(input, maxlife, slush=5):
     diff = int((end - start).total_seconds())
 
     return maxlife >= diff >= maxlife - slush
+
+
+def reset_to_default_policy(host, user):
+    """Reset default user authentication and user authentication type"""
+    tasks.kinit_admin(host)
+    host.run_command(['ipa', 'user-mod', user, '--user-auth-type='])
+    host.run_command(['ipa', 'krbtpolicy-reset'])
+    host.run_command(['ipa', 'krbtpolicy-reset', user])
 
 
 class TestPWPolicy(IntegrationTest):
@@ -125,3 +135,45 @@ class TestPWPolicy(IntegrationTest):
         assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
 
         tasks.kdestroy_all(master)
+
+    def test_krbtpolicy_otp(self):
+        """Test otp ticket policy"""
+        master = self.master
+        tasks.kinit_admin(self.master)
+        master.run_command(['ipa', 'user-mod', USER1,
+                            '--user-auth-type', 'otp'])
+        master.run_command(['ipa', 'config-mod',
+                            '--user-auth-type', 'otp'])
+        master.run_command(['ipa', 'krbtpolicy-mod', USER1,
+                            '--otp-maxrenew=90', '--otp-maxlife=60'])
+        armor = tasks.create_temp_file(self.master, create_file=False)
+        otpuid, totp = add_otptoken(master, USER1, otptype="totp")
+        otpvalue = totp.generate(int(time.time())).decode("ascii")
+        try:
+            tasks.kdestroy_all(master)
+            # create armor for FAST
+            master.run_command(['kinit', '-n', '-c', armor])
+            # expect ticket expire in otp-maxlife=60 seconds
+            master.run_command(
+                ['kinit', '-T', armor, USER1, '-r', '90'],
+                stdin_text='{0}{1}\n'.format(PASSWORD, otpvalue))
+            master.run_command(['ipa', 'user-find', USER1])
+            time.sleep(30)
+            # when user kerberos ticket expired but still within renew time,
+            #  kinit -R should give user new life
+            master.run_command(['kinit', '-R', USER1])
+            master.run_command(['ipa', 'user-find', USER1])
+            time.sleep(60)
+            # when renew time expires, kinit -R should fail
+            result1 = master.run_command(['kinit', '-R', USER1],
+                                         raiseonerr=False)
+            tasks.assert_error(
+                result1,
+                "kinit: Ticket expired while renewing credentials", 1)
+            master.run_command(['ipa', 'user-find', USER1],
+                               ok_returncode=1)
+        finally:
+            del_otptoken(master, otpuid)
+            reset_to_default_policy(master, USER1)
+            self.master.run_command(['rm', '-f', armor])
+            master.run_command(['ipa', 'config-mod', '--user-auth-type='])
