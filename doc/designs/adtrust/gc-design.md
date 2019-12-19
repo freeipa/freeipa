@@ -119,9 +119,10 @@ directory server restarts.
 
 In Active Directory Global Catalog contains directory data for all domains in a
 forest. For an Active Directory forest with multiple forest roots this means
-multiple domain suffixes exist in the Global Catalog tree. For FreeIPA there is
-only a single domain that corresponds to the forest tree and thus only a single
-domain suffix is hosted in the Global Catalog.
+multiple domain suffixes exist in the Global Catalog tree.
+
+For FreeIPA there is only a single domain that corresponds to the forest tree
+and thus only a single domain suffix is hosted in the Global Catalog.
 
 Since FreeIPA is built around a flat DIT, there are no organizational units
 available. As result, object-specific containers are children of the forest
@@ -143,6 +144,8 @@ instance, an external application that consumes original LDAP objects from the
 primary FreeIPA LDAP instance will be written. For the Python based prototype,
 it is easier and more convenient to perform this transformation in Python code,
 by reusing existing `python-ldap` API and `ipapython.ipaldap` classes.
+
+#### Active Directory schema transformation
 
 #### Equality and attribute syntax rules mapping
 
