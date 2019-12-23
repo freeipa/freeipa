@@ -58,6 +58,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_simple_replication.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -70,6 +71,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
         template: *ci-master-frawhide
         timeout: 4800
@@ -82,6 +84,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
         template: *ci-master-frawhide
         timeout: 3600
@@ -94,6 +97,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
         template: *ci-master-frawhide
         timeout: 3600
@@ -106,6 +110,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_topologies.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -118,6 +123,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_sudo.py
         template: *ci-master-frawhide
         timeout: 4800
@@ -130,6 +136,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_commands.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -142,6 +149,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_kerberos_flags.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -154,6 +162,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_http_kdc_proxy.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -166,6 +175,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_fips.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -178,6 +188,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_forced_client_reenrollment.py
         template: *ci-master-frawhide
         timeout: 4800
@@ -190,6 +201,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_advise.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -202,6 +214,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_testconfig.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -214,6 +227,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_service_permissions.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -226,6 +240,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_netgroup.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -238,6 +253,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_vault.py
         template: *ci-master-frawhide
         timeout: 6300
@@ -250,6 +266,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_authselect.py
         template: *ci-master-frawhide
         timeout: 4800
@@ -262,6 +279,7 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_smb.py
         template: *ci-master-frawhide
         timeout: 7200
@@ -274,6 +292,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_server_del.py
         template: *ci-master-frawhide
         timeout: 10800
@@ -286,6 +305,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA1
         template: *ci-master-frawhide
         timeout: 10800
@@ -298,6 +318,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA2
         template: *ci-master-frawhide
         timeout: 10800
@@ -310,6 +331,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallCA
         template: *ci-master-frawhide
         timeout: 10800
@@ -322,6 +344,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA1
         template: *ci-master-frawhide
         timeout: 10800
@@ -334,6 +357,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA2
         template: *ci-master-frawhide
         timeout: 10800
@@ -346,6 +370,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS1
         template: *ci-master-frawhide
         timeout: 10800
@@ -358,6 +383,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS2
         template: *ci-master-frawhide
         timeout: 10800
@@ -370,6 +396,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS3
         template: *ci-master-frawhide
         timeout: 3600
@@ -382,6 +409,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS4
         template: *ci-master-frawhide
         timeout: 3600
@@ -394,6 +422,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS1
         template: *ci-master-frawhide
         timeout: 10800
@@ -406,6 +435,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS2
         template: *ci-master-frawhide
         timeout: 10800
@@ -418,6 +448,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallMaster
         template: *ci-master-frawhide
         timeout: 10800
@@ -430,6 +461,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallMasterKRA
         template: *ci-master-frawhide
         timeout: 10800
@@ -442,6 +474,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallMasterDNS
         template: *ci-master-frawhide
         timeout: 10800
@@ -454,6 +487,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallMasterDNSRepeatedly
         template: *ci-master-frawhide
         timeout: 10800
@@ -466,6 +500,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallMasterReservedIPasForwarder
         template: *ci-master-frawhide
         timeout: 10800
@@ -478,6 +513,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallMasterReplica
         template: *ci-master-frawhide
         timeout: 10800
@@ -490,6 +526,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestInstallReplicaAgainstSpecificServer
         template: *ci-master-frawhide
         timeout: 10800
@@ -502,6 +539,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_idviews.py::TestIDViews
         template: *ci-master-frawhide
         timeout: 3600
@@ -514,6 +552,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestServerInstall
         template: *ci-master-frawhide
         timeout: 12000
@@ -526,6 +565,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestReplicaInstall
         template: *ci-master-frawhide
         timeout: 5400
@@ -538,6 +578,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestClientInstall
         template: *ci-master-frawhide
         timeout: 5400
@@ -551,6 +592,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestIPACommands
         template: *ci-master-frawhide
         timeout: 5400
@@ -563,6 +605,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestCertInstall
         template: *ci-master-frawhide
         timeout: 5400
@@ -575,6 +618,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestPKINIT
         template: *ci-master-frawhide
         timeout: 5400
@@ -587,6 +631,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
         template: *ci-master-frawhide
         timeout: 5400
@@ -599,6 +644,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestReplicaCALessToCAFull
         template: *ci-master-frawhide
         timeout: 5400
@@ -611,6 +657,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_caless.py::TestServerCALessToExternalCA
         template: *ci-master-frawhide
         timeout: 5400
@@ -623,6 +670,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestUserRootFilesOwnershipPermission
         template: *ci-master-frawhide
         timeout: 7200
@@ -635,6 +683,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestore
         template: *ci-master-frawhide
         timeout: 7200
@@ -647,6 +696,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNSSEC
         template: *ci-master-frawhide
         timeout: 7200
@@ -659,6 +709,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNSSEC
         template: *ci-master-frawhide
         timeout: 7200
@@ -671,6 +722,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNS
         template: *ci-master-frawhide
         timeout: 7200
@@ -683,6 +735,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNS
         template: *ci-master-frawhide
         timeout: 7200
@@ -695,6 +748,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithKRA
         template: *ci-master-frawhide
         timeout: 7200
@@ -707,6 +761,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithKRA
         template: *ci-master-frawhide
         timeout: 7200
@@ -719,6 +774,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
         template: *ci-master-frawhide
         timeout: 7200
@@ -731,6 +787,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreDMPassword
         template: *ci-master-frawhide
         timeout: 7200
@@ -743,6 +800,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_backup_and_restore.py::TestReplicaInstallAfterRestore
         template: *ci-master-frawhide
         timeout: 7200
@@ -755,6 +813,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_dnssec.py
         template: *ci-master-frawhide
         timeout: 10800
@@ -767,6 +826,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
         template: *ci-master-frawhide
         timeout: 7200
@@ -779,6 +839,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestUnprivilegedUserPermissions
         template: *ci-master-frawhide
         timeout: 7200
@@ -791,6 +852,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestProhibitReplicaUninstallation
         template: *ci-master-frawhide
         timeout: 7200
@@ -803,6 +865,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestWrongClientDomain
         template: *ci-master-frawhide
         timeout: 7200
@@ -815,6 +878,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestRenewalMaster
         template: *ci-master-frawhide
         timeout: 7200
@@ -827,6 +891,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallWithExistingEntry
         template: *ci-master-frawhide
         timeout: 7200
@@ -839,6 +904,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
         template: *ci-master-frawhide
         timeout: 7200
@@ -851,6 +917,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallCustodia
         template: *ci-master-frawhide
         timeout: 7200
@@ -863,6 +930,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInForwardZone
         template: *ci-master-frawhide
         timeout: 7200
@@ -875,6 +943,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replica_promotion.py::TestHiddenReplicaPromotion
         template: *ci-master-frawhide
         timeout: 7200
@@ -887,6 +956,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_upgrade.py
         template: *ci-master-frawhide
         timeout: 7200
@@ -899,6 +969,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_topology.py::TestCASpecificRUVs
         template: *ci-master-frawhide
         timeout: 7200
@@ -911,6 +982,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_topology.py::TestTopologyOptions
         template: *ci-master-frawhide
         timeout: 7200
@@ -923,6 +995,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
         template: *ci-master-frawhide
         timeout: 7200
@@ -935,6 +1008,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCA
         template: *ci-master-frawhide
         timeout: 10800
@@ -947,6 +1021,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCAKRA
         template: *ci-master-frawhide
         timeout: 10800
@@ -959,6 +1034,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithoutCA
         template: *ci-master-frawhide
         timeout: 7200
@@ -971,6 +1047,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCA
         template: *ci-master-frawhide
         timeout: 7200
@@ -983,6 +1060,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCAKRA
         template: *ci-master-frawhide
         timeout: 10800
@@ -995,6 +1073,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithoutCA
         template: *ci-master-frawhide
         timeout: 7200
@@ -1007,6 +1086,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCA
         template: *ci-master-frawhide
         timeout: 7200
@@ -1019,6 +1099,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCAKRA
         template: *ci-master-frawhide
         timeout: 7200
@@ -1031,6 +1112,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_uninstallation.py
         template: *ci-master-frawhide
         timeout: 7200
@@ -1043,6 +1125,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_user_permissions.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -1055,6 +1138,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_webui/test_cert.py
         template: *ci-master-frawhide
         timeout: 2400
@@ -1067,6 +1151,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: >-
           test_webui/test_loginscreen.py
           test_webui/test_misc_cases.py
@@ -1083,6 +1168,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_webui/test_host.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -1095,6 +1181,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: >-
           test_webui/test_hostgroup.py
           test_webui/test_netgroup.py
@@ -1109,6 +1196,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: >-
           test_webui/test_automember.py
           test_webui/test_idviews.py
@@ -1123,6 +1211,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: >-
           test_webui/test_automount.py
           test_webui/test_dns.py
@@ -1138,6 +1227,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: >-
           test_webui/test_hbac.py
           test_webui/test_krbtpolicy.py
@@ -1155,6 +1245,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: >-
           test_webui/test_delegation.py
           test_webui/test_rbac.py
@@ -1170,6 +1261,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: >-
           test_webui/test_config.py
           test_webui/test_range.py
@@ -1186,6 +1278,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_webui/test_service.py
         template: *ci-master-frawhide
         timeout: 2400
@@ -1198,6 +1291,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: >-
           test_webui/test_group.py
           test_webui/test_user.py
@@ -1212,6 +1306,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_customized_ds_config_install.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -1224,6 +1319,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_dns_locations.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -1236,6 +1332,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAdirsrvStop
         template: *ci-master-frawhide
         timeout: 3600
@@ -1248,6 +1345,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAInvalidCert test_integration/test_external_ca.py::TestExternalCAInvalidIntermediate
         template: *ci-master-frawhide
         timeout: 3600
@@ -1260,6 +1358,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_external_ca.py::TestMultipleExternalCA
         template: *ci-master-frawhide
         timeout: 3600
@@ -1272,6 +1371,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_ntp_options.py::TestNTPoptions
         template: *ci-master-frawhide
         timeout: 10800
@@ -1284,6 +1384,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_otp.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -1296,6 +1397,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_pkinit_manage.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -1308,6 +1410,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_pki_config_override.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -1320,6 +1423,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation.py::TestMaskInstall
         template: *ci-master-frawhide
         timeout: 3600
@@ -1332,6 +1436,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_nfs.py::TestNFS
         template: *ci-master-frawhide
         timeout: 9000
@@ -1344,6 +1449,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_nfs.py::TestIpaClientAutomountFileRestore
         template: *ci-master-frawhide
         timeout: 9000
@@ -1356,6 +1462,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_automember.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -1368,6 +1475,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_crlgen_manage.py
         template: *ci-master-frawhide
         timeout: 3600
@@ -1380,6 +1488,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_cli_ipa_not_configured.py::TestIPANotConfigured
         template: *ci-master-frawhide
         timeout: 10800
@@ -1392,6 +1501,7 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_sssd.py
         template: *ci-master-frawhide
         timeout: 4800
@@ -1404,6 +1514,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_ca_custom_sdn.py
         template: *ci-master-frawhide
         timeout: 7200
@@ -1416,6 +1527,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_membermanager.py
         template: *ci-master-frawhide
         timeout: 1800
@@ -1428,6 +1540,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_krbtpolicy.py
         template: *ci-master-frawhide
         timeout: 3600
