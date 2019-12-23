@@ -143,6 +143,19 @@ jobs:
         timeout: 10800
         topology: *master_3repl_1client
 
+  pki-fedora/test_installation_TestInstallCA:
+    requires: [pki-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{pki-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestInstallCA
+        template: *pki-master-latest
+        timeout: 10800
+        topology: *master_2repl_1client
+
   pki-fedora/test_installation_TestInstallWithCA_KRA1:
     requires: [pki-fedora/build]
     priority: 50
