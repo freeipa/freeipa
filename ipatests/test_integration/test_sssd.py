@@ -126,7 +126,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
             tasks.clear_sssd_cache(self.master)
 
     @pytest.mark.xfail(
-        osinfo.id == 'fedora' and osinfo.version_number <= (28,),
+        osinfo.id == 'fedora' and osinfo.version_number <= (29,),
         reason='https://pagure.io/SSSD/sssd/issue/3978')
     @pytest.mark.parametrize('user', ['ad', 'fakeuser'])
     def test_is_user_filtered(self, user):
