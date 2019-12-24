@@ -10,10 +10,12 @@ from contextlib import contextmanager
 
 import ipaplatform
 import pytest
+import textwrap
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
+from ipapython.dn import DN
 
 
 class TestSSSDWithAdTrust(IntegrationTest):
@@ -113,3 +115,54 @@ class TestSSSDWithAdTrust(IntegrationTest):
             client_conf_backup.restore()
             tasks.clear_sssd_cache(self.master)
             tasks.clear_sssd_cache(client)
+
+    def test_external_group_paging(self):
+        """SSSD should fetch external groups without any limit.
+
+        Regression test for https://pagure.io/SSSD/sssd/issue/4058
+        1: Add external groups more than limit.
+        2: Run the command id aduser@ADDOMAIN.COM
+        3: sssd should retrieve all the external groups.
+        """
+        new_limit = 50
+        master = self.master
+        conn = master.ldap_connect()
+        dn = DN(('cn', 'config'))
+        entry = conn.get_entry(dn)  # pylint: disable=no-member
+        orig_limit = entry.single_value.get('nsslapd-sizelimit')
+        ldap_query = textwrap.dedent("""
+            dn: cn=config
+            changetype: modify
+            replace: nsslapd-sizelimit
+            nsslapd-sizelimit: {limit}
+        """)
+        tasks.ldapmodify_dm(master, ldap_query.format(limit=new_limit))
+        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        ldap_page_size = new_limit - 1
+        group_count = new_limit + 2
+        # default ldap_page_size is '1000', adding workaround as
+        # ldap_page_size < nsslapd-sizelimit in sssd.conf
+        # Related issue : https://pagure.io/389-ds-base/issue/50888
+        with tasks.remote_ini_file(self.master, paths.SSSD_CONF) as sssd_conf:
+            domain_section = 'domain/{}'.format(self.master.domain.name)
+            sssd_conf.set(domain_section, 'ldap_page_size', ldap_page_size)
+        tasks.clear_sssd_cache(master)
+        tasks.kinit_admin(master)
+        for i in range(group_count):
+            master.run_command(['ipa', 'group-add', '--external',
+                                'ext-ipatest{0}'.format(i)])
+        try:
+            log_file = '{0}/sssd_{1}.log'.format(
+                paths.VAR_LOG_SSSD_DIR, master.domain.name)
+            group_entry = b'[%d] external groups found' % group_count
+            logsize = tasks.get_logsize(master, log_file)
+            master.run_command(['id', self.users['ad']['name']])
+            sssd_logs = master.get_file_contents(log_file)[logsize:]
+            assert group_entry in sssd_logs
+        finally:
+            for i in range(group_count):
+                master.run_command(['ipa', 'group-del',
+                                    'ext-ipatest{0}'.format(i)])
+            # reset to original limit
+            tasks.ldapmodify_dm(master, ldap_query.format(limit=orig_limit))
+            sssd_conf_backup.restore()
