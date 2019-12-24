@@ -286,3 +286,39 @@ class TestSSSDWithAdTrust(IntegrationTest):
         finally:
             sssd_conf_backup.restore()
             tasks.clear_sssd_cache(self.master)
+
+    def test_ext_grp_with_ldap(self):
+        """User and group with same name should not break reading AD user data.
+
+        Regression test for https://pagure.io/SSSD/sssd/issue/4073
+
+        When aduser is added in extrnal group and this group is added
+        in group with same name of nonprivate ipa user and possix id, then
+        lookup of aduser and group should be successful when cache is empty.
+        """
+        client = self.clients[0]
+        user = 'ipatest'
+        userid = '100996'
+        ext_group = 'ext-ipatest'
+        tasks.kinit_admin(self.master)
+        # add user with same uid and gidnumber
+        tasks.user_add(self.master, user, extra_args=[
+            '--noprivate', '--uid', userid, '--gidnumber', userid])
+        # add group with same as user_name and user_id.
+        tasks.group_add(self.master, user, extra_args=['--gid', userid])
+        tasks.group_add(self.master, ext_group, extra_args=['--external'])
+        self.master.run_command(
+            ['ipa', 'group-add-member', '--group', ext_group, user])
+        self.master.run_command([
+            'ipa', 'group-add-member', '--external',
+            self.users['ad']['name'], ext_group,
+            '--users=', '--groups='])
+        tasks.clear_sssd_cache(self.master)
+        tasks.clear_sssd_cache(client)
+        try:
+            result = client.run_command(['id', self.users['ad']['name']])
+            assert '{uid}({name})'.format(uid=userid,
+                                          name=user) in result.stdout_text
+        finally:
+            self.master.run_command(['ipa', 'user-del', user])
+            self.master.run_command(['ipa', 'group-del', user, ext_group])
