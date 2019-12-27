@@ -75,7 +75,7 @@ fi
 
 echo "Collect the logs"
 journalctl -b --no-pager > systemd_journal.log
-tar --ignore-failed-read -czf var_log.tar.gz \
+tar --ignore-failed-read --remove-files -czf var_log.tar.gz \
     /var/log/dirsrv \
     /var/log/httpd \
     /var/log/ipa* \
