@@ -284,6 +284,18 @@ register_module_extender(MANAGER, 'ipaplatform.tasks',
                          ipaplatform_tasks_transform)
 
 
+def ipalib_request_transform():
+    """ipalib.request.context attribute
+    """
+    return AstroidBuilder(MANAGER).string_build(textwrap.dedent('''
+    from ipalib.request import context
+    context._pylint_attr = Connection("_pylint", lambda: None)
+    '''))
+
+
+register_module_extender(MANAGER, 'ipalib.request', ipalib_request_transform)
+
+
 class IPAChecker(BaseChecker):
     __implements__ = IAstroidChecker
 
