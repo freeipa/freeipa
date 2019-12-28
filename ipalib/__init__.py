@@ -943,11 +943,6 @@ class API(plugable.API):
                 ipaserver.plugins,
             )
         else:
-            # disables immediately after an else clause
-            # do not work properly:
-            # https://github.com/PyCQA/pylint/issues/872
-            # Thus, below line was added as a workaround
-            result = None
             import ipaclient.remote_plugins
             import ipaclient.plugins
             result = (
