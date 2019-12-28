@@ -724,7 +724,7 @@ class TestSudo(IntegrationTest):
         """
         self.master.run_command(
             ['ipa', 'config-mod', '--domain-resolution-order',
-             self.domain.name])  # pylint: disable=no-member
+             self.domain.name])
         try:
             # prepare the sudo rule: set only one user for ipasudorunas
             self.reset_rule_categories()
@@ -741,7 +741,7 @@ class TestSudo(IntegrationTest):
             # according to listing of allowed commands
             result = self.list_sudo_commands('testuser1')
             expected_rule = ('(testuser2@%s) NOPASSWD: ALL'
-                             % self.domain.name)  # pylint: disable=no-member
+                             % self.domain.name)
             assert expected_rule in result.stdout_text
 
             # check that testuser1 can actually run commands as testuser2

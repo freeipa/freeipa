@@ -183,9 +183,12 @@ ipa_class_members = {
         'normalizedns',
     ],
     'ipatests.test_integration.base.IntegrationTest': [
-        'domain',
+        {'domain': [
+            {'name': dir(str)},
+        ]},
         {'master': [
             {'config': [
+                {'dirman_dn': dir(str)},
                 {'dirman_password': dir(str)},
                 {'admin_password': dir(str)},
                 {'admin_name': dir(str)},
@@ -197,15 +200,17 @@ ipa_class_members = {
                 {'fips_mode': dir(bool)},
             ]},
             {'domain': [
+                {'basedn': dir(str)},
                 {'realm': dir(str)},
                 {'name': dir(str)},
             ]},
-            'hostname',
+            {'external_hostname': dir(str)},
+            {'hostname': dir(str)},
             'ip',
             'collect_log',
             {'run_command': [
                 {'stdout_text': dir(str)},
-                'stderr_text',
+                {'stderr_text': dir(str)},
                 'returncode',
             ]},
             {'transport': ['put_file', 'file_exists']},
@@ -216,6 +221,9 @@ ipa_class_members = {
         'replicas',
         'clients',
         'ad_domains',
+        {'ads': dir(list)},
+        {'ad_subdomains': dir(list)},
+        {'ad_treedomains': dir(list)},
     ]
 }
 
@@ -227,18 +235,6 @@ def fix_ipa_classes(cls):
 
 
 MANAGER.register_transform(scoped_nodes.ClassDef, fix_ipa_classes)
-
-
-def pytest_config_transform():
-    """pylint.config attribute
-    """
-    return AstroidBuilder(MANAGER).string_build(textwrap.dedent('''
-    from _pytest.config import get_config
-    config = get_config()
-    '''))
-
-
-register_module_extender(MANAGER, 'pytest', pytest_config_transform)
 
 
 def ipaplatform_constants_transform():

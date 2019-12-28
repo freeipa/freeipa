@@ -54,7 +54,7 @@ class TestSMB(IntegrationTest):
                            cls.clients, domain_level,
                            clients_extra_args=('--mkhomedir',))
 
-        cls.ad = cls.ads[0]  # pylint: disable=no-member
+        cls.ad = cls.ads[0]
         cls.smbserver = cls.clients[0]
         cls.smbclient = cls.clients[1]
         cls.ad_user = '{}@{}'.format(cls.ad_user_login, cls.ad.domain.name)

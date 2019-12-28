@@ -21,8 +21,6 @@
 Test the `ipalib.frontend` module.
 """
 
-# FIXME: Pylint errors
-# pylint: disable=no-member
 import pytest
 import six
 

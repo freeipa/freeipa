@@ -188,7 +188,7 @@ class TestInstallWithCA1(InstallTestBase1):
         https://pagure.io/freeipa/issue/7418
         """
         ldap_conf = paths.OPENLDAP_LDAP_CONF
-        base_dn = self.master.domain.basedn  # pylint: disable=no-member
+        base_dn = self.master.domain.basedn
         client = self.replicas[0]
         tasks.uninstall_master(client)
         expected_msg1 = "contains deprecated and unsupported " \

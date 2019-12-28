@@ -183,7 +183,7 @@ class TestIPACommand(IntegrationTest):
             raiseonerr=False
         )
         assert result.returncode == 2
-        err = result.stderr_text.strip()  # pylint: disable=no-member
+        err = result.stderr_text.strip()
         assert err == "ipa: ERROR: loc: privilege not found"
         # add privilege
         result = self.master.run_command(
@@ -206,7 +206,7 @@ class TestIPACommand(IntegrationTest):
 
         master = self.master
 
-        base_dn = str(master.domain.basedn)  # pylint: disable=no-member
+        base_dn = str(master.domain.basedn)
         entry_ldif = textwrap.dedent("""
             dn: uid=system,cn=sysaccounts,cn=etc,{base_dn}
             changetype: add
@@ -225,7 +225,7 @@ class TestIPACommand(IntegrationTest):
                                            new_passwd, master)
 
     def get_krbinfo(self, user):
-        base_dn = str(self.master.domain.basedn)  # pylint: disable=no-member
+        base_dn = str(self.master.domain.basedn)
         result = tasks.ldapsearch_dm(
             self.master,
             'uid={user},cn=users,cn=accounts,{base_dn}'.format(
@@ -248,7 +248,7 @@ class TestIPACommand(IntegrationTest):
         new_passwd = 'userPasswd123'
         new_passwd2 = 'mynewPwd123'
         master = self.master
-        base_dn = str(master.domain.basedn)  # pylint: disable=no-member
+        base_dn = str(master.domain.basedn)
 
         # Create a user with a password
         tasks.kinit_admin(master)
@@ -293,7 +293,7 @@ class TestIPACommand(IntegrationTest):
         time.sleep(1)
         master.run_command([
             paths.LDAPPASSWD,
-            '-D', str(master.config.dirman_dn),   # pylint: disable=no-member
+            '-D', str(master.config.dirman_dn),
             '-w', master.config.dirman_password,
             '-a', new_passwd,
             '-s', new_passwd2,
@@ -376,7 +376,7 @@ class TestIPACommand(IntegrationTest):
 
         test_user = 'test-ssh'
         external_master_hostname = \
-            self.master.external_hostname  # pylint: disable=no-member
+            self.master.external_hostname
 
         pub_keys = []
 
@@ -628,7 +628,7 @@ class TestIPACommand(IntegrationTest):
         dn = DN(
             ('cn', 'HTTP'), ('cn', self.master.hostname), ('cn', 'masters'),
             ('cn', 'ipa'), ('cn', 'etc'),
-            self.master.domain.basedn  # pylint: disable=no-member
+            self.master.domain.basedn
         )
 
         conn = self.master.ldap_connect()
