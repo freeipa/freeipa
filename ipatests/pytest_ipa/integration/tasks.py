@@ -1873,7 +1873,7 @@ def ldapmodify_dm(host, ldif_text, **kwargs):
     args = [
         'ldapmodify',
         '-x',
-        '-D', str(host.config.dirman_dn),  # pylint: disable=no-member
+        '-D', str(host.config.dirman_dn),
         '-w', host.config.dirman_password
     ]
     return host.run_command(args, stdin_text=ldif_text, **kwargs)
@@ -1894,7 +1894,7 @@ def ldapsearch_dm(host, base, ldap_args, scope='sub', **kwargs):
         '-x', '-ZZ',
         '-h', host.hostname,
         '-p', '389',
-        '-D', str(host.config.dirman_dn),  # pylint: disable=no-member
+        '-D', str(host.config.dirman_dn),
         '-w', host.config.dirman_password,
         '-s', scope,
         '-b', base,
