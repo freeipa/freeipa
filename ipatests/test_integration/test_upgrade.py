@@ -42,7 +42,7 @@ class TestUpgrade(IntegrationTest):
         """
         # Read the current entry from LDAP
         ldap = self.master.ldap_connect()
-        basedn = self.master.domain.basedn  # pylint: disable=no-member
+        basedn = self.master.domain.basedn
         dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'), basedn)
         entry = ldap.get_entry(dn)  # pylint: disable=no-member
         # Extract the certificate as DER then double-encode
