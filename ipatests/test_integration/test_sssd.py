@@ -45,7 +45,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
     def install(cls, mh):
         super(TestSSSDWithAdTrust, cls).install(mh)
 
-        cls.ad = cls.ads[0]  # pylint: disable=no-member
+        cls.ad = cls.ads[0]
 
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)

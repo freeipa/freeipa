@@ -54,23 +54,19 @@ def pytest_configure(config):
                 capture = config.pluginmanager.getplugin('capturemanager')
                 orig_stdout, orig_stderr = sys.stdout, sys.stderr
                 if capture:
-                    # pylint: disable=no-member
                     if hasattr(capture, 'suspend_global_capture'):
                         # pytest >= 3.3
                         capture.suspend_global_capture()
                     else:
                         # legacy support for pytest <= 3.2 (Fedora 27)
                         capture._capturing.suspend_capturing()
-                    # pylint: enable=no-member
                 sys.stderr.write(self.format(record))
                 sys.stderr.write('\n')
                 if capture:
-                    # pylint: disable=no-member
                     if hasattr(capture, 'resume_global_capture'):
                         capture.resume_global_capture()
                     else:
                         capture._capturing.resume_capturing()
-                    # pylint: enable=no-member
                 sys.stdout, sys.stderr = orig_stdout, orig_stderr
 
         level = convert_log_level(config.getoption('logging_level'))

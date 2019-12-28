@@ -74,7 +74,7 @@ class TestWinsyncMigrate(IntegrationTest):
     def install(cls, mh):
         super(TestWinsyncMigrate, cls).install(mh)
 
-        cls.ad = cls.ads[0]  # pylint: disable=no-member
+        cls.ad = cls.ads[0]
         cls.trust_test_user = '%s@%s' % (cls.ad_user, cls.ad.domain.name)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
         tasks.install_adtrust(cls.master)
