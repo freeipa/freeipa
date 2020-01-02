@@ -28,6 +28,33 @@ import pytest
 
 user1 = u'tuser1'
 
+invalid_values = [(u'abc123', 'must be an integer'),
+                  (u'2147483648', 'can be at most 2147483647'),
+                  (u'0', 'must be at least 1'),
+                  (u'-1', 'must be at least 1')]
+parameters = [('krbauthindmaxrenewableage_radius', 'radius_maxrenew'),
+              ('krbauthindmaxticketlife_radius', 'radius_maxlife'),
+              ('krbauthindmaxrenewableage_pkinit', 'pkinit_maxrenew'),
+              ('krbauthindmaxticketlife_pkinit', 'pkinit_maxlife'),
+              ('krbauthindmaxrenewableage_otp', 'otp_maxrenew'),
+              ('krbauthindmaxticketlife_otp', 'otp_maxlife'),
+              ('krbauthindmaxrenewableage_hardened', 'hardened_maxrenew'),
+              ('krbauthindmaxticketlife_hardened', 'hardened_maxlife'),
+              ]
+
+
+def create_dict(desc, param, param_name, value, error):
+    cmd_args = dict()
+    cmd_args[param] = value
+    if value != u'abc123':
+        return dict(desc=desc, command=('krbtpolicy_mod', [user1], cmd_args),
+                    expected=errors.ValidationError(name=param_name,
+                                                    error=error))
+    else:
+        return dict(desc=desc, command=('krbtpolicy_mod', [user1], cmd_args),
+                    expected=errors.ConversionError(name=param_name,
+                                                    error=error))
+
 
 @pytest.mark.tier1
 class test_krbtpolicy(Declarative):
@@ -116,17 +143,144 @@ class test_krbtpolicy(Declarative):
             ),
         ),
 
-
         dict(
             desc='Update user ticket policy for auth indicator pkinit',
             command=('krbtpolicy_mod', [user1],
-                     dict(krbauthindmaxticketlife_pkinit=3600)),
+                     dict(krbauthindmaxticketlife_pkinit=3800)),
             expected=dict(
                 value=user1,
                 summary=None,
                 result=dict(
                     krbmaxticketlife=[u'3600'],
-                    krbauthindmaxticketlife_pkinit=[u'3600'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Update user ticket policy for auth indicator otp',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxticketlife_otp=3700)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Update user ticket policy for auth indicator radius',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxticketlife_radius=1)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_radius=[u'1'],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Update user ticket policy for auth indicator hardened',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxticketlife_hardened=2147483647)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_radius=[u'1'],
+                    krbauthindmaxticketlife_hardened=[u'2147483647'],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Update maxrenew user ticket policy for '
+                 'auth indicator hardened',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxrenewableage_hardened=2147483647)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_radius=[u'1'],
+                    krbauthindmaxticketlife_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_hardened=[u'2147483647'],
+                ),
+            ),
+        ),
+        dict(
+            desc='Update maxrenew user ticket policy for '
+                 'auth indicator otp',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxrenewableage_otp=3700)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_radius=[u'1'],
+                    krbauthindmaxticketlife_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_otp=[u'3700'],
+                ),
+            ),
+        ),
+        dict(
+            desc='Update maxrenew user ticket policy for '
+                 'auth indicator radius',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxrenewableage_radius=1)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_radius=[u'1'],
+                    krbauthindmaxticketlife_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_otp=[u'3700'],
+                    krbauthindmaxrenewableage_radius=[u'1'],
+                ),
+            ),
+        ),
+        dict(
+            desc='Update maxrenew user ticket policy for '
+                 'auth indicator pkinit',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxrenewableage_pkinit=3800)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_radius=[u'1'],
+                    krbauthindmaxticketlife_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_otp=[u'3700'],
+                    krbauthindmaxrenewableage_radius=[u'1'],
+                    krbauthindmaxrenewableage_pkinit=[u'3800'],
                 ),
             ),
         ),
@@ -138,6 +292,10 @@ class test_krbtpolicy(Declarative):
             ),
             expected=errors.ObjectclassViolation(info='attribute "givenname" not allowed'),
         ),
-
-
     ]
+    for (value, error) in invalid_values:
+        for (param, param_name) in parameters:
+            tests.append(create_dict(desc='Try updating invalid {0} with {1}'.
+                                     format(param_name, value),
+                                     param=param, param_name=param_name,
+                                     value=value, error=error))
