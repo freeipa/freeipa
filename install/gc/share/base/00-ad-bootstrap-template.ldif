@@ -93,3 +93,19 @@ changetype: add
 objectClass: account
 objectClass: top
 uid: read-only-principal
+
+dn: CN=ForeignSecurityPrincipals,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: ad-top
+objectClass: container
+cn: ForeignSecurityPrincipals
+description: Default container for security identifiers (SIDs) associated with objects from external, trusted domains
+instanceType: 4
+name: ForeignSecurityPrincipals
+objectGUID: autogenerate
+objectCategory: CN=Container,CN=Schema,CN=Configuration,$SUFFIX
+nTSecurityDescriptor: D:(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;DA)(A;;RPWPCRCCDCLCLOR
+ CWOWDSDDTSW;;;SY)(A;;RPLCLORC;;;AU)(OA;;WP;736e4812-af31-
+ 11d2-b7df-00805f48caeb;bf967ab8-0de6-11d0-a285-00aa003049
+ e2;CO)(A;;SD;;;CO)
