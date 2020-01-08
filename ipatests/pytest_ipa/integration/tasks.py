@@ -30,7 +30,7 @@ import itertools
 import tempfile
 import time
 from pipes import quote
-import configparser
+from six.moves import configparser
 from contextlib import contextmanager
 
 import dns
@@ -1782,7 +1782,11 @@ def remote_ini_file(host, filename):
     """
     data = host.get_file_contents(filename, encoding='utf-8')
     ini_file = configparser.RawConfigParser()
-    ini_file.read_string(data)
+    # provide python2/3 compatibility
+    if hasattr(ini_file, 'read_string'):
+        ini_file.read_string(data)  # pylint: disable=no-member
+    else:
+        ini_file.readfp(StringIO(data))  # pylint: disable=deprecated-method
     yield ini_file
     data = StringIO()
     ini_file.write(data)
