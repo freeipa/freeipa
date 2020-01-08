@@ -273,6 +273,8 @@ filteredAttrs = {
     'unixHomeDirectory': FILTER_BY_OID,
 }
 
+whitelistAttrs = [ 'showInAdvancedViewOnly']
+
 def read_folded_line(f, buffer):
     """ reads a line from an LDIF file, unfolding it"""
     line = buffer
@@ -424,8 +426,10 @@ def write_attr_one(entry):
             return ""
 
     # Ignore attributes which aren't replicated to GC
-    if not e.get('isMemberOfPartialAttributeSet'):
-        return ""
+    # except if they are in the whitelistAttrs
+    if (not e["lDAPDisplayName"] in whitelistAttrs and
+        not e.get('isMemberOfPartialAttributeSet')):
+            return ""
 
     if not e["EQ"]:
         template = template.replace(tab("EQUALITY {EQ}\n"), "")
