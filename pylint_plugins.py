@@ -456,6 +456,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.container_dna_posix_ids = DN()
     api.env.container_dns = DN()
     api.env.container_dnsservers = DN()
+    api.env.container_fsp = DN()
     api.env.container_group = DN()
     api.env.container_hbac = DN()
     api.env.container_hbacservice = DN()

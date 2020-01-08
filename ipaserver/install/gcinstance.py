@@ -524,6 +524,7 @@ class GCInstance(service.Service):
             'ipauniqueid',
             'ipantsecurityidentifier',
             'member',
+            'ipaexternalmember',
         ]
 
         groups, truncated = ds_ldap.find_entries(

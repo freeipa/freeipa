@@ -7,6 +7,12 @@ import uuid
 from ipalib import api
 from ipapython.dn import DN
 
+GROUP_TYPE_ACCOUNT_GROUP = 0x00000002
+GROUP_TYPE_RESOURCE_GROUP = 0x00000004
+GROUP_TYPE_UNIVERSAL_GROUP = 0x00000008
+GROUP_TYPE_SECURITY_ENABLED = 0x80000000
+GROUP_TYPE_OFFSET = 0x100000000
+
 
 def transform_sid(sid):
     """Transforms a SID from a string format to an AD-compatible format
@@ -53,7 +59,40 @@ def rename_group_members(api, group, conn):
             new_member_attr.append(DN(
                 memberDN[0], 'cn=users', api.env.basedn))
 
+    # If the group is an external group, it also contains ipaexternalmember
+    # they are transformed into member: cn=SID,CN=ForeignSecurityPrincipals,..
+    for memberSid in group.get('ipaexternalmember', []):
+        memberDN = DN(
+            ('cn', memberSid), api.env.container_fsp, api.env.basedn)
+        new_member_attr.append(memberDN)
+        # TODO
+        # We also need to create the entry memberDN if it does not exist
     group['member'] = new_member_attr
+
+
+def get_groupType(group):
+    """Get the groupType for the provided groups
+
+    If the group is a posixGroup, it is mapped to a security group (ie with
+    the GROUP_TYPE_SECURITY_ENABLED flag), as a global group (ie with the
+    GROUP_TYPE_ACCOUNT_GROUP flag).
+    If the group is an external group, it is mapped to a security group, as
+    a domain-local group (ie with the GROUP_TYPE_RESOURCE_GROUP flag).
+    Other groups (non posix, non-external) are mapped to distribution groups
+    as a global group.
+    """
+    objectclasses = set(oc.lower() for oc in group['objectclass'])
+    if 'posixgroup' in objectclasses:
+        groupType = GROUP_TYPE_SECURITY_ENABLED | GROUP_TYPE_ACCOUNT_GROUP
+    elif 'ipaexternalgroup' in objectclasses:
+        groupType = GROUP_TYPE_SECURITY_ENABLED | GROUP_TYPE_RESOURCE_GROUP
+    else:
+        groupType = GROUP_TYPE_ACCOUNT_GROUP
+
+    # Make sure the signed value is used
+    if groupType >= GROUP_TYPE_SECURITY_ENABLED:
+        groupType -= GROUP_TYPE_OFFSET
+    return groupType
 
 
 def rename_groups(api, user):
@@ -117,8 +156,9 @@ class GCTransformer:
         except KeyError:
             sid = None
         guid = transform_gid(entry.single_value['ipauniqueid'])
+        groupType = get_groupType(entry)
         rename_group_members(self.api, entry, conn=self.ldap_conn)
         ldif_add = self.group_template.render(
             entry=entry, pkey=pkey, guid=guid,
-            sid=sid, suffix=api.env.basedn)
+            sid=sid, suffix=api.env.basedn, groupType=groupType)
         return ldif_add

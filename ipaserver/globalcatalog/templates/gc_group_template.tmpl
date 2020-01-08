@@ -15,4 +15,4 @@ ntsecuritydescriptor: D:(A;;RPWPCRCCDCLCLORCWOWDSDDTSW;;;DA)(A;;RPWPCRCCDCLCLORC
 {%- for member in entry['member'] %}
 member: {{ member }}
 {%- endfor %}
-groupType: -2147483646
+groupType: {{ groupType }}
