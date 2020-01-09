@@ -696,7 +696,7 @@ class KerberosWSGIExecutioner(WSGIExecutioner, KerberosSession):
             status = HTTP_STATUS_SUCCESS
             response = status.encode('utf-8')
             start_response(status, self.headers)
-            return self.marshal(None, e)
+            return [self.marshal(None, e)]
         finally:
             destroy_context()
         return response
