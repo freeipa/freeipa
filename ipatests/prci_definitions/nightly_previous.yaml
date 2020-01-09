@@ -1265,6 +1265,18 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
+  fedora-previous/test_ipahealthcheck:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_ipahealthcheck.py
+        template: *ci-master-previous
+        timeout: 3600
+        topology: *master_1repl
+
   fedora-previous/test_ntp_options:
     requires: [fedora-previous/build]
     priority: 50
