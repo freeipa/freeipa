@@ -635,56 +635,10 @@ static krb5_error_code ipadb_get_age(krb5_context kcontext,
     return 0;
 }
 
-#if KRB5_KDB_DAL_MAJOR_VERSION == 5
-static void *ipadb_alloc(krb5_context context, void *ptr, size_t size)
-{
-    return realloc(ptr, size);
-}
-
-static void ipadb_free(krb5_context context, void *ptr)
-{
-    free(ptr);
-}
-#endif
-
 /* KDB Virtual Table */
 
 /* We explicitly want to keep different ABI tables below separate. */
 /* Do not merge them together. Older ABI does not need to be updated */
-
-#if KRB5_KDB_DAL_MAJOR_VERSION == 5
-kdb_vftabl kdb_function_table = {
-    .maj_ver = KRB5_KDB_DAL_MAJOR_VERSION,
-    .min_ver = 0,
-    .init_library = ipadb_init_library,
-    .fini_library = ipadb_fini_library,
-    .init_module = ipadb_init_module,
-    .fini_module = ipadb_fini_module,
-    .create = ipadb_create,
-    .get_age = ipadb_get_age,
-    .get_principal = ipadb_get_principal,
-    .free_principal = ipadb_free_principal,
-    .put_principal = ipadb_put_principal,
-    .delete_principal = ipadb_delete_principal,
-    .iterate = ipadb_iterate,
-    .create_policy = ipadb_create_pwd_policy,
-    .get_policy = ipadb_get_pwd_policy,
-    .put_policy = ipadb_put_pwd_policy,
-    .iter_policy = ipadb_iterate_pwd_policy,
-    .delete_policy = ipadb_delete_pwd_policy,
-    .free_policy = ipadb_free_pwd_policy,
-    .alloc = ipadb_alloc,
-    .free = ipadb_free,
-    .fetch_master_key = ipadb_fetch_master_key,
-    .store_master_key_list = ipadb_store_master_key_list,
-    .change_pwd = ipadb_change_pwd,
-    .sign_authdata = ipadb_sign_authdata,
-    .check_transited_realms = ipadb_check_transited_realms,
-    .check_policy_as = ipadb_check_policy_as,
-    .audit_as_req = ipadb_audit_as_req,
-    .check_allowed_to_delegate = ipadb_check_allowed_to_delegate
-};
-#endif
 
 #if (KRB5_KDB_DAL_MAJOR_VERSION == 6) && !defined(HAVE_KDB_FREEPRINCIPAL_EDATA)
 kdb_vftabl kdb_function_table = {
@@ -809,8 +763,7 @@ kdb_vftabl kdb_function_table = {
 };
 #endif
 
-#if (KRB5_KDB_DAL_MAJOR_VERSION != 5) && \
-    (KRB5_KDB_DAL_MAJOR_VERSION != 6) && \
+#if (KRB5_KDB_DAL_MAJOR_VERSION != 6) && \
     (KRB5_KDB_DAL_MAJOR_VERSION != 7) && \
     (KRB5_KDB_DAL_MAJOR_VERSION != 8)
 #error unsupported DAL major version
