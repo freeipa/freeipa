@@ -783,6 +783,19 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
+  pki-fedora/test_ipahealthcheck:
+    requires: [pki-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{pki-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_ipahealthcheck.py
+        template: *pki-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
   pki-fedora/test_pkinit_manage:
     requires: [pki-fedora/build]
     priority: 50
