@@ -751,8 +751,67 @@ kdb_vftabl kdb_function_table = {
 };
 #endif
 
+#if (KRB5_KDB_DAL_MAJOR_VERSION == 8)
+/* Version 8 adds several arguments here.  However, if we want to actually use
+ * them in mspac, we really ought to drop support for older DAL versions. */
+static inline krb5_error_code
+stub_sign_authdata(krb5_context context, unsigned int flags,
+                   krb5_const_principal client_princ,
+                   krb5_const_principal server_princ, krb5_db_entry *client,
+                   krb5_db_entry *server, krb5_db_entry *header_server,
+                   krb5_db_entry *local_tgt, krb5_keyblock *client_key,
+                   krb5_keyblock *server_key, krb5_keyblock *header_key,
+                   krb5_keyblock *local_tgt_key, krb5_keyblock *session_key,
+                   krb5_timestamp authtime, krb5_authdata **tgt_auth_data,
+                   void *ad_info, krb5_data ***auth_indicators,
+                   krb5_authdata ***signed_auth_data)
+{
+    krb5_db_entry *krbtgt = header_server ? header_server : server;
+    krb5_keyblock *krbtgt_key = header_key ? header_key : server_key;
+
+    return ipadb_sign_authdata(context, flags, client_princ, client, server,
+                               krbtgt, client_key, server_key, krbtgt_key,
+                               session_key, authtime, tgt_auth_data,
+                               signed_auth_data);
+}
+
+kdb_vftabl kdb_function_table = {
+    .maj_ver = KRB5_KDB_DAL_MAJOR_VERSION,
+    .min_ver = 0,
+    .init_library = ipadb_init_library,
+    .fini_library = ipadb_fini_library,
+    .init_module = ipadb_init_module,
+    .fini_module = ipadb_fini_module,
+    .create = ipadb_create,
+    .get_age = ipadb_get_age,
+    .get_principal = ipadb_get_principal,
+    .put_principal = ipadb_put_principal,
+    .delete_principal = ipadb_delete_principal,
+    .iterate = ipadb_iterate,
+    .create_policy = ipadb_create_pwd_policy,
+    .get_policy = ipadb_get_pwd_policy,
+    .put_policy = ipadb_put_pwd_policy,
+    .iter_policy = ipadb_iterate_pwd_policy,
+    .delete_policy = ipadb_delete_pwd_policy,
+    .fetch_master_key = ipadb_fetch_master_key,
+    .store_master_key_list = ipadb_store_master_key_list,
+    .change_pwd = ipadb_change_pwd,
+    .sign_authdata = stub_sign_authdata,
+    .check_transited_realms = ipadb_check_transited_realms,
+    .check_policy_as = ipadb_check_policy_as,
+    .audit_as_req = ipadb_audit_as_req,
+    .check_allowed_to_delegate = ipadb_check_allowed_to_delegate,
+    .free_principal_e_data = ipadb_free_principal_e_data,
+    .get_s4u_x509_principal = NULL,
+    .allowed_to_delegate_from = NULL,
+    .get_authdata_info = NULL,
+    .free_authdata_info = NULL,
+};
+#endif
+
 #if (KRB5_KDB_DAL_MAJOR_VERSION != 5) && \
     (KRB5_KDB_DAL_MAJOR_VERSION != 6) && \
-    (KRB5_KDB_DAL_MAJOR_VERSION != 7)
+    (KRB5_KDB_DAL_MAJOR_VERSION != 7) && \
+    (KRB5_KDB_DAL_MAJOR_VERSION != 8)
 #error unsupported DAL major version
 #endif
