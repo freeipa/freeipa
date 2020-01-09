@@ -61,7 +61,6 @@
 %global alt_name ipa
 # Fix for CVE-2018-20217
 %global krb5_version 1.16.1-24
-%global krb5_kdb_version 7.0
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
@@ -69,6 +68,13 @@
 # SELinux context for /etc/named directory, RHBZ#1759495
 %global selinux_policy_version 3.14.3-52
 %global slapi_nis_version 0.56.1
+
+# krb5 can only provide one KDB at a time
+%if 0%{?fedora} >= 32
+%global krb5_kdb_version 8.0
+%else
+%global krb5_kdb_version 7.0
+%endif
 
 # fix for segfault in python3-ldap, https://pagure.io/freeipa/issue/7324
 %global python_ldap_version 3.1.0-1
