@@ -261,15 +261,17 @@ static krb5_error_code ipa_certauth_authorize(krb5_context context,
                                               const krb5_db_entry *db_entry,
                                               char ***authinds_out)
 {
-    char *cert_filter = NULL;
-    char **domains = NULL;
-    int ret;
+    char *cert_filter = NULL, **domains = NULL;
+    int ret, flags = 0;
     size_t c;
-    char *principal = NULL;
-    char **auth_inds = NULL;
+    char *principal = NULL, **auth_inds = NULL;
     LDAPMessage *res = NULL;
     krb5_error_code kerr;
     LDAPMessage *lentry;
+
+#ifdef KRB5_KDB_FLAG_ALIAS_OK
+    flags = KRB5_KDB_FLAG_ALIAS_OK;
+#endif
 
     if (moddata == NULL) {
         return KRB5_PLUGIN_NO_HANDLE;
@@ -327,10 +329,8 @@ static krb5_error_code ipa_certauth_authorize(krb5_context context,
         }
     }
 
-    kerr = ipadb_fetch_principals_with_extra_filter(moddata->ipactx,
-                                                    KRB5_KDB_FLAG_ALIAS_OK,
-                                                    principal,
-                                                    cert_filter,
+    kerr = ipadb_fetch_principals_with_extra_filter(moddata->ipactx, flags,
+                                                    principal, cert_filter,
                                                     &res);
     if (kerr != 0) {
         krb5_klog_syslog(LOG_ERR, "Search failed [%d]", kerr);
@@ -338,8 +338,7 @@ static krb5_error_code ipa_certauth_authorize(krb5_context context,
         goto done;
     }
 
-    kerr = ipadb_find_principal(context, KRB5_KDB_FLAG_ALIAS_OK, res,
-                                &principal, &lentry);
+    kerr = ipadb_find_principal(context, flags, res, &principal, &lentry);
     if (kerr == KRB5_KDB_NOENTRY) {
         krb5_klog_syslog(LOG_INFO, "No matching entry found");
         ret = KRB5KDC_ERR_CERTIFICATE_MISMATCH;

@@ -22,8 +22,13 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
     enum ipadb_user_auth ua;
     struct ipadb_e_data *ied;
     struct ipadb_e_pol_limits *pol_limits = NULL;
-    int valid_auth_indicators = 0;
+    int valid_auth_indicators = 0, flags = 0;
     krb5_db_entry *client_actual = NULL;
+
+#ifdef KRB5_KDB_FLAG_ALIAS_OK
+    flags = KRB5_KDB_FLAG_ALIAS_OK;
+#endif
+
 
     *status = NULL;
     *lifetime_out = 0;
@@ -33,8 +38,8 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
     if (ied == NULL || ied->magic != IPA_E_DATA_MAGIC) {
         /* e-data is not availble, getting user auth from LDAP */
         krb5_klog_syslog(LOG_INFO, "IPA kdcpolicy: client e_data not availble. Try fetching...");
-        kerr = ipadb_get_principal(context, request->client,
-                                   KRB5_KDB_FLAG_ALIAS_OK, &client_actual);
+        kerr = ipadb_get_principal(context, request->client, flags,
+                                   &client_actual);
         if (kerr != 0) {
             krb5_klog_syslog(LOG_ERR, "IPA kdcpolicy: ipadb_find_principal failed.");
             return kerr;
