@@ -964,8 +964,7 @@ ipadb_fetch_principals_with_extra_filter(struct ipadb_context *ipactx,
                                          LDAPMessage **result)
 {
     krb5_error_code kerr;
-    char *src_filter = NULL;
-    char *esc_original_princ = NULL;
+    char *src_filter = NULL, *esc_original_princ = NULL;
     int ret;
 
     if (!ipactx->lcontext) {
@@ -976,28 +975,33 @@ ipadb_fetch_principals_with_extra_filter(struct ipadb_context *ipactx,
         }
     }
 
-    /* escape filter but do not touch '*' as this function accepts
-     * wildcards in names */
+    /* Escape filter but do not touch '*' as this function accepts
+     * wildcards in names. */
     esc_original_princ = ipadb_filter_escape(principal, false);
     if (!esc_original_princ) {
         kerr = KRB5_KDB_INTERNAL_ERROR;
         goto done;
     }
 
-    if (filter == NULL) {
-        if (flags & KRB5_KDB_FLAG_ALIAS_OK) {
-            ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER,
-                           esc_original_princ, esc_original_princ);
-        } else {
-            ret = asprintf(&src_filter, PRINC_SEARCH_FILTER, esc_original_princ);
-        }
-    } else {
-        if (flags & KRB5_KDB_FLAG_ALIAS_OK) {
-            ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER_EXTRA,
-                           esc_original_princ, esc_original_princ, filter);
+    /* Starting in DAL 8.0, aliases are always okay. */
+#ifdef KRB5_KDB_FLAG_ALIAS_OK
+    if (!(flags & KRB5_KDB_FLAG_ALIAS_OK)) {
+        if (filter == NULL) {
+            ret = asprintf(&src_filter, PRINC_SEARCH_FILTER,
+                           esc_original_princ);
         } else {
             ret = asprintf(&src_filter, PRINC_SEARCH_FILTER_EXTRA,
                            esc_original_princ, filter);
+        }
+    } else
+#endif
+    {
+        if (filter == NULL) {
+            ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER,
+                           esc_original_princ, esc_original_princ);
+        } else {
+            ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER_EXTRA,
+                           esc_original_princ, esc_original_princ, filter);
         }
     }
 
@@ -1006,11 +1010,8 @@ ipadb_fetch_principals_with_extra_filter(struct ipadb_context *ipactx,
         goto done;
     }
 
-    kerr = ipadb_simple_search(ipactx,
-                               ipactx->base, LDAP_SCOPE_SUBTREE,
-                               src_filter, std_principal_attrs,
-                               result);
-
+    kerr = ipadb_simple_search(ipactx, ipactx->base, LDAP_SCOPE_SUBTREE,
+                               src_filter, std_principal_attrs, result);
 done:
     free(src_filter);
     free(esc_original_princ);
@@ -1054,6 +1055,7 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
         /* We need to check for a strict match as a '*' in the name may have
          * caused the ldap server to return multiple entries. */
         for (int i = 0; vals[i]; i++) {
+#ifdef KRB5_KDB_FLAG_ALIAS_OK
             if ((flags & KRB5_KDB_FLAG_ALIAS_OK) == 0) {
                 found = strcmp(vals[i]->bv_val, *principal) == 0;
                 if (found)
@@ -1061,6 +1063,7 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
 
                 continue;
             }
+#endif
 
             /* The KDC will accept aliases when doing TGT lookup
              * (ref_tgt_again in do_tgs_req.c), so use case-insensitive
@@ -1094,6 +1097,7 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
         if (vals == NULL)
             break;
 
+#ifdef KRB5_KDB_FLAG_ALIAS_OK
         /* If aliases aren't accepted by the KDC, use case-sensitive
          * comparison. */
         if ((flags & KRB5_KDB_FLAG_ALIAS_OK) == 0) {
@@ -1103,6 +1107,7 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
                 continue;
             }
         }
+#endif
 
         free(*principal);
         *principal = strdup(vals[0]->bv_val);
@@ -2601,7 +2606,9 @@ krb5_error_code ipadb_delete_principal(krb5_context kcontext,
         goto done;
     }
 
+#ifdef KRB5_KDB_FLAG_ALIAS_OK
     flags = KRB5_KDB_FLAG_ALIAS_OK;
+#endif
     kerr = ipadb_find_principal(kcontext, flags, res, &canonicalized, &lentry);
     if (kerr != 0) {
         goto done;
