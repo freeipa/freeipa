@@ -123,7 +123,9 @@ def call_handler(_handler, *args, **kwargs):
     operation = os.environ['CERTMONGER_OPERATION']
     if operation == 'POLL':
         cookie = os.environ.pop('CERTMONGER_CA_COOKIE', None)
-        if cookie is not None:
+        if cookie is None:
+            return (UNCONFIGURED, "Cookie not provided")
+        if len(cookie) > 0:
             try:
                 context = json.loads(cookie)
                 if not isinstance(context, dict):
@@ -131,7 +133,13 @@ def call_handler(_handler, *args, **kwargs):
             except (TypeError, ValueError):
                 return (UNCONFIGURED, "Invalid cookie: %r" % cookie)
         else:
-            return (UNCONFIGURED, "Cookie not provided")
+            # Reconstruct the data for the missing cookie. Sanity checking
+            # is done elsewhere, when needed.
+            context = dict(cookie=u'')
+            profile = os.environ.get('CERTMONGER_CA_PROFILE')
+            if profile is not None:
+                profile = profile.encode('ascii').decode('raw_unicode_escape')
+            context['profile'] = profile
 
         if 'profile' in context:
             profile = context.pop('profile')
