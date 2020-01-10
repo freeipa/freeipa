@@ -37,3 +37,4 @@
 int ipa_ldap_init(LDAP **ld, const char *ldap_uri);
 int ipa_tls_ssl_init(LDAP *ld, const char *ldap_uri,
                      const char *ca_cert_file);
+void ipa_ldap_error(LDAP *ld, int errnum, char *msg);
