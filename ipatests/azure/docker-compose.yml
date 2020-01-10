@@ -7,8 +7,9 @@ services:
     - ALL
     security_opt:
     - apparmor:unconfined
+    mem_limit: 1610612736
     volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     - ./ipa-test-config.yaml:/root/.ipa/ipa-test-config.yaml:ro
     - ${BUILD_REPOSITORY_LOCALPATH}:/freeipa
 
@@ -22,8 +23,9 @@ services:
     - ALL
     security_opt:
     - apparmor:unconfined
+    mem_limit: 1610612736
     volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     networks:
     - ${IPA_NETWORK}
 
@@ -34,8 +36,9 @@ services:
     - ALL
     security_opt:
     - apparmor:unconfined
+    mem_limit: 536870912
     volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     # nfs server
     - ./exports:/exports
     - /lib/modules:/lib/modules:ro
