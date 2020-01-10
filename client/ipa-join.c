@@ -240,7 +240,7 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw,
                             NULL, NULL, NULL);
 
     if (*ret != LDAP_SUCCESS) {
-        fprintf(stderr, _("Bind failed: %s\n"), ldap_err2string(*ret));
+        ipa_ldap_error(ld, *ret, _("SASL Bind failed\n"));
         goto fail;
     }
 
