@@ -177,7 +177,6 @@ static int ipa_ldap_bind(const char *ldap_uri, krb5_principal bind_princ,
                          const char *mech, const char *ca_cert_file,
                          LDAP **_ld)
 {
-    char *msg = NULL;
     struct berval bv;
     LDAP *ld;
     int ret;
@@ -205,7 +204,7 @@ static int ipa_ldap_bind(const char *ldap_uri, krb5_principal bind_princ,
         ret = ldap_sasl_bind_s(ld, bind_dn, LDAP_SASL_SIMPLE,
                                &bv, NULL, NULL, NULL);
         if (ret != LDAP_SUCCESS) {
-            fprintf(stderr, _("Simple bind failed\n"));
+            ipa_ldap_error(ld, ret, _("Simple bind failed\n"));
             goto done;
         }
     } else {
@@ -219,11 +218,7 @@ static int ipa_ldap_bind(const char *ldap_uri, krb5_principal bind_princ,
         }
 
         if (ret != LDAP_SUCCESS) {
-#ifdef LDAP_OPT_DIAGNOSTIC_MESSAGE
-            ldap_get_option(ld, LDAP_OPT_DIAGNOSTIC_MESSAGE, (void*)&msg);
-#endif
-            fprintf(stderr, "SASL Bind failed %s (%d) %s!\n",
-                            ldap_err2string(ret), ret, msg ? msg : "");
+            ipa_ldap_error(ld, ret, _("SASL Bind failed\n"));
             goto done;
         }
     }
