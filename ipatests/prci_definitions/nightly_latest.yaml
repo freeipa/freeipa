@@ -1432,3 +1432,15 @@ jobs:
         template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
+
+  fedora-latest/test_winsyncmigrate:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_winsyncmigrate.py
+        template: *ci-master-latest
+        timeout: 4800
+        topology: *ad_master

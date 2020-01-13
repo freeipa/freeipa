@@ -1531,3 +1531,15 @@ jobs:
         template: *testing-master-latest
         timeout: 3600
         topology: *master_1repl
+
+  testing-fedora/test_winsyncmigrate:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{testing-fedora/build_url}'
+        test_suite: test_integration/test_winsyncmigrate.py
+        template: *testing-master-latest
+        timeout: 4800
+        topology: *ad_master
