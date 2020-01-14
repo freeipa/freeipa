@@ -166,7 +166,7 @@ def backup(host):
 
     # Test for ticket 7632: check that services are restarted
     # before the backup is compressed
-    pattern = r'.*gzip.*Starting IPA service.*'
+    pattern = r'.*{}.*Starting IPA service.*'.format(paths.GZIP)
     if (re.match(pattern, result.stderr_text, re.DOTALL)):
         raise AssertionError('IPA Services are started after compression')
 
