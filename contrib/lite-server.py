@@ -4,45 +4,7 @@
 #
 """In-tree development server
 
-The dev server requires a Kerberos TGT and a file based credential cache:
-
-    $ mkdir -p ~/.ipa
-    $ export KRB5CCNAME=~/.ipa/ccache
-    $ kinit admin
-    $ make lite-server
-
-Optionally you can set KRB5_CONFIG to use a custom Kerberos configuration
-instead of /etc/krb5.conf.
-
-To run the lite-server with another Python interpreter:
-
-    $ make lite-server PYTHON=/path/to/bin/python
-
-To enable profiling:
-
-    $ make lite-server LITESERVER_ARGS='--enable-profiler=-'
-
-By default the dev server supports HTTP only. To switch to HTTPS, you can put
-a PEM file at ~/.ipa/lite.pem. The PEM file must contain a server certificate,
-its unencrypted private key and intermediate chain certs (if applicable).
-
-Prerequisite
-------------
-
-Additionally to build and runtime requirements of FreeIPA, the dev server
-depends on the werkzeug framework and optionally watchdog for auto-reloading.
-You may also have to enable a development COPR.
-
-    $ sudo dnf install -y dnf-plugins-core
-    $ sudo dnf builddep --spec freeipa.spec.in
-    $ sudo dnf install -y python3-werkzeug python3-watchdog
-    $ ./autogen.sh
-
-For more information see
-
-  * http://www.freeipa.org/page/Build
-  * http://www.freeipa.org/page/Testing
-
+See README.md for more details.
 """
 import logging
 import linecache
@@ -244,7 +206,7 @@ def init_api(ccname):
     )
     api.finalize()
     api_time = time.time()
-    logger.info("API initialized in %03f sec", api_time - start_time)
+    logger.info("API initialized in %0.3f sec", api_time - start_time)
 
     # Validate LDAP connection and pre-fetch schema
     # Pre-fetching makes the lite-server behave similar to mod_wsgi. werkzeug's
@@ -268,7 +230,7 @@ def init_api(ccname):
         # must have its own connection.
         ldap2.disconnect()
         ldap_time = time.time()
-        logger.info("LDAP schema retrieved %03f sec", ldap_time - api_time)
+        logger.info("LDAP schema retrieved %0.3f sec", ldap_time - api_time)
 
     return api
 
