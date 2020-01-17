@@ -127,6 +127,12 @@ def ldap_initialize(uri, cacertfile=None):
             conn.set_option(ldap.OPT_X_TLS_CACERTFILE, cacertfile)
 
         # SSLv3 and SSLv2 are insecure
+        # OpenLDAP 2.4 sets minimum version with SSL_CTX_set_options(). The
+        # system-wide crypto-policies for TLS minimum version are applied
+        # with SSL_CTX_set_min_proto_version(). The set_option() call cannot
+        # enable lower versions than allowed by crypto-policy, e.g.
+        # openssl.cnf MinProtocol=TLS1.2 + OPT_X_TLS_PROTOCOL_MIN=TLS1.0
+        # result in TLS 1.2 as minimum protocol version.
         conn.set_option(ldap.OPT_X_TLS_PROTOCOL_MIN, 0x301)  # TLS 1.0
         # libldap defaults to cert validation, but the default can be
         # overridden in global or user local ldap.conf.
