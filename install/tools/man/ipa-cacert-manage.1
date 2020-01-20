@@ -24,6 +24,8 @@ ipa\-cacert\-manage \- Manage CA certificates in IPA
 .br
 \fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] install \fICERTFILE\fR...
 .br
+\fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] delete \fINICKNAME\fR
+.br
 \fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] list
 .SH "DESCRIPTION"
 \fBipa\-cacert\-manage\fR can be used to manage CA certificates in IPA.
@@ -54,6 +56,16 @@ Please do not forget to run ipa-certupdate on the master, all the replicas and a
 .sp
 The supported formats for the certificate files are DER, PEM and PKCS#7 format.
 .RE
+.TP
+\fBdelete\fR
+\- Remove a CA certificate
+.sp
+.RS
+Remove a CA from IPA. The nickname of a CA to be removed can be found using the list command. The CA chain is validated before allowing a CA to be removed so leaf certificates in a chain need to be removed first.
+.sp
+Please do not forget to run ipa-certupdate on the master, all the replicas and all the clients after this command in order to update IPA certificates databases.
+.RE
+.TP
 \fBlist\fR
 \- List the stored CA certificates
 .sp
@@ -129,6 +141,11 @@ C \- CA trusted to issue server certificates
 T \- CA trusted to issue client certificates
 .IP
 p \- not trusted
+.RE
+.SH "DELETE OPTIONS"
+.TP
+\fB\-f\fR, \fB\-\-force\fR
+Force a CA certificate to be removed even if chain validation fails.
 .RE
 .SH "EXIT STATUS"
 0 if the command was successful
