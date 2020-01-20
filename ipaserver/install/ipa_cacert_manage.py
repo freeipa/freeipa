@@ -30,7 +30,8 @@ from ipapython import admintool, ipautil
 from ipapython.certdb import (EMPTY_TRUST_FLAGS,
                               EXTERNAL_CA_TRUST_FLAGS,
                               TrustFlags,
-                              parse_trust_flags)
+                              parse_trust_flags,
+                              get_ca_nickname)
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipalib import api, errors, x509
@@ -42,7 +43,8 @@ logger = logging.getLogger(__name__)
 class CACertManage(admintool.AdminTool):
     command_name = 'ipa-cacert-manage'
 
-    usage = "%prog renew [options]\n%prog install [options] CERTFILE"
+    usage = "%prog renew [options]\n%prog install [options] CERTFILE\n" \
+            "%prog delete [options] NICKNAME\n%prog list"
 
     description = "Manage CA certificates."
 
@@ -93,6 +95,12 @@ class CACertManage(admintool.AdminTool):
             help="Trust flags for the certificate in certutil format")
         parser.add_option_group(install_group)
 
+        delete_group = OptionGroup(parser, "Delete options")
+        delete_group.add_option(
+            "-f", "--force", action='store_true',
+            help="Force removing the CA even if chain validation fails")
+        parser.add_option_group(delete_group)
+
     def validate_options(self):
         super(CACertManage, self).validate_options(needs_root=True)
 
@@ -112,6 +120,9 @@ class CACertManage(admintool.AdminTool):
                 parser.error("certificate file name not provided")
         elif command == 'list':
             pass
+        elif command == 'delete':
+            if len(self.args) < 2:
+                parser.error("nickname not provided")
         else:
             parser.error("unknown command \"%s\"" % command)
 
@@ -130,6 +141,8 @@ class CACertManage(admintool.AdminTool):
                 return self.install()
             elif command == 'list':
                 return self.list()
+            elif command == 'delete':
+                return self.delete()
             else:
                 raise NotImplementedError
         finally:
@@ -465,6 +478,71 @@ class CACertManage(admintool.AdminTool):
                                               False)
         for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
             print(ca_nickname)
+
+    def delete(self):
+        options = self.options
+        nickname = self.args[1]
+        conn = api.Backend.ldap2
+
+        ca_certs = certstore.get_ca_certs_nss(api.Backend.ldap2,
+                                              api.env.basedn,
+                                              api.env.realm,
+                                              False)
+
+        ipa_ca_nickname = get_ca_nickname(api.env.realm)
+
+        found = False
+        for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
+            if ca_nickname == nickname:
+                if ca_nickname == ipa_ca_nickname:
+                    raise admintool.ScriptError(
+                        'The IPA CA cannot be removed with this tool'
+                    )
+                else:
+                    found = True
+                    break
+
+        if not found:
+            raise admintool.ScriptError(
+                'Unknown CA \'{}\''.format(nickname)
+            )
+
+        with certs.NSSDatabase() as tmpdb:
+            tmpdb.create_db()
+            for ca_cert, ca_nickname, ca_trust_flags in ca_certs:
+                tmpdb.add_cert(ca_cert, ca_nickname, ca_trust_flags)
+            loaded = tmpdb.list_certs()
+            logger.debug("loaded raw certs '%s'", loaded)
+
+            tmpdb.delete_cert(nickname)
+
+            for ca_nickname, _trust_flags in loaded:
+                if ca_nickname == nickname:
+                    continue
+                elif ipa_ca_nickname == nickname:
+                    raise admintool.ScriptError(
+                        "The IPA CA cannot be removed")
+                logger.debug("Verifying %s", ca_nickname)
+                try:
+                    tmpdb.verify_ca_cert_validity(ca_nickname)
+                except ValueError as e:
+                    msg = "Verifying \'%s\' failed. Removing part of the " \
+                          "chain? %s" % (nickname, e)
+                    if options.force:
+                        print(msg)
+                        continue
+                    raise admintool.ScriptError(msg)
+                else:
+                    logger.debug("Verified %s", ca_nickname)
+
+        for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
+            if ca_nickname == nickname:
+                container_dn = DN(('cn', 'certificates'), ('cn', 'ipa'),
+                                  ('cn', 'etc'), api.env.basedn)
+                dn = DN(('cn', nickname), container_dn)
+                logger.debug("Deleting %s", ca_nickname)
+                conn.delete_entry(dn)
+                return
 
 
 def update_ipa_ca_entry(api, cert):
