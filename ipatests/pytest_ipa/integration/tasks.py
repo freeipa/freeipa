@@ -1615,7 +1615,7 @@ def assert_error(result, pattern, returncode=None):
     ``pattern`` may be a ``str`` or a ``re.Pattern`` (regular expression).
 
     """
-    if isinstance(pattern, re.Pattern):
+    if hasattr(pattern, 'search'):
         assert pattern.search(result.stderr_text), \
             f"pattern {pattern} not found in stderr {result.stderr_text!r}"
     else:
