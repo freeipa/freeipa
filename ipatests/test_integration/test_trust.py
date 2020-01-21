@@ -12,7 +12,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipapython.dn import DN
 
 
-class BaseTestTrust(IntegrationTest):
+class TestTrust(IntegrationTest):
     num_clients = 1
     topology = 'line'
     num_ad_domains = 1
@@ -32,7 +32,7 @@ class BaseTestTrust(IntegrationTest):
         if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
             raise nose.SkipTest("Package samba-client not available "
                                 "on {}".format(cls.master.hostname))
-        super(BaseTestTrust, cls).install(mh)
+        super(TestTrust, cls).install(mh)
         cls.ad = cls.ads[0]  # pylint: disable=no-member
         cls.ad_domain = cls.ad.domain.name
         tasks.install_adtrust(cls.master)
