@@ -951,6 +951,9 @@ def certificate_renewal_update(ca, ds, http):
     Update certmonger certificate renewal configuration.
     """
 
+    # First ensure the renewal helpers are defined.
+    ca.configure_certmonger_renewal_helpers()
+
     template = paths.CERTMONGER_COMMAND_TEMPLATE
     serverid = installutils.realm_to_serverid(api.env.realm)
 
@@ -1075,7 +1078,6 @@ def certificate_renewal_update(ca, ds, http):
             logger.info("Removing %s", filename)
             installutils.remove_file(filename)
 
-    ca.configure_certmonger_renewal()
     ca.configure_renewal()
     ca.configure_agent_renewal()
     ca.track_servercert()

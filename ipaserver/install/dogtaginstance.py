@@ -34,7 +34,7 @@ import pki.system
 
 from ipalib import api, errors, x509
 from ipalib.install import certmonger
-from ipalib.constants import CA_DBUS_TIMEOUT
+from ipalib.constants import CA_DBUS_TIMEOUT, RENEWAL_CA_NAME
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -258,7 +258,7 @@ class DogtagInstance(service.Service):
             fd.write(template)
             os.fchmod(fd.fileno(), 0o644)
 
-    def configure_certmonger_renewal(self):
+    def configure_certmonger_renewal_helpers(self):
         """
         Create a new CA type for certmonger that will retrieve updated
         certificates from the dogtag master server.
@@ -272,8 +272,12 @@ class DogtagInstance(service.Service):
         obj = bus.get_object('org.fedorahosted.certmonger',
                              '/org/fedorahosted/certmonger')
         iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
-        for suffix, args in [('', ''), ('-reuse', ' --reuse-existing')]:
-            name = 'dogtag-ipa-ca-renew-agent' + suffix
+        for suffix, args in [
+            ('', ''),
+            ('-reuse', ' --reuse-existing'),
+            ('-selfsigned', ' --force-self-signed'),
+        ]:
+            name = RENEWAL_CA_NAME + suffix
             path = iface.find_ca_by_nickname(name)
             if not path:
                 command = paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT + args
