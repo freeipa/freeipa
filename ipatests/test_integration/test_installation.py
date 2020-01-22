@@ -25,6 +25,7 @@ from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks as platformtasks
 from ipapython import ipautil
+from ipalib.install.certmonger import wait_for_request
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
@@ -253,6 +254,96 @@ class TestInstallCA(IntegrationTest):
 
         tasks.install_replica(self.master, self.replicas[1], setup_ca=False)
         tasks.install_ca(self.replicas[1], extra_args=["--skip-schema-check"])
+
+    def test_certmonger_reads_token_HSM(self):
+        """Test if certmonger reads the token in HSM
+
+        This is to ensure added HSM support for FreeIPA. This test adds
+        certificate with sofhsm token and checks if certmonger is tracking
+        it.
+
+        related : https://pagure.io/certmonger/issue/125
+        """
+        test_service = 'test/%s' % self.master.hostname
+        pkcs_passwd = 'Secret123'
+        pin = '123456'
+        noisefile = '/tmp/noisefile'
+        self.master.put_file_contents(noisefile, os.urandom(64))
+
+        tasks.kinit_admin(self.master)
+        tasks.install_dns(self.master)
+        self.master.run_command(['ipa', 'service-add', test_service])
+
+        # create a csr
+        cmd_args = ['certutil', '-d', paths.NSS_DB_DIR, '-R', '-a',
+                    '-o', '/root/ipa.csr',
+                    '-s', "CN=%s" % self.master.hostname,
+                    '-z', noisefile]
+        self.master.run_command(cmd_args)
+
+        # request certificate
+        cmd_args = ['ipa', 'cert-request', '--principal', test_service,
+                    '--certificate-out', '/root/test.pem', '/root/ipa.csr']
+        self.master.run_command(cmd_args)
+
+        # adding trust flag
+        cmd_args = ['certutil', '-A', '-d', paths.NSS_DB_DIR, '-n',
+                    'test', '-a', '-i', '/root/test.pem', '-t', 'u,u,u']
+        self.master.run_command(cmd_args)
+
+        # export pkcs12 file
+        cmd_args = ['pk12util', '-o', '/root/test.p12',
+                    '-d', paths.NSS_DB_DIR, '-n', 'test', '-W', pkcs_passwd]
+        self.master.run_command(cmd_args)
+
+        # add softhsm lib
+        cmd_args = ['modutil', '-dbdir', paths.NSS_DB_DIR, '-add',
+                    'softhsm', '-libfile', '/usr/lib64/softhsm/libsofthsm.so']
+        self.master.run_command(cmd_args, stdin_text="\n\n")
+
+        # create a token
+        cmd_args = ['softhsm2-util', '--init-token', '--label', 'test',
+                    '--pin', pin, '--so-pin', pin, '--free']
+        self.master.run_command(cmd_args)
+
+        self.master.run_command(['softhsm2-util', '--show-slots'])
+
+        cmd_args = ['certutil', '-F', '-d', paths.NSS_DB_DIR, '-n', 'test']
+        self.master.run_command(cmd_args)
+
+        cmd_args = ['pk12util', '-i', '/root/test.p12',
+                    '-d', paths.NSS_DB_DIR, '-h', 'test',
+                    '-W', pkcs_passwd, '-K', pin]
+        self.master.run_command(cmd_args)
+
+        cmd_args = ['certutil', '-A', '-d', paths.NSS_DB_DIR, '-n', 'IPA CA',
+                    '-t', 'CT,,', '-a', '-i', paths.IPA_CA_CRT]
+        self.master.run_command(cmd_args)
+
+        # validate the certificate
+        self.master.put_file_contents('/root/pinfile', pin)
+        cmd_args = ['certutil', '-V', '-u', 'V', '-e', '-d', paths.NSS_DB_DIR,
+                    '-h', 'test', '-n', 'test:test', '-f', '/root/pinfile']
+        result = self.master.run_command(cmd_args)
+        assert 'certificate is valid' in result.stdout_text
+
+        # add certificate tracking to certmonger
+        cmd_args = ['ipa-getcert', 'start-tracking', '-d', paths.NSS_DB_DIR,
+                    '-n', 'test', '-t', 'test', '-P', pin,
+                    '-K', test_service]
+        result = self.master.run_command(cmd_args)
+        request_id = re.findall(r'\d+', result.stdout_text)
+
+        # check if certificate is tracked by certmonger
+        status = wait_for_request(request_id[0], 300)
+        assert status == "MONITORING"
+
+        # ensure if key and token are re-usable
+        cmd_args = ['getcert', 'resubmit', '-i', request_id[0]]
+        self.master.run_command(cmd_args)
+
+        status = wait_for_request(request_id[0], 300)
+        assert status == "MONITORING"
 
 
 class TestInstallWithCA_KRA1(InstallTestBase1):
