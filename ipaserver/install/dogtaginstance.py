@@ -290,7 +290,7 @@ class DogtagInstance(service.Service):
             fd.write(template)
             os.fchmod(fd.fileno(), 0o644)
 
-    def configure_certmonger_renewal(self):
+    def configure_certmonger_renewal_helpers(self):
         """
         Create a new CA type for certmonger that will retrieve updated
         certificates from the dogtag master server.
@@ -306,7 +306,11 @@ class DogtagInstance(service.Service):
         obj = bus.get_object('org.fedorahosted.certmonger',
                              '/org/fedorahosted/certmonger')
         iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
-        for suffix, args in [('', ''), ('-reuse', ' --reuse-existing')]:
+        for suffix, args in [
+            ('', ''),
+            ('-reuse', ' --reuse-existing'),
+            ('-selfsigned', ' --force-self-signed'),
+        ]:
             name = RENEWAL_CA_NAME + suffix
             path = iface.find_ca_by_nickname(name)
             if not path:

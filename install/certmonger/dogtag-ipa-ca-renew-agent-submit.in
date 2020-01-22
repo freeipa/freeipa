@@ -402,7 +402,7 @@ def retrieve_cert(**kwargs):
     return result
 
 
-def renew_ca_cert(reuse_existing, **kwargs):
+def renew_ca_cert(reuse_existing, force_self_signed, **kwargs):
     """
     This is used for automatic CA certificate renewal.
     """
@@ -420,7 +420,8 @@ def renew_ca_cert(reuse_existing, **kwargs):
     if operation == 'SUBMIT':
         state = 'retrieve'
 
-        if not reuse_existing and is_renewal_master():
+        if (is_self_signed or force_self_signed) \
+                and not reuse_existing and is_renewal_master():
             state = 'request'
 
         csr_file = paths.IPA_CA_CSR
@@ -473,13 +474,22 @@ def renew_ca_cert(reuse_existing, **kwargs):
 def main():
     kwargs = {
         'reuse_existing': False,
+        'force_self_signed': False,
     }
+
     try:
         sys.argv.remove('--reuse-existing')
     except ValueError:
         pass
     else:
         kwargs['reuse_existing'] = True
+
+    try:
+        sys.argv.remove('--force-self-signed')
+    except ValueError:
+        pass
+    else:
+        kwargs['force_self_signed'] = True
 
     operation = os.environ.get('CERTMONGER_OPERATION')
     if operation not in ('SUBMIT', 'POLL'):
