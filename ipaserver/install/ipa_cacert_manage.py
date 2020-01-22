@@ -24,7 +24,9 @@ import os
 from optparse import OptionGroup  # pylint: disable=deprecated-module
 import gssapi
 
-from ipalib.constants import RENEWAL_CA_NAME, RENEWAL_REUSE_CA_NAME, IPA_CA_CN
+from ipalib.constants import (
+    RENEWAL_CA_NAME, RENEWAL_REUSE_CA_NAME, RENEWAL_SELFSIGNED_CA_NAME,
+    IPA_CA_CN)
 from ipalib.install import certmonger, certstore
 from ipapython import admintool, ipautil
 from ipapython.certdb import (EMPTY_TRUST_FLAGS,
@@ -210,7 +212,7 @@ class CACertManage(admintool.AdminTool):
         except errors.NotFound:
             raise admintool.ScriptError("CA renewal master not found")
 
-        self.resubmit_request()
+        self.resubmit_request(RENEWAL_SELFSIGNED_CA_NAME)
 
         db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
         cert = db.get_cert_from_db(self.cert_nickname)

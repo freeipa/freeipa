@@ -310,6 +310,7 @@ IPA_CA_RECORD = "ipa-ca"
 IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
 RENEWAL_CA_NAME = 'dogtag-ipa-ca-renew-agent'
 RENEWAL_REUSE_CA_NAME = 'dogtag-ipa-ca-renew-agent-reuse'
+RENEWAL_SELFSIGNED_CA_NAME = 'dogtag-ipa-ca-renew-agent-selfsigned'
 # The RA agent cert is used for client cert authentication. In the past IPA
 # used caServerCert profile, which adds clientAuth and serverAuth EKU. The
 # serverAuth EKU caused trouble with NamedConstraints, see RHBZ#1670239.
