@@ -424,7 +424,7 @@ class CAInstance(DogtagInstance):
         if self.external != 1:
             if not has_ra_cert:
                 self.step("configure certmonger for renewals",
-                          self.configure_certmonger_renewal)
+                          self.configure_certmonger_renewal_helpers)
                 if not self.clone:
                     self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 elif promote:
@@ -998,7 +998,7 @@ class CAInstance(DogtagInstance):
         obj = bus.get_object('org.fedorahosted.certmonger',
                              '/org/fedorahosted/certmonger')
         iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
-        for suffix in ['', '-reuse']:
+        for suffix in ['', '-reuse', '-selfsigned']:
             name = ipalib.constants.RENEWAL_CA_NAME + suffix
             path = iface.find_ca_by_nickname(name)
             if path:
