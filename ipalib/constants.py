@@ -278,6 +278,11 @@ LDAP_GENERALIZED_TIME_FORMAT = "%Y%m%d%H%M%SZ"
 IPA_ANCHOR_PREFIX = ':IPA:'
 SID_ANCHOR_PREFIX = ':SID:'
 
+# When an entry does not contain ipantsecurityidentifier (for instance a
+# non posix group), IPA will generate a special SID using the following
+# prefix, based on the entry ipauniqueid
+IPA_SID_FAMILY_PREFIX = 'S-1-738065-'
+
 # domains levels
 DOMAIN_LEVEL_0 = 0  # compat
 DOMAIN_LEVEL_1 = 1  # replica promotion, topology plugin

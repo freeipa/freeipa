@@ -2,9 +2,11 @@ import base64
 from jinja2 import Environment, PackageLoader
 from samba.dcerpc import security
 from samba.ndr import ndr_pack
+import struct
 import uuid
 
 from ipalib import api
+from ipalib.constants import IPA_SID_FAMILY_PREFIX
 from ipapython.dn import DN
 
 GROUP_TYPE_ACCOUNT_GROUP = 0x00000002
@@ -14,12 +16,27 @@ GROUP_TYPE_SECURITY_ENABLED = 0x80000000
 GROUP_TYPE_OFFSET = 0x100000000
 
 
-def transform_sid(sid):
-    """Transforms a SID from a string format to an AD-compatible format
+def transform_sid(entry):
+    """Transforms a SID from a entry to an AD-compatible format
 
+    If the entry contains ipantsecurityidentifier, the attr value is used as
+    input.
     For instance input: (string) S-1-5-21-290024825-4011531429-1633689518-500
     output: (string) AQUAAAAAAAUVAAAAeW1JEaUcG++uH2Bh7QMAAA==
+
+    If the entry doesn't have any ipantsecurityidentifier attribute, a special
+    SID is computed from the ipauniqueid and a special SID prefix S-1-738065-.
+    For instance input: (ipauniqueid) 7d976a62-0703-11ea-89b6-001a4a2312ca
+    output: (string) 'S-1-738065-2107075170-117641706-2310406170-1243812554'
     """
+    try:
+        sid = entry.single_value['ipantsecurityidentifier']
+    except KeyError:
+        # The entry doesn't contain ipantsecurityidentifier
+        # Compute the SID from ipauniqueid instead
+        uniqueid = entry.single_value['ipauniqueid']
+        sid = IPA_SID_FAMILY_PREFIX + '-'.join(
+            str(x) for x in struct.unpack('!IIII', uuid.UUID(uniqueid).bytes))
     return base64.b64encode(ndr_pack(security.dom_sid(sid))).decode('utf-8')
 
 
@@ -134,7 +151,7 @@ class GCTransformer:
         # the uid value is multivalued, extract the right one as primary key
         # (i.e. the one from the DN)
         pkey = entry.dn[0][0].value
-        sid = transform_sid(entry.single_value['ipantsecurityidentifier'])
+        sid = transform_sid(entry)
         guid = transform_gid(entry.single_value['ipauniqueid'])
         rename_groups(api, entry)
         ldif_add = self.user_template.render(
@@ -151,10 +168,7 @@ class GCTransformer:
         # the cn value is multivalued, extract the right one as primary key
         # (i.e. the one from the DN)
         pkey = entry.dn[0][0].value
-        try:
-            sid = transform_sid(entry.single_value['ipantsecurityidentifier'])
-        except KeyError:
-            sid = None
+        sid = transform_sid(entry)
         guid = transform_gid(entry.single_value['ipauniqueid'])
         groupType = get_groupType(entry)
         rename_group_members(self.api, entry, conn=self.ldap_conn)
