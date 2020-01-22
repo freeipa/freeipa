@@ -203,7 +203,16 @@ def update_file(filename, certs, mode=0o644):
 
 
 def update_db(path, certs):
+    """Drop all CA certs from db then add certs from list provided
+
+       This may result in some churn as existing certs are dropped
+       and re-added but this also provides the ability to change
+       the trust flags.
+    """
     db = certdb.NSSDatabase(path)
+    for name, flags in db.list_certs():
+        if flags.ca:
+            db.delete_cert(name)
     for cert, nickname, trusted, eku in certs:
         trust_flags = certstore.key_policy_to_trust_flags(trusted, True, eku)
         try:
