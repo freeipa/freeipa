@@ -109,6 +109,20 @@ def test_ipa_run_tests_expression(ipatestdir, expr):
             func=FUNC_NAME.format(mod_num))])
 
 
+def test_ipa_run_tests_empty_expression(ipatestdir):
+    """
+    Run ipa-run-tests using an empty expression.
+    Expected result: all tests should pass.
+    """
+    result = ipatestdir.run_ipa_tests('-k', '')
+    assert result.ret == 0
+    result.assert_outcomes(passed=5)
+    for mod_num in range(0, MODS_NUM):
+        result.stdout.fnmatch_lines(["*{mod}.py::{func} PASSED*".format(
+            mod=MOD_NAME.format(mod_num),
+            func=FUNC_NAME.format(mod_num))])
+
+
 def test_ipa_run_tests_ignore_basic(ipatestdir):
     """
     Run ipa-run-tests ignoring one test module
