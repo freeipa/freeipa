@@ -27,6 +27,7 @@ import random
 import traceback
 
 from ipalib import api
+from ipalib.constants import GC_SERVICE_NAME, GC_REALM_NAME, GC_SERVER_ID
 from ipaplatform.paths import paths
 from ipaplatform import services
 from ipapython import ipaldap
@@ -90,7 +91,22 @@ class IPAUpgrade(service.Service):
         for _i in range(8):
             h = "%02x" % rand.randint(0,255)
             ext += h
-        super(IPAUpgrade, self).__init__("dirsrv", realm_name=realm_name)
+        # When IPAUpgrade is called for the Global Catalog, there is a special
+        # handling: the init is is done with realm=GLOBAL.CATALOG but
+        # this is only a convention to differentiate between GC and primary DS.
+        # The following values need to be adapted:
+        #              |                   Primary DS | Global Catalog
+        # -------------+------------------------------+-------------------
+        # Service Name |                       dirsrv | globalcatalog
+        # Service id   | from realm, replace . with - | GLOBAL-CATALOG
+        # Suffix       |                   from realm | same suffix as ds
+        # Realm        |           from api.env.realm | from api.env.realm
+        # At the end of this method the realm is forced to api.env.realm
+        if realm_name == GC_REALM_NAME:
+            service_name = GC_SERVICE_NAME
+        else:
+            service_name = "dirsrv"
+        super(IPAUpgrade, self).__init__(service_name, realm_name=realm_name)
         serverid = ipaldap.realm_to_serverid(realm_name)
         self.filename = '%s/%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE)
         self.savefilename = '%s/%s.ipa.%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE, ext)
@@ -107,16 +123,18 @@ class IPAUpgrade(service.Service):
     def __start(self):
         srv = services.service(self.service_name, api)
         srv.start(self.serverid, ldapi=True)
-        api.Backend.ldap2.connect()
+        if self.serverid != GC_SERVER_ID:
+            api.Backend.ldap2.connect()
 
     def __stop_instance(self):
         """Stop only the main DS instance"""
-        if api.Backend.ldap2.isconnected():
+        if self.serverid != GC_SERVER_ID and api.Backend.ldap2.isconnected():
             api.Backend.ldap2.disconnect()
         super(IPAUpgrade, self).stop(self.serverid)
 
     def create_instance(self):
-        ds_running = super(IPAUpgrade, self).is_running()
+        ds_running = super(IPAUpgrade, self).is_running(
+            instance_name=self.serverid)
         if ds_running:
             self.step("stopping directory server", self.__stop_instance)
         self.step("saving configuration", self.__save_config)
@@ -276,7 +294,8 @@ class IPAUpgrade(service.Service):
 
     def __upgrade(self):
         try:
-            ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True)
+            ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True,
+                                       serverid=self.serverid)
             if len(self.files) == 0:
                 self.files = ld.get_all_files(self.updates_dir)
             self.modified = (ld.update(self.files) or self.modified)

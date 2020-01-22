@@ -38,6 +38,7 @@ from ipaserver.dns_data_management import IPADomainIsNotManagedByIPAError
 from ipaserver.install import certs
 from ipaserver.install import installutils
 from ipaserver.install import service
+from ipaserver.install import upgradeinstance
 from ipaserver.install.dsinstance import DS_USER, DS_GROUP
 from ipaserver.install.dsinstance import (
     find_server_root,
@@ -758,6 +759,23 @@ class GCInstance(service.Service):
                 pass
             except IPADomainIsNotManagedByIPAError:
                 pass
+
+    def apply_updates(self):
+        # Question: do we need to support loading schema files from
+        # /usr/share/ipa/gc/schema.d as IPA does for 3rd part plugins?
+        # If yes, replace schema_files = get_all_external_schema_files(path)
+        data_upgrade = upgradeinstance.IPAUpgrade(
+            constants.GC_REALM_NAME,
+            files=[], schema_files=[], updates_dir=paths.GC_UPDATES_DIR)
+        try:
+            data_upgrade.create_instance()
+        except Exception:
+            raise RuntimeError('Global Catalog upgrade failed.', 1)
+        else:
+            if data_upgrade.modified:
+                logger.info('Update complete')
+            else:
+                logger.info('Update complete, no data were modified')
 
     def uninstall(self):
         if self.is_configured():

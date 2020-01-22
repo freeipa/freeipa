@@ -113,7 +113,8 @@ def install(api, fstore, installer):
                            subject_base=subject_base,
                            ca_subject=ca_subject,
                            populate=options.populate)
-    # gc.change_admin_password(admin_password)
+
+    gc.apply_updates()
 
     service.sync_services_state(api.env.host)
     # After this point the Global Catalog is seen as enabled

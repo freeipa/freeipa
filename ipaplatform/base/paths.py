@@ -267,6 +267,7 @@ class BasePathNamespace:
     SCHEMA_COMPAT_POST_ULDIF = "/usr/share/ipa/schema_compat_post.uldif"
     IPA_JS_PLUGINS_DIR = "/usr/share/ipa/ui/js/plugins"
     UPDATES_DIR = "/usr/share/ipa/updates/"
+    GC_UPDATES_DIR = "/usr/share/ipa/gc/updates"
     DICT_WORDS = "/usr/share/dict/words"
     VAR_KERBEROS_KRB5KDC_DIR = "/var/kerberos/krb5kdc/"
     VAR_KRB5KDC_K5_REALM = "/var/kerberos/krb5kdc/.k5."
