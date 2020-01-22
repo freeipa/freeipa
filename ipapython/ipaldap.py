@@ -103,6 +103,12 @@ def realm_to_ldapi_uri(realm_name):
     return 'ldapi://' + ldapurl.ldapUrlEscape(socketname)
 
 
+def serverid_to_ldapi_uri(serverid):
+    """Get ldapi:// URI to DS Unix socket based on its instance name """
+    socketname = paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % (serverid,)
+    return 'ldapi://' + ldapurl.ldapUrlEscape(socketname)
+
+
 def ldap_initialize(uri, cacertfile=None):
     """Wrapper around ldap.initialize()
 

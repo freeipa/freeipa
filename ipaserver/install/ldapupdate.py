@@ -150,7 +150,7 @@ class LDAPUpdate:
     )
 
     def __init__(self, dm_password=None, sub_dict={},
-                 online=True, ldapi=False):
+                 online=True, ldapi=False, serverid=None):
         '''
         :parameters:
             dm_password
@@ -273,9 +273,13 @@ class LDAPUpdate:
         self.ldapi = ldapi
         self.pw_name = pwd.getpwuid(os.geteuid()).pw_name
         self.realm = None
+        if serverid is None:
+            self.serverid = ipaldap.realm_to_serverid(api.env.realm)
+        else:
+            self.serverid = serverid
         self.socket_name = (
             paths.SLAPD_INSTANCE_SOCKET_TEMPLATE %
-            api.env.realm.replace('.', '-')
+            self.serverid
         )
         suffix = None
 
@@ -285,7 +289,10 @@ class LDAPUpdate:
             self.realm = api.env.realm
             suffix = ipautil.realm_to_suffix(self.realm) if self.realm else None
 
-        self.ldapuri = ipaldap.realm_to_ldapi_uri(self.realm)
+        if serverid:
+            self.ldapuri = ipaldap.serverid_to_ldapi_uri(serverid)
+        else:
+            self.ldapuri = ipaldap.realm_to_ldapi_uri(self.realm)
         if suffix is not None:
             assert isinstance(suffix, DN)
 
