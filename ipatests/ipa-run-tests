@@ -60,7 +60,10 @@ pyt_args = [sys.executable, "-c",
             "import sys,pytest;sys.exit(pytest.main())"] + sys.argv[1:]
 # shell is needed to perform globbing
 sh_args = ["/bin/sh", "--norc", "--noprofile", "-c", "--"]
-pyt_args_esc = ["'{}'".format(x) if " " in x else x for x in pyt_args]
+pyt_args_esc = [
+    f"'{x}'" if not x or " " in x else x
+    for x in pyt_args
+]
 args = sh_args + [" ".join(pyt_args_esc)]
 os.chdir(HERE)
 sys.stdout.flush()
