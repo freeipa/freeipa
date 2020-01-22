@@ -63,11 +63,6 @@ GC_SCHEMA_FILES = ("00-ad-schema-2016.ldif",)
 
 ALL_SCHEMA_FILES = GC_SCHEMA_FILES
 
-GC_SERVER_ID = "GLOBAL-CATALOG"
-GC_SERVICE_NAME = "globalcatalog"
-GC_PORT = 3268
-GC_SECURE_PORT = 3269
-
 
 def check_ports():
     """
@@ -77,8 +72,8 @@ def check_ports():
     secure port 3269. True means that the port is free, False means that the
     port is taken.
     """
-    gc_unsecure = not ipautil.host_port_open(None, GC_PORT)
-    gc_secure = not ipautil.host_port_open(None, GC_SECURE_PORT)
+    gc_unsecure = not ipautil.host_port_open(None, constants.GC_PORT)
+    gc_secure = not ipautil.host_port_open(None, constants.GC_SECURE_PORT)
     return (gc_unsecure, gc_secure)
 
 
@@ -88,7 +83,7 @@ def is_gc_configured():
     is already configured.
     """
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
-    return sstore.has_state(GC_SERVICE_NAME)
+    return sstore.has_state(constants.GC_SERVICE_NAME)
 
 
 class GCInstance(service.Service):
@@ -101,7 +96,7 @@ class GCInstance(service.Service):
         config_ldif=None,
     ):
         super(GCInstance, self).__init__(
-            GC_SERVICE_NAME,
+            constants.GC_SERVICE_NAME,
             service_desc="global catalog server",
             fstore=fstore,
             service_prefix=u"ldap",
@@ -126,7 +121,7 @@ class GCInstance(service.Service):
             self.__setup_sub_dict()
         else:
             self.suffix = DN()
-        self.serverid = GC_SERVER_ID
+        self.serverid = constants.GC_SERVER_ID
         self.conn = None
 
     subject_base = ipautil.dn_attribute_property("_subject_base")
@@ -175,7 +170,7 @@ class GCInstance(service.Service):
         self.realm = realm_name.upper()
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.fqdn = fqdn
-        self.ldap_uri = ipaldap.get_ldap_uri(realm="GLOBAL.CATALOG",
+        self.ldap_uri = ipaldap.get_ldap_uri(realm=constants.GC_REALM_NAME,
                                              protocol='ldapi')
         self.dm_password = dm_password
         self.domain = domain_name
@@ -324,8 +319,8 @@ class GCInstance(service.Service):
         slapd_options = Slapd2Base(logger)
         slapd_options.set('instance_name', self.serverid)
         slapd_options.set('root_password', self.dm_password)
-        slapd_options.set('port', GC_PORT)
-        slapd_options.set('secure_port', GC_SECURE_PORT)
+        slapd_options.set('port', constants.GC_PORT)
+        slapd_options.set('secure_port', constants.GC_SECURE_PORT)
         slapd_options.verify()
         slapd = slapd_options.collect()
 
@@ -432,7 +427,7 @@ class GCInstance(service.Service):
             self.conn = None
         super(GCInstance, self).stop(*args, **kwargs)
 
-    def restart(self, instance=GC_SERVER_ID):
+    def restart(self, instance=constants.GC_SERVER_ID):
         if self.conn:
             self.conn.close()
             self.conn = None
@@ -693,7 +688,7 @@ class GCInstance(service.Service):
         conn.unbind()
 
         # check for open secure port GC_SECURE_PORT from now on
-        self.open_ports.append(GC_SECURE_PORT)
+        self.open_ports.append(constants.GC_SECURE_PORT)
 
     def __import_ca_certs(self):
         dirname = config_dirname(self.serverid)
@@ -846,7 +841,7 @@ class GCInstance(service.Service):
             dsdb.untrack_server_cert(self.nickname)
 
     def __root_autobind(self):
-        ldap_uri = ipaldap.get_ldap_uri(self.fqdn, port=GC_PORT)
+        ldap_uri = ipaldap.get_ldap_uri(self.fqdn, port=constants.GC_PORT)
         self._ldap_mod(
             "root-autobind.ldif",
             ldap_uri=ldap_uri,

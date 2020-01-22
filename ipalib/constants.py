@@ -349,3 +349,9 @@ SOFTHSM_DNSSEC_TOKEN_LABEL = u'ipaDNSSEC'
 # Apache's mod_ssl SSLVerifyDepth value (Maximum depth of CA
 # Certificates in Client Certificate verification)
 MOD_SSL_VERIFY_DEPTH = '5'
+
+GC_SERVER_ID = "GLOBAL-CATALOG"
+GC_SERVICE_NAME = "globalcatalog"
+GC_REALM_NAME = "GLOBAL.CATALOG"
+GC_PORT = 3268
+GC_SECURE_PORT = 3269
