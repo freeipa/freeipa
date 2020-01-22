@@ -131,7 +131,7 @@ class KRAInstance(DogtagInstance):
         self.step("enabling ephemeral requests", self.enable_ephemeral)
         self.step("restarting KRA", self.restart_instance)
         self.step("configure certmonger for renewals",
-                  self.configure_certmonger_renewal)
+                  self.configure_certmonger_renewal_helpers)
         self.step("configure certificate renewals", self.configure_renewal)
         self.step("configure HTTP to proxy connections",
                   self.http_proxy)

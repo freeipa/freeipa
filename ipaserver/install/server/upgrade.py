@@ -1032,6 +1032,9 @@ def certificate_renewal_update(ca, kra, ds, http):
     Update certmonger certificate renewal configuration.
     """
 
+    # First ensure the renewal helpers are defined.
+    ca.configure_certmonger_renewal_helpers()
+
     template = paths.CERTMONGER_COMMAND_TEMPLATE
     serverid = ipaldap.realm_to_serverid(api.env.realm)
 
@@ -1148,7 +1151,6 @@ def certificate_renewal_update(ca, kra, ds, http):
             logger.info("Removing %s", filename)
             ipautil.remove_file(filename)
 
-    ca.configure_certmonger_renewal()
     ca.configure_renewal()
     ca.configure_agent_renewal()
     ca.add_lightweight_ca_tracking_requests()
