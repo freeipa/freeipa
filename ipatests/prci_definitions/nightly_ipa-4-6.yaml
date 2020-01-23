@@ -27,6 +27,10 @@ topologies:
     name: master_3repl_1client
     cpu: 6
     memory: 12900
+  ad_master: &ad_master
+    name: ad_master
+    cpu: 4
+    memory: 12000
 
 jobs:
   fedora-27/build:
@@ -1074,3 +1078,15 @@ jobs:
         template: *ci-master-f27
         timeout: 3600
         topology: *master_1repl
+
+  fedora-27/test_winsyncmigrate:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_winsyncmigrate.py
+        template: *ci-master-f27
+        timeout: 4800
+        topology: *ad_master
