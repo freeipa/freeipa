@@ -745,6 +745,8 @@ Requires: python3-pytest-sourceorder
 Requires: python3-sssdconfig >= %{sssd_version}
 Requires: tar
 Requires: xz
+Requires: openssh-clients
+Requires: sshpass
 
 %description -n python3-ipatests
 IPA is an integrated solution to provide centrally managed Identity (users,

@@ -31,6 +31,7 @@ from ipapython import ipaldap
 from .fips import (
     is_fips_enabled, enable_userspace_fips, disable_userspace_fips
 )
+from .transport import IPAOpenSSHTransport
 
 FIPS_NOISE_RE = re.compile(br"FIPS mode initialized\r?\n?")
 
@@ -64,6 +65,8 @@ class LDAPClientWithoutCertCheck(ipaldap.LDAPClient):
 
 class Host(pytest_multihost.host.Host):
     """Representation of a remote IPA host"""
+
+    transport_class = IPAOpenSSHTransport
 
     def __init__(self, domain, hostname, role, ip=None,
                  external_hostname=None, username=None, password=None,
@@ -203,3 +206,4 @@ class WinHost(pytest_multihost.host.WinHost):
     This serves as a sketch class once we move from manual preparation of
     Active Directory to the automated setup.
     """
+    transport_class = IPAOpenSSHTransport
