@@ -10,6 +10,7 @@ from __future__ import absolute_import
 
 from functools import partial
 import textwrap
+import re
 
 import pytest
 
@@ -194,6 +195,31 @@ class TestSMB(IntegrationTest):
         finally:
             run_smb_server(['rm', '-rf', test_dir], raiseonerr=False)
 
+    def smb_installation_check(self, result):
+        domain_regexp_tpl = r'''
+            Domain\ name:\s*{domain}\n
+            \s*NetBIOS\ name:\s*{netbios}\n
+            \s*SID:\s*S-1-5-21-\d+-\d+-\d+\n
+            \s+ID\ range:\s*\d+\s*-\s*\d+
+        '''
+        # pylint: disable=no-member
+        ipa_regexp = domain_regexp_tpl.format(
+            domain=re.escape(self.master.domain.name),
+            netbios=self.master.netbios)
+        ad_regexp = domain_regexp_tpl.format(
+            domain=re.escape(self.ad.domain.name), netbios=self.ad.netbios)
+        # pylint: enable=no-member
+        output_regexp = r'''
+            Discovered\ domains.*
+            {}
+            .*
+            {}
+            .*
+            Samba.+configured.+check.+/etc/samba/smb\.conf
+        '''.format(ipa_regexp, ad_regexp)
+        assert re.search(output_regexp, result.stdout_text,
+                         re.VERBOSE | re.DOTALL)
+
     def cleanup_mount(self, mountpoint):
         self.smbclient.run_command(['umount', mountpoint], raiseonerr=False)
         self.smbclient.run_command(['rmdir', mountpoint], raiseonerr=False)
@@ -204,7 +230,8 @@ class TestSMB(IntegrationTest):
         assert res.stdout_text == 'Samba domain member is not configured yet\n'
 
     def test_install_samba(self):
-        self.smbserver.run_command(['ipa-client-samba', '-U'])
+        samba_install_result = self.smbserver.run_command(
+            ['ipa-client-samba', '-U'])
         # smb and winbind are expected to be not running
         for service in ['smb', 'winbind']:
             result = self.smbserver.run_command(
@@ -219,6 +246,9 @@ class TestSMB(IntegrationTest):
             self.smbserver.run_command(['systemctl', 'status', service])
         # print status for debugging purposes
         self.smbserver.run_command(['smbstatus'])
+        # checks postponed till the end of method to be sure services are
+        # started - this way we prevent other tests from failing
+        self.smb_installation_check(samba_install_result)
 
     def test_samba_service_listed(self):
         """Check samba service is listed.
