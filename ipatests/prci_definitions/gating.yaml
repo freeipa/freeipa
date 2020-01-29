@@ -39,7 +39,7 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
-  fedora-27/caless:
+  fedora-27/test_caless_TestServerReplicaCALessToCAFull:
     requires: [fedora-27/build]
     priority: 50
     job:
@@ -51,7 +51,7 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
-  fedora-27/external_ca:
+  fedora-27/test_external_ca_TestExternalCA:
     requires: [fedora-27/build]
     priority: 50
     job:
@@ -63,7 +63,7 @@ jobs:
         timeout: 4800
         topology: *master_1repl_1client
 
-  fedora-27/test_ipa_commands:
+  fedora-27/test_commands:
     requires: [fedora-27/build]
     priority: 50
     job:
@@ -75,7 +75,7 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
-  fedora-27/dnssec:
+  fedora-27/test_dnssec_TestInstallDNSSECFirst:
     requires: [fedora-27/build]
     priority: 50
     job:
