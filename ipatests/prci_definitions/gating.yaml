@@ -71,7 +71,7 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
-  fedora-latest/external_ca_1:
+  fedora-latest/test_external_ca_TestExternalCA:
     requires: [fedora-latest/build]
     priority: 100
     job:
@@ -83,7 +83,7 @@ jobs:
         timeout: 4800
         topology: *master_1repl_1client
 
-  fedora-latest/external_ca_2:
+  fedora-latest/test_external_ca_TestSelfExternalSelf:
     requires: [fedora-latest/build]
     priority: 100
     job:
