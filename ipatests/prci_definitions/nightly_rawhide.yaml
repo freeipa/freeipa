@@ -1566,6 +1566,7 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_winsyncmigrate.py
         template: *ci-master-frawhide
         timeout: 4800
