@@ -47,6 +47,29 @@ DBUS_CM_CA_IF = 'org.fedorahosted.certmonger.ca'
 DBUS_PROPERTY_IF = 'org.freedesktop.DBus.Properties'
 
 
+"""
+Certmonger helper routines.
+
+Search criteria
+---------------
+
+Functions that look up requests take a ``dict`` of search criteria.
+In general, the key is a name of a property in the request property
+interface.  But there are some special cases with different
+behaviour:
+
+``nickname``
+  a.k.a. "request ID".  If given, only the specified request is
+  retrieved (if it exists), and it is still tested against other
+  criteria.
+
+``ca-name``
+  Test equality against the nickname of the CA (a.k.a. request
+  helper) object for the request.
+
+"""
+
+
 class _cm_dbus_object:
     """
     Auxiliary class for convenient DBus object handling.
@@ -159,6 +182,9 @@ class _certmonger(_cm_dbus_object):
 def _get_requests(criteria):
     """
     Get all requests that matches the provided criteria.
+
+    :param criteria: dict of criteria; see module doc for details
+
     """
     if not isinstance(criteria, dict):
         raise TypeError('"criteria" must be dict.')
@@ -197,11 +223,11 @@ def _get_requests(criteria):
 
 def _get_request(criteria):
     """
-    Find request that matches criteria.
-    If 'nickname' is specified other criteria are ignored because 'nickname'
-    uniquely identify single request.
-    When multiple or none request matches specified criteria RuntimeError is
-    raised.
+    Find request that matches criteria.  Return ``None`` if no match.
+    Raise ``RuntimeError`` if there is more than one matching request.
+
+    :param criteria: dict of criteria; see module doc for details
+
     """
     requests = _get_requests(criteria)
     if len(requests) == 0:
@@ -239,11 +265,11 @@ def get_request_id(criteria):
     If you don't know the certmonger request_id then try to find it by looking
     through all the requests.
 
-    criteria is a tuple of key/value to search for. The more specific
-    the better. An error is raised if multiple request_ids are returned for
-    the same criteria.
+    Return ``None`` if no match.  Raise ``RuntimeError`` if there is
+    more than one matching request.
 
-    None is returned if none of the criteria match.
+    :param criteria: dict of criteria; see module doc for details
+
     """
     try:
         request = _get_request(criteria)
