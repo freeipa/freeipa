@@ -46,6 +46,10 @@ DBUS_CM_REQUEST_IF = 'org.fedorahosted.certmonger.request'
 DBUS_CM_CA_IF = 'org.fedorahosted.certmonger.ca'
 DBUS_PROPERTY_IF = 'org.freedesktop.DBus.Properties'
 
+# These properties, if encountered in search criteria, result in a
+# subset test instead of equality test.
+ARRAY_PROPERTIES = ['template-hostname']
+
 
 """
 Certmonger helper routines.
@@ -66,6 +70,10 @@ behaviour:
 ``ca-name``
   Test equality against the nickname of the CA (a.k.a. request
   helper) object for the request.
+
+``template-hostname``
+  Must be an iterable of DNS names.  Tests that the given values
+  are a subset of the values defined on the Certmonger request.
 
 """
 
@@ -210,11 +218,18 @@ def _get_requests(criteria):
                                        criteria.get('ca-name'))
                 ca = _cm_dbus_object(cm.bus, cm, ca_path, DBUS_CM_CA_IF,
                                      DBUS_CM_IF)
-                value = ca.obj_if.get_nickname()
+                if criteria[criterion] != ca.obj_if.get_nickname():
+                    break
+            elif criterion in ARRAY_PROPERTIES:
+                # perform subset test
+                expect = set(criteria[criterion])
+                got = request.prop_if.Get(DBUS_CM_REQUEST_IF, criterion)
+                if not expect.issubset(got):
+                    break
             else:
                 value = request.prop_if.Get(DBUS_CM_REQUEST_IF, criterion)
-            if value != criteria[criterion]:
-                break
+                if criteria[criterion] != value:
+                    break
         else:
             requests.append(request)
 
