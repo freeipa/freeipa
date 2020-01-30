@@ -156,7 +156,7 @@ class _certmonger(_cm_dbus_object):
                                           DBUS_CM_IF)
 
 
-def _get_requests(criteria=dict()):
+def _get_requests(criteria):
     """
     Get all requests that matches the provided criteria.
     """
