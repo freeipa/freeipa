@@ -127,6 +127,8 @@ class TestNFS(IntegrationTest):
         nfssrv = self.clients[0]
         nfsclt = self.clients[1]
 
+        # for journalctl --since
+        since = time.strftime('%H:%M:%S')
         nfsclt.run_command(["systemctl", "restart", "rpc-gssd"])
         time.sleep(WAIT_AFTER_INSTALL)
         mountpoints = ("/mnt/krb", "/mnt/std", "/home")
@@ -146,6 +148,11 @@ class TestNFS(IntegrationTest):
             "mount", "-t", "nfs4", "-o", "sec=krb5p,vers=4.0",
             "%s:/exports/home" % nfssrv.hostname, "/home", "-v"
         ])
+        error = "Unspecified GSS failure"
+        check_log = [
+            'journalctl', '-u', 'gssproxy', '--since={}'.format(since)]
+        result = nfsclt.run_command(check_log)
+        assert error not in (result.stdout_text, result.stderr_text)
 
     def test_automount(self):
         """
