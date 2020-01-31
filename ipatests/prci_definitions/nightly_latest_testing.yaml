@@ -519,6 +519,19 @@ jobs:
         timeout: 10800
         topology: *master_2repl_1client
 
+  testing-fedora/test_installation_TestIpaJoin:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestIpaJoin
+        template: *testing-master-latest
+        timeout: 10800
+        topology: *ad_master_2client
+
   testing-fedora/test_idviews:
     requires: [testing-fedora/build]
     priority: 50

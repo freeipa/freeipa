@@ -23,6 +23,10 @@ topologies:
     name: master_3repl_1client
     cpu: 6
     memory: 12900
+  ad_master_2client: &ad_master_2client
+    name: ad_master_2client
+    cpu: 4
+    memory: 12000
 
 jobs:
   pki-fedora/build:
@@ -324,6 +328,19 @@ jobs:
         template: *pki-master-latest
         timeout: 10800
         topology: *master_1repl
+
+  pki-fedora/test_installation_TestIpaJoin:
+    requires: [pki-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{pki-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestIpaJoin
+        template: *pki-master-latest
+        timeout: 10800
+        topology: *ad_master_2client
 
   pki-fedora/test_caless_TestServerInstall:
     requires: [pki-fedora/build]

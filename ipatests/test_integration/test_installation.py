@@ -1075,3 +1075,60 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
                                             self.replicas[0].hostname],
                                            stdin_text=dirman_password)
         assert self.replicas[0].hostname not in cmd.stdout_text
+
+
+class TestIpaJoin(IntegrationTest):
+
+    num_clients = 2
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=False)
+
+    def test_unenroll_option(self):
+        """
+        Test ipa-join Using unenroll option
+        """
+        # install client and kinit admin
+        tasks.install_client(self.master, self.clients[0])
+        tasks.kinit_admin(self.clients[0])
+
+        # checking unenroll option
+        result = self.clients[0].run_command(['ipa-join', '-u',
+                                             self.clients[0].hostname])
+        assert "Unenrollment successful." in result.stderr_text
+
+        # checking hostname option
+        result = self.clients[0].run_command(['ipa-join', '-h',
+                                              self.clients[0].hostname])
+        assert "Keytab successfully retrieved" in result.stderr_text
+
+    def test_hostname_with_ldap_password(self):
+        """
+        Test ipa-join Using options hostname and bindpw
+        """
+        # install client and kinit admin
+        tasks.install_client(self.master, self.clients[1])
+        tasks.kinit_admin(self.clients[1])
+
+        # Using options hostname and bindpw with invalid pwd
+        invalid_password = 'abcdefgh'
+        result = self.clients[1].run_command(['ipa-join',
+                                              '-h', self.clients[1].hostname,
+                                              '-w', invalid_password],
+                                             raiseonerr=False)
+        assert "Bind failed:" in result.stderr_text
+
+        # Using options hostname and bindpw with valid pwd
+        valid_password = ''
+        self.master.run_command(['ipa', 'host-del', self.clients[1].hostname])
+        cmd = self.master.run_command(['ipa', 'host-add', '--random'],
+                                      stdin_text=self.clients[1].hostname)
+        for line in cmd.stdout_text.split('\n'):
+            if "Random password" in line:
+                valid_password = line.split()[2]
+                break
+        result = self.clients[0].run_command(['ipa-join',
+                                              '-h', self.clients[1].hostname,
+                                              '-w', valid_password])
+        assert "Keytab successfully retrieved" in result.stderr_text
