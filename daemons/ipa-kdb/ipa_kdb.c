@@ -723,6 +723,12 @@ stub_sign_authdata(krb5_context context, unsigned int flags,
     krb5_db_entry *krbtgt = header_server ? header_server : local_tgt;
     krb5_keyblock *krbtgt_key = header_key ? header_key : local_tgt_key;
 
+    if (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION) {
+        client = header_server;
+        krbtgt = local_tgt;
+        krbtgt_key = local_tgt_key;
+    }
+
     return ipadb_sign_authdata(context, flags, client_princ, client, server,
                                krbtgt, client_key, server_key, krbtgt_key,
                                session_key, authtime, tgt_auth_data,
