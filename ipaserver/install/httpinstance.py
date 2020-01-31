@@ -44,7 +44,7 @@ from ipapython.dn import DN
 import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api, x509
-from ipalib.constants import IPAAPI_USER, MOD_SSL_VERIFY_DEPTH
+from ipalib.constants import IPAAPI_USER, MOD_SSL_VERIFY_DEPTH, IPA_CA_RECORD
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
@@ -593,6 +593,7 @@ class HTTPInstance(service.Service):
                 post_command='restart_httpd', storage='FILE',
                 profile=dogtag.DEFAULT_PROFILE,
                 pinfile=key_passwd_file,
+                dns=[self.fqdn, f'{IPA_CA_RECORD}.{api.env.domain}'],
             )
             subject = str(DN(cert.subject))
             certmonger.add_principal(request_id, self.principal)
