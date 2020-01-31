@@ -36,7 +36,7 @@ from ipalib import api
 from ipalib import errors, messages
 from ipalib import x509
 from ipalib import ngettext
-from ipalib.constants import IPA_CA_CN
+from ipalib.constants import IPA_CA_CN, IPA_CA_RECORD
 from ipalib.crud import Create, PKQuery, Retrieve, Search
 from ipalib.frontend import Method, Object
 from ipalib.parameters import (
@@ -798,6 +798,21 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     )
 
                 name = gn.value
+
+                # Special case: if the DNS name is ipa-ca.$DOMAIN and if the
+                # subject principal is the HTTP service for an IPA server
+                # then allow the name.
+                if name == f'{IPA_CA_RECORD}.{self.api.env.domain}' \
+                        and principal.is_service \
+                        and principal.service_name == 'HTTP':
+                    try:
+                        self.api.Command.server_show(principal.hostname)
+                    except errors.NotFound:
+                        pass  # not an IPA server; proceed as usual
+                    else:
+                        # subject principal is an IPA server, so the
+                        # ipa-ca.$DOMAIN name is allowed
+                        continue
 
                 if _dns_name_matches_principal(name, principal, principal_obj):
                     san_dnsnames.add(name)
