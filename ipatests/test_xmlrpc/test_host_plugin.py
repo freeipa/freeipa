@@ -129,6 +129,12 @@ def host4(request):
 
 
 @pytest.fixture(scope='class')
+def host5(request):
+    tracker = HostTracker(name=u'testhost5')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
 def lab_host(request):
     name = u'testhost1'
     tracker = HostTracker(name=name,
@@ -256,6 +262,29 @@ class TestCRUD(XMLRPC_test):
             fqdn=host.fqdn, usercertificate=host_cert)
         res = command()['result']
         assert len(res) == 1
+
+    def test_host_find_pkey_only(self, host5):
+        # test host-find with --pkey-only
+        host5.ensure_exists()
+        command = host5.make_create_command(force=True)
+        host5.update(dict(ipasshpubkey=sshpubkey),
+                     expected_updates=dict(
+                         description=['Test host <testhost5>'],
+                         fqdn=[host5.fqdn],
+                         ipasshpubkey=[sshpubkey],
+                         has_keytab=False,
+                         has_password=False,
+                         krbprincipalname=['host/%s@%s' %
+                                           (host5.fqdn, api.env.realm)],
+                         krbcanonicalname=['host/%s@%s' %
+                                           (host5.fqdn, api.env.realm)],
+                         managedby_host=[host5.fqdn],
+                         sshpubkeyfp=[sshpubkeyfp], ))
+        command = host5.make_find_command(
+            fqdn=host5.fqdn, pkey_only=True)
+        result = command()['result']
+        for item in result:
+            assert 'ipasshpubkey' not in item.keys()
 
     def test_try_rename(self, host):
         host.ensure_exists()
