@@ -731,9 +731,16 @@ class UI_driver:
 
     def _button_click(self, selector, parent, name=''):
         btn = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
+
+        # The small timeout (up to 5 seconds) allows to prevent exceptions when
+        # driver attempts to click a button before it is rendered.
+        WebDriverWait(self.driver, 5, 0.2).until(
+            lambda d: btn.is_displayed(),
+            'Button is not displayed: %s' % (name or selector)
+        )
         self.move_to_element_in_page(btn)
+
         disabled = btn.get_attribute("disabled")
-        assert btn.is_displayed(), 'Button is not displayed: %s' % name
         assert not disabled, 'Invalid button state: disabled. Button: %s' % name
         btn.click()
         self.wait_for_request()
