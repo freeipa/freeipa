@@ -43,7 +43,7 @@ jobs:
         git_refspec: '{git_refspec}'
         template: &ci-master-f29
           name: freeipa/ci-ipa-4-7-f29
-          version: 0.0.2
+          version: 0.0.3
         timeout: 1800
         topology: *build
 
