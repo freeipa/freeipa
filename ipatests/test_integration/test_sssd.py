@@ -21,6 +21,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
 
     topology = 'star'
     num_ad_domains = 1
+    num_clients = 1
 
     users = {
         'ipa': {
@@ -148,3 +149,34 @@ class TestSSSDWithAdTrust(IntegrationTest):
             dp_req = ("Looking up [{0}] in data provider".format(
                 self.users[user]['name']))
             assert not dp_req.encode() in sssd_log
+
+    def test_extdom_group(self):
+        """ipa-extdom-extop plugin should allow @ in group name.
+
+        Test for : https://bugzilla.redhat.com/show_bug.cgi?id=1746951
+
+        If group contains @ in group name from AD, eg. abc@pqr@AD.DOMAIN
+        then it should fetch successfully on ipa-client.
+        """
+        client = self.clients[0]
+        hosts = [self.master, client]
+        ad_group = 'group@group@{0}'.format(self.ad.domain.name)
+        expression = '((?P<name>.+)@(?P<domain>[^@]+$))'
+        master_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        client_conf_backup = tasks.FileBackup(client, paths.SSSD_CONF)
+        for host in hosts:
+            with tasks.remote_ini_file(host, paths.SSSD_CONF) as sssd_conf:
+                sssd_conf.set('sssd', 're_expression', expression)
+                sssd_conf.set('sssd', 'use_fully_qualified_names', True)
+            tasks.clear_sssd_cache(host)
+        try:
+            cmd = ['getent', 'group', ad_group]
+            result = self.master.run_command(cmd)
+            assert ad_group in result.stdout_text
+            result2 = client.run_command(cmd)
+            assert ad_group in result2.stdout_text
+        finally:
+            master_conf_backup.restore()
+            client_conf_backup.restore()
+            tasks.clear_sssd_cache(self.master)
+            tasks.clear_sssd_cache(client)
