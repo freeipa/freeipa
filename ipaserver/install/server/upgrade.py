@@ -386,15 +386,34 @@ def ca_enable_ldap_profile_subsystem(ca):
     needs_update = False
     directive = None
     try:
-        for i in range(15):
+        i = 0
+        while True:
+            # find profile subsystem
+            directive = "subsystem.{}.id".format(i)
+            value = directivesetter.get_directive(
+                paths.CA_CS_CFG_PATH,
+                directive,
+                separator='=')
+            if not value:
+                logger.error('Unable to find profile subsystem in %s',
+                             paths.CA_CS_CFG_PATH)
+                return False
+            if value != 'profile':
+                i = i + 1
+                continue
+
+            # check profile subsystem class name
             directive = "subsystem.{}.class".format(i)
             value = directivesetter.get_directive(
                 paths.CA_CS_CFG_PATH,
                 directive,
                 separator='=')
-            if value == 'com.netscape.cmscore.profile.ProfileSubsystem':
+            if value != 'com.netscape.cmscore.profile.LDAPProfileSubsystem':
                 needs_update = True
-                break
+
+            # break after finding profile subsystem
+            break
+
     except OSError as e:
         logger.error('Cannot read CA configuration file "%s": %s',
                      paths.CA_CS_CFG_PATH, e)
