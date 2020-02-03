@@ -13,6 +13,7 @@ import glob
 import shutil
 import pwd
 import fileinput
+import ssl
 import stat
 import sys
 import tempfile
@@ -21,7 +22,7 @@ from augeas import Augeas
 import dns.exception
 
 from ipalib import api, x509
-from ipalib.constants import RENEWAL_CA_NAME, RA_AGENT_PROFILE
+from ipalib.constants import RENEWAL_CA_NAME, RA_AGENT_PROFILE, IPA_CA_RECORD
 from ipalib.install import certmonger, sysrestore
 import SSSDConfig
 import ipalib.util
@@ -1081,6 +1082,10 @@ def certificate_renewal_update(ca, kra, ds, http):
                 'key-file': paths.HTTPD_KEY_FILE,
                 'ca-name': 'IPA',
                 'cert-postsave-command': template % 'restart_httpd',
+                'template-hostname': [
+                    http.fqdn,
+                    f'{IPA_CA_RECORD}.{ipautil.format_netloc(api.env.domain)}',
+                ],
             }
         )
 
@@ -1161,6 +1166,58 @@ def certificate_renewal_update(ca, kra, ds, http):
 
     logger.info("Certmonger certificate renewal configuration updated")
     return True
+
+
+def http_certificate_ensure_ipa_ca_dnsname(http):
+    """
+    Ensure the HTTP service certificate has the ipa-ca.$DOMAIN SAN dNSName.
+
+    This subroutine should be executed *after* ``certificate_renewal_update``,
+    which adds the name to the tracking request.  It assumes that the tracking
+    request already has the ipa-ca.$DOMAIN DNS name set, and all that is needed
+    is to resubmit the request.
+
+    If HTTP certificate is issued by a third party, print manual remediation
+    steps.
+
+    """
+    logger.info('[Adding ipa-ca alias to HTTP certificate]')
+
+    expect = f'{IPA_CA_RECORD}.{ipautil.format_netloc(api.env.domain)}'
+    cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
+
+    try:
+        cert.match_hostname(expect)
+    except ssl.SSLCertVerificationError:
+        if certs.is_ipa_issued_cert(api, cert):
+            request_id = certmonger.get_request_id(
+                {'cert-file': paths.HTTPD_CERT_FILE})
+            if request_id is None:
+                # shouldn't happen
+                logger.error('Could not find HTTP cert tracking request.')
+            else:
+                logger.info('Resubmitting HTTP cert tracking request')
+                certmonger.resubmit_request(request_id)
+                # NOTE: due to https://pagure.io/certmonger/issue/143, the
+                # resubmitted request, if it does not immediately succeed
+                # (fairly likely during ipa-server-upgrade) and if the notAfter
+                # date of the current cert is still far off (also likely), then
+                # Certmonger will wait 7 days before trying again (unless
+                # restarted).  There is not much we can do about that here, in
+                # the middle of ipa-server-upgrade.
+        else:
+            logger.error('HTTP certificate is issued by third party.')
+            logger.error(
+                'Obtain a new certificate with the following DNS names, \n'
+                'and install via ipa-server-certinstall(1):\n'
+                ' - %s\n'
+                ' - %s',
+                http.fqdn,
+                expect,
+            )
+    else:
+        logger.info('Certificate is OK; nothing to do')
+
 
 def copy_crl_file(old_path, new_path=None):
     """
@@ -2190,6 +2247,10 @@ def upgrade_configuration():
     setup_spake(krb)
     setup_pkinit(krb)
     enable_server_snippet()
+
+    # Must be executed after certificate_renewal_update
+    # (see function docstring for details)
+    http_certificate_ensure_ipa_ca_dnsname(http)
 
     if not ds_running:
         ds.stop(ds.serverid)
