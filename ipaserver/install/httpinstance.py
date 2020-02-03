@@ -381,7 +381,7 @@ class HTTPInstance(service.Service):
                     subject=str(DN(('CN', self.fqdn), self.subject_base)),
                     ca='IPA',
                     profile=dogtag.DEFAULT_PROFILE,
-                    dns=[self.fqdn],
+                    dns=[self.fqdn, f'{IPA_CA_RECORD}.{api.env.domain}'],
                     post_command='restart_httpd',
                     storage='FILE',
                     passwd_fname=key_passwd_file,
