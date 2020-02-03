@@ -138,6 +138,23 @@ def dismiss_unexpected_alert(fn):
     return wrapped
 
 
+def repeat_on_stale_parent_reference(fn):
+    """
+    The decorator repeats a function once when StaleElementReferenceException
+    is caught.
+    It is not applicable if a parent reference is created outside a function.
+    """
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        if ('parent' in kwargs) and kwargs['parent'] is None:
+            try:
+                return fn(*args, **kwargs)
+            except StaleElementReferenceException:
+                pass
+        return fn(*args, **kwargs)
+    return wrapped
+
+
 class UI_driver:
     """
     Base class for all UI integration tests
@@ -1196,6 +1213,7 @@ class UI_driver:
             val = el.text
         return val
 
+    @repeat_on_stale_parent_reference
     def has_record(self, pkey, parent=None, table_name=None):
         """
         Check if table contains specific record.
