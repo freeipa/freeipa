@@ -780,6 +780,9 @@ class GCInstance(service.Service):
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring global catalog")
+        # The uninstaller is executed even if is_configured() returns False
+        # because entries may be left in the main 389ds instance,
+        # certificates may still be tracked etc...
 
         # Just eat this state if it exists
         self.restore_state("enabled")
@@ -787,7 +790,7 @@ class GCInstance(service.Service):
 
         try:
             api.Backend.ldap2.connect()
-        except NetworkError:
+        except (NetworkError, AttributeError):
             logger.error("Unable to connect to directory server, "
                          "you may need to remove service container and "
                          "service principal manually.")
@@ -815,7 +818,7 @@ class GCInstance(service.Service):
                     "need to remove instance data manually"
                 )
         else:
-            logger.error("Failed to remove global catalog instance. No "
+            logger.debug("Skipping removal of global catalog instance. No "
                          "serverid present in sysrestore file.")
 
         ipautil.remove_keytab(paths.GC_KEYTAB)
