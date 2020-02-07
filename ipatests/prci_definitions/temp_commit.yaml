@@ -41,6 +41,10 @@ topologies:
    name: ad_master
    cpu: 4
    memory: 12000
+  adroot_adchild_adtree_master_1client: &adroot_adchild_adtree_master_1client
+    name: adroot_adchild_adtree_master_1client
+    cpu: 8
+    memory: 14500
 
 jobs:
   fedora-29/build:
