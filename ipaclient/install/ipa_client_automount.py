@@ -355,9 +355,10 @@ def uninstall(fstore, statestore):
                         continue
                     if provider == "ipa":
                         domain.remove_option('ipa_automount_location')
+                        sssdconfig.save_domain(domain)
                         domain.remove_provider('autofs')
+                        sssdconfig.save_domain(domain)
                         break
-                sssdconfig.save_domain(domain)
                 sssdconfig.write(paths.SSSD_CONF)
                 sssd = services.service('sssd', api)
                 sssd.restart()
