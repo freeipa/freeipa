@@ -6,16 +6,22 @@ variables:
   localsdir: $(Build.Repository.LocalPath)
   builddir: /__w/1/s
   VM_IMAGE: 'Ubuntu-18.04'
+  DOCKER_BUILD_IMAGE: 'registry.fedoraproject.org/f30/fedora-toolbox'
+  DOCKER_DOCKERFILE: 'Dockerfile.build-container'
+  PREPARE_BUILD_TEMPLATE: 'prepare-build-fedora.yml'
+  BUILD_TEMPLATE: 'build-fedora.yml'
+  PREPARE_TOX_TEMPLATE: 'prepare-tox-fedora.yml'
+  PREPARE_WEBUI_TEMPLATE: 'prepare-webui-fedora.yml'
 
 jobs:
 - job: Build
   pool:
     vmImage: $(VM_IMAGE)
   container:
-    image: registry.fedoraproject.org/f30/fedora-toolbox
+    image: $(DOCKER_BUILD_IMAGE)
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
   steps:
-    - template: templates/prepare-build.yml
+    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - script: |
         set -e
         echo "Running autoconf generator"
@@ -27,19 +33,15 @@ jobs:
         make V=0 "GIT_BRANCH=$(System.PullRequest.TargetBranch)" fastlint
       displayName: Quick code style check
       condition: eq(variables['Build.Reason'], 'PullRequest')
-    - script: |
-        set -e
-        echo "Running make target 'rpms'"
-        make V=0 rpms LOG_COMPILE='gdb -return-child-result -ex run -ex "thread apply all bt" -ex "quit" --args'
-      displayName: Build packages
+    - template: templates/${{ variables.BUILD_TEMPLATE }}
     - script: |
         set -e
         mkdir container
         cp -pr dist container/
-        cp ipatests/azure/Dockerfile.build-container container/Dockerfile
+        cp ipatests/azure/$(DOCKER_DOCKERFILE) container/Dockerfile
         cd container
-        docker build -t freeipa-fedora-builder .
-        docker save freeipa-fedora-builder | gzip > '$(builddir)/freeipa-fedora-builder-container.tar.gz'
+        docker build -t freeipa-azure-builder .
+        docker save freeipa-azure-builder | gzip > '$(builddir)/freeipa-azure-builder-container.tar.gz'
       displayName: Create container image for test
     - template: templates/publish-build.yml
 
@@ -47,10 +49,10 @@ jobs:
   pool:
     vmImage: $(VM_IMAGE)
   container:
-    image: registry.fedoraproject.org/f30/fedora-toolbox
+    image: $(DOCKER_BUILD_IMAGE)
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
   steps:
-    - template: templates/prepare-build.yml
+    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - script: |
         set -e
         echo "Running autoconf generator"
@@ -66,19 +68,15 @@ jobs:
   pool:
     vmImage: $(VM_IMAGE)
   container:
-    image: registry.fedoraproject.org/f30/fedora-toolbox
+    image: $(DOCKER_BUILD_IMAGE)
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
   steps:
-    - template: templates/prepare-build.yml
+    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - task: UsePythonVersion@0
       inputs:
         versionSpec: 3.7
         architecture: x64
-    - script: |
-        set -e
-        sudo dnf -y install nss-tools
-        python3 -m pip install --user --upgrade pip setuptools pycodestyle
-      displayName: 'Install prerequisites'
+    - template: templates/${{ variables.PREPARE_TOX_TEMPLATE }}
     - script: |
         set -e
         echo "Running tox"
@@ -97,18 +95,15 @@ jobs:
   pool:
     vmImage: $(VM_IMAGE)
   container:
-    image: registry.fedoraproject.org/f30/fedora-toolbox
+    image: $(DOCKER_BUILD_IMAGE)
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged
   steps:
-    - template: templates/prepare-build.yml
+    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - task: UsePythonVersion@0
       inputs:
         versionSpec: 3.7
         architecture: x64
-    - script: |
-        set -e
-        sudo dnf -y install npm fontconfig
-      displayName: 'Install prerequisites'
+    - template: templates/${{ variables.PREPARE_WEBUI_TEMPLATE }}
     - script: |
         set -e
         echo "Running autoconf generator"

@@ -19,7 +19,7 @@ steps:
   displayName: Increase entropy level
 - template: setup-test-environment.yml
   parameters:
-    containerName: 'freeipa-fedora-builder:latest'
+    containerName: 'freeipa-azure-builder:latest'
     topology:
       replicas: ${{ parameters.topology.replicas }}
       clients: ${{ parameters.topology.clients }}

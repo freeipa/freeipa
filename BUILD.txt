@@ -20,7 +20,7 @@ TIP: You might need to enable the "nodejs" module:
 # dnf module list nodejs
 # dnf module enable nodejs:<latest version> -y
 
-For more dependencies management tips, you can have a look at ./ipatests/azure/templates/prepare-build.yml
+For more dependencies management tips, you can have a look at ./ipatests/azure/templates/prepare-build-fedora.yml
 
 Building
 --------

@@ -1,0 +1,6 @@
+steps:
+- script: |
+    set -e
+    echo "Running make target 'rpms'"
+    make V=0 rpms LOG_COMPILE='gdb -return-child-result -ex run -ex "thread apply all bt" -ex "quit" --args'
+  displayName: Build packages

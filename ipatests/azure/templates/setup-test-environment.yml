@@ -1,5 +1,5 @@
 parameters:
-  imageName: 'freeipa-fedora-builder:latest'
+  imageName: 'freeipa-azure-builder:latest'
   topology:
     replicas: 0
     clients: 0
@@ -28,9 +28,9 @@ steps:
     targetPath: $(Agent.BuildDirectory)/s
 - script: |
     set -e
-    docker load --input $(Agent.BuildDirectory)/s/freeipa-fedora-builder-container.tar.gz
+    docker load --input $(Agent.BuildDirectory)/s/freeipa-azure-builder-container.tar.gz
     docker images
-    docker inspect freeipa-fedora-builder:latest
+    docker inspect freeipa-azure-builder:latest
   displayName: Import pre-built container to the engine
 - script: |
     set -ex
