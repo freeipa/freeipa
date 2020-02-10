@@ -27,16 +27,36 @@ jobs:
       displayName: Quick code style check
       condition: eq(variables['Build.Reason'], 'PullRequest')
     - template: templates/${{ variables.BUILD_TEMPLATE }}
+    - template: templates/publish-build.yml
+      parameters:
+        artifactName: 'packages-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)'
+        targetPath: $(Build.Repository.LocalPath)/dist
+        displayName: Publish packages
+
     - script: |
         set -e
         mkdir container
         cp -pr dist container/
-        cp ipatests/azure/$(DOCKER_DOCKERFILE) container/Dockerfile
+        cp $(IPA_TESTS_DOCKERFILES)/$(DOCKER_DOCKERFILE) container/Dockerfile
         cd container
         docker build -t freeipa-azure-builder .
         docker save freeipa-azure-builder | gzip > '$(builddir)/freeipa-azure-builder-container.tar.gz'
       displayName: Create container image for test
     - template: templates/publish-build.yml
+      parameters:
+        artifactName: 'image-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)'
+        targetPath: $(Build.Repository.LocalPath)/freeipa-azure-builder-container.tar.gz
+        displayName: Publish container image
+    - template: templates/generate-matrix.yml
+      parameters:
+        definition: 'ipatests/azure/azure_definitions/gating.yml'
+        displayName: Generate Matrix for Gating tests
+        name: gating_matrix
+    - template: templates/generate-matrix.yml
+      parameters:
+        definition: 'ipatests/azure/azure_definitions/base.yml'
+        displayName: Generate Matrix for Base tests
+        name: base_matrix
 
 - job: Lint
   pool:
@@ -121,27 +141,10 @@ jobs:
   dependsOn: Build
   condition: succeeded()
   strategy:
-    parallel: 3
+    matrix: $[ dependencies.Build.outputs['base_matrix.matrix'] ]
   steps:
-  - template: templates/test-jobs.yml
-    parameters:
-      testsToRun:
-      - test_cmdline
-      - test_install
-      - test_ipaclient
-      - test_ipalib
-      - test_ipaplatform
-      - test_ipapython
-      - test_ipaserver
-      - test_ipatests_plugins
-      - test_xmlrpc
-      testsToIgnore:
-      - test_integration
-      - test_webui
-      - test_ipapython/test_keyring.py
-      testsToDedicate:
-      - test_xmlrpc/test_dns_plugin.py
-      taskToRun: run-tests
+    - template: templates/generate-job-variables.yml
+    - template: templates/test-jobs.yml
 
 - job: GATING
   pool:
@@ -149,25 +152,8 @@ jobs:
   dependsOn: Build
   condition: succeeded()
   strategy:
-    matrix:
-      installation_TestInstallMaster:
-        testsToRun: test_integration/test_installation.py::TestInstallMaster
-      kerberos_flags:
-        testsToRun: test_integration/test_kerberos_flags.py
-        testsClients: 1
+    matrix: $[ dependencies.Build.outputs['gating_matrix.matrix'] ]
   timeoutInMinutes: 90
-
   steps:
-  - script: |
-      set -e
-      echo "##vso[task.setvariable variable=ntestsClients]${TESTSCLIENTS:-0}"
-      echo "##vso[task.setvariable variable=ntestsReplicas]${TESTSREPLICAS:-0}"
-    displayName: Generate variables
-
-  - template: templates/test-jobs.yml
-    parameters:
-      taskToRun: run-integration-tests
-      testsToRun: "$(testsToRun)"
-      topology:
-        clients: "$(ntestsClients)"
-        replicas: "$(ntestsReplicas)"
+    - template: templates/generate-job-variables.yml
+    - template: templates/test-jobs.yml
