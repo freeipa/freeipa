@@ -1,0 +1,5 @@
+steps:
+- script: |
+    set -e
+    sudo dnf -y install npm fontconfig
+  displayName: Install WebUI Unit tests prerequisites
