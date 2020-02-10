@@ -27,6 +27,7 @@ import textwrap
 import re
 import collections
 import itertools
+import shutil
 import tempfile
 import time
 from pipes import quote
@@ -738,7 +739,30 @@ def modify_sssd_conf(host, domain, mod_dict, provider='ipa',
         with open(temp_config_file, 'wb') as f:
             f.write(current_config)
 
-        sssd_config = SSSDConfig()
+        # In order to use SSSDConfig() locally we need to import the schema
+        # Create a tar file with /usr/share/sssd.api.conf and
+        # /usr/share/sssd/sssd.api.d
+        tmpname = create_temp_file(host)
+        host.run_command(
+            ['tar', 'cJvf', tmpname,
+             'sssd.api.conf',
+             'sssd.api.d'],
+            log_stdout=False, cwd="/usr/share/sssd")
+        # fetch tar file
+        tar_dir = tempfile.mkdtemp()
+        tarname = os.path.join(tar_dir, "sssd_schema.tar.xz")
+        with open(tarname, 'wb') as f:
+            f.write(host.get_file_contents(tmpname))
+        # delete from remote
+        host.run_command(['rm', '-f', tmpname])
+        # Unpack on the local side
+        ipautil.run([paths.TAR, 'xJvf', tarname], cwd=tar_dir)
+        os.unlink(tarname)
+
+        # Use the imported schema
+        sssd_config = SSSDConfig(
+            schemafile=os.path.join(tar_dir, "sssd.api.conf"),
+            schemaplugindir=os.path.join(tar_dir, "sssd.api.d"))
         sssd_config.import_config(temp_config_file)
         sssd_domain = sssd_config.get_domain(domain)
 
@@ -755,6 +779,7 @@ def modify_sssd_conf(host, domain, mod_dict, provider='ipa',
     finally:
         try:
             os.remove(temp_config_file)
+            shutil.rmtree(tar_dir)
         except OSError:
             pass
 
