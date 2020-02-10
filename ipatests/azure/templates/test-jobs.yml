@@ -1,36 +1,40 @@
 parameters:
-  jobName: ''
-  jobTitle: ''
   testsToIgnore: []
   testsToRun: []
   testsToDedicate: []
   taskToRun: ''
-  tasksParallel: 1
+  topology:
+    replicas: 0
+    clients: 0
 
-jobs:
-- job: ${{ parameters.jobName }}
-  displayName: ${{ parameters.jobTitle }}
-  dependsOn: Build
-  condition: succeeded()
-  pool:
-    vmImage: 'Ubuntu-16.04'
-  strategy:
-    parallel: ${{ parameters.tasksParallel }}
-  steps:
-    - template: setup-test-environment.yml
-    - template: run-test.yml
-      parameters:
-        containerName: 'freeipa-fedora-builder:latest'
-        logsPath: $(CI_RUNNER_LOGS_DIR)
-        taskToRun: ${{ parameters.taskToRun}}
-        testsToRun: ${{ join(' ', parameters.testsToRun ) }}
-        testsToIgnore: ${{ join(' ', parameters.testsToIgnore ) }}
-        testsToDedicate: ${{ join(' ', parameters.testsToDedicate ) }}
-    - task: PublishTestResults@2
-      inputs:
-        testResultsFiles: $(CI_RUNNER_LOGS_DIR)/nosetests.xml
-        testRunTitle: ${{parameters.jobTitle}} results
-      condition: succeededOrFailed()
-    - template: save-test-artifacts.yml
-      parameters:
-        logsArtifact: logs-${{parameters.jobName}}-$(Build.BuildId)-$(System.StageAttempt)-$(System.PhaseAttempt)-$(System.JobPositionInPhase)-$(Agent.OS)-$(Agent.OSArchitecture)
+steps:
+- script: |
+    set -e
+    env
+    printf "Available entropy: %s\n" $(cat /proc/sys/kernel/random/entropy_avail)
+    sudo apt-get install -y rng-tools
+    sudo service rng-tools start
+    sleep 3
+    printf "Available entropy: %s\n" $(cat /proc/sys/kernel/random/entropy_avail)
+  displayName: Increase entropy level
+- template: setup-test-environment.yml
+  parameters:
+    containerName: 'freeipa-fedora-builder:latest'
+    topology:
+      replicas: ${{ parameters.topology.replicas }}
+      clients: ${{ parameters.topology.clients }}
+- template: run-test.yml
+  parameters:
+    logsPath: $(CI_RUNNER_LOGS_DIR)
+    taskToRun: ${{ parameters.taskToRun }}
+    testsToRun: ${{ join(' ', parameters.testsToRun ) }}
+    testsToIgnore: ${{ join(' ', parameters.testsToIgnore ) }}
+    testsToDedicate: ${{ join(' ', parameters.testsToDedicate ) }}
+- task: PublishTestResults@2
+  inputs:
+    testResultsFiles: $(CI_RUNNER_LOGS_DIR)/nosetests.xml
+    testRunTitle: $(System.JobIdentifier) results
+  condition: succeededOrFailed()
+- template: save-test-artifacts.yml
+  parameters:
+    logsArtifact: logs-$(System.JobIdentifier)-$(Build.BuildId)-$(System.StageAttempt)-$(System.PhaseAttempt)-$(System.JobPositionInPhase)-$(Agent.OS)-$(Agent.OSArchitecture)

@@ -56,6 +56,7 @@ NO_RECURSE_DIRS = [
     'install/share',
     # integration plugin imports from ipaplatform
     'ipatests/pytest_ipa',
+    'ipatests/azure',
 ]
 
 

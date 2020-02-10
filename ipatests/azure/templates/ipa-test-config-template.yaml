@@ -1,0 +1,28 @@
+admin_name: admin
+admin_password: Secret123
+debug: false
+dirman_dn: cn=Directory Manager
+dirman_password: Secret123
+domain_level: 1
+dns_forwarder: {{ dns_forwarder }}
+root_ssh_key_filename: {{ ssh_private_key }}
+domains:
+- name: {{ domain_name }}
+  type: IPA
+  hosts:
+  - external_hostname: master1.{{ domain_name }}
+    name: master1.{{ domain_name }}
+    ip: {{ master[0] }}
+    role: master
+{% for repl_ip in replicas: %}
+  - external_hostname: replica{{ loop.index }}.{{ domain_name }}
+    name: replica{{ loop.index }}.{{ domain_name }}
+    ip: {{ repl_ip }}
+    role: replica
+{% endfor %}
+{% for client_ip in clients: %}
+  - external_hostname: client{{ loop.index }}.{{ domain_name }}
+    name: client{{ loop.index }}.{{ domain_name }}
+    ip: {{ client_ip }}
+    role: client
+{% endfor %}

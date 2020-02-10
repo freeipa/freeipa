@@ -1,11 +1,7 @@
 #!/bin/bash -ex
 
-# Setup DNS
-echo -e '127.0.0.1 localhost\n::1 localhost\n' > /etc/hosts
-echo 'nameserver 8.8.8.8' > /etc/resolv.conf
-
-server_realm=EXAMPLE.TEST
-server_domain=example.test
+server_realm=IPA.TEST
+server_domain=ipa.test
 server_password=Secret123
 
 # Normalize spacing and expand the list afterwards. Remove {} for the single list element case
@@ -79,7 +75,7 @@ fi
 
 echo "Collect the logs"
 journalctl -b --no-pager > systemd_journal.log
-tar --ignore-failed-read -cvf var_log.tar \
+tar --ignore-failed-read -czf var_log.tar.gz \
     /var/log/dirsrv \
     /var/log/httpd \
     /var/log/ipa* \

@@ -1,0 +1,52 @@
+version: '2.1'
+services:
+  master:
+    image: ${IPA_DOCKER_IMAGE}
+    build: .
+    cap_add:
+    - ALL
+    security_opt:
+    - apparmor:unconfined
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - ./ipa-test-config.yaml:/root/.ipa/ipa-test-config.yaml:ro
+    - ${BUILD_REPOSITORY_LOCALPATH}:/freeipa
+
+    networks:
+    - ${IPA_NETWORK}
+
+  replica:
+    image: ${IPA_DOCKER_IMAGE}
+    build: .
+    cap_add:
+    - ALL
+    security_opt:
+    - apparmor:unconfined
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    networks:
+    - ${IPA_NETWORK}
+
+  client:
+    image: ${IPA_DOCKER_IMAGE}
+    build: .
+    cap_add:
+    - ALL
+    security_opt:
+    - apparmor:unconfined
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    # nfs server
+    - ./exports:/exports
+    - /lib/modules:/lib/modules:ro
+    networks:
+    - ${IPA_NETWORK}
+
+networks:
+  ipanet:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+      - subnet: ${IPA_IPV6_SUBNET}
