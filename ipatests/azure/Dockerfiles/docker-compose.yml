@@ -11,7 +11,7 @@ services:
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     - ./ipa-test-config.yaml:/root/.ipa/ipa-test-config.yaml:ro
-    - ${BUILD_REPOSITORY_LOCALPATH}:/freeipa
+    - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}
 
     networks:
     - ${IPA_NETWORK}

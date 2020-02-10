@@ -7,16 +7,20 @@ from jinja2 import Template
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-IPA_CLIENT_NUM = int(os.environ.get('IPA_CLIENT_NUM', 0))
-IPA_REPLICA_NUM = int(os.environ.get('IPA_REPLICA_NUM', 0))
-IPA_CONT_PREFIX = os.environ.get('IPA_CONT_PREFIX', '1')
-IPA_TEST_DOMAIN = os.environ.get('IPA_TEST_DOMAIN', 'ipa.test')
+IPA_TESTS_ENV_WORKING_DIR = os.environ.get('IPA_TESTS_ENV_WORKING_DIR')
+IPA_TESTS_ENV_NAME = os.environ.get('IPA_TESTS_ENV_NAME')
+IPA_TESTS_ENV_ID = os.environ.get('IPA_TESTS_ENV_ID', '1')
+IPA_TESTS_CLIENTS = int(os.environ.get('IPA_TESTS_CLIENTS', 0))
+IPA_TESTS_REPLICAS = int(os.environ.get('IPA_TESTS_REPLICAS', 0))
+IPA_TESTS_DOMAIN = os.environ.get('IPA_TESTS_DOMAIN', 'ipa.test')
 IPA_SSH_PRIV_KEY = os.environ.get('IPA_SSH_PRIV_KEY', '/root/.ssh/id_rsa')
 IPA_DNS_FORWARDER = os.environ.get('IPA_DNS_FORWARDER', '8.8.8.8')
 IPA_NETWORK = os.environ.get('IPA_NETWORK', 'ipanet')
-IPA_CONTROLLER = os.environ.get('IPA_CONTROLLER', 'master')
+IPA_CONTROLLER_TYPE = os.environ.get('IPA_CONTROLLER_TYPE', 'master')
+IPA_TEST_CONFIG_TEMPLATE = os.environ.get(
+    'IPA_TEST_CONFIG_TEMPLATE', './templates/ipa-test-config-template.yaml')
 
-CONTAINER_DIR = "container_{}".format(IPA_CONT_PREFIX)
+IPA_TESTS_ENV_DIR = os.path.join(IPA_TESTS_ENV_WORKING_DIR, IPA_TESTS_ENV_NAME)
 IPA_TEST_CONFIG = "ipa-test-config.yaml"
 
 
@@ -25,7 +29,7 @@ class Container:
     Represents group of Docker container
     """
     def __init__(self, role, dns=IPA_DNS_FORWARDER, num=1,
-                 prefix=IPA_CONT_PREFIX, domain=IPA_TEST_DOMAIN):
+                 prefix=IPA_TESTS_ENV_ID, domain=IPA_TESTS_DOMAIN):
         self.role = role
         self.num = num
         self.prefix = prefix
@@ -57,7 +61,7 @@ class Container:
         """
         ipv4 address of container
         """
-        ipanet = '{}_{}'.format(IPA_CONT_PREFIX, IPA_NETWORK)
+        ipanet = '{}_{}'.format(IPA_TESTS_ENV_ID, IPA_NETWORK)
         dcont = self.dclient.containers.get(name)
         return dcont.attrs['NetworkSettings']['Networks'][ipanet]['IPAddress']
 
@@ -177,7 +181,7 @@ class Controller(Container):
     """
     Manages groups of containers
     """
-    def __init__(self, contr_type=IPA_CONTROLLER):
+    def __init__(self, contr_type=IPA_CONTROLLER_TYPE):
         self.containers = []
         self.contr_type = contr_type
         if self.contr_type == 'master':
@@ -253,20 +257,20 @@ class Controller(Container):
             container.setup_resolvconf()
 
     def generate_ipa_test_config(self, config):
-        template = 'ipa-test-config-template.yaml'
-        with open(os.path.join('./templates', template), 'r') as f:
+        with open(IPA_TEST_CONFIG_TEMPLATE, 'r') as f:
+            # assert foobar
             template = Template(f.read(), trim_blocks=True, lstrip_blocks=True)
 
         print(template.render(config))
 
-        with open(os.path.join(CONTAINER_DIR, IPA_TEST_CONFIG), 'w') as f:
+        with open(os.path.join(IPA_TESTS_ENV_DIR, IPA_TEST_CONFIG), 'w') as f:
             f.write(template.render(config))
 
 
 controller = Controller()
 master = Container(role='master')
-clients = Container(role='client', num=IPA_CLIENT_NUM, dns=master.ips[0])
-replicas = Container(role='replica', num=IPA_REPLICA_NUM, dns=master.ips[0])
+clients = Container(role='client', num=IPA_TESTS_CLIENTS, dns=master.ips[0])
+replicas = Container(role='replica', num=IPA_TESTS_REPLICAS, dns=master.ips[0])
 
 controller.append(master)
 controller.append(clients)
@@ -280,7 +284,7 @@ controller.setup_resolvconf()
 config = {
     'dns_forwarder': IPA_DNS_FORWARDER,
     'ssh_private_key': IPA_SSH_PRIV_KEY,
-    'domain_name': IPA_TEST_DOMAIN,
+    'domain_name': IPA_TESTS_DOMAIN,
     'master': master.ips,
     'replicas': replicas.ips,
     'clients': clients.ips,
