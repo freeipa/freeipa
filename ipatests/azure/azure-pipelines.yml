@@ -155,6 +155,69 @@ jobs:
       kerberos_flags:
         testsToRun: test_integration/test_kerberos_flags.py
         testsClients: 1
+      dnssec_TestInstallDNSSECFirst:
+        testsToRun: test_integration/test_dnssec.py::TestInstallDNSSECFirst
+        testsReplicas: 1
+      simple_replication:
+        testsToRun: test_integration/test_simple_replication.py
+        testsReplicas: 1
+      caless_TestServerReplicaCALessToCAFull:
+        testsToRun: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
+        testsReplicas: 1
+      external_ca_TestExternalCA:
+        testsToRun: test_integration/test_external_ca.py::TestExternalCA
+        testsReplicas: 1
+        testsClients: 1
+      external_ca_TestSelfExternalSelf:
+        testsToRun: test_integration/test_external_ca.py::TestSelfExternalSelf
+      external_ca_TestExternalCAInstall:
+        testsToRun: test_integration/test_external_ca.py::TestExternalCAInstall
+      # requires nothing, don't install anything
+      topologies_and_testconfig:
+        testsToRun: test_integration/test_topologies.py test_integration/test_testconfig.py
+      #
+      commands:
+        testsToRun: test_integration/test_commands.py
+      sudo:
+        testsToRun: test_integration/test_sudo.py
+        testsClients: 1
+      forced_client_reenrollment:
+        testsToRun: test_integration/test_forced_client_reenrollment.py
+        testsReplicas: 1
+        testsClients: 1
+      service_permissions:
+        testsToRun: test_integration/test_service_permissions.py
+      netgroup:
+        testsToRun: test_integration/test_netgroup.py
+      replica_promotion_TestSubCAkeyReplication:
+        testsToRun: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
+        testsReplicas: 1
+  timeoutInMinutes: 90
+
+  steps:
+  - script: |
+      set -e
+      echo "##vso[task.setvariable variable=ntestsClients]${TESTSCLIENTS:-0}"
+      echo "##vso[task.setvariable variable=ntestsReplicas]${TESTSREPLICAS:-0}"
+    displayName: Generate variables
+
+  - template: templates/test-jobs.yml
+    parameters:
+      taskToRun: run-integration-tests
+      testsToRun: "$(testsToRun)"
+      topology:
+        clients: "$(ntestsClients)"
+        replicas: "$(ntestsReplicas)"
+
+- job: GATING_
+  pool:
+    vmImage: $(VM_IMAGE)
+  dependsOn: Build
+  condition: succeeded()
+  strategy:
+    matrix:
+      installation_TestInstallMaster:
+        testsToRun: test_integration/test_installation.py::TestInstallMaster
   timeoutInMinutes: 90
 
   steps:
