@@ -1,40 +1,53 @@
-parameters:
-  testsToIgnore: []
-  testsToRun: []
-  testsToDedicate: []
-  taskToRun: ''
-  topology:
-    replicas: 0
-    clients: 0
-
 steps:
 - script: |
     set -e
-    env
+    env | sort
+  displayName: Print Host Enviroment
+
+- script: |
+    set -e
     printf "Available entropy: %s\n" $(cat /proc/sys/kernel/random/entropy_avail)
     sudo apt-get install -y rng-tools
     sudo service rng-tools start
     sleep 3
     printf "Available entropy: %s\n" $(cat /proc/sys/kernel/random/entropy_avail)
   displayName: Increase entropy level
+
+- script: |
+    set -e
+    sudo apt-get install -y \
+        parallel \
+        moreutils \
+        python3-docker
+    # ubuntu's one is too old: different API
+    python3 -m pip install docker --user
+  displayName: Install Host's tests requirements
+
 - template: setup-test-environment.yml
-  parameters:
-    containerName: 'freeipa-azure-builder:latest'
-    topology:
-      replicas: ${{ parameters.topology.replicas }}
-      clients: ${{ parameters.topology.clients }}
+
 - template: run-test.yml
-  parameters:
-    logsPath: $(CI_RUNNER_LOGS_DIR)
-    taskToRun: ${{ parameters.taskToRun }}
-    testsToRun: ${{ join(' ', parameters.testsToRun ) }}
-    testsToIgnore: ${{ join(' ', parameters.testsToIgnore ) }}
-    testsToDedicate: ${{ join(' ', parameters.testsToDedicate ) }}
+
 - task: PublishTestResults@2
   inputs:
-    testResultsFiles: $(CI_RUNNER_LOGS_DIR)/nosetests.xml
+    testResultsFiles: 'ipa_envs/*/$(CI_RUNNER_LOGS_DIR)/nosetests.xml'
     testRunTitle: $(System.JobIdentifier) results
   condition: succeededOrFailed()
+
+- script: |
+    set -e
+
+    artifacts_ignore_path="${IPA_TESTS_ENV_WORKING_DIR}/.artifactignore"
+    cat > "$artifacts_ignore_path" <<EOF
+    **/*
+    !*/logs/**
+    !*/*.yml
+    !*/*.yaml
+    !*/*.log
+    EOF
+    cat "$artifacts_ignore_path"
+  condition: succeededOrFailed()
+  displayName: Generating artifactignore file
+
 - template: save-test-artifacts.yml
   parameters:
     logsArtifact: logs-$(System.JobIdentifier)-$(Build.BuildId)-$(System.StageAttempt)-$(System.PhaseAttempt)-$(System.JobPositionInPhase)-$(Agent.OS)-$(Agent.OSArchitecture)
