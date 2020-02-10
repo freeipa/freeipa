@@ -8,5 +8,5 @@ steps:
   displayName: Publish container image
   inputs:
     artifactName: 'image-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)'
-    targetPath: $(Agent.BuildDirectory)/s/freeipa-fedora-builder-container.tar.gz
+    targetPath: $(Agent.BuildDirectory)/s/freeipa-azure-builder-container.tar.gz
 
