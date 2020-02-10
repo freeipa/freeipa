@@ -2,16 +2,9 @@ trigger:
 - master
 
 variables:
-  CI_RUNNER_LOGS_DIR: logs
-  localsdir: $(Build.Repository.LocalPath)
-  builddir: /__w/1/s
-  VM_IMAGE: 'Ubuntu-18.04'
-  DOCKER_BUILD_IMAGE: 'registry.fedoraproject.org/f30/fedora-toolbox'
-  DOCKER_DOCKERFILE: 'Dockerfile.build-container'
-  PREPARE_BUILD_TEMPLATE: 'prepare-build-fedora.yml'
-  BUILD_TEMPLATE: 'build-fedora.yml'
-  PREPARE_TOX_TEMPLATE: 'prepare-tox-fedora.yml'
-  PREPARE_WEBUI_TEMPLATE: 'prepare-webui-fedora.yml'
+- template: templates/variables-common.yml
+# platform specific variables, links to
+- template: templates/variables.yml
 
 jobs:
 - job: Build

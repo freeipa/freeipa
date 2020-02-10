@@ -1,0 +1,5 @@
+variables:
+  CI_RUNNER_LOGS_DIR: logs
+  localsdir: $(Build.Repository.LocalPath)
+  builddir: /__w/1/s
+  VM_IMAGE: 'Ubuntu-18.04'

@@ -1,0 +1,15 @@
+variables:
+  IPA_PLATFORM: fedora
+  # the Docker public image to build IPA packages (rpms)
+  DOCKER_BUILD_IMAGE: 'registry.fedoraproject.org/f30/fedora-toolbox'
+
+  # the Dockerfile to build Docker image for running IPA tests
+  DOCKER_DOCKERFILE: ${{ format('Dockerfile.build.{0}', variables.IPA_PLATFORM) }}
+
+  # the template to install IPA's buildtime dependencies
+  PREPARE_BUILD_TEMPLATE: ${{ format('prepare-build-{0}.yml', variables.IPA_PLATFORM) }}
+
+  # the template to build IPA packages (rpms)
+  BUILD_TEMPLATE: ${{ format('build-{0}.yml', variables.IPA_PLATFORM) }}
+  PREPARE_TOX_TEMPLATE: ${{ format('prepare-tox-{0}.yml', variables.IPA_PLATFORM) }}
+  PREPARE_WEBUI_TEMPLATE: ${{ format('prepare-webui-{0}.yml', variables.IPA_PLATFORM) }}
