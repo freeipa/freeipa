@@ -1,0 +1,9 @@
+parameters:
+    definition: ''
+    displayName: ''
+    name: ''
+
+steps:
+  - script: python3 $(IPA_TESTS_SCRIPTS)/generate-matrix.py ${{ parameters.definition }}
+    name: ${{ parameters.name }}
+    displayName: ${{ parameters.displayName }}

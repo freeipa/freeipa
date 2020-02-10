@@ -1,6 +1,5 @@
 variables:
   CI_RUNNER_LOGS_DIR: logs
-  localsdir: $(Build.Repository.LocalPath)
   builddir: /__w/1/s
   # Provision script: setup_containers.py requires Python3.6+
   # Ubuntu-16.04 has Python 3.5.2 on board
@@ -8,3 +7,8 @@ variables:
   # Ubuntu-18.04 - 3.6.9
   # https://github.com/actions/virtual-environments/blob/master/images/linux/Ubuntu1804-REA    DME.md
   VM_IMAGE: 'Ubuntu-18.04'
+  MAX_CONTAINER_ENVS: 3
+  IPA_TESTS_ENV_WORKING_DIR: $(Build.Repository.LocalPath)/ipa_envs
+  IPA_TESTS_SCRIPTS: 'ipatests/azure/scripts'
+  IPA_TESTS_DOCKERFILES: $(Build.Repository.LocalPath)/ipatests/azure/Dockerfiles
+  IPA_TESTS_REPO_PATH: '/freeipa'

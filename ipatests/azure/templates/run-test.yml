@@ -1,39 +1,58 @@
-parameters:
-  logsPath: 'logs'
-  taskToRun: 'run-tests'
-  testsToRun: ''
-  testsToIgnore: ''
-  testsToDedicate: ''
-
 steps:
 - script: |
-    set -e
-    case "$SYSTEM_PARALLELEXECUTIONTYPE" in
-      # slicing
-      "MultiMachine" )
+    set -eux
 
-      TOTALJOBSINPHASE="$(System.TotalJobsInPhase)"
-      JOBPOSITIONINPHASE="$(System.JobPositionInPhase)"
-      ;;
+    workdir="$IPA_TESTS_ENV_WORKING_DIR"
+    rm -rf "$workdir"
+    mkdir "$workdir"
 
-      * )
-      # matrix job's strategy also sets these variables
-      # MultiConfiguration
-      TOTALJOBSINPHASE=
-      JOBPOSITIONINPHASE=
-      ;;
-    esac
+    ln -sfr \
+        ${BUILD_REPOSITORY_LOCALPATH}/${IPA_TESTS_SCRIPTS}/{azure-run-tests.sh,setup_containers.py} \
+        ./
 
-    project="1"
-    docker exec \
-        --env TESTS_TO_RUN="${{ parameters.testsToRun }}" \
-        --env TESTS_TO_IGNORE="${{ parameters.testsToIgnore }}" \
-        --env TESTS_TO_DEDICATE="${{ parameters.testsToDedicate }}" \
-        --env CI_RUNNER_LOGS_DIR="${{ parameters.logsPath }}" \
-        --env SYSTEM_TOTALJOBSINPHASE="$TOTALJOBSINPHASE" \
-        --env SYSTEM_JOBPOSITIONINPHASE="$JOBPOSITIONINPHASE" \
-        -t \
-        "${project}"_master_1 \
-        /bin/bash --noprofile --norc \
-            -x /freeipa/ipatests/azure/azure-${{parameters.taskToRun}}.sh
-  displayName: Run test
+    function runner() {
+        set -o pipefail
+        local project_id="$1"
+        local project_name_varname="IPA_TESTS_ENV_NAME_${project_id}"
+        local project_name="${!project_name_varname}"
+        [ -z "$project_name" ] && \
+            { echo "Project name is not set for project:${project_id}"; exit 1 ;}
+        local workdir="$IPA_TESTS_ENV_WORKING_DIR"
+        local logfile="runner_${project_name}.log"
+        local project_dir="${workdir}/${project_name}"
+        rm -rf "$project_dir"
+        mkdir "$project_dir"
+        # live-logging of tests within environment: '1'
+        if [ "$project_id" == "1" ]; then
+            ./azure-run-tests.sh "$project_id" 2>&1 | \
+                ts '[%Y-%m-%d %H:%M:%S]' 2>&1 | tee "${project_dir}/${logfile}"
+            result=$?
+        else
+            ./azure-run-tests.sh "$project_id" 2>&1 | \
+                ts '[%Y-%m-%d %H:%M:%S]' 2>&1 > "${project_dir}/${logfile}"
+            result=$?
+        fi
+
+        result_file="result_${project_id}"
+        if [ "$result" -eq 0 ]; then
+            result_msg="${project_name}: PASSED"
+        else
+            result_msg="${project_name}: FAILED"
+        fi
+        echo "$result_msg" > "$result_file"
+        exit $result
+    }
+    export -f runner
+
+    result=1
+    rm -f result_*
+    { parallel \
+        --tag \
+        --jobs $(MAX_CONTAINER_ENVS) \
+        --linebuffer \
+        'runner {}' ::: "$(seq $(ipa_tests_total_envs))" && result=0 ; } || \
+            result=$?
+    echo "Results:"
+    cat $(eval echo result_{1..$(ipa_tests_total_envs)})
+    exit $result
+  displayName: Run tests

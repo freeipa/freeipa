@@ -1,0 +1,84 @@
+vms:
+- vm_jobs:
+  - container_job: InstallMaster
+    tests:
+    - test_integration/test_installation.py::TestInstallMaster
+
+  - container_job: kerberos_flags
+    containers:
+      clients: 1
+    tests:
+    - test_integration/test_kerberos_flags.py
+
+  - container_job: forced_client_reenrollment
+    containers:
+      replicas: 1
+      clients: 1
+    tests:
+    - test_integration/test_forced_client_reenrollment.py
+
+  - container_job: ExternalCAInstall
+    tests:
+    - test_integration/test_external_ca.py::TestExternalCAInstall
+
+- vm_jobs:
+  - container_job: InstallDNSSECFirst
+    containers:
+      replicas: 1
+    tests:
+    - test_integration/test_dnssec.py::TestInstallDNSSECFirst
+
+  - container_job: simple_replication
+    containers:
+      replicas: 1
+    tests:
+    - test_integration/test_simple_replication.py
+
+  - container_job: service_permissions
+    tests:
+    - test_integration/test_service_permissions.py
+
+  - container_job: netgroup
+    tests:
+    - test_integration/test_netgroup.py
+
+- vm_jobs:
+  - container_job: sudo
+    containers:
+      clients: 1
+    tests:
+    - test_integration/test_sudo.py
+
+  - container_job: ExternalCA
+    containers:
+      replicas: 1
+      clients: 1
+    tests:
+    - test_integration/test_external_ca.py::TestExternalCA
+
+  # requires nothing, installs nothing
+  - container_job: topologies_and_testconfig
+    tests:
+    - test_integration/test_topologies.py
+    - test_integration/test_testconfig.py
+
+  - container_job: SelfExternalSelf
+    tests:
+    - test_integration/test_external_ca.py::TestSelfExternalSelf
+
+- vm_jobs:
+  - container_job: commands
+    tests:
+    - test_integration/test_commands.py
+
+  - container_job: ServerReplicaCALessToCAFull
+    tests:
+    - test_integration/test_caless.py::TestServerReplicaCALessToCAFull
+    containers:
+      replicas: 1
+
+  - container_job: SubCAkeyReplication
+    containers:
+      replicas: 1
+    tests:
+    - test_integration/test_replica_promotion.py::TestSubCAkeyReplication

@@ -1,0 +1,23 @@
+vms:
+- vm_jobs:
+  - container_job: base
+    tests:
+    - test_cmdline
+    - test_install
+    - test_ipaclient
+    - test_ipalib
+    - test_ipaplatform
+    - test_ipapython
+    - test_ipaserver
+    - test_ipatests_plugins
+    - test_xmlrpc/test_dns_plugin.py
+    ignore:
+    - test_ipapython/test_keyring.py
+    type: base
+
+  - container_job: xmlrpc
+    tests:
+    - test_xmlrpc
+    ignore:
+    - test_xmlrpc/test_dns_plugin.py
+    type: base
