@@ -521,7 +521,7 @@ class CACertManage(admintool.AdminTool):
             for ca_nickname, _trust_flags in loaded:
                 if ca_nickname == nickname:
                     continue
-                elif ipa_ca_nickname == nickname:
+                if ipa_ca_nickname == nickname:
                     raise admintool.ScriptError(
                         "The IPA CA cannot be removed")
                 logger.debug("Verifying %s", ca_nickname)
