@@ -1,8 +1,14 @@
 parameters:
   imageName: 'freeipa-azure-builder:latest'
-  topology:
-    replicas: 0
-    clients: 0
+  envs:
+  - env1:
+    id: '1'
+    testsToIgnore: []
+    testsToRun: []
+    testsToDedicate: []
+    topology:
+      replicas: 0
+      clients: 0
 
 steps:
 - script: |
@@ -32,30 +38,34 @@ steps:
     docker images
     docker inspect freeipa-azure-builder:latest
   displayName: Import pre-built container to the engine
-- script: |
-    set -ex
-    project="1"
-    cont_dirname="container_$project"
-    rm -rf "$cont_dirname"
-    mkdir -p "$cont_dirname"/exports
-    ln -sfr ipatests/azure/docker-compose.yml "$cont_dirname"/
-    touch "$cont_dirname"/ipa-test-config.yaml
-    cd "$cont_dirname"
-    export IPA_DOCKER_IMAGE="${{ parameters.imageName }}"
-    export IPA_NETWORK=ipanet
-    export IPA_IPV6_SUBNET="2001:db8:1:$project::/64"
-    docker-compose -p "$project" up -d \
-        --scale replica="${{ parameters.topology.replicas }}" \
-        --scale client="${{ parameters.topology.clients }}" \
-        --force-recreate --remove-orphans
-  displayName: Create and start container(s) for running tests
-- script: |
-    set -ex
-    ln -sfr ipatests/azure/templates ./
-    ln -sfr ipatests/azure/setup_containers.py ./
-    project="1"
-    export IPA_CONT_PREFIX="$project"
-    export IPA_CLIENT_NUM="${{ parameters.topology.clients }}"
-    export IPA_REPLICA_NUM="${{ parameters.topology.replicas }}"
-    python3 setup_containers.py
-  displayName: Setup container(s) for running tests
+
+- ${{ each _env in parameters.envs }}:
+  - script: |
+      set -ex
+      project="${{ _env.id }}"
+      cont_dirname="container_$project"
+      rm -rf "$cont_dirname"
+      mkdir -p "$cont_dirname"/exports
+      ln -sfr ipatests/azure/docker-compose.yml "$cont_dirname"/
+      touch "$cont_dirname"/ipa-test-config.yaml
+      cd "$cont_dirname"
+      export IPA_DOCKER_IMAGE="${{ parameters.imageName }}"
+      export IPA_NETWORK=ipanet
+      export IPA_IPV6_SUBNET="2001:db8:1:$project::/64"
+      docker-compose -p "$project" up -d \
+          --scale replica="${{ _env.topology.replicas }}" \
+          --scale client="${{ _env.topology.clients }}" \
+          --force-recreate --remove-orphans
+    displayName: Create and start containers environment:'${{ _env.id }}' for running tests
+
+- ${{ each _env in parameters.envs }}:
+  - script: |
+      set -ex
+      ln -sfr ipatests/azure/templates ./
+      ln -sfr ipatests/azure/setup_containers.py ./
+      project="${{ _env.id }}"
+      export IPA_CONT_PREFIX="$project"
+      export IPA_CLIENT_NUM="${{ _env.topology.clients }}"
+      export IPA_REPLICA_NUM="${{ _env.topology.replicas }}"
+      python3 setup_containers.py
+    displayName: Setup containers environment:'${{ _env.id }}' for running tests

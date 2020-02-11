@@ -1,39 +1,46 @@
 parameters:
   logsPath: 'logs'
   taskToRun: 'run-tests'
-  testsToRun: ''
-  testsToIgnore: ''
-  testsToDedicate: ''
+  envs:
+  - env1:
+    id: '1'
+    testsToIgnore: []
+    testsToRun: []
+    testsToDedicate: []
+    topology:
+       replicas: 0
+       clients: 0
 
 steps:
-- script: |
-    set -e
-    case "$SYSTEM_PARALLELEXECUTIONTYPE" in
-      # slicing
-      "MultiMachine" )
+- ${{ each _env in parameters.envs }}:
+  - script: |
+      set -ex
+      case "$SYSTEM_PARALLELEXECUTIONTYPE" in
+        # slicing
+        "MultiMachine" )
 
-      TOTALJOBSINPHASE="$(System.TotalJobsInPhase)"
-      JOBPOSITIONINPHASE="$(System.JobPositionInPhase)"
-      ;;
+        TOTALJOBSINPHASE="$(System.TotalJobsInPhase)"
+        JOBPOSITIONINPHASE="$(System.JobPositionInPhase)"
+        ;;
 
-      * )
-      # matrix job's strategy also sets these variables
-      # MultiConfiguration
-      TOTALJOBSINPHASE=
-      JOBPOSITIONINPHASE=
-      ;;
-    esac
+        * )
+        # matrix job's strategy also sets these variables
+        # MultiConfiguration
+        TOTALJOBSINPHASE=
+        JOBPOSITIONINPHASE=
+        ;;
+      esac
 
-    project="1"
-    docker exec \
-        --env TESTS_TO_RUN="${{ parameters.testsToRun }}" \
-        --env TESTS_TO_IGNORE="${{ parameters.testsToIgnore }}" \
-        --env TESTS_TO_DEDICATE="${{ parameters.testsToDedicate }}" \
-        --env CI_RUNNER_LOGS_DIR="${{ parameters.logsPath }}" \
-        --env SYSTEM_TOTALJOBSINPHASE="$TOTALJOBSINPHASE" \
-        --env SYSTEM_JOBPOSITIONINPHASE="$JOBPOSITIONINPHASE" \
-        -t \
-        "${project}"_master_1 \
-        /bin/bash --noprofile --norc \
-            -x /freeipa/ipatests/azure/azure-${{parameters.taskToRun}}.sh
-  displayName: Run test
+      project="${{ _env.id }}"
+      docker exec \
+          --env TESTS_TO_RUN="${{ join(' ', _env.testsToRun ) }}" \
+          --env TESTS_TO_IGNORE="${{ join(' ', _env.testsToIgnore ) }}" \
+          --env TESTS_TO_DEDICATE="${{ join(' ', _env.testsToDedicate ) }}" \
+          --env CI_RUNNER_LOGS_DIR="${{ parameters.logsPath }}_${{ _env.id }}" \
+          --env SYSTEM_TOTALJOBSINPHASE="$TOTALJOBSINPHASE" \
+          --env SYSTEM_JOBPOSITIONINPHASE="$JOBPOSITIONINPHASE" \
+          -t \
+          "${project}"_master_1 \
+          /bin/bash --noprofile --norc \
+              -x /freeipa/ipatests/azure/azure-${{parameters.taskToRun}}.sh
+    displayName: Run tests within environment:'${{ _env.id }}'

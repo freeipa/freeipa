@@ -1,11 +1,15 @@
 parameters:
-  testsToIgnore: []
-  testsToRun: []
-  testsToDedicate: []
   taskToRun: ''
-  topology:
-    replicas: 0
-    clients: 0
+  totalIPAEnvs: 1
+  envs:
+  - env1:
+    id: '1'
+    testsToIgnore: []
+    testsToRun: []
+    testsToDedicate: []
+    topology:
+      replicas: 0
+      clients: 0
 
 steps:
 - script: |
@@ -20,19 +24,18 @@ steps:
 - template: setup-test-environment.yml
   parameters:
     containerName: 'freeipa-azure-builder:latest'
-    topology:
-      replicas: ${{ parameters.topology.replicas }}
-      clients: ${{ parameters.topology.clients }}
+    envs: ${{ parameters.envs }}
 - template: run-test.yml
   parameters:
     logsPath: $(CI_RUNNER_LOGS_DIR)
-    taskToRun: ${{ parameters.taskToRun }}
-    testsToRun: ${{ join(' ', parameters.testsToRun ) }}
-    testsToIgnore: ${{ join(' ', parameters.testsToIgnore ) }}
-    testsToDedicate: ${{ join(' ', parameters.testsToDedicate ) }}
+    envs: ${{ parameters.envs }}
+    # taskToRun: ${{ parameters.taskToRun }}
+    # testsToRun: ${{ join(' ', parameters.testsToRun ) }}
+    # testsToIgnore: ${{ join(' ', parameters.testsToIgnore ) }}
+    # testsToDedicate: ${{ join(' ', parameters.testsToDedicate ) }}
 - task: PublishTestResults@2
   inputs:
-    testResultsFiles: $(CI_RUNNER_LOGS_DIR)/nosetests.xml
+    testResultsFiles: '$(CI_RUNNER_LOGS_DIR)_*/nosetests.xml'
     testRunTitle: $(System.JobIdentifier) results
   condition: succeededOrFailed()
 - template: save-test-artifacts.yml

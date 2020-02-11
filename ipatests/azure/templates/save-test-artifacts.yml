@@ -6,6 +6,6 @@ steps:
   displayName: Publish logs
   inputs:
     artifactName: ${{parameters.logsArtifact}}
-    targetPath: ${{parameters.logsPath}}
+    targetPath: '${{parameters.logsPath}}_*'
   condition: always()
 

@@ -150,87 +150,48 @@ jobs:
   condition: succeeded()
   strategy:
     matrix:
-      installation_TestInstallMaster:
-        testsToRun: test_integration/test_installation.py::TestInstallMaster
-      kerberos_flags:
-        testsToRun: test_integration/test_kerberos_flags.py
-        testsClients: 1
-      dnssec_TestInstallDNSSECFirst:
-        testsToRun: test_integration/test_dnssec.py::TestInstallDNSSECFirst
-        testsReplicas: 1
-      simple_replication:
-        testsToRun: test_integration/test_simple_replication.py
-        testsReplicas: 1
-      caless_TestServerReplicaCALessToCAFull:
-        testsToRun: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
-        testsReplicas: 1
-      external_ca_TestExternalCA:
-        testsToRun: test_integration/test_external_ca.py::TestExternalCA
-        testsReplicas: 1
-        testsClients: 1
-      external_ca_TestSelfExternalSelf:
-        testsToRun: test_integration/test_external_ca.py::TestSelfExternalSelf
-      external_ca_TestExternalCAInstall:
-        testsToRun: test_integration/test_external_ca.py::TestExternalCAInstall
-      # requires nothing, don't install anything
-      topologies_and_testconfig:
-        testsToRun: test_integration/test_topologies.py test_integration/test_testconfig.py
-      #
-      commands:
-        testsToRun: test_integration/test_commands.py
-      sudo:
-        testsToRun: test_integration/test_sudo.py
-        testsClients: 1
-      forced_client_reenrollment:
-        testsToRun: test_integration/test_forced_client_reenrollment.py
-        testsReplicas: 1
-        testsClients: 1
-      service_permissions:
-        testsToRun: test_integration/test_service_permissions.py
-      netgroup:
-        testsToRun: test_integration/test_netgroup.py
-      replica_promotion_TestSubCAkeyReplication:
-        testsToRun: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
-        testsReplicas: 1
+      1_installation_TestInstallMaster_2_kerberos_flags:
+        testsToRun_1: test_integration/test_installation.py::TestInstallMaster
+        testsToRun_2: test_integration/test_kerberos_flags.py
+        testsClients_2: 1
+
   timeoutInMinutes: 90
 
   steps:
   - script: |
-      set -e
-      echo "##vso[task.setvariable variable=ntestsClients]${TESTSCLIENTS:-0}"
-      echo "##vso[task.setvariable variable=ntestsReplicas]${TESTSREPLICAS:-0}"
-    displayName: Generate variables
+      set -ex
+      total_envs=0
+      for project in $(seq ${{ variables.MAX_CONTAINER_ENVS }}); do
+          # no more environments
+          tests_varname="TESTSTORUN_$project"
+          [ -z "${!tests_varname}" ] && break;
+          let "total_envs=total_envs+1"
+          echo "##vso[task.setvariable variable=projectID_$project]$project"
+
+          nclients_varname="TESTSCLIENTS_$project"
+          nclients_deref="${!nclients_varname}"
+          echo "##vso[task.setvariable variable=ntestsClients_$project]${nclients_deref:-0}"
+          nreplicas_varname="TESTSREPLICAS_$project"
+          nreplicas_deref="${!nreplicas_varname}"
+          echo "##vso[task.setvariable variable=ntestsReplicas_$project]${nreplicas_deref:-0}"
+      done
+      echo "##vso[task.setvariable variable=totalIPAEnvs]$total_envs"
+    displayName: Generate environment variables
 
   - template: templates/test-jobs.yml
     parameters:
       taskToRun: run-integration-tests
-      testsToRun: "$(testsToRun)"
-      topology:
-        clients: "$(ntestsClients)"
-        replicas: "$(ntestsReplicas)"
-
-- job: GATING_
-  pool:
-    vmImage: $(VM_IMAGE)
-  dependsOn: Build
-  condition: succeeded()
-  strategy:
-    matrix:
-      installation_TestInstallMaster:
-        testsToRun: test_integration/test_installation.py::TestInstallMaster
-  timeoutInMinutes: 90
-
-  steps:
-  - script: |
-      set -e
-      echo "##vso[task.setvariable variable=ntestsClients]${TESTSCLIENTS:-0}"
-      echo "##vso[task.setvariable variable=ntestsReplicas]${TESTSREPLICAS:-0}"
-    displayName: Generate variables
-
-  - template: templates/test-jobs.yml
-    parameters:
-      taskToRun: run-integration-tests
-      testsToRun: "$(testsToRun)"
-      topology:
-        clients: "$(ntestsClients)"
-        replicas: "$(ntestsReplicas)"
+      totalIPAEnvs: "$(totalIPAEnvs)"
+      envs:
+      - env1:
+        id: "$(projectID)_1"
+        testsToRun: "$(testsToRun)_1"
+        topology:
+          clients: "$(ntestsClients_1)"
+          replicas: "$(ntestsReplicas_1)"
+      - env2:
+        id: "$(projectID)_2"
+        testsToRun: "$(testsToRun)_2"
+        topology:
+          clients: "$(ntestsClients_2)"
+          replicas: "$(ntestsReplicas_2)"

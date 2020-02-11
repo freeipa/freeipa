@@ -3,3 +3,4 @@ variables:
   localsdir: $(Build.Repository.LocalPath)
   builddir: /__w/1/s
   VM_IMAGE: 'Ubuntu-18.04'
+  MAX_CONTAINER_ENVS: 5
