@@ -984,6 +984,12 @@ def install(installer):
     service.enable_services(host_name)
     api.Command.dns_update_system_records()
 
+    if options.setup_adtrust:
+        dns_help = adtrust.generate_dns_service_records_help(api)
+        if dns_help:
+            for line in dns_help:
+                service.print_msg(line, sys.stdout)
+
     if not options.setup_dns:
         # After DNS and AD trust are configured and services are
         # enabled, create a dummy instance to dump DNS configuration.
