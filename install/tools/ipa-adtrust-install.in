@@ -214,7 +214,13 @@ def main():
 
     # Enable configured services and update DNS SRV records
     service.sync_services_state(api.env.host)
-    api.Command.dns_update_system_records()
+
+    dns_help = adtrust.generate_dns_service_records_help(api)
+    if dns_help:
+        for line in dns_help:
+            service.print_msg(line, sys.stdout)
+    else:
+        api.Command.dns_update_system_records()
 
     print("""
 =============================================================================
