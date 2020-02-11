@@ -32,10 +32,8 @@ import socket
 
 import six
 
-from ipaserver.dns_data_management import IPASystemRecords
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipaserver.install.bindinstance import dns_zone_exists
 from ipaserver.install.replication import wait_for_task
 from ipalib import errors, api
 from ipalib.util import normalize_zone
@@ -586,43 +584,6 @@ class ADTRUSTInstance(service.Service):
                     logger.critical("Failed to remove old key for %s",
                                     self.principal)
 
-    def srv_rec(self, host, port, prio):
-        return "%(prio)d 100 %(port)d %(host)s" % dict(host=host,prio=prio,port=port)
-
-    def __add_dns_service_records(self):
-        """
-        Add DNS service records for Windows if DNS is enabled and the DNS zone
-        is managed. If there are already service records for LDAP and Kerberos
-        their values are used. Otherwise default values are used.
-        """
-
-        zone = api.env.domain
-
-        err_msg = None
-
-        ret = api.Command['dns_is_enabled']()
-        if not ret['result']:
-            err_msg = "DNS management was not enabled at install time."
-        else:
-            if not dns_zone_exists(zone):
-                err_msg = (
-                    "DNS zone %s cannot be managed as it is not defined in "
-                    "IPA" % zone)
-
-        if err_msg:
-            self.print_msg(err_msg)
-            self.print_msg("Add the following service records to your DNS " \
-                           "server for DNS zone %s: " % zone)
-            system_records = IPASystemRecords(api, all_servers=True)
-            adtrust_records = system_records.get_base_records(
-                [self.fqdn], ["AD trust controller"],
-                include_master_role=False, include_kerberos_realm=False)
-            for r_name, node in adtrust_records.items():
-                for rec in IPASystemRecords.records_list_from_node(r_name, node):
-                    self.print_msg(rec)
-        else:
-            api.Command.dns_update_system_records()
-
     def __configure_selinux_for_smbd(self):
         try:
             tasks.set_selinux_booleans(constants.SELINUX_BOOLEAN_ADTRUST,
@@ -876,8 +837,6 @@ class ADTRUSTInstance(service.Service):
         self.step("map BUILTIN\\Guests to nobody group",
                   self.__map_Guests_to_nobody)
         self.step("configuring smbd to start on boot", self.__enable)
-        self.step("adding special DNS service records", \
-                  self.__add_dns_service_records)
 
         if self.enable_compat:
             self.step("enabling trusted domains support for older clients via Schema Compatibility plugin",

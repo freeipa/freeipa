@@ -26,6 +26,8 @@ from ipaserver.install import installutils
 from ipaserver.install import adtrustinstance
 from ipaserver.install import service
 from ipaserver.install.plugins.adtrust import update_host_cifs_keytabs
+from ipaserver.install.bindinstance import dns_zone_exists
+from ipaserver.dns_data_management import IPASystemRecords
 
 
 if six.PY3:
@@ -434,6 +436,41 @@ def install(standalone, options, fstore, api):
         # Find out IPA masters which are not part of the cn=adtrust agents
         # and propose them to be added to the list
         add_new_adtrust_agents(api, options)
+
+
+def generate_dns_service_records_help(api):
+    """
+    Return list of instructions to create DNS service records for Windows
+    if in case DNS is not enabled and the DNS zone is not managed by IPA.
+    In case IPA manages the DNS zone, nothing is returned.
+    """
+
+    zone = api.env.domain
+
+    err_msg = []
+
+    ret = api.Command['dns_is_enabled']()
+    if not ret['result']:
+        err_msg.append("DNS management was not enabled at install time.")
+    else:
+        if not dns_zone_exists(zone):
+            err_msg.append(
+                "DNS zone %s cannot be managed as it is not defined in "
+                "IPA" % zone)
+
+    if err_msg:
+        err_msg.append("Add the following service records to your DNS "
+                       "server for DNS zone %s: " % zone)
+        system_records = IPASystemRecords(api, all_servers=True)
+        adtrust_records = system_records.get_base_records(
+            [api.env.host], ["AD trust controller"],
+            include_master_role=False, include_kerberos_realm=False)
+        for r_name, node in adtrust_records.items():
+            for rec in IPASystemRecords.records_list_from_node(r_name, node):
+                err_msg.append(rec)
+        return err_msg
+
+    return None
 
 
 @group
