@@ -1,7 +1,7 @@
 variables:
   IPA_PLATFORM: fedora
   # the Docker public image to build IPA packages (rpms)
-  DOCKER_BUILD_IMAGE: 'registry.fedoraproject.org/f30/fedora-toolbox'
+  DOCKER_BUILD_IMAGE: 'registry.fedoraproject.org/f32/fedora-toolbox'
 
   # the Dockerfile to build Docker image for running IPA tests
   DOCKER_DOCKERFILE: ${{ format('Dockerfile.build.{0}', variables.IPA_PLATFORM) }}
