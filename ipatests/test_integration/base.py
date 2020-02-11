@@ -77,7 +77,7 @@ class IntegrationTest:
         else:
             domain_level = cls.master.config.domain_level
 
-        if cls.master.config.fips_mode:
+        if cls.master.config.fips_mode:  # pylint: disable=using-constant-test
             cls.fips_mode = True
         if cls.fips_mode:
             cls.enable_fips_mode()
