@@ -327,6 +327,20 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
             "ipa-client-automount", "--uninstall", "-U"
         ])
 
+        if not no_sssd:
+            # https://pagure.io/freeipa/issue/8190
+            # check that no ipa_automount_location is left in sssd.conf
+            # also check for autofs_provider for good measure
+            grep_automount_in_sssdconf_cmd = \
+                "egrep ipa_automount_location\\|autofs_provider " \
+                "/etc/sssd/sssd.conf"
+            cmd = self.clients[0].run_command(
+                grep_automount_in_sssdconf_cmd, raiseonerr=False
+            )
+            assert cmd.returncode == 1, \
+                "PG8190 regression found: ipa_automount_location still " \
+                "present in sssd.conf"
+
         cmd = self.clients[0].run_command(grep_automount_command)
         assert cmd.stdout_text.split() == after_ipa_client_install
 
