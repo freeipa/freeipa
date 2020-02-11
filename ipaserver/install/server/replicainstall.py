@@ -1351,6 +1351,12 @@ def install(installer):
     # enabled-service case, also perform update in hidden replica case.
     api.Command.dns_update_system_records()
 
+    if options.setup_adtrust:
+        dns_help = adtrust.generate_dns_service_records_help(api)
+        if dns_help:
+            for line in dns_help:
+                service.print_msg(line, sys.stdout)
+
     ca_servers = find_providing_servers('CA', api.Backend.ldap2, api=api)
     api.Backend.ldap2.disconnect()
 
