@@ -51,7 +51,6 @@ app_DATA =				\
 	50-krbenctypes.update		\
 	50-nis.update			\
 	50-ipaconfig.update		\
-	50-externalmembers.update	\
 	55-pbacmemberof.update		\
 	59-trusts-sysacount.update	\
 	60-trusts.update		\
@@ -63,7 +62,8 @@ app_DATA =				\
 	73-custodia.update		\
 	73-winsync.update		\
 	73-certmap.update		\
-	80-schema_compat.update \
+	80-schema_compat.update 	\
+	81-externalmembers.update	\
 	90-post_upgrade_plugins.update	\
 	$(NULL)
 
