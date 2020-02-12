@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 from contextlib import contextmanager
 
+import ipaplatform
 import pytest
 
 from ipatests.test_integration.base import IntegrationTest
@@ -57,6 +58,9 @@ class TestSSSDWithAdTrust(IntegrationTest):
             sssd_conf_backup.restore()
             tasks.clear_sssd_cache(self.master)
 
+    @pytest.mark.xfail(
+        ipaplatform.NAME == 'fedora',
+        reason='https://pagure.io/SSSD/sssd/issue/3978', strict=True)
     @pytest.mark.parametrize('user', ['ad', 'fakeuser'])
     def test_is_user_filtered(self, user):
         """No lookup in data provider from 'filter_users' config option.
