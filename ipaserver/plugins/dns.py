@@ -3636,8 +3636,8 @@ class dnsrecord_add(LDAPCreate):
                 if attr not in _record_attributes:
                     continue
                 if entry_attrs[attr] is None:
-                    entry_attrs[attr] = []
-                if not isinstance(entry_attrs[attr], (tuple, list)):
+                    vals = []
+                elif not isinstance(entry_attrs[attr], (tuple, list)):
                     vals = [entry_attrs[attr]]
                 else:
                     vals = list(entry_attrs[attr])
@@ -3866,10 +3866,11 @@ class dnsrecord_del(LDAPUpdate):
         for attr in entry_attrs.keys():
             if attr not in _record_attributes:
                 continue
-            if not isinstance(entry_attrs[attr], (tuple, list)):
-                vals = [entry_attrs[attr]]
-            else:
-                vals = entry_attrs[attr]
+            vals = entry_attrs[attr]
+            if vals is None:
+                continue
+            if not isinstance(vals, (tuple, list)):
+                vals = [vals]
 
             for val in vals:
                 try:
