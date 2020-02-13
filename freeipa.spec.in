@@ -418,7 +418,6 @@ BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: httpd >= %{httpd_version}
 Requires: systemd-units >= 38
-Requires: custodia >= 0.3.1
 
 Provides: %{alt_name}-server-common = %{version}
 Conflicts: %{alt_name}-server-common
