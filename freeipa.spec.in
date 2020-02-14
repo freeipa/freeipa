@@ -36,6 +36,13 @@
     %global linter_options --disable-pylint --without-jslint
 %endif
 
+# Include SELinux subpackage
+%if 0%{?fedora} >= 30 || 0%{?rhel} > 8
+    %global with_selinux 1
+    %global selinuxtype targeted
+    %global modulename ipa
+%endif
+
 %if 0%{?rhel}
 %global package_name ipa
 %global alt_name freeipa
@@ -284,6 +291,13 @@ BuildRequires:  krb5-server >= %{krb5_version}
 # ONLY_CLIENT
 %endif
 
+#
+# Build dependencies for SELinux policy
+#
+%if 0%{?with_selinux}
+BuildRequires:  selinux-policy-devel
+%endif
+
 %description
 IPA is an integrated solution to provide centrally managed Identity (users,
 hosts, services), Authentication (SSO, 2FA), and Authorization
@@ -349,6 +363,11 @@ Requires: oddjob
 # 0.7.0-2: https://pagure.io/gssproxy/pull-request/172
 Requires: gssproxy >= 0.7.0-2
 Requires: sssd-dbus >= %{sssd_version}
+%if 0%{?with_selinux}
+# This ensures that the *-selinux package and all it’s dependencies are not pulled
+# into containers and other systems that do not use SELinux
+Requires:       (%{name}-selinux if selinux-policy-%{selinuxtype})
+%endif # if with_selinux
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
@@ -736,6 +755,19 @@ This package contains tests that verify IPA functionality under Python 3.
 # with_ipatests
 %endif
 
+%if 0%{?with_selinux}
+# SELinux subpackage
+%package selinux
+Summary:             FreeIPA SELinux policy
+BuildArch:           noarch
+Requires:            selinux-policy-%{selinuxtype}
+Requires(post):      selinux-policy-%{selinuxtype}
+%{?selinux_requires}
+
+%description selinux
+Custom SELinux policy module
+# with_selinux
+%endif
 
 %prep
 %setup -n freeipa-%{version} -q
@@ -838,6 +870,10 @@ mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 # ONLY_CLIENT
 %endif
 
+%if 0%{?with_selinux}
+install -D -m 0644 selinux/%{modulename}.pp.bz2 %{buildroot}%{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
+# with_selinux
+%endif
 
 %clean
 rm -rf %{buildroot}
@@ -990,6 +1026,26 @@ if [ $1 -gt 1 ] ; then
         sed -E --in-place=.orig 's/^(HostKeyAlgorithms ssh-rsa,ssh-dss)$/# disabled by ipa-client update\n# \1/' /etc/ssh/ssh_config
     fi
 fi
+
+
+%if 0%{?with_selinux}
+# SELinux contexts are saved so that only affected files can be
+# relabeled after the policy module installation
+%pre selinux
+%selinux_relabel_pre -s %{selinuxtype}
+
+%post selinux
+%selinux_modules_install -s %{selinuxtype} %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
+
+%postun selinux
+if [ $1 -eq 0 ]; then
+    %selinux_modules_uninstall -s %{selinuxtype} %{modulename}
+fi
+
+%posttrans selinux
+%selinux_relabel_post -s %{selinuxtype}
+# with_selinux
+%endif
 
 
 %triggerin client -- openssh-server
@@ -1372,6 +1428,12 @@ fi
 # with_ipatests
 %endif
 
+%if 0%{?with_selinux}
+%files selinux
+%{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.*
+%ghost %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
+# with_selinux
+%endif
 
 %changelog
 * Tue Nov 26 2013 Petr Viktorin <pviktori@redhat.com> - @VERSION@-@VENDOR_SUFFIX@
