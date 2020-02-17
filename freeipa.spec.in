@@ -237,6 +237,7 @@ BuildRequires:  python3-custodia >= 0.3.1
 BuildRequires:  python3-dateutil
 BuildRequires:  python3-dbus
 BuildRequires:  python3-dns >= 1.15
+BuildRequires:  python3-docker
 BuildRequires:  python3-gssapi >= 1.2.0
 BuildRequires:  python3-jinja2
 BuildRequires:  python3-jwcrypto >= 0.4.2
