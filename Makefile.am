@@ -23,6 +23,8 @@ PYTHON_SCRIPT_SUBDIRS = \
         $(top_builddir)/install/tools \
         $(NULL)
 
+AZURE_PYTHON_SCRIPT_SUBDIR = $(top_builddir)/ipatests/azure
+
 IPA_PLACEHOLDERS = freeipa ipa ipaserver ipatests
 SUBDIRS = asn1 util client contrib po pypi $(PYTHON_SUBDIRS) $(SERVER_SUBDIRS)
 
@@ -324,7 +326,8 @@ pylint: $(GENERATED_PYTHON_FILES) ipasetup.py python_scripts
 		-name '*~' -o \
 		-name '*.py' -print -o \
 		-type f -exec grep -qsm1 '^#!.*\bpython' '{}' \; -print`; \
-	echo "Pylint on $(PYTHON) is running, please wait ..."; \
+	FILES=`echo -e "$${FILES}\n$(AZURE_PYTHON_SCRIPT_SUBDIR)"`; \
+	echo -e "Pylint on $(PYTHON) is running over files:\n$${FILES}\nPlease wait ...\n"; \
 	PYTHONPATH=$(top_srcdir) $(PYTHON) -m pylint \
 		--rcfile=$(top_srcdir)/pylintrc \
 		--load-plugins pylint_plugins \
