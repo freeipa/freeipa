@@ -25,7 +25,7 @@
 
 void ipadb_audit_as_req(krb5_context kcontext,
                         krb5_kdc_req *request,
-#if (KRB5_KDB_DAL_MAJOR_VERSION == 7)
+#if (KRB5_KDB_DAL_MAJOR_VERSION >= 7)
                         const krb5_address *local_addr,
                         const krb5_address *remote_addr,
 #endif
