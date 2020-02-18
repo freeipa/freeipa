@@ -8,12 +8,14 @@ AD trust installer module
 
 from __future__ import print_function, absolute_import
 
+import errno
 import logging
 import os
 
 import six
 
 from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib import create_api, rpc
 from ipalib import errors
 from ipalib.install.service import ServiceAdminInstallInterface
 from ipalib.install.service import replica_install_only
@@ -341,13 +343,76 @@ def add_new_adtrust_agents(api, options):
     if new_agents:
         add_hosts_to_adtrust_agents(api, new_agents)
 
-        print("""
+        # The method trust_enable_agent was added on API version 2.236
+        # Specifically request this version in the remote call
+        kwargs = {u'version': u'2.236',
+                  u'enable_compat': options.enable_compat}
+        failed_agents = []
+        for agent in new_agents:
+            # Try to run the ipa-trust-enable-agent script on the agent
+            # If the agent is too old and does not support this,
+            # print a msg
+            logger.info("Execute trust_enable_agent on remote server %s",
+                        agent)
+            client = None
+            try:
+                xmlrpc_uri = 'https://{}/ipa/xml'.format(
+                    ipautil.format_netloc(agent))
+                remote_api = create_api(mode=None)
+                remote_api.bootstrap(context='installer',
+                                     confdir=paths.ETC_IPA,
+                                     xmlrpc_uri=xmlrpc_uri,
+                                     fallback=False)
+                client = rpc.jsonclient(remote_api)
+                client.finalize()
+                client.connect()
+                result = client.forward(
+                    u'trust_enable_agent',
+                    ipautil.fsdecode(agent),
+                    **kwargs)
+            except errors.CommandError as e:
+                logger.debug(
+                    "Remote server %s does not support agent enablement "
+                    "over RPC: %s", agent, e)
+                failed_agents.append(agent)
+            except errors.PublicError as e:
+                logger.debug(
+                    "Remote call to trust_enable_agent failed on server %s: "
+                    "%s", agent, e)
+                failed_agents.append(agent)
+            except OSError as e:
+                if e.errno == errno.ECONNREFUSED:
+                    logger.debug(
+                        "Remote call to trust_enable_agent failed on "
+                        "server %s: %s", agent, e)
+                    failed_agents.append(agent)
+                else:
+                    raise
+            else:
+                for message in result.get('messages'):
+                    logger.debug('%s', message['message'])
+                if not int(result['result']):
+                    logger.debug(
+                        "ipa-trust-enable-agent returned non-zero exit code "
+                        " on server %s", agent)
+                    failed_agents.append(agent)
+            finally:
+                if client and client.isconnected():
+                    client.disconnect()
+
+        # if enablement failed on some agents, print a WARNING:
+        if failed_agents:
+            if options.enable_compat:
+                print("""
+WARNING: you MUST manually enable the Schema compatibility Plugin and """)
+            print("""
 WARNING: you MUST restart (both "ipactl restart" and "systemctl restart sssd")
 the following IPA masters in order to activate them to serve information about
 users from trusted forests:
 """)
-        for x in new_agents:
-            print(x)
+
+            for x in failed_agents:
+                print(x)
 
 
 def install_check(standalone, options, api):

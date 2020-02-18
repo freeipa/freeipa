@@ -1,0 +1,8 @@
+#!/usr/bin/python2
+#
+# Copyright (C) 2020  FreeIPA Contributors see COPYING for license
+#
+
+from ipaserver.install.ipa_trust_enable_agent import IPATrustEnableAgent
+
+IPATrustEnableAgent.run_cli()

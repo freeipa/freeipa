@@ -983,6 +983,7 @@ daemons/ipa-otpd/test.py
 install/certmonger/ipa-server-guard
 install/certmonger/dogtag-ipa-ca-renew-agent-submit
 install/oddjob/com.redhat.idm.trust-fetch-domains
+install/oddjob/org.freeipa.server.trust-enable-agent
 install/restart_scripts/renew_ra_cert_pre
 install/restart_scripts/renew_ca_cert
 install/restart_scripts/renew_ra_cert
@@ -1402,6 +1403,7 @@ fi
 %{_libexecdir}/ipa/ipa-otpd
 %dir %{_libexecdir}/ipa/oddjob
 %attr(0755,root,root) %{_libexecdir}/ipa/oddjob/org.freeipa.server.conncheck
+%attr(0755,root,root) %{_libexecdir}/ipa/oddjob/org.freeipa.server.trust-enable-agent
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/org.freeipa.server.conf
 %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/ipa-server.conf
 %dir %{_libexecdir}/ipa/certmonger
