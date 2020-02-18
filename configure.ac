@@ -578,6 +578,7 @@ AC_CONFIG_FILES([
     pypi/ipatests/Makefile
     po/Makefile.in
     po/Makefile.hack
+    selinux/Makefile
     util/Makefile
 ])
 

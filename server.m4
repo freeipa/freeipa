@@ -168,3 +168,15 @@ AC_ARG_WITH([systemdtmpfilesdir],
         [systemdtmpfilesdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=tmpfilesdir systemd)])
 AC_SUBST([systemdtmpfilesdir])
 
+dnl ---------------------------------------------------------------------------
+dnl - Check for SELinux policy devel
+dnl ---------------------------------------------------------------------------
+
+selinux_makefile=/usr/share/selinux/devel/Makefile
+AC_SUBST([selinux_makefile])
+
+AC_CHECK_FILE([$selinux_makefile],
+              [build_selinux=yes],
+              [build_selinux=no])
+
+AM_CONDITIONAL(BUILD_SELINUX_POLICY, test x$build_selinux = xyes)
