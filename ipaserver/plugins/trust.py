@@ -26,6 +26,7 @@ from ipalib.messages import (
     add_message,
     BrokenTrust)
 from ipalib.plugable import Registry
+from ipalib.request import context
 from .baseldap import (
     pkey_to_value,
     entry_to_dict,
@@ -42,6 +43,7 @@ from ipapython.ipautil import realm_to_suffix
 from ipalib import api, Str, StrEnum, Password, Bool, _, ngettext, Int, Flag
 from ipalib import Command
 from ipalib import errors
+from ipalib import messages
 from ipalib import output
 from ldap import SCOPE_SUBTREE
 from time import sleep
@@ -52,6 +54,7 @@ from ipaserver.dcerpc_common import (TRUST_ONEWAY,
                                      trust_type_string,
                                      trust_direction_string,
                                      trust_status_string)
+from ipaserver.plugins.privilege import principal_has_privilege
 
 if six.PY3:
     unicode = str
@@ -1825,6 +1828,71 @@ class trust_fetch_domains(LDAPRetrieve):
         result['summary'] = unicode(_('List of trust domains successfully '
                                       'refreshed. Use trustdomain-find '
                                       'command to list them.'))
+        return result
+
+
+@register()
+class trust_enable_agent(Command):
+    __doc__ = _("Configure this server as a trust agent.")
+
+    NO_CLI = True
+
+    has_output = output.standard_value
+    takes_args = (
+        Str(
+            'remote_cn',
+            cli_name='remote_name',
+            label=_('Remote server name'),
+            doc=_('Remote IPA server hostname'),
+        ),
+    )
+
+    takes_options = (
+        Flag('enable_compat',
+             doc=_('Enable support for trusted domains for old clients'),
+             default=False),
+    )
+
+    def execute(self, *keys, **options):
+        # the server must be the local host
+        # This check is needed because the forward method may failover
+        # to a master different from the one specified
+        if keys[0] != api.env.host:
+            raise errors.ValidationError(
+                name='cn', error=_("must be \"%s\"") % api.env.host)
+
+        # the user must have the Replication Administrators privilege
+        privilege = u'Replication Administrators'
+        if not principal_has_privilege(self.api, context.principal, privilege):
+            raise errors.ACIError(
+                info=_("not allowed to remotely add agent"))
+
+        # Trust must be configured
+
+        if options[u'enable_compat']:
+            method_arguments = "--enable-compat"
+        else:
+            method_arguments = ""
+
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+        bus = dbus.SystemBus()
+        obj = bus.get_object('org.freeipa.server', '/',
+                             follow_name_owner_changes=True)
+        server = dbus.Interface(obj, 'org.freeipa.server')
+
+        ret, stdout, stderr = server.trust_enable_agent(method_arguments)
+
+        result = dict(
+            result=(ret == 0),
+            value=keys[0],
+        )
+
+        for line in stdout.splitlines() + stderr.splitlines():
+            messages.add_message(options['version'],
+                                 result,
+                                 messages.ExternalCommandOutput(line=line))
+
         return result
 
 
