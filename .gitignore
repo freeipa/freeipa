@@ -182,3 +182,7 @@ ipatests/i18n.py
 ipatests/ipa-run-tests
 ipatests/ipa-test-config
 ipatests/ipa-test-task
+
+selinux/tmp
+selinux/*.pp
+selinux/*.pp.bz2
