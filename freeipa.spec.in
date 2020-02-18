@@ -366,7 +366,7 @@ Requires: sssd-dbus >= %{sssd_version}
 # This ensures that the *-selinux package and all it’s dependencies are not pulled
 # into containers and other systems that do not use SELinux
 Requires:       (%{name}-selinux if selinux-policy-%{selinuxtype})
-%endif # if with_selinux
+%endif
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
@@ -867,11 +867,6 @@ touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 %if ! %{ONLY_CLIENT}
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 # ONLY_CLIENT
-%endif
-
-%if 0%{?with_selinux}
-install -D -m 0644 selinux/%{modulename}.pp.bz2 %{buildroot}%{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
-# with_selinux
 %endif
 
 %clean

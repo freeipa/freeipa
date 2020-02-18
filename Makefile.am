@@ -4,7 +4,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 if ENABLE_SERVER
     IPASERVER_SUBDIRS = ipaserver
-    SERVER_SUBDIRS = daemons init install
+    SERVER_SUBDIRS = daemons init install selinux
 endif
 
 if WITH_IPATESTS
