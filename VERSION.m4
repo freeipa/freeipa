@@ -83,9 +83,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 232)
-# Last change: Add ipamaxhostnamelength to config
-
+define(IPA_API_VERSION_MINOR, 236)
+# Last change: Add trust_enable_agent.
 
 ########################################################
 # Following values are auto-generated from values above
