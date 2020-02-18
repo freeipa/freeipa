@@ -13,8 +13,16 @@ class TestIpaAdTrustInstall(IntegrationTest):
     topology = 'line'
     num_replicas = 1
 
-    def test_install_ad_trust_controller(self):
-        self.master.run_command(['ipa-adtrust-install', '-U'])
+    def test_samba_config_file(self):
+        """Check that ipa-adtrust-install generates sane smb.conf
+
+        This is regression test for issue
+        https://pagure.io/freeipa/issue/6951
+        """
+        self.master.run_command(
+            ['ipa-adtrust-install', '-a', 'Secret123', '--add-sids', '-U'])
+        res = self.master.run_command(['testparm', '-s'])
+        assert 'ERROR' not in (res.stdout_text + res.stderr_text)
 
     def test_warnings_after_ad_trust_agents_setup(self):
         """ Check that warning about ipa and sssd restart is displayed.
@@ -30,8 +38,6 @@ class TestIpaAdTrustInstall(IntegrationTest):
             'yes\n'
             # Enable trusted domains support in slapi-nis? [no]:
             '\n' +
-            # Do you want to run the ipa-sidgen task? [no]:
-            '\n'+
             # WARNING: 1 IPA masters are not yet able to serve information
             # about users from trusted forests.
             # Installer can add them to the list of IPA masters allowed to
