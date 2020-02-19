@@ -150,10 +150,6 @@ optional_policy(`
 ')
 
 optional_policy(`
-    memcached_stream_connect(ipa_helper_t)
-')
-
-optional_policy(`
     oddjob_system_entry(ipa_helper_t, ipa_helper_exec_t)
 ')
 
