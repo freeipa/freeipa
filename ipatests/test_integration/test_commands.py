@@ -33,6 +33,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.tasks import tasks as platform_tasks
 from ipatests.create_external_ca import ExternalCA
 from ipatests.test_ipalib.test_x509 import good_pkcs7, badcert
+from ipapython.ipautil import realm_to_suffix
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +130,26 @@ class TestIPACommand(IntegrationTest):
         cacrt = host.get_file_contents(path, encoding='ascii')
         cader = ssl.PEM_cert_to_DER_cert(cacrt)
         return base64.b64encode(cader).decode('ascii')
+
+    def test_aes_sha_kerberos_enctypes(self):
+        """Test AES SHA 256 and 384 Kerberos enctypes enabled
+
+        AES SHA 256 and 384-bit enctypes supported by MIT kerberos but
+        was not enabled in IPA. This test is to check if these types are
+        enabled.
+
+        related: https://pagure.io/freeipa/issue/8110
+        """
+        tasks.kinit_admin(self.master)
+        dn = DN(("cn", self.master.domain.realm), ("cn", "kerberos"),
+                realm_to_suffix(self.master.domain.realm))
+        result = tasks.ldapsearch_dm(self.master, str(dn),
+                                     ["krbSupportedEncSaltTypes"],
+                                     scope="base")
+        assert "aes128-sha2:normal" in result.stdout_text
+        assert "aes128-sha2:special" in result.stdout_text
+        assert "aes256-sha2:normal" in result.stdout_text
+        assert "aes256-sha2:special" in result.stdout_text
 
     def test_certmap_match_issue7520(self):
         # https://pagure.io/freeipa/issue/7520
