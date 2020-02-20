@@ -1,4 +1,4 @@
-# VERSION 15 - DO NOT REMOVE THIS LINE
+# VERSION 16 - DO NOT REMOVE THIS LINE
 
 ProxyRequests Off
 
@@ -31,6 +31,16 @@ ProxyRequests Off
     SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
     SSLVerifyClient optional
     ProxyPassMatch ajp://localhost:$DOGTAG_PORT $DOGTAG_AJP_SECRET
+    ProxyPassReverse ajp://localhost:$DOGTAG_PORT
+</LocationMatch>
+
+# Matches for ACME service
+<LocationMatch "^/acme">
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    # RFC 8555 says HTTPS is REQUIRED
+    SSLRequireSSL
+    SSLVerifyClient none
+    ProxyPassMatch ajp://localhost:$DOGTAG_PORT
     ProxyPassReverse ajp://localhost:$DOGTAG_PORT
 </LocationMatch>
 
