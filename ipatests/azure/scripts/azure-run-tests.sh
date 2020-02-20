@@ -83,7 +83,8 @@ python3 setup_containers.py
 # path to runner within container
 tests_runner="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/azure-run-${IPA_TESTS_TYPE}-tests.sh"
 
-docker exec -t \
+tests_result=1
+{ docker exec -t \
     --env IPA_TESTS_SCRIPTS="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}" \
     --env IPA_PLATFORM="$IPA_PLATFORM" \
     --env IPA_TESTS_DOMAIN="$IPA_TESTS_DOMAIN" \
@@ -93,4 +94,14 @@ docker exec -t \
     --env IPA_TESTS_TO_IGNORE="$IPA_TESTS_TO_IGNORE" \
     "$IPA_TESTS_CONTROLLER" \
     /bin/bash --noprofile --norc \
-    -eux "$tests_runner"
+    -eux "$tests_runner" && tests_result=0 ; } || tests_result=$?
+
+pushd "$project_dir"
+BUILD_REPOSITORY_LOCALPATH="$BUILD_REPOSITORY_LOCALPATH" \
+IPA_DOCKER_IMAGE="${IPA_DOCKER_IMAGE:-freeipa-azure-builder}" \
+IPA_NETWORK="${IPA_NETWORK:-ipanet}" \
+IPA_IPV6_SUBNET="2001:db8:1:${PROJECT_ID}::/64" \
+docker-compose -p "$PROJECT_ID" down
+popd
+
+exit $tests_result
