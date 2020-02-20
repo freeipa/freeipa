@@ -17,9 +17,13 @@ vms:
     tests:
     - test_integration/test_forced_client_reenrollment.py
 
-  - container_job: ExternalCAInstall
+  - container_job: external_ca_ExternalCAInstall
     tests:
     - test_integration/test_external_ca.py::TestExternalCAInstall
+
+  - container_job: external_ca_ExternalCAProfileScenarios
+    tests:
+    - test_integration/test_external_ca.py::TestExternalCAProfileScenarios
 
 - vm_jobs:
   - container_job: InstallDNSSECFirst
@@ -42,6 +46,12 @@ vms:
     tests:
     - test_integration/test_netgroup.py
 
+  - container_job: authselect
+    containers:
+      clients: 1
+    tests:
+    - test_integration/test_authselect.py
+
 - vm_jobs:
   - container_job: sudo
     containers:
@@ -49,7 +59,7 @@ vms:
     tests:
     - test_integration/test_sudo.py
 
-  - container_job: ExternalCA
+  - container_job: external_ca_ExternalCA
     containers:
       replicas: 1
       clients: 1
@@ -62,9 +72,15 @@ vms:
     - test_integration/test_topologies.py
     - test_integration/test_testconfig.py
 
-  - container_job: SelfExternalSelf
+  - container_job: external_ca_SelfExternalSelf
     tests:
     - test_integration/test_external_ca.py::TestSelfExternalSelf
+
+  - container_job: external_ca_ExternalCAConstraints
+    containers:
+      clients: 1
+    tests:
+    - test_integration/test_external_ca.py::TestExternalCAConstraints
 
 - vm_jobs:
   - container_job: commands
@@ -82,3 +98,13 @@ vms:
       replicas: 1
     tests:
     - test_integration/test_replica_promotion.py::TestSubCAkeyReplication
+
+  - container_job: advise
+    containers:
+      clients: 1
+    tests:
+    - test_integration/test_advise.py
+
+  - container_job: membermanager
+    tests:
+    - test_integration/test_membermanager.py
