@@ -34,5 +34,15 @@ ProxyRequests Off
     ProxyPassReverse ajp://localhost:$DOGTAG_PORT
 </LocationMatch>
 
+# Matches for ACME service
+<LocationMatch "^/acme">
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    # RFC 8555 says HTTPS is REQUIRED
+    SSLRequireSSL
+    SSLVerifyClient none
+    ProxyPassMatch ajp://localhost:$DOGTAG_PORT
+    ProxyPassReverse ajp://localhost:$DOGTAG_PORT
+</LocationMatch>
+
 # Only enable this on servers that are not generating a CRL
 ${CLONE}RewriteRule ^/ipa/crl/MasterCRL.bin http://$FQDN/ca/ee/ca/getCRL?op=getCRL&crlIssuingPoint=MasterCRL [L,R=301,NC]
