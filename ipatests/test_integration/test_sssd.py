@@ -14,6 +14,7 @@ import textwrap
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipaplatform.tasks import tasks as platform_tasks
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipapython.dn import DN
@@ -191,6 +192,12 @@ class TestSSSDWithAdTrust(IntegrationTest):
         2: Run the command id aduser@ADDOMAIN.COM
         3: sssd should retrieve all the external groups.
         """
+        cmd = self.master.run_command(['sssd', '--version'])
+        sssd_version = platform_tasks.parse_ipa_version(
+            cmd.stdout_text.strip())
+        if sssd_version < platform_tasks.parse_ipa_version('2.2.2'):
+            pytest.xfail("Fix for https://pagure.io/SSSD/sssd/issue/4058 "
+                         "unavailable with < sssd-2.2.2")
         new_limit = 50
         master = self.master
         conn = master.ldap_connect()
