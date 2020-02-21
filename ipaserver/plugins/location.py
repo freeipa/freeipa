@@ -224,10 +224,30 @@ class location_show(LDAPRetrieve):
                 if 'DNS server' in s_roles:
                     dns_servers.append(s_name)
 
+            # 1. If all masters have weight == 0 then all are equally
+            #    weighted.
+            # 2. If any masters have weight == 0 then they have an
+            #    extremely small chance of being chosen, percentage is
+            #    0.1.
+            # 3. Otherwise it's percentage change is based on the sum of
+            #    the weights of non-zero masters.
+            dividend = 100.0
+            if weight_sum != 0:
+                for server in servers_additional_info.values():
+                    if int(server['ipaserviceweight'][0]) == 0:
+                        dividend = dividend - 0.1
             for server in servers_additional_info.values():
+                if weight_sum == 0:
+                    val = 100 / len(servers)
+                elif int(server['ipaserviceweight'][0]) == 0:
+                    val = 0.1
+                else:
+                    val = (
+                        int(server['ipaserviceweight'][0]) *
+                        dividend / weight_sum
+                    )
                 server['service_relative_weight'] = [
-                    u'{:.1f}%'.format(
-                        int(server['ipaserviceweight'][0])*100.0/weight_sum)
+                    u'{:.1f}%'.format(val)
                 ]
             if servers_name:
                 result['result']['servers_server'] = servers_name

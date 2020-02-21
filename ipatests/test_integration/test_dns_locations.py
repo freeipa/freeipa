@@ -2,6 +2,7 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 import logging
+import re
 import time
 import pytest
 import dns.resolver
@@ -80,6 +81,11 @@ def _gen_expected_srv_rrset(rname, port, servers, ttl=86400):
 def _gen_expected_a_rrset(rname, servers, ttl=86400):
     return dns.rrset.from_text_list(rname, ttl, dns.rdataclass.IN,
                                     dns.rdatatype.A, servers)
+
+
+def _get_relative_weights(text):
+    """Takes location-show output and returns a list of percentages"""
+    return re.findall(r"\d+.\d%", text)
 
 
 class TestDNSLocations(IntegrationTest):
@@ -345,6 +351,81 @@ class TestDNSLocations(IntegrationTest):
         for ip in (self.replicas[1].ip, self.master.ip):
             self._test_SRV_rec_against_server(ip, domain_paris_loc,
                                               servers_paris_loc)
+
+    def test_change_weight_relative_zero_0(self):
+        """Change weight of one master and check on relative weight %
+        """
+
+        new_weight = 0
+
+        # Put all servers into one location
+        self.master.run_command([
+            'ipa', 'server-mod', self.replicas[0].hostname, '--location',
+            self.LOC_PARIS])
+
+        # Modify one to have a weight of 0
+        result = self.master.run_command([
+            'ipa', 'server-mod', self.master.hostname, '--service-weight',
+            str(new_weight)
+        ])
+
+        result = self.master.run_command([
+            'ipa', 'location-show', self.LOC_PARIS
+        ])
+        weights = _get_relative_weights(result.stdout_text)
+        assert weights.count('0.1%') == 1
+        assert weights.count('50.0%') == 2
+
+    # The following three tests are name-sensitive so they run in
+    # a specific order. They use the paris location and depend on
+    # the existing values of the server location and weight to work
+    # properly
+    def test_change_weight_relative_zero_1(self):
+        """Change all weights to zero and ensure no div by zero
+        """
+
+        new_weight = 0
+
+        # Depends on order of test execution but all masters are now
+        # in LOC_PARIS and self.master has a weight of 0.
+
+        # Modify all replicas to have a weight of 0
+        for hostname in (self.replicas[0].hostname, self.replicas[1].hostname):
+            self.master.run_command([
+                'ipa', 'server-mod', hostname, '--service-weight',
+                str(new_weight)
+            ])
+
+        result = self.master.run_command([
+            'ipa', 'location-show', self.LOC_PARIS
+        ])
+        weights = _get_relative_weights(result.stdout_text)
+        assert weights.count('33.3%') == 3
+
+    def test_change_weight_relative_zero_2(self):
+        """Change to mixed weight values and check percentages
+        """
+
+        new_weight = 100
+
+        # Change master to be primary, replicas secondary
+        self.master.run_command([
+            'ipa', 'server-mod', self.master.hostname, '--service-weight',
+            '200'
+        ])
+        for hostname in (self.replicas[0].hostname,
+                         self.replicas[1].hostname):
+            self.master.run_command([
+                'ipa', 'server-mod', hostname, '--service-weight',
+                str(new_weight)
+            ])
+
+        result = self.master.run_command([
+            'ipa', 'location-show', self.LOC_PARIS
+        ])
+        weights = _get_relative_weights(result.stdout_text)
+        assert weights.count('50.0%') == 1
+        assert weights.count('25.0%') == 2
 
     def test_restore_locations_and_weight(self):
         """Restore locations and weight. Not just for test purposes but also
