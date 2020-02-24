@@ -28,6 +28,8 @@ class TestCertsInIDOverrides(IntegrationTest):
     def uninstall(cls, mh):
         super(TestCertsInIDOverrides, cls).uninstall(mh)
         cls.master.run_command(['rm', '-rf', cls.reqdir], raiseonerr=False)
+        tasks.assert_string(cls.master, "Traceback",
+                            paths.VAR_LOG_HTTPD_ERROR, assert_ok=False)
 
     @classmethod
     def install(cls, mh):
@@ -316,6 +318,12 @@ class TestIDViews(IntegrationTest):
         ])
         # finally restart SSSD to materialize idviews
         client.run_command(['systemctl', 'restart', 'sssd.service'])
+
+    @classmethod
+    def uninstall(cls, mh):
+        super(TestIDViews, cls).uninstall(mh)
+        tasks.assert_string(cls.master, "Traceback",
+                            paths.VAR_LOG_HTTPD_ERROR, assert_ok=False)
 
     def test_useroverride(self):
         result = self.clients[0].run_command(['id', self.user1])

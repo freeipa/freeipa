@@ -2232,3 +2232,17 @@ def get_sssd_version(host):
     """Get sssd version on remote host."""
     version = host.run_command('sssd --version').stdout_text.strip()
     return parse_version(version)
+
+
+def assert_string(host, string_to_check, file_name, assert_ok=True):
+    """ Assert the given string in specified file
+    :param host: host where the check takes place
+    :param string_to_check: string to be check
+    :param file_name: file on which check is to be performed.
+    :param assert_ok: If true assert in file else assert not
+    """
+    file_contents = host.get_file_contents(file_name, encoding='utf-8')
+    if assert_ok:
+        assert string_to_check in file_contents
+    else:
+        assert string_to_check not in file_contents
