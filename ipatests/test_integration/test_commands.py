@@ -813,17 +813,6 @@ class TestIPACommand(IntegrationTest):
         assert is_tls_version_enabled('tls1_2')
         assert is_tls_version_enabled('tls1_3')
 
-    def test_samba_config_file(self):
-        """Check that ipa-adtrust-install generates sane smb.conf
-
-        This is regression test for issue
-        https://pagure.io/freeipa/issue/6951
-        """
-        self.master.run_command(
-            ['ipa-adtrust-install', '-a', 'Secret123', '--add-sids', '-U'])
-        res = self.master.run_command(['testparm', '-s'])
-        assert 'ERROR' not in (res.stdout_text + res.stderr_text)
-
     @pytest.mark.skip(reason='https://pagure.io/freeipa/issue/8151')
     def test_sss_ssh_authorizedkeys(self):
         """Login via Ssh using private-key for ipa-user should work.
