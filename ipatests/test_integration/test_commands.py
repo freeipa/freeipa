@@ -563,17 +563,6 @@ class TestIPACommand(IntegrationTest):
         assert not is_tls_version_enabled('tls1_1')
         assert is_tls_version_enabled('tls1_2')
 
-    def test_samba_config_file(self):
-        """Check that ipa-adtrust-install generates sane smb.conf
-
-        This is regression test for issue
-        https://pagure.io/freeipa/issue/6951
-        """
-        self.master.run_command(
-            ['ipa-adtrust-install', '-a', 'Secret123', '--add-sids', '-U'])
-        res = self.master.run_command(['testparm', '-s'])
-        assert 'ERROR' not in (res.stdout_text + res.stderr_text)
-
     @pytest.mark.xfail(
         reason='https://pagure.io/SSSD/sssd/issue/3937', strict=True)
     def test_sss_ssh_authorizedkeys(self):
