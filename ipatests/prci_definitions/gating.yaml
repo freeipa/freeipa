@@ -274,3 +274,15 @@ jobs:
         template: *ci-ipa-4-8-latest
         timeout: 7200
         topology: *ad_master_2client
+
+  fedora-latest-ipa-4-8/test_adtrust_install:
+    requires: [fedora-latest-ipa-4-8/build]
+    priority: 100
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
+        test_suite: test_integration/test_adtrust_install.py
+        template: *ci-ipa-4-8-latest
+        timeout: 3600
+        topology: *master_1repl
