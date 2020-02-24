@@ -1340,3 +1340,15 @@ jobs:
         template: *ci-master-f29
         timeout: 7200
         topology: *adroot_adchild_adtree_master_1client
+
+  fedora-29/test_adtrust_install:
+    requires: [fedora-29/build]
+    priority: 100
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-29/build_url}'
+        test_suite: test_integration/test_adtrust_install.py
+        template: *ci-master-f29
+        timeout: 3600
+        topology: *master_1repl
