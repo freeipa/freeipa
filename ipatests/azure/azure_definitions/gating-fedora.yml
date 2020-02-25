@@ -46,11 +46,12 @@ vms:
     tests:
     - test_integration/test_netgroup.py
 
-  - container_job: authselect
-    containers:
-      clients: 1
-    tests:
-    - test_integration/test_authselect.py
+  # requires external DNS configuration, this is not set up yet
+  # - container_job: authselect
+  #   containers:
+  #     clients: 1
+  #   tests:
+  #   - test_integration/test_authselect.py
 
 - vm_jobs:
   - container_job: sudo
