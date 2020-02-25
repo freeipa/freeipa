@@ -21,9 +21,9 @@ vms:
     tests:
     - test_integration/test_external_ca.py::TestExternalCAInstall
 
-  - container_job: external_ca_ExternalCAProfileScenarios
+  - container_job: membermanager
     tests:
-    - test_integration/test_external_ca.py::TestExternalCAProfileScenarios
+    - test_integration/test_membermanager.py
 
 - vm_jobs:
   - container_job: InstallDNSSECFirst
@@ -45,6 +45,10 @@ vms:
   - container_job: netgroup
     tests:
     - test_integration/test_netgroup.py
+
+  - container_job: external_ca_ExternalCAProfileScenarios
+    tests:
+    - test_integration/test_external_ca.py::TestExternalCAProfileScenarios
 
   # requires external DNS configuration, this is not set up yet
   # - container_job: authselect
@@ -105,7 +109,3 @@ vms:
       clients: 1
     tests:
     - test_integration/test_advise.py
-
-  - container_job: membermanager
-    tests:
-    - test_integration/test_membermanager.py
