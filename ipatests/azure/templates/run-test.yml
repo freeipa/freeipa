@@ -24,22 +24,22 @@ steps:
         mkdir "$project_dir"
         # live-logging of tests within environment: '1'
         if [ "$project_id" == "1" ]; then
-            ./azure-run-tests.sh "$project_id" 2>&1 | \
+            /usr/bin/time \
+                --format="tests: ${project_name}, result: %x, time: %E" \
+                --output="result_${project_id}" \
+                -- \
+                ./azure-run-tests.sh "$project_id" 2>&1 | \
                 ts '[%Y-%m-%d %H:%M:%S]' 2>&1 | tee "${project_dir}/${logfile}"
             result=$?
         else
-            ./azure-run-tests.sh "$project_id" 2>&1 | \
+            /usr/bin/time \
+                --format="tests: ${project_name}, result: %x, time: %E" \
+                --output="result_${project_id}" \
+                -- \
+                ./azure-run-tests.sh "$project_id" 2>&1 | \
                 ts '[%Y-%m-%d %H:%M:%S]' 2>&1 > "${project_dir}/${logfile}"
             result=$?
         fi
-
-        result_file="result_${project_id}"
-        if [ "$result" -eq 0 ]; then
-            result_msg="${project_name}: PASSED"
-        else
-            result_msg="${project_name}: FAILED"
-        fi
-        echo "$result_msg" > "$result_file"
         exit $result
     }
     export -f runner
