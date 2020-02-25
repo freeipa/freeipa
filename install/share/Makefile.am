@@ -100,6 +100,8 @@ dist_app_DATA =				\
 	ipaca_default.ini		\
 	ipaca_customize.ini		\
 	ipaca_softhsm2.ini		\
+	pki-acme-database.conf.template	\
+	pki-acme-issuer.conf.template	\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy

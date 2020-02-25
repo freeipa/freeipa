@@ -1596,6 +1596,7 @@ def ca_upgrade_schema(ca):
     schema_files=[
         '/usr/share/pki/server/conf/schema-certProfile.ldif',
         '/usr/share/pki/server/conf/schema-authority.ldif',
+        '/usr/share/pki/acme/conf/database/ldap/schema.ldif',
     ]
     try:
         modified = schemaupdate.update_schema(schema_files, ldapi=True)
