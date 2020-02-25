@@ -44,6 +44,7 @@ from ipalib import errors
 import ipalib.constants
 from ipalib.install import certmonger
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
@@ -51,7 +52,7 @@ from ipapython import directivesetter
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.certdb import get_ca_nickname
-from ipapython.dn import DN
+from ipapython.dn import DN, RDN
 from ipapython.ipa_log_manager import standard_logging_setup
 from ipaserver.secrets.kem import IPAKEMKeys
 
@@ -415,6 +416,7 @@ class CAInstance(DogtagInstance):
             if promote:
                 self.step("destroying installation admin user",
                           self.teardown_admin)
+            self.step("deploying ACME service", self.setup_acme)
             self.step("starting certificate server instance",
                       self.start_instance)
             if promote:
@@ -1513,6 +1515,51 @@ class CAInstance(DogtagInstance):
                 logger.debug("Successfully updated CRL")
             api.Backend.ra.override_port = None
 
+    def setup_acme(self) -> bool:
+        """
+        Set up ACME service, if needed.
+
+        Return False if ACME service was already set up, otherwise True.
+
+        """
+
+        # ACME LDAP database schema will be added by ipa-server-upgrade.
+        # It is fine if this subroutine runs *before* the schema update,
+        # because we only create the container objects.
+
+        if os.path.isdir(os.path.join(paths.PKI_TOMCAT, 'acme')):
+            logger.debug('ACME service is already deployed')
+            return False
+
+        # create container object heirarchy in LDAP
+        ensure_acme_containers()
+
+        # create ACME service instance
+        ipautil.run(['pki-server', 'acme-create'])
+
+        # write configuration files
+        files = [
+            ('pki-acme-database.conf.template', paths.PKI_ACME_DATABASE_CONF),
+            ('pki-acme-issuer.conf.template', paths.PKI_ACME_ISSUER_CONF),
+        ]
+        sub_dict = dict(
+            FQDN=self.fqdn,
+        )
+        for template_name, target in files:
+            template_filename = \
+                os.path.join(paths.USR_SHARE_IPA_DIR, template_name)
+            filled = ipautil.template_file(template_filename, sub_dict)
+            with open(target, 'w') as f:
+                f.write(filled)
+                os.fchmod(f.fileno(), 0o600)
+                pent = pwd.getpwnam(constants.PKI_USER)
+                os.fchown(f.fileno(), pent.pw_uid, pent.pw_gid)
+
+        # deploy ACME Tomcat application
+        ipautil.run(['pki-server', 'acme-deploy'])
+
+        return True
+
 
 def __update_entry_from_cert(make_filter, make_entry, cert):
     """
@@ -1704,6 +1751,30 @@ def ensure_lightweight_cas_container():
         objectclass=['top', 'organizationalUnit'],
         ou=['authorities'],
     )
+
+
+def ensure_acme_containers():
+    """
+    Create the ACME container objects under ou=acme,o=ipaca if
+    they do not exist.
+
+    """
+    ou_acme = RDN(('ou', 'acme'))
+    rdns = [
+        DN(ou_acme),
+        DN(('ou', 'nonces'), ou_acme),
+        DN(('ou', 'accounts'), ou_acme),
+        DN(('ou', 'orders'), ou_acme),
+        DN(('ou', 'authorizations'), ou_acme),
+        DN(('ou', 'challenges'), ou_acme),
+    ]
+
+    for rdn in rdns:
+        ensure_entry(
+            DN(rdn, ('o', 'ipaca')),
+            objectclass=['top', 'organizationalUnit'],
+            ou=[rdn[0][0].value],
+        )
 
 
 def ensure_entry(dn, **attrs):
