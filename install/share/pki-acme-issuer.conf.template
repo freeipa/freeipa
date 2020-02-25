@@ -1,0 +1,5 @@
+class=org.dogtagpki.acme.issuer.PKIIssuer
+url=https://$FQDN:8443
+profile=acmeServerCert
+username=admin
+password=Secret.123
