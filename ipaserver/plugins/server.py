@@ -31,6 +31,7 @@ from ipaserver import topology
 from ipaserver.servroles import ENABLED, HIDDEN
 from ipaserver.install import bindinstance, dnskeysyncinstance
 from ipaserver.install.service import hide_services, enable_services
+from ipaserver.plugins.privilege import principal_has_privilege
 
 __doc__ = _("""
 IPA servers
@@ -920,15 +921,7 @@ class server_conncheck(crud.PKQuery):
 
         # the user must have the Replication Administrators privilege
         privilege = u'Replication Administrators'
-        privilege_dn = self.api.Object.privilege.get_dn(privilege)
-        ldap = self.obj.backend
-        filter = ldap.make_filter({
-            'krbprincipalname': context.principal,  # pylint: disable=no-member
-            'memberof': privilege_dn},
-            rules=ldap.MATCH_ALL)
-        try:
-            ldap.find_entries(base_dn=self.api.env.basedn, filter=filter)
-        except errors.NotFound:
+        if not principal_has_privilege(self.api, context.principal, privilege):
             raise errors.ACIError(
                 info=_("not allowed to perform server connection check"))
 
