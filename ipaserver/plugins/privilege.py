@@ -83,6 +83,20 @@ def validate_permission_to_privilege(api, permission):
                     'ipapermbindruletype', 'permission')})
 
 
+def principal_has_privilege(api, principal, privilege):
+    privilege_dn = api.Object.privilege.get_dn(privilege)
+    ldap = api.Backend.ldap2
+    filter = ldap.make_filter({
+        'krbprincipalname': principal,  # pylint: disable=no-member
+        'memberof': privilege_dn},
+        rules=ldap.MATCH_ALL)
+    try:
+        ldap.find_entries(base_dn=api.env.basedn, filter=filter)
+    except errors.NotFound:
+        return False
+    return True
+
+
 @register()
 class privilege(LDAPObject):
     """
