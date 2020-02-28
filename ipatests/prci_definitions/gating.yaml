@@ -21,7 +21,7 @@ topologies:
     memory: 2400
 
 jobs:
-  fedora-30/build:
+  fedora-latest-ipa-4-8/build:
     requires: []
     priority: 150
     job:
@@ -29,248 +29,248 @@ jobs:
       args:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
-        template: &ci-master-f30
-          name: freeipa/ci-ipa-4-8-f30
+        template: &ci-ipa-4-8-latest
+          name: freeipa/ci-ipa-4-8-f31
           version: 0.0.3
         timeout: 1800
         topology: *build
 
-  fedora-30/test_installation_TestInstallMaster:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_installation_TestInstallMaster:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_installation.py::TestInstallMaster
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/simple_replication:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/simple_replication:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_simple_replication.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/test_caless_TestServerReplicaCALessToCAFull:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_caless_TestServerReplicaCALessToCAFull:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/test_external_ca_TestExternalCA:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_external_ca_TestExternalCA:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 4800
         topology: *master_1repl_1client
 
-  fedora-30/test_external_ca_TestSelfExternalSelf:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_external_ca_TestSelfExternalSelf:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/external_ca_templates:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/external_ca_templates:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/test_topologies:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_topologies:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_topologies.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/test_sudo:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_sudo:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_sudo.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 4800
         topology: *master_1repl_1client
 
-  fedora-30/test_commands:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_commands:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_commands.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/test_kerberos_flags:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_kerberos_flags:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_kerberos_flags.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl_1client
 
-  fedora-30/test_forced_client_enrolment:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_forced_client_enrolment:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_forced_client_reenrollment.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 4800
         topology: *master_1repl_1client
 
-  fedora-30/test_advise:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_advise:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_advise.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl_1client
 
-  fedora-30/test_testconfig:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_testconfig:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_testconfig.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/test_service_permissions:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_service_permissions:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_service_permissions.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/test_netgroup:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_netgroup:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_netgroup.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/test_authconfig:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_authconfig:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_authselect.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 4800
         topology: *master_1repl_1client
 
-  fedora-30/test_replica_promotion_TestSubCAkeyReplication:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_replica_promotion_TestSubCAkeyReplication:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/test_dnssec_TestInstallDNSSECFirst:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_dnssec_TestInstallDNSSECFirst:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_dnssec.py::TestInstallDNSSECFirst
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 3600
         topology: *master_1repl
 
-  fedora-30/test_membermanager:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_membermanager:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 100
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_membermanager.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 1800
         topology: *master_1repl
 
-  fedora-30/test_smb:
-    requires: [fedora-30/build]
+  fedora-latest-ipa-4-8/test_smb:
+    requires: [fedora-latest-ipa-4-8/build]
     priority: 50
     job:
       class: RunADTests
       args:
-        build_url: '{fedora-30/build_url}'
+        build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_smb.py
-        template: *ci-master-f30
+        template: *ci-ipa-4-8-latest
         timeout: 7200
         topology: *ad_master_2client
