@@ -290,9 +290,11 @@ class BaseTaskNamespace:
     def run_ods_setup(self):
         """Initialize a new kasp.db
         """
-        if paths.ODS_KSMUTIL is not None:
+        if paths.ODS_KSMUTIL is not None and os.path.exists(paths.ODS_KSMUTIL):
+            # OpenDNSSEC 1.4
             cmd = [paths.ODS_KSMUTIL, 'setup']
         else:
+            # OpenDNSSEC 2.x
             cmd = [paths.ODS_ENFORCER_DB_SETUP]
         return ipautil.run(cmd, stdin="y", runas=constants.ODS_USER)
 
@@ -305,7 +307,7 @@ class BaseTaskNamespace:
         """
         assert params[0] != 'setup'
 
-        if paths.ODS_KSMUTIL is not None:
+        if paths.ODS_KSMUTIL is not None and os.path.exists(paths.ODS_KSMUTIL):
             # OpenDNSSEC 1.4
             cmd = [paths.ODS_KSMUTIL]
         else:
