@@ -842,6 +842,30 @@ class TestInstallMasterDNS(IntegrationTest):
             extra_args=['--zonemgr', 'me@example.org'],
         )
 
+    def test_server_install_lock_bind_recursion(self):
+        """Test if server installer lock Bind9 recursion
+
+        This test is to check if recursion can be configured.
+        It checks if newly added file /etc/named/ipa-ext.conf
+        exists and /etc/named.conf should not have
+        'allow-recursion { any; };'. It also checks if ipa-backup
+        command backup the /etc/named/ipa-ext.conf file as well
+
+        related : https://pagure.io/freeipa/issue/8079
+        """
+        # check of /etc/named/ipa-ext.conf exist
+        assert self.master.transport.file_exists(paths.NAMED_CUSTOM_CONFIG)
+
+        # check if /etc/named.conf does not contain 'allow-recursion { any; };'
+        string_to_check = 'allow-recursion { any; };'
+        named_contents = self.master.get_file_contents(paths.NAMED_CONF,
+                                                       encoding='utf-8')
+        assert string_to_check not in named_contents
+
+        # check if ipa-backup command backups the /etc/named/ipa-ext.conf
+        result = self.master.run_command(['ipa-backup', '-v'])
+        assert paths.NAMED_CUSTOM_CONFIG in result.stderr_text
+
     def test_install_kra(self):
         tasks.install_kra(self.master, first_instance=True)
 
