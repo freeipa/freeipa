@@ -179,6 +179,12 @@ class OpenDNSSECInstance(service.Service):
         # add pin to template
         sub_conf_dict = self.conf_file_dict
         sub_conf_dict['PIN'] = pin
+        if paths.ODS_KSMUTIL is not None and os.path.exists(paths.ODS_KSMUTIL):
+            # OpenDNSSEC 1.4
+            sub_conf_dict['INTERVAL'] = '<Interval>PT3600S</Interval>'
+        else:
+            # OpenDNSSEC 2.x
+            sub_conf_dict['INTERVAL'] = '<!-- Interval not used in 2x -->'
 
         ods_conf_txt = ipautil.template_file(
             os.path.join(paths.USR_SHARE_IPA_DIR, "opendnssec_conf.template"),
