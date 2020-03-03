@@ -33,7 +33,7 @@
 		</Privileges>
 
 		<Datastore><SQLite>$KASP_DB</SQLite></Datastore>
-		<Interval>PT3600S</Interval>
+		$INTERVAL
 		<!-- <ManualKeyGeneration/> -->
 		<!-- <RolloverNotification>P14D</RolloverNotification> -->
 
