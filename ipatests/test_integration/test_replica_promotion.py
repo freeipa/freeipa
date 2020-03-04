@@ -574,7 +574,8 @@ class TestSubCAkeyReplication(IntegrationTest):
         status = replica.run_command(status_cmd)
         assert 'State MONITORING, stuck: no' in status.stdout_text
 
-        ssl_cmd = ['openssl', 'x509', '-text', '-in', TEST_CRT_FILE]
+        ssl_cmd = ['openssl', 'x509', '-text', '-in', TEST_CRT_FILE,
+                   '-nameopt', 'space_eq']
         ssl = replica.run_command(ssl_cmd)
         assert 'Issuer: CN = {}'.format(self.SUBCA_MASTER) in ssl.stdout_text
 
