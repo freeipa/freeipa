@@ -7,13 +7,15 @@ Tests to verify that the ipa-healthcheck scenarios
 
 from __future__ import absolute_import
 
+import json
+import re
+
+import pytest
+
 from ipalib import api
 from ipapython.ipaldap import realm_to_serverid
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
-
-import json
-import pytest
 
 HEALTHCHECK_LOG = "/var/log/ipa/healthcheck/healthcheck.log"
 HEALTHCHECK_SYSTEMD_FILE = (
@@ -542,6 +544,27 @@ class TestIpaHealthCheck(IntegrationTest):
         output_str = cmd.stdout_text
         output_json = json.loads(output_str)
         assert output_str == "{}\n".format(json.dumps(output_json, indent=2))
+
+    @pytest.fixture
+    def ipactl(self):
+        """Stop and start IPA during test"""
+        self.master.run_command(["ipactl", "stop"])
+        yield
+        self.master.run_command(["ipactl", "start"])
+
+    def test_run_with_stopped_master(self, ipactl):
+        """
+        Test output of healthcheck where master IPA services are stopped
+        contains only errors regarding master being stopped and no other false
+        positives.
+        """
+        returncode, output = run_healthcheck(
+            self.master,
+            output_type="human",
+            failures_only=True)
+        assert returncode == 1
+        errors = re.findall("ERROR: .*: not running", output)
+        assert len(errors) == len(output.split('\n'))
 
     def test_ipa_healthcheck_remove(self):
         """
