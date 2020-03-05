@@ -777,20 +777,74 @@ def setup_sssd_debugging(host):
     clear_sssd_cache(host)
 
 
-def modify_sssd_conf(host, domain, mod_dict, provider='ipa',
-                     provider_subtype=None):
-    """
-    modify options in a single domain section of host's sssd.conf
-    :param host: multihost.Host object
-    :param domain: domain section name to modify
-    :param mod_dict: dictionary of options which will be passed to
-        SSSDDomain.set_option(). To remove an option specify its value as
-        None
-    :param provider: provider backend to set. Defaults to ipa
-    :param provider_subtype: backend subtype (e.g. id or sudo), will be added
-        to the domain config if not present
-    """
+@contextmanager
+def remote_sssd_config(host):
+    """Context manager for editing sssd config file on a remote host.
+
+    It provides SimpleSSSDConfig object which is automatically serialized and
+    uploaded to remote host upon exit from the context.
+
+    If exception is raised inside the context then the ini file is NOT updated
+    on remote host.
+
+    SimpleSSSDConfig is a SSSDConfig descendant with added helper methods
+    for modifying options: edit_domain and edit_service.
+
+
+    Example:
+
+        with remote_sssd_config(master) as sssd_conf:
+            # use helper methods
+            # add/replace option
+            sssd_conf.edit_domain(master.domain, 'filter_users', 'root')
+            # add/replace provider option
+            sssd_conf.edit_domain(master.domain, 'sudo_provider', 'ipa')
+            # delete option
+            sssd_conf.edit_service('pam', 'pam_verbosity', None)
+
+            # use original methods of SSSDConfig
+            domain = sssd_conf.get_domain(master.domain.name)
+            domain.set_name('example.test')
+            self.save_domain(domain)
+        """
+
     from SSSDConfig import SSSDConfig
+
+    class SimpleSSSDConfig(SSSDConfig):
+        def edit_domain(self, domain_or_name, option, value):
+            """Add/replace/delete option in a domain section.
+
+            :param domain_or_name: Domain object or domain name
+            :param option: option name
+            :param value: value to assign to option. If None, option will be
+                deleted
+            """
+            if hasattr(domain_or_name, 'name'):
+                domain_name = domain_or_name.name
+            else:
+                domain_name = domain_or_name
+            domain = self.get_domain(domain_name)
+            if value is None:
+                domain.remove_option(option)
+            else:
+                domain.set_option(option, value)
+            self.save_domain(domain)
+
+        def edit_service(self, service_name, option, value):
+            """Add/replace/delete option in a service section.
+
+            :param service_name: a string
+            :param option: option name
+            :param value: value to assign to option. If None, option will be
+                deleted
+            """
+            service = self.get_service(service_name)
+            if value is None:
+                service.remove_option(option)
+            else:
+                service.set_option(option, value)
+            self.save_service(service)
+
     fd, temp_config_file = tempfile.mkstemp()
     os.close(fd)
     try:
@@ -820,19 +874,12 @@ def modify_sssd_conf(host, domain, mod_dict, provider='ipa',
         os.unlink(tarname)
 
         # Use the imported schema
-        sssd_config = SSSDConfig(
+        sssd_config = SimpleSSSDConfig(
             schemafile=os.path.join(tar_dir, "sssd.api.conf"),
             schemaplugindir=os.path.join(tar_dir, "sssd.api.d"))
         sssd_config.import_config(temp_config_file)
-        sssd_domain = sssd_config.get_domain(domain)
 
-        if provider_subtype is not None:
-            sssd_domain.add_provider(provider, provider_subtype)
-
-        for m in mod_dict:
-            sssd_domain.set_option(m, mod_dict[m])
-
-        sssd_config.save_domain(sssd_domain)
+        yield sssd_config
 
         new_config = sssd_config.dump(sssd_config.opts).encode('utf-8')
         host.transport.put_file_contents(paths.SSSD_CONF, new_config)
