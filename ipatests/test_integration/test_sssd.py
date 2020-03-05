@@ -52,10 +52,10 @@ class TestSSSDWithAdTrust(IntegrationTest):
     @contextmanager
     def filter_user_setup(self, user):
         sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
-        filter_user = {'filter_users': self.users[user]['name']}
         try:
-            tasks.modify_sssd_conf(self.master, self.master.domain.name,
-                                   filter_user)
+            with tasks.remote_sssd_config(self.master) as sssd_conf:
+                sssd_conf.edit_domain(self.master.domain,
+                                      'filter_users', self.users[user]['name'])
             tasks.clear_sssd_cache(self.master)
             yield
         finally:

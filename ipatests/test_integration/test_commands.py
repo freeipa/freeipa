@@ -649,14 +649,10 @@ class TestIPACommand(IntegrationTest):
 
         username = "testuser" + str(random.randint(200000, 9999999))
         # add ldap_deref_threshold=0 to /etc/sssd/sssd.conf
-        domain = self.master.domain
-        tasks.modify_sssd_conf(
-            self.master,
-            domain.name,
-            {
-                'ldap_deref_threshold': 0
-            },
-        )
+        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        with tasks.remote_sssd_config(self.master) as sssd_config:
+            sssd_config.edit_domain(
+                self.master.domain, 'ldap_deref_threshold', 0)
         try:
             self.master.run_command(['systemctl', 'restart', 'sssd.service'])
 
@@ -682,13 +678,5 @@ class TestIPACommand(IntegrationTest):
                            password='Secret123')
             client.close()
         finally:
-            # revert back to original ldap config
-            # remove ldap_deref_threshold=0
-            tasks.modify_sssd_conf(
-                self.master,
-                domain.name,
-                {
-                    'ldap_deref_threshold': None
-                },
-            )
+            sssd_conf_backup.restore()
             self.master.run_command(['systemctl', 'restart', 'sssd.service'])

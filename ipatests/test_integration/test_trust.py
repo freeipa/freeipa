@@ -230,14 +230,9 @@ class TestTrust(IntegrationTest):
 
         try:
             testuser = 'testuser@%s' % self.ad_domain
-            domain = self.master.domain
-            tasks.modify_sssd_conf(
-                self.master,
-                domain.name,
-                {
-                    'subdomain_homedir': '%o'
-                }
-            )
+            with tasks.remote_sssd_config(self.master) as sssd_conf:
+                sssd_conf.edit_domain(self.master.domain,
+                                      'subdomain_homedir', '%o')
 
             tasks.clear_sssd_cache(self.master)
             # The initgroups operation now uses the LDAP connection because
@@ -288,14 +283,9 @@ class TestTrust(IntegrationTest):
         conn.update_entry(entry)  # pylint: disable=no-member
         self.master.run_command(['ipactl', 'restart'])
 
-        domain = self.master.domain
-        tasks.modify_sssd_conf(
-            self.master,
-            domain.name,
-            {
-                'timeout': '999999'
-            }
-        )
+        with tasks.remote_sssd_config(self.master) as sssd_conf:
+            sssd_conf.edit_domain(self.master.domain, 'timeout', '999999')
+
         remove_cache = 'sss_cache -E'
         self.master.run_command(remove_cache)
         client.run_command(remove_cache)
