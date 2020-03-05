@@ -22,7 +22,6 @@ import os
 import socket
 import select
 import sys
-import sqlite3
 import traceback
 
 import dateutil.tz
@@ -41,6 +40,8 @@ from ipaplatform.paths import paths
 from ipaserver.dnssec.abshsm import sync_pkcs11_metadata, wrappingmech_name2id
 from ipaserver.dnssec.ldapkeydb import LdapKeyDB, str_hexlify
 from ipaserver.dnssec.localhsm import LocalHSM
+
+from ipaserver.dnssec import opendnssec
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -233,26 +234,19 @@ def get_ldap_keys(ldap, zone_dn):
 
 def get_ods_keys(zone_name):
     # get zone ID
-    cur = db.execute("SELECT id FROM zones WHERE LOWER(name)=LOWER(?)",
-                     (zone_name,))
-    rows = cur.fetchall()
+    rows = db.get_zone_id(zone_name)
     if len(rows) != 1:
         raise ValueError("exactly one DNS zone should exist in ODS DB")
-    zone_id = rows[0][0]
+    zone_id = rows[0]
 
     # get relevant keys for given zone ID:
     # ignore keys which were generated but not used yet
     # key state check is using constants from
     # OpenDNSSEC's enforcer/ksm/include/ksm/ksm.h
     # WARNING! OpenDNSSEC version 1 and 2 are using different constants!
-    cur = db.execute("SELECT kp.HSMkey_id, kp.generate, kp.algorithm, "
-                     "dnsk.publish, dnsk.active, dnsk.retire, dnsk.dead, "
-                     "dnsk.keytype, dnsk.state "
-                     "FROM keypairs AS kp "
-                     "JOIN dnsseckeys AS dnsk ON kp.id = dnsk.keypair_id "
-                     "WHERE dnsk.zone_id = ?", (zone_id,))
+    rows = db.get_keys_for_zone(zone_id)
     keys = {}
-    for row in cur:
+    for row in rows:
         key_data = sql2ldap_flags(row['keytype'])
         if key_data.get('idnsSecKeyZONE') != 'TRUE':
             raise ValueError("unexpected key type 0x%x" % row['keytype'])
@@ -483,11 +477,13 @@ def receive_systemd_command():
         sys.exit(1)
 
     logger.debug('accepting new connection')
-    conn, _addr = sck.accept()
+    conn_tmp, _addr = sck.accept()
+    conn = opendnssec.ODSSignerConn(conn_tmp)
     logger.debug('accepted new connection %s', repr(conn))
 
     # this implements cmdhandler_handle_cmd() logic
-    cmd = conn.recv(ODS_SE_MAXLINE).strip()
+    cmd = conn.read_cmd()
+
     # ODS uses an ASCII protocol, the rest of the code expects str
     if six.PY3:
         cmd = cmd.decode('ascii')
@@ -548,9 +544,7 @@ def send_systemd_reply(conn, reply):
         # This is necessary to let Enforcer to unlock the ODS DB.
         if six.PY3:
             reply = reply.encode('ascii')
-        conn.send(reply + b'\n')
-        conn.shutdown(socket.SHUT_RDWR)
-        conn.close()
+        conn.send_reply_and_close(reply)
 
 def cmd2ods_zone_name(cmd):
     # ODS stores zone name without trailing period
@@ -566,7 +560,11 @@ def sync_zone(ldap, dns_dn, zone_name):
     Key material has to be synchronized elsewhere.
     Keep in mind that keys could be shared among multiple zones!"""
     logger.debug('%s: synchronizing zone "%s"', zone_name, zone_name)
-    ods_keys = get_ods_keys(zone_name)
+    try:
+        ods_keys = get_ods_keys(zone_name)
+    except ValueError as e:
+        logger.error(str(e))
+        return
     ods_keys_id = set(ods_keys.keys())
 
     ldap_zone = get_ldap_zone(ldap, dns_dn, zone_name)
@@ -724,6 +722,14 @@ except KeyError as e:
     cmd = sys.argv[1]
 
 exitcode, msg, zone_name, cmd = parse_command(cmd)
+if exitcode:
+    logger.debug("parse_command returned exitcode: %d", exitcode)
+if msg:
+    logger.debug("parse_command returned msg: %s", msg)
+if zone_name:
+    logger.debug("parse_command returned zone_name: %s", zone_name)
+if cmd:
+    logger.debug("parse_command returned cmd: %s", cmd)
 
 if exitcode is not None:
     if conn:
@@ -747,9 +753,7 @@ try:
     # Beware: Reply can be sent back only after DB is unlocked and closed
     #         otherwise ods-enforcerd will fail.
 
-    db = sqlite3.connect(paths.OPENDNSSEC_KASP_DB)
-    db.row_factory = sqlite3.Row
-    db.execute('BEGIN')
+    db = opendnssec.ODSDBConnection()
 
     if zone_name is not None:
         # only one zone should be processed
@@ -759,8 +763,8 @@ try:
             cleanup_ldap_zone(ldap, dns_dn, zone_name)
     else:
         # process all zones
-        for zone_row in db.execute("SELECT name FROM zones"):
-            sync_zone(ldap, dns_dn, zone_row['name'])
+        for zone_name in db.get_zones():
+            sync_zone(ldap, dns_dn, zone_name)
 
     ### DNSSEC master: DNSSEC key material purging
     # references to old key material were removed above in sync_zone()
