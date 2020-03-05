@@ -298,6 +298,36 @@ class BaseTaskNamespace:
             cmd = [paths.ODS_ENFORCER_DB_SETUP]
         return ipautil.run(cmd, stdin="y", runas=constants.ODS_USER)
 
+    def run_ods_notify(self, **kwargs):
+        """Notify ods-enforcerd to reload its conf."""
+        if paths.ODS_KSMUTIL is not None and os.path.exists(paths.ODS_KSMUTIL):
+            # OpenDNSSEC 1.4
+            cmd = [paths.ODS_KSMUTIL, 'notify']
+        else:
+            # OpenDNSSEC 2.x
+            cmd = [paths.ODS_ENFORCER, 'flush']
+
+        # run commands as ODS user
+        if os.geteuid() == 0:
+            kwargs['runas'] = constants.ODS_USER
+
+        return ipautil.run(cmd, **kwargs)
+
+    def run_ods_policy_import(self, **kwargs):
+        """Run OpenDNSSEC manager command to import policy."""
+        # This step is needed with OpenDNSSEC 2.1 only
+        if paths.ODS_KSMUTIL is not None and os.path.exists(paths.ODS_KSMUTIL):
+            # OpenDNSSEC 1.4
+            return
+
+        # OpenDNSSEC 2.x
+        cmd = [paths.ODS_ENFORCER, 'policy', 'import']
+
+        # run commands as ODS user
+        if os.geteuid() == 0:
+            kwargs['runas'] = constants.ODS_USER
+        ipautil.run(cmd, **kwargs)
+
     def run_ods_manager(self, params, **kwargs):
         """Run OpenDNSSEC manager command (ksmutil, enforcer)
 

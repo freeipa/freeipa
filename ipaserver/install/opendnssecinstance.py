@@ -314,6 +314,7 @@ class OpenDNSSECInstance(service.Service):
 
     def __start(self):
         self.restart()  # needed to reload conf files
+        tasks.run_ods_policy_import()
 
     def uninstall(self):
         if not self.is_configured():

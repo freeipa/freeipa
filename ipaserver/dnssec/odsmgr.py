@@ -159,27 +159,48 @@ class ODSMgr:
 
     def add_ods_zone(self, uuid, name):
         zone_path = '%s%s' % (ENTRYUUID_PREFIX, uuid)
+        if name != dns.name.root:
+            name = name.relativize(dns.name.root)
         cmd = ['zone', 'add', '--zone', str(name), '--input', zone_path]
-        output = self.ksmutil(cmd)
-        logger.info('%s', output)
-        self.notify_enforcer()
+        output = None
+        try:
+            output = self.ksmutil(cmd)
+        except ipautil.CalledProcessError as e:
+            # Zone already exists in HSM
+            if e.returncode == 1 \
+                    and str(e.output).endswith(str(name) + ' already exists!'):
+                # Just return
+                return
+        if output is not None:
+            logger.info('%s', output)
+            self.notify_enforcer()
 
     def del_ods_zone(self, name):
         # ods-ksmutil blows up if zone name has period at the end
-        name = name.relativize(dns.name.root)
+        if name != dns.name.root:
+            name = name.relativize(dns.name.root)
         # detect if name is root zone
         if name == dns.name.empty:
             name = dns.name.root
         cmd = ['zone', 'delete', '--zone', str(name)]
-        output = self.ksmutil(cmd)
-        logger.info('%s', output)
-        self.notify_enforcer()
-        self.cleanup_signer(name)
+        output = None
+        try:
+            output = self.ksmutil(cmd)
+        except ipautil.CalledProcessError as e:
+            # Zone already doesn't exist in HSM
+            if e.returncode == 1 \
+                    and str(e.output).endswith(str(name) + ' not found!'):
+                # Just cleanup signer, no need to notify enforcer
+                self.cleanup_signer(name)
+                return
+        if output is not None:
+            logger.info('%s', output)
+            self.notify_enforcer()
+            self.cleanup_signer(name)
 
     def notify_enforcer(self):
-        cmd = ['notify']
-        output = self.ksmutil(cmd)
-        logger.info('%s', output)
+        result = tasks.run_ods_notify(capture_output=True)
+        logger.info('%s', result.output)
 
     def cleanup_signer(self, zone_name):
         cmd = ['ods-signer', 'ldap-cleanup', str(zone_name)]
