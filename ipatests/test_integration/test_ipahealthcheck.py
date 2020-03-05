@@ -108,6 +108,30 @@ DEFAULT_PKI_KRA_CERTS = [
 ]
 
 
+def run_healthcheck(host, source=None, check=None):
+    """
+    Run ipa-healthcheck on the remote host and return the result
+
+    Returns: the tuple returncode, json (if any)
+    """
+    data = None
+    cmd = ["ipa-healthcheck"]
+    if source:
+        cmd.append("--source")
+        cmd.append(source)
+
+        if check:
+            cmd.append("--check")
+            cmd.append(check)
+
+    result = host.run_command(cmd, raiseonerr=False)
+
+    if result.stdout_text:
+        data = json.loads(result.stdout_text)
+
+    return result.returncode, data
+
+
 class TestIpaHealthCheck(IntegrationTest):
     """
     Tier-1 test for ipa-healthcheck tool with IPA Master setup with
@@ -194,43 +218,23 @@ class TestIpaHealthCheck(IntegrationTest):
         respectively
         """
         self.master.run_command(["systemctl", "stop", "sssd"])
-        self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.meta.services",
-                "--check",
-                "sssd",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.meta.services",
+            "sssd",
         )
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 1
         for check in data:
             assert check["result"] == "ERROR"
             assert check["kw"]["msg"] == "sssd: not running"
             assert check["kw"]["status"] is False
         self.master.run_command(["systemctl", "start", "sssd"])
-        self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.meta.services",
-                "--check",
-                "sssd",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.meta.services",
+            "sssd",
         )
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 0
         assert data[0]["check"] == "sssd"
         assert data[0]["result"] == "SUCCESS"
         assert data[0]["kw"]["status"] is True
@@ -240,44 +244,23 @@ class TestIpaHealthCheck(IntegrationTest):
         Testcase checks behaviour of check DogtagCertsConfigCheck in
         ipahealthcheck.dogtag.ca when tomcat config file is removed
         """
-        result = self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.dogtag.ca",
-                "--check",
-                "DogtagCertsConfigCheck",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.dogtag.ca",
+            "DogtagCertsConfigCheck",
         )
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 0
         for check in data:
             assert check["result"] == "SUCCESS"
             assert check["kw"]["configfile"] == TOMCAT_CFG
             assert check["kw"]["key"] in DEFAULT_PKI_CA_CERTS
         self.master.run_command(["mv", TOMCAT_CFG, TOMCAT_CFG + ".old"])
-        result = self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.dogtag.ca",
-                "--check",
-                "DogtagCertsConfigCheck",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.dogtag.ca",
+            "DogtagCertsConfigCheck",
         )
-        assert result.returncode == 1
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 1
         assert data[0]["result"] == "CRITICAL"
         self.master.run_command(["mv", TOMCAT_CFG + ".old", TOMCAT_CFG])
         self.master.run_command(["ipactl", "restart"])
@@ -287,22 +270,12 @@ class TestIpaHealthCheck(IntegrationTest):
         Testcase checks behaviour of check MetaCheck in source
         ipahealthcheck.meta.core when run on IPA master
         """
-        self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.meta.core",
-                "--check",
-                "MetaCheck",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.meta.core",
+            "MetaCheck",
         )
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 0
         assert data[0]["result"] == "SUCCESS"
         result = self.master.run_command(
             [
@@ -334,22 +307,12 @@ class TestIpaHealthCheck(IntegrationTest):
         self.master.run_command(["systemctl", "stop", dirsrv_service])
         result = self.master.run_command(
             ["ipactl", "status"])
-        self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.ipa.host",
-                "--check",
-                "IPAHostKeytab",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.host",
+            "IPAHostKeytab",
         )
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 1
         if dirsrv_ipactl_status in result.stdout_text:
             assert data[0]["result"] == "ERROR"
             assert data[0]["kw"]["msg"] == msg
@@ -362,22 +325,12 @@ class TestIpaHealthCheck(IntegrationTest):
         Testcase checks default behaviour of check IPATopologyDomainCheck in
         source ipahealthcheck.ipa.topology on IPA Master
         """
-        self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.ipa.topology",
-                "--check",
-                "IPATopologyDomainCheck",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.topology",
+            "IPATopologyDomainCheck",
         )
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 0
         for check in data:
             assert check["result"] == "SUCCESS"
             assert (
@@ -392,22 +345,12 @@ class TestIpaHealthCheck(IntegrationTest):
         using ipa-crl-manage disable
         """
         self.master.run_command(["ipa-crlgen-manage", "disable"])
-        self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.ipa.roles",
-                "--check",
-                "IPACRLManagerCheck",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.roles",
+            "IPACRLManagerCheck",
         )
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 0
         for check in data:
             assert check["result"] == "SUCCESS"
             assert check["kw"]["key"] == "crl_manager"
@@ -420,42 +363,22 @@ class TestIpaHealthCheck(IntegrationTest):
         as the DNA range is set.
         Issue: freeipa/freeipa-healthcheck#60
         """
-        self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.ipa.dna",
-                "--check",
-                "IPADNARangeCheck",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.dna",
+            "IPADNARangeCheck",
         )
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 0
         for check in data:
             assert check["result"] == "SUCCESS"
         # Install ipa-healthcheck rpm on replica
         tasks.install_packages(self.replicas[0], HEALTHCHECK_PKG)
-        self.replicas[0].run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.ipa.dna",
-                "--check",
-                "IPADNARangeCheck",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.replicas[0],
+            "ipahealthcheck.ipa.dna",
+            "IPADNARangeCheck",
         )
-        contents = self.replicas[0].get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 1
         for check in data:
             assert check["result"] == "WARNING"
             assert (
@@ -470,22 +393,12 @@ class TestIpaHealthCheck(IntegrationTest):
             self.replicas[0], 'ipauser1', first='Test', last='User',
         )
         # Now run the ipa-healthcheck command again
-        self.replicas[0].run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.ipa.dna",
-                "--check",
-                "IPADNARangeCheck",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.replicas[0],
+            "ipahealthcheck.ipa.dna",
+            "IPADNARangeCheck",
         )
-        contents = self.replicas[0].get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 0
         for check in data:
             assert check["result"] == "SUCCESS"
 
@@ -519,22 +432,12 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
         msg1 = "Expected SRV record missing"
         msg2 = "Got {count} ipa-ca A records, expected {expected}"
         tasks.install_packages(self.master, HEALTHCHECK_PKG)
-        self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.ipa.idns",
-                "--check",
-                "IPADNSSystemRecordsCheck",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.idns",
+            "IPADNSSystemRecordsCheck",
         )
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 1
         for check in data:
             assert check["result"] == "WARNING"
             assert check["kw"]["msg"] == msg1 or check["kw"]["msg"] == msg2
@@ -547,22 +450,12 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
         cmd = tasks.install_kra(self.master)
         assert cmd.returncode == 0
         tasks.install_packages(self.master, HEALTHCHECK_PKG)
-        self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.ipa.certs",
-                "--check",
-                "IPACertNSSTrust",
-                "--output-file",
-                HEALTHCHECK_OUTPUT_FILE,
-            ],
-            raiseonerr=False,
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            "IPACertNSSTrust",
         )
-        contents = self.master.get_file_contents(
-            HEALTHCHECK_OUTPUT_FILE, encoding="utf-8"
-        )
-        data = json.loads(contents)
+        assert returncode == 0
         for check in data:
             assert check["result"] == "SUCCESS"
             assert (
