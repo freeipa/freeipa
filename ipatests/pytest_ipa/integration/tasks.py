@@ -1837,7 +1837,7 @@ class FileBackup:
         host.run_command(['cp', '--preserve=all', filename, self._backup])
 
     def restore(self):
-        """Restore file. Can be called multiple times."""
+        """Restore file. Can be called only once."""
         self._host.run_command(['mv', self._backup, self._filename])
 
     def __enter__(self):
