@@ -46,6 +46,10 @@ before_install:
     - ip addr show
     - ls /proc/net
     - cat /proc/net/if_inet6
+    # Enable IPv6 back in Travis CI
+    # https://github.com/travis-ci/travis-ci/issues/8891
+    - echo '{"ipv6":true,"fixed-cidr-v6":"2001:db8:1::/64"}' | sudo tee /etc/docker/daemon.json
+    - sudo service docker restart
 #    - ip addr show dev lo | grep -q inet6 || (echo "No IPv6 address found"; exit 1)
 
 install:
