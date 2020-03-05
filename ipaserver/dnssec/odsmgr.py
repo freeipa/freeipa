@@ -5,6 +5,7 @@
 import logging
 
 import dns.name
+import re
 try:
     from xml.etree import cElementTree as etree
 except ImportError:
@@ -140,7 +141,20 @@ class ODSMgr:
 
     def get_ods_zonelist(self):
         stdout = self.ksmutil(['zonelist', 'export'])
-        reader = ODSZoneListReader(stdout)
+        try:
+            reader = ODSZoneListReader(stdout)
+        except etree.ParseError:
+            # With OpenDNSSEC 2, the above command returns a message
+            # containing the zonelist filename instead of the XML text:
+            # "Exported zonelist to /etc/opendnssec/zonelist.xml successfully"
+            # extract the filename and read its content
+            pattern = re.compile(r'.* (/.*) .*')
+            matches = re.findall(pattern, stdout)
+            if matches:
+                with open(matches[0]) as f:
+                    content = f.read()
+                reader = ODSZoneListReader(content)
+
         return reader
 
     def add_ods_zone(self, uuid, name):
