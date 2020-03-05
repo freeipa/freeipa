@@ -66,15 +66,10 @@ class TestSSSDWithAdTrust(IntegrationTest):
     @contextmanager
     def config_sssd_cache_auth(self, cached_auth_timeout):
         sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
-        with tasks.remote_ini_file(self.master, paths.SSSD_CONF) as sssd_conf:
-            domain_section = 'domain/{}'.format(self.master.domain.name)
-            if cached_auth_timeout is None:
-                sssd_conf.remove_option(domain_section, 'cached_auth_timeout')
-            else:
-                sssd_conf.set(domain_section, 'cached_auth_timeout',
-                              cached_auth_timeout)
-            sssd_conf.set('pam', 'pam_verbosity', '2')
-
+        with tasks.remote_sssd_config(self.master) as sssd_conf:
+            sssd_conf.edit_domain(self.master.domain, 'cached_auth_timeout',
+                                  cached_auth_timeout)
+            sssd_conf.edit_service('pam', 'pam_verbosity', '2')
         try:
             tasks.clear_sssd_cache(self.master)
             yield
@@ -167,9 +162,10 @@ class TestSSSDWithAdTrust(IntegrationTest):
         master_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
         client_conf_backup = tasks.FileBackup(client, paths.SSSD_CONF)
         for host in hosts:
-            with tasks.remote_ini_file(host, paths.SSSD_CONF) as sssd_conf:
-                sssd_conf.set('sssd', 're_expression', expression)
-                sssd_conf.set('sssd', 'use_fully_qualified_names', True)
+            with tasks.remote_sssd_config(host) as sssd_conf:
+                sssd_conf.edit_service('sssd', 're_expression', expression)
+                sssd_conf.edit_service(
+                    'sssd', 'use_fully_qualified_names', True)
             tasks.clear_sssd_cache(host)
         try:
             cmd = ['getent', 'group', ad_group]
@@ -210,9 +206,9 @@ class TestSSSDWithAdTrust(IntegrationTest):
         # default ldap_page_size is '1000', adding workaround as
         # ldap_page_size < nsslapd-sizelimit in sssd.conf
         # Related issue : https://pagure.io/389-ds-base/issue/50888
-        with tasks.remote_ini_file(self.master, paths.SSSD_CONF) as sssd_conf:
-            domain_section = 'domain/{}'.format(self.master.domain.name)
-            sssd_conf.set(domain_section, 'ldap_page_size', ldap_page_size)
+        with tasks.remote_sssd_config(self.master) as sssd_conf:
+            sssd_conf.edit_domain(
+                self.master.domain, 'ldap_page_size', ldap_page_size)
         tasks.clear_sssd_cache(master)
         tasks.kinit_admin(master)
         for i in range(group_count):
