@@ -8,9 +8,24 @@ EnvironmentFile=@sysconfenvdir@/ipa-ods-exporter
 ExecStart=@libexecdir@/ipa/ipa-ods-exporter
 User=@ODS_USER@
 Group=@ODS_GROUP@
-PrivateTmp=yes
 Restart=on-failure
 RestartSec=60s
+
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectSystem=full
+ProtectControlGroups=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+NoNewPrivileges=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
 
 [Install]
 WantedBy=multi-user.target

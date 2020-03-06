@@ -4,9 +4,34 @@ Description=IPA Custodia Service
 [Service]
 Type=notify
 ExecStart=@libexecdir@/ipa/ipa-custodia @IPA_SYSCONF_DIR@/custodia/custodia.conf
-PrivateTmp=yes
 Restart=on-failure
 RestartSec=60s
+
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+# not full, needs to write to /etc
+ProtectSystem=yes
+ProtectControlGroups=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+NoNewPrivileges=yes
+# Sub-CA replication uses /usr/bin/pki, which executes Java code that
+# requires os::commit_memory() that runs mmap() PROT_WRITE|PROT_EXEC
+MemoryDenyWriteExecute=no
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_SETPCAP CAP_CHOWN CAP_FSETID CAP_FOWNER CAP_CAP_SYSLOG
+UMask=077
+# only allow AF_UNIX connections for LDAP
+IPAddressDeny=any
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_UNIX
 
 [Install]
 WantedBy=multi-user.target

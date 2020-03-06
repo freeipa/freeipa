@@ -7,9 +7,23 @@ ExecStart=@libexecdir@/ipa/ipa-dnskeysyncd
 User=@ODS_USER@
 Group=@NAMED_GROUP@
 SupplementaryGroups=@ODS_USER@
-PrivateTmp=yes
 Restart=on-failure
 RestartSec=60s
+
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=no
+ProtectControlGroups=yes
+ProtectHostname=yes
+
+RestrictNamespaces=no
+PrivateDevices=no
+ProtectKernelTunables=no
+ProtectKernelModules=no
+MemoryDenyWriteExecute=no
+RestrictRealtime=no
+RestrictSUIDSGID=no
+LockPersonality=no
 
 [Install]
 WantedBy=multi-user.target

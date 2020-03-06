@@ -192,6 +192,7 @@ allow ipa_dnskey_t self:tcp_socket create_stream_socket_perms;
 allow ipa_dnskey_t self:udp_socket create_socket_perms;
 allow ipa_dnskey_t self:unix_dgram_socket create_socket_perms;
 allow ipa_dnskey_t self:netlink_route_socket { create_netlink_socket_perms nlmsg_read };
+allow init_t ipa_dnskey_t:process2 nnp_transition;
 
 read_files_pattern(ipa_dnskey_t, ipa_cert_t, ipa_cert_t)
 read_lnk_files_pattern(ipa_dnskey_t, ipa_cert_t, ipa_cert_t)
@@ -254,6 +255,8 @@ optional_policy(`
 	opendnssec_manage_var_files(ipa_dnskey_t)
 	opendnssec_filetrans_etc_content(ipa_dnskey_t)
 	opendnssec_stream_connect(ipa_dnskey_t)
+
+	allow ipa_dnskey_t opendnssec_t:process2 nnp_transition;
 ')
 
 ########################################
@@ -263,6 +266,7 @@ optional_policy(`
 allow ipa_ods_exporter_t self:netlink_route_socket { bind create getattr nlmsg_read };
 allow ipa_ods_exporter_t self:udp_socket { connect create getattr };
 allow ipa_ods_exporter_t self:unix_dgram_socket { create getopt setopt };
+allow init_t ipa_ods_exporter_t:process2 nnp_transition;
 
 manage_files_pattern(ipa_ods_exporter_t, ipa_var_lib_t, ipa_var_lib_t)
 list_dirs_pattern(ipa_ods_exporter_t, ipa_var_lib_t, ipa_var_lib_t)
@@ -317,6 +321,7 @@ allow ipa_custodia_t self:netlink_route_socket { create_socket_perms nlmsg_read 
 allow ipa_custodia_t self:unix_stream_socket create_stream_socket_perms;
 allow ipa_custodia_t self:unix_dgram_socket create_socket_perms;
 allow ipa_custodia_t self:udp_socket create_socket_perms;
+allow init_t ipa_custodia_t:process2 nnp_transition;
 
 manage_dirs_pattern(ipa_custodia_t,ipa_custodia_log_t,ipa_custodia_log_t)
 manage_files_pattern(ipa_custodia_t, ipa_custodia_log_t, ipa_custodia_log_t)
