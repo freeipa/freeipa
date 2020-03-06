@@ -103,8 +103,6 @@ class TestSSSDWithAdTrust(IntegrationTest):
         for host in hosts:
             with tasks.remote_sssd_config(host) as sssd_conf:
                 sssd_conf.edit_service('sssd', 're_expression', expression)
-                sssd_conf.edit_service(
-                    'sssd', 'use_fully_qualified_names', True)
             tasks.clear_sssd_cache(host)
         try:
             cmd = ['getent', 'group', ad_group]
