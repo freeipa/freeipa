@@ -37,6 +37,7 @@ Optional units—choose the topics that are relevant to you:
 - `Unit 8: Sudo rule management <8-sudorule.rst>`_
 - `Unit 9: SELinux User Maps <9-selinux-user-map.rst>`_
 - `Unit 10: SSH user and host key management <10-ssh-key-management.rst>`_
+- `Unit 11: Kerberos ticket policy <11-kerberos-ticket-policy.rst>`_
 
 
 Editing files on VMs
