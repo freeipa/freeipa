@@ -141,6 +141,7 @@ def check_arguments_are(slice, instanceof):
         return wrapped
     return wrapper
 
+
 def prepare_reverse_zone(host, ip):
     zone = get_reverse_zone_default(ip)
     result = host.run_command(["ipa",
@@ -149,6 +150,7 @@ def prepare_reverse_zone(host, ip):
     if result.returncode > 0:
         logger.warning("%s", result.stderr_text)
     return zone, result.returncode
+
 
 def prepare_host(host):
     if isinstance(host, Host):
@@ -239,6 +241,7 @@ def host_service_active(host, service):
 
     return res.returncode == 0
 
+
 def fix_apache_semaphores(master):
     systemd_available = master.transport.file_exists(paths.SYSTEMCTL)
 
@@ -309,6 +312,7 @@ def enable_replication_debugging(host, log_level=0):
         nsslapd-errorlog-level: {log_level}
         """.format(log_level=log_level))
     ldapmodify_dm(host, logging_ldif)
+
 
 def set_default_ttl_for_ipa_dns_zone(host, raiseonerr=True):
     args = [
@@ -2085,3 +2089,22 @@ def uninstall_packages(host, pkgs):
     else:
         raise ValueError('install_packages: unknown platform %s' % platform)
     host.run_command(install_cmd + pkgs)
+
+
+def wait_for_request(host, request_id, timeout=120):
+    for _i in range(0, timeout, 5):
+        result = host.run_command(
+            "getcert list -i %s | grep status: | awk '{ print $2 }'" %
+            request_id
+        )
+
+        state = result.stdout_text.strip()
+        print("certmonger request is in state %r", state)
+        if state in ('CA_REJECTED', 'CA_UNREACHABLE', 'CA_UNCONFIGURED',
+                     'NEED_GUIDANCE', 'NEED_CA', 'MONITORING'):
+            break
+        time.sleep(5)
+    else:
+        raise RuntimeError("request timed out")
+
+    return state

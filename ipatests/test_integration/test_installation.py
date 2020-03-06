@@ -69,25 +69,6 @@ def server_install_setup(func):
     return wrapped
 
 
-def wait_for_request(host, request_id, timeout=120):
-    for _i in range(0, timeout, 5):
-        result = host.run_command(
-            "getcert list -i %s | grep status: | awk '{ print $2 }'" %
-            request_id
-        )
-
-        state = result.stdout_text.strip()
-        print("certmonger request is in state %r", state)
-        if state in ('CA_REJECTED', 'CA_UNREACHABLE', 'CA_UNCONFIGURED',
-                     'NEED_GUIDANCE', 'NEED_CA', 'MONITORING'):
-            break
-        time.sleep(5)
-    else:
-        raise RuntimeError("request timed out")
-
-    return state
-
-
 class InstallTestBase1(IntegrationTest):
 
     num_replicas = 3
@@ -353,14 +334,14 @@ class TestInstallCA(IntegrationTest):
         request_id = re.findall(r'\d+', result.stdout_text)
 
         # check if certificate is tracked by certmonger
-        status = wait_for_request(self.master, request_id[0], 300)
+        status = tasks.wait_for_request(self.master, request_id[0], 300)
         assert status == "MONITORING"
 
         # ensure if key and token are re-usable
         cmd_args = ['getcert', 'resubmit', '-i', request_id[0]]
         self.master.run_command(cmd_args)
 
-        status = wait_for_request(self.master, request_id[0], 300)
+        status = tasks.wait_for_request(self.master, request_id[0], 300)
         assert status == "MONITORING"
 
 
