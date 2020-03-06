@@ -108,11 +108,15 @@ DEFAULT_PKI_KRA_CERTS = [
 ]
 
 
-def run_healthcheck(host, source=None, check=None):
+def run_healthcheck(host, source=None, check=None, output_type="json"):
     """
     Run ipa-healthcheck on the remote host and return the result
 
-    Returns: the tuple returncode, json (if any)
+    Returns: the tuple returncode, output
+
+    output is:
+        json data if output_type == "json"
+        stdout if output_type == "human"
     """
     data = None
     cmd = ["ipa-healthcheck"]
@@ -124,10 +128,16 @@ def run_healthcheck(host, source=None, check=None):
             cmd.append("--check")
             cmd.append(check)
 
+    cmd.append("--output-type")
+    cmd.append(output_type)
+
     result = host.run_command(cmd, raiseonerr=False)
 
     if result.stdout_text:
-        data = json.loads(result.stdout_text)
+        if output_type == "json":
+            data = json.loads(result.stdout_text)
+        else:
+            data = result.stdout_text.strip()
 
     return result.returncode, data
 
@@ -166,6 +176,28 @@ class TestIpaHealthCheck(IntegrationTest):
         result = self.master.run_command(["ipa-healthcheck", "--list-sources"])
         for source in sources:
             assert source in result.stdout_text
+
+    def test_human_output(self):
+        """
+        Test that in human output the severity value is correct
+
+        Only the SUCCESS (0) value was being translated, otherwise
+        the numeric value was being shown (BZ 1752849)
+        """
+        self.master.run_command(["systemctl", "stop", "sssd"])
+        try:
+            returncode, output = run_healthcheck(
+                self.master,
+                "ipahealthcheck.meta.services",
+                "sssd",
+                "human",
+            )
+        finally:
+            self.master.run_command(["systemctl", "start", "sssd"])
+
+        assert returncode == 1
+        assert output == \
+            "ERROR: ipahealthcheck.meta.services.sssd: sssd: not running"
 
     def test_dogtag_ca_check_exists(self):
         """
