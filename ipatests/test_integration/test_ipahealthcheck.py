@@ -7,12 +7,13 @@ Tests to verify that the ipa-healthcheck scenarios
 
 from __future__ import absolute_import
 
-import json
-
 from ipalib import api
 from ipapython.ipaldap import realm_to_serverid
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
+
+import json
+import pytest
 
 HEALTHCHECK_LOG = "/var/log/ipa/healthcheck/healthcheck.log"
 HEALTHCHECK_SYSTEMD_FILE = (
@@ -109,7 +110,8 @@ DEFAULT_PKI_KRA_CERTS = [
 ]
 
 
-def run_healthcheck(host, source=None, check=None, output_type="json"):
+def run_healthcheck(host, source=None, check=None, output_type="json",
+                    failures_only=False):
     """
     Run ipa-healthcheck on the remote host and return the result
 
@@ -131,6 +133,9 @@ def run_healthcheck(host, source=None, check=None, output_type="json"):
 
     cmd.append("--output-type")
     cmd.append(output_type)
+
+    if failures_only:
+        cmd.append("--failures-only")
 
     result = host.run_command(cmd, raiseonerr=False)
 
@@ -371,13 +376,19 @@ class TestIpaHealthCheck(IntegrationTest):
                 check["kw"]["suffix"] == "ca"
             )
 
-    def test_source_ipa_roles_check_crlmanager(self):
+    @pytest.fixture
+    def disable_crlgen(self):
+        """Fixture to disable crlgen then enable it once test is done"""
+        self.master.run_command(["ipa-crlgen-manage", "disable"])
+        yield
+        self.master.run_command(["ipa-crlgen-manage", "enable"])
+
+    def test_source_ipa_roles_check_crlmanager(self, disable_crlgen):
         """
         This testcase checks the status of healthcheck tool
         reflects correct information when crlgen is disabled
         using ipa-crl-manage disable
         """
-        self.master.run_command(["ipa-crlgen-manage", "disable"])
         returncode, data = run_healthcheck(
             self.master,
             "ipahealthcheck.ipa.roles",
@@ -388,6 +399,19 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["result"] == "SUCCESS"
             assert check["kw"]["key"] == "crl_manager"
             assert check["kw"]["crlgen_enabled"] is False
+
+    def test_ipa_healthcheck_no_errors(self):
+        """
+        Ensure that on a default installation with KRA and DNS
+        installed ipa-healthcheck runs with no errors.
+        """
+        cmd = tasks.install_kra(self.master)
+        assert cmd.returncode == 0
+        returncode, _unused = run_healthcheck(
+            self.master,
+            failures_only=True
+        )
+        assert returncode == 0
 
     def test_ipa_healthcheck_dna_plugin_returns_warning_pagure_issue_60(self):
         """
