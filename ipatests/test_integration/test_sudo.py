@@ -19,7 +19,11 @@
 
 import pytest
 
+# pylint: disable=no-name-in-module
+# pylint: disable=relative-import
 from ipaplatform.paths import paths
+# pylint: enable=no-name-in-module
+# pylint: enable=relative-import
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.tasks import (
