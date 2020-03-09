@@ -57,9 +57,6 @@ class TestSSSDWithAdTrust(IntegrationTest):
 
         cls.users['ad']['name'] = cls.users['ad']['name_tmpl'].format(
             domain=cls.ad.domain.name)
-
-        # Regression tests for cached_auth_timeout option
-        # https://bugzilla.redhat.com/show_bug.cgi?id=1685581
         tasks.user_add(cls.master, cls.intermed_user)
         tasks.create_active_user(cls.master, cls.ipa_user,
                                  cls.ipa_user_password)
@@ -86,18 +83,34 @@ class TestSSSDWithAdTrust(IntegrationTest):
 
     @pytest.mark.parametrize('user', ['ipa', 'ad'])
     def test_auth_cache_disabled_by_default(self, user):
+        """Check credentials not cached with default sssd config.
+
+        Regression test for cached_auth_timeout option
+        https://bugzilla.redhat.com/show_bug.cgi?id=1685581
+        """
         with self.config_sssd_cache_auth(cached_auth_timeout=None):
             assert not self.is_auth_cached(self.users[user])
             assert not self.is_auth_cached(self.users[user])
 
     @pytest.mark.parametrize('user', ['ipa', 'ad'])
     def test_auth_cache_disabled_with_value_0(self, user):
+        """Check credentials not cached with cached_auth_timeout=0 in sssd.conf
+
+        Regression test for cached_auth_timeout option
+        https://bugzilla.redhat.com/show_bug.cgi?id=1685581
+        """
         with self.config_sssd_cache_auth(cached_auth_timeout=0):
             assert not self.is_auth_cached(self.users[user])
             assert not self.is_auth_cached(self.users[user])
 
     @pytest.mark.parametrize('user', ['ipa', 'ad'])
     def test_auth_cache_enabled_when_configured(self, user):
+        """Check credentials are cached with cached_auth_timeout=30
+
+        Regression test for cached_auth_timeout option
+        https://bugzilla.redhat.com/show_bug.cgi?id=1685581
+        """
+
         timeout = 30
         with self.config_sssd_cache_auth(cached_auth_timeout=timeout):
             start = time.time()
