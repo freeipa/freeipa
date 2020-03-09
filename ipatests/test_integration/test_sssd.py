@@ -7,6 +7,8 @@
 from __future__ import absolute_import
 
 from contextlib import contextmanager
+import re
+import time
 
 import ipaplatform
 import pytest
@@ -32,10 +34,12 @@ class TestSSSDWithAdTrust(IntegrationTest):
         'ipa': {
             'name': 'user1',
             'password': 'SecretUser1',
+            'group': 'user1',
         },
         'ad': {
             'name_tmpl': 'testuser@{domain}',
-            'password': 'Secret123'
+            'password': 'Secret123',
+            'group_tmpl': 'testgroup@{domain}',
         },
         'child_ad': {
             'name_tmpl': 'subdomaintestuser@{domain}',
@@ -61,6 +65,8 @@ class TestSSSDWithAdTrust(IntegrationTest):
         tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
 
         cls.users['ad']['name'] = cls.users['ad']['name_tmpl'].format(
+            domain=cls.ad.domain.name)
+        cls.users['ad']['group'] = cls.users['ad']['group_tmpl'].format(
             domain=cls.ad.domain.name)
         cls.users['child_ad']['name'] = (
             cls.users['child_ad']['name_tmpl'].format(
@@ -296,3 +302,44 @@ class TestSSSDWithAdTrust(IntegrationTest):
                 assert 'no such user' in res.stderr_text
         # verify the user can be retrieved after re-enabling trustdomain
         self.master.run_command(['id', user])
+
+    @pytest.mark.parametrize('user_origin', ['ipa', 'ad'])
+    def test_sssd_cache_refresh(self, user_origin):
+        """Check SSSD updates expired cache items for domain and its subdomains
+
+        Regression test for https://pagure.io/SSSD/sssd/issue/4012
+        """
+        def get_cache_update_time(obj_kind, obj_name):
+            res = self.master.run_command(
+                ['sssctl', '{}-show'.format(obj_kind), obj_name])
+            m = re.search(r'Cache entry last update time:\s+([^\n]+)',
+                          res.stdout_text)
+            update_time = m.group(1).strip()
+            assert update_time
+            return update_time
+
+        # by design, sssd does first update of expired records in 30 seconds
+        # since start
+        refresh_time = 30
+        user = self.users[user_origin]['name']
+        group = self.users[user_origin]['group']
+        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        try:
+            with tasks.remote_sssd_config(self.master) as sssd_conf:
+                sssd_conf.edit_domain(
+                    self.master.domain, 'refresh_expired_interval', 1)
+                sssd_conf.edit_domain(
+                    self.master.domain, 'entry_cache_timeout', 1)
+            tasks.clear_sssd_cache(self.master)
+
+            start = time.time()
+            self.master.run_command(['id', user])
+            user_update_time = get_cache_update_time('user', user)
+            group_update_time = get_cache_update_time('group', group)
+            time.sleep(start + refresh_time - time.time() + 5)
+            assert get_cache_update_time('user', user) != user_update_time
+            assert (get_cache_update_time('group', group) !=
+                    group_update_time)
+        finally:
+            sssd_conf_backup.restore()
+            tasks.clear_sssd_cache(self.master)
