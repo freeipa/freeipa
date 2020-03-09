@@ -201,3 +201,18 @@ class TestIpaAdTrustInstall(IntegrationTest):
         entry = conn.get_entry(DN(
             "cn=groups,cn=Schema Compatibility,cn=plugins,cn=config"))
         assert entry.single_value['schema-compat-lookup-nsswitch'] == "group"
+
+    def test_schema_compat_attribute(self):
+        """Test if schema-compat-entry-attribute is set
+
+        This is to ensure if said entry is set after installation with AD.
+
+        related: https://pagure.io/freeipa/issue/8193
+        """
+        conn = self.replicas[0].ldap_connect()
+        entry = conn.get_entry(DN(
+            "cn=groups,cn=Schema Compatibility,cn=plugins,cn=config"))
+        entry_list = list(entry['schema-compat-entry-attribute'])
+        value = (r'ipaexternalmember=%deref_r('
+                 '"member","ipaexternalmember")')
+        assert value in entry_list
