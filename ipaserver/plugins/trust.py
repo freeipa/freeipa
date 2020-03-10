@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import dbus
+import dbus.mainloop.glib
 import logging
 
 import six
@@ -74,8 +76,6 @@ except Exception as e:
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc
-        import dbus
-        import dbus.mainloop.glib
         _bindings_installed = True
     except ImportError:
         _bindings_installed = False
