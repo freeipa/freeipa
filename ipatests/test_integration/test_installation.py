@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 
 import pytest
 from cryptography.hazmat.primitives import hashes
+from cryptography import x509 as crypto_x509
 
 from ipalib import x509
 from ipalib.constants import DOMAIN_LEVEL_0
@@ -716,6 +717,17 @@ class TestInstallMaster(IntegrationTest):
             else:
                 assert key_size == 2048
             assert cert.signature_hash_algorithm.name == hashes.SHA256.name
+
+    def test_http_cert(self):
+        """
+        Test that HTTP certificate contains ipa-ca.$DOMAIN
+        DNS name.
+
+        """
+        data = self.master.get_file_contents(paths.HTTPD_CERT_FILE)
+        cert = x509.load_pem_x509_certificate(data)
+        name = f'ipa-ca.{self.master.domain.name}'
+        assert crypto_x509.DNSName(name) in cert.san_general_names
 
     def test_p11_kit_softhsm2(self):
         # check that p11-kit-proxy does not inject SoftHSM2
