@@ -133,8 +133,6 @@ class KRAInstance(DogtagInstance):
         self.step("configure certmonger for renewals",
                   self.configure_certmonger_renewal_helpers)
         self.step("configure certificate renewals", self.configure_renewal)
-        self.step("configure HTTP to proxy connections",
-                  self.http_proxy)
         if not self.clone:
             self.step("add vault container", self.__add_vault_container)
         self.step("apply LDAP updates", self.__apply_updates)

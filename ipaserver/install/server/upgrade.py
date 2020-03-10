@@ -1966,6 +1966,14 @@ def upgrade_configuration():
                      os.path.join(paths.USR_SHARE_IPA_DIR,
                                   "ipa-kdc-proxy.conf.template"))
         if ca.is_configured():
+            # Handle upgrade of AJP connector configuration
+            ca.secure_ajp_connector()
+            if ca.ajp_secret:
+                sub_dict['DOGTAG_AJP_SECRET'] = "secret={}".format(
+                    ca.ajp_secret)
+            else:
+                sub_dict['DOGTAG_AJP_SECRET'] = ''
+
             upgrade_file(
                 sub_dict,
                 paths.HTTPD_IPA_PKI_PROXY_CONF,
