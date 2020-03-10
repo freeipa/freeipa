@@ -18,6 +18,7 @@
 /usr/libexec/ipa/com\.redhat\.idm\.trust-fetch-domains --   gen_context(system_u:object_r:ipa_helper_exec_t,s0)
 /usr/libexec/ipa/oddjob/com\.redhat\.idm\.trust-fetch-domains  --  gen_context(system_u:object_r:ipa_helper_exec_t,s0)
 /usr/libexec/ipa/oddjob/org\.freeipa\.server\.conncheck  --  gen_context(system_u:object_r:ipa_helper_exec_t,s0)
+/usr/libexec/ipa/oddjob/org\.freeipa\.server\.trust-enable-agent  --  gen_context(system_u:object_r:ipa_helper_exec_t,s0)
 
 /var/lib/ipa(/.*)?              gen_context(system_u:object_r:ipa_var_lib_t,s0)
 
@@ -26,4 +27,3 @@
 /var/log/ipareplica-conncheck.log.*	--	gen_context(system_u:object_r:ipa_log_t,s0)
 
 /var/run/ipa(/.*)?              gen_context(system_u:object_r:ipa_var_run_t,s0)
-
