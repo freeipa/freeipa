@@ -420,6 +420,7 @@ class CAInstance(DogtagInstance):
             self.step("configuring certificate server instance",
                       self.__spawn_instance)
             self.step("Add ipa-pki-wait-running", self.add_ipa_wait)
+            self.step("secure AJP connector", self.secure_ajp_connector)
             self.step("reindex attributes", self.reindex_task)
             self.step("exporting Dogtag certificate store pin",
                       self.create_certstore_passwdfile)
@@ -472,6 +473,7 @@ class CAInstance(DogtagInstance):
                 self.step("configure Server-Cert certificate renewal", self.track_servercert)
                 self.step("Configure HTTP to proxy connections",
                           self.http_proxy)
+                # This restart is needed for ACL reload in CA, do not remove it
                 self.step("restarting certificate server", self.restart_instance)
                 self.step("updating IPA configuration", update_ipa_conf)
                 self.step("enabling CA instance", self.__enable_instance)

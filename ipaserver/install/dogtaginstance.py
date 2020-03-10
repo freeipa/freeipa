@@ -28,6 +28,9 @@ import os
 import shutil
 import traceback
 import dbus
+import re
+import pwd
+import lxml.etree
 
 from pki.client import PKIConnection
 import pki.system
@@ -38,6 +41,7 @@ from ipalib.constants import CA_DBUS_TIMEOUT, RENEWAL_CA_NAME
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 from ipapython import directivesetter
 from ipapython import ipaldap
 from ipapython import ipautil
@@ -135,6 +139,8 @@ class DogtagInstance(service.Service):
         self.subject_base = None
         self.nss_db = nss_db
         self.config = config  # Path to CS.cfg
+
+        self.ajp_secret = None
 
     def is_installed(self):
         """
@@ -246,6 +252,72 @@ class DogtagInstance(service.Service):
             logger.critical("failed to uninstall %s instance %s",
                             self.subsystem, e)
 
+    def __is_newer_tomcat_version(self, default=None):
+        try:
+            result = ipautil.run([paths.BIN_TOMCAT, "version"],
+                                 capture_output=True)
+            sn = re.search(
+                r'Server number:\s+([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)',
+                result.output)
+            if sn is None:
+                logger.info("tomcat version cannot be parsed, "
+                            "default to pre-%s", default)
+                return False
+            v = tasks.parse_ipa_version(sn.group(1))
+            if v >= tasks.parse_ipa_version(default):
+                return True
+        except ipautil.CalledProcessError as e:
+            logger.info(
+                "failed to discover tomcat version, "
+                "default to pre-%s, error: %s",
+                default, str(e))
+        return False
+
+    def secure_ajp_connector(self):
+        """ Update AJP connector to use a password protection  """
+
+        server_xml = lxml.etree.parse(paths.PKI_TOMCAT_SERVER_XML)
+        doc = server_xml.getroot()
+
+        # no AJP connector means no need to update anything
+        connectors = doc.xpath('//Connector[@port="8009"]')
+        if len(connectors) == 0:
+            return
+
+        # AJP connector is set on port 8009. Use non-greedy search to find it
+        connector = connectors[0]
+
+        # Detect tomcat version and choose the right option name
+        # pre-9.0.31.0 uses 'requiredSecret'
+        # 9.0.31.0 or later uses 'secret'
+        secretattr = 'requiredSecret'
+        oldattr = 'requiredSecret'
+        if self.__is_newer_tomcat_version('9.0.31.0'):
+            secretattr = 'secret'
+
+        rewrite = True
+        if secretattr in connector.attrib:
+            # secret is already in place
+            # Perhaps, we need to synchronize it with Apache configuration
+            self.ajp_secret = connector.attrib[secretattr]
+            rewrite = False
+        else:
+            if oldattr in connector.attrib:
+                self.ajp_secret = connector.attrib[oldattr]
+                connector.attrib[secretattr] = self.ajp_secret
+                del connector.attrib[oldattr]
+            else:
+                # Generate password, don't use special chars to not break XML
+                self.ajp_secret = ipautil.ipa_generate_password(special=None)
+                connector.attrib[secretattr] = self.ajp_secret
+
+        if rewrite:
+            pent = pwd.getpwnam(constants.PKI_USER)
+            with open(paths.PKI_TOMCAT_SERVER_XML, "wb") as fd:
+                server_xml.write(fd, pretty_print=True, encoding="utf-8")
+                os.fchmod(fd.fileno(), 0o660)
+                os.fchown(fd.fileno(), pent.pw_uid, pent.pw_gid)
+
     def http_proxy(self):
         """ Update the http proxy file  """
         template_filename = (
@@ -255,11 +327,20 @@ class DogtagInstance(service.Service):
             DOGTAG_PORT=8009,
             CLONE='' if self.clone else '#',
             FQDN=self.fqdn,
+            DOGTAG_AJP_SECRET='',
         )
+        if self.ajp_secret:
+            sub_dict['DOGTAG_AJP_SECRET'] = "secret={}".format(self.ajp_secret)
         template = ipautil.template_file(template_filename, sub_dict)
         with open(paths.HTTPD_IPA_PKI_PROXY_CONF, "w") as fd:
             fd.write(template)
             os.fchmod(fd.fileno(), 0o640)
+        # Restart httpd
+        http_service = services.knownservices.httpd
+        logger.debug("Restarting %s to apply AJP changes",
+                     http_service.service_name)
+        http_service.restart()
+        logger.debug("%s successfully restarted", http_service.service_name)
 
     def configure_certmonger_renewal_helpers(self):
         """
