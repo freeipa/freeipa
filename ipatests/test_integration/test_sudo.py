@@ -16,14 +16,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
 
 import pytest
 
-# pylint: disable=no-name-in-module
-# pylint: disable=relative-import
 from ipaplatform.paths import paths
-# pylint: enable=no-name-in-module
-# pylint: enable=relative-import
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.tasks import (
