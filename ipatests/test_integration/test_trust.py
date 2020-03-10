@@ -635,7 +635,8 @@ class TestTrust(IntegrationTest):
             # This checks that our setup is correct
             result = self.master.run_command(
                 ['ipa', 'trust-add', self.ad.domain.name,
-                 '--admin', 'Administrator', '--password'], raiseonerr=False)
+                 '--admin', 'Administrator', '--password'], raiseonerr=False,
+                stdin_text=self.master.config.ad_admin_password)
             assert result.returncode == 1
             assert 'CIFS server communication error: code "3221225653", ' \
                    'message "{Device Timeout}' in result.stderr_text
