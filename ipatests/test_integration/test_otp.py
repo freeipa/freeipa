@@ -7,6 +7,7 @@ from __future__ import absolute_import
 import base64
 import logging
 import paramiko
+import pytest
 import re
 import time
 import textwrap
@@ -18,6 +19,7 @@ from cryptography.hazmat.primitives.twofactor.totp import TOTP
 from ipatests.test_integration.base import IntegrationTest
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
+from ipaplatform.tasks import tasks as platform_tasks
 from six.moves.urllib import parse  # pylint: disable=import-error
 # urlparse module has been renamed in Python 3.x
 try:
@@ -206,6 +208,12 @@ class TestOTPToken(IntegrationTest):
         then during ssh it should be prompted with given message
         for first and second factor at once.
         """
+        cmd = self.master.run_command(['sssd', '--version'])
+        sssd_version = platform_tasks.parse_ipa_version(
+            cmd.stdout_text.strip())
+        if sssd_version <= platform_tasks.parse_ipa_version('1.16.3'):
+            pytest.xfail("Fix for https://pagure.io/SSSD/sssd/issue/3264 "
+                         "unavailable with sssd-1.16.3")
         master = self.master
         USER1 = 'sshuser1'
         sssd_conf_backup = tasks.FileBackup(master, paths.SSSD_CONF)
@@ -244,6 +252,12 @@ class TestOTPToken(IntegrationTest):
         then during ssh it should be prompted with given message
         for first factor and then for second factor.
         """
+        cmd = self.master.run_command(['sssd', '--version'])
+        sssd_version = platform_tasks.parse_ipa_version(
+            cmd.stdout_text.strip())
+        if sssd_version <= platform_tasks.parse_ipa_version('1.16.3'):
+            pytest.xfail("Fix for https://pagure.io/SSSD/sssd/issue/3264 "
+                         "unavailable with sssd-1.16.3")
         master = self.master
         USER2 = 'sshuser2'
         sssd_conf_backup = tasks.FileBackup(master, paths.SSSD_CONF)
