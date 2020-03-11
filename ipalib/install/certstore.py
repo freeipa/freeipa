@@ -22,6 +22,8 @@
 LDAP shared certificate store.
 """
 
+import datetime
+
 from pyasn1.error import PyAsn1Error
 
 from ipapython.dn import DN
@@ -280,6 +282,7 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
     certs = []
     config_dn = DN(('cn', 'ipa'), ('cn', 'etc'), base_dn)
     container_dn = DN(('cn', 'certificates'), config_dn)
+    cur_date = datetime.datetime.now()
     try:
         # Search the certificate store for CA certificate entries
         filters = ['(objectClass=ipaCertificate)', '(objectClass=pkiCA)']
@@ -313,7 +316,11 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
                 except ValueError:
                     certs = []
                     break
-                certs.append((cert, nickname, trusted, ext_key_usage))
+                if (cert.not_valid_after < cur_date or
+                   cert.not_valid_before > cur_date):
+                    certs.append((cert, nickname, trusted, ext_key_usage))
+                else:
+                    certs.insert(0, (cert, nickname, trusted, ext_key_usage))
     except errors.NotFound:
         try:
             ldap.get_entry(container_dn, [''])
