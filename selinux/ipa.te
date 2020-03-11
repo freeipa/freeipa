@@ -205,7 +205,7 @@ libs_exec_ldconfig(ipa_dnskey_t)
 
 logging_send_syslog_msg(ipa_dnskey_t)
 
-miscfiles_read_certs(ipa_dnskey_t)
+miscfiles_read_generic_certs(ipa_dnskey_t)
 
 sysnet_read_config(ipa_dnskey_t)
 
@@ -262,7 +262,7 @@ libs_exec_ldconfig(ipa_ods_exporter_t)
 
 logging_send_syslog_msg(ipa_ods_exporter_t)
 
-miscfiles_read_certs(ipa_ods_exporter_t)
+miscfiles_read_generic_certs(ipa_ods_exporter_t)
 
 sysnet_read_config(ipa_ods_exporter_t)
 
