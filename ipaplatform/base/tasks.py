@@ -24,12 +24,10 @@ This module contains default platform-specific implementations of system tasks.
 
 from __future__ import absolute_import
 
-import os
 import logging
 
 from pkg_resources import parse_version
 
-from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.ipachangeconf import IPAChangeConf
@@ -287,69 +285,6 @@ class BaseTaskNamespace:
         if fstore is not None and fstore.has_file(paths.RESOLV_CONF):
             fstore.restore_file(paths.RESOLV_CONF)
 
-    def run_ods_setup(self):
-        """Initialize a new kasp.db
-        """
-        if paths.ODS_KSMUTIL is not None and os.path.exists(paths.ODS_KSMUTIL):
-            # OpenDNSSEC 1.4
-            cmd = [paths.ODS_KSMUTIL, 'setup']
-        else:
-            # OpenDNSSEC 2.x
-            cmd = [paths.ODS_ENFORCER_DB_SETUP]
-        return ipautil.run(cmd, stdin="y", runas=constants.ODS_USER)
-
-    def run_ods_notify(self, **kwargs):
-        """Notify ods-enforcerd to reload its conf."""
-        if paths.ODS_KSMUTIL is not None and os.path.exists(paths.ODS_KSMUTIL):
-            # OpenDNSSEC 1.4
-            cmd = [paths.ODS_KSMUTIL, 'notify']
-        else:
-            # OpenDNSSEC 2.x
-            cmd = [paths.ODS_ENFORCER, 'flush']
-
-        # run commands as ODS user
-        if os.geteuid() == 0:
-            kwargs['runas'] = constants.ODS_USER
-
-        return ipautil.run(cmd, **kwargs)
-
-    def run_ods_policy_import(self, **kwargs):
-        """Run OpenDNSSEC manager command to import policy."""
-        # This step is needed with OpenDNSSEC 2.1 only
-        if paths.ODS_KSMUTIL is not None and os.path.exists(paths.ODS_KSMUTIL):
-            # OpenDNSSEC 1.4
-            return
-
-        # OpenDNSSEC 2.x
-        cmd = [paths.ODS_ENFORCER, 'policy', 'import']
-
-        # run commands as ODS user
-        if os.geteuid() == 0:
-            kwargs['runas'] = constants.ODS_USER
-        ipautil.run(cmd, **kwargs)
-
-    def run_ods_manager(self, params, **kwargs):
-        """Run OpenDNSSEC manager command (ksmutil, enforcer)
-
-        :param params: parameter for ODS command
-        :param kwargs: additional arguments for ipautil.run()
-        :return: result from ipautil.run()
-        """
-        assert params[0] != 'setup'
-
-        if paths.ODS_KSMUTIL is not None and os.path.exists(paths.ODS_KSMUTIL):
-            # OpenDNSSEC 1.4
-            cmd = [paths.ODS_KSMUTIL]
-        else:
-            # OpenDNSSEC 2.x
-            cmd = [paths.ODS_ENFORCER]
-        cmd.extend(params)
-
-        # run commands as ODS user
-        if os.geteuid() == 0:
-            kwargs['runas'] = constants.ODS_USER
-
-        return ipautil.run(cmd, **kwargs)
 
     def configure_pkcs11_modules(self, fstore):
         """Disable p11-kit modules
