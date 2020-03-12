@@ -34,6 +34,7 @@ import time
 from pipes import quote
 import configparser
 from contextlib import contextmanager
+from pkg_resources import parse_version
 
 import dns
 from ldif import LDIFWriter
@@ -2196,3 +2197,9 @@ def wait_for_sssd_domain_status_online(host, timeout=120):
         time.sleep(5)
     else:
         raise RuntimeError("SSSD still offline")
+
+
+def get_sssd_version(host):
+    """Get sssd version on remote host."""
+    version = host.run_command('sssd --version').stdout_text.strip()
+    return parse_version(version)
