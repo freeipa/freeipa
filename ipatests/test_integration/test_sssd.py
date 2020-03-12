@@ -15,6 +15,7 @@ import textwrap
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.util import xfail_context
 from ipaplatform.tasks import tasks as platform_tasks
 from ipaplatform.paths import paths
 from ipapython.dn import DN
@@ -288,7 +289,10 @@ class TestSSSDWithAdTrust(IntegrationTest):
         self.master.run_command(['id', user])
         with self.disabled_trustdomain():
             res = self.master.run_command(['id', user], raiseonerr=False)
-            assert res.returncode == 1
-            assert 'no such user' in res.stderr_text
+            sssd_version = tasks.get_sssd_version(self.master)
+            with xfail_context(sssd_version < tasks.parse_version('2.2.3'),
+                               'https://pagure.io/SSSD/sssd/issue/4078'):
+                assert res.returncode == 1
+                assert 'no such user' in res.stderr_text
         # verify the user can be retrieved after re-enabling trustdomain
         self.master.run_command(['id', user])
