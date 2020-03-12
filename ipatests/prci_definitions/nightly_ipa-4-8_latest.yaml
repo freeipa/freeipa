@@ -1470,8 +1470,8 @@ jobs:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_sssd.py
         template: *ci-ipa-4-8-latest
-        timeout: 4800
-        topology: *ad_master_2client
+        timeout: 7200
+        topology: *adroot_adchild_adtree_master_1client
 
   fedora-latest-ipa-4-8/test_ca_custom_sdn:
     requires: [fedora-latest-ipa-4-8/build]
