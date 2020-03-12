@@ -12,7 +12,7 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 from ipapython import ipa_log_manager, ipautil
-from ipaplatform.tasks import tasks
+from ipaserver.dnssec.opendnssec import tasks
 
 logger = logging.getLogger(__name__)
 

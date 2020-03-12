@@ -13,6 +13,7 @@ import shutil
 from subprocess import CalledProcessError
 
 from ipalib.install import sysrestore
+from ipaserver.dnssec.opendnssec import tasks
 from ipaserver.install import service
 from ipaserver.masters import ENABLED_SERVICE
 from ipapython.dn import DN
@@ -21,7 +22,6 @@ from ipapython import ipautil
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-from ipaplatform.tasks import tasks
 from ipalib import errors, api
 from ipaserver import p11helper
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
