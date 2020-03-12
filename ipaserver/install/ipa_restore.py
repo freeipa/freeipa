@@ -474,6 +474,14 @@ class Restore(admintool.AdminTool):
                 http.remove_httpd_ccaches()
                 # have the daemons pick up their restored configs
                 tasks.systemd_daemon_reload()
+                # Restart IPA a final time.
+                # Starting then restarting is necessary to make sure some
+                # daemons like httpd are restarted
+                # (https://pagure.io/freeipa/issue/8226).
+                logger.info('Restarting IPA services')
+                result = run([paths.IPACTL, 'restart'], raiseonerr=False)
+                if result.returncode != 0:
+                    logger.error('Restarting IPA failed: %s', result.error_log)
         finally:
             try:
                 os.chdir(cwd)
