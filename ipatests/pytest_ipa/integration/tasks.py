@@ -33,6 +33,7 @@ import time
 from pipes import quote
 from six.moves import configparser
 from contextlib import contextmanager
+from pkg_resources import parse_version
 
 import dns
 from ldif import LDIFWriter
@@ -1903,3 +1904,9 @@ def ldapmodify_dm(host, ldif_text, **kwargs):
         '-w', host.config.dirman_password
     ]
     return host.run_command(args, stdin_text=ldif_text, **kwargs)
+
+
+def get_sssd_version(host):
+    """Get sssd version on remote host."""
+    version = host.run_command('sssd --version').stdout_text.strip()
+    return parse_version(version)
