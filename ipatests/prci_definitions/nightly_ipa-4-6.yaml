@@ -1108,8 +1108,8 @@ jobs:
         build_url: '{fedora-27/build_url}'
         test_suite: test_integration/test_sssd.py
         template: *ci-master-f27
-        timeout: 4800
-        topology: *ad_master_2client
+        timeout: 7200
+        topology: *adroot_adchild_adtree_master_1client
 
   fedora-27/test_adtrust_install:
     requires: [fedora-27/build]
