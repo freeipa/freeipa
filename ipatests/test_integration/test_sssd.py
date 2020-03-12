@@ -26,6 +26,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
 
     topology = 'star'
     num_ad_domains = 1
+    num_ad_subdomains = 1
     num_clients = 1
 
     users = {
@@ -38,6 +39,10 @@ class TestSSSDWithAdTrust(IntegrationTest):
             'name_tmpl': 'testuser@{domain}',
             'password': 'Secret123',
             'group_tmpl': 'testgroup@{domain}',
+        },
+        'child_ad': {
+            'name_tmpl': 'subdomaintestuser@{domain}',
+            'password': 'Secret123',
         },
         'fakeuser': {
             'name': 'some_user@some.domain'
@@ -54,6 +59,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
         super(TestSSSDWithAdTrust, cls).install(mh)
 
         cls.ad = cls.ads[0]
+        cls.child_ad = cls.ad_subdomains[0]
 
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
@@ -63,6 +69,9 @@ class TestSSSDWithAdTrust(IntegrationTest):
             domain=cls.ad.domain.name)
         cls.users['ad']['group'] = cls.users['ad']['group_tmpl'].format(
             domain=cls.ad.domain.name)
+        cls.users['child_ad']['name'] = (
+            cls.users['child_ad']['name_tmpl'].format(
+                domain=cls.child_ad.domain.name))
         tasks.user_add(cls.master, cls.intermed_user)
         tasks.create_active_user(cls.master, cls.ipa_user,
                                  cls.ipa_user_password)
@@ -352,3 +361,41 @@ class TestSSSDWithAdTrust(IntegrationTest):
             assert user_origin == 'ipa'
         finally:
             master.run_command(['ipa', 'group-del', 'ext-ipatest'])
+
+    @contextmanager
+    def disabled_trustdomain(self):
+        ad_domain_name = self.ad.domain.name
+        ad_subdomain_name = self.child_ad.domain.name
+        self.master.run_command(['ipa', 'trustdomain-disable',
+                                 ad_domain_name, ad_subdomain_name])
+        tasks.clear_sssd_cache(self.master)
+        try:
+            yield
+        finally:
+            self.master.run_command(['ipa', 'trustdomain-enable',
+                                     ad_domain_name, ad_subdomain_name])
+            tasks.clear_sssd_cache(self.master)
+
+    @pytest.mark.parametrize('user_origin', ['ipa', 'ad'])
+    def test_trustdomain_disable_does_not_disable_root_domain(self,
+                                                              user_origin):
+        """Test that disabling trustdomain does not affect other domains."""
+        user = self.users[user_origin]['name']
+        with self.disabled_trustdomain():
+            self.master.run_command(['id', user])
+
+    def test_trustdomain_disable_disables_subdomain(self):
+        """Test that users from disabled trustdomains can not use ipa resources
+
+        This is a regression test for sssd bug:
+        https://pagure.io/SSSD/sssd/issue/4078
+        """
+        user = self.users['child_ad']['name']
+        # verify the user can be retrieved initially
+        self.master.run_command(['id', user])
+        with self.disabled_trustdomain():
+            res = self.master.run_command(['id', user], raiseonerr=False)
+            assert res.returncode == 1
+            assert 'no such user' in res.stderr_text
+        # verify the user can be retrieved after re-enabling trustdomain
+        self.master.run_command(['id', user])
