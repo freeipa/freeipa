@@ -1410,8 +1410,8 @@ jobs:
         build_url: '{fedora-previous/build_url}'
         test_suite: test_integration/test_sssd.py
         template: *ci-master-previous
-        timeout: 4800
-        topology: *ad_master_2client
+        timeout: 7200
+        topology: *adroot_adchild_adtree_master_1client
 
   fedora-previous/test_ca_custom_sdn:
     requires: [fedora-previous/build]
