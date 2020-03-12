@@ -2,11 +2,15 @@
 # Copyright (C) 2020  FreeIPA Contributors see COPYING for license
 #
 
+import os
 import socket
 
+from ipapython import ipautil
 from ipaserver.dnssec._odsbase import AbstractODSDBConnection
 from ipaserver.dnssec._odsbase import AbstractODSSignerConn
 from ipaserver.dnssec._odsbase import ODS_SE_MAXLINE
+from ipaplatform.constants import constants
+from ipaplatform.paths import paths
 
 
 class ODSDBConnection(AbstractODSDBConnection):
@@ -43,3 +47,43 @@ class ODSSignerConn(AbstractODSSignerConn):
         self._conn.send(reply + b'\n')
         self._conn.shutdown(socket.SHUT_RDWR)
         self._conn.close()
+
+
+class ODSTask():
+    def run_ods_setup(self):
+        """Initialize a new kasp.db"""
+        cmd = [paths.ODS_KSMUTIL, 'setup']
+        return ipautil.run(cmd, stdin="y", runas=constants.ODS_USER)
+
+    def run_ods_notify(self, **kwargs):
+        """Notify ods-enforcerd to reload its conf."""
+        cmd = [paths.ODS_KSMUTIL, 'notify']
+
+        # run commands as ODS user
+        if os.geteuid() == 0:
+            kwargs['runas'] = constants.ODS_USER
+
+        return ipautil.run(cmd, **kwargs)
+
+    def run_ods_policy_import(self, **kwargs):
+        """Run OpenDNSSEC manager command to import policy."""
+        # This step is needed with OpenDNSSEC 2.1 only
+        return
+
+    def run_ods_manager(self, params, **kwargs):
+        """Run OpenDNSSEC manager command (ksmutil, enforcer)
+
+        :param params: parameter for ODS command
+        :param kwargs: additional arguments for ipautil.run()
+        :return: result from ipautil.run()
+        """
+        assert params[0] != 'setup'
+
+        cmd = [paths.ODS_KSMUTIL]
+        cmd.extend(params)
+
+        # run commands as ODS user
+        if os.geteuid() == 0:
+            kwargs['runas'] = constants.ODS_USER
+
+        return ipautil.run(cmd, **kwargs)
