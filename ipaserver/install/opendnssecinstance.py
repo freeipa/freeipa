@@ -293,14 +293,6 @@ class OpenDNSSECInstance(service.Service):
             os.chown(paths.OPENDNSSEC_KASP_DB, self.ods_uid, self.ods_gid)
             os.chmod(paths.OPENDNSSEC_KASP_DB, 0o660)
 
-            # regenerate zonelist.xml
-            result = tasks.run_ods_manager(
-                ['zonelist', 'export'], capture_output=True
-            )
-            with open(paths.OPENDNSSEC_ZONELIST_FILE, 'w') as f:
-                f.write(result.output)
-                os.fchown(f.fileno(), self.ods_uid, self.ods_gid)
-                os.fchmod(f.fileno(), 0o660)
         else:
             # initialize new kasp.db
             tasks.run_ods_setup()
@@ -315,6 +307,15 @@ class OpenDNSSECInstance(service.Service):
     def __start(self):
         self.restart()  # needed to reload conf files
         tasks.run_ods_policy_import()
+        if self.kasp_db_file:
+            # regenerate zonelist.xml
+            result = tasks.run_ods_manager(
+                ['zonelist', 'export'], capture_output=True
+            )
+            with open(paths.OPENDNSSEC_ZONELIST_FILE, 'w') as f:
+                f.write(result.output)
+                os.fchown(f.fileno(), self.ods_uid, self.ods_gid)
+                os.fchmod(f.fileno(), 0o660)
 
     def uninstall(self):
         if not self.is_configured():
