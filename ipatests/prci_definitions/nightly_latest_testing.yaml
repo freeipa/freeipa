@@ -1585,8 +1585,8 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_sssd.py
         template: *testing-master-latest
-        timeout: 4800
-        topology: *ad_master_2client
+        timeout: 7200
+        topology: *adroot_adchild_adtree_master_1client
 
   testing-fedora/test_ca_custom_sdn:
     requires: [testing-fedora/build]
