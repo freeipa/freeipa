@@ -7,6 +7,8 @@ from ipaplatform.paths import paths
 
 # pylint: disable=unused-import
 if paths.ODS_KSMUTIL is not None and os.path.exists(paths.ODS_KSMUTIL):
-    from ._ods14 import ODSDBConnection, ODSSignerConn
+    from ._ods14 import ODSDBConnection, ODSSignerConn, ODSTask
 else:
-    from ._ods21 import ODSDBConnection, ODSSignerConn
+    from ._ods21 import ODSDBConnection, ODSSignerConn, ODSTask
+
+tasks = ODSTask()
