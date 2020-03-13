@@ -18,6 +18,7 @@ jobs:
     - script: |
         set -e
         echo "Running autoconf generator"
+        echo "test"
         ./autogen.sh
       displayName: Configure the project
     - script: |
