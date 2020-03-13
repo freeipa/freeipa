@@ -2135,11 +2135,39 @@ def wait_for_request(host, request_id, timeout=120):
         )
 
         state = result.stdout_text.strip()
-        print("certmonger request is in state %r", state)
+        logger.info("certmonger request is in state %s", state)
         if state in ('CA_REJECTED', 'CA_UNREACHABLE', 'CA_UNCONFIGURED',
                      'NEED_GUIDANCE', 'NEED_CA', 'MONITORING'):
             break
         time.sleep(5)
+    else:
+        raise RuntimeError("request timed out")
+
+    return state
+
+
+def wait_for_certmonger_status(host, status, request_id, timeout=120):
+    """Aggressively wait for a specific certmonger status.
+
+       This checks the status every second in order to attempt to
+       catch transient states like SUBMITTED. There are no guarantees.
+
+       :param host: the host where the uninstallation takes place
+       :param status: tuple of statuses to look for
+       :param request_id: request_id of request to check status on
+       :param timeout: max time in seconds to wait for the status
+    """
+    for _i in range(0, timeout, 1):
+        result = host.run_command(
+            "getcert list -i %s | grep status: | awk '{ print $2 }'" %
+            request_id
+        )
+
+        state = result.stdout_text.strip()
+        logger.info("certmonger request is in state %s", state)
+        if state in status:
+            break
+        time.sleep(1)
     else:
         raise RuntimeError("request timed out")
 
