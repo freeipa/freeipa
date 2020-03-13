@@ -1878,6 +1878,40 @@ def fix_permissions():
             os.chmod(filename, mode)
 
 
+def update_and_secure_ajp_connector():
+    """Update and secure AJP connector between CA and Apache proxy
+
+    This method is only called from a package trigger when tomcat
+    upgrade to 9.0.31+ is installed independently of FreeIPA
+    """
+    ca = cainstance.CAInstance(api.env.realm, host_name=api.env.host)
+    if ca.is_configured():
+        sub_dict = dict(
+            REALM=api.env.realm,
+            FQDN=api.env.host,
+            DOGTAG_PORT=8009,
+            CLONE='#',
+            DOGTAG_AJP_SECRET='',
+        )
+        crl = directivesetter.get_directive(
+            paths.CA_CS_CFG_PATH,
+            'ca.crl.MasterCRL.enableCRLUpdates', '=')
+        if crl.lower() != 'true':
+            sub_dict['CLONE'] = ''
+        # Handle upgrade of AJP connector configuration
+        ca.secure_ajp_connector()
+        if ca.ajp_secret:
+            sub_dict['DOGTAG_AJP_SECRET'] = "secret={}".format(ca.ajp_secret)
+            with installutils.stopped_service('pki-tomcatd', 'pki-tomcat'):
+                with installutils.stopped_service('httpd'):
+                    upgrade_file(
+                        sub_dict,
+                        paths.HTTPD_IPA_PKI_PROXY_CONF,
+                        os.path.join(paths.USR_SHARE_IPA_DIR,
+                                     "ipa-pki-proxy.conf.template"),
+                        add=True)
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services

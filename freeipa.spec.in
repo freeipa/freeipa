@@ -1081,6 +1081,24 @@ fi
 
 %if ! %{ONLY_CLIENT}
 
+%triggerin server -- tomcat >= 1:9.0.31
+%{__python3} -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
+if [  $? -eq 0 ]; then
+    # Run upgrade code if new tomcat is installed but AJP connector is not
+    # encrypted yet or server.xml uses old requiredSecret attribute. Use
+    # systemd-run to create an isolated environment to detach from the security
+    # context used by the rpm transaction
+    if [ -f /etc/httpd/conf.d/ipa-pki-proxy.conf ] ; then
+        convert_httpd_conf=$(grep -c secret= /etc/httpd/conf.d/ipa-pki-proxy.conf)
+        convert_server_xml=$(egrep 'Connector.*port.*8009.*protocol.*AJP' /etc/pki/pki-tomcat/server.xml | grep -c requiredSecret)
+        [ $convert_httpd_conf -eq 0 -o $convert_server_xml -ne 0 ] && \
+            /usr/bin/systemd-run \
+                --description "Upgrade FreeIPA to secure AJP connector for tomcat 9.0.31+" \
+                --unit=ipa-server-upgrade-ajp-connector --wait \
+                %{__python3} -c "from ipaserver.install.server.upgrade import update_and_secure_ajp_connector; update_and_secure_ajp_connector();"
+    fi
+fi
+
 %files server
 %doc README.md Contributors.txt
 %license COPYING
