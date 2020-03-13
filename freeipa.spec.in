@@ -1109,10 +1109,6 @@ fi
 %{_sbindir}/ipa-cert-fix
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/certmonger/ipa-server-guard
-%{_libexecdir}/ipa/custodia/ipa-custodia-dmldap
-%{_libexecdir}/ipa/custodia/ipa-custodia-pki-tomcat
-%{_libexecdir}/ipa/custodia/ipa-custodia-pki-tomcat-wrapped
-%{_libexecdir}/ipa/custodia/ipa-custodia-ra-agent
 %dir %{_libexecdir}/ipa
 %{_libexecdir}/ipa/ipa-custodia
 %{_libexecdir}/ipa/ipa-custodia-check
@@ -1121,6 +1117,11 @@ fi
 %{_libexecdir}/ipa/ipa-pki-retrieve-key
 %{_libexecdir}/ipa/ipa-pki-wait-running
 %{_libexecdir}/ipa/ipa-otpd
+%dir %{_libexecdir}/ipa/custodia
+%attr(755,root,root) %{_libexecdir}/ipa/custodia/ipa-custodia-dmldap
+%attr(755,root,root) %{_libexecdir}/ipa/custodia/ipa-custodia-pki-tomcat
+%attr(755,root,root) %{_libexecdir}/ipa/custodia/ipa-custodia-pki-tomcat-wrapped
+%attr(755,root,root) %{_libexecdir}/ipa/custodia/ipa-custodia-ra-agent
 %dir %{_libexecdir}/ipa/oddjob
 %attr(0755,root,root) %{_libexecdir}/ipa/oddjob/org.freeipa.server.conncheck
 %attr(0755,root,root) %{_libexecdir}/ipa/oddjob/org.freeipa.server.trust-enable-agent
