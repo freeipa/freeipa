@@ -1,6 +1,9 @@
 trigger:
 - master
 
+pr:
+- master
+
 variables:
 - template: templates/variables-common.yml
 # platform specific variables, links to
