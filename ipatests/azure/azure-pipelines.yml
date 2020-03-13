@@ -17,7 +17,7 @@ jobs:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - script: |
         set -e
-        echo "Running autoconf generator"
+        echo "[INFO] Running autoconf generator"
         ./autogen.sh
       displayName: Configure the project
     - script: |
