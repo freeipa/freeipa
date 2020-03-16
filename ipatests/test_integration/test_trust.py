@@ -638,8 +638,9 @@ class TestTrust(IntegrationTest):
                  '--admin', 'Administrator', '--password'], raiseonerr=False,
                 stdin_text=self.master.config.ad_admin_password)
             assert result.returncode == 1
-            assert 'CIFS server communication error: code "3221225653", ' \
-                   'message "{Device Timeout}' in result.stderr_text
+            assert re.search(
+                'CIFS server communication error:.+message "{Device Timeout}',
+                result.stderr_text)
 
             # Check that trust is successfully established with --server option
             tasks.establish_trust_with_ad(
