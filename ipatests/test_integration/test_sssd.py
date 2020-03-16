@@ -17,6 +17,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.tasks import tasks as platform_tasks
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+from ipalib import errors
 
 
 class TestSSSDWithAdTrust(IntegrationTest):
@@ -214,3 +215,26 @@ class TestSSSDWithAdTrust(IntegrationTest):
         finally:
             self.master.run_command(['ipa', 'user-del', user])
             self.master.run_command(['ipa', 'group-del', user, ext_group])
+
+    @pytest.mark.parametrize('user_origin', ['ipa', 'ad'])
+    def test_external_group_member_mismatch(self, user_origin):
+        """Prevent adding IPA objects as external group external members
+
+        External groups must only allow adding non-IPA objects as external
+        members in 'ipa group-add-member foo --external bar'.
+        """
+        master = self.master
+        tasks.clear_sssd_cache(master)
+        tasks.kinit_admin(master)
+        master.run_command(['ipa', 'group-add', '--external',
+                            'ext-ipatest'])
+        try:
+            master.run_command(['ipa', 'group-add-member',
+                                'ext-ipatest',
+                                '--external',
+                                self.users[user_origin]['name']])
+        except errors.ValidationError:
+            # Only 'ipa' origin should throw a validation error
+            assert user_origin == 'ipa'
+        finally:
+            master.run_command(['ipa', 'group-del', 'ext-ipatest'])

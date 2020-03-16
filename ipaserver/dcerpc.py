@@ -418,7 +418,12 @@ class DomainValidator(object):
         if object_name in result and \
            (pysss_nss_idmap.SID_KEY in result[object_name]):
             object_sid = result[object_name][pysss_nss_idmap.SID_KEY]
-            return object_sid
+            if self.is_trusted_sid_valid(object_sid):
+                return object_sid
+            else:
+                raise errors.ValidationError(name=_('trusted domain object'),
+                                             error=_('Object does not belong '
+                                                     'to a trusted domain'))
 
         # If fallback to AD DC LDAP is not allowed, bail out
         if not fallback_to_ldap:
