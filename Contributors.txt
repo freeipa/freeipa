@@ -35,6 +35,7 @@ Developers:
 	David O'Brien
 	David Spångberg
 	Diane Trout
+	Dinesh Prasanth M K
 	Diogo Nunes
 	Dmitri Pal
 	Don Davis
@@ -51,11 +52,13 @@ Developers:
 	Fraser Tweedale
 	Gabe Alford
 	Ganna Kaihorodova
+	Gaurav Talreja
 	German Parente
 	Gowrishankar Rajaiyan
 	Günther Deschner
 	Ian Kumlien
 	Ian Pilcher
+	Isaac Boukris
 	Jakub Hrozek
 	James Groffen
 	Jan Barta
@@ -64,6 +67,7 @@ Developers:
 	Jan Zelený
 	Jason Gerard DeRose
 	Jason Woods
+	Jayesh Garg
 	Jérôme Fenal
 	Jim Meyering
 	John Dennis
@@ -96,6 +100,7 @@ Developers:
 	Michal Reznik
 	Michal Židek
 	Milan Kubík
+	MIZUTA Takeshi
 	Mohammad Rizwan Yusuf
 	Nalin Dahyabhai
 	Nathan Kinder
@@ -154,6 +159,7 @@ Developers:
 	Tomas Halman
 	Tomáš Křížek
 	Varun Mylaraiah
+	Vit Mojzis
 	W. Michael Petullo
 	William Brown
 	William Jon McCann
