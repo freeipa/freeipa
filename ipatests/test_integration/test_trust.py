@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import nose
 import re
 import textwrap
+import time
 
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
@@ -492,7 +493,6 @@ class TestTrust(IntegrationTest):
         """Check that user has SID-generated UID"""
         # Using domain name since it is lowercased realm name for AD domains
         testuser = 'testuser@%s' % self.ad_domain
-        result = self.master.run_command(['getent', 'passwd', testuser])
 
         # This regex checks that Test User does not have UID 10042 nor belongs
         # to the group with GID 10047
@@ -501,8 +501,25 @@ class TestTrust(IntegrationTest):
                          % (re.escape(self.ad_domain),
                             re.escape(self.ad_domain))
 
-        assert re.search(
-            testuser_regex, result.stdout_text), result.stdout_text
+        # SSSD versions < 2.0.0 contain a bug
+        # https://pagure.io/SSSD/sssd/issue/3911
+        # In other tests it is mitigated by 60 second sleep time in
+        # tasks.clear_sssd_cache. But this particular setup requires more
+        # time to wait before sssd can successfully fetch user from AD domain.
+        timeout = 300
+        start = time.time()
+        while True:
+            result = self.master.run_command(['getent', 'passwd', testuser],
+                                             ok_returncode=[0, 2])
+            try:
+                assert result.returncode == 0
+                assert re.search(
+                    testuser_regex, result.stdout_text), result.stdout_text
+                break
+            except AssertionError:
+                if time.time() - start > timeout:
+                    raise
+                time.sleep(3)
 
     def test_remove_forest_trust_with_shared_secret(self):
         ps_cmd = (
