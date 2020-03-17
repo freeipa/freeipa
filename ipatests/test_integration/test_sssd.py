@@ -182,6 +182,12 @@ class TestSSSDWithAdTrust(IntegrationTest):
         in group with same name of nonprivate ipa user and possix id, then
         lookup of aduser and group should be successful when cache is empty.
         """
+        cmd = self.master.run_command(['sssd', '--version'])
+        sssd_version = platform_tasks.parse_ipa_version(
+            cmd.stdout_text.strip())
+        if sssd_version <= platform_tasks.parse_ipa_version('1.16.3'):
+            pytest.skip("Fix for https://pagure.io/SSSD/sssd/issue/4073 "
+                        "unavailable with sssd-1.16.3")
         client = self.clients[0]
         user = 'ipatest'
         userid = '100996'
