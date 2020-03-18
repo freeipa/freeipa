@@ -778,6 +778,54 @@ class test_idviews(Declarative):
         ),
 
 
+        # Test ID View applying to a master
+        # Try to apply to the localhost = master
+        dict(
+            desc=u'Apply %s to %s' % (idview1, api.env.host),
+            command=(
+                'idview_apply',
+                [idview1],
+                dict(host=api.env.host)
+            ),
+            expected=dict(
+                completed=0,
+                succeeded=dict(
+                    host=tuple(),
+                ),
+                failed=dict(
+                    memberhost=dict(
+                        host=([api.env.host,
+                               u'ID View cannot be applied to IPA master'],),
+                        hostgroup=tuple(),
+                    ),
+                ),
+                summary=u'Applied ID View "%s"' % idview1,
+            ),
+        ),
+        # Try to apply to the group ipaservers = all masters
+        dict(
+            desc=u'Apply %s to %s' % (idview1, 'ipaservers'),
+            command=(
+                'idview_apply',
+                [idview1],
+                dict(hostgroup=u'ipaservers')
+            ),
+            expected=dict(
+                completed=0,
+                succeeded=dict(
+                    host=tuple(),
+                ),
+                failed=dict(
+                    memberhost=dict(
+                        host=([api.env.host,
+                               u'ID View cannot be applied to IPA master'],),
+                        hostgroup=tuple(),
+                    ),
+                ),
+                summary=u'Applied ID View "%s"' % idview1,
+            ),
+        ),
+
         # Test ID View applying
 
         dict(
