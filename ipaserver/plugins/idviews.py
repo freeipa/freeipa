@@ -26,6 +26,7 @@ from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                        LDAPAddAttributeViaOption,
                        LDAPRemoveAttributeViaOption,
                        LDAPRetrieve, global_output_params,
+                       host_is_master,
                        add_missing_object_class)
 from .hostgroup import get_complete_hostgroup_member_list
 from ipalib import (
@@ -360,6 +361,16 @@ class baseidview_apply(LDAPQuery):
 
         for host in hosts_to_apply:
             try:
+                # Check that the host is not a master
+                # IDView must not be applied to masters
+                try:
+                    host_is_master(ldap, host)
+                except errors.ValidationError:
+                    failed['host'].append(
+                        (host,
+                         unicode(_("ID View cannot be applied to IPA master")))
+                    )
+                    continue
                 host_dn = api.Object['host'].get_dn_if_exists(host)
 
                 host_entry = ldap.get_entry(host_dn,
