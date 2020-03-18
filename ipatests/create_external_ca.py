@@ -40,7 +40,7 @@ class ExternalCA:
         self.ca_key = None
         self.ca_public_key = None
         self.issuer = None
-        self.key_size = key_size or 2048
+        self.key_size = 4096
 
     def create_ca_key(self):
         """Create private and public key for CA
