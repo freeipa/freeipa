@@ -363,12 +363,6 @@ class DogtagInstance(service.Service):
         with open(paths.HTTPD_IPA_PKI_PROXY_CONF, "w") as fd:
             fd.write(template)
             os.fchmod(fd.fileno(), 0o640)
-        # Restart httpd
-        http_service = services.knownservices.httpd
-        logger.debug("Restarting %s to apply AJP changes",
-                     http_service.service_name)
-        http_service.restart()
-        logger.debug("%s successfully restarted", http_service.service_name)
 
     def configure_certmonger_renewal_helpers(self):
         """
