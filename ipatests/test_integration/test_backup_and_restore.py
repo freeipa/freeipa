@@ -152,6 +152,8 @@ def restore_checker(host):
 
     yield
 
+    # Wait for SSSD to become online before doing any other check
+    tasks.wait_for_sssd_domain_status_online(host)
     tasks.kinit_admin(host)
 
     for (check, assert_func), expected in zip(CHECKS, results):
