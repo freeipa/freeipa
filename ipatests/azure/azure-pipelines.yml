@@ -75,7 +75,13 @@ jobs:
         set -e
         echo "Running make target 'lint'"
         make V=0 lint
-      displayName: Lint sources
+        echo "Building documentation"
+        make -C doc/ html SPHINXOPTS="-W"
+      displayName: Lint sources and documentation
+    - template: templates/save-test-artifacts.yml
+      parameters:
+        logsPath: doc/_build/html
+        logsArtifact: docs-$(System.JobIdentifier)-$(Build.BuildId)-$(System.StageAttempt)-$(System.PhaseAttempt)-$(System.JobPositionInPhase)
 
 - job: Tox
   pool:
