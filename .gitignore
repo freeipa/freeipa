@@ -86,6 +86,9 @@ freeipa2-dev-doc
 /daemons/ipa-version.h
 /daemons/test-driver
 
+/doc/_build
+!/doc/Makefile
+
 /po/test.po
 /po/test_locale/xh_ZA/LC_MESSAGES/ipa.mo
 
