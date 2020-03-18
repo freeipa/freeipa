@@ -18,3 +18,9 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+.PHONY: workshop-remote workshop-pull
+workshop-remote:
+	git remote add -f freeipa-workshop https://github.com/freeipa/freeipa-workshop.git
+workshop-pull:
+	git pull -s subtree freeipa-workshop master
