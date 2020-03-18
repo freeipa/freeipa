@@ -28,6 +28,7 @@ installation and configuration tasks.
    :maxdepth: 2
    :caption: Contents:
 
+   designs/index.rst
 
 
 Indices and tables
