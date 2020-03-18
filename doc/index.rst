@@ -29,6 +29,7 @@ installation and configuration tasks.
    :caption: Contents:
 
    designs/index.rst
+   workshop.rst
 
 
 Indices and tables
