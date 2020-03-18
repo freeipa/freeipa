@@ -1,9 +1,9 @@
 def application(environ, start_response):
     start_response('200 OK', [('Content-Type', 'text/plain')])
-    logged_in = 'REMOTE_USER' in environ
+    remote_user = environ.get('REMOTE_USER')
 
-    if logged_in:
-        yield "LOGGED IN AS: {}\n".format(environ['REMOTE_USER']).encode('utf8')
+    if remote_user is not None:
+        yield "LOGGED IN AS: {}\n".format(remote_user).encode('utf8')
     else:
         yield b"NOT LOGGED IN\n"
 
@@ -12,4 +12,3 @@ def application(environ, start_response):
     for k, v in environ.items():
         if k.startswith('REMOTE_'):
             yield "  {}: {}\n".format(k, v).encode('utf8')
-
