@@ -230,6 +230,11 @@ BuildRequires:  python3-wheel
 # with_wheels
 %endif
 
+%if 0%{?with_doc}
+BuildRequires: python3-sphinx
+BuildRequires: python3-recommonmark
+%endif
+
 #
 # Build dependencies for lint and fastcheck
 #
