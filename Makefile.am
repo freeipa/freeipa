@@ -4,7 +4,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 if ENABLE_SERVER
     IPASERVER_SUBDIRS = ipaserver
-    SERVER_SUBDIRS = daemons init install selinux
+    SERVER_SUBDIRS = daemons init install
 endif
 
 if WITH_IPATESTS
@@ -26,7 +26,17 @@ PYTHON_SCRIPT_SUBDIRS = \
 AZURE_PYTHON_SCRIPT_SUBDIR = $(top_builddir)/ipatests/azure
 
 IPA_PLACEHOLDERS = freeipa ipa ipaserver ipatests
-SUBDIRS = asn1 util client contrib po pypi $(PYTHON_SUBDIRS) $(SERVER_SUBDIRS)
+SUBDIRS = \
+        asn1 \
+        util \
+        client \
+        contrib \
+        po \
+        pypi \
+        selinux \
+        $(PYTHON_SUBDIRS) \
+        $(SERVER_SUBDIRS) \
+        $(NULL)
 
 GENERATED_PYTHON_FILES = \
 	$(top_builddir)/ipaplatform/override.py \
