@@ -888,8 +888,8 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
     slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                           "userPassword", data->password);
 
-    /* set password history */
-    if (data->policy.history_length > 0) {
+    /* set password history if a Kerberos object */
+    if (data->policy.history_length > 0 && is_krb) {
         pwvals = ipapwd_setPasswordHistory(smods, data);
         if (pwvals) {
             slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE,
