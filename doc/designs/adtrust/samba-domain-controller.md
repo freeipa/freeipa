@@ -173,7 +173,7 @@ As result of it, SMB attributes are not available at `ipa user-add` or
 `ipa stageuser-add` level. Instead, it is possible to modify a user object with
 `ipa user-mod` or `ipa stageuser-mod` commands:
 
-```
+```console
 $ ipa user-mod --help
 Usage: ipa [global-options] user-mod LOGIN [options]
 
@@ -216,7 +216,7 @@ By default, POSIX attribute can only be searched by LDAP clients in
 Since SMB service belongs to `cn=services,cn=accounts,$basedn` subtree, new ACI
 has to be added.
 
-```
+```python
 'System: Read POSIX details of the SMB services': {
     'replaces_global_anonymous_aci': True,
     'ipapermbindruletype': 'all',

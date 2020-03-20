@@ -84,7 +84,7 @@ replica. First the services must be moved to another replica with
 The ``ipa config-show`` command now shows additional information about
 DNS and KRA as well as hidden servers:
 
-```
+```console
 $ ipa config-show
   ...
   IPA masters: server1.ipa.example
