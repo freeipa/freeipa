@@ -363,11 +363,6 @@ Requires: oddjob
 # 0.7.0-2: https://pagure.io/gssproxy/pull-request/172
 Requires: gssproxy >= 0.7.0-2
 Requires: sssd-dbus >= %{sssd_version}
-%if 0%{?with_selinux}
-# This ensures that the *-selinux package and all it’s dependencies are not pulled
-# into containers and other systems that do not use SELinux
-Requires:       (%{name}-selinux if selinux-policy-%{selinuxtype})
-%endif
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
@@ -714,6 +709,13 @@ Conflicts: %{alt_name}-common
 Obsoletes: %{alt_name}-common < %{version}
 
 Conflicts: %{alt_name}-python < %{version}
+
+%if 0%{?with_selinux}
+# This ensures that the *-selinux package and all it’s dependencies are not
+# pulled into containers and other systems that do not use SELinux. The
+# policy defines types and file contexts for client and server.
+Requires:       (%{name}-selinux if selinux-policy-%{selinuxtype})
+%endif
 
 %description common
 IPA is an integrated solution to provide centrally managed Identity (users,
