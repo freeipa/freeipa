@@ -91,8 +91,7 @@ class NTPInstance(service.Service):
             fd.write("{}\n".format(' '.join(fudge)))
 
         #read in memory, find OPTIONS, check/change it, then overwrite file
-        needopts = [ {'val':'-x', 'need':True},
-                     {'val':'-g', 'need':True} ]
+        needopts = [ {'val':'-g', 'need':True} ]
         fd = open(paths.SYSCONFIG_NTPD, "r")
         lines = fd.readlines()
         fd.close()
