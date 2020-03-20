@@ -15,6 +15,7 @@ import re
 import pytest
 from ipalib.constants import DOMAIN_LEVEL_0
 import ipaplatform
+from ipapython.dn import DN
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration.env_config import get_global_config
@@ -421,6 +422,24 @@ class TestInstallMaster(IntegrationTest):
 
     def test_install_master(self):
         tasks.install_master(self.master, setup_dns=False)
+
+    def test_schema_compat_attribute_and_tree_disable(self):
+        """Test if schema-compat-entry-attribute is set
+
+        This is to ensure if said entry is set after installation.
+        It also checks if compat tree is disable.
+
+        related: https://pagure.io/freeipa/issue/8193
+        """
+        conn = self.master.ldap_connect()
+        entry = conn.get_entry(DN(             # pylint: disable=no-member
+            "cn=groups,cn=Schema Compatibility,cn=plugins,cn=config"))
+
+        entry_list = list(entry['schema-compat-entry-attribute'])
+        value = (r'ipaexternalmember=%deref_r('
+                 '"member","ipaexternalmember")')
+        assert value in entry_list
+        assert 'schema-compat-lookup-nsswitch' not in entry_list
 
     def test_install_kra(self):
         tasks.install_kra(self.master, first_instance=True)
