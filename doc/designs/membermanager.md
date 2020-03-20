@@ -52,7 +52,7 @@ and writable by everybody with ``System: Modify Groups`` /
 
 Add example user and groups:
 
-```
+```console
 $ kinit admin
 $ ipa user-add john --first John --last Doe --random
 $ ipa user-add tom --first Tom --last Doe --random
@@ -62,14 +62,14 @@ $ ipa group-add project_admins
 
 Make user and group member managers:
 
-```
+```console
 $ ipa group-add-member-manager project --users=john
 $ ipa group-add-member-manager project --groups=project_admins
 ```
 
 Show group:
 
-```
+```console
 $ ipa group-show project
   Group name: project
   GID: 787600003
@@ -79,7 +79,7 @@ $ ipa group-show project
 
 Find groups by member managers:
 
-```
+```console
 $ ipa group-find --membermanager-users=john
 ---------------
 1 group matched
@@ -102,7 +102,7 @@ Number of entries returned 1
 
 Use member management capability:
 
-```
+```console
 $ kinit john
 $ ipa group-add-member project --users=tom
   Group name: project
@@ -117,7 +117,7 @@ Number of members added 1
 
 Remove member management capability:
 
-```
+```console
 $ kinit admin
 $ ipa group-remove-member-manager project --groups=project_admins
   Group name: project

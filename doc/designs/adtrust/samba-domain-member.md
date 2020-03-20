@@ -142,14 +142,14 @@ Next steps should be performed on the client itself. With the support for Samba
 domain member enabled, IPA masters allow creation of the required records with
 the host credentials (`host/${hostname}`).
 
-```
+```console
 # kinit -k
 ```
 
 1. Retrieve information about Security Identifier and NetBIOS name of the IPA
    domain:
 
-   ```
+   ```console
    # kinit -k
    # ipa trustconfig-show --raw
      cn: ipa.realm
@@ -168,14 +168,14 @@ the host credentials (`host/${hostname}`).
    : IPA domain's SID (security identifier)
 
    `ipaflatname`
-   : IPA domain's NetBIOS name, `${netbios_name}, also known as the flat name in Active Directory
+   : IPA domain's NetBIOS name, `${netbios_name}`, also known as the flat name in Active Directory
 
    `ipantdomainguid`
    : IPA domain's globally unique identifier (GUID)
 
 2. Retrieve ID range information for the IPA domain and other trusted domains:
 
-   ```
+   ```console
    # ipa idrange-find --raw
    ----------------
    2 ranges matched
@@ -203,7 +203,7 @@ the host credentials (`host/${hostname}`).
    set for specific domains. For each such range, a pair of (range start, range
    end) values will need to be calculated:
 
-   ```
+   ```ini
    ${range_id_min} = ipabaseid
    ${range_id_max} = ipabaseid + ipaidrangesize - 1
    ```
@@ -216,7 +216,7 @@ the host credentials (`host/${hostname}`).
    a sequence of `ipa service-add` and `ipa service-mod` commands cannot be used
    instead.
 
-   ```
+   ```console
    # ipa service-add-smb <hostname> [<NetBIOS name>]
    ```
 
@@ -232,7 +232,7 @@ the host credentials (`host/${hostname}`).
    enough for a machine account password. The code used by the
    `ipa-client-samba` utility is equivalent for the following call:
 
-   ```
+   ```console
    # python3 -c 'import samba; print(samba.generate_random_password(128, 255))'
    ```
 
@@ -244,7 +244,7 @@ the host credentials (`host/${hostname}`).
    to [MS-NRPC] section 3.1.4.3.1. The code used by the `ipa-client-samba`
    utility is equivalent for the following call:
 
-   ```
+   ```console
    # ipa-getkeytab -p cifs/<hostname> -k /etc/samba/samba.keytab -P \
                    -e aes128-cts-hmac-sha1-96,aes256-cts-hmac-sha1-96,arcfour-hmac
    ```
@@ -260,7 +260,7 @@ the host credentials (`host/${hostname}`).
 
 6. Create Samba config as `/etc/samba/smb.conf` on the client:
 
-   ```
+   ```ini
    [global]
     # Limit number of forked processes to avoid SMBLoris attack
     max smbd processes = 1000
@@ -309,7 +309,7 @@ the host credentials (`host/${hostname}`).
    that the POSIX path specified in the share actually allows write access to
    the users or groups from the `write list`:
 
-   ```
+   ```ini
    [shared]
      path = /srv/shared
      read only = No
@@ -327,7 +327,7 @@ the host credentials (`host/${hostname}`).
    `smb.conf`. Instead, it is stored in the binary databases managed by Samba.
    It can be set through `net setdomainsid` command:
 
-   ```
+   ```console
    # net setdomainsid ${ipantsecurityidentifier}
    ```
 
@@ -335,7 +335,7 @@ the host credentials (`host/${hostname}`).
    POSIX groups. It is typically mapped to a local nobody group. This is
    required in all recent Samba releases:
 
-   ```
+   ```console
    # net groupmap add sid=S-1-5-32-546 unixgroup=nobody type=builtin
    ```
 
@@ -351,7 +351,7 @@ the host credentials (`host/${hostname}`).
     procedure has to be used. The procedure employs low-level tools to
     manipulate Samba TDB databases:
 
-    ```
+    ```console
     # tdbtool /var/lib/samba/private/secrets.tdb store SECRETS/MACHINE_LAST_CHANGE_TIME/${netbios_name} '2\00'
     # tdbtool /var/lib/samba/private/secrets.tdb store SECRETS/MACHINE_PASSWORD/${netbios_name} '2\00'
     # net changesecretpw -f
@@ -366,7 +366,7 @@ the host credentials (`host/${hostname}`).
     all fallback code for the cases when `winbindd` was not running in some
     configurations was removed from `smbd` daemon in newer Samba releases.
 
-    ```
+    ```console
     # systemctl start smb winbind
     ```
 
@@ -378,7 +378,7 @@ started, one can access a Samba share as a user from IPA domain. Below is an
 example from the test run of `ipatests/test_integration/test_smb.py` done by PR
 CI.
 
-```
+```console
 # kinit athena
 Password for athena@IPA.TEST:
 # mkdir -p /mnt/athena
