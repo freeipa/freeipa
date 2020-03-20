@@ -308,3 +308,60 @@ interface(`ipa_read_tmp',`
 
     read_files_pattern($1, ipa_tmp_t, ipa_tmp_t)
 ')
+
+########################################
+## <summary>
+##	Execute ipa_custodia_exec_t in the ipa_custodia domain.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`ipa_custodia_domtrans',`
+	gen_require(`
+		type ipa_custodia_t, ipa_custodia_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, ipa_custodia_exec_t, ipa_custodia_t)
+')
+
+######################################
+## <summary>
+##	Execute ipa_custodia in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_custodia_exec',`
+	gen_require(`
+		type ipa_custodia_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	can_exec($1, ipa_custodia_exec_t)
+')
+
+#####################################
+## <summary>
+##	Connect to ipa_custodia with a unix
+##	domain stream socket.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_custodia_stream_connect',`
+	gen_require(`
+		type ipa_custodia_t;
+	')
+
+    allow $1 ipa_custodia_t:unix_stream_socket { connectto };
+')
