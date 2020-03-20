@@ -53,6 +53,25 @@ miscfiles_cert_type(ipa_cert_t)
 type ipa_tmp_t;
 files_tmp_file(ipa_tmp_t)
 
+type ipa_custodia_t;
+type ipa_custodia_exec_t;
+init_daemon_domain(ipa_custodia_t, ipa_custodia_exec_t)
+
+type ipa_custodia_dmldap_exec_t;
+init_script_file(ipa_custodia_dmldap_exec_t)
+
+type ipa_custodia_pki_tomcat_exec_t;
+init_script_file(ipa_custodia_pki_tomcat_exec_t)
+
+type ipa_custodia_ra_agent_exec_t;
+init_script_file(ipa_custodia_ra_agent_exec_t)
+
+type ipa_custodia_log_t;
+logging_log_file(ipa_custodia_log_t)
+
+type ipa_custodia_tmp_t;
+files_tmp_file(ipa_custodia_tmp_t)
+
 ########################################
 #
 # ipa_otpd local policy
@@ -285,4 +304,79 @@ optional_policy(`
 
 optional_policy(`
     ldap_stream_connect(ipa_ods_exporter_t)
+')
+
+########################################
+#
+# ipa_custodia local policy
+#
+allow ipa_custodia_t self:capability { setgid setuid };
+allow ipa_custodia_t self:fifo_file rw_fifo_file_perms;
+allow ipa_custodia_t self:netlink_route_socket { create_socket_perms nlmsg_read };
+allow ipa_custodia_t self:unix_stream_socket create_stream_socket_perms;
+allow ipa_custodia_t self:unix_dgram_socket create_socket_perms;
+allow ipa_custodia_t self:udp_socket create_socket_perms;
+
+manage_dirs_pattern(ipa_custodia_t,ipa_custodia_log_t,ipa_custodia_log_t)
+manage_files_pattern(ipa_custodia_t, ipa_custodia_log_t, ipa_custodia_log_t)
+logging_log_filetrans(ipa_custodia_t, ipa_custodia_log_t, { dir file })
+
+manage_dirs_pattern(ipa_custodia_t, ipa_custodia_tmp_t, ipa_custodia_tmp_t)
+manage_files_pattern(ipa_custodia_t, ipa_custodia_tmp_t, ipa_custodia_tmp_t)
+files_tmp_filetrans(ipa_custodia_t, ipa_custodia_tmp_t, { dir file })
+
+kernel_dgram_send(ipa_custodia_t)
+
+auth_read_passwd(ipa_custodia_t)
+
+can_exec(ipa_custodia_t, ipa_custodia_dmldap_exec_t)
+can_exec(ipa_custodia_t, ipa_custodia_pki_tomcat_exec_t)
+can_exec(ipa_custodia_t, ipa_custodia_ra_agent_exec_t)
+
+corecmd_exec_bin(ipa_custodia_t)
+corecmd_mmap_bin_files(ipa_custodia_t)
+
+domain_use_interactive_fds(ipa_custodia_t)
+
+files_mmap_usr_files(ipa_custodia_t)
+
+fs_getattr_xattr_fs(ipa_custodia_t)
+
+files_read_etc_files(ipa_custodia_t)
+
+libs_exec_ldconfig(ipa_custodia_t)
+libs_ldconfig_exec_entry_type(ipa_custodia_t)
+
+miscfiles_read_generic_certs(ipa_custodia_t)
+miscfiles_read_localization(ipa_custodia_t)
+
+sysnet_read_config(ipa_custodia_t)
+
+optional_policy(`
+	apache_search_config(ipa_custodia_t)
+	apache_systemctl(ipa_custodia_t)
+	apache_manage_pid_files(ipa_custodia_t)
+')
+
+optional_policy(`
+	dirsrv_manage_var_run(ipa_custodia_t)
+	dirsrv_stream_connect(ipa_custodia_t)
+')
+
+optional_policy(`
+	ipa_read_lib(ipa_custodia_t)
+	ipa_search_lib(ipa_custodia_t)
+')
+
+optional_policy(`
+	pki_manage_tomcat_etc_rw(ipa_custodia_t)
+	pki_read_tomcat_cert(ipa_custodia_t)
+	pki_rw_tomcat_cert(ipa_custodia_t)
+')
+
+optional_policy(`
+	sssd_read_public_files(ipa_custodia_t)
+	sssd_run_stream_connect(ipa_custodia_t)
+	sssd_search_lib(ipa_custodia_t)
+	sssd_stream_connect(ipa_custodia_t)
 ')
