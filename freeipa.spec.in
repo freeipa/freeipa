@@ -232,7 +232,7 @@ BuildRequires:  python3-wheel
 
 %if 0%{?with_doc}
 BuildRequires: python3-sphinx
-BuildRequires: python3-recommonmark
+BuildRequires: python3-m2r
 %endif
 
 #
