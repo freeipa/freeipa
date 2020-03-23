@@ -797,6 +797,19 @@ jobs:
         timeout: 7200
         topology: *master_2repl_1client
 
+  testing-fedora/test_backup_and_restore_TestBackupRoles:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupRoles
+        template: *testing-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
   testing-fedora/test_dnssec:
     requires: [testing-fedora/build]
     priority: 50
