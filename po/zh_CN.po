@@ -4,11 +4,11 @@
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.8.0\n"
-"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2019-08-14 10:13+0300\n"
-"PO-Revision-Date: 2017-07-12 04:11+0000\n"
-"Last-Translator: Pavel Vomacka <pvomacka@redhat.com>\n"
+"Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
+"Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
+"POT-Creation-Date: 2020-03-23 20:39+0200\n"
+"PO-Revision-Date: 2019-11-11 10:25+0000\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Chinese (China)\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -2565,10 +2565,6 @@ msgstr "Base64解码失败: %(reason)s"
 msgid "Bind DN"
 msgstr "绑定DN"
 
-#, c-format
-msgid "Bind failed: %s\n"
-msgstr "绑定失败：%s\n"
-
 msgid "Bind rule type"
 msgstr "绑定规则类型"
 
@@ -3537,14 +3533,6 @@ msgstr "默认用户对象类（以逗号分割）"
 
 msgid "Default users group"
 msgstr "默认用户组"
-
-msgid ""
-"Defines a whitelist for Authentication Indicators. Use 'otp' to allow OTP-"
-"based 2FA authentications. Use 'radius' to allow RADIUS-based 2FA "
-"authentications. Other values may be used for custom configurations."
-msgstr ""
-"为认证指标定义一个白名单。使用'otp'来允许OTP-based 2FA认证。使用'radius'来允"
-"许RADIUS-based 2FA认证。其他值可能用于自定义配置。"
 
 msgid "Delegation"
 msgstr "授权"
@@ -9651,7 +9639,6 @@ msgstr "签名开端"
 msgid "Signer's Name"
 msgstr "签名者的名字"
 
-#, c-format
 msgid "Simple bind failed\n"
 msgstr "简单绑定失败\n"
 
@@ -10495,11 +10482,9 @@ msgstr "不能解析主体：%1$s (%2$d)\n"
 msgid "Unable to remove entry\n"
 msgstr "无法删除条目\n"
 
-#, c-format
 msgid "Unable to set LDAP_OPT_PROTOCOL_VERSION\n"
 msgstr "不能设置LDAP_OPT_PROTOCOL_VERSION\n"
 
-#, c-format
 msgid "Unable to set LDAP_OPT_X_SASL_NOCANON\n"
 msgstr "不能设置LDAP_OPT_X_SASL_NOCANON\n"
 
