@@ -1032,11 +1032,13 @@ fi
 %selinux_relabel_pre -s %{selinuxtype}
 
 %post selinux
+semodule -d ipa_custodia &> /dev/null || true;
 %selinux_modules_install -s %{selinuxtype} %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
 
 %postun selinux
 if [ $1 -eq 0 ]; then
     %selinux_modules_uninstall -s %{selinuxtype} %{modulename}
+    semodule -e ipa_custodia &> /dev/null || true;
 fi
 
 %posttrans selinux
