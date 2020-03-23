@@ -1389,6 +1389,18 @@ jobs:
         timeout: 9000
         topology: *master_3client
 
+  fedora-previous/nfs_nsswitch_restore:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_nfs.py::TestIpaClientAutomountFileRestore
+        template: *ci-master-previous
+        timeout: 3600
+        topology: *master_3client
+
   fedora-previous/mask:
     requires: [fedora-previous/build]
     priority: 50
