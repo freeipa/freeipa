@@ -1,11 +1,11 @@
 # Piotr Drąg <piotrdrag@gmail.com>, 2016. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.8.0\n"
-"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2019-08-14 10:13+0300\n"
-"PO-Revision-Date: 2016-09-14 04:58+0000\n"
-"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
+"Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
+"Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
+"POT-Creation-Date: 2020-03-23 20:39+0200\n"
+"PO-Revision-Date: 2019-11-11 10:25+0000\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -208,10 +208,6 @@ msgstr "Dekodowanie base64 się nie powiodło: %(reason)s"
 
 msgid "Bind DN"
 msgstr "DN dowiązania"
-
-#, c-format
-msgid "Bind failed: %s\n"
-msgstr "Dowiązanie się nie powiodło: %s\n"
 
 msgid "Cancel"
 msgstr "Anuluj"
@@ -1144,7 +1140,6 @@ msgstr "Ustawienia"
 msgid "Show the list of permitted encryption types and exit"
 msgstr "Wyświetla listę dozwolonych typów szyfrowania i kończy działanie"
 
-#, c-format
 msgid "Simple bind failed\n"
 msgstr "Proste dowiązanie się nie powiodło\n"
 
