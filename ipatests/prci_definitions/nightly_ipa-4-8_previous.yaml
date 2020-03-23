@@ -788,6 +788,18 @@ jobs:
         timeout: 7200
         topology: *master_2repl_1client
 
+  fedora-previous-ipa-4-8/test_backup_and_restore_TestBackupRoles:
+    requires: [fedora-previous-ipa-4-8/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous-ipa-4-8/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupRoles
+        template: *ci-ipa-4-8-previous
+        timeout: 7200
+        topology: *master_1repl
+
   fedora-previous-ipa-4-8/test_dnssec:
     requires: [fedora-previous-ipa-4-8/build]
     priority: 50

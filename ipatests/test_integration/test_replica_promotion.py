@@ -928,7 +928,7 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         """
         self._check_server_role(self.replicas[0], 'hidden')
         # backup
-        backup_path = backup(self.replicas[0])
+        backup_path, unused = backup(self.replicas[0])
         # uninstall
         tasks.uninstall_master(self.replicas[0])
         # restore
