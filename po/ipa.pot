@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Red Hat
+# Copyright (C) YEAR FreeIPA Contributors
 # This file is distributed under the same license as the freeipa package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.9.0.dev202003230935+git4a3b7baed\n"
-"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2020-03-23 11:36+0200\n"
+"Project-Id-Version: freeipa 4.9.0.dev202003230955+git67bd27144\n"
+"Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
+"POT-Creation-Date: 2020-03-23 12:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
