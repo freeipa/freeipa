@@ -7,32 +7,51 @@ DISTFILES.common.extra3 = Makefile.hack.in
 IPA_TEST_I18N = @top_srcdir@/ipatests/i18n.py
 MSGATTRIB = @MSGATTRIB@
 PYTHON = @PYTHON@
+GIT_BRANCH = @GIT_BRANCH@
 
 .PHONY: strip-po
 strip-po:
+	grep -v '#: ipaclient/remote_plugins/' $(DOMAIN).pot > $(DOMAIN).pot.tmp || exit 1; \
+	mv $(DOMAIN).pot.tmp $(DOMAIN).pot || exit 1; \
 	for po_file in $(POFILES); do \
 		$(MSGATTRIB) --translated --no-fuzzy --no-location -s $$po_file > $$po_file.tmp || exit 1; \
 		mv $$po_file.tmp $$po_file || exit 1; \
+		if [ "$(GIT_BRANCH)" != "" ]; then \
+			export GIT_DIFF_PO_FILE=`git diff --numstat $$po_file | cut -f1,2 | tr '\t' ,` || :; \
+			if [ "$$GIT_DIFF_PO_FILE" = "2,2" -o "$$GIT_DIFF_PO_FILE" = "1,1" ]; then \
+				echo "No translation changes in $$po_file, restore the original"; \
+				git checkout -q -f $$po_file; \
+			fi; \
+		fi; \
 	done
+	if [ "$(GIT_BRANCH)" != "" ]; then \
+		export GIT_DIFF_IPA_POT=`git diff --numstat $(DOMAIN).pot | cut -f1,2 | tr '\t' ,` || :; \
+		if [ "$$GIT_DIFF_IPA_POT" = "2,2" -o "$$GIT_DIFF_IPA_POT" = "1,1" ]; then \
+			echo "No changes in $(DOMAIN).pot, restore the original"; \
+			git checkout -q -f $(DOMAIN).pot; \
+		fi; \
+	fi
 	export FILES_TO_REMOVE=`find $(srcdir) -name '*.po' -empty` || exit 1; \
 	if [ "$$FILES_TO_REMOVE" != "" ]; then \
 		rm -v $$FILES_TO_REMOVE || exit 1; \
 		echo; echo Please remove the deleted files from LINGUAS!; echo; \
 	fi
 
-clean: mostlyclean
+clean: strip-po mostlyclean
 	rm -f *~
 
+all: $(DOMAIN).pot strip-po
+
 # linters
-test-gettext: $(DOMAIN).pot
+test-gettext: $(DOMAIN).pot strip-po
 	$(PYTHON) $(IPA_TEST_I18N) --test-gettext
 
-validate-pot: $(DOMAIN).pot
+validate-pot: $(DOMAIN).pot strip-po
 	$(PYTHON) $(IPA_TEST_I18N) --show-strings --validate-pot $(DOMAIN).pot
 
-validate-po: $(DOMAIN).pot
+validate-po: $(DOMAIN).pot strip-po
 	$(PYTHON) $(IPA_TEST_I18N) --show-strings --validate-po $(POFILES)
 
 # forcefully re-generate .pot file and test it
-validate-src-strings: $(DOMAIN).pot-update
+validate-src-strings: $(DOMAIN).pot-update strip-po
 	$(MAKE) validate-pot
