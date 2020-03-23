@@ -536,6 +536,45 @@ jobs:
         timeout: 10800
         topology: *master_2repl_1client
 
+  fedora-rawhide/test_installation_TestADTrustInstall:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestADTrustInstall
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-rawhide/test_installation_TestADTrustInstallWithDNS_KRA_ADTrust:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-rawhide/test_installation_TestKRAinstallAfterCertRenew:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *ipaserver
+
   fedora-rawhide/test_idviews:
     requires: [fedora-rawhide/build]
     priority: 50
