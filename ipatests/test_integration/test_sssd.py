@@ -27,6 +27,10 @@ class TestSSSDWithAdTrust(IntegrationTest):
     num_clients = 1
 
     users = {
+        'ipa': {
+            'name': 'user1',
+            'password': 'SecretUser1',
+        },
         'ad': {
             'name_tmpl': 'testuser@{domain}',
             'password': 'Secret123'
@@ -35,6 +39,8 @@ class TestSSSDWithAdTrust(IntegrationTest):
             'name': 'some_user@some.domain'
         },
     }
+    ipa_user = 'user1'
+    ipa_user_password = 'SecretUser1'
     ad_user_tmpl = 'testuser@{domain}'
 
     @classmethod
@@ -49,6 +55,8 @@ class TestSSSDWithAdTrust(IntegrationTest):
 
         cls.users['ad']['name'] = cls.users['ad']['name_tmpl'].format(
             domain=cls.ad.domain.name)
+        tasks.create_active_user(cls.master, cls.ipa_user,
+                                 cls.ipa_user_password)
 
     @contextmanager
     def filter_user_setup(self, user):
