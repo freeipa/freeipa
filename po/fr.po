@@ -6,10 +6,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
-"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2019-08-14 10:13+0300\n"
-"PO-Revision-Date: 2017-07-12 04:16+0000\n"
-"Last-Translator: Pavel Vomacka <pvomacka@redhat.com>\n"
+"Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
+"POT-Creation-Date: 2020-03-23 20:39+0200\n"
+"PO-Revision-Date: 2019-11-11 10:25+0000\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: French\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -8353,10 +8353,6 @@ msgstr "Fichier binaire à archiver"
 msgid "Bind DN"
 msgstr "DN de connexion"
 
-#, c-format
-msgid "Bind failed: %s\n"
-msgstr "Échec de « bind » : %s\n"
-
 msgid "Bind rule type"
 msgstr "Type de règle liée"
 
@@ -9267,17 +9263,6 @@ msgstr ""
 
 msgid "Default users group"
 msgstr "Groupe utilisateur par défaut"
-
-msgid ""
-"Defines a whitelist for Authentication Indicators. Use 'otp' to allow OTP-"
-"based 2FA authentications. Use 'radius' to allow RADIUS-based 2FA "
-"authentications. Other values may be used for custom configurations."
-msgstr ""
-"Définit une liste blanche d'indicateurs d'authentification. Utiliser « otp » "
-"pour autoriser les authentifications à double facteur basé sur les mots de "
-"passe à usage unique. Utiliser « radius » pour autoriser l'authentification "
-"à double facteur utilisant RADIUS. D'autres valeurs peuvent être utilisées "
-"pour des configurations personnalisées."
 
 msgid "Degrees Latitude"
 msgstr "Degrés de latitude"
@@ -15405,7 +15390,6 @@ msgstr "Afficher/définir la clé"
 msgid "Showing ${start} to ${end} of ${total} entries."
 msgstr "Affichage des entrées ${start} à ${end} sur ${total}."
 
-#, c-format
 msgid "Simple bind failed\n"
 msgstr "Échec de la connexion simple\n"
 
@@ -16287,11 +16271,9 @@ msgstr "Impossible d'analyser le principal : %1$s (%2$d)\n"
 msgid "Unable to remove entry\n"
 msgstr "Impossible de supprimer l'entrée\n"
 
-#, c-format
 msgid "Unable to set LDAP_OPT_PROTOCOL_VERSION\n"
 msgstr "Impossible de définir LDAP_OPT_PROTOCOL_VERSION\n"
 
-#, c-format
 msgid "Unable to set LDAP_OPT_X_SASL_NOCANON\n"
 msgstr "Impossible de définir LDAP_OPT_X_SASL_NOCANON\n"
 
