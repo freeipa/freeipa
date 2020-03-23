@@ -824,6 +824,18 @@ jobs:
         timeout: 7200
         topology: *master_2repl_1client
 
+  fedora-27/test_replica_promotion_TestReplicaPromotionLevel0:
+    requires: [fedora-27/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel0
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *master_1repl
+
   fedora-27/test_upgrade:
     requires: [fedora-27/build]
     priority: 50
