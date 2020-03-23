@@ -10,6 +10,7 @@ from contextlib import contextmanager
 
 import ipaplatform
 import pytest
+import subprocess
 import textwrap
 
 from ipatests.test_integration.base import IntegrationTest
@@ -17,7 +18,6 @@ from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.tasks import tasks as platform_tasks
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from ipalib import errors
 
 
 class TestSSSDWithAdTrust(IntegrationTest):
@@ -211,9 +211,8 @@ class TestSSSDWithAdTrust(IntegrationTest):
         self.master.run_command(
             ['ipa', 'group-add-member', '--group', ext_group, user])
         self.master.run_command([
-            'ipa', 'group-add-member', '--external',
-            self.users['ad']['name'], ext_group,
-            '--users=', '--groups='])
+            'ipa', '-n', 'group-add-member', '--external',
+            self.users['ad']['name'], ext_group])
         tasks.clear_sssd_cache(self.master)
         tasks.clear_sssd_cache(client)
         try:
@@ -237,11 +236,11 @@ class TestSSSDWithAdTrust(IntegrationTest):
         master.run_command(['ipa', 'group-add', '--external',
                             'ext-ipatest'])
         try:
-            master.run_command(['ipa', 'group-add-member',
+            master.run_command(['ipa', '-n', 'group-add-member',
                                 'ext-ipatest',
                                 '--external',
                                 self.users[user_origin]['name']])
-        except errors.ValidationError:
+        except subprocess.CalledProcessError:
             # Only 'ipa' origin should throw a validation error
             assert user_origin == 'ipa'
         finally:
