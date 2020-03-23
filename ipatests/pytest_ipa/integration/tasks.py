@@ -1746,15 +1746,21 @@ def get_host_ip_with_hostmask(host):
         return None
 
 
-def ldappasswd_user_change(user, oldpw, newpw, master):
+def ldappasswd_user_change(user, oldpw, newpw, master, use_dirman=False):
     container_user = dict(DEFAULT_CONFIG)['container_user']
     basedn = master.domain.basedn
 
     userdn = "uid={},{},{}".format(user, container_user, basedn)
     master_ldap_uri = "ldap://{}".format(master.hostname)
 
-    args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
-            '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri]
+    if use_dirman:
+        args = [paths.LDAPPASSWD, '-D',
+                str(master.config.dirman_dn),  # pylint: disable=no-member
+                '-w', master.config.dirman_password,
+                '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri, userdn]
+    else:
+        args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
+                '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri]
     master.run_command(args)
 
 
