@@ -499,6 +499,42 @@ jobs:
         timeout: 10800
         topology: *master_2repl_1client
 
+  fedora-latest/test_installation_TestADTrustInstall:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_installation.py::TestADTrustInstall
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-latest/test_installation_TestADTrustInstallWithDNS_KRA_ADTrust:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-latest/test_installation_TestKRAinstallAfterCertRenew:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_1repl
+
   fedora-latest/test_idviews:
     requires: [fedora-latest/build]
     priority: 50
