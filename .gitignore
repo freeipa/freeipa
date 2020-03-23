@@ -5,7 +5,6 @@
 /ABOUT-NLS
 /po/*.gmo
 /po/*~
-/po/ipa.pot
 /po/Makefile.hack
 /po/Makefile.in.in
 /po/Makevars.template
