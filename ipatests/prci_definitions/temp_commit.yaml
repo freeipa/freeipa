@@ -64,338 +64,338 @@ jobs:
         timeout: 1800
         topology: *build
 
-  fedora-latest/test_cert:
-    requires: [fedora-latest/build]
-    priority: 100
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_cert.py
-        template: *ci-master-latest
-        timeout: 3600
-        topology: *master_1repl_1client
-
-  fedora-latest/test_installation_TestADTrustInstall:
-    requires: [fedora-latest/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_installation.py::TestADTrustInstall
-        template: *ci-master-latest
-        timeout: 10800
-        topology: *master_2repl_1client
-
-  fedora-latest/test_installation_TestADTrustInstallWithDNS_KRA_ADTrust:
-    requires: [fedora-latest/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
-        template: *ci-master-latest
-        timeout: 10800
-        topology: *master_2repl_1client
-
-  fedora-latest/test_installation_TestKRAinstallAfterCertRenew:
-    requires: [fedora-latest/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
-        template: *ci-master-latest
-        timeout: 10800
-        topology: *ipaserver
+#  fedora-latest/test_cert:
+#    requires: [fedora-latest/build]
+#    priority: 100
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-latest/build_url}'
+#        test_suite: test_integration/test_cert.py
+#        template: *ci-master-latest
+#        timeout: 3600
+#        topology: *master_1repl_1client
+#
+#  fedora-latest/test_installation_TestADTrustInstall:
+#    requires: [fedora-latest/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-latest/build_url}'
+#        test_suite: test_integration/test_installation.py::TestADTrustInstall
+#        template: *ci-master-latest
+#        timeout: 10800
+#        topology: *master_2repl_1client
+#
+#  fedora-latest/test_installation_TestADTrustInstallWithDNS_KRA_ADTrust:
+#    requires: [fedora-latest/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-latest/build_url}'
+#        test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
+#        template: *ci-master-latest
+#        timeout: 10800
+#        topology: *master_2repl_1client
+#
+#  fedora-latest/test_installation_TestKRAinstallAfterCertRenew:
+#    requires: [fedora-latest/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-latest/build_url}'
+#        test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
+#        template: *ci-master-latest
+#        timeout: 10800
+#        topology: *master_1repl
 
   fedora-latest/test_idviews:
     requires: [fedora-latest/build]
     priority: 50
     job:
-      class: RunPytest
+      class: RunADTests
       args:
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_idviews.py
         template: *ci-master-latest
-        timeout: 3600
-        topology: *master_1repl_1client
+        timeout: 4800
+        topology: *ad_master_2client
 
 ############### latest-testing #################
 
 
-  testing-fedora/build:
-    requires: []
-    priority: 100
-    job:
-      class: Build
-      args:
-        git_repo: '{git_repo}'
-        git_refspec: '{git_refspec}'
-        template: &testing-master-latest
-          name: freeipa/testing-master-f31
-          version: 0.0.2
-        timeout: 1800
-        topology: *build
-
-  testing-fedora/test_fips:
-    requires: [testing-fedora/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{testing-fedora/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_fips.py
-        template: *testing-master-latest
-        timeout: 3600
-        topology: *master_1repl_1client
-
-  testing-fedora/test_installation_TestADTrustInstall:
-    requires: [testing-fedora/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{testing-fedora/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_installation.py::TestADTrustInstall
-        template: *testing-master-latest
-        timeout: 10800
-        topology: *master_2repl_1client
-
-  testing-fedora/test_installation_TestADTrustInstallWithDNS_KRA_ADTrust:
-    requires: [testing-fedora/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{testing-fedora/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
-        template: *testing-master-latest
-        timeout: 10800
-        topology: *master_2repl_1client
-
-  testing-fedora/test_installation_TestKRAinstallAfterCertRenew:
-    requires: [testing-fedora/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{testing-fedora/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
-        template: *testing-master-latest
-        timeout: 10800
-        topology: *ipaserver
-
-  testing-fedora/test_idviews:
-    requires: [testing-fedora/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{testing-fedora/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_idviews.py
-        template: *testing-master-latest
-        timeout: 3600
-        topology: *master_1repl_1client
-
-  testing-fedora/test_cert:
-    requires: [testing-fedora/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{testing-fedora/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_cert.py
-        template: *testing-master-latest
-        timeout: 3600
-        topology: *master_1repl_1client
+#  testing-fedora/build:
+#    requires: []
+#    priority: 100
+#    job:
+#      class: Build
+#      args:
+#        git_repo: '{git_repo}'
+#        git_refspec: '{git_refspec}'
+#        template: &testing-master-latest
+#          name: freeipa/testing-master-f31
+#          version: 0.0.2
+#        timeout: 1800
+#        topology: *build
+#
+#  testing-fedora/test_fips:
+#    requires: [testing-fedora/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{testing-fedora/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_fips.py
+#        template: *testing-master-latest
+#        timeout: 3600
+#        topology: *master_1repl_1client
+#
+#  testing-fedora/test_installation_TestADTrustInstall:
+#    requires: [testing-fedora/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{testing-fedora/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_installation.py::TestADTrustInstall
+#        template: *testing-master-latest
+#        timeout: 10800
+#        topology: *master_2repl_1client
+#
+#  testing-fedora/test_installation_TestADTrustInstallWithDNS_KRA_ADTrust:
+#    requires: [testing-fedora/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{testing-fedora/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
+#        template: *testing-master-latest
+#        timeout: 10800
+#        topology: *master_2repl_1client
+#
+#  testing-fedora/test_installation_TestKRAinstallAfterCertRenew:
+#    requires: [testing-fedora/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{testing-fedora/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
+#        template: *testing-master-latest
+#        timeout: 10800
+#        topology: *ipaserver
+#
+#  testing-fedora/test_idviews:
+#    requires: [testing-fedora/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{testing-fedora/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_idviews.py
+#        template: *testing-master-latest
+#        timeout: 3600
+#        topology: *master_1repl_1client
+#
+#  testing-fedora/test_cert:
+#    requires: [testing-fedora/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{testing-fedora/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_cert.py
+#        template: *testing-master-latest
+#        timeout: 3600
+#        topology: *master_1repl_1client
 
 ############### previous #################
 
-  fedora-previous/build:
-    requires: []
-    priority: 100
-    job:
-      class: Build
-      args:
-        git_repo: '{git_repo}'
-        git_refspec: '{git_refspec}'
-        template: &ci-master-previous
-          name: freeipa/ci-master-f30
-          version: 0.0.7
-        timeout: 1800
-        topology: *build
-
-  fedora-previous/automember:
-    requires: [fedora-previous/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_automember.py
-        template: *ci-master-previous
-        timeout: 3600
-        topology: *master_1repl
-
-  fedora-previous/test_installation_TestADTrustInstall:
-    requires: [fedora-previous/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_installation.py::TestADTrustInstall
-        template: *ci-master-previous
-        timeout: 10800
-        topology: *master_2repl_1client
-
-  fedora-previous/test_installation_TestADTrustInstallWithDNS_KRA_ADTrust:
-    requires: [fedora-previous/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
-        template: *ci-master-previous
-        timeout: 10800
-        topology: *master_2repl_1client
-
-  fedora-previous/test_installation_TestKRAinstallAfterCertRenew:
-    requires: [fedora-previous/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
-        template: *ci-master-previous
-        timeout: 10800
-        topology: *ipaserver
-
-  fedora-previous/test_idviews:
-    requires: [fedora-previous/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_idviews.py
-        template: *ci-master-previous
-        timeout: 3600
-        topology: *master_1repl_1client
-
-  fedora-previous/nfs_nsswitch_restore:
-    requires: [fedora-previous/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_nfs.py::TestIpaClientAutomountFileRestore
-        template: *ci-master-previous
-        timeout: 3600
-        topology: *master_3client
-
-  fedora-previous/test_cert:
-    requires: [fedora-previous/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_cert.py
-        template: *ci-master-previous
-        timeout: 3600
-        topology: *master_1repl_1client
+#  fedora-previous/build:
+#    requires: []
+#    priority: 100
+#    job:
+#      class: Build
+#      args:
+#        git_repo: '{git_repo}'
+#        git_refspec: '{git_refspec}'
+#        template: &ci-master-previous
+#          name: freeipa/ci-master-f30
+#          version: 0.0.7
+#        timeout: 1800
+#        topology: *build
+#
+#  fedora-previous/automember:
+#    requires: [fedora-previous/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-previous/build_url}'
+#        test_suite: test_integration/test_automember.py
+#        template: *ci-master-previous
+#        timeout: 3600
+#        topology: *master_1repl
+#
+#  fedora-previous/test_installation_TestADTrustInstall:
+#    requires: [fedora-previous/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-previous/build_url}'
+#        test_suite: test_integration/test_installation.py::TestADTrustInstall
+#        template: *ci-master-previous
+#        timeout: 10800
+#        topology: *master_2repl_1client
+#
+#  fedora-previous/test_installation_TestADTrustInstallWithDNS_KRA_ADTrust:
+#    requires: [fedora-previous/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-previous/build_url}'
+#        test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
+#        template: *ci-master-previous
+#        timeout: 10800
+#        topology: *master_2repl_1client
+#
+#  fedora-previous/test_installation_TestKRAinstallAfterCertRenew:
+#    requires: [fedora-previous/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-previous/build_url}'
+#        test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
+#        template: *ci-master-previous
+#        timeout: 10800
+#        topology: *ipaserver
+#
+#  fedora-previous/test_idviews:
+#    requires: [fedora-previous/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-previous/build_url}'
+#        test_suite: test_integration/test_idviews.py
+#        template: *ci-master-previous
+#        timeout: 3600
+#        topology: *master_1repl_1client
+#
+#  fedora-previous/nfs_nsswitch_restore:
+#    requires: [fedora-previous/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-previous/build_url}'
+#        test_suite: test_integration/test_nfs.py::TestIpaClientAutomountFileRestore
+#        template: *ci-master-previous
+#        timeout: 3600
+#        topology: *master_3client
+#
+#  fedora-previous/test_cert:
+#    requires: [fedora-previous/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-previous/build_url}'
+#        test_suite: test_integration/test_cert.py
+#        template: *ci-master-previous
+#        timeout: 3600
+#        topology: *master_1repl_1client
 
 ############### rawhide #################
 
-  fedora-rawhide/build:
-    requires: []
-    priority: 100
-    job:
-      class: Build
-      args:
-        git_repo: '{git_repo}'
-        git_refspec: '{git_refspec}'
-        template: &ci-master-frawhide
-          name: freeipa/ci-master-frawhide
-          version: 0.0.11
-        timeout: 1800
-        topology: *build
-
-  fedora-rawhide/test_installation_TestADTrustInstall:
-    requires: [fedora-rawhide/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-rawhide/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_installation.py::TestADTrustInstall
-        template: *ci-master-frawhide
-        timeout: 10800
-        topology: *master_2repl_1client
-
-  fedora-rawhide/test_installation_TestADTrustInstallWithDNS_KRA_ADTrust:
-    requires: [fedora-rawhide/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-rawhide/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
-        template: *ci-master-frawhide
-        timeout: 10800
-        topology: *master_2repl_1client
-
-  fedora-rawhide/test_installation_TestKRAinstallAfterCertRenew:
-    requires: [fedora-rawhide/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-rawhide/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
-        template: *ci-master-frawhide
-        timeout: 10800
-        topology: *ipaserver
-
-  fedora-rawhide/test_idviews:
-    requires: [fedora-rawhide/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-rawhide/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_idviews.py
-        template: *ci-master-frawhide
-        timeout: 3600
-        topology: *master_1repl_1client
-
-  fedora-rawhide/test_cert:
-    requires: [fedora-rawhide/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-rawhide/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_cert.py
-        template: *ci-master-frawhide
-        timeout: 3600
-        topology: *master_1repl_1client
+#  fedora-rawhide/build:
+#    requires: []
+#    priority: 100
+#    job:
+#      class: Build
+#      args:
+#        git_repo: '{git_repo}'
+#        git_refspec: '{git_refspec}'
+#        template: &ci-master-frawhide
+#          name: freeipa/ci-master-frawhide
+#          version: 0.0.11
+#        timeout: 1800
+#        topology: *build
+#
+#  fedora-rawhide/test_installation_TestADTrustInstall:
+#    requires: [fedora-rawhide/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-rawhide/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_installation.py::TestADTrustInstall
+#        template: *ci-master-frawhide
+#        timeout: 10800
+#        topology: *master_2repl_1client
+#
+#  fedora-rawhide/test_installation_TestADTrustInstallWithDNS_KRA_ADTrust:
+#    requires: [fedora-rawhide/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-rawhide/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
+#        template: *ci-master-frawhide
+#        timeout: 10800
+#        topology: *master_2repl_1client
+#
+#  fedora-rawhide/test_installation_TestKRAinstallAfterCertRenew:
+#    requires: [fedora-rawhide/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-rawhide/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
+#        template: *ci-master-frawhide
+#        timeout: 10800
+#        topology: *ipaserver
+#
+#  fedora-rawhide/test_idviews:
+#    requires: [fedora-rawhide/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-rawhide/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_idviews.py
+#        template: *ci-master-frawhide
+#        timeout: 3600
+#        topology: *master_1repl_1client
+#
+#  fedora-rawhide/test_cert:
+#    requires: [fedora-rawhide/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-rawhide/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_cert.py
+#        template: *ci-master-frawhide
+#        timeout: 3600
+#        topology: *master_1repl_1client
