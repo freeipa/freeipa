@@ -884,6 +884,18 @@ jobs:
         timeout: 7200
         topology: *master_2repl_1client
 
+  fedora-previous/test_replica_promotion_TestHiddenReplicaKRA:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestHiddenReplicaKRA
+        template: *ci-master-previous
+        timeout: 7200
+        topology: *master_2repl_1client
+
   fedora-previous/test_upgrade:
     requires: [fedora-previous/build]
     priority: 50
