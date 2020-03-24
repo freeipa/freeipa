@@ -970,3 +970,63 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         result = self.replicas[0].run_command([
             'ipa-crlgen-manage', 'status'])
         assert "CRL generation: enabled" in result.stdout_text
+
+
+class TestHiddenReplicaKRA(IntegrationTest):
+    """Test KRA & hidden replica features.
+    """
+    topology = 'star'
+    num_replicas = 2
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True, setup_kra=False)
+        # hidden replica with CA and DNS
+        tasks.install_replica(
+            cls.master, cls.replicas[0],
+            setup_dns=True, setup_kra=False,
+            extra_args=('--hidden-replica',)
+        )
+        # normal replica with CA and DNS
+        tasks.install_replica(
+            cls.replicas[0], cls.replicas[1],
+            setup_dns=True, setup_kra=False
+        )
+
+    def test_install_kra_on_hidden_replica(self):
+        # manually install KRA on hidden replica.
+        tasks.install_kra(self.replicas[0])
+
+    @pytest.mark.xfail(reason='freeipa ticket 8240', strict=True)
+    def test_kra_hidden_no_preconfig(self):
+        """Test installing KRA on a replica when all KRAs are hidden.
+           https://pagure.io/freeipa/issue/8240
+        """
+
+        result = tasks.install_kra(self.replicas[1], raiseonerr=False)
+
+        if result.returncode == 0:
+            # If KRA installation was successful, the only clean-up possible is
+            # uninstalling the whole replica as hiding the last visible KRA
+            # member is inhibited by design.
+            # This step is necessary so that the next test runs with all KRA
+            # members hidden too.
+            tasks.uninstall_replica(self.master, self.replicas[1])
+
+        assert "Failed to find an active KRA server!" not in result.stderr_text
+        assert result.returncode == 0
+
+    def test_kra_hidden_temp(self):
+        """Test for workaround: temporarily un-hide the hidden replica.
+           https://pagure.io/freeipa/issue/8240
+        """
+        self.replicas[0].run_command([
+            'ipa', 'server-state',
+            self.replicas[0].hostname, '--state=enabled'
+        ])
+        result = tasks.install_kra(self.master, raiseonerr=False)
+        self.replicas[0].run_command([
+            'ipa', 'server-state',
+            self.replicas[0].hostname, '--state=hidden'
+        ])
+        assert result.returncode == 0
