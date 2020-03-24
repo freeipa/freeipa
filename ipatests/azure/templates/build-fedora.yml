@@ -3,4 +3,8 @@ steps:
     set -e
     echo "Running make target 'rpms'"
     make V=0 rpms LOG_COMPILE='gdb.minimal -return-child-result -ex run -ex "thread apply all bt" -ex "quit" --args'
+    mkdir -p $(builddir)/dist/rpms_debuginfo
+    find $(builddir)/dist/rpms/ -type f \
+        \( -name "*-debuginfo-*.rpm" -o -name '*-debugsource-*.rpm' \) \
+        -exec mv {} $(builddir)/dist/rpms_debuginfo/ \;
   displayName: Build packages
