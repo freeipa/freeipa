@@ -18,10 +18,27 @@ steps:
     sudo apt-get install -y \
         parallel \
         moreutils \
+        systemd-coredump \
         python3-docker
     # ubuntu's one is too old: different API
     python3 -m pip install docker --user
   displayName: Install Host's tests requirements
+
+- script: |
+    set -eu
+    date +'%Y-%m-%d %H:%M:%S' > coredumpctl.time.mark
+    systemd_conf="/etc/systemd/system.conf"
+    sudo sed -i 's/^DumpCore=.*/#&/g' "$systemd_conf"
+    sudo sed -i 's/^DefaultLimitCORE=.*/#&/g' "$systemd_conf"
+    echo -e 'DumpCore=yes\nDefaultLimitCORE=infinity' | \
+        sudo tee -a "$systemd_conf" >/dev/null
+    cat "$systemd_conf"
+    coredump_conf="/etc/systemd/coredump.conf"
+    cat "$coredump_conf"
+    sudo systemctl daemon-reexec
+    # for ns-slapd debugging
+    sudo sysctl -w fs.suid_dumpable=1
+  displayName: Allow coredumps
 
 - template: setup-test-environment.yml
 
@@ -34,11 +51,58 @@ steps:
   condition: succeededOrFailed()
 
 - script: |
+    set -eu
+    # check the host first, containers cores were dumped here
+    COREDUMPS_SUBDIR="coredumps"
+    COREDUMPS_DIR="${IPA_TESTS_ENV_WORKING_DIR}/${COREDUMPS_SUBDIR}"
+    rm -rfv "$COREDUMPS_DIR" ||:
+    mkdir "$COREDUMPS_DIR"
+    since_time="$(cat coredumpctl.time.mark || echo '-1h')"
+    sudo coredumpctl --no-pager --since="$since_time" list ||:
+
+    pids="$(sudo coredumpctl --no-pager --since="$since_time" -F COREDUMP_PID || echo '')"
+    # nothing to dump
+    [ -z "$pids" ] && exit 0
+
+    # continue in container
+    HOST_JOURNAL="/var/log/host_journal"
+    CONTAINER_COREDUMP="dump_cores"
+    docker create --privileged \
+        -v "$(realpath coredumpctl.time.mark)":/coredumpctl.time.mark:ro \
+        -v /var/lib/systemd/coredump:/var/lib/systemd/coredump:ro \
+        -v /var/log/journal:"$HOST_JOURNAL":ro \
+        -v "${BUILD_REPOSITORY_LOCALPATH}":"${IPA_TESTS_REPO_PATH}" \
+        --name "$CONTAINER_COREDUMP" freeipa-azure-builder
+    docker start "$CONTAINER_COREDUMP"
+
+    docker exec -t \
+        --env IPA_TESTS_REPO_PATH="${IPA_TESTS_REPO_PATH}" \
+        --env IPA_TESTS_SCRIPTS="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}" \
+        --env IPA_PLATFORM="${IPA_PLATFORM}" \
+        "$CONTAINER_COREDUMP" \
+        /bin/bash --noprofile --norc -eux \
+            "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/install-debuginfo.sh"
+
+    docker exec -t \
+        --env IPA_TESTS_REPO_PATH="${IPA_TESTS_REPO_PATH}" \
+        --env COREDUMPS_SUBDIR="$COREDUMPS_SUBDIR" \
+        --env HOST_JOURNAL="$HOST_JOURNAL" \
+        "$CONTAINER_COREDUMP" \
+        /bin/bash --noprofile --norc -eux \
+            "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/dump_cores.sh"
+    # there should be no crashes
+    exit 1
+  condition: succeededOrFailed()
+  displayName: Check for coredumps
+
+- script: |
     set -e
 
     artifacts_ignore_path="${IPA_TESTS_ENV_WORKING_DIR}/.artifactignore"
     cat > "$artifacts_ignore_path" <<EOF
     **/*
+    !coredumps/*.core.tar.gz
+    !coredumps/*.stacktrace.tar.gz
     !*/logs/**
     !*/*.yml
     !*/*.yaml
