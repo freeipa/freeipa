@@ -956,6 +956,24 @@ def configure_sssd_conf(
         nss_service.set_option('memcache_timeout', 600)
         sssdconfig.save_service(nss_service)
 
+    family_order = None
+    try:
+        iface = get_server_connection_interface(cli_server[0])
+    except RuntimeError as e:
+        logger.error("Cannot determine interface used to connect to "
+                     "IPA. %s", e)
+    else:
+        try:
+            connect_ips = get_local_ipaddresses(iface)
+        except CalledProcessError as e:
+            logger.error("Cannot determine IP(s) used to connect to "
+                         "IPA. %s", e)
+        else:
+            if all([ip.version == 6 for ip in connect_ips]):
+                family_order = 'ipv6_first'
+    if family_order:
+        domain.set_option('lookup_family_order', family_order)
+
     domain.set_option('ipa_domain', cli_domain)
     domain.set_option('ipa_hostname', client_hostname)
     if cli_domain.lower() != cli_realm.lower():
