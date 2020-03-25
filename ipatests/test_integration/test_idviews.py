@@ -53,6 +53,7 @@ class TestCertsInIDOverrides(IntegrationTest):
         # AD-related stuff
         tasks.install_adtrust(master)
         tasks.sync_time(master, cls.ad)
+        tasks.configure_dns_for_trust(master, cls.ad)
         tasks.establish_trust_with_ad(cls.master, cls.ad_domain,
                                       extra_args=['--range-type',
                                                   'ipa-ad-trust'])
