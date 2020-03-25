@@ -691,6 +691,9 @@ class TestIPACommand(IntegrationTest):
         3. add an ipa user
         4. ssh from controller to master using the user created in step 3
         """
+        if self.master.is_fips_mode:  # pylint: disable=no-member
+            pytest.skip("paramiko is not compatible with FIPS mode")
+
         sssd_version = ''
         cmd_output = self.master.run_command(['sssd', '--version'])
         sssd_version = platform_tasks.\
