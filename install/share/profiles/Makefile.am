@@ -7,6 +7,7 @@ app_DATA =				\
 	caIPAserviceCert.UPGRADE.cfg	\
 	IECUserRoles.cfg		\
 	KDCs_PKINIT_Certs.cfg		\
+	acmeServerCert.cfg		\
 	$(NULL)
 
 EXTRA_DIST =				\
