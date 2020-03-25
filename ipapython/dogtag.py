@@ -56,6 +56,9 @@ INCLUDED_PROFILES = {
     Profile(u'KDCs_PKINIT_Certs',
             u'Profile for PKINIT support by KDCs',
             False),
+    Profile(u'acmeServerCert',
+            u'ACME service certificate profile',
+            False),
     }
 
 DEFAULT_PROFILE = u'caIPAserviceCert'

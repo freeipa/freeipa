@@ -1905,6 +1905,7 @@ def __get_profile_config(profile_id):
         IPA_CA_RECORD=ipalib.constants.IPA_CA_RECORD,
         CRL_ISSUER='CN=Certificate Authority,o=ipaca',
         SUBJECT_DN_O=dsinstance.DsInstance().find_subject_base(),
+        ACME_AGENT_GROUP=ACME_AGENT_GROUP,
     )
 
     # To work around lack of proper profile upgrade system, we ship
