@@ -145,6 +145,17 @@ class TestIPACommand(IntegrationTest):
         cader = ssl.PEM_cert_to_DER_cert(cacrt)
         return base64.b64encode(cader).decode('ascii')
 
+    def test_slew_mode_not_set(self):
+        """Test if slew mode is not set while configuring ntpd
+
+        This is to ensure that slew mode (-x) is not configured while
+        installing ipa-server.
+
+        related: https://pagure.io/freeipa/issue/8242
+        """
+        result = self.master.run_command(['cat', paths.SYSCONFIG_NTPD])
+        assert '-x' not in result.stdout_text
+
     def test_aes_sha_kerberos_enctypes(self):
         """Test AES SHA 256 and 384 Kerberos enctypes enabled
 
