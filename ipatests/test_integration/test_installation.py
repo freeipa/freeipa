@@ -62,6 +62,11 @@ def server_install_setup(func):
     return wrapped
 
 
+def check_slew_mode(host):
+    result = host.run_command(['cat', paths.SYSCONFIG_NTPD])
+    assert '-x' not in result.stdout_text
+
+
 class InstallTestBase1(IntegrationTest):
 
     num_replicas = 3
@@ -414,7 +419,7 @@ def get_ipa_services_pids(host):
 
 class TestInstallMaster(IntegrationTest):
 
-    num_replicas = 0
+    num_replicas = 1
 
     @classmethod
     def install(cls, mh):
@@ -422,6 +427,28 @@ class TestInstallMaster(IntegrationTest):
 
     def test_install_master(self):
         tasks.install_master(self.master, setup_dns=False)
+
+    def test_slew_mode_not_configured(self):
+        """Test if slew mode is not set while configuring ntpd
+
+        This is to ensure that slew mode (-x) is not configured while
+        installing ipa-server.
+
+        related: https://pagure.io/freeipa/issue/8242
+        """
+        check_slew_mode(self.master)
+
+        # install client
+        tasks.install_client(self.master, self.replicas[0])
+        check_slew_mode(self.replicas[0])
+
+        # promote client to be a replica
+        self.replicas[0].run_command(['ipa-replica-install', '-U', '-w',
+                                      self.master.config.dirman_password])
+        check_slew_mode(self.replicas[0])
+
+        # uninstall replica
+        tasks.uninstall_replica(self.master, self.replicas[0])
 
     def test_schema_compat_attribute_and_tree_disable(self):
         """Test if schema-compat-entry-attribute is set
