@@ -928,6 +928,14 @@ class TestBackupRoles(IntegrationTest):
     num_replicas = 1
     topology = 'star'
 
+    serverroles = {
+        'ADTA': u'AD trust agent',
+        'ADTC': u'AD trust controller',
+        'CA': u'CA server',
+        'DNS': u'DNS server',
+        'KRA': u'KRA server'
+    }
+
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True)
@@ -951,6 +959,13 @@ class TestBackupRoles(IntegrationTest):
         assert "Local roles match globally used roles, proceeding." \
             in result.stderr_text
 
+    def _ipa_replica_role_check(self, replica, role):
+        return "enabled" in self.master.run_command([
+            'ipa', 'server-role-find',
+            '--server', replica,
+            '--role', role
+        ]).stdout_text
+
     def test_rolecheck_DNS_CA(self):
         """ipa-backup rolecheck:
         start with a master with DNS and CA then
@@ -959,15 +974,36 @@ class TestBackupRoles(IntegrationTest):
         """
 
         # single master: check that backup works.
+        assert self._ipa_replica_role_check(
+            self.master.hostname, self.serverroles['DNS']
+        )
+        assert self._ipa_replica_role_check(
+            self.master.hostname, self.serverroles['CA']
+        )
+        assert not self._ipa_replica_role_check(
+            self.master.hostname, self.serverroles['KRA']
+        )
         self._check_rolecheck_backup_success(self.master)
 
         # install CA-less, DNS-less replica
         tasks.install_replica(self.master, self.replicas[0], setup_ca=False)
+        assert not self._ipa_replica_role_check(
+            self.replicas[0].hostname, self.serverroles['DNS']
+        )
+        assert not self._ipa_replica_role_check(
+            self.replicas[0].hostname, self.serverroles['CA']
+        )
+        assert not self._ipa_replica_role_check(
+            self.replicas[0].hostname, self.serverroles['KRA']
+        )
         self._check_rolecheck_backup_success(self.master)
         self._check_rolecheck_backup_failure(self.replicas[0])
 
         # install DNS on replica
         tasks.install_dns(self.replicas[0])
+        assert self._ipa_replica_role_check(
+            self.replicas[0].hostname, self.serverroles['DNS']
+        )
         self._check_rolecheck_backup_failure(self.replicas[0])
 
     def test_rolecheck_KRA(self):
@@ -977,17 +1013,26 @@ class TestBackupRoles(IntegrationTest):
         # install CA on replica.
         tasks.install_ca(self.replicas[0])
         # master and replicas[0] have matching roles now.
+        assert self._ipa_replica_role_check(
+            self.replicas[0].hostname, self.serverroles['CA']
+        )
         self._check_rolecheck_backup_success(self.master)
         self._check_rolecheck_backup_success(self.replicas[0])
 
         # install KRA on replica
         tasks.install_kra(self.replicas[0], first_instance=True)
+        assert self._ipa_replica_role_check(
+            self.replicas[0].hostname, self.serverroles['KRA']
+        )
         self._check_rolecheck_backup_success(self.replicas[0])
         self._check_rolecheck_backup_failure(self.master)
 
         # install KRA on master
         tasks.install_kra(self.master)
         # master and replicas[0] have matching roles now.
+        assert self._ipa_replica_role_check(
+            self.master.hostname, self.serverroles['KRA']
+        )
         self._check_rolecheck_backup_success(self.replicas[0])
         self._check_rolecheck_backup_success(self.master)
 
@@ -1007,6 +1052,14 @@ class TestBackupRoles(IntegrationTest):
             '-a', self.master.config.admin_password,
             '--add-sids'
         ])
+        # double-check
+        assert self._ipa_replica_role_check(
+            self.replicas[0].hostname, self.serverroles['ADTC']
+        )
+        # check that master has no AD Trust-related role
+        assert not self._ipa_replica_role_check(
+            self.master.hostname, self.serverroles['ADTA']
+        )
         self._check_rolecheck_backup_success(self.replicas[0])
         self._check_rolecheck_backup_failure(self.master)
 
@@ -1033,6 +1086,14 @@ class TestBackupRoles(IntegrationTest):
         self.replicas[0].run_command([
             'ipa-adtrust-install', '--add-agents'], stdin_text=cmd_input
         )
+        # check that master is now an AD Trust agent
+        assert self._ipa_replica_role_check(
+            self.master.hostname, self.serverroles['ADTA']
+        )
+        # but not an AD Trust controller
+        assert not self._ipa_replica_role_check(
+            self.master.hostname, self.serverroles['ADTC']
+        )
         self._check_rolecheck_backup_success(self.replicas[0])
         self._check_rolecheck_backup_failure(self.master)
 
@@ -1043,6 +1104,10 @@ class TestBackupRoles(IntegrationTest):
             '--add-sids'
         ])
         # master and replicas[0] are both AD Trust Controllers now.
+        for hostname in [self.master.hostname, self.replicas[0].hostname]:
+            assert self._ipa_replica_role_check(
+                hostname, self.serverroles['ADTC']
+            )
         self._check_rolecheck_backup_success(self.master)
         self._check_rolecheck_backup_success(self.replicas[0])
 
