@@ -84,10 +84,16 @@ class TestCertsInIDOverrides(IntegrationTest):
                            cls.reqdir, stdin=stdin_text)
 
         # Export the previously generated cert
-        tasks.run_certutil(master, ['-L', '-n', cls.adcert1, '-a', '>',
-                                    cls.adcert1_file], cls.reqdir)
-        tasks.run_certutil(master, ['-L', '-n', cls.adcert2, '-a', '>',
-                                    cls.adcert2_file], cls.reqdir)
+        res = tasks.run_certutil(master, ['-L', '-n', cls.adcert1, '-a'],
+                                 cls.reqdir)
+        master.put_file_contents(
+            os.path.join(master.config.test_dir, cls.adcert1_file),
+            res.stdout_text)
+        res = tasks.run_certutil(master, ['-L', '-n', cls.adcert2, '-a'],
+                                 cls.reqdir)
+        master.put_file_contents(
+            os.path.join(master.config.test_dir, cls.adcert2_file),
+            res.stdout_text)
         cls.cert1_base64 = cls.master.run_command(
             "openssl x509 -outform der -in %s | base64 -w 0" % cls.adcert1_file
             ).stdout_text
