@@ -36,6 +36,7 @@ master_doc = 'index'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.extlinks',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
@@ -85,3 +86,14 @@ source_suffix = {
 
 # Example configuration for intersphinx: refer to the Python standard library.
 # intersphinx_mapping = {'https://docs.python.org/': None}
+
+# -- Options for extlinks extension ---------------------------------------
+
+extlinks = {
+    'issue': ('https://pagure.io/freeipa/issue/%s', 'FreeIPA issue #'),
+    'rhbz': ('https://bugzilla.redhat.com/show_bug.cgi?id=%s', 'rhbz#'),
+    'freeipa': ('https://www.freeipa.org/page/%s', ''),
+    'systemd': (
+        'https://www.freedesktop.org/software/systemd/man/%s.html', ''
+    ),
+}
