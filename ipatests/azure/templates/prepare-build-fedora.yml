@@ -2,18 +2,6 @@ steps:
 - script: |
     set -e
     sudo rm -rf /var/cache/dnf/*
-    echo "dnf.conf: enable fastestmirror, use 8 download workers, lower timeout to fail faster, and add more retries"
-    sudo tee -a /etc/dnf/dnf.conf <<EOF > /dev/null
-    fastestmirror = True
-    max_parallel_downloads = 8
-    timeout = 8
-    retries = 20
-    EOF
-    echo "Fedora mirror metalink content:"
-    for metalink in $(sudo dnf repolist -v |grep Repo-metalink | awk '{print $2}' ) ; do echo '###############' ; echo '####' ; echo $metalink ; echo '####' ; curl $metalink ; done
-    echo "Fastestmirror results:"
-    sudo cat /var/cache/dnf/fastestmirror.cache
-    sudo dnf -y module enable nodejs:12
     sudo dnf makecache || :
     echo "Installing base development environment"
     sudo dnf install -y \
@@ -29,5 +17,6 @@ steps:
         python3-pyyaml \
 
     echo "Installing FreeIPA development dependencies"
+    sudo dnf builddep -y freeipa
     sudo dnf builddep -y --skip-broken -D "with_wheels 1" -D "with_lint 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
   displayName: Prepare build environment
