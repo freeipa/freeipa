@@ -247,11 +247,15 @@ class Backup(admintool.AdminTool):
             "--online", dest="online", action="store_true",
             default=False,
             help="Perform the LDAP backups online, for data only.")
-
+        parser.add_option(
+            "--disable-role-check", dest="rolecheck", action="store_false",
+            default=True,
+            help="Perform the backup even if this host does not have all "
+                 "the roles used in the cluster. This is not recommended."
+        )
 
     def setup_logging(self, log_file_mode='a'):
         super(Backup, self).setup_logging(log_file_mode='a')
-
 
     def validate_options(self):
         options = self.options
@@ -278,7 +282,6 @@ class Backup(admintool.AdminTool):
         if options.data_only and options.logs:
             self.option_parser.error("You cannot specify --data "
                 "with --logs")
-
 
     def run(self):
         options = self.options
@@ -311,6 +314,8 @@ class Backup(admintool.AdminTool):
             dirsrv.start(capture_output=False)
 
             self.get_connection()
+
+            self.check_roles(raiseonerr=options.rolecheck)
 
             self.create_header(options.data_only)
             if options.data_only:
@@ -358,6 +363,79 @@ class Backup(admintool.AdminTool):
                 logger.error('Cannot change directory to %s: %s', cwd, e)
             shutil.rmtree(self.top_dir)
 
+    def check_roles(self, raiseonerr=True):
+        """Check that locally-installed roles match the globally used ones.
+
+        Specifically: make sure no role used in the cluster is absent
+        from the local replica ipa-backup is running on.
+        """
+
+        locally_installed_roles = set()
+        globally_used_roles = set()
+
+        # We need to cover the following roles:
+        # * DNS: filter="(|(cn=DNS)(cn=DNSKeySync))"
+        # * CA:  filter="(cn=CA)"
+        # * KRA: filter="(cn=KRA)"
+        # * AD Trust Controller: filter="(cn=ADTRUST)"
+        # Note:
+        # We do not need to worry about AD Trust Agents as Trust
+        # Controllers are Trust Agents themselves and contain extra,
+        # necessary Samba configuration. So either the cluster has no
+        # AD Trust bits installed, or it should be backuped on a Trust
+        # Controller, not a Trust Agent.
+        role_names = {
+            'CA', 'DNS', 'DNSKeySync', 'KRA', 'ADTRUST'
+        }
+
+        search_base = DN(api.env.container_masters, api.env.basedn)
+        attrs_list = ['ipaconfigstring', 'cn']
+
+        for role in role_names:
+            search_filter = '(cn=%s)' % role
+            try:
+                masters = dict()
+                result = self._conn.get_entries(
+                    search_base,
+                    filter=search_filter,
+                    attrs_list=attrs_list,
+                    scope=self._conn.SCOPE_SUBTREE
+                )
+                masters[role] = {e.dn[1]['cn'] for e in result}
+
+                if api.env.host in masters[role]:
+                    locally_installed_roles.add(role)
+                if masters[role] is not None:
+                    globally_used_roles.add(role)
+            except errors.EmptyResult:
+                pass
+
+        if locally_installed_roles == globally_used_roles:
+            logger.info(
+                "Local roles match globally used roles, proceeding."
+            )
+        else:
+            if raiseonerr:
+                raise admintool.ScriptError(
+                    'Error: Local roles %s do not match globally used '
+                    'roles %s. A backup done on this host would not be '
+                    'complete enough to restore a fully functional, '
+                    'identical cluster.' % (
+                        ', '.join(sorted(locally_installed_roles)),
+                        ', '.join(sorted(globally_used_roles))
+                    )
+                )
+            else:
+                msg = (
+                    'Warning: Local roles %s do not match globally used roles '
+                    '%s. A backup done on this host would not be complete '
+                    'enough to restore a fully functional, identical cluster. '
+                    'Proceeding as role check was explicitly disabled.' % (
+                        ', '.join(sorted(locally_installed_roles)),
+                        ', '.join(sorted(globally_used_roles))
+                    )
+                )
+                logger.info(msg)
 
     def add_instance_specific_data(self):
         '''
@@ -387,7 +465,6 @@ class Backup(admintool.AdminTool):
 
         self.logs.append(paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % serverid)
 
-
     def get_connection(self):
         '''
         Create an ldapi connection and bind to it using autobind as root.
@@ -404,7 +481,6 @@ class Backup(admintool.AdminTool):
                          self._conn.ldap_uri, e)
 
         return self._conn
-
 
     def db2ldif(self, instance, backend, online=True):
         '''
@@ -481,7 +557,6 @@ class Backup(admintool.AdminTool):
                 'Unexpected error: %s' % e
             )
 
-
     def db2bak(self, instance, online=True):
         '''
         Create a BAK backup of the data and changelog in this instance.
@@ -544,7 +619,6 @@ class Backup(admintool.AdminTool):
             raise admintool.ScriptError(
                 'Unexpected error: %s' % e
             )
-
 
     def file_backup(self, options):
 
@@ -611,7 +685,6 @@ class Backup(admintool.AdminTool):
             # Rename the archive back to files.tar to preserve compatibility
             os.rename(os.path.join(self.dir, 'files.tar.gz'), self.tarfile)
 
-
     def create_header(self, data_only):
         '''
         Create the backup file header that contains the meta data about
@@ -648,7 +721,6 @@ class Backup(admintool.AdminTool):
         config.set('ipa', 'services', ','.join(services_cns))
         with open(self.header, 'w') as fd:
             config.write(fd)
-
 
     def finalize_backup(self, data_only=False, encrypt=False, keyring=None):
         '''
