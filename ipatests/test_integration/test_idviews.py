@@ -44,6 +44,7 @@ class TestCertsInIDOverrides(IntegrationTest):
         # sssd_domain.set_option knows nothing about 'services' parameter of
         # the sssd config file. Therefore I am using sed approach
         master.run_command(
+            r"grep -qP 'services\b.+\bifp\b' %s ||" % paths.SSSD_CONF +
             "sed -i '/^services/ s/$/, ifp/' %s" % paths.SSSD_CONF)
         master.run_command(
             "sed -i 's/= 7/= 0xFFF0/' %s" % paths.SSSD_CONF, raiseonerr=False)
