@@ -21,7 +21,7 @@ HEALTHCHECK_SYSTEMD_FILE = (
 HEALTHCHECK_LOG_ROTATE_CONF = "/etc/logrotate.d/ipahealthcheck"
 HEALTHCHECK_LOG_DIR = "/var/log/ipa/healthcheck"
 HEALTHCHECK_OUTPUT_FILE = "/tmp/output.json"
-HEALTHCHECK_PKG = ['freeipa-healthcheck']
+HEALTHCHECK_PKG = ["*ipa-healthcheck"]
 TOMCAT_CFG = "/var/lib/pki/pki-tomcat/conf/ca/CS.cfg"
 
 
@@ -107,7 +107,6 @@ DEFAULT_PKI_KRA_CERTS = [
     "storageCert cert-pki-kra",
     "auditSigningCert cert-pki-kra",
 ]
-
 
 def run_healthcheck(host, source=None, check=None, output_type="json"):
     """
@@ -456,6 +455,55 @@ class TestIpaHealthCheck(IntegrationTest):
             ['logrotate', '--debug', HEALTHCHECK_LOG_ROTATE_CONF]
         )
         assert msg not in cmd.stdout_text
+
+    def test_ipa_dns_systemrecords_check(self):
+        """
+        This test ensures that the ipahealthcheck.ipa.idns check
+        displays the correct result when master and replica is setup
+        with integrated DNS.
+        """
+        SRV_RECORDS = [
+            "_ldap._tcp." + self.replicas[0].domain.name + ".:" +
+            self.replicas[0].hostname + ".",
+            "_ldap._tcp." + self.master.domain.name + ".:" +
+            self.master.hostname + ".",
+            "_kerberos._tcp." + self.replicas[0].domain.name + ".:" +
+            self.replicas[0].hostname + ".",
+            "_kerberos._tcp." + self.master.domain.name + ".:" +
+            self.master.hostname + ".",
+            "_kerberos._udp." + self.replicas[0].domain.name + ".:" +
+            self.replicas[0].hostname + ".",
+            "_kerberos._udp." + self.master.domain.name + ".:" +
+            self.master.hostname + ".",
+            "_kerberos-master._tcp." + self.replicas[0].domain.name +
+            ".:" + self.replicas[0].hostname + ".",
+            "_kerberos-master._tcp." + self.master.domain.name + ".:" +
+            self.master.hostname + ".",
+            "_kerberos-master._udp." + self.replicas[0].domain.name +
+            ".:" + self.replicas[0].hostname + ".",
+            "_kerberos-master._udp." + self.master.domain.name + ".:" +
+            self.master.hostname + ".",
+            "_kpasswd._tcp." + self.replicas[0].domain.name + ".:" +
+            self.replicas[0].hostname + ".",
+            "_kpasswd._tcp." + self.master.domain.name + ".:" +
+            self.master.hostname + ".",
+            "_kpasswd._udp." + self.replicas[0].domain.name + ".:" +
+            self.replicas[0].hostname + ".",
+            "_kpasswd._udp." + self.master.domain.name + ".:" +
+            self.master.hostname + ".",
+            "\"" + self.master.domain.realm.upper() + "\"",
+            self.master.ip,
+            self.replicas[0].ip
+        ]
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.idns",
+            "IPADNSSystemRecordsCheck"
+        )
+        assert returncode == 0
+        for check in data:
+            assert check["result"] == "SUCCESS"
+            assert check["kw"]["key"] in SRV_RECORDS
 
     def test_ipa_healthcheck_remove(self):
         """
