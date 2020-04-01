@@ -170,13 +170,11 @@ class TestInstallWithCA1(InstallTestBase1):
     def test_replica1_ipa_kra_install(self):
         super(TestInstallWithCA1, self).test_replica1_ipa_kra_install()
 
-    @pytest.mark.xfail
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica2_with_ca_kra_install(self):
         super(TestInstallWithCA1, self).test_replica2_with_ca_kra_install()
 
-    @pytest.mark.xfail
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica2_ipa_dns_install(self):
@@ -228,7 +226,6 @@ class TestInstallCA(IntegrationTest):
         tasks.install_ca(self.replicas[1], extra_args=["--skip-schema-check"])
 
 
-@pytest.mark.xfail
 class TestInstallWithCA_KRA1(InstallTestBase1):
 
     @classmethod
@@ -257,13 +254,11 @@ class TestInstallWithCA_DNS1(InstallTestBase1):
     def test_replica1_ipa_kra_install(self):
         super(TestInstallWithCA_DNS1, self).test_replica1_ipa_kra_install()
 
-    @pytest.mark.xfail
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica2_with_ca_kra_install(self):
         super(TestInstallWithCA_DNS1, self).test_replica2_with_ca_kra_install()
 
-    @pytest.mark.xfail
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica2_ipa_dns_install(self):
@@ -345,7 +340,6 @@ class TestInstallWithCA_DNS4(CALessBase):
 
 
 @pytest.mark.cs_acceptance
-@pytest.mark.xfail
 class TestInstallWithCA_KRA_DNS1(InstallTestBase1):
 
     @classmethod
