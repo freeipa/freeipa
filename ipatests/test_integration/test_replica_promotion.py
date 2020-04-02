@@ -20,7 +20,6 @@ from ipalib.constants import (
     DOMAIN_LEVEL_1, IPA_CA_NICKNAME, CA_SUFFIX_NAME)
 from ipaplatform.paths import paths
 from ipapython import certdb
-from ipatests.test_integration.test_backup_and_restore import backup
 from ipatests.test_integration.test_dns_locations import (
     resolve_records_from_server, IPA_DEFAULT_MASTER_SRV_REC
 )
@@ -928,7 +927,7 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         """
         self._check_server_role(self.replicas[0], 'hidden')
         # backup
-        backup_path, unused = backup(self.replicas[0])
+        backup_path = tasks.get_backup_dir(self.replicas[0])
         # uninstall
         tasks.uninstall_master(self.replicas[0])
         # restore
