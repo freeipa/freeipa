@@ -13,7 +13,7 @@ import os
 import re
 
 import pytest
-from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.constants import DOMAIN_LEVEL_0, DOMAIN_LEVEL_1
 import ipaplatform
 from ipapython.dn import DN
 from ipaplatform.constants import constants
@@ -23,6 +23,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipaplatform import services
+
 
 config = get_global_config()
 
@@ -227,6 +228,7 @@ class TestInstallCA(IntegrationTest):
 
 
 class TestInstallWithCA_KRA1(InstallTestBase1):
+    domain_level = DOMAIN_LEVEL_1
 
     @classmethod
     def install(cls, mh):
@@ -244,6 +246,7 @@ class TestInstallWithCA_KRA2(InstallTestBase2):
 
 
 class TestInstallWithCA_DNS1(InstallTestBase1):
+    domain_level = DOMAIN_LEVEL_1
 
     @classmethod
     def install(cls, mh):

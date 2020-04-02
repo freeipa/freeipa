@@ -89,6 +89,10 @@ class IntegrationTest(object):
                 # this call may fail
                 pass
             tasks.uninstall_master(replica)
-        tasks.uninstall_master(cls.master)
+        if cls.domain_level is not None:
+            domain_level = cls.domain_level
+        else:
+            domain_level = cls.master.config.domain_level
+        tasks.uninstall_master(cls.master, domain_level=domain_level)
         for client in cls.clients:
             tasks.uninstall_client(client)
