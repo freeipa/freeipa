@@ -87,7 +87,7 @@ jobs:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: 3.7
+        versionSpec: ${{ variables.AZURE_PYTHON_VERSION }}
         architecture: x64
     - template: templates/${{ variables.PREPARE_TOX_TEMPLATE }}
     - script: |
@@ -96,7 +96,7 @@ jobs:
         export LANG=en_US.utf8
         export LC_CTYPE=en_US.utf8
         locale
-        $(TOX_COMMAND) -e py37,pypi,pylint3
+        $(TOX_COMMAND) -e py3,pypi,pylint3
       displayName: Tox
     - task: PublishTestResults@2
       inputs:
@@ -114,7 +114,7 @@ jobs:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: 3.7
+        versionSpec: ${{ variables.AZURE_PYTHON_VERSION }}
         architecture: x64
     - template: templates/${{ variables.PREPARE_WEBUI_TEMPLATE }}
     - script: |
