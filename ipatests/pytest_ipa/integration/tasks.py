@@ -1512,11 +1512,40 @@ def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
         time.sleep(1)
 
 
-def ipa_backup(master):
-    result = master.run_command(["ipa-backup"])
-    path_re = re.compile("^Backed up to (?P<backup>.*)$", re.MULTILINE)
-    matched = path_re.search(result.stdout_text + result.stderr_text)
-    return matched.group("backup")
+def ipa_backup(host, disable_role_check=False, raiseonerr=True):
+    """Run backup on host and return the run_command result.
+    """
+    cmd = ['ipa-backup', '-v']
+    if disable_role_check:
+        cmd.append('--disable-role-check')
+    result = host.run_command(cmd, raiseonerr=raiseonerr)
+
+    # Test for ticket 7632: check that services are restarted
+    # before the backup is compressed
+    pattern = r'.*{}.*Starting IPA service.*'.format(paths.GZIP)
+    if (re.match(pattern, result.stderr_text, re.DOTALL)):
+        raise AssertionError('IPA Services are started after compression')
+
+    return result
+
+
+def get_backup_dir(host, raiseonerr=True):
+    """Wrapper around ipa_backup: returns the backup directory.
+    """
+    result = ipa_backup(host, raiseonerr)
+
+    # Get the backup location from the command's output
+    for line in result.stderr_text.splitlines():
+        prefix = 'ipaserver.install.ipa_backup: INFO: Backed up to '
+        if line.startswith(prefix):
+            backup_path = line[len(prefix):].strip()
+            logger.info('Backup path for %s is %s', host.hostname, backup_path)
+            return backup_path
+    else:
+        if raiseonerr:
+            raise AssertionError('Backup directory not found in output')
+        else:
+            return None
 
 
 def ipa_restore(master, backup_path):

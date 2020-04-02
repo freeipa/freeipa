@@ -162,35 +162,6 @@ def restore_checker(host):
         assert_func(expected, got)
 
 
-def backup(host, disable_role_check=False, raiseonerr=True):
-    """Run backup on host and return a tuple:
-    (path to the backup directory, run_command result)
-    """
-    cmd = ['ipa-backup', '-v']
-    if disable_role_check:
-        cmd.append('--disable-role-check')
-    result = host.run_command(cmd, raiseonerr=raiseonerr)
-
-    # Test for ticket 7632: check that services are restarted
-    # before the backup is compressed
-    pattern = r'.*{}.*Starting IPA service.*'.format(paths.GZIP)
-    if (re.match(pattern, result.stderr_text, re.DOTALL)):
-        raise AssertionError('IPA Services are started after compression')
-
-    # Get the backup location from the command's output
-    for line in result.stderr_text.splitlines():
-        prefix = 'ipaserver.install.ipa_backup: INFO: Backed up to '
-        if line.startswith(prefix):
-            backup_path = line[len(prefix):].strip()
-            logger.info('Backup path for %s is %s', host.hostname, backup_path)
-            return backup_path, result
-    else:
-        if raiseonerr:
-            raise AssertionError('Backup directory not found in output')
-        else:
-            return None, result
-
-
 @pytest.yield_fixture(scope="function")
 def cert_sign_request(request):
     master = request.instance.master
@@ -215,7 +186,7 @@ class TestBackupAndRestore(IntegrationTest):
     def test_full_backup_and_restore(self):
         """backup, uninstall, restore"""
         with restore_checker(self.master):
-            backup_path, unused = backup(self.master)
+            backup_path = tasks.get_backup_dir(self.master)
 
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
@@ -241,7 +212,7 @@ class TestBackupAndRestore(IntegrationTest):
     def test_full_backup_and_restore_with_removed_users(self):
         """regression test for https://fedorahosted.org/freeipa/ticket/3866"""
         with restore_checker(self.master):
-            backup_path, unused = backup(self.master)
+            backup_path = tasks.get_backup_dir(self.master)
 
             logger.info('Backup path for %s is %s', self.master, backup_path)
 
@@ -267,7 +238,7 @@ class TestBackupAndRestore(IntegrationTest):
     def test_full_backup_and_restore_with_selinux_booleans_off(self):
         """regression test for https://fedorahosted.org/freeipa/ticket/4157"""
         with restore_checker(self.master):
-            backup_path, unused = backup(self.master)
+            backup_path = tasks.get_backup_dir(self.master)
 
             logger.info('Backup path for %s is %s', self.master, backup_path)
 
@@ -320,7 +291,7 @@ class BaseBackupAndRestoreWithDNS(IntegrationTest):
 
             tasks.resolve_record(self.master.ip, self.example_test_zone)
 
-            backup_path, unused = backup(self.master)
+            backup_path = tasks.get_backup_dir(self.master)
 
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
@@ -396,7 +367,7 @@ class BaseBackupAndRestoreWithDNSSEC(IntegrationTest):
                     self.master.ip, self.example_test_zone)
             ), "Zone is not signed"
 
-            backup_path, unused = backup(self.master)
+            backup_path = tasks.get_backup_dir(self.master)
 
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
@@ -478,7 +449,7 @@ class BaseBackupAndRestoreWithKRA(IntegrationTest):
                 "--password", self.vault_password,
             ])
 
-            backup_path, unused = backup(self.master)
+            backup_path = tasks.get_backup_dir(self.master)
 
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
@@ -597,7 +568,7 @@ class TestBackupAndRestoreWithReplica(IntegrationTest):
         tasks.user_add(self.replica1, 'test1_replica')
 
         with restore_checker(self.master):
-            backup_path, unused = backup(self.master)
+            backup_path = tasks.get_backup_dir(self.master)
 
             # change data after backup
             self.master.run_command(['ipa', 'user-del', 'test1_master'])
@@ -721,7 +692,7 @@ class TestUserRootFilesOwnershipPermission(IntegrationTest):
     def test_userroot_ldif_files_ownership_and_permission(self):
         """backup, uninstall, restore, backup"""
         tasks.install_master(self.master)
-        backup_path, unused = backup(self.master)
+        backup_path = tasks.get_backup_dir(self.master)
 
         self.master.run_command(['ipa-server-install',
                                  '--uninstall',
@@ -787,7 +758,7 @@ class TestBackupAndRestoreDMPassword(IntegrationTest):
     def test_restore_bad_dm_password(self):
         """backup, uninstall, restore, wrong DM password (expect failure)"""
         with restore_checker(self.master):
-            backup_path, unused = backup(self.master)
+            backup_path = tasks.get_backup_dir(self.master)
 
             # No uninstall, just pure restore, the only case where
             # prompting for the DM password matters.
@@ -801,7 +772,7 @@ class TestBackupAndRestoreDMPassword(IntegrationTest):
 
         # Flying blind without the restore_checker so we can have
         # an error thrown when dirsrv is down.
-        backup_path, unused = backup(self.master)
+        backup_path = tasks.get_backup_dir(self.master)
 
         self.master.run_command(['ipactl', 'stop'])
 
@@ -836,7 +807,7 @@ class TestReplicaInstallAfterRestore(IntegrationTest):
         check_replication(master, replica1, "testuser1")
 
         # backup master.
-        backup_path, unused = backup(master)
+        backup_path = tasks.get_backup_dir(self.master)
 
         suffix = ipautil.realm_to_suffix(master.domain.realm)
         suffix = escape_dn_chars(str(suffix))
@@ -900,7 +871,7 @@ class TestBackupAndRestoreTrust(IntegrationTest):
                                  '--add-sids'])
 
         with restore_checker(self.master):
-            backup_path, unused = backup(self.master)
+            backup_path = tasks.get_backup_dir(self.master)
 
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
@@ -941,20 +912,18 @@ class TestBackupRoles(IntegrationTest):
         tasks.install_master(cls.master, setup_dns=True)
 
     def _check_rolecheck_backup_failure(self, host):
-        unused, result = backup(host, raiseonerr=False)
+        result = tasks.ipa_backup(host, raiseonerr=False)
         assert result.returncode == 1
         assert "Error: Local roles" in result.stderr_text
         assert "do not match globally used roles" in result.stderr_text
 
-        unused, result = backup(
-            host, disable_role_check=True
-        )
+        result = tasks.ipa_backup(host, disable_role_check=True)
         assert result.returncode == 0
         assert "Warning: Local roles" in result.stderr_text
         assert "do not match globally used roles" in result.stderr_text
 
     def _check_rolecheck_backup_success(self, host):
-        unused, result = backup(host)
+        result = tasks.ipa_backup(host)
         assert result.returncode == 0
         assert "Local roles match globally used roles, proceeding." \
             in result.stderr_text
