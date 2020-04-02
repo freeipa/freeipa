@@ -1485,7 +1485,7 @@ jobs:
         timeout: 1800
         topology: *master_1repl
 
-  fedora-latest/krbtpolicy:
+  fedora-previous-ipa-4-8/krbtpolicy:
     requires: [fedora-previous-ipa-4-8/build]
     priority: 50
     job:
