@@ -97,7 +97,7 @@ def ssh_2f(hostname, username, answers_dict, port=22):
         if title:
             logger.info(title.strip())
         if instructions:
-            logger.info(title.strip())
+            logger.info(instructions.strip())
         for prmpt in prompt_list:
             prmpt_str = prmpt[0].strip()
             resp.append(answers_dict[prmpt_str])
