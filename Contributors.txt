@@ -4,123 +4,147 @@ The following people have contributed to the FreeIPA project.
 (Listed in alphabetical order within category)
 
 Developers:
-	Timo Aaltonen
-	Gabe Alford
-	Jr Aquino
-	Tomáš Babej
-	Martin Babinsky
-	Kyle Baker
-	Felipe Barreto
-	Jan Barta
-	Martin Bašti
-	Sylvain Baubeau
-	Florence Blanc-Renaud
-	Alexander Bokovoy
-	Thierry Bordaz
-	Sumit Bose
-	François Cami
-	Petr Čech
-	Xiao-Long Chen
-	Jan Cholasta
-	Yuri Chornoivan
-	Brian Cook
-	Rob Crittenden
-	Frank Cusack
-	Nalin Dahyabhai
-	Rishabh Dave
-	Don Davis
-	John Dennis
-	Jason Gerard DeRose
-	Günther Deschner
-	Endi Sukma Dewata
-	Lenka Doudova
-	Benjamin Drung
-	Patrice Duc-Jacquet
-	Tibor Dudlák
-	Lewis Eason
-	Drew Erny
-	Oleg Fayans
-	felipe
-	Jérôme Fenal
-	Fabiano Fidêncio
-	Stephen Gallagher
-	René Genz
-	James Groffen
-	Oliver Gutierrez
-	Ondřej Hamada
-	Nick Hatch
-	Christian Heimes
-	Jakub Hrozek
-	Ganna Kaihorodova
 	Abhijeet Kasurde
-	Nathan Kinder
-	Krzysztof Klimonda
-	Alexander Koksharov
-	Nikolai Kondrashov
-	Martin Košek
-	David Kreitschmann
-	Ludwig Krispenz
-	Ana Krivokapić
-	Tomáš Křížek
-	Milan Kubík
-	Ian Kumlien
-	David Kupka
-	Robert Kuska
-	Peter Lacko
-	Stanislav Laznicka
-	Ade Lee
-	Ben Lipton
-	Karl MacMillan
-	Niranjan Mallapadi
-	Ales 'alich' Marecek
-	Francesco Marella
-	Nathaniel McCallum
-	William Jon McCann
-	Kevin McCarthy
-	Mark McLoughlin
-	Rich Megginson
-	Jim Meyering
 	Adam Misnyovszki
-	John Morris
-	Niranjan MR
-	Marko Myllynen
-	Martin Nagy
-	David O'Brien
-	Dmitri Pal
-	Jan Pazdziora
-	W. Michael Petullo
-	Gowrishankar Rajaiyan
-	realsobek
-	Michal Reznik
-	Lubomír Rintel
-	Matt Rogers
-	Lynn Root
-	Pete Rowley
-	Lenka Ryznarova
-	Thorsten Scherf
-	shanyin
-	Michael Simacek
-	Lars Sjostrom
-	Filip Skola
+	Adam Young
+	Ade Lee
 	Aleksei Slaikovskii
-	Lukáš Slebodník
-	Simo Sorce
-	Petr Špaček
+	Ales 'alich' Marecek
+	Alex Zeleznikov
+	Alexander Bokovoy
+	Alexander Koksharov
+	amitkuma
+	amitkumar50
+	Ana Krivokapić
+	Andrew Wnuk
+	Anuja More
+	Armando Neto
+	Ben Lipton
+	Benjamin Drung
+	Brian Cook
+	Christian Heimes
+	David Kreitschmann
+	David Kupka
+	David O'Brien
 	David Spångberg
 	Diane Trout
+	Dmitri Pal
+	Don Davis
+	Drew Erny
+	Endi Sukma Dewata
+	Fabiano Fidêncio
+	felipe
+	Felipe Barreto
+	Felipe Volpone
+	Filip Skola
+	Florence Blanc-Renaud
+	Francesco Marella
+	Francisco Trivino
+	François Cami
+	Frank Cusack
 	Fraser Tweedale
+	Gabe Alford
+	Ganna Kaihorodova
+	Gaurav Talreja
+	Gowrishankar Rajaiyan
+	Günther Deschner
+	Ian Kumlien
+	Ian Pilcher
+	Jakub Hrozek
+	James Groffen
+	Jan Barta
+	Jan Cholasta
+	Jan Pazdziora
+	Jan Zelený
+	Jason Gerard DeRose
+	Jason Woods
+	Jayesh
+	Jayesh Garg
+	Jérôme Fenal
+	Jim Meyering
+	John Dennis
+	John L
+	John Morris
+	Jr Aquino
+	Justin Stephenson
+	Kaleemullah Siddiqui
+	Karl MacMillan
+	Kevin McCarthy
+	Krzysztof Klimonda
+	Kyle Baker
+	Lars Sjostrom
+	Lenka Doudova
+	Lenka Ryznarova
+	Lewis Eason
+	Lubomír Rintel
+	Ludwig Krispenz
+	Lukáš Slebodník
+	Lynn Root
+	Mark McLoughlin
+	Marko Myllynen
+	Martin Babinsky
+	Martin Bašti
+	Martin Košek
+	Martin Nagy
+	Matt Rogers
+	Michael Simacek
+	Michal Reznik
+	Michal Židek
+	Milan Kubík
+	Mohammad Rizwan Yusuf
+	Nalin Dahyabhai
+	Nathan Kinder
+	Nathaniel McCallum
+	ndehadra
+	Nick Hatch
+	Nikhil Dehadrai
+	Nikolai Kondrashov
+	Niranjan Mallapadi
+	Niranjan MR
+	Oleg Fayans
+	Oleg Kozlov
+	Oliver Gutierrez
+	Ondřej Hamada
+	Patrice Duc-Jacquet
+	Pavel Picka
+	Pavel Vomáčka
+	Pavel Zůna
+	Pete Rowley
+	Peter Lacko
+	Petr Čech
+	Petr Špaček
 	Petr Viktorin
 	Petr Voborník
-	Felipe Volpone
-	Pavel Vomáčka
-	Andrew Wnuk
-	Jason Woods
-	Adam Young
-	Mohammad Rizwan Yusuf
-	Jan Zelený
-	Alex Zeleznikov
-	Michal Židek
-	Pavel Zůna
+	realsobek
+	René Genz
+	Rich Megginson
+	Rishabh Dave
+	Rob Crittenden
+	Robbie Harwood
+	Robert Kuska
+	Sergey Orlov
+	Serhii Tsymbaliuk
+	shanyin
+	Simo Sorce
+	Stanislav Laznicka
+	Stanislav Levin
+	Stephen Gallagher
+	Sumedh Sidhaye
+	Sumit Bose
+	Sylvain Baubeau
+	Thierry Bordaz
+	Thomas Woerner
+	Thorsten Scherf
+	Tibor Dudlák
+	Timo Aaltonen
+	Tomáš Babej
+	Tomas Halman
+	Tomáš Křížek
+	Varun Mylaraiah
+	W. Michael Petullo
+	William Jon McCann
+	Xiao-Long Chen
+	Yuri Chornoivan
 
 Documentation:
 	Gabe Alford
@@ -144,15 +168,33 @@ Testing:
 	Yi Zhang
 
 Translators:
-	Héctor Daniel Cabrera
-	Yuri Chornoivan
-	Teguh DC
-	Piotr Drąg
-	Jérôme Fenal
-	Gundachandru
-	Jake Li
+	A S Alam
+	Abhijeet Kasurde
+	Alex
 	Andrew Martynov
+	Brian Curtich
+	David Kreitschmann
+	dominique
+	Emilio Herrera
+	Gundachandru
+	Héctor Daniel Cabrera
+	Jake Li
+	Jérôme Fenal
+	Josef Hruška
+	Marco Aurélio Krause
+	Martin Bašti
+	Martin Kosek
+	Martin Liu
+	Omar Berroterán S.
+	Paul Ritter
+	Pavel Vomacka
+	Piotr Drąg
+	Robert Antoni Buj Gelonch
 	Sankarshan Mukhopadhyay
+	Teguh DC
+	Tomas Babej
+	Yuri Chornoivan
+	zhenglei
 
 Wiki, Solution and Idea Contributors:
 	James Hogarth
