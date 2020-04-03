@@ -7,12 +7,12 @@ Tests to verify that the ipa-healthcheck scenarios
 
 from __future__ import absolute_import
 
-from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_ipa.integration import tasks
+import json
+
 from ipalib import api
 from ipapython.ipaldap import realm_to_serverid
-
-import json
+from ipatests.pytest_ipa.integration import tasks
+from ipatests.test_integration.base import IntegrationTest
 
 HEALTHCHECK_LOG = "/var/log/ipa/healthcheck/healthcheck.log"
 HEALTHCHECK_SYSTEMD_FILE = (
@@ -107,6 +107,7 @@ DEFAULT_PKI_KRA_CERTS = [
     "storageCert cert-pki-kra",
     "auditSigningCert cert-pki-kra",
 ]
+
 
 def run_healthcheck(host, source=None, check=None, output_type="json"):
     """
@@ -504,6 +505,19 @@ class TestIpaHealthCheck(IntegrationTest):
         for check in data:
             assert check["result"] == "SUCCESS"
             assert check["kw"]["key"] in SRV_RECORDS
+
+    def test_ipa_healthcheck_output_indent(self):
+        """
+        This test case checks whether default (2) indentation is applied
+        to output without it being implicitly stated
+        """
+        cmd = self.master.run_command(["ipa-healthcheck",
+                                       "--source",
+                                       "ipahealthcheck.meta.services"],
+                                      raiseonerr=False)
+        output_str = cmd.stdout_text
+        output_json = json.loads(output_str)
+        assert output_str == "{}\n".format(json.dumps(output_json, indent=2))
 
     def test_ipa_healthcheck_remove(self):
         """
