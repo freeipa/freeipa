@@ -337,9 +337,14 @@ class TestSSSDWithAdTrust(IntegrationTest):
             user_update_time = get_cache_update_time('user', user)
             group_update_time = get_cache_update_time('group', group)
             time.sleep(start + refresh_time - time.time() + 5)
-            assert get_cache_update_time('user', user) != user_update_time
-            assert (get_cache_update_time('group', group) !=
-                    group_update_time)
+            sssd_version = tasks.get_sssd_version(self.master)
+            with xfail_context(
+                    (user_origin == 'ad' and sssd_version <
+                     tasks.parse_version('2.2.2')),
+                'https://pagure.io/SSSD/sssd/issue/4012'):
+                assert get_cache_update_time('user', user) != user_update_time
+                assert (get_cache_update_time('group', group) !=
+                        group_update_time)
         finally:
             sssd_conf_backup.restore()
             tasks.clear_sssd_cache(self.master)
