@@ -20,6 +20,7 @@
 import pytest
 
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.tasks import (
@@ -153,8 +154,18 @@ class TestSudo(IntegrationTest):
                 'rules cleanup failed'
 
     def test_nisdomainname(self):
-        result = self.client.run_command('nisdomainname')
-        assert self.client.domain.name in result.stdout_text
+        """
+            Test that the client has been set up with proper NIS domain name
+            Also support containers where NIS domain name cannot be used
+            in runc environments
+        """
+        result = self.client.run_command('nisdomainname', raiseonerr=False)
+        if result.returncode == 1:
+            container = tasks.detect_container()
+            assert ((container != 'none') and
+                    ("Local domain name not set" in result.stdout_text))
+        else:
+            assert self.client.domain.name in result.stdout_text
 
     def test_add_sudo_commands(self):
         # Group: Readers
