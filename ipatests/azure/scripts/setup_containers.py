@@ -176,6 +176,30 @@ class Container:
         ]
         self.execute_all(cmd)
 
+    def ignore_service_in_container(self, service):
+        """
+        Amend systemd service configuration to be ignored in a container
+        """
+        service_dir = os.path.join(
+            "/etc/systemd/system", "{}.service.d".format(service))
+        override_file = os.path.join(service_dir, "ipa-override.conf")
+        cmds = [
+            "/bin/bash", "-c",
+            (f"mkdir -p {service_dir};"
+             f"echo '[Unit]' > {override_file};"
+             f"echo 'ConditionVirtualization=!container' >> {override_file}")
+        ]
+        self.execute_all(args=cmds)
+
+    def setup_container_overrides(self):
+        """
+        Set services known to not work in containers to be ignored
+        """
+        for service in ('chronyd', 'nis-domainname'):
+            self.ignore_service_in_container(service)
+
+        self.execute_all(args=["systemctl", "daemon-reload"])
+
 
 class Controller(Container):
     """
@@ -266,6 +290,13 @@ class Controller(Container):
         with open(os.path.join(IPA_TESTS_ENV_DIR, IPA_TEST_CONFIG), 'w') as f:
             f.write(template.render(config))
 
+    def setup_container_overrides(self):
+        """
+        Override services known to not work in containers
+        """
+        for container in self.containers:
+            container.setup_container_overrides()
+
 
 controller = Controller()
 master = Container(role='master')
@@ -280,6 +311,7 @@ controller.setup_ssh()
 controller.setup_hosts()
 controller.setup_hostname()
 controller.setup_resolvconf()
+controller.setup_container_overrides()
 
 config = {
     'dns_forwarder': IPA_DNS_FORWARDER,
