@@ -1443,7 +1443,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_ipahealthcheck.py
         template: *ci-master-frawhide
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl
 
   fedora-rawhide/test_ntp_options:

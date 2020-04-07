@@ -1443,7 +1443,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_ipahealthcheck.py
         template: *testing-master-latest
-        timeout: 3600
+        timeout: 4800
 
   testing-fedora/test_ntp_options:
     requires: [testing-fedora/build]

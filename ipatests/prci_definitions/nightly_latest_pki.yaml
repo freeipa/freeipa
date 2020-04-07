@@ -793,7 +793,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_ipahealthcheck.py
         template: *pki-master-latest
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl
 
   pki-fedora/test_pkinit_manage:
