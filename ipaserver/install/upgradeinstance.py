@@ -25,6 +25,7 @@ import ldif
 import shutil
 import random
 import traceback
+import os.path
 
 from ipalib import api
 from ipaplatform.paths import paths
@@ -35,6 +36,9 @@ from ipaserver.install import installutils
 from ipaserver.install import schemaupdate
 from ipaserver.install import ldapupdate
 from ipaserver.install import service
+from lib389.utils import get_data_dir
+import ldap
+from ldap.schema.models import AttributeType, ObjectClass
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +121,8 @@ class IPAUpgrade(service.Service):
         self.step("disabling listeners", self.__disable_listeners)
         self.step("enabling DS global lock", self.__enable_ds_global_write_lock)
         self.step("disabling Schema Compat", self.__disable_schema_compat)
+        self.step("pre-check RFC2307compat schema conflict",
+                  self.__correct_rfc2307compat_schema)
         self.step("starting directory server", self.__start)
         if self.schema_files:
             self.step("updating schema", self.__update_schema)
@@ -262,6 +268,101 @@ class IPAUpgrade(service.Service):
                 parser.parse()
 
         shutil.copy2(ldif_outfile, self.filename)
+
+    def __correct_rfc2307compat_schema(self):
+        """
+        Remove conflicting attributes and objectclasses from 15rfc2307bis.ldif
+        389-ds 1.4.3.5+ includes unified version of RFC2307/RFC2307bis schema
+        (10rfc2307compat.ldif) that has correct OIDs for several NIS-related
+        attributes. Previous schema in FreeIPA (15rfc2307bis.ldif) and 389-ds
+        (60nis.ldif) was using incorrect OIDs since 2008.
+
+        Since 10rfc2307compat.ldif is part of default 389-ds schema now, it is
+        always unconditionally loaded. It means per-instance schema will have
+        conflicts with 10rfc2307compat.ldif and cannot be corrected internally
+        after the service instance is up and running. The schema must be
+        updated before the server instance is up.
+
+        There are two places where schema is stored in the instance:
+         - individual schema files (15rfc2307bis.ldif)
+         - combined schema in 99user.ldif
+
+        It is not enough to replace the individual file (15rfc2307bis.ldif),
+        schema needs to be cleaned in 99user.ldif as well.
+        """
+        # lib389 does not expose default schema directory
+        # we have to derive it from the data dir
+        rfc2307compat = os.path.normpath(os.path.join(get_data_dir(), '..',
+                                         'schema', '10rfc2307compat.ldif'))
+        if os.path.isfile(rfc2307compat):
+            instance_schema = os.path.join(
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % self.serverid,
+                'schema')
+            instance_15rfc2307bis = os.path.join(instance_schema,
+                                                 '15rfc2307bis.ldif')
+            instance_99user = os.path.join(instance_schema,
+                                           '99user.ldif')
+            distro_15rfc2307bis = os.path.join(paths.USR_SHARE_IPA_DIR,
+                                               '15rfc2307bis.ldif')
+            if not (os.path.isfile(instance_15rfc2307bis) and
+                    os.path.isfile(distro_15rfc2307bis)):
+                return
+
+            # now replace offending attributes and objectclasses in 99user.ldif
+            if not os.path.isfile(instance_99user):
+                shutil.copy2(distro_15rfc2307bis, instance_15rfc2307bis)
+                return
+            parser = None
+            with open(instance_99user, 'r') as in_file:
+                parser = GetEntryFromLDIF(in_file, entries_dn=["cn=schema"])
+                try:
+                    parser.parse()
+                except EOFError:
+                    logger.error(
+                        'Cannot parse %s, upgrade might be incomplete',
+                        instance_99user)
+                    return
+
+            if parser:
+                try:
+                    entry = parser.get_results()["cn=schema"]
+                except KeyError:
+                    logger.error('Unable to find cn=schema entry in %s.',
+                                 instance_99user)
+                    return
+
+            url_15rfc2307bis = 'file://{}'.format(instance_15rfc2307bis)
+            _dn, new_schema = ldap.schema.subentry.urlfetch(
+                url_15rfc2307bis)
+
+            if 'attributeTypes' in entry:
+                for attr_oid in new_schema.listall(AttributeType):
+                    attr = new_schema.get_obj(AttributeType, attr_oid)
+                    attr_name = "NAME '{}' ".format(attr.names[0])
+
+                    filtered = (item for item in entry['attributeTypes']
+                                if attr_name not in item.decode('utf-8'))
+
+                    entry['attributeTypes'] = filtered
+
+            if 'objectClasses' in entry:
+                for obj_oid in new_schema.listall(ObjectClass):
+                    obj = new_schema.get_obj(ObjectClass, obj_oid)
+                    obj_name = "NAME '{}' ".format(obj.names[0])
+
+                    filtered = (item for item in entry['objectClasses']
+                                if obj_name not in item.decode('utf-8'))
+
+                    entry['objectClasses'] = filtered
+
+            if any(x in entry for x in ['attributeTypes', 'objectClasses']):
+                with open(instance_99user, "w") as out_file:
+                    # write down full 99user.ldif
+                    wr = ldif.LDIFWriter(out_file)
+                    wr.unparse('cn=schema', entry)
+
+            # Finally, replace 15rfc2307bis.ldif
+            shutil.copy2(distro_15rfc2307bis, instance_15rfc2307bis)
 
     def __update_schema(self):
         self.modified = schemaupdate.update_schema(
