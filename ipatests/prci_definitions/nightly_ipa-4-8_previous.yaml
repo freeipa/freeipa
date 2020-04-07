@@ -1338,7 +1338,7 @@ jobs:
         build_url: '{fedora-previous-ipa-4-8/build_url}'
         test_suite: test_integration/test_ipahealthcheck.py
         template: *ci-ipa-4-8-previous
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl
 
   fedora-previous-ipa-4-8/test_ntp_options:
