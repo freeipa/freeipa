@@ -1,11 +1,11 @@
-FROM fedora:31
+FROM fedora:33
 MAINTAINER [FreeIPA Developers freeipa-devel@lists.fedorahosted.org]
 ENV container=docker LANG=en_US.utf8 LANGUAGE=en_US.utf8 LC_ALL=en_US.utf8
 
 ADD dist /root
 RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
     && dnf update -y dnf \
-    && dnf install -y dnf-plugins-core sudo wget systemd firewalld nss-tools iptables \
+    && dnf install -y dnf-plugins-core sudo wget systemd systemd-udev firewalld nss-tools iptables \
     && sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf \
     && dnf install -y glibc-langpack-fr glibc-langpack-en \
     && dnf install -y /root/rpms/*.rpm \

@@ -1,7 +1,7 @@
 variables:
   IPA_PLATFORM: fedora
   # the Docker public image to build IPA packages (rpms)
-  DOCKER_BUILD_IMAGE: 'registry.fedoraproject.org/f31/fedora-toolbox'
+  DOCKER_BUILD_IMAGE: 'registry.fedoraproject.org/f33/fedora-toolbox'
 
   # the Dockerfile to build Docker image for running IPA tests
   DOCKER_DOCKERFILE: ${{ format('Dockerfile.build.{0}', variables.IPA_PLATFORM) }}
@@ -17,4 +17,4 @@ variables:
   TOX_COMMAND: tox
 
   # Python version for UsePythonVersion@0 task
-  AZURE_PYTHON_VERSION: '3.7'
+  AZURE_PYTHON_VERSION: '3.8'

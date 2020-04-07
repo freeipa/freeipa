@@ -2,7 +2,7 @@ steps:
 - script: |
     set -e
     sudo rm -rf /var/cache/dnf/*
-    sudo dnf makecache || :
+    sudo dnf -y makecache || :
     echo "Installing base development environment"
     sudo dnf install -y \
         gdb-minimal \
