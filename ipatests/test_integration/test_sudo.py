@@ -155,6 +155,9 @@ class TestSudo(IntegrationTest):
     @pytest.mark.skip_if_platform(
         "debian", reason="NISDOMAIN has not been set on Debian"
     )
+    @pytest.mark.skip_if_container(
+        "any", reason="NISDOMAIN cannot be set in containerized environment"
+    )
     def test_nisdomainname(self):
         result = self.client.run_command('nisdomainname')
         assert self.client.domain.name in result.stdout_text
