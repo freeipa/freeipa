@@ -278,6 +278,10 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
                 rc = LDAP_CONSTRAINT_VIOLATION;
                 slapi_ch_free_string(&userpw);
             } else {
+                rc = ipapwd_check_max_pwd_len(strlen(userpw_clear), &errMesg);
+                if (rc) {
+                    goto done;
+                }
                 userpw = slapi_ch_strdup(userpw_clear);
             }
 
@@ -560,6 +564,11 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
                 goto done;
             }
             bv = lmod->mod_bvalues[0];
+
+            rc = ipapwd_check_max_pwd_len(bv->bv_len, &errMesg);
+            if (rc) {
+                goto done;
+            }
             slapi_ch_free_string(&unhashedpw);
             unhashedpw = slapi_ch_malloc(bv->bv_len+1);
             if (!unhashedpw) {
@@ -782,7 +791,12 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     if (! unhashedpw && (gen_krb_keys || is_smb || is_ipant)) {
         if ((userpw != NULL) && ('{' == userpw[0])) {
             if (0 == strncasecmp(userpw, "{CLEAR}", strlen("{CLEAR}"))) {
-                unhashedpw = slapi_ch_strdup(&userpw[strlen("{CLEAR}")]);
+                const char *userpw_clear = &userpw[strlen("{CLEAR}")];
+                rc = ipapwd_check_max_pwd_len(strlen(userpw_clear), &errMesg);
+                if (rc) {
+                    goto done;
+                }
+                unhashedpw = slapi_ch_strdup(userpw_clear);
                 if (NULL == unhashedpw) {
                     LOG_OOM();
                     rc = LDAP_OPERATIONS_ERROR;
@@ -1416,6 +1430,8 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     time_t expire_time;
     char *principal_expire = NULL;
     struct tm expire_tm;
+    int rc = LDAP_INVALID_CREDENTIALS;
+    char *errMesg = NULL;
 
     /* get BIND parameters */
     ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET_SDN, &target_sdn);
@@ -1477,8 +1493,14 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         goto invalid_creds;
 
     /* Ensure that there is a password. */
-    if (credentials->bv_len == 0)
+    if (credentials->bv_len == 0) {
         goto invalid_creds;
+    } else {
+        rc = ipapwd_check_max_pwd_len(credentials->bv_len, &errMesg);
+        if (rc) {
+            goto invalid_creds;
+        }
+    }
 
     /* Authenticate the user. */
     ret = ipapwd_authenticate(dn, entry, credentials);
@@ -1502,8 +1524,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
 invalid_creds:
     slapi_entry_free(entry);
     slapi_sdn_free(&sdn);
-    slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
-                           NULL, NULL, 0, NULL);
+    slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
     return 1;
 }
 

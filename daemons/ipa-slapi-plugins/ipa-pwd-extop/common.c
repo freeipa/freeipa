@@ -1087,3 +1087,12 @@ void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg)
     *cfg = NULL;
 };
 
+int ipapwd_check_max_pwd_len(size_t len, char **errMesg) {
+    if (len > IPAPWD_PASSWORD_MAX_LEN) {
+        LOG("%s\n", ipapwd_password_max_len_errmsg);
+        *errMesg = ipapwd_password_max_len_errmsg;
+        return LDAP_CONSTRAINT_VIOLATION;
+    }
+    return 0;
+}
+

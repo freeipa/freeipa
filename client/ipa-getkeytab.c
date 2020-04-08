@@ -633,6 +633,11 @@ done:
  * set match=true to enforce that the two entered passwords match.
  *
  * To prompt for an existing password provide prompt1 and set match=false.
+ *
+ * Implementation details:
+ * krb5_prompter_posix() does not differentiate between too long entry or
+ * an entry exactly the size of a buffer. Thus, allocate a bigger buffer
+ * and do the check for a too long password afterwards.
  */
 static char *ask_password(krb5_context krbctx, char *prompt1, char *prompt2,
                           bool match)
@@ -640,8 +645,10 @@ static char *ask_password(krb5_context krbctx, char *prompt1, char *prompt2,
     krb5_prompt ap_prompts[2];
     krb5_data k5d_pw0;
     krb5_data k5d_pw1;
-    char pw0[256];
-    char pw1[256];
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#define PWD_BUFFER_SIZE MAX((IPAPWD_PASSWORD_MAX_LEN + 2), 1024)
+    char pw0[PWD_BUFFER_SIZE];
+    char pw1[PWD_BUFFER_SIZE];
     char *password;
     int num_prompts = match ? 2:1;
 
@@ -664,7 +671,12 @@ static char *ask_password(krb5_context krbctx, char *prompt1, char *prompt2,
                 num_prompts, ap_prompts);
 
     if (match && (strcmp(pw0, pw1))) {
-        fprintf(stderr, _("Passwords do not match!"));
+        fprintf(stderr, _("Passwords do not match!\n"));
+        return NULL;
+    }
+
+    if (k5d_pw0.length > IPAPWD_PASSWORD_MAX_LEN) {
+        fprintf(stderr, "%s\n", ipapwd_password_max_len_errmsg);
         return NULL;
     }
 
@@ -1017,6 +1029,7 @@ int main(int argc, const char *argv[])
             }
 
             fprintf(stderr, _("Failed to create key material\n"));
+            free_keys_contents(krbctx, &keys);
             exit(8);
         }
 
