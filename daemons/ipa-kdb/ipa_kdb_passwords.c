@@ -80,6 +80,12 @@ static krb5_error_code ipadb_check_pw_policy(krb5_context context,
         return EINVAL;
     }
 
+    if (strlen(passwd) > IPAPWD_PASSWORD_MAX_LEN) {
+        krb5_set_error_message(context, E2BIG, "%s",
+                               ipapwd_password_max_len_errmsg);
+        return E2BIG;
+    }
+
     ied->passwd = strdup(passwd);
     if (!ied->passwd) {
         return ENOMEM;

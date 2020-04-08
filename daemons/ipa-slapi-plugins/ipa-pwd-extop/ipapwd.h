@@ -133,6 +133,7 @@ int ipapwd_set_extradata(const char *dn,
                          time_t unixtime);
 void ipapwd_free_slapi_value_array(Slapi_Value ***svals);
 void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg);
+int ipapwd_check_max_pwd_len(size_t len, char **errMesg);
 
 /* from encoding.c */
 struct ipapwd_keyset {
