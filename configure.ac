@@ -598,6 +598,7 @@ AC_CONFIG_FILES([
     ipalib/Makefile
     ipaplatform/Makefile
     ipapython/Makefile
+    ipasphinx/Makefile
     ipaserver/Makefile
     ipatests/Makefile
     ipatests/man/Makefile
