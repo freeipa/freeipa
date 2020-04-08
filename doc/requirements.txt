@@ -1,6 +1,28 @@
-# m2r is not compatible with Sphinx 3.x
+## m2r is not compatible with Sphinx 3.x yet
 sphinx < 3.0
 
-# convert markdown to rest
+## convert markdown to rest
 m2r
 
+## ipa dependencies
+dnspython
+jwcrypto
+netaddr
+qrcode
+six
+pyasn1
+pyasn1-modules
+requests
+
+## C libraries with binary wheels
+cffi
+cryptography
+lxml
+
+## C libraries without binaries wheels
+# gssapi
+# dbus-python
+# python-ldap
+
+## No sufficient PyPI packages
+# dogtag-pki

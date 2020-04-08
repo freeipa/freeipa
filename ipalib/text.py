@@ -304,6 +304,10 @@ class Gettext(LazyText):
     def format(self, *args, **kwargs):
         return unicode(self).format(*args, **kwargs)
 
+    def expandtabs(self, tabsize=8):
+        """Compatibility for sphinx prepare_docstring()"""
+        return str(self).expandtabs(tabsize)
+
 
 @six.python_2_unicode_compatible
 class FixMe(Gettext):
@@ -523,6 +527,10 @@ class ConcatenatedLazyText:
             return ConcatenatedLazyText(*other.components + self.components)
         else:
             return ConcatenatedLazyText(*[other] + self.components)
+
+    def expandtabs(self, tabsize=8):
+        """Compatibility for sphinx prepare_docstring()"""
+        return str(self).expandtabs(tabsize)
 
 
 class GettextFactory:

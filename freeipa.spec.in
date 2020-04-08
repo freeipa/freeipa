@@ -819,6 +819,9 @@ make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
 
 %make_install
 
+# don't package ipasphinx for now
+rm -rf %{buildroot}%{python3_sitelib}/ipasphinx*
+
 %if 0%{?with_ipatests}
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python3_version}

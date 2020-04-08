@@ -510,14 +510,17 @@ class API(ReadOnly):
         level = logging.INFO
         if self.env.debug:  # pylint: disable=using-constant-test
             level = logging.DEBUG
-        try:
-            handler = logging.FileHandler(self.env.log)
-        except IOError as e:
-            logger.error('Cannot open log file %r: %s', self.env.log, e)
-            return
-        handler.setLevel(level)
-        handler.setFormatter(ipa_log_manager.Formatter(LOGGING_FORMAT_FILE))
-        root_logger.addHandler(handler)
+        if self.env.log is not None:
+            try:
+                handler = logging.FileHandler(self.env.log)
+            except IOError as e:
+                logger.error('Cannot open log file %r: %s', self.env.log, e)
+            else:
+                handler.setLevel(level)
+                handler.setFormatter(
+                    ipa_log_manager.Formatter(LOGGING_FORMAT_FILE)
+                )
+                root_logger.addHandler(handler)
 
     def build_global_parser(self, parser=None, context=None):
         """
