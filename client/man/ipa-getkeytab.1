@@ -93,7 +93,7 @@ AES\-256 CTS mode with 192\-bit SHA\-384 HMAC
 ArcFour with HMAC/md5
 .TP
 \fB\-P, \-\-password\fR
-Use this password for the key instead of one randomly generated.
+Use this password for the key instead of one randomly generated. The length of the password is limited by 1024 characters. Note that MIT Kerberos also limits passwords entered through kpasswd and kadmin commands to the same length.
 .TP
 \fB\-D, \-\-binddn\fR
 The LDAP DN to bind as when retrieving a keytab without Kerberos credentials. Generally used with the \fB\-w\fR or \fB\-W\fR options.
