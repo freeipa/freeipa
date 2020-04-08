@@ -31,6 +31,13 @@
 
 #include "ipa_krb5.h"
 
+#define TOSTR(x) STR(x)
+#define STR(x) #x
+const char *ipapwd_password_max_len_errmsg = \
+    "clear-text password is too long (max " \
+    TOSTR(IPAPWD_PASSWORD_MAX_LEN) \
+    " chars)!";
+
 /* Salt types */
 #define KRB5P_SALT_SIZE 16
 
@@ -124,6 +131,13 @@ krb5_error_code ipa_krb5_generate_key_data(krb5_context krbctx,
     krb5_key_data *keys;
     int num_keys;
     int i;
+
+    if ((pwd.data != NULL) && (pwd.length > IPAPWD_PASSWORD_MAX_LEN)) {
+        kerr = E2BIG;
+        krb5_set_error_message(krbctx, kerr, "%s",
+                               ipapwd_password_max_len_errmsg);
+        return kerr;
+    }
 
     num_keys = num_encsalts;
     keys = calloc(num_keys, sizeof(krb5_key_data));
@@ -970,6 +984,10 @@ int create_keys(krb5_context krbctx,
     if (password) {
         key_password.data = password;
         key_password.length = strlen(password);
+        if (key_password.length > IPAPWD_PASSWORD_MAX_LEN) {
+            *err_msg = _("Password is too long!\n");
+            return 0;
+        }
 
         realm = krb5_princ_realm(krbctx, princ);
     }
