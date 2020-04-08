@@ -334,6 +334,11 @@ parse_req_done:
 		goto free_and_return;
 	}
 
+        rc = ipapwd_check_max_pwd_len(strlen(newPasswd), &errMesg);
+        if (rc) {
+            goto free_and_return;
+        }
+
 	if (oldPasswd == NULL || *oldPasswd == '\0') {
 		/* If user is authenticated, they already gave their password during
 		the bind operation (or used sasl or client cert auth or OS creds) */
@@ -1683,6 +1688,14 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         }
 
     } else {
+
+        if (password != NULL) {
+            /* if password was passed-in, check its length */
+            rc = ipapwd_check_max_pwd_len(strlen(password), &err_msg);
+            if (rc) {
+                goto free_and_return;
+            }
+	}
 
         /* check if we are allowed to *write* keys */
         acl_ok = is_allowed_to_access_attr(pb, bind_dn, target_entry,

@@ -35,7 +35,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.tasks import tasks as platform_tasks
 from ipatests.create_external_ca import ExternalCA
 from ipatests.test_ipalib.test_x509 import good_pkcs7, badcert
-from ipapython.ipautil import realm_to_suffix
+from ipapython.ipautil import realm_to_suffix, ipa_generate_password
 
 logger = logging.getLogger(__name__)
 
@@ -444,6 +444,84 @@ class TestIPACommand(IntegrationTest):
                                          use_dirman=True)
         except CalledProcessError:
             pytest.fail("Password change failed when it should not")
+
+    def test_huge_password(self):
+        user = 'toolonguser'
+        hostname = 'toolong.{}'.format(self.master.domain.name)
+        huge_password = ipa_generate_password(min_len=1536)
+        original_passwd = 'Secret123'
+        master = self.master
+        base_dn = str(master.domain.basedn)
+
+        # Create a user with a password that is too long
+        tasks.kinit_admin(master)
+        add_password_stdin_text = "{pwd}\n{pwd}".format(pwd=huge_password)
+        result = master.run_command(['ipa', 'user-add', user,
+                                     '--first', user,
+                                     '--last', user,
+                                     '--password'],
+                                    stdin_text=add_password_stdin_text,
+                                    raiseonerr=False)
+        assert result.returncode != 0
+
+        # Try again with a normal password
+        add_password_stdin_text = "{pwd}\n{pwd}".format(pwd=original_passwd)
+        master.run_command(['ipa', 'user-add', user,
+                            '--first', user,
+                            '--last', user,
+                            '--password'],
+                           stdin_text=add_password_stdin_text)
+
+        # kinit as that user in order to modify the pwd
+        user_kinit_stdin_text = "{old}\n%{new}\n%{new}\n".format(
+            old=original_passwd,
+            new=original_passwd)
+        master.run_command(['kinit', user], stdin_text=user_kinit_stdin_text)
+        # sleep 1 sec (krblastpwdchange and krbpasswordexpiration have at most
+        # a 1s precision)
+        time.sleep(1)
+        # perform ldapmodify on userpassword as dir mgr
+        entry_ldif = textwrap.dedent("""
+            dn: uid={user},cn=users,cn=accounts,{base_dn}
+            changetype: modify
+            replace: userpassword
+            userpassword: {new_passwd}
+        """).format(
+            user=user,
+            base_dn=base_dn,
+            new_passwd=huge_password)
+
+        result = tasks.ldapmodify_dm(master, entry_ldif, raiseonerr=False)
+        assert result.returncode != 0
+
+        # ask_password in ipa-getkeytab will complain about too long password
+        keytab_file = os.path.join(self.master.config.test_dir,
+                                   'user.keytab')
+        password_stdin_text = "{pwd}\n{pwd}".format(pwd=huge_password)
+        result = self.master.run_command(['ipa-getkeytab',
+                                          '-p', user,
+                                          '-P',
+                                          '-k', keytab_file,
+                                          '-s', self.master.hostname],
+                                         stdin_text=password_stdin_text,
+                                         raiseonerr=False)
+        assert result.returncode != 0
+        assert "clear-text password is too long" in result.stderr_text
+
+        # Create a host with a user-set OTP that is too long
+        tasks.kinit_admin(master)
+        result = master.run_command(['ipa', 'host-add', '--force',
+                                     hostname,
+                                     '--password', huge_password],
+                                    raiseonerr=False)
+        assert result.returncode != 0
+
+        # Try again with a valid password
+        result = master.run_command(['ipa', 'host-add', '--force',
+                                     hostname,
+                                     '--password', original_passwd],
+                                    raiseonerr=False)
+        assert result.returncode == 0
 
     def test_change_selinuxusermaporder(self):
         """
