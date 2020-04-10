@@ -1240,7 +1240,7 @@ jobs:
           test_webui/test_realmdomains.py
           test_webui/test_trust.py
         template: *ci-master-previous
-        timeout: 3600
+        timeout: 7200
         topology: *ipaserver
 
   fedora-previous/test_webui_service:
