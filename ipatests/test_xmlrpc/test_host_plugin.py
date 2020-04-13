@@ -36,7 +36,6 @@ from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-from ipatests.test_util import yield_fixture
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.test_user_plugin import get_group_dn
 from ipatests.test_xmlrpc.testcert import get_testcert, subject_base
@@ -643,7 +642,7 @@ class TestValidation(XMLRPC_test):
         ), result)
 
 
-@yield_fixture
+@pytest.fixture
 def keytabname(request):
     keytabfd, keytabname = tempfile.mkstemp()
     try:
@@ -727,7 +726,7 @@ class TestHostFalsePwdChange(XMLRPC_test):
             command()
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def dns_setup_nonameserver(host4):
     # Make sure that the server does not handle the reverse zone used
     # for the test
@@ -819,7 +818,7 @@ class TestHostNoNameserversForRevZone(XMLRPC_test):
                 pass
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def dns_setup(host):
     try:
         host.run_command('dnszone_del', dnszone, revzone, revipv6zone,

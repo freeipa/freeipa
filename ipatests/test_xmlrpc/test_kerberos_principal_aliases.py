@@ -12,7 +12,6 @@ from ipalib import errors, api
 from ipapython import ipautil
 from ipaplatform.paths import paths
 
-from ipatests.test_util import yield_fixture
 from ipatests.util import MockLDAP
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
@@ -51,7 +50,7 @@ TRACKER_DATA = [
 ]
 
 
-@yield_fixture
+@pytest.fixture
 def trusted_domain():
     """Fixture providing mocked AD trust entries
 
@@ -69,7 +68,7 @@ def trusted_domain():
         ldap.del_entry(trusted_dom['dn'])
 
 
-@yield_fixture
+@pytest.fixture
 def trusted_domain_with_suffix():
     """Fixture providing mocked AD trust entries
 

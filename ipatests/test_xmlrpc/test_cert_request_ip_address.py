@@ -24,7 +24,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
 from ipalib import api, errors
-from ipatests.test_util import yield_fixture
 from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
@@ -79,41 +78,41 @@ def _record_setup(host, zone, record, **kwargs):
         host.run_command('dnsrecord_del', zone, record, **kwargs)
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def ipv4_revzone(host):
     yield from _zone_setup(host, ipv4_revzone_s)
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def ipv6_revzone(host):
     yield from _zone_setup(host, ipv6_revzone_s)
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def ipv4_ptr(host, ipv4_revzone):
     yield from _record_setup(
         host, ipv4_revzone, ipv4_revrec_s, ptrrecord=host_ptr)
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def ipv6_ptr(host, ipv6_revzone):
     yield from _record_setup(
         host, ipv6_revzone, ipv6_revrec_s, ptrrecord=host_ptr)
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def ipv4_a(host):
     yield from _record_setup(
         host, api.env.domain, 'iptest', arecord=ipv4_address)
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def ipv6_aaaa(host):
     yield from _record_setup(
         host, api.env.domain, 'iptest', aaaarecord=ipv6_address)
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def other_forward_records(host):
     """
     Create A and AAAA records (to the "correct" IP address) for
@@ -125,19 +124,19 @@ def other_forward_records(host):
         arecord=ipv4_address, aaaarecord=ipv6_address)
 
 
-@yield_fixture(scope='function')
+@pytest.fixture(scope='function')
 def ipv4_ptr_other(host, ipv4_revzone):
     yield from _record_setup(
         host, ipv4_revzone, ipv4_revrec_s, ptrrecord=other_ptr)
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def cname1(host):
     yield from _record_setup(
         host, api.env.domain, 'cname1', cnamerecord='iptest')
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def cname2(host):
     yield from _record_setup(
         host, api.env.domain, 'cname2', cnamerecord='cname1')
