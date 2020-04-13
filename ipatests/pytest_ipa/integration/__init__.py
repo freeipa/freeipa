@@ -32,7 +32,6 @@ from pytest_multihost import make_multihost_fixture
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
-from ipatests.test_util import yield_fixture
 from .config import Config
 from .env_config import get_global_config
 from . import tasks
@@ -187,7 +186,7 @@ def class_integration_logs():
     return {}
 
 
-@yield_fixture
+@pytest.fixture
 def integration_logs(class_integration_logs, request):
     """Provides access to test integration logs, and collects after each test
     """
@@ -197,7 +196,7 @@ def integration_logs(class_integration_logs, request):
     collect_systemd_journal(request.node, hosts, request.config)
 
 
-@yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def mh(request, class_integration_logs):
     """IPA's multihost fixture object
     """

@@ -162,7 +162,7 @@ def restore_checker(host):
         assert_func(expected, got)
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture
 def cert_sign_request(request):
     master = request.instance.master
     hosts = [master] + request.instance.replicas
