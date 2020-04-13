@@ -21,6 +21,8 @@
 
 from __future__ import print_function, absolute_import
 
+from pprint import pformat
+
 import logging
 import os
 import tempfile
@@ -260,7 +262,8 @@ def mh(request, class_integration_logs):
                     host.external_hostname, filename)
         class_integration_logs.setdefault(host, []).append(filename)
 
-    print(mh.config)
+    if logger.isEnabledFor(logging.INFO):
+        logger.info(pformat(mh.config.to_dict()))
     for host in mh.config.get_all_hosts():
         host.add_log_collector(collect_log)
         logger.info('Preparing host %s', host.hostname)
