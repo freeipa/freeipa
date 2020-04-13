@@ -532,6 +532,39 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["result"] == "SUCCESS"
             assert check["kw"]["key"] in SRV_RECORDS
 
+    def test_ipa_healthcheck_ds_ruv_check(self):
+        """
+        This testcase checks that ipa-healthcheck tool with RUVCheck
+        discovers the same RUV entries as the ipa-replica-manage list-ruv
+        command
+        """
+        result = self.master.run_command(
+            [
+                "ipa-replica-manage",
+                "list-ruv",
+                "-p",
+                self.master.config.dirman_password,
+            ]
+        )
+        output = re.findall(
+            r"\w+.+.\w+.\w:\d+", result.stdout_text.replace("389: ", "")
+        )
+        ruvs = []
+        for r in output:
+            (host, r) = r.split(":")
+            if host == self.master.hostname:
+                ruvs.append(r)
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ds.ruv", "RUVCheck"
+        )
+        assert returncode == 0
+        for check in data:
+            assert check["result"] == "SUCCESS"
+            assert check["kw"]["key"] in (self.master.domain.basedn, "o=ipaca")
+            assert check["kw"]["ruv"] in ruvs
+            ruvs.remove(check["kw"]["ruv"])
+        assert not ruvs
+
     def test_ipa_healthcheck_output_indent(self):
         """
         This test case checks whether default (2) indentation is applied
