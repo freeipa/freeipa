@@ -739,7 +739,7 @@ Requires: ldns-utils
 Requires: python3-coverage
 Requires: python3-cryptography >= 1.6
 Requires: python3-polib
-Requires: python3-pytest >= 2.6
+Requires: python3-pytest >= 3.9.1
 Requires: python3-pytest-multihost >= 0.5
 Requires: python3-pytest-sourceorder
 Requires: python3-sssdconfig >= %{sssd_version}
