@@ -75,7 +75,7 @@ class TestSMB(IntegrationTest):
         for user in [cls.ipa_user1, cls.ipa_user2, cls.ad_user]:
             tasks.run_command_as_user(cls.smbserver, user, ['stat', '.'])
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def enable_smb_client_dns_lookup_kdc(self):
         smbclient = self.smbclient
         with tasks.FileBackup(smbclient, paths.KRB5_CONF):
@@ -86,7 +86,7 @@ class TestSMB(IntegrationTest):
             smbclient.put_file_contents(paths.KRB5_CONF, krb5_conf)
             yield
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def samba_share_public(self):
         """Setup share outside /home on samba server."""
         share_name = 'shared'
