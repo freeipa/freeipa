@@ -55,6 +55,10 @@ if not has_option("confcutdir"):
 if not has_option("cache_dir"):
     sys.argv[1:1] = ["-o", 'cache_dir={}'.format(os.path.join(os.getcwd(),
                                                  ".pytest_cache"))]
+# Pytest 5.2 deprecation: The default value of junit_family option will change
+# to xunit2 in pytest 6.0. Current XML scheme is xunit1.
+if not has_option("junit_family"):
+    sys.argv[1:1] = ["-o", 'junit_family=xunit1']
 
 pyt_args = [sys.executable, "-c",
             "import sys,pytest;sys.exit(pytest.main())"] + sys.argv[1:]
