@@ -15,7 +15,7 @@ AM_CPPFLAGS =						\
 	-DLIBDIR=\""$(libdir)"\" 			\
 	-DLIBEXECDIR=\""$(libexecdir)"\"		\
 	-DDATADIR=\""$(datadir)"\"			\
-	-DLDAPIDIR=\""$(localstatedir)/run"\"		\
+	-DLDAPIDIR=\""$(runstatedir)"\"			\
 	-DHAVE_LDAP					\
 	-I$(top_srcdir)/util				\
 	$(CRYPTO_CFLAGS)				\
