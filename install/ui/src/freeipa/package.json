@@ -28,7 +28,7 @@
         "path": "install/ui/js/freeipa"
     }],
     "dependencies": {
-        "dojo": "~1.8.1"
+        "dojo": "~1.16.2"
     },
     "main": "src",
     "homepage": "http://freeipa.org/",
