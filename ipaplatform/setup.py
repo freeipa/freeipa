@@ -38,7 +38,8 @@ if __name__ == '__main__':
             "ipaplatform.debian",
             "ipaplatform.fedora",
             "ipaplatform.redhat",
-            "ipaplatform.rhel"
+            "ipaplatform.rhel",
+            "ipaplatform.suse"
         ],
         install_requires=[
             "cffi",
