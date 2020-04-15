@@ -11,7 +11,7 @@ AM_CPPFLAGS =						\
 	-DLIBDIR=\""$(libdir)"\" 			\
 	-DLIBEXECDIR=\""$(libexecdir)"\"		\
 	-DDATADIR=\""$(datadir)"\"			\
-	-DLDAPIDIR=\""$(localstatedir)/run"\"		\
+	-DLDAPIDIR=\""$(runstatedir)"\"			\
 	$(AM_CFLAGS)					\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)					\
