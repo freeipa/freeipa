@@ -59,7 +59,7 @@ OPTIONS
 
      --all          Do --clone --checkout --patches --links --dojo --util
 
-     --branch <br>  Specify a Dojo branch/tag/hash to checkout, default: 1.8.3
+     --branch <br>  Specify a Dojo branch/tag/hash to checkout, default: 1.16.2
 
      --dir <dir>    Specify a clone dir, default: freeipa/../dojo/
 __EOF__
@@ -76,7 +76,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOJO_DIR=$DIR/../../../../dojo
 
 # working version of Dojo toolkit
-BRANCH='1.8.3'
+BRANCH='1.16.2'
 YES='YES'
 
 args=`getopt -q -u -l help,checkout,clone,patches,links,dojo,util,all,branch:,dir: a $*`
@@ -166,7 +166,6 @@ if [[ $DOJO = $YES ]] ; then
             git checkout master
             git fetch --tags
             git fetch
-            git branch -D $BRANCH
             git checkout $BRANCH
         fi
     popd
@@ -187,7 +186,6 @@ if [[ $UTIL = $YES ]] ; then
             git checkout master
             git fetch --tags
             git fetch
-            git branch -D $BRANCH
             git checkout $BRANCH
         fi
 
