@@ -65,7 +65,7 @@ dnl ---------------------------------------------------------------------------
 AC_CHECK_HEADER(krad.h, [], [AC_MSG_ERROR([krad.h not found])])
 AC_CHECK_LIB(krad, main, [ ], [AC_MSG_ERROR([libkrad not found])])
 KRAD_LIBS="-lkrad"
-krb5rundir="${localstatedir}/run/krb5kdc"
+krb5rundir="${runstatedir}/krb5kdc"
 AC_SUBST(KRAD_LIBS)
 AC_SUBST(krb5rundir)
 

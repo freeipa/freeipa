@@ -143,7 +143,7 @@ def generate_krb5_config(realm, server):
             server,
         )
 
-        (fd, tcfg) = tempfile.mkstemp(dir="/var/run/ipa",
+        (fd, tcfg) = tempfile.mkstemp(dir="/run/ipa",
                 prefix="krb5conf", text=True)
         with io.open(fd, mode='w', encoding='utf-8') as o:
             o.write(content)
@@ -191,8 +191,8 @@ keytab_name = "/etc/samba/samba.keytab"
 
 principal = str("cifs/" + api.env.host)
 
-oneway_ccache_name = "/var/run/ipa/krb5cc_oddjob_trusts_fetch"
-ccache_name = "/var/run/ipa/krb5cc_oddjob_trusts"
+oneway_ccache_name = "/run/ipa/krb5cc_oddjob_trusts_fetch"
+ccache_name = "/run/ipa/krb5cc_oddjob_trusts"
 
 # Standard sequence:
 # - check if ccache exists
