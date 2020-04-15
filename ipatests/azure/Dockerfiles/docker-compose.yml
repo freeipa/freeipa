@@ -7,7 +7,7 @@ services:
     - ALL
     security_opt:
     - apparmor:unconfined
-    mem_limit: 1610612736
+    mem_limit: 1900m
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     - ./ipa-test-config.yaml:/root/.ipa/ipa-test-config.yaml:ro
@@ -23,7 +23,7 @@ services:
     - ALL
     security_opt:
     - apparmor:unconfined
-    mem_limit: 1610612736
+    mem_limit: 1900m
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     networks:
