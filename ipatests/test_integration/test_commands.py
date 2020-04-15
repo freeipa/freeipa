@@ -747,7 +747,7 @@ class TestIPACommand(IntegrationTest):
         result = self.master.run_command([
             paths.IPA_CACERT_MANAGE,
             'install',
-            '/var/run/cert_not_found'], raiseonerr=False)
+            '/run/cert_not_found'], raiseonerr=False)
         assert result.returncode == 1
 
         cmd = self.master.run_command(['mktemp'])

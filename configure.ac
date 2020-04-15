@@ -209,6 +209,17 @@ AC_ARG_WITH([sysconfenvdir],
 AC_SUBST([sysconfenvdir])
 
 dnl ---------------------------------------------------------------------------
+dnl - Get /run directory path
+dnl - available in autoconf 2.70+
+dnl ---------------------------------------------------------------------------
+AC_ARG_WITH([runstatedir],
+            AS_HELP_STRING([--with-runstatedir=DIR],
+                           [Runtime data directory]),
+            [runstatedir=$with_runstatedir],
+            [runstatedir="/run"])
+AC_SUBST([runstatedir])
+
+dnl ---------------------------------------------------------------------------
 dnl - Server-only configuration
 dnl ---------------------------------------------------------------------------
 
