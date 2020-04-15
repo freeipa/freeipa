@@ -44,6 +44,15 @@ steps:
 
 - template: run-test.yml
 
+- script: |
+    set -eux
+    free -m
+    cat /sys/fs/cgroup/memory/memory.memsw.max_usage_in_bytes
+    cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
+    cat /proc/sys/vm/swappiness
+  condition: succeededOrFailed()
+  displayName: Host's memory statistics
+
 - task: PublishTestResults@2
   inputs:
     testResultsFiles: 'ipa_envs/*/$(CI_RUNNER_LOGS_DIR)/nosetests.xml'
