@@ -1,0 +1,104 @@
+.. AUTO-GENERATED FILE, DO NOT EDIT!
+
+========================================================
+ipa-ldap-updater(1) -- Update the IPA LDAP configuration
+========================================================
+
+SYNOPSIS
+========
+
+ipa-ldap-updater [options] input_file(s)
+
+DESCRIPTION
+===========
+
+ipa-ldap-updater is utility which can be used to update the IPA LDAP
+server.
+
+An update file describes an LDAP entry and a set of operations to be
+performed on that entry. It can be used to add new entries or modify
+existing entries.
+
+Blank lines and lines beginning with # are ignored.
+
+There are 7 keywords:
+
+\* default: the starting value \* add: add a value to an attribute \*
+remove: remove a value from an attribute \* only: set an attribute to
+this \* onlyifexist: set an attribute to this only if the entry exists
+\* deleteentry: remove the entry \* replace: replace an existing value,
+format is old::new \* addifnew: add a new attribute and value only if
+the attribute doesn't already exist. Only works with single-value
+attributes. \* addifexist: add a new attribute and value only if the
+entry exists. This is used to update optional entries.
+
+The difference between the default and add keywords is if the DN of the
+entry exists then default is ignored. So for updating something like
+schema, which will be under cn=schema, you must always use add (because
+cn=schema is guaranteed to exist). It will not re-add the same
+information again and again.
+
+It also provides some things that can be templated such as architecture
+(for plugin paths), realm and domain name.
+
+The available template variables are:
+
+\* $REALM - the kerberos realm (EXAMPLE.COM) \* $FQDN - the
+fully-qualified domain name of the IPA server being updated
+(ipa.example.com) \* $DOMAIN - the domain name (example.com) \* $SUFFIX
+- the IPA LDAP suffix (dc=example,dc=com) \* $ESCAPED_SUFFIX - the
+ldap-escaped IPA LDAP suffix \* $LIBARCH - set to 64 on x86_64 systems
+to be used for plugin paths \* $TIME - an integer representation of
+current time
+
+For base64 encoded values a double colon ('::') must be used between
+attribute and value.
+
+Base64 format examples: add:binaryattr::d2UgbG92ZSBiYXNlNjQ=
+replace:binaryattr::SVBBIGlzIGdyZWF0::SVBBIGlzIHJlYWxseSBncmVhdA==
+
+A few rules:
+
+1. Only one rule per line 2. Each line stands alone (e.g. an only
+followed by an only results in the last only being used) 3. Adding a
+value that exists is ok. The request is ignored, duplicate values are
+not added 4. Removing a value that doesn't exist is ok. It is simply
+ignored. 5. If a DN doesn't exist it is created from the 'default' entry
+and all updates are applied 6. If a DN does exist the default values are
+skipped 7. Only the first rule on a line is respected
+
+ipa-ldap-updater allows to execute update plugins. Plugins to be
+executed are specified with following keyword, in update files: \*
+plugin: name of plugin
+
+This keyword is not bounded to DN, and plugin names have to be
+registered in API.
+
+Additionally, ipa-ldap-updater can update the schema based on LDIF
+files. Any missing object classes and attribute types are added, and
+differing ones are updated to match the LDIF file. To enable this
+behavior, use the --schema-file options. Schema files should be in LDIF
+format, and may only specify attributeTypes and objectClasses attributes
+of cn=schema.
+
+OPTIONS
+=======
+
+.. option:: -d, --debug
+
+   Enable debug logging when more verbose output is needed
+
+.. option:: -u, --upgrade
+
+   Upgrade an installed server in offline mode (implies --schema)
+
+.. option:: -S, --schema-file
+
+   Specify a schema file. May be used multiple times. Implies --schema.
+
+EXIT STATUS
+===========
+
+0 if the command was successful
+
+1 if an error occurred
