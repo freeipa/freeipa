@@ -72,10 +72,6 @@ class DebianTaskNamespace(RedHatTaskNamespace):
         # Debian doesn't have authselect
         return True
 
-    @staticmethod
-    def parse_ipa_version(version):
-        return BaseTaskNamespace.parse_ipa_version(version)
-
     def configure_httpd_wsgi_conf(self):
         # Debian doesn't require special mod_wsgi configuration
         pass
