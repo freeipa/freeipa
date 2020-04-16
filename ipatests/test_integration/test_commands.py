@@ -416,6 +416,28 @@ class TestIPACommand(IntegrationTest):
                                     raiseonerr=False)
         assert result.returncode == 0
 
+    def test_cleartext_password_httpd_log(self):
+        """Test to check password leak in apache error log
+
+        Host enrollment with OTP used to log the password in cleartext
+        to apache error log. This test ensures that the password should
+        not be log in cleartext.
+
+        related: https://pagure.io/freeipa/issue/8017
+        """
+        hostname = 'test.{}'.format(self.master.domain.name)
+        passwd = 'Secret123'
+
+        self.master.run_command(['ipa', 'host-add', '--force',
+                                 hostname, '--password', passwd])
+
+        # remove added host i.e cleanup
+        self.master.run_command(['ipa', 'host-del', hostname])
+
+        result = self.master.run_command(['grep', hostname,
+                                          paths.VAR_LOG_HTTPD_ERROR])
+        assert passwd not in result.stdout_text
+
     def test_change_selinuxusermaporder(self):
         """
         An update file meant to ensure a more sane default was
