@@ -4,6 +4,10 @@ AUTOMAKE_OPTIONS = 1.7
 
 NULL=
 
+#
+# Also add new man pages to doc/conf.py and doc/man/
+#
+
 dist_man1_MANS = 			\
 	ipa-replica-conncheck.1		\
 	ipa-replica-install.1		\

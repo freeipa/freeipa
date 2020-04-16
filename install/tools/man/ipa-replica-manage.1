@@ -30,49 +30,49 @@ or Web UI, see `ipa help topology` for additional information.
 The available commands are:
 .TP
 \fBconnect\fR [SERVER_A] <SERVER_B>
-\- Adds a new replication agreement between SERVER_A/localhost and SERVER_B. Applicable only for winsync agreements.
+Adds a new replication agreement between SERVER_A/localhost and SERVER_B. Applicable only for winsync agreements.
 .TP
 \fBdisconnect\fR [SERVER_A] <SERVER_B>
-\- Removes a replication agreement between SERVER_A/localhost and SERVER_B. Applicable only for winsync agreements.
+Removes a replication agreement between SERVER_A/localhost and SERVER_B. Applicable only for winsync agreements.
 .TP
 \fBdel\fR <SERVER>
-\- Removes all replication agreements and data about SERVER. Removes data and agreements for both suffixes - domain and ca.
+Removes all replication agreements and data about SERVER. Removes data and agreements for both suffixes - domain and ca.
 .TP
 \fBlist\fR [SERVER]
-\- Lists all the servers or the list of agreements of SERVER
+Lists all the servers or the list of agreements of SERVER
 .TP
 \fBre\-initialize\fR
-\- Forces a full re\-initialization of the IPA server retrieving data from the server specified with the \-\-from option
+Forces a full re\-initialization of the IPA server retrieving data from the server specified with the \-\-from option
 .TP
 \fBforce\-sync\fR
-\- Immediately flush any data to be replicated from a server specified with the \-\-from option
+Immediately flush any data to be replicated from a server specified with the \-\-from option
 .TP
 \fBlist\-ruv\fR
-\- List the replication IDs on this server.
+List the replication IDs on this server.
 .TP
 \fBclean\-ruv\fR [REPLICATION_ID]
-\- Run the CLEANALLRUV task to remove a replication ID.
+Run the CLEANALLRUV task to remove a replication ID.
 .TP
 \fBclean\-dangling\-ruv\fR
-\- Cleans all RUVs and CS\-RUVs that are left in the system from uninstalled replicas.
+Cleans all RUVs and CS\-RUVs that are left in the system from uninstalled replicas.
 .TP
 \fBabort\-clean\-ruv\fR [REPLICATION_ID]
-\- Abort a running CLEANALLRUV task. With \-\-force option the task does not wait for all the replica servers to have been sent the abort task, or be online, before completing.
+Abort a running CLEANALLRUV task. With \-\-force option the task does not wait for all the replica servers to have been sent the abort task, or be online, before completing.
 .TP
 \fBlist\-clean\-ruv\fR
-\- List all running CLEANALLRUV and abort CLEANALLRUV tasks.
+List all running CLEANALLRUV and abort CLEANALLRUV tasks.
 .TP
 \fBdnarange\-show [SERVER]\fR
-\- List the DNA ranges
+List the DNA ranges
 .TP
 \fBdnarange\-set SERVER START\-END\fR
-\- Set the DNA range on a master
+Set the DNA range on a master
 .TP
 \fBdnanextrange\-show [SERVER]\fR
-\- List the next DNA ranges
+List the next DNA ranges
 .TP
 \fBdnanextrange\-set SERVER START\-END\fR
-\- Set the DNA next range on a master
+Set the DNA next range on a master
 .TP
 The connect and disconnect options are used to manage the replication topology. When a replica is created it is only connected with the master that created it. The connect option may be used to connect it to other existing replicas.
 .TP
@@ -84,6 +84,7 @@ Each IPA master server has a unique replication ID. This ID is used by 389\-ds\-
 .TP
 When a master is removed, all other masters need to remove its replication ID from the list of masters. Normally this occurs automatically when a master is deleted with ipa\-replica\-manage. If one or more masters was down or unreachable when ipa\-replica\-manage was executed then this replica ID may still exist. The clean\-ruv command may be used to clean up an unused replication ID.
 .TP
+
 \fBNOTE\fR: clean\-ruv is \fBVERY DANGEROUS\fR. Execution against the wrong replication ID can result in inconsistent data on that master. The master should be re\-initialized from another if this happens.
 .TP
 The replication topology is examined when a master is deleted and will attempt to prevent a master from being orphaned. For example, if your topology is A <\-> B <\-> C and you attempt to delete master B it will fail because that would leave masters and A and C orphaned.
@@ -146,15 +147,16 @@ The DNA plugin also supports an "on\-deck" or next range configuration. When the
 When a master is removed an attempt is made to save its DNA range(s) onto another master in its on\-deck range. IPA will not attempt to extend or merge ranges. If there are no available on\-deck range slots then this is reported to the user. The range is effectively lost unless it is manually merged into the range of another master.
 .TP
 The DNA range and on\-deck (next) values can be managed using the dnarange\-set and dnanextrange\-set commands. The rules for managing these ranges are:
-\- The range must be completely contained within a local range as defined by the ipa idrange command.
-
-\- The range cannot overlap the DNA range or on\-deck range on another IPA master.
-
-\- The range cannot overlap the ID range of an AD Trust.
-
-\- The primary DNA range cannot be removed.
-
-\- An on\-deck range range can be removed by setting it to 0\-0. The assumption is that the range will be manually moved or merged elsewhere.
+.IP \[bu]
+The range must be completely contained within a local range as defined by the ipa idrange command.
+.IP \[bu]
+The range cannot overlap the DNA range or on\-deck range on another IPA master.
+.IP \[bu]
+The range cannot overlap the ID range of an AD Trust.
+.IP \[bu]
+The primary DNA range cannot be removed.
+.IP \[bu]
+An on\-deck range range can be removed by setting it to 0\-0. The assumption is that the range will be manually moved or merged elsewhere.
 .TP
 The range and next range of a specific master can be displayed by passing the FQDN of that master to the dnarange\-show or dnanextrange\-show command.
 .TP
@@ -162,16 +164,20 @@ Performing range changes as a delegated administrator (e.g. not using the Direct
 .SH "EXAMPLES"
 .TP
 List all masters:
+.EX
  # ipa\-replica\-manage list
  srv1.example.com: master
  srv2.example.com: master
  srv3.example.com: master
  srv4.example.com: master
+.EE
 .TP
 List a server's replication agreements.
+.EX
  # ipa\-replica\-manage list srv1.example.com
  srv2.example.com: replica
  srv3.example.com: replica
+.EE
 .TP
 Re\-initialize a replica:
  # ipa\-replica\-manage re\-initialize \-\-from srv2.example.com
@@ -179,23 +185,29 @@ Re\-initialize a replica:
 This will re\-initialize the data on the server where you execute the command, retrieving the data from the srv2.example.com replica
 .TP
 Add a new replication agreement:
+.EX
  # ipa\-replica\-manage connect srv2.example.com srv4.example.com
+.EE
 .TP
 Remove an existing replication agreement:
  # ipa\-replica\-manage disconnect srv1.example.com srv3.example.com
 .TP
 Completely remove a replica:
+.EX
  # ipa\-replica\-manage del srv4.example.com
+.EE
 .TP
 Using connect/disconnect you can manage the replication topology.
 .TP
 List the replication IDs in use:
+.EX
  # ipa\-replica\-manage list\-ruv
  Replica Update Vectors:
      srv1.example.com:389: 7
      srv2.example.com:389: 4
  Certificate Server Replica Update Vectors:
      srv1.example.com:389: 9
+.EE
 .TP
 Remove references to an orphaned and deleted master:
  # ipa\-replica\-manage del \-\-force \-\-cleanup master.example.com
@@ -210,22 +222,35 @@ The following examples use the AD administrator account as the synchronization u
 1. Transfer the base64\-encoded Windows AD CA Certificate to your IPA Server
 .TP
 2. Remove any existing kerberos credentials
+.EX
   # kdestroy
+.EE
 .TP
 3. Add the winsync replication agreement
-  # ipa\-replica\-manage connect \-\-winsync \-\-passsync=<bindpwd_for_syncuser_that will_be_used_for_agreement> \-\-cacert=/path/to/adscacert/WIN\-CA.cer \-\-binddn "cn=administrator,cn=users,dc=ad,dc=example,dc=com" \-\-bindpw <ads_administrator_password> \-v <adserver.fqdn>
+.EX
+  # ipa\-replica\-manage connect \-\-winsync \\
+    \-\-passsync=<bindpwd_for_syncuser_that will_be_used_for_agreement> \\
+    \-\-cacert=/path/to/adscacert/WIN\-CA.cer \\
+    \-\-binddn "cn=administrator,cn=users,dc=ad,dc=example,dc=com" \\
+    \-\-bindpw <ads_administrator_password> \\
+    \-v <adserver.fqdn>
+.EE
 .TP
 You will be prompted to supply the Directory Manager's password.
 .TP
 Create a winsync replication agreement:
-
- # ipa\-replica\-manage connect \-\-winsync \-\-passsync=MySecret
-\-\-cacert=/root/WIN\-CA.cer \-\-binddn "cn=administrator,cn=users,dc=ad,dc=example,dc=com"
-\-\-bindpw MySecret \-v windows.ad.example.com
-
+.EX
+ # ipa\-replica\-manage connect \-\-winsync \-\-passsync=MySecret \\
+   \-\-cacert=/root/WIN\-CA.cer \\
+   \-\-binddn "cn=administrator,cn=users,dc=ad,dc=example,dc=com" \\
+   \-\-bindpw MySecret \\
+   \-v windows.ad.example.com
+.EE
 .TP
 Remove a winsync replication agreement:
+.EX
  # ipa\-replica\-manage disconnect windows.ad.example.com
+.EE
 .SH "PASSSYNC"
 PassSync is a Windows service that runs on AD Domain Controllers to intercept password changes. It sends these password changes to the IPA LDAP server over TLS. These password changes bypass normal IPA password policy settings and the password is not set to immediately expire. This is because by the time IPA receives the password change it has already been accepted by AD so it is too late to reject it.
 .TP

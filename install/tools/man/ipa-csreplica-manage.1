@@ -28,26 +28,25 @@ To manage CA replication agreements in a domain at domain level 1, use IPA CLI o
 
 .TP
 \fBconnect\fR [SERVER_A] <SERVER_B>
-\- Adds a new replication agreement between SERVER_A/localhost and SERVER_B. Applicable only at domain level 0.
+Adds a new replication agreement between SERVER_A/localhost and SERVER_B. Applicable only at domain level 0.
 .TP
 \fBdisconnect\fR [SERVER_A] <SERVER_B>
-\- Removes a replication agreement between SERVER_A/localhost and SERVER_B. Applicable only at domain level 0.
+Removes a replication agreement between SERVER_A/localhost and SERVER_B. Applicable only at domain level 0.
 .TP
 \fBdel\fR <SERVER>
-\- Removes all replication agreements and data about SERVER. Applicable only at domain level 0.
-
+Removes all replication agreements and data about SERVER. Applicable only at domain level 0.
 .TP
 \fBlist\fR [SERVER]
-\- Lists all the servers or the list of agreements of SERVER
+Lists all the servers or the list of agreements of SERVER
 .TP
 \fBre\-initialize\fR
-\- Forces a full re\-initialization of the IPA CA server retrieving data from the server specified with the \-\-from option
+Forces a full re\-initialization of the IPA CA server retrieving data from the server specified with the \-\-from option
 .TP
 \fBforce\-sync\fR
-\- Immediately flush any data to be replicated from a server specified with the \-\-from option
+Immediately flush any data to be replicated from a server specified with the \-\-from option
 .TP
 \fBset\-renewal\-master\fR [SERVER]
-\- Set CA server which handles renewal of CA subsystem certificates to SERVER
+Set CA server which handles renewal of CA subsystem certificates to SERVER
 .TP
 The connect and disconnect options are used to manage the replication topology. When a replica is created it is only connected with the master that created it. The connect option may be used to connect it to other existing replicas.
 .TP
@@ -75,26 +74,37 @@ The server to pull the data from, used by the re\-initialize and force\-sync com
 .SH "EXAMPLES"
 .TP
 List a server's replication agreements.
+.EX
  # ipa\-csreplica\-manage list srv1.example.com
  srv2.example.com
  srv3.example.com
+.EE
 .TP
 Re\-initialize a replica:
+.EX
  # ipa\-csreplica\-manage re\-initialize \-\-from srv2.example.com
-
+.EE
 This will re\-initialize the data on the server where you execute the command, retrieving the data from the srv2.example.com replica
 .TP
 Add a new replication agreement:
+.EX
  # ipa\-csreplica\-manage connect srv2.example.com srv4.example.com
+.EE
 .TP
 Remove an existing replication agreement:
+.EX
  # ipa\-csreplica\-manage disconnect srv1.example.com srv3.example.com
+.EE
 .TP
 Completely remove a replica at domain level 0:
+.EX
  # ipa\-csreplica\-manage del srv4.example.com
+.EE
 .TP
 Completely remove a replica at domain level 1:
+.EX
  # ipa\-replica\-manage del srv4.example.com
+.EE
 .TP
 Using connect/disconnect you can manage the replication topology.
 .SH "EXIT STATUS"

@@ -105,9 +105,8 @@ Type of the external CA. Possible values are "generic", "ms-cs". Default value i
 .TP
 \fB\-\-external\-ca\-profile\fR=\fIPROFILE_SPEC\fR
 Specify the certificate profile or template to use at the external CA.
-
+.IP
 When \fB\-\-external\-ca\-type\fR is "ms-cs" the following specifiers may be used:
-
 .RS
 .TP
 \fB<oid>:<majorVersion>[:<minorVersion>]\fR
@@ -119,7 +118,6 @@ Specify a certificate template by name.  The name cannot contain any \fI:\fR cha
 \fBdefault\fR
 If no template is specified, the template name "SubCA" is used.
 .RE
-
 .TP
 \fB\-\-external\-cert\-file\fR=\fIFILE\fR
 File containing the IPA CA certificate and the external CA certificate chain. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times.

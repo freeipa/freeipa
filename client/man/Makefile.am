@@ -2,6 +2,10 @@
 
 AUTOMAKE_OPTIONS = 1.7
 
+#
+# Also add new man pages to doc/conf.py and doc/man/
+#
+
 dist_man1_MANS =			\
 		ipa-getkeytab.1		\
 		ipa-rmkeytab.1		\

@@ -48,6 +48,7 @@ The nsswitch automount service is configured to use either sss or ldap and files
 .TP
 NFSv4 is also configured. The rpc.gssd and rpc.idmapd are started on clients to support Kerberos\-secured mounts.
 .SH "OPTIONS"
+.TP
 \fB\-\-server\fR=\fISERVER\fR
 Set the FQDN of the IPA server to connect to.
 .TP
@@ -57,7 +58,7 @@ Automount location.
 \fB\-S\fR, \fB\-\-no\-sssd\fR
 Do not configure the client to use SSSD for automount.
 .TP
-\fB\-S\fR, \fB\-\-idmap\-domain\fR=\fIIDMAP_DOMAIN\fR
+\fB\-\-idmap\-domain\fR=\fIIDMAP_DOMAIN\fR
 NFS domain for idmapd.conf. If unset, defaults to the IPA domain. If set to DNS, let idmapd or nfsidmap determine the domain from DNS (see idmapd(8) or nfsidmap(5) for details). If set to anything else, set idmapd.conf's Domain entry to that value.
 .TP
 \fB\-d\fR, \fB\-\-debug\fR

@@ -30,6 +30,7 @@ ipa\-ca\-install can be used to upgrade from CA-less to CA-full or to install th
 Domain level 0 is not supported anymore.
 
 .SH "OPTIONS"
+.TP
 \fB\-d\fR, \fB\-\-debug\fR
 Enable debug logging when more verbose output is needed
 .TP
@@ -48,9 +49,8 @@ Type of the external CA. Possible values are "generic", "ms-cs". Default value i
 .TP
 \fB\-\-external\-ca\-profile\fR=\fIPROFILE_SPEC\fR
 Specify the certificate profile or template to use at the external CA.
-
+.IP
 When \fB\-\-external\-ca\-type\fR is "ms-cs" the following specifiers may be used:
-
 .RS
 .TP
 \fB<oid>:<majorVersion>[:<minorVersion>]\fR
