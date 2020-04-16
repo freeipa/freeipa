@@ -194,7 +194,7 @@ endif WITH_PYLINT
 if WITH_JSLINT
 JSLINT_TARGET = jslint
 endif WITH_JSLINT
-lint: acilint apilint $(POLINT_TARGET) $(PYLINT_TARGET) $(JSLINT_TARGET) rpmlint yamllint
+lint: acilint apilint $(POLINT_TARGET) $(PYLINT_TARGET) $(JSLINT_TARGET) rpmlint yamllint manlint
 
 .PHONY: devcheck
 devcheck: all
@@ -299,6 +299,14 @@ polint:
 .PHONY: rpmlint
 rpmlint: freeipa.spec
 	rpmlint ./$<
+
+.PHONY: manlint
+manlint:
+	find $(top_srcdir)/install/tools/man/ \
+	    $(top_srcdir)/client/man/ \
+	    $(top_srcdir)/ipatests/man/ \
+	    -type f -regex ".*[1-9]" \
+	    -exec mandoc -T lint -W error '{}' \;
 
 # Try to load yml/yaml files via safe_load, which recognizes only standard
 # YAML tags and cannot construct an arbitrary Python object.

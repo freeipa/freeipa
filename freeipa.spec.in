@@ -267,6 +267,7 @@ BuildRequires:  python3-polib
 BuildRequires:  python3-pyasn1
 BuildRequires:  python3-pyasn1-modules
 BuildRequires:  python3-pycodestyle
+BuildRequires:  mandoc
 %if 0%{?fedora} >= 29
 # https://bugzilla.redhat.com/show_bug.cgi?id=1648299
 BuildRequires:  python3-pylint >= 2.1.1-2
