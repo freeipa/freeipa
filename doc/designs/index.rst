@@ -9,6 +9,7 @@ FreeIPA design documentation
    adtrust/samba-domain-member.md
    krb-ticket-policy.md
    extdom-plugin-protocol.md
+   expiring-password-notification.md
    membermanager.md
    hidden-replicas.md
    disable-stale-users.md
