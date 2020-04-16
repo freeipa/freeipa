@@ -15,6 +15,7 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 	@echo "  lint        to check and lint documentation"
 	@echo "  venv        to create an isolated venv"
+	@echo "  update-man  to update auto-converted man pages"
 
 .PHONY: help Makefile
 
@@ -42,3 +43,7 @@ venv:
 	$(PYTHON) -m venv $(VENVDIR)
 	$(VENVDIR)/bin/python3 -m pip install -U pip setuptools
 	$(VENVDIR)/bin/python3 -m pip install -U -r ./requirements.txt
+
+.PHONY: update-man
+update-man:
+	python3 $(CURDIR)/man/gen_man.py

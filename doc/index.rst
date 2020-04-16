@@ -25,11 +25,12 @@ protocols with a very strong focus on ease of management and automation of
 installation and configuration tasks.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    designs/index.rst
    workshop.rst
+   man/index.rst
 
 
 Indices and tables
