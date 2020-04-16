@@ -62,7 +62,7 @@ class DebianPathNamespace(BasePathNamespace):
     SYSCONFIG_IPA_DNSKEYSYNCD = "/etc/default/ipa-dnskeysyncd"
     SYSCONFIG_IPA_ODS_EXPORTER = "/etc/default/ipa-ods-exporter"
     SYSCONFIG_KRB5KDC_DIR = "/etc/default/krb5-kdc"
-    SYSCONFIG_NAMED = "/etc/default/bind9"
+    SYSCONFIG_NAMED = "/etc/default/named"
     SYSCONFIG_NFS = "/etc/default/nfs-common"
     SYSCONFIG_NTPD = "/etc/default/ntp"
     SYSCONFIG_ODS = "/etc/default/opendnssec"
