@@ -606,24 +606,25 @@ class TestInstallMaster(IntegrationTest):
         other hand in case of restart it will change.
         """
         # listing all services
-        services = [
+        ipa_services_name = [
             "Directory", "krb5kdc", "kadmin", "named", "httpd", "ipa-custodia",
             "pki-tomcatd", "ipa-otpd", "ipa-dnskeysyncd"
         ]
 
         # checking the service status
         cmd = self.master.run_command(['ipactl', 'status'])
-        for service in services:
+        for service in ipa_services_name:
             assert f"{service} Service: RUNNING" in cmd.stdout_text
 
         # stopping few services
         service_stop = ["krb5kdc", "kadmin", "httpd"]
         for service in service_stop:
-            self.master.run_command(['systemctl', 'stop', service])
+            service_name = services.knownservices[service].systemd_name
+            self.master.run_command(['systemctl', 'stop', service_name])
 
         # checking service status
         service_start = [
-            svcs for svcs in services if svcs not in service_stop
+            svcs for svcs in ipa_services_name if svcs not in service_stop
         ]
         cmd = self.master.run_command(['ipactl', 'status'])
         for service in service_start:
@@ -636,7 +637,7 @@ class TestInstallMaster(IntegrationTest):
 
         # checking service status
         cmd = self.master.run_command(['ipactl', 'status'])
-        for service in services:
+        for service in ipa_services_name:
             assert f"{service} Service: RUNNING" in cmd.stdout_text
 
         # get process id of services
@@ -647,7 +648,7 @@ class TestInstallMaster(IntegrationTest):
 
         # checking service status
         cmd = self.master.run_command(['ipactl', 'status'])
-        for service in services:
+        for service in ipa_services_name:
             assert f"{service} Service: RUNNING" in cmd.stdout_text
 
         # check if pid for services are different
@@ -659,7 +660,7 @@ class TestInstallMaster(IntegrationTest):
 
         # checking service status
         cmd = self.master.run_command(['ipactl', 'status'])
-        for service in services:
+        for service in ipa_services_name:
             assert f"{service} Service: RUNNING" in cmd.stdout_text
 
         # check if pid for services are same
