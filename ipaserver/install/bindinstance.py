@@ -637,7 +637,7 @@ class DnsBackup:
 
 
 class BindInstance(service.Service):
-    def __init__(self, fstore=None, api=api):
+    def __init__(self, fstore=None, api=api, ntp_role=False):
         super(BindInstance, self).__init__(
             "named",
             service_desc="DNS",
@@ -658,6 +658,7 @@ class BindInstance(service.Service):
         self.sub_dict = None
         self.reverse_zones = ()
         self.named_regular = services.service('named-regular', api)
+        self.ntp_role = ntp_role
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
@@ -755,6 +756,8 @@ class BindInstance(service.Service):
             self.step("setting up records for other masters", self.__add_others)
         # all zones must be created before this step
         self.step("adding NS record to the zones", self.__add_self_ns)
+        if self.ntp_role:
+            self.step("adding dns ntp record", self.__add_ntp_record)
 
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up named.conf", self.setup_named_conf)
@@ -934,6 +937,10 @@ class BindInstance(service.Service):
             logger.debug("adding self NS to zone %s apex", zone)
             add_ns_rr(zone, ns_hostname, self.dns_backup, force=True,
                       api=self.api)
+
+    def __add_ntp_record(self):
+        add_rr(self.domain, '_ntp._udp', 'SRV',
+               "0 100 123 {}.".format(self.fqdn))
 
     def __setup_reverse_zone(self):
         # Always use force=True as named is not set up yet

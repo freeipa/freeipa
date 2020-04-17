@@ -326,14 +326,14 @@ def install_check(standalone, api, replica, options, hostname):
         print("Using reverse zone(s) %s" % ', '.join(reverse_zones))
 
 
-def install(standalone, replica, options, api=api):
+def install(standalone, replica, options, api=api, ntp_role=False):
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     if standalone:
         # otherwise this is done by server/replica installer
         update_hosts_file(ip_addresses, api.env.host, fstore)
 
-    bind = bindinstance.BindInstance(fstore, api=api)
+    bind = bindinstance.BindInstance(fstore, api=api, ntp_role=ntp_role)
     bind.setup(api.env.host, ip_addresses, api.env.realm, api.env.domain,
                options.forwarders, options.forward_policy,
                reverse_zones, zonemgr=options.zonemgr,
