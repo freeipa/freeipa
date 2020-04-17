@@ -26,7 +26,6 @@ from ipalib.install import certmonger, sysrestore
 import SSSDConfig
 import ipalib.util
 import ipalib.errors
-from ipaclient.install import timeconf
 from ipaclient.install.client import sssd_enable_ifp
 from ipaplatform import services
 from ipaplatform.tasks import tasks
@@ -1245,27 +1244,7 @@ def enable_server_snippet():
     tasks.restore_context(paths.KRB5_FREEIPA_SERVER)
 
 
-def ntpd_cleanup(fqdn, fstore):
-    sstore = sysrestore.StateFile(paths.SYSRESTORE)
-    timeconf.restore_forced_timeservices(sstore, 'ntpd')
-    if sstore.has_state('ntp'):
-        instance = services.service('ntpd', api)
-        sstore.restore_state(instance.service_name, 'enabled')
-        sstore.restore_state(instance.service_name, 'running')
-        sstore.restore_state(instance.service_name, 'step-tickers')
-        try:
-            instance.disable()
-            instance.stop()
-        except Exception as e:
-            logger.debug("Service ntpd was not disabled or stopped")
-
-    for ntpd_file in [paths.NTP_CONF, paths.NTP_STEP_TICKERS,
-                      paths.SYSCONFIG_NTPD]:
-        try:
-            fstore.restore_file(ntpd_file)
-        except ValueError as e:
-            logger.debug(e)
-
+def ntp_cleanup(fqdn):
     try:
         api.Backend.ldap2.delete_entry(DN(('cn', 'NTP'), ('cn', fqdn),
                                        api.env.container_masters))
@@ -1284,7 +1263,6 @@ def ntpd_cleanup(fqdn, fstore):
             updated_role_instances += tuple([role_instance])
 
     servroles.role_instances = updated_role_instances
-    sysupgrade.set_upgrade_state('ntpd', 'ntpd_cleaned', True)
 
 
 def update_replica_config(db_suffix):
@@ -1493,8 +1471,7 @@ def upgrade_configuration():
     if not ds_running:
         ds.start(ds.serverid)
 
-    if not sysupgrade.get_upgrade_state('ntpd', 'ntpd_cleaned'):
-        ntpd_cleanup(fqdn, fstore)
+    ntp_cleanup(fqdn)
 
     if tasks.configure_pkcs11_modules(fstore):
         print("Disabled p11-kit-proxy")
