@@ -584,8 +584,9 @@ class ADtrustBasedRole(BaseServerRole):
 
         search_filter = ldap.make_filter_from_attr(
             "memberof",
-            DN(('cn', 'adtrust agents'), ('cn', 'sysaccounts'),
-               ('cn', 'etc'), api_instance.env.basedn)
+            DN(('cn', 'adtrust agents'),
+               api_instance.env.container_sysaccounts,
+               api_instance.env.basedn)
         )
         if server is not None:
             server_filter = ldap.make_filter_from_attr(

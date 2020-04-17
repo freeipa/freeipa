@@ -903,8 +903,8 @@ class update_adtrust_agents_members(Updater):
             return False, []
 
         agents_dn = DN(
-            ('cn', 'adtrust agents'), ('cn', 'sysaccounts'),
-            ('cn', 'etc'), self.api.env.basedn)
+            ('cn', 'adtrust agents'), self.api.env.container_sysaccounts,
+            self.api.env.basedn)
 
         try:
             agents_entry = ldap.get_entry(agents_dn, ['member'])
