@@ -297,8 +297,8 @@ def add_hosts_to_adtrust_agents(api, host_list):
     :param host_list: list of potential AD trust agent FQDNs
     """
     agents_dn = DN(
-        ('cn', 'adtrust agents'), ('cn', 'sysaccounts'),
-        ('cn', 'etc'), api.env.basedn)
+        ('cn', 'adtrust agents'), api.env.container_sysaccounts,
+        api.env.basedn)
 
     service.add_principals_to_group(
         api.Backend.ldap2,

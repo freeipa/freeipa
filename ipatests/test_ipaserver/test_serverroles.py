@@ -55,8 +55,7 @@ def _make_master_entry(ldap_backend, dn, ca=False):
 
 _adtrust_agents = DN(
     ('cn', 'adtrust agents'),
-    ('cn', 'sysaccounts'),
-    ('cn', 'etc'),
+    api.env.container_sysaccounts,
     api.env.basedn
 )
 

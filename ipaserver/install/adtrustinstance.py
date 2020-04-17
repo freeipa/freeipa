@@ -192,8 +192,7 @@ class ADTRUSTInstance(service.Service):
         self.trust_dn = DN(api.env.container_trusts, self.suffix)
 
         self.smb_dn = DN(('cn', 'adtrust agents'),
-                         ('cn', 'sysaccounts'),
-                         ('cn', 'etc'),
+                         api.env.container_sysaccounts,
                          self.suffix)
 
         self.smb_dom_dn = DN(('cn', api.env.domain),
