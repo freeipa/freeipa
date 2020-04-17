@@ -720,7 +720,8 @@ class ReplicationManager:
         self.enable_chain_on_update(chainbe)
 
     def add_passsync_user(self, conn, password):
-        pass_dn = DN(('uid', 'passsync'), ('cn', 'sysaccounts'), ('cn', 'etc'), self.suffix)
+        pass_dn = DN(('uid', 'passsync'), api.env.container_sysaccounts,
+                     self.suffix)
         print("The user for the Windows PassSync service is %s" % pass_dn)
         try:
             conn.get_entry(pass_dn)

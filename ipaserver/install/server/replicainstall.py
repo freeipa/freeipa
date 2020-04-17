@@ -1010,8 +1010,9 @@ def promote_check(installer):
 
         # Detect if the other master can handle replication managers
         # cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX
-        dn = DN(('cn', 'replication managers'), ('cn', 'sysaccounts'),
-                ('cn', 'etc'), ipautil.realm_to_suffix(config.realm_name))
+        dn = DN(('cn', 'replication managers'),
+                api.env.container_sysaccounts,
+                ipautil.realm_to_suffix(config.realm_name))
         try:
             conn.get_entry(dn)
         except errors.NotFound:
