@@ -327,6 +327,16 @@ yamllint:
 	done; \
 	echo "-----------"
 
+# Build & lint documentation.
+#
+.PHONY: doclint
+doclint:
+	@echo -e "\nBuild and lint documentation";
+	@echo "-----------";
+	@$(MAKE) -C $(srcdir)/doc/ clean;
+	@$(MAKE) -C $(srcdir)/doc/ html; 
+	@echo "-----------"
+
 # Run pylint for all python files. Finds all python files/packages, skips
 # folders rpmbuild, freeipa-* and dist. Skip (match, but don't print) .*,
 # *.in, *~. Finally print all python files, including scripts that do not
