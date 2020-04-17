@@ -906,11 +906,10 @@ class TestIPACommand(IntegrationTest):
         if self.master.is_fips_mode:  # pylint: disable=no-member
             pytest.skip("paramiko is not compatible with FIPS mode")
 
-        sssd_version = ''
-        cmd_output = self.master.run_command(['sssd', '--version'])
-        sssd_version = platform_tasks.\
-            parse_ipa_version(cmd_output.stdout_text.strip())
-        if sssd_version.version < '2.2.0':
+        cmd = self.master.run_command(['sssd', '--version'])
+        sssd_version = platform_tasks.parse_ipa_version(
+            cmd.stdout_text.strip())
+        if sssd_version < platform_tasks.parse_ipa_version('2.2.0'):
             pytest.xfail(reason="sssd 2.2.0 unavailable in F29 nightly")
 
         username = "testuser" + str(random.randint(200000, 9999999))
