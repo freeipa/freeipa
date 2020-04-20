@@ -8,6 +8,7 @@ RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
     && dnf install -y dnf-plugins-core sudo wget systemd systemd-udev firewalld nss-tools iptables \
     && sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf \
     && dnf install -y glibc-langpack-fr glibc-langpack-en \
+    && dnf -y copr enable @389ds/389-ds-base-nightly \
     && dnf install -y /root/rpms/*.rpm \
     && dnf install -y openssh-server \
     && dnf clean all && rm -rf /root/rpms /root/srpms \

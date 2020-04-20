@@ -17,6 +17,7 @@ steps:
         python3-pyyaml \
 
     echo "Installing FreeIPA development dependencies"
+    sudo dnf -y copr enable @389ds/389-ds-base-nightly
     sudo dnf builddep -y freeipa
     sudo dnf builddep -y --skip-broken -D "with_wheels 1" -D "with_lint 1" -D "with_doc 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
   displayName: Prepare build environment
