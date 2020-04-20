@@ -79,6 +79,10 @@ class IntegrationTest(object):
 
     @classmethod
     def uninstall(cls, mh):
+        if cls.domain_level is not None:
+            domain_level = cls.domain_level
+        else:
+            domain_level = cls.master.config.domain_level
         for replica in cls.replicas:
             try:
                 tasks.run_server_del(
@@ -88,11 +92,7 @@ class IntegrationTest(object):
                 # If the master has already been uninstalled,
                 # this call may fail
                 pass
-            tasks.uninstall_master(replica)
-        if cls.domain_level is not None:
-            domain_level = cls.domain_level
-        else:
-            domain_level = cls.master.config.domain_level
+            tasks.uninstall_master(replica, domain_level=domain_level)
         tasks.uninstall_master(cls.master, domain_level=domain_level)
         for client in cls.clients:
             tasks.uninstall_client(client)
