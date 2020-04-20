@@ -9,6 +9,9 @@ server_password=Secret123
 
 echo "Installing FreeIPA master for the domain ${IPA_TESTS_DOMAIN} and realm ${IPA_TESTS_REALM}"
 
+ls -la /dev/shm
+mount |grep /dev/shm
+df -h /dev/shm
 install_result=1
 { ipa-server-install -U \
     --domain "$IPA_TESTS_DOMAIN" \
@@ -59,6 +62,7 @@ grep -n -C5 BytesWarning "$HTTPD_ERRORLOG" || echo "Good, none detected"
 
 echo "State of the directory server instance, httpd databases, PKI CA database:"
 ls -laZ \
+    /dev/shm \
     /etc/dirsrv/slapd-*/ \
     "${HTTPD_ALIASDIR}/" \
     /var/lib/ \
@@ -70,11 +74,12 @@ ls -laZ \
     /var/lib/ipa/private/ \
   ||:
 
+if [ "$install_result" -eq 0 ] ; then
 echo "Uninstall the server"
 ipa-server-install --uninstall -U
 # second uninstall to verify that --uninstall without installation works
 ipa-server-install --uninstall -U
-
+fi
 
 if [ "$install_result" -eq 0 ] ; then
     firewalld_cmd --remove-service={freeipa-ldap,freeipa-ldaps,dns}
@@ -83,6 +88,7 @@ fi
 echo "Collect the logs"
 journalctl -b --no-pager > systemd_journal.log
 tar --ignore-failed-read --remove-files -czf var_log.tar.gz \
+    /dev/shm/* \
     /var/log/dirsrv \
     "$HTTPD_LOGDIR" \
     /var/log/ipa* \
