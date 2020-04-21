@@ -462,7 +462,12 @@ Requires: bind >= 9.11.0-6.P2
 Requires: bind-utils >= 9.11.0-6.P2
 Requires: bind-pkcs11 >= 9.11.0-6.P2
 Requires: bind-pkcs11-utils >= 9.11.0-6.P2
+%if 0%{?fedora} >= 32
+# See https://bugzilla.redhat.com/show_bug.cgi?id=1825812
+Requires: opendnssec >= 2.1.6-5
+%else
 Requires: opendnssec >= 1.4.6-4
+%endif
 %{?systemd_requires}
 
 Provides: %{alt_name}-server-dns = %{version}
