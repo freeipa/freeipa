@@ -1,5 +1,7 @@
 [Socket]
 ListenStream=@runstatedir@/opendnssec/engine.sock
+SocketUser=@ODS_USER@
+SocketGroup=@ODS_GROUP@
 
 [Install]
 WantedBy=sockets.target
