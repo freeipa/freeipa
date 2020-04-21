@@ -253,6 +253,7 @@ optional_policy(`
 	opendnssec_manage_config(ipa_dnskey_t)
 	opendnssec_manage_var_files(ipa_dnskey_t)
 	opendnssec_filetrans_etc_content(ipa_dnskey_t)
+	opendnssec_stream_connect(ipa_dnskey_t)
 ')
 
 ########################################
