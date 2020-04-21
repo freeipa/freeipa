@@ -331,10 +331,9 @@ yamllint:
 #
 .PHONY: doclint
 doclint:
-	@echo -e "\nBuild and lint documentation";
-	@echo "-----------";
-	@$(MAKE) -C $(srcdir)/doc/ clean;
-	@$(MAKE) -C $(srcdir)/doc/ html; 
+	@echo -e "\nBuild and lint documentation"
+	@echo "-----------"
+	@$(MAKE) -C $(srcdir)/doc/ html SPHINXOPTS="-E"
 	@echo "-----------"
 
 # Run pylint for all python files. Finds all python files/packages, skips
