@@ -31,6 +31,7 @@ CLEANFILES = $(systemdsystemunit_DATA) $(nodist_app_SCRIPTS)
 		-e 's|@sysconfenvdir[@]|$(sysconfenvdir)|g' \
 		-e 's|@runstatedir[@]|$(runstatedir)|g' \
 		-e 's|@ODS_USER[@]|$(ODS_USER)|g' \
+		-e 's|@ODS_GROUP[@]|$(ODS_GROUP)|g' \
 		-e 's|@NAMED_GROUP[@]|$(NAMED_GROUP)|g' \
 		'$(srcdir)/$@.in' >$@
 
