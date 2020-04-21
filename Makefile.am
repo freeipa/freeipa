@@ -103,6 +103,7 @@ clean-local:
 	rm -f "$(top_builddir)"/$(PACKAGE)-*.tar.gz
 	rm -rf "$(top_srcdir)/cov-int"
 	rm -f "$(top_srcdir)/freeipa.tgz"
+	$(MAKE) -C "$(top_srcdir)/doc" distclean
 
 # convenience targets for RPM build
 .PHONY: rpmroot rpmdistdir version-update _dist-version-bakein _rpms-prep \
@@ -331,10 +332,9 @@ yamllint:
 #
 .PHONY: doclint
 doclint:
-	@echo -e "\nBuild and lint documentation";
-	@echo "-----------";
-	@$(MAKE) -C $(srcdir)/doc/ clean;
-	@$(MAKE) -C $(srcdir)/doc/ html; 
+	@echo -e "\nBuild and lint documentation"
+	@echo "-----------"
+	$(MAKE) -C $(top_srcdir)/doc/ lint
 	@echo "-----------"
 
 # Run pylint for all python files. Finds all python files/packages, skips
