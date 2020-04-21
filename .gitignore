@@ -86,6 +86,7 @@ freeipa2-dev-doc
 /daemons/test-driver
 
 /doc/_build
+/doc/.venv
 !/doc/Makefile
 
 /po/test.po
