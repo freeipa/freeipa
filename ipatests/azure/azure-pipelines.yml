@@ -76,7 +76,7 @@ jobs:
         echo "Running make target 'lint'"
         make V=0 lint
         echo "Building documentation"
-        make -C doc/ html SPHINXOPTS="-W"
+        make -C doc/ html
       displayName: Lint sources and documentation
     - template: templates/save-test-artifacts.yml
       parameters:
