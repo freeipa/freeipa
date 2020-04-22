@@ -565,6 +565,22 @@ class TestIpaHealthCheck(IntegrationTest):
             ruvs.remove(check["kw"]["ruv"])
         assert not ruvs
 
+    def test_ipa_healthcheck_without_trust_setup(self):
+        """
+        This testcase checks that when trust isn't setup between IPA
+        server and Windows AD, IPADomainCheck displays key value as
+        domain-check and result is SUCCESS
+        """
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.trust",
+            "IPADomainCheck"
+        )
+        assert returncode == 0
+        for check in data:
+            assert check["result"] == "SUCCESS"
+            assert check["kw"]["key"] == "domain-check"
+
     def test_ipa_healthcheck_output_indent(self):
         """
         This test case checks whether default (2) indentation is applied
