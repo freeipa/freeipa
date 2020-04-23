@@ -305,6 +305,36 @@ class TestIpaHealthCheck(IntegrationTest):
         self.master.run_command(["mv", TOMCAT_CFG + ".old", TOMCAT_CFG])
         self.master.run_command(["ipactl", "restart"])
 
+    @pytest.fixture
+    def restart_tomcat(self):
+        """Fixture to Stop and then start tomcat instance during test"""
+        self.master.run_command(
+            ["systemctl", "stop", "pki-tomcatd@pki-tomcat"]
+        )
+        yield
+        self.master.run_command(
+            ["systemctl", "start", "pki-tomcatd@pki-tomcat"]
+        )
+
+    def test_ipahealthcheck_dogtag_ca_connectivity_check(self, restart_tomcat):
+        """
+        This testcase checks that when the pki-tomcat service is stopped,
+        DogtagCertsConnectivityCheck displays the result as ERROR.
+        """
+        error_msg = (
+            "Request for certificate failed, "
+            "Certificate operation cannot be completed: "
+            "Unable to communicate with CMS (503)"
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.dogtag.ca",
+            "DogtagCertsConnectivityCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["msg"] == error_msg
+
     def test_source_ipahealthcheck_meta_core_metacheck(self):
         """
         Testcase checks behaviour of check MetaCheck in source
