@@ -12,10 +12,12 @@ import re
 
 import pytest
 
-from ipalib import api
-from ipapython.ipaldap import realm_to_serverid
+from ipalib import api, errors
+from ipapython.dn import DN
+from ipapython import ipautil
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
+from ipapython.ipaldap import realm_to_serverid
 
 HEALTHCHECK_LOG = "/var/log/ipa/healthcheck/healthcheck.log"
 HEALTHCHECK_SYSTEMD_FILE = (
@@ -564,6 +566,33 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["kw"]["ruv"] in ruvs
             ruvs.remove(check["kw"]["ruv"])
         assert not ruvs
+
+    def test_ipa_replication_conflict_check(self):
+        """
+        This test check for objectclass "(&(!(objectclass=nstombstone))
+        nsds5ReplConflict=*))" entry in IPA ldap database and when the
+        entry is not found, it checks that ipahealthcheck tool with
+        ReplicationConflictCheck displays the result as SUCCESS.
+        """
+        dn_suffix = str(self.master.domain.basedn)
+        conn = self.master.ldap_connect()
+        try:
+            entries = conn.get_entries(
+                DN(dn_suffix),
+                filter="(&(!(objectclass=nstombstone))(nsds5ReplConflict=*))",
+            )
+        except errors.EmptyResult:
+            pass
+        else:
+            returncode, data = run_healthcheck(
+                self.master,
+                "ipahealthcheck.ds.replication",
+                "ReplicationConflictCheck"
+            )
+            assert returncode == 0
+            for check in data:
+                assert check["result"] == "SUCCESS"
+                assert check["kw"] == {}
 
     def test_ipa_healthcheck_output_indent(self):
         """
