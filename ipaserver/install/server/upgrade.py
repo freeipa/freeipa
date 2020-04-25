@@ -594,9 +594,18 @@ def named_add_ipa_ext_conf_file():
         logger.info('DNS is not configured.')
         return False
 
-    return bindinstance.named_add_ext_conf_file(
-        paths.NAMED_CUSTOM_CFG_SRC,
-        paths.NAMED_CUSTOM_CONFIG)
+    tasks = [
+        bindinstance.named_add_ext_conf_file(
+            paths.NAMED_CUSTOM_CFG_SRC,
+            paths.NAMED_CUSTOM_CONFIG
+        ),
+        bindinstance.named_add_ext_conf_file(
+            paths.NAMED_CUSTOM_OPTIONS_CFG_SRC,
+            paths.NAMED_CUSTOM_OPTIONS_CONFIG
+        )
+    ]
+
+    return any(tasks)
 
 
 def named_set_minimum_connections():
