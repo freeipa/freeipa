@@ -1,7 +1,4 @@
 options {
-	// turns on IPv6 for port 53, IPv4 is on by default for all ifaces
-	listen-on-v6 {any;};
-
 	// Put files that named is allowed to write in the data/ directory:
 	directory "$NAMED_VAR_DIR"; // the default
 	dump-file		"${NAMED_DATA_DIR}cache_dump.db";
@@ -20,7 +17,6 @@ options {
 	pid-file "$NAMED_PID";
 
 	dnssec-enable yes;
-	dnssec-validation yes;
 
 	/* Path to ISC DLV key */
 	bindkeys-file "$BINDKEYS_FILE";

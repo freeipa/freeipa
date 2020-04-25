@@ -5,3 +5,8 @@
 // allow-query-cache {trusted_network;};
 //
 // This file will NOT be overridden during updates!
+
+// turns on IPv6 for port 53, IPv4 is on by default for all ifaces
+listen-on-v6 {any;};
+
+dnssec-validation $NAMED_DNSSEC_VALIDATION;

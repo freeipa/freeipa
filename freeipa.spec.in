@@ -1220,7 +1220,7 @@ fi
 %{_usr}/share/ipa/*.uldif
 %{_usr}/share/ipa/*.template
 %{_usr}/share/ipa/bind.ipa-ext.conf
-%{_usr}/share/ipa/bind.ipa-options-ext.conf
+%{_usr}/share/ipa/bind.ipa-options-ext.conf.template
 %dir %{_usr}/share/ipa/advise
 %dir %{_usr}/share/ipa/advise/legacy
 %{_usr}/share/ipa/advise/legacy/*.template

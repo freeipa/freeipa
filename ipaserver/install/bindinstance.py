@@ -295,7 +295,7 @@ def find_reverse_zone(ip_address, api=api):
     return None
 
 
-def named_add_ext_conf_file(src, dest, t_params={}):
+def named_add_ext_conf_file(src, dest, t_params=None):
     """
     Ensure included file is present, but don't override it.
 
@@ -303,13 +303,16 @@ def named_add_ext_conf_file(src, dest, t_params={}):
     :param dest: String. Absolute path to destination
     :param t_params: Dict. Parameters for source template
     """
+    if t_params is None:
+        t_params = {}
+
     if not os.path.exists(dest):
         ipa_ext_txt = ipautil.template_file(src, t_params)
         gid = pwd.getpwnam(constants.NAMED_USER).pw_gid
 
         with open(dest, 'w') as ipa_ext:
-            os.fchmod(ipa_ext.fileno(), 0o640)
-            os.fchown(ipa_ext.fileno(), 0, gid)
+            os.chmod(ipa_ext.fileno(), 0o640)
+            os.chown(ipa_ext.fileno(), 0, gid)
             ipa_ext.write(ipa_ext_txt)
         return True
     return False
@@ -991,22 +994,17 @@ class BindInstance(service.Service):
         named_txt = ipautil.template_file(
             os.path.join(paths.USR_SHARE_IPA_DIR, "bind.named.conf.template"),
             self.sub_dict)
-        named_fd = open(paths.NAMED_CONF, 'w')
-        named_fd.seek(0)
-        named_fd.truncate(0)
-        named_fd.write(named_txt)
-        named_fd.close()
+        with open(paths.NAMED_CONF, 'w') as named_conf:
+            named_conf.write(named_txt)
 
         named_add_ext_conf_file(paths.NAMED_CUSTOM_CFG_SRC,
                                 paths.NAMED_CUSTOM_CONFIG)
-        named_add_ext_conf_file(paths.NAMED_CUSTOM_OPTIONS_CFG_SRC,
-                                paths.NAMED_CUSTOM_OPTIONS_CONFIG)
 
-        if self.no_dnssec_validation:
-            # disable validation
-            named_conf_set_directive("dnssec-validation", "no",
-                                     section=NAMED_SECTION_OPTIONS,
-                                     str_val=False)
+        dnssec_validation = 'no' if self.no_dnssec_validation else 'yes'
+
+        named_add_ext_conf_file(paths.NAMED_CUSTOM_OPTIONS_CFG_SRC,
+                                paths.NAMED_CUSTOM_OPTIONS_CONFIG,
+                                {'NAMED_DNSSEC_VALIDATION': dnssec_validation})
 
         # prevent repeated upgrade on new installs
         sysupgrade.set_upgrade_state(

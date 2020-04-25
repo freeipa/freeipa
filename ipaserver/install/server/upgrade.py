@@ -19,7 +19,6 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from augeas import Augeas
-import dns.exception
 
 from ipalib import api, x509
 from ipalib.constants import RENEWAL_CA_NAME, RA_AGENT_PROFILE, IPA_CA_RECORD
@@ -33,7 +32,7 @@ from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipapython import ipautil, version
 from ipapython import ipaldap
-from ipapython import dnsutil, directivesetter
+from ipapython import directivesetter
 from ipapython.dn import DN
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -526,66 +525,7 @@ def ca_initialize_hsm_state(ca):
         ca.set_hsm_state(config)
 
 
-def named_remove_deprecated_options():
-    """
-    From IPA 3.3, persistent search is a default mechanism for new DNS zone
-    detection.
-
-    Remove psearch, zone_refresh cache_ttl and serial_autoincrement options,
-    as they have been deprecated in bind-dyndb-ldap configuration file.
-
-    When some change in named.conf is done, this functions returns True.
-    """
-
-    logger.info('[Removing deprecated DNS configuration options]')
-
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    deprecated_options = ['zone_refresh', 'psearch', 'cache_ttl',
-                          'serial_autoincrement']
-    removed_options = []
-
-    try:
-        # Remove all the deprecated options
-        for option in deprecated_options:
-            value = bindinstance.named_conf_get_directive(option)
-
-            if value is not None:
-                bindinstance.named_conf_set_directive(option, None)
-                removed_options.append(option)
-
-    except IOError as e:
-        logger.error('Cannot modify DNS configuration in %s: %s',
-                     paths.NAMED_CONF, e)
-
-    # Log only the changed options
-    if not removed_options:
-        logger.debug('No changes made')
-        return False
-
-    logger.debug('The following configuration options have been removed: %s',
-                 ', '.join(removed_options))
-    return True
-
-
-def named_add_ipa_ext_conf_include():
-    """
-    Ensures named.conf does include the ipa-ext.conf file
-    """
-    if not bindinstance.named_conf_exists():
-        logger.info('DNS is not configured.')
-        return False
-
-    if not bindinstance.named_conf_include_exists(paths.NAMED_CUSTOM_CONFIG):
-        bindinstance.named_conf_add_include(paths.NAMED_CUSTOM_CONFIG)
-        return True
-    return False
-
-
-def named_add_ipa_ext_conf_file():
+def named_add_ipa_ext_conf_file(named_conf_state):
     """
     Wrapper around bindinstance.named_add_ext_conf_file().
     Ensures named is configured before pushing the file.
@@ -594,463 +534,21 @@ def named_add_ipa_ext_conf_file():
         logger.info('DNS is not configured.')
         return False
 
+    dnssec_validation = 'no'
+    if named_conf_state['dnssec-validation']:
+        dnssec_validation = named_conf_state['dnssec-validation']
+
     tasks = (
         bindinstance.named_add_ext_conf_file(
             paths.NAMED_CUSTOM_CFG_SRC,
             paths.NAMED_CUSTOM_CONFIG),
         bindinstance.named_add_ext_conf_file(
             paths.NAMED_CUSTOM_OPTIONS_CFG_SRC,
-            paths.NAMED_CUSTOM_OPTIONS_CONFIG))
+            paths.NAMED_CUSTOM_OPTIONS_CONFIG,
+            {'NAMED_DNSSEC_VALIDATION': dnssec_validation})
+    )
 
     return any(tasks)
-
-
-def named_set_minimum_connections():
-    """
-    Sets the minimal number of connections.
-
-    When some change in named.conf is done, this functions returns True.
-    """
-
-    changed = False
-
-    logger.info('[Ensuring minimal number of connections]')
-
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return changed
-
-    # make sure number of connections is right
-    minimum_connections = 4
-
-    try:
-        connections = bindinstance.named_conf_get_directive('connections')
-    except IOError as e:
-        logger.debug('Cannot retrieve connections option from %s: %s',
-                     paths.NAMED_CONF, e)
-        return changed
-
-    try:
-        if connections is not None:
-            connections = int(connections)
-    except ValueError:
-        # this should not happend, but there is some bad value in
-        # "connections" option, bail out
-        pass
-    else:
-        if connections is not None and connections < minimum_connections:
-            try:
-                bindinstance.named_conf_set_directive('connections',
-                                                       minimum_connections)
-                logger.debug('Connections set to %d', minimum_connections)
-            except IOError as e:
-                logger.error('Cannot update connections in %s: %s',
-                             paths.NAMED_CONF, e)
-            else:
-                changed = True
-
-    if not changed:
-        logger.debug('No changes made')
-
-    return changed
-
-
-def named_update_gssapi_configuration():
-    """
-    Update GSSAPI configuration in named.conf to a recent API.
-    tkey-gssapi-credential and tkey-domain is replaced with tkey-gssapi-keytab.
-    Details can be found in https://fedorahosted.org/freeipa/ticket/3429.
-
-    When some change in named.conf is done, this functions returns True
-    """
-
-    logger.info('[Updating GSSAPI configuration in DNS]')
-
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    if sysupgrade.get_upgrade_state('named.conf', 'gssapi_updated'):
-        logger.debug('Skip GSSAPI configuration check')
-        return False
-
-    try:
-        gssapi_keytab = bindinstance.named_conf_get_directive(
-            'tkey-gssapi-keytab', bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError as e:
-        logger.error('Cannot retrieve tkey-gssapi-keytab option from %s: %s',
-                     paths.NAMED_CONF, e)
-        return False
-    else:
-        if gssapi_keytab:
-            logger.debug('GSSAPI configuration already updated')
-            sysupgrade.set_upgrade_state('named.conf', 'gssapi_updated', True)
-            return False
-
-    try:
-        tkey_credential = bindinstance.named_conf_get_directive('tkey-gssapi-credential',
-                bindinstance.NAMED_SECTION_OPTIONS)
-        tkey_domain = bindinstance.named_conf_get_directive('tkey-domain',
-                bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError as e:
-        logger.error('Cannot retrieve tkey-gssapi-credential option from %s: '
-                     '%s',
-                     paths.NAMED_CONF, e)
-        return False
-
-    if not tkey_credential or not tkey_domain:
-        logger.error('Either tkey-gssapi-credential or tkey-domain is missing '
-                     'in %s. Skip update.', paths.NAMED_CONF)
-        return False
-
-    try:
-        bindinstance.named_conf_set_directive(
-            'tkey-gssapi-credential', None,
-            bindinstance.NAMED_SECTION_OPTIONS)
-        bindinstance.named_conf_set_directive(
-            'tkey-domain', None,
-            bindinstance.NAMED_SECTION_OPTIONS)
-        bindinstance.named_conf_set_directive(
-            'tkey-gssapi-keytab', paths.NAMED_KEYTAB,
-            bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError as e:
-        logger.error('Cannot update GSSAPI configuration in %s: %s',
-                     paths.NAMED_CONF, e)
-        return False
-    else:
-        logger.debug('GSSAPI configuration updated')
-
-    sysupgrade.set_upgrade_state('named.conf', 'gssapi_updated', True)
-    return True
-
-
-def named_update_pid_file():
-    """
-    Make sure that named reads the pid file from the right file
-    """
-    logger.info('[Updating pid-file configuration in DNS]')
-
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    if sysupgrade.get_upgrade_state('named.conf', 'pid-file_updated'):
-        logger.debug('Skip pid-file configuration check')
-        return False
-
-    try:
-        pid_file = bindinstance.named_conf_get_directive(
-            'pid-file', bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError as e:
-        logger.error('Cannot retrieve pid-file option from %s: %s',
-                     paths.NAMED_CONF, e)
-        return False
-    else:
-        if pid_file:
-            logger.debug('pid-file configuration already updated')
-            sysupgrade.set_upgrade_state('named.conf', 'pid-file_updated', True)
-            return False
-
-    try:
-        bindinstance.named_conf_set_directive(
-            'pid-file', paths.NAMED_PID, bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError as e:
-        logger.error('Cannot update pid-file configuration in %s: %s',
-                     paths.NAMED_CONF, e)
-        return False
-    else:
-        logger.debug('pid-file configuration updated')
-
-    sysupgrade.set_upgrade_state('named.conf', 'pid-file_updated', True)
-    return True
-
-def named_enable_dnssec():
-    """
-    Enable dnssec in named.conf
-    """
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    if not sysupgrade.get_upgrade_state('named.conf', 'dnssec_enabled'):
-        logger.info('[Enabling "dnssec-enable" configuration in DNS]')
-        try:
-            bindinstance.named_conf_set_directive('dnssec-enable', 'yes',
-                                                  bindinstance.NAMED_SECTION_OPTIONS,
-                                                  str_val=False)
-        except IOError as e:
-            logger.error('Cannot update dnssec-enable configuration in %s: %s',
-                         paths.NAMED_CONF, e)
-            return False
-    else:
-        logger.debug('dnssec-enabled in %s', paths.NAMED_CONF)
-
-    sysupgrade.set_upgrade_state('named.conf', 'dnssec_enabled', True)
-    return True
-
-def named_validate_dnssec():
-    """
-    Disable dnssec validation in named.conf
-
-    We can't let enable it by default, there can be non-valid dns forwarders
-    which breaks DNSSEC validation
-    """
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    if (not sysupgrade.get_upgrade_state('named.conf', 'dnssec_validation_upgraded')
-        and bindinstance.named_conf_get_directive(
-                'dnssec-validation', bindinstance.NAMED_SECTION_OPTIONS,
-                str_val=False) is None):
-        # dnssec-validation is not configured, disable it
-        logger.info('[Disabling "dnssec-validate" configuration in DNS]')
-        try:
-            bindinstance.named_conf_set_directive('dnssec-validation', 'no',
-                                                  bindinstance.NAMED_SECTION_OPTIONS,
-                                                  str_val=False)
-        except IOError as e:
-            logger.error('Cannot update dnssec-validate configuration in %s: '
-                         '%s',
-                         paths.NAMED_CONF, e)
-            return False
-    else:
-        logger.debug('dnssec-validate already configured in %s',
-                     paths.NAMED_CONF)
-
-    sysupgrade.set_upgrade_state(
-        'named.conf', 'dnssec_validation_upgraded', True
-    )
-    return True
-
-
-def named_bindkey_file_option():
-    """
-    Add options bindkey_file to named.conf
-    """
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    if sysupgrade.get_upgrade_state('named.conf', 'bindkey-file_updated'):
-        logger.debug('Skip bindkey-file configuration check')
-        return False
-
-    try:
-        bindkey_file = bindinstance.named_conf_get_directive(
-            'bindkey-file', bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError as e:
-        logger.error('Cannot retrieve bindkey-file option from %s: %s',
-                     paths.NAMED_CONF, e)
-        return False
-    else:
-        if bindkey_file:
-            logger.debug('bindkey-file configuration already updated')
-            sysupgrade.set_upgrade_state('named.conf', 'bindkey-file_updated', True)
-            return False
-
-    logger.info('[Setting "bindkeys-file" option in named.conf]')
-    try:
-        bindinstance.named_conf_set_directive(
-            'bindkeys-file', paths.NAMED_BINDKEYS_FILE,
-            section=bindinstance.NAMED_SECTION_OPTIONS
-        )
-    except IOError as e:
-        logger.error('Cannot update bindkeys-file configuration in %s: %s',
-                     paths.NAMED_CONF, e)
-        return False
-
-
-    sysupgrade.set_upgrade_state('named.conf', 'bindkey-file_updated', True)
-    return True
-
-def named_managed_keys_dir_option():
-    """
-    Add options managed_keys_directory to named.conf
-    """
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    if sysupgrade.get_upgrade_state('named.conf', 'managed-keys-directory_updated'):
-        logger.debug('Skip managed-keys-directory configuration check')
-        return False
-
-    try:
-        managed_keys = bindinstance.named_conf_get_directive('managed-keys-directory',
-                bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError as e:
-        logger.error('Cannot retrieve managed-keys-directory option from %s: '
-                     '%s',
-                     paths.NAMED_CONF, e)
-        return False
-    else:
-        if managed_keys:
-            logger.debug('managed_keys_directory configuration already '
-                         'updated')
-            sysupgrade.set_upgrade_state('named.conf', 'managed-keys-directory_updated', True)
-            return False
-
-    logger.info('[Setting "managed-keys-directory" option in named.conf]')
-    try:
-        bindinstance.named_conf_set_directive('managed-keys-directory',
-                                              paths.NAMED_MANAGED_KEYS_DIR,
-                                              bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError as e:
-        logger.error('Cannot update managed-keys-directory configuration in '
-                     '%s: %s',
-                     paths.NAMED_CONF, e)
-        return False
-
-
-    sysupgrade.set_upgrade_state('named.conf', 'managed-keys-directory_updated', True)
-    return True
-
-def named_root_key_include():
-    """
-    Add options managed_keys_directory to named.conf
-    """
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    if sysupgrade.get_upgrade_state('named.conf', 'root_key_updated'):
-        logger.debug('Skip root key configuration check')
-        return False
-
-    try:
-        root_key = bindinstance.named_conf_include_exists(paths.NAMED_ROOT_KEY)
-    except IOError as e:
-        logger.error('Cannot check root key include in %s: %s',
-                     paths.NAMED_CONF, e)
-        return False
-    else:
-        if root_key:
-            logger.debug('root keys configuration already updated')
-            sysupgrade.set_upgrade_state('named.conf', 'root_key_updated', True)
-            return False
-
-    logger.info('[Including named root key in named.conf]')
-    try:
-        bindinstance.named_conf_add_include(paths.NAMED_ROOT_KEY)
-    except IOError as e:
-        logger.error('Cannot update named root key include in %s: %s',
-                     paths.NAMED_CONF, e)
-        return False
-
-
-    sysupgrade.set_upgrade_state('named.conf', 'root_key_updated', True)
-    return True
-
-
-def named_update_global_forwarder_policy():
-    bind = bindinstance.BindInstance()
-    if not bindinstance.named_conf_exists() or not bind.is_configured():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    logger.info('[Checking global forwarding policy in named.conf '
-                'to avoid conflicts with automatic empty zones]')
-    if sysupgrade.get_upgrade_state(
-        'named.conf', 'forward_policy_conflict_with_empty_zones_handled'
-    ):
-        # upgrade was done already
-        return False
-
-    sysupgrade.set_upgrade_state(
-        'named.conf',
-        'forward_policy_conflict_with_empty_zones_handled',
-        True
-    )
-    try:
-        if not dnsutil.has_empty_zone_addresses(api.env.host):
-            # guess: local server does not have IP addresses from private
-            # ranges so hopefully automatic empty zones are not a problem
-            return False
-    except dns.exception.DNSException as ex:
-        logger.error(
-            'Skipping update of global DNS forwarder in named.conf: '
-            'Unable to determine if local server is using an '
-            'IP address belonging to an automatic empty zone. '
-            'Consider changing forwarding policy to "only". '
-            'DNS exception: %s', ex)
-        return False
-
-    if bindinstance.named_conf_get_directive(
-            'forward',
-            section=bindinstance.NAMED_SECTION_OPTIONS,
-            str_val=False
-    ) == 'only':
-        return False
-
-    logger.info('Global forward policy in named.conf will '
-                'be changed to "only" to avoid conflicts with '
-                'automatic empty zones')
-    bindinstance.named_conf_set_directive(
-        'forward',
-        'only',
-        section=bindinstance.NAMED_SECTION_OPTIONS,
-        str_val=False
-    )
-    return True
-
-
-def named_add_server_id():
-    """
-    DNS Locations feature requires to have configured server_id in IPA section
-    of named.conf
-    :return: if named.conf has been changed
-    """
-    bind = bindinstance.BindInstance()
-    if not bindinstance.named_conf_exists() or not bind.is_configured():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    if sysupgrade.get_upgrade_state('named.conf', 'add_server_id'):
-        # upgrade was done already
-        return False
-
-    logger.info('[Adding server_id to named.conf]')
-    bindinstance.named_conf_set_directive('server_id', api.env.host)
-    sysupgrade.set_upgrade_state('named.conf', 'add_server_id', True)
-    return True
-
-
-def named_add_crypto_policy():
-    """Add crypto policy include
-    """
-    if not bindinstance.named_conf_exists():
-        logger.info('DNS is not configured')
-        return False
-
-    if sysupgrade.get_upgrade_state('named.conf', 'add_crypto_policy'):
-        # upgrade was done already
-        return False
-    policy_file = paths.NAMED_CRYPTO_POLICY_FILE
-    if policy_file is None:
-        # no crypto policy
-        return False
-
-    if bindinstance.named_conf_include_exists(policy_file):
-        sysupgrade.set_upgrade_state('named.conf', 'add_crypto_policy', True)
-        return False
-
-    logger.info('[Adding crypto policy include to named.conf]')
-    bindinstance.named_conf_set_directive(
-        'include', policy_file, section=bindinstance.NAMED_SECTION_OPTIONS
-    )
-    sysupgrade.set_upgrade_state('named.conf', 'add_crypto_policy', True)
-    return True
 
 
 def certificate_renewal_update(ca, kra, ds, http):
@@ -2170,29 +1668,55 @@ def upgrade_configuration():
 
     add_ca_dns_records()
 
-    # Any of the following functions returns True iff the named.conf file
-    # has been altered
-    named_conf_changes = (
-                          named_remove_deprecated_options(),
-                          named_add_ipa_ext_conf_file(),
-                          named_add_ipa_ext_conf_include(),
-                          named_set_minimum_connections(),
-                          named_update_gssapi_configuration(),
-                          named_update_pid_file(),
-                          named_enable_dnssec(),
-                          named_validate_dnssec(),
-                          named_bindkey_file_option(),
-                          named_managed_keys_dir_option(),
-                          named_root_key_include(),
-                          named_update_global_forwarder_policy(),
-                          mask_named_regular(),
-                          fix_dyndb_ldap_workdir_permissions(),
-                          named_add_server_id(),
-                          named_add_crypto_policy(),
-                         )
+    if bind.is_configured():
+        # store necessary named config options
+        # before we recreate the config file
+        named_conf_state = {
+            'dnssec-validation':
+                bindinstance.named_conf_get_directive(
+                    'dnssec-validation',
+                    bindinstance.NAMED_SECTION_OPTIONS,
+                    str_val=False
+                ),
+        }
 
-    if any(named_conf_changes):
-        # configuration has changed, restart the name server
+        if paths.NAMED_CRYPTO_POLICY_FILE is not None:
+            crypto_policy = 'include "{}";'.format(
+                paths.NAMED_CRYPTO_POLICY_FILE
+            )
+        else:
+            crypto_policy = "// not available"
+
+        named_sub_dict = dict(
+            FQDN=api.env.host,
+            SERVER_ID=ipaldap.realm_to_serverid(api.env.realm),
+            SUFFIX=ipautil.realm_to_suffix(api.env.realm),
+            BINDKEYS_FILE=paths.NAMED_BINDKEYS_FILE,
+            MANAGED_KEYS_DIR=paths.NAMED_MANAGED_KEYS_DIR,
+            ROOT_KEY=paths.NAMED_ROOT_KEY,
+            NAMED_KEYTAB=bind.keytab,
+            RFC1912_ZONES=paths.NAMED_RFC1912_ZONES,
+            NAMED_PID=paths.NAMED_PID,
+            NAMED_VAR_DIR=paths.NAMED_VAR_DIR,
+            BIND_LDAP_SO=paths.BIND_LDAP_SO,
+            INCLUDE_CRYPTO_POLICY=crypto_policy,
+            CUSTOM_CONFIG=paths.NAMED_CUSTOM_CONFIG,
+            CUSTOM_OPTIONS_CONFIG=paths.NAMED_CUSTOM_OPTIONS_CONFIG,
+            NAMED_DATA_DIR=constants.NAMED_DATA_DIR,
+            NAMED_ZONE_COMMENT=constants.NAMED_ZONE_COMMENT,
+        )
+
+        named_txt = ipautil.template_file(
+            os.path.join(paths.USR_SHARE_IPA_DIR, "bind.named.conf.template"),
+            named_sub_dict)
+        with open(paths.NAMED_CONF, 'w') as named_conf:
+            named_conf.write(named_txt)
+
+        named_add_ipa_ext_conf_file(named_conf_state)
+        mask_named_regular()
+        fix_dyndb_ldap_workdir_permissions()
+
+        # configuration might have changed, restart the name server
         logger.info('Changes to named.conf have been made, restart named')
         bind = bindinstance.BindInstance(fstore)
         try:
@@ -2200,6 +1724,8 @@ def upgrade_configuration():
                 bind.restart()
         except ipautil.CalledProcessError as e:
             logger.error("Failed to restart %s: %s", bind.service_name, e)
+    else:
+        logger.info('DNS is not configured')
 
     if bind_started:
         bind.stop()
