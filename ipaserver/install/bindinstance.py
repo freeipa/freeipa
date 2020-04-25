@@ -839,6 +839,7 @@ class BindInstance(service.Service):
             BIND_LDAP_SO=paths.BIND_LDAP_SO,
             INCLUDE_CRYPTO_POLICY=crypto_policy,
             CUSTOM_CONFIG=paths.NAMED_CUSTOM_CONFIG,
+            CUSTOM_OPTIONS_CONFIG=paths.NAMED_CUSTOM_OPTIONS_CONFIG,
             NAMED_DATA_DIR=constants.NAMED_DATA_DIR,
             NAMED_ZONE_COMMENT=constants.NAMED_ZONE_COMMENT,
         )
@@ -998,6 +999,8 @@ class BindInstance(service.Service):
 
         named_add_ext_conf_file(paths.NAMED_CUSTOM_CFG_SRC,
                                 paths.NAMED_CUSTOM_CONFIG)
+        named_add_ext_conf_file(paths.NAMED_CUSTOM_OPTIONS_CFG_SRC,
+                                paths.NAMED_CUSTOM_OPTIONS_CONFIG)
 
         if self.no_dnssec_validation:
             # disable validation
@@ -1262,5 +1265,6 @@ class BindInstance(service.Service):
             self.named_regular.start()
 
         ipautil.remove_file(paths.NAMED_CUSTOM_CONFIG)
+        ipautil.remove_file(paths.NAMED_CUSTOM_OPTIONS_CONFIG)
         ipautil.remove_keytab(self.keytab)
         ipautil.remove_ccache(run_as=self.service_user)

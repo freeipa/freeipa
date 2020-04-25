@@ -12,8 +12,9 @@ options {
 	// "allow-recursion" are set to "localnets; localhost;".
 	// If either "allow-query-cache" or "allow-recursion" is set,
 	// the other would be set the same value.
-	// Please refer to $CUSTOM_CONFIG
+	// Please refer to $CUSTOM_OPTIONS_CONFIG
 	// for more informations
+	include "$CUSTOM_OPTIONS_CONFIG";
 
 	tkey-gssapi-keytab "$NAMED_KEYTAB";
 	pid-file "$NAMED_PID";
