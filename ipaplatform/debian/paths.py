@@ -34,6 +34,7 @@ class DebianPathNamespace(BasePathNamespace):
     HTTPD_PASSWORD_CONF = "/etc/apache2/password.conf"
     NAMED_CONF = "/etc/bind/named.conf"
     NAMED_CUSTOM_CONFIG = "/etc/bind/ipa-ext.conf"
+    NAMED_CUSTOM_OPTIONS_CONFIG = "/etc/bind/ipa-options-ext.conf"
     NAMED_VAR_DIR = "/var/cache/bind"
     NAMED_KEYTAB = "/etc/bind/named.keytab"
     NAMED_RFC1912_ZONES = "/etc/bind/named.conf.default-zones"
