@@ -406,6 +406,42 @@ class TestSSSDWithAdTrust(IntegrationTest):
         # verify the user can be retrieved after re-enabling trustdomain
         self.master.run_command(['id', user])
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number <= (31,),
+        reason='https://pagure.io/SSSD/sssd/issue/3721',
+    )
+    def test_subdomain_lookup_with_certmaprule_containing_dn(self):
+        """DN names on certmaprules should not break AD Trust lookups.
+
+        Regression test for https://pagure.io/SSSD/sssd/issue/3721
+        """
+        tasks.kinit_admin(self.master)
+
+        # verify the user can be retrieved initially
+        first_res = self.master.run_command(['id', self.users['ad']['name']])
+
+        cert_cn = 'CN=adca'
+        cert_dcs = 'DC=' + ',DC='.join(self.ad.domain.name.split('.'))
+        cert_subject = cert_cn + ',' + cert_dcs
+
+        self.master.run_command([
+            'ipa',
+            'certmaprule-add',
+            "'{}'".format(cert_subject),
+            "--maprule='(userCertificate;binary={cert!bin})'",
+            "--matchrule='<ISSUER>{}'".format(cert_subject),
+            "--domain={}".format(self.master.domain.name)
+        ])
+        tasks.clear_sssd_cache(self.master)
+
+        # verify the user can be retrieved after the certmaprule is added
+        second_res = self.master.run_command(['id', self.users['ad']['name']])
+
+        assert first_res.stdout_text == second_res.stdout_text
+        verify_in_stdout = ['gid', 'uid', 'groups', self.users['ad']['name']]
+        for text in verify_in_stdout:
+            assert text in second_res.stdout_text
+
 
 class TestNestedMembers(IntegrationTest):
     num_clients = 1
