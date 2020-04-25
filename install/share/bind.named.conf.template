@@ -1,7 +1,8 @@
-options {
-	// turns on IPv6 for port 53, IPv4 is on by default for all ifaces
-	listen-on-v6 {any;};
+/* WARNING: This part of the config file is IPA-managed.
+ * Modifications may break IPA setup or upgrades.
+ */
 
+options {
 	// Put files that named is allowed to write in the data/ directory:
 	directory "$NAMED_VAR_DIR"; // the default
 	dump-file		"${NAMED_DATA_DIR}cache_dump.db";
@@ -12,14 +13,12 @@ options {
 	// "allow-recursion" are set to "localnets; localhost;".
 	// If either "allow-query-cache" or "allow-recursion" is set,
 	// the other would be set the same value.
-	// Please refer to $CUSTOM_CONFIG
+	// Please refer to $CUSTOM_OPTIONS_CONFIG
 	// for more informations
+	include "$CUSTOM_OPTIONS_CONFIG";
 
 	tkey-gssapi-keytab "$NAMED_KEYTAB";
 	pid-file "$NAMED_PID";
-
-	/* dnssec is enabled by default */
-	dnssec-validation yes;
 
 	managed-keys-directory "$MANAGED_KEYS_DIR";
 
@@ -50,9 +49,6 @@ include "$ROOT_KEY";
 /* custom configuration snippet */
 include "$CUSTOM_CONFIG";
 
-/* WARNING: This part of the config file is IPA-managed.
- * Modifications may break IPA setup or upgrades.
- */
 dyndb "ipa" "$BIND_LDAP_SO" {
 	uri "ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket";
 	base "cn=dns, $SUFFIX";
