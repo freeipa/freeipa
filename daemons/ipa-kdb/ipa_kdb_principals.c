@@ -1039,6 +1039,7 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
     struct berval **vals = NULL;
     int result;
     krb5_error_code ret;
+    size_t princ_len = 0;
 
     ipactx = ipadb_get_context(kcontext);
     if (!ipactx) {
@@ -1046,6 +1047,7 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
         goto done;
     }
 
+    princ_len = strlen(*principal);
     for (le = ldap_first_entry(ipactx->lcontext, res); le != NULL;
          le = ldap_next_entry(ipactx->lcontext, le)) {
         vals = ldap_get_values_len(ipactx->lcontext, le, "krbprincipalname");
@@ -1057,7 +1059,8 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
         for (int i = 0; vals[i]; i++) {
 #ifdef KRB5_KDB_FLAG_ALIAS_OK
             if ((flags & KRB5_KDB_FLAG_ALIAS_OK) == 0) {
-                found = strcmp(vals[i]->bv_val, *principal) == 0;
+                found = ((vals[i]->bv_len == princ_len) &&
+                         strncmp(vals[i]->bv_val, *principal, vals[i]->bv_len) == 0);
                 if (found)
                     break;
 
@@ -1069,7 +1072,7 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
              * (ref_tgt_again in do_tgs_req.c), so use case-insensitive
              * comparison. */
             if (ulc_casecmp(vals[i]->bv_val, vals[i]->bv_len, *principal,
-                            strlen(*principal), NULL, NULL, &result) != 0) {
+                            princ_len, NULL, NULL, &result) != 0) {
                 ret = KRB5_KDB_INTERNAL_ERROR;
                 goto done;
             }
@@ -1080,19 +1083,23 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
              * name/alias is returned even if krbCanonicalName is not
              * present. */
             free(*principal);
-            *principal = strdup(vals[i]->bv_val);
+            *principal = strndup(vals[i]->bv_val, vals[i]->bv_len);
             if (!*principal) {
                 ret = KRB5_KDB_INTERNAL_ERROR;
                 goto done;
             }
+            princ_len = strlen(*principal);
             found = true;
             break;
         }
-        if (!found)
+
+        ldap_value_free_len(vals);
+	vals = NULL;
+        if (!found) {
             continue;
+        }
 
         /* We need to check if this is the canonical name. */
-        ldap_value_free_len(vals);
         vals = ldap_get_values_len(ipactx->lcontext, le, "krbcanonicalname");
         if (vals == NULL)
             break;
@@ -1101,16 +1108,18 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
         /* If aliases aren't accepted by the KDC, use case-sensitive
          * comparison. */
         if ((flags & KRB5_KDB_FLAG_ALIAS_OK) == 0) {
-            found = strcmp(vals[0]->bv_val, *principal) == 0;
+            found = ((vals[0]->bv_len == strlen(*principal)) &&
+                     strncmp(vals[0]->bv_val, *principal, vals[0]->bv_len) == 0);
             if (!found) {
                 ldap_value_free_len(vals);
+		vals = NULL;
                 continue;
             }
         }
 #endif
 
         free(*principal);
-        *principal = strdup(vals[0]->bv_val);
+        *principal = strndup(vals[0]->bv_val, vals[0]->bv_len);
         if (!*principal) {
             ret = KRB5_KDB_INTERNAL_ERROR;
             goto done;
