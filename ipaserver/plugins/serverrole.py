@@ -191,5 +191,5 @@ class servrole(Object):
             label=_("Role name"),
             doc=_("IPA role name"),
             flags=(u'virtual_attribute',)
-        )
+        ),
     )
