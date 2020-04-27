@@ -58,6 +58,7 @@ LONG_LOGIN = "invalid 'login': can be at most 32 characters"
 INV_PASSWD = ("invalid 'password': Leading and trailing spaces are "
               "not allowed")
 
+
 @pytest.mark.tier1
 class user_tasks(UI_driver):
     def load_file(self, path):
@@ -123,11 +124,16 @@ class test_user(user_tasks):
         self.navigate_to_entity(user.ENTITY)
         self.navigate_to_record(user.PKEY)
 
-        self.add_associations([group.PKEY, 'editors'], facet='memberof_group', delete=True)
-        self.add_associations([netgroup.PKEY], facet='memberof_netgroup', delete=True)
-        self.add_associations([rbac.ROLE_PKEY], facet='memberof_role', delete=True)
-        self.add_associations([hbac.RULE_PKEY], facet='memberof_hbacrule', delete=True)
-        self.add_associations([sudo.RULE_PKEY], facet='memberof_sudorule', delete=True)
+        self.add_associations([group.PKEY, 'editors'],
+                              facet='memberof_group', delete=True)
+        self.add_associations([netgroup.PKEY],
+                              facet='memberof_netgroup', delete=True)
+        self.add_associations([rbac.ROLE_PKEY],
+                              facet='memberof_role', delete=True)
+        self.add_associations([hbac.RULE_PKEY],
+                              facet='memberof_hbacrule', delete=True)
+        self.add_associations([sudo.RULE_PKEY],
+                              facet='memberof_sudorule', delete=True)
 
         # cleanup
         # -------
@@ -179,10 +185,14 @@ class test_user(user_tasks):
         self.navigate_to_record(user.PKEY)
 
         self.assert_indirect_record(group.PKEY2, user.ENTITY, 'memberof_group')
-        self.assert_indirect_record(netgroup.PKEY, user.ENTITY, 'memberof_netgroup')
-        self.assert_indirect_record(rbac.ROLE_PKEY, user.ENTITY, 'memberof_role')
-        self.assert_indirect_record(hbac.RULE_PKEY, user.ENTITY, 'memberof_hbacrule')
-        self.assert_indirect_record(sudo.RULE_PKEY, user.ENTITY, 'memberof_sudorule')
+        self.assert_indirect_record(netgroup.PKEY,
+                                    user.ENTITY, 'memberof_netgroup')
+        self.assert_indirect_record(rbac.ROLE_PKEY,
+                                    user.ENTITY, 'memberof_role')
+        self.assert_indirect_record(hbac.RULE_PKEY,
+                                    user.ENTITY, 'memberof_hbacrule')
+        self.assert_indirect_record(sudo.RULE_PKEY,
+                                    user.ENTITY, 'memberof_sudorule')
 
         ## cleanup
         ## -------
@@ -349,7 +359,7 @@ class test_user(user_tasks):
         self.navigate_to_record(user.PKEY, entity=user.ENTITY)
         self.reset_password_action(pwd)
 
-        #re-login as new user
+        # re-login as new user
         self.logout()
         self.init_app(user.PKEY, pwd)
 
