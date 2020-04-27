@@ -152,6 +152,9 @@ class TestSudo(IntegrationTest):
             assert result1.returncode == 0 and result2.returncode == 0,\
                 'rules cleanup failed'
 
+    @pytest.mark.skip_if_platform(
+        "debian", reason="NISDOMAIN has not been set on Debian"
+    )
     def test_nisdomainname(self):
         result = self.client.run_command('nisdomainname')
         assert self.client.domain.name in result.stdout_text
