@@ -1499,9 +1499,9 @@ class LDAPClient(object):
                                 str(base_dn), scope, filter, attrs_list,
                                 serverctrls=sctrls, timeout=time_limit,
                                 sizelimit=size_limit)
-                        except ldap.LDAPError as e:
+                        except ldap.LDAPError as e2:
                             logger.warning(
-                                "Error cancelling paged search: %s", e)
+                                "Error cancelling paged search: %s", e2)
                         cookie = ''
 
                     try:
