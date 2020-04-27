@@ -19,6 +19,9 @@ try:
     import ipaplatform  # pylint: disable=unused-import
 except ImportError:
     ipaplatform = None
+    osinfo = None
+else:
+    from ipaplatform.osinfo import osinfo
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -42,6 +45,8 @@ MARKERS = [
     'ds_acceptance: Acceptance test suite for 389 Directory Server',
     'skip_ipaclient_unittest: Skip in ipaclient unittest mode',
     'needs_ipaapi: Test needs IPA API',
+    ('skip_if_platform(platform, reason): Skip test on platform '
+     '(ID and ID_LIKE)'),
 ]
 
 
@@ -145,6 +150,14 @@ def pytest_runtest_setup(item):
             # pylint: disable=no-member
             if item.config.option.skip_ipaapi:
                 pytest.skip("Skip tests that needs an IPA API")
+    if osinfo is not None:
+        for mark in item.iter_markers(name="skip_if_platform"):
+            platform = mark.kwargs.get("platform")
+            if platform is None:
+                platform = mark.args[0]
+            reason = mark.kwargs["reason"]
+            if platform in osinfo.platform_ids:
+                pytest.skip(f"Skip test on platform {platform}: {reason}")
 
 
 @pytest.fixture
