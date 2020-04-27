@@ -49,6 +49,9 @@ TLS_OPT = (
 OP_NO_TLSv1_3 = getattr(ssl, "OP_NO_TLSv1_3", 0)  # make pylint happy
 
 
+@pytest.mark.skip_if_platform(
+    "debian", reason="Crypto policy is not supported on Debian"
+)
 @pytest.mark.parametrize('minver,maxver,opt,expected', [
     (None, None, BASE_OPT, None),
     (None, "tls1.3", BASE_OPT | TLS_OPT, ["tls1.2", "tls1.3"]),
