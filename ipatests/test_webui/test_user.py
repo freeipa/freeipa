@@ -644,6 +644,29 @@ class test_user(user_tasks):
         self.delete_record([user.PKEY, user.PKEY2, user.PKEY_NO_LOGIN,
                             'nsurname10'])
 
+    @screenshot
+    def test_menu_click_minimized_window(self):
+        """
+        Test if menu is clickable when there is notification
+        in minimized browser window.
+
+        related: https://pagure.io/freeipa/issue/8120
+        """
+        self.init_app()
+
+        self.driver.set_window_size(570, 600)
+        self.add_record(user.ENTITY, user.DATA2, negative=True)
+        self.assert_notification(assert_text=USR_ADDED)
+        menu_button = self.find('.navbar-toggle', By.CSS_SELECTOR)
+        menu_button.click()
+        self.assert_record(user.PKEY2)
+        self.close_notifications()
+        self.driver.maximize_window()
+
+        # cleanup
+        self.delete(user.ENTITY, [user.DATA2])
+
+
 @pytest.mark.tier1
 class test_user_no_private_group(UI_driver):
 
