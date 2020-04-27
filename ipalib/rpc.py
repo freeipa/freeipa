@@ -1172,11 +1172,11 @@ class RPCClient(Connectible):
                     try:
                         principal = getattr(context, 'principal', None)
                         delete_persistent_client_session_data(principal)
-                    except Exception as e:
+                    except Exception as e2:
                         # This shouldn't happen if we have a session
                         # but it isn't fatal.
                         logger.debug("Error trying to remove persisent "
-                                     "session data: %s", e)
+                                     "session data: %s", e2)
 
                     # Create a new serverproxy with the non-session URI
                     serverproxy = self.create_connection(
