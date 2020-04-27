@@ -1580,7 +1580,7 @@ class APIVersion(tuple):
         return "<APIVersion('{}.{}')>".format(*self)
 
     def __getnewargs__(self):
-        return str(self)
+        return (str(self),)
 
     @property
     def major(self):
