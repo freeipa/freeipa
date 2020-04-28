@@ -652,21 +652,27 @@ class DsInstance(service.Service):
             # Does not apply with newer DS releases
             pass
 
-    def start(self, *args, **kwargs):
-        super(DsInstance, self).start(*args, **kwargs)
+    def start(self, instance_name="", capture_output=True, wait=True):
+        super(DsInstance, self).start(
+            instance_name, capture_output=capture_output, wait=wait
+        )
         api.Backend.ldap2.connect()
 
-    def stop(self, *args, **kwargs):
+    def stop(self, instance_name="", capture_output=True):
         if api.Backend.ldap2.isconnected():
             api.Backend.ldap2.disconnect()
 
-        super(DsInstance, self).stop(*args, **kwargs)
+        super(DsInstance, self).stop(
+            instance_name, capture_output=capture_output
+        )
 
-    def restart(self, instance=''):
+    def restart(self, instance_name="", capture_output=True, wait=True):
         api.Backend.ldap2.disconnect()
         try:
-            super(DsInstance, self).restart(instance)
-            if not is_ds_running(instance):
+            super(DsInstance, self).restart(
+                instance_name, capture_output=capture_output, wait=wait
+            )
+            if not is_ds_running(instance_name):
                 logger.critical("Failed to restart the directory server. "
                                 "See the installation log for details.")
                 raise ScriptError()
