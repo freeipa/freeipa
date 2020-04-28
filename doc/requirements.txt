@@ -1,5 +1,5 @@
 ## m2r is not compatible with Sphinx 3.x yet
-sphinx < 3.0
+sphinx >2.1,<3.0
 
 ## convert markdown to rest
 m2r
