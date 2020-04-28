@@ -1880,9 +1880,9 @@ def get_ca_certs(fstore, options, server, basedn, realm):
             if os.path.exists(ca_file):
                 try:
                     os.unlink(ca_file)
-                except OSError as e:
+                except OSError as e2:
                     logger.error(
-                        "Failed to remove '%s': %s", ca_file, e)
+                        "Failed to remove '%s': %s", ca_file, e2)
             raise errors.FileError(
                 reason=u"cannot write certificate file '%s': %s" % (
                     ca_file, e)

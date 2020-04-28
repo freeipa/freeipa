@@ -104,6 +104,7 @@ disable=
     consider-using-enumerate,  # pylint 2.1, clean up tests later
     no-else-raise, # python 2.4.0
     import-outside-toplevel, # pylint 2.4.2
+    f-string-without-interpolation,  # pylint 2.5.0, bare f-strings are ok
 
 [REPORTS]
 

@@ -856,8 +856,8 @@ migration process might be incomplete\n''')
                         try:
                             callback(
                                 ldap, entry_attrs.dn, entry_attrs, e, options)
-                        except errors.ExecutionError as e:
-                            failed[ldap_obj_name][pkey] = unicode(e)
+                        except errors.ExecutionError as e2:
+                            failed[ldap_obj_name][pkey] = unicode(e2)
                             continue
                     else:
                         failed[ldap_obj_name][pkey] = unicode(e)
