@@ -134,7 +134,13 @@ class Host(pytest_multihost.host.Host):
         else:
             cls = Host
 
-        return cls(domain, hostname, role, ip, external_hostname)
+        return cls(
+            domain,
+            hostname,
+            role,
+            ip=ip,
+            external_hostname=external_hostname
+        )
 
     def ldap_connect(self):
         """Return an LDAPClient authenticated to this host as directory manager
