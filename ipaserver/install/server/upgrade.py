@@ -352,8 +352,8 @@ def upgrade_adtrust_config():
                     "max smbd processes", "1000"]
             try:
                 ipautil.run(args)
-            except ipautil.CalledProcessError as e:
-                logger.warning("Error updating Samba registry: %s", e)
+            except ipautil.CalledProcessError as e2:
+                logger.warning("Error updating Samba registry: %s", e2)
         else:
             logger.warning("Error updating Samba registry: %s", e)
 
