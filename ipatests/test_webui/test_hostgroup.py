@@ -23,11 +23,13 @@ Hostgroup tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
+import ipatests.test_webui.data_group as group
 import ipatests.test_webui.data_hostgroup as hostgroup
 from ipatests.test_webui.test_host import host_tasks, ENTITY as HOST_ENTITY
 import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_hbac as hbac
 import ipatests.test_webui.data_sudo as sudo
+import ipatests.test_webui.data_user as user
 import pytest
 
 
@@ -161,6 +163,83 @@ class test_hostgroup(UI_driver):
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(sudo.RULE_ENTITY, [sudo.RULE_DATA])
 
+    @screenshot
+    def test_member_manager_user(self):
+        """
+        Test member manager user has permissions to add and remove host group
+        members
+        """
+        self.init_app()
+        host = host_tasks()
+        host.driver = self.driver
+        host.config = self.config
+        host.prep_data2()
+
+        self.add_record(user.ENTITY, [user.DATA_MEMBER_MANAGER])
+
+        self.add_record(HOST_ENTITY, host.data2)
+        self.add_record(hostgroup.ENTITY, hostgroup.DATA)
+
+        self.navigate_to_record(hostgroup.PKEY)
+        self.add_associations([user.PKEY_MEMBER_MANAGER],
+                              facet='membermanager_user')
+
+        # try to add host to group with member manager permissions
+        self.logout()
+        self.login(user.PKEY_MEMBER_MANAGER, user.PASSWD_MEMBER_MANAGER)
+
+        self.navigate_to_record(hostgroup.PKEY, entity=hostgroup.ENTITY)
+        self.add_associations([host.pkey2], delete=True)
+
+        # re-login as admin and clean up data
+        self.logout()
+        self.init_app()
+
+        self.delete(HOST_ENTITY, [host.data2])
+        self.delete(user.ENTITY, [user.DATA_MEMBER_MANAGER])
+        self.delete(hostgroup.ENTITY, [hostgroup.DATA])
+
+    @screenshot
+    def test_member_manager_group(self):
+        """
+        Test member managers group has permissions to add and remove host group
+        members
+        """
+        self.init_app()
+        host = host_tasks()
+        host.driver = self.driver
+        host.config = self.config
+        host.prep_data2()
+
+        self.add_record(user.ENTITY, user.DATA_MEMBER_MANAGER)
+        self.add_record(group.ENTITY, [group.DATA2])
+
+        self.navigate_to_record(group.PKEY2)
+        self.add_associations([user.PKEY_MEMBER_MANAGER], facet='member_user')
+
+        self.add_record(HOST_ENTITY, host.data2)
+        self.add_record(hostgroup.ENTITY, hostgroup.DATA)
+
+        self.navigate_to_record(hostgroup.PKEY)
+        self.add_associations([group.PKEY2], facet='membermanager_group')
+
+        # try to add host to group with member manager permissions
+        self.logout()
+        self.login(user.PKEY_MEMBER_MANAGER, user.PASSWD_MEMBER_MANAGER)
+
+        self.navigate_to_record(hostgroup.PKEY, entity=hostgroup.ENTITY)
+        self.add_associations([host.pkey2], delete=True)
+
+        # re-login as admin and clean up data
+        self.logout()
+        self.init_app()
+
+        self.delete(HOST_ENTITY, [host.data2])
+        self.delete(user.ENTITY, [user.DATA_MEMBER_MANAGER])
+        self.delete(group.ENTITY, [group.DATA2])
+        self.delete(hostgroup.ENTITY, [hostgroup.DATA])
+
+    @screenshot
     def test_names_and_button(self):
         """
         Hostgroup names and buttons
