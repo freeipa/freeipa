@@ -18,6 +18,6 @@ widgets := $(wildcard ../../src/freeipa/widgets/*.js)
 nav := $(wildcard ../../src/freeipa/navigation/*.js)
 
 app.js: $(core) $(base) $(widgets) $(nav)
-	$(srcdir)/../../util/make-ui.sh
+	PYTHON=$(PYTHON) $(srcdir)/../../util/make-ui.sh
 
 core.js: app.js

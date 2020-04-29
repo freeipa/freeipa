@@ -26,14 +26,14 @@ RDIR=$DIR/../release
 usage() {
 cat <<-__EOF__;
 NAME
-     compile.sh - Compiles layer file of Dojo build using uglify.js.
+     compile.sh - Compiles layer file of Dojo build using Python rjsmin.
                   Deletes all other files.
 
 SYNOPSIS
      path/to/compile.sh [--help] --release RELEASE --layer NAME/NAME
 
 DESCRIPTION
-     Compiles layer file of Dojo build output using uglify.js.
+     Compiles layer file of Dojo build output using Python rjsmin.
      Deletes all other files.
 
 OPTIONS
@@ -105,7 +105,7 @@ if [[ ! $OUTPUT_FILE ]] ; then
     OUTPUT_FILE=$RDIR/$RELEASE/$LAYER.js
 fi
 
-# compile using uglifyjs
+# compile using python rjsmin
 echo "Minimizing: $RDIR/$RELEASE/$LAYER.js"
 echo "Target file: $OUTPUT_FILE"
-uglifyjs $RDIR/$RELEASE/$LAYER.js > $OUTPUT_FILE
+${PYTHON:-python} -mrjsmin < $RDIR/$RELEASE/$LAYER.js > $OUTPUT_FILE

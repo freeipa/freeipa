@@ -9,7 +9,7 @@ var profile = (function(){
         releaseName: "lib",
         action: "release",
 
-        // optimization done separately by uglify.js
+        // optimization done separately by python3-rjsmin
         layerOptimize: false,
         optimize: false,
         cssOptimize: false,
