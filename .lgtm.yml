@@ -39,7 +39,7 @@ extraction:
         - python3-setuptools
         - python3-wheel
         - nodejs
-        - uglifyjs
+        - python3-rjsmin
         - systemd
         - 389-ds-base-dev
         - libssl-dev
@@ -79,7 +79,7 @@ extraction:
         - python3-setuptools
         - python3-wheel
         - nodejs
-        - uglifyjs
+        - python3-rjsmin
         - systemd
         - 389-ds-base-dev
         - libssl-dev
