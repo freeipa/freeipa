@@ -224,6 +224,28 @@ class TestSMB(IntegrationTest):
         self.smbclient.run_command(['umount', mountpoint], raiseonerr=False)
         self.smbclient.run_command(['rmdir', mountpoint], raiseonerr=False)
 
+    def smb_cifs_principal_alias_check(self):
+        netbiosname = self.smbserver.hostname.split('.')[0].upper() + '$'
+        copier = tasks.KerberosKeyCopier(self.smbserver)
+
+        principal = 'cifs/{hostname}@{realm}'.format(
+            hostname=self.smbserver.hostname, realm=copier.realm)
+        alias = '{netbiosname}@{realm}'.format(
+            netbiosname=netbiosname, realm=copier.realm)
+        replacement = {principal: alias}
+
+        result = self.smbserver.run_command(['mktemp'])
+        # klist/ktutil will fail with 0-sized file
+        # so we just use the temporary file as a prefix
+        tmpname = result.stdout_text.strip() + '.keytab'
+
+        copier.copy_keys('/etc/samba/samba.keytab',
+                         tmpname, principal=principal, replacement=replacement)
+        self.smbserver.run_command(['kinit', '-kt', tmpname, netbiosname],
+                                   raiseonerr=True)
+        self.smbserver.run_command(['rm', '-f', tmpname])
+        self.smbserver.run_command(['rm', '-f', tmpname[:-7]])
+
     def test_samba_uninstallation_without_installation(self):
         res = self.smbserver.run_command(
             ['ipa-client-samba', '--uninstall', '-U'])
@@ -237,6 +259,8 @@ class TestSMB(IntegrationTest):
             result = self.smbserver.run_command(
                 ['systemctl', 'status', service], raiseonerr=False)
             assert result.returncode == 3
+        # Validate that we can authenticate with the service alias principal
+        self.smb_cifs_principal_alias_check()
         self.smbserver.run_command([
             'systemctl', 'enable', '--now', 'smb', 'winbind'
         ])
