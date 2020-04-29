@@ -2285,3 +2285,11 @@ def configure_ipa_client_for_ad_trust(client):
         ' dns_lookup_kdc = .+', ' dns_lookup_kdc = true', krb5conf)
     assert n == 1
     client.put_file_contents(paths.KRB5_CONF, krb5conf)
+
+
+def get_python_package_version(host, package):
+    script = (
+        'import pkg_resources; '
+        'print(pkg_resources.get_distribution("{}").version)'.format(package))
+    result = host.run_command(['python3', '-c', script])
+    return parse_version(result.stdout_text.strip())
