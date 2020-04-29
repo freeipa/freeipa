@@ -208,6 +208,19 @@ DATA_NO_LOGIN = {
     ]
 }
 
+PKEY_MEMBER_MANAGER = 'member-manager'
+PASSWD_MEMBER_MANAGER = 'Password123'
+DATA_MEMBER_MANAGER = {
+    'pkey': PKEY_MEMBER_MANAGER,
+    'add': [
+        ('textbox', 'uid', PKEY_MEMBER_MANAGER),
+        ('textbox', 'givenname', 'Name'),
+        ('textbox', 'sn', 'Surname'),
+        ('password', 'userpassword', PASSWD_MEMBER_MANAGER),
+        ('password', 'userpassword2', PASSWD_MEMBER_MANAGER),
+    ],
+}
+
 SSH_RSA = (
     'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBVmLXpTDhrYkABOPlADFk'
     'GV8/QfgQqUQ0xn29hk18t/NTEQOW/Daq4EF84e9aTiopRXIk7jahBLzwWTZI'
