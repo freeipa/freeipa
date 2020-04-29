@@ -356,3 +356,63 @@ class test_group(UI_driver):
         self.delete(rbac.ROLE_ENTITY, [rbac.ROLE_DATA])
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(sudo.RULE_ENTITY, [sudo.RULE_DATA])
+
+    @screenshot
+    def test_member_manager_user(self):
+        """
+        Test member manager user has permissions to add and remove group
+        members
+        """
+        self.init_app()
+
+        self.add_record(user.ENTITY, [user.DATA_MEMBER_MANAGER, user.DATA])
+        self.add_record(group.ENTITY, group.DATA2)
+
+        self.navigate_to_record(group.PKEY2)
+        self.add_associations([user.PKEY_MEMBER_MANAGER],
+                              facet='membermanager_user')
+
+        # try to add user to group with member manager permissions
+        self.logout()
+        self.login(user.PKEY_MEMBER_MANAGER, user.PASSWD_MEMBER_MANAGER)
+
+        self.navigate_to_record(group.PKEY2, entity=group.ENTITY)
+        self.add_associations([user.PKEY], delete=True)
+
+        # re-login as admin and clean up data
+        self.logout()
+        self.init_app()
+
+        self.delete(user.ENTITY, [user.DATA_MEMBER_MANAGER, user.DATA])
+        self.delete(group.ENTITY, [group.DATA2])
+
+    @screenshot
+    def test_member_manager_group(self):
+        """
+        Test member managers group has permissions to add and remove group
+        members
+        """
+        self.init_app()
+
+        self.add_record(user.ENTITY, [user.DATA_MEMBER_MANAGER, user.DATA])
+        self.add_record(group.ENTITY, [group.DATA2, group.DATA3])
+
+        self.navigate_to_record(group.PKEY2)
+        self.add_associations([user.PKEY_MEMBER_MANAGER], facet='member_user')
+
+        self.navigate_to_record(group.PKEY3, entity=group.ENTITY)
+        self.add_associations([group.PKEY2], facet='membermanager_group')
+
+        # try to add host to group with member manager permissions
+        self.logout()
+        self.login(user.PKEY_MEMBER_MANAGER, user.PASSWD_MEMBER_MANAGER)
+
+        self.navigate_to_record(group.PKEY3, entity=group.ENTITY)
+        self.add_associations([user.PKEY], delete=True)
+
+        # re-login as admin and clean up data
+        self.logout()
+        self.init_app()
+
+        self.delete(user.ENTITY, [user.DATA_MEMBER_MANAGER, user.DATA])
+        self.delete(group.ENTITY, [group.DATA2, group.DATA3])
