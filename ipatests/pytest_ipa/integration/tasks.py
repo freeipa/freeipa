@@ -1960,8 +1960,9 @@ def run_command_as_user(host, user, command, *args, **kwargs):
     return host.run_command(command, *args, **kwargs)
 
 
-def kinit_as_user(host, user, password):
-    host.run_command(['kinit', user], stdin_text=password + '\n')
+def kinit_as_user(host, user, password, raiseonerr=True):
+    return host.run_command(['kinit', user], stdin_text=password + '\n',
+                            raiseonerr=raiseonerr)
 
 
 KeyEntry = collections.namedtuple('KeyEntry',
