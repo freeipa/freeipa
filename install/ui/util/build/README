@@ -1,5 +1,5 @@
 build.js is builded dojo builder, with applied patches from 'patches' folder, by
-itself and compiled using uglify.js
+itself and compiled using python3-rjsmin
 
 _base/configRhino.js is unmodifed file from dojo/dojo. Required for a build to work.
 
