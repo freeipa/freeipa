@@ -12,6 +12,7 @@ import pytest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.util import xfail_context
 from ipaplatform.paths import paths
 
 
@@ -196,4 +197,9 @@ class TestHttpKdcProxy(IntegrationTest):
         tasks.clear_sssd_cache(self.master)
         user = users['ad']
         with self.configure_kdc_proxy_for_ad_trust(use_tcp=True):
-            tasks.kinit_as_user(self.client, user['name'], user['password'])
+            kdcproxy_version = tasks.get_python_package_version(
+                self.master, 'kdcproxy')
+            with xfail_context(kdcproxy_version < tasks.parse_version('0.4.2'),
+                               'https://github.com/latchset/kdcproxy/pull/44'):
+                tasks.kinit_as_user(
+                    self.client, user['name'], user['password'])
