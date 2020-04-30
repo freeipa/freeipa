@@ -239,7 +239,7 @@ def _make_aci(ldap, current, aciname, kw):
 
     group = 'group' in kw
     permission = 'permission' in kw
-    selfaci = 'selfaci' in kw and kw['selfaci'] == True
+    selfaci = kw.get("selfaci", False)
     if group + permission + selfaci > 1:
         raise errors.ValidationError(name='target', error=_('group, permission and self are mutually exclusive'))
     elif group + permission + selfaci == 0:
@@ -945,7 +945,7 @@ class aci_rename(crud.Update):
         # a series of keywords. Then we replace any keywords that have been
         # updated and convert that back into an ACI and write it out.
         newkw =  _aci_to_kw(ldap, aci)
-        if 'selfaci' in newkw and newkw['selfaci'] == True:
+        if newkw.get("selfaci"):
             # selfaci is set in aci_to_kw to True only if the target is self
             kw['selfaci'] = True
         if 'aciname' in newkw:
