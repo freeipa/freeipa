@@ -538,7 +538,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         logger.debug('Process interrupted')
         p.wait()
         raise
-    except:
+    except BaseException:
         logger.debug('Process execution failed')
         raise
     finally:
