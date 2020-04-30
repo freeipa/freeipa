@@ -341,7 +341,7 @@ class WSGIExecutioner(Executioner):
         command = None
 
         e = None
-        if not 'HTTP_REFERER' in environ:
+        if 'HTTP_REFERER' not in environ:
             return self.marshal(result, RefererError(referer='missing'), _id)
         if not environ['HTTP_REFERER'].startswith('https://%s/ipa' % self.api.env.host) and not self.env.in_tree:
             return self.marshal(result, RefererError(referer=environ['HTTP_REFERER']), _id)

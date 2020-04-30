@@ -709,7 +709,7 @@ class idrange_mod(LDAPUpdate):
                     entry_attrs['ipanttrusteddomainsid'])
 
             # Add trusted AD domain range object class, if it wasn't there
-            if not 'ipatrustedaddomainrange' in old_attrs['objectclass']:
+            if 'ipatrustedaddomainrange' not in old_attrs['objectclass']:
                 entry_attrs['objectclass'].append('ipatrustedaddomainrange')
 
         else:
