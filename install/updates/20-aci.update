@@ -76,6 +76,8 @@ add:aci:(targetattr="ipaUniqueId || memberOf || enrolledBy || krbExtraData || kr
 add:aci:(targetattr="krbPrincipalName || krbCanonicalName")(version 3.0; acl "Admin can write principal names"; allow (write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
 dn: cn=tasks,cn=config
+remove:add:aci: (targetattr=*)(version 3.0; acl "Run tasks after replica re-initialization"; allow (add) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+add:aci: (targetattr = "*")(version 3.0; acl "Run tasks after replica re-initialization"; allow (add) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 add:aci:(targetattr="*")(version 3.0; acl "Admin can read all tasks"; allow (read, compare, search) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
 # Allow hosts to read their replication agreements
@@ -85,10 +87,14 @@ add:aci: (target = "ldap:///cn=meTo($$dn),cn=*,cn=mapping tree,cn=config")(targe
 
 # replication ACIs should reside in cn=mapping tree,cn=config and be common for both suffixes
 dn: cn=mapping tree,cn=config
-add: aci: (targetattr=*)(version 3.0;acl "permission:Add Replication Agreements";allow (add) groupdn = "ldap:///cn=Add Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
-add: aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement)(objectClass=nsMappingTree))")(version 3.0; acl "permission:Modify Replication Agreements"; allow (read, write, search) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
-add: aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "permission:Remove Replication Agreements";allow (delete) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+remove:aci: (targetattr=*)(version 3.0;acl "permission:Add Replication Agreements";allow (add) groupdn = "ldap:///cn=Add Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+remove:aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement)(objectClass=nsMappingTree))")(version 3.0; acl "permission:Modify Replication Agreements"; allow (read, write, search) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+remove:aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "permission:Remove Replication Agreements";allow (delete) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+add:aci: (targetattr = "*")(version 3.0;acl "permission:Add Replication Agreements";allow (add) groupdn = "ldap:///cn=Add Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+add:aci: (targetattr = "*")(targetfilter="(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement)(objectClass=nsMappingTree))")(version 3.0; acl "permission:Modify Replication Agreements"; allow (read, write, search) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+add:aci: (targetattr = "*")(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "permission:Remove Replication Agreements";allow (delete) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 add: aci: (targetattr = "cn || createtimestamp || description || entryusn || modifytimestamp || nsds50ruv || nsds5beginreplicarefresh || nsds5debugreplicatimeout || nsds5flags || nsds5replicaabortcleanruv || nsds5replicaautoreferral || nsds5replicabackoffmax || nsds5replicabackoffmin || nsds5replicabinddn || nsds5replicabindmethod || nsds5replicabusywaittime || nsds5replicachangecount || nsds5replicachangessentsincestartup || nsds5replicacleanruv || nsds5replicacleanruvnotified || nsds5replicacredentials || nsds5replicaenabled || nsds5replicahost || nsds5replicaid || nsds5replicalastinitend || nsds5replicalastinitstart || nsds5replicalastinitstatus || nsds5replicalastupdateend || nsds5replicalastupdatestart || nsds5replicalastupdatestatus || nsds5replicalegacyconsumer || nsds5replicaname || nsds5replicaport || nsds5replicaprotocoltimeout || nsds5replicapurgedelay || nsds5replicareferral || nsds5replicaroot || nsds5replicasessionpausetime || nsds5replicastripattrs || nsds5replicatedattributelist || nsds5replicatedattributelisttotal || nsds5replicatimeout || nsds5replicatombstonepurgeinterval || nsds5replicatransportinfo || nsds5replicatype || nsds5replicaupdateinprogress || nsds5replicaupdateschedule || nsds5task || nsds7directoryreplicasubtree || nsds7dirsynccookie || nsds7newwingroupsyncenabled || nsds7newwinusersyncenabled || nsds7windowsdomain || nsds7windowsreplicasubtree || nsruvreplicalastmodified || nsstate || objectclass || onewaysync || winsyncdirectoryfilter || winsyncinterval || winsyncmoveaction || winsyncsubtreepair || winsyncwindowsfilter")(targetfilter = "(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement)(objectClass=nsMappingTree))")(version 3.0;acl "permission:Read Replication Agreements";allow (compare,read,search) groupdn = "ldap:///cn=Read Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+
 
 dn: cn="$SUFFIX",cn=mapping tree,cn=config
 remove:aci: (targetattr=*)(version 3.0;acl "permission:Add Replication Agreements";allow (add) groupdn = "ldap:///cn=Add Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
@@ -168,3 +174,12 @@ dn: krbPrincipalName=WELLKNOWN/ANONYMOUS@$REALM,cn=$REALM,cn=kerberos,$SUFFIX
 addifexist: objectclass: ipaAllowedOperations
 addifexist: aci: (targetattr="ipaProtectedOperation;read_keys")(version 3.0; acl "Allow to retrieve keytab keys of the anonymous user"; allow(read) userattr="ipaAllowedToPerform;read_keys#GROUPDN";)
 addifexist: ipaAllowedToPerform;read_keys: cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX
+
+# Fix targetattr syntax
+dn: cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+remove:aci: (targetattr=dnaNextRange || dnaNextValue || dnaMaxValue)(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+add:aci: (targetattr = "dnaNextRange || dnaNextValue || dnaMaxValue")(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+
+dn: cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+remove:aci: (targetattr=nsslapd-readonly)(version 3.0; acl "Allow marking the database readonly"; allow (write) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+add:aci: (targetattr = "nsslapd-readonly")(version 3.0; acl "Allow marking the database readonly"; allow (write) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
