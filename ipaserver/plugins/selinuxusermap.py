@@ -335,8 +335,9 @@ class selinuxusermap_add(LDAPCreate):
         entry_attrs['ipaenabledflag'] = 'TRUE'
         validate_selinuxuser_inlist(ldap, entry_attrs['ipaselinuxuser'])
 
-        # hbacrule is not allowed when usercat or hostcat is set
-        is_to_be_set = lambda x: x in entry_attrs and entry_attrs[x] != None
+        def is_to_be_set(x):
+            """hbacrule is not allowed when usercat or hostcat is set"""
+            return x in entry_attrs and entry_attrs[x] is not None
 
         are_local_members_to_be_set = any(is_to_be_set(attr)
                                           for attr in ('usercategory',

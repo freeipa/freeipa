@@ -136,7 +136,7 @@ class test_Fuzzy:
 
         assert (False == self.klass()) is True
         assert (True == self.klass()) is True
-        assert (None == self.klass()) is True
+        assert (None == self.klass()) is True  # noqa
 
 
 def test_assert_deepequal(pytestconfig):
