@@ -24,6 +24,9 @@ extension-pkg-whitelist=
 # This can be removed after upgrading to pylint 2.0
 valid-metaclass-classmethod-first-arg=cls
 
+[FORMAT]
+max-line-length=88
+
 [MESSAGES CONTROL]
 
 enable=

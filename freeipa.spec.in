@@ -239,6 +239,7 @@ BuildRequires: python3-m2r
 # Build dependencies for lint and fastcheck
 #
 %if 0%{?with_lint}
+BuildRequires:  black
 BuildRequires:  jsl
 BuildRequires:  rpmlint
 BuildRequires:  softhsm

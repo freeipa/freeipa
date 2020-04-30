@@ -1,0 +1,35 @@
+[tool.black]
+line-length = 88
+# skip-string-normalization = true
+# target Python 2.7 to retain u"" prefix to simplify backports to 4.6
+target-version = ['py27', 'py36', 'py37', 'py38']
+include = '''
+    \.pyi?$
+  | install/tools/ipa.*\.in$
+  | install/certmonger/dogtag.*\.in$
+  | install/certmonger/ipa.*\.in$
+  | install/restart_scripts/.*\.in$
+  | install/oddjob/com\.redhat.*\.in$
+  | install/oddjob/org\.fedora.*\.in$
+  | install/custodia/ipa.*\.in$
+  | client/ipa.*\.in$
+  | ipasetup\.py\.in$
+  | makeapi\.in$
+  | makeaci\.in$
+  | setup.py$
+'''
+exclude = '''
+/(
+    \.git
+  | \.tox
+  | \.venv
+  | _build
+  | build
+  | dist
+  | rpmbuild
+  | ipaclient/remote_plugins/2_49
+  | ipaclient/remote_plugins/2_114
+  | ipaclient/remote_plugins/2_156
+  | ipaclient/remote_plugins/2_164
+)/
+'''

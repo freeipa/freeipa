@@ -291,6 +291,18 @@ api: $(GENERATED_PYTHON_FILES)
 	cd $(srcdir); \
 	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ./makeapi
 
+.PHONY: black
+black: $(GENERATED_PYTHON_FILES)
+	$(PYTHON) -m black \
+	    --config=$(top_srcdir)/pyproject.toml \
+	    $(top_srcdir)
+
+.PHONY: blacklint
+blacklint: $(GENERATED_PYTHON_FILES)
+	$(PYTHON) -m black \
+	    --config=$(top_srcdir)/pyproject.toml --fast --check \
+	    $(top_srcdir)
+
 .PHONY: polint
 polint:
 	$(MAKE) -C $(srcdir)/po PYTHON=$(PYTHON) \
@@ -353,6 +365,7 @@ pylint: $(GENERATED_PYTHON_FILES) ipasetup.py python_scripts
 		-path './dist' -prune -o \
 		-path './pypi' -prune -o \
 		-path './.tox' -prune -o \
+		-path './doc/.venv' -prune -o \
 		-name '.*' -o \
 		-name '*.in' -o \
 		-name '*~' -o \

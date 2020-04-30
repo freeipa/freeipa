@@ -182,7 +182,6 @@ install/tools/ipa-server-certinstall
 install/tools/ipa-server-install
 install/tools/ipa-server-upgrade
 install/tools/ipa-winsync-migrate
-ipatests/i18n.py
 ipatests/ipa-run-tests
 ipatests/ipa-test-config
 ipatests/ipa-test-task

@@ -256,9 +256,10 @@ class IPADiscovery:
                     if servers:
                         autodiscovered = True
                         self.domain = domain
-                        self.server_source = self.domain_source = (
+                        self.server_source = (
                             'Discovered LDAP SRV records from %s (%s)' %
                             (domain, reason))
+                        self.domain_source = self.server_source
                         break
                 if not self.domain:  # no ldap server found
                     logger.debug('No LDAP server found')

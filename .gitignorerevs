@@ -1,0 +1,3 @@
+# Ignore revisions list
+# git blame --ignore-revs-file .gitignorerevs
+# git config --local blame.ignoreRevsFile .gitignorerevs
