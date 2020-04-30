@@ -132,9 +132,9 @@ class test_hbactest(XMLRPC_test):
             nodetail=True
         )
         assert ret['value'] == True
-        assert ret['error'] == None
-        assert ret['matched'] == None
-        assert ret['notmatched'] == None
+        assert ret['error'] is None
+        assert ret['matched'] is None
+        assert ret['notmatched'] is None
 
     def test_c_hbactest_check_rules_enabled_detail(self):
         """
@@ -181,8 +181,8 @@ class test_hbactest(XMLRPC_test):
         )
 
         assert ret['value'] == False
-        assert ret['matched'] == None
-        assert ret['notmatched'] == None
+        assert ret['matched'] is None
+        assert ret['notmatched'] is None
         for rule in self.rule_names:
             assert u'%s_1x1' % (rule) in ret['error']
 
