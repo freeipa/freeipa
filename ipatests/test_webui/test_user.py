@@ -184,8 +184,8 @@ class test_user(user_tasks):
         self.assert_indirect_record(hbac.RULE_PKEY, user.ENTITY, 'memberof_hbacrule')
         self.assert_indirect_record(sudo.RULE_PKEY, user.ENTITY, 'memberof_sudorule')
 
-        ## cleanup
-        ## -------
+        # cleanup
+        # -------
         self.delete(user.ENTITY, [user.DATA])
         self.delete(group.ENTITY, [group.DATA, group.DATA2])
         self.delete(netgroup.ENTITY, [netgroup.DATA])
