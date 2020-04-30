@@ -94,7 +94,7 @@ def radius_dn2pk(api, entry_attrs):
         entry_attrs['ipatokenradiusconfiglink'] = [pk]
 
 def convert_nsaccountlock(entry_attrs):
-    if not 'nsaccountlock' in entry_attrs:
+    if 'nsaccountlock' not in entry_attrs:
         entry_attrs['nsaccountlock'] = False
     else:
         nsaccountlock = Bool('temp')

@@ -729,7 +729,7 @@ Search for ACIs.
 
         if kw.get('attrs'):
             for a in acis:
-                if not 'targetattr' in a.target:
+                if 'targetattr' not in a.target:
                     results.remove(a)
                     continue
                 alist1 = sorted(

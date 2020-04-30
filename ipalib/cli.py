@@ -1461,7 +1461,7 @@ def run(api):
         for klass in cli_plugins:
             api.add_plugin(klass)
         api.finalize()
-        if not 'config_loaded' in api.env and not 'help' in argv:
+        if 'config_loaded' not in api.env and 'help' not in argv:
             raise NotConfiguredError()
         sys.exit(api.Backend.cli.run(argv))
     except KeyboardInterrupt:

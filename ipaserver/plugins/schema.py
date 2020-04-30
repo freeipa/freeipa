@@ -736,7 +736,7 @@ class output(BaseParam):
         return obj
 
     def _retrieve(self, commandfull_name, name, **kwargs):
-        if not commandfull_name in self.api.Command:
+        if commandfull_name not in self.api.Command:
             raise errors.NotFound(
                 reason=_("%(command_name)s: %(oname)s not found") % {
                     'command_name': commandfull_name, 'oname': self.name,
@@ -754,7 +754,7 @@ class output(BaseParam):
             )
 
     def _search(self, commandfull_name, **kwargs):
-        if not commandfull_name in self.api.Command:
+        if commandfull_name not in self.api.Command:
             return None
 
         cmd = self.api.Command[commandfull_name]

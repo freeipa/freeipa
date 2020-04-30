@@ -742,7 +742,7 @@ def ensure_enrolled(installer):
 
 def promotion_check_ipa_domain(master_ldap_conn, basedn):
     entry = master_ldap_conn.get_entry(basedn, ['associatedDomain'])
-    if not 'associatedDomain' in entry:
+    if 'associatedDomain' not in entry:
         raise RuntimeError('IPA domain not found in LDAP.')
 
     if len(entry['associatedDomain']) > 1:
