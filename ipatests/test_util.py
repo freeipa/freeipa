@@ -134,8 +134,8 @@ class test_Fuzzy:
         assert (self.klass(test=t, type=unicode) == b'foobar') is False
         assert (self.klass(test=t) == 'barfoo') is False
 
-        assert (False == self.klass()) is True
-        assert (True == self.klass()) is True
+        assert (False == self.klass()) is True  # noqa
+        assert (True == self.klass()) is True  # noqa
         assert (None == self.klass()) is True  # noqa
 
 

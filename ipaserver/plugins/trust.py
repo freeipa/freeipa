@@ -789,7 +789,7 @@ ipa idrange-del before retrying the command with the desired range type.
         if (options.get('trust_type') == u'ad' and
                 options.get('trust_secret') is None):
 
-            if options.get('bidirectional') == True:
+            if options.get('bidirectional'):
                 # Bidirectional trust allows us to use cross-realm TGT,
                 # so we can run the call under original user's credentials
                 res = fetch_domains_from_trust(self.api, self.trustinstance,
