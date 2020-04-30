@@ -154,8 +154,8 @@ class test_hostgroup(UI_driver):
         self.assert_indirect_record(hbac.RULE_PKEY, hostgroup.ENTITY, 'memberof_hbacrule')
         self.assert_indirect_record(sudo.RULE_PKEY, hostgroup.ENTITY, 'memberof_sudorule')
 
-        ## cleanup
-        ## -------
+        # cleanup
+        # -------
         self.delete(hostgroup.ENTITY, [hostgroup.DATA, hostgroup.DATA2,
                                        hostgroup.DATA3, hostgroup.DATA4,
                                        hostgroup.DATA5])

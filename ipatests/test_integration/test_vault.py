@@ -176,7 +176,7 @@ class TestInstallKRA(IntegrationTest):
 
         self._retrieve_secret([self.vault_name_replica_with_KRA])
 
-        ################# master #################
+        # ################ master #################
         # test master again after KRA was installed on replica
         # create vault
         self.master.run_command([
@@ -197,7 +197,7 @@ class TestInstallKRA(IntegrationTest):
 
         self._retrieve_secret([self.vault_name_master2])
 
-        ################ old vaults ###############
+        # ############### old vaults ###############
         # test if old vaults are still accessible
         self._retrieve_secret([
             self.vault_name_master,
