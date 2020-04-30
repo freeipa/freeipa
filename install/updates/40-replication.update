@@ -1,7 +1,8 @@
 # Let a delegated user put the database into read-only mode when deleting
 # an agreement.
 dn: cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-add:aci: (targetattr=nsslapd-readonly)(version 3.0; acl "Allow marking the database readonly"; allow (write) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+remove:aci: (targetattr=nsslapd-readonly)(version 3.0; acl "Allow marking the database readonly"; allow (write) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+add:aci: (targetattr = "nsslapd-readonly")(version 3.0; acl "Allow marking the database readonly"; allow (write) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Add rules to manage DNA ranges
 dn: cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX
@@ -13,7 +14,8 @@ default:ipapermissiontype: SYSTEM
 default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
-add:aci: (targetattr=dnaNextRange || dnaNextValue || dnaMaxValue)(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+remove:aci: (targetattr=dnaNextRange || dnaNextValue || dnaMaxValue)(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+add:aci: (targetattr = "dnaNextRange || dnaNextValue || dnaMaxValue")(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn=Read DNA Range,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: top
@@ -24,4 +26,5 @@ default:ipapermissiontype: SYSTEM
 default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
-add:aci: (targetattr=cn || dnaMaxValue || dnaNextRange || dnaNextValue  || dnaThreshold || dnaType || objectclass)(version 3.0;acl "permission:Read DNA Range";allow (read, search, compare) groupdn = "ldap:///cn=Read DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+remove:aci: (targetattr=cn || dnaMaxValue || dnaNextRange || dnaNextValue  || dnaThreshold || dnaType || objectclass)(version 3.0;acl "permission:Read DNA Range";allow (read, search, compare) groupdn = "ldap:///cn=Read DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+add:aci: (targetattr = "cn || dnaMaxValue || dnaNextRange || dnaNextValue  || dnaThreshold || dnaType || objectclass")(version 3.0;acl "permission:Read DNA Range";allow (read, search, compare) groupdn = "ldap:///cn=Read DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
