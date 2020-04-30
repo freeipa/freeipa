@@ -240,19 +240,19 @@ class test_cert(BaseCert):
         from ipaserver.plugins.cert import _emails_are_valid
         email_addrs = [u'any@EmAiL.CoM']
         result = _emails_are_valid(email_addrs, [u'any@email.com'])
-        assert True == result, result
+        assert result
 
         email_addrs = [u'any@EmAiL.CoM']
         result = _emails_are_valid(email_addrs, [u'any@email.com',
                                                  u'another@email.com'])
-        assert True == result, result
+        assert result
 
         result = _emails_are_valid([], [u'any@email.com'])
-        assert True == result, result
+        assert result
 
         email_addrs = [u'invalidEmailAddress']
         result = _emails_are_valid(email_addrs, [])
-        assert False == result, result
+        assert not result
 
     def test_99999_cleanup(self):
         """

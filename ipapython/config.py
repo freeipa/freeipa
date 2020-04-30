@@ -131,7 +131,7 @@ class IPAOptionParser(OptionParser):
         safe_opts_dict = {}
 
         for option, value in opts.__dict__.items():
-            if all_opts_dict[option].sensitive != True:
+            if not all_opts_dict[option].sensitive:
                 safe_opts_dict[option] = value
 
         return Values(safe_opts_dict)
