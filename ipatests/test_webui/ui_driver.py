@@ -2109,7 +2109,7 @@ class UI_driver:
         Assert that current facet is correct
         """
         info = self.get_facet_info()
-        if not facet is None:
+        if facet is not None:
             assert info["name"] == facet, "Invalid facet. Expected: %s, Got: %s " % (facet, info["name"])
         assert info["entity"] == entity, "Invalid entity. Expected: %s, Got: %s " % (entity, info["entity"])
 
