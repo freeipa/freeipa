@@ -7,6 +7,7 @@ FreeIPA design documentation
    adtrust/oneway-trust-with-shared-secret.md
    adtrust/samba-domain-controller.md
    adtrust/samba-domain-member.md
+   black-codestyle
    krb-ticket-policy.md
    extdom-plugin-protocol.md
    expiring-password-notification.md

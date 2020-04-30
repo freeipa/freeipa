@@ -60,6 +60,10 @@ exclude_patterns = [
     '_build', 'Thumbs.db', '.DS_Store', 'workshop/README.rst', '.venv/*'
 ]
 
+# appendix for all RST files
+rst_epilog = """
+.. |FreeIPA| replace:: *FreeIPA*
+"""
 
 # -- Options for HTML output -------------------------------------------------
 
