@@ -75,7 +75,8 @@ add: member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: cn=ipa,cn=etc,$SUFFIX
 remove:aci:(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,$SUFFIX")(targetattr = cACertificate)(version 3.0; acl "Modify CA Certificate"; allow (write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)
-add:aci:(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,$SUFFIX")(targetattr = cACertificate)(version 3.0; acl "Modify CA Certificate"; allow (write) groupdn = "ldap:///cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX";)
+remove:aci:(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,$SUFFIX")(targetattr = cACertificate)(version 3.0; acl "Modify CA Certificate"; allow (write) groupdn = "ldap:///cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX";)
+add:aci:(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,$SUFFIX")(targetattr = "cACertificate")(version 3.0; acl "Modify CA Certificate"; allow (write) groupdn = "ldap:///cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX";)
 
 dn: cn=certificates,cn=ipa,cn=etc,$SUFFIX
 remove:aci:(targetfilter = "(&(objectClass=ipaCertificate)(ipaConfigString=ipaCA))")(targetattr = "ipaCertIssuerSerial || cACertificate")(version 3.0; acl "Modify CA Certificate Store Entry"; allow (write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)
@@ -98,7 +99,8 @@ default:member: cn=Automember Task Administrator,cn=privileges,cn=pbac,$SUFFIX
 default:ipapermissiontype: SYSTEM
 
 dn: cn=config
-add:aci: (target = "ldap:///cn=automember rebuild membership,cn=tasks,cn=config")(targetattr=*)(version 3.0;acl "permission:Add Automember Rebuild Membership Task";allow (add) groupdn = "ldap:///cn=Add Automember Rebuild Membership Task,cn=permissions,cn=pbac,$SUFFIX";)
+remove:aci: (target = "ldap:///cn=automember rebuild membership,cn=tasks,cn=config")(targetattr=*)(version 3.0;acl "permission:Add Automember Rebuild Membership Task";allow (add) groupdn = "ldap:///cn=Add Automember Rebuild Membership Task,cn=permissions,cn=pbac,$SUFFIX";)
+add:aci: (target = "ldap:///cn=automember rebuild membership,cn=tasks,cn=config")(targetattr = "*")(version 3.0;acl "permission:Add Automember Rebuild Membership Task";allow (add) groupdn = "ldap:///cn=Add Automember Rebuild Membership Task,cn=permissions,cn=pbac,$SUFFIX";)
 
 
 # Virtual operations

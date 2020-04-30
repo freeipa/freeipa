@@ -8,29 +8,29 @@ aci: (targetattr = "cn || createtimestamp || description || entryusn || modifyti
 dn: cn=mapping tree,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=*)(version 3.0;acl "permission:Add Replication Agreements";allow (add) groupdn = "ldap:///cn=Add Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "*")(version 3.0;acl "permission:Add Replication Agreements";allow (add) groupdn = "ldap:///cn=Add Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn=mapping tree,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement)(objectClass=nsMappingTree))")(version 3.0; acl "permission:Modify Replication Agreements"; allow (read, write, search) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "*")(targetfilter="(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement)(objectClass=nsMappingTree))")(version 3.0; acl "permission:Modify Replication Agreements"; allow (read, write, search) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn=mapping tree,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "permission:Remove Replication Agreements";allow (delete) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "*")(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "permission:Remove Replication Agreements";allow (delete) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=dnaNextRange || dnaNextValue || dnaMaxValue)(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "dnaNextRange || dnaNextValue || dnaMaxValue")(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=nsslapd-readonly)(version 3.0; acl "Allow marking the database readonly"; allow (write) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "nsslapd-readonly")(version 3.0; acl "Allow marking the database readonly"; allow (write) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn=tasks,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=*)(version 3.0; acl "Run tasks after replica re-initialization"; allow (add) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "*")(version 3.0; acl "Run tasks after replica re-initialization"; allow (add) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
