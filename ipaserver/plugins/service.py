@@ -257,7 +257,7 @@ def set_certificate_attrs(entry_attrs):
 
     returns nothing
     """
-    if not 'usercertificate' in entry_attrs:
+    if 'usercertificate' not in entry_attrs:
         return
     if type(entry_attrs['usercertificate']) in (list, tuple):
         cert = entry_attrs['usercertificate'][0]

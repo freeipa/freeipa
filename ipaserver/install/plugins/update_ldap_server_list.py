@@ -24,7 +24,7 @@ class update_ldap_server_list(Updater):
             entry = ldap.get_entry(dn)
             srvlist = entry.single_value.get('defaultServerList', '')
             srvlist = srvlist.split()
-            if not self.api.env.host in srvlist:
+            if self.api.env.host not in srvlist:
                 srvlist.append(self.api.env.host)
                 attr = ' '.join(srvlist)
                 entry['defaultServerList'] = attr
