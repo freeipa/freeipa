@@ -264,7 +264,7 @@ class TestAutomount(UI_driver):
         self.navigate_by_breadcrumb(LOC_PKEY)
         self.delete_record(MAP_PKEY)
 
-        ## test indirect maps
+        # test indirect maps
         direct_pkey = 'itest-direct'
         indirect_pkey = 'itest-indirect'
 
