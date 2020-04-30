@@ -216,7 +216,7 @@ class KRAInstaller(KRAInstall):
 
         try:
             kra.install(api, config, self.options, custodia=custodia)
-        except:
+        except BaseException:
             logger.error('%s', dedent(self.FAIL_MESSAGE))
             raise
 
