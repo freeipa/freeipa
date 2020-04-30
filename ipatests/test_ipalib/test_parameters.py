@@ -681,7 +681,7 @@ class test_Data(ClassChecker):
         Test the `ipalib.parameters.Data.__init__` method.
         """
         o = self.cls('my_data')
-        assert o.type is type(None)
+        assert o.type is type(None)  # noqa
         assert o.password is False
         assert o.rules == tuple()
         assert o.class_rules == tuple()
@@ -1222,7 +1222,7 @@ class test_Number(ClassChecker):
         Test the `ipalib.parameters.Number.__init__` method.
         """
         o = self.cls('my_number')
-        assert o.type is type(None)
+        assert o.type is type(None)  # noqa
         assert o.password is False
         assert o.rules == tuple()
         assert o.class_rules == tuple()
