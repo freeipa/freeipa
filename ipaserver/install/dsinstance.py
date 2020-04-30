@@ -1178,7 +1178,7 @@ class DsInstance(service.Service):
     def stop_tracking_certificates(self, serverid=None):
         if serverid is None:
             serverid = self.get_state("serverid")
-        if not serverid is None:
+        if serverid is not None:
             nickname = self.get_server_cert_nickname(serverid)
             # drop the trailing / off the config_dirname so the directory
             # will match what is in certmonger
