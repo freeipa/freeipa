@@ -533,7 +533,7 @@ class update_dnsserver_configuration_into_ldap(DNSUpdater):
             return False, []
 
         result = self.api.Command.server_show(self.api.env.host)['result']
-        if not 'DNS server' in result.get('enabled_role_servrole', []):
+        if 'DNS server' not in result.get('enabled_role_servrole', []):
             logger.debug('This server is not DNS server, nothing to upgrade')
             sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
             return False, []
