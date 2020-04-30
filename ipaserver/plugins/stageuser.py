@@ -720,7 +720,7 @@ class stageuser_activate(LDAPQuery):
         # Now delete the Staging entry
         try:
             self._exc_wrapper(args, options, ldap.delete_entry)(staging_dn)
-        except:
+        except BaseException:
             try:
                 logger.error("Fail to delete the Staging user after "
                              "activating it %s ", staging_dn)

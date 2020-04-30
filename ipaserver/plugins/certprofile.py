@@ -268,7 +268,7 @@ class certprofile_import(LDAPCreate):
             with self.api.Backend.ra_certprofile as profile_api:
                 profile_api.create_profile(context.profile)
                 profile_api.enable_profile(keys[0])
-        except:
+        except BaseException:
             # something went wrong ; delete entry
             ldap.delete_entry(dn)
             raise
