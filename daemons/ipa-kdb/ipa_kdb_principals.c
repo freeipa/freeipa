@@ -1361,7 +1361,12 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
                                               upn->length - (realm - upn->data),
                                               &trusted_realm);
                 }
-                if (kerr == 0) {
+
+                if (kerr != 0) {
+                    goto done;
+                }
+
+                if (flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) {
                     kentry = calloc(1, sizeof(krb5_db_entry));
                     if (!kentry) {
                         kerr = ENOMEM;
@@ -1378,8 +1383,47 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
                         goto done;
                     }
                     *entry = kentry;
+
+                    goto done;
+                } else if (flags & KRB5_KDB_FLAG_INCLUDE_PAC) {
+                    kerr = KRB5_KDB_NOENTRY;
+                    goto done;
+                } else {
+                    /* server referrals: lookup krbtgt/next_realm@our_realm */
+                    krb5_principal tgtp;
+
+                    kerr = krb5_build_principal_ext(kcontext, &tgtp,
+                                                    strlen(ipactx->realm),
+                                                    ipactx->realm,
+                                                    KRB5_TGS_NAME_SIZE,
+                                                    KRB5_TGS_NAME,
+                                                    strlen(trusted_realm),
+                                                    trusted_realm, 0);
+                    if (kerr != 0) {
+                        goto done;
+                    }
+
+                    krb5_free_unparsed_name(kcontext, principal);
+                    principal = NULL;
+                    kerr = krb5_unparse_name(kcontext, tgtp, &principal);
+                    krb5_free_principal(kcontext, tgtp);
+                    if (kerr != 0) {
+                        goto done;
+                    }
+
+                    ldap_msgfree(res);
+                    res = NULL;
+                    kerr = ipadb_fetch_principals(ipactx, flags, principal, &res);
+                    if (kerr != 0) {
+                        goto done;
+                    }
+
+                    kerr = ipadb_find_principal(kcontext, flags, res, &principal,
+                                                &lentry);
+                    if (kerr != 0) {
+                        goto done;
+                    }
                 }
-                goto done;
             }
         } else {
             goto done;
