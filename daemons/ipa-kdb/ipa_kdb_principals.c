@@ -2588,7 +2588,7 @@ krb5_error_code ipadb_delete_principal(krb5_context kcontext,
     char *canonicalized = NULL;
     LDAPMessage *res = NULL;
     LDAPMessage *lentry;
-    unsigned int flags;
+    unsigned int flags = 0;
 
     ipactx = ipadb_get_context(kcontext);
     if (!ipactx) {
