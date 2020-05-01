@@ -1798,8 +1798,12 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         priv_key = krbtgt_key;
     }
 
-    kerr = krb5_pac_verify(context, old_pac, authtime,
-                            client_princ, srv_key, priv_key);
+    /* only pass with_realm TRUE when it is cross-realm ticket and S4U
+     * extension (S4U2Self or S4U2Proxy (RBCD)) was requested */
+    kerr = krb5_pac_verify_ext(context, old_pac, authtime,
+                               client_princ, srv_key, priv_key,
+                               (is_cross_realm &&
+                                (flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION)));
     if (kerr) {
         goto done;
     }
@@ -1891,6 +1895,7 @@ done:
 }
 
 static krb5_error_code ipadb_sign_pac(krb5_context context,
+                                      unsigned int flags,
                                       krb5_const_principal client_princ,
                                       krb5_db_entry *server,
                                       krb5_db_entry *krbtgt,
@@ -1906,6 +1911,7 @@ static krb5_error_code ipadb_sign_pac(krb5_context context,
     krb5_principal krbtgt_princ = NULL;
     krb5_error_code kerr;
     char *princ = NULL;
+    bool is_issuing_referral = false;
     int ret;
 
     /* for cross realm trusts cases we need to sign with the right key.
@@ -1964,8 +1970,17 @@ static krb5_error_code ipadb_sign_pac(krb5_context context,
         right_krbtgt_signing_key = krbtgt_key;
     }
 
-    kerr = krb5_pac_sign(context, pac, authtime, client_princ,
-                         server_key, right_krbtgt_signing_key, pac_data);
+#ifdef KRB5_KDB_FLAG_ISSUING_REFERRAL
+    is_issuing_referral = (flags & KRB5_KDB_FLAG_ISSUING_REFERRAL) != 0;
+#endif
+
+    /* only pass with_realm TRUE when it is cross-realm ticket and S4U2Self
+     * was requested */
+    kerr = krb5_pac_sign_ext(context, pac, authtime, client_princ, server_key,
+                             right_krbtgt_signing_key,
+                             (is_issuing_referral &&
+                              (flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION)),
+                             pac_data);
 
 done:
     free(princ);
@@ -2182,9 +2197,10 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     }
 
     /* we need to create a PAC if we are requested one and this is an AS REQ,
-     * or we are doing protocol transition (s4u2self) */
+     * or we are doing protocol transition (S4U) but not over cross-realm */
     if ((is_as_req && (flags & KRB5_KDB_FLAG_INCLUDE_PAC)) ||
-        (flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION)) {
+        ((flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION) &&
+	 !(is_cross_realm_krbtgt(krbtgt->princ)))) {
         make_ad = true;
     }
 
@@ -2254,7 +2270,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         goto done;
     }
 
-    kerr = ipadb_sign_pac(context, ks_client_princ, server, krbtgt,
+    kerr = ipadb_sign_pac(context, flags, ks_client_princ, server, krbtgt,
                           server_key, krbtgt_key, authtime, pac, &pac_data);
     if (kerr != 0) {
         goto done;
