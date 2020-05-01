@@ -13,6 +13,7 @@ import textwrap
 import re
 
 import pytest
+from contextlib import contextmanager
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -77,14 +78,16 @@ class TestSMB(IntegrationTest):
 
     @pytest.fixture
     def enable_smb_client_dns_lookup_kdc(self):
-        smbclient = self.smbclient
-        with tasks.FileBackup(smbclient, paths.KRB5_CONF):
-            krb5_conf = smbclient.get_file_contents(
-                paths.KRB5_CONF, encoding='utf-8')
-            krb5_conf = krb5_conf.replace(
-                'dns_lookup_kdc = false', 'dns_lookup_kdc = true')
-            smbclient.put_file_contents(paths.KRB5_CONF, krb5_conf)
-            yield
+        @contextmanager
+        def _enable_for(smbclient):
+            with tasks.FileBackup(smbclient, paths.KRB5_CONF):
+                krb5_conf = smbclient.get_file_contents(
+                    paths.KRB5_CONF, encoding='utf-8')
+                krb5_conf = krb5_conf.replace(
+                    'dns_lookup_kdc = false', 'dns_lookup_kdc = true')
+                smbclient.put_file_contents(paths.KRB5_CONF, krb5_conf)
+                yield
+        return _enable_for
 
     @pytest.fixture
     def samba_share_public(self):
@@ -313,14 +316,15 @@ class TestSMB(IntegrationTest):
 
     def test_smb_access_for_ad_user_at_ipa_client(
             self, enable_smb_client_dns_lookup_kdc):
-        samba_share = {
-            'name': 'homes',
-            'server_path': '/home/{}/{}'.format(self.ad.domain.name,
-                                                self.ad_user_login),
-            'unc': '//{}/homes'.format(self.smbserver.hostname)
-        }
-        self.check_smb_access_at_ipa_client(
-            self.ad_user, self.ad_user_password, samba_share)
+        with enable_smb_client_dns_lookup_kdc(self.smbclient):
+            samba_share = {
+                'name': 'homes',
+                'server_path': '/home/{}/{}'.format(self.ad.domain.name,
+                                                    self.ad_user_login),
+                'unc': '//{}/homes'.format(self.smbserver.hostname)
+            }
+            self.check_smb_access_at_ipa_client(
+                self.ad_user, self.ad_user_password, samba_share)
 
     def test_smb_mount_and_access_by_different_users(self, samba_share_public):
         user1 = self.ipa_user1
@@ -339,6 +343,32 @@ class TestSMB(IntegrationTest):
             self.smb_sanity_check(user2, mount_point, samba_share_public)
         finally:
             self.cleanup_mount(mount_point)
+
+    def test_smb_service_s4u2self(
+            self, enable_smb_client_dns_lookup_kdc):
+        """Test S4U2Self operation by IPA service
+           against both AD and IPA users
+        """
+        script = textwrap.dedent("""export KRB5_TRACE=/dev/stderr
+        kdestroy -A
+        kinit -kt /etc/samba/samba.keytab {principal}
+        klist -f
+        kvno -U {user_princ} {principal}
+        klist -f
+        """)
+        with enable_smb_client_dns_lookup_kdc(self.smbserver):
+            principal = 'cifs/{hostname}'.format(
+                hostname=self.smbserver.hostname)
+            for user in (self.ad_user, self.ipa_user1,):
+                # ensure realm is upper cased
+                p = list(user.rpartition('@'))
+                p[2] = p[2].upper()
+                user_princ = ''.join(p)
+                shell_script = script.format(
+                    principal=principal, user_princ=user_princ)
+                self.smbserver.run_command(['/bin/bash', '-s'],
+                                           stdin_text=shell_script)
+        tasks.kdestroy_all(self.smbserver)
 
     def test_smb_mount_fails_without_kerberos_ticket(self, samba_share_public):
         mountpoint = '/mnt/smb'
