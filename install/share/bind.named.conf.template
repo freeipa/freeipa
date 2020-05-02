@@ -1,3 +1,6 @@
+/* WARNING: This part of the config file is IPA-managed.
+ * Modifications may break IPA setup or upgrades.
+ */
 options {
 	// Put files that named is allowed to write in the data/ directory:
 	directory "$NAMED_VAR_DIR"; // the default
@@ -45,9 +48,6 @@ include "$ROOT_KEY";
 /* custom configuration snippet */
 include "$CUSTOM_CONFIG";
 
-/* WARNING: This part of the config file is IPA-managed.
- * Modifications may break IPA setup or upgrades.
- */
 dyndb "ipa" "$BIND_LDAP_SO" {
 	uri "ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket";
 	base "cn=dns, $SUFFIX";
