@@ -71,7 +71,7 @@ def _parse_osrelease(filename='/etc/os-release'):
 
 
 class OSInfo(Mapping):
-    __slots__ = ('_info', '_platform')
+    __slots__ = ('_info', '_platform', '_container')
 
     bsd_family = (
         'freebsd',
@@ -95,6 +95,7 @@ class OSInfo(Mapping):
             raise ValueError("Unsupported platform: {}".format(sys.platform))
         self._info = info
         self._platform = None
+        self._container = None
 
     def _handle_linux(self):
         """Detect Linux distribution from /etc/os-release
@@ -208,6 +209,17 @@ class OSInfo(Mapping):
         raise ImportError('No ipaplatform available for "{}"'.format(
                           ', '.join(self.platform_ids)))
 
+    @property
+    def container(self):
+        if self._container is not None:
+            return self._container
+        from ipaplatform.tasks import tasks
+        try:
+            self._container = tasks.detect_container()
+        except NotImplementedError:
+            raise NotImplementedError(
+                'Platform does not support detecting containers')
+        return self._container
 
 osinfo = OSInfo()
 ipaplatform.NAME = osinfo.platform
