@@ -47,6 +47,8 @@ MARKERS = [
     'needs_ipaapi: Test needs IPA API',
     ('skip_if_platform(platform, reason): Skip test on platform '
      '(ID and ID_LIKE)'),
+    ('skip_if_container(type, reason): Skip test on container '
+     '("any" or specific type)'),
 ]
 
 
@@ -158,6 +160,15 @@ def pytest_runtest_setup(item):
             reason = mark.kwargs["reason"]
             if platform in osinfo.platform_ids:
                 pytest.skip(f"Skip test on platform {platform}: {reason}")
+        for mark in item.iter_markers(name="skip_if_container"):
+            container = mark.kwargs.get("container")
+            if container is None:
+                container = mark.args[0]
+            reason = mark.kwargs["reason"]
+            if osinfo.container is not None:
+                if container in ('any', osinfo.container):
+                    pytest.skip(
+                        f"Skip test on '{container}' container type: {reason}")
 
 
 @pytest.fixture
