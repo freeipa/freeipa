@@ -16,8 +16,6 @@ options {
 	tkey-gssapi-keytab "$NAMED_KEYTAB";
 	pid-file "$NAMED_PID";
 
-	dnssec-enable yes;
-
 	managed-keys-directory "$MANAGED_KEYS_DIR";
 
 	/* crypto policy snippet on platforms with system-wide policy. */

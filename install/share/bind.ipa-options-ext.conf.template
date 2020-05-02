@@ -9,4 +9,5 @@
 // turns on IPv6 for port 53, IPv4 is on by default for all ifaces
 listen-on-v6 {any;};
 
+dnssec-enable yes;
 dnssec-validation $NAMED_DNSSEC_VALIDATION;
