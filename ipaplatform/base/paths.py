@@ -88,7 +88,6 @@ class BasePathNamespace:
     NAMED_KEYTAB = "/etc/named.keytab"
     NAMED_RFC1912_ZONES = "/etc/named.rfc1912.zones"
     NAMED_ROOT_KEY = "/etc/named.root.key"
-    NAMED_BINDKEYS_FILE = "/etc/named.iscdlv.key"
     NAMED_MANAGED_KEYS_DIR = "/var/named/dynamic"
     NAMED_CRYPTO_POLICY_FILE = None
     NSLCD_CONF = "/etc/nslcd.conf"

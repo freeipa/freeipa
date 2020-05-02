@@ -832,7 +832,6 @@ class BindInstance(service.Service):
             FQDN=self.fqdn,
             SERVER_ID=ipaldap.realm_to_serverid(self.realm),
             SUFFIX=self.suffix,
-            BINDKEYS_FILE=paths.NAMED_BINDKEYS_FILE,
             MANAGED_KEYS_DIR=paths.NAMED_MANAGED_KEYS_DIR,
             ROOT_KEY=paths.NAMED_ROOT_KEY,
             NAMED_KEYTAB=self.keytab,

@@ -18,9 +18,6 @@ options {
 
 	dnssec-enable yes;
 
-	/* Path to ISC DLV key */
-	bindkeys-file "$BINDKEYS_FILE";
-
 	managed-keys-directory "$MANAGED_KEYS_DIR";
 
 	/* crypto policy snippet on platforms with system-wide policy. */

@@ -1691,7 +1691,6 @@ def upgrade_configuration():
             FQDN=api.env.host,
             SERVER_ID=ipaldap.realm_to_serverid(api.env.realm),
             SUFFIX=ipautil.realm_to_suffix(api.env.realm),
-            BINDKEYS_FILE=paths.NAMED_BINDKEYS_FILE,
             MANAGED_KEYS_DIR=paths.NAMED_MANAGED_KEYS_DIR,
             ROOT_KEY=paths.NAMED_ROOT_KEY,
             NAMED_KEYTAB=bind.keytab,
