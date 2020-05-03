@@ -219,7 +219,7 @@ class Cookie:
             return '/'
 
         if url_path.count('/') <= 1:
-            return'/'
+            return '/'
 
         return url_path[:url_path.rindex('/')]
 
