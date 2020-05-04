@@ -209,6 +209,7 @@ if ! WITH_JSLINT
 endif
 	@ # just tests, aci, api and pylint on Python 3
 	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ipatests/ipa-run-tests \
+	    --in-tree \
 	    --ipaclient-unittests
 	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint pylint jslint rpmlint yamllint check
 	@echo "All tests passed."
@@ -222,6 +223,7 @@ fasttest: $(GENERATED_PYTHON_FILES) ipasetup.py
 	@ # on module.
 	PATH=$(abspath ipatests):$$PATH PYTHONPATH=$(abspath $(top_srcdir)) \
 	    $(PYTHON) ipatests/ipa-run-tests \
+	    --in-tree \
 	    --skip-ipaapi \
 	    --ignore $(abspath $(top_srcdir))/ipatests/test_integration \
 	    --ignore $(abspath $(top_srcdir))/ipatests/test_xmlrpc

@@ -112,11 +112,17 @@ def pytest_addoption(parser):
         help='Do not run tests that depends on IPA API',
         action='store_true',
     )
+    group.addoption(
+        '--in-tree',
+        help='Force in-tree testing',
+        action='store_true'
+    )
 
 
 def pytest_cmdline_main(config):
+    in_tree = config.option.in_tree
     kwargs = dict(
-        context=u'cli', in_server=False, in_tree=True, fallback=False
+        context=u'cli', in_server=False, in_tree=in_tree, fallback=False
     )
     if not os.path.isfile(os.path.expanduser('~/.ipa/default.conf')):
         # dummy domain/host for machines without ~/.ipa/default.conf
