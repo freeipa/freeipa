@@ -119,10 +119,10 @@ class test_keyring:
         See if a key is available
         """
         kernel_keyring.add_key(TEST_KEY, TEST_VALUE)
-        assert kernel_keyring.has_key(TEST_KEY)
+        assert kernel_keyring.has_key(TEST_KEY)  # noqa
 
         kernel_keyring.del_key(TEST_KEY)
-        assert not kernel_keyring.has_key(TEST_KEY)
+        assert not kernel_keyring.has_key(TEST_KEY)  # noqa
 
     def test_07(self):
         """
