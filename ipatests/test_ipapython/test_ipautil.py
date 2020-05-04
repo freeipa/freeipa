@@ -164,11 +164,11 @@ class TestCIDict:
 
     @pytest.mark.skipif(not six.PY2, reason="Python 2 only")
     def test_haskey(self):
-        assert self.cidict.has_key("KEY1")
-        assert self.cidict.has_key("key2")
-        assert self.cidict.has_key("key3")
+        assert self.cidict.has_key("KEY1")  # noqa
+        assert self.cidict.has_key("key2")  # noqa
+        assert self.cidict.has_key("key3")  # noqa
 
-        assert not self.cidict.has_key("Key4")
+        assert not self.cidict.has_key("Key4")  # noqa
 
     def test_contains(self):
         assert "KEY1" in self.cidict
