@@ -791,6 +791,18 @@ class test_service(Declarative):
             expected=errors.ValidationError(name='principal', error='This principal is required by the IPA master'),
         ),
 
+        # DN is case insensitive, see https://pagure.io/freeipa/issue/8308
+        dict(
+            desc=(
+                'Delete the current host (master?) %s HTTP service, should '
+                'be caught'
+            ) % api.env.host,
+            command=('service_del', ['http/%s' % api.env.host], {}),
+            expected=errors.ValidationError(
+                name='principal',
+                error='This principal is required by the IPA master'
+            ),
+        ),
 
         dict(
             desc='Delete the current host (master?) %s ldap service, should be caught' % api.env.host,
@@ -805,6 +817,17 @@ class test_service(Declarative):
             expected=errors.ValidationError(name='principal', error='This principal is required by the IPA master'),
         ),
 
+        dict(
+            desc=(
+                'Disable the current host (master?) %s HTTP service, should '
+                'be caught'
+            ) % api.env.host,
+            command=('service_disable', ['http/%s' % api.env.host], {}),
+            expected=errors.ValidationError(
+                name='principal',
+                error='This principal is required by the IPA master'
+            ),
+        ),
 
         dict(
             desc='Disable the current host (master?) %s ldap service, should be caught' % api.env.host,
