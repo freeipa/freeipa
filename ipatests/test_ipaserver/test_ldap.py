@@ -249,9 +249,9 @@ class test_LDAPEntry:
     @pytest.mark.skipif(sys.version_info >= (3, 0), reason="Python 2 only")
     def test_has_key(self):
         e = self.entry
-        assert not e.has_key('xyz')
-        assert e.has_key('cn')
-        assert e.has_key('COMMONNAME')
+        assert not e.has_key('xyz')  # noqa
+        assert e.has_key('cn')  # noqa
+        assert e.has_key('COMMONNAME')  # noqa
 
     def test_in(self):
         e = self.entry
