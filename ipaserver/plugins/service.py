@@ -287,8 +287,8 @@ def check_required_principal(ldap, principal):
     try:
         host_is_master(ldap, principal.hostname)
     except errors.ValidationError:
-        service_types = ['HTTP', 'ldap', 'DNS', 'dogtagldap']
-        if principal.service_name in service_types:
+        service_types = {'http', 'ldap', 'dns', 'dogtagldap'}
+        if principal.service_name.lower() in service_types:
             raise errors.ValidationError(name='principal', error=_('This principal is required by the IPA master'))
 
 def update_krbticketflags(ldap, entry_attrs, attrs_list, options, existing):
