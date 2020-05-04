@@ -1410,7 +1410,6 @@ fi
 %{python3_sitelib}/ipapython-*.egg-info
 %{python3_sitelib}/ipalib-*.egg-info
 %{python3_sitelib}/ipaplatform-*.egg-info
-%{python3_sitelib}/ipaplatform-*-nspkg.pth
 
 
 %if 0%{?with_ipatests}
