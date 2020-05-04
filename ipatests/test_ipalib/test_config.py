@@ -23,7 +23,9 @@ Test the `ipalib.config` module.
 """
 
 from os import path
+import site
 import sys
+
 from ipatests.util import raises, delitem, ClassChecker
 from ipatests.util import getitem
 from ipatests.util import TempDir, TempHome
@@ -447,23 +449,39 @@ class test_Env(ClassChecker):
         assert o.bin == path.dirname(path.abspath(sys.argv[0]))
         assert o.home == home.path
         assert o.dot_ipa == home.join('.ipa')
-        assert o.in_tree is False
         assert o.context == 'default'
-        assert o.confdir == '/etc/ipa'
-        assert o.conf == '/etc/ipa/default.conf'
-        assert o.conf_default == o.conf
+        if (
+            # venv site module doesn't have getsitepackages()
+            not hasattr(site, "getsitepackages")
+            or o.site_packages in site.getsitepackages()
+        ):
+            assert o.in_tree is False
+            assert o.confdir == '/etc/ipa'
+            assert o.conf == '/etc/ipa/default.conf'
+            assert o.conf_default == o.conf
+        else:
+            assert o.in_tree is True
+            assert o.confdir == o.dot_ipa
+            assert o.conf == home.join('.ipa/default.conf')
+            assert o.conf_default == o.conf
 
         # Test overriding values created by _bootstrap()
         (o, home) = self.bootstrap(in_tree='True', context='server')
         assert o.in_tree is True
         assert o.context == 'server'
         assert o.conf == home.join('.ipa', 'server.conf')
-        (o, home) = self.bootstrap(conf='/my/wacky/whatever.conf')
+
+        o, home = self.bootstrap(
+            conf='/my/wacky/whatever.conf', in_tree=False
+        )
         assert o.in_tree is False
         assert o.context == 'default'
         assert o.conf == '/my/wacky/whatever.conf'
         assert o.conf_default == '/etc/ipa/default.conf'
-        (o, home) = self.bootstrap(conf_default='/my/wacky/default.conf')
+
+        o, home = self.bootstrap(
+            conf_default='/my/wacky/default.conf', in_tree=False
+        )
         assert o.in_tree is False
         assert o.context == 'default'
         assert o.conf == '/etc/ipa/default.conf'
