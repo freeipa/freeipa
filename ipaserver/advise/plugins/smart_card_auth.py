@@ -348,9 +348,18 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
     def configure_pam_cert_auth(self):
         self.log.comment('Set pam_cert_auth=True in /etc/sssd/sssd.conf')
         self.log.comment('This step is required only when authselect is used')
+        # If the advise command is run on RHEL7 or fedora but the client
+        # is rhel8, python3 executable may be in a different location
+        # Find the right python path first
+        self.log.command("python3 --version >/dev/null 2>&1")
+        self.log.commands_on_predicate(
+            '[ "$?" -eq 0 ]',
+            ['PYTHON3CMD=python3'],
+            ['PYTHON3CMD=/usr/libexec/platform-python']
+        )
         self.log.commands_on_predicate(
             '[ -f "/usr/bin/authselect" ]',
-            ["python3 -c 'from SSSDConfig import SSSDConfig; "
+            ["${PYTHON3CMD} -c 'from SSSDConfig import SSSDConfig; "
              "c = SSSDConfig(); c.import_config(); "
              "c.set(\"pam\", \"pam_cert_auth\", \"True\"); "
              "c.write()'"])
