@@ -35,6 +35,7 @@ jobs:
         timeout: 1800
         topology: *build
 
+
   fedora-latest/test_installation_TestInstallMaster:
     requires: [fedora-latest/build]
     priority: 100
@@ -286,3 +287,5 @@ jobs:
         template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl_1client
+
+
