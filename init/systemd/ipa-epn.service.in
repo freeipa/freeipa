@@ -1,0 +1,9 @@
+[Unit]
+Description=Execute IPA Expiring Password Notification (EPN)
+
+[Service]
+Type=simple
+ExecStart=@sbindir@/ipa-epn
+
+[Install]
+WantedBy=multi-user.target

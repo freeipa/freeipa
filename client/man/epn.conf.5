@@ -1,0 +1,76 @@
+.\" A man page for epn.conf
+.\" Copyright (C) 2020 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Rob Crittenden <rcritten@@redhat.com>
+.\"
+.TH "epn.conf" "5" "Apr 28 2020" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+epn.conf \- Expiring Password Notification configuration file
+.SH "SYNOPSIS"
+/etc/ipa/epn.conf
+.SH "DESCRIPTION"
+The \fIepn.conf \fRconfiguration file is used to set the options for the ipa-epn tool to notify users of upcoming password expiration.
+
+.SH "SYNTAX"
+The configuration options are not case sensitive. The values may be case sensitive, depending on the option.
+
+Blank lines are ignored.
+Lines beginning with # are comments and are ignored.
+
+Valid lines consist of an option name, an equals sign and a value. Spaces surrounding equals sign are ignored. An option terminates at the end of a line.
+
+Values should not be quoted, the quotes will not be stripped.
+
+.RS L
+    # Wrong \- don't include quotes
+    verbose = "True"
+
+    # Right \- Properly formatted options
+    verbose = True
+    verbose=True
+.RE
+
+Options must appear in the section named [global]. There are no other sections defined or used currently.
+
+Options may be defined that are not used by IPA. Be careful of misspellings, they will not be rejected.
+.SH "OPTIONS"
+.TP
+.B smtp_server\fR <fqdn>
+Specifies the SMTP server to use. The default is localhost.
+.TP
+.B smtp_port <port>
+Specifies the SMTP port. The default is 25.
+.TP
+.B smtp_user <user>
+Specifies the id of the user to authenticate with the SMTP server. Default None.
+.TP
+.B smtp_password <password>
+Specifies the password for the authorized user. Default None.
+.TP
+.B smtp_timeout <seconds>
+Specifies the number of seconds to wait for SMTP to respond. Default 60.
+.TP
+.B smtp_security <security>
+Specifies the type of secure connection to make. Options are: none, starttls and ssl. The default is none.
+.TP
+.B notify_ttls <list of days>
+This is the list of days before a password expiration when ipa-epn shoould notify a user that their password will soon require a reset. If this value is not specified then the default list will be used: 28, 14, 7, 3, 1.
+.SH "FILES"
+.TP
+.I /etc/ipa/epn.conf
+Configuration file
+.SH "SEE ALSO"
+.BR ipa-epn (1)
