@@ -4,11 +4,15 @@ AUTOMAKE_OPTIONS = 1.7
 
 dist_noinst_DATA = 			\
 	ipa-custodia.service.in		\
-	ipa.service.in
+	ipa.service.in			\
+	ipa-epn.service.in		\
+	ipa-epn.timer.in
 
 systemdsystemunit_DATA = 	\
 	ipa-custodia.service	\
-	ipa.service
+	ipa.service				\
+	ipa-epn.service			\
+	ipa-epn.timer
 
 CLEANFILES = $(systemdsystemunit_DATA)
 

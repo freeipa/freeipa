@@ -1,0 +1,9 @@
+[Unit]
+Description=Execute IPA Expiring Password Notification (EPN) every day at 1AM
+
+[Timer]
+OnCalendar=*-*-* 01:00:00
+Unit=ipa-epn.service
+
+[Install]
+WantedBy=multi-user.target

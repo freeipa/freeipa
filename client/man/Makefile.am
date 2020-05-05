@@ -10,7 +10,9 @@ dist_man1_MANS =			\
 		ipa-client-samba.1	\
 		ipa-certupdate.1	\
 		ipa-join.1		\
+		ipa-epn.1               \
 		ipa.1
 
 dist_man5_MANS =			\
-		default.conf.5
+		default.conf.5          \
+		epn.conf.5

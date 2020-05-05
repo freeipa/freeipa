@@ -339,6 +339,7 @@ class BasePathNamespace:
     IPASERVER_UNINSTALL_LOG = "/var/log/ipaserver-uninstall.log"
     IPAUPGRADE_LOG = "/var/log/ipaupgrade.log"
     IPATRUSTENABLEAGENT_LOG = "/var/log/ipatrust-enable-agent.log"
+    IPAEPN_LOG = "/var/log/ipaepn.log"
     KADMIND_LOG = "/var/log/kadmind.log"
     KRB5KDC_LOG = "/var/log/krb5kdc.log"
     MESSAGES = "/var/log/messages"
