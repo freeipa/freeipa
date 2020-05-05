@@ -811,7 +811,13 @@ class test_service(Declarative):
         dict(
             desc='Delete the current host (master?) %s HTTP service, should be caught' % api.env.host,
             command=('service_del', ['HTTP/%s' % api.env.host], {}),
-            expected=errors.ValidationError(name='principal', error='This principal is required by the IPA master'),
+            expected=errors.ValidationError(
+                name='principal',
+                error='HTTP/%s@%s is required by the IPA master' % (
+                    api.env.host,
+                    api.env.realm
+                )
+            ),
         ),
 
         # DN is case insensitive, see https://pagure.io/freeipa/issue/8308
@@ -823,21 +829,50 @@ class test_service(Declarative):
             command=('service_del', ['http/%s' % api.env.host], {}),
             expected=errors.ValidationError(
                 name='principal',
-                error='This principal is required by the IPA master'
+                error='http/%s@%s is required by the IPA master' % (
+                    api.env.host,
+                    api.env.realm
+                )
             ),
         ),
 
         dict(
             desc='Delete the current host (master?) %s ldap service, should be caught' % api.env.host,
             command=('service_del', ['ldap/%s' % api.env.host], {}),
-            expected=errors.ValidationError(name='principal', error='This principal is required by the IPA master'),
+            expected=errors.ValidationError(
+                name='principal',
+                error='ldap/%s@%s is required by the IPA master' % (
+                    api.env.host,
+                    api.env.realm
+                )
+            ),
+        ),
+
+
+        dict(
+            desc=('Delete the current host (master?) %s dns service,'
+                  ' should be caught' % api.env.host),
+            command=('service_del', ['DNS/%s' % api.env.host], {}),
+            expected=errors.ValidationError(
+                name='principal',
+                error='DNS/%s@%s is required by the IPA master' % (
+                    api.env.host,
+                    api.env.realm
+                )
+            ),
         ),
 
 
         dict(
             desc='Disable the current host (master?) %s HTTP service, should be caught' % api.env.host,
             command=('service_disable', ['HTTP/%s' % api.env.host], {}),
-            expected=errors.ValidationError(name='principal', error='This principal is required by the IPA master'),
+            expected=errors.ValidationError(
+                name='principal',
+                error='HTTP/%s@%s is required by the IPA master' % (
+                    api.env.host,
+                    api.env.realm
+                )
+            ),
         ),
 
         dict(
@@ -848,14 +883,37 @@ class test_service(Declarative):
             command=('service_disable', ['http/%s' % api.env.host], {}),
             expected=errors.ValidationError(
                 name='principal',
-                error='This principal is required by the IPA master'
+                error='http/%s@%s is required by the IPA master' % (
+                    api.env.host,
+                    api.env.realm
+                )
             ),
         ),
 
         dict(
             desc='Disable the current host (master?) %s ldap service, should be caught' % api.env.host,
             command=('service_disable', ['ldap/%s' % api.env.host], {}),
-            expected=errors.ValidationError(name='principal', error='This principal is required by the IPA master'),
+            expected=errors.ValidationError(
+                name='principal',
+                error='ldap/%s@%s is required by the IPA master' % (
+                    api.env.host,
+                    api.env.realm
+                )
+            ),
+        ),
+
+
+        dict(
+            desc=('Disable the current host (master?) %s dns service,'
+                  ' should be caught' % api.env.host),
+            command=('service_disable', ['DNS/%s' % api.env.host], {}),
+            expected=errors.ValidationError(
+                name='principal',
+                error='DNS/%s@%s is required by the IPA master' % (
+                    api.env.host,
+                    api.env.realm
+                )
+            ),
         ),
 
 
