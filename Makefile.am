@@ -207,8 +207,8 @@ if ! WITH_JSLINT
 	@echo "ERROR: jslint not available"; exit 1
 endif
 	@ # just tests, aci, api and pylint on Python 3
-	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ipatests/ipa-run-tests \
-	    --ipaclient-unittests
+	PATH=$(abspath ipatests):$$PATH PYTHONPATH=$(abspath $(top_srcdir)) \
+	    $(PYTHON) ipatests/ipa-run-tests --ipaclient-unittests
 	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint pylint jslint rpmlint yamllint check
 	@echo "All tests passed."
 
