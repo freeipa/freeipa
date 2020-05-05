@@ -1,0 +1,119 @@
+.\" A man page for ipa-epn
+.\" Copyright (C) 2020 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\"
+.TH "ipa-epn" "1" "Apr 24 2020" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-epn \- Send expiring password nofications
+.SH "SYNOPSIS"
+ipa\-epn \[options\]
+
+.SH "DESCRIPTION"
+ipa\-epn provides a method to warn users via email that their IPA account password is about to expire. 
+
+It can be used in dry\-run mode which is recommmended during setup. The output is always JSON in this case.
+
+It can also be launched daily by its systemd timer.
+In this case it will parse its configuration file epn.conf(5) and send an email to users whose passwords are expiring within the defined future date ranges.
+
+See the OPTIONS section below and the epn.conf(5) man page on how to configure the tool.
+
+.SH "OPTIONS"
+.TP
+\fB\-\-to-nbdays\fR \fI<number of days>\fR
+The \-\-to\-nbdays CLI option can be used to determine the number of notifications that would be sent in a given timeframe.
+
+If \fB\-\-from\-nbdays\fR is not specified, ipa\-epn will look within a 24\-hour long time range in <number of days> days.
+
+if \fB\-\-from\-nbdays\fR is specified, the date range starts at \fB\-\-from\-nbdays\fR days in the future and ends at \fB\-\-to\-nbdays\fR in the future. 
+
+Together, these two CLI options can be used to determine how many emails would be sent in a specific time in the future.
+
+The \fB\-\-to\-nbdays\fR CLI option implies \fB\-\-dry\-run\fR.
+.TP
+\fB\-\-from\-nbdays\fR \fI<number of days>\fR
+See \fB\-\-to\-nbdays\fR for an explanation. This option must be used in conjonction with \fB\-\-to\-nbdays\fR.
+.TP
+\fB\-\-dry\-run\fR
+The \fB\-\-dry\-run\fR CLI option is intented to test ipa\-epn's configuration.
+
+For instance, if notify_ttls is set to 21, 14, 3, \fB\-\-dry-run\fR would display the list of users whose passwords would expire in 21, 14, and 3 days in the future.
+
+
+.SH "EXAMPLES"
+.nf
+   # date
+   Sun 12 Apr 2020 06:23:08 AM CEST
+   # ipa\-epn \-\-dry\-run
+   [
+      {
+         "uid": "user5",
+         "cn": "user 5",
+         "krbpasswordexpiration": "2020\-04\-17 15:51:53",
+         "mail": "['user5@ipa.test']"
+      }
+   ]
+   The IPA\-EPN command was successful
+
+   # ipa\-epn \-\-to\-nbdays 6 \-\-dry-run 
+   [
+      {
+         "uid": "user5",
+         "cn": "user 5",
+         "krbpasswordexpiration": "2020\-04\-17 15:51:53",
+         "mail": "['user5@ipa.test']"
+      }
+   ]
+   The IPA\-EPN command was successful
+
+   # ipa\-epn \-\-from-nbdays 2 \-\-to-nbdays 6 \-\-dry\-run
+   [
+      {
+         "uid": "user5",
+         "cn": "user 5",
+         "krbpasswordexpiration": "2020\-04\-17 15:51:53",
+         "mail": "['user5@ipa.test']"
+      }
+   ]
+   The IPA\-EPN command was successful
+
+   # ipa\-epn \-\-from\-nbdays 8 \-\-to\-nbdays 12 \-\-dry\-run
+   [
+      {
+         "uid": "user3",
+         "cn": "user 5",
+         "krbpasswordexpiration": "2020\-04\-21 00:00:08",
+         "mail": "['user3@ipa.test']"
+      }
+   ]
+   The IPA\-EPN command was successful
+
+
+.SH "EXIT STATUS"
+The exit status is 0 on success, nonzero on error.
+
+.SH "SEE ALSO"
+   RFE: https://pagure.io/freeipa/issue/3687
+   Design document: https://github.com/freeipa/freeipa/blob/master/doc/designs/expiring-password-notification.md
+
+
+.SH "KNOWN BUGS"
+   None yet.
+
+.SH "REPORTING BUGS AND ENHANCEMENT IDEAS"
+.nf
+   Please make sure first the issue is not already reported by searching at https://pagure.io/freeipa/issues. If it is not, file a new issue at https://pagure.io/freeipa/new_issue.
+
