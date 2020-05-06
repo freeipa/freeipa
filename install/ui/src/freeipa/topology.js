@@ -666,11 +666,10 @@ topology.serverroles_nested_search_facet = function(spec) {
         return { 'role_servrole': that.get_pkey() };
     };
 
-    that.on_column_link_click = function(value, entity) {
-        var pkeys = [value];
-
-        navigation.show_entity('server', that.details_facet_name, pkeys);
-        return false;
+    that.get_column_entity_path = function(value, entity) {
+        return navigation.get_entity_path(
+            'server', that.details_facet_name, [value]
+        );
     };
 
     that.filter_records = function(records_map, pkey, record) {
