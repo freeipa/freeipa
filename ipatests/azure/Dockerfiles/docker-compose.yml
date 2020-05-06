@@ -7,6 +7,7 @@ services:
     - ALL
     security_opt:
     - apparmor:unconfined
+    - seccomp:./seccomp.json
     mem_limit: 1900m
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
@@ -23,6 +24,7 @@ services:
     - ALL
     security_opt:
     - apparmor:unconfined
+    - seccomp:./seccomp.json
     mem_limit: 1900m
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
@@ -36,6 +38,7 @@ services:
     - ALL
     security_opt:
     - apparmor:unconfined
+    - seccomp:./seccomp.json
     mem_limit: 536870912
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
