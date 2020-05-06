@@ -110,6 +110,20 @@ define([
         },
 
         /**
+         * Returns path to an entity details page base on routing params
+         */
+        get_entity_path: function(entity_name, arg1, arg2, arg3) {
+            var params = {};
+            this.set_params(params, arg1);
+            this.set_params(params, arg2);
+            this.set_params(params, arg3);
+
+            return [
+                'entity', entity_name, params.facet, params.pkeys, params.args
+            ];
+        },
+
+        /**
          * Show entity facet
          *
          * arg1,arg2,arg3 are:
@@ -117,18 +131,32 @@ define([
          *      pkeys as Array
          *      args as Object
          * @method show_entity
-         * @param String Enity name
+         * @param String entity_name
          * @param {Object|facet.facet|string|Function} arg1
          * @param {Object|facet.facet|string|Function} arg2
          * @param {Object|facet.facet|string|Function} arg3
          */
         show_entity: function(entity_name, arg1, arg2, arg3) {
-            var params = {};
-            this.set_params(params, arg1);
-            this.set_params(params, arg2);
-            this.set_params(params, arg3);
-            return routing.navigate(['entity', entity_name, params.facet,
-                                                params.pkeys, params.args]);
+            var path = this.get_entity_path(entity_name, arg1, arg2, arg3);
+            return routing.navigate(path);
+        },
+
+        /**
+         * Return URL hash which refers to entity facet
+         *
+         * arg1,arg2,arg3 are:
+         *      facet name as String
+         *      pkeys as Array
+         *      args as Object
+         * @method get_entity_hash
+         * @param String entity_name
+         * @param {Object|facet.facet|string|Function} arg1
+         * @param {Object|facet.facet|string|Function} arg2
+         * @param {Object|facet.facet|string|Function} arg3
+         */
+        get_entity_hash: function(entity_name, arg1, arg2, arg3) {
+            var path = this.get_entity_path(entity_name, arg1, arg2, arg3);
+            return path ? routing.get_hash(path): '';
         },
 
         /**

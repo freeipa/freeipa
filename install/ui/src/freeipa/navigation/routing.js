@@ -159,6 +159,19 @@ var routing = {
     },
 
     /**
+     * Return URL hash for a specific path
+     *
+     * @param  {Array} path, e.g. ['entity', 'user', 'search']
+     * @return {String}
+     */
+    get_hash: function(path) {
+        path = path.slice(0);
+        var nav_name = path.shift();
+        var nav = this.get_navigator(nav_name);
+        return nav.get_hash.apply(nav, path);
+    },
+
+    /**
      * Navigate to specific facet with give options
      * @param  {facets.Facet} facet
      * @param  {Object} options Options for hash creator
@@ -428,12 +441,23 @@ routing.Navigator = declare([], {
 
         var facet = reg.facet.get(facet_name);
         if (!facet) {
-            routing.router._error('Unknown facet', 'navigation', { facet: facet_name});
+            routing.router._error(
+                'Unknown facet', 'navigation', { facet: facet_name}
+            );
             return false;
         }
         if (!args) args = facet.get_state();
 
         return routing.navigate_to_facet(facet, args);
+    },
+
+    get_hash: function(facet_name, args) {
+        var facet = reg.facet.get(facet_name);
+
+        if (!facet) return '';
+        if (!args) args = facet.get_state();
+
+        return routing.create_hash(facet, args);
     }
 });
 
@@ -449,19 +473,30 @@ routing.EntityNavigator = declare([routing.Navigator], {
 
     name: 'entity',
 
-    navigate: function(entity_name, facet_name, pkeys, args) {
-
+    _get_facet: function(entity_name, facet_name) {
         var entity = reg.entity.get(entity_name);
         if (!entity) {
-            routing.router._error('Unknown entity', 'navigation', { entity: entity_name});
-            return false;
+            routing.router._error(
+                'Unknown entity', 'navigation', { entity: entity_name }
+            );
+            return null;
         }
 
         var facet = entity.get_facet(facet_name);
         if (!facet) {
-            routing.router._error('Unknown facet', 'navigation', { facet: facet_name});
-            return false;
+            routing.router._error(
+                'Unknown facet', 'navigation', { facet: facet_name}
+            );
+            return null;
         }
+
+        return facet;
+    },
+
+    navigate: function(entity_name, facet_name, pkeys, args) {
+        var facet = this._get_facet(entity_name, facet_name);
+
+        if (!facet) return false;
 
         // Use current state if none supplied
         if (!pkeys && !args) {
@@ -473,6 +508,21 @@ routing.EntityNavigator = declare([routing.Navigator], {
         args.pkeys = facet.get_pkeys(pkeys);
 
         return routing.navigate_to_facet(facet, args);
+    },
+
+    get_hash: function(entity_name, facet_name, pkeys, args) {
+        var facet = this._get_facet(entity_name, facet_name);
+
+        if (!facet) return '';
+
+        // Use current state if none supplied
+        if (!pkeys && !args) args = facet.get_state();
+        args = args || {};
+
+        // Facets may be nested and require more pkeys than supplied.
+        args.pkeys = facet.get_pkeys(pkeys);
+
+        return routing.create_hash(facet, args);
     }
 });
 
