@@ -1639,7 +1639,9 @@ exp.FacetGroupsWidget = declare([], {
         $('<a/>', {
             text: tab.tab_label,
             'class': 'tab-link',
-            href: "#" + navigation.create_hash(tab, {}),
+            href: "#" + navigation.create_hash(tab, {
+                pkeys: self.facet.get_pkeys()
+            }),
             name: tab.name
         }).appendTo(el);
 
@@ -2383,16 +2385,15 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     };
 
     /**
+     * Returns path to an entity details page
      *
-     * Method which will be called after clicking on pkey in table.
+     * It can be overridden by child classes.
      *
-     * It can be overridden by child classes for changing afterclick behavior.
-     *
-     * @param {String} value automatically filed by clicking
-     * @param {entity.entity} table entity
-     * @return {boolean} false
+     * @param {String} value - table column value
+     * @param {entity.entity} entity
+     * @return {Array} path to given entity
      */
-    that.on_column_link_click = function(value, entity) {
+    that.get_column_entity_path = function(value, entity) {
         var pkeys = [value];
         var args;
 
@@ -2408,8 +2409,9 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             pkeys.push(value);
         }
 
-        navigation.show_entity(entity.name, that.details_facet_name, pkeys, args);
-        return false;
+        return navigation.get_entity_path(
+            entity.name, that.details_facet_name, pkeys, args
+        );
     };
 
     /**
@@ -2453,8 +2455,8 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             }
 
             if (column.link && column.primary_key) {
-                column.link_handler = function(value) {
-                    return that.on_column_link_click(value, entity);
+                column.get_entity_path = function(value) {
+                    return that.get_column_entity_path(value, entity);
                 };
             }
 

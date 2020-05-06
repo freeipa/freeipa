@@ -541,37 +541,9 @@ define([
          * Tries to find menu item with assigned facet and navigate to it.
          */
         on_menu_click: function(menu_item) {
-            this._navigate_to_menu_item(menu_item);
-        },
-
-        _navigate_to_menu_item: function(menu_item) {
-
-            if (menu_item.entity) {
-                // entity pages
-                routing.navigate([
-                    'entity',
-                    menu_item.entity,
-                    menu_item.facet,
-                    menu_item.pkeys,
-                    menu_item.args]);
-            } else if (menu_item.facet) {
-                // concrete facets
-                routing.navigate(['generic', menu_item.facet, menu_item.args]);
-            } else {
-                // categories, select first posible child, it may be the last
-                var children = this.menu.query({parent: menu_item.name });
-                if (children.total) {
-                    var success = false;
-                    for (var i=0; i<children.total;i++) {
-                        success = this._navigate_to_menu_item(children[i]);
-                        if (success) break;
-                    }
-                } else {
-                    return false;
-                }
-            }
-
-            return true;
+            routing.navigate(
+                this.app_widget.menu_widget.get_item_path(menu_item)
+            );
         },
 
         /**

@@ -30,8 +30,10 @@ define(['dojo/_base/declare',
         'dojo/Evented',
         'dojo/on',
         '../jquery',
-        '../ipa'], function(declare, array, dom, construct, prop, dom_class,
-                            dom_style, attr, query, Evented, on, $, IPA) {
+        '../ipa',
+        '../navigation/routing'
+        ], function(declare, array, dom, construct, prop, dom_class,
+                    dom_style, attr, query, Evented, on, $, IPA, routing) {
 
     return declare([Evented], {
         /**
@@ -194,6 +196,39 @@ define(['dojo/_base/declare',
         },
 
         /**
+         * Return navigation path to a menu item
+         *
+         * @param {navigation.MenuItem} menu_item
+         * @return {Array}
+         */
+        get_item_path: function(menu_item) {
+            if (menu_item.entity) {
+                // entity pages
+                return [
+                    'entity',
+                    menu_item.entity,
+                    menu_item.facet,
+                    menu_item.pkeys,
+                    menu_item.args
+                ];
+            } else if (menu_item.facet) {
+                // concrete facets
+                return ['generic', menu_item.facet, menu_item.args];
+            } else {
+                // categories, select first possible child, it may be the last
+                var children = this._get_children(menu_item);
+                if (children.total) {
+                    for (var i=0; i<children.total; i++) {
+                        var child_path = this.get_item_path(children[i]);
+                        if (child_path) return child_path;
+                    }
+                }
+            }
+
+            return null;
+        },
+
+        /**
          * Updates content of li_node associated with menu_item base on
          * menu_item's state.
          *
@@ -222,8 +257,10 @@ define(['dojo/_base/declare',
             });
 
             var a_node = query('a', li_node)[0];
+            var item_path = this.get_item_path(menu_item);
+            var item_hash = item_path ? routing.get_hash(item_path) : '';
 
-            prop.set(a_node, 'href', '#' + menu_item.name);
+            prop.set(a_node, 'href', '#' + item_hash);
             prop.set(a_node, 'textContent', menu_item.label);
             prop.set(a_node, 'title', menu_item.title || menu_item.label);
         },

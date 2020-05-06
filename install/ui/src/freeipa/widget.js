@@ -39,6 +39,7 @@ define(['dojo/_base/array',
        './jquery',
        './metadata',
        './navigation',
+       './navigation/routing',
        './phases',
        './reg',
        './rpc',
@@ -48,7 +49,8 @@ define(['dojo/_base/array',
        ],
        function(array, lang, construct, Evented, has, keys, on, string,
                 topic, builder, config, datetime, entity_mod, IPA, $,
-                metadata, navigation, phases, reg, rpc, text, util, exp) {
+                metadata, navigation, routing, phases, reg, rpc, text,
+                util, exp) {
 
 /**
  * Widget module
@@ -3529,7 +3531,7 @@ IPA.column = function (spec) {
         var c;
         if (that.link && !suppress_link) {
             c = $('<a/>', {
-                href: '#'+value,
+                href: '#' + routing.get_hash(that.get_entity_path(value)),
                 click: function() {
                     return that.link_handler(value);
                 }
@@ -3555,10 +3557,22 @@ IPA.column = function (spec) {
 
         // very simple implementation which doesn't handle navigation to
         // nested entities
-        navigation.show_entity(that.target_entity, that.target_facet, [value]);
+        var entity_path = that.get_entity_path(value);
+        routing.navigate(entity_path);
         return false;
     };
 
+    /**
+     * Returns path to an entity details page
+     *
+     * @param {String} value - column value
+     * @return {Array} path to given entity
+     */
+    that.get_entity_path = function(value) {
+        return navigation.get_entity_path(
+            that.target_entity, that.target_facet, [value]
+        );
+    };
 
     /*column initialization*/
     if (that.entity && !that.label) {
