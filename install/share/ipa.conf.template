@@ -1,5 +1,5 @@
 #
-# VERSION 30 - DO NOT REMOVE THIS LINE
+# VERSION 31 - DO NOT REMOVE THIS LINE
 #
 # This file may be overwritten on upgrades.
 #
@@ -164,7 +164,7 @@ Alias /ipa/config "/usr/share/ipa/html"
   SetHandler None
   AllowOverride None
   Satisfy Any
-  Allow from all
+  Require all granted
   ExpiresActive On
   ExpiresDefault "access plus 0 seconds"
 </Directory>
@@ -177,7 +177,7 @@ Alias /ipa/crl "$CRL_PUBLISH_PATH"
   AllowOverride None
   Options Indexes FollowSymLinks
   Satisfy Any
-  Allow from all
+  Require all granted
 </Directory>
 
 
@@ -188,7 +188,7 @@ Alias /ipa/ui/fonts/fontawesome "${FONTS_FONTAWESOME_DIR}"
   SetHandler None
   AllowOverride None
   Satisfy Any
-  Allow from all
+  Require all granted
   ExpiresActive On
   ExpiresDefault "access plus 1 year"
 </Directory>
@@ -200,7 +200,7 @@ Alias /ipa/ui "/usr/share/ipa/ui"
   SetHandler None
   AllowOverride None
   Satisfy Any
-  Allow from all
+  Require all granted
   ExpiresActive On
   ExpiresDefault "access plus 1 year"
   <FilesMatch "(index.html|loader.js|login.html|reset_password.html)">
@@ -213,7 +213,7 @@ Alias /ipa/wsgi "/usr/share/ipa/wsgi"
 <Directory "/usr/share/ipa/wsgi">
     AllowOverride None
     Satisfy Any
-    Allow from all
+    Require all granted
     Options ExecCGI
     AddHandler wsgi-script .py
 </Directory>
@@ -223,7 +223,7 @@ Alias /ipa/migration "/usr/share/ipa/migration"
 <Directory "/usr/share/ipa/migration">
     AllowOverride None
     Satisfy Any
-    Allow from all
+    Require all granted
     Options ExecCGI
     AddHandler wsgi-script .py
 </Directory>
