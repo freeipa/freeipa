@@ -497,9 +497,10 @@ IPA.association_table_widget = function (spec) {
             column.entity = that.other_entity;
 
             if (column.link) {
-                column.link_handler = function(value) {
-                    navigation.show_entity(that.other_entity.name, 'default', [value]);
-                    return false;
+                column.get_entity_path = function(value) {
+                    return navigation.get_entity_path(
+                        that.other_entity.name, 'default', [value]
+                    );
                 };
             }
         }

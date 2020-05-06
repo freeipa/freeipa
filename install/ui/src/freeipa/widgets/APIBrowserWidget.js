@@ -74,7 +74,7 @@ widgets.APIBrowserWidget = declare([Stateful, Evented], {
         'param': '@mo-param:'
     },
 
-    _to_list: function(objects) {
+    _to_list: function(objects, type) {
         var names = [];
         for (name in objects) {
             if (objects.hasOwnProperty(name)) {
@@ -86,6 +86,7 @@ widgets.APIBrowserWidget = declare([Stateful, Evented], {
         var o;
         for (var i=0,l=names.length; i<l; i++) {
             o = objects[names[i]];
+            o.type = type;
             if (!o.name) o.name = names[i];
             if (o.only_webui) continue;
             new_objects.push(o);
@@ -95,7 +96,7 @@ widgets.APIBrowserWidget = declare([Stateful, Evented], {
 
     _get_commands: function() {
         var commands = metadata.get('@m:commands');
-        commands = this._to_list(commands);
+        commands = this._to_list(commands, 'command');
         return [{
             name: "commands",
             label: "Commands",
@@ -105,7 +106,7 @@ widgets.APIBrowserWidget = declare([Stateful, Evented], {
 
     _get_objects: function() {
         var objects = metadata.get('@m:objects');
-        objects = this._to_list(objects);
+        objects = this._to_list(objects, 'object');
         return [{
             name: "commands",
             label: "Objects",
@@ -364,6 +365,10 @@ widgets.APIBrowserWidget = declare([Stateful, Evented], {
         }.bind(this));
 
         this.list_w = new ListViewWidget();
+        this.list_w.create_item_link = function(item) {
+            return "#/p/apibrowser/type=" + item.type + "&name=" + item.name;
+        };
+
         this.object_detail_w = new browser_widgets.ObjectDetailWidget();
         this.command_detail_w = new browser_widgets.CommandDetailWidget();
         this.param_detail_w = new browser_widgets.ParamDetailWidget();

@@ -268,19 +268,22 @@ IPA.automount_key_column = function(spec) {
         var info = record.automountinformation;
         if (info instanceof Array) info = info[0];
 
+        var pkeys = that.facet.get_pkeys();
+        pkeys.push(key);
+
+        var args = {
+            info: info,
+            key: key
+        };
+
+        var entity_hash = navigation.get_entity_hash(
+            that.entity.name, 'details', pkeys, args
+        );
+
         $('<a/>', {
-            href: '#'+key,
+            href: '#' + entity_hash,
             text: key,
             click: function() {
-
-                var pkeys = that.facet.get_pkeys();
-                pkeys.push(key);
-
-                var args = {
-                    info: info,
-                    key: key
-                };
-
                 navigation.show_entity(that.entity.name, 'details', pkeys, args);
                 return false;
             }
