@@ -147,6 +147,9 @@ auth_use_nsswitch(ipa_helper_t)
 
 files_list_tmp(ipa_helper_t)
 
+init_read_state(ipa_helper_t)
+init_stream_connect(ipa_helper_t)
+
 ipa_manage_pid_files(ipa_helper_t)
 ipa_read_lib(ipa_helper_t)
 
@@ -154,6 +157,10 @@ logging_send_syslog_msg(ipa_helper_t)
 
 optional_policy(`
     dirsrv_stream_connect(ipa_helper_t)
+')
+
+optional_policy(`
+    dirsrv_systemctl(ipa_helper_t)
 ')
 
 optional_policy(`
@@ -182,6 +189,7 @@ optional_policy(`
 
 optional_policy(`
     sssd_manage_lib_files(ipa_helper_t)
+    sssd_systemctl(ipa_helper_t)
 ')
 
 ########################################
