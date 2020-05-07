@@ -1455,6 +1455,21 @@ def ipa_backup(host, disable_role_check=False, raiseonerr=True):
     return result
 
 
+def ipa_epn(
+    host, dry_run=False, from_nbdays=None, to_nbdays=None, raiseonerr=True
+):
+    """Run EPN on host and return the run_command result.
+    """
+    cmd = ["ipa-epn"]
+    if dry_run:
+        cmd.append("--dry-run")
+    if from_nbdays:
+        cmd.extend(("--from-nbdays", str(from_nbdays)))
+    if to_nbdays:
+        cmd.extend(("--to-nbdays", str(to_nbdays)))
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
 def get_backup_dir(host, raiseonerr=True):
     """Wrapper around ipa_backup: returns the backup directory.
     """
