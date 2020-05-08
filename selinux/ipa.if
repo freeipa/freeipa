@@ -392,3 +392,30 @@ ifndef(`apache_manage_pid_files',`
 		manage_sock_files_pattern($1, httpd_var_run_t, httpd_var_run_t)
 	')
 ')
+
+########################################
+## <summary>
+##	Execute dirsrv server in the dirsrv domain.
+##  Backport from https://github.com/fedora-selinux/selinux-policy-contrib/pull/241
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition.
+##	</summary>
+## </param>
+#
+ifndef(`dirsrv_systemctl',`
+    interface(`dirsrv_systemctl',`
+        gen_require(`
+            type dirsrv_unit_file_t;
+            type dirsrv_t;
+        ')
+
+        systemd_exec_systemctl($1)
+        init_reload_services($1)
+        allow $1 dirsrv_unit_file_t:file read_file_perms;
+        allow $1 dirsrv_unit_file_t:service manage_service_perms;
+
+        ps_process_pattern($1, dirsrv_t)
+    ')
+')
