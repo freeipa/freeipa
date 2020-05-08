@@ -66,3 +66,10 @@ only:nsslapd-allow-hashed-passwords:on
 # Decrease default value for IO blocking to prevent server unresponsiveness
 dn: cn=config
 only:nsslapd-ioblocktimeout:10000
+
+# 389-DS 1.4.1.6+ attempts to update passwords to new schema on LDAP bind.
+# IPa blocks hashed password updates and requires password changes to go
+# through proper APIs. This option disables password hashing schema updates
+# on LDAP bind, see https://pagure.io/freeipa/issue/8315
+dn: cn=config
+only: nsslapd-enable-upgrade-hash:off

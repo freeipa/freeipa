@@ -824,6 +824,17 @@ class TestInstallMaster(IntegrationTest):
             msg = "rpm -V found group issues for the following files: {}"
             assert group_warnings == [], msg.format(group_warnings)
 
+    def test_ds_disable_upgrade_hash(self):
+        # Test case for https://pagure.io/freeipa/issue/8315
+        # Disable password schema migration on LDAP bind
+        result = tasks.ldapsearch_dm(
+            self.master,
+            "cn=config",
+            ldap_args=["nsslapd-enable-upgrade-hash"],
+            scope="base"
+        )
+        assert "nsslapd-enable-upgrade-hash: off" in result.stdout_text
+
 
 class TestInstallMasterKRA(IntegrationTest):
 
