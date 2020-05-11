@@ -516,7 +516,7 @@ class UI_driver:
                 parent = parts[0:-1]
                 self.navigate_by_menu('/'.join(parent), complete)
 
-        s = ".navbar a[href='#%s']" % item
+        s = ".navbar li[data-name='%s'] a" % item
         link = self.find(s, By.CSS_SELECTOR, strict=True)
         assert link.is_displayed(), 'Navigation link is not displayed: %s' % item
         link.click()
