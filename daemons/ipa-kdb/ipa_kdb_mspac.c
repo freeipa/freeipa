@@ -358,6 +358,46 @@ static int sid_split_rid(struct dom_sid *sid, uint32_t *rid)
     return 0;
 }
 
+/* Add Asserted Identity SID */
+static krb5_error_code ipadb_add_asserted_identity(struct ipadb_context *ipactx,
+                                                   unsigned int flags,
+                                                   TALLOC_CTX *memctx,
+                                                   struct netr_SamInfo3 *info3)
+{
+    struct netr_SidAttr *arr = NULL;
+    uint32_t sidcount = info3->sidcount;
+    krb5_error_code ret = 0;
+
+    arr = talloc_realloc(memctx,
+                         info3->sids,
+                         struct netr_SidAttr,
+                         sidcount + 1);
+    if (!arr) {
+        return ENOMEM;
+    }
+    arr[sidcount].sid = talloc_zero(arr, struct dom_sid2);
+    if (!arr[sidcount].sid) {
+        return ENOMEM;
+    }
+
+    /* For S4U2Self, add Service Asserted Identity SID
+     * otherwise, add Authentication Authority Asserted Identity SID */
+    ret = string_to_sid((flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION) ?
+                        "S-1-18-2" : "S-1-18-1",
+                        arr[sidcount].sid);
+    if (ret) {
+        return ret;
+    }
+    arr[sidcount].attributes = SE_GROUP_MANDATORY |
+                               SE_GROUP_ENABLED |
+                               SE_GROUP_ENABLED_BY_DEFAULT;
+    info3->sids = arr;
+    info3->sidcount = sidcount + 1;
+    info3->base.user_flags |= NETLOGON_EXTRA_SIDS;
+
+    return 0;
+}
+
 static bool is_master_host(struct ipadb_context *ipactx, const char *fqdn)
 {
     int ret;
@@ -383,6 +423,7 @@ static bool is_master_host(struct ipadb_context *ipactx, const char *fqdn)
 
 static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
                                         LDAPMessage *lentry,
+                                        unsigned int flags,
                                         TALLOC_CTX *memctx,
                                         struct netr_SamInfo3 *info3)
 {
@@ -788,11 +829,13 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     info3->base.failed_logon_count = 0; /* We do not have it */
     info3->base.reserved = 0; /* Reserved */
 
-    return 0;
+    ret = ipadb_add_asserted_identity(ipactx, flags, memctx, info3);
+    return ret;
 }
 
 static krb5_error_code ipadb_get_pac(krb5_context kcontext,
                                      krb5_db_entry *client,
+                                     unsigned int flags,
                                      krb5_pac *pac)
 {
     TALLOC_CTX *tmpctx;
@@ -855,7 +898,7 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     }
 
     /* == Fill Info3 == */
-    kerr = ipadb_fill_info3(ipactx, lentry, tmpctx,
+    kerr = ipadb_fill_info3(ipactx, lentry, flags, tmpctx,
                             &pac_info.logon_info.info->info3);
     if (kerr) {
         goto done;
@@ -2272,7 +2315,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
 
         (void)ipadb_reinit_mspac(ipactx, force_reinit_mspac);
 
-        kerr = ipadb_get_pac(context, client, &pac);
+        kerr = ipadb_get_pac(context, client, flags, &pac);
         if (kerr != 0 && kerr != ENOENT) {
             goto done;
         }
@@ -2286,7 +2329,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         /* check or generate pac data */
         if ((pac_auth_data == NULL) || (pac_auth_data[0] == NULL)) {
             if (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION) {
-                kerr = ipadb_get_pac(context, client_entry, &pac);
+                kerr = ipadb_get_pac(context, client_entry, flags, &pac);
                 if (kerr != 0 && kerr != ENOENT) {
                     goto done;
                 }
