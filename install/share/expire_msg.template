@@ -1,0 +1,5 @@
+Hi {{ fullname }},
+
+Your password will expire on {{ expiration }}.
+
+Please change it as soon as possible.
