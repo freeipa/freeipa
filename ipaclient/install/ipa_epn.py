@@ -583,7 +583,7 @@ class MTAClient:
 
     def _connect(self):
         try:
-            if self._security_protocol == "none":
+            if self._security_protocol.lower() in ["none", "starttls"]:
                 self._conn = smtplib.SMTP(
                     host=self._smtp_hostname,
                     port=self._smtp_port,
@@ -615,7 +615,7 @@ class MTAClient:
 
         if (
             self._conn.has_extn("STARTTLS")
-            and self._security_protocol == "starttls"
+            and self._security_protocol.lower() == "starttls"
         ):
             try:
                 self._conn.starttls()
@@ -634,30 +634,30 @@ class MTAClient:
                 try:
                     self._conn.login(self._username, self._password)
                     if self._security_protocol == "none":
-                        logger.info(
+                        logger.warning(
                             "IPA-EPN: Username and Password "
                             "were sent in the clear."
                         )
                 except smtplib.SMTPAuthenticationError:
-                    logger.error(
+                    raise RuntimeError(
                         "IPA-EPN: Authentication to %s:%s failed, "
-                        "please check your username and/or password:",
-                        self._smtp_hostname,
-                        self._smtp_port,
+                        "please check your username and/or password:" %
+                        (self._smtp_hostname,
+                         self._smtp_port,)
                     )
                 except smtplib.SMTPException as e:
-                    logger.error(
-                        "IPA-EPN: SMTP Error at %s:%s:%s",
-                        self._smtp_hostname,
-                        self._smtp_port,
-                        e,
+                    raise RuntimeError(
+                        "IPA-EPN: SMTP Error at %s:%s:%s" %
+                        (self._smtp_hostname,
+                         self._smtp_port,
+                         e,)
                     )
             else:
                 err_str = (
                     "IPA-EPN: Server at %s:%s "
-                    "does not support authentication.",
-                    self._smtp_hostname,
-                    self._smtp_port,
+                    "does not support authentication." %
+                    (self._smtp_hostname,
+                     self._smtp_port,)
                 )
                 logger.error(err_str)
 
