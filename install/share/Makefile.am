@@ -106,3 +106,8 @@ dist_app_DATA =				\
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy
 dist_kdcproxyconf_DATA =			\
 	kdcproxy.conf
+
+epnconfdir = $(IPA_SYSCONF_DIR)/epn
+dist_epnconf_DATA =			\
+	expire_msg.template	\
+	$(NULL)
