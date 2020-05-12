@@ -1355,6 +1355,7 @@ fi
 %{_mandir}/man5/epn.conf.5*
 %attr(644,root,root) %{_unitdir}/ipa-epn.service
 %attr(644,root,root) %{_unitdir}/ipa-epn.timer
+%attr(644,root,root) %{_sysconfdir}/ipa/epn/expire_msg.template
 
 %files -n python3-ipaclient
 %doc README.md Contributors.txt

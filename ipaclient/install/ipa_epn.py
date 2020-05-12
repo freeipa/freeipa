@@ -36,6 +36,7 @@ from email.utils import formataddr, formatdate
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
+from email.utils import make_msgid
 
 from ipaclient.install.client import is_ipa_client_installed
 from ipaplatform.paths import paths
@@ -43,6 +44,8 @@ from ipalib import api, errors
 from ipalib.install import sysrestore
 from ipapython import admintool, ipaldap
 from ipapython.dn import DN
+
+from jinja2 import Environment, FileSystemLoader, TemplateSyntaxError
 
 
 EPN_CONF = "/etc/ipa/epn.conf"
@@ -54,7 +57,11 @@ EPN_CONFIG = {
     "smtp_timeout": 60,
     "smtp_security": "none",
     "smtp_admin": "root@localhost",
+    "mail_from": None,
     "notify_ttls": "28,14,7,3,1",
+    "msg_charset": "utf8",
+    "msg_subtype": "plain",
+    "msg_subject": "Your password will expire soon.",
 }
 
 logger = logging.getLogger(__name__)
@@ -116,7 +123,7 @@ class EPNUserList:
 
     def add(self, entry):
         """Parses and appends an LDAP user entry with the uid, cn,
-           krbpasswordexpiration and mail attributes.
+           givenname, sn, krbpasswordexpiration and mail attributes.
         """
         try:
             self._sorted = False
@@ -124,6 +131,8 @@ class EPNUserList:
                 dict(
                     uid=str(entry["uid"].pop(0)),
                     cn=str(entry["cn"].pop(0)),
+                    givenname=str(entry.get("givenname", "")),
+                    sn=str(entry["sn"].pop(0)),
                     krbpasswordexpiration=str(
                         entry["krbpasswordexpiration"].pop(0)
                     ),
@@ -190,6 +199,8 @@ class EPN(admintool.AdminTool):
         self._ldap_data = []
         self._date_ranges = []
         self._mailer = None
+        self.env = None
+        self.default_email_domain = None
 
     @classmethod
     def add_options(cls, parser):
@@ -241,6 +252,7 @@ class EPN(admintool.AdminTool):
         self._validate_configuration()
         self._parse_configuration()
         self._get_connection()
+        self._read_ipa_configuration()
         drop_privileges()
         if self.options.to_nbdays:
             self._build_cli_date_ranges()
@@ -258,6 +270,8 @@ class EPN(admintool.AdminTool):
                 smtp_username=api.env.smtp_user,
                 smtp_password=api.env.smtp_password,
                 x_mailer=self.command_name,
+                msg_subtype=api.env.msg_subtype,
+                msg_charset=api.env.msg_charset,
             )
             self._send_emails()
 
@@ -352,6 +366,17 @@ class EPN(admintool.AdminTool):
                 )
             )
 
+        loader = FileSystemLoader(os.path.join(api.env.confdir, 'epn'))
+        self.env = Environment(loader=loader)
+
+    def _read_ipa_configuration(self):
+        """Get the IPA configuration"""
+        api.Backend.rpcclient.connect()
+        result = api.Command.config_show()['result']
+        self.default_email_domain = result.get('ipadefaultemaildomain',
+                                               [None])[0]
+        api.Backend.rpcclient.disconnect()
+
     def _get_connection(self):
         """Create a connection to LDAP and bind to it.
         """
@@ -389,7 +414,8 @@ class EPN(admintool.AdminTool):
             )
 
         search_base = DN(api.env.container_user, api.env.basedn)
-        attrs_list = ["uid", "krbpasswordexpiration", "mail", "cn"]
+        attrs_list = ["uid", "krbpasswordexpiration", "mail", "cn",
+                      "gn", "surname"]
 
         search_filter = (
             "(&(!(nsaccountlock=TRUE)) \
@@ -439,18 +465,29 @@ class EPN(admintool.AdminTool):
             logger.error("IPA-EPN: mailer was not configured.")
             return
         else:
+            try:
+                template = self.env.get_template("expire_msg.template")
+            except TemplateSyntaxError as e:
+                raise RuntimeError("Parsing template %s failed: %s" %
+                                   (e.filename, e))
+            if api.env.mail_from:
+                mail_from = api.env.mail_from
+            else:
+                mail_from = "noreply@%s" % self.default_email_domain
             while self._expiring_password_user_list:
                 entry = self._expiring_password_user_list.pop()
+                body = template.render(
+                    uid=entry["uid"],
+                    first=entry["givenname"],
+                    last=entry["sn"],
+                    fullname=entry["cn"],
+                    expiration=entry["krbpasswordexpiration"],
+                )
                 self._mailer.send_message(
-                    mail_subject="Your password is expiring.",
-                    mail_body=os.linesep.join(
-                        [
-                            "Hi %s, Your password will expire on %s."
-                            % (entry["cn"], entry["krbpasswordexpiration"]),
-                            "Please change it as soon as possible.",
-                        ]
-                    ),
+                    mail_subject=api.env.msg_subject,
+                    mail_body=body,
                     subscribers=ast.literal_eval(entry["mail"]),
+                    mail_from=mail_from,
                 )
                 now = datetime.utcnow()
                 expdate = datetime.strptime(
@@ -524,6 +561,7 @@ class MTAClient:
         self._disconnect()
 
     def send_message(self, message_str=None, subscribers=None):
+        result = None
         try:
             result = self._conn.sendmail(
                 api.env.smtp_admin, subscribers, message_str,
@@ -640,18 +678,17 @@ class MailUserAgent:
         smtp_username=None,
         smtp_password=None,
         x_mailer=None,
+        msg_subtype="plain",
+        msg_charset="utf8",
     ):
 
         self._x_mailer = x_mailer
         self._subject = None
         self._body = None
         self._subscribers = None
-        self._subtype = None
 
-        # Let it be plain or html?
-        self._subtype = "plain"
-        # UTF-8 only for now
-        self._charset = "utf-8"
+        self._subtype = msg_subtype
+        self._charset = msg_charset
 
         self._msg = None
         self._message_str = None
@@ -669,18 +706,20 @@ class MailUserAgent:
         self._mta_client.cleanup()
 
     def send_message(
-        self, mail_subject=None, mail_body=None, subscribers=None
+        self, mail_subject=None, mail_body=None, subscribers=None,
+        mail_from=None
     ):
         """Given mail_subject, mail_body, and subscribers, composes
            the message and sends it.
         """
-        if None in [mail_subject, mail_body, subscribers]:
+        if None in [mail_subject, mail_body, subscribers, mail_from]:
             logger.error("IPA-EPN: Tried to send an empty message.")
             return False
         self._compose_message(
             mail_subject=mail_subject,
             mail_body=mail_body,
             subscribers=subscribers,
+            mail_from=mail_from,
         )
         self._mta_client.send_message(
             message_str=self._message_str, subscribers=subscribers
@@ -688,7 +727,7 @@ class MailUserAgent:
         return True
 
     def _compose_message(
-        self, mail_subject=None, mail_body=None, subscribers=None
+        self, mail_subject, mail_body, subscribers, mail_from
     ):
         """The composer creates a MIME multipart message.
         """
@@ -698,12 +737,11 @@ class MailUserAgent:
         self._subscribers = subscribers
 
         self._msg = MIMEMultipart(_charset=self._charset)
-        self._msg["From"] = formataddr(
-            ("IPA-EPN", "noreply@%s" % socket.getfqdn())
-        )
+        self._msg["From"] = formataddr(("IPA-EPN", mail_from))
         self._msg["To"] = ", ".join(self._subscribers)
         self._msg["Date"] = formatdate(localtime=True)
         self._msg["Subject"] = Header(self._subject, self._charset)
+        self._msg["Message-Id"] = make_msgid()
         self._msg.preamble = "Multipart message"
         if "X-Mailer" not in self._msg and self._x_mailer:
             self._msg.add_header("X-Mailer", self._x_mailer)
