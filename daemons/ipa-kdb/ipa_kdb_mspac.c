@@ -70,17 +70,6 @@ static char *memberof_pac_attrs[] = {
     NULL
 };
 
-
-static struct {
-    char *service;
-    int length;
-} supported_services[] = {
-    {"cifs", sizeof("cifs")},
-    {"HTTP", sizeof("HTTP")},
-    {NULL, 0}
-};
-
-
 #define SID_ID_AUTHS 6
 #define SID_SUB_AUTHS 15
 #define MAX(a,b) (((a)>(b))?(a):(b))
@@ -435,7 +424,6 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     char *strres;
     int intres;
     int ret;
-    int i;
     char **objectclasses = NULL;
     size_t c;
     bool is_host = false;
@@ -444,7 +432,6 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     bool is_ipauser = false;
     bool is_idobject = false;
     krb5_principal princ;
-    krb5_data *data;
 
     ret = ipadb_ldap_attr_to_strlist(lcontext, lentry, "objectClass",
                                      &objectclasses);
@@ -488,17 +475,10 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
             /* fqdn is mandatory for hosts */
             return ret;
         }
-
-        /* Currently we only add a PAC to TGTs for IPA servers to allow SSSD in
-         * ipa_server_mode to access the AD LDAP server */
-        if (!is_master_host(ipactx, strres)) {
-            free(strres);
-            return ENOENT;
-        }
     } else if (is_service) {
-        ret = ipadb_ldap_attr_to_str(lcontext, lentry, "krbPrincipalName", &strres);
+        ret = ipadb_ldap_attr_to_str(lcontext, lentry, "krbCanonicalName", &strres);
         if (ret) {
-            /* krbPrincipalName is mandatory for services */
+            /* krbCanonicalName is mandatory for services */
             return ret;
         }
 
@@ -509,39 +489,10 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
             return ENOENT;
         }
 
-        if (krb5_princ_size(ipactx->kcontext, princ) != 2) {
-            krb5_free_principal(ipactx->kcontext, princ);
-            return ENOENT;
-        }
-
-        data = krb5_princ_component(ipactx->context, princ, 0);
-        for (i = 0; supported_services[i].service; i++) {
-            if (0 == memcmp(data->data, supported_services[i].service,
-                            MIN(supported_services[i].length, data->length))) {
-                break;
-            }
-        }
-
-        if (supported_services[i].service == NULL) {
-            krb5_free_principal(ipactx->kcontext, princ);
-            return ENOENT;
-        }
-
-        data = krb5_princ_component(ipactx->context, princ, 1);
-        strres = malloc(data->length+1);
-        if (strres == NULL) {
-            krb5_free_principal(ipactx->kcontext, princ);
-            return ENOENT;
-        }
-
-        memcpy(strres, data->data, data->length);
-        strres[data->length] = '\0';
-        krb5_free_principal(ipactx->kcontext, princ);
-
-        /* Only add PAC to TGT to services on IPA masters to allow querying
-         * AD LDAP server */
-        if (!is_master_host(ipactx, strres)) {
-            free(strres);
+        ret = krb5_unparse_name_flags(ipactx->kcontext,
+                                      princ, KRB5_PRINCIPAL_UNPARSE_SHORT,
+                                      &strres);
+        if (ret) {
             return ENOENT;
         }
     } else {
@@ -678,9 +629,19 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     info3->base.logon_count = 0; /* we do not have this info yet */
     info3->base.bad_password_count = 0; /* we do not have this info yet */
 
-    if (is_host || is_service) {
-        /* Well know RID of domain controllers group */
-        info3->base.rid = 516;
+    if ((is_host || is_service)) {
+        /* it is either host or service, so get the hostname first */
+        char *sep = strchr(info3->base.account_name.string, '/');
+        bool is_master = is_master_host(
+                            ipactx,
+                            sep ? sep + 1 : info3->base.account_name.string);
+        if (is_master) {
+            /* Well know RID of domain controllers group */
+            info3->base.rid = 516;
+        } else {
+            /* Well know RID of domain computers group */
+            info3->base.rid = 515;
+        }
     } else {
         ret = ipadb_ldap_attr_to_str(lcontext, lentry,
                                      "ipaNTSecurityIdentifier", &strres);
