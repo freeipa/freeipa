@@ -52,6 +52,18 @@ The \fB\-\-dry\-run\fR CLI option is intented to test ipa\-epn's configuration.
 
 For instance, if notify_ttls is set to 21, 14, 3, \fB\-\-dry-run\fR would display the list of users whose passwords would expire in 21, 14, and 3 days in the future.
 
+.SH "TEMPLATE"
+The template for the e\-mail message is contained in /etc/ipa/epn/expire_msg.template. The following template variables are available.
+.TP
+User ID: uid
+.TP
+Full name: fullname
+.TP
+First name: first
+.TP
+Last name: Last
+.TP
+Password expiration date: expiration
 
 .SH "EXAMPLES"
 .nf

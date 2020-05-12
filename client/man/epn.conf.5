@@ -66,8 +66,19 @@ Specifies the number of seconds to wait for SMTP to respond. Default 60.
 .B smtp_security <security>
 Specifies the type of secure connection to make. Options are: none, starttls and ssl. The default is none.
 .TP
+.B mail_from <address>
+Specifies the From: e-mal address value in the e-mails sent. The default is
+noreply@ipadefaultemaildomain. This value can be found by running
+.I ipa config-show
+.TP
 .B notify_ttls <list of days>
-This is the list of days before a password expiration when ipa-epn shoould notify a user that their password will soon require a reset. If this value is not specified then the default list will be used: 28, 14, 7, 3, 1.
+This is the list of days before a password expiration when ipa-epn should notify a user that their password will soon require a reset. If this value is not specified then the default list will be used: 28, 14, 7, 3, 1.
+.TP
+.B msg_charset <type>
+Set the character set of the message. The default is utf8. This will result in he body of the message being base64-encoded.
+.TP
+.B msg_subtype <type>
+Set the message's MIME sub-content type. The default is plain.
 .SH "FILES"
 .TP
 .I /etc/ipa/epn.conf
