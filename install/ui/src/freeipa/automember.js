@@ -601,11 +601,22 @@ IPA.automember.default_group_widget = function(spec) {
 
         if (group === that.group) return;
 
-        if (group === '') {
-            that.remove_default_group();
-        } else {
-            that.set_default_group(group);
-        }
+        var dialog = IPA.confirm_dialog({
+            title: that.get_title(),
+            message: text.get('@i18n:objects.automember.default_group_confirm'),
+            on_ok: function() {
+                if (group === '') {
+                    that.remove_default_group();
+                } else {
+                    that.set_default_group(group);
+                }
+            },
+            on_cancel: function() {
+                that.group_select.update([that.group]);
+            }
+        });
+
+        dialog.open();
     };
 
     that.load = function(data) {
