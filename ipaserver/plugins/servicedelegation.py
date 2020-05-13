@@ -15,10 +15,10 @@ from .baseldap import (
     LDAPDelete,
     LDAPSearch,
     LDAPRetrieve)
-from .service import normalize_principal
 from ipalib import _, ngettext
 from ipalib import errors
 from ipapython.dn import DN
+from ipapython import kerberos
 
 if six.PY3:
     unicode = str
@@ -46,6 +46,13 @@ A target consists of a list of principals that can be delegated.
 In English, a rule says that this principal can delegate as this
 list of principals, as defined by these targets.
 
+In both a rule and a target Kerberos principals may be specified
+by their name or an alias and the realm can be omitted. Additionally,
+hosts can be specified by their names. If Kerberos principal specified
+has a single component and does not end with '$' sign, it will be treated
+as a host name. Kerberos principal names ending with '$' are typically
+used as aliases for Active Directory-related services.
+
 EXAMPLES:
 
  Add a new constrained delegation rule:
@@ -56,6 +63,10 @@ EXAMPLES:
 
  Add a principal to the rule:
    ipa servicedelegationrule-add-member --principals=ftp/ipa.example.com \
+      ftp-delegation
+
+ Add a host principal of the host 'ipa.example.com' to the rule:
+   ipa servicedelegationrule-add-member --principals=ipa.example.com \
       ftp-delegation
 
  Add our target to the rule:
@@ -169,6 +180,21 @@ class servicedelegation(LDAPObject):
     )
 
 
+def normalize_principal_name(name, realm):
+    try:
+        princ = kerberos.Principal(name, realm=realm)
+    except ValueError as e:
+        raise errors.ValidationError(
+            name='principal',
+            reason=_("Malformed principal: %(error)s") % dict(error=str(e)))
+
+    if len(princ.components) == 1 and not princ.components[0].endswith('$'):
+        nprinc = 'host/' + unicode(princ)
+    else:
+        nprinc = unicode(princ)
+    return nprinc
+
+
 class servicedelegation_add_member(LDAPAddMember):
     __doc__ = _('Add target to a named service delegation.')
     member_attrs = ['memberprincipal']
@@ -212,22 +238,31 @@ class servicedelegation_add_member(LDAPAddMember):
         failed[self.principal_failedattr] = {}
         failed[self.principal_failedattr][self.principal_attr] = []
         names = options.get(self.member_names[self.principal_attr], [])
-        ldap_obj = self.api.Object['service']
+        basedn = self.api.env.container_accounts + self.api.env.basedn
         if names:
             for name in names:
                 if not name:
                     continue
-                name = normalize_principal(name)
-                obj_dn = ldap_obj.get_dn(name)
+
+                princ = normalize_principal_name(name, self.api.env.realm)
                 try:
-                    ldap.get_entry(obj_dn, ['krbprincipalname'])
+                    e_attrs = ldap.find_entry_by_attr(
+                        'krbprincipalname', princ, 'krbprincipalaux',
+                        attrs_list=['krbprincipalname'],
+                        base_dn=basedn)
                 except errors.NotFound as e:
                     failed[self.principal_failedattr][
                         self.principal_attr].append((name, unicode(e)))
                     continue
                 try:
-                    if name not in entry_attrs.get(self.principal_attr, []):
-                        members.append(name)
+                    # normalize principal as set in krbPrincipalName attribute
+                    mprinc = None
+                    for p in e_attrs.get('krbprincipalname'):
+                        p = unicode(p)
+                        if p.lower() == princ.lower():
+                            mprinc = p
+                    if mprinc not in entry_attrs.get(self.principal_attr, []):
+                        members.append(mprinc)
                     else:
                         raise errors.AlreadyGroupMember()
                 except errors.PublicError as e:
@@ -314,10 +349,10 @@ class servicedelegation_remove_member(LDAPRemoveMember):
             for name in names:
                 if not name:
                     continue
-                name = normalize_principal(name)
+                princ = normalize_principal_name(name, self.api.env.realm)
                 try:
-                    if name in entry_attrs.get(self.principal_attr, []):
-                        entry_attrs[self.principal_attr].remove(name)
+                    if princ in entry_attrs.get(self.principal_attr, []):
+                        entry_attrs[self.principal_attr].remove(princ)
                     else:
                         raise errors.NotGroupMember()
                 except errors.PublicError as e:
