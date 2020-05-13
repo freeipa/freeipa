@@ -6,23 +6,24 @@ steps:
 
 - script: |
     set -e
-    printf "Available entropy: %s\n" $(cat /proc/sys/kernel/random/entropy_avail)
-    sudo apt-get install -y rng-tools
-    sudo service rng-tools start
-    sleep 3
-    printf "Available entropy: %s\n" $(cat /proc/sys/kernel/random/entropy_avail)
-  displayName: Increase entropy level
-
-- script: |
-    set -e
+    sudo apt-get update
     sudo apt-get install -y \
         parallel \
         moreutils \
+        rng-tools \
         systemd-coredump \
         python3-docker
     # ubuntu's one is too old: different API
     python3 -m pip install docker --user
   displayName: Install Host's tests requirements
+
+- script: |
+    set -e
+    printf "Available entropy: %s\n" $(cat /proc/sys/kernel/random/entropy_avail)
+    sudo service rng-tools start
+    sleep 3
+    printf "Available entropy: %s\n" $(cat /proc/sys/kernel/random/entropy_avail)
+  displayName: Increase entropy level
 
 - script: |
     set -eu
