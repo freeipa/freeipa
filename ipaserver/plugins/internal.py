@@ -522,6 +522,9 @@ class i18n_messages(Command):
                     "Add exclusive condition into '${primary_key}'"
                 ),
                 "attribute": _("Attribute"),
+                "default_group_confirm": _(
+                    "Are you sure you want to change default group?"
+                ),
                 "default_host_group": _("Default host group"),
                 "default_user_group": _("Default user group"),
                 "exclusive": _("Exclusive"),
