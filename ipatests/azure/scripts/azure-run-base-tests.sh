@@ -27,7 +27,7 @@ if [ "$install_result" -eq 0 ] ; then
     echo "Installation complete. Performance of individual steps:"
     grep 'service duration:' /var/log/ipaserver-install.log | sed -e 's/DEBUG //g'
 
-    sed -ri "s/mode = production/mode = development/" /etc/ipa/default.conf
+    sed -ri "s/mode = production/mode = developer/" /etc/ipa/default.conf
     systemctl restart "$HTTPD_SYSTEMD_NAME"
     firewalld_cmd --add-service={freeipa-ldap,freeipa-ldaps,dns}
 
