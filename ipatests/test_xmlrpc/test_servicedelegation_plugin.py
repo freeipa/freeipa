@@ -17,6 +17,8 @@ target1 = u'test1-targets'
 target2 = u'test2-targets'
 princ1 = u'HTTP/%s@%s' % (api.env.host, api.env.realm)
 princ2 = u'ldap/%s@%s' % (api.env.host, api.env.realm)
+princ3 = u'host/%s@%s' % (api.env.host, api.env.realm)
+host3 = api.env.host
 
 
 def get_servicedelegation_dn(cn):
@@ -435,8 +437,52 @@ class test_servicedelegation(Declarative):
                     failed_memberprincipal=dict(
                         memberprincipal=[
                             [u'HTTP/notfound@%s' % api.env.realm,
-                             u'no such entry']
+                             u'no matching entry found']
                             ],
+                    ),
+                ),
+                result={
+                    'dn': get_servicedelegation_dn(rule1),
+                    'memberprincipal': (princ1,),
+                    'cn': [rule1],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Add host as a member %r to %r' % (host3, rule1),
+            command=(
+                'servicedelegationrule_add_member', [rule1],
+                dict(principal=princ3)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    failed_memberprincipal=dict(
+                        memberprincipal=tuple(),
+                    ),
+                ),
+                result={
+                    'dn': get_servicedelegation_dn(rule1),
+                    'memberprincipal': (princ1, princ3),
+                    'cn': [rule1],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove a host member %r from %r' % (host3, rule1),
+            command=(
+                'servicedelegationrule_remove_member', [rule1],
+                dict(principal=host3)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    failed_memberprincipal=dict(
+                        memberprincipal=tuple(),
                     ),
                 ),
                 result={
@@ -556,7 +602,7 @@ class test_servicedelegation(Declarative):
                     failed_memberprincipal=dict(
                         memberprincipal=[
                             [u'HTTP/notfound@%s' % api.env.realm,
-                             u'no such entry']
+                             u'no matching entry found']
                         ],
                     ),
                 ),
