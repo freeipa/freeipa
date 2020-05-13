@@ -561,6 +561,8 @@ class Env:
 
         # Merge in context config file and then default config file:
         mode = self.__d.get('mode')  # pylint: disable=no-member
+        # documented public modes: production, developer
+        # internal modes: dummy, unit_test
         if mode != 'dummy':
             self._merge_from_file(self.conf)
             self._merge_from_file(self.conf_default)
