@@ -597,6 +597,7 @@ class TestAutomember(UI_driver):
         self.add_user_group(pkey)
         self.navigate_by_menu('identity/automember/amgroup')
         self.select_combobox('automemberdefaultgroup', pkey)
+        self.dialog_button_click('ok')
 
         self.add_user(user_pkey, 'Some', 'User')
         self.navigate_to_record(user_pkey)
@@ -606,6 +607,7 @@ class TestAutomember(UI_driver):
         # Clear default user group
         self.navigate_by_menu('identity/automember/amgroup')
         self.select_combobox('automemberdefaultgroup', '')
+        self.dialog_button_click('ok')
 
         self.delete_users(user_pkey)
         self.delete_user_groups(pkey)
@@ -623,6 +625,7 @@ class TestAutomember(UI_driver):
         self.add_host_group(pkey)
         self.navigate_by_menu('identity/automember/amhostgroup')
         self.select_combobox('automemberdefaultgroup', pkey)
+        self.dialog_button_click('ok')
 
         host_data = host_util.get_data('some-host', domain)
         self.add_record('host', host_data)
@@ -633,6 +636,7 @@ class TestAutomember(UI_driver):
         # Clear default host group
         self.navigate_by_menu('identity/automember/amhostgroup')
         self.select_combobox('automemberdefaultgroup', '')
+        self.dialog_button_click('ok')
 
         self.delete('host', [{'pkey': host_data['pkey']}])
         self.delete_host_groups(pkey)
