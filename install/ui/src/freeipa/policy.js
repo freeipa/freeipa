@@ -122,6 +122,52 @@ return {
                             measurement_unit: 'seconds'
                         }
                     ]
+                },
+                {
+                    name: 'auth_indicators',
+                    label: '@i18n:authtype.auth_indicators',
+                    fields: [
+                        {
+                            name: 'krbauthindmaxrenewableage_radius',
+                            acl_param: 'krbauthindmaxrenewableage',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxticketlife_radius',
+                            acl_param: 'krbauthindmaxticketlife',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxrenewableage_otp',
+                            acl_param: 'krbauthindmaxrenewableage',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxticketlife_otp',
+                            acl_param: 'krbauthindmaxticketlife',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxrenewableage_pkinit',
+                            acl_param: 'krbauthindmaxrenewableage',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxticketlife_pkinit',
+                            acl_param: 'krbauthindmaxticketlife',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxrenewableage_hardened',
+                            acl_param: 'krbauthindmaxrenewableage',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxticketlife_hardened',
+                            acl_param: 'krbauthindmaxticketlife',
+                            measurement_unit: 'seconds'
+                        }
+                    ]
                 }
             ],
             needs_update: true
