@@ -2,7 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import absolute_import
+
 from itertools import permutations
+import ipaplatform
+import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -168,6 +172,9 @@ class TestServerDel(ServerDelBase):
             affected_suffixes=(CA_SUFFIX_NAME,)
         )
 
+    @pytest.mark.xfail(
+        ipaplatform.NAME == 'fedora',
+        reason='https://pagure.io/389-ds-base/issue/49972')
     def test_ignore_topology_disconnect_replica1(self):
         """
         tests that removal of replica1 with '--ignore-topology-disconnect'
@@ -199,6 +206,9 @@ class TestServerDel(ServerDelBase):
                                domain_level=self.domain_level)
         tasks.install_replica(self.master, self.replica2, setup_ca=True)
 
+    @pytest.mark.xfail(
+        ipaplatform.NAME == 'fedora',
+        reason='https://pagure.io/389-ds-base/issue/49972')
     def test_removal_of_master_disconnects_both_topologies(self):
         """
         tests that master removal will now raise errors in both suffixes.
