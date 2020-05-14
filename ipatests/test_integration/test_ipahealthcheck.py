@@ -15,6 +15,7 @@ import pytest
 from ipalib import api
 from ipapython.ipaldap import realm_to_serverid
 from ipatests.pytest_ipa.integration import tasks
+from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 
 HEALTHCHECK_LOG = "/var/log/ipa/healthcheck/healthcheck.log"
@@ -110,6 +111,12 @@ DEFAULT_PKI_KRA_CERTS = [
     "storageCert cert-pki-kra",
     "auditSigningCert cert-pki-kra",
 ]
+
+TOMCAT_CONFIG_FILES = (
+    paths.PKI_TOMCAT_PASSWORD_CONF,
+    paths.PKI_TOMCAT_SERVER_XML,
+    paths.CA_CS_CFG_PATH,
+)
 
 
 def run_healthcheck(host, source=None, check=None, output_type="json",
@@ -564,6 +571,36 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["kw"]["ruv"] in ruvs
             ruvs.remove(check["kw"]["ruv"])
         assert not ruvs
+
+    @pytest.fixture
+    def change_tomcat_mode(self):
+        for files in TOMCAT_CONFIG_FILES:
+            self.master.run_command(["chmod", "600", files])
+        yield
+        for files in TOMCAT_CONFIG_FILES:
+            self.master.run_command(["chmod", "660", files])
+
+    def test_ipa_healthcheck_tomcatfilecheck(self, change_tomcat_mode):
+        """
+        This testcase changes the permissions of the tomcat configuration file
+        on an IPA Master and then checks if healthcheck tools reports the ERROR
+        """
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.files", "TomcatFileCheck"
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["type"] == "mode":
+                assert check["kw"]["expected"] == "0660"
+                assert check["kw"]["got"] == "0600"
+                assert check["result"] == "ERROR"
+                assert check["kw"]["path"] in TOMCAT_CONFIG_FILES
+                assert (
+                    check["kw"]["msg"]
+                    == "Permissions of %s are too restrictive: "
+                       "0600 and should be 0660"
+                    % check["kw"]["path"]
+                )
 
     def test_ipa_healthcheck_without_trust_setup(self):
         """
