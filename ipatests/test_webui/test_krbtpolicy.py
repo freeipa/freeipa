@@ -31,6 +31,14 @@ DATA = {
     'mod': [
         ('textbox', 'krbmaxrenewableage', '599000'),
         ('textbox', 'krbmaxticketlife', '79800'),
+        ('textbox', 'krbauthindmaxrenewableage_radius', '601000'),
+        ('textbox', 'krbauthindmaxticketlife_radius', '81000'),
+        ('textbox', 'krbauthindmaxrenewableage_otp', '602000'),
+        ('textbox', 'krbauthindmaxticketlife_otp', '82000'),
+        ('textbox', 'krbauthindmaxrenewableage_pkinit', '603000'),
+        ('textbox', 'krbauthindmaxticketlife_pkinit', '83000'),
+        ('textbox', 'krbauthindmaxrenewableage_hardened', '604000'),
+        ('textbox', 'krbauthindmaxticketlife_hardened', '84000'),
     ],
 }
 
@@ -38,6 +46,14 @@ DATA2 = {
     'mod': [
         ('textbox', 'krbmaxrenewableage', '604800'),
         ('textbox', 'krbmaxticketlife', '86400'),
+        ('textbox', 'krbauthindmaxrenewableage_radius', '604800'),
+        ('textbox', 'krbauthindmaxticketlife_radius', '86400'),
+        ('textbox', 'krbauthindmaxrenewableage_otp', '604800'),
+        ('textbox', 'krbauthindmaxticketlife_otp', '86400'),
+        ('textbox', 'krbauthindmaxrenewableage_pkinit', '604800'),
+        ('textbox', 'krbauthindmaxticketlife_pkinit', '86400'),
+        ('textbox', 'krbauthindmaxrenewableage_hardened', '604800'),
+        ('textbox', 'krbauthindmaxticketlife_hardened', '86400'),
     ],
 }
 
