@@ -388,3 +388,10 @@ default: objectClass: nsIndex
 default: nsSystemIndex: false
 default: nsIndexType: eq
 default: nsIndexType: pres
+
+dn: cn=krbPasswordExpiration,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default: cn: krbPasswordExpiration
+default: objectClass: top
+default: objectClass: nsIndex
+default: nsSystemIndex: false
+default: nsIndexType: eq
