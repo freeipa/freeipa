@@ -280,6 +280,11 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
     )
     setup_dns = enroll_only(setup_dns)
 
+    @setup_dns.validator
+    def setup_dns(self, value):
+        if value:
+            dns.package_check(ValueError)
+
     idstart = knob(
         int, random.randint(1, 10000) * 200000,
         description="The starting value for the IDs range (default random)",
