@@ -111,14 +111,20 @@ def _disable_dnssec():
             conn.update_entry(entry)
 
 
+def package_check(exception):
+    if not os.path.isfile(paths.IPA_DNS_INSTALL):
+        raise exception(
+            "Integrated DNS requires '%s' package"
+            % constants.IPA_DNS_PACKAGE_NAME
+        )
+
+
 def install_check(standalone, api, replica, options, hostname):
     global ip_addresses
     global reverse_zones
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
-    if not os.path.isfile(paths.IPA_DNS_INSTALL):
-        raise RuntimeError("Integrated DNS requires '%s' package" %
-                           constants.IPA_DNS_PACKAGE_NAME)
+    package_check(RuntimeError)
 
     # when installing first DNS instance we need to check zone overlap
     if replica or standalone:
