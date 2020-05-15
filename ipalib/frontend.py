@@ -1298,7 +1298,10 @@ class Object(HasParam):
         )
         if self.primary_key:
             json_dict['primary_key'] = self.primary_key.name
-        json_dict['methods'] = list(self.methods)
+        json_dict['methods'] = [
+            name for name, method in self.methods.__todict__().items()
+            if not isinstance(method, Local)
+        ]
         return json_dict
 
 
