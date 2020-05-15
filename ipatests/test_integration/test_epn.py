@@ -119,6 +119,19 @@ def configure_starttls(host):
     host.run_command(["systemctl", "restart", "postfix"])
 
 
+def configure_ssl(host):
+    """Enable the ssl listener on port 465.
+    """
+    conf = host.get_file_contents('/etc/postfix/master.cf',
+                                  encoding='utf-8')
+    conf += 'smtps inet n - n - - smtpd\n'
+    conf += '  -o syslog_name=postfix/smtps\n'
+    conf += '  -o smtpd_tls_wrappermode=yes\n'
+    conf += '  -o smtpd_sasl_auth_enable=yes\n'
+    host.put_file_contents('/etc/postfix/master.cf', conf)
+
+    host.run_command(["systemctl", "restart", "postfix"])
+
 def decode_header(header):
     """Decode the header if needed and return the value"""
     # Only support one value for now
@@ -367,6 +380,25 @@ class TestEPN(IntegrationTest):
                    password=self.master.config.admin_password))
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
         configure_starttls(self.master)
+
+        tasks.ipa_epn(self.master)
+        for i in self.notify_ttls:
+            validate_mail(self.master, i,
+                          "Hi  user,\nYour login entry user%d is going" % i)
+
+    def test_EPN_ssl(self, cleanupmail):
+        """Configure with ssl and test delivery
+        """
+        epn_conf = textwrap.dedent('''
+            [global]
+            smtp_user={user}
+            smtp_password={password}
+            smtp_port=465
+            smtp_security=ssl
+        '''.format(user=self.master.config.admin_name,
+                   password=self.master.config.admin_password))
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+        configure_ssl(self.master)
 
         tasks.ipa_epn(self.master)
         for i in self.notify_ttls:
