@@ -43,14 +43,15 @@ def datetime_to_generalized_time(dt):
     return generalized_time_str + "Z"
 
 
+def postconf(host, option):
+    host.run_command(r"postconf -e '%s'" % option)
+
+
 def configure_postfix(host, realm):
     """Configure postfix for:
           * SASL auth
           * to be the destination of the IPA domain.
     """
-    def postconf(host, option):
-        host.run_command(r"postconf -e '%s'" % option)
-
     # Setup the keytab we need for SASL auth
     host.run_command(r"ipa service-add smtp/%s --force" % host.hostname)
     host.run_command(r"ipa-getkeytab -p smtp/%s -k /etc/postfix/smtp.keytab" %
@@ -89,6 +90,35 @@ def configure_postfix(host, realm):
     host.run_command(["systemctl", "restart", "postfix"])
 
 
+def configure_starttls(host):
+    """Obtain a TLS cert for the host and configure postfix for starttls
+
+       Depends on configure_postfix() being executed first.
+    """
+
+    host.run_command(r'rm -f /etc/pki/tls/private/postfix.key')
+    host.run_command(r'rm -f /etc/pki/tls/certs/postfix.pem')
+    host.run_command(["ipa-getcert", "request",
+                      "-f", "/etc/pki/tls/certs/postfix.pem",
+                      "-k", "/etc/pki/tls/private/postfix.key",
+                      "-K", "smtp/%s" % host.hostname,
+                      "-D", host.hostname,
+                      "-O", "postfix",
+                      "-o", "postfix",
+                      "-M", "0640",
+                      "-m", "0640",
+                      "-w",
+                      ])
+    postconf(host, 'smtpd_tls_loglevel = 1')
+    postconf(host, 'smtpd_tls_auth_only = yes')
+    postconf(host, 'smtpd_tls_key_file = /etc/pki/tls/private/postfix.key')
+    postconf(host, 'smtpd_tls_cert_file = /etc/pki/tls/certs/postfix.pem')
+    postconf(host, 'smtpd_tls_received_header = yes')
+    postconf(host, 'smtpd_tls_session_cache_timeout = 3600s')
+
+    host.run_command(["systemctl", "restart", "postfix"])
+
+
 def decode_header(header):
     """Decode the header if needed and return the value"""
     # Only support one value for now
@@ -106,7 +136,7 @@ def validate_mail(host, id, content):
     assert decode_header(msg['To']) == 'user%d@%s' % (id, host.domain.name)
     assert decode_header(msg['From']) == 'IPA-EPN <noreply@%s>' % \
                                          host.domain.name
-    assert decode_header(msg['subject']) == 'Your password is expiring.'
+    assert decode_header(msg['subject']) == 'Your password will expire soon.'
 
     for part in msg.walk():
         if part.get_content_maintype() == 'multipart':
@@ -158,6 +188,10 @@ class TestEPN(IntegrationTest):
         tasks.uninstall_packages(cls.master, ["postfix"])
         tasks.uninstall_packages(cls.clients[0], ["postfix"])
         cls.master.run_command(r'rm -f /etc/postfix/smtp.keytab')
+        cls.master.run_command(r'getcert stop-tracking -f '
+                               '/etc/pki/tls/certs/postfix.pem')
+        cls.master.run_command(r'rm -f /etc/pki/tls/private/postfix.key')
+        cls.master.run_command(r'rm -f /etc/pki/tls/certs/postfix.pem')
 
     def test_EPN_smoketest_1(self):
         """No users except admin. Check --dry-run output.
@@ -282,11 +316,13 @@ class TestEPN(IntegrationTest):
             assert len(user_list) == 1
             assert user_list[0] == "user%d" % i
 
-    def test_EPN_authenticated(self, cleanupmail):
-        """Test the to/from nbdays options (implies --dry-run)
+    # From here the tests build on one another:
+    #  1) add auth
+    #  2) tweak the template
+    #  3) add starttls
 
-           We have a set of users installed with varying expiration
-           dates. Confirm that to/from nbdays finds them.
+    def test_EPN_authenticated(self, cleanupmail):
+        """Enable authentication and test that mail is delivered
         """
         epn_conf = textwrap.dedent('''
             [global]
@@ -302,10 +338,7 @@ class TestEPN(IntegrationTest):
                           "Hi test user,\n\nYour password will expire")
 
     def test_EPN_template(self, cleanupmail):
-        """Test the to/from nbdays options (implies --dry-run)
-
-           We have a set of users installed with varying expiration
-           dates. Confirm that to/from nbdays finds them.
+        """Modify the template to ensure changes are applied.
         """
         exp_msg = textwrap.dedent('''
             Hi {{ first }} {{last}},
@@ -316,6 +349,24 @@ class TestEPN(IntegrationTest):
         ''')
         self.master.put_file_contents('/etc/ipa/epn/expire_msg.template',
                                       exp_msg)
+
+        tasks.ipa_epn(self.master)
+        for i in self.notify_ttls:
+            validate_mail(self.master, i,
+                          "Hi  user,\nYour login entry user%d is going" % i)
+
+    def test_EPN_starttls(self, cleanupmail):
+        """Configure with starttls and test delivery
+        """
+        epn_conf = textwrap.dedent('''
+            [global]
+            smtp_user={user}
+            smtp_password={password}
+            smtp_security=starttls
+        '''.format(user=self.master.config.admin_name,
+                   password=self.master.config.admin_password))
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+        configure_starttls(self.master)
 
         tasks.ipa_epn(self.master)
         for i in self.notify_ttls:
