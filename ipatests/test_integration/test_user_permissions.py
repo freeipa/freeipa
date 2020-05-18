@@ -140,6 +140,38 @@ class TestUserPermissions(IntegrationTest):
              '--user-auth-type', 'radius', '--radius-username', 'testradius',
              'testradius', '--radius', radiusproxy])
 
+    def test_delete_group_by_user_administrator(self):
+        """
+        Test that a user with sufficient privileges can delete group
+        This is a Automation for issue 6884
+        """
+        # Create a new testadmin user with a password
+        testadmin = 'tuser'
+        password = 'Secret123'
+        testgroup = 'gtest'
+
+        try:
+            tasks.create_active_user(self.master, testadmin, password)
+
+            # Add testadmin user to role "User Administrator"
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'role-add-member',
+                                     '--users', testadmin,
+                                     'User Administrator'])
+            tasks.kdestroy_all(self.master)
+
+            # Create a test group
+            tasks.kinit_as_user(self.master, testadmin, password)
+            self.master.run_command(['ipa', 'group-add', testgroup])
+
+            # Call ipa-group-del to check if user can delete group
+            self.master.run_command(['ipa', 'group-del', testgroup])
+        finally:
+            # Cleanup
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'user-del', testadmin])
+            self.master.run_command(['ipa', 'group-del', testgroup,
+                                     '--continue'])
 
 
 class TestInstallClientNoAdmin(IntegrationTest):
