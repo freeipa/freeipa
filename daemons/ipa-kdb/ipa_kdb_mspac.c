@@ -805,6 +805,8 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     union PAC_INFO pac_info;
     krb5_error_code kerr;
     enum ndr_err_code ndr_err;
+    union PAC_INFO pac_upn;
+    char *principal = NULL;
 
     /* When no client entry is there, we cannot generate MS-PAC */
     if (!client) {
@@ -878,6 +880,46 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     data.length = pac_data.length;
 
     kerr = krb5_pac_add_buffer(kcontext, *pac, KRB5_PAC_LOGON_INFO, &data);
+
+    /* == Package UPN_DNS_LOGON_INFO == */
+    memset(&pac_upn, 0, sizeof(pac_upn));
+    kerr = krb5_unparse_name(kcontext, client->princ, &principal);
+    if (kerr) {
+        goto done;
+    }
+
+    pac_upn.upn_dns_info.upn_name = talloc_strdup(tmpctx, principal);
+    krb5_free_unparsed_name(kcontext, principal);
+    if (pac_upn.upn_dns_info.upn_name == NULL) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    pac_upn.upn_dns_info.dns_domain_name = talloc_strdup(tmpctx, ipactx->realm);
+    if (pac_upn.upn_dns_info.dns_domain_name == NULL) {
+            kerr = KRB5_KDB_INTERNAL_ERROR;
+            goto done;
+    }
+
+    /* IPA user principals are all constructed */
+    if ((pac_info.logon_info.info->info3.base.rid != 515) ||
+        (pac_info.logon_info.info->info3.base.rid != 516)) {
+        pac_upn.upn_dns_info.flags |= PAC_UPN_DNS_FLAG_CONSTRUCTED;
+    }
+
+    ndr_err = ndr_push_union_blob(&pac_data, tmpctx, &pac_upn,
+                                  PAC_TYPE_UPN_DNS_INFO,
+                                  (ndr_push_flags_fn_t)ndr_push_PAC_INFO);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    data.magic = KV5M_DATA;
+    data.data = (char *)pac_data.data;
+    data.length = pac_data.length;
+
+    kerr = krb5_pac_add_buffer(kcontext, *pac, KRB5_PAC_UPN_DNS_INFO, &data);
 
 done:
     ldap_msgfree(results);
