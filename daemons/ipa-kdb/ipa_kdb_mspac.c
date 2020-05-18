@@ -707,7 +707,6 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
                 }
                 if (tgid == prigid) {
                     info3->base.primary_gid = trid;
-                    continue;
                 }
                 info3->base.groups.rids[count].rid = trid;
                 info3->base.groups.rids[count].attributes =
