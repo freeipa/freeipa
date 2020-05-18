@@ -59,11 +59,14 @@ dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES([NSPR], [nspr])
 PKG_CHECK_MODULES([NSS], [nss])
 
+PKG_CHECK_MODULES([POPT], [popt])
+
 dnl ---------------------------------------------------------------------------
 dnl - Check for KRB5
 dnl ---------------------------------------------------------------------------
 
 PKG_CHECK_MODULES([KRB5], [krb5])
+PKG_CHECK_MODULES([KRB5_GSSAPI], [krb5-gssapi])
 
 AC_CHECK_HEADER(kdb.h, [], [AC_MSG_ERROR([kdb.h not found])])
 AC_CHECK_MEMBER(
