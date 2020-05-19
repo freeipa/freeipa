@@ -1456,13 +1456,16 @@ def ipa_backup(host, disable_role_check=False, raiseonerr=True):
 
 
 def ipa_epn(
-    host, dry_run=False, from_nbdays=None, to_nbdays=None, raiseonerr=True
+    host, dry_run=False, from_nbdays=None, to_nbdays=None, raiseonerr=True,
+    mailtest=False,
 ):
     """Run EPN on host and return the run_command result.
     """
     cmd = ["ipa-epn"]
     if dry_run:
         cmd.append("--dry-run")
+    if mailtest:
+        cmd.append("--mail-test")
     if from_nbdays:
         cmd.extend(("--from-nbdays", str(from_nbdays)))
     if to_nbdays:

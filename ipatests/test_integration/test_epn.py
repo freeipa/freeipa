@@ -25,6 +25,8 @@ import logging
 import pytest
 import textwrap
 
+from subprocess import CalledProcessError
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -131,6 +133,7 @@ def configure_ssl(host):
     host.put_file_contents('/etc/postfix/master.cf', conf)
 
     host.run_command(["systemctl", "restart", "postfix"])
+
 
 def decode_header(header):
     """Decode the header if needed and return the value"""
@@ -240,7 +243,7 @@ class TestEPN(IntegrationTest):
     @pytest.fixture
     def cleanupmail(self):
         """Cleanup any existing mail that has been sent."""
-        for i in self.notify_ttls:
+        for i in range(30):
             self.master.run_command(["rm", "-f", "/var/mail/user%d" % i])
 
     def test_EPN_smoketest_2(self, cleanupusers):
@@ -367,6 +370,37 @@ class TestEPN(IntegrationTest):
         for i in self.notify_ttls:
             validate_mail(self.master, i,
                           "Hi  user,\nYour login entry user%d is going" % i)
+
+    def test_mailtest(self, cleanupmail):
+        """Execute mailtest to validate mail is working
+
+           Set of of our pre-created users as the smtp_admin to receive
+           the mail, run ipa-epn --mailtest, then validate the result.
+
+           Using a non-expired user here, user2, to receive the result.
+        """
+        epn_conf = textwrap.dedent('''
+            [global]
+            smtp_user={user}
+            smtp_password={password}
+            smtp_admin=user2@{domain}
+        '''.format(user=self.master.config.admin_name,
+                   password=self.master.config.admin_password,
+                   domain=self.master.domain.name))
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+
+        tasks.ipa_epn(self.master, mailtest=True)
+        validate_mail(self.master, 2,
+                      "Hi SAMPLE USER,\nYour login entry SAUSER is going")
+
+    def test_mailtest_dry_run(self):
+        try:
+            tasks.ipa_epn(self.master, mailtest=True, dry_run=True)
+        except CalledProcessError as e:
+            assert 'You cannot specify' in e.stderr
+        else:
+            raise AssertionError('--mail-test and --dry-run aren\'t supposed '
+                                 'to succeed')
 
     def test_EPN_starttls(self, cleanupmail):
         """Configure with starttls and test delivery
