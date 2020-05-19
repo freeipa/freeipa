@@ -51,6 +51,12 @@ See \fB\-\-to\-nbdays\fR for an explanation. This option must be used in conjonc
 The \fB\-\-dry\-run\fR CLI option is intented to test ipa\-epn's configuration.
 
 For instance, if notify_ttls is set to 21, 14, 3, \fB\-\-dry-run\fR would display the list of users whose passwords would expire in 21, 14, and 3 days in the future.
+.TP
+\fB\-\-mail\-test\fR
+The \fB\-\-mail\-test\fR CLI option will send an e-mail to the configured
+smtp_admin value in /etc/ipa/epn.conf. Generic values for the substitution
+variables are set so this is also useful for testing and configuring the
+mail template.
 
 .SH "TEMPLATE"
 The template for the e\-mail message is contained in /etc/ipa/epn/expire_msg.template. The following template variables are available.

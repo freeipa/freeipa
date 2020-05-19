@@ -66,6 +66,10 @@ Specifies the number of seconds to wait for SMTP to respond. Default 60.
 .B smtp_security <security>
 Specifies the type of secure connection to make. Options are: none, starttls and ssl. The default is none.
 .TP
+.B smtp_admin <address>
+Specifies the From e-mail address value in the e-mails sent. The default is
+root@localhost. Bounces will be sent here.
+.TP
 .B mail_from <address>
 Specifies the From: e-mal address value in the e-mails sent. The default is
 noreply@ipadefaultemaildomain. This value can be found by running
