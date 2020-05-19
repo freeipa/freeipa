@@ -290,7 +290,8 @@ class test_krbtpolicy(Declarative):
             command=(
                 'krbtpolicy_mod', [user1], dict(setattr=u'givenname=Pete')
             ),
-            expected=errors.ObjectclassViolation(info='attribute "givenname" not allowed'),
+            expected=errors.ObjectclassViolation(
+                info='these attributes are not allowed: givenname'),
         ),
     ]
     for (value, error) in invalid_values:
