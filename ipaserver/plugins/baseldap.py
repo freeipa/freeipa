@@ -858,7 +858,7 @@ def _check_limit_object_class(attributes, attrs, allow_only):
     # LDAP schema does not enforce any of LDAP attribute options
     # (e.g. attribute;option), thus we should avoid comparing
     # attribute names with options directly.
-    limitattrs = [x.split(';')[0] for x in attrs]
+    limitattrs = {x.split(';')[0].lower() for x in attrs}
     # Go through the MUST first
     for attr in attributes[0].values():
         if attr.names[0].lower() in limitattrs:
@@ -877,8 +877,8 @@ def _check_limit_object_class(attributes, attrs, allow_only):
             limitattrs.remove(attr.names[0].lower())
     if len(limitattrs) > 0 and allow_only:
         raise errors.ObjectclassViolation(
-            info=_('attribute "%(attribute)s" not allowed') % dict(
-                attribute=limitattrs[0]))
+            info=_('these attributes are not allowed: %(attrs)s') % dict(
+                attrs=", ".join(sorted(limitattrs))))
 
 
 class BaseLDAPCommand(Method):
