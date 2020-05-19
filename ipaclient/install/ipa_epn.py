@@ -226,6 +226,13 @@ class EPN(admintool.AdminTool):
             default=False,
             help="Dry run mode. JSON ouput only.",
         )
+        parser.add_option(
+            "--mail-test",
+            dest="mailtest",
+            action="store_true",
+            default=False,
+            help="Send a test e-mail",
+        )
 
     def validate_options(self):
         super(EPN, self).validate_options(needs_root=True)
@@ -234,6 +241,10 @@ class EPN(admintool.AdminTool):
         if self.options.from_nbdays and not self.options.to_nbdays:
             self.option_parser.error(
                 "You cannot specify --from-nbdays without --to-nbdays"
+            )
+        if self.options.mailtest and self.options.dry_run:
+            self.option_parser.error(
+                "You cannot specify --mail-test and --dry-run together"
             )
 
     def setup_logging(self, log_file_mode="a"):
@@ -254,11 +265,14 @@ class EPN(admintool.AdminTool):
         self._get_connection()
         self._read_ipa_configuration()
         drop_privileges()
-        if self.options.to_nbdays:
-            self._build_cli_date_ranges()
-        for date_range in self._date_ranges:
-            self._fetch_data_from_ldap(date_range)
-            self._parse_ldap_data()
+        if self.options.mailtest:
+            self._gentestdata()
+        else:
+            if self.options.to_nbdays:
+                self._build_cli_date_ranges()
+            for date_range in self._date_ranges:
+                self._fetch_data_from_ldap(date_range)
+                self._parse_ldap_data()
         if self.options.dry_run:
             self._pretty_print_data()
         else:
@@ -498,6 +512,20 @@ class EPN(admintool.AdminTool):
                     entry["mail"], entry["uid"], (expdate - now).days,
                     expdate)
             self._mailer.cleanup()
+
+    def _gentestdata(self):
+        """Generate a sample user to process through the template.
+        """
+        expdate = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        entry = dict(
+            uid=["SAUSER"],
+            cn=["SAMPLE USER"],
+            givenname=["SAMPLE"],
+            sn=["USER"],
+            krbpasswordexpiration=[expdate],
+            mail=[api.env.smtp_admin],
+        )
+        self._expiring_password_user_list.add(entry)
 
     def _build_cli_date_ranges(self):
         """When self.options.to_nbdays is set, override the date ranges read
