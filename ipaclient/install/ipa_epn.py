@@ -29,6 +29,7 @@ import os
 import pwd
 import logging
 import smtplib
+import time
 
 from collections import deque
 from datetime import datetime, timedelta
@@ -57,6 +58,7 @@ EPN_CONFIG = {
     "smtp_timeout": 60,
     "smtp_security": "none",
     "smtp_admin": "root@localhost",
+    "smtp_delay": None,
     "mail_from": None,
     "notify_ttls": "28,14,7,3,1",
     "msg_charset": "utf8",
@@ -366,6 +368,13 @@ class EPN(admintool.AdminTool):
         except ValueError as e:
             raise RuntimeError('Failed to parse notify_ttls: \'%s\': %s' %
                                (api.env.notify_ttls, e))
+        if api.env.smtp_delay:
+            try:
+                float(api.env.smtp_delay)
+            except ValueError as e:
+                raise RuntimeError('smtp_delay is misformatted: %s' % e)
+            if float(api.env.smtp_delay) < 0:
+                raise RuntimeError('smtp_delay cannot be less than zero')
 
     def _parse_configuration(self):
         """
@@ -511,6 +520,8 @@ class EPN(admintool.AdminTool):
                     "Notified %s (%s). Password expiring in %d days at %s.",
                     entry["mail"], entry["uid"], (expdate - now).days,
                     expdate)
+                if api.env.smtp_delay:
+                    time.sleep(float(api.env.smtp_delay) / 1000)
             self._mailer.cleanup()
 
     def _gentestdata(self):
