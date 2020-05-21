@@ -214,6 +214,10 @@ class TestEPN(IntegrationTest):
            With the default configuration, the result should be an empty list.
            Also check behavior on master and client alike.
         """
+        epn_conf = textwrap.dedent('''
+            [global]
+        ''')
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
         # check EPN on client (LDAP+GSSAPI)
         (stdout_text, unused) = self._check_epn_output(
             self.clients[0], dry_run=True
@@ -438,3 +442,23 @@ class TestEPN(IntegrationTest):
         for i in self.notify_ttls:
             validate_mail(self.master, i,
                           "Hi  user,\nYour login entry user%d is going" % i)
+
+    def test_EPN_delay_config(self, cleanupmail):
+        """Test the smtp_delay configuration option
+        """
+        epn_conf = textwrap.dedent('''
+            [global]
+            smtp_delay=A
+        ''')
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+
+        result = tasks.ipa_epn(self.master, raiseonerr=False)
+        assert "could not convert string to float: 'A'" in result.stderr_text
+
+        epn_conf = textwrap.dedent('''
+            [global]
+            smtp_delay=-1
+        ''')
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+        result = tasks.ipa_epn(self.master, raiseonerr=False)
+        assert "smtp_delay cannot be less than zero" in result.stderr_text
