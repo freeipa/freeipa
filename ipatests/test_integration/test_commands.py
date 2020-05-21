@@ -1170,3 +1170,22 @@ class TestIPACommand(IntegrationTest):
             assert msg2 not in result.stderr_text
         finally:
             bashrc_backup.restore()
+
+    def test_leading_trailing_space_user_password(self):
+        """Test to check leading and trailing spaces in password
+
+        This test is to check if leading and trailing spaces are allowed
+        in the user password.
+
+        related: https://pagure.io/freeipa/issue/7599
+        """
+        user = 'testuser'
+        leadspace_passwd = ' Secret123'
+        trailspace_passwd = 'Secret123 '
+
+        # add user with leading space in password
+        tasks.user_add(self.master, user, password=leadspace_passwd)
+
+        # modify user with password having trailing space
+        self.master.run_command(['ipa', 'user-mod', user, '--password'],
+                                stdin_text=trailspace_passwd)
