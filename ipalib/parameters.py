@@ -1541,7 +1541,7 @@ class Str(Data):
 
     kwargs = Data.kwargs + (
         ('pattern', (str,), None),
-        ('noextrawhitespace', bool, True),
+        ('noextrawhitespace', bool, False),
     )
 
     type = unicode
