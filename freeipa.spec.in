@@ -348,7 +348,6 @@ Requires(post): krb5-server >= %{krb5_version}
 Requires(post): krb5-server >= %{krb5_base_version}, krb5-server < %{krb5_base_version}.100
 Requires: krb5-pkinit-openssl >= %{krb5_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
-Requires: chrony
 Requires: httpd >= %{httpd_version}
 Requires(preun): python3
 Requires(postun): python3
@@ -547,7 +546,6 @@ Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ldap >= %{python_ldap_version}
 Requires: python3-sssdconfig >= %{sssd_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
-Requires: chrony
 Requires: krb5-workstation >= %{krb5_version}
 Requires: authselect >= 0.4-2
 Requires: curl
