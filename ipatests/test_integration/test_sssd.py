@@ -352,6 +352,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
             tasks.clear_sssd_cache(self.master)
 
 
+@pytest.mark.skip(reason="SSSD fix is not available on Fedora 27")
 class TestNestedMembers(IntegrationTest):
     num_clients = 1
     username = "testuser001"
