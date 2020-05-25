@@ -1258,32 +1258,35 @@ done:
     return kerr;
 }
 
-/* TODO: handle case where main object and krbprincipal data are not
- * the same object but linked objects ?
- * (by way of krbprincipalaux being in a separate object from krbprincipal).
- * Currently we only support objcts with both objectclasses present at the
- * same time. */
-
-krb5_error_code ipadb_get_principal(krb5_context kcontext,
-                                    krb5_const_principal search_for,
-                                    unsigned int flags,
-                                    krb5_db_entry **entry)
+static krb5_boolean is_request_for_us(krb5_context kcontext,
+                                      krb5_principal local_tgs,
+                                      krb5_const_principal search_for)
 {
-    struct ipadb_context *ipactx;
+    krb5_boolean for_us;
+
+    for_us = krb5_realm_compare(kcontext, local_tgs, search_for) ||
+             krb5_principal_compare_any_realm(kcontext,
+                                              local_tgs, search_for);
+    return for_us;
+}
+
+static krb5_error_code dbget_princ(krb5_context kcontext,
+                                   struct ipadb_context *ipactx,
+                                   krb5_const_principal search_for,
+                                   unsigned int flags,
+                                   krb5_db_entry **entry)
+{
     krb5_error_code kerr;
     char *principal = NULL;
-    char *trusted_realm = NULL;
     LDAPMessage *res = NULL;
     LDAPMessage *lentry;
-    krb5_db_entry *kentry = NULL;
     uint32_t pol;
 
-    ipactx = ipadb_get_context(kcontext);
-    if (!ipactx) {
-        return KRB5_KDB_DBNOTINITED;
-    }
-
-    kerr = krb5_unparse_name(kcontext, search_for, &principal);
+    /* Unparse without escaping '@' and '/' because we are going to use them
+     * in LDAP filters where escaping character '\' will be escaped and the
+     * result will never match. */
+    kerr = krb5_unparse_name_flags(kcontext, search_for,
+                                   KRB5_PRINCIPAL_UNPARSE_DISPLAY, &principal);
     if (kerr != 0) {
         goto done;
     }
@@ -1295,139 +1298,7 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
 
     kerr = ipadb_find_principal(kcontext, flags, res, &principal, &lentry);
     if (kerr != 0) {
-        if ((kerr == KRB5_KDB_NOENTRY) &&
-            ((flags & (KRB5_KDB_FLAG_CANONICALIZE |
-                       KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY)) != 0)) {
-
-            /* First check if we got enterprise principal which looks like
-             * username\@enterprise_realm@REALM */
-            char *realm;
-            krb5_data *upn;
-
-            upn = krb5_princ_component(kcontext, search_for,
-                                       krb5_princ_size(kcontext, search_for) - 1);
-
-            if (upn == NULL) {
-                kerr = KRB5_KDB_NOENTRY;
-                goto done;
-            }
-
-            realm = memrchr(upn->data, '@', upn->length);
-            if (realm == NULL) {
-                kerr = KRB5_KDB_NOENTRY;
-                goto done;
-            }
-
-            /* skip '@' and use part after '@' as an enterprise realm for comparison */
-            realm++;
-
-            /* check for our realm */
-            if (strncasecmp(ipactx->realm, realm,
-                            upn->length - (realm - upn->data)) == 0) {
-                /* it looks like it is ok to use malloc'ed strings as principal */
-                krb5_free_unparsed_name(kcontext, principal);
-                principal = strndup((const char *) upn->data, upn->length);
-                if (principal == NULL) {
-                    kerr = ENOMEM;
-                    goto done;
-                }
-
-                ldap_msgfree(res);
-                res = NULL;
-                kerr = ipadb_fetch_principals(ipactx, flags, principal, &res);
-                if (kerr != 0) {
-                    goto done;
-                }
-
-                kerr = ipadb_find_principal(kcontext, flags, res, &principal,
-                                            &lentry);
-                if (kerr != 0) {
-                    goto done;
-                }
-            } else {
-
-                kerr = ipadb_is_princ_from_trusted_realm(kcontext,
-                                                         realm,
-                                                         upn->length - (realm - upn->data),
-                                                         &trusted_realm);
-                if (kerr == KRB5_KDB_NOENTRY) {
-                    /* try to refresh trusted domain data and try again */
-                    kerr = ipadb_reinit_mspac(ipactx, false);
-                    if (kerr != 0) {
-                        kerr = KRB5_KDB_NOENTRY;
-                        goto done;
-                    }
-                    kerr = ipadb_is_princ_from_trusted_realm(kcontext, realm,
-                                              upn->length - (realm - upn->data),
-                                              &trusted_realm);
-                }
-
-                if (kerr != 0) {
-                    goto done;
-                }
-
-                if (flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) {
-                    kentry = calloc(1, sizeof(krb5_db_entry));
-                    if (!kentry) {
-                        kerr = ENOMEM;
-                        goto done;
-                    }
-                    kerr = krb5_parse_name(kcontext, principal,
-                                           &kentry->princ);
-                    if (kerr != 0) {
-                        goto done;
-                    }
-
-                    kerr = krb5_set_principal_realm(kcontext, kentry->princ, trusted_realm);
-                    if (kerr != 0) {
-                        goto done;
-                    }
-                    *entry = kentry;
-
-                    goto done;
-                } else if (flags & KRB5_KDB_FLAG_INCLUDE_PAC) {
-                    kerr = KRB5_KDB_NOENTRY;
-                    goto done;
-                } else {
-                    /* server referrals: lookup krbtgt/next_realm@our_realm */
-                    krb5_principal tgtp;
-
-                    kerr = krb5_build_principal_ext(kcontext, &tgtp,
-                                                    strlen(ipactx->realm),
-                                                    ipactx->realm,
-                                                    KRB5_TGS_NAME_SIZE,
-                                                    KRB5_TGS_NAME,
-                                                    strlen(trusted_realm),
-                                                    trusted_realm, 0);
-                    if (kerr != 0) {
-                        goto done;
-                    }
-
-                    krb5_free_unparsed_name(kcontext, principal);
-                    principal = NULL;
-                    kerr = krb5_unparse_name(kcontext, tgtp, &principal);
-                    krb5_free_principal(kcontext, tgtp);
-                    if (kerr != 0) {
-                        goto done;
-                    }
-
-                    ldap_msgfree(res);
-                    res = NULL;
-                    kerr = ipadb_fetch_principals(ipactx, flags, principal, &res);
-                    if (kerr != 0) {
-                        goto done;
-                    }
-
-                    kerr = ipadb_find_principal(kcontext, flags, res, &principal,
-                                                &lentry);
-                    if (kerr != 0) {
-                        goto done;
-                    }
-                }
-            }
-        } else {
-            goto done;
-        }
+        goto done;
     }
 
     kerr = ipadb_parse_ldap_entry(kcontext, principal, lentry, entry, &pol);
@@ -1443,13 +1314,188 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
     }
 
 done:
-    free(trusted_realm);
-    if ((kerr != 0) && (kentry != NULL)) {
-        ipadb_free_principal(kcontext, kentry);
-    }
     ldap_msgfree(res);
     krb5_free_unparsed_name(kcontext, principal);
+
     return kerr;
+}
+
+static krb5_error_code dbget_alias(krb5_context kcontext,
+                                   struct ipadb_context *ipactx,
+                                   krb5_const_principal search_for,
+                                   unsigned int flags,
+                                   krb5_db_entry **entry)
+{
+    krb5_error_code kerr = 0;
+    char *principal = NULL;
+    krb5_principal norm_princ = NULL;
+    char *trusted_realm = NULL;
+    krb5_db_entry *kentry = NULL;
+    krb5_data *realm;
+
+    /* TODO: also support hostbased aliases */
+
+    /* Enterprise principal name type is for potential aliases or principals
+     * from trusted realms. The logic below only applies to this type */
+    if (krb5_princ_type(kcontext, search_for) != KRB5_NT_ENTERPRISE_PRINCIPAL) {
+        return KRB5_KDB_NOENTRY;
+    }
+
+    /* enterprise principal can only have single component in the name
+     * according to RFC6806 section 5. */
+    if (krb5_princ_size(kcontext, search_for) != 1) {
+        return KRB5_KDB_NOENTRY;
+    }
+
+    /* unparse the Kerberos principal without (our) outer realm. */
+    kerr = krb5_unparse_name_flags(kcontext, search_for,
+                                   KRB5_PRINCIPAL_UNPARSE_NO_REALM |
+                                   KRB5_PRINCIPAL_UNPARSE_DISPLAY,
+                                   &principal);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    /* Re-parse the principal to normalize it. Innner realm becomes
+     * the realm if present. If no inner realm, our default realm
+     * will be used instead (as it was before). */
+    kerr = krb5_parse_name(kcontext, principal, &norm_princ);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    if (krb5_realm_compare(kcontext, ipactx->local_tgs, norm_princ)) {
+        /* In realm alias, try to retrieve it and let the caller handle it. */
+        kerr = dbget_princ(kcontext, ipactx, norm_princ, flags, entry);
+        goto done;
+    }
+
+    /* The request is out of realm starting from here */
+
+    /*
+     * Per RFC6806 section 7 and 8, the canonicalize flag is required for
+     * both client and server referrals. But it is more useful to ignore it
+     * like Windows KDC does for client referrals.
+     */
+    if (((flags & KRB5_KDB_FLAG_CANONICALIZE) == 0) &&
+        ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) == 0)) {
+        kerr = KRB5_KDB_NOENTRY;
+        goto done;
+    }
+
+    /* Determine the trusted realm to refer to. We don't need the principal
+     * itself, only its realm */
+    realm = krb5_princ_realm(kcontext, norm_princ);
+    kerr = ipadb_is_princ_from_trusted_realm(kcontext,
+                                             realm->data,
+                                             realm->length,
+                                             &trusted_realm);
+    if (kerr == KRB5_KDB_NOENTRY) {
+        /* If no trusted realm found, refresh trusted domain data and try again
+         * because it might be a freshly added trust to AD */
+        kerr = ipadb_reinit_mspac(ipactx, false);
+        if (kerr != 0) {
+            kerr = KRB5_KDB_NOENTRY;
+            goto done;
+        }
+        kerr = ipadb_is_princ_from_trusted_realm(kcontext,
+                                                 realm->data,
+                                                 realm->length,
+                                                 &trusted_realm);
+    }
+
+    if (kerr != 0) {
+        goto done;
+    }
+
+    /* This is a known trusted realm. Issue a referral depending on whether this
+     * is client or server referral request */
+    if (flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) {
+        /* client referral out of realm, set next realm. */
+        kerr = krb5_set_principal_realm(kcontext, norm_princ, trusted_realm);
+        if (kerr != 0) {
+            goto done;
+        }
+        kentry = calloc(1, sizeof(krb5_db_entry));
+        if (!kentry) {
+            kerr = ENOMEM;
+            goto done;
+        }
+
+        kentry->princ = norm_princ;
+        norm_princ = NULL;
+        *entry = kentry;
+
+        goto done;
+    }
+
+    if (flags & KRB5_KDB_FLAG_INCLUDE_PAC) {
+        /* TGS request where KDC wants to generate PAC
+         * but the principal is out of our realm */
+        kerr = KRB5_KDB_NOENTRY;
+        goto done;
+    }
+
+    /* server referrals: lookup krbtgt/next_realm@our_realm */
+
+    krb5_free_principal(kcontext, norm_princ);
+    norm_princ = NULL;
+    kerr = krb5_build_principal_ext(kcontext, &norm_princ,
+                                    strlen(ipactx->realm),
+                                    ipactx->realm,
+                                    KRB5_TGS_NAME_SIZE,
+                                    KRB5_TGS_NAME,
+                                    strlen(trusted_realm),
+                                    trusted_realm, 0);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    kerr = dbget_princ(kcontext, ipactx, norm_princ, flags, entry);
+
+done:
+    free(trusted_realm);
+    krb5_free_principal(kcontext, norm_princ);
+    krb5_free_unparsed_name(kcontext, principal);
+
+    return kerr;
+}
+
+/* TODO: handle case where main object and krbprincipal data are not
+ * the same object but linked objects ?
+ * (by way of krbprincipalaux being in a separate object from krbprincipal).
+ * Currently we only support objcts with both objectclasses present at the
+ * same time. */
+
+krb5_error_code ipadb_get_principal(krb5_context kcontext,
+                                    krb5_const_principal search_for,
+                                    unsigned int flags,
+                                    krb5_db_entry **entry)
+{
+    struct ipadb_context *ipactx;
+    krb5_error_code kerr;
+
+    *entry = NULL;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
+    if (!is_request_for_us(kcontext, ipactx->local_tgs, search_for)) {
+        krb5_klog_syslog(LOG_INFO,
+                         "ipadb_get_principal: requested principal "
+                         "is not for our realm\n");
+        return KRB5_KDB_NOENTRY;
+    }
+
+    /* Lookup local names and aliases first. */
+    kerr = dbget_princ(kcontext, ipactx, search_for, flags, entry);
+    if (kerr != KRB5_KDB_NOENTRY) {
+        return kerr;
+    }
+
+    return dbget_alias(kcontext, ipactx, search_for, flags, entry);
 }
 
 void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
