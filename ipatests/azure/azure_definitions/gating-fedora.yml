@@ -88,9 +88,10 @@ vms:
     - test_integration/test_external_ca.py::TestExternalCAConstraints
 
 - vm_jobs:
-  - container_job: commands
-    tests:
-    - test_integration/test_commands.py
+  # Requires more memory per container and fails reliably
+  #  - container_job: commands
+  #    tests:
+  #    - test_integration/test_commands.py
 
   - container_job: ServerReplicaCALessToCAFull
     tests:
