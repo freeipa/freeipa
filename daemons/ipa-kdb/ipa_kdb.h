@@ -134,6 +134,8 @@ struct ipadb_context {
 
     /* Don't access this directly, use ipadb_get_global_config(). */
     struct ipadb_global_config config;
+
+    krb5_principal local_tgs;
 };
 
 struct ipadb_e_pol_limits {
