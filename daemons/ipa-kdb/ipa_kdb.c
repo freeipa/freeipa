@@ -60,6 +60,7 @@ static void ipadb_context_free(krb5_context kcontext,
         free((*ctx)->supp_encs);
         free((*ctx)->def_encs);
         ipadb_mspac_struct_free(&(*ctx)->mspac);
+        krb5_free_principal(kcontext, (*ctx)->local_tgs);
         krb5_free_default_realm(kcontext, (*ctx)->realm);
 
         cfg = &(*ctx)->config;
@@ -495,6 +496,27 @@ done:
     return 0;
 }
 
+static krb5_principal ipadb_create_local_tgs(krb5_context kcontext,
+                                             struct ipadb_context *ipactx)
+{
+    krb5_principal tgtp;
+    unsigned int length = strlen(ipactx->realm);
+    krb5_error_code kerr = 0;
+
+    kerr = krb5_build_principal_ext(kcontext, &tgtp,
+                                    length,
+                                    ipactx->realm,
+                                    KRB5_TGS_NAME_SIZE,
+                                    KRB5_TGS_NAME,
+                                    length,
+                                    ipactx->realm, 0);
+    if (kerr != 0) {
+        return NULL;
+    }
+
+    return tgtp;
+}
+
 /* INTERFACE */
 
 static krb5_error_code ipadb_init_library(void)
@@ -552,6 +574,12 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
 
     ipactx->uri = ipadb_realm_to_ldapi_uri(ipactx->realm);
     if (!ipactx->uri) {
+        ret = ENOMEM;
+        goto fail;
+    }
+
+    ipactx->local_tgs = ipadb_create_local_tgs(kcontext, ipactx);
+    if (!ipactx->local_tgs) {
         ret = ENOMEM;
         goto fail;
     }
