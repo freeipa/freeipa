@@ -75,6 +75,8 @@ ADMIN_GROUPS = [
     'Security Domain Administrators'
 ]
 
+ACME_AGENT_GROUP = 'ACME Agents'
+
 
 def check_ports():
     """Check that dogtag ports (8080, 8443) are available.
@@ -1531,6 +1533,22 @@ class CAInstance(DogtagInstance):
             logger.debug('ACME service is already deployed')
             return False
 
+        # create ACME agent group (if not exist already) and user
+        self.ensure_group(ACME_AGENT_GROUP, "ACME RA accounts")
+        acme_user = f"acme-{self.fqdn}"
+        result = self.create_user(
+            uid=acme_user,
+            cn=acme_user,
+            sn=acme_user,
+            user_type='agentType',
+            groups=[ACME_AGENT_GROUP],
+            force=True,
+        )
+        if result is None:
+            raise RuntimeError("Failed to add ACME RA user")
+        else:
+            password = result
+
         # create container object heirarchy in LDAP
         ensure_acme_containers()
 
@@ -1544,6 +1562,8 @@ class CAInstance(DogtagInstance):
         ]
         sub_dict = dict(
             FQDN=self.fqdn,
+            USER=acme_user,
+            PASSWORD=password,
         )
         for template_name, target in files:
             template_filename = \
