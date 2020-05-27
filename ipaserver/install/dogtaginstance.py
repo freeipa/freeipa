@@ -542,6 +542,21 @@ class DogtagInstance(service.Service):
             logger.debug("Added ACI to read groups to %s", dn)
 
     @staticmethod
+    def ensure_group(group: str, desc: str) -> None:
+        """Create the group if it does not exist."""
+        dn = _group_dn(group)
+        entry = api.Backend.ldap2.make_entry(
+            dn,
+            objectclass=["top", "groupOfUniqueNames"],
+            cn=[group],
+            description=[desc],
+        )
+        try:
+            api.Backend.ldap2.add_entry(entry)
+        except errors.DuplicateEntry:
+            pass
+
+    @staticmethod
     def create_user(
         uid: str,
         cn: str,
