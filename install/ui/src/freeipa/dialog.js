@@ -919,35 +919,7 @@ IPA.adder_dialog = function(spec) {
             'class': 'input-group col-md-12 adder-dialog-top'
         }).appendTo(container);
 
-        var filter_placeholder = text.get('@i18n:association.filter_placeholder');
-        filter_placeholder = filter_placeholder.replace('${other_entity}',
-            that.other_entity.metadata.label);
-
-        that.filter_field = $('<input/>', {
-            type: 'text',
-            name: 'filter',
-            'class': 'form-control',
-            'placeholder': filter_placeholder,
-            keyup: function(event) {
-                if (event.keyCode === keys.ENTER) {
-                    that.search();
-                    return false;
-                }
-            }
-        }).appendTo(input_group);
-
-        var input_group_btn = $('<div/>', {
-            'class': 'input-group-btn'
-        }).appendTo(input_group);
-
-        that.find_button = IPA.button({
-            name: 'find',
-            label: '@i18n:buttons.filter',
-            click: function() {
-                that.search();
-                return false;
-            }
-        }).appendTo(input_group_btn);
+        that.filter_field = that.get_filter_field(input_group);
 
         var row = $('<div/>', { 'class': 'row adder-dialog-main'}).appendTo(container);
         //
@@ -1130,6 +1102,49 @@ IPA.adder_dialog = function(spec) {
      */
     that.get_filter = function() {
         return that.filter_field.val();
+    };
+
+    /**
+     * Return field for filtering available items
+     *
+     * Default implementation returns text input + "Filter" button.
+     * It can be overridden.
+     *
+     * @param {HTMLElement} input_group - container for a filter field
+     * @return {HTMLElement}
+     */
+    that.get_filter_field = function(input_group) {
+        var filter_placeholder = text.get(
+            '@i18n:association.filter_placeholder'
+        ).replace('${other_entity}', that.other_entity.metadata.label);
+
+        var filter_field = $('<input/>', {
+            type: 'text',
+            name: 'filter',
+            'class': 'form-control',
+            'placeholder': filter_placeholder,
+            keyup: function(event) {
+                if (event.keyCode === keys.ENTER) {
+                    that.search();
+                    return false;
+                }
+            }
+        }).appendTo(input_group);
+
+        var input_group_btn = $('<div/>', {
+            'class': 'input-group-btn'
+        }).appendTo(input_group);
+
+        that.find_button = IPA.button({
+            name: 'find',
+            label: '@i18n:buttons.filter',
+            click: function() {
+                that.search();
+                return false;
+            }
+        }).appendTo(input_group_btn);
+
+        return filter_field;
     };
 
     /**
