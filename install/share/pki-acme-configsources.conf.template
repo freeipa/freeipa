@@ -1,0 +1,2 @@
+engine.class=org.dogtagpki.acme.server.ACMEEngineConfigFileSource
+engine.filename=/etc/pki/pki-tomcat/acme/engine.conf
