@@ -835,6 +835,9 @@ class i18n_messages(Command):
                     "Remove users from member managers for user group "
                     "'${primary_key}'"
                 ),
+                "add_idoverride_user": _(
+                    "Add user ID override into user group '${primary_key}'"
+                ),
                 "details": _("Group Settings"),
                 "external": _("External"),
                 "groups": _("Groups"),
@@ -867,6 +870,9 @@ class i18n_messages(Command):
                 ),
                 "remove_users": _(
                     "Remove users from user group '${primary_key}'"
+                ),
+                "remove_idoverride_users": _(
+                    "Remove user ID overrides from user group '${primary_key}'"
                 ),
                 "type": _("Group Type"),
                 "user_groups": _("User Groups"),
