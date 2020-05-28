@@ -1823,6 +1823,7 @@ exp.object_class_evaluator = IPA.object_class_evaluator = function(spec) {
 
     var that = IPA.state_evaluator(spec);
 
+    that.adapter = builder.build('adapter', spec.adapter || 'adapter', { context: that });
 
     /**
      * @inheritDoc
@@ -1832,7 +1833,7 @@ exp.object_class_evaluator = IPA.object_class_evaluator = function(spec) {
         var old_state, classes, i;
 
         old_state = that.state;
-        classes = data.result.result.objectclass;
+        classes = that.adapter.load(data, 'objectclass');
 
         that.state = [];
 
