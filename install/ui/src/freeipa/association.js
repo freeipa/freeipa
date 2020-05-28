@@ -25,6 +25,7 @@
 define([
     'dojo/_base/lang',
     'dojo/Deferred',
+    './builder',
     './metadata',
     './ipa',
     './jquery',
@@ -38,7 +39,7 @@ define([
     './facet',
     './search',
     './dialog'],
-        function(lang, Deferred, metadata_provider, IPA, $, metadata,
+        function(lang, Deferred, builder, metadata_provider, IPA, $, metadata,
                  navigation, phases, reg, rpc, su, text) {
 
 /**
@@ -1209,7 +1210,8 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
 
         var pkeys = that.data.result.result[that.get_attribute_name()];
 
-        var dialog = IPA.association_adder_dialog({
+        var dialog = builder.build('association_adder_dialog', {
+            $type: that.other_entity.name,
             title: title,
             entity: that.entity,
             pkey: pkey,
@@ -1674,6 +1676,13 @@ IPA.attr_read_only_evaluator = function(spec) {
 
     return that;
 };
+
+// Create a registry for adder dialogs where key is name of 'other entity'.
+// It allows to override dialogs for some specific cases of association
+// creation.
+var dialog_builder = builder.get('association_adder_dialog');
+dialog_builder.factory = IPA.association_adder_dialog;
+reg.set('association_adder_dialog', dialog_builder.registry);
 
 phases.on('registration', function() {
     var w = reg.widget;

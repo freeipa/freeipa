@@ -966,6 +966,58 @@ idviews.unapply_action = function(spec) {
     return that;
 };
 
+idviews.idoverrideuser_adder_dialog = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.association_adder_dialog(spec);
+
+    that.base_search = that.search;
+
+    that.search = function() {
+        // Search for users only in case a ID view is selected
+        if (that.get_filter()) {
+            that.base_search();
+        }
+    };
+
+    /**
+     * Replace default text filter with a select box for filtering by ID view
+     */
+    that.get_filter_field = function(input_group) {
+
+        var filter_field = $('<select/>', {
+            name: 'filter',
+            'class': 'form-control',
+            change: function(event) {
+                that.search();
+            }
+        }).appendTo(input_group);
+
+        rpc.command({
+            entity: 'idview',
+            method: 'find',
+            on_success: function(data) {
+                var results = data.result;
+
+                for (var i=0; i<results.count; i++) {
+                    var result = results.result[i];
+                    $('<option/>', {
+                        text: result.cn[0],
+                        value: result.cn[0]
+                    }).appendTo(filter_field);
+                }
+
+                that.search();
+            }
+        }).execute();
+
+        return filter_field;
+    };
+
+    return that;
+};
+
 /**
  * ID View entity specification object
  * @member idviews
@@ -993,6 +1045,7 @@ idviews.register = function() {
     var f = reg.facet;
     var a = reg.action;
     var w = reg.widget;
+    var ad = reg.association_adder_dialog;
 
     e.register({type: 'idview', spec: idviews.spec});
     e.register({
@@ -1012,6 +1065,11 @@ idviews.register = function() {
 
     w.register('idviews_certs', idviews.idviews_certs_widget);
     w.register('cert_textarea', idviews.cert_textarea_widget);
+
+    ad.register({
+        type: 'idoverrideuser',
+        factory: idviews.idoverrideuser_adder_dialog
+    });
 };
 
 phases.on('registration', idviews.register);
