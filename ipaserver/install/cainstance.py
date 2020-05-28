@@ -1521,6 +1521,8 @@ class CAInstance(DogtagInstance):
         if os.path.isdir(os.path.join(paths.PKI_TOMCAT, 'acme')):
             return False  # it seems ACME service is already set up
 
+        configure_acme_acls()
+
         # create ACME agent group (if not exist already) and user
         self.ensure_group(ACME_AGENT_GROUP, "ACME RA accounts")
         acme_user = self.admin_user = f"acme-{self.fqdn}"
@@ -1841,6 +1843,21 @@ def configure_lightweight_ca_acls():
         'certServer.ca.authorities:create,modify,delete' +
         ':allow (create,modify,delete) group="Certificate Manager Agents"' +
         ':Certificate Manager Agents may manage lightweight authorities',
+    ]
+    return __add_acls(new_rules)
+
+
+def configure_acme_acls():
+    """Allow the ACME Agents to modify profiles."""
+
+    # The "execute" operation sounds scary, but it actually only allows
+    # revocation and unrevocation.  See CertResource.java and
+    # base/ca/shared/conf/acl.properties in the Dogtag source.
+
+    new_rules = [
+        'certServer.ca.certs:execute'
+        f':allow (execute) group="{ACME_AGENT_GROUP}"'
+        ':ACME Agents may execute cert operations',
     ]
     return __add_acls(new_rules)
 
