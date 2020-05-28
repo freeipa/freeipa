@@ -1559,7 +1559,10 @@ class CAInstance(DogtagInstance):
 
         # write configuration files
         files = [
+            ('pki-acme-configsources.conf.template',
+                paths.PKI_ACME_CONFIGSOURCES_CONF),
             ('pki-acme-database.conf.template', paths.PKI_ACME_DATABASE_CONF),
+            ('pki-acme-engine.conf.template', paths.PKI_ACME_ENGINE_CONF),
             ('pki-acme-issuer.conf.template', paths.PKI_ACME_ISSUER_CONF),
         ]
         sub_dict = dict(
