@@ -2161,6 +2161,7 @@ def upgrade_configuration():
         cainstance.repair_profile_caIPAserviceCert()
         ca.setup_lightweight_ca_key_retrieval()
         cainstance.ensure_ipa_authority_entry()
+        ca.setup_acme()
         ca_initialize_hsm_state(ca)
 
     migrate_to_authselect()
