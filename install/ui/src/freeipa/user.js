@@ -948,7 +948,6 @@ IPA.user.self_service_other_user_evaluator = function(spec) {
     var that = IPA.state_evaluator(spec);
     that.name = spec.name || 'self_service_other_user_evaluator';
     that.param = spec.param || 'uid';
-    that.adapter = builder.build('adapter', spec.adapter || 'adapter', { context: that });
 
     /**
      * Evaluates if user is in self-service and viewing himself
@@ -982,7 +981,6 @@ IPA.user.preserved_user_evaluator = function(spec) {
     var that = IPA.state_evaluator(spec);
     that.name = spec.name || 'preserved_user_evaluator';
     that.param = spec.param || 'dn';
-    that.adapter = builder.build('adapter', { $type: 'adapter'}, { context: that });
 
     /**
      * Evaluates if user is preserved, i.e. is in provisioning tree
