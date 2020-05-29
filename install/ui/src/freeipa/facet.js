@@ -3185,6 +3185,13 @@ exp.state_evaluator = IPA.state_evaluator = function(spec) {
     that.first_pass = true;
 
     /**
+     * Adapter which selects values from record on load.
+     *
+     * @property {IPA.Adapter}
+     */
+    that.adapter = builder.build('adapter', spec.adapter || 'adapter', { context: that });
+
+    /**
      * Init the evaluator
      *
      * - register event listener

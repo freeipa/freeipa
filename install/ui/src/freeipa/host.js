@@ -1084,7 +1084,6 @@ IPA.host.has_password_evaluator = function(spec) {
     spec.value = spec.value || [true];
     spec.representation = spec.representation || 'has_password';
     spec.param = spec.param || 'has_password';
-    spec.adapter = spec.adapter || { $type: 'adapter' };
 
     var that = IPA.value_state_evaluator(spec);
 
