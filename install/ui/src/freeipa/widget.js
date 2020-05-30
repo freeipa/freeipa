@@ -5194,10 +5194,17 @@ IPA.link_widget = function(spec) {
 
         if (that.no_check) return;
 
+        var pkeys = that.other_pkeys();
+
+        if (pkeys.length === 0) {
+            that.is_link = false;
+            return;
+        }
+
         rpc.command({
             entity: that.other_entity.name,
             method: 'show',
-            args: that.other_pkeys(),
+            args: pkeys,
             options: {},
             retry: false,
             on_success: function(data) {
