@@ -1382,6 +1382,8 @@ exp.facet_header = IPA.facet_header = function(spec) {
 
     var that = exp.simple_facet_header(spec);
 
+    that.adapter = builder.build('adapter', spec.adapter || 'adapter', { context: that });
+
     that.update_breadcrumb = function(pkey) {
 
         if (!that.breadcrumb) return;
@@ -1502,7 +1504,7 @@ exp.facet_header = IPA.facet_header = function(spec) {
      */
     that.load = function(data) {
         if (!data) return;
-        var result = data.result.result;
+        var result = that.adapter.get_record(data);
         if (!that.facet.disable_facet_tabs) {
             var pkey = that.facet.get_pkey();
 
