@@ -51,6 +51,14 @@ AC_ARG_WITH([ipatests],
     [with_ipatests=yes])
 AM_CONDITIONAL([WITH_IPATESTS], [test x"$with_ipatests" = xyes])
 
+AC_ARG_WITH([ipa_join_xml],
+    [AC_HELP_STRING([--with-ipa-join-xml], [Use XML-RPC support in ipa-join])],
+    [with_ipa_join_xml=${withval}],
+    [with_ipa_join_xml=no])
+AS_IF([test x"$with_ipa_join_xml" = xyes], [AC_DEFINE([WITH_IPA_JOIN_XML], [1],
+    [ipa-join uses XML-RPC])])
+AM_CONDITIONAL([WITH_IPA_JOIN_XML], [test x"$with_ipa_join_xml" = xyes])
+
 AM_CONDITIONAL([HAVE_GCC], [test "$ac_cv_prog_gcc" = yes])
 
 dnl ---------------------------------------------------------------------------
@@ -164,26 +172,17 @@ PKG_CHECK_MODULES([SASL], [libsasl2])
 dnl ---------------------------------------------------------------------------
 dnl - Check for XMLRPC-C
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([XMLRPC], [xmlrpc xmlrpc_client xmlrpc_util], [],
-                  [try_xmlrpc_fallback=true])
-if test x"$try_xmlrpc_fallback" = xtrue; then
-    XMLRPC_LIBS=
-    AC_CHECK_HEADER([xmlrpc-c/base.h], [],
-                    [AC_MSG_ERROR([xmlrpc-c/base.h not found])])
-
-    AC_CHECK_LIB([xmlrpc_client], [xmlrpc_client_init2],
-                 [XMLRPC_LIBS="-lxmlrpc -lxmlrpc_client -lxmlrpc_util"])
-    if test "x$XMLRPC_LIBS" = "x" ; then
-        AC_MSG_ERROR([xmlrpc-c not found])
-    fi
-    AC_SUBST(XMLRPC_LIBS)
-fi
+AS_IF([test x"$with_ipa_join_xml" = xyes], [
+    PKG_CHECK_MODULES([XMLRPC], [xmlrpc xmlrpc_client xmlrpc_util])
+])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for jansson and libcurl for ipa-join
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([JANSSON], [jansson])
-PKG_CHECK_MODULES([LIBCURL], [libcurl])
+AS_IF([test x"$with_ipa_join_xml" = xno], [
+    PKG_CHECK_MODULES([JANSSON], [jansson])
+    PKG_CHECK_MODULES([LIBCURL], [libcurl])
+])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for libintl
@@ -684,3 +683,11 @@ AM_COND_IF([WITH_IPATESTS], [
     echo "\
         with ipatests:            no"
 ])
+AM_COND_IF([WITH_IPA_JOIN_XML], [
+    echo "\
+        ipa-join RPC mode:        XML-RPC"
+], [
+    echo "\
+        ipa-join RPC mode:        JSON-RPC"
+])
+

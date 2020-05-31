@@ -28,6 +28,13 @@
     %global with_ipatests_option --without-ipatests
 %endif
 
+# Use XML-RPC with ipa-join
+%if 0%{?with_ipa_join_xml}
+    %global with_ipa_join_xml_option --with-ipa-join-xml
+%else
+    %global with_ipa_join_xml_option --without-ipa-join-xml
+%endif
+
 # lint is not executed during rpmbuild
 # %%global with_lint 1
 %if 0%{?with_lint}
@@ -165,10 +172,13 @@ BuildRequires:  openldap-devel
 # DAL version change may cause code crash or memory leaks, it is better to fail early.
 BuildRequires:  krb5-kdb-version = %{krb5_kdb_version}
 BuildRequires:  krb5-devel >= %{krb5_version}
+%if 0%{?with_ipa_join_xml}
 # 1.27.4: xmlrpc_curl_xportparms.gssapi_delegation
 BuildRequires:  xmlrpc-c-devel >= 1.27.4
+%else
 BuildRequires:  libcurl-devel
 BuildRequires:  jansson-devel
+%endif
 BuildRequires:  popt-devel
 BuildRequires:  gcc
 BuildRequires:  make
@@ -548,8 +558,11 @@ Requires: hostname
 Requires: initscripts
 %endif
 Requires: libcurl >= 7.21.7-2
+%if 0%{?with_ipa_join_xml}
 Requires: xmlrpc-c >= 1.27.4
+%else
 Requires: jansson
+%endif
 Requires: sssd-ipa >= %{sssd_version}
 Requires: certmonger >= %{certmonger_version}
 Requires: nss-tools >= %{nss_version}
@@ -819,6 +832,7 @@ autoreconf -ivf
 %configure --with-vendor-suffix=-%{release} \
            %{enable_server_option} \
            %{with_ipatests_option} \
+           %{with_ipa_join_xml_option} \
            %{linter_options}
 
 # run build in default dir
