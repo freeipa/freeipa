@@ -33,3 +33,9 @@ typedef struct {
     char *payload;
     size_t size;
 } curl_buffer;
+
+typedef struct {
+    char *dn;
+    char *krb_principal;
+    int is_provisioned;
+} join_info;
