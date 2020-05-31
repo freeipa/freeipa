@@ -29,7 +29,7 @@
 
 int init_gettext(void);
 
-struct json_results {
-        char *hostdn;
-        char *krbprinc;
-};
+typedef struct {
+    char *payload;
+    size_t size;
+} curl_buffer;

@@ -50,15 +50,11 @@
 
 #define IPA_CONFIG "/etc/ipa/default.conf"
 
-#define BUFSIZE 1024
-
 char * read_config_file(const char *filename);
 char * get_config_entry(char * data, const char *section, const char *key);
 
 static int debug = 0;
 static int use_json = 0;
-
-struct json_results *results = NULL;
 
 /*
  * Translate some IPA exceptions into specific errors in this context.
@@ -649,51 +645,53 @@ curl_slist_append_log(struct curl_slist *list, char *string, int quiet) {
 
 size_t
 jsonrpc_handle_response(char *ptr, size_t size, size_t nmemb, void *userdata) {
-        struct json_object *jsonobj, *result, *krb5princ, *hostdn, *arr, *content;
-        size_t arr_length;
-        int ret = 0;
+    size_t realsize = size * nmemb;
+    curl_buffer *cb = (curl_buffer *) userdata;
 
-        if (debug) {
-                fprintf(stdout, "JSONRPC CALL Respone:\n%s\n", ptr);
-        }
+    char *buf = (char *) realloc(cb->payload, cb->size + realsize + 1);
+    if (!buf) {
+        fprintf(stderr, _("Expanding buffer in jsonrpc_handle_response failed"));
+        free(cb->payload);
+        cb->payload = NULL;
+        return 0;
+    }
+    cb->payload = buf;
+    memcpy(&(cb->payload[cb->size]), ptr, realsize);
 
-        jsonobj = json_tokener_parse(ptr);
-        json_object_object_get_ex(jsonobj, "result", &result);
+    cb->size += realsize;
+    cb->payload[cb->size] = 0;
 
-        arr_length = json_object_array_length(result);
-
-        if (arr_length == 2) {
-            results = (struct json_results *) malloc(sizeof(struct json_results));
-
-            hostdn = json_object_array_get_idx(result, 0);
-            ret = asprintf(&results->hostdn, "%s", json_object_get_string(hostdn));
-
-            arr = json_object_array_get_idx(result, 1);
-            json_object_object_get_ex(arr, "krbprincipalname", &content);
-            krb5princ = json_object_array_get_idx(content, 0);
-            ret = asprintf(&results->krbprinc, "%s", json_object_get_string(krb5princ));
-        }
-
-        json_object_put(jsonobj);
-
-        return size * nmemb;
+    return realsize;
 }
 
 static int
 join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
     CURL *curl = NULL;
     CURLcode res;
-    struct curl_slist *headers = NULL;
-    json_object *jsonobj = NULL;
-    json_object *array = NULL;
-    json_object *hostarr = NULL;
-    json_object *optsarr = NULL;
+
     struct utsname uinfo;
+
     char *host = NULL;
     char *url = NULL;
     char *referer = NULL;
     char *user_agent = NULL;
+    struct curl_slist *headers = NULL;
+
+    curl_buffer cb;
+
+    json_object *json_post = NULL;
+    json_object *array = NULL;
+    json_object *hostarr = NULL;
+    json_object *optsarr = NULL;
+
+    json_object *json_resp = NULL;
+    json_object *json_result = NULL;
+    json_object *json_krbprinc = NULL;
+
     int rval = 0;
+
+    *hostdn = NULL;
+    *princ = NULL;
 
     uname(&uinfo);
 
@@ -728,6 +726,16 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
         goto cleanup;
     }
 
+    cb.payload = (char *) malloc(sizeof(cb.payload));
+    if (!cb.payload) {
+        if (!quiet)
+            fprintf(stderr, _("Out of memory!\n"));
+
+        rval = 3;
+        goto cleanup;
+    }
+    cb.size = 0;
+
     /* setting endpoint and custom headers */
     ASPRINTF(&url, "https://%s/ipa/json", ipaserver);
     CURL_SETOPT(curl, CURLOPT_URL, url);
@@ -760,7 +768,9 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
     CURL_SETOPT(curl, CURLOPT_HTTPHEADER, headers);
 
     CURL_SETOPT(curl, CURLOPT_CAINFO, DEFAULT_CA_CERT_FILE);
+
     CURL_SETOPT(curl, CURLOPT_WRITEFUNCTION, &jsonrpc_handle_response);
+    CURL_SETOPT(curl, CURLOPT_WRITEDATA, &cb);
 
     /* delegate authentication to GSSAPI */
     CURL_SETOPT(curl, CURLOPT_GSSAPI_DELEGATION, CURLGSSAPI_DELEGATION_FLAG);
@@ -771,9 +781,9 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
         CURL_SETOPT(curl, CURLOPT_VERBOSE, 1L);
 
     /* create the JSON-RPC payload */
-    jsonobj = json_object_new_object();
+    json_post = json_object_new_object();
 
-    json_object_object_add(jsonobj, "method", json_object_new_string("join"));
+    json_object_object_add(json_post, "method", json_object_new_string("join"));
 
     array = json_object_new_array();
 
@@ -786,11 +796,11 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
     json_object_object_add(optsarr, "nshardwareplatform", json_object_new_string(uinfo.machine));
     json_object_array_add(array, json_object_get(optsarr));
 
-    json_object_object_add(jsonobj, "params", json_object_get(array));
+    json_object_object_add(json_post, "params", json_object_get(array));
 
-    json_object_object_add(jsonobj, "id", json_object_new_int(0));
+    json_object_object_add(json_post, "id", json_object_new_int(0));
 
-    CURL_SETOPT(curl, CURLOPT_POSTFIELDS, json_object_to_json_string(jsonobj));
+    CURL_SETOPT(curl, CURLOPT_POSTFIELDS, json_object_to_json_string(json_post));
 
     /* Perform the call and check for errors */
     res = curl_easy_perform(curl);
@@ -803,11 +813,26 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
         goto cleanup;
     }
 
+    if (cb.payload && debug) {
+        fprintf(stderr, "JSON-RPC call respone:\n%s\n", cb.payload);
+    }
+
+    json_resp = json_tokener_parse(cb.payload);
+    json_object_object_get_ex(json_resp, "result", &json_result);
+
+    if (json_object_array_length(json_result) == 2) {
+        asprintf((char **)hostdn, "%s", json_object_get_string(json_object_array_get_idx(json_result, 0)));
+
+        json_object_object_get_ex(json_object_array_get_idx(json_result, 1), "krbprincipalname", &json_krbprinc);
+        asprintf((char **)princ, "%s", json_object_get_string(json_object_array_get_idx(json_krbprinc, 0)));
+    }
+
 cleanup:
     json_object_put(optsarr);
     json_object_put(hostarr);
     json_object_put(array);
-    json_object_put(jsonobj);
+    json_object_put(json_post);
+    json_object_put(json_resp);
 
     curl_slist_free_all(headers);
 
@@ -823,6 +848,9 @@ cleanup:
         free(referer);
     if (user_agent)
         free(user_agent);
+
+    if (cb.payload)
+        free(cb.payload);
 
     return rval;
 }
@@ -1159,12 +1187,12 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
         argv[arg++] = "-s";
         argv[arg++] = ipaserver;
         argv[arg++] = "-p";
-        argv[arg++] = use_json == 0 ? (char *)princ : (char *)results->krbprinc;
+        argv[arg++] = (char *)princ;
         argv[arg++] = "-k";
         argv[arg++] = (char *)keytab;
         if (bindpw) {
             argv[arg++] = "-D";
-            argv[arg++] = use_json == 0 ? (char *)hostdn : (char *)results->hostdn;
+            argv[arg++] = (char *)hostdn;
             argv[arg++] = "-w";
             argv[arg++] = (char *)bindpw;
         }
@@ -1209,12 +1237,6 @@ cleanup:
     if (uprinc) krb5_free_principal(krbctx, uprinc);
     if (ccache) krb5_cc_close(krbctx, ccache);
     if (krbctx) krb5_free_context(krbctx);
-
-    if (results != NULL) {
-        free(results->hostdn);
-        free(results->krbprinc);
-        free(results);
-    }
 
     return rval;
 }
