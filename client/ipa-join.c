@@ -34,12 +34,15 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/wait.h>
-#include <curl/curl.h>
-#include <jansson.h>
 #include <limits.h>
 
+#ifdef WITH_IPA_JOIN_XML
 #include "xmlrpc-c/base.h"
 #include "xmlrpc-c/client.h"
+#else
+#include <curl/curl.h>
+#include <jansson.h>
+#endif
 
 #include "ipa-client-common.h"
 #include "ipa_ldap.h"
@@ -54,11 +57,19 @@ char * read_config_file(const char *filename);
 char * get_config_entry(char * data, const char *section, const char *key);
 
 static int debug = 0;
-static int use_json = 0;
+
+#define ASPRINTF(strp, fmt...) \
+    if (asprintf(strp, fmt) == -1) { \
+        if (!quiet) \
+            fprintf(stderr, _("Out of memory!\n")); \
+        rval = 3; \
+        goto cleanup; \
+    }
 
 /*
  * Translate some IPA exceptions into specific errors in this context.
  */
+#ifdef WITH_IPA_JOIN_XML
 static int
 handle_fault(xmlrpc_env * const envP) {
     if (envP->fault_occurred) {
@@ -74,6 +85,7 @@ handle_fault(xmlrpc_env * const envP) {
     }
     return 0;
 }
+#endif
 
 /* Get the IPA server from the configuration file.
  * The caller is responsible for freeing this value
@@ -127,6 +139,7 @@ static int check_perms(const char *keytab)
  *
  * The caller is responsible for freeing the return value.
  */
+ #ifdef WITH_IPA_JOIN_XML
 char *
 set_user_agent(const char *ipaserver) {
     int ret;
@@ -198,6 +211,7 @@ callRPC(char * user_agent,
     xmlrpc_client_destroy(clientP);
     free((void*)clientparms.transportparmsP);
 }
+#endif
 
 /* The caller is responsible for unbinding the connection if ld is not NULL */
 static LDAP *
@@ -482,6 +496,7 @@ done:
     return rval;
 }
 
+#ifdef WITH_IPA_JOIN_XML
 static int
 join_krb5_xmlrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
     xmlrpc_env env;
@@ -616,6 +631,8 @@ cleanup_xmlrpc:
     return rval;
 }
 
+#else // ifdef WITH_IPA_JOIN_XML
+
 static inline struct curl_slist *
 curl_slist_append_log(struct curl_slist *list, char *string, int quiet) {
     list = curl_slist_append(list, string);
@@ -632,14 +649,6 @@ curl_slist_append_log(struct curl_slist *list, char *string, int quiet) {
         if (!quiet) \
             fprintf(stderr, _("curl_easy_setopt() failed\n")); \
         rval = 17; \
-        goto cleanup; \
-    }
-
-#define ASPRINTF(strp, fmt...) \
-    if (asprintf(strp, fmt) == -1) { \
-        if (!quiet) \
-            fprintf(stderr, _("Out of memory!\n")); \
-        rval = 3; \
         goto cleanup; \
     }
 
@@ -1008,7 +1017,9 @@ cleanup:
 
     return rval;
 }
+#endif
 
+#ifdef WITH_IPA_JOIN_XML
 static int
 xmlrpc_unenroll_host(const char *ipaserver, const char *host, int quiet)
 {
@@ -1098,6 +1109,7 @@ cleanup:
 
     return rval;
 }
+#endif
 
 static int
 join(const char *server, const char *hostname, const char *bindpw, const char *basedn, const char *keytab, int force, int quiet)
@@ -1174,10 +1186,11 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
             goto cleanup;
         }
 
-        if (!use_json)
-            rval = join_krb5_xmlrpc(ipaserver, host, &hostdn, &princ, force, quiet);
-        else
-            rval = join_krb5_jsonrpc(ipaserver, host, &hostdn, &princ, force, quiet);
+#ifdef WITH_IPA_JOIN_XML
+        rval = join_krb5_xmlrpc(ipaserver, host, &hostdn, &princ, force, quiet);
+#else
+        rval = join_krb5_jsonrpc(ipaserver, host, &hostdn, &princ, force, quiet);
+#endif
     }
 
     if (rval) goto cleanup;
@@ -1403,10 +1416,11 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     ccache = NULL;
     putenv("KRB5CCNAME=MEMORY:ipa-join");
 
-    if (use_json)
-        rval = jsonrpc_unenroll_host(ipaserver, host, quiet);
-    else
-        rval = xmlrpc_unenroll_host(ipaserver, host, quiet);
+#ifdef WITH_IPA_JOIN_XML
+    rval = xmlrpc_unenroll_host(ipaserver, host, quiet);
+#else
+    rval = jsonrpc_unenroll_host(ipaserver, host, quiet);
+#endif
 
 cleanup:
     if (host)
@@ -1468,8 +1482,6 @@ main(int argc, const char **argv) {
           _("LDAP password (if not using Kerberos)"), _("password") },
         { "basedn", 'b', POPT_ARG_STRING, &basedn, 0,
           _("LDAP basedn"), _("basedn") },
-        { "jsonrpc", 'j', POPT_ARG_NONE, &use_json, 0,
-          _("Use a JSON-RPC call instead of XML-RPC"), NULL },
         POPT_AUTOHELP
         POPT_TABLEEND
     };
