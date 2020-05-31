@@ -167,6 +167,8 @@ BuildRequires:  krb5-kdb-version = %{krb5_kdb_version}
 BuildRequires:  krb5-devel >= %{krb5_version}
 # 1.27.4: xmlrpc_curl_xportparms.gssapi_delegation
 BuildRequires:  xmlrpc-c-devel >= 1.27.4
+BuildRequires:  libcurl-devel
+BuildRequires:  jansson-devel
 BuildRequires:  popt-devel
 BuildRequires:  gcc
 BuildRequires:  make
@@ -547,6 +549,7 @@ Requires: initscripts
 %endif
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
+Requires: jansson
 Requires: sssd-ipa >= %{sssd_version}
 Requires: certmonger >= %{certmonger_version}
 Requires: nss-tools >= %{nss_version}

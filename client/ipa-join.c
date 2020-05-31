@@ -35,7 +35,7 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <curl/curl.h>
-#include <json-c/json.h>
+#include <jansson.h>
 #include <limits.h>
 
 #include "xmlrpc-c/base.h"
@@ -665,49 +665,17 @@ jsonrpc_handle_response(char *ptr, size_t size, size_t nmemb, void *userdata) {
 }
 
 static int
-join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
+jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response, int quiet) {
+    int rval = 0;
+
     CURL *curl = NULL;
-    CURLcode res;
 
-    struct utsname uinfo;
-
-    char *host = NULL;
     char *url = NULL;
     char *referer = NULL;
     char *user_agent = NULL;
     struct curl_slist *headers = NULL;
 
-    curl_buffer cb;
-
-    json_object *json_post = NULL;
-    json_object *array = NULL;
-    json_object *hostarr = NULL;
-    json_object *optsarr = NULL;
-
-    json_object *json_resp = NULL;
-    json_object *json_result = NULL;
-    json_object *json_krbprinc = NULL;
-
-    int rval = 0;
-
-    *hostdn = NULL;
-    *princ = NULL;
-
-    uname(&uinfo);
-
-    if (!hostname) {
-        host = strdup(uinfo.nodename);
-    } else {
-        host = strdup(hostname);
-    }
-
-    if (!host) {
-        if (!quiet)
-            fprintf(stderr, _("Out of memory!\n"));
-
-        rval = 3;
-        goto cleanup;
-    }
+    char *json_str = NULL;
 
     if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK) {
         if (!quiet)
@@ -725,16 +693,6 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
         rval = 17;
         goto cleanup;
     }
-
-    cb.payload = (char *) malloc(sizeof(cb.payload));
-    if (!cb.payload) {
-        if (!quiet)
-            fprintf(stderr, _("Out of memory!\n"));
-
-        rval = 3;
-        goto cleanup;
-    }
-    cb.size = 0;
 
     /* setting endpoint and custom headers */
     ASPRINTF(&url, "https://%s/ipa/json", ipaserver);
@@ -770,7 +728,7 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
     CURL_SETOPT(curl, CURLOPT_CAINFO, DEFAULT_CA_CERT_FILE);
 
     CURL_SETOPT(curl, CURLOPT_WRITEFUNCTION, &jsonrpc_handle_response);
-    CURL_SETOPT(curl, CURLOPT_WRITEDATA, &cb);
+    CURL_SETOPT(curl, CURLOPT_WRITEDATA, response);
 
     /* delegate authentication to GSSAPI */
     CURL_SETOPT(curl, CURLOPT_GSSAPI_DELEGATION, CURLGSSAPI_DELEGATION_FLAG);
@@ -780,30 +738,21 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
     if (debug)
         CURL_SETOPT(curl, CURLOPT_VERBOSE, 1L);
 
-    /* create the JSON-RPC payload */
-    json_post = json_object_new_object();
+    json_str = json_dumps(json, 0);
+    if (!json_str) {
+        if (debug)
+            fprintf(stderr, _("json_dumps() failed\n"));
 
-    json_object_object_add(json_post, "method", json_object_new_string("join"));
+        rval = 17;
+        goto cleanup;
+    }
+    CURL_SETOPT(curl, CURLOPT_POSTFIELDS, json_str);
 
-    array = json_object_new_array();
-
-    hostarr = json_object_new_array();
-    json_object_array_add(hostarr, json_object_new_string(host));
-    json_object_array_add(array, json_object_get(hostarr));
-
-    optsarr = json_object_new_object();
-    json_object_object_add(optsarr, "nsosversion", json_object_new_string(uinfo.release));
-    json_object_object_add(optsarr, "nshardwareplatform", json_object_new_string(uinfo.machine));
-    json_object_array_add(array, json_object_get(optsarr));
-
-    json_object_object_add(json_post, "params", json_object_get(array));
-
-    json_object_object_add(json_post, "id", json_object_new_int(0));
-
-    CURL_SETOPT(curl, CURLOPT_POSTFIELDS, json_object_to_json_string(json_post));
+    if (debug)
+        fprintf(stderr, _("JSON-RPC request:\n%s\n"), json_str);
 
     /* Perform the call and check for errors */
-    res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
         if (debug)
@@ -813,41 +762,161 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
         goto cleanup;
     }
 
-    if (cb.payload && debug) {
-        fprintf(stderr, "JSON-RPC call respone:\n%s\n", cb.payload);
+    long resp_code;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp_code);
+
+    if (resp_code != 200) {
+        if (debug)
+            fprintf(stderr, _("JSON-RPC call failed with status code: %li\n"), resp_code);
+
+        if (!quiet && resp_code == 401)
+            fprintf(stderr, _("JSON-RPC call was unauthorized. Check your credentials.\n"));
+
+        rval = 17;
+        goto cleanup;
     }
 
-    json_resp = json_tokener_parse(cb.payload);
-    json_object_object_get_ex(json_resp, "result", &json_result);
-
-    if (json_object_array_length(json_result) == 2) {
-        asprintf((char **)hostdn, "%s", json_object_get_string(json_object_array_get_idx(json_result, 0)));
-
-        json_object_object_get_ex(json_object_array_get_idx(json_result, 1), "krbprincipalname", &json_krbprinc);
-        asprintf((char **)princ, "%s", json_object_get_string(json_object_array_get_idx(json_krbprinc, 0)));
+    if (debug && response->payload) {
+        fprintf(stderr, _("JSON-RPC response:\n%s\n"), response->payload);
     }
 
 cleanup:
-    json_object_put(optsarr);
-    json_object_put(hostarr);
-    json_object_put(array);
-    json_object_put(json_post);
-    json_object_put(json_resp);
-
     curl_slist_free_all(headers);
 
     if (curl)
         curl_easy_cleanup(curl);
     curl_global_cleanup();
 
-    if (host)
-        free(host);
     if (url)
         free(url);
     if (referer)
         free(referer);
     if (user_agent)
         free(user_agent);
+
+    if (json_str)
+        free(json_str);
+
+    return rval;
+}
+
+static int
+jsonrpc_parse_join_response(const char *payload, join_info *join_i, int quiet) {
+    int rval = 0;
+
+    json_error_t j_error;
+
+    json_t *j_root = NULL;
+    json_t *j_result = NULL;
+
+    j_root = json_loads(payload, 0, &j_error);
+    if (!j_root) {
+        if (debug)
+            fprintf(stderr, _("Parsing JSON-RPC response failed: %s\n"), j_error.text);
+
+        rval = 17;
+        goto cleanup;
+    }
+
+    j_result = json_object_get(j_root, "result");
+
+    char *tmp_hostdn = NULL;
+    char *tmp_princ = NULL;
+    char *tmp_pwdch = NULL;
+    if (json_unpack_ex(j_result, &j_error, 0, "[s, {s:[s], s?:[s]}]",
+                       &tmp_hostdn,
+                       "krbprincipalname", &tmp_princ,
+                       "krblastpwdchange", &tmp_pwdch) != 0) {
+        if (debug)
+            fprintf(stderr, _("Extracting the data from the JSON-RPC response failed: %s\n"), j_error.text);
+
+        rval = 17;
+        goto cleanup;
+    }
+    ASPRINTF(&join_i->dn, "%s", tmp_hostdn);
+    ASPRINTF(&join_i->krb_principal, "%s", tmp_princ);
+
+    join_i->is_provisioned = tmp_pwdch != NULL;
+
+cleanup:
+    json_decref(j_root);
+
+    return rval;
+}
+
+static int
+join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
+    int rval = 0;
+
+    struct utsname uinfo;
+    char *host = NULL;
+
+    curl_buffer cb = {0};
+
+    json_error_t j_error;
+    json_t *json_req = NULL;
+
+    join_info join_i = {0};
+
+    *hostdn = NULL;
+    *princ = NULL;
+
+    uname(&uinfo);
+
+    if (!hostname) {
+        host = strdup(uinfo.nodename);
+    } else {
+        host = strdup(hostname);
+    }
+
+    if (!host) {
+        if (!quiet)
+            fprintf(stderr, _("Out of memory!\n"));
+
+        rval = 3;
+        goto cleanup;
+    }
+
+    /* create the JSON-RPC payload */
+    json_req = json_pack_ex(&j_error, 0, "{s:s, s:[[s], {s:s, s:s}]}",
+                             "method", "join",
+                             "params",
+                             host,
+                             "nsosversion", uinfo.release,
+                             "nshardwareplatform", uinfo.machine);
+
+    if (!json_req) {
+        if (debug)
+            fprintf(stderr, _("json_pack_ex() failed: %s\n"), j_error.text);
+
+        rval = 17;
+        goto cleanup;
+    }
+
+    rval = jsonrpc_request(ipaserver, json_req, &cb, quiet);
+    if (rval != 0)
+        goto cleanup;
+
+    rval = jsonrpc_parse_join_response(cb.payload, &join_i, quiet);
+    if (rval != 0)
+        goto cleanup;
+
+    *hostdn = join_i.dn;
+    *princ = join_i.krb_principal;
+
+    if (!force && join_i.is_provisioned) {
+        if (!quiet)
+            fprintf(stderr, _("Host is already joined.\n"));
+
+        rval = 13;
+        goto cleanup;
+    }
+
+cleanup:
+    if (host)
+        free(host);
+
+    json_decref(json_req);
 
     if (cb.payload)
         free(cb.payload);
