@@ -620,6 +620,33 @@ cleanup_xmlrpc:
     return rval;
 }
 
+static inline struct curl_slist *
+curl_slist_append_log(struct curl_slist *list, char *string, int quiet) {
+    list = curl_slist_append(list, string);
+    if (!list) {
+        if (!quiet)
+            fprintf(stderr, _("curl_slist_append() failed for value: '%s'\n"), string);
+        return NULL;
+    }
+    return list;
+}
+
+#define CURL_SETOPT(curl, opt, val) \
+    if (curl_easy_setopt(curl, opt, val) != CURLE_OK) { \
+        if (!quiet) \
+            fprintf(stderr, _("curl_easy_setopt() failed\n")); \
+        rval = 17; \
+        goto cleanup; \
+    }
+
+#define ASPRINTF(strp, fmt...) \
+    if (asprintf(strp, fmt) == -1) { \
+        if (!quiet) \
+            fprintf(stderr, _("Out of memory!\n")); \
+        rval = 3; \
+        goto cleanup; \
+    }
+
 size_t
 jsonrpc_handle_response(char *ptr, size_t size, size_t nmemb, void *userdata) {
         struct json_object *jsonobj, *result, *krb5princ, *hostdn, *arr, *content;
@@ -654,53 +681,94 @@ jsonrpc_handle_response(char *ptr, size_t size, size_t nmemb, void *userdata) {
 
 static int
 join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
-    CURL *curl;
+    CURL *curl = NULL;
     CURLcode res;
-    struct curl_slist *chunk = NULL;
-    struct json_object *jsonobj, *array, *hostarr, *optsarr;
+    struct curl_slist *headers = NULL;
+    json_object *jsonobj = NULL;
+    json_object *array = NULL;
+    json_object *hostarr = NULL;
+    json_object *optsarr = NULL;
     struct utsname uinfo;
     char *host = NULL;
-    char buffer[BUFSIZE];
+    char *url = NULL;
+    char *referer = NULL;
+    char *user_agent = NULL;
+    int rval = 0;
 
     uname(&uinfo);
 
-    if (NULL == hostname) {
+    if (!hostname) {
         host = strdup(uinfo.nodename);
     } else {
         host = strdup(hostname);
     }
 
-    curl_global_init(CURL_GLOBAL_DEFAULT);
+    if (!host) {
+        if (!quiet)
+            fprintf(stderr, _("Out of memory!\n"));
+
+        rval = 3;
+        goto cleanup;
+    }
+
+    if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK) {
+        if (!quiet)
+            fprintf(stderr, _("curl_global_init() failed\n"));
+
+        rval = 17;
+        goto cleanup;
+    }
 
     curl = curl_easy_init();
     if (!curl) {
-            curl_global_cleanup();
-            return 1;
+        if (!quiet)
+            fprintf(stderr, _("curl_easy_init() failed\n"));
+
+        rval = 17;
+        goto cleanup;
     }
 
     /* setting endpoint and custom headers */
-    snprintf(buffer, sizeof(buffer)-1, "https://%s/ipa/json", ipaserver);
-    curl_easy_setopt(curl, CURLOPT_URL, buffer);
+    ASPRINTF(&url, "https://%s/ipa/json", ipaserver);
+    CURL_SETOPT(curl, CURLOPT_URL, url);
 
-    snprintf(buffer, sizeof(buffer)-1, "referer: https://%s/ipa", ipaserver);
-    chunk = curl_slist_append(chunk, buffer);
-    snprintf(buffer, sizeof(buffer)-1, "User-Agent: %s/%s", NAME, VERSION);
-    chunk = curl_slist_append(chunk, buffer);
+    ASPRINTF(&referer, "referer: https://%s/ipa", ipaserver);
+    headers = curl_slist_append_log(headers, referer, quiet);
+    if (!headers) {
+        rval = 17;
+        goto cleanup;
+    }
 
-    chunk = curl_slist_append(chunk, "Accept: application/json");
-    chunk = curl_slist_append(chunk, "Content-Type: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+    ASPRINTF(&user_agent, "User-Agent: %s/%s", NAME, VERSION);
+    headers = curl_slist_append_log(headers, user_agent, quiet);
+    if (!headers) {
+        rval = 17;
+        goto cleanup;
+    }
 
-    curl_easy_setopt(curl, CURLOPT_CAINFO, DEFAULT_CA_CERT_FILE);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &jsonrpc_handle_response);
+    headers = curl_slist_append_log(headers, "Accept: application/json", quiet);
+    if (!headers) {
+        rval = 17;
+        goto cleanup;
+    }
 
-    /* delegating authentication to gssapi */
-    curl_easy_setopt(curl, CURLOPT_GSSAPI_DELEGATION, CURLGSSAPI_DELEGATION_FLAG);
-    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_NEGOTIATE);
-    curl_easy_setopt(curl, CURLOPT_USERPWD, ":");
+    headers = curl_slist_append_log(headers, "Content-Type: application/json", quiet);
+    if (!headers) {
+        rval = 17;
+        goto cleanup;
+    }
+    CURL_SETOPT(curl, CURLOPT_HTTPHEADER, headers);
+
+    CURL_SETOPT(curl, CURLOPT_CAINFO, DEFAULT_CA_CERT_FILE);
+    CURL_SETOPT(curl, CURLOPT_WRITEFUNCTION, &jsonrpc_handle_response);
+
+    /* delegate authentication to GSSAPI */
+    CURL_SETOPT(curl, CURLOPT_GSSAPI_DELEGATION, CURLGSSAPI_DELEGATION_FLAG);
+    CURL_SETOPT(curl, CURLOPT_HTTPAUTH, CURLAUTH_NEGOTIATE);
+    CURL_SETOPT(curl, CURLOPT_USERPWD, ":");
 
     if (debug)
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        CURL_SETOPT(curl, CURLOPT_VERBOSE, 1L);
 
     /* create the JSON-RPC payload */
     jsonobj = json_object_new_object();
@@ -722,27 +790,45 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
 
     json_object_object_add(jsonobj, "id", json_object_new_int(0));
 
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_object_to_json_string(jsonobj));
+    CURL_SETOPT(curl, CURLOPT_POSTFIELDS, json_object_to_json_string(jsonobj));
 
-    /* Perform the call and check for errors if debug is setted */
+    /* Perform the call and check for errors */
     res = curl_easy_perform(curl);
-    if (res != CURLE_OK && debug != 0)
-        fprintf(stderr, _("jsonrpc call failed: %s\n"), curl_easy_strerror(res));
+    if (res != CURLE_OK)
+    {
+        if (debug)
+            fprintf(stderr, _("JSON-RPC call failed: %s\n"), curl_easy_strerror(res));
 
+        rval = 17;
+        goto cleanup;
+    }
+
+cleanup:
     json_object_put(optsarr);
     json_object_put(hostarr);
     json_object_put(array);
     json_object_put(jsonobj);
 
-    curl_slist_free_all(chunk);
+    curl_slist_free_all(headers);
 
-    curl_easy_cleanup(curl);
+    if (curl)
+        curl_easy_cleanup(curl);
     curl_global_cleanup();
 
-    free(host);
+    if (host)
+        free(host);
+    if (url)
+        free(url);
+    if (referer)
+        free(referer);
+    if (user_agent)
+        free(user_agent);
 
-    return 0; 
+    return rval;
 }
+
+#undef CURL_SETOPT
+#undef ASPRINTF
 
 static int
 unenroll_host(const char *server, const char *hostname, const char *ktname, int quiet)
