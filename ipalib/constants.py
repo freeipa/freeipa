@@ -198,12 +198,9 @@ DEFAULT_CONFIG = (
     ('ca_host', FQDN),  # Set in Env._finalize_core()
     ('ca_port', 80),
     ('ca_agent_port', 443),
-    ('ca_ee_port', 443),
     # For the following ports, None means a default specific to the installed
     # Dogtag version.
     ('ca_install_port', None),
-    ('ca_agent_install_port', None),
-    ('ca_ee_install_port', None),
 
     # Topology plugin
     ('recommended_max_agmts', 4),  # Recommended maximum number of replication

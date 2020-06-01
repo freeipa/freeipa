@@ -434,10 +434,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
 
     api.env.api_version = ''
     api.env.bin = ''  # object
-    api.env.ca_agent_install_port = None
     api.env.ca_agent_port = 0
-    api.env.ca_ee_install_port = None
-    api.env.ca_ee_port = 0
     api.env.ca_host = ''
     api.env.ca_install_port = None
     api.env.ca_port = 0
