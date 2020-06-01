@@ -153,7 +153,6 @@
                "container_applications" : "cn=applications,cn=configs,cn=policies",
                "container_automember" : "cn=automember,cn=etc",
                "container_sudocmd" : "cn=sudocmds,cn=sudo",
-               "ca_ee_port" : 443,
                "ca_agent_port" : 443,
                "version" : "4.5.90.dev201706131442+gitd665224",
                "basedn" : "dc=dom,dc=example,dc=com",
@@ -180,7 +179,6 @@
                "tls_version_min" : "tls1.0",
                "config_loaded" : true,
                "logdir" : "/var/log/ipa",
-               "ca_ee_install_port" : null,
                "jsonrpc_uri" : "https://vm.example.com/ipa/json",
                "delegate" : false,
                "container_hbacservicegroup" : "cn=hbacservicegroups,cn=hbac",
@@ -199,7 +197,6 @@
                "container_configs" : "cn=configs,cn=policies",
                "conf_default" : "/etc/ipa/default.conf",
                "rpc_protocol" : "jsonrpc",
-               "ca_agent_install_port" : null,
                "home" : "/"
             },
             "total" : 115,
