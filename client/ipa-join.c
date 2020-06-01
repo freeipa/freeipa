@@ -20,6 +20,7 @@
 #define _GNU_SOURCE
 
 #include "config.h"
+#include <stdbool.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -402,7 +403,7 @@ done:
  * the state of the entry.
  */
 static int
-join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bindpw, const char *basedn, const char **princ, int quiet)
+join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bindpw, const char *basedn, const char **princ, bool quiet)
 {
     LDAP *ld;
     int rval = 0;
@@ -498,7 +499,7 @@ done:
 
 #ifdef WITH_IPA_JOIN_XML
 static int
-join_krb5_xmlrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
+join_krb5_xmlrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, bool force, bool quiet) {
     xmlrpc_env env;
     xmlrpc_value * argArrayP = NULL;
     xmlrpc_value * paramArrayP = NULL;
@@ -634,7 +635,7 @@ cleanup_xmlrpc:
 #else // ifdef WITH_IPA_JOIN_XML
 
 static inline struct curl_slist *
-curl_slist_append_log(struct curl_slist *list, char *string, int quiet) {
+curl_slist_append_log(struct curl_slist *list, char *string, bool quiet) {
     list = curl_slist_append(list, string);
     if (!list) {
         if (!quiet)
@@ -674,7 +675,7 @@ jsonrpc_handle_response(char *ptr, size_t size, size_t nmemb, void *userdata) {
 }
 
 static int
-jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response, int quiet) {
+jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response, bool quiet) {
     int rval = 0;
 
     CURL *curl = NULL;
@@ -810,7 +811,7 @@ cleanup:
 }
 
 static int
-jsonrpc_parse_join_response(const char *payload, join_info *join_i, int quiet) {
+jsonrpc_parse_join_response(const char *payload, join_info *join_i, bool quiet) {
     int rval = 0;
 
     json_error_t j_error;
@@ -854,7 +855,7 @@ cleanup:
 }
 
 static int
-join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, int force, int quiet) {
+join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, bool force, bool quiet) {
     int rval = 0;
 
     struct utsname uinfo;
@@ -934,7 +935,7 @@ cleanup:
 }
 
 static int
-jsonrpc_parse_unenroll_response(const char *payload, int* result, int quiet) {
+jsonrpc_parse_unenroll_response(const char *payload, bool* result, bool quiet) {
     int rval = 0;
 
     json_error_t j_error;
@@ -969,7 +970,7 @@ cleanup:
 }
 
 static int
-jsonrpc_unenroll_host(const char *ipaserver, const char *host, int quiet) {
+jsonrpc_unenroll_host(const char *ipaserver, const char *host, bool quiet) {
     int rval = 0;
 
     curl_buffer cb = {0};
@@ -977,7 +978,7 @@ jsonrpc_unenroll_host(const char *ipaserver, const char *host, int quiet) {
     json_error_t j_error;
     json_t *json_req = NULL;
 
-    int result = 0;
+    bool result = false;
 
     /* create the JSON-RPC payload */
     json_req = json_pack_ex(&j_error, 0, "{s:s, s:[[s], {}]}",
@@ -1001,7 +1002,7 @@ jsonrpc_unenroll_host(const char *ipaserver, const char *host, int quiet) {
     if (rval != 0)
         goto cleanup;
 
-    if (result == 1) {
+    if (result == true) {
         if (!quiet)
             fprintf(stderr, _("Unenrollment successful.\n"));
     } else {
@@ -1021,7 +1022,7 @@ cleanup:
 
 #ifdef WITH_IPA_JOIN_XML
 static int
-xmlrpc_unenroll_host(const char *ipaserver, const char *host, int quiet)
+xmlrpc_unenroll_host(const char *ipaserver, const char *host, bool quiet)
 {
     int rval = 0;
     int ret;
@@ -1112,7 +1113,7 @@ cleanup:
 #endif
 
 static int
-join(const char *server, const char *hostname, const char *bindpw, const char *basedn, const char *keytab, int force, int quiet)
+join(const char *server, const char *hostname, const char *bindpw, const char *basedn, const char *keytab, bool force, bool quiet)
 {
     int rval = 0;
     pid_t childpid = 0;
@@ -1269,7 +1270,7 @@ cleanup:
 }
 
 static int
-unenroll_host(const char *server, const char *hostname, const char *ktname, int quiet)
+unenroll_host(const char *server, const char *hostname, const char *ktname, bool quiet)
 {
     int rval = 0;
 
