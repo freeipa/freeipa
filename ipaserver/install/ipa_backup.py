@@ -306,7 +306,6 @@ class Backup(admintool.AdminTool):
 
         self.header = os.path.join(self.top_dir, 'header')
 
-        cwd = os.getcwd()
         try:
             dirsrv = services.knownservices.dirsrv
 
@@ -359,10 +358,6 @@ class Backup(admintool.AdminTool):
                                  options.gpg_keyring)
 
         finally:
-            try:
-                os.chdir(cwd)
-            except Exception as e:
-                logger.error('Cannot change directory to %s: %s', cwd, e)
             shutil.rmtree(self.top_dir)
 
     def check_roles(self, raiseonerr=True):
@@ -761,11 +756,10 @@ class Backup(admintool.AdminTool):
                 'Unexpected error: %s' % e
             )
 
-        os.chdir(self.dir)
         args = [
             'tar', '--xattrs', '--selinux', '-czf', filename, '.'
         ]
-        result = run(args, raiseonerr=False)
+        result = run(args, raiseonerr=False, cwd=self.dir)
         if result.returncode != 0:
             raise admintool.ScriptError(
                 'tar returned non-zero code %s: %s' %

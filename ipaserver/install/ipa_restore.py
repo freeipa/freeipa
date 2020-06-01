@@ -357,8 +357,6 @@ class Restore(admintool.AdminTool):
         os.chmod(self.dir, 0o750)
         os.chown(self.dir, pent.pw_uid, pent.pw_gid)
 
-        cwd = os.getcwd()
-
         logger.info("Temporary setting umask to 022")
         old_umask = os.umask(0o022)
         try:
@@ -483,10 +481,6 @@ class Restore(admintool.AdminTool):
                 if result.returncode != 0:
                     logger.error('Restarting IPA failed: %s', result.error_log)
         finally:
-            try:
-                os.chdir(cwd)
-            except Exception as e:
-                logger.error('Cannot change directory to %s: %s', cwd, e)
             shutil.rmtree(self.top_dir)
             logger.info("Restoring umask to %s", old_umask)
             os.umask(old_umask)
@@ -708,7 +702,6 @@ class Restore(admintool.AdminTool):
             if result.returncode != 0:
                 logger.critical("bak2db failed: %s", result.error_log)
 
-
     def restore_default_conf(self):
         '''
         Restore paths.IPA_DEFAULT_CONF to temporary directory.
@@ -716,21 +709,18 @@ class Restore(admintool.AdminTool):
         Primary purpose of this method is to get configuration for api
         finalization when restoring ipa after uninstall.
         '''
-        cwd = os.getcwd()
-        os.chdir(self.dir)
         args = ['tar',
                 '--xattrs',
                 '--selinux',
                 '-xzf',
                 os.path.join(self.dir, 'files.tar'),
                 paths.IPA_DEFAULT_CONF[1:],
-               ]
+                ]
+        result = run(args, raiseonerr=False, cwd=self.dir)
 
-        result = run(args, raiseonerr=False)
         if result.returncode != 0:
             logger.critical('Restoring %s failed: %s',
                             paths.IPA_DEFAULT_CONF, result.error_log)
-        os.chdir(cwd)
 
     def remove_old_files(self):
         """
@@ -770,24 +760,19 @@ class Restore(admintool.AdminTool):
         databases.
         '''
         logger.info("Restoring files")
-        cwd = os.getcwd()
-        os.chdir('/')
         args = ['tar',
                 '--xattrs',
                 '--selinux',
                 '-xzf',
                 os.path.join(self.dir, 'files.tar')
-               ]
+                ]
         if nologs:
             args.append('--exclude')
             args.append('var/log')
 
-        result = run(args, raiseonerr=False)
+        result = run(args, cwd='/', raiseonerr=False)
         if result.returncode != 0:
             logger.critical('Restoring files failed: %s', result.error_log)
-
-        os.chdir(cwd)
-
 
     def read_header(self):
         '''
@@ -831,16 +816,14 @@ class Restore(admintool.AdminTool):
             logger.info('Decrypting %s', filename)
             filename = decrypt_file(self.dir, filename)
 
-        os.chdir(self.dir)
-
         args = ['tar',
                 '--xattrs',
                 '--selinux',
                 '-xzf',
                 filename,
                 '.'
-               ]
-        run(args)
+                ]
+        run(args, cwd=self.dir)
 
         pent = pwd.getpwnam(constants.DS_USER)
         os.chown(self.top_dir, pent.pw_uid, pent.pw_gid)
