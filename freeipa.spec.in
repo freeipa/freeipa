@@ -780,6 +780,7 @@ If you are using IPA, you need to install this package.
 Summary: IPA tests and test tools
 BuildArch: noarch
 %{?python_provide:%python_provide python3-ipatests}
+Requires: ldns-utils
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ipaserver = %{version}-%{release}
 Requires: iptables
