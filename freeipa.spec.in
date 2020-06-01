@@ -111,6 +111,15 @@
 %global httpd_version 2.4.41-6.1
 %endif
 
+# BIND employs 'pkcs11' OpenSSL engine instead of native PKCS11
+%if 0%{?fedora} >= 31
+    %global with_bind_pkcs11 0
+    %global openssl_pkcs11_version 0.4.10-6
+    %global softhsm_version 2.5.0-4
+%else
+    %global with_bind_pkcs11 1
+%endif
+
 # Don't use Fedora's Python dependency generator on Fedora 30/rawhide yet.
 # Some packages don't provide new dist aliases.
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Python/
@@ -481,8 +490,13 @@ Requires: %{name}-server = %{version}-%{release}
 Requires: bind-dyndb-ldap >= 11.0-2
 Requires: bind >= 9.11.0-6.P2
 Requires: bind-utils >= 9.11.0-6.P2
+%if 0%{?with_bind_pkcs11}
 Requires: bind-pkcs11 >= 9.11.0-6.P2
 Requires: bind-pkcs11-utils >= 9.11.0-6.P2
+%else
+Requires: softhsm >= %{softhsm_version}
+Requires: openssl-pkcs11 >= %{openssl_pkcs11_version}
+%endif
 %if 0%{?fedora} >= 32
 # See https://bugzilla.redhat.com/show_bug.cgi?id=1825812
 Requires: opendnssec >= 2.1.6-5
