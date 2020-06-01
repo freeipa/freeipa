@@ -256,8 +256,6 @@ class BasePathNamespace:
     IPA_REPLICA_CONNCHECK = "/usr/sbin/ipa-replica-conncheck"
     IPA_RMKEYTAB = "/usr/sbin/ipa-rmkeytab"
     IPACTL = "/usr/sbin/ipactl"
-    NAMED = "/usr/sbin/named"
-    NAMED_PKCS11 = "/usr/sbin/named-pkcs11"
     CHRONYC = "/usr/bin/chronyc"
     CHRONYD = "/usr/sbin/chronyd"
     PKIDESTROY = "/usr/sbin/pkidestroy"
