@@ -29,6 +29,8 @@ from ipaplatform.redhat import services as redhat_services
 # Mappings from service names as FreeIPA code references to these services
 # to their actual systemd service names
 fedora_system_units = redhat_services.redhat_system_units.copy()
+fedora_system_units['named'] = fedora_system_units['named-regular']
+fedora_system_units['named-conflict'] = fedora_system_units['named-pkcs11']
 
 
 # Service classes that implement Fedora-specific behaviour
@@ -41,6 +43,8 @@ class FedoraService(redhat_services.RedHatService):
 # of specified name
 
 def fedora_service_class_factory(name, api=None):
+    if name in ['named', 'named-conflict']:
+        return FedoraService(name, api)
     return redhat_services.redhat_service_class_factory(name, api)
 
 
