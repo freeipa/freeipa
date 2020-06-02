@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 237)
-# Last change: allow rename a hostgroup
+define(IPA_API_VERSION_MINOR, 238)
+# Last change: permission ipapermbindruletype=self
 
 
 ########################################################

@@ -279,8 +279,8 @@ class permission(baseldap.LDAPObject):
             label=_('Bind rule type'),
             doc=_('Bind rule type'),
             autofill=True,
-            values=(u'permission', u'all', u'anonymous'),
-            default=u'permission',
+            values=('permission', 'all', 'anonymous', 'self'),
+            default='permission',
             flags={'allow_mod_for_managed_permission'},
         ),
         DNOrURL(
@@ -600,6 +600,8 @@ class permission(baseldap.LDAPObject):
             bindrule = 'userdn = "ldap:///all"'
         elif ipapermbindruletype == 'anonymous':
             bindrule = 'userdn = "ldap:///anyone"'
+        elif ipapermbindruletype == 'self':
+            bindrule = 'userdn = "ldap:///self"'
         else:
             raise ValueError(ipapermbindruletype)
 

@@ -4345,3 +4345,48 @@ class test_autoadd_operational_attrs(Declarative):
             'allow (read) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
     ]
+
+
+class test_self_bindrule(Declarative):
+    """Test creation of permission with bindrule self
+    """
+    cleanup_commands = [
+        ('permission_del', [permission1], {'force': True}),
+    ]
+
+    tests = [
+        dict(
+            desc='Create %r' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                    ipapermlocation=DN('cn=accounts', api.env.basedn),
+                    ipapermright=u'read',
+                    ipapermbindruletype='self',
+                    attrs=[u'objectclass'],
+                )
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Added permission "%s"' % permission1,
+                result=dict(
+                    dn=permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    attrs=[u'objectclass', u'entryusn', u'createtimestamp',
+                           u'modifytimestamp'],
+                    ipapermright=[u'read'],
+                    ipapermbindruletype=[u'self'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[DN('cn=accounts', api.env.basedn)],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1, DN('cn=accounts', api.env.basedn),
+            '(targetattr = "createtimestamp || entryusn || modifytimestamp '
+            + '|| objectclass")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (read) userdn = "ldap:///self";)',
+        ),
+    ]
