@@ -527,6 +527,24 @@ def ca_initialize_hsm_state(ca):
         ca.set_hsm_state(config)
 
 
+def dnssec_set_openssl_engine(dnskeysyncd):
+    """
+    Setup OpenSSL engine for BIND
+    """
+    if constants.NAMED_OPENSSL_ENGINE is None:
+        return False
+
+    if sysupgrade.get_upgrade_state('dns', 'openssl_engine'):
+        return False
+
+    logger.info('[Set OpenSSL engine for BIND]')
+    dnskeysyncd.setup_named_openssl_conf()
+    dnskeysyncd.setup_named_sysconfig()
+    dnskeysyncd.setup_ipa_dnskeysyncd_sysconfig()
+    sysupgrade.set_upgrade_state('dns', 'openssl_engine', True)
+
+    return True
+
 
 def certificate_renewal_update(ca, kra, ds, http):
     """
@@ -1425,7 +1443,10 @@ def upgrade_bind(fstore):
         logger.info("DNS service is not configured")
         return False
 
-    # get rid of old upgrade states
+    bind_switch_service(bind)
+
+    # get rid of old states
+    bind_old_states(bind)
     bind_old_upgrade_states()
 
     if bind.is_configured() and not bind.is_running():
@@ -1449,6 +1470,38 @@ def upgrade_bind(fstore):
             bind.stop()
 
     return changed
+
+
+def bind_switch_service(bind):
+    """
+    Mask either named or named-pkcs11, we need to run only one,
+    running both can cause unexpected errors.
+    """
+    named_conflict_name = bind.named_conflict.systemd_name
+    named_conflict_old = sysupgrade.get_upgrade_state('dns', 'conflict_named')
+
+    # nothing changed
+    if named_conflict_old and named_conflict_old == named_conflict_name:
+        return False
+
+    bind.switch_service()
+
+    sysupgrade.set_upgrade_state('dns', 'conflict_named', named_conflict_name)
+    return True
+
+
+def bind_old_states(bind):
+    """Remove old states
+    """
+    # no longer used states
+    old_states = [
+        "enabled",
+        "running",
+        "named-regular-enabled",
+        "named-regular-running",
+    ]
+    for state in old_states:
+        bind.delete_state(state)
 
 
 def bind_old_upgrade_states():
@@ -1696,6 +1749,9 @@ def upgrade_configuration():
             if not dnskeysyncd.is_configured():
                 dnskeysyncd.create_instance(fqdn, api.env.realm)
                 dnskeysyncd.start_dnskeysyncd()
+            else:
+                if dnssec_set_openssl_engine(dnskeysyncd):
+                    dnskeysyncd.start_dnskeysyncd()
 
     cleanup_kdc(fstore)
     cleanup_adtrust(fstore)
