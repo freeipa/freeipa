@@ -29,6 +29,7 @@ dist_man1_MANS = 			\
 	ipa-pkinit-manage.1		\
 	ipa-crlgen-manage.1		\
 	ipa-cert-fix.1			\
+	ipa-acme-manage.1		\
         $(NULL)
 
 dist_man8_MANS =			\
