@@ -3550,7 +3550,6 @@ class dnsrecord_add(LDAPCreate):
     takes_options = LDAPCreate.takes_options + (
         Flag('force',
              label=_('Force'),
-             flags=['no_option', 'no_output'],
              doc=_('force NS record creation even if its hostname is not in DNS'),
         ),
         dnsrecord.structured_flag,
