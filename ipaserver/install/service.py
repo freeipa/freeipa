@@ -533,6 +533,9 @@ class Service:
     def get_state(self, key):
         return self.sstore.get_state(self.service_name, key)
 
+    def delete_state(self, key):
+        self.sstore.delete_state(self.service_name, key)
+
     def print_msg(self, message):
         print_msg(message, self.output_fd)
 
