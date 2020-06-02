@@ -925,6 +925,91 @@ cleanup:
 }
 
 static int
+jsonrpc_parse_unenroll_response(const char *payload, int* result, int quiet) {
+    int rval = 0;
+
+    json_error_t j_error;
+
+    json_t *j_root = NULL;
+    json_t *j_result = NULL;
+
+    j_root = json_loads(payload, 0, &j_error);
+    if (!j_root) {
+        if (debug)
+            fprintf(stderr, _("Parsing JSON-RPC response failed: %s\n"), j_error.text);
+
+        rval = 17;
+        goto cleanup;
+    }
+
+    j_result = json_object_get(j_root, "result");
+
+    if (json_unpack_ex(j_result, &j_error, 0, "{s:b}",
+                       "result", result) != 0) {
+        if (debug)
+            fprintf(stderr, _("Extracting the data from the JSON-RPC response failed: %s\n"), j_error.text);
+
+        rval = 20;
+        goto cleanup;
+    }
+
+cleanup:
+    json_decref(j_root);
+
+    return rval;
+}
+
+static int
+jsonrpc_unenroll_host(const char *ipaserver, const char *host, int quiet) {
+    int rval = 0;
+
+    curl_buffer cb = {0};
+
+    json_error_t j_error;
+    json_t *json_req = NULL;
+
+    int result = 0;
+
+    /* create the JSON-RPC payload */
+    json_req = json_pack_ex(&j_error, 0, "{s:s, s:[[s], {}]}",
+                            "method", "host_disable",
+                            "params",
+                            host);
+
+    if (!json_req) {
+        if (debug)
+            fprintf(stderr, _("json_pack_ex() failed: %s\n"), j_error.text);
+
+        rval = 17;
+        goto cleanup;
+    }
+
+    rval = jsonrpc_request(ipaserver, json_req, &cb, quiet);
+    if (rval != 0)
+        goto cleanup;
+
+    rval = jsonrpc_parse_unenroll_response(cb.payload, &result, quiet);
+    if (rval != 0)
+        goto cleanup;
+
+    if (result == 1) {
+        if (!quiet)
+            fprintf(stderr, _("Unenrollment successful.\n"));
+    } else {
+        if (!quiet)
+            fprintf(stderr, _("Unenrollment failed.\n"));
+    }
+
+cleanup:
+    json_decref(json_req);
+
+    if (cb.payload)
+        free(cb.payload);
+
+    return rval;
+}
+
+static int
 xmlrpc_unenroll_host(const char *ipaserver, const char *host, int quiet)
 {
     int rval = 0;
@@ -1318,7 +1403,10 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     ccache = NULL;
     putenv("KRB5CCNAME=MEMORY:ipa-join");
 
-    rval = xmlrpc_unenroll_host(ipaserver, host, quiet);
+    if (use_json)
+        rval = jsonrpc_unenroll_host(ipaserver, host, quiet);
+    else
+        rval = xmlrpc_unenroll_host(ipaserver, host, quiet);
 
 cleanup:
     if (host)
