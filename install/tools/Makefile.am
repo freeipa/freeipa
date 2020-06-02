@@ -35,6 +35,7 @@ dist_noinst_DATA =		\
 	ipa-httpd-kdcproxy.in	\
 	ipa-pki-retrieve-key.in	\
 	ipa-pki-wait-running.in	\
+	ipa-acme-manage.in	\
 	$(NULL)
 
 nodist_sbin_SCRIPTS =		\
@@ -63,6 +64,7 @@ nodist_sbin_SCRIPTS =		\
 	ipa-pkinit-manage	\
 	ipa-crlgen-manage	\
 	ipa-cert-fix		\
+	ipa-acme-manage		\
 	$(NULL)
 
 appdir = $(libexecdir)/ipa/
