@@ -27,4 +27,6 @@ class FedoraConstantsNamespace(RedHatConstantsNamespace):
     if HAS_NFS_CONF:
         SECURE_NFS_VAR = None
 
+    NAMED_OPENSSL_ENGINE = "pkcs11"
+
 constants = FedoraConstantsNamespace()
