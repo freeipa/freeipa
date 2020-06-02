@@ -159,7 +159,7 @@ return {
                         {
                             $type: 'radio',
                             name: 'ipapermbindruletype',
-                            options: ['permission', 'all', 'anonymous']
+                            options: ['permission', 'all', 'anonymous', 'self']
                         },
                         {
                             $type: 'rights',
@@ -280,7 +280,7 @@ return {
                     {
                         $type: 'radio',
                         name: 'ipapermbindruletype',
-                        options: ['permission', 'all', 'anonymous'],
+                        options: ['permission', 'all', 'anonymous', 'self'],
                         default_value: 'permission'
                     },
                     {

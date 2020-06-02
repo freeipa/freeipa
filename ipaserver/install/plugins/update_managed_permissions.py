@@ -635,6 +635,10 @@ class update_managed_permissions(Updater):
 
         # Attributes from template
         bindruletype = template.pop('ipapermbindruletype', 'permission')
+        if bindruletype not in {"all", "anonymous", "self", "permission"}:
+            raise ValueError(
+                f"Invalid ipapermbindruletype '{bindruletype}'"
+            )
         if is_new:
             entry.single_value['ipapermbindruletype'] = bindruletype
 
