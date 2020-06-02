@@ -924,28 +924,11 @@ cleanup:
     return rval;
 }
 
-#undef CURL_SETOPT
-#undef ASPRINTF
-
 static int
-unenroll_host(const char *server, const char *hostname, const char *ktname, int quiet)
+xmlrpc_unenroll_host(const char *ipaserver, const char *host, int quiet)
 {
     int rval = 0;
     int ret;
-    char *ipaserver = NULL;
-    char *host = NULL;
-    struct utsname uinfo;
-    char *principal = NULL;
-    char *realm = NULL;
-
-    krb5_context krbctx = NULL;
-    krb5_keytab keytab = NULL;
-    krb5_ccache ccache = NULL;
-    krb5_principal princ = NULL;
-    krb5_error_code krberr;
-    krb5_creds creds;
-    krb5_get_init_creds_opt gicopts;
-    char tgs[LINE_MAX];
 
     xmlrpc_env env;
     xmlrpc_value * argArrayP = NULL;
@@ -963,125 +946,6 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     xmlrpc_env_init(&env);
 
     xmlrpc_client_setup_global_const(&env);
-
-    if (server) {
-        ipaserver = strdup(server);
-    } else {
-        char * conf_data = read_config_file(IPA_CONFIG);
-        if ((ipaserver = getIPAserver(conf_data)) == NULL) {
-            if (!quiet)
-                fprintf(stderr, _("Unable to determine IPA server from %s\n"),
-                        IPA_CONFIG);
-            exit(1);
-        }
-        free(conf_data);
-    }
-
-    if (NULL == hostname) {
-        uname(&uinfo);
-        host = strdup(uinfo.nodename);
-    } else {
-        host = strdup(hostname);
-    }
-
-    if (NULL == host) {
-        rval = 3;
-        goto cleanup;
-    }
-
-    if (NULL == strstr(host, ".")) {
-        if (!quiet)
-            fprintf(stderr, _("The hostname must be fully-qualified: %s\n"),
-                    host);
-        rval = 16;
-        goto cleanup;
-    }
-
-    krberr = krb5_init_context(&krbctx);
-    if (krberr) {
-        if (!quiet)
-            fprintf(stderr, _("Unable to join host: "
-                              "Kerberos context initialization failed\n"));
-        rval = 1;
-        goto cleanup;
-    }
-    krberr = krb5_kt_resolve(krbctx, ktname, &keytab);
-    if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr, _("Error resolving keytab: %s.\n"),
-                error_message(krberr));
-        rval = 7;
-        goto cleanup;
-    }
-
-    krberr = krb5_get_default_realm(krbctx, &realm);
-    if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr, _("Error getting default Kerberos realm: %s.\n"),
-                error_message(krberr));
-        rval = 21;
-        goto cleanup;
-    }
-
-    ret = asprintf(&principal, "host/%s@%s", host,  realm);
-    if (ret == -1)
-    {
-        if (!quiet)
-            fprintf(stderr, _("Out of memory!\n"));
-        rval = 3;
-        goto cleanup;
-    }
-
-    krberr = krb5_parse_name(krbctx, principal, &princ);
-    if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr, _("Error parsing \"%1$s\": %2$s.\n"),
-                            principal, error_message(krberr));
-        rval = 4;
-        goto cleanup;
-    }
-    strcpy(tgs, KRB5_TGS_NAME);
-    snprintf(tgs + strlen(tgs), sizeof(tgs) - strlen(tgs), "/%.*s",
-             (krb5_princ_realm(krbctx, princ))->length,
-             (krb5_princ_realm(krbctx, princ))->data);
-    snprintf(tgs + strlen(tgs), sizeof(tgs) - strlen(tgs), "@%.*s",
-             (krb5_princ_realm(krbctx, princ))->length,
-             (krb5_princ_realm(krbctx, princ))->data);
-    memset(&creds, 0, sizeof(creds));
-    krb5_get_init_creds_opt_init(&gicopts);
-    krb5_get_init_creds_opt_set_forwardable(&gicopts, 1);
-    krberr = krb5_get_init_creds_keytab(krbctx, &creds, princ, keytab,
-                                      0, tgs, &gicopts);
-    if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr, _("Error obtaining initial credentials: %s.\n"),
-                    error_message(krberr));
-        rval = 19;
-        goto cleanup;
-    }
-
-    krberr = krb5_cc_resolve(krbctx, "MEMORY:ipa-join", &ccache);
-    if (krberr == 0) {
-        krberr = krb5_cc_initialize(krbctx, ccache, creds.client);
-    } else {
-        if (!quiet)
-            fprintf(stderr,
-                    _("Unable to generate Kerberos Credential Cache\n"));
-        rval = 19;
-        goto cleanup;
-    }
-    krberr = krb5_cc_store_cred(krbctx, ccache, &creds);
-    if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr,
-                    _("Error storing creds in credential cache: %s.\n"),
-                    error_message(krberr));
-        rval = 19;
-        goto cleanup;
-    }
-    krb5_cc_close(krbctx, ccache);
-    ccache = NULL;
-    putenv("KRB5CCNAME=MEMORY:ipa-join");
 
 #if 1
     ret = asprintf(&url, "https://%s:443/ipa/xml", ipaserver);
@@ -1136,23 +1000,19 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     }
 
 cleanup:
-
     free(user_agent);
-    if (keytab) krb5_kt_close(krbctx, keytab);
-    free(host);
-    free((char *)principal);
-    free((char *)ipaserver);
-    if (princ) krb5_free_principal(krbctx, princ);
-    if (ccache) krb5_cc_close(krbctx, ccache);
-    if (krbctx) krb5_free_context(krbctx);
-
     free(url);
+
+    if (argArrayP)
+        xmlrpc_DECREF(argArrayP);
+    if (paramArrayP)
+        xmlrpc_DECREF(paramArrayP);
+
     xmlrpc_env_clean(&env);
     xmlrpc_client_cleanup();
 
     return rval;
 }
-
 
 static int
 join(const char *server, const char *hostname, const char *bindpw, const char *basedn, const char *keytab, int force, int quiet)
@@ -1310,6 +1170,181 @@ cleanup:
     return rval;
 }
 
+static int
+unenroll_host(const char *server, const char *hostname, const char *ktname, int quiet)
+{
+    int rval = 0;
+
+    char *ipaserver = NULL;
+    char *host = NULL;
+
+    struct utsname uinfo;
+
+    char *principal = NULL;
+    char *realm = NULL;
+
+    krb5_context krbctx = NULL;
+    krb5_keytab keytab = NULL;
+    krb5_ccache ccache = NULL;
+    krb5_principal princ = NULL;
+    krb5_error_code krberr;
+    krb5_creds creds;
+    krb5_get_init_creds_opt gicopts;
+    char tgs[LINE_MAX];
+
+    memset(&creds, 0, sizeof(creds));
+
+    if (server) {
+        ipaserver = strdup(server);
+    } else {
+        char * conf_data = read_config_file(IPA_CONFIG);
+        if ((ipaserver = getIPAserver(conf_data)) == NULL) {
+            if (!quiet)
+                fprintf(stderr, _("Unable to determine IPA server from %s\n"),
+                        IPA_CONFIG);
+            exit(1);
+        }
+        free(conf_data);
+    }
+
+    if (!hostname) {
+        host = strdup(uinfo.nodename);
+    } else {
+        host = strdup(hostname);
+    }
+
+    if (!host) {
+        if (!quiet)
+            fprintf(stderr, _("Out of memory!\n"));
+
+        rval = 3;
+        goto cleanup;
+    }
+
+    if (!strstr(host, ".")) {
+        if (!quiet)
+            fprintf(stderr, _("The hostname must be fully-qualified: %s\n"),
+                    host);
+        rval = 16;
+        goto cleanup;
+    }
+
+    krberr = krb5_init_context(&krbctx);
+    if (krberr) {
+        if (!quiet)
+            fprintf(stderr, _("Unable to join host: "
+                              "Kerberos context initialization failed\n"));
+        rval = 1;
+        goto cleanup;
+    }
+
+    krberr = krb5_kt_resolve(krbctx, ktname, &keytab);
+    if (krberr != 0) {
+        if (!quiet)
+            fprintf(stderr, _("Error resolving keytab: %s.\n"),
+                    error_message(krberr));
+        rval = 7;
+        goto cleanup;
+    }
+
+    krberr = krb5_get_default_realm(krbctx, &realm);
+    if (krberr != 0) {
+        if (!quiet)
+            fprintf(stderr, _("Error getting default Kerberos realm: %s.\n"),
+                    error_message(krberr));
+        rval = 21;
+        goto cleanup;
+    }
+
+    ASPRINTF(&principal, "host/%s@%s", host,  realm);
+
+    krberr = krb5_parse_name(krbctx, principal, &princ);
+    if (krberr != 0) {
+        if (!quiet)
+            fprintf(stderr, _("Error parsing \"%1$s\": %2$s.\n"),
+                    principal, error_message(krberr));
+        rval = 4;
+        goto cleanup;
+    }
+    strcpy(tgs, KRB5_TGS_NAME);
+    snprintf(tgs + strlen(tgs), sizeof(tgs) - strlen(tgs), "/%.*s",
+             (krb5_princ_realm(krbctx, princ))->length,
+             (krb5_princ_realm(krbctx, princ))->data);
+    snprintf(tgs + strlen(tgs), sizeof(tgs) - strlen(tgs), "@%.*s",
+             (krb5_princ_realm(krbctx, princ))->length,
+             (krb5_princ_realm(krbctx, princ))->data);
+
+    krb5_get_init_creds_opt_init(&gicopts);
+    krb5_get_init_creds_opt_set_forwardable(&gicopts, 1);
+    krberr = krb5_get_init_creds_keytab(krbctx, &creds, princ, keytab,
+                                        0, tgs, &gicopts);
+    if (krberr != 0) {
+        if (!quiet)
+            fprintf(stderr, _("Error obtaining initial credentials: %s.\n"),
+                    error_message(krberr));
+        rval = 19;
+        goto cleanup;
+    }
+
+    krberr = krb5_cc_resolve(krbctx, "MEMORY:ipa-join", &ccache);
+    if (krberr == 0) {
+        krberr = krb5_cc_initialize(krbctx, ccache, creds.client);
+    } else {
+        if (!quiet)
+            fprintf(stderr,
+                    _("Unable to generate Kerberos Credential Cache\n"));
+        rval = 19;
+        goto cleanup;
+    }
+
+    if (krberr != 0) {
+        if (!quiet)
+            fprintf(stderr,
+                    _("Unable to generate Kerberos Credential Cache\n"));
+        rval = 19;
+        goto cleanup;
+    }
+
+    krberr = krb5_cc_store_cred(krbctx, ccache, &creds);
+    if (krberr != 0) {
+        if (!quiet)
+            fprintf(stderr,
+                    _("Error storing creds in credential cache: %s.\n"),
+                    error_message(krberr));
+        rval = 19;
+        goto cleanup;
+    }
+    krb5_cc_close(krbctx, ccache);
+    ccache = NULL;
+    putenv("KRB5CCNAME=MEMORY:ipa-join");
+
+    rval = xmlrpc_unenroll_host(ipaserver, host, quiet);
+
+cleanup:
+    if (host)
+        free(host);
+    if (principal)
+        free(principal);
+    if (ipaserver)
+        free(ipaserver);
+    if (realm)
+        krb5_free_default_realm(krbctx, realm);
+
+    if (keytab)
+        krb5_kt_close(krbctx, keytab);
+    if (princ)
+        krb5_free_principal(krbctx, princ);
+    if (ccache)
+        krb5_cc_close(krbctx, ccache);
+
+    krb5_free_cred_contents(krbctx, &creds);
+
+    if (krbctx)
+        krb5_free_context(krbctx);
+
+    return rval;
+}
+
 /*
  * Note, an intention with return values is so that this is compatible with
  * ipa-getkeytab. This is so based on the return value you can distinguish
@@ -1364,12 +1399,13 @@ main(int argc, const char **argv) {
         if (!quiet) {
             poptPrintUsage(pc, stderr, 0);
         }
+        poptFreeContext(pc);
         exit(2);
     }
     poptFreeContext(pc);
+
     if (debug)
         setenv("XMLRPC_TRACE_XML", "1", 1);
-
 
     if (!keytab)
         keytab = "/etc/krb5.keytab";
