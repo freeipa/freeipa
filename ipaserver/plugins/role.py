@@ -32,6 +32,8 @@ from .baseldap import (
     LDAPRemoveReverseMember)
 from ipalib import api, Str, _, ngettext
 from ipalib import output
+from ipapython.dn import DN
+from .idviews import handle_idoverride_memberof
 
 __doc__ = _("""
 Roles
@@ -86,7 +88,8 @@ class role(LDAPObject):
     # 'memberindirect', 'memberofindirect',
 
     attribute_members = {
-        'member': ['user', 'group', 'host', 'hostgroup', 'service'],
+        'member': ['user', 'group', 'host', 'hostgroup', 'service',
+                   'idoverrideuser'],
         'memberof': ['privilege'],
     }
     reverse_members = {
@@ -197,6 +200,12 @@ class role_show(LDAPRetrieve):
 @register()
 class role_add_member(LDAPAddMember):
     __doc__ = _('Add members to a role.')
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
+        handle_idoverride_memberof(self, ldap, dn, found, not_found,
+                                   *keys, **options)
+        return dn
 
 
 
