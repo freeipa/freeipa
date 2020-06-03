@@ -238,23 +238,26 @@ define([
             IPA.logout();
         },
 
-        is_selfservice: function() {
-            var whoami = IPA.whoami.data;
-            var self_service = true;
-
+        is_admin: function(whoami) {
             if (whoami.hasOwnProperty('memberof_group') &&
                 whoami.memberof_group.indexOf('admins') !== -1) {
-                self_service = false;
+                return true;
             } else if (whoami.hasOwnProperty('memberofindirect_group')&&
                     whoami.memberofindirect_group.indexOf('admins') !== -1) {
-                self_service = false;
+                return true;
             } else if (whoami.hasOwnProperty('memberof_role') &&
                     whoami.memberof_role.length > 0) {
-                self_service = false;
+                return true;
             } else if (whoami.hasOwnProperty('memberofindirect_role') &&
                     whoami.memberofindirect_role.length > 0) {
-                self_service = false;
+                return true;
             }
+            return false;
+        },
+
+        is_selfservice: function() {
+            var whoami = IPA.whoami.data;
+            var self_service = !this.is_admin(whoami);
 
             IPA.is_selfservice = self_service; // quite ugly, needed for users
 
@@ -262,11 +265,14 @@ define([
         },
 
         is_aduser_selfservice: function() {
-            var selfservice = IPA.whoami.metadata.object === 'idoverrideuser';
-            // quite ugly, needed for users and iduseroverride to hide breadcrumb
-            IPA.is_aduser_selfservice = selfservice;
+            var whoami = IPA.whoami.data;
+            var idoverride = IPA.whoami.metadata.object === 'idoverrideuser';
+            var self_service = idoverride && (this.is_admin(whoami) === false);
 
-            return selfservice;
+            // quite ugly, needed for users and iduseroverride to hide breadcrumb
+            IPA.is_aduser_selfservice = self_service;
+
+            return self_service;
         },
 
         update_logged_in: function(logged_in) {
