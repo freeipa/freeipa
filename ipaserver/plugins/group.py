@@ -52,7 +52,7 @@ if six.PY3:
 
 logger = logging.getLogger(__name__)
 
-if api.env.in_server and api.env.context in ['lite', 'server']:
+if api.env.in_server:
     try:
         import ipaserver.dcerpc
         _dcerpc_bindings_installed = True
