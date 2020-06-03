@@ -251,6 +251,7 @@ class test_selinuxusermap(Declarative):
                         group=tuple(),
                         user=tuple(),
                         service=tuple(),
+                        idoverrideuser=tuple(),
                     ),
                 ),
                 result={
