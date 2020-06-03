@@ -91,6 +91,28 @@ ANCHOR_REGEX = re.compile(
 )
 
 
+def normalize_idview_name(value):
+    if value in (None, '',):
+        return DEFAULT_TRUST_VIEW_NAME
+    return value
+
+
+def handle_idoverride_memberof(self, ldap, dn, found, not_found,
+                               *keys, **options):
+    if ('idoverrideuser' in options) and ('member' in found):
+        for id in found['member'].get('idoverrideuser', []):
+            try:
+                e = ldap.get_entry(id, ['*'])
+                if not self.obj.has_objectclass(e['objectclass'],
+                                                'nsmemberof'):
+                    add_missing_object_class(ldap, 'nsmemberof',
+                                             id, entry_attrs=e, update=True)
+            except errors.NotFound:
+                # We are not adding an object here, only modifying existing
+                continue
+    return dn
+
+
 @register()
 class idview(LDAPObject):
     """
@@ -113,6 +135,7 @@ class idview(LDAPObject):
             cli_name='name',
             label=_('ID View Name'),
             primary_key=True,
+            normalizer=normalize_idview_name,
         ),
         Str('description?',
             cli_name='desc',
@@ -733,8 +756,12 @@ class baseidoverride(LDAPObject):
                 self.backend,
                 self.override_object,
                 keys[-1],
-                fallback_to_ldap=options['fallback_to_ldap']
+                fallback_to_ldap=options.get('fallback_to_ldap', False)
             )
+            if all([len(keys[:-1]) == 0,
+                    self.override_object == 'user',
+                    anchor.startswith(SID_ANCHOR_PREFIX)]):
+                keys = (DEFAULT_TRUST_VIEW_NAME, ) + keys
 
         keys = keys[:-1] + (anchor, )
         return super(baseidoverride, self).get_dn(*keys, **options)
@@ -809,6 +836,12 @@ class baseidoverride(LDAPObject):
                 },
                 rules=ldap.MATCH_ALL
             )
+
+    def get_primary_key_from_dn(self, dn):
+        return resolve_anchor_to_object_name(self.backend,
+                                             self.override_object,
+                                             dn[0].value)
+
 
 
 class baseidoverride_add(LDAPCreate):
@@ -918,22 +951,29 @@ class idoverrideuser(baseidoverride):
             'ipapermdefaultattr': {
                 'objectClass', 'ipaAnchorUUID', 'uidNumber', 'description',
                 'homeDirectory', 'uid', 'ipaOriginalUid', 'loginShell', 'gecos',
-                'gidNumber', 'ipaSshPubkey', 'usercertificate'
+                'gidNumber', 'ipaSshPubkey', 'usercertificate', 'memberof'
             },
         },
     }
 
     object_class = baseidoverride.object_class + ['ipaUserOverride']
-    possible_objectclasses = ['ipasshuser', 'ipaSshGroupOfPubKeys']
+    possible_objectclasses = ['ipasshuser', 'ipaSshGroupOfPubKeys',
+                              'nsmemberof']
     default_attributes = baseidoverride.default_attributes + [
        'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid', 'loginShell',
        'ipaSshPubkey', 'gidNumber', 'gecos', 'usercertificate;binary',
+       'memberofindirect', 'memberof'
     ]
 
     search_display_attributes = baseidoverride.default_attributes + [
        'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid', 'loginShell',
        'ipaSshPubkey', 'gidNumber', 'gecos',
     ]
+
+    attribute_members = {
+        'memberof': ['group', 'role'],
+        'memberofindirect': ['group', 'role'],
+    }
 
     takes_params = baseidoverride.takes_params + (
         Str('uid?',
