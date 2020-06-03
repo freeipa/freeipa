@@ -40,7 +40,7 @@ from .baseldap import (
     LDAPRemoveMember,
     LDAPQuery,
 )
-from .idviews import remove_ipaobject_overrides
+from .idviews import remove_ipaobject_overrides, handle_idoverride_memberof
 from . import baseldap
 from ipalib import _, ngettext
 from ipalib import errors
@@ -204,10 +204,10 @@ class group(LDAPObject):
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
-        'member': ['user', 'group', 'service'],
+        'member': ['user', 'group', 'service', 'idoverrideuser'],
         'membermanager': ['user', 'group'],
         'memberof': ['group', 'netgroup', 'role', 'hbacrule', 'sudorule'],
-        'memberindirect': ['user', 'group', 'service'],
+        'memberindirect': ['user', 'group', 'service', 'idoverrideuser'],
         'memberofindirect': ['group', 'netgroup', 'role', 'hbacrule',
         'sudorule'],
     }
@@ -592,6 +592,12 @@ class group_add_member(LDAPAddMember):
     __doc__ = _('Add members to a group.')
 
     takes_options = (ipaexternalmember_param,)
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
+        handle_idoverride_memberof(self, ldap, dn, found, not_found,
+                                   *keys, **options)
+        return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
