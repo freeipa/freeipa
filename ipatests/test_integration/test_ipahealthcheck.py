@@ -632,6 +632,47 @@ class TestIpaHealthCheck(IntegrationTest):
                     % check["kw"]["path"]
                 )
 
+    @pytest.fixture
+    def change_tomcat_owner(self):
+        """Fixture to change owner of tomcat config during test"""
+        for file in TOMCAT_CONFIG_FILES:
+            self.master.run_command(["chown", "root.root", file])
+        yield
+        for file in TOMCAT_CONFIG_FILES:
+            self.master.run_command(["chown", "pkiuser.pkiuser", file])
+
+    def test_ipa_healthcheck_tomcatfile_owner(self, change_tomcat_owner):
+        """
+        This testcase changes the ownership of the tomcat config files
+        on an IPA Master and then checks if healthcheck tools
+        reports the status as WARNING
+        """
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.files", "TomcatFileCheck"
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["type"] == "owner":
+                assert check["kw"]["expected"] == "pkiuser"
+                assert check["kw"]["got"] == "root"
+                assert check["result"] == "WARNING"
+                assert check["kw"]["path"] in TOMCAT_CONFIG_FILES
+                assert (
+                    check["kw"]["msg"]
+                    == "Ownership of %s is root and should be pkiuser"
+                    % check["kw"]["path"]
+                )
+            elif check["kw"]["type"] == "group":
+                assert check["kw"]["expected"] == "pkiuser"
+                assert check["kw"]["got"] == "root"
+                assert check["result"] == "WARNING"
+                assert check["kw"]["path"] in TOMCAT_CONFIG_FILES
+                assert (
+                    check["kw"]["msg"]
+                    == "Group of %s is root and should be pkiuser"
+                    % check["kw"]["path"]
+                )
+
     def test_ipa_healthcheck_without_trust_setup(self):
         """
         This testcase checks that when trust isn't setup between IPA
