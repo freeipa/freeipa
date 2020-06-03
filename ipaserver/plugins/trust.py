@@ -73,7 +73,7 @@ try:
 except Exception as e:
     _nss_idmap_installed = False
 
-if api.env.in_server and api.env.context in ['lite', 'server']:
+if api.env.in_server:
     try:
         import ipaserver.dcerpc
         _bindings_installed = True
