@@ -258,6 +258,7 @@ class test_role(Declarative):
                         host=[],
                         hostgroup=[],
                         service=[],
+                        idoverrideuser=[],
                     ),
                 ),
                 result={
@@ -515,6 +516,7 @@ class test_role(Declarative):
                         host=[],
                         hostgroup=[],
                         service=[],
+                        idoverrideuser=[],
                     ),
                 ),
                 result={

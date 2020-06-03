@@ -321,6 +321,7 @@ class test_netgroup(Declarative):
                         group=tuple(),
                         user=tuple(),
                         service=tuple(),
+                        idoverrideuser=tuple(),
                     ),
                 ),
                 result={

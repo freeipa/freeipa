@@ -515,7 +515,8 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
         assert_deepequal(dict(
             completed=1,
             failed=dict(
-                member=dict(group=tuple(), user=tuple(), service=tuple())
+                member=dict(group=tuple(), user=tuple(),
+                            service=tuple(), idoverrideuser=tuple())
             ),
             result={
                 'dn': get_group_dn(admin_group),
