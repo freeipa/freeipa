@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 238)
-# Last change: permission ipapermbindruletype=self
+define(IPA_API_VERSION_MINOR, 239)
+# Last change: allow ID overrides for users to be members of groups and roles
 
 
 ########################################################
