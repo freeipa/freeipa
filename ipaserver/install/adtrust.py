@@ -8,7 +8,6 @@ AD trust installer module
 
 from __future__ import print_function, absolute_import
 
-import errno
 import logging
 import os
 
@@ -375,19 +374,11 @@ def add_new_adtrust_agents(api, options):
                     "Remote server %s does not support agent enablement "
                     "over RPC: %s", agent, e)
                 failed_agents.append(agent)
-            except errors.PublicError as e:
+            except (errors.PublicError, IOError) as e:
                 logger.debug(
                     "Remote call to trust_enable_agent failed on server %s: "
                     "%s", agent, e)
                 failed_agents.append(agent)
-            except OSError as e:
-                if e.errno == errno.ECONNREFUSED:
-                    logger.debug(
-                        "Remote call to trust_enable_agent failed on "
-                        "server %s: %s", agent, e)
-                    failed_agents.append(agent)
-                else:
-                    raise
             else:
                 for message in result.get('messages'):
                     logger.debug('%s', message['message'])
