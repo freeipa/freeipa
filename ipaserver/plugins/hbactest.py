@@ -24,7 +24,7 @@ from ipalib import Command, Str, Flag, Int
 from ipalib import _
 from ipapython.dn import DN
 from ipalib.plugable import Registry
-if api.env.in_server and api.env.context in ['lite', 'server']:
+if api.env.in_server:
     try:
         import ipaserver.dcerpc
         _dcerpc_bindings_installed = True

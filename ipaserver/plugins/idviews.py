@@ -49,7 +49,7 @@ if six.PY3:
 
 _dcerpc_bindings_installed = False
 
-if api.env.in_server and api.env.context in ['lite', 'server']:
+if api.env.in_server:
     try:
         import ipaserver.dcerpc
         _dcerpc_bindings_installed = True
