@@ -1018,6 +1018,7 @@ class test_service_in_role(Declarative):
                         hostgroup=[],
                         service=[],
                         user=[],
+                        idoverrideuser=[],
                     ),
                 ),
                 completed=1,
@@ -1143,7 +1144,8 @@ class test_service_allowed_to(Declarative):
                 completed=1,
                 failed=dict(member=dict(group=[],
                                         service=[],
-                                        user=[])),
+                                        user=[],
+                                        idoverrideuser=[])),
                 result=dict(
                     cn=[group1],
                     gidnumber=[fuzzy_digits],
