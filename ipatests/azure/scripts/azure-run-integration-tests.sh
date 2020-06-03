@@ -14,8 +14,9 @@ tests_result=1
     ipa-run-tests \
     --logging-level=debug \
     --logfile-dir="$IPA_TESTS_LOGSDIR" \
-    --with-xunit \
     --verbose \
+    --color=no \
+    --with-xunit \
     $IPA_TESTS_TO_IGNORE \
     $IPA_TESTS_TO_RUN && tests_result=0 ; } || \
     tests_result=$?

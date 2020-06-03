@@ -45,6 +45,7 @@ if [ "$install_result" -eq 0 ] ; then
         --logging-level=debug \
         --logfile-dir="$IPA_TESTS_LOGSDIR" \
         --verbose \
+        --color=no \
         --with-xunit \
         '-k not test_dns_soa' \
         $IPA_TESTS_TO_IGNORE \
