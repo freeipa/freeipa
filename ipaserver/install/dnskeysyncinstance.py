@@ -4,11 +4,12 @@
 
 from __future__ import print_function, absolute_import
 
-import logging
 import errno
+import grp
+import logging
 import os
 import pwd
-import grp
+import re
 import shutil
 import stat
 
@@ -157,6 +158,25 @@ class DNSKeySyncInstance(service.Service):
 
         self._ldap_mod("dnssec.ldif", {'SUFFIX': self.suffix, })
 
+    def _are_named_options_configured(self, options):
+        """Check whether the sysconfig of named is patched
+
+        Additional command line options for named are passed
+        via OPTIONS env variable. Since custom options can be
+        supplied by a vendor, at least, the base parsing of such
+        is required.
+        Current named command line options:
+        NS_MAIN_ARGS "46A:c:C:d:D:E:fFgi:lL:M:m:n:N:p:P:sS:t:T:U:u:vVx:X:"
+        If there are several same options the last passed wins.
+        """
+        if options:
+            pattern = r"[ ]*-[a-zA-Z46]*E[ ]*(.*?)(?: |$)"
+            engines = re.findall(pattern, options)
+            if engines and engines[-1] == constants.NAMED_OPENSSL_ENGINE:
+                return True
+
+        return False
+
     def setup_named_openssl_conf(self):
         if constants.NAMED_OPENSSL_ENGINE is not None:
             logger.debug("Setup OpenSSL config for BIND")
@@ -192,11 +212,18 @@ class DNSKeySyncInstance(service.Service):
                 'OPENSSL_CONF', paths.DNSSEC_OPENSSL_CONF,
                 quotes=False, separator='=')
 
-            engine_txt = "-E {}".format(constants.NAMED_OPENSSL_ENGINE)
-            directivesetter.set_directive(
-                sysconfig,
-                constants.NAMED_OPTIONS_VAR, engine_txt,
-                quotes=True, separator='=')
+            options = directivesetter.get_directive(
+                paths.SYSCONFIG_NAMED,
+                constants.NAMED_OPTIONS_VAR,
+                separator="="
+            ) or ''
+            if not self._are_named_options_configured(options):
+                engine_cmd = "-E {}".format(constants.NAMED_OPENSSL_ENGINE)
+                new_options = ' '.join([options, engine_cmd])
+                directivesetter.set_directive(
+                    sysconfig,
+                    constants.NAMED_OPTIONS_VAR, new_options,
+                    quotes=True, separator='=')
 
     def setup_ipa_dnskeysyncd_sysconfig(self):
         logger.debug("Setup ipa-dnskeysyncd sysconfig")
