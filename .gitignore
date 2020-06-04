@@ -75,6 +75,7 @@ freeipa2-dev-doc
 /daemons/dnssec/ipa-ods-exporter.service
 /daemons/dnssec/ipa-ods-exporter.socket
 /daemons/ipa-kdb/ipa_kdb_tests
+/daemons/ipa-kdb/ipa-print-pac
 /daemons/ipa-kdb/tests/.dirstamp
 /daemons/ipa-otpd/ipa-otpd
 /daemons/ipa-otpd/ipa-otpd.socket
