@@ -428,7 +428,11 @@ class TestSSSDWithAdTrust(IntegrationTest):
             verify_user_member_of_group(self.master, user, group_name,
                                         override_id)
             tasks.clear_sssd_cache(client)
-            verify_user_member_of_group(client, user, group_name, override_id)
+            sssd_version = tasks.get_sssd_version(client)
+            with xfail_context(sssd_version < tasks.parse_version('2.3.0'),
+                               'https://pagure.io/SSSD/sssd/issue/4124'):
+                verify_user_member_of_group(client, user, group_name,
+                                            override_id)
         finally:
             self.master.run_command(['ipa', 'idoverridegroup-del',
                                      'Default Trust View', group_name])
