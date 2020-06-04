@@ -14,3 +14,7 @@ libutil_la_SOURCES =	ipa_krb5.c \
 			ipa_pwd_ntlm.c
 
 libutil_la_LIBADD = $(CRYPTO_LIBS) $(KRB5_LIBS) $(LDAP_LIBS) $(NSS_LIBS)
+
+check_PROGRAMS = t_pwd
+TESTS = $(check_PROGRAMS)
+t_pwd_LDADD = libutil.la
