@@ -101,6 +101,22 @@ for application-specific passwords as well.
 
 There will be no option to reset an application-specific password.
 
+### Permissions management for application-specific passwords
+
+A static set of new ACIs must be added, which will ensure that the owning user
+will have read-write access to all (and only) objects holding his
+application-specific passwords - both when logged in using the primary password
+and when logged in using the respective application-specific password. This is
+the only thing to do with respect to ACIs and application-specific passwords,
+as ACIs serve only for work with the LDAP database.
+
+The only general limitation for subaccounts will be the inability to manage the
+account (modify the information about the user, change his other passwords...).
+As all permissions for them will be assigned by administrators separately and
+from scratch, even a limitation such as reducing the effective permissions of
+the current user session (possibly according to the application policy) using a
+389-DS plugin probably will not be needed.
+
 ### Support for use of the aforementioned functionality with Kerberos --
     OPTIONAL, TBD
 
@@ -136,22 +152,6 @@ not be 'admin', as `_user_/_admin_@_REALM_` are principals of administrators.
 These constraints need to be enforced at the LDAP ACI level, not in the IPA
 python frontend.
 
-### Permissions management for application-specific passwords
-
-A static set of new ACIs must be added, which will ensure that the owning user
-will have read-write access to all (and only) objects holding his
-application-specific passwords - both when logged in using the primary password
-and when logged in using the respective application-specific password. This is
-the only thing to do with respect to RBAC and application-specific passwords,
-as RBAC serves only for work with LDAP in FreeIPA.
-
-The only general limitation for subaccounts will be the inability to manage the
-account (modify the information about the user, change his other passwords...).
-As all permissions for them will be assigned by administrators separately and
-from scratch, even a limitation such as reducing the effective permissions of
-the current user session (possibly according to the application policy) using a
-389-DS plugin probably will not be needed.
-
 #### HBAC for application-specific passwords -- OPTIONAL, TBD
 
 Two-component principals for subaccounts, as described above, will be used for
@@ -161,9 +161,6 @@ These HBAC rules will be assigned by administrators just as the other ones.
 Hostgroups will be used to allow applying the same HBAC rule to different
 servers for the same application.
 
-TBD: When an application-specific password is deleted, delete the associated
-HBAC rules automatically, or keep them?
-
 ~~hbacrule plugin therefore will need to be extended with the ability to assign
 allowed LDAP subtrees to application-specific passwords as a part of HBAC rules.
 hbactest plugin will be extended to test this, and it will be used to test HBAC
@@ -171,10 +168,12 @@ with application-specific passwords in general.~~
 
 ### SSSD support for the aforementioned functionality
 
-SSSD will also be extended to support the aforementioned functionality. This
-will be done by a closely related, but separate extension of SSSD. On the
-side of FreeIPA, after SSSD is extended, interactions with SSSD using the new
-functionality must be tested in `ipatests/test_integration/test_sssd.py`.
+Interactions with SSSD using the new functionality must be tested in
+`ipatests/test_integration/test_sssd.py`.
+
+If needed, SSSD will also be extended to support the aforementioned
+functionality. This will be done by a closely related, but separate extension of
+SSSD.
 
 ## Implementation
 
@@ -185,8 +184,9 @@ As for changes to the data storage:
 * As described above, a new LDAP subtree will be created for
   application-specific passwords, with objects holding them being grouped by
   application, and their attributes being, besides an application-specific
-  password itself, a two-component Kerberos principal containing the application
-  name, and a backlink to the owning user.
+  password itself for LDAP and Kerberos, a uid, a descriptive display name, a
+  two-component Kerberos principal containing the application name, and a
+  backlink to the owning user.
 * New ACIs will be automatically created and maintained so that users will have
   read-write access to objects holding their own application-specific passwords.
 * HBAC rules for subaccounts will be assigned in the same way as the other ones,
@@ -194,12 +194,60 @@ As for changes to the data storage:
 * Permitted LDAP subtrees for application-specific passwords will be stored as a
   part of HBAC rules.
 
-The new additions to the data storage (including the new object and its
-attributes) must be specified in LDIF files in `install/share/`, probably in
-`60basev3.ldif`, or alternatively, in a new file.
+A new objectclass will be created for the `appspecificpw` object and added into
+the LDAP schema. This objectclass will be defined in
+`install/share/60basev3.ldif`:
+```
+objectClasses:
+    (2.16.840.1.113730.3.8.12.XX
+    NAME 'ipaAppSpecificPw'
+    DESC 'Object containing an application-specific password and related data'
+    SUP top
+    MUST ( uid $ displayName $ userPassword $ krbPrincipalName
+           $ krbPrincipalKey $ managedBy )
+    X-ORIGIN 'IPA v4.9')
+```
 
-Analogically, such records probably will be added to a new file in 
-`install/updates`.
+The LDIF code to add the `cn=apps,cn=accounts,$SUFFIX` entry, as well as new
+ACIs for access to the `appspecificpw` object and its attributes, during
+* new installations will be in `install/share/appspecificpw.ldif`,
+* upgrades will be in `install/updates/XX-appspecificpw.update` (number TBD).
+
+There will be the following ACIs on the `cn=apps,cn=accounts,$SUFFIX` entry:
+aci: (target = "cn=\*,cn=apps,cn=accounts,$SUFFIX")
+     (version 3.0; acl "Allow users to add entries grouping application-specific
+     passwords for a particular application";
+     allow (add) 
+     userdn = "ldap:///all;)
+aci: (target = "ldap:///uid=($dn)-\*,cn=\*,cn=apps,cn=accounts,$SUFFIX")
+     (targetattr = "uid || displayName || userPassword || managedBy")
+     (targetfilter=(objectClass=ipaAppSpecificPw))
+     (version 3.0; acl "Allow users to add an application-specific password for
+     themselves";
+     allow (add) 
+     userdn = "ldap:///uid=($dn),cn=users,cn=accounts,$SUFFIX";)
+aci: (targetattr = "displayName")
+     (targetfilter=(objectClass=ipaAppSpecificPw))
+     (version 3.0; acl "Allow users to search their application-specific
+     passwords by display name";
+     allow (search, read) 
+     userdn = "ldap:///self" OR
+     userattr = "managedBy#USERDN";)
+aci: (targetattr = "displayName || userPassword")
+     (targetfilter=(objectClass=ipaAppSpecificPw))
+     (version 3.0; acl "Allow users to change their application-specific
+     password or its display name";
+     allow (write) 
+     userdn = "ldap:///self" OR
+     userattr = "managedBy#USERDN";)
+aci: (target = "ldap:///uid=\*,cn=\*,cn=apps,cn=accounts,$SUFFIX")
+     (targetattr = "uid || displayName || userPassword || managedBy")
+     (targetfilter=(objectClass=ipaAppSpecificPw))
+     (version 3.0; acl "Allow users to delete their application-specific 
+     password";
+     allow (delete) 
+     userdn = "ldap:///self" OR
+     userattr = "managedBy#USERDN";)
 
 Backup and restore is out of scope of this extension, but it will probably work
 with the new functionality.
@@ -208,23 +256,32 @@ with the new functionality.
 
 ## Feature management
 
-### UI
+Both in CLI and Web UI, HBAC rules for users' sessions authenticated using
+application-specific passwords will be added just as the other ones, only
+specifying the two-component principal for subaccount of the respective
+application-specific password on the 'user' part instead of the basic user's
+principal, which will continue to represent the user's sessions authenticated
+using the primary password.
 
-It is not necessary that the new functionality be available in WebUI, but it
-would be good to do it.
+The login process will be the same as well, only instead of entering the primary
+password, the user will enter an application-specific password. And as already
+stated, the user then:
+* will not have access to the account management, and
+* will have access only to those systems and services to which he is allowed it
+  using the entered application-specific password.
+
+### UI
 
 TBD
 
 ### CLI
 
-TBD
-
-The tests for XMLRPC can be extended and used for automatized testing of the new
-functionality.
-
-## How to test
-
-TBD
+| Command | Arguments | Options |
+| appspecificpw-add | username (user's uid) | --manual (user enters the pasword
+instead of it being generated) |
+| appspecificpw-mod | username (user's uid), displayName (of the password) |  |
+| appspecificpw-list | username (user's uid) |  |
+| appspecificpw-del | username (user's uid), displayName (of the password) |  |
 
 ## Test Plan
 
@@ -249,9 +306,9 @@ one password.
    2.9 Remove both application-specific passwords - one by using WebUI, and the
        other one by using CLI.
    2.10 Chceck that the user now only has the primary password.
-3. Test whether the password policies in force for the given user automatically
-   apply for all of his passwords - i.e. they cannot be bypassed by setting
-   another password:
+3. Test whether the password policy for application-specific passwors apply for
+   all of his passwords - i.e. they cannot be bypassed by setting another
+   password:
    * Try to add an application-specific password that is in breach of the
      password policy in place. This must fail.
 4. Test application-specific passwords and their permissions management with
