@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <time.h> /* for time_t */
 
@@ -58,6 +59,12 @@ struct ipapwd_policy {
 };
 
 time_t ipapwd_gentime_to_time_t(char *timestr);
+
+int ipapwd_hash_password(char *password,
+                         char *hash_type,
+                         unsigned char *salt,
+                         unsigned char **full_hash,
+                         unsigned int *full_hash_len);
 
 int ipapwd_check_policy(struct ipapwd_policy *policy,
                         char *password,
