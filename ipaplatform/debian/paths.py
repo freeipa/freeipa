@@ -38,7 +38,6 @@ class DebianPathNamespace(BasePathNamespace):
     NAMED_KEYTAB = "/etc/bind/named.keytab"
     NAMED_RFC1912_ZONES = "/etc/bind/named.conf.default-zones"
     NAMED_ROOT_KEY = "/etc/bind/bind.keys"
-    NAMED_BINDKEYS_FILE = "/etc/bind/bind.keys"
     NAMED_MANAGED_KEYS_DIR = "/var/cache/bind/dynamic"
     CHRONY_CONF = "/etc/chrony/chrony.conf"
     OPENLDAP_LDAP_CONF = "/etc/ldap/ldap.conf"

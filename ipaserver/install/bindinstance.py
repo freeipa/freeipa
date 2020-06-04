@@ -562,13 +562,12 @@ def check_forwarders(dns_forwarders):
             forwarders_dnssec_valid = False
             logger.warning("DNS server %s does not support DNSSEC: %s",
                            forwarder, e)
-            logger.warning("Please fix forwarder configuration to enable "
-                           "DNSSEC support.\n"
-                           "(For BIND 9 add directive \"dnssec-enable yes;\" "
-                           "to \"options {}\")")
+            logger.warning(
+                "Please fix forwarder configuration to enable DNSSEC "
+                "support.\n"
+            )
             print("DNS server %s: %s" % (forwarder, e))
             print("Please fix forwarder configuration to enable DNSSEC support.")
-            print("(For BIND 9 add directive \"dnssec-enable yes;\" to \"options {}\")")
         except EDNS0UnsupportedError as e:
             forwarders_dnssec_valid = False
             logger.warning("DNS server %s does not support ENDS0 "
@@ -829,7 +828,6 @@ class BindInstance(service.Service):
             FQDN=self.fqdn,
             SERVER_ID=ipaldap.realm_to_serverid(self.realm),
             SUFFIX=self.suffix,
-            BINDKEYS_FILE=paths.NAMED_BINDKEYS_FILE,
             MANAGED_KEYS_DIR=paths.NAMED_MANAGED_KEYS_DIR,
             ROOT_KEY=paths.NAMED_ROOT_KEY,
             NAMED_KEYTAB=self.keytab,
