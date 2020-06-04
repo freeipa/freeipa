@@ -61,7 +61,7 @@ struct ipapwd_policy {
 time_t ipapwd_gentime_to_time_t(char *timestr);
 
 int ipapwd_hash_password(char *password,
-                         char *hash_type,
+                         const char *hash_type,
                          unsigned char *salt,
                          unsigned char **full_hash,
                          unsigned int *full_hash_len);
