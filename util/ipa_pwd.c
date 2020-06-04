@@ -23,7 +23,6 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
 #include <ctype.h>
@@ -202,7 +201,7 @@ static int ipapwd_hash_type_to_alg(char *hash_type,
 *
 * @return 0 on success, -1 on error.
 */
-static int ipapwd_hash_password(char *password,
+int ipapwd_hash_password(char *password,
                                 char *hash_type,
                                 unsigned char *salt,
                                 unsigned char **full_hash,
