@@ -406,6 +406,33 @@ class TestSSSDWithAdTrust(IntegrationTest):
         # verify the user can be retrieved after re-enabling trustdomain
         self.master.run_command(['id', user])
 
+    def test_gid_override_domain_users(self):
+        """Test that GID of AD domain group "domain users" can be overridden.
+
+        This is the regression test for https://pagure.io/SSSD/sssd/issue/4124
+        """
+        def verify_user_member_of_group(host, user, group_name, group_id):
+            res = host.run_command(['id', user])
+            assert re.search(r'\b{}\({}\)'.format(
+                group_id, group_name), res.stdout_text)
+
+        client = self.clients[0]
+        user = self.users['ad']['name']
+        group_name = 'domain users@{}'.format(self.ad.domain.name)
+        override_id = '40000000'
+        self.master.run_command(['ipa', 'idoverridegroup-add',
+                                 'Default Trust View', group_name,
+                                 '--gid', override_id])
+        try:
+            tasks.clear_sssd_cache(self.master)
+            verify_user_member_of_group(self.master, user, group_name,
+                                        override_id)
+            tasks.clear_sssd_cache(client)
+            verify_user_member_of_group(client, user, group_name, override_id)
+        finally:
+            self.master.run_command(['ipa', 'idoverridegroup-del',
+                                     'Default Trust View', group_name])
+
 
 class TestNestedMembers(IntegrationTest):
     num_clients = 1
