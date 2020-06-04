@@ -18,11 +18,8 @@ options {
 	tkey-gssapi-keytab "$NAMED_KEYTAB";
 	pid-file "$NAMED_PID";
 
-	dnssec-enable yes;
+	/* dnssec is enabled by default */
 	dnssec-validation yes;
-
-	/* Path to ISC DLV key */
-	bindkeys-file "$BINDKEYS_FILE";
 
 	managed-keys-directory "$MANAGED_KEYS_DIR";
 

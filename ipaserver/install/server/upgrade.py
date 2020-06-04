@@ -741,30 +741,59 @@ def named_update_pid_file():
     sysupgrade.set_upgrade_state('named.conf', 'pid-file_updated', True)
     return True
 
-def named_enable_dnssec():
-    """
-    Enable dnssec in named.conf
+
+def named_dnssec_enable():
+    """Remove obsolete dnssec-enable option from named.conf
     """
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
         logger.info('DNS is not configured')
         return False
 
-    if not sysupgrade.get_upgrade_state('named.conf', 'dnssec_enabled'):
-        logger.info('[Enabling "dnssec-enable" configuration in DNS]')
-        try:
-            bindinstance.named_conf_set_directive('dnssec-enable', 'yes',
-                                                  bindinstance.NAMED_SECTION_OPTIONS,
-                                                  str_val=False)
-        except IOError as e:
-            logger.error('Cannot update dnssec-enable configuration in %s: %s',
-                         paths.NAMED_CONF, e)
-            return False
-    else:
-        logger.debug('dnssec-enabled in %s', paths.NAMED_CONF)
+    # old upgrade state when "dnssec-enabled yes" was added
+    sysupgrade.remove_upgrade_state("named.conf", "dnssec_enabled")
 
-    sysupgrade.set_upgrade_state('named.conf', 'dnssec_enabled', True)
+    if sysupgrade.get_upgrade_state('named.conf', 'dnssec-enabled_remove'):
+        return False
+
+    # only remove when dnssec-enable is yes or not set.
+    # Official documentation says that "dnssec-enable yes;" is required and
+    # "dnssec-validation no;" should be used to disable validation.
+    # At least Bind 9.11+ has DNSSEC enabled by default.
+    enabled = bindinstance.named_conf_get_directive(
+        "dnssec-enable", bindinstance.NAMED_SECTION_OPTIONS, str_val=False
+    )
+    if enabled is not None and enabled != "yes":
+        logger.warning(
+            "[WARNING] Unable to remove obsolete 'dnssec-enable' option "
+            "from '%s' (dnssec-enabled %s;). Please remove the option "
+            "manually and set 'dnssec-validate no;' if you wish to disable "
+            "DNSSEC validation.",
+            paths.NAMED_CONF, enabled
+        )
+        return False
+
+    logger.info('[Removing obsolete "dnssec-enable" configuration]')
+    try:
+        bindinstance.named_conf_set_directive(
+            "dnssec-enable",
+            None,
+            bindinstance.NAMED_SECTION_OPTIONS,
+            str_val=False
+        )
+    except IOError as e:
+        logger.error(
+            'Cannot update dnssec-enable configuration in %s: %s',
+            paths.NAMED_CONF, e
+        )
+        return False
+    else:
+        logger.debug('Removed dnssec-enabled from %s', paths.NAMED_CONF)
+        sysupgrade.set_upgrade_state(
+            'named.conf', 'dnssec-enabled_remove', True
+        )
     return True
+
 
 def named_validate_dnssec():
     """
@@ -804,15 +833,23 @@ def named_validate_dnssec():
 
 
 def named_bindkey_file_option():
-    """
-    Add options bindkey_file to named.conf
+    """Remove options bindkey_file to named.conf
+
+    DNSSEC Lookaside Validation is deprecated and dlv.isc.org is shutting
+    down.
+
+    See: RFC 8749
+    See: https://pagure.io/freeipa/issue/8350
     """
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
         logger.info('DNS is not configured')
         return False
 
-    if sysupgrade.get_upgrade_state('named.conf', 'bindkey-file_updated'):
+    # old upgrade state for "bindkey-file"
+    sysupgrade.remove_upgrade_state("named.conf", "bindkey-file_updated")
+
+    if sysupgrade.get_upgrade_state('named.conf', 'bindkey-file_removed'):
         logger.debug('Skip bindkey-file configuration check')
         return False
 
@@ -824,24 +861,27 @@ def named_bindkey_file_option():
                      paths.NAMED_CONF, e)
         return False
     else:
-        if bindkey_file:
-            logger.debug('bindkey-file configuration already updated')
-            sysupgrade.set_upgrade_state('named.conf', 'bindkey-file_updated', True)
+        if not bindkey_file:
+            logger.debug('bindkey-file configuration already removed')
+            sysupgrade.set_upgrade_state(
+                'named.conf', 'bindkey-file_removed', True
+            )
             return False
 
-    logger.info('[Setting "bindkeys-file" option in named.conf]')
+    logger.info('[Remove "bindkeys-file" option from named.conf]')
     try:
         bindinstance.named_conf_set_directive(
-            'bindkeys-file', paths.NAMED_BINDKEYS_FILE,
+            'bindkeys-file', None,
             section=bindinstance.NAMED_SECTION_OPTIONS
         )
     except IOError as e:
         logger.error('Cannot update bindkeys-file configuration in %s: %s',
                      paths.NAMED_CONF, e)
         return False
-
-
-    sysupgrade.set_upgrade_state('named.conf', 'bindkey-file_updated', True)
+    else:
+        sysupgrade.set_upgrade_state(
+            'named.conf', 'bindkey-file_removed', True
+        )
     return True
 
 def named_managed_keys_dir_option():
@@ -2097,7 +2137,7 @@ def upgrade_configuration():
                           named_set_minimum_connections(),
                           named_update_gssapi_configuration(),
                           named_update_pid_file(),
-                          named_enable_dnssec(),
+                          named_dnssec_enable(),
                           named_validate_dnssec(),
                           named_bindkey_file_option(),
                           named_managed_keys_dir_option(),
