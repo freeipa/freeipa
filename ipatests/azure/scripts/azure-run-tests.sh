@@ -22,6 +22,9 @@ IPA_TESTS_ENV_NAME="${!IPA_TESTS_ENV_NAME_VARNAME:-}"
 IPA_TESTS_TYPE_VARNAME="IPA_TESTS_TYPE_${PROJECT_ID}"
 IPA_TESTS_TYPE="${!IPA_TESTS_TYPE_VARNAME:-integration}"
 
+IPA_TESTS_ARGS_VARNAME="IPA_TESTS_ARGS_${PROJECT_ID}"
+IPA_TESTS_ARGS="${!IPA_TESTS_ARGS_VARNAME:-}"
+
 # Normalize spacing and expand the list afterwards. Remove {} for the single list element case
 IPA_TESTS_TO_RUN=$(eval "echo {$(echo $IPA_TESTS_TO_RUN | sed -e 's/[ \t]+*/,/g')}" | tr -d '{}')
 
@@ -96,6 +99,7 @@ tests_result=1
     --env IPA_TESTS_LOGSDIR="$IPA_TESTS_LOGSDIR" \
     --env IPA_TESTS_TO_RUN="$IPA_TESTS_TO_RUN" \
     --env IPA_TESTS_TO_IGNORE="$IPA_TESTS_TO_IGNORE" \
+    --env IPA_TESTS_ARGS="$IPA_TESTS_ARGS" \
     "$IPA_TESTS_CONTROLLER" \
     /bin/bash --noprofile --norc \
     -eux "$tests_runner" && tests_result=0 ; } || tests_result=$?
