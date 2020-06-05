@@ -3021,6 +3021,8 @@ class dnsrecord(LDAPObject):
             cli_name='ttl',
             label=_('Time to live'),
             doc=_('Time to live'),
+            minvalue=0,
+            maxvalue=2147483647,  # see RFC 2181,
         ),
         StrEnum('dnsclass?',
             # Deprecated
