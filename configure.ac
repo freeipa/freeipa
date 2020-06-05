@@ -455,7 +455,7 @@ AC_ARG_ENABLE(more-warnings,
 	[AC_HELP_STRING([--enable-more-warnings],
 	[Maximum compiler warnings])],
 	set_more_warnings="$enableval",[
-        	if test -d $srcdir/../.hg; then
+        	if test -d $srcdir/.git; then
         		set_more_warnings=yes
               	else
                   	set_more_warnings=no
