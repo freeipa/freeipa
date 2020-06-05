@@ -4,14 +4,6 @@ AUTOMAKE_OPTIONS = 1.7 subdir-objects
 
 NULL =
 
-AM_CFLAGS = $(NULL)
-if HAVE_GCC
-    AM_CFLAGS += -Wall -Wshadow -Wstrict-prototypes -Wpointer-arith \
-		-Wcast-align -Werror-implicit-function-declaration \
-		$(NULL)
-endif
-export AM_CFLAGS
-
 nodist_noinst_HEADERS = ipa-version.h
 noinst_HEADERS = ipa-version.h.in
 
