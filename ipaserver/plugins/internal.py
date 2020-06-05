@@ -263,6 +263,7 @@ class i18n_messages(Command):
             "expand_all": _("Expand All"),
             "general": _("General"),
             "identity": _("Identity Settings"),
+            "record": _("Record Settings"),
             "settings": _("${entity} ${primary_key} Settings"),
             "to_top": _("Back to Top"),
             "updated": _("${entity} ${primary_key} updated"),

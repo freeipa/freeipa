@@ -1323,6 +1323,12 @@ return {
                     name: 'idnsname',
                     other_entity: 'host',
                     widget: 'identity.idnsname'
+                },
+                {
+                    $type: 'text',
+                    name: 'dnsttl',
+                    measurement_unit: 'seconds',
+                    widget: 'record_settings.dnsttl'
                 }
             ],
             widgets:[
@@ -1338,6 +1344,18 @@ return {
                             label: '@mo-param:dnsrecord:idnsname:label'
                         }
                    ]
+                },
+                {
+                    name: 'record_settings',
+                    label: '@i18n:details.record',
+                    $type: 'details_section',
+                    widgets: [
+                        {
+                            $type: 'text',
+                            name: 'dnsttl',
+                            label: '@mo-param:dnsrecord:dnsttl:label'
+                        }
+                    ]
                 }
             ]
         }
