@@ -159,12 +159,30 @@ return {
                     },
                     'idnssoarname',
                     'idnssoaserial',
-                    'idnssoarefresh',
-                    'idnssoaretry',
-                    'idnssoaexpire',
-                    'idnssoaminimum',
-                    'dnsdefaultttl',
-                    'dnsttl',
+                    {
+                        name: 'idnssoarefresh',
+                        measurement_unit: 'seconds'
+                    },
+                    {
+                        name: 'idnssoaretry',
+                        measurement_unit: 'seconds'
+                    },
+                    {
+                        name: 'idnssoaexpire',
+                        measurement_unit: 'seconds'
+                    },
+                    {
+                        name: 'idnssoaminimum',
+                        measurement_unit: 'seconds'
+                    },
+                    {
+                        name: 'dnsdefaultttl',
+                        measurement_unit: 'seconds'
+                    },
+                    {
+                        name: 'dnsttl',
+                        measurement_unit: 'seconds'
+                    },
                     {
                         $type: 'radio',
                         name: 'idnsallowdynupdate',
