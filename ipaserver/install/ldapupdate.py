@@ -32,7 +32,6 @@ import os
 import pwd
 import fnmatch
 
-import ldap
 import six
 
 from ipaserver.install import installutils
@@ -75,13 +74,12 @@ def connect(ldapi=False, realm=None, fqdn=None, dm_password=None):
                 conn.gssapi_bind()
         else:
             conn.gssapi_bind()
-    except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN):
-        raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
-    except ldap.INVALID_CREDENTIALS:
+    except (errors.DatabaseError, errors.NetworkError) as e:
+        raise RuntimeError("Unable to connect to LDAP server: %s" % e)
+    except errors.ACIError as e:
         raise RuntimeError(
-            "The password provided is incorrect for LDAP server %s" % fqdn)
-    except ldap.LOCAL_ERROR as e:
-        raise RuntimeError('%s' % e.args[0].get('info', '').strip())
+            "The password provided is incorrect for LDAP server %s: %s" %
+            (fqdn, e))
     return conn
 
 
@@ -647,7 +645,7 @@ class LDAPUpdate:
         assert isinstance(dn, DN)
         searchfilter="objectclass=*"
         sattrs = ["*", "aci", "attributeTypes", "objectClasses"]
-        scope = ldap.SCOPE_BASE
+        scope = self.conn.SCOPE_BASE
 
         return self.conn.get_entries(dn, scope, searchfilter, sattrs)
 
