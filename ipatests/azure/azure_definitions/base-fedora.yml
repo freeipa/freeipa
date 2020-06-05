@@ -11,6 +11,7 @@ vms:
     - test_ipaserver
     - test_ipatests_plugins
     - test_xmlrpc/test_dns_plugin.py
+    args: "-k 'not test_dns_soa'"
     type: base
 
   - container_job: xmlrpc
