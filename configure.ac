@@ -471,22 +471,6 @@ if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
         -Wcast-align -Wsign-compare \
         -Wshadow -Wstrict-prototypes \
         $CFLAGS"
-
-        for option in -Wno-strict-aliasing -Wno-sign-compare; do
-                SAVE_CFLAGS="$CFLAGS"
-                CFLAGS="$CFLAGS $option"
-                AC_MSG_CHECKING([whether gcc understands $option])
-                AC_TRY_COMPILE([], [],
-                        has_option=yes,
-                        has_option=no,)
-                if test $has_option = no; then
-                        CFLAGS="$SAVE_CFLAGS"
-                fi
-                AC_MSG_RESULT($has_option)
-                unset has_option
-                unset SAVE_CFLAGS
-        done
-        unset option
 else
         AC_MSG_RESULT(no)
 fi
