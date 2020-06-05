@@ -74,6 +74,7 @@ logger = logging.getLogger(__name__)
 
 HTTP_STATUS_SUCCESS = '200 Success'
 HTTP_STATUS_SERVER_ERROR = '500 Internal Server Error'
+HTTP_STATUS_SERVICE_UNAVAILABLE = "503 Service Unavailable"
 
 _not_found_template = """<html>
 <head>
@@ -117,6 +118,18 @@ _unauthorized_template = """<html>
 </head>
 <body>
 <h1>Invalid Authentication</h1>
+<p>
+<strong>%(message)s</strong>
+</p>
+</body>
+</html>"""
+
+_service_unavailable_template = """<html>
+<head>
+<title>503 Service Unavailable</title>
+</head>
+<body>
+<h1>Service Unavailable</h1>
 <p>
 <strong>%(message)s</strong>
 </p>
@@ -188,6 +201,20 @@ class HTTP_Status(plugable.Plugin):
         start_response(status, response_headers)
         output = _unauthorized_template % dict(message=escape(message))
         return [output.encode('utf-8')]
+
+    def service_unavailable(self, environ, start_response, message):
+        """
+        Return a 503 Service Unavailable
+        """
+        status = HTTP_STATUS_SERVICE_UNAVAILABLE
+        response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+
+        logger.error('%s: %s', status, message)
+
+        start_response(status, response_headers)
+        output = _service_unavailable_template % dict(message=escape(message))
+        return [output.encode('utf-8')]
+
 
 def read_input(environ):
     """
@@ -816,6 +843,15 @@ class jsonserver_session(jsonserver, KerberosSession):
             self.create_context(ccache=ccache_name)
         except ACIError as e:
             return self.unauthorized(environ, start_response, str(e), 'denied')
+        except errors.DatabaseError as e:
+            # account is disable but user has a valid ticket
+            msg = str(e)
+            if "account inactivated" in msg.lower():
+                return self.unauthorized(
+                    environ, start_response, str(e), "account disabled"
+                )
+            else:
+                return self.service_unavailable(environ, start_response, msg)
 
         try:
             response = super(jsonserver_session, self).__call__(environ, start_response)
