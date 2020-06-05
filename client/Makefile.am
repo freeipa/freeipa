@@ -4,14 +4,6 @@ AUTOMAKE_OPTIONS = 1.7 subdir-objects
 
 NULL =
 
-AM_CFLAGS = $(NULL)
-if HAVE_GCC
-    AM_CFLAGS += -Wall -Wshadow -Wstrict-prototypes -Wpointer-arith \
-		-Wcast-align -Werror-implicit-function-declaration \
-		$(NULL)
-endif
-export AM_CFLAGS
-
 IPA_CONF_FILE=$(sysconfdir)/ipa/default.conf
 
 AM_CPPFLAGS =							\
