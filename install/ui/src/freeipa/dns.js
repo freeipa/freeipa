@@ -1430,6 +1430,12 @@ IPA.dns.record_details_facet = function(spec) {
         return command;
     };
 
+    that.create_update_command = function () {
+        var command = that.details_facet_create_update_command();
+        command.set_option('structured', true);
+        return command;
+    };
+
     return that;
 };
 
