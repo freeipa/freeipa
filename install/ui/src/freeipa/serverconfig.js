@@ -45,8 +45,15 @@ return {
                     name: 'search',
                     label: '@i18n:objects.config.search',
                     fields: [
-                        'ipasearchrecordslimit',
-                        'ipasearchtimelimit'
+                        {
+                            name: 'ipasearchrecordslimit',
+                            tooltip: '@mc-opt:config_mod:ipasearchtimelimit:doc'
+                        },
+                        {
+                            name: 'ipasearchtimelimit',
+                            measurement_unit: 'seconds',
+                            tooltip: '@mc-opt:config_mod:ipasearchtimelimit:doc'
+                        }
                     ]
                 },
                 {
