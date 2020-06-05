@@ -20,11 +20,12 @@ import warnings
 
 import gssapi
 # pylint: disable=import-error
-from werkzeug.contrib.profiler import ProfilerMiddleware
+from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.exceptions import NotFound
 from werkzeug.serving import run_simple
 from werkzeug.utils import redirect, append_slash_redirect
-from werkzeug.wsgi import DispatcherMiddleware, SharedDataMiddleware
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.middleware.shared_data import SharedDataMiddleware
 # pylint: enable=import-error
 
 logger = logging.getLogger(os.path.basename(__file__))
