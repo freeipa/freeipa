@@ -1920,7 +1920,7 @@ def ldapsearch_dm(host, base, ldap_args, scope='sub', **kwargs):
 
 
 def create_temp_file(host, directory=None, create_file=True):
-    """Creates temproray file using mktemp."""
+    """Creates temporary file using mktemp."""
     cmd = ['mktemp']
     if create_file is False:
         cmd += ['--dry-run']
@@ -1930,15 +1930,22 @@ def create_temp_file(host, directory=None, create_file=True):
 
 
 def create_active_user(host, login, password, first='test', last='user',
-                       extra_args=()):
+                       extra_args=(), krb5_trace=False):
     """Create user and do login to set password"""
     temp_password = 'Secret456789'
     kinit_admin(host)
     user_add(host, login, first=first, last=last, extra_args=extra_args,
              password=temp_password)
-    host.run_command(
-        ['kinit', login],
-        stdin_text='{0}\n{1}\n{1}\n'.format(temp_password, password))
+    if krb5_trace:
+        host.run_command(
+            "KRB5_TRACE=/dev/stdout kinit %s" % login,
+            stdin_text='{0}\n{1}\n{1}\n'.format(temp_password, password)
+        )
+    else:
+        host.run_command(
+            ['kinit', login],
+            stdin_text='{0}\n{1}\n{1}\n'.format(temp_password, password)
+        )
     kdestroy_all(host)
 
 
@@ -1960,8 +1967,14 @@ def run_command_as_user(host, user, command, *args, **kwargs):
     return host.run_command(command, *args, **kwargs)
 
 
-def kinit_as_user(host, user, password):
-    host.run_command(['kinit', user], stdin_text=password + '\n')
+def kinit_as_user(host, user, password, krb5_trace=False):
+    if krb5_trace:
+        host.run_command(
+            "KRB5_TRACE=/dev/stdout kinit %s" % user,
+            stdin_text='{0}\n'.format(password)
+        )
+    else:
+        host.run_command(['kinit', user], stdin_text='{0}\n'.format(password))
 
 
 KeyEntry = collections.namedtuple('KeyEntry',
