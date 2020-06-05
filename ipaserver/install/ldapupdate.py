@@ -53,7 +53,7 @@ UPDATES_DIR=paths.UPDATES_DIR
 UPDATE_SEARCH_TIME_LIMIT = 30  # seconds
 
 
-def connect(ldapi=False, realm=None, fqdn=None, dm_password=None):
+def connect(ldapi=False, realm=None, fqdn=None):
     """Create a connection for updates"""
     if ldapi:
         conn = ipaldap.LDAPClient.from_realm(realm, decode_attrs=False)
@@ -62,10 +62,7 @@ def connect(ldapi=False, realm=None, fqdn=None, dm_password=None):
             fqdn, decode_attrs=False
         )
     try:
-        if dm_password:
-            conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
-                             bind_password=dm_password)
-        elif os.getegid() == 0:
+        if os.getegid() == 0:
             try:
                 # autobind
                 conn.external_bind()

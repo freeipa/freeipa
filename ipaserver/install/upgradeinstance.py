@@ -265,8 +265,7 @@ class IPAUpgrade(service.Service):
 
     def __update_schema(self):
         self.modified = schemaupdate.update_schema(
-            self.schema_files,
-            dm_password='', ldapi=True) or self.modified
+            self.schema_files, ldapi=True) or self.modified
 
     def __upgrade(self):
         try:
