@@ -1282,11 +1282,43 @@ static krb5_error_code dbget_princ(krb5_context kcontext,
     LDAPMessage *lentry;
     uint32_t pol;
 
-    /* Unparse without escaping '@' and '/' because we are going to use them
-     * in LDAP filters where escaping character '\' will be escaped and the
-     * result will never match. */
-    kerr = krb5_unparse_name_flags(kcontext, search_for,
-                                   KRB5_PRINCIPAL_UNPARSE_DISPLAY, &principal);
+
+    if ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0 &&
+        (flags & KRB5_KDB_FLAG_CANONICALIZE) != 0) {
+
+        /* AS_REQ with canonicalization*/
+        krb5_principal norm_princ = NULL;
+
+        /* unparse the Kerberos principal without (our) outer realm. */
+        kerr = krb5_unparse_name_flags(kcontext, search_for,
+                                    KRB5_PRINCIPAL_UNPARSE_NO_REALM |
+                                    KRB5_PRINCIPAL_UNPARSE_DISPLAY,
+                                    &principal);
+        if (kerr != 0) {
+            goto done;
+        }
+
+        /* Re-parse the principal to normalize it. Innner realm becomes
+        * the realm if present. If no inner realm, our default realm
+        * will be used instead (as it was before). */
+        kerr = krb5_parse_name(kcontext, principal, &norm_princ);
+        if (kerr != 0) {
+            goto done;
+        }
+        /* Unparse without escaping '@' and '/' because we are going to use them
+        * in LDAP filters where escaping character '\' will be escaped and the
+        * result will never match. */
+        kerr = krb5_unparse_name_flags(kcontext, norm_princ,
+                                    KRB5_PRINCIPAL_UNPARSE_DISPLAY, &principal);
+        krb5_free_principal(kcontext, norm_princ);
+    } else {
+        /* Unparse without escaping '@' and '/' because we are going to use them
+        * in LDAP filters where escaping character '\' will be escaped and the
+        * result will never match. */
+        kerr = krb5_unparse_name_flags(kcontext, search_for,
+                                    KRB5_PRINCIPAL_UNPARSE_DISPLAY, &principal);
+    }
+
     if (kerr != 0) {
         goto done;
     }
@@ -1483,9 +1515,6 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
     }
 
     if (!is_request_for_us(kcontext, ipactx->local_tgs, search_for)) {
-        krb5_klog_syslog(LOG_INFO,
-                         "ipadb_get_principal: requested principal "
-                         "is not for our realm\n");
         return KRB5_KDB_NOENTRY;
     }
 
