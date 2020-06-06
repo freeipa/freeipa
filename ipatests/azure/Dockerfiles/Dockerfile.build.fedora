@@ -21,6 +21,7 @@ RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
         sudo \
         wget \
         /root/rpms/*.rpm \
+    && dnf copr enable -y @freeipa/freeipa-master \
     && dnf clean all && rm -rf /root/rpms /root/srpms \
     && sed -i 's/.*PermitRootLogin .*/#&/g' /etc/ssh/sshd_config \
     && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config \

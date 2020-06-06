@@ -84,7 +84,7 @@
 %endif
 
 # fix for segfault in python3-ldap, https://pagure.io/freeipa/issue/7324
-%global python_ldap_version 3.1.0-1
+%global python_ldap_version 3.3.0b1-1
 # Fix for create suffix
 # https://pagure.io/389-ds-base/issue/49984
 %if 0%{?fedora} >= 30
