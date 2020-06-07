@@ -36,7 +36,7 @@ from ipalib import _
 from ipalib.constants import PATTERN_GROUPUSER_NAME
 from ipapython import kerberos
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
-from ipapython.ipavalidate import Email
+from ipalib.ipavalidate import Email
 from ipalib.util import (
     normalize_sshpubkey,
     validate_sshpubkey,

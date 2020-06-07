@@ -21,7 +21,7 @@ sys.path.insert(0, ".")
 
 import pytest
 
-from ipapython import ipavalidate
+from ipalib import ipavalidate
 
 pytestmark = pytest.mark.tier0
 
