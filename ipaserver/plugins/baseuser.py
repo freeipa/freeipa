@@ -36,7 +36,7 @@ from ipalib import _
 from ipalib.constants import PATTERN_GROUPUSER_NAME
 from ipapython import kerberos
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
-from ipalib.ipavalidate import Email
+from ipalib.ipavalidate import Email, PatternValidator
 from ipalib.util import (
     normalize_sshpubkey,
     validate_sshpubkey,
@@ -198,8 +198,12 @@ class baseuser(LDAPObject):
 
     takes_params = (
         Str('uid',
-            pattern=PATTERN_GROUPUSER_NAME,
-            pattern_errmsg='may only include letters, numbers, _, -, . and $',
+            validators={
+                None: [
+                    PatternValidator(PATTERN_GROUPUSER_NAME,
+                                     'may only include letters, numbers, _, -, . and $')
+                ],
+                'external': []},
             maxlength=255,
             cli_name='login',
             label=_('User login'),
