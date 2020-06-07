@@ -351,7 +351,7 @@ def add_external_pre_callback(membertype, ldap, dn, keys, options):
 
             def validator(value):
                 value = param(value)
-                param.validate(value)
+                param.validate(value, context='external')
 
         for value in options[membertype]:
             try:
