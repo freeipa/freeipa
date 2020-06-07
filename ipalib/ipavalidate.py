@@ -19,6 +19,85 @@
 
 import re
 
+from ipalib.text import _
+
+
+class Validator:
+    def __init__(self):
+        pass
+
+    def validate(self, value):
+        pass
+
+
+class NumberValidator(Validator):
+    pass
+
+
+class DataValidator(Validator):
+    pass
+
+
+class StrValidator(DataValidator):
+    pass
+
+
+class MinMaxValidator(NumberValidator):
+    def __init__(self, min_value=None, max_value=None):
+        super().__init__()
+        self.min_value = min_value
+        self.max_value = max_value
+
+    def validate(self, value):
+        if self.min_value and value < self.min_value:
+            raise ValueError(
+                _('must be at least %(minvalue)d') % dict(
+                    minvalue=self.min_value))
+
+        if self.max_value and value > self.max_value:
+            raise ValueError(
+                _('can be at most %(maxvalue)d') % dict(
+                    maxvalue=self.max_value))
+
+
+class PatternValidator(DataValidator):
+    def __init__(self, pattern, re_errmsg=""):
+        super().__init__()
+        self.pattern = pattern
+        self.re = re.compile(pattern)
+        self.re_errmsg = re_errmsg
+
+    def validate(self, value):
+        if self.re.match(value) is None:
+            if self.re_errmsg:
+                raise ValueError(self.re_errmsg % dict(pattern=self.pattern))
+            else:
+                raise ValueError(_('must match pattern "%(pattern)s"') % dict(
+                    pattern=self.pattern))
+
+
+class EmailValidator(StrValidator):
+    def validate(self, value):
+        usernameRE = re.compile(r"^[^ \t\n\r@<>()]+$", re.I)
+        domainRE = re.compile(r"^[a-z0-9][a-z0-9\.\-_]*\.[a-z]+$", re.I)
+
+        value = value.strip()
+        s = value.split('@', 1)
+        try:
+            username, domain = s
+        except ValueError:
+            raise ValueError((
+                'invalid e-mail format: %(email)s') % dict(email=value))
+        if not usernameRE.search(username):
+            raise ValueError((
+                'invalid e-mail format: %(email)s') % dict(email=value))
+        if not domainRE.search(domain):
+            raise ValueError((
+                'invalid e-mail format: %(email)s') % dict(email=value))
+
+        return None
+
+
 def Email(mail, notEmpty=True):
     """Do some basic validation of an e-mail address.
        Return True if ok

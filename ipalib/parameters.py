@@ -123,6 +123,8 @@ from ipalib.x509 import (
     load_der_x509_certificate, IPACertificate, default_backend)
 from ipalib.util import strip_csr_header, apirepr
 from ipapython import kerberos
+from ipalib.ipavalidate import Validator, MinMaxValidator, NumberValidator, \
+    PatternValidator
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
@@ -401,6 +403,8 @@ class Param(ReadOnly):
     # `allowed_types` to a tuple of all allowed types.
     type = type(None) # Ouch, this wont be very useful in the real world!
 
+    allowed_validators = set()
+
     # Subclasses should override this with something more specific:
     type_error = _('incorrect type')
 
@@ -434,6 +438,7 @@ class Param(ReadOnly):
         ('no_convert', bool, False),
         ('deprecated', bool, False),
         ('confirm', bool, True),
+        ('validators', (dict, list, Validator), None)
 
         # The 'default' kwarg gets appended in Param.__init__():
         # ('default', self.type, None),
@@ -530,6 +535,12 @@ class Param(ReadOnly):
         if kw.get('doc') is None:
             kw['doc'] = kw['label']
 
+        if kw.get('validators') is None:
+            kw['validators'] = {None: []}
+        else:
+            # Ensure default validation context exists
+            kw.get('validators').setdefault(None, [])
+
         # Add in class rules:
         class_rules = []
         for (key, kind, default) in self.kwargs:
@@ -540,8 +551,26 @@ class Param(ReadOnly):
                 )
             setattr(self, key, value)
             rule_name = '_rule_%s' % key
-            if value is not None and hasattr(self, rule_name):
-                class_rules.append(getattr(self, rule_name))
+            if value is not None:
+                if hasattr(self, rule_name):
+                    class_rules.append(getattr(self, rule_name))
+                else:
+                    validator = None
+                    if rule_name == '_rule_minvalue':
+                        validator = MinMaxValidator(min_value=value)
+                    elif rule_name == '_rule_maxvalue':
+                        validator = MinMaxValidator(max_value=value)
+                    elif rule_name == '_rule_pattern':
+                        re_errmsg = kw.get('pattern_errmsg', None)
+                        validator = PatternValidator(value, re_errmsg)
+
+                    if validator:
+                        if any(isinstance(validator, a) for a in
+                               self.allowed_validators):
+                            self.validators[None].append(validator)
+                        else:
+                            raise ValueError('invalid validator specified')
+
         check_name(self.cli_name)
 
         # Check that only 'include' or 'exclude' was provided:
@@ -560,6 +589,7 @@ class Param(ReadOnly):
         if self.query:  # pylint: disable=using-constant-test
             # by definition a query enforces no class or parameter rules
             self.all_rules = ()
+            self.validators = {None: []}
         else:
             self.all_rules = self.class_rules + self.rules
         for rule in self.all_rules:
@@ -859,12 +889,13 @@ class Param(ReadOnly):
 
         raise ConversionError(name=self.name, error=ugettext(self.type_error))
 
-    def validate(self, value, supplied=None):
+    def validate(self, value, supplied=None, context=None):
         """
         Check validity of ``value``.
 
         :param value: A proposed value for this parameter.
         :param supplied: True if this parameter was supplied explicitly.
+        :param context: Validation context which should be used
         """
         if value is None:
             if self.required or (supplied and 'nonempty' in self.flags):
@@ -881,11 +912,11 @@ class Param(ReadOnly):
             if len(value) < 1:
                 raise ValueError('value: empty tuple must be converted to None')
             for v in value:
-                self._validate_scalar(v)
+                self._validate_scalar(v, context=context)
         else:
-            self._validate_scalar(value)
+            self._validate_scalar(value, context=context)
 
-    def _validate_scalar(self, value, index=None):
+    def _validate_scalar(self, value, index=None, context=None):
         for t in self.allowed_types:
             if isinstance(value, t):
                 break
@@ -893,6 +924,18 @@ class Param(ReadOnly):
             raise TypeError(
                 TYPE_ERROR % (self.name, self.type, value, type(value))
             )
+
+        try:
+            validators = self.validators[context]
+        except KeyError:
+            raise KeyError(
+                _(f'requested validation context "{context}" does not exist'))
+
+        for validator in validators:
+            try:
+                validator.validate(value)
+            except ValueError as e:
+                raise ValidationError(name=self.get_param_name(), error=e)
         for rule in self.all_rules:
             error = rule(ugettext, value)
             if error is not None:
@@ -1064,6 +1107,8 @@ class Number(Param):
     Base class for the `Int` and `Decimal` parameters.
     """
 
+    allowed_validators = {NumberValidator}
+
     def _convert_scalar(self, value, index=None):
         """
         Convert a single scalar value.
@@ -1132,30 +1177,6 @@ class Int(Number):
             raise ConversionError(name=self.get_param_name(),
                                   error=ugettext(self.type_error))
 
-    def _rule_minvalue(self, _, value):
-        """
-        Check min constraint.
-        """
-        assert isinstance(value, int)
-        if value < self.minvalue:
-            return _('must be at least %(minvalue)d') % dict(
-                minvalue=self.minvalue,
-            )
-        else:
-            return None
-
-    def _rule_maxvalue(self, _, value):
-        """
-        Check max constraint.
-        """
-        assert isinstance(value, int)
-        if value > self.maxvalue:
-            return _('can be at most %(maxvalue)d') % dict(
-                maxvalue=self.maxvalue,
-            )
-        else:
-            return None
-
 
 class Decimal(Number):
     """
@@ -1207,30 +1228,6 @@ class Decimal(Number):
 
         if self.precision is not None and self.precision < 0:
             raise ValueError('%s: precision must be at least 0' % self.nice)
-
-    def _rule_minvalue(self, _, value):
-        """
-        Check min constraint.
-        """
-        assert type(value) is decimal.Decimal
-        if value < self.minvalue:
-            return _('must be at least %(minvalue)s') % dict(
-                minvalue=self.minvalue,
-            )
-        else:
-            return None
-
-    def _rule_maxvalue(self, _, value):
-        """
-        Check max constraint.
-        """
-        assert type(value) is decimal.Decimal
-        if value > self.maxvalue:
-            return _('can be at most %(maxvalue)s') % dict(
-                maxvalue=self.maxvalue,
-            )
-        else:
-            return None
 
     def _enforce_numberclass(self, value):
         numberclass = value.number_class()
@@ -1314,6 +1311,8 @@ class Data(Param):
         ('pattern_errmsg', (str,), None),
     )
 
+    allowed_validators = {PatternValidator}
+
     re = None
     re_errmsg = None
 
@@ -1350,20 +1349,6 @@ class Data(Param):
                         self.nice, self.minlength)
                 )
 
-    def _rule_pattern(self, _, value):
-        """
-        Check pattern (regex) contraint.
-        """
-        assert type(value) in self.allowed_types
-        if self.re.match(value) is None:
-            if self.re_errmsg:
-                return self.re_errmsg % dict(pattern=self.pattern,)
-            else:
-                return _('must match pattern "%(pattern)s"') % dict(
-                    pattern=self.pattern,
-                )
-        else:
-            return None
 
 
 class Bytes(Data):
