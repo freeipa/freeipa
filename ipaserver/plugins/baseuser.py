@@ -420,7 +420,7 @@ class baseuser(LDAPObject):
             label=_('SMB Home Directory'),
             flags=['no_create'],
             ),
-        StrEnum('ipanthomedirectoryrive?',
+        StrEnum('ipanthomedirectorydrive?',
                 cli_name='smb_home_drive',
                 label=_('SMB Home Directory Drive'),
                 flags=['no_create'],
