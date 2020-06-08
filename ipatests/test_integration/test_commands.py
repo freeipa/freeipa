@@ -36,6 +36,7 @@ from ipaplatform.tasks import tasks as platform_tasks
 from ipatests.create_external_ca import ExternalCA
 from ipatests.test_ipalib.test_x509 import good_pkcs7, badcert
 from ipapython.ipautil import realm_to_suffix, ipa_generate_password
+from ipaserver.install.installutils import realm_to_serverid
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,8 @@ logger = logging.getLogger(__name__)
 CONFIGURED_SERVICE = u'configuredService'
 ENABLED_SERVICE = u'enabledService'
 HIDDEN_SERVICE = u'hiddenService'
+
+DIRSRV_SLEEP = 5
 
 isrgrootx1 = (
     b'-----BEGIN CERTIFICATE-----\n'
@@ -1216,3 +1219,95 @@ class TestIPACommand(IntegrationTest):
                                           '-u', 'sshd',
                                           '--since={}'.format(since)])
         assert exp_msg in result.stdout_text
+
+    def get_dirsrv_id(self):
+        serverid = realm_to_serverid(self.master.domain.realm)
+        return("dirsrv@%s.service" % serverid)
+
+    def test_ipa_nis_manage_enable(self):
+        """
+        This testcase checks if ipa-nis-manage enable
+        command enables plugin on an IPA master
+        """
+        dirsrv_service = self.get_dirsrv_id()
+        console_msg = (
+            "Enabling plugin\n"
+            "This setting will not take effect until "
+            "you restart Directory Server.\n"
+            "The rpcbind service may need to be started"
+        )
+        status_msg = "Plugin is enabled"
+        tasks.kinit_admin(self.master)
+        result = self.master.run_command(
+            ["ipa-nis-manage", "enable"],
+            stdin_text=self.master.config.admin_password,
+        )
+        assert console_msg in result.stdout_text
+        # verify using backend
+        conn = self.master.ldap_connect()  # pylint: disable=no-member
+        dn = DN(('cn', 'NIS Server'), ('cn', 'plugins'), ('cn', 'config'))
+        entry = conn.get_entry(dn)  # pylint: disable=no-member
+        nispluginstring = entry.get('nsslapd-pluginEnabled')
+        assert 'on' in nispluginstring
+        # restart for changes to take effect
+        self.master.run_command(["systemctl", "restart", dirsrv_service])
+        self.master.run_command(["systemctl", "restart", "rpcbind"])
+        time.sleep(DIRSRV_SLEEP)
+        # check status msg on the console
+        result = self.master.run_command(
+            ["ipa-nis-manage", "status"],
+            stdin_text=self.master.config.admin_password,
+        )
+        assert status_msg in result.stdout_text
+
+    def test_ipa_nis_manage_disable(self):
+        """
+        This testcase checks if ipa-nis-manage disable
+        command disable plugin on an IPA Master
+        """
+        dirsrv_service = self.get_dirsrv_id()
+        msg = (
+            "This setting will not take effect "
+            "until you restart Directory Server."
+        )
+        status_msg = "Plugin is not enabled"
+        tasks.kinit_admin(self.master)
+        result = self.master.run_command(
+            ["ipa-nis-manage", "disable"],
+            stdin_text=self.master.config.admin_password,
+        )
+        assert msg in result.stdout_text
+        # verify using backend
+        conn = self.master.ldap_connect()  # pylint: disable=no-member
+        dn = DN(('cn', 'NIS Server'), ('cn', 'plugins'), ('cn', 'config'))
+        entry = conn.get_entry(dn)  # pylint: disable=no-member
+        nispluginstring = entry.get('nsslapd-pluginEnabled')
+        assert 'off' in nispluginstring
+        # restart dirsrv for changes to take effect
+        self.master.run_command(["systemctl", "restart", dirsrv_service])
+        time.sleep(DIRSRV_SLEEP)
+        # check status msg on the console
+        result = self.master.run_command(
+            ["ipa-nis-manage", "status"],
+            stdin_text=self.master.config.admin_password,
+            raiseonerr=False,
+        )
+        assert result.returncode == 4
+        assert status_msg in result.stdout_text
+
+    def test_ipa_nis_manage_enable_incorrect_password(self):
+        """
+        This testcase checks if ipa-nis-manage enable
+        command throws error on console for invalid DS admin password
+        """
+        msg = (
+            "Insufficient access: Invalid credentials "
+            "Invalid credentials\n"
+        )
+        result = self.master.run_command(
+            ["ipa-nis-manage", "enable"],
+            stdin_text='Invalid_pwd',
+            raiseonerr=False,
+        )
+        assert result.returncode == 1
+        assert msg in result.stderr_text
