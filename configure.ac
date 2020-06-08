@@ -54,10 +54,8 @@ AM_CONDITIONAL([WITH_IPATESTS], [test x"$with_ipatests" = xyes])
 AM_CONDITIONAL([HAVE_GCC], [test "$ac_cv_prog_gcc" = yes])
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for NSPR/NSS
+dnl - Check for POPT
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([NSPR], [nspr])
-PKG_CHECK_MODULES([NSS], [nss])
 
 PKG_CHECK_MODULES([POPT], [popt])
 

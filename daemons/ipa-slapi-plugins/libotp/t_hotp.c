@@ -43,7 +43,6 @@
 #include <stddef.h>
 #include <time.h>
 #include <string.h>
-#include <nss.h>
 
 #define KEY(s) { (uint8_t *) s, sizeof(s) - 1 }
 
@@ -104,8 +103,6 @@ main(int argc, const char *argv[])
     uint32_t otp;
     int i;
 
-    NSS_NoDB_Init(".");
-
     for (i = 0; i < sizeof(hotp_answers) / sizeof(*hotp_answers); i++) {
         assert(hotp(&hotp_token, i, &otp));
         assert(otp == hotp_answers[i]);
@@ -116,6 +113,5 @@ main(int argc, const char *argv[])
         assert(otp == totp_tests[i].answer);
     }
 
-    NSS_Shutdown();
     return 0;
 }
