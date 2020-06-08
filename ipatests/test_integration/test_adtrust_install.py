@@ -58,10 +58,14 @@ class TestIpaAdTrustInstall(IntegrationTest):
         data_fmt = '{{"method":"trust_enable_agent","params":[["{}"],{{}}]}}'
 
         try:
-            # Create a nonadmin user that will be used by curl
-            tasks.create_active_user(self.master, user, passwd,
-                                     first=user, last=user)
-            tasks.kinit_as_user(self.master, user, passwd)
+            # Create a nonadmin user that will be used by curl.
+            # krb5_trace set to True: https://pagure.io/freeipa/issue/8353
+            tasks.create_active_user(
+                self.master, user, passwd, first=user, last=user,
+                krb5_trace=True
+            )
+            tasks.kinit_as_user(self.master, user, passwd, krb5_trace=True)
+
             # curl --negotiate -u : is using GSS-API i.e. nonadmin user
             cmd_args = [
                 paths.BIN_CURL,
