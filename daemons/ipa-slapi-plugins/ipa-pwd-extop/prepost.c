@@ -1362,7 +1362,7 @@ static void ipapwd_write_krb_keys(Slapi_PBlock *pb, char *dn,
     if (expire) {
         memset(&expire_tm, 0, sizeof (expire_tm));
         if (strptime(expire, "%Y%m%d%H%M%SZ", &expire_tm))
-            pwdata.expireTime = mktime(&expire_tm);
+            pwdata.expireTime = timegm(&expire_tm);
     }
 
     /* check password policy */
@@ -1464,10 +1464,10 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         memset(&expire_tm, 0, sizeof (expire_tm));
 
         if (strptime(principal_expire, "%Y%m%d%H%M%SZ", &expire_tm)) {
-            expire_time = mktime(&expire_tm);
+            expire_time = timegm(&expire_tm);
             current_time = time(NULL);
 
-            /* mktime returns -1 if the tm struct cannot be represented as
+            /* timegm returns -1 if the tm struct cannot be represented as
              * as calendar time (seconds since the Epoch). This might
              * happen with tm structs that are ill-formated or on 32-bit
              * platforms with dates that would cause overflow

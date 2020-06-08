@@ -21,6 +21,8 @@ if test "x$ac_cv_header_dirsrv_slapi_plugin_h" = "xno" ; then
     AC_MSG_ERROR([Required DS slapi plugin header not available (fedora-ds-base-devel)])
 fi
 
+AC_CHECK_FUNC(timegm, [], [AC_MSG_ERROR([timegm not found])])
+
 dnl -- dirsrv is needed for the extdom unit tests --
 PKG_CHECK_MODULES([DIRSRV], [dirsrv  >= 1.3.0])
 # slapi-plugin.h includes nspr.h
