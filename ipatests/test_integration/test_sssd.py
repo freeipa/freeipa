@@ -286,6 +286,42 @@ class TestSSSDWithAdTrust(IntegrationTest):
         with self.disabled_trustdomain():
             self.master.run_command(['id', user])
 
+    def test_aduser_with_idview(self):
+        """Test that trusted AD users should not lose their AD domains.
+
+        This is a regression test for sssd bug:
+        https://pagure.io/SSSD/sssd/issue/4173
+        1. Override AD user's UID, GID by adding it in ID view on IPA server.
+        2. Stop the SSSD, and clear SSSD cache and restart SSSD on a IPA client
+        3. getent with UID from ID view should return AD domain
+        after default memcache_timeout.
+        """
+        client = self.clients[0]
+        user = self.users['ad']['name']
+        idview = 'testview'
+
+        def verify_retrieved_users_domain():
+            # Wait for the record to expire in SSSD's cache
+            # (memcache_timeout default value is 300s).
+            test_user = ['su', user, '-c', 'sleep 360; getent passwd 10001']
+            result = client.run_command(test_user)
+            assert user in result.stdout_text
+
+        # verify the user can be retrieved initially
+        tasks.clear_sssd_cache(self.master)
+        self.master.run_command(['id', user])
+        self.master.run_command(['ipa', 'idview-add', idview])
+        self.master.run_command(['ipa', 'idoverrideuser-add', idview, user])
+        self.master.run_command(['ipa', 'idview-apply', idview,
+                                 '--hosts={0}'.format(client.hostname)])
+        self.master.run_command(['ipa', 'idoverrideuser-mod', idview, user,
+                                 '--uid=10001', '--gid=10000'])
+        try:
+            clear_sssd_cache(client)
+            verify_retrieved_users_domain()
+        finally:
+            self.master.run_command(['ipa', 'idview-del', idview])
+
     def test_trustdomain_disable_disables_subdomain(self):
         """Test that users from disabled trustdomains can not use ipa resources
 
