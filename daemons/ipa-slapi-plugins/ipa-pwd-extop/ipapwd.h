@@ -51,7 +51,6 @@
 #include <unistd.h>
 
 #include <prio.h>
-#include <ssl.h>
 #include <krb5.h>
 #include <kdb.h>
 #include <lber.h>
