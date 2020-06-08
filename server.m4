@@ -4,6 +4,9 @@ dnl ---------------------------------------------------------------------------
 dnl - Check for DS slapi plugin
 dnl ---------------------------------------------------------------------------
 
+# 389-ds headers depend on NSPR
+PKG_CHECK_MODULES([NSPR], [nspr])
+
 # Need to hack CPPFLAGS to be able to correctly detect slapi-plugin.h
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS=$NSPR_CFLAGS

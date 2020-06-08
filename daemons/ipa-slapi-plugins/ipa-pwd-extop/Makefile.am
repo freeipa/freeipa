@@ -17,7 +17,6 @@ AM_CPPFLAGS =							\
 	$(LDAP_CFLAGS)						\
 	$(KRB5_CFLAGS)						\
 	$(NSPR_CFLAGS)						\
-	$(NSS_CFLAGS)						\
 	$(WARN_CFLAGS)						\
 	$(NULL)
 
@@ -25,8 +24,6 @@ AM_LDFLAGS = \
 	$(CRYPTO_LIBS)	\
 	$(KRB5_LIBS)	\
 	$(LDAP_LIBS)	\
-	$(NSPR_LIBS)	\
-	$(NSS_LIBS)	\
 	-avoid-version	\
 	-export-symbols-regex ^ipapwd_init$
 

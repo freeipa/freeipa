@@ -17,7 +17,6 @@ AM_CPPFLAGS =						\
 	$(KRB5_CFLAGS)					\
 	$(WARN_CFLAGS)					\
 	$(NDRPAC_CFLAGS)				\
-	$(NSS_CFLAGS)					\
 	$(SSSCERTMAP_CFLAGS)				\
 	$(NULL)
 
@@ -60,7 +59,6 @@ ipadb_la_LIBADD = 		\
 	$(LDAP_LIBS)		\
 	$(NDRPAC_LIBS)		\
 	$(UNISTRING_LIBS)	\
-	$(NSS_LIBS)             \
 	$(SSSCERTMAP_LIBS)	\
 	$(top_builddir)/util/libutil.la	\
 	$(NULL)
@@ -100,7 +98,6 @@ ipa_kdb_tests_LDADD =          \
        $(LDAP_LIBS)            \
        $(NDRPAC_LIBS)          \
        $(UNISTRING_LIBS)       \
-       $(NSS_LIBS)             \
        $(SSSCERTMAP_LIBS)      \
        $(top_builddir)/util/libutil.la	\
        -lkdb5                  \
