@@ -701,13 +701,15 @@ class BindInstance(service.Service):
         else:
             self.zonemgr = normalize_zonemgr(zonemgr)
 
-        self.first_instance = not dns_container_exists(self.suffix)
-
         self.__setup_sub_dict()
 
     @property
     def host_domain(self):
         return self.fqdn.split(".", 1)[1]
+
+    @property
+    def first_instance(self):
+        return not dns_container_exists(self.suffix)
 
     @property
     def host_in_rr(self):
@@ -736,7 +738,6 @@ class BindInstance(service.Service):
                   f.name)
 
     def create_instance(self):
-
         try:
             self.stop()
         except Exception:
@@ -1072,7 +1073,6 @@ class BindInstance(service.Service):
         self.host = fqdn.split(".")[0]
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.reverse_zones = reverse_zones
-        self.first_instance = False
         self.zonemgr = 'hostmaster.%s' % self.domain
 
         self.__add_self()
