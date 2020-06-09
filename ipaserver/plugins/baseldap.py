@@ -36,6 +36,7 @@ from ipalib.text import _
 from ipalib.util import json_serialize, validate_hostname
 from ipalib.capabilities import client_has_capability
 from ipalib.messages import add_message, SearchResultTruncated
+from ipalib.plugable import Registry
 from ipapython.dn import DN, RDN
 from ipapython.version import API_VERSION
 
@@ -331,6 +332,18 @@ external_host_param = Str('externalhost*', validate_externalhost,
         flags=['no_option'],
 )
 
+# Registry to store member validators called through add_external_pre_callback
+# Each validator should be defined as foo(ldap, dn, keys, options, value)
+# where (ldap, dn, keys, options) are part of the signature for the
+# add_external_pre_callback()
+member_validator = Registry()
+
+
+# validate hostname with allowed underscore characters, non-fqdn
+# hostnames are allowed
+@member_validator(membertype='host')
+def validate_host(ldap, dn, keys, options, hostname):
+    validate_hostname(hostname, check_fqdn=False, allow_underscore=True)
 
 def add_external_pre_callback(membertype, ldap, dn, keys, options):
     """
@@ -342,24 +355,24 @@ def add_external_pre_callback(membertype, ldap, dn, keys, options):
     """
     assert isinstance(dn, DN)
 
-    # validate hostname with allowed underscore characters, non-fqdn
-    # hostnames are allowed
-    def validate_host(hostname):
-        validate_hostname(hostname, check_fqdn=False, allow_underscore=True)
 
     if options.get(membertype):
-        if membertype == 'host':
-            validator = validate_host
-        else:
+        validator = None
+        for cb in member_validator:
+            if 'membertype' in cb and cb['membertype'] == membertype:
+                validator = cb['plugin']
+        if validator is None:
             param = api.Object[membertype].primary_key
 
-            def validator(value):
+            def generic_validator(ldap, dn, keys, options, value):
                 value = param(value)
                 param.validate(value)
 
+            validator = generic_validator
+
         for value in options[membertype]:
             try:
-                validator(value)
+                validator(ldap, dn, keys, options, value)
             except errors.ValidationError as e:
                 raise errors.ValidationError(name=membertype, error=e.error)
             except ValueError as e:
