@@ -837,44 +837,22 @@ def named_dnssec_enable():
 
 
 def named_validate_dnssec():
+    """dnssec-validation upgrade
+
+    The upgrade step used to add "dnssec-validation no" to named.conf IFF
+    named.conf did not contain "dnssec-validation" option at all. The
+    option has been moved to 'ipa-options-ext.conf' in IPA 4.8.7. Only remove
+    upgrade state.
     """
-    Disable dnssec validation in named.conf
-
-    We can't let enable it by default, there can be non-valid dns forwarders
-    which breaks DNSSEC validation
-    """
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        logger.info('DNS is not configured')
-        return False
-
-    if (not sysupgrade.get_upgrade_state('named.conf', 'dnssec_validation_upgraded')
-        and bindinstance.named_conf_get_directive(
-                'dnssec-validation', bindinstance.NAMED_SECTION_OPTIONS,
-                str_val=False) is None):
-        # dnssec-validation is not configured, disable it
-        logger.info('[Disabling "dnssec-validate" configuration in DNS]')
-        try:
-            bindinstance.named_conf_set_directive('dnssec-validation', 'no',
-                                                  bindinstance.NAMED_SECTION_OPTIONS,
-                                                  str_val=False)
-        except IOError as e:
-            logger.error('Cannot update dnssec-validate configuration in %s: '
-                         '%s',
-                         paths.NAMED_CONF, e)
-            return False
-    else:
-        logger.debug('dnssec-validate already configured in %s',
-                     paths.NAMED_CONF)
-
-    sysupgrade.set_upgrade_state(
-        'named.conf', 'dnssec_validation_upgraded', True
-    )
-    return True
+    if bindinstance.named_conf_exists():
+        sysupgrade.remove_upgrade_state(
+            'named.conf', 'dnssec_validation_upgraded'
+        )
+    return False
 
 
 def named_bindkey_file_option():
-    """Remove options bindkey_file to named.conf
+    """Remove options bindkey_file to named.conf (4.8.7)
 
     DNSSEC Lookaside Validation is deprecated and dlv.isc.org is shutting
     down.
