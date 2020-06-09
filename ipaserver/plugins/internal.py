@@ -1678,7 +1678,15 @@ class i18n_messages(Command):
             "new_password": _("New Password"),
             "new_password_required": _("New password is required"),
             "otp": _("OTP"),
-            "otp_info": _("<i class=\"fa fa-info-circle\"></i> <strong>One-Time-Password(OTP):</strong> Generate new OTP code for each OTP field."),
+            "otp_info":
+                _("<i class=\"fa fa-info-circle\"></i> <strong>"
+                  "OTP (One-Time-Password):</strong>"
+                  "Generate new OTP code for each OTP field."),
+            "otp_reset_info":
+                _("<i class=\"fa fa-info-circle\"></i> <strong>"
+                  "OTP (One-Time-Password):</strong>"
+                  "Leave blank if you are not using OTP tokens"
+                  "for authentication."),
             "otp_long": _("One-Time-Password"),
             "otp_sync_fail": _("Token synchronization failed"),
             "otp_sync_invalid": _("The username, password or token codes are not correct"),

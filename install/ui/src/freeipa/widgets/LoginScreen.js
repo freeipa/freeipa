@@ -546,7 +546,7 @@ define(['dojo/_base/declare',
         },
 
         set_reset_aside_text: function() {
-            this.set('aside', "<p>"+this.otp_info_msg+"<p/>");
+            this.set('aside', "<p>"+this.otp_reset_info_msg+"<p/>");
         },
 
         constructor: function(spec) {
