@@ -221,14 +221,15 @@ class krbtpolicy_mod(baseldap.LDAPUpdate):
     __doc__ = _('Modify Kerberos ticket policy.')
 
     def execute(self, uid=None, **options):
+        # disable all flag
+        # ticket policies are attached to objects with unrelated attributes
+        if options.get('all'):
+            options['all'] = False
+
         return super(krbtpolicy_mod, self).execute(uid, **options)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
-        # disable all flag
-        #  ticket policies are attached to objects with unrelated attributes
-        if options.get('all'):
-            options['all'] = False
 
         # Rename authentication indicator-specific policy elements to LDAP
         rename_authind_options_to_ldap(entry_attrs)
@@ -246,15 +247,11 @@ class krbtpolicy_show(baseldap.LDAPRetrieve):
     __doc__ = _('Display the current Kerberos ticket policy.')
 
     def execute(self, uid=None, **options):
-        return super(krbtpolicy_show, self).execute(uid, **options)
-
-    def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
-        assert isinstance(dn, DN)
         # disable all flag
-        #  ticket policies are attached to objects with unrelated attributes
+        # ticket policies are attached to objects with unrelated attributes
         if options.get('all'):
             options['all'] = False
-        return dn
+        return super(krbtpolicy_show, self).execute(uid, **options)
 
     def post_callback(self, ldap, dn, entry, *keys, **options):
         default_entry = None
