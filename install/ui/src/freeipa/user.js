@@ -626,7 +626,6 @@ IPA.user.details_facet = function(spec, no_init) {
             retry: false,
             options: {
                 user: pkey,
-                all: true,
                 rights: true
             }
         });
@@ -647,7 +646,6 @@ IPA.user.details_facet = function(spec, no_init) {
             args: [ pkey ],
             retry: false,
             options: {
-                all: true,
                 rights: true
             }
         });
