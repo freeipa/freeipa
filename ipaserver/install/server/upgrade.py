@@ -575,6 +575,15 @@ def named_add_ipa_ext_conf_file():
         logger.info('DNS is not configured.')
         return False
 
+    # migrate value from named.conf
+    dnssec_validation = bindinstance.named_conf_get_directive(
+        "dnssec-validation",
+        bindinstance.NAMED_SECTION_OPTIONS,
+        str_val=False
+    )
+    if dnssec_validation is None:
+        dnssec_validation = "yes"
+
     tasks = [
         bindinstance.named_add_ext_conf_file(
             paths.NAMED_CUSTOM_CFG_SRC,
@@ -582,7 +591,10 @@ def named_add_ipa_ext_conf_file():
         ),
         bindinstance.named_add_ext_conf_file(
             paths.NAMED_CUSTOM_OPTIONS_CFG_SRC,
-            paths.NAMED_CUSTOM_OPTIONS_CONFIG
+            paths.NAMED_CUSTOM_OPTIONS_CONFIG,
+            dict(
+                NAMED_DNSSEC_VALIDATION=dnssec_validation
+            )
         )
     ]
 
