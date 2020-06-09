@@ -1193,9 +1193,9 @@ def certificate_renewal_update(ca, kra, ds, http):
 
     # Ok, now we need to stop tracking, then we can start tracking them
     # again with new configuration:
-    ca.stop_tracking_certificates()
+    ca.stop_tracking_certificates(stop_certmonger=False)
     if kra.is_installed():
-        kra.stop_tracking_certificates()
+        kra.stop_tracking_certificates(stop_certmonger=False)
     ds.stop_tracking_certificates(serverid)
     http.stop_tracking_certificates()
 
