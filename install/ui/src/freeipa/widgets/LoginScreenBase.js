@@ -59,8 +59,11 @@ define(['dojo/_base/declare',
 
         caps_warning_msg: "Warning: CAPS LOCK key is on",
 
-        otp_info_msg: "<i class=\"fa fa-info-circle\"></i> <strong>One-Time-Password(OTP):</strong> \
+        otp_info_msg: "<i class=\"fa fa-info-circle\"></i> <strong>OTP (One-Time Password):</strong> \
         Generate new OTP code for each OTP field.",
+
+        otp_reset_info_msg: "<i class=\"fa fa-info-circle\"></i> <strong>OTP (One-Time Password):</strong> \
+        Leave blank if you are not using OTP tokens for authentication.",
 
         /**
          * Details builder
@@ -347,6 +350,9 @@ define(['dojo/_base/declare',
 
             this.otp_info_msg = text.get(spec.otp_info_msg || '@i18n:password.otp_info',
                 this.otp_info_msg);
+
+            this.otp_reset_info_msg = text.get(spec.otp_reset_info_msg || '@i18n:password.otp_reset_info',
+                this.otp_reset_info_msg);
         }
     });
     return LoginScreenBase;
