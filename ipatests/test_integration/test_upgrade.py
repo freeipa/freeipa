@@ -8,6 +8,8 @@ Module provides tests to verify that the upgrade script works.
 
 import base64
 from cryptography.hazmat.primitives import serialization
+
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -65,3 +67,20 @@ class TestUpgrade(IntegrationTest):
         except ValueError:
             raise AssertionError('%s contains a double-encoded cert'
                                  % entry.dn)
+
+    def test_update_named_conf(self):
+        tasks.install_dns(self.master)
+        # remove files to force a migration
+        self.master.run_command(
+            [
+                "rm",
+                "-f",
+                paths.NAMED_CUSTOM_CONFIG,
+                paths.NAMED_CUSTOM_OPTIONS_CONFIG,
+            ]
+        )
+        self.master.run_command(['ipa-server-upgrade'])
+        txt = self.master.get_file_contents(
+            paths.NAMED_CUSTOM_OPTIONS_CONFIG, encoding="utf-8"
+        )
+        assert "dnssec-validation yes;" in txt
