@@ -373,7 +373,7 @@ class TestEPN(IntegrationTest):
         tasks.ipa_epn(self.master)
         for i in self.notify_ttls:
             validate_mail(self.master, i,
-                          "Hi  user,\nYour login entry user%d is going" % i)
+                          "Hi test user,\nYour login entry user%d is going" % i)
 
     def test_mailtest(self, cleanupmail):
         """Execute mailtest to validate mail is working
@@ -422,7 +422,7 @@ class TestEPN(IntegrationTest):
         tasks.ipa_epn(self.master)
         for i in self.notify_ttls:
             validate_mail(self.master, i,
-                          "Hi  user,\nYour login entry user%d is going" % i)
+                          "Hi test user,\nYour login entry user%d is going" % i)
 
     def test_EPN_ssl(self, cleanupmail):
         """Configure with ssl and test delivery
@@ -441,7 +441,7 @@ class TestEPN(IntegrationTest):
         tasks.ipa_epn(self.master)
         for i in self.notify_ttls:
             validate_mail(self.master, i,
-                          "Hi  user,\nYour login entry user%d is going" % i)
+                          "Hi test user,\nYour login entry user%d is going" % i)
 
     def test_EPN_delay_config(self, cleanupmail):
         """Test the smtp_delay configuration option

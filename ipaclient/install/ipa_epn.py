@@ -133,7 +133,7 @@ class EPNUserList:
                 dict(
                     uid=str(entry["uid"].pop(0)),
                     cn=str(entry["cn"].pop(0)),
-                    givenname=str(entry.get("givenname", "")),
+                    givenname=str(entry["givenname"].pop(0)),
                     sn=str(entry["sn"].pop(0)),
                     krbpasswordexpiration=str(
                         entry["krbpasswordexpiration"].pop(0)
@@ -438,7 +438,7 @@ class EPN(admintool.AdminTool):
 
         search_base = DN(api.env.container_user, api.env.basedn)
         attrs_list = ["uid", "krbpasswordexpiration", "mail", "cn",
-                      "gn", "surname"]
+                      "givenname", "surname"]
 
         search_filter = (
             "(&(!(nsaccountlock=TRUE)) \
