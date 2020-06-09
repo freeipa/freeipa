@@ -1344,7 +1344,7 @@ class LDAPRetrieve(LDAPQuery):
 
         self.obj.get_indirect_members(entry_attrs, attrs_list)
 
-        if options.get('rights', False) and options.get('all', False):
+        if options.get('rights', False):
             entry_attrs['attributelevelrights'] = get_effective_rights(
                 ldap, entry_attrs.dn)
 
@@ -1501,7 +1501,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         self.obj.get_indirect_members(entry_attrs, attrs_list)
 
-        if options.get('rights', False) and options.get('all', False):
+        if options.get('rights', False):
             entry_attrs['attributelevelrights'] = get_effective_rights(
                 ldap, entry_attrs.dn)
 
