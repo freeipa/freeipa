@@ -647,7 +647,7 @@ define(['dojo/_base/declare',
             label: text.get('@i18n:login.password', "Password"),
             placeholder: text.get(
                 '@i18n:login.password_and_otp',
-                'Password or Password+One-Time-Password'
+                'Password or Password+One-Time Password'
             ),
             show_errors: false,
             undo: false
@@ -713,7 +713,7 @@ define(['dojo/_base/declare',
             label: text.get('@i18n:password.otp', "OTP"),
             placeholder: text.get(
                 '@i18n:password.otp_long',
-                'One-Time-Password'
+                'One-Time Password'
             ),
             show_errors: false,
             undo: false
