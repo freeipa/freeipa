@@ -350,7 +350,7 @@ def request_and_wait_for_cert(
         certpath, subject, principal, nickname=None, passwd_fname=None,
         dns=None, ca='IPA', profile=None,
         pre_command=None, post_command=None, storage='NSSDB', perms=None,
-        resubmit_timeout=0):
+        resubmit_timeout=0, stop_tracking_on_error=False):
     """Request certificate, wait and possibly resubmit failing requests
 
     Submit a cert request to certmonger and wait until the request has
@@ -402,6 +402,9 @@ def request_and_wait_for_cert(
             logger.debug("Sleep and resubmit cert request %s", req_id)
             time.sleep(10)
             resubmit_request(req_id)
+
+    if stop_tracking_on_error:
+        stop_tracking(request_id=req_id)
 
     raise RuntimeError(
         "Certificate issuance failed ({}: {})".format(state, ca_error)
