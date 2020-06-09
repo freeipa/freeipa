@@ -31,7 +31,7 @@ FILLED_LOGIN_FORM = {
         ('username', 'Username', True, True, 'text', 'username',
          PKEY, 'Username'),
         ('password', 'Password', True, True, 'password', 'password',
-         PASSWD_ITEST_USER, 'Password or Password+One-Time-Password'),
+         PASSWD_ITEST_USER, 'Password or Password+One Time-Password'),
     ],
     # structure of buttons
     # button_name, button_title
@@ -63,7 +63,7 @@ RESET_AND_LOGIN_FORM = {
         ('verify_password', 'Verify Password', True, True, 'password',
          'verify_password', '', 'New Password'),
         ('otp', 'OTP', False, True, 'password', 'otp', '',
-         'One-Time-Password'),
+         'One-Time Password'),
     ],
     # structure of buttons
     # button_name, button_title
@@ -94,7 +94,7 @@ RESET_PASSWORD_FORM = {
         ('verify_password', 'Verify Password', True, True, 'password',
          'verify_password', '', 'New Password'),
         ('otp', 'OTP', False, True, 'password', 'otp', '',
-         'One-Time-Password'),
+         'One-Time Password'),
     ],
     # structure of buttons
     # button_name, button_title
@@ -121,7 +121,7 @@ EMPTY_LOGIN_FORM = {
         ('username', 'Username', False, True, 'text', 'username', '',
          'Username'),
         ('password', 'Password', False, True, 'password', 'password', '',
-         'Password or Password+One-Time-Password'),
+         'Password or Password+One-Time Password'),
     ],
     # structure of buttons
     # button_name, button_title
@@ -146,7 +146,7 @@ LOGIN_FORM = {
         ('username', 'Username', True, True, 'text', 'username', PKEY,
          'Username'),
         ('password', 'Password', True, True, 'password', 'password', '',
-         'Password or Password+One-Time-Password'),
+         'Password or Password+One-Time Password'),
     ],
     # structure of buttons
     # button_name, button_title
