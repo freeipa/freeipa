@@ -774,13 +774,15 @@ IPA.user.password_dialog_pre_op0 = function(spec) {
 
 IPA.user.password_dialog_pre_op = function(spec) {
 
-    spec.sections[0].fields.splice(0, 0, {
+    spec.sections[0].fields.unshift({
         name: 'current_password',
         label: '@i18n:password.current_password',
         $type: 'password',
         required: true
-    }, {
-         name: 'otp',
+    });
+
+    spec.sections[0].fields.push({
+        name: 'otp',
         label: '@i18n:password.otp',
         $type: 'password'
     });
