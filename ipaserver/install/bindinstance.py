@@ -81,7 +81,7 @@ named_conf_arg_options_re_nonstr = re.compile(
     r'(?P<indent>\s*)(?P<name>\S+)\s+(?P<value>[^"]+)\s*;')
 named_conf_arg_options_template_nonstr = "%(indent)s%(name)s %(value)s;\n"
 # include directive
-named_conf_include_re = re.compile(r'\s*include\s+"(?P<path>)"\s*;')
+named_conf_include_re = re.compile(r'\s*include\s+"(?P<path>.*)"\s*;')
 named_conf_include_template = "include \"%(path)s\";\n"
 
 NAMED_SECTION_OPTIONS = "options"
