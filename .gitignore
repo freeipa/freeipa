@@ -98,7 +98,8 @@ freeipa2-dev-doc
 /init/ipa_memcached
 /init/systemd/ipa-custodia.service
 /init/systemd/ipa.service
-/init/systemd/ipa_memcached.service
+/init/systemd/ipa-epn.service
+/init/systemd/ipa-epn.timer
 /init/tmpfilesd/ipa.conf
 
 !/install/ui/doc/Makefile.in
@@ -134,6 +135,7 @@ client/ipa-certupdate
 client/ipa-client-automount
 client/ipa-client-install
 client/ipa-client-samba
+client/ipa-epn
 daemons/dnssec/ipa-dnskeysyncd
 daemons/dnssec/ipa-dnskeysync-replica
 daemons/dnssec/ipa-ods-exporter
