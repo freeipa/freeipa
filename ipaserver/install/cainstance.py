@@ -1065,8 +1065,11 @@ class CAInstance(DogtagInstance):
             logger.error(
                 "certmonger failed to start tracking certificate: %s", e)
 
-    def stop_tracking_certificates(self):
-        """Stop tracking our certificates. Called on uninstall.
+    def stop_tracking_certificates(self, stop_certmonger=True):
+        """
+        Stop tracking our certificates. Called on uninstall.  Also called
+        during upgrade to fix discrepancies.
+
         """
         super(CAInstance, self).stop_tracking_certificates(False)
 
@@ -1082,7 +1085,8 @@ class CAInstance(DogtagInstance):
             logger.error(
                 "certmonger failed to stop tracking certificate: %s", e)
 
-        services.knownservices.certmonger.stop()
+        if stop_certmonger:
+            services.knownservices.certmonger.stop()
 
 
     def set_audit_renewal(self):
