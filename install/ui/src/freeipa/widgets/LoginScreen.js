@@ -674,17 +674,6 @@ define(['dojo/_base/declare',
             undo: false
         },
         {
-            name: 'otp',
-            $type: 'password',
-            label: text.get('@i18n:password.otp', "OTP"),
-            placeholder: text.get(
-                '@i18n:password.otp_long',
-                'One-Time-Password'
-            ),
-            show_errors: false,
-            undo: false
-        },
-        {
             name: 'new_password',
             $type: 'password',
             required: true,
@@ -715,6 +704,17 @@ define(['dojo/_base/declare',
                 $type: 'same_password',
                 other_field: 'new_password'
             }],
+            show_errors: false,
+            undo: false
+        },
+        {
+            name: 'otp',
+            $type: 'password',
+            label: text.get('@i18n:password.otp', "OTP"),
+            placeholder: text.get(
+                '@i18n:password.otp_long',
+                'One-Time-Password'
+            ),
             show_errors: false,
             undo: false
         }
