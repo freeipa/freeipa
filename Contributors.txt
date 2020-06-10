@@ -100,6 +100,7 @@ Developers:
 	Michal Reznik
 	Michal Židek
 	Milan Kubík
+	Miro Hrončok
 	MIZUTA Takeshi
 	Mohammad Rizwan Yusuf
 	Nalin Dahyabhai
@@ -135,13 +136,16 @@ Developers:
 	Rob Crittenden
 	Robbie Harwood
 	Robert Kuska
+	Sam Morris
 	Sergey Orlov
+	Sergio Oliveira Campos
 	Serhii Tsymbaliuk
 	shanyin
 	Simo Sorce
 	Spencer E. Olson
 	Stanislav Laznicka
 	Stanislav Levin
+	Stasiek Michalski
 	Stephen Gallagher
 	sudharsanomprakash
 	Sudhir Menon
@@ -159,6 +163,7 @@ Developers:
 	Tomas Halman
 	Tomáš Křížek
 	Varun Mylaraiah
+	Viktor Ashirov
 	Vit Mojzis
 	W. Michael Petullo
 	William Brown
