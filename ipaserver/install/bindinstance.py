@@ -26,6 +26,7 @@ import os
 import pwd
 import netaddr
 import re
+import shutil
 import sys
 import time
 
@@ -293,29 +294,6 @@ def find_reverse_zone(ip_address, api=api):
         zone = zone.partition('.')[2]
 
     return None
-
-
-def named_add_ext_conf_file(src, dest, t_params=None):
-    """
-    Ensure included file is present, but don't override it.
-
-    :param src: String. Absolute path to source template
-    :param dest: String. Absolute path to destination
-    :param t_params: Dict. Parameters for source template
-    """
-    if t_params is None:
-        t_params = {}
-
-    if not os.path.exists(dest):
-        ipa_ext_txt = ipautil.template_file(src, t_params)
-        gid = pwd.getpwnam(constants.NAMED_USER).pw_gid
-
-        with open(dest, 'w') as ipa_ext:
-            os.fchmod(ipa_ext.fileno(), 0o640)
-            os.fchown(ipa_ext.fileno(), 0, gid)
-            ipa_ext.write(ipa_ext_txt)
-        return True
-    return False
 
 
 def read_reverse_zone(default, ip_address, allow_zone_overlap=False):
@@ -672,36 +650,50 @@ class BindInstance(service.Service):
         self.dns_backup = DnsBackup(self)
         self.domain = None
         self.host = None
-        self.ip_addresses = []
-        self.forwarders = None
+        self.ip_addresses = ()
+        self.forwarders = ()
+        self.forward_policy = None
+        self.zonemgr = None
+        self.no_dnssec_validation = False
         self.sub_dict = None
-        self.reverse_zones = []
+        self.reverse_zones = ()
         self.named_regular = services.service('named-regular', api)
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
     def setup(self, fqdn, ip_addresses, realm_name, domain_name, forwarders,
-              forward_policy, reverse_zones,
-              named_user=constants.NAMED_USER, zonemgr=None,
+              forward_policy, reverse_zones, zonemgr=None,
               no_dnssec_validation=False):
-        self.service_user = named_user
-        self.fqdn = fqdn
+        """Setup bindinstance for installation
+        """
+        self.setup_templating(
+            fqdn=fqdn,
+            realm_name=realm_name,
+            domain_name=domain_name,
+            no_dnssec_validation=no_dnssec_validation
+        )
         self.ip_addresses = ip_addresses
-        self.realm = realm_name
-        self.domain = domain_name
         self.forwarders = forwarders
         self.forward_policy = forward_policy
-        self.host = fqdn.split(".")[0]
-        self.suffix = ipautil.realm_to_suffix(self.realm)
         self.reverse_zones = reverse_zones
-        self.no_dnssec_validation=no_dnssec_validation
 
-        if not zonemgr:
+        if zonemgr is not None:
             self.zonemgr = 'hostmaster.%s' % normalize_zone(self.domain)
         else:
             self.zonemgr = normalize_zonemgr(zonemgr)
 
-        self.__setup_sub_dict()
+    def setup_templating(
+        self, fqdn, realm_name, domain_name, no_dnssec_validation=None
+    ):
+        """Setup bindinstance for templating
+        """
+        self.fqdn = fqdn
+        self.realm = realm_name
+        self.domain = domain_name
+        self.host = fqdn.split(".")[0]
+        self.suffix = ipautil.realm_to_suffix(self.realm)
+        self.no_dnssec_validation = no_dnssec_validation
+        self._setup_sub_dict()
 
     @property
     def host_domain(self):
@@ -765,7 +757,7 @@ class BindInstance(service.Service):
         self.step("adding NS record to the zones", self.__add_self_ns)
 
         self.step("setting up kerberos principal", self.__setup_principal)
-        self.step("setting up named.conf", self.__setup_named_conf)
+        self.step("setting up named.conf", self.setup_named_conf)
         self.step("setting up server configuration",
             self.__setup_server_configuration)
 
@@ -820,7 +812,52 @@ class BindInstance(service.Service):
         except Exception as e:
             logger.debug("Unable to mask named (%s)", e)
 
-    def __setup_sub_dict(self):
+    def _get_dnssec_validation(self):
+        """get dnssec-validation value
+
+        1) command line overwrite --no-dnssec-validation
+        2) setting dnssec-enabled or dnssec-validation from named.conf
+        3) "yes" by default
+
+        Note: The dnssec-enabled is deprecated and defaults to "yes". If the
+        setting is "no", then it is migrated as "dnssec-validation no".
+        """
+        dnssec_validation = "yes"
+        if self.no_dnssec_validation:
+            # command line overwrite
+            logger.debug(
+                "dnssec-validation 'no' command line overwrite"
+            )
+            dnssec_validation = "no"
+        elif os.path.isfile(paths.NAMED_CONF):
+            # get prev_ value from /etc/named.conf
+            prev_dnssec_validation = named_conf_get_directive(
+                "dnssec-validation",
+                NAMED_SECTION_OPTIONS,
+                str_val=False
+            )
+            prev_dnssec_enable = named_conf_get_directive(
+                "dnssec-enable",
+                NAMED_SECTION_OPTIONS,
+                str_val=False
+            )
+            if prev_dnssec_validation == "no" or prev_dnssec_enable == "no":
+                logger.debug(
+                    "Setting dnssec-validation 'no' from existing %s",
+                    paths.NAMED_CONF
+                )
+                logger.debug(
+                    "dnssec-enabled was %s (None is yes)", prev_dnssec_enable
+                )
+                logger.debug(
+                    "dnssec-validation was %s", prev_dnssec_validation
+                )
+                dnssec_validation = "no"
+        assert dnssec_validation in {"yes", "no"}
+        logger.info("dnssec-validation %s", dnssec_validation)
+        return dnssec_validation
+
+    def _setup_sub_dict(self):
         if paths.NAMED_CRYPTO_POLICY_FILE is not None:
             crypto_policy = 'include "{}";'.format(
                 paths.NAMED_CRYPTO_POLICY_FILE
@@ -840,10 +877,12 @@ class BindInstance(service.Service):
             NAMED_VAR_DIR=paths.NAMED_VAR_DIR,
             BIND_LDAP_SO=paths.BIND_LDAP_SO,
             INCLUDE_CRYPTO_POLICY=crypto_policy,
-            CUSTOM_CONFIG=paths.NAMED_CUSTOM_CONFIG,
-            CUSTOM_OPTIONS_CONFIG=paths.NAMED_CUSTOM_OPTIONS_CONFIG,
+            NAMED_CONF=paths.NAMED_CONF,
+            NAMED_CUSTOM_CONF=paths.NAMED_CUSTOM_CONF,
+            NAMED_CUSTOM_OPTIONS_CONF=paths.NAMED_CUSTOM_OPTIONS_CONF,
             NAMED_DATA_DIR=constants.NAMED_DATA_DIR,
             NAMED_ZONE_COMMENT=constants.NAMED_ZONE_COMMENT,
+            NAMED_DNSSEC_VALIDATION=self._get_dnssec_validation(),
         )
 
     def __setup_dns_container(self):
@@ -986,37 +1025,75 @@ class BindInstance(service.Service):
                             dns_principal, str(e))
             raise
 
-    def __setup_named_conf(self):
+    def setup_named_conf(self, backup=False):
+        """Create, update, or migrate named configuration files
+
+        The method is used by installer and upgrade process. The named.conf
+        is backed up the first time and overwritten every time. The user
+        specific config files are created once and not modified in subsequent
+        calls.
+
+        The "dnssec-validation" option is migrated
+
+        :returns: True if any config file was modified, else False
+        """
+        # files are owned by root:named and are readable by user and group
+        uid = 0
+        gid = pwd.getpwnam(constants.NAMED_USER).pw_gid
+        mode = 0o640
+
+        changed = False
+
         if not self.fstore.has_file(paths.NAMED_CONF):
             self.fstore.backup_file(paths.NAMED_CONF)
 
-        named_txt = ipautil.template_file(
-            os.path.join(paths.USR_SHARE_IPA_DIR, "bind.named.conf.template"),
-            self.sub_dict)
-
-        gid = pwd.getpwnam(constants.NAMED_USER).pw_gid
-        with open(paths.NAMED_CONF, 'w') as named_conf:
-            os.fchmod(named_conf.fileno(), 0o640)
-            os.fchown(named_conf.fileno(), 0, gid)
-            named_conf.write(named_txt)
-
-        named_add_ext_conf_file(
-            paths.NAMED_CUSTOM_CFG_SRC,
-            paths.NAMED_CUSTOM_CONFIG
+        # named.conf
+        txt = ipautil.template_file(
+            os.path.join(paths.NAMED_CONF_SRC), self.sub_dict
         )
+        with open(paths.NAMED_CONF) as f:
+            old_txt = f.read()
+        if txt == old_txt:
+            logger.debug("%s is unmodified", paths.NAMED_CONF)
+        else:
+            if backup:
+                if not os.path.isfile(paths.NAMED_CONF_BAK):
+                    shutil.copyfile(paths.NAMED_CONF, paths.NAMED_CONF_BAK)
+                    logger.info("created backup %s", paths.NAMED_CONF_BAK)
+                else:
+                    logger.warning(
+                        "backup %s already exists", paths.NAMED_CONF_BAK
+                    )
 
-        dnssec_validation = 'no' if self.no_dnssec_validation else 'yes'
-        named_add_ext_conf_file(
-            paths.NAMED_CUSTOM_OPTIONS_CFG_SRC,
-            paths.NAMED_CUSTOM_OPTIONS_CONFIG,
-            {'NAMED_DNSSEC_VALIDATION': dnssec_validation}
-        )
+            with open(paths.NAMED_CONF, "w") as f:
+                os.fchmod(f.fileno(), mode)
+                os.fchown(f.fileno(), uid, gid)
+                f.write(txt)
 
-        # prevent repeated upgrade on new installs
-        sysupgrade.set_upgrade_state(
-            'named.conf',
-            'forward_policy_conflict_with_empty_zones_handled', True
+            logger.info("created new %s", paths.NAMED_CONF)
+            changed = True
+
+        # user configurations
+        user_configs = (
+            (paths.NAMED_CUSTOM_CONF_SRC, paths.NAMED_CUSTOM_CONF),
+            (
+                paths.NAMED_CUSTOM_OPTIONS_CONF_SRC,
+                paths.NAMED_CUSTOM_OPTIONS_CONF
+            )
         )
+        for src, dest in user_configs:
+            if not os.path.exists(dest):
+                txt = ipautil.template_file(src, self.sub_dict)
+                with open(dest, "w") as f:
+                    os.fchmod(f.fileno(), mode)
+                    os.fchown(f.fileno(), uid, gid)
+                    f.write(txt)
+                logger.info("created named user config '%s'", dest)
+                changed = True
+            else:
+                logger.info("named user config '%s' already exists", dest)
+
+        return changed
 
     def __setup_server_configuration(self):
         ensure_dnsserver_container_exists(api.Backend.ldap2, self.api)
@@ -1267,7 +1344,8 @@ class BindInstance(service.Service):
         if named_regular_running:
             self.named_regular.start()
 
-        ipautil.remove_file(paths.NAMED_CUSTOM_CONFIG)
-        ipautil.remove_file(paths.NAMED_CUSTOM_OPTIONS_CONFIG)
+        ipautil.remove_file(paths.NAMED_CONF_BAK)
+        ipautil.remove_file(paths.NAMED_CUSTOM_CONF)
+        ipautil.remove_file(paths.NAMED_CUSTOM_OPTIONS_CONF)
         ipautil.remove_keytab(self.keytab)
         ipautil.remove_ccache(run_as=self.service_user)

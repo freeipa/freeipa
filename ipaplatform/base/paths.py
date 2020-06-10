@@ -79,11 +79,14 @@ class BasePathNamespace:
     LDAP_CONF = "/etc/ldap.conf"
     LIBNSS_LDAP_CONF = "/etc/libnss-ldap.conf"
     NAMED_CONF = "/etc/named.conf"
-    NAMED_CUSTOM_CONFIG = "/etc/named/ipa-ext.conf"
-    NAMED_CUSTOM_OPTIONS_CONFIG = "/etc/named/ipa-options-ext.conf"
-    NAMED_CUSTOM_CFG_SRC = '/usr/share/ipa/bind.ipa-ext.conf'
-    NAMED_CUSTOM_OPTIONS_CFG_SRC = \
+    NAMED_CONF_BAK = "/etc/named.conf.ipa-backup"
+    NAMED_CUSTOM_CONF = "/etc/named/ipa-ext.conf"
+    NAMED_CUSTOM_OPTIONS_CONF = "/etc/named/ipa-options-ext.conf"
+    NAMED_CONF_SRC = '/usr/share/ipa/bind.named.conf.template'
+    NAMED_CUSTOM_CONF_SRC = '/usr/share/ipa/bind.ipa-ext.conf.template'
+    NAMED_CUSTOM_OPTIONS_CONF_SRC = (
         '/usr/share/ipa/bind.ipa-options-ext.conf.template'
+    )
     NAMED_VAR_DIR = "/var/named"
     NAMED_KEYTAB = "/etc/named.keytab"
     NAMED_RFC1912_ZONES = "/etc/named.rfc1912.zones"
