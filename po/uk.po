@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2020-03-23 20:39+0200\n"
+"POT-Creation-Date: 2020-06-10 22:17+0300\n"
 "PO-Revision-Date: 2019-11-11 08:08+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
@@ -23856,7 +23856,6 @@ msgstr "Пароль для загального керування реєстр
 msgid "Passwords do not match"
 msgstr "Паролі не збігаються"
 
-#, c-format
 msgid "Passwords do not match!"
 msgstr "Паролі не збігаються!"
 
@@ -27623,9 +27622,6 @@ msgstr ""
 "На цій сторінці виявлено незбережені зміни. Будь ласка, збережіть зміни або "
 "скасуйте їх."
 
-msgid "This principal is required by the IPA master"
-msgstr "Цей реєстраційний запис потрібен основному серверу IPA"
-
 msgid "Ticket expired"
 msgstr "Сплив строк дії квитка"
 
@@ -30158,3 +30154,6 @@ msgstr "{attr}: немає такого атрибута"
 #, python-brace-format
 msgid "{role}: role not found"
 msgstr "{role}: такої ролі не знайдено"
+
+#~ msgid "This principal is required by the IPA master"
+#~ msgstr "Цей реєстраційний запис потрібен основному серверу IPA"

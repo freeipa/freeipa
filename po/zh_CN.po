@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2020-03-23 20:39+0200\n"
+"POT-Creation-Date: 2020-06-10 22:17+0300\n"
 "PO-Revision-Date: 2019-11-11 10:25+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Chinese (China)\n"
@@ -7416,7 +7416,6 @@ msgstr "密码用于批量注册"
 msgid "Passwords do not match"
 msgstr "密码不匹配"
 
-#, c-format
 msgid "Passwords do not match!"
 msgstr "密码不匹配！"
 
@@ -10183,9 +10182,6 @@ msgstr "这可能需要一些时间，请稍等..."
 msgid "This page has unsaved changes. Please save or revert."
 msgstr "这个页面有未保存的更改。请保存或恢复。"
 
-msgid "This principal is required by the IPA master"
-msgstr "这个主体是IPA主服务器所需的"
-
 msgid "Ticket expired"
 msgstr "票据过期"
 
@@ -12260,3 +12256,6 @@ msgstr "{attr}：没有这样的属性"
 #, python-brace-format
 msgid "{role}: role not found"
 msgstr "{role}：角色没有找到"
+
+#~ msgid "This principal is required by the IPA master"
+#~ msgstr "这个主体是IPA主服务器所需的"

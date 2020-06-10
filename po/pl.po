@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2020-03-23 20:39+0200\n"
+"POT-Creation-Date: 2020-06-10 22:17+0300\n"
 "PO-Revision-Date: 2019-11-11 10:25+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Polish\n"
@@ -949,7 +949,6 @@ msgstr "Hasło używane w zapisywaniu większej części"
 msgid "Passwords do not match"
 msgstr "Hasła się nie zgadzają"
 
-#, c-format
 msgid "Passwords do not match!"
 msgstr "Hasła się nie zgadzają."
 
