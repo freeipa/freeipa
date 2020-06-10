@@ -875,3 +875,44 @@ class TestIPACommand(IntegrationTest):
         finally:
             sssd_conf_backup.restore()
             self.master.run_command(['systemctl', 'restart', 'sssd.service'])
+
+    @pytest.fixture
+    def user_creation_deletion(self):
+        # create user
+        self.testuser = 'testuser'
+        tasks.create_active_user(self.master, self.testuser, 'Secret123')
+
+        yield
+
+        # cleanup
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'user-del', self.testuser])
+
+    def test_login_wrong_password(self, user_creation_deletion):
+        """Test ipa user login with wrong password
+
+        When ipa user login to machine using wrong password, it
+        should log proper message
+
+        related: https://github.com/SSSD/sssd/issues/5139
+        """
+        # try to login with wrong password
+        sshconn = paramiko.SSHClient()
+        sshconn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        since = time.strftime('%H:%M:%S')
+        try:
+            sshconn.connect(self.master.hostname,
+                            username=self.testuser,
+                            password='WrongPassword')
+        except paramiko.AuthenticationException:
+            pass
+
+        sshconn.close()
+
+        # check if proper message logged
+        exp_msg = ("pam_sss(sshd:auth): received for user {}: 7"
+                   " (Authentication failure)".format(self.testuser))
+        result = self.master.run_command(['journalctl',
+                                          '-u', 'sshd',
+                                          '--since={}'.format(since)])
+        assert exp_msg in result.stdout_text
