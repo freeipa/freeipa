@@ -776,6 +776,12 @@ def promote_check(installer):
     # check selinux status, http and DS ports, NTP conflicting services
     common_check(options.no_ntp)
 
+    if options.setup_ca and any([options.dirsrv_cert_files,
+                                 options.http_cert_files,
+                                 options.pkinit_cert_files]):
+        raise ScriptError("--setup-ca and --*-cert-file options are "
+                          "mutually exclusive")
+
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if not client_fstore.has_files():
         # One-step replica installation
