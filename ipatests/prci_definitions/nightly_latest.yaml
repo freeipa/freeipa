@@ -1593,3 +1593,14 @@ jobs:
          timeout: 7200
          topology: *master_3client
 
+  fedora-latest/test_acme:
+     requires: [fedora-latest/build]
+     priority: 50
+     job:
+       class: RunPytest
+       args:
+         build_url: '{fedora-latest/build_url}'
+         test_suite: test_integration/test_acme.py
+         template: *ci-master-latest
+         timeout: 7200
+         topology: *master_1repl_1client
