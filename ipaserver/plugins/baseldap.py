@@ -2430,9 +2430,7 @@ class BaseLDAPAddAttribute(BaseLDAPModAttribute):
             value_to_add = set(value)
 
             if not old_value.isdisjoint(value_to_add):
-                raise errors.ExecutionError(
-                    message=_('\'%(attr)s\' already contains one or more '
-                              'values') % dict(attr=name))
+                raise errors.AlreadyContainsValueError(attr=name)
 
             update[name] = list(old_value | value_to_add)
 

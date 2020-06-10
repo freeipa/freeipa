@@ -653,6 +653,20 @@ class TestInstallMaster(IntegrationTest):
             msg = "rpm -V found group issues for the following files: {}"
             assert group_warnings == [], msg.format(group_warnings)
 
+    def test_admin_root_alias_CVE_2020_10747(self):
+        # Test for CVE-2020-10747 fix
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1810160
+        rootprinc = "root@{}".format(self.master.domain.realm)
+        result = self.master.run_command(["ipa", "user-show", "admin"])
+        assert rootprinc in result.stdout_text
+
+        result = self.master.run_command(
+            ["ipa", "user-add", "root", "--first", "root", "--last", "root"],
+            raiseonerr=False
+        )
+        assert result.returncode != 0
+        assert 'user with name "root" already exists' in result.stderr_text
+
 
 class TestInstallMasterKRA(IntegrationTest):
 
