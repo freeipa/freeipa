@@ -125,6 +125,12 @@ register = Registry()
 
 user_output_params = baseuser_output_params
 
+MEMBEROF_ADMINS = "(memberOf={})".format(
+    DN('cn=admins', api.env.container_group, api.env.basedn)
+)
+
+NOT_MEMBEROF_ADMINS = '(!{})'.format(MEMBEROF_ADMINS)
+
 
 def check_protected_member(user, protected_group_name=u'admins'):
     '''
@@ -155,6 +161,7 @@ class user(baseuser):
     label_singular            = _('User')
     object_name               = _('user')
     object_name_plural        = _('users')
+    permission_filter_objectclasses_string = '(objectclass=posixaccount)'
     managed_permissions = {
         'System: Read User Standard Attributes': {
             'replaces_global_anonymous_aci': True,
@@ -259,10 +266,8 @@ class user(baseuser):
         'System: Change User password': {
             'ipapermright': {'write'},
             'ipapermtargetfilter': [
-                '(objectclass=posixaccount)',
-                '(!(memberOf=%s))' % DN('cn=admins',
-                                        api.env.container_group,
-                                        api.env.basedn),
+                permission_filter_objectclasses_string,
+                NOT_MEMBEROF_ADMINS,
             ],
             'ipapermdefaultattr': {
                 'krbprincipalkey', 'passwordhistory', 'sambalmpassword',
@@ -279,8 +284,25 @@ class user(baseuser):
                 'PassSync Service',
             },
         },
+        'System: Change Admin User password': {
+            'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                MEMBEROF_ADMINS,
+            ],
+            'ipapermdefaultattr': {
+                'krbprincipalkey', 'passwordhistory', 'sambalmpassword',
+                'sambantpassword', 'userpassword', 'krbpasswordexpiration'
+            },
+            'default_privileges': {
+                'PassSync Service',
+            },
+        },
         'System: Manage User SSH Public Keys': {
             'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                permission_filter_objectclasses_string,
+                NOT_MEMBEROF_ADMINS,
+            ],
             'ipapermdefaultattr': {'ipasshpubkey'},
             'replaces': [
                 '(targetattr = "ipasshpubkey")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage User SSH Public Keys";allow (write) groupdn = "ldap:///cn=Manage User SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -289,6 +311,10 @@ class user(baseuser):
         },
         'System: Manage User Certificates': {
             'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                permission_filter_objectclasses_string,
+                NOT_MEMBEROF_ADMINS,
+            ],
             'ipapermdefaultattr': {'usercertificate'},
             'default_privileges': {
                 'User Administrators',
@@ -297,6 +323,10 @@ class user(baseuser):
         },
         'System: Manage User Principals': {
             'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                permission_filter_objectclasses_string,
+                NOT_MEMBEROF_ADMINS,
+            ],
             'ipapermdefaultattr': {'krbprincipalname', 'krbcanonicalname'},
             'default_privileges': {
                 'User Administrators',
@@ -305,6 +335,10 @@ class user(baseuser):
         },
         'System: Modify Users': {
             'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                permission_filter_objectclasses_string,
+                NOT_MEMBEROF_ADMINS,
+            ],
             'ipapermdefaultattr': {
                 'businesscategory', 'carlicense', 'cn', 'departmentnumber',
                 'description', 'displayname', 'employeetype',
@@ -326,6 +360,10 @@ class user(baseuser):
         },
         'System: Remove Users': {
             'ipapermright': {'delete'},
+            'ipapermtargetfilter': [
+                permission_filter_objectclasses_string,
+                NOT_MEMBEROF_ADMINS,
+            ],
             'replaces': [
                 '(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Users";allow (delete) groupdn = "ldap:///cn=Remove Users,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
@@ -333,6 +371,10 @@ class user(baseuser):
         },
         'System: Unlock User': {
             'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                permission_filter_objectclasses_string,
+                NOT_MEMBEROF_ADMINS,
+            ],
             'ipapermdefaultattr': {
                 'krblastadminunlock', 'krbloginfailedcount', 'nsaccountlock',
             },
