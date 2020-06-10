@@ -245,3 +245,17 @@ class TestUpgrade(IntegrationTest):
         assert named_conf.count(inc_opt_conf) == 1
         inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONF}";'
         assert named_conf.count(inc_custom_conf) == 1
+
+    def test_admin_root_alias_upgrade_CVE_2020_10747(self):
+        # Test upgrade for CVE-2020-10747 fix
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1810160
+        rootprinc = "root@{}".format(self.master.domain.realm)
+        self.master.run_command(
+            ["ipa", "user-remove-principal", "admin", rootprinc]
+        )
+        result = self.master.run_command(["ipa", "user-show", "admin"])
+        assert rootprinc not in result.stdout_text
+
+        self.master.run_command(['ipa-server-upgrade'])
+        result = self.master.run_command(["ipa", "user-show", "admin"])
+        assert rootprinc in result.stdout_text
