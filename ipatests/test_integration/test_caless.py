@@ -244,7 +244,8 @@ class CALessBase(IntegrationTest):
                         pkinit_pin=None, root_ca_file='root.pem',
                         pkinit_pkcs12_exists=False,
                         pkinit_pkcs12='replica-kdc.p12', unattended=True,
-                        stdin_text=None, domain_level=None):
+                        stdin_text=None, domain_level=None,
+                        force_setup_ca=False):
         """Prepare a CA-less replica
 
         Puts the bundle file into test_dir on the replica if successful,
@@ -315,7 +316,8 @@ class CALessBase(IntegrationTest):
         if pkinit_pin is not None:
             extra_args.extend(['--pkinit-pin', dirsrv_pin])
 
-        result = tasks.install_replica(master, replica, setup_ca=False,
+        result = tasks.install_replica(master, replica,
+                                       setup_ca=force_setup_ca,
                                        extra_args=extra_args,
                                        unattended=unattended,
                                        stdin_text=stdin_text,
@@ -998,6 +1000,18 @@ class TestReplicaInstall(CALessBase):
         assert_error(result, 'Apache Server SSL certificate and'
                              ' Directory Server SSL certificate are not'
                              ' signed by the same CA certificate')
+
+    @replica_install_teardown
+    def test_caless_with_incompatible_options(self):
+        "IPA replica install with certificates but conflicting --setup-ca"
+
+        self.create_pkcs12('ca1/replica', filename='server.p12')
+
+        result = self.prepare_replica(http_pkcs12='server.p12',
+                                      dirsrv_pkcs12='server.p12',
+                                      force_setup_ca=True)
+        assert_error(result, '--setup-ca and --*-cert-file options are '
+                             'mutually exclusive')
 
     @replica_install_teardown
     def test_valid_certs(self):
