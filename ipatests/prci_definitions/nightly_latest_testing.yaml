@@ -1719,3 +1719,15 @@ jobs:
          timeout: 7200
          topology: *master_3client
 
+  testing-fedora/test_acme:
+     requires: [testing-fedora/build]
+     priority: 50
+     job:
+       class: RunPytest
+       args:
+         build_url: '{testing-fedora/build_url}'
+         update_packages: True
+         test_suite: test_integration/test_acme.py
+         template: *testing-master-latest
+         timeout: 7200
+         topology: *master_1repl_1client
