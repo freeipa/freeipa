@@ -1462,6 +1462,15 @@ class CSRTemplateError(ExecutionError):
     format = _('%(reason)s')
 
 
+class AlreadyContainsValueError(ExecutionError):
+    """
+    **4038** Raised when BaseLDAPAddAttribute operation fails because one
+    or more new values are already present.
+    """
+    errno = 4038
+    format = _("'%(attr)s' already contains one or more values")
+
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

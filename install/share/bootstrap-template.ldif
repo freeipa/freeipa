@@ -232,6 +232,7 @@ objectClass: ipaobject
 objectClass: ipasshuser
 uid: admin
 krbPrincipalName: admin@$REALM
+krbPrincipalName: root@$REALM
 cn: Administrator
 sn: Administrator
 uidNumber: $IDSTART

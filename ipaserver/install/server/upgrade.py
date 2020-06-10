@@ -1326,6 +1326,27 @@ def add_systemd_user_hbac():
         logger.info('Created hbac rule %s with hbacsvc=%s', rule, service)
 
 
+def add_admin_root_alias():
+    """Make root principal an alias of admin
+
+    Fix for CVE-2020-10747
+    """
+    rootprinc = "root@{}".format(api.env.realm)
+    logger.info("[Add %s alias to admin account]", rootprinc)
+    try:
+        api.Command.user_add_principal("admin", rootprinc)
+    except ipalib.errors.DuplicateEntry:
+        results = api.Command.user_find(krbprincipalname=rootprinc)
+        uid = results["result"][0]["uid"][0]
+        logger.warning(
+            "WARN: '%s' alias is assigned to user '%s'!", rootprinc, uid
+        )
+    except ipalib.errors.AlreadyContainsValueError:
+        logger.info("Alias already exists")
+    else:
+        logger.info("Added '%s' alias to admin account", rootprinc)
+
+
 def fix_permissions():
     """Fix permission of public accessible files and directories
 
@@ -1685,6 +1706,7 @@ def upgrade_configuration():
 
     migrate_to_authselect()
     add_systemd_user_hbac()
+    add_admin_root_alias()
 
     sssd_update()
 
