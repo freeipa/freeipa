@@ -878,7 +878,7 @@ class TestInstallMasterDNS(IntegrationTest):
         related : https://pagure.io/freeipa/issue/8079
         """
         # check of /etc/named/ipa-ext.conf exist
-        assert self.master.transport.file_exists(paths.NAMED_CUSTOM_CONFIG)
+        assert self.master.transport.file_exists(paths.NAMED_CUSTOM_CONF)
 
         # check if /etc/named.conf does not contain 'allow-recursion { any; };'
         string_to_check = 'allow-recursion { any; };'
@@ -888,7 +888,7 @@ class TestInstallMasterDNS(IntegrationTest):
 
         # check if ipa-backup command backups the /etc/named/ipa-ext.conf
         result = self.master.run_command(['ipa-backup', '-v'])
-        assert paths.NAMED_CUSTOM_CONFIG in result.stderr_text
+        assert paths.NAMED_CUSTOM_CONF in result.stderr_text
 
     def test_install_kra(self):
         tasks.install_kra(self.master, first_instance=True)
