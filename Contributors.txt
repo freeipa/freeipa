@@ -4,6 +4,7 @@ The following people have contributed to the FreeIPA project.
 (Listed in alphabetical order within category)
 
 Developers:
+	Abhijeet
 	Abhijeet Kasurde
 	Adam Misnyovszki
 	Adam Williamson
@@ -21,6 +22,7 @@ Developers:
 	Ana Krivokapić
 	Andrew Wnuk
 	Anuja More
+	Ariel O. Barria
 	Armando Neto
 	Ben Lipton
 	Benjamin Drung
@@ -35,6 +37,7 @@ Developers:
 	David O'Brien
 	David Spångberg
 	Diane Trout
+	Dinesh Prasanth M K
 	Diogo Nunes
 	Dmitri Pal
 	Don Davis
@@ -51,11 +54,13 @@ Developers:
 	Fraser Tweedale
 	Gabe Alford
 	Ganna Kaihorodova
+	Gaurav Talreja
 	German Parente
 	Gowrishankar Rajaiyan
 	Günther Deschner
 	Ian Kumlien
 	Ian Pilcher
+	Isaac Boukris
 	Jakub Hrozek
 	James Groffen
 	Jan Barta
@@ -64,12 +69,15 @@ Developers:
 	Jan Zelený
 	Jason Gerard DeRose
 	Jason Woods
+	Jayesh
+	Jayesh Garg
 	Jérôme Fenal
 	Jim Meyering
 	John Dennis
 	John L
 	John Morris
 	Jr Aquino
+	Julian Gethmann
 	Justin Stephenson
 	Kaleemullah Siddiqui
 	Karl MacMillan
@@ -96,6 +104,8 @@ Developers:
 	Michal Reznik
 	Michal Židek
 	Milan Kubík
+	Miro Hrončok
+	MIZUTA Takeshi
 	Mohammad Rizwan Yusuf
 	Nalin Dahyabhai
 	Nathan Kinder
@@ -129,18 +139,24 @@ Developers:
 	Rishabh Dave
 	Rob Crittenden
 	Robbie Harwood
+	Robert Collins
 	Robert Kuska
+	Sam Bristow
+	Sam Morris
 	Sergey Orlov
+	Sergio Oliveira Campos
 	Serhii Tsymbaliuk
 	shanyin
 	Simo Sorce
 	Spencer E. Olson
 	Stanislav Laznicka
 	Stanislav Levin
+	Stasiek Michalski
 	Stephen Gallagher
 	sudharsanomprakash
 	Sudhir Menon
 	Sumedh Sidhaye
+	sumenon
 	Sumit Bose
 	Sylvain Baubeau
 	Takeshi MIZUTA
@@ -154,11 +170,14 @@ Developers:
 	Tomas Halman
 	Tomáš Křížek
 	Varun Mylaraiah
+	Viktor Ashirov
+	Vit Mojzis
 	W. Michael Petullo
 	William Brown
 	William Jon McCann
 	Xiao-Long Chen
 	Yuri Chornoivan
+	zdover
 
 Documentation:
 	Gabe Alford
