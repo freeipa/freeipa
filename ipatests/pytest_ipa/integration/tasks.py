@@ -531,11 +531,14 @@ def install_adtrust(host):
 
 
 def disable_dnssec_validation(host):
-    backup_file(host, paths.NAMED_CONF)
-    named_conf = host.get_file_contents(paths.NAMED_CONF)
+    """
+    Edits ipa-options-ext.conf snippet in order to disable dnssec validation
+    """
+    backup_file(host, paths.NAMED_CUSTOM_OPTIONS_CONF)
+    named_conf = host.get_file_contents(paths.NAMED_CUSTOM_OPTIONS_CONF)
     named_conf = re.sub(br'dnssec-validation\s*yes;', b'dnssec-validation no;',
                         named_conf)
-    host.put_file_contents(paths.NAMED_CONF, named_conf)
+    host.put_file_contents(paths.NAMED_CUSTOM_OPTIONS_CONF, named_conf)
     restart_named(host)
 
 
