@@ -11,6 +11,7 @@ import os
 import io
 
 from cryptography.hazmat.primitives import serialization
+import pytest
 
 from ipaplatform.paths import paths
 from ipapython.dn import DN
@@ -54,7 +55,7 @@ include "$ROOT_KEY";
  */
 dyndb "ipa" "$BIND_LDAP_SO" {
         uri "ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket";
-        base "cn=dns, $SUFFIX";
+        base "cn=dns,$SUFFIX";
         server_id "$FQDN";
         auth_method "sasl";
         sasl_mech "GSSAPI";
@@ -67,15 +68,10 @@ dyndb "ipa" "$BIND_LDAP_SO" {
 def named_test_template(host):
     # create bind instance to get a substitution dict
     bind = bindinstance.BindInstance()
-    bind.setup(
+    bind.setup_templating(
         fqdn=host.hostname,
-        ip_addresses=[host.ip],
         realm_name=host.domain.realm,
         domain_name=host.domain.name,
-        # not relevant
-        forwarders=[],
-        forward_policy=None,
-        reverse_zones=[]
     )
     sub_dict = bind.sub_dict.copy()
     sub_dict.update(BINDKEYS_FILE="/etc/named.iscdlv.key")
@@ -160,21 +156,30 @@ class TestUpgrade(IntegrationTest):
         )
         print(named_conf)
         custom_conf = self.master.get_file_contents(
-            paths.NAMED_CUSTOM_CONFIG, encoding="utf-8"
+            paths.NAMED_CUSTOM_CONF, encoding="utf-8"
         )
         print(custom_conf)
         opt_conf = self.master.get_file_contents(
-            paths.NAMED_CUSTOM_OPTIONS_CONFIG, encoding="utf-8"
+            paths.NAMED_CUSTOM_OPTIONS_CONF, encoding="utf-8"
         )
         print(opt_conf)
         return named_conf, custom_conf, opt_conf
 
+    @pytest.mark.skip_if_platform(
+        "debian", reason="Debian does not use crypto policy"
+    )
+    def test_named_conf_crypto_policy(self):
+        named_conf = self.master.get_file_contents(
+            paths.NAMED_CONF, encoding="utf-8"
+        )
+        assert paths.NAMED_CRYPTO_POLICY_FILE in named_conf
+
     def test_current_named_conf(self):
         named_conf, custom_conf, opt_conf = self.get_named_confs()
         # verify that both includes are present exactly one time
-        inc_opt_conf = f'include "{paths.NAMED_CUSTOM_OPTIONS_CONFIG}";'
+        inc_opt_conf = f'include "{paths.NAMED_CUSTOM_OPTIONS_CONF}";'
         assert named_conf.count(inc_opt_conf) == 1
-        inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONFIG}";'
+        inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONF}";'
         assert named_conf.count(inc_custom_conf) == 1
 
         assert "dnssec-validation yes;" in opt_conf
@@ -188,8 +193,8 @@ class TestUpgrade(IntegrationTest):
             [
                 "rm",
                 "-f",
-                paths.NAMED_CUSTOM_CONFIG,
-                paths.NAMED_CUSTOM_OPTIONS_CONFIG,
+                paths.NAMED_CUSTOM_CONF,
+                paths.NAMED_CUSTOM_OPTIONS_CONF,
             ]
         )
         self.master.run_command(['ipa-server-upgrade'])
@@ -202,9 +207,9 @@ class TestUpgrade(IntegrationTest):
         assert "dnssec-validation" not in named_conf
 
         # verify that both includes are present exactly one time
-        inc_opt_conf = f'include "{paths.NAMED_CUSTOM_OPTIONS_CONFIG}";'
+        inc_opt_conf = f'include "{paths.NAMED_CUSTOM_OPTIONS_CONF}";'
         assert named_conf.count(inc_opt_conf) == 1
-        inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONFIG}";'
+        inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONF}";'
         assert named_conf.count(inc_custom_conf) == 1
 
     def test_update_named_conf_old(self):
@@ -213,8 +218,8 @@ class TestUpgrade(IntegrationTest):
             [
                 "rm",
                 "-f",
-                paths.NAMED_CUSTOM_CONFIG,
-                paths.NAMED_CUSTOM_OPTIONS_CONFIG,
+                paths.NAMED_CUSTOM_CONF,
+                paths.NAMED_CUSTOM_OPTIONS_CONF,
             ]
         )
         # dump an old named conf to verify migration
@@ -236,7 +241,7 @@ class TestUpgrade(IntegrationTest):
         assert "dnssec-validation" not in named_conf
 
         # verify that both includes are present exactly one time
-        inc_opt_conf = f'include "{paths.NAMED_CUSTOM_OPTIONS_CONFIG}";'
+        inc_opt_conf = f'include "{paths.NAMED_CUSTOM_OPTIONS_CONF}";'
         assert named_conf.count(inc_opt_conf) == 1
-        inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONFIG}";'
+        inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONF}";'
         assert named_conf.count(inc_custom_conf) == 1

@@ -124,8 +124,8 @@ class Backup(admintool.AdminTool):
 
     files = (
         paths.NAMED_CONF,
-        paths.NAMED_CUSTOM_CONFIG,
-        paths.NAMED_CUSTOM_OPTIONS_CONFIG,
+        paths.NAMED_CUSTOM_CONF,
+        paths.NAMED_CUSTOM_OPTIONS_CONF,
         paths.NAMED_KEYTAB,
         paths.RESOLV_CONF,
         paths.SYSCONFIG_PKI_TOMCAT,
@@ -186,9 +186,6 @@ class Backup(admintool.AdminTool):
         paths.OPENDNSSEC_KASP_DB,
         paths.DNSSEC_SOFTHSM2_CONF,
         paths.DNSSEC_SOFTHSM_PIN_SO,
-        paths.NAMED_CONF,
-        paths.NAMED_CUSTOM_CONFIG,
-        paths.NAMED_CUSTOM_OPTIONS_CONFIG,
         paths.IPA_ODS_EXPORTER_KEYTAB,
         paths.IPA_DNSKEYSYNCD_KEYTAB,
         paths.IPA_CUSTODIA_KEYS,
