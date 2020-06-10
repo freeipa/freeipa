@@ -2,8 +2,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
-"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2019-08-14 10:13+0300\n"
+"Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
+"POT-Creation-Date: 2020-06-10 22:26+0300\n"
 "PO-Revision-Date: 2019-11-11 10:25+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Portuguese (Brazil)\n"
@@ -32,7 +32,6 @@ msgstr "Não foram encontradas entradas coincidentes"
 msgid "Passwords do not match"
 msgstr "As senhas não coincidem."
 
-#, c-format
 msgid "Passwords do not match!"
 msgstr "As senhas não coincidem!"
 

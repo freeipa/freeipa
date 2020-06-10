@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2020-03-23 20:39+0200\n"
+"POT-Creation-Date: 2020-06-10 22:26+0300\n"
 "PO-Revision-Date: 2019-11-12 12:31+0000\n"
 "Last-Translator: Olesya Gerasimenko <gammaray@basealt.ru>\n"
 "Language-Team: Russian\n"
@@ -23791,7 +23791,6 @@ msgstr "Пароль для массовой регистрации"
 msgid "Passwords do not match"
 msgstr "Пароли не совпадают"
 
-#, c-format
 msgid "Passwords do not match!"
 msgstr "Пароли не совпадают!"
 
@@ -27612,9 +27611,6 @@ msgstr ""
 "На этой странице имеются несохранённые изменения. Пожалуйста, сохраните или "
 "отмените их. "
 
-msgid "This principal is required by the IPA master"
-msgstr "Эта учётная запись необходима главному IPA-серверу "
-
 msgid "Ticket expired"
 msgstr "Срок действия билета истек"
 
@@ -30147,3 +30143,6 @@ msgstr "{attr}: атрибут не найден"
 #, python-brace-format
 msgid "{role}: role not found"
 msgstr "{role}: роль не найдена"
+
+#~ msgid "This principal is required by the IPA master"
+#~ msgstr "Эта учётная запись необходима главному IPA-серверу "
