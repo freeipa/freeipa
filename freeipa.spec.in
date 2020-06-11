@@ -586,6 +586,10 @@ on the machine enrolled into a FreeIPA environment
 %package client-epn
 Summary: Tools to configure Expiring Password Notification in IPA
 Group: System Environment/Base
+Requires: systemd-units
+Requires(post): systemd-units
+Requires(preun): systemd-units
+Requires(postun): systemd-units
 Requires: %{name}-client = %{version}-%{release}
 
 %description client-epn
@@ -1003,6 +1007,17 @@ fi
 # ONLY_CLIENT
 %endif
 
+%preun client-epn
+%systemd_preun ipa-epn.service
+%systemd_preun ipa-epn.timer
+
+%postun client-epn
+%systemd_postun ipa-epn.service
+%systemd_postun ipa-epn.timer
+
+%post client-epn
+%systemd_post ipa-epn.service
+%systemd_post ipa-epn.timer
 
 %post client
 if [ $1 -gt 1 ] ; then
