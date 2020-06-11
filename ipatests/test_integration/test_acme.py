@@ -21,7 +21,7 @@ skip_certbot_tests = osinfo.id not in ['fedora',]
 
 # Fedora mod_md package needs some patches before it will work.
 # RHEL version has the patches.
-skip_mod_md_tests = osinfo.id not in ['rhel',]
+skip_mod_md_tests = osinfo.id not in ['rhel','fedora',]
 
 CERTBOT_DNS_IPA_SCRIPT = '/usr/libexec/ipa/acme/certbot-dns-ipa'
 
@@ -193,7 +193,7 @@ class TestACME(IntegrationTest):
     # mod_md tests
     ##############
 
-    @pytest.mark.skipif(skip_mod_md_tests, reason='mod_md too old')
+    @pytest.mark.skipif(skip_mod_md_tests, reason='mod_md not available')
     def test_mod_md(self):
         # write config
         self.clients[0].run_command(['mkdir', '-p', '/etc/httpd/conf.d'])
