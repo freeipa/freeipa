@@ -101,6 +101,7 @@ dist_app_DATA =				\
 	ipaca_default.ini		\
 	ipaca_customize.ini		\
 	ipaca_softhsm2.ini		\
+	sshd_ipa.conf.template	\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy

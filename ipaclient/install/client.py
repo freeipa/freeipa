@@ -26,6 +26,7 @@ import shutil
 import socket
 import sys
 import tempfile
+import textwrap
 import time
 import traceback
 import warnings
@@ -1130,6 +1131,29 @@ def configure_sshd_config(fstore, options):
 
     fstore.backup_file(paths.SSHD_CONFIG)
 
+    # If openssh-server >= 8.2, the config needs to go in a new snippet
+    # in /etc/ssh/sshd_config.d/04-ipa.conf
+    # instead of /etc/ssh/sshd_config file
+    def sshd_version_supports_include():
+        with open(paths.SSHD_CONFIG, 'r') as f:
+            for line in f:
+                if re.match(r"^Include\s", line):
+                    return True
+        return False
+
+    if sshd_version_supports_include():
+        create_sshd_ipa_config(options)
+    else:
+        modify_sshd_config(options)
+
+    if sshd.is_running():
+        try:
+            sshd.restart()
+        except Exception as e:
+            log_service_error(sshd.service_name, 'restart', e)
+
+
+def modify_sshd_config(options):
     changes = {
         'PubkeyAuthentication': 'yes',
         'KerberosAuthentication': 'no',
@@ -1178,11 +1202,24 @@ def configure_sshd_config(fstore, options):
     change_ssh_config(paths.SSHD_CONFIG, changes, ['Match'])
     logger.info('Configured %s', paths.SSHD_CONFIG)
 
-    if sshd.is_running():
-        try:
-            sshd.restart()
-        except Exception as e:
-            log_service_error(sshd.service_name, 'restart', e)
+
+def create_sshd_ipa_config(options):
+    """Add the IPA snippet for sshd"""
+    sssd_sshd_options = ""
+    if options.sssd and os.path.isfile(paths.SSS_SSH_AUTHORIZEDKEYS):
+        sssd_sshd_options = textwrap.dedent("""\
+            AuthorizedKeysCommand {}
+            AuthorizedKeysCommandUser nobody
+        """).format(paths.SSS_SSH_AUTHORIZEDKEYS)
+
+    ipautil.copy_template_file(
+        os.path.join(paths.SSHD_IPA_CONFIG_TEMPLATE),
+        paths.SSHD_IPA_CONFIG,
+        dict(
+            SSSD_SSHD_OPTIONS=sssd_sshd_options,
+        )
+    )
+    logger.info('Configured %s', paths.SSHD_IPA_CONFIG)
 
 
 def configure_automount(options):
@@ -3448,6 +3485,7 @@ def uninstall(options):
     restore_time_sync(statestore, fstore)
 
     if was_sshd_configured and services.knownservices.sshd.is_running():
+        remove_file(paths.SSHD_IPA_CONFIG)
         services.knownservices.sshd.restart()
 
     # Remove the Firefox configuration
