@@ -682,7 +682,7 @@
                 "trust": {
                     "account": "Account", 
                     "admin_account": "Administrative account", 
-                    "blacklists": "SID blacklists", 
+                    "blocklists": "SID blocklists",
                     "details": "Trust Settings", 
                     "domain": "Domain", 
                     "establish_using": "Establish using", 

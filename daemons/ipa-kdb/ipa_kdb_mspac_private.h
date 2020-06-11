@@ -41,10 +41,10 @@ struct ipadb_adtrusts {
     char *flat_name;
     char *domain_sid;
     struct dom_sid domsid;
-    struct dom_sid *sid_blacklist_incoming;
-    int len_sid_blacklist_incoming;
-    struct dom_sid *sid_blacklist_outgoing;
-    int len_sid_blacklist_outgoing;
+    struct dom_sid *sid_blocklist_incoming;
+    int len_sid_blocklist_incoming;
+    struct dom_sid *sid_blocklist_outgoing;
+    int len_sid_blocklist_outgoing;
     struct ipadb_adtrusts *parent;
     char *parent_name;
     char **upn_suffixes;

@@ -546,11 +546,11 @@ class trust(LDAPObject):
             flags=['no_create', 'no_update']),
         Str('ipantsidblacklistincoming*',
             cli_name='sid_blacklist_incoming',
-            label=_('SID blacklist incoming'),
+            label=_('SID blocklist incoming'),
             flags=['no_create']),
         Str('ipantsidblacklistoutgoing*',
             cli_name='sid_blacklist_outgoing',
-            label=_('SID blacklist outgoing'),
+            label=_('SID blocklist outgoing'),
             flags=['no_create']),
         Str('trustdirection',
             label=_('Trust direction'),
@@ -571,7 +571,7 @@ class trust(LDAPObject):
         ),
     )
 
-    def validate_sid_blacklists(self, entry_attrs):
+    def validate_sid_blocklists(self, entry_attrs):
         if not _bindings_installed:
             # SID validator is not available, return
             # Even if invalid SID gets in the trust entry, it won't crash
@@ -1130,7 +1130,7 @@ class trust_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, e_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
-        self.obj.validate_sid_blacklists(e_attrs)
+        self.obj.validate_sid_blocklists(e_attrs)
 
         return dn
 
@@ -1619,13 +1619,13 @@ class trustdomain_find(LDAPSearch):
             return truncated
         trust_dn = self.obj.get_dn(args[0], trust_type=u'ad')
         trust_entry = ldap.get_entry(trust_dn)
-        blacklist = trust_entry.get('ipantsidblacklistincoming')
+        blocklist = trust_entry.get('ipantsidblacklistincoming')
         for entry in entries:
             sid = entry.get('ipanttrusteddomainsid', [None])[0]
             if sid is None:
                 continue
 
-            if sid in blacklist:
+            if sid in blocklist:
                 entry['domain_enabled'] = [False]
             else:
                 entry['domain_enabled'] = [True]
