@@ -913,7 +913,7 @@ class P11_Helper:
             check_return_value(rv, 'get token info')
 
             # softhsm always returns label 32 bytes long with padding made of
-            # white spaces (#32), so we have to rstrip() padding and compare
+            # whitespaces (#32), so we have to rstrip() padding and compare
             # Label was created by softhsm-util so it is not our fault that
             # there are #32 as padding (cffi initializes structures with
             # zeroes)

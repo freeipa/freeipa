@@ -294,7 +294,7 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
     ):
 
         # In order to get a more pure sum, one that ignores the Generated
-        # header and any white space we have to do a bit of work...
+        # header and any whitespace we have to do a bit of work...
         sha256nsswitch_cmd = \
             'egrep -v "Generated|^$" /etc/nsswitch.conf | sed "s/\\s//g" ' \
             '| sort | sha256sum'

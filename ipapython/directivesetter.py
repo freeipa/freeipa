@@ -138,7 +138,7 @@ def set_directive_lines(quotes, separator, k, v, lines, comment):
         v_quoted = quote_directive_value(v, '"') if quotes else v
         new_line = ''.join([k, separator, v_quoted, '\n'])
 
-    # Special case: consider space as "white space" so tabs are allowed
+    # Special case: consider space as "whitespace" so tabs are allowed
     if separator == ' ':
         separator = '[ \t]+'
 
@@ -178,7 +178,7 @@ def get_directive(filename, directive, separator=' '):
 
     :returns: The (unquoted) value if the directive was found, None otherwise
     """
-    # Special case: consider space as "white space" so tabs are allowed
+    # Special case: consider space as "whitespace" so tabs are allowed
     if separator == ' ':
         separator = '[ \t]+'
 

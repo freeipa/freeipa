@@ -80,7 +80,7 @@ def validate_dm_password(password):
     # Actual behavior of setup-ds.pl is that it does not accept white
     # space characters in password when called interactively but does when
     # provided such password in INF file. But it ignores leading and trailing
-    # white spaces in INF file.
+    # whitespaces in INF file.
 
     # Disallow leading/trailing whaitespaces
     if password.strip() != password:
