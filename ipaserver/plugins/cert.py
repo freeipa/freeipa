@@ -814,13 +814,13 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 try:
                     if principal_type == HOST:
                         alt_principal_obj = api.Command['host_show'](
-                            name, all=True)
+                            name, all=True)['result']
                     elif principal_type == KRBTGT:
                         alt_principal = kerberos.Principal(
                             (u'host', name), principal.realm)
                     elif principal_type == SERVICE:
                         alt_principal_obj = api.Command['service_show'](
-                            alt_principal, all=True)
+                            alt_principal, all=True)['result']
                 except errors.NotFound:
                     # We don't want to issue any certificates referencing
                     # machines we don't know about. Nothing is stored in this
@@ -853,7 +853,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                         pass
 
                     # Now check write access and caacl
-                    altdn = alt_principal_obj['result']['dn']
+                    altdn = alt_principal_obj['dn']
                     if not ldap.can_write(altdn, "usercertificate"):
                         raise errors.ACIError(info=_(
                             "Insufficient privilege to create a certificate "
