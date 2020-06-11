@@ -897,6 +897,11 @@ class TestIPACommand(IntegrationTest):
         related: https://github.com/SSSD/sssd/issues/5139
         """
         # try to login with wrong password
+        sssd_version = tasks.get_sssd_version(self.master)
+        if (sssd_version < tasks.parse_version('2.3.0')):
+            pytest.xfail('Fix is part of sssd 2.3.0 and is'
+                         ' available from fedora32 onwards')
+
         sshconn = paramiko.SSHClient()
         sshconn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         since = time.strftime('%H:%M:%S')
