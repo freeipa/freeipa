@@ -221,6 +221,25 @@ AC_ARG_WITH([runstatedir],
 AC_SUBST([runstatedir])
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for systemd directories
+dnl ---------------------------------------------------------------------------
+
+PKG_CHECK_EXISTS([systemd], [], [AC_MSG_ERROR([systemd not found])])
+AC_ARG_WITH([systemdsystemunitdir],
+            AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
+               [Directory for systemd service files]),
+            [systemdsystemunitdir=$with_systemdsystemunitdir],
+        [systemdsystemunitdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=systemdsystemunitdir systemd)])
+AC_SUBST([systemdsystemunitdir])
+
+AC_ARG_WITH([systemdtmpfilesdir],
+            AS_HELP_STRING([--with-systemdtmpfilesdir=DIR],
+               [Directory for systemd-tmpfiles configuration files]),
+            [systemdtmpfilesdir=$with_systemdtmpfilesdir],
+        [systemdtmpfilesdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=tmpfilesdir systemd)])
+AC_SUBST([systemdtmpfilesdir])
+
+dnl ---------------------------------------------------------------------------
 dnl - Server-only configuration
 dnl ---------------------------------------------------------------------------
 
@@ -544,6 +563,7 @@ AC_CONFIG_FILES([
     client/share/Makefile
     client/man/Makefile
     client/sysconfig/Makefile
+    client/systemd/Makefile
     contrib/completion/Makefile
     contrib/Makefile
     daemons/dnssec/Makefile
@@ -637,13 +657,13 @@ echo "
         jslint:                   ${JSLINT}
         LDAP libs:                ${LDAP_LIBS}
         OpenSSL crypto libs:      ${CRYPTO_LIBS}
-        KRB5 libs:                ${KRB5_LIBS}"
+        KRB5 libs:                ${KRB5_LIBS}
+        systemdsystemunitdir:     ${systemdsystemunitdir}"
 
 AM_COND_IF([ENABLE_SERVER], [
     echo "\
         KRAD libs:                ${KRAD_LIBS}
         krb5rundir:               ${krb5rundir}
-        systemdsystemunitdir:     ${systemdsystemunitdir}
         systemdtmpfilesdir:       ${systemdtmpfilesdir}
         build mode:               server & client"
 ], [

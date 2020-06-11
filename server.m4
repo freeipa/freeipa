@@ -153,22 +153,3 @@ dnl Check for libverto
 dnl ---------------------------------------------------------------------------
 
 PKG_CHECK_MODULES([LIBVERTO], [libverto])
-
-dnl ---------------------------------------------------------------------------
-dnl - Check for systemd directories
-dnl ---------------------------------------------------------------------------
-
-PKG_CHECK_EXISTS([systemd], [], [AC_MSG_ERROR([systemd not found])])
-AC_ARG_WITH([systemdsystemunitdir],
-            AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
-               [Directory for systemd service files]),
-            [systemdsystemunitdir=$with_systemdsystemunitdir],
-        [systemdsystemunitdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=systemdsystemunitdir systemd)])
-AC_SUBST([systemdsystemunitdir])
-
-AC_ARG_WITH([systemdtmpfilesdir],
-            AS_HELP_STRING([--with-systemdtmpfilesdir=DIR],
-               [Directory for systemd-tmpfiles configuration files]),
-            [systemdtmpfilesdir=$with_systemdtmpfilesdir],
-        [systemdtmpfilesdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=tmpfilesdir systemd)])
-AC_SUBST([systemdtmpfilesdir])

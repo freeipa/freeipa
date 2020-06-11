@@ -95,6 +95,7 @@ SUBDIRS =			\
 	share		        \
 	man			\
 	sysconfig	        \
+	systemd			\
 	$(NULL)
 #       init                    
 
