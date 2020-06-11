@@ -28,9 +28,15 @@ from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 
-host_fqdn = f'iptest.{api.env.domain}'
+host_shortname = 'iptest'
+host_fqdn = f'{host_shortname}.{api.env.domain}'
 host_princ = f'host/{host_fqdn}'
 host_ptr = f'{host_fqdn}.'
+
+host2_shortname = 'iptest2'
+host2_fqdn = f'{host2_shortname}.{api.env.domain}'
+host2_princ = f'host/{host2_fqdn}'
+host2_ptr = f'{host2_fqdn}.'
 
 other_fqdn = f'other.{api.env.domain}'
 other_ptr = f'{other_fqdn}.'
@@ -39,6 +45,10 @@ ipv4_address = '169.254.0.42'
 ipv4_revzone_s = '0.254.169.in-addr.arpa.'
 ipv4_revrec_s = '42'
 
+host2_ipv4_address = '169.254.0.43'
+host2_ipv4_revzone_s = '0.254.169.in-addr.arpa.'
+host2_ipv4_revrec_s = '43'
+
 ipv6_address = 'fe80::8f18:bdab:4299:95fa'
 ipv6_revzone_s = '0.0.0.0.0.0.0.0.0.0.0.0.0.8.e.f.ip6.arpa.'
 ipv6_revrec_s = 'a.f.5.9.9.9.2.4.b.a.d.b.8.1.f.8'
@@ -46,7 +56,13 @@ ipv6_revrec_s = 'a.f.5.9.9.9.2.4.b.a.d.b.8.1.f.8'
 
 @pytest.fixture(scope='class')
 def host(request, xmlrpc_setup):
-    tr = HostTracker('iptest')
+    tr = HostTracker(host_shortname)
+    return tr.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def host2(request, xmlrpc_setup):
+    tr = HostTracker(host2_shortname)
     return tr.make_fixture(request)
 
 
@@ -89,6 +105,12 @@ def ipv6_revzone(host):
 
 
 @pytest.fixture(scope='class')
+def host2_ipv4_ptr(host2, ipv4_revzone):
+    yield from _record_setup(
+        host2, ipv4_revzone, host2_ipv4_revrec_s, ptrrecord=host2_ptr)
+
+
+@pytest.fixture(scope='class')
 def ipv4_ptr(host, ipv4_revzone):
     yield from _record_setup(
         host, ipv4_revzone, ipv4_revrec_s, ptrrecord=host_ptr)
@@ -101,15 +123,21 @@ def ipv6_ptr(host, ipv6_revzone):
 
 
 @pytest.fixture(scope='class')
+def host2_ipv4_a(host2):
+    yield from _record_setup(
+        host2, api.env.domain, host2_shortname, arecord=host2_ipv4_address)
+
+
+@pytest.fixture(scope='class')
 def ipv4_a(host):
     yield from _record_setup(
-        host, api.env.domain, 'iptest', arecord=ipv4_address)
+        host, api.env.domain, host_shortname, arecord=ipv4_address)
 
 
 @pytest.fixture(scope='class')
 def ipv6_aaaa(host):
     yield from _record_setup(
-        host, api.env.domain, 'iptest', aaaarecord=ipv6_address)
+        host, api.env.domain, host_shortname, aaaarecord=ipv6_address)
 
 
 @pytest.fixture(scope='class')
@@ -209,6 +237,12 @@ csr_cname1 = csr([
 csr_cname2 = csr([
     x509.DNSName(f'cname2.{api.env.domain}'),
     x509.IPAddress(ipaddress.ip_address(ipv4_address)),
+])
+csr_two_dnsname_two_ip = csr([
+    x509.DNSName(host_fqdn),
+    x509.IPAddress(ipaddress.ip_address(ipv4_address)),
+    x509.DNSName(host2_fqdn),
+    x509.IPAddress(ipaddress.ip_address(host2_ipv4_address)),
 ])
 
 
@@ -449,3 +483,23 @@ class TestIPAddressCNAME(XMLRPC_test):
     def test_two_levels(self, host, csr_cname2):
         with pytest.raises(errors.ValidationError, match=PAT_FWD):
             host.run_command('cert_request', csr_cname2, principal=host_princ)
+
+
+@pytest.mark.tier1
+class TestTwoHostsTwoIPAddresses(XMLRPC_test):
+    """
+    Test certificate issuance with CSR containing two hosts
+    and two IP addresses (one for each host).
+
+    """
+    def test_host_exists(
+        self, host, host2, ipv4_a, ipv4_ptr, host2_ipv4_a, host2_ipv4_ptr,
+    ):
+        # for convenience, this test also establishes the DNS
+        # record fixtures, which have class scope
+        host.ensure_exists()
+        host2.ensure_exists()
+
+    def test_issuance(self, host, csr_two_dnsname_two_ip):
+        host.run_command(
+            'cert_request', csr_two_dnsname_two_ip, principal=host_princ)
