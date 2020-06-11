@@ -17,17 +17,37 @@ from ipaplatform.osinfo import osinfo
 # So for now, on RHEL we suppress tests that use certbot.
 skip_certbot_tests = osinfo.id not in ['fedora',]
 
+# Fedora mod_md package needs some patches before it will work.
+# RHEL version has the patches.
+skip_mod_md_tests = osinfo.id not in ['rhel',]
+
 
 class TestACME(IntegrationTest):
     """
     Test the FreeIPA ACME service by using ACME clients on a FreeIPA client.
 
-    Right now the only thing we test is the Certbot client using
-    http-01 challenge with Certbot's standalone HTTP server.
-    We can add tests for DNS challenges later.
+    We currently test:
+
+        * service enable/disable (using Curl)
+        * http-01 challenge with Certbot's standalone HTTP server
+        * http-01 challenge with mod_md
+
+    Tests we should add:
+
+        * dns-01 challenge with Certbot and FreeIPA DNS
+          (see https://frasertweedale.github.io
+            /blog-redhat/posts/2020-05-13-ipa-acme-dns.html for details.)
+        * dns-01 challenge with mod_md (see
+          https://httpd.apache.org/docs/current/mod/mod_md.html#mdchallengedns01)
+        * revocation
+
+    Things that are not implmented/supported yet, but may be in future:
+
+        * IP address SAN
+        * tls-alpn-01 challenge
+        * Other clients or service scenarios
 
     """
-
     num_replicas = 0
     num_clients = 1
 
@@ -40,7 +60,8 @@ class TestACME(IntegrationTest):
         # install packages before client install in case of IPA DNS problems
         if not skip_certbot_tests:
             cls.clients[0].run_command(['dnf', 'install', '-y', 'certbot'])
-        cls.clients[0].run_command(['dnf', 'install', '-y', 'mod_md'])
+        if not skip_mod_md_tests:
+            cls.clients[0].run_command(['dnf', 'install', '-y', 'mod_md'])
 
         tasks.install_master(cls.master, setup_dns=True)
 
@@ -114,7 +135,43 @@ class TestACME(IntegrationTest):
     # mod_md tests
     ##############
 
-    # TODO!
+    @pytest.mark.skipif(skip_mod_md_tests, reason='mod_md too old')
+    def test_mod_md(self):
+        # write config
+        self.clients[0].run_command(['mkdir', '-p', '/etc/httpd/conf.d'])
+        self.clients[0].put_file_contents(
+            '/etc/httpd/conf.d/md.conf',
+            '\n'.join([
+                f'MDCertificateAuthority {self.acme_server}',
+                'MDCertificateAgreement accepted',
+                f'MDomain {self.clients[0].hostname}',
+                '<VirtualHost *:443>',
+                f'    ServerName {self.clients[0].hostname}',
+                '    SSLEngine on',
+                '</VirtualHost>\n',
+            ]),
+        )
+
+        # To check for successful cert issuance means knowing how mod_md
+        # stores certificates, or looking for specific log messages.
+        # If the thing we are inspecting changes, the test will break.
+        # So I prefer a conservative sleep.
+        #
+        self.clients[0].run_command(['systemctl', 'restart', 'httpd'])
+        time.sleep(15)
+
+        # We expect mod_md has acquired the certificate by now.
+        # Perform a graceful restart to begin using the cert.
+        # (If mod_md ever learns to start using newly acquired
+        # certificates /without/ the second restart, then both
+        # of these sleeps can be replaced by "loop until good".)
+        #
+        self.clients[0].run_command(['systemctl', 'reload', 'httpd'])
+        time.sleep(3)
+
+        # HTTPS request from server to client (should succeed)
+        self.master.run_command(
+            ['curl', f'https://{self.clients[0].hostname}'])
 
     ######################
     # Disable ACME service
