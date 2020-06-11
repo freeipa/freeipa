@@ -98,8 +98,6 @@ freeipa2-dev-doc
 /init/ipa_memcached
 /init/systemd/ipa-custodia.service
 /init/systemd/ipa.service
-/init/systemd/ipa-epn.service
-/init/systemd/ipa-epn.timer
 /init/tmpfilesd/ipa.conf
 
 !/install/ui/doc/Makefile.in
@@ -120,6 +118,8 @@ freeipa2-dev-doc
 /client/ipa-getkeytab
 /client/ipa-join
 /client/ipa-rmkeytab
+/client/systemd/ipa-epn.service
+/client/systemd/ipa-epn.timer
 
 /ipaplatform/override.py
 /ipapython/version.py
