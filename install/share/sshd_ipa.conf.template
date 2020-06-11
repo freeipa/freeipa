@@ -1,0 +1,8 @@
+# IPA-related configuration changes to sshd_config
+
+PubkeyAuthentication yes
+KerberosAuthentication no
+GSSAPIAuthentication yes
+UsePAM yes
+ChallengeResponseAuthentication yes
+$SSSD_SSHD_OPTIONS
