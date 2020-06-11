@@ -126,6 +126,8 @@ class BasePathNamespace:
     SSH_CONFIG_DIR = "/etc/ssh"
     SSH_CONFIG = "/etc/ssh/ssh_config"
     SSHD_CONFIG = "/etc/ssh/sshd_config"
+    SSHD_IPA_CONFIG = "/etc/ssh/sshd_config.d/04-ipa.conf"
+    SSHD_IPA_CONFIG_TEMPLATE = "/usr/share/ipa/sshd_ipa.conf.template"
     SSSD_CONF = "/etc/sssd/sssd.conf"
     SSSD_CONF_BKP = "/etc/sssd/sssd.conf.bkp"
     SSSD_CONF_DELETED = "/etc/sssd/sssd.conf.deleted"

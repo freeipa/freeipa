@@ -155,6 +155,7 @@ class Backup(admintool.AdminTool):
         paths.HTTPD_KEY_FILE,
         paths.HTTPD_IPA_CONF,
         paths.SSHD_CONFIG,
+        paths.SSHD_IPA_CONFIG,
         paths.SSH_CONFIG,
         paths.KRB5_CONF,
         paths.KDC_CA_BUNDLE_PEM,
