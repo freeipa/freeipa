@@ -27,7 +27,7 @@ these two are assigned the same indicator to represent a brute-force hardened fo
 
 By requiring certain authentication indicators to a user, we can force a user to be authenticated with one of 
 the mechanisms associated with those auth indicators to obtain a ticket.
-By defining a white list of authentication indicators to a service, we can allow a user to use the service 
+By defining an allow list of authentication indicators to a service, we can allow a user to use the service
 only if the user obtained a ticket with at least one of those indicators included.
 
 ### Note
