@@ -90,7 +90,7 @@ class update_ca_renewal_master(Updater):
             if ca_name is None:
                 logger.warning(
                     "certmonger request for RA cert is missing ca_name, "
-                    "assuming local CA is renewal slave")
+                    "assuming local CA is not a renewal master.")
                 return False, []
             ca_name = ca_name.strip()
 
@@ -103,7 +103,7 @@ class update_ca_renewal_master(Updater):
             else:
                 logger.warning(
                     "certmonger request for RA cert has unknown ca_name '%s', "
-                    "assuming local CA is renewal slave", ca_name)
+                    "assuming local CA is not a renewal master", ca_name)
                 return False, []
         else:
             logger.debug("certmonger request for RA cert not found")
@@ -118,7 +118,7 @@ class update_ca_renewal_master(Updater):
             else:
                 logger.warning(
                     "CS.cfg has unknown subsystem.select value '%s', "
-                    "assuming local CA is renewal slave", config)
+                    "assuming local CA is not a renewal master", config)
                 return (False, False, [])
 
         update = {
