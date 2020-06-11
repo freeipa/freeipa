@@ -584,7 +584,7 @@ class host(LDAPObject):
             'krbprincipalauthind*',
             cli_name='auth_ind',
             label=_('Authentication Indicators'),
-            doc=_("Defines a whitelist for Authentication Indicators."
+            doc=_("Defines an allow list for Authentication Indicators."
                   " Use 'otp' to allow OTP-based 2FA authentications."
                   " Use 'radius' to allow RADIUS-based 2FA authentications."
                   " Use 'pkinit' to allow PKINIT-based 2FA authentications."
