@@ -151,7 +151,7 @@ def isvalid_base64(data):
 
     The character set must only include of a-z, A-Z, 0-9, + or / and
     be padded with = to be a length divisible by 4 (so only 0-2 =s are
-    allowed). Its length must be divisible by 4. White space is
+    allowed). Its length must be divisible by 4. Whitespace is
     not significant so it is removed.
 
     This doesn't guarantee we have a base64-encoded value, just that it
