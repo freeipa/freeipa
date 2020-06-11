@@ -183,8 +183,8 @@ def _create_kerberos_principals(ldap, pkey, entry_attrs, failed):
 
 def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
     assert isinstance(dn, DN)
-    attr_blacklist = ['krbprincipalkey','memberofindirect','memberindirect']
-    attr_blacklist.extend(kwargs.get('attr_blacklist', []))
+    attr_blocklist = ['krbprincipalkey','memberofindirect','memberindirect']
+    attr_blocklist.extend(kwargs.get('attr_blocklist', []))
     ds_ldap = ctx['ds_ldap']
     search_bases = kwargs.get('search_bases', None)
     valid_gids = kwargs['valid_gids']
@@ -239,12 +239,12 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
         entry_attrs.setdefault('loginshell', default_shell)
 
     # do not migrate all attributes
-    for attr in attr_blacklist:
+    for attr in attr_blocklist:
         entry_attrs.pop(attr, None)
 
     # do not migrate all object classes
     if 'objectclass' in entry_attrs:
-        for object_class in kwargs.get('oc_blacklist', []):
+        for object_class in kwargs.get('oc_blocklist', []):
             try:
                 entry_attrs['objectclass'].remove(object_class)
             except ValueError:  # object class not present
@@ -408,8 +408,8 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
         entry_attrs['member'] = new_members
 
     assert isinstance(dn, DN)
-    attr_blacklist = ['memberofindirect','memberindirect']
-    attr_blacklist.extend(kwargs.get('attr_blacklist', []))
+    attr_blocklist = ['memberofindirect','memberindirect']
+    attr_blocklist.extend(kwargs.get('attr_blocklist', []))
 
     schema = kwargs.get('schema', None)
     entry_attrs['ipauniqueid'] = 'autogenerate'
@@ -426,12 +426,12 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
         raise ValueError('Schema %s not supported' % schema)
 
     # do not migrate all attributes
-    for attr in attr_blacklist:
+    for attr in attr_blocklist:
         entry_attrs.pop(attr, None)
 
     # do not migrate all object classes
     if 'objectclass' in entry_attrs:
-        for object_class in kwargs.get('oc_blacklist', []):
+        for object_class in kwargs.get('oc_blocklist', []):
             try:
                 entry_attrs['objectclass'].remove(object_class)
             except ValueError:  # object class not present
@@ -505,8 +505,8 @@ class migrate_ds(Command):
         'user': {
             'filter_template' : '(&(|%s)(uid=*))',
             'oc_option' : 'userobjectclass',
-            'oc_blacklist_option' : 'userignoreobjectclass',
-            'attr_blacklist_option' : 'userignoreattribute',
+            'oc_blocklist_option' : 'userignoreobjectclass',
+            'attr_blocklist_option' : 'userignoreattribute',
             'pre_callback' : _pre_migrate_user,
             'post_callback' : _post_migrate_user,
             'exc_callback' : None
@@ -514,8 +514,8 @@ class migrate_ds(Command):
         'group': {
             'filter_template' : '(&(|%s)(cn=*))',
             'oc_option' : 'groupobjectclass',
-            'oc_blacklist_option' : 'groupignoreobjectclass',
-            'attr_blacklist_option' : 'groupignoreattribute',
+            'oc_blocklist_option' : 'groupignoreobjectclass',
+            'attr_blocklist_option' : 'groupignoreattribute',
             'pre_callback' : _pre_migrate_group,
             'post_callback' : None,
             'exc_callback' : _group_exc_callback,
@@ -782,13 +782,17 @@ migration process might be incomplete\n''')
                     ldap_obj.name, self.truncated_err_msg
                 )
 
-            blacklists = {}
-            for blacklist in ('oc_blacklist', 'attr_blacklist'):
-                blacklist_option = self.migrate_objects[ldap_obj_name][blacklist+'_option']
-                if blacklist_option is not None:
-                    blacklists[blacklist] = options.get(blacklist_option, tuple())
+            blocklists = {}
+            for blocklist in ('oc_blocklist', 'attr_blocklist'):
+                blocklist_option = (
+                    self.migrate_objects[ldap_obj_name][blocklist + '_option']
+                )
+                if blocklist_option is not None:
+                    blocklists[blocklist] = options.get(
+                        blocklist_option, tuple()
+                    )
                 else:
-                    blacklists[blacklist] = tuple()
+                    blocklists[blocklist] = tuple()
 
             # get default primary group for new users
             if 'def_group_dn' not in context and options.get('use_def_group'):
@@ -842,7 +846,7 @@ migration process might be incomplete\n''')
                             search_bases=search_bases,
                             valid_gids=valid_gids,
                             invalid_gids=invalid_gids,
-                            **blacklists
+                            **blocklists
                         )
                         if not entry_attrs.dn:
                             continue

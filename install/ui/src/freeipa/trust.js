@@ -156,8 +156,8 @@ return {
                     ]
                 },
                 {
-                    name: 'blacklists',
-                    label: '@i18n:objects.trust.blacklists',
+                    name: 'blocklists',
+                    label: '@i18n:objects.trust.blocklists',
                     fields: [
                         {
                             $type: 'multivalued',

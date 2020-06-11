@@ -140,8 +140,8 @@ bool E_md4hash(const char *passwd, uint8_t p16[16]); /* available in libcliauth-
 #define LDAP_ATTRIBUTE_HOMEDIRECTORY "homeDirectory"
 #define LDAP_ATTRIBUTE_LOGON_SCRIPT "ipaNTLogonScript"
 #define LDAP_ATTRIBUTE_PROFILE_PATH "ipaNTProfilePath"
-#define LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING "ipaNTSIDBlacklistIncoming"
-#define LDAP_ATTRIBUTE_SID_BLACKLIST_OUTGOING "ipaNTSIDBlacklistOutgoing"
+#define LDAP_ATTRIBUTE_SID_BLOCKLIST_INCOMING "ipaNTSIDBlacklistIncoming"
+#define LDAP_ATTRIBUTE_SID_BLOCKLIST_OUTGOING "ipaNTSIDBlacklistOutgoing"
 #define LDAP_ATTRIBUTE_NTHASH "ipaNTHash"
 #define LDAP_ATTRIBUTE_UIDNUMBER "uidnumber"
 #define LDAP_ATTRIBUTE_GIDNUMBER "gidnumber"
@@ -2714,19 +2714,19 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 
 	/* Only add default blacklists for incoming and outgoing SIDs but don't modify existing ones */
 	in_blacklist = get_attribute_values(tmp_ctx, priv2ld(ipasam_state), entry,
-						LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING, &count);
+						LDAP_ATTRIBUTE_SID_BLOCKLIST_INCOMING, &count);
 	out_blacklist = get_attribute_values(tmp_ctx, priv2ld(ipasam_state), entry,
-						LDAP_ATTRIBUTE_SID_BLACKLIST_OUTGOING, &count);
+						LDAP_ATTRIBUTE_SID_BLOCKLIST_OUTGOING, &count);
 
 	for (i = 0; ipa_mspac_well_known_sids[i]; i++) {
 		if (in_blacklist == NULL) {
 			smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
-					      LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING,
+					      LDAP_ATTRIBUTE_SID_BLOCKLIST_INCOMING,
 					      ipa_mspac_well_known_sids[i]);
 		}
 		if (out_blacklist == NULL) {
 			smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
-					      LDAP_ATTRIBUTE_SID_BLACKLIST_OUTGOING,
+					      LDAP_ATTRIBUTE_SID_BLOCKLIST_OUTGOING,
 					      ipa_mspac_well_known_sids[i]);
 		}
 	}

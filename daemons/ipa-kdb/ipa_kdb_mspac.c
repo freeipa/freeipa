@@ -1446,9 +1446,9 @@ krb5_error_code filter_logon_info(krb5_context context,
 
     /* Check if this domain has been filtered out by the trust itself*/
     if (domain->parent != NULL) {
-        for(k = 0; k < domain->parent->len_sid_blacklist_incoming; k++) {
+        for(k = 0; k < domain->parent->len_sid_blocklist_incoming; k++) {
             result = dom_sid_check(info->info->info3.base.domain_sid,
-                                   &domain->parent->sid_blacklist_incoming[k], true);
+                                   &domain->parent->sid_blocklist_incoming[k], true);
             if (result) {
                 filter_logon_info_log_message(info->info->info3.base.domain_sid);
                 return KRB5KDC_ERR_POLICY;
@@ -1457,23 +1457,23 @@ krb5_error_code filter_logon_info(krb5_context context,
     }
 
     /* Check if this user's SIDs membership is filtered too */
-    for(k = 0; k < domain->len_sid_blacklist_incoming; k++) {
+    for(k = 0; k < domain->len_sid_blocklist_incoming; k++) {
         /* Short-circuit if there are no RIDs. This may happen if we filtered everything already.
          * In normal situation there would be at least primary gid as RID in the RIDs array
          * but if we filtered out the primary RID, this MS-PAC is invalid */
         count = info->info->info3.base.groups.count;
         result = dom_sid_is_prefix(info->info->info3.base.domain_sid,
-                                   &domain->sid_blacklist_incoming[k]);
+                                   &domain->sid_blocklist_incoming[k]);
         if (result) {
             i = 0;
             j = 0;
-            if (domain->sid_blacklist_incoming[k].num_auths - info->info->info3.base.domain_sid->num_auths != 1) {
+            if (domain->sid_blocklist_incoming[k].num_auths - info->info->info3.base.domain_sid->num_auths != 1) {
                 krb5_klog_syslog(LOG_ERR, "Incoming SID blacklist element matching domain [%s with SID %s] "
                                           "has more than one RID component. Invalid check skipped.",
                                  domain->domain_name, domain->domain_sid);
                 break;
             }
-            rid = domain->sid_blacklist_incoming[k].sub_auths[domain->sid_blacklist_incoming[k].num_auths - 1];
+            rid = domain->sid_blocklist_incoming[k].sub_auths[domain->sid_blocklist_incoming[k].num_auths - 1];
             if (rid == info->info->info3.base.rid) {
                 filter_logon_info_log_message_rid(info->info->info3.base.domain_sid, rid);
                 /* Actual user's SID is filtered out */
@@ -1544,15 +1544,15 @@ krb5_error_code filter_logon_info(krb5_context context,
                 filter_logon_info_log_message(info->info->info3.sids[i].sid);
             } else {
                 /* Go over incoming SID blacklist */
-                for(k = 0; k < domain->len_sid_blacklist_incoming; k++) {
+                for(k = 0; k < domain->len_sid_blocklist_incoming; k++) {
                     /* if SID is an exact match, filter it out */
-                    result = dom_sid_check(&domain->sid_blacklist_incoming[k], info->info->info3.sids[i].sid, true);
+                    result = dom_sid_check(&domain->sid_blocklist_incoming[k], info->info->info3.sids[i].sid, true);
                     if (result) {
                         filter_logon_info_log_message(info->info->info3.sids[i].sid);
                         break;
                     }
                     /* if SID is a suffix of the blacklist element, filter it out*/
-                    result = dom_sid_is_prefix(&domain->sid_blacklist_incoming[k], info->info->info3.sids[i].sid);
+                    result = dom_sid_is_prefix(&domain->sid_blocklist_incoming[k], info->info->info3.sids[i].sid);
                     if (result) {
                         filter_logon_info_log_message(info->info->info3.sids[i].sid);
                         break;
@@ -2384,8 +2384,8 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
             free((*mspac)->trusts[i].domain_name);
             free((*mspac)->trusts[i].flat_name);
             free((*mspac)->trusts[i].domain_sid);
-            free((*mspac)->trusts[i].sid_blacklist_incoming);
-            free((*mspac)->trusts[i].sid_blacklist_outgoing);
+            free((*mspac)->trusts[i].sid_blocklist_incoming);
+            free((*mspac)->trusts[i].sid_blocklist_outgoing);
             free((*mspac)->trusts[i].parent_name);
             (*mspac)->trusts[i].parent = NULL;
             if ((*mspac)->trusts[i].upn_suffixes) {
@@ -2436,21 +2436,21 @@ krb5_error_code ipadb_adtrusts_fill_sid_blacklist(char **source_sid_blacklist,
 }
 
 krb5_error_code ipadb_adtrusts_fill_sid_blacklists(struct ipadb_adtrusts *adtrust,
-                                                   char **sid_blacklist_incoming,
-                                                   char **sid_blacklist_outgoing)
+                                                   char **sid_blocklist_incoming,
+                                                   char **sid_blocklist_outgoing)
 {
     krb5_error_code kerr;
 
-    kerr = ipadb_adtrusts_fill_sid_blacklist(sid_blacklist_incoming,
-                                             &adtrust->sid_blacklist_incoming,
-                                             &adtrust->len_sid_blacklist_incoming);
+    kerr = ipadb_adtrusts_fill_sid_blacklist(sid_blocklist_incoming,
+                                             &adtrust->sid_blocklist_incoming,
+                                             &adtrust->len_sid_blocklist_incoming);
     if (kerr) {
         return kerr;
     }
 
-    kerr = ipadb_adtrusts_fill_sid_blacklist(sid_blacklist_outgoing,
-                                             &adtrust->sid_blacklist_outgoing,
-                                             &adtrust->len_sid_blacklist_outgoing);
+    kerr = ipadb_adtrusts_fill_sid_blacklist(sid_blocklist_outgoing,
+                                             &adtrust->sid_blocklist_outgoing,
+                                             &adtrust->len_sid_blocklist_outgoing);
     if (kerr) {
         return kerr;
     }
@@ -2482,24 +2482,24 @@ done:
     return ret;
 }
 
-static void ipadb_free_sid_blacklists(char ***sid_blacklist_incoming, char ***sid_blacklist_outgoing)
+static void ipadb_free_sid_blacklists(char ***sid_blocklist_incoming, char ***sid_blocklist_outgoing)
 {
     int i;
 
-    if (sid_blacklist_incoming && *sid_blacklist_incoming) {
-        for (i = 0; *sid_blacklist_incoming && (*sid_blacklist_incoming)[i]; i++) {
-            free((*sid_blacklist_incoming)[i]);
+    if (sid_blocklist_incoming && *sid_blocklist_incoming) {
+        for (i = 0; *sid_blocklist_incoming && (*sid_blocklist_incoming)[i]; i++) {
+            free((*sid_blocklist_incoming)[i]);
         }
-        free(*sid_blacklist_incoming);
-        *sid_blacklist_incoming = NULL;
+        free(*sid_blocklist_incoming);
+        *sid_blocklist_incoming = NULL;
     }
 
-    if (sid_blacklist_outgoing && *sid_blacklist_outgoing) {
-        for (i = 0; *sid_blacklist_outgoing && (*sid_blacklist_outgoing)[i]; i++) {
-            free((*sid_blacklist_outgoing)[i]);
+    if (sid_blocklist_outgoing && *sid_blocklist_outgoing) {
+        for (i = 0; *sid_blocklist_outgoing && (*sid_blocklist_outgoing)[i]; i++) {
+            free((*sid_blocklist_outgoing)[i]);
         }
-        free(*sid_blacklist_outgoing);
-        *sid_blacklist_outgoing = NULL;
+        free(*sid_blocklist_outgoing);
+        *sid_blocklist_outgoing = NULL;
     }
 }
 
@@ -2519,8 +2519,8 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
     char *dnstr = NULL;
     char *dnl = NULL;
     LDAPDN dn = NULL;
-    char **sid_blacklist_incoming = NULL;
-    char **sid_blacklist_outgoing = NULL;
+    char **sid_blocklist_incoming = NULL;
+    char **sid_blocklist_outgoing = NULL;
     int ret, n, i;
 
     ret = asprintf(&base, "cn=ad,cn=trusts,%s", ipactx->base);
@@ -2604,13 +2604,13 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
         }
 
         ret = ipadb_ldap_attr_to_strlist(lc, le, "ipaNTSIDBlacklistIncoming",
-                                         &sid_blacklist_incoming);
+                                         &sid_blocklist_incoming);
 
         if (ret) {
             if (ret == ENOENT) {
                 /* This attribute is optional */
                 ret = 0;
-                sid_blacklist_incoming = NULL;
+                sid_blocklist_incoming = NULL;
             } else {
                 ret = EINVAL;
                 goto done;
@@ -2618,13 +2618,13 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
         }
 
         ret = ipadb_ldap_attr_to_strlist(lc, le, "ipaNTSIDBlacklistOutgoing",
-                                         &sid_blacklist_outgoing);
+                                         &sid_blocklist_outgoing);
 
         if (ret) {
             if (ret == ENOENT) {
                 /* This attribute is optional */
                 ret = 0;
-                sid_blacklist_outgoing = NULL;
+                sid_blocklist_outgoing = NULL;
             } else {
                 ret = EINVAL;
                 goto done;
@@ -2632,13 +2632,13 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
         }
 
         ret = ipadb_adtrusts_fill_sid_blacklists(&t[n],
-                                                 sid_blacklist_incoming,
-                                                 sid_blacklist_outgoing);
+                                                 sid_blocklist_incoming,
+                                                 sid_blocklist_outgoing);
         if (ret) {
             goto done;
         }
-        ipadb_free_sid_blacklists(&sid_blacklist_incoming,
-                                  &sid_blacklist_outgoing);
+        ipadb_free_sid_blacklists(&sid_blocklist_incoming,
+                                  &sid_blocklist_outgoing);
 
         /* Parse first two RDNs of the entry to find its parent */
         dnl = strcasestr(dnstr, base);
@@ -2696,8 +2696,8 @@ done:
     }
     free(dnstr);
     free(base);
-    ipadb_free_sid_blacklists(&sid_blacklist_incoming,
-                              &sid_blacklist_outgoing);
+    ipadb_free_sid_blacklists(&sid_blocklist_incoming,
+                              &sid_blocklist_outgoing);
     ldap_msgfree(res);
     return ret;
 }

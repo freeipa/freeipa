@@ -70,7 +70,7 @@ struct test_ctx {
 #define FLAT_NAME "MYDOM"
 #define DOM_SID "S-1-5-21-1-2-3"
 #define DOM_SID_TRUST "S-1-5-21-4-5-6"
-#define BLACKLIST_SID "S-1-5-1"
+#define BLOCKLIST_SID "S-1-5-1"
 
 static int setup(void **state)
 {
@@ -117,13 +117,13 @@ static int setup(void **state)
     ret = string_to_sid(DOM_SID_TRUST, &ipa_ctx->mspac->trusts[0].domsid);
     assert_int_equal(ret, 0);
 
-    ipa_ctx->mspac->trusts[0].len_sid_blacklist_incoming = 1;
-    ipa_ctx->mspac->trusts[0].sid_blacklist_incoming = calloc(
-                           ipa_ctx->mspac->trusts[0].len_sid_blacklist_incoming,
+    ipa_ctx->mspac->trusts[0].len_sid_blocklist_incoming = 1;
+    ipa_ctx->mspac->trusts[0].sid_blocklist_incoming = calloc(
+                           ipa_ctx->mspac->trusts[0].len_sid_blocklist_incoming,
                            sizeof(struct dom_sid));
-    assert_non_null(ipa_ctx->mspac->trusts[0].sid_blacklist_incoming);
-    ret = string_to_sid(BLACKLIST_SID,
-                        &ipa_ctx->mspac->trusts[0].sid_blacklist_incoming[0]);
+    assert_non_null(ipa_ctx->mspac->trusts[0].sid_blocklist_incoming);
+    ret = string_to_sid(BLOCKLIST_SID,
+                        &ipa_ctx->mspac->trusts[0].sid_blocklist_incoming[0]);
     assert_int_equal(ret, 0);
 
     ipa_ctx->kcontext = krb5_ctx;
@@ -240,22 +240,22 @@ void test_filter_logon_info(void **state)
         {3, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1001", DOM_SID_TRUST"-1002"},
          3, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1001", DOM_SID_TRUST"-1002"}},
         /* last SID filtered */
-        {3, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1001", BLACKLIST_SID"-1002"},
+        {3, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1001", BLOCKLIST_SID"-1002"},
          2, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1001"}},
         /* center SID filtered */
-        {3, {DOM_SID_TRUST"-1000", BLACKLIST_SID"-1001", DOM_SID_TRUST"-1002"},
+        {3, {DOM_SID_TRUST"-1000", BLOCKLIST_SID"-1001", DOM_SID_TRUST"-1002"},
          2, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1002"}},
         /* first SID filtered */
-        {3, {BLACKLIST_SID"-1000", DOM_SID_TRUST"-1001", DOM_SID_TRUST"-1002"},
+        {3, {BLOCKLIST_SID"-1000", DOM_SID_TRUST"-1001", DOM_SID_TRUST"-1002"},
          2, {DOM_SID_TRUST"-1001", DOM_SID_TRUST"-1002"}},
         /* first and last SID filtered */
-        {3, {BLACKLIST_SID"-1000", DOM_SID_TRUST"-1001", BLACKLIST_SID"-1002"},
+        {3, {BLOCKLIST_SID"-1000", DOM_SID_TRUST"-1001", BLOCKLIST_SID"-1002"},
          1, {DOM_SID_TRUST"-1001"}},
         /* two SIDs in a rwo filtered */
-        {3, {BLACKLIST_SID"-1000", BLACKLIST_SID"-1001", DOM_SID_TRUST"-1002"},
+        {3, {BLOCKLIST_SID"-1000", BLOCKLIST_SID"-1001", DOM_SID_TRUST"-1002"},
          1, {DOM_SID_TRUST"-1002"}},
         /* all SIDs filtered*/
-        {3, {BLACKLIST_SID"-1000", BLACKLIST_SID"-1001", BLACKLIST_SID"-1002"},
+        {3, {BLOCKLIST_SID"-1000", BLOCKLIST_SID"-1001", BLOCKLIST_SID"-1002"},
          0, {}},
         {0, {}, 0 , {}}
     };

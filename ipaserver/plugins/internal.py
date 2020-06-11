@@ -1514,7 +1514,7 @@ class i18n_messages(Command):
                 "account": _("Account"),
                 "add": _("Add trust"),
                 "admin_account": _("Administrative account"),
-                "blacklists": _("SID blacklists"),
+                "blocklists": _("SID blocklists"),
                 "details": _("Trust Settings"),
                 "domain": _("Domain"),
                 "establish_using": _("Establish using"),

@@ -661,14 +661,14 @@ class update_managed_permissions(Updater):
         # Exclude attributes filtered from the global read ACI
         replaces_ga_aci = template.pop('replaces_global_anonymous_aci', False)
         if replaces_ga_aci and is_new and anonymous_read_aci:
-            read_blacklist = set(
+            read_blocklist = set(
                 a.lower() for a in
                 anonymous_read_aci.target['targetattr']['expression'])
-            read_blacklist &= attributes
-            if read_blacklist:
+            read_blocklist &= attributes
+            if read_blocklist:
                 logger.debug('Excluded attributes for %s: %s',
-                             name, ', '.join(read_blacklist))
-                entry['ipapermexcludedattr'] = list(read_blacklist)
+                             name, ', '.join(read_blocklist))
+                entry['ipapermexcludedattr'] = list(read_blocklist)
 
         # Sanity check
         if template:
