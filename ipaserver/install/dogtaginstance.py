@@ -308,11 +308,12 @@ class DogtagInstance(service.Service):
         doc = server_xml.getroot()
 
         # no AJP connector means no need to update anything
-        connectors = doc.xpath('//Connector[@port="8009"]')
+        connectors = doc.xpath('//Connector[@protocol="AJP/1.3"]')
         if len(connectors) == 0:
             return
 
-        # AJP connector is set on port 8009. Use non-greedy search to find it
+        # AJP protocol is at version 1.3. Assume there is only one as
+        # Dogtag only provisions one.
         connector = connectors[0]
 
         # Detect tomcat version and choose the right option name
@@ -331,11 +332,24 @@ class DogtagInstance(service.Service):
             rewrite = False
         else:
             if oldattr in connector.attrib:
+                # Sufficiently new Dogtag versions (10.9.0-a2) handle the
+                # upgrade for us; we need only to ensure that we're not both
+                # attempting to upgrade server.xml at the same time.
+                # Hopefully this is guaranteed for us.
                 self.ajp_secret = connector.attrib[oldattr]
                 connector.attrib[secretattr] = self.ajp_secret
                 del connector.attrib[oldattr]
             else:
-                # Generate password, don't use special chars to not break XML
+                # Generate password, don't use special chars to not break XML.
+                #
+                # If we hit this case, pkispawn was run on an older Dogtag
+                # version and we're stuck migrating, choosing a password
+                # ourselves. Dogtag can't generate one randomly because a
+                # Dogtag administrator might've configured AJP and might
+                # not be using IPA.
+                #
+                # Newer Dogtag versions will generate a random password
+                # during pkispawn.
                 self.ajp_secret = ipautil.ipa_generate_password(special=None)
                 connector.attrib[secretattr] = self.ajp_secret
 
