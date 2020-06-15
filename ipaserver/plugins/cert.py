@@ -1826,9 +1826,14 @@ class cert_find(Search, CertMethod):
         truncated = False
         complete = False
 
-        for sub_search in (self._cert_search,
-                           self._ca_search,
-                           self._ldap_search):
+        # Do not execute the CA sub-search in CA-less deployment.
+        # See https://pagure.io/freeipa/issue/8369.
+        if ca_enabled:
+            searches = [self._cert_search, self._ca_search, self._ldap_search]
+        else:
+            searches = [self._cert_search, self._ldap_search]
+
+        for sub_search in searches:
             sub_result, sub_truncated, sub_complete = sub_search(
                 all=all,
                 raw=raw,
