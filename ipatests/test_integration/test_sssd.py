@@ -318,7 +318,10 @@ class TestSSSDWithAdTrust(IntegrationTest):
                                  '--uid=10001', '--gid=10000'])
         try:
             clear_sssd_cache(client)
-            verify_retrieved_users_domain()
+            sssd_version = tasks.get_sssd_version(client)
+            with xfail_context(sssd_version < tasks.parse_version('2.3.0'),
+                               'https://pagure.io/SSSD/sssd/issue/4173'):
+                verify_retrieved_users_domain()
         finally:
             self.master.run_command(['ipa', 'idview-del', idview])
 
