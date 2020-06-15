@@ -97,10 +97,13 @@ class join(Command):
         assert 'cn' not in kw
         ldap = self.api.Backend.ldap2
 
+        # realm parameter is not supported by host_{add,mod}
+        kw.pop('realm', None)
+
         try:
             # First see if the host exists
-            kw = {'fqdn': hostname, 'all': True}
-            attrs_list = api.Command['host_show'](**kw)['result']
+            show_kw = {'fqdn': hostname, 'all': True}
+            attrs_list = api.Command['host_show'](**show_kw)['result']
             dn = attrs_list['dn']
 
             # No error raised so far means that host entry exists
@@ -112,7 +115,8 @@ class join(Command):
             # one.
             if 'krbprincipalname' not in attrs_list:
                 service = "host/%s@%s" % (hostname, api.env.realm)
-                api.Command['host_mod'](hostname, krbprincipalname=service)
+                api.Command['host_mod'](hostname, **kw,
+                                        krbprincipalname=service)
                 logger.info('No principal set, setting to %s', service)
 
             # It exists, can we write the password attributes?
@@ -122,12 +126,11 @@ class join(Command):
                     "to the 'krbLastPwdChange' attribute of entry '%s'.") % dn)
 
             # Reload the attrs_list and dn so that we return update values
-            kw = {'fqdn': hostname, 'all': True}
-            attrs_list = api.Command['host_show'](**kw)['result']
+            attrs_list = api.Command['host_show'](**show_kw)['result']
             dn = attrs_list['dn']
 
         except errors.NotFound:
-            attrs_list = api.Command['host_add'](hostname,
+            attrs_list = api.Command['host_add'](hostname, **kw,
                                                  force=True)['result']
             dn = attrs_list['dn']
 
@@ -135,4 +138,4 @@ class join(Command):
         attrs_list['ipacertificatesubjectbase'] =\
             config['ipacertificatesubjectbase']
 
-        return (dn, attrs_list)
+        return dn, attrs_list

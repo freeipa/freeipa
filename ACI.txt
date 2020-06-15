@@ -141,7 +141,7 @@ aci: (targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbprincipalname")(targetfilter = "(&(!(krbprincipalname=*))(objectclass=ipahost))")(version 3.0;acl "permission:System: Add krbPrincipalName to a Host";allow (write) groupdn = "ldap:///cn=System: Add krbPrincipalName to a Host,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "enrolledby || objectclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Enroll a Host";allow (write) groupdn = "ldap:///cn=System: Enroll a Host,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetattr = "enrolledby || nshardwareplatform || nsosversion || objectclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Enroll a Host";allow (write) groupdn = "ldap:///cn=System: Enroll a Host,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "usercertificate")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Certificates";allow (write) groupdn = "ldap:///cn=System: Manage Host Certificates,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
