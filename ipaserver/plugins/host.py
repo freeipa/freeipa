@@ -361,7 +361,9 @@ class host(LDAPObject):
         },
         'System: Enroll a Host': {
             'ipapermright': {'write'},
-            'ipapermdefaultattr': {'objectclass', 'enrolledby'},
+            'ipapermdefaultattr': {
+                'objectclass', 'enrolledby', 'nshardwareplatform', 'nsosversion'
+            },
             'replaces': [
                 '(targetattr = "objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)',
                 '(targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)',
