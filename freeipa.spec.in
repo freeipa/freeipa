@@ -72,8 +72,12 @@
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
 %global samba_version 2:4.7.0
-# SELinux context for /etc/named directory, RHBZ#1759495
-%global selinux_policy_version 3.14.3-52
+# SELinux context for dirsrv unit file, BZ 1820298
+%if 0%{?fedora} >= 32
+%global selinux_policy_version 3.14.5-39
+%else
+%global selinux_policy_version 3.14.4-52
+%endif
 %global slapi_nis_version 0.56.1
 
 # krb5 can only provide one KDB at a time
