@@ -7,11 +7,18 @@
 FreeIPA does not currently allow users to have more than one password.
 Using a single password for the user's account carries potential risk and
 inconvenience with it. If the password is compromised on only one of the devices
-the user uses, the attacker gains full administrative access to the user's
-account and all systems and services associated with it. The user can then halt
-it only by changing this single account's password and reconfiguring all systems
-and applications using that password for authentication (even if only to one
-particular service) to use the new one.
+(desktop computers, laptops, tablets, smartphones etc.) the user uses, the
+attacker gains full administrative access to the user's account and all systems
+and services associated with it. Note that:
+* A 'system' is a host (device), which the user accesses using his/her FreeIPA
+  account.
+* A 'service' can be a web application, such as a social network, entertainment
+  site, online game, instant messaging application, application for working with
+  some type of content (multimedia, models, documents) etc., but it can also be
+  a mail service, an enterprise information system, or various other things.
+The user can then halt it only by changing this single account's password and
+reconfiguring all systems and applications using that password for
+authentication (even if only to one particular service) to use the new one.
 
 This enhancement therefore brings support for app passwords (sometimes also
 called application-specific passwords), a form of multiple passwords for a single
@@ -235,27 +242,39 @@ TBD
 | Command | Arguments | Options |
 | ------- | --------- | ------- |
 | apppw-add | username (user's uid), displayname, appname |  |
-| apppw-list | username (user's uid) |  |
+| apppw-find | username (user's uid) |  |
 | apppw-del | username (user's uid), uuid |  |
 
 ## Test Plan
 
 1. All existing tests must pass. This also ensures that the user can have only
-one password.
+the primary password.
 2. Test app passwords:
-   1. Add one app password using WebUI and one using CLI.
-   2. Check that using these app passwords, it is possible to authenticate to
-      all services and systems, but not to the FreeIPA server itself for account
-      management.
-   3. Log in using the primary password.
-   4. Check whether all user's passwords are listed in the WebUI or by using an
-      appropriate command in CLI.
-   5. Delete both app passwords - the one created using WebUI by using CLI, and
+   1. Log in to FreeIPA using the primary password.
+   2. Add one app password using WebUI and one using CLI.
+   3. Log out from FreeIPA.
+   4. Check that using these app passwords, it is possible to authenticate to
+      all systems and services that use this FreeIPA account, but not to the
+      FreeIPA server itself for account management.
+   5. Log in to FreeIPA using the primary password.
+   6. Check whether all user's passwords are properly listed in the WebUI or by
+      using an appropriate command in CLI.
+   7. Delete both app passwords - the one created using WebUI by using CLI, and
       vice versa.
-   6. Repeat steps 2.1 - 2.6 with using the both the deleted old and new app
-      passwords in step 2.2. Authentication using the deleted old app passwords
-      must fail, and authentication using the new app passwords must succeed.
-   7. Chceck that the user now only has the primary password.
+   8. Log out from FreeIPA.
+   9. Repeat steps 2.1 - 2.8 with 2 differences:
+      1. Use both the deleted old and new app passwords in step 2.4.
+         Authentication using the deleted old app passwords must fail, and
+         authentication using the new app passwords must succeed.
+      2. When deleting the new app passwords, delete the one created in CLI
+         using CLI, and the one created in Web UI using Web UI.
+   10. Check that the user now only has the primary password - log in to FreeIPA
+       using the primary password, check that no app passwords are listed either
+       in CLI or in Web UI, and also try to access all systems and services that
+       use this FreeIPA account. This must all succeed. Then log out from 
+       FreeIPA and try to authenticte to all systems and services that use this
+       FreeIPA account using all the app passwords created and deleted in the
+       above steps. This must all fail.
 3. Test interactions with SSSD using the new functionality.
    * Repeat all procedures from the point 2, but when testing logins to apps,
      perform them on a client using SSSD configured against the testing FreeIPA
@@ -271,22 +290,28 @@ for HBAC to be applicable to users logged in using app passwords.
 Subaccounts will be introduced with principals in the form 
 ```_user_/_appname_@_REALM_```
 (to be consistent with other things in FreeIPA) - a username will remain the
-same for subaccounts, only the principal will contain the app name. The code of
-FreeIPA must be modified to take into account the newly changed assumptions.
-Until now, these were:
-* two-component principals with a host as the first component are always host
-  principals (`_host_/_fqdn_`)
+same for subaccounts, only the principal will contain the app name. For example:
+```dking/gmail@COMPANY.COM```
+The code of FreeIPA must be modified to take into account the newly changed
+assumptions. Until now, these were:
+* two-component principals with 'host' as the first component are always host
+  principals (`host/_fqdn_` - for example:
+  `host/backup.company.com@COMPANY.COM`)
 * all other two-component principals are always service principals
-  (`_service_/_fqdn_`)
-* single-component principals are always users (user)
+  (`_service_/_fqdn_` - for example: `chat/hr.company.com@COMPANY.COM`)
+* single-component principals are always users (`user` - for example:
+  `jdoe@COMPANY.COM`)
 Now, they will be:
-* two-component principals with an app name as the first component are users
-  logged in with an app password (`_user_/_appname_`)
-* two-component principals with a host as the first component are host
-  principals (`_host_/_fqdn_`)
-* all other two-component principals are service principals (`_service_/_fqdn_`)
+* two-component principals with 'host' as the first component and a FQDN as the
+  second component are host principals (`host/_fqdn_` - for example:
+  `host/backup.company.com@COMPANY.COM`)
+* all other two-component principals with a FQDN as the second component are
+  service principals (`_service_/_fqdn_` - for example:
+  `chat/hr.company.com@COMPANY.COM`)
+* all other two-component principals are users logged in with an app password
+  (`_user_/_appname_` - for example: `jdoe/fileshare@COMPANY.COM`)
 * single-component principals are users logged in with their primary password
-  (`user`)
+  (`user` - for example: `jdoe@COMPANY.COM`)
 
 The user must not be able to create a principal looking like a host or a 
 service, or even set a password for another user. These problems are already
