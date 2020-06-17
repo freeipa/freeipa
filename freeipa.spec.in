@@ -37,7 +37,7 @@
 %endif
 
 # Include SELinux subpackage
-%if 0%{?fedora} >= 30 || 0%{?rhel} > 8
+%if 0%{?fedora} >= 30 || 0%{?rhel}
     %global with_selinux 1
     %global selinuxtype targeted
     %global modulename ipa
