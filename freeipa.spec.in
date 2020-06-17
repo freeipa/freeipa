@@ -191,7 +191,12 @@ BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_certmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= %{sssd_version}
 BuildRequires:  nodejs(abi)
+# use old dependency on RHEL 8 for now
+%if 0%{?rhel}
+BuildRequires:  uglify-js
+%else
 BuildRequires:  python3-rjsmin
+%endif
 BuildRequires:  libverto-devel
 BuildRequires:  libunistring-devel
 # 0.13.0: https://bugzilla.redhat.com/show_bug.cgi?id=1584773
