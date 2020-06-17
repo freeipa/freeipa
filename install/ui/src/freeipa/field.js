@@ -1392,6 +1392,8 @@ field.certs_field = IPA.certs_field = function(spec) {
     that.acl_result_index = spec.acl_result_index;
 
     that.load = function(data) {
+        if (!IPA.cert.is_enabled()) return;
+
         var value = that.adapter.load(data);
         var parsed = util.parse(that.data_parser, value, "Parse error:"+that.name);
         value = parsed.value;

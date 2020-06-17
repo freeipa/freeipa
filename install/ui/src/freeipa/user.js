@@ -662,18 +662,20 @@ IPA.user.details_facet = function(spec, no_init) {
 
         batch.add_command(krbtpolicy_command);
 
-        var certificates = rpc.command({
-            entity: 'cert',
-            method: 'find',
-            retry: false,
-            options: {
-                user: [ pkey ],
-                sizelimit: 0,
-                all: true
-            }
-        });
+        if (IPA.cert.is_enabled()) {
+            var certificates = rpc.command({
+                entity: 'cert',
+                method: 'find',
+                retry: false,
+                options: {
+                    user: [ pkey ],
+                    sizelimit: 0,
+                    all: true
+                }
+            });
 
-        batch.add_command(certificates);
+            batch.add_command(certificates);
+        }
 
         return batch;
     };

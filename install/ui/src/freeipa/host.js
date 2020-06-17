@@ -520,18 +520,20 @@ IPA.host.details_facet = function(spec, no_init) {
         var host_command = that.details_facet_create_refresh_command();
         batch.add_command(host_command);
 
-        var certificates = rpc.command({
-            entity: 'cert',
-            method: 'find',
-            retry: false,
-            options: {
-                host: [ pkey ],
-                sizelimit: 0,
-                all: true
-            }
-        });
+        if (IPA.cert.is_enabled()) {
+            var certificates = rpc.command({
+                entity: 'cert',
+                method: 'find',
+                retry: false,
+                options: {
+                    host: [ pkey ],
+                    sizelimit: 0,
+                    all: true
+                }
+            });
 
-        batch.add_command(certificates);
+            batch.add_command(certificates);
+        }
 
         return batch;
 

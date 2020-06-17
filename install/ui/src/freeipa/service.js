@@ -511,18 +511,20 @@ IPA.service.details_facet = function(spec, no_init) {
         var service_command = that.details_facet_create_refresh_command();
         batch.add_command(service_command);
 
-        var certificates = rpc.command({
-            entity: 'cert',
-            method: 'find',
-            retry: false,
-            options: {
-                service: [ pkey ],
-                sizelimit: 0,
-                all: true
-            }
-        });
+        if (IPA.cert.is_enabled()) {
+            var certificates = rpc.command({
+                entity: 'cert',
+                method: 'find',
+                retry: false,
+                options: {
+                    service: [ pkey ],
+                    sizelimit: 0,
+                    all: true
+                }
+            });
 
-        batch.add_command(certificates);
+            batch.add_command(certificates);
+        }
 
         return batch;
     };
