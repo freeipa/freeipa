@@ -840,7 +840,9 @@ class PKIIniLoader:
             pki_subsystem_type=subsystem.lower(),
             home_dir=os.path.expanduser("~"),
             # for softhsm2 testing
-            softhsm2_so=paths.LIBSOFTHSM2_SO
+            softhsm2_so=paths.LIBSOFTHSM2_SO,
+            # Configure a more secure AJP password by default
+            ipa_ajp_secret=ipautil.ipa_generate_password(special=None)
         )
 
     @classmethod
