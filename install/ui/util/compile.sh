@@ -23,6 +23,9 @@ set -o errexit
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 RDIR=$DIR/../release
 
+# for platform ID
+. /etc/os-release
+
 usage() {
 cat <<-__EOF__;
 NAME
@@ -105,7 +108,13 @@ if [[ ! $OUTPUT_FILE ]] ; then
     OUTPUT_FILE=$RDIR/$RELEASE/$LAYER.js
 fi
 
-# compile using python rjsmin
+# compile using python rjsmin on most platforms and uglify-js on RHEL 8
 echo "Minimizing: $RDIR/$RELEASE/$LAYER.js"
 echo "Target file: $OUTPUT_FILE"
-${PYTHON:-python3} -m rjsmin < $RDIR/$RELEASE/$LAYER.js > $OUTPUT_FILE
+if [ $ID = "rhel" ]; then
+    echo "Minifier: uglifyjs"
+    uglifyjs < $RDIR/$RELEASE/$LAYER.js > $OUTPUT_FILE
+else
+    echo "Minifier: rjsmin"
+    ${PYTHON:-python3} -m rjsmin < $RDIR/$RELEASE/$LAYER.js > $OUTPUT_FILE
+fi
