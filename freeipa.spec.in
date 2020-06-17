@@ -46,8 +46,8 @@
 %if 0%{?rhel}
 %global package_name ipa
 %global alt_name freeipa
-%global krb5_version 1.16.1
-%global krb5_kdb_version 7.0
+%global krb5_version 1.18
+%global krb5_kdb_version 8.0
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
