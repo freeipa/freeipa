@@ -23,6 +23,10 @@ topologies:
     name: master_3repl_1client
     cpu: 6
     memory: 12900
+  ad_master: &ad_master
+    name: ad_master
+    cpu: 4
+    memory: 12000
 
 jobs:
   pki-fedora/build:
@@ -791,7 +795,7 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
-        test_suite: test_integration/test_ipahealthcheck.py
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS
         template: *pki-master-latest
         timeout: 4800
         topology: *master_1repl
