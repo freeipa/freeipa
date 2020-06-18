@@ -1441,10 +1441,23 @@ jobs:
       args:
         build_url: '{fedora-rawhide/build_url}'
         update_packages: True
-        test_suite: test_integration/test_ipahealthcheck.py
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS
         template: *ci-master-frawhide
         timeout: 4800
         topology: *master_1repl
+
+  fedora-rawhide/test_ipahealthcheck_adtrust:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithADtrust
+        template: *ci-master-frawhide
+        timeout: 4800
+        topology: *ad_master
 
   fedora-rawhide/test_ntp_options:
     requires: [fedora-rawhide/build]

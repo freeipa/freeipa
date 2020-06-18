@@ -1441,9 +1441,23 @@ jobs:
       args:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
-        test_suite: test_integration/test_ipahealthcheck.py
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS
+        template: *testing-master-latest
+        topology: *master_1repl
+        timeout: 4800
+
+  testing-fedora/test_ipahealthcheck_adtrust:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithADtrust
         template: *testing-master-latest
         timeout: 4800
+        topology: *ad_master
 
   testing-fedora/test_ntp_options:
     requires: [testing-fedora/build]
