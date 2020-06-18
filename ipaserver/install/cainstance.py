@@ -408,7 +408,6 @@ class CAInstance(DogtagInstance):
             self.step("stopping certificate server instance to update CS.cfg",
                       self.stop_instance)
             self.step("backing up CS.cfg", self.safe_backup_config)
-            self.step("disabling nonces", self.__disable_nonce)
             self.step("set up CRL publishing", self.__enable_crl_publish)
             self.step("enable PKIX certificate path discovery and validation",
                       self.enable_pkix)
@@ -665,16 +664,6 @@ class CAInstance(DogtagInstance):
             'FQDN': self.fqdn,
         })
         ld.update([paths.CA_TOPOLOGY_ULDIF])
-
-    def __disable_nonce(self):
-        # Turn off Nonces
-        update_result = installutils.update_file(
-            self.config, 'ca.enableNonces=true',
-            'ca.enableNonces=false')
-        if update_result != 0:
-            raise RuntimeError("Disabling nonces failed")
-        pent = pwd.getpwnam(self.service_user)
-        os.chown(self.config, pent.pw_uid, pent.pw_gid)
 
     def enable_pkix(self):
         directivesetter.set_directive(paths.SYSCONFIG_PKI_TOMCAT,
