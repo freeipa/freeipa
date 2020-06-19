@@ -70,7 +70,8 @@ def get_security_domain():
     connection = PKIConnection(
         protocol='https',
         hostname=api.env.ca_host,
-        port='8443'
+        port='8443',
+        cert_paths=paths.IPA_CA_CRT
     )
     domain_client = pki.system.SecurityDomainClient(connection)
     info = domain_client.get_security_domain_info()
