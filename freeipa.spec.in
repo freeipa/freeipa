@@ -1089,7 +1089,7 @@ fi
 %endif
 
 
-%triggerin client -- openssh-server
+%triggerin client -- openssh-server < 8.2
 # Has the client been configured?
 restore=0
 test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
@@ -1119,6 +1119,26 @@ if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
 
         mv -Z /etc/ssh/sshd_config.ipanew /etc/ssh/sshd_config
         chmod 600 /etc/ssh/sshd_config
+
+        /bin/systemctl condrestart sshd.service 2>&1 || :
+    fi
+fi
+
+
+%triggerin client -- openssh-server >= 8.2
+# Has the client been configured?
+restore=0
+test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
+
+if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
+    # If the snippet already exists, skip
+    if [ ! -f '/etc/ssh/sshd_config.d/04-ipa.conf' ]; then
+        # Take the values from /etc/ssh/sshd_config and put them in 04-ipa.conf
+        grep -E '^(PubkeyAuthentication|KerberosAuthentication|GSSAPIAuthentication|UsePAM|ChallengeResponseAuthentication|AuthorizedKeysCommand|AuthorizedKeysCommandUser)' /etc/ssh/sshd_config 2>/dev/null > /etc/ssh/sshd_config.d/04-ipa.conf
+        # Remove the values from sshd_conf
+        sed -ri '
+            /^(PubkeyAuthentication|KerberosAuthentication|GSSAPIAuthentication|UsePAM|ChallengeResponseAuthentication|AuthorizedKeysCommand|AuthorizedKeysCommandUser)[ \t]/ d
+        ' /etc/ssh/sshd_config
 
         /bin/systemctl condrestart sshd.service 2>&1 || :
     fi
