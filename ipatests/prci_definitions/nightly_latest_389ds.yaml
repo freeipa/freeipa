@@ -114,7 +114,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_caless.py::TestReplicaInstall
         template: *389ds-master-latest
-        timeout: 5400
+        timeout: 7200
         topology: *master_1repl
 
   389ds-fedora/test_caless_TestClientInstall:
