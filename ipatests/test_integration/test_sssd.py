@@ -481,6 +481,34 @@ class TestSSSDWithAdTrust(IntegrationTest):
         for text in verify_in_stdout:
             assert text in second_res.stdout_text
 
+    @contextmanager
+    def override_gid_setup(self, gid):
+        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        try:
+            with tasks.remote_sssd_config(self.master) as sssd_conf:
+                sssd_conf.edit_domain(self.master.domain,
+                                      'override_gid', gid)
+            tasks.clear_sssd_cache(self.master)
+            yield
+        finally:
+            sssd_conf_backup.restore()
+            tasks.clear_sssd_cache(self.master)
+
+    def test_override_gid_subdomain(self):
+        """Test that override_gid is working for subdomain
+
+        This is a regression test for sssd bug:
+        https://pagure.io/SSSD/sssd/issue/4061
+        """
+        tasks.clear_sssd_cache(self.master)
+        user = self.users['child_ad']['name']
+        gid = 10264
+        # verify the user can be retrieved initially
+        self.master.run_command(['id', user])
+        with self.override_gid_setup(gid):
+            test_gid = self.master.run_command(['id', user])
+            assert 'gid={id}'.format(id=gid) in test_gid.stdout_text
+
 
 class TestNestedMembers(IntegrationTest):
     num_clients = 1
