@@ -509,6 +509,13 @@ class CAInstance(DogtagInstance):
         else:
             pki_pin = None
 
+        # When spawning a CA instance, always point to IPA_CA_CRT if it
+        # exists. Later, when we're performing step 2 of an external CA
+        # installation, we'll overwrite this key to point to the real
+        # external CA.
+        if os.path.exists(paths.IPA_CA_CRT):
+            cfg['pki_cert_chain_path'] = paths.IPA_CA_CRT
+
         if self.clone:
             if self.no_db_setup:
                 cfg.update(
