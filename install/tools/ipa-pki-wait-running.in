@@ -59,7 +59,8 @@ def get_conn(hostname, subsystem):
     """
     conn = PKIConnection(
         hostname=hostname,
-        subsystem=subsystem
+        subsystem=subsystem,
+        cert_paths=paths.IPA_CA_CRT
     )
     logger.info(
         "Created connection %s://%s:%s/%s",
