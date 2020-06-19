@@ -507,7 +507,10 @@ class TestSSSDWithAdTrust(IntegrationTest):
         self.master.run_command(['id', user])
         with self.override_gid_setup(gid):
             test_gid = self.master.run_command(['id', user])
-            assert 'gid={id}'.format(id=gid) in test_gid.stdout_text
+            sssd_version = tasks.get_sssd_version(self.master)
+            with xfail_context(sssd_version < tasks.parse_version('2.3.0'),
+                               'https://pagure.io/SSSD/sssd/issue/4061'):
+                assert 'gid={id}'.format(id=gid) in test_gid.stdout_text
 
 
 class TestNestedMembers(IntegrationTest):
