@@ -241,7 +241,6 @@ digits and nothing else follows.
 
 from __future__ import absolute_import
 
-import datetime
 import json
 import logging
 
@@ -651,12 +650,14 @@ def parse_check_request_result_xml(doc):
 
     updated_on = doc.xpath('//xml/header/updatedOn[1]')
     if len(updated_on) == 1:
-        updated_on = datetime.datetime.utcfromtimestamp(int(updated_on[0].text))
+        updated_on = ipautil.datetime_from_utctimestamp(
+            int(updated_on[0].text), units=1)
         response['updated_on'] = updated_on
 
     created_on = doc.xpath('//xml/header/createdOn[1]')
     if len(created_on) == 1:
-        created_on = datetime.datetime.utcfromtimestamp(int(created_on[0].text))
+        created_on = ipautil.datetime_from_utctimestamp(
+            int(created_on[0].text), units=1)
         response['created_on'] = created_on
 
     request_notes = doc.xpath('//xml/header/requestNotes[1]')

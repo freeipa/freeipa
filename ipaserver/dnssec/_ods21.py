@@ -2,7 +2,6 @@
 # Copyright (C) 2020  FreeIPA Contributors see COPYING for license
 #
 
-from datetime import datetime
 import os
 
 from ipaserver.dnssec._odsbase import AbstractODSDBConnection
@@ -39,7 +38,10 @@ class ODSDBConnection(AbstractODSDBConnection):
         for row in cur:
             key = dict()
             key['HSMkey_id'] = row['locator']
-            key['generate'] = str(datetime.fromtimestamp(row['inception']))
+            key['generate'] = ipautil.datetime_from_utctimestamp(
+                row['inception'],
+                units=1).replace(tzinfo=None).isoformat(
+                    sep=' ', timespec='seconds')
             key['algorithm'] = row['algorithm']
             key['publish'] = key['generate']
             key['active'] = None

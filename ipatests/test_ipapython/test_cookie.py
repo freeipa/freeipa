@@ -19,9 +19,8 @@
 
 import datetime
 import email.utils
-import calendar
 from ipapython.cookie import Cookie
-
+from ipapython.ipautil import datetime_from_utctimestamp
 import pytest
 
 pytestmark = pytest.mark.tier0
@@ -148,17 +147,21 @@ class TestExpires:
     @pytest.fixture(autouse=True)
     def expires_setup(self):
         # Force microseconds to zero because cookie timestamps only have second resolution
-        self.now = datetime.datetime.utcnow().replace(microsecond=0)
-        self.now_timestamp = calendar.timegm(self.now.utctimetuple())
+        self.now = datetime.datetime.now(
+            tz=datetime.timezone.utc).replace(microsecond=0)
+        self.now_timestamp = datetime_from_utctimestamp(
+            self.now.utctimetuple(), units=1).timestamp()
         self.now_string = email.utils.formatdate(self.now_timestamp, usegmt=True)
 
         self.max_age = 3600     # 1 hour
         self.age_expiration = self.now + datetime.timedelta(seconds=self.max_age)
-        self.age_timestamp = calendar.timegm(self.age_expiration.utctimetuple())
+        self.age_timestamp = datetime_from_utctimestamp(
+            self.age_expiration.utctimetuple(), units=1).timestamp()
         self.age_string = email.utils.formatdate(self.age_timestamp, usegmt=True)
 
         self.expires = self.now + datetime.timedelta(days=1) # 1 day
-        self.expires_timestamp = calendar.timegm(self.expires.utctimetuple())
+        self.expires_timestamp = datetime_from_utctimestamp(
+            self.expires.utctimetuple(), units=1).timestamp()
         self.expires_string = email.utils.formatdate(self.expires_timestamp, usegmt=True)
 
     def test_expires(self):
@@ -327,7 +330,8 @@ class TestAttributes:
         assert cookie.max_age is None
 
         cookie.expires = 'Sun, 06 Nov 1994 08:49:37 GMT'
-        assert cookie.expires == datetime.datetime(1994, 11, 6, 8, 49, 37)
+        assert cookie.expires == datetime.datetime(
+            1994, 11, 6, 8, 49, 37, tzinfo=datetime.timezone.utc)
         cookie.expires = None
         assert cookie.expires is None
 
@@ -433,17 +437,21 @@ class TestNormalization:
     @pytest.fixture(autouse=True)
     def normalization_setup(self):
         # Force microseconds to zero because cookie timestamps only have second resolution
-        self.now = datetime.datetime.utcnow().replace(microsecond=0)
-        self.now_timestamp = calendar.timegm(self.now.utctimetuple())
+        self.now = datetime.datetime.now(
+            tz=datetime.timezone.utc).replace(microsecond=0)
+        self.now_timestamp = datetime_from_utctimestamp(
+            self.now.utctimetuple(), units=1).timestamp()
         self.now_string = email.utils.formatdate(self.now_timestamp, usegmt=True)
 
         self.max_age = 3600     # 1 hour
         self.age_expiration = self.now + datetime.timedelta(seconds=self.max_age)
-        self.age_timestamp = calendar.timegm(self.age_expiration.utctimetuple())
+        self.age_timestamp = datetime_from_utctimestamp(
+            self.age_expiration.utctimetuple(), units=1).timestamp()
         self.age_string = email.utils.formatdate(self.age_timestamp, usegmt=True)
 
         self.expires = self.now + datetime.timedelta(days=1) # 1 day
-        self.expires_timestamp = calendar.timegm(self.expires.utctimetuple())
+        self.expires_timestamp = datetime_from_utctimestamp(
+            self.expires.utctimetuple(), units=1).timestamp()
         self.expires_string = email.utils.formatdate(self.expires_timestamp, usegmt=True)
 
     def test_path_normalization(self):
