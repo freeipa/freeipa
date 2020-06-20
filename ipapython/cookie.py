@@ -22,6 +22,7 @@ import datetime
 import email.utils
 from calendar import timegm
 from urllib.parse import urlparse
+from ipapython.ipautil import datetime_from_utctimestamp
 
 
 '''
@@ -184,7 +185,7 @@ class Cookie:
         # use the RFC 1123 parsing function which uses only English
 
         try:
-            dt = datetime.datetime(*email.utils.parsedate(s)[0:6])
+            dt = email.utils.parsedate_to_datetime(s)
         except Exception as e:
             raise ValueError("unable to parse expires datetime '%s': %s" % (s, e))
 
@@ -390,7 +391,7 @@ class Cookie:
         elif isinstance(value, datetime.datetime):
             self._timestamp = value
         elif isinstance(value, (int, float)):
-            self._timestamp = datetime.datetime.utcfromtimestamp(value)
+            self._timestamp = datetime_from_utctimestamp(value, units=1)
         elif isinstance(value, str):
             self._timestamp = Cookie.parse_datetime(value)
         else:
@@ -415,8 +416,10 @@ class Cookie:
             self._expires = None
         elif isinstance(value, datetime.datetime):
             self._expires = value
+            if self._expires.tzinfo is None:
+                self._expires.replace(tzinfo=datetime.timezone.utc)
         elif isinstance(value, (int, float)):
-            self._expires = datetime.datetime.utcfromtimestamp(value)
+            self._expires = datetime_from_utctimestamp(value, units=1)
         elif isinstance(value, str):
             self._expires = Cookie.parse_datetime(value)
         else:

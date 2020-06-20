@@ -1647,3 +1647,27 @@ def rmtree(path):
             shutil.rmtree(path)
     except Exception as e:
         logger.error('Error removing %s: %s', path, str(e))
+
+
+def datetime_from_utctimestamp(t, units=1):
+    """
+    Convert a timestamp or a time.struct_time to a datetime.datetime
+    object down to seconds, with UTC timezone
+
+    The conversion is safe for year 2038 problem
+
+    :param t: int or float timestamp in (milli)seconds since UNIX epoch
+              or time.struct_time
+    :param units: normalizing factor for the timestamp
+                  (1 for seconds, 1000 for milliseconds)
+                  defaults to 1
+    :return: datetime.datetime object in UTC timezone
+    """
+    if isinstance(t, time.struct_time):
+        v = int(time.mktime(t))
+    elif isinstance(t, (float, int)):
+        v = int(t)
+    else:
+        raise TypeError(t)
+    epoch = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+    return epoch + datetime.timedelta(seconds=v // units)

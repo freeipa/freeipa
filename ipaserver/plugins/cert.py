@@ -52,6 +52,7 @@ from ipalib.request import context
 from ipalib import output
 from ipapython import dnsutil, kerberos
 from ipapython.dn import DN
+from ipapython.ipautil import datetime_from_utctimestamp
 from ipaserver.plugins.service import normalize_principal, validate_realm
 from ipaserver.masters import (
     ENABLED_SERVICE, CONFIGURED_SERVICE, is_service_enabled
@@ -254,8 +255,9 @@ def normalize_pkidate(value):
 
 
 def convert_pkidatetime(value):
-    value = datetime.datetime.fromtimestamp(int(value) // 1000)
-    return x509.format_datetime(value)
+    if isinstance(value, str):
+        value = int(value)
+    return x509.format_datetime(datetime_from_utctimestamp(value, units=1000))
 
 
 def normalize_serial_number(num):
