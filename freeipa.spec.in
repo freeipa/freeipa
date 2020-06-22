@@ -1387,13 +1387,15 @@ fi
 
 %files client-epn
 %doc README.md Contributors.txt
+%dir %{_sysconfdir}/ipa/epn
 %license COPYING
 %{_sbindir}/ipa-epn
 %{_mandir}/man1/ipa-epn.1*
 %{_mandir}/man5/epn.conf.5*
 %attr(644,root,root) %{_unitdir}/ipa-epn.service
 %attr(644,root,root) %{_unitdir}/ipa-epn.timer
-%attr(644,root,root) %{_sysconfdir}/ipa/epn/expire_msg.template
+%attr(600,root,root) %config(noreplace) %{_sysconfdir}/ipa/epn.conf
+%attr(644,root,root) %config(noreplace) %{_sysconfdir}/ipa/epn/expire_msg.template
 
 %files -n python3-ipaclient
 %doc README.md Contributors.txt
