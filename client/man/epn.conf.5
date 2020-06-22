@@ -71,11 +71,10 @@ Specifies the From e-mail address value in the e-mails sent. The default is
 root@localhost. Bounces will be sent here.
 .TP
 .B smtp_delay <milliseconds>
-Time to wait, in milliseconds, between each e-mail sent to try to avoid overloading the mail queue.
+Time to wait, in milliseconds, between each e-mail sent to try to avoid overloading the mail queue. The default is 0.
 .TP
 .B mail_from <address>
-Specifies the From: e-mal address value in the e-mails sent. The default is
-noreply@ipadefaultemaildomain. This value can be found by running
+Specifies the From: e-mail address value in the e-mails sent. The default is noreply@ipadefaultemaildomain. This value can be found by running
 .I ipa config-show
 .TP
 .B notify_ttls <list of days>
