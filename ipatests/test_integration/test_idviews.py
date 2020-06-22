@@ -7,6 +7,7 @@ from __future__ import absolute_import
 import os
 import re
 import string
+from SSSDConfig import ServiceAlreadyExists
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.env_config import get_global_config
@@ -40,13 +41,15 @@ class TestCertsInIDOverrides(IntegrationTest):
         # A setup for test_dbus_user_lookup
         master.run_command(['dnf', 'install', '-y', 'sssd-dbus'],
                            raiseonerr=False)
-        # The tasks.modify_sssd_conf way did not work because
-        # sssd_domain.set_option knows nothing about 'services' parameter of
-        # the sssd config file. Therefore I am using sed approach
-        master.run_command(
-            "sed -i '/^services/ s/$/, ifp/' %s" % paths.SSSD_CONF)
         master.run_command(
             "sed -i 's/= 7/= 0xFFF0/' %s" % paths.SSSD_CONF, raiseonerr=False)
+        with tasks.remote_sssd_config(master) as sssd_config:
+            try:
+                sssd_config.new_service('ifp')
+            except ServiceAlreadyExists:
+                pass
+            sssd_config.activate_service('ifp')
+
         master.run_command(['systemctl', 'restart', 'sssd.service'])
         # End of setup for test_dbus_user_lookup
 
