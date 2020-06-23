@@ -87,12 +87,7 @@ Max renew: 604800
 #### WebUI Workflow:
 
 In Policy/Kerberos Ticket Policy tab, there is a table 
-where administrators can specify max renew and life for each supported auth indicator.
-
-### Ticket lifetime jitter
-
-Ticket lifetimes can be jittered so that renewals / re-issues do not overwhelm the KDC at a certain moment.
-The feature is enabled automatically so that we can avoid triggering an LDAP query on every `AS_REQ` and `TGS_REQ`.
+where administrators can specify max renew and life for each supported auth indicator. 
 
 ## Implementation
 
