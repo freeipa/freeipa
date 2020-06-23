@@ -1107,10 +1107,21 @@ def ca_upgrade_schema(ca):
         logger.info('CA is not configured')
         return False
 
+    # ACME schema file moved in pki-server-10.9.0-0.3
+    for path in [
+        '/usr/share/pki/acme/conf/database/ldap/schema.ldif',
+        '/usr/share/pki/acme/database/ldap/schema.ldif',
+    ]:
+        if os.path.exists(path):
+            acme_schema_ldif = path
+            break
+    else:
+        raise RuntimeError('ACME schema file not found')
+
     schema_files=[
         '/usr/share/pki/server/conf/schema-certProfile.ldif',
         '/usr/share/pki/server/conf/schema-authority.ldif',
-        '/usr/share/pki/acme/conf/database/ldap/schema.ldif',
+        acme_schema_ldif,
     ]
     try:
         modified = schemaupdate.update_schema(schema_files, ldapi=True)
