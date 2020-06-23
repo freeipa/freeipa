@@ -15,14 +15,14 @@
 .\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .\"
 .\"
-.TH "ipa-epn" "1" "Apr 24 2020" "FreeIPA" "FreeIPA Manual Pages"
+.TH "IPA-EPN" "1" "April 24, 2020" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-epn \- Send expiring password nofications
 .SH "SYNOPSIS"
-ipa\-epn \[options\]
+ipa\-epn \fR[options\fR]
 
 .SH "DESCRIPTION"
-ipa\-epn provides a method to warn users via email that their IPA account password is about to expire. 
+ipa\-epn provides a method to warn users via email that their IPA account password is about to expire.
 
 It can be used in dry\-run mode which is recommmended during setup. The output is always JSON in this case.
 
@@ -38,7 +38,7 @@ The \-\-to\-nbdays CLI option can be used to determine the number of notificatio
 
 If \fB\-\-from\-nbdays\fR is not specified, ipa\-epn will look within a 24\-hour long time range in <number of days> days.
 
-if \fB\-\-from\-nbdays\fR is specified, the date range starts at \fB\-\-from\-nbdays\fR days in the future and ends at \fB\-\-to\-nbdays\fR in the future. 
+if \fB\-\-from\-nbdays\fR is specified, the date range starts at \fB\-\-from\-nbdays\fR days in the future and ends at \fB\-\-to\-nbdays\fR in the future.
 
 Together, these two CLI options can be used to determine how many emails would be sent in a specific time in the future.
 
