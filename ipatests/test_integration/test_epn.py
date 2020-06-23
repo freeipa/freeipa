@@ -209,6 +209,20 @@ class TestEPN(IntegrationTest):
         cls.master.run_command(r'rm -f /etc/pki/tls/private/postfix.key')
         cls.master.run_command(r'rm -f /etc/pki/tls/certs/postfix.pem')
 
+    @pytest.mark.xfail(reason='pr-ci issue 378', strict=True)
+    def test_EPN_config_file(self):
+        """Check that the EPN configuration file is installed.
+           https://pagure.io/freeipa/issue/8374
+        """
+        epn_conf = "/etc/ipa/epn.conf"
+        epn_template = "/etc/ipa/epn/expire_msg.template"
+        cmd1 = self.master.run_command(["rpm", "-qc", "freeipa-client-epn"])
+        assert epn_conf in cmd1.stdout_text
+        assert epn_template in cmd1.stdout_text
+        cmd2 = self.master.run_command(["sha256sum", epn_conf])
+        ck = "4c207b5c9c760c36db0d3b2b93da50ea49edcc4002d6d1e7383601f0ec30b957"
+        assert cmd2.stdout_text.find(ck) == 0
+
     def test_EPN_smoketest_1(self):
         """No users except admin. Check --dry-run output.
            With the default configuration, the result should be an empty list.
