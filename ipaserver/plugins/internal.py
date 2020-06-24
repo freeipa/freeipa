@@ -406,7 +406,7 @@ class i18n_messages(Command):
             "logout": _("Log out"),
             "logout_error": _("Log out error"),
             "password": _("Password"),
-            "password_and_otp": _("Password or Password+One Time-Password"),
+            "password_and_otp": _("Password or Password+One-Time Password"),
             "redirect_msg": _("You will be redirected in ${count}s"),
             "sync_otp_token": _("Sync OTP Token"),
             "synchronizing": _("Synchronizing"),
@@ -1686,7 +1686,7 @@ class i18n_messages(Command):
             "otp_sync_invalid": _("The username, password or token codes are not correct"),
             "otp_sync_success":_("Token was synchronized"),
             "password": _("Password"),
-            "password_and_otp": _("Password or Password+One Time-Password"),
+            "password_and_otp": _("Password or Password+One-Time Password"),
             "password_change_complete": _("Password change complete"),
             "password_expired": _(
                 "Your password has expired. Please enter a new password."),
