@@ -209,11 +209,29 @@ class TestEPN(IntegrationTest):
         cls.master.run_command(r'rm -f /etc/pki/tls/private/postfix.key')
         cls.master.run_command(r'rm -f /etc/pki/tls/certs/postfix.pem')
 
-    @pytest.mark.xfail(reason='pr-ci issue 378', strict=True)
+    @pytest.mark.skip_if_platform(
+        "debian", reason="Cannot check installed packages using RPM"
+    )
     def test_EPN_config_file(self):
         """Check that the EPN configuration file is installed.
            https://pagure.io/freeipa/issue/8374
         """
+        # workaround for https://github.com/freeipa/freeipa-pr-ci/issues/378
+        rpm_q_cmds = [
+            ["rpm", "-qi", "freeipa-client"],
+            ["rpm", "-qi", "freeipa-client-epn"],
+            ["rpm", "-qc", "freeipa-client-epn"],
+            ["rpm", "-V", "freeipa-client-epn"],
+            ["rpm", "-qvc", "freeipa-client-epn"],
+            ["ls", "-l", "/etc/ipa", "/etc/ipa/epn"],
+        ]
+        for cmd in rpm_q_cmds:
+            self.master.run_command(cmd, raiseonerr=False)
+        tasks.uninstall_packages(self.master, ["*ipa-client-epn"])
+        tasks.install_packages(self.master, ["*ipa-client-epn"])
+        for cmd in rpm_q_cmds:
+            self.master.run_command(cmd, raiseonerr=False)
+        # end workaround
         epn_conf = "/etc/ipa/epn.conf"
         epn_template = "/etc/ipa/epn/expire_msg.template"
         cmd1 = self.master.run_command(["rpm", "-qc", "freeipa-client-epn"])
