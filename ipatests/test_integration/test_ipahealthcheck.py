@@ -904,3 +904,268 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
         for check in data:
             assert check["result"] == "SUCCESS"
             assert check["kw"]["key"] == self.master.hostname
+
+
+class TestIpaHealthCheckWithExternalCAStep1(IntegrationTest):
+    """
+    Tests to run and check whether ipa-healthcheck tool reports correct status when
+    IPA Master has only Step1 of installation done with external CA.
+    """
+
+    topology = 'line'
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(
+            cls.master, setup_dns=False, extra_args=["--external-ca"]
+        )
+
+    def test_ipahealthcheck_domaincheck(self):
+        """
+        Test for IPADomainCheck
+        """
+        error_msg1 = "[Errno 2] No such file or directory: '{}'".format(
+            paths.SSSD_CONF
+        )
+        error_msg2 = "Unable to parse sssd.conf: {error}"
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.trust", "IPADomainCheck"
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert check["kw"]["key"] == "domain-check"
+            assert check["kw"]["error"] == error_msg1
+            assert check["kw"]["msg"] == error_msg2
+
+    def test_ipahealthcheck_crlmanagercheck(self):
+        """
+        Test for IPACRLManagerCheck
+        """
+        error_msg = "Unable to read {}".format(paths.HTTPD_IPA_PKI_PROXY_CONF)
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.roles", "IPACRLManagerCheck"
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert check["kw"]["exception"] == error_msg
+
+    def test_ipahealthcheck_ipafilecheck(self):
+        """
+        Test for IPAFileCheck
+        """
+        error_msg = "[Errno 2] No such file or directory: '{}'".format(
+            paths.RA_AGENT_PEM
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.files", "IPAFileCheck"
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert check["kw"]["exception"] == error_msg
+
+    def test_ipahealthcheck_ipadnarange(self):
+        """
+        Test for IPADNARangeCheck
+        """
+        error_msg = "[Errno 2] {}".format(paths.IPA_CA_CRT)
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.dna", "IPADNARangeCheck"
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert check["kw"]["exception"] == error_msg
+
+    def test_ipahealthcheck_ipacachainexpiration(self):
+        """
+        Test for IPACAChainExpirationCheck
+        """
+        error_msg = (
+            "Error opening IPA CA chain at /etc/ipa/ca.crt: "
+            "[Errno 2] No such file or directory: "
+            "'/etc/ipa/ca.crt'"
+        )
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            "IPACAChainExpirationCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["msg"] == error_msg
+            assert check["kw"]["key"] == paths.IPA_CA_CRT
+
+    def test_ipahealthcheck_ipacertrevocation(self):
+        """
+        Test for IPACertRevocation
+        """
+        error_msg = "[Errno 2] No such file or directory: '{}'".format(
+            paths.HTTPD_CERT_FILE
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs", "IPACertRevocation"
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert check["kw"]["exception"] == error_msg
+
+    def test_ipahealthcheck_iparaagent(self):
+        """
+        Test for IPARAAgent
+        """
+        error_msg = "Unable to load RA cert: [Errno 2] No such file or directory: '{}'".format(
+            paths.RA_AGENT_PEM
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs", "IPARAAgent"
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["msg"] == error_msg
+
+    def test_ipahealthcheck_dogtagcertsconnectivitycheck(self):
+        """
+        Test for DogtagCertsConnectivityCheck
+        """
+        error_msg = "Request for certificate failed, CA is not configured"
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.dogtag.ca",
+            "DogtagCertsConnectivityCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["msg"] == error_msg
+
+    def test_ipahealthcheck_ipacertracking(self):
+        """
+        Test for IPACertTracking
+        """
+        error_msg = "[Errno 2] No such file or directory: '{}'".format(
+            paths.HTTPD_CERT_FILE
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs", "IPACertTracking",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert check["kw"]["exception"] == error_msg
+
+    def test_ipahealthcheck_ipacertnsstrust(self):
+        """
+        Test for IPACertNSSTrust
+        """
+        msg1 = "Certificate ocspSigningCert cert-pki-ca missing while verifying trust"
+        msg2 = "Certificate subsystemCert cert-pki-ca missing while verifying trust"
+        msg3 = "Certificate auditSigningCert cert-pki-ca missing while verifying trust"
+        msg4 = (
+            "Certificate Server-Cert cert-pki-ca missing while verifying trust"
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs", "IPACertNSSTrust",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            if check["kw"]["key"] == "ocspSigningCert cert-pki-ca":
+                assert check["kw"]["msg"] == msg1
+            elif check["kw"]["key"] == "subsystemCert cert-pki-ca":
+                assert check["kw"]["msg"] == msg2
+            elif check["kw"]["key"] == "auditSigningCert cert-pki-ca":
+                assert check["kw"]["msg"] == msg3
+            elif check["kw"]["key"] == "Server-Cert cert-pki-ca":
+                assert check["kw"]["msg"] == msg4
+
+    def test_ipahealthcheck_ipansschainvalidation(self):
+        """
+        Test for IPANSSChainValidation
+        """
+        instance = realm_to_serverid(self.master.domain.realm)
+        error_msg = (
+            "Validation of Server-Cert cert-pki-ca in /etc/pki/pki-tomcat/alias failed:  "
+            'certutil: could not find certificate named "Server-Cert cert-pki-ca": '
+            "PR_FILE_NOT_FOUND_ERROR: File not found\n"
+        )
+        reason_msg = (
+            ': certutil: could not find certificate named "Server-Cert cert-pki-ca": '
+            "PR_FILE_NOT_FOUND_ERROR: File not found\n"
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs", "IPANSSChainValidation",
+        )
+        assert returncode == 1
+        for check in data:
+            if (
+                check["kw"]["dbdir"]
+                == paths.PKI_TOMCAT_ALIAS_DIR:
+            ):
+                assert check["result"] == "ERROR"
+                assert check["kw"]["key"] ==  paths.PKI_TOMCAT_ALIAS_DIR +':Server-Cert cert-pki-ca'
+                assert check["kw"]["reason"] == reason_msg
+                assert check["kw"]["msg"] == error_msg
+            elif (
+                check["kw"]["dbdir"]
+                == paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+            ):
+                assert check["result"] == "SUCCESS"
+                assert (
+                    check["kw"]["key"] == paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance +':Server-Cert'
+                )
+                assert check["kw"]["nickname"] == "Server-Cert"
+
+    def test_ipahealthcheck_ipaopensslchainvalidatin(self):
+        """
+        Test for IPAOpenSSLChainValidation
+        """
+        error_msg1 = (
+            "Certificate validation for /var/lib/ipa/certs/httpd.crt failed: "
+            "Error loading file /etc/ipa/ca.crt\n"
+        error_msg2 = (
+            "Certificate validation for /var/lib/ipa/ra-agent.pem failed: "
+            "Error loading file /etc/ipa/ca.crt\n"
+        )
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            "IPAOpenSSLChainValidation",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            if check["kw"]["key"] == paths.HTTPD_CERT_FILE:
+                assert check["kw"]["msg"] == error_msg1
+                assert check["kw"][
+                    "reason"
+                ] == "Error loading file {}\n".format(paths.IPA_CA_CRT)
+            elif check["kw"]["key"] == paths.RA_AGENT_PEM:
+                assert check["kw"]["msg"] == error_msg2
+                assert check["kw"][
+                    "reason"
+                ] == "Error loading file {}\n".format(paths.IPA_CA_CRT)
+
+    def test_ipahealthcheck_ipacertmongerca(self):
+        """
+        Test for IPACertmongerCA
+        """
+        msg1 = "Certmonger CA 'dogtag-ipa-ca-renew-agent' missing"
+        msg2 = "Certmonger CA 'dogtag-ipa-ca-renew-agent-reuse' missing"
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs", "IPACertmongerCA",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["key"] == "dogtag-ipa-ca-renew-agent":
+                assert check["kw"]["msg"] == msg1
+                assert check["result"] == "ERROR"
+            elif check["kw"]["key"] == "dogtag-ipa-ca-renew-agent-reuse":
+                assert check["kw"]["msg"] == msg2
+                assert check["result"] == "ERROR"
