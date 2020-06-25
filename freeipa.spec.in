@@ -1197,7 +1197,6 @@ fi
 %{_sbindir}/ipa-acme-manage
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/certmonger/ipa-server-guard
-%dir %{_libexecdir}/ipa
 %{_libexecdir}/ipa/ipa-custodia
 %{_libexecdir}/ipa/ipa-custodia-check
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
@@ -1408,6 +1407,8 @@ fi
 %{_mandir}/man1/ipa-client-automount.1*
 %{_mandir}/man1/ipa-certupdate.1*
 %{_mandir}/man1/ipa-join.1*
+%dir %{_libexecdir}/ipa/acme
+%{_libexecdir}/ipa/acme/certbot-dns-ipa
 
 %files client-samba
 %doc README.md Contributors.txt
@@ -1490,6 +1491,7 @@ fi
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{_usr}/share/ipa
+%dir %{_libexecdir}/ipa
 
 
 %files -n python3-ipalib

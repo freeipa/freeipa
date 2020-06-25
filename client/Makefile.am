@@ -47,6 +47,11 @@ sbin_SCRIPTS =			\
 	ipa-epn                 \
 	$(NULL)
 
+appdir = $(libexecdir)/ipa/acme
+nodist_app_SCRIPTS =		\
+	certbot-dns-ipa		\
+	$(NULL)
+
 ipa_getkeytab_SOURCES =		\
 	ipa-getkeytab.c		\
 	ipa-client-common.c	\
@@ -111,6 +116,7 @@ EXTRA_DIST =			\
 	ipa-client-install.in	\
 	ipa-client-samba.in	\
 	ipa-epn.in              \
+	certbot-dns-ipa.in      \
 	$(NULL)
 
 install-data-hook:
@@ -119,6 +125,9 @@ install-data-hook:
 	$(INSTALL) -d -m 755 $(DESTDIR)$(localstatedir)/lib/ipa-client/sysrestore
 
 
-PYTHON_SHEBANG = $(sbin_SCRIPTS)
+PYTHON_SHEBANG = \
+	$(sbin_SCRIPTS) \
+	$(nodist_app_SCRIPTS) \
+	$(NULL)
 
 include $(top_srcdir)/Makefile.pythonscripts.am
