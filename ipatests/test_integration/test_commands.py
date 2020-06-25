@@ -1216,3 +1216,23 @@ class TestIPACommand(IntegrationTest):
                                           '-u', 'sshd',
                                           '--since={}'.format(since)])
         assert exp_msg in result.stdout_text
+
+    def test_systemd_tmpfile_create_error_on_console(self):
+        """
+        This testcase checks that error message related to certonger
+        is not displayed when systemd-tmpfiles --create command is
+        run on IPA server
+        """
+        certmonger_tmp_conf = "/usr/lib/tmpfiles.d/certmonger.conf"
+        error_msg = (
+            "[/usr/lib/tmpfiles.d/certmonger.conf:3] Line references path "
+            "below legacy directory /var/run/, "
+            "updating /var/run/certmonger → /run/certmonger; "
+            "please update the tmpfiles.d/ drop-in file accordingly."
+        )
+        with open(certmonger_tmp_conf) as fp:
+            file_contents = fp.readlines()
+        assert "d /run/certmonger 0755 root root\n" in file_contents
+        result = self.master.run_command(["systemd-tmpfiles", "--create"])
+        assert result.returncode == 0
+        assert error_msg not in result.stdout_text
