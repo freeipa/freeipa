@@ -23,6 +23,8 @@ skip_certbot_tests = osinfo.id not in ['fedora',]
 # RHEL version has the patches.
 skip_mod_md_tests = osinfo.id not in ['rhel',]
 
+CERTBOT_DNS_IPA_SCRIPT = '/usr/libexec/ipa/acme/certbot-dns-ipa'
+
 
 class TestACME(IntegrationTest):
     """
@@ -32,14 +34,12 @@ class TestACME(IntegrationTest):
 
         * service enable/disable (using Curl)
         * http-01 challenge with Certbot's standalone HTTP server
+        * dns-01 challenge with Certbot and FreeIPA DNS via hook scripts
         * revocation with Certbot
         * http-01 challenge with mod_md
 
     Tests we should add:
 
-        * dns-01 challenge with Certbot and FreeIPA DNS
-          (see https://frasertweedale.github.io
-            /blog-redhat/posts/2020-05-13-ipa-acme-dns.html for details.)
         * dns-01 challenge with mod_md (see
           https://httpd.apache.org/docs/current/mod/mod_md.html#mdchallengedns01)
 
@@ -168,6 +168,26 @@ class TestACME(IntegrationTest):
             ['ipa', 'cert-show', str(cert.serial_number), '--raw']
         )
         assert 'revocation_reason:' in result.stdout_text
+
+    @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
+    def test_certbot_dns(self):
+        # Assume previous revoke operation succeeded and cert was deleted.
+        # We can now request a new certificate.
+
+        # Get a cert from ACME service using dns-01 challenge and Certbot's
+        # standalone HTTP server mode
+        self.clients[0].run_command([
+            'certbot',
+            '--server', self.acme_server,
+            'certonly',
+            '--non-interactive',
+            '--domain', self.clients[0].hostname,
+            '--preferred-challenges', 'dns',
+            '--manual',
+            '--manual-public-ip-logging-ok',
+            '--manual-auth-hook', CERTBOT_DNS_IPA_SCRIPT,
+            '--manual-cleanup-hook', CERTBOT_DNS_IPA_SCRIPT,
+        ])
 
     ##############
     # mod_md tests
