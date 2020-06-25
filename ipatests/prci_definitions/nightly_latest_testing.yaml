@@ -51,7 +51,7 @@ jobs:
         git_refspec: '{git_refspec}'
         template: &testing-master-latest
           name: freeipa/testing-master-f32
-          version: 0.0.1
+          version: 0.0.2
         timeout: 1800
         topology: *build
 
