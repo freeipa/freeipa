@@ -471,15 +471,19 @@ class TestSSSDWithAdTrust(IntegrationTest):
             "--matchrule='<ISSUER>{}'".format(cert_subject),
             "--domain={}".format(self.master.domain.name)
         ])
-        tasks.clear_sssd_cache(self.master)
-
-        # verify the user can be retrieved after the certmaprule is added
-        second_res = self.master.run_command(['id', self.users['ad']['name']])
-
-        assert first_res.stdout_text == second_res.stdout_text
-        verify_in_stdout = ['gid', 'uid', 'groups', self.users['ad']['name']]
-        for text in verify_in_stdout:
-            assert text in second_res.stdout_text
+        try:
+            tasks.clear_sssd_cache(self.master)
+            # verify the user can be retrieved after the certmaprule is added
+            second_res = self.master.run_command(
+                ['id', self.users['ad']['name']])
+            assert first_res.stdout_text == second_res.stdout_text
+            verify_in_stdout = ['gid', 'uid', 'groups',
+                                self.users['ad']['name']]
+            for text in verify_in_stdout:
+                assert text in second_res.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa', 'certmaprule-del', "'{}'".format(cert_subject)])
 
     @contextmanager
     def override_gid_setup(self, gid):
