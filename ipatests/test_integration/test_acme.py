@@ -4,6 +4,8 @@
 
 import time
 
+from cryptography.hazmat.backends import default_backend
+from cryptography import x509
 import pytest
 
 from ipalib.constants import IPA_CA_RECORD
@@ -30,6 +32,7 @@ class TestACME(IntegrationTest):
 
         * service enable/disable (using Curl)
         * http-01 challenge with Certbot's standalone HTTP server
+        * revocation with Certbot
         * http-01 challenge with mod_md
 
     Tests we should add:
@@ -39,7 +42,6 @@ class TestACME(IntegrationTest):
             /blog-redhat/posts/2020-05-13-ipa-acme-dns.html for details.)
         * dns-01 challenge with mod_md (see
           https://httpd.apache.org/docs/current/mod/mod_md.html#mdchallengedns01)
-        * revocation
 
     Things that are not implmented/supported yet, but may be in future:
 
@@ -69,6 +71,16 @@ class TestACME(IntegrationTest):
         tasks.config_host_resolvconf_with_master_data(
             cls.master, cls.clients[0]
         )
+
+    #######
+    # kinit
+    #######
+
+    def test_kinit_master(self):
+        # Some tests require executing ipa commands, e.g. to
+        # check revocation status or add/remove DNS entries.
+        # Preemptively kinit as admin on the master.
+        tasks.kinit_admin(self.master)
 
     #####################
     # Enable ACME service
@@ -130,6 +142,32 @@ class TestACME(IntegrationTest):
                 '--standalone',
             ],
         )
+
+    @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
+    def test_certbot_revoke(self):
+        # Assume previous certonly operation succeeded.
+        # Read certificate to learn serial number.
+        cert_path = \
+            f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
+        data = self.clients[0].get_file_contents(cert_path)
+        cert = x509.load_pem_x509_certificate(data, backend=default_backend())
+
+        # revoke cert via ACME
+        self.clients[0].run_command(
+            [
+                'certbot',
+                '--server', self.acme_server,
+                'revoke',
+                '--cert-name', self.clients[0].hostname,
+                '--delete-after-revoke',
+            ],
+        )
+
+        # check cert is revoked (kinit already performed)
+        result = self.master.run_command(
+            ['ipa', 'cert-show', str(cert.serial_number), '--raw']
+        )
+        assert 'revocation_reason:' in result.stdout_text
 
     ##############
     # mod_md tests
