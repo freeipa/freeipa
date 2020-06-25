@@ -59,7 +59,13 @@ class TestIpaAdTrustInstall(IntegrationTest):
 
         try:
             # Create a nonadmin user that will be used by curl.
-            # krb5_trace set to True: https://pagure.io/freeipa/issue/8353
+            # First, display SSSD kdcinfo:
+            # https://bugzilla.redhat.com/show_bug.cgi?id=1850445#c1
+            self.master.run_command([
+                "cat",
+                "/var/lib/sss/pubconf/kdcinfo.%s" % self.master.domain.realm
+            ], raiseonerr=False)
+            # Set krb5_trace to True: https://pagure.io/freeipa/issue/8353
             tasks.create_active_user(
                 self.master, user, passwd, first=user, last=user,
                 krb5_trace=True
