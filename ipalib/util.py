@@ -1027,6 +1027,7 @@ class classproperty:
     __slots__ = ('__doc__', 'fget')
 
     def __init__(self, fget=None, doc=None):
+        assert isinstance(fget, classmethod)
         if doc is None and fget is not None:
             doc = fget.__doc__
 
@@ -1047,6 +1048,17 @@ class classproperty:
     def getter(self, fget):
         self.fget = fget
         return self
+
+
+class classobjectproperty(classproperty):
+    # A class property that also passes the object to the getter
+    # obj is None for class objects and 'self' for instance objects.
+    __slots__ = ('__doc__',)
+
+    def __get__(self, obj, obj_type):
+        if self.fget is not None:
+            return self.fget.__get__(obj, obj_type)(obj)
+        raise AttributeError("unreadable attribute")
 
 
 def normalize_hostname(hostname):
