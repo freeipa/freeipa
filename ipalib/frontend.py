@@ -29,6 +29,7 @@ from ipapython.ipautil import APIVersion
 from ipalib.base import NameSpace
 from ipalib.plugable import Plugin, APINameSpace
 from ipalib.parameters import create_param, Param, Str, Flag
+from ipalib.parameters import create_signature
 from ipalib.parameters import Password  # pylint: disable=unused-import
 from ipalib.output import Output, Entry, ListOfEntries
 from ipalib.text import _
@@ -37,7 +38,7 @@ from ipalib.errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
     ValidationError, ConversionError)
 from ipalib import errors, messages
 from ipalib.request import context, context_frame
-from ipalib.util import classproperty, json_serialize
+from ipalib.util import classproperty, classobjectproperty, json_serialize
 
 if six.PY3:
     unicode = str
@@ -432,6 +433,26 @@ class Command(HasParam):
         return cls.__module__.rpartition('.')[2]
 
     topic = classproperty(__topic_getter)
+
+    @classobjectproperty
+    @classmethod
+    def __signature__(cls, obj):
+        # signature is cached on the class object
+        if hasattr(cls, "_signature"):
+            return cls._signature
+        # can only create signature for 'final' classes
+        # help(api.Command.user_show) breaks because pydoc inspects parent
+        # classes and baseuser plugin is not a registered object.
+        if cls.__subclasses__():
+            cls._signature = None
+            return None
+        # special, rare case: user calls help() on a plugin class instead of
+        # an instance
+        if obj is None:
+            from ipalib import api
+            obj = cls(api=api)
+        cls._signature = signature = create_signature(obj)
+        return signature
 
     @property
     def forwarded_name(self):
