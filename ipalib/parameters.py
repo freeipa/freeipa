@@ -103,10 +103,13 @@ import re
 import decimal
 import base64
 import datetime
+import inspect
+import typing
 from xmlrpc.client import MAXINT, MININT
 
 import six
 from cryptography import x509 as crypto_x509
+import dns.name
 
 from ipalib.text import _ as ugettext
 from ipalib.base import check_name
@@ -2159,3 +2162,67 @@ class Principal(Param):
                 name=self.get_param_name(),
                 error=_("Service principal is required")
             )
+
+
+_map_types = {
+    # map internal certificate subclass to generic cryptography class
+    IPACertificate: crypto_x509.Certificate,
+    # map internal DNS name class to generic dnspython class
+    DNSName: dns.name.Name,
+    # DN, Principal have their names mangled in ipaapi.__init__
+}
+
+
+def create_signature(command):
+    """Create an inspect.Signature for a command
+
+    :param command: ipa plugin instance (server or client)
+    :return: inspect.Signature instance
+    """
+
+    signature_params = []
+    seen = set()
+    args_options = [
+        (command.get_args(), inspect.Parameter.POSITIONAL_OR_KEYWORD),
+        (command.get_options(), inspect.Parameter.KEYWORD_ONLY)
+    ]
+    for ipaparams, kind in args_options:
+        for ipaparam in ipaparams:
+            # filter out duplicates, for example user_del has a preserve flag
+            # and preserve bool.
+            if ipaparam.name in seen:
+                continue
+            seen.add(ipaparam.name)
+            # ipalib.plugins.misc.env has wrong type
+            if not isinstance(ipaparam, Param):
+                continue
+
+            if ipaparam.required:
+                default = inspect.Parameter.empty
+            else:
+                default = ipaparam.default
+
+            allowed_types = tuple(
+                _map_types.get(t, t) for t in ipaparam.allowed_types
+            )
+            # ipalib.parameters.DNSNameParam also handles text
+            if isinstance(ipaparam, DNSNameParam):
+                allowed_types += (six.text_type,)
+            ann = typing.Union[allowed_types]
+            if ipaparam.multivalue:
+                ann = typing.List[ann]
+
+            signature_params.append(
+                inspect.Parameter(
+                    ipaparam.name, kind, default=default, annotation=ann
+                )
+            )
+
+    # cannot describe return parameter with typing yet. TypedDict
+    # is only available with mypy_extension.
+    signature = inspect.Signature(
+        signature_params,
+        return_annotation=typing.Dict[typing.Text, typing.Any]
+    )
+
+    return signature
