@@ -22,13 +22,16 @@ import datetime
 import email
 import json
 import logging
-import pytest
 import textwrap
-
+from collections import deque
+from random import random
 from subprocess import CalledProcessError
 
-from ipatests.test_integration.base import IntegrationTest
+import homoglyphs as hg
+import pytest
+
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.test_integration.base import IntegrationTest
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +154,7 @@ def validate_mail(host, id, content):
     msg = email.message_from_bytes(mail)
     assert decode_header(msg['To']) == 'user%d@%s' % (id, host.domain.name)
     assert decode_header(msg['From']) == 'IPA-EPN <noreply@%s>' % \
-                                         host.domain.name
+        host.domain.name
     assert decode_header(msg['subject']) == 'Your password will expire soon.'
 
     for part in msg.walk():
@@ -170,12 +173,12 @@ class TestEPN(IntegrationTest):
     notify_ttls = (28, 14, 7, 3, 1)
 
     def _check_epn_output(
-        self,
-        host,
-        dry_run=False,
-        from_nbdays=None,
-        to_nbdays=None,
-        raiseonerr=True,
+            self,
+            host,
+            dry_run=False,
+            from_nbdays=None,
+            to_nbdays=None,
+            raiseonerr=True,
     ):
         result = tasks.ipa_epn(host, raiseonerr=raiseonerr, dry_run=dry_run,
                                from_nbdays=from_nbdays,
@@ -494,3 +497,78 @@ class TestEPN(IntegrationTest):
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
         result = tasks.ipa_epn(self.master, raiseonerr=False)
         assert "smtp_delay cannot be less than zero" in result.stderr_text
+
+    def generate_user_batch(self):
+        """
+        Prepare large (10k) batch of users with various attributes, namely
+        without passwords, gradually expiring passwords, unicode names and
+        unicode e-mails
+        :return: None
+        """
+        # number of groups: 5 (one is split in two)
+        # describe list format in deque
+        USERS_IN_GROUP = 2000
+        # inactive users without passwords
+        users_wo_passwords = deque()
+        # active users with password with various expiry range, some expired
+        users_with_passwords = deque()
+        # soon to expire users with wide range unicode chars in username
+        users_to_exp_unicode_names = deque()
+        # soon to expire users with wide range unicode chars in e-mail
+        users_to_exp_unicode_mail = deque()
+
+        for i in range(USERS_IN_GROUP):
+            username = "user_wo_pass_%d", i
+            tasks.user_add(self.master, username)
+            users_wo_passwords.append((username, -1))
+
+        for i in range(USERS_IN_GROUP):
+            username = "user_with_pass_%d", i
+            # TODO: Compute
+            krbpasswordexpiration = datetime_to_generalized_time(
+                datetime.datetime.utcnow() + datetime.timedelta(days=7)
+            )
+            tasks.user_add(
+                self.master,
+                username,
+                password="Secret123",
+                extra_args=["--password-expiration",
+                            krbpasswordexpiration],
+            )
+            users_with_passwords.append((username, krbpasswordexpiration))
+
+        all_langs = hg.Languages.get_all()
+        users_per_lang = USERS_IN_GROUP // len(all_langs)
+        remainder = USERS_IN_GROUP % len(all_langs)
+        krbpasswordexpiration = datetime_to_generalized_time(
+            datetime.datetime.utcnow() + datetime.timedelta(days=7)
+        )
+        for language in all_langs:
+            for i in range(users_per_lang):
+                alphabet = hg.Languages.get_alphabet([language])
+                username = "%s_%s_%d", ''.join(random.sample(alphabet, 8)), \
+                           language, i
+                tasks.user_add(
+                    self.master,
+                    username,
+                    password="Secret123",
+                    extra_args=[
+                        "--password-expiration",
+                        krbpasswordexpiration]
+                )
+                users_to_exp_unicode_names.append((username,
+                                                   krbpasswordexpiration))
+        # add remainder in pure ascii, just to keep correct count
+        for i in range(remainder):
+            username = "user_to_exp_ascii_%d", i
+            tasks.user_add(
+                self.master,
+                username,
+                password="Secret123",
+                extra_args=[
+                    "--password-expiration",
+                    krbpasswordexpiration]
+            )
+            users_to_exp_unicode_names.append((username, krbpasswordexpiration))
+
+        # --email=johnls@example.com
