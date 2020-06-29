@@ -722,17 +722,15 @@ class CAInstance(DogtagInstance):
                          "-clcerts", "-nokeys",
                          "-out", paths.RA_AGENT_PEM,
                          "-passin", pwdarg])
-        self.__set_ra_cert_perms()
+        self._set_ra_cert_perms()
 
         self.configure_agent_renewal()
 
     def __import_ra_key(self):
-        self._custodia.import_ra_key()
-        self.__set_ra_cert_perms()
+        import_ra_key(self._custodia)
 
-        self.configure_agent_renewal()
-
-    def __set_ra_cert_perms(self):
+    @staticmethod
+    def _set_ra_cert_perms():
         """
         Sets the correct permissions for the RA_AGENT_PEM, RA_AGENT_KEY files
         """
@@ -889,7 +887,7 @@ class CAInstance(DogtagInstance):
                 storage="FILE",
                 resubmit_timeout=api.env.certmonger_wait_timeout
             )
-            self.__set_ra_cert_perms()
+            self._set_ra_cert_perms()
 
             self.requestId = str(reqId)
             self.ra_cert = x509.load_certificate_from_file(
@@ -1063,7 +1061,8 @@ class CAInstance(DogtagInstance):
                 ca_iface.Set('org.fedorahosted.certmonger.ca',
                              'external-helper', helper)
 
-    def configure_agent_renewal(self):
+    @staticmethod
+    def configure_agent_renewal():
         try:
             certmonger.start_tracking(
                 certpath=(paths.RA_AGENT_PEM, paths.RA_AGENT_KEY),
@@ -2221,6 +2220,12 @@ def update_ipa_conf(ca_host=None):
         parser.set('global', 'ca_host', ca_host)
     with open(paths.IPA_DEFAULT_CONF, 'w') as f:
         parser.write(f)
+
+
+def import_ra_key(custodia):
+    custodia.import_ra_key()
+    CAInstance._set_ra_cert_perms()
+    CAInstance.configure_agent_renewal()
 
 
 if __name__ == "__main__":
