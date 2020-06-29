@@ -1927,6 +1927,15 @@ def ldapmodify_dm(host, ldif_text, **kwargs):
     return host.run_command(args, stdin_text=ldif_text, **kwargs)
 
 
+def ldap_add(host, ldif_text, **kwargs):
+    args = [
+        'ldapadd',
+        '-x',
+        '-D', str(host.config.dirman_dn),
+        '-w', host.config.dirman_password
+    ]
+    return host.run_command(args, stdin_text=ldif_text, **kwargs)
+
 def ldapsearch_dm(host, base, ldap_args, scope='sub', **kwargs):
     """Run ldapsearch as Directory Manager
 

@@ -25,15 +25,15 @@ from __future__ import absolute_import
 
 import inspect
 import os
-from os import path
-import tempfile
-import shutil
 import re
+import shutil
+import tempfile
 import uuid
-import pytest
 from contextlib import contextmanager
+from os import path
 from pprint import pformat
 
+import pytest
 import six
 
 import ipalib
