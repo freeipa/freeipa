@@ -386,7 +386,8 @@ class DogtagInstance(service.Service):
             fd.write(template)
             os.fchmod(fd.fileno(), 0o640)
 
-    def configure_certmonger_renewal_helpers(self):
+    @staticmethod
+    def configure_certmonger_renewal_helpers():
         """
         Create a new CA type for certmonger that will retrieve updated
         certificates from the dogtag master server.
