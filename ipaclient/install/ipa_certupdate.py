@@ -106,10 +106,17 @@ def run_with_args(api):
 
     server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
     if server_fstore.has_files():
+        # look up CA servers before service restarts
+        resp = api.Command.server_role_find(
+            role_servrole=u'CA server',
+            status='enabled',
+        )
+        ca_servers = [server['server_server'] for server in resp['result']]
+
         update_server(certs)
 
         # pylint: disable=import-error,ipa-forbidden-import
-        from ipaserver.install import cainstance
+        from ipaserver.install import cainstance, custodiainstance
         # pylint: enable=import-error,ipa-forbidden-import
 
         # Add LWCA tracking requests.  Only execute if *this server*
@@ -120,6 +127,19 @@ def run_with_args(api):
             except Exception:
                 logger.exception(
                     "Failed to add lightweight CA tracking requests")
+
+        try:
+            update_server_ra_config(
+                cainstance, custodiainstance,
+                api.env.enable_ra, api.env.ca_host, ca_servers,
+            )
+        except Exception:
+            logger.exception("Failed to update RA config")
+
+        # update_server_ra_config possibly updated default.conf;
+        # restart httpd to pick up changes.
+        if services.knownservices.httpd.is_running():
+            services.knownservices.httpd.restart()
 
     update_client(certs)
 
@@ -153,9 +173,6 @@ def update_server(certs):
     update_db(paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance, certs)
     if services.knownservices.dirsrv.is_running():
         services.knownservices.dirsrv.restart(instance)
-
-    if services.knownservices.httpd.is_running():
-        services.knownservices.httpd.restart()
 
     criteria = {
         'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
@@ -197,6 +214,43 @@ def update_server(certs):
 
     update_file(paths.CA_CRT, certs)
     update_file(paths.CACERT_PEM, certs)
+
+
+def update_server_ra_config(
+    cainstance, custodiainstance,
+    enable_ra, ca_host, ca_servers,
+):
+    """
+    After promoting a CA-less deployment to CA-ful, or after removal
+    of a CA server from the topology, it may be necessary to update
+    the default.conf ca_host setting on non-CA replicas.
+
+    """
+    if len(ca_servers) == 0:
+        return  # nothing to do
+
+    # In case ca_host setting is not valid, select a new ca_host.
+    # Just choose the first server.  (Choosing a server in the same
+    # location might be better, but we should only incur that
+    # complexity if a need is proven).
+    new_ca_host = ca_servers[0]
+
+    if not enable_ra:
+        # RA is not enabled, but deployment is CA-ful.
+        # Retrieve IPA RA credential and update ipa.conf.
+        cainstance.CAInstance.configure_certmonger_renewal_helpers()
+        custodia = custodiainstance.CustodiaInstance(
+            host_name=api.env.host,
+            realm=api.env.realm,
+            custodia_peer=new_ca_host,
+        )
+        cainstance.import_ra_key(custodia)
+        cainstance.update_ipa_conf(new_ca_host)
+
+    elif ca_host not in ca_servers:
+        # RA is enabled but ca_host is not among the deployment's
+        # CA servers.  Set a valid ca_host.
+        cainstance.update_ipa_conf(new_ca_host)
 
 
 def update_file(filename, certs, mode=0o644):
