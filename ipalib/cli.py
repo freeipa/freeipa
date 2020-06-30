@@ -949,6 +949,14 @@ class show_mappings(frontend.Command):
             print(to_cli(item[0]).ljust(mcl)+' : '+item[1])
 
 
+class IPACompleter(rlcompleter.Completer):
+    def _callable_postfix(self, val, word):
+        # Don't add '(' postfix for callable API objects
+        if isinstance(val, (plugable.APINameSpace, plugable.API)):
+            return word
+        return super()._callable_postfix(val, word)
+
+
 class console(frontend.Command):
     """Start the IPA interactive Python console, or run a script.
 
@@ -964,7 +972,7 @@ class console(frontend.Command):
     def _setup_tab_completion(self, local):
         readline.parse_and_bind("tab: complete")
         # completer with custom locals
-        readline.set_completer(rlcompleter.Completer(local).complete)
+        readline.set_completer(IPACompleter(local).complete)
         # load history
         history = os.path.join(api.env.dot_ipa, "console.history")
         try:
