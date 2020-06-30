@@ -326,6 +326,14 @@ class APINameSpace(Mapping):
         self.__enumerate()
         return iter(self.__plugins)
 
+    def __dir__(self):
+        # include plugins for readline tab completion and in dir()
+        self.__enumerate()
+        names = super().__dir__()
+        names.extend(p.name for p in self)
+        names.sort()
+        return names
+
     def get_plugin(self, key):
         self.__enumerate()
         return self.__plugins_by_key[key]
