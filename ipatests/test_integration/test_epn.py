@@ -216,22 +216,6 @@ class TestEPN(IntegrationTest):
         """Check that the EPN configuration file is installed.
            https://pagure.io/freeipa/issue/8374
         """
-        # workaround for https://github.com/freeipa/freeipa-pr-ci/issues/378
-        rpm_q_cmds = [
-            ["rpm", "-qi", "freeipa-client"],
-            ["rpm", "-qi", "freeipa-client-epn"],
-            ["rpm", "-qc", "freeipa-client-epn"],
-            ["rpm", "-V", "freeipa-client-epn"],
-            ["rpm", "-qvc", "freeipa-client-epn"],
-            ["ls", "-l", "/etc/ipa", "/etc/ipa/epn"],
-        ]
-        for cmd in rpm_q_cmds:
-            self.master.run_command(cmd, raiseonerr=False)
-        tasks.uninstall_packages(self.master, ["*ipa-client-epn"])
-        tasks.install_packages(self.master, ["*ipa-client-epn"])
-        for cmd in rpm_q_cmds:
-            self.master.run_command(cmd, raiseonerr=False)
-        # end workaround
         epn_conf = "/etc/ipa/epn.conf"
         epn_template = "/etc/ipa/epn/expire_msg.template"
         cmd1 = self.master.run_command(["rpm", "-qc", "freeipa-client-epn"])
