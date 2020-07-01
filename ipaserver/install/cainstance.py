@@ -1402,7 +1402,7 @@ class CAInstance(DogtagInstance):
                         rewriteRuleDisabled = False
                         break
         except IOError:
-            raise RuntimeError(
+            raise InconsistentCRLGenConfigException(
                 "Unable to read {}".format(paths.HTTPD_IPA_PKI_PROXY_CONF))
 
         # if enableCRLUpdates and rewriteRuleDisabled are different, the config
