@@ -1517,6 +1517,11 @@ class CAInstance(DogtagInstance):
                 logger.debug("Successfully updated CRL")
             api.Backend.ra.override_port = None
 
+    @staticmethod
+    def acme_uid(fqdn: str) -> str:
+        """Compute ACME RA account uid."""
+        return f'acme-{fqdn}'
+
     def setup_acme(self) -> bool:
         """
         Set up ACME service, if needed.
@@ -1537,7 +1542,7 @@ class CAInstance(DogtagInstance):
 
         # create ACME agent group (if not exist already) and user
         self.ensure_group(ACME_AGENT_GROUP, "ACME RA accounts")
-        acme_user = f"acme-{self.fqdn}"
+        acme_user = self.acme_uid(self.fqdn)
         result = self.create_user(
             uid=acme_user,
             cn=acme_user,

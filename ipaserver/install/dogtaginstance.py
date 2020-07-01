@@ -621,6 +621,47 @@ class DogtagInstance(service.Service):
 
         return password
 
+    @staticmethod
+    def delete_user(uid: str) -> bool:
+        """
+        Delete the user, removing group memberships along the way.
+
+        Return True if user was deleted or False if user entry
+        did not exist.
+
+        """
+        dn = _person_dn(uid)
+
+        if not api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.connect()
+
+        # remove group memberships
+        try:
+            entries = api.Backend.ldap2.get_entries(
+                OU_GROUPS_DN, filter=f'(uniqueMember={dn})')
+        except errors.EmptyResult:
+            entries = []
+        except errors.NotFound:
+            # basedn not found; Dogtag is probably not installed.
+            # Let's ignore this and keep going.
+            entries = []
+
+        for entry in entries:
+            # remove the uniquemember value
+            entry['uniquemember'] = [
+                v for v in entry['uniquemember']
+                if DN(v) != dn
+            ]
+            api.Backend.ldap2.update_entry(entry)
+
+        # delete user entry
+        try:
+            api.Backend.ldap2.delete_entry(dn)
+        except errors.NotFound:
+            return False
+        else:
+            return True
+
     def setup_admin(self):
         self.admin_user = "admin-%s" % self.fqdn
         self.admin_password = ipautil.ipa_generate_password()
@@ -681,18 +722,8 @@ class DogtagInstance(service.Service):
                 attrvalue=self.admin_dn
             )
 
-    def __remove_admin_from_group(self, group):
-        mod = [(ldap.MOD_DELETE, 'uniqueMember', self.admin_dn)]
-        try:
-            api.Backend.ldap2.modify_s(_group_dn(group), mod)
-        except ldap.NO_SUCH_ATTRIBUTE:
-            # already removed
-            pass
-
     def teardown_admin(self):
-        for group in self.admin_groups:
-            self.__remove_admin_from_group(group)
-        api.Backend.ldap2.delete_entry(self.admin_dn)
+        self.delete_user(self.admin_user)
 
     def backup_config(self):
         """
