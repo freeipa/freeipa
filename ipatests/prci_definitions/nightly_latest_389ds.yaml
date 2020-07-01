@@ -533,3 +533,16 @@ jobs:
         template: *389ds-master-latest
         timeout: 3600
         topology: *master_1repl
+
+  389ds-fedora/test_fips:
+    requires: [389ds-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{389ds-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_fips.py
+        template: *389ds-master-latest
+        timeout: 7200
+        topology: *master_1repl_1client
