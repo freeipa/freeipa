@@ -16,6 +16,7 @@ import uuid
 import pytest
 
 from ipalib import x509
+from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
 from ipapython.certdb import NSS_SQL_FILES
 from ipatests.pytest_ipa.integration import tasks
@@ -23,6 +24,11 @@ from ipaplatform.paths import paths
 from ipaplatform.osinfo import osinfo
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_cert import get_certmonger_fs_id
+from ipatests.test_integration.test_external_ca import (
+    install_server_external_ca_step1,
+    install_server_external_ca_step2,
+    ISSUER_CN,
+)
 
 HEALTHCHECK_LOG = "/var/log/ipa/healthcheck/healthcheck.log"
 HEALTHCHECK_SYSTEMD_FILE = (
@@ -32,8 +38,9 @@ HEALTHCHECK_LOG_ROTATE_CONF = "/etc/logrotate.d/ipahealthcheck"
 HEALTHCHECK_LOG_DIR = "/var/log/ipa/healthcheck"
 HEALTHCHECK_OUTPUT_FILE = "/tmp/output.json"
 HEALTHCHECK_PKG = ["*ipa-healthcheck"]
-TOMCAT_CFG = "/var/lib/pki/pki-tomcat/conf/ca/CS.cfg"
 
+IPA_CA = "ipa_ca.crt"
+ROOT_CA = "root_ca.crt"
 
 sources = [
     "ipahealthcheck.dogtag.ca",
@@ -346,9 +353,10 @@ class TestIpaHealthCheck(IntegrationTest):
         assert returncode == 0
         for check in data:
             assert check["result"] == "SUCCESS"
-            assert check["kw"]["configfile"] == TOMCAT_CFG
+            assert check["kw"]["configfile"] == paths.CA_CS_CFG_PATH
             assert check["kw"]["key"] in DEFAULT_PKI_CA_CERTS
-        self.master.run_command(["mv", TOMCAT_CFG, TOMCAT_CFG + ".old"])
+        self.master.run_command(["mv", paths.CA_CS_CFG_PATH,
+                                 "%s.old" % paths.CA_CS_CFG_PATH])
         returncode, data = run_healthcheck(
             self.master,
             "ipahealthcheck.dogtag.ca",
@@ -356,7 +364,8 @@ class TestIpaHealthCheck(IntegrationTest):
         )
         assert returncode == 1
         assert data[0]["result"] == "CRITICAL"
-        self.master.run_command(["mv", TOMCAT_CFG + ".old", TOMCAT_CFG])
+        self.master.run_command(["mv", "%s.old" % paths.CA_CS_CFG_PATH,
+                                 paths.CA_CS_CFG_PATH])
         self.master.run_command(["ipactl", "restart"])
 
     @pytest.fixture
@@ -1603,3 +1612,378 @@ class TestIpaHealthCLI(IntegrationTest):
             "ipa-healthcheck: error: unrecognized arguments: source"
             in result.stderr_text
         )
+
+
+class TestIpaHealthCheckWithExternalCA(IntegrationTest):
+    """
+    Tests to run and check whether ipa-healthcheck tool
+    reports correct status when IPA server is configured
+    with external CA.
+    """
+
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        result = install_server_external_ca_step1(cls.master)
+        assert result.returncode == 0
+        root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
+            cls.master, paths.ROOT_IPA_CSR, ROOT_CA, IPA_CA
+        )
+
+        install_server_external_ca_step2(
+            cls.master, ipa_ca_fname, root_ca_fname
+        )
+        tasks.kinit_admin(cls.master)
+
+        tasks.install_packages(cls.replicas[0], HEALTHCHECK_PKG)
+        tasks.install_replica(cls.master, cls.replicas[0])
+
+    def test_ipahealthcheck_crlmanagercheck(self):
+        """
+        Test for IPACRLManagerCheck
+        """
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.roles", "IPACRLManagerCheck"
+        )
+        assert returncode == 0
+        for check in data:
+            assert check["result"] == "SUCCESS"
+            assert check["kw"]["key"] == "crl_manager"
+            assert check["kw"]["crlgen_enabled"] is True
+
+        # Run again on another server to verify it is False
+        returncode, data = run_healthcheck(
+            self.replicas[0], "ipahealthcheck.ipa.roles", "IPACRLManagerCheck"
+        )
+        assert returncode == 0
+        for check in data:
+            assert check["result"] == "SUCCESS"
+            assert check["kw"]["key"] == "crl_manager"
+            assert check["kw"]["crlgen_enabled"] is False
+
+    @pytest.fixture()
+    def getcert_ca(self):
+        """
+        Fixture to remove and add ca using getcert command.
+        """
+        self.master.run_command(
+            ["getcert", "remove-ca", "-c", "dogtag-ipa-ca-renew-agent"]
+        )
+        yield
+        self.master.run_command(
+            [
+                "getcert",
+                "add-ca",
+                "-c",
+                "dogtag-ipa-ca-renew-agent",
+                "-e",
+                paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT,
+            ]
+        )
+
+    def test_ipahealthcheck_certmongerca(self, getcert_ca):
+        """
+        Test that healthcheck detects that a certmonger-defined
+        CA is missing
+        """
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs", "IPACertmongerCA",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["key"] == "dogtag-ipa-ca-renew-agent":
+                assert check["result"] == "ERROR"
+                assert (
+                    check["kw"]["msg"]
+                    == "Certmonger CA '{key}' missing"
+                )
+
+    @pytest.fixture()
+    def rename_httpd_cert(self):
+        """
+        Fixture to rename http cert and revert the change.
+        """
+        self.master.run_command(
+            ["mv", paths.HTTPD_CERT_FILE, "%s.old" % paths.HTTPD_CERT_FILE]
+        )
+        yield
+        self.master.run_command(
+            ["mv", "%s.old" % paths.HTTPD_CERT_FILE, paths.HTTPD_CERT_FILE]
+        )
+
+    def test_ipahealthcheck_ipaopensslchainvalidation(self, rename_httpd_cert):
+        """
+        Test for IPAOpenSSLChainValidation when httpd cert is moved.
+        """
+        error_msg = "Can't open {} for reading".format(paths.HTTPD_CERT_FILE)
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            "IPAOpenSSLChainValidation",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["key"] == paths.HTTPD_CERT_FILE:
+                assert check["result"] == "ERROR"
+                assert error_msg in check["kw"]["reason"]
+
+    @pytest.fixture()
+    def replace_ipa_chain(self):
+        """
+        Fixture to drop the external CA from the IPA chain
+        """
+        self.master.run_command(
+            ["cp", paths.IPA_CA_CRT, "%s.old" % paths.IPA_CA_CRT]
+        )
+        self.master.run_command(
+            [paths.CERTUTIL,
+             "-d", paths.PKI_TOMCAT_ALIAS_DIR,
+             "-L",
+             "-a",
+             "-n", "caSigningCert cert-pki-ca",
+             "-o", paths.IPA_CA_CRT]
+        )
+        yield
+        self.master.run_command(
+            ["mv", "%s.old" % paths.IPA_CA_CRT, paths.IPA_CA_CRT]
+        )
+
+    def test_opensslchainvalidation_ipa_ca_cert(self, replace_ipa_chain):
+        """
+        Test for IPAOpenSSLChainValidation when /etc/ipa/ca.crt
+        contains IPA CA cert but not the external CA
+        """
+        error_msg = "Certificate validation for {key} failed: {reason}"
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            "IPAOpenSSLChainValidation",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["key"] == paths.HTTPD_CERT_FILE:
+                assert check["result"] == "ERROR"
+                assert error_msg in check["kw"]["msg"]
+            elif check["kw"]["key"] == paths.RA_AGENT_PEM:
+                assert check["result"] == "ERROR"
+                assert error_msg in check["kw"]["msg"]
+
+    @pytest.fixture
+    def remove_server_cert(self):
+        """
+        Fixture to remove Server cert and revert the change.
+        """
+        instance = realm_to_serverid(self.master.domain.realm)
+        self.master.run_command(
+            [
+                "certutil",
+                "-L",
+                "-d",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance,
+                "-n",
+                "Server-Cert",
+                "-a",
+                "-o",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                + "/Server-Cert.pem",
+            ]
+        )
+        self.master.run_command(
+            [
+                "certutil",
+                "-d",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance,
+                "-D",
+                "-n",
+                "Server-Cert",
+            ]
+        )
+        yield
+        self.master.run_command(
+            [
+                "certutil",
+                "-d",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance,
+                "-A",
+                "-i",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                + "/Server-Cert.pem",
+                "-t",
+                "u,u,u",
+                "-f",
+                paths.IPA_NSSDB_PWDFILE_TXT,
+                "-n",
+                "Server-Cert",
+            ]
+        )
+
+    def test_ipahealthcheck_ipansschainvalidation(self, remove_server_cert):
+        """
+        Test for IPANSSChainValidation
+        """
+        error_msg = (
+            ': certutil: could not find certificate named "Server-Cert": '
+            "PR_FILE_NOT_FOUND_ERROR: File not found\n"
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs", "IPANSSChainValidation",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["nickname"] == "Server-Cert":
+                assert check["result"] == "ERROR"
+                assert check["kw"]["reason"] == error_msg
+
+    @pytest.fixture()
+    def modify_nssdb_chain_trust(self):
+        """
+        Fixture to modify trust in the dirsrv NSS database
+        """
+        instance = realm_to_serverid(self.master.domain.realm)
+        for nickname in ('CN={}'.format(ISSUER_CN),
+                         '%s IPA CA' % self.master.domain.realm):
+            cmd = [
+                paths.CERTUTIL,
+                "-M",
+                "-d", paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance,
+                "-n", nickname,
+                "-t", ",,",
+                "-f",
+                "%s/pwdfile.txt" %
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance,
+            ]
+            self.master.run_command(cmd)
+        yield
+        for nickname in ('CN={}'.format(ISSUER_CN),
+                         '%s IPA CA' % self.master.domain.realm):
+            cmd = [
+                paths.CERTUTIL,
+                "-M",
+                "-d", paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance,
+                "-n", nickname,
+                "-t", "CT,C,C",
+                "-f",
+                "%s/pwdfile.txt" %
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance,
+            ]
+            self.master.run_command(cmd)
+
+    def test_nsschainvalidation_ipa_invalid_chain(self,
+                                                  modify_nssdb_chain_trust):
+        """
+        Test for IPANSSChainValidation when external CA is not trusted
+        """
+        instance = realm_to_serverid(self.master.domain.realm)
+        instance_dir = paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+        error_msg = "Validation of {nickname} in {dbdir} failed: {reason}"
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            "IPANSSChainValidation",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["nickname"] != "Server-Cert":
+                assert check["result"] == "SUCCESS"
+                continue
+            assert check["result"] == "ERROR"
+            assert check["kw"]["dbdir"] == "%s/" % instance_dir
+            assert check["kw"]["msg"] == error_msg
+            assert "marked as not trusted" in check["kw"]["reason"]
+            assert check["kw"]["key"] == "%s:Server-Cert" % instance_dir
+
+    @pytest.fixture
+    def rename_raagent_cert(self):
+        """
+        Fixture to rename IPA RA CRT and revert
+        """
+        self.master.run_command(
+            ["mv", paths.RA_AGENT_PEM, "%s.old" % paths.RA_AGENT_PEM]
+        )
+        yield
+        self.master.run_command(
+            ["mv", "%s.old" % paths.RA_AGENT_PEM, paths.RA_AGENT_PEM]
+        )
+
+    def test_ipahealthcheck_iparaagent(self, rename_raagent_cert):
+        """
+        Testcase checks that ERROR message is displayed
+        when IPA RA crt file is renamed
+        """
+        error_msg = (
+            "[Errno 2] No such file or directory: '{}'"
+            .format(paths.RA_AGENT_PEM)
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs", "IPARAAgent"
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["error"] == error_msg
+
+    @pytest.fixture
+    def update_ra_cert_desc(self):
+        """
+        Fixture to modify description of RA cert in ldap
+        and revert
+        """
+        ldap = self.master.ldap_connect()
+        dn = DN(("uid", "ipara"), ("ou", "People"), ("o", "ipaca"))
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        ldap_cert_desc = entry.single_value.get("description")
+
+        def _update_entry(description):
+            entry = ldap.get_entry(dn)  # pylint: disable=no-member
+            entry.single_value['description'] = description
+            ldap.update_entry(entry)  # pylint: disable=no-member
+
+        yield _update_entry
+
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value['description'] = ldap_cert_desc
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+    def test_ipahealthcheck_iparaagent_ldap(self, update_ra_cert_desc):
+        """
+        Test to check that when description of RA cert in ldap
+        is modified, healthcheck tool reports the correct message
+        """
+        error_msg = 'RA agent not found in LDAP'
+        update_ra_cert_desc('200,12,CN=abc,CN=test')
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            "IPARAAgent",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["msg"] == error_msg
+
+    def test_ipahealthcheck_iparaagent_bad_serial(self, update_ra_cert_desc):
+        """
+        Test to check cert description doesnt match the expected
+        """
+        error_msg = 'RA agent description does not match. Found {got} ' \
+                    'in LDAP and expected {expected}'
+        update_ra_cert_desc(
+            '2;16;CN=Certificate Authority,O=%s;CN=IPA RA,O=%s' %
+            (self.master.domain.realm, self.master.domain.realm)
+        )
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            "IPARAAgent",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["expected"] == '2;6;' \
+                'CN=Certificate Authority,O=%s;CN=IPA RA,' \
+                'O=%s' % (self.master.domain.realm, self.master.domain.realm)
+            assert check["kw"]["got"] == '2;16;' \
+                'CN=Certificate Authority,O=%s;CN=IPA RA,' \
+                'O=%s' % (self.master.domain.realm, self.master.domain.realm)
+            assert check["kw"]["msg"] == error_msg
