@@ -366,6 +366,24 @@ interface(`ipa_custodia_stream_connect',`
     allow $1 ipa_custodia_t:unix_stream_socket { connectto };
 ')
 
+#####################################
+## <summary>
+##	Allow ipa_helper noatsecure
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_helper_noatsecure',`
+	gen_require(`
+		type ipa_helper_t;
+	')
+
+    allow $1 ipa_helper_t:process { noatsecure };
+')
+
 ########################################
 ## <summary>
 ##      Manage apache pid objects.
