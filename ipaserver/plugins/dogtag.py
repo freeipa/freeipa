@@ -1462,12 +1462,18 @@ class ra(rabase.rabase, RestClient):
 
         # Call CMS
         path = 'certs/{}'.format(serial_number)
-        _http_status, _http_headers, http_body = self._ssldo(
-            'GET', path, use_session=False,
-            headers={
-                'Accept': 'application/json',
-            },
-        )
+        try:
+            _http_status, _http_headers, http_body = self._ssldo(
+                'GET', path, use_session=False,
+                headers={
+                    'Accept': 'application/json',
+                },
+            )
+        except errors.HTTPRequestError as e:
+            self.raise_certificate_operation_error(
+                'get_certificate',
+                detail=e.status  # pylint: disable=no-member
+            )
 
         try:
             resp = json.loads(ipautil.decode_json(http_body))
@@ -1493,7 +1499,7 @@ class ra(rabase.rabase, RestClient):
             cmd_result['serial_number'] = unicode(serial)
             cmd_result['serial_number_hex'] = u'0x%X' % serial
 
-        if 'RevocationReason' in resp:
+        if 'RevocationReason' in resp and resp['RevocationReason'] is not None:
             cmd_result['revocation_reason'] = resp['RevocationReason']
 
         return cmd_result
