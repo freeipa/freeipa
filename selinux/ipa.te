@@ -115,6 +115,7 @@ optional_policy(`
 
 
 allow ipa_helper_t self:capability { net_admin dac_read_search dac_override chown };
+seutil_read_config(ipa_helper_t);
 
 #kernel bug
 dontaudit ipa_helper_t self:capability2  block_suspend;

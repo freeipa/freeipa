@@ -419,3 +419,21 @@ ifndef(`dirsrv_systemctl',`
         ps_process_pattern($1, dirsrv_t)
     ')
 ')
+
+
+########################################
+## <summary>
+##	Allow ipa_helper noatsecure
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_helper_noatsecure',`
+    gen_require(`
+	type ipa_helper_t;
+    ')
+    allow $1 ipa_helper_t:process { noatsecure };
+')
