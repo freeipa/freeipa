@@ -35,20 +35,22 @@ certificate to be revoked and its private key deleted.
 """) + _("""
 EXAMPLES:
 """) + _("""
-  Create new CA, subordinate to the IPA CA.
+  Create new CA, subordinate to the IPA CA (requires permission
+  "System: Add CA"):
 
     ipa ca-add puppet --desc "Puppet" \\
         --subject "CN=Puppet CA,O=EXAMPLE.COM"
 """) + _("""
-  Disable a CA.
+  Disable a CA (requires permission "System: Modify CA"):
 
     ipa ca-disable puppet
 """) + _("""
-  Re-enable a CA.
+  Re-enable a CA (requires permission "System: Modify CA"):
 
     ipa ca-enable puppet
 """) + _("""
-  Delete a CA.
+  Delete a CA (requires permission "System: Delete CA"; also requires
+  CA to be disabled first):
 
     ipa ca-del puppet
 """)
@@ -321,7 +323,7 @@ class ca_add(LDAPCreate):
 
 @register()
 class ca_del(LDAPDelete):
-    __doc__ = _('Delete a CA.')
+    __doc__ = _('Delete a CA (must be disabled first).')
 
     msg_summary = _('Deleted CA "%(value)s"')
 
