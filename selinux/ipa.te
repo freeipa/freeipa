@@ -390,3 +390,7 @@ optional_policy(`
 	sssd_search_lib(ipa_custodia_t)
 	sssd_stream_connect(ipa_custodia_t)
 ')
+
+optional_policy(`
+       systemd_private_tmp(ipa_custodia_tmp_t)
+')
