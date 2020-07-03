@@ -43,6 +43,7 @@ from .baseuser import (
     validate_nsaccountlock,
     convert_nsaccountlock,
     fix_addressbook_permission_bindrule,
+    create_entry_for_apppw,
     baseuser_add_manager,
     baseuser_remove_manager,
     baseuser_add_cert,
@@ -668,6 +669,8 @@ class user_add(baseuser_add):
 
         self.obj.get_preserved_attribute(entry_attrs, options)
 
+        create_entry_for_apppw(ldap, dn)
+
         self.post_common_callback(ldap, dn, entry_attrs, *keys, **options)
 
         return dn
@@ -776,6 +779,22 @@ class user_del(baseuser_del):
             else:
                 self.api.Command.otptoken_del(token)
 
+        # If we are going to preserve or permanently delete the user, delete
+        # his/her app passwords
+        user_apppw_container_dn = DN(('cn=', dn[0]),
+                                     api.env.container_apppw,
+                                     api.env.basedn)
+        # the search is not time or size limited, so we can ignore the
+        # returned value of 'truncated'
+        pf = self.api.Object['apppw'].permission_filter_objectclasses_string
+        result = ldap.find_entries(
+            filter=pf,
+            base_dn=user_apppw_container_dn
+        )
+        for entry in result:
+            ldap.delete_entry(entry)
+        ldap.delete_entry(user_apppw_container_dn)
+
         return dn
 
     def execute(self, *keys, **options):
@@ -823,6 +842,19 @@ class user_mod(baseuser_mod):
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
                                  **options)
         validate_nsaccountlock(entry_attrs)
+
+        # if the user is going to be renamed, rename the entry grouping his/her
+        # app passwords
+        rename = options.get('rename', None)
+        active = dn.endswith(DN(self.obj.active_container_dn, api.env.basedn))
+        if active and rename is not None:
+            user_apppw_container_dn = DN(('cn', dn[0].value),
+                                         api.env.container_apppw,
+                                         api.env.basedn)
+            entry = ldap.get_entry(user_apppw_container_dn)
+            entry['cn'] = rename
+            ldap.update_entry(entry)
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -950,6 +982,8 @@ class user_undel(LDAPQuery):
             ldap.add_entry_to_group(active_dn, group_dn)
         except errors.AlreadyGroupMember:
             pass
+
+        create_entry_for_apppw(ldap, active_dn)
 
         return dict(
             result=True,

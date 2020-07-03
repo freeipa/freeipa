@@ -68,6 +68,12 @@
 #define IPAPWD_OP_ADD 1
 #define IPAPWD_OP_MOD 2
 
+/* Partial DN of the container for app passwords */
+#define APPPW_CONTAINER_DN "cn=apps,cn=accounts"
+
+/* Search filter to use when searching for app passwords */
+#define SEARCH_FILTER "objectclass=account"
+
 extern Slapi_PluginDesc ipapwd_plugin_desc;
 extern void *ipapwd_plugin_id;
 extern const char *ipa_realm_tree;
@@ -218,6 +224,12 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     char *userpw = NULL;
     Slapi_DN *sdn = NULL;
     struct ipapwd_operation *pwdop = NULL;
+    const char** rdns = NULL;
+    size_t suffix_start;
+    size_t rdn_count;
+    bool suffix_found = False;
+    bool cn_apps = False;
+    bool cn_accounts = False;
     void *op;
     int is_repl_op, is_root, is_krb, is_smb, is_ipant, is_memberof;
     int ret;
@@ -379,14 +391,33 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     pwdop->pwdata.timeNow = time(NULL);
     pwdop->pwdata.target = e;
 
-    ret = ipapwd_CheckPolicy(&pwdop->pwdata);
-    /* For accounts created by cn=Directory Manager or a passsync
-     * managers, ignore result of a policy check */
-    if ((pwdop->pwdata.changetype != IPA_CHANGETYPE_DSMGR) &&
-        (ret != 0) ) {
-        errMesg = ipapwd_error2string(ret);
-        rc = LDAP_CONSTRAINT_VIOLATION;
+    rdns = slapi_ldap_explode_dn(pwdop->pwdata.dn, 0);
+    if (!rdns) {
+        LOG_OOM();
         goto done;
+    }
+    rdn_count = sizeof(rdns) / sizeof(rdns[0]);
+    for (suffix_start = 0; suffix_start < rdn_count; suffix_start++) {
+        if (strstr(rdns[suffix_start], 'dc=') == rdns[suffix_start]) {
+            break;
+        }
+    }
+    suffix_found = suffix_start < rdn_count;
+    cn_apps = strcmp(rdns[suffix_start - 2], 'cn=apps') == 0;
+    cn_accounts = strcmp(rdns[suffix_start - 1], 'cn=accounts') == 0;
+    /* If the entry represents an app password, no password policy checks
+     * are performed
+     */
+    if (suffix_found && cn_apps && cn_accounts) {
+        ret = ipapwd_CheckPolicy(&pwdop->pwdata);
+        /* For accounts created by cn=Directory Manager or a passsync
+         * managers, ignore result of a policy check */
+        if ((pwdop->pwdata.changetype != IPA_CHANGETYPE_DSMGR) &&
+            (ret != 0)) {
+            errMesg = ipapwd_error2string(ret);
+            rc = LDAP_CONSTRAINT_VIOLATION;
+            goto done;
+        }
     }
 
     if (is_krb || is_smb || is_ipant) {
@@ -448,6 +479,7 @@ done:
     if (pwdop) pwdop->pwdata.target = NULL;
     free_ipapwd_krbcfg(&krbcfg);
     slapi_ch_free_string(&userpw);
+    slapi_ch_array_free(rdns);
     if (rc != LDAP_SUCCESS) {
         slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
         return -1;
@@ -1420,6 +1452,10 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         "krbPasswordExpiration", "krblastpwchange",
         NULL
     };
+    static const char* apppw_attrs_list[] = {
+        SLAPI_USERPWD_ATTR, "uid", "objectclass",
+        NULL
+    };
     struct berval *credentials = NULL;
     Slapi_Entry *entry = NULL;
     Slapi_DN *target_sdn = NULL;
@@ -1435,6 +1471,17 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     struct tm expire_tm;
     int rc = LDAP_INVALID_CREDENTIALS;
     char *errMesg = NULL;
+    const char** rdns = NULL;
+    size_t rdn_count;
+    size_t suffix_start;
+    size_t suffix_len = 0;
+    size_t copied = 0;
+    char *suffix = NULL;
+    char *apppw_dn = NULL;
+    size_t apppw_count = 0;
+    size_t i = 0;
+    Slapi_PBlock* search_pb;
+    Slapi_Entry** search_apppw_entries = NULL;
 
     /* get BIND parameters */
     ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET_SDN, &target_sdn);
@@ -1505,29 +1552,127 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         }
     }
 
-    /* Authenticate the user. */
+    /* Authenticate the user using the primary password. */
     ret = ipapwd_authenticate(dn, entry, credentials);
-    if (ret) {
+    if (!ret) {
+        /* Attempt to handle a token synchronization request. */
+        if (syncreq && !otpctrl_sync_handle(otp_config, pb, dn))
+            goto invalid_creds;
+
+        /* Attempt to write out kerberos keys for the user. */
+        ipapwd_write_krb_keys(pb, discard_const(dn), entry, credentials);
+
         slapi_entry_free(entry);
         slapi_sdn_free(&sdn);
         return 0;
     }
 
-    /* Attempt to handle a token synchronization request. */
-    if (syncreq && !otpctrl_sync_handle(otp_config, pb, dn))
+    /* Get the (user's) uid and $SUFFIX parts of the DN. */
+    rdns = slapi_ldap_explode_dn(pwdop->pwdata.dn, 0);
+    if (!rdns) {
+        LOG_OOM();
         goto invalid_creds;
+    }
+    rdn_count = sizeof(rdns) / sizeof(rdns[0]);
+    for (suffix_start = 0; suffix_start < rdn_count; suffix_start++) {
+        if (strstr(rdns[suffix_start], "dc=") == rdns[suffix_start]) {
+            break;
+        }
+    }
+    for (i = suffix_start; i < rdn_count; i++) {
+        suffix_len += strlen(rdns[i]);
+    }
+    if (suffix_len == 0) {
+        errMesg = "DN suffix not found, skipping authentication using app passwords...\n";
+        slapi_ch_array_free(rdns);
+        goto invalid_creds;
+    }
+    suffix = slapi_ch_malloc(suffix_len + (rdn_count - suffix_start) + 1);
+    if (!suffix) {
+        LOG_OOM();
+        goto invalid_creds;
+    }
+    for (i = suffix_start; i < rdn_count; i++) {
+        suffix[copied] = ',';
+        memcpy(suffix + copied + 1, rdns[i], strlen(rdns[i]));
+        copied += 1 + strlen(rdns[i]);
+    }
+    suffix[suffix_len] = '\0';
 
-    /* Attempt to write out kerberos keys for the user. */
-    ipapwd_write_krb_keys(pb, discard_const(dn), entry, credentials);
+    /* Also compare against app passwords of the user. If some of them matches,
+     * the user is authenticated using that password and he/she will have
+     * read-only access to his primary entry. No operations with OTP or
+     * Kerberos are performed for app passwords.
+     */
 
-    slapi_entry_free(entry);
-    slapi_sdn_free(&sdn);
-    return 0;
+    search_pb = slapi_pblock_new();
+    if (!search_pb) {
+        LOG_OOM;
+        goto invalid_creds;
+    }
+
+    apppw_dn = slapi_ch_smprintf("%s,%s%s", rdns[0], APPPW_CONTAINER_DN, suffix);
+    if (!apppw_dn) {
+        LOG_OOM();
+        goto invalid_creds;
+    }
+
+    slapi_search_internal_set_pb(search_pb, apppw_dn,
+        LDAP_SCOPE_ONELEVEL, SEARCH_FILTER,
+        NULL, 0, NULL, NULL, ipapwd_plugin_id, 0);
+
+    slapi_search_internal_pb(search_pb);
+    slapi_pblock_get(search_pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
+
+    if (ret) {
+        errMesg = "No app passwords found for the user.\n";
+        goto invalid_creds;
+    }
+
+    slapi_pblock_get(search_pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES,
+        &search_apppw_entries);
+    if (!search_apppw_entries || !search_apppw_entries[0]) {
+        errMesg = "No app passwords found for the user.\n";
+        goto invalid_creds;
+    }
+
+    slapi_pblock_get(search_pb, SLAPI_NENTRIES, &apppw_count);
+    for (i = 0; i < apppw_count; i++) {
+        /* Authenticate the user using the app password. */
+        ret = ipapwd_authenticate(slapi_entry_get_dn(search_apppw_entries[i]),
+            search_apppw_entries[i], credentials);
+
+        /* Limit effective permissions of the new session to:
+         * 1. full access to the apppw object with the app password that was
+         *    used for authentication
+         * 2. read-only access to the user's primary entry
+         */
+
+
+        if (!ret) {
+            slapi_entry_free(entry);
+            slapi_sdn_free(&sdn);
+            slapi_entry_free(apppw_entry);
+            slapi_ch_free(apppw_dn);
+            slapi_ch_array_free(rdns);
+            slapi_ch_free(suffix);
+            slapi_free_search_results_internal(search_pb);
+            slapi_pblock_destroy(search_pb);
+            return 0;
+        }
+    }
+
 
 invalid_creds:
     slapi_entry_free(entry);
     slapi_sdn_free(&sdn);
+    slapi_entry_free(apppw_entry);
+    slapi_ch_free(apppw_dn);
+    slapi_ch_array_free(rdns);
+    slapi_ch_free(suffix);
     slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
+    slapi_free_search_results_internal(search_pb);
+    slapi_pblock_destroy(search_pb);
     return 1;
 }
 

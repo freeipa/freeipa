@@ -1,0 +1,7 @@
+# Add the root entry for app passwords and appropriate ACIs to enable users to work with their app passwords
+dn: cn=apps,cn=accounts,$SUFFIX
+add:objectclass: top
+add:objectClass: nsContainer
+add:cn: apps
+add:aci: (target = "ldap:///uid=*,cn=($$dn),cn=apps,cn=accounts,$SUFFIX")(targetattr = "uid || description || ou || userPassword")(targetfilter=(objectClass=account))(version 3.0; acl "System: Allow users to add or remove an app password for themselves"; allow (add, delete) userdn = "ldap:///uid=($$dn),cn=users,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///uid=*,cn=($$dn),cn=apps,cn=accounts,$SUFFIX")(targetattr = "uid || description || ou")(targetfilter=(objectClass=account))(version 3.0; acl "System: Allow users to search for their app passwords"; allow (search, read) userdn = "ldap:///uid=($$dn),cn=users,cn=accounts,$SUFFIX";)

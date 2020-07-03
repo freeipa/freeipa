@@ -29,6 +29,7 @@ app_DATA =				\
 	21-replicas_container.update	\
 	21-ca_renewal_container.update	\
 	21-certstore_container.update	\
+	22-apppw.update         \
 	25-referint.update		\
 	30-ipservices.update		\
 	30-provisioning.update		\

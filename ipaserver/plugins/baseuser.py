@@ -148,6 +148,24 @@ def update_samba_attrs(ldap, dn, entry_attrs, **options):
                 )
 
 
+def create_entry_for_apppw(ldap, dn):
+    """Add the parent entry for user's app passwords
+
+    When:
+    * creating an active user, or
+    * activating a stage user, or
+    * undeleting (restoring) a preserved user,
+    add the parent entry under which user's app password objects will be stored,
+    such as cn=jsmith,cn=apps,cn=accounts,$SUFFIX
+    """
+    entry_attrs = dict(cn=dn[0])
+    entry_dn = DN(('cn', dn[0]),
+                  api.env.container_apppw,
+                  api.env.basedn)
+    entry = ldap.make_entry(entry_dn, entry_attrs)
+    ldap.add_entry(entry)
+
+
 class baseuser(LDAPObject):
     """
     baseuser object.

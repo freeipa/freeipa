@@ -101,6 +101,7 @@ DEFAULT_CONFIG = (
     ('container_user', DN(('cn', 'users'), ('cn', 'accounts'))),
     ('container_deleteuser', DN(('cn', 'deleted users'), ('cn', 'accounts'), ('cn', 'provisioning'))),
     ('container_stageuser',  DN(('cn', 'staged users'),  ('cn', 'accounts'), ('cn', 'provisioning'))),
+    ('container_apppw', DN(('cn', 'apps'), ('cn', 'accounts'))),
     ('container_group', DN(('cn', 'groups'), ('cn', 'accounts'))),
     ('container_service', DN(('cn', 'services'), ('cn', 'accounts'))),
     ('container_host', DN(('cn', 'computers'), ('cn', 'accounts'))),
@@ -321,6 +322,12 @@ MAXHOSTNAMELEN = 64
 # regexp definitions
 PATTERN_GROUPUSER_NAME = (
     '(?!^[0-9]+$)^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*[a-zA-Z0-9_.$-]?$'
+)
+PATTERN_APPPW_UID = (
+    '(?!^0+[0-9]$)^[0-9]{1,2}$'
+)
+PATTERN_APPNAME = (
+    '^[a-zA-Z0-9_-]*[a-zA-Z0-9_$-]?$'
 )
 
 # Kerberos Anonymous principal name

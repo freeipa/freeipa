@@ -325,6 +325,7 @@ nav.self_service = {
     items: [
         { entity: 'user' },
         { entity: 'otptoken' },
+        { entity: 'apppw' },
         {
             name: 'vault',
             entity: 'vault',

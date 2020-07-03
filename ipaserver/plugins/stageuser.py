@@ -42,6 +42,7 @@ from .baseuser import (
     baseuser_show,
     NO_UPG_MAGIC,
     baseuser_output_params,
+    create_entry_for_apppw,
     baseuser_add_cert,
     baseuser_remove_cert,
     baseuser_add_principal,
@@ -742,6 +743,8 @@ class stageuser_activate(LDAPQuery):
             ldap.add_entry_to_group(active_dn, group_dn)
         except errors.AlreadyGroupMember:
             pass
+
+        create_entry_for_apppw(ldap, active_dn)
 
         # Now retrieve the activated entry
         result = self.api.Command.user_show(
