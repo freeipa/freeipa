@@ -3109,7 +3109,7 @@ IPA.boolean_status_formatter = function(spec) {
     that.format = function(value) {
         var icon_cls = value ? that.enabled_icon : that.disabled_icon;
         var formatted_value = that.boolean_formatter_format(value);
-        formatted_value = '<i class=\"'+icon_cls+'\"/> '+formatted_value;
+        formatted_value = '<i class=\"'+icon_cls+'\"></i> '+formatted_value;
         return formatted_value;
     };
 
