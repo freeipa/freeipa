@@ -127,6 +127,95 @@ class TestInstallMasterClient(IntegrationTest):
         ipaddrs = ext.value.get_values_for_type(x509.IPAddress)
         assert ipaddrs == [ipaddress.ip_address(self.clients[0].ip)]
 
+    def test_getcert_list_profile(self):
+        """
+        Test that getcert list command displays the profile
+        for the cert
+        """
+        result = self.master.run_command(
+            ["getcert", "list", "-f", paths.HTTPD_CERT_FILE]
+        )
+        assert "profile: caIPAserviceCert" in result.stdout_text
+        result = self.master.run_command(
+            ["getcert", "list", "-n", "Server-Cert cert-pki-ca"]
+        )
+        assert "profile: caServerCert" in result.stdout_text
+
+    @pytest.fixture
+    def test_subca_certs(self):
+        """
+        Fixture to add subca, stop tracking request,
+        followed by removing SUB CA along with
+        cert keys
+        """
+        sub_name = "CN=SUBCA"
+        tasks.kinit_admin(self.master)
+        self.master.run_command(
+            ["ipa", "ca-add", "mysubca", "--subject={}".format(sub_name)]
+        )
+        self.master.run_command(
+            [
+                "ipa",
+                "caacl-add-ca",
+                "hosts_services_caIPAserviceCert",
+                "--cas=mysubca",
+            ]
+        )
+        yield
+        self.master.run_command(
+            ["getcert", "stop-tracking", "-i", "test-request"]
+        )
+        self.master.run_command(["ipa", "ca-disable", "mysubca"])
+        self.master.run_command(["ipa", "ca-del", "mysubca"])
+        self.master.run_command(
+            ["rm", "-fv", "/etc/pki/tls/private/test.key"]
+        )
+        self.master.run_command(["rm", "-fv", "/etc/pki/tls/certs/test.pem"])
+
+    def test_getcert_list_profile_using_subca(self, test_subca_certs):
+        """
+        Test that getcert list command displays the profile
+        for the cert requests generated, with a SubCA configured
+        on the IPA server.
+        """
+        cmd_arg = [
+            "getcert",
+            "request",
+            "-c",
+            "ipa",
+            "-I",
+            "test-request",
+            "-k",
+            "/etc/pki/tls/private/test.key",
+            "-f",
+            "/etc/pki/tls/certs/test.pem",
+            "-D",
+            self.master.hostname,
+            "-K",
+            "host/%s" % self.master.hostname,
+            "-N",
+            "CN={}".format(self.master.hostname),
+            "-U",
+            "id-kp-clientAuth",
+            "-X",
+            "mysubca",
+            "-T",
+            "caIPAserviceCert",
+        ]
+        result = self.master.run_command(cmd_arg)
+        assert (
+            'New signing request "test-request" added.\n' in result.stdout_text
+        )
+        status = tasks.wait_for_request(self.master, "test-request", 50)
+        if status == "MONITORING":
+            result = self.master.run_command(
+                ["getcert", "list", "-i", "test-request"]
+            )
+            assert "profile: caIPAserviceCert" in result.stdout_text
+        else:
+            raise AssertionError("certmonger request is "
+                                 "in state {}". format(status))
+
 
 class TestCertmongerInterruption(IntegrationTest):
     num_replicas = 1
