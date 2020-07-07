@@ -795,6 +795,9 @@ def install(installer):
     # failure to enable root cause investigation
     installer._installation_cleanup = False
 
+    # Be clear that the installation process is beginning but not done
+    sstore.backup_state('installation', 'complete', False)
+
     if installer.interactive:
         print("")
         print("The following operations may take some minutes to complete.")
@@ -997,6 +1000,8 @@ def install(installer):
         bind.create_file_with_system_records()
 
     # Everything installed properly, activate ipa service.
+    sstore.delete_state('installation', 'complete')
+    sstore.backup_state('installation', 'complete', True)
     services.knownservices.ipa.enable()
 
     print("======================================="
@@ -1200,6 +1205,7 @@ def uninstall(installer):
     if fstore.has_files():
         logger.error('Some files have not been restored, see '
                      '%s/sysrestore.index', SYSRESTORE_DIR_PATH)
+    sstore.delete_state('installation', 'complete')
     has_state = False
     for module in IPA_MODULES:  # from installutils
         if sstore.has_state(module):
