@@ -266,13 +266,21 @@ def delete_ipa_domain():
             "No access to the /etc/sssd/sssd.conf file.")
 
 
-def is_ipa_client_installed(fstore, on_master=False):
+def is_ipa_client_installed(on_master=False):
     """
     Consider IPA client not installed if nothing is backed up
     and default.conf file does not exist. If on_master is set to True,
     the existence of default.conf file is not taken into consideration,
     since it has been already created by ipa-server-install.
     """
+    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
+
+    installed = statestore.get_state('installation', 'complete')
+    if installed is not None:
+        return installed
+
+    # Fall back to the old detection
 
     installed = (
         fstore.has_files() or (
@@ -2086,7 +2094,7 @@ def install_check(options):
 
     tasks.check_selinux_status()
 
-    if is_ipa_client_installed(fstore, on_master=options.on_master):
+    if is_ipa_client_installed(on_master=options.on_master):
         logger.error("IPA client is already configured on this system.")
         logger.info(
             "If you want to reinstall the IPA client, uninstall it first "
@@ -2597,6 +2605,8 @@ def _install(options):
 
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
+
+    statestore.backup_state('installation', 'complete', False)
 
     if not options.on_master:
         # Try removing old principals from the keytab
@@ -3181,13 +3191,15 @@ def _install(options):
         configure_nisdomain(
             options=options, domain=cli_domain, statestore=statestore)
 
+    statestore.delete_state('installation', 'complete')
+    statestore.backup_state('installation', 'complete', True)
     logger.info('Client configuration complete.')
 
 
 def uninstall_check(options):
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
 
-    if not is_ipa_client_installed(fstore):
+    if not is_ipa_client_installed():
         if options.on_master:
             rval = SUCCESS
         else:
@@ -3509,6 +3521,8 @@ def uninstall(options):
     if fstore.has_files():
         logger.error('Some files have not been restored, see %s',
                      paths.SYSRESTORE_INDEX)
+
+    statestore.delete_state('installation', 'complete')
     has_state = False
     for module in statestore.modules:
             logger.error(

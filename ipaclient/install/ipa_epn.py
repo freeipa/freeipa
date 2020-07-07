@@ -42,7 +42,6 @@ from email.utils import make_msgid
 from ipaclient.install.client import is_ipa_client_installed
 from ipaplatform.paths import paths
 from ipalib import api, errors
-from ipalib.install import sysrestore
 from ipapython import admintool, ipaldap
 from ipapython.dn import DN
 
@@ -255,8 +254,7 @@ class EPN(admintool.AdminTool):
     def run(self):
         super(EPN, self).run()
 
-        fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-        if not is_ipa_client_installed(fstore):
+        if not is_ipa_client_installed():
             logger.error("IPA client is not configured on this system.")
             raise admintool.ScriptError()
 
