@@ -302,6 +302,11 @@ class EnableTracker(BaseTracker):
         (enabled/disabled) after the test as it was before it.
         """
         def cleanup():
+            if isinstance(self, CreationTracker):
+                # special case: if it already got deleted there is
+                # nothing to enable or disable
+                return
+
             if self.original_enabled != self.enabled:
                 if self.original_enabled:
                     command = self.make_enable_command()
