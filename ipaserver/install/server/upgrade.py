@@ -1482,6 +1482,10 @@ def upgrade_configuration():
     logger.debug('IPA version %s', version.VENDOR_VERSION)
 
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
+
+    if installutils.is_ipa_configured() is None:
+        sstore.backup_state('installation', 'complete', True)
 
     fqdn = api.env.host
 
