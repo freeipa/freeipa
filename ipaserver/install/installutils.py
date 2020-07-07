@@ -700,28 +700,10 @@ def rmtree(path):
 
 def is_ipa_configured():
     """
-    Using the state and index install files determine if IPA is already
-    configured.
+    Use the state to determine if IPA has been configured.
     """
-    installed = False
-
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
-    fstore = sysrestore.FileStore(paths.SYSRESTORE)
-
-    for module in IPA_MODULES:
-        if sstore.has_state(module):
-            logger.debug('%s is configured', module)
-            installed = True
-        else:
-            logger.debug('%s is not configured', module)
-
-    if fstore.has_files():
-        logger.debug('filestore has files')
-        installed = True
-    else:
-        logger.debug('filestore is tracking no files')
-
-    return installed
+    return sstore.get_state('installation', 'complete')
 
 
 def run_script(main_function, operation_name, log_file_name=None,
