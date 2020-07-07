@@ -42,7 +42,7 @@ class CATracker(Tracker, EnableTracker):
     update_keys = ldap_keys - {'dn'}
 
     def __init__(self, name, subject, desc=u"Test generated CA",
-                 default_version=None):
+                 default_version=None, auto_disable_for_delete=True):
         super(CATracker, self).__init__(default_version=default_version)
         self.attrs = {}
         self.ipasubjectdn = subject
@@ -51,6 +51,9 @@ class CATracker(Tracker, EnableTracker):
         self.dn = DN(('cn', name),
                      self.api.env.container_ca,
                      self.api.env.basedn)
+
+        # Whether to run ca-disable automatically before deleting the CA.
+        self.auto_disable_for_delete = auto_disable_for_delete
 
     def make_create_command(self):
         """Make function that creates the plugin entry object."""
@@ -92,7 +95,13 @@ class CATracker(Tracker, EnableTracker):
 
     def make_delete_command(self):
         """Make function that deletes the plugin entry object."""
-        return self.make_command('ca_del', self.name)
+        if self.auto_disable_for_delete:
+            def disable_then_delete():
+                self.make_command('ca_disable', self.name)()
+                return self.make_command('ca_del', self.name)()
+            return disable_then_delete
+        else:
+            return self.make_command('ca_del', self.name)
 
     def check_delete(self, result):
         assert_deepequal(dict(
