@@ -1205,6 +1205,7 @@ def install(installer):
     ca_enabled = installer._ca_enabled
     kra_enabled = installer._kra_enabled
     fstore = installer._fstore
+    sstore = installer._sstore
     config = installer._config
     cafile = installer._ca_file
     dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
@@ -1214,6 +1215,9 @@ def install(installer):
     remote_api = installer._remote_api
     conn = remote_api.Backend.ldap2
     ccache = os.environ['KRB5CCNAME']
+
+    # Be clear that the installation process is beginning but not done
+    sstore.backup_state('installation', 'complete', False)
 
     if tasks.configure_pkcs11_modules(fstore):
         print("Disabled p11-kit-proxy")
@@ -1371,6 +1375,8 @@ def install(installer):
     api.Backend.ldap2.disconnect()
 
     # Everything installed properly, activate ipa service.
+    sstore.delete_state('installation', 'complete')
+    sstore.backup_state('installation', 'complete', True)
     services.knownservices.ipa.enable()
 
     # Print a warning if CA role is only installed on one server
