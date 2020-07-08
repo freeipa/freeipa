@@ -287,6 +287,19 @@ jobs:
         timeout: 7200
         topology: *master_2repl_1client
 
+  389ds-fedora/test_dnssec:
+    requires: [389ds-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{389ds-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_dnssec.py
+        template: *389ds-master-latest
+        timeout: 10800
+        topology: *master_2repl_1client
+
   389ds-fedora/test_replica_promotion_TestReplicaPromotionLevel1:
     requires: [389ds-fedora/build]
     priority: 50
