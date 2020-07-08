@@ -18,9 +18,9 @@ from jwcrypto.common import json_decode
 from jwcrypto.jwk import JWK
 
 from ipalib import api
+from ipalib.facts import is_ipa_configured
 from ipaplatform.paths import paths
 import ipapython.version
-from ipaserver.install.installutils import is_ipa_configured
 
 try:
     # FreeIPA >= 4.5

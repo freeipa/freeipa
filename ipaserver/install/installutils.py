@@ -43,7 +43,7 @@ from dns.exception import DNSException
 import ldap
 import six
 
-from ipalib.install import sysrestore
+from ipalib import facts, sysrestore
 from ipalib.install.kinit import kinit_password
 import ipaplatform
 from ipapython import ipautil, admintool, version, ipaldap
@@ -702,8 +702,12 @@ def is_ipa_configured():
     """
     Use the state to determine if IPA has been configured.
     """
-    sstore = sysrestore.StateFile(paths.SYSRESTORE)
-    return sstore.get_state('installation', 'complete')
+    warnings.warn(
+        "Use 'ipalib.facts.is_ipa_configured'",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return facts.is_ipa_configured()
 
 
 def run_script(main_function, operation_name, log_file_name=None,
