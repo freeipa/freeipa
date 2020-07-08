@@ -107,14 +107,19 @@ def run_with_args(api):
     server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
     if server_fstore.has_files():
         update_server(certs)
-        try:
-            # pylint: disable=import-error,ipa-forbidden-import
-            from ipaserver.install import cainstance
-            # pylint: enable=import-error,ipa-forbidden-import
-            cainstance.add_lightweight_ca_tracking_requests(lwcas)
-        except Exception:
-            logger.exception(
-                "Failed to add lightweight CA tracking requests")
+
+        # pylint: disable=import-error,ipa-forbidden-import
+        from ipaserver.install import cainstance
+        # pylint: enable=import-error,ipa-forbidden-import
+
+        # Add LWCA tracking requests.  Only execute if *this server*
+        # has CA installed (ca_enabled indicates CA-ful topology).
+        if cainstance.CAInstance().is_configured():
+            try:
+                cainstance.add_lightweight_ca_tracking_requests(lwcas)
+            except Exception:
+                logger.exception(
+                    "Failed to add lightweight CA tracking requests")
 
     update_client(certs)
 
