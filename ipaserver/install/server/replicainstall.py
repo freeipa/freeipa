@@ -35,13 +35,14 @@ from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 from ipalib import api, constants, create_api, errors, rpc, x509
 from ipalib.config import Env
+from ipalib.facts import is_ipa_configured
 from ipalib.util import no_matching_interface_for_ip_address_warning
 from ipaclient.install.client import configure_krb5_conf, purge_host_keytab
 from ipaserver.install import (
     adtrust, bindinstance, ca, dns, dsinstance, httpinstance,
     installutils, kra, krbinstance, otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import (
-    ReplicaConfig, load_pkcs12, is_ipa_configured, validate_mask)
+    ReplicaConfig, load_pkcs12, validate_mask)
 from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
 from ipaserver.masters import find_providing_servers, find_providing_server

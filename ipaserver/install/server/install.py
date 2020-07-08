@@ -32,6 +32,7 @@ from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib import api, errors, x509
 from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.facts import is_ipa_configured
 from ipalib.util import (
     validate_domain_name,
     no_matching_interface_for_ip_address_warning,
@@ -43,8 +44,8 @@ from ipaserver.install import (
     sysupgrade)
 from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
-    is_ipa_configured, load_pkcs12, read_password, verify_fqdn,
-    update_hosts_file, validate_mask)
+    load_pkcs12, read_password, verify_fqdn, update_hosts_file,
+    validate_mask)
 
 if six.PY3:
     unicode = str

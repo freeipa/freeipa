@@ -32,13 +32,13 @@ import shutil
 
 from ipalib import api
 from ipalib import x509
+from ipalib.facts import is_ipa_configured
 from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool
 from ipapython.certdb import NSSDatabase, EMPTY_TRUST_FLAGS
 from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
 from ipaserver.install import ca, cainstance, dsinstance
-from ipaserver.install.installutils import is_ipa_configured
 from ipapython import ipautil
 
 msg = """

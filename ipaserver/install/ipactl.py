@@ -27,9 +27,10 @@ import ldapurl
 
 from ipaserver.install import service, installutils
 from ipaserver.install.dsinstance import config_dirname
-from ipaserver.install.installutils import is_ipa_configured, ScriptError
+from ipaserver.install.installutils import ScriptError
 from ipaserver.masters import ENABLED_SERVICE, HIDDEN_SERVICE
 from ipalib import api, errors
+from ipalib.facts import is_ipa_configured
 from ipapython.ipaldap import LDAPClient, realm_to_serverid
 from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
 from ipapython.ipautil import run
