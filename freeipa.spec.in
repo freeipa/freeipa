@@ -944,7 +944,7 @@ fi
 
 %posttrans server
 # don't execute upgrade and restart of IPA when server is not installed
-%{__python3} -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
+%{__python3} -c "import sys; from ipalib import facts; sys.exit(0 if facts.is_ipa_configured() else 1);" > /dev/null 2>&1
 
 if [  $? -eq 0 ]; then
     # This is necessary for Fedora system upgrades which by default
@@ -1023,7 +1023,7 @@ fi
 
 
 %posttrans server-trust-ad
-%{__python3} -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
+%{__python3} -c "import sys; from ipalib import facts; sys.exit(0 if facts.is_ipa_configured() else 1);" > /dev/null 2>&1
 if [  $? -eq 0 ]; then
 # NOTE: systemd specific section
     /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :

@@ -39,9 +39,9 @@ from email.mime.text import MIMEText
 from email.header import Header
 from email.utils import make_msgid
 
-from ipaclient.install.client import is_ipa_client_installed
 from ipaplatform.paths import paths
 from ipalib import api, errors
+from ipalib.facts import is_ipa_client_configured
 from ipapython import admintool, ipaldap
 from ipapython.dn import DN
 
@@ -254,7 +254,7 @@ class EPN(admintool.AdminTool):
     def run(self):
         super(EPN, self).run()
 
-        if not is_ipa_client_installed():
+        if not is_ipa_client_configured():
             logger.error("IPA client is not configured on this system.")
             raise admintool.ScriptError()
 

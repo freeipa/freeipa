@@ -35,8 +35,10 @@ from configparser import RawConfigParser
 from urllib.parse import urlparse, urlunparse
 
 from ipalib import api, errors, x509
+from ipalib import sysrestore
 from ipalib.constants import IPAAPI_USER, MAXHOSTNAMELEN
-from ipalib.install import certmonger, certstore, service, sysrestore
+from ipalib.facts import is_ipa_client_configured
+from ipalib.install import certmonger, certstore, service
 from ipalib.install import hostname as hostname_
 from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipalib.install.service import enroll_only, prepare_only
@@ -273,22 +275,12 @@ def is_ipa_client_installed(on_master=False):
     the existence of default.conf file is not taken into consideration,
     since it has been already created by ipa-server-install.
     """
-    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
-
-    installed = statestore.get_state('installation', 'complete')
-    if installed is not None:
-        return installed
-
-    # Fall back to the old detection
-
-    installed = (
-        fstore.has_files() or (
-            not on_master and os.path.exists(paths.IPA_DEFAULT_CONF)
-        )
+    warnings.warn(
+        "Use 'ipalib.facts.is_ipa_client_configured'",
+        DeprecationWarning,
+        stacklevel=2
     )
-
-    return installed
+    return is_ipa_client_configured(on_master)
 
 
 def configure_nsswitch_database(fstore, database, services, preserve=True,
@@ -2094,7 +2086,7 @@ def install_check(options):
 
     tasks.check_selinux_status()
 
-    if is_ipa_client_installed(on_master=options.on_master):
+    if is_ipa_client_configured(on_master=options.on_master):
         logger.error("IPA client is already configured on this system.")
         logger.info(
             "If you want to reinstall the IPA client, uninstall it first "
@@ -3199,7 +3191,7 @@ def _install(options):
 def uninstall_check(options):
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
 
-    if not is_ipa_client_installed():
+    if not is_ipa_client_configured():
         if options.on_master:
             rval = SUCCESS
         else:

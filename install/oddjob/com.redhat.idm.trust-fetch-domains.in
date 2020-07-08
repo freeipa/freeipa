@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
 from ipaserver import dcerpc
-from ipaserver.install.installutils import is_ipa_configured, ScriptError
+from ipaserver.install.installutils import ScriptError
 from ipapython import config, ipautil
 from ipalib import api
+from ipalib.facts import is_ipa_configured
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipaplatform.constants import constants
