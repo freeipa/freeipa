@@ -458,12 +458,12 @@ class ADTRUSTInstance(service.Service):
         api.Backend.ldap2.add_entry(entry)
 
     def __write_smb_conf(self):
-        conf_fd = open(self.smb_conf, "w")
-        conf_fd.write('### Added by IPA Installer ###\n')
-        conf_fd.write('[global]\n')
-        conf_fd.write('debug pid = yes\n')
-        conf_fd.write('config backend = registry\n')
-        conf_fd.close()
+        template = os.path.join(
+            paths.USR_SHARE_IPA_DIR, "smb.conf.template"
+        )
+        conf = ipautil.template_file(template, self.sub_dict)
+        with open(self.smb_conf, "w") as f:
+            f.write(conf)
 
     def __add_plugin_conf(self, name, plugin_cn, ldif_file):
         """
@@ -536,12 +536,14 @@ class ADTRUSTInstance(service.Service):
             self.print_msg(UPGRADE_ERROR % dict(dn=targets_dn))
 
     def __write_smb_registry(self):
-        # Workaround for: https://fedorahosted.org/freeipa/ticket/5687
-        # We make sure that paths.SMB_CONF file exists, hence touch it
-        with open(paths.SMB_CONF, 'a'):
-            os.utime(paths.SMB_CONF, None)
+        """Import IPA specific config into Samba registry
 
-        template = os.path.join(paths.USR_SHARE_IPA_DIR, "smb.conf.template")
+        Configuration is imported after __write_smb_conf() has modified
+        smb.conf to include registry.
+        """
+        template = os.path.join(
+            paths.USR_SHARE_IPA_DIR, "smb.conf.registry.template"
+        )
         conf = ipautil.template_file(template, self.sub_dict)
         with tempfile.NamedTemporaryFile(mode='w') as tmp_conf:
             tmp_conf.write(conf)
@@ -739,13 +741,16 @@ class ADTRUSTInstance(service.Service):
             logger.info("EXTID Service startup entry already exists.")
 
     def __setup_sub_dict(self):
-        self.sub_dict = dict(REALM = self.realm,
-                             SUFFIX = self.suffix,
-                             NETBIOS_NAME = self.netbios_name,
-                             HOST_NETBIOS_NAME = self.host_netbios_name,
-                             SMB_DN = self.smb_dn,
-                             LDAPI_SOCKET = self.ldapi_socket,
-                             FQDN = self.fqdn)
+        self.sub_dict = dict(
+            REALM=self.realm,
+            SUFFIX=self.suffix,
+            NETBIOS_NAME=self.netbios_name,
+            HOST_NETBIOS_NAME=self.host_netbios_name,
+            SMB_DN=self.smb_dn,
+            LDAPI_SOCKET=self.ldapi_socket,
+            FQDN=self.fqdn,
+            SAMBA_DIR=paths.SAMBA_DIR,
+        )
 
     def setup(self, fqdn, realm_name, netbios_name,
               reset_netbios_name, rid_base, secondary_rid_base,
@@ -820,8 +825,8 @@ class ADTRUSTInstance(service.Service):
         self.step("creating samba domain object", \
                   self.__create_samba_domain_object)
         self.step("retrieve local idmap range", self.__retrieve_local_range)
-        self.step("creating samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
+        self.step("creating samba config registry", self.__write_smb_registry)
         self.step("adding cifs Kerberos principal",
                   self.request_service_keytab)
         self.step("adding cifs and host Kerberos principals to the adtrust agents group", \
