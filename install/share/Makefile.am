@@ -58,6 +58,7 @@ dist_app_DATA =				\
 	krb.con.template		\
 	krbrealm.con.template		\
 	smb.conf.template		\
+	smb.conf.registry.template		\
 	smb.conf.empty			\
 	referint-conf.ldif		\
 	dna.ldif			\
