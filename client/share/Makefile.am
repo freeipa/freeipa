@@ -3,6 +3,7 @@ NULL =
 appdir = $(IPA_DATA_DIR)/client
 dist_app_DATA =				\
 	freeipa.template		\
+	sshd_ipa.conf.template	\
 	$(NULL)
 
 epnconfdir = $(IPA_SYSCONF_DIR)
