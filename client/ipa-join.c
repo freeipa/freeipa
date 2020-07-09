@@ -187,13 +187,11 @@ callRPC(char * user_agent,
     curlXportParmsP->no_ssl_verifyhost = 0;
     curlXportParmsP->cainfo = DEFAULT_CA_CERT_FILE;
     curlXportParmsP->user_agent = user_agent;
-    /* Enable GSSAPI credentials delegation */
-    curlXportParmsP->gssapi_delegation = 1;
 
     clientparms.transport = "curl";
     clientparms.transportparmsP = (struct xmlrpc_xportparms *)
             curlXportParmsP;
-    clientparms.transportparm_size = XMLRPC_CXPSIZE(gssapi_delegation);
+    clientparms.transportparm_size = XMLRPC_CXPSIZE(cainfo);
     xmlrpc_client_create(envP, XMLRPC_CLIENT_NO_FLAGS, NAME, VERSION,
                          &clientparms, sizeof(clientparms),
                          &clientP);
@@ -740,8 +738,6 @@ jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response
     CURL_SETOPT(curl, CURLOPT_WRITEFUNCTION, &jsonrpc_handle_response);
     CURL_SETOPT(curl, CURLOPT_WRITEDATA, response);
 
-    /* delegate authentication to GSSAPI */
-    CURL_SETOPT(curl, CURLOPT_GSSAPI_DELEGATION, CURLGSSAPI_DELEGATION_FLAG);
     CURL_SETOPT(curl, CURLOPT_HTTPAUTH, CURLAUTH_NEGOTIATE);
     CURL_SETOPT(curl, CURLOPT_USERPWD, ":");
 
