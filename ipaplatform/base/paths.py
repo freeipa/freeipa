@@ -114,6 +114,7 @@ class BasePathNamespace:
     CA_CERTIFICATES_BUNDLE_PEM = None
     CA_CERTIFICATES_DIR = None
     NSS_DB_DIR = "/etc/pki/nssdb"
+    PKI_CONFIGURATION = "/etc/pki"
     PKI_TOMCAT = "/etc/pki/pki-tomcat"
     PKI_TOMCAT_ALIAS_DIR = "/etc/pki/pki-tomcat/alias"
     PKI_TOMCAT_ALIAS_PWDFILE_TXT = "/etc/pki/pki-tomcat/alias/pwdfile.txt"
@@ -328,7 +329,7 @@ class BasePathNamespace:
         "/var/lib/pki/pki-tomcat/ca/profiles/ca/caSignedLogCert.cfg")
     KRA_CS_CFG_PATH = "/var/lib/pki/pki-tomcat/conf/kra/CS.cfg"
     KRACERT_P12 = "/root/kracert.p12"
-    SAMBA_DIR = "/var/lib/samba/"
+    SAMBA_DIR = "/var/lib/samba"
     SSSD_DB = "/var/lib/sss/db"
     SSSD_MC_GROUP = "/var/lib/sss/mc/group"
     SSSD_MC_PASSWD = "/var/lib/sss/mc/passwd"
