@@ -824,6 +824,7 @@ class PKIIniLoader:
         self.defaults = dict(
             # pretty much static
             ipa_ca_pem_file=paths.IPA_CA_CRT,
+            pki_configuration_path=paths.PKI_CONFIGURATION,
             # variable
             ipa_ca_subject=ca_subject,
             ipa_subject_base=subject_base,
