@@ -60,6 +60,8 @@ from ipalib.constants import (
     TLS_VERSIONS, TLS_VERSION_MINIMAL, TLS_VERSION_MAXIMAL,
     TLS_VERSION_DEFAULT_MIN, TLS_VERSION_DEFAULT_MAX,
 )
+# pylint: disable=ipa-forbidden-import
+from ipalib.facts import is_ipa_client_configured
 from ipalib.text import _
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -1174,6 +1176,12 @@ def check_client_configuration(env=None):
     """
     Check if IPA client is configured on the system.
 
+    This is a convenience wrapper that also supports using
+    a custom configuration via IPA_CONFDIR.
+
+    Raises a ScriptError exception if the client is not
+    configured.
+
     Hardcode return code to avoid recursive imports
     """
     CLIENT_NOT_CONFIGURED = 2
@@ -1187,16 +1195,10 @@ def check_client_configuration(env=None):
                 f'{env.confdir} is missing {env.conf_default})',
                 CLIENT_NOT_CONFIGURED
             )
-    elif (
-            os.path.isfile(paths.IPA_DEFAULT_CONF) and
-            os.path.isfile(
-                os.path.join(paths.IPA_CLIENT_SYSRESTORE, 'sysrestore.state')
-            )
-    ):
-        # standard installation, check for config and client sysrestore state
+
+    if is_ipa_client_configured():
         return True
     else:
-        # client not configured
         raise ScriptError(
             'IPA client is not configured on this system',
             CLIENT_NOT_CONFIGURED
