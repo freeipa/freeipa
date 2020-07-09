@@ -36,8 +36,10 @@ if __name__ == '__main__':
             "ipaplatform.base",
             "ipaplatform.debian",
             "ipaplatform.fedora",
+            "ipaplatform.fedora_container",
             "ipaplatform.redhat",
             "ipaplatform.rhel",
+            "ipaplatform.rhel_container",
             "ipaplatform.suse"
         ],
         install_requires=[
