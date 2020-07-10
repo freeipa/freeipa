@@ -2648,10 +2648,13 @@ def _install(options):
                 force=options.force)
             env['KRB5_CONFIG'] = krb_name
             ccache_name = os.path.join(ccache_dir, 'ccache')
-            join_args = [paths.SBIN_IPA_JOIN,
-                         "-s", cli_server[0],
-                         "-b", str(realm_to_suffix(cli_realm)),
-                         "-h", hostname]
+            join_args = [
+                paths.SBIN_IPA_JOIN,
+                "-s", cli_server[0],
+                "-b", str(realm_to_suffix(cli_realm)),
+                "-h", hostname,
+                "-k", paths.KRB5_KEYTAB
+            ]
             if options.debug:
                 join_args.append("-d")
                 env['XMLRPC_TRACE_CURL'] = 'yes'
@@ -3304,7 +3307,12 @@ def uninstall(options):
 
     if not options.on_master and os.path.exists(paths.IPA_DEFAULT_CONF):
         logger.info("Unenrolling client from IPA server")
-        join_args = [paths.SBIN_IPA_JOIN, "--unenroll", "-h", hostname]
+        join_args = [
+            paths.SBIN_IPA_JOIN,
+            "--unenroll",
+            "-h", hostname,
+            "-k", paths.KRB5_KEYTAB
+        ]
         if options.debug:
             join_args.append("-d")
             env['XMLRPC_TRACE_CURL'] = 'yes'
