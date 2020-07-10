@@ -79,7 +79,10 @@ class update_unhashed_password(Updater):
             # Log a warning that changelog will contain sensitive data
             try:
                 cldb_e = ldap.get_entry(
-                    DN(('cn', 'changelog5'),
+                    DN(('cn', 'changelog'),
+                       ('cn', 'userRoot'),
+                       ('cn', 'ldbm database'),
+                       ('cn', 'plugins'),
                        ('cn', 'config')),
                     ['nsslapd-changelogdir'])
                 cldb = cldb_e.single_value.get("nsslapd-changelogdir")

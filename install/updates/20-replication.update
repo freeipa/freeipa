@@ -64,5 +64,8 @@ default: nsslapd-pluginVendor: none
 default: nsslapd-pluginDescription: none
 
 # Set replication changelog limit (#5086)
-dn: cn=changelog5,cn=config
+dn: cn=changelog,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+addifnew: nsslapd-changelogmaxage: 7d
+
+dn: cn=changelog,cn=ipaca,cn=ldbm database,cn=plugins,cn=config
 addifnew: nsslapd-changelogmaxage: 7d

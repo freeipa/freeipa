@@ -584,7 +584,7 @@ class ReplicationManager:
         )
         try:
             conn.add_entry(entry)
-        except errors.DuplicateEntry:
+        except (errors.DuplicateEntry, errors.DatabaseError):
             return
 
     def _finalize_replica_settings(self, conn):
