@@ -811,13 +811,12 @@ cleanup:
 }
 
 static int
-jsonrpc_parse_join_response(const char *payload, join_info *join_i, bool quiet) {
+jsonrpc_parse_response(const char *payload, json_t** j_result_obj, bool quiet) {
     int rval = 0;
 
     json_error_t j_error;
 
     json_t *j_root = NULL;
-    json_t *j_result = NULL;
 
     j_root = json_loads(payload, 0, &j_error);
     if (!j_root) {
@@ -828,12 +827,38 @@ jsonrpc_parse_join_response(const char *payload, join_info *join_i, bool quiet) 
         goto cleanup;
     }
 
-    j_result = json_object_get(j_root, "result");
+    *j_result_obj = json_object_get(j_root, "result");
+    if (!*j_result_obj) {
+        if (debug)
+            fprintf(stderr, _("Parsing JSON-RPC response failed: no 'result' value found.\n"));
+
+        rval = 17;
+        goto cleanup;
+    }
+    json_incref(*j_result_obj);
+
+cleanup:
+    json_decref(j_root);
+
+    return rval;
+}
+
+static int
+jsonrpc_parse_join_response(const char *payload, join_info *join_i, bool quiet) {
+    int rval = 0;
+
+    json_error_t j_error;
+
+    json_t *j_result_obj = NULL;
+
+    rval = jsonrpc_parse_response(payload, &j_result_obj, quiet);
+    if (rval)
+        goto cleanup;
 
     char *tmp_hostdn = NULL;
     char *tmp_princ = NULL;
     char *tmp_pwdch = NULL;
-    if (json_unpack_ex(j_result, &j_error, 0, "[s, {s:[s], s?:[s]}]",
+    if (json_unpack_ex(j_result_obj, &j_error, 0, "[s, {s:[s], s?:[s]}]",
                        &tmp_hostdn,
                        "krbprincipalname", &tmp_princ,
                        "krblastpwdchange", &tmp_pwdch) != 0) {
@@ -849,7 +874,7 @@ jsonrpc_parse_join_response(const char *payload, join_info *join_i, bool quiet) 
     join_i->is_provisioned = tmp_pwdch != NULL;
 
 cleanup:
-    json_decref(j_root);
+    json_decref(j_result_obj);
 
     return rval;
 }
@@ -940,21 +965,13 @@ jsonrpc_parse_unenroll_response(const char *payload, bool* result, bool quiet) {
 
     json_error_t j_error;
 
-    json_t *j_root = NULL;
-    json_t *j_result = NULL;
+    json_t *j_result_obj = NULL;
 
-    j_root = json_loads(payload, 0, &j_error);
-    if (!j_root) {
-        if (debug)
-            fprintf(stderr, _("Parsing JSON-RPC response failed: %s\n"), j_error.text);
-
-        rval = 17;
+    rval = jsonrpc_parse_response(payload, &j_result_obj, quiet);
+    if (rval)
         goto cleanup;
-    }
 
-    j_result = json_object_get(j_root, "result");
-
-    if (json_unpack_ex(j_result, &j_error, 0, "{s:b}",
+    if (json_unpack_ex(j_result_obj, &j_error, 0, "{s:b}",
                        "result", result) != 0) {
         if (debug)
             fprintf(stderr, _("Extracting the data from the JSON-RPC response failed: %s\n"), j_error.text);
@@ -964,7 +981,7 @@ jsonrpc_parse_unenroll_response(const char *payload, bool* result, bool quiet) {
     }
 
 cleanup:
-    json_decref(j_root);
+    json_decref(j_result_obj);
 
     return rval;
 }
