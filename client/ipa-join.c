@@ -811,12 +811,47 @@ cleanup:
 }
 
 static int
+jsonrpc_parse_error(json_t *j_error_obj) {
+    int rval = 0;
+
+    json_error_t j_error;
+
+    int error_code = 0;
+    char *error_message = NULL;
+    if (json_unpack_ex(j_error_obj, &j_error, 0, "{s:i, s:s}",
+                       "code", &error_code,
+                       "message", &error_message) != 0) {
+        if (debug)
+            fprintf(stderr, _("Extracting the error from the JSON-RPC response failed: %s\n"), j_error.text);
+
+        rval = 17;
+        goto cleanup;
+    }
+
+    switch (error_code) {
+    case 2100:
+        fprintf(stderr, _("No permission to join this host to the IPA domain.\n"));
+        rval = 1;
+        break;
+    default:
+        if (error_message)
+            fprintf(stderr, "%s\n", error_message);
+        rval = 1;
+        break;
+    }
+
+cleanup:
+    return rval;
+}
+
+static int
 jsonrpc_parse_response(const char *payload, json_t** j_result_obj, bool quiet) {
     int rval = 0;
 
     json_error_t j_error;
 
     json_t *j_root = NULL;
+    json_t *j_error_obj = NULL;
 
     j_root = json_loads(payload, 0, &j_error);
     if (!j_root) {
@@ -824,6 +859,13 @@ jsonrpc_parse_response(const char *payload, json_t** j_result_obj, bool quiet) {
             fprintf(stderr, _("Parsing JSON-RPC response failed: %s\n"), j_error.text);
 
         rval = 17;
+        goto cleanup;
+    }
+
+    j_error_obj = json_object_get(j_root, "error");
+    if (j_error_obj && !json_is_null(j_error_obj))
+    {
+        rval = jsonrpc_parse_error(j_error_obj);
         goto cleanup;
     }
 
