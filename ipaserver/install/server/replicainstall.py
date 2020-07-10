@@ -22,7 +22,7 @@ import traceback
 from pkg_resources import parse_version
 import six
 
-from ipaclient.install.client import check_ldap_conf
+from ipaclient.install.client import check_ldap_conf, sssd_enable_ifp
 import ipaclient.install.timeconf
 from ipalib.install import certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
@@ -462,6 +462,9 @@ def promote_sssd(host_name):
     domain.set_option('ipa_server', host_name)
     domain.set_option('ipa_server_mode', True)
     sssdconfig.save_domain(domain)
+
+    sssd_enable_ifp(sssdconfig)
+
     sssdconfig.write()
 
     sssd = services.service('sssd', api)
