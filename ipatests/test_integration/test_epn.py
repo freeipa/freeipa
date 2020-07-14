@@ -32,6 +32,8 @@ from ipatests.pytest_ipa.integration import tasks
 
 logger = logging.getLogger(__name__)
 
+EPN_PKG = ["*ipa-client-epn"]
+
 
 def datetime_to_generalized_time(dt):
     """Convert datetime to LDAP_GENERALIZED_TIME_FORMAT
@@ -185,7 +187,9 @@ class TestEPN(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        tasks.install_packages(cls.master, EPN_PKG)
         tasks.install_packages(cls.master, ["postfix"])
+        tasks.install_packages(cls.clients[0], EPN_PKG)
         tasks.install_packages(cls.clients[0], ["postfix"])
         for host in (cls.master, cls.clients[0]):
             try:
@@ -201,7 +205,9 @@ class TestEPN(IntegrationTest):
     @classmethod
     def uninstall(cls, mh):
         super(TestEPN, cls).uninstall(mh)
+        tasks.uninstall_packages(cls.master,EPN_PKG)
         tasks.uninstall_packages(cls.master, ["postfix"])
+        tasks.uninstall_packages(cls.clients[0], EPN_PKG)
         tasks.uninstall_packages(cls.clients[0], ["postfix"])
         cls.master.run_command(r'rm -f /etc/postfix/smtp.keytab')
         cls.master.run_command(r'getcert stop-tracking -f '
