@@ -379,6 +379,13 @@ optional_policy(`
 ')
 
 optional_policy(`
+    gen_require(`
+        type httpd_t;
+    ')
+    ipa_custodia_stream_connect(httpd_t)
+')
+
+optional_policy(`
 	pki_manage_tomcat_etc_rw(ipa_custodia_t)
 	pki_read_tomcat_cert(ipa_custodia_t)
 	pki_rw_tomcat_cert(ipa_custodia_t)
