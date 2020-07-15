@@ -224,7 +224,10 @@ class TestEPN(IntegrationTest):
         """
         epn_conf = "/etc/ipa/epn.conf"
         epn_template = "/etc/ipa/epn/expire_msg.template"
-        cmd1 = self.master.run_command(["rpm", "-qc", "freeipa-client-epn"])
+        if tasks.get_platform(self.master) != "fedora":
+            cmd1 = self.master.run_command(["rpm", "-qc", "ipa-client-epn"])
+        else:
+            cmd1 = self.master.run_command(["rpm", "-qc", "freeipa-client-epn"])
         assert epn_conf in cmd1.stdout_text
         assert epn_template in cmd1.stdout_text
         cmd2 = self.master.run_command(["sha256sum", epn_conf])
