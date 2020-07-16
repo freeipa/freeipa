@@ -209,7 +209,6 @@ return {
         {
             $type: 'association',
             name: 'member_idoverrideuser',
-            associator: IPA.serial_associator,
             add_title: '@i18n:objects.group.add_idoverride_user',
             remove_title: '@i18n:objects.group.remove_idoverride_users',
             columns: [
