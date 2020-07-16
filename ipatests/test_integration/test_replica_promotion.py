@@ -197,19 +197,6 @@ class TestUnprivilegedUserPermissions(IntegrationTest):
                                       '-U'])
 
     def test_sssd_config_allows_ipaapi_access_to_ifp(self):
-        self.master.run_command(['ipa', 'group-add-member', 'admins',
-                                 '--users=%s' % self.username])
-
-        # Configure firewall first
-        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
-                                                    "freeipa-ldaps"])
-        self.replicas[0].run_command(['ipa-replica-install',
-                                      '-P', self.username,
-                                      '-p', self.new_password,
-                                      '-n', self.master.domain.name,
-                                      '-r', self.master.domain.realm,
-                                      '-U'])
-
         sssd_config_allows_ipaapi_access_to_ifp(self.replicas[0])
 
 
