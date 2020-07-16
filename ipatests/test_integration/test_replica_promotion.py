@@ -115,15 +115,9 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
         result = self.replicas[0].run_command(['ipa-pkinit-manage', 'status'])
         assert "PKINIT is enabled" in result.stdout_text
 
-    @replicas_cleanup
-    def test_sssd_config_allows_ipaapi_access_to_ifp(self):
-        """Verify that the sssd configuration allows the ipaapi user to
-        access ifp
-
-        Test for ticket 8403.
-        """
-        for replica in self.replicas:
-            sssd_config_allows_ipaapi_access_to_ifp(replica)
+        # Verify that the sssd configuration allows the ipaapi user to
+        # access ifp
+        sssd_config_allows_ipaapi_access_to_ifp(self.replicas[0])
 
 
 class TestUnprivilegedUserPermissions(IntegrationTest):
