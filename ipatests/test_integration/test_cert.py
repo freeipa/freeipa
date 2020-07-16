@@ -206,7 +206,7 @@ class TestInstallMasterClient(IntegrationTest):
         assert (
             'New signing request "test-request" added.\n' in result.stdout_text
         )
-        status = tasks.wait_for_request(self.master, "test-request", 50)
+        status = tasks.wait_for_request(self.master, "test-request", 300)
         if status == "MONITORING":
             result = self.master.run_command(
                 ["getcert", "list", "-i", "test-request"]
