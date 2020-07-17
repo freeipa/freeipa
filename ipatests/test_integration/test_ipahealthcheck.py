@@ -723,6 +723,43 @@ class TestIpaHealthCheck(IntegrationTest):
         errors = re.findall("ERROR: .*: not running", output)
         assert len(errors) == len(output.split('\n'))
 
+    @pytest.fixture()
+    def move_ipa_ca_crt(self):
+        """
+        Fixture to move ipa_ca_crt and revert
+        """
+        self.master.run_command(
+            ["mv", paths.IPA_CA_CRT, "%s.old" % paths.CA_CRT]
+        )
+        yield
+        self.master.run_command(
+            ["mv", "%s.old" % paths.CA_CRT, paths.IPA_CA_CRT]
+        )
+
+    def test_chainexpiration_check_without_cert(self, move_ipa_ca_crt):
+        """
+        Testcase checks that ERROR message is displayed
+        when ipa ca crt file is not renamed
+        """
+        error_text = (
+            "[Errno 2] No such file or directory: '{}'"
+            .format(paths.IPA_CA_CRT)
+        )
+        msg_text = (
+            "Error opening IPA CA chain at {key}: {error}"
+        )
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            "IPACAChainExpirationCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["key"] == paths.IPA_CA_CRT
+            assert check["kw"]["error"] == error_text
+            assert check["kw"]["msg"] == msg_text
+
     def test_ipa_healthcheck_remove(self):
         """
         This testcase checks the removal of of healthcheck tool
