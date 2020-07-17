@@ -8,12 +8,14 @@ Tests to verify that the ipa-healthcheck scenarios
 from __future__ import absolute_import
 
 import json
+import os
 import re
 
 import pytest
 
 from ipalib import api
 from ipapython.ipaldap import realm_to_serverid
+from ipapython.certdb import NSS_SQL_FILES
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
@@ -602,77 +604,6 @@ class TestIpaHealthCheck(IntegrationTest):
             ruvs.remove(check["kw"]["ruv"])
         assert not ruvs
 
-    @pytest.fixture
-    def change_tomcat_mode(self):
-        for files in TOMCAT_CONFIG_FILES:
-            self.master.run_command(["chmod", "600", files])
-        yield
-        for files in TOMCAT_CONFIG_FILES:
-            self.master.run_command(["chmod", "660", files])
-
-    def test_ipa_healthcheck_tomcatfilecheck(self, change_tomcat_mode):
-        """
-        This testcase changes the permissions of the tomcat configuration file
-        on an IPA Master and then checks if healthcheck tools reports the ERROR
-        """
-        returncode, data = run_healthcheck(
-            self.master, "ipahealthcheck.ipa.files", "TomcatFileCheck"
-        )
-        assert returncode == 1
-        for check in data:
-            if check["kw"]["type"] == "mode":
-                assert check["kw"]["expected"] == "0660"
-                assert check["kw"]["got"] == "0600"
-                assert check["result"] == "ERROR"
-                assert check["kw"]["path"] in TOMCAT_CONFIG_FILES
-                assert (
-                    check["kw"]["msg"]
-                    == "Permissions of %s are too restrictive: "
-                       "0600 and should be 0660"
-                    % check["kw"]["path"]
-                )
-
-    @pytest.fixture
-    def change_tomcat_owner(self):
-        """Fixture to change owner of tomcat config during test"""
-        for file in TOMCAT_CONFIG_FILES:
-            self.master.run_command(["chown", "root.root", file])
-        yield
-        for file in TOMCAT_CONFIG_FILES:
-            self.master.run_command(["chown", "pkiuser.pkiuser", file])
-
-    def test_ipa_healthcheck_tomcatfile_owner(self, change_tomcat_owner):
-        """
-        This testcase changes the ownership of the tomcat config files
-        on an IPA Master and then checks if healthcheck tools
-        reports the status as WARNING
-        """
-        returncode, data = run_healthcheck(
-            self.master, "ipahealthcheck.ipa.files", "TomcatFileCheck"
-        )
-        assert returncode == 1
-        for check in data:
-            if check["kw"]["type"] == "owner":
-                assert check["kw"]["expected"] == "pkiuser"
-                assert check["kw"]["got"] == "root"
-                assert check["result"] == "WARNING"
-                assert check["kw"]["path"] in TOMCAT_CONFIG_FILES
-                assert (
-                    check["kw"]["msg"]
-                    == "Ownership of %s is root and should be pkiuser"
-                    % check["kw"]["path"]
-                )
-            elif check["kw"]["type"] == "group":
-                assert check["kw"]["expected"] == "pkiuser"
-                assert check["kw"]["got"] == "root"
-                assert check["result"] == "WARNING"
-                assert check["kw"]["path"] in TOMCAT_CONFIG_FILES
-                assert (
-                    check["kw"]["msg"]
-                    == "Group of %s is root and should be pkiuser"
-                    % check["kw"]["path"]
-                )
-
     def test_ipa_healthcheck_without_trust_setup(self):
         """
         This testcase checks that when trust isn't setup between IPA
@@ -990,3 +921,329 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
         for check in data:
             assert check["result"] == "SUCCESS"
             assert check["kw"]["key"] == self.master.hostname
+
+
+@pytest.fixture
+def modify_permissions():
+    """Fixture to change owner, group and/or mode
+
+       This can run against multiple files at once but only one host.
+    """
+
+    state = dict()
+
+    def _modify_permission(host, path, owner=None, group=None, mode=None):
+        """Change the ownership or mode of a path"""
+        if 'host' not in state:
+            state['host'] = host
+        if path not in state:
+            cmd = ["/usr/bin/stat", "-c", "%U:%G:%a", path]
+            result = host.run_command(cmd)
+            state[path] = result.stdout_text.strip()
+        if owner is not None:
+            host.run_command(["chown", owner, path])
+        if group is not None:
+            host.run_command(["chgrp", group, path])
+        if mode is not None:
+            host.run_command(["chmod", mode, path])
+
+    yield _modify_permission
+
+    # Restore the previous state
+    host = state.pop('host')
+    for path in state:
+        (owner, group, mode) = state[path].split(':')
+        host.run_command(["chown", "%s:%s" % (owner, group), path])
+        host.run_command(["chmod", mode, path])
+
+
+class TestIpaHealthCheckFileCheck(IntegrationTest):
+    """
+    Test for the ipa-healthcheck IPAFileCheck source
+    """
+
+    num_replicas = 1
+
+    nssdb_testfiles = []
+    for filename in NSS_SQL_FILES:
+        testfile = os.path.join(paths.PKI_TOMCAT_ALIAS_DIR, filename)
+        nssdb_testfiles.append(testfile)
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
+        tasks.install_packages(cls.master, HEALTHCHECK_PKG)
+
+    def test_ipa_filecheck_bad_owner(self, modify_permissions):
+        modify_permissions(self.master, path=paths.RESOLV_CONF, owner='admin')
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "IPAFileCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["key"] == '_etc_resolv.conf_owner'
+            assert check["kw"]["type"] == 'owner'
+            assert check["kw"]["expected"] == 'root'
+            assert check["kw"]["got"] == 'admin'
+            assert (
+                check["kw"]["msg"]
+                == "Ownership of %s is admin and should be root"
+                % paths.RESOLV_CONF
+            )
+
+    def test_ipa_filecheck_bad_group(self, modify_permissions):
+        modify_permissions(self.master, path=paths.RESOLV_CONF, group='admins')
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "IPAFileCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["key"] == '_etc_resolv.conf_group'
+            assert check["kw"]["type"] == 'group'
+            assert check["kw"]["expected"] == 'root'
+            assert check["kw"]["got"] == 'admins'
+            assert (
+                check["kw"]["msg"]
+                == "Group of %s is admins and should be root"
+                % paths.RESOLV_CONF
+            )
+
+    def test_ipa_filecheck_bad_too_restrictive(self, modify_permissions):
+        modify_permissions(self.master, path=paths.RESOLV_CONF, mode="0400")
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "IPAFileCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["key"] == '_etc_resolv.conf_mode'
+            assert check["kw"]["type"] == 'mode'
+            assert check["kw"]["expected"] == '0644'
+            assert check["kw"]["got"] == '0400'
+            assert (
+                check["kw"]["msg"]
+                == "Permissions of %s are too restrictive: "
+                   "0400 and should be 0644"
+                % paths.RESOLV_CONF
+            )
+
+    def test_ipa_filecheck_too_permissive(self, modify_permissions):
+        modify_permissions(self.master, path=paths.RESOLV_CONF, mode="0666")
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "IPAFileCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["key"] == '_etc_resolv.conf_mode'
+            assert check["kw"]["type"] == 'mode'
+            assert check["kw"]["expected"] == '0644'
+            assert check["kw"]["got"] == '0666'
+            assert (
+                check["kw"]["msg"]
+                == "Permissions of %s are too permissive: "
+                   "0666 and should be 0644"
+                % paths.RESOLV_CONF
+            )
+
+    def test_nssdb_filecheck_bad_owner(self, modify_permissions):
+        for testfile in self.nssdb_testfiles:
+            modify_permissions(self.master, path=testfile, owner='root')
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "IPAFileNSSDBCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["path"] in self.nssdb_testfiles
+            assert check["kw"]["type"] == 'owner'
+            assert check["kw"]["expected"] == 'pkiuser'
+            assert check["kw"]["got"] == 'root'
+            assert (
+                check["kw"]["msg"]
+                == "Ownership of %s is root and should be pkiuser"
+                % check["kw"]["path"]
+            )
+
+    def test_nssdb_filecheck_bad_group(self, modify_permissions):
+        for testfile in self.nssdb_testfiles:
+            modify_permissions(self.master, testfile, group='root')
+
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "IPAFileNSSDBCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["path"] in self.nssdb_testfiles
+            assert check["kw"]["type"] == 'group'
+            assert check["kw"]["expected"] == 'pkiuser'
+            assert check["kw"]["got"] == 'root'
+            assert (
+                check["kw"]["msg"]
+                == "Group of %s is root and should be pkiuser"
+                % check["kw"]["path"]
+            )
+
+    def test_nssdb_filecheck_too_restrictive(self, modify_permissions):
+        for testfile in self.nssdb_testfiles:
+            modify_permissions(self.master, path=testfile, mode="0400")
+
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "IPAFileNSSDBCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["path"] in self.nssdb_testfiles
+            assert check["kw"]["type"] == 'mode'
+            assert check["kw"]["expected"] == '0600'
+            assert check["kw"]["got"] == '0400'
+            assert (
+                check["kw"]["msg"]
+                == "Permissions of %s are too restrictive: "
+                   "0400 and should be 0600"
+                % check["kw"]["path"]
+            )
+
+    def test_nssdb_filecheck_too_permissive(self, modify_permissions):
+        for testfile in self.nssdb_testfiles:
+            modify_permissions(self.master, path=testfile, mode="0640")
+
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "IPAFileNSSDBCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["path"] in self.nssdb_testfiles
+            assert check["kw"]["type"] == 'mode'
+            assert check["kw"]["expected"] == '0600'
+            assert check["kw"]["got"] == '0640'
+            assert (
+                check["kw"]["msg"]
+                == "Permissions of %s are too permissive: "
+                   "0640 and should be 0600"
+                % check["kw"]["path"]
+            )
+
+    def test_tomcat_filecheck_bad_owner(self, modify_permissions):
+        modify_permissions(self.master, path=paths.CA_CS_CFG_PATH,
+                           owner='root')
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "TomcatFileCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["key"] == \
+                '_var_lib_pki_pki-tomcat_conf_ca_CS.cfg_owner'
+            assert check["kw"]["type"] == 'owner'
+            assert check["kw"]["expected"] == 'pkiuser'
+            assert check["kw"]["got"] == 'root'
+            assert (
+                check["kw"]["msg"]
+                == "Ownership of %s is root and should be pkiuser"
+                % check["kw"]["path"]
+            )
+
+    def test_tomcat_filecheck_bad_group(self, modify_permissions):
+        modify_permissions(self.master, path=paths.CA_CS_CFG_PATH,
+                           group='root')
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "TomcatFileCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["key"] == \
+                '_var_lib_pki_pki-tomcat_conf_ca_CS.cfg_group'
+            assert check["kw"]["type"] == 'group'
+            assert check["kw"]["expected"] == 'pkiuser'
+            assert check["kw"]["got"] == 'root'
+            assert (
+                check["kw"]["msg"]
+                == "Group of %s is root and should be pkiuser"
+                % check["kw"]["path"]
+            )
+
+    def test_tomcat_filecheck_too_restrictive(self, modify_permissions):
+        modify_permissions(self.master, path=paths.CA_CS_CFG_PATH,
+                           mode="0600")
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "TomcatFileCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["key"] == \
+                '_var_lib_pki_pki-tomcat_conf_ca_CS.cfg_mode'
+            assert check["kw"]["type"] == 'mode'
+            assert check["kw"]["expected"] == '0660'
+            assert check["kw"]["got"] == '0600'
+            assert (
+                check["kw"]["msg"]
+                == "Permissions of %s are too restrictive: "
+                   "0600 and should be 0660"
+                % check["kw"]["path"]
+            )
+
+    def test_tomcat_filecheck_too_permissive(self, modify_permissions):
+        modify_permissions(self.master, path=paths.CA_CS_CFG_PATH,
+                           mode="0666")
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.files",
+            "TomcatFileCheck",
+            failures_only=True,
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["key"] == \
+                '_var_lib_pki_pki-tomcat_conf_ca_CS.cfg_mode'
+            assert check["kw"]["type"] == 'mode'
+            assert check["kw"]["expected"] == '0660'
+            assert check["kw"]["got"] == '0666'
+            assert (
+                check["kw"]["msg"]
+                == "Permissions of %s are too permissive: "
+                   "0666 and should be 0660"
+                % check["kw"]["path"]
+            )
