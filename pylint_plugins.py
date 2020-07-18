@@ -545,3 +545,26 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.webui_prod = True
     """
 ))
+
+# dnspython 2.x introduces enums and creates module level globals from them
+# pylint does not understand the trick
+AstroidBuilder(MANAGER).string_build(textwrap.dedent(
+    """
+    import dns.flags
+    import dns.rdataclass
+    import dns.rdatatype
+
+    dns.flags.CD = 0
+    dns.flags.DO = 0
+    dns.flags.RD = 0
+
+    dns.rdataclass.IN = 0
+
+    dns.rdatatype.NS = 0
+    dns.rdatatype.MX = 0
+    dns.rdatatype.RRSIG = 0
+    dns.rdatatype.SOA = 0
+    dns.rdatatype.SRV = 0
+    dns.rdatatype.TXT = 0
+    """
+))
