@@ -349,10 +349,24 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         cmd = self.clients[0].run_command(grep_automount_command)
         assert cmd.stdout_text.split() == after_ipa_client_install
 
+        self.verify_checksum_after_ipaclient_uninstall(
+            sha256nsswitch_cmd=sha256nsswitch_cmd,
+            orig_sha256=orig_sha256
+        )
+
+    def verify_checksum_after_ipaclient_uninstall(
+        self,
+        sha256nsswitch_cmd,
+        orig_sha256
+    ):
         tasks.uninstall_client(self.clients[0])
         cmd = self.clients[0].run_command(sha256nsswitch_cmd)
         assert cmd.stdout_text == orig_sha256
 
+    @pytest.mark.xfail(
+        reason="https://pagure.io/freeipa/issue/8189",
+        strict=True
+    )
     def test_nsswitch_backup_restore_sssd(self):
         self.nsswitch_backup_restore()
 
