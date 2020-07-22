@@ -10,6 +10,7 @@ import re
 import os
 import logging
 import random
+import shlex
 import ssl
 from itertools import chain, repeat
 import textwrap
@@ -610,12 +611,8 @@ class TestIPACommand(IntegrationTest):
         """
         Integration test for https://pagure.io/SSSD/sssd/issue/3747
         """
-        if self.master.is_fips_mode:  # pylint: disable=no-member
-            pytest.skip("paramiko is not compatible with FIPS mode")
 
         test_user = 'test-ssh'
-        external_master_hostname = \
-            self.master.external_hostname
 
         pub_keys = []
 
@@ -625,37 +622,26 @@ class TestIPACommand(IntegrationTest):
             with open(os.path.join(
                     tmpdir, 'ssh_priv_{}'.format(i)), 'w') as fp:
                 fp.write(ssh_key_pair[0])
+                fp.write(os.linesep)
 
         tasks.kinit_admin(self.master)
         self.master.run_command(['ipa', 'user-add', test_user,
                                  '--first=tester', '--last=tester'])
 
         keys_opts = ' '.join(['--ssh "{}"'.format(k) for k in pub_keys])
-        cmd = 'ipa user-mod {} {}'.format(test_user, keys_opts)
-        self.master.run_command(cmd)
+        self.master.run_command(
+            shlex.split('ipa user-mod {} {}'.format(test_user, keys_opts))
+        )
 
         # connect with first SSH key
         first_priv_key_path = os.path.join(tmpdir, 'ssh_priv_1')
         # change private key permission to comply with SS rules
         os.chmod(first_priv_key_path, 0o600)
 
-        sshcon = paramiko.SSHClient()
-        sshcon.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-        # first connection attempt is a workaround for
-        # https://pagure.io/SSSD/sssd/issue/3669
-        try:
-            sshcon.connect(external_master_hostname, username=test_user,
-                           key_filename=first_priv_key_path, timeout=1)
-        except (paramiko.AuthenticationException, paramiko.SSHException):
-            pass
-
-        try:
-            sshcon.connect(external_master_hostname, username=test_user,
-                           key_filename=first_priv_key_path, timeout=1)
-        except (paramiko.AuthenticationException,
-                paramiko.SSHException) as e:
-            pytest.fail('Authentication using SSH key not successful', e)
+        tasks.run_ssh_cmd(
+            to_host=self.master.external_hostname, username=test_user,
+            auth_method="key", private_key_path=first_priv_key_path
+        )
 
         journal_cmd = ['journalctl', '--since=today', '-u', 'sshd']
         result = self.master.run_command(journal_cmd)
