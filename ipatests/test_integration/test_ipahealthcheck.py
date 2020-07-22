@@ -15,7 +15,6 @@ import uuid
 
 import pytest
 
-from ipalib import api
 from ipalib import x509
 from ipapython.ipaldap import realm_to_serverid
 from ipapython.certdb import NSS_SQL_FILES
@@ -162,6 +161,36 @@ def run_healthcheck(host, source=None, check=None, output_type="json",
     return result.returncode, data
 
 
+@pytest.fixture
+def restart_service():
+    """Shut down and restart a service as a fixture"""
+
+    service = dict()
+
+    def _stop_service(host, service_name):
+        service_name = service_name.replace('_', '-')
+        if service_name == 'pki-tomcatd':
+            service_name = 'pki-tomcatd@pki-tomcat'
+        elif service_name == 'dirsrv':
+            serverid = (realm_to_serverid(host.domain.realm)).upper()
+            service_name = 'dirsrv@%s.service' % serverid
+        elif service_name == 'named':
+            service_name = 'named-pkcs11'
+        if 'host' not in service:
+            service['host'] = host
+            service['name'] = [service_name]
+        else:
+            service['name'].append(service_name)
+        host.run_command(["systemctl", "stop", service_name])
+
+    yield _stop_service
+
+    if service.get('name'):
+        service.get('name', []).reverse()
+        for name in service.get('name', []):
+            service.get('host').run_command(["systemctl", "start", name])
+
+
 class TestIpaHealthCheck(IntegrationTest):
     """
     Tier-1 test for ipa-healthcheck tool with IPA Master setup with
@@ -197,23 +226,21 @@ class TestIpaHealthCheck(IntegrationTest):
         for source in sources:
             assert source in result.stdout_text
 
-    def test_human_output(self):
+    def test_human_output(self, restart_service):
         """
         Test that in human output the severity value is correct
 
         Only the SUCCESS (0) value was being translated, otherwise
         the numeric value was being shown (BZ 1752849)
         """
-        self.master.run_command(["systemctl", "stop", "sssd"])
-        try:
-            returncode, output = run_healthcheck(
-                self.master,
-                "ipahealthcheck.meta.services",
-                "sssd",
-                "human",
-            )
-        finally:
-            self.master.run_command(["systemctl", "start", "sssd"])
+        restart_service(self.master, "sssd")
+
+        returncode, output = run_healthcheck(
+            self.master,
+            "ipahealthcheck.meta.services",
+            "sssd",
+            "human",
+        )
 
         assert returncode == 1
         assert output == \
@@ -263,33 +290,46 @@ class TestIpaHealthCheck(IntegrationTest):
         for check in ipatrust_checks:
             assert check in result.stdout_text
 
-    def test_source_ipahealthcheck_meta_services_check_sssd(self):
+    def test_source_ipahealthcheck_meta_services_check(self, restart_service):
         """
-        Testcase checks behaviour of check sssd in
+        Testcase checks behaviour of check configured services in
         ipahealthcheck.meta.services when service is stopped and started
         respectively
         """
-        self.master.run_command(["systemctl", "stop", "sssd"])
-        returncode, data = run_healthcheck(
-            self.master,
-            "ipahealthcheck.meta.services",
-            "sssd",
-        )
-        assert returncode == 1
-        for check in data:
-            assert check["result"] == "ERROR"
-            assert check["kw"]["msg"] == "sssd: not running"
-            assert check["kw"]["status"] is False
-        self.master.run_command(["systemctl", "start", "sssd"])
-        returncode, data = run_healthcheck(
-            self.master,
-            "ipahealthcheck.meta.services",
-            "sssd",
-        )
-        assert returncode == 0
-        assert data[0]["check"] == "sssd"
-        assert data[0]["result"] == "SUCCESS"
-        assert data[0]["kw"]["status"] is True
+        svc_list = ('certmonger', 'gssproxy', 'httpd', 'ipa_custodia',
+                    'ipa_dnskeysyncd', 'kadmin', 'krb5kdc',
+                    'named', 'pki_tomcatd', 'sssd', 'dirsrv')
+
+        for service in svc_list:
+            returncode, data = run_healthcheck(
+                self.master,
+                "ipahealthcheck.meta.services",
+                service,
+            )
+            assert returncode == 0
+            assert data[0]["check"] == service
+            assert data[0]["result"] == "SUCCESS"
+            assert data[0]["kw"]["status"] is True
+
+        for service in svc_list:
+            restart_service(self.master, service)
+            returncode, data = run_healthcheck(
+                self.master,
+                "ipahealthcheck.meta.services",
+                service,
+            )
+            assert returncode == 1
+            service_found = False
+            for check in data:
+                if check["check"] != service:
+                    continue
+                if service != 'pki_tomcatd':
+                    service = service.replace('_', '-')
+                assert check["result"] == "ERROR"
+                assert check["kw"]["msg"] == "%s: not running" % service
+                assert check["kw"]["status"] is False
+                service_found = True
+            assert service_found
 
     def test_source_ipahealthcheck_dogtag_ca_dogtagcertsconfigcheck(self):
         """
@@ -370,7 +410,9 @@ class TestIpaHealthCheck(IntegrationTest):
         assert data[0]["kw"]["ipa_version"] in result.stdout_text
         assert data[0]["kw"]["ipa_api_version"] in result.stdout_text
 
-    def test_source_ipahealthcheck_ipa_host_check_ipahostkeytab(self):
+    def test_source_ipahealthcheck_ipa_host_check_ipahostkeytab(
+        self, restart_service
+    ):
         """
         Testcase checks behaviour of check IPAHostKeytab in source
         ipahealthcheck.ipa.host when dirsrv service is stopped and
@@ -382,11 +424,8 @@ class TestIpaHealthCheck(IntegrationTest):
             "Minor code may provide more information, "
             "Minor (2529638972): Generic error (see e-text)"
         )
+        restart_service(self.master, "dirsrv")
         dirsrv_ipactl_status = 'Directory Service: STOPPED'
-        api.env.realm = self.master.domain.name
-        serverid = (realm_to_serverid(api.env.realm)).upper()
-        dirsrv_service = "dirsrv@%s.service" % serverid
-        self.master.run_command(["systemctl", "stop", dirsrv_service])
         result = self.master.run_command(
             ["ipactl", "status"])
         returncode, data = run_healthcheck(
@@ -400,7 +439,6 @@ class TestIpaHealthCheck(IntegrationTest):
             assert data[0]["kw"]["msg"] == msg
         else:
             assert data[0]["result"] == "SUCCESS"
-        self.master.run_command(["systemctl", "start", dirsrv_service])
 
     def test_source_ipahealthcheck_topology_IPATopologyDomainCheck(self):
         """
