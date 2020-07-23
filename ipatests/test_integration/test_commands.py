@@ -1068,7 +1068,7 @@ class TestIPACommand(IntegrationTest):
             assert ssh_pub_key in result.stdout_text
             # login to the system
             self.master.run_command(
-                ['ssh', '-o', 'PasswordAuthentication=no',
+                ['ssh', '-v', '-o', 'PasswordAuthentication=no',
                  '-o', 'IdentitiesOnly=yes', '-o', 'StrictHostKeyChecking=no',
                  '-o', 'ConnectTimeout=10', '-l', user, '-i', user_key,
                  self.master.hostname, 'true'])
