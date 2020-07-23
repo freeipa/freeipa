@@ -4,7 +4,6 @@
 
 from __future__ import absolute_import
 
-import paramiko
 import pytest
 
 from ipaplatform.osinfo import osinfo
@@ -84,42 +83,32 @@ class TestUserPermissions(IntegrationTest):
 
         Related ticket https://pagure.io/SSSD/sssd/issue/3819.
         """
-        if self.master.is_fips_mode:  # pylint: disable=no-member
-            pytest.skip("paramiko is not compatible with FIPS mode")
 
         # Scenario: add an IPA user with non-default home dir, login through
         # ssh as this user and check that there is a SELinux user mapping
         # for the user with `semanage login -l`.
 
-        # kinit admin
-        tasks.kinit_admin(self.master)
-
-        testuser = 'testuser_selinux'
+        test_user = 'testuser_selinux'
         password = 'Secret123'
-        testuser_password_confirmation = "%s\n%s\n" % (password,
-                                                       password)
-        self.master.run_command(['ipa', 'user-add', testuser,
-                                 '--first', testuser,
-                                 '--last', testuser,
-                                 '--password',
-                                 '--homedir',
-                                 '/root/{}'.format(testuser)],
-                                stdin_text=testuser_password_confirmation)
 
-        # login to the system
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(self.master.hostname,
-                       username=testuser,
-                       password=password)
-        client.close()
+        tasks.kinit_admin(self.master)
+        tasks.create_active_user(
+            self.master, test_user, password=password,
+            extra_args=['--homedir', '/root/{}'.format(test_user)]
+        )
+
+        tasks.run_ssh_cmd(
+            to_host=self.master.external_hostname, username=test_user,
+            auth_method="password", password=password
+        )
 
         # check if user listed in output
         cmd = self.master.run_command(['semanage', 'login', '-l'])
-        assert testuser in cmd.stdout_text
+        assert test_user in cmd.stdout_text
 
         # call ipa user-del
-        self.master.run_command(['ipa', 'user-del', testuser])
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'user-del', test_user])
 
     def test_stageuser_show_as_alternate_admin(self):
         """
