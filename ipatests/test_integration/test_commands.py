@@ -1023,7 +1023,6 @@ class TestIPACommand(IntegrationTest):
         assert is_tls_version_enabled('tls1_2')
         assert is_tls_version_enabled('tls1_3')
 
-    @pytest.mark.skip(reason='https://pagure.io/freeipa/issue/8151')
     def test_sss_ssh_authorizedkeys(self):
         """Login via Ssh using private-key for ipa-user should work.
 
