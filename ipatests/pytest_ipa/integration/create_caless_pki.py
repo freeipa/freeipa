@@ -20,11 +20,13 @@ import os
 import os.path
 import six
 
+from cryptography import __version__ as cryptography_version
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
+from pkg_resources import parse_version
 from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import encoder as der_encoder
 from pyasn1.codec.native import decoder as native_decoder
@@ -150,13 +152,22 @@ def profile_ca(builder, ca_nick, ca):
             critical=False,
         )
     else:
-        ski = ca.cert.extensions.get_extension_for_class(
-                    x509.SubjectKeyIdentifier)
-        builder = builder.add_extension(
-            x509.AuthorityKeyIdentifier
-            .from_issuer_subject_key_identifier(ski),
-            critical=False,
+        ski_ext = ca.cert.extensions.get_extension_for_class(
+            x509.SubjectKeyIdentifier
         )
+        auth_keyidentifier = (x509.AuthorityKeyIdentifier
+                              .from_issuer_subject_key_identifier)
+        '''
+        cryptography < 2.7 accepts only Extension object.
+        Remove this workaround when all supported platforms update
+        python-cryptography.
+        '''
+        if (parse_version(cryptography_version) >= parse_version('2.7')):
+            extension = auth_keyidentifier(ski_ext.value)
+        else:
+            extension = auth_keyidentifier(ski_ext)
+
+        builder = builder.add_extension(extension, critical=False)
     return builder
 
 
