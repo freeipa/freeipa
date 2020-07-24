@@ -893,8 +893,6 @@ class TestIPACommand(IntegrationTest):
         3. add an ipa user
         4. ssh from controller to master using the user created in step 3
         """
-        if self.master.is_fips_mode:  # pylint: disable=no-member
-            pytest.skip("paramiko is not compatible with FIPS mode")
 
         cmd = self.master.run_command(['sssd', '--version'])
         sssd_version = platform_tasks.parse_ipa_version(
@@ -926,12 +924,11 @@ class TestIPACommand(IntegrationTest):
             )
             tasks.kdestroy_all(self.master)
 
-            client = paramiko.SSHClient()
-            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            client.connect(self.master.hostname,
-                           username=test_user,
-                           password=password)
-            client.close()
+            tasks.run_ssh_cmd(
+                to_host=self.master.external_hostname, username=test_user,
+                auth_method="password", password=password
+            )
+
         finally:
             sssd_conf_backup.restore()
             self.master.run_command(['systemctl', 'restart', 'sssd.service'])
