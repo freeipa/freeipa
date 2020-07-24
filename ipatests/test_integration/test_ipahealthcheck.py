@@ -723,7 +723,7 @@ class TestIpaHealthCheck(IntegrationTest):
         errors = re.findall("ERROR: .*: not running", output)
         assert len(errors) == len(output.split('\n'))
 
-    @pytest.fixture()
+    @pytest.fixture
     def move_ipa_ca_crt(self):
         """
         Fixture to move ipa_ca_crt and revert
@@ -759,6 +759,55 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["kw"]["key"] == paths.IPA_CA_CRT
             assert check["kw"]["error"] == error_text
             assert check["kw"]["msg"] == msg_text
+
+    @pytest.fixture
+    def modify_cert_trust_attr(self):
+        """
+        Fixture to modify trust attribute for Server-cert and
+        revert the change.
+        """
+        self.master.run_command(
+            [
+                "certutil",
+                "-M",
+                "-d", paths.PKI_TOMCAT_ALIAS_DIR,
+                "-n", "Server-Cert cert-pki-ca",
+                "-t", "CTu,u,u",
+                "-f", paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
+            ]
+        )
+        yield
+        self.master.run_command(
+            [
+                "certutil",
+                "-M",
+                "-d", paths.PKI_TOMCAT_ALIAS_DIR,
+                "-n", "Server-Cert cert-pki-ca",
+                "-t", "u,u,u",
+                "-f", paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
+            ]
+        )
+
+    def test_ipacertnsstrust_check(self, modify_cert_trust_attr):
+        """
+        Test for IPACertNSSTrust when trust attribute is modified
+        for Server-Cert
+        """
+        error_msg = (
+            "Incorrect NSS trust for {nickname} in {dbdir}. "
+            "Got {got} expected {expected}."
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs", "IPACertNSSTrust",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["key"] == "Server-Cert cert-pki-ca":
+                assert check["result"] == "ERROR"
+                assert check["kw"]["expected"] == "u,u,u"
+                assert check["kw"]["got"] == "CTu,u,u"
+                assert check["kw"]["dbdir"] == paths.PKI_TOMCAT_ALIAS_DIR
+                assert check["kw"]["msg"] == error_msg
 
     def test_ipa_healthcheck_remove(self):
         """
