@@ -15,7 +15,6 @@ import ssl
 from itertools import chain, repeat
 import textwrap
 import time
-import paramiko
 import pytest
 from subprocess import CalledProcessError
 
@@ -1183,21 +1182,19 @@ class TestIPACommand(IntegrationTest):
             pytest.xfail('Fix is part of sssd 2.3.0 and is'
                          ' available from fedora32 onwards')
 
-        sshconn = paramiko.SSHClient()
-        sshconn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         # start to look at logs a bit before "now"
         # https://pagure.io/freeipa/issue/8432
         since = time.strftime(
             '%H:%M:%S', (datetime.now() - timedelta(seconds=10)).timetuple()
         )
-        try:
-            sshconn.connect(self.master.hostname,
-                            username=self.testuser,
-                            password='WrongPassword')
-        except paramiko.AuthenticationException:
-            pass
 
-        sshconn.close()
+        password = 'WrongPassword'
+
+        tasks.run_ssh_cmd(
+            to_host=self.master.external_hostname, username=self.testuser,
+            auth_method="password", password=password,
+            expect_auth_failure=True
+        )
 
         # check if proper message logged
         exp_msg = ("pam_sss(sshd:auth): received for user {}: 7"
