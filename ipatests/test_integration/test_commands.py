@@ -902,12 +902,14 @@ class TestIPACommand(IntegrationTest):
         if sssd_version < platform_tasks.parse_ipa_version('2.2.0'):
             pytest.xfail(reason="sssd 2.2.0 unavailable in F29 nightly")
 
-        username = "testuser" + str(random.randint(200000, 9999999))
         # add ldap_deref_threshold=0 to /etc/sssd/sssd.conf
         sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
         with tasks.remote_sssd_config(self.master) as sssd_config:
             sssd_config.edit_domain(
                 self.master.domain, 'ldap_deref_threshold', 0)
+
+        test_user = "testuser" + str(random.randint(200000, 9999999))
+        password = "Secret123"
         try:
             self.master.run_command(['systemctl', 'restart', 'sssd.service'])
 
@@ -915,22 +917,20 @@ class TestIPACommand(IntegrationTest):
             tasks.kinit_admin(self.master)
 
             # add ipa user
-            cmd = ['ipa', 'user-add',
-                   '--first', username,
-                   '--last', username,
-                   '--password', username]
-            input_passwd = 'Secret123\nSecret123\n'
-            cmd_output = self.master.run_command(cmd, stdin_text=input_passwd)
-            assert 'Added user "%s"' % username in cmd_output.stdout_text
-            input_passwd = 'Secret123\nSecret123\nSecret123\n'
-            self.master.run_command(['kinit', username],
-                                    stdin_text=input_passwd)
+            tasks.create_active_user(
+                self.master, test_user, password=password
+            )
+            tasks.kdestroy_all(self.master)
+            tasks.kinit_as_user(
+                self.master, test_user, password
+            )
+            tasks.kdestroy_all(self.master)
 
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             client.connect(self.master.hostname,
-                           username=username,
-                           password='Secret123')
+                           username=test_user,
+                           password=password)
             client.close()
         finally:
             sssd_conf_backup.restore()
