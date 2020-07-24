@@ -689,6 +689,7 @@ class TestIpaHealthCheck(IntegrationTest):
         """
         returncode, output = run_healthcheck(
             self.master,
+            "ipahealthcheck.meta",
             output_type="human",
             failures_only=True)
         assert returncode == 1
