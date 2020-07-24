@@ -27,6 +27,7 @@ import os
 class BasePathNamespace:
     BIN_HOSTNAMECTL = "/bin/hostnamectl"
     ECHO = "/bin/echo"
+    FIPS_MODE_SETUP = "/usr/bin/fips-mode-setup"
     GZIP = "/bin/gzip"
     LS = "/bin/ls"
     SYSTEMCTL = "/bin/systemctl"
