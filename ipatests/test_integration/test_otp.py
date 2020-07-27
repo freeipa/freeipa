@@ -6,6 +6,7 @@
 import base64
 import logging
 import paramiko
+import pytest
 import re
 import time
 import textwrap
@@ -231,6 +232,7 @@ class TestOTPToken(IntegrationTest):
         then during ssh it should be prompted with given message
         for first and second factor at once.
         """
+
         master = self.master
         USER1 = 'sshuser1'
         sssd_conf_backup = tasks.FileBackup(master, paths.SSSD_CONF)
@@ -248,10 +250,11 @@ class TestOTPToken(IntegrationTest):
             otpuid, totp = add_otptoken(master, USER1, otptype='totp')
             master.run_command(['ipa', 'otptoken-show', otpuid])
             otpvalue = totp.generate(int(time.time())).decode('ascii')
-            answers = {
-                first_prompt: '{0}{1}'.format(PASSWORD, otpvalue),
-            }
-            ssh_2f(master.hostname, USER1, answers)
+            password = '{0}{1}'.format(PASSWORD, otpvalue)
+            tasks.run_ssh_cmd(
+                to_host=self.master.external_hostname, username=USER1,
+                auth_method="password", password=password
+            )
             # check if user listed in output
             cmd = self.master.run_command(['semanage', 'login', '-l'])
             assert USER1 in cmd.stdout_text
@@ -268,7 +271,13 @@ class TestOTPToken(IntegrationTest):
         When [prompting/2fa/sshd] with single_prompt = False is set
         then during ssh it should be prompted with given message
         for first factor and then for second factor.
+
+        This requires paramiko until the 2-prompt sshpass RFE is
+        fulfilled: https://sourceforge.net/p/sshpass/feature-requests/5/
         """
+        if self.master.is_fips_mode:  # pylint: disable=no-member
+            pytest.skip("paramiko is not compatible with FIPS mode")
+
         master = self.master
         USER2 = 'sshuser2'
         sssd_conf_backup = tasks.FileBackup(master, paths.SSSD_CONF)
