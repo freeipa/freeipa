@@ -20,6 +20,7 @@ from subprocess import CalledProcessError
 
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509
+from datetime import datetime, timedelta
 
 from ipalib.constants import IPAAPI_USER
 
@@ -1201,7 +1202,11 @@ class TestIPACommand(IntegrationTest):
 
         sshconn = paramiko.SSHClient()
         sshconn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        since = time.strftime('%H:%M:%S')
+        # start to look at logs a bit before "now"
+        # https://pagure.io/freeipa/issue/8432
+        since = time.strftime(
+            '%H:%M:%S', (datetime.now() - timedelta(seconds=10)).timetuple()
+        )
         try:
             sshconn.connect(self.master.hostname,
                             username=self.testuser,
