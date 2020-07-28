@@ -37,9 +37,9 @@ from urllib.parse import urlparse, urlunparse
 from ipalib import api, errors, x509
 from ipalib import sysrestore
 from ipalib.constants import IPAAPI_USER, MAXHOSTNAMELEN
-from ipalib.facts import is_ipa_client_configured
 from ipalib.install import certmonger, certstore, service
 from ipalib.install import hostname as hostname_
+from ipalib.facts import is_ipa_client_configured, is_ipa_configured
 from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipalib.install.service import enroll_only, prepare_only
 from ipalib.rpc import delete_persistent_client_session_data
@@ -3203,8 +3203,7 @@ def uninstall_check(options):
             "IPA client is not configured on this system.",
             rval=rval)
 
-    server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
-    if server_fstore.has_files() and not options.on_master:
+    if is_ipa_configured() and not options.on_master:
         logger.error(
             "IPA client is configured as a part of IPA server on this system.")
         logger.info("Refer to ipa-server-install for uninstallation.")

@@ -32,7 +32,7 @@ from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib import api, errors, x509
 from ipalib.constants import DOMAIN_LEVEL_0
-from ipalib.facts import is_ipa_configured
+from ipalib.facts import is_ipa_configured, is_ipa_client_configured
 from ipalib.util import (
     validate_domain_name,
     no_matching_interface_for_ip_address_warning,
@@ -381,8 +381,7 @@ def install_check(installer):
             "If you want to reinstall the IPA server, please uninstall "
             "it first using 'ipa-server-install --uninstall'.")
 
-    client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-    if client_fstore.has_files():
+    if is_ipa_client_configured(on_master=True):
         installer._installation_cleanup = False
         raise ScriptError(
             "IPA client is already configured on this system.\n"
