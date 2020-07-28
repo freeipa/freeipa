@@ -26,7 +26,8 @@ import shutil
 
 from urllib.parse import urlsplit
 
-from ipalib.install import certmonger, certstore, sysrestore
+from ipalib.install import certmonger, certstore
+from ipalib.facts import is_ipa_configured
 from ipalib.install.kinit import kinit_keytab
 from ipapython import admintool, certdb, ipaldap, ipautil
 from ipaplatform import services
@@ -104,8 +105,7 @@ def run_with_args(api):
             os.environ['KRB5CCNAME'] = old_krb5ccname
         shutil.rmtree(tmpdir)
 
-    server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
-    if server_fstore.has_files():
+    if is_ipa_configured():
         update_server(certs)
 
         # pylint: disable=import-error,ipa-forbidden-import

@@ -35,7 +35,7 @@ from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 from ipalib import api, constants, create_api, errors, rpc, x509
 from ipalib.config import Env
-from ipalib.facts import is_ipa_configured
+from ipalib.facts import is_ipa_configured, is_ipa_client_configured
 from ipalib.util import no_matching_interface_for_ip_address_warning
 from ipaclient.install.client import configure_krb5_conf, purge_host_keytab
 from ipaserver.install import (
@@ -786,8 +786,7 @@ def promote_check(installer):
         raise ScriptError("--setup-ca and --*-cert-file options are "
                           "mutually exclusive")
 
-    client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-    if not client_fstore.has_files():
+    if not is_ipa_client_configured(on_master=True):
         # One-step replica installation
         if options.password and options.admin_password:
             raise ScriptError("--password and --admin-password options are "

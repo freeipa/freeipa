@@ -6,6 +6,7 @@
 Facts about the installation
 """
 
+import os
 from . import sysrestore
 from ipaplatform.paths import paths
 
