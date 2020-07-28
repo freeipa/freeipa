@@ -24,6 +24,7 @@ class FedoraContainerPathNamespace(FedoraPathNamespace):
     PKI_CONFIGURATION = data(FedoraPathNamespace.PKI_CONFIGURATION)
     SAMBA_DIR = data(FedoraPathNamespace.SAMBA_DIR)
     HTTPD_IPA_WSGI_MODULES_CONF = None
+    HTTPD_PASSWD_FILE_FMT = data(FedoraPathNamespace.HTTPD_PASSWD_FILE_FMT)
 
 
 paths = FedoraContainerPathNamespace()
