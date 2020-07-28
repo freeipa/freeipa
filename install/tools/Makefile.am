@@ -33,6 +33,7 @@ dist_noinst_DATA =		\
 	ipa-custodia.in		\
 	ipa-custodia-check.in	\
 	ipa-httpd-kdcproxy.in	\
+	ipa-httpd-pwdreader.in	\
 	ipa-pki-retrieve-key.in	\
 	ipa-pki-wait-running.in	\
 	ipa-acme-manage.in	\
@@ -72,12 +73,9 @@ nodist_app_SCRIPTS =		\
 	ipa-custodia		\
 	ipa-custodia-check	\
 	ipa-httpd-kdcproxy	\
+	ipa-httpd-pwdreader	\
 	ipa-pki-retrieve-key	\
 	ipa-pki-wait-running	\
-	$(NULL)
-
-dist_app_SCRIPTS =		\
-	ipa-httpd-pwdreader	\
 	$(NULL)
 
 PYTHON_SHEBANG = 					\
