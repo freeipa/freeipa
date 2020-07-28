@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+"""mod_ssl password reader
+This program is a handler written for Apache mod_ssl's SSLPassPhraseDialog.
+
+If you'd like to write your custom binary providing passwords to mod_ssl,
+see the documentation of the aforementioned directive of the mod_ssl module.
+"""
+import argparse
+import os
+
+from ipaplatform.paths import paths
+
+HTTPD_PASSWD_DIR = os.path.realpath(
+    os.path.dirname(paths.HTTPD_PASSWD_FILE_FMT)
+)
+
+parser = argparse.ArgumentParser(description="mod_ssl password reader")
+parser.add_argument(
+    "host_port", help="host:port",
+)
+parser.add_argument(
+    "keytype", help="RSA|DSA|ECC|number",
+)
+
+
+def main():
+    args = parser.parse_args()
+    host_port = args.host_port.replace(":", "-")
+    keytype = args.keytype
+    pwdpath = os.path.realpath(
+        os.path.join(HTTPD_PASSWD_DIR, f"{host_port}-{keytype}")
+    )
+    if not pwdpath.startswith(HTTPD_PASSWD_DIR):
+        parser.error(f"Invalid path {pwdpath}\n")
+    try:
+        with open(pwdpath) as f:
+            print(f.read(), end="")
+    except OSError as e:
+        parser.error(str(e))
+
+
+if __name__ == "__main__":
+    main()
