@@ -363,10 +363,6 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         cmd = self.clients[0].run_command(sha256nsswitch_cmd)
         assert cmd.stdout_text == orig_sha256
 
-    @pytest.mark.xfail(
-        reason="https://pagure.io/freeipa/issue/8189",
-        strict=True
-    )
     def test_nsswitch_backup_restore_sssd(self):
         self.nsswitch_backup_restore()
 
