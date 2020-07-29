@@ -27,6 +27,7 @@ from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.admintool import ScriptError
 import os
+import time
 
 FILES_TO_NOT_BACKUP = ['passwd', 'group', 'shadow', 'gshadow']
 
@@ -103,28 +104,16 @@ class RedHatAuthSelect(RedHatAuthToolBase):
     def configure(self, sssd, mkhomedir, statestore, sudo=True):
         # In the statestore, the following keys are used for the
         # 'authselect' module:
+        # Old method:
         # profile: name of the profile configured pre-installation
         # features_list: list of features configured pre-installation
         # mkhomedir: True if installation was called with --mkhomedir
         # profile and features_list are used when reverting to the
         # pre-install state
-        cfg = self._parse_authselect_output()
-        if cfg:
-            statestore.backup_state('authselect', 'profile', cfg[0])
-            statestore.backup_state(
-                    'authselect', 'features_list', " ".join(cfg[1]))
-        else:
-            # cfg = None means that the current conf is not managed by
-            # authselect but by authconfig.
-            # As we are using authselect to configure the host,
-            # it will not be possible to revert to a custom authconfig
-            # configuration later (during uninstall)
-            # Best thing to do will be to use sssd profile at this time
-            logger.warning(
-                "WARNING: The configuration pre-client installation is not "
-                "managed by authselect and cannot be backed up. "
-                "Uninstallation may not be able to revert to the original "
-                "state.")
+        # New method:
+        # backup: name of the authselect backup
+        backup_name = "pre_ipaclient_{}".format(time.strftime("%Y%m%d%H%M%S"))
+        statestore.backup_state('authselect', 'backup', backup_name)
 
         cmd = [paths.AUTHSELECT, "select", "sssd"]
         if mkhomedir:
@@ -133,6 +122,7 @@ class RedHatAuthSelect(RedHatAuthToolBase):
         if sudo:
             cmd.append("with-sudo")
         cmd.append("--force")
+        cmd.append("--backup={}".format(backup_name))
 
         ipautil.run(cmd)
 
@@ -179,10 +169,15 @@ class RedHatAuthSelect(RedHatAuthToolBase):
             else:
                 features = []
 
-        cmd = [paths.AUTHSELECT, "select", profile]
-        cmd.extend(features)
-        cmd.append("--force")
-        ipautil.run(cmd)
+        backup = statestore.restore_state('authselect', 'backup')
+        if backup:
+            cmd = [paths.AUTHSELECT, "backup-restore", backup]
+            ipautil.run(cmd)
+        else:
+            cmd = [paths.AUTHSELECT, "select", profile]
+            cmd.extend(features)
+            cmd.append("--force")
+            ipautil.run(cmd)
 
     def backup(self, path):
         current = self._get_authselect_current_output()
