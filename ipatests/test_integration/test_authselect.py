@@ -100,7 +100,9 @@ class TestClientInstallation(IntegrationTest):
             ['rm', '-f', '/etc/authselect/authselect.conf'])
         result = self._install_client()
         assert result.returncode == 0
-        assert self.msg_warn_install in result.stderr_text
+        # With the fix for 8189, there is no warning any more
+        # because install is performing a pre-install backup
+        assert self.msg_warn_install not in result.stderr_text
         # Client installation must configure the 'sssd' profile
         # with sudo
         check_authselect_profile(self.client, default_profile, ('with-sudo',))
@@ -109,12 +111,13 @@ class TestClientInstallation(IntegrationTest):
         """
         Test client un-installation when there was no authselect profile
         """
-        # As the client did not have any authselect profile before install,
-        # uninstall must print a warning about restoring 'sssd' profile
-        # by default
+        # The client did not have any authselect profile before install,
+        # but uninstall must be able to restore the backup
+        # Check that no profile is configured after uninstall
         result = self._uninstall_client()
         assert result.returncode == 0
-        check_authselect_profile(self.client, default_profile)
+        assert not self.client.transport.file_exists(
+            '/etc/authselect/authselect.conf')
 
     def test_install_client_preconfigured_profile(self):
         """
