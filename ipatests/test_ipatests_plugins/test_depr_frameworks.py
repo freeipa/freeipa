@@ -83,7 +83,7 @@ def test_xunit(xunit_testdir):
     result = xunit_testdir.runpytest()
     result.assert_outcomes(passed=1)
     result.stdout.fnmatch_lines([
-        "* PytestDeprecationWarning: xunit style is deprecated in favour of "
+        "* PytestIPADeprecationWarning: xunit style is deprecated in favour of "
         "fixtures style",
         "* 8 warning*",
     ])
@@ -93,7 +93,7 @@ def test_unittest(unittest_testdir):
     result = unittest_testdir.runpytest()
     result.assert_outcomes(passed=1)
     result.stdout.fnmatch_lines([
-        "* PytestDeprecationWarning: unittest is deprecated in favour of "
+        "* PytestIPADeprecationWarning: unittest is deprecated in favour of "
         "fixtures style",
         "* 1 warning*",
     ])
