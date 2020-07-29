@@ -21,12 +21,12 @@ which employ unittest/nose frameworks or xunit style.
 
 To treat these warnings as errors it's enough to run Pytest with:
 
--W error:'xunit style is deprecated':pytest.PytestDeprecationWarning
+-W error:'xunit style is deprecated':pytest.PytestIPADeprecationWarning
 
 """
 from unittest import TestCase
 
-import pytest
+from ipatests.conftest import PytestIPADeprecationWarning
 
 forbidden_module_scopes = [
     'setup_module',
@@ -47,7 +47,7 @@ def pytest_collection_finish(session):
     for item in session.items:
         cls = getattr(item, 'cls', None)
         if cls is not None and issubclass(cls, TestCase):
-            item.warn(pytest.PytestDeprecationWarning(
+            item.warn(PytestIPADeprecationWarning(
                 "unittest is deprecated in favour of fixtures style"))
             continue
 
@@ -57,10 +57,9 @@ def pytest_collection_finish(session):
                 method = getattr(obj, n, None)
                 fixtured = hasattr(method, '__pytest_wrapped__')
                 if method is not None and not fixtured:
-                    item.warn(
-                        pytest.PytestDeprecationWarning(
-                            "xunit style is deprecated in favour of "
-                            "fixtures style"))
+                    item.warn(PytestIPADeprecationWarning(
+                        "xunit style is deprecated in favour of "
+                        "fixtures style"))
 
         xunit_depr_warn(item, 'module', forbidden_module_scopes)
         xunit_depr_warn(item, 'cls', forbidden_class_scopes)

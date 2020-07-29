@@ -26,6 +26,10 @@ else:
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+
+class PytestIPADeprecationWarning(pytest.PytestWarning, DeprecationWarning):
+    """Warning class for features that will be removed in a future version."""
+
 pytest_plugins = [
     'ipatests.pytest_ipa.additional_config',
     'ipatests.pytest_ipa.deprecated_frameworks',
