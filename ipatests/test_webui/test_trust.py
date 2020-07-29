@@ -21,6 +21,8 @@
 Trust tests
 """
 
+import ipatests.test_webui.data_group as group
+import ipatests.test_webui.data_idviews as idview
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 from ipatests.test_webui.task_range import range_tasks
@@ -28,6 +30,8 @@ import pytest
 
 ENTITY = 'trust'
 CONFIG_ENTITY = 'trustconfig'
+
+DEFAULT_TRUST_VIEW = 'Default Trust View'
 
 CONFIG_DATA = {
     'mod': [
@@ -164,3 +168,40 @@ class test_trust(trust_tasks):
 
         self.mod_record(CONFIG_ENTITY, CONFIG_DATA)
         self.mod_record(CONFIG_ENTITY, CONFIG_DATA2)
+
+    @screenshot
+    def test_group_member_idoverrideuser(self):
+
+        self.init_app()
+
+        # Create new trust
+        data = self.get_data()
+        self.add_record(ENTITY, data)
+
+        # Create an user ID override
+        ad_domain = self.config.get('ad_domain')
+        ad_admin = self.config.get('ad_admin')
+        idoverrideuser_pkey = '{}@{}'.format(ad_admin, ad_domain).lower()
+
+        self.navigate_to_record(DEFAULT_TRUST_VIEW, entity=idview.ENTITY)
+        self.add_record(idview.ENTITY, {
+            'pkey': idoverrideuser_pkey,
+            'add': [
+                ('textbox', 'ipaanchoruuid_default', idoverrideuser_pkey),
+            ],
+        }, facet='idoverrideuser')
+
+        # Create new group and add the user ID override there
+        self.navigate_to_entity(group.ENTITY)
+        self.add_record(group.ENTITY, group.DATA)
+        self.navigate_to_record(group.PKEY)
+        self.add_associations([idoverrideuser_pkey],
+                              facet='member_idoverrideuser', delete=True)
+
+        # Clean up data
+        self.navigate_to_entity(group.ENTITY)
+        self.delete_record(group.PKEY)
+        self.navigate_to_record(DEFAULT_TRUST_VIEW, entity=idview.ENTITY)
+        self.delete_record(idoverrideuser_pkey)
+        self.navigate_to_entity(ENTITY)
+        self.delete_record(ad_domain)
