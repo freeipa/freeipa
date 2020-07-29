@@ -686,7 +686,7 @@ def http_certificate_ensure_ipa_ca_dnsname(http):
 
     try:
         cert.match_hostname(expect)
-    except ssl.SSLCertVerificationError:
+    except ssl.CertificateError:
         if certs.is_ipa_issued_cert(api, cert):
             request_id = certmonger.get_request_id(
                 {'cert-file': paths.HTTPD_CERT_FILE})
