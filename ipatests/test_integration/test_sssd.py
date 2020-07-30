@@ -485,7 +485,7 @@ class TestNestedMembers(IntegrationTest):
 
         privkey, pubkey = tasks.generate_ssh_keypair()
         with open(os.path.join(
-                tmpdir, 'ssh_priv_key'), 'w') as fp:
+                str(tmpdir), 'ssh_priv_key'), 'w') as fp:
             fp.write(privkey)
 
         master.run_command([
