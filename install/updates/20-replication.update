@@ -62,7 +62,3 @@ default: nsslapd-plugin-depends-on-named: Multimaster Replication Plugin
 default: nsslapd-pluginVersion: 1.0
 default: nsslapd-pluginVendor: none
 default: nsslapd-pluginDescription: none
-
-# Set replication changelog limit (#5086)
-dn: cn=changelog5,cn=config
-addifnew: nsslapd-changelogmaxage: 7d
