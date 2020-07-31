@@ -1,5 +1,6 @@
 # first
 plugin: update_managed_post_first
+plugin: update_changelog_maxage
 
 # middle
 plugin: update_replica_attribute_lists
