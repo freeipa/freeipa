@@ -478,6 +478,15 @@ class ReplicationManager:
         return DN(('cn', 'replica'), ('cn', self.db_suffix),
                   ('cn', 'mapping tree'), ('cn', 'config'))
 
+    def get_be_name(self, conn):
+        # Get the backend name for this suffix
+        suffix_entry = conn.get_entry(
+            DN(('cn', self.db_suffix),
+               ('cn', 'mapping tree'),
+               ('cn', 'config')),
+            ['nsslapd-backend'])
+        return suffix_entry.single_value.get('nsslapd-backend')
+
     def _set_replica_binddngroup(self, r_conn, entry):
         """
         Set nsds5replicabinddngroup attribute on remote master's replica entry.
@@ -566,26 +575,51 @@ class ReplicationManager:
         return entry
 
     def setup_changelog(self, conn):
-        ent = conn.get_entry(
-            DN(
-                ('cn', 'config'), ('cn', 'ldbm database'),
-                ('cn', 'plugins'), ('cn', 'config')),
-            ['nsslapd-directory'])
-        dbdir = os.path.dirname(ent.single_value.get('nsslapd-directory'))
-
-        entry = conn.make_entry(
-            DN(('cn', 'changelog5'), ('cn', 'config')),
-            {
-                'objectclass': ["top", "extensibleobject"],
-                'cn': ["changelog5"],
-                'nsslapd-changelogdir': [os.path.join(dbdir, "cldb")],
-                'nsslapd-changelogmaxage': ['7d'],
-            }
-        )
         try:
-            conn.add_entry(entry)
-        except errors.DuplicateEntry:
-            return
+            """Check if we have the new per backend changelog, and set
+            the trimming max-age setting.  If the new changelog entry
+            is not found then we are still using the old global changelog.
+            """
+            cl_dn = DN(
+                ('cn', 'changelog'),
+                ('cn', self.get_be_name(conn)),
+                ('cn', 'ldbm database'),
+                ('cn', 'plugins'),
+                ('cn', 'config'))
+            cl_entry = conn.get_entry(cl_dn)
+        except errors.NotFound:
+            """Did not find a per-backend changelog, so add the global
+            changelog entry.  First get the database directory to build
+            the changelog directory location from.
+            """
+            ent = conn.get_entry(
+                DN(
+                    ('cn', 'config'),
+                    ('cn', 'ldbm database'),
+                    ('cn', 'plugins'),
+                    ('cn', 'config')),
+                ['nsslapd-directory'])
+            dbdir = os.path.dirname(ent.single_value.get('nsslapd-directory'))
+
+            entry = conn.make_entry(
+                DN(
+                    ('cn', 'changelog5'),
+                    ('cn', 'config')),
+                {
+                    'objectclass': ["top", "extensibleobject"],
+                    'cn': ["changelog5"],
+                    'nsslapd-changelogdir': [os.path.join(dbdir, "cldb")],
+                    'nsslapd-changelogmaxage': ['7d'],
+                }
+            )
+            try:
+                conn.add_entry(entry)
+            except errors.DuplicateEntry:
+                return
+        else:
+            # Set the changelog trimming
+            cl_entry['nsslapd-changelogmaxage'] = '7d'
+            conn.update_entry(cl_entry)
 
     def _finalize_replica_settings(self, conn):
         """Change replica settings to final values
