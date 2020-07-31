@@ -78,22 +78,47 @@ class update_unhashed_password(Updater):
             # We are running in a winsync environment
             # Log a warning that changelog will contain sensitive data
             try:
-                cldb_e = ldap.get_entry(
-                    DN(('cn', 'changelog5'),
+                # Check if the new per-backend changelog exists...
+                cldb = ldap.get_entry(
+                    DN(('cn', 'changelog'),
+                       ('cn', 'userRoot'),
+                       ('cn', 'ldbm database'),
+                       ('cn', 'plugins'),
+                       ('cn', 'config')))
+
+                # We have a backend changelog so get the db dir in this case
+                db_entry = ldap.get_entry(
+                    DN(('cn', 'userRoot'),
+                       ('cn', 'ldbm database'),
+                       ('cn', 'plugins'),
                        ('cn', 'config')),
-                    ['nsslapd-changelogdir'])
-                cldb = cldb_e.single_value.get("nsslapd-changelogdir")
+                    ['nsslapd-directory'])
+                cldb = db_entry.single_value.get("nsslapd-directory")
                 logger.warning("This server is configured for winsync, "
                                "the changelog files under %s "
                                "may contain clear text passwords.\n"
                                "Please ensure that these files can be accessed"
                                " only by trusted accounts.\n", cldb)
             except errors.NotFound:
-                logger.warning("This server is configured for winsync, "
-                               "the changelog files may contain "
-                               "clear text passwords.\n"
-                               "Please ensure that these files can be accessed"
-                               " only by trusted accounts.\n")
+                # Did not find backend changelog, check the global changelog
+                try:
+                    cldb_e = ldap.get_entry(
+                        DN(('cn', 'changelog5'),
+                           ('cn', 'config')),
+                        ['nsslapd-changelogdir'])
+                    cldb = cldb_e.single_value.get("nsslapd-changelogdir")
+                    logger.warning("This server is configured for winsync, "
+                                   "the changelog files under %s "
+                                   "may contain clear text passwords.\n"
+                                   "Please ensure that these files can be "
+                                   "accessed only by trusted accounts.\n",
+                                   cldb)
+                except errors.NotFound:
+                    logger.warning("This server is configured for winsync, "
+                                   "the changelog files may contain "
+                                   "clear text passwords.\n"
+                                   "Please ensure that these files can be "
+                                   "accessed only by trusted accounts.\n")
             if toggle.lower() == 'on':
                 # The current DS configuration already logs the
                 # unhashed password
