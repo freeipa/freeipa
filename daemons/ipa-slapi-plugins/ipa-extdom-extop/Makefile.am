@@ -50,8 +50,10 @@ TESTS =
 check_PROGRAMS =
 
 if HAVE_CMOCKA
+if HAVE_UNSHARE
 TESTS += extdom_cmocka_tests
 check_PROGRAMS += extdom_cmocka_tests
+endif
 endif
 
 extdom_cmocka_tests_SOURCES = 		\
