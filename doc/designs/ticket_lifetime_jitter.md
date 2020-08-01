@@ -9,12 +9,6 @@ The feature is enabled automatically so we can avoid triggering an LDAP query on
 
 As Administrator of a cluster, I want to configure the IdM Server KDC to issue TGTs with lifetime jitter, so that my entire cluster does not renew Kerberos tickets at the same time, causing overload of IdM Server KDC.
 
-## CLI Workflow
-
-Administrators will be able to disable jitter by using the `ipa krbtpolicy-mod` command. 
-
-e.g. `ipa krbtpolicy-mod service/@REALM --jitter --disable`
-
 ## Implementation 
 
-Instead of a static 24 hour TGT lifetime, IdM KDC does (23 hour + rand[0, 60] minute) lifetime.
+Instead of a static 24 hour TGT lifetime, KDC does (23 hour + rand[0, 60] minute) lifetime. If an authentication method is specified that has a non-24hour lifetime, KDC does (lifetime - 1 hour + rand[0, 60] minute). 
