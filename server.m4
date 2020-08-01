@@ -153,3 +153,12 @@ dnl Check for libverto
 dnl ---------------------------------------------------------------------------
 
 PKG_CHECK_MODULES([LIBVERTO], [libverto])
+
+dnl ---------------------------------------------------------------------------
+dnl Check for unshare(2) - Linux-only. We also check for chroot(2) as we use both
+dnl ---------------------------------------------------------------------------
+
+AC_CHECK_HEADER(sched.h, [
+    AC_CHECK_FUNC(unshare, [], [AC_MSG_WARN([unshare not found, no extdom unit tests to be run])])
+    AC_CHECK_FUNC(chroot, [], [AC_MSG_WARN([chroot not found, no extdom unit tests to be run])])
+], [AC_MSG_WARN([sched.h not found, unshare is not available])])

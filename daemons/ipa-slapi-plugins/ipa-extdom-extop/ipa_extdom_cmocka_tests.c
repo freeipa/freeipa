@@ -21,6 +21,7 @@
 */
 #define _GNU_SOURCE
 
+#include <sched.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -36,10 +37,13 @@
 #include <stdio.h>
 #include <dlfcn.h>
 
+static bool skip_tests = false;
+
 #define MAX_BUF (1024*1024*1024)
 struct test_data {
     struct extdom_req *req;
     struct ipa_extdom_ctx *ctx;
+    bool skip_test;
 };
 
 /*
@@ -138,40 +142,6 @@ fail:
     return -1;
 }
 
-struct {
-    const char *o, *n;
-} path_table[] = {
-    { .o = "/etc/passwd", .n = "./test_data/passwd"},
-    { .o = "/etc/group",  .n = "./test_data/group"},
-    { .o = NULL, .n = NULL}};
-
-FILE *(*original_fopen)(const char*, const char*) = NULL;
-
-FILE *fopen(const char *path, const char *mode) {
-    const char *_path = NULL;
-
-    /* Do not handle before-main() cases */
-    if (original_fopen == NULL) {
-        return NULL;
-    }
-    for(int i=0; path_table[i].o != NULL; i++) {
-        if (strcmp(path, path_table[i].o) == 0) {
-                _path = path_table[i].n;
-                break;
-        }
-    }
-    return (*original_fopen)(_path ? _path : path, mode);
-}
-
-/* Attempt to initialize original_fopen before main()
- * There is no explicit order when all initializers are called,
- * so we might still be late here compared to a code in a shared
- * library initializer, like libselinux */
-void redefined_fopen_ctor (void) __attribute__ ((constructor));
-void redefined_fopen_ctor(void) {
-    original_fopen = dlsym(RTLD_NEXT, "fopen");
-}
-
 void test_getpwnam_r_wrapper(void **state)
 {
     int ret;
@@ -181,6 +151,9 @@ void test_getpwnam_r_wrapper(void **state)
     struct test_data *test_data;
 
     test_data = (struct test_data *) *state;
+    if (test_data->skip_test) {
+        skip();
+    }
 
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
@@ -238,6 +211,9 @@ void test_getpwuid_r_wrapper(void **state)
     struct test_data *test_data;
 
     test_data = (struct test_data *) *state;
+    if (test_data->skip_test) {
+        skip();
+    }
 
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
@@ -290,6 +266,9 @@ void test_getgrnam_r_wrapper(void **state)
     struct test_data *test_data;
 
     test_data = (struct test_data *) *state;
+    if (test_data->skip_test) {
+        skip();
+    }
 
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
@@ -340,6 +319,9 @@ void test_getgrgid_r_wrapper(void **state)
     struct test_data *test_data;
 
     test_data = (struct test_data *) *state;
+    if (test_data->skip_test) {
+        skip();
+    }
 
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
@@ -389,6 +371,9 @@ void test_get_user_grouplist(void **state)
     struct test_data *test_data;
 
     test_data = (struct test_data *) *state;
+    if (test_data->skip_test) {
+        skip();
+    }
 
     /* This is a bit odd behaviour of getgrouplist() it does not check if the
      * user exists, only if memberships of the user can be found. */
@@ -446,6 +431,11 @@ static int  extdom_req_setup(void **state)
     assert_non_null(test_data->ctx->nss_ctx);
 
     back_extdom_set_timeout(test_data->ctx->nss_ctx, 10000);
+
+    test_data->skip_test = skip_tests;
+    if (chroot("test_data") != 0) {
+        test_data->skip_test = true;
+    }
     *state = test_data;
 
     return 0;
@@ -655,6 +645,6 @@ int main(int argc, const char *argv[])
         cmocka_unit_test(test_decode),
     };
 
-    assert_non_null(original_fopen);
+    skip_tests = (unshare(CLONE_NEWUSER) == -1);
     return cmocka_run_group_tests(tests, extdom_req_setup, extdom_req_teardown);
 }
