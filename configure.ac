@@ -546,6 +546,8 @@ AS_CASE([$JSLINT],
 AC_SUBST([JSLINT])
 AM_CONDITIONAL([WITH_JSLINT], [test "x${JSLINT}" != "xno"])
 
+AM_CONDITIONAL([HAVE_UNSHARE],
+    [test "x${ac_cv_func_unshare}" = "xyes" -a "x${ac_cv_func_chroot}" = "xyes"])
 
 # Flags
 
