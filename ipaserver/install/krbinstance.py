@@ -536,6 +536,8 @@ class KrbInstance(service.Service):
         certs.install_pem_from_p12(self.pkcs12_info[0],
                                    self.pkcs12_info[1],
                                    paths.KDC_CERT)
+        # The KDC cert needs to be readable by everyone
+        os.chmod(paths.KDC_CERT, 0o644)
         certs.install_key_from_p12(self.pkcs12_info[0],
                                    self.pkcs12_info[1],
                                    paths.KDC_KEY)
