@@ -1664,7 +1664,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_trust.py
         template: *testing-master-latest
-        timeout: 7200
+        timeout: 9000
         topology: *adroot_adchild_adtree_master_1client
 
   testing-fedora/test_backup_and_restore_TestBackupAndRestoreTrust:
