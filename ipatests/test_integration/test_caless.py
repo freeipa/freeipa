@@ -1564,6 +1564,13 @@ class TestCertInstall(CALessBase):
         assert result.returncode == 0
 
 
+def verify_kdc_cert_perms(host):
+    """Verify that the KDC cert pem file has 0644 perms"""
+    cmd = host.run_command(['stat', '-c',
+                           '"%a %G:%U"', paths.KDC_CERT])
+    assert "644 root:root" in cmd.stdout_text
+
+
 class TestPKINIT(CALessBase):
     """Install master and replica with PKINIT"""
     num_replicas = 1
@@ -1577,6 +1584,7 @@ class TestPKINIT(CALessBase):
         result = cls.install_server(pkinit_pkcs12_exists=True,
                                     pkinit_pin=_DEFAULT)
         assert result.returncode == 0
+        verify_kdc_cert_perms(cls.master)
 
     @replica_install_teardown
     def test_server_replica_install_pkinit(self):
@@ -1586,6 +1594,7 @@ class TestPKINIT(CALessBase):
                                       pkinit_pin=_DEFAULT)
         assert result.returncode == 0
         self.verify_installation()
+        verify_kdc_cert_perms(self.replicas[0])
 
 
 class TestServerReplicaCALessToCAFull(CALessBase):
