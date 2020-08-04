@@ -1593,3 +1593,15 @@ jobs:
         template: *ci-ipa-4-8-previous
         timeout: 7200
         topology: *master_3client
+
+  fedora-previous-ipa-4-8/test_dns:
+     requires: [fedora-previous-ipa-4-8/build]
+     priority: 50
+     job:
+       class: RunPytest
+       args:
+         build_url: '{fedora-previous-ipa-4-8/build_url}'
+         test_suite: test_integration/test_dns.py
+         template: *ci-ipa-4-8-previous
+         timeout: 3600
+         topology: *master_1repl
