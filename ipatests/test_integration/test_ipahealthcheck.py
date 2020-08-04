@@ -799,7 +799,7 @@ class TestIpaHealthCheck(IntegrationTest):
             )
 
             assert returncode == 1
-            assert len(data) == 9  # non-KRA is 9 tracked certs
+            assert len(data) == 12  # KRA is 12 tracked certs
 
             for check in data:
                 if check["result"] == "SUCCESS":
