@@ -76,6 +76,8 @@ CLASS_LOGFILES = [
     # system
     paths.RESOLV_CONF,
     paths.HOSTS,
+    # IPA renewal lock
+    paths.IPA_RENEWAL_LOCK,
 ]
 
 
