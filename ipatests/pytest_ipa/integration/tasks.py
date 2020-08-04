@@ -1470,9 +1470,9 @@ def ipa_epn(
         cmd.append("--dry-run")
     if mailtest:
         cmd.append("--mail-test")
-    if from_nbdays:
+    if from_nbdays is not None:
         cmd.extend(("--from-nbdays", str(from_nbdays)))
-    if to_nbdays:
+    if to_nbdays is not None:
         cmd.extend(("--to-nbdays", str(to_nbdays)))
     return host.run_command(cmd, raiseonerr=raiseonerr)
 
