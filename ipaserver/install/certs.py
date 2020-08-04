@@ -329,7 +329,7 @@ class CertDB:
         ipautil.backup_file(cacert_fname)
         root_nicknames = self.find_root_cert(nickname)[:-1]
         with open(cacert_fname, "w") as f:
-            os.fchmod(f.fileno(), stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+            os.fchmod(f.fileno(), 0o644)
             for root in root_nicknames:
                 result = self.run_certutil(["-L", "-n", root, "-a"],
                                            capture_output=True)
