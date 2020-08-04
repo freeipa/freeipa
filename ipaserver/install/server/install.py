@@ -904,9 +904,8 @@ def install(installer):
 
         ca.install_step_0(False, None, options, custodia=custodia)
     else:
-        # Put the CA cert where other instances expect it
-        x509.write_certificate(http_ca_cert, paths.IPA_CA_CRT)
-        os.chmod(paths.IPA_CA_CRT, 0o444)
+        # /etc/ipa/ca.crt is created as a side-effect of
+        # dsinstance::enable_ssl() via export_ca_cert()
 
         if not options.no_pkinit:
             x509.write_certificate(http_ca_cert, paths.KDC_CA_BUNDLE_PEM)
