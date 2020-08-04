@@ -394,6 +394,14 @@ class CALessBase(IntegrationTest):
                          host, cert_from_ldap.public_bytes(x509.Encoding.PEM))
             assert cert_from_ldap == expected_cacrt
 
+            result = host.run_command(
+                ["/usr/bin/stat", "-c", "%U:%G:%a", paths.IPA_CA_CRT]
+            )
+            (owner, group, mode) = result.stdout_text.strip().split(':')
+            assert owner == "root"
+            assert group == "root"
+            assert mode == "644"
+
             # Verify certmonger was not started
             result = host.run_command(['getcert', 'list'], raiseonerr=False)
             assert result.returncode == 0

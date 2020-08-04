@@ -346,6 +346,16 @@ class TestInstallCA(IntegrationTest):
         status = tasks.wait_for_request(self.master, request_id[0], 300)
         assert status == "MONITORING"
 
+    def test_ipa_ca_crt_permissions(self):
+        """Verify that /etc/ipa/ca.cert is mode 0644 root:root"""
+        result = self.master.run_command(
+            ["/usr/bin/stat", "-c", "%U:%G:%a", paths.IPA_CA_CRT]
+        )
+        out = str(result.stdout_text.strip())
+        (owner, group, mode) = out.split(':')
+        assert mode == "644"
+        assert owner == "root"
+        assert group == "root"
 
 class TestInstallWithCA_KRA1(InstallTestBase1):
 
