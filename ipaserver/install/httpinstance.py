@@ -394,7 +394,7 @@ class HTTPInstance(service.Service):
                 )
                 try:
                     certmonger.request_and_wait_for_cert(**args)
-                except Exception as e:
+                except Exception:
                     args['dns'] = [self.fqdn]  # remove ipa-ca.$DOMAIN
                     args['stop_tracking_on_error'] = False
                     certmonger.request_and_wait_for_cert(**args)
