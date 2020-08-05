@@ -140,3 +140,19 @@ def test_gpg_asymmetric(tempdir, gpgkey):
     assert os.path.isfile(src)
     with open(src) as f:
         assert f.read() == payload
+
+
+@pytest.mark.parametrize(
+    "platform, expected",
+    [
+        ("fedora", "fedora"),
+        ("fedora_container", "fedora"),
+        ("fedora_containers", "fedora_containers"),
+        ("fedoracontainer", "fedoracontainer"),
+        ("rhel", "rhel"),
+        ("rhel_container", "rhel"),
+    ]
+)
+def test_get_current_platform(monkeypatch, platform, expected):
+    monkeypatch.setattr(installutils.ipaplatform, "NAME", platform)
+    assert installutils.get_current_platform() == expected
