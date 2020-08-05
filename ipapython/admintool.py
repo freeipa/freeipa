@@ -28,6 +28,7 @@ import os
 import traceback
 from optparse import OptionGroup  # pylint: disable=deprecated-module
 
+from ipaplatform.osinfo import osinfo
 from ipapython import version
 from ipapython import config
 from ipapython.ipa_log_manager import standard_logging_setup
@@ -304,6 +305,8 @@ class AdminTool:
         logger.debug('%s was invoked with arguments %s and options: %s',
                      self.command_name, self.args, self.safe_options)
         logger.debug('IPA version %s', version.VENDOR_VERSION)
+        logger.debug('IPA platform %s', osinfo.platform)
+        logger.debug('IPA os-release %s %s', osinfo.name, osinfo.version)
 
     def log_failure(self, error_message, return_value, exception, backtrace):
         logger.debug('%s', ''.join(traceback.format_tb(backtrace)))

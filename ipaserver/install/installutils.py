@@ -1054,13 +1054,26 @@ def load_external_cert(files, ca_subject):
     return cert_file, ca_file
 
 
+def get_current_platform():
+    """Get current platform (without container suffix)
+
+    'fedora' and 'fedora_container' are considered the same platform. This
+    normalization ensures that older freeipa-container images can be upgraded
+    without a platform mismatch.
+    """
+    platform = ipaplatform.NAME
+    if platform.endswith('_container'):
+        platform = platform[:-10]
+    return platform
+
+
 def store_version():
     """Store current data version and platform. This is required for check if
     upgrade is required.
     """
     sysupgrade.set_upgrade_state('ipa', 'data_version',
                                  version.VENDOR_VERSION)
-    sysupgrade.set_upgrade_state('ipa', 'platform', ipaplatform.NAME)
+    sysupgrade.set_upgrade_state('ipa', 'platform', get_current_platform())
 
 
 def check_version():
@@ -1070,12 +1083,14 @@ def check_version():
     :raise UpgradeDataNewerVersionError: older version of IPA was detected than data
     :raise UpgradeMissingVersionError: if platform or version is missing
     """
-    platform = sysupgrade.get_upgrade_state('ipa', 'platform')
-    if platform is not None:
-        if platform != ipaplatform.NAME:
+    state_platform = sysupgrade.get_upgrade_state('ipa', 'platform')
+    current_platform = get_current_platform()
+    if state_platform is not None:
+        if state_platform != current_platform:
             raise UpgradePlatformError(
                 "platform mismatch (expected '%s', current '%s')" % (
-                platform, ipaplatform.NAME)
+                    state_platform, current_platform
+                )
             )
     else:
         raise UpgradeMissingVersionError("no platform stored")
