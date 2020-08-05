@@ -21,6 +21,7 @@ from ipapython.certdb import NSS_SQL_FILES
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration.test_cert import get_certmonger_fs_id
 
 HEALTHCHECK_LOG = "/var/log/ipa/healthcheck/healthcheck.log"
 HEALTHCHECK_SYSTEMD_FILE = (
@@ -644,6 +645,43 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["kw"]["ruv"] in ruvs
             ruvs.remove(check["kw"]["ruv"])
         assert not ruvs
+
+    def test_ipa_healthcheck_revocation(self):
+        """
+        Ensure that healthcheck reports when IPA certs are revoked.
+        """
+        error_msg = (
+            "Certificate tracked by {key} is revoked {revocation_reason}"
+        )
+
+        result = self.master.run_command(
+            ["getcert", "list", "-f", paths.HTTPD_CERT_FILE]
+        )
+        request_id = get_certmonger_fs_id(result.stdout_text)
+
+        # Revoke the web cert
+        certfile = self.master.get_file_contents(paths.HTTPD_CERT_FILE)
+        cert = x509.load_certificate_list(certfile)
+        serial = cert[0].serial_number
+        self.master.run_command(["ipa", "cert-revoke", str(serial)])
+
+        # re-run to confirm
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            "IPACertRevocation"
+        )
+
+        assert returncode == 1
+        assert len(data) == 12
+
+        for check in data:
+            if check["kw"]["key"] == request_id:
+                assert check["result"] == "ERROR"
+                assert check["kw"]["revocation_reason"] == "unspecified"
+                assert check["kw"]["msg"] == error_msg
+            else:
+                assert check["result"] == "SUCCESS"
 
     def test_ipa_healthcheck_without_trust_setup(self):
         """
