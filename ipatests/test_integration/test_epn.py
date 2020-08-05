@@ -450,7 +450,6 @@ class TestEPN(IntegrationTest):
             in stderr_text_client
         assert rc > 0
 
-    @pytest.mark.xfail(reason='freeipa ticket 8444', strict=True)
     def test_EPN_nbdays_input_2(self):
         """alpha input"""
 
@@ -461,7 +460,6 @@ class TestEPN(IntegrationTest):
         assert "error: --to-nbdays must be an integer." in stderr
         assert rc > 0
 
-    @pytest.mark.xfail(reason='freeipa ticket 8444', strict=True)
     def test_EPN_nbdays_input_3(self):
         """from_nbdays > to_nbdays"""
 
@@ -473,7 +471,6 @@ class TestEPN(IntegrationTest):
             stderr
         assert rc > 0
 
-    @pytest.mark.xfail(reason='freeipa ticket 8444', strict=True)
     def test_EPN_nbdays_input_4(self):
         """decimal input"""
 

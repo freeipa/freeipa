@@ -246,9 +246,33 @@ class EPN(admintool.AdminTool):
 
     def validate_options(self):
         super(EPN, self).validate_options(needs_root=True)
-        if self.options.to_nbdays:
+        if self.options.to_nbdays is not None:
+            try:
+                if int(self.options.to_nbdays) < 0:
+                    raise RuntimeError('Input is negative.')
+            except Exception as e:
+                self.option_parser.error(
+                    "--to-nbdays must be a positive integer. "
+                    "{error}".format(error=e)
+                )
             self.options.dry_run = True
-        if self.options.from_nbdays and not self.options.to_nbdays:
+        if self.options.from_nbdays is not None:
+            try:
+                if int(self.options.from_nbdays) < 0:
+                    raise RuntimeError('Input is negative.')
+            except Exception as e:
+                self.option_parser.error(
+                    "--from-nbdays must be a positive integer. "
+                    "{error}".format(error=e)
+                )
+        if self.options.from_nbdays is not None and \
+                self.options.to_nbdays is not None:
+            if int(self.options.from_nbdays) >= int(self.options.to_nbdays):
+                self.option_parser.error(
+                    "--from-nbdays must be smaller than --to-nbdays."
+                )
+        if self.options.from_nbdays is not None and \
+                self.options.to_nbdays is None:
             self.option_parser.error(
                 "You cannot specify --from-nbdays without --to-nbdays"
             )
