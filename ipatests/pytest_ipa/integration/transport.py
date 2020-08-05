@@ -34,7 +34,7 @@ class IPAOpenSSHTransport(OpenSSHTransport):
         elif self.host.ssh_password:
             password_file = os.path.join(self.control_dir.path, "password")
             with open(password_file, "w") as f:
-                os.fchmod(f.fileno(), 600)
+                os.fchmod(f.fileno(), 0o600)
                 f.write(self.host.ssh_password)
                 f.write("\n")
             argv = ["sshpass", f"-f{password_file}"] + argv
