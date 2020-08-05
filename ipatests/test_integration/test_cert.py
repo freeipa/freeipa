@@ -9,6 +9,7 @@ related scenarios.
 import ipaddress
 import pytest
 import re
+import time
 
 from ipaplatform.paths import paths
 from cryptography import x509
@@ -215,6 +216,45 @@ class TestInstallMasterClient(IntegrationTest):
         else:
             raise AssertionError("certmonger request is "
                                  "in state {}". format(status))
+
+    def test_certmonger_rekey_option(self):
+        """Test certmonger rekey command works fine
+
+        Certmonger's rekey command was throwing an error as
+        unrecognized command. Test is to check if it is working fine.
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1249165
+        """
+        result = self.master.run_command([
+            'ipa-getcert', 'request',
+            '-f', '/etc/pki/tls/certs/test_rekey.pem',
+            '-k', '/etc/pki/tls/private/test.key',
+            '-K', 'test/{}'.format(self.master.hostname)])
+        request_id = re.findall(r'\d+', result.stdout_text)
+        certdata = self.master.get_file_contents(
+            '/etc/pki/tls/certs/test_rekey.pem'
+        )
+        cert = x509.load_pem_x509_certificate(
+            certdata, default_backend()
+        )
+        assert cert.public_key().key_size == 2048
+
+        # rekey with key size 3072
+        self.master.run_command(['getcert', 'rekey',
+                                 '-i', request_id[0],
+                                 '-g', '3072'])
+        time.sleep(60)
+        certdata = self.master.get_file_contents(
+            '/etc/pki/tls/certs/test_rekey.pem'
+        )
+        cert = x509.load_pem_x509_certificate(
+            certdata, default_backend()
+        )
+        # check if rekey command updated the key size
+        assert cert.public_key().key_size == 3072
+
+        self.master.run_command(['getcert', 'stop-tracking'
+                                 '-i', request_id[0]])
 
 
 class TestCertmongerInterruption(IntegrationTest):
