@@ -2044,10 +2044,7 @@ class KerberosKeyCopier:
             princ = self.host_princ_template.format(master=self.host.hostname,
                                                     realm=self.realm)
         result = self.host.run_command(
-            [paths.KLIST, "-eK", "-k", keytab],
-            log_stdout=False, raiseonerr=False)
-        if result.returncode != 0:
-            return None
+            [paths.KLIST, "-eK", "-k", keytab], log_stdout=False)
 
         keys_to_sync = []
         for l in result.stdout_text.splitlines():
@@ -2074,11 +2071,25 @@ class KerberosKeyCopier:
                     kvno=keyentry.kvno, etype=keyentry.etype,
                     key=keyentry.key[2:])
 
-        result = self.host.run_command(
-            [paths.KTUTIL], stdin_text=stdin,
-            raiseonerr=False, log_stdout=False)
+        def get_keytab_mtime():
+            """Get keytab file mtime.
 
-        return result.returncode == 0
+            Returns mtime with sub-second precision as a string with format
+            "2020-08-25 14:35:05.980503425 +0200" or None if file does not
+            exist.
+            """
+            if self.host.transport.file_exists(keytab):
+                return self.host.run_command(
+                    ['stat', '-c', '%y', keytab]).stdout_text.strip()
+            return None
+
+        mtime_before = get_keytab_mtime()
+
+        self.host.run_command([paths.KTUTIL], stdin_text=stdin,
+                              log_stdout=False)
+        if mtime_before == get_keytab_mtime():
+            raise Exception('{} did not update keytab file "{}"'.format(
+                paths.KTUTIL, keytab))
 
     def copy_keys(self, origin, destination, principal=None, replacement=None):
         def sync_keys(origkeys, destkeys):
@@ -2093,23 +2104,23 @@ class KerberosKeyCopier:
                             destkey.etype == origkey.etype]):
                         if any([destkey.key != origkey.key,
                                 destkey.kvno != origkey.kvno]):
-                            copied = self.copy_key(destination, origkey)
+                            self.copy_key(destination, origkey)
+                            copied = True
                             break
                         uptodate = True
                 if not (copied or uptodate):
-                    copied = self.copy_key(destination, origkey)
-            return copied or uptodate
+                    self.copy_key(destination, origkey)
 
         if not self.host.transport.file_exists(origin):
-            return False
+            raise ValueError('File "{}" does not exist'.format(origin))
         origkeys = self.extract_key_refs(origin, princ=principal)
         if self.host.transport.file_exists(destination):
             destkeys = self.extract_key_refs(destination)
             if any([origkeys is None, destkeys is None]):
-                logger.warning('Either %s or %s are missing or unreadable',
-                               origin, destination)
-                return False
-            return sync_keys(origkeys, destkeys)
+                raise Exception(
+                    'Either {} or {} are missing or unreadable'.format(
+                        origin, destination))
+            sync_keys(origkeys, destkeys)
         else:
             for origkey in origkeys:
                 if origkey.principal in replacement:
@@ -2117,9 +2128,7 @@ class KerberosKeyCopier:
                         [origkey.kvno, replacement.get(origkey.principal),
                          origkey.etype, origkey.key])
                     origkey = newkey
-                if not self.copy_key(destination, origkey):
-                    return False
-            return True
+                self.copy_key(destination, origkey)
 
 
 class FileBackup:
