@@ -20,6 +20,7 @@ from ipapython.ipaldap import realm_to_serverid
 from ipapython.certdb import NSS_SQL_FILES
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
+from ipaplatform.osinfo import osinfo
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_cert import get_certmonger_fs_id
 
@@ -1450,3 +1451,146 @@ class TestIpaHealthCheckFilesystemSpace(IntegrationTest):
 
         # Make sure we found the two errors we expected
         assert errors_found == 2
+
+
+class TestIpaHealthCLI(IntegrationTest):
+    """
+    Validate the command-line options
+
+    An attempt is made to not overlap tests done in other classes.
+    Run as a separate class so there is a "clean" system to test
+    against.
+    """
+
+    # In freeipa-healtcheck >= 0.6 the default tty output is
+    # --failures-only. To show all output use --all. This will
+    # tell us whether --all is available.
+    all_option = osinfo.id in ['fedora',]
+    if all_option:
+        base_cmd = ["ipa-healthcheck", "--all"]
+    else:
+        base_cmd = ["ipa-healthcheck"]
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_packages(cls.master, HEALTHCHECK_PKG)
+
+    def test_indent(self):
+        """
+        Use illegal values for indent
+        """
+        for option in ('a', '9.0'):
+            cmd = self.base_cmd + ["--indent", option]
+            result = self.master.run_command(cmd, raiseonerr=False)
+            assert result.returncode == 2
+            assert 'invalid int value' in result.stderr_text
+
+        # unusual success, arguably odd but not invalid :-)
+        for option in ('-1', '5000'):
+            cmd = self.base_cmd + ["--indent", option]
+            result = self.master.run_command(cmd)
+
+    def test_severity(self):
+        """
+        Valid and invalid --severity
+        """
+        # Baseline, there should be no errors
+        cmd = ["ipa-healthcheck", "--severity", "SUCCESS"]
+        result = self.master.run_command(cmd)
+        data = json.loads(result.stdout_text)
+        for check in data:
+            assert check["result"] == "SUCCESS"
+
+        # All the other's should return nothing
+        for severity in ('WARNING', 'ERROR', 'CRITICAL'):
+            cmd = ["ipa-healthcheck", "--severity", severity]
+            result = self.master.run_command(cmd)
+            data = json.loads(result.stdout_text)
+            assert len(data) == 0
+
+        # An unknown severity
+        cmd = ["ipa-healthcheck", "--severity", "BAD"]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 2
+        assert 'invalid choice' in result.stderr_text
+
+    @pytest.mark.xfail(reason='BZ 1866558', strict=False)
+    def test_input_file(self):
+        """
+        Verify the --input-file option
+        """
+        # ipa-healthcheck overwrites output file, no need to generate
+        # a randomized name.
+        outfile = "/tmp/healthcheck.out"
+
+        # create our output file
+        cmd = ["ipa-healthcheck", "--output-file", outfile]
+        result = self.master.run_command(cmd)
+
+        # load the file
+        cmd = ["ipa-healthcheck", "--failures-only", "--input-file", outfile]
+        result = self.master.run_command(cmd)
+        data = json.loads(result.stdout_text)
+        for check in data:
+            assert check["result"] == "SUCCESS"
+
+        # input file doesn't exist
+        cmd = self.base_cmd + ["--input-file", "/tmp/enoent"]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 1
+        assert 'No such file or directory' in result.stderr_text
+
+        # Invalid input file
+        cmd = ["ipa-healthcheck", "--input-file", paths.IPA_CA_CRT]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 1
+        assert 'Expecting value' in result.stderr_text
+
+    def test_output_type(self):
+        """
+        Check invalid output types.
+
+        The supported json and human types are checked in other classes.
+        """
+        cmd = self.base_cmd + ["--output-type", "hooman"]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 2
+        assert 'invalid choice' in result.stderr_text
+
+    def test_source_and_check(self):
+        """
+        Verify that invalid --source and/or --check are handled.
+        """
+        cmd = self.base_cmd + ["--source", "nonexist"]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 1
+        assert "Source 'nonexist' not found" in result.stdout_text
+
+        cmd = self.base_cmd + ["--source", "ipahealthcheck.ipa.certs",
+                               "--check", "nonexist"]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 1
+        assert "Check 'nonexist' not found in Source" in result.stdout_text
+
+    def test_append_arguments_to_list_sources(self):
+        """
+        Verify that when arguments are specified to --list-sources
+        option, error is displayed on the console.
+        """
+        cmd = self.base_cmd + ["--list-sources", "source"]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 2
+        assert (
+            "ipa-healthcheck: error: unrecognized arguments: source"
+            in result.stdout_text
+        )
+
+    def test_pki_healthcheck(self):
+        """
+        Ensure compatibility with pki-healthcheck
+
+        Running on a clean system should produce no errors. This will
+        ensure ABI compatibility.
+        """
+        self.master.run_command(["pki-healthcheck"])
