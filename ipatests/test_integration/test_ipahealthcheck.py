@@ -1590,3 +1590,16 @@ class TestIpaHealthCLI(IntegrationTest):
         ensure ABI compatibility.
         """
         self.master.run_command(["pki-healthcheck"])
+
+    def test_append_arguments_to_list_sources(self):
+        """
+        Verify that when arguments are specified to --list-sources
+        option, error is displayed on the console.
+        """
+        cmd = self.base_cmd + ["--list-sources", "source"]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 2
+        assert (
+            "ipa-healthcheck: error: unrecognized arguments: source"
+            in result.stderr_text
+        )
