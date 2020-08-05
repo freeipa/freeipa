@@ -15,6 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+######
+# This test suite will _expectedly_ fail if run at the end of the UTC day
+# because users would be created during day N and then EPN output checked
+# during day N+1. This is expected and should be ignored as it does not
+# reflect a product bug. -- fcami
+######
+
 from __future__ import print_function, absolute_import
 
 import base64
@@ -178,12 +185,14 @@ class TestEPN(IntegrationTest):
         from_nbdays=None,
         to_nbdays=None,
         raiseonerr=True,
+        validatejson=True
     ):
         result = tasks.ipa_epn(host, raiseonerr=raiseonerr, dry_run=dry_run,
                                from_nbdays=from_nbdays,
                                to_nbdays=to_nbdays)
-        json.dumps(json.loads(result.stdout_text), ensure_ascii=False)
-        return (result.stdout_text, result.stderr_text)
+        if validatejson:
+            json.dumps(json.loads(result.stdout_text), ensure_ascii=False)
+        return (result.stdout_text, result.stderr_text, result.returncode)
 
     @classmethod
     def install(cls, mh):
@@ -244,12 +253,12 @@ class TestEPN(IntegrationTest):
         ''')
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
         # check EPN on client (LDAP+GSSAPI)
-        (stdout_text, unused) = self._check_epn_output(
+        (stdout_text, unused, _unused) = self._check_epn_output(
             self.clients[0], dry_run=True
         )
         assert len(json.loads(stdout_text)) == 0
         # check EPN on master (LDAPI)
-        (stdout_text, unused) = self._check_epn_output(
+        (stdout_text, unused, _unused) = self._check_epn_output(
             self.master, dry_run=True
         )
         assert len(json.loads(stdout_text)) == 0
@@ -292,10 +301,10 @@ class TestEPN(IntegrationTest):
                 ),
             ],
         )
-        (stdout_text_client, unused) = self._check_epn_output(
+        (stdout_text_client, unused, _unused) = self._check_epn_output(
             self.clients[0], dry_run=True
         )
-        (stdout_text_master, unused) = self._check_epn_output(
+        (stdout_text_master, unused, _unused) = self._check_epn_output(
             self.master, dry_run=True
         )
         assert stdout_text_master == stdout_text_client
@@ -331,10 +340,10 @@ class TestEPN(IntegrationTest):
                 password=None,
             )
 
-        (stdout_text_client, unused) = self._check_epn_output(
+        (stdout_text_client, unused, _unused) = self._check_epn_output(
             self.clients[0], dry_run=True
         )
-        (stdout_text_master, unused) = self._check_epn_output(
+        (stdout_text_master, unused, _unused) = self._check_epn_output(
             self.master, dry_run=True
         )
         assert stdout_text_master == stdout_text_client
@@ -344,22 +353,117 @@ class TestEPN(IntegrationTest):
         expected_users = ["user1", "user3", "user7", "user14", "user28"]
         assert sorted(user_lst) == sorted(expected_users)
 
-    def test_EPN_nbdays(self):
+    def test_EPN_nbdays_0(self, cleanupmail):
         """Test the to/from nbdays options (implies --dry-run)
 
            We have a set of users installed with varying expiration
            dates. Confirm that to/from nbdays finds them.
+
+           Make sure --dry-run does not accidentally send emails.
         """
 
-        # Compare the notify_ttls values
+        # Use the notify_ttls values with a 1-day sliding window
         for i in self.notify_ttls:
             user_list = []
-            (stdout_text_client, unused) = self._check_epn_output(
-                self.clients[0], from_nbdays=i, to_nbdays=i + 1, dry_run=True)
+            (stdout_text_client, unused, _unused) = self._check_epn_output(
+                self.clients[0], from_nbdays=i, to_nbdays=i + 1, dry_run=True
+            )
             for user in json.loads(stdout_text_client):
                 user_list.append(user["uid"])
             assert len(user_list) == 1
-            assert user_list[0] == "user%d" % i
+            userid = "user{id}".format(id=i)
+            assert user_list[0] == userid
+
+            # Check that the user list is expected for any given notify_ttls.
+            (stdout_text_client, unused, _unused) = self._check_epn_output(
+                self.clients[0], to_nbdays=i
+            )
+            user_list = [user["uid"] for user in json.loads(stdout_text_client)]
+            assert len(user_list) == 1
+            assert user_list[0] == "user{id}".format(id=i - 1)
+
+            # make sure no emails were sent
+            result = self.clients[0].run_command(['ls', '-lha', '/var/mail/'])
+            assert userid not in result.stdout_text
+
+    def test_EPN_nbdays_1(self, cleanupmail):
+        """Test that for a given range, we find the users in that range"""
+
+        # Use hardcoded date ranges for now
+        for date_range in [(0, 5), (7, 15), (1, 20)]:
+            expected_user_list = ["user{i}".format(i=i)
+                                  for i in range(date_range[0], date_range[1])]
+            (stdout_text_client, unused, _unused) = self._check_epn_output(
+                self.clients[0],
+                from_nbdays=date_range[0],
+                to_nbdays=date_range[1]
+            )
+            user_list = [user["uid"] for user in json.loads(stdout_text_client)]
+            for user in expected_user_list:
+                assert user in user_list
+            for user in user_list:
+                assert user in expected_user_list
+
+    # Test the to/from nbdays options behavior with illegal input
+
+    def test_EPN_nbdays_input_0(self):
+        """Make sure that --to-nbdays implies --dry-run ;
+           therefore check that the output is valid JSON and contains the
+           expected user.
+        """
+
+        (stdout_text_client, unused, _unused) = self._check_epn_output(
+            self.clients[0], to_nbdays=5, dry_run=False
+        )
+        assert len(json.loads(stdout_text_client)) == 1
+        assert json.loads(stdout_text_client)[0]["uid"] == "user4"
+
+    def test_EPN_nbdays_input_1(self):
+        """Make sure that --from-nbdays cannot be used without --to-nbdays"""
+
+        (unused, stderr_text_client, rc) = \
+            self._check_epn_output(
+            self.clients[0], from_nbdays=3,
+            raiseonerr=False, validatejson=False
+        )
+        assert "You cannot specify --from-nbdays without --to-nbdays" \
+            in stderr_text_client
+        assert rc > 0
+
+    @pytest.mark.xfail(reason='freeipa ticket 8444', strict=True)
+    def test_EPN_nbdays_input_2(self):
+        """alpha input"""
+
+        (unused, stderr, rc) = self._check_epn_output(
+            self.clients[0], to_nbdays="abc",
+            raiseonerr=False, validatejson=False
+        )
+        assert "error: --to-nbdays must be an integer." in stderr
+        assert rc > 0
+
+    @pytest.mark.xfail(reason='freeipa ticket 8444', strict=True)
+    def test_EPN_nbdays_input_3(self):
+        """from_nbdays > to_nbdays"""
+
+        (unused, stderr, rc) = self._check_epn_output(
+            self.clients[0], from_nbdays=9, to_nbdays=7,
+            raiseonerr=False, validatejson=False
+        )
+        assert "error: --from-nbdays must be smaller than --to-nbdays." in \
+            stderr
+        assert rc > 0
+
+    @pytest.mark.xfail(reason='freeipa ticket 8444', strict=True)
+    def test_EPN_nbdays_input_4(self):
+        """decimal input"""
+
+        (unused, stderr, rc) = self._check_epn_output(
+            self.clients[0], to_nbdays=7.3,
+            raiseonerr=False, validatejson=False
+        )
+        logger.info(stderr)
+        assert rc > 0
+        assert "error: --to-nbdays must be an integer." in stderr
 
     # From here the tests build on one another:
     #  1) add auth
