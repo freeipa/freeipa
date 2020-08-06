@@ -8,7 +8,10 @@ related scenarios.
 """
 import ipaddress
 import pytest
+import random
 import re
+import string
+import time
 
 from ipaplatform.paths import paths
 from cryptography import x509
@@ -215,6 +218,152 @@ class TestInstallMasterClient(IntegrationTest):
         else:
             raise AssertionError("certmonger request is "
                                  "in state {}". format(status))
+
+
+class TestCertmongerRekey(IntegrationTest):
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+
+    @pytest.fixture
+    def request_cert(self):
+        """Fixture to request and remove a certificate"""
+        self.request_id = ''.join(
+            random.choice(
+                string.ascii_lowercase
+            ) for i in range(10)
+        )
+        self.master.run_command([
+            'ipa-getcert', 'request',
+            '-f', '/etc/pki/tls/certs/{}.pem'.format(self.request_id),
+            '-k', '/etc/pki/tls/private/{}.key'.format(self.request_id),
+            '-I', self.request_id,
+            '-K', 'test/{}'.format(self.master.hostname)])
+        status = tasks.wait_for_request(self.master, self.request_id, 100)
+        assert status == "MONITORING"
+
+        yield
+
+        self.master.run_command(['getcert', 'stop-tracking',
+                                 '-i', self.request_id])
+        self.master.run_command(
+            [
+                'rm',
+                '-rf',
+                '/etc/pki/tls/certs/{}.pem'.format(self.request_id)
+            ]
+        )
+        self.master.run_command(
+            [
+                'rm',
+                '-rf',
+                '/etc/pki/tls/private/{}.key'.format(self.request_id)
+            ]
+        )
+
+    def test_certmonger_rekey_keysize(self, request_cert):
+        """Test certmonger rekey command works fine
+
+        Certmonger's rekey command was throwing an error as
+        unrecognized command. Test is to check if -g (keysize)
+        option is working fine.
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1249165
+        """
+        certdata = self.master.get_file_contents(
+            '/etc/pki/tls/certs/{}.pem'.format(self.request_id)
+        )
+        cert = x509.load_pem_x509_certificate(
+            certdata, default_backend()
+        )
+        assert cert.public_key().key_size == 2048
+
+        # rekey with key size 3072
+        self.master.run_command(['getcert', 'rekey',
+                                 '-i', self.request_id,
+                                 '-g', '3072'])
+
+        status = tasks.wait_for_request(self.master, self.request_id, 100)
+        assert status == "MONITORING"
+
+        certdata = self.master.get_file_contents(
+            '/etc/pki/tls/certs/{}.pem'.format(self.request_id)
+        )
+        cert = x509.load_pem_x509_certificate(
+            certdata, default_backend()
+        )
+        # check if rekey command updated the key size
+        assert cert.public_key().key_size == 3072
+
+    def test_rekey_keytype_RSA(self, request_cert):
+        """Test certmonger rekey command works fine
+
+        Certmonger's rekey command was throwing an error as
+        unrecognized command. Test is to check if -G (keytype)
+        option is working fine. Currently only RSA type is supported
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1249165
+        """
+        # rekey with RSA key type
+        self.master.run_command(['getcert', 'rekey',
+                                 '-i', self.request_id,
+                                 '-g', '3072',
+                                 '-G', 'RSA'])
+        status = tasks.wait_for_request(self.master, self.request_id, 100)
+        assert status == "MONITORING"
+
+    def test_rekey_request_id(self, request_cert):
+        """Test certmonger rekey command works fine
+
+        Test is to check if -I (request id name) option is working fine.
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1249165
+        """
+        new_req_id = 'newtest'
+        # rekey with -I option
+        result = self.master.run_command(['getcert', 'rekey',
+                                          '-i', self.request_id,
+                                          '-I', new_req_id])
+        # above command output: Resubmitting "newtest" to "IPA".
+        assert new_req_id in result.stdout_text
+
+        # rename back the request id for fixture to delete it
+        result = self.master.run_command(['getcert', 'rekey',
+                                          '-i', new_req_id,
+                                          '-I', self.request_id])
+        assert self.request_id in result.stdout_text
+
+    def test_rekey_keytype_DSA(self):
+        """Test certmonger rekey command works fine
+
+        Test is to check if -G (keytype) with DSA fails
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1249165
+        """
+        result = self.master.run_command([
+            'ipa-getcert', 'request',
+            '-f', '/etc/pki/tls/certs/test_dsa.pem',
+            '-k', '/etc/pki/tls/private/test_dsa.key',
+            '-K', 'test/{}'.format(self.master.hostname)])
+        req_id = re.findall(r'\d+', result.stdout_text)
+        status = tasks.wait_for_request(self.master, req_id[0], 100)
+        assert status == "MONITORING"
+
+        # rekey with RSA key type
+        self.master.run_command(['getcert', 'rekey',
+                                 '-i', req_id[0],
+                                 '-g', '3072',
+                                 '-G', 'DSA'])
+        time.sleep(100)
+        # look for keytpe as DSA in request file
+        self.master.run_command([
+            'grep', 'DSA', '/var/lib/certmonger/requests/{}'.format(req_id[0])
+        ])
+
+        err_msg = 'Unable to create enrollment request: Invalid Request'
+        result = self.master.run_command(['getcert', 'list', '-i', req_id[0]])
+        assert err_msg in result.stdout_text
 
 
 class TestCertmongerInterruption(IntegrationTest):
