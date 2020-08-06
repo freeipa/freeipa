@@ -240,7 +240,7 @@ class TestEPN(IntegrationTest):
         assert epn_conf in cmd1.stdout_text
         assert epn_template in cmd1.stdout_text
         cmd2 = self.master.run_command(["sha256sum", epn_conf])
-        ck = "4c207b5c9c760c36db0d3b2b93da50ea49edcc4002d6d1e7383601f0ec30b957"
+        ck = "192481b52fb591112afd7b55b12a44c6618fdbc7e05a3b1866fd67ec579c51df"
         assert cmd2.stdout_text.find(ck) == 0
 
     def test_EPN_smoketest_1(self):
@@ -591,3 +591,23 @@ class TestEPN(IntegrationTest):
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
         result = tasks.ipa_epn(self.master, raiseonerr=False)
         assert "smtp_delay cannot be less than zero" in result.stderr_text
+
+    def test_EPN_admin(self):
+        """The admin user is special and has no givenName by default
+           It also doesn't by default have an e-mail address
+           Check --dry-run output.
+        """
+        epn_conf = textwrap.dedent('''
+            [global]
+        ''')
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+        self.master.run_command(
+            ['ipa', 'user-mod', 'admin', '--password-expiration',
+             datetime_to_generalized_time(
+                 datetime.datetime.utcnow() + datetime.timedelta(days=7)
+             )]
+        )
+        (unused, stderr_text, _unused) = self._check_epn_output(
+            self.master, dry_run=True
+        )
+        assert "uid=admin" in stderr_text
