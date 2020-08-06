@@ -208,7 +208,12 @@ class BaseTaskNamespace:
         """
         Check if the flag --no-sssd is supported for client install.
         """
+        return True
 
+    def is_mkhomedir_supported(self):
+        """
+        Check if the flag --mkhomedir is supported for client install.
+        """
         return True
 
     def backup_auth_configuration(self, path):
