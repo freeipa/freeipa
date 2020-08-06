@@ -122,22 +122,30 @@ class EPNUserList:
         """Return len(self)."""
         return len(self._expiring_password_user_dq)
 
+    def get_ldap_attr(self, entry, attr):
+        """Get a single value from a multi-valued attr in a safe way"""
+        return str(entry.get(attr, [""]).pop(0))
+
     def add(self, entry):
         """Parses and appends an LDAP user entry with the uid, cn,
            givenname, sn, krbpasswordexpiration and mail attributes.
         """
         try:
             self._sorted = False
+            if entry.get("mail") is None:
+                logger.error("IPA-EPN: No mail address defined for: %s",
+                             entry.dn)
+                return
             self._expiring_password_user_dq.append(
                 dict(
-                    uid=str(entry["uid"].pop(0)),
-                    cn=str(entry["cn"].pop(0)),
-                    givenname=str(entry["givenname"].pop(0)),
-                    sn=str(entry["sn"].pop(0)),
-                    krbpasswordexpiration=str(
-                        entry["krbpasswordexpiration"].pop(0)
+                    uid=self.get_ldap_attr(entry, "uid"),
+                    cn=self.get_ldap_attr(entry, "cn"),
+                    givenname=self.get_ldap_attr(entry, "givenname"),
+                    sn=self.get_ldap_attr(entry, "sn"),
+                    krbpasswordexpiration=(
+                        self.get_ldap_attr(entry,"krbpasswordexpiration")
                     ),
-                    mail=str(entry["mail"]),
+                    mail=str(entry.get("mail")),
                 )
             )
         except IndexError as e:
