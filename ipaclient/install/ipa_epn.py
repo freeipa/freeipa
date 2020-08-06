@@ -131,14 +131,14 @@ class EPNUserList:
             self._sorted = False
             self._expiring_password_user_dq.append(
                 dict(
-                    uid=str(entry["uid"].pop(0)),
-                    cn=str(entry["cn"].pop(0)),
-                    givenname=str(entry["givenname"].pop(0)),
-                    sn=str(entry["sn"].pop(0)),
+                    uid=str(entry.get("uid")),
+                    cn=str(entry.get("cn")),
+                    givenname=str(entry.get("givenname")),
+                    sn=str(entry.get("sn")),
                     krbpasswordexpiration=str(
-                        entry["krbpasswordexpiration"].pop(0)
+                        entry.get("krbpasswordexpiration")
                     ),
-                    mail=str(entry["mail"]),
+                    mail=str(entry.get("mail")),
                 )
             )
         except IndexError as e:
