@@ -4,4 +4,4 @@
 """
 This module contains RHEL Container specific platform files.
 """
-NAME = 'rhel_container'
+NAME = "rhel_container"

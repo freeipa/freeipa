@@ -2160,6 +2160,14 @@ def install_check(options):
             "authentication resources",
             rval=CLIENT_INSTALL_ERROR)
 
+    # --mkhomedir is not supported by fedora_container and rhel_container
+    if not tasks.is_mkhomedir_supported() and options.mkhomedir:
+        raise ScriptError(
+            "Option '--mkhomedir' is incompatible with the 'authselect' tool "
+            "provided by this distribution for configuring system "
+            "authentication resources",
+            rval=CLIENT_INSTALL_ERROR)
+
     # when installing with '--no-sssd' option, check whether nss-ldap is
     # installed
     if not options.sssd:
