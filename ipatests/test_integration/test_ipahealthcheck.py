@@ -860,22 +860,31 @@ class TestIpaHealthCheck(IntegrationTest):
                     else:
                         assert check["kw"]["days"] == 10
 
+        # Store the current date to restore at the end of the test
+        now = datetime.utcnow()
+        now_str = datetime.strftime(now, "%Y-%m-%d %H:%M:%S Z")
+
         # Pick a cert to find the upcoming expiration
         certfile = self.master.get_file_contents(paths.RA_AGENT_PEM)
         cert = x509.load_certificate_list(certfile)
         cert_expiry = cert[0].not_valid_after
 
-        # move date to the grace period
-        self.master.run_command(['systemctl', 'stop', 'chronyd'])
-        grace_date = cert_expiry - timedelta(days=10)
-        grace_date = datetime.strftime(grace_date, "%Y-%m-%d 00:00:01 Z")
-        self.master.run_command(['date', '-s', grace_date])
+        try:
+            # move date to the grace period
+            self.master.run_command(['systemctl', 'stop', 'chronyd'])
+            grace_date = cert_expiry - timedelta(days=10)
+            grace_date = datetime.strftime(grace_date, "%Y-%m-%d 00:00:01 Z")
+            self.master.run_command(['date', '-s', grace_date])
 
-        for check in ("IPACertmongerExpirationCheck",
-                      "IPACertfileExpirationCheck",):
-            execute_expiring_check(check)
+            for check in ("IPACertmongerExpirationCheck",
+                          "IPACertfileExpirationCheck",):
+                execute_expiring_check(check)
 
-        self.master.run_command(['systemctl', 'start', 'chronyd'])
+        finally:
+            # After restarting chronyd, the date may need some time to get
+            # synced. Help chrony by resetting the date
+            self.master.run_command(['date', '-s', now_str])
+            self.master.run_command(['systemctl', 'start', 'chronyd'])
 
     def test_ipa_healthcheck_remove(self):
         """
