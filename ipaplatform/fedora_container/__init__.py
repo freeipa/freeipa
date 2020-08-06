@@ -4,4 +4,4 @@
 """
 This module contains Fedora Container specific platform files.
 """
-NAME = 'fedora_container'
+NAME = "fedora_container"
