@@ -9,7 +9,6 @@ related scenarios.
 import ipaddress
 import pytest
 import re
-import time
 
 from ipaplatform.paths import paths
 from cryptography import x509
@@ -231,6 +230,10 @@ class TestInstallMasterClient(IntegrationTest):
             '-k', '/etc/pki/tls/private/test.key',
             '-K', 'test/{}'.format(self.master.hostname)])
         request_id = re.findall(r'\d+', result.stdout_text)
+
+        status = tasks.wait_for_request(self.master, request_id[0], 50)
+        assert status == "MONITORING"
+
         certdata = self.master.get_file_contents(
             '/etc/pki/tls/certs/test_rekey.pem'
         )
@@ -243,7 +246,10 @@ class TestInstallMasterClient(IntegrationTest):
         self.master.run_command(['getcert', 'rekey',
                                  '-i', request_id[0],
                                  '-g', '3072'])
-        time.sleep(60)
+
+        status = tasks.wait_for_request(self.master, request_id[0], 50)
+        assert status == "MONITORING"
+
         certdata = self.master.get_file_contents(
             '/etc/pki/tls/certs/test_rekey.pem'
         )
