@@ -262,6 +262,7 @@ BuildRequires: python3-m2r
 BuildRequires:  jsl
 BuildRequires:  rpmlint
 BuildRequires:  softhsm
+BuildRequires:  keyutils
 BuildRequires:  python3-augeas
 BuildRequires:  python3-cffi
 BuildRequires:  python3-cryptography >= 1.6
