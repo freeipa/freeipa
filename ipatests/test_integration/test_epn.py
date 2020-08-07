@@ -457,7 +457,7 @@ class TestEPN(IntegrationTest):
             self.clients[0], to_nbdays="abc",
             raiseonerr=False, validatejson=False
         )
-        assert "error: --to-nbdays must be an integer." in stderr
+        assert "error: --to-nbdays must be a positive integer." in stderr
         assert rc > 0
 
     def test_EPN_nbdays_input_3(self):
@@ -480,7 +480,7 @@ class TestEPN(IntegrationTest):
         )
         logger.info(stderr)
         assert rc > 0
-        assert "error: --to-nbdays must be an integer." in stderr
+        assert "error: --to-nbdays must be a positive integer." in stderr
 
     # From here the tests build on one another:
     #  1) add auth
