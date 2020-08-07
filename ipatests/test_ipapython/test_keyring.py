@@ -36,6 +36,9 @@ SIZE_512 = 'abcdefgh' * 64
 SIZE_1024 = 'abcdefgh' * 128
 
 
+@pytest.mark.skip_if_container(
+    "any", reason="kernel keyrings are not namespaced yet"
+)
 class test_keyring:
     """
     Test the kernel keyring interface
