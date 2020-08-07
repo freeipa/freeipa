@@ -5,6 +5,7 @@ steps:
     sudo dnf makecache || :
     echo "Installing base development environment"
     sudo dnf install -y \
+        'dnf-command(builddep)' \
         gdb-minimal \
         make \
         autoconf \

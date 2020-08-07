@@ -245,6 +245,7 @@ BuildRequires:  python3-wheel
 BuildRequires:  jsl
 BuildRequires:  rpmlint
 BuildRequires:  softhsm
+BuildRequires:  keyutils
 BuildRequires:  python3-augeas
 BuildRequires:  python3-cffi
 BuildRequires:  python3-cryptography >= 1.6
