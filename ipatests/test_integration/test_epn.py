@@ -249,7 +249,6 @@ class TestEPN(IntegrationTest):
         ck = "192481b52fb591112afd7b55b12a44c6618fdbc7e05a3b1866fd67ec579c51df"
         assert cmd2.stdout_text.find(ck) == 0
 
-    @pytest.mark.xfail(reason='freeipa ticket 8445', strict=True)
     def test_EPN_connection_refused(self):
         """Test EPN behavior when the configured SMTP is down
         """
