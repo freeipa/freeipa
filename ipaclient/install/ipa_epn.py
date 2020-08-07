@@ -38,6 +38,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from email.utils import make_msgid
+from socket import error as socketerror
 
 from ipaplatform.paths import paths
 from ipalib import api, errors
@@ -640,13 +641,15 @@ class MTAClient:
                     port=self._smtp_port,
                     timeout=self._smtp_timeout,
                 )
-        except smtplib.SMTPException as e:
-            logger.error(
-                "IPA-EPN: Unable to connect to %s:%s: %s",
-                self._smtp_hostname,
-                self._smtp_port,
-                e,
-            )
+        except (socketerror, smtplib.SMTPException) as e:
+            msg = \
+                "IPA-EPN: Could not connect to the configured SMTP server: " \
+                "{host}:{port}: {error}".format(
+                    host=self._smtp_hostname,
+                    port=self._smtp_port,
+                    error=e
+                )
+            raise admintool.ScriptError(msg)
 
         try:
             self._conn.ehlo()
