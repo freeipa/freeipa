@@ -11,8 +11,6 @@ vms:
     - test_ipaserver
     - test_ipatests_plugins
     - test_xmlrpc/test_dns_plugin.py
-    ignore:
-    - test_ipapython/test_keyring.py
     type: base
 
   - container_job: xmlrpc
