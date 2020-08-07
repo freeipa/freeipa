@@ -182,14 +182,20 @@ class TestEPN(IntegrationTest):
         self,
         host,
         dry_run=False,
+        mailtest=False,
         from_nbdays=None,
         to_nbdays=None,
         raiseonerr=True,
         validatejson=True
     ):
-        result = tasks.ipa_epn(host, raiseonerr=raiseonerr, dry_run=dry_run,
-                               from_nbdays=from_nbdays,
-                               to_nbdays=to_nbdays)
+        result = tasks.ipa_epn(
+            host,
+            from_nbdays=from_nbdays,
+            to_nbdays=to_nbdays,
+            mailtest=mailtest,
+            dry_run=dry_run,
+            raiseonerr=raiseonerr
+        )
         if validatejson:
             json.dumps(json.loads(result.stdout_text), ensure_ascii=False)
         return (result.stdout_text, result.stderr_text, result.returncode)
@@ -242,6 +248,21 @@ class TestEPN(IntegrationTest):
         cmd2 = self.master.run_command(["sha256sum", epn_conf])
         ck = "192481b52fb591112afd7b55b12a44c6618fdbc7e05a3b1866fd67ec579c51df"
         assert cmd2.stdout_text.find(ck) == 0
+
+    @pytest.mark.xfail(reason='freeipa ticket 8445', strict=True)
+    def test_EPN_connection_refused(self):
+        """Test EPN behavior when the configured SMTP is down
+        """
+
+        self.master.run_command(["systemctl", "stop", "postfix"])
+        (unused, stderr_text, rc) = self._check_epn_output(
+            self.master, mailtest=True,
+            raiseonerr=False, validatejson=False
+        )
+        self.master.run_command(["systemctl", "start", "postfix"])
+        assert "IPA-EPN: Could not connect to the configured SMTP server" in \
+            stderr_text
+        assert rc > 0
 
     def test_EPN_smoketest_1(self):
         """No users except admin. Check --dry-run output.
