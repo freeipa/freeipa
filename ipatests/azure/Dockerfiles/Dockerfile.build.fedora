@@ -4,10 +4,6 @@ ENV container=docker LANG=en_US.utf8 LANGUAGE=en_US.utf8 LC_ALL=en_US.utf8
 
 ADD dist /root
 RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
-    && dnf install -y dnf-plugins-core \
-    && dnf config-manager --set-enabled updates-testing \
-    && dnf config-manager --set-enabled updates-testing-modular \
-    && dnf config-manager --set-disabled fedora-cisco-openh264 \
     && dnf update -y dnf \
     && sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf \
     && dnf install -y systemd \
