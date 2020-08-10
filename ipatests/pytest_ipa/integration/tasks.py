@@ -37,6 +37,7 @@ from pipes import quote
 import configparser
 from contextlib import contextmanager
 from pkg_resources import parse_version
+import uuid
 
 import dns
 from ldif import LDIFWriter
@@ -2197,7 +2198,6 @@ def install_packages(host, pkgs):
     :param pkgs: packages to install, provided as a list of strings
     """
     platform = get_platform(host)
-    # Only supports RHEL 8+ and Fedora for now
     if platform in ('rhel', 'fedora'):
         install_cmd = ['/usr/bin/dnf', 'install', '-y']
     elif platform in ('ubuntu'):
@@ -2205,6 +2205,31 @@ def install_packages(host, pkgs):
     else:
         raise ValueError('install_packages: unknown platform %s' % platform)
     host.run_command(install_cmd + pkgs)
+
+
+def download_packages(host, pkgs):
+    """Download packages on a remote host.
+    :param host: the host where the download takes place
+    :param pkgs: packages to install, provided as a list of strings
+
+    A package can't be downloaded that is already installed.
+
+    Returns the temporary directory where the packages are.
+    The caller is responsible for cleanup.
+    """
+    platform = get_platform(host)
+    tmpdir = os.path.join('/tmp', str(uuid.uuid4()))
+    # Only supports RHEL 8+ and Fedora for now
+    if platform in ('rhel', 'fedora'):
+        install_cmd = ['/usr/bin/dnf', '-y',
+                       '--downloaddir', tmpdir,
+                       '--downloadonly',
+                       'install']
+    else:
+        raise ValueError('install_packages: unknown platform %s' % platform)
+    host.run_command(['mkdir', tmpdir])
+    host.run_command(install_cmd + pkgs)
+    return tmpdir
 
 
 def uninstall_packages(host, pkgs):
@@ -2220,7 +2245,7 @@ def uninstall_packages(host, pkgs):
         install_cmd = ['apt-get', 'remove', '-y']
     else:
         raise ValueError('install_packages: unknown platform %s' % platform)
-    host.run_command(install_cmd + pkgs)
+    host.run_command(install_cmd + pkgs, raiseonerr=False)
 
 
 def wait_for_request(host, request_id, timeout=120):
