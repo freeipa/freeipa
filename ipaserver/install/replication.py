@@ -619,7 +619,11 @@ class ReplicationManager:
         else:
             # Set the changelog trimming
             cl_entry['nsslapd-changelogmaxage'] = '7d'
-            conn.update_entry(cl_entry)
+            try:
+                conn.update_entry(cl_entry)
+            except errors.EmptyModlist:
+                # not a problem since the trimming is already set
+                pass
 
     def _finalize_replica_settings(self, conn):
         """Change replica settings to final values
