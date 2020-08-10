@@ -29,6 +29,7 @@ import datetime
 import email
 import json
 import logging
+import os
 import pytest
 import textwrap
 
@@ -202,6 +203,26 @@ class TestEPN(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        # External DNS is only available before install so cache a copy
+        # of the *ipa-epn-client package so we can experimentally remove
+        # it later.
+        #
+        # Notes:
+        # - A package can't be downloaded that is already installed so we
+        #   have to remove it first.
+        # - dnf cleans up previously downloaded locations so make a copy it
+        #   doesn't know about.
+        # - Adds a class variable, pkg, containing the package name of
+        #   the downloaded *ipa-client-epn rpm.
+        tasks.uninstall_packages(cls.clients[0],EPN_PKG)
+        pkgdir = tasks.download_packages(cls.clients[0], EPN_PKG)
+        pkg = cls.clients[0].run_command(r'ls -1 {}'.format(pkgdir))
+        cls.pkg = pkg.stdout_text.strip()
+        cls.clients[0].run_command(['cp',
+                                    os.path.join(pkgdir, cls.pkg),
+                                    '/tmp'])
+        cls.clients[0].run_command(r'rm -rf {}'.format(pkgdir))
+
         tasks.install_packages(cls.master, EPN_PKG)
         tasks.install_packages(cls.master, ["postfix"])
         tasks.install_packages(cls.clients[0], EPN_PKG)
@@ -624,6 +645,31 @@ class TestEPN(IntegrationTest):
                  datetime.datetime.utcnow() + datetime.timedelta(days=7)
              )]
         )
+        (unused, stderr_text, _unused) = self._check_epn_output(
+            self.master, dry_run=True
+        )
+        assert "uid=admin" in stderr_text
+
+    @pytest.mark.skip_if_platform(
+        "debian", reason="Don't know how to download-only pkgs in Debian"
+    )
+    def test_EPN_reinstall(self):
+        """Test that EPN can be installed, uninstalled and reinstalled.
+
+           Since post-install we no longer have access to the repos
+           the package is downloaded and stored prior to server
+           installation.
+        """
+        tasks.uninstall_packages(self.clients[0], EPN_PKG)
+        tasks.install_packages(self.clients[0],
+                               [os.path.join('/tmp', self.pkg)])
+        self.clients[0].run_command(r'rm -f /tmp/{}'.format(self.pkg))
+
+        # re-installing will create a new epn.conf so any execution
+        # of ipa-epn will verify the reinstall was ok. Since the previous
+        # test would have failed this one should be ok with new config.
+
+        # Re-run the admin user expected failure
         (unused, stderr_text, _unused) = self._check_epn_output(
             self.master, dry_run=True
         )
