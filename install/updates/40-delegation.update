@@ -212,6 +212,28 @@ default:ipapermissiontype: SYSTEM
 dn: cn=config
 add:aci: (targetattr = "cn || createtimestamp || entryusn || modifytimestamp || objectclass || passsyncmanagersdns*")(target = "ldap:///cn=ipa_pwd_extop,cn=plugins,cn=config")(version 3.0;acl "permission:Read PassSync Managers Configuration";allow (compare,read,search) groupdn = "ldap:///cn=Read PassSync Managers Configuration,cn=permissions,cn=pbac,$SUFFIX";)
 
+dn: cn=Read Replication Changelog Configuration,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Read Replication Changelog Configuration
+default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:ipapermissiontype: SYSTEM
+
+dn: cn=config
+add:aci: (targetattr = "cn || objectclass || nsslapd-changelogmaxentries || nsslapd-changelogmaxage || nsslapd-changelogtrim-interval || nsslapd-encryptionalgorithm || nsSymmetricKey")(targetfilter = "cn=changelog")(target = "ldap:///cn=ldbm database,cn=plugins,cn=config")(version 3.0; acl "permission:Read Replication Changelog Configuration"; allow (read,search) groupdn = "ldap:///cn=Read Replication Changelog Configuration,cn=permissions,cn=pbac,$SUFFIX";)
+
+dn: cn=Write Replication Changelog Configuration,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Write Replication Changelog Configuration
+default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:ipapermissiontype: SYSTEM
+
+dn: cn=config
+add:aci: (targetattr = "nsslapd-changelogmaxentries || nsslapd-changelogmaxage || nsslapd-changelogtrim-interval || nsslapd-encryptionalgorithm || nsSymmetricKey")(targetfilter = "cn=changelog")(target = "ldap:///cn=ldbm database,cn=plugins,cn=config")(version 3.0; acl "permission:Write Replication Changelog Configuration"; allow (write) groupdn = "ldap:///cn=Write Replication Changelog Configuration,cn=permissions,cn=pbac,$SUFFIX";)
+
 dn: cn=Modify PassSync Managers Configuration,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: groupofnames
 default:objectClass: ipapermission

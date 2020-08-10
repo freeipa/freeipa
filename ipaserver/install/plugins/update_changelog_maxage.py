@@ -45,7 +45,7 @@ class update_changelog_maxage(Updater):
                     cl_entry = ldap.get_entry(dn, ['nsslapd-changelogmaxage'])
                     self.update_entry(cl_entry, ldap)
                 except errors.NotFound:
-                    logger.warning('Error retrieving: %s', str(dn))
+                    logger.debug('Error retrieving: %s', str(dn))
                 return False, []
 
         return False, []
