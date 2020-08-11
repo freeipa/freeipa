@@ -37,13 +37,14 @@ from ipalib.util import (
     validate_domain_name,
     no_matching_interface_for_ip_address_warning,
 )
+from ipalib.facts import IPA_MODULES
 from ipaserver.install import (
     adtrust, adtrustinstance, bindinstance, ca, dns, dsinstance,
     httpinstance, installutils, kra, krbinstance,
     otpdinstance, custodiainstance, replication, service,
     sysupgrade)
 from ipaserver.install.installutils import (
-    IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
+    BadHostError, get_fqdn, get_server_ip_address,
     load_pkcs12, read_password, verify_fqdn, update_hosts_file,
     validate_mask)
 

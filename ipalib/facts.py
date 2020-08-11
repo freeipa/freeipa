@@ -6,9 +6,16 @@
 Facts about the installation
 """
 
+import logging
 import os
 from . import sysrestore
 from ipaplatform.paths import paths
+
+logger = logging.getLogger(__name__)
+
+# Used to determine install status
+IPA_MODULES = [
+    'httpd', 'kadmin', 'dirsrv', 'pki-tomcatd', 'install', 'krb5kdc', 'named']
 
 
 def is_ipa_configured():
@@ -16,7 +23,29 @@ def is_ipa_configured():
     Use the state to determine if IPA has been configured.
     """
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
-    return sstore.get_state('installation', 'complete')
+    if sstore.has_state('installation'):
+        return sstore.get_state('installation', 'complete')
+
+    # Fall back to older method in case this is an existing installation
+
+    installed = False
+
+    fstore = sysrestore.FileStore(paths.SYSRESTORE)
+
+    for module in IPA_MODULES:
+        if sstore.has_state(module):
+            logger.debug('%s is configured', module)
+            installed = True
+        else:
+            logger.debug('%s is not configured', module)
+
+    if fstore.has_files():
+        logger.debug('filestore has files')
+        installed = True
+    else:
+        logger.debug('filestore is tracking no files')
+
+    return installed
 
 
 def is_ipa_client_configured(on_master=False):

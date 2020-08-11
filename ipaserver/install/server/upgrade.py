@@ -1455,8 +1455,11 @@ def upgrade_configuration():
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
-    if is_ipa_configured() is None:
-        sstore.backup_state('installation', 'complete', True)
+    if not sstore.has_state('installation'):
+        if is_ipa_configured():
+            sstore.backup_state('installation', 'complete', True)
+        else:
+            sstore.backup_state('installation', 'complete', False)
 
     fqdn = api.env.host
 
