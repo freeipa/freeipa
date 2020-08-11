@@ -63,10 +63,6 @@ if six.PY3:
 
 logger = logging.getLogger(__name__)
 
-# Used to determine install status
-IPA_MODULES = [
-    'httpd', 'kadmin', 'dirsrv', 'pki-tomcatd', 'install', 'krb5kdc', 'named']
-
 
 class BadHostError(Exception):
     pass
