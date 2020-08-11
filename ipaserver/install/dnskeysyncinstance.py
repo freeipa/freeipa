@@ -56,10 +56,10 @@ class DNSKeySyncInstance(service.Service):
             keytab=paths.IPA_DNSKEYSYNCD_KEYTAB
         )
         self.extra_config = [u'dnssecVersion 1', ]  # DNSSEC enabled
-        self.named_uid = None
-        self.named_gid = None
-        self.ods_uid = None
-        self.ods_gid = None
+        self.named_uid = self.__get_named_uid()
+        self.named_gid = self.__get_named_gid()
+        self.ods_uid = self.__get_ods_uid()
+        self.ods_gid = self.__get_ods_gid()
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
@@ -67,12 +67,6 @@ class DNSKeySyncInstance(service.Service):
         """
         Setting up correct permissions to allow write/read access for daemons
         """
-        if self.named_uid is None:
-            self.named_uid = self.__get_named_uid()
-
-        if self.named_gid is None:
-            self.named_gid = self.__get_named_gid()
-
         if not os.path.exists(paths.BIND_LDAP_DNS_IPA_WORKDIR):
             os.mkdir(paths.BIND_LDAP_DNS_IPA_WORKDIR, 0o770)
         # dnssec daemons require to have access into the directory
@@ -133,20 +127,19 @@ class DNSKeySyncInstance(service.Service):
         except KeyError:
             raise RuntimeError("Named GID not found")
 
-    def __check_dnssec_status(self):
-        self.named_uid = self.__get_named_uid()
-        self.named_gid = self.__get_named_gid()
-
+    def __get_ods_uid(self):
         try:
-            self.ods_uid = pwd.getpwnam(constants.ODS_USER).pw_uid
+            return pwd.getpwnam(constants.ODS_USER).pw_uid
         except KeyError:
             raise RuntimeError("OpenDNSSEC UID not found")
 
+    def __get_ods_gid(self):
         try:
-            self.ods_gid = grp.getgrnam(constants.ODS_GROUP).gr_gid
+            return grp.getgrnam(constants.ODS_GROUP).gr_gid
         except KeyError:
             raise RuntimeError("OpenDNSSEC GID not found")
 
+    def __check_dnssec_status(self):
         if not dns_container_exists(self.suffix):
             raise RuntimeError("DNS container does not exist")
 
@@ -220,9 +213,6 @@ class DNSKeySyncInstance(service.Service):
                 quotes=False, separator='=')
 
     def __setup_softhsm(self):
-        assert self.ods_uid is not None
-        assert self.named_gid is not None
-
         token_dir_exists = os.path.exists(paths.DNSSEC_TOKENS_DIR)
 
         # create dnssec directory
@@ -430,7 +420,6 @@ class DNSKeySyncInstance(service.Service):
             logger.error("DNSKeySync service already exists")
 
     def __setup_principal(self):
-        assert self.ods_gid is not None
         ipautil.remove_keytab(self.keytab)
         installutils.kadmin_addprinc(self.principal)
 
