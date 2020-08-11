@@ -21,6 +21,7 @@ from cryptography import x509 as crypto_x509
 
 from ipalib import x509
 from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.sysrestore import SYSRESTORE_STATEFILE, SYSRESTORE_INDEXFILE
 from ipapython.dn import DN
 from ipaplatform.constants import constants
 from ipaplatform.osinfo import osinfo
@@ -356,6 +357,93 @@ class TestInstallCA(IntegrationTest):
         assert mode == "644"
         assert owner == "root"
         assert group == "root"
+
+    def test_is_ipa_configured(self):
+        """Verify that the old and new methods of is_ipa_installed works
+
+           If there is an installation section then it is the status.
+
+           If not then it will fall back to looking for configured
+           services and files and use that for determination.
+        """
+        def set_installation_state(host, state):
+            """
+            Update the complete value in the installation section
+            """
+            host.run_command(
+                ['python3', '-c',
+                 'from ipalib.install import sysrestore; '
+                 'from ipaplatform.paths import paths;'
+                 'sstore = sysrestore.StateFile(paths.SYSRESTORE); '
+                 'sstore.backup_state("installation", "complete", '
+                 '{state})'.format(state=state)])
+
+        def get_installation_state(host):
+            """
+            Retrieve the installation state from new install method
+            """
+            result = host.run_command(
+                ['python3', '-c',
+                 'from ipalib.install import sysrestore; '
+                 'from ipaplatform.paths import paths;'
+                 'sstore = sysrestore.StateFile(paths.SYSRESTORE); '
+                 'print(sstore.get_state("installation", "complete"))'])
+            return result.stdout_text.strip()  # a string
+
+        # This comes from freeipa.spec and is used to determine whether
+        # an upgrade is required.
+        cmd = ['python3', '-c',
+               'import sys; from ipalib import facts; sys.exit(0 '
+               'if facts.is_ipa_configured() else 1);']
+
+        # This will use the new method since this is a fresh install,
+        # verify that it is true.
+        self.master.run_command(cmd)
+        assert get_installation_state(self.master) == 'True'
+
+        # Set complete to False which should cause the command to fail
+        # This tests the state of a failed or in-process installation.
+        set_installation_state(self.master, False)
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 1
+        set_installation_state(self.master, True)
+
+        # Tweak sysrestore.state to drop installation section
+        self.master.run_command(
+            ['sed','-i', r's/\[installation\]/\[badinstallation\]/',
+             os.path.join(paths.SYSRESTORE, SYSRESTORE_STATEFILE)])
+
+        # Re-run installation check and it should fall back to old method
+        # and be successful.
+        self.master.run_command(cmd)
+        assert get_installation_state(self.master) == 'None'
+
+        # Restore installation section.
+        self.master.run_command(
+            ['sed','-i', r's/\[badinstallation\]/\[installation\]/',
+             os.path.join(paths.SYSRESTORE, SYSRESTORE_STATEFILE)])
+
+        # Uninstall and confirm that the old method reports correctly
+        # on uninstalled servers. It will exercise the old method since
+        # there is no state.
+        tasks.uninstall_master(self.master)
+
+        # ensure there is no stale state
+        result = self.master.run_command(r'test -f {}'.format(
+            os.path.join(paths.SYSRESTORE, SYSRESTORE_STATEFILE)),
+            raiseonerr=False
+        )
+        assert result.returncode == 1
+        result = self.master.run_command(r'test -f {}'.format(
+            os.path.join(paths.SYSRESTORE, SYSRESTORE_INDEXFILE)),
+            raiseonerr=False
+        )
+        assert result.returncode == 1
+
+        # Now run is_ipa_configured() and it should be False
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 1
+
 
 class TestInstallWithCA_KRA1(InstallTestBase1):
 
