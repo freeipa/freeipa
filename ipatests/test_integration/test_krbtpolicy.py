@@ -177,3 +177,46 @@ class TestPWPolicy(IntegrationTest):
             reset_to_default_policy(master, USER1)
             self.master.run_command(['rm', '-f', armor])
             master.run_command(['ipa', 'config-mod', '--user-auth-type='])
+
+
+    def test_krbtpolicy_jitter(self):
+        """Test jitter lifetime with no authentication indicators """
+        master = self.master
+        tasks.kinit_admin(self.master)
+        
+        master.run_command(['kinit', USER1], stdin_text=PASSWORD + '\n')
+        result = master.run_command('klist | grep krbtgt')
+
+        assert maxlife_within_policy(result.stdout_text, MAXLIFE, slush = 60) is True
+
+        tasks.kdestroy_all(master)
+
+    def test_krbtpolicy_jitter_auth(self):
+        """Test jitter lifetime with various authentication indicators """
+        master = self.master
+        tasks.kinit_admin(self.master)
+
+        master.run_command(['ipa', 'user-mod', USER1,
+                            '--user-auth-type', 'otp'])
+        master.run_command(['ipa', 'config-mod',
+                            '--user-auth-type', 'otp'])
+
+        master.run_command(['kinit', USER1], stdin_text=PASSWORD + '\n')
+        result = master.run_command('klist | grep krbtgt')
+        
+        assert maxlife_within_policy(result.stdout_text, MAXLIFE, slush = 60) is True
+
+        """ Test jitter lifetime for pkinit """
+        tasks.kinit_admin(self.master)
+
+        master.run_command(['ipa', 'user-mod', USER2,
+                            '--user-auth-type', 'pkinit'])
+        master.run_command(['ipa', 'config-mod',
+                            '--user-auth-type', 'pkinit'])
+
+        master.run_command(['kinit', USER2], stdin_text=PASSWORD + '\n')
+        result = master.run_command('klist | grep krbtgt')
+        
+        assert maxlife_within_policy(result.stdout_text, MAXLIFE, slush = 60) is True
+
+        tasks.kdestroy_all(master)
