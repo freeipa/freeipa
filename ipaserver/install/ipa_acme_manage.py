@@ -9,7 +9,7 @@ from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool
 from ipapython.directivesetter import DirectiveSetter
 from ipaserver.install import cainstance
-from ipaserver.install.installutils import is_ipa_configured
+from ipalib.facts import is_ipa_configured
 
 # Manages the FreeIPA ACME service on a per-server basis.
 #
