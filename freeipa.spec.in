@@ -1053,14 +1053,11 @@ if [ $1 -gt 1 ] ; then
         fi
 
         %{__python3} -c 'from ipaclient.install.client import configure_krb5_snippet; configure_krb5_snippet()' >>/var/log/ipaupgrade.log 2>&1
-    fi
-
-    if [ $restore -ge 2 ]; then
         %{__python3} -c 'from ipaclient.install.client import update_ipa_nssdb; update_ipa_nssdb()' >>/var/log/ipaupgrade.log 2>&1
-    fi
-
-    if [ $restore -ge 2 ]; then
-        sed -E --in-place=.orig 's/^(HostKeyAlgorithms ssh-rsa,ssh-dss)$/# disabled by ipa-client update\n# \1/' /etc/ssh/ssh_config
+        SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config"
+        if [ -f "$SSH_CLIENT_SYSTEM_CONF" ]; then
+            sed -E --in-place=.orig 's/^(HostKeyAlgorithms ssh-rsa,ssh-dss)$/# disabled by ipa-client update\n# \1/' "$SSH_CLIENT_SYSTEM_CONF"
+        fi
     fi
 fi
 
