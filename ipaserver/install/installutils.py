@@ -665,7 +665,7 @@ def check_server_configuration():
     Most convenient use case for the function is in install tools that require
     configured IPA for its function.
     """
-    if not is_ipa_configured():
+    if not facts.is_ipa_configured():
         raise ScriptError("IPA is not configured on this system.",
                           rval=SERVER_NOT_CONFIGURED)
 
