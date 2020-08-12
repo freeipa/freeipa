@@ -38,7 +38,7 @@ from ipalib.util import (
     no_matching_interface_for_ip_address_warning,
 )
 from ipaserver.install import (
-    adtrust, bindinstance, ca, dns, dsinstance,
+    adtrust, adtrustinstance, bindinstance, ca, dns, dsinstance,
     httpinstance, installutils, kra, krbinstance,
     otpdinstance, custodiainstance, replication, service,
     sysupgrade)
@@ -49,12 +49,6 @@ from ipaserver.install.installutils import (
 
 if six.PY3:
     unicode = str
-
-try:
-    from ipaserver.install import adtrustinstance
-    _server_trust_ad_installed = True
-except ImportError:
-    _server_trust_ad_installed = False
 
 NoneType = type(None)
 
@@ -1170,8 +1164,7 @@ def uninstall(installer):
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
     dsinstance.DsInstance(fstore=fstore).uninstall()
-    if _server_trust_ad_installed:
-        adtrustinstance.ADTRUSTInstance(fstore).uninstall()
+    adtrustinstance.ADTRUSTInstance(fstore).uninstall()
     # realm isn't used, but IPAKEMKeys parses /etc/ipa/default.conf
     # otherwise, see https://pagure.io/freeipa/issue/7474 .
     custodiainstance.CustodiaInstance(realm='REALM.INVALID').uninstall()
