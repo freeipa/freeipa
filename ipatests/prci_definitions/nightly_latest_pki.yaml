@@ -795,9 +795,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
-        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA
         template: *pki-master-latest
-        timeout: 4800
+        timeout: 7200
         topology: *master_1repl
 
   pki-fedora/test_pkinit_manage:

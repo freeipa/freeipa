@@ -1441,9 +1441,9 @@ jobs:
       args:
         build_url: '{fedora-rawhide/build_url}'
         update_packages: True
-        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA
         template: *ci-master-frawhide
-        timeout: 4800
+        timeout: 7200
         topology: *master_1repl
 
   fedora-rawhide/test_ipahealthcheck_adtrust:
