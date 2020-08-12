@@ -1336,9 +1336,9 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA
         template: *ci-master-latest
-        timeout: 4800
+        timeout: 7200
         topology: *master_1repl
 
   fedora-latest/test_ipahealthcheck_adtrust:
