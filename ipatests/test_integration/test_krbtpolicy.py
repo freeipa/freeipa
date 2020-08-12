@@ -205,6 +205,9 @@ class TestPWPolicy(IntegrationTest):
         
         assert maxlife_within_policy(result.stdout_text, MAXLIFE, slush = 60) is True
 
+        reset_to_default_policy(master, USER1)
+        master.run_command(['ipa', 'config-mod', '--user-auth-type='])
+
         """ Test jitter lifetime for pkinit """
         tasks.kinit_admin(self.master)
 
@@ -217,6 +220,9 @@ class TestPWPolicy(IntegrationTest):
         result = master.run_command('klist | grep krbtgt')
         
         assert maxlife_within_policy(result.stdout_text, MAXLIFE, slush = 60) is True
+        
+        reset_to_default_policy(master, USER2)
+        master.run_command(['ipa', 'config-mod', '--user-auth-type='])
 
         tasks.kdestroy_all(master)
 
