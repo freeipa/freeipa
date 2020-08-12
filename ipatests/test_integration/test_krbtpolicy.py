@@ -185,7 +185,7 @@ class TestPWPolicy(IntegrationTest):
         
         master.run_command(['kinit', USER1], stdin_text=PASSWORD + '\n')
         result = master.run_command('klist | grep krbtgt')
-        
+
         assert maxlife_within_policy(result.stdout_text, MAXLIFE, slush = 60) is True
 
         tasks.kdestroy_all(master)
@@ -225,6 +225,3 @@ class TestPWPolicy(IntegrationTest):
         master.run_command(['ipa', 'config-mod', '--user-auth-type='])
 
         tasks.kdestroy_all(master)
-
-
-
