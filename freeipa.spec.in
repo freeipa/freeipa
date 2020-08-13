@@ -1231,7 +1231,6 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_uuid.so
 %attr(755,root,root) %{plugin_dir}/libipa_modrdn.so
 %attr(755,root,root) %{plugin_dir}/libipa_lockout.so
-%attr(755,root,root) %{plugin_dir}/libipa_cldap.so
 %attr(755,root,root) %{plugin_dir}/libipa_dns.so
 %attr(755,root,root) %{plugin_dir}/libipa_range_check.so
 %attr(755,root,root) %{plugin_dir}/libipa_otp_counter.so
@@ -1289,6 +1288,7 @@ fi
 %{_usr}/share/ipa/kdcproxy.wsgi
 %{_usr}/share/ipa/ipaca*.ini
 %{_usr}/share/ipa/*.ldif
+%exclude %{_datadir}/ipa/ipa-cldap-conf.ldif
 %{_usr}/share/ipa/*.uldif
 %{_usr}/share/ipa/*.template
 %dir %{_usr}/share/ipa/advise
@@ -1380,6 +1380,8 @@ fi
 %{_sbindir}/ipa-adtrust-install
 %{_usr}/share/ipa/smb.conf.empty
 %attr(755,root,root) %{_libdir}/samba/pdb/ipasam.so
+%attr(755,root,root) %{plugin_dir}/libipa_cldap.so
+%{_datadir}/ipa/ipa-cldap-conf.ldif
 %{_mandir}/man1/ipa-adtrust-install.1*
 %ghost %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 %{_sysconfdir}/dbus-1/system.d/oddjob-ipa-trust.conf
