@@ -989,7 +989,7 @@ class TestIPACommand(IntegrationTest):
 
         # get minimum version from current crypto-policy
         openssl_cnf = self.master.get_file_contents(
-            "/etc/crypto-policies/back-ends/opensslcnf.config",
+            paths.CRYPTO_POLICY_OPENSSLCNF_FILE,
             encoding="utf-8"
         )
         mo = re.search(r"MinProtocol\s*=\s*(TLSv[0-9.]+)", openssl_cnf)

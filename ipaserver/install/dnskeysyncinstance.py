@@ -186,11 +186,17 @@ class DNSKeySyncInstance(service.Service):
             conf_file_dict = {
                 'OPENSSL_ENGINE': constants.NAMED_OPENSSL_ENGINE,
                 'SOFTHSM_MODULE': paths.LIBSOFTHSM2_SO,
+                'CRYPTO_POLICY_FILE': paths.CRYPTO_POLICY_OPENSSLCNF_FILE,
             }
+            if paths.CRYPTO_POLICY_OPENSSLCNF_FILE is None:
+                opensslcnf_tmpl = "bind.openssl.cnf.template"
+            else:
+                opensslcnf_tmpl = "bind.openssl.cryptopolicy.cnf.template"
+
             named_openssl_txt = ipautil.template_file(
-                os.path.join(paths.USR_SHARE_IPA_DIR,
-                             "bind.openssl.cnf.template"),
-                conf_file_dict)
+                os.path.join(paths.USR_SHARE_IPA_DIR, opensslcnf_tmpl),
+                conf_file_dict
+            )
             with open(paths.DNSSEC_OPENSSL_CONF, 'w') as f:
                 os.fchmod(f.fileno(), 0o640)
                 os.fchown(f.fileno(), 0, self.named_gid)

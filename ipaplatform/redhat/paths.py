@@ -31,6 +31,9 @@ from ipaplatform.base.paths import BasePathNamespace
 
 
 class RedHatPathNamespace(BasePathNamespace):
+    CRYPTO_POLICY_OPENSSLCNF_FILE = (
+        '/etc/crypto-policies/back-ends/opensslcnf.config'
+    )
     # https://docs.python.org/2/library/platform.html#cross-platform
     if sys.maxsize > 2**32:
         LIBSOFTHSM2_SO = BasePathNamespace.LIBSOFTHSM2_SO_64
