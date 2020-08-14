@@ -29,12 +29,12 @@ import dns.dnssec
 from gssapi.exceptions import GSSError
 import six
 import systemd.daemon
-import systemd.journal
 
 import ipalib
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
+from ipapython.ipa_log_manager import standard_logging_setup
 from ipapython import ipaldap
 from ipaplatform.paths import paths
 from ipaserver.dnssec.abshsm import sync_pkcs11_metadata, wrappingmech_name2id
@@ -650,20 +650,8 @@ def cleanup_ldap_zone(ldap, dns_dn, zone_name):
         ldap.delete_entry(ldap_key)
 
 
-# this service is usually socket-activated
-root_logger = logging.getLogger()
-root_logger.addHandler(systemd.journal.JournalHandler())
-root_logger.setLevel(level=logging.DEBUG)
-
-if len(sys.argv) > 2:
-    print(__doc__)
-    sys.exit(1)
-# program was likely invoked from console, log to it
-elif len(sys.argv) == 2:
-    console = logging.StreamHandler()
-    root_logger.addHandler(console)
-
 # IPA framework initialization
+standard_logging_setup(debug=True)
 ipalib.api.bootstrap(context='dns', confdir=paths.ETC_IPA, in_server=True)
 ipalib.api.finalize()
 

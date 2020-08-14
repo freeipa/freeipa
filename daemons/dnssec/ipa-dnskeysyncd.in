@@ -23,12 +23,9 @@ logger = logging.getLogger(os.path.basename(__file__))
 
 
 # IPA framework initialization
-standard_logging_setup(verbose=True)
+standard_logging_setup(debug=True)
 api.bootstrap(context='dns', confdir=paths.ETC_IPA, in_server=True)
 api.finalize()
-if api.env.debug:
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG)
 
 # Global state
 watcher_running = True
