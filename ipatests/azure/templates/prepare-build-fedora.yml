@@ -3,6 +3,8 @@ steps:
     set -e
     sudo rm -rf /var/cache/dnf/*
     sudo dnf makecache || :
+    sudo dnf install -y dnf-plugins-core
+    sudo dnf config-manager --set-enabled updates-testing
     echo "Installing base development environment"
     sudo dnf install -y \
         'dnf-command(builddep)' \
