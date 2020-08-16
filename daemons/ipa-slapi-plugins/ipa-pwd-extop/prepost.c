@@ -459,7 +459,6 @@ done:
     if (pwdop) pwdop->pwdata.target = NULL;
     free_ipapwd_krbcfg(&krbcfg);
     slapi_ch_free_string(&userpw);
-    slapi_ch_array_free(rdns);
     if (rc != LDAP_SUCCESS) {
         slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
         return -1;
@@ -1456,6 +1455,12 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     Slapi_PBlock* search_pb;
     Slapi_Entry** search_apppw_entries = NULL;
 
+    ret = ipapwd_gen_checks(pb, &errMesg, &krbcfg, 0);
+    if (ret != 0) {
+        LOG_FATAL("ipapwd_gen_checks failed!?\n");
+        return 0;
+    }
+
     /* get BIND parameters */
     ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET_SDN, &target_sdn);
     ret |= slapi_pblock_get(pb, SLAPI_BIND_METHOD, &method);
@@ -1546,7 +1551,6 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         LOG_OOM();
         goto invalid_creds;
     }
-    krbcfg = ipapwd_getConfig();
     apppws_dn = slapi_sdn_get_dn(krbcfg->apppws_sdn);
 
     /* Also compare against app passwords of the user. If some of them matches,
