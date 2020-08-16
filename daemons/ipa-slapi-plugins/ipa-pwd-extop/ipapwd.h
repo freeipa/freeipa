@@ -109,6 +109,7 @@ struct ipapwd_krbcfg {
     char **passsync_mgrs;
     int num_passsync_mgrs;
     bool allow_nt_hash;
+    Slapi_DN* apppws_sdn;
 };
 
 int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,

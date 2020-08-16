@@ -46,6 +46,9 @@
 /* Type of connection for this operation;*/
 #define LDAP_EXTOP_PASSMOD_CONN_SECURE
 
+/* Partial DN of the container for app passwords */
+#define APPPW_CONTAINER_DN "cn=apps,cn=accounts"
+
 
 /* Uncomment the following #undef FOR TESTING:
  * allows non-SSL connections to use the password change extended op */
@@ -55,6 +58,8 @@ extern void *ipapwd_plugin_id;
 extern const char *ipa_realm_dn;
 extern const char *ipa_etc_config_dn;
 extern const char *ipa_pwd_config_dn;
+/* base DN of IPA realm tree */
+extern const char* ipa_realm_tree;
 
 /* These are the default enc:salt types if nothing is defined in LDAP */
 static const char *ipapwd_def_encsalts[] = {
@@ -82,6 +87,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     char **tmparray;
     char *tmpstr;
     int i, ret;
+    char* apppws_dn = NULL;
 
     config = calloc(1, sizeof(struct ipapwd_krbcfg));
     if (!config) {
@@ -262,6 +268,18 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
         slapi_entry_free(config_entry);
     }
 
+    apppws_dn = slapi_ch_smprintf("%s,%s", APPPW_CONTAINER_DN, ipa_realm_tree);
+    if (!apppws_dn) {
+        LOG_OOM();
+        goto free_and_error;
+    }
+    config->apppws_sdn = slapi_sdn_new_dn_byval(apppws_dn);
+    if (!config->apppws_sdn) {
+        LOG_OOM();
+        goto free_and_error;
+    }
+    free(apppws_dn);
+
     return config;
 
 free_and_error:
@@ -280,6 +298,8 @@ free_and_error:
         free(config->pref_encsalts);
         free(config->supp_encsalts);
         slapi_ch_array_free(config->passsync_mgrs);
+        if (apppws_dn) free(apppws_dn);
+        if (config->apppws_sdn) slapi_sdn_free(&(config->apppws_sdn));
         free(config);
     }
     slapi_entry_free(config_entry);

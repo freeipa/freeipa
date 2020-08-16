@@ -224,12 +224,6 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     char *userpw = NULL;
     Slapi_DN *sdn = NULL;
     struct ipapwd_operation *pwdop = NULL;
-    const char** rdns = NULL;
-    size_t suffix_start;
-    size_t rdn_count;
-    bool suffix_found = False;
-    bool cn_apps = False;
-    bool cn_accounts = False;
     void *op;
     int is_repl_op, is_root, is_krb, is_smb, is_ipant, is_memberof;
     int ret;
@@ -391,24 +385,10 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     pwdop->pwdata.timeNow = time(NULL);
     pwdop->pwdata.target = e;
 
-    rdns = slapi_ldap_explode_dn(pwdop->pwdata.dn, 0);
-    if (!rdns) {
-        LOG_OOM();
-        goto done;
-    }
-    rdn_count = sizeof(rdns) / sizeof(rdns[0]);
-    for (suffix_start = 0; suffix_start < rdn_count; suffix_start++) {
-        if (strstr(rdns[suffix_start], 'dc=') == rdns[suffix_start]) {
-            break;
-        }
-    }
-    suffix_found = suffix_start < rdn_count;
-    cn_apps = strcmp(rdns[suffix_start - 2], 'cn=apps') == 0;
-    cn_accounts = strcmp(rdns[suffix_start - 1], 'cn=accounts') == 0;
     /* If the entry represents an app password, no password policy checks
      * are performed
      */
-    if (suffix_found && cn_apps && cn_accounts) {
+    if (!slapi_sdn_isgrandparent(krbcfg->apppws_sdn, sdn)) {
         ret = ipapwd_CheckPolicy(&pwdop->pwdata);
         /* For accounts created by cn=Directory Manager or a passsync
          * managers, ignore result of a policy check */
@@ -1452,10 +1432,6 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         "krbPasswordExpiration", "krblastpwchange",
         NULL
     };
-    static const char* apppw_attrs_list[] = {
-        SLAPI_USERPWD_ATTR, "uid", "objectclass",
-        NULL
-    };
     struct berval *credentials = NULL;
     Slapi_Entry *entry = NULL;
     Slapi_DN *target_sdn = NULL;
@@ -1471,12 +1447,9 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     struct tm expire_tm;
     int rc = LDAP_INVALID_CREDENTIALS;
     char *errMesg = NULL;
-    const char** rdns = NULL;
-    size_t rdn_count;
-    size_t suffix_start;
-    size_t suffix_len = 0;
-    size_t copied = 0;
-    char *suffix = NULL;
+    struct ipapwd_krbcfg* krbcfg = NULL;
+    char** rdns = NULL;
+    char* apppws_dn = NULL;
     char *apppw_dn = NULL;
     size_t apppw_count = 0;
     size_t i = 0;
@@ -1568,36 +1541,13 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     }
 
     /* Get the (user's) uid and $SUFFIX parts of the DN. */
-    rdns = slapi_ldap_explode_dn(pwdop->pwdata.dn, 0);
+    rdns = slapi_ldap_explode_dn(dn, 0);
     if (!rdns) {
         LOG_OOM();
         goto invalid_creds;
     }
-    rdn_count = sizeof(rdns) / sizeof(rdns[0]);
-    for (suffix_start = 0; suffix_start < rdn_count; suffix_start++) {
-        if (strstr(rdns[suffix_start], "dc=") == rdns[suffix_start]) {
-            break;
-        }
-    }
-    for (i = suffix_start; i < rdn_count; i++) {
-        suffix_len += strlen(rdns[i]);
-    }
-    if (suffix_len == 0) {
-        errMesg = "DN suffix not found, skipping authentication using app passwords...\n";
-        slapi_ch_array_free(rdns);
-        goto invalid_creds;
-    }
-    suffix = slapi_ch_malloc(suffix_len + (rdn_count - suffix_start) + 1);
-    if (!suffix) {
-        LOG_OOM();
-        goto invalid_creds;
-    }
-    for (i = suffix_start; i < rdn_count; i++) {
-        suffix[copied] = ',';
-        memcpy(suffix + copied + 1, rdns[i], strlen(rdns[i]));
-        copied += 1 + strlen(rdns[i]);
-    }
-    suffix[suffix_len] = '\0';
+    krbcfg = ipapwd_getConfig();
+    apppws_dn = slapi_sdn_get_dn(krbcfg->apppws_sdn);
 
     /* Also compare against app passwords of the user. If some of them matches,
      * the user is authenticated using that password and he/she will have
@@ -1607,11 +1557,11 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
 
     search_pb = slapi_pblock_new();
     if (!search_pb) {
-        LOG_OOM;
+        LOG_OOM();
         goto invalid_creds;
     }
 
-    apppw_dn = slapi_ch_smprintf("%s,%s%s", rdns[0], APPPW_CONTAINER_DN, suffix);
+    apppw_dn = slapi_ch_smprintf("%s,%s", rdns[0], apppws_dn);
     if (!apppw_dn) {
         LOG_OOM();
         goto invalid_creds;
@@ -1652,12 +1602,14 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         if (!ret) {
             slapi_entry_free(entry);
             slapi_sdn_free(&sdn);
-            slapi_entry_free(apppw_entry);
-            slapi_ch_free(apppw_dn);
-            slapi_ch_array_free(rdns);
-            slapi_ch_free(suffix);
+            for (i = 0; i < apppw_count; i++) {
+                slapi_entry_free(search_apppw_entries[i]);
+            }
             slapi_free_search_results_internal(search_pb);
             slapi_pblock_destroy(search_pb);
+            free(apppw_dn);
+            free_ipapwd_krbcfg(&krbcfg);
+            slapi_ch_array_free(rdns);
             return 0;
         }
     }
@@ -1666,13 +1618,15 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
 invalid_creds:
     slapi_entry_free(entry);
     slapi_sdn_free(&sdn);
-    slapi_entry_free(apppw_entry);
-    slapi_ch_free(apppw_dn);
-    slapi_ch_array_free(rdns);
-    slapi_ch_free(suffix);
-    slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
+    for (i = 0; i < apppw_count; i++) {
+        slapi_entry_free(search_apppw_entries[i]);
+    }
     slapi_free_search_results_internal(search_pb);
     slapi_pblock_destroy(search_pb);
+    free(apppw_dn);
+    free_ipapwd_krbcfg(&krbcfg);
+    slapi_ch_array_free(rdns);
+    slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
     return 1;
 }
 
