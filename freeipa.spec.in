@@ -370,6 +370,7 @@ Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
 Requires: slapi-nis >= %{slapi_nis_version}
+Requires: pki-acme >= %{pki_version}
 Requires: pki-ca >= %{pki_version}
 Requires: pki-kra >= %{pki_version}
 Requires(preun): systemd-units
