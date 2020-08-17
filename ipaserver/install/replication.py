@@ -609,7 +609,7 @@ class ReplicationManager:
                     'objectclass': ["top", "extensibleobject"],
                     'cn': ["changelog5"],
                     'nsslapd-changelogdir': [os.path.join(dbdir, "cldb")],
-                    'nsslapd-changelogmaxage': ['7d'],
+                    'nsslapd-changelogmaxage': ['30d'],
                 }
             )
             try:
@@ -618,7 +618,7 @@ class ReplicationManager:
                 return
         else:
             # Set the changelog trimming
-            cl_entry['nsslapd-changelogmaxage'] = '7d'
+            cl_entry['nsslapd-changelogmaxage'] = '30d'
             try:
                 conn.update_entry(cl_entry)
             except errors.EmptyModlist:
