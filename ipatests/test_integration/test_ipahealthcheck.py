@@ -830,7 +830,7 @@ class TestIpaHealthCheck(IntegrationTest):
                 assert check["kw"]["dbdir"] == paths.PKI_TOMCAT_ALIAS_DIR
                 assert check["kw"]["msg"] == error_msg
 
-    def test_ipa_healthcheck_expiring(self):
+    def test_ipa_healthcheck_expiring(self, restart_service):
         """
         There are two overlapping tests for expiring certs, check both.
         """
@@ -879,9 +879,11 @@ class TestIpaHealthCheck(IntegrationTest):
         cert = x509.load_certificate_list(certfile)
         cert_expiry = cert[0].not_valid_after
 
+        for service in ('chronyd', 'pki_tomcatd',):
+            restart_service(self.master, service)
+
         try:
             # move date to the grace period
-            self.master.run_command(['systemctl', 'stop', 'chronyd'])
             grace_date = cert_expiry - timedelta(days=10)
             grace_date = datetime.strftime(grace_date, "%Y-%m-%d 00:00:01 Z")
             self.master.run_command(['date', '-s', grace_date])
@@ -894,7 +896,6 @@ class TestIpaHealthCheck(IntegrationTest):
             # After restarting chronyd, the date may need some time to get
             # synced. Help chrony by resetting the date
             self.master.run_command(['date', '-s', now_str])
-            self.master.run_command(['systemctl', 'start', 'chronyd'])
 
     def test_ipa_healthcheck_remove(self):
         """
