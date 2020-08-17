@@ -20,7 +20,7 @@ class update_changelog_maxage(Updater):
     def update_entry(self, cl_entry, conn):
         maxage = cl_entry.single_value.get('nsslapd-changelogmaxage')
         if maxage is None:
-            cl_entry['nsslapd-changelogmaxage'] = '7d'
+            cl_entry['nsslapd-changelogmaxage'] = '30d'
             conn.update_entry(cl_entry)
 
     def execute(self, **options):
