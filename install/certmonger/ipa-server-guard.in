@@ -19,25 +19,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-
 import os
 # Prevent garbage from readline on standard output
 # (see https://fedorahosted.org/freeipa/ticket/4064)
 if not os.isatty(1):
     os.environ['TERM'] = 'dumb'
 import sys
-import syslog
-import traceback
-
-import six
-
-from ipapython import ipautil
-from ipaserver.install import certs
 
 # Return codes. Names of the constants are taken from
 # https://git.fedorahosted.org/cgit/certmonger.git/tree/src/submit-e.h
 OPERATION_NOT_SUPPORTED_BY_HELPER = 6
+
+
+def run_operation(cmd):
+    from ipapython import ipautil
+
+    result = ipautil.run(cmd, raiseonerr=False, env=os.environ)
+    # Write bytes directly
+    sys.stdout.buffer.write(result.raw_output)  #pylint: disable=no-member
+    sys.stderr.buffer.write(result.raw_error_output)  #pylint: disable=no-member
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    return result.returncode
 
 
 def main():
@@ -53,24 +57,19 @@ def main():
                          'POLL'):
         return OPERATION_NOT_SUPPORTED_BY_HELPER
 
-    with certs.renewal_lock:
-        result = ipautil.run(sys.argv[1:], raiseonerr=False, env=os.environ)
-        if six.PY2:
-            sys.stdout.write(result.raw_output)
-            sys.stderr.write(result.raw_error_output)
-        else:
-            # Write bytes directly
-            sys.stdout.buffer.write(result.raw_output)  #pylint: disable=no-member
-            sys.stderr.buffer.write(result.raw_error_output)  #pylint: disable=no-member
-        sys.stdout.flush()
-        sys.stderr.flush()
-
-    return result.returncode
+    if operation in ('SUBMIT', 'POLL', 'FETCH-ROOTS'):
+        from ipaserver.install import certs
+        with certs.renewal_lock:
+            return run_operation(sys.argv[1:])
+    else:
+        return run_operation(sys.argv[1:])
 
 
 try:
     sys.exit(main())
 except Exception as e:
+    import traceback
+    import syslog
     syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
     print("Internal error")
     sys.exit(3)
