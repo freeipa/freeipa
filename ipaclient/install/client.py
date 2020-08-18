@@ -2077,8 +2077,6 @@ def install_check(options):
     cli_domain_source = 'Unknown source'
     cli_server_source = 'Unknown source'
 
-    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-
     if not os.getegid() == 0:
         raise ScriptError(
             "You must be root to run ipa-client-install.",
@@ -3200,8 +3198,6 @@ def _install(options):
 
 
 def uninstall_check(options):
-    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-
     if not is_ipa_client_configured():
         if options.on_master:
             rval = SUCCESS
