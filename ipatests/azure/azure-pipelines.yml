@@ -89,10 +89,6 @@ jobs:
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
   steps:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: ${{ variables.AZURE_PYTHON_VERSION }}
-        architecture: x64
     - template: templates/${{ variables.PREPARE_TOX_TEMPLATE }}
     - script: |
         set -e
@@ -116,10 +112,6 @@ jobs:
     options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
   steps:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: ${{ variables.AZURE_PYTHON_VERSION }}
-        architecture: x64
     - template: templates/${{ variables.PREPARE_WEBUI_TEMPLATE }}
     - script: |
         set -e
