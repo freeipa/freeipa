@@ -554,17 +554,24 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     import dns.rdataclass
     import dns.rdatatype
 
+    dns.flags.AD = 0
     dns.flags.CD = 0
     dns.flags.DO = 0
     dns.flags.RD = 0
 
     dns.rdataclass.IN = 0
 
-    dns.rdatatype.NS = 0
+    dns.rdatatype.A = 0
+    dns.rdatatype.AAAA = 0
+    dns.rdatatype.CNAME = 0
+    dns.rdatatype.DNSKEY = 0
     dns.rdatatype.MX = 0
+    dns.rdatatype.NS = 0
+    dns.rdatatype.PTR = 0
     dns.rdatatype.RRSIG = 0
     dns.rdatatype.SOA = 0
     dns.rdatatype.SRV = 0
     dns.rdatatype.TXT = 0
+    dns.rdatatype.URI = 0
     """
 ))
