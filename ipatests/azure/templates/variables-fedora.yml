@@ -15,6 +15,3 @@ variables:
   PREPARE_WEBUI_TEMPLATE: ${{ format('prepare-webui-{0}.yml', variables.IPA_PLATFORM) }}
 
   TOX_COMMAND: tox
-
-  # Python version for UsePythonVersion@0 task
-  AZURE_PYTHON_VERSION: '3.8'
