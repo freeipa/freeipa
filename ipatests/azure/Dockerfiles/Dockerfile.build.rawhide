@@ -1,0 +1,31 @@
+# replace with 'fedora:rawhide' on fix:
+# https://bugzilla.redhat.com/show_bug.cgi?id=1869612
+FROM registry.fedoraproject.org/fedora:rawhide
+MAINTAINER [FreeIPA Developers freeipa-devel@lists.fedorahosted.org]
+ENV container=docker LANG=en_US.utf8 LANGUAGE=en_US.utf8 LC_ALL=en_US.utf8
+
+ADD dist /root
+RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
+    && dnf update -y dnf \
+    && sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf \
+    && dnf install -y systemd \
+    && dnf install -y \
+        firewalld \
+        glibc-langpack-fr \
+        glibc-langpack-en \
+        iptables \
+        nss-tools \
+        openssh-server \
+        sudo \
+        wget \
+        /root/rpms/*.rpm \
+    && dnf clean all && rm -rf /root/rpms /root/srpms \
+    && sed -i 's/.*PermitRootLogin .*/#&/g' /etc/ssh/sshd_config \
+    && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config \
+    && systemctl enable sshd \
+    && for i in /usr/lib/systemd/system/*-domainname.service; \
+    do sed -i 's#^ExecStart=/#ExecStart=-/#' $i ; done
+
+STOPSIGNAL RTMIN+3
+VOLUME ["/freeipa", "/run", "/tmp"]
+ENTRYPOINT [ "/usr/sbin/init" ]

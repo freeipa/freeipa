@@ -1,10 +1,14 @@
+parameters:
+- name: VARIABLES_FILE
+  default: 'templates/variables.yml'
+
 trigger:
 - master
 
 variables:
 - template: templates/variables-common.yml
 # platform specific variables, links to
-- template: templates/variables.yml
+- template: ${{ parameters.VARIABLES_FILE }}
 
 jobs:
 - job: Build
