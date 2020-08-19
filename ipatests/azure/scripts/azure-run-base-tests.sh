@@ -5,6 +5,25 @@
 # distro-specifics
 source "${IPA_TESTS_SCRIPTS}/variables.sh"
 
+function collect_logs() {
+    if [ "$#" -ne 1 ]; then
+        printf "collect_logs: The path to output archive is required\n"
+        exit 1
+    fi
+    local out_file="$1"
+    printf "Collecting logs\n"
+    journalctl -b --no-pager > systemd_journal.log
+    tar --ignore-failed-read -czf "$out_file" \
+        /var/log/dirsrv \
+        "$HTTPD_LOGDIR" \
+        /var/log/ipa* \
+        /var/log/krb5kdc.log \
+        /var/log/pki \
+        /var/log/samba \
+        "$BIND_DATADIR" \
+        systemd_journal.log
+}
+
 server_password=Secret123
 
 echo "Installing FreeIPA master for the domain ${IPA_TESTS_DOMAIN} and realm ${IPA_TESTS_REALM}"
@@ -53,6 +72,7 @@ if [ "$install_result" -eq 0 ] ; then
 else
     echo "ipa-server-install failed with code ${install_result}, skip IPA tests"
 fi
+collect_logs ipaserver_install_logs.tar.gz
 
 echo "Potential Python 3 incompatibilities in the IPA framework:"
 grep -n -C5 BytesWarning "$HTTPD_ERRORLOG" || echo "Good, none detected"
@@ -75,22 +95,11 @@ ipa-server-install --uninstall -U
 # second uninstall to verify that --uninstall without installation works
 ipa-server-install --uninstall -U
 
+collect_logs ipaserver_uninstall_logs.tar.gz
 
 if [ "$install_result" -eq 0 ] ; then
     firewalld_cmd --remove-service={freeipa-ldap,freeipa-ldaps,dns}
 fi
-
-echo "Collect the logs"
-journalctl -b --no-pager > systemd_journal.log
-tar --ignore-failed-read --remove-files -czf var_log.tar.gz \
-    /var/log/dirsrv \
-    "$HTTPD_LOGDIR" \
-    /var/log/ipa* \
-    /var/log/krb5kdc.log \
-    /var/log/pki \
-    /var/log/samba \
-    "$BIND_DATADIR" \
-    systemd_journal.log
 
 echo "Report memory statistics"
 cat /sys/fs/cgroup/memory/memory.memsw.failcnt
