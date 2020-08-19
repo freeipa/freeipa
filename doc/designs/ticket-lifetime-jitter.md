@@ -11,4 +11,4 @@ As Administrator of a cluster, I want to configure the IdM Server KDC to issue T
 
 ## Implementation 
 
-Instead of a static 24 hour TGT lifetime, KDC does (23 hour + rand[0, 60] minute) lifetime. If an authentication method is specified that has a non-24hour lifetime, KDC does (lifetime - 1 hour + rand[0, 60] minute). 
+Instead of a static 24 hour TGT lifetime, KDC does (23 hour + rand[0, 60] minute) lifetime. If an authentication method is specified that has a non-24hour lifetime, KDC does (lifetime - 1 hour + rand[0, 60] minute). If the lifetime is already set to 60 minutes or less the lifetime will not be jittered. 
