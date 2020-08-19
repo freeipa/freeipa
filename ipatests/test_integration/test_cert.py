@@ -99,6 +99,17 @@ class TestInstallMasterClient(IntegrationTest):
         certfile = '/etc/pki/tls/certs/test2.pem'
 
         tasks.kinit_admin(self.master)
+
+        zone = tasks.prepare_reverse_zone(self.master, self.clients[0].ip)[0]
+
+        # add PTR dns record for cert request with SAN extention
+        rec = str(self.clients[0].ip).split('.')[3]
+        result = self.master.run_command(
+            ['ipa', 'dnsrecord-add', zone, rec, '--ptr-rec', hostname]
+        )
+        assert 'Record name: {}'.format(rec) in result.stdout_text
+        assert 'PTR record: {}'.format(hostname) in result.stdout_text
+
         name, zone = hostname.split('.', 1)
         self.master.run_command(['ipa', 'dnsrecord-show', zone, name])
         tasks.kdestroy_all(self.master)
