@@ -79,7 +79,8 @@ def check_arguments_are(slice, instanceof):
     def wrapper(func):
         def wrapped(*args, **kwargs):
             for i in args[slice[0]:slice[1]]:
-                assert isinstance(i, instanceof), "Wrong type: %s: %s" % (i, type(i))
+                assert isinstance(i, instanceof), "Wrong type: %s: %s" % (
+                    i, type(i))
             return func(*args, **kwargs)
         return wrapped
     return wrapper
@@ -87,10 +88,10 @@ def check_arguments_are(slice, instanceof):
 
 def prepare_reverse_zone(host, ip):
     zone = get_reverse_zone_default(ip)
-    result = host.run_command(["ipa",
-                      "dnszone-add",
-                      zone,
-                      '--skip-overlap-check'], raiseonerr=False)
+    result = host.run_command(
+        ["ipa", "dnszone-add", zone, '--skip-overlap-check'],
+        raiseonerr=False
+    )
     if result.returncode > 0:
         logger.warning("%s", result.stderr_text)
     return zone, result.returncode
@@ -193,8 +194,10 @@ def fix_apache_semaphores(master):
         master.run_command([paths.SBIN_SERVICE, 'httpd', 'stop'],
                            raiseonerr=False)
 
-    master.run_command('for line in `ipcs -s | grep apache | cut -d " " -f 2`; '
-                       'do ipcrm -s $line; done', raiseonerr=False)
+    master.run_command(
+        'for line in `ipcs -s | grep apache ''| cut -d " " -f 2`; '
+        'do ipcrm -s $line; done', raiseonerr=False
+    )
 
 
 def unapply_fixes(host):
@@ -1005,10 +1008,13 @@ def create_segment(master, leftnode, rightnode, suffix=DOMAIN_SUFFIX_NAME):
     lefthost = leftnode.hostname
     righthost = rightnode.hostname
     segment_name = "%s-to-%s" % (lefthost, righthost)
-    result = master.run_command(["ipa", "topologysegment-add", suffix,
-                                 segment_name,
-                                 "--leftnode=%s" % lefthost,
-                                 "--rightnode=%s" % righthost], raiseonerr=False)
+    result = master.run_command(
+        ["ipa", "topologysegment-add", suffix,
+         segment_name,
+         "--leftnode=%s" % lefthost,
+         "--rightnode=%s" % righthost],
+        raiseonerr=False
+    )
     if result.returncode == 0:
         return {'leftnode': lefthost,
                 'rightnode': righthost,
@@ -1053,6 +1059,8 @@ def _topo(name):
         topologies[name] = func
         return func
     return add_topo
+
+
 topologies = collections.OrderedDict()
 
 
@@ -1504,7 +1512,8 @@ def ipa_restore(master, backup_path):
                         backup_path])
 
 
-def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
+def install_kra(host, domain_level=None,
+                first_instance=False, raiseonerr=True):
     if domain_level is None:
         domain_level = domainlevel(host)
     check_domain_level(domain_level)
@@ -1686,7 +1695,7 @@ def restart_named(*args):
 
 
 def run_repeatedly(host, command, assert_zero_rc=True, test=None,
-                timeout=30, **kwargs):
+                   timeout=30, **kwargs):
     """
     Runs command on host repeatedly until it's finished successfully (returns
     0 exit code and its stdout passes the test function).
