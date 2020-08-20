@@ -68,6 +68,7 @@ Developers:
 	Jason Gerard DeRose
 	Jason Woods
 	Jayesh Garg
+	Jeremy Frasier
 	Jérôme Fenal
 	Jim Meyering
 	John Dennis
@@ -89,6 +90,7 @@ Developers:
 	Lukáš Slebodník
 	Lynn Root
 	Mark McLoughlin
+	Mark Reynolds
 	Marko Myllynen
 	Martin Babinsky
 	Martin Bašti
@@ -102,6 +104,7 @@ Developers:
 	Milan Kubík
 	Miro Hrončok
 	MIZUTA Takeshi
+	Mohammad Rizwan
 	Mohammad Rizwan Yusuf
 	Nalin Dahyabhai
 	Nathan Kinder
@@ -170,6 +173,7 @@ Developers:
 	William Jon McCann
 	Xiao-Long Chen
 	Yuri Chornoivan
+	Zdenek Pytela
 
 Documentation:
 	Gabe Alford
