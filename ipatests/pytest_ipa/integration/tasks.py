@@ -89,7 +89,8 @@ def prepare_reverse_zone(host, ip):
     zone = get_reverse_zone_default(ip)
     result = host.run_command(["ipa",
                       "dnszone-add",
-                      zone], raiseonerr=False)
+                      zone,
+                      '--skip-overlap-check'], raiseonerr=False)
     if result.returncode > 0:
         logger.warning("%s", result.stderr_text)
     return zone, result.returncode
