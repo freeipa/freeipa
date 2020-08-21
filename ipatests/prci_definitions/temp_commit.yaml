@@ -57,7 +57,7 @@ jobs:
         git_refspec: '{git_refspec}'
         template: &ci-master-latest
           name: freeipa/ci-master-f32
-          version: 0.0.7
+          version: 0.0.8
         timeout: 1800
         topology: *build
 
