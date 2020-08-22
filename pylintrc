@@ -103,6 +103,7 @@ disable=
     no-else-raise, # python 2.4.0
     import-outside-toplevel, # pylint 2.4.2
     f-string-without-interpolation,  # pylint 2.5.0, bare f-strings are ok
+    super-with-arguments,  # pylint 2.6.0, zero-length form is syntactic sugar
 
 [REPORTS]
 
