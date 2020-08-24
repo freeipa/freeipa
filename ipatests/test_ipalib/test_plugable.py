@@ -25,6 +25,7 @@ Test the `ipalib.plugable` module.
 # pylint: disable=no-member
 
 import os
+import sys
 import textwrap
 
 from ipalib import plugable, errors, create_api
@@ -301,3 +302,44 @@ class test_API(ClassChecker):
                 os.environ['IPA_CONFDIR'] = ipa_confdir
             else:
                 os.environ.pop('IPA_CONFDIR')
+
+
+class test_cli(ClassChecker):
+    """
+    Test the `ipalib.plugable` global bootstrap.
+    """
+    def test_no_args(self):
+        sys.argv = ['/usr/bin/ipa']
+        api = create_api(mode='unit_test')
+        (_options, argv) = api.bootstrap_with_global_options(
+            context='unit_test')
+        assert len(argv) == 0
+        assert _options.env is None
+        assert _options.conf is None
+        assert _options.debug is None
+        assert _options.delegate is None
+        assert _options.verbose is None
+
+    def test_one_arg(self):
+        sys.argv = ['/usr/bin/ipa', 'user-show']
+        api = create_api(mode='unit_test')
+        (_options, argv) = api.bootstrap_with_global_options(
+            context='unit_test')
+        assert argv == ['user-show']
+        assert _options.verbose is None
+
+    def test_args_valid_option(self):
+        sys.argv = ['/usr/bin/ipa', '-v', 'user-show']
+        api = create_api(mode='unit_test')
+        (_options, argv) = api.bootstrap_with_global_options(
+            context='unit_test')
+        assert argv == ['user-show']
+        assert _options.verbose == 1
+
+    def test_args_invalid_option(self):
+        sys.argv = ['/usr/bin/ipa', '-verbose', 'user-show']
+        api = create_api(mode='unit_test')
+        try:
+            api.bootstrap_with_global_options(context='unit_test')
+        except errors.OptionError as e:
+            assert e.msg == 'Unable to parse option rbose'
