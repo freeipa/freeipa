@@ -284,7 +284,7 @@ jobs:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
         test_suite: test_integration/test_cert.py
         template: *ci-ipa-4-8-latest
-        timeout: 3600
+        timeout: 5400
         topology: *master_1repl_1client
 
   fedora-latest-ipa-4-8/test_upgrade:
