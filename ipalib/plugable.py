@@ -600,13 +600,18 @@ class API(ReadOnly):
             assert type(options.env) is list
             for item in options.env:
                 try:
-                    (key, value) = item.split('=', 1)
+                    values = item.split('=', 1)
                 except ValueError:
                     # FIXME: this should raise an IPA exception with an
                     # error code.
                     # --Jason, 2008-10-31
                     pass
-                overrides[str(key.strip())] = value.strip()
+                if len(values) == 2:
+                    (key, value) = values
+                    overrides[str(key.strip())] = value.strip()
+                else:
+                    raise errors.OptionError(_('Unable to parse option {item}'
+                                               .format(item=item)))
         for key in ('conf', 'debug', 'verbose', 'prompt_all', 'interactive',
             'fallback', 'delegate'):
             value = getattr(options, key, None)
