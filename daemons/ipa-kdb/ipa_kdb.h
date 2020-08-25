@@ -82,6 +82,10 @@
 #define IPA_KRB_AUTHZ_DATA_ATTR "ipaKrbAuthzData"
 #define IPA_USER_AUTH_TYPE "ipaUserAuthType"
 
+/* values used to define jitter behavior */
+#define IPA_KRB_JITTER_WINDOW 3600 
+#define IPA_KRB_JITTER_MIN_LIFE 3600
+
 struct ipadb_mspac;
 
 enum ipadb_user_auth {

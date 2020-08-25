@@ -57,7 +57,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
     /* If no mechanisms are set, allow every auth method */
     if (ua == IPADB_USER_AUTH_NONE) {
 	/* Set lifetime_out to a random value in the last hour of lifetime, between 23 and 24 hours */
-        *lifetime_out = 82800 + (rand() % 3600);
+        *lifetime_out = (86400 - IPA_KRB_JITTER_WINDOW) + (rand() % IPA_KRB_JITTER_WINDOW);
         return 0;
     }
 
@@ -110,9 +110,9 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
      * apply them */
     if (pol_limits != NULL) {
         if (pol_limits->max_life != 0) {
-	    if (pol_limits->max_life > 3600) {
-		/* Set lifetime_out to a random value within the last hour of lifetime */
-		*lifetime_out = (pol_limits->max_life - 3600) + (rand() % 3600);
+	    if (pol_limits->max_life > IPA_KRB_JITTER_MIN_LIFE) {
+		/* Set lifetime_out to a random value within the jitter window */
+		*lifetime_out = (pol_limits->max_life - IPA_KRB_JITTER_WINDOW) + (rand() % IPA_KRB_JITTER_WINDOW);
 	    }
 	    else {
 		*lifetime_out = pol_limits->max_life;
