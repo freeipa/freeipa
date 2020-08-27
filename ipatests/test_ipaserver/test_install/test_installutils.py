@@ -5,14 +5,18 @@ from __future__ import absolute_import
 
 import binascii
 import os
+import psutil
 import re
 import subprocess
 import textwrap
 
 import pytest
 
+from unittest.mock import patch, mock_open
+
 from ipaplatform.paths import paths
 from ipapython import ipautil
+from ipapython.admintool import ScriptError
 from ipaserver.install import installutils
 from ipaserver.install import ipa_backup
 from ipaserver.install import ipa_restore
@@ -156,3 +160,103 @@ def test_gpg_asymmetric(tempdir, gpgkey):
 def test_get_current_platform(monkeypatch, platform, expected):
     monkeypatch.setattr(installutils.ipaplatform, "NAME", platform)
     assert installutils.get_current_platform() == expected
+
+
+# The mock_exists in the following tests mocks that the cgroups
+# files exist even in non-containers. The values are provided by
+# mock_open_multi.
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('os.path.exists')
+def test_in_container_no_cgroup(mock_exists, mock_in_container):
+    """
+    In a container in a container without cgroups, can't detect RAM
+    """
+    mock_in_container.return_value = True
+    mock_exists.side_effect = [False, False]
+    with pytest.raises(ScriptError):
+        installutils.check_available_memory(False)
+
+
+def mock_open_multi(*contents):
+    """Mock opening multiple files.
+
+       For our purposes the first read is limit, second is usage.
+
+       Note: this overrides *all* opens so if you use pdb then you will
+             need to extend the list by 2.
+    """
+    mock_files = [
+        mock_open(read_data=content).return_value for content in contents
+    ]
+    mock_multi = mock_open()
+    mock_multi.side_effect = mock_files
+
+    return mock_multi
+
+
+RAM_OK = str(1800 * 1000 * 1000)
+RAM_CA_USED = str(150 * 1000 * 1000)
+RAM_MOSTLY_USED = str(1500 * 1000 * 1000)
+RAM_NOT_OK = str(10 * 1000 * 1000)
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('builtins.open', mock_open_multi(RAM_NOT_OK, "0"))
+@patch('os.path.exists')
+def test_in_container_insufficient_ram(mock_exists, mock_in_container):
+    """In a container with insufficient RAM and zero used"""
+    mock_in_container.return_value = True
+    mock_exists.side_effect = [True, True]
+
+    with pytest.raises(ScriptError):
+        installutils.check_available_memory(True)
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('builtins.open', mock_open_multi(RAM_OK, RAM_CA_USED))
+@patch('os.path.exists')
+def test_in_container_ram_ok_no_ca(mock_exists, mock_in_container):
+    """In a container with just enough RAM to install w/o a CA"""
+    mock_in_container.return_value = True
+    mock_exists.side_effect = [True, True]
+
+    installutils.check_available_memory(False)
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('builtins.open', mock_open_multi(RAM_OK, RAM_MOSTLY_USED))
+@patch('os.path.exists')
+def test_in_container_insufficient_ram_with_ca(mock_exists, mock_in_container):
+    """In a container and just miss the minimum RAM required"""
+    mock_in_container.return_value = True
+    mock_exists.side_effect = [True, True]
+
+    with pytest.raises(ScriptError):
+        installutils.check_available_memory(True)
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('psutil.virtual_memory')
+def test_not_container_insufficient_ram_with_ca(mock_psutil, mock_in_container):
+    """Not a container and insufficient RAM"""
+    mock_in_container.return_value = False
+    fake_memory = psutil._pslinux.svmem
+    fake_memory.available = int(RAM_NOT_OK)
+    mock_psutil.return_value = fake_memory
+
+    with pytest.raises(ScriptError):
+        installutils.check_available_memory(True)
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('psutil.virtual_memory')
+def test_not_container_ram_ok(mock_psutil, mock_in_container):
+    """Not a container and sufficient RAM"""
+    mock_in_container.return_value = False
+    fake_memory = psutil._pslinux.svmem
+    fake_memory.available = int(RAM_OK)
+    mock_psutil.return_value = fake_memory
+
+    installutils.check_available_memory(True)
