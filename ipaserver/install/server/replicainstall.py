@@ -569,7 +569,9 @@ def check_remote_version(client, local_version):
             "the local version ({})".format(remote_version, local_version))
 
 
-def common_check(no_ntp):
+def common_check(no_ntp, skip_mem_check, setup_ca):
+    if not skip_mem_check:
+        installutils.check_available_memory(ca=setup_ca)
     tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
     check_ldap_conf()
@@ -776,7 +778,7 @@ def promote_check(installer):
     installer._top_dir = tempfile.mkdtemp("ipa")
 
     # check selinux status, http and DS ports, NTP conflicting services
-    common_check(options.no_ntp)
+    common_check(options.no_ntp, options.skip_mem_check, options.setup_ca)
 
     if options.setup_ca and any([options.dirsrv_cert_files,
                                  options.http_cert_files,
