@@ -1341,17 +1341,29 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
-  fedora-previous/test_ipahealthcheck_nodns_extca:
+  fedora-previous/test_ipahealthcheck_nodns_extca_file:
     requires: [fedora-previous/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA test_integration/test_ipahealthcheck.py::TestIpaHealthCheckFileCheck
         template: *ci-master-previous
-        timeout: 3600
+        timeout: 5400
         topology: *master_1repl
+
+  fedora-previous/test_ipahealthcheck_cli_fsspace:
+   requires: [fedora-previous/build]
+   priority: 50
+   job:
+     class: RunPytest
+     args:
+       build_url: '{fedora-previous/build_url}'
+       test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCLI test_integration/test_ipahealthcheck.py::TestIpaHealthCheckFilesystemSpace
+       template: *ci-master-previous
+       timeout: 3600
+       topology: *master_1repl
 
   fedora-previous/test_ipahealthcheck_adtrust:
     requires: [fedora-previous/build]
