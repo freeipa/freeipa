@@ -4,7 +4,11 @@ import os
 
 import pytest
 
-from ipapython.certdb import NSSDatabase, TRUSTED_PEER_TRUST_FLAGS
+from ipapython.certdb import (
+    NSSDatabase,
+    TRUSTED_PEER_TRUST_FLAGS,
+    nss_supports_dbm,
+)
 from ipapython import ipautil
 from ipaplatform.osinfo import osinfo
 
@@ -40,6 +44,10 @@ def create_selfsigned(nssdb):
         os.unlink(noisefile)
 
 
+@pytest.mark.skipif(
+    not nss_supports_dbm(),
+    reason="NSS is built without support of the legacy database(DBM)",
+)
 def test_dbm_tmp():
     with NSSDatabase(dbtype='dbm') as nssdb:
         assert nssdb.dbtype == 'dbm'
@@ -58,6 +66,19 @@ def test_dbm_tmp():
         assert nssdb.certdb in nssdb.filenames
         assert os.path.basename(nssdb.keydb) == 'key3.db'
         assert os.path.basename(nssdb.secmod) == 'secmod.db'
+
+
+@pytest.mark.skipif(
+    nss_supports_dbm(),
+    reason="NSS is built with support of the legacy database(DBM)",
+)
+def test_dbm_raise():
+    with pytest.raises(ValueError) as e:
+        NSSDatabase(dbtype="dbm")
+    assert (
+        str(e.value) == "NSS is built without support of the legacy "
+        "database(DBM)"
+    )
 
 
 def test_sql_tmp():
@@ -80,6 +101,10 @@ def test_sql_tmp():
         assert os.path.basename(nssdb.secmod) == 'pkcs11.txt'
 
 
+@pytest.mark.skipif(
+    not nss_supports_dbm(),
+    reason="NSS is built without support of the legacy database(DBM)",
+)
 def test_convert_db():
     with NSSDatabase(dbtype='dbm') as nssdb:
         assert nssdb.dbtype == 'dbm'
@@ -115,6 +140,10 @@ def test_convert_db():
         assert os.path.basename(nssdb.secmod) == 'pkcs11.txt'
 
 
+@pytest.mark.skipif(
+    not nss_supports_dbm(),
+    reason="NSS is built without support of the legacy database(DBM)",
+)
 def test_convert_db_nokey():
     with NSSDatabase(dbtype='dbm') as nssdb:
         assert nssdb.dbtype == 'dbm'

@@ -26,10 +26,11 @@ import io
 import pwd
 import grp
 import re
+import shutil
 import stat
 import tempfile
+from ctypes.util import find_library
 from tempfile import NamedTemporaryFile
-import shutil
 
 import cryptography.x509
 
@@ -71,6 +72,10 @@ EXTERNAL_CA_TRUST_FLAGS = TrustFlags(
 TRUSTED_PEER_TRUST_FLAGS = TrustFlags(
     False, True, False, frozenset({x509.EKU_SERVER_AUTH}),
 )
+
+
+def nss_supports_dbm():
+    return bool(find_library("nssdbm3"))
 
 
 def get_ca_nickname(realm, format=CA_NICKNAME_FMT):
@@ -252,14 +257,20 @@ class NSSDatabase:
     # Generic NSS DB code should be moved here.
 
     def __init__(self, nssdir=None, dbtype='auto'):
+        if nssdir is not None:
+            self.secdir = nssdir
+            self._is_temporary = False
+            if dbtype == "auto":
+                dbtype = self._detect_dbtype()
+
+        if dbtype == "dbm" and not nss_supports_dbm():
+            raise ValueError(
+                "NSS is built without support of the legacy database(DBM)"
+            )
+
         if nssdir is None:
             self.secdir = tempfile.mkdtemp()
             self._is_temporary = True
-        else:
-            self.secdir = nssdir
-            self._is_temporary = False
-            if dbtype == 'auto':
-                dbtype = self._detect_dbtype()
 
         self.pwd_file = os.path.join(self.secdir, 'pwdfile.txt')
         self.dbtype = None
