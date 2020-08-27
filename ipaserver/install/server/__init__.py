@@ -330,6 +330,12 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
     )
     dirsrv_config_file = enroll_only(dirsrv_config_file)
 
+    skip_mem_check = knob(
+        None,
+        description="Skip checking for minimum required memory",
+    )
+    skip_mem_check = enroll_only(skip_mem_check)
+
     @dirsrv_config_file.validator
     def dirsrv_config_file(self, value):
         if not os.path.exists(value):
