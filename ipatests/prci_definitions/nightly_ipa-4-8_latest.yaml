@@ -51,7 +51,7 @@ jobs:
         git_refspec: '{git_refspec}'
         template: &ci-ipa-4-8-latest
           name: freeipa/ci-ipa-4-8-f32
-          version: 0.0.7
+          version: 0.0.9
         timeout: 1800
         topology: *build
 
