@@ -795,9 +795,22 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
-        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
         template: *pki-master-latest
-        timeout: 7200
+        timeout: 3600
+        topology: *master_1repl
+
+  pki-fedora/test_ipahealthcheck_nodns_extca:
+    requires: [pki-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{pki-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA
+        template: *pki-master-latest
+        timeout: 3600
         topology: *master_1repl
 
   pki-fedora/test_pkinit_manage:
