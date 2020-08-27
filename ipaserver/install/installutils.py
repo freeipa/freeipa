@@ -18,6 +18,7 @@
 #
 
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 
 import logging
@@ -28,6 +29,7 @@ import ldif
 import os
 import re
 import fileinput
+import psutil
 import sys
 import tempfile
 import shutil
@@ -962,6 +964,84 @@ def check_entropy():
     except ValueError as e:
         logger.debug("Invalid value in %s %s", paths.ENTROPY_AVAIL, e)
 
+
+def is_hidepid():
+    """Determine if /proc is mounted with hidepid=1/2 option"""
+    try:
+        os.lstat('/proc/1/stat')
+    except (FileNotFoundError, PermissionError):
+        return True
+    return False
+
+
+def in_container():
+    """Determine if we're running in a container.
+
+       virt-what will return the underlying machine information so
+       isn't usable here.
+
+       systemd-detect-virt requires the whole systemd subsystem which
+       isn't a reasonable require in a container.
+    """
+    if not is_hidepid():
+        with open('/proc/1/sched', 'r') as sched:
+            data_sched = sched.readline()
+    else:
+        data_sched = []
+
+    with open('/proc/self/cgroup', 'r') as cgroup:
+        data_cgroup = cgroup.readline()
+
+    checks = [
+        data_sched.split()[0] not in ('systemd', 'init',),
+        data_cgroup.split()[0] in ('libpod'),
+        os.path.exists('/.dockerenv'),
+        os.path.exists('/.dockerinit'),
+        os.getenv('container', None) is not None
+    ]
+
+    return any(checks)
+
+
+def check_available_memory(ca=False):
+    """
+    Raise an exception if there isn't enough memory for IPA to install.
+
+    In a container then psutil will most likely return the host memory
+    and not the container. If in a container use the cgroup values which
+    also may not be constrained but it's the best approximation.
+
+    2GB is the rule-of-thumb minimum but the server is installable with
+    less.
+
+    The CA uses ~150MB in a fresh install.
+
+    Use Kb instead of KiB to leave a bit of slush for the OS
+    """
+    minimum_suggested = 1000 * 1000 * 1000 * 1.6
+    if not ca:
+        minimum_suggested -= 150 * 1000 * 1000
+    if in_container():
+        if os.path.exists(
+            '/sys/fs/cgroup/memory/memory.limit_in_bytes'
+        ) and os.path.exists('/sys/fs/cgroup/memory/memory.usage_in_bytes'):
+            with open('/sys/fs/cgroup/memory/memory.limit_in_bytes') as fd:
+                limit = int(fd.readline())
+            with open('/sys/fs/cgroup/memory/memory.usage_in_bytes') as fd:
+                used = int(fd.readline())
+            available = limit - used
+        else:
+            raise ScriptError(
+                "Unable to determine the amount of available RAM"
+            )
+    else:
+        available = psutil.virtual_memory().available
+    logger.debug("Available memory is %sB", available)
+    if available < minimum_suggested:
+        raise ScriptError(
+            "Less than the minimum 1.6GB of RAM is available, "
+            "%.2fGB available" % (available / (1024 * 1024 * 1024))
+        )
 
 def load_external_cert(files, ca_subject):
     """

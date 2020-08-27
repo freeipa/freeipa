@@ -346,6 +346,8 @@ def install_check(installer):
     dirsrv_ca_cert = None
     pkinit_ca_cert = None
 
+    if not options.skip_mem_check:
+        installutils.check_available_memory(ca=options.setup_ca)
     tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
     check_ldap_conf()
