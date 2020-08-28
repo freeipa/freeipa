@@ -42,7 +42,7 @@ import struct
 import subprocess
 
 import netaddr
-from dns import resolver, rdatatype
+from dns import rdatatype
 from dns.exception import DNSException
 from dns.resolver import NXDOMAIN
 from netaddr.core import AddrFormatError
@@ -67,8 +67,12 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
-from ipapython.dnsutil import DNSName
-from ipapython.dnsutil import resolve_ip_addresses
+from ipapython.dnsutil import (
+    DNSName,
+    DNSResolver,
+    resolve,
+    resolve_ip_addresses,
+)
 from ipapython.admintool import ScriptError
 
 if sys.version_info >= (3, 2):
@@ -117,13 +121,13 @@ def has_soa_or_ns_record(domain):
     Returns True or False.
     """
     try:
-        resolver.query(domain, rdatatype.SOA)
+        resolve(domain, rdatatype.SOA)
         soa_record_found = True
     except DNSException:
         soa_record_found = False
 
     try:
-        resolver.query(domain, rdatatype.NS)
+        resolve(domain, rdatatype.NS)
         ns_record_found = True
     except DNSException:
         ns_record_found = False
@@ -797,7 +801,7 @@ def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
     assert isinstance(nameserver_ip, str) or nameserver_ip is None
     assert isinstance(rtype, str)
 
-    res = dns.resolver.Resolver()
+    res = DNSResolver()
     if nameserver_ip:
         res.nameservers = [nameserver_ip]
     res.lifetime = timeout
@@ -815,7 +819,7 @@ def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
     elif edns0:
         res.use_edns(0, 0, 4096)
 
-    return res.query(owner, rtype)
+    return res.resolve(owner, rtype)
 
 
 def _validate_edns0_forwarder(owner, rtype, ip_addr, timeout=10):
@@ -985,7 +989,7 @@ def detect_dns_zone_realm_type(api, domain):
     kerberos_record_name = kerberos_prefix + domain_suffix
 
     try:
-        result = resolver.query(kerberos_record_name, rdatatype.TXT)
+        result = resolve(kerberos_record_name, rdatatype.TXT)
         answer = result.response.answer
 
         # IPA domain will have only one _kerberos TXT record
@@ -1012,7 +1016,7 @@ def detect_dns_zone_realm_type(api, domain):
 
     try:
         # The presence of this record is enough, return foreign in such case
-        resolver.query(ad_specific_record_name, rdatatype.SRV)
+        resolve(ad_specific_record_name, rdatatype.SRV)
     except DNSException:
         # If we could not detect type with certainty, return unknown
         return 'unknown'

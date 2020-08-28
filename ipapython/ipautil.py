@@ -43,9 +43,6 @@ import locale
 import collections
 import urllib
 
-from dns import resolver, reversename
-from dns.exception import DNSException
-
 import six
 from six.moves import input
 
@@ -1110,22 +1107,6 @@ def check_port_bindable(port, socket_type=socket.SOCK_STREAM):
         return True
     finally:
         s.close()
-
-
-def reverse_record_exists(ip_address):
-    """
-    Checks if IP address have some reverse record somewhere.
-    Does not care where it points.
-
-    Returns True/False
-    """
-    reverse = reversename.from_address(str(ip_address))
-    try:
-        resolver.query(reverse, "PTR")
-    except DNSException:
-        # really don't care what exception, PTR is simply unresolvable
-        return False
-    return True
 
 
 def config_replace_variables(filepath, replacevars=dict(), appendvars=dict(),

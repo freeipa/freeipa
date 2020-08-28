@@ -38,7 +38,7 @@ from contextlib import contextmanager
 from configparser import ConfigParser as SafeConfigParser
 from configparser import NoOptionError
 
-from dns import resolver, rdatatype
+from dns import rdatatype
 from dns.exception import DNSException
 import ldap
 import six
@@ -53,6 +53,7 @@ from ipalib.constants import MAXHOSTNAMELEN
 from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
 from ipapython.dn import DN
+from ipapython.dnsutil import resolve, get_ipa_resolver
 from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -187,7 +188,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
     # Verify this is NOT a CNAME
     try:
         logger.debug('Check if %s is not a CNAME', host_name)
-        resolver.query(host_name, rdatatype.CNAME)
+        resolve(host_name, rdatatype.CNAME)
         raise HostReverseLookupError("The IPA Server Hostname cannot be a CNAME, only A and AAAA names are allowed.")
     except DNSException:
         pass
@@ -284,11 +285,13 @@ def read_ip_addresses():
 def read_dns_forwarders():
     addrs = []
     if ipautil.user_input("Do you want to configure DNS forwarders?", True):
-        print("Following DNS servers are configured in /etc/resolv.conf: %s" %
-                ", ".join(resolver.get_default_resolver().nameservers))
+        print(
+            "Following DNS servers are configured in /etc/resolv.conf: %s"
+            % ", ".join(get_ipa_resolver().nameservers)
+        )
         if ipautil.user_input("Do you want to configure these servers as DNS "
                 "forwarders?", True):
-            addrs = resolver.default_resolver.nameservers[:]
+            addrs = get_ipa_resolver().nameservers[:]
             print("All DNS servers from /etc/resolv.conf were added. You can "
                   "enter additional addresses now:")
         while True:

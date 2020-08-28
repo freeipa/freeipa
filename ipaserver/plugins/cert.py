@@ -1193,7 +1193,7 @@ def _san_ip_update_reachable(reachable, dnsname, cname_depth):
     """
     fqdn = dnsutil.DNSName(dnsname).make_absolute()
     try:
-        zone = dnsutil.DNSName(resolver.zone_for_name(fqdn))
+        zone = dnsutil.DNSName(dnsutil.zone_for_name(fqdn))
     except resolver.NoNameservers:
         return  # if there's no zone, there are no records
     name = fqdn.relativize(zone)
@@ -1227,7 +1227,7 @@ def _ip_ptr_records(ip):
     """
     rname = dnsutil.DNSName(reversename.from_address(ip))
     try:
-        zone = dnsutil.DNSName(resolver.zone_for_name(rname))
+        zone = dnsutil.DNSName(dnsutil.zone_for_name(rname))
         name = rname.relativize(zone)
         result = api.Command['dnsrecord_show'](zone, name)['result']
     except resolver.NoNameservers:

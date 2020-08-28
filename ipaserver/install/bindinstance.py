@@ -30,9 +30,9 @@ import shutil
 import sys
 import time
 
-import dns.resolver
 import ldap
 import six
+from dns.exception import DNSException
 
 from ipaserver.dns_data_management import (
     IPASystemRecords,
@@ -320,10 +320,15 @@ def read_reverse_zone(default, ip_address, allow_zone_overlap=False):
 def get_auto_reverse_zones(ip_addresses, allow_zone_overlap=False):
     auto_zones = []
     for ip in ip_addresses:
-        if ipautil.reverse_record_exists(ip):
+        try:
+            dnsutil.resolve_address(str(ip))
+        except DNSException:
+            pass
+        else:
             # PTR exist there is no reason to create reverse zone
             logger.info("Reverse record for IP address %s already exists", ip)
             continue
+
         default_reverse = get_reverse_zone_default(ip)
         if not allow_zone_overlap:
             try:
@@ -1131,7 +1136,7 @@ class BindInstance(service.Service):
         else:
             # python DNS might have global resolver cached in this variable
             # we have to re-initialize it because resolv.conf has changed
-            dns.resolver.reset_default_resolver()
+            dnsutil.reset_default_resolver()
 
     def __generate_rndc_key(self):
         installutils.check_entropy()

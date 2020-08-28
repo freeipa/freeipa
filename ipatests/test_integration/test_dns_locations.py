@@ -12,7 +12,7 @@ import dns.rdataclass
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
-from ipapython.dnsutil import DNSName
+from ipapython.dnsutil import DNSName, DNSResolver
 from ipalib.constants import IPA_CA_RECORD
 
 logger = logging.getLogger(__name__)
@@ -45,14 +45,14 @@ IPA_CA_A_REC = (
 
 def resolve_records_from_server(rname, rtype, nameserver):
     error = None
-    res = dns.resolver.Resolver()
+    res = DNSResolver()
     res.nameservers = [nameserver]
     res.lifetime = 30
     logger.info("Query: %s %s, nameserver %s", rname, rtype, nameserver)
     # lets try to query 3x
     for _i in range(3):
         try:
-            ans = res.query(rname, rtype)
+            ans = res.resolve(rname, rtype)
             logger.info("Answer: %s", ans.rrset)
             return ans.rrset
         except (dns.resolver.NXDOMAIN, dns.resolver.Timeout) as e:
