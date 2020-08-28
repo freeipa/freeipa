@@ -10,13 +10,13 @@ import subprocess
 import time
 
 import dns.dnssec
-import dns.resolver
 import dns.name
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipaplatform.paths import paths
+from ipapython.dnsutil import DNSResolver
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ example3_test_zone = "example3.test."
 
 
 def resolve_with_dnssec(nameserver, query, rtype="SOA"):
-    res = dns.resolver.Resolver()
+    res = DNSResolver()
     res.nameservers = [nameserver]
     res.lifetime = 10  # wait max 10 seconds for reply
     # enable Authenticated Data + Checking Disabled flags
@@ -42,7 +42,7 @@ def resolve_with_dnssec(nameserver, query, rtype="SOA"):
     # enable EDNS v0 + enable DNSSEC-Ok flag
     res.use_edns(0, dns.flags.DO, 0)
 
-    ans = res.query(query, rtype)
+    ans = res.resolve(query, rtype)
     return ans
 
 

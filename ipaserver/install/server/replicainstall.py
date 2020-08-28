@@ -9,8 +9,6 @@ import logging
 
 import dns.exception as dnsexception
 import dns.name as dnsname
-import dns.resolver as dnsresolver
-import dns.reversename as dnsreversename
 import os
 import shutil
 import socket
@@ -28,6 +26,7 @@ from ipalib.install import certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
+from ipapython.dnsutil import DNSResolver
 from ipapython.admintool import ScriptError
 from ipapython.ipachangeconf import IPAChangeConf
 from ipaplatform import services
@@ -289,7 +288,7 @@ def check_dns_resolution(host_name, dns_servers):
         logger.error(
             'Could not resolve any DNS server hostname: %s', dns_servers)
         return False
-    resolver = dnsresolver.Resolver()
+    resolver = DNSResolver()
     resolver.nameservers = server_ips
 
     logger.debug('Search DNS server %s (%s) for %s',
@@ -299,7 +298,7 @@ def check_dns_resolution(host_name, dns_servers):
     addresses = set()
     for rtype in 'A', 'AAAA':
         try:
-            result = resolver.query(host_name, rtype)
+            result = resolver.resolve(host_name, rtype)
         except dnsexception.DNSException:
             rrset = []
         else:
@@ -327,8 +326,7 @@ def check_dns_resolution(host_name, dns_servers):
         checked.add(address)
         try:
             logger.debug('Check reverse address %s (%s)', address, host_name)
-            revname = dnsreversename.from_address(address)
-            rrset = resolver.query(revname, 'PTR').rrset
+            rrset = resolver.resolve_address(address).rrset
         except Exception as e:
             logger.debug('Check failed: %s %s', type(e).__name__, e)
             logger.error(
