@@ -36,7 +36,9 @@ import sys
 import syslog
 import time
 import tempfile
+
 from configparser import RawConfigParser
+from datetime import date
 
 from ipalib import api
 from ipalib import x509
@@ -609,6 +611,23 @@ class CAInstance(DogtagInstance):
                 nolog_list=nolog_list,
                 skip_configuration=True
             )
+
+            # Y2K38: 19 January 2038, 03:14:07 UTC
+            delta_t = date(2038, 1, 14) - date.today()
+            ca_validity_range_in_days = str(delta_t.days)
+            directives = [
+                "policyset.caCertSet.2.constraint.params.range",
+                "policyset.caCertSet.2.default.params.range"
+            ]
+            for directive in directives:
+                directivesetter.set_directive(
+                    paths.DOGTAG_CACACERT_CFG,
+                    directive,
+                    ca_validity_range_in_days,
+                    quotes=False,
+                    separator='='
+                )
+
             DogtagInstance.spawn_instance(
                 self, f.name,
                 nolog_list=nolog_list,

@@ -435,6 +435,7 @@ class BasePathNamespace:
     LIBARCH = "64"
     TDBTOOL = '/usr/bin/tdbtool'
     SECRETS_TDB = '/var/lib/samba/private/secrets.tdb'
+    DOGTAG_CACACERT_CFG = "/var/lib/pki/pki-tomcat/ca/profiles/ca/caCACert.cfg"
 
     def check_paths(self):
         """Check paths for missing files
