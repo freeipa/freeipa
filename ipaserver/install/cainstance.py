@@ -606,7 +606,13 @@ class CAInstance(DogtagInstance):
 
             DogtagInstance.spawn_instance(
                 self, f.name,
-                nolog_list=nolog_list
+                nolog_list=nolog_list,
+                skip_configuration=True
+            )
+            DogtagInstance.spawn_instance(
+                self, f.name,
+                nolog_list=nolog_list,
+                skip_installation=True
             )
 
         if self.external == 1:
