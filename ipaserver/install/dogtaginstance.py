@@ -181,16 +181,23 @@ class DogtagInstance(service.Service):
         return os.path.exists(os.path.join(
             paths.VAR_LIB_PKI_TOMCAT_DIR, self.subsystem.lower()))
 
-    def spawn_instance(self, cfg_file, nolog_list=()):
+    def spawn_instance(
+        self, cfg_file, nolog_list=(),
+        skip_configuration=False, skip_installation=False
+    ):
         """
         Create and configure a new Dogtag instance using pkispawn.
         Passes in a configuration file with IPA-specific
         parameters.
         """
+
+        if skip_configuration and skip_installation:
+            raise ValueError("Can't skip both configuration and installation")
+
         subsystem = self.subsystem
-        args = [paths.PKISPAWN,
+        args = (paths.PKISPAWN,
                 "-s", subsystem,
-                "-f", cfg_file]
+                "-f", cfg_file)
 
         with open(cfg_file) as f:
             logger.debug(
@@ -198,7 +205,17 @@ class DogtagInstance(service.Service):
                 cfg_file, ipautil.nolog_replace(f.read(), nolog_list))
 
         try:
-            ipautil.run(args, nolog=nolog_list)
+            if skip_configuration is True:
+                args = list(args)
+                args.append("--skip-configuration")
+                ipautil.run(args, nolog=nolog_list)
+            elif skip_installation is True:
+                args = list(args)
+                args.append("--skip-installation")
+                ipautil.run(args, nolog=nolog_list)
+            else:
+                args = list(args)
+                ipautil.run(args, nolog=nolog_list)
         except ipautil.CalledProcessError as e:
             self.handle_setup_error(e)
 
