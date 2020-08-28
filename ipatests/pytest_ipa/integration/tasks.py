@@ -49,6 +49,7 @@ from cryptography.hazmat.backends import default_backend
 
 from ipapython import certdb
 from ipapython import ipautil
+from ipapython.dnsutil import DNSResolver
 from ipaplatform.paths import paths
 from ipaplatform.services import knownservices
 from ipapython.dn import DN
@@ -1436,7 +1437,7 @@ def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
     :timeout: max period of time while method will try to resolve query
      (requires retry=True)
     """
-    res = dns.resolver.Resolver()
+    res = DNSResolver()
     res.nameservers = [nameserver]
     res.lifetime = 10  # wait max 10 seconds for reply
 
@@ -1444,7 +1445,7 @@ def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
 
     while time.time() < wait_until:
         try:
-            ans = res.query(query, rtype)
+            ans = res.resolve(query, rtype)
             return ans
         except dns.exception.DNSException:
             if not retry:

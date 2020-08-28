@@ -79,9 +79,15 @@ from ipalib.util import (normalize_zonemgr,
 from ipaplatform import services
 from ipapython.dn import DN
 from ipapython.ipautil import CheckedIPAddress
-from ipapython.dnsutil import check_zone_overlap, DNSZoneAlreadyExists
-from ipapython.dnsutil import DNSName
-from ipapython.dnsutil import related_to_auto_empty_zone
+from ipapython.dnsutil import (
+    check_zone_overlap,
+    DNSName,
+    DNSResolver,
+    DNSZoneAlreadyExists,
+    related_to_auto_empty_zone,
+    resolve,
+    zone_for_name,
+)
 from ipaserver.dns_data_management import (
     IPASystemRecords,
     IPADomainIsNotManagedByIPAError,
@@ -542,7 +548,7 @@ def get_reverse_zone(ipaddr):
     ip = netaddr.IPAddress(str(ipaddr))
     revdns = DNSName(unicode(ip.reverse_dns))
     try:
-        revzone = DNSName(dns.resolver.zone_for_name(revdns))
+        revzone = DNSName(zone_for_name(revdns))
     except dns.resolver.NoNameservers:
         raise errors.NotFound(
             reason=_(
@@ -3363,7 +3369,7 @@ class dnsrecord(LDAPObject):
         :raises errors.DNSDataMismatch: if data in DNS and LDAP doesn't match
         :raises dns.exception.DNSException: if DNS resolution failed
         '''
-        resolver = dns.resolver.Resolver()
+        resolver = DNSResolver()
         resolver.set_flags(0)  # disable recursion (for NS RR checks)
         max_attempts = int(self.api.env['wait_for_dns'])
         warn_attempts = max_attempts // 2
@@ -3379,9 +3385,9 @@ class dnsrecord(LDAPObject):
                 log_fn = logger.warning
             attempt += 1
             try:
-                dns_answer = resolver.query(dns_name, rdtype,
-                                            dns.rdataclass.IN,
-                                            raise_on_no_answer=False)
+                dns_answer = resolver.resolve(dns_name, rdtype,
+                                              dns.rdataclass.IN,
+                                              raise_on_no_answer=False)
                 dns_rrset = None
                 if rdtype == _NS:
                     # NS records can be in Authority section (sometimes)
@@ -4303,7 +4309,7 @@ class dnsforwardzone(DNSZoneBase):
         ipa_dns_ip = None
         for rdtype in (dns.rdatatype.A, dns.rdatatype.AAAA):
             try:
-                ans = dns.resolver.query(ipa_dns_masters[0], rdtype)
+                ans = resolve(ipa_dns_masters[0], rdtype)
             except dns.exception.DNSException:
                 continue
             else:
