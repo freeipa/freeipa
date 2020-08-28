@@ -27,6 +27,7 @@ import dns.exception
 import dns.resolver
 import dns.rdataclass
 import dns.rdatatype
+import dns.reversename
 
 
 import six
@@ -37,6 +38,85 @@ if six.PY3:
     unicode = str
 
 logger = logging.getLogger(__name__)
+
+
+ipa_resolver = None
+
+
+def get_ipa_resolver():
+    global ipa_resolver
+    if ipa_resolver is None:
+        ipa_resolver = DNSResolver()
+    return ipa_resolver
+
+
+def resolve(*args, **kwargs):
+    return get_ipa_resolver().resolve(*args, **kwargs)
+
+
+def resolve_address(*args, **kwargs):
+    return get_ipa_resolver().resolve_address(*args, **kwargs)
+
+
+def zone_for_name(*args, **kwargs):
+    if "resolver" not in kwargs:
+        kwargs["resolver"] = get_ipa_resolver()
+
+    return dns.resolver.zone_for_name(*args, **kwargs)
+
+
+def reset_default_resolver():
+    """Re-initialize ipa resolver.
+    """
+    global ipa_resolver
+    ipa_resolver = DNSResolver()
+
+
+class DNSResolver(dns.resolver.Resolver):
+    """DNS stub resolver compatible with both dnspython < 2.0.0
+    and dnspython >= 2.0.0.
+
+    Set `use_search_by_default` attribute to `True`, which
+    determines the default for whether the search list configured
+    in the system's resolver configuration is used for relative
+    names, and whether the resolver's domain may be added to relative
+    names.
+
+    Increase the default lifetime which determines the number of seconds
+    to spend trying to get an answer to the question. dnspython 2.0.0
+    changes this to 5sec, while the previous one was 30sec.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.reset_ipa_defaults()
+        self.resolve = getattr(super(), "resolve", self.query)
+        self.resolve_address = getattr(
+            super(),
+            "resolve_address",
+            self._resolve_address
+        )
+
+    def reset_ipa_defaults(self):
+        self.use_search_by_default = True
+        # the default is 5sec
+        self.lifetime = 15
+
+    def reset(self):
+        super().reset()
+        self.reset_ipa_defaults()
+
+    def _resolve_address(self, ip_address, *args, **kwargs):
+        """Query nameservers for PTR records.
+
+        :param ip_address: IPv4 or IPv6 address
+        :type ip_address: str
+        """
+        return resolve(
+            dns.reversename.from_address(ip_address),
+            rdtype=dns.rdatatype.PTR,
+            *args,
+            **kwargs,
+        )
 
 
 class DNSZoneAlreadyExists(dns.exception.DNSException):
@@ -321,7 +401,7 @@ def resolve_rrsets(fqdn, rdtypes):
     rrsets = []
     for rdtype in rdtypes:
         try:
-            answer = dns.resolver.query(fqdn, rdtype)
+            answer = resolve(fqdn, rdtype)
             logger.debug('found %d %s records for %s: %s',
                          len(answer),
                          rdtype,
@@ -363,7 +443,7 @@ def check_zone_overlap(zone, raise_on_error=True):
         return
 
     try:
-        containing_zone = dns.resolver.zone_for_name(zone)
+        containing_zone = zone_for_name(zone)
     except dns.exception.DNSException as e:
         msg = ("DNS check for domain %s failed: %s." % (zone, e))
         if raise_on_error:
@@ -374,7 +454,7 @@ def check_zone_overlap(zone, raise_on_error=True):
 
     if containing_zone == zone:
         try:
-            ns = [ans.to_text() for ans in dns.resolver.query(zone, 'NS')]
+            ns = [ans.to_text() for ans in resolve(zone, 'NS')]
         except dns.exception.DNSException as e:
             logger.debug("Failed to resolve nameserver(s) for domain %s: %s",
                          zone, e)
@@ -463,6 +543,8 @@ def query_srv(qname, resolver=None, **kwargs):
     :return: list of dns.rdtypes.IN.SRV.SRV instances
     """
     if resolver is None:
-        resolver = dns.resolver
-    answer = resolver.query(qname, rdtype=dns.rdatatype.SRV, **kwargs)
+        resolve_f = resolve
+    else:
+        resolve_f = getattr(resolver, "resolve", resolver.query)
+    answer = resolve_f(qname, rdtype=dns.rdatatype.SRV, **kwargs)
     return sort_prio_weight(answer)
