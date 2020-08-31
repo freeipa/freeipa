@@ -591,9 +591,8 @@ class _TransportCertCache:
                                              mode='wb') as f:
                 try:
                     f.write(pem)
-                    ipautil.flush_sync(f)
-                    f.close()
                     os.rename(f.name, filename)
+                    ipautil.flush_sync(f)
                 except Exception:
                     os.unlink(f.name)
                     raise
