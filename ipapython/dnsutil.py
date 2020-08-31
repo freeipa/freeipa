@@ -111,7 +111,7 @@ class DNSResolver(dns.resolver.Resolver):
         :param ip_address: IPv4 or IPv6 address
         :type ip_address: str
         """
-        return resolve(
+        return self.resolve(
             dns.reversename.from_address(ip_address),
             rdtype=dns.rdatatype.PTR,
             *args,
