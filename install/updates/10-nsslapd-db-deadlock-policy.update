@@ -1,0 +1,22 @@
+# Configure 389-DS BDB backend to use DB_LOCK_MINWRITE.
+# 
+# Some IPA updates are expensive in term of processing and #page hit.
+# The likelihood to generate a DS Berkeley DB database deadlock can be high
+# for some common operations.
+#
+# When a deadlock is detected one deadlocking thread needs to be
+# rejected to let the other(s) complete.
+# DB_LOCK_YOUNGEST (9) is the DS default: it  means the most recent operation
+# fails in favor to the oldest one.
+# DB_LOCK_MINWRITE (6) means the reader(s) are rejected in favor
+# of the writers even if the reader(s) are older.
+# 
+# Switch the default for FreeIPA to DB_LOCK_MINWRITE.
+# This depends on the backend redesign (https://pagure.io/389-ds-base/issue/49476)
+# and therefore is valid on 389-DS 1.4.2.3 and higher.
+# 
+# BDB header:
+# https://github.com/berkeleydb/libdb/blob/5b7b02ae052442626af54c176335b67ecc613a30/src/dbinc/db.in#L287
+# 
+dn: cn=bdb,cn=config,cn=ldbm database,cn=plugins,cn=config
+replace: nsslapd-db-deadlock-policy:9::6

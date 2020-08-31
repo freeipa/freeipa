@@ -6,6 +6,7 @@ app_DATA =				\
 	10-config.update		\
 	10-enable-betxn.update		\
 	10-ipapwd.update		\
+	10-nsslapd-db-deadlock-policy.update \
 	10-selinuxusermap.update	\
 	10-rootdse.update		\
 	10-uniqueness.update		\
