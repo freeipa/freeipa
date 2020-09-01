@@ -975,6 +975,7 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
         tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
+        tasks.install_packages(cls.master, HEALTHCHECK_PKG)
 
     def test_ipahealthcheck_trust_domainscheck(self):
         """
@@ -1636,7 +1637,7 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
             cls.master, ipa_ca_fname, root_ca_fname
         )
         tasks.kinit_admin(cls.master)
-
+        tasks.install_packages(cls.master, HEALTHCHECK_PKG)
         tasks.install_packages(cls.replicas[0], HEALTHCHECK_PKG)
         tasks.install_replica(cls.master, cls.replicas[0])
 
