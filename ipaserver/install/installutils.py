@@ -457,18 +457,6 @@ def resolve_ip_addresses_nss(fqdn):
     logger.debug('Name %s resolved to %s', fqdn, ip_addresses)
     return ip_addresses
 
-def get_host_name(no_host_dns):
-    """
-    Get the current FQDN from the socket and verify that it is valid.
-
-    no_host_dns is a boolean that determines whether we enforce that the
-    hostname is resolvable.
-
-    Will raise a RuntimeError on error, returns hostname on success
-    """
-    hostname = get_fqdn()
-    verify_fqdn(hostname, no_host_dns)
-    return hostname
 
 def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
     hostaddr = resolve_ip_addresses_nss(host_name)
