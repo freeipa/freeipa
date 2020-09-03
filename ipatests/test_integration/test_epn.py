@@ -844,3 +844,8 @@ class TestEPN(IntegrationTest):
             # benchmarks show that + concat is the fastest for large strings
             useradd_ldif += str(generate_user_ldif(user))
         tasks.ldap_add(self.master, useradd_ldif)
+
+    def test_temporary_batch_invocation(self):
+        users = self.generate_user_batch()
+        # RIP runner
+        self.add_user_batch_to_ldap(users)
