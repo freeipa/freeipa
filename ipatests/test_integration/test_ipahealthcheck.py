@@ -184,7 +184,11 @@ def restart_service():
             serverid = (realm_to_serverid(host.domain.realm)).upper()
             service_name = 'dirsrv@%s.service' % serverid
         elif service_name == 'named':
-            service_name = 'named-pkcs11'
+            # The service name may differ depending on the host OS
+            script = ("from ipaplatform.services import knownservices; "
+                      "print(knownservices.named.systemd_name)")
+            result = host.run_command(['python3', '-c', script])
+            service_name = result.stdout_text.strip()
         if 'host' not in service:
             service['host'] = host
             service['name'] = [service_name]
