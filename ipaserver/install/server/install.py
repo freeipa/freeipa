@@ -178,7 +178,11 @@ def write_cache(options):
         shutil.rmtree(top_dir)
 
 
-def read_host_name(host_default, no_host_dns=False):
+def read_host_name(host_default):
+    """
+    Prompt user to input FQDN.  Does not verify it.
+
+    """
     print("Enter the fully qualified domain name of the computer")
     print("on which you're setting up server software. Using the form")
     print("<hostname>.<domainname>")
@@ -189,7 +193,6 @@ def read_host_name(host_default, no_host_dns=False):
         host_default = "master.example.com"
     host_name = user_input("Server host name", host_default, allow_empty=False)
     print("")
-    verify_fqdn(host_name, no_host_dns)
 
     return host_name
 
@@ -490,12 +493,13 @@ def install_check(installer):
     else:
         host_default = get_fqdn()
 
+    if installer.interactive and not options.host_name:
+        host_name = read_host_name(host_default)
+    else:
+        host_name = host_default
+
     try:
-        if not installer.interactive or options.host_name:
-            verify_fqdn(host_default, options.no_host_dns)
-            host_name = host_default
-        else:
-            host_name = read_host_name(host_default, options.no_host_dns)
+        verify_fqdn(host_default, options.no_host_dns)
     except BadHostError as e:
         raise ScriptError(e)
 
