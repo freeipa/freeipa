@@ -102,7 +102,7 @@ metaservices_checks = [
 ipafiles_checks = ["IPAFileNSSDBCheck", "IPAFileCheck", "TomcatFileCheck"]
 dogtag_checks = ["DogtagCertsConfigCheck", "DogtagCertsConnectivityCheck"]
 iparoles_checks = ["IPACRLManagerCheck", "IPARenewalMasterCheck"]
-replication_checks = ["ReplicationCheck"]
+replication_checks = ["ReplicationConflictCheck"]
 ruv_checks = ["RUVCheck"]
 dna_checks = ["IPADNARangeCheck"]
 idns_checks = ["IPADNSSystemRecordsCheck"]
@@ -661,7 +661,7 @@ class TestIpaHealthCheck(IntegrationTest):
         Ensure that healthcheck reports when IPA certs are revoked.
         """
         error_msg = (
-            "Certificate tracked by {key} is revoked {revocation_reason}"
+            "Certificate is revoked, unspecified"
         )
 
         result = self.master.run_command(
@@ -737,7 +737,7 @@ class TestIpaHealthCheck(IntegrationTest):
         """
         returncode, output = run_healthcheck(
             self.master,
-            "ipahealthcheck.meta",
+            "ipahealthcheck.meta.services",
             output_type="human",
             failures_only=True)
         assert returncode == 1
@@ -762,12 +762,8 @@ class TestIpaHealthCheck(IntegrationTest):
         Testcase checks that ERROR message is displayed
         when ipa ca crt file is not renamed
         """
-        error_text = (
-            "[Errno 2] No such file or directory: '{}'"
-            .format(paths.IPA_CA_CRT)
-        )
         msg_text = (
-            "Error opening IPA CA chain at {key}: {error}"
+            "Error opening IPA CA chain at '{}'".format(paths.IPA_CA_CRT)
         )
         returncode, data = run_healthcheck(
             self.master,
@@ -779,7 +775,7 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["result"] == "ERROR"
             assert check["kw"]["key"] == paths.IPA_CA_CRT
             assert check["kw"]["error"] == error_text
-            assert check["kw"]["msg"] == msg_text
+            assert msg_text in check["kw"]["msg"]
 
     @pytest.fixture
     def modify_cert_trust_attr(self):
@@ -815,8 +811,8 @@ class TestIpaHealthCheck(IntegrationTest):
         for Server-Cert
         """
         error_msg = (
-            "Incorrect NSS trust for {nickname} in {dbdir}. "
-            "Got {got} expected {expected}."
+            "Incorrect NSS trust for Server-Cert cert-pki-ca. "
+            "Got CTu,u,u expected u,u,u"
         )
         returncode, data = run_healthcheck(
             self.master, "ipahealthcheck.ipa.certs", "IPACertNSSTrust",
