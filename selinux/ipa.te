@@ -72,6 +72,9 @@ logging_log_file(ipa_custodia_log_t)
 type ipa_custodia_tmp_t;
 files_tmp_file(ipa_custodia_tmp_t)
 
+type pki_tomcat_cert_t;
+type node_t;
+
 ########################################
 #
 # ipa_otpd local policy
@@ -323,9 +326,17 @@ optional_policy(`
 allow ipa_custodia_t self:capability { setgid setuid };
 allow ipa_custodia_t self:fifo_file rw_fifo_file_perms;
 allow ipa_custodia_t self:netlink_route_socket { create_socket_perms nlmsg_read };
+allow ipa_custodia_t self:process execmem;
 allow ipa_custodia_t self:unix_stream_socket create_stream_socket_perms;
 allow ipa_custodia_t self:unix_dgram_socket create_socket_perms;
+allow ipa_custodia_t self:tcp_socket { bind create };
 allow ipa_custodia_t self:udp_socket create_socket_perms;
+
+allow ipa_custodia_t node_t:tcp_socket node_bind;
+
+allow ipa_custodia_t pki_tomcat_cert_t:dir remove_name;
+allow ipa_custodia_t pki_tomcat_cert_t:file create;
+allow ipa_custodia_t pki_tomcat_cert_t:file unlink;
 
 manage_dirs_pattern(ipa_custodia_t,ipa_custodia_log_t,ipa_custodia_log_t)
 manage_files_pattern(ipa_custodia_t, ipa_custodia_log_t, ipa_custodia_log_t)
