@@ -358,6 +358,30 @@ class TestInstallCA(IntegrationTest):
         assert owner == "root"
         assert group == "root"
 
+    def test_cert_install_with_IPA_issued_cert(self):
+        """
+        Test replacing an IPA-issued server cert
+
+        ipa-server-certinstall can replace the web and LDAP certs.
+        A slightly different code path is taken when the replacement
+        certs are issued by IPA. Exercise that path by replacing the
+        web cert with itself.
+        """
+        self.master.run_command(['cp', '-p', paths.HTTPD_CERT_FILE, '/tmp'])
+        self.master.run_command(['cp', '-p', paths.HTTPD_KEY_FILE, '/tmp'])
+
+        passwd = self.master.get_file_contents(
+            paths.HTTPD_PASSWD_FILE_FMT.format(host=self.master.hostname)
+        )
+        self.master.run_command([
+            'ipa-server-certinstall',
+            '-p', self.master.config.dirman_password,
+            '-w',
+            '--pin', passwd,
+            '/tmp/httpd.crt',
+            '/tmp/httpd.key',
+        ])
+
     def test_is_ipa_configured(self):
         """Verify that the old and new methods of is_ipa_installed works
 
