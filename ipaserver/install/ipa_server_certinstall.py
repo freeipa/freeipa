@@ -170,7 +170,7 @@ class ServerCertInstall(admintool.AdminTool):
         if req_id is not None:
             certmonger.add_principal(
                 req_id, 'HTTP/{host}'.format(host=api.env.host))
-            certmonger.add_subject(req_id, cert.subject)
+            certmonger.add_subject(req_id, str(DN(cert.subject)))
 
     def replace_kdc_cert(self):
         # pass in `realm` to perform `NSSDatabase.verify_kdc_cert_validity()`
