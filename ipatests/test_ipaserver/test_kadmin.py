@@ -123,3 +123,9 @@ class TestKadmin:
             installutils.create_keytab,
             keytab,
             service)
+
+    def test_getprincs(self):
+        """
+        tests that kadmin.local getprincs command returns a list of principals
+        """
+        self.assert_success(installutils.kadmin, 'getprincs')
