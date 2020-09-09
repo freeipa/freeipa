@@ -4313,7 +4313,7 @@ class dnsforwardzone(DNSZoneBase):
             except dns.exception.DNSException:
                 continue
             else:
-                ipa_dns_ip = str(ans.rrset.items[0])
+                ipa_dns_ip = str(next(iter(ans.rrset.items)))
                 break
 
         if not ipa_dns_ip:
