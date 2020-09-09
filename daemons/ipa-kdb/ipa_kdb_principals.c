@@ -966,6 +966,7 @@ ipadb_fetch_principals_with_extra_filter(struct ipadb_context *ipactx,
     krb5_error_code kerr;
     char *src_filter = NULL, *esc_original_princ = NULL;
     int ret;
+    int len = 0;
 
     if (!ipactx->lcontext) {
         ret = ipadb_get_connection(ipactx);
@@ -983,6 +984,8 @@ ipadb_fetch_principals_with_extra_filter(struct ipadb_context *ipactx,
         goto done;
     }
 
+    len = strlen(esc_original_princ);
+
     /* Starting in DAL 8.0, aliases are always okay. */
 #ifdef KRB5_KDB_FLAG_ALIAS_OK
     if (!(flags & KRB5_KDB_FLAG_ALIAS_OK)) {
@@ -996,12 +999,24 @@ ipadb_fetch_principals_with_extra_filter(struct ipadb_context *ipactx,
     } else
 #endif
     {
+        /* In case we've got a principal name as '*' we have to
+         * follow RFC 4515 section 3 and reencode it using
+         * <valueencoding> rule from RFC 4511 section 4.1.6 but
+         * only to the part of the filter that does use assertion
+         * value. */
+        const char *asterisk = "%x2A";
+        char *assertion_value = esc_original_princ;
+
+        if ((len == 1) && (esc_original_princ[0] == '*')) {
+            assertion_value = asterisk;
+        }
+
         if (filter == NULL) {
             ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER,
-                           esc_original_princ, esc_original_princ);
+                           esc_original_princ, assertion_value);
         } else {
             ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER_EXTRA,
-                           esc_original_princ, esc_original_princ, filter);
+                           esc_original_princ, assertion_value, filter);
         }
     }
 
