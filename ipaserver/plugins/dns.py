@@ -2142,6 +2142,14 @@ class DNSZoneBase_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
+        if options.get('name_from_ip'):
+            zone = _reverse_zone_name(options.get('name_from_ip'))
+            if keys[-1] != DNSName(zone):
+                raise errors.ValidationError(
+                    name='name-from-ip',
+                    error=_("cannot be used when a zone is specified")
+                )
+
         try:
             entry = ldap.get_entry(dn)
         except errors.NotFound:
