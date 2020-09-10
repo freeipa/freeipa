@@ -686,6 +686,20 @@ class test_dns(Declarative):
 
 
         dict(
+            desc='Try to create a zone w/ a name and name-from-ipa %r' % zone1,
+            command=(
+                'dnszone_add', [zone1], {
+                    'idnssoarname': zone1_rname,
+                    'name_from_ip': revzone1_ip,
+                }
+            ),
+            expected=errors.ValidationError(
+                message=u'invalid \'name-from-ip\': cannot be used when a '
+                        'zone is specified'),
+        ),
+
+
+        dict(
             desc='Retrieve zone %r' % zone1,
             command=('dnszone_show', [zone1], {}),
             expected={
