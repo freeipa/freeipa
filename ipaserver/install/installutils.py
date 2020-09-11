@@ -50,7 +50,7 @@ import ipaplatform
 from ipapython import ipautil, admintool, version, ipaldap
 from ipapython.admintool import ScriptError, SERVER_NOT_CONFIGURED  # noqa: E402
 from ipapython.certdb import EXTERNAL_CA_TRUST_FLAGS
-from ipalib.constants import MAXHOSTNAMELEN
+from ipalib.constants import FQDN, MAXHOSTNAMELEN
 from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
 from ipalib.install import dnsforwarders
@@ -118,16 +118,16 @@ class ReplicaConfig:
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
+
 def get_fqdn():
-    fqdn = ""
-    try:
-        fqdn = socket.getfqdn()
-    except Exception:
-        try:
-            fqdn = socket.gethostname()
-        except Exception:
-            fqdn = ""
-    return fqdn
+    """Get fully qualified domain name of current host
+
+    :note: used by ansible_freeipa
+    :deprecated: use ipalib.constants.FQDN
+    :return: str
+    """
+    return FQDN
+
 
 def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
     """

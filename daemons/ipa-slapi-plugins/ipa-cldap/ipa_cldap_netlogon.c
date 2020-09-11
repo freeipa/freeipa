@@ -38,6 +38,7 @@
  * END COPYRIGHT BLOCK **/
 
 #include "ipa_cldap.h"
+#include "ipa_hostname.h"
 #include <endian.h>
 #include <talloc.h>
 #include <ctype.h>
@@ -236,7 +237,7 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
                        struct ipa_cldap_req *req,
                        struct berval *reply)
 {
-    char hostname[MAXHOSTNAMELEN + 1]; /* NOTE: lenght hardcoded in kernel */
+    char hostname[IPA_HOST_NAME_LEN];
     char *domain = NULL;
     char *our_domain = NULL;
     char *guid = NULL;
@@ -321,13 +322,11 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
         goto done;
     }
 
-    ret = gethostname(hostname, MAXHOSTNAMELEN);
+    ret = ipa_gethostfqdn(hostname);
     if (ret == -1) {
         ret = errno;
         goto done;
     }
-    /* Make double sure it is terminated */
-    hostname[MAXHOSTNAMELEN] = '\0';
     dot = strchr(hostname, '.');
     if (!dot) {
         /* this name is not fully qualified, therefore invalid */

@@ -9,7 +9,6 @@ import argparse
 import logging
 import os
 import platform
-import socket
 import warnings
 
 from custodia.message.kem import KEY_USAGE_SIG, KEY_USAGE_ENC, KEY_USAGE_MAP
@@ -136,7 +135,6 @@ class IPACustodiaTester:
 
     def check(self):
         self.status()
-        self.check_fqdn()
         self.check_files()
         self.check_client()
         self.check_jwk()
@@ -155,13 +153,6 @@ class IPACustodiaTester:
         self.info("Remote server: {}".format(self.args.server))
         if self.host == self.args.server:
             self.warning("Performing self-test only.")
-
-    def check_fqdn(self):
-        fqdn = socket.getfqdn()
-        if self.host != fqdn:
-            self.warning(
-                "socket.getfqdn() reports hostname '{}'".format(fqdn)
-            )
 
     def check_files(self):
         for filename in self.files:

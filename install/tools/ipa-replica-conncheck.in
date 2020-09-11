@@ -28,6 +28,7 @@ from ipapython.dn import DN
 from ipapython import version
 from ipapython import ipautil, certdb
 from ipalib import api, errors, x509
+from ipalib.constants import FQDN
 from ipaserver.install import installutils
 # pylint: disable=deprecated-module
 from optparse import OptionGroup, OptionValueError
@@ -205,7 +206,7 @@ def parse_options():
        parser.error("No action: you should select either --replica or --master option.")
 
     if not options.hostname:
-        options.hostname = socket.getfqdn()
+        options.hostname = FQDN
 
     return safe_options, options
 

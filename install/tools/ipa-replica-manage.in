@@ -38,6 +38,7 @@ from ipaserver.install import bindinstance, cainstance
 from ipaserver.install import opendnssecinstance, dnskeysyncinstance
 from ipapython import version, ipaldap
 from ipalib import api, errors
+from ipalib.constants import FQDN
 from ipalib.util import has_managed_topology, verify_host_resolvable
 from ipapython.ipa_log_manager import standard_logging_setup
 from ipapython.dn import DN
@@ -1525,7 +1526,7 @@ def main(options, args):
     if options.host:
         host = options.host
     else:
-        host = installutils.get_fqdn()
+        host = FQDN
 
     options.host = host
 
