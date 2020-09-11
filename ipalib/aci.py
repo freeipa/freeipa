@@ -83,7 +83,7 @@ class ACI:
             op = v['operator']
             if type(v['expression']) in (tuple, list):
                 target = ""
-                for l in v['expression']:
+                for l in self._unique_list(v['expression']):
                     target = target + l + " || "
                 target = target[:-4]
                 aci = aci + "(%s %s \"%s\")" % (t, op, target)
@@ -91,6 +91,20 @@ class ACI:
                 aci = aci + "(%s %s \"%s\")" % (t, op, v['expression'])
         aci = aci + "(version 3.0;acl \"%s\";%s (%s) %s %s \"%s\"" % (self.name, self.action, ",".join(self.permissions), self.bindrule['keyword'], self.bindrule['operator'], self.bindrule['expression']) + ";)"
         return aci
+
+    def _unique_list(self, l):
+        """
+        A set() doesn't maintain order so make a list unique ourselves.
+
+        The number of entries in our lists are always going to be
+        relatively low and this code will be called infrequently
+        anyway so the overhead will be small.
+        """
+        unique = []
+        for item in l:
+            if item not in unique:
+                unique.append(item)
+        return unique
 
     def _remove_quotes(self, s):
         # Remove leading and trailing quotes
@@ -149,7 +163,9 @@ class ACI:
         if not bindperms or len(bindperms.groups()) < 3:
             raise SyntaxError("malformed ACI, permissions match failed %s" % acistr)
         self.action = bindperms.group(1)
-        self.permissions = bindperms.group(2).replace(' ','').split(',')
+        self.permissions = self._unique_list(
+            bindperms.group(2).replace(' ','').split(',')
+        )
         self.set_bindrule(bindperms.group(3))
 
     def validate(self):
@@ -175,6 +191,11 @@ class ACI:
             raise SyntaxError("bindrule is missing a component")
         return True
 
+    def set_permissions(self, permissions):
+        if type(permissions) not in (tuple, list):
+            permissions = [permissions]
+        self.permissions = self._unique_list(permissions)
+
     def set_target_filter(self, filter, operator="="):
         self.target['targetfilter'] = {}
         if not filter.startswith("("):
@@ -190,7 +211,7 @@ class ACI:
         if type(attr) not in (tuple, list):
             attr = [attr]
         self.target['targetattr'] = {}
-        self.target['targetattr']['expression'] = attr
+        self.target['targetattr']['expression'] = self._unique_list(attr)
         self.target['targetattr']['operator'] = operator
 
     def set_target(self, target, operator="="):
