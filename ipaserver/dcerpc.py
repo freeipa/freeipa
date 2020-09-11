@@ -30,11 +30,11 @@ import time
 
 from ipalib import api, _
 from ipalib import errors
+from ipalib.constants import FQDN
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.dnsutil import query_srv
 from ipapython.ipaldap import ldap_initialize
-from ipaserver.install import installutils
 from ipaserver.dcerpc_common import (TRUST_BIDIRECTIONAL,
                                      TRUST_JOIN_EXTERNAL,
                                      trust_type_string)
@@ -1645,7 +1645,7 @@ class TrustDomainJoins:
         ld.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
         ld.creds.guess(ld.parm)
         ld.creds.set_workstation(ld.hostname)
-        ld.retrieve(installutils.get_fqdn())
+        ld.retrieve(FQDN)
         self.local_domain = ld
 
     def populate_remote_domain(self, realm, realm_server=None,

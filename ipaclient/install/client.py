@@ -36,7 +36,7 @@ from urllib.parse import urlparse, urlunparse
 
 from ipalib import api, errors, x509
 from ipalib import sysrestore
-from ipalib.constants import IPAAPI_USER, MAXHOSTNAMELEN
+from ipalib.constants import FQDN, IPAAPI_USER, MAXHOSTNAMELEN
 from ipalib.install import certmonger, certstore, service
 from ipalib.install import hostname as hostname_
 from ipalib.facts import is_ipa_client_configured, is_ipa_configured
@@ -2121,7 +2121,7 @@ def install_check(options):
         hostname = options.hostname
         hostname_source = 'Provided as option'
     else:
-        hostname = socket.getfqdn()
+        hostname = FQDN
         hostname_source = "Machine's FQDN"
     if hostname != hostname.lower():
         raise ScriptError(
@@ -3270,7 +3270,7 @@ def uninstall(options):
         pass
 
     if hostname is None:
-        hostname = socket.getfqdn()
+        hostname = FQDN
 
     ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
     sys_db = certdb.NSSDatabase(paths.NSS_DB_DIR)

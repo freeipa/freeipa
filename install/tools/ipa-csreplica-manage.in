@@ -30,6 +30,7 @@ from ipaplatform.paths import paths
 from ipaserver.install import (replication, installutils, bindinstance,
     cainstance)
 from ipalib import api, errors
+from ipalib.constants import FQDN
 from ipalib.util import has_managed_topology
 from ipapython import ipautil, ipaldap, version
 from ipapython.admintool import ScriptError
@@ -343,7 +344,7 @@ def re_initialize(realm, options):
     if not options.fromhost:
         sys.exit("re-initialize requires the option --from <host name>")
 
-    thishost = installutils.get_fqdn()
+    thishost = FQDN
 
     try:
         repl = replication.get_cs_replication_manager(realm, options.fromhost,
@@ -383,7 +384,7 @@ def force_sync(realm, thishost, fromhost, dirman_passwd):
 
 def set_renewal_master(realm, replica):
     if not replica:
-        replica = installutils.get_fqdn()
+        replica = FQDN
 
     ca = cainstance.CAInstance(realm)
     if ca.is_renewal_master(replica):
@@ -434,7 +435,7 @@ def main():
     if options.host:
         host = options.host
     else:
-        host = installutils.get_fqdn()
+        host = FQDN
 
     options.host = host
 

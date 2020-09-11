@@ -36,6 +36,7 @@ char *smb_xstrdup(const char *s);
 #include <sasl/sasl.h>
 #include <krb5/krb5.h>
 #include <sss_idmap.h>
+#include "ipa_hostname.h"
 #include "ipa_asn1.h"
 #include "ipa_pwd.h"
 #include "ipa_mspac.h"
@@ -4440,7 +4441,7 @@ static char *sec_key(TALLOC_CTX *mem_ctx, const char *d)
 
 static NTSTATUS save_sid_to_secret(struct ipasam_private *ipasam_state)
 {
-	char hostname[255];
+	char hostname[IPA_HOST_NAME_LEN];
 	int ret;
 	char *p;
 	TALLOC_CTX *tmp_ctx;
@@ -4466,13 +4467,12 @@ static NTSTATUS save_sid_to_secret(struct ipasam_private *ipasam_state)
 		goto done;
 	}
 
-	ret = gethostname(hostname, sizeof(hostname));
+	ret = ipa_gethostfqdn(hostname);
 	if (ret == -1) {
 		DEBUG(1, ("gethostname failed.\n"));
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
 	}
-	hostname[sizeof(hostname)-1] = '\0';
 	p = strchr(hostname, '.');
 	if (p != NULL) {
 		*p = '\0';
@@ -4724,7 +4724,7 @@ static NTSTATUS ipasam_generate_principals(struct ipasam_private *ipasam_state) 
 	int ret;
 	krb5_context context;
 	NTSTATUS status = NT_STATUS_UNSUCCESSFUL;
-	char hostname[255];
+	char hostname[IPA_HOST_NAME_LEN];
 	char *default_realm = NULL;
 
 	if (!ipasam_state) {
@@ -4736,12 +4736,11 @@ static NTSTATUS ipasam_generate_principals(struct ipasam_private *ipasam_state) 
 		return status;
 	}
 
-	ret = gethostname(hostname, sizeof(hostname));
+	ret = ipa_gethostfqdn(hostname);
 	if (ret == -1) {
 		DEBUG(1, ("gethostname failed.\n"));
 		goto done;
 	}
-	hostname[sizeof(hostname)-1] = '\0';
 
 	rc = krb5_get_default_realm(context, &default_realm);
 	if (rc) {

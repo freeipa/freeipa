@@ -5,6 +5,7 @@ PLUGIN_COMMON_DIR = $(srcdir)/../common
 AM_CPPFLAGS =							\
 	-I$(srcdir)						\
 	-I$(PLUGIN_COMMON_DIR)					\
+	-I$(top_srcdir)/util			\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
@@ -31,6 +32,7 @@ libipa_cldap_la_SOURCES = 		\
 libipa_cldap_la_LDFLAGS = -avoid-version
 
 libipa_cldap_la_LIBADD = 		\
+	$(top_builddir)/util/libutil.la	\
 	$(LDAP_LIBS)			\
 	$(NDRNBT_LIBS)			\
 	$(NULL)
@@ -49,6 +51,7 @@ ipa_cldap_tests_LDFLAGS =	\
 	-rpath $(shell pkg-config --libs-only-L dirsrv | sed -e 's/-L//')	\
 	$(NULL)
 ipa_cldap_tests_LDADD =	\
+	$(top_builddir)/util/libutil.la	\
 	$(CMOCKA_LIBS)	\
 	$(NDRNBT_LIBS)	\
 	$(DIRSRV_LIBS)	\

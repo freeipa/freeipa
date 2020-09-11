@@ -31,7 +31,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib import api, errors, x509
-from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.constants import DOMAIN_LEVEL_0, FQDN
 from ipalib.facts import is_ipa_configured, is_ipa_client_configured
 from ipalib.util import (
     validate_domain_name,
@@ -44,7 +44,7 @@ from ipaserver.install import (
     otpdinstance, custodiainstance, replication, service,
     sysupgrade, cainstance)
 from ipaserver.install.installutils import (
-    BadHostError, get_fqdn, get_server_ip_address,
+    BadHostError, get_server_ip_address,
     load_pkcs12, read_password, verify_fqdn, update_hosts_file,
     validate_mask)
 
@@ -493,7 +493,7 @@ def install_check(installer):
     if options.host_name:
         host_default = options.host_name
     else:
-        host_default = get_fqdn()
+        host_default = FQDN
 
     if installer.interactive and not options.host_name:
         host_name = read_host_name(host_default)

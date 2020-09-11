@@ -24,9 +24,9 @@ import ldap.schema
 
 import ipapython.version
 from ipalib import api
+from ipalib.constants import FQDN
 from ipapython.dn import DN
 from ipaserver.install.ldapupdate import connect
-from ipaserver.install import installutils
 
 
 SCHEMA_ELEMENT_CLASSES = (
@@ -105,9 +105,7 @@ def update_schema(schema_files, ldapi=False):
     """
     SCHEMA_ELEMENT_CLASSES_KEYS = [x[0] for x in SCHEMA_ELEMENT_CLASSES]
 
-    conn = connect(ldapi=ldapi,
-                   realm=api.env.realm,
-                   fqdn=installutils.get_fqdn())
+    conn = connect(ldapi=ldapi, realm=api.env.realm, fqdn=FQDN)
 
     old_schema = conn.schema
 

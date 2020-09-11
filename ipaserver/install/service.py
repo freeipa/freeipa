@@ -22,7 +22,6 @@ from __future__ import absolute_import
 import logging
 import sys
 import os
-import socket
 import time
 import traceback
 import tempfile
@@ -35,6 +34,7 @@ from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython import kerberos
 from ipalib import api, errors, x509
+from ipalib.constants import FQDN
 from ipaplatform import services
 from ipaplatform.constants import User
 from ipaplatform.paths import paths
@@ -291,7 +291,7 @@ class Service:
         self.steps = []
         self.output_fd = sys.stdout
 
-        self.fqdn = socket.gethostname()
+        self.fqdn = FQDN
 
         if sstore:
             self.sstore = sstore
