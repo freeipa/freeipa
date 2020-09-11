@@ -24,6 +24,7 @@ All constants centralised in one file.
 
 import os
 import socket
+from ipaplatform.constants import constants as _constants
 from ipapython.dn import DN
 from ipapython.version import VERSION, API_VERSION
 
@@ -327,8 +328,8 @@ PATTERN_GROUPUSER_NAME = (
 ANON_USER = 'WELLKNOWN/ANONYMOUS'
 
 # IPA API Framework user
-IPAAPI_USER = 'ipaapi'
-IPAAPI_GROUP = 'ipaapi'
+IPAAPI_USER = _constants.IPAAPI_USER
+IPAAPI_GROUP = _constants.IPAAPI_GROUP
 
 # Use cache path
 USER_CACHE_PATH = (

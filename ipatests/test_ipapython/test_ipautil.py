@@ -24,7 +24,6 @@ Test the `ipapython/ipautil.py` module.
 from __future__ import absolute_import
 
 import os
-import pwd
 import socket
 import sys
 import tempfile
@@ -530,14 +529,13 @@ def test_run_runas():
     The test is using 'ipaapi' user as it is configured when
     ipa-server-common package is installed.
     """
-    user = pwd.getpwnam(IPAAPI_USER)
     res = ipautil.run(['/usr/bin/id', '-u'], runas=IPAAPI_USER)
     assert res.returncode == 0
-    assert res.raw_output == b'%d\n' % user.pw_uid
+    assert res.raw_output == b'%d\n' % IPAAPI_USER.uid
 
     res = ipautil.run(['/usr/bin/id', '-g'], runas=IPAAPI_USER)
     assert res.returncode == 0
-    assert res.raw_output == b'%d\n' % user.pw_gid
+    assert res.raw_output == b'%d\n' % IPAAPI_USER.pgid
 
 
 @pytest.fixture(scope='function')

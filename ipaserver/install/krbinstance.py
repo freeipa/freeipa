@@ -22,7 +22,6 @@ from __future__ import print_function
 
 import logging
 import os
-import pwd
 import socket
 import dbus
 
@@ -388,8 +387,7 @@ class KrbInstance(service.Service):
 
         self.fstore.backup_file(paths.DS_KEYTAB)
         installutils.create_keytab(paths.DS_KEYTAB, ldap_principal)
-        pent = pwd.getpwnam(constants.DS_USER)
-        os.chown(paths.DS_KEYTAB, pent.pw_uid, pent.pw_gid)
+        constants.DS_USER.chown(paths.DS_KEYTAB)
 
     def __create_host_keytab(self):
         host_principal = "host/" + self.fqdn + "@" + self.realm

@@ -21,7 +21,6 @@ from __future__ import absolute_import
 
 import logging
 import os
-import pwd
 import shutil
 import tempfile
 import base64
@@ -184,8 +183,7 @@ class KRAInstance(DogtagInstance):
         if self.clone:
             krafile = self.pkcs12_info[0]
             shutil.copy(krafile, p12_tmpfile_name)
-            pent = pwd.getpwnam(self.service_user)
-            os.chown(p12_tmpfile_name, pent.pw_uid, pent.pw_gid)
+            self.service_user.chown(p12_tmpfile_name)
 
             self._configure_clone(
                 cfg,
@@ -208,11 +206,10 @@ class KRAInstance(DogtagInstance):
                 )
 
         # Generate configuration file
-        pent = pwd.getpwnam(self.service_user)
         config = self._create_spawn_config(cfg)
         with tempfile.NamedTemporaryFile('w', delete=False) as f:
             config.write(f)
-            os.fchown(f.fileno(), pent.pw_uid, pent.pw_gid)
+            self.service_user.chown(f.fileno())
             cfg_file = f.name
 
         nolog_list = [

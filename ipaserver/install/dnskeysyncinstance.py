@@ -5,10 +5,8 @@
 from __future__ import print_function, absolute_import
 
 import errno
-import grp
 import logging
 import os
-import pwd
 import re
 import shutil
 import stat
@@ -57,10 +55,10 @@ class DNSKeySyncInstance(service.Service):
             keytab=paths.IPA_DNSKEYSYNCD_KEYTAB
         )
         self.extra_config = [u'dnssecVersion 1', ]  # DNSSEC enabled
-        self.named_uid = self.__get_named_uid()
-        self.named_gid = self.__get_named_gid()
-        self.ods_uid = self.__get_ods_uid()
-        self.ods_gid = self.__get_ods_gid()
+        self.named_uid = constants.NAMED_USER.uid
+        self.named_gid = constants.NAMED_GROUP.gid
+        self.ods_uid = constants.ODS_USER.uid
+        self.ods_gid = constants.ODS_GROUP.gid
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
@@ -115,30 +113,6 @@ class DNSKeySyncInstance(service.Service):
         self.step("configuring ipa-dnskeysyncd to start on boot", self.__enable)
         # we need restart named after setting up this service
         self.start_creation()
-
-    def __get_named_uid(self):
-        try:
-            return pwd.getpwnam(constants.NAMED_USER).pw_uid
-        except KeyError:
-            raise RuntimeError("Named UID not found")
-
-    def __get_named_gid(self):
-        try:
-            return grp.getgrnam(constants.NAMED_GROUP).gr_gid
-        except KeyError:
-            raise RuntimeError("Named GID not found")
-
-    def __get_ods_uid(self):
-        try:
-            return pwd.getpwnam(constants.ODS_USER).pw_uid
-        except KeyError:
-            raise RuntimeError("OpenDNSSEC UID not found")
-
-    def __get_ods_gid(self):
-        try:
-            return grp.getgrnam(constants.ODS_GROUP).gr_gid
-        except KeyError:
-            raise RuntimeError("OpenDNSSEC GID not found")
 
     def __check_dnssec_status(self):
         if not dns_container_exists(self.suffix):

@@ -12,7 +12,6 @@ from ipaplatform.paths import paths
 import io
 import sys
 import os
-import pwd
 import tempfile
 import textwrap
 
@@ -97,8 +96,7 @@ def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
     )
     # Make sure SSSD is able to read the keytab
     try:
-        sssd = pwd.getpwnam(constants.SSSD_USER)
-        os.chown(oneway_keytab_name, sssd[2], sssd[3])
+        constants.SSSD_USER.chown(oneway_keytab_name)
     except KeyError:
         # If user 'sssd' does not exist, we don't need to chown from root to sssd
         # because it means SSSD does not run as sssd user
