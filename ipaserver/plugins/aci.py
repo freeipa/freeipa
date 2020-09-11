@@ -271,7 +271,7 @@ def _make_aci(ldap, current, aciname, kw):
     try:
         a = ACI(current)
         a.name = _make_aci_name(kw['aciprefix'], aciname)
-        a.permissions = kw['permissions']
+        a.set_permissions(kw['permissions'])
         if 'selfaci' in kw and kw['selfaci']:
             a.set_bindrule('userdn = "ldap:///self"')
         else:
