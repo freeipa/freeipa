@@ -299,4 +299,38 @@ class test_delegation(Declarative):
             )
         ),
 
+
+        dict(
+            desc='Create %r with duplicate attrs & perms' % delegation1,
+            command=(
+                'delegation_add', [delegation1], dict(
+                    attrs=[u'street', u'street'],
+                    permissions=[u'write', u'write'],
+                    group=u'editors',
+                    memberof=u'admins',
+                )
+            ),
+            expected=dict(
+                value=delegation1,
+                summary=u'Added delegation "%s"' % delegation1,
+                result=dict(
+                    attrs=[u'street'],
+                    permissions=[u'write'],
+                    aciname=delegation1,
+                    group=u'editors',
+                    memberof=member1,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % delegation1,
+            command=('delegation_del', [delegation1], {}),
+            expected=dict(
+                result=True,
+                value=delegation1,
+                summary=u'Deleted delegation "%s"' % delegation1,
+            )
+        ),
     ]
