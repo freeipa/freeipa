@@ -6,8 +6,6 @@ from __future__ import absolute_import
 
 import logging
 import os
-import pwd
-import grp
 import stat
 import shutil
 from subprocess import CalledProcessError
@@ -69,8 +67,9 @@ class OpenDNSSECInstance(service.Service):
             self, "ods-enforcerd",
             service_desc="OpenDNSSEC enforcer daemon",
         )
-        self.ods_uid = None
-        self.ods_gid = None
+        self.named_gid = constants.NAMED_GROUP.gid
+        self.ods_uid = constants.ODS_USER.uid
+        self.ods_gid = constants.ODS_GROUP.gid
         self.conf_file_dict = {
             'SOFTHSM_LIB': paths.LIBSOFTHSM2_SO,
             'TOKEN_LABEL': SOFTHSM_DNSSEC_TOKEN_LABEL,
@@ -107,8 +106,6 @@ class OpenDNSSECInstance(service.Service):
         except Exception:
             pass
 
-        # checking status must be first
-        self.step("checking status", self.__check_dnssec_status)
         self.step("setting up configuration files", self.__setup_conf_files)
         self.step("setting up ownership and file mode bits", self.__setup_ownership_file_modes)
         if generate_master_key:
@@ -118,27 +115,6 @@ class OpenDNSSECInstance(service.Service):
         self.step("starting OpenDNSSEC enforcer", self.__start)
         self.step("configuring OpenDNSSEC enforcer to start on boot", self.__enable)
         self.start_creation()
-
-    def __check_dnssec_status(self):
-        try:
-            self.named_uid = pwd.getpwnam(constants.NAMED_USER).pw_uid
-        except KeyError:
-            raise RuntimeError("Named UID not found")
-
-        try:
-            self.named_gid = grp.getgrnam(constants.NAMED_GROUP).gr_gid
-        except KeyError:
-            raise RuntimeError("Named GID not found")
-
-        try:
-            self.ods_uid = pwd.getpwnam(constants.ODS_USER).pw_uid
-        except KeyError:
-            raise RuntimeError("OpenDNSSEC UID not found")
-
-        try:
-            self.ods_gid = grp.getgrnam(constants.ODS_GROUP).gr_gid
-        except KeyError:
-            raise RuntimeError("OpenDNSSEC GID not found")
 
     def __enable(self):
         try:

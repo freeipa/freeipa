@@ -26,7 +26,6 @@ import shutil
 import sys
 import tempfile
 import time
-import pwd
 
 import six
 
@@ -295,14 +294,12 @@ class Backup(admintool.AdminTool):
 
         logger.info("Preparing backup on %s", api.env.host)
 
-        pent = pwd.getpwnam(constants.DS_USER)
-
         self.top_dir = tempfile.mkdtemp("ipa")
-        os.chown(self.top_dir, pent.pw_uid, pent.pw_gid)
+        constants.DS_USER.chown(self.top_dir)
         os.chmod(self.top_dir, 0o750)
         self.dir = os.path.join(self.top_dir, "ipa")
         os.mkdir(self.dir, 0o750)
-        os.chown(self.dir, pent.pw_uid, pent.pw_gid)
+        constants.DS_USER.chown(self.dir)
         self.tarfile = None
 
         self.header = os.path.join(self.top_dir, 'header')

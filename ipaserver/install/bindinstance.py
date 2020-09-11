@@ -23,7 +23,6 @@ from __future__ import print_function
 import logging
 import tempfile
 import os
-import pwd
 import netaddr
 import re
 import shutil
@@ -993,8 +992,7 @@ class BindInstance(service.Service):
             dns_principal = p
 
         # Make sure access is strictly reserved to the named user
-        pent = pwd.getpwnam(self.service_user)
-        os.chown(self.keytab, pent.pw_uid, pent.pw_gid)
+        self.service_user.chown(self.keytab)
         os.chmod(self.keytab, 0o400)
 
         # modify the principal so that it is marked as an ipa service so that
@@ -1040,7 +1038,7 @@ class BindInstance(service.Service):
         """
         # files are owned by root:named and are readable by user and group
         uid = 0
-        gid = pwd.getpwnam(constants.NAMED_USER).pw_gid
+        gid = constants.NAMED_GROUP.gid
         mode = 0o640
 
         changed = False

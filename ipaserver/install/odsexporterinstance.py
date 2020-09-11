@@ -6,8 +6,6 @@ from __future__ import absolute_import
 
 import logging
 import os
-import pwd
-import grp
 
 import ldap
 
@@ -33,8 +31,8 @@ class ODSExporterInstance(service.Service):
             keytab=paths.IPA_ODS_EXPORTER_KEYTAB,
             service_prefix=u'ipa-ods-exporter'
         )
-        self.ods_uid = None
-        self.ods_gid = None
+        self.ods_uid = constants.ODS_USER.uid
+        self.ods_gid = constants.ODS_GROUP.gid
         self.enable_if_exists = False
 
     suffix = ipautil.dn_attribute_property('_suffix')
@@ -51,25 +49,12 @@ class ODSExporterInstance(service.Service):
         except Exception:
             pass
 
-        # checking status step must be first
-        self.step("checking status", self.__check_dnssec_status)
         self.step("setting up DNS Key Exporter", self.__setup_key_exporter)
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("disabling default signer daemon", self.__disable_signerd)
         self.step("starting DNS Key Exporter", self.__start)
         self.step("configuring DNS Key Exporter to start on boot", self.__enable)
         self.start_creation()
-
-    def __check_dnssec_status(self):
-        try:
-            self.ods_uid = pwd.getpwnam(constants.ODS_USER).pw_uid
-        except KeyError:
-            raise RuntimeError("OpenDNSSEC UID not found")
-
-        try:
-            self.ods_gid = grp.getgrnam(constants.ODS_GROUP).gr_gid
-        except KeyError:
-            raise RuntimeError("OpenDNSSEC GID not found")
 
     def __enable(self):
 

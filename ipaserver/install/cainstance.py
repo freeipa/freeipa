@@ -28,8 +28,6 @@ import logging
 import dbus
 import ldap
 import os
-import pwd
-import grp
 import re
 import shutil
 import sys
@@ -44,7 +42,6 @@ from ipalib import errors
 import ipalib.constants
 from ipalib.install import certmonger
 from ipaplatform import services
-from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
@@ -534,8 +531,7 @@ class CAInstance(DogtagInstance):
             # so remove the file first
             ipautil.remove_file(paths.TMP_CA_P12)
             shutil.copy(cafile, paths.TMP_CA_P12)
-            pent = pwd.getpwnam(self.service_user)
-            os.chown(paths.TMP_CA_P12, pent.pw_uid, pent.pw_gid)
+            self.service_user.chown(paths.TMP_CA_P12)
 
             self._configure_clone(
                 cfg,
@@ -595,11 +591,10 @@ class CAInstance(DogtagInstance):
 
         config = self._create_spawn_config(cfg)
         self.set_hsm_state(config)
-        pent = pwd.getpwnam(self.service_user)
         with tempfile.NamedTemporaryFile('w') as f:
             config.write(f)
             f.flush()
-            os.fchown(f.fileno(), pent.pw_uid, pent.pw_gid)
+            self.service_user.chown(f.fileno())
 
             self.backup_state('installed', True)
 
@@ -682,8 +677,7 @@ class CAInstance(DogtagInstance):
             'ca.enableNonces=false')
         if update_result != 0:
             raise RuntimeError("Disabling nonces failed")
-        pent = pwd.getpwnam(self.service_user)
-        os.chown(self.config, pent.pw_uid, pent.pw_gid)
+        self.service_user.chown(self.config)
 
     def enable_pkix(self):
         directivesetter.set_directive(paths.SYSCONFIG_PKI_TOMCAT,
@@ -732,9 +726,9 @@ class CAInstance(DogtagInstance):
         """
         Sets the correct permissions for the RA_AGENT_PEM, RA_AGENT_KEY files
         """
-        ipaapi_gid = grp.getgrnam(ipalib.constants.IPAAPI_GROUP).gr_gid
+        group = ipalib.constants.IPAAPI_GROUP
         for fname in (paths.RA_AGENT_PEM, paths.RA_AGENT_KEY):
-            os.chown(fname, -1, ipaapi_gid)
+            group.chgrp(fname)
             os.chmod(fname, 0o440)
             tasks.restore_context(fname)
 
@@ -913,8 +907,7 @@ class CAInstance(DogtagInstance):
             os.mkdir(publishdir)
 
         os.chmod(publishdir, 0o775)
-        pent = pwd.getpwnam(self.service_user)
-        os.chown(publishdir, 0, pent.pw_gid)
+        os.chown(publishdir, 0, self.service_user.pgid)
 
         tasks.restore_context(publishdir)
 
@@ -1294,8 +1287,6 @@ class CAInstance(DogtagInstance):
         sysupgrade.set_upgrade_state('dogtag', LWCA_KEY_RETRIEVAL, True)
 
     def __setup_lightweight_ca_key_retrieval_kerberos(self):
-        pent = pwd.getpwnam(self.service_user)
-
         logger.debug('Creating principal')
         installutils.kadmin_addprinc(self.principal)
         self.suffix = ipautil.realm_to_suffix(self.realm)
@@ -1304,11 +1295,9 @@ class CAInstance(DogtagInstance):
         logger.debug('Retrieving keytab')
         installutils.create_keytab(self.keytab, self.principal)
         os.chmod(self.keytab, 0o600)
-        os.chown(self.keytab, pent.pw_uid, pent.pw_gid)
+        self.service_user.chown(self.keytab)
 
     def __setup_lightweight_ca_key_retrieval_custodia(self):
-        pent = pwd.getpwnam(self.service_user)
-
         logger.debug('Creating Custodia keys')
         custodia_basedn = DN(
             ('cn', 'custodia'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
@@ -1326,7 +1315,7 @@ class CAInstance(DogtagInstance):
         keystore = IPAKEMKeys({'server_keys': keyfile})
         keystore.generate_keys(self.service_prefix)
         os.chmod(keyfile, 0o600)
-        os.chown(keyfile, pent.pw_uid, pent.pw_gid)
+        self.service_user.chown(keyfile)
 
     def __remove_lightweight_ca_key_retrieval_custodia(self):
         keyfile = os.path.join(paths.PKI_TOMCAT,
@@ -1573,8 +1562,7 @@ class CAInstance(DogtagInstance):
             with open(target, 'w') as f:
                 f.write(filled)
                 os.fchmod(f.fileno(), 0o600)
-                pent = pwd.getpwnam(constants.PKI_USER)
-                os.fchown(f.fileno(), pent.pw_uid, pent.pw_gid)
+                self.service_user.chown(f.fileno())
 
         # deploy ACME Tomcat application
         ipautil.run(['pki-server', 'acme-deploy'])

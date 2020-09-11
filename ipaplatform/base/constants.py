@@ -5,35 +5,123 @@
 '''
 This base platform module exports platform dependant constants.
 '''
+import grp
+import os
+import pwd
 import sys
+
+
+class _Entity(str):
+    __slots__ = ("_entity", )
+
+    def __init__(self, name):
+        super().__init__()
+        self._entity = None
+
+    def __str__(self):
+        return super().__str__()
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} "{self!s}">'
+
+
+class User(_Entity):
+    __slots__ = ()
+
+    @property
+    def entity(self):
+        """User information struct
+
+        :return: pwd.struct_passwd instance
+        """
+        entity = self._entity
+        if entity is None:
+            try:
+                self._entity = entity = pwd.getpwnam(self)
+            except KeyError:
+                raise ValueError(f"user '{self!s}' not found") from None
+        return entity
+
+    @property
+    def uid(self):
+        """Numeric user id (int)
+        """
+        return self.entity.pw_uid
+
+    @property
+    def pgid(self):
+        """Primary group id (int)"""
+        return self.entity.pw_gid
+
+    def chown(self, path, gid=None, **kwargs):
+        """chown() file by path or file descriptor
+
+        gid defaults to user's primary gid. Use -1 to keep gid.
+        """
+        if gid is None:
+            gid = self.pgid
+        elif isinstance(gid, Group):
+            gid = gid.gid
+        os.chown(path, self.uid, gid, **kwargs)
+
+
+class Group(_Entity):
+    __slots__ = ()
+
+    @property
+    def entity(self):
+        """Group information
+
+        :return: grp.struct_group instance
+        """
+        entity = self._entity
+        if entity is None:
+            try:
+                self._entity = entity = grp.getgrnam(self)
+            except KeyError:
+                raise ValueError(f"group '{self!s}' not found") from None
+        return entity
+
+    @property
+    def gid(self):
+        """Numeric group id (int)
+        """
+        return self.entity.gr_gid
+
+    def chgrp(self, path, **kwargs):
+        """change group owner file by path or file descriptor
+        """
+        os.chown(path, -1, self.gid, **kwargs)
 
 
 class BaseConstantsNamespace:
     IS_64BITS = sys.maxsize > 2 ** 32
     DEFAULT_ADMIN_SHELL = '/bin/bash'
     DEFAULT_SHELL = '/bin/sh'
-    DS_USER = 'dirsrv'
-    DS_GROUP = 'dirsrv'
-    HTTPD_USER = "apache"
-    HTTPD_GROUP = "apache"
-    GSSPROXY_USER = "root"
+    IPAAPI_USER = User("ipaapi")
+    IPAAPI_GROUP = Group("ipaapi")
+    DS_USER = User("dirsrv")
+    DS_GROUP = Group("dirsrv")
+    HTTPD_USER = User("apache")
+    HTTPD_GROUP = Group("apache")
+    GSSPROXY_USER = User("root")
     IPA_ADTRUST_PACKAGE_NAME = "freeipa-server-trust-ad"
     IPA_DNS_PACKAGE_NAME = "freeipa-server-dns"
-    KDCPROXY_USER = "kdcproxy"
-    NAMED_USER = "named"
-    NAMED_GROUP = "named"
+    KDCPROXY_USER = User("kdcproxy")
+    NAMED_USER = User("named")
+    NAMED_GROUP = Group("named")
     NAMED_DATA_DIR = "data/"
     NAMED_OPTIONS_VAR = "OPTIONS"
     NAMED_OPENSSL_ENGINE = None
     NAMED_ZONE_COMMENT = ""
-    PKI_USER = 'pkiuser'
-    PKI_GROUP = 'pkiuser'
+    PKI_USER = User("pkiuser")
+    PKI_GROUP = Group("pkiuser")
     # ntpd init variable used for daemon options
     NTPD_OPTS_VAR = "OPTIONS"
     # quote used for daemon options
     NTPD_OPTS_QUOTE = "\""
-    ODS_USER = "ods"
-    ODS_GROUP = "ods"
+    ODS_USER = User("ods")
+    ODS_GROUP = Group("ods")
     # nfsd init variable used to enable kerberized NFS
     SECURE_NFS_VAR = "SECURE_NFS"
     SELINUX_BOOLEAN_ADTRUST = {
@@ -70,7 +158,7 @@ class BaseConstantsNamespace:
         "$sysadm_u:s0-s0:c0.c1023"
         "$unconfined_u:s0-s0:c0.c1023"
     )
-    SSSD_USER = "sssd"
+    SSSD_USER = User("sssd")
     # WSGI module override, only used on Fedora
     MOD_WSGI_PYTHON2 = None
     MOD_WSGI_PYTHON3 = None

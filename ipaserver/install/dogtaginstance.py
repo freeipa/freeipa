@@ -30,7 +30,6 @@ import shutil
 import traceback
 import dbus
 import re
-import pwd
 import lxml.etree
 
 from configparser import DEFAULTSECT, ConfigParser, RawConfigParser
@@ -363,11 +362,10 @@ class DogtagInstance(service.Service):
                 connector.attrib[secretattr] = self.ajp_secret
 
         if rewrite:
-            pent = pwd.getpwnam(constants.PKI_USER)
             with open(paths.PKI_TOMCAT_SERVER_XML, "wb") as fd:
                 server_xml.write(fd, pretty_print=True, encoding="utf-8")
                 os.fchmod(fd.fileno(), 0o660)
-                os.fchown(fd.fileno(), pent.pw_uid, pent.pw_gid)
+                self.service_user.chown(fd.fileno())
 
     def http_proxy(self):
         """ Update the http proxy file  """

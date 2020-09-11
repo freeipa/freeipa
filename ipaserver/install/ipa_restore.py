@@ -26,7 +26,6 @@ import shutil
 import sys
 import tempfile
 import time
-import pwd
 import ldif
 import itertools
 
@@ -346,16 +345,14 @@ class Restore(admintool.AdminTool):
                         )
                     )
 
-        pent = pwd.getpwnam(constants.DS_USER)
-
         # Temporary directory for decrypting files before restoring
         self.top_dir = tempfile.mkdtemp("ipa")
-        os.chown(self.top_dir, pent.pw_uid, pent.pw_gid)
+        constants.DS_USER.chown(self.top_dir)
         os.chmod(self.top_dir, 0o750)
         self.dir = os.path.join(self.top_dir, "ipa")
         os.mkdir(self.dir)
         os.chmod(self.dir, 0o750)
-        os.chown(self.dir, pent.pw_uid, pent.pw_gid)
+        constants.DS_USER.chown(self.dir)
 
         logger.info("Temporary setting umask to 022")
         old_umask = os.umask(0o022)
@@ -590,10 +587,9 @@ class Restore(admintool.AdminTool):
         srcldiffile = os.path.join(self.dir, ldifname)
 
         if not os.path.exists(ldifdir):
-            pent = pwd.getpwnam(constants.DS_USER)
             os.mkdir(ldifdir)
             os.chmod(ldifdir, 0o770)
-            os.chown(ldifdir, pent.pw_uid, pent.pw_gid)
+            constants.DS_USER.chown(ldifdir)
 
         ipautil.backup_file(ldiffile)
         with open(ldiffile, 'w') as out_file:
@@ -603,8 +599,7 @@ class Restore(admintool.AdminTool):
                 ldif_parser.parse()
 
         # Make sure the modified ldiffile is owned by DS_USER
-        pent = pwd.getpwnam(constants.DS_USER)
-        os.chown(ldiffile, pent.pw_uid, pent.pw_gid)
+        constants.DS_USER.chown(ldiffile)
 
         if online:
             conn = self.get_connection()
@@ -634,7 +629,7 @@ class Restore(admintool.AdminTool):
             except OSError as e:
                 pass
 
-            os.chown(template_dir, pent.pw_uid, pent.pw_gid)
+            constants.DS_USER.chown(template_dir)
             os.chmod(template_dir, 0o770)
 
             # Restore SELinux context of template_dir
@@ -825,9 +820,10 @@ class Restore(admintool.AdminTool):
                 ]
         run(args, cwd=self.dir)
 
-        pent = pwd.getpwnam(constants.DS_USER)
-        os.chown(self.top_dir, pent.pw_uid, pent.pw_gid)
-        recursive_chown(self.dir, pent.pw_uid, pent.pw_gid)
+        constants.DS_USER.chown(self.top_dir)
+        recursive_chown(
+            self.dir, constants.DS_USER.uid, constants.DS_USER.pgid
+        )
 
         if encrypt:
             # We can remove the decoded tarball
@@ -851,7 +847,7 @@ class Restore(admintool.AdminTool):
                      paths.TOMCAT_SIGNEDAUDIT_DIR]
 
         try:
-            pent = pwd.getpwnam(constants.PKI_USER)
+            pent = constants.PKI_USER.entity
         except KeyError:
             logger.debug("No %s user exists, skipping CA directory creation",
                          constants.PKI_USER)

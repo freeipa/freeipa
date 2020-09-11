@@ -22,7 +22,6 @@ from __future__ import print_function, absolute_import
 
 import logging
 import shutil
-import pwd
 import os
 import time
 import tempfile
@@ -630,14 +629,13 @@ class DsInstance(service.Service):
             logger.debug("Failed to clean temporary file: %s", e)
 
     def __add_default_schemas(self):
-        pent = pwd.getpwnam(DS_USER)
         for schema_fname in IPA_SCHEMA_FILES:
             target_fname = schema_dirname(self.serverid) + schema_fname
             shutil.copyfile(
                 os.path.join(paths.USR_SHARE_IPA_DIR, schema_fname),
                 target_fname)
             os.chmod(target_fname, 0o440)    # read access for dirsrv user/group
-            os.chown(target_fname, pent.pw_uid, pent.pw_gid)
+            DS_USER.chown(target_fname)
 
         try:
             shutil.move(schema_dirname(self.serverid) + "05rfc2247.ldif",
@@ -648,7 +646,7 @@ class DsInstance(service.Service):
                 os.path.join(paths.USR_SHARE_IPA_DIR, "05rfc2247.ldif"),
                 target_fname)
             os.chmod(target_fname, 0o440)
-            os.chown(target_fname, pent.pw_uid, pent.pw_gid)
+            DS_USER.chown(target_fname)
         except IOError:
             # Does not apply with newer DS releases
             pass
@@ -772,13 +770,12 @@ class DsInstance(service.Service):
         self._ldap_mod("repoint-managed-entries.ldif", self.sub_dict)
 
     def configure_systemd_ipa_env(self):
-        pent = pwd.getpwnam(platformconstants.DS_USER)
         template = os.path.join(
             paths.USR_SHARE_IPA_DIR, "ds-ipa-env.conf.template"
         )
         sub_dict = dict(
             KRB5_KTNAME=paths.DS_KEYTAB,
-            KRB5CCNAME=paths.TMP_KRB5CC % pent.pw_uid
+            KRB5CCNAME=paths.TMP_KRB5CC % platformconstants.DS_USER.uid
         )
         conf = ipautil.template_file(template, sub_dict)
 

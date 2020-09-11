@@ -20,7 +20,6 @@ from jwcrypto.common import json_decode
 import os
 import stat
 import time
-import pwd
 
 logger = logging.getLogger(__name__)
 
@@ -110,15 +109,14 @@ class CustodiaInstance(SimpleServiceInstance):
     def __config_file(self):
         template_file = os.path.basename(self.config_file) + '.template'
         template = os.path.join(paths.USR_SHARE_IPA_DIR, template_file)
-        httpd_info = pwd.getpwnam(constants.HTTPD_USER)
         sub_dict = dict(
             IPA_CUSTODIA_CONF_DIR=paths.IPA_CUSTODIA_CONF_DIR,
             IPA_CUSTODIA_KEYS=paths.IPA_CUSTODIA_KEYS,
             IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET,
             IPA_CUSTODIA_AUDIT_LOG=paths.IPA_CUSTODIA_AUDIT_LOG,
             LDAP_URI=ipaldap.realm_to_ldapi_uri(self.realm),
-            UID=httpd_info.pw_uid,
-            GID=httpd_info.pw_gid
+            UID=constants.HTTPD_USER.uid,
+            GID=constants.HTTPD_USER.pgid
         )
         conf = ipautil.template_file(template, sub_dict)
         with open(self.config_file, "w") as f:

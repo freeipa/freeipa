@@ -11,7 +11,6 @@ import re
 import os
 import glob
 import shutil
-import pwd
 import fileinput
 import ssl
 import stat
@@ -755,8 +754,7 @@ def copy_crl_file(old_path, new_path=None):
         os.symlink(realpath, new_path)
     else:
         shutil.copy2(old_path, new_path)
-        pent = pwd.getpwnam(constants.PKI_USER)
-        os.chown(new_path, pent.pw_uid, pent.pw_gid)
+        constants.PKI_USER.chown(new_path)
 
     tasks.restore_context(new_path)
 
@@ -1104,8 +1102,7 @@ def update_http_keytab(http):
                 'Cannot remove file %s (%s). Please remove the file manually.',
                 paths.OLD_IPA_KEYTAB, e
             )
-    pent = pwd.getpwnam(http.keytab_user)
-    os.chown(http.keytab, pent.pw_uid, pent.pw_gid)
+    http.keytab_user.chown(http.keytab)
 
 
 def ds_enable_sidgen_extdom_plugins(ds):

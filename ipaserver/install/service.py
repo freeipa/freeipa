@@ -22,7 +22,6 @@ from __future__ import absolute_import
 import logging
 import sys
 import os
-import pwd
 import socket
 import time
 import traceback
@@ -758,9 +757,7 @@ class Service:
             keytab = self.keytab
         if owner is None:
             owner = self.service_user
-
-        pent = pwd.getpwnam(owner)
-        os.chown(keytab, pent.pw_uid, pent.pw_gid)
+        owner.chown(keytab)
 
     def run_getkeytab(self, ldap_uri, keytab, principal, retrieve=False):
         """
