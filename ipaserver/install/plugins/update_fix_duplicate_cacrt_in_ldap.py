@@ -35,16 +35,16 @@ class update_fix_duplicate_cacrt_in_ldap(Updater):
     """
     When multiple entries exist for IPA CA cert in ldap, remove the duplicate
 
-    After this plugin, ds needs to be restarted. This ensures that
-    the attribute uniqueness plugin is working and prevents
-    other plugins from adding duplicates.
+    After this plugin has removed duplicate entries, DS needs to be
+    restarted. This ensures that the attribute uniqueness plugin is working
+    and prevents other plugins from adding duplicates.
     """
 
     def execute(self, **options):
         # If CA is disabled, no need to check for duplicates of IPA CA
         ca_enabled = self.api.Command.ca_is_enabled()['result']
         if not ca_enabled:
-            return True, []
+            return False, []
 
         # Look for the IPA CA cert subject
         ldap = self.api.Backend.ldap2
@@ -66,7 +66,7 @@ class update_fix_duplicate_cacrt_in_ldap(Updater):
         except errors.NotFound:
             # No duplicate, we're good
             logger.debug("No duplicates for IPA CA in LDAP")
-            return True, []
+            return False, []
 
         logger.debug("Found %d entrie(s) for IPA CA in LDAP", len(result))
         cacert_dn = DN(('cn', get_ca_nickname(self.api.env.realm)), base_dn)
