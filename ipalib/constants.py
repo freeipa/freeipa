@@ -23,18 +23,14 @@ All constants centralised in one file.
 """
 
 import os
-import socket
+
 from ipaplatform.constants import constants as _constants
 from ipapython.dn import DN
+from ipapython.fqdn import gethostfqdn
 from ipapython.version import VERSION, API_VERSION
 
-try:
-    FQDN = socket.getfqdn()
-except Exception:
-    try:
-        FQDN = socket.gethostname()
-    except Exception:
-        FQDN = None
+
+FQDN = gethostfqdn()
 
 # TLS related constants
 # * SSL2 and SSL3 are broken.

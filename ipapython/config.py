@@ -25,7 +25,6 @@ from optparse import (
 from copy import copy
 from configparser import SafeConfigParser
 from urllib.parse import urlsplit
-import socket
 import functools
 
 from dns.exception import DNSException
@@ -211,8 +210,11 @@ def __discover_config(discover_server = True):
                 servers = query_srv(name)
             except DNSException:
                 # try cycling on domain components of FQDN
+                # pylint: disable=ipa-forbidden-import
+                from ipalib.constants import FQDN
+                # pylint: enable=ipa-forbidden-import
                 try:
-                    domain = dns.name.from_text(socket.getfqdn())
+                    domain = dns.name.from_text(FQDN)
                 except DNSException:
                     return False
 

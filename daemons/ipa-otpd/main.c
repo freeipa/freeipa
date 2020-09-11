@@ -32,6 +32,7 @@
 
 #include <signal.h>
 #include <stdbool.h>
+#include "ipa_hostname.h"
 
 /* Our global state. */
 struct otpd_context ctx;
@@ -212,7 +213,7 @@ static krb5_error_code setup_ldap(const char *uri, krb5_boolean bind,
 
 int main(int argc, char **argv)
 {
-    char hostname[HOST_NAME_MAX + 1];
+    char hostname[IPA_HOST_NAME_LEN];
     krb5_error_code retval;
     krb5_data hndata;
     verto_ev *sig;
@@ -227,7 +228,7 @@ int main(int argc, char **argv)
     memset(&ctx, 0, sizeof(ctx));
     ctx.exitstatus = 1;
 
-    if (gethostname(hostname, sizeof(hostname)) < 0) {
+    if (ipa_gethostfqdn(hostname) < 0) {
         otpd_log_err(errno, "Unable to get hostname");
         goto error;
     }
