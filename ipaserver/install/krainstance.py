@@ -34,7 +34,6 @@ from ipapython import ipautil
 from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
-from ipaserver.install import ldapupdate
 from ipaserver.install.dogtaginstance import DogtagInstance
 from ipaserver.plugins import ldap2
 
@@ -274,13 +273,7 @@ class KRAInstance(DogtagInstance):
             'vault.ldif', {'SUFFIX': self.suffix}, raise_on_err=True)
 
     def __apply_updates(self):
-        sub_dict = {
-            'SUFFIX': self.suffix,
-        }
-
-        ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password,
-                                   sub_dict=sub_dict)
-        ld.update([os.path.join(paths.UPDATES_DIR, '40-vault.update')])
+        self._ldap_update(['40-vault.update'])
 
     def enable_ephemeral(self):
         """

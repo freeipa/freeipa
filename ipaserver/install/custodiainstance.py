@@ -14,7 +14,6 @@ from ipaserver.install.service import SimpleServiceInstance
 from ipapython import ipautil
 from ipapython import ipaldap
 from ipapython.certdb import NSSDatabase
-from ipaserver.install import ldapupdate
 from ipaserver.install import sysupgrade
 from base64 import b64decode
 from jwcrypto.common import json_decode
@@ -190,13 +189,7 @@ class CustodiaInstance(SimpleServiceInstance):
         """
         Runs the custodia update file to ensure custodia container is present.
         """
-
-        sub_dict = {
-            'SUFFIX': self.suffix,
-        }
-
-        updater = ldapupdate.LDAPUpdate(sub_dict=sub_dict)
-        updater.update([os.path.join(paths.UPDATES_DIR, '73-custodia.update')])
+        self._ldap_update(['73-custodia.update'])
 
     def import_ra_key(self):
         cli = self._get_custodia_client()
