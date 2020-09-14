@@ -42,6 +42,7 @@ from ipaserver.masters import (
     CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE, SERVICE_LIST
 )
 from ipaserver.servroles import HIDDEN
+from ipaserver.install.ldapupdate import LDAPUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -312,6 +313,7 @@ class Service:
         self.keytab_user = service_user
         self.dm_password = None  # silence pylint
         self.promote = False
+        self.sub_dict = None
 
     @property
     def principal(self):
@@ -322,6 +324,25 @@ class Service:
         return unicode(
             kerberos.Principal(
                 (self.service_prefix, self.fqdn), realm=self.realm))
+
+    def _ldap_update(
+            self, filenames, *, basedir=paths.UPDATES_DIR, sub_dict=None
+    ):
+        """Apply update ldif files
+
+        :param filenames: list of file names
+        :param basedir: base directory for files (default: UPDATES_DIR)
+        :param sub_dict: substitution dict (defaults to self.sub_dict)
+        :return: modified state
+        """
+        assert isinstance(filenames, (list, tuple))
+        if sub_dict is None:
+            sub_dict = self.sub_dict
+        if basedir is not None:
+            filenames = [os.path.join(basedir, fname) for fname in filenames]
+        ld = LDAPUpdate(sub_dict=sub_dict)
+        # assume that caller supplies files in correct order
+        return ld.update(filenames, ordered=False)
 
     def _ldap_mod(self, ldif, sub_dict=None, raise_on_err=True,
                   ldap_uri=None, dm_password=None):
