@@ -58,7 +58,6 @@ from ipaserver.secrets.kem import IPAKEMKeys
 from ipaserver.install import certs
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
-from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
 from ipaserver.install.dogtaginstance import DogtagInstance, INTERNAL_TOKEN
@@ -667,11 +666,14 @@ class CAInstance(DogtagInstance):
         db.create_passwd_file(passwd)
 
     def __update_topology(self):
-        ld = ldapupdate.LDAPUpdate(ldapi=True, sub_dict={
-            'SUFFIX': api.env.basedn,
-            'FQDN': self.fqdn,
-        })
-        ld.update([paths.CA_TOPOLOGY_ULDIF])
+        self._ldap_update(
+            [paths.CA_TOPOLOGY_ULDIF],
+            basedir=None,
+            sub_dict={
+                'SUFFIX': api.env.basedn,
+                'FQDN': self.fqdn,
+            }
+        )
 
     def __disable_nonce(self):
         # Turn off Nonces
@@ -1356,13 +1358,13 @@ class CAInstance(DogtagInstance):
                 "Did not find any lightweight CAs; nothing to track")
 
     def __dogtag10_migration(self):
-        ld = ldapupdate.LDAPUpdate(ldapi=True, sub_dict={
-            'SUFFIX': api.env.basedn,
-            'FQDN': self.fqdn,
-        })
-        ld.update([os.path.join(paths.UPDATES_DIR,
-                                '50-dogtag10-migration.update')]
-                  )
+        self._ldap_update(
+            ['50-dogtag10-migration.update'],
+            sub_dict={
+                'SUFFIX': api.env.basedn,
+                'FQDN': self.fqdn,
+            }
+        )
 
     def is_crlgen_enabled(self):
         """Check if the local CA instance is generating CRL
