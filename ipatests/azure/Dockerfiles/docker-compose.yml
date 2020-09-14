@@ -8,7 +8,7 @@ services:
     security_opt:
     - apparmor:unconfined
     - seccomp:./seccomp.json
-    mem_limit: 1900m
+    mem_limit: "1900m"
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     - ./ipa-test-config.yaml:/root/.ipa/ipa-test-config.yaml:ro
@@ -25,7 +25,7 @@ services:
     security_opt:
     - apparmor:unconfined
     - seccomp:./seccomp.json
-    mem_limit: 1900m
+    mem_limit: "1900m"
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     networks:
@@ -39,7 +39,7 @@ services:
     security_opt:
     - apparmor:unconfined
     - seccomp:./seccomp.json
-    mem_limit: 536870912
+    mem_limit: "536870912"
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     # nfs server
