@@ -6,6 +6,7 @@ cn:krbPrincipalName
 nsSystemIndex:false
 nsIndexType:eq
 nsIndexType:sub
+nsIndexType:pres
 nsMatchingRule:caseIgnoreIA5Match
 nsMatchingRule:caseExactIA5Match
 
