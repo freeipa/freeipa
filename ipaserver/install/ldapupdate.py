@@ -149,7 +149,7 @@ class LDAPUpdate:
         ('cn', 'plugins'), ('cn', 'config')
     )
 
-    def __init__(self, dm_password=None, sub_dict={},
+    def __init__(self, dm_password=None, sub_dict=None,
                  online=True, ldapi=False):
         '''
         :parameters:
@@ -265,7 +265,7 @@ class LDAPUpdate:
         update format.
 
         '''
-        self.sub_dict = sub_dict
+        self.sub_dict = sub_dict if sub_dict is not None else {}
         self.dm_password = dm_password
         self.conn = None
         self.modified = False
@@ -279,8 +279,8 @@ class LDAPUpdate:
         )
         suffix = None
 
-        if sub_dict.get("REALM"):
-            self.realm = sub_dict["REALM"]
+        if self.sub_dict.get("REALM"):
+            self.realm = self.sub_dict["REALM"]
         else:
             self.realm = api.env.realm
             suffix = ipautil.realm_to_suffix(self.realm) if self.realm else None

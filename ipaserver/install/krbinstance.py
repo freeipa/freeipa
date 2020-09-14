@@ -42,8 +42,6 @@ from ipapython.dn import DN
 from ipapython.dogtag import KDC_PROFILE
 
 from ipaserver.install import replication
-from ipaserver.install import ldapupdate
-
 from ipaserver.install import certs
 from ipaserver.masters import find_providing_servers
 from ipaplatform.constants import constants
@@ -162,9 +160,7 @@ class KrbInstance(service.Service):
         api.Backend.ldap2.add_entry(host_entry)
 
         # Add the host to the ipaserver host group
-        ld = ldapupdate.LDAPUpdate(ldapi=True)
-        ld.update([os.path.join(paths.UPDATES_DIR,
-                                '20-ipaservers_hostgroup.update')])
+        self._ldap_update(['20-ipaservers_hostgroup.update'])
 
     def __common_setup(self, realm_name, host_name, domain_name, admin_password):
         self.fqdn = host_name
