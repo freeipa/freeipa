@@ -63,7 +63,7 @@ class TestUpdate:
                 self.dm_password = fp.read().rstrip()
         else:
             pytest.skip("No directory manager password")
-        self.updater = LDAPUpdate(dm_password=self.dm_password, sub_dict={})
+        self.updater = LDAPUpdate()
         self.ld = ipaldap.LDAPClient.from_hostname_secure(fqdn)
         self.ld.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                             bind_password=self.dm_password)

@@ -29,8 +29,8 @@ import sys
 import uuid
 import time
 import os
-import pwd
 import fnmatch
+import warnings
 
 import six
 
@@ -134,28 +134,33 @@ def safe_output(attr, values):
     return values
 
 
+_sentinel = object()
+
+
 class LDAPUpdate:
-    action_keywords = [
+    action_keywords = {
         "default", "add", "remove", "only", "onlyifexist", "deleteentry",
         "replace", "addifnew", "addifexist"
-    ]
+    }
     index_suffix = DN(
         ('cn', 'index'), ('cn', 'userRoot'), ('cn', 'ldbm database'),
         ('cn', 'plugins'), ('cn', 'config')
     )
 
-    def __init__(self, dm_password=None, sub_dict=None,
-                 online=True, ldapi=False):
+    def __init__(self, dm_password=_sentinel, sub_dict=None,
+                 online=_sentinel, ldapi=_sentinel, api=api):
         '''
         :parameters:
             dm_password
-                Directory Manager password
+                deprecated and no longer used
             sub_dict
                 substitution dictionary
             online
-                Do an online LDAP update or use an experimental LDIF updater
+                deprecated and no longer used
             ldapi
-                Bind using ldapi. This assumes autobind is enabled.
+                deprecated and no longer used
+            api
+                bootstrapped API object (for configuration)
 
         Data Structure Example:
         -----------------------
@@ -260,82 +265,49 @@ class LDAPUpdate:
         update format.
 
         '''
+        if any(arg is not _sentinel for arg in (dm_password, online, ldapi)):
+            warnings.warn(
+                "dm_password, online, and ldapi arguments are deprecated",
+                DeprecationWarning,
+                stacklevel=2
+            )
         self.sub_dict = sub_dict if sub_dict is not None else {}
-        self.dm_password = dm_password
         self.conn = None
         self.modified = False
-        self.online = online
-        self.ldapi = ldapi
-        self.pw_name = pwd.getpwuid(os.geteuid()).pw_name
-        self.realm = None
-        self.socket_name = (
-            paths.SLAPD_INSTANCE_SOCKET_TEMPLATE %
-            api.env.realm.replace('.', '-')
-        )
-        suffix = None
+        self.ldapuri = ipaldap.realm_to_ldapi_uri(api.env.realm)
 
-        if self.sub_dict.get("REALM"):
-            self.realm = self.sub_dict["REALM"]
-        else:
-            self.realm = api.env.realm
-            suffix = ipautil.realm_to_suffix(self.realm) if self.realm else None
-
-        self.ldapuri = ipaldap.realm_to_ldapi_uri(self.realm)
-        if suffix is not None:
-            assert isinstance(suffix, DN)
-
-        fqdn = installutils.get_fqdn()
-        if fqdn is None:
-            raise RuntimeError("Unable to determine hostname")
-
-        if not self.sub_dict.get("REALM") and self.realm is not None:
-            self.sub_dict["REALM"] = self.realm
-        if not self.sub_dict.get("FQDN"):
-            self.sub_dict["FQDN"] = fqdn
-        if not self.sub_dict.get("DOMAIN"):
-            self.sub_dict["DOMAIN"] = api.env.domain
-        if not self.sub_dict.get("SUFFIX") and suffix is not None:
-            self.sub_dict["SUFFIX"] = suffix
-        if not self.sub_dict.get("ESCAPED_SUFFIX"):
-            self.sub_dict["ESCAPED_SUFFIX"] = str(suffix)
-        if not self.sub_dict.get("LIBARCH"):
-            self.sub_dict["LIBARCH"] = paths.LIBARCH
-        if not self.sub_dict.get("TIME"):
-            self.sub_dict["TIME"] = int(time.time())
-        if not self.sub_dict.get("MIN_DOMAIN_LEVEL"):
-            self.sub_dict["MIN_DOMAIN_LEVEL"] = str(constants.MIN_DOMAIN_LEVEL)
-        if not self.sub_dict.get("MAX_DOMAIN_LEVEL"):
-            self.sub_dict["MAX_DOMAIN_LEVEL"] = str(constants.MAX_DOMAIN_LEVEL)
-        if not self.sub_dict.get("STRIP_ATTRS"):
-            self.sub_dict["STRIP_ATTRS"] = "%s" % (
-                " ".join(constants.REPL_AGMT_STRIP_ATTRS),)
-        if not self.sub_dict.get("EXCLUDES"):
-            self.sub_dict["EXCLUDES"] = "(objectclass=*) $ EXCLUDE %s" % (
-                " ".join(constants.REPL_AGMT_EXCLUDES),)
-        if not self.sub_dict.get("TOTAL_EXCLUDES"):
-            self.sub_dict["TOTAL_EXCLUDES"] = "(objectclass=*) $ EXCLUDE " + \
+        default_sub = dict(
+            REALM=api.env.realm,
+            DOMAIN=api.env.domain,
+            SUFFIX=api.env.basedn,
+            ESCAPED_SUFFIX=str(api.env.basedn),
+            FQDN=api.env.host,
+            LIBARCH=paths.LIBARCH,
+            TIME=int(time.time()),
+            MIN_DOMAIN_LEVEL=str(constants.MIN_DOMAIN_LEVEL),
+            MAX_DOMAIN_LEVEL=str(constants.MAX_DOMAIN_LEVEL),
+            STRIP_ATTRS=" ".join(constants.REPL_AGMT_STRIP_ATTRS),
+            EXCLUDES="(objectclass=*) $ EXCLUDE %s" % (
+                " ".join(constants.REPL_AGMT_EXCLUDES)
+            ),
+            TOTAL_EXCLUDES="(objectclass=*) $ EXCLUDE %s" % (
                 " ".join(constants.REPL_AGMT_TOTAL_EXCLUDES)
-        if not self.sub_dict.get("SELINUX_USERMAP_DEFAULT"):
-            self.sub_dict["SELINUX_USERMAP_DEFAULT"] = \
-                platformconstants.SELINUX_USERMAP_DEFAULT
-        if not self.sub_dict.get("SELINUX_USERMAP_ORDER"):
-            self.sub_dict["SELINUX_USERMAP_ORDER"] = \
-                platformconstants.SELINUX_USERMAP_ORDER
-        if "FIPS" not in self.sub_dict:
-            self.sub_dict["FIPS"] = '#' if tasks.is_fips_enabled() else ''
+            ),
+            SELINUX_USERMAP_DEFAULT=platformconstants.SELINUX_USERMAP_DEFAULT,
+            SELINUX_USERMAP_ORDER=platformconstants.SELINUX_USERMAP_ORDER,
+            FIPS="#" if tasks.is_fips_enabled() else "",
+        )
+        for k, v in default_sub.items():
+            self.sub_dict.setdefault(k, v)
+
         self.api = create_api(mode=None)
-        self.api.bootstrap(in_server=True,
-                           context='updates',
-                           confdir=paths.ETC_IPA,
-                           ldap_uri=self.ldapuri)
+        self.api.bootstrap(
+            in_server=True,
+            context='updates',
+            confdir=paths.ETC_IPA,
+            ldap_uri=self.ldapuri
+        )
         self.api.finalize()
-        if online:
-            # Try out the connection/password
-            # (This will raise if the server is not available)
-            self.create_connection()
-            self.close_connection()
-        else:
-            raise RuntimeError("Offline updates are not supported.")
 
     def _template_str(self, s):
         try:
@@ -913,13 +885,11 @@ class LDAPUpdate:
             self.create_connection()
 
     def create_connection(self):
-        if self.online:
+        if self.conn is None:
             self.api.Backend.ldap2.connect(
                 time_limit=UPDATE_SEARCH_TIME_LIMIT,
                 size_limit=0)
             self.conn = self.api.Backend.ldap2
-        else:
-            raise RuntimeError("Offline updates are not supported.")
 
     def _run_updates(self, all_updates):
         index_attributes = set()
