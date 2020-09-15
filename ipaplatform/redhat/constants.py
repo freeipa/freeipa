@@ -10,7 +10,10 @@ related constants for the Red Hat OS family-based systems.
 # Fallback to default path definitions
 from __future__ import absolute_import
 
-from ipaplatform.base.constants import BaseConstantsNamespace
+from ipaplatform.base.constants import BaseConstantsNamespace, User, Group
+
+
+__all__ = ("constants", "User", "Group")
 
 
 class RedHatConstantsNamespace(BaseConstantsNamespace):

@@ -11,6 +11,9 @@ related constants for the SUSE OS family-based systems.
 from ipaplatform.base.constants import BaseConstantsNamespace, User, Group
 
 
+__all__ = ("constants", "User", "Group")
+
+
 class SuseConstantsNamespace(BaseConstantsNamespace):
     HTTPD_USER = User("wwwrun")
     HTTPD_GROUP = Group("www")

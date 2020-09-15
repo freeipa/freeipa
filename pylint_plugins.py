@@ -239,8 +239,8 @@ MANAGER.register_transform(scoped_nodes.ClassDef, fix_ipa_classes)
 
 def ipaplatform_constants_transform():
     return AstroidBuilder(MANAGER).string_build(textwrap.dedent('''
-    from ipaplatform.base.constants import constants
-    __all__ = ('constants',)
+    from ipaplatform.base.constants import constants, User, Group
+    __all__ = ('constants', 'User', 'Group')
     '''))
 
 
