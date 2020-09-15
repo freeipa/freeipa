@@ -32,10 +32,7 @@ class update_ca_topology(Updater):
             logger.debug("CA is not configured on this host")
             return False, []
 
-        ld = ldapupdate.LDAPUpdate(ldapi=True, sub_dict={
-            'SUFFIX': self.api.env.basedn,
-            'FQDN': self.api.env.host,
-        })
+        ld = ldapupdate.LDAPUpdate(api=self.api)
 
         ld.update([paths.CA_TOPOLOGY_ULDIF])
 

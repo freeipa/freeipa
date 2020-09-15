@@ -142,10 +142,7 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
                 options.schema_files,
                 ldapi=True) or modified
 
-        ld = LDAPUpdate(
-            sub_dict={},
-            ldapi=True)
-
+        ld = LDAPUpdate()
         if not self.files:
             self.files = ld.get_all_files(UPDATES_DIR)
 

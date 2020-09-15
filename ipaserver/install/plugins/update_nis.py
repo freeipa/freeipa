@@ -67,7 +67,7 @@ class update_nis_configuration(Updater):
                                      True)
 
         # bug is effective run update to recreate missing maps
-        ld = LDAPUpdate(sub_dict={}, ldapi=True)
+        ld = LDAPUpdate(api=self.api)
         ld.update([paths.NIS_ULDIF])
 
     def execute(self, **options):
@@ -86,7 +86,7 @@ class update_nis_configuration(Updater):
             self.__recover_from_missing_maps(ldap)
 
             logger.debug("Executing NIS Server update")
-            ld = LDAPUpdate(sub_dict={}, ldapi=True)
+            ld = LDAPUpdate(api=self.api)
             ld.update([paths.NIS_UPDATE_ULDIF])
 
         return False, ()
