@@ -62,6 +62,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_simple_replication.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -74,6 +75,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
         template: *ci-ipa-4-8-latest
         timeout: 4800
@@ -86,6 +88,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -98,6 +101,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -110,6 +114,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_topologies.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -122,6 +127,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_sudo.py
         template: *ci-ipa-4-8-latest
         timeout: 4800
@@ -134,6 +140,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_commands.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -146,6 +153,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_kerberos_flags.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -158,6 +166,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_http_kdc_proxy.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -170,6 +179,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_fips.py
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -182,6 +192,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_forced_client_reenrollment.py
         template: *ci-ipa-4-8-latest
         timeout: 4800
@@ -194,6 +205,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_advise.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -206,6 +218,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_testconfig.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -218,6 +231,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_service_permissions.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -230,6 +244,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_netgroup.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -242,6 +257,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_vault.py
         template: *ci-ipa-4-8-latest
         timeout: 6300
@@ -254,6 +270,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_authselect.py
         template: *ci-ipa-4-8-latest
         timeout: 4800
@@ -266,6 +283,7 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_smb.py
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -278,6 +296,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_server_del.py
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -290,6 +309,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA1
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -302,6 +322,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA2
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -314,6 +335,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallCA
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -326,6 +348,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA1
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -338,6 +361,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA2
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -350,6 +374,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS1
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -362,6 +387,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS2
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -374,6 +400,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS3
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -386,6 +413,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS4
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -398,6 +426,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS1
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -410,6 +439,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS2
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -422,6 +452,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallMaster
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -434,6 +465,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallMasterKRA
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -446,6 +478,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallMasterDNS
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -458,6 +491,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallMasterDNSRepeatedly
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -470,6 +504,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallMasterReservedIPasForwarder
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -482,6 +517,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallMasterReplica
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -494,6 +530,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestInstallReplicaAgainstSpecificServer
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -506,6 +543,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestADTrustInstall
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -518,6 +556,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -530,6 +569,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -542,6 +582,7 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_idviews.py
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -554,6 +595,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_caless.py::TestServerInstall
         template: *ci-ipa-4-8-latest
         timeout: 12000
@@ -566,6 +608,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_caless.py::TestReplicaInstall
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -578,6 +621,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_caless.py::TestClientInstall
         template: *ci-ipa-4-8-latest
         timeout: 5400
@@ -591,6 +635,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_caless.py::TestIPACommands
         template: *ci-ipa-4-8-latest
         timeout: 5400
@@ -603,6 +648,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_caless.py::TestCertInstall
         template: *ci-ipa-4-8-latest
         timeout: 5400
@@ -615,6 +661,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_caless.py::TestPKINIT
         template: *ci-ipa-4-8-latest
         timeout: 5400
@@ -627,6 +674,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
         template: *ci-ipa-4-8-latest
         timeout: 5400
@@ -639,6 +687,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_caless.py::TestReplicaCALessToCAFull
         template: *ci-ipa-4-8-latest
         timeout: 5400
@@ -651,6 +700,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_caless.py::TestServerCALessToExternalCA
         template: *ci-ipa-4-8-latest
         timeout: 5400
@@ -663,6 +713,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestUserRootFilesOwnershipPermission
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -675,6 +726,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestore
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -687,6 +739,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNSSEC
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -699,6 +752,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNSSEC
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -711,6 +765,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNS
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -723,6 +778,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNS
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -735,6 +791,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithKRA
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -747,6 +804,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithKRA
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -759,6 +817,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -771,6 +830,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreDMPassword
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -783,6 +843,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestReplicaInstallAfterRestore
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -795,6 +856,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupRoles
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -807,6 +869,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_dnssec.py
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -819,6 +882,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -831,6 +895,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestUnprivilegedUserPermissions
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -843,6 +908,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestProhibitReplicaUninstallation
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -855,6 +921,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestWrongClientDomain
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -867,6 +934,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestRenewalMaster
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -879,6 +947,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallWithExistingEntry
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -891,6 +960,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -903,6 +973,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallCustodia
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -915,6 +986,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInForwardZone
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -927,6 +999,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestHiddenReplicaPromotion
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -939,6 +1012,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replica_promotion.py::TestHiddenReplicaKRA
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -951,6 +1025,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_upgrade.py
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -963,6 +1038,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_topology.py::TestCASpecificRUVs
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -975,6 +1051,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_topology.py::TestTopologyOptions
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -987,6 +1064,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -999,6 +1077,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCA
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -1011,6 +1090,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCAKRA
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -1023,6 +1103,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithoutCA
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -1035,6 +1116,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCA
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -1047,6 +1129,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCAKRA
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -1059,6 +1142,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithoutCA
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -1071,6 +1155,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCA
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -1083,6 +1168,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCAKRA
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -1095,6 +1181,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_uninstallation.py
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -1107,6 +1194,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_user_permissions.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1119,6 +1207,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_webui/test_cert.py
         template: *ci-ipa-4-8-latest
         timeout: 2400
@@ -1131,6 +1220,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: >-
           test_webui/test_loginscreen.py
           test_webui/test_misc_cases.py
@@ -1147,6 +1237,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_webui/test_host.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1159,6 +1250,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: >-
           test_webui/test_hostgroup.py
           test_webui/test_netgroup.py
@@ -1173,6 +1265,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: >-
           test_webui/test_automember.py
           test_webui/test_idviews.py
@@ -1187,6 +1280,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: >-
           test_webui/test_automount.py
           test_webui/test_dns.py
@@ -1202,6 +1296,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: >-
           test_webui/test_hbac.py
           test_webui/test_krbtpolicy.py
@@ -1219,6 +1314,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: >-
           test_webui/test_delegation.py
           test_webui/test_rbac.py
@@ -1234,6 +1330,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: >-
           test_webui/test_config.py
           test_webui/test_range.py
@@ -1250,6 +1347,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_webui/test_service.py
         template: *ci-ipa-4-8-latest
         timeout: 2400
@@ -1262,6 +1360,7 @@ jobs:
       class: RunWebuiTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: >-
           test_webui/test_group.py
           test_webui/test_user.py
@@ -1276,6 +1375,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_customized_ds_config_install.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1288,6 +1388,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_dns_locations.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1300,6 +1401,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAdirsrvStop
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1312,6 +1414,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAInvalidCert test_integration/test_external_ca.py::TestExternalCAInvalidIntermediate
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1324,6 +1427,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_external_ca.py::TestMultipleExternalCA
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1336,6 +1440,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1348,6 +1453,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA test_integration/test_ipahealthcheck.py::TestIpaHealthCheckFileCheck
         template: *ci-ipa-4-8-latest
         timeout: 5400
@@ -1360,6 +1466,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCLI test_integration/test_ipahealthcheck.py::TestIpaHealthCheckFilesystemSpace
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1372,6 +1479,7 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithADtrust
         template: *ci-ipa-4-8-latest
         timeout: 4800
@@ -1384,6 +1492,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_ntp_options.py::TestNTPoptions
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -1396,6 +1505,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_otp.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1408,6 +1518,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_pkinit_manage.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1420,6 +1531,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_pki_config_override.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1432,6 +1544,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_nfs.py::TestNFS
         template: *ci-ipa-4-8-latest
         timeout: 9000
@@ -1444,6 +1557,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_nfs.py::TestIpaClientAutomountFileRestore
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1456,6 +1570,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_installation.py::TestMaskInstall
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1468,6 +1583,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_automember.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1480,6 +1596,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_crlgen_manage.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1492,6 +1609,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_cli_ipa_not_configured.py::TestIPANotConfigured
         template: *ci-ipa-4-8-latest
         timeout: 10800
@@ -1504,6 +1622,7 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_sssd.py
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -1516,6 +1635,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_ca_custom_sdn.py
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -1528,6 +1648,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_membermanager.py
         template: *ci-ipa-4-8-latest
         timeout: 1800
@@ -1540,6 +1661,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_krbtpolicy.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1552,6 +1674,7 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_winsyncmigrate.py
         template: *ci-ipa-4-8-latest
         timeout: 4800
@@ -1564,6 +1687,7 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_trust.py
         template: *ci-ipa-4-8-latest
         timeout: 9000
@@ -1576,6 +1700,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreTrust
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -1588,6 +1713,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_adtrust_install.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
@@ -1600,6 +1726,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_cert.py
         template: *ci-ipa-4-8-latest
         timeout: 5400
@@ -1612,6 +1739,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_epn.py
         template: *ci-ipa-4-8-latest
         timeout: 7200
@@ -1624,6 +1752,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-8/build_url}'
+        selinux_enforcing: True
         test_suite: test_integration/test_dns.py
         template: *ci-ipa-4-8-latest
         timeout: 3600
