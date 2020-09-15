@@ -9,12 +9,17 @@ This RHEL base platform module exports platform related constants.
 # Fallback to default constant definitions
 from __future__ import absolute_import
 
-from ipaplatform.redhat.constants import RedHatConstantsNamespace
+from ipaplatform.redhat.constants import (
+    RedHatConstantsNamespace, User, Group
+)
 from ipaplatform.osinfo import osinfo
 
 # RHEL 7 and earlier use /etc/sysconfig/nfs
 # RHEL 8 uses /etc/nfs.conf
 HAS_NFS_CONF = osinfo.version_number >= (8,)
+
+
+__all__ = ("constants", "User", "Group")
 
 
 class RHELConstantsNamespace(RedHatConstantsNamespace):

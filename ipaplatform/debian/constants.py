@@ -12,6 +12,9 @@ from __future__ import absolute_import
 from ipaplatform.base.constants import BaseConstantsNamespace, User, Group
 
 
+__all__ = ("constants", "User", "Group")
+
+
 class DebianConstantsNamespace(BaseConstantsNamespace):
     HTTPD_USER = User("www-data")
     HTTPD_GROUP = Group("www-data")

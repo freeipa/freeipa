@@ -3,7 +3,10 @@
 #
 """RHEL container constants
 """
-from ipaplatform.rhel.constants import RHELConstantsNamespace
+from ipaplatform.rhel.constants import RHELConstantsNamespace, User, Group
+
+
+__all__ = ("constants", "User", "Group")
 
 
 class RHELContainerConstantsNamespace(RHELConstantsNamespace):

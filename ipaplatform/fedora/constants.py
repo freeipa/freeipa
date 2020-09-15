@@ -9,13 +9,18 @@ This Fedora base platform module exports platform related constants.
 # Fallback to default constant definitions
 from __future__ import absolute_import
 
-from ipaplatform.redhat.constants import RedHatConstantsNamespace
+from ipaplatform.redhat.constants import (
+    RedHatConstantsNamespace, User, Group
+)
 from ipaplatform.osinfo import osinfo
 
 # Fedora 28 and earlier use /etc/sysconfig/nfs
 # Fedora 30 and later use /etc/nfs.conf
 # Fedora 29 has both
 HAS_NFS_CONF = osinfo.version_number >= (30,)
+
+
+__all__ = ("constants", "User", "Group")
 
 
 class FedoraConstantsNamespace(RedHatConstantsNamespace):
