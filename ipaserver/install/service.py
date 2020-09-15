@@ -36,6 +36,7 @@ from ipapython.dn import DN
 from ipapython import kerberos
 from ipalib import api, errors, x509
 from ipaplatform import services
+from ipaplatform.constants import User
 from ipaplatform.paths import paths
 from ipaserver.masters import (
     CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE, SERVICE_LIST
@@ -308,6 +309,8 @@ class Service:
         self.keytab = keytab
         self.cert = None
         self.api = api
+        if service_user is not None:
+            service_user = User(service_user)
         self.service_user = service_user
         self.keytab_user = service_user
         self.dm_password = None  # silence pylint

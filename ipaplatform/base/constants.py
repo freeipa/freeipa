@@ -14,6 +14,13 @@ import sys
 class _Entity(str):
     __slots__ = ("_entity", )
 
+    def __new__(cls, name):
+        # if 'name' is already an instance of cls, return identical name
+        if isinstance(name, cls):
+            return name
+        else:
+            return super().__new__(cls, name)
+
     def __init__(self, name):
         super().__init__()
         self._entity = None

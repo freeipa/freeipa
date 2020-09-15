@@ -10,10 +10,14 @@ def test_user_root():
     user = User("root")
     assert user == "root"
     assert str(user) == "root"
+    assert type(str(user)) is str
     assert repr(user) == '<User "root">'
     assert user.uid == 0
     assert user.pgid == 0
     assert user.entity.pw_uid == 0
+
+    assert User(user) is user
+    assert User(str(user)) is not user
 
 
 def test_user_invalid():
@@ -27,9 +31,13 @@ def test_group():
     group = Group("root")
     assert group == "root"
     assert str(group) == "root"
+    assert type(str(group)) is str
     assert repr(group) == '<Group "root">'
     assert group.gid == 0
     assert group.entity.gr_gid == 0
+
+    assert Group(group) is group
+    assert Group(str(group)) is not group
 
 
 def test_group_invalid():
@@ -51,3 +59,5 @@ def test_user_group_daemon():
     group = Group("daemon")
     assert group == "daemon"
     assert group.gid == 2
+
+    assert Group(user) is not user
