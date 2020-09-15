@@ -132,7 +132,7 @@ def main():
                 print("Enabling plugin")
 
                 if entry is None:
-                    ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
+                    ld = LDAPUpdate()
                     if not ld.update(files):
                         print("Updating Directory Server failed.")
                         retval = 1

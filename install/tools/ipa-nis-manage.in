@@ -149,7 +149,7 @@ def main():
         # could be turned off, handle both cases.
         if entry is None:
             print("Enabling plugin")
-            ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, ldapi=True)
+            ld = LDAPUpdate()
             if ld.update(files) != True:
                 retval = 1
         elif entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':

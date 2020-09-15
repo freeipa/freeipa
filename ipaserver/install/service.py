@@ -313,7 +313,6 @@ class Service:
         self.keytab_user = service_user
         self.dm_password = None  # silence pylint
         self.promote = False
-        self.sub_dict = None
 
     @property
     def principal(self):
@@ -325,22 +324,20 @@ class Service:
             kerberos.Principal(
                 (self.service_prefix, self.fqdn), realm=self.realm))
 
-    def _ldap_update(
-            self, filenames, *, basedir=paths.UPDATES_DIR, sub_dict=None
-    ):
+    def _ldap_update(self, filenames, *, basedir=paths.UPDATES_DIR):
         """Apply update ldif files
+
+        Note: Additional substitution must be added to LDAPUpdate() to ensure
+        that ipa-ldap-updater is able to handle all update files as well.
 
         :param filenames: list of file names
         :param basedir: base directory for files (default: UPDATES_DIR)
-        :param sub_dict: substitution dict (defaults to self.sub_dict)
         :return: modified state
         """
         assert isinstance(filenames, (list, tuple))
-        if sub_dict is None:
-            sub_dict = self.sub_dict
         if basedir is not None:
             filenames = [os.path.join(basedir, fname) for fname in filenames]
-        ld = LDAPUpdate(sub_dict=sub_dict)
+        ld = LDAPUpdate(api=self.api)
         # assume that caller supplies files in correct order
         return ld.update(filenames, ordered=False)
 
