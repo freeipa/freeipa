@@ -669,10 +669,6 @@ class CAInstance(DogtagInstance):
         self._ldap_update(
             [paths.CA_TOPOLOGY_ULDIF],
             basedir=None,
-            sub_dict={
-                'SUFFIX': api.env.basedn,
-                'FQDN': self.fqdn,
-            }
         )
 
     def __disable_nonce(self):
@@ -1358,13 +1354,7 @@ class CAInstance(DogtagInstance):
                 "Did not find any lightweight CAs; nothing to track")
 
     def __dogtag10_migration(self):
-        self._ldap_update(
-            ['50-dogtag10-migration.update'],
-            sub_dict={
-                'SUFFIX': api.env.basedn,
-                'FQDN': self.fqdn,
-            }
-        )
+        self._ldap_update(['50-dogtag10-migration.update'])
 
     def is_crlgen_enabled(self):
         """Check if the local CA instance is generating CRL
