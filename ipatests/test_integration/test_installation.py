@@ -1005,6 +1005,12 @@ class TestInstallMaster(IntegrationTest):
         assert result.returncode != 0
         assert 'user with name "root" already exists' in result.stderr_text
 
+    def test_ipa_custodia_check(self):
+        # check local key retrieval
+        self.master.run_command(
+            [paths.IPA_CUSTODIA_CHECK, self.master.hostname]
+        )
+
 
 class TestInstallMasterKRA(IntegrationTest):
 
