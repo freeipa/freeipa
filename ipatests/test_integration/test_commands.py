@@ -1295,3 +1295,26 @@ class TestIPACommand(IntegrationTest):
         )
         assert result.returncode == 1
         assert msg in result.stderr_text
+
+    def test_pkispawn_log_is_present(self):
+        """
+        This testcase checks if pkispawn logged properly.
+        It is a candidate from being moved out of test_commands.
+        """
+        result = self.master.run_command(
+            ["ls", "/var/log/pki/"]
+        )
+        pkispawnlogfile = None
+        for file in result.stdout_text.splitlines():
+            if file.startswith("pki-ca-spawn"):
+                pkispawnlogfile = file
+                break
+        assert pkispawnlogfile is not None
+        pkispawnlogfile = os.path.sep.join(("/var/log/pki", pkispawnlogfile))
+        pkispawnlog = self.master.get_file_contents(
+            pkispawnlogfile, encoding='utf-8'
+        )
+        # Totally arbitrary. pkispawn debug logs tend to be > 10KiB.
+        assert len(pkispawnlog) > 1024
+        assert "DEBUG" in pkispawnlog
+        assert "INFO" in pkispawnlog
