@@ -359,7 +359,8 @@ class test_service(sevice_tasks):
         self.add_record(ENTITY, data)
         self.navigate_to_record(pkey)
 
-        self.assert_action_list_action('request_cert', visible=False)
+        self.assert_action_list_action('request_cert', visible=True,
+                                       enabled=False)
 
         self.navigate_by_breadcrumb('Services')
         self.delete_record(pkey, data.get('del'))

@@ -324,7 +324,8 @@ class test_host(host_tasks):
         self.add_record(ENTITY, self.data)
         self.navigate_to_record(self.pkey)
 
-        self.assert_action_list_action('request_cert', visible=False)
+        self.assert_action_list_action('request_cert', visible=True,
+                                       enabled=False)
 
         self.navigate_by_breadcrumb('Hosts')
         self.delete_record(self.pkey, self.data.get('del'))
