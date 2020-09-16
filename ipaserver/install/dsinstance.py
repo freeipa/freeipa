@@ -544,6 +544,7 @@ class DsInstance(service.Service):
         slapd_options = Slapd2Base(logger)
         slapd_options.set('instance_name', self.serverid)
         slapd_options.set('root_password', self.dm_password)
+        slapd_options.set('self_sign_cert', False)
         slapd_options.verify()
         slapd = slapd_options.collect()
 
