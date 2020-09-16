@@ -971,6 +971,14 @@ class TestInstallMaster(IntegrationTest):
         assert result.returncode != 0
         assert 'user with name "root" already exists' in result.stderr_text
 
+    def test_dirsrv_no_ssca(self):
+        # verify that lib389 installer no longer creates self-signed CA
+        result = self.master.run_command(
+            ["stat", "/etc/dirsrv/ssca"],
+            raiseonerr=False
+        )
+        assert result.returncode != 0
+
 
 class TestInstallMasterKRA(IntegrationTest):
 
