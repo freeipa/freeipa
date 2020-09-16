@@ -49,6 +49,8 @@ KEYS = [
     'dm/DMHash',
     'ra/ipaCert',
     'ca/auditSigningCert cert-pki-ca',
+    'ca_wrapped/auditSigningCert cert-pki-ca',
+    'ca_wrapped/auditSigningCert cert-pki-ca/1.2.840.113549.3.7',
     'ca/caSigningCert cert-pki-ca',
     'ca/ocspSigningCert cert-pki-ca',
     'ca/subsystemCert cert-pki-ca',
