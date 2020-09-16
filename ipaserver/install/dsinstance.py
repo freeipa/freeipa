@@ -329,7 +329,7 @@ class DsInstance(service.Service):
                       self.__import_ca_certs)
         self.step("restarting directory server", self.__restart_instance)
 
-        self.start_creation()
+        self.start_creation(timing_name="dirsrv_tls")
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
                        domain_name, dm_password,

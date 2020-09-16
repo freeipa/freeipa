@@ -538,6 +538,7 @@ class LDAPUpdate:
     def monitor_index_task(self, dn):
         """Give a task DN monitor it and wait until it has completed (or failed)
         """
+        start = time.time()
 
         assert isinstance(dn, DN)
 
@@ -569,6 +570,12 @@ class LDAPUpdate:
 
             logger.debug("Indexing in progress")
             time.sleep(1)
+
+        dur = time.time() - start
+        logger.debug(
+            "LDAP index task: %s %.03f sec", dn, dur,
+            extra={'timing': ('ldapupdate', "indextask", None, dur)}
+        )
 
         return
 
@@ -869,6 +876,7 @@ class LDAPUpdate:
         return f
 
     def _run_update_plugin(self, plugin_name):
+        start = time.time()
         logger.debug("Executing upgrade plugin: %s", plugin_name)
         restart_ds, updates = self.api.Updater[plugin_name]()
         if updates:
@@ -879,6 +887,11 @@ class LDAPUpdate:
             self.close_connection()
             self.restart_ds()
             self.create_connection()
+        dur = time.time() - start
+        logger.debug(
+            "Upgrade plugin duration: %s %.03f sec", plugin_name, dur,
+            extra={'timing': ('ldapupdate', 'plugin', plugin_name, dur)}
+        )
 
     def create_connection(self):
         if self.conn is None:

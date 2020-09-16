@@ -563,7 +563,8 @@ class Service:
         self.steps.append((message, method, run_after_failure))
 
     def start_creation(self, start_message=None, end_message=None,
-                       show_service_name=True, runtime=None):
+                       show_service_name=True, runtime=None,
+                       timing_name=None):
         """
         Starts creation of the service.
 
@@ -600,6 +601,9 @@ class Service:
                 else:
                     end_message = "Done configuring %s." % self.service_desc
 
+        if timing_name is None:
+            timing_name = self.service_name
+
         if runtime is not None and runtime > 0:
             self.print_msg('%s. Estimated time: %s' % (start_message,
                                                       format_seconds(runtime)))
@@ -615,7 +619,7 @@ class Service:
             logger.debug(
                 "step duration: %s %s %.02f sec",
                 self.service_name, name, dur,
-                extra={'timing': ('step', self.service_name, name, dur)},
+                extra={'timing': ('step', timing_name, name, dur)},
             )
 
         step = 0

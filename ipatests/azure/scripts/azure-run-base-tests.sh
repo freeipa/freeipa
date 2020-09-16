@@ -44,7 +44,8 @@ tests_result=1
 if [ "$install_result" -eq 0 ] ; then
     echo "Run IPA tests"
     echo "Installation complete. Performance of individual steps:"
-    grep 'service duration:' /var/log/ipaserver-install.log | sed -e 's/DEBUG //g'
+    grep -Po 'TIMING: \K.*' /var/log/ipaserver-install.log
+    grep -Po 'TIMING: \K.*' /var/log/ipaclient-install.log
 
     sed -ri "s/mode = production/mode = developer/" /etc/ipa/default.conf
     systemctl restart "$HTTPD_SYSTEMD_NAME"
