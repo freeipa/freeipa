@@ -1013,6 +1013,12 @@ class TestInstallMaster(IntegrationTest):
         )
         assert result.returncode != 0
 
+    def test_ipa_custodia_check(self):
+        # check local key retrieval
+        self.master.run_command(
+            [paths.IPA_CUSTODIA_CHECK, self.master.hostname]
+        )
+
 
 class TestInstallMasterKRA(IntegrationTest):
 
