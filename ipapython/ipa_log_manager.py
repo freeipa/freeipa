@@ -70,6 +70,32 @@ class Formatter(logging.Formatter):
         self.converter = time.gmtime
 
 
+class FileFormatter(Formatter):
+    r"""File output formatter with timing extra line
+
+    $ grep -a -Po 'TIMING: \K.*' /var/log/ipaserver-install.log > ipaserver.csv
+    """
+    def __init__(
+        self,
+        fmt=LOGGING_FORMAT_STANDARD_FILE,
+        datefmt=ISO8601_UTC_DATETIME_FMT
+    ):
+        super().__init__(fmt, datefmt)
+
+    def format(self, record):
+        text = super().format(record)
+        timing = getattr(record, "timing", None)
+        if timing:
+            # print timing information as extra line
+            system, name, sub, dur = record.timing
+            if sub is None:
+                sub = ''
+            ttext = f"TIMING: {system},{name},{sub},{dur:0.3f}"
+            return f"{text} {ttext}"
+        else:
+            return text
+
+
 def standard_logging_setup(filename=None, verbose=False, debug=False,
                            filemode='w', console_format=None):
     if console_format is None:
@@ -86,7 +112,7 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
         finally:
             os.umask(umask)
         file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(Formatter(LOGGING_FORMAT_STANDARD_FILE))
+        file_handler.setFormatter(FileFormatter())
         root_logger.addHandler(file_handler)
 
     level = logging.ERROR

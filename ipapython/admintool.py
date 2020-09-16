@@ -25,6 +25,7 @@ Handles common operations like option parsing and logging
 import logging
 import sys
 import os
+import time
 import traceback
 from optparse import OptionGroup  # pylint: disable=deprecated-module
 
@@ -94,6 +95,7 @@ class AdminTool:
     log_file_name = None
     usage = None
     description = None
+    _start_monotonic = None
 
     _option_parsers = dict()
 
@@ -171,6 +173,8 @@ class AdminTool:
         This includes validating options, setting up logging, doing the
         actual work, and handling the result.
         """
+        # use monotonic as chronyc can change clocks
+        self._start_monotonic = time.monotonic()
         self._setup_logging(no_file=True)
         return_value = 1
         try:
@@ -323,6 +327,15 @@ class AdminTool:
         if self.log_file_initialized and return_value != SERVER_NOT_CONFIGURED:
             message += " See %s for more information" % self.log_file_name
         logger.error('%s', message)
+        self._log_time()
 
     def log_success(self):
         logger.info('The %s command was successful', self.command_name)
+        self._log_time()
+
+    def _log_time(self):
+        dur = time.monotonic() - self._start_monotonic
+        logger.debug(
+            "Finished in %0.3f", dur,
+            extra={"timing": (self.command_name, None, None, dur)}
+        )

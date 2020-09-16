@@ -143,11 +143,12 @@ def main():
     dns_installer.install(True, False, options)
     # Services are enabled in dns_installer.install()
 
-    # execute ipactl to refresh services status
-    ipautil.run([paths.IPACTL, 'start', '--ignore-service-failures'],
-                raiseonerr=False)
-
     api.Backend.ldap2.disconnect()
+
+    # execute ipactl to refresh services status
+    logger.info("Starting IPA services")
+    ipautil.run([paths.IPACTL, 'start', '--ignore-service-failures'],
+                raiseonerr=False, redirect_output=True)
 
     return 0
 

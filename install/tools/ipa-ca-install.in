@@ -316,8 +316,9 @@ def main():
     api.Backend.ldap2.disconnect()
 
     # execute ipactl to refresh services status
+    logger.info("Starting IPA services")
     ipautil.run([paths.IPACTL, 'start', '--ignore-service-failures'],
-                raiseonerr=False)
+                raiseonerr=False, redirect_output=True)
 
 
 fail_message = '''
