@@ -47,6 +47,7 @@
 
 #include "ipa-client-common.h"
 #include "ipa_ldap.h"
+#include "ipa_hostname.h"
 
 #define NAME "ipa-join"
 
@@ -401,7 +402,7 @@ done:
  * the state of the entry.
  */
 static int
-join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bindpw, const char *basedn, const char **princ, bool quiet)
+join_ldap(const char *ipaserver, const char *hostname, char ** binddn, const char *bindpw, const char *basedn, const char **princ, bool quiet)
 {
     LDAP *ld;
     int rval = 0;
@@ -497,7 +498,7 @@ done:
 
 #ifdef WITH_IPA_JOIN_XML
 static int
-join_krb5_xmlrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, bool force, bool quiet) {
+join_krb5_xmlrpc(const char *ipaserver, const char *hostname, char **hostdn, const char **princ, bool force, bool quiet) {
     xmlrpc_env env;
     xmlrpc_value * argArrayP = NULL;
     xmlrpc_value * paramArrayP = NULL;
@@ -545,15 +546,11 @@ join_krb5_xmlrpc(const char *ipaserver, char *hostname, char **hostdn, const cha
 
     argArrayP = xmlrpc_array_new(&env);
     paramArrayP = xmlrpc_array_new(&env);
-
-    if (hostname == NULL)
-        paramP = xmlrpc_string_new(&env, uinfo.nodename);
-    else
-        paramP = xmlrpc_string_new(&env, hostname);
+    paramP = xmlrpc_string_new(&env, hostname);
     xmlrpc_array_append_item(&env, argArrayP, paramP);
 #ifdef REALM
     if (!quiet)
-        printf("Joining %s to IPA realm %s\n", uinfo.nodename, iparealm);
+        printf("Joining %s to IPA realm %s\n", hostname, iparealm);
 #endif
     xmlrpc_array_append_item(&env, paramArrayP, argArrayP);
     xmlrpc_DECREF(paramP);
@@ -918,11 +915,10 @@ cleanup:
 }
 
 static int
-join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const char **princ, bool force, bool quiet) {
+join_krb5_jsonrpc(const char *ipaserver, const char *hostname, char **hostdn, const char **princ, bool force, bool quiet) {
     int rval = 0;
 
     struct utsname uinfo;
-    char *host = NULL;
 
     curl_buffer cb = {0};
 
@@ -936,25 +932,11 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
 
     uname(&uinfo);
 
-    if (!hostname) {
-        host = strdup(uinfo.nodename);
-    } else {
-        host = strdup(hostname);
-    }
-
-    if (!host) {
-        if (!quiet)
-            fprintf(stderr, _("Out of memory!\n"));
-
-        rval = 3;
-        goto cleanup;
-    }
-
     /* create the JSON-RPC payload */
     json_req = json_pack_ex(&j_error, 0, "{s:s, s:[[s], {s:s, s:s}]}",
                              "method", "join",
                              "params",
-                             host,
+                             hostname,
                              "nsosversion", uinfo.release,
                              "nshardwareplatform", uinfo.machine);
 
@@ -986,9 +968,6 @@ join_krb5_jsonrpc(const char *ipaserver, char *hostname, char **hostdn, const ch
     }
 
 cleanup:
-    if (host)
-        free(host);
-
     json_decref(json_req);
 
     if (cb.payload)
@@ -1175,10 +1154,8 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
     int status = 0;
     char *ipaserver = NULL;
     char *iparealm = NULL;
-    char * host = NULL;
     const char * princ = NULL;
     char * hostdn = NULL;
-    struct utsname uinfo;
 
     krb5_context krbctx = NULL;
     krb5_ccache ccache = NULL;
@@ -1197,27 +1174,8 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
         free(conf_data);
     }
 
-    if (NULL == hostname) {
-        uname(&uinfo);
-        host = strdup(uinfo.nodename);
-    } else {
-        host = strdup(hostname);
-    }
-
-    if (NULL == strstr(host, ".")) {
-        fprintf(stderr, _("The hostname must be fully-qualified: %s\n"), host);
-        rval = 16;
-        goto cleanup;
-    }
-
-    if ((!strcmp(host, "localhost")) || (!strcmp(host, "localhost.localdomain"))){
-        fprintf(stderr, _("The hostname must not be: %s\n"), host);
-        rval = 16;
-        goto cleanup;
-    }
-
     if (bindpw)
-        rval = join_ldap(ipaserver, host, &hostdn, bindpw, basedn, &princ, quiet);
+        rval = join_ldap(ipaserver, hostname, &hostdn, bindpw, basedn, &princ, quiet);
     else {
         krberr = krb5_init_context(&krbctx);
         if (krberr) {
@@ -1243,9 +1201,9 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
         }
 
 #ifdef WITH_IPA_JOIN_XML
-        rval = join_krb5_xmlrpc(ipaserver, host, &hostdn, &princ, force, quiet);
+        rval = join_krb5_xmlrpc(ipaserver, hostname, &hostdn, &princ, force, quiet);
 #else
-        rval = join_krb5_jsonrpc(ipaserver, host, &hostdn, &princ, force, quiet);
+        rval = join_krb5_jsonrpc(ipaserver, hostname, &hostdn, &princ, force, quiet);
 #endif
     }
 
@@ -1308,7 +1266,6 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
 
 cleanup:
     free((char *)princ);
-    free(host);
 
     if (bindpw)
         ldap_memfree((void *)hostdn);
@@ -1330,10 +1287,6 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, bool
     int rval = 0;
 
     char *ipaserver = NULL;
-    char *host = NULL;
-
-    struct utsname uinfo;
-
     char *principal = NULL;
     char *realm = NULL;
 
@@ -1359,28 +1312,6 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, bool
             exit(1);
         }
         free(conf_data);
-    }
-
-    if (!hostname) {
-        host = strdup(uinfo.nodename);
-    } else {
-        host = strdup(hostname);
-    }
-
-    if (!host) {
-        if (!quiet)
-            fprintf(stderr, _("Out of memory!\n"));
-
-        rval = 3;
-        goto cleanup;
-    }
-
-    if (!strstr(host, ".")) {
-        if (!quiet)
-            fprintf(stderr, _("The hostname must be fully-qualified: %s\n"),
-                    host);
-        rval = 16;
-        goto cleanup;
     }
 
     krberr = krb5_init_context(&krbctx);
@@ -1410,7 +1341,7 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, bool
         goto cleanup;
     }
 
-    ASPRINTF(&principal, "host/%s@%s", host,  realm);
+    ASPRINTF(&principal, "host/%s@%s", hostname,  realm);
 
     krberr = krb5_parse_name(krbctx, principal, &princ);
     if (krberr != 0) {
@@ -1473,14 +1404,12 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, bool
     putenv("KRB5CCNAME=MEMORY:ipa-join");
 
 #ifdef WITH_IPA_JOIN_XML
-    rval = xmlrpc_unenroll_host(ipaserver, host, quiet);
+    rval = xmlrpc_unenroll_host(ipaserver, hostname, quiet);
 #else
-    rval = jsonrpc_unenroll_host(ipaserver, host, quiet);
+    rval = jsonrpc_unenroll_host(ipaserver, hostname, quiet);
 #endif
 
 cleanup:
-    if (host)
-        free(host);
     if (principal)
         free(principal);
     if (ipaserver)
@@ -1516,6 +1445,7 @@ main(int argc, const char **argv) {
     static const char *keytab = NULL;
     static const char *bindpw = NULL;
     static const char *basedn = NULL;
+    char fqdn[IPA_HOST_NAME_LEN];
     int quiet = 0;
     int unenroll = 0;
     int force = 0;
@@ -1565,6 +1495,28 @@ main(int argc, const char **argv) {
 
     if (!keytab)
         keytab = "/etc/krb5.keytab";
+
+    /* auto-detect and verify hostname */
+    if (!hostname) {
+        if (ipa_gethostname(fqdn) != 0) {
+            if (!quiet)
+                fprintf(stderr, _("Cannot get host's FQDN!\n"));
+            exit(22);
+        }
+        hostname = fqdn;
+    }
+    if (NULL == strstr(hostname, ".")) {
+        if (!quiet) {
+            fprintf(stderr, _("The hostname must be fully-qualified: %s\n"), hostname);
+        }
+        exit(16);
+    }
+    if ((!strcmp(hostname, "localhost")) || (!strcmp(hostname, "localhost.localdomain"))){
+        if (!quiet) {
+            fprintf(stderr, _("The hostname must not be: %s\n"), hostname);
+        }
+        exit(16);
+    }
 
     if (unenroll) {
         ret = unenroll_host(server, hostname, keytab, quiet);
