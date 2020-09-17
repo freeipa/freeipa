@@ -474,17 +474,35 @@ class TestSubCAkeyReplication(IntegrationTest):
         SERVER_CERT_NICK: 'u,u,u',
     }
 
-    def add_subca(self, host, name, subject):
+    def add_subca(self, host, name, subject, raiseonerr=True):
         result = host.run_command([
             'ipa', 'ca-add', name,
             '--subject', subject,
-            '--desc', self.SUBCA_DESC,
+            '--desc', self.SUBCA_DESC],
+            raiseonerr=raiseonerr
+        )
+        if raiseonerr:
+            assert "ipa: ERROR:" not in result.stderr_text
+            auth_id = "".join(re.findall(AUTH_ID_RE, result.stdout_text))
+            return '{} {}'.format(IPA_CA_NICKNAME, auth_id)
+        else:
+            assert "ipa: ERROR:" in result.stderr_text
+            assert result.returncode != 0
+            return result
+
+    def del_subca(self, host, name):
+        host.run_command([
+            'ipa', 'ca-disable', name
         ])
-        auth_id = "".join(re.findall(AUTH_ID_RE, result.stdout_text))
-        return '{} {}'.format(IPA_CA_NICKNAME, auth_id)
+        result = host.run_command([
+            'ipa', 'ca-del', name
+        ])
+        assert "Deleted CA \"{}\"".format(name) in result.stdout_text
 
     def check_subca(self, host, name, cert_nick):
-        host.run_command(['ipa', 'ca-show', name])
+        result = host.run_command(['ipa', 'ca-show', name])
+        # ipa ca-show returns 0 even if the cert cannot be found locally.
+        assert "ipa: ERROR:" not in result.stderr_text
         tasks.run_certutil(
             host, ['-L', '-n', cert_nick], paths.PKI_TOMCAT_ALIAS_DIR
         )
@@ -626,6 +644,30 @@ class TestSubCAkeyReplication(IntegrationTest):
                    '-nameopt', 'space_eq']
         ssl = replica.run_command(ssl_cmd)
         assert 'Issuer: CN = {}'.format(self.SUBCA_MASTER) in ssl.stdout_text
+
+    def test_del_subca_master_on_replica(self):
+        self.del_subca(self.replicas[0], self.SUBCA_MASTER)
+
+    def test_del_subca_replica(self):
+        self.del_subca(self.replicas[0], self.SUBCA_REPLICA)
+
+    def test_scale_add_subca(self):
+        master = self.master
+        replica = self.replicas[0]
+
+        subcas = {}
+        for i in range(0, 16):
+            name = "_".join((self.SUBCA_MASTER, str(i)))
+            cn = "_".join((self.SUBCA_MASTER_CN, str(i)))
+            subcas[name] = self.add_subca(master, name, cn)
+            self.add_subca(master, name, cn, raiseonerr=False)
+
+        # give replication some time
+        time.sleep(15)
+
+        for name in subcas:
+            self.check_subca(replica, name, subcas[name])
+            self.del_subca(replica, name)
 
 
 class TestReplicaInstallCustodia(IntegrationTest):
