@@ -7,12 +7,11 @@ import socket
 
 
 def gethostfqdn():
+    """Get the fully qualified domain name of current host from glibc
+
+    :return: FQDN as str
+    """
     hostname = socket.gethostname()
-
-    # optional optimization, consider hostname with dot as FQDN
-    if "." in hostname:
-        return hostname
-
     # this call can never fail except for misconfigured nsswitch.conf
     # without nss-myhostname provider. The myhostname provider translates
     # gethostname() to local interfaces.
