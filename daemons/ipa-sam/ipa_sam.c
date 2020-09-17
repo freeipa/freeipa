@@ -4469,7 +4469,7 @@ static NTSTATUS save_sid_to_secret(struct ipasam_private *ipasam_state)
 
 	ret = ipa_gethostfqdn(hostname);
 	if (ret == -1) {
-		DEBUG(1, ("gethostname failed.\n"));
+		DEBUG(1, ("ipa_gethostfqdn failed.\n"));
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
 	}
@@ -4738,7 +4738,7 @@ static NTSTATUS ipasam_generate_principals(struct ipasam_private *ipasam_state) 
 
 	ret = ipa_gethostfqdn(hostname);
 	if (ret == -1) {
-		DEBUG(1, ("gethostname failed.\n"));
+		DEBUG(1, ("ipa_gethostfqdn failed.\n"));
 		goto done;
 	}
 
