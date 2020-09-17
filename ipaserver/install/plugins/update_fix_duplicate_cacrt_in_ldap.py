@@ -52,13 +52,22 @@ class update_fix_duplicate_cacrt_in_ldap(Updater):
             ldap,
             self.api.env.container_ca,
             self.api.env.basedn)
+        cacert_nick = get_ca_nickname(self.api.env.realm)
 
         # Find if there are other certificates with the same subject
         # They are duplicates resulting of BZ 1480102
         base_dn = DN(('cn', 'certificates'), ('cn', 'ipa'), ('cn', 'etc'),
                      self.api.env.basedn)
+        filter = ldap.combine_filters(
+            [
+                # all certificates with CA cert subject
+                ldap.make_filter({'ipaCertSubject': cacert_subject}),
+                # except the default certificate
+                ldap.make_filter({'cn': cacert_nick}, rules=ldap.MATCH_NONE),
+            ],
+            rules=ldap.MATCH_ALL
+        )
         try:
-            filter = ldap.make_filter({'ipaCertSubject': cacert_subject})
             result, _truncated = ldap.find_entries(
                 base_dn=base_dn,
                 filter=filter,
@@ -69,10 +78,7 @@ class update_fix_duplicate_cacrt_in_ldap(Updater):
             return False, []
 
         logger.debug("Found %d entrie(s) for IPA CA in LDAP", len(result))
-        cacert_dn = DN(('cn', get_ca_nickname(self.api.env.realm)), base_dn)
         for entry in result:
-            if entry.dn == cacert_dn:
-                continue
             # Remove the duplicate
             try:
                 ldap.delete_entry(entry)
