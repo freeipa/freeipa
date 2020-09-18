@@ -30,5 +30,6 @@
 /usr/libexec/ipa/custodia/ipa-custodia-pki-tomcat		--	gen_context(system_u:object_r:ipa_custodia_pki_tomcat_exec_t,s0)
 /usr/libexec/ipa/custodia/ipa-custodia-pki-tomcat-wrapped	--	gen_context(system_u:object_r:ipa_custodia_pki_tomcat_exec_t,s0)
 /usr/libexec/ipa/custodia/ipa-custodia-ra-agent		--	gen_context(system_u:object_r:ipa_custodia_ra_agent_exec_t,s0)
+/usr/libexec/ipa/ipa-pki-retrieve-key				--	gen_context(system_u:object_r:ipa_pki_retrieve_key_exec_t,s0)
 
 /var/log/ipa-custodia.audit.log(/.*)?				--	gen_context(system_u:object_r:ipa_custodia_log_t,s0)
