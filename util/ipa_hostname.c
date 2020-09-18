@@ -7,37 +7,25 @@
 #define _GNU_SOURCE
 #endif
 
-#include <netdb.h>
 #include <errno.h>
+#include <netdb.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "ipa_hostname.h"
-
-int
-ipa_gethostname(char *name)
-{
-    int ret;
-
-    ret = gethostname(name, IPA_HOST_NAME_LEN - 1);
-
-    /* Make double sure it is terminated */
-    name[IPA_HOST_NAME_LEN - 1] = '\0';
-
-    return ret;
-}
 
 static int
 _get_fqdn(char *fqdn)
 {
-    char hostname[IPA_HOST_NAME_LEN];
+    char hostname[IPA_HOST_FQDN_LEN];
     char *canonname = NULL;
     struct addrinfo hints;
     struct addrinfo *ai = NULL;
     int r;
 
-    r = ipa_gethostname(hostname);
+    r = gethostname(hostname, IPA_HOST_FQDN_LEN - 1);
     if (r != 0) {
         goto error;
     }
@@ -69,7 +57,7 @@ _get_fqdn(char *fqdn)
         errno = ENOENT;
         goto error;
     }
-    if (strlen(canonname) >= IPA_HOST_NAME_LEN) {
+    if (strlen(canonname) > (IPA_HOST_FQDN_LEN - 1)) {
         errno = ENAMETOOLONG;
         goto error;
     }
@@ -82,30 +70,29 @@ _get_fqdn(char *fqdn)
     }
 #endif
 
-    strcpy(fqdn, canonname);
+    strncpy(fqdn, canonname, IPA_HOST_FQDN_LEN);
     /* Make double sure it is terminated */
-    fqdn[IPA_HOST_NAME_LEN - 1] = '\0';
+    fqdn[IPA_HOST_FQDN_LEN - 1] = '\0';
     freeaddrinfo(ai);
     return 0;
 
   error:
-    fqdn[0] = '\0';
     if (ai != NULL) {
         freeaddrinfo(ai);
     }
     return -1;
 }
 
-int ipa_gethostfqdn(char *name)
-{
-    static char cached_fqdn[IPA_HOST_NAME_LEN] = {0};
 
-    if (!cached_fqdn) {
+const char* ipa_gethostfqdn()
+{
+    static char cached_fqdn[IPA_HOST_FQDN_LEN] = {0};
+
+    if (*cached_fqdn == '\0') {
         int res = _get_fqdn(cached_fqdn);
         if (res != 0) {
-            return -1;
+            return NULL;
         }
     }
-    strcpy(name, cached_fqdn);
-    return 0;
+    return (const char*)cached_fqdn;
 }

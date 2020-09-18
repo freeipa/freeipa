@@ -9,6 +9,9 @@ import socket
 def gethostfqdn():
     """Get the fully qualified domain name of current host from glibc
 
+    This function may return an FQDN with up to MAXHOSTFQDNLEN characters
+    (253). The effective hostname is still limited to MAXHOSTNAMELEN (64).
+
     :return: FQDN as str
     """
     hostname = socket.gethostname()
@@ -26,4 +29,5 @@ def gethostfqdn():
         flags=socket.AI_CANONNAME | socket.AI_ADDRCONFIG
     )
     # first addrinfo struct, fourth field is canonical name
+    # getaddrinfo() either raises an exception or returns at least one entry
     return gai[0][3]
