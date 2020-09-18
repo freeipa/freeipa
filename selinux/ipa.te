@@ -347,6 +347,7 @@ logging_log_filetrans(ipa_custodia_t, ipa_custodia_log_t, { dir file })
 
 manage_dirs_pattern(ipa_custodia_t, ipa_custodia_tmp_t, ipa_custodia_tmp_t)
 manage_files_pattern(ipa_custodia_t, ipa_custodia_tmp_t, ipa_custodia_tmp_t)
+mmap_exec_files_pattern(ipa_custodia_t, ipa_custodia_tmp_t, ipa_custodia_tmp_t)
 files_tmp_filetrans(ipa_custodia_t, ipa_custodia_tmp_t, { dir file })
 
 kernel_dgram_send(ipa_custodia_t)
