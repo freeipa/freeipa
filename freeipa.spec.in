@@ -383,6 +383,8 @@ Requires(post): selinux-policy-base >= %{selinux_policy_version}
 Requires: slapi-nis >= %{slapi_nis_version}
 Requires: pki-ca >= %{pki_version}
 Requires: pki-kra >= %{pki_version}
+# pki-acme package was split out in pki-10.10.0
+Requires: (pki-acme >= %{pki_version} if pki-ca >= 10.10.0)
 Requires(preun): systemd-units
 Requires(postun): systemd-units
 Requires: policycoreutils >= 2.1.12-5
