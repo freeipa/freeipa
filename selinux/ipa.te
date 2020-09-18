@@ -75,6 +75,9 @@ files_tmp_file(ipa_custodia_tmp_t)
 type pki_tomcat_cert_t;
 type node_t;
 
+type ipa_pki_retrieve_key_exec_t;
+init_script_file(ipa_pki_retrieve_key_exec_t)
+
 ########################################
 #
 # ipa_otpd local policy
@@ -411,4 +414,29 @@ optional_policy(`
 
 optional_policy(`
        systemd_private_tmp(ipa_custodia_tmp_t)
+')
+
+optional_policy(`
+    gen_require(`
+        type tomcat_t;
+    ')
+    can_exec(tomcat_t, ipa_pki_retrieve_key_exec_t)
+    pki_manage_tomcat_etc_rw(ipa_pki_retrieve_key_exec_t)
+')
+
+optional_policy(`
+    gen_require(`
+        type devlog_t;
+    ')
+
+    dontaudit ipa_custodia_t devlog_t:lnk_file read_lnk_file_perms;
+')
+
+optional_policy(`
+    java_exec(ipa_custodia_pki_tomcat_exec_t)
+    # allow Java to read system status and RNG
+    dev_read_urand(ipa_custodia_t)
+    dev_read_rand(ipa_custodia_t)
+    kernel_read_network_state(ipa_custodia_t)
+    dev_read_sysfs(ipa_custodia_t)
 ')
