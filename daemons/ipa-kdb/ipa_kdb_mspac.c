@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include "ipa_hostname.h"
 #include "ipa_kdb.h"
 #include "ipa_mspac.h"
 #include <talloc.h>
@@ -2351,12 +2352,10 @@ done:
 
 static char *get_server_netbios_name(struct ipadb_context *ipactx)
 {
-    char hostname[MAXHOSTNAMELEN + 1]; /* NOTE: this is 64, too little ? */
+    char hostname[IPA_HOST_FQDN_LEN]; /* NOTE: long enough for DNS name */
     char *p;
 
-    strncpy(hostname, ipactx->kdc_hostname, MAXHOSTNAMELEN);
-    /* May miss termination */
-    hostname[MAXHOSTNAMELEN] = '\0';
+    strncpy(hostname, ipactx->kdc_hostname, IPA_HOST_FQDN_LEN);
     for (p = hostname; *p; p++) {
         if (*p == '.') {
             *p = 0;

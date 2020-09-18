@@ -313,7 +313,10 @@ RA_AGENT_PROFILE = 'caSubsystemCert'
 CA_DBUS_TIMEOUT = 120
 
 # Maximum hostname length in Linux
+# It's the max length of uname's nodename and return value of gethostname().
 MAXHOSTNAMELEN = 64
+# DNS name is 255 octets, effectively 253 ASCII characters.
+MAXHOSTFQDNLEN = 253
 
 # regexp definitions
 PATTERN_GROUPUSER_NAME = (

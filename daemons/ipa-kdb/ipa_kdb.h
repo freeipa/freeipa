@@ -49,10 +49,6 @@
 #include "ipa_krb5.h"
 #include "ipa_pwd.h"
 
-#ifndef MAXHOSTNAMELEN
-#define MAXHOSTNAMELEN 64
-#endif
-
 /* easier to copy the defines here than to mess with kadm5/admin.h
  * for now */
 #define KMASK_PRINCIPAL         0x000001
@@ -119,7 +115,7 @@ struct ipadb_context {
     char *realm;
     char *realm_base;
     char *accounts_base;
-    char *kdc_hostname;
+    const char *kdc_hostname;
     LDAP *lcontext;
     krb5_context kcontext;
     bool override_restrictions;
