@@ -61,10 +61,6 @@
 #define MAX_DG_SIZE 4096
 #define NETBIOS_NAME_MAX 15
 
-#ifndef MAXHOSTNAMELEN
-#define MAXHOSTNAMELEN 64
-#endif
-
 struct ipa_cldap_ctx {
     Slapi_ComponentId *plugin_id;
     pthread_t tid;

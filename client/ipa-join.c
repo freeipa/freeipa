@@ -1445,7 +1445,6 @@ main(int argc, const char **argv) {
     static const char *keytab = NULL;
     static const char *bindpw = NULL;
     static const char *basedn = NULL;
-    char fqdn[IPA_HOST_NAME_LEN];
     int quiet = 0;
     int unenroll = 0;
     int force = 0;
@@ -1498,12 +1497,12 @@ main(int argc, const char **argv) {
 
     /* auto-detect and verify hostname */
     if (!hostname) {
-        if (ipa_gethostname(fqdn) != 0) {
+        hostname = ipa_gethostfqdn();
+        if (hostname == NULL) {
             if (!quiet)
                 fprintf(stderr, _("Cannot get host's FQDN!\n"));
             exit(22);
         }
-        hostname = fqdn;
     }
     if (NULL == strstr(hostname, ".")) {
         if (!quiet) {

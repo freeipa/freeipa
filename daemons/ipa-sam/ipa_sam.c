@@ -4441,8 +4441,7 @@ static char *sec_key(TALLOC_CTX *mem_ctx, const char *d)
 
 static NTSTATUS save_sid_to_secret(struct ipasam_private *ipasam_state)
 {
-	char hostname[IPA_HOST_NAME_LEN];
-	int ret;
+	const char *hostname;
 	char *p;
 	TALLOC_CTX *tmp_ctx;
 	NTSTATUS status = NT_STATUS_UNSUCCESSFUL;
@@ -4467,8 +4466,8 @@ static NTSTATUS save_sid_to_secret(struct ipasam_private *ipasam_state)
 		goto done;
 	}
 
-	ret = ipa_gethostfqdn(hostname);
-	if (ret == -1) {
+	hostname = ipa_gethostfqdn();
+	if (hostname == NULL) {
 		DEBUG(1, ("ipa_gethostfqdn failed.\n"));
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
@@ -4721,10 +4720,9 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 static NTSTATUS ipasam_generate_principals(struct ipasam_private *ipasam_state) {
 
 	krb5_error_code rc;
-	int ret;
 	krb5_context context;
 	NTSTATUS status = NT_STATUS_UNSUCCESSFUL;
-	char hostname[IPA_HOST_NAME_LEN];
+	const char *hostname;
 	char *default_realm = NULL;
 
 	if (!ipasam_state) {
@@ -4736,8 +4734,8 @@ static NTSTATUS ipasam_generate_principals(struct ipasam_private *ipasam_state) 
 		return status;
 	}
 
-	ret = ipa_gethostfqdn(hostname);
-	if (ret == -1) {
+	hostname = ipa_gethostfqdn();
+	if (hostname == NULL) {
 		DEBUG(1, ("ipa_gethostfqdn failed.\n"));
 		goto done;
 	}

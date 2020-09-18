@@ -53,7 +53,7 @@ static void ipadb_context_free(krb5_context kcontext,
         free((*ctx)->base);
         free((*ctx)->realm_base);
         free((*ctx)->accounts_base);
-        free((*ctx)->kdc_hostname);
+        /* kdc_hostname is a pointer to a static char[] */
         /* ldap free lcontext */
         if ((*ctx)->lcontext) {
             ldap_unbind_ext_s((*ctx)->lcontext, NULL, NULL);
@@ -536,7 +536,6 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
 {
     struct ipadb_context *ipactx;
     krb5_error_code kerr;
-    char hostname[IPA_HOST_NAME_LEN];
     int ret;
     int i;
 
@@ -604,14 +603,9 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
         goto fail;
     }
 
-    ret = ipa_gethostfqdn(hostname);
-    if (ret != 0) {
-        ret = errno;
-        goto fail;
-    }
-    ipactx->kdc_hostname = strdup(hostname);
+    ipactx->kdc_hostname = ipa_gethostfqdn();
     if (!ipactx->kdc_hostname) {
-        ret = ENOMEM;
+        ret = errno;
         goto fail;
     }
 
