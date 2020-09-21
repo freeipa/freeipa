@@ -34,6 +34,7 @@ import tempfile
 from ipalib import api
 from ipalib.constants import CA_DBUS_TIMEOUT
 from ipapython.dn import DN
+from ipapython.ipautil import Sleeper
 from ipaplatform.paths import paths
 from ipaplatform import services
 
@@ -367,11 +368,15 @@ def request_and_wait_for_cert(
         certpath, subject, principal, nickname, passwd_fname, dns, ca,
         profile, pre_command, post_command, storage, perms
     )
+    # Don't wait longer than resubmit timeout if it is configured
+    certmonger_timeout = api.env.certmonger_wait_timeout
+    if resubmit_timeout and resubmit_timeout < certmonger_timeout:
+        certmonger_timeout = resubmit_timeout
 
     deadline = time.time() + resubmit_timeout
     while True:  # until success, timeout, or error
         try:
-            state = wait_for_request(req_id, api.env.http_timeout)
+            state = wait_for_request(req_id, certmonger_timeout)
         except RuntimeError as e:
             logger.debug("wait_for_request raised %s", e)
             state = 'TIMEOUT'
@@ -772,14 +777,20 @@ def check_state(dirs):
 
 
 def wait_for_request(request_id, timeout=120):
-    for _i in range(0, timeout, 5):
-        state = get_request_value(request_id, 'status')
-        logger.debug("certmonger request is in state %r", state)
-        if state in ('CA_REJECTED', 'CA_UNREACHABLE', 'CA_UNCONFIGURED',
-                     'NEED_GUIDANCE', 'NEED_CA', 'MONITORING'):
+    sleep = Sleeper(
+        sleep=0.5,  # getcert.c:waitfor() uses 125ms
+        timeout=timeout,
+        raises=RuntimeError("request timed out")
+    )
+    last_state = None
+    while True:
+        state = str(get_request_value(request_id, 'status'))
+        if state != last_state:
+            logger.debug("certmonger request is in state %r", state)
+        if state in {'CA_REJECTED', 'CA_UNREACHABLE', 'CA_UNCONFIGURED',
+                     'NEED_GUIDANCE', 'NEED_CA', 'MONITORING'}:
             break
-        time.sleep(5)
-    else:
-        raise RuntimeError("request timed out")
+        last_state = state
+        sleep()
 
     return state
