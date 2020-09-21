@@ -28,6 +28,7 @@ import socket
 import sys
 import tempfile
 import textwrap
+import time
 
 import pytest
 import six
@@ -604,3 +605,36 @@ def test_config_replace_variables(tempdir):
     with open(conffile, 'r') as f:
         newconf = f.read()
     assert newconf == expected
+
+
+def test_sleeper():
+    start = time.monotonic()
+    sleep = ipautil.Sleeper(sleep=0.020, timeout=0.200, raises=TimeoutError)
+    assert sleep
+
+    with pytest.raises(TimeoutError):
+        while True:
+            sleep()
+
+    dur = time.monotonic() - start
+    assert not sleep
+    assert dur >= 0.2
+    # should finish in 0.2, accept longer time in case the system is busy
+    assert dur < 1.
+
+    start = time.monotonic()
+    loops = 0
+    sleep = ipautil.Sleeper(sleep=0.020, timeout=0.200)
+    assert sleep
+
+    while True:
+        if not sleep():
+            break
+        loops += 1
+
+    dur = time.monotonic() - start
+    assert not sleep
+    assert dur >= 0.2
+    assert dur < 1.
+    # should be 10 loops, accept 9 for slow systems
+    assert loops in {9, 10}
