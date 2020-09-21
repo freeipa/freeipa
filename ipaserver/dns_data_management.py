@@ -17,11 +17,10 @@ from dns import (
 )
 from dns.exception import DNSException
 
-from time import sleep, time
-
 from ipalib import errors
 from ipalib.dns import record_name_format
 from ipapython.dnsutil import DNSName, resolve_rrsets
+from ipapython.ipautil import Sleeper
 
 if six.PY3:
     unicode=str
@@ -55,7 +54,7 @@ IPA_DEFAULT_NTP_SRV_REC = (
     (DNSName("_ntp._udp"), 123),
 )
 
-CA_RECORDS_DNS_TIMEOUT = 30  # timeout in seconds
+CA_RECORDS_DNS_TIMEOUT = 10  # timeout in seconds
 
 
 class IPADomainIsNotManagedByIPAError(Exception):
@@ -140,15 +139,19 @@ class IPASystemRecords:
         assert isinstance(hostname, DNSName) and hostname.is_absolute()
         r_name = DNSName('ipa-ca') + self.domain_abs
         rrsets = []
-        end_time = time() + CA_RECORDS_DNS_TIMEOUT
-        while time() < end_time:
+        sleep = Sleeper(
+            sleep=1.0,
+            timeout=CA_RECORDS_DNS_TIMEOUT
+        )
+        while True:
             try:
                 rrsets = resolve_rrsets(hostname, (rdatatype.A, rdatatype.AAAA))
             except DNSException:  # logging is done inside resolve_rrsets
                 pass
             if rrsets:
                 break
-            sleep(5)
+            if not sleep():
+                break
 
         if not rrsets:
             logger.error('unable to resolve host name %s to IP address, '
