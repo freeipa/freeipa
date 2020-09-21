@@ -32,6 +32,7 @@ class BasePathNamespace:
     LS = "/bin/ls"
     SYSTEMCTL = "/bin/systemctl"
     SYSTEMD_DETECT_VIRT = "/usr/bin/systemd-detect-virt"
+    SYSTEMD_TMPFILES = "/usr/bin/systemd-tmpfiles"
     TAR = "/bin/tar"
     AUTOFS_LDAP_AUTH_CONF = "/etc/autofs_ldap_auth.conf"
     ETC_FEDORA_RELEASE = "/etc/fedora-release"
