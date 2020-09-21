@@ -1654,3 +1654,66 @@ def datetime_from_utctimestamp(t, units=1):
         raise TypeError(t)
     epoch = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
     return epoch + datetime.timedelta(seconds=v // units)
+
+
+class Sleeper:
+    """Helper for time.sleep() loop with timeout
+
+    A sleeper object sleeps *sleep* seconds when it is called. Close to its
+    deadline it sleeps shorter to not oversleep the *timeout* deadline. A
+    sleeper object is *True* and returns *True* before it reaches *timeout*
+    deadline. After its deadline a sleeper raises the exception object/class
+    in *raises*. If *raises* is not given, it returns False instead.
+
+    sleep = Sleeper(sleep=1, timeout=60, raises=TimeoutError)
+    while True:
+        do_something()
+        sleep()
+
+    sleep = Sleeper(sleep=0.5, timeout=60)
+    while True:
+        try:
+            do_something
+        except Exception:
+            # sleep duration can be extended
+            sleep(10)
+        else:
+            if not sleep():
+                log.info("timeout")
+                break
+
+    longsleep = Sleeper(sleep=1, timeout=sys.maxsize)
+    """
+    multiplier = 2
+
+    def __init__(self, *, sleep, timeout, raises=None):
+        if timeout <= 0:
+            raise ValueError(f"invalid timeout {timeout}")
+        if sleep < 0.01:
+            raise ValueError(f"sleep duration {sleep} is too short.")
+
+        self.timeout = timeout
+        self.sleep = sleep
+        self.raises = raises
+
+        self.deadline = time.monotonic() + self.timeout
+
+    def __bool__(self):
+        return time.monotonic() < self.deadline
+
+    def __call__(self, extended_sleep=None):
+        now = time.monotonic()
+        if now >= self.deadline:
+            if self.raises is not None:
+                raise self.raises
+            else:
+                return False
+
+        # caller can instruct sleeper to sleep longer
+        dur = self.sleep if extended_sleep is None else extended_sleep
+        # but don't sleep over deadline
+        dur = min(self.deadline - now, dur)
+
+        time.sleep(dur)
+
+        return True
