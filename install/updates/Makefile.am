@@ -22,8 +22,6 @@ app_DATA =				\
 	20-sslciphers.update		\
 	20-syncrepl.update		\
 	20-user_private_groups.update	\
-	20-winsync_index.update		\
-	20-idoverride_index.update	\
 	20-uuid.update  \
 	20-default_password_policy.update \
 	20-whoami.update	\

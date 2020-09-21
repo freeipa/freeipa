@@ -1,412 +1,534 @@
+# Indices
 #
-# Some nss_ldap implementations will always ask for memberuid so we must
-# have an index for it.
+# DS 1.4.3 defines default indices for:
 #
-# FreeIPA frequently searches for memberHost and memberUser to determine
-# group membership.
+#  * aci: pres [SYSTEM]
+#  * cn: eq, pres, sub
+#  * entryusn: eq / integerOrderingMatch [SYSTEM]
+#  * givenName: eq, pres, sub
+#  * mail: eq, pres, sub
+#  * mailAlternateAddress: eq
+#  * mailHost: eq
+#  * member: eq
+#  * memberOf: eq
+#  * nsCertSubjectDN: eq [SYSTEM]
+#  * nsTombstoneCSN: eq [SYSTEM]
+#  * nsUniqueId: eq [SYSTEM]
+#  * ntUniqueId: eq [IPA: +pres]
+#  * ntUserDomainId: eq [IPA: +pres]
+#  * numsubordinates: pres [SYSTEM]
+#  * objectClass: eq [SYSTEM]
+#  * owner: eq [IPA: +sub]
+#  * parentId: eq / integerOrderingMatch [SYSTEM]
+#  * seealso: eq [IPA: +sub]
+#  * sn: eq, pres, sub
+#  * targetuniqueid: eq
+#  * telephoneNumber: eq, pres, sub
+#  * uid: eq [IPA: +pres]
+#  * uniqueMember: eq [IPA: +sub]
 #
-dn: cn=memberuid,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: memberuid
-default:ObjectClass: top
-default:ObjectClass: nsIndex
+# - cn uses "only" to avoid bugs like https://pagure.io/freeipa/issue/6975
+# - nsIndexType and nsMatchingRule use "add" to allow users to add
+#   additional index types and matching rules more easily. The "add" command
+#   adds additional attribute values that are required by IPA but does not
+#   remove user defined values.
+#
+# NOTE: There is no index on ipServiceProtocol because the index would have
+# poor selectivity. An ipService entry has either 'tcp' or 'udp' as protocol.
+#
+# Please keep entries in alphanumeric order.
+#
+
+dn: cn=accessRuleType,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: accessRuleType
+default:objectClass: nsIndex
+default:objectClass: top
 default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
+add:nsIndexType: eq
 
-dn: cn=memberHost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: memberHost
-default:ObjectClass: top
-default:ObjectClass: nsIndex
+dn: cn=altSecurityIdentities,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: altSecurityIdentities
+default:objectClass: nsIndex
+default:objectClass: top
 default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=memberUser,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: memberUser
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=member,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=uniquemember,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only:nsIndexType: eq
-only:nsIndexType: sub
-
-dn: cn=owner,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only:nsIndexType: eq
-only:nsIndexType: sub
-
-dn: cn=manager,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=secretary,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=seealso,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only:nsIndexType: eq
-only:nsIndexType: sub
-
-dn: cn=memberof,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: memberof
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-default:nsIndexType: eq
-
-dn: cn=fqdn,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: fqdn
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=macAddress,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: macAddress
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-default:nsIndexType: eq
-default:nsIndexType: pres
-
-dn: cn=sourcehost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: sourcehost
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=memberservice,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: memberservice
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=managedby,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: managedby
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=memberallowcmd,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: memberallowcmd
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=memberdenycmd,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: memberdenycmd
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=ipasudorunas,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipasudorunas
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=ipasudorunasgroup,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipasudorunasgroup
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
+add:nsIndexType: eq
 
 dn: cn=automountkey,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: automountkey
-default:ObjectClass: top
-default:ObjectClass: nsIndex
+only:cn: automountkey
+default:objectClass: nsIndex
+default:objectClass: top
 default:nsSystemIndex: false
-default:nsIndexType: eq
+add:nsIndexType: eq
 add:nsIndexType: pres
 
 dn: cn=automountMapName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: automountMapName
-default: ObjectClass: top
-default: ObjectClass: nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
-
-dn: cn=ipaConfigString,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: ipaConfigString
-default: objectClass:top
-default: objectClass:nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
-
-dn: cn=ipaEnabledFlag,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: ipaEnabledFlag
-default: objectClass:top
-default: objectClass:nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
-
-dn: cn=ipaKrbAuthzData,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: ipaKrbAuthzData
-default: objectClass: top
-default: objectClass: nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
-default: nsIndexType: sub
-
-dn: cn=ipakrbprincipalalias,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipakrbprincipalalias
-default:ObjectClass: top
-default:ObjectClass: nsIndex
+only:cn: automountMapName
+default:objectClass: nsIndex
+default:objectClass: top
 default:nsSystemIndex: false
-default:nsIndexType: eq
+add:nsIndexType: eq
 
-dn: cn=ipauniqueid,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipauniqueid
-default:ObjectClass: top
-default:ObjectClass: nsIndex
+dn: cn=carLicense,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: carLicense
+default:objectClass: nsIndex
+default:objectClass: top
 default:nsSystemIndex: false
-default:nsIndexType: eq
-
-dn: cn=ipatokenradiusconfiglink,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipatokenradiusconfiglink
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=ipaassignedidview,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipaassignedidview
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=ipaallowedtarget,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipaallowedtarget
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=ipaMemberCa,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipaMemberCa
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=ipaMemberCertProfile,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipaMemberCertProfile
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-only:nsIndexType: sub
-
-dn: cn=userCertificate,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: userCertificate
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-only:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-
-dn: cn=ntUniqueId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ntUniqueId
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-
-dn: cn=ntUserDomainId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ntUserDomainId
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-
-dn: cn=ipalocation,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipalocation
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only:nsIndexType: eq
-only:nsIndexType: pres
-
-dn: cn=krbPrincipalName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: krbPrincipalName
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-only: nsMatchingRule: caseIgnoreIA5Match
-only: nsMatchingRule: caseExactIA5Match
-only:nsIndexType: eq
-only:nsIndexType: sub
-only:nsIndexType: pres
-
-dn: cn=krbCanonicalName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: krbCanonicalName
-default: objectClass: top
-default: objectClass: nsIndex
-only: nsSystemIndex: false
-only: nsIndexType: eq
-only: nsIndexType: sub
-
-dn: cn=serverhostname,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: serverhostname
-default: objectClass: top
-default: objectClass: nsIndex
-only: nsSystemIndex: false
-only: nsIndexType: eq
-only: nsIndexType: sub
+add:nsIndexType: eq
+add:nsIndexType: sub
 
 dn: cn=description,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
-default: cn: description
-default: objectclass: top
-default: objectclass: nsindex
-default: nssystemindex: false
-default: nsindextype: eq
-default: nsindextype: sub
+only:cn: description
+default:objectClass: nsindex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
 
-dn: cn=l,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
-default: cn: l
-default: objectclass: top
-default: objectclass: nsindex
-default: nssystemindex: false
-default: nsindextype: eq
-default: nsindextype: sub
+dn: cn=displayname,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: displayname
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
 
-dn: cn=nsOsVersion,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
-default: cn: nsOsVersion
-default: objectclass: top
-default: objectclass: nsindex
-default: nssystemindex: false
-default: nsindextype: eq
-default: nsindextype: sub
+dn: cn=fqdn,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: fqdn
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
 
-dn: cn=nsHardwarePlatform,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
-default: cn: nsHardwarePlatform
-default: objectclass: top
-default: objectclass: nsindex
-default: nssystemindex: false
-default: nsindextype: eq
-default: nsindextype: sub
-
-dn: cn=nsHostLocation,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
-default: cn: nsHostLocation
-default: objectclass: top
-default: objectclass: nsindex
-default: nssystemindex: false
-default: nsindextype: eq
-default: nsindextype: sub
-
-dn: cn=ipServicePort,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: ipServicePort
-default: objectClass: top
-default: objectClass: nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
-
-dn: cn=accessRuleType,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: accessRuleType
-default: objectClass:top
-default: objectClass:nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
+dn: cn=gidnumber,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: gidnumber
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsMatchingRule: integerOrderingMatch
 
 dn: cn=hostCategory,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: hostCategory
-default: objectClass:top
-default: objectClass:nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
+only:cn: hostCategory
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
 
 dn: cn=idnsName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: idnsName
-default: objectClass: top
-default: objectClass: nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
+only:cn: idnsName
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
+dn: cn=ipaallowedtarget,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaallowedtarget
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=ipaAnchorUUID,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaAnchorUUID
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+
+dn: cn=ipaassignedidview,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaassignedidview
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
 
 dn: cn=ipaCertmapData,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: ipaCertmapData
-default: objectClass: top
-default: objectClass: nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
+only:cn: ipaCertmapData
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
 
-dn: cn=altSecurityIdentities,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: altSecurityIdentities
-default: objectClass: top
-default: objectClass: nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
+dn: cn=ipaConfigString,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaConfigString
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
 
-dn: cn=memberManager,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: memberManager
-default: objectClass: top
-default: objectClass: nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
-default: nsIndexType: pres
+dn: cn=ipaEnabledFlag,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaEnabledFlag
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
 
-dn: cn=krbPasswordExpiration,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: krbPasswordExpiration
-default: objectClass: top
-default: objectClass: nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: eq
+dn: cn=ipaKrbAuthzData,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaKrbAuthzData
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
 
-dn: cn=ipaNTTrustPartner,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: ipaNTTrustPartner
-default: objectClass: top
-default: objectClass: nsIndex
-default: nsSystemIndex: false
-default: nsIndexType: pres
+dn: cn=ipakrbprincipalalias,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipakrbprincipalalias
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
+dn: cn=ipalocation,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipalocation
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+
+dn: cn=ipaMemberCa,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaMemberCa
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=ipaMemberCertProfile,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaMemberCertProfile
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
 
 dn: cn=ipaNTSecurityIdentifier,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default: cn: ipaNTSecurityIdentifier
+only: cn: ipaNTSecurityIdentifier
 default: objectClass: top
 default: objectClass: nsIndex
 default: nsSystemIndex: false
-default: nsIndexType: pres
+add: nsIndexType: pres
+
+dn: cn=ipaNTTrustPartner,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only: cn: ipaNTTrustPartner
+default: objectClass: top
+default: objectClass: nsIndex
+default: nsSystemIndex: false
+add: nsIndexType: pres
+
+dn: cn=ipaOriginalUid,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaOriginalUid
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+
+dn: cn=ipasudorunas,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipasudorunas
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=ipasudorunasgroup,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipasudorunasgroup
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=ipatokenradiusconfiglink,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipatokenradiusconfiglink
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=ipauniqueid,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipauniqueid
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
+dn: cn=ipServicePort,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipServicePort
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
+dn: cn=krbCanonicalName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: krbCanonicalName
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=krbPasswordExpiration,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: krbPasswordExpiration
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
+dn: cn=krbPrincipalName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: krbPrincipalName
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+add:nsMatchingRule: caseIgnoreIA5Match
+add:nsMatchingRule: caseExactIA5Match
+
+dn: cn=l,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
+only:cn: l
+default:objectClass: nsindex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=macAddress,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: macAddress
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+
+dn: cn=managedby,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: managedby
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=manager,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: manager
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=member,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: member
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=memberallowcmd,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: memberallowcmd
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=memberdenycmd,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: memberdenycmd
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=memberHost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: memberHost
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=memberManager,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: memberManager
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+
+dn: cn=memberservice,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: memberservice
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=memberuid,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: memberuid
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+
+dn: cn=memberUser,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: memberUser
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=nsHardwarePlatform,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
+only:cn: nsHardwarePlatform
+default:objectClass: nsindex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=nsHostLocation,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
+only:cn: nsHostLocation
+default:objectClass: nsindex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=nsOsVersion,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
+only:cn: nsOsVersion
+default:objectClass: nsindex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=ntUniqueId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ntUniqueId
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+
+dn: cn=ntUserDomainId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ntUserDomainId
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+
+dn: cn=ou,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ou
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=owner,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: owner
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=secretary,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: secretary
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=seealso,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: seealso
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=serverhostname,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: serverhostname
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=sourcehost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: sourcehost
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
+
+dn: cn=title,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: title
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=uid,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: uid
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=uidnumber,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: uidnumber
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsMatchingRule: integerOrderingMatch
+
+dn: cn=uniquemember,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: uniquemember
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=userCertificate,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: userCertificate
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
