@@ -78,6 +78,8 @@ type node_t;
 type ipa_pki_retrieve_key_exec_t;
 init_script_file(ipa_pki_retrieve_key_exec_t)
 
+type ipa_pki_retrieve_key_t;
+
 ########################################
 #
 # ipa_otpd local policy
@@ -422,7 +424,7 @@ optional_policy(`
         type tomcat_t;
     ')
     can_exec(tomcat_t, ipa_pki_retrieve_key_exec_t)
-    pki_manage_tomcat_etc_rw(ipa_pki_retrieve_key_exec_t)
+    pki_manage_tomcat_etc_rw(ipa_pki_retrieve_key_t)
 ')
 
 optional_policy(`
