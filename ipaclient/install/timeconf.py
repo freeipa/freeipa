@@ -82,13 +82,16 @@ def sync_chrony():
     # Restart chronyd
     services.knownservices.chronyd.restart()
 
-    sync_attempt_count = 3
-    # chrony attempt count to sync with configiured servers
-    # each next attempt is tried after 10seconds of timeot
-    # 3 attempts means: if first immidiate attempt fails
-    # there is 10s delay between next attempts
-
-    args = [paths.CHRONYC, 'waitsync', str(sync_attempt_count), '-d']
+    # chrony attempt count to sync with configured servers. Each attempt is
+    # retried after $interval seconds.
+    # 4 attempts with 3s interval result in a maximum delay of 9 seconds.
+    sync_attempt_count = 4
+    sync_attempt_interval = 3
+    args = [
+        paths.CHRONYC, '-d', 'waitsync',
+        # max-tries, max-correction, max-skew, interval
+        str(sync_attempt_count), '0', '0', str(sync_attempt_interval)
+    ]
 
     try:
         logger.info('Attempting to sync time with chronyc.')
