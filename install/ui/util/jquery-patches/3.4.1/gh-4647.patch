@@ -1,0 +1,71 @@
+From 966a70909019aa09632c87c0002c522fa4a1e30e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Go=C5=82=C4=99biowski-Owczarek?=
+ <m.goleb@gmail.com>
+Date: Mon, 30 Mar 2020 20:15:09 +0200
+Subject: [PATCH] Manipulation: Skip the select wrapper for <option> outside of
+ IE 9
+
+Closes gh-4647
+---
+ src/manipulation/support.js |  6 ++++++
+ src/manipulation/wrapMap.js | 15 ++++++++-------
+ 2 files changed, 14 insertions(+), 7 deletions(-)
+
+diff --git a/src/manipulation/support.js b/src/manipulation/support.js
+index 4a5d9af4..62d6bb3e 100644
+--- a/src/manipulation/support.js
++++ b/src/manipulation/support.js
+@@ -28,6 +28,12 @@ define( [
+ 	// Make sure textarea (and checkbox) defaultValue is properly cloned
+ 	div.innerHTML = "<textarea>x</textarea>";
+ 	support.noCloneChecked = !!div.cloneNode( true ).lastChild.defaultValue;
++
++	// Support: IE <=9 only
++	// IE <=9 replaces <option> tags with their contents when inserted outside of
++	// the select element.
++	div.innerHTML = "<option></option>";
++	support.option = !!div.lastChild;
+ } )();
+ 
+ return support;
+diff --git a/src/manipulation/wrapMap.js b/src/manipulation/wrapMap.js
+index 1f446f7d..da48bf9f 100644
+--- a/src/manipulation/wrapMap.js
++++ b/src/manipulation/wrapMap.js
+@@ -1,13 +1,12 @@
+-define( function() {
++define( [
++	"./support"
++], function( support ) {
+ 
+ "use strict";
+ 
+ // We have to close these tags to support XHTML (#13200)
+ var wrapMap = {
+ 
+-	// Support: IE <=9 only
+-	option: [ 1, "<select multiple='multiple'>", "</select>" ],
+-
+ 	// XHTML parsers do not magically insert elements in the
+ 	// same way that tag soup parsers do. So we cannot shorten
+ 	// this by omitting <tbody> or other required elements.
+@@ -19,11 +18,13 @@ var wrapMap = {
+ 	_default: [ 0, "", "" ]
+ };
+ 
+-// Support: IE <=9 only
+-wrapMap.optgroup = wrapMap.option;
+-
+ wrapMap.tbody = wrapMap.tfoot = wrapMap.colgroup = wrapMap.caption = wrapMap.thead;
+ wrapMap.th = wrapMap.td;
+ 
++// Support: IE <=9 only
++if ( !support.option ) {
++	wrapMap.optgroup = wrapMap.option = [ 1, "<select multiple='multiple'>", "</select>" ];
++}
++
+ return wrapMap;
+ } );
+-- 
+2.20.1
+
