@@ -63,6 +63,8 @@ init_script_file(ipa_custodia_dmldap_exec_t)
 type ipa_custodia_pki_tomcat_exec_t;
 init_script_file(ipa_custodia_pki_tomcat_exec_t)
 
+type ipa_custodia_pki_tomcat_t;
+
 type ipa_custodia_ra_agent_exec_t;
 init_script_file(ipa_custodia_ra_agent_exec_t)
 
@@ -436,7 +438,7 @@ optional_policy(`
 ')
 
 optional_policy(`
-    java_exec(ipa_custodia_pki_tomcat_exec_t)
+    java_exec(ipa_custodia_pki_tomcat_t)
     # allow Java to read system status and RNG
     dev_read_urand(ipa_custodia_t)
     dev_read_rand(ipa_custodia_t)
