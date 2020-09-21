@@ -224,7 +224,6 @@ class DsInstance(service.Service):
     def __common_setup(self):
 
         self.step("creating directory server instance", self.__create_instance)
-        self.step("configure autobind for root", self.__root_autobind)
         self.step("tune ldbm plugin", self.__tune_ldbm)
         self.step("stopping directory server", self.__stop_instance)
         self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
@@ -560,25 +559,13 @@ class DsInstance(service.Service):
         sds.create_from_args(general, slapd, backends, None)
 
         # Now create the new domain root object in the format that IPA expects.
-        # Get the instance ....
-
+        # Get the instance and setup LDAPI with root autobind.
         inst = DirSrv(verbose=True, external_log=logger)
         inst.local_simple_allocate(
             serverid=self.serverid,
             ldapuri=ipaldap.get_ldap_uri(realm=self.realm, protocol='ldapi'),
-            password=self.dm_password
         )
-
-        # local_simple_allocate() configures LDAPI but doesn't set up the
-        # DirSrv object to use LDAPI. Modify the DirSrv() object to use
-        # LDAPI with password bind. autobind is not available, yet.
-        inst.ldapi_enabled = 'on'
-        inst.ldapi_socket = paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % (
-            self.serverid
-        )
-        inst.ldapi_autobind = 'off'
-
-        # This actually opens the conn and binds.
+        inst.setup_ldapi()
         inst.open()
 
         try:
@@ -1246,14 +1233,6 @@ class DsInstance(service.Service):
         self.start()
 
         return status
-
-    def __root_autobind(self):
-        self._ldap_mod(
-            "root-autobind.ldif",
-            ldap_uri=ipaldap.get_ldap_uri(realm=self.realm, protocol='ldapi'),
-            # must simple bind until auto bind is configured
-            dm_password=self.dm_password
-        )
 
     def __add_sudo_binduser(self):
         self._ldap_mod("sudobind.ldif", self.sub_dict)

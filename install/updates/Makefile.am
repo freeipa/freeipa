@@ -12,6 +12,7 @@ app_DATA =				\
 	10-uniqueness.update		\
 	19-managed-entries.update	\
 	20-aci.update			\
+	20-autobind.update		\
 	20-dna.update			\
 	20-enable_dirsrv_plugins.update	\
 	20-host_nis_groups.update	\
