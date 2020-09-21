@@ -239,7 +239,22 @@ class TestInstallCA(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        cls.master.put_file_contents(
+            os.path.join(paths.IPA_CCACHES, 'foo'),
+            'somerandomstring'
+        )
+        cls.master.run_command(
+            ['mkdir', os.path.join(paths.IPA_CCACHES, 'bar')]
+        )
         tasks.install_master(cls.master, setup_dns=False)
+
+    def test_ccaches_cleanup(self):
+        """
+        The IPA ccaches directory is cleaned up on install. Verify
+        that the file we created is now gone.
+        """
+        assert os.path.exists(os.path.join(paths.IPA_CCACHES, 'foo')) is False
+        assert os.path.exists(os.path.join(paths.IPA_CCACHES, 'bar')) is False
 
     def test_replica_ca_install_with_no_host_dns(self):
         """
