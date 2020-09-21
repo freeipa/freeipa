@@ -26,6 +26,7 @@ import glob
 import errno
 import shlex
 import pipes
+import shutil
 import tempfile
 
 from augeas import Augeas
@@ -172,8 +173,10 @@ class HTTPInstance(service.Service):
         # Make sure that empty env is passed to avoid passing KRB5CCNAME from
         # current env
         ipautil.remove_file(paths.HTTP_CCACHE)
-        for f in os.listdir(paths.IPA_CCACHES):
-            os.remove(os.path.join(paths.IPA_CCACHES, f))
+        shutil.rmtree(paths.IPA_CCACHES)
+        ipautil.run(
+            [paths.SYSTEMD_TMPFILES, '--create', '--prefix', paths.IPA_CCACHES]
+        )
 
     def __configure_http(self):
         self.update_httpd_service_ipa_conf()
