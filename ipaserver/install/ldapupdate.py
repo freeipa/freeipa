@@ -511,10 +511,6 @@ class LDAPUpdate:
 
     def create_index_task(self, *attributes):
         """Create a task to update an index for attributes"""
-
-        # Sleep a bit to ensure previous operations are complete
-        time.sleep(5)
-
         cn_uuid = uuid.uuid1()
         # cn_uuid.time is in nanoseconds, but other users of LDAPUpdate expect
         # seconds in 'TIME' so scale the value down
