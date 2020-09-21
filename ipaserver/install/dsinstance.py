@@ -1025,7 +1025,7 @@ class DsInstance(service.Service):
         __add_principal('ipa-ldap-delegation-targets', 'ldap', self)
 
     def __create_indices(self):
-        self._ldap_mod("indices.ldif")
+        self._ldap_update(["20-indices.update"])
 
     def __certmap_conf(self):
         write_certmap_conf(self.realm, self.ca_subject)
