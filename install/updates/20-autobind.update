@@ -1,0 +1,7 @@
+# map LDAPI autobind uid/gid to user entries (not used by root autobind)
+dn: cn=config
+only: nsslapd-ldapimaptoentries: on
+
+# lib389 configures 389-DS for root-autobind. This entry is no longer needed.
+dn: cn=root-autobind,cn=config
+deleteentry: cn=root-autobind,cn=config
