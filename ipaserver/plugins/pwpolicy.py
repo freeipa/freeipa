@@ -21,7 +21,7 @@
 import logging
 
 from ipalib import api
-from ipalib import Int, Str, DNParam
+from ipalib import Int, Str, DNParam, Bool
 from ipalib import errors
 from .baseldap import (
     LDAPObject,
@@ -236,13 +236,15 @@ class pwpolicy(LDAPObject):
     container_dn = DN(('cn', api.env.realm), ('cn', 'kerberos'))
     object_name = _('password policy')
     object_name_plural = _('password policies')
-    object_class = ['top', 'nscontainer', 'krbpwdpolicy']
-    permission_filter_objectclasses = ['krbpwdpolicy']
+    object_class = ['top', 'nscontainer', 'krbpwdpolicy', 'ipapwdpolicy']
+    permission_filter_objectclasses = ['krbpwdpolicy', 'ipapwdpolicy']
     default_attributes = [
         'cn', 'cospriority', 'krbmaxpwdlife', 'krbminpwdlife',
         'krbpwdhistorylength', 'krbpwdmindiffchars', 'krbpwdminlength',
         'krbpwdmaxfailure', 'krbpwdfailurecountinterval',
-        'krbpwdlockoutduration',
+        'krbpwdlockoutduration', 'ipapwdmaxrepeat',
+        'ipapwdmaxsequence', 'ipapwddictcheck',
+        'ipapwdusercheck',
     ]
     managed_permissions = {
         'System: Read Group Password Policy': {
@@ -254,6 +256,8 @@ class pwpolicy(LDAPObject):
                 'krbpwdfailurecountinterval', 'krbpwdhistorylength',
                 'krbpwdlockoutduration', 'krbpwdmaxfailure',
                 'krbpwdmindiffchars', 'krbpwdminlength', 'objectclass',
+                'ipapwdmaxrepeat', 'ipapwdmaxsequence', 'ipapwddictcheck',
+                'ipapwdusercheck',
             },
             'default_privileges': {
                 'Password Policy Readers',
@@ -279,7 +283,9 @@ class pwpolicy(LDAPObject):
             'ipapermdefaultattr': {
                 'krbmaxpwdlife', 'krbminpwdlife', 'krbpwdfailurecountinterval',
                 'krbpwdhistorylength', 'krbpwdlockoutduration',
-                'krbpwdmaxfailure', 'krbpwdmindiffchars', 'krbpwdminlength'
+                'krbpwdmaxfailure', 'krbpwdmindiffchars', 'krbpwdminlength',
+                'ipapwdmaxrepeat', 'ipapwdmaxsequence', 'ipapwddictcheck',
+                'ipapwdusercheck',
             },
             'replaces': [
                 '(targetattr = "krbmaxpwdlife || krbminpwdlife || krbpwdhistorylength || krbpwdmindiffchars || krbpwdminlength || krbpwdmaxfailure || krbpwdfailurecountinterval || krbpwdlockoutduration")(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Modify Group Password Policy";allow (write) groupdn = "ldap:///cn=Modify Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -358,6 +364,38 @@ class pwpolicy(LDAPObject):
             doc=_('Period for which lockout is enforced (seconds)'),
             minvalue=0,
         ),
+        Int(
+            'ipapwdmaxrepeat?',
+            cli_name='maxrepeat',
+            label=_('Max repeat'),
+            doc=_('Maximum number of same consecutive characters'),
+            minvalue=0,
+            maxvalue=256,
+            default=0,
+        ),
+        Int(
+            'ipapwdmaxsequence?',
+            cli_name='maxsequence',
+            label=_('Max sequence'),
+            doc=_('The max. length of monotonic character sequences (abcd)'),
+            minvalue=0,
+            maxvalue=256,
+            default=0,
+        ),
+        Bool(
+            'ipapwddictcheck?',
+            cli_name='dictcheck',
+            label=_('Dictionary check'),
+            doc=_('Check if the password is a dictionary word'),
+            default=False,
+        ),
+        Bool(
+            'ipapwdusercheck?',
+            cli_name='usercheck',
+            label=_('User check'),
+            doc=_('Check if the password contains the username'),
+            default=False,
+        ),
     )
 
     def get_dn(self, *keys, **options):
@@ -386,6 +424,51 @@ class pwpolicy(LDAPObject):
             entry_attrs['krbmaxpwdlife'] = entry_attrs['krbmaxpwdlife'] * 86400
         if 'krbminpwdlife' in entry_attrs and entry_attrs['krbminpwdlife']:
             entry_attrs['krbminpwdlife'] = entry_attrs['krbminpwdlife'] * 3600
+
+    def validate_minlength(self, ldap, entry_attrs, add=False, *keys):
+        """
+        If any of the libpwquality options are used then the minimum
+        length must be >= 6 which is the built-in default of libpwquality.
+        Allowing a lower value to be set will result in a failed policy
+        check and a generic error message.
+        """
+        def get_val(entry, attr):
+            """Get a single value from a list or a string"""
+            val = entry.get(attr, 0)
+            if isinstance(val, list):
+                val = val[0]
+            return val
+
+        def has_pwquality_set(entry):
+            for attr in ['ipapwdmaxrepeat', 'ipapwdmaxsequence',
+                         'ipapwddictcheck', 'ipapwdusercheck']:
+                val = get_val(entry, attr)
+                if val not in ('FALSE', '0', 0, None):
+                    return True
+            return False
+
+        has_pwquality_value = False
+        if not add:
+            if len(keys) > 0:
+                existing_entry = self.api.Command.pwpolicy_show(
+                    keys[-1], all=True,)['result']
+            else:
+                existing_entry = self.api.Command.pwpolicy_show(
+                    all=True,)['result']
+            existing_entry.update(entry_attrs)
+            min_length = int(get_val(existing_entry, 'krbpwdminlength'))
+
+            has_pwquality_value = has_pwquality_set(existing_entry)
+        else:
+            min_length = int(get_val(entry_attrs, 'krbpwdminlength'))
+            has_pwquality_value = has_pwquality_set(entry_attrs)
+
+        if min_length and min_length < 6 and has_pwquality_value:
+            raise errors.ValidationError(
+                name='minlength',
+                error=_('Minimum length must be >= 6 if maxrepeat, '
+                        'maxsequence, dictcheck or usercheck are defined')
+            )
 
     def validate_lifetime(self, entry_attrs, add=False, *keys):
         """
@@ -435,6 +518,7 @@ class pwpolicy_add(LDAPCreate):
         assert isinstance(dn, DN)
         self.obj.convert_time_on_input(entry_attrs)
         self.obj.validate_lifetime(entry_attrs, True)
+        self.obj.validate_minlength(ldap, entry_attrs, True)
         self.api.Command.cosentry_add(
             keys[-1], krbpwdpolicyreference=dn,
             cospriority=options.get('cospriority')
@@ -486,7 +570,12 @@ class pwpolicy_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
+        old_entry_attrs = ldap.get_entry(dn, ['objectclass'])
+        if 'ipapwdpolicy' not in old_entry_attrs['objectclass']:
+            old_entry_attrs['objectclass'].append('ipapwdpolicy')
+            entry_attrs['objectclass'] = old_entry_attrs['objectclass']
         self.obj.convert_time_on_input(entry_attrs)
+        self.obj.validate_minlength(ldap, entry_attrs, False, *keys)
         self.obj.validate_lifetime(entry_attrs, False, *keys)
         setattr(context, 'cosupdate', False)
         if options.get('cospriority') is not None:
