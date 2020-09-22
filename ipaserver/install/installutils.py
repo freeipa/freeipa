@@ -54,8 +54,9 @@ from ipapython.certdb import EXTERNAL_CA_TRUST_FLAGS
 from ipalib.constants import MAXHOSTNAMELEN
 from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
+from ipalib.install import dnsforwarders
 from ipapython.dn import DN
-from ipapython.dnsutil import resolve, get_ipa_resolver
+from ipapython.dnsutil import resolve
 from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -287,15 +288,28 @@ def read_ip_addresses():
 def read_dns_forwarders():
     addrs = []
     if ipautil.user_input("Do you want to configure DNS forwarders?", True):
-        print(
-            "Following DNS servers are configured in /etc/resolv.conf: %s"
-            % ", ".join(get_ipa_resolver().nameservers)
-        )
+        if dnsforwarders.detect_resolve1_resolv_conf():
+            servers = [
+                str(s) for s in dnsforwarders.get_resolve1_nameservers()
+            ]
+            print(
+                "The following DNS servers are configured in "
+                "systemd-resolved: %s" % ", ".join(servers)
+            )
+        else:
+            servers = [
+                str(s) for s in dnsforwarders.get_dnspython_nameservers()
+            ]
+            print(
+                "Following DNS servers are configured in /etc/resolv.conf: "
+                "%s" % ", ".join(servers)
+            )
+
         if ipautil.user_input("Do you want to configure these servers as DNS "
                 "forwarders?", True):
-            addrs = get_ipa_resolver().nameservers[:]
-            print("All DNS servers from /etc/resolv.conf were added. You can "
-                  "enter additional addresses now:")
+            addrs = servers[:]
+            print("All detected DNS servers were added. You can enter "
+                  "additional addresses now:")
         while True:
             ip = ipautil.user_input("Enter an IP address for a DNS forwarder, "
                                     "or press Enter to skip", allow_empty=True)
@@ -308,11 +322,18 @@ def read_dns_forwarders():
                 print("DNS forwarder %s not added." % ip)
                 continue
 
+            if ip_parsed.is_loopback():
+                print("Error: %s is a loopback address" % ip)
+                print("DNS forwarder %s not added." % ip)
+                continue
+
             print("DNS forwarder %s added. You may add another." % ip)
             addrs.append(str(ip_parsed))
 
     if not addrs:
         print("No DNS forwarders configured")
+    else:
+        print("DNS forwarders: %s" % ", ".join(addrs))
 
     return addrs
 
