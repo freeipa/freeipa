@@ -309,11 +309,13 @@ class BaseTaskNamespace:
         """Tell systemd to reload config files"""
         raise NotImplementedError
 
-    def configure_dns_resolver(self, nameservers, searchdomains, fstore=None):
+    def configure_dns_resolver(self, nameservers, searchdomains, *,
+                               resolve1_enabled=False, fstore=None):
         """Configure global DNS resolver (e.g. /etc/resolv.conf)
 
         :param nameservers: list of IP addresses
         :param searchdomains: list of search domaons
+        :param resolve1_enabled: is systemd-resolved enabled?
         :param fstore: optional file store for backup
         """
         raise NotImplementedError
