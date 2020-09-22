@@ -2315,6 +2315,23 @@ def wait_for_certmonger_status(host, status, request_id, timeout=120):
     return state
 
 
+def check_if_sssd_is_online(host):
+    """Check whether SSSD considers the IPA domain online.
+
+    Analyse sssctl domain-status <domain>'s output to see if SSSD considers
+    the IPA domain of the host online.
+
+    Could be extended for Trust domains as well.
+    """
+    pattern = re.compile(r'Online status: (?P<state>.*)\n')
+    result = host.run_command(
+        [paths.SSSCTL, "domain-status", host.domain.name, "-o"]
+    )
+    match = pattern.search(result.stdout_text)
+    state = match.group('state')
+    return state == 'Online'
+
+
 def wait_for_sssd_domain_status_online(host, timeout=120):
     """Wait up to timeout (in seconds) for sssd domain status to become Online
 
@@ -2325,14 +2342,8 @@ def wait_for_sssd_domain_status_online(host, timeout=120):
     as SSSD may need a while before it reconnects and switches from Offline
     mode to Online.
     """
-    pattern = re.compile(r'Online status: (?P<state>.*)\n')
     for _i in range(0, timeout, 5):
-        result = host.run_command(
-            [paths.SSSCTL, "domain-status", host.domain.name, "-o"]
-        )
-        match = pattern.search(result.stdout_text)
-        state = match.group('state')
-        if state == 'Online':
+        if check_if_sssd_is_online(host):
             break
         time.sleep(5)
     else:
