@@ -11,6 +11,7 @@ steps:
         autoconf \
         rpm-build \
         gettext-devel \
+        git \
         automake \
         libtool \
         docker \
