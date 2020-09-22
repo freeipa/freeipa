@@ -46,7 +46,6 @@ if __name__ == '__main__':
             "six",
         ],
         extras_require={
-            "install": ["dbus-python"],  # for certmonger
             "ldap": ["python-ldap"],  # ipapython.ipaldap
             # CheckedIPAddress.get_matching_interface
             "netifaces": ["netifaces"],
