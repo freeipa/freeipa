@@ -51,6 +51,7 @@ from ipapython.admintool import ScriptError
 import ipalib
 from ipalib import api, errors
 from ipalib.constants import IPA_CA_RECORD
+from ipalib.install import dnsforwarders
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipaplatform.constants import constants
@@ -1124,6 +1125,7 @@ class BindInstance(service.Service):
     def __setup_resolv_conf(self):
         searchdomains = [self.domain]
         nameservers = []
+        resolve1_enabled = dnsforwarders.detect_resolve1_resolv_conf()
 
         for ip_address in self.ip_addresses:
             if ip_address.version == 4:
@@ -1133,7 +1135,8 @@ class BindInstance(service.Service):
 
         try:
             tasks.configure_dns_resolver(
-                nameservers, searchdomains, fstore=self.fstore
+                nameservers, searchdomains,
+                resolve1_enabled=resolve1_enabled, fstore=self.fstore
             )
         except IOError as e:
             logger.error('Could not update DNS config: %s', e)
