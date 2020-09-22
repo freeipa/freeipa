@@ -78,10 +78,9 @@ type pki_tomcat_cert_t;
 type node_t;
 
 type ipa_pki_retrieve_key_exec_t;
-domain_type(ipa_pki_retrieve_key_exec_t)
-init_script_file(ipa_pki_retrieve_key_exec_t)
-
 type ipa_pki_retrieve_key_t;
+domain_type(ipa_pki_retrieve_key_t)
+init_script_file(ipa_pki_retrieve_key_exec_t)
 
 ########################################
 #
@@ -356,6 +355,7 @@ mmap_exec_files_pattern(ipa_custodia_t, ipa_custodia_tmp_t, ipa_custodia_tmp_t)
 files_tmp_filetrans(ipa_custodia_t, ipa_custodia_tmp_t, { dir file })
 
 kernel_dgram_send(ipa_custodia_t)
+kernel_read_network_state(ipa_custodia_t)
 
 auth_read_passwd(ipa_custodia_t)
 
@@ -365,6 +365,10 @@ can_exec(ipa_custodia_t, ipa_custodia_ra_agent_exec_t)
 
 corecmd_exec_bin(ipa_custodia_t)
 corecmd_mmap_bin_files(ipa_custodia_t)
+
+dev_read_urand(ipa_custodia_t)
+dev_read_rand(ipa_custodia_t)
+dev_read_sysfs(ipa_custodia_t)
 
 domain_use_interactive_fds(ipa_custodia_t)
 
@@ -376,6 +380,8 @@ files_read_etc_files(ipa_custodia_t)
 
 libs_exec_ldconfig(ipa_custodia_t)
 libs_ldconfig_exec_entry_type(ipa_custodia_t)
+
+logging_send_syslog_msg(ipa_custodia_t)
 
 miscfiles_read_generic_certs(ipa_custodia_t)
 miscfiles_read_localization(ipa_custodia_t)
@@ -441,8 +447,4 @@ optional_policy(`
 optional_policy(`
     java_exec(ipa_custodia_pki_tomcat_t)
     # allow Java to read system status and RNG
-    dev_read_urand(ipa_custodia_t)
-    dev_read_rand(ipa_custodia_t)
-    kernel_read_network_state(ipa_custodia_t)
-    dev_read_sysfs(ipa_custodia_t)
 ')
