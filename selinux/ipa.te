@@ -448,3 +448,11 @@ optional_policy(`
     java_exec(ipa_custodia_pki_tomcat_t)
     # allow Java to read system status and RNG
 ')
+
+optional_policy(`
+    gen_require(`
+        type tomcat_t;
+    ')
+    kerberos_read_config(tomcat_t)
+    kerberos_read_keytab(tomcat_t)
+')
