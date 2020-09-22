@@ -57,7 +57,8 @@ wellknownservices = [
     'rpcidmapd', 'pki_tomcatd', 'chronyd', 'domainname',
     'named', 'ods_enforcerd', 'ods_signerd', 'gssproxy',
     'nfs-utils', 'sssd', 'NetworkManager', 'ipa-custodia',
-    'ipa-dnskeysyncd', 'ipa-otpd', 'ipa-ods-exporter'
+    'ipa-dnskeysyncd', 'ipa-otpd', 'ipa-ods-exporter',
+    'systemd-resolved',
 ]
 
 # The common ports for these services. This is used to wait for the
