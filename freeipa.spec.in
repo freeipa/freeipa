@@ -243,6 +243,7 @@ BuildRequires:  python3-wheel
 # Build dependencies for lint and fastcheck
 #
 %if 0%{?with_lint}
+BuildRequires:  git
 BuildRequires:  jsl
 BuildRequires:  nss-tools
 BuildRequires:  rpmlint

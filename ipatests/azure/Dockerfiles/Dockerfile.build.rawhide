@@ -11,6 +11,7 @@ RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
     && dnf install -y systemd \
     && dnf install -y \
         firewalld \
+        git \
         glibc-langpack-fr \
         glibc-langpack-en \
         iptables \
