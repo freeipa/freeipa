@@ -770,7 +770,10 @@ class BindInstance(service.Service):
         # self.step("restarting named", self.__start)
 
         self.step("configuring named to start on boot", self.switch_service)
-        self.step("changing resolv.conf to point to ourselves", self.__setup_resolv_conf)
+        self.step(
+            "changing resolv.conf to point to ourselves",
+            self.setup_resolv_conf
+        )
         self.start_creation()
 
     def start_named(self):
@@ -1116,7 +1119,7 @@ class BindInstance(service.Service):
 
         sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
 
-    def __setup_resolv_conf(self):
+    def setup_resolv_conf(self):
         searchdomains = [self.domain]
         nameservers = []
         resolve1_enabled = dnsforwarders.detect_resolve1_resolv_conf()
