@@ -78,6 +78,7 @@ type pki_tomcat_cert_t;
 type node_t;
 
 type ipa_pki_retrieve_key_exec_t;
+domain_type(ipa_pki_retrieve_key_exec_t)
 init_script_file(ipa_pki_retrieve_key_exec_t)
 
 type ipa_pki_retrieve_key_t;
