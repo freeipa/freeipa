@@ -44,6 +44,6 @@ if __name__ == '__main__':
             "six",
         ],
         extras_require={
-            "install": ["ipaplatform"],
+            "install": ["dbus-python"],  # for certmonger and resolve1
         },
     )
