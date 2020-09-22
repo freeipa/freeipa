@@ -30,6 +30,7 @@ import ipalib.util
 import ipalib.errors
 from ipaclient.install import timeconf
 from ipaclient.install.client import sssd_enable_ifp
+from ipalib.install.dnsforwarders import detect_resolve1_resolv_conf
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipapython import ipautil, version
@@ -1396,6 +1397,13 @@ def upgrade_bind(fstore):
 
     # get rid of old upgrade states
     bind_old_upgrade_states()
+
+    # only upgrade with drop-in is missing and /etc/resolv.conf is a link to
+    # resolve1's stub resolver config file.
+    has_resolved_ipa_conf = os.path.isfile(paths.SYSTEMD_RESOLVED_IPA_CONF)
+    if not has_resolved_ipa_conf and detect_resolve1_resolv_conf():
+        bind.setup_resolv_conf()
+        logger.info("Updated systemd-resolved configuration")
 
     if bind.is_configured() and not bind.is_running():
         # some upgrade steps may require bind running
