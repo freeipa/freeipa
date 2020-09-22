@@ -832,6 +832,7 @@ This package contains tests that verify IPA functionality under Python 3.
 %package selinux
 Summary:             FreeIPA SELinux policy
 BuildArch:           noarch
+Requires:            %{name}-server = %{version}-%{release}
 Requires:            selinux-policy-%{selinuxtype}
 Requires(post):      selinux-policy-%{selinuxtype}
 %{?selinux_requires}
