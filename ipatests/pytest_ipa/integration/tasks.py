@@ -2345,6 +2345,28 @@ def get_sssd_version(host):
     return parse_version(version)
 
 
+def get_healthcheck_version(host):
+    """
+    Function to get healthcheck version on fedora and rhel
+    """
+    platform = get_platform(host)
+    if platform in ("rhel", "fedora"):
+        cmd = host.run_command(
+            ["rpm", "-qa", "--qf", "%{VERSION}", "*ipa-healthcheck"]
+        )
+        healthcheck_version = cmd.stdout_text
+        if not healthcheck_version:
+            raise ValueError(
+                "get_healthcheck_version: "
+                "ipa-healthcheck package is not installed"
+            )
+    else:
+        raise ValueError(
+            "get_healthcheck_version: unknown platform %s" % platform
+        )
+    return healthcheck_version
+
+
 def run_ssh_cmd(
     from_host=None, to_host=None, username=None, cmd=None,
     auth_method=None, password=None, private_key_path=None,
