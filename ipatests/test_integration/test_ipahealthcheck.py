@@ -23,6 +23,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
 from ipaplatform.osinfo import osinfo
 from ipatests.test_integration.base import IntegrationTest
+from pkg_resources import parse_version
 from ipatests.test_integration.test_cert import get_certmonger_fs_id
 from ipatests.test_integration.test_external_ca import (
     install_server_external_ca_step1,
@@ -45,6 +46,22 @@ ROOT_CA = "root_ca.crt"
 sources = [
     "ipahealthcheck.dogtag.ca",
     "ipahealthcheck.ds.replication",
+    "ipahealthcheck.ipa.certs",
+    "ipahealthcheck.ipa.dna",
+    "ipahealthcheck.ipa.idns",
+    "ipahealthcheck.ipa.files",
+    "ipahealthcheck.ipa.host",
+    "ipahealthcheck.ipa.roles",
+    "ipahealthcheck.ipa.topology",
+    "ipahealthcheck.ipa.trust",
+    "ipahealthcheck.ipa.meta",
+    "ipahealthcheck.meta.core",
+    "ipahealthcheck.meta.services",
+    "ipahealthcheck.system.filesystemspace",
+]
+
+sources_0_4 = [
+    "ipahealthcheck.ds.replication",
     "ipahealthcheck.dogtag.ca",
     "ipahealthcheck.ipa.certs",
     "ipahealthcheck.ipa.dna",
@@ -55,6 +72,8 @@ sources = [
     "ipahealthcheck.ipa.topology",
     "ipahealthcheck.ipa.trust",
     "ipahealthcheck.meta.services",
+    "ipahealthcheck.meta.core",
+    "ipahealthcheck.system.filesystemspace",
 ]
 
 ipa_cert_checks = [
@@ -103,6 +122,7 @@ ipafiles_checks = ["IPAFileNSSDBCheck", "IPAFileCheck", "TomcatFileCheck"]
 dogtag_checks = ["DogtagCertsConfigCheck", "DogtagCertsConnectivityCheck"]
 iparoles_checks = ["IPACRLManagerCheck", "IPARenewalMasterCheck"]
 replication_checks = ["ReplicationCheck"]
+replication_checks_0_4 = ["ReplicationConflictCheck"]
 ruv_checks = ["RUVCheck"]
 dna_checks = ["IPADNARangeCheck"]
 idns_checks = ["IPADNSSystemRecordsCheck"]
@@ -235,8 +255,13 @@ class TestIpaHealthCheck(IntegrationTest):
         """
         Testcase to verify sources available in healthcheck tool.
         """
+        version = tasks.get_healthcheck_version(self.master)
         result = self.master.run_command(["ipa-healthcheck", "--list-sources"])
-        for source in sources:
+        if parse_version(version) >= parse_version("0.6"):
+            sources_avail = sources
+        else:
+            sources_avail = sources_0_4
+        for source in sources_avail:
             assert source in result.stdout_text
 
     def test_human_output(self, restart_service):
@@ -275,10 +300,15 @@ class TestIpaHealthCheck(IntegrationTest):
         Testcase to verify checks available in
         ipahealthcheck.ds.replication source
         """
+        version = tasks.get_healthcheck_version(self.master)
         result = self.master.run_command(
             ["ipa-healthcheck", "--source", "ipahealthcheck.ds.replication"]
         )
-        for check in replication_checks:
+        if parse_version(version) >= parse_version("0.6"):
+            checks = replication_checks
+        else:
+            checks = replication_checks_0_4
+        for check in checks:
             assert check in result.stdout_text
 
     def test_ipa_cert_check_exists(self):
@@ -667,6 +697,9 @@ class TestIpaHealthCheck(IntegrationTest):
         error_msg = (
             "Certificate tracked by {key} is revoked {revocation_reason}"
         )
+        error_msg_0_4 = (
+            "Certificate is revoked, unspecified"
+        )
 
         result = self.master.run_command(
             ["getcert", "list", "-f", paths.HTTPD_CERT_FILE]
@@ -689,11 +722,18 @@ class TestIpaHealthCheck(IntegrationTest):
         assert returncode == 1
         assert len(data) == 12
 
+        version = tasks.get_healthcheck_version(self.master)
         for check in data:
             if check["kw"]["key"] == request_id:
                 assert check["result"] == "ERROR"
                 assert check["kw"]["revocation_reason"] == "unspecified"
-                assert check["kw"]["msg"] == error_msg
+                if (parse_version(version) >= parse_version('0.6')):
+                    assert check["kw"]["msg"] == error_msg
+                else:
+                    assert (
+                        check["kw"]["msg"]
+                        == error_msg_0_4
+                    )
             else:
                 assert check["result"] == "SUCCESS"
 
@@ -739,14 +779,24 @@ class TestIpaHealthCheck(IntegrationTest):
         contains only errors regarding master being stopped and no other false
         positives.
         """
-        returncode, output = run_healthcheck(
-            self.master,
-            "ipahealthcheck.meta",
-            output_type="human",
-            failures_only=True)
+        version = tasks.get_healthcheck_version(self.master)
+        if (parse_version(version) >= parse_version('0.6')):
+            returncode, output = run_healthcheck(
+                self.master,
+                "ipahealthcheck.meta",
+                output_type="human",
+                failures_only=True,
+            )
+        else:
+            returncode, output = run_healthcheck(
+                self.master,
+                "ipahealthcheck.meta.services",
+                output_type="human",
+                failures_only=True,
+            )
         assert returncode == 1
         errors = re.findall("ERROR: .*: not running", output)
-        assert len(errors) == len(output.split('\n'))
+        assert len(errors) == len(output.split("\n"))
 
     @pytest.fixture
     def move_ipa_ca_crt(self):
@@ -766,12 +816,17 @@ class TestIpaHealthCheck(IntegrationTest):
         Testcase checks that ERROR message is displayed
         when ipa ca crt file is not renamed
         """
+        version = tasks.get_healthcheck_version(self.master)
         error_text = (
             "[Errno 2] No such file or directory: '{}'"
             .format(paths.IPA_CA_CRT)
         )
         msg_text = (
             "Error opening IPA CA chain at {key}: {error}"
+        )
+        error_4_0_text = (
+            "[Errno 2] No such file or directory: '{}'"
+            .format(paths.IPA_CA_CRT)
         )
         returncode, data = run_healthcheck(
             self.master,
@@ -782,8 +837,11 @@ class TestIpaHealthCheck(IntegrationTest):
         for check in data:
             assert check["result"] == "ERROR"
             assert check["kw"]["key"] == paths.IPA_CA_CRT
-            assert check["kw"]["error"] == error_text
-            assert check["kw"]["msg"] == msg_text
+            if parse_version(version) >= parse_version("0.6"):
+                assert check["kw"]["error"] == error_text
+                assert check["kw"]["msg"] == msg_text
+            else:
+                assert error_4_0_text in check["kw"]["msg"]
 
     @pytest.fixture
     def modify_cert_trust_attr(self):
@@ -818,9 +876,14 @@ class TestIpaHealthCheck(IntegrationTest):
         Test for IPACertNSSTrust when trust attribute is modified
         for Server-Cert
         """
+        version = tasks.get_healthcheck_version(self.master)
         error_msg = (
             "Incorrect NSS trust for {nickname} in {dbdir}. "
             "Got {got} expected {expected}."
+        )
+        error_msg_4_0 = (
+            "Incorrect NSS trust for Server-Cert cert-pki-ca. "
+            "Got CTu,u,u expected u,u,u"
         )
         returncode, data = run_healthcheck(
             self.master, "ipahealthcheck.ipa.certs", "IPACertNSSTrust",
@@ -832,7 +895,10 @@ class TestIpaHealthCheck(IntegrationTest):
                 assert check["kw"]["expected"] == "u,u,u"
                 assert check["kw"]["got"] == "CTu,u,u"
                 assert check["kw"]["dbdir"] == paths.PKI_TOMCAT_ALIAS_DIR
-                assert check["kw"]["msg"] == error_msg
+                if (parse_version(version) >= parse_version('0.6')):
+                    assert check["kw"]["msg"] == error_msg
+                else:
+                    assert check["kw"]["msg"] == error_msg_4_0
 
     def test_ipa_healthcheck_expiring(self, restart_service):
         """
@@ -1387,6 +1453,7 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             )
 
     def test_tomcat_filecheck_too_permissive(self, modify_permissions):
+        version = tasks.get_healthcheck_version(self.master)
         modify_permissions(self.master, path=paths.CA_CS_CFG_PATH,
                            mode="0666")
         returncode, data = run_healthcheck(
@@ -1403,13 +1470,20 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             assert check["kw"]["type"] == 'mode'
             assert check["kw"]["expected"] == '0660'
             assert check["kw"]["got"] == '0666'
-            assert (
-                check["kw"]["msg"]
-                == "Permissions of %s are too permissive: "
-                   "0666 and should be 0660"
-                % check["kw"]["path"]
-            )
-
+            if (parse_version(version) >= parse_version('0.5')):
+                assert (
+                    check["kw"]["msg"]
+                    == "Permissions of %s are too permissive: "
+                       "0666 and should be 0660"
+                    % check["kw"]["path"]
+                )
+            else:
+                assert (
+                    check["kw"]["msg"]
+                    == "Permissions of %s are 0666 and should "
+                       "be 0660"
+                    % check["kw"]["path"]
+                )
 
 class TestIpaHealthCheckFilesystemSpace(IntegrationTest):
     """
@@ -1697,13 +1771,19 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
             self.master, "ipahealthcheck.ipa.certs", "IPACertmongerCA",
         )
         assert returncode == 1
+        version = tasks.get_healthcheck_version(self.master)
         for check in data:
             if check["kw"]["key"] == "dogtag-ipa-ca-renew-agent":
                 assert check["result"] == "ERROR"
-                assert (
-                    check["kw"]["msg"]
-                    == "Certmonger CA '{key}' missing"
-                )
+                if (parse_version(version) >= parse_version('0.6')):
+                    assert (
+                        check["kw"]["msg"] == "Certmonger CA '{key}' missing"
+                    )
+                else:
+                    assert (
+                        check["kw"]["msg"]
+                        == "Certmonger CA 'dogtag-ipa-ca-renew-agent' missing"
+                    )
 
     @pytest.fixture()
     def rename_httpd_cert(self):
