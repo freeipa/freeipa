@@ -74,9 +74,6 @@ logging_log_file(ipa_custodia_log_t)
 type ipa_custodia_tmp_t;
 files_tmp_file(ipa_custodia_tmp_t)
 
-type pki_tomcat_cert_t;
-type node_t;
-
 type ipa_pki_retrieve_key_exec_t;
 type ipa_pki_retrieve_key_t;
 domain_type(ipa_pki_retrieve_key_t)
@@ -339,12 +336,6 @@ allow ipa_custodia_t self:unix_dgram_socket create_socket_perms;
 allow ipa_custodia_t self:tcp_socket { bind create };
 allow ipa_custodia_t self:udp_socket create_socket_perms;
 
-allow ipa_custodia_t node_t:tcp_socket node_bind;
-
-allow ipa_custodia_t pki_tomcat_cert_t:dir remove_name;
-allow ipa_custodia_t pki_tomcat_cert_t:file create;
-allow ipa_custodia_t pki_tomcat_cert_t:file unlink;
-
 manage_dirs_pattern(ipa_custodia_t,ipa_custodia_log_t,ipa_custodia_log_t)
 manage_files_pattern(ipa_custodia_t, ipa_custodia_log_t, ipa_custodia_log_t)
 logging_log_filetrans(ipa_custodia_t, ipa_custodia_log_t, { dir file })
@@ -455,4 +446,20 @@ optional_policy(`
     ')
     kerberos_read_config(tomcat_t)
     kerberos_read_keytab(tomcat_t)
+')
+
+optional_policy(`
+    gen_require(`
+        type node_t;
+    ')
+    allow ipa_custodia_t node_t:tcp_socket node_bind;
+')
+
+optional_policy(`
+    gen_require(`
+        type pki_tomcat_cert_t;
+    ')
+    allow ipa_custodia_t pki_tomcat_cert_t:dir remove_name;
+    allow ipa_custodia_t pki_tomcat_cert_t:file create;
+    allow ipa_custodia_t pki_tomcat_cert_t:file unlink;
 ')
