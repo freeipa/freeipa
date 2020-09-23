@@ -25,7 +25,7 @@ from ipalib import Registry, api
 from ipalib import Command, Str
 from ipalib import errors
 from ipalib import _
-from ipaserver.install import installutils
+from ipalib.constants import FQDN
 
 __doc__ = _("""
 Joining an IPA domain
@@ -60,7 +60,7 @@ class join(Command):
             validate_host,
             cli_name='hostname',
             doc=_("The hostname to register as"),
-            default_from=lambda: unicode(installutils.get_fqdn()),
+            default_from=lambda: FQDN,
             autofill=True,
             #normalizer=lamda value: value.lower(),
         ),
