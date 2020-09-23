@@ -1011,6 +1011,25 @@ class TestInstallMaster(IntegrationTest):
             [paths.IPA_CUSTODIA_CHECK, self.master.hostname]
         )
 
+    @pytest.mark.skipif(
+        paths.SEMODULE is None, reason="test requires semodule command"
+    )
+    def test_ipa_selinux_policy(self):
+        # check that freeipa-selinux's policy module is loaded and
+        # not disabled
+        result = self.master.run_command(
+            [paths.SEMODULE, "-lfull"]
+        )
+        # prio module pp [disabled]
+        # 100: default priority
+        # 200: decentralized SELinux policy priority
+        entries = {
+            tuple(line.split())
+            for line in result.stdout_text.split('\n')
+            if line.strip()
+        }
+        assert ('200', 'ipa', 'pp') in entries
+
 
 class TestInstallMasterKRA(IntegrationTest):
 
