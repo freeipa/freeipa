@@ -1024,13 +1024,13 @@ def check_available_memory(ca=False):
     also may not be constrained but it's the best approximation.
 
     2GB is the rule-of-thumb minimum but the server is installable with
-    less.
+    much less.
 
     The CA uses ~150MB in a fresh install.
 
     Use Kb instead of KiB to leave a bit of slush for the OS
     """
-    minimum_suggested = 1000 * 1000 * 1000 * 1.6
+    minimum_suggested = 1000 * 1000 * 1000 * 1.2
     if not ca:
         minimum_suggested -= 150 * 1000 * 1000
     if in_container():
@@ -1051,7 +1051,7 @@ def check_available_memory(ca=False):
     logger.debug("Available memory is %sB", available)
     if available < minimum_suggested:
         raise ScriptError(
-            "Less than the minimum 1.6GB of RAM is available, "
+            "Less than the minimum 1.2GB of RAM is available, "
             "%.2fGB available" % (available / (1024 * 1024 * 1024))
         )
 
