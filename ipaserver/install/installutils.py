@@ -29,7 +29,6 @@ import ldif
 import os
 import re
 import fileinput
-import psutil
 import sys
 import tempfile
 import shutil
@@ -1047,6 +1046,9 @@ def check_available_memory(ca=False):
                 "Unable to determine the amount of available RAM"
             )
     else:
+        # delay import of psutil. On import it opens files in /proc and
+        # can trigger a SELinux violation.
+        import psutil
         available = psutil.virtual_memory().available
     logger.debug("Available memory is %sB", available)
     if available < minimum_suggested:

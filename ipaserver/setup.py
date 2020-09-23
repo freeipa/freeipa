@@ -59,6 +59,7 @@ if __name__ == '__main__':
             "jwcrypto",
             "lxml",
             "netaddr",
+            "psutil",
             "pyasn1",
             "requests",
             "six",
