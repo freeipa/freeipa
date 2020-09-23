@@ -330,6 +330,25 @@ interface(`ipa_custodia_domtrans',`
 
 ######################################
 ## <summary>
+##	Execute ipa-pki-retrieve-key in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_pki_retrieve_key_exec',`
+	gen_require(`
+		type ipa_pki_retrieve_key_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	can_exec($1, ipa_pki_retrieve_key_exec_t)
+')
+
+######################################
+## <summary>
 ##	Execute ipa_custodia in the caller domain.
 ## </summary>
 ## <param name="domain">
