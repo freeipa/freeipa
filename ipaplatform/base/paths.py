@@ -267,6 +267,7 @@ class BasePathNamespace:
     RESTORECON = "/usr/sbin/restorecon"
     SELINUXENABLED = "/usr/sbin/selinuxenabled"
     SETSEBOOL = "/usr/sbin/setsebool"
+    SEMODULE = "/usr/sbin/semodule"
     SMBD = "/usr/sbin/smbd"
     USERADD = "/usr/sbin/useradd"
     FONTS_DIR = "/usr/share/fonts"
