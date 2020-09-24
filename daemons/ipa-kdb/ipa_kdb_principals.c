@@ -1005,7 +1005,7 @@ ipadb_fetch_principals_with_extra_filter(struct ipadb_context *ipactx,
          * only to the part of the filter that does use assertion
          * value. */
         const char *asterisk = "%x2A";
-        char *assertion_value = esc_original_princ;
+        const char *assertion_value = esc_original_princ;
 
         if ((len == 1) && (esc_original_princ[0] == '*')) {
             assertion_value = asterisk;
