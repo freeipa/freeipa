@@ -114,6 +114,11 @@ dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES([CRYPTO], [libcrypto])
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for pwquality library
+dnl ---------------------------------------------------------------------------
+PKG_CHECK_MODULES([PWQUALITY], [pwquality])
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for Python 3
 dnl - Check for platform Python interpreter
 dnl ---------------------------------------------------------------------------
@@ -665,6 +670,7 @@ echo "
         jslint:                   ${JSLINT}
         LDAP libs:                ${LDAP_LIBS}
         OpenSSL crypto libs:      ${CRYPTO_LIBS}
+        pwquality libs:           ${PWQUALITY_LIBS}
         KRB5 libs:                ${KRB5_LIBS}
         systemdsystemunitdir:     ${systemdsystemunitdir}"
 
