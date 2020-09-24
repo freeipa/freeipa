@@ -44,7 +44,12 @@ enum ipapwd_error {
     IPAPWD_POLICY_PWD_TOO_YOUNG = 2,
     IPAPWD_POLICY_PWD_TOO_SHORT = 3,
     IPAPWD_POLICY_PWD_IN_HISTORY = 4,
-    IPAPWD_POLICY_PWD_COMPLEXITY = 5
+    IPAPWD_POLICY_PWD_COMPLEXITY = 5,
+    IPAPWD_POLICY_PWD_CONSECUTIVE = 6,
+    IPAPWD_POLICY_PWD_SEQUENCE = 7,
+    IPAPWD_POLICY_PWD_DICT_WORD = 8,
+    IPAPWD_POLICY_PWD_PALINDROME = 9,
+    IPAPWD_POLICY_PWD_USER = 10
 };
 
 struct ipapwd_policy {
@@ -56,6 +61,11 @@ struct ipapwd_policy {
     int max_fail;
     int failcnt_interval;
     int lockout_duration;
+    int max_repeat;
+    int max_sequence;
+    int max_classrepeat;
+    int dictcheck;
+    int usercheck;
 };
 
 time_t ipapwd_gentime_to_time_t(char *timestr);
@@ -68,6 +78,7 @@ int ipapwd_hash_password(char *password,
 
 int ipapwd_check_policy(struct ipapwd_policy *policy,
                         char *password,
+                        char *user,
                         time_t cur_time,
                         time_t acct_expiration,
                         time_t pwd_expiration,
