@@ -322,7 +322,9 @@ int ipapwd_getPolicy(const char *dn,
     Slapi_PBlock *pb = NULL;
     char *attrs[] = { "krbMaxPwdLife", "krbMinPwdLife",
                       "krbPwdMinDiffChars", "krbPwdMinLength",
-                      "krbPwdHistoryLength", NULL};
+                      "krbPwdHistoryLength", "ipaPwdMaxRepeat",
+                      "ipaPwdMaxSequence", "ipaPwdDictCheck",
+                      "ipaPwdUserCheck", NULL};
     Slapi_Entry **es = NULL;
     Slapi_Entry *pe = NULL;
     int ret, res, scope, i;
@@ -402,6 +404,10 @@ int ipapwd_getPolicy(const char *dn,
 
     policy->min_complexity = slapi_entry_attr_get_int(pe,
                                                       "krbPwdMinDiffChars");
+    policy->max_repeat = slapi_entry_attr_get_int(pe, "ipaPwdMaxRepeat");
+    policy->max_sequence = slapi_entry_attr_get_int(pe, "ipaPwdMaxSequence");
+    policy->dictcheck = slapi_entry_attr_get_bool(pe, "ipaPwdDictCheck");
+    policy->usercheck = slapi_entry_attr_get_bool(pe, "ipaPwdUserCheck");
 
     ret = 0;
 
@@ -576,6 +582,7 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
     time_t pwd_expiration;
     time_t last_pwd_change;
     char **pwd_history;
+    char *uid;
     char *tmpstr;
     int ret;
 
@@ -641,9 +648,11 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
 
     pwd_history = slapi_entry_attr_get_charray(data->target,
                                                "passwordHistory");
+    uid = slapi_entry_attr_get_charptr(data->target, "uid");
 
     /* check policy */
     ret = ipapwd_check_policy(&pol, data->password,
+                                    uid,
                                     data->timeNow,
                                     acct_expiration,
                                     pwd_expiration,
@@ -651,6 +660,7 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
                                     pwd_history);
 
     slapi_ch_array_free(pwd_history);
+    slapi_ch_free_string(&uid);
 
     if (data->expireTime == 0) {
         if (pol.max_pwd_life > 0) {
