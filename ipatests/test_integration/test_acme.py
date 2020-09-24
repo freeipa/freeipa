@@ -15,7 +15,14 @@ from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipaserver.install import cainstance
+from ipatests.test_integration.test_external_ca import (
+    install_server_external_ca_step1,
+    install_server_external_ca_step2,
+)
 
+
+IPA_CA = "ipa_ca.crt"
+ROOT_CA = "root_ca.crt"
 
 # RHEL does not have certbot.  EPEL's version is broken with
 # python-cryptography-2.3; likewise recent PyPI releases.
@@ -469,3 +476,39 @@ class TestACMECALess(IntegrationTest):
         # check acme status on replica, should be disabled
         status = check_acme_status(self.replicas[0], 'disabled')
         assert status == 'disabled'
+
+
+class TestACMEwithExternalCA(TestACME):
+    """Test the FreeIPA ACME service with external CA"""
+
+    num_replicas = 0
+    num_clients = 1
+
+    @classmethod
+    def install(cls, mh):
+        # cache the acme service uri
+        acme_host = f'{IPA_CA_RECORD}.{cls.master.domain.name}'
+        cls.acme_server = f'https://{acme_host}/acme/directory'
+
+        # install packages before client install in case of IPA DNS problems
+        if not skip_certbot_tests:
+            tasks.install_packages(cls.clients[0], ["certbot"])
+        if not skip_mod_md_tests:
+            tasks.install_packages(cls.clients[0], ["mod_md"])
+
+        # install master with external-ca
+        result = install_server_external_ca_step1(cls.master)
+        assert result.returncode == 0
+        root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
+            cls.master, paths.ROOT_IPA_CSR, ROOT_CA, IPA_CA
+        )
+
+        install_server_external_ca_step2(
+            cls.master, ipa_ca_fname, root_ca_fname
+        )
+        tasks.kinit_admin(cls.master)
+
+        tasks.install_client(cls.master, cls.clients[0])
+        tasks.config_host_resolvconf_with_master_data(
+            cls.master, cls.clients[0]
+        )
