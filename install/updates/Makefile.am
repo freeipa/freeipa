@@ -4,6 +4,7 @@ appdir = $(IPA_DATA_DIR)/updates
 app_DATA =				\
 	05-pre_upgrade_plugins.update	\
 	10-config.update		\
+	10-db-locks.update		\
 	10-enable-betxn.update		\
 	10-ipapwd.update		\
 	10-selinuxusermap.update	\

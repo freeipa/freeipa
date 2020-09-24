@@ -759,6 +759,7 @@ class LDAPClient:
         'nsslapd-anonlimitsdn': True,
         'nsslapd-minssf-exclude-rootdse': True,
         'nsslapd-enable-upgrade-hash': True,
+        'nsslapd-db-locks': True,
     })
 
     time_limit = -1.0   # unlimited
