@@ -70,7 +70,6 @@ static bool hmac(const struct hotp_token_key *key, const char *sn_mech,
 {
     unsigned char in[sizeof(uint64_t)];
     const EVP_MD *evp;
-    unsigned char *result;
 
     memcpy(in, &counter, sizeof(uint64_t));
 
@@ -95,7 +94,6 @@ bool hotp(const struct hotp_token *token, uint64_t counter, uint32_t *out)
     const char *mech = SN_sha1;
     struct digest_buffer digest;
     unsigned char counter_buf[sizeof(uint64_t)];
-    const EVP_MD *evp;
     int digits = token->digits;
     int i;
     uint64_t div, offset, binary;
