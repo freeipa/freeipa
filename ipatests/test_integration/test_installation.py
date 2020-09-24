@@ -972,6 +972,25 @@ class TestInstallMaster(IntegrationTest):
         )
         assert "nsslapd-enable-upgrade-hash: off" in result.stdout_text
 
+    def test_ldbm_tuning(self):
+        # check db-locks in new cn=bdb subentry (1.4.3+)
+        result = tasks.ldapsearch_dm(
+            self.master,
+            "cn=bdb,cn=config,cn=ldbm database,cn=plugins,cn=config",
+            ["nsslapd-db-locks"],
+            scope="base"
+        )
+        assert "nsslapd-db-locks: 50000" in result.stdout_text
+
+        # no db-locks configuration in old global entry
+        result = tasks.ldapsearch_dm(
+            self.master,
+            "cn=config,cn=ldbm database,cn=plugins,cn=config",
+            ["nsslapd-db-locks"],
+            scope="base"
+        )
+        assert "nsslapd-db-locks" not in result.stdout_text
+
     def test_admin_root_alias_CVE_2020_10747(self):
         # Test for CVE-2020-10747 fix
         # https://bugzilla.redhat.com/show_bug.cgi?id=1810160

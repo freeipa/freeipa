@@ -102,6 +102,7 @@ dist_app_DATA =				\
 	ipaca_default.ini		\
 	ipaca_customize.ini		\
 	ipaca_softhsm2.ini		\
+	ldbm-tuning.ldif		\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy

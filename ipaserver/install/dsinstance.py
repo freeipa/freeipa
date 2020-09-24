@@ -226,6 +226,7 @@ class DsInstance(service.Service):
 
         self.step("creating directory server instance", self.__create_instance)
         self.step("configure autobind for root", self.__root_autobind)
+        self.step("tune ldbm plugin", self.__tune_ldbm)
         self.step("stopping directory server", self.__stop_instance)
         self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
         self.step("starting directory server", self.__start_instance)
@@ -592,6 +593,9 @@ class DsInstance(service.Service):
         # Done!
         logger.debug("completed creating DS instance")
 
+    def __tune_ldbm(self):
+        self._ldap_mod("ldbm-tuning.ldif")
+
     def __update_dse_ldif(self):
         """
         This method updates dse.ldif right after instance creation. This is
@@ -610,11 +614,6 @@ class DsInstance(service.Service):
             temp_filename = new_dse_ldif.name
             with open(dse_filename, "r") as input_file:
                 parser = installutils.ModifyLDIF(input_file, new_dse_ldif)
-                parser.replace_value(
-                        'cn=config,cn=ldbm database,cn=plugins,cn=config',
-                        'nsslapd-db-locks',
-                        [b'50000']
-                        )
                 if self.config_ldif:
                     # parse modifications from ldif file supplied by the admin
                     with open(self.config_ldif, "r") as config_ldif:

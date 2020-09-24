@@ -1,0 +1,10 @@
+# Fix nsslapd-db-locks move
+# https://pagure.io/freeipa/issue/8515
+
+# replace 389-DS default with 50000 locks
+dn: cn=bdb,cn=config,cn=ldbm database,cn=plugins,cn=config
+replace: nsslapd-db-locks:10000::50000
+
+# remove setting from old location
+dn: cn=config,cn=ldbm database,cn=plugins,cn=config
+remove: nsslapd-db-locks: 50000
