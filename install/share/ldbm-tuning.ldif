@@ -1,0 +1,4 @@
+dn: cn=bdb,cn=config,cn=ldbm database,cn=plugins,cn=config
+changetype: modify
+replace: nsslapd-db-locks
+nsslapd-db-locks: 50000
