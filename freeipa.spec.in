@@ -195,6 +195,7 @@ BuildRequires:  samba-devel >= %{samba_version}
 BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
 BuildRequires:  libuuid-devel
+BuildRequires:  libpwquality-devel
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_certmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= %{sssd_version}
@@ -210,6 +211,7 @@ BuildRequires:  libunistring-devel
 # 0.13.0: https://bugzilla.redhat.com/show_bug.cgi?id=1584773
 # 0.13.0-2: fix for missing dependency on python-six
 BuildRequires:  python3-lesscpy >= 0.13.0-2
+BuildRequires:  cracklib-dicts
 
 # ONLY_CLIENT
 %endif
@@ -379,6 +381,8 @@ Requires: oddjob
 # 0.7.0-2: https://pagure.io/gssproxy/pull-request/172
 Requires: gssproxy >= 0.7.0-2
 Requires: sssd-dbus >= %{sssd_version}
+Requires: libpwquality
+Requires: cracklib-dicts
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
