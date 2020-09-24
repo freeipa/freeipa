@@ -90,6 +90,7 @@ freeipa2-dev-doc
 /po/test_locale/xh_ZA/LC_MESSAGES/ipa.mo
 
 /util/t_pwd
+/util/t_policy
 
 /init/ipa_memcached
 /init/systemd/ipa-custodia.service
