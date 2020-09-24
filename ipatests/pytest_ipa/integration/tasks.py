@@ -2011,6 +2011,42 @@ def kinit_as_user(host, user, password, krb5_trace=False):
         host.run_command(['kinit', user], stdin_text='{0}\n'.format(password))
 
 
+def get_kdcinfo(host):
+    """Retrieve /var/lib/sss/pubconf/kdcinfo.$REALM on host.
+    That file contains the IP of the KDC SSSD should be pinned to.
+    """
+    logger.info(
+        'Collecting kdcinfo log from: %s', host.hostname
+    )
+    if check_if_sssd_is_online(host):
+        logger.info("SSSD considers domain %s online.", host.domain.realm)
+    else:
+        logger.warning(
+            "SSSD considers domain %s offline.", host.domain.realm
+        )
+    kdcinfo = None
+    try:
+        kdcinfo = host.get_file_contents(
+            "/var/lib/sss/pubconf/kdcinfo.{}".format(host.domain.realm)
+        )
+        logger.info(
+            'kdcinfo %s contains:\n%s', host.hostname, kdcinfo
+        )
+        if check_if_sssd_is_online(host) is False:
+            logger.warning(
+                "SSSD still considers domain %s offline.",
+                host.domain.realm
+            )
+    except (OSError, IOError) as e:
+        logger.warning(
+            "Exception collecting kdcinfo.%s: %s\n"
+            "SSSD is able to function without this file but logon "
+            "attempts immediately after a password change might break.",
+            host.domain.realm, e
+        )
+    return kdcinfo
+
+
 KeyEntry = collections.namedtuple('KeyEntry',
                                   ['kvno', 'principal', 'etype', 'key'])
 
