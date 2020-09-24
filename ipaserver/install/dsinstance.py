@@ -225,9 +225,12 @@ class DsInstance(service.Service):
 
         self.step("creating directory server instance", self.__create_instance)
         self.step("tune ldbm plugin", self.__tune_ldbm)
-        self.step("stopping directory server", self.__stop_instance)
-        self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
-        self.step("starting directory server", self.__start_instance)
+        if self.config_ldif is not None:
+            self.step("stopping directory server", self.__stop_instance)
+            self.step(
+                "updating configuration in dse.ldif", self.__update_dse_ldif
+            )
+            self.step("starting directory server", self.__start_instance)
         self.step("adding default schema", self.__add_default_schemas)
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling winsync plugin", self.__add_winsync_module)
@@ -652,7 +655,8 @@ class DsInstance(service.Service):
         )
 
     def restart(self, instance_name="", capture_output=True, wait=True):
-        api.Backend.ldap2.disconnect()
+        if api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.disconnect()
         try:
             super(DsInstance, self).restart(
                 instance_name, capture_output=capture_output, wait=wait
