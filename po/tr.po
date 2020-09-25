@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev202006101925+gitba7974bfd\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-08-20 13:01+0300\n"
-"PO-Revision-Date: 2020-08-10 16:29+0000\n"
+"PO-Revision-Date: 2020-08-29 11:29+0000\n"
 "Last-Translator: Oğuz Ersen <oguzersen@protonmail.com>\n"
 "Language-Team: Turkish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/tr/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.2.1\n"
 
 #, c-format
 msgid "Out of memory!\n"
@@ -101,12 +101,13 @@ msgstr ""
 msgid "json_dumps() failed\n"
 msgstr ""
 
-#, fuzzy, c-format
-#| msgid "Invalid JSON-RPC request: %(error)s"
+#, c-format
 msgid ""
 "JSON-RPC request:\n"
 "%s\n"
-msgstr "Geçersiz JSON-RPC isteği: %(error)s"
+msgstr ""
+"JSON-RPC isteği:\n"
+"%s\n"
 
 #, c-format
 msgid "JSON-RPC call failed: %s\n"
