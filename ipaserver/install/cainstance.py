@@ -435,8 +435,6 @@ class CAInstance(DogtagInstance):
                               self.__import_ra_cert)
 
             if not ra_only:
-                self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
-                self.step("restarting certificate server", self.restart_instance)
                 if not self.clone:
                     self.step("publishing the CA certificate",
                               self.__export_ca_chain)
@@ -1088,41 +1086,6 @@ class CAInstance(DogtagInstance):
 
         if stop_certmonger:
             services.knownservices.certmonger.stop()
-
-
-    def set_audit_renewal(self):
-        """
-        The default renewal time for the audit signing certificate is
-        six months rather than two years. Fix it. This is BZ 843979.
-        """
-        # Check the default validity period of the audit signing cert
-        # and set it to 2 years if it is 6 months.
-        cert_range = directivesetter.get_directive(
-            paths.CASIGNEDLOGCERT_CFG,
-            'policyset.caLogSigningSet.2.default.params.range',
-            separator='='
-        )
-        logger.debug(
-            'caSignedLogCert.cfg profile validity range is %s', cert_range)
-        if cert_range == "180":
-            directivesetter.set_directive(
-                paths.CASIGNEDLOGCERT_CFG,
-                'policyset.caLogSigningSet.2.default.params.range',
-                '720',
-                quotes=False,
-                separator='='
-            )
-            directivesetter.set_directive(
-                paths.CASIGNEDLOGCERT_CFG,
-                'policyset.caLogSigningSet.2.constraint.params.range',
-                '720',
-                quotes=False,
-                separator='='
-            )
-            logger.debug(
-                'updated caSignedLogCert.cfg profile validity range to 720')
-            return True
-        return False
 
     def is_renewal_master(self, fqdn=None):
         if fqdn is None:
