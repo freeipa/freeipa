@@ -502,20 +502,6 @@ def ca_disable_publish_cert(ca):
     return True  # restart needed
 
 
-def upgrade_ca_audit_cert_validity(ca):
-    """
-    Update the Dogtag audit signing certificate.
-
-    Returns True if restart is needed, False otherwise.
-    """
-    logger.info('[Verifying that CA audit signing cert has 2 year validity]')
-    if ca.is_configured():
-        return ca.set_audit_renewal()
-    else:
-        logger.info('CA is not configured')
-        return False
-
-
 def ca_initialize_hsm_state(ca):
     """Initializse HSM state as False / internal token
     """
@@ -1774,7 +1760,6 @@ def upgrade_configuration():
     ca_restart = any([
         ca_restart,
         ca_upgrade_schema(ca),
-        upgrade_ca_audit_cert_validity(ca),
         certificate_renewal_update(ca, kra, ds, http),
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
