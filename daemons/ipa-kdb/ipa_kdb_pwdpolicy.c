@@ -34,6 +34,10 @@ char *std_pwdpolicy_attrs[] = {
     "krbpwdmaxfailure",
     "krbpwdfailurecountinterval",
     "krbpwdlockoutduration",
+    "ipapwdmaxrepeat",
+    "ipapwdmaxsequence",
+    "ipapwddictcheck",
+    "ipapwdusercheck",
 
     NULL
 };
@@ -47,6 +51,7 @@ krb5_error_code ipadb_get_ipapwd_policy(struct ipadb_context *ipactx,
     LDAPMessage *res = NULL;
     LDAPMessage *lentry;
     uint32_t result;
+    bool resbool;
     int ret;
 
     pol = calloc(1, sizeof(struct ipapwd_policy));
@@ -115,6 +120,34 @@ krb5_error_code ipadb_get_ipapwd_policy(struct ipadb_context *ipactx,
                                     "krbPwdLockoutDuration", &result);
     if (ret == 0) {
         pol->lockout_duration = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "ipaPwdMaxRepeat", &result);
+    if (ret == 0) {
+        pol->max_repeat = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "ipaPwdMaxSequence", &result);
+    if (ret == 0) {
+        pol->max_sequence = result;
+    }
+
+    ret = ipadb_ldap_attr_to_bool(ipactx->lcontext, lentry,
+                                  "ipaPwdDictCheck", &resbool);
+    if (ret == 0 && resbool == true) {
+        pol->dictcheck = 1;
+    }
+
+    ret = ipadb_ldap_attr_to_bool(ipactx->lcontext, lentry,
+                                  "ipaPwdUserCheck", &resbool);
+    if (ret == 0 && resbool == true) {
+        pol->usercheck = 1;
+    }
+
+    if (ret == 0) {
+        pol->max_sequence = result;
     }
 
     *_pol = pol;

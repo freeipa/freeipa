@@ -53,6 +53,25 @@ static krb5_error_code ipapwd_error_to_kerr(krb5_context context,
         kerr = KADM5_PASS_Q_CLASS;
         krb5_set_error_message(context, kerr, "Password is too simple");
         break;
+    case IPAPWD_POLICY_PWD_CONSECUTIVE:
+        kerr = KADM5_PASS_Q_GENERIC;
+        krb5_set_error_message(context, kerr, "Password has repeating characters");
+        break;
+    case IPAPWD_POLICY_PWD_SEQUENCE:
+        kerr = KADM5_PASS_Q_GENERIC;
+        krb5_set_error_message(context, kerr, "Password contains a monotonic sequence");
+    case IPAPWD_POLICY_PWD_PALINDROME:
+        kerr = KADM5_PASS_Q_GENERIC;
+        krb5_set_error_message(context, kerr, "Password is a palindrome");
+        break;
+    case IPAPWD_POLICY_PWD_USER:
+        kerr = KADM5_PASS_Q_GENERIC;
+        krb5_set_error_message(context, kerr, "Password contains the user name");
+        break;
+    case IPAPWD_POLICY_PWD_DICT_WORD:
+        kerr = KADM5_PASS_Q_DICT;
+        krb5_set_error_message(context, kerr, "Password contains dictionary words");
+        break;
     default:
         kerr = KADM5_PASS_Q_GENERIC;
         break;
@@ -95,7 +114,7 @@ static krb5_error_code ipadb_check_pw_policy(krb5_context context,
     if (kerr != 0) {
         return kerr;
     }
-    ret = ipapwd_check_policy(ied->pol, passwd, time(NULL),
+    ret = ipapwd_check_policy(ied->pol, passwd, ied->user, time(NULL),
                               db_entry->expiration,
                               db_entry->pw_expiration,
                               ied->last_pwd_change,
