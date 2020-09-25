@@ -149,6 +149,7 @@ struct ipadb_e_data {
     bool ipa_user;
     char *entry_dn;
     char *passwd;
+    char *user;
     time_t last_pwd_change;
     char *pw_policy_dn;
     char **pw_history;
