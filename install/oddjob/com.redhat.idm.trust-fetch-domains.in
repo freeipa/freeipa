@@ -97,7 +97,7 @@ def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
     # Make sure SSSD is able to read the keytab
     try:
         constants.SSSD_USER.chown(oneway_keytab_name)
-    except KeyError:
+    except ValueError:
         # If user 'sssd' does not exist, we don't need to chown from root to sssd
         # because it means SSSD does not run as sssd user
         pass
