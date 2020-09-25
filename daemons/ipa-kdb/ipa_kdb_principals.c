@@ -74,6 +74,7 @@ static char *std_principal_attrs[] = {
     "krbMaxRenewableAge",
 
     /* IPA SPECIFIC ATTRIBUTES */
+    "uid",
     "nsaccountlock",
     "passwordHistory",
     IPA_KRB_AUTHZ_DATA_ATTR,
@@ -589,6 +590,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     krb5_kvno mkvno = 0;
     char **restrlist;
     char *restring;
+    char *uidstring;
     char **authz_data_list;
     krb5_timestamp restime;
     bool resbool;
@@ -839,6 +841,13 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     }
     if (ret == 0) {
         ied->ipa_user = true;
+        ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+                                     "uid", &uidstring);
+        if (ret != 0 && ret != ENOENT) {
+            kerr = ret;
+            goto done;
+        }
+        ied->user = uidstring;
     }
 
     /* check if it has the krbTicketPolicyAux objectclass */
@@ -1551,6 +1560,7 @@ void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
     if (ied->magic == IPA_E_DATA_MAGIC) {
 	ldap_memfree(ied->entry_dn);
 	free(ied->passwd);
+	free(ied->user);
 	free(ied->pw_policy_dn);
 	for (i = 0; ied->pw_history && ied->pw_history[i]; i++) {
 	    free(ied->pw_history[i]);
