@@ -1751,7 +1751,8 @@ def get_host_ip_with_hostmask(host):
         return None
 
 
-def ldappasswd_user_change(user, oldpw, newpw, master, use_dirman=False):
+def ldappasswd_user_change(user, oldpw, newpw, master, use_dirman=False,
+                           raiseonerr=True):
     container_user = dict(DEFAULT_CONFIG)['container_user']
     basedn = master.domain.basedn
 
@@ -1766,7 +1767,7 @@ def ldappasswd_user_change(user, oldpw, newpw, master, use_dirman=False):
     else:
         args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
                 '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri]
-    master.run_command(args)
+    return master.run_command(args, raiseonerr=raiseonerr)
 
 
 def ldappasswd_sysaccount_change(user, oldpw, newpw, master, use_dirman=False):
