@@ -1402,6 +1402,9 @@ def upgrade_bind(fstore):
     # resolve1's stub resolver config file.
     has_resolved_ipa_conf = os.path.isfile(paths.SYSTEMD_RESOLVED_IPA_CONF)
     if not has_resolved_ipa_conf and detect_resolve1_resolv_conf():
+        ip_addresses = installutils.get_server_ip_address(
+            api.env.host, True, False, [])
+        bind.ip_addresses = ip_addresses
         bind.setup_resolv_conf()
         logger.info("Updated systemd-resolved configuration")
 
