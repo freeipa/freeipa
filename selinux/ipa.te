@@ -117,6 +117,24 @@ optional_policy(`
 
 ########################################
 #
+# password policy local policy
+#
+optional_policy(`
+    gen_require(`
+        type kadmind_t;
+        type crack_db_t;
+        class file getattr;
+        class file open;
+        class file read;
+        class dir search;
+    ')
+    allow kadmind_t crack_db_t:file { getattr open read };
+    allow kadmind_t crack_db_t:dir search;
+')
+
+
+########################################
+#
 # ipa-helper local policy
 #
 
