@@ -336,7 +336,11 @@ class BaseTaskNamespace:
             from ipaplatform.services import knownservices
 
             confd = os.path.dirname(paths.SYSTEMD_RESOLVED_IPA_CONF)
-            os.makedirs(confd, exist_ok=True)
+            if not os.path.isdir(confd):
+                os.mkdir(confd)
+                # owned by root, readable by systemd-resolve user
+                os.chmod(confd, 0o755)
+                tasks.restore_context(confd, force=True)
 
             cfg = RESOLVE1_IPA_CONF.format(
                 searchdomains=" ".join(searchdomains)
@@ -344,6 +348,10 @@ class BaseTaskNamespace:
             with open(paths.SYSTEMD_RESOLVED_IPA_CONF, "w") as f:
                 os.fchmod(f.fileno(), 0o644)
                 f.write(cfg)
+
+            tasks.restore_context(
+                paths.SYSTEMD_RESOLVED_IPA_CONF, force=True
+            )
 
             knownservices["systemd-resolved"].reload_or_restart()
 
