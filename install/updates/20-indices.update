@@ -27,14 +27,29 @@
 #  * uid: eq [IPA: +pres]
 #  * uniqueMember: eq [IPA: +sub]
 #
+#
+# Unindex attributes
+# ------------------
+#
+# Some attributes are currently not indexed because an index would not be
+# rarely used or have a poor selectivity.
+#
+# - dnaHostname: only used by update_dna_shared_config, server_del, and
+#                ipa-replica-install
+# - ipServiceProtocol: not used by SSSD at the moment and has a poor
+#                      selectivity ('tcp' or 'udp')
+# - ipaCertSubject: only queried in update_fix_duplicate_cacrt_in_ldap
+# - ipaKeyUsage: rarely used by ipa-custodia and poor selectivity
+#                ('digitalSignature' or 'dataEncipherment')
+#
+# Update rules
+# ------------
+#
 # - cn uses "only" to avoid bugs like https://pagure.io/freeipa/issue/6975
 # - nsIndexType and nsMatchingRule use "add" to allow users to add
 #   additional index types and matching rules more easily. The "add" command
 #   adds additional attribute values that are required by IPA but does not
 #   remove user defined values.
-#
-# NOTE: There is no index on ipServiceProtocol because the index would have
-# poor selectivity. An ipService entry has either 'tcp' or 'udp' as protocol.
 #
 # Please keep entries in alphanumeric order.
 #
@@ -149,6 +164,13 @@ add:nsIndexType: eq
 add:nsIndexType: pres
 add:nsIndexType: sub
 
+dn: cn=ipaCASubjectDN,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaCASubjectDN
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
 dn: cn=ipaCertmapData,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 only:cn: ipaCertmapData
 default:objectClass: nsIndex
@@ -165,6 +187,13 @@ add:nsIndexType: eq
 
 dn: cn=ipaEnabledFlag,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 only:cn: ipaEnabledFlag
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
+dn: cn=ipaExternalMember,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaExternalMember
 default:objectClass: nsIndex
 default:objectClass: top
 default:nsSystemIndex: false
@@ -216,6 +245,7 @@ only: cn: ipaNTSecurityIdentifier
 default: objectClass: top
 default: objectClass: nsIndex
 default: nsSystemIndex: false
+add: nsIndexType: eq
 add: nsIndexType: pres
 
 dn: cn=ipaNTTrustPartner,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
@@ -376,6 +406,13 @@ default:objectClass: top
 default:nsSystemIndex: false
 add:nsIndexType: eq
 add:nsIndexType: pres
+
+dn: cn=memberPrincipal,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: memberPrincipal
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
 
 dn: cn=memberservice,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 only:cn: memberservice
