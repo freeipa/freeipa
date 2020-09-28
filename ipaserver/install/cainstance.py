@@ -399,22 +399,35 @@ class CAInstance(DogtagInstance):
                 self.step("creating installation admin user", self.setup_admin)
             self.step("configuring certificate server instance",
                       self.__spawn_instance)
+            # Config file and ACL modifications require either restart or
+            # offline update of Dogtag.
+            self.step("stopping certificate server instance to update CS.cfg",
+                      self.stop_instance)
+            self.step("backing up CS.cfg", self.safe_backup_config)
             self.step("Add ipa-pki-wait-running", self.add_ipa_wait)
             self.step("secure AJP connector", self.secure_ajp_connector)
             self.step("reindex attributes", self.reindex_task)
             self.step("exporting Dogtag certificate store pin",
                       self.create_certstore_passwdfile)
-            self.step("stopping certificate server instance to update CS.cfg",
-                      self.stop_instance)
-            self.step("backing up CS.cfg", self.safe_backup_config)
             self.step("disabling nonces", self.__disable_nonce)
             self.step("set up CRL publishing", self.__enable_crl_publish)
             self.step("enable PKIX certificate path discovery and validation",
                       self.enable_pkix)
+            self.step("authorizing RA to modify profiles",
+                      configure_profiles_acl)
+            self.step("authorizing RA to manage lightweight CAs",
+                      configure_lightweight_ca_acls)
+            self.step("Ensure lightweight CAs container exists",
+                      ensure_lightweight_cas_container)
+            if self.clone and not promote:
+                self.step(
+                    "Ensuring backward compatibility",
+                    self.__dogtag10_migration)
             if promote:
                 self.step("destroying installation admin user",
                           self.teardown_admin)
             self.step("deploying ACME service", self.setup_acme)
+            # Materialize config changes and new ACLs
             self.step("starting certificate server instance",
                       self.start_instance)
             if promote:
@@ -433,26 +446,14 @@ class CAInstance(DogtagInstance):
                 else:
                     self.step("importing RA certificate from PKCS #12 file",
                               self.__import_ra_cert)
-
             if not ra_only:
                 if not self.clone:
                     self.step("publishing the CA certificate",
                               self.__export_ca_chain)
                     self.step("adding RA agent as a trusted user", self.__create_ca_agent)
-                self.step("authorizing RA to modify profiles", configure_profiles_acl)
-                self.step("authorizing RA to manage lightweight CAs",
-                          configure_lightweight_ca_acls)
-                self.step("Ensure lightweight CAs container exists",
-                          ensure_lightweight_cas_container)
-                if self.clone and not promote:
-                    self.step(
-                        "Ensuring backward compatibility",
-                        self.__dogtag10_migration)
                 self.step("configure certificate renewals", self.configure_renewal)
                 self.step("Configure HTTP to proxy connections",
                           self.http_proxy)
-                # This restart is needed for ACL reload in CA, do not remove it
-                self.step("restarting certificate server", self.restart_instance)
                 self.step("updating IPA configuration", update_ipa_conf)
                 self.step("enabling CA instance", self.__enable_instance)
                 if not promote:
