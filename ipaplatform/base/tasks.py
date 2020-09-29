@@ -340,7 +340,7 @@ class BaseTaskNamespace:
                 os.mkdir(confd)
                 # owned by root, readable by systemd-resolve user
                 os.chmod(confd, 0o755)
-                tasks.restore_context(confd, force=True)
+                self.restore_context(confd, force=True)
 
             cfg = RESOLVE1_IPA_CONF.format(
                 searchdomains=" ".join(searchdomains)
@@ -349,7 +349,7 @@ class BaseTaskNamespace:
                 os.fchmod(f.fileno(), 0o644)
                 f.write(cfg)
 
-            tasks.restore_context(
+            self.restore_context(
                 paths.SYSTEMD_RESOLVED_IPA_CONF, force=True
             )
 
