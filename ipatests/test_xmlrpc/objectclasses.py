@@ -178,6 +178,7 @@ radiusproxy = [
 
 pwpolicy = [
     u'krbpwdpolicy',
+    u'ipapwdpolicy',
     u'nscontainer',
     u'top',
 ]
