@@ -1971,10 +1971,25 @@ def create_active_user(host, login, password, first='test', last='user',
     user_add(host, login, first=first, last=last, extra_args=extra_args,
              password=temp_password)
     if krb5_trace:
-        host.run_command(
+        # Retrieve kdcinfo.$REALM before changing the user's password.
+        get_kdcinfo(host)
+        # This tends to fail when the KDC the password is
+        # reset on is not the same as the one we immediately
+        # request a TGT from. This should not be the case as SSSD
+        # tries to pin itself to an IPA server.
+        #
+        # Note raiseonerr=False:
+        # the assert is located after kdcinfo retrieval.
+        result = host.run_command(
             "KRB5_TRACE=/dev/stdout kinit %s" % login,
-            stdin_text='{0}\n{1}\n{1}\n'.format(temp_password, password)
+            stdin_text='{0}\n{1}\n{1}\n'.format(
+                temp_password, password, raiseonerr=False
+            )
         )
+        # Retrieve kdc.$REALM after the password change, just in case SSSD
+        # domain status flipped to online during the password change.
+        get_kdcinfo(host)
+        assert result.returncode == 0
     else:
         host.run_command(
             ['kinit', login],
