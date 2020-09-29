@@ -91,18 +91,22 @@ class TestACME(CALessBase):
     num_clients = 1
 
     @classmethod
-    def install(cls, mh):
-        super(TestACME, cls).install(mh)
-
+    def prepare_acme_client(cls):
         # cache the acme service uri
         acme_host = f'{IPA_CA_RECORD}.{cls.master.domain.name}'
         cls.acme_server = f'https://{acme_host}/acme/directory'
 
-        # install packages before client install in case of IPA DNS problems
+        # install acme client packages
         if not skip_certbot_tests:
             tasks.install_packages(cls.clients[0], ['certbot'])
         if not skip_mod_md_tests:
             tasks.install_packages(cls.clients[0], ['mod_md'])
+
+    @classmethod
+    def install(cls, mh):
+
+        # install packages before client install in case of IPA DNS problems
+        cls.prepare_acme_client()
 
         tasks.install_master(cls.master, setup_dns=True)
 
@@ -486,15 +490,8 @@ class TestACMEwithExternalCA(TestACME):
 
     @classmethod
     def install(cls, mh):
-        # cache the acme service uri
-        acme_host = f'{IPA_CA_RECORD}.{cls.master.domain.name}'
-        cls.acme_server = f'https://{acme_host}/acme/directory'
 
-        # install packages before client install in case of IPA DNS problems
-        if not skip_certbot_tests:
-            tasks.install_packages(cls.clients[0], ["certbot"])
-        if not skip_mod_md_tests:
-            tasks.install_packages(cls.clients[0], ["mod_md"])
+        cls.prepare_acme_client()
 
         # install master with external-ca
         result = install_server_external_ca_step1(cls.master)
