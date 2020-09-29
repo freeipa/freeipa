@@ -1672,15 +1672,10 @@ class Sleeper:
 
     sleep = Sleeper(sleep=0.5, timeout=60)
     while True:
-        try:
-            do_something
-        except Exception:
-            # sleep duration can be extended
-            sleep(10)
-        else:
-            if not sleep():
-                log.info("timeout")
-                break
+        do_something
+        if not sleep():
+            log.info("timeout")
+            break
 
     longsleep = Sleeper(sleep=1, timeout=sys.maxsize)
     """
@@ -1701,19 +1696,14 @@ class Sleeper:
     def __bool__(self):
         return time.monotonic() < self.deadline
 
-    def __call__(self, extended_sleep=None):
+    def __call__(self):
         now = time.monotonic()
         if now >= self.deadline:
             if self.raises is not None:
                 raise self.raises
             else:
                 return False
-
-        # caller can instruct sleeper to sleep longer
-        dur = self.sleep if extended_sleep is None else extended_sleep
-        # but don't sleep over deadline
-        dur = min(self.deadline - now, dur)
-
+        # don't sleep over deadline
+        dur = min(self.deadline - now, self.sleep)
         time.sleep(dur)
-
         return True
