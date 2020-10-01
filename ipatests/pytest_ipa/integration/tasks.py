@@ -2017,11 +2017,32 @@ def run_command_as_user(host, user, command, *args, **kwargs):
 
 
 def kinit_as_user(host, user, password, krb5_trace=False):
+    """Launch kinit as user on host.
+    If krb5_trace, then set KRB5_TRACE=/dev/stdout and collect
+    /var/lib/sss/pubconf/kdcinfo.$REALM
+    as this file contains the list of KRB5KDC IPs SSSD uses.
+    https://pagure.io/freeipa/issue/8510
+    """
+
     if krb5_trace:
-        host.run_command(
+        # Retrieve kdcinfo.$REALM before changing the user's password.
+        get_kdcinfo(host)
+        # This tends to fail when the KDC the password is
+        # reset on is not the same as the one we immediately
+        # request a TGT from. This should not be the case as SSSD
+        # tries to pin itself to an IPA server.
+        #
+        # Note raiseonerr=False:
+        # the assert is located after kdcinfo retrieval.
+        result = host.run_command(
             "KRB5_TRACE=/dev/stdout kinit %s" % user,
-            stdin_text='{0}\n'.format(password)
+            stdin_text='{0}\n'.format(password),
+            raiseonerr=False
         )
+        # Retrieve kdc.$REALM after the password change, just in case SSSD
+        # domain status flipped to online during the password change.
+        get_kdcinfo(host)
+        assert result.returncode == 0
     else:
         host.run_command(['kinit', user], stdin_text='{0}\n'.format(password))
 
