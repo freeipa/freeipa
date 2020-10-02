@@ -347,7 +347,10 @@ class Service:
                   ldap_uri=None, dm_password=None):
         pw_name = None
         fd = None
-        path = os.path.join(paths.USR_SHARE_IPA_DIR, ldif)
+        if not os.path.isabs(ldif):
+            path = os.path.join(paths.USR_SHARE_IPA_DIR, ldif)
+        else:
+            path = ldif
         nologlist = []
 
         if sub_dict is not None:
