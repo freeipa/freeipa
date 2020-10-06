@@ -1121,18 +1121,18 @@ class BindInstance(service.Service):
 
     def setup_resolv_conf(self):
         searchdomains = [self.domain]
-        nameservers = []
+        nameservers = set()
         resolve1_enabled = dnsforwarders.detect_resolve1_resolv_conf()
 
         for ip_address in self.ip_addresses:
             if ip_address.version == 4:
-                nameservers.append("127.0.0.1")
+                nameservers.add("127.0.0.1")
             elif ip_address.version == 6:
-                nameservers.append("::1")
+                nameservers.add("::1")
 
         try:
             tasks.configure_dns_resolver(
-                nameservers, searchdomains,
+                sorted(nameservers), searchdomains,
                 resolve1_enabled=resolve1_enabled, fstore=self.fstore
             )
         except IOError as e:
