@@ -67,6 +67,7 @@
 %global ds_version 1.4.3
 # Fix for TLS 1.3 PHA, RHBZ#1775158
 %global httpd_version 2.4.37-21
+%global systemd_version 239
 
 %else
 # Fedora
@@ -144,6 +145,14 @@
 
 %define krb5_base_version %(LC_ALL=C rpm -q --qf '%%{VERSION}' krb5-devel | grep -Eo '^[^.]+\.[^.]+')
 
+%if 0%{?fedora} >= 33
+# systemd with resolved enabled
+# see https://pagure.io/freeipa/issue/8275
+%global systemd_version 246.6-3
+%else
+%global systemd_version 245
+%endif
+
 %global plugin_dir %{_libdir}/dirsrv/plugins
 %global etc_systemd_dir %{_sysconfdir}/systemd/system
 %global gettext_domain ipa
@@ -194,7 +203,7 @@ BuildRequires:  gettext
 BuildRequires:  gettext-devel
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
-BuildRequires:  systemd
+BuildRequires:  systemd >= %{systemd_version}
 # systemd-tmpfiles which is executed from make install requires apache user
 BuildRequires:  httpd
 BuildRequires:  nspr-devel
@@ -370,10 +379,12 @@ Requires: mod_session >= %{httpd_version}
 # 0.9.9: https://github.com/adelton/mod_lookup_identity/pull/3
 Requires: mod_lookup_identity >= 0.9.9
 Requires: acl
-Requires: systemd-units >= 38
+Requires: systemd-units >= %{systemd_version}
+Requires(pre): systemd-units >= %{systemd_version}
+Requires(post): systemd-units >= %{systemd_version}
+Requires(preun): systemd-units >= %{systemd_version}
+Requires(postun): systemd-units >= %{systemd_version}
 Requires(pre): shadow-utils
-Requires(pre): systemd-units
-Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
 Requires: slapi-nis >= %{slapi_nis_version}
@@ -381,8 +392,6 @@ Requires: pki-ca >= %{pki_version}
 Requires: pki-kra >= %{pki_version}
 # pki-acme package was split out in pki-10.10.0
 Requires: (pki-acme >= %{pki_version} if pki-ca >= 10.10.0)
-Requires(preun): systemd-units
-Requires(postun): systemd-units
 Requires: policycoreutils >= 2.1.12-5
 Requires: tar
 Requires(pre): certmonger >= %{certmonger_version}
@@ -468,7 +477,7 @@ Group: System Environment/Base
 BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: httpd >= %{httpd_version}
-Requires: systemd-units >= 38
+Requires: systemd-units >= %{systemd_version}
 
 Provides: %{alt_name}-server-common = %{version}
 Conflicts: %{alt_name}-server-common
@@ -633,10 +642,10 @@ on the machine enrolled into a FreeIPA environment
 %package client-epn
 Summary: Tools to configure Expiring Password Notification in IPA
 Group: System Environment/Base
-Requires: systemd-units
-Requires(post): systemd-units
-Requires(preun): systemd-units
-Requires(postun): systemd-units
+Requires: systemd-units >= %{systemd_version}
+Requires(post): systemd-units >= %{systemd_version}
+Requires(preun): systemd-units >= %{systemd_version}
+Requires(postun): systemd-units >= %{systemd_version}
 Requires: %{name}-client = %{version}-%{release}
 
 %description client-epn
