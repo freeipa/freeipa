@@ -71,7 +71,7 @@ ADMIN_GROUPS = [
     'Security Domain Administrators'
 ]
 
-ACME_AGENT_GROUP = 'ACME Agents'
+ACME_AGENT_GROUP = 'Enterprise ACME Administrators'
 
 PROFILES_DN = DN(('ou', 'certificateProfiles'), ('ou', 'ca'), ('o', 'ipaca'))
 
@@ -767,6 +767,12 @@ class CAInstance(DogtagInstance):
         group_dn = DN(('cn', 'Registration Manager Agents'), ('ou', 'groups'),
             self.basedn)
         conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
+
+        group_dn = DN(('cn', ACME_AGENT_GROUP), ('ou', 'groups'),
+                      self.basedn)
+        conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
+
+        conn.disconnect()
 
     def __get_ca_chain(self):
         try:
@@ -1479,6 +1485,8 @@ class CAInstance(DogtagInstance):
             logger.debug('ACME service is already deployed')
             return False
 
+        self._ldap_mod('/usr/share/pki/acme/database/ds/schema.ldif')
+
         configure_acme_acls()
 
         # create ACME agent group (if not exist already) and user
@@ -1510,6 +1518,7 @@ class CAInstance(DogtagInstance):
             ('pki-acme-database.conf.template', paths.PKI_ACME_DATABASE_CONF),
             ('pki-acme-engine.conf.template', paths.PKI_ACME_ENGINE_CONF),
             ('pki-acme-issuer.conf.template', paths.PKI_ACME_ISSUER_CONF),
+            ('pki-acme-realm.conf.template', paths.PKI_ACME_REALM_CONF),
         ]
         sub_dict = dict(
             FQDN=self.fqdn,
@@ -1732,12 +1741,24 @@ def ensure_acme_containers():
         DN(('ou', 'orders'), ou_acme),
         DN(('ou', 'authorizations'), ou_acme),
         DN(('ou', 'challenges'), ou_acme),
+        DN(('ou', 'certificates'), ou_acme),
+    ]
+
+    extensible_rdns = [
+        DN(('ou', 'config'), ou_acme),
     ]
 
     for rdn in rdns:
         ensure_entry(
             DN(rdn, ('o', 'ipaca')),
             objectclass=['top', 'organizationalUnit'],
+            ou=[rdn[0][0].value],
+        )
+
+    for rdn in extensible_rdns:
+        ensure_entry(
+            DN(rdn, ('o', 'ipaca')),
+            objectclass=['top', 'organizationalUnit', 'extensibleObject'],
             ou=[rdn[0][0].value],
         )
 

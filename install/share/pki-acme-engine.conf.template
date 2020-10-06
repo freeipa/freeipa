@@ -1,2 +1,11 @@
+# Parameters read by ACMEEngineConfigFileSource, i.e. these are
+# expected to be in the file pointed to by the 'filename' directive
+# above.
+#
+# IPA only sets the values it uses.
+#
+# Whether to enable the ACME service:
 enabled=false
-wildcard=false
+
+# Whether to accept wildcard DNS identifiers:
+policy.wildcard=false

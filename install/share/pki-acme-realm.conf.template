@@ -1,0 +1,8 @@
+authType=BasicAuth
+class=org.dogtagpki.acme.realm.DSRealm
+groupsDN=ou=groups,o=ipaca
+usersDN=ou=people,o=ipaca
+url=ldaps://$FQDN:636
+configFile=/etc/pki/pki-tomcat/ca/CS.cfg
+username=$USER
+password=$PASSWORD

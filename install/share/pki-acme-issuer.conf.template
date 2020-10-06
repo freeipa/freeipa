@@ -1,5 +1,5 @@
 class=org.dogtagpki.acme.issuer.PKIIssuer
 url=https://$FQDN:8443
-profile=acmeServerCert
+profile=acmeIPAServerCert
 username=$USER
 password=$PASSWORD

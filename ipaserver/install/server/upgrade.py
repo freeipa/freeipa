@@ -1112,7 +1112,9 @@ def ca_upgrade_schema(ca):
         return False
 
     # ACME schema file moved in pki-server-10.9.0-0.3
+    # ACME database connections were abstrated in pki-acme-10.10.0
     for path in [
+        '/usr/share/pki/acme/conf/database/ds/schema.ldif',
         '/usr/share/pki/acme/conf/database/ldap/schema.ldif',
         '/usr/share/pki/acme/database/ldap/schema.ldif',
     ]:
