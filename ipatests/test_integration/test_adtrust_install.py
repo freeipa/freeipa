@@ -272,3 +272,31 @@ class TestIpaAdTrustInstall(IntegrationTest):
         finally:
             tasks.kinit_admin(self.master)
             self.master.run_command(['ipa', 'user-del', user])
+
+    def test_adtrust_agents_are_recreated_after_upgrade(self):
+        """Test if adtrust agents, which are removed form LDAP prior to
+        an upgrade, are recreated after the upgrade
+        Related: https://pagure.io/freeipa/issue/8543"""
+        passwd = self.master.config.dirman_password
+        host = self.replicas[0]
+        self.unconfigure_replica_as_agent(host)
+        res = self.master.run_command(['ipa-adtrust-install',
+                                       '--add-agents', '--add-sids',
+                                       '-a', passwd, '-U'])
+        assert "Setup complete" in res.stdout_text
+
+        search_trust_agents = textwrap.dedent("""
+        cn=adtrust agents,cn=sysaccounts,cn=etc,{base_dn}
+        """.format(base_dn=str(host.domain.basedn)).strip())
+        tasks.ldapsearch_dm(host, search_trust_agents, "", ok_returncode=[0])
+        remove_trust_agents = textwrap.dedent("""
+             dn: cn=adtrust agents,cn=sysaccounts,cn=etc,{base_dn}
+             changetype: delete
+             """.format(base_dn=str(host.domain.basedn)).strip())
+        tasks.ldapmodify_dm(host, remove_trust_agents,
+                            ok_returncode=[0])
+        # execute ipa-upgrade
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa-server-upgrade', '--force'])
+        # check if entry was recreated
+        tasks.ldapsearch_dm(host, search_trust_agents, "", ok_returncode=[0])
