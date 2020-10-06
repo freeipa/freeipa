@@ -351,6 +351,8 @@ class BasePathNamespace:
     IPAREPLICA_INSTALL_LOG = "/var/log/ipareplica-install.log"
     IPARESTORE_LOG = "/var/log/iparestore.log"
     IPASERVER_INSTALL_LOG = "/var/log/ipaserver-install.log"
+    IPASERVER_ADTRUST_INSTALL_LOG = "/var/log/ipaserver-adtrust-install.log"
+    IPASERVER_DNS_INSTALL_LOG = "/var/log/ipaserver-dns-install.log"
     IPASERVER_KRA_INSTALL_LOG = "/var/log/ipaserver-kra-install.log"
     IPASERVER_UNINSTALL_LOG = "/var/log/ipaserver-uninstall.log"
     IPAUPGRADE_LOG = "/var/log/ipaupgrade.log"
