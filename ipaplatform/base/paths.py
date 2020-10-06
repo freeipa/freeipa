@@ -127,6 +127,7 @@ class BasePathNamespace:
     PKI_ACME_DATABASE_CONF = "/etc/pki/pki-tomcat/acme/database.conf"
     PKI_ACME_ENGINE_CONF = "/etc/pki/pki-tomcat/acme/engine.conf"
     PKI_ACME_ISSUER_CONF = "/etc/pki/pki-tomcat/acme/issuer.conf"
+    PKI_ACME_REALM_CONF = "/etc/pki/pki-tomcat/acme/realm.conf"
     ETC_REDHAT_RELEASE = "/etc/redhat-release"
     RESOLV_CONF = "/etc/resolv.conf"
     SAMBA_KEYTAB = "/etc/samba/samba.keytab"

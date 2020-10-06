@@ -56,8 +56,8 @@ INCLUDED_PROFILES = {
     Profile(u'KDCs_PKINIT_Certs',
             u'Profile for PKINIT support by KDCs',
             False),
-    Profile(u'acmeServerCert',
-            u'ACME service certificate profile',
+    Profile(u'acmeIPAServerCert',
+            u'ACME IPA service certificate profile',
             False),
     }
 
