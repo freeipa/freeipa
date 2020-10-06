@@ -39,7 +39,7 @@ from contextlib import contextmanager
 from configparser import ConfigParser as SafeConfigParser
 from configparser import NoOptionError
 
-from dns import rdatatype
+from dns import rrset, rdatatype, rdataclass
 from dns.exception import DNSException
 import ldap
 import six
@@ -55,7 +55,7 @@ from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
 from ipalib.install import dnsforwarders
 from ipapython.dn import DN
-from ipapython.dnsutil import resolve
+from ipapython.dnsutil import DNSName, resolve
 from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -491,6 +491,41 @@ def get_host_name(no_host_dns):
     hostname = get_fqdn()
     verify_fqdn(hostname, no_host_dns)
     return hostname
+
+
+def resolve_rrsets_nss(fqdn):
+    """Get list of dnspython RRsets from NSS"""
+    if not isinstance(fqdn, DNSName):
+        fqdn = DNSName.from_text(fqdn)
+
+    ip_addresses = resolve_ip_addresses_nss(fqdn.to_text())
+
+    # split IP addresses into IPv4 and IPv6
+    ipv4 = []
+    ipv6 = []
+    for ip_address in ip_addresses:
+        if ip_address.version == 4:
+            ipv4.append(str(ip_address))
+        elif ip_address.version == 6:
+            ipv6.append(str(ip_address))
+
+    # construct an RRset for each address type. TTL is irrelevant
+    ttl = 3600
+    rrs = []
+    if ipv4:
+        rrs.append(
+            rrset.from_text_list(
+                fqdn, ttl, rdataclass.IN, rdatatype.A, ipv4
+            )
+        )
+    if ipv6:
+        rrs.append(
+            rrset.from_text_list(
+                fqdn, ttl, rdataclass.IN, rdatatype.AAAA, ipv6
+            )
+        )
+    return rrs
+
 
 def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
     hostaddr = resolve_ip_addresses_nss(host_name)
