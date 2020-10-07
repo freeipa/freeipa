@@ -55,20 +55,73 @@ jobs:
       args:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
-        template: &ci-master-latest
-          name: freeipa/ci-master-f32
-          version: 0.0.11
+        template: &testing-master-latest
+          name: freeipa/testing-master-f32
+          version: 0.0.2
         timeout: 1800
         topology: *build
 
-  fedora-latest/temp_commit:
+  fedora-latest/temp_commit_1:
     requires: [fedora-latest/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
-        template: *ci-master-latest
-        timeout: 3600
+        update_packages: True
+        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints test_integration/test_installation.py::TestInstallCA::test_certmonger_reads_token_HSM
+        template: *testing-master-latest
+        timeout: 4800
+        topology: *master_2repl_1client
+
+  fedora-latest/temp_commit_2:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints test_integration/test_installation.py::TestInstallCA::test_certmonger_reads_token_HSM
+        template: *testing-master-latest
+        timeout: 4800
+        topology: *master_2repl_1client
+
+  fedora-latest/temp_commit_3:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints test_integration/test_installation.py::TestInstallCA::test_certmonger_reads_token_HSM
+        template: *testing-master-latest
+        timeout: 4800
+        topology: *master_2repl_1client
+
+  fedora-latest/temp_commit_4:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
+        template: *testing-master-latest
+        timeout: 4800
+        topology: *master_1repl_1client
+
+  fedora-latest/temp_commit_5:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
+        template: *testing-master-latest
+        timeout: 4800
         topology: *master_1repl_1client
