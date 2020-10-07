@@ -743,7 +743,7 @@ class TestIPACommand(IntegrationTest):
 
         # test IFP as ipaapi
         result = self.master.run_command(
-            ['sudo', '-u', IPAAPI_USER, '--'] + cmd
+            ['runuser', '-u', IPAAPI_USER, '--'] + cmd
         )
         assert uid in result.stdout_text
 
