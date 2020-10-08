@@ -46,6 +46,7 @@ from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
+from datetime import datetime, timedelta
 
 from ipapython import certdb
 from ipapython import ipautil
@@ -2453,6 +2454,27 @@ def get_healthcheck_version(host):
             "get_healthcheck_version: unknown platform %s" % platform
         )
     return healthcheck_version
+
+
+def wait_for_ipa_to_start(host, timeout=60):
+    """Wait up to timeout seconds for ipa to start on a given host.
+
+    If DS is restarted, and SSSD must be online, please consider using
+    wait_for_sssd_domain_status_online(host) in the test after calling
+    this method.
+    """
+    pattern = 'STOPPED'
+    interval = 1
+    end_time = datetime.now() + timedelta(seconds=timeout)
+    for _i in range(0, timeout, interval):
+        if datetime.now() > end_time:
+            raise RuntimeError("Request timed out")
+        time.sleep(interval)
+        result = host.run_command(
+            [paths.IPACTL, "status"]
+        )
+        if pattern not in result.stdout_text:
+            break
 
 
 def run_ssh_cmd(
