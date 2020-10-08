@@ -1901,6 +1901,11 @@ def user_add(host, login, first='test', last='user', extra_args=(),
     return host.run_command(cmd, stdin_text=stdin_text)
 
 
+def user_del(host, login):
+    cmd = ["ipa", "user-del", login]
+    return host.run_command(cmd)
+
+
 def group_add(host, groupname, extra_args=()):
     cmd = [
         "ipa", "group-add", groupname,
