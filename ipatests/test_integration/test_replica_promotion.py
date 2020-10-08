@@ -1024,6 +1024,9 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             stdin_text=dirman_password + '\nyes'
         )
 
+        # wait for the replica to be available
+        tasks.wait_for_ipa_to_start(self.replicas[0])
+
         # give replication some time
         time.sleep(5)
         tasks.kinit_admin(self.replicas[0])
