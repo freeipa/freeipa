@@ -23,6 +23,7 @@ from __future__ import print_function, absolute_import
 
 import base64
 import binascii
+import enum
 import logging
 
 import dbus
@@ -72,6 +73,8 @@ ADMIN_GROUPS = [
 ]
 
 ACME_AGENT_GROUP = 'ACME Agents'
+
+PROFILES_DN = DN(('ou', 'certificateProfiles'), ('ou', 'ca'), ('o', 'ipaca'))
 
 
 def check_ports():
@@ -1713,7 +1716,7 @@ def update_ca_renewal_entry(conn, nickname, cert):
 
 def ensure_ldap_profiles_container():
     ensure_entry(
-        DN(('ou', 'certificateProfiles'), ('ou', 'ca'), ('o', 'ipaca')),
+        PROFILES_DN,
         objectclass=['top', 'organizationalUnit'],
         ou=['certificateProfiles'],
     )
@@ -1898,7 +1901,6 @@ def import_included_profiles():
             api.env.container_certprofile, api.env.basedn)
         try:
             conn.get_entry(dn)
-            continue  # the profile is present
         except errors.NotFound:
             # profile not found; add it
             entry = conn.make_entry(
@@ -1914,6 +1916,10 @@ def import_included_profiles():
             profile_data = __get_profile_config(profile_id)
             _create_dogtag_profile(profile_id, profile_data, overwrite=True)
             logger.debug("Imported profile '%s'", profile_id)
+        else:
+            logger.info(
+                "Profile '%s' is already in LDAP; skipping", profile_id
+            )
 
     api.Backend.ra_certprofile.override_port = None
     conn.disconnect()
@@ -1970,8 +1976,9 @@ def migrate_profiles_to_ldap():
     and restarting the CA.
 
     The profile might already exist, e.g. if a replica was already
-    upgraded, so this case is ignored.
-
+    upgraded, so this case is ignored. New/missing profiles are imported
+    into LDAP. Existing profiles are not modified. This means that they are
+    neither enabled nor updated when the file on disk has been changed.
     """
     ensure_ldap_profiles_container()
     api.Backend.ra_certprofile.override_port = 8443
@@ -1980,8 +1987,19 @@ def migrate_profiles_to_ldap():
         cs_cfg = f.read()
     match = re.search(r'^profile\.list=(\S*)', cs_cfg, re.MULTILINE)
     profile_ids = match.group(1).split(',')
+    profile_states = _get_ldap_profile_states()
 
     for profile_id in profile_ids:
+        state = profile_states.get(profile_id.lower(), ProfileState.MISSING)
+        if state != ProfileState.MISSING:
+            # We don't reconsile enabled/disabled state.
+            logger.info(
+                "Profile '%s' is already in LDAP and %s; skipping",
+                profile_id, state.value
+            )
+            continue
+
+        logger.info("Migrating profile '%s'", profile_id)
         match = re.search(
             r'^profile\.{}\.config=(\S*)'.format(profile_id),
             cs_cfg, re.MULTILINE
@@ -2014,6 +2032,54 @@ def migrate_profiles_to_ldap():
             _create_dogtag_profile(profile_id, profile_data, overwrite=False)
 
     api.Backend.ra_certprofile.override_port = None
+
+
+class ProfileState(enum.Enum):
+    MISSING = "missing"
+    ENABLED = "enabled"
+    DISABLED = "disabled"
+
+
+def _get_ldap_profile_states():
+    """Get LDAP profile states
+
+    The function directly access LDAP for performance reasons. It's much
+    faster than Dogtag's REST API and it's easier to check profiles for all
+    subsystems.
+
+    :return: mapping of lowercase profile id to state enum member
+    """
+    conn = api.Backend.ldap2
+    entries = conn.get_entries(
+        base_dn=PROFILES_DN,
+        scope=conn.SCOPE_SUBTREE,
+        filter="(objectClass=certProfile)",
+        attrs_list=["cn", "certProfileConfig"]
+    )
+    results = {}
+    for entry in entries:
+        single = entry.single_value
+        cn = single["cn"]
+        try:
+            cfg = single["certProfileConfig"]
+        except (ValueError, KeyError):
+            # certProfileConfig is neither mandatory nor single value
+            # skip entries with incomplete configuration
+            state = ProfileState.MISSING
+        else:
+            if isinstance(cfg, bytes):
+                # some profile configurations are marked as binary
+                cfg = cfg.decode("utf-8")
+            for line in cfg.split("\n"):
+                if line.lower() == "enable=true":
+                    state = ProfileState.ENABLED
+                    break
+            else:
+                state = ProfileState.DISABLED
+
+        results[cn.lower()] = state
+
+    return results
 
 
 def _create_dogtag_profile(profile_id, profile_data, overwrite):
