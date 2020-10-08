@@ -11,13 +11,18 @@ import textwrap
 import pytest
 
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration.test_ipahealthcheck import (
+    run_healthcheck, HEALTHCHECK_PKG
+)
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.tasks import (
-    assert_error, replicas_cleanup)
+    assert_error, replicas_cleanup
+)
 from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipalib.constants import (
-    DOMAIN_LEVEL_1, IPA_CA_NICKNAME, CA_SUFFIX_NAME)
+    DOMAIN_LEVEL_1, IPA_CA_NICKNAME, CA_SUFFIX_NAME
+)
 from ipaplatform.paths import paths
 from ipapython import certdb
 from ipatests.test_integration.test_dns_locations import (
@@ -809,6 +814,8 @@ class TestHiddenReplicaPromotion(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        for srv in (cls.master, cls.replicas[0]):
+            tasks.install_packages(srv, HEALTHCHECK_PKG)
         # master with DNSSEC master
         tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
         cls.master.run_command([
@@ -887,11 +894,27 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             assert values.get(hservice, set()) == hidden
 
     def test_hidden_replica_install(self):
-        # TODO: check that all services are running on hidden replica
         self._check_server_role(self.master, 'enabled')
         self._check_server_role(self.replicas[0], 'hidden')
         self._check_dnsrecords([self.master], [self.replicas[0]])
         self._check_config([self.master], [self.replicas[0]])
+
+    def test_ipahealthcheck_hidden_replica(self):
+        """Ensure that ipa-healthcheck runs successfully on all members
+        of an IPA cluster that includes a hidden replica.
+        """
+        # verify state
+        self._check_config([self.master], [self.replicas[0]])
+        # A DNA range is needed on the replica for ipa-healthcheck to work.
+        # Create a user so that the replica gets a range.
+        tasks.user_add(self.replicas[0], 'testuser')
+        tasks.user_del(self.replicas[0], 'testuser')
+        for srv in (self.master, self.replicas[0]):
+            returncode, _unused = run_healthcheck(
+                srv,
+                failures_only=True
+            )
+            assert returncode == 0
 
     def test_hide_master_fails(self):
         # verify state
