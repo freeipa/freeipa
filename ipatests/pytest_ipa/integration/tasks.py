@@ -2477,6 +2477,16 @@ def wait_for_ipa_to_start(host, timeout=60):
             break
 
 
+def dns_update_system_records(host):
+    """Runs "ipa dns-update-system-records" on "host".
+    """
+    kinit_admin(host)
+    result = host.run_command(
+        ["ipa", "dns-update-system-records"]
+    )
+    return result
+
+
 def run_ssh_cmd(
     from_host=None, to_host=None, username=None, cmd=None,
     auth_method=None, password=None, private_key_path=None,
