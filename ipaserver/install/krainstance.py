@@ -34,7 +34,7 @@ from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
 from ipaserver.install.dogtaginstance import DogtagInstance
-from ipaserver.plugins import ldap2
+
 
 logger = logging.getLogger(__name__)
 
@@ -233,13 +233,10 @@ class KRAInstance(DogtagInstance):
         Create KRA agent, assign a certificate, and add the user to
         the appropriate groups for accessing KRA services.
         """
+        conn = api.Backend.ldap2
 
         # get RA agent certificate
         cert = x509.load_certificate_from_file(paths.RA_AGENT_PEM)
-
-        # connect to KRA database
-        conn = ldap2.ldap2(api)
-        conn.connect(autobind=True)
 
         # create ipakra user with RA agent certificate
         entry = conn.make_entry(
@@ -262,8 +259,6 @@ class KRAInstance(DogtagInstance):
             ('cn', 'Data Recovery Manager Agents'), ('ou', 'groups'),
             KRA_BASEDN)
         conn.add_entry_to_group(KRA_AGENT_DN, group_dn, 'uniqueMember')
-
-        conn.disconnect()
 
     def __add_vault_container(self):
         self._ldap_mod(
