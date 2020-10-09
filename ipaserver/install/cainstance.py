@@ -60,7 +60,6 @@ from ipaserver.install import installutils
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
 from ipaserver.install.dogtaginstance import DogtagInstance, INTERNAL_TOKEN
-from ipaserver.plugins import ldap2
 from ipaserver.masters import ENABLED_SERVICE
 
 logger = logging.getLogger(__name__)
@@ -739,10 +738,7 @@ class CAInstance(DogtagInstance):
         Create CA agent, assign a certificate, and add the user to
         the appropriate groups for accessing CA services.
         """
-
-        # connect to CA database
-        conn = ldap2.ldap2(api)
-        conn.connect(autobind=True)
+        conn = api.Backend.ldap2
 
         # create ipara user with RA certificate
         user_dn = DN(('uid', "ipara"), ('ou', 'People'), self.basedn)
@@ -771,8 +767,6 @@ class CAInstance(DogtagInstance):
         group_dn = DN(('cn', 'Registration Manager Agents'), ('ou', 'groups'),
             self.basedn)
         conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
-
-        conn.disconnect()
 
     def __get_ca_chain(self):
         try:
@@ -1561,18 +1555,14 @@ def __update_entry_from_cert(make_filter, make_entry, cert):
     vacuously successful) otherwise ``False``.
 
     """
-
     base_dn = DN(('o', 'ipaca'))
+    conn = api.Backend.ldap2
 
     attempts = 0
     updated = False
 
     while attempts < 10:
-        conn = None
         try:
-            conn = ldap2.ldap2(api)
-            conn.connect(autobind=True)
-
             db_filter = make_filter(cert)
             try:
                 entries = conn.get_entries(base_dn, conn.SCOPE_SUBTREE, db_filter)
@@ -1606,9 +1596,6 @@ def __update_entry_from_cert(make_filter, make_entry, cert):
         except Exception as e:
             syslog.syslog(syslog.LOG_ERR, 'Caught unhandled exception: %s' % e)
             break
-        finally:
-            if conn is not None and conn.isconnected():
-                conn.disconnect()
 
     if not updated:
         syslog.syslog(syslog.LOG_ERR, 'Update failed.')
@@ -1622,16 +1609,17 @@ def update_people_entry(cert):
     is needed when a certificate is renewed.
     """
     def make_filter(cert):
+        ldap = api.Backend.ldap2
         subject = DN(cert.subject)
         issuer = DN(cert.issuer)
-        return ldap2.ldap2.combine_filters(
+        return ldap.combine_filters(
             [
-                ldap2.ldap2.make_filter({'objectClass': 'inetOrgPerson'}),
-                ldap2.ldap2.make_filter(
+                ldap.make_filter({'objectClass': 'inetOrgPerson'}),
+                ldap.make_filter(
                     {'description': ';%s;%s' % (issuer, subject)},
                     exact=False, trailing_wildcard=False),
             ],
-            ldap2.ldap2.MATCH_ALL)
+            ldap.MATCH_ALL)
 
     def make_entry(cert, entry):
         serial_number = cert.serial_number
@@ -1650,10 +1638,11 @@ def update_authority_entry(cert):
     serial number to match the given cert.
     """
     def make_filter(cert):
+        ldap = api.Backend.ldap2
         subject = str(DN(cert.subject))
-        return ldap2.ldap2.make_filter(
+        return ldap.make_filter(
             dict(objectclass='authority', authoritydn=subject),
-            rules=ldap2.ldap2.MATCH_ALL,
+            rules=ldap.MATCH_ALL,
         )
 
     def make_entry(cert, entry):
@@ -1760,10 +1749,7 @@ def ensure_entry(dn, **attrs):
     otherwise add the entry and return ``True``.
 
     """
-    conn = ldap2.ldap2(api)
-    if not conn.isconnected():
-        conn.connect(autobind=True)
-
+    conn = api.Backend.ldap2
     try:
         conn.get_entry(dn)
         return False
@@ -1772,8 +1758,6 @@ def ensure_entry(dn, **attrs):
         entry = conn.make_entry(dn, **attrs)
         conn.add_entry(entry)
         return True
-    finally:
-        conn.disconnect()
 
 
 def configure_profiles_acl():
@@ -1879,9 +1863,7 @@ def __get_profile_config(profile_id):
     return ipautil.template_file(profile_filename, sub_dict)
 
 def import_included_profiles():
-    conn = ldap2.ldap2(api)
-    if not conn.isconnected():
-        conn.connect(autobind=True)
+    conn = api.Backend.ldap2
 
     ensure_entry(
         DN(('cn', 'ca'), api.env.basedn),
@@ -1922,7 +1904,6 @@ def import_included_profiles():
             )
 
     api.Backend.ra_certprofile.override_port = None
-    conn.disconnect()
 
 
 def repair_profile_caIPAserviceCert():
