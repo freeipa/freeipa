@@ -147,6 +147,8 @@ bool E_md4hash(const char *passwd, uint8_t p16[16]); /* available in libcliauth-
 #define LDAP_ATTRIBUTE_UIDNUMBER "uidnumber"
 #define LDAP_ATTRIBUTE_GIDNUMBER "gidnumber"
 #define LDAP_ATTRIBUTE_ASSOCIATED_DOMAIN "associatedDomain"
+#define LDAP_ATTRIBUTE_DISPLAYNAME "displayName"
+#define LDAP_ATTRIBUTE_DESCRIPTION "description"
 
 #define LDAP_OBJ_KRB_PRINCIPAL "krbPrincipal"
 #define LDAP_OBJ_KRB_PRINCIPAL_AUX "krbPrincipalAux"
@@ -992,6 +994,49 @@ done:
 	return ret;
 }
 
+typedef NTSTATUS (*process_entry_fn)(struct ipasam_private *priv, LDAPMessage *entry, TALLOC_CTX *ctx, void *state);
+static NTSTATUS ipasam_search_entries(struct pdb_methods *methods,
+				      struct ipasam_private *priv,
+				      TALLOC_CTX *ctx,
+				      char *filter,
+				      const char **attrs_list,
+				      process_entry_fn process_entry,
+				      void *state)
+{
+	LDAPMessage *result = NULL;
+	LDAPMessage *entry = NULL;
+	int rc;
+	NTSTATUS res;
+
+	if ((priv == NULL) || (ctx == NULL) || (process_entry == NULL)) {
+		return NT_STATUS_NO_MEMORY;
+	}
+
+	rc = smbldap_search_suffix(priv->ldap_state, filter, attrs_list, &result);
+	if (rc != LDAP_SUCCESS) {
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	smbldap_talloc_autofree_ldapmsg(ctx, result);
+
+	if (ldap_count_entries(priv2ld(priv), result) == 0) {
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	for (entry = ldap_first_entry(priv2ld(priv), result);
+		entry != NULL;
+		entry = ldap_next_entry(priv2ld(priv), entry)) {
+
+		res = process_entry(priv, entry, ctx, state);
+		if (!NT_STATUS_IS_OK(res)) {
+			return res;
+		}
+	}
+
+	return NT_STATUS_OK;
+}
+
+
 static bool ipasam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
 			       struct dom_sid *sid)
 {
@@ -1659,6 +1704,106 @@ static bool ipasam_search_grouptype(struct pdb_methods *methods,
 
 	return ipasam_search_firstpage(search);
 }
+
+static NTSTATUS _ipasam_collect_map_entry(struct ipasam_private *ipasam_state,
+					  LDAPMessage *entry, TALLOC_CTX *ctx, void *state)
+{
+
+	GROUP_MAP *map = state;
+	char *value = NULL;
+	struct dom_sid *sid = NULL;
+	enum idmap_error_code err;
+	LDAP *ld = priv2ld(ipasam_state);
+
+	/* display name is the NT group name */
+	value = smbldap_talloc_single_attribute(ld, entry, LDAP_ATTRIBUTE_DISPLAYNAME, ctx);
+	if (!value) {
+		DBG_DEBUG("\"" LDAP_ATTRIBUTE_DISPLAYNAME "\" not found\n");
+
+		/* fallback to the 'cn' attribute */
+		value = smbldap_talloc_single_attribute(ld, entry, LDAP_ATTRIBUTE_CN, ctx);
+		if (!value) {
+			DBG_INFO("\"" LDAP_ATTRIBUTE_CN "\" not found\n");
+			return NT_STATUS_NO_SUCH_GROUP;
+		}
+	}
+
+	map->nt_name = talloc_steal(map, value);
+
+	value = smbldap_talloc_single_attribute(ld, entry, LDAP_ATTRIBUTE_DESCRIPTION, ctx);
+	if (!value) {
+		DBG_DEBUG("\"" LDAP_ATTRIBUTE_DESCRIPTION "\" not found\n");
+		value = talloc_strdup(ctx, "");
+	}
+	map->comment = talloc_steal(map, value);
+
+	value = smbldap_talloc_single_attribute(ld, entry, LDAP_ATTRIBUTE_SID, ctx);
+	if (!value) {
+		DBG_ERR("\"" LDAP_ATTRIBUTE_SID "\" not found\n");
+		return NT_STATUS_NO_SUCH_GROUP;
+	}
+
+	err = sss_idmap_sid_to_smb_sid(ipasam_state->idmap_ctx, value, &sid);
+	if (err != IDMAP_SUCCESS) {
+		DBG_ERR("Could not convert %s to SID\n", value);
+		return NT_STATUS_NO_SUCH_GROUP;
+	}
+
+	sid_copy(&map->sid, sid);
+	TALLOC_FREE(sid);
+	TALLOC_FREE(value);
+
+	/* all POSIX groups in FreeIPA are domain groups */
+	map->sid_name_use = SID_NAME_DOM_GRP;
+
+	return NT_STATUS_OK;
+
+}
+
+static NTSTATUS ipasam_getgrnam(struct pdb_methods *methods,
+				GROUP_MAP *map, const char *name)
+{
+	struct ipasam_private *ipasam_state =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
+	TALLOC_CTX *tmp_ctx = NULL;
+	char *filter = NULL;
+	char *escaped = NULL;
+	const char *attrs_list[] = {LDAP_ATTRIBUTE_CN, LDAP_ATTRIBUTE_SECURITY_IDENTIFIER,
+				    LDAP_ATTRIBUTE_GIDNUMBER, LDAP_ATTRIBUTE_DISPLAYNAME,
+				    LDAP_ATTRIBUTE_DESCRIPTION, NULL};
+	NTSTATUS result;
+
+	if (map == NULL) {
+		return NT_STATUS_NO_MEMORY;
+	}
+
+	tmp_ctx = talloc_new(ipasam_state);
+	if (tmp_ctx == NULL) {
+		return NT_STATUS_NO_MEMORY;
+	}
+
+	escaped = escape_ldap_string(tmp_ctx, name);
+	if (escaped == NULL) {
+		TALLOC_FREE(tmp_ctx);
+		return NT_STATUS_NO_MEMORY;
+	}
+
+	filter = talloc_asprintf(tmp_ctx,
+				 "(&(objectclass=%s)(objectclass=%s)(%s=%s))",
+				 LDAP_OBJ_GROUPMAP, LDAP_OBJ_POSIXGROUP,
+				 LDAP_ATTRIBUTE_CN, escaped);
+	if (filter == NULL) {
+		TALLOC_FREE(tmp_ctx);
+		return NT_STATUS_NO_MEMORY;
+	}
+
+	result = ipasam_search_entries(methods, ipasam_state, tmp_ctx,
+				       filter, attrs_list,
+				       _ipasam_collect_map_entry, map);
+	talloc_free(tmp_ctx);
+	return result;
+}
+
 
 static bool ipasam_search_groups(struct pdb_methods *methods,
 				  struct pdb_search *search)
@@ -5006,6 +5151,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 
 	(*pdb_method)->getsampwnam = ipasam_getsampwnam;
 	(*pdb_method)->getsampwsid = ipasam_getsampwsid;
+	(*pdb_method)->getgrnam = ipasam_getgrnam;
 	(*pdb_method)->search_users = ipasam_search_users;
 	(*pdb_method)->search_groups = ipasam_search_groups;
 	(*pdb_method)->search_aliases = ipasam_search_aliases;
