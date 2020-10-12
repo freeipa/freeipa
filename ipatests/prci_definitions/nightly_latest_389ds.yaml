@@ -326,6 +326,19 @@ jobs:
         timeout: 7200
         topology: *master_2repl_1client
 
+  389ds-fedora/test_replica_promotion_TestHiddenReplicaPromotion:
+    requires: [389ds-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{389ds-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_replica_promotion.py::TestHiddenReplicaPromotion
+        template: *389ds-master-latest
+        timeout: 7200
+        topology: *master_2repl_1client
+
   389ds-fedora/test_upgrade:
     requires: [389ds-fedora/build]
     priority: 50
@@ -507,6 +520,19 @@ jobs:
         template: *389ds-master-latest
         timeout: 3600
         topology: *master_1repl
+
+  389ds-fedora/dns_locations:
+    requires: [389ds-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{389ds-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_dns_locations.py
+        template: *389ds-master-latest
+        timeout: 3600
+        topology: *master_2repl_1client
 
   389ds-fedora/external_ca_TestExternalCAdirsrvStop:
     requires: [389ds-fedora/build]
