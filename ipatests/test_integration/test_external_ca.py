@@ -125,6 +125,20 @@ class TestExternalCA(IntegrationTest):
     num_replicas = 1
     num_clients = 1
 
+    @classmethod
+    def install(cls, mh):
+        cls.replicas[0].run_command(
+            [
+                'curl',
+                '-O',
+                'https://copr.fedorainfracloud.org/coprs/rcritten/'
+                'certmonger/repo/fedora-32/rcritten-certmonger-fedora-32.repo'
+            ],
+            cwd='/etc/yum.repos.d'
+        )
+        cls.replicas[0].run_command(['dnf', '-y', 'update', 'certmonger'])
+        super(TestExternalCA, cls).install(mh)
+
     def test_external_ca(self):
         # Step 1 of ipa-server-install.
         result = install_server_external_ca_step1(
