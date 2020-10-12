@@ -1146,6 +1146,18 @@ if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
 
         /bin/systemctl condrestart sshd.service 2>&1 || :
     fi
+    # If the snippet has been created, ensure that it is included
+    # either by /etc/ssh/sshd_config.d/*.conf or directly
+    if [ -f '/etc/ssh/sshd_config.d/04-ipa.conf' ]; then
+        if ! grep -E -q  '^\s*Include\s*/etc/ssh/sshd_config.d/\*\.conf' /etc/ssh/sshd_config 2> /dev/null ; then
+            if ! grep -E -q '^\s*Include\s*/etc/ssh/sshd_config.d/04-ipa\.conf' /etc/ssh/sshd_config 2> /dev/null ; then
+                # Include the snippet
+                echo "Include /etc/ssh/sshd_config.d/04-ipa.conf" > /etc/ssh/sshd_config.ipanew
+                cat /etc/ssh/sshd_config >> /etc/ssh/sshd_config.ipanew
+                mv -fZ --backup=existing --suffix .ipaold /etc/ssh/sshd_config.ipanew /etc/ssh/sshd_config
+            fi
+        fi
+    fi
 fi
 
 
