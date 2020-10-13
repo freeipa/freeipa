@@ -902,7 +902,7 @@ class TestInstallMaster(IntegrationTest):
         # installed by default and journalctl gives us all AVCs.
         result = self.master.run_command([
             "journalctl", "--full", "--grep=AVC", "--since=yesterday"
-        ])
+        ], raiseonerr=False)
         avcs = list(
             line.strip() for line in result.stdout_text.split('\n')
             if "AVC avc:" in line
