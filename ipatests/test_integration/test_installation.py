@@ -79,6 +79,21 @@ class InstallTestBase1(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        pki_tomcat_conf_path = "/usr/share/pki/server/conf/tomcat.conf"
+        for srv in [cls.master].extend(cls.replicas):
+            tomcat_conf = srv.get_file_contents(
+                pki_tomcat_conf_path
+            )
+            new_tomcat_conf = []
+            for line in tomcat_conf:
+                if line.startswith("JAVA_OPTS="):
+                    new_tomcat_conf.append(
+                        'JAVA_OPTS="-Dcom.redhat.fips=false '
+                        '-Djava.security.debug=access:failure"'
+                    )
+                else:
+                    new_tomcat_conf.append(line)
+            srv.put_file_contents(pki_tomcat_conf_path, new_tomcat_conf)
         tasks.install_master(cls.master, setup_dns=False)
 
     def test_replica0_ca_less_install(self):
