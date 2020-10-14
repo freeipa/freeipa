@@ -274,7 +274,7 @@ class TestIpaAdTrustInstall(IntegrationTest):
             self.master.run_command(['ipa', 'user-del', user])
 
     def test_adtrust_agents_are_recreated_after_upgrade(self):
-        """Test if adtrust agents, which are removed form LDAP prior to
+        """Test if adtrust agents, which are removed from LDAP prior to
         an upgrade, are recreated after the upgrade
         Related: https://pagure.io/freeipa/issue/8543"""
         passwd = self.master.config.dirman_password
@@ -292,9 +292,21 @@ class TestIpaAdTrustInstall(IntegrationTest):
         remove_trust_agents = textwrap.dedent("""
              dn: cn=adtrust agents,cn=sysaccounts,cn=etc,{base_dn}
              changetype: delete
+             EOF
              """.format(base_dn=str(host.domain.basedn)).strip())
-        tasks.ldapmodify_dm(host, remove_trust_agents,
-                            ok_returncode=[0])
+        ldif_path = '/tmp/remove_agents.ldif'
+        host.run_command(['cat',
+                          '<< EOF',
+                          '>',
+                          ldif_path,
+                          remove_trust_agents])
+        host.run_command(['ldapmodify',
+                          '-x',
+                          '-D', str(host.config.dirman_dn),
+                          '-w', host.config.dirman_password,
+                          '-f', ldif_path])
+        # tasks.ldapmodify_dm(host, remove_trust_agents,
+        #                     ok_returncode=[0])
         # execute ipa-upgrade
         tasks.kinit_admin(self.master)
         self.master.run_command(['ipa-server-upgrade', '--force'])
