@@ -150,6 +150,35 @@ def ca_status(ca_host=None):
     return _parse_ca_status(body)
 
 
+def acme_status(ca_host=None):
+    """Return the status of ACME
+
+    Returns a boolean.
+
+    If the proxy is not working or the CA is not running then this could
+    return a false negative.
+    """
+    if ca_host is None:
+        ca_host = api.env.ca_host
+    status, _headers, _body = https_request(
+        ca_host, 443,
+        url='/acme/directory',
+        cafile=api.env.tls_ca_cert,
+        client_certfile=None,
+        client_keyfile=None,
+        method='GET',
+        timeout=api.env.http_timeout)
+    if status == 200:
+        return True
+    elif status == 503:
+        # This is what it should return when disabled
+        return False
+    else:
+        # Unexpected status code, log and return False
+        logger.error('ACME status request returned %d', status)
+        return False
+
+
 def https_request(
         host, port, url, cafile, client_certfile, client_keyfile,
         method='POST', headers=None, body=None, **kw):

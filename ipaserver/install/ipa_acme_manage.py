@@ -69,11 +69,12 @@ class acme_state(RestClient):
 class Command(enum.Enum):
     ENABLE = 'enable'
     DISABLE = 'disable'
+    STATUS = 'status'
 
 
 class IPAACMEManage(AdminTool):
     command_name = "ipa-acme-manage"
-    usage = "%prog [enable|disable]"
+    usage = "%prog [enable|disable|status]"
     description = "Manage the IPA ACME service"
 
     def validate_options(self):
@@ -108,6 +109,10 @@ class IPAACMEManage(AdminTool):
                 ca_api.enable()
             elif self.command == Command.DISABLE:
                 ca_api.disable()
+            elif self.command == Command.STATUS:
+                status = "enabled" if dogtag.acme_status() else "disabled"
+                print("ACME is {}".format(status))
+                return 0
             else:
                 raise RuntimeError('programmer error: unhandled enum case')
 
