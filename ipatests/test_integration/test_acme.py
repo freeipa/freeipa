@@ -12,6 +12,7 @@ from ipalib.constants import IPA_CA_RECORD
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.osinfo import osinfo
+from ipaserver.install import cainstance
 
 
 # RHEL does not have certbot.  EPEL's version is broken with
@@ -26,6 +27,8 @@ skip_mod_md_tests = osinfo.id not in ['rhel','fedora',]
 CERTBOT_DNS_IPA_SCRIPT = '/usr/libexec/ipa/acme/certbot-dns-ipa'
 
 
+@pytest.mark.skipif(not cainstance.minimum_acme_support(),
+                    reason="does not provide ACME")
 class TestACME(IntegrationTest):
     """
     Test the FreeIPA ACME service by using ACME clients on a FreeIPA client.
