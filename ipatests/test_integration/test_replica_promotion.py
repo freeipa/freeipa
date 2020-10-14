@@ -916,7 +916,7 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             )
             assert returncode == 0
 
-    def test_hide_master_fails(self):
+    def test_hide_last_visible_server_fails(self):
         # verify state
         self._check_config([self.master], [self.replicas[0]])
         # nothing to do
@@ -953,6 +953,7 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         self._check_config([self.master, self.replicas[0]])
         self._check_dnsrecords([self.master, self.replicas[0]])
 
+    def test_promote_twice_fails(self):
         result = self.replicas[0].run_command([
             'ipa', 'server-state',
             self.replicas[0].hostname, '--state=enabled'
