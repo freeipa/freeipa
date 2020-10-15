@@ -65,9 +65,9 @@ class KRAInstance(DogtagInstance):
     # use for that certificate.  'configure_renewal()' reads this
     # dict.  The profile MUST be specified.
     tracking_reqs = {
-        'auditSigningCert cert-pki-kra': 'caInternalAuthAuditSigningCert',
-        'transportCert cert-pki-kra': 'caInternalAuthTransportCert',
-        'storageCert cert-pki-kra': 'caInternalAuthDRMstorageCert',
+        'auditSigningCert cert-pki-kra': 'caAuditSigningCert',
+        'transportCert cert-pki-kra': 'caTransportCert',
+        'storageCert cert-pki-kra': 'caStorageCert',
     }
 
     def __init__(self, realm):
