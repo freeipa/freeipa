@@ -239,6 +239,17 @@ class TestInstallCA(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        cls.master.run_command(
+            [
+                'curl',
+                '-O',
+                'https://copr.fedorainfracloud.org/coprs/rcritten/'
+                'certmonger/repo/fedora-32/rcritten-certmonger-fedora-32.repo'
+            ],
+            cwd='/etc/yum.repos.d'
+        )
+        cls.master.run_command(['dnf', '-y', 'update', 'certmonger'])
+
         cls.master.put_file_contents(
             os.path.join(paths.IPA_CCACHES, 'foo'),
             'somerandomstring'
