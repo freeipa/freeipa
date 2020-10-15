@@ -33,6 +33,7 @@ from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipaplatform import services
+from ipaserver.install import krainstance
 
 config = get_global_config()
 
@@ -1044,6 +1045,38 @@ class TestInstallMasterKRA(IntegrationTest):
 
     def test_install_dns(self):
         tasks.install_dns(self.master)
+
+    def test_kra_certs_renewal(self):
+        """
+        Test that the KRA subsystem certificates renew properly
+        """
+        kra = krainstance.KRAInstance(self.master.domain.realm)
+        for nickname in kra.tracking_reqs:
+            cert = tasks.certutil_fetch_cert(
+                self.master,
+                paths.PKI_TOMCAT_ALIAS_DIR,
+                paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
+                nickname
+            )
+            starting_serial = int(cert.serial_number)
+            cmd_arg = [
+                'ipa-getcert', 'resubmit', '-v', '-w',
+                '-d', paths.PKI_TOMCAT_ALIAS_DIR,
+                '-n', nickname,
+            ]
+            result = self.master.run_command(cmd_arg)
+            request_id = re.findall(r'\d+', result.stdout_text)
+
+            status = tasks.wait_for_request(self.master, request_id[0], 120)
+            assert status == "MONITORING"
+
+            cert = tasks.certutil_fetch_cert(
+                self.master,
+                paths.PKI_TOMCAT_ALIAS_DIR,
+                paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
+                nickname
+            )
+            assert starting_serial != int(cert.serial_number)
 
 
 class TestInstallMasterDNS(IntegrationTest):
