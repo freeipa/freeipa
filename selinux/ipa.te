@@ -138,9 +138,8 @@ optional_policy(`
 # ipa-helper local policy
 #
 
-
-allow ipa_helper_t self:capability { net_admin dac_read_search dac_override chown };
-seutil_read_config(ipa_helper_t);
+allow ipa_helper_t self:capability { chown dac_override dac_read_search net_admin };
+seutil_read_config(ipa_helper_t)
 
 #kernel bug
 dontaudit ipa_helper_t self:capability2  block_suspend;
@@ -414,7 +413,7 @@ optional_policy(`
 ')
 
 optional_policy(`
-    gen_require(`
+    gen_require(` #selint-disable:S-001
         type httpd_t;
     ')
     ipa_custodia_stream_connect(httpd_t)
@@ -438,7 +437,7 @@ optional_policy(`
 ')
 
 optional_policy(`
-    gen_require(`
+    gen_require(` #selint-disable:S-001
         type tomcat_t;
     ')
     can_exec(tomcat_t, ipa_pki_retrieve_key_exec_t)
@@ -446,7 +445,7 @@ optional_policy(`
 ')
 
 optional_policy(`
-    gen_require(`
+    gen_require(` #selint-disable:S-001
         type devlog_t;
     ')
 
@@ -459,7 +458,7 @@ optional_policy(`
 ')
 
 optional_policy(`
-    gen_require(`
+    gen_require(` #selint-disable:S-001
         type tomcat_t;
     ')
     kerberos_read_config(tomcat_t)
@@ -467,14 +466,14 @@ optional_policy(`
 ')
 
 optional_policy(`
-    gen_require(`
+    gen_require(` #selint-disable:S-001
         type node_t;
     ')
     allow ipa_custodia_t node_t:tcp_socket node_bind;
 ')
 
 optional_policy(`
-    gen_require(`
+    gen_require(` #selint-disable:S-001
         type pki_tomcat_cert_t;
     ')
     allow ipa_custodia_t pki_tomcat_cert_t:dir remove_name;
