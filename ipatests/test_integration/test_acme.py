@@ -27,6 +27,21 @@ skip_mod_md_tests = osinfo.id not in ['rhel','fedora',]
 CERTBOT_DNS_IPA_SCRIPT = '/usr/libexec/ipa/acme/certbot-dns-ipa'
 
 
+def check_acme_status(host, exp_status, timeout=60):
+    """Helper method to check the status of acme server"""
+    for _i in range(0, timeout, 5):
+        result = host.run_command(['ipa-acme-manage', 'status'])
+        status = result.stdout_text.split(" ")[2].strip()
+        print("ACME status: %s" % status)
+        if status == exp_status:
+            break
+        time.sleep(5)
+    else:
+        raise RuntimeError("request timed out")
+
+    return status
+
+
 @pytest.mark.skipif(not cainstance.minimum_acme_support(),
                     reason="does not provide ACME")
 class TestACME(IntegrationTest):
@@ -53,7 +68,7 @@ class TestACME(IntegrationTest):
         * Other clients or service scenarios
 
     """
-    num_replicas = 0
+    num_replicas = 1
     num_clients = 1
 
     @classmethod
@@ -73,6 +88,10 @@ class TestACME(IntegrationTest):
         tasks.install_client(cls.master, cls.clients[0])
         tasks.config_host_resolvconf_with_master_data(
             cls.master, cls.clients[0]
+        )
+        tasks.install_replica(cls.master, cls.replicas[0])
+        tasks.config_host_resolvconf_with_master_data(
+            cls.master, cls.replicas[0]
         )
 
     #######
@@ -113,6 +132,11 @@ class TestACME(IntegrationTest):
                 exc = e
         else:
             raise exc
+
+    def test_centralize_acme_enable(self):
+        """Test if ACME enable on replica if enabled on master"""
+        status = check_acme_status(self.replicas[0], 'enabled')
+        assert status == 'enabled'
 
     ###############
     # Certbot tests
@@ -255,3 +279,112 @@ class TestACME(IntegrationTest):
             ['curl', '--fail', self.acme_server],
             ok_returncode=22,
         )
+
+    def test_centralize_acme_disable(self):
+        """Test if ACME disable on replica if disabled on master"""
+        status = check_acme_status(self.replicas[0], 'disabled')
+        assert status == 'disabled'
+
+
+@pytest.mark.skipif(not cainstance.minimum_acme_support(),
+                    reason="does not provide ACME")
+class TestACMECALess(IntegrationTest):
+    """Test to check the CA less replica setup"""
+    num_replicas = 1
+    num_clients = 0
+
+    @pytest.fixture
+    def test_setup_teardown(self):
+        tasks.install_master(self.master, setup_dns=True)
+
+        tasks.install_replica(self.master, self.replicas[0], setup_ca=False)
+        tasks.config_host_resolvconf_with_master_data(
+            self.master, self.replicas[0]
+        )
+
+        yield
+
+        tasks.uninstall_replica(self.master, self.replicas[0])
+        tasks.uninstall_master(self.master)
+
+    def test_caless_to_cafull_replica(self, test_setup_teardown):
+        """Test ACME is enabled on CA-less replica when converted to CA-full
+
+        Deployment where one server is deployed as CA-less, when converted
+        to CA full, should have ACME enabled by default.
+
+        related: https://pagure.io/freeipa/issue/8524
+        """
+        tasks.kinit_admin(self.master)
+        # enable acme on master
+        self.master.run_command(['ipa-acme-manage', 'enable'])
+
+        # check status of acme server on master
+        status = check_acme_status(self.master, 'enabled')
+        assert status == 'enabled'
+
+        tasks.kinit_admin(self.replicas[0])
+        # check status of acme on replica, result: CA is not installed
+        result = self.replicas[0].run_command(['ipa-acme-manage', 'status'],
+                                              raiseonerr=False)
+        assert result.returncode == 1
+
+        # Install CA on replica
+        tasks.install_ca(self.replicas[0])
+
+        # check acme status, should be enabled now
+        status = check_acme_status(self.replicas[0], 'enabled')
+        assert status == 'enabled'
+
+        # disable acme on replica
+        self.replicas[0].run_command(['ipa-acme-manage', 'disable'])
+
+        # check acme status on master, should be disabled
+        status = check_acme_status(self.master, 'disabled')
+        assert status == 'disabled'
+
+    def test_enable_caless_to_cafull_replica(self, test_setup_teardown):
+        """Test ACME with CA-less replica when converted to CA-full
+
+        Deployment have one ca-less replica and ACME is not enabled.
+        After converting ca-less replica to ca-full, ACME can be
+        enabled or disabled.
+
+        related: https://pagure.io/freeipa/issue/8524
+        """
+        tasks.kinit_admin(self.master)
+
+        # check status of acme server on master
+        status = check_acme_status(self.master, 'disabled')
+        assert status == 'disabled'
+
+        tasks.kinit_admin(self.replicas[0])
+        # check status of acme on replica, result: CA is not installed
+        result = self.replicas[0].run_command(['ipa-acme-manage', 'status'],
+                                              raiseonerr=False)
+        assert result.returncode == 1
+
+        # Install CA on replica
+        tasks.install_ca(self.replicas[0])
+
+        # check acme status on replica, should not throw error
+        status = check_acme_status(self.replicas[0], 'disabled')
+        assert status == 'disabled'
+
+        # enable acme on replica
+        self.replicas[0].run_command(['ipa-acme-manage', 'enable'])
+
+        # check acme status on master
+        status = check_acme_status(self.master, 'enabled')
+        assert status == 'enabled'
+
+        # check acme status on replica
+        status = check_acme_status(self.replicas[0], 'enabled')
+        assert status == 'enabled'
+
+        # disable acme on master
+        self.master.run_command(['ipa-acme-manage', 'disable'])
+
+        # check acme status on replica, should be disabled
+        status = check_acme_status(self.replicas[0], 'disabled')
+        assert status == 'disabled'
