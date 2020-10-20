@@ -69,7 +69,7 @@ jobs:
       args:
         build_url: '{fedora-latest/build_url}'
         update_packages: True
-        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints test_integration/test_installation.py::TestInstallCA::test_certmonger_reads_token_HSM
+        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_installation.py::TestInstallCA::test_certmonger_reads_token_HSM
         template: *testing-master-latest
         timeout: 4800
         topology: *master_2repl_1client
@@ -95,7 +95,7 @@ jobs:
       args:
         build_url: '{fedora-latest/build_url}'
         update_packages: True
-        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
+        test_suite: test_integration/test_external_ca.py::TestExternalCA
         template: *testing-master-latest
         timeout: 4800
         topology: *master_1repl_1client
@@ -108,7 +108,7 @@ jobs:
       args:
         build_url: '{fedora-latest/build_url}'
         update_packages: True
-        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
+        test_suite: test_integration/test_external_ca.py::TestExternalCA
         template: *testing-master-latest
         timeout: 4800
         topology: *master_1repl_1client
@@ -121,7 +121,7 @@ jobs:
       args:
         build_url: '{fedora-latest/build_url}'
         update_packages: True
-        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
+        test_suite: test_integration/test_external_ca.py::TestExternalCA
         template: *testing-master-latest
         timeout: 4800
         topology: *master_1repl_1client
