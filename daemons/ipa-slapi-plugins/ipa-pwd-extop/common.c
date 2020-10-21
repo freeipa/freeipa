@@ -855,6 +855,20 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
                                  data->expireTime, (data->expireTime == 0));
             if (ret != LDAP_SUCCESS)
                 goto free_and_return;
+
+            switch(data->changetype) {
+                case IPA_CHANGETYPE_DSMGR:
+                case IPA_CHANGETYPE_ADMIN:
+                    /* Mark as administratively reset which will unlock acct */
+                    ret = ipapwd_setdate(data->target, smods, 
+                                         "krbLastAdminUnlock",
+                                         data->timeNow, false);
+                    if (ret != LDAP_SUCCESS)
+                        goto free_and_return;
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
