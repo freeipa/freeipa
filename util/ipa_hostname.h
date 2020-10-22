@@ -11,5 +11,12 @@
  */
 #define IPA_HOST_FQDN_LEN 255
 
+/* Get the host FQDN.
+ *
+ * Returns a null-terminated static char[].  The string length is
+ * at most IPA_HOST_FQDN_LEN - 1.  The caller MUST NOT modify this
+ * buffer.  If modification could occur, the caller MUST copy
+ * the string.
+ */
 const char*
 ipa_gethostfqdn(void);
