@@ -4441,7 +4441,8 @@ static char *sec_key(TALLOC_CTX *mem_ctx, const char *d)
 
 static NTSTATUS save_sid_to_secret(struct ipasam_private *ipasam_state)
 {
-	const char *hostname;
+	char hostname[IPA_HOST_FQDN_LEN];
+	const char *fqdn;
 	char *p;
 	TALLOC_CTX *tmp_ctx;
 	NTSTATUS status = NT_STATUS_UNSUCCESSFUL;
@@ -4466,12 +4467,15 @@ static NTSTATUS save_sid_to_secret(struct ipasam_private *ipasam_state)
 		goto done;
 	}
 
-	hostname = ipa_gethostfqdn();
-	if (hostname == NULL) {
+	fqdn = ipa_gethostfqdn();
+	if (fqdn == NULL) {
 		DEBUG(1, ("ipa_gethostfqdn failed.\n"));
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
 	}
+	/* Copy is necessary, otherwise we this will corrupt the static
+	 * buffer returned by ipa_gethostfqdn(). */
+	strncpy(hostname, fqdn, sizeof(hostname));
 	p = strchr(hostname, '.');
 	if (p != NULL) {
 		*p = '\0';
