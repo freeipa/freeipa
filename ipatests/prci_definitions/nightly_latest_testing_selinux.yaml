@@ -1900,3 +1900,17 @@ jobs:
         template: *testing-master-latest
         timeout: 3600
         topology: *master_1repl
+
+  testing-fedora/test_pwpolicy:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        update_packages: True
+        selinux_enforcing: True
+        build_url: '{testing-fedora/build_url}'
+        test_suite: test_integration/test_pwpolicy.py
+        template: *testing-master-latest
+        timeout: 3600
+        topology: *master_1repl
