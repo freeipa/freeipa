@@ -935,9 +935,14 @@ def disconnect_replica(master, replica, domain_level=None,
                             ])
 
 
+def kinit_user(host, user, password, raiseonerr=True):
+    return host.run_command(['kinit', user], raiseonerr=raiseonerr,
+                            stdin_text=password)
+
+
 def kinit_admin(host, raiseonerr=True):
-    return host.run_command(['kinit', 'admin'], raiseonerr=raiseonerr,
-                            stdin_text=host.config.admin_password)
+    return kinit_user(host, 'admin', host.config.admin_password,
+                      raiseonerr=raiseonerr)
 
 
 def uninstall_master(host, ignore_topology_disconnect=True,
