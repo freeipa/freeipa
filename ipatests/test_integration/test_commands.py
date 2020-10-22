@@ -129,6 +129,7 @@ class TestIPACommand(IntegrationTest):
     tested without having to fire up a full server to run one command.
     """
     topology = 'line'
+    num_replicas = 1
 
     @pytest.fixture
     def pwpolicy_global(self):
@@ -1318,3 +1319,40 @@ class TestIPACommand(IntegrationTest):
         assert len(pkispawnlog) > 1024
         assert "DEBUG" in pkispawnlog
         assert "INFO" in pkispawnlog
+
+    def test_reset_password_unlock(self):
+        """
+        Test that when a user is also unlocked when their password
+        is administratively reset.
+        """
+        user = 'tuser'
+        original_passwd = 'Secret123'
+        new_passwd = 'newPasswd123'
+        bad_passwd = 'foo'
+
+        tasks.kinit_admin(self.master)
+        tasks.user_add(self.master, user, password=original_passwd)
+        tasks.kinit_user(
+            self.master, user,
+            '{0}\n{1}\n{1}\n'.format(original_passwd, new_passwd)
+        )
+
+        # Lock out the user on master
+        for _i in range(0, 7):
+            tasks.kinit_user(self.master, user, bad_passwd, raiseonerr=False)
+
+        tasks.kinit_admin(self.replicas[0])
+        # Administrative reset on a different server
+        self.replicas[0].run_command(
+            ['ipa', 'passwd', user],
+            stdin_text='{0}\n{0}\n'.format(original_passwd)
+        )
+
+        ldap = self.master.ldap_connect()
+        tasks.wait_for_replication(ldap)
+
+        # The user can log in again
+        tasks.kinit_user(
+            self.master, user,
+            '{0}\n{1}\n{1}\n'.format(original_passwd, new_passwd)
+        )
