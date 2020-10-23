@@ -48,6 +48,7 @@ struct ipadb_adtrusts {
     struct ipadb_adtrusts *parent;
     char *parent_name;
     char **upn_suffixes;
+    size_t *upn_suffixes_len;
 };
 
 int string_to_sid(const char *str, struct dom_sid *sid);
