@@ -134,6 +134,11 @@ class IPAUpgrade(service.Service):
 
     def __save_config(self):
         shutil.copy2(self.filename, self.savefilename)
+        if self.get_state('upgrade-in-progress') is not None:
+            logger.debug('Previous upgrade in process, not saving config')
+            return
+        else:
+            self.backup_state('upgrade-in-progress', True)
         with open(self.filename, "r") as in_file:
             parser = GetEntryFromLDIF(in_file, entries_dn=["cn=config"])
             parser.parse()
@@ -198,6 +203,7 @@ class IPAUpgrade(service.Service):
         security = self.restore_state('nsslapd-security')
         global_lock = self.restore_state('nsslapd-global-backend-lock')
         schema_compat_enabled = self.restore_state('schema_compat_enabled')
+        self.restore_state('upgrade-in-progress')
 
         ldif_outfile = "%s.modified.out" % self.filename
         with open(ldif_outfile, "w") as out_file:
