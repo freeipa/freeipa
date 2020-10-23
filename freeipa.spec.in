@@ -61,7 +61,7 @@
 %global samba_version 4.7.0
 %global selinux_policy_version 3.14.3-21
 %global slapi_nis_version 0.56.1-4
-%global python_ldap_version 3.1.0-1
+%global python_ldap_version 3.3.1
 # 1.4.3 moved nsslapd-db-locks to cn=bdb sub-entry
 # https://pagure.io/freeipa/issue/8515
 %global ds_version 1.4.3
@@ -95,7 +95,7 @@
 %endif
 
 # fix for segfault in python3-ldap, https://pagure.io/freeipa/issue/7324
-%global python_ldap_version 3.1.0-1
+%global python_ldap_version 3.3.1
 # 1.4.3 moved nsslapd-db-locks to cn=bdb sub-entry
 # https://pagure.io/freeipa/issue/8515
 %global ds_version 1.4.3
