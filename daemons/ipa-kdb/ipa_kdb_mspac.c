@@ -2392,6 +2392,7 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
                     free((*mspac)->trusts[i].upn_suffixes[j]);
                 }
                 free((*mspac)->trusts[i].upn_suffixes);
+                free((*mspac)->trusts[i].upn_suffixes_len);
             }
         }
         free((*mspac)->trusts);
@@ -2599,6 +2600,24 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
             } else {
                 ret = EINVAL;
                 goto done;
+            }
+        }
+
+        t[n].upn_suffixes_len = NULL;
+        if (t[n].upn_suffixes != NULL) {
+            size_t len = 0;
+
+            for (; t[n].upn_suffixes[len] != NULL; len++);
+
+            if (len != 0) {
+                t[n].upn_suffixes_len = calloc(n, sizeof(size_t));
+                if (t[n].upn_suffixes_len == NULL) {
+                    ret = ENOMEM;
+                    goto done;
+                }
+                for (i = 0; i < len; i++) {
+                    t[n].upn_suffixes_len[i] = strlen(t[n].upn_suffixes[i]);
+                }
             }
         }
 
@@ -2971,6 +2990,17 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 				result = strncasecmp(test_realm,
 						     ipactx->mspac->trusts[i].upn_suffixes[j],
 						     size) == 0;
+				if (!result) {
+					/* if UPN suffix did not match exactly, find if it is
+					 * superior to the test_realm, e.g. if test_realm ends
+					 * with the UPN suffix prefixed with dot*/
+					size_t len = ipactx->mspac->trusts[i].upn_suffixes_len[j];
+					if ((size > len) && (test_realm[size - len - 1] == '.')) {
+						result = strncasecmp(test_realm + (size - len),
+								     ipactx->mspac->trusts[i].upn_suffixes[j],
+								     len) == 0;
+					}
+				}
 				if (result)
 					break;
 			}
