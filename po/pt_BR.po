@@ -1,12 +1,13 @@
 # Marco Aurélio Krause <ouesten@me.com>, 2015. #zanata
 # Rafael Fontenelle <rafaelff@gnome.org>, 2020.
+# Daniel Lara Souza <daniellarasouza@yahoo.com.br>, 2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.8.0\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-06-10 22:17+0300\n"
-"PO-Revision-Date: 2020-08-07 06:29+0000\n"
-"Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
+"PO-Revision-Date: 2020-08-25 16:29+0000\n"
+"Last-Translator: Daniel Lara Souza <daniellarasouza@yahoo.com.br>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
 "projects/freeipa/ipa-4-8/pt_BR/>\n"
 "Language: pt_BR\n"
@@ -14,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.2.1\n"
 
 msgid "incorrect type"
 msgstr "tipo incorreto"
@@ -386,14 +387,14 @@ msgid "This group already allows external members"
 msgstr "Este grupo já permite membros externos"
 
 msgid "This group cannot be posix because it is external"
-msgstr ""
+msgstr "Este grupo não pode ser posix porque é externo"
 
 msgid "This is already a posix group and cannot be converted to external one"
 msgstr "Este já é um grupo posix e não pode ser convertido para um externo"
 
 #, python-format
 msgid "Server removal aborted: %(reason)s."
-msgstr ""
+msgstr "Remoção do servidor abortada: %(reason)s."
 
 #, python-format
 msgid "%(operation)s is not supported for %(principal_type)s principals"
@@ -456,48 +457,51 @@ msgstr "Tempo limite de LDAP"
 
 #, python-format
 msgid "%(task)s LDAP task timeout, Task DN: '%(task_dn)s'"
-msgstr ""
+msgstr "%(task)s Tempo limite da tarefa LDAP, DN da tarefa: '%(task_dn)s'"
 
 msgid "Configured time limit exceeded"
-msgstr ""
+msgstr "Limite de tempo configurado excedido"
 
 msgid "Configured size limit exceeded"
-msgstr ""
+msgstr "Limite de tamanho configurado excedido"
 
 msgid "Configured administrative server limit exceeded"
-msgstr ""
+msgstr "Limite de servidor administrativo configurado excedido"
 
 #, python-format
 msgid "Certificate operation cannot be completed: %(error)s"
-msgstr ""
+msgstr "A operação do certificado não pode ser concluída: %(error)s"
 
 #, python-format
 msgid "Certificate format error: %(error)s"
-msgstr ""
+msgstr "Erro de formato de certificado: %(error)s"
 
 msgid "Already registered"
-msgstr ""
+msgstr "Já registrado"
 
 msgid "Not registered yet"
-msgstr ""
+msgstr "Não registrado ainda"
 
 #, python-format
 msgid "%(key)s cannot be deleted because %(label)s %(dependent)s requires it"
 msgstr ""
+"%(key)s não pode ser excluído porque %(label)s requer isso %(dependent)s"
 
 #, python-format
 msgid ""
 "%(key)s cannot be deleted or disabled because it is the last member of "
 "%(label)s %(container)s"
 msgstr ""
+"%(key)s não pode ser excluído ou desabilitado porque é o último membro de "
+"%(label)s %(container)s"
 
 #, python-format
 msgid "%(label)s %(key)s cannot be deleted/modified: %(reason)s"
-msgstr ""
+msgstr "%(label)s %(key)s não pode ser excluído / modificado: %(reason)s"
 
 #, python-format
 msgid "%(name)s certificate is not valid"
-msgstr ""
+msgstr "%(name)s certificado não é válido"
 
 #, python-format
 msgid "Schema is up to date (FP '%(fingerprint)s', TTL %(ttl)s s)"
