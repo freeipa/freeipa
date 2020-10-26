@@ -198,8 +198,8 @@ msgid ""
 "System encoding must be UTF-8, '%(encoding)s' is not supported. Set LC_ALL="
 "\"C.UTF-8\", or LC_ALL=\"\" and LC_CTYPE=\"C.UTF-8\"."
 msgstr ""
-"Sistem kodlaması UTF-8 olmalı, '%(encoding)s' desteklenmiyor. LC_ALL=\"C.UTF-"
-"8\", veya LC_ALL=\"\" ve LC_CTYPE=\"C.UTF-8\" olarak ayarlayın."
+"Sistem kodlaması UTF-8 olmalı, '%(encoding)s' desteklenmiyor. LC_ALL=\"C."
+"UTF-8\", veya LC_ALL=\"\" ve LC_CTYPE=\"C.UTF-8\" olarak ayarlayın."
 
 #, python-format
 msgid "Kerberos error: %(major)s/%(minor)s"
@@ -721,8 +721,8 @@ msgid ""
 "\"%(ns_rec)s\" to parent zone \"%(authzone)s\"."
 msgstr ""
 "\"%(fwzone)s\" ileri bölgesi, \"%(authzone)s\" yetkili bölgesinde uygun NS "
-"temsilcisinin eksik olması nedeniyle etkili değildir. Lütfen \"%(authzone)s\""
-" üst bölgesine \"%(ns_rec)s\" NS kaydını ekleyin."
+"temsilcisinin eksik olması nedeniyle etkili değildir. Lütfen \"%(authzone)s"
+"\" üst bölgesine \"%(ns_rec)s\" NS kaydını ekleyin."
 
 #, python-format
 msgid ""
