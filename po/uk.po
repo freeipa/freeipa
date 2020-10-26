@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-08-20 12:57+0300\n"
-"PO-Revision-Date: 2020-08-08 17:46+0000\n"
+"PO-Revision-Date: 2020-09-05 17:29+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-8/uk/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.2.2\n"
 
 #, c-format
 msgid "No permission to join this host to the IPA domain.\n"
@@ -779,8 +779,9 @@ msgid ""
 "Migration mode is disabled.\n"
 "Use 'ipa config-mod --enable-migration=TRUE' to enable it."
 msgstr ""
-"Режим міграції вимкнено. Скористайтеся командою «ipa config-mod--enable-"
-"migration=TRUE», щоб увімкнути його."
+"Режим міграції вимкнено.\n"
+"Скористайтеся командою «ipa config-mod--enable-migration=TRUE», щоб "
+"увімкнути його."
 
 msgid ""
 "Passwords have been migrated in pre-hashed format.\n"
@@ -989,8 +990,8 @@ msgid ""
 "QR code width is greater than that of the output tty. Please resize your "
 "terminal."
 msgstr ""
-"QR code width is greater than that of the output tty. Please resize your "
-"terminal."
+"Ширина QR-коду перевищує розмір термінала для виведення. Будь ласка, змініть "
+"розміри вашого термінала."
 
 msgid "Synchronize an OTP token."
 msgstr "Синхронізувати жетон OTP."
@@ -23802,10 +23803,8 @@ msgstr "Вийти"
 msgid "Log out error"
 msgstr "Помилка під час спроби вийти"
 
-#, fuzzy
-#| msgid "Password or Password+One-Time-Password"
 msgid "Password or Password+One-Time Password"
-msgstr "Пароль або Пароль+Одноразовий-пароль"
+msgstr "Пароль або Пароль+Одноразовий пароль"
 
 #, python-brace-format
 msgid "You will be redirected in ${count}s"
@@ -24606,10 +24605,11 @@ msgstr ""
 "Вилучити користувачів з керівників учасниками для групи користувачів "
 "«${primary_key}»"
 
-#, fuzzy, python-brace-format
-#| msgid "Add services into user group '${primary_key}'"
+#, python-brace-format
 msgid "Add user ID override into user group '${primary_key}'"
-msgstr "Додати служби до групи користувачів «${primary_key}»"
+msgstr ""
+"Додати перевизначення ідентифікатора користувача до групи користувачів "
+"«${primary_key}»"
 
 msgid "Group Settings"
 msgstr "Параметри групи"
@@ -24671,10 +24671,11 @@ msgstr "Вилучити служби з групи користувачів «$
 msgid "Remove users from user group '${primary_key}'"
 msgstr "Вилучити користувачів з групи користувачів «${primary_key}»"
 
-#, fuzzy, python-brace-format
-#| msgid "Remove services from user group '${primary_key}'"
+#, python-brace-format
 msgid "Remove user ID overrides from user group '${primary_key}'"
-msgstr "Вилучити служби з групи користувачів «${primary_key}»"
+msgstr ""
+"Вилучити перевизначення ідентифікатора користувача з групи користувачів "
+"«${primary_key}»"
 
 msgid "Group Type"
 msgstr "Тип групи"
@@ -24870,26 +24871,18 @@ msgstr "Ключа Kerberos немає"
 msgid "Kerberos Key Present, Host Provisioned"
 msgstr "Маємо ключ Kerberos, вузол передбачено"
 
-#, fuzzy
-#| msgid "One-Time-Password"
 msgid "One-Time Password"
 msgstr "Одноразовий пароль"
 
-#, fuzzy
-#| msgid "One-Time-Password Not Present"
 msgid "One-Time Password Not Present"
 msgstr "Одноразового пароля немає"
 
-#, fuzzy
-#| msgid "One-Time-Password Present"
 msgid "One-Time Password Present"
 msgstr "Є одноразовий пароль"
 
 msgid "Reset OTP"
 msgstr "Скинути ОП"
 
-#, fuzzy
-#| msgid "Reset One-Time-Password"
 msgid "Reset One-Time Password"
 msgstr "Скинути одноразовий пароль"
 
@@ -24899,8 +24892,6 @@ msgstr "Одноразовий пароль"
 msgid "OTP set"
 msgstr "Встановлено одноразовий пароль"
 
-#, fuzzy
-#| msgid "Set One-Time-Password"
 msgid "Set One-Time Password"
 msgstr "Встановити одноразовий пароль"
 
@@ -25987,26 +25978,18 @@ msgstr "Перший OTP"
 msgid "New password is required"
 msgstr "Слід вказати новий пароль"
 
-#, fuzzy
-#| msgid ""
-#| "<i class=\"fa fa-info-circle\"></i> <strong>One-Time-Password(OTP):</"
-#| "strong> Generate new OTP code for each OTP field."
 msgid ""
 "<i class=\"fa fa-info-circle\"></i> <strong>OTP (One-Time Password):</"
 "strong>Generate new OTP code for each OTP field."
 msgstr ""
-"<i class=\"fa fa-info-circle\"></i> <strong>Одноразовий пароль (OTP):</"
+"<i class=\"fa fa-info-circle\"></i> <strong>OTP (одноразовий пароль):</"
 "strong> створити новий код OTP для кожного з полів OTP."
 
-#, fuzzy
-#| msgid ""
-#| "<i class=\"fa fa-info-circle\"></i> <strong>One-Time-Password(OTP):</"
-#| "strong> Generate new OTP code for each OTP field."
 msgid ""
 "<i class=\"fa fa-info-circle\"></i> <strong>OTP (One-Time Password):</"
 "strong>Leave blank if you are not using OTP tokensfor authentication."
 msgstr ""
-"<i class=\"fa fa-info-circle\"></i> <strong>Одноразовий пароль (OTP):</"
+"<i class=\"fa fa-info-circle\"></i> <strong>OTP (одноразовий пароль):</"
 "strong> створити новий код OTP для кожного з полів OTP."
 
 msgid "Token synchronization failed"
