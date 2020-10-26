@@ -4,7 +4,7 @@
 
 import enum
 
-from ipalib import api, errors
+from ipalib import api, errors, x509
 from ipalib import _
 from ipalib.facts import is_ipa_configured
 from ipaplatform.paths import paths
@@ -90,6 +90,13 @@ class IPAACMEManage(AdminTool):
             except ValueError:
                 self.option_parser.error(f'unknown command "{self.args[0]}"')
 
+    def check_san_status(self):
+        """
+        Require the Apache cert to have ipa-ca.$DOMAIN SAN
+        """
+        cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
+        cainstance.check_ipa_ca_san(cert)
+
     def run(self):
         if not is_ipa_configured():
             print("IPA is not configured.")
@@ -106,6 +113,7 @@ class IPAACMEManage(AdminTool):
         state = acme_state(api)
         with state as ca_api:
             if self.command == Command.ENABLE:
+                self.check_san_status()
                 ca_api.enable()
             elif self.command == Command.DISABLE:
                 ca_api.disable()

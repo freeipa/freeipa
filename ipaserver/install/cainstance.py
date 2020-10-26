@@ -31,6 +31,7 @@ import ldap
 import os
 import re
 import shutil
+import ssl
 import sys
 import syslog
 import time
@@ -2269,6 +2270,30 @@ def import_ra_key(custodia):
     custodia.import_ra_key()
     CAInstance._set_ra_cert_perms()
     CAInstance.configure_agent_renewal()
+
+
+def check_ipa_ca_san(cert):
+    """
+    Test whether the certificate has an ipa-ca SAN
+
+    :param cert: x509.IPACertificate
+
+    This SAN is necessary for ACME.
+
+    The caller is responsible for initializing the api.
+
+    On success returns None, on failure raises ValidationError
+    """
+    expect = f'{ipalib.constants.IPA_CA_RECORD}.' \
+             f'{ipautil.format_netloc(api.env.domain)}'
+
+    try:
+        cert.match_hostname(expect)
+    except ssl.CertificateError:
+        raise errors.ValidationError(
+            name='certificate',
+            error='Does not have a \'{}\' SAN'.format(expect)
+        )
 
 
 if __name__ == "__main__":

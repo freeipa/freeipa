@@ -30,6 +30,8 @@ They may be generated and managed using the NSS pk12util command or the OpenSSL 
 
 The service(s) are not automatically restarted. In order to use the newly installed certificate(s) you will need to manually restart the Directory, Apache and/or Krb5kdc servers.
 
+If the ACME service is enabled then the web certificate must have a Subject Alternative Name (SAN) for ipa-ca.$DOMAIN.
+
 .SH "OPTIONS"
 .TP 
 \fB\-d\fR, \fB\-\-dirsrv\fR
