@@ -11,7 +11,9 @@ import pytest
 from ipalib.constants import IPA_CA_RECORD
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipaplatform.osinfo import osinfo
+from ipaplatform.paths import paths
 from ipaserver.install import cainstance
 
 
@@ -42,9 +44,19 @@ def check_acme_status(host, exp_status, timeout=60):
     return status
 
 
+def server_install_teardown(func):
+    def wrapped(*args):
+        master = args[0].master
+        try:
+            func(*args)
+        finally:
+            ipa_certs_cleanup(master)
+    return wrapped
+
+
 @pytest.mark.skipif(not cainstance.minimum_acme_support(),
                     reason="does not provide ACME")
-class TestACME(IntegrationTest):
+class TestACME(CALessBase):
     """
     Test the FreeIPA ACME service by using ACME clients on a FreeIPA client.
 
@@ -73,15 +85,17 @@ class TestACME(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        super(TestACME, cls).install(mh)
+
         # cache the acme service uri
         acme_host = f'{IPA_CA_RECORD}.{cls.master.domain.name}'
         cls.acme_server = f'https://{acme_host}/acme/directory'
 
         # install packages before client install in case of IPA DNS problems
         if not skip_certbot_tests:
-            cls.clients[0].run_command(['dnf', 'install', '-y', 'certbot'])
+            tasks.install_packages(cls.clients[0], ['certbot'])
         if not skip_mod_md_tests:
-            cls.clients[0].run_command(['dnf', 'install', '-y', 'mod_md'])
+            tasks.install_packages(cls.clients[0], ['mod_md'])
 
         tasks.install_master(cls.master, setup_dns=True)
 
@@ -93,6 +107,31 @@ class TestACME(IntegrationTest):
         tasks.config_host_resolvconf_with_master_data(
             cls.master, cls.replicas[0]
         )
+
+    def certinstall(self, certfile=None, keyfile=None,
+                    pin=None):
+        """Small wrapper around ipa-server-certinstall
+
+           We are always replacing only the web server with a fixed
+           pre-generated value and returning the result for the caller
+           to figure out.
+        """
+        self.create_pkcs12('ca1/server', password=None, filename='server.p12')
+        self.copy_cert(self.master, 'server.p12')
+        if pin is None:
+            pin = self.cert_password
+        args = ['ipa-server-certinstall',
+                '-p', self.master.config.dirman_password,
+                '--pin', pin,
+                '-w']
+        if certfile:  # implies keyfile
+            args.append(certfile)
+            args.append(keyfile)
+        else:
+            args.append('server.p12')
+
+        return self.master.run_command(args,
+                                       raiseonerr=False)
 
     #######
     # kinit
@@ -115,6 +154,8 @@ class TestACME(IntegrationTest):
             ['curl', '--fail', self.acme_server],
             ok_returncode=22,
         )
+        result = self.master.run_command(['ipa-acme-manage', 'status'])
+        assert 'disabled' in result.stdout_text
 
     def test_enable_acme_service(self):
         self.master.run_command(['ipa-acme-manage', 'enable'])
@@ -160,6 +201,7 @@ class TestACME(IntegrationTest):
     def test_certbot_certonly_standalone(self):
         # Get a cert from ACME service using HTTP challenge and Certbot's
         # standalone HTTP server mode
+        self.clients[0].run_command(['systemctl', 'stop', 'httpd'])
         self.clients[0].run_command(
             [
                 'certbot',
@@ -284,6 +326,45 @@ class TestACME(IntegrationTest):
         """Test if ACME disable on replica if disabled on master"""
         status = check_acme_status(self.replicas[0], 'disabled')
         assert status == 'disabled'
+
+    @server_install_teardown
+    def test_third_party_certs(self):
+        """Require ipa-ca SAN on replacement web certificates"""
+
+        self.master.run_command(['ipa-acme-manage', 'enable'])
+
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
+
+        # Re-install the existing Apache certificate that has a SAN to
+        # verify that it will be accepted.
+        pin = self.master.get_file_contents(
+            paths.HTTPD_PASSWD_FILE_FMT.format(host=self.master.hostname)
+        )
+        result = self.certinstall(
+            certfile=paths.HTTPD_CERT_FILE,
+            keyfile=paths.HTTPD_KEY_FILE,
+            pin=pin
+        )
+        assert result.returncode == 0
+
+        # Install using a 3rd party cert with a missing SAN for ipa-ca
+        # which should be rejected.
+        result = self.certinstall()
+        assert result.returncode == 1
+
+        self.master.run_command(['ipa-acme-manage', 'disable'])
+
+        # Install using a 3rd party cert with a missing SAN for ipa-ca
+        # which should be ok since ACME is disabled.
+        result = self.certinstall()
+        assert result.returncode == 0
+
+        # Enable ACME which should fail since the Apache cert lacks the SAN
+        result = self.master.run_command(['ipa-acme-manage', 'enable'],
+                                         raiseonerr=False)
+        assert result.returncode == 1
+        assert "invalid 'certificate'" in result.stderr_text
 
 
 @pytest.mark.skipif(not cainstance.minimum_acme_support(),
