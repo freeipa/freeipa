@@ -104,7 +104,7 @@ class IPAACMEManage(AdminTool):
 
         if not cainstance.is_ca_installed_locally():
             print("CA is not installed on this server.")
-            return 1
+            return 3
 
         api.bootstrap(in_server=True, confdir=paths.ETC_IPA)
         api.finalize()
