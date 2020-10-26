@@ -1,376 +1,394 @@
 # Marco Aurélio Krause <ouesten@me.com>, 2015. #zanata
+# Rafael Fontenelle <rafaelff@gnome.org>, 2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.8.0\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-06-10 22:17+0300\n"
-"PO-Revision-Date: 2019-11-11 10:25+0000\n"
-"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
-"Language-Team: Portuguese (Brazil)\n"
+"PO-Revision-Date: 2020-08-07 06:29+0000\n"
+"Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
+"Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
+"projects/freeipa/ipa-4-8/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"X-Generator: Zanata 4.6.2\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Weblate 4.1.1\n"
 
 msgid "incorrect type"
-msgstr ""
+msgstr "tipo incorreto"
 
 msgid "Only one value is allowed"
-msgstr ""
+msgstr "Apenas um valor é permitido"
 
 msgid "this option is deprecated"
-msgstr ""
+msgstr "esta opção foi descontinuada"
 
 msgid "must be True or False"
-msgstr ""
+msgstr "deve ser True ou False"
 
 msgid "must be an integer"
-msgstr ""
+msgstr "deve ser um inteiro"
 
 #, python-format
 msgid "must be at least %(minvalue)d"
-msgstr ""
+msgstr "deve ser pelo menos %(minvalue)d"
 
 #, python-format
 msgid "can be at most %(maxvalue)d"
-msgstr ""
+msgstr "pode ser no máximo %(maxvalue)d"
 
 msgid "must be a decimal number"
-msgstr ""
+msgstr "deve ser um número decimal"
 
 #, python-format
 msgid "must be at least %(minvalue)s"
-msgstr ""
+msgstr "deve ser pelo menos %(minvalue)s"
 
 #, python-format
 msgid "can be at most %(maxvalue)s"
-msgstr ""
+msgstr "pode ser no máximo %(maxvalue)s"
 
 #, python-format
 msgid ""
 "number class '%(cls)s' is not included in a list of allowed number classes: "
 "%(allowed)s"
 msgstr ""
+"classe de número \"%(cls)s\" não está incluído em uma lista de classes de "
+"número: %(allowed)s"
 
 #, python-format
 msgid "must match pattern \"%(pattern)s\""
-msgstr ""
+msgstr "deve corresponder ao padrão \"%(pattern)s\""
 
 msgid "must be binary data"
-msgstr ""
+msgstr "deve ser um dado binário"
 
 #, python-format
 msgid "must be at least %(minlength)d bytes"
-msgstr ""
+msgstr "deve ser pelo menos %(minlength)d bytes"
 
 #, python-format
 msgid "can be at most %(maxlength)d bytes"
-msgstr ""
+msgstr "pode ser no máximo %(maxlength)d bytes"
 
 #, python-format
 msgid "must be exactly %(length)d bytes"
-msgstr ""
+msgstr "deve ser exatamente %(length)d bytes"
 
 msgid "must be a certificate"
-msgstr ""
+msgstr "deve ser um certificado"
 
 msgid "must be a certificate signing request"
-msgstr ""
+msgstr "deve ser uma solicitação de assinatura de certificado"
 
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
-msgstr ""
+msgstr "Falha ao decodificar Certificate Signing Request: %s"
 
 msgid "must be Unicode text"
-msgstr ""
+msgstr "deve ser um texto Unicode"
 
 msgid "Leading and trailing spaces are not allowed"
-msgstr ""
+msgstr "Espaços no início ou fim não são permitidos"
 
 #, python-format
 msgid "must be at least %(minlength)d characters"
-msgstr ""
+msgstr "deve ser pelo menos %(minlength)d caracteres"
 
 #, python-format
 msgid "can be at most %(maxlength)d characters"
-msgstr ""
+msgstr "pode ser no máximo %(maxlength)d caracteres"
 
 #, python-format
 msgid "must be exactly %(length)d characters"
-msgstr ""
+msgstr "deve ser exatamente %(length)d caracteres"
 
 #, python-format
 msgid "The character %(char)r is not allowed."
-msgstr ""
+msgstr "O caractere %(char)r não é permitido."
 
 #, python-format
 msgid "must be '%(value)s'"
-msgstr ""
+msgstr "deve ser \"%(value)s\""
 
 #, python-format
 msgid "must be one of %(values)s"
-msgstr ""
+msgstr "deve ser um de %(values)s"
 
 msgid "must be datetime value"
-msgstr ""
+msgstr "deve ser um valor de data e hora"
 
 msgid "does not match any of accepted formats: "
-msgstr ""
+msgstr "não corresponde a nenhum dos formatos aceitos: "
 
 msgid "incomplete time value"
-msgstr ""
+msgstr "valor de hora incompleto"
 
 msgid "must be DNS name"
-msgstr ""
+msgstr "deve ser um nome de DNS"
 
 msgid "must be absolute"
-msgstr ""
+msgstr "deve ser absoluto"
 
 msgid "must be relative"
-msgstr ""
+msgstr "deve ser relativo"
 
 msgid "must be dictionary"
-msgstr ""
+msgstr "deve ser um dicionário"
 
 msgid "must be Kerberos principal"
-msgstr ""
+msgstr "deve ser um principal de Kerberos"
 
 #, python-format
 msgid "Malformed principal: '%(value)s'"
-msgstr ""
+msgstr "Principal malformado: \"%(value)s\""
 
 msgid "Service principal is required"
-msgstr ""
+msgstr "O principal do serviço é necessário"
 
 msgid "A string searched in all relevant object attributes"
-msgstr ""
+msgstr "Uma string buscada em todos os atributos de objeto relevantes"
 
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
-msgstr ""
+msgstr "Cliente %(cver)s incompatível com o servidor %(sver)s em \"%(server)s\""
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
-msgstr ""
+msgstr "erro desconhecido %(code)d de %(server)s: %(error)s"
 
 msgid "an internal error has occurred"
-msgstr ""
+msgstr "ocorreu um erro interno"
 
 #, python-format
 msgid "an internal error has occurred on server at '%(server)s'"
-msgstr ""
+msgstr "ocorreu um erro interno no servidor em \"%(server)s\""
 
 #, python-format
 msgid "unknown command '%(name)s'"
-msgstr ""
+msgstr "comando desconhecido \"%(name)s\""
 
 #, python-format
 msgid "error on server '%(server)s': %(error)s"
-msgstr ""
+msgstr "erro no servidor \"%(server)s\": %(error)s"
 
 #, python-format
 msgid "cannot connect to '%(uri)s': %(error)s"
-msgstr ""
+msgstr "não foi possível se conectar a \"%(uri)s\": %(error)s"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
-msgstr ""
+msgstr "Solicitação JSON-RPC inválida: %(error)s"
 
 #, python-format
 msgid "error marshalling data for XML-RPC transport: %(error)s"
-msgstr ""
+msgstr "erro ao ordenar dados para transporte XML-RPC: %(error)s"
 
 #, python-format
 msgid "Missing or invalid HTTP Referer, %(referer)s"
-msgstr ""
+msgstr "HTTP Referer faltando ou inválido, %(referer)s"
 
 #, python-format
 msgid ""
 "System encoding must be UTF-8, '%(encoding)s' is not supported. Set LC_ALL="
 "\"C.UTF-8\", or LC_ALL=\"\" and LC_CTYPE=\"C.UTF-8\"."
 msgstr ""
+"O sistema de codificação deve ser UTF-8, não tendo suporte a \"%(encoding)s\""
+". Defina LC_ALL=\"C.UTF-8\", ou LC_ALL=\"\" e LC_CTYPE=\"C.UTF-8\"."
 
 #, python-format
 msgid "Kerberos error: %(major)s/%(minor)s"
-msgstr ""
+msgstr "Erro de Kerberos: %(major)s/%(minor)s"
 
 msgid "did not receive Kerberos credentials"
-msgstr ""
+msgstr "não foram recebidas as credenciais de Kerberos"
 
 #, python-format
 msgid "Service '%(service)s' not found in Kerberos database"
 msgstr ""
+"O serviço \"%(service)s\" não foi encontrado no banco de dados de Kerberos"
 
 msgid "No credentials cache found"
-msgstr ""
+msgstr "Nenhum cache de credenciais encontrado"
 
 msgid "Ticket expired"
-msgstr ""
+msgstr "Tíquete expirado"
 
 msgid "Credentials cache permissions incorrect"
-msgstr ""
+msgstr "Permissões incorretas de cache de credenciais"
 
 msgid "Bad format in credentials cache"
-msgstr ""
+msgstr "Formato inválido no cache de credenciais"
 
 msgid "Cannot resolve KDC for requested realm"
-msgstr ""
+msgstr "Não foi possível resolver KDC para o reino solicitado"
 
 msgid "Session error"
-msgstr ""
+msgstr "Erro de sessão"
 
 #, python-format
 msgid "Principal %(principal)s cannot be authenticated: %(message)s"
-msgstr ""
+msgstr "O principal %(principal)s não conseguiu ser autenticado: %(message)s"
 
 #, python-format
 msgid "Insufficient access: %(info)s"
-msgstr ""
+msgstr "Acesso insuficiente: %(info)s"
 
 #, python-format
 msgid "command '%(name)s' takes no arguments"
-msgstr ""
+msgstr "o comando \"%(name)s\" leva nenhum argumento"
 
 #, python-format
 msgid "command '%(name)s' takes at most %(count)d argument"
 msgid_plural "command '%(name)s' takes at most %(count)d arguments"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "o comando \"%(name)s\" leva no máximo %(count)d argumento"
+msgstr[1] "o comando \"%(name)s\" leva no máximo %(count)d argumentos"
 
 #, python-format
 msgid "overlapping arguments and options: %(names)s"
-msgstr ""
+msgstr "sobreposição de argumentos e opções: %(names)s"
 
 #, python-format
 msgid "'%(name)s' is required"
-msgstr ""
+msgstr "\"%(name)s\" é necessário"
 
 #, python-format
 msgid "invalid '%(name)s': %(error)s"
-msgstr ""
+msgstr "\"%(name)s\" inválido: %(error)s"
 
 #, python-format
 msgid "api has no such namespace: '%(name)s'"
-msgstr ""
+msgstr "a api não possui tal espaço de nomes: \"%(name)s\""
 
 msgid "Passwords do not match"
-msgstr "As senhas não coincidem."
+msgstr "As senhas não coincidem"
 
 msgid "Command not implemented"
 msgstr "Comando não implementado"
 
 msgid "Client is not configured. Run ipa-client-install."
-msgstr ""
+msgstr "O cliente não está configurado. Execute ipa-client-install."
 
 #, python-format
 msgid "Could not get %(name)s interactively"
-msgstr ""
+msgstr "Não foi possível obter %(name)s interativamente"
 
 #, python-format
 msgid "Command '%(name)s' has been deprecated"
-msgstr ""
+msgstr "O comando \"%(name)s\" foi descontinuado"
 
 #, python-format
 msgid "Domain '%(domain)s' is not a root domain for forest '%(forest)s'"
 msgstr ""
+"O domínio \"%(domain)s\" não é um domínio raiz para a floresta \"%(forest)s\""
 
 #, python-format
 msgid "%(reason)s"
-msgstr ""
+msgstr "%(reason)s"
 
 msgid "This entry already exists"
-msgstr ""
+msgstr "Esta entrada já existe"
 
 msgid "You must enroll a host in order to create a host service"
-msgstr ""
+msgstr "Você deve registrar um host para criar um serviço de host"
 
 #, python-format
 msgid ""
 "Service principal is not of the form: service/fully-qualified host name: "
 "%(reason)s"
 msgstr ""
+"O principal do serviço não é da forma: serviço/nome de host totalmente "
+"qualificado: %(reason)s"
 
 msgid ""
 "The realm for the principal does not match the realm for this IPA server"
 msgstr ""
+"O reino para o principal não corresponde ao reino para este servidor IPA"
 
 msgid "This command requires root access"
-msgstr ""
+msgstr "Este comando requer acesso de root"
 
 msgid "This is already a posix group"
-msgstr ""
+msgstr "Este já é um grupo posix"
 
 #, python-format
 msgid "Principal is not of the form user@REALM: '%(principal)s'"
-msgstr ""
+msgstr "O principal não é da forma usuário@REINO: \"%(principal)s\""
 
 msgid "This entry is already enabled"
-msgstr ""
+msgstr "Esta entrada já está habilitada"
 
 msgid "This entry is already disabled"
-msgstr ""
+msgstr "Esta entrada já está desabilitada"
 
 msgid "This entry cannot be enabled or disabled"
-msgstr ""
+msgstr "Esta entrada não pode ser habilitada ou desabilitada"
 
 msgid "This entry is not a member"
-msgstr ""
+msgstr "Esta entrada não é um membro"
 
 msgid "A group may not be a member of itself"
-msgstr ""
+msgstr "Um grupo não pode ser um membro de si próprio"
 
 msgid "This entry is already a member"
-msgstr ""
+msgstr "Esta entrada já é um membro"
 
 #, python-format
 msgid "Base64 decoding failed: %(reason)s"
-msgstr ""
+msgstr "Decodificação base64 falhou: %(reason)s"
 
 msgid "A group may not be added as a member of itself"
-msgstr ""
+msgstr "Um grupo não pode ser adicionado como um membro de si próprio"
 
 msgid "The default users group cannot be removed"
-msgstr ""
+msgstr "O grupo de usuários padrão não pode ser removido"
 
 msgid "Deleting a managed group is not allowed. It must be detached first."
 msgstr ""
+"A exclusão de um grupo gerenciado não é permitida. Ele deve ser desassociado "
+"primeiro."
 
 msgid "A managed group cannot have a password policy."
-msgstr ""
+msgstr "Um grupo gerenciado não pode ter uma política de senhas."
 
 #, python-format
 msgid "'%(entry)s' doesn't have a certificate."
-msgstr ""
+msgstr "\"%(entry)s\" não tem um certificado."
 
 #, python-format
 msgid "Unable to create private group. A group '%(group)s' already exists."
 msgstr ""
+"Não foi possível criar um grupo privado. Um grupo \"%(group)s\" já existe."
 
 #, python-format
 msgid ""
 "A problem was encountered when verifying that all members were %(verb)s: "
 "%(exc)s"
 msgstr ""
+"Um problema foi encontrado ao verificar se todos os membros eram %(verb)s: "
+"%(exc)s"
 
 #, python-format
 msgid "%(attr)s does not contain '%(value)s'"
-msgstr ""
+msgstr "%(attr)s não contém \"%(value)s\""
 
 #, python-format
 msgid ""
 "The search criteria was not specific enough. Expected 1 and found %(found)d."
 msgstr ""
+"O critério de pesquisa não foi específico o suficiente. Esperava 1 e "
+"encontrou %(found)d."
 
 msgid "This group already allows external members"
-msgstr ""
+msgstr "Este grupo já permite membros externos"
 
 msgid "This group cannot be posix because it is external"
 msgstr ""
 
 msgid "This is already a posix group and cannot be converted to external one"
-msgstr ""
+msgstr "Este já é um grupo posix e não pode ser convertido para um externo"
 
 #, python-format
 msgid "Server removal aborted: %(reason)s."
@@ -378,59 +396,62 @@ msgstr ""
 
 #, python-format
 msgid "%(operation)s is not supported for %(principal_type)s principals"
-msgstr ""
+msgstr "%(operation)s não é suportado para principais %(principal_type)s"
 
 #, python-format
 msgid "Request failed with status %(status)s: %(reason)s"
-msgstr ""
+msgstr "A solicitação falhou com status %(status)s: %(reason)s"
 
 #, python-format
 msgid ""
 "Mapping ruleset \"%(ruleset)s\" has more than one rule for the %(helper)s "
 "helper"
 msgstr ""
+"O conjunto de regras de mapeamento \"%(ruleset)s\" tem mais de uma regra "
+"para o auxiliar %(helper)s"
 
 #, python-format
 msgid "no command nor help topic '%(topic)s'"
-msgstr ""
+msgstr "Nenhum comando nem tópico de ajuda \"%(topic)s\""
 
 msgid "change collided with another change"
-msgstr ""
+msgstr "a alteração colidiu com outra alteração"
 
 msgid "no modifications to be performed"
-msgstr ""
+msgstr "nenhuma modificação para ser realizada"
 
 #, python-format
 msgid "%(desc)s: %(info)s"
-msgstr ""
+msgstr "%(desc)s: %(info)s"
 
 msgid "limits exceeded for this query"
-msgstr ""
+msgstr "limites excedidos para esta consulta"
 
 #, python-format
 msgid "%(info)s"
-msgstr ""
+msgstr "%(info)s"
 
 msgid "modifying primary key is not allowed"
-msgstr ""
+msgstr "a modificação da chave primária não é permitida"
 
 #, python-format
 msgid "%(attr)s: Only one value allowed."
-msgstr ""
+msgstr "%(attr)s: Apenas um valor permitido."
 
 #, python-format
 msgid "%(attr)s: Invalid syntax."
-msgstr ""
+msgstr "%(attr)s: Sintaxe inválida."
 
 #, python-format
 msgid "Bad search filter %(info)s"
-msgstr ""
+msgstr "Filtro de pesquisa inválido %(info)s"
 
 msgid "Not allowed on non-leaf entry"
-msgstr ""
+msgstr "Não permitido em uma entrada não-folha"
 
+#, fuzzy
 msgid "LDAP timeout"
-msgstr ""
+msgstr "Tempo limite de LDAP"
 
 #, python-format
 msgid "%(task)s LDAP task timeout, Task DN: '%(task_dn)s'"
@@ -627,7 +648,7 @@ msgstr ""
 
 #, python-format
 msgid "%(filename)s: file not found"
-msgstr ""
+msgstr "%(filename)s: arquivo não encontrado"
 
 msgid "Additional instructions:"
 msgstr ""
@@ -1555,10 +1576,9 @@ msgstr ""
 msgid "Type of IPA object (sets subtree and objectClass targetfilter)"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Deprecated options"
+#, python-format
 msgid "Deprecated; use %s"
-msgstr "Opções obsoletas"
+msgstr "Descontinuado; use %s"
 
 #, python-format
 msgid "Permission with unknown flag %s may not be modified or removed"
@@ -2652,15 +2672,11 @@ msgstr ""
 msgid "hosts"
 msgstr ""
 
-#, fuzzy
-#| msgid "Topic commands:"
 msgid "command"
-msgstr "Comandos do tópico:"
+msgstr "comando"
 
-#, fuzzy
-#| msgid "Topic commands:"
 msgid "commands"
-msgstr "Comandos do tópico:"
+msgstr "comandos"
 
 msgid "runAs user"
 msgstr ""
@@ -6228,10 +6244,8 @@ msgstr ""
 msgid "Your password has expired. Please enter a new password."
 msgstr ""
 
-#, fuzzy
-#| msgid "Passwords do not match"
 msgid "Passwords must match"
-msgstr "As senhas não coincidem."
+msgstr "As senhas devem coincidir"
 
 msgid "Password reset was not successful."
 msgstr ""
@@ -12424,50 +12438,46 @@ msgid "%(pkey)s: %(oname)s not found"
 msgstr ""
 
 msgid "Display information about a command."
-msgstr ""
+msgstr "Exibe informações sobre um comando."
 
-#, fuzzy
-#| msgid "Topic or Command"
 msgid "Search for commands."
-msgstr "Tópico ou comando"
+msgstr "Pesquisa por comandos."
 
 msgid "Return command defaults"
-msgstr ""
+msgstr "Retorna o padrão do comando"
 
 msgid "Display information about a class."
-msgstr ""
+msgstr "Exibe informações sobre uma classe."
 
 msgid "Search for classes."
-msgstr ""
+msgstr "Pesquisa por classes."
 
 msgid "Display information about a help topic."
-msgstr ""
+msgstr "Exibe informações sobre um tópico de ajuda."
 
 msgid "Search for help topics."
-msgstr ""
+msgstr "Pesquisa por tópicos de ajuda."
 
 msgid "Required"
-msgstr ""
+msgstr "Obrigatório"
 
 msgid "Multi-value"
-msgstr ""
+msgstr "Multivalor"
 
 msgid "Always ask"
-msgstr ""
+msgstr "Sempre perguntar"
 
 msgid "CLI metavar"
-msgstr ""
+msgstr "Metavar de CLI"
 
-#, fuzzy
-#| msgid "Command name"
 msgid "CLI name"
-msgstr "Nome do comando"
+msgstr "Nome de CLI"
 
 msgid "Confirm (password)"
-msgstr ""
+msgstr "Confirmar (senha)"
 
 msgid "Default"
-msgstr ""
+msgstr "Padrão"
 
 msgid "Default from"
 msgstr ""
@@ -14546,12 +14556,12 @@ msgstr ""
 msgid "Removed certificate mappings from user \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "Deprecated options"
 msgid ""
 "\n"
 "IPA certificate operations\n"
-msgstr "Opções obsoletas"
+msgstr ""
+"\n"
+"Operações de certificado IPA\n"
 
 msgid ""
 "\n"
@@ -15171,20 +15181,14 @@ msgid ""
 "\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Topic commands:"
 msgid "sudo command"
-msgstr "Comandos do tópico:"
+msgstr "comando sudo"
 
-#, fuzzy
-#| msgid "Topic commands:"
 msgid "sudo commands"
-msgstr "Comandos do tópico:"
+msgstr "comandos sudo"
 
-#, fuzzy
-#| msgid "Topic commands:"
 msgid "Sudo Commands"
-msgstr "Comandos do tópico:"
+msgstr "Comandos sudo"
 
 #, fuzzy
 #| msgid "Topic or Command"
@@ -15192,26 +15196,24 @@ msgid "Sudo Command"
 msgstr "Tópico ou comando"
 
 msgid "A description of this command"
-msgstr ""
+msgstr "Uma descrição deste comando"
 
 msgid "Create new Sudo Command."
-msgstr ""
+msgstr "Cria um novo comando sudo."
 
 #, python-format
 msgid "Added Sudo Command \"%(value)s\""
-msgstr ""
+msgstr "Adicionado o comando sudo \"%(value)s\""
 
 msgid "Delete Sudo Command."
-msgstr ""
+msgstr "Exclui comando sudo."
 
 #, python-format
 msgid "Deleted Sudo Command \"%(value)s\""
-msgstr ""
+msgstr "Excluído o comando sudo \"%(value)s\""
 
-#, fuzzy
-#| msgid "Topic or Command"
 msgid "Modify Sudo Command."
-msgstr "Tópico ou comando"
+msgstr "Modifica comando sudo."
 
 #, python-format
 msgid "Modified Sudo Command \"%(value)s\""
@@ -16161,10 +16163,8 @@ msgstr ""
 msgid "Enctype comparison failed!\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Passwords do not match!"
 msgid "Password is too long!\n"
-msgstr "As senhas não coincidem!"
+msgstr "A senha é longa demais!\n"
 
 msgid "Failed to create random key!\n"
 msgstr ""
@@ -16547,10 +16547,9 @@ msgstr ""
 msgid "Failed to decode control reply!\n"
 msgstr ""
 
-#, fuzzy, c-format
-#| msgid "Passwords do not match!"
+#, c-format
 msgid "Passwords do not match!\n"
-msgstr "As senhas não coincidem!"
+msgstr "As senhas não coincidem!\n"
 
 #, c-format
 msgid "Failed to open config file %s\n"
