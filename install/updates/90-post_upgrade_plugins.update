@@ -25,6 +25,7 @@ plugin: update_upload_cacrt
 plugin: update_ra_cert_store
 plugin: update_mapping_Guests_to_nobody
 plugin: fix_kra_people_entry
+plugin: update_pwpolicy
 
 # last
 # DNS version 1
