@@ -1,117 +1,118 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Red Hat
 # This file is distributed under the same license as the freeipa package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# Andika Triwidada <andika@gmail.com>, 2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.8.0\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-08-20 12:57+0300\n"
-"PO-Revision-Date: 2019-11-11 10:25+0000\n"
-"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
-"Language-Team: Indonesian\n"
+"PO-Revision-Date: 2020-10-26 03:15+0000\n"
+"Last-Translator: Andika Triwidada <andika@gmail.com>\n"
+"Language-Team: Indonesian <https://translate.fedoraproject.org/projects/"
+"freeipa/ipa-4-8/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0\n"
-"X-Generator: Zanata 4.6.2\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.3.1\n"
 
 #, c-format
 msgid "No permission to join this host to the IPA domain.\n"
-msgstr ""
+msgstr "Tidak ada izin bagi bergabungnya host ini ke domain IPA.\n"
 
 #, c-format
 msgid "No write permissions on keytab file '%s'\n"
-msgstr ""
+msgstr "Tidak ada izin tulis pada berkas keytab '%s'\n"
 
 #, c-format
 msgid "access() on %1$s failed: errno = %2$d\n"
-msgstr ""
+msgstr "access() pada %1$s gagal: errno = %2$d\n"
 
 #, c-format
 msgid "Out of memory!"
-msgstr ""
+msgstr "Kehabisan memori!"
 
 #, c-format
 msgid "Unable to enable SSL in LDAP\n"
-msgstr ""
+msgstr "Tidak bisa memfungsikan SSL dalam LDAP\n"
 
 msgid "SASL Bind failed\n"
-msgstr ""
+msgstr "Bind SASL gagal\n"
 
 #, c-format
 msgid "Search for %1$s on rootdse failed with error %2$d\n"
-msgstr ""
+msgstr "Mencari %1$s pada rootdse gagal dengan galat %2$d\n"
 
 #, c-format
 msgid "No values for %s"
-msgstr ""
+msgstr "Tidak ada nilai bagi %s"
 
 #, c-format
 msgid "Search for IPA namingContext failed with error %d\n"
-msgstr ""
+msgstr "Mencari namingContext IPA gagal dengan galat %d\n"
 
 #, c-format
 msgid "IPA namingContext not found\n"
-msgstr ""
+msgstr "IPA namingContext tidak ditemukan\n"
 
 #, c-format
 msgid "Out of memory!\n"
-msgstr ""
+msgstr "Kehabisan memori!\n"
 
 #, c-format
 msgid "Unable to determine root DN of %s\n"
-msgstr ""
+msgstr "Tak bisa menentukan root DN dari %s\n"
 
 #, c-format
 msgid "Enrollment failed. %s\n"
-msgstr ""
+msgstr "Pendaftaran gagal. %s\n"
 
 #, c-format
 msgid "principal not found in XML-RPC response\n"
-msgstr ""
+msgstr "prinsipal tidak ditemukan dalam respons XML-RPC\n"
 
 #, c-format
 msgid "Host is already joined.\n"
-msgstr ""
+msgstr "Host sudah bergabung.\n"
 
 #, c-format
 msgid "Unable to determine IPA server from %s\n"
-msgstr ""
+msgstr "Tak bisa menentukan peladen IPA dari %s\n"
 
 #, c-format
 msgid "The hostname must be fully-qualified: %s\n"
-msgstr ""
+msgstr "Nama host harus fully-qualified: %s\n"
 
 #, c-format
 msgid "Unable to join host: Kerberos context initialization failed\n"
 msgstr ""
+"Tidak dapat bergabung dengan host: Inisialisasi konteks Kerberos gagal\n"
 
 #, c-format
 msgid "Error resolving keytab: %s.\n"
-msgstr ""
+msgstr "Galat saat me-resolve keytab: %s.\n"
 
 #, c-format
 msgid "Error getting default Kerberos realm: %s.\n"
-msgstr ""
+msgstr "Galat saat mendapatkan ranah Kerberos default: %s.\n"
 
 #, c-format
 msgid "Error parsing \"%1$s\": %2$s.\n"
-msgstr ""
+msgstr "Galat saat mengurai \"%1$s\": %2$s.\n"
 
 #, c-format
 msgid "Error obtaining initial credentials: %s.\n"
-msgstr ""
+msgstr "Galat saat memperoleh kredensial awal: %s.\n"
 
 #, c-format
 msgid "Unable to generate Kerberos Credential Cache\n"
-msgstr ""
+msgstr "Tidak dapat menghasilkan Kerberos Credential Cache\n"
 
 #, c-format
 msgid "Error storing creds in credential cache: %s.\n"
-msgstr ""
+msgstr "Galat saat menyimpan kredensial dalam singgahan kredensial: %s.\n"
 
 #, c-format
 msgid "Unenrollment successful.\n"
@@ -123,244 +124,250 @@ msgstr ""
 
 #, c-format
 msgid "result not found in XML-RPC response\n"
-msgstr ""
+msgstr "hasil tidak ditemukan dalam respons XML-RPC\n"
 
 #, c-format
 msgid "The hostname must not be: %s\n"
-msgstr ""
+msgstr "Nama host tidak boleh: %s\n"
 
 #, c-format
 msgid "Unable to join host: Kerberos Credential Cache not found\n"
 msgstr ""
+"Tidak dapat bergabung dengan host: Kerberos Credential Cache tidak "
+"ditemukan\n"
 
 #, c-format
 msgid ""
 "Unable to join host: Kerberos User Principal not found and host password not "
 "provided.\n"
 msgstr ""
+"Tidak dapat bergabung dengan host: Kerberos User Principal tidak ditemukan "
+"dan kata sandi host tidak disediakan.\n"
 
 #, c-format
 msgid "fork() failed\n"
-msgstr ""
+msgstr "fork() gagal\n"
 
 #, c-format
 msgid "ipa-getkeytab not found\n"
-msgstr ""
+msgstr "ipa-getkeytab tidak ditemukan\n"
 
 #, c-format
 msgid "ipa-getkeytab has bad permissions?\n"
-msgstr ""
+msgstr "ipa-getkeytab memiliki izin yang buruk?\n"
 
 #, c-format
 msgid "executing ipa-getkeytab failed, errno %d\n"
-msgstr ""
+msgstr "mengeksekusi ipa-getkeytab gagal, errno %d\n"
 
 #, c-format
 msgid "child exited with %d\n"
-msgstr ""
+msgstr "anak keluar dengan %d\n"
 
 msgid "Print the raw XML-RPC output in GSSAPI mode"
-msgstr ""
+msgstr "Mencetak keluaran XML-RPC mentah dalam mode GSSAPI"
 
 msgid "Quiet mode. Only errors are displayed."
-msgstr ""
+msgstr "Mode senyap. Hanya galat yang ditampilkan."
 
 msgid "Unenroll this host from IPA server"
 msgstr ""
 
 msgid "Hostname of this server"
-msgstr ""
+msgstr "Nama host peladen ini"
 
 msgid "hostname"
-msgstr ""
+msgstr "namahost"
 
 msgid "IPA Server to use"
-msgstr ""
+msgstr "Server IPA yang akan digunakan"
 
 msgid "Specifies where to store keytab information."
-msgstr ""
+msgstr "Menentukan tempat menyimpan informasi keytab."
 
 msgid "filename"
-msgstr ""
+msgstr "namaberkas"
 
 msgid "Force the host join. Rejoin even if already joined."
-msgstr ""
+msgstr "Paksa host bergabung. Bergabung kembali bahkan jika sudah bergabung."
 
 msgid "LDAP password (if not using Kerberos)"
-msgstr ""
+msgstr "Kata sandi LDAP (jika tidak menggunakan Kerberos)"
 
 msgid "password"
-msgstr ""
+msgstr "kata sandi"
 
 msgid "LDAP basedn"
-msgstr ""
+msgstr "basedn LDAP"
 
 msgid "basedn"
-msgstr ""
+msgstr "basedn"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
-msgstr ""
+msgstr "tidak dapat membuka berkas konfigurasi %s\n"
 
 #, c-format
 msgid "cannot stat() configuration file %s\n"
-msgstr ""
+msgstr "tidak dapat melakukan stat() berkas konfigurasi %s\n"
 
 #, c-format
 msgid "out of memory\n"
-msgstr ""
+msgstr "kehabisan memori!\n"
 
 #, c-format
 msgid "read error\n"
-msgstr ""
+msgstr "galat baca\n"
 
 #, c-format
 msgid "Unable to parse principal name\n"
-msgstr ""
+msgstr "Tidak dapat mengurai nama prinsipal\n"
 
 #, c-format
 msgid "krb5_parse_name %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_parse_name %1$d: %2$s\n"
 
 #, c-format
 msgid "Removing principal %s\n"
-msgstr ""
+msgstr "Menghapus prinsipal %s\n"
 
 #, c-format
 msgid "Failed to open keytab\n"
-msgstr ""
+msgstr "Gagal membuka keytab\n"
 
 #, c-format
 msgid "principal not found\n"
-msgstr ""
+msgstr "prinsipal tidak ditemukan\n"
 
 #, c-format
 msgid "krb5_kt_get_entry %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_get_entry %1$d: %2$s\n"
 
 #, c-format
 msgid "Unable to remove entry\n"
-msgstr ""
+msgstr "Tak bisa menghapus entri\n"
 
 #, c-format
 msgid "kvno %d\n"
-msgstr ""
+msgstr "kvno %d\n"
 
 #, c-format
 msgid "krb5_kt_remove_entry %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
 
 #, c-format
 msgid "Unable to parse principal\n"
-msgstr ""
+msgstr "Tidak dapat mengurai prinsipal\n"
 
 #, c-format
 msgid "krb5_unparse_name %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_unparse_name %1$d: %2$s\n"
 
 #, c-format
 msgid "realm not found\n"
-msgstr ""
+msgstr "realm tidak ditemukan\n"
 
 msgid "Print debugging information"
-msgstr ""
+msgstr "Cetak informasi awakutu"
 
 msgid "Debugging output"
-msgstr ""
+msgstr "Keluaran awakutu"
 
 msgid ""
 "The principal to remove from the keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
+"Prinsipal yang akan dihapus dari keytab (misalnya: ftp/ftp.example."
+"com@EXAMPLE.COM)"
 
 msgid "Kerberos Service Principal Name"
-msgstr ""
+msgstr "Nama Prisipal Layanan Kerberos"
 
 msgid "The keytab file to remove the principcal(s) from"
-msgstr ""
+msgstr "Berkas keytab yang akan dihapus prinsipalnya"
 
 msgid "Keytab File Name"
-msgstr ""
+msgstr "Nama Berkas Keytab"
 
 msgid "Remove all principals in this realm"
-msgstr ""
+msgstr "Hapus semua prinsipal di realm ini"
 
 msgid "Realm name"
-msgstr ""
+msgstr "Nama realm"
 
 #, c-format
 msgid "Kerberos context initialization failed\n"
-msgstr ""
+msgstr "Inisialisasi konteks Kerberos gagal\n"
 
 #, c-format
 msgid "Failed to open keytab '%1$s': %2$s\n"
-msgstr ""
+msgstr "Gagal membuka keytab '%1$s': %2$s\n"
 
 #, c-format
 msgid "Closing keytab failed\n"
-msgstr ""
+msgstr "Menutup keytab gagal\n"
 
 #, c-format
 msgid "krb5_kt_close %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_close %1$d: %2$s\n"
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
-msgstr ""
+msgstr "Inisialisasi konteks Kerberos gagal: %1$s (%2$d)\n"
 
 #, c-format
 msgid "Unable to parse principal: %1$s (%2$d)\n"
-msgstr ""
+msgstr "Tidak dapat mengurai prinsipal: %1$s (%2$d)\n"
 
 #, c-format
 msgid "No keys accepted by KDC\n"
-msgstr ""
+msgstr "Tidak ada kunci yang diterima oleh KDC\n"
 
 #, c-format
 msgid "Out of memory \n"
-msgstr ""
+msgstr "Kehabisan memori \n"
 
 #, c-format
 msgid "Unable to initialize ldap library!\n"
-msgstr ""
+msgstr "Tak bisa menginisialisasi pustaka ldap!\n"
 
 msgid "Simple bind failed\n"
-msgstr ""
+msgstr "Bind sederhana gagal\n"
 
 #, c-format
 msgid "Operation failed: %s\n"
-msgstr ""
+msgstr "Operasi gagal: %s\n"
 
 #, c-format
 msgid "Failed to get result: %s\n"
-msgstr ""
+msgstr "Gagal mendapatkan hasil: %s\n"
 
 #, c-format
 msgid "Timeout exceeded."
-msgstr ""
+msgstr "Tenggat waktu terlampaui."
 
 #, c-format
 msgid "Failed to parse extended result: %s\n"
-msgstr ""
+msgstr "Gagal mengurai hasil yang diperluas: %s\n"
 
 #, c-format
 msgid "Failed to parse result: %s\n"
-msgstr ""
+msgstr "Gagal mengurai hasil: %s\n"
 
 #, c-format
 msgid "Missing reply control list!\n"
-msgstr ""
+msgstr "Kurang daftar kontrol balasan!\n"
 
 #, c-format
 msgid "Missing reply control!\n"
-msgstr ""
+msgstr "Kehilangan kontrol balasan!\n"
 
 #, c-format
 msgid "Out of Memory!\n"
-msgstr ""
+msgstr "Kehabisan Memori!\n"
 
 #, c-format
 msgid "Failed to create control!\n"
-msgstr ""
+msgstr "Gagal membuat kontrol!\n"
 
 #, c-format
 msgid "Failed to bind to server!\n"
@@ -372,39 +379,38 @@ msgstr ""
 
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
-msgstr ""
+msgstr "ber_init() gagal, Kontrol tidak valid ?!\n"
 
 #, c-format
 msgid "ber_scanf() failed, unable to find kvno ?!\n"
-msgstr ""
+msgstr "ber_scanf() gagal, tidak dapat menemukan kvno ?!\n"
 
 #, c-format
 msgid "Failed to retrieve encryption type type #%d\n"
-msgstr ""
+msgstr "Gagal mengambil tipe enkripsi #%d\n"
 
 #, c-format
 msgid "Failed to retrieve encryption type %1$s (#%2$d)\n"
-msgstr ""
+msgstr "Gagal mengambil tipe enkripsi %1$s (#%2$d)\n"
 
 #, c-format
 msgid "Failed to retrieve any keys"
-msgstr ""
+msgstr "Gagal mengambil kunci apapun"
 
 msgid "Failed to decode control reply!\n"
-msgstr ""
+msgstr "Gagal mendekode balasan kontrol!\n"
 
-#, fuzzy, c-format
-#| msgid "Passwords do not match!"
+#, c-format
 msgid "Passwords do not match!\n"
-msgstr "Kata sandi tidak cocok!"
+msgstr "Kata sandi tidak cocok!\n"
 
 #, c-format
 msgid "Failed to open config file %s\n"
-msgstr ""
+msgstr "Gagal membuka berkas konfigurasi %s\n"
 
 #, c-format
 msgid "Failed to parse config file %s\n"
-msgstr ""
+msgstr "Gagal mengurai berkas konfig %s\n"
 
 msgid "Failed to resolve symlink to keytab.\n"
 msgstr ""
@@ -413,16 +419,16 @@ msgid "keytab is a dangling symlink and owned by another user.\n"
 msgstr ""
 
 msgid "Print as little as possible"
-msgstr ""
+msgstr "Mencetak sesedikat mungkin"
 
 msgid "Output only on errors"
-msgstr ""
+msgstr "Keluaran hanya pada kesalahan"
 
 msgid "Contact this specific KDC Server"
 msgstr ""
 
 msgid "Server Name"
-msgstr ""
+msgstr "Nama Peladen"
 
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
@@ -433,22 +439,22 @@ msgid ""
 msgstr ""
 
 msgid "Encryption types to request"
-msgstr ""
+msgstr "Tipe enkripsi yang akan diminta"
 
 msgid "Comma separated encryption types list"
-msgstr ""
+msgstr "Daftar tipe enkripsi yang dipisahkan koma"
 
 msgid "Show the list of permitted encryption types and exit"
-msgstr ""
+msgstr "Tampilkan daftar tipe enkripsi yang diizinkan dan keluar"
 
 msgid "Permitted Encryption Types"
-msgstr ""
+msgstr "Tipe Enkripsi yang Diizinkan"
 
 msgid "Asks for a non-random password to use for the principal"
-msgstr ""
+msgstr "Meminta kata sandi non-acak untuk digunakan bagi prinsipal"
 
 msgid "LDAP DN"
-msgstr ""
+msgstr "DN LDAP"
 
 msgid "DN to bind as if not using kerberos"
 msgstr ""
@@ -588,7 +594,7 @@ msgid "Import automount files for a specific location."
 msgstr ""
 
 msgid "Master file"
-msgstr ""
+msgstr "Berkas induk"
 
 msgid "Automount master file."
 msgstr ""
@@ -601,23 +607,20 @@ msgstr ""
 msgid "File %(file)s not found"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "This entry already exists"
+#, python-format
 msgid "key %(key)s already exists"
-msgstr "Entri ini sudah ada"
+msgstr "kunci %(key)s sudah ada"
 
-#, fuzzy, python-format
-#| msgid "This entry already exists"
+#, python-format
 msgid "map %(map)s already exists"
-msgstr "Entri ini sudah ada"
+msgstr "peta %(map)s sudah ada"
 
 msgid "Imported maps:"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Added host \"%(value)s\""
+#, python-format
 msgid "Added %(map)s"
-msgstr "Host \"%(value)s\" telah ditambahkan"
+msgstr "Ditambahkan %(map)s"
 
 msgid "Imported keys:"
 msgstr ""
@@ -704,10 +707,8 @@ msgid ""
 "Commands to build certificate requests automatically\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Failure decoding Certificate Signing Request: %s"
 msgid "Gather data for a certificate signing request."
-msgstr "Gagal mengurai Permintaan Penandatanganan Sertifikat: %s"
+msgstr "Mengumpulkan data untuk suatu permintaan penandatanganan sertifikat."
 
 msgid "Principal"
 msgstr ""
@@ -875,10 +876,9 @@ msgstr ""
 msgid "Current DNS record contents:\n"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Modified host \"%(value)s\""
+#, python-format
 msgid "Modify %(name)s '%(value)s'?"
-msgstr "Host \"%(value)s\" telah dimodifikasi"
+msgstr "Ubah '%(value)s' %(name)s?"
 
 #, python-format
 msgid ""
@@ -898,12 +898,11 @@ msgid "No option to delete specific record provided."
 msgstr ""
 
 msgid "Delete all?"
-msgstr ""
+msgstr "Hapus semua?"
 
-#, fuzzy, python-format
-#| msgid "Deleted host \"%(value)s\""
+#, python-format
 msgid "Delete %(name)s '%(value)s'?"
-msgstr "Host \"%(value)s\" telah dihapus"
+msgstr "Hapus '%(value)s' %(name)s?"
 
 msgid "Server will check DNS forwarder(s)."
 msgstr ""
@@ -2152,10 +2151,8 @@ msgstr ""
 msgid "Records"
 msgstr ""
 
-#, fuzzy
-#| msgid "incorrect type"
 msgid "Record type"
-msgstr "type salah"
+msgstr "Tipe record"
 
 msgid "Record data"
 msgstr ""
@@ -2290,7 +2287,7 @@ msgid "Digest Type"
 msgstr ""
 
 msgid "DLV Digest"
-msgstr ""
+msgstr "Digest DLV"
 
 msgid "Digest"
 msgstr ""
@@ -2302,10 +2299,10 @@ msgid "Raw DNAME records"
 msgstr ""
 
 msgid "DNAME Target"
-msgstr ""
+msgstr "Target DNAME"
 
 msgid "Target"
-msgstr ""
+msgstr "Target"
 
 msgid "DNSKEY record"
 msgstr ""
@@ -2329,7 +2326,7 @@ msgid "DS Digest Type"
 msgstr ""
 
 msgid "DS Digest"
-msgstr ""
+msgstr "Digest DS"
 
 msgid "HIP record"
 msgstr ""
@@ -2361,8 +2358,9 @@ msgstr ""
 msgid "Preference given to this exchanger. Lower values are more preferred"
 msgstr ""
 
+#, fuzzy
 msgid "KX Exchanger"
-msgstr ""
+msgstr "Exchanger KX"
 
 msgid "A host willing to act as a key exchanger"
 msgstr ""
@@ -2584,7 +2582,7 @@ msgid "Port"
 msgstr ""
 
 msgid "SRV Target"
-msgstr ""
+msgstr "Target SRV"
 
 msgid ""
 "The domain name of the target host or '.' if the service is decidedly not "
@@ -2724,7 +2722,7 @@ msgid "Allow dynamic updates."
 msgstr ""
 
 msgid "Allow query"
-msgstr ""
+msgstr "Izinkan kuiri"
 
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
@@ -3587,10 +3585,8 @@ msgstr ""
 msgid "Add members to a hostgroup."
 msgstr ""
 
-#, fuzzy
-#| msgid "Deleted hostgroup \"%(value)s\""
 msgid "Delete a hostgroup."
-msgstr "hostgroup \"%(value)s\" telah dihapus"
+msgstr "Menghapus suatu hostgroup."
 
 msgid "Search for hostgroups."
 msgstr ""
@@ -3634,10 +3630,8 @@ msgstr ""
 msgid "Search for host groups without these member of sudo rules."
 msgstr ""
 
-#, fuzzy
-#| msgid "Modified hostgroup \"%(value)s\""
 msgid "Modify a hostgroup."
-msgstr "hostgroup \"%(value)s\" telah dimodifikasi"
+msgstr "Memodifikasi suatu hostgroup."
 
 msgid "Remove members from a hostgroup."
 msgstr ""
@@ -4016,7 +4010,7 @@ msgid "Migrate users and groups from DS to IPA."
 msgstr ""
 
 msgid "LDAP URI"
-msgstr ""
+msgstr "URI LDAP"
 
 msgid "LDAP URI of DS server to migrate from"
 msgstr ""
@@ -4161,11 +4155,8 @@ msgstr ""
 msgid "Dictionary mapping plugin names to bases"
 msgstr ""
 
-#, fuzzy
-#| msgid "%(count)d plugin loaded"
-#| msgid_plural "%(count)d plugins loaded"
 msgid "Number of plugins loaded"
-msgstr "%(count)d pengaya telah dimuat"
+msgstr "Cacah pengaya yang dimuat"
 
 msgid ""
 "\n"
@@ -4428,7 +4419,7 @@ msgid "Token model (informational only)"
 msgstr ""
 
 msgid "Serial"
-msgstr ""
+msgstr "Serial"
 
 msgid "Token serial (informational only)"
 msgstr ""
@@ -4648,10 +4639,8 @@ msgstr ""
 msgid "Attributes to which the permission applies by default"
 msgstr ""
 
-#, fuzzy
-#| msgid "incorrect type"
 msgid "Bind rule type"
-msgstr "type salah"
+msgstr "Tipe aturan bind"
 
 msgid "Subtree to apply permissions to"
 msgstr ""
@@ -4666,7 +4655,7 @@ msgid "All target filters, including those implied by type and memberof"
 msgstr ""
 
 msgid "Target DN"
-msgstr ""
+msgstr "DN Target"
 
 msgid ""
 "Optional DN to apply the permission to (must be in the subtree, but may not "
@@ -5114,7 +5103,7 @@ msgid ""
 msgstr ""
 
 msgid "Domain"
-msgstr ""
+msgstr "Domain"
 
 msgid "Add domain"
 msgstr ""
@@ -6130,7 +6119,7 @@ msgid "Sudo Command"
 msgstr ""
 
 msgid "A description of this command"
-msgstr ""
+msgstr "Suatu penjelasan atas perintah ini"
 
 msgid "Sudo Command Groups"
 msgstr ""
@@ -6545,10 +6534,8 @@ msgstr ""
 msgid "Car License"
 msgstr ""
 
-#, fuzzy
-#| msgid "%(count)d variables"
 msgid "Account disabled"
-msgstr "%(count)d variabel"
+msgstr "Akun dinonaktifkan"
 
 msgid "User authentication types"
 msgstr ""
@@ -6988,23 +6975,17 @@ msgstr ""
 msgid "Match cn attribute in subject"
 msgstr ""
 
-#, fuzzy
-#| msgid "%(reason)s"
 msgid "Reason"
-msgstr "%(reason)s"
+msgstr "Alasan"
 
 msgid "Reason for revoking the certificate (0-10)"
 msgstr ""
 
-#, fuzzy
-#| msgid "must be a decimal number"
 msgid "minimum serial number"
-msgstr "harus merupakan angka desimal"
+msgstr "nomor seri minimum"
 
-#, fuzzy
-#| msgid "must be a decimal number"
 msgid "maximum serial number"
-msgstr "harus merupakan angka desimal"
+msgstr "nomor seri maksimum"
 
 msgid "match the common name exactly"
 msgstr ""
@@ -7045,13 +7026,11 @@ msgstr ""
 msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
 msgstr ""
 
-#, fuzzy
-#| msgid "Failure decoding Certificate Signing Request: %s"
 msgid "Submit a certificate signing request."
-msgstr "Gagal mengurai Permintaan Penandatanganan Sertifikat: %s"
+msgstr "Mengirim sebuah permintan penandatanganan sertifikat."
 
 msgid "CSR"
-msgstr ""
+msgstr "CSR"
 
 msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
 msgstr ""
@@ -7195,10 +7174,8 @@ msgstr ""
 msgid "Members of a trusted domain in DOM\\name or name@domain form"
 msgstr ""
 
-#, fuzzy
-#| msgid "Deleted group \"%(value)s\""
 msgid "Delete group."
-msgstr "Grup \"%(value)s\" telah dihapus"
+msgstr "Menghapus grup."
 
 msgid "Detach a managed group from a user."
 msgstr ""
@@ -7635,7 +7612,7 @@ msgid "NetBIOS name"
 msgstr ""
 
 msgid "Domain GUID"
-msgstr ""
+msgstr "GUID Domain"
 
 msgid "Fallback primary group"
 msgstr ""
@@ -8926,7 +8903,7 @@ msgid "Vault data encrypted with session key"
 msgstr ""
 
 msgid "Nonce"
-msgstr ""
+msgstr "Nonce"
 
 msgid "Delete a vault."
 msgstr ""
@@ -10399,10 +10376,8 @@ msgid ""
 "Changes to /etc/rhsm/rhsm.conf require a restart of the httpd service.\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Command not implemented"
 msgid "Consume an entitlement."
-msgstr "Perintah tidak diimplementasikan"
+msgstr "Mengkonsumsi suatu hak."
 
 msgid "Quantity"
 msgstr ""
@@ -10428,10 +10403,8 @@ msgstr ""
 msgid "Username"
 msgstr ""
 
-#, fuzzy
-#| msgid "Command not implemented"
 msgid "Enrollment UUID (not implemented)"
-msgstr "Perintah tidak diimplementasikan"
+msgstr "UUID pendaftaran (tidak diimplementasikan)"
 
 msgid "Registration password"
 msgstr ""
@@ -11429,7 +11402,7 @@ msgid "Failed users/groups"
 msgstr ""
 
 msgid "Failed service/service groups"
-msgstr ""
+msgstr "Grup layanan/layanan gagal"
 
 msgid "Failed to remove"
 msgstr ""
@@ -11502,7 +11475,7 @@ msgid_plural "%(count)d plugins loaded"
 msgstr[0] "%(count)d pengaya telah dimuat"
 
 msgid "incorrect type"
-msgstr "type salah"
+msgstr "tipe salah"
 
 msgid "Only one value is allowed"
 msgstr "Hanya satu nilai yang diperbolehkan"
@@ -11527,15 +11500,13 @@ msgstr "nilai maksimum yang diperbolehkan %(maxvalue)d"
 msgid "must be a decimal number"
 msgstr "harus merupakan angka desimal"
 
-#, fuzzy, python-format
-#| msgid "must be at least %(minvalue)d"
+#, python-format
 msgid "must be at least %(minvalue)s"
-msgstr "setidaknya harus %(minvalue)d"
+msgstr "setidaknya harus %(minvalue)s"
 
-#, fuzzy, python-format
-#| msgid "can be at most %(maxvalue)d"
+#, python-format
 msgid "can be at most %(maxvalue)s"
-msgstr "nilai maksimum yang diperbolehkan %(maxvalue)d"
+msgstr "boleh maksimum %(maxvalue)s"
 
 #, python-format
 msgid ""
@@ -11548,7 +11519,7 @@ msgid "must match pattern \"%(pattern)s\""
 msgstr "harus cocok dengan pola \"%(pattern)s\""
 
 msgid "must be binary data"
-msgstr "harus merupakan data binari"
+msgstr "harus merupakan data biner"
 
 #, python-format
 msgid "must be at least %(minlength)d bytes"
@@ -11562,15 +11533,11 @@ msgstr "panjang maksimum yang diperbolehkan %(maxlength)d byte"
 msgid "must be exactly %(length)d bytes"
 msgstr "harus tepat %(length)d byte"
 
-#, fuzzy
-#| msgid "must be an integer"
 msgid "must be a certificate"
-msgstr "harus merupakan bilangan bulat"
+msgstr "harus merupakan sebuah sertifikat"
 
-#, fuzzy
-#| msgid "Failure decoding Certificate Signing Request: %s"
 msgid "must be a certificate signing request"
-msgstr "Gagal mengurai Permintaan Penandatanganan Sertifikat: %s"
+msgstr "harus berupa sebuah permintaan penandatanganan sertifikat"
 
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
@@ -11598,20 +11565,16 @@ msgstr "harus tepat %(length)d karakter"
 msgid "The character %(char)r is not allowed."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "must be at least %(minvalue)d"
+#, python-format
 msgid "must be '%(value)s'"
-msgstr "setidaknya harus %(minvalue)d"
+msgstr "harus '%(value)s'"
 
-#, fuzzy, python-format
-#| msgid "must be at least %(minvalue)d"
+#, python-format
 msgid "must be one of %(values)s"
-msgstr "setidaknya harus %(minvalue)d"
+msgstr "harus satu dari %(values)s"
 
-#, fuzzy
-#| msgid "must be at least %(minvalue)d"
 msgid "must be datetime value"
-msgstr "setidaknya harus %(minvalue)d"
+msgstr "harus berupa nilai datetime"
 
 msgid "does not match any of accepted formats: "
 msgstr ""
@@ -11619,25 +11582,17 @@ msgstr ""
 msgid "incomplete time value"
 msgstr ""
 
-#, fuzzy
-#| msgid "must be an integer"
 msgid "must be DNS name"
-msgstr "harus merupakan bilangan bulat"
+msgstr "harus berupa nama DNS"
 
-#, fuzzy
-#| msgid "must be an integer"
 msgid "must be absolute"
-msgstr "harus merupakan bilangan bulat"
+msgstr "harus absolut"
 
-#, fuzzy
-#| msgid "must be True or False"
 msgid "must be relative"
-msgstr "harus True atau False"
+msgstr "harus relatif"
 
-#, fuzzy
-#| msgid "must be binary data"
 msgid "must be dictionary"
-msgstr "harus merupakan data binari"
+msgstr "harus berupa kamus"
 
 msgid "must be Kerberos principal"
 msgstr ""
@@ -11660,7 +11615,7 @@ msgstr ""
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
-msgstr "Masukkan %(label)s lagi untuk verifikasi:"
+msgstr "Masukkan %(label)s lagi untuk verifikasi: "
 
 msgid "Passwords do not match!"
 msgstr "Kata sandi tidak cocok!"
@@ -11683,10 +11638,8 @@ msgstr ""
 msgid "  ipa <command> --help"
 msgstr ""
 
-#, fuzzy
-#| msgid "Command not implemented"
 msgid "Command name"
-msgstr "Perintah tidak diimplementasikan"
+msgstr "Nama perintah"
 
 msgid "Positional arguments"
 msgstr ""
@@ -11712,19 +11665,17 @@ msgstr "kesalahan %(code)d tidak dikenal dari %(server)s: %(error)s"
 msgid "an internal error has occurred"
 msgstr "terjadi kesalahan internal"
 
-#, fuzzy, python-format
-#| msgid "an internal error has occurred"
+#, python-format
 msgid "an internal error has occurred on server at '%(server)s'"
-msgstr "terjadi kesalahan internal"
+msgstr "terjadi kesalahan internal pada server di '%(server)s'"
 
 #, python-format
 msgid "unknown command '%(name)s'"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "unknown error %(code)d from %(server)s: %(error)s"
+#, python-format
 msgid "error on server '%(server)s': %(error)s"
-msgstr "kesalahan %(code)d tidak dikenal dari %(server)s: %(error)s"
+msgstr "galat pada server '%(server)s': %(error)s"
 
 #, python-format
 msgid "cannot connect to '%(uri)s': %(error)s"
@@ -11763,7 +11714,7 @@ msgid "No credentials cache found"
 msgstr ""
 
 msgid "Ticket expired"
-msgstr "Tiket sudah kadaluarsa"
+msgstr "Tiket kedaluwarsa"
 
 msgid "Credentials cache permissions incorrect"
 msgstr ""
@@ -11802,10 +11753,9 @@ msgstr ""
 msgid "'%(name)s' is required"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Invalid JSON-RPC request: %(error)s"
+#, python-format
 msgid "invalid '%(name)s': %(error)s"
-msgstr "Permintaan JSON-RPC tidak valid: %(error)s"
+msgstr "'%(name)s' tidak valid: %(error)s"
 
 #, python-format
 msgid "api has no such namespace: '%(name)s'"
@@ -11968,10 +11918,9 @@ msgstr "perubahan bertabrakan dengan perubahan lain"
 msgid "no modifications to be performed"
 msgstr "tidak ada modifikasi yang harus dilakukan"
 
-#, fuzzy, python-format
-#| msgid "%(info)s"
+#, python-format
 msgid "%(desc)s: %(info)s"
-msgstr "%(info)s"
+msgstr "%(desc)s: %(info)s"
 
 msgid "limits exceeded for this query"
 msgstr "query ini telah melampaui batas"
@@ -11983,10 +11932,9 @@ msgstr "%(info)s"
 msgid "modifying primary key is not allowed"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Only one value is allowed"
+#, python-format
 msgid "%(attr)s: Only one value allowed."
-msgstr "Hanya satu nilai yang diperbolehkan"
+msgstr "%(attr)s: Hanya satu nilai yang diperbolehkan."
 
 #, python-format
 msgid "%(attr)s: Invalid syntax."
@@ -12060,10 +12008,9 @@ msgstr ""
 msgid "DNS check failed: Expected {%(expected)s} got {%(got)s}"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(reason)s"
+#, python-format
 msgid "%(exception)s"
-msgstr "%(reason)s"
+msgstr "%(exception)s"
 
 #, python-format
 msgid ""
@@ -12112,10 +12059,9 @@ msgid ""
 "%(hint)s"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "unknown error %(code)d from %(server)s: %(error)s"
+#, python-format
 msgid "DNS server %(server)s: %(error)s."
-msgstr "kesalahan %(code)d tidak dikenal dari %(server)s: %(error)s"
+msgstr "Server DNS %(server)s: %(error)s."
 
 #, python-format
 msgid ""
@@ -12288,10 +12234,9 @@ msgstr ""
 msgid "invalid hostmask"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "unknown error %(code)d from %(server)s: %(error)s"
+#, python-format
 msgid "query '%(owner)s %(rtype)s': %(error)s"
-msgstr "kesalahan %(code)d tidak dikenal dari %(server)s: %(error)s"
+msgstr "kuiri '%(owner)s %(rtype)s': %(error)s"
 
 #, python-format
 msgid "query '%(owner)s %(rtype)s' with EDNS0: %(error)s"
@@ -12502,7 +12447,7 @@ msgid ""
 msgstr ""
 
 msgid "users"
-msgstr ""
+msgstr "pengguna"
 
 msgid "command"
 msgstr ""
@@ -12637,10 +12582,9 @@ msgid ""
 "already exists"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "This entry already exists"
+#, python-format
 msgid "key named %(key)s already exists"
-msgstr "Entri ini sudah ada"
+msgstr "kunci bernama %(key)s sudah ada"
 
 #, python-format
 msgid "The automount key %(key)s with info %(info)s does not exist"
@@ -12829,16 +12773,15 @@ msgstr ""
 
 #, python-format
 msgid "Added host \"%(value)s\""
-msgstr "Host \"%(value)s\" telah ditambahkan"
+msgstr "Host \"%(value)s\" ditambahkan"
 
-#, fuzzy, python-format
-#| msgid "can be at most %(maxlength)d characters"
+#, python-format
 msgid "can be at most %(len)d characters"
-msgstr "panjang maksimum yang diperbolehkan %(maxlength)d karakter"
+msgstr "boleh maksimum %(len)d karakter"
 
 #, python-format
 msgid "Deleted host \"%(value)s\""
-msgstr "Host \"%(value)s\" telah dihapus"
+msgstr "Host \"%(value)s\" dihapus"
 
 msgid "Remove A, AAAA, SSHFP and PTR records of the host(s) managed by IPA DNS"
 msgstr ""
@@ -12848,12 +12791,10 @@ msgstr ""
 
 #, python-format
 msgid "Modified host \"%(value)s\""
-msgstr "Host \"%(value)s\" telah dimodifikasi"
+msgstr "Host \"%(value)s\" dimodifikasi"
 
-#, fuzzy
-#| msgid "priority cannot be set on global policy"
 msgid "Password cannot be set on enrolled host."
-msgstr "prioritas tidak dapat ditetapkan pada kebijakan global"
+msgstr "Kata sandi tidak dapat ditata pada host yang didaftarkan."
 
 msgid "cn is immutable"
 msgstr ""
@@ -13036,23 +12977,17 @@ msgstr ""
 msgid "%i users or groups removed."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(count)d hostgroup matched"
-#| msgid_plural "%(count)d hostgroups matched"
+#, python-format
 msgid "%i host or hostgroup added."
-msgstr "%(count)d hostgroup sesuai"
+msgstr "%i host atau hostgroup ditambahkan."
 
-#, fuzzy, python-format
-#| msgid "%(count)d hostgroup matched"
-#| msgid_plural "%(count)d hostgroups matched"
+#, python-format
 msgid "%i hosts or hostgroups added."
-msgstr "%(count)d hostgroup sesuai"
+msgstr "%i hosts atau hostgroups ditambahkan."
 
-#, fuzzy, python-format
-#| msgid "%(count)d hostgroup matched"
-#| msgid_plural "%(count)d hostgroups matched"
+#, python-format
 msgid "%i host or hostgroup removed."
-msgstr "%(count)d hostgroup sesuai"
+msgstr "%i host atau hostgroup dibuang."
 
 #, python-format
 msgid "%i hosts or hostgroups removed."
@@ -13219,7 +13154,7 @@ msgid "DNS Server"
 msgstr ""
 
 msgid "DNS Server name"
-msgstr ""
+msgstr "Nama Server DNS"
 
 msgid "SOA mname override"
 msgstr ""
@@ -13228,7 +13163,7 @@ msgid "SOA mname (authoritative server) override"
 msgstr ""
 
 msgid "Forwarders"
-msgstr ""
+msgstr "Forwarder"
 
 msgid ""
 "Per-server forwarders. A custom port can be specified for each forwarder "
@@ -14067,7 +14002,7 @@ msgid ""
 msgstr ""
 
 msgid "pkinit"
-msgstr ""
+msgstr "pkinit"
 
 msgid "PKINIT"
 msgstr ""
@@ -14081,12 +14016,10 @@ msgstr ""
 msgid "Report PKINIT status on the IPA masters"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(count)d user matched"
-#| msgid_plural "%(count)d users matched"
+#, python-format
 msgid "%(count)s server matched"
 msgid_plural "%(count)s servers matched"
-msgstr[0] "%(count)d pengguna sesuai"
+msgstr[0] "%(count)s server cocok"
 
 msgid ""
 "\n"
@@ -14622,7 +14555,7 @@ msgid "CLI name"
 msgstr ""
 
 msgid "Confirm (password)"
-msgstr ""
+msgstr "Konfirmasi (kata sandi)"
 
 msgid "Default"
 msgstr ""
@@ -14704,10 +14637,9 @@ msgstr ""
 msgid "SELinux User Map"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "ACI with name \"%s\" not found"
+#, python-format
 msgid "HBAC rule %(rule)s not found"
-msgstr "ACI dengan nama \"%s\" tidak ditemukan"
+msgstr "Aturan HBAC %(rule)s tidak ditemukan"
 
 #, fuzzy, python-format
 #| msgid "Added user \"%(value)s\""
@@ -14987,7 +14919,7 @@ msgstr "Pengguna \"%(value)s\" telah dimodifikasi"
 #, python-format
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
-msgstr[0] "%(count)d pengguna sesuai"
+msgstr[0] "%(count)d pengguna cocok"
 
 #, fuzzy, python-format
 #| msgid "Deleted user \"%(value)s\""
@@ -15642,26 +15574,26 @@ msgstr ""
 
 #, python-format
 msgid "Added group \"%(value)s\""
-msgstr "Grup \"%(value)s\" telah ditambahkan"
+msgstr "Grup \"%(value)s\" ditambahkan"
 
 msgid "gid cannot be set for external group"
 msgstr ""
 
 #, python-format
 msgid "Deleted group \"%(value)s\""
-msgstr "Grup \"%(value)s\" telah dihapus"
+msgstr "Grup \"%(value)s\" dihapus"
 
 msgid "privileged group"
 msgstr ""
 
 #, python-format
 msgid "Modified group \"%(value)s\""
-msgstr "Grup \"%(value)s\" telah dimodifikasi"
+msgstr "Grup \"%(value)s\" dimodifikasi"
 
 #, python-format
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
-msgstr[0] "%(count)d grup sesuai"
+msgstr[0] "%(count)d grup cocok"
 
 msgid ""
 "Cannot perform external member validation without Samba 4 support installed. "
@@ -15698,7 +15630,7 @@ msgstr ""
 
 #, python-format
 msgid "Added user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah ditambahkan"
+msgstr "Pengguna \"%(value)s\" ditambahkan"
 
 msgid "Default group for new users not found"
 msgstr ""
@@ -15708,7 +15640,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah dihapus"
+msgstr "Pengguna \"%(value)s\" dihapus"
 
 #, python-format
 msgid "%s: user is already preserved"
@@ -15716,7 +15648,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah dimodifikasi"
+msgstr "Pengguna \"%(value)s\" dimodifikasi"
 
 #, fuzzy, python-format
 #| msgid "Deleted user \"%(value)s\""
@@ -16088,10 +16020,10 @@ msgid ""
 msgstr ""
 
 msgid "vaultcontainer"
-msgstr ""
+msgstr "vaultcontainer"
 
 msgid "vaultcontainers"
-msgstr ""
+msgstr "vaultcontainers"
 
 msgid "Vault Containers"
 msgstr ""
@@ -16274,7 +16206,7 @@ msgid "Subject DN"
 msgstr ""
 
 msgid "Subject Distinguished Name"
-msgstr ""
+msgstr "Distinguished Name Subjek"
 
 msgid "Issuer DN"
 msgstr ""
@@ -16294,12 +16226,10 @@ msgstr ""
 msgid "Search for CAs."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(count)d ACI matched"
-#| msgid_plural "%(count)d ACIs matched"
+#, python-format
 msgid "%(count)d CA matched"
 msgid_plural "%(count)d CAs matched"
-msgstr[0] "%(count)d ACI sesuai"
+msgstr[0] "%(count)d CA cocok"
 
 msgid "Include certificate chain in output"
 msgstr ""
@@ -16310,10 +16240,9 @@ msgstr ""
 msgid "Create a CA."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Created ACI \"%(value)s\""
+#, python-format
 msgid "Created CA \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dibuat"
+msgstr "CA \"%(value)s\" dibuat"
 
 #, python-format
 msgid "Insufficient 'add' privilege for entry '%s'."
@@ -16330,10 +16259,9 @@ msgstr ""
 msgid "Delete a CA."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Deleted ACI \"%(value)s\""
+#, python-format
 msgid "Deleted CA \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dihapus"
+msgstr "CA \"%(value)s\" dihapus"
 
 msgid "Insufficient privilege to delete a CA."
 msgstr ""
@@ -16347,10 +16275,9 @@ msgstr ""
 msgid "Modify CA configuration."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Modified ACI \"%(value)s\""
+#, python-format
 msgid "Modified CA \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dimodifikasi"
+msgstr "CA \"%(value)s\" diubah"
 
 msgid "Insufficient privilege to modify a CA."
 msgstr ""
@@ -16358,10 +16285,9 @@ msgstr ""
 msgid "Disable a CA."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Deleted ACI \"%(value)s\""
+#, python-format
 msgid "Disabled CA \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dihapus"
+msgstr "CA \"%(value)s\" dinonaktifkan"
 
 msgid "IPA CA cannot be disabled"
 msgstr ""
@@ -16369,10 +16295,9 @@ msgstr ""
 msgid "Enable a CA."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Created ACI \"%(value)s\""
+#, python-format
 msgid "Enabled CA \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dibuat"
+msgstr "CA \"%(value)s\" difungsikan"
 
 msgid "Internationalization messages"
 msgstr ""
@@ -16566,8 +16491,9 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
+#, fuzzy
 msgid "Remove hold"
-msgstr ""
+msgstr "Hapus menahan"
 
 msgid "Reset"
 msgstr ""
@@ -16672,7 +16598,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Edit ${entity}"
-msgstr ""
+msgstr "Sunting ${entity}"
 
 msgid "Hide details"
 msgstr ""
@@ -16720,10 +16646,9 @@ msgstr ""
 msgid "Return to the main page and retry the operation"
 msgstr ""
 
-#, fuzzy, python-brace-format
-#| msgid "an internal error has occurred"
+#, python-brace-format
 msgid "An error has occurred (${error})"
-msgstr "terjadi kesalahan internal"
+msgstr "Terjadi kesalahan internal (${error})"
 
 msgid "HTTP Error"
 msgstr ""
@@ -17300,7 +17225,7 @@ msgid "the certificate with serial number "
 msgstr ""
 
 msgid "Expires On"
-msgstr ""
+msgstr "Kedaluwarsa Pada"
 
 msgid "Issued on from"
 msgstr ""
@@ -17308,15 +17233,11 @@ msgstr ""
 msgid "Issued on to"
 msgstr ""
 
-#, fuzzy
-#| msgid "must be a decimal number"
 msgid "Maximum serial number"
-msgstr "harus merupakan angka desimal"
+msgstr "Nomor seri maksimum"
 
-#, fuzzy
-#| msgid "must be a decimal number"
 msgid "Minimum serial number"
-msgstr "harus merupakan angka desimal"
+msgstr "Nomor seri minimum"
 
 msgid "Revoked on from"
 msgstr ""
@@ -17529,7 +17450,7 @@ msgid "Server Options"
 msgstr ""
 
 msgid "Service Options"
-msgstr ""
+msgstr "Opsi Layanan"
 
 msgid "User Options"
 msgstr ""
@@ -17731,7 +17652,7 @@ msgid "Change to POSIX group"
 msgstr ""
 
 msgid "Non-POSIX"
-msgstr ""
+msgstr "Non-POSIX"
 
 msgid "POSIX"
 msgstr ""
@@ -17979,7 +17900,7 @@ msgid "One-Time Password Present"
 msgstr ""
 
 msgid "Reset OTP"
-msgstr ""
+msgstr "OTP Reset"
 
 msgid "Reset One-Time Password"
 msgstr ""
@@ -18032,10 +17953,8 @@ msgstr ""
 msgid "Host unprovisioned"
 msgstr ""
 
-#, fuzzy
-#| msgid "Added hostgroup \"%(value)s\""
 msgid "Add host group"
-msgstr "hostgroup \"%(value)s\" telah ditambahkan"
+msgstr "Tambah grup host"
 
 #, python-brace-format
 msgid "Add hosts into host group '${primary_key}'"
@@ -18316,7 +18235,7 @@ msgid "Privilege Settings"
 msgstr ""
 
 msgid "Public key:"
-msgstr ""
+msgstr "Kunci publik:"
 
 msgid "Set public key"
 msgstr ""
@@ -18358,7 +18277,7 @@ msgid "Range size"
 msgstr ""
 
 msgid "Domain SID"
-msgstr ""
+msgstr "SID Domain"
 
 msgid "Secondary RID base"
 msgstr ""
@@ -18367,7 +18286,7 @@ msgid "Remove ID ranges"
 msgstr ""
 
 msgid "Active Directory domain"
-msgstr ""
+msgstr "Domain Active Directory"
 
 msgid "Active Directory domain with POSIX attributes"
 msgstr ""
@@ -18509,7 +18428,7 @@ msgid "SSH public keys"
 msgstr ""
 
 msgid "SSH public key:"
-msgstr ""
+msgstr "Kunci publik SSH:"
 
 msgid "Set SSH key"
 msgstr ""
@@ -18521,11 +18440,9 @@ msgstr ""
 msgid "Are you sure you want to activate ${object}?"
 msgstr ""
 
-#, fuzzy, python-brace-format
-#| msgid "%(count)d user matched"
-#| msgid_plural "%(count)d users matched"
+#, python-brace-format
 msgid "${count} user(s) activated"
-msgstr "%(count)d pengguna sesuai"
+msgstr "${count} pengguna diaktifkan"
 
 msgid "Add stage user"
 msgstr ""
@@ -18545,11 +18462,9 @@ msgstr ""
 msgid "Are you sure you want to stage selected users?"
 msgstr ""
 
-#, fuzzy, python-brace-format
-#| msgid "%(count)d user matched"
-#| msgid_plural "%(count)d users matched"
+#, python-brace-format
 msgid "${count} users(s) staged"
-msgstr "%(count)d pengguna sesuai"
+msgstr "${count} pengguna digelar"
 
 #, python-brace-format
 msgid "Are you sure you want to stage ${object}?"
@@ -18869,7 +18784,7 @@ msgid "Password expiration"
 msgstr ""
 
 msgid "Mailing Address"
-msgstr ""
+msgstr "Alamat Surat"
 
 msgid "Misc. Information"
 msgstr ""
@@ -18914,7 +18829,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Click to ${action}"
-msgstr ""
+msgstr "Klik untuk ${action}"
 
 msgid "Unlock"
 msgstr ""
@@ -19066,10 +18981,8 @@ msgstr ""
 msgid "Your password has expired. Please enter a new password."
 msgstr ""
 
-#, fuzzy
-#| msgid "Passwords do not match"
 msgid "Passwords must match"
-msgstr "Kata sandi tidak cocok"
+msgstr "Kata sandi harus cocok"
 
 msgid "Password reset was not successful."
 msgstr ""
@@ -19303,7 +19216,7 @@ msgid "Working"
 msgstr ""
 
 msgid "Audit"
-msgstr ""
+msgstr "Audit"
 
 msgid "Authentication"
 msgstr ""
@@ -19333,7 +19246,7 @@ msgid "Role-Based Access Control"
 msgstr ""
 
 msgid "Sudo"
-msgstr ""
+msgstr "Sudo"
 
 msgid "Topology"
 msgstr ""
@@ -19381,7 +19294,7 @@ msgid "Prev"
 msgstr ""
 
 msgid "Undo"
-msgstr ""
+msgstr "Tak Jadi"
 
 msgid "Undo this change."
 msgstr ""
@@ -19398,18 +19311,14 @@ msgstr ""
 msgid "Must be an UTC date/time value (e.g., \"2014-01-20 17:58:01Z\")"
 msgstr ""
 
-#, fuzzy
-#| msgid "must be a decimal number"
 msgid "Must be a decimal number"
-msgstr "harus merupakan angka desimal"
+msgstr "Harus angka desimal"
 
 msgid "Format error"
 msgstr ""
 
-#, fuzzy
-#| msgid "must be an integer"
 msgid "Must be an integer"
-msgstr "harus merupakan bilangan bulat"
+msgstr "Harus bilangan bulat"
 
 msgid "Not a valid IP address"
 msgstr ""
@@ -19434,10 +19343,8 @@ msgstr ""
 msgid "Parse error"
 msgstr ""
 
-#, fuzzy
-#| msgid "must be a decimal number"
 msgid "Must be a positive number"
-msgstr "harus merupakan angka desimal"
+msgstr "Harus angka positif"
 
 #, python-brace-format
 msgid "'${port}' is not a valid port"
@@ -19713,35 +19620,30 @@ msgid "OTP Tokens"
 msgstr ""
 
 msgid "OTP Token"
-msgstr ""
+msgstr "Token OTP"
 
 msgid "URI"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Added host \"%(value)s\""
+#, python-format
 msgid "Added OTP token \"%(value)s\""
-msgstr "Host \"%(value)s\" telah ditambahkan"
+msgstr "Menambah token OTP \"%(value)s\""
 
 msgid "cannot be empty"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Deleted host \"%(value)s\""
+#, python-format
 msgid "Deleted OTP token \"%(value)s\""
-msgstr "Host \"%(value)s\" telah dihapus"
+msgstr "Menghapus token OTP \"%(value)s\""
 
-#, fuzzy, python-format
-#| msgid "Modified host \"%(value)s\""
+#, python-format
 msgid "Modified OTP token \"%(value)s\""
-msgstr "Host \"%(value)s\" telah dimodifikasi"
+msgstr "Mengubah token OTP \"%(value)s\""
 
-#, fuzzy, python-format
-#| msgid "%(count)d host matched"
-#| msgid_plural "%(count)d hosts matched"
+#, python-format
 msgid "%(count)d OTP token matched"
 msgid_plural "%(count)d OTP tokens matched"
-msgstr[0] "%(count)d host sesuai"
+msgstr[0] "%(count)d token OTP cocok"
 
 msgid ""
 "\n"
@@ -19851,10 +19753,8 @@ msgid ""
 "\"Manage Group Members\"\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "must be an integer"
 msgid "must be enclosed in parentheses"
-msgstr "harus merupakan bilangan bulat"
+msgstr "mesti diapit kurung"
 
 #, python-format
 msgid "\"%s\" is not an object type"
@@ -19864,10 +19764,9 @@ msgstr ""
 msgid "\"%s\" is not a valid permission type"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Deleted user \"%(value)s\""
+#, python-format
 msgid "Deprecated; use %s"
-msgstr "Pengguna \"%(value)s\" telah dihapus"
+msgstr "Usang; gunakan %s"
 
 #, python-format
 msgid "Permission with unknown flag %s may not be modified or removed"
@@ -19876,10 +19775,9 @@ msgstr ""
 msgid "A SYSTEM permission may not be modified or removed"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "ACI with name \"%s\" not found"
+#, python-format
 msgid "Entry %s not found"
-msgstr "ACI dengan nama \"%s\" tidak ditemukan"
+msgstr "Entri %s tidak ditemukan"
 
 #, python-format
 msgid "The ACI for permission %(name)s was not found in %(dn)s "
@@ -19910,10 +19808,9 @@ msgstr ""
 msgid "Bad search filter"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Group '%s' does not exist"
+#, python-format
 msgid "Entry %s does not exist"
-msgstr "Grup '%s' tidak ada"
+msgstr "Entri %s tidak ada"
 
 msgid ""
 "there must be at least one target entry specifier (e.g. target, "
@@ -20144,10 +20041,9 @@ msgstr ""
 msgid "Server state"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Created ACI \"%(value)s\""
+#, python-format
 msgid "Changed server state of \"%(value)s\"."
-msgstr "ACI \"%(value)s\" telah dibuat"
+msgstr "Mengubah keadaan server \"%(value)s\"."
 
 msgid "Cannot hide CA renewal master."
 msgstr ""
@@ -20260,12 +20156,10 @@ msgstr ""
 msgid "Find a server role on a server(s)"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(count)d user matched"
-#| msgid_plural "%(count)d users matched"
+#, python-format
 msgid "%(count)s server role matched"
 msgid_plural "%(count)s server roles matched"
-msgstr[0] "%(count)d pengguna sesuai"
+msgstr[0] "%(count)s peran server cocok"
 
 msgid "Include IPA master entries"
 msgstr ""
@@ -20610,7 +20504,7 @@ msgid "SID"
 msgstr ""
 
 msgid "sidgen_was_run"
-msgstr ""
+msgstr "sidgen_was_run"
 
 msgid ""
 "This command relies on the existence of the \"editors\" group, but this "
@@ -20746,7 +20640,7 @@ msgstr "ACI \"%(value)s\" telah dimodifikasi"
 #, python-format
 msgid "%(count)d ACI matched"
 msgid_plural "%(count)d ACIs matched"
-msgstr[0] "%(count)d ACI sesuai"
+msgstr[0] "%(count)d ACI cocok"
 
 #, fuzzy, python-format
 #| msgid "Created ACI \"%(value)s\""
@@ -20994,12 +20888,10 @@ msgid ""
 "    "
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(count)d user matched"
-#| msgid_plural "%(count)d users matched"
+#, python-format
 msgid "%(count)s user matched"
 msgid_plural "%(count)s users matched"
-msgstr[0] "%(count)d pengguna sesuai"
+msgstr[0] "%(count)s pengguna cocok"
 
 msgid ""
 "\n"
@@ -21670,10 +21562,9 @@ msgstr "Hanya satu nilai yang diperbolehkan"
 msgid "Added system permission \"%(value)s\""
 msgstr "Pengguna \"%(value)s\" telah ditambahkan"
 
-#, fuzzy, python-format
-#| msgid "This entry already exists"
+#, python-format
 msgid "permission \"%(value)s\" already exists"
-msgstr "Entri ini sudah ada"
+msgstr "izin \"%(value)s\" sudah ada"
 
 #, fuzzy, python-format
 #| msgid "Deleted user \"%(value)s\""
@@ -21893,7 +21784,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "{attr}: no such attribute"
-msgstr ""
+msgstr "{attr}: tidak ada atribut seperti itu"
 
 msgid ""
 "\n"
@@ -22007,7 +21898,7 @@ msgid "Topology management requires minimum domain level {0} "
 msgstr ""
 
 msgid "segment"
-msgstr ""
+msgstr "segmen"
 
 msgid "segments"
 msgstr ""
@@ -22044,20 +21935,17 @@ msgid "%(count)d segment matched"
 msgid_plural "%(count)d segments matched"
 msgstr[0] "%(count)d host sesuai"
 
-#, fuzzy, python-format
-#| msgid "Added host \"%(value)s\""
+#, python-format
 msgid "Added segment \"%(value)s\""
-msgstr "Host \"%(value)s\" telah ditambahkan"
+msgstr "Segmen \"%(value)s\" ditambahkan"
 
-#, fuzzy, python-format
-#| msgid "Deleted host \"%(value)s\""
+#, python-format
 msgid "Deleted segment \"%(value)s\""
-msgstr "Host \"%(value)s\" telah dihapus"
+msgstr "Segmen \"%(value)s\" dihapus"
 
-#, fuzzy, python-format
-#| msgid "Modified host \"%(value)s\""
+#, python-format
 msgid "Modified segment \"%(value)s\""
-msgstr "Host \"%(value)s\" telah dimodifikasi"
+msgstr "Segmen \"%(value)s\" dimodifikasi"
 
 #, python-format
 msgid "%(value)s"
@@ -22270,10 +22158,10 @@ msgid "    * 0 - unspecified\n"
 msgstr ""
 
 msgid "    * 1 - keyCompromise\n"
-msgstr ""
+msgstr "    * 1 - keyCompromise\n"
 
 msgid "    * 2 - cACompromise\n"
-msgstr ""
+msgstr "    * 2 - cACompromise\n"
 
 msgid "    * 3 - affiliationChanged\n"
 msgstr ""
@@ -22285,16 +22173,16 @@ msgid "    * 5 - cessationOfOperation\n"
 msgstr ""
 
 msgid "    * 6 - certificateHold\n"
-msgstr ""
+msgstr "    * 6 - certificateHold\n"
 
 msgid "    * 8 - removeFromCRL\n"
 msgstr ""
 
 msgid "    * 9 - privilegeWithdrawn\n"
-msgstr ""
+msgstr "    * 9 - privilegeWithdrawn\n"
 
 msgid "    * 10 - aACompromise\n"
-msgstr ""
+msgstr "    * 10 - aACompromise\n"
 
 msgid ""
 "\n"
@@ -22306,6 +22194,9 @@ msgid ""
 "http://www.ietf.org/rfc/rfc5280.txt\n"
 "\n"
 msgstr ""
+"\n"
+"http://www.ietf.org/rfc/rfc5280.txt\n"
+"\n"
 
 #, python-format
 msgid ""
@@ -22675,10 +22566,9 @@ msgstr ""
 msgid "Auto Membership Rule"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "ACI with name \"%s\" not found"
+#, python-format
 msgid "%(otype)s \"%(oname)s\" not found"
-msgstr "ACI dengan nama \"%s\" tidak ditemukan"
+msgstr "%(otype)s \"%(oname)s\" tidak ditemukan"
 
 #, python-format
 msgid "%s is not a valid attribute."
@@ -22709,10 +22599,9 @@ msgstr ""
 msgid "Added condition(s) to \"%(value)s\""
 msgstr "Host \"%(value)s\" telah ditambahkan"
 
-#, fuzzy, python-format
-#| msgid "ACI with name \"%s\" not found"
+#, python-format
 msgid "Auto member rule: %s not found!"
-msgstr "ACI dengan nama \"%s\" tidak ditemukan"
+msgstr "Aturan anggota otomatis: %s tidak ditemukan!"
 
 msgid ""
 "\n"
@@ -22953,10 +22842,8 @@ msgid ""
 "This contains common definitions for user/stageuser\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "must be True or False"
 msgid "must be TRUE or FALSE"
-msgstr "harus True atau False"
+msgstr "harus TRUE atau FALSE"
 
 msgid ""
 "Object class ipaNTUserAttrs is missing, user entry cannot have SMB "
@@ -23056,7 +22943,7 @@ msgstr ""
 
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
-msgstr "hostgroup \"%(value)s\" telah ditambahkan"
+msgstr "Hostgroup \"%(value)s\" ditambahkan"
 
 #, python-format
 msgid ""
@@ -23066,7 +22953,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted hostgroup \"%(value)s\""
-msgstr "hostgroup \"%(value)s\" telah dihapus"
+msgstr "Hostgroup \"%(value)s\" dihapus"
 
 msgid "hostgroup"
 msgstr ""
@@ -23076,12 +22963,12 @@ msgstr ""
 
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
-msgstr "hostgroup \"%(value)s\" telah dimodifikasi"
+msgstr "Hostgroup \"%(value)s\" dimodifikasi"
 
 #, python-format
 msgid "%(count)d hostgroup matched"
 msgid_plural "%(count)d hostgroups matched"
-msgstr[0] "%(count)d hostgroup sesuai"
+msgstr[0] "%(count)d hostgroup cocok"
 
 msgid "Add users that can manage members of this hostgroup."
 msgstr ""
@@ -23485,10 +23372,8 @@ msgstr ""
 msgid "RADIUS proxy server with name \"%s\" already exists"
 msgstr ""
 
-#, fuzzy
-#| msgid "must be at least %(minvalue)d"
 msgid "must be at least 1"
-msgstr "setidaknya harus %(minvalue)d"
+msgstr "setidaknya harus 1"
 
 msgid "Out of memory\n"
 msgstr ""
@@ -23505,10 +23390,8 @@ msgstr ""
 msgid "Enctype comparison failed!\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Passwords do not match!"
 msgid "Password is too long!\n"
-msgstr "Kata sandi tidak cocok!"
+msgstr "Kata sandi terlalu panjang!\n"
 
 msgid "Failed to create random key!\n"
 msgstr ""
