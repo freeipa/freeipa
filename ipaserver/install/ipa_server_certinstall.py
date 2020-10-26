@@ -27,12 +27,13 @@ import optparse  # pylint: disable=deprecated-module
 from ipalib import x509
 from ipalib.install import certmonger
 from ipaplatform.paths import paths
-from ipapython import admintool
+from ipapython import admintool, dogtag
 from ipapython.certdb import NSSDatabase, get_ca_nickname
 from ipapython.dn import DN
 from ipapython import ipaldap
 from ipalib import api, errors
 from ipaserver.install import certs, dsinstance, installutils, krbinstance
+from ipaserver.install import cainstance
 
 
 class ServerCertInstall(admintool.AdminTool):
@@ -105,10 +106,21 @@ class ServerCertInstall(admintool.AdminTool):
                 raise admintool.ScriptError(
                     "Private key unlock password required")
 
+    def validate_http_cert(self):
+        if dogtag.acme_status():
+            cert, unused, _unused = self.load_pkcs12(
+                ca_chain_fname=paths.IPA_CA_CRT,
+                host_name=api.env.host
+            )
+            cainstance.check_ipa_ca_san(cert)
+
     def run(self):
         api.bootstrap(in_server=True, confdir=paths.ETC_IPA)
         api.finalize()
         api.Backend.ldap2.connect(bind_pw=self.options.dirman_password)
+
+        if self.options.http:
+            self.validate_http_cert()
 
         if self.options.dirsrv:
             self.install_dirsrv_cert()
