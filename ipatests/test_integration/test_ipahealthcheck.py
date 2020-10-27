@@ -1200,7 +1200,10 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
         tasks.install_packages(cls.master, HEALTHCHECK_PKG)
 
     def test_ipa_filecheck_bad_owner(self, modify_permissions):
-        modify_permissions(self.master, path=paths.RESOLV_CONF, owner='admin')
+        version = tasks.get_healthcheck_version(self.master)
+        if parse_version(version) < parse_version("0.6"):
+            pytest.skip("Skipping test for 0.4 healthcheck version")
+        modify_permissions(self.master, path=paths.RESOLV_CONF, owner="admin")
         returncode, data = run_healthcheck(
             self.master,
             "ipahealthcheck.ipa.files",
@@ -1221,7 +1224,10 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             )
 
     def test_ipa_filecheck_bad_group(self, modify_permissions):
-        modify_permissions(self.master, path=paths.RESOLV_CONF, group='admins')
+        version = tasks.get_healthcheck_version(self.master)
+        if parse_version(version) < parse_version("0.6"):
+            pytest.skip("Skipping test for 0.4 healthcheck version")
+        modify_permissions(self.master, path=paths.RESOLV_CONF, group="admins")
         returncode, data = run_healthcheck(
             self.master,
             "ipahealthcheck.ipa.files",
@@ -1242,6 +1248,9 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             )
 
     def test_ipa_filecheck_bad_too_restrictive(self, modify_permissions):
+        version = tasks.get_healthcheck_version(self.master)
+        if parse_version(version) < parse_version("0.6"):
+            pytest.skip("Skipping test for 0.4 healthcheck version")
         modify_permissions(self.master, path=paths.RESOLV_CONF, mode="0400")
         returncode, data = run_healthcheck(
             self.master,
@@ -1259,11 +1268,13 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             assert (
                 check["kw"]["msg"]
                 == "Permissions of %s are too restrictive: "
-                   "0400 and should be 0644"
-                % paths.RESOLV_CONF
+                "0400 and should be 0644" % paths.RESOLV_CONF
             )
 
     def test_ipa_filecheck_too_permissive(self, modify_permissions):
+        version = tasks.get_healthcheck_version(self.master)
+        if parse_version(version) < parse_version("0.6"):
+            pytest.skip("Skipping test for 0.4 healthcheck version")
         modify_permissions(self.master, path=paths.RESOLV_CONF, mode="0666")
         returncode, data = run_healthcheck(
             self.master,
@@ -1281,8 +1292,7 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             assert (
                 check["kw"]["msg"]
                 == "Permissions of %s are too permissive: "
-                   "0666 and should be 0644"
-                % paths.RESOLV_CONF
+                "0666 and should be 0644" % paths.RESOLV_CONF
             )
 
     def test_nssdb_filecheck_bad_owner(self, modify_permissions):
@@ -1836,7 +1846,12 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         Test for IPAOpenSSLChainValidation when /etc/ipa/ca.crt
         contains IPA CA cert but not the external CA
         """
+        version = tasks.get_healthcheck_version(self.master)
         error_msg = "Certificate validation for {key} failed: {reason}"
+        error_reason = (
+            "CN = Certificate Authority\nerror 2 at 1 depth "
+            "lookup: unable to get issuer certificate\n"
+        )
         returncode, data = run_healthcheck(
             self.master,
             "ipahealthcheck.ipa.certs",
@@ -1844,12 +1859,17 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         )
         assert returncode == 1
         for check in data:
-            if check["kw"]["key"] == paths.HTTPD_CERT_FILE:
-                assert check["result"] == "ERROR"
-                assert error_msg in check["kw"]["msg"]
-            elif check["kw"]["key"] == paths.RA_AGENT_PEM:
-                assert check["result"] == "ERROR"
-                assert error_msg in check["kw"]["msg"]
+            assert check["result"] == "ERROR"
+            if parse_version(version) >= parse_version("0.6"):
+                if check["kw"]["key"] == paths.HTTPD_CERT_FILE:
+                    assert error_msg in check["kw"]["msg"]
+                    assert error_reason in check["kw"]["reason"]
+                elif check["kw"]["key"] == paths.RA_AGENT_PEM:
+                    assert error_msg in check["kw"]["msg"]
+                    assert error_reason in check["kw"]["reason"]
+            else:
+                assert error_reason in check["kw"]["reason"]
+                assert error_reason in check["kw"]["msg"]
 
     @pytest.fixture
     def remove_server_cert(self):
@@ -1902,7 +1922,7 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
 
     def test_ipahealthcheck_ipansschainvalidation(self, remove_server_cert):
         """
-        Test for IPANSSChainValidation
+        Test for IPANSSChainValidation check
         """
         error_msg = (
             ': certutil: could not find certificate named "Server-Cert": '
@@ -1956,9 +1976,14 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         """
         Test for IPANSSChainValidation when external CA is not trusted
         """
+        version = tasks.get_healthcheck_version(self.master)
         instance = realm_to_serverid(self.master.domain.realm)
         instance_dir = paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
         error_msg = "Validation of {nickname} in {dbdir} failed: {reason}"
+        error_msg_40_txt = (
+            "certificate is invalid: Peer's certificate issuer "
+            "has been marked as not trusted by the user"
+        )
         returncode, data = run_healthcheck(
             self.master,
             "ipahealthcheck.ipa.certs",
@@ -1971,9 +1996,12 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
                 continue
             assert check["result"] == "ERROR"
             assert check["kw"]["dbdir"] == "%s/" % instance_dir
-            assert check["kw"]["msg"] == error_msg
             assert "marked as not trusted" in check["kw"]["reason"]
             assert check["kw"]["key"] == "%s:Server-Cert" % instance_dir
+            if parse_version(version) >= parse_version("0.6"):
+                assert check["kw"]["msg"] == error_msg
+            else:
+                assert error_msg_40_txt in check["kw"]["msg"]
 
     @pytest.fixture
     def rename_raagent_cert(self):
@@ -1993,9 +2021,14 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         Testcase checks that ERROR message is displayed
         when IPA RA crt file is renamed
         """
+        version = tasks.get_healthcheck_version(self.master)
         error_msg = (
             "[Errno 2] No such file or directory: '{}'"
             .format(paths.RA_AGENT_PEM)
+        )
+        error_msg_40_txt = (
+            "Unable to load RA cert: [Errno 2] "
+            "No such file or directory: '{}'".format(paths.RA_AGENT_PEM)
         )
         returncode, data = run_healthcheck(
             self.master, "ipahealthcheck.ipa.certs", "IPARAAgent"
@@ -2003,7 +2036,10 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         assert returncode == 1
         for check in data:
             assert check["result"] == "ERROR"
-            assert check["kw"]["error"] == error_msg
+            if parse_version(version) >= parse_version("0.6"):
+                assert check["kw"]["error"] == error_msg
+            else:
+                assert check["kw"]["msg"] == error_msg_40_txt
 
     @pytest.fixture
     def update_ra_cert_desc(self):
@@ -2048,8 +2084,12 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         """
         Test to check cert description doesnt match the expected
         """
+        version = tasks.get_healthcheck_version(self.master)
         error_msg = 'RA agent description does not match. Found {got} ' \
                     'in LDAP and expected {expected}'
+        error_reason = (
+            "RA agent description does not match"
+        )
         update_ra_cert_desc(
             '2;16;CN=Certificate Authority,O=%s;CN=IPA RA,O=%s' %
             (self.master.domain.realm, self.master.domain.realm)
@@ -2062,10 +2102,17 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         assert returncode == 1
         for check in data:
             assert check["result"] == "ERROR"
-            assert check["kw"]["expected"] == '2;6;' \
-                'CN=Certificate Authority,O=%s;CN=IPA RA,' \
-                'O=%s' % (self.master.domain.realm, self.master.domain.realm)
-            assert check["kw"]["got"] == '2;16;' \
-                'CN=Certificate Authority,O=%s;CN=IPA RA,' \
-                'O=%s' % (self.master.domain.realm, self.master.domain.realm)
-            assert check["kw"]["msg"] == error_msg
+            assert (
+                check["kw"]["expected"] == "2;6;"
+                "CN=Certificate Authority,O=%s;CN=IPA RA,"
+                "O=%s" % (self.master.domain.realm, self.master.domain.realm)
+            )
+            assert (
+                check["kw"]["got"] == "2;16;"
+                "CN=Certificate Authority,O=%s;CN=IPA RA,"
+                "O=%s" % (self.master.domain.realm, self.master.domain.realm)
+            )
+            if parse_version(version) >= parse_version("0.6"):
+                assert check["kw"]["msg"] == error_msg
+            else:
+                assert error_reason in check["kw"]["msg"]
