@@ -175,6 +175,27 @@ class TestTrust(BaseTestTrust):
         tasks.kdestroy_all(self.master)
         tasks.kinit_admin(self.master)
 
+    def test_password_login_as_aduser(self):
+        """Test if AD user can login with password to Web UI"""
+        ad_admin = 'Administrator@%s' % self.ad_domain
+
+        tasks.kdestroy_all(self.master)
+        user_and_password = ('user=%s&password=%s' %
+                             (ad_admin, self.master.config.ad_admin_password))
+        host = self.master.hostname
+        cmd_args = [
+            paths.BIN_CURL,
+            '-v',
+            '-H', 'referer:https://{}/ipa'.format(host),
+            '-H', 'Content-Type:application/x-www-form-urlencoded',
+            '-H', 'Accept:text/plain',
+            '--cacert', paths.IPA_CA_CRT,
+            '--data', user_and_password,
+            'https://{}/ipa/session/login_password'.format(host)]
+        result = self.master.run_command(cmd_args)
+        assert "Set-Cookie: ipa_session=MagBearerToken" in result.stdout_text
+        tasks.kinit_admin(self.master)
+
     def test_ipauser_authentication_with_nonposix_trust(self):
         ipauser = u'tuser'
         original_passwd = 'Secret123'
