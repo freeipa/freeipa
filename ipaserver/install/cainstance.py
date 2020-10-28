@@ -1162,17 +1162,6 @@ class CAInstance(DogtagInstance):
         backend = 'ipaca'
         suffix = DN(('o', 'ipaca'))
 
-        # replication
-        dn = DN(('cn', str(suffix)), ('cn', 'mapping tree'), ('cn', 'config'))
-        entry = api.Backend.ldap2.make_entry(
-            dn,
-            objectclass=["top", "extensibleObject", "nsMappingTree"],
-            cn=[suffix],
-        )
-        entry['nsslapd-state'] = ['Backend']
-        entry['nsslapd-backend'] = [backend]
-        api.Backend.ldap2.add_entry(entry)
-
         # database
         dn = DN(('cn', 'ipaca'), ('cn', 'ldbm database'), ('cn', 'plugins'),
                 ('cn', 'config'))
@@ -1182,6 +1171,17 @@ class CAInstance(DogtagInstance):
             cn=[backend],
         )
         entry['nsslapd-suffix'] = [suffix]
+        api.Backend.ldap2.add_entry(entry)
+
+        # replication
+        dn = DN(('cn', str(suffix)), ('cn', 'mapping tree'), ('cn', 'config'))
+        entry = api.Backend.ldap2.make_entry(
+            dn,
+            objectclass=["top", "extensibleObject", "nsMappingTree"],
+            cn=[suffix],
+        )
+        entry['nsslapd-state'] = ['Backend']
+        entry['nsslapd-backend'] = [backend]
         api.Backend.ldap2.add_entry(entry)
 
     def __setup_replication(self):
