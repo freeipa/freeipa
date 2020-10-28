@@ -972,7 +972,7 @@ class login_password(Backend, KerberosSession):
 
         try:
             query_dict = parse_qs(query_string)
-        except Exception as e:
+        except Exception:
             return self.bad_request(environ, start_response, "cannot parse query data")
 
         user = query_dict.get('user', None)
