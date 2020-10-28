@@ -46,9 +46,11 @@ from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.frontend import Local
 from ipalib.install.kinit import kinit_armor, kinit_password
 from ipalib.backend import Executioner
-from ipalib.errors import (PublicError, InternalError, JSONError,
+from ipalib.errors import (
+    PublicError, InternalError, JSONError,
     CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
-    ExecutionError, PasswordExpired, KrbPrincipalExpired, UserLocked)
+    ExecutionError, PasswordExpired, KrbPrincipalExpired, KrbPrincipalWrongFAST,
+    UserLocked)
 from ipalib.request import context, destroy_context
 from ipalib.rpc import (xml_dumps, xml_loads,
     json_encode_binary, json_decode_binary)
@@ -957,6 +959,34 @@ class login_password(Backend, KerberosSession):
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
     def __call__(self, environ, start_response):
+        def attempt_kinit(user_principal, password,
+                          ipa_ccache_name, use_armor=True):
+            try:
+                # try to remove in case an old file was there
+                os.unlink(ipa_ccache_name)
+            except OSError:
+                pass
+            try:
+                self.kinit(user_principal, password,
+                           ipa_ccache_name, use_armor=use_armor)
+            except PasswordExpired as e:
+                return self.unauthorized(environ, start_response,
+                                         str(e), 'password-expired')
+            except InvalidSessionPassword as e:
+                return self.unauthorized(environ, start_response,
+                                         str(e), 'invalid-password')
+            except KrbPrincipalExpired as e:
+                return self.unauthorized(environ,
+                                         start_response,
+                                         str(e),
+                                         'krbprincipal-expired')
+            except UserLocked as e:
+                return self.unauthorized(environ,
+                                         start_response,
+                                         str(e),
+                                         'user-locked')
+            return None
+
         logger.debug('WSGI login_password.__call__:')
 
         # Get the user and password parameters from the request
@@ -1007,26 +1037,14 @@ class login_password(Backend, KerberosSession):
         ipa_ccache_name = os.path.join(paths.IPA_CCACHES,
                                        'kinit_{}'.format(os.getpid()))
         try:
-            # try to remove in case an old file was there
-            os.unlink(ipa_ccache_name)
-        except OSError:
-            pass
-        try:
-            self.kinit(user_principal, password, ipa_ccache_name)
-        except PasswordExpired as e:
-            return self.unauthorized(environ, start_response, str(e), 'password-expired')
-        except InvalidSessionPassword as e:
-            return self.unauthorized(environ, start_response, str(e), 'invalid-password')
-        except KrbPrincipalExpired as e:
-            return self.unauthorized(environ,
-                                     start_response,
-                                     str(e),
-                                     'krbprincipal-expired')
-        except UserLocked as e:
-            return self.unauthorized(environ,
-                                     start_response,
-                                     str(e),
-                                     'user-locked')
+            result = attempt_kinit(user_principal, password,
+                                   ipa_ccache_name, use_armor=True)
+        except KrbPrincipalWrongFAST:
+            result = attempt_kinit(user_principal, password,
+                                   ipa_ccache_name, use_armor=False)
+
+        if result is not None:
+            return result
 
         result = self.finalize_kerberos_acquisition('login_password',
                                                     ipa_ccache_name, environ,
@@ -1038,21 +1056,24 @@ class login_password(Backend, KerberosSession):
             pass
         return result
 
-    def kinit(self, principal, password, ccache_name):
-        # get anonymous ccache as an armor for FAST to enable OTP auth
-        armor_path = os.path.join(paths.IPA_CCACHES,
-                                  "armor_{}".format(os.getpid()))
+    def kinit(self, principal, password, ccache_name, use_armor=True):
+        if use_armor:
+            # get anonymous ccache as an armor for FAST to enable OTP auth
+            armor_path = os.path.join(paths.IPA_CCACHES,
+                                      "armor_{}".format(os.getpid()))
 
-        logger.debug('Obtaining armor in ccache %s', armor_path)
+            logger.debug('Obtaining armor in ccache %s', armor_path)
 
-        try:
-            kinit_armor(
-                armor_path,
-                pkinit_anchors=[paths.KDC_CERT, paths.KDC_CA_BUNDLE_PEM],
-            )
-        except RuntimeError as e:
-            logger.error("Failed to obtain armor cache")
-            # We try to continue w/o armor, 2FA will be impacted
+            try:
+                kinit_armor(
+                    armor_path,
+                    pkinit_anchors=[paths.KDC_CERT, paths.KDC_CA_BUNDLE_PEM],
+                )
+            except RuntimeError as e:
+                logger.error("Failed to obtain armor cache")
+                # We try to continue w/o armor, 2FA will be impacted
+                armor_path = None
+        else:
             armor_path = None
 
         try:
@@ -1080,6 +1101,9 @@ class login_password(Backend, KerberosSession):
                   'while getting initial credentials') in str(e):
                 raise UserLocked(principal=principal,
                                  message=unicode(e))
+            elif ('kinit: Error constructing AP-REQ armor: '
+                  'Matching credential not found') in str(e):
+                raise KrbPrincipalWrongFAST(principal=principal)
             raise InvalidSessionPassword(principal=principal,
                                          message=unicode(e))
 
