@@ -967,6 +967,45 @@ class TestIpaHealthCheck(IntegrationTest):
             # synced. Help chrony by resetting the date
             self.master.run_command(['date', '-s', now_str])
 
+    @pytest.fixture
+    def rename_ldif(self):
+        """Fixture to rename dse.ldif file and revert after test"""
+        instance = realm_to_serverid(self.master.domain.realm)
+        self.master.run_command(
+            [
+                "mv",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                + "/dse.ldif",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                + "/dse.ldif.renamed",
+            ]
+        )
+        yield
+        self.master.run_command(
+            [
+                "mv",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                + "/dse.ldif.renamed",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                + "/dse.ldif",
+            ]
+        )
+
+    def test_source_ipahealthcheck_ds_config(self, rename_ldif):
+        """
+        This test ensures that ConfigCheck check displays the correct
+        status when the dse.ldif file is renamed in the DS instance
+        directory
+        """
+        exception_msg = "Could not find configuration for instance:"
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ds.backends", "BackendsCheck"
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert exception_msg in check["kw"]["exception"]
+
     def test_ipa_healthcheck_remove(self):
         """
         This testcase checks the removal of of healthcheck tool
