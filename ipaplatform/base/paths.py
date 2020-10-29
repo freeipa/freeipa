@@ -442,6 +442,7 @@ class BasePathNamespace:
     LIBARCH = "64"
     TDBTOOL = '/usr/bin/tdbtool'
     SECRETS_TDB = '/var/lib/samba/private/secrets.tdb'
+    LETS_ENCRYPT_LOG = '/var/log/letsencrypt/letsencrypt.log'
 
     def check_paths(self):
         """Check paths for missing files
