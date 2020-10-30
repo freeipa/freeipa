@@ -249,7 +249,7 @@ class KrbPrincipalWrongFAST(PrivateError):
     """
     Raised when it is not possible to use our FAST armor for kinit
     """
-    format = '%(principal) cannot use Anonymous PKINIT as a FAST armor'
+    format = '%(principal)s cannot use Anonymous PKINIT as a FAST armor'
 
 ##############################################################################
 # Public errors:

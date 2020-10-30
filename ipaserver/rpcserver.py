@@ -1103,8 +1103,7 @@ class login_password(Backend, KerberosSession):
                                  message=unicode(e))
             elif ('kinit: Error constructing AP-REQ armor: '
                   'Matching credential not found') in str(e):
-                raise KrbPrincipalWrongFAST(principal=principal,
-                                            message=unicode(e))
+                raise KrbPrincipalWrongFAST(principal=principal)
             raise InvalidSessionPassword(principal=principal,
                                          message=unicode(e))
 
