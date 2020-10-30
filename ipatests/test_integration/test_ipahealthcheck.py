@@ -1043,6 +1043,58 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["result"] == "WARNING"
             assert warn_msg in check["kw"]["msg"]
 
+    def modify_tls(self, restart_service):
+        """
+        Modify DS tls version to TLS1.0 using dsconf tool and
+        revert back to the default TLS1.2
+        """
+        instance = realm_to_serverid(self.master.domain.realm)
+        cmd = ["systemctl", "restart", "dirsrv@{}".format(instance)]
+        self.master.run_command(
+            [
+                "dsconf",
+                "slapd-{}".format(instance),
+                "security",
+                "set",
+                "--tls-protocol-min=TLS1.0",
+            ]
+        )
+        self.master.run_command(cmd)
+        yield
+        self.master.run_command(
+            [
+                "dsconf",
+                "slapd-{}".format(instance),
+                "security",
+                "set",
+                "--tls-protocol-min=TLS1.2",
+            ]
+        )
+        self.master.run_command(cmd)
+
+    def test_ipahealthcheck_ds_encryption(self, modify_tls):
+        """
+        This testcase modifies the default TLS version of
+        DS instance to 1.0 and ensures that EncryptionCheck
+        reports ERROR
+        """
+        enc_msg = (
+            "This Directory Server may not be using strong TLS protocol "
+            "versions. TLS1.0 is known to\nhave a number of issues with "
+            "the protocol. "
+            "Please see:\n\nhttps://tools.ietf.org/html/rfc7457\n\n"
+            "It is advised you set this value to the maximum possible."
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ds.encryption", "EncryptionCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["key"] == "DSELE0001"
+            assert "cn=encryption,cn=config" in check["kw"]["items"]
+            assert check["kw"]["msg"] == enc_msg
+
     def test_ipa_healthcheck_remove(self):
         """
         This testcase checks the removal of of healthcheck tool
