@@ -1058,6 +1058,46 @@ class TestIpaHealthCheck(IntegrationTest):
             assert "cn=encryption,cn=config" in check["kw"]["items"]
             assert check["kw"]["msg"] == enc_msg
 
+    def update_riplugin(self):
+        """
+        Fixture modifies the value of update delay for RI plugin to -1
+        and reverts it back
+        """
+        ldap = self.master.ldap_connect()
+        dn = DN(
+            ("cn", "referential integrity postoperation"),
+            ("cn", "plugins"),
+            ("cn", "config"),
+        )
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["referint-update-delay"] = -1
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+        yield
+
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["referint-update-delay"] = 0
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+    def test_ipahealthcheck_ds_riplugincheck(self, update_riplugin):
+        """
+        This testcase ensures that RIPluginCheck displays warning
+        when update value is set.
+        """
+        warn_msg = (
+            "We advise that you set this value to 0, and enable referint "
+            "on all masters as it provides a more predictable behaviour.\n"
+        )
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ds.ds_plugins",
+            "RIPluginCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert warn_msg in check["kw"]["msg"]
+
     def test_ipa_healthcheck_remove(self):
         """
         This testcase checks the removal of of healthcheck tool
