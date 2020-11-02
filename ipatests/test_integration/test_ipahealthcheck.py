@@ -798,6 +798,30 @@ class TestIpaHealthCheck(IntegrationTest):
         errors = re.findall("ERROR: .*: not running", output)
         assert len(errors) == len(output.split("\n"))
 
+    def test_ipahealthcheck_topology_with_ipactl_stop(self, ipactl):
+        """
+        This testcase checks that ipahealthcheck.ipa.topology check
+        doesnot display 'source not found' on a system when ipactl
+        stop is run
+        """
+        error_msg = "Source 'ipahealthcheck.ipa.topology' not found"
+        msg = (
+            "Source 'ipahealthcheck.ipa.topology' is missing "
+            "one or more requirements 'dirsrv'"
+        )
+        result = self.master.run_command(
+            [
+                "ipa-healthcheck",
+                "--source",
+                "ipahealthcheck.ipa.topology",
+                "--debug",
+            ],
+            raiseonerr=False,
+        )
+        assert result.returncode == 1
+        assert msg in result.stdout_text
+        assert error_msg not in result.stdout_text
+
     @pytest.fixture
     def move_ipa_ca_crt(self):
         """
@@ -968,6 +992,47 @@ class TestIpaHealthCheck(IntegrationTest):
             self.master.run_command(['date', '-s', now_str])
 
     @pytest.fixture
+    def update_logging(self):
+        """
+        Fixture disables nsslapd-logging-hr-timestamps-enabled
+        parameter and reverts it back
+        """
+        ldap = self.master.ldap_connect()
+        dn = DN(
+            ("cn", "config"),
+        )
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["nsslapd-logging-hr-timestamps-enabled"] = 'off'
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+        yield
+
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["nsslapd-logging-hr-timestamps-enabled"] = 'on'
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+    def test_ipahealthcheck_ds_configcheck(self, update_logging):
+        """
+        This testcase ensures that ConfigCheck displays warning
+        when high resolution timestamp is disabled.
+        """
+        warn_msg = (
+            "nsslapd-logging-hr-timestamps-enabled changes the "
+            "log format in directory server "
+        )
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ds.config",
+            "ConfigCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["key"] == "DSCLE0001":
+                assert check["result"] == "WARNING"
+                assert 'cn=config' in check["kw"]["items"]
+                assert warn_msg in check["kw"]["msg"]
+
+    @pytest.fixture
     def rename_ldif(self):
         """Fixture to rename dse.ldif file and revert after test"""
         instance = realm_to_serverid(self.master.domain.realm)
@@ -991,9 +1056,9 @@ class TestIpaHealthCheck(IntegrationTest):
             ]
         )
 
-    def test_source_ipahealthcheck_ds_config(self, rename_ldif):
+    def test_source_ipahealthcheck_ds_backends(self, rename_ldif):
         """
-        This test ensures that ConfigCheck check displays the correct
+        This test ensures that BackendsCheck check displays the correct
         status when the dse.ldif file is renamed in the DS instance
         directory
         """
@@ -1099,6 +1164,46 @@ class TestIpaHealthCheck(IntegrationTest):
         for check in data:
             assert check["result"] == "WARNING"
             assert warn_msg in check["kw"]["msg"]
+
+    @pytest.fixture
+    def modify_pwdstoragescheme(self):
+        """
+        Fixture modifies the nsslapd-rootpwstoragescheme to
+        MD5 and reverts it back
+        """
+        ldap = self.master.ldap_connect()
+        dn = DN(("cn", "config"),)
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["nsslapd-rootpwstoragescheme"] = "MD5"
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+        yield
+
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["nsslapd-rootpwstoragescheme"] = "PBKDF2_SHA256"
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+    def test_ds_configcheck_passwordstorage(self, modify_pwdstoragescheme):
+        """
+        This testcase ensures that ConfigCheck reports CRITICAL
+        status when nsslapd-rootpwstoragescheme is set to MD5
+        from the required PBKDF2_SHA256
+        """
+        error_msg = (
+            "\n\nIn Directory Server, we offer one hash suitable for this "
+            "(PBKDF2_SHA256) and one hash\nfor \"legacy\" support (SSHA512)."
+            "\n\nYour configuration does not use these for password storage "
+            "or the root password storage\nscheme.\n"
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ds.config", "ConfigCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["key"] == "DSCLE0002":
+                assert check["result"] == "CRITICAL"
+                assert "cn=config" in check["kw"]["items"]
+                assert error_msg in check["kw"]["msg"]
 
     def test_ipa_healthcheck_remove(self):
         """
@@ -1627,6 +1732,33 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
                        "be 0660"
                     % check["kw"]["path"]
                 )
+
+    def test_ipahealthcheck_ds_fschecks(self, modify_permissions):
+        """
+        This testcase ensures that FSCheck displays CRITICAL
+        status when permission of pin.txt is modified.
+        """
+        instance = realm_to_serverid(self.master.domain.realm)
+        error_msg = (
+            "does not have the expected permissions (400).  "
+            "The\nsecurity database pin/password files should only "
+            "be readable by Directory Server user."
+        )
+        modify_permissions(
+            self.master,
+            path=paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+            + "/pin.txt",
+            mode="0000",
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ds.fs_checks", "FSCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert check["kw"]["key"] == "DSPERMLE0002"
+            assert error_msg in check["kw"]["msg"]
+
 
 class TestIpaHealthCheckFilesystemSpace(IntegrationTest):
     """
