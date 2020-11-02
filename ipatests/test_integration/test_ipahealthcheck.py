@@ -794,6 +794,30 @@ class TestIpaHealthCheck(IntegrationTest):
         errors = re.findall("ERROR: .*: not running", output)
         assert len(errors) == len(output.split("\n"))
 
+    def test_ipahealthcheck_topology_with_ipactl_stop(self, ipactl):
+        """
+        This testcase checks that ipahealthcheck.ipa.topology check
+        doesnot display 'source not found' on a system when ipactl
+        stop is run
+        """
+        error_msg = "Source 'ipahealthcheck.ipa.topology' not found"
+        msg = (
+            "Source 'ipahealthcheck.ipa.topology' is missing "
+            "one or more requirements 'dirsrv'"
+        )
+        result = self.master.run_command(
+            [
+                "ipa-healthcheck",
+                "--source",
+                "ipahealthcheck.ipa.topology",
+                "--debug",
+            ],
+            raiseonerr=False,
+        )
+        assert result.returncode == 1
+        assert msg in result.stdout_text
+        assert error_msg not in result.stdout_text
+
     @pytest.fixture
     def move_ipa_ca_crt(self):
         """
@@ -896,6 +920,220 @@ class TestIpaHealthCheck(IntegrationTest):
                 else:
                     assert check["kw"]["msg"] == error_msg_4_0
 
+    @pytest.fixture
+    def update_logging(self):
+        """
+        Fixture disables nsslapd-logging-hr-timestamps-enabled
+        parameter and reverts it back
+        """
+        ldap = self.master.ldap_connect()
+        dn = DN(
+            ("cn", "config"),
+        )
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["nsslapd-logging-hr-timestamps-enabled"] = 'off'
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+        yield
+
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["nsslapd-logging-hr-timestamps-enabled"] = 'on'
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+    def test_ipahealthcheck_ds_configcheck(self, update_logging):
+        """
+        This testcase ensures that ConfigCheck displays warning
+        when high resolution timestamp is disabled.
+        """
+        warn_msg = (
+            "nsslapd-logging-hr-timestamps-enabled changes the "
+            "log format in directory server "
+        )
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ds.config",
+            "ConfigCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["key"] == "DSCLE0001":
+                assert check["result"] == "WARNING"
+                assert 'cn=config' in check["kw"]["items"]
+                assert warn_msg in check["kw"]["msg"]
+
+    @pytest.fixture
+    def rename_ldif(self):
+        """Fixture to rename dse.ldif file and revert after test"""
+        instance = realm_to_serverid(self.master.domain.realm)
+        self.master.run_command(
+            [
+                "mv", "-v",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                + "/dse.ldif",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                + "/dse.ldif.renamed",
+            ]
+        )
+        yield
+        self.master.run_command(
+            [
+                "mv", "-v",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                + "/dse.ldif.renamed",
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                + "/dse.ldif",
+            ]
+        )
+
+    def test_source_ipahealthcheck_ds_backends(self, rename_ldif):
+        """
+        This test ensures that BackendsCheck check displays the correct
+        status when the dse.ldif file is renamed in the DS instance
+        directory
+        """
+        exception_msg = "Could not find configuration for instance:"
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ds.backends", "BackendsCheck"
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert exception_msg in check["kw"]["exception"]
+
+    @pytest.fixture
+    def update_riplugin(self):
+        """
+        Fixture modifies the value of update delay for RI plugin to -1
+        and reverts it back
+        """
+        ldap = self.master.ldap_connect()
+        dn = DN(
+            ("cn", "referential integrity postoperation"),
+            ("cn", "plugins"),
+            ("cn", "config"),
+        )
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["referint-update-delay"] = -1
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+        yield
+
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["referint-update-delay"] = 0
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+    def test_ipahealthcheck_ds_riplugincheck(self, update_riplugin):
+        """
+        This testcase ensures that RIPluginCheck displays warning
+        when update value is set.
+        """
+        warn_msg = (
+            "We advise that you set this value to 0, and enable referint "
+            "on all masters as it provides a more predictable behaviour.\n"
+        )
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ds.ds_plugins",
+            "RIPluginCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert warn_msg in check["kw"]["msg"]
+
+    @pytest.fixture
+    def modify_tls(self, restart_service):
+        """
+        Modify DS tls version to TLS1.0 using dsconf tool and
+        revert back to the default TLS1.2
+        """
+        instance = realm_to_serverid(self.master.domain.realm)
+        cmd = ["systemctl", "restart", "dirsrv@{}".format(instance)]
+        self.master.run_command(
+            [
+                "dsconf",
+                "slapd-{}".format(instance),
+                "security",
+                "set",
+                "--tls-protocol-min=TLS1.0",
+            ]
+        )
+        self.master.run_command(cmd)
+        yield
+        self.master.run_command(
+            [
+                "dsconf",
+                "slapd-{}".format(instance),
+                "security",
+                "set",
+                "--tls-protocol-min=TLS1.2",
+            ]
+        )
+        self.master.run_command(cmd)
+
+    def test_ipahealthcheck_ds_encryption(self, modify_tls):
+        """
+        This testcase modifies the default TLS version of
+        DS instance to 1.0 and ensures that EncryptionCheck
+        reports ERROR
+        """
+        enc_msg = (
+            "This Directory Server may not be using strong TLS protocol "
+            "versions. TLS1.0 is known to\nhave a number of issues with "
+            "the protocol. "
+            "Please see:\n\nhttps://tools.ietf.org/html/rfc7457\n\n"
+            "It is advised you set this value to the maximum possible."
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ds.encryption", "EncryptionCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["key"] == "DSELE0001"
+            assert "cn=encryption,cn=config" in check["kw"]["items"]
+            assert check["kw"]["msg"] == enc_msg
+
+    @pytest.fixture
+    def modify_pwdstoragescheme(self):
+        """
+        Fixture modifies the nsslapd-rootpwstoragescheme to
+        MD5 and reverts it back
+        """
+        ldap = self.master.ldap_connect()
+        dn = DN(("cn", "config"),)
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["nsslapd-rootpwstoragescheme"] = "MD5"
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+        yield
+
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry.single_value["nsslapd-rootpwstoragescheme"] = "PBKDF2_SHA256"
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+    def test_ds_configcheck_passwordstorage(self, modify_pwdstoragescheme):
+        """
+        This testcase ensures that ConfigCheck reports CRITICAL
+        status when nsslapd-rootpwstoragescheme is set to MD5
+        from the required PBKDF2_SHA256
+        """
+        error_msg = (
+            "\n\nIn Directory Server, we offer one hash suitable for this "
+            "(PBKDF2_SHA256) and one hash\nfor \"legacy\" support (SSHA512)."
+            "\n\nYour configuration does not use these for password storage "
+            "or the root password storage\nscheme.\n"
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ds.config", "ConfigCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            if check["kw"]["key"] == "DSCLE0002":
+                assert check["result"] == "CRITICAL"
+                assert "cn=config" in check["kw"]["items"]
+                assert error_msg in check["kw"]["msg"]
+
     def test_ipa_healthcheck_expiring(self, restart_service):
         """
         There are two overlapping tests for expiring certs, check both.
@@ -963,137 +1201,10 @@ class TestIpaHealthCheck(IntegrationTest):
             # synced. Help chrony by resetting the date
             self.master.run_command(['date', '-s', now_str])
 
-    @pytest.fixture
-    def rename_ldif(self):
-        """Fixture to rename dse.ldif file and revert after test"""
-        instance = realm_to_serverid(self.master.domain.realm)
-        self.master.run_command(
-            [
-                "mv",
-                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
-                + "/dse.ldif",
-                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
-                + "/dse.ldif.renamed",
-            ]
-        )
-        yield
-        self.master.run_command(
-            [
-                "mv",
-                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
-                + "/dse.ldif.renamed",
-                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
-                + "/dse.ldif",
-            ]
-        )
-
-    def test_source_ipahealthcheck_ds_config(self, rename_ldif):
-        """
-        This test ensures that ConfigCheck check displays the correct
-        status when the dse.ldif file is renamed in the DS instance
-        directory
-        """
-        exception_msg = "Could not find configuration for instance:"
-        returncode, data = run_healthcheck(
-            self.master, "ipahealthcheck.ds.backends", "BackendsCheck"
-        )
-        assert returncode == 1
-        for check in data:
-            assert check["result"] == "CRITICAL"
-            assert exception_msg in check["kw"]["exception"]
-
-    @pytest.fixture
-    def update_riplugin(self):
-        """
-        Fixture modifies the value of update delay for RI plugin to -1
-        and reverts it back
-        """
-        ldap = self.master.ldap_connect()
-        dn = DN(
-            ("cn", "referential integrity postoperation"),
-            ("cn", "plugins"),
-            ("cn", "config"),
-        )
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
-        entry.single_value["referint-update-delay"] = -1
-        ldap.update_entry(entry)  # pylint: disable=no-member
-
-        yield
-
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
-        entry.single_value["referint-update-delay"] = 0
-        ldap.update_entry(entry)  # pylint: disable=no-member
-
-    def test_ipahealthcheck_ds_riplugincheck(self, update_riplugin):
-        """
-        This testcase ensures that RIPluginCheck displays warning
-        when update value is set.
-        """
-        warn_msg = (
-            "We advise that you set this value to 0, and enable referint "
-            "on all masters as it provides a more predictable behaviour.\n"
-        )
-        returncode, data = run_healthcheck(
-            self.master,
-            "ipahealthcheck.ds.ds_plugins",
-            "RIPluginCheck",
-        )
-        assert returncode == 1
-        for check in data:
-            assert check["result"] == "WARNING"
-            assert warn_msg in check["kw"]["msg"]
-
-    def modify_tls(self, restart_service):
-        """
-        Modify DS tls version to TLS1.0 using dsconf tool and
-        revert back to the default TLS1.2
-        """
-        instance = realm_to_serverid(self.master.domain.realm)
-        cmd = ["systemctl", "restart", "dirsrv@{}".format(instance)]
-        self.master.run_command(
-            [
-                "dsconf",
-                "slapd-{}".format(instance),
-                "security",
-                "set",
-                "--tls-protocol-min=TLS1.0",
-            ]
-        )
-        self.master.run_command(cmd)
-        yield
-        self.master.run_command(
-            [
-                "dsconf",
-                "slapd-{}".format(instance),
-                "security",
-                "set",
-                "--tls-protocol-min=TLS1.2",
-            ]
-        )
-        self.master.run_command(cmd)
-
-    def test_ipahealthcheck_ds_encryption(self, modify_tls):
-        """
-        This testcase modifies the default TLS version of
-        DS instance to 1.0 and ensures that EncryptionCheck
-        reports ERROR
-        """
-        enc_msg = (
-            "This Directory Server may not be using strong TLS protocol "
-            "versions. TLS1.0 is known to\nhave a number of issues with "
-            "the protocol. "
-            "Please see:\n\nhttps://tools.ietf.org/html/rfc7457\n\n"
-            "It is advised you set this value to the maximum possible."
-        )
-        returncode, data = run_healthcheck(
-            self.master, "ipahealthcheck.ds.encryption", "EncryptionCheck",
-        )
-        assert returncode == 1
-        for check in data:
-            assert check["result"] == "ERROR"
-            assert check["kw"]["key"] == "DSELE0001"
-            assert "cn=encryption,cn=config" in check["kw"]["items"]
-            assert check["kw"]["msg"] == enc_msg
+    """
+    IMPORTANT: Do not add tests after test_ipa_healthcheck_expiring
+    as the system may be unstable after the date modification.
+    """
 
     def test_ipa_healthcheck_remove(self):
         """
@@ -1622,6 +1733,33 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
                        "be 0660"
                     % check["kw"]["path"]
                 )
+
+    def test_ipahealthcheck_ds_fschecks(self, modify_permissions):
+        """
+        This testcase ensures that FSCheck displays CRITICAL
+        status when permission of pin.txt is modified.
+        """
+        instance = realm_to_serverid(self.master.domain.realm)
+        error_msg = (
+            "does not have the expected permissions (400).  "
+            "The\nsecurity database pin/password files should only "
+            "be readable by Directory Server user."
+        )
+        modify_permissions(
+            self.master,
+            path=paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+            + "/pin.txt",
+            mode="0000",
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ds.fs_checks", "FSCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert check["kw"]["key"] == "DSPERMLE0002"
+            assert error_msg in check["kw"]["msg"]
+
 
 class TestIpaHealthCheckFilesystemSpace(IntegrationTest):
     """
