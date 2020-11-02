@@ -1006,9 +1006,10 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["result"] == "CRITICAL"
             assert exception_msg in check["kw"]["exception"]
 
+    @pytest.fixture
     def modify_tls(self, restart_service):
         """
-        Modify DS tls version to TLS1.0 using dsconf tool and
+        Fixture to modify DS tls version to TLS1.0 using dsconf tool and
         revert back to the default TLS1.2
         """
         instance = realm_to_serverid(self.master.domain.realm)
