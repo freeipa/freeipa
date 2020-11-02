@@ -193,7 +193,7 @@ class TestTrust(BaseTestTrust):
             '--data', user_and_password,
             'https://{}/ipa/session/login_password'.format(host)]
         result = self.master.run_command(cmd_args)
-        assert "Set-Cookie: ipa_session=MagBearerToken" in result.stdout_text
+        assert "Set-Cookie: ipa_session=MagBearerToken" in result.stderr_text
         tasks.kinit_admin(self.master)
 
     def test_ipauser_authentication_with_nonposix_trust(self):
