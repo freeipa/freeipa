@@ -51,7 +51,7 @@ class update_idrange_type(Updater):
                 (entries, truncated) = ldap.find_entries(search_filter,
                     ['objectclass'], base_dn, time_limit=0, size_limit=0)
 
-            except errors.NotFound:
+            except errors.EmptyResult:
                 logger.debug("update_idrange_type: no ID range without "
                              "type set found")
                 return False, []
@@ -59,11 +59,6 @@ class update_idrange_type(Updater):
             except errors.ExecutionError as e:
                 logger.error("update_idrange_type: cannot retrieve list "
                              "of ranges with no type set: %s", e)
-                return False, []
-
-            if not entries:
-                # No entry was returned, rather break than continue cycling
-                logger.debug("update_idrange_type: no ID range was returned")
                 return False, []
 
             logger.debug("update_idrange_type: found %d "
