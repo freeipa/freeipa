@@ -1059,6 +1059,7 @@ class TestIpaHealthCheck(IntegrationTest):
             assert "cn=encryption,cn=config" in check["kw"]["items"]
             assert check["kw"]["msg"] == enc_msg
 
+    @pytest.fixture
     def update_riplugin(self):
         """
         Fixture modifies the value of update delay for RI plugin to -1
