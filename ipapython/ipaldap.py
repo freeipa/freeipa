@@ -760,6 +760,7 @@ class LDAPClient:
         'nsslapd-minssf-exclude-rootdse': True,
         'nsslapd-enable-upgrade-hash': True,
         'nsslapd-db-locks': True,
+        'nsslapd-logging-hr-timestamps-enabled': True,
     })
 
     time_limit = -1.0   # unlimited
