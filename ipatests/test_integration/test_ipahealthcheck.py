@@ -924,73 +924,6 @@ class TestIpaHealthCheck(IntegrationTest):
                 else:
                     assert check["kw"]["msg"] == error_msg_4_0
 
-    def test_ipa_healthcheck_expiring(self, restart_service):
-        """
-        There are two overlapping tests for expiring certs, check both.
-        """
-
-        def execute_expiring_check(check):
-            """
-            Test that certmonger will report warnings if expiration is near
-            """
-
-            returncode, data = run_healthcheck(
-                self.master,
-                "ipahealthcheck.ipa.certs",
-                check,
-            )
-
-            assert returncode == 1
-            assert len(data) == 12  # KRA is 12 tracked certs
-
-            for check in data:
-                if check["result"] == "SUCCESS":
-                    # The CA is not expired
-                    request = self.master.run_command(
-                        ["getcert", "list", "-i", check["kw"]["key"]]
-                    )
-                    assert "caSigningCert cert-pki-ca" in request.stdout_text
-                else:
-                    assert check["result"] == "WARNING"
-                    if check["kw"]["days"] == 21:
-                        # the httpd, 389-ds and KDC renewal dates are later
-                        certs = (paths.HTTPD_CERT_FILE, paths.KDC_CERT,
-                                 '/etc/dirsrv/slapd-',)
-                        request = self.master.run_command(
-                            ["getcert", "list", "-i", check["kw"]["key"]]
-                        )
-                        assert any(cert in request.stdout_text
-                                   for cert in certs)
-                    else:
-                        assert check["kw"]["days"] == 10
-
-        # Store the current date to restore at the end of the test
-        now = datetime.utcnow()
-        now_str = datetime.strftime(now, "%Y-%m-%d %H:%M:%S Z")
-
-        # Pick a cert to find the upcoming expiration
-        certfile = self.master.get_file_contents(paths.RA_AGENT_PEM)
-        cert = x509.load_certificate_list(certfile)
-        cert_expiry = cert[0].not_valid_after
-
-        for service in ('chronyd', 'pki_tomcatd',):
-            restart_service(self.master, service)
-
-        try:
-            # move date to the grace period
-            grace_date = cert_expiry - timedelta(days=10)
-            grace_date = datetime.strftime(grace_date, "%Y-%m-%d 00:00:01 Z")
-            self.master.run_command(['date', '-s', grace_date])
-
-            for check in ("IPACertmongerExpirationCheck",
-                          "IPACertfileExpirationCheck",):
-                execute_expiring_check(check)
-
-        finally:
-            # After restarting chronyd, the date may need some time to get
-            # synced. Help chrony by resetting the date
-            self.master.run_command(['date', '-s', now_str])
-
     @pytest.fixture
     def update_logging(self):
         """
@@ -1038,7 +971,7 @@ class TestIpaHealthCheck(IntegrationTest):
         instance = realm_to_serverid(self.master.domain.realm)
         self.master.run_command(
             [
-                "mv",
+                "mv", "-v",
                 paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
                 + "/dse.ldif",
                 paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
@@ -1048,7 +981,7 @@ class TestIpaHealthCheck(IntegrationTest):
         yield
         self.master.run_command(
             [
-                "mv",
+                "mv", "-v",
                 paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
                 + "/dse.ldif.renamed",
                 paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
@@ -1204,6 +1137,73 @@ class TestIpaHealthCheck(IntegrationTest):
                 assert check["result"] == "CRITICAL"
                 assert "cn=config" in check["kw"]["items"]
                 assert error_msg in check["kw"]["msg"]
+
+    def test_ipa_healthcheck_expiring(self, restart_service):
+        """
+        There are two overlapping tests for expiring certs, check both.
+        """
+
+        def execute_expiring_check(check):
+            """
+            Test that certmonger will report warnings if expiration is near
+            """
+
+            returncode, data = run_healthcheck(
+                self.master,
+                "ipahealthcheck.ipa.certs",
+                check,
+            )
+
+            assert returncode == 1
+            assert len(data) == 12  # KRA is 12 tracked certs
+
+            for check in data:
+                if check["result"] == "SUCCESS":
+                    # The CA is not expired
+                    request = self.master.run_command(
+                        ["getcert", "list", "-i", check["kw"]["key"]]
+                    )
+                    assert "caSigningCert cert-pki-ca" in request.stdout_text
+                else:
+                    assert check["result"] == "WARNING"
+                    if check["kw"]["days"] == 21:
+                        # the httpd, 389-ds and KDC renewal dates are later
+                        certs = (paths.HTTPD_CERT_FILE, paths.KDC_CERT,
+                                 '/etc/dirsrv/slapd-',)
+                        request = self.master.run_command(
+                            ["getcert", "list", "-i", check["kw"]["key"]]
+                        )
+                        assert any(cert in request.stdout_text
+                                   for cert in certs)
+                    else:
+                        assert check["kw"]["days"] == 10
+
+        # Store the current date to restore at the end of the test
+        now = datetime.utcnow()
+        now_str = datetime.strftime(now, "%Y-%m-%d %H:%M:%S Z")
+
+        # Pick a cert to find the upcoming expiration
+        certfile = self.master.get_file_contents(paths.RA_AGENT_PEM)
+        cert = x509.load_certificate_list(certfile)
+        cert_expiry = cert[0].not_valid_after
+
+        for service in ('chronyd', 'pki_tomcatd',):
+            restart_service(self.master, service)
+
+        try:
+            # move date to the grace period
+            grace_date = cert_expiry - timedelta(days=10)
+            grace_date = datetime.strftime(grace_date, "%Y-%m-%d 00:00:01 Z")
+            self.master.run_command(['date', '-s', grace_date])
+
+            for check in ("IPACertmongerExpirationCheck",
+                          "IPACertfileExpirationCheck",):
+                execute_expiring_check(check)
+
+        finally:
+            # After restarting chronyd, the date may need some time to get
+            # synced. Help chrony by resetting the date
+            self.master.run_command(['date', '-s', now_str])
 
     def test_ipa_healthcheck_remove(self):
         """
