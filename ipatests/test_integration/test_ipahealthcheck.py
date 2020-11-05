@@ -1326,15 +1326,22 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
 class TestIpaHealthCheckWithADtrust(IntegrationTest):
     """
     Test for ipa-healthcheck tool with IPA Master with trust setup
-    with AD system
+    with Windows AD.
     """
     topology = "line"
     num_ad_domains = 1
+    num_ad_treedomains = 1
+    num_ad_subdomains = 1
 
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True)
         cls.ad = cls.ads[0]
+        cls.child_ad = cls.ad_subdomains[0]
+        cls.tree_ad = cls.ad_treedomains[0]
+        cls.ad_domain = cls.ad.domain.name
+        cls.ad_subdomain = cls.child_ad.domain.name
+        cls.ad_treedomain = cls.tree_ad.domain.name
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
         tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
@@ -1350,16 +1357,17 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
             self.master, "ipahealthcheck.ipa.trust", "IPATrustDomainsCheck"
         )
         assert returncode == 0
+        trust_domains = ', '.join((self.ad_domain, self.ad_subdomain,))
         for check in data:
             if check["kw"]["key"] == "domain-list":
                 assert check["result"] == "SUCCESS"
                 assert (
-                    check["kw"]["sssd_domains"] == self.ad.domain.name
-                    and check["kw"]["trust_domains"] == self.ad.domain.name
+                    check["kw"]["sssd_domains"] == trust_domains
+                    and check["kw"]["trust_domains"] == trust_domains
                 )
             elif check["kw"]["key"] == "domain-status":
                 assert check["result"] == "SUCCESS"
-                assert check["kw"]["domain"] == self.ad.domain.name
+                assert check["kw"]["domain"] in trust_domains
 
     def test_ipahealthcheck_trust_catalogcheck(self):
         """
@@ -1371,13 +1379,14 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
             self.master, "ipahealthcheck.ipa.trust", "IPATrustCatalogCheck"
         )
         assert returncode == 0
+        trust_domains = ', '.join((self.ad_domain, self.ad_subdomain,))
         for check in data:
             if check["kw"]["key"] == "AD Global Catalog":
                 assert check["result"] == "SUCCESS"
-                assert check["kw"]["domain"] == self.ad.domain.name
+                assert check["kw"]["domain"] in trust_domains
             elif check["kw"]["key"] == "AD Domain Controller":
                 assert check["result"] == "SUCCESS"
-                assert check["kw"]["domain"] == self.ad.domain.name
+                assert check["kw"]["domain"] in trust_domains
 
     def test_ipahealthcheck_trustcontoller_conf_check(self):
         """
@@ -1443,6 +1452,33 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
             assert check["result"] == "SUCCESS"
             assert check["kw"]["key"] == self.master.hostname
 
+    def test_ipahealthcheck_with_external_ad_trust(self):
+        """
+        This testcase checks that when external trust is configured
+        between IPA and AD tree domain, IPATrustDomainsCheck
+        doesnot display ERROR
+        """
+        tasks.configure_dns_for_trust(self.master, self.tree_ad)
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_treedomain,
+            extra_args=['--range-type', 'ipa-ad-trust', '--external=True'])
+        trust_domains = ', '.join((self.ad_domain, self.ad_subdomain,
+                                  self.ad_treedomain,))
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.trust",
+            "IPATrustDomainsCheck",
+        )
+        assert returncode == 0
+        for check in data:
+            assert check["kw"]["key"] in ('domain-list', 'domain-status',)
+            assert check["result"] == "SUCCESS"
+            assert check["kw"].get("msg") is None
+            if check["kw"]["key"] == 'domain-list':
+                assert check["kw"]["sssd_domains"] == trust_domains
+                assert check["kw"]["trust_domains"] == trust_domains
+            else:
+                assert check["kw"]["domain"] in trust_domains
 
 @pytest.fixture
 def modify_permissions():
