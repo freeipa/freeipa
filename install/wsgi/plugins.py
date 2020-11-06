@@ -36,7 +36,10 @@ def get_plugin_index():
 
     dirs = os.listdir(paths.IPA_JS_PLUGINS_DIR)
     index = 'define([],function(){return['
-    index += ','.join("'"+x+"'" for x in dirs)
+    for x in dirs:
+        p = os.path.join(paths.IPA_JS_PLUGINS_DIR, x, x + '.js')
+        if os.path.exists(p):
+            index += "'" + x + "',"
     index += '];});'
     return index.encode('utf-8')
 
