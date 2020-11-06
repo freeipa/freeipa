@@ -70,6 +70,10 @@ class TestInstallMasterClient(IntegrationTest):
         )
         tasks.install_client(cls.master, cls.clients[0])
 
+        # time to look into journal logs in
+        # test_certmonger_ipa_responder_jsonrpc
+        cls.since = time.strftime('%H:%M:%S')
+
     def test_cacert_file_appear_with_option_F(self):
         """Test if getcert creates cacert file with -F option
 
@@ -97,6 +101,27 @@ class TestInstallMasterClient(IntegrationTest):
         self.clients[0].run_command(
             ["ls", "-l", os.path.join(paths.OPENSSL_DIR, "test.CA")]
         )
+
+    def test_certmonger_ipa_responder_jsonrpc(self):
+        """Test certmonger IPA responder switched to JSONRPC
+
+        This is to test if certmonger IPA responder swithed to JSONRPC
+        from XMLRPC
+
+        This test utilizes the cert request made in previous test.
+        (test_cacert_file_appear_with_option_F)
+
+        related: https://pagure.io/freeipa/issue/3299
+        """
+        # check that request is made against /ipa/json so that
+        # IPA enforce json data type
+        exp_str = 'Submitting request to "https://{}/ipa/json"'.format(
+            self.master.hostname
+        )
+        result = self.clients[0].run_command([
+            'journalctl', '-u', 'certmonger', '--since={}'.format(self.since)
+        ])
+        assert exp_str in result.stdout_text
 
     def test_ipa_getcert_san_aci(self):
         """Test for DNS and IP SAN extensions + ACIs
