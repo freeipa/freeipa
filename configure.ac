@@ -116,7 +116,9 @@ PKG_CHECK_MODULES([CRYPTO], [libcrypto])
 dnl ---------------------------------------------------------------------------
 dnl - Check for pwquality library
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([PWQUALITY], [pwquality])
+AM_COND_IF([ENABLE_SERVER], [
+	PKG_CHECK_MODULES([PWQUALITY], [pwquality])
+])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for Python 3
@@ -670,12 +672,12 @@ echo "
         jslint:                   ${JSLINT}
         LDAP libs:                ${LDAP_LIBS}
         OpenSSL crypto libs:      ${CRYPTO_LIBS}
-        pwquality libs:           ${PWQUALITY_LIBS}
         KRB5 libs:                ${KRB5_LIBS}
         systemdsystemunitdir:     ${systemdsystemunitdir}"
 
 AM_COND_IF([ENABLE_SERVER], [
     echo "\
+        pwquality libs:           ${PWQUALITY_LIBS}
         KRAD libs:                ${KRAD_LIBS}
         krb5rundir:               ${krb5rundir}
         systemdtmpfilesdir:       ${systemdtmpfilesdir}
