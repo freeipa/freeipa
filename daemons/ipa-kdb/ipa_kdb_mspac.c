@@ -2611,7 +2611,7 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
             for (; t[n].upn_suffixes[len] != NULL; len++);
 
             if (len != 0) {
-                t[n].upn_suffixes_len = calloc(n, sizeof(size_t));
+                t[n].upn_suffixes_len = calloc(len, sizeof(size_t));
                 if (t[n].upn_suffixes_len == NULL) {
                     ret = ENOMEM;
                     goto done;
