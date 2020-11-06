@@ -639,15 +639,34 @@ class TestIPACommand(IntegrationTest):
         # change private key permission to comply with SS rules
         os.chmod(first_priv_key_path, 0o600)
 
+        # start to look at logs a bit before "now"
+        # https://pagure.io/freeipa/issue/8432
+        since = time.strftime(
+            '%H:%M:%S', (datetime.now() - timedelta(seconds=10)).timetuple()
+        )
+
         tasks.run_ssh_cmd(
             to_host=self.master.external_hostname, username=test_user,
             auth_method="key", private_key_path=first_priv_key_path
         )
 
-        journal_cmd = ['journalctl', '--since=today', '-u', 'sshd']
-        result = self.master.run_command(journal_cmd)
-        output = result.stdout_text
-        assert not re.search('exited on signal 13', output)
+        expected_missing_msg = "exited on signal 13"
+        # closing session marker(depends on PAM stack of sshd)
+        expected_msgs = [
+            f"session closed for user {test_user}",
+            f"Disconnected from user {test_user}",
+        ]
+
+        def test_cb(stdout):
+            # check if expected message logged and expected missing one not
+            return (
+                any(m in stdout for m in expected_msgs)
+                and expected_missing_msg not in stdout
+            )
+
+        # sshd don't flush its logs to syslog immediately
+        cmd = ["journalctl", "-u", "sshd", f"--since={since}"]
+        tasks.run_repeatedly(self.master, command=cmd, test=test_cb)
 
         # cleanup
         self.master.run_command(['ipa', 'user-del', test_user])
@@ -1198,13 +1217,18 @@ class TestIPACommand(IntegrationTest):
             expect_auth_failure=True
         )
 
-        # check if proper message logged
-        exp_msg = ("pam_sss(sshd:auth): received for user {}: 7"
-                   " (Authentication failure)".format(self.testuser))
-        result = self.master.run_command(['journalctl',
-                                          '-u', 'sshd',
-                                          '--since={}'.format(since)])
-        assert exp_msg in result.stdout_text
+        expected_msg = (
+            f"pam_sss(sshd:auth): received for user {self.testuser}: 7"
+            " (Authentication failure)"
+        )
+
+        def test_cb(stdout):
+            # check if proper message logged
+            return expected_msg in stdout
+
+        # sshd don't flush its logs to syslog immediately
+        cmd = ["journalctl", "-u", "sshd", f"--since={since}"]
+        tasks.run_repeatedly(self.master, command=cmd, test=test_cb)
 
     def get_dirsrv_id(self):
         serverid = realm_to_serverid(self.master.domain.realm)
