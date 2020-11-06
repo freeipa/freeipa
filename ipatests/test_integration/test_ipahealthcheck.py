@@ -1292,6 +1292,7 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
         tasks.install_master(cls.master, setup_dns=True)
         cls.ad = cls.ads[0]
         cls.tree_ad = cls.ad_treedomains[0]
+        cls.ad_treedomain = cls.tree_ad.domain.name
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
         tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
@@ -1412,7 +1413,7 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
         )
         tasks.configure_dns_for_trust(self.master, self.tree_ad)
         tasks.establish_trust_with_ad(
-            self.master, self.tree_ad,
+            self.master, self.ad_treedomain,
             extra_args=['--range-type', 'ipa-ad-trust', '--external=True'])
         self.master.run_command(
             ['ipa', 'trust-find', '--all', '--raw']
