@@ -443,7 +443,7 @@ class TestACMECALess(IntegrationTest):
         # check status of acme on replica, result: CA is not installed
         result = self.replicas[0].run_command(['ipa-acme-manage', 'status'],
                                               raiseonerr=False)
-        assert result.returncode == 1
+        assert result.returncode == 3
 
         # Install CA on replica
         tasks.install_ca(self.replicas[0])
