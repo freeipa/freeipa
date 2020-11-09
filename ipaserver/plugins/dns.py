@@ -3111,10 +3111,11 @@ class dnsrecord(LDAPObject):
                 zone_len = REVERSE_DNS_ZONES[valid_zone]
 
         if not zone_len:
-            allowed_zones = ', '.join([unicode(revzone) for revzone in
-                                       REVERSE_DNS_ZONES])
-            raise errors.ValidationError(name='ptrrecord',
-                    error=unicode(_('Reverse zone for PTR record should be a sub-zone of one the following fully qualified domains: %s') % allowed_zones))
+            # PTR records in zones other than in-addr.arpa and ip6.arpa are
+            # legal, e.g. DNS-SD [RFC6763] uses such records.  If we have
+            # such a record there's nothing more to do.  Otherwise continue
+            # with the ip4/ip6 reverse zone checks below.
+            return
 
         addr_len = len(addr.labels)
 
