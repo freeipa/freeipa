@@ -1239,6 +1239,7 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
         """
         msg1 = "Expected SRV record missing"
         msg2 = "Got {count} ipa-ca A records, expected {expected}"
+        msg3 = "Got {count} ipa-ca AAAA records, expected {expected}"
         tasks.install_packages(self.master, HEALTHCHECK_PKG)
         returncode, data = run_healthcheck(
             self.master,
@@ -1248,7 +1249,11 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
         assert returncode == 1
         for check in data:
             assert check["result"] == "WARNING"
-            assert check["kw"]["msg"] == msg1 or check["kw"]["msg"] == msg2
+            assert (
+                check["kw"]["msg"] == msg1
+                or check["kw"]["msg"] == msg2
+                or check["kw"]["msg"] == msg3
+            )
 
     def test_ipa_certs_check_ipacertnsstrust(self):
         """
