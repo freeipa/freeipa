@@ -3331,6 +3331,24 @@ class test_dns(Declarative):
             },
         ),
 
+        dict(
+            desc='Add PTR record in a non-.arpa zone [DNS-SD]',
+            command=(
+                'dnsrecord_add',
+                [zone1, '_http._tcp'],
+                {'ptrrecord': 'home._http._tcp'},
+            ),
+            expected={
+                'value': DNSName('_http._tcp'),
+                'summary': None,
+                'result': {
+                    'dn': DN(('idnsname', '_http._tcp'), zone1_dn),
+                    'idnsname': [DNSName('_http._tcp')],
+                    'ptrrecord': ['home._http._tcp'],
+                    'objectclass': objectclasses.dnsrecord,
+                },
+            },
+        ),
 
         dict(
             desc='Delete zone %r' % zone1,
