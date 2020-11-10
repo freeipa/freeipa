@@ -3855,6 +3855,7 @@ static NTSTATUS ipasam_getsampwnam(struct pdb_methods *methods,
 	LDAPMessage *entry = NULL;
 	int ret;
 	int count;
+	bool search_for_upn = false;
 
 	lastidx = strlen(sname);
 	if (lastidx > 0) {
@@ -3877,16 +3878,36 @@ static NTSTATUS ipasam_getsampwnam(struct pdb_methods *methods,
 		return NT_STATUS_NO_MEMORY;
 	}
 
+	if (strchr(sname, '@') != NULL) {
+		search_for_upn = true;
+	}
+
 	escaped_user = escape_ldap_string(tmp_ctx, sname);
 	if (escaped_user == NULL) {
 		status = NT_STATUS_NO_MEMORY;
 		goto done;
 	}
 
-	filter = talloc_asprintf(tmp_ctx, "(&(%s=%s)(%s=%s))",
-					  LDAP_ATTRIBUTE_OBJECTCLASS,
-					  LDAP_OBJ_SAMBASAMACCOUNT,
-					  LDAP_ATTRIBUTE_UID, escaped_user);
+
+	if (search_for_upn) {
+		/* Search krbPrincipalName case-insensitive for UPN suffixes to
+		 * match because default matching rule is case-sensitive for
+		 * IA5String */
+		filter = talloc_asprintf(tmp_ctx,
+				"(&(%s=%s)(%s=%s)(%s:caseIgnoreIA5Match:=%s))",
+				LDAP_ATTRIBUTE_OBJECTCLASS,
+				LDAP_OBJ_SAMBASAMACCOUNT,
+				LDAP_ATTRIBUTE_OBJECTCLASS,
+				LDAP_OBJ_KRB_PRINCIPAL_AUX,
+				LDAP_ATTRIBUTE_KRB_PRINCIPAL,
+				escaped_user);
+	} else {
+		filter = talloc_asprintf(tmp_ctx, "(&(%s=%s)(%s=%s))",
+						  LDAP_ATTRIBUTE_OBJECTCLASS,
+						  LDAP_OBJ_SAMBASAMACCOUNT,
+						  LDAP_ATTRIBUTE_UID, escaped_user);
+	}
+
 	if (filter == NULL) {
 		status = NT_STATUS_NO_MEMORY;
 		goto done;
