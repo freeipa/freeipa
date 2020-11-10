@@ -1109,6 +1109,22 @@ def configure_ssh_config(fstore, options):
 
     fstore.backup_file(paths.SSH_CONFIG)
 
+    def ssh_version_supports_include():
+        with open(paths.SSH_CONFIG, 'r') as f:
+            for line in f:
+                if re.match(r"^Include\s", line):
+                    return True
+        return False
+
+    if ssh_version_supports_include():
+        create_ssh_ipa_config(options)
+    else:
+        modify_ssh_config(options)
+
+    logger.info('Configured %s', paths.SSH_CONFIG)
+
+
+def modify_ssh_config(options):
     changes = {'PubkeyAuthentication': 'yes'}
 
     if options.sssd and os.path.isfile(paths.SSS_SSH_KNOWNHOSTSPROXY):
@@ -1119,7 +1135,25 @@ def configure_ssh_config(fstore, options):
         changes['VerifyHostKeyDNS'] = 'yes'
 
     change_ssh_config(paths.SSH_CONFIG, changes, ['Host', 'Match'])
-    logger.info('Configured %s', paths.SSH_CONFIG)
+
+
+def create_ssh_ipa_config(options):
+    """Add the IPA snippet for ssh"""
+    enableproxy = bool(
+        options.sssd and os.path.isfile(paths.SSS_SSH_KNOWNHOSTSPROXY)
+    )
+
+    ipautil.copy_template_file(
+        os.path.join(paths.SSH_IPA_CONFIG_TEMPLATE),
+        paths.SSH_IPA_CONFIG,
+        dict(
+            ENABLEPROXY='' if enableproxy else '#',
+            KNOWNHOSTSPROXY=paths.SSS_SSH_KNOWNHOSTSPROXY,
+            KNOWNHOSTS=paths.SSSD_PUBCONF_KNOWN_HOSTS,
+            VERIFYHOSTKEYDNS='' if options.trust_sshfp else '#'
+        )
+    )
+    os.chmod(paths.SSH_IPA_CONFIG, 0o644)
 
 
 def configure_sshd_config(fstore, options):
@@ -3500,6 +3534,7 @@ def uninstall(options):
 
     if was_sshd_configured and services.knownservices.sshd.is_running():
         remove_file(paths.SSHD_IPA_CONFIG)
+        remove_file(paths.SSH_IPA_CONFIG)
         services.knownservices.sshd.restart()
 
     # Remove the Firefox configuration
