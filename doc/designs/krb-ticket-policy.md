@@ -91,8 +91,10 @@ where administrators can specify max renew and life for each supported auth indi
 
 ### Ticket lifetime jitter
 
-Ticket lifetimes can be jittered so that renewals / re-issues do not overwhelm the KDC at a certain moment.
-The feature is enabled automatically so that we can avoid triggering an LDAP query on every `AS_REQ` and `TGS_REQ`.
+All TGT lifetimes are varied slightly to avoid overwhelming the KDC with
+simultaneous renewal requests.  Jitter will reduce lifetimes by up to one hour
+from the configured maximum lifetime (per policy).  Significantly shorter
+requested lifetimes will be unaffected.
 
 ## Implementation
 
