@@ -1356,3 +1356,23 @@ class TestIPACommand(IntegrationTest):
             self.master, user,
             '{0}\n{1}\n{1}\n'.format(original_passwd, new_passwd)
         )
+
+    def test_certupdate_no_schema(self):
+        """Test that certupdate without existing API schema.
+
+           With no existing credentials the API schema download
+           would cause the whole command to fail.
+        """
+        tasks.kdestroy_all(self.master)
+
+        self.master.run_command(
+            ["rm", "-rf",
+             "/root/.cache/ipa/servers",
+             "/root/.cache/ipa/schema"]
+        )
+
+        # It first has to retrieve schema then can run
+        self.master.run_command(["ipa-certupdate"])
+
+        # Run it again for good measure
+        self.master.run_command(["ipa-certupdate"])
