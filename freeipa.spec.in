@@ -143,7 +143,7 @@
 # https://bugzilla.redhat.com/show_bug.cgi?id=1345975#c20
 %global sssd_version 1.16.3-2
 
-%define krb5_base_version %(LC_ALL=C rpm -q --qf '%%{VERSION}' krb5-devel | grep -Eo '^[^.]+\.[^.]+')
+%define krb5_base_version %(LC_ALL=C pkgconf --modversion krb5 | grep -Eo '^[^.]+\.[^.]+' || echo %krb5_version)
 
 %if 0%{?fedora} >= 33
 # systemd with resolved enabled
@@ -185,6 +185,7 @@ BuildRequires:  openldap-devel
 # DAL version change may cause code crash or memory leaks, it is better to fail early.
 BuildRequires:  krb5-kdb-version = %{krb5_kdb_version}
 BuildRequires:  krb5-devel >= %{krb5_version}
+BuildRequires:  pkgconfig(krb5)
 %if 0%{?with_ipa_join_xml}
 # 1.27.4: xmlrpc_curl_xportparms.gssapi_delegation
 BuildRequires:  xmlrpc-c-devel >= 1.27.4
@@ -195,7 +196,7 @@ BuildRequires:  jansson-devel
 BuildRequires:  popt-devel
 BuildRequires:  gcc
 BuildRequires:  make
-BuildRequires:  pkgconfig
+BuildRequires:  pkgconf
 BuildRequires:  autoconf
 BuildRequires:  automake
 BuildRequires:  libtool
