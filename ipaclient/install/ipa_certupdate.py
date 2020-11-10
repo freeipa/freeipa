@@ -21,14 +21,11 @@ from __future__ import absolute_import
 
 import logging
 import os
-import tempfile
-import shutil
 
 from urllib.parse import urlsplit
 
 from ipalib.install import certmonger, certstore
 from ipalib.facts import is_ipa_configured
-from ipalib.install.kinit import kinit_keytab
 from ipapython import admintool, certdb, ipaldap, ipautil
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -54,12 +51,22 @@ class CertUpdate(admintool.AdminTool):
     def run(self):
         check_client_configuration()
 
-        api.bootstrap(context='cli_installer', confdir=paths.ETC_IPA)
-        api.finalize()
+        old_krb5ccname = os.environ.get('KRB5CCNAME')
+        os.environ['KRB5_CLIENT_KTNAME'] = '/etc/krb5.keytab'
+        os.environ['KRB5CCNAME'] = "MEMORY:"
 
-        api.Backend.rpcclient.connect()
-        run_with_args(api)
-        api.Backend.rpcclient.disconnect()
+        try:
+            api.bootstrap(context='cli_installer', confdir=paths.ETC_IPA)
+            api.finalize()
+
+            api.Backend.rpcclient.connect()
+            run_with_args(api)
+            api.Backend.rpcclient.disconnect()
+        finally:
+            if old_krb5ccname is None:
+                del os.environ['KRB5CCNAME']
+            else:
+                os.environ['KRB5CCNAME'] = old_krb5ccname
 
 
 def run_with_args(api):
@@ -73,37 +80,22 @@ def run_with_args(api):
     server = urlsplit(api.env.jsonrpc_uri).hostname
     ldap = ipaldap.LDAPClient.from_hostname_secure(server)
 
-    tmpdir = tempfile.mkdtemp(prefix="tmp-")
-    ccache_name = os.path.join(tmpdir, 'ccache')
-    old_krb5ccname = os.environ.get('KRB5CCNAME')
     try:
-        principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-        kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_name)
-        os.environ['KRB5CCNAME'] = ccache_name
+        result = api.Command.ca_is_enabled(version=u'2.107')
+        ca_enabled = result['result']
+    except (errors.CommandError, errors.NetworkError):
+        result = api.Command.env(server=True, version=u'2.0')
+        ca_enabled = result['result']['enable_ra']
 
-        try:
-            result = api.Command.ca_is_enabled(version=u'2.107')
-            ca_enabled = result['result']
-        except (errors.CommandError, errors.NetworkError):
-            result = api.Command.env(server=True, version=u'2.0')
-            ca_enabled = result['result']['enable_ra']
+    ldap.gssapi_bind()
 
-        ldap.gssapi_bind()
+    certs = certstore.get_ca_certs(
+        ldap, api.env.basedn, api.env.realm, ca_enabled)
 
-        certs = certstore.get_ca_certs(
-            ldap, api.env.basedn, api.env.realm, ca_enabled)
-
-        if ca_enabled:
-            lwcas = api.Command.ca_find()['result']
-        else:
-            lwcas = []
-
-    finally:
-        if old_krb5ccname is None:
-            del os.environ['KRB5CCNAME']
-        else:
-            os.environ['KRB5CCNAME'] = old_krb5ccname
-        shutil.rmtree(tmpdir)
+    if ca_enabled:
+        lwcas = api.Command.ca_find()['result']
+    else:
+        lwcas = []
 
     if is_ipa_configured():
         update_server(certs)
