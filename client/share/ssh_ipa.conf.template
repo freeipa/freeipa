@@ -1,0 +1,10 @@
+# IPA-related configuration changes to ssh_config
+#
+PubkeyAuthentication yes
+${ENABLEPROXY}GlobalKnownHostsFile $KNOWNHOSTS
+${VERIFYHOSTKEYDNS}VerifyHostKeyDNS yes
+
+# assumes that if a user does not have shell (/sbin/nologin),
+# this will return nonzero exit code and proxy command will be ignored
+${ENABLEPROXY}Match exec true   
+${ENABLEPROXY}	ProxyCommand $KNOWNHOSTSPROXY -p %p %h

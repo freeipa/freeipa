@@ -135,6 +135,8 @@ class BasePathNamespace:
     LIMITS_CONF = "/etc/security/limits.conf"
     SSH_CONFIG_DIR = "/etc/ssh"
     SSH_CONFIG = "/etc/ssh/ssh_config"
+    SSH_IPA_CONFIG_TEMPLATE = "/usr/share/ipa/client/ssh_ipa.conf.template"
+    SSH_IPA_CONFIG = "/etc/ssh/ssh_config.d/04-ipa.conf"
     SSHD_CONFIG = "/etc/ssh/sshd_config"
     SSHD_IPA_CONFIG = "/etc/ssh/sshd_config.d/04-ipa.conf"
     SSHD_IPA_CONFIG_TEMPLATE = "/usr/share/ipa/client/sshd_ipa.conf.template"
