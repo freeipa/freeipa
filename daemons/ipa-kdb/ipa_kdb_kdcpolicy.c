@@ -1,13 +1,43 @@
 /*
- * Copyright (C) 2018  FreeIPA Contributors see COPYING for license
+ * Copyright (C) 2018,2020  FreeIPA Contributors see COPYING for license
  */
 
 #include <errno.h>
 #include <syslog.h>
+#include <sys/random.h>
+
 #include <krb5/kdcpolicy_plugin.h>
 
 #include "ipa_krb5.h"
 #include "ipa_kdb.h"
+
+#define ONE_DAY_SECONDS (24 * 60 * 60)
+#define JITTER_WINDOW_SECONDS (1 * 60 * 60)
+
+static void
+jitter(krb5_deltat baseline, krb5_deltat *lifetime_out)
+{
+    krb5_deltat offset;
+    ssize_t ret;
+
+    if (baseline < JITTER_WINDOW_SECONDS) {
+        /* A negative value here would correspond to a never-valid ticket,
+         * which isn't the goal. */
+        *lifetime_out = baseline;
+        return;
+    }
+
+    do {
+        ret = getrandom(&offset, sizeof(offset), 0);
+    } while (ret == -1 && errno == EINTR);
+    if (ret < 0) {
+        krb5_klog_syslog(LOG_INFO, "IPA kdcpolicy: getrandom failed (errno %d); skipping jitter...",
+                         errno);
+        return;
+    }
+
+    *lifetime_out = baseline - offset % JITTER_WINDOW_SECONDS;
+}
 
 static krb5_error_code
 ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
@@ -56,6 +86,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
     
     /* If no mechanisms are set, allow every auth method */
     if (ua == IPADB_USER_AUTH_NONE) {
+        jitter(ONE_DAY_SECONDS, lifetime_out);
         return 0;
     }
 
@@ -108,7 +139,9 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
      * apply them */
     if (pol_limits != NULL) {
         if (pol_limits->max_life != 0) {
-            *lifetime_out = pol_limits->max_life;
+            jitter(pol_limits->max_life, lifetime_out);
+        } else {
+            jitter(ONE_DAY_SECONDS, lifetime_out);
         }
 
         if (pol_limits->max_renewable_life != 0) {
