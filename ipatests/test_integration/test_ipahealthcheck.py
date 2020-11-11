@@ -1138,10 +1138,57 @@ class TestIpaHealthCheck(IntegrationTest):
                 assert "cn=config" in check["kw"]["items"]
                 assert error_msg in check["kw"]["msg"]
 
+    @pytest.fixture
+    def expire_cert_critical(self):
+        """
+        Fixture to expire the cert by moving the system date using
+        date -s command and revert it back
+        """
+        self.master.run_command(['date','-s', '+3Years'])
+        yield
+        self.master.run_command(['date','-s', '-3Years'])
+        self.master.run_command(['ipactl', 'restart'])
+
+    def test_nsscheck_cert_expired(self, expire_cert_critical):
+        """
+        This test checks that critical message is displayed
+        for NssCheck when Server-Cert has expired
+        """
+        msg = "The certificate (Server-Cert) has expired"
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ds.nss_ssl", "NssCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "CRITICAL"
+            assert check["kw"]["key"] == "DSCERTLE0002"
+            assert "Expired Certificate" in check["kw"]["items"]
+            assert check["kw"]["msg"] == msg
+
+
     def test_ipa_healthcheck_expiring(self, restart_service):
         """
         There are two overlapping tests for expiring certs, check both.
         """
+
+        def execute_nsscheck_cert_expiring(check):
+            """
+            This test checks that error message is displayed
+            for NssCheck when 'Server-Cert' is about to expire
+            """
+            msg = (
+                "The certificate (Server-Cert) will "
+                "expire in less than 30 days"
+            )
+            returncode, data = run_healthcheck(
+                self.master, "ipahealthcheck.ds.nss_ssl", "NssCheck",
+            )
+            assert returncode == 1
+            for check in data:
+                assert check["result"] == "ERROR"
+                assert check["kw"]["key"] == "DSCERTLE0001"
+                assert "Expiring Certificate" in check["kw"]["items"]
+                assert check["kw"]["msg"] == msg
 
         def execute_expiring_check(check):
             """
@@ -1199,6 +1246,8 @@ class TestIpaHealthCheck(IntegrationTest):
             for check in ("IPACertmongerExpirationCheck",
                           "IPACertfileExpirationCheck",):
                 execute_expiring_check(check)
+
+            execute_nsscheck_cert_expiring(check)
 
         finally:
             # After restarting chronyd, the date may need some time to get
