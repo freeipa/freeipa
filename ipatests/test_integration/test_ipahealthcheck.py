@@ -1408,6 +1408,72 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
             assert check["result"] == "SUCCESS"
             assert check["kw"]["key"] == "net conf list"
 
+    @pytest.fixture
+    def modify_cifs_princ(self):
+        """
+        This fixture removes the cifs principal from the
+        cn=adtrust agents and adds it back
+        """
+        ldap = self.master.ldap_connect()
+        basedn = self.master.domain.basedn
+        dn = DN(
+            ("cn", "adtrust agents"),
+            ("cn", "sysaccounts"),
+            ("cn", "etc"),
+            basedn,
+        )
+        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        krbprinc = entry['member']
+        entry['member'] = ''
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+        yield
+
+        # Add the entry back
+        entry['member'] = krbprinc
+        ldap.update_entry(entry)  # pylint: disable=no-member
+
+    def test_trustcontroller_principalcheck(self, modify_cifs_princ):
+        """
+        This testcase checks when trust between IPA-AD is established
+        without any errors, IPATrustControllerPrincipalCheck displays
+        result as ERROR and when cifs principal is removed
+        """
+        error_msg = "{key} is not a member of {group}"
+        keyname = "cifs/{}@{}".format(
+            self.master.hostname, self.master.domain.realm
+        )
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.trust",
+            "IPATrustControllerPrincipalCheck",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "ERROR"
+            assert check["kw"]["key"] == keyname
+            assert check["kw"]["group"] == "adtrust agents"
+            assert check["kw"]["msg"] == error_msg
+
+    def test_principalcheck_with_cifs_entry(self):
+        """
+        This testcase checks IPATrustControllerPrincipalCheck
+        displays result as SUCCESS when cifs principal is present
+        in cn=adtrust agents group
+        """
+        keyname = "cifs/{}@{}".format(
+            self.master.hostname, self.master.domain.realm
+        )
+        returncode, data = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.trust",
+            "IPATrustControllerPrincipalCheck",
+        )
+        assert returncode == 0
+        for check in data:
+            assert check["result"] == "SUCCESS"
+            assert check["kw"]["key"] == keyname
+
     def test_ipahealthcheck_sidgenpluginCheck(self):
         """
         This testcase checks when trust between IPA-AD is established,
