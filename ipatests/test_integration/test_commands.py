@@ -130,6 +130,7 @@ class TestIPACommand(IntegrationTest):
     """
     topology = 'line'
     num_replicas = 1
+    num_clients = 1
 
     @pytest.fixture
     def pwpolicy_global(self):
@@ -1376,3 +1377,58 @@ class TestIPACommand(IntegrationTest):
 
         # Run it again for good measure
         self.master.run_command(["ipa-certupdate"])
+
+    def test_proxycommand_invalid_shell(self):
+        """Test that ssh works with a user with an invalid shell.
+
+           Specifically for this use-case:
+           # getent passwd test
+           test:x:1001:1001::/home/test:/sbin/nologin
+           # sudo -u user ssh -v root@ipa.example.test
+
+           ruser is our restricted user
+           tuser1 is a regular user we ssh to remotely as
+        """
+        password = 'Secret123'
+        restricted_user = 'ruser'
+        regular_user = 'tuser1'
+
+        tasks.kinit_admin(self.master)
+        tasks.user_add(self.master, restricted_user,
+                       extra_args=["--shell", "/sbin/nologin"],
+                       password=password)
+        tasks.user_add(self.master, regular_user,
+                       password=password)
+
+        user_kinit = "{password}\n{password}\n{password}\n".format(
+            password=password)
+        self.clients[0].run_command([
+            'kinit', regular_user],
+            stdin_text=user_kinit)
+        self.clients[0].run_command([
+            'kinit', restricted_user],
+            stdin_text=user_kinit)
+        tasks.kdestroy_all(self.clients[0])
+
+        # ssh as a restricted user to a user with a valid shell should
+        # work
+        self.clients[0].run_command(
+            ['sudo', '-u', restricted_user,
+             'sshpass', '-p', password,
+             'ssh', '-v',
+             '-o', 'StrictHostKeyChecking=no',
+             'tuser1@%s' % self.master.hostname, 'cat /etc/hosts'],
+        )
+
+        # ssh as a restricted user to a restricted user should fail
+        result = self.clients[0].run_command(
+            ['sudo', '-u', restricted_user,
+             'sshpass', '-p', password,
+             'ssh', '-v',
+             '-o', 'StrictHostKeyChecking=no',
+             'ruser@%s' % self.master.hostname, 'cat /etc/hosts'],
+            raiseonerr=False
+        )
+        assert result.returncode == 1
+        assert 'This account is currently not available' in \
+            result.stdout_text
