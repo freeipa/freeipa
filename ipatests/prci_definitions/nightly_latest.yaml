@@ -137,7 +137,7 @@ jobs:
         test_suite: test_integration/test_commands.py
         template: *ci-master-latest
         timeout: 3600
-        topology: *master_1repl
+        topology: *master_1repl_1client
 
   fedora-latest/test_kerberos_flags:
     requires: [fedora-latest/build]
