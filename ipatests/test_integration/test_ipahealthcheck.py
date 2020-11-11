@@ -153,7 +153,7 @@ TOMCAT_CONFIG_FILES = (
 
 
 def run_healthcheck(host, source=None, check=None, output_type="json",
-                    failures_only=False):
+                    failures_only=False, debug=True):
     """
     Run ipa-healthcheck on the remote host and return the result
 
@@ -165,6 +165,9 @@ def run_healthcheck(host, source=None, check=None, output_type="json",
     """
     data = None
     cmd = ["ipa-healthcheck"]
+
+    if debug:
+        cmd.append("--debug")
     if source:
         cmd.append("--source")
         cmd.append(source)
@@ -289,11 +292,14 @@ class TestIpaHealthCheck(IntegrationTest):
         Testcase to verify checks available in
         ipahealthcheck.dogtag.ca source
         """
-        result = self.master.run_command(
-            ["ipa-healthcheck", "--source", "ipahealthcheck.dogtag.ca"]
+        returncode, output = run_healthcheck(
+            self.master,
+            "ipahealthcheck.dogtag.ca",
+            output_type="human"
         )
-        for check in dogtag_checks:
-            assert check in result.stdout_text
+        assert returncode == 0
+        assert 'DogtagCertsConfigCheck' in output
+        assert 'DogtagCertsConnectivityCheck' in output
 
     def test_replication_check_exists(self):
         """
@@ -301,37 +307,44 @@ class TestIpaHealthCheck(IntegrationTest):
         ipahealthcheck.ds.replication source
         """
         version = tasks.get_healthcheck_version(self.master)
-        result = self.master.run_command(
-            ["ipa-healthcheck", "--source", "ipahealthcheck.ds.replication"]
+        returncode, output = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ds.replication",
+            output_type="human"
         )
+        assert returncode == 0
         if parse_version(version) >= parse_version("0.6"):
-            checks = replication_checks
+            assert 'ReplicationCheck' in output
         else:
-            checks = replication_checks_0_4
-        for check in checks:
-            assert check in result.stdout_text
+            assert 'ReplicationConflictCheck' in output
 
     def test_ipa_cert_check_exists(self):
         """
         Testcase to verify checks available in
         ipahealthcheck.ipa.certs source
         """
-        result = self.master.run_command(
-            ["ipa-healthcheck", "--source", "ipahealthcheck.ipa.certs"]
+        returncode, output = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.certs",
+            output_type="human"
         )
+        assert returncode == 0
         for check in ipa_cert_checks:
-            assert check in result.stdout_text
+            assert check in output
 
     def test_ipa_trust_check_exists(self):
         """
         Testcase to verify checks available in
         ipahealthcheck.ipa.trust source
         """
-        result = self.master.run_command(
-            ["ipa-healthcheck", "--source", "ipahealthcheck.ipa.trust"]
+        returncode, output = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.trust",
+            output_type="human"
         )
+        assert returncode == 0
         for check in ipatrust_checks:
-            assert check in result.stdout_text
+            assert check in output
 
     def test_source_ipahealthcheck_meta_services_check(self, restart_service):
         """
@@ -758,11 +771,12 @@ class TestIpaHealthCheck(IntegrationTest):
         This test case checks whether default (2) indentation is applied
         to output without it being implicitly stated
         """
-        cmd = self.master.run_command(["ipa-healthcheck",
-                                       "--source",
-                                       "ipahealthcheck.meta.services"],
-                                      raiseonerr=False)
-        output_str = cmd.stdout_text
+        output = run_healthcheck(
+            self.master,
+            "ipahealthcheck.meta.services",
+            output_type="human"
+        )
+        output_str = output
         output_json = json.loads(output_str)
         assert output_str == "{}\n".format(json.dumps(output_json, indent=2))
 
@@ -809,18 +823,14 @@ class TestIpaHealthCheck(IntegrationTest):
             "Source 'ipahealthcheck.ipa.topology' is missing "
             "one or more requirements 'dirsrv'"
         )
-        result = self.master.run_command(
-            [
-                "ipa-healthcheck",
-                "--source",
-                "ipahealthcheck.ipa.topology",
-                "--debug",
-            ],
-            raiseonerr=False,
+        returncode, output = run_healthcheck(
+            self.master,
+            "ipahealthcheck.ipa.topology",
+            output_type="human"
         )
-        assert result.returncode == 1
-        assert msg in result.stdout_text
-        assert error_msg not in result.stdout_text
+        assert returncode == 1
+        assert msg in output
+        assert error_msg not in output
 
     @pytest.fixture
     def move_ipa_ca_crt(self):
