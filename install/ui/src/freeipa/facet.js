@@ -1088,6 +1088,15 @@ exp.facet = IPA.facet = function(spec, no_init) {
     };
 
     /**
+     * Form navigation options
+     *
+     * The options allow to build a link to the given facet.
+     */
+    that.get_navigation_options = function() {
+        return {pkeys: that.get_pkeys()};
+    };
+
+    /**
      * Initialize facet
      * @protected
      */
@@ -1639,9 +1648,9 @@ exp.FacetGroupsWidget = declare([], {
         $('<a/>', {
             text: tab.tab_label,
             'class': 'tab-link',
-            href: "#" + navigation.create_hash(tab, {
-                pkeys: self.facet.get_pkeys()
-            }),
+            href: "#" + navigation.create_hash(
+                tab, self.facet.get_navigation_options()
+            ),
             name: tab.name
         }).appendTo(el);
 

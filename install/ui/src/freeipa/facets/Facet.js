@@ -333,6 +333,15 @@ define(['dojo/_base/declare',
             window.console.warning('Unimplemented');
         },
 
+        /**
+         * Form navigation options
+         *
+         * The method is needed to keep compatibility with IPA.facet class.
+         */
+        get_navigation_options: function() {
+            return {};
+        },
+
         /** Constructor */
         constructor: function(spec) {
 
