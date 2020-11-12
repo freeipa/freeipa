@@ -505,6 +505,10 @@ class UI_driver:
         self.driver.get(self.get_url(entity, facet))
         self.wait_for_request(n=3, d=0.4)
 
+    def navigate_to_page(self, page):
+        self.driver.get('/'.join([self.get_base_url(), '#', 'p', page]))
+        self.wait_for_request(n=3, d=0.4)
+
     def navigate_by_menu(self, item, complete=True):
         """
         Navigate by using menu
