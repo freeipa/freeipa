@@ -44,6 +44,13 @@ logger = logging.getLogger(__name__)
 
 EPN_PKG = ["*ipa-client-epn"]
 
+SMTP_CLIENT_CERT = os.path.join(paths.OPENSSL_CERTS_DIR, "smtp_client.pem")
+SMTP_CLIENT_KEY = os.path.join(paths.OPENSSL_PRIVATE_DIR, "smtp_client.key")
+SMTP_CLIENT_KEY_PASS = "Secret123"
+
+SMTPD_KEY = os.path.join(paths.OPENSSL_PRIVATE_DIR, "postfix.key")
+SMTPD_CERT = os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem")
+
 DEFAULT_EPN_CONF = textwrap.dedent(
     """\
     [global]
@@ -72,6 +79,13 @@ SSL_EPN_CONF = USER_EPN_CONF + textwrap.dedent(
     """
 )
 
+CLIENT_CERT_EPN_CONF = textwrap.dedent(
+    """\
+    smtp_client_cert={client_cert}
+    smtp_client_key={client_key}
+    smtp_client_key_pass={client_key_pass}
+    """
+)
 
 def datetime_to_generalized_time(dt):
     """Convert datetime to LDAP_GENERALIZED_TIME_FORMAT
@@ -146,17 +160,10 @@ def configure_starttls(host):
        Depends on configure_postfix() being executed first.
     """
 
-    host.run_command(
-        ["rm", "-f", os.path.join(paths.OPENSSL_PRIVATE_DIR, "postfix.key")]
-    )
-    host.run_command(
-        ["rm", "-f", os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem")]
-    )
+    host.run_command(["rm", "-f", SMTPD_KEY, SMTPD_CERT])
     host.run_command(["ipa-getcert", "request",
-                      "-f",
-                      os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem"),
-                      "-k",
-                      os.path.join(paths.OPENSSL_PRIVATE_DIR, "postfix.key"),
+                      "-f", SMTPD_CERT,
+                      "-k", SMTPD_KEY,
                       "-K", "smtp/%s" % host.hostname,
                       "-D", host.hostname,
                       "-O", "postfix",
@@ -167,22 +174,39 @@ def configure_starttls(host):
                       ])
     postconf(host, 'smtpd_tls_loglevel = 1')
     postconf(host, 'smtpd_tls_auth_only = yes')
-    postconf(
-        host,
-        "smtpd_tls_key_file = {}".format(
-            os.path.join(paths.OPENSSL_PRIVATE_DIR, "postfix.key")
-        )
-    )
-    postconf(
-        host,
-        "smtpd_tls_cert_file = {}".format(
-            os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem")
-        )
-    )
+    postconf(host, "smtpd_tls_key_file = {}".format(SMTPD_KEY))
+    postconf(host, "smtpd_tls_cert_file = {}".format(SMTPD_CERT))
     postconf(host, 'smtpd_tls_received_header = yes')
     postconf(host, 'smtpd_tls_session_cache_timeout = 3600s')
     # announce STARTTLS support to remote SMTP clients, not require
     postconf(host, 'smtpd_tls_security_level = may')
+
+    host.run_command(["systemctl", "restart", "postfix"])
+
+
+def configure_ssl_client_cert(host):
+    """Obtain a TLS cert for the SMTP client and configure postfix for client
+       certificate verification.
+
+       Depends on configure_starttls().
+    """
+    host.run_command(["rm", "-f", SMTP_CLIENT_KEY, SMTP_CLIENT_CERT])
+
+    host.run_command(["ipa-getcert", "request",
+                      "-f", SMTP_CLIENT_CERT,
+                      "-k", SMTP_CLIENT_KEY,
+                      "-K", "smtp_client/%s" % host.hostname,
+                      "-D", host.hostname,
+                      "-P", "Secret123",
+                      "-w",
+                      ])
+
+    # mandatory TLS encryption
+    postconf(host, "smtpd_tls_security_level = encrypt")
+    # require a trusted remote SMTP client certificate
+    postconf(host, "smtpd_tls_req_ccert = yes")
+    # CA certificates of root CAs trusted to sign remote SMTP client cert
+    postconf(host, f"smtpd_tls_CAfile = {paths.IPA_CA_CRT}")
 
     host.run_command(["systemctl", "restart", "postfix"])
 
@@ -303,26 +327,18 @@ class TestEPN(IntegrationTest):
         tasks.uninstall_packages(cls.clients[0], EPN_PKG)
         tasks.uninstall_packages(cls.clients[0], ["postfix"])
         cls.master.run_command(r'rm -f /etc/postfix/smtp.keytab')
-        cls.master.run_command(
-            [
-                "getcert",
-                "stop-tracking",
-                "-f",
-                os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem"),
-            ]
-        )
+
+        for cert in [SMTPD_CERT, SMTP_CLIENT_CERT]:
+            cls.master.run_command(["getcert", "stop-tracking", "-f", cert])
+
         cls.master.run_command(
             [
                 "rm",
                 "-f",
-                os.path.join(paths.OPENSSL_PRIVATE_DIR, "postfix.key"),
-            ]
-        )
-        cls.master.run_command(
-            [
-                "rm",
-                "-f",
-                os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem"),
+                SMTPD_CERT,
+                SMTPD_KEY,
+                SMTP_CLIENT_CERT,
+                SMTP_CLIENT_KEY,
             ]
         )
 
@@ -342,7 +358,7 @@ class TestEPN(IntegrationTest):
         assert epn_conf in cmd1.stdout_text
         assert epn_template in cmd1.stdout_text
         cmd2 = self.master.run_command(["sha256sum", epn_conf])
-        ck = "192481b52fb591112afd7b55b12a44c6618fdbc7e05a3b1866fd67ec579c51df"
+        ck = "9977d846539d4945900bd04bae25bf746ac75fb561d3769014002db04e1790b8"
         assert cmd2.stdout_text.find(ck) == 0
 
     def test_EPN_connection_refused(self):
@@ -433,8 +449,10 @@ class TestEPN(IntegrationTest):
     @pytest.fixture
     def cleanupmail(self):
         """Cleanup any existing mail that has been sent."""
+        cmd = ["rm", "-f"]
         for i in range(30):
-            self.master.run_command(["rm", "-f", "/var/mail/user%d" % i])
+            cmd.append("/var/mail/user%d" % i)
+        self.master.run_command(cmd)
 
     def test_EPN_smoketest_2(self, cleanupusers):
         """Add a user without password.
@@ -717,6 +735,49 @@ class TestEPN(IntegrationTest):
         for i in self.notify_ttls:
             validate_mail(self.master, i,
                           "Hi test user,\nYour login entry user%d is going" % i)
+
+    def test_EPN_ssl_client_cert(self, cleanupmail):
+        """Configure with ssl + client certificate and test delivery
+        """
+        epn_conf = (SSL_EPN_CONF + CLIENT_CERT_EPN_CONF).format(
+            server=self.master.hostname,
+            user=self.master.config.admin_name,
+            password=self.master.config.admin_password,
+            client_cert=SMTP_CLIENT_CERT,
+            client_key=SMTP_CLIENT_KEY,
+            client_key_pass=SMTP_CLIENT_KEY_PASS,
+        )
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+        configure_ssl_client_cert(self.master)
+
+        tasks.ipa_epn(self.master)
+        for i in self.notify_ttls:
+            validate_mail(
+                self.master,
+                i,
+                "Hi test user,\nYour login entry user%d is going" % i
+            )
+
+    def test_EPN_starttls_client_cert(self, cleanupmail):
+        """Configure with starttls + client certificate and test delivery
+        """
+        epn_conf = (STARTTLS_EPN_CONF + CLIENT_CERT_EPN_CONF).format(
+            server=self.master.hostname,
+            user=self.master.config.admin_name,
+            password=self.master.config.admin_password,
+            client_cert=SMTP_CLIENT_CERT,
+            client_key=SMTP_CLIENT_KEY,
+            client_key_pass=SMTP_CLIENT_KEY_PASS,
+        )
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+
+        tasks.ipa_epn(self.master)
+        for i in self.notify_ttls:
+            validate_mail(
+                self.master,
+                i,
+                "Hi test user,\nYour login entry user%d is going" % i
+            )
 
     def test_EPN_delay_config(self, cleanupmail):
         """Test the smtp_delay configuration option

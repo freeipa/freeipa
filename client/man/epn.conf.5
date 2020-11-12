@@ -60,6 +60,15 @@ Specifies the id of the user to authenticate with the SMTP server. Default None.
 .B smtp_password <password>
 Specifies the password for the authorized user. Default None.
 .TP
+.B smtp_client_cert <certificate>
+Specifies the path to a single file in PEM format containing the certificate. Default None.
+.TP
+.B smtp_client_key <private key>
+Specifies the path to a file containing the private key in. Otherwise the private key will be taken from certfile as well. Default None.
+.TP
+.B smtp_client_key_pass <private key password>
+Specifies the password for decrypting the private key. Default None.
+.TP
 .B smtp_timeout <seconds>
 Specifies the number of seconds to wait for SMTP to respond. Default 60.
 .TP
