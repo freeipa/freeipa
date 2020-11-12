@@ -56,6 +56,9 @@ EPN_CONFIG = {
     "smtp_port": 25,
     "smtp_user": None,
     "smtp_password": None,
+    "smtp_client_cert": None,
+    "smtp_client_key": None,
+    "smtp_client_key_pass": None,
     "smtp_timeout": 60,
     "smtp_security": "none",
     "smtp_admin": "root@localhost",
@@ -470,6 +473,12 @@ class EPN(admintool.AdminTool):
         """
         if api.env.smtp_security.lower() in ("starttls", "ssl"):
             self._ssl_context = ssl.create_default_context()
+            if api.env.smtp_client_cert:
+                self._ssl_context.load_cert_chain(
+                    certfile=api.env.smtp_client_cert,
+                    keyfile=api.env.smtp_client_key,
+                    password=str(api.env.smtp_client_key_pass),
+                )
 
     def _fetch_data_from_ldap(self, date_range):
         """Run a LDAP query to fetch a list of user entries whose passwords
