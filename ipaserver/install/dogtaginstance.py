@@ -326,9 +326,9 @@ class DogtagInstance(service.Service):
         if len(connectors) == 0:
             return
 
-        # AJP protocol is at version 1.3. Assume there is only one as
-        # Dogtag only provisions one.
-        connector = connectors[0]
+        # Whether or not we should rewrite the tomcat server.xml file with
+        # our changes.
+        rewrite = False
 
         # Detect tomcat version and choose the right option name
         # pre-9.0.31.0 uses 'requiredSecret'
@@ -338,34 +338,66 @@ class DogtagInstance(service.Service):
         if self.__is_newer_tomcat_version('9.0.31.0'):
             secretattr = 'secret'
 
-        rewrite = True
-        if secretattr in connector.attrib:
-            # secret is already in place
-            # Perhaps, we need to synchronize it with Apache configuration
-            self.ajp_secret = connector.attrib[secretattr]
-            rewrite = False
-        else:
-            if oldattr in connector.attrib:
+        # AJP protocol is at version 1.3. With IPv4/IPv6 split, there might
+        # be multiple AJP adapters; update them all.
+        #
+        # First, iterate through all adapters and see if any of them have a
+        # secret value set.
+        for connector in connectors:
+            if secretattr in connector.attrib or oldattr in connector.attrib:
+                # secret is already in place
+                #
+                # Perhaps, we need to synchronize it with Apache configuration
+                # or other AJP connector entries. Save it so we know we've
+                # found at least one. Because in our next loop we update the
+                # config value if incorrect, it is safe to overwrite
+                # self.ajp_adapter -- in the worst case, we'll create an
+                # entirely new value if this element happened to have an
+                # empty secret value. Plus, IPA is in charge of managing the
+                # value for the httpd side of the AJP connection as well
+                # which needs to happen after this call.
+                #
+                # The first secret found wins.
+                self.ajp_secret = connector.attrib.get(secretattr) or \
+                    connector.attrib.get(oldattr)
+                break
+
+        # If no secret value was detected, create a single unique value.
+        if not self.ajp_secret:
+            # Generate password, don't use special chars to not break XML.
+            self.ajp_secret = ipautil.ipa_generate_password(special=None)
+
+        # Finally, iterate through them all again, upgrading adapter attribute
+        # and setting the secret value if missing or incorrect.
+        for connector in connectors:
+            if oldattr != secretattr and oldattr in connector.attrib:
                 # Sufficiently new Dogtag versions (10.9.0-a2) handle the
                 # upgrade for us; we need only to ensure that we're not both
                 # attempting to upgrade server.xml at the same time.
                 # Hopefully this is guaranteed for us.
-                self.ajp_secret = connector.attrib[oldattr]
                 connector.attrib[secretattr] = self.ajp_secret
                 del connector.attrib[oldattr]
-            else:
-                # Generate password, don't use special chars to not break XML.
+                rewrite = True
+            if (secretattr not in connector.attrib
+                    or connector.attrib[secretattr] != self.ajp_secret):
+                # We hit this either when:
                 #
-                # If we hit this case, pkispawn was run on an older Dogtag
-                # version and we're stuck migrating, choosing a password
-                # ourselves. Dogtag can't generate one randomly because a
-                # Dogtag administrator might've configured AJP and might
-                # not be using IPA.
+                #   1. pkispawn was run on an older Dogtag version, or
+                #   2. there were multiple AJP adapters with mismatched
+                #      secrets.
                 #
                 # Newer Dogtag versions will generate a random password
-                # during pkispawn.
-                self.ajp_secret = ipautil.ipa_generate_password(special=None)
+                # during pkispawn. In the former scenario, it is always
+                # safe to change the AJP secret value. In the latter
+                # scenario we should always ensure the AJP connector is
+                # the one we use use with httpd, as we don't officially
+                # support multiple AJP adapters for non-IPA uses.
+                #
+                # In new Dogtag versions, Dogtag deploys separate IPv4 and
+                # IPv6 localhost adapters, which we should ensure have the
+                # same AJP secret for httpd's use.
                 connector.attrib[secretattr] = self.ajp_secret
+                rewrite = True
 
         if rewrite:
             with open(paths.PKI_TOMCAT_SERVER_XML, "wb") as fd:
