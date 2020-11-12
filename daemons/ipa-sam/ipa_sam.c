@@ -2490,6 +2490,7 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 					 LDAP_ATTRIBUTE_TRUST_DIRECTION,
 					 &td->trust_direction);
 	if (!res) {
+		TALLOC_FREE(td);
 		return false;
 	}
 	if (td->trust_direction == 0) {
@@ -2501,6 +2502,7 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 					 LDAP_ATTRIBUTE_TRUST_ATTRIBUTES,
 					 &td->trust_attributes);
 	if (!res) {
+		TALLOC_FREE(td);
 		return false;
 	}
 	if (td->trust_attributes == 0) {
@@ -2512,6 +2514,7 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 					 LDAP_ATTRIBUTE_TRUST_TYPE,
 					 &td->trust_type);
 	if (!res) {
+		TALLOC_FREE(td);
 		return false;
 	}
 	if (td->trust_type == 0) {
@@ -2521,23 +2524,27 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 
 	td->trust_posix_offset = talloc_zero(td, uint32_t);
 	if (td->trust_posix_offset == NULL) {
+		TALLOC_FREE(td);
 		return false;
 	}
 	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_TRUST_POSIX_OFFSET,
 					 td->trust_posix_offset);
 	if (!res) {
+		TALLOC_FREE(td);
 		return false;
 	}
 
 	td->supported_enc_type = talloc_zero(td, uint32_t);
 	if (td->supported_enc_type == NULL) {
+		TALLOC_FREE(td);
 		return false;
 	}
 	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_SUPPORTED_ENC_TYPE,
 					 td->supported_enc_type);
 	if (!res) {
+		TALLOC_FREE(td);
 		return false;
 	}
 	if (*td->supported_enc_type == 0) {
