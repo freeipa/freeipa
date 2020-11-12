@@ -43,6 +43,25 @@ logger = logging.getLogger(__name__)
 
 EPN_PKG = ["*ipa-client-epn"]
 
+STARTTLS_EPN_CONF = textwrap.dedent(
+    """\
+    [global]
+    smtp_user={user}
+    smtp_password={password}
+    smtp_security=starttls
+    """
+)
+
+SSL_EPN_CONF = textwrap.dedent(
+    """\
+    [global]
+    smtp_user={user}
+    smtp_password={password}
+    smtp_port=465
+    smtp_security=ssl
+    """
+)
+
 
 def datetime_to_generalized_time(dt):
     """Convert datetime to LDAP_GENERALIZED_TIME_FORMAT
@@ -93,6 +112,11 @@ def configure_postfix(host, realm):
     postconf(host, 'broken_sasl_auth_clients = yes')
     postconf(host, 'smtpd_sasl_authenticated_header = yes')
     postconf(host, 'smtpd_sasl_local_domain = %s' % realm)
+    # TLS will not be used
+    postconf(host, 'smtpd_tls_security_level = none')
+
+    # disable procmail if exists, make use of default local(8) delivery agent
+    postconf(host, "mailbox_command=")
 
     host.run_command(["systemctl", "restart", "saslauthd"])
 
@@ -144,6 +168,8 @@ def configure_starttls(host):
     )
     postconf(host, 'smtpd_tls_received_header = yes')
     postconf(host, 'smtpd_tls_session_cache_timeout = 3600s')
+    # announce STARTTLS support to remote SMTP clients, not require
+    postconf(host, 'smtpd_tls_security_level = may')
 
     host.run_command(["systemctl", "restart", "postfix"])
 
@@ -317,6 +343,43 @@ class TestEPN(IntegrationTest):
         self.master.run_command(["systemctl", "start", "postfix"])
         assert "IPA-EPN: Could not connect to the configured SMTP server" in \
             stderr_text
+        assert rc > 0
+
+    def test_EPN_no_security_downgrade_starttls(self):
+        """Configure postfix without starttls and test no auth happens
+        """
+        epn_conf = STARTTLS_EPN_CONF.format(
+            user=self.master.config.admin_name,
+            password=self.master.config.admin_password,
+        )
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+
+        (unused, stderr_text, rc) = self._check_epn_output(
+            self.master, mailtest=True,
+            raiseonerr=False, validatejson=False
+        )
+        expected_msg = "IPA-EPN: Unable to create an encrypted session to"
+        assert expected_msg in stderr_text
+        assert rc > 0
+
+    def test_EPN_no_security_downgrade_tls(self):
+        """Configure postfix without tls and test no auth happens
+        """
+        epn_conf = SSL_EPN_CONF.format(
+            user=self.master.config.admin_name,
+            password=self.master.config.admin_password,
+        )
+        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+
+        (unused, stderr_text, rc) = self._check_epn_output(
+            self.master, mailtest=True,
+            raiseonerr=False, validatejson=False
+        )
+        expected_msg = (
+            "IPA-EPN: Could not connect to the configured SMTP "
+            "server"
+        )
+        assert expected_msg in stderr_text
         assert rc > 0
 
     def test_EPN_smoketest_1(self):
@@ -611,13 +674,10 @@ class TestEPN(IntegrationTest):
     def test_EPN_starttls(self, cleanupmail):
         """Configure with starttls and test delivery
         """
-        epn_conf = textwrap.dedent('''
-            [global]
-            smtp_user={user}
-            smtp_password={password}
-            smtp_security=starttls
-        '''.format(user=self.master.config.admin_name,
-                   password=self.master.config.admin_password))
+        epn_conf = STARTTLS_EPN_CONF.format(
+            user=self.master.config.admin_name,
+            password=self.master.config.admin_password,
+        )
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
         configure_starttls(self.master)
 
@@ -629,14 +689,10 @@ class TestEPN(IntegrationTest):
     def test_EPN_ssl(self, cleanupmail):
         """Configure with ssl and test delivery
         """
-        epn_conf = textwrap.dedent('''
-            [global]
-            smtp_user={user}
-            smtp_password={password}
-            smtp_port=465
-            smtp_security=ssl
-        '''.format(user=self.master.config.admin_name,
-                   password=self.master.config.admin_password))
+        epn_conf = SSL_EPN_CONF.format(
+            user=self.master.config.admin_name,
+            password=self.master.config.admin_password,
+        )
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
         configure_ssl(self.master)
 

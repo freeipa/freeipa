@@ -685,20 +685,14 @@ class MTAClient:
                 e,
             )
 
-        if (
-            self._conn.has_extn("STARTTLS")
-            and self._security_protocol.lower() == "starttls"
-        ):
+        if self._security_protocol.lower() == "starttls":
             try:
                 self._conn.starttls()
                 self._conn.ehlo()
             except smtplib.SMTPException as e:
-                logger.error(
+                raise RuntimeError(
                     "IPA-EPN: Unable to create an encrypted session to "
-                    "%s:%s: %s",
-                    self._smtp_hostname,
-                    self._smtp_port,
-                    e,
+                    "%s:%s: %s" % (self._smtp_hostname, self._smtp_port, e)
                 )
 
         if self._username and self._password:
