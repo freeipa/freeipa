@@ -37,6 +37,7 @@ from subprocess import CalledProcessError
 
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipatests.pytest_ipa.integration import tasks
 
 logger = logging.getLogger(__name__)
@@ -58,12 +59,14 @@ USER_EPN_CONF = DEFAULT_EPN_CONF + textwrap.dedent(
 
 STARTTLS_EPN_CONF = USER_EPN_CONF + textwrap.dedent(
     """\
+    smtp_server={server}
     smtp_security=starttls
     """
 )
 
 SSL_EPN_CONF = USER_EPN_CONF + textwrap.dedent(
     """\
+    smtp_server={server}
     smtp_port=465
     smtp_security=ssl
     """
@@ -124,6 +127,9 @@ def configure_postfix(host, realm):
 
     # disable procmail if exists, make use of default local(8) delivery agent
     postconf(host, "mailbox_command=")
+
+    # listen on all active interfaces
+    postconf(host, "inet_interfaces = all")
 
     host.run_command(["systemctl", "restart", "saslauthd"])
 
@@ -264,6 +270,7 @@ class TestEPN(IntegrationTest):
         #   doesn't know about.
         # - Adds a class variable, pkg, containing the package name of
         #   the downloaded *ipa-client-epn rpm.
+        hosts = [cls.master, cls.clients[0]]
         tasks.uninstall_packages(cls.clients[0],EPN_PKG)
         pkgdir = tasks.download_packages(cls.clients[0], EPN_PKG)
         pkg = cls.clients[0].run_command(r'ls -1 {}'.format(pkgdir))
@@ -273,20 +280,20 @@ class TestEPN(IntegrationTest):
                                     '/tmp'])
         cls.clients[0].run_command(r'rm -rf {}'.format(pkgdir))
 
-        tasks.install_packages(cls.master, EPN_PKG)
-        tasks.install_packages(cls.master, ["postfix"])
-        tasks.install_packages(cls.clients[0], EPN_PKG)
-        tasks.install_packages(cls.clients[0], ["postfix"])
-        for host in (cls.master, cls.clients[0]):
+        for host in hosts:
+            tasks.install_packages(host, EPN_PKG + ["postfix"])
             try:
                 tasks.install_packages(host, ["cyrus-sasl"])
             except Exception:
                 # the package is likely already installed
                 pass
+
         tasks.install_master(cls.master, setup_dns=True)
         tasks.install_client(cls.master, cls.clients[0])
-        configure_postfix(cls.master, cls.master.domain.realm)
-        configure_postfix(cls.clients[0], cls.master.domain.realm)
+        for host in hosts:
+            configure_postfix(host, cls.master.domain.realm)
+            Firewall(host).enable_services(["smtp", "smtps"])
+
 
     @classmethod
     def uninstall(cls, mh):
@@ -356,6 +363,7 @@ class TestEPN(IntegrationTest):
         """Configure postfix without starttls and test no auth happens
         """
         epn_conf = STARTTLS_EPN_CONF.format(
+            server=self.master.hostname,
             user=self.master.config.admin_name,
             password=self.master.config.admin_password,
         )
@@ -373,6 +381,7 @@ class TestEPN(IntegrationTest):
         """Configure postfix without tls and test no auth happens
         """
         epn_conf = SSL_EPN_CONF.format(
+            server=self.master.hostname,
             user=self.master.config.admin_name,
             password=self.master.config.admin_password,
         )
@@ -681,6 +690,7 @@ class TestEPN(IntegrationTest):
         """Configure with starttls and test delivery
         """
         epn_conf = STARTTLS_EPN_CONF.format(
+            server=self.master.hostname,
             user=self.master.config.admin_name,
             password=self.master.config.admin_password,
         )
@@ -696,6 +706,7 @@ class TestEPN(IntegrationTest):
         """Configure with ssl and test delivery
         """
         epn_conf = SSL_EPN_CONF.format(
+            server=self.master.hostname,
             user=self.master.config.admin_name,
             password=self.master.config.admin_password,
         )
