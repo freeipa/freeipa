@@ -43,20 +43,27 @@ logger = logging.getLogger(__name__)
 
 EPN_PKG = ["*ipa-client-epn"]
 
-STARTTLS_EPN_CONF = textwrap.dedent(
+DEFAULT_EPN_CONF = textwrap.dedent(
     """\
     [global]
+    """
+)
+
+USER_EPN_CONF = DEFAULT_EPN_CONF + textwrap.dedent(
+    """\
     smtp_user={user}
     smtp_password={password}
+    """
+)
+
+STARTTLS_EPN_CONF = USER_EPN_CONF + textwrap.dedent(
+    """\
     smtp_security=starttls
     """
 )
 
-SSL_EPN_CONF = textwrap.dedent(
+SSL_EPN_CONF = USER_EPN_CONF + textwrap.dedent(
     """\
-    [global]
-    smtp_user={user}
-    smtp_password={password}
     smtp_port=465
     smtp_security=ssl
     """
@@ -387,10 +394,7 @@ class TestEPN(IntegrationTest):
            With the default configuration, the result should be an empty list.
            Also check behavior on master and client alike.
         """
-        epn_conf = textwrap.dedent('''
-            [global]
-        ''')
-        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+        self.master.put_file_contents('/etc/ipa/epn.conf', DEFAULT_EPN_CONF)
         # check EPN on client (LDAP+GSSAPI)
         (stdout_text, unused, _unused) = self._check_epn_output(
             self.clients[0], dry_run=True
@@ -609,12 +613,10 @@ class TestEPN(IntegrationTest):
     def test_EPN_authenticated(self, cleanupmail):
         """Enable authentication and test that mail is delivered
         """
-        epn_conf = textwrap.dedent('''
-            [global]
-            smtp_user={user}
-            smtp_password={password}
-        '''.format(user=self.master.config.admin_name,
-                   password=self.master.config.admin_password))
+        epn_conf = USER_EPN_CONF.format(
+            user=self.master.config.admin_name,
+            password=self.master.config.admin_password,
+        )
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
 
         tasks.ipa_epn(self.master)
@@ -648,14 +650,18 @@ class TestEPN(IntegrationTest):
 
            Using a non-expired user here, user2, to receive the result.
         """
-        epn_conf = textwrap.dedent('''
-            [global]
-            smtp_user={user}
-            smtp_password={password}
-            smtp_admin=user2@{domain}
-        '''.format(user=self.master.config.admin_name,
-                   password=self.master.config.admin_password,
-                   domain=self.master.domain.name))
+        epn_conf = (
+            USER_EPN_CONF
+            + textwrap.dedent(
+                """\
+                smtp_admin=user2@{domain}
+                """
+            )
+        ).format(
+            user=self.master.config.admin_name,
+            password=self.master.config.admin_password,
+            domain=self.master.domain.name,
+        )
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
 
         tasks.ipa_epn(self.master, mailtest=True)
@@ -704,19 +710,21 @@ class TestEPN(IntegrationTest):
     def test_EPN_delay_config(self, cleanupmail):
         """Test the smtp_delay configuration option
         """
-        epn_conf = textwrap.dedent('''
-            [global]
+        epn_conf = DEFAULT_EPN_CONF + textwrap.dedent(
+            """\
             smtp_delay=A
-        ''')
+            """
+        )
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
 
         result = tasks.ipa_epn(self.master, raiseonerr=False)
         assert "could not convert string to float: 'A'" in result.stderr_text
 
-        epn_conf = textwrap.dedent('''
-            [global]
+        epn_conf = DEFAULT_EPN_CONF + textwrap.dedent(
+            """\
             smtp_delay=-1
-        ''')
+            """
+        )
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
         result = tasks.ipa_epn(self.master, raiseonerr=False)
         assert "smtp_delay cannot be less than zero" in result.stderr_text
@@ -726,10 +734,7 @@ class TestEPN(IntegrationTest):
            It also doesn't by default have an e-mail address
            Check --dry-run output.
         """
-        epn_conf = textwrap.dedent('''
-            [global]
-        ''')
-        self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
+        self.master.put_file_contents('/etc/ipa/epn.conf', DEFAULT_EPN_CONF)
         self.master.run_command(
             ['ipa', 'user-mod', 'admin', '--password-expiration',
              datetime_to_generalized_time(
