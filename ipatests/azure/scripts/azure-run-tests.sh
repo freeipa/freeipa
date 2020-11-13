@@ -67,7 +67,7 @@ BUILD_REPOSITORY_LOCALPATH="$BUILD_REPOSITORY_LOCALPATH" \
 IPA_DOCKER_IMAGE="${IPA_DOCKER_IMAGE:-freeipa-azure-builder}" \
 IPA_NETWORK="${IPA_NETWORK:-ipanet}" \
 IPA_IPV6_SUBNET="2001:db8:1:${PROJECT_ID}::/64" \
-docker-compose -p "$PROJECT_ID" up \
+docker-compose -p "$PROJECT_ID" --verbose --log-level DEBUG up \
     --scale replica="$IPA_TESTS_REPLICAS" \
     --scale client="$IPA_TESTS_CLIENTS" \
     --force-recreate --remove-orphans -d
@@ -105,7 +105,7 @@ BUILD_REPOSITORY_LOCALPATH="$BUILD_REPOSITORY_LOCALPATH" \
 IPA_DOCKER_IMAGE="${IPA_DOCKER_IMAGE:-freeipa-azure-builder}" \
 IPA_NETWORK="${IPA_NETWORK:-ipanet}" \
 IPA_IPV6_SUBNET="2001:db8:1:${PROJECT_ID}::/64" \
-docker-compose -p "$PROJECT_ID" down
+docker-compose -p "$PROJECT_ID" --verbose --log-level DEBUG down
 popd
 
 exit $tests_result
