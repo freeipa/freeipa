@@ -25,13 +25,15 @@ from ipaserver.plugins.dogtag import RestClient
 
 class acme_state(RestClient):
 
-    def _request(self, url):
+    def _request(self, url, headers=None):
+        headers = headers or {}
         return dogtag.https_request(
             self.ca_host, 8443,
             url=url,
             cafile=self.ca_cert,
             client_certfile=paths.RA_AGENT_PEM,
             client_keyfile=paths.RA_AGENT_KEY,
+            headers=headers,
             method='POST'
         )
 
@@ -48,20 +50,21 @@ class acme_state(RestClient):
     def __exit__(self, exc_type, exc_value, traceback):
         """Log out of the REST API"""
         headers = dict(Cookie=self.cookie)
-        status, unused, _unused = self._request('/acme/logout')
+        status, unused, _unused = self._request('/acme/logout', headers=headers)
         object.__setattr__(self, 'cookie', None)
         if status != 204:
             raise RuntimeError('Failed to logout')
 
     def enable(self):
         headers = dict(Cookie=self.cookie)
-        status, unused, _unused = self._request('/acme/enable')
+        status, unused, _unused = self._request('/acme/enable', headers=headers)
         if status != 200:
             raise RuntimeError('Failed to enable ACME')
 
     def disable(self):
         headers = dict(Cookie=self.cookie)
-        status, unused, _unused = self._request('/acme/disable')
+        status, unused, _unused = self._request('/acme/disable',
+                                                headers=headers)
         if status != 200:
             raise RuntimeError('Failed to disble ACME')
 
