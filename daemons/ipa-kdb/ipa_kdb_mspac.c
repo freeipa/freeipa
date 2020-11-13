@@ -2352,7 +2352,7 @@ done:
 
 static char *get_server_netbios_name(struct ipadb_context *ipactx)
 {
-    char hostname[IPA_HOST_FQDN_LEN]; /* NOTE: long enough for DNS name */
+    char hostname[IPA_HOST_FQDN_LEN + 1]; /* NOTE: long enough for DNS name */
     char *p;
 
     strncpy(hostname, ipactx->kdc_hostname, IPA_HOST_FQDN_LEN);
