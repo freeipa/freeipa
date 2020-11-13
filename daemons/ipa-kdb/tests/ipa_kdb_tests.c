@@ -72,7 +72,7 @@ struct test_ctx {
 #define DOM_SID_TRUST "S-1-5-21-4-5-6"
 #define BLOCKLIST_SID "S-1-5-1"
 #define NUM_SUFFIXES 10
-#define SUFFIX_TEMPLATE "d%0d" DOMAIN_NAME
+#define SUFFIX_TEMPLATE "d%zu" DOMAIN_NAME
 #define TEST_REALM_TEMPLATE "some." SUFFIX_TEMPLATE
 #define EXTERNAL_REALM "WRONG.DOMAIN"
 
@@ -136,7 +136,8 @@ static int setup(void **state)
     ipa_ctx->mspac->trusts[0].upn_suffixes = calloc(NUM_SUFFIXES + 1, sizeof(char *));
     ipa_ctx->mspac->trusts[0].upn_suffixes_len = calloc(NUM_SUFFIXES, sizeof(size_t));
     for (size_t i = 0; i < NUM_SUFFIXES; i++) {
-	asprintf(&(ipa_ctx->mspac->trusts[0].upn_suffixes[i]), SUFFIX_TEMPLATE, i);
+	assert_int_not_equal(asprintf(&(ipa_ctx->mspac->trusts[0].upn_suffixes[i]),
+                                      SUFFIX_TEMPLATE, i), -1);
         ipa_ctx->mspac->trusts[0].upn_suffixes_len[i] =
             strlen(ipa_ctx->mspac->trusts[0].upn_suffixes[i]);
 
@@ -504,7 +505,7 @@ void test_check_trusted_realms(void **state)
 
     for(size_t i = 0; i < NUM_SUFFIXES; i++) {
         char *test_realm = NULL;
-        asprintf(&test_realm, TEST_REALM_TEMPLATE, i);
+        assert_int_not_equal(asprintf(&test_realm, TEST_REALM_TEMPLATE, i), -1);
 
         if (test_realm) {
             kerr = ipadb_is_princ_from_trusted_realm(
