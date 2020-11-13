@@ -62,6 +62,8 @@ CLASS_LOGFILES = [
     # IPA backup and restore logs
     paths.IPARESTORE_LOG,
     paths.IPABACKUP_LOG,
+    # EPN log
+    paths.IPAEPN_LOG,
     # kerberos related logs
     paths.KADMIND_LOG,
     paths.KRB5KDC_LOG,
