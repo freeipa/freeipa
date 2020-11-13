@@ -244,12 +244,12 @@ class TestIpaHealthCheck(IntegrationTest):
         """
         tasks.install_packages(self.master, HEALTHCHECK_PKG)
 
-    def test_ipa_healthcheck_install_on_replica(self):
-        """
-        Testcase to check healthcheck package is installed
-        succesfully on IPA replica.
-        """
-        tasks.install_packages(self.replicas[0], HEALTHCHECK_PKG)
+#    def test_ipa_healthcheck_install_on_replica(self):
+#        """
+#        Testcase to check healthcheck package is installed
+#        succesfully on IPA replica.
+#        """
+#        tasks.install_packages(self.replicas[0], HEALTHCHECK_PKG)
 
     def test_run_ipahealthcheck_list_source(self):
         """
@@ -1290,6 +1290,20 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        cls.master.put_file_contents(
+            '/etc/yum.repos.d/rcritten-freeipa-healthcheck-fedora-32.repo',
+            '[copr:copr.fedorainfracloud.org:rcritten:freeipa-healthcheck]\n'
+            'name=Copr repo for freeipa-healthcheck owned by rcritten\n'
+            'baseurl=https://download.copr.fedorainfracloud.org/results/'
+            'rcritten/freeipa-healthcheck/fedora-$releasever-$basearch/\n'
+            'type=rpm-md\n'
+            'skip_if_unavailable=True\n'
+            'repo_gpgcheck=0\n'
+            'enabled=1\n'
+            'enabled_metadata=1\n'
+        )
+        cls.master.run_command(['dnf', '-y', '--nogpgcheck', 'update',
+                                'freeipa-healthcheck'])
         tasks.install_master(cls.master, setup_dns=True)
         cls.ad = cls.ads[0]
         cls.child_ad = cls.ad_subdomains[0]
