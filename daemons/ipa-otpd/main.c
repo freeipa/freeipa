@@ -214,7 +214,7 @@ static krb5_error_code setup_ldap(const char *uri, krb5_boolean bind,
 int main(int argc, char **argv)
 {
     const char *hostname;
-    char fqdn[IPA_HOST_FQDN_LEN];
+    char fqdn[IPA_HOST_FQDN_LEN + 1];
     krb5_error_code retval;
     krb5_data hndata;
     verto_ev *sig;
