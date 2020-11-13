@@ -92,6 +92,7 @@ ipa_kdb_tests_SOURCES += ipa_kdb_kdcpolicy.c
 endif
 
 ipa_kdb_tests_CFLAGS = $(CMOCKA_CFLAGS)
+ipa_kdb_tests_LDFLAGS = -L$(libdir)/samba -Wl,-rpath=$(libdir)/samba
 ipa_kdb_tests_LDADD =          \
        $(CMOCKA_LIBS)          \
        $(KRB5_LIBS)            \
@@ -102,6 +103,7 @@ ipa_kdb_tests_LDADD =          \
        $(top_builddir)/util/libutil.la	\
        -lkdb5                  \
        -lsss_idmap             \
+       -lsamba-security-samba4 \
        $(NULL)
 
 appdir = $(libexecdir)/ipa
