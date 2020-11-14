@@ -195,10 +195,20 @@ class Container:
         """
         Set services known to not work in containers to be ignored
         """
-        for service in ['nis-domainname',]:
+        for service in ['nis-domainname', 'chronyd']:
             self.ignore_service_in_container(service)
 
         self.execute_all(args=["systemctl", "daemon-reload"])
+
+    def setup_container_messagebus(self):
+        """
+        Make sure D-BUS is enabled and running
+        """
+
+        self.execute_all(args=["systemctl", "enable", "--now",
+                               "dbus-daemon.service", "dbus.socket"])
+        self.execute_all(args=["systemctl", "enable", "--global",
+                               "dbus-daemon.service", "dbus.socket"])
 
 
 class Controller(Container):
@@ -297,6 +307,12 @@ class Controller(Container):
         for container in self.containers:
             container.setup_container_overrides()
 
+    def setup_container_messagebus(self):
+        """
+        Make sure D-BUS is enabled and running
+        """
+        for container in self.containers:
+            container.setup_container_messagebus()
 
 controller = Controller()
 master = Container(role='master')
@@ -307,6 +323,7 @@ controller.append(master)
 controller.append(clients)
 controller.append(replicas)
 
+controller.setup_container_messagebus()
 controller.setup_ssh()
 controller.setup_hosts()
 controller.setup_hostname()

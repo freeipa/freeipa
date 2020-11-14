@@ -19,6 +19,7 @@ RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
         openssh-server \
         sudo \
         wget \
+        dbus-daemon \
         /root/rpms/*.rpm \
     && dnf clean all && rm -rf /root/rpms /root/srpms \
     && sed -i 's/.*PermitRootLogin .*/#&/g' /etc/ssh/sshd_config \
