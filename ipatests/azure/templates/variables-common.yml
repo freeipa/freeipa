@@ -6,7 +6,7 @@ variables:
   # https://github.com/actions/virtual-environments/blob/master/images/linux/Ubuntu1604-REA    DME.md
   # Ubuntu-18.04 - 3.6.9
   # https://github.com/actions/virtual-environments/blob/master/images/linux/Ubuntu1804-REA    DME.md
-  VM_IMAGE: 'Ubuntu-18.04'
+  VM_IMAGE: 'ubuntu-20.04'
   MAX_CONTAINER_ENVS: 5
   IPA_TESTS_ENV_WORKING_DIR: $(Build.Repository.LocalPath)/ipa_envs
   IPA_TESTS_SCRIPTS: 'ipatests/azure/scripts'
