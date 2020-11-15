@@ -48,7 +48,7 @@ if [ "$install_result" -eq 0 ] ; then
 
     sed -ri "s/mode = production/mode = developer/" /etc/ipa/default.conf
     systemctl restart "$HTTPD_SYSTEMD_NAME"
-    firewalld_cmd --add-service={freeipa-ldap,freeipa-ldaps,dns}
+    firewalld_cmd --add-service={freeipa-ldap,freeipa-ldaps,dns} || echo "No firewall active"
 
     echo ${server_password} | kinit admin && ipa ping
     mkdir -p ~/.ipa
