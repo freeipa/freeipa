@@ -26,11 +26,12 @@ vms:
     - test_integration/test_membermanager.py
 
 - vm_jobs:
-  - container_job: InstallDNSSECFirst
-    containers:
-      replicas: 1
-    tests:
-    - test_integration/test_dnssec.py::TestInstallDNSSECFirst
+  # Temporarily disabled because of https://pagure.io/freeipa/issue/8496
+  # - container_job: InstallDNSSECFirst
+  #     containers:
+  #       replicas: 1
+  #     tests:
+  #     - test_integration/test_dnssec.py::TestInstallDNSSECFirst
 
   - container_job: simple_replication
     containers:
