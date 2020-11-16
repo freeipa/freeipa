@@ -29,6 +29,7 @@ import os
 import pwd
 import logging
 import smtplib
+import ssl
 import time
 
 from collections import deque
@@ -603,6 +604,7 @@ class MTAClient:
         smtp_timeout=60,
         smtp_username=None,
         smtp_password=None,
+        ssl_context=None,
     ):
         # We only support "none" (cleartext) for now.
         # Future values: "ssl", "starttls"
@@ -612,6 +614,9 @@ class MTAClient:
         self._smtp_timeout = smtp_timeout
         self._username = smtp_username
         self._password = smtp_password
+        if ssl_context is None:
+            ssl_context = ssl.create_default_context()
+        self._ssl_context = ssl_context
 
         # This should not be touched
         self._conn = None
@@ -664,6 +669,7 @@ class MTAClient:
                     host=self._smtp_hostname,
                     port=self._smtp_port,
                     timeout=self._smtp_timeout,
+                    context=self._ssl_context,
                 )
         except (socketerror, smtplib.SMTPException) as e:
             msg = \
@@ -685,12 +691,9 @@ class MTAClient:
                 e,
             )
 
-        if (
-            self._conn.has_extn("STARTTLS")
-            and self._security_protocol.lower() == "starttls"
-        ):
+        if self._security_protocol.lower() == "starttls":
             try:
-                self._conn.starttls()
+                self._conn.starttls(context=self._ssl_context)
                 self._conn.ehlo()
             except smtplib.SMTPException as e:
                 logger.error(
