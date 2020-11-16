@@ -171,6 +171,36 @@ class test_navigation(UI_driver):
             self.assert_menu_item('ipaserver/trusts', False)
         self.navigate_by_menu('ipaserver/config', False)
 
+    def test_new_tab_navigation(self):
+        """
+        Test for PF#7137: [RFE]: Able to browse different links
+        from IPA web gui in new tabs
+
+        Test verifies whether opening target link in new tab
+        navigates to target (desired behaviour) compared to creation of copy of
+        current state of page on new tab (old behaviour).
+
+        Related: https://pagure.io/freeipa/issue/7137
+        """
+        self.init_app()
+        crubs = {
+            'identity/host': 'host',
+            'identity/user_search': 'user',
+            'identity/group_search': 'group',
+            'policy': 'hbacrule',
+            'policy/pwpolicy': 'pwpolicy',
+            'authentication': 'cert',
+            'network_services': 'automountlocation',
+            'ipaserver': 'role'
+        }
+        for crub, active_facet in crubs.items():
+            self.navigate_by_menu(crub, False)
+            initial_url = self.driver.current_url
+            rows = self.get_rows()
+            if len(rows) > 0:
+                self.navigate_to_row_record_in_new_tab(rows[-1])
+                assert self.driver.current_url != initial_url
+                assert self.get_facet_info()['entity'] == active_facet
 
     def assert_e_url(self, url, e):
         """
