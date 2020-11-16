@@ -24,11 +24,10 @@ Contains browser driver and common tasks.
 """
 from __future__ import print_function, absolute_import
 
-from datetime import datetime
-import time
-import re
 import os
-
+import re
+import time
+from datetime import datetime
 from functools import wraps
 from urllib.error import URLError
 
@@ -1161,6 +1160,26 @@ class UI_driver:
         link = self.find(s, By.CSS_SELECTOR, row, strict=True)
         link.click()
         self.wait_for_request(0.4)
+        self.wait_for_request()
+
+    def navigate_to_row_record_in_new_tab(self, row, pkey_column=None):
+        """
+        Navigate to record in a new tab by CTRL + SHIFT clicking on the link
+        which brings target focused in a new tab.
+        """
+        selector = 'a'
+        if pkey_column:
+            selector = "div[name='%s'] a" % pkey_column
+        link = self.find(selector, By.CSS_SELECTOR, row, strict=True)
+        action_driver = ActionChains(self.driver)
+        action_driver\
+            .key_down(Keys.CONTROL)\
+            .key_down(Keys.SHIFT)\
+            .click(link)\
+            .key_up(Keys.CONTROL)\
+            .key_up(Keys.SHIFT)\
+            .perform()
+
         self.wait_for_request()
 
     def get_table_selector(self, name=None):
