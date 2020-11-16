@@ -104,6 +104,7 @@ class TestACME(CALessBase):
 
     @classmethod
     def install(cls, mh):
+        super(TestACME, cls).install(mh)
 
         # install packages before client install in case of IPA DNS problems
         cls.prepare_acme_client()
