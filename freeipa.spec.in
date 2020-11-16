@@ -124,9 +124,9 @@
 # Fedora
 %endif
 
-# PKIConnection has been modified to always validate certs.
-# https://pagure.io/freeipa/issue/8379
-%global pki_version 10.9.0-0.4
+# New KRA profile, ACME support
+# https://pagure.io/freeipa/issue/8545
+%global pki_version 10.10.0-2
 
 # https://pagure.io/certmonger/issue/90
 %global certmonger_version 0.79.7-1
