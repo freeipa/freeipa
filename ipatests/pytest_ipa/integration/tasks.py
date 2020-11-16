@@ -148,6 +148,29 @@ def apply_common_fixes(host):
     rpcbind_kadmin_workaround(host)
 
 
+def prepare_dse_changes(host, log_level=8192):
+    """Put custom changes for dse.ldif on the host
+    """
+    ipatests_dse_path = os.path.join(host.config.test_dir, "ipatests_dse.ldif")
+    ldif = textwrap.dedent(
+        """\
+        # replication debugging
+        dn: cn=config
+        changetype: modify
+        replace: nsslapd-errorlog-level
+        nsslapd-errorlog-level: {log_level}
+
+        # server writes all access log entries directly to disk
+        dn: cn=config
+        changetype: modify
+        replace: nsslapd-accesslog-logbuffering
+        nsslapd-accesslog-logbuffering: off
+        """
+    ).format(log_level=log_level)
+    host.put_file_contents(ipatests_dse_path, ldif)
+    return ipatests_dse_path
+
+
 def allow_sync_ptr(host):
     kinit_admin(host)
     host.run_command(["ipa", "dnsconfig-mod", "--allow-sync-ptr=true"],
@@ -249,17 +272,6 @@ def restore_hostname(host):
         host.run_command(['rm', backupname])
 
 
-def enable_replication_debugging(host, log_level=0):
-    logger.info('Set LDAP debug level')
-    logging_ldif = textwrap.dedent("""
-        dn: cn=config
-        changetype: modify
-        replace: nsslapd-errorlog-level
-        nsslapd-errorlog-level: {log_level}
-        """.format(log_level=log_level))
-    ldapmodify_dm(host, logging_ldif)
-
-
 def enable_ds_audit_log(host, enabled='on'):
     """Enable 389-ds audit log and auditfail log
 
@@ -298,6 +310,10 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         domain_level = host.config.domain_level
     check_domain_level(domain_level)
     apply_common_fixes(host)
+    if "--dirsrv-config-file" not in extra_args:
+        ipatests_dse = prepare_dse_changes(host)
+    else:
+        ipatests_dse = None
     fix_apache_semaphores(host)
     fw = Firewall(host)
     fw_services = ["freeipa-ldap", "freeipa-ldaps"]
@@ -310,6 +326,9 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         '-a', host.config.admin_password,
         "--domain-level=%i" % domain_level,
     ]
+    if ipatests_dse:
+        args.extend(["--dirsrv-config-file", ipatests_dse])
+
     if unattended:
         args.append('-U')
 
@@ -335,7 +354,6 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         fw.enable_services(fw_services)
     if result.returncode == 0 and not external_ca:
         # external CA step 1 doesn't have DS and KDC fully configured, yet
-        enable_replication_debugging(host)
         enable_ds_audit_log(host, 'on')
         setup_sssd_debugging(host)
         kinit_admin(host)
@@ -408,6 +426,12 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         domain_level = domainlevel(master)
     check_domain_level(domain_level)
     apply_common_fixes(replica)
+
+    if "--dirsrv-config-file" not in extra_args:
+        ipatests_dse = prepare_dse_changes(replica)
+    else:
+        ipatests_dse = None
+
     allow_sync_ptr(master)
     fw = Firewall(replica)
     fw_services = ["freeipa-ldap", "freeipa-ldaps"]
@@ -457,12 +481,14 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     fix_apache_semaphores(replica)
     args.extend(['--realm', replica.domain.realm,
                  '--domain', replica.domain.name])
+    if ipatests_dse:
+        args.extend(["--dirsrv-config-file", ipatests_dse])
+
     fw.enable_services(fw_services)
 
     result = replica.run_command(args, raiseonerr=raiseonerr,
                                  stdin_text=stdin_text)
     if result.returncode == 0:
-        enable_replication_debugging(replica)
         enable_ds_audit_log(replica, 'on')
         setup_sssd_debugging(replica)
         kinit_admin(replica)
