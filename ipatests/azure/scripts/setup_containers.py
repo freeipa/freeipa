@@ -195,7 +195,7 @@ class Container:
         """
         Set services known to not work in containers to be ignored
         """
-        for service in ['nis-domainname',]:
+        for service in ['nis-domainname', 'chronyd']:
             self.ignore_service_in_container(service)
 
         self.execute_all(args=["systemctl", "daemon-reload"])
