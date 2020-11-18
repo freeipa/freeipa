@@ -117,7 +117,9 @@ dnl ---------------------------------------------------------------------------
 dnl - Check for pwquality library
 dnl ---------------------------------------------------------------------------
 AM_COND_IF([ENABLE_SERVER], [
-	PKG_CHECK_MODULES([PWQUALITY], [pwquality])
+	PKG_CHECK_MODULES([PWQUALITY], [pwquality],
+		[AC_DEFINE(USE_PWQUALITY,1,[Use password quality checks])]
+	)
 ])
 
 dnl ---------------------------------------------------------------------------
