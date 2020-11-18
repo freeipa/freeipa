@@ -23,6 +23,7 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -31,7 +32,9 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <errno.h>
+#if defined(USE_PWQUALITY)
 #include <pwquality.h>
+#endif
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/sha.h>
@@ -417,11 +420,13 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
 {
     int pwdlen, blen;
     int ret;
+#if defined(USE_PWQUALITY)
     pwquality_settings_t *pwq;
     int check_pwquality = 0;
-    int entropy;
+    int entropy = 0;
     char buf[PWQ_MAX_ERROR_MESSAGE_LEN];
     void *auxerror;
+#endif
 
     if (!policy || !password) {
         return IPAPWD_POLICY_ERROR;
@@ -534,6 +539,7 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
         }
     }
 
+#if defined(USE_PWQUALITY)
     /* Only call into libpwquality if at least one setting is made
      * because there are a number of checks that don't have knobs
      * so preserve the previous behavior.
@@ -601,6 +607,7 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
 #endif
         }
     }
+#endif /* USE_PWQUALITY */
 
     if (pwd_history) {
         char *hash;
