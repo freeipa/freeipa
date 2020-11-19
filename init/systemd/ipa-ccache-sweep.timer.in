@@ -1,0 +1,8 @@
+[Unit]
+Description=Remove Expired Kerberos Credential Caches
+
+[Timer]
+OnUnitActiveSec=12h
+
+[Install]
+WantedBy=timers.target
