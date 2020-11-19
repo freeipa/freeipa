@@ -7,11 +7,15 @@ NULL =
 dist_noinst_DATA = 			\
 	ipa-custodia.service.in		\
 	ipa.service.in			\
+	ipa-ccache-sweep.service.in	\
+	ipa-ccache-sweep.timer.in	\
 	$(NULL)
 
 systemdsystemunit_DATA = 	\
 	ipa-custodia.service	\
 	ipa.service				\
+	ipa-ccache-sweep.service	\
+	ipa-ccache-sweep.timer	\
 	$(NULL)
 
 CLEANFILES = $(systemdsystemunit_DATA)

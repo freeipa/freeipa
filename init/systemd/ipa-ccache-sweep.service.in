@@ -1,0 +1,12 @@
+[Unit]
+Description=IPA Kerberos Ccache Sweeper Service
+Wants=gssproxy.service
+
+[Service]
+Type=simple
+ExecStart=@libexecdir@/ipa/ipa-ccache-sweeper
+PrivateTmp=yes
+User=ipaapi
+
+[Install]
+WantedBy=multi-user.target
