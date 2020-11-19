@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+# Based heavily on
+# https://github.com/gssapi/mod_auth_gssapi/blob/master/contrib/sweeper.py
+
+# Copyright (C) 2016 mod_auth_gssapi contributors - See COPYING for (C) terms
+
+# If one uses both sessions and unique ccache names, then the filesystem will
+# become littered with ccache files unless the accessed application cleans
+# them up itself.  This script will minimize ccache file proliferation by
+# removing any ccaches that have expired from the filesystem, and serves as an
+# example of how this cleaning can be performed.
+
+import argparse
+import os
+import stat
+import sys
+import time
+
+from gssapi.raw import acquire_cred_from
+from ipaplatform.paths import paths
+
+
+# process file as a ccache and indicate whether it is expired
+def should_delete(fname, t, minlife):
+    try:
+        # skip directories and other non-files
+        st = os.stat(fname)
+        if not stat.S_ISREG(st.st_mode):
+            return False
+
+        # ignore files that are newer than minlife minutes
+        if t - st.st_mtime < minlife * 60:
+            return False
+
+        creds = acquire_cred_from({b"ccache": fname.encode("UTF-8")})
+    except FileNotFoundError:
+        # someone else did the work for us
+        return False
+    except Exception as e:
+        print("Not deleting %s due to error %s" % (fname, e))
+        return False
+
+    return creds.lifetime == 0
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Sweep expired ccaches")
+    parser.add_argument("-m", dest="minlife", type=int,
+                        help="ignore newer files than this (default: 30)",
+                        default=30)
+    args = parser.parse_args()
+
+    os.environ["GSS_USE_PROXY"] = "yes"
+    os.environ["GSSPROXY_BEHAVIOR"] = "REMOTE_FIRST"
+
+    print("Running sweeper...")
+
+    t = time.time()
+
+    os.chdir(paths.IPA_CCACHES)
+    for fname in os.listdir(paths.IPA_CCACHES):
+        if should_delete(fname, t, args.minlife):
+            os.unlink(fname)
+
+    print("Sweeper finished successfully!")
+    sys.exit(0)

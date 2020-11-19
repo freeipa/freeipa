@@ -1,5 +1,5 @@
 #
-# VERSION 31 - DO NOT REMOVE THIS LINE
+# VERSION 32 - DO NOT REMOVE THIS LINE
 #
 # This file may be overwritten on upgrades.
 #
@@ -76,6 +76,7 @@ WSGIScriptReloading Off
   GssapiImpersonate On
   GssapiDelegCcacheDir $IPA_CCACHES
   GssapiDelegCcachePerms mode:0660 gid:ipaapi
+  GssapiDelegCcacheUnique On
   GssapiUseS4U2Proxy on
   GssapiAllowedMech krb5
   Require valid-user
@@ -117,6 +118,7 @@ Alias /ipa/session/cookie "/usr/share/ipa/gssapi.login"
   AuthType none
   GssapiDelegCcacheDir $IPA_CCACHES
   GssapiDelegCcachePerms mode:0660 gid:ipaapi
+  GssapiDelegCcacheUnique On
   SSLVerifyClient require
   SSLUserName SSL_CLIENT_CERT
   LookupUserByCertificate On
