@@ -22,7 +22,7 @@ USER2 = "testuser2"
 MAXLIFE = 86400
 
 
-def maxlife_within_policy(input, maxlife, slush=5):
+def maxlife_within_policy(input, maxlife, slush=3600):
     """Given klist output of the TGT verify that it is within policy
 
        Ensure that the validity period is somewhere within the
@@ -32,6 +32,8 @@ def maxlife_within_policy(input, maxlife, slush=5):
 
        Input should be a string like:
        11/19/2019 16:37:40  11/20/2019 16:37:39  krbtgt/...
+
+       slush defaults to 1 * 60 * 60 matching the jitter window.
     """
     data = input.split()
     start = datetime.strptime(data[0] + ' ' + data[1], '%m/%d/%Y %H:%M:%S')
@@ -52,8 +54,7 @@ def kinit_check_life(master, user):
     """Acquire a TGT and check if it's within the lifetime window"""
     master.run_command(["kinit", user], stdin_text=f"{PASSWORD}\n")
     result = master.run_command("klist | grep krbtgt")
-    assert maxlife_within_policy(result.stdout_text, MAXLIFE,
-                                 slush=60) is True
+    assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
 
 
 class TestPWPolicy(IntegrationTest):
@@ -67,7 +68,7 @@ class TestPWPolicy(IntegrationTest):
         tasks.create_active_user(cls.master, USER1, PASSWORD)
         tasks.create_active_user(cls.master, USER2, PASSWORD)
 
-    @pytest.fixture(autouse=True, scope="class")
+    @pytest.fixture(autouse=True, scope="function")
     def with_admin(self):
         tasks.kinit_admin(self.master)
         yield
@@ -102,7 +103,8 @@ class TestPWPolicy(IntegrationTest):
         master.run_command(['kinit', USER1],
                            stdin_text=PASSWORD + '\n')
         result = master.run_command('klist | grep krbtgt')
-        assert maxlife_within_policy(result.stdout_text, 600) is True
+        assert maxlife_within_policy(result.stdout_text, 600,
+                                     slush=600) is True
 
         tasks.kdestroy_all(master)
 
@@ -123,7 +125,8 @@ class TestPWPolicy(IntegrationTest):
         master.run_command(['kinit', USER2],
                            stdin_text=PASSWORD + '\n')
         result = master.run_command('klist | grep krbtgt')
-        assert maxlife_within_policy(result.stdout_text, 1200) is True
+        assert maxlife_within_policy(result.stdout_text, 1200,
+                                     slush=1200) is True
 
     def test_krbtpolicy_reset(self):
         """Test a hardened kerberos ticket policy reset"""
@@ -185,10 +188,3 @@ class TestPWPolicy(IntegrationTest):
                                  "--user-auth-type", "otp"])
         kinit_check_life(self.master, USER1)
         reset_to_default_policy(self.master, USER1)
-
-    def test_krbtpolicy_jitter_pkinit(self):
-        """Test jitter lifetime with PKINIT"""
-        self.master.run_command(["ipa", "user-mod", USER2,
-                                 "--user-auth-type", "pkinit"])
-        kinit_check_life(self.master, USER2)
-        reset_to_default_policy(self.master, USER2)
