@@ -6,6 +6,7 @@ SUBDIRS = 			\
 
 dist_noinst_DATA =		\
 	ipa-ca-install.in		\
+	ipa-ccache-sweeper.in	\
 	ipa-dns-install.in		\
 	ipa-kra-install.in		\
 	ipa-server-install.in	\
@@ -70,6 +71,7 @@ nodist_sbin_SCRIPTS =		\
 
 appdir = $(libexecdir)/ipa/
 nodist_app_SCRIPTS =		\
+	ipa-ccache-sweeper	\
 	ipa-custodia		\
 	ipa-custodia-check	\
 	ipa-httpd-kdcproxy	\
