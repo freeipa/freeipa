@@ -197,6 +197,19 @@ class TestACME(CALessBase):
 
     @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
     def test_certbot_register(self):
+        # clean up any existing registration and certificates
+        self.clients[0].run_command(
+            [
+                'rm', '-rf',
+                '/etc/letsencrypt/accounts',
+                '/etc/letsencrypt/archive',
+                '/etc/letsencrypt/csr',
+                '/etc/letsencrypt/keys',
+                '/etc/letsencrypt/live',
+                '/etc/letsencrypt/renewal',
+                '/etc/letsencrypt/renewal-hooks'
+            ]
+        )
         # service is enabled; registration should succeed
         self.clients[0].run_command(
             [
