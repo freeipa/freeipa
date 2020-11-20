@@ -212,7 +212,7 @@ class DogtagInstance(service.Service):
                 separator='=')
             # Remove internaldb password as is not needed anymore
             installutils.set_directive(paths.PKI_TOMCAT_PASSWORD_CONF,
-                                       'internaldb', None)
+                                       'internaldb', None, separator='=')
 
     def uninstall(self):
         if self.is_installed():
