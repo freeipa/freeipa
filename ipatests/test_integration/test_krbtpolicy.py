@@ -12,7 +12,7 @@ import pytest
 import time
 from datetime import datetime
 
-import pytest
+from ipaplatform.paths import paths
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_otp import add_otptoken, del_otptoken
@@ -198,9 +198,44 @@ class TestPWPolicy(IntegrationTest):
         """Test jitter lifetime with no auth indicators"""
         kinit_check_life(self.master, USER1)
 
-    def test_krbtpolicy_jitter_otp(self):
+    def test_krbtpolicy_jitter_otp(self, reset_to_default_policy):
         """Test jitter lifetime with OTP"""
+        reset_to_default_policy(self.master, USER1)
         self.master.run_command(["ipa", "user-mod", USER1,
                                  "--user-auth-type", "otp"])
         kinit_check_life(self.master, USER1)
-        reset_to_default_policy(self.master, USER1)
+
+    def test_ccache_sweep(self, reset_to_default_policy):
+        """Test that the ccache sweeper works
+
+           - Force wipe all existing ccaches
+           - Set the ticket policy to a short value, 30 seconds.
+           - Do a series of kinit, ipa command, kdestroy to generate ccaches
+           - sleep()
+           - Run the sweeper
+           - Verify that all ccaches are gone
+        """
+        MAXLIFE = 20
+        reset_to_default_policy(self.master)  # this will reset at END of test
+        tasks.kinit_admin(self.master)
+        self.master.run_command(
+            ['ipa', 'krbtpolicy-mod', '--maxlife', str(MAXLIFE)]
+        )
+        tasks.kdestroy_all(self.master)
+        self.master.run_command(
+            ['find', paths.IPA_CCACHES, '-type', 'f', '-delete']
+        )
+        for _i in range(5):
+            tasks.kdestroy_all(self.master)
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'user-show', 'admin'])
+        tasks.kdestroy_all(self.master)
+        time.sleep(MAXLIFE)
+        self.master.run_command(
+            ['/usr/libexec/ipa/ipa-ccache-sweeper', '-m', '0']
+        )
+        time.sleep(5)
+        result = self.master.run_command(
+            "ls -1 {0} | wc -l".format(paths.IPA_CCACHES)
+        )
+        assert int(result.stdout_text.strip()) == 0
