@@ -12,6 +12,8 @@ import pytest
 import time
 from datetime import datetime
 
+import pytest
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_otp import add_otptoken, del_otptoken
 from ipatests.pytest_ipa.integration import tasks
@@ -43,11 +45,25 @@ def maxlife_within_policy(input, maxlife, slush=3600):
     return maxlife >= diff >= maxlife - slush
 
 
-def reset_to_default_policy(host, user):
+@pytest.fixture
+def reset_to_default_policy():
     """Reset default user authentication and user authentication type"""
+
+    state = dict()
+
+    def _reset_to_default_policy(host, user=None):
+        state['host'] = host
+        state['user'] = user
+
+    yield _reset_to_default_policy
+
+    host = state['host']
+    user = state['user']
     tasks.kinit_admin(host)
-    host.run_command(['ipa', 'user-mod', user, '--user-auth-type='])
-    host.run_command(['ipa', 'krbtpolicy-reset', user])
+    host.run_command(['ipa', 'krbtpolicy-reset'])
+    if user:
+        host.run_command(['ipa', 'user-mod', user, '--user-auth-type='])
+        host.run_command(['ipa', 'krbtpolicy-reset', user])
 
 
 def kinit_check_life(master, user):
@@ -137,7 +153,7 @@ class TestPWPolicy(IntegrationTest):
         result = master.run_command('klist | grep krbtgt')
         assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
 
-    def test_krbtpolicy_otp(self):
+    def test_krbtpolicy_otp(self, reset_to_default_policy):
         """Test otp ticket policy"""
         master = self.master
         master.run_command(['ipa', 'user-mod', USER1,
@@ -149,6 +165,7 @@ class TestPWPolicy(IntegrationTest):
         armor = tasks.create_temp_file(self.master, create_file=False)
         otpuid, totp = add_otptoken(master, USER1, otptype="totp")
         otpvalue = totp.generate(int(time.time())).decode("ascii")
+        reset_to_default_policy(master, USER1)
         try:
             tasks.kdestroy_all(master)
             # create armor for FAST
@@ -174,7 +191,6 @@ class TestPWPolicy(IntegrationTest):
                                ok_returncode=1)
         finally:
             del_otptoken(master, otpuid)
-            reset_to_default_policy(master, USER1)
             self.master.run_command(['rm', '-f', armor])
             master.run_command(['ipa', 'config-mod', '--user-auth-type='])
 
