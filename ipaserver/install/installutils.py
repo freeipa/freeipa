@@ -441,7 +441,7 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
 
     A value of None means to drop the directive.
 
-    This has only been tested with nss.conf
+    Does not tolerate (or put) spaces around the separator.
 
     :param filename: input filename
     :param directive: directive name
@@ -450,7 +450,7 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
         any existing double quotes are first escaped to avoid
         unparseable directives.
     :param separator: character serving as separator between directive and
-        value
+        value.  Correct value required even when dropping a directive.
     """
 
     new_directive_value = ""
@@ -465,7 +465,7 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
     fd = open(filename)
     newfile = []
     for line in fd:
-        if line.lstrip().startswith(directive):
+        if re.match(r'\s*{}'.format(re.escape(directive + separator)), line):
             valueset = True
             if value is not None:
                 newfile.append(new_directive_value)
