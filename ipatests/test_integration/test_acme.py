@@ -486,7 +486,7 @@ class TestACMECALess(IntegrationTest):
 class TestACMEwithExternalCA(TestACME):
     """Test the FreeIPA ACME service with external CA"""
 
-    num_replicas = 0
+    num_replicas = 1
     num_clients = 1
 
     @classmethod
@@ -509,4 +509,8 @@ class TestACMEwithExternalCA(TestACME):
         tasks.install_client(cls.master, cls.clients[0])
         tasks.config_host_resolvconf_with_master_data(
             cls.master, cls.clients[0]
+        )
+        tasks.install_replica(cls.master, cls.replicas[0])
+        tasks.config_host_resolvconf_with_master_data(
+            cls.master, cls.replicas[0]
         )
