@@ -279,21 +279,18 @@ krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
     if (truexp) {
         if (ied->pol) {
             if (ied->pol->max_pwd_life) {
-                *expire_time = mod_time + ied->pol->max_pwd_life;
+                *expire_time = krb5_ts2tt(krb5_ts_incr(
+                            mod_time, ied->pol->max_pwd_life));
             } else {
                 *expire_time = 0;
             }
         } else {
-            *expire_time = mod_time + IPAPWD_DEFAULT_PWDLIFE;
+            *expire_time = krb5_ts2tt(krb5_ts_incr(
+                        mod_time, IPAPWD_DEFAULT_PWDLIFE));
         }
     } else {
         /* not 'self', so reset */
-        *expire_time = mod_time;
-    }
-
-    /* in the case of integer owerflow, set expiration to IPAPWD_END_OF_TIME */
-    if ((*expire_time) < 0 || (*expire_time) > IPAPWD_END_OF_TIME) {
-        *expire_time = IPAPWD_END_OF_TIME; // 1 Jan 2038, 00:00 GMT
+        *expire_time = krb5_ts2tt(mod_time);
     }
 
     kerr = 0;

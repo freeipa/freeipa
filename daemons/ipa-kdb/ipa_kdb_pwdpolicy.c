@@ -367,7 +367,8 @@ krb5_error_code ipadb_check_policy_as(krb5_context kcontext,
     }
 
     if (ied->pol->lockout_duration == 0 ||
-        client->last_failed + ied->pol->lockout_duration > kdc_time) {
+        krb5_ts_after(krb5_ts_incr(
+                client->last_failed, ied->pol->lockout_duration), kdc_time)) {
         /* ok client permanently locked, or within lockout period */
         *status = "LOCKED_OUT";
         return KRB5KDC_ERR_CLIENT_REVOKED;
