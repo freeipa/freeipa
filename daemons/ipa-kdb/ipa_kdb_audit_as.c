@@ -103,13 +103,15 @@ void ipadb_audit_as_req(krb5_context kcontext,
         }
         if (ied->pol->lockout_duration != 0 &&
             ied->pol->failcnt_interval != 0 &&
-            client->last_failed + ied->pol->failcnt_interval < authtime) {
+            !krb5_ts_after(krb5_ts_incr(client->last_failed,
+                    ied->pol->failcnt_interval), authtime)) {
             /* Reset fail_auth_count, the interval's expired already */
             client->fail_auth_count = 0;
             client->mask |= KMASK_FAIL_AUTH_COUNT;
         }
 
-        if (client->last_failed + ied->pol->lockout_duration > authtime &&
+        if (krb5_ts_after(krb5_ts_incr(client->last_failed,
+                        ied->pol->lockout_duration), authtime) &&
             (client->fail_auth_count >= ied->pol->max_fail && 
              ied->pol->max_fail != 0)) {
             /* client already locked, nothing more to do */
