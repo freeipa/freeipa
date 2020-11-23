@@ -291,11 +291,13 @@ class TestACME(CALessBase):
     def test_mod_md(self):
         # write config
         self.clients[0].run_command(['mkdir', '-p', '/etc/httpd/conf.d'])
+        self.clients[0].run_command(['mkdir', '-p', '/etc/httpd/md'])
         self.clients[0].put_file_contents(
             '/etc/httpd/conf.d/md.conf',
             '\n'.join([
                 f'MDCertificateAuthority {self.acme_server}',
                 'MDCertificateAgreement accepted',
+                'MDStoreDir  /etc/httpd/md',
                 f'MDomain {self.clients[0].hostname}',
                 '<VirtualHost *:443>',
                 f'    ServerName {self.clients[0].hostname}',
@@ -324,6 +326,10 @@ class TestACME(CALessBase):
         # HTTPS request from server to client (should succeed)
         self.master.run_command(
             ['curl', f'https://{self.clients[0].hostname}'])
+
+        # clean-up
+        self.clients[0].run_command(['rm', '-rf', '/etc/httpd/md'])
+        self.clients[0].run_command(['rm', '-f', '/etc/httpd/conf.d/md.conf'])
 
     ######################
     # Disable ACME service
