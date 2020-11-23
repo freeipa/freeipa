@@ -1,5 +1,72 @@
+/*
+ * Kerberos related utils for FreeIPA
+ *
+ * Authors: Simo Sorce <ssorce@redhat.com>
+ *
+ * Copyright (C) 2011  Simo Sorce, Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/*
+ * Functions krb5_ts2tt, krb5_ts_incr, krb5_ts_after are taken from Kerberos 5:
+ * https://github.com/krb5/krb5/blob/master/src/include/k5-int.h
+ *
+ * Authors: Greg Hudson <ghudson@mit.edu>
+ *
+ * Copyright (C) 2017
+ *
+ * This software is being provided to you, the LICENSEE, by the
+ * Massachusetts Institute of Technology (M.I.T.) under the following
+ * license.  By obtaining, using and/or copying this software, you agree
+ * that you have read, understood, and will comply with these terms and
+ * conditions:
+ *
+ * Export of this software from the United States of America may
+ * require a specific license from the United States Government.
+ * It is the responsibility of any person or organization contemplating
+ * export to obtain such a license before exporting.
+ *
+ * WITHIN THAT CONSTRAINT, permission to use, copy, modify and distribute
+ * this software and its documentation for any purpose and without fee or
+ * royalty is hereby granted, provided that you agree to comply with the
+ * following copyright notice and statements, including the disclaimer, and
+ * that the same appear on ALL copies of the software and documentation,
+ * including modifications that you make for internal use or for
+ * distribution:
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS", AND M.I.T. MAKES NO REPRESENTATIONS
+ * OR WARRANTIES, EXPRESS OR IMPLIED.  By way of example, but not
+ * limitation, M.I.T. MAKES NO REPRESENTATIONS OR WARRANTIES OF
+ * MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF
+ * THE LICENSED SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY
+ * PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+ *
+ * The name of the Massachusetts Institute of Technology or M.I.T. may NOT
+ * be used in advertising or publicity pertaining to distribution of the
+ * software.  Title to copyright in this software and any associated
+ * documentation shall at all times remain with M.I.T., and USER agrees to
+ * preserve same.
+ *
+ * Furthermore if you modify this software you must label
+ * your software as modified software and not distribute it in such a
+ * fashion that it might be confused with the original M.I.T. software.
+ */
+
 #pragma once
 
+#include <stdbool.h>
 #include <time.h>
 #include <lber.h>
 #include <krb5/krb5.h>
@@ -87,3 +154,23 @@ int create_keys(krb5_context krbctx,
                 char **err_msg);
 
 int ipa_kstuples_to_string(krb5_key_salt_tuple *kst, int n_kst, char **str);
+
+/* Convert a krb5_timestamp to a time_t value, treating the negative range of
+ * krb5_timestamp as times between 2038 and 2106 (if time_t is 64-bit). */
+static inline time_t
+krb5_ts2tt(krb5_timestamp timestamp) {
+    return (time_t)(uint32_t)timestamp;
+}
+
+/* Increment a timestamp by a signed 32-bit interval, without relying on
+ * undefined behavior. */
+static inline krb5_timestamp
+krb5_ts_incr(krb5_timestamp ts, krb5_deltat delta) {
+    return (krb5_timestamp)((uint32_t)ts + (uint32_t)delta);
+}
+
+/* Return true if a comes after b. */
+static inline bool
+krb5_ts_after(krb5_timestamp a, krb5_timestamp b) {
+    return (uint32_t)a > (uint32_t)b;
+}
