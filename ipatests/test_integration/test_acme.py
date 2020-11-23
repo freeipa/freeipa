@@ -109,6 +109,10 @@ class TestACME(CALessBase):
         # install packages before client install in case of IPA DNS problems
         cls.prepare_acme_client()
 
+        # Each subclass handles its own server installation procedure
+        if cls.__name__ != 'TestACME':
+            return
+
         tasks.install_master(cls.master, setup_dns=True)
 
         tasks.install_client(cls.master, cls.clients[0])
@@ -510,8 +514,7 @@ class TestACMEwithExternalCA(TestACME):
 
     @classmethod
     def install(cls, mh):
-
-        cls.prepare_acme_client()
+        super(TestACMEwithExternalCA, cls).install(mh)
 
         # install master with external-ca
         result = install_server_external_ca_step1(cls.master)
