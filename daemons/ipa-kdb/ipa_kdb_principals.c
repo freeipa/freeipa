@@ -903,7 +903,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
             goto done;
         }
 
-        ied->last_pwd_change = restime;
+        ied->last_pwd_change = krb5_ts2tt(restime);
     }
 
     ret = ipadb_ldap_attr_to_krb5_timestamp(lcontext, lentry,
@@ -919,7 +919,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
             goto done;
         }
 
-        ied->last_admin_unlock = restime;
+        ied->last_admin_unlock = krb5_ts2tt(restime);
     }
 
     ret = ipadb_ldap_attr_to_strlist(lcontext, lentry,
@@ -1775,7 +1775,7 @@ static krb5_error_code ipadb_get_ldap_mod_time(struct ipadb_mods *imods,
     time_t timeval;
     char v[20];
 
-    timeval = (time_t)value;
+    timeval = krb5_ts2tt(value);
     t = gmtime_r(&timeval, &date);
     if (t == NULL) {
         return EINVAL;

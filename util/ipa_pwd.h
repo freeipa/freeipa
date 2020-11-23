@@ -30,9 +30,6 @@
 #define IPAPWD_DEFAULT_PWDLIFE (90 * 24 *3600)
 #define IPAPWD_DEFAULT_MINLEN 0
 
-/* 1 Jan 2038, 00:00 GMT */
-#define IPAPWD_END_OF_TIME 2145916800
-
 /*
  * IMPORTANT: please update error string table in ipa_pwd.c if you change this
  * error code table.
