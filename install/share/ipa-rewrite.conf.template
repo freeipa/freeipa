@@ -1,4 +1,4 @@
-# VERSION 6 - DO NOT REMOVE THIS LINE
+# VERSION 7 - DO NOT REMOVE THIS LINE
 
 RewriteEngine on
 
@@ -9,6 +9,7 @@ ${AUTOREDIR}RewriteRule ^/$$ https://$FQDN/ipa/ui [L,NC,R=301]
 # Redirect to the fully-qualified hostname. Not redirecting to secure
 # port so configuration files can be retrieved without requiring SSL.
 RewriteCond %{HTTP_HOST}    !^$FQDN$$ [NC]
+RewriteCond %{HTTP_HOST}    !^ipa-ca.$DOMAIN$$ [NC]
 RewriteRule ^/ipa/(.*)      http://$FQDN/ipa/$$1 [L,R=301]
 
 # Redirect to the secure port if not displaying an error or retrieving
@@ -17,6 +18,11 @@ RewriteCond %{SERVER_PORT}  !^443$$
 RewriteCond %{REQUEST_URI}  !^/ipa/(errors|config|crl)
 RewriteCond %{REQUEST_URI}  !^/ipa/[^\?]+(\.js|\.css|\.png|\.gif|\.ico|\.woff|\.svg|\.ttf|\.eot)$$
 RewriteRule ^/ipa/(.*)      https://$FQDN/ipa/$$1 [L,R=301,NC]
+
+RewriteCond %{HTTP_HOST}    ^ipa-ca.$DOMAIN$$ [NC]
+RewriteCond %{REQUEST_URI}  !^/ipa/crl
+RewriteCond %{REQUEST_URI}  !^/(ca|kra|pki|acme)
+RewriteRule ^/(.*)          https://$FQDN/$$1 [L,R=301]
 
 # Rewrite for plugin index, make it like it's a static file
 RewriteRule ^/ipa/ui/js/freeipa/plugins.js$$    /ipa/wsgi/plugins.py [PT]
