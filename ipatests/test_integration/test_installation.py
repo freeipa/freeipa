@@ -21,6 +21,7 @@ from cryptography import x509 as crypto_x509
 
 from ipalib import x509
 from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.constants import IPA_CA_RECORD
 from ipalib.sysrestore import SYSRESTORE_STATEFILE, SYSRESTORE_INDEXFILE
 from ipapython.dn import DN
 from ipaplatform.constants import constants
@@ -1037,6 +1038,64 @@ class TestInstallMaster(IntegrationTest):
             if line.strip()
         }
         assert ('200', 'ipa', 'pp') in entries
+
+    def test_ipaca_no_redirect(self):
+        """Test that ipa-ca.$DOMAIN does not redirect
+
+           ipa-ca is a valid name for an IPA server. It should not
+           require a redirect.
+
+           CRL generation does not need to be enabled for this test.
+           We aren't exactly testing that a CRL can be retrieved, just
+           that the redirect doesn't happen.
+        """
+
+        def run_request(url, expected_stdout=None, expected_stderr=None):
+            result = self.master.run_command(['curl', '-s', '-v', url])
+            if expected_stdout:
+                assert expected_stdout in result.stdout_text
+            if expected_stderr:
+                assert expected_stderr in result.stderr_text
+
+        # CRL publishing on start-up is disabled so drop a file there
+        crlfile = os.path.join(paths.PKI_CA_PUBLISH_DIR, 'MasterCRL.bin')
+        self.master.put_file_contents(crlfile, 'secret')
+
+        hosts = (
+            f'{IPA_CA_RECORD}.{self.master.domain.name}',
+            self.master.hostname,
+        )
+
+        # Positive tests. Both hosts can serve these.
+        urls = (
+            'http://{host}/ipa/crl/MasterCRL.bin',
+            'http://{host}/ca/ocsp',
+            'https://{host}/ca/admin/ca/getCertChain',
+            'https://{host}/acme/',
+        )
+        for url in urls:
+            for host in hosts:
+                run_request(
+                    url.format(host=host),
+                    expected_stderr='HTTP/1.1 200'
+                )
+
+        # Negative tests. ipa-ca cannot serve these and will redirect and
+        # test that existing redirect for unencrypted still works
+        urls = (
+            'http://{host}/',
+            'http://{host}/ipa/json',
+            'http://{carecord}.{domain}/ipa/json',
+            'https://{carecord}.{domain}/ipa/json',
+            'http://{carecord}.{domain}/ipa/config/ca.crt',
+        )
+        for url in urls:
+            run_request(
+                url.format(host=self.master.hostname,
+                           domain=self.master.domain.name,
+                           carecord=IPA_CA_RECORD),
+                expected_stdout=f'href="https://{self.master.hostname}/'
+            )
 
 
 class TestInstallMasterKRA(IntegrationTest):
