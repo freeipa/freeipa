@@ -346,6 +346,13 @@ def install_check(installer):
     dirsrv_ca_cert = None
     pkinit_ca_cert = None
 
+    # We only set up the CA if the PKCS#12 options are not given.
+    if options.dirsrv_cert_files:
+        setup_ca = False
+    else:
+        setup_ca = True
+    options.setup_ca = setup_ca
+
     if not options.skip_mem_check:
         installutils.check_available_memory(ca=options.setup_ca)
     tasks.check_ipv6_stack_enabled()
@@ -407,13 +414,6 @@ def install_check(installer):
                 options.interactive = False
         except Exception as e:
             raise ScriptError("Cannot process the cache file: %s" % str(e))
-
-    # We only set up the CA if the PKCS#12 options are not given.
-    if options.dirsrv_cert_files:
-        setup_ca = False
-    else:
-        setup_ca = True
-    options.setup_ca = setup_ca
 
     if not setup_ca and options.ca_subject:
         raise ScriptError(
