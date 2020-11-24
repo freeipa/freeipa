@@ -2975,9 +2975,19 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 
 	/* Iterate through list of trusts and check if input realm belongs to any of the trust */
 	for(i = 0 ; i < ipactx->mspac->num_trusts ; i++) {
+		size_t len = 0;
 		result = strncasecmp(test_realm,
 				     ipactx->mspac->trusts[i].domain_name,
 				     size) == 0;
+
+		if (!result) {
+			len = strlen(ipactx->mspac->trusts[i].domain_name);
+			if ((size > len) && (test_realm[size - len - 1] == '.')) {
+				result = strncasecmp(test_realm + (size - len),
+						     ipactx->mspac->trusts[i].domain_name,
+						     len) == 0;
+			}
+		}
 
                 if (!result && (ipactx->mspac->trusts[i].flat_name != NULL)) {
 			result = strncasecmp(test_realm,
@@ -2994,7 +3004,7 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 					/* if UPN suffix did not match exactly, find if it is
 					 * superior to the test_realm, e.g. if test_realm ends
 					 * with the UPN suffix prefixed with dot*/
-					size_t len = ipactx->mspac->trusts[i].upn_suffixes_len[j];
+					len = ipactx->mspac->trusts[i].upn_suffixes_len[j];
 					if ((size > len) && (test_realm[size - len - 1] == '.')) {
 						result = strncasecmp(test_realm + (size - len),
 								     ipactx->mspac->trusts[i].upn_suffixes[j],
