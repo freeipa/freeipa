@@ -1938,3 +1938,15 @@ def get_sssd_version(host):
     """Get sssd version on remote host."""
     version = host.run_command('sssd --version').stdout_text.strip()
     return parse_version(version)
+
+
+def get_pki_version(host):
+    """Get pki version on remote host."""
+    data = host.get_file_contents("/usr/share/pki/VERSION", encoding="utf-8")
+
+    groups = re.match(r'.*\nSpecification-Version: ([\d+\.]*)\n.*', data)
+    if groups:
+        version_string = groups.groups(0)[0]
+        return parse_version(version_string)
+    else:
+        raise ValueError("get_pki_version: pki is not installed")
