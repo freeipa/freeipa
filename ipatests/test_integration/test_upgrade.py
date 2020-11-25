@@ -278,3 +278,28 @@ class TestUpgrade(IntegrationTest):
         result = self.master.run_command(["ipa", "pwpolicy-find"])
         # if it is still missing the oc it won't be displayed
         assert 'global_policy' in result.stdout_text
+
+    def test_kra_detection(self):
+        """Test that ipa-server-upgrade correctly detects KRA presence
+
+        Test for https://pagure.io/freeipa/issue/8596
+        When the directory /var/lib/pki/pki-tomcat/kra/ exists, the upgrade
+        wrongly assumes that KRA component is installed and crashes.
+        The test creates an empty dir and calls ipa-server-upgrade
+        to make sure that KRA detection is not based on the directory
+        presence.
+        """
+        # Skip test if pki 10.10.0 is installed
+        # because of https://github.com/dogtagpki/pki/issues/3397
+        # pki fails to start if empty dir /var/lib/pki/pki-tomcat/kra exists
+        if tasks.get_pki_version(self.master) == tasks.parse_version('10.10.0'):
+            pytest.skip("Skip test with pki 10.10.0")
+
+        kra_path = os.path.join(paths.VAR_LIB_PKI_TOMCAT_DIR, "kra")
+        try:
+            self.master.run_command(["mkdir", "-p", kra_path])
+            result = self.master.run_command(['ipa-server-upgrade'])
+            err_msg = 'Upgrade failed with no such entry'
+            assert err_msg not in result.stderr_text
+        finally:
+            self.master.run_command(["rmdir", kra_path])
