@@ -2439,6 +2439,18 @@ def get_sssd_version(host):
     return parse_version(version)
 
 
+def get_pki_version(host):
+    """Get pki version on remote host."""
+    data = host.get_file_contents("/usr/share/pki/VERSION", encoding="utf-8")
+
+    groups = re.match(r'.*\nSpecification-Version: ([\d+\.]*)\n.*', data)
+    if groups:
+        version_string = groups.groups(0)[0]
+        return parse_version(version_string)
+    else:
+        raise ValueError("get_pki_version: pki is not installed")
+
+
 def get_healthcheck_version(host):
     """
     Function to get healthcheck version on fedora and rhel
