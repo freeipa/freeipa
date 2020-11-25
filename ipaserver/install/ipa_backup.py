@@ -626,7 +626,7 @@ class Backup(admintool.AdminTool):
     def file_backup(self, options):
 
         def verify_directories(dirs):
-            return [s for s in dirs if os.path.exists(s)]
+            return [s for s in dirs if s and os.path.exists(s)]
 
         self.tarfile = os.path.join(self.dir, 'files.tar')
 
