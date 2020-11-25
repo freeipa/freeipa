@@ -171,8 +171,14 @@ class DogtagInstance(service.Service):
 
         Returns True/False
         """
-        return os.path.exists(os.path.join(
-            paths.VAR_LIB_PKI_TOMCAT_DIR, self.subsystem.lower()))
+        try:
+            result = ipautil.run(
+                ['pki-server', 'subsystem-show', self.subsystem.lower()],
+                capture_output=True)
+            # parse the command output
+            return 'Enabled: True' in result.output
+        except ipautil.CalledProcessError:
+            return False
 
     def spawn_instance(self, cfg_file, nolog_list=()):
         """
