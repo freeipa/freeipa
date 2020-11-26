@@ -27,7 +27,7 @@ import six
 from ipalib import api, errors, util
 from ipalib import messages
 from ipalib import Str, StrEnum, Flag
-from ipalib.parameters import Principal, Certificate
+from ipalib.parameters import Data, Principal, Certificate
 from ipalib.plugable import Registry
 from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
@@ -260,6 +260,12 @@ class HostPassword(Str):
     setting a password on the command-line which would break
     backwards compatibility.
     """
+
+    kwargs = Data.kwargs + (
+        ('pattern', (str,), None),
+        ('noextrawhitespace', bool, False),
+    )
+
     def safe_value(self, value):
         return u'********'
 

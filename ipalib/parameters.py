@@ -1646,6 +1646,11 @@ class Password(Str):
     A parameter for passwords (stored in the ``unicode`` type).
     """
 
+    kwargs = Data.kwargs + (
+        ('pattern', (str,), None),
+        ('noextrawhitespace', bool, False),
+    )
+
     password = True
 
     def _convert_scalar(self, value, index=None):
