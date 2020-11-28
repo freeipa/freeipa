@@ -245,6 +245,11 @@ class TestTrust(BaseTestTrust):
         self.master.run_command(['kinit', '-C', '-E', self.upn_principal],
                                 stdin_text=self.upn_password)
 
+    def test_remove_nonposix_trust(self):
+        self.remove_trust(self.ad)
+        tasks.unconfigure_dns_for_trust(self.master, self.ad)
+
+    # Test with AD trust defining subordinate suffixes
     def test_subordinate_suffix(self):
         """Test subordinate UPN Suffixes"""
         tasks.configure_dns_for_trust(self.master, self.ad)
@@ -290,7 +295,7 @@ class TestTrust(BaseTestTrust):
         )
         tasks.kdestroy_all(self.master)
 
-    def test_remove_nonposix_trust(self):
+    def test_remove_subordinate_suffixes_trust(self):
         self.remove_trust(self.ad)
         tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
