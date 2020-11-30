@@ -37,7 +37,6 @@ import syslog
 import time
 import tempfile
 from configparser import RawConfigParser
-from pkg_resources import parse_version
 
 from ipalib import api
 from ipalib import x509
@@ -430,8 +429,7 @@ class CAInstance(DogtagInstance):
             if promote:
                 self.step("destroying installation admin user",
                           self.teardown_admin)
-            if minimum_acme_support():
-                self.step("deploying ACME service", self.setup_acme)
+            self.step("deploying ACME service", self.setup_acme)
             # Materialize config changes and new ACLs
             self.step("starting certificate server instance",
                       self.start_instance)
@@ -771,10 +769,9 @@ class CAInstance(DogtagInstance):
             self.basedn)
         conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
 
-        if minimum_acme_support():
-            group_dn = DN(('cn', ACME_AGENT_GROUP), ('ou', 'groups'),
-                          self.basedn)
-            conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
+        group_dn = DN(('cn', ACME_AGENT_GROUP), ('ou', 'groups'),
+                      self.basedn)
+        conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
 
     def __get_ca_chain(self):
         try:
@@ -1487,9 +1484,6 @@ class CAInstance(DogtagInstance):
             logger.debug('ACME service is already deployed')
             return False
 
-        if not minimum_acme_support():
-            return False
-
         self._ldap_mod('/usr/share/pki/acme/database/ds/schema.ldif')
 
         configure_acme_acls()
@@ -1730,33 +1724,6 @@ def ensure_lightweight_cas_container():
         objectclass=['top', 'organizationalUnit'],
         ou=['authorities'],
     )
-
-
-def minimum_acme_support(data=None):
-    """
-    ACME with global enable/disable is required.
-
-    This first shipped in dogtag version 10.10.0.
-
-    Parse the version string to determine if the minimum version
-    is met. If parsing fails return False.
-
-    :param: data: The string value to parse for version. Defaults to
-                  reading from the filesystem.
-    """
-    if not data:
-        with open('/usr/share/pki/VERSION', 'r') as fd:
-            data = fd.read()
-
-    groups = re.match(r'.*\nSpecification-Version: ([\d+\.]*)\n.*', data)
-    if groups:
-        version_string = groups.groups(0)[0]
-        minimum_version = parse_version('10.10.0')
-
-        return parse_version(version_string) >= minimum_version
-    else:
-        logger.debug('Unable to parse version from %s', data)
-        return False
 
 
 def ensure_acme_containers():
