@@ -429,7 +429,6 @@ class CAInstance(DogtagInstance):
             if promote:
                 self.step("destroying installation admin user",
                           self.teardown_admin)
-            self.step("deploying ACME service", self.setup_acme)
             # Materialize config changes and new ACLs
             self.step("starting certificate server instance",
                       self.start_instance)
@@ -474,6 +473,7 @@ class CAInstance(DogtagInstance):
 
                 self.step("configuring certmonger renewal for lightweight CAs",
                           self.add_lightweight_ca_tracking_requests)
+                self.step("deploying ACME service", self.setup_acme)
 
         if ra_only:
             runtime = None
@@ -767,10 +767,6 @@ class CAInstance(DogtagInstance):
         # add ipara user to Registration Manager Agents group
         group_dn = DN(('cn', 'Registration Manager Agents'), ('ou', 'groups'),
             self.basedn)
-        conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
-
-        group_dn = DN(('cn', ACME_AGENT_GROUP), ('ou', 'groups'),
-                      self.basedn)
         conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
 
     def __get_ca_chain(self):
@@ -1503,6 +1499,17 @@ class CAInstance(DogtagInstance):
             raise RuntimeError("Failed to add ACME RA user")
         else:
             password = result
+
+        # Add the IPA RA user as a member of the ACME admins for
+        # ipa-acme-manage.
+        user_dn = DN(('uid', "ipara"), ('ou', 'People'), self.basedn)
+        conn = api.Backend.ldap2
+        group_dn = DN(('cn', ACME_AGENT_GROUP), ('ou', 'groups'),
+                      self.basedn)
+        try:
+            conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
+        except errors.AlreadyGroupMember:
+            pass
 
         # create container object heirarchy in LDAP
         ensure_acme_containers()
