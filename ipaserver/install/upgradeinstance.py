@@ -199,11 +199,11 @@ class IPAUpgrade(service.Service):
         shutil.copy2(ldif_outfile, self.filename)
 
     def __restore_config(self):
-        port = self.restore_state('nsslapd-port')
-        security = self.restore_state('nsslapd-security')
-        global_lock = self.restore_state('nsslapd-global-backend-lock')
-        schema_compat_enabled = self.restore_state('schema_compat_enabled')
-        self.restore_state('upgrade-in-progress')
+        # peek the values during the restoration
+        port = self.get_state('nsslapd-port')
+        security = self.get_state('nsslapd-security')
+        global_lock = self.get_state('nsslapd-global-backend-lock')
+        schema_compat_enabled = self.get_state('schema_compat_enabled')
 
         ldif_outfile = "%s.modified.out" % self.filename
         with open(ldif_outfile, "w") as out_file:
@@ -230,6 +230,15 @@ class IPAUpgrade(service.Service):
                 parser.parse()
 
         shutil.copy2(ldif_outfile, self.filename)
+
+        # Now the restore is really done, remove upgrade-in-progress
+        self.restore_state('upgrade-in-progress')
+
+        # the values are restored, remove from the state file
+        self.restore_state('nsslapd-port')
+        self.restore_state('nsslapd-security')
+        self.restore_state('nsslapd-global-backend-lock')
+        self.restore_state('schema_compat_enabled')
 
     def __disable_listeners(self):
         ldif_outfile = "%s.modified.out" % self.filename
