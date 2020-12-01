@@ -628,7 +628,8 @@ class HTTPInstance(service.Service):
         nickname = self.get_mod_nss_nickname()
         if db.is_ipa_issued_cert(api, nickname):
             db.track_server_cert(nickname, self.principal,
-                                 db.passwd_fname, 'restart_httpd')
+                                 db.passwd_fname, 'restart_httpd',
+                                 profile=dogtag.DEFAULT_PROFILE)
         else:
             logger.debug("Will not track HTTP server cert %s as it is not "
                          "issued by IPA", nickname)
