@@ -51,7 +51,7 @@ jobs:
         git_refspec: '{git_refspec}'
         template: &ci-master-frawhide
           name: freeipa/ci-master-frawhide
-          version: 0.1.4
+          version: 0.2.1
         timeout: 1800
         topology: *build
 
