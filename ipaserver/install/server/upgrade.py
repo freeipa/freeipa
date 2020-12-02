@@ -20,7 +20,7 @@ from contextlib import contextmanager
 from augeas import Augeas
 import dns.exception
 
-from ipalib import api, x509
+from ipalib import api
 from ipalib.constants import RENEWAL_CA_NAME, RA_AGENT_PROFILE
 from ipalib.install import certmonger, sysrestore
 import SSSDConfig
@@ -946,33 +946,6 @@ def named_add_server_id():
     logger.info('[Adding server_id to named.conf]')
     bindinstance.named_conf_set_directive('server_id', api.env.host)
     sysupgrade.set_upgrade_state('named.conf', 'add_server_id', True)
-    return True
-
-
-def named_add_crypto_policy():
-    """Add crypto policy include
-    """
-    if not bindinstance.named_conf_exists():
-        logger.info('DNS is not configured')
-        return False
-
-    if sysupgrade.get_upgrade_state('named.conf', 'add_crypto_policy'):
-        # upgrade was done already
-        return False
-    policy_file = paths.NAMED_CRYPTO_POLICY_FILE
-    if policy_file is None:
-        # no crypto policy
-        return False
-
-    if bindinstance.named_conf_include_exists(policy_file):
-        sysupgrade.set_upgrade_state('named.conf', 'add_crypto_policy', True)
-        return False
-
-    logger.info('[Adding crypto policy include to named.conf]')
-    bindinstance.named_conf_set_directive(
-        'include', policy_file, section=bindinstance.NAMED_SECTION_OPTIONS
-    )
-    sysupgrade.set_upgrade_state('named.conf', 'add_crypto_policy', True)
     return True
 
 
