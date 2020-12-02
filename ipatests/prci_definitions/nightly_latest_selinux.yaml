@@ -1665,7 +1665,7 @@ jobs:
         selinux_enforcing: True
         test_suite: test_integration/test_krbtpolicy.py
         template: *ci-master-latest
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl
 
   fedora-latest/test_winsyncmigrate:
