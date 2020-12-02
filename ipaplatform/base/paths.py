@@ -99,6 +99,7 @@ class BasePathNamespace(object):
     PKI_TOMCAT = "/etc/pki/pki-tomcat"
     PKI_TOMCAT_ALIAS_DIR = "/etc/pki/pki-tomcat/alias"
     PKI_TOMCAT_PASSWORD_CONF = "/etc/pki/pki-tomcat/password.conf"
+    PKI_TOMCAT_ALIAS_PWDFILE_TXT = "/etc/pki/pki-tomcat/alias/pwdfile.txt"
     PKI_TOMCAT_SERVER_XML = "/etc/pki/pki-tomcat/server.xml"
     ETC_REDHAT_RELEASE = "/etc/redhat-release"
     RESOLV_CONF = "/etc/resolv.conf"

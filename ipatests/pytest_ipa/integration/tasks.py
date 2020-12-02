@@ -39,10 +39,10 @@ import dns
 from ldif import LDIFWriter
 
 from six import StringIO
+from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
-
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
@@ -1532,6 +1532,23 @@ def run_certutil(host, args, reqdir, dbtype=None,
                             stdin_text=stdin)
 
 
+def certutil_fetch_cert(host, reqdir, pwd_file, nickname, token_name=None):
+    """Run certutil and retrieve a cert as cryptography.x509 object
+    """
+    args = ['-f', pwd_file, '-L', '-a', '-n']
+    if token_name is not None:
+        args.extend([
+            '{}:{}'.format(token_name, nickname),
+            '-h', token_name
+        ])
+    else:
+        args.append(nickname)
+    result = run_certutil(host, args, reqdir)
+    return x509.load_pem_x509_certificate(
+        result.stdout_bytes, default_backend()
+    )
+
+
 def upload_temp_contents(host, contents):
     """Upload contents to a temporary file
 
@@ -1886,6 +1903,25 @@ def get_logsize(host, logfile):
     """ get current logsize"""
     logsize = len(host.get_file_contents(logfile))
     return logsize
+
+
+def wait_for_request(host, request_id, timeout=120):
+    for _i in range(0, timeout, 5):
+        result = host.run_command(
+            "getcert list -i %s | grep status: | awk '{ print $2 }'" %
+            request_id
+        )
+
+        state = result.stdout_text.strip()
+        logger.info("certmonger request is in state %s", state)
+        if state in ('CA_REJECTED', 'CA_UNREACHABLE', 'CA_UNCONFIGURED',
+                     'NEED_GUIDANCE', 'NEED_CA', 'MONITORING'):
+            break
+        time.sleep(5)
+    else:
+        raise RuntimeError("request timed out")
+
+    return state
 
 
 def wait_for_certmonger_status(host, status, request_id, timeout=120):
