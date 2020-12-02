@@ -1,9 +1,22 @@
+# ipatests enabled by default, can be disabled with --without ipatests
+%bcond_without ipatests
+# default to not use XML-RPC in Rawhide, can be turned around with --with ipa_join_xml
+# On RHEL 8 we should use --with ipa_join_xml
+%bcond_with ipa_join_xml
+
+# Linting is disabled by default, needed for upstream testing
+%bcond_with lint
+
+# Build documentation with sphinx
+%bcond_with doc
+
+# Build Python wheels
+%bcond_with wheels
+
 # 389-ds-base 1.4 no longer supports i686 platform, build only client
 # packages, https://bugzilla.redhat.com/show_bug.cgi?id=1544386
-%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
-    %ifarch %{ix86}
-        %{!?ONLY_CLIENT:%global ONLY_CLIENT 1}
-    %endif
+%ifarch %{ix86}
+    %{!?ONLY_CLIENT:%global ONLY_CLIENT 1}
 %endif
 
 # Define ONLY_CLIENT to only make the ipa-client and ipa-python
@@ -15,21 +28,19 @@
     %global enable_server_option --enable-server
 %endif
 
-# Build ipatests
-%if 0%{?rhel}
+%if %{ONLY_CLIENT}
     %global with_ipatests 0
 %endif
-%if ! %{ONLY_CLIENT}
-    %{!?with_ipatests:%global with_ipatests 1}
-%endif
-%if 0%{?with_ipatests}
+
+# Whether to build ipatests
+%if %{with ipatests}
     %global with_ipatests_option --with-ipatests
 %else
     %global with_ipatests_option --without-ipatests
 %endif
 
-# Use XML-RPC with ipa-join
-%if 0%{?with_ipa_join_xml}
+# Whether to use XML-RPC with ipa-join
+%if %{with ipa_join_xml}
     %global with_ipa_join_xml_option --with-ipa-join-xml
 %else
     %global with_ipa_join_xml_option --without-ipa-join-xml
@@ -37,14 +48,14 @@
 
 # lint is not executed during rpmbuild
 # %%global with_lint 1
-%if 0%{?with_lint}
+%if %{with lint}
     %global linter_options --enable-pylint --with-jslint
 %else
     %global linter_options --disable-pylint --without-jslint
 %endif
 
 # Include SELinux subpackage
-%if 0%{?fedora} >= 30 || 0%{?rhel}
+%if 0%{?fedora} >= 30 || 0%{?rhel} >= 8
     %global with_selinux 1
     %global selinuxtype targeted
     %global modulename ipa
@@ -53,46 +64,40 @@
 %if 0%{?rhel}
 %global package_name ipa
 %global alt_name freeipa
-%global krb5_version 1.18
+%global krb5_version 1.18.2-2
 %global krb5_kdb_version 8.0
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
-%global python_netaddr_version 0.7.16
+%global python_netaddr_version 0.7.19
 # Require 4.7.0 which brings Python 3 bindings
-%global samba_version 4.7.0
-%global selinux_policy_version 3.14.3-21
-%global slapi_nis_version 0.56.1-4
+%global samba_version 4.12.3-12
+%global selinux_policy_version 3.14.3-52
+%global slapi_nis_version 0.56.4
 %global python_ldap_version 3.1.0-1
-# 1.4.3 moved nsslapd-db-locks to cn=bdb sub-entry
-# https://pagure.io/freeipa/issue/8515
-%global ds_version 1.4.3
+# python3-lib389
+# Fix for "Installation fails: Replica Busy"
+# https://pagure.io/389-ds-base/issue/49818
+%global ds_version 1.4.2.4-6
 # Fix for TLS 1.3 PHA, RHBZ#1775158
 %global httpd_version 2.4.37-21
-%global systemd_version 239
+%global bind_version 9.11.20-6
 
 %else
 # Fedora
 %global package_name freeipa
 %global alt_name ipa
-# Fix for CVE-2018-20217
-%global krb5_version 1.16.1-24
+# Fix for CVE-2020-28196
+%global krb5_version 1.18.2-29
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
-%global samba_version 2:4.7.0
-# SELinux context for dirsrv unit file, BZ 1820298
-%if 0%{?fedora} >= 32
-%global selinux_policy_version 3.14.5-39
-%else
-%global selinux_policy_version 3.14.4-52
-%endif
-%global slapi_nis_version 0.56.1
+# Require 4.12 which has DsRGetForestTrustInformation access rights fixes
+%global samba_version 2:4.12.10
 
-# krb5 can only provide one KDB at a time
-%if 0%{?fedora} >= 32
+# 3.14.5-45 or later includes a number of interfaces fixes for IPA interface
+%global selinux_policy_version 3.14.5-45
+%global slapi_nis_version 0.56.5
+
 %global krb5_kdb_version 8.0
-%else
-%global krb5_kdb_version 7.0
-%endif
 
 # fix for segfault in python3-ldap, https://pagure.io/freeipa/issue/7324
 %global python_ldap_version 3.1.0-1
@@ -101,56 +106,53 @@
 %global ds_version 1.4.3
 
 # Fix for TLS 1.3 PHA, RHBZ#1775146
-%if 0%{?fedora} >= 31
 %global httpd_version 2.4.41-9
-%else
-%global httpd_version 2.4.41-6.1
+
+%global bind_version 9.11.24-1
+# Don't use Fedora's Python dependency generator on Fedora 30/rawhide yet.
+# Some packages don't provide new dist aliases.
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/Python/
+%{?python_disable_dependency_generator}
+# Fedora
 %endif
 
 # BIND employs 'pkcs11' OpenSSL engine instead of native PKCS11
-%if 0%{?fedora} >= 31
-    %global with_bind_pkcs11 0
+# Fedora 31+ uses OpenSSL engine, as well as Fedora ELN (RHEL9)
+%if 0%{?fedora} || 0%{?rhel} >= 9
     %global openssl_pkcs11_version 0.4.10-6
     %global softhsm_version 2.5.0-4
 %else
     %global with_bind_pkcs11 1
 %endif
 
-# Don't use Fedora's Python dependency generator on Fedora 30/rawhide yet.
-# Some packages don't provide new dist aliases.
-# https://docs.fedoraproject.org/en-US/packaging-guidelines/Python/
-%{?python_disable_dependency_generator}
-
-# Fedora
-%endif
-
+%if 0%{?rhel} == 8
+# PKIConnection has been modified to always validate certs.
+# https://pagure.io/freeipa/issue/8379
+%global pki_version 10.9.0-0.4
+%else
 # New KRA profile, ACME support
 # https://pagure.io/freeipa/issue/8545
 %global pki_version 10.10.0-2
-
-# https://pagure.io/certmonger/issue/90
-%global certmonger_version 0.79.7-1
-
-# NSS release with fix for p11-kit-proxy issue, affects F28
-# https://pagure.io/freeipa/issue/7810
-%if 0%{?fedora} == 28
-%global nss_version 3.41.0-3
-%else
-%global nss_version 3.41.0-1
 %endif
 
-# One-Way Trust authenticated by trust secret
-# https://bugzilla.redhat.com/show_bug.cgi?id=1345975#c20
-%global sssd_version 1.16.3-2
+# RHEL 8.3+, F32+ has 0.79.13
+%global certmonger_version 0.79.7-3
 
-%define krb5_base_version %(LC_ALL=C pkgconf --modversion krb5 | grep -Eo '^[^.]+\.[^.]+' || echo %krb5_version)
+# RHEL 8.2+, F32+ has 3.58
+%global nss_version 3.44.0-4
 
-%if 0%{?fedora} >= 33
+# RHEL 8.3+, F32+
+%global sssd_version 2.4.0
+
+%define krb5_base_version %(LC_ALL=C /usr/bin/pkgconf --modversion krb5 | grep -Eo '^[^.]+\.[^.]+' || echo %krb5_version)
+%global kdcproxy_version 0.4-3
+
+%if 0%{?fedora} >= 33 || 0%{?rhel} >= 9
 # systemd with resolved enabled
 # see https://pagure.io/freeipa/issue/8275
 %global systemd_version 246.6-3
 %else
-%global systemd_version 245
+%global systemd_version 239
 %endif
 
 %global plugin_dir %{_libdir}/dirsrv/plugins
@@ -162,31 +164,56 @@
 # Work-around fact that RPM SPEC parser does not accept
 # "Version: @VERSION@" in freeipa.spec.in used for Autoconf string replacement
 %define IPA_VERSION @VERSION@
+# Release candidate version -- uncomment with one percent for RC versions
+#%%global rc_version rc1
 %define AT_SIGN @
 # redefine IPA_VERSION only if its value matches the Autoconf placeholder
 %if "%{IPA_VERSION}" == "%{AT_SIGN}VERSION%{AT_SIGN}"
     %define IPA_VERSION nonsense.to.please.RPM.SPEC.parser
 %endif
 
+%define NON_DEVELOPER_BUILD ("%{lua: print(rpm.expand('%{suffix:%IPA_VERSION}'):find('^dev'))}" == "nil")
+
 Name:           %{package_name}
 Version:        %{IPA_VERSION}
-Release:        0%{?dist}
+Release:        0%{?rc_version:.%rc_version}%{?dist}
 Summary:        The Identity, Policy and Audit system
 
-Group:          System Environment/Base
 License:        GPLv3+
 URL:            http://www.freeipa.org/
-Source0:        freeipa-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Source0:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_version}.tar.gz
+# Only use detached signature for the distribution builds. If it is a developer build, skip it
+%if %{NON_DEVELOPER_BUILD}
+Source1:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_version}.tar.gz.asc
+%endif
+
+# RHEL spec file only: START: Change branding to IPA and Identity Management
+# Moved branding logos and background to redhat-logos-ipa-80.4:
+# header-logo.png, login-screen-background.jpg, login-screen-logo.png,
+# product-name.png
+# RHEL spec file only: END: Change branding to IPA and Identity Management
+
+# RHEL spec file only: START
+%if 0%{?rhel} == 8 && %{NON_DEVELOPER_BUILD}
+Patch0001:      0001_util_Fix_client-only_build-upstream_5273.patch
+Patch1001:      1001-Change-branding-to-IPA-and-Identity-Management.patch
+Patch1002:      1002-4.8.0-Remove-csrgen.patch
+Patch1003:      1003-Revert-WebUI-use-python3-rjsmin-to-minify-JavaScript.patch
+%endif
+# RHEL spec file only: END
+
+# For the timestamp trick in patch application
+BuildRequires:  diffstat
 
 BuildRequires:  openldap-devel
 # For KDB DAL version, make explicit dependency so that increase of version
 # will cause the build to fail due to unsatisfied dependencies.
 # DAL version change may cause code crash or memory leaks, it is better to fail early.
 BuildRequires:  krb5-kdb-version = %{krb5_kdb_version}
+BuildRequires:  krb5-kdb-devel-version = %{krb5_kdb_version}
 BuildRequires:  krb5-devel >= %{krb5_version}
 BuildRequires:  pkgconfig(krb5)
-%if 0%{?with_ipa_join_xml}
+%if %{with ipa_join_xml}
 # 1.27.4: xmlrpc_curl_xportparms.gssapi_delegation
 BuildRequires:  xmlrpc-c-devel >= 1.27.4
 %else
@@ -196,9 +223,11 @@ BuildRequires:  jansson-devel
 BuildRequires:  popt-devel
 BuildRequires:  gcc
 BuildRequires:  make
+BuildRequires:  pkgconfig
 BuildRequires:  pkgconf
 BuildRequires:  autoconf
 BuildRequires:  automake
+BuildRequires:  make
 BuildRequires:  libtool
 BuildRequires:  gettext
 BuildRequires:  gettext-devel
@@ -223,10 +252,10 @@ BuildRequires:  libsss_certmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= %{sssd_version}
 BuildRequires:  nodejs(abi)
 # use old dependency on RHEL 8 for now
-%if 0%{?rhel}
-BuildRequires:  uglify-js
-%else
+%if 0%{?fedora} >= 31 || 0%{?rhel} >= 9
 BuildRequires:  python3-rjsmin
+%else
+BuildRequires:  uglify-js
 %endif
 BuildRequires:  libverto-devel
 BuildRequires:  libunistring-devel
@@ -234,7 +263,6 @@ BuildRequires:  libunistring-devel
 # 0.13.0-2: fix for missing dependency on python-six
 BuildRequires:  python3-lesscpy >= 0.13.0-2
 BuildRequires:  cracklib-dicts
-
 # ONLY_CLIENT
 %endif
 
@@ -254,7 +282,7 @@ BuildRequires:  python3-psutil
 #
 # Build dependencies for wheel packaging and PyPI upload
 #
-%if 0%{?with_wheels}
+%if %{with wheels}
 BuildRequires:  dbus-glib-devel
 BuildRequires:  libffi-devel
 BuildRequires:  python3-tox
@@ -267,7 +295,7 @@ BuildRequires:  python3-wheel
 # with_wheels
 %endif
 
-%if 0%{?with_doc}
+%if %{with doc}
 BuildRequires: python3-sphinx
 BuildRequires: python3-m2r
 %endif
@@ -275,12 +303,13 @@ BuildRequires: python3-m2r
 #
 # Build dependencies for lint and fastcheck
 #
-%if 0%{?with_lint}
+%if %{with lint}
 BuildRequires:  git
 BuildRequires:  jsl
 BuildRequires:  nss-tools
 BuildRequires:  rpmlint
 BuildRequires:  softhsm
+
 BuildRequires:  keyutils
 BuildRequires:  python3-augeas
 BuildRequires:  python3-cffi
@@ -307,7 +336,7 @@ BuildRequires:  python3-polib
 BuildRequires:  python3-pyasn1
 BuildRequires:  python3-pyasn1-modules
 BuildRequires:  python3-pycodestyle
-%if 0%{?fedora} >= 29
+%if 0%{?fedora} || 0%{?rhel} > 8
 # https://bugzilla.redhat.com/show_bug.cgi?id=1648299
 BuildRequires:  python3-pylint >= 2.1.1-2
 %else
@@ -337,11 +366,9 @@ BuildRequires:  krb5-server >= %{krb5_version}
 # ONLY_CLIENT
 %endif
 
-#
 # Build dependencies for SELinux policy
-#
-%if 0%{?with_selinux}
-BuildRequires:  selinux-policy-devel
+%if %{with selinux}
+BuildRequires:  selinux-policy-devel >= %{selinux_policy_version}
 %endif
 
 %description
@@ -356,7 +383,6 @@ and integration with Active Directory based infrastructures (Trusts).
 
 %package server
 Summary: The IPA authentication server
-Group: System Environment/Base
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
@@ -367,6 +393,7 @@ Requires: openldap-clients > 2.4.35-4
 Requires: nss-tools >= %{nss_version}
 Requires(post): krb5-server >= %{krb5_version}
 Requires(post): krb5-server >= %{krb5_base_version}
+Requires: krb5-kdb-version = %{krb5_kdb_version}
 Requires: krb5-pkinit-openssl >= %{krb5_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: chrony
@@ -428,6 +455,13 @@ Obsoletes: %{name}-server <= 4.2.0
 # member.
 Conflicts: nss-pam-ldapd < 0.8.4
 
+# RHEL spec file only: START: Do not build tests
+%if 0%{?rhel} == 8
+# ipa-tests subpackage was moved to separate srpm
+Conflicts: ipa-tests < 3.3.3-9
+%endif
+# RHEL spec file only: END: Do not build tests
+
 %description server
 IPA is an integrated solution to provide centrally managed Identity (users,
 hosts, services), Authentication (SSO, 2FA), and Authorization
@@ -439,7 +473,6 @@ If you are installing an IPA server, you need to install this package.
 
 %package -n python3-ipaserver
 Summary: Python libraries used by IPA server
-Group: System Environment/Libraries
 BuildArch: noarch
 %{?python_provide:%python_provide python3-ipaserver}
 Requires: %{name}-server-common = %{version}-%{release}
@@ -452,7 +485,7 @@ Requires: python3-dbus
 Requires: python3-dns >= 1.15
 Requires: python3-gssapi >= 1.2.0
 Requires: python3-ipaclient = %{version}-%{release}
-Requires: python3-kdcproxy >= 0.3
+Requires: python3-kdcproxy >= %{kdcproxy_version}
 Requires: python3-lxml
 Requires: python3-pki >= %{pki_version}
 Requires: python3-pyasn1 >= 0.3.2-2
@@ -466,7 +499,6 @@ Requires: python3-urllib3 >= 1.24.2-3
 Requires: python3-urllib3 >= 1.25.7
 %endif
 
-
 %description -n python3-ipaserver
 IPA is an integrated solution to provide centrally managed Identity (users,
 hosts, services), Authentication (SSO, 2FA), and Authorization
@@ -478,11 +510,14 @@ If you are installing an IPA server, you need to install this package.
 
 %package server-common
 Summary: Common files used by IPA server
-Group: System Environment/Base
 BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: httpd >= %{httpd_version}
 Requires: systemd-units >= %{systemd_version}
+Requires: custodia >= 0.3.1
+%if 0%{?rhel} >= 8
+Requires: redhat-logos-ipa >= 80.4
+%endif
 
 Provides: %{alt_name}-server-common = %{version}
 Conflicts: %{alt_name}-server-common
@@ -499,25 +534,21 @@ If you are installing an IPA server, you need to install this package.
 
 %package server-dns
 Summary: IPA integrated DNS server with support for automatic DNSSEC signing
-Group: System Environment/Base
 BuildArch: noarch
 Requires: %{name}-server = %{version}-%{release}
-Requires: bind-dyndb-ldap >= 11.0-2
-Requires: bind >= 9.11.0-6.P2
-Requires: bind-utils >= 9.11.0-6.P2
-%if 0%{?with_bind_pkcs11}
-Requires: bind-pkcs11 >= 9.11.0-6.P2
-Requires: bind-pkcs11-utils >= 9.11.0-6.P2
+Requires: bind-dyndb-ldap >= 11.2-2
+Requires: bind >= %{bind_version}
+Requires: bind-utils >= %{bind_version}
+%if %{with bind_pkcs11}
+Requires: bind-pkcs11 >= %{bind_version}
+Requires: bind-pkcs11-utils >= %{bind_version}
 %else
 Requires: softhsm >= %{softhsm_version}
 Requires: openssl-pkcs11 >= %{openssl_pkcs11_version}
 %endif
-%if 0%{?fedora} >= 32
 # See https://bugzilla.redhat.com/show_bug.cgi?id=1825812
+# RHEL 8.3+ and Fedora 32+ have 2.1
 Requires: opendnssec >= 2.1.6-5
-%else
-Requires: opendnssec >= 1.4.6-4
-%endif
 %{?systemd_requires}
 
 Provides: %{alt_name}-server-dns = %{version}
@@ -534,14 +565,15 @@ Integrated DNS server is BIND 9. OpenDNSSEC provides key management.
 
 %package server-trust-ad
 Summary: Virtual package to install packages required for Active Directory trusts
-Group: System Environment/Base
 Requires: %{name}-server = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 
 Requires: samba >= %{samba_version}
 Requires: samba-winbind
 Requires: libsss_idmap
-
+%if 0%{?rhel}
+Obsoletes: ipa-idoverride-memberof-plugin <= 0.1
+%endif
 Requires(post): python3
 Requires: python3-samba
 Requires: python3-libsss_nss_idmap
@@ -570,7 +602,6 @@ dependencies at once.
 
 %package client
 Summary: IPA authentication for use on clients
-Group: System Environment/Base
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python3-gssapi >= 1.2.0-5
@@ -583,13 +614,10 @@ Requires: krb5-workstation >= %{krb5_version}
 Requires: authselect >= 0.4-2
 Requires: curl
 # NIS domain name config: /usr/lib/systemd/system/*-domainname.service
-%if 0%{?fedora} >= 29
+# All Fedora 28+ and RHEL8+ contain the service in hostname package
 Requires: hostname
-%else
-Requires: initscripts
-%endif
 Requires: libcurl >= 7.21.7-2
-%if 0%{?with_ipa_join_xml}
+%if %{with ipa_join_xml}
 Requires: xmlrpc-c >= 1.27.4
 %else
 Requires: jansson
@@ -616,6 +644,11 @@ Obsoletes: %{alt_name}-admintools < 4.4.1
 
 Obsoletes: %{name}-admintools < 4.4.1
 Provides: %{name}-admintools = %{version}-%{release}
+
+%if 0%{?rhel} == 8
+# Conflict with crypto-policies < 20200629-1 to get AD-SUPPORT policy module
+Conflicts: crypto-policies < 20200629-1
+%endif
 
 %description client
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -647,11 +680,11 @@ on the machine enrolled into a FreeIPA environment
 %package client-epn
 Summary: Tools to configure Expiring Password Notification in IPA
 Group: System Environment/Base
+Requires: %{name}-client = %{version}-%{release}
 Requires: systemd-units >= %{systemd_version}
 Requires(post): systemd-units >= %{systemd_version}
 Requires(preun): systemd-units >= %{systemd_version}
 Requires(postun): systemd-units >= %{systemd_version}
-Requires: %{name}-client = %{version}-%{release}
 
 %description client-epn
 This package provides a service to collect and send expiring password
@@ -659,7 +692,6 @@ notifications via email (SMTP).
 
 %package -n python3-ipaclient
 Summary: Python libraries used by IPA client
-Group: System Environment/Libraries
 BuildArch: noarch
 %{?python_provide:%python_provide python3-ipaclient}
 Requires: %{name}-client-common = %{version}-%{release}
@@ -678,10 +710,8 @@ and integration with Active Directory based infrastructures (Trusts).
 If your network uses IPA for authentication, this package should be
 installed on every client machine.
 
-
 %package client-common
 Summary: Common files used by IPA client
-Group: System Environment/Base
 BuildArch: noarch
 
 Provides: %{alt_name}-client-common = %{version}
@@ -706,7 +736,6 @@ installed on every client machine.
 
 %package python-compat
 Summary: Compatiblity package for Python libraries used by IPA
-Group: System Environment/Libraries
 BuildArch: noarch
 Obsoletes: %{name}-python < 4.2.91
 Provides: %{name}-python = %{version}-%{release}
@@ -734,7 +763,6 @@ python3-ipalib and %{name}-common. Packages still depending on
 
 %package -n python3-ipalib
 Summary: Python3 libraries used by IPA
-Group: System Environment/Libraries
 BuildArch: noarch
 %{?python_provide:%python_provide python3-ipalib}
 Provides: python3-ipapython = %{version}-%{release}
@@ -761,10 +789,14 @@ Requires: python3-pyasn1-modules >= 0.3.2-2
 Requires: python3-pyusb
 Requires: python3-qrcode-core >= 5.0.0
 Requires: python3-requests
-Requires: python3-setuptools
 Requires: python3-six
 Requires: python3-sss-murmur
 Requires: python3-yubico >= 1.3.2-7
+%if 0%{?rhel} && 0%{?rhel} >= 8
+Requires: platform-python-setuptools
+%else
+Requires: python3-setuptools
+%endif
 
 %description -n python3-ipalib
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -777,7 +809,6 @@ If you are using IPA with Python 3, you need to install this package.
 
 %package common
 Summary: Common files used by IPA
-Group: System Environment/Libraries
 BuildArch: noarch
 Conflicts: %{name}-python < 4.2.91
 
@@ -787,7 +818,7 @@ Obsoletes: %{alt_name}-common < %{version}
 
 Conflicts: %{alt_name}-python < %{version}
 
-%if 0%{?with_selinux}
+%if %{with selinux}
 # This ensures that the *-selinux package and all it’s dependencies are not
 # pulled into containers and other systems that do not use SELinux. The
 # policy defines types and file contexts for client and server.
@@ -803,28 +834,34 @@ and integration with Active Directory based infrastructures (Trusts).
 If you are using IPA, you need to install this package.
 
 
-%if 0%{?with_ipatests}
+%if %{with ipatests}
 
 %package -n python3-ipatests
 Summary: IPA tests and test tools
 BuildArch: noarch
 %{?python_provide:%python_provide python3-ipatests}
-Requires: ldns-utils
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ipaserver = %{version}-%{release}
 Requires: iptables
-Requires: ldns-utils
 Requires: python3-coverage
 Requires: python3-cryptography >= 1.6
+%if 0%{?fedora}
+# These packages do not exist on RHEL and for ipatests use
+# they are installed on the controller through other means
+Requires: ldns-utils
 Requires: python3-polib
 Requires: python3-pytest >= 3.9.1
 Requires: python3-pytest-multihost >= 0.5
 Requires: python3-pytest-sourceorder
+Requires: sshpass
+%endif
 Requires: python3-sssdconfig >= %{sssd_version}
 Requires: tar
 Requires: xz
 Requires: openssh-clients
-Requires: sshpass
+%if 0%{?rhel}
+AutoReqProv: no
+%endif
 
 %description -n python3-ipatests
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -834,10 +871,11 @@ features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 This package contains tests that verify IPA functionality under Python 3.
 
-# with_ipatests
+# with ipatests
 %endif
 
-%if 0%{?with_selinux}
+
+%if %{with selinux}
 # SELinux subpackage
 %package selinux
 Summary:             FreeIPA SELinux policy
@@ -848,17 +886,45 @@ Requires(post):      selinux-policy-%{selinuxtype}
 %{?selinux_requires}
 
 %description selinux
-Custom SELinux policy module
-# with_selinux
+Custom SELinux policy module for FreeIPA
+# with selinux
 %endif
 
+
 %prep
-%setup -n freeipa-%{version} -q
+# Update timestamps on the files touched by a patch, to avoid non-equal
+# .pyc/.pyo files across the multilib peers within a build, where "Level"
+# is the patch prefix option (e.g. -p1)
+# Taken from specfile for sssd and python-simplejson
+UpdateTimestamps() {
+  Level=$1
+  PatchFile=$2
+
+  # Locate the affected files:
+  for f in $(diffstat $Level -l $PatchFile); do
+    # Set the files to have the same timestamp as that of the patch:
+    touch -c -r $PatchFile $f
+  done
+}
+
+%setup -n freeipa-%{version}%{?rc_version} -q
+
+# To allow proper application patches to the stripped po files, strip originals
+pushd po
+for i in *.po ; do
+    msgattrib --translated --no-fuzzy --no-location -s $i > $i.tmp || exit 1
+    mv $i.tmp $i || exit 1
+done
+popd
+
+for p in %patches ; do
+    %__patch -p1 -i $p
+    UpdateTimestamps -p1 $p
+done
 
 %build
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
 export PATH=/usr/bin:/usr/sbin:$PATH
-
 
 export PYTHON=%{__python3}
 autoreconf -ivf
@@ -892,7 +958,7 @@ make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
 # don't package ipasphinx for now
 rm -rf %{buildroot}%{python3_sitelib}/ipasphinx*
 
-%if 0%{?with_ipatests}
+%if %{with ipatests}
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python3_version}
 mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python3_version}
@@ -907,6 +973,18 @@ ln -frs %{buildroot}%{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_b
 
 # remove files which are useful only for make uninstall
 find %{buildroot} -wholename '*/site-packages/*/install_files.txt' -exec rm {} \;
+
+%if 0%{?rhel}
+# RHEL spec file only: START
+# Moved branding logos and background to redhat-logos-ipa-80.4:
+# header-logo.png, login-screen-background.jpg, login-screen-logo.png,
+# product-name.png
+rm -f %{buildroot}%{_usr}/share/ipa/ui/images/header-logo.png
+rm -f %{buildroot}%{_usr}/share/ipa/ui/images/login-screen-background.jpg
+rm -f %{buildroot}%{_usr}/share/ipa/ui/images/login-screen-logo.png
+rm -f %{buildroot}%{_usr}/share/ipa/ui/images/product-name.png
+%endif
+# RHEL spec file only: END
 
 %find_lang %{gettext_domain}
 
@@ -956,10 +1034,6 @@ touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 # ONLY_CLIENT
 %endif
-
-%clean
-rm -rf %{buildroot}
-
 
 %if ! %{ONLY_CLIENT}
 
@@ -1118,7 +1192,7 @@ if [ $1 -gt 1 ] ; then
 fi
 
 
-%if 0%{?with_selinux}
+%if %{with selinux}
 # SELinux contexts are saved so that only affected files can be
 # relabeled after the policy module installation
 %pre selinux
@@ -1239,6 +1313,7 @@ fi
 %{_sbindir}/ipa-acme-manage
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/certmonger/ipa-server-guard
+%dir %{_libexecdir}/ipa
 %{_libexecdir}/ipa/ipa-custodia
 %{_libexecdir}/ipa/ipa-custodia-check
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
@@ -1361,8 +1436,15 @@ fi
 %{_usr}/share/ipa/ui/js/freeipa/core.js
 %dir %{_usr}/share/ipa/ui/js/plugins
 %dir %{_usr}/share/ipa/ui/images
+%if 0%{?rhel}
+%{_usr}/share/ipa/ui/images/facet-*.png
+# Moved branding logos and background to redhat-logos-ipa-80.4:
+# header-logo.png, login-screen-background.jpg, login-screen-logo.png,
+# product-name.png
+%else
 %{_usr}/share/ipa/ui/images/*.jpg
 %{_usr}/share/ipa/ui/images/*.png
+%endif
 %dir %{_usr}/share/ipa/wsgi
 %{_usr}/share/ipa/wsgi/plugins.py*
 %dir %{_sysconfdir}/ipa
@@ -1426,7 +1508,7 @@ fi
 %ghost %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 %{_sysconfdir}/dbus-1/system.d/oddjob-ipa-trust.conf
 %{_sysconfdir}/oddjobd.conf.d/oddjobd-ipa-trust.conf
-%%attr(755,root,root) %{_libexecdir}/ipa/oddjob/com.redhat.idm.trust-fetch-domains
+%attr(755,root,root) %{_libexecdir}/ipa/oddjob/com.redhat.idm.trust-fetch-domains
 
 # ONLY_CLIENT
 %endif
@@ -1491,6 +1573,9 @@ fi
 %dir %{python3_sitelib}/ipaclient/remote_plugins/2_*
 %{python3_sitelib}/ipaclient/remote_plugins/2_*/*.py
 %{python3_sitelib}/ipaclient/remote_plugins/2_*/__pycache__/*.py*
+%if 0%{?rhel}
+# RHEL spec file only: DELETED: Remove csrgen
+%else
 %dir %{python3_sitelib}/ipaclient/csrgen
 %dir %{python3_sitelib}/ipaclient/csrgen/profiles
 %{python3_sitelib}/ipaclient/csrgen/profiles/*.json
@@ -1498,6 +1583,7 @@ fi
 %{python3_sitelib}/ipaclient/csrgen/rules/*.json
 %dir %{python3_sitelib}/ipaclient/csrgen/templates
 %{python3_sitelib}/ipaclient/csrgen/templates/*.tmpl
+%endif
 %{python3_sitelib}/ipaclient-*.egg-info
 
 
@@ -1537,7 +1623,6 @@ fi
 %dir %{_usr}/share/ipa
 %dir %{_libexecdir}/ipa
 
-
 %files -n python3-ipalib
 %doc README.md Contributors.txt
 %license COPYING
@@ -1550,7 +1635,8 @@ fi
 %{python3_sitelib}/ipaplatform-*.egg-info
 
 
-%if 0%{?with_ipatests}
+%if %{with ipatests}
+
 
 %files -n python3-ipatests
 %doc README.md Contributors.txt
@@ -1570,14 +1656,15 @@ fi
 %{_mandir}/man1/ipa-test-config.1*
 %{_mandir}/man1/ipa-test-task.1*
 
-# with_ipatests
+# with ipatests
 %endif
 
-%if 0%{?with_selinux}
+
+%if %{with selinux}
 %files selinux
 %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.*
 %ghost %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
-# with_selinux
+# with selinux
 %endif
 
 %changelog
