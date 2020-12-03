@@ -346,6 +346,12 @@ class test_Param(ClassChecker):
             assert_equal(p.safe_value(value), u'********')
         assert p.safe_value(None) is None
 
+    def test_password_whitespaces(self):
+        values = ('Secret123', ' Secret123', 'Secret123 ', ' Secret123 ',)
+        p = parameters.Password('my_passwd')
+        for value in values:
+            assert(p.validate(value)) is None
+
     def test_clone(self):
         """
         Test the `ipalib.parameters.Param.clone` method.
