@@ -195,7 +195,7 @@ class BasePathNamespace:
     CHROMIUM_BROWSER = "/usr/bin/chromium-browser"
     FIREFOX = "/usr/bin/firefox"
     GETCERT = "/usr/bin/getcert"
-    GPG2 = "/usr/bin/gpg2"
+    GPG2 = "/usr/bin/gpg"
     GPG_CONF = "/usr/bin/gpgconf"
     GPG_CONNECT_AGENT = "/usr/bin/gpg-connect-agent"
     GPG_AGENT = "/usr/bin/gpg-agent"
