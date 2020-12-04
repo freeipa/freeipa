@@ -45,6 +45,7 @@ app_DATA =				\
 	41-caacl.update			\
 	41-lightweight-cas.update	\
 	45-roles.update			\
+	49-autobind-services.update	\
 	50-7_bit_check.update	        \
 	50-dogtag10-migration.update	\
 	50-groupuuid.update		\

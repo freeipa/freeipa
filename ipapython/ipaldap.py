@@ -763,6 +763,8 @@ class LDAPClient:
         'nsslapd-enable-upgrade-hash': True,
         'nsslapd-db-locks': True,
         'nsslapd-logging-hr-timestamps-enabled': True,
+        'nsslapd-ldapientrysearchbase': True,
+        'nsslapd-ldapidnmappingbase': True,
     })
 
     time_limit = -1.0   # unlimited

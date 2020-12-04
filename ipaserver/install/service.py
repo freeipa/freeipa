@@ -42,7 +42,7 @@ from ipaserver.masters import (
     CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE, SERVICE_LIST
 )
 from ipaserver.servroles import HIDDEN
-from ipaserver.install.ldapupdate import LDAPUpdate
+from ipaserver.install.ldapupdate import LDAPUpdate, run_ldapi_reload_task
 
 logger = logging.getLogger(__name__)
 
@@ -332,6 +332,15 @@ class Service:
             kerberos.Principal(
                 (self.service_prefix, self.fqdn), realm=self.realm))
 
+    def get_principal_dn(self, principal=None):
+        if principal is None:
+            principal = self.principal
+        return DN(
+            ('krbprincipalname', principal),
+            self.api.env.container_service,
+            self.suffix
+        )
+
     def _ldap_update(self, filenames, *, basedir=paths.UPDATES_DIR):
         """Apply update ldif files
 
@@ -419,7 +428,7 @@ class Service:
             # This can happen when installing a replica
             return None
         entry.pop('krbpwdpolicyreference', None)  # don't copy virtual attr
-        newdn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
+        newdn = self.get_principal_dn(principal)
         hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
         api.Backend.ldap2.delete_entry(entry)
         entry.dn = newdn
@@ -437,7 +446,7 @@ class Service:
 
         The principal needs to be fully-formed: service/host@REALM
         """
-        dn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
+        dn = self.get_principal_dn(principal)
         hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
         entry = api.Backend.ldap2.make_entry(
             dn,
@@ -451,6 +460,49 @@ class Service:
         api.Backend.ldap2.add_entry(entry)
         return dn
 
+    def add_autobind_entry(self, user, group, principal):
+        """Add or update LDAPI autobind entry to map uid/gid to principal
+
+        :param user: ipaplatform User object
+        :param group: ipaplatform Group object
+        :param principal: service principal to bind as
+        :return: dn of new autobind entry
+        """
+        authdn = self.get_principal_dn(principal)
+        dn = DN(
+            ("cn", self.service_name), ("cn", "auto_bind"), ("cn", "config")
+        )
+        settings = {
+            "uidNumber": [user.uid],
+            "gidNumber": [group.gid],
+            "nsslapd-authenticateAsDN": [authdn]
+        }
+        ldap2 = self.api.Backend.ldap2
+        try:
+            entry = ldap2.get_entry(dn)
+        except errors.NotFound:
+            entry = ldap2.make_entry(
+                dn,
+                objectclass=["top", "nsLDAPIFixedAuthMap"],
+                cn=[self.service_name],
+                **settings,
+            )
+            ldap2.add_entry(entry)
+            logger.debug("Created autobind entry %s", dn)
+        else:
+            entry.update(settings)
+            try:
+                ldap2.update_entry(entry)
+            except errors.EmptyModlist:
+                logger.debug("Autobind entry %s already configured", dn)
+            else:
+                logger.debug("Updated autobind entry %s", dn)
+
+        # refresh LDAPI mappings
+        run_ldapi_reload_task(self.api.Backend.ldap2)
+
+        return dn
+
     def add_cert_to_service(self):
         """
         Add a certificate to a service
@@ -459,8 +511,7 @@ class Service:
         """
         if self.cert is None:
             raise ValueError("{} has no cert".format(self.service_name))
-        dn = DN(('krbprincipalname', self.principal), ('cn', 'services'),
-                ('cn', 'accounts'), self.suffix)
+        dn = self.get_principal_dn()
         entry = api.Backend.ldap2.get_entry(dn)
         entry.setdefault('userCertificate', []).append(self.cert)
         try:

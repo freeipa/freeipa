@@ -760,8 +760,11 @@ class BindInstance(service.Service):
             self.step("setting up records for other masters", self.__add_others)
         # all zones must be created before this step
         self.step("adding NS record to the zones", self.__add_self_ns)
-
+        # The service entry is used for LDAPI autobind. The keytab is no
+        # longer used to authenticate the server. The server still needs
+        # the keytab to handle incoming nsupdate requests with TSIG.
         self.step("setting up kerberos principal", self.__setup_principal)
+        self.step("setting up LDAPI autobind", self.setup_autobind)
         self.step("setting up named.conf", self.setup_named_conf)
         self.step("setting up server configuration",
             self.__setup_server_configuration)
@@ -1028,6 +1031,11 @@ class BindInstance(service.Service):
             logger.critical("Could not set principal's %s LDAP limits: %s",
                             dns_principal, str(e))
             raise
+
+    def setup_autobind(self):
+        self.add_autobind_entry(
+            constants.NAMED_USER, constants.NAMED_GROUP, self.principal
+        )
 
     def setup_named_conf(self, backup=False):
         """Create, update, or migrate named configuration files

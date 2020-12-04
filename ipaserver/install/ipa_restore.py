@@ -40,7 +40,7 @@ from ipapython import admintool, certdb
 from ipapython.dn import DN
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
-from ipaserver.install import installutils
+from ipaserver.install import installutils, ldapupdate
 from ipaserver.install import dsinstance, httpinstance, cainstance, krbinstance
 from ipaserver.masters import get_masters
 from ipapython import ipaldap
@@ -467,6 +467,12 @@ class Restore(admintool.AdminTool):
                     oddjobd.enable()
                 oddjobd.start()
                 http.remove_httpd_ccaches()
+                # update autobind configuration in case uid/gid have changed
+                ld = ldapupdate.LDAPUpdate(api=api)
+                autobind_update = os.path.join(
+                    paths.UPDATES_DIR, "49-autobind-services.update"
+                )
+                ld.update([autobind_update])
                 # have the daemons pick up their restored configs
                 tasks.systemd_daemon_reload()
                 # Restart IPA a final time.
