@@ -57,6 +57,5 @@ dyndb "ipa" "$BIND_LDAP_SO" {
 	base "cn=dns,$SUFFIX";
 	server_id "$FQDN";
 	auth_method "sasl";
-	sasl_mech "GSSAPI";
-	sasl_user "DNS/$FQDN";
+	sasl_mech "EXTERNAL";
 };

@@ -1454,6 +1454,9 @@ def upgrade_bind(fstore):
     else:
         bind_started = False
 
+    # create or update autobind entry
+    bind.setup_autobind()
+
     try:
         changed = bind.setup_named_conf(backup=True)
         if changed:
