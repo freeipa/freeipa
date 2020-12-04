@@ -22,6 +22,7 @@ Developers:
 	Ana Krivokapić
 	Andika Triwidada
 	Andrew Wnuk
+	Antonio Torres Moríñigo
 	Anuja More
 	Ariel O. Barria
 	Armando Neto
