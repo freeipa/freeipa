@@ -75,7 +75,7 @@ WSGIScriptReloading Off
 
   GssapiImpersonate On
   GssapiDelegCcacheDir $IPA_CCACHES
-  GssapiDelegCcachePerms mode:0660 gid:ipaapi
+  GssapiDelegCcachePerms mode:0660
   GssapiDelegCcacheUnique On
   GssapiUseS4U2Proxy on
   GssapiAllowedMech krb5
@@ -117,7 +117,7 @@ Alias /ipa/session/cookie "/usr/share/ipa/gssapi.login"
 <Location "/ipa/session/login_x509">
   AuthType none
   GssapiDelegCcacheDir $IPA_CCACHES
-  GssapiDelegCcachePerms mode:0660 gid:ipaapi
+  GssapiDelegCcachePerms mode:0660
   GssapiDelegCcacheUnique On
   SSLVerifyClient require
   SSLUserName SSL_CLIENT_CERT
