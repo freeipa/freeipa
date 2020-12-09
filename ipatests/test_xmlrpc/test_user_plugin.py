@@ -71,8 +71,10 @@ invalidlanguages = {
     u'en-us;q=0.1234', u'en-us;q=1.1', u'en-us;q=1.0000'
     }
 
-principal_expiration_string = "2020-12-07T19:54:13Z"
-principal_expiration_date = datetime.datetime(2020, 12, 7, 19, 54, 13)
+now = datetime.datetime.now().replace(microsecond=0)
+principal_expiration_date = now + datetime.timedelta(days=365)
+principal_expiration_string = principal_expiration_date.strftime(
+    "%Y-%m-%dT%H:%M:%SZ")
 
 invalid_expiration_string = "2020-12-07 19:54:13"
 expired_expiration_string = "1991-12-07T19:54:13Z"
