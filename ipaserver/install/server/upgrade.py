@@ -1578,6 +1578,7 @@ def upgrade_configuration():
         IPA_CCACHES=paths.IPA_CCACHES,
         IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET,
         KDCPROXY_CONFIG=paths.KDCPROXY_CONFIG,
+        DOMAIN=api.env.domain,
     )
 
     subject_base = find_subject_base()
