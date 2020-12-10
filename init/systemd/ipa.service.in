@@ -6,6 +6,7 @@ After=network.target
 
 [Service]
 Type=oneshot
+Environment=LC_ALL=C.UTF-8
 ExecStart=@sbindir@/ipactl start
 ExecStop=@sbindir@/ipactl stop
 RemainAfterExit=yes

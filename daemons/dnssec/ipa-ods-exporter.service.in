@@ -4,6 +4,7 @@ Wants=ipa-ods-exporter.socket
 After=ipa-ods-exporter.socket
 
 [Service]
+Environment=LC_ALL=C.UTF-8
 EnvironmentFile=@sysconfenvdir@/ipa-ods-exporter
 ExecStart=@libexecdir@/ipa/ipa-ods-exporter
 User=@ODS_USER@
