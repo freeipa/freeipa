@@ -29,6 +29,7 @@ import re
 import collections
 import itertools
 import shutil
+import shlex
 import copy
 import subprocess
 import tempfile
@@ -2381,20 +2382,33 @@ def download_packages(host, pkgs):
     return tmpdir
 
 
-def uninstall_packages(host, pkgs):
+def uninstall_packages(host, pkgs, nodeps=False):
     """Uninstall packages on a remote host.
-    :param host: the host where the uninstallation takes place
-    :param pkgs: packages to uninstall, provided as a list of strings
+    :param host: the host where the uninstallation takes place.
+    :param pkgs: packages to uninstall, provided as a list of strings.
+    :param nodeps: ignore dependencies (dangerous!).
     """
     platform = get_platform(host)
-    # Only supports RHEL 8+ and Fedora for now
-    if platform in ('rhel', 'fedora'):
-        install_cmd = ['/usr/bin/dnf', 'remove', '-y']
-    elif platform in ('ubuntu'):
-        install_cmd = ['apt-get', 'remove', '-y']
+    if platform not in ('rhel', 'fedora', 'ubuntu'):
+        raise ValueError('uninstall_packages: unknown platform %s' % platform)
+    if nodeps:
+        if platform in ('rhel', 'fedora'):
+            cmd = "rpm -e --nodeps"
+        elif platform in ('ubuntu'):
+            cmd = "dpkg -P --force-depends"
+        for package in pkgs:
+            uninstall_cmd = shlex.split(cmd)
+            uninstall_cmd.append(package)
+            # keep raiseonerr=True here. --fcami
+            host.run_command(uninstall_cmd)
     else:
-        raise ValueError('install_packages: unknown platform %s' % platform)
-    host.run_command(install_cmd + pkgs, raiseonerr=False)
+        if platform in ('rhel', 'fedora'):
+            cmd = "/usr/bin/dnf remove -y"
+        elif platform in ('ubuntu'):
+            cmd = "apt-get remove -y"
+        uninstall_cmd = shlex.split(cmd)
+        uninstall_cmd.extend(pkgs)
+        host.run_command(uninstall_cmd, raiseonerr=False)
 
 
 def wait_for_request(host, request_id, timeout=120):
@@ -2649,3 +2663,20 @@ def run_ssh_cmd(
             assert "Authentication succeeded" not in stderr
             assert "No more authentication methods to try." in stderr
     return (return_code, stdout, stderr)
+
+
+def is_package_installed(host, pkg):
+    platform = get_platform(host)
+    if platform in ('rhel', 'fedora'):
+        result = host.run_command(
+            ['rpm', '-q', pkg], raiseonerr=False
+        )
+    elif platform in ['ubuntu']:
+        result = host.run_command(
+            ['dpkg', '-s', pkg], raiseonerr=False
+        )
+    else:
+        raise ValueError(
+            'is_package_installed: unknown platform %s' % platform
+        )
+    return result.returncode == 0
