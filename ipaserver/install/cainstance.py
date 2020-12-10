@@ -629,6 +629,7 @@ class CAInstance(DogtagInstance):
         with open(conf, 'w') as f:
             os.fchmod(f.fileno(), 0o644)
             f.write('[Service]\n')
+            f.write('Environment=LC_ALL=C.UTF-8\n')
             f.write('ExecStartPost={}\n'.format(paths.IPA_PKI_WAIT_RUNNING))
         tasks.systemd_daemon_reload()
 

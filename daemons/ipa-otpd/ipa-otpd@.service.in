@@ -2,6 +2,7 @@
 Description=ipa-otpd service
 
 [Service]
+Environment=LC_ALL=C.UTF-8
 EnvironmentFile=@sysconfdir@/ipa/default.conf
 ExecStart=@libexecdir@/ipa/ipa-otpd $ldap_uri
 StandardInput=socket
