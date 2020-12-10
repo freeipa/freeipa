@@ -24,6 +24,7 @@ import re
 import SSSDConfig
 import shutil
 import socket
+import subprocess
 import sys
 import tempfile
 import textwrap
@@ -2200,7 +2201,18 @@ def install_check(options):
             "authentication resources",
             rval=CLIENT_INSTALL_ERROR)
 
-    # when installing with '--no-sssd' option, check whether nss-ldap is
+    # When installing without the "--no-sudo" option, check whether sudo is
+    # available.
+    if options.conf_sudo:
+        try:
+            subprocess.Popen(['sudo -V'])
+        except FileNotFoundError:
+            logger.info(
+                "The sudo binary does not seem to be present on this "
+                "system. Please consider installing sudo if required."
+            )
+
+    # when installing with the '--no-sssd' option, check whether nss-ldap is
     # installed
     if not options.sssd:
         if not os.path.exists(paths.PAM_KRB5_SO):
