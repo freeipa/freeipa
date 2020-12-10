@@ -3,6 +3,7 @@ Description=Execute IPA Expiring Password Notification (EPN)
 
 [Service]
 Type=simple
+Environment=LC_ALL=C.UTF-8
 ExecStart=@sbindir@/ipa-epn
 
 [Install]

@@ -2,6 +2,7 @@
 Description=IPA key daemon
 
 [Service]
+Environment=LC_ALL=C.UTF-8
 EnvironmentFile=@sysconfenvdir@/ipa-dnskeysyncd
 ExecStart=@libexecdir@/ipa/ipa-dnskeysyncd
 User=@ODS_USER@
