@@ -3,6 +3,7 @@ Description=IPA Custodia Service
 
 [Service]
 Type=notify
+Environment=LC_ALL=C.UTF-8
 ExecStart=@libexecdir@/ipa/ipa-custodia @IPA_SYSCONF_DIR@/custodia/custodia.conf
 PrivateTmp=yes
 Restart=on-failure
