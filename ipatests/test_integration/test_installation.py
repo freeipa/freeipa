@@ -1536,3 +1536,69 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
                                             self.replicas[0].hostname],
                                            stdin_text=dirman_password)
         assert self.replicas[0].hostname not in cmd.stdout_text
+
+
+class TestInstallWithoutSudo(IntegrationTest):
+
+    num_clients = 1
+    num_replicas = 1
+    no_sudo_str = "The sudo binary does not seem to be present on this"
+
+    @classmethod
+    def install(cls, mh):
+        pass
+
+    def test_sudo_removal(self):
+        # ipa-client makes sudo depend on libsss_sudo.
+
+        # --nodeps is mandatory because dogtag uses sudo at install
+        # time until commit 49585867207922479644a03078c29548de02cd03
+        # which is scheduled to land in 10.10.
+
+        # This also means sudo+libsss_sudo cannot be uninstalled on
+        # IPA servers with a CA.
+        assert tasks.is_package_installed(self.clients[0], 'sudo')
+        assert tasks.is_package_installed(self.clients[0], 'libsss_sudo')
+        tasks.uninstall_packages(
+            self.clients[0], ['sudo', 'libsss_sudo'], nodeps=True
+        )
+
+    def test_ipa_installation_without_sudo(self):
+        # FixMe: When Dogtag 10.10 is out, test installation without sudo
+        tasks.install_master(self.master, setup_dns=True)
+
+    def test_replica_installation_without_sudo(self):
+        # FixMe: When Dogtag 10.10 is out, test replica installation
+        # without sudo and with CA
+        tasks.uninstall_packages(
+            self.replicas[0], ['sudo', 'libsss_sudo'], nodeps=True
+        )
+        # One-step install is needed.
+        # With promote=True, two-step install is done and that only captures
+        # the ipa-replica-install stdout/stderr, not ipa-client-install's.
+        result = tasks.install_replica(
+            self.master, self.replicas[0], promote=False,
+            setup_dns=True, setup_ca=False
+        )
+        assert self.no_sudo_str in result.stderr_text
+
+    def test_client_installation_without_sudo(self):
+        result = tasks.install_client(self.master, self.clients[0])
+        assert self.no_sudo_str in result.stderr_text
+
+    def test_remove_sudo_on_ipa(self):
+        tasks.uninstall_packages(
+            self.master, ['sudo', 'libsss_sudo'], nodeps=True
+        )
+        self.master.run_command(
+            ['ipactl', 'restart']
+        )
+
+    def test_install_sudo_on_client(self):
+        """ Check that installing sudo pulls libsss_sudo in"""
+        for pkg in ('sudo', 'libsss_sudo'):
+            assert tasks.is_package_installed(self.clients[0], pkg) is False
+        tasks.uninstall_client(self.clients[0])
+        tasks.install_packages(self.clients[0], ['sudo'])
+        for pkg in ('sudo', 'libsss_sudo'):
+            assert tasks.is_package_installed(self.clients[0], pkg)
