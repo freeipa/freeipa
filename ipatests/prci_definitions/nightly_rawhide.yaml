@@ -1484,7 +1484,7 @@ jobs:
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithADtrust
         template: *ci-master-frawhide
         timeout: 4800
-        topology: *ad_master
+        topology: *adroot_adchild_adtree_master_1client
 
   fedora-rawhide/test_ntp_options:
     requires: [fedora-rawhide/build]
