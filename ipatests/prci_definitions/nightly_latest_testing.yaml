@@ -1784,3 +1784,16 @@ jobs:
         template: *testing-master-latest
         timeout: 3600
         topology: *master_1repl
+
+  testing-fedora/test_cert_fix:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_ipa_cert_fix.py
+        template: *testing-master-latest
+        timeout: 3600
+        topology: *master_1repl
