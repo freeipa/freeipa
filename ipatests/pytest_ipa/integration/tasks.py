@@ -335,7 +335,7 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         fw.enable_services(fw_services)
     if result.returncode == 0 and not external_ca:
         # external CA step 1 doesn't have DS and KDC fully configured, yet
-        enable_replication_debugging(host)
+        enable_replication_debugging(host, log_level=65536)
         enable_ds_audit_log(host, 'on')
         setup_sssd_debugging(host)
         kinit_admin(host)
@@ -462,7 +462,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     result = replica.run_command(args, raiseonerr=raiseonerr,
                                  stdin_text=stdin_text)
     if result.returncode == 0:
-        enable_replication_debugging(replica)
+        enable_replication_debugging(replica, log_level=65536)
         enable_ds_audit_log(replica, 'on')
         setup_sssd_debugging(replica)
         kinit_admin(replica)
