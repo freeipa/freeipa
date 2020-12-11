@@ -575,6 +575,19 @@ jobs:
         timeout: 10800
         topology: *master_1repl
 
+  fedora-latest/test_installation_TestInstallWithoutSudo:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        selinux_enforcing: True
+        test_suite: test_integration/test_installation.py::TestInstallWithoutSudo
+        template: *ci-master-latest
+        timeout: 4800
+        topology: *master_1repl_1client
+
   fedora-latest/test_idviews:
     requires: [fedora-latest/build]
     priority: 50
