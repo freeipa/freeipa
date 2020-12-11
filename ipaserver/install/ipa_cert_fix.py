@@ -25,6 +25,9 @@
 
 from __future__ import print_function, absolute_import
 
+import base64
+from cryptography import x509 as crypto_x509
+from cryptography.hazmat.backends import default_backend
 import datetime
 from enum import Enum
 import logging
@@ -33,12 +36,14 @@ import shutil
 from ipalib import api
 from ipalib import x509
 from ipalib.facts import is_ipa_configured
+from ipalib.install import certmonger
 from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool
 from ipapython.certdb import NSSDatabase, EMPTY_TRUST_FLAGS
 from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
 from ipaserver.install import ca, cainstance, dsinstance
+from ipapython import directivesetter
 from ipapython import ipautil
 
 msg = """
@@ -53,6 +58,16 @@ and keys, is STRONGLY RECOMMENDED.
 
 logger = logging.getLogger(__name__)
 
+
+cert_nicknames = {
+    'sslserver': 'Server-Cert cert-pki-ca',
+    'subsystem': 'subsystemCert cert-pki-ca',
+    'ca_ocsp_signing': 'ocspSigningCert cert-pki-ca',
+    'ca_audit_signing': 'auditSigningCert cert-pki-ca',
+    'kra_transport': 'transportCert cert-pki-kra',
+    'kra_storage': 'storageCert cert-pki-kra',
+    'kra_audit_signing': 'auditSigningCert cert-pki-kra',
+}
 
 class IPACertType(Enum):
     IPARA = "IPA RA"
@@ -115,6 +130,7 @@ class IPACertFix(AdminTool):
         print("Proceeding.")
 
         try:
+            fix_certreq_directives(certs)
             run_cert_fix(certs, extra_certs)
         except ipautil.CalledProcessError:
             if any(x[0] is IPACertType.LDAPS for x in extra_certs):
@@ -155,15 +171,7 @@ def expired_dogtag_certs(now):
     certs = []
     db = NSSDatabase(nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
 
-    for certid, nickname in [
-        ('sslserver', 'Server-Cert cert-pki-ca'),
-        ('subsystem', 'subsystemCert cert-pki-ca'),
-        ('ca_ocsp_signing', 'ocspSigningCert cert-pki-ca'),
-        ('ca_audit_signing', 'auditSigningCert cert-pki-ca'),
-        ('kra_transport', 'transportCert cert-pki-kra'),
-        ('kra_storage', 'storageCert cert-pki-kra'),
-        ('kra_audit_signing', 'auditSigningCert cert-pki-kra'),
-    ]:
+    for certid, nickname in cert_nicknames.items():
         try:
             cert = db.get_cert(nickname)
         except RuntimeError:
@@ -226,6 +234,73 @@ def print_cert_info(context, desc, cert):
     print("  Serial:  {}".format(cert.serial_number))
     print("  Expires: {}".format(cert.not_valid_after))
     print()
+
+
+def get_csr_from_certmonger(nickname):
+    """
+    Get the csr for the provided nickname by asking certmonger.
+
+    Returns the csr in ASCII format without the header/footer in a single line
+    or None if not found.
+    """
+    criteria = {
+        'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
+        'cert-nickname': nickname,
+    }
+
+    id = certmonger.get_request_id(criteria)
+    if id:
+        csr = certmonger.get_request_value(id, "csr")
+        if csr:
+            try:
+                # Make sure the value can be parsed as valid CSR
+                csr_obj = crypto_x509.load_pem_x509_csr(
+                    csr.encode('ascii'), default_backend())
+                val = base64.b64encode(csr_obj.public_bytes(x509.Encoding.DER))
+                return val.decode('ascii')
+            except Exception as e:
+                # Fallthrough and return None
+                logger.debug("Unable to get CSR from certmonger: %s", e)
+    return None
+
+
+def fix_certreq_directives(certs):
+    """
+    For all the certs to be fixed, ensure that the corresponding CSR is found
+    in PKI config file, or try to get the CSR from certmonger.
+    """
+    directives = {
+        'auditSigningCert cert-pki-ca': ('ca.audit_signing.certreq',
+                                         paths.CA_CS_CFG_PATH),
+        'ocspSigningCert cert-pki-ca': ('ca.ocsp_signing.certreq',
+                                        paths.CA_CS_CFG_PATH),
+        'subsystemCert cert-pki-ca': ('ca.subsystem.certreq',
+                                      paths.CA_CS_CFG_PATH),
+        'Server-Cert cert-pki-ca': ('ca.sslserver.certreq',
+                                    paths.CA_CS_CFG_PATH),
+        'auditSigningCert cert-pki-kra': ('kra.audit_signing.certreq',
+                                          paths.KRA_CS_CFG_PATH),
+        'storageCert cert-pki-kra': ('kra.storage.certreq',
+                                     paths.KRA_CS_CFG_PATH),
+        'transportCert cert-pki-kra': ('kra.transport.certreq',
+                                       paths.KRA_CS_CFG_PATH),
+    }
+
+    # pki-server cert-fix needs to find the CSR in the subsystem config file
+    # otherwise it will fail
+    # For each cert to be fixed, check that the CSR is present or
+    # get it from certmonger
+    for (certid, _cert) in certs:
+        # Check if the directive is set in the config file
+        nickname = cert_nicknames[certid]
+        (directive, cfg_path) = directives[nickname]
+        if directivesetter.get_directive(cfg_path, directive, '=') is None:
+            # The CSR is missing, try to get it from certmonger
+            csr = get_csr_from_certmonger(nickname)
+            if csr:
+                # Update the directive
+                directivesetter.set_directive(cfg_path, directive, csr,
+                                              quotes=False, separator='=')
 
 
 def run_cert_fix(certs, extra_certs):
