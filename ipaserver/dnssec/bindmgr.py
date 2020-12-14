@@ -182,10 +182,9 @@ class BINDMgr:
         zone_path = os.path.join(paths.BIND_LDAP_DNS_ZONE_WORKDIR,
                 self.get_zone_dir_name(zone))
         try:
-            os.makedirs(zone_path)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise e
+            os.mkdir(zone_path, 0o770)
+        except FileExistsError:
+            pass
 
         # fix HSM permissions
         # TODO: move out
