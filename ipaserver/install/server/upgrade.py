@@ -1749,6 +1749,7 @@ def upgrade_configuration():
             else:
                 if dnssec_set_openssl_engine(dnskeysyncd):
                     dnskeysyncd.start_dnskeysyncd()
+            dnskeysyncd.set_dyndb_ldap_workdir_permissions()
 
     cleanup_kdc(fstore)
     cleanup_adtrust(fstore)

@@ -66,12 +66,19 @@ class DNSKeySyncInstance(service.Service):
         """
         Setting up correct permissions to allow write/read access for daemons
         """
-        if not os.path.exists(paths.BIND_LDAP_DNS_IPA_WORKDIR):
-            os.mkdir(paths.BIND_LDAP_DNS_IPA_WORKDIR, 0o770)
-        # dnssec daemons require to have access into the directory
-        os.chmod(paths.BIND_LDAP_DNS_IPA_WORKDIR, 0o770)
-        os.chown(paths.BIND_LDAP_DNS_IPA_WORKDIR, self.named_uid,
-                 self.named_gid)
+        directories = [
+            paths.BIND_LDAP_DNS_IPA_WORKDIR,
+            paths.BIND_LDAP_DNS_ZONE_WORKDIR,
+        ]
+        for directory in directories:
+            try:
+                os.mkdir(directory, 0o770)
+            except FileExistsError:
+                pass
+            else:
+                os.chmod(directory, 0o770)
+            # dnssec daemons require to have access into the directory
+            os.chown(directory, self.named_uid, self.named_gid)
 
     def remove_replica_public_keys(self, replica_fqdn):
         ldap = api.Backend.ldap2
