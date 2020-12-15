@@ -693,16 +693,15 @@ def configure_krb5_conf(
     if not dnsok or not cli_kdc or force:
         libopts.extend([
             krbconf.setOption('dns_lookup_realm', 'false'),
-            krbconf.setOption('dns_lookup_kdc', 'false')
         ])
     else:
         libopts.extend([
             krbconf.setOption('dns_lookup_realm', 'true'),
-            krbconf.setOption('dns_lookup_kdc', 'true')
         ])
     libopts.extend([
         krbconf.setOption('rdns', 'false'),
         krbconf.setOption('dns_canonicalize_hostname', 'false'),
+        krbconf.setOption('dns_lookup_kdc', 'true'),
         krbconf.setOption('ticket_lifetime', '24h'),
         krbconf.setOption('forwardable', 'true'),
         krbconf.setOption('udp_preference_limit', '0')
