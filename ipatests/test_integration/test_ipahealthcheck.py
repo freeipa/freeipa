@@ -1983,7 +1983,6 @@ class TestIpaHealthCLI(IntegrationTest):
         assert result.returncode == 2
         assert 'invalid choice' in result.stderr_text
 
-    @pytest.mark.xfail(reason='BZ 1866558', strict=False)
     def test_input_file(self):
         """
         Verify the --input-file option
@@ -2007,13 +2006,13 @@ class TestIpaHealthCLI(IntegrationTest):
         cmd = self.base_cmd + ["--input-file", "/tmp/enoent"]
         result = self.master.run_command(cmd, raiseonerr=False)
         assert result.returncode == 1
-        assert 'No such file or directory' in result.stderr_text
+        assert 'No such file or directory' in result.stdout_text
 
         # Invalid input file
         cmd = ["ipa-healthcheck", "--input-file", paths.IPA_CA_CRT]
         result = self.master.run_command(cmd, raiseonerr=False)
         assert result.returncode == 1
-        assert 'Expecting value' in result.stderr_text
+        assert 'Expecting value' in result.stdout_text
 
     def test_output_type(self):
         """
