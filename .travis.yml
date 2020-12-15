@@ -52,8 +52,8 @@ env:
                 test_ipapython
                 test_ipaserver
                 test_xmlrpc/test_[l-z]*.py"
-        - TASK_TO_RUN="tox"
-          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
+        #- TASK_TO_RUN="tox"
+        #  TEST_RUNNER_CONFIG=".test_runner_config.yaml"
 
 before_install:
     - ip addr show
