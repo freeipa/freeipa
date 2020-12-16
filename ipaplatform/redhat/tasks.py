@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 
 
 # /etc/pkcs11/modules override
-# base filen ame, module, list of disabled-in
+# base filename, module, list of disabled-in
 # 'p11-kit-proxy' disables proxying of module, see man(5) pkcs11.conf
 PKCS11_MODULES = [
     ('softhsm2', paths.LIBSOFTHSM2_SO, ['p11-kit-proxy']),
