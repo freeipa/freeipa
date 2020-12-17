@@ -28,16 +28,6 @@
  * During TGS request search by ipaKrbPrincipalName (case-insensitive)
  * and krbPrincipalName (case-sensitive)
  */
-#define PRINC_TGS_SEARCH_FILTER "(&(|(objectclass=krbprincipalaux)" \
-                                    "(objectclass=krbprincipal)" \
-                                    "(objectclass=ipakrbprincipal))" \
-                                    "(|(ipakrbprincipalalias=%s)" \
-                                      "(krbprincipalname:caseIgnoreIA5Match:=%s)))"
-
-#define PRINC_SEARCH_FILTER "(&(|(objectclass=krbprincipalaux)" \
-                                "(objectclass=krbprincipal))" \
-                              "(krbprincipalname=%s))"
-
 #define PRINC_TGS_SEARCH_FILTER_EXTRA "(&(|(objectclass=krbprincipalaux)" \
                                           "(objectclass=krbprincipal)" \
                                           "(objectclass=ipakrbprincipal))" \
@@ -49,6 +39,13 @@
                                       "(objectclass=krbprincipal))" \
                                     "(krbprincipalname=%s)" \
                                     "%s)"
+
+#define PRINC_TGS_SEARCH_FILTER_WILD_EXTRA "(&(|(objectclass=krbprincipalaux)" \
+                                               "(objectclass=krbprincipal)" \
+                                               "(objectclass=ipakrbprincipal))" \
+                                             "(|(ipakrbprincipalalias=*)" \
+                                               "(krbprincipalname=*))" \
+                                             "%s)"
 static char *std_principal_attrs[] = {
     "krbPrincipalName",
     "krbCanonicalName",
@@ -998,34 +995,22 @@ ipadb_fetch_principals_with_extra_filter(struct ipadb_context *ipactx,
     /* Starting in DAL 8.0, aliases are always okay. */
 #ifdef KRB5_KDB_FLAG_ALIAS_OK
     if (!(flags & KRB5_KDB_FLAG_ALIAS_OK)) {
-        if (filter == NULL) {
-            ret = asprintf(&src_filter, PRINC_SEARCH_FILTER,
-                           esc_original_princ);
-        } else {
-            ret = asprintf(&src_filter, PRINC_SEARCH_FILTER_EXTRA,
-                           esc_original_princ, filter);
-        }
+        ret = asprintf(&src_filter, PRINC_SEARCH_FILTER_EXTRA,
+                       esc_original_princ,
+                       filter ? filter : "");
     } else
 #endif
     {
-        /* In case we've got a principal name as '*' we have to
-         * follow RFC 4515 section 3 and reencode it using
-         * <valueencoding> rule from RFC 4511 section 4.1.6 but
-         * only to the part of the filter that does use assertion
-         * value. */
-        const char *asterisk = "%x2A";
-        const char *assertion_value = esc_original_princ;
-
+        /* In case we've got a principal name as '*', we don't need to specify
+         * the principal itself, use pre-defined filter for a wild-card search.
+         */
         if ((len == 1) && (esc_original_princ[0] == '*')) {
-            assertion_value = asterisk;
-        }
-
-        if (filter == NULL) {
-            ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER,
-                           esc_original_princ, assertion_value);
+            ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER_WILD_EXTRA,
+                           filter ? filter : "");
         } else {
             ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER_EXTRA,
-                           esc_original_princ, assertion_value, filter);
+                           esc_original_princ, esc_original_princ,
+                           filter ? filter : "");
         }
     }
 
