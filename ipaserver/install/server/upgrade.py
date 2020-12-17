@@ -1732,12 +1732,12 @@ def upgrade_configuration():
         (otpdinstance.OtpdInstance(), 'OTPD'),
     )
 
-    for service, ldap_name in simple_service_list:
+    for svc, ldap_name in simple_service_list:
         try:
-            if not service.is_configured():
-                service.create_instance(ldap_name, fqdn,
-                                        ipautil.realm_to_suffix(api.env.realm),
-                                        realm=api.env.realm)
+            if not svc.is_configured():
+                svc.create_instance(ldap_name, fqdn,
+                                    ipautil.realm_to_suffix(api.env.realm),
+                                    realm=api.env.realm)
         except ipalib.errors.DuplicateEntry:
             pass
 
