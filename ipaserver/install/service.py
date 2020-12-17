@@ -252,12 +252,18 @@ def _set_services_state(fqdn, dest_state):
         rules=ldap2.MATCH_ALL
     )
 
-    entries = ldap2.get_entries(
-        search_base,
-        filter=search_filter,
-        scope=api.Backend.ldap2.SCOPE_ONELEVEL,
-        attrs_list=['cn', 'ipaConfigString']
-    )
+    try:
+        entries = ldap2.get_entries(
+            search_base,
+            filter=search_filter,
+            scope=api.Backend.ldap2.SCOPE_ONELEVEL,
+            attrs_list=['cn', 'ipaConfigString']
+        )
+    except errors.EmptyResult:
+        logger.debug("No services with a state from %s, ignoring",
+                     list(source_states))
+        return
+
     for entry in entries:
         name = entry['cn']
         cfgstrings = entry.setdefault('ipaConfigString', [])
