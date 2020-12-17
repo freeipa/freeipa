@@ -1759,6 +1759,13 @@ def upgrade_configuration():
     # (see function docstring for details)
     http_certificate_ensure_ipa_ca_dnsname(http)
 
+    # Convert configuredService to either enabledService or hiddenService
+    # depending on the state of the server role.  This is to fix situations
+    # when deployment has happened before introduction of hidden replicas
+    # as those services will stay as configuredService and will not get
+    # started after upgrade, rendering the system non-functioning
+    service.sync_services_state(fqdn)
+
     if not ds_running:
         ds.stop(ds.serverid)
 
