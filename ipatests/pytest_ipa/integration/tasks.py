@@ -872,6 +872,7 @@ def clear_sssd_cache(host):
                      "xargs rm -fv")
     host.run_command(['rm', '-fv', paths.SSSD_MC_GROUP])
     host.run_command(['rm', '-fv', paths.SSSD_MC_PASSWD])
+    host.run_command(['rm', '-fv', paths.SSSD_MC_INITGROUPS])
 
     if systemd_available:
         host.run_command(['systemctl', 'start', 'sssd'])
