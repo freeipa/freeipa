@@ -41,7 +41,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_installation.py::TestInstallMaster
         template: *ci-master-latest
@@ -54,7 +53,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_simple_replication.py
         template: *ci-master-latest
@@ -67,7 +65,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
         template: *ci-master-latest
@@ -80,7 +77,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
         template: *ci-master-latest
@@ -93,7 +89,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
         template: *ci-master-latest
@@ -106,7 +101,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
         template: *ci-master-latest
@@ -119,7 +113,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_topologies.py
         template: *ci-master-latest
@@ -132,7 +125,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_sudo.py
         template: *ci-master-latest
@@ -145,7 +137,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_commands.py
         template: *ci-master-latest
@@ -158,7 +149,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_kerberos_flags.py
         template: *ci-master-latest
@@ -171,7 +161,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_forced_client_reenrollment.py
         template: *ci-master-latest
@@ -184,7 +173,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_advise.py
         template: *ci-master-latest
@@ -197,7 +185,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_testconfig.py
         template: *ci-master-latest
@@ -210,7 +197,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_service_permissions.py
         template: *ci-master-latest
@@ -223,7 +209,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_netgroup.py
         template: *ci-master-latest
@@ -236,7 +221,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_authselect.py
         template: *ci-master-latest
@@ -249,7 +233,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
         template: *ci-master-latest
@@ -262,7 +245,6 @@ jobs:
 #    job:
 #      class: RunPytest
 #      args:
-        selinux_enforcing: True
 #        build_url: '{fedora-latest/build_url}'
 #        test_suite: test_integration/test_dnssec.py::TestInstallDNSSECFirst
 #        template: *ci-master-latest
@@ -275,7 +257,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_membermanager.py
         template: *ci-master-latest
@@ -288,7 +269,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_adtrust_install.py
         template: *ci-master-latest
@@ -301,7 +281,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_cert.py
         template: *ci-master-latest
@@ -314,7 +293,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_upgrade.py
         template: *ci-master-latest
@@ -327,7 +305,6 @@ jobs:
     job:
       class: RunPytest
       args:
-        selinux_enforcing: True
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_acme.py
         template: *ci-master-latest
