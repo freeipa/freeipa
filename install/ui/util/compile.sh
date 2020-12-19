@@ -111,7 +111,7 @@ fi
 # compile using python rjsmin on most platforms and uglify-js on RHEL 8
 echo "Minimizing: $RDIR/$RELEASE/$LAYER.js"
 echo "Target file: $OUTPUT_FILE"
-if [ $ID = "rhel" ]; then
+if [[ "$ID" == "rhel" ]] || [[ "$ID_LIKE" =~ "rhel" ]]; then
     echo "Minifier: uglifyjs"
     uglifyjs < $RDIR/$RELEASE/$LAYER.js > $OUTPUT_FILE
 else
