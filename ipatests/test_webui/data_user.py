@@ -175,9 +175,9 @@ DATA_PASSWD_LEAD_SPACE = {
 
 PKEY_PASSWD_TRAIL_SPACE = 'itest-user-passwd-trailing-space'
 DATA_PASSWD_TRAIL_SPACE = {
-    'pkey': PKEY_PASSWD_LEAD_SPACE,
+    'pkey': PKEY_PASSWD_TRAIL_SPACE,
     'add': [
-        ('textbox', 'uid', PKEY_PASSWD_LEAD_SPACE),
+        ('textbox', 'uid', PKEY_PASSWD_TRAIL_SPACE),
         ('textbox', 'givenname', 'Name8'),
         ('textbox', 'sn', 'Surname8'),
         ('password', 'userpassword', 'Password123 '),
