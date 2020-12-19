@@ -55,8 +55,6 @@ ENTRY_EXIST = 'This entry already exists'
 ACTIVE_ERR = 'active user with name "{}" already exists'
 DISABLED = 'This entry is already disabled'
 LONG_LOGIN = "invalid 'login': can be at most 32 characters"
-INV_PASSWD = ("invalid 'password': Leading and trailing spaces are "
-              "not allowed")
 
 
 @pytest.mark.tier1
@@ -508,21 +506,17 @@ class test_user(user_tasks):
         # click add and cancel
         self.add_record(user.ENTITY, user.DATA, dialog_btn='cancel')
 
-        # add leading space before password (should FAIL)
+        # add leading space before password (should SUCCEED)
         self.navigate_to_entity(user.ENTITY)
         self.facet_button_click('add')
         self.fill_fields(user.DATA_PASSWD_LEAD_SPACE['add'])
         self.dialog_button_click('add')
-        self.assert_last_error_dialog(INV_PASSWD)
-        self.close_all_dialogs()
 
-        # add trailing space before password (should FAIL)
+        # add trailing space before password (should SUCCEED)
         self.navigate_to_entity(user.ENTITY)
         self.facet_button_click('add')
         self.fill_fields(user.DATA_PASSWD_TRAIL_SPACE['add'])
         self.dialog_button_click('add')
-        self.assert_last_error_dialog(INV_PASSWD)
-        self.close_all_dialogs()
 
         # add user using enter
         self.add_record(user.ENTITY, user.DATA2, negative=True)
