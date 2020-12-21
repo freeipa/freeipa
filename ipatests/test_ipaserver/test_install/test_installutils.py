@@ -55,21 +55,26 @@ def gpgkey(request, tempdir):
         f.write("allow-preset-passphrase\n")
 
     # daemonize agent (detach from the console and run in the background)
-    subprocess.Popen(
-        [paths.GPG_AGENT, '--batch', '--daemon'],
-        env=env, stdout=devnull, stderr=devnull
+    subprocess.run(
+        [paths.SYSTEMD_RUN, '--service-type=forking',
+         '--setenv=GNUPGHOME={}'.format(gnupghome),
+         '--setenv=LC_ALL=C.UTF-8',
+         '--setenv=LANGUAGE=C',
+         '--unit=gpg-agent', paths.GPG_AGENT, '--daemon', '--batch'],
+        check=True,
+        env=env,
     )
 
     def fin():
+        subprocess.run(
+            [paths.SYSTEMCTL, 'stop', 'gpg-agent'],
+            check=True,
+            env=env,
+        )
         if orig_gnupghome is not None:
             os.environ['GNUPGHOME'] = orig_gnupghome
         else:
             os.environ.pop('GNUPGHOME', None)
-        subprocess.run(
-            [paths.GPG_CONF, '--kill', 'all'],
-            check=True,
-            env=env,
-        )
 
     request.addfinalizer(fin)
 
