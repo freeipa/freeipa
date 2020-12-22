@@ -67,9 +67,6 @@ class OpenDNSSECInstance(service.Service):
             self, "ods-enforcerd",
             service_desc="OpenDNSSEC enforcer daemon",
         )
-        self.named_gid = constants.NAMED_GROUP.gid
-        self.ods_uid = constants.ODS_USER.uid
-        self.ods_gid = constants.ODS_GROUP.gid
         self.conf_file_dict = {
             'SOFTHSM_LIB': paths.LIBSOFTHSM2_SO,
             'TOKEN_LABEL': SOFTHSM_DNSSEC_TOKEN_LABEL,
@@ -194,8 +191,8 @@ class OpenDNSSECInstance(service.Service):
                                       quotes=False, separator='=')
 
     def __setup_ownership_file_modes(self):
-        assert self.ods_uid is not None
-        assert self.ods_gid is not None
+        assert constants.ODS_USER.uid is not None
+        assert constants.ODS_GROUP.gid is not None
 
         # workarounds for packaging bugs in opendnssec-1.4.5-2.fc20.x86_64
         # https://bugzilla.redhat.com/show_bug.cgi?id=1098188
@@ -204,24 +201,25 @@ class OpenDNSSECInstance(service.Service):
                 dir_path = os.path.join(root, directory)
                 os.chmod(dir_path, 0o770)
                 # chown to root:ods
-                os.chown(dir_path, 0, self.ods_gid)
+                os.chown(dir_path, 0, constants.ODS_GROUP.gid)
             for filename in files:
                 file_path = os.path.join(root, filename)
                 os.chmod(file_path, 0o660)
                 # chown to root:ods
-                os.chown(file_path, 0, self.ods_gid)
+                os.chown(file_path, 0, constants.ODS_GROUP.gid)
 
         for (root, dirs, files) in os.walk(paths.VAR_OPENDNSSEC_DIR):
             for directory in dirs:
                 dir_path = os.path.join(root, directory)
                 os.chmod(dir_path, 0o770)
                 # chown to ods:ods
-                os.chown(dir_path, self.ods_uid, self.ods_gid)
+                constants.ODS_USER.chown(dir_path, gid=constants.ODS_GROUP.gid)
             for filename in files:
                 file_path = os.path.join(root, filename)
                 os.chmod(file_path, 0o660)
                 # chown to ods:ods
-                os.chown(file_path, self.ods_uid, self.ods_gid)
+                constants.ODS_USER.chown(file_path,
+                                         gid=constants.ODS_GROUP.gid)
 
     def __generate_master_key(self):
 
@@ -242,11 +240,15 @@ class OpenDNSSECInstance(service.Service):
                 for directory in dirs:
                     dir_path = os.path.join(root, directory)
                     os.chmod(dir_path, 0o770 | stat.S_ISGID)
-                    os.chown(dir_path, self.ods_uid, self.named_gid)  # chown to ods:named
+                    # chown to ods:named
+                    constants.ODS_USER.chown(dir_path,
+                                             gid=constants.NAMED_GROUP.gid)
                 for filename in files:
                     file_path = os.path.join(root, filename)
                     os.chmod(file_path, 0o660 | stat.S_ISGID)
-                    os.chown(file_path, self.ods_uid, self.named_gid)  # chown to ods:named
+                    # chown to ods:named
+                    constants.ODS_USER.chown(file_path,
+                                             gid=constants.NAMED_GROUP.gid)
 
         finally:
             p11.finalize()
@@ -266,7 +268,8 @@ class OpenDNSSECInstance(service.Service):
             # copy user specified kasp.db to proper location and set proper
             # privileges
             shutil.copy(self.kasp_db_file, paths.OPENDNSSEC_KASP_DB)
-            os.chown(paths.OPENDNSSEC_KASP_DB, self.ods_uid, self.ods_gid)
+            constants.ODS_USER.chown(paths.OPENDNSSEC_KASP_DB,
+                                     gid=constants.ODS_GROUP.gid)
             os.chmod(paths.OPENDNSSEC_KASP_DB, 0o660)
 
         else:
@@ -290,7 +293,8 @@ class OpenDNSSECInstance(service.Service):
             )
             with open(paths.OPENDNSSEC_ZONELIST_FILE, 'w') as f:
                 f.write(result.output)
-                os.fchown(f.fileno(), self.ods_uid, self.ods_gid)
+                constants.ODS_USER.chown(f.fileno(),
+                                         gid=constants.ODS_GROUP.gid)
                 os.fchmod(f.fileno(), 0o660)
 
     def uninstall(self):
