@@ -55,10 +55,6 @@ class DNSKeySyncInstance(service.Service):
             keytab=paths.IPA_DNSKEYSYNCD_KEYTAB
         )
         self.extra_config = [u'dnssecVersion 1', ]  # DNSSEC enabled
-        self.named_uid = constants.NAMED_USER.uid
-        self.named_gid = constants.NAMED_GROUP.gid
-        self.ods_uid = constants.ODS_USER.uid
-        self.ods_gid = constants.ODS_GROUP.gid
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
@@ -78,7 +74,7 @@ class DNSKeySyncInstance(service.Service):
             else:
                 os.chmod(directory, 0o770)
             # dnssec daemons require to have access into the directory
-            os.chown(directory, self.named_uid, self.named_gid)
+            constants.NAMED_USER.chown(directory, gid=constants.NAMED_GROUP.gid)
 
     def remove_replica_public_keys(self, replica_fqdn):
         ldap = api.Backend.ldap2
@@ -180,7 +176,7 @@ class DNSKeySyncInstance(service.Service):
             )
             with open(paths.DNSSEC_OPENSSL_CONF, 'w') as f:
                 os.fchmod(f.fileno(), 0o640)
-                os.fchown(f.fileno(), 0, self.named_gid)
+                os.fchown(f.fileno(), 0, gid=constants.NAMED_GROUP.gid)
                 f.write(named_openssl_txt)
 
     def setup_named_sysconfig(self):
@@ -235,7 +231,8 @@ class DNSKeySyncInstance(service.Service):
             os.mkdir(paths.IPA_DNSSEC_DIR)
             os.chmod(paths.IPA_DNSSEC_DIR, 0o770)
             # chown ods:named
-            os.chown(paths.IPA_DNSSEC_DIR, self.ods_uid, self.named_gid)
+            constants.ODS_USER.chown(paths.IPA_DNSSEC_DIR,
+                                     gid=constants.NAMED_GROUP.gid)
 
         # setup softhsm2 config file
         softhsm_conf_txt = ("# SoftHSM v2 configuration file \n"
@@ -272,7 +269,8 @@ class DNSKeySyncInstance(service.Service):
         os.mkdir(paths.DNSSEC_TOKENS_DIR)
         os.chmod(paths.DNSSEC_TOKENS_DIR, 0o770 | stat.S_ISGID)
         # chown to ods:named
-        os.chown(paths.DNSSEC_TOKENS_DIR, self.ods_uid, self.named_gid)
+        constants.ODS_USER.chown(paths.DNSSEC_TOKENS_DIR,
+                                 gid=constants.NAMED_GROUP.gid)
 
         # generate PINs for softhsm
         pin_length = 30  # Bind allows max 32 bytes including ending '\0'
@@ -284,7 +282,7 @@ class DNSKeySyncInstance(service.Service):
         logger.debug("Saving user PIN to %s", paths.DNSSEC_SOFTHSM_PIN)
         with open(paths.DNSSEC_SOFTHSM_PIN, 'w') as f:
             # chown to ods:named
-            os.fchown(f.fileno(), self.ods_uid, self.named_gid)
+            constants.ODS_USER.chown(f.fileno(), gid=constants.NAMED_GROUP.gid)
             os.fchmod(f.fileno(), 0o660)
             f.write(pin)
 
@@ -419,12 +417,14 @@ class DNSKeySyncInstance(service.Service):
                 dir_path = os.path.join(root, directory)
                 os.chmod(dir_path, 0o770 | stat.S_ISGID)
                 # chown to ods:named
-                os.chown(dir_path, self.ods_uid, self.named_gid)
+                constants.ODS_USER.chown(dir_path,
+                                         gid=constants.NAMED_GROUP.gid)
             for filename in files:
                 file_path = os.path.join(root, filename)
                 os.chmod(file_path, 0o660 | stat.S_ISGID)
                 # chown to ods:named
-                os.chown(file_path, self.ods_uid, self.named_gid)
+                constants.ODS_USER.chown(file_path,
+                                         gid=constants.NAMED_GROUP.gid)
 
     def __enable(self):
         try:
@@ -449,7 +449,7 @@ class DNSKeySyncInstance(service.Service):
             dnssynckey_principal_dn = p
 
         # Make sure access is strictly reserved to the named user
-        os.chown(self.keytab, 0, self.ods_gid)
+        os.chown(self.keytab, 0, constants.ODS_GROUP.gid)
         os.chmod(self.keytab, 0o440)
 
         dns_group = DN(('cn', 'DNS Servers'), ('cn', 'privileges'),
