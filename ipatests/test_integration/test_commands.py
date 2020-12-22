@@ -1285,17 +1285,16 @@ class TestIPACommand(IntegrationTest):
         This testcase checks if ipa-nis-manage enable
         command throws error on console for invalid DS admin password
         """
-        msg = (
-            "Insufficient access: Invalid credentials "
-            "Invalid credentials\n"
-        )
+        msg1 = "Insufficient access: "
+        msg2 = "Invalid credentials"
         result = self.master.run_command(
             ["ipa-nis-manage", "enable"],
             stdin_text='Invalid_pwd',
             raiseonerr=False,
         )
         assert result.returncode == 1
-        assert msg in result.stderr_text
+        assert msg1 in result.stderr_text
+        assert msg2 in result.stderr_text
 
     def test_pkispawn_log_is_present(self):
         """
