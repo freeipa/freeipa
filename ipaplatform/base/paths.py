@@ -32,6 +32,7 @@ class BasePathNamespace:
     GZIP = "/bin/gzip"
     LS = "/bin/ls"
     SYSTEMCTL = "/bin/systemctl"
+    SYSTEMD_RUN = "/bin/systemd-run"
     SYSTEMD_DETECT_VIRT = "/usr/bin/systemd-detect-virt"
     SYSTEMD_TMPFILES = "/usr/bin/systemd-tmpfiles"
     TAR = "/bin/tar"
