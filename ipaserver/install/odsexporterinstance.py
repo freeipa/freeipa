@@ -31,8 +31,6 @@ class ODSExporterInstance(service.Service):
             keytab=paths.IPA_ODS_EXPORTER_KEYTAB,
             service_prefix=u'ipa-ods-exporter'
         )
-        self.ods_uid = constants.ODS_USER.uid
-        self.ods_gid = constants.ODS_GROUP.gid
         self.enable_if_exists = False
 
     suffix = ipautil.dn_attribute_property('_suffix')
@@ -71,7 +69,7 @@ class ODSExporterInstance(service.Service):
                                    quotes=False, separator='=')
 
     def __setup_principal(self):
-        assert self.ods_uid is not None
+        assert constants.ODS_GROUP.gid is not None
 
         for f in [paths.IPA_ODS_EXPORTER_CCACHE, self.keytab]:
             try:
@@ -95,7 +93,7 @@ class ODSExporterInstance(service.Service):
 
         # Make sure access is strictly reserved to the ods user
         os.chmod(self.keytab, 0o440)
-        os.chown(self.keytab, 0, self.ods_gid)
+        os.chown(self.keytab, 0, constants.ODS_GROUP.gid)
 
         dns_group = DN(('cn', 'DNS Servers'), ('cn', 'privileges'),
                        ('cn', 'pbac'), self.suffix)
