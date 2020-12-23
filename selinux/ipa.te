@@ -480,3 +480,10 @@ optional_policy(`
     allow ipa_custodia_t pki_tomcat_cert_t:file create;
     allow ipa_custodia_t pki_tomcat_cert_t:file unlink;
 ')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
+        type oddjob_t;
+    ')
+	ipa_helper_noatsecure(oddjob_t)
+')
