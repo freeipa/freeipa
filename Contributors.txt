@@ -30,6 +30,7 @@ Developers:
 	Benjamin Drung
 	Brian Cook
 	Brian J. Murrell
+	Carl George
 	Cédric Jeanneret
 	Changmin Teng
 	Christian Heimes
@@ -158,6 +159,7 @@ Developers:
 	Serhii Tsymbaliuk
 	shanyin
 	Simo Sorce
+	Slava Aseev
 	Spencer E. Olson
 	Stanislav Laznicka
 	Stanislav Levin
