@@ -1481,7 +1481,11 @@ class CAInstance(DogtagInstance):
             logger.debug('ACME service is already deployed')
             return False
 
-        self._ldap_mod('/usr/share/pki/acme/database/ds/schema.ldif')
+        for path in ('/usr/share/pki/acme/database/ds/schema.ldif',
+                     '/usr/share/pki/acme/database/ldap/schema.ldif'):
+            if os.path.exists(path):
+                self._ldap_mod(path)
+                break
 
         configure_acme_acls()
 
