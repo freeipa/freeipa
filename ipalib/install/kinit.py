@@ -111,7 +111,7 @@ def kinit_armor(ccache_name, pkinit_anchors=None):
         use. Otherwise the value from Kerberos client library configuration is
         used
 
-    :raises: CalledProcessError if the anonymous PKINIT fails
+    :raises: RuntimeError if the anonymous PKINIT fails
     """
     logger.debug("Initializing anonymous ccache")
 
@@ -124,4 +124,6 @@ def kinit_armor(ccache_name, pkinit_anchors=None):
 
     # this workaround enables us to capture stderr and put it
     # into the raised exception in case of unsuccessful authentication
-    run(args, env=env, raiseonerr=True, capture_error=True)
+    result = run(args, env=env, raiseonerr=False, capture_error=True)
+    if result.returncode:
+        raise RuntimeError(result.error_output)
