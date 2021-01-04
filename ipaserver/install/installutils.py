@@ -1072,27 +1072,49 @@ def check_available_memory(ca=False):
 
     Use Kb instead of KiB to leave a bit of slush for the OS
     """
+    available = None
     minimum_suggested = 1000 * 1000 * 1000 * 1.2
     if not ca:
         minimum_suggested -= 150 * 1000 * 1000
     if in_container():
+        # cgroup v1
         if os.path.exists(
             '/sys/fs/cgroup/memory/memory.limit_in_bytes'
         ) and os.path.exists('/sys/fs/cgroup/memory/memory.usage_in_bytes'):
-            with open('/sys/fs/cgroup/memory/memory.limit_in_bytes') as fd:
-                limit = int(fd.readline())
-            with open('/sys/fs/cgroup/memory/memory.usage_in_bytes') as fd:
-                used = int(fd.readline())
-            available = limit - used
+            limit_file = '/sys/fs/cgroup/memory/memory.limit_in_bytes'
+            usage_file = '/sys/fs/cgroup/memory/memory.usage_in_bytes'
+        # cgroup v2
+        elif os.path.exists(
+            '/sys/fs/cgroup/memory.current'
+        ) and os.path.exists('/sys/fs/cgroup/memory.max'):
+            limit_file = '/sys/fs/cgroup/memory.max'
+            usage_file = '/sys/fs/cgroup/memory.current'
         else:
             raise ScriptError(
                 "Unable to determine the amount of available RAM"
             )
-    else:
+
+        with open(limit_file) as fd:
+            limit = fd.readline()
+        with open(usage_file) as fd:
+            used = int(fd.readline())
+
+        # In cgroup v2 if there is no limit on the container then
+        # the maximum host memory is available. Fall back to the psutil
+        # method for determining availability.
+        if limit != 'max':
+            available = int(limit) - used
+
+    if available is None:
         # delay import of psutil. On import it opens files in /proc and
         # can trigger a SELinux violation.
         import psutil
         available = psutil.virtual_memory().available
+
+    if available is None:
+        raise ScriptError(
+            "Unable to determine the amount of available RAM"
+        )
     logger.debug("Available memory is %sB", available)
     if available < minimum_suggested:
         raise ScriptError(
