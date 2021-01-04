@@ -14,6 +14,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
+from ipaserver.install import cainstance
 from ipatests.test_integration.test_external_ca import (
     install_server_external_ca_step1,
     install_server_external_ca_step2,
@@ -77,6 +78,8 @@ def server_install_teardown(func):
     return wrapped
 
 
+@pytest.mark.skipif(not cainstance.minimum_acme_support(),
+                    reason="does not provide ACME")
 class TestACME(CALessBase):
     """
     Test the FreeIPA ACME service by using ACME clients on a FreeIPA client.
@@ -420,6 +423,8 @@ class TestACME(CALessBase):
         assert "invalid 'certificate'" in result.stderr_text
 
 
+@pytest.mark.skipif(not cainstance.minimum_acme_support(),
+                    reason="does not provide ACME")
 class TestACMECALess(IntegrationTest):
     """Test to check the CA less replica setup"""
     num_replicas = 1
