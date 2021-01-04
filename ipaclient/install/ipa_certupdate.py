@@ -171,7 +171,7 @@ def update_server(certs):
         #
         logger.debug("resubmitting certmonger request '%s'", request_id)
         certmonger.resubmit_request(
-            request_id, ca='dogtag-ipa-ca-renew-agent-reuse', profile='')
+            request_id, ca='dogtag-ipa-ca-renew-agent-reuse')
         try:
             state = certmonger.wait_for_request(request_id, timeout)
         except RuntimeError:
