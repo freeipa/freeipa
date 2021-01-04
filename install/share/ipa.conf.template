@@ -1,5 +1,5 @@
 #
-# VERSION 32 - DO NOT REMOVE THIS LINE
+# VERSION 33 - DO NOT REMOVE THIS LINE
 #
 # This file may be overwritten on upgrades.
 #
@@ -39,13 +39,12 @@ AddOutputFilterByType DEFLATE text/html text/plain text/xml \
 # should really be fixed by adding this its /etc/httpd/conf.d/wsgi.conf:
 WSGISocketPrefix $WSGI_PREFIX_DIR
 
-
 # Configure mod_wsgi handler for /ipa
 WSGIDaemonProcess ipa processes=$WSGI_PROCESSES threads=1 maximum-requests=500 \
   user=ipaapi group=ipaapi display-name=%{GROUP} socket-timeout=2147483647 \
   lang=C.UTF-8 locale=C.UTF-8
-WSGIImportScript /usr/share/ipa/wsgi.py process-group=ipa application-group=ipa
-WSGIScriptAlias /ipa /usr/share/ipa/wsgi.py
+WSGIScriptAlias /ipa /usr/share/ipa/wsgi.py process-group=ipa \
+  application-group=%{GLOBAL}
 WSGIScriptReloading Off
 
 
@@ -81,8 +80,6 @@ WSGIScriptReloading Off
   GssapiAllowedMech krb5
   Require valid-user
   ErrorDocument 401 /ipa/errors/unauthorized.html
-  WSGIProcessGroup ipa
-  WSGIApplicationGroup ipa
   Header always append X-Frame-Options DENY
   Header always append Content-Security-Policy "frame-ancestors 'none'"
 
