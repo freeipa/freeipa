@@ -21,43 +21,8 @@
 #
 
 """
-WSGI appliction for IPA server.
+WSGI application for IPA server.
 """
-from __future__ import absolute_import
+from ipaserver.wsgi import create_application
 
-import logging
-import os
-import sys
-
-# Some dependencies like Dogtag's pki.client library and custodia use
-# python-requsts to make HTTPS connection. python-requests prefers
-# PyOpenSSL over Python's stdlib ssl module. PyOpenSSL is build on top
-# of python-cryptography which trigger a execmem SELinux violation
-# in the context of Apache HTTPD (httpd_execmem).
-# When requests is imported, it always tries to import pyopenssl glue
-# code from urllib3's contrib directory. The import of PyOpenSSL is
-# enough to trigger the SELinux denial.
-# Block any import of PyOpenSSL's SSL module by raising an ImportError
-sys.modules['OpenSSL.SSL'] = None
-
-from ipaplatform.paths import paths
-from ipalib import api
-
-logger = logging.getLogger(os.path.basename(__file__))
-
-api.bootstrap(context='server', confdir=paths.ETC_IPA, log=None)
-try:
-    api.finalize()
-except Exception as e:
-    logger.error('Failed to start IPA: %s', e)
-else:
-    logger.info('*** PROCESS START ***')
-
-    # This is the WSGI callable:
-    def application(environ, start_response):
-        if not environ['wsgi.multithread']:
-            return api.Backend.wsgi_dispatch(environ, start_response)
-        else:
-            logger.error("IPA does not work with the threaded MPM, "
-                         "use the pre-fork MPM")
-            raise RuntimeError('threaded MPM detected')
+application = create_application()
