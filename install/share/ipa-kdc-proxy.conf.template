@@ -19,14 +19,11 @@
 
 WSGIDaemonProcess kdcproxy processes=2 threads=15 maximum-requests=5000 \
   user=kdcproxy group=kdcproxy display-name=%{GROUP}
-WSGIImportScript /usr/share/ipa/kdcproxy.wsgi \
-  process-group=kdcproxy application-group=kdcproxy
-WSGIScriptAlias /KdcProxy /usr/share/ipa/kdcproxy.wsgi
+WSGIScriptAlias /KdcProxy /usr/share/ipa/kdcproxy.wsgi \
+  process-group=kdcproxy application-group=%{GLOBAL}
 WSGIScriptReloading Off
 
 <Location "/KdcProxy">
   Satisfy Any
   Require all granted
-  WSGIProcessGroup kdcproxy
-  WSGIApplicationGroup kdcproxy
 </Location>
