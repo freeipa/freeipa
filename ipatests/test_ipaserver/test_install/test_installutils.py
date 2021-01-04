@@ -210,7 +210,7 @@ RAM_NOT_OK = str(10 * 1000 * 1000)
 @patch('ipaserver.install.installutils.in_container')
 @patch('builtins.open', mock_open_multi(RAM_NOT_OK, "0"))
 @patch('os.path.exists')
-def test_in_container_insufficient_ram(mock_exists, mock_in_container):
+def test_cgroup_v1_insufficient_ram(mock_exists, mock_in_container):
     """In a container with insufficient RAM and zero used"""
     mock_in_container.return_value = True
     mock_exists.side_effect = [True, True]
@@ -222,7 +222,7 @@ def test_in_container_insufficient_ram(mock_exists, mock_in_container):
 @patch('ipaserver.install.installutils.in_container')
 @patch('builtins.open', mock_open_multi(RAM_OK, RAM_CA_USED))
 @patch('os.path.exists')
-def test_in_container_ram_ok_no_ca(mock_exists, mock_in_container):
+def test_cgroup_v1_ram_ok_no_ca(mock_exists, mock_in_container):
     """In a container with just enough RAM to install w/o a CA"""
     mock_in_container.return_value = True
     mock_exists.side_effect = [True, True]
@@ -233,7 +233,7 @@ def test_in_container_ram_ok_no_ca(mock_exists, mock_in_container):
 @patch('ipaserver.install.installutils.in_container')
 @patch('builtins.open', mock_open_multi(RAM_OK, RAM_MOSTLY_USED))
 @patch('os.path.exists')
-def test_in_container_insufficient_ram_with_ca(mock_exists, mock_in_container):
+def test_cgroup_v1_insufficient_ram_with_ca(mock_exists, mock_in_container):
     """In a container and just miss the minimum RAM required"""
     mock_in_container.return_value = True
     mock_exists.side_effect = [True, True]
@@ -243,8 +243,74 @@ def test_in_container_insufficient_ram_with_ca(mock_exists, mock_in_container):
 
 
 @patch('ipaserver.install.installutils.in_container')
+@patch('builtins.open', mock_open_multi(RAM_NOT_OK, "0"))
+@patch('os.path.exists')
+def test_cgroup_v2_insufficient_ram(mock_exists, mock_in_container):
+    """In a container with insufficient RAM and zero used"""
+    mock_in_container.return_value = True
+    mock_exists.side_effect = [False, True, True]
+
+    with pytest.raises(ScriptError):
+        installutils.check_available_memory(True)
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('builtins.open', mock_open_multi(RAM_OK, RAM_CA_USED))
+@patch('os.path.exists')
+def test_cgroup_v2_ram_ok_no_ca(mock_exists, mock_in_container):
+    """In a container with just enough RAM to install w/o a CA"""
+    mock_in_container.return_value = True
+    mock_exists.side_effect = [False, True, True]
+
+    installutils.check_available_memory(False)
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('builtins.open', mock_open_multi(RAM_OK, RAM_MOSTLY_USED))
+@patch('os.path.exists')
+def test_cgroup_v2_insufficient_ram_with_ca(mock_exists, mock_in_container):
+    """In a container and just miss the minimum RAM required"""
+    mock_in_container.return_value = True
+    mock_exists.side_effect = [False, True, True]
+
+    with pytest.raises(ScriptError):
+        installutils.check_available_memory(True)
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('builtins.open', mock_open_multi('max', RAM_MOSTLY_USED))
+@patch('os.path.exists')
 @patch('psutil.virtual_memory')
-def test_not_container_insufficient_ram_with_ca(mock_psutil, mock_in_container):
+def test_cgroup_v2_no_limit_ok(mock_psutil, mock_exists, mock_in_container):
+    """In a container and just miss the minimum RAM required"""
+    mock_in_container.return_value = True
+    fake_memory = psutil._pslinux.svmem
+    fake_memory.available = int(RAM_OK)
+    mock_psutil.return_value = fake_memory
+    mock_exists.side_effect = [False, True, True]
+
+    installutils.check_available_memory(True)
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('builtins.open', mock_open_multi('max', RAM_MOSTLY_USED))
+@patch('os.path.exists')
+@patch('psutil.virtual_memory')
+def test_cgroup_v2_no_limit_not_ok(mock_psutil, mock_exists, mock_in_container):
+    """In a container and just miss the minimum RAM required"""
+    mock_in_container.return_value = True
+    fake_memory = psutil._pslinux.svmem
+    fake_memory.available = int(RAM_NOT_OK)
+    mock_psutil.return_value = fake_memory
+    mock_exists.side_effect = [False, True, True]
+
+    with pytest.raises(ScriptError):
+        installutils.check_available_memory(True)
+
+
+@patch('ipaserver.install.installutils.in_container')
+@patch('psutil.virtual_memory')
+def test_bare_insufficient_ram_with_ca(mock_psutil, mock_in_container):
     """Not a container and insufficient RAM"""
     mock_in_container.return_value = False
     fake_memory = psutil._pslinux.svmem
@@ -257,7 +323,7 @@ def test_not_container_insufficient_ram_with_ca(mock_psutil, mock_in_container):
 
 @patch('ipaserver.install.installutils.in_container')
 @patch('psutil.virtual_memory')
-def test_not_container_ram_ok(mock_psutil, mock_in_container):
+def test_bare_ram_ok(mock_psutil, mock_in_container):
     """Not a container and sufficient RAM"""
     mock_in_container.return_value = False
     fake_memory = psutil._pslinux.svmem
