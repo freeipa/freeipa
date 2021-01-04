@@ -280,6 +280,20 @@ class TestIpaHealthCheck(IntegrationTest):
         assert output == \
             "ERROR: ipahealthcheck.meta.services.sssd: sssd: not running"
 
+    def test_ipa_healthcheck_after_certupdate(self):
+        """
+        Verify that ipa-certupdate hasn't messed up tracking
+
+        ipa-certupdate was dropping the profile value from the CA
+        signing cert tracking. ipa-healthcheck discovered this.
+
+        Run ipa-healthcheck after ipa-certupdate to ensure that
+        no problems are discovered.
+        """
+        self.master.run_command([paths.IPA_CERTUPDATE])
+        returncode, _data = run_healthcheck(self.master)
+        assert returncode == 0
+
     def test_dogtag_ca_check_exists(self):
         """
         Testcase to verify checks available in
