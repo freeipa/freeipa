@@ -429,7 +429,10 @@ def ca_enable_ldap_profile_subsystem(ca):
             quotes=False,
             separator='=')
 
-        ca.restart('pki-tomcat')
+        try:
+            ca.restart('pki-tomcat')
+        except ipautil.CalledProcessError as e:
+            logger.error("Failed to restart %s: %s", ca.service_name, e)
 
     logger.info('[Migrating certificate profiles to LDAP]')
     cainstance.migrate_profiles_to_ldap()
