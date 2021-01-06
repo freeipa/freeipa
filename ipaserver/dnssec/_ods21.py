@@ -31,7 +31,7 @@ class ODSDBConnection(AbstractODSDBConnection):
     def get_keys_for_zone(self, zone_id):
         cur = self._db.execute(
             "SELECT hsmk.locator, hsmk.inception, hsmk.algorithm, "
-            "hsmk.keyType, hsmk.state "
+            "hsmk.role, hsmk.state "
             "FROM hsmKey AS hsmk "
             "JOIN keyData AS kd ON hsmk.id = kd.hsmKeyId "
             "WHERE kd.zoneId = ?", (zone_id,))
@@ -47,9 +47,9 @@ class ODSDBConnection(AbstractODSDBConnection):
             key['active'] = None
             key['retire'] = None
             key['dead'] = None
-            if row['keyType'] == 2:
+            if row['role'] == 2:
                 key['keytype'] = 256
-            elif row['keyType'] == 1:
+            elif row['role'] == 1:
                 key['keytype'] = 257
             key['state'] = row['state']
             yield key
