@@ -78,23 +78,6 @@ class TestSMB(IntegrationTest):
         for user in [cls.ipa_user1, cls.ipa_user2, cls.ad_user]:
             tasks.run_command_as_user(cls.smbserver, user, ['stat', '.'])
 
-    def enable_dns_lookup_kdc(self, host):
-        with tasks.FileBackup(host, paths.KRB5_CONF):
-            krb5_conf = host.get_file_contents(
-                paths.KRB5_CONF, encoding='utf-8')
-            krb5_conf = krb5_conf.replace(
-                'dns_lookup_kdc = false', 'dns_lookup_kdc = true')
-            host.put_file_contents(paths.KRB5_CONF, krb5_conf)
-            yield
-
-    @pytest.fixture
-    def enable_smb_client_dns_lookup_kdc(self):
-        yield from self.enable_dns_lookup_kdc(self.smbclient)
-
-    @pytest.fixture
-    def enable_smb_server_dns_lookup_kdc(self):
-        yield from self.enable_dns_lookup_kdc(self.smbserver)
-
     @pytest.fixture
     def samba_share_public(self):
         """Setup share outside /home on samba server."""
@@ -320,8 +303,7 @@ class TestSMB(IntegrationTest):
         self.check_smb_access_at_ipa_client(
             self.ipa_user1, self.ipa_user1_password, samba_share)
 
-    def test_smb_access_for_ad_user_at_ipa_client(
-            self, enable_smb_client_dns_lookup_kdc):
+    def test_smb_access_for_ad_user_at_ipa_client(self):
         samba_share = {
             'name': 'homes',
             'server_path': '/home/{}/{}'.format(self.ad.domain.name,
@@ -352,7 +334,7 @@ class TestSMB(IntegrationTest):
     @pytest.mark.skipif(
         osinfo.id == 'fedora' and osinfo.version_number <= (31,),
         reason='Test requires krb 1.18')
-    def test_smb_service_s4u2self(self, enable_smb_server_dns_lookup_kdc):
+    def test_smb_service_s4u2self(self):
         """Test S4U2Self operation by IPA service
            against both AD and IPA users
         """
