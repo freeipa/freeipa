@@ -1419,6 +1419,14 @@ class TestIPACommand(IntegrationTest):
              'tuser1@%s' % self.master.hostname, 'cat /etc/hosts'],
         )
 
+        # Some versions of nologin do not support the -c option.
+        # ssh will still fail in a Match properly since it will return
+        # non-zero but we don't get the account failure message.
+        nologin = self.clients[0].run_command(
+            ['nologin', '-c', '/bin/true',],
+            raiseonerr=False
+        )
+
         # ssh as a restricted user to a restricted user should fail
         result = self.clients[0].run_command(
             ['sudo', '-u', restricted_user,
@@ -1429,5 +1437,7 @@ class TestIPACommand(IntegrationTest):
             raiseonerr=False
         )
         assert result.returncode == 1
-        assert 'This account is currently not available' in \
-            result.stdout_text
+
+        if 'invalid option' not in nologin.stderr_text:
+            assert 'This account is currently not available' in \
+                result.stdout_text
