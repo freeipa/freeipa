@@ -16,7 +16,10 @@ import ssl
 import stat
 import sys
 import tempfile
+import time
+
 from contextlib import contextmanager
+from datetime import datetime
 from augeas import Augeas
 
 from ipalib import api, x509
@@ -429,10 +432,30 @@ def ca_enable_ldap_profile_subsystem(ca):
             quotes=False,
             separator='=')
 
-        try:
-            ca.restart('pki-tomcat')
-        except ipautil.CalledProcessError as e:
-            logger.error("Failed to restart %s: %s", ca.service_name, e)
+        logger.info(
+            'pki-tomcat configuration changed, restart pki-tomcat'
+        )
+        cur_date = datetime.now()
+        ca_is_running = ca.is_running()
+        retries = 0
+        while not ca_is_running:
+            time.sleep(5)
+            try:
+                retries += 1
+                ca.restart('pki-tomcat')
+            except ipautil.CalledProcessError as e:
+                if datetime.now() > cur_date + datetime.timedelta(seconds=30):
+                    logger.error(
+                        "Failed to restart %s: %s after %s retries",
+                        ca.service_name, e, retries
+                    )
+                    sys.exit(1)
+                logger.info(
+                    "Failed to restart %s: %s, retrying.",
+                    ca.service_name, e
+                )
+            if ca.is_running():
+                break
 
     logger.info('[Migrating certificate profiles to LDAP]')
     cainstance.migrate_profiles_to_ldap()
