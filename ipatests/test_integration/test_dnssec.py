@@ -84,6 +84,31 @@ def wait_until_record_is_signed(nameserver, record, rtype="SOA",
     return False
 
 
+def dnskey_rec_with_ksk_and_zsk(nameserver, query):
+    """
+    Returns true if the DNSKEY record contains 2 types of keys, KSK and ZSK
+    :param nameserver: nameserver to query
+    :param record: query
+    :return: True if the DNSKEY records contains a ZSK and a KSK
+    """
+    ksk = False
+    zsk = False
+    ans = resolve_with_dnssec(nameserver, query, rtype="DNSKEY")
+    dnskey_rrset = ans.response.get_rrset(
+        ans.response.answer,
+        dns.name.from_text(query),
+        dns.rdataclass.IN,
+        dns.rdatatype.DNSKEY)
+    assert dnskey_rrset, "No DNSKEY records received"
+
+    for key_rdata in dnskey_rrset:
+        if key_rdata.flags == 257:
+            ksk = True
+        elif key_rdata.flags == 256:
+            zsk = True
+
+    return (ksk and zsk)
+
 def dnszone_add_dnssec(host, test_zone):
     """Add dnszone with dnssec and short TTL
     """
@@ -153,6 +178,12 @@ class TestInstallDNSSECLast(IntegrationTest):
         assert wait_until_record_is_signed(
             self.master.ip, test_zone_repl, timeout=5
         ), "DNS zone %s is not signed (master)" % test_zone
+
+    def test_key_types(self):
+        assert dnskey_rec_with_ksk_and_zsk(self.master.ip, test_zone)
+        assert dnskey_rec_with_ksk_and_zsk(self.replicas[0].ip, test_zone)
+        assert dnskey_rec_with_ksk_and_zsk(self.master.ip, test_zone_repl)
+        assert dnskey_rec_with_ksk_and_zsk(self.replicas[0].ip, test_zone_repl)
 
     def test_disable_reenable_signing_master(self):
         dnskey_old = resolve_with_dnssec(self.master.ip, test_zone,
