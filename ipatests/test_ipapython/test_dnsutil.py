@@ -55,9 +55,6 @@ class TestSortSRV:
         h380 = mksrv(4, 0, 80, u"host3")
         assert dnsutil.sort_prio_weight([h1, h3, h380]) == [h1, h3, h380]
 
-        hs = mksrv(-1, 0, 443, u"special")
-        assert dnsutil.sort_prio_weight([h1, h2, hs]) == [hs, h1, h2]
-
     def assert_permutations(self, answers, permutations):
         seen = set()
         for _unused in range(1000):
