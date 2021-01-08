@@ -3,4 +3,5 @@
 [Service]
 Environment=LC_ALL=C.UTF-8
 Environment=KRB5_KTNAME=$KRB5_KTNAME
+Environment=KRB5_CLIENT_KTNAME=$KRB5_KTNAME
 Environment=KRB5CCNAME=$KRB5CCNAME
