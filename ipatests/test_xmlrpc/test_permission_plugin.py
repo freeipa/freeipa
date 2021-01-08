@@ -3850,6 +3850,31 @@ class test_managed_permissions(Declarative):
         ),
 
         dict(
+            desc='Try to add invalid attribute to %r' % permission1,
+            command=('permission_mod', [permission1],
+                     {'attrs': [u'calicense',]}),
+            expected=errors.InvalidSyntax(
+                attr=r'targetattr "calicense" does not exist in schema. '
+                     r'Please add attributeTypes "calicense" to '
+                     r'schema if necessary. '
+                     r'ACL Syntax Error(-5):'
+                     r'(targetattr = \22calicense\22)'
+                     r'(targetfilter = \22(objectclass=posixaccount)\22)'
+                     r'(version 3.0;acl \22permission:%(name)s\22;'
+                     r'allow (write) userdn = \22ldap:///all\22;)' %
+                     dict(name=permission1),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "l || o || sn")' \
+            '(targetfilter = "(objectclass=posixaccount)")' \
+            '(version 3.0;acl "permission:%s";' \
+            'allow (write) userdn = "ldap:///all";)' % permission1,
+        ),
+
+        dict(
             desc='Search for %r using all its --attrs' % permission1,
             command=('permission_find', [permission1],
                      {'cn': permission1, 'attrs': [u'l', u'o', u'sn']}),
