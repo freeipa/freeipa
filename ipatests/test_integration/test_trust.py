@@ -396,57 +396,65 @@ class TestTrust(BaseTestTrust):
                                      sudorule.name,
                                      '--groups', testgroup])
 
-    def test_remove_nonposix_trust(self):
-        self.remove_trust(self.ad)
-        tasks.unconfigure_dns_for_trust(self.master, self.ad)
-
     # Test with AD trust defining subordinate suffixes
     def test_subordinate_suffix(self):
-        """Test subordinate UPN Suffixes"""
-        tasks.configure_dns_for_trust(self.master, self.ad)
-        tasks.establish_trust_with_ad(
-            self.master, self.ad_domain,
-            extra_args=['--range-type', 'ipa-ad-trust'])
-        # Clear all UPN Suffixes
-        ps_cmd = "Get-ADForest | Set-ADForest -UPNSuffixes $null"
-        self.ad.run_command(["powershell", "-c", ps_cmd])
-        result = self.master.run_command(["ipa", "trust-show", self.ad_domain])
-        assert (
-            "ipantadditionalsuffixes: {}".format(self.upn_suffix)
-            not in result.stdout_text
-        )
-        # Run Get-ADForest
-        ps_cmd1 = "Get-ADForest"
-        self.ad.run_command(["powershell", "-c", ps_cmd1])
-        # Add new UPN for AD
-        ps_cmd2 = (
-            'Get-ADForest | Set-ADForest -UPNSuffixes '
-            '@{add="new.ad.test", "upn.dom"}'
-        )
-        self.ad.run_command(["powershell", "-c", ps_cmd2])
-        self.ad.run_command(["powershell", "-c", ps_cmd1])
-        self.master.run_command(
-            ["ipa", "trust-fetch-domains", self.ad_domain],
-            raiseonerr=False)
-        self.master.run_command(["ipa", "trust-show", self.ad_domain])
-        # Set UPN for the aduser
-        ps_cmd3 = (
-            'set-aduser -UserPrincipalName '
-            'Administrator@new.ad.test -Identity Administrator'
-        )
-        self.ad.run_command(["powershell", "-c", ps_cmd3])
-        # kinit to IPA using AD user Administrator@new.ad.test
-        result = self.master.run_command(
-            ["getent", "passwd", "Administrator@new.ad.test"]
-        )
-        assert result.returncode == 0
-        self.master.run_command(
-            ["kinit", "-E", "Administrator@new.ad.test"],
-            stdin_text="Secret123",
-        )
-        tasks.kdestroy_all(self.master)
+        """Test subordinate UPN suffixes routing.
 
-    def test_remove_subordinate_suffixes_trust(self):
+        Given an AD domain ad.test with additional UPN suffix suffix.ad.test
+        check that requests from IPA for suffix.ad.test
+        are properly routed to ad.test.
+
+        This is a regression test for https://pagure.io/freeipa/issue/8554
+        """
+
+        # Create subordinate UPN suffix
+        subordinate_suffix = 'test_subdomain.' + self.ad_domain
+        self.ad.run_command([
+            'powershell', '-c',
+            'Set-ADForest -Identity {} -UPNSuffixes @{{add="{}"}}'.format(
+                self.ad_domain, subordinate_suffix)])
+        try:
+            # Verify UPN suffix is created
+            cmd = ('Get-ADForest -Identity {} '
+                   '| Select-Object -Property UPNSuffixes'
+                   .format(self.ad_domain))
+            res = self.ad.run_command(['powershell', '-c', cmd])
+            assert subordinate_suffix in res.stdout_text
+
+            # Verify IPA does not receive subordinate suffix from AD
+            self.master.run_command(
+                ['ipa', 'trust-fetch-domains', self.ad_domain],
+                ok_returncode=1)
+            res = self.master.run_command(
+                ['ipa', 'trust-show', self.ad_domain])
+            assert subordinate_suffix not in res.stdout_text
+
+            # Set UPN for the AD user
+            upn = 'testuser@' + subordinate_suffix
+            cmd = 'Set-Aduser -UserPrincipalName {} -Identity testuser'.format(
+                upn)
+            self.ad.run_command(['powershell', '-c', cmd])
+
+            # Check user resolution
+            res = self.master.run_command(['getent', 'passwd', upn])
+            expected_regex = (
+                r'^testuser@{domain}:\*:(\d+):(\d+):'
+                r'Test User:/home/{domain}/testuser:{shell}$'
+                .format(domain=re.escape(self.ad_domain),
+                        shell=self.default_shell))
+            assert re.search(expected_regex, res.stdout_text)
+
+            # Check user authentication
+            self.master.run_command(
+                ['kinit', '-E', upn], stdin_text='Secret123')
+        finally:
+            # cleanup
+            tasks.kdestroy_all(self.master)
+            cmd = ('Set-ADForest -Identity {} -UPNSuffixes @{{Remove="{}"}}'
+                   .format(self.ad_domain, subordinate_suffix))
+            self.ad.run_command(['powershell', '-c', cmd])
+
+    def test_remove_nonposix_trust(self):
         self.remove_trust(self.ad)
         tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
