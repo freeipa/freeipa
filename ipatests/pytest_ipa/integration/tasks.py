@@ -963,6 +963,15 @@ def uninstall_master(host, ignore_topology_disconnect=True,
 
     result = host.run_command(uninstall_cmd)
     assert "Traceback" not in result.stdout_text
+
+    # Check that IPA certs have been deleted after uninstall
+    # Related: https://pagure.io/freeipa/issue/8614
+    assert host.run_command(['test', '-f', paths.IPA_CA_CRT],
+                            raiseonerr=False).returncode == 1
+    assert host.run_command(['test', '-f', paths.IPA_P11_KIT],
+                            raiseonerr=False).returncode == 1
+    assert "IPA CA" not in host.run_command(['trust', 'list']).stdout_text
+
     if clean:
         Firewall(host).disable_services(["freeipa-ldap", "freeipa-ldaps",
                                          "freeipa-trust", "dns"])
