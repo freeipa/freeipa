@@ -1618,14 +1618,27 @@ def retrieve_remote_domain(hostname, local_flatname,
     rd.read_only = True
     if realm_admin and realm_passwd:
         if 'name' in rd.info:
+            realm_netbios = ""
             names = realm_admin.split('\\')
             if len(names) > 1:
                 # realm admin is in DOMAIN\user format
                 # strip DOMAIN part as we'll enforce the one discovered
                 realm_admin = names[-1]
-            auth_string = r"%s\%s%%%s" \
-                          % (rd.info['name'], realm_admin, realm_passwd)
+                realm_netbios = names[0]
+            names = realm_admin.split('@')
+            if len(names) == 1:
+                if all([len(realm_netbios) != 0,
+                        realm_netbios.lower() != rd.info['name'].lower()]):
+                    raise errors.ValidationError(
+                        name=_('Credentials'),
+                        error=_('Non-Kerberos user name was specified, '
+                                'please provide user@REALM variant instead'))
+                realm_admin = r"%s@%s" % (
+                    realm_admin, rd.info['dns_forest'].upper())
+            auth_string = r"%s%%%s" \
+                          % (realm_admin, realm_passwd)
             td = get_instance(local_flatname)
+            td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
             td.creds.parse_string(auth_string)
             td.creds.set_workstation(hostname)
             if realm_server is None:
