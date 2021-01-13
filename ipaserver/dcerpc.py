@@ -50,9 +50,18 @@ from samba import credentials
 from samba.dcerpc import security, lsa, drsblobs, nbt, netlogon
 from samba.ndr import ndr_pack, ndr_print
 from samba import net
-from samba import arcfour_encrypt
 from samba import ntstatus
 import samba
+
+try:
+    from samba.trust_utils import CreateTrustedDomainRelax
+except ImportError:
+    CreateTrustedDomainRelax = None
+try:
+    from samba import arcfour_encrypt
+except ImportError:
+    if CreateTrustedDomainRelax is None:
+        raise ImportError("No supported Samba Python bindings")
 
 import ldap as _ldap
 from ipapython import ipaldap
@@ -1021,29 +1030,34 @@ class TrustDomainInstance:
         outgoing = drsblobs.trustAuthInOutBlob()
         outgoing.count = 1
         outgoing.current = authinfo_array
+        self.auth_inoutblob = outgoing
 
-        confounder = [3]*512
-        for i in range(512):
-            confounder[i] = random.randint(0, 255)
+        if CreateTrustedDomainRelax is None:
+            # Samba Python bindings with no support for FIPS wrapper
+            # We have to generate AuthInfo ourselves which means
+            # we have to use RC4 encryption directly
+            confounder = [3] * 512
+            for i in range(512):
+                confounder[i] = random.randint(0, 255)
 
-        trustpass = drsblobs.trustDomainPasswords()
-        trustpass.confounder = confounder
+            trustpass = drsblobs.trustDomainPasswords()
+            trustpass.confounder = confounder
 
-        trustpass.outgoing = outgoing
-        trustpass.incoming = outgoing
+            trustpass.outgoing = outgoing
+            trustpass.incoming = outgoing
 
-        trustpass_blob = ndr_pack(trustpass)
+            trustpass_blob = ndr_pack(trustpass)
 
-        encrypted_trustpass = arcfour_encrypt(self._pipe.session_key,
-                                              trustpass_blob)
+            encrypted_trustpass = arcfour_encrypt(self._pipe.session_key,
+                                                  trustpass_blob)
 
-        auth_blob = lsa.DATA_BUF2()
-        auth_blob.size = len(encrypted_trustpass)
-        auth_blob.data = string_to_array(encrypted_trustpass)
+            auth_blob = lsa.DATA_BUF2()
+            auth_blob.size = len(encrypted_trustpass)
+            auth_blob.data = string_to_array(encrypted_trustpass)
 
-        auth_info = lsa.TrustDomainInfoAuthInfoInternal()
-        auth_info.auth_blob = auth_blob
-        self.auth_info = auth_info
+            auth_info = lsa.TrustDomainInfoAuthInfoInternal()
+            auth_info.auth_blob = auth_blob
+            self.auth_info = auth_info
 
     def generate_ftinfo(self, another_domain):
         """
@@ -1311,7 +1325,6 @@ class TrustDomainInstance:
                                                  'the same NetBIOS name: %s')
                                          % self.info['name'])
 
-        self.generate_auth(trustdom_secret)
 
         info = lsa.TrustDomainInfoInfoEx()
         info.domain_name.string = another_domain.info['dns_domain']
@@ -1360,10 +1373,19 @@ class TrustDomainInstance:
                 raise access_denied_error
 
         try:
-            trustdom_handle = self._pipe.CreateTrustedDomainEx2(
-                                           self._policy_handle,
-                                           info, self.auth_info,
-                                           security.SEC_STD_DELETE)
+            self.generate_auth(trustdom_secret)
+            if CreateTrustedDomainRelax is not None:
+                trustdom_handle = CreateTrustedDomainRelax(
+                    self._pipe, self._policy_handle, info,
+                    security.SEC_STD_DELETE,
+                    self.auth_inoutblob, self.auth_inoutblob)
+            else:
+                # Samba Python bindings with no support for FIPS wrapper
+                # We keep using older code
+                trustdom_handle = self._pipe.CreateTrustedDomainEx2(
+                    self._policy_handle,
+                    info, self.auth_info,
+                    security.SEC_STD_DELETE)
         except RuntimeError as e:
             raise assess_dcerpc_error(e)
 
