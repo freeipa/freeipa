@@ -1595,6 +1595,13 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
     return result
 
 
+def enforce_smb_encryption(creds):
+    try:
+        creds.set_smb_encryption(credentials.SMB_ENCRYPTION_REQUIRED)
+    except AttributeError:
+        pass
+
+
 def retrieve_remote_domain(hostname, local_flatname,
                            realm, realm_server=None,
                            realm_admin=None, realm_passwd=None):
@@ -1639,6 +1646,7 @@ def retrieve_remote_domain(hostname, local_flatname,
                           % (realm_admin, realm_passwd)
             td = get_instance(local_flatname)
             td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
+            enforce_smb_encryption(td.creds)
             td.creds.parse_string(auth_string)
             td.creds.set_workstation(hostname)
             if realm_server is None:
@@ -1678,6 +1686,7 @@ class TrustDomainJoins:
         ld = TrustDomainInstance(self.local_flatname)
         ld.creds = credentials.Credentials()
         ld.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
+        enforce_smb_encryption(ld.creds)
         ld.creds.guess(ld.parm)
         ld.creds.set_workstation(ld.hostname)
         ld.retrieve(FQDN)
