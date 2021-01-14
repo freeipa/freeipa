@@ -3,6 +3,7 @@
 #
 
 import os
+import dateutil.tz
 
 from ipaserver.dnssec._odsbase import AbstractODSDBConnection
 from ipaserver.dnssec._odsbase import AbstractODSSignerConn
@@ -38,9 +39,12 @@ class ODSDBConnection(AbstractODSDBConnection):
         for row in cur:
             key = dict()
             key['HSMkey_id'] = row['locator']
+            # The date is stored in UTC format but OpenDNSSEC 1.4 was
+            # returning a local tz format
+            tz = dateutil.tz.tzlocal()
             key['generate'] = ipautil.datetime_from_utctimestamp(
                 row['inception'],
-                units=1).replace(tzinfo=None).isoformat(
+                units=1).astimezone(tz).replace(tzinfo=None).isoformat(
                     sep=' ', timespec='seconds')
             key['algorithm'] = row['algorithm']
             key['publish'] = key['generate']
