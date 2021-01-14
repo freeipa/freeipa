@@ -887,6 +887,15 @@ class TestInstallMaster(IntegrationTest):
         name = f'ipa-ca.{self.master.domain.name}'
         assert crypto_x509.DNSName(name) in cert.san_general_names
 
+    def test_ipa_cert_in_store(self):
+        """
+        Test that IPA cert has been added to trust store.
+        """
+
+        assert "IPA CA" in self.master.run_command(
+            ['trust', 'list'],
+            raiseonerr=False).stdout_text
+
     def test_p11_kit_softhsm2(self):
         # check that p11-kit-proxy does not inject SoftHSM2
         result = self.master.run_command([
