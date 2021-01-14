@@ -312,9 +312,6 @@ static int ipapwd_cmp_password(char *password, char *historyString)
     }
 
     size_t item_len = EVP_DecodeBlock(item_data, (unsigned char *) b64part, b64_len);
-    if (!item_data) {
-        return -1;
-    }
     if (item_len <= SHA_SALT_LENGTH) {
         ret = -1;
         goto done;
