@@ -48,7 +48,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
                        const char **status, krb5_deltat *lifetime_out,
                        krb5_deltat *renew_lifetime_out)
 {
-    krb5_error_code kerr;
+    krb5_error_code kerr = 0;
     enum ipadb_user_auth ua;
     struct ipadb_e_data *ied;
     struct ipadb_e_pol_limits *pol_limits = NULL;
@@ -72,13 +72,14 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
                                    &client_actual);
         if (kerr != 0) {
             krb5_klog_syslog(LOG_ERR, "IPA kdcpolicy: ipadb_find_principal failed.");
-            return kerr;
+            goto done;
         }
 
         ied = (struct ipadb_e_data *)client_actual->e_data;
         if (ied == NULL || ied->magic != IPA_E_DATA_MAGIC) {
             krb5_klog_syslog(LOG_ERR, "IPA kdcpolicy: client e_data fetching failed.");
-            return EINVAL;
+            kerr = EINVAL;
+            goto done;
         }
     }
 
@@ -87,7 +88,8 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
     /* If no mechanisms are set, allow every auth method */
     if (ua == IPADB_USER_AUTH_NONE) {
         jitter(ONE_DAY_SECONDS, lifetime_out);
-        return 0;
+        kerr = 0;
+        goto done;
     }
 
     /* For each auth indicator, see if it is allowed for that user */
@@ -98,21 +100,24 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
             valid_auth_indicators++;
             if (!(ua & IPADB_USER_AUTH_OTP)) {
                 *status = "OTP pre-authentication not allowed for this user.";
-                return KRB5KDC_ERR_POLICY;
+                kerr = KRB5KDC_ERR_POLICY;
+                goto done;
             }
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_OTP]);
         } else if (strcmp(auth_indicator, "radius") == 0) {
             valid_auth_indicators++;
             if (!(ua & IPADB_USER_AUTH_RADIUS)) {
                 *status = "OTP pre-authentication not allowed for this user.";
-                return KRB5KDC_ERR_POLICY;
+                kerr = KRB5KDC_ERR_POLICY;
+                goto done;
             }
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_RADIUS]);
         } else if (strcmp(auth_indicator, "pkinit") == 0) {
             valid_auth_indicators++;
             if (!(ua & IPADB_USER_AUTH_PKINIT)) {
                 *status = "PKINIT pre-authentication not allowed for this user.";
-                return KRB5KDC_ERR_POLICY;
+                kerr = KRB5KDC_ERR_POLICY;
+                goto done;
             }
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_PKINIT]);
         } else if (strcmp(auth_indicator, "hardened") == 0) {
@@ -120,7 +125,8 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
             /* Allow hardened even if only password pre-auth is allowed */
             if (!(ua & (IPADB_USER_AUTH_HARDENED | IPADB_USER_AUTH_PASSWORD))) {
                 *status = "Password pre-authentication not not allowed for this user.";
-                return KRB5KDC_ERR_POLICY;
+                kerr = KRB5KDC_ERR_POLICY;
+                goto done;
             }
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_HARDENED]);
         }
@@ -131,7 +137,8 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
     if (!valid_auth_indicators) {
         if (!(ua & IPADB_USER_AUTH_PASSWORD)) {
             *status = "Non-hardened password authentication not allowed for this user.";
-            return KRB5KDC_ERR_POLICY;
+            kerr = KRB5KDC_ERR_POLICY;
+            goto done;
         }
     }
 
@@ -149,7 +156,10 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
         }
     }
 
-    return 0;
+done:
+    ipadb_free_principal(context, client_actual);
+
+    return kerr;
 }
 
 static krb5_error_code
