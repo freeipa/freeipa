@@ -285,21 +285,26 @@ class TestUpgrade(IntegrationTest):
         Test for https://pagure.io/freeipa/issue/8596
         When the directory /var/lib/pki/pki-tomcat/kra/ exists, the upgrade
         wrongly assumes that KRA component is installed and crashes.
-        The test creates an empty dir and calls ipa-server-upgrade
+        The test creates an empty dir and calls kra.is_installed()
         to make sure that KRA detection is not based on the directory
         presence.
+        Note: because of issue https://github.com/dogtagpki/pki/issues/3397
+        ipa-server-upgrade fails even with the kra detection fix. That's
+        why the test does not exercise the whole ipa-server-upgrade command
+        but only the KRA detection part.
         """
-        # Skip test if pki 10.10.0 is installed
-        # because of https://github.com/dogtagpki/pki/issues/3397
-        # pki fails to start if empty dir /var/lib/pki/pki-tomcat/kra exists
-        if tasks.get_pki_version(self.master) == tasks.parse_version('10.10.0'):
-            pytest.skip("Skip test with pki 10.10.0")
-
         kra_path = os.path.join(paths.VAR_LIB_PKI_TOMCAT_DIR, "kra")
         try:
             self.master.run_command(["mkdir", "-p", kra_path])
-            result = self.master.run_command(['ipa-server-upgrade'])
-            err_msg = 'Upgrade failed with no such entry'
-            assert err_msg not in result.stderr_text
+            script = (
+                "from ipalib import api; "
+                "from ipaserver.install import krainstance; "
+                "api.bootstrap(); "
+                "api.finalize(); "
+                "kra = krainstance.KRAInstance(api.env.realm); "
+                "print(kra.is_installed())"
+            )
+            result = self.master.run_command(['python3', '-c', script])
+            assert "False" in result.stdout_text
         finally:
             self.master.run_command(["rmdir", kra_path])
