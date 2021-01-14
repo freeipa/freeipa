@@ -76,7 +76,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
         }
 
         ied = (struct ipadb_e_data *)client_actual->e_data;
-        if (ied == NULL && ied->magic != IPA_E_DATA_MAGIC) {
+        if (ied == NULL || ied->magic != IPA_E_DATA_MAGIC) {
             krb5_klog_syslog(LOG_ERR, "IPA kdcpolicy: client e_data fetching failed.");
             return EINVAL;
         }
