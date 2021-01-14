@@ -35,6 +35,7 @@
 #define PRINCIPAL_ERROR	4
 #define NOT_FOUND		5
 #define REMOVE_ERROR	6
+#define CURSOR_ERROR	7
 
 int
 remove_principal(krb5_context context, krb5_keytab ktid, const char *principal, int debug)
@@ -119,6 +120,12 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
     bool realm_found = false;
 
     krberr = krb5_kt_start_seq_get(context, ktid, &kt_cursor);
+    if (krberr) {
+        fprintf(stderr, _("Failed to set cursor '%1$s'\n"),
+                error_message(krberr));
+        rval = CURSOR_ERROR;
+        goto done;
+    }
     memset(&entry, 0, sizeof(entry));
     while (krb5_kt_next_entry(context, ktid, &entry, &kt_cursor) == 0) {
         krberr = krb5_unparse_name(context, entry.principal, &entry_princ_s);
@@ -134,7 +141,13 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
 
         /* keytab entries are locked when looping. Temporarily suspend
          * the looping. */
-        krb5_kt_end_seq_get(context, ktid, &kt_cursor);
+        krberr = krb5_kt_end_seq_get(context, ktid, &kt_cursor);
+        if (krberr) {
+            fprintf(stderr, _("Failed to set cursor '%1$s'\n"),
+                    error_message(krberr));
+            rval = CURSOR_ERROR;
+            goto done;
+        }
 
         if (strstr(entry_princ_s, realm) != NULL) {
             realm_found = true;
@@ -143,6 +156,12 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
                 goto done;
             /* Have to reset the cursor */
             krberr = krb5_kt_start_seq_get(context, ktid, &kt_cursor);
+            if (krberr) {
+                fprintf(stderr, _("Failed to set cursor '%1$s'\n"),
+                        error_message(krberr));
+                rval = CURSOR_ERROR;
+                goto done;
+            }
         }
     }
 
@@ -241,9 +260,9 @@ main(int argc, const char **argv)
     }
     krberr = krb5_kt_start_seq_get(context, ktid, &cursor);
     if (krberr) {
-        fprintf(stderr, _("Failed to open keytab '%1$s': %2$s\n"), keytab,
+        fprintf(stderr, _("Failed to set cursor '%1$s'\n"),
             error_message(krberr));
-        rval = KEYTAB_ERROR;
+        rval = CURSOR_ERROR;
         goto cleanup;
     }
     krb5_kt_end_seq_get(context, ktid, &cursor);
