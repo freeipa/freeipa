@@ -906,7 +906,7 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     }
 
     /* IPA user principals are all constructed */
-    if ((pac_info.logon_info.info->info3.base.rid != 515) ||
+    if ((pac_info.logon_info.info->info3.base.rid != 515) &&
         (pac_info.logon_info.info->info3.base.rid != 516)) {
         pac_upn.upn_dns_info.flags |= PAC_UPN_DNS_FLAG_CONSTRUCTED;
     }
