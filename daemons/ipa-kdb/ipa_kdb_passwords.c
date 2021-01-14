@@ -60,6 +60,7 @@ static krb5_error_code ipapwd_error_to_kerr(krb5_context context,
     case IPAPWD_POLICY_PWD_SEQUENCE:
         kerr = KADM5_PASS_Q_GENERIC;
         krb5_set_error_message(context, kerr, "Password contains a monotonic sequence");
+        break;
     case IPAPWD_POLICY_PWD_PALINDROME:
         kerr = KADM5_PASS_Q_GENERIC;
         krb5_set_error_message(context, kerr, "Password is a palindrome");
