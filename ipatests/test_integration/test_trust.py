@@ -462,7 +462,7 @@ class TestTrust(BaseTestTrust):
 
                 result = self.master.run_command(
                     ['ipa', 'trust-add', '--type', 'ad', self.ad_domain,
-                     '--admin', 'Administrator',
+                     '--admin', 'Administrator@' + self.ad_domain,
                      '--range-type', range_type, '--password'],
                     raiseonerr=False,
                     stdin_text=self.master.config.ad_admin_password)
@@ -513,8 +513,8 @@ class TestTrust(BaseTestTrust):
 
             result = self.master.run_command([
                 'ipa', 'trust-add', '--type', 'ad', self.ad_subdomain,
-                '--admin',
-                'Administrator', '--password', '--range-type', 'ipa-ad-trust'
+                '--admin', 'Administrator@' + self.ad_subdomain,
+                '--password', '--range-type', 'ipa-ad-trust'
             ], stdin_text=self.master.config.ad_admin_password,
                 raiseonerr=False)
 
@@ -565,8 +565,8 @@ class TestTrust(BaseTestTrust):
 
             result = self.master.run_command([
                 'ipa', 'trust-add', '--type', 'ad', self.ad_treedomain,
-                '--admin',
-                'Administrator', '--password', '--range-type', 'ipa-ad-trust'
+                '--admin', 'Administrator@' + self.ad_treedomain,
+                '--password', '--range-type', 'ipa-ad-trust'
             ], stdin_text=self.master.config.ad_admin_password,
                 raiseonerr=False)
 
@@ -775,8 +775,9 @@ class TestTrust(BaseTestTrust):
             # Check that trust can not be established without --server option
             # This checks that our setup is correct
             result = self.master.run_command(
-                ['ipa', 'trust-add', self.ad.domain.name,
-                 '--admin', 'Administrator', '--password'], raiseonerr=False,
+                ['ipa', 'trust-add', self.ad_domain,
+                 '--admin', 'Administrator@' + self.ad_domain, '--password'],
+                raiseonerr=False,
                 stdin_text=self.master.config.ad_admin_password)
             assert result.returncode == 1
             assert 'CIFS server communication error: code "3221225653", ' \
