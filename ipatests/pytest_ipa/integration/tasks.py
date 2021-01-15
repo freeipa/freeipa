@@ -635,7 +635,7 @@ def unconfigure_windows_dns_for_trust(ad, master):
     ad.run_command(['dnscmd', '/zonedelete', master.domain.name, '/f'])
 
 
-def establish_trust_with_ad(master, ad_domain, extra_args=(),
+def establish_trust_with_ad(master, ad_domain, ad_admin=None, extra_args=(),
                             shared_secret=None):
     """
     Establishes trust with Active Directory. Trust type is detected depending
@@ -643,6 +643,9 @@ def establish_trust_with_ad(master, ad_domain, extra_args=(),
 
     Use extra arguments to pass extra arguments to the trust-add command, such
     as --range-type="ipa-ad-trust" to enforce a particular range type.
+
+    If ad_admin is not provided, name will be constructed as
+    "Administrator@<ad_domain>".
     """
 
     # Force KDC to reload MS-PAC info by trying to get TGT for HTTP
@@ -660,7 +663,9 @@ def establish_trust_with_ad(master, ad_domain, extra_args=(),
         extra_args += ['--trust-secret']
         stdin_text = shared_secret
     else:
-        extra_args += ['--admin', 'Administrator', '--password']
+        if ad_admin is None:
+            ad_admin = 'Administrator@{}'.format(ad_domain)
+        extra_args += ['--admin', ad_admin, '--password']
         stdin_text = master.config.ad_admin_password
     run_repeatedly(
         master, ['ipa', 'trust-add', '--type', 'ad', ad_domain] + extra_args,
