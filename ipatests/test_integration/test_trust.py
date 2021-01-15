@@ -53,6 +53,8 @@ class BaseTestTrust(IntegrationTest):
         cls.srv_gc_record_name = \
             '_ldap._tcp.Default-First-Site-Name._sites.gc._msdcs'
         cls.srv_gc_record_value = '0 100 389 {}.'.format(cls.master.hostname)
+        cls.master.put_file_contents('/usr/share/ipa/smb.conf.empty',
+                                     '[global]\n  log level = 10\n')
 
     @classmethod
     def check_sid_generation(cls):
