@@ -141,10 +141,11 @@ class TestTrust(BaseTestTrust):
         ad_admin = 'Administrator@%s' % self.ad_domain
         tasks.kinit_as_user(self.master, ad_admin,
                             self.master.config.ad_admin_password)
-        err_string = ('ipa: ERROR: Insufficient access: SASL(-14):'
-                      ' authorization failure: Invalid credentials')
+        err_string1 = 'ipa: ERROR: Insufficient access: '
+        err_string2 = 'Invalid credentials'
         result = self.master.run_command(['ipa', 'ping'], raiseonerr=False)
-        assert err_string in result.stderr_text
+        assert err_string1 in result.stderr_text
+        assert err_string2 in result.stderr_text
 
         tasks.kdestroy_all(self.master)
         tasks.kinit_admin(self.master)
