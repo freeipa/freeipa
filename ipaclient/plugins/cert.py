@@ -21,8 +21,6 @@
 
 import base64
 
-import six
-
 from ipaclient.frontend import MethodOverride
 from ipalib import errors
 from ipalib import x509
@@ -30,9 +28,6 @@ from ipalib import util
 from ipalib.parameters import BinaryFile, File, Flag, Str
 from ipalib.plugable import Registry
 from ipalib.text import _
-
-if six.PY3:
-    unicode = str
 
 register = Registry()
 
@@ -73,86 +68,11 @@ class CertRetrieveOverride(MethodOverride):
 
 @register(override=True, no_fail=True)
 class cert_request(CertRetrieveOverride):
-    takes_options = CertRetrieveOverride.takes_options + (
-        Str(
-            'database?',
-            label=_('Path to NSS database'),
-            doc=_('Path to NSS database to use for private key'),
-        ),
-        Str(
-            'private_key?',
-            label=_('Path to private key file'),
-            doc=_('Path to PEM file containing a private key'),
-        ),
-        Str(
-            'password_file?',
-            label=_(
-                'File containing a password for the private key or database'),
-        ),
-        Str(
-            'csr_profile_id?',
-            label=_('Name of CSR generation profile (if not the same as'
-                    ' profile_id)'),
-        ),
-    )
-
     def get_args(self):
         for arg in super(cert_request, self).get_args():
             if arg.name == 'csr':
                 arg = arg.clone_retype(arg.name, File, required=False)
             yield arg
-
-    def forward(self, csr=None, **options):
-        database = options.pop('database', None)
-        private_key = options.pop('private_key', None)
-        csr_profile_id = options.pop('csr_profile_id', None)
-        password_file = options.pop('password_file', None)
-
-        if csr is None:
-            # Deferred import, ipaclient.csrgen is expensive to load.
-            # see https://pagure.io/freeipa/issue/7484
-            from ipaclient import csrgen
-
-            if database:
-                adaptor = csrgen.NSSAdaptor(database, password_file)
-            elif private_key:
-                adaptor = csrgen.OpenSSLAdaptor(
-                    key_filename=private_key, password_filename=password_file)
-            else:
-                raise errors.InvocationError(
-                    message=u"One of 'database' or 'private_key' is required")
-
-            pubkey_info = adaptor.get_subject_public_key_info()
-            pubkey_info_b64 = base64.b64encode(pubkey_info)
-
-            # If csr_profile_id is passed, that takes precedence.
-            # Otherwise, use profile_id. If neither are passed, the default
-            # in cert_get_requestdata will be used.
-            profile_id = csr_profile_id
-            if profile_id is None:
-                profile_id = options.get('profile_id')
-
-            response = self.api.Command.cert_get_requestdata(
-                profile_id=profile_id,
-                principal=options.get('principal'),
-                public_key_info=pubkey_info_b64)
-
-            req_info_b64 = response['result']['request_info']
-            req_info = base64.b64decode(req_info_b64)
-
-            csr = adaptor.sign_csr(req_info)
-
-            if not csr:
-                raise errors.CertificateOperationError(
-                    error=(_('Generated CSR was empty')))
-
-        else:
-            if database is not None or private_key is not None:
-                raise errors.MutuallyExclusiveError(reason=_(
-                    "Options 'database' and 'private_key' are not compatible"
-                    " with 'csr'"))
-
-        return super(cert_request, self).forward(csr, **options)
 
 
 @register(override=True, no_fail=True)

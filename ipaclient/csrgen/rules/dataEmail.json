@@ -1,8 +1,0 @@
-{
-  "rule": {
-    "template": "email = {{subject.mail.0}}"
-  },
-  "options": {
-    "data_source": "subject.mail.0"
-  }
-}
