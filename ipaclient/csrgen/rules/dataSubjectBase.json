@@ -1,8 +1,0 @@
-{
-  "rule": {
-    "template": "{{config.ipacertificatesubjectbase.0}}"
-  },
-  "options": {
-    "data_source": "config.ipacertificatesubjectbase.0"
-  }
-}

@@ -1,8 +1,0 @@
-{
-  "rule": {
-    "template": "openssl_rule"
-  },
-  "options": {
-    "rule_option": true
-  }
-}
