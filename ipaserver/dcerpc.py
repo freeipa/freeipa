@@ -24,6 +24,7 @@
 
 from __future__ import absolute_import
 
+from contextlib import contextmanager
 import logging
 import re
 import time
@@ -852,6 +853,7 @@ class TrustDomainInstance:
         self._policy_handle = None
         self.read_only = False
         self.ftinfo_records = None
+        self.ftinfo_data = None
         self.validation_attempts = 0
 
     def __gen_lsa_connection(self, binding):
@@ -1011,6 +1013,16 @@ class TrustDomainInstance:
 
         self.info['is_pdc'] = (result.role == lsa.LSA_ROLE_PRIMARY)
 
+        if all([self.info['is_pdc'],
+                self.info['dns_domain'] == self.info['dns_forest']]):
+            try:
+                netr_pipe = netlogon.netlogon(self.binding,
+                                              self.parm, self.creds)
+                self.ftinfo_data = netr_pipe.netr_DsRGetForestTrustInformation(
+                    self.info['dc'], None, 0)
+            except RuntimeError as e:
+                raise assess_dcerpc_error(e)
+
     def generate_auth(self, trustdom_secret):
         password_blob = string_to_array(trustdom_secret.encode('utf-16-le'))
 
@@ -1067,6 +1079,9 @@ class TrustDomainInstance:
 
         Only top level name and top level name exclusions are handled here.
         """
+        if another_domain.ftinfo_data is not None:
+            return another_domain.ftinfo_data
+
         if not another_domain.ftinfo_records:
             return None
 
@@ -1501,21 +1516,14 @@ class TrustDomainInstance:
         return False
 
 
-def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
-    def communicate(td):
-        td.init_lsa_pipe(td.info['dc'])
-        netr_pipe = netlogon.netlogon(td.binding, td.parm, td.creds)
-        # Older IPA versions used netr_DsrEnumerateDomainTrusts call
-        # but it doesn't provide information about non-domain UPNs associated
-        # with the forest, thus we have to use netr_DsRGetForestTrustInformation
-        domains = netr_pipe.netr_DsRGetForestTrustInformation(td.info['dc'], None, 0)
-        return domains
-
-    domains = None
+@contextmanager
+def discover_trust_instance(api, mydomain, trustdomain,
+                            creds=None, server=None):
     domain_validator = DomainValidator(api)
     configured = domain_validator.is_configured()
     if not configured:
-        return None
+        yield None
+        return
 
     td = TrustDomainInstance('')
     td.parm.set('workgroup', mydomain)
@@ -1541,9 +1549,11 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
         # Rely on existing Kerberos credentials in the environment
         td.creds = credentials.Credentials()
         td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
+        enforce_smb_encryption(td.creds)
         td.creds.guess(td.parm)
         td.creds.set_workstation(domain_validator.flatname)
-        domains = communicate(td)
+        logger.error('environment: %s', str(os.environ))
+        yield td
     else:
         # Attempt to authenticate as HTTP/ipa.master and use cross-forest trust
         # or as passed-in user in case of a one-way trust
@@ -1559,14 +1569,37 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
                                                  'cross-forest communication'))
         td.creds = credentials.Credentials()
         td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
+        enforce_smb_encryption(td.creds)
         if ccache_name:
             with ipautil.private_ccache(path=ccache_name):
                 td.creds.guess(td.parm)
                 td.creds.set_workstation(domain_validator.flatname)
-                domains = communicate(td)
+                yield td
 
-    if domains is None:
-        return None
+
+def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
+    def communicate(td):
+        td.init_lsa_pipe(td.info['dc'])
+        netr_pipe = netlogon.netlogon(td.binding, td.parm, td.creds)
+        # Older FreeIPA versions used netr_DsrEnumerateDomainTrusts call
+        # but it doesn't provide information about non-domain UPNs associated
+        # with the forest, thus we have to use netr_DsRGetForestTrustInformation
+        domains = netr_pipe.netr_DsRGetForestTrustInformation(td.info['dc'],
+                                                              None, 0)
+        return domains
+
+    domains = None
+    with discover_trust_instance(api, mydomain, trustdomain,
+                                 creds=creds, server=server) as td:
+        if td is None:
+            return None
+        if td.ftinfo_data is not None:
+            domains = td.ftinfo_data
+        else:
+            domains = communicate(td)
+
+        if domains is None:
+            return None
 
     result = {'domains': {}, 'suffixes': {}}
     # netr_DsRGetForestTrustInformation returns two types of entries:
@@ -1574,24 +1607,48 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
     # top level name info -- a name suffix associated with the forest
     # We should ignore forest root name/name suffix as it is already part
     # of trust information for IPA purposes and only add what's inside the forest
+    ftinfo_records = []
+    ftinfo = drsblobs.ForestTrustInfo()
     for t in domains.entries:
+        record = drsblobs.ForestTrustInfoRecord()
+        record.flags = t.flags
+        record.timestamp = t.time
+        record.type = t.type
+
         if t.type == lsa.LSA_FOREST_TRUST_DOMAIN_INFO:
+            record.data.sid = t.forest_trust_data.domain_sid
+            record.data.dns_name.string = \
+                t.forest_trust_data.dns_domain_name.string
+            record.data.netbios_name.string = \
+                t.forest_trust_data.netbios_domain_name.string
+
             tname = unicode(t.forest_trust_data.dns_domain_name.string)
-            if tname == trustdomain:
-                continue
-            result['domains'][tname] = {
-                'cn': tname,
-                'ipantflatname': unicode(
-                    t.forest_trust_data.netbios_domain_name.string),
-                'ipanttrusteddomainsid': unicode(
-                    t.forest_trust_data.domain_sid)
-            }
+            if tname != trustdomain:
+                result['domains'][tname] = {
+                    'cn': tname,
+                    'ipantflatname': unicode(
+                        t.forest_trust_data.netbios_domain_name.string),
+                    'ipanttrusteddomainsid': unicode(
+                        t.forest_trust_data.domain_sid)
+                }
         elif t.type == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME:
+            record.data.string = t.forest_trust_data.string
+
             tname = unicode(t.forest_trust_data.string)
             if tname == trustdomain:
                 continue
 
             result['suffixes'][tname] = {'cn': tname}
+        elif t.type == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX:
+            record.data.string = t.forest_trust_data.string
+
+        rc = drsblobs.ForestTrustInfoRecordArmor()
+        rc.record = record
+        ftinfo_records.append(rc)
+
+    ftinfo.count = len(ftinfo_records)
+    ftinfo.records = ftinfo_records
+    result['ftinfo_data'] = ndr_pack(ftinfo)
     return result
 
 
@@ -1785,10 +1842,15 @@ class TrustDomainJoins:
                                                    trustdom_pass,
                                                    trust_type, trust_external)
 
-            # For local domain we don't set topology information
-            self.local_domain.establish_trust(self.remote_domain,
-                                              trustdom_pass,
-                                              trust_type, trust_external)
+            try:
+                self.local_domain.establish_trust(self.remote_domain,
+                                                  trustdom_pass,
+                                                  trust_type, trust_external)
+            except TrustTopologyConflictSolved:
+                self.local_domain.establish_trust(self.remote_domain,
+                                                  trustdom_pass,
+                                                  trust_type, trust_external)
+
             # if trust is inbound, we don't need to verify it because
             # AD DC will respond with WERR_NO_SUCH_DOMAIN --
             # it only does verification for outbound trusts.
