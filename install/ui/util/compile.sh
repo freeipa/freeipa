@@ -29,14 +29,14 @@ RDIR=$DIR/../release
 usage() {
 cat <<-__EOF__;
 NAME
-     compile.sh - Compiles layer file of Dojo build using Python rjsmin.
+     compile.sh - Compiles layer file of Dojo build using a minimizer.
                   Deletes all other files.
 
 SYNOPSIS
      path/to/compile.sh [--help] --release RELEASE --layer NAME/NAME
 
 DESCRIPTION
-     Compiles layer file of Dojo build output using Python rjsmin.
+     Compiles layer file of Dojo build output using a minimizer.
      Deletes all other files.
 
 OPTIONS
