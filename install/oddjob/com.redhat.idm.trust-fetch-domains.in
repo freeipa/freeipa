@@ -4,16 +4,12 @@ from ipaserver import dcerpc
 from ipaserver.install.installutils import ScriptError
 from ipapython import config, ipautil
 from ipalib import api
-from ipalib.facts import is_ipa_configured
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-import io
 import sys
 import os
-import tempfile
-import textwrap
 
 import six
 import gssapi
@@ -121,43 +117,6 @@ def get_forest_root_domain(api_instance, trusted_domain, server=None):
     return remote_domain.info["dns_forest"]
 
 
-def generate_krb5_config(realm, server):
-    """Generate override krb5 config file for trusted domain DC access
-
-    :param realm: realm of the trusted AD domain
-    :param server: server to override KDC to
-
-    :returns: tuple (temporary config file name, KRB5_CONFIG string)
-    """
-    cfg = paths.KRB5_CONF
-    tcfg = None
-    if server:
-        content = textwrap.dedent(u"""
-            [realms]
-               %s = {
-                   kdc = %s
-               }
-            """) % (
-            realm.upper(),
-            server,
-        )
-
-        (fd, tcfg) = tempfile.mkstemp(dir="/run/ipa",
-                prefix="krb5conf", text=True)
-        with io.open(fd, mode='w', encoding='utf-8') as o:
-            o.write(content)
-        cfg = ":".join([tcfg, cfg])
-    return (tcfg, cfg)
-
-
-if not is_ipa_configured():
-    # LSB status code 6: program is not configured
-    raise ScriptError(
-        "IPA is not configured "
-        + "(see man pages of ipa-server-install for help)",
-        6,
-    )
-
 if not os.getegid() == 0:
     # LSB status code 4: user had insufficient privilege
     raise ScriptError("You must be root to run ipactl.", 4)
@@ -234,97 +193,95 @@ trusted_domain = trusted_domain_entry.single_value.get("cn").lower()
 # At this point if we didn't find trusted forest name, an exception will be raised
 # and script will quit. This is actually intended.
 
+rc = 0
+
 # Generate MIT Kerberos configuration file that potentially overlays
 # the KDC to connect to for a trusted domain to allow --server option
 # to take precedence.
-cfg_file, cfg = generate_krb5_config(trusted_domain, options.server)
+with ipautil.private_krb5_config(trusted_domain, options.server) as cfg_file:
+    if not (options.admin and options.password):
+        oneway_keytab_name = os.path.join("/var/lib/sss/keytabs/",
+                                          trusted_domain + ".keytab")
 
-if not (options.admin and options.password):
-    oneway_keytab_name = "/var/lib/sss/keytabs/" + trusted_domain + ".keytab"
-    oneway_principal = str(
-        "%s$@%s" % (own_trust_flatname, trusted_domain.upper())
-    )
+        oneway_principal = str(
+            "%s$@%s" % (own_trust_flatname, trusted_domain.upper())
+        )
 
-    # If keytab does not exist, retrieve it
-    if not os.path.isfile(oneway_keytab_name):
-        retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
+        # If keytab does not exist, retrieve it
+        if not os.path.isfile(oneway_keytab_name):
+            retrieve_keytab(api, ccache_name,
+                            oneway_keytab_name, oneway_principal)
 
-    try:
-        have_ccache = False
         try:
-            # The keytab may have stale key material (from older trust-add run)
+            have_ccache = False
+            try:
+                # The keytab may have stale key material (from older trust-add run)
+                cred = kinit_keytab(
+                    oneway_principal,
+                    oneway_keytab_name,
+                    oneway_ccache_name,
+                )
+                if cred.lifetime > 0:
+                    have_ccache = True
+            except (gssapi.exceptions.ExpiredCredentialsError, gssapi.raw.misc.GSSError):
+                pass
+            if not have_ccache:
+                if os.path.exists(oneway_ccache_name):
+                    os.unlink(oneway_ccache_name)
+                kinit_keytab(
+                    oneway_principal,
+                    oneway_keytab_name,
+                    oneway_ccache_name,
+                )
+        except (gssapi.exceptions.GSSError, gssapi.raw.misc.GSSError):
+            # If there was failure on using keytab, assume it is stale and retrieve again
+            retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
+            if os.path.exists(oneway_ccache_name):
+                os.unlink(oneway_ccache_name)
             cred = kinit_keytab(
                 oneway_principal,
                 oneway_keytab_name,
                 oneway_ccache_name,
-                config=cfg,
             )
-            if cred.lifetime > 0:
-                have_ccache = True
-        except (gssapi.exceptions.ExpiredCredentialsError, gssapi.raw.misc.GSSError):
-            pass
-        if not have_ccache:
-            if os.path.exists(oneway_ccache_name):
-                os.unlink(oneway_ccache_name)
-            kinit_keytab(
-                oneway_principal,
-                oneway_keytab_name,
-                oneway_ccache_name,
-                config=cfg,
-            )
-    except (gssapi.exceptions.GSSError, gssapi.raw.misc.GSSError):
-        # If there was failure on using keytab, assume it is stale and retrieve again
-        retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
-        if os.path.exists(oneway_ccache_name):
-            os.unlink(oneway_ccache_name)
-        cred = kinit_keytab(
-            oneway_principal,
-            oneway_keytab_name,
+    else:
+        cred = kinit_password(
+            options.admin,
+            options.password,
             oneway_ccache_name,
-            config=cfg,
+            canonicalize=True,
+            enterprise=True,
         )
-else:
-    cred = kinit_password(
-        options.admin,
-        options.password,
-        oneway_ccache_name,
-        canonicalize=True,
-        enterprise=True,
-        config=cfg,
+
+    if cred and cred.lifetime > 0:
+        have_ccache = True
+
+    if not have_ccache:
+        rc = 1
+        raise GeneratorExit
+
+    # We are done: we have ccache with TDO credentials and can fetch domains
+    ipa_domain = api.env.domain
+    os.environ["KRB5CCNAME"] = oneway_ccache_name
+
+    # retrieve the forest root domain name and contact it to retrieve trust
+    # topology info
+    forest_root = get_forest_root_domain(
+        api, trusted_domain, server=options.server
+    )
+    domains = dcerpc.fetch_domains(
+        api, ipa_domain, forest_root, creds=True, server=options.server
     )
 
-if cred and cred.lifetime > 0:
-    have_ccache = True
+    # We still need to use the override for KDC configuration in case the --server
+    # was forced, thus only switch to the old ccache.
+    if old_ccache:
+        os.environ["KRB5CCNAME"] = old_ccache
 
-if not have_ccache:
-    sys.exit(1)
 
-# We are done: we have ccache with TDO credentials and can fetch domains
-ipa_domain = api.env.domain
-os.environ["KRB5CCNAME"] = oneway_ccache_name
-os.environ["KRB5_CONFIG"] = cfg
+    trust_domain_object = api.Command.trust_show(trusted_domain, raw=True)[
+        "result"
+    ]
 
-# retrieve the forest root domain name and contact it to retrieve trust
-# topology info
-forest_root = get_forest_root_domain(
-    api, trusted_domain, server=options.server
-)
-domains = dcerpc.fetch_domains(
-    api, ipa_domain, forest_root, creds=True, server=options.server
-)
+    trust.add_new_domains_from_trust(api, None, trust_domain_object, domains)
 
-if old_ccache:
-    os.environ["KRB5CCNAME"] = old_ccache
-
-if old_config:
-    os.environ["KRB5_CONFIG"] = old_config
-
-if cfg_file:
-    os.remove(cfg_file)
-
-trust_domain_object = api.Command.trust_show(trusted_domain, raw=True)[
-    "result"
-]
-trust.add_new_domains_from_trust(api, None, trust_domain_object, domains)
-
-sys.exit(0)
+sys.exit(rc)
