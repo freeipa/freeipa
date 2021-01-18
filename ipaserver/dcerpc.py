@@ -1698,20 +1698,23 @@ def retrieve_remote_domain(hostname, local_flatname,
                         error=_('Non-Kerberos user name was specified, '
                                 'please provide user@REALM variant instead'))
                 realm_admin = r"%s@%s" % (
-                    realm_admin, rd.info['dns_forest'].upper())
+                    realm_admin, rd.info['dns_domain'].upper())
+                realm = rd.info['dns_domain'].upper()
             auth_string = r"%s%%%s" \
                           % (realm_admin, realm_passwd)
-            td = get_instance(local_flatname)
-            td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
-            enforce_smb_encryption(td.creds)
-            td.creds.parse_string(auth_string)
-            td.creds.set_workstation(hostname)
-            if realm_server is None:
-                # we must have rd.info['dns_hostname'] then
-                # as it is part of the anonymous discovery
-                td.retrieve(rd.info['dns_hostname'])
-            else:
-                td.retrieve(realm_server)
+            with ipautil.private_krb5_config(realm, realm_server, dir='/tmp'):
+                with ipautil.private_ccache():
+                    td = get_instance(local_flatname)
+                    td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
+                    enforce_smb_encryption(td.creds)
+                    td.creds.parse_string(auth_string)
+                    td.creds.set_workstation(hostname)
+                    if realm_server is None:
+                        # we must have rd.info['dns_hostname'] then
+                        # as it is part of the anonymous discovery
+                        td.retrieve(rd.info['dns_hostname'])
+                    else:
+                        td.retrieve(realm_server)
             td.read_only = False
             return td
 
@@ -1832,15 +1835,18 @@ class TrustDomainJoins:
             # Establishing trust may throw an exception for topology
             # conflict. If it was solved, re-establish the trust again
             # Otherwise let the CLI to display a message about the conflict
-            try:
-                self.remote_domain.establish_trust(self.local_domain,
-                                                   trustdom_pass,
-                                                   trust_type, trust_external)
-            except TrustTopologyConflictSolved:
-                # we solved topology conflict, retry again
-                self.remote_domain.establish_trust(self.local_domain,
-                                                   trustdom_pass,
-                                                   trust_type, trust_external)
+            with ipautil.private_krb5_config(realm, realm_server, dir='/tmp'):
+                try:
+                    self.remote_domain.establish_trust(self.local_domain,
+                                                       trustdom_pass,
+                                                       trust_type,
+                                                       trust_external)
+                except TrustTopologyConflictSolved:
+                    # we solved topology conflict, retry again
+                    self.remote_domain.establish_trust(self.local_domain,
+                                                       trustdom_pass,
+                                                       trust_type,
+                                                       trust_external)
 
             try:
                 self.local_domain.establish_trust(self.remote_domain,
@@ -1856,7 +1862,9 @@ class TrustDomainJoins:
             # it only does verification for outbound trusts.
             result = True
             if trust_type == TRUST_BIDIRECTIONAL:
-                result = self.remote_domain.verify_trust(self.local_domain)
+                with ipautil.private_krb5_config(realm,
+                                                 realm_server, dir='/tmp'):
+                    result = self.remote_domain.verify_trust(self.local_domain)
             return dict(
                         local=self.local_domain,
                         remote=self.remote_domain,

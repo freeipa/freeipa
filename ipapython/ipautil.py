@@ -36,6 +36,8 @@ import re
 import datetime
 import netaddr
 import time
+import textwrap
+import io
 from contextlib import contextmanager
 import locale
 import collections
@@ -1445,6 +1447,54 @@ def private_ccache(path=None):
                 os.rmdir(dir_path)
             except OSError:
                 pass
+
+
+@contextmanager
+def private_krb5_config(realm, server, dir="/run/ipa"):
+    """Generate override krb5 config file for a trusted domain DC access
+    Provide a context where environment variable KRB5_CONFIG is set
+    with the overlay on top of paths.KRB5_CONF. Overlay's file path
+    is passed to the context in case it is needed for something else
+
+    :param realm: realm of the trusted AD domain
+    :param server: server to override KDC to
+    :param dir: path where to create a temporary krb5.conf overlay
+    """
+    cfg = paths.KRB5_CONF
+    tcfg = None
+    if server:
+        content = textwrap.dedent(u"""
+            [realms]
+               %s = {
+                   kdc = %s
+               }
+            """) % (
+            realm.upper(),
+            server,
+        )
+
+        (fd, tcfg) = tempfile.mkstemp(dir=dir, prefix="krb5conf", text=True)
+
+        with io.open(fd, mode='w', encoding='utf-8') as o:
+            o.write(content)
+        cfg = ":".join([tcfg, cfg])
+
+    original_value = os.environ.get('KRB5_CONFIG', None)
+
+    os.environ['KRB5_CONFIG'] = cfg
+
+    try:
+        yield tcfg
+    except GeneratorExit:
+        pass
+    finally:
+        if original_value is not None:
+            os.environ['KRB5_CONFIG'] = original_value
+        else:
+            os.environ.pop('KRB5_CONFIG', None)
+
+        if tcfg is not None and os.path.exists(tcfg):
+            os.remove(tcfg)
 
 
 if six.PY2:
