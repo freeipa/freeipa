@@ -1744,6 +1744,9 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry,
         tlns = entry.get('ipantadditionalsuffixes', [])
         tlns.extend(x for x in suffixes if x not in tlns)
         entry['ipantadditionalsuffixes'] = tlns
+        ftidata = domains.get('ftinfo_data', None)
+        if ftidata is not None:
+            entry['ipanttrustforesttrustinfo'] = [ftidata]
         ldap.update_entry(entry)
     except errors.EmptyModlist:
         pass
