@@ -1,8 +1,0 @@
-{
-  "rule": {
-    "template": "CN={{subject.uid.0}}"
-  },
-  "options": {
-    "data_source": "subject.uid.0"
-  }
-}
