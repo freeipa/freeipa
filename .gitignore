@@ -99,6 +99,8 @@ freeipa2-dev-doc
 /init/ipa_memcached
 /init/systemd/ipa-custodia.service
 /init/systemd/ipa.service
+/init/systemd/ipa-ccache-sweep.service
+/init/systemd/ipa-ccache-sweep.timer
 /init/tmpfilesd/ipa.conf
 
 !/install/ui/doc/Makefile.in
@@ -168,6 +170,7 @@ install/tools/ipa-cert-fix
 install/tools/ipa-compat-manage
 install/tools/ipa-csreplica-manage
 install/tools/ipactl
+install/tools/ipa-ccache-sweeper
 install/tools/ipa-crlgen-manage
 install/tools/ipa-custodia
 install/tools/ipa-custodia-check
