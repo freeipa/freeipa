@@ -2358,10 +2358,10 @@ static bool get_trusted_domain_by_name_int(struct ipasam_private *ipasam_state,
 	bool ok;
 
 	filter = talloc_asprintf(mem_ctx,
-				 "(&(objectClass=%s)(|(%s=%s)(%s=%s)(cn=%s)))",
+				 "(&(objectClass=%s)(|(%s=%s)(cn=%s)))",
 				 LDAP_OBJ_TRUSTED_DOMAIN,
 				 LDAP_ATTRIBUTE_FLAT_NAME, domain,
-				 LDAP_ATTRIBUTE_TRUST_PARTNER, domain, domain);
+				 domain);
 	if (filter == NULL) {
 		return false;
 	}
@@ -2431,15 +2431,73 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 	struct pdb_trusted_domain *td;
 	struct dom_sid *sid = NULL;
 	enum idmap_error_code err;
+	char *strdn = NULL;
+	char *dnl = NULL;
+	int rc = 0;
+	int count = 0;
+	char *dns_domain = NULL;
+	LDAPDN dn = NULL;
 
 	if (entry == NULL) {
 		return false;
 	}
 
-	td = talloc_zero(mem_ctx, struct pdb_trusted_domain);
-	if (td == NULL) {
+	strdn = ldap_get_dn(priv2ld(ipasam_state), entry);
+	if (strdn == NULL) {
+		DEBUG(1, ("Couldn't retrieve DN of the trusted domain entry\n"));
 		return false;
 	}
+
+	dnl = strcasestr(strdn, ipasam_state->trust_dn);
+	if (dnl == NULL) {
+		DEBUG(1, ("DN %s of trusted domain entry is not under %s\n",
+			  strdn,
+			  ipasam_state->trust_dn));
+		free(strdn);
+		return false;
+	}
+
+	td = talloc_zero(mem_ctx, struct pdb_trusted_domain);
+	if (td == NULL) {
+		free(strdn);
+		return false;
+	}
+
+	/* dnl points to the begining of cn=ad,cn=trusts,... and we need
+	 * to go one character back and turn ',' into end of string. */
+	dnl--;
+	dnl[0] = '\0';
+
+	/* Now strdn has at most two RDNs:
+	 * - there is one RDN for the directly trusted one
+	 * - there are two RDNs for a subdomain
+	 */
+	rc = ldap_str2dn(strdn, &dn, LDAP_DN_FORMAT_LDAPV3);
+	if (rc) {
+		free(strdn);
+		return false;
+	}
+
+	for (count = 0; dn[count] != NULL; count++);
+
+	/* For subdomains, we must set parent domain */
+	if (count < 1 || count > 2) {
+		DEBUG(1, ("LDAP object with DN %s,%s "
+			  "cannot be used as a trusted domain\n",
+			  strdn, ipasam_state->trust_dn));
+		ldap_dnfree(dn);
+		free(strdn);
+		TALLOC_FREE(td);
+		return false;
+
+	}
+
+	dns_domain = talloc_asprintf(td, "%*s",
+				     (int)dn[0][0]->la_value.bv_len,
+				     dn[0][0]->la_value.bv_val);
+
+	ldap_dnfree(dn);
+	free(strdn);
 
 	/* All attributes are MAY */
 
@@ -2479,23 +2537,22 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 			  LDAP_ATTRIBUTE_FLAT_NAME));
 	}
 
+	/* If ipaNTTrustPartner is missing, it should be the same as the domain
+	 * itself. */
 	td->domain_name = get_single_attribute(td, priv2ld(ipasam_state), entry,
 					       LDAP_ATTRIBUTE_TRUST_PARTNER);
 	if (td->domain_name == NULL) {
-		DEBUG(9, ("Attribute %s not present.\n",
-			  LDAP_ATTRIBUTE_TRUST_PARTNER));
+		td->domain_name = dns_domain;
 	}
 
+	/* For subdomains ipaNTTrustDirection is missing which is OK, we
+	 * default to 0 */
 	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_TRUST_DIRECTION,
 					 &td->trust_direction);
 	if (!res) {
 		TALLOC_FREE(td);
 		return false;
-	}
-	if (td->trust_direction == 0) {
-		/* attribute wasn't present, set default value */
-		td->trust_direction = LSA_TRUST_DIRECTION_INBOUND | LSA_TRUST_DIRECTION_OUTBOUND;
 	}
 
 	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
@@ -2506,8 +2563,9 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 		return false;
 	}
 	if (td->trust_attributes == 0) {
-		/* attribute wasn't present, set default value */
-		td->trust_attributes = LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE;
+		/* attribute wasn't present, this is a subdomain within the
+		 * parent forest */
+		td->trust_attributes = LSA_TRUST_ATTRIBUTE_WITHIN_FOREST;
 	}
 
 	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
