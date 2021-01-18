@@ -1620,6 +1620,19 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
         version = tasks.get_healthcheck_version(self.master)
         if parse_version(version) < parse_version("0.6"):
             pytest.skip("Skipping test for 0.4 healthcheck version")
+
+        # ipa-healthcheck 0.8 returns a list of possible owners instead
+        # of a single value
+        if parse_version(version) >= parse_version("0.8"):
+            expected_owner = 'root,systemd-resolve'
+            expected_msg = ("Ownership of %s is admin "
+                            "and should be one of root,systemd-resolve"
+                            % paths.RESOLV_CONF)
+        else:
+            expected_owner = 'root'
+            expected_msg = ("Ownership of %s is admin and should be root"
+                            % paths.RESOLV_CONF)
+
         modify_permissions(self.master, path=paths.RESOLV_CONF, owner="admin")
         returncode, data = run_healthcheck(
             self.master,
@@ -1632,18 +1645,27 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             assert check["result"] == "WARNING"
             assert check["kw"]["key"] == '_etc_resolv.conf_owner'
             assert check["kw"]["type"] == 'owner'
-            assert check["kw"]["expected"] == 'root'
+            assert check["kw"]["expected"] == expected_owner
             assert check["kw"]["got"] == 'admin'
-            assert (
-                check["kw"]["msg"]
-                == "Ownership of %s is admin and should be root"
-                % paths.RESOLV_CONF
-            )
+            assert check["kw"]["msg"] == expected_msg
 
     def test_ipa_filecheck_bad_group(self, modify_permissions):
         version = tasks.get_healthcheck_version(self.master)
         if parse_version(version) < parse_version("0.6"):
             pytest.skip("Skipping test for 0.4 healthcheck version")
+
+        # ipa-healthcheck 0.8 returns a list of possible groups instead
+        # of a single value
+        if parse_version(version) >= parse_version("0.8"):
+            expected_group = 'root,systemd-resolve'
+            expected_msg = ("Group of %s is admins and should be one of "
+                            "root,systemd-resolve"
+                            % paths.RESOLV_CONF)
+        else:
+            expected_group = 'root'
+            expected_msg = ("Group of %s is admins and should be root"
+                            % paths.RESOLV_CONF)
+
         modify_permissions(self.master, path=paths.RESOLV_CONF, group="admins")
         returncode, data = run_healthcheck(
             self.master,
@@ -1656,13 +1678,9 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             assert check["result"] == "WARNING"
             assert check["kw"]["key"] == '_etc_resolv.conf_group'
             assert check["kw"]["type"] == 'group'
-            assert check["kw"]["expected"] == 'root'
+            assert check["kw"]["expected"] == expected_group
             assert check["kw"]["got"] == 'admins'
-            assert (
-                check["kw"]["msg"]
-                == "Group of %s is admins and should be root"
-                % paths.RESOLV_CONF
-            )
+            assert check["kw"]["msg"] == expected_msg
 
     def test_ipa_filecheck_bad_too_restrictive(self, modify_permissions):
         version = tasks.get_healthcheck_version(self.master)
