@@ -272,6 +272,22 @@ add:nsIndexType: eq
 add:nsIndexType: pres
 add:nsIndexType: sub
 
+dn: cn=ipaSubGidNumber,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaSubGidNumber
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsMatchingRule: integerOrderingMatch
+
+dn: cn=ipaSubUidNumber,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaSubUidNumber
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsMatchingRule: integerOrderingMatch
+
 dn: cn=ipasudorunasgroup,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 only:cn: ipasudorunasgroup
 default:objectClass: nsIndex

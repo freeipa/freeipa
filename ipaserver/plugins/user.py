@@ -202,6 +202,8 @@ class user(baseuser):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'ipauniqueid', 'ipasshpubkey', 'ipauserauthtype', 'userclass',
+                'ipasubuidnumber', 'ipasubuidcount', 'ipasubgidnumber',
+                'ipasubgidcount',
             },
             'fixup_function': fix_addressbook_permission_bindrule,
         },
@@ -421,6 +423,14 @@ class user(baseuser):
             'default_privileges': {
                 'Certificate Identity Mapping Administrators'
             },
+        },
+        'System: Manage user subordinate ids': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'ipasubuidnumber', 'ipasubuidcount', 'ipasubgidnumber',
+                'ipasubgidcount',
+            },
+            'default_privileges': {'User Subordinate ID Administrators'},
         },
     }
 

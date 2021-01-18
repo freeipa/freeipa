@@ -260,6 +260,35 @@ return {
                     ]
                 },
                 {
+                    name: 'subordinate',
+                    label: '@i18n:objects.subordinate.identity',
+                    fields: [
+                        {
+                            name: 'ipasubuidnumber',
+                            label: '@i18n:objects.subordinate.subuidnumber',
+                            flags: ['w_if_no_aci']
+                        },
+                        {
+                            name: 'ipasubuidcount',
+                            label: '@i18n:objects.subordinate.subuidcount',
+                            hidden_if_empty: true,
+                            read_only: true
+
+                        },
+                        {
+                            name: 'ipasubgidnumber',
+                            label: '@i18n:objects.subordinate.subgidnumber',
+                            flags: ['w_if_no_aci']
+                        },
+                        {
+                            name: 'ipasubgidcount',
+                            label: '@i18n:objects.subordinate.subgidcount',
+                            hidden_if_empty: true,
+                            read_only: true
+                        }
+                    ]
+                },
+                {
                     name: 'pwpolicy',
                     label: '@i18n:objects.pwpolicy.identity',
                     field_adapter: { result_index: 1 },

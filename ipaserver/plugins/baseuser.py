@@ -33,7 +33,9 @@ from .baseldap import (
 from ipaserver.plugins.service import (validate_realm, normalize_principal)
 from ipalib.request import context
 from ipalib import _
-from ipalib.constants import PATTERN_GROUPUSER_NAME
+from ipalib.constants import (
+    PATTERN_GROUPUSER_NAME, SUBUID_COUNT, SUBGID_COUNT
+)
 from ipapython import kerberos
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipapython.ipavalidate import Email
@@ -175,13 +177,17 @@ class baseuser(LDAPObject):
         'krbprincipalexpiration', 'usercertificate;binary',
         'krbprincipalname', 'krbcanonicalname',
         'ipacertmapdata', 'ipantlogonscript', 'ipantprofilepath',
-        'ipanthomedirectory', 'ipanthomedirectorydrive'
+        'ipanthomedirectory', 'ipanthomedirectorydrive',
+        'ipasubuidnumber', 'ipasubuidcount', 'ipasubgidnumber',
+        'ipasubgidcount',
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'krbcanonicalname',
         'krbprincipalname', 'loginshell',
         'mail', 'telephonenumber', 'title', 'nsaccountlock',
         'uidnumber', 'gidnumber', 'sshpubkeyfp',
+        'ipasubuidnumber', 'ipasubuidcount', 'ipasubgidnumber',
+        'ipasubgidcount',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -429,6 +435,32 @@ class baseuser(LDAPObject):
                     'J:', 'K:', 'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:',
                     'S:', 'T:', 'U:', 'V:', 'W:', 'X:', 'Y:', 'Z:'),
                 ),
+        Int('ipasubuidnumber?',
+            label=_('SubUID'),
+            cli_name='subuid',
+            doc=_('Subordinate user ID'),
+            ),
+        Int('ipasubuidcount?',
+            label=_('SubUID count'),
+            cli_name='subuidcount',
+            doc=_('Subordinate user ID count'),
+            flags=['no_create', 'no_update', 'no_search'],
+            minvalue=SUBUID_COUNT,
+            maxvalue=SUBUID_COUNT,
+            ),
+        Int('ipasubgidnumber?',
+            label=_('SubGID'),
+            cli_name='subgid',
+            doc=_('Subordinate group ID'),
+            ),
+        Int('ipasubgidcount?',
+            label=_('SubGID count'),
+            cli_name='subgidcount',
+            doc=_('Subordinate group ID count'),
+            flags=['no_create', 'no_update', 'no_search'],
+            minvalue=SUBGID_COUNT,
+            maxvalue=SUBGID_COUNT,
+            ),
     )
 
     def normalize_and_validate_email(self, email, config=None):
@@ -526,6 +558,102 @@ class baseuser(LDAPObject):
         except KeyError:
             pass
 
+    def find_subordinate_conflicts(
+        self, ldap, dn, entry_attrs, extra_filters=(), **kwargs
+    ):
+        id_interval_filters = []
+        single = entry_attrs.single_value
+        if 'ipasubuidnumber' in single:
+            subuid = single['ipasubuidnumber']
+            sulow = subuid - SUBUID_COUNT + 1
+            suhigh = subuid + SUBUID_COUNT - 1
+
+            # any uid within our interval
+            id_interval_filters.append(
+                f"(&(uidNumber>={subuid})(uidNumber<={suhigh}))"
+            )
+            # any other subuid within our interval
+            # and our subuid within the interval of any other subuid
+            id_interval_filters.append(
+                f"(&(ipaSubUidNumber>={sulow})(ipaSubUidNumber<={suhigh}))",
+            )
+
+        if 'ipasubgidnumber' in single:
+            subgid = single['ipasubgidnumber']
+            sglow = subgid - SUBGID_COUNT + 1
+            sghigh = subgid + SUBGID_COUNT - 1
+
+            id_interval_filters.append(
+                f"(&(gidNumber>={subgid})(gidNumber<={sghigh}))"
+            )
+            id_interval_filters.append(
+                f"(&(ipaSubGidNumber>={sglow})(ipaSubGidNumber<={sghigh}))",
+            )
+
+        if not id_interval_filters:
+            # no filter
+            return []
+
+        filters = [
+            ldap.make_filter_from_attr(
+                "objectClass",
+                ["posixAccount", "posixGroup", "ipaIDObject"],
+                ldap.MATCH_ANY
+            ),
+            ldap.combine_filters(id_interval_filters, ldap.MATCH_ANY),
+            # exclude this entry (exclude by DN does not work)
+            ldap.make_filter_from_attr(
+                "uid", dn["uid"], rules=ldap.MATCH_NONE
+            )
+        ]
+        filters.extend(extra_filters)
+        id_filter = ldap.combine_filters(filters, ldap.MATCH_ALL)
+
+        return ldap.find_entries(
+            filter=id_filter,
+            base_dn=DN(api.env.container_accounts, api.env.basedn),
+            **kwargs
+        )
+
+    def handle_subordinate_ids(self, ldap, dn, entry_attrs):
+        new_subuid = entry_attrs.get('ipasubuidnumber')
+        new_subgid = entry_attrs.get('ipasubgidnumber')
+        if new_subuid is None and new_subgid is None:
+            # nothing to do
+            return
+
+        # if new_subuid is None:
+        #     raise errors.RequirementError(name='ipasubuidnumber')
+        # if new_subgid is None:
+        #     raise errors.RequirementError(name='ipasubgidnumber')
+
+        if 'objectclass' in entry_attrs:
+            obj_classes = entry_attrs['objectclass']
+        else:
+            _entry_attrs = ldap.get_entry(dn, ['objectclass'])
+            entry_attrs['objectclass'] = _entry_attrs['objectclass']
+        if 'ipausersubordinate' not in obj_classes:
+            obj_classes.append('ipausersubordinate')
+
+        # hard-coded constants
+        entry_attrs['ipasubuidcount'] = SUBUID_COUNT
+        entry_attrs['ipasubgidcount'] = SUBGID_COUNT
+
+        try:
+            conflicts = self.find_subordinate_conflicts(
+                ldap, dn, entry_attrs, size_limit=10
+            )
+        except errors.NotFound:
+            pass
+        else:
+            raise errors.ValidationError(
+                name='ipasubuidnumber',
+                error=_(
+                    "subuid interval or subgid interval conflicts with "
+                    "existing intervals, users, or groups."
+                ) + repr(conflicts)
+            )
+
 
 class baseuser_add(LDAPCreate):
     """
@@ -536,6 +664,7 @@ class baseuser_add(LDAPCreate):
         assert isinstance(dn, DN)
         set_krbcanonicalname(entry_attrs)
         self.obj.convert_usercertificate_pre(entry_attrs)
+        self.obj.handle_subordinate_ids(ldap, dn, entry_attrs)
         if entry_attrs.get('ipatokenradiususername', None):
             add_missing_object_class(ldap, u'ipatokenradiusproxyuser', dn,
                                      entry_attrs, update=False)
@@ -683,6 +812,7 @@ class baseuser_mod(LDAPUpdate):
 
         self.check_objectclass(ldap, dn, entry_attrs)
         self.obj.convert_usercertificate_pre(entry_attrs)
+        self.obj.handle_subordinate_ids(ldap, dn, entry_attrs)
         self.preserve_krbprincipalname_pre(ldap, entry_attrs, *keys, **options)
         update_samba_attrs(ldap, dn, entry_attrs, **options)
 

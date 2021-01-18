@@ -340,3 +340,8 @@ SOFTHSM_DNSSEC_TOKEN_LABEL = u'ipaDNSSEC'
 # Apache's mod_ssl SSLVerifyDepth value (Maximum depth of CA
 # Certificates in Client Certificate verification)
 MOD_SSL_VERIFY_DEPTH = '5'
+
+# subuid / subgid counts are hard-coded
+# An interval of 65536 uids/gids is required to map nobody (65534).
+SUBUID_COUNT = 65536
+SUBGID_COUNT = 65536
