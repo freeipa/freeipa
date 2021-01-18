@@ -4268,7 +4268,7 @@ static NTSTATUS ipasam_search_domain_info(struct smbldap_state *ldap_state,
 		return NT_STATUS_OK;
 	}
 
-	DEBUG(0, ("iapsam_search_domain_info: Got [%d] domain info entries, "
+	DEBUG(0, ("ipasam_search_domain_info: Got [%d] domain info entries, "
 		  "but expected only 1.\n", count));
 
 	return NT_STATUS_UNSUCCESSFUL;
