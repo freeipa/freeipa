@@ -623,7 +623,7 @@ def check_domain_level_is_supported(current):
     above_upper_bound = current > constants.MAX_DOMAIN_LEVEL
 
     if under_lower_bound or above_upper_bound:
-        message = ("This version of FreeIPA does not support "
+        message = ("This version of IPA does not support "
                    "the Domain Level which is currently set for "
                    "this domain. The Domain Level needs to be "
                    "raised before installing a replica with "

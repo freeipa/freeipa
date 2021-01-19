@@ -245,7 +245,7 @@ class otptoken(LDAPObject):
         Int('ipatokentotpclockoffset?',
             cli_name='offset',
             label=_('Clock offset'),
-            doc=_('TOTP token / FreeIPA server time difference'),
+            doc=_('TOTP token / IPA server time difference'),
             default=0,
             autofill=True,
             flags=('no_update'),
