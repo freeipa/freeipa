@@ -57,7 +57,7 @@ PROFILE CONFIGURATION FORMAT:
 The profile configuration format is the raw property-list format
 used by Dogtag Certificate System.  The XML format is not supported.
 
-The following restrictions apply to profiles managed by FreeIPA:
+The following restrictions apply to profiles managed by IPA:
 
 - When importing a profile the "profileId" field, if present, must
   match the ID given on the command line.

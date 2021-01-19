@@ -97,7 +97,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
     """
 
     description = ("Instructions for enabling Smart Card authentication on "
-                   " a single FreeIPA server. Includes Apache configuration, "
+                   " a single IPA server. Includes Apache configuration, "
                    "enabling PKINIT on KDC and configuring WebUI to accept "
                    "Smart Card auth requests. To enable the feature in the "
                    "whole topology you have to run the script on each master")
@@ -244,11 +244,11 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
 @register()
 class config_client_for_smart_card_auth(common_smart_card_auth_config):
     """
-    Configures smart card authentication on FreeIPA client
+    Configures smart card authentication on IPA client
     """
 
     description = ("Instructions for enabling Smart Card authentication on "
-                   " a single FreeIPA client. Configures Smart Card daemon, "
+                   " a single IPA client. Configures Smart Card daemon, "
                    "set the system-wide trust store and configures SSSD to "
                    "allow smart card logins to desktop")
 

@@ -282,7 +282,7 @@ class _JSONPrimer(dict):
 
     Prepare a data structure for JSON serialization. In an ideal world, priming
     could be handled by the default hook of json.dumps(). Unfortunately the
-    hook treats Python 2 str as text while FreeIPA considers str as bytes.
+    hook treats Python 2 str as text while IPA considers str as bytes.
 
     The primer uses a couple of tricks to archive maximum performance:
 

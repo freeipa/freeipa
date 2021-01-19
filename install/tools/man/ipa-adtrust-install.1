@@ -16,7 +16,7 @@
 .\"
 .\" Author: Sumit Bose <sbose@redhat.com>
 .\"
-.TH "ipa-adtrust-install" "1" "April 11 2017" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-adtrust-install" "1" "April 11 2017" "IPA" "IPA Manual Pages"
 .SH "NAME"
 ipa\-adtrust\-install \- Prepare an IPA server to be able to establish trust relationships with AD domains
 .SH "SYNOPSIS"
@@ -87,7 +87,7 @@ ldapmodify command info the directory server.
 .TP
 \fB\-\-add\-agents\fR
 Add IPA masters to the list that allows to serve information about
-users from trusted forests. Starting with FreeIPA 4.2, a regular IPA master
+users from trusted forests. Starting with IPA 4.2, a regular IPA master
 can provide this information to SSSD clients. IPA masters aren't added
 to the list automatically as restart of the LDAP service on each of them
 is required. The host where ipa\-adtrust\-install is being run is added

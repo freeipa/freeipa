@@ -92,7 +92,7 @@ SAN_KRB5PRINCIPALNAME = '1.3.6.1.5.2.2'
 class IPACertificate:
     """
     A proxy class wrapping a python-cryptography certificate representation for
-    FreeIPA purposes
+    IPA purposes
     """
     def __init__(self, cert, backend=None):
         """

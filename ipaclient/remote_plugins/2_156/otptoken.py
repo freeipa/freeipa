@@ -132,7 +132,7 @@ class otptoken(Object):
             'ipatokentotpclockoffset',
             required=False,
             label=_(u'Clock offset'),
-            doc=_(u'TOTP token / FreeIPA server time difference'),
+            doc=_(u'TOTP token / IPA server time difference'),
         ),
         parameters.Int(
             'ipatokentotptimestep',
@@ -263,7 +263,7 @@ class otptoken_add(Method):
             required=False,
             cli_name='offset',
             label=_(u'Clock offset'),
-            doc=_(u'TOTP token / FreeIPA server time difference'),
+            doc=_(u'TOTP token / IPA server time difference'),
             default=0,
             autofill=True,
         ),
@@ -553,7 +553,7 @@ class otptoken_find(Method):
             required=False,
             cli_name='offset',
             label=_(u'Clock offset'),
-            doc=_(u'TOTP token / FreeIPA server time difference'),
+            doc=_(u'TOTP token / IPA server time difference'),
             default=0,
         ),
         parameters.Int(
