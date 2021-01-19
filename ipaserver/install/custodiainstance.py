@@ -239,7 +239,6 @@ class CustodiaInstance(SimpleServiceInstance):
         self._wait_keys()
 
         return CustodiaClient(
-            client_service='host@{}'.format(self.fqdn),
             keyfile=self.server_keys, keytab=paths.KRB5_KEYTAB,
             server=self.custodia_peer, realm=self.realm
         )

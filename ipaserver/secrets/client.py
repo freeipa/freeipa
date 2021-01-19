@@ -36,14 +36,8 @@ def ccache_env(ccache):
 
 
 class CustodiaClient:
-    def __init__(self, client_service, keyfile, keytab, server, realm,
-                 ldap_uri=None, auth_type=None):
-        if client_service.endswith(realm) or "@" not in client_service:
-            raise ValueError(
-                "Client service name must be a GSS name (service@host), "
-                "not '{}'.".format(client_service)
-            )
-        self.client_service = client_service
+    def __init__(self, keyfile, keytab, server, realm, ldap_uri=None,
+                 auth_type=None):
         self.keytab = keytab
         self.server = server
         self.realm = realm
@@ -80,14 +74,11 @@ class CustodiaClient:
         return sk, ek
 
     def _init_creds(self):
-        name = gssapi.Name(
-            self.client_service, gssapi.NameType.hostbased_service
-        )
         store = {
             'client_keytab': self.keytab,
             'ccache': self.ccache
         }
-        return gssapi.Credentials(name=name, store=store, usage='initiate')
+        return gssapi.Credentials(store=store, usage='initiate')
 
     def _auth_header(self):
         if self.creds.lifetime < 300:
