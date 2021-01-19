@@ -161,11 +161,11 @@ class update_ipaconfigstring_dnsversion_to_ipadnsversion(Updater):
 @register()
 class update_dnszones(Updater):
     """
-    Update all zones to meet requirements in the new FreeIPA versions
+    Update all zones to meet requirements in the new IPA versions
 
     1) AllowQuery and AllowTransfer
     Set AllowQuery and AllowTransfer ACLs in all zones that may be configured
-    in an upgraded FreeIPA instance.
+    in an upgraded IPA instance.
 
     Upgrading to new version of bind-dyndb-ldap and having these ACLs empty
     would result in a leak of potentially sensitive DNS information as
@@ -173,7 +173,7 @@ class update_dnszones(Updater):
     or LDAP.
 
     This plugin disables the zone transfer by default so that it needs to be
-    explicitly enabled by FreeIPA Administrator.
+    explicitly enabled by IPA Administrator.
 
     2) Update policy
     SSH public key support includes a feature to automatically add/update
@@ -272,7 +272,7 @@ class update_dns_limits(Updater):
 @register()
 class update_master_to_dnsforwardzones(DNSUpdater):
     """
-    Update all zones to meet requirements in the new FreeIPA versions
+    Update all zones to meet requirements in the new IPA versions
 
     All masters zones with specified forwarders, and forward-policy different
     than none, will be tranformed to forward zones.
@@ -420,7 +420,7 @@ class update_dnsforward_emptyzones(DNSUpdater):
 
     BIND ignores conflicting forwarding configuration
     when forwarding policy != only.
-    bind-dyndb-ldap 9.0+ will do the same so we have to adjust FreeIPA zones
+    bind-dyndb-ldap 9.0+ will do the same so we have to adjust IPA zones
     accordingly.
     """
     backup_filename = u'dns-forwarding-empty-zones-%Y-%m-%d-%H-%M-%S.ldif'

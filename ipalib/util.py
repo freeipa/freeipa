@@ -242,7 +242,7 @@ def normalize_zone(zone):
 def get_proper_tls_version_span(tls_version_min, tls_version_max):
     """
     This function checks whether the given TLS versions are known in
-    FreeIPA and that these versions fulfill the requirements for minimal
+    IPA and that these versions fulfill the requirements for minimal
     TLS version (see
     `ipalib.constants: TLS_VERSIONS, TLS_VERSION_MINIMAL`).
 

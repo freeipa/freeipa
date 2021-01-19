@@ -3642,7 +3642,7 @@ msgstr "TOTP Sychnronisierungsfenster"
 msgid "TOTP authentication Window"
 msgstr "TOTP Authentifizierungsfenster"
 
-msgid "TOTP token / FreeIPA server time difference"
+msgid "TOTP token / IPA server time difference"
 msgstr "Differenz zwischen Token und Serverzeit"
 
 msgid "Target"

@@ -93,7 +93,7 @@ class KRAInstall(admintool.AdminTool):
         if options.uninstall:
             sys.exit(
                 'ERROR: Standalone KRA uninstallation was removed in '
-                'FreeIPA 4.5 as it had never worked properly and only caused '
+                'IPA 4.5 as it had never worked properly and only caused '
                 'issues.')
         else:
             return KRAInstaller
@@ -104,7 +104,7 @@ class KRAInstaller(KRAInstall):
 
     INSTALLER_START_MESSAGE = '''
         ===================================================================
-        This program will setup Dogtag KRA for the FreeIPA Server.
+        This program will setup Dogtag KRA for the IPA Server.
 
     '''
 

@@ -141,11 +141,11 @@ def main():
           "==============")
     print("This program will setup components needed to establish trust to "
           "AD domains for")
-    print("the FreeIPA Server.")
+    print("the IPA Server.")
     print("")
     print("This includes:")
     print("  * Configure Samba")
-    print("  * Add trust related objects to FreeIPA LDAP server")
+    print("  * Add trust related objects to IPA LDAP server")
     # TODO:
     # print "  * Add a SID to all users and Posix groups"
     print("")

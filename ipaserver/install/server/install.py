@@ -427,7 +427,7 @@ def install_check(installer):
 
     print("======================================="
           "=======================================")
-    print("This program will set up the FreeIPA Server.")
+    print("This program will set up the IPA Server.")
     print("Version {}".format(version.VERSION))
     print("")
     print("This includes:")

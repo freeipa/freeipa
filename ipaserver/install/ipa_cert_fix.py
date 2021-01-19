@@ -50,7 +50,7 @@ msg = """
                           WARNING
 
 ipa-cert-fix is intended for recovery when expired certificates
-prevent the normal operation of FreeIPA.  It should ONLY be used
+prevent the normal operation of IPA.  It should ONLY be used
 in such scenarios, and backup of the system, especially certificates
 and keys, is STRONGLY RECOMMENDED.
 

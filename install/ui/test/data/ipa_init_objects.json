@@ -21192,7 +21192,7 @@
                   "autofill" : true,
                   "multivalue" : false,
                   "deprecated" : false,
-                  "doc" : "TOTP token / FreeIPA server time difference",
+                  "doc" : "TOTP token / IPA server time difference",
                   "primary_key" : false,
                   "cli_metavar" : "INT",
                   "default" : 0,

@@ -1,7 +1,7 @@
 .\" A man page for ipa-replica-install
 .\" Copyright (C) 2008-2016  FreeIPA Contributors see COPYING for license
 .\"
-.TH "ipa-replica-install" "1" "Dec 19 2016" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-replica-install" "1" "Dec 19 2016" "IPA" "IPA Manual Pages"
 .SH "NAME"
 ipa\-replica\-install \- Create an IPA replica
 .SH "SYNOPSIS"
@@ -12,7 +12,7 @@ Configures a new IPA server that is a replica of the server. Once it has been cr
 
 Domain level 0 is not supported anymore.
 
-To create a replica, the machine only needs to be enrolled in the FreeIPA domain first. This process of turning the IPA client into a replica is also referred to as replica promotion.
+To create a replica, the machine only needs to be enrolled in the IPA domain first. This process of turning the IPA client into a replica is also referred to as replica promotion.
 
 If you're starting with an existing IPA client, simply run ipa\-replica\-install to have it promoted into a replica. The NTP configuration cannot be updated during client promotion. 
 
@@ -229,7 +229,7 @@ ldapmodify command info the directory server.
 .TP
 \fB\-\-add\-agents\fR
 Add IPA masters to the list that allows to serve information about
-users from trusted forests. Starting with FreeIPA 4.2, a regular IPA master
+users from trusted forests. Starting with IPA 4.2, a regular IPA master
 can provide this information to SSSD clients. IPA masters aren't added
 to the list automatically as restart of the LDAP service on each of them
 is required. The host where ipa\-adtrust\-install is being run is added

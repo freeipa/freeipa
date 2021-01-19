@@ -47,7 +47,7 @@ give certain users (or groups of users) the ability to run some (or all)
 commands as root or another user while providing an audit trail of the
 commands and their arguments.
 """) + _("""
-FreeIPA provides a means to configure the various aspects of Sudo:
+IPA provides a means to configure the various aspects of Sudo:
    Users: The user(s)/group(s) allowed to invoke Sudo.
    Hosts: The host(s)/hostgroup(s) which the user is allowed to to invoke Sudo.
    Allow Command: The specific command(s) permitted to be run via Sudo.
@@ -60,7 +60,7 @@ An order can be added to a sudorule to control the order in which they
 are evaluated (if the client supports it). This order is an integer and
 must be unique.
 """) + _("""
-FreeIPA provides a designated binddn to use with Sudo located at:
+IPA provides a designated binddn to use with Sudo located at:
 uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
 """) + _("""
 To enable the binddn run the following command to set the password:

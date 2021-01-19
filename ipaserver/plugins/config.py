@@ -462,7 +462,7 @@ class config(LDAPObject):
 
         known_domains = self.gather_trusted_domains()
 
-        # add FreeIPA domain to the list of domains. This one is always enabled
+        # add IPA domain to the list of domains. This one is always enabled
         known_domains.update({self.api.env.domain: True})
 
         for domain in submitted_domains:
