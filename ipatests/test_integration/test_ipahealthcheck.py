@@ -1952,8 +1952,10 @@ class TestIpaHealthCheckFilesystemSpace(IntegrationTest):
 
         path = os.path.join('/tmp', str(uuid.uuid4()))
         # CI has a single big disk so we may end up allocating most of it.
-        result = self.master.run_command(['df', '--output=avail', '/tmp'])
-        free = (int(result.stdout_text.split('\n')[1]) // 1000) - 50
+        result = self.master.run_command(
+            ['df', '--block-size=1024', '--output=avail', '/tmp']
+        )
+        free = (int(result.stdout_text.split('\n')[1]) // 1024) - 50
         self.master.run_command(['fallocate', '-l', '%dMiB' % free, path])
 
         yield
