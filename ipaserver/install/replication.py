@@ -1821,7 +1821,7 @@ class ReplicationManager:
         Ensure that the 'cn=replication managers,cn=sysaccounts' group exists
         and contains the principals for master and remote replica
 
-        On FreeIPA 3.x masters lacking support for nsds5ReplicaBinddnGroup
+        On IPA 3.x masters lacking support for nsds5ReplicaBinddnGroup
         attribute, add replica bind DN directly into the replica entry.
         """
         my_dn = DN(

@@ -94,7 +94,7 @@ class config_redhat_sssd_before_1_9(config_base_legacy_client):
     Legacy client configuration for Red Hat based systems, using SSSD.
     """
     description = ('Instructions for configuring a system with an old version '
-                   'of SSSD (1.5-1.8) as a FreeIPA client. This set of '
+                   'of SSSD (1.5-1.8) as a IPA client. This set of '
                    'instructions is targeted for platforms that include '
                    'the authconfig utility, which are all Red Hat based '
                    'platforms.')
@@ -129,7 +129,7 @@ class config_generic_linux_sssd_before_1_9(config_base_legacy_client):
     using SSSD.
     """
     description = ('Instructions for configuring a system with an old version '
-                   'of SSSD (1.5-1.8) as a FreeIPA client. This set of '
+                   'of SSSD (1.5-1.8) as a IPA client. This set of '
                    'instructions is targeted for linux systems that do not '
                    'include the authconfig utility.')
 
@@ -184,7 +184,7 @@ class config_redhat_nss_pam_ldapd(config_base_legacy_client):
     using nss-pam-ldapd.
     """
     description = ('Instructions for configuring a system with nss-pam-ldapd '
-                   'as a FreeIPA client. This set of instructions is targeted '
+                   'as a IPA client. This set of instructions is targeted '
                    'for platforms that include the authconfig utility, which '
                    'are all Red Hat based platforms.')
 
@@ -352,7 +352,7 @@ class config_redhat_nss_ldap(config_base_legacy_client):
     using nss-ldap.
     """
     description = ('Instructions for configuring a system with nss-ldap '
-                   'as a FreeIPA client. This set of instructions is targeted '
+                   'as a IPA client. This set of instructions is targeted '
                    'for platforms that include the authconfig utility, which '
                    'are all Red Hat based platforms.')
 

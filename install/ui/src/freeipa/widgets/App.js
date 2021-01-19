@@ -187,7 +187,7 @@ define(['dojo/_base/declare',
 
             construct.create('img', {
                 src: 'images/header-logo.png',
-                alt: 'FreeIPA' // TODO: replace with configuration value
+                alt: 'Identity Management' // TODO: replace with configuration value
             }, this.brand_node);
 
             return this.brand_node;

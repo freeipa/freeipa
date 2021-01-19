@@ -154,7 +154,7 @@ def install_check(standalone, api, replica, options, hostname):
 
     if standalone:
         print("==============================================================================")
-        print("This program will setup DNS for the FreeIPA Server.")
+        print("This program will setup DNS for the IPA Server.")
         print("")
         print("This includes:")
         print("  * Configure DNS (bind)")

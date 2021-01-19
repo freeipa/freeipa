@@ -1581,7 +1581,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
     def communicate(td):
         td.init_lsa_pipe(td.info['dc'])
         netr_pipe = netlogon.netlogon(td.binding, td.parm, td.creds)
-        # Older FreeIPA versions used netr_DsrEnumerateDomainTrusts call
+        # Older IPA versions used netr_DsrEnumerateDomainTrusts call
         # but it doesn't provide information about non-domain UPNs associated
         # with the forest, thus we have to use netr_DsRGetForestTrustInformation
         domains = netr_pipe.netr_DsRGetForestTrustInformation(td.info['dc'],

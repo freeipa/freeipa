@@ -614,7 +614,7 @@ class certmap_match(Search):
         The search is performed using SSSD's DBus interface
         Users.ListByCertificate.
         SSSD does the lookup based on certificate mapping rules, using
-        FreeIPA domain and trusted domains.
+        IPA domain and trusted domains.
         :raise RemoteRetrieveError: if DBus returns an exception
         """
         sssd = _sssd()

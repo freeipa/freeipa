@@ -2104,7 +2104,7 @@ def install_check(options):
     global client_domain
     global cli_basedn
 
-    print("This program will set up FreeIPA client.")
+    print("This program will set up IPA client.")
     print("Version {}".format(version.VERSION))
     print("")
 
