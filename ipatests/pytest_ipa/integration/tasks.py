@@ -2143,19 +2143,6 @@ class KerberosKeyCopier:
         return keys_to_sync
 
     def copy_key(self, keytab, keyentry):
-        # keyentry.key is a hex value of the actual key
-        # prefixed with 0x, as produced by klist -K -k.
-        # However, ktutil accepts hex value without 0x, so
-        # we should strip first two characters.
-        stdin = textwrap.dedent("""\
-        rkt {keytab}
-        addent -key -p {principal} -k {kvno} -e {etype}
-        {key}
-        wkt {keytab}
-        """).format(keytab=keytab, principal=keyentry.principal,
-                    kvno=keyentry.kvno, etype=keyentry.etype,
-                    key=keyentry.key[2:])
-
         def get_keytab_mtime():
             """Get keytab file mtime.
 
@@ -2170,8 +2157,25 @@ class KerberosKeyCopier:
 
         mtime_before = get_keytab_mtime()
 
-        self.host.run_command([paths.KTUTIL], stdin_text=stdin,
-                              log_stdout=False)
+        with self.host.spawn_expect(paths.KTUTIL, default_timeout=5) as e:
+            e.expect_exact('ktutil:')
+            e.sendline('rkt {}'.format(keytab))
+            e.expect_exact('ktutil:')
+            e.sendline(
+                'addent -key -p {principal} -k {kvno} -e {etype}'
+                .format(principal=keyentry.principal, kvno=keyentry.kvno,
+                        etype=keyentry.etype,))
+            e.expect('Key for.+:')
+            # keyentry.key is a hex value of the actual key
+            # prefixed with 0x, as produced by klist -K -k.
+            # However, ktutil accepts hex value without 0x, so
+            # we should strip first two characters.
+            e.sendline(keyentry.key[2:])
+            e.expect_exact('ktutil:')
+            e.sendline('wkt {}'.format(keytab))
+            e.expect_exact('ktutil:')
+            e.sendline('q')
+
         if mtime_before == get_keytab_mtime():
             raise Exception('{} did not update keytab file "{}"'.format(
                 paths.KTUTIL, keytab))
