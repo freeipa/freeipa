@@ -275,6 +275,7 @@ BuildRequires:  python3-lxml
 BuildRequires:  python3-netaddr >= %{python_netaddr_version}
 BuildRequires:  python3-netifaces
 BuildRequires:  python3-paste
+BuildRequires:  python3-pexpect
 BuildRequires:  python3-pki >= %{pki_version}
 BuildRequires:  python3-polib
 BuildRequires:  python3-pyasn1
@@ -777,6 +778,7 @@ Requires: iptables
 Requires: ldns-utils
 Requires: python3-coverage
 Requires: python3-cryptography >= 1.6
+Requires: python3-pexpect
 Requires: python3-polib
 Requires: python3-pytest >= 3.9.1
 Requires: python3-pytest-multihost >= 0.5
