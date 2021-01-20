@@ -217,6 +217,7 @@ ipa_class_members = {
             'put_file_contents',
             'get_file_contents',
             'ldap_connect',
+            {'spawn_expect': ['__enter__', '__exit__']},
         ]},
         'replicas',
         'clients',
