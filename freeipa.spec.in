@@ -331,6 +331,7 @@ BuildRequires:  python3-lxml
 BuildRequires:  python3-netaddr >= %{python_netaddr_version}
 BuildRequires:  python3-netifaces
 BuildRequires:  python3-paste
+BuildRequires:  python3-pexpect
 BuildRequires:  python3-pki >= %{pki_version}
 BuildRequires:  python3-polib
 BuildRequires:  python3-pyasn1
@@ -845,6 +846,7 @@ Requires: python3-ipaserver = %{version}-%{release}
 Requires: iptables
 Requires: python3-coverage
 Requires: python3-cryptography >= 1.6
+Requires: python3-pexpect
 %if 0%{?fedora}
 # These packages do not exist on RHEL and for ipatests use
 # they are installed on the controller through other means
