@@ -40,6 +40,8 @@ HEALTHCHECK_LOG_ROTATE_CONF = "/etc/logrotate.d/ipahealthcheck"
 HEALTHCHECK_LOG_DIR = "/var/log/ipa/healthcheck"
 HEALTHCHECK_OUTPUT_FILE = "/tmp/output.json"
 HEALTHCHECK_PKG = ["*ipa-healthcheck"]
+SOS_CMD = "/usr/sbin/sos"
+SOS_PKG = ["sos"]
 
 IPA_CA = "ipa_ca.crt"
 ROOT_CA = "root_ca.crt"
@@ -235,6 +237,8 @@ class TestIpaHealthCheck(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        if not cls.master.transport.file_exists(SOS_CMD):
+            tasks.install_packages(cls.master, SOS_PKG)
         tasks.install_master(cls.master, setup_dns=True)
         tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
 
@@ -1166,6 +1170,76 @@ class TestIpaHealthCheck(IntegrationTest):
                 assert check["result"] == "CRITICAL"
                 assert "cn=config" in check["kw"]["items"]
                 assert error_msg in check["kw"]["msg"]
+
+    @pytest.fixture
+    def create_logfile(self):
+        """
+        The fixture calls ipa-healthcheck command in order to
+        create /var/log/ipa/healthcheck/healthcheck.log if file
+        doesn't already exist.
+        File is deleted once the test is finished.
+        """
+        if not self.master.transport.file_exists(HEALTHCHECK_LOG):
+            self.master.run_command(
+                ["ipa-healthcheck", "--output-file", HEALTHCHECK_LOG],
+                raiseonerr=False,
+            )
+        yield
+        self.master.run_command(["rm", "-f", HEALTHCHECK_LOG])
+
+    def test_sosreport_includes_healthcheck(self, create_logfile):
+        """
+        This testcase checks that sosreport command
+        when run on IPA system with healthcheck installed
+        collects healthcheck.log file
+        """
+        caseid = "123456"
+        msg = "[plugin:ipa] collecting path '{}'".format(HEALTHCHECK_LOG)
+        cmd = self.master.run_command(
+            [
+                "sosreport",
+                "-o",
+                "ipa",
+                "--case-id",
+                caseid,
+                "--batch",
+                "-v",
+                "--build",
+            ]
+        )
+        assert msg in cmd.stdout_text
+
+    @pytest.fixture
+    def remove_healthcheck(self):
+        """
+        This fixture uninstalls healthcheck package on IPA
+        and deletes /var/log/ipa/healthcheck/healthcheck.log
+        file and reinstalls healthcheck package once test is
+        finished
+        """
+        tasks.uninstall_packages(self.master, HEALTHCHECK_PKG)
+        self.master.run_command(["rm", "-f", HEALTHCHECK_LOG])
+        yield
+        tasks.install_packages(self.master, HEALTHCHECK_PKG)
+
+    def test_sosreport_without_healthcheck_installed(self, remove_healthcheck):
+        """
+        This testcase checks that sosreport completes successfully
+        even if there is no healthcheck log file to collect
+        """
+        caseid = "123456"
+        self.master.run_command(
+            [
+                "sosreport",
+                "-o",
+                "ipa",
+                "--case-id",
+                caseid,
+                "--batch",
+                "-v",
+                "--build",
+            ]
+        )
 
     @pytest.fixture
     def expire_cert_critical(self):
