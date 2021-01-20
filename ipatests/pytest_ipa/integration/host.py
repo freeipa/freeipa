@@ -204,6 +204,9 @@ class Host(pytest_multihost.host.Host):
         else:
             return result
 
+    def spawn_expect(self, argv, default_timeout=10, encoding='utf-8'):
+        """Run command on host using IpaTestExpect"""
+        return self.transport.spawn_expect(argv, default_timeout, encoding)
 
 class WinHost(pytest_multihost.host.WinHost):
     """
