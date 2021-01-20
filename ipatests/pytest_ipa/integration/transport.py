@@ -7,6 +7,8 @@ Provides SSH password login for OpenSSH transport
 """
 import os
 
+from .expect import IpaTestExpect
+
 from pytest_multihost.transport import OpenSSHTransport
 
 
@@ -46,3 +48,10 @@ class IPAOpenSSHTransport(OpenSSHTransport):
         self.log.debug("SSH invocation: %s", argv)
 
         return argv
+
+    def spawn_expect(self, argv, default_timeout, encoding):
+        self.log.debug('Starting pexpect ssh session')
+        if isinstance(argv, str):
+            argv = [argv]
+        argv = self._get_ssh_argv() + ['-t', '-q'] + argv
+        return IpaTestExpect(argv, default_timeout, encoding)
