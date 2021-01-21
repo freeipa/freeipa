@@ -27,7 +27,7 @@ from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                        LDAPRemoveAttributeViaOption,
                        LDAPRetrieve, global_output_params,
                        host_is_master,
-                       add_missing_object_class)
+                       add_missing_object_class, member_validator)
 from .hostgroup import get_complete_hostgroup_member_list
 from ipalib import (
     api, Str, Int, Flag, _, ngettext, errors, output
@@ -713,6 +713,41 @@ def remove_ipaobject_overrides(ldap, api, dn):
         # In case we found something, delete it
         for entry in entries:
             ldap.delete_entry(entry)
+
+
+# Extended user validator that allows to resolve users from trusted domains
+def validate_external_object(ldap, dn, keys, options, value, object_type):
+    trusted_objects = options.get('trusted_objects', [])
+    param = api.Object[object_type].primary_key
+    if object_type == 'group' and value.startswith('%'):
+        value = value[1:]
+    o_id = param(value)
+
+    try:
+        param.validate(o_id)
+    except errors.ValidationError as e:
+        membertype = object_type
+        try:
+            id = resolve_object_to_anchor(ldap, object_type, o_id, False)
+            if id.startswith(SID_ANCHOR_PREFIX):
+                if object_type == 'group':
+                    trusted_objects.append('%' + value)
+                else:
+                    trusted_objects.append(value)
+                options['trusted_objects'] = trusted_objects
+                return
+        except errors.NotFound:
+            raise errors.ValidationError(name=membertype, error=e.error)
+
+
+@member_validator(membertype='user')
+def validate_external_user(ldap, dn, keys, options, value):
+    validate_external_object(ldap, dn, keys, options, value, 'user')
+
+
+@member_validator(membertype='group')
+def validate_external_ipasudorunas(ldap, dn, keys, options, value):
+    validate_external_object(ldap, dn, keys, options, value, 'group')
 
 
 # This is not registered on purpose, it's a base class for ID overrides
