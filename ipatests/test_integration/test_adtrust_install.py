@@ -103,31 +103,40 @@ class TestIpaAdTrustInstall(IntegrationTest):
         self.unconfigure_replica_as_agent(self.replicas[0])
         self.replicas[0].run_command(['ipactl', 'stop'])
 
-        cmd_input = (
-            # admin password:
-            self.master.config.admin_password + '\n' +
-            # WARNING: The smb.conf already exists. Running ipa-adtrust-install
-            # will break your existing samba configuration.
-            # Do you wish to continue? [no]:
-            'yes\n'
-            # Enable trusted domains support in slapi-nis? [no]:
-            '\n' +
-            # WARNING: 1 IPA masters are not yet able to serve information
-            # about users from trusted forests.
-            # Installer can add them to the list of IPA masters allowed to
-            # access information about trusts.
-            # If you choose to do so, you also need to restart LDAP service on
-            # those masters.
-            # Refer to ipa-adtrust-install(1) man page for details.
-            # IPA master[replica1.testrelm.test]?[no]:
-            'yes\n'
-        )
         try:
-            res = self.master.run_command(['ipa-adtrust-install',
-                                           '--add-agents'],
-                                          stdin_text=cmd_input)
-            expected_re = '"ipactl restart".+"systemctl restart sssd"'
-            assert re.search(expected_re, res.stdout_text, re.DOTALL)
+            cmd = ['ipa-adtrust-install', '--add-agents']
+            with self.master.spawn_expect(cmd) as e:
+                e.expect('admin password:')
+                e.sendline(self.master.config.admin_password)
+                # WARNING: The smb.conf already exists.
+                # Running ipa-adtrust-install
+                # will break your existing samba configuration.
+                # Do you wish to continue? [no]:
+                e.expect([
+                    'smb\\.conf detected.+Overwrite smb\\.conf\\?',
+                    'smb\\.conf already exists.+Do you wish to continue\\?'])
+                e.sendline('yes')
+                e.expect_exact('Enable trusted domains support in slapi-nis?')
+                e.sendline('no')
+                # WARNING: 1 IPA masters are not yet able to serve information
+                # about users from trusted forests.
+                # Installer can add them to the list of IPA masters allowed to
+                # access information about trusts.
+                # If you choose to do so, you also need to restart LDAP
+                # service on
+                # those masters.
+                # Refer to ipa-adtrust-install(1) man page for details.
+                # IPA master[replica1.testrelm.test]?[no]:
+                e.expect('Installer can add them to the list of IPA masters '
+                         'allowed to access information about trusts.+'
+                         'IPA master \\[{}\\]'
+                         .format(re.escape(self.replicas[0].hostname)),
+                         timeout=120)
+                e.sendline('yes')
+                e.expect('"ipactl restart".+"systemctl restart sssd".+'
+                         + re.escape(self.replicas[0].hostname),
+                         timeout=60)
+                e.expect_exit(ignore_remaining_output=True)
         finally:
             self.replicas[0].run_command(['ipactl', 'start'])
 
@@ -141,15 +150,20 @@ class TestIpaAdTrustInstall(IntegrationTest):
         replica.
         """
         self.unconfigure_replica_as_agent(self.replicas[0])
-        cmd_input = (
-            # admin password:
-            self.master.config.admin_password + '\n' +
-            # WARNING: The smb.conf already exists. Running ipa-adtrust-install
+        cmd = ['ipa-adtrust-install', '--add-agents']
+        with self.master.spawn_expect(cmd) as e:
+            e.expect_exact('admin password:')
+            e.sendline(self.master.config.admin_password)
+            # WARNING: The smb.conf already exists.
+            # Running ipa-adtrust-install
             # will break your existing samba configuration.
             # Do you wish to continue? [no]:
-            'yes\n'
-            # Enable trusted domains support in slapi-nis? [no]:
-            '\n' +
+            e.expect([
+                'smb\\.conf detected.+Overwrite smb\\.conf\\?',
+                'smb\\.conf already exists.+Do you wish to continue\\?'])
+            e.sendline('yes')
+            e.expect_exact('Enable trusted domains support in slapi-nis?')
+            e.sendline('no')
             # WARNING: 1 IPA masters are not yet able to serve information
             # about users from trusted forests.
             # Installer can add them to the list of IPA masters allowed to
@@ -158,13 +172,17 @@ class TestIpaAdTrustInstall(IntegrationTest):
             # those masters.
             # Refer to ipa-adtrust-install(1) man page for details.
             # IPA master[replica1.testrelm.test]?[no]:
-            'yes\n'
-        )
-        expected = '"ipactl restart"'
-        res = self.master.run_command(['ipa-adtrust-install', '--add-agents'],
-                                      stdin_text=cmd_input)
+            e.expect('Installer can add them to the list of IPA masters '
+                     'allowed to access information about trusts.+'
+                     'IPA master \\[{}\\]'
+                     .format(re.escape(self.replicas[0].hostname)),
+                     timeout=120)
+            e.sendline('yes')
+            e.expect_exit(ignore_remaining_output=True, timeout=60)
+            output = e.get_last_output()
+        assert 'Setup complete' in output
         # The replica must have been restarted automatically, no msg required
-        assert expected not in res.stdout_text
+        assert 'ipactl restart' not in output
 
     def test_add_agent_on_running_replica_with_compat(self):
         """ Check ipa-addtrust-install --add-agents when the replica is running
@@ -177,15 +195,18 @@ class TestIpaAdTrustInstall(IntegrationTest):
         """
         self.unconfigure_replica_as_agent(self.replicas[0])
 
-        cmd_input = (
-            # admin password:
-            self.master.config.admin_password + '\n' +
-            # WARNING: The smb.conf already exists. Running ipa-adtrust-install
+        cmd = ['ipa-adtrust-install', '--add-agents', '--enable-compat']
+        with self.master.spawn_expect(cmd) as e:
+            e.expect_exact('admin password:')
+            e.sendline(self.master.config.admin_password)
+            # WARNING: The smb.conf already exists.
+            # Running ipa-adtrust-install
             # will break your existing samba configuration.
             # Do you wish to continue? [no]:
-            'yes\n'
-            # Enable trusted domains support in slapi-nis? [no]:
-            'yes\n' +
+            e.expect([
+                'smb\\.conf detected.+Overwrite smb\\.conf\\?',
+                'smb\\.conf already exists.+Do you wish to continue\\?'])
+            e.sendline('yes')
             # WARNING: 1 IPA masters are not yet able to serve information
             # about users from trusted forests.
             # Installer can add them to the list of IPA masters allowed to
@@ -194,13 +215,17 @@ class TestIpaAdTrustInstall(IntegrationTest):
             # those masters.
             # Refer to ipa-adtrust-install(1) man page for details.
             # IPA master[replica1.testrelm.test]?[no]:
-            'yes\n'
-        )
-        expected = '"ipactl restart"'
-        res = self.master.run_command(['ipa-adtrust-install', '--add-agents'],
-                                      stdin_text=cmd_input)
+            e.expect('Installer can add them to the list of IPA masters '
+                     'allowed to access information about trusts.+'
+                     'IPA master \\[{}\\]'
+                     .format(re.escape(self.replicas[0].hostname)),
+                     timeout=120)
+            e.sendline('yes')
+            e.expect_exit(ignore_remaining_output=True, timeout=60)
+            output = e.get_last_output()
+        assert 'Setup complete' in output
         # The replica must have been restarted automatically, no msg required
-        assert expected not in res.stdout_text
+        assert 'ipactl restart' not in output
 
         # Ensure that the schema compat plugin is configured:
         conn = self.replicas[0].ldap_connect()
