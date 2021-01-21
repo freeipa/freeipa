@@ -21,7 +21,8 @@ import six
 
 from ipalib import api, errors
 from ipalib import (
-    Flag, Int, Password, Str, Bool, StrEnum, DateTime, DNParam)
+    Flag, Int, IntEnum, Password, Str, Bool, StrEnum, DateTime, DNParam
+)
 from ipalib.parameters import Principal, Certificate
 from ipalib.plugable import Registry
 from .baseldap import (
@@ -33,9 +34,7 @@ from .baseldap import (
 from ipaserver.plugins.service import (validate_realm, normalize_principal)
 from ipalib.request import context
 from ipalib import _
-from ipalib.constants import (
-    PATTERN_GROUPUSER_NAME, SUBUID_COUNT, SUBGID_COUNT
-)
+from ipalib import constants
 from ipapython import kerberos
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipapython.ipavalidate import Email
@@ -163,7 +162,7 @@ class baseuser(LDAPObject):
     possible_objectclasses = [
         'meporiginentry', 'ipauserauthtypeclass', 'ipauser',
         'ipatokenradiusproxyuser', 'ipacertmapobject',
-        'ipantuserattrs'
+        'ipantuserattrs', 'ipasubordinateuserid', 'ipasubordinategroupid',
     ]
     disallow_object_classes = ['krbticketpolicyaux']
     permission_filter_objectclasses = ['posixaccount']
@@ -204,7 +203,7 @@ class baseuser(LDAPObject):
 
     takes_params = (
         Str('uid',
-            pattern=PATTERN_GROUPUSER_NAME,
+            pattern=constants.PATTERN_GROUPUSER_NAME,
             pattern_errmsg='may only include letters, numbers, _, -, . and $',
             maxlength=255,
             cli_name='login',
@@ -435,32 +434,40 @@ class baseuser(LDAPObject):
                     'J:', 'K:', 'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:',
                     'S:', 'T:', 'U:', 'V:', 'W:', 'X:', 'Y:', 'Z:'),
                 ),
-        Int('ipasubuidnumber?',
+        Int(
+            'ipasubuidnumber?',
             label=_('SubUID'),
             cli_name='subuid',
             doc=_('Subordinate user ID'),
-            ),
-        Int('ipasubuidcount?',
+            minvalue=constants.SUBUID_MIN,
+            maxvalue=constants.SUBUID_MAX,
+            multipleof=constants.SUBUID_COUNT,
+        ),
+        IntEnum(
+            'ipasubuidcount?',
             label=_('SubUID count'),
             cli_name='subuidcount',
             doc=_('Subordinate user ID count'),
             flags=['no_create', 'no_update', 'no_search'],
-            minvalue=SUBUID_COUNT,
-            maxvalue=SUBUID_COUNT,
-            ),
-        Int('ipasubgidnumber?',
+            values=(constants.SUBUID_COUNT,),
+        ),
+        Int(
+            'ipasubgidnumber?',
             label=_('SubGID'),
             cli_name='subgid',
             doc=_('Subordinate group ID'),
-            ),
-        Int('ipasubgidcount?',
+            minvalue=constants.SUBGID_MIN,
+            maxvalue=constants.SUBGID_MAX,
+            multipleof=constants.SUBGID_COUNT,
+        ),
+        IntEnum(
+            'ipasubgidcount?',
             label=_('SubGID count'),
             cli_name='subgidcount',
             doc=_('Subordinate group ID count'),
             flags=['no_create', 'no_update', 'no_search'],
-            minvalue=SUBGID_COUNT,
-            maxvalue=SUBGID_COUNT,
-            ),
+            values=(constants.SUBGID_COUNT,),
+        ),
     )
 
     def normalize_and_validate_email(self, email, config=None):
@@ -563,10 +570,11 @@ class baseuser(LDAPObject):
     ):
         id_interval_filters = []
         single = entry_attrs.single_value
-        if 'ipasubuidnumber' in single:
-            subuid = single['ipasubuidnumber']
-            sulow = subuid - SUBUID_COUNT + 1
-            suhigh = subuid + SUBUID_COUNT - 1
+        if "ipasubuidnumber" in single:
+            subuid = single["ipasubuidnumber"]
+            subuidcount = single["ipasubuidcount"]
+            sulow = subuid - subuidcount + 1
+            suhigh = subuid + subuidcount - 1
 
             # any uid within our interval
             id_interval_filters.append(
@@ -578,10 +586,11 @@ class baseuser(LDAPObject):
                 f"(&(ipaSubUidNumber>={sulow})(ipaSubUidNumber<={suhigh}))",
             )
 
-        if 'ipasubgidnumber' in single:
-            subgid = single['ipasubgidnumber']
-            sglow = subgid - SUBGID_COUNT + 1
-            sghigh = subgid + SUBGID_COUNT - 1
+        if "ipasubgidnumber" in single:
+            subgid = single["ipasubgidnumber"]
+            subgidcount = single["ipasubgidcount"]
+            sglow = subgid - subgidcount + 1
+            sghigh = subgid + subgidcount - 1
 
             id_interval_filters.append(
                 f"(&(gidNumber>={subgid})(gidNumber<={sghigh}))"
@@ -616,28 +625,25 @@ class baseuser(LDAPObject):
         )
 
     def handle_subordinate_ids(self, ldap, dn, entry_attrs):
-        new_subuid = entry_attrs.get('ipasubuidnumber')
-        new_subgid = entry_attrs.get('ipasubgidnumber')
+        new_subuid = entry_attrs.get("ipasubuidnumber")
+        new_subgid = entry_attrs.get("ipasubgidnumber")
         if new_subuid is None and new_subgid is None:
             # nothing to do
             return
 
-        # if new_subuid is None:
-        #     raise errors.RequirementError(name='ipasubuidnumber')
-        # if new_subgid is None:
-        #     raise errors.RequirementError(name='ipasubgidnumber')
+        if "objectclass" not in entry_attrs:
+            _entry_attrs = ldap.get_entry(dn, ["objectclass"])
+            entry_attrs["objectclass"] = _entry_attrs["objectclass"]
 
-        if 'objectclass' in entry_attrs:
-            obj_classes = entry_attrs['objectclass']
-        else:
-            _entry_attrs = ldap.get_entry(dn, ['objectclass'])
-            entry_attrs['objectclass'] = _entry_attrs['objectclass']
-        if 'ipausersubordinate' not in obj_classes:
-            obj_classes.append('ipausersubordinate')
+        if new_subuid is not None:
+            if "ipasubordinateuserid" not in entry_attrs["objectclass"]:
+                entry_attrs["objectclass"].append("ipasubordinateuserid")
+            entry_attrs.setdefault("ipasubuidcount", constants.SUBUID_COUNT)
 
-        # hard-coded constants
-        entry_attrs['ipasubuidcount'] = SUBUID_COUNT
-        entry_attrs['ipasubgidcount'] = SUBGID_COUNT
+        if new_subgid is not None:
+            if "ipasubordinategroupid" not in entry_attrs["objectclass"]:
+                entry_attrs["objectclass"].append("ipasubordinategroupid")
+            entry_attrs.setdefault("ipasubgidcount", constants.SUBGID_COUNT)
 
         try:
             conflicts = self.find_subordinate_conflicts(
@@ -647,7 +653,7 @@ class baseuser(LDAPObject):
             pass
         else:
             raise errors.ValidationError(
-                name='ipasubuidnumber',
+                name="ipasubuidnumber",
                 error=_(
                     "subuid interval or subgid interval conflicts with "
                     "existing intervals, users, or groups."

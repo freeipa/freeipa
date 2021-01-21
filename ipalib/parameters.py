@@ -1096,6 +1096,7 @@ class Int(Number):
     kwargs = Param.kwargs + (
         ('minvalue', int, int(MININT)),
         ('maxvalue', int, int(MAXINT)),
+        ('multipleof', int, None),
     )
 
     @staticmethod
@@ -1155,6 +1156,16 @@ class Int(Number):
         if value > self.maxvalue:
             return _('can be at most %(maxvalue)d') % dict(
                 maxvalue=self.maxvalue,
+            )
+        else:
+            return None
+
+    def _rule_multipleof(self, _, value):
+        """Check that value is multiple of expected value"""
+        assert isinstance(value, int)
+        if self.multipleof is not None and value % self.multipleof != 0:
+            return _('must be a multiple of %(multipleof)d') % dict(
+                multipleof=self.multipleof
             )
         else:
             return None

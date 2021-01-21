@@ -90,6 +90,7 @@ objectClasses: (2.16.840.1.113730.3.8.12.25 NAME 'ipaPrivateKeyObject' DESC 'Wra
 objectClasses: (2.16.840.1.113730.3.8.12.26 NAME 'ipaSecretKeyObject' DESC 'Wrapped secret keys' SUP top AUXILIARY MUST ( ipaSecretKey $ ipaWrappingKey $ ipaWrappingMech ) X-ORIGIN 'IPA v4.1' )
 objectClasses: (2.16.840.1.113730.3.8.12.34 NAME 'ipaSecretKeyRefObject' DESC 'Indirect storage for encoded key material' SUP top AUXILIARY MUST ( ipaSecretKeyRef ) X-ORIGIN 'IPA v4.1' )
 objectClasses: (2.16.840.1.113730.3.8.12.39 NAME 'ipaNameResolutionData' DESC 'Data used to resolve short names to fully-qualified form' SUP top AUXILIARY MAY ( ipaDomainResolutionOrder ) X-ORIGIN 'IPA v4.5')
-objectClasses: (2.16.840.1.113730.3.8.12.40 NAME 'ipaUserSubordinate' DESC 'Subordinate uid and gid for users' SUP posixAccount AUXILIARY MUST ( ipaSubUidNumber $ ipaSubUidCount $ ipaSubGidNumber $ ipaSubGidCount ) X-ORIGIN 'IPA v4.9')
+objectClasses: (2.16.840.1.113730.3.8.12.40 NAME 'ipaSubordinateUserID' DESC 'Subordinate user id' SUP posixAccount AUXILIARY MUST ( ipaSubUidNumber $ ipaSubUidCount ) X-ORIGIN 'IPA v4.9')
+objectClasses: (2.16.840.1.113730.3.8.12.41 NAME 'ipaSubordinateGroupID' DESC 'Subordinate group id' SUP posixAccount AUXILIARY MUST ( ipaSubGidNumber $ ipaSubGidCount ) X-ORIGIN 'IPA v4.9')
 objectClasses: (2.16.840.1.113730.3.8.18.1.1 NAME 'ipaVault' DESC 'IPA vault' SUP top STRUCTURAL MUST ( cn ) MAY ( description $ ipaVaultType $ ipaVaultSalt $ ipaVaultPublicKey $ owner $ member ) X-ORIGIN 'IPA v4.2' )
 objectClasses: (2.16.840.1.113730.3.8.18.1.2 NAME 'ipaVaultContainer' DESC 'IPA vault container' SUP top STRUCTURAL MUST ( cn ) MAY ( description $ owner ) X-ORIGIN 'IPA v4.2' )

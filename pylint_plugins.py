@@ -160,6 +160,9 @@ ipa_class_members = {
         'minvalue',
         'maxvalue',
     ],
+    'ipalib.parameters.Int': [
+        'multipleof',
+    ],
     'ipalib.parameters.Decimal': [
         'precision',
         'exponential',

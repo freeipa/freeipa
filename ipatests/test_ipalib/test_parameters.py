@@ -1311,6 +1311,26 @@ class test_Int(ClassChecker):
             assert dummy.called() is True
             dummy.reset()
 
+    def test_rule_multipleof(self):
+        o = self.cls('my_number', multipleof=16)
+        assert o.multipleof == 16
+        rule = o._rule_multipleof
+        translation = u'multipleof=%(multipleof)r'
+        dummy = dummy_ugettext(translation)
+
+        for value in (-16, 0, 16, 32, 65536):
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
+
+        for value in (-15, 1, 15, 17, 65535):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(multipleof=16)
+            )
+            assert dummy.message == 'must be a multiple of %(multipleof)d'
+            assert dummy.called() is True
+            dummy.reset()
+
     def test_convert_scalar(self):
         """
         Test the `ipalib.parameters.Int._convert_scalar` method.

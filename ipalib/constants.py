@@ -343,5 +343,10 @@ MOD_SSL_VERIFY_DEPTH = '5'
 
 # subuid / subgid counts are hard-coded
 # An interval of 65536 uids/gids is required to map nobody (65534).
+# (uid_t)-1 and (gid_t)-1 are reserved
 SUBUID_COUNT = 65536
+SUBUID_MIN = 2 ** 31
+SUBUID_MAX = 2 ** 32 - 2
 SUBGID_COUNT = 65536
+SUBGID_MIN = 2 ** 31
+SUBGID_MAX = 2 ** 32 - 2
