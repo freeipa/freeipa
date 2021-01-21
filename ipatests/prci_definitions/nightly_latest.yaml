@@ -1536,7 +1536,7 @@ jobs:
 
   fedora-latest/test_membermanager:
     requires: [fedora-latest/build]
-    priority: 100
+    priority: 50
     job:
       class: RunPytest
       args:
@@ -1596,7 +1596,7 @@ jobs:
 
   fedora-latest/test_adtrust_install:
     requires: [fedora-latest/build]
-    priority: 100
+    priority: 50
     job:
       class: RunPytest
       args:
