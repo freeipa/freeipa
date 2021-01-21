@@ -3,6 +3,7 @@
 #
 
 import time
+import textwrap
 
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509
@@ -109,6 +110,23 @@ class TestACME(CALessBase):
 
     @classmethod
     def prepare_acme_client(cls):
+        repo_file = textwrap.dedent("""
+            [copr:copr.fedorainfracloud.org:group_pki:10.10]
+            name=Copr repo for 10.10 owned by @pki
+            baseurl=https://download.copr.fedorainfracloud.org/results/@pki/10.10/fedora-$releasever-$basearch/
+            type=rpm-md
+            skip_if_unavailable=True
+            gpgcheck=1
+            gpgkey=https://download.copr.fedorainfracloud.org/results/@pki/10.10/pubkey.gpg
+            repo_gpgcheck=0
+            enabled=1
+            enabled_metadata=1
+        """)
+        for host in (cls.master, cls.replicas[0]):
+            host.put_file_contents('/etc/yum.repos.d/dogtag.repo',
+                                   repo_file)
+            host.run_command(['dnf', '-y', 'update', 'pki-acme'])
+
         # cache the acme service uri
         acme_host = f'{IPA_CA_RECORD}.{cls.master.domain.name}'
         cls.acme_server = f'https://{acme_host}/acme/directory'
