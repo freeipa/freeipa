@@ -380,3 +380,32 @@ default: objectClass: top
 default: objectClass: nsIndex
 default: nsSystemIndex: false
 default: nsIndexType: eq
+
+dn: cn=ipaCASubjectDN,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaCASubjectDN
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
+dn: cn=ipaExternalMember,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaExternalMember
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
+dn: cn=memberPrincipal,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: memberPrincipal
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
+dn: cn=ipaNTSecurityIdentifier,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only: cn: ipaNTSecurityIdentifier
+default: objectClass: top
+default: objectClass: nsIndex
+default: nsSystemIndex: false
+add: nsIndexType: eq
+add: nsIndexType: pres
