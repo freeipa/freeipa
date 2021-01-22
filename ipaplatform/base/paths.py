@@ -346,6 +346,7 @@ class BasePathNamespace:
     SSSD_PUBCONF_DIR = "/var/lib/sss/pubconf"
     SSSD_PUBCONF_KNOWN_HOSTS = "/var/lib/sss/pubconf/known_hosts"
     SSSD_PUBCONF_KRB5_INCLUDE_D_DIR = "/var/lib/sss/pubconf/krb5.include.d/"
+    SSSD_KEYTABS_DIR = "/var/lib/sss/keytabs"
     VAR_LOG_AUDIT = "/var/log/audit/audit.log"
     VAR_LOG_HTTPD_DIR = "/var/log/httpd"
     VAR_LOG_HTTPD_ERROR = "/var/log/httpd/error_log"

@@ -1018,8 +1018,8 @@ def uninstall_master(host, ignore_topology_disconnect=True,
                       paths.IPA_RENEWAL_LOCK,
                       paths.REPLICA_INFO_GPG_TEMPLATE % host.hostname],
                      raiseonerr=False)
-    host.run_command("find /var/lib/sss/keytabs -name '*.keytab' | "
-                     "xargs rm -fv", raiseonerr=False)
+    host.run_command("find %s -name '*.keytab' | "
+                     "xargs rm -fv" % paths.SSSD_KEYTABS_DIR, raiseonerr=False)
     host.run_command("find /run/ipa -name 'krb5*' | xargs rm -fv",
                      raiseonerr=False)
     if clean:
