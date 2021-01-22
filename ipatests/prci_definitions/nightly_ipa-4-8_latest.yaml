@@ -1584,7 +1584,7 @@ jobs:
 
   fedora-latest-ipa-4-8/test_adtrust_install:
     requires: [fedora-latest-ipa-4-8/build]
-    priority: 100
+    priority: 50
     job:
       class: RunPytest
       args:
