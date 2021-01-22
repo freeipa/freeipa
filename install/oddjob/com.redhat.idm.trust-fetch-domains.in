@@ -178,7 +178,9 @@ api.Backend.ldap2.connect(ccache_name)
 
 # Retrieve own NetBIOS name and trusted forest's name.
 # We use script's input to retrieve the trusted forest's name to sanitize input
-# for file-level access as we might need to wipe out keytab in /var/lib/sss/keytabs
+# for file-level access as we might need to wipe out keytab in
+# paths.SSSD_KEYTABS_DIR
+
 own_trust_dn = DN(
     ("cn", api.env.domain), ("cn", "ad"), ("cn", "etc"), api.env.basedn
 )
@@ -200,7 +202,7 @@ rc = 0
 # to take precedence.
 with ipautil.private_krb5_config(trusted_domain, options.server) as cfg_file:
     if not (options.admin and options.password):
-        oneway_keytab_name = os.path.join("/var/lib/sss/keytabs/",
+        oneway_keytab_name = os.path.join(paths.SSSD_KEYTABS_DIR,
                                           trusted_domain + ".keytab")
 
         oneway_principal = str(
