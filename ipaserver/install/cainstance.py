@@ -1959,7 +1959,7 @@ def import_included_profiles():
             _create_dogtag_profile(profile_id, profile_data, overwrite=True)
             logger.debug("Imported profile '%s'", profile_id)
         else:
-            logger.info(
+            logger.debug(
                 "Profile '%s' is already in LDAP; skipping", profile_id
             )
 
@@ -2034,7 +2034,7 @@ def migrate_profiles_to_ldap():
         state = profile_states.get(profile_id.lower(), ProfileState.MISSING)
         if state != ProfileState.MISSING:
             # We don't reconsile enabled/disabled state.
-            logger.info(
+            logger.debug(
                 "Profile '%s' is already in LDAP and %s; skipping",
                 profile_id, state.value
             )
