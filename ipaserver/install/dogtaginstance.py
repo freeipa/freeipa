@@ -84,7 +84,7 @@ def get_security_domain():
         cert_paths=paths.IPA_CA_CRT
     )
     domain_client = pki.system.SecurityDomainClient(connection)
-    info = domain_client.get_security_domain_info()
+    info = domain_client.get_domain_info()
     return info
 
 
@@ -97,7 +97,7 @@ def is_installing_replica(sys_type):
     """
     info = get_security_domain()
     try:
-        sys_list = info.systems[sys_type]
+        sys_list = info.subsystems[sys_type]
         return len(sys_list.hosts) > 0
     except KeyError:
         return False
