@@ -15,7 +15,7 @@ topologies:
 jobs:
   fedora-27/build:
     requires: []
-    priority: 100
+    priority: 150
     job:
       class: Build
       args:
@@ -29,7 +29,7 @@ jobs:
 
   fedora-27/simple_replication:
     requires: [fedora-27/build]
-    priority: 50
+    priority: 100
     job:
       class: RunPytest
       args:
@@ -41,7 +41,7 @@ jobs:
 
   fedora-27/test_caless_TestServerReplicaCALessToCAFull:
     requires: [fedora-27/build]
-    priority: 50
+    priority: 100
     job:
       class: RunPytest
       args:
@@ -53,7 +53,7 @@ jobs:
 
   fedora-27/test_external_ca_TestExternalCA:
     requires: [fedora-27/build]
-    priority: 50
+    priority: 100
     job:
       class: RunPytest
       args:
@@ -65,7 +65,7 @@ jobs:
 
   fedora-27/test_commands:
     requires: [fedora-27/build]
-    priority: 50
+    priority: 100
     job:
       class: RunPytest
       args:
@@ -77,7 +77,7 @@ jobs:
 
   fedora-27/test_dnssec_TestInstallDNSSECFirst:
     requires: [fedora-27/build]
-    priority: 50
+    priority: 100
     job:
       class: RunPytest
       args:
