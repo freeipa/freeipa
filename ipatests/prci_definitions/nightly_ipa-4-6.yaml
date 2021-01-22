@@ -1209,7 +1209,7 @@ jobs:
 
   fedora-27/test_adtrust_install:
     requires: [fedora-27/build]
-    priority: 100
+    priority: 50
     job:
       class: RunPytest
       args:
