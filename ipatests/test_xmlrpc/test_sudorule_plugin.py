@@ -723,7 +723,7 @@ class test_sudorule(XMLRPC_test):
                     self.rule_name, ipasudorunasusercategory=u'all'
                 )
         finally:
-            api.Command['sudorule_remove_runasuser'](self.rule_name, user=self.test_command)
+            api.Command['sudorule_remove_runasuser'](self.rule_name, user=self.test_user)
 
     def test_j_2_sudorule_referential_integrity(self):
         """
