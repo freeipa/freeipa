@@ -702,10 +702,12 @@ def establish_trust_with_ad(master, ad_domain, ad_admin=None, extra_args=(),
     time.sleep(60)
 
 
-def remove_trust_with_ad(master, ad_domain):
+def remove_trust_with_ad(master, ad_domain, ad_hostname):
     """
     Removes trust with Active Directory. Also removes the associated ID range.
     """
+
+    remove_trust_info_from_ad(master, ad_domain, ad_hostname)
 
     kinit_admin(master)
 
@@ -716,14 +718,13 @@ def remove_trust_with_ad(master, ad_domain):
     range_name = ad_domain.upper() + '_id_range'
     master.run_command(['ipa', 'idrange-del', range_name])
 
-    remove_trust_info_from_ad(master, ad_domain)
 
-
-def remove_trust_info_from_ad(master, ad_domain):
+def remove_trust_info_from_ad(master, ad_domain, ad_hostname):
     # Remove record about trust from AD
-    master.run_command(['rpcclient', ad_domain,
-                        '-U\\Administrator%{}'.format(
-                            master.config.ad_admin_password),
+    kinit_as_user(master,
+                  'Administrator@{}'.format(ad_domain.upper()),
+                  master.config.ad_admin_password)
+    master.run_command(['rpcclient', '-k', ad_hostname,
                         '-c', 'deletetrustdom {}'.format(master.domain.name)],
                        raiseonerr=False)
 
