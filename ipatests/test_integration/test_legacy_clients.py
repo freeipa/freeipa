@@ -468,7 +468,8 @@ class BaseTestLegacyClient:
 
         # Remove information about trust from AD, if domain was defined
         if hasattr(cls, 'ad_domain'):
-            tasks.remove_trust_info_from_ad(cls.master, cls.ad_domain)
+            tasks.remove_trust_info_from_ad(cls.master, cls.ad_domain,
+                                            cls.ad_domain.hostname)
 
         # Also unapply fixes on the legacy client, if defined
         if hasattr(cls, 'legacy_client'):

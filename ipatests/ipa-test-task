@@ -422,7 +422,7 @@ class TaskRunner(object):
         self.require_ad_domain(args)
         host = self.get_host(args.host, default=args.domain.master)
         ad = self.get_host(args.ad, default=args.ad_domain.ads[0])
-        tasks.remove_trust_with_ad(host, ad)
+        tasks.remove_trust_with_ad(host, ad.domain.name, ad.name)
 
     def configure_auth_to_local_rule(self, args):
         self.require_ad_domain(args)
