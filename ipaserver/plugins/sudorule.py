@@ -789,7 +789,7 @@ class sudorule_add_runasuser(LDAPAddMember):
     member_attributes = ['ipasudorunas']
     member_count_out = ('%i object added.', '%i objects added.')
 
-    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
 
         def check_validity(runas):
@@ -826,37 +826,39 @@ class sudorule_add_runasuser(LDAPAddMember):
                                           "'%(name)s' as a group name")) %
                                           dict(name=name))
 
-        return add_external_pre_callback('user', ldap, dn, keys, options)
+        for o_desc in (USER_OBJ_SPEC, GROUP_OBJ_SPEC):
+            dn = pre_callback_process_external_objects(
+                'ipasudorunas', o_desc,
+                ldap, dn, found, not_found, *keys, **options)
+        return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
                       *keys, **options):
         assert isinstance(dn, DN)
 
+        completed_ex = {}
+        completed_ex['user'] = 0
+        completed_ex['group'] = 0
         # Since external_post_callback returns the total number of completed
         # entries yet (that is, any external users it added plus the value of
         # passed variable 'completed', we need to pass 0 as completed,
         # so that the entries added by the framework are not counted twice
         # (once in each call of add_external_post_callback)
+        for (o_type, ext_attr) in (('user', 'ipasudorunasextuser'),
+                                   ('group', 'ipasudorunasextusergroup')):
+            if o_type not in options:
+                continue
+            (completed_ex[o_type], dn) = \
+                add_external_post_callback(ldap, dn,
+                                           entry_attrs=entry_attrs,
+                                           failed=failed,
+                                           completed=0,
+                                           memberattr='ipasudorunas',
+                                           membertype=o_type,
+                                           externalattr=ext_attr,
+                                           )
 
-        (completed_ex_users, dn) = add_external_post_callback(ldap, dn,
-                                        entry_attrs,
-                                        failed=failed,
-                                        completed=0,
-                                        memberattr='ipasudorunas',
-                                        membertype='user',
-                                        externalattr='ipasudorunasextuser',
-                                        )
-
-        (completed_ex_groups, dn) = add_external_post_callback(ldap, dn,
-                                        entry_attrs=entry_attrs,
-                                        failed=failed,
-                                        completed=0,
-                                        memberattr='ipasudorunas',
-                                        membertype='group',
-                                        externalattr='ipasudorunasextusergroup',
-                                        )
-
-        return (completed + completed_ex_users + completed_ex_groups, dn)
+        return (completed + sum(completed_ex.values()), dn)
 
 
 @register()
@@ -866,35 +868,42 @@ class sudorule_remove_runasuser(LDAPRemoveMember):
     member_attributes = ['ipasudorunas']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
+
+        for o_desc in (USER_OBJ_SPEC, GROUP_OBJ_SPEC):
+            dn = pre_callback_process_external_objects(
+                'ipasudorunas', o_desc,
+                ldap, dn, found, not_found, *keys, **options)
+        return dn
+
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
                       *keys, **options):
         assert isinstance(dn, DN)
 
+        completed_ex = {}
+        completed_ex['user'] = 0
+        completed_ex['group'] = 0
         # Since external_post_callback returns the total number of completed
         # entries yet (that is, any external users it added plus the value of
         # passed variable 'completed', we need to pass 0 as completed,
         # so that the entries added by the framework are not counted twice
-        # (once in each call of remove_external_post_callback)
+        # (once in each call of add_external_post_callback)
+        for (o_type, ext_attr) in (('user', 'ipasudorunasextuser'),
+                                   ('group', 'ipasudorunasextusergroup')):
+            if o_type not in options:
+                continue
+            (completed_ex[o_type], dn) = \
+                remove_external_post_callback(ldap, dn,
+                                              entry_attrs=entry_attrs,
+                                              failed=failed,
+                                              completed=0,
+                                              memberattr='ipasudorunas',
+                                              membertype=o_type,
+                                              externalattr=ext_attr,
+                                              )
 
-        (completed_ex_users, dn) = remove_external_post_callback(ldap, dn,
-                                        entry_attrs=entry_attrs,
-                                        failed=failed,
-                                        completed=0,
-                                        memberattr='ipasudorunas',
-                                        membertype='user',
-                                        externalattr='ipasudorunasextuser',
-                                        )
-
-        (completed_ex_groups, dn) = remove_external_post_callback(ldap, dn,
-                                        entry_attrs=entry_attrs,
-                                        failed=failed,
-                                        completed=0,
-                                        memberattr='ipasudorunas',
-                                        membertype='group',
-                                        externalattr='ipasudorunasextusergroup',
-                                        )
-
-        return (completed + completed_ex_users + completed_ex_groups, dn)
+        return (completed + sum(completed_ex.values()), dn)
 
 
 @register()
@@ -904,7 +913,7 @@ class sudorule_add_runasgroup(LDAPAddMember):
     member_attributes = ['ipasudorunasgroup']
     member_count_out = ('%i object added.', '%i objects added.')
 
-    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
 
         def check_validity(runas):
@@ -931,18 +940,21 @@ class sudorule_add_runasgroup(LDAPAddMember):
                                           "'%(name)s' as a group name")) %
                                           dict(name=name))
 
-        return add_external_pre_callback('group', ldap, dn, keys, options)
+        return pre_callback_process_external_objects(
+            'ipasudorunasgroup', GROUP_OBJ_SPEC,
+            ldap, dn, found, not_found, *keys, **options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
                       *keys, **options):
         assert isinstance(dn, DN)
-        return add_external_post_callback(ldap, dn, entry_attrs,
-                                          failed=failed,
-                                          completed=completed,
-                                          memberattr='ipasudorunasgroup',
-                                          membertype='group',
-                                          externalattr='ipasudorunasextgroup',
-                                          )
+        return add_external_post_callback(
+            ldap, dn, entry_attrs,
+            failed=failed,
+            completed=completed,
+            memberattr='ipasudorunasgroup',
+            membertype='group',
+            externalattr='ipasudorunasextgroup',
+        )
 
 
 @register()
@@ -952,16 +964,24 @@ class sudorule_remove_runasgroup(LDAPRemoveMember):
     member_attributes = ['ipasudorunasgroup']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
+
+        return pre_callback_process_external_objects(
+            'ipasudorunasgroup', GROUP_OBJ_SPEC,
+            ldap, dn, found, not_found, *keys, **options)
+
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
                       *keys, **options):
         assert isinstance(dn, DN)
-        return remove_external_post_callback(ldap, dn, entry_attrs,
-                                          failed=failed,
-                                          completed=completed,
-                                          memberattr='ipasudorunasgroup',
-                                          membertype='group',
-                                          externalattr='ipasudorunasextgroup',
-                                          )
+        return remove_external_post_callback(
+            ldap, dn, entry_attrs,
+            failed=failed,
+            completed=completed,
+            memberattr='ipasudorunasgroup',
+            membertype='group',
+            externalattr='ipasudorunasextgroup',
+        )
 
 
 @register()
