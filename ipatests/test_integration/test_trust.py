@@ -93,7 +93,8 @@ class BaseTestTrust(IntegrationTest):
         assert expected_text in result.stdout_text
 
     def remove_trust(self, ad):
-        tasks.remove_trust_with_ad(self.master, ad.domain.name)
+        tasks.remove_trust_with_ad(self.master,
+                                   ad.domain.name, ad.hostname)
         tasks.clear_sssd_cache(self.master)
 
 
@@ -955,7 +956,9 @@ class TestTrust(BaseTestTrust):
             assert ('List of trust domains successfully refreshed'
                     in result.stdout_text)
         finally:
-            self.remove_trust(self.ad)
             tasks.restore_files(self.master)
-            self.master.run_command(['rm', '-f', ad_zone_file])
             tasks.restart_named(self.master)
+            tasks.clear_sssd_cache(self.master)
+            self.master.run_command(['rm', '-f', ad_zone_file])
+            tasks.configure_dns_for_trust(self.master, self.ad)
+            self.remove_trust(self.ad)
