@@ -722,8 +722,8 @@ def remove_trust_with_ad(master, ad_domain):
 def remove_trust_info_from_ad(master, ad_domain):
     # Remove record about trust from AD
     master.run_command(['rpcclient', ad_domain,
-                        '-U\\Administrator%{}'.format(
-                            master.config.ad_admin_password),
+                        '-UAdministrator@{}%{}'.format(
+                            ad_domain, master.config.ad_admin_password),
                         '-c', 'deletetrustdom {}'.format(master.domain.name)],
                        raiseonerr=False)
 
