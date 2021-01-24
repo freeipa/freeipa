@@ -24,13 +24,14 @@ from ipalib import api, errors
 from ipalib import Str, StrEnum, Bool, Int
 from ipalib.plugable import Registry
 from .baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
-                                     LDAPUpdate, LDAPSearch, LDAPRetrieve,
-                                     LDAPQuery, LDAPAddMember, LDAPRemoveMember,
-                                     add_external_pre_callback,
-                                     add_external_post_callback,
-                                     remove_external_post_callback,
-                                     output, entry_to_dict, pkey_to_value,
-                                     external_host_param)
+                       LDAPUpdate, LDAPSearch, LDAPRetrieve,
+                       LDAPQuery, LDAPAddMember, LDAPRemoveMember,
+                       add_external_pre_callback,
+                       pre_callback_process_external_objects,
+                       add_external_post_callback,
+                       remove_external_post_callback,
+                       output, entry_to_dict, pkey_to_value,
+                       external_host_param)
 from .hbacrule import is_all
 from ipalib import _, ngettext
 from ipalib.util import validate_hostmask
@@ -97,6 +98,11 @@ EXAMPLES:
 register = Registry()
 
 topic = 'sudo'
+
+# used to process external object references in SUDO rules
+USER_OBJ_SPEC = ('user', None)
+GROUP_OBJ_SPEC = ('group', '%')
+
 
 
 def deprecated(attribute):
@@ -592,17 +598,40 @@ class sudorule_add_user(LDAPAddMember):
             raise errors.MutuallyExclusiveError(
                 reason=_("users cannot be added when user category='all'"))
 
-        return add_external_pre_callback('user', ldap, dn, keys, options)
+        for o_desc in (USER_OBJ_SPEC, GROUP_OBJ_SPEC):
+            dn = pre_callback_process_external_objects(
+                'memberuser', o_desc,
+                ldap, dn, found, not_found, *keys, **options)
+        return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
                       *keys, **options):
         assert isinstance(dn, DN)
-        return add_external_post_callback(ldap, dn, entry_attrs,
-                                          failed=failed,
-                                          completed=completed,
-                                          memberattr='memberuser',
-                                          membertype='user',
-                                          externalattr='externaluser')
+
+        completed_ex = {}
+        completed_ex['user'] = 0
+        completed_ex['group'] = 0
+
+        # Since external_post_callback returns the total number of completed
+        # entries yet (that is, any external users it added plus the value of
+        # passed variable 'completed', we need to pass 0 as completed,
+        # so that the entries added by the framework are not counted twice
+        # (once in each call of add_external_post_callback)
+        for o_type in ('user', 'group'):
+            if o_type not in options:
+                continue
+
+            (completed_ex[o_type], dn) = \
+                add_external_post_callback(ldap, dn,
+                                           entry_attrs=entry_attrs,
+                                           failed=failed,
+                                           completed=0,
+                                           memberattr='memberuser',
+                                           membertype=o_type,
+                                           externalattr='externaluser',
+                                           )
+
+        return (completed + sum(completed_ex.values()), dn)
 
 
 @register()
@@ -612,15 +641,41 @@ class sudorule_remove_user(LDAPRemoveMember):
     member_attributes = ['memberuser']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
+
+        for o_desc in (USER_OBJ_SPEC, GROUP_OBJ_SPEC):
+            dn = pre_callback_process_external_objects(
+                'memberuser', o_desc,
+                ldap, dn, found, not_found, *keys, **options)
+        return dn
+
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
                       *keys, **options):
         assert isinstance(dn, DN)
-        return remove_external_post_callback(ldap, dn, entry_attrs,
-                                             failed=failed,
-                                             completed=completed,
-                                             memberattr='memberuser',
-                                             membertype='user',
-                                             externalattr='externaluser')
+
+        # Since external_post_callback returns the total number of completed
+        # entries yet (that is, any external users it removed plus the value of
+        # passed variable 'completed', we need to pass 0 as completed,
+        # so that the entries removed by the framework are not counted twice
+        # (once in each call of remove_external_post_callback)
+        (completed_ex_users, dn) = remove_external_post_callback(
+            ldap, dn, entry_attrs,
+            failed=failed,
+            completed=0,
+            memberattr='memberuser',
+            membertype='user',
+            externalattr='externaluser')
+
+        (completed_ex_groups, dn) = remove_external_post_callback(
+            ldap, dn, entry_attrs,
+            failed=failed,
+            completed=0,
+            memberattr='memberuser',
+            membertype='group',
+            externalattr='externaluser')
+
+        return (completed + completed_ex_users + completed_ex_groups, dn)
 
 
 @register()
