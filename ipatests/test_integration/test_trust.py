@@ -1,9 +1,10 @@
-# Copyright (C) 2019  FreeIPA Contributors see COPYING for license
+# Copyright (C) 2019 FreeIPA Contributors see COPYING for license
 
 from __future__ import absolute_import
 
 import re
 import textwrap
+import time
 
 import pytest
 
@@ -13,7 +14,11 @@ from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipapython.dn import DN
+from collections import namedtuple
+from contextlib import contextmanager
 
+TestDataRule = namedtuple('TestDataRule',
+                          ['name', 'ruletype', 'user', 'subject'])
 
 class BaseTestTrust(IntegrationTest):
     num_clients = 1
@@ -245,6 +250,150 @@ class TestTrust(BaseTestTrust):
         """ Check that AD user with UPN can authenticate in IPA """
         self.master.run_command(['kinit', '-C', '-E', self.upn_principal],
                                 stdin_text=self.upn_password)
+
+    @contextmanager
+    def check_sudorules_for(self, object_type, object_name,
+                            testuser, expected):
+        """Verify trusted domain objects can be added to sudorules"""
+
+        # Create a SUDO rule that allows test user
+        # to run any command on any host as root without password
+        # and check that it is indeed possible to do so with sudo -l
+        hbacrule = 'hbacsudoers-' + object_type
+        sudorule = 'testrule-' + object_type
+        commands = [['ipa', 'hbacrule-add', hbacrule,
+                     '--usercat=all', '--hostcat=all'],
+                    ['ipa', 'hbacrule-add-service', hbacrule,
+                     '--hbacsvcs=sudo'],
+                    ['ipa', 'sudocmd-add', 'ALL'],
+                    ['ipa', 'sudorule-add', sudorule, '--hostcat=all'],
+                    ['ipa', 'sudorule-add-user', sudorule,
+                     '--users', object_name],
+                    ['ipa', 'sudorule-add-option', sudorule,
+                     '--sudooption', '!authenticate'],
+                    ['ipa', 'sudorule-add-allow-command', sudorule,
+                     '--sudocmds', 'ALL']]
+        for c in commands:
+            self.master.run_command(c)
+
+        # allow additional configuration
+        yield TestDataRule(sudorule, 'sudo', object_name, testuser)
+
+        # Modify refresh_expired_interval to reduce time for refreshing
+        # expired entries in SSSD cache in order to avoid waiting at least
+        # 30 seconds before SSSD updates SUDO rules and undertermined time
+        # that takes to refresh the rules.
+        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        try:
+            with tasks.remote_sssd_config(self.master) as sssd_conf:
+                sssd_conf.edit_domain(
+                    self.master.domain, 'refresh_expired_interval', 1)
+                sssd_conf.edit_domain(
+                    self.master.domain, 'entry_cache_timeout', 1)
+            tasks.clear_sssd_cache(self.master)
+
+            # Sleep some time so that SSSD settles down
+            # cache updates
+            time.sleep(10)
+            result = self.master.run_command(
+                ['su', '-', testuser, '-c', 'sudo -l'])
+            if isinstance(expected, (tuple, list)):
+                assert any([x for x in expected if x in result.stdout_text])
+            else:
+                assert expected in result.stdout_text
+        finally:
+            sssd_conf_backup.restore()
+            tasks.clear_sssd_cache(self.master)
+
+        commands = [['ipa', 'sudorule-del', sudorule],
+                    ['ipa', 'sudocmd-del', 'ALL'],
+                    ['ipa', 'hbacrule-del', hbacrule]]
+        for c in commands:
+            self.master.run_command(c)
+
+    def test_sudorules_ad_users(self):
+        """Verify trusted domain users can be added to sudorules"""
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        testuser = '%s@%s' % (self.master.config.ad_admin_name, self.ad_domain)
+        expected = "(root) NOPASSWD: ALL"
+
+        with self.check_sudorules_for("user", testuser, testuser, expected):
+            # no additional configuration
+            pass
+
+    def test_sudorules_ad_groups(self):
+        """Verify trusted domain groups can be added to sudorules"""
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        testuser = '%s@%s' % (self.master.config.ad_admin_name, self.ad_domain)
+        testgroup = 'Enterprise Admins@%s' % self.ad_domain
+        expected = "(root) NOPASSWD: ALL"
+        with self.check_sudorules_for("group", testuser, testuser,
+                                      expected) as sudorule:
+            # Remove the user and instead add a group
+            self.master.run_command(['ipa',
+                                     'sudorule-remove-user', sudorule.name,
+                                     '--users', sudorule.user])
+            self.master.run_command(['ipa', 'sudorule-add-user', sudorule.name,
+                                     '--groups', testgroup])
+
+    def test_sudorules_ad_runasuser(self):
+        """Verify trusted domain users can be added to runAsUser"""
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        testuser = '%s@%s' % (self.master.config.ad_admin_name, self.ad_domain)
+        expected = "(%s) NOPASSWD: ALL" % (testuser.lower())
+
+        with self.check_sudorules_for("user", testuser, testuser,
+                                      expected) as sudorule:
+            # Add runAsUser with the same user
+            self.master.run_command(['ipa',
+                                     'sudorule-add-runasuser', sudorule.name,
+                                     '--users', sudorule.subject])
+
+    def test_sudorules_ad_runasuser_group(self):
+        """Verify trusted domain groups can be added to runAsUser"""
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        testuser = '%s@%s' % (self.master.config.ad_admin_name, self.ad_domain)
+        testgroup = 'Enterprise Admins@%s' % self.ad_domain
+        expected1 = '("%%%s") NOPASSWD: ALL' % testgroup.lower()
+        expected2 = '("%%%%%s") NOPASSWD: ALL' % testgroup.lower()
+
+        with self.check_sudorules_for("group", testuser, testuser,
+                                      [expected1, expected2]) as sudorule:
+            # Add runAsUser with the same user
+            self.master.run_command(['ipa',
+                                     'sudorule-add-runasuser',
+                                     sudorule.name,
+                                     '--groups', testgroup])
+
+    def test_sudorules_ad_runasgroup(self):
+        """Verify trusted domain groups can be added to runAsGroup"""
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        testuser = '%s@%s' % (self.master.config.ad_admin_name, self.ad_domain)
+        testgroup = 'Enterprise Admins@%s' % self.ad_domain
+        expected = '(%s : "%%%s") NOPASSWD: ALL' % (testuser.lower(),
+                                                    testgroup.lower())
+        with self.check_sudorules_for("group", testuser, testuser,
+                                      expected) as sudorule:
+            # Add runAsGroup with the same user
+            self.master.run_command(['ipa',
+                                     'sudorule-add-runasgroup',
+                                     sudorule.name,
+                                     '--groups', testgroup])
 
     def test_remove_nonposix_trust(self):
         self.remove_trust(self.ad)
