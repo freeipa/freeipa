@@ -8,6 +8,7 @@ KRA installer module
 
 from __future__ import absolute_import
 
+import logging
 import os
 
 from ipalib import api
@@ -22,6 +23,8 @@ from ipaserver.install import dsinstance
 from ipaserver.install import service as _service
 
 from . import dogtag
+
+logger = logging.getLogger(__name__)
 
 
 def install_check(api, replica_config, options):
@@ -111,6 +114,22 @@ def install(api, replica_config, options, custodia):
     named = services.knownservices.named  # alias for current named
     if named.is_running():
         named.restart(capture_output=True)
+
+
+def uninstall_check(options):
+    """IPA needs to be running so pkidestroy can unregister KRA"""
+    kra = krainstance.KRAInstance(api.env.realm)
+    if not kra.is_installed():
+        return
+
+    result = ipautil.run([paths.IPACTL, 'status'],
+                         raiseonerr=False)
+
+    if result.returncode not in [0, 4]:
+        try:
+            ipautil.run([paths.IPACTL, 'start'])
+        except Exception:
+            logger.info("Re-starting IPA failed, continuing uninstall")
 
 
 def uninstall():

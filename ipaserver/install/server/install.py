@@ -1098,6 +1098,8 @@ def uninstall_check(installer):
                           "uninstall procedure?", False):
             raise ScriptError("Aborting uninstall operation.")
 
+    kra.uninstall_check(options)
+
     try:
         api.Backend.ldap2.connect(autobind=True)
 
@@ -1165,6 +1167,10 @@ def uninstall(installer):
 
     rv = 0
 
+    # Uninstall the KRA prior to shutting the services down so it
+    # can un-register with the CA.
+    kra.uninstall()
+
     print("Shutting down all IPA services")
     try:
         services.knownservices.ipa.stop()
@@ -1176,8 +1182,6 @@ def uninstall(installer):
             pass
 
     restore_time_sync(sstore, fstore)
-
-    kra.uninstall()
 
     ca.uninstall()
 
