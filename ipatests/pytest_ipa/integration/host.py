@@ -32,6 +32,7 @@ from .fips import (
     is_fips_enabled, enable_userspace_fips, disable_userspace_fips
 )
 from .transport import IPAOpenSSHTransport
+from .resolver import resolver
 
 FIPS_NOISE_RE = re.compile(br"FIPS mode initialized\r?\n?")
 
@@ -78,6 +79,7 @@ class Host(pytest_multihost.host.Host):
         )
         self._fips_mode = None
         self._userspace_fips = False
+        self.resolver = resolver(self)
 
     @property
     def is_fips_mode(self):
