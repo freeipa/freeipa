@@ -22,6 +22,7 @@ from ipapython.certdb import NSS_SQL_FILES
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
 from ipaplatform.osinfo import osinfo
+from ipaserver.install.installutils import resolve_ip_addresses_nss
 from ipatests.test_integration.base import IntegrationTest
 from pkg_resources import parse_version
 from ipatests.test_integration.test_cert import get_certmonger_fs_id
@@ -659,9 +660,16 @@ class TestIpaHealthCheck(IntegrationTest):
             "_kpasswd._udp." + self.master.domain.name + ".:" +
             self.master.hostname + ".",
             "\"" + self.master.domain.realm.upper() + "\"",
-            self.master.ip,
-            self.replicas[0].ip
         ]
+
+        for hostname in [
+                self.master.external_hostname,
+                self.replicas[0].external_hostname,
+        ]:
+            # resolve hostname on controller
+            ips = resolve_ip_addresses_nss(hostname)
+            SRV_RECORDS.extend([str(ip) for ip in ips])
+
         returncode, data = run_healthcheck(
             self.master,
             "ipahealthcheck.ipa.idns",
