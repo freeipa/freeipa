@@ -436,7 +436,7 @@ def pre_callback_process_external_objects(member_attr, object_desc,
 
 def add_external_post_callback(ldap, dn, entry_attrs, failed, completed,
                                memberattr, membertype, externalattr,
-                               normalize=True):
+                               normalize=True, reject_failures=False):
     """
     Takes the following arguments:
         failed - the list of failed entries, these are candidates for possible
@@ -477,8 +477,10 @@ def add_external_post_callback(ldap, dn, entry_attrs, failed, completed,
                 member_dn not in members):
                 # Not an IPA entry, only add if it has been marked
                 # as an external entry during the pre-callback validation
-                if not entry[1].startswith(EXTERNAL_OBJ_PREFIX):
-                    # Really a failure
+                # or if we are not asked to reject failures
+                if (reject_failures and not entry[1].startswith(
+                        EXTERNAL_OBJ_PREFIX)):
+
                     failed_entries.append(membername)
                     continue
                 if normalize:
