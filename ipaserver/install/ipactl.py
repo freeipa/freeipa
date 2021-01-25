@@ -306,7 +306,12 @@ def get_config(dirsrv):
     return deduplicate(ordered_list)
 
 
-def get_config_from_file():
+def get_config_from_file(rval):
+    """
+    Get the list of configured services from the cached file.
+
+    :param rval: The return value for any exception that is raised.
+    """
 
     svc_list = []
 
@@ -316,7 +321,8 @@ def get_config_from_file():
     except Exception as e:
         raise IpactlError(
             "Unknown error when retrieving list of services from file: %s"
-            % str(e)
+            % str(e),
+            4
         )
 
     # the framework can start/stop a number of related services we are not
@@ -427,7 +433,7 @@ def ipa_start(options):
 def ipa_stop(options):
     dirsrv = services.knownservices.dirsrv
     try:
-        svc_list = get_config_from_file()
+        svc_list = get_config_from_file(rval=4)
     except Exception as e:
         # Issue reading the file ? Let's try to get data from LDAP as a
         # fallback
@@ -509,7 +515,7 @@ def ipa_restart(options):
 
     old_svc_list = []
     try:
-        old_svc_list = get_config_from_file()
+        old_svc_list = get_config_from_file(rval=4)
     except Exception as e:
         emit_err("Failed to get service list from file: " + str(e))
         # fallback to what's in LDAP
@@ -629,13 +635,14 @@ def ipa_status(options):
 
        We only really care about 0, 3 and 4.
     """
+    socket_activated = ('ipa-ods-exporter', 'ipa-otpd',)
 
     try:
         dirsrv = services.knownservices.dirsrv
         if dirsrv.is_running():
             svc_list = get_config(dirsrv)
         else:
-            svc_list = get_config_from_file()
+            svc_list = get_config_from_file(rval=1)
     except IpactlError as e:
         if os.path.exists(tasks.get_svc_list_file()):
             raise e
@@ -647,12 +654,14 @@ def ipa_status(options):
             4
         )
 
+    stopped = 0
     dirsrv = services.knownservices.dirsrv
     try:
         if dirsrv.is_running():
             print("Directory Service: RUNNING")
         else:
             print("Directory Service: STOPPED")
+            stopped = 1
     except Exception as e:
         raise IpactlError("Failed to get Directory Service status", 4)
 
@@ -665,7 +674,6 @@ def ipa_status(options):
             3,
         )
 
-    stopped = 0
     for svc in svc_list:
         svchandle = services.service(svc, api=api)
         try:
@@ -673,7 +681,8 @@ def ipa_status(options):
                 print("%s Service: RUNNING" % svc)
             else:
                 print("%s Service: STOPPED" % svc)
-                stopped += 1
+                if svc not in socket_activated:
+                    stopped += 1
         except Exception:
             emit_err("Failed to get %s Service status" % svc)
 
