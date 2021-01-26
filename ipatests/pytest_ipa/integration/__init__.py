@@ -197,7 +197,8 @@ def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
             tmpname = cmd.stdout_text.strip()
             # Tar up the logs on the remote server
             cmd = host.run_command(
-                ['tar', 'cJvf', tmpname, '--ignore-failed-read'] + logs,
+                ['tar', 'cJvf', tmpname, '--ignore-failed-read',
+                 '--dereference'] + logs,
                 log_stdout=False, raiseonerr=False)
             if cmd.returncode:
                 logger.warning('Could not collect all requested logs')
