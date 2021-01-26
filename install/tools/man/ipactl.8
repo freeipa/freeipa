@@ -52,3 +52,30 @@ If any service start fails, do not rollback the services, continue with the oper
 .TP
 \fB\-f\fR, \fB\-\-force\fR
 Force IPA to start. Combine options --skip-version-check and --ignore-service-failures
+.SH "EXIT STATUS"
+
+All actions except status:
+
+0 success
+
+1 a generic error occurred
+
+2 unknown or invalid argument(s)
+
+4 user has insufficient privilege
+
+6 IPA server is not configured
+
+For the status action:
+
+0 service is running
+
+3 service is not running
+
+4 service status is unknown (or unconfigured)
+
+If not executed as root then the status action will return 4 for
+insufficient privileges.
+
+Some services are socket activated and may show as STOPPED by the status
+action. These services include ipa-ods-exporter and ipa-otpd.
