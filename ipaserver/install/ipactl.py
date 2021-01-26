@@ -613,6 +613,22 @@ def ipa_restart(options):
 
 
 def ipa_status(options):
+    """Report status of IPA-owned processes
+
+       The LSB defines the possible status values as:
+
+       0 program is running or service is OK
+       1 program is dead and /var/run pid file exists
+       2 program is dead and /var/lock lock file exists
+       3 program is not running
+       4 program or service status is unknown
+       5-99 reserved for future LSB use
+       100-149 reserved for distribution use
+       150-199 reserved for application use
+       200-254 reserved
+
+       We only really care about 0, 3 and 4.
+    """
 
     try:
         dirsrv = services.knownservices.dirsrv
@@ -627,7 +643,8 @@ def ipa_status(options):
             svc_list = []
     except Exception as e:
         raise IpactlError(
-            "Failed to get list of services to probe status: " + str(e)
+            "Failed to get list of services to probe status: " + str(e),
+            4
         )
 
     dirsrv = services.knownservices.dirsrv
@@ -636,19 +653,19 @@ def ipa_status(options):
             print("Directory Service: RUNNING")
         else:
             print("Directory Service: STOPPED")
-            if len(svc_list) == 0:
-                print(
-                    (
-                        "Directory Service must be running in order to "
-                        "obtain status of other services"
-                    )
-                )
     except Exception as e:
-        raise IpactlError("Failed to get Directory Service status")
+        raise IpactlError("Failed to get Directory Service status", 4)
 
     if len(svc_list) == 0:
-        return
+        raise IpactlError(
+            (
+                "Directory Service must be running in order to "
+                "obtain status of other services"
+            ),
+            3,
+        )
 
+    stopped = 0
     for svc in svc_list:
         svchandle = services.service(svc, api=api)
         try:
@@ -656,8 +673,12 @@ def ipa_status(options):
                 print("%s Service: RUNNING" % svc)
             else:
                 print("%s Service: STOPPED" % svc)
+                stopped += 1
         except Exception:
             emit_err("Failed to get %s Service status" % svc)
+
+    if stopped > 0:
+        raise IpactlError("%d service(s) are not running" % stopped, 3)
 
 
 def main():
