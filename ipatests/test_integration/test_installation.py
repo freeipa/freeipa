@@ -766,7 +766,8 @@ class TestInstallMaster(IntegrationTest):
         service_start = [
             svcs for svcs in ipa_services_name if svcs not in service_stop
         ]
-        cmd = self.master.run_command(['ipactl', 'status'])
+        cmd = self.master.run_command(['ipactl', 'status'], raiseonerr=False)
+        assert cmd.returncode == 3
         for service in service_start:
             assert f"{service} Service: RUNNING" in cmd.stdout_text
         for service in service_stop:
