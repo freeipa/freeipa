@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2020-12-23 16:29+0200\n"
+"POT-Creation-Date: 2021-01-27 10:31+0200\n"
 "PO-Revision-Date: 2020-10-26 03:15+0000\n"
 "Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.fedoraproject.org/projects/"
@@ -463,9 +463,6 @@ msgstr "Paksa host bergabung. Bergabung kembali bahkan jika sudah bergabung."
 
 msgid "Forwarders"
 msgstr "Forwarder"
-
-msgid "Gather data for a certificate signing request."
-msgstr "Mengumpulkan data untuk suatu permintaan penandatanganan sertifikat."
 
 #, python-format
 msgid "Group '%s' does not exist"
@@ -1205,3 +1202,7 @@ msgstr "vaultcontainers"
 #, python-brace-format
 msgid "{attr}: no such attribute"
 msgstr "{attr}: tidak ada atribut seperti itu"
+
+#~ msgid "Gather data for a certificate signing request."
+#~ msgstr ""
+#~ "Mengumpulkan data untuk suatu permintaan penandatanganan sertifikat."
