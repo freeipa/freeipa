@@ -22,6 +22,7 @@ Developers:
 	Ana Krivokapić
 	Andika Triwidada
 	Andrew Wnuk
+	Antonio Torres
 	Antonio Torres Moríñigo
 	Anuja More
 	Ariel O. Barria
@@ -79,6 +80,7 @@ Developers:
 	Jeremy Frasier
 	Jérôme Fenal
 	Jim Meyering
+	JoeDrane
 	John Dennis
 	John L
 	John Morris
