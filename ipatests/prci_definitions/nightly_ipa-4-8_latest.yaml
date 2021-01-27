@@ -1642,7 +1642,7 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
-  fedora-latest/test_cert_fix:
+  fedora-latest-ipa-4-8/test_cert_fix:
     requires: [fedora-latest-ipa-4-8/build]
     priority: 50
     job:
