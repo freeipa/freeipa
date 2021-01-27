@@ -33,7 +33,14 @@ class update_ra_cert_store(Updater):
         if not ca_enabled:
             return False, []
 
-        certdb = NSSDatabase(nssdir=paths.HTTPD_ALIAS_DIR)
+        try:
+            certdb = NSSDatabase(nssdir=paths.HTTPD_ALIAS_DIR)
+        except ValueError as e:
+            logger.warning("Problem opening NSS database in "
+                           "%s. Skipping check for existing RA "
+                           "agent certificate: %s", paths.HTTPD_ALIAS_DIR, e)
+            return False, []
+
         if not certdb.has_nickname(ra_nick):
             # Nothign to do
             return False, []
