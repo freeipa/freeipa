@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2021-01-27 10:31+0200\n"
+"POT-Creation-Date: 2021-01-27 10:47+0200\n"
 "PO-Revision-Date: 2021-01-27 07:52+0000\n"
 "Last-Translator: Alexander Bokovoy <abokovoy@redhat.com>\n"
 "Language-Team: German <https://translate.fedoraproject.org/projects/freeipa/"
@@ -3644,6 +3644,9 @@ msgstr "TOTP Sychnronisierungsfenster"
 msgid "TOTP authentication Window"
 msgstr "TOTP Authentifizierungsfenster"
 
+msgid "TOTP token / IPA server time difference"
+msgstr "Differenz zwischen Token und Serverzeit"
+
 msgid "Target"
 msgstr "Ziel"
 
@@ -4622,6 +4625,3 @@ msgstr "Benutzer und Host können nicht gleichzeitig gesetzt sein."
 
 msgid "users cannot be set when type is 'hostgroup'"
 msgstr "users kann nicht gesetzt sein wenn Typ 'hostgroup' ist"
-
-#~ msgid "TOTP token / FreeIPA server time difference"
-#~ msgstr "Differenz zwischen Token und Serverzeit"
