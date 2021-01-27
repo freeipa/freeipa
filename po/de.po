@@ -3644,9 +3644,6 @@ msgstr "TOTP Sychnronisierungsfenster"
 msgid "TOTP authentication Window"
 msgstr "TOTP Authentifizierungsfenster"
 
-msgid "TOTP token / IPA server time difference"
-msgstr "Differenz zwischen Token und Serverzeit"
-
 msgid "Target"
 msgstr "Ziel"
 
@@ -4625,3 +4622,6 @@ msgstr "Benutzer und Host können nicht gleichzeitig gesetzt sein."
 
 msgid "users cannot be set when type is 'hostgroup'"
 msgstr "users kann nicht gesetzt sein wenn Typ 'hostgroup' ist"
+
+#~ msgid "TOTP token / FreeIPA server time difference"
+#~ msgstr "Differenz zwischen Token und Serverzeit"
