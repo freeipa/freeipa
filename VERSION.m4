@@ -49,7 +49,7 @@ define(IPA_VERSION_PRE_RELEASE,)
 # This option works only with GNU m4:                  #
 # it requires esyscmd m4 macro.                        #
 ########################################################
-define(IPA_VERSION_IS_GIT_SNAPSHOT, yes)
+define(IPA_VERSION_IS_GIT_SNAPSHOT, no)
 
 ########################################################
 # git development branch:                              #
