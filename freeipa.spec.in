@@ -776,6 +776,7 @@ Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ipaserver = %{version}-%{release}
 Requires: iptables
 Requires: ldns-utils
+Requires: crypto-policies-scripts
 Requires: python3-coverage
 Requires: python3-cryptography >= 1.6
 Requires: python3-pexpect
