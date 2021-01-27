@@ -265,7 +265,8 @@ class NSSDatabase:
 
         if dbtype == "dbm" and not nss_supports_dbm():
             raise ValueError(
-                "NSS is built without support of the legacy database(DBM)"
+                f"NSS is built without support of the legacy database(DBM) "
+                f"directory '{nssdir}'",
             )
 
         if nssdir is None:
