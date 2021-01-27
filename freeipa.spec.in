@@ -861,6 +861,8 @@ Requires: python3-pexpect
 # These packages do not exist on RHEL and for ipatests use
 # they are installed on the controller through other means
 Requires: ldns-utils
+# update-crypto-policies
+Requires: crypto-policies-scripts
 Requires: python3-polib
 Requires: python3-pytest >= 3.9.1
 Requires: python3-pytest-multihost >= 0.5
