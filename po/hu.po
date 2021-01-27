@@ -1,22 +1,22 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Red Hat
 # This file is distributed under the same license as the freeipa package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# Thomas Dombradi <ddt@atomki.hu>, 2021.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2020-12-23 16:29+0200\n"
-"PO-Revision-Date: 2019-11-11 10:25+0000\n"
-"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
-"Language-Team: Hungarian\n"
+"POT-Creation-Date: 2021-01-27 10:31+0200\n"
+"PO-Revision-Date: 2021-01-04 18:36+0000\n"
+"Last-Translator: Thomas Dombradi <ddt@atomki.hu>\n"
+"Language-Team: Hungarian <https://translate.fedoraproject.org/projects/"
+"freeipa/master/hu/>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"X-Generator: Zanata 4.6.2\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.4\n"
 
 msgid "A group may not be a member of itself"
 msgstr "Egy csoport nem lehet tagja önmagának"
@@ -101,6 +101,10 @@ msgstr "Megőrzött jelszavak (darab)"
 msgid "Passwords do not match"
 msgstr "A jelszavak nem egyeznek meg"
 
+#, c-format
+msgid "Passwords do not match!\n"
+msgstr "A jelszavak nem egyeznek!\n"
+
 msgid "Permissions"
 msgstr "Jogosultságok"
 
@@ -142,6 +146,9 @@ msgstr "Szolgáltatások"
 
 msgid "Subject"
 msgstr "Tárgy"
+
+msgid "Target group"
+msgstr "Célcsoport"
 
 msgid "The default users group cannot be removed"
 msgstr "Az alapértelmezett csoport nem távolítható el"
