@@ -76,8 +76,8 @@ def test_dbm_raise():
     with pytest.raises(ValueError) as e:
         NSSDatabase(dbtype="dbm")
     assert (
-        str(e.value) == "NSS is built without support of the legacy "
-        "database(DBM)"
+        "NSS is built without support of the legacy database(DBM)"
+        in str(e.value)
     )
 
 
