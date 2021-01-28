@@ -9,3 +9,5 @@ enabled=false
 
 # Whether to accept wildcard DNS identifiers:
 policy.wildcard=false
+
+baseURL=https://$FQDN/acme
