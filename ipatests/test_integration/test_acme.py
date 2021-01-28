@@ -111,16 +111,15 @@ class TestACME(CALessBase):
     @classmethod
     def prepare_acme_client(cls):
         repo_file = textwrap.dedent("""
-            [copr:copr.fedorainfracloud.org:group_pki:10.10]
-            name=Copr repo for 10.10 owned by @pki
-            baseurl=https://download.copr.fedorainfracloud.org/results/@pki/10.10/fedora-$releasever-$basearch/
+            [copr:copr.fedorainfracloud.org:edewata:acme]
+            name=Copr repo for acme owned by edewata
+            baseurl=https://download.copr.fedorainfracloud.org/results/edewata/acme/fedora-$releasever-$basearch/
             type=rpm-md
             skip_if_unavailable=True
             gpgcheck=1
-            gpgkey=https://download.copr.fedorainfracloud.org/results/@pki/10.10/pubkey.gpg
+            gpgkey=https://download.copr.fedorainfracloud.org/results/edewata/acme/pubkey.gpg
             repo_gpgcheck=0
             enabled=1
-            enabled_metadata=1
         """)
         for host in (cls.master, cls.replicas[0]):
             host.put_file_contents('/etc/yum.repos.d/dogtag.repo',
