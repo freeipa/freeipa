@@ -1077,16 +1077,19 @@ def check_available_memory(ca=False):
     if not ca:
         minimum_suggested -= 150 * 1000 * 1000
     if in_container():
+        logger.debug("container detected")
         # cgroup v1
         if os.path.exists(
             '/sys/fs/cgroup/memory/memory.limit_in_bytes'
         ) and os.path.exists('/sys/fs/cgroup/memory/memory.usage_in_bytes'):
+            logger.debug("cgroup v1")
             limit_file = '/sys/fs/cgroup/memory/memory.limit_in_bytes'
             usage_file = '/sys/fs/cgroup/memory/memory.usage_in_bytes'
         # cgroup v2
         elif os.path.exists(
             '/sys/fs/cgroup/memory.current'
         ) and os.path.exists('/sys/fs/cgroup/memory.max'):
+            logger.debug("cgroup v2")
             limit_file = '/sys/fs/cgroup/memory.max'
             usage_file = '/sys/fs/cgroup/memory.current'
         else:
@@ -1105,11 +1108,14 @@ def check_available_memory(ca=False):
         if limit != 'max':
             available = int(limit) - used
 
+        logger.debug("Max RAM %s, used RAM %s", limit, used)
+
     if available is None:
         # delay import of psutil. On import it opens files in /proc and
         # can trigger a SELinux violation.
         import psutil
         available = psutil.virtual_memory().available
+        logger.debug(psutil.virtual_memory())
 
     if available is None:
         raise ScriptError(
