@@ -1677,3 +1677,16 @@ jobs:
         template: *ci-ipa-4-9-previous
         timeout: 3600
         topology: *master_1repl
+
+  fedora-previous-ipa-4-9/test_uninstall:
+    requires: [fedora-previous-ipa-4-9/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous-ipa-4-9/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_uninstall.py
+        template: *ci-ipa-4-9-previous
+        timeout: 3600
+        topology: *master_1repl
