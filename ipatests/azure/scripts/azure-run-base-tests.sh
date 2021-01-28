@@ -85,6 +85,7 @@ if [ "$install_result" -eq 0 ] ; then
         --logging-level=debug \
         --logfile-dir="$IPA_TESTS_LOGSDIR" \
         --verbose \
+        -ra \
         --with-xunit \
         $IPA_TESTS_ARGS \
         $IPA_TESTS_TO_IGNORE \
