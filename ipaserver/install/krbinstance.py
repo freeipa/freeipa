@@ -451,7 +451,7 @@ class KrbInstance(service.Service):
                 subject=subject,
                 principal=krbtgt,
                 ca=certmonger_ca,
-                dns=self.fqdn,
+                dns=[self.fqdn],
                 storage='FILE',
                 profile=KDC_PROFILE,
                 post_command='renew_kdc_cert',
