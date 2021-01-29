@@ -119,3 +119,20 @@ class TestUninstallBase(IntegrationTest):
             self.master.run_command([
                 paths.DSCTL, serverid, 'remove', '--do-it'
             ])
+
+
+class TestUninstallWithoutDNS(IntegrationTest):
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=False)
+
+    def test_uninstall_server_without_dns(self):
+        """Test if server setup without dns uninstall properly
+
+        IPA server uninstall was failing if dns was not setup.
+        This test check if it uninstalls properly.
+
+        related: https://pagure.io/freeipa/issue/8630
+        """
+        tasks.uninstall_master(self.master)
