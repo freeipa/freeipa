@@ -105,7 +105,7 @@ class TestACME(CALessBase):
         * Other clients or service scenarios
 
     """
-    num_replicas = 1
+    num_replicas = 2
     num_clients = 1
 
     @classmethod
@@ -121,7 +121,7 @@ class TestACME(CALessBase):
             repo_gpgcheck=0
             enabled=1
         """)
-        for host in (cls.master, cls.replicas[0]):
+        for host in (cls.master, cls.replicas[0], cls.replicas[1]):
             host.put_file_contents('/etc/yum.repos.d/dogtag.repo',
                                    repo_file)
             host.run_command(['dnf', '-y', 'update', 'pki-acme'])
@@ -156,6 +156,10 @@ class TestACME(CALessBase):
         tasks.install_replica(cls.master, cls.replicas[0])
         tasks.config_host_resolvconf_with_master_data(
             cls.master, cls.replicas[0]
+        )
+        tasks.install_replica(cls.master, cls.replicas[1])
+        tasks.config_host_resolvconf_with_master_data(
+            cls.master, cls.replicas[1]
         )
 
     def certinstall(self, certfile=None, keyfile=None,
@@ -444,7 +448,7 @@ class TestACME(CALessBase):
                     reason="does not provide ACME")
 class TestACMECALess(IntegrationTest):
     """Test to check the CA less replica setup"""
-    num_replicas = 1
+    num_replicas = 2
     num_clients = 0
 
     @pytest.fixture
@@ -452,13 +456,17 @@ class TestACMECALess(IntegrationTest):
         tasks.install_master(self.master, setup_dns=True)
 
         tasks.install_replica(self.master, self.replicas[0], setup_ca=False)
+        tasks.install_replica(self.master, self.replicas[1], setup_ca=False)
         tasks.config_host_resolvconf_with_master_data(
             self.master, self.replicas[0]
         )
+        tasks.config_host_resolvconf_with_master_data(
+            self.master, self.replicas[1])
 
         yield
 
         tasks.uninstall_replica(self.master, self.replicas[0])
+        tasks.uninstall_replica(self.master, self.replicas[1])
         tasks.uninstall_master(self.master)
 
     def test_caless_to_cafull_replica(self, test_setup_teardown):
@@ -477,17 +485,23 @@ class TestACMECALess(IntegrationTest):
         status = check_acme_status(self.master, 'enabled')
         assert status == 'enabled'
 
-        tasks.kinit_admin(self.replicas[0])
-        # check status of acme on replica, result: CA is not installed
-        result = self.replicas[0].run_command(['ipa-acme-manage', 'status'],
-                                              raiseonerr=False)
-        assert result.returncode == 3
+        for host in (self.replicas[0], self.replicas[1]):
+            tasks.kinit_admin(host)
+            # check status of acme on replica, result: CA is not installed
+            result = host.run_command(['ipa-acme-manage', 'status'],
+                                      raiseonerr=False)
+            assert result.returncode == 3
 
         # Install CA on replica
         tasks.install_ca(self.replicas[0])
+        tasks.install_ca(self.replicas[1])
 
         # check acme status, should be enabled now
         status = check_acme_status(self.replicas[0], 'enabled')
+        assert status == 'enabled'
+
+        # check acme status, should be enabled now
+        status = check_acme_status(self.replicas[1], 'enabled')
         assert status == 'enabled'
 
         # disable acme on replica
@@ -520,6 +534,7 @@ class TestACMECALess(IntegrationTest):
 
         # Install CA on replica
         tasks.install_ca(self.replicas[0])
+        tasks.install_ca(self.replicas[1])
 
         # check acme status on replica, should not throw error
         status = check_acme_status(self.replicas[0], 'disabled')
@@ -547,7 +562,7 @@ class TestACMECALess(IntegrationTest):
 class TestACMEwithExternalCA(TestACME):
     """Test the FreeIPA ACME service with external CA"""
 
-    num_replicas = 1
+    num_replicas = 2
     num_clients = 1
 
     @classmethod
