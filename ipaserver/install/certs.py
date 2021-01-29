@@ -663,6 +663,7 @@ class CertDB:
             nickname=nickname,
             principal=principal,
             subject=host,
+            dns=[host],
             passwd_fname=self.passwd_fname,
             resubmit_timeout=resubmit_timeout
         )
