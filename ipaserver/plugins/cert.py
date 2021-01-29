@@ -873,7 +873,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             "with subject alt name '%s'.") % name)
                 if not bypass_caacl:
                     if principal_type == KRBTGT:
-                        ca_kdc_check(ldap, alt_principal.hostname)
+                        ca_kdc_check(self.api, alt_principal.hostname)
                     else:
                         caacl_check(alt_principal, ca, profile_id)
 
