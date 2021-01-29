@@ -70,8 +70,8 @@ jobs:
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_acme.py
         template: *ci-master-latest
-        timeout: 7200
-        topology: *master_1repl_1client
+        timeout: 10800
+        topology: *master_2repl_1client
 
   fedora-latest/temp_commit_2:
     requires: [fedora-latest/build]
@@ -82,8 +82,8 @@ jobs:
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_acme.py
         template: *ci-master-latest
-        timeout: 7200
-        topology: *master_1repl_1client
+        timeout: 10800
+        topology: *master_2repl_1client
 
   fedora-latest/temp_commit_3:
     requires: [fedora-latest/build]
@@ -94,8 +94,8 @@ jobs:
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_acme.py
         template: *ci-master-latest
-        timeout: 7200
-        topology: *master_1repl_1client
+        timeout: 10800
+        topology: *master_2repl_1client
 
   fedora-latest/temp_commit_4:
     requires: [fedora-latest/build]
@@ -106,8 +106,8 @@ jobs:
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_acme.py
         template: *ci-master-latest
-        timeout: 7200
-        topology: *master_1repl_1client
+        timeout: 10800
+        topology: *master_2repl_1client
 
   fedora-latest/temp_commit_5:
     requires: [fedora-latest/build]
@@ -118,5 +118,5 @@ jobs:
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_acme.py
         template: *ci-master-latest
-        timeout: 7200
-        topology: *master_1repl_1client
+        timeout: 10800
+        topology: *master_2repl_1client
