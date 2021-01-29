@@ -46,6 +46,10 @@ def check_pkinit_cert_issuer(host, issuer):
     pkinit_cert = x509.load_pem_x509_certificate(data)
     # Make sure that the issuer is the expected one
     assert DN(pkinit_cert.issuer) == DN(issuer)
+    # KDC cert must have SAN for KDC hostname
+    assert host.hostname in pkinit_cert.san_a_label_dns_names
+    # at least three SANs, profile adds UPN and KRB principal name
+    assert len(pkinit_cert.san_general_names) >= 3
 
 
 def check_pkinit(host, enabled=True):

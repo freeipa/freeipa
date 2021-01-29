@@ -450,7 +450,9 @@ def request_cert(
         request_parameters["KEY_NICKNAME"] = nickname
     if principal:
         request_parameters['PRINCIPAL'] = [principal]
-    if dns is not None and len(dns) > 0:
+    if dns:
+        if not isinstance(dns, (list, tuple)):
+            raise TypeError(dns)
         request_parameters['DNS'] = dns
     if passwd_fname:
         request_parameters['KEY_PIN_FILE'] = passwd_fname
