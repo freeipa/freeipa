@@ -3438,7 +3438,7 @@ static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 		goto fn_exit;
 	}
 
-	domain = talloc_strdup(tmp_ctx, ipasam_state->domain_name);
+	domain = talloc_strdup(tmp_ctx, ipasam_state->flat_name);
 	if (!domain) {
 		goto fn_exit;
 	}
