@@ -1503,11 +1503,41 @@ def wait_for_cleanallruv_tasks(ldap, timeout=30):
                 logger.debug('%s status: %s', e.dn, stat_str)
 
 
+def check_host_resolvable(master, host):
+    """Check if host's hostname is resolvable on the master
+
+    :param master: master host object
+    :param host: host object
+    :return: list of IP address strings
+    :raises: DNSNotARecordError on error
+    """
+    result = master.run_command(
+        ['dig', '+short', host.hostname],
+        raiseonerr=False
+    )
+    output = result.stdout_text.strip()
+    if result.returncode or not output:
+        # dig signals NXDOMAIN with error code 0 and empty output
+        raise errors.DNSNotARecordError(hostname=host.hostname)
+    return output.split()
+
+
 def add_a_records_for_hosts_in_master_domain(master):
     for host in master.domain.hosts:
         # We don't need to take care of the zone creation since it is master
         # domain
-        add_a_record(master, host)
+        try:
+            addresses = check_host_resolvable(master, host)
+        except errors.DNSNotARecordError:
+            logger.warning(
+                "Hostname (%s) does not have A/AAAA record. Adding new one.",
+                host.hostname
+            )
+            add_a_record(master, host)
+        else:
+            logger.info(
+                "The host (%s) is resolvable: %s", host.hostname, addresses
+            )
 
 
 def add_a_record(master, host):

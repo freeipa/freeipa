@@ -109,7 +109,10 @@ def json_serialize(obj):
 
 def verify_host_resolvable(fqdn):
     try:
-        if not resolve_ip_addresses(fqdn):
+        addresses = resolve_ip_addresses(fqdn)
+        if addresses:
+            return addresses
+        else:
             raise errors.DNSNotARecordError(hostname=fqdn)
     except dns.exception.DNSException as ex:
         # wrap DNSException in a PublicError
