@@ -8,10 +8,14 @@ Module provides tests for ipa-cert-fix CLI.
 import pytest
 import time
 
+import logging
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
+
+
+logger = logging.getLogger(__name__)
 
 
 def server_install_teardown(func):
@@ -22,6 +26,26 @@ def server_install_teardown(func):
         finally:
             ipa_certs_cleanup(master)
     return wrapped
+
+
+def check_status(host, cert_count, state, timeout=600):
+    """Helper method to check that if all the certs are in given state
+    :param host: the host
+    :param cert_count: no of cert to look for
+    :param state: state to check for
+    :param timeout: max time in seconds to wait for the state
+    """
+    for _i in range(0, timeout, 10):
+        result = host.run_command(['getcert', 'list'])
+        count = result.stdout_text.count(f"status: {state}")
+        logger.info("cert count in %s state : %s", state, count)
+        if int(count) == cert_count:
+            break
+        time.sleep(10)
+    else:
+        raise RuntimeError("request timed out")
+
+    return count
 
 
 class TestIpaCertFix(IntegrationTest):
@@ -105,6 +129,42 @@ class TestIpaCertFix(IntegrationTest):
             else:
                 # timeout
                 raise AssertionError('Timeout: Failed to renew all the certs')
+
+    def test_renew_expired_cert_on_master(self, expire_cert_critical):
+        """Test if ipa-cert-fix renews expired certs
+
+        Test moves system date to expire certs. Then calls ipa-cert-fix
+        to renew them. This certs include subsystem, audit-signing,
+        OCSP signing, Dogtag HTTPS, IPA RA agent, LDAP and KDC certs.
+
+        related: https://pagure.io/freeipa/issue/7885
+        """
+        # wait for cert expiry
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+
+        check_status(self.master, 9, "MONITORING")
+
+        # second iteration of ipa-cert-fix
+        result = self.master.run_command(
+            ['ipa-cert-fix', '-v'],
+            stdin_text='yes\n'
+        )
+        assert "Nothing to do" in result.stdout_text
+        check_status(self.master, 9, "MONITORING")
+
+    def test_ipa_cert_fix_non_ipa(self):
+        """Test ipa-cert-fix doesn't work on non ipa system
+
+        ipa-cert-fix tool should not work on non ipa system.
+
+        related: https://pagure.io/freeipa/issue/7885
+        """
+        result = self.master.run_command(['ipa-cert-fix', '-v'],
+                                         stdin_text='yes\n',
+                                         raiseonerr=False)
+        assert result.returncode == 2
 
 
 class TestIpaCertFixThirdParty(CALessBase):
