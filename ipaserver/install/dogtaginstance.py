@@ -294,7 +294,7 @@ class DogtagInstance(service.Service):
             logger.critical("failed to uninstall %s instance %s",
                             self.subsystem, e)
 
-    def __is_newer_tomcat_version(self, default=None):
+    def _is_newer_tomcat_version(self, default=None):
         try:
             result = ipautil.run([paths.BIN_TOMCAT, "version"],
                                  capture_output=True)
@@ -335,7 +335,7 @@ class DogtagInstance(service.Service):
         # 9.0.31.0 or later uses 'secret'
         secretattr = 'requiredSecret'
         oldattr = 'requiredSecret'
-        if self.__is_newer_tomcat_version('9.0.31.0'):
+        if self._is_newer_tomcat_version('9.0.31.0'):
             secretattr = 'secret'
 
         # AJP protocol is at version 1.3. With IPv4/IPv6 split, there might
