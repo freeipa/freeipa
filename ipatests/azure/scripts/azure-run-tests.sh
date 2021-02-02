@@ -52,6 +52,28 @@ if [ "$IPA_TESTS_TYPE" == "base" ]; then
     IPA_TESTS_REPLICAS="0"
 fi
 
+function compose_execute() {
+    # execute given command within every container of compose
+
+    local containers="${PROJECT_ID}_master_1"
+    # build list of replicas
+    for i in $(seq 1 1 "$IPA_TESTS_REPLICAS"); do
+        containers+=" ${PROJECT_ID}_replica_${i}"
+    done
+    # build list of clients
+    for i in $(seq 1 1 "$IPA_TESTS_CLIENTS"); do
+        containers+=" ${PROJECT_ID}_client_${i}"
+    done
+
+    for container in $containers; do
+        docker exec -t \
+            "$container" \
+            "$@" \
+        2>&1 | \
+        sed "s/.*/$container: &/"
+    done
+}
+
 project_dir="${IPA_TESTS_ENV_WORKING_DIR}/${IPA_TESTS_ENV_NAME}"
 ln -sfr \
     "${IPA_TESTS_DOCKERFILES}/docker-compose.yml" \
@@ -103,6 +125,21 @@ tests_result=1
     "$IPA_TESTS_CONTROLLER" \
     /bin/bash --noprofile --norc \
     -eux "$tests_runner" && tests_result=0 ; } || tests_result=$?
+
+echo "Report disk usage"
+compose_execute df -h
+
+echo "Report memory statistics"
+files="
+/sys/fs/cgroup/memory/memory.memsw.failcnt
+/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes
+/sys/fs/cgroup/memory/memory.memsw.max_usage_in_bytes
+/sys/fs/cgroup/memory/memory.failcnt
+/sys/fs/cgroup/memory/memory.max_usage_in_bytes
+/sys/fs/cgroup/memory/memory.limit_in_bytes
+/proc/sys/vm/swappiness
+"
+compose_execute head -n 1 $files
 
 pushd "$project_dir"
 BUILD_REPOSITORY_LOCALPATH="$BUILD_REPOSITORY_LOCALPATH" \
