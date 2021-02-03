@@ -105,6 +105,7 @@ disable=
     f-string-without-interpolation,  # pylint 2.5.0, bare f-strings are ok
     super-with-arguments,  # pylint 2.6.0, zero-length form is syntactic sugar
     raise-missing-from,  # pylint 2.6.0, implicit exception chaining is ok
+    signature-differs,  # https://github.com/PyCQA/pylint/issues/3737
 
 [REPORTS]
 
