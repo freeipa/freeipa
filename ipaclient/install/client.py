@@ -2077,9 +2077,11 @@ def purge_host_keytab(realm):
             '-k', paths.KRB5_KEYTAB, '-r', realm
         ])
     except CalledProcessError as e:
-        if e.returncode not in (3, 5):
+        if e.returncode not in (3, 5, 7):
             # 3 - Unable to open keytab
             # 5 - Principal name or realm not found in keytab
+            # 7 - Failed to set cursor, typically when errcode
+            #     would be issued in past
             logger.error(
                 "Error trying to clean keytab: "
                 "/usr/sbin/ipa-rmkeytab returned %s", e.returncode)
