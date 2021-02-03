@@ -107,18 +107,44 @@ class IpaTestExpect(pexpect.spawn):
         logger.debug('Sending %r', s)
         return super().send(s)
 
-    def expect_list(self, pattern_list, *args, **kwargs):
+    def expect_list(
+        self,
+        pattern_list,
+        timeout=-1,
+        searchwindowsize=-1,
+        async_=False,
+        **kw
+    ):
         """Wrapper to provide logging output string and expected patterns"""
         try:
-            result = super().expect_list(pattern_list, *args, **kwargs)
+            result = super().expect_list(
+                pattern_list,
+                timeout=timeout,
+                searchwindowsize=searchwindowsize,
+                async_=async_,
+                **kw
+            )
         finally:
             self._log_output(pattern_list)
         return result
 
-    def expect_exact(self, pattern_list, *args, **kwargs):
+    def expect_exact(
+        self,
+        pattern_list,
+        timeout=-1,
+        searchwindowsize=-1,
+        async_=False,
+        **kw
+    ):
         """Wrapper to provide logging output string and expected patterns"""
         try:
-            result = super().expect_exact(pattern_list, *args, **kwargs)
+            result = super().expect_exact(
+                pattern_list,
+                timeout=timeout,
+                searchwindowsize=searchwindowsize,
+                async_=async_,
+                **kw
+            )
         finally:
             self._log_output(pattern_list)
         return result

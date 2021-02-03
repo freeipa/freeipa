@@ -73,10 +73,14 @@ if __name__ == '__main__':
             "pytest_multihost",
             "python-ldap",
             "six",
-            "pexpect",
         ],
         extras_require={
-            "integration": ["dbus-python", "pyyaml", "ipaserver"],
+            "integration": [
+                "dbus-python",
+                "pexpect",
+                "pyyaml",
+                "ipaserver",
+            ],
             "ipaserver": ["ipaserver"],
             "webui": ["selenium", "pyyaml", "ipaserver"],
             "xmlrpc": ["ipaserver"],
