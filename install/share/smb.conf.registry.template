@@ -5,6 +5,7 @@ realm = $REALM
 kerberos method = dedicated keytab
 dedicated keytab file = /etc/samba/samba.keytab
 create krb5 conf = no
+server role = CLASSIC PRIMARY DOMAIN CONTROLLER
 security = user
 domain master = yes
 domain logons = yes
