@@ -203,9 +203,12 @@ def expired_ipa_certs(now):
         certs.append((IPACertType.HTTPS, cert))
 
     # LDAPS
-    ds_dbdir = dsinstance.config_dirname(realm_to_serverid(api.env.realm))
+    serverid = realm_to_serverid(api.env.realm)
+    ds = dsinstance.DsInstance(realm_name=api.env.realm)
+    ds_dbdir = dsinstance.config_dirname(serverid)
+    ds_nickname = ds.get_server_cert_nickname(serverid)
     db = NSSDatabase(nssdir=ds_dbdir)
-    cert = db.get_cert('Server-Cert')
+    cert = db.get_cert(ds_nickname)
     if cert.not_valid_after <= now:
         certs.append((IPACertType.LDAPS, cert))
 
@@ -344,11 +347,13 @@ def install_ipa_certs(subject_base, ca_subject_dn, certs):
         elif certtype is IPACertType.HTTPS:
             shutil.copyfile(cert_path, paths.HTTPD_CERT_FILE)
         elif certtype is IPACertType.LDAPS:
-            ds_dbdir = dsinstance.config_dirname(
-                realm_to_serverid(api.env.realm))
+            serverid = realm_to_serverid(api.env.realm)
+            ds = dsinstance.DsInstance(realm_name=api.env.realm)
+            ds_dbdir = dsinstance.config_dirname(serverid)
             db = NSSDatabase(nssdir=ds_dbdir)
-            db.delete_cert('Server-Cert')
-            db.import_pem_cert('Server-Cert', EMPTY_TRUST_FLAGS, cert_path)
+            ds_nickname = ds.get_server_cert_nickname(serverid)
+            db.delete_cert(ds_nickname)
+            db.import_pem_cert(ds_nickname, EMPTY_TRUST_FLAGS, cert_path)
         elif certtype is IPACertType.KDC:
             shutil.copyfile(cert_path, paths.KDC_CERT)
 
