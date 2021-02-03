@@ -341,19 +341,33 @@ AC_ARG_WITH([ipaplatform],
 	    [IPAPLATFORM=""])
 AC_MSG_CHECKING([supported IPA platform])
 
-if test "x${IPAPLATFORM}" == "x"; then
+if test "x${IPAPLATFORM}" != "x"; then
+	if test ! -d "${srcdir}/ipaplatform/${IPAPLATFORM}"; then
+		AC_MSG_ERROR([IPA platform ${IPAPLATFORM} is not supported])
+	fi
+else
+	dnl auto-detect, read ID and ID_LIKE from /etc/os-release
 	if test -r "/etc/os-release"; then
-		IPAPLATFORM=$(. /etc/os-release; echo "$ID")
+		platform_ids=$(source /etc/os-release; echo "$ID $ID_LIKE")
 	else
 		AC_MSG_ERROR([unable to read /etc/os-release])
 	fi
-	if test "x${IPAPLATFORM}" == "x"; then
+	if test "x${platform_ids}" == "x"; then
 		AC_MSG_ERROR([unable to find ID variable in /etc/os-release])
 	fi
-fi
 
-if test ! -d "${srcdir}/ipaplatform/${IPAPLATFORM}"; then
-	AC_MSG_ERROR([IPA platform ${IPAPLATFORM} is not supported])
+	dnl find first available platform from ID and ID_LIKE
+	for platform in ${platform_ids}; do
+		if test -d "${srcdir}/ipaplatform/${platform}"; then
+			IPAPLATFORM=${platform}
+			break
+		fi
+	done
+
+	dnl Did we find a supported platform?
+	if test "x${IPAPLATFORM}" == "x"; then
+		AC_MSG_ERROR([IPA platforms ${platform_ids} are not supported])
+	fi
 fi
 
 AC_SUBST([IPAPLATFORM])
@@ -657,6 +671,7 @@ echo "
                     ========================
 
         vendor version:           ${VERSION}${VENDOR_SUFFIX}
+        ipaplatform:              ipaplatform.${IPAPLATFORM}
         prefix:                   ${prefix}
         exec_prefix:              ${exec_prefix}
         libdir:                   ${libdir}
