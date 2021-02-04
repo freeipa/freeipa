@@ -11,6 +11,17 @@ import time
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
+
+
+def server_install_teardown(func):
+    def wrapped(*args):
+        master = args[0].master
+        try:
+            func(*args)
+        finally:
+            ipa_certs_cleanup(master)
+    return wrapped
 
 
 class TestIpaCertFix(IntegrationTest):
@@ -94,3 +105,49 @@ class TestIpaCertFix(IntegrationTest):
             else:
                 # timeout
                 raise AssertionError('Timeout: Failed to renew all the certs')
+
+
+class TestIpaCertFixThirdParty(CALessBase):
+    """
+    Test that ipa-cert-fix works with an installation with custom certs.
+    """
+
+    @classmethod
+    def install(cls, mh):
+        cls.nickname = 'ca1/server'
+
+        super(TestIpaCertFixThirdParty, cls).install(mh)
+        tasks.install_master(cls.master, setup_dns=True)
+
+    @server_install_teardown
+    def test_third_party_certs(self):
+        self.create_pkcs12(self.nickname,
+                           password=self.cert_password,
+                           filename='server.p12')
+        self.prepare_cacert('ca1')
+
+        # We have a chain length of one. If this is extended then the
+        # additional cert names will need to be calculated.
+        nick_chain = self.nickname.split('/')
+        ca_cert = '%s.crt' % nick_chain[0]
+
+        # Add the CA to the IPA store
+        self.copy_cert(self.master, ca_cert)
+        self.master.run_command(['ipa-cacert-manage', 'install', ca_cert])
+
+        # Apply the new cert chain otherwise ipa-server-certinstall will fail
+        self.master.run_command(['ipa-certupdate'])
+
+        # Install the updated certs and restart the world
+        self.copy_cert(self.master, 'server.p12')
+        args = ['ipa-server-certinstall',
+                '-p', self.master.config.dirman_password,
+                '--pin', self.master.config.admin_password,
+                '-d', 'server.p12']
+        self.master.run_command(args)
+        self.master.run_command(['ipactl', 'restart',])
+
+        # Run ipa-cert-fix. This is basically a no-op but tests that
+        # the DS nickname is used and not a hardcoded value.
+        result = self.master.run_command(['ipa-cert-fix', '-v'],)
+        assert self.nickname in result.stderr_text
