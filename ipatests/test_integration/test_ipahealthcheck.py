@@ -1583,7 +1583,7 @@ def modify_permissions():
         if 'host' not in state:
             state['host'] = host
         if path not in state:
-            cmd = ["/usr/bin/stat", "-c", "%U:%G:%a", path]
+            cmd = ["/usr/bin/stat", "-L", "-c", "%U:%G:%a", path]
             result = host.run_command(cmd)
             state[path] = result.stdout_text.strip()
         if owner is not None:
