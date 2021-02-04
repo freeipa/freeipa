@@ -278,6 +278,7 @@ class test_hostgroup(UI_driver):
         assert hostgroup.DESCRIPTION_ERROR_DIALOG in \
             self.get_last_error_dialog().text
         self.dialog_button_click('cancel')
+        self.wait(0.6)  # wait for modal dialog to appear
         self.dialog_button_click('cancel')
 
         # duplicate
