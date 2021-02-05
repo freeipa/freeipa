@@ -75,18 +75,6 @@ PKG_CHECK_MODULES([KRB5], [krb5])
 PKG_CHECK_MODULES([KRB5_GSSAPI], [krb5-gssapi])
 
 AC_CHECK_HEADER(kdb.h, [], [AC_MSG_ERROR([kdb.h not found])])
-AC_CHECK_MEMBER(
-	[kdb_vftabl.free_principal],
-	[AC_DEFINE([HAVE_KDB_FREEPRINCIPAL], [1],
-		   [KDB driver API has free_principal callback])],
-	[AC_MSG_NOTICE([KDB driver API has no free_principal callback])],
-	[[#include <kdb.h>]])
-AC_CHECK_MEMBER(
-	[kdb_vftabl.free_principal_e_data],
-	[AC_DEFINE([HAVE_KDB_FREEPRINCIPAL_EDATA], [1],
-		   [KDB driver API has free_principal_e_data callback])],
-	[AC_MSG_NOTICE([KDB driver API has no free_principal_e_data callback])],
-	[[#include <kdb.h>]])
 
 if test "x$ac_cv_member_kdb_vftabl_free_principal" = "xno" \
 	-a "x$ac_cv_member_kdb_vftable_free_principal_e_data" = "xno" ; then

@@ -235,17 +235,10 @@ krb5_error_code ipadb_find_principal(krb5_context kcontext,
                                      LDAPMessage *res,
                                      char **principal,
                                      LDAPMessage **entry);
-#if KRB5_KDB_API_VERSION < 8
-krb5_error_code ipadb_iterate(krb5_context kcontext,
-                              char *match_entry,
-                              int (*func)(krb5_pointer, krb5_db_entry *),
-                              krb5_pointer func_arg);
-#else
 krb5_error_code ipadb_iterate(krb5_context kcontext,
                               char *match_entry,
                               int (*func)(krb5_pointer, krb5_db_entry *),
                               krb5_pointer func_arg, krb5_flags iterflags);
-#endif
 
 /* POLICY FUNCTIONS */
 
@@ -304,18 +297,23 @@ krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
 
 /* MS-PAC FUNCTIONS */
 
-krb5_error_code ipadb_sign_authdata(krb5_context context,
+krb5_error_code ipadb_sign_authdata(krb5_context kcontext,
                                     unsigned int flags,
                                     krb5_const_principal client_princ,
+                                    krb5_const_principal server_princ,
                                     krb5_db_entry *client,
                                     krb5_db_entry *server,
-                                    krb5_db_entry *krbtgt,
+                                    krb5_db_entry *header_server,
+                                    krb5_db_entry *local_tgt,
                                     krb5_keyblock *client_key,
                                     krb5_keyblock *server_key,
-                                    krb5_keyblock *krbtgt_key,
+                                    krb5_keyblock *header_key,
+                                    krb5_keyblock *local_tgt_key,
                                     krb5_keyblock *session_key,
                                     krb5_timestamp authtime,
                                     krb5_authdata **tgt_auth_data,
+                                    void *ad_info,
+                                    krb5_data ***auth_indicators,
                                     krb5_authdata ***signed_auth_data);
 
 krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit);
@@ -344,10 +342,8 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
 
 void ipadb_audit_as_req(krb5_context kcontext,
                         krb5_kdc_req *request,
-#if (KRB5_KDB_DAL_MAJOR_VERSION >= 7)
                         const krb5_address *local_addr,
                         const krb5_address *remote_addr,
-#endif
                         krb5_db_entry *client,
                         krb5_db_entry *server,
                         krb5_timestamp authtime,
