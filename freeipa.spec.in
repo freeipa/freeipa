@@ -128,11 +128,11 @@
 %if 0%{?rhel} == 8
 # PKIConnection has been modified to always validate certs.
 # https://pagure.io/freeipa/issue/8379
-%global pki_version 10.9.0-0.4
+%global pki_version 10.10.4-1
 %else
 # New KRA profile, ACME support
 # https://pagure.io/freeipa/issue/8545
-%global pki_version 10.10.0-2
+%global pki_version 10.10.3-1
 %endif
 
 # RHEL 8.3+, F32+ has 0.79.13
