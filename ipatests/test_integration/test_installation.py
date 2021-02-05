@@ -1481,7 +1481,7 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
         self.replicas[0].run_command('systemctl stop ipa-custodia.service')
 
         # check if custodia service is stopped
-        cmd = self.replicas[0].run_command('ipactl status')
+        cmd = self.replicas[0].run_command('ipactl status', raiseonerr=False)
         assert 'ipa-custodia Service: STOPPED' in cmd.stdout_text
 
         try:

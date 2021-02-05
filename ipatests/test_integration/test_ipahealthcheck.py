@@ -486,7 +486,8 @@ class TestIpaHealthCheck(IntegrationTest):
         restart_service(self.master, "dirsrv")
         dirsrv_ipactl_status = 'Directory Service: STOPPED'
         result = self.master.run_command(
-            ["ipactl", "status"])
+            ["ipactl", "status"],
+            raiseonerr=False)
         returncode, data = run_healthcheck(
             self.master,
             "ipahealthcheck.ipa.host",
