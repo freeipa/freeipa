@@ -2177,15 +2177,20 @@ done:
 krb5_error_code ipadb_sign_authdata(krb5_context context,
                                     unsigned int flags,
                                     krb5_const_principal client_princ,
+                                    krb5_const_principal server_princ,
                                     krb5_db_entry *client,
                                     krb5_db_entry *server,
-                                    krb5_db_entry *krbtgt,
+                                    krb5_db_entry *header_server,
+                                    krb5_db_entry *local_tgt,
                                     krb5_keyblock *client_key,
                                     krb5_keyblock *server_key,
-                                    krb5_keyblock *krbtgt_key,
+                                    krb5_keyblock *header_key,
+                                    krb5_keyblock *local_tgt_key,
                                     krb5_keyblock *session_key,
                                     krb5_timestamp authtime,
                                     krb5_authdata **tgt_auth_data,
+                                    void *ad_info,
+                                    krb5_data ***auth_indicators,
                                     krb5_authdata ***signed_auth_data)
 {
     krb5_const_principal ks_client_princ;
@@ -2205,6 +2210,14 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     krb5_boolean is_equal;
     bool force_reinit_mspac = false;
 
+    krb5_db_entry *krbtgt = header_server ? header_server : local_tgt;
+    krb5_keyblock *krbtgt_key = header_key ? header_key : local_tgt_key;
+
+    if (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION) {
+        client = header_server;
+        krbtgt = local_tgt;
+        krbtgt_key = local_tgt_key;
+    }
 
     is_as_req = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0);
 
