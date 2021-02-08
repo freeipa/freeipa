@@ -194,11 +194,16 @@ Source1:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_vers
 # RHEL spec file only: END: Change branding to IPA and Identity Management
 
 # RHEL spec file only: START
-%if 0%{?rhel} == 8 && %{NON_DEVELOPER_BUILD}
+%if %{NON_DEVELOPER_BUILD}
+%if 0%{?rhel} == 8
 Patch0001:      0001_util_Fix_client-only_build-upstream_5273.patch
 Patch1001:      1001-Change-branding-to-IPA-and-Identity-Management.patch
 Patch1002:      1002-4.8.0-Remove-csrgen.patch
 Patch1003:      1003-Revert-WebUI-use-python3-rjsmin-to-minify-JavaScript.patch
+%endif
+%if 0%{?rhel} == 9
+Patch1001:      1001-Change-branding-to-IPA-and-Identity-Management.patch
+%endif
 %endif
 # RHEL spec file only: END
 
