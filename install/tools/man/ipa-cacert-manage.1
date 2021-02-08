@@ -27,6 +27,8 @@ ipa\-cacert\-manage \- Manage CA certificates in IPA
 \fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] delete \fINICKNAME\fR
 .br
 \fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] list
+.br
+\fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] prune
 .SH "DESCRIPTION"
 \fBipa\-cacert\-manage\fR can be used to manage CA certificates in IPA.
 .SH "COMMANDS"
@@ -71,6 +73,13 @@ Please do not forget to run ipa-certupdate on the master, all the replicas and a
 .sp
 .RS
 Display a list of the nicknames or subjects of the CA certificates that have been installed.
+.RE
+.TP
+\fBprune\fR
+\- Prune the stored CA certificates
+.sp
+.RS
+Removes installed CA certificates that are expired.
 .RE
 .SH "COMMON OPTIONS"
 .TP
