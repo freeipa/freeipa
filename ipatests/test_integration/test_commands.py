@@ -1465,3 +1465,26 @@ class TestIPACommand(IntegrationTest):
         if 'invalid option' not in nologin.stderr_text:
             assert 'This account is currently not available' in \
                 result.stdout_text
+
+    def test_ipa_cacert_manage_prune(self):
+        """Test for ipa-cacert-manage prune"""
+
+        certfile = os.path.join(self.master.config.test_dir, 'cert.pem')
+        self.master.put_file_contents(certfile, isrgrootx1)
+        result = self.master.run_command(
+            [paths.IPA_CACERT_MANAGE, 'install', certfile])
+
+        certs_before_prune = self.master.run_command(
+            [paths.IPA_CACERT_MANAGE, 'list'], raiseonerr=False
+        ).stdout_text
+
+        assert isrgrootx1_nick in certs_before_prune
+
+        # Jump in time to make sure the cert is expired
+        self.master.run_command(['date', '-s', '+15Years'])
+        result = self.master.run_command(
+            [paths.IPA_CACERT_MANAGE, 'prune'], raiseonerr=False
+        ).stdout_text
+        self.master.run_command(['date', '-s', '-15Years'])
+
+        assert isrgrootx1_nick in result
