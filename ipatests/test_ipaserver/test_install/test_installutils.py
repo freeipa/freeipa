@@ -57,10 +57,12 @@ def gpgkey(request, tempdir):
     # daemonize agent (detach from the console and run in the background)
     subprocess.run(
         [paths.SYSTEMD_RUN, '--service-type=forking',
+         '--property', 'SELinuxContext=system_u:system_r:initrc_t:s0',
          '--setenv=GNUPGHOME={}'.format(gnupghome),
          '--setenv=LC_ALL=C.UTF-8',
          '--setenv=LANGUAGE=C',
-         '--unit=gpg-agent', paths.GPG_AGENT, '--daemon', '--batch'],
+         '--unit=gpg-agent', '/bin/bash',
+         '-c', ' '.join([paths.GPG_AGENT, '--daemon', '--batch'])],
         check=True,
         env=env,
     )
