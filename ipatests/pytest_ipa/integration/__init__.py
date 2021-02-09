@@ -83,6 +83,11 @@ CLASS_LOGFILES = [
     # system
     paths.RESOLV_CONF,
     paths.HOSTS,
+    # resolvers management
+    paths.NETWORK_MANAGER_CONFIG,
+    paths.NETWORK_MANAGER_CONFIG_DIR,
+    paths.SYSTEMD_RESOLVED_CONF,
+    paths.SYSTEMD_RESOLVED_CONF_DIR,
 ]
 
 
