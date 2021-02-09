@@ -82,7 +82,12 @@ CLASS_LOGFILES = [
     paths.HOSTS,
     # IPA renewal lock
     paths.IPA_RENEWAL_LOCK,
-    paths.LETS_ENCRYPT_LOG
+    paths.LETS_ENCRYPT_LOG,
+    # resolvers management
+    paths.NETWORK_MANAGER_CONFIG,
+    paths.NETWORK_MANAGER_CONFIG_DIR,
+    paths.SYSTEMD_RESOLVED_CONF,
+    paths.SYSTEMD_RESOLVED_CONF_DIR,
 ]
 
 
