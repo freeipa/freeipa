@@ -1075,13 +1075,13 @@ class CAInstance(DogtagInstance):
             logger.error(
                 "certmonger failed to start tracking certificate: %s", e)
 
-    def stop_tracking_certificates(self, stop_certmonger=True):
+    def stop_tracking_certificates(self):
         """
         Stop tracking our certificates. Called on uninstall.  Also called
         during upgrade to fix discrepancies.
 
         """
-        super(CAInstance, self).stop_tracking_certificates(False)
+        super(CAInstance, self).stop_tracking_certificates()
 
         # stop tracking lightweight CA signing certs
         for request_id in certmonger.get_requests_for_dir(self.nss_db):
@@ -1094,9 +1094,6 @@ class CAInstance(DogtagInstance):
         except RuntimeError as e:
             logger.error(
                 "certmonger failed to stop tracking certificate: %s", e)
-
-        if stop_certmonger:
-            services.knownservices.certmonger.stop()
 
     def is_renewal_master(self, fqdn=None):
         if fqdn is None:
