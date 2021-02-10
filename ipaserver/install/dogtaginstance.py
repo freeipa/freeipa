@@ -453,7 +453,7 @@ class DogtagInstance(service.Service):
                 logger.error(
                     "certmonger failed to start tracking certificate: %s", e)
 
-    def stop_tracking_certificates(self, stop_certmonger=True):
+    def stop_tracking_certificates(self):
         """
         Stop tracking our certificates. Called on uninstall.  Also called
         during upgrade to fix discrepancies.
@@ -476,9 +476,6 @@ class DogtagInstance(service.Service):
             except RuntimeError as e:
                 logger.error(
                     "certmonger failed to stop tracking certificate: %s", e)
-
-        if stop_certmonger:
-            cmonger.stop()
 
     def update_cert_cs_cfg(self, directive, cert):
         """
