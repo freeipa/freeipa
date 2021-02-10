@@ -1,3 +1,4 @@
+# VERSION 2 - DO NOT REMOVE THIS LINE
 class=org.dogtagpki.acme.issuer.PKIIssuer
 url=https://$FQDN:8443
 profile=acmeIPAServerCert

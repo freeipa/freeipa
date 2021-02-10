@@ -1,3 +1,4 @@
+# VERSION 2 - DO NOT REMOVE THIS LINE
 authType=BasicAuth
 class=org.dogtagpki.acme.realm.DSRealm
 groupsDN=ou=groups,o=ipaca

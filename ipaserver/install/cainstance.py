@@ -77,6 +77,15 @@ ACME_AGENT_GROUP = 'Enterprise ACME Administrators'
 
 PROFILES_DN = DN(('ou', 'certificateProfiles'), ('ou', 'ca'), ('o', 'ipaca'))
 
+ACME_CONFIG_FILES = (
+    ('pki-acme-configsources.conf.template',
+        paths.PKI_ACME_CONFIGSOURCES_CONF),
+    ('pki-acme-database.conf.template', paths.PKI_ACME_DATABASE_CONF),
+    ('pki-acme-engine.conf.template', paths.PKI_ACME_ENGINE_CONF),
+    ('pki-acme-issuer.conf.template', paths.PKI_ACME_ISSUER_CONF),
+    ('pki-acme-realm.conf.template', paths.PKI_ACME_REALM_CONF),
+)
+
 
 def check_ports():
     """Check that dogtag ports (8080, 8443) are available.
@@ -1524,20 +1533,12 @@ class CAInstance(DogtagInstance):
         ipautil.run(['pki-server', 'acme-create'])
 
         # write configuration files
-        files = [
-            ('pki-acme-configsources.conf.template',
-                paths.PKI_ACME_CONFIGSOURCES_CONF),
-            ('pki-acme-database.conf.template', paths.PKI_ACME_DATABASE_CONF),
-            ('pki-acme-engine.conf.template', paths.PKI_ACME_ENGINE_CONF),
-            ('pki-acme-issuer.conf.template', paths.PKI_ACME_ISSUER_CONF),
-            ('pki-acme-realm.conf.template', paths.PKI_ACME_REALM_CONF),
-        ]
         sub_dict = dict(
             FQDN=self.fqdn,
             USER=acme_user,
             PASSWORD=password,
         )
-        for template_name, target in files:
+        for template_name, target in ACME_CONFIG_FILES:
             template_filename = \
                 os.path.join(paths.USR_SHARE_IPA_DIR, template_name)
             filled = ipautil.template_file(template_filename, sub_dict)

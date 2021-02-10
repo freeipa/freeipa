@@ -1526,6 +1526,26 @@ def bind_old_upgrade_states():
         sysupgrade.remove_upgrade_state("dns", state)
 
 
+def ca_update_acme_configuration(ca, fqdn):
+    """
+    Re-apply the templates in case anyting has been updated.
+    """
+    password = directivesetter.get_directive(
+        paths.PKI_ACME_ISSUER_CONF,
+        'password',
+        separator='=')
+    acme_user = ca.acme_uid(fqdn)
+    sub_dict = dict(
+        FQDN=fqdn,
+        USER=acme_user,
+        PASSWORD=password,
+    )
+    for template_name, target in cainstance.ACME_CONFIG_FILES:
+        upgrade_file(sub_dict, target,
+                     os.path.join(paths.USR_SHARE_IPA_DIR,
+                                  template_name))
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1797,6 +1817,7 @@ def upgrade_configuration():
         ca.setup_lightweight_ca_key_retrieval()
         cainstance.ensure_ipa_authority_entry()
         ca.setup_acme()
+        ca_update_acme_configuration(ca, fqdn)
         ca_initialize_hsm_state(ca)
 
     migrate_to_authselect()
