@@ -20,7 +20,10 @@
 import json
 import copy
 
+from unittest.mock import patch, MagicMock
+
 from ipatests.pytest_ipa.integration import config
+import ipatests.pytest_ipa.integration.host
 from ipapython.ipautil import write_tmp_file
 from ipatests.util import assert_deepequal
 from ipalib.constants import MAX_DOMAIN_LEVEL
@@ -84,6 +87,7 @@ def extend_dict(defaults, *others, **kwargs):
     return copy.deepcopy(result)
 
 
+@patch.object(ipatests.pytest_ipa.integration.host, 'resolver', MagicMock())
 class CheckConfig:
     def check_config(self, conf):
         pass
