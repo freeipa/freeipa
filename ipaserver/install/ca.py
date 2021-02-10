@@ -425,7 +425,7 @@ def install_step_1(standalone, replica_config, options, custodia):
 
 def uninstall():
     ca_instance = cainstance.CAInstance(api.env.realm)
-    ca_instance.stop_tracking_certificates(stop_certmonger=False)
+    ca_instance.stop_tracking_certificates()
     ipautil.remove_file(paths.RA_AGENT_PEM)
     ipautil.remove_file(paths.RA_AGENT_KEY)
     if ca_instance.is_configured():

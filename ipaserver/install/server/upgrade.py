@@ -648,9 +648,9 @@ def certificate_renewal_update(ca, kra, ds, http):
 
     # Ok, now we need to stop tracking, then we can start tracking them
     # again with new configuration:
-    ca.stop_tracking_certificates(stop_certmonger=False)
+    ca.stop_tracking_certificates()
     if kra.is_installed():
-        kra.stop_tracking_certificates(stop_certmonger=False)
+        kra.stop_tracking_certificates()
     ds.stop_tracking_certificates(serverid)
     http.stop_tracking_certificates()
 
@@ -920,7 +920,7 @@ def uninstall_dogtag_9(ds, http):
     ca = dogtaginstance.DogtagInstance(
         api.env.realm, "CA", "certificate server",
         nss_db=paths.VAR_LIB_PKI_CA_ALIAS_DIR)
-    ca.stop_tracking_certificates(False)
+    ca.stop_tracking_certificates()
 
     if serverid is not None:
         # drop the trailing / off the config_dirname so the directory
