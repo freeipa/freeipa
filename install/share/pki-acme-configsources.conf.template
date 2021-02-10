@@ -1,2 +1,3 @@
+# VERSION 2 - DO NOT REMOVE THIS LINE
 engine.class=org.dogtagpki.acme.server.ACMEEngineConfigFileSource
 engine.filename=/etc/pki/pki-tomcat/acme/engine.conf
