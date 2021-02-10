@@ -43,6 +43,7 @@ from ipapython.certdb import NSSDatabase, EMPTY_TRUST_FLAGS
 from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
 from ipaserver.install import ca, cainstance, dsinstance
+from ipaserver.install.certs import is_ipa_issued_cert
 from ipapython import directivesetter
 from ipapython import ipautil
 
@@ -104,6 +105,13 @@ class IPACertFix(AdminTool):
 
         api.bootstrap(in_server=True, confdir=paths.ETC_IPA)
         api.finalize()
+
+        if not dsinstance.is_ds_running(realm_to_serverid(api.env.realm)):
+            print(
+                "The LDAP server is not running; cannot proceed."
+            )
+            return 1
+
         api.Backend.ldap2.connect()  # ensure DS is up
 
         subject_base = dsinstance.DsInstance().find_subject_base()
@@ -113,7 +121,7 @@ class IPACertFix(AdminTool):
         ca_subject_dn = ca.lookup_ca_subject(api, subject_base)
 
         now = datetime.datetime.now() + datetime.timedelta(weeks=2)
-        certs, extra_certs = expired_certs(now)
+        certs, extra_certs, non_renewed = expired_certs(now)
 
         if not certs and not extra_certs:
             print("Nothing to do.")
@@ -121,7 +129,7 @@ class IPACertFix(AdminTool):
 
         print(msg)
 
-        print_intentions(certs, extra_certs)
+        print_intentions(certs, extra_certs, non_renewed)
 
         response = ipautil.user_input('Enter "yes" to proceed')
         if response.lower() != 'yes':
@@ -133,7 +141,10 @@ class IPACertFix(AdminTool):
             fix_certreq_directives(certs)
             run_cert_fix(certs, extra_certs)
         except ipautil.CalledProcessError:
-            if any(x[0] is IPACertType.LDAPS for x in extra_certs):
+            if any(
+                x[0] is IPACertType.LDAPS
+                for x in extra_certs + non_renewed
+            ):
                 # The DS cert was expired.  This will cause
                 # 'pki-server cert-fix' to fail at the final
                 # restart.  Therefore ignore the CalledProcessError
@@ -152,13 +163,15 @@ class IPACertFix(AdminTool):
             print("Becoming renewal master.")
             cainstance.CAInstance().set_renewal_master()
 
+        print("Restarting IPA")
         ipautil.run(['ipactl', 'restart'], raiseonerr=True)
 
         return 0
 
 
 def expired_certs(now):
-    return expired_dogtag_certs(now), expired_ipa_certs(now)
+    expired_ipa, non_renew_ipa = expired_ipa_certs(now)
+    return expired_dogtag_certs(now), expired_ipa, non_renew_ipa
 
 
 def expired_dogtag_certs(now):
@@ -191,6 +204,7 @@ def expired_ipa_certs(now):
 
     """
     certs = []
+    non_renewed = []
 
     # IPA RA
     cert = x509.load_certificate_from_file(paths.RA_AGENT_PEM)
@@ -200,7 +214,10 @@ def expired_ipa_certs(now):
     # Apache HTTPD
     cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
     if cert.not_valid_after <= now:
-        certs.append((IPACertType.HTTPS, cert))
+        if not is_ipa_issued_cert(api, cert):
+            non_renewed.append((IPACertType.HTTPS, cert))
+        else:
+            certs.append((IPACertType.HTTPS, cert))
 
     # LDAPS
     serverid = realm_to_serverid(api.env.realm)
@@ -210,18 +227,24 @@ def expired_ipa_certs(now):
     db = NSSDatabase(nssdir=ds_dbdir)
     cert = db.get_cert(ds_nickname)
     if cert.not_valid_after <= now:
-        certs.append((IPACertType.LDAPS, cert))
+        if not is_ipa_issued_cert(api, cert):
+            non_renewed.append((IPACertType.LDAPS, cert))
+        else:
+            certs.append((IPACertType.LDAPS, cert))
 
     # KDC
     cert = x509.load_certificate_from_file(paths.KDC_CERT)
     if cert.not_valid_after <= now:
-        certs.append((IPACertType.KDC, cert))
+        if not is_ipa_issued_cert(api, cert):
+            non_renewed.append((IPACertType.HTTPS, cert))
+        else:
+            certs.append((IPACertType.KDC, cert))
 
-    return certs
+    return certs, non_renewed
 
 
-def print_intentions(dogtag_certs, ipa_certs):
-    print("The following certificates will be renewed: ")
+def print_intentions(dogtag_certs, ipa_certs, non_renewed):
+    print("The following certificates will be renewed:")
     print()
 
     for certid, cert in dogtag_certs:
@@ -229,6 +252,16 @@ def print_intentions(dogtag_certs, ipa_certs):
 
     for certtype, cert in ipa_certs:
         print_cert_info("IPA", certtype.value, cert)
+
+    if non_renewed:
+        print(
+            "The following certificates will NOT be renewed because "
+            "they were not issued by the IPA CA:"
+        )
+        print()
+
+        for certtype, cert in non_renewed:
+            print_cert_info("IPA", certtype.value, cert)
 
 
 def print_cert_info(context, desc, cert):
