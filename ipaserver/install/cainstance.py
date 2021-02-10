@@ -1493,8 +1493,10 @@ class CAInstance(DogtagInstance):
             return False
 
         if not minimum_acme_support():
+            logger.debug('Minimum ACME support not available')
             return False
 
+        logger.debug('Deploying ACME')
         self._ldap_mod('/usr/share/pki/acme/database/ds/schema.ldif')
 
         configure_acme_acls()
