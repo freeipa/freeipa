@@ -1,3 +1,4 @@
+# VERSION 2 - DO NOT REMOVE THIS LINE
 # Parameters read by ACMEEngineConfigFileSource, i.e. these are
 # expected to be in the file pointed to by the 'filename' directive
 # above.
