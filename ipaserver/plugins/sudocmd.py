@@ -49,6 +49,12 @@ register = Registry()
 
 topic = 'sudo'
 
+
+def command_validator(ugettext, value):
+    if value.endswith('.'):
+        return _('must not contain trailing dot: %s') % value
+    return None
+
 @register()
 class sudocmd(LDAPObject):
     """
@@ -112,7 +118,7 @@ class sudocmd(LDAPObject):
     label_singular = _('Sudo Command')
 
     takes_params = (
-        Str('sudocmd',
+        Str('sudocmd', command_validator,
             cli_name='command',
             label=_('Sudo Command'),
             primary_key=True,
@@ -146,7 +152,6 @@ class sudocmd_add(LDAPCreate):
     __doc__ = _('Create new Sudo Command.')
 
     msg_summary = _('Added Sudo Command "%(value)s"')
-
 
 @register()
 class sudocmd_del(LDAPDelete):
