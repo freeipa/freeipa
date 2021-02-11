@@ -170,6 +170,11 @@ class TestSudo(IntegrationTest):
         # No group
         self.master.run_command(['ipa', 'sudocmd-add', '/usr/bin/yum'])
 
+        # Invalid command
+        result = self.master.run_command(
+            ['ipa', 'sudocmd-add', '/bin/cat.'], raiseonerr=False)
+        assert result.returncode == 1
+
     def test_add_sudo_command_groups(self):
         self.master.run_command(['ipa', 'sudocmdgroup-add', 'readers',
                                  '--desc', '"Applications that read"'])
