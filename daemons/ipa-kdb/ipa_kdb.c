@@ -663,7 +663,7 @@ static krb5_error_code ipadb_get_age(krb5_context kcontext,
 /* We explicitly want to keep different ABI tables below separate. */
 /* Do not merge them together. Older ABI does not need to be updated */
 
-#if (KRB5_KDB_DAL_MAJOR_VERSION == 8)
+#if (KRB5_KDB_DAL_MAJOR_VERSION == 9)
 kdb_vftabl kdb_function_table = {
     .maj_ver = KRB5_KDB_DAL_MAJOR_VERSION,
     .min_ver = 0,
@@ -685,7 +685,6 @@ kdb_vftabl kdb_function_table = {
     .fetch_master_key = ipadb_fetch_master_key,
     .store_master_key_list = ipadb_store_master_key_list,
     .change_pwd = ipadb_change_pwd,
-    .sign_authdata = ipadb_sign_authdata,
     .check_transited_realms = ipadb_check_transited_realms,
     .check_policy_as = ipadb_check_policy_as,
     .audit_as_req = ipadb_audit_as_req,
@@ -693,8 +692,7 @@ kdb_vftabl kdb_function_table = {
     .free_principal_e_data = ipadb_free_principal_e_data,
     .get_s4u_x509_principal = NULL,
     .allowed_to_delegate_from = NULL,
-    .get_authdata_info = NULL,
-    .free_authdata_info = NULL,
+    .issue_pac = ipadb_issue_pac,
 };
 #else
 #error unsupported DAL major version
