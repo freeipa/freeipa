@@ -48,28 +48,39 @@ def check_status(host, cert_count, state, timeout=600):
     return count
 
 
+@pytest.fixture
+def expire_cert_critical():
+    """
+    Fixture to expire the certs by moving the system date using
+    date -s command and revert it back
+    """
+
+    hosts = dict()
+
+    def _expire_cert_critical(host, setup_kra=False):
+        hosts['host'] = host
+        # Do not install NTP as the test plays with the date
+        tasks.install_master(host, setup_dns=False,
+                             extra_args=['--no-ntp'])
+        if setup_kra:
+            tasks.install_kra(host)
+        host.run_command(['systemctl', 'stop', 'chronyd'])
+        host.run_command(['date', '-s', '+3Years+1day'])
+
+    yield _expire_cert_critical
+
+    host = hosts.pop('host')
+    tasks.uninstall_master(host)
+    host.run_command(['date', '-s', '-3Years-1day'])
+    host.run_command(['systemctl', 'start', 'chronyd'])
+
+
 class TestIpaCertFix(IntegrationTest):
     @classmethod
     def uninstall(cls, mh):
         # Uninstall method is empty as the uninstallation is done in
         # the fixture
         pass
-
-    @pytest.fixture
-    def expire_cert_critical(self):
-        """
-        Fixture to expire the certs by moving the system date using
-        date -s command and revert it back
-        """
-        # Do not install NTP as the test plays with the date
-        tasks.install_master(self.master, setup_dns=False,
-                             extra_args=['--no-ntp'])
-        self.master.run_command(['systemctl', 'stop', 'chronyd'])
-        self.master.run_command(['date','-s', '+3Years+1day'])
-        yield
-        tasks.uninstall_master(self.master)
-        self.master.run_command(['date','-s', '-3Years-1day'])
-        self.master.run_command(['systemctl', 'start', 'chronyd'])
 
     def test_missing_csr(self, expire_cert_critical):
         """
@@ -82,6 +93,7 @@ class TestIpaCertFix(IntegrationTest):
         - call getcert resubmit in order to create the CSR in certmonger file
         - use ipa-cert-fix, no issue should be seen
         """
+        expire_cert_critical(self.master)
         # pki must be stopped in order to edit CS.cfg
         self.master.run_command(['ipactl', 'stop'])
         self.master.run_command(['sed', '-i', r'/ca\.sslserver\.certreq=/d',
@@ -139,6 +151,8 @@ class TestIpaCertFix(IntegrationTest):
 
         related: https://pagure.io/freeipa/issue/7885
         """
+        expire_cert_critical(self.master)
+
         # wait for cert expiry
         check_status(self.master, 8, "CA_UNREACHABLE")
 
