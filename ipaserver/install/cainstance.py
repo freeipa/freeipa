@@ -222,6 +222,9 @@ def get_crl_files(path=None):
     if path is None:
         path = paths.PKI_CA_PUBLISH_DIR
 
+    if not os.path.exists(path):
+        return
+
     files = os.listdir(path)
     for f in files:
         if f == "MasterCRL.bin":
