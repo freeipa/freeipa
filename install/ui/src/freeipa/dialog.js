@@ -1325,7 +1325,7 @@ IPA.about_dialog = function(spec) {
     spec = spec || {};
 
     spec.name = spec.name || 'version_dialog';
-    var product = 'FreeIPA';
+    var product = 'IPA';
     var version = 'Unknown';
     var msg = text.get('@i18n:dialogs.about_message', '${product}, version: ${version}');
     if (IPA.env) {
