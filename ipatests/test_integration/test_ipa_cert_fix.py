@@ -225,3 +225,28 @@ class TestIpaCertFixThirdParty(CALessBase):
         # the DS nickname is used and not a hardcoded value.
         result = self.master.run_command(['ipa-cert-fix', '-v'],)
         assert self.nickname in result.stderr_text
+
+
+class TestCertFixKRA(IntegrationTest):
+    @classmethod
+    def uninstall(cls, mh):
+        # Uninstall method is empty as the uninstallation is done in
+        # the fixture
+        pass
+
+    def test_renew_expired_cert_with_kra(self, expire_cert_critical):
+        """Test if ipa-cert-fix renews expired certs with kra installed
+
+        This test check if ipa-cert-fix renews certs with kra
+        certificate installed.
+
+        related: https://pagure.io/freeipa/issue/7885
+        """
+        expire_cert_critical(self.master, setup_kra=True)
+
+        # check if all subsystem cert expired
+        check_status(self.master, 11, "CA_UNREACHABLE")
+
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+
+        check_status(self.master, 12, "MONITORING")
