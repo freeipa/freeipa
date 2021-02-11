@@ -520,13 +520,15 @@ class DogtagInstance(service.Service):
         return admin_cert
 
     def handle_setup_error(self, e):
-        logger.critical("Failed to configure %s instance: %s",
-                        self.subsystem, e)
+        logger.critical("Failed to configure %s instance",
+                        self.subsystem)
         logger.critical("See the installation logs and the following "
                         "files/directories for more information:")
         logger.critical("  %s", paths.TOMCAT_TOPLEVEL_DIR)
 
-        raise RuntimeError("%s configuration failed." % self.subsystem)
+        raise RuntimeError(
+            "%s configuration failed." % self.subsystem
+        ) from None
 
     def add_ipaca_aci(self):
         """Add ACI to allow ipaca users to read their own group information
