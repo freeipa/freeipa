@@ -1471,6 +1471,7 @@ class ra(rabase.rabase, RestClient):
         except errors.HTTPRequestError as e:
             self.raise_certificate_operation_error(
                 'get_certificate',
+                err_msg=e.msg,
                 detail=e.status  # pylint: disable=no-member
             )
 
