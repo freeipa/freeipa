@@ -5,6 +5,8 @@
 
 from __future__ import absolute_import
 
+import pytest
+
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
@@ -38,3 +40,21 @@ class TestDNS(IntegrationTest):
         cmd = self.master.run_command(['dig', '+short', '-t', 'SOA',
                                        self.master.domain.name])
         assert 'fake' not in cmd.stdout_text
+
+    external_hosts = ['fedoraproject.org', 'debian.org', 'gentoo.org']
+
+    @pytest.mark.parametrize('hostname', external_hosts)
+    def test_request_ipa_dns(self, hostname):
+        """External names should be resolvable by IPA nameserver via forwarder.
+        """
+        res = self.master.run_command(
+            ['dig', '@127.0.0.1', '+short', hostname])
+        assert res.stdout_text.strip()
+
+    @pytest.mark.parametrize('hostname', external_hosts)
+    def test_request_forwarder(self, hostname):
+        """Verify that hosts used in test_request_ipa_dns are resolvable."""
+        forwarder = self.master.config.dns_forwarder
+        res = self.master.run_command(
+            ['dig', '@%s' % forwarder, '+short', hostname])
+        assert res.stdout_text.strip()
