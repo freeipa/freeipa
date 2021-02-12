@@ -504,3 +504,41 @@ class test_cert_revocation(BaseCert):
 
     def test_revoke_with_reason_10(self):
         self.revoke_cert(10)
+
+
+@pytest.mark.tier1
+class test_cert_remove_hold(BaseCert):
+
+    # create CSR, request cert, revoke cert, remove hold
+    def test_revoke_and_remove_hold(self):
+        # add host
+        assert 'result' in api.Command['host_add'](self.host_fqdn, force=True)
+
+        # generate CSR, request certificate, obtain serial number
+        self.csr = self.generateCSR(str(self.subject))
+        res = api.Command['cert_request'](self.csr,
+                                          principal=self.service_princ,
+                                          add=True, all=True)['result']
+        serial_number = res['serial_number']
+
+        # revoke created certificate
+        assert 'result' in api.Command['cert_revoke'](
+            serial_number, revocation_reason=6)
+
+        # verify that certificate is revoked with correct reason
+        res2 = api.Command['cert_show'](serial_number, all=True)['result']
+        assert res2['revoked']
+        assert res2['revocation_reason'] == 6
+
+        # remove hold
+        res3 = api.Command['cert_remove_hold'](serial_number)['result']
+        assert res3['unrevoked']
+
+        # remove host
+        assert 'result' in api.Command['host_del'](self.host_fqdn)
+
+    def test_remove_hold_nonexistent_cert(self):
+        # remove hold must print 'Certificate ID xx not found'
+        with pytest.raises(errors.CertificateOperationError,
+                           match=r'Certificate ID 0x.* not found'):
+            api.Command['cert_remove_hold'](9999)
