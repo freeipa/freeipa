@@ -47,7 +47,7 @@ topologies:
     memory: 14500
 
 jobs:
-  fedora-latest/build:
+  fedora-latest-32/build:
     requires: []
     priority: 100
     job:
@@ -55,20 +55,46 @@ jobs:
       args:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
-        template: &ci-master-latest
+        template: &ci-master-latest-32
           name: freeipa/ci-master-f32
           version: 0.0.17
         timeout: 1800
         topology: *build
 
-  fedora-latest/temp_commit:
-    requires: [fedora-latest/build]
+  fedora-latest-32/test_dns:
+    requires: [fedora-latest-32/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
-        template: *ci-master-latest
+        build_url: '{fedora-latest-32/build_url}'
+        test_suite: test_integration/test_dns.py
+        template: *ci-master-latest-32
         timeout: 3600
-        topology: *master_1repl_1client
+        topology: *master_1repl
+
+  fedora-latest-33/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &ci-master-latest-33
+          name: freeipa/ci-master-f33
+          version: 0.0.6
+        timeout: 1800
+        topology: *build
+
+  fedora-latest-33/test_dns:
+    requires: [fedora-latest-33/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest-33/build_url}'
+        test_suite: test_integration/test_dns.py
+        template: *ci-master-latest-33
+        timeout: 3600
+        topology: *master_1repl
