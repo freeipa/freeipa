@@ -435,7 +435,8 @@ class TestIpaHealthCheck(IntegrationTest):
         error_msg = (
             "Request for certificate failed, "
             "Certificate operation cannot be completed: "
-            "Unable to communicate with CMS (503)"
+            "Request failed with status 503: "
+            "Non-2xx response from CA REST API: 503.  (503)"
         )
         returncode, data = run_healthcheck(
             self.master, "ipahealthcheck.dogtag.ca",
