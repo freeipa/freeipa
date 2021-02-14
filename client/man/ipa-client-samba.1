@@ -18,7 +18,7 @@ During the configuration process, the tool will perform following steps:
 
 1. Discover details of IPA domain: realm, domain SID, domain ID range
 
-2. Discover details of trusted Actvide Directory domains: domain name, domain SID, domain ID range
+2. Discover details of trusted Active Directory domains: domain name, domain SID, domain ID range
 
 3. Create Samba configuration file using the details discovered above.
 
@@ -34,7 +34,7 @@ The tool does not start nor does it enable Samba file services after the configu
 systemctl enable --now smb winbind
 
 .SS "Assumptions"
-The ipa\-client\-samba script assumes that the machine has alreaby been enrolled into IPA.
+The ipa\-client\-samba script assumes that the machine has already been enrolled into IPA.
 
 .SS "IPA Master Requirements"
 At least one IPA master must hold a \fBTrust Controller\fR role. This can be achieved by running ipa\-adtrust\-install on the IPA master. The utility will configure IPA master to be a domain controller for IPA domain.
