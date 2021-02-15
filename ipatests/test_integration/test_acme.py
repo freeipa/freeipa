@@ -133,13 +133,7 @@ class TestACME(CALessBase):
         tasks.install_master(cls.master, setup_dns=True)
 
         tasks.install_client(cls.master, cls.clients[0])
-        tasks.config_host_resolvconf_with_master_data(
-            cls.master, cls.clients[0]
-        )
         tasks.install_replica(cls.master, cls.replicas[0])
-        tasks.config_host_resolvconf_with_master_data(
-            cls.master, cls.replicas[0]
-        )
 
     def certinstall(self, certfile=None, keyfile=None,
                     pin=None):
@@ -435,9 +429,6 @@ class TestACMECALess(IntegrationTest):
         tasks.install_master(self.master, setup_dns=True)
 
         tasks.install_replica(self.master, self.replicas[0], setup_ca=False)
-        tasks.config_host_resolvconf_with_master_data(
-            self.master, self.replicas[0]
-        )
 
         yield
 
@@ -550,10 +541,4 @@ class TestACMEwithExternalCA(TestACME):
         tasks.kinit_admin(cls.master)
 
         tasks.install_client(cls.master, cls.clients[0])
-        tasks.config_host_resolvconf_with_master_data(
-            cls.master, cls.clients[0]
-        )
         tasks.install_replica(cls.master, cls.replicas[0])
-        tasks.config_host_resolvconf_with_master_data(
-            cls.master, cls.replicas[0]
-        )
