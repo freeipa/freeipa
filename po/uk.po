@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2021-01-27 10:37+0200\n"
+"POT-Creation-Date: 2021-02-15 20:34+0200\n"
 "PO-Revision-Date: 2020-12-22 11:44+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <https://translate.fedoraproject.org/projects/"
@@ -3374,13 +3374,6 @@ msgstr ""
 
 msgid ""
 "\n"
-"Commands to build certificate requests automatically\n"
-msgstr ""
-"\n"
-"Команди для автоматичної побудови запитів щодо сертифікації\n"
-
-msgid ""
-"\n"
 "Cross-realm trusts\n"
 "\n"
 "Manage trust relationship between IPA and Active Directory domains.\n"
@@ -5408,44 +5401,6 @@ msgstr ""
 "\n"
 "Зміни у /etc/rhsm/rhsm.conf для набуття чинності потребуватимуть перезапуску "
 "служби httpd.\n"
-
-msgid ""
-"\n"
-"IPA provides a designated binddn to use with Sudo located at:\n"
-"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
-msgstr ""
-"\n"
-"У IPA передбачено визначений binddn для використання з sudo, який "
-"розташовано у\n"
-"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
-
-msgid ""
-"\n"
-"IPA provides a means to configure the various aspects of Sudo:\n"
-"   Users: The user(s)/group(s) allowed to invoke Sudo.\n"
-"   Hosts: The host(s)/hostgroup(s) which the user is allowed to to invoke "
-"Sudo.\n"
-"   Allow Command: The specific command(s) permitted to be run via Sudo.\n"
-"   Deny Command: The specific command(s) prohibited to be run via Sudo.\n"
-"   RunAsUser: The user(s) or group(s) of users whose rights Sudo will be "
-"invoked with.\n"
-"   RunAsGroup: The group(s) whose gid rights Sudo will be invoked with.\n"
-"   Options: The various Sudoers Options that can modify Sudo's behavior.\n"
-msgstr ""
-"\n"
-"У IPA передбачено декілька параметрів налаштовування роботи sudo:\n"
-"   Users: користувачі або групи, які можуть викликати sudo.\n"
-"   Hosts: вузли або групи вузлів, користувачі якого можуть викликати sudo.\n"
-"   Allow Command: специфічні команди, які можна виконувати за допомогою "
-"sudo.\n"
-"   Deny Command: специфічні команди, які не можна виконувати за допомогою "
-"sudo.\n"
-"   RunAsUser: користувачі або групи, від імені яких sudo виконуватиме "
-"команди.\n"
-"   RunAsGroup: групи, ідентифікатори яких буде використано sudo для "
-"виконання команд.\n"
-"   Options: різноманітні параметри sudoers, які можуть змінити поведінку "
-"sudo.\n"
 
 msgid ""
 "\n"
@@ -8792,6 +8747,44 @@ msgstr ""
 
 msgid ""
 "\n"
+"IPA provides a designated binddn to use with Sudo located at:\n"
+"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
+msgstr ""
+"\n"
+"У IPA передбачено визначений binddn для використання з sudo, який "
+"розташовано у\n"
+"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
+
+msgid ""
+"\n"
+"IPA provides a means to configure the various aspects of Sudo:\n"
+"   Users: The user(s)/group(s) allowed to invoke Sudo.\n"
+"   Hosts: The host(s)/hostgroup(s) which the user is allowed to to invoke "
+"Sudo.\n"
+"   Allow Command: The specific command(s) permitted to be run via Sudo.\n"
+"   Deny Command: The specific command(s) prohibited to be run via Sudo.\n"
+"   RunAsUser: The user(s) or group(s) of users whose rights Sudo will be "
+"invoked with.\n"
+"   RunAsGroup: The group(s) whose gid rights Sudo will be invoked with.\n"
+"   Options: The various Sudoers Options that can modify Sudo's behavior.\n"
+msgstr ""
+"\n"
+"У IPA передбачено декілька параметрів налаштовування роботи sudo:\n"
+"   Users: користувачі або групи, які можуть викликати sudo.\n"
+"   Hosts: вузли або групи вузлів, користувачі якого можуть викликати sudo.\n"
+"   Allow Command: специфічні команди, які можна виконувати за допомогою "
+"sudo.\n"
+"   Deny Command: специфічні команди, які не можна виконувати за допомогою "
+"sudo.\n"
+"   RunAsUser: користувачі або групи, від імені яких sudo виконуватиме "
+"команди.\n"
+"   RunAsGroup: групи, ідентифікатори яких буде використано sudo для "
+"виконання команд.\n"
+"   Options: різноманітні параметри sudoers, які можуть змінити поведінку "
+"sudo.\n"
+
+msgid ""
+"\n"
 "IPA server roles\n"
 msgstr ""
 "\n"
@@ -11410,16 +11403,6 @@ msgstr ""
 " зможуть додавати записи користувачів, скидати паролі або додавати "
 "користувача\n"
 " до типової групи користувачів IPA.\n"
-
-msgid ""
-"\n"
-"Routines for constructing certificate signing requests using IPA data and\n"
-"stored templates.\n"
-msgstr ""
-"\n"
-"Процедури для побудови запитів щодо підписування сертифікатів за допомогою "
-"даних IPA та\n"
-"збережених шаблонів.\n"
 
 msgid ""
 "\n"
@@ -19882,9 +19865,6 @@ msgstr ""
 msgid "CSR"
 msgstr "CSR"
 
-msgid "CSR Generation Profile to use"
-msgstr "Профіль створення CSR, яким слід скористатися"
-
 msgid "Cancel"
 msgstr "Скасувати"
 
@@ -20117,9 +20097,6 @@ msgstr "Сертифікат/CRL"
 
 msgid "Certificates"
 msgstr "Сертифікати"
-
-msgid "CertificationRequestInfo structure"
-msgstr "Структура CertificationRequestInfo"
 
 msgid "Cessation of Operation"
 msgstr "Скасування дії"
@@ -20621,9 +20598,6 @@ msgstr "Нетипове значення"
 
 msgid "Customization"
 msgstr "Налаштування"
-
-msgid "DER-encoded SubjectPublicKeyInfo structure"
-msgstr "Структура SubjectPublicKeyInfo у кодуванні DER"
 
 msgid "DHCID record"
 msgstr "запис DHCID"
@@ -22521,9 +22495,6 @@ msgstr ""
 msgid "File %(file)s not found"
 msgstr "Файла %(file)s не знайдено"
 
-msgid "File containing a password for the private key or database"
-msgstr "Файл, що містить пароль до закритого ключа або бази даних"
-
 msgid "File containing data to archive"
 msgstr "Файл, що містить дані для архівування"
 
@@ -22757,9 +22728,6 @@ msgstr "GID (за допомогою цього параметра можна в
 msgid "GSSAPI|EXTERNAL"
 msgstr "GSSAPI|EXTERNAL"
 
-msgid "Gather data for a certificate signing request."
-msgstr "Зібрати дані для запиту щодо підписування сертифіката."
-
 msgid "General"
 msgstr "Загальне"
 
@@ -22776,15 +22744,8 @@ msgstr "Створити випадковий пароль для користу
 msgid "Generate automount files for a specific location."
 msgstr "Створити файли automount для певної адреси."
 
-msgid "Generated CSR was empty"
-msgstr "Створений CSR виявився порожнім"
-
 msgid "Generated OTP"
 msgstr "Створений OTP"
-
-#, python-format
-msgid "Generation rule \"%(rulename)s\" is missing the \"rule\" key"
-msgstr "У правилі створення «%(rulename)s» немає ключа «rule»"
 
 msgid "Get"
 msgstr "Отримати"
@@ -25061,9 +25022,6 @@ msgstr "Назва"
 msgid "Name for referencing the CA"
 msgstr "Назва до посилання на CA"
 
-msgid "Name of CSR generation profile (if not the same as profile_id)"
-msgstr "Назва профілю створення CSR (якщо не та сама, що і profile_id)"
-
 msgid "Name of command to export"
 msgstr "Назва команди для експортування"
 
@@ -25169,10 +25127,6 @@ msgstr "Наступна назва домену"
 msgid "No A, AAAA, SSHFP or PTR records found."
 msgstr "Не знайдено записів A, AAAA, SSHFP або PTR."
 
-#, python-format
-msgid "No CSR generation rules are defined for profile %(profile_id)s"
-msgstr "Для профілю %(profile_id)s не визначено правил створення CSR"
-
 msgid "No Common Name was found in subject of request."
 msgstr "У темі запиту не було знайдено загальної назви (CN)."
 
@@ -25211,10 +25165,6 @@ msgstr "Немає файла для читання"
 
 msgid "No free YubiKey slot!"
 msgstr "Немає вільних слотів YubiKey!"
-
-#, python-format
-msgid "No generation rule %(rulename)s found."
-msgstr "Не знайдено правила створення %(rulename)s."
 
 #, c-format
 msgid "No keys accepted by KDC\n"
@@ -25550,9 +25500,6 @@ msgstr ""
 msgid "Options"
 msgstr "Параметри"
 
-msgid "Options 'database' and 'private_key' are not compatible with 'csr'"
-msgstr "Параметри «database» і «private_key» є несумісними з «csr»"
-
 msgid "Options dom-sid and dom-name cannot be used together"
 msgstr "Параметри dom-sid і dom-name не можна використовувати разом"
 
@@ -25828,15 +25775,6 @@ msgstr ""
 msgid "Passwords must match"
 msgstr "Паролі мають збігатися"
 
-msgid "Path to NSS database"
-msgstr "Шлях до бази даних NSS"
-
-msgid "Path to NSS database to use for private key"
-msgstr "Шлях до бази даних NSS, яку слід використовувати для закритого ключа"
-
-msgid "Path to PEM file containing a private key"
-msgstr "Шлях до файла PEM, який містить закритий ключ"
-
 msgid "Path to a script executed on a Windows system at logon"
 msgstr "Шлях до скрипту, який буде виконано у системі Windows під час входу"
 
@@ -25846,9 +25784,6 @@ msgstr "Шлях до домашнього каталогу користувач
 msgid "Path to a user profile, in UNC format \\\\server\\share\\"
 msgstr ""
 "Шлях до профілю користувача у форматі UNC \\\\сервер\\спільний_ресурс\\"
-
-msgid "Path to private key file"
-msgstr "Шлях до файла закритого ключа"
 
 msgid "Path to the IPA CA certificate"
 msgstr "Шлях до сертифіката CA IPA"
@@ -27470,10 +27405,6 @@ msgstr "Стан запиту"
 
 msgid "Required"
 msgstr "Обов’язкове"
-
-#, python-format
-msgid "Required CSR generation rule %(name)s is missing data"
-msgstr "У обов’язковому правилі створення CSR, %(name)s, не вистачає даних"
 
 msgid "Required field"
 msgstr "Обов’язкове поле"
@@ -29115,9 +29046,6 @@ msgstr "OID призначення"
 msgid "Subject Other Name"
 msgstr "Інша назва призначення"
 
-msgid "Subject Public Key Info"
-msgstr "Дані щодо відкритого ключа суб’єкта"
-
 msgid "Subject UPN"
 msgstr "UPN призначення"
 
@@ -29328,9 +29256,6 @@ msgstr "DN завдання = «%s»"
 
 msgid "Telephone Number"
 msgstr "Номер телефону"
-
-msgid "Template error when formatting certificate data"
-msgstr "Помилка шаблона під час форматування даних сертифіката"
 
 msgid "Test the ACI syntax but don't write anything"
 msgstr "Перевірити синтаксис ACI, але не виконувати запису"
@@ -30444,9 +30369,6 @@ msgstr "Хто"
 
 msgid "Working"
 msgstr "Працює"
-
-msgid "Write CertificationRequestInfo to file"
-msgstr "Записати CertificationRequestInfo до файла"
 
 msgid "Write certificate (chain if --chain used) to file"
 msgstr ""
@@ -32228,8 +32150,79 @@ msgstr "{} потрібен основному серверу IPA"
 #~ "\n"
 #~ "    ipa ca-del puppet\n"
 
+#~ msgid ""
+#~ "\n"
+#~ "Commands to build certificate requests automatically\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Команди для автоматичної побудови запитів щодо сертифікації\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "Routines for constructing certificate signing requests using IPA data "
+#~ "and\n"
+#~ "stored templates.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Процедури для побудови запитів щодо підписування сертифікатів за "
+#~ "допомогою даних IPA та\n"
+#~ "збережених шаблонів.\n"
+
+#~ msgid "CSR Generation Profile to use"
+#~ msgstr "Профіль створення CSR, яким слід скористатися"
+
+#~ msgid "CertificationRequestInfo structure"
+#~ msgstr "Структура CertificationRequestInfo"
+
+#~ msgid "DER-encoded SubjectPublicKeyInfo structure"
+#~ msgstr "Структура SubjectPublicKeyInfo у кодуванні DER"
+
 #~ msgid "Delete a CA."
 #~ msgstr "Вилучити запис CA."
+
+#~ msgid "File containing a password for the private key or database"
+#~ msgstr "Файл, що містить пароль до закритого ключа або бази даних"
+
+#~ msgid "Gather data for a certificate signing request."
+#~ msgstr "Зібрати дані для запиту щодо підписування сертифіката."
+
+#~ msgid "Generated CSR was empty"
+#~ msgstr "Створений CSR виявився порожнім"
+
+#, python-format
+#~ msgid "Generation rule \"%(rulename)s\" is missing the \"rule\" key"
+#~ msgstr "У правилі створення «%(rulename)s» немає ключа «rule»"
+
+#~ msgid "Name of CSR generation profile (if not the same as profile_id)"
+#~ msgstr "Назва профілю створення CSR (якщо не та сама, що і profile_id)"
+
+#, python-format
+#~ msgid "No CSR generation rules are defined for profile %(profile_id)s"
+#~ msgstr "Для профілю %(profile_id)s не визначено правил створення CSR"
+
+#, python-format
+#~ msgid "No generation rule %(rulename)s found."
+#~ msgstr "Не знайдено правила створення %(rulename)s."
+
+#~ msgid "Options 'database' and 'private_key' are not compatible with 'csr'"
+#~ msgstr "Параметри «database» і «private_key» є несумісними з «csr»"
+
+#~ msgid "Path to NSS database"
+#~ msgstr "Шлях до бази даних NSS"
+
+#~ msgid "Path to NSS database to use for private key"
+#~ msgstr ""
+#~ "Шлях до бази даних NSS, яку слід використовувати для закритого ключа"
+
+#~ msgid "Path to PEM file containing a private key"
+#~ msgstr "Шлях до файла PEM, який містить закритий ключ"
+
+#~ msgid "Path to private key file"
+#~ msgstr "Шлях до файла закритого ключа"
+
+#, python-format
+#~ msgid "Required CSR generation rule %(name)s is missing data"
+#~ msgstr "У обов’язковому правилі створення CSR, %(name)s, не вистачає даних"
 
 #~ msgid ""
 #~ "Reverse zone for PTR record should be a sub-zone of one the following "
@@ -32237,3 +32230,12 @@ msgstr "{} потрібен основному серверу IPA"
 #~ msgstr ""
 #~ "Зворотна зона для запису PTR має бути підзоною одного з таких "
 #~ "повноформатних доменів: %s"
+
+#~ msgid "Subject Public Key Info"
+#~ msgstr "Дані щодо відкритого ключа суб’єкта"
+
+#~ msgid "Template error when formatting certificate data"
+#~ msgstr "Помилка шаблона під час форматування даних сертифіката"
+
+#~ msgid "Write CertificationRequestInfo to file"
+#~ msgstr "Записати CertificationRequestInfo до файла"
