@@ -5,6 +5,10 @@
 
 from __future__ import absolute_import
 
+import re
+
+import pytest
+
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
@@ -15,7 +19,13 @@ class TestDNS(IntegrationTest):
     This test class covers the tests for DNS feature.
     """
     topology = 'line'
-    num_replicas = 0
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
+        cls.replica = cls.replicas[0]
 
     def test_fake_mname_param(self):
         """Test that fake_mname param is set using dnsserver-mod option.
@@ -38,3 +48,13 @@ class TestDNS(IntegrationTest):
         cmd = self.master.run_command(['dig', '+short', '-t', 'SOA',
                                        self.master.domain.name])
         assert 'fake' not in cmd.stdout_text
+
+    @pytest.mark.parametrize('host', ['master', 'replica'])
+    def test_resolvconf(self, host):
+        """Check localhost is configured as default resolver.
+
+        This is a regression test for https://pagure.io/freeipa/issue/7900.
+        """
+        host = getattr(self, host)
+        res = host.run_command(['dig', '+trace', 'org'], raiseonerr=False)
+        assert re.search(';; Received.+from 127.0.0.1#53', res.stdout_text)
