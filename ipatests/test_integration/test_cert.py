@@ -60,15 +60,11 @@ def get_certmonger_request_value(host, requestid, state):
 
 class TestInstallMasterClient(IntegrationTest):
     num_clients = 1
+    topology = 'line'
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True)
-        # use master's DNS so nsupdate adds correct IP address for client
-        tasks.config_host_resolvconf_with_master_data(
-            cls.master, cls.clients[0]
-        )
-        tasks.install_client(cls.master, cls.clients[0])
+        super().install(mh)
 
         # time to look into journal logs in
         # test_certmonger_ipa_responder_jsonrpc

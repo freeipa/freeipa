@@ -61,9 +61,6 @@ class TestSMB(IntegrationTest):
         cls.smbclient = cls.clients[1]
         cls.ad_user = '{}@{}'.format(cls.ad_user_login, cls.ad.domain.name)
 
-        for h in [cls.smbserver, cls.smbclient]:
-            tasks.config_host_resolvconf_with_master_data(cls.master, h)
-
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
         tasks.configure_windows_dns_for_trust(cls.ad, cls.master)

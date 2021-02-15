@@ -59,6 +59,8 @@ class TestForcedClientReenrollment(IntegrationTest):
                                )
 
         tasks.install_replica(cls.master, cls.replicas[0], setup_ca=False)
+        cls.clients[0].resolver.backup()
+        cls.clients[0].resolver.setup_resolver(cls.master.ip)
         cls.BACKUP_KEYTAB = os.path.join(
             cls.master.config.test_dir,
             'krb5.keytab'
@@ -209,8 +211,6 @@ class TestForcedClientReenrollment(IntegrationTest):
         server = self.replicas[0] if to_replica else self.master
         client = self.clients[0]
 
-        self.fix_resolv_conf(client, server)
-
         args = [
             'ipa-client-install', '-U',
             '--server', server.hostname,
@@ -302,25 +302,9 @@ class TestForcedClientReenrollment(IntegrationTest):
         contents = self.master.get_file_contents(self.BACKUP_KEYTAB)
         self.clients[0].put_file_contents(self.BACKUP_KEYTAB, contents)
 
-    @classmethod
-    def fix_resolv_conf(cls, client, server):
-        """
-        Put server's ip address at the top of resolv.conf
-        """
-        contents = client.get_file_contents(paths.RESOLV_CONF,
-                                            encoding='utf-8')
-        nameserver = 'nameserver %s\n' % server.ip
-
-        if not contents.startswith(nameserver):
-            contents = nameserver + contents.replace(nameserver, '')
-            client.put_file_contents(paths.RESOLV_CONF, contents)
-
 
 @pytest.fixture()
 def client(request):
-    # Here we call "fix_resolv_conf" method before every ipa-client-install so
-    # we get the client pointing to ipa master as DNS server.
-    request.cls.fix_resolv_conf(request.cls.clients[0], request.cls.master)
     tasks.install_client(request.cls.master, request.cls.clients[0])
 
     def teardown_client():
