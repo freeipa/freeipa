@@ -355,7 +355,7 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None,
         else:
             update_policy = get_dns_forward_zone_update_policy(api.env.realm)
 
-    if zonemgr is None:
+    if not zonemgr:
         zonemgr = 'hostmaster.%s' % name
 
     if ns_hostname:
@@ -682,7 +682,7 @@ class BindInstance(service.Service):
         self.forward_policy = forward_policy
         self.reverse_zones = reverse_zones
 
-        if zonemgr is not None:
+        if not zonemgr:
             self.zonemgr = 'hostmaster.%s' % normalize_zone(self.domain)
         else:
             self.zonemgr = normalize_zonemgr(zonemgr)
