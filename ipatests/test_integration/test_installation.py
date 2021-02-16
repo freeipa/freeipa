@@ -1171,6 +1171,13 @@ class TestInstallMasterDNS(IntegrationTest):
             extra_args=['--zonemgr', 'me@example.org'],
         )
 
+        tasks.kinit_admin(self.master)
+        result = self.master.run_command(
+            ['ipa', 'dnszone-show', self.master.domain.name]
+        ).stdout_text
+
+        assert "Administrator e-mail address: me.example.org" in result
+
     def test_server_install_lock_bind_recursion(self):
         """Test if server installer lock Bind9 recursion
 
