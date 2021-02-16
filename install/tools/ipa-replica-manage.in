@@ -39,7 +39,11 @@ from ipaserver.install import opendnssecinstance, dnskeysyncinstance
 from ipapython import version, ipaldap
 from ipalib import api, errors
 from ipalib.constants import FQDN
-from ipalib.util import has_managed_topology, verify_host_resolvable
+from ipalib.util import (
+    has_managed_topology,
+    print_replication_status,
+    verify_host_resolvable,
+)
 from ipapython.ipa_log_manager import standard_logging_setup
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
@@ -235,25 +239,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
 
     for entry in entries:
         print('%s: %s' % (entry.single_value.get('nsds5replicahost'), ent_type))
-
-        if verbose:
-            initstatus = entry.single_value.get('nsds5replicalastinitstatus')
-            print("  last init status: %s" % initstatus)
-            if initstatus is not None:
-                print("  last init ended: %s" % str(
-                    ipautil.parse_generalized_time(
-                        entry.single_value['nsds5replicalastinitend']))
-                    )
-            updatestatus = entry.single_value.get(
-                    'nsds5replicalastupdatestatus'
-            )
-            print("  last update status: %s" % updatestatus)
-            if updatestatus is not None:
-                print("  last update ended: %s" % str(
-                    ipautil.parse_generalized_time(
-                        entry.single_value['nsds5replicalastupdateend']
-                    ))
-                )
+        print_replication_status(entry, verbose)
 
 
 def del_link(realm, replica1, replica2, dirman_passwd, force=False):
