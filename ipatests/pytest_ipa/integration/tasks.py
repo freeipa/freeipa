@@ -55,7 +55,7 @@ from ipaplatform.paths import paths
 from ipaplatform.services import knownservices
 from ipapython.dn import DN
 from ipalib import errors
-from ipalib.util import get_reverse_zone_default, verify_host_resolvable
+from ipalib.util import get_reverse_zone_default
 from ipalib.constants import (
     DEFAULT_CONFIG, DOMAIN_SUFFIX_NAME, DOMAIN_LEVEL_0,
     MIN_DOMAIN_LEVEL, MAX_DOMAIN_LEVEL
@@ -1507,14 +1507,7 @@ def add_a_records_for_hosts_in_master_domain(master):
     for host in master.domain.hosts:
         # We don't need to take care of the zone creation since it is master
         # domain
-        try:
-            verify_host_resolvable(host.hostname)
-            logger.debug("The host (%s) is resolvable.", host.hostname)
-        except errors.DNSNotARecordError:
-            logger.debug("Hostname (%s) does not have A/AAAA record. Adding "
-                         "new one.",
-                         host.hostname)
-            add_a_record(master, host)
+        add_a_record(master, host)
 
 
 def add_a_record(master, host):
