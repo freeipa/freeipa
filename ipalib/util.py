@@ -65,6 +65,7 @@ from ipalib.facts import is_ipa_client_configured
 from ipalib.text import _
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
+from ipapython import ipautil
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
 from ipapython.dnsutil import (
@@ -1027,6 +1028,31 @@ def detect_dns_zone_realm_type(api, domain):
 def has_managed_topology(api):
     domainlevel = api.Command['domainlevel_get']().get('result', DOMAIN_LEVEL_0)
     return domainlevel > DOMAIN_LEVEL_0
+
+
+def print_replication_status(entry, verbose):
+    """Pretty print nsds5replicalastinitstatus, nsds5replicalastinitend,
+    nsds5replicalastupdatestatus, nsds5replicalastupdateend for a
+    replication agreement.
+    """
+
+    if verbose:
+        initstatus = entry.single_value.get('nsds5replicalastinitstatus')
+        if initstatus is not None:
+            print("  last init status: %s" % initstatus)
+            print("  last init ended: %s" % str(
+                ipautil.parse_generalized_time(
+                    entry.single_value['nsds5replicalastinitend'])))
+        updatestatus = entry.single_value.get(
+            'nsds5replicalastupdatestatus'
+        )
+        if updatestatus is not None:
+            print("  last update status: %s" % updatestatus)
+            print("  last update ended: %s" % str(
+                ipautil.parse_generalized_time(
+                    entry.single_value['nsds5replicalastupdateend']
+                ))
+            )
 
 
 class classproperty:
