@@ -58,3 +58,7 @@ class TestDNS(IntegrationTest):
         res = self.master.run_command(
             ['dig', '@%s' % forwarder, '+short', hostname])
         assert res.stdout_text.strip()
+
+    def test_debug(self):
+        import time
+        time.sleep(10000)
