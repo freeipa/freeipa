@@ -1,0 +1,12 @@
+parameters:
+    options: ''
+
+steps:
+- script: |
+    set -e
+    echo "Running autoconf generator"
+    ./autogen.sh \
+        ${{ parameters.options }} \
+        --enable-rpmlint \
+
+  displayName: Configure the project

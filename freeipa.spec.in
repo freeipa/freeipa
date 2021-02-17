@@ -49,9 +49,9 @@
 # lint is not executed during rpmbuild
 # %%global with_lint 1
 %if %{with lint}
-    %global linter_options --enable-pylint --with-jslint
+    %global linter_options --enable-pylint --with-jslint --enable-rpmlint
 %else
-    %global linter_options --disable-pylint --without-jslint
+    %global linter_options --disable-pylint --without-jslint --disable-rpmlint
 %endif
 
 # Include SELinux subpackage
