@@ -304,7 +304,8 @@ class TestInstallDNSSECFirst(IntegrationTest):
         # support before
         Firewall(cls.master).enable_services(["dns"])
 
-        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
+        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True,
+                              nameservers=None)
 
         # backup trusted key
         tasks.backup_file(cls.master, paths.DNSSEC_TRUSTED_KEY)
