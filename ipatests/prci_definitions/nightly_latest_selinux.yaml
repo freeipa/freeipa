@@ -1821,5 +1821,5 @@ jobs:
         selinux_enforcing: True
         test_suite: test_integration/test_ipa_cert_fix.py
         template: *ci-master-latest
-        timeout: 3600
+        timeout: 7200
         topology: *master_1repl
