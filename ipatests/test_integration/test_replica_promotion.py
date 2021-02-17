@@ -705,7 +705,8 @@ class TestReplicaInstallCustodia(IntegrationTest):
         replica1.run_command(['ipactl', 'status'], raiseonerr=False)
 
         # Install Replica2 with CA with source as Replica1.
-        tasks.install_replica(replica1, replica2, setup_ca=True)
+        tasks.install_replica(replica1, replica2, setup_ca=True,
+                              nameservers='master')
         result = replica2.run_command(['ipactl', 'status'])
         assert 'ipa-custodia Service: RUNNING' in result.stdout_text
 

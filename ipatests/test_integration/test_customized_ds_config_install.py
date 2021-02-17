@@ -69,4 +69,5 @@ class TestCustomDSConfigInstall(IntegrationTest):
     def test_customized_ds_install_replica(self):
         tasks.install_replica(
             self.master, self.replicas[0], setup_ca=False,
+            nameservers=None,
             extra_args=['--dirsrv-config-file', CONFIG_LDIF_PATH])

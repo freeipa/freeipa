@@ -2201,7 +2201,7 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         tasks.kinit_admin(cls.master)
         tasks.install_packages(cls.master, HEALTHCHECK_PKG)
         tasks.install_packages(cls.replicas[0], HEALTHCHECK_PKG)
-        tasks.install_replica(cls.master, cls.replicas[0])
+        tasks.install_replica(cls.master, cls.replicas[0], nameservers=None)
 
     def test_ipahealthcheck_crlmanagercheck(self):
         """

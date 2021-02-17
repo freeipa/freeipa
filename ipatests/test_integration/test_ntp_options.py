@@ -67,7 +67,8 @@ class TestNTPoptions(IntegrationTest):
         assert self.exp_records_msg in server_install.stderr_text
         assert self.exp_chrony_msg in server_install.stdout_text
 
-        client_install = tasks.install_client(self.master, self.client)
+        client_install = tasks.install_client(self.master, self.client,
+                                              nameservers=None)
 
         assert self.exp_records_msg in client_install.stderr_text
         assert self.exp_chrony_msg in client_install.stdout_text
@@ -84,7 +85,8 @@ class TestNTPoptions(IntegrationTest):
         assert self.exp_default_msg not in server_install.stdout_text
 
         client_install = tasks.install_client(self.master, self.client,
-                                              extra_args=['--no-ntp'])
+                                              extra_args=['--no-ntp'],
+                                              nameservers=None)
         assert self.exp_default_msg not in client_install.stdout_text
 
     def test_server_client_install_with_multiple_ntp_srv(self):
@@ -104,7 +106,7 @@ class TestNTPoptions(IntegrationTest):
         assert self.ntp_server2 in cmd.stdout_text
 
         client_install = tasks.install_client(self.master, self.client,
-                                              extra_args=args)
+                                              extra_args=args, nameservers=None)
         assert self.exp_change_msg in client_install.stderr_text
         cmd = self.client.run_command(['cat', paths.CHRONY_CONF])
         assert self.ntp_server1 in cmd.stdout_text
@@ -127,7 +129,7 @@ class TestNTPoptions(IntegrationTest):
 
         replica_install = tasks.install_replica(self.master, self.replica,
                                                 extra_args=args,
-                                                promote=False)
+                                                promote=False, nameservers=None)
         assert self.exp_change_msg in replica_install.stderr_text
 
         cmd = self.replica.run_command(['cat', paths.CHRONY_CONF])
@@ -135,7 +137,7 @@ class TestNTPoptions(IntegrationTest):
         assert self.ntp_server1 in cmd.stdout_text
 
         client_install = tasks.install_client(self.master, self.client,
-                                              extra_args=args)
+                                              extra_args=args, nameservers=None)
         assert self.exp_change_msg in client_install.stderr_text
         cmd = self.client.run_command(['cat', paths.CHRONY_CONF])
         assert self.ntp_pool in cmd.stdout_text
@@ -156,7 +158,7 @@ class TestNTPoptions(IntegrationTest):
 
         replica_install = tasks.install_replica(self.master, self.replica,
                                                 extra_args=args,
-                                                promote=True)
+                                                promote=True, nameservers=None)
         # while promoting with tasks expected_msg will not be in output
         assert self.exp_change_msg not in replica_install.stderr_text
 
@@ -164,7 +166,7 @@ class TestNTPoptions(IntegrationTest):
         assert self.ntp_server1 in cmd.stdout_text
 
         client_install = tasks.install_client(self.master, self.client,
-                                              extra_args=args)
+                                              extra_args=args, nameservers=None)
         assert self.exp_change_msg in client_install.stderr_text
         cmd = self.client.run_command(['cat', paths.CHRONY_CONF])
         assert self.ntp_server1 in cmd.stdout_text
@@ -199,7 +201,7 @@ class TestNTPoptions(IntegrationTest):
         --ntp-pool and -N or --no-ntp option would fail
         """
         tasks.install_master(self.master, setup_dns=False)
-        tasks.install_client(self.master, self.replica)
+        tasks.install_client(self.master, self.replica, nameservers=None)
 
         replica_install = self.replica.run_command(
             ['ipa-replica-install', '--no-ntp'],
@@ -233,11 +235,12 @@ class TestNTPoptions(IntegrationTest):
         assert self.exp_change_msg in server_install.stderr_text
 
         client_install = tasks.install_client(self.master, self.replica,
-                                              extra_args=ntp_args)
+                                              extra_args=ntp_args,
+                                              nameservers=None)
         assert self.exp_change_msg in client_install.stderr_text
 
         replica_install = tasks.install_replica(self.master, self.replica,
-                                                promote=False)
+                                                promote=False, nameservers=None)
         assert "ipa-replica-install command was successful" in \
             replica_install.stderr_text
 
@@ -302,7 +305,8 @@ class TestNTPoptions(IntegrationTest):
         client_install = tasks.install_client(self.master,
                                               self.client,
                                               unattended=False,
-                                              stdin_text=client_input)
+                                              stdin_text=client_input,
+                                              nameservers=None)
 
         assert client_install.returncode == 0
 
@@ -349,7 +353,8 @@ class TestNTPoptions(IntegrationTest):
         client_install = tasks.install_client(self.master,
                                               self.client,
                                               unattended=False,
-                                              stdin_text=client_input)
+                                              stdin_text=client_input,
+                                              nameservers=None)
 
         assert client_install.returncode == 0
         assert self.exp_records_msg in client_install.stderr_text
@@ -389,7 +394,8 @@ class TestNTPoptions(IntegrationTest):
         client_install = tasks.install_client(self.master,
                                               self.client,
                                               unattended=False,
-                                              stdin_text=client_input)
+                                              stdin_text=client_input,
+                                              nameservers=None)
 
         assert client_install.returncode == 0
         assert self.exp_records_msg in client_install.stderr_text
