@@ -19,6 +19,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
+from ipatests.pytest_ipa.integration import skip_if_fips
 
 
 def wait_smbd_functional(host):
@@ -377,6 +378,68 @@ class TestSMB(IntegrationTest):
             assert res.returncode == 32
         finally:
             self.cleanup_mount(mountpoint)
+
+    def check_repeated_smb_mount(self, options):
+        mountpoint = '/mnt/smb'
+        unc = '//{}/homes'.format(self.smbserver.hostname)
+        test_file = 'ntlm_test'
+        test_file_server_path = '/home/{}/{}'.format(self.ipa_user1, test_file)
+        test_file_client_path = '{}/{}'.format(mountpoint, test_file)
+
+        self.smbclient.run_command(['mkdir', '-p', mountpoint])
+        self.smbserver.put_file_contents(test_file_server_path, '')
+        try:
+            for i in [1, 2]:
+                res = self.smbclient.run_command([
+                    'mount', '-t', 'cifs', unc, mountpoint, '-o', options],
+                    raiseonerr=False)
+                assert res.returncode == 0, (
+                    'Mount failed at iteration {}. Output: {}'
+                    .format(i, res.stdout_text + res.stderr_text))
+                assert self.smbclient.transport.file_exists(
+                    test_file_client_path)
+                self.smbclient.run_command(['umount', mountpoint])
+        finally:
+            self.cleanup_mount(mountpoint)
+            self.smbserver.run_command(['rm', '-f', test_file_server_path])
+
+    @skip_if_fips()
+    def test_ntlm_authentication_with_auto_domain(self):
+        """Repeatedly try to authenticate with username and password with
+        automatic domain discovery.
+
+        This is a regression test for https://pagure.io/freeipa/issue/8636
+        """
+        tasks.kdestroy_all(self.smbclient)
+
+        mount_options = 'user={user},pass={password},domainauto'.format(
+            user=self.ipa_user1,
+            password=self.ipa_user1_password
+        )
+
+        self.check_repeated_smb_mount(mount_options)
+
+    @skip_if_fips()
+    def test_ntlm_authentication_with_upn_with_lowercase_domain(self):
+        tasks.kdestroy_all(self.smbclient)
+
+        mount_options = 'user={user}@{domain},pass={password}'.format(
+            user=self.ipa_user1,
+            password=self.ipa_user1_password,
+            domain=self.master.domain.name.lower()
+        )
+        self.check_repeated_smb_mount(mount_options)
+
+    @skip_if_fips()
+    def test_ntlm_authentication_with_upn_with_uppercase_domain(self):
+        tasks.kdestroy_all(self.smbclient)
+
+        mount_options = 'user={user}@{domain},pass={password}'.format(
+            user=self.ipa_user1,
+            password=self.ipa_user1_password,
+            domain=self.master.domain.name.upper()
+        )
+        self.check_repeated_smb_mount(mount_options)
 
     def test_uninstall_samba(self):
         self.smbserver.run_command(['ipa-client-samba', '--uninstall', '-U'])
