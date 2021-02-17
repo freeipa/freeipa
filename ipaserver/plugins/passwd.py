@@ -47,10 +47,16 @@ is used. This is so the end-user is the only one who knows the password.
 The IPA password policy controls how often a password may be changed,
 what strength requirements exist, and the length of the password history.
 
+If the user authentication method is set to password+OTP, the user should
+pass the --otp option when resetting the password.
+
 EXAMPLES:
 
  To reset your own password:
    ipa passwd
+
+ To reset your own password when password+OTP is set as authentication method:
+   ipa passwd --otp
 
  To change another user's password:
    ipa passwd tuser1
@@ -105,7 +111,7 @@ class passwd(Command):
     takes_options =  (
         Password('otp?',
                  label=_('OTP'),
-                 doc=_('One Time Password'),
+                 doc=_('The OTP if the user has a token configured'),
                  confirm=False,
         ),
     )
