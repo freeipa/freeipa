@@ -28,12 +28,14 @@ import os
 import tempfile
 import shutil
 import re
+import functools
 
 import pytest
 from pytest_multihost import make_multihost_fixture
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
+from . import fips
 from .config import Config
 from .env_config import get_global_config
 from . import tasks
@@ -478,3 +480,18 @@ def del_compat_attrs(cls):
         del cls.ad_subdomains
         del cls.ad_treedomains
     del cls.ad_domains
+
+
+def skip_if_fips(reason='Not supported in FIPS mode', host='master'):
+    if callable(reason):
+        raise TypeError('Invalid decorator usage, add "()"')
+
+    def decorator(test_method):
+        @functools.wraps(test_method)
+        def wrapper(instance, *args, **kwargs):
+            if fips.is_fips_enabled(getattr(instance, host)):
+                pytest.skip(reason)
+            else:
+                test_method(instance, *args, **kwargs)
+        return wrapper
+    return decorator
