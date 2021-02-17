@@ -451,9 +451,11 @@ class BaseBackupAndRestoreWithKRA(IntegrationTest):
 
             backup_path = tasks.get_backup_dir(self.master)
 
-            self.master.run_command(['ipa-server-install',
-                                     '--uninstall',
-                                     '-U'])
+            # check that no error message in uninstall log for KRA instance
+            cmd = self.master.run_command(['ipa-server-install',
+                                           '--uninstall',
+                                           '-U'])
+            assert "failed to uninstall KRA" not in cmd.stderr_text
 
             if reinstall:
                 tasks.install_master(self.master, setup_dns=True)
@@ -481,6 +483,20 @@ class TestBackupReinstallRestoreWithKRA(BaseBackupAndRestoreWithKRA):
     def test_full_backup_reinstall_restore_with_vault(self):
         """backup, uninstall, reinstall, restore"""
         self._full_backup_restore_with_vault(reinstall=True)
+
+    def test_no_error_message_with_uninstall_ipa_with_kra(self):
+        """Test there is no error message in uninstall log for KRA instance
+
+        There was error message in uninstall log when IPA with KRA was
+        uninstalled. This test check that there is no error message in
+        uninstall log for kra instance.
+
+        related: https://pagure.io/freeipa/issue/8550
+        """
+        cmd = self.master.run_command(['ipa-server-install',
+                                       '--uninstall',
+                                       '-U'])
+        assert "failed to uninstall KRA" not in cmd.stderr_text
 
 
 class TestBackupAndRestoreWithReplica(IntegrationTest):
