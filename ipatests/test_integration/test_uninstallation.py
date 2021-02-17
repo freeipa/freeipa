@@ -37,7 +37,8 @@ class TestUninstallBase(IntegrationTest):
         client = self.replicas[0]
         client_inv_hostname = '{}.nonexistent'.format(client.hostname)
         tasks.install_client(self.master, client,
-                             extra_args=['--hostname', client_inv_hostname])
+                             extra_args=['--hostname', client_inv_hostname],
+                             nameservers=None)
 
         client.run_command(['ipa-client-install', '--uninstall', '-U'])
         client_uninstall_log = client.get_file_contents(
@@ -57,7 +58,7 @@ class TestUninstallBase(IntegrationTest):
         # Include /etc/httpd/conf.d/ipa-rewrite.conf
         # from ssl.conf on the replica
         tasks.install_replica(self.master, self.replicas[0],
-                              extra_args=['--force-join'])
+                              extra_args=['--force-join'], nameservers=None)
         tasks.uninstall_replica(self.master, self.replicas[0])
         errline = b'Include /etc/httpd/conf.d/ipa-rewrite.conf'
         ssl_conf = self.replicas[0].get_file_contents(paths.HTTPD_SSL_CONF)

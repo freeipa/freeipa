@@ -61,13 +61,16 @@ class InstallTestBase1(IntegrationTest):
 
     num_replicas = 3
     topology = 'star'
+    master_with_dns = False
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=False)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns)
 
     def test_replica0_ca_less_install(self):
-        tasks.install_replica(self.master, self.replicas[0], setup_ca=False)
+        tasks.install_replica(
+            self.master, self.replicas[0], setup_ca=False,
+            nameservers='master' if self.master_with_dns else None)
 
     def test_replica0_ipa_ca_install(self):
         tasks.install_ca(self.replicas[0])
@@ -79,7 +82,9 @@ class InstallTestBase1(IntegrationTest):
         tasks.install_dns(self.replicas[0])
 
     def test_replica1_with_ca_install(self):
-        tasks.install_replica(self.master, self.replicas[1], setup_ca=True)
+        tasks.install_replica(
+            self.master, self.replicas[1], setup_ca=True,
+            nameservers='master' if self.master_with_dns else None)
 
     def test_replica1_ipa_kra_install(self):
         tasks.install_kra(self.replicas[1])
@@ -88,8 +93,9 @@ class InstallTestBase1(IntegrationTest):
         tasks.install_dns(self.replicas[1])
 
     def test_replica2_with_ca_kra_install(self):
-        tasks.install_replica(self.master, self.replicas[2], setup_ca=True,
-                              setup_kra=True)
+        tasks.install_replica(
+            self.master, self.replicas[2], setup_ca=True, setup_kra=True,
+            nameservers='master' if self.master_with_dns else None)
 
     def test_replica2_ipa_dns_install(self):
         tasks.install_dns(self.replicas[2])
@@ -99,21 +105,24 @@ class InstallTestBase2(IntegrationTest):
 
     num_replicas = 3
     topology = 'star'
+    master_with_dns = False
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=False)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns)
 
     def test_replica1_with_ca_dns_install(self):
-        tasks.install_replica(self.master, self.replicas[1], setup_ca=True,
-                              setup_dns=True)
+        tasks.install_replica(
+            self.master, self.replicas[1], setup_ca=True, setup_dns=True,
+            nameservers='master' if self.master_with_dns else None)
 
     def test_replica1_ipa_kra_install(self):
         tasks.install_kra(self.replicas[1])
 
     def test_replica2_with_dns_install(self):
-        tasks.install_replica(self.master, self.replicas[2], setup_ca=False,
-                              setup_dns=True)
+        tasks.install_replica(
+            self.master, self.replicas[2], setup_ca=False, setup_dns=True,
+            nameservers='master' if self.master_with_dns else None)
 
     def test_replica2_ipa_ca_install(self):
         tasks.install_ca(self.replicas[2])
@@ -129,20 +138,25 @@ class ADTrustInstallTestBase(IntegrationTest):
     """
     num_replicas = 2
     topology = 'star'
+    master_with_dns = False
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=False)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns)
 
     def install_replica(self, replica, **kwargs):
         tasks.install_replica(self.master, replica, setup_adtrust=True,
                               **kwargs)
 
     def test_replica0_only_adtrust(self):
-        self.install_replica(self.replicas[0], setup_ca=False)
+        self.install_replica(
+            self.replicas[0], setup_ca=False,
+            nameservers='master' if self.master_with_dns else None)
 
     def test_replica1_all_components_adtrust(self):
-        self.install_replica(self.replicas[1], setup_ca=True)
+        self.install_replica(
+            self.replicas[1], setup_ca=True,
+            nameservers='master' if self.master_with_dns else None)
 
 
 ##
@@ -150,10 +164,11 @@ class ADTrustInstallTestBase(IntegrationTest):
 ##
 
 class TestInstallWithCA1(InstallTestBase1):
+    master_with_dns = False
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=False)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns)
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
@@ -199,10 +214,11 @@ class TestInstallWithCA1(InstallTestBase1):
 
 
 class TestInstallWithCA2(InstallTestBase2):
+    master_with_dns = False
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=False)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns)
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
@@ -470,27 +486,32 @@ class TestInstallCA(IntegrationTest):
 
 
 class TestInstallWithCA_KRA1(InstallTestBase1):
+    master_with_dns = False
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=False, setup_kra=True)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns,
+                             setup_kra=True)
 
     def test_replica0_ipa_kra_install(self):
         tasks.install_kra(self.replicas[0], first_instance=False)
 
 
 class TestInstallWithCA_KRA2(InstallTestBase2):
+    master_with_dns = False
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=False, setup_kra=True)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns,
+                             setup_kra=True)
 
 
 class TestInstallWithCA_DNS1(InstallTestBase1):
+    master_with_dns = True
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns)
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
@@ -509,10 +530,11 @@ class TestInstallWithCA_DNS1(InstallTestBase1):
 
 
 class TestInstallWithCA_DNS2(InstallTestBase2):
+    master_with_dns = True
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns)
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
@@ -584,20 +606,24 @@ class TestInstallWithCA_DNS4(CALessBase):
 
 @pytest.mark.cs_acceptance
 class TestInstallWithCA_KRA_DNS1(InstallTestBase1):
+    master_with_dns = True
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns,
+                             setup_kra=True)
 
     def test_replica0_ipa_kra_install(self):
         tasks.install_kra(self.replicas[0], first_instance=False)
 
 
 class TestInstallWithCA_KRA_DNS2(InstallTestBase2):
+    master_with_dns = True
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns,
+                             setup_kra=True)
 
 
 class TestADTrustInstall(ADTrustInstallTestBase):
@@ -615,11 +641,12 @@ class TestADTrustInstallWithDNS_KRA_ADTrust(ADTrustInstallTestBase):
     master. Additional two test cases were added to test interplay including
     KRA installer
     """
+    master_with_dns = True
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True, setup_kra=True,
-                             setup_adtrust=True)
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns,
+                             setup_kra=True, setup_adtrust=True)
 
     def test_replica1_all_components_adtrust(self):
         self.install_replica(self.replicas[1], setup_ca=True, setup_kra=True)
