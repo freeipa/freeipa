@@ -27,7 +27,7 @@ ROOT_CA = "root_ca.crt"
 # RHEL does not have certbot.  EPEL's version is broken with
 # python-cryptography-2.3; likewise recent PyPI releases.
 # So for now, on RHEL we suppress tests that use certbot.
-skip_certbot_tests = osinfo.id not in ['fedora', ]
+skip_certbot_tests = osinfo.id not in ['fedora', 'rhel']
 
 # Fedora mod_md package needs some patches before it will work.
 # RHEL version has the patches.
