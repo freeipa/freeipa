@@ -341,6 +341,11 @@ static enum ipadb_user_auth ipadb_get_user_auth(struct ipadb_context *ipactx,
     if (gcfg != NULL)
         gua = gcfg->user_auth;
 
+    /* lcontext == NULL means ipadb_get_global_config() failed to load
+     * global config and cleared the ipactx */
+    if (ipactx->lcontext == NULL)
+        return IPADB_USER_AUTH_NONE;
+
     /* Get the user's user_auth settings if not disabled. */
     if ((gua & IPADB_USER_AUTH_DISABLED) == 0)
         ipadb_parse_user_auth(ipactx->lcontext, lentry, &ua);
@@ -555,8 +560,16 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         free(entry);
         return KRB5_KDB_DBNOTINITED;
     }
-    lcontext = ipactx->lcontext;
-    if (!lcontext) {
+
+    entry->magic = KRB5_KDB_MAGIC_NUMBER;
+    entry->len = KRB5_KDB_V1_BASE_LENGTH;
+
+    /* Get User Auth configuration. */
+    ua = ipadb_get_user_auth(ipactx, lentry);
+
+    /* ipadb_get_user_auth() calls into ipadb_get_global_config()
+     * and that might fail, causing lcontext to become NULL */
+    if (!ipactx->lcontext) {
         krb5_klog_syslog(LOG_INFO,
                          "No LDAP connection in ipadb_parse_ldap_entry(); retrying...\n");
         ret = ipadb_get_connection(ipactx);
@@ -568,11 +581,10 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         }
     }
 
-    entry->magic = KRB5_KDB_MAGIC_NUMBER;
-    entry->len = KRB5_KDB_V1_BASE_LENGTH;
-
-    /* Get User Auth configuration. */
-    ua = ipadb_get_user_auth(ipactx, lentry);
+    /* If any code below would result in invalidating ipactx->lcontext,
+     * lcontext must be updated with the new ipactx->lcontext value.
+     * We rely on the fact that none of LDAP-parsing helpers does it. */
+    lcontext = ipactx->lcontext;
 
     /* ignore mask for now */
 
