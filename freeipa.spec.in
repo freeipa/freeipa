@@ -803,7 +803,7 @@ Requires: python3-requests
 Requires: python3-six
 Requires: python3-sss-murmur
 Requires: python3-yubico >= 1.3.2-7
-%if 0%{?rhel} && 0%{?rhel} >= 8
+%if 0%{?rhel} && 0%{?rhel} == 8
 Requires: platform-python-setuptools
 %else
 Requires: python3-setuptools
