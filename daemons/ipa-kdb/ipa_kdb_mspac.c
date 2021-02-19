@@ -416,7 +416,6 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
                                         TALLOC_CTX *memctx,
                                         struct netr_SamInfo3 *info3)
 {
-    LDAP *lcontext = ipactx->lcontext;
     LDAPDerefRes *deref_results = NULL;
     struct dom_sid sid;
     gid_t prigid = -1;
@@ -433,7 +432,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     bool is_idobject = false;
     krb5_principal princ;
 
-    ret = ipadb_ldap_attr_to_strlist(lcontext, lentry, "objectClass",
+    ret = ipadb_ldap_attr_to_strlist(ipactx->lcontext, lentry, "objectClass",
                                      &objectclasses);
     if (ret == 0 && objectclasses != NULL) {
         for (c = 0; objectclasses[c] != NULL; c++) {
@@ -470,13 +469,14 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     }
 
     if (is_host) {
-        ret = ipadb_ldap_attr_to_str(lcontext, lentry, "fqdn", &strres);
+        ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry, "fqdn", &strres);
         if (ret) {
             /* fqdn is mandatory for hosts */
             return ret;
         }
     } else if (is_service) {
-        ret = ipadb_ldap_attr_to_str(lcontext, lentry, "krbCanonicalName", &strres);
+        ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
+                                     "krbCanonicalName", &strres);
         if (ret) {
             /* krbCanonicalName is mandatory for services */
             return ret;
@@ -496,7 +496,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
             return ENOENT;
         }
     } else {
-        ret = ipadb_ldap_attr_to_str(lcontext, lentry, "uid", &strres);
+        ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry, "uid", &strres);
         if (ret) {
             /* uid is mandatory */
             return ret;
@@ -509,7 +509,8 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     if (is_host || is_service) {
         prigid = 515; /* Well known RID for domain computers group */
     } else {
-        ret = ipadb_ldap_attr_to_int(lcontext, lentry, "gidNumber", &intres);
+        ret = ipadb_ldap_attr_to_int(ipactx->lcontext, lentry,
+                                     "gidNumber", &intres);
         if (ret) {
             /* gidNumber is mandatory */
             return ret;
@@ -540,7 +541,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     info3->base.kickoff_time = -1;
 #endif
 
-    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
+    ret = ipadb_ldap_attr_to_time_t(ipactx->lcontext, lentry,
                                     "krbLastPwdChange", &timeres);
     switch (ret) {
     case 0:
@@ -557,7 +558,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     info3->base.allow_password_change = 0;
     info3->base.force_password_change = -1;
 
-    ret = ipadb_ldap_attr_to_str(lcontext, lentry, "cn", &strres);
+    ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry, "cn", &strres);
     switch (ret) {
     case 0:
         info3->base.full_name.string = talloc_strdup(memctx, strres);
@@ -570,7 +571,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         return ret;
     }
 
-    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+    ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
                                  "ipaNTLogonScript", &strres);
     switch (ret) {
     case 0:
@@ -584,7 +585,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         return ret;
     }
 
-    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+    ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
                                  "ipaNTProfilePath", &strres);
     switch (ret) {
     case 0:
@@ -598,7 +599,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         return ret;
     }
 
-    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+    ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
                                  "ipaNTHomeDirectory", &strres);
     switch (ret) {
     case 0:
@@ -612,7 +613,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         return ret;
     }
 
-    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+    ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
                                  "ipaNTHomeDirectoryDrive", &strres);
     switch (ret) {
     case 0:
@@ -643,7 +644,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
             info3->base.rid = 515;
         }
     } else {
-        ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+        ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
                                      "ipaNTSecurityIdentifier", &strres);
         if (ret) {
             /* SID is mandatory */
@@ -660,7 +661,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         }
     }
 
-    ret = ipadb_ldap_deref_results(lcontext, lentry, &deref_results);
+    ret = ipadb_ldap_deref_results(ipactx->lcontext, lentry, &deref_results);
     switch (ret) {
     LDAPDerefRes *dres;
     LDAPDerefVal *dval;
@@ -2511,7 +2512,7 @@ static krb5_error_code
 ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
 {
     struct ipadb_adtrusts *t;
-    LDAP *lc = ipactx->lcontext;
+    LDAP *lc = NULL;
     char *attrs[] = { "cn", "ipaNTTrustPartner", "ipaNTFlatName",
                       "ipaNTTrustedDomainSID", "ipaNTSIDBlacklistIncoming",
                       "ipaNTSIDBlacklistOutgoing", "ipaNTAdditionalSuffixes", NULL };
@@ -2545,6 +2546,7 @@ ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
         goto done;
     }
 
+    lc = ipactx->lcontext;
     for (le = ldap_first_entry(lc, res); le; le = ldap_next_entry(lc, le)) {
         dnstr = ldap_get_dn(lc, le);
 
