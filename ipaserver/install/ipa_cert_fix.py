@@ -57,6 +57,8 @@ and keys, is STRONGLY RECOMMENDED.
 
 """
 
+RENEWED_CERT_PATH_TEMPLATE = "/etc/pki/pki-tomcat/certs/{}-renewed.crt"
+
 logger = logging.getLogger(__name__)
 
 
@@ -145,11 +147,18 @@ class IPACertFix(AdminTool):
                 x[0] is IPACertType.LDAPS
                 for x in extra_certs + non_renewed
             ):
-                # The DS cert was expired.  This will cause
-                # 'pki-server cert-fix' to fail at the final
-                # restart.  Therefore ignore the CalledProcessError
-                # and proceed to installing the IPA-specific certs.
-                pass
+                # The DS cert was expired.  This will cause 'pki-server
+                # cert-fix' to fail at the final restart, and return nonzero.
+                # So this exception *might* be OK to ignore.
+                #
+                # If 'pki-server cert-fix' has written new certificates
+                # corresponding to all the extra_certs, then ignore the
+                # CalledProcessError and proceed to installing the IPA-specific
+                # certs.  Otherwise re-raise.
+                if check_renewed_ipa_certs(extra_certs):
+                    pass
+                else:
+                    raise
             else:
                 raise  # otherwise re-raise
 
@@ -365,11 +374,32 @@ def replicate_dogtag_certs(subject_base, ca_subject_dn, certs):
         replicate_cert(subject_base, ca_subject_dn, cert)
 
 
+def check_renewed_ipa_certs(certs):
+    """
+    Check whether all expected IPA-specific certs (extra_certs) were renewed
+    successfully.
+
+    For now this subroutine just checks that the files that we expect
+    ``pki-server cert-fix`` to have written do exist and contain an X.509
+    certificate.
+
+    Return ``True`` if everything seems to be as expected, otherwise ``False``.
+
+    """
+    for _certtype, oldcert in certs:
+        cert_path = RENEWED_CERT_PATH_TEMPLATE.format(oldcert.serial_number)
+        try:
+            x509.load_certificate_from_file(cert_path)
+        except (IOError, ValueError):
+            return False
+
+    return True
+
+
 def install_ipa_certs(subject_base, ca_subject_dn, certs):
     """Print details and install renewed IPA certificates."""
     for certtype, oldcert in certs:
-        cert_path = "/etc/pki/pki-tomcat/certs/{}-renewed.crt" \
-            .format(oldcert.serial_number)
+        cert_path = RENEWED_CERT_PATH_TEMPLATE.format(oldcert.serial_number)
         cert = x509.load_certificate_from_file(cert_path)
         print_cert_info("Renewed IPA", certtype.value, cert)
 
