@@ -56,6 +56,7 @@ static void ipadb_context_free(krb5_context kcontext,
         /* ldap free lcontext */
         if ((*ctx)->lcontext) {
             ldap_unbind_ext_s((*ctx)->lcontext, NULL, NULL);
+            (*ctx)->lcontext = NULL;
         }
         free((*ctx)->supp_encs);
         free((*ctx)->def_encs);
