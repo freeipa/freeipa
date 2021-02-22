@@ -571,6 +571,7 @@ class _TransportCertCache:
                     raise
         except Exception:
             logger.warning("Failed to load %s", filename, exc_info=True)
+        return None
 
     def store_cert(self, domain, transport_cert):
         """Store a new cert or override existing cert
@@ -677,6 +678,7 @@ class ModVaultData(Local):
             _transport_cert_cache.remove_cert(self.api.env.domain)
             if raise_unexpected:
                 raise
+        return None
 
     def internal(self, algo, *args, **options):
         """
