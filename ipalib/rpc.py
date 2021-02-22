@@ -684,6 +684,9 @@ class KerbTransport(SSLTransport):
             return False
         return True
 
+    # pylint: disable=inconsistent-return-statements
+    # pylint does not properly manage the _handle_exception call
+    # that is always raising an exception
     def single_request(self, host, handler, request_body, verbose=0):
         # Based on Python 2.7's xmllib.Transport.single_request
         try:
@@ -745,6 +748,7 @@ class KerbTransport(SSLTransport):
             logger.debug("HTTP connection destroyed (%s)",
                          host, exc_info=True)
             raise
+    # pylint: enable=inconsistent-return-statements
 
     if six.PY3:
         def __send_request(self, connection, host, handler, request_body, debug):
