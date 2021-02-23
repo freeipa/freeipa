@@ -328,7 +328,7 @@ krb5_error_code ipadb_check_policy_as(krb5_context kcontext,
     }
 
     if (ied->pol->max_fail == 0 ||
-        client->fail_auth_count < ied->pol->max_fail) {
+        client->fail_auth_count < (krb5_kvno) ied->pol->max_fail) {
         /* still within allowed failures range */
         return 0;
     }

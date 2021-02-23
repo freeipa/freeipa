@@ -498,7 +498,7 @@ static krb5_error_code ipadb_get_ldap_auth_ind(krb5_context kcontext,
     l = len;
     for (i = 0; i < count; i++) {
         ret = snprintf(ap, l, "%s ", authinds[i]);
-        if (ret <= 0 || ret > l) {
+        if (ret <= 0 || ret > (int) l) {
             ret = ENOMEM;
             goto cleanup;
         }
@@ -1867,7 +1867,7 @@ static krb5_error_code ipadb_get_ldap_mod_auth_ind(krb5_context kcontext,
     char *s = NULL;
     size_t ai_size = 0;
     int cnt = 0;
-    int i = 0;
+    size_t i = 0;
 
     ret = krb5_dbe_get_string(kcontext, entry, "require_auth", &ais);
     if (ret) {
@@ -2248,7 +2248,7 @@ static krb5_error_code ipadb_entry_default_attrs(struct ipadb_mods *imods)
 {
     krb5_error_code kerr;
     LDAPMod *m = NULL;
-    int i;
+    size_t i;
 
     kerr = ipadb_mods_new(imods, &m);
     if (kerr) {
