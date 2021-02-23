@@ -158,9 +158,9 @@ int string_to_sid(const char *str, struct dom_sid *sid)
 
 char *dom_sid_string(TALLOC_CTX *memctx, const struct dom_sid *dom_sid)
 {
-    size_t c;
+    int8_t c;
     size_t len;
-    int ofs;
+    size_t ofs;
     uint32_t ia;
     char *buf;
 
