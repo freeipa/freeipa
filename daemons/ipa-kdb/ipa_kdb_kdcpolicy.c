@@ -14,6 +14,10 @@
 #define ONE_DAY_SECONDS (24 * 60 * 60)
 #define JITTER_WINDOW_SECONDS (1 * 60 * 60)
 
+krb5_error_code kdcpolicy_ipakdb_initvt(krb5_context context,
+                                        int maj_ver, int min_ver,
+                                        krb5_plugin_vtable vtable);
+
 static void
 jitter(krb5_deltat baseline, krb5_deltat *lifetime_out)
 {
