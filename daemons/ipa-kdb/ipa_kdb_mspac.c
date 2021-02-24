@@ -2325,9 +2325,10 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
     *mspac = NULL;
 }
 
-krb5_error_code ipadb_adtrusts_fill_sid_blacklist(char **source_sid_blacklist,
-                                                  struct dom_sid **result_sids,
-                                                  int *result_length)
+static krb5_error_code
+ipadb_adtrusts_fill_sid_blacklist(char **source_sid_blacklist,
+                                  struct dom_sid **result_sids,
+                                  int *result_length)
 {
     int len, i;
     char **source;
@@ -2358,9 +2359,10 @@ krb5_error_code ipadb_adtrusts_fill_sid_blacklist(char **source_sid_blacklist,
     return 0;
 }
 
-krb5_error_code ipadb_adtrusts_fill_sid_blacklists(struct ipadb_adtrusts *adtrust,
-                                                   char **sid_blacklist_incoming,
-                                                   char **sid_blacklist_outgoing)
+static krb5_error_code
+ipadb_adtrusts_fill_sid_blacklists(struct ipadb_adtrusts *adtrust,
+                                   char **sid_blacklist_incoming,
+                                   char **sid_blacklist_outgoing)
 {
     krb5_error_code kerr;
 
@@ -2381,7 +2383,8 @@ krb5_error_code ipadb_adtrusts_fill_sid_blacklists(struct ipadb_adtrusts *adtrus
     return 0;
 }
 
-krb5_error_code ipadb_mspac_check_trusted_domains(struct ipadb_context *ipactx)
+static krb5_error_code
+ipadb_mspac_check_trusted_domains(struct ipadb_context *ipactx)
 {
     char *attrs[] = { NULL };
     char *filter = "(objectclass=ipaNTTrustedDomain)";
@@ -2426,7 +2429,8 @@ static void ipadb_free_sid_blacklists(char ***sid_blacklist_incoming, char ***si
     }
 }
 
-krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
+static krb5_error_code
+ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
 {
     struct ipadb_adtrusts *t;
     LDAP *lc = ipactx->lcontext;
