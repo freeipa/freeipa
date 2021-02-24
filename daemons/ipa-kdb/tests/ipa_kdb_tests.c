@@ -164,7 +164,7 @@ extern krb5_error_code filter_logon_info(krb5_context context,
                                   krb5_data realm,
                                   struct PAC_LOGON_INFO_CTR *info);
 
-void test_filter_logon_info(void **state)
+static void test_filter_logon_info(void **state)
 {
     krb5_error_code kerr;
     krb5_data realm = {KV5M_DATA, REALM_LEN, REALM};
@@ -299,10 +299,7 @@ void test_filter_logon_info(void **state)
 
 }
 
-extern void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
-                                 bool *with_pac, bool *with_pad);
-
-void test_get_authz_data_types(void **state)
+static void test_get_authz_data_types(void **state)
 {
     bool with_pac;
     bool with_pad;
@@ -420,7 +417,7 @@ void test_get_authz_data_types(void **state)
     krb5_free_principal(test_ctx->krb5_ctx, non_nfs_princ);
 }
 
-void test_string_to_sid(void **state)
+static void test_string_to_sid(void **state)
 {
     int ret;
     struct dom_sid sid;
@@ -452,7 +449,7 @@ void test_string_to_sid(void **state)
     assert_memory_equal(&exp_sid, &sid, sizeof(struct dom_sid));
 }
 
-void test_dom_sid_string(void **state)
+static void test_dom_sid_string(void **state)
 {
     struct test_ctx *test_ctx;
     char *str_sid;
