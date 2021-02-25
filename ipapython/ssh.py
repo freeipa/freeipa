@@ -125,6 +125,9 @@ class SSHPublicKey:
     def _parse_openssh_with_options(self, key):
         key = key.lstrip('\t ')
 
+        # Options that allow multiple entries
+        multiple_allowed = ('permitopen', 'permitlisten')
+
         options = {}
         while True:
             match = OPENSSH_OPTIONS_REGEX.match(key)
@@ -136,7 +139,13 @@ class SSHPublicKey:
             if value:
                 value = value.replace('\\"', '"')
 
-            options[name] = value
+            if name in multiple_allowed:
+                if name in options:
+                    options[name].append(value)
+                else:
+                    options[name] = [value]
+            else:
+                options[name] = value
 
             key = key[len(match.group(0)):]
             key0, key = key[:1], key[1:]
@@ -179,6 +188,10 @@ class SSHPublicKey:
                 value = self._options[name]
                 if value is None:
                     options.append(name)
+                elif type(value) is list:
+                    for v in value:
+                        v = v.replace('"', '\\"')
+                        options.append(u'%s="%s"' % (name, v))
                 else:
                     value = value.replace('"', '\\"')
                     options.append(u'%s="%s"' % (name, value))
