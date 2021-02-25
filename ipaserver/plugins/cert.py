@@ -1812,10 +1812,7 @@ class cert_find(Search, CertMethod):
 
     def execute(self, criteria=None, all=False, raw=False, pkey_only=False,
                 no_members=True, timelimit=None, sizelimit=None, **options):
-        # Store ca_enabled status in the context to save making the API
-        # call multiple times.
         ca_enabled = self.api.Command.ca_is_enabled()['result']
-        setattr(context, 'ca_enabled', ca_enabled)
 
         if 'cacn' in options:
             ca_obj = api.Command.ca_show(options['cacn'])['result']
@@ -1933,5 +1930,12 @@ class ca_is_enabled(Command):
     has_output = output.standard_value
 
     def execute(self, *args, **options):
-        result = is_service_enabled('CA', conn=self.api.Backend.ldap2)
+        # Store ca_enabled status in the context to save making the API
+        # call multiple times.
+        ca_enabled = getattr(context, 'ca_enabled', None)
+        if ca_enabled is not None and api.env.context in ('lite', 'server',):
+            result = ca_enabled
+        else:
+            result = is_service_enabled('CA', conn=self.api.Backend.ldap2)
+            setattr(context, 'ca_enabled', result)
         return dict(result=result, value=pkey_to_value(None, options))
