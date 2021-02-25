@@ -1582,11 +1582,17 @@ def check_ns_rec_resolvable(zone, name):
         )
 
 def dns_container_exists(ldap):
+    exists = getattr(context, 'dns_container_exists', None)
+    if exists is not None:
+        return exists
     try:
         ldap.get_entry(DN(api.env.container_dns, api.env.basedn), [])
     except errors.NotFound:
-        return False
-    return True
+        exists = False
+    else:
+        exists = True
+    setattr(context, 'dns_container_exists', exists)
+    return exists
 
 
 def dnssec_installed(ldap):
