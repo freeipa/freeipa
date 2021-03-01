@@ -12,6 +12,7 @@ import pytest
 import time
 from datetime import datetime
 
+from ipalib.constants import IPAAPI_USER
 from ipaplatform.paths import paths
 
 from ipatests.test_integration.base import IntegrationTest
@@ -205,15 +206,15 @@ class TestPWPolicy(IntegrationTest):
                                  "--user-auth-type", "otp"])
         kinit_check_life(self.master, USER1)
 
-    def test_ccache_sweep(self, reset_to_default_policy):
-        """Test that the ccache sweeper works
+    def test_ccache_sweep_expired(self, reset_to_default_policy):
+        """Test that the ccache sweeper works on expired ccaches
 
            - Force wipe all existing ccaches
-           - Set the ticket policy to a short value, 30 seconds.
+           - Set the ticket policy to a short value, 20 seconds.
            - Do a series of kinit, ipa command, kdestroy to generate ccaches
-           - sleep()
+           - sleep() for expiration
            - Run the sweeper
-           - Verify that all ccaches are gone
+           - Verify that all expired ccaches are gone
         """
         MAXLIFE = 20
         reset_to_default_policy(self.master)  # this will reset at END of test
@@ -226,16 +227,58 @@ class TestPWPolicy(IntegrationTest):
             ['find', paths.IPA_CCACHES, '-type', 'f', '-delete']
         )
         for _i in range(5):
-            tasks.kdestroy_all(self.master)
             tasks.kinit_admin(self.master)
             self.master.run_command(['ipa', 'user-show', 'admin'])
-        tasks.kdestroy_all(self.master)
-        time.sleep(MAXLIFE)
-        self.master.run_command(
-            ['/usr/libexec/ipa/ipa-ccache-sweeper', '-m', '0']
+            tasks.kdestroy_all(self.master)
+
+        result = self.master.run_command(
+            "ls -1 {0} | wc -l".format(paths.IPA_CCACHES)
         )
-        time.sleep(5)
+        assert int(result.stdout_text.strip()) == 5
+
+        # let ccache expire
+        time.sleep(MAXLIFE)
+        ccache_sweep_cmd = ["/usr/libexec/ipa/ipa-ccache-sweeper", "-m", "0"]
+
+        # should be run as ipaapi for GSSProxy
+        self.master.run_command(
+            ["runuser", "-u", IPAAPI_USER, "--"] + ccache_sweep_cmd
+        )
+
         result = self.master.run_command(
             "ls -1 {0} | wc -l".format(paths.IPA_CCACHES)
         )
         assert int(result.stdout_text.strip()) == 0
+
+    def test_ccache_sweep_valid(self):
+        """Test that the ccache sweeper doesn't remove valid ccaches
+           - Force wipe all existing ccaches
+           - Run the sweeper
+           - Verify that all valid ccaches weren't removed
+           Note: assumed that ccache expiration doesn't happen during test
+        """
+        tasks.kdestroy_all(self.master)
+        self.master.run_command(
+            ["find", paths.IPA_CCACHES, "-type", "f", "-delete"]
+        )
+
+        for _i in range(5):
+            tasks.kinit_admin(self.master)
+            self.master.run_command(["ipa", "user-show", "admin"])
+            tasks.kdestroy_all(self.master)
+
+        result = self.master.run_command(
+            "ls -1 {0} | wc -l".format(paths.IPA_CCACHES)
+        )
+        assert int(result.stdout_text.strip()) == 5
+
+        ccache_sweep_cmd = ["/usr/libexec/ipa/ipa-ccache-sweeper", "-m", "0"]
+
+        # should be run as ipaapi for GSSProxy
+        self.master.run_command(
+            ["runuser", "-u", IPAAPI_USER, "--"] + ccache_sweep_cmd
+        )
+        result = self.master.run_command(
+            "ls -1 {0} | wc -l".format(paths.IPA_CCACHES)
+        )
+        assert int(result.stdout_text.strip()) == 5

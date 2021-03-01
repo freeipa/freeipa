@@ -522,6 +522,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 HTTP_CCACHE=paths.HTTP_CCACHE,
                 HTTPD_USER=constants.HTTPD_USER,
                 IPAAPI_USER=ipaapi_user,
+                SWEEPER_SOCKET=paths.IPA_CCACHE_SWEEPER_GSSPROXY_SOCK,
             )
         )
 
