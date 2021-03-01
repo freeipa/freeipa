@@ -39,6 +39,12 @@ KRB5_FCC_PERM                   = 2529639106 # Credentials cache permissions inc
 KRB5_CC_FORMAT                  = 2529639111 # Bad format in credentials cache
 KRB5_REALM_CANT_RESOLVE         = 2529639132 # Cannot resolve network address for KDC in requested realm
 
+# mechglue/gss_plugin.c: #define MAP_ERROR_BASE 0x04200000
+GSSPROXY_MAP_ERROR_BASE = 69206016
+
+# GSSProxy error codes
+GSSPROXY_KRB5_FCC_NOFILE = GSSPROXY_MAP_ERROR_BASE + KRB5_FCC_NOFILE
+
 krb_ticket_expiration_threshold = 60*5 # number of seconds to accmodate clock skew
 krb5_time_fmt = '%m/%d/%y %H:%M:%S'
 ccache_name_re = re.compile(r'^((\w+):)?(.+)')
@@ -146,7 +152,9 @@ def get_credentials(name=None, ccache_name=None):
     try:
         return gssapi.Credentials(usage='initiate', name=name, store=store)
     except gssapi.exceptions.GSSError as e:
-        if e.min_code == KRB5_FCC_NOFILE:  # pylint: disable=no-member
+        if e.min_code in (  # pylint: disable=no-member
+            KRB5_FCC_NOFILE, GSSPROXY_KRB5_FCC_NOFILE,
+        ):
             raise ValueError('"%s", ccache="%s"' % (e, ccache_name))
         raise
 
