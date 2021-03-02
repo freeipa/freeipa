@@ -387,6 +387,15 @@ class group_add(LDAPCreate):
                 entry_attrs['gidnumber'] = baseldap.DNA_MAGIC
         return dn
 
+    def exc_callback(self, keys, options, exc, call_func,
+                     *call_args, **call_kwargs):
+        if isinstance(exc, errors.ObjectclassViolation):
+            if options['nonposix'] and 'gidnumber' in options:
+                raise errors.ObjectclassViolation(
+                    info=_('attribute "gidNumber" not allowed with --nonposix')
+                )
+        raise exc
+
 
 @register()
 class group_del(LDAPDelete):
