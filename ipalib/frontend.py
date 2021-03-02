@@ -497,6 +497,8 @@ class Command(HasParam):
             self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
         ret = self.run(*args, **options)
+        if options.get('quiet', False):
+            return ret
         if isinstance(ret, dict):
             for message in self.context.__messages:
                 messages.add_message(options['version'], ret, message)
@@ -981,6 +983,14 @@ class Command(HasParam):
                     exclude='webui',
                     flags=['no_output'],
                 )
+                if self.name[-4:] in ('_add', '_mod'):
+                    yield Flag(
+                        'quiet',
+                        cli_name='quiet',
+                        doc=_('Do not return any data.'),
+                        exclude='webui',
+                        flags=['no_output'],
+                    )
                 break
         yield Str('version?',
             doc=_('Client version. Used to determine if server will accept request.'),

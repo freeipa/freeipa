@@ -1307,6 +1307,9 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
         except errors.DuplicateEntry:
             self.obj.handle_duplicate_entry(*keys)
 
+        if options.get('quiet', False):
+            return dict(result=dict(), value='')
+
         try:
             if self.obj.rdn_attribute:
                 # make sure objectclass is either set or None
@@ -1572,6 +1575,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 raise e
         except errors.NotFound:
             raise self.obj.handle_not_found(*keys)
+
+        if options.get('quiet', False):
+            return dict(result=dict(), value='')
 
         try:
             entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(

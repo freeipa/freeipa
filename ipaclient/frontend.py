@@ -15,7 +15,7 @@ class ClientCommand(Command):
         for option in super(ClientCommand, self).get_options():
             if option.name in skip:
                 continue
-            if option.name in ('all', 'raw'):
+            if option.name in ('all', 'quiet', 'raw'):
                 skip.add(option.name)
             yield option
 
@@ -172,7 +172,7 @@ class CommandOverride(Command):
         for option in self.next.options():
             yield option
         for option in super(CommandOverride, self).get_options():
-            if option.name not in ('all', 'raw', 'version'):
+            if option.name not in ('all', 'quiet', 'raw', 'version'):
                 yield option
 
     def get_output_params(self):
