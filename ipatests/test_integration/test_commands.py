@@ -642,7 +642,8 @@ class TestIPACommand(IntegrationTest):
         # start to look at logs a bit before "now"
         # https://pagure.io/freeipa/issue/8432
         since = time.strftime(
-            '%H:%M:%S', (datetime.now() - timedelta(seconds=10)).timetuple()
+            '%Y-%m-%d %H:%M:%S',
+            (datetime.now() - timedelta(seconds=10)).timetuple()
         )
 
         tasks.run_ssh_cmd(
