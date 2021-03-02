@@ -443,15 +443,16 @@ class user(baseuser):
 
     def get_either_dn(self, *keys, **options):
         '''
-        Returns the DN of a user
+        Returns the DN of a user and their objectclasses
         The user can be active (active container) or delete (delete container)
         If the user does not exist, returns the Active user DN
         '''
         ldap = self.backend
+        oc = []
         # Check that this value is a Active user
         try:
             active_dn = self.get_dn(*keys, **options)
-            ldap.get_entry(active_dn, ['dn'])
+            oc = ldap.get_entry(active_dn, ['dn', 'objectclass'])['objectclass']
 
             # The Active user exists
             dn = active_dn
@@ -459,7 +460,9 @@ class user(baseuser):
             # Check that this value is a Delete user
             delete_dn = self.get_delete_dn(*keys, **options)
             try:
-                ldap.get_entry(delete_dn, ['dn'])
+                oc = ldap.get_entry(
+                    delete_dn, ['dn', 'objectclass']
+                )['objectclass']
 
                 # The Delete user exists
                 dn = delete_dn
@@ -467,7 +470,7 @@ class user(baseuser):
                 # The user is neither Active/Delete -> returns that Active DN
                 dn = active_dn
 
-        return dn
+        return dn, oc
 
     def _normalize_manager(self, manager):
         """
@@ -688,7 +691,7 @@ class user_del(baseuser_del):
     def _preserve_user(self, pkey, delete_container, **options):
         assert isinstance(delete_container, DN)
 
-        dn = self.obj.get_either_dn(pkey, **options)
+        dn, _oc = self.obj.get_either_dn(pkey, **options)
         delete_dn = DN(dn[0], delete_container)
         ldap = self.obj.backend
         logger.debug("preserve move %s -> %s", dn, delete_dn)
@@ -744,7 +747,7 @@ class user_del(baseuser_del):
             self._exc_wrapper(pkey, options, ldap.update_entry)(entry_attrs)
 
     def pre_callback(self, ldap, dn, *keys, **options):
-        dn = self.obj.get_either_dn(*keys, **options)
+        dn, _oc = self.obj.get_either_dn(*keys, **options)
 
         # For User life Cycle: user-del is a common plugin
         # command to delete active user (active container) and
@@ -819,7 +822,8 @@ class user_mod(baseuser_mod):
             yield option
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        dn = self.obj.get_either_dn(*keys, **options)
+        dn, oc = self.obj.get_either_dn(*keys, **options)
+        entry_attrs.update({'objectclass': oc})
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
                                  **options)
         validate_nsaccountlock(entry_attrs)
@@ -901,7 +905,7 @@ class user_show(baseuser_show):
     )
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
-        dn = self.obj.get_either_dn(*keys, **options)
+        dn, _oc = self.obj.get_either_dn(*keys, **options)
         self.pre_common_callback(ldap, dn, attrs_list, *keys, **options)
         return dn
 
@@ -923,7 +927,7 @@ class user_undel(LDAPQuery):
         ldap = self.obj.backend
 
         # First check that the user exists and is a delete one
-        delete_dn = self.obj.get_either_dn(*keys, **options)
+        delete_dn, _oc = self.obj.get_either_dn(*keys, **options)
         try:
             self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn)
         except errors.NotFound:
@@ -1063,7 +1067,7 @@ class user_disable(LDAPQuery):
 
         check_protected_member(keys[-1])
 
-        dn = self.obj.get_either_dn(*keys, **options)
+        dn, _oc = self.obj.get_either_dn(*keys, **options)
         ldap.deactivate_entry(dn)
 
         return dict(
@@ -1083,7 +1087,7 @@ class user_enable(LDAPQuery):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
-        dn = self.obj.get_either_dn(*keys, **options)
+        dn, _oc = self.obj.get_either_dn(*keys, **options)
 
         ldap.activate_entry(dn)
 
@@ -1107,7 +1111,7 @@ class user_unlock(LDAPQuery):
     msg_summary = _('Unlocked account "%(value)s"')
 
     def execute(self, *keys, **options):
-        dn = self.obj.get_either_dn(*keys, **options)
+        dn, _oc = self.obj.get_either_dn(*keys, **options)
         entry = self.obj.backend.get_entry(
             dn, ['krbLastAdminUnlock', 'krbLoginFailedCount'])
 
@@ -1191,7 +1195,7 @@ class user_status(LDAPQuery):
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
-        dn = self.api.Object.user.get_either_dn(*keys, **options)
+        dn, _oc = self.api.Object.user.get_either_dn(*keys, **options)
         attr_list = ['krbloginfailedcount', 'krblastsuccessfulauth', 'krblastfailedauth', 'nsaccountlock']
 
         disabled = False
