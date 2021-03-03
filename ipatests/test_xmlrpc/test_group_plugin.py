@@ -388,6 +388,15 @@ class TestNonexistentGroup(XMLRPC_test):
 
 @pytest.mark.tier1
 class TestNonposixGroup(XMLRPC_test):
+    def test_create_nonposix_with_gid(self, group):
+        """ Try to create non-posix group with GID """
+        command = group.make_create_command(**dict(nonposix=True,
+                                                   gidnumber=10011))
+
+        with raises_exact(errors.ObjectclassViolation(
+                info=u'attribute "gidNumber" not allowed with --nonposix')):
+            command()
+
     def test_create_nonposix(self, group):
         """ Create a non-posix group """
         group.track_create()
