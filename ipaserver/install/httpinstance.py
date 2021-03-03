@@ -172,7 +172,6 @@ class HTTPInstance(service.Service):
         # Clean up existing ccaches
         # Make sure that empty env is passed to avoid passing KRB5CCNAME from
         # current env
-        ipautil.remove_file(paths.HTTP_CCACHE)
         shutil.rmtree(paths.IPA_CCACHES)
         ipautil.run(
             [paths.SYSTEMD_TMPFILES, '--create', '--prefix', paths.IPA_CCACHES]
@@ -543,7 +542,6 @@ class HTTPInstance(service.Service):
         # Remove the configuration files we create
         ipautil.remove_keytab(self.keytab)
         remove_files = [
-            paths.HTTP_CCACHE,
             paths.HTTPD_CERT_FILE,
             paths.HTTPD_KEY_FILE,
             paths.HTTPD_PASSWD_FILE_FMT.format(host=api.env.host),
