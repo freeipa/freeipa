@@ -954,6 +954,10 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         tasks.wait_for_replication(
             self.replicas[0].ldap_connect()
         )
+        tasks.dns_update_system_records(self.master)
+        tasks.wait_for_replication(
+            self.master.ldap_connect()
+        )
         self._check_config([self.master, self.replicas[0]])
         self._check_dnsrecords([self.master, self.replicas[0]])
 
@@ -972,6 +976,10 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         self._check_server_role(self.replicas[0], 'hidden')
         tasks.wait_for_replication(
             self.replicas[0].ldap_connect()
+        )
+        tasks.dns_update_system_records(self.master)
+        tasks.wait_for_replication(
+            self.master.ldap_connect()
         )
         self._check_config([self.master], [self.replicas[0]])
         self._check_dnsrecords([self.master], [self.replicas[0]])
