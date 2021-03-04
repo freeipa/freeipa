@@ -616,7 +616,7 @@ jobs:
         topology: *master_1repl
 
   testing-fedora/test_installation_TestInstallWithoutSudo:
-    requires: [fedora-latest/build]
+    requires: [testing-fedora/build]
     priority: 50
     job:
       class: RunPytest
