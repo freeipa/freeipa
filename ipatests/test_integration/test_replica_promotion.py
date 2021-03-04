@@ -951,8 +951,11 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             self.replicas[0].hostname, '--state=enabled'
         ])
         self._check_server_role(self.replicas[0], 'enabled')
-        self._check_dnsrecords([self.master, self.replicas[0]])
+        tasks.wait_for_replication(
+            self.replicas[0].ldap_connect()
+        )
         self._check_config([self.master, self.replicas[0]])
+        self._check_dnsrecords([self.master, self.replicas[0]])
 
         result = self.replicas[0].run_command([
             'ipa', 'server-state',
@@ -967,6 +970,10 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             self.replicas[0].hostname, '--state=hidden'
         ])
         self._check_server_role(self.replicas[0], 'hidden')
+        tasks.wait_for_replication(
+            self.replicas[0].ldap_connect()
+        )
+        self._check_config([self.master], [self.replicas[0]])
         self._check_dnsrecords([self.master], [self.replicas[0]])
 
     def test_replica_from_hidden(self):
@@ -1030,14 +1037,11 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             stdin_text=dirman_password + '\nyes'
         )
 
-        # wait for the replica to be available
-        tasks.wait_for_ipa_to_start(self.replicas[0])
-
-        # give replication some time
-        time.sleep(5)
+        tasks.kinit_admin(self.master)
         tasks.kinit_admin(self.replicas[0])
 
-        # FIXME: restore turns hidden replica into enabled replica
+        # restore turns a hidden replica into an enabled replica
+        # https://pagure.io/freeipa/issue/7894
         self._check_config([self.master, self.replicas[0]])
         self._check_server_role(self.replicas[0], 'enabled')
 
