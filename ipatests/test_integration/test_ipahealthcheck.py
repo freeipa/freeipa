@@ -479,11 +479,19 @@ class TestIpaHealthCheck(IntegrationTest):
         ipahealthcheck.ipa.host when dirsrv service is stopped and
         running on IPA master
         """
-        msg = (
-            "Failed to obtain host TGT: Major (851968): "
-            "Unspecified GSS failure.  "
-            "Minor code may provide more information, "
-            "Minor (2529638972): Generic error (see e-text)"
+        msgs = (
+            (
+                "Failed to obtain host TGT: Major (851968): "
+                "Unspecified GSS failure.  "
+                "Minor code may provide more information, "
+                "Minor (2529638972): Generic error (see e-text)"
+            ),
+            (
+                "Failed to obtain host TGT: Major (458752): "
+                "No credentials were supplied, or the credentials "
+                "were unavailable or inaccessible, "
+                "Minor (2529638972): Generic error (see e-text)"
+            ),
         )
         restart_service(self.master, "dirsrv")
         dirsrv_ipactl_status = 'Directory Service: STOPPED'
@@ -498,7 +506,7 @@ class TestIpaHealthCheck(IntegrationTest):
         assert returncode == 1
         if dirsrv_ipactl_status in result.stdout_text:
             assert data[0]["result"] == "ERROR"
-            assert data[0]["kw"]["msg"] == msg
+            assert data[0]["kw"]["msg"] in msgs
         else:
             assert data[0]["result"] == "SUCCESS"
 
