@@ -375,7 +375,18 @@ def master2ldap_master_keys_sync(ldapkeydb, localhsm):
                      str_hexlify(mkey_id), hex_set(new_replica_keys))
 
         # wrap master key with new replica keys
-        mkey_local = localhsm.find_keys(id=mkey_id).popitem()[1]
+        try:
+            mkey_local = localhsm.find_keys(id=mkey_id).popitem()[1]
+        except KeyError:
+            # The master key is present in LDAP but could not be found
+            # in the local HSM. Let's hope it's not the active key,
+            # log an error and process the next master key
+            logger.error("master key 0x%s missing in local HSM, "
+                "will not be able to add master key wrapped with "
+                "replica keys",
+                str_hexlify(mkey_id))
+            continue
+
         for replica_key_id in new_replica_keys:
             logger.info('adding master key 0x%s wrapped with replica key 0x%s',
                         str_hexlify(mkey_id), str_hexlify(replica_key_id))
