@@ -1543,6 +1543,38 @@ class TestKRAinstallAfterCertRenew(IntegrationTest):
         self.master.run_command(['systemctl', 'start', 'chronyd'])
 
 
+class TestKRAinstallOnReplicaWithCAHost(IntegrationTest):
+    """ Test that KRA install on replica with ca_host overriden fails
+
+    KRA install on a replica should fail
+    if the ca_host line in /etc/ipa/default.conf is present
+
+    Related: https://pagure.io/freeipa/issue/8245
+    """
+
+    num_replicas = 1
+
+    def test_kra_install_on_replica_with_ca_host_overriden(self):
+        tasks.install_master(self.master)
+        tasks.install_replica(self.master, self.replicas[0])
+
+        content = self.replicas[0].get_file_contents(paths.IPA_DEFAULT_CONF,
+                                                     encoding='utf-8')
+        ca_host_line = "ca_host = %s" % self.master.hostname
+        new_content = content + '\n' + ca_host_line
+        self.replicas[0].put_file_contents(paths.IPA_DEFAULT_CONF,
+                                           new_content)
+
+        self.master.run_command(['firewall-cmd', '--add-port=8443/tcp'])
+
+        result = tasks.install_kra(self.replicas[0], raiseonerr=False)
+
+        err_str = "KRA can not be installed when 'ca_host' is overriden in IPA"
+        "configuration file."
+        assert result.returncode == 1
+        assert err_str in result.stderr_text
+
+
 class TestMaskInstall(IntegrationTest):
     """ Test master and replica installation with wrong mask
 
