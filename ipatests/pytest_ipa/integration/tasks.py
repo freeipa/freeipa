@@ -2118,7 +2118,7 @@ def run_command_as_user(host, user, command, *args, **kwargs):
     return host.run_command(command, *args, **kwargs)
 
 
-def kinit_as_user(host, user, password, krb5_trace=False):
+def kinit_as_user(host, user, password, krb5_trace=False, raiseonerr=True):
     """Launch kinit as user on host.
     If krb5_trace, then set KRB5_TRACE=/dev/stdout and collect
     /var/lib/sss/pubconf/kdcinfo.$REALM
@@ -2144,9 +2144,14 @@ def kinit_as_user(host, user, password, krb5_trace=False):
         # Retrieve kdc.$REALM after the password change, just in case SSSD
         # domain status flipped to online during the password change.
         get_kdcinfo(host)
-        assert result.returncode == 0
+        if raiseonerr:
+            assert result.returncode == 0
+        return result
     else:
-        host.run_command(['kinit', user], stdin_text='{0}\n'.format(password))
+        return host.run_command(
+            ['kinit', user],
+            stdin_text='{0}\n'.format(password),
+            raiseonerr=raiseonerr)
 
 
 def get_kdcinfo(host):
