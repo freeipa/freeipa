@@ -53,6 +53,11 @@ def install_check(api, replica_config, options):
                 "KRA is not installed on the master system. Please use "
                 "'ipa-kra-install' command to install the first instance.")
 
+    if api.env.ca_host is not None and api.env.ca_host != api.env.host:
+        raise RuntimeError(
+            "KRA can not be installed when 'ca_host' is overriden in "
+            "IPA configuration file.")
+
 
 def install(api, replica_config, options, custodia):
     if replica_config is None:
