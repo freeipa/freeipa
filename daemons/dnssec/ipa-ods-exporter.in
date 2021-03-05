@@ -37,6 +37,7 @@ from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
 from ipapython import ipaldap
 from ipaplatform.paths import paths
+from ipaserver import p11helper
 from ipaserver.dnssec.abshsm import sync_pkcs11_metadata, wrappingmech_name2id
 from ipaserver.dnssec.ldapkeydb import LdapKeyDB, str_hexlify
 from ipaserver.dnssec.localhsm import LocalHSM
@@ -301,7 +302,19 @@ def ldap2master_replica_keys_sync(ldapkeydb, localhsm):
                      new_key_ldap['ipk11label'],
                      str_hexlify(new_key_ldap['ipk11id']),
                      str_hexlify(new_key_ldap['ipapublickey']))
-        localhsm.import_public_key(new_key_ldap, new_key_ldap['ipapublickey'])
+        try:
+            localhsm.import_public_key(
+                new_key_ldap, new_key_ldap['ipapublickey'])
+        except p11helper.DuplicationError:
+            # we may have been called in the middle of operations
+            # disabling dnssec on the current node, while the
+            # replica key has already been disabled in localhsm but
+            # not yet in LDAP.
+            # Ignore the import error (key is already in localhsm but disabled)
+            # and log a warning
+            logger.warning("import of replica key to localhsm %s failed, "
+                           "key already present but disabled",
+                           str_hexlify(new_key_ldap['ipk11id']))
 
     # set CKA_WRAP = FALSE for all replica keys removed from LDAP
     removed_replica_keys = set(localhsm.replica_pubkeys_wrap.keys()) \
