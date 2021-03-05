@@ -7,7 +7,7 @@ path_classifiers:
     - "asn1/asn1c/.*"
   ipaclient:
     - client
-    - ipalcient
+    - ipaclient
     - util
   ipalib:
     - ipalib
