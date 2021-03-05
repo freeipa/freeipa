@@ -1582,16 +1582,29 @@ def check_ns_rec_resolvable(zone, name):
         )
 
 def dns_container_exists(ldap):
-    exists = getattr(context, 'dns_container_exists', None)
-    if exists is not None:
-        return exists
+    """Check to see if the DNS container exists.
+
+       The value is not likely to change in the middle of an API request
+       so cache the value in that case.
+
+       It can change while installing so don't cache the value in that case.
+    """
+    installer = False
+    if api.isdone('finalize'):
+        # replica install or dns install
+        installer = api.env.context in ('installer', 'install',)
+    if not installer:
+        exists = getattr(context, 'dns_container_exists', None)
+        if exists is not None:
+            return exists
     try:
         ldap.get_entry(DN(api.env.container_dns, api.env.basedn), [])
     except errors.NotFound:
         exists = False
     else:
         exists = True
-    setattr(context, 'dns_container_exists', exists)
+    if not installer:
+        setattr(context, 'dns_container_exists', exists)
     return exists
 
 
