@@ -130,11 +130,3 @@ keys to the FreeIPA server.
 **Note:** OpenSSH has already been configured to look up known hosts
 on the FreeIPA server, so no manual configuration is required for
 this section.
-
-
-Conclusion
-----------
-
-Congratulations!  This was the final topic in the workshop.
-If you skipped any units, you can reach them from the
-`curriculum overview <workshop.rst#curriculum-overview>`_.
