@@ -201,6 +201,28 @@ def validate_realm(ugettext, principal):
         raise errors.RealmMismatch()
 
 
+def validate_auth_indicator(entry):
+    new_value = entry.get('krbprincipalauthind', None)
+    if not new_value:
+        return
+    # The following services are considered internal IPA services
+    # and shouldn't be allowed to have auth indicators.
+    # https://pagure.io/freeipa/issue/8206
+    pkey = api.Object['service'].get_primary_key_from_dn(entry.dn)
+    principal = kerberos.Principal(pkey)
+    server = api.Command.server_find(principal.hostname)['result']
+    if server:
+        prefixes = ("host", "cifs", "ldap", "HTTP")
+    else:
+        prefixes = ("cifs",)
+    if principal.service_name in prefixes:
+        raise errors.ValidationError(
+            name='krbprincipalauthind',
+            error=_('authentication indicators not allowed '
+                    'in service "%s"' % principal.service_name)
+        )
+
+
 def normalize_principal(value):
     """
     Ensure that the name in the principal is lower-case. The realm is
@@ -652,6 +674,7 @@ class service_add(LDAPCreate):
                     hostname)
 
         self.obj.validate_ipakrbauthzdata(entry_attrs)
+        validate_auth_indicator(entry_attrs)
 
         if not options.get('force', False):
             # We know the host exists if we've gotten this far but we
@@ -846,6 +869,7 @@ class service_mod(LDAPUpdate):
         assert isinstance(dn, DN)
 
         self.obj.validate_ipakrbauthzdata(entry_attrs)
+        validate_auth_indicator(entry_attrs)
 
         # verify certificates
         certs = entry_attrs.get('usercertificate') or []
