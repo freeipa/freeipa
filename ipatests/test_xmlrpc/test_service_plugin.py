@@ -25,6 +25,7 @@ from ipalib import api, errors
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_hash
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_date, fuzzy_issuer
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_hex, XMLRPC_test
+from ipatests.test_xmlrpc.xmlrpc_test import raises_exact
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.testcert import get_testcert, subject_base
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result, get_group_dn
@@ -1553,6 +1554,15 @@ def indicators_host(request):
 
 
 @pytest.fixture(scope='function')
+def this_host(request):
+    """Fixture for the current master"""
+    tracker = HostTracker(name=api.env.host.partition('.')[0],
+                          fqdn=api.env.host)
+    tracker.exists = True
+    return tracker
+
+
+@pytest.fixture(scope='function')
 def indicators_service(request):
     tracker = ServiceTracker(
         name=u'SRV1', host_fqdn=fqdn1, options={
@@ -1586,6 +1596,17 @@ class TestAuthenticationIndicators(XMLRPC_test):
             updates={u'krbprincipalauthind': u'radius'},
             expected_updates={u'krbprincipalauthind': [u'radius']}
         )
+
+    def test_update_indicator_internal_service(self, this_host):
+        command = this_host.make_command('service_mod',
+                                         'ldap/' + this_host.fqdn,
+                                         **dict(krbprincipalauthind='otp'))
+        with raises_exact(errors.ValidationError(
+            name='krbprincipalauthind',
+            error=u'authentication indicators not allowed '
+                 'in service "ldap"'
+        )):
+            command()
 
 
 @pytest.fixture(scope='function')

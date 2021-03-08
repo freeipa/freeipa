@@ -102,6 +102,44 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
         assert expected_err in result.stderr_text
 
     @replicas_cleanup
+    def test_install_with_host_auth_ind_set(self):
+        """ A client shouldn't be able to be promoted if it has
+        any auth indicator set in the host principal.
+        https://pagure.io/freeipa/issue/8206
+        """
+
+        client = self.replicas[0]
+        # Configure firewall first
+        Firewall(client).enable_services(["freeipa-ldap",
+                                          "freeipa-ldaps"])
+
+        client.run_command(['ipa-client-install', '-U',
+                            '--domain', self.master.domain.name,
+                            '--realm', self.master.domain.realm,
+                            '-p', 'admin',
+                            '-w', self.master.config.admin_password,
+                            '--server', self.master.hostname,
+                            '--force-join'])
+
+        tasks.kinit_admin(client)
+
+        client.run_command(['ipa', 'host-mod', '--auth-ind=otp',
+                            client.hostname])
+
+        res = client.run_command(['ipa-replica-install', '-U', '-w',
+                                  self.master.config.dirman_password],
+                                 raiseonerr=False)
+
+        client.run_command(['ipa', 'host-mod', '--auth-ind=',
+                            client.hostname])
+
+        expected_err = ("Client cannot be promoted to a replica if the host "
+                        "principal has an authentication indicator set.")
+        assert res.returncode == 1
+        assert expected_err in res.stderr_text
+
+
+    @replicas_cleanup
     def test_one_command_installation(self):
         """
         TestCase:
