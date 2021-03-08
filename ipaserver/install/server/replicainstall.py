@@ -770,6 +770,15 @@ def promotion_check_ipa_domain(master_ldap_conn, basedn):
         ))
 
 
+def promotion_check_host_principal_auth_ind(conn, hostdn):
+    entry = conn.get_entry(hostdn, ['krbprincipalauthind'])
+    if 'krbprincipalauthind' in entry:
+        raise RuntimeError(
+            "Client cannot be promoted to a replica if the host principal "
+            "has an authentication indicator set."
+        )
+
+
 @common_cleanup
 @preserve_enrollment_state
 def promote_check(installer):
@@ -956,6 +965,10 @@ def promote_check(installer):
                                      config.master_host_name, None)
 
         promotion_check_ipa_domain(conn, remote_api.env.basedn)
+        hostdn = DN(('fqdn', api.env.host),
+                    api.env.container_host,
+                    api.env.basedn)
+        promotion_check_host_principal_auth_ind(conn, hostdn)
 
         # Make sure that domain fulfills minimal domain level
         # requirement

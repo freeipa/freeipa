@@ -38,7 +38,7 @@ from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPAddAttributeViaOption,
                                      LDAPRemoveAttributeViaOption)
 from .service import (
-    validate_realm, normalize_principal,
+    validate_realm, validate_auth_indicator, normalize_principal,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
     set_kerberos_attrs, rename_ipaallowedtoperform_from_ldap,
     rename_ipaallowedtoperform_to_ldap, revoke_certs)
@@ -735,6 +735,8 @@ class host_add(LDAPCreate):
         update_krbticketflags(ldap, entry_attrs, attrs_list, options, False)
         if 'krbticketflags' in entry_attrs:
             entry_attrs['objectclass'].append('krbticketpolicyaux')
+        validate_auth_indicator(entry_attrs)
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -993,6 +995,7 @@ class host_mod(LDAPUpdate):
             if 'krbprincipalaux' not in (item.lower() for item in
                                          entry_attrs['objectclass']):
                 entry_attrs['objectclass'].append('krbprincipalaux')
+            validate_auth_indicator(entry_attrs)
 
         add_sshpubkey_to_attrs_pre(self.context, attrs_list)
 
