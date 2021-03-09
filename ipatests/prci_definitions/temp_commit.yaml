@@ -61,14 +61,38 @@ jobs:
         timeout: 1800
         topology: *build
 
-  fedora-latest/temp_commit:
+  fedora-latest-006/test_webui_general:
     requires: [fedora-latest/build]
     priority: 50
     job:
-      class: RunPytest
+      class: RunWebuiTests
       args:
         build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
-        template: *ci-master-latest
+        test_suite: >-
+          test_webui/test_loginscreen.py
+          test_webui/test_misc_cases.py
+          test_webui/test_navigation.py
+          test_webui/test_translation.py
+        template:
+          name: freeipa/ci-master-f33
+          version: 0.0.6
         timeout: 3600
-        topology: *master_1repl_1client
+        topology: *ipaserver
+
+  fedora-latest-007/test_webui_general:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: >-
+          test_webui/test_loginscreen.py
+          test_webui/test_misc_cases.py
+          test_webui/test_navigation.py
+          test_webui/test_translation.py
+        template:
+          name: freeipa/ci-master-f33
+          version: 0.0.7
+        timeout: 3600
+        topology: *ipaserver
