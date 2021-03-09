@@ -1575,7 +1575,7 @@ jobs:
         test_suite: test_integration/test_installation.py::TestMaskInstall
         template: *ci-ipa-4-8-latest
         timeout: 3600
-        topology: *ipaserver
+        topology: *master_1repl
 
   fedora-latest-ipa-4-8/automember:
     requires: [fedora-latest-ipa-4-8/build]

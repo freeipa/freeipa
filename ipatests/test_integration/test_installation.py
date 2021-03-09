@@ -1268,8 +1268,7 @@ class TestMaskInstall(IntegrationTest):
 
     related ticket: https://pagure.io/freeipa/issue/7193
     """
-
-    num_replicas = 0
+    topology = 'star'
 
     @classmethod
     def install(cls, mh):
