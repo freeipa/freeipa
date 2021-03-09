@@ -558,7 +558,7 @@ jobs:
         test_suite: test_integration/test_installation.py::TestMaskInstall
         template: *389ds-master-latest
         timeout: 3600
-        topology: *ipaserver
+        topology: *master_1repl
 
   389ds-fedora/automember:
     requires: [389ds-fedora/build]
