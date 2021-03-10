@@ -1,0 +1,6 @@
+steps:
+- script: |
+    set -e
+    echo "Building documentation"
+    make -C doc/ html
+  displayName: Build documentation
