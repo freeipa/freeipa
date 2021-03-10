@@ -49,7 +49,7 @@
 # lint is not executed during rpmbuild
 # %%global with_lint 1
 %if %{with lint}
-    %global linter_options --enable-pylint --with-jslint --enable-rpmlint
+    %global linter_options --enable-pylint --without-jslint --enable-rpmlint
 %else
     %global linter_options --disable-pylint --without-jslint --disable-rpmlint
 %endif
@@ -315,7 +315,10 @@ BuildRequires: python3-m2r
 #
 %if %{with lint}
 BuildRequires:  git
+%if 0%{?fedora} < 34
+# jsl is orphaned in Fedora 34+
 BuildRequires:  jsl
+%endif
 BuildRequires:  nss-tools
 BuildRequires:  rpmlint
 BuildRequires:  softhsm
