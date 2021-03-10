@@ -29,7 +29,7 @@ jobs:
     - template: templates/${{ variables.BUILD_TEMPLATE }}
     - template: templates/publish-build.yml
       parameters:
-        artifactName: 'packages-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)'
+        artifactName: 'packages'
         targetPath: $(Build.Repository.LocalPath)/dist
         displayName: Publish packages
 
@@ -44,7 +44,7 @@ jobs:
       displayName: Create container image for test
     - template: templates/publish-build.yml
       parameters:
-        artifactName: 'image-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)'
+        artifactName: 'image'
         targetPath: $(Build.Repository.LocalPath)/freeipa-azure-builder-container.tar.gz
         displayName: Publish container image
     - template: templates/generate-matrix.yml
@@ -123,6 +123,9 @@ jobs:
   pool:
     vmImage: $(VM_IMAGE)
   dependsOn: Build
+  variables:
+    IPA_IMAGE_ARTIFACT: $[ dependencies.Build.outputs['artifacts_image.image'] ]
+    IPA_PACKAGES_ARTIFACT: $[ dependencies.Build.outputs['artifacts_packages.packages'] ]
   condition: succeeded()
   strategy:
     matrix: $[ dependencies.Build.outputs['base_matrix.matrix'] ]
@@ -134,6 +137,9 @@ jobs:
   pool:
     vmImage: $(VM_IMAGE)
   dependsOn: Build
+  variables:
+    IPA_IMAGE_ARTIFACT: $[ dependencies.Build.outputs['artifacts_image.image'] ]
+    IPA_PACKAGES_ARTIFACT: $[ dependencies.Build.outputs['artifacts_packages.packages'] ]
   condition: succeeded()
   strategy:
     matrix: $[ dependencies.Build.outputs['gating_matrix.matrix'] ]
