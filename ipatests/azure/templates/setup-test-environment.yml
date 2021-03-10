@@ -18,15 +18,15 @@ steps:
   displayName: Configure NFS to allow NFS server/client within containers
 
 - task: DownloadPipelineArtifact@0
-  displayName: Download prebuilt packages
+  displayName: Download prebuilt packages '$(IPA_PACKAGES_ARTIFACT)'
   inputs:
-    artifactName: 'packages-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)'
+    artifactName: $(IPA_PACKAGES_ARTIFACT)
     targetPath: $(Build.Repository.LocalPath)/dist
 
 - task: DownloadPipelineArtifact@0
-  displayName: Download pre-built container
+  displayName: Download pre-built container '$(IPA_IMAGE_ARTIFACT)'
   inputs:
-    artifactName: 'image-$(Build.BuildId)-$(Agent.OS)-$(Agent.OSArchitecture)'
+    artifactName: $(IPA_IMAGE_ARTIFACT)
     targetPath: $(Build.Repository.LocalPath)
 
 - script: |
