@@ -28,6 +28,7 @@ from __future__ import absolute_import
 import logging
 from xml.sax.saxutils import escape
 import os
+import time
 import traceback
 from io import BytesIO
 from urllib.parse import parse_qs
@@ -374,6 +375,8 @@ class WSGIExecutioner(Executioner):
             return self.marshal(result, RefererError(referer='missing'), _id)
         if not environ['HTTP_REFERER'].startswith('https://%s/ipa' % self.api.env.host) and not self.env.in_tree:
             return self.marshal(result, RefererError(referer=environ['HTTP_REFERER']), _id)
+        if self.api.env.debug:
+            time_start = time.perf_counter_ns()
         try:
             if ('HTTP_ACCEPT_LANGUAGE' in environ):
                 lang_reg_w_q = environ['HTTP_ACCEPT_LANGUAGE'].split(',')[0]
@@ -414,6 +417,8 @@ class WSGIExecutioner(Executioner):
             try:
                 params = command.args_options_2_params(*args, **options)
             except Exception as e:
+                if self.api.env.debug:
+                    time_end = time.perf_counter_ns()
                 logger.info(
                    'exception %s caught when converting options: %s',
                    e.__class__.__name__, str(e)
@@ -421,6 +426,9 @@ class WSGIExecutioner(Executioner):
                 # get at least some context of what is going on
                 params = options
                 error = e
+            else:
+                if self.api.env.debug:
+                    time_end = time.perf_counter_ns()
             if error:
                 result_string = type(error).__name__
             else:
@@ -431,6 +439,14 @@ class WSGIExecutioner(Executioner):
                         name,
                         ', '.join(command._repr_iter(**params)),
                         result_string)
+            if self.api.env.debug:
+                logger.debug('[%s] %s: %s(%s): %s %s',
+                             type(self).__name__,
+                             principal,
+                             name,
+                             ', '.join(command._repr_iter(**params)),
+                             result_string,
+                             'etime=' + str(time_end - time_start))
         else:
             logger.info('[%s] %s: %s: %s',
                         type(self).__name__,
