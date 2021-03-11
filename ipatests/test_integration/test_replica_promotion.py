@@ -905,6 +905,9 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         self._check_dnsrecords([self.master], [self.replicas[0]])
         self._check_config([self.master], [self.replicas[0]])
 
+    @pytest.mark.xfail(
+        reason='https://pagure.io/freeipa/issue/8582', strict=True
+    )
     def test_ipahealthcheck_hidden_replica(self):
         """Ensure that ipa-healthcheck runs successfully on all members
         of an IPA cluster that includes a hidden replica.
