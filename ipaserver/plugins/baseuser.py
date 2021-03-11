@@ -545,6 +545,8 @@ class baseuser_add(LDAPCreate):
         self.obj.convert_usercertificate_post(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         convert_sshpubkey_post(entry_attrs)
+        if 'nsaccountlock' in entry_attrs:
+            convert_nsaccountlock(entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
 
 
