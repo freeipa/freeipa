@@ -462,11 +462,10 @@ class TestInstallDNSSECFirst(IntegrationTest):
         self.master.run_command(args)
         self.replicas[0].run_command(args)
 
-    def test_resolvconf(self):
-        # check that resolv.conf contains IP address for localhost
+    def test_servers_use_localhost_as_dns(self):
+        # check that localhost is set as DNS server
         for host in [self.master, self.replicas[0]]:
-            resolvconf = host.get_file_contents(paths.RESOLV_CONF, 'utf-8')
-            assert any(ip in resolvconf for ip in ('127.0.0.1', '::1'))
+            assert host.resolver.uses_localhost_as_dns()
 
 
 class TestMigrateDNSSECMaster(IntegrationTest):
