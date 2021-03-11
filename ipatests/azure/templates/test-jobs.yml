@@ -8,6 +8,7 @@ steps:
     set -e
     sudo apt-get update
     sudo apt-get install -y \
+        apparmor-utils \
         parallel \
         moreutils \
         rng-tools \
@@ -16,6 +17,16 @@ steps:
     # ubuntu's one is too old: different API
     python3 -m pip install docker --user
   displayName: Install Host's tests requirements
+
+- script: |
+    set -e
+    printf "AppArmor status\n"
+    sudo aa-status
+    printf "Disable AppArmor conflicting profiles\n"
+    sudo aa-disable /etc/apparmor.d/usr.sbin.chronyd
+    printf "Recheck AppArmor status\n"
+    sudo aa-status
+  displayName: Disable AppArmor conflicting profiles on Host
 
 - script: |
     set -e
