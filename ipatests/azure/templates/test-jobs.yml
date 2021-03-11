@@ -58,6 +58,16 @@ steps:
   condition: succeededOrFailed()
   displayName: Host's memory statistics
 
+- script: |
+    set -eu
+    HOST_JOURNAL=host_journal.log
+    HOST_JOURNAL_PATH="${IPA_TESTS_ENV_WORKING_DIR}/${HOST_JOURNAL}.tar.gz"
+    sudo journalctl -b | tee "$HOST_JOURNAL"
+
+    tar --ignore-failed-read -czf "$HOST_JOURNAL_PATH" "$HOST_JOURNAL"
+  condition: succeededOrFailed()
+  displayName: Host's systemd journal
+
 - task: PublishTestResults@2
   inputs:
     testResultsFiles: 'ipa_envs/*/$(CI_RUNNER_LOGS_DIR)/nosetests.xml'
@@ -121,6 +131,7 @@ steps:
     !*/*.yml
     !*/*.yaml
     !*/*.log
+    !*.tar.gz
     EOF
     cat "$artifacts_ignore_path"
   condition: succeededOrFailed()
