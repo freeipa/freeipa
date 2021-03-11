@@ -1,6 +1,7 @@
 import os
 import abc
 import logging
+import re
 import textwrap
 import time
 
@@ -131,6 +132,16 @@ class Resolver(abc.ABC):
         :param state: internal state object  specific to subclass implementaion
         """
 
+    def uses_localhost_as_dns(self):
+        """Return true if the localhost is set as DNS server.
+
+        Default implementation checks the content of /etc/resolv.conf
+        """
+        resolvconf = self.host.get_file_contents(paths.RESOLV_CONF, 'utf-8')
+        patterns = [r"^\s*nameserver\s+127\.0\.0\.1\s*$",
+                    r"^\s*nameserver\s+::1\s*$"]
+        return any(re.search(p, resolvconf, re.MULTILINE) for p in patterns)
+
 
 class ResolvedResolver(Resolver):
     RESOLVED_RESOLV_CONF = {
@@ -191,6 +202,17 @@ class ResolvedResolver(Resolver):
             self.host.put_file_contents(
                 self.RESOLVED_CONF_FILE, state['resolved_config'])
         self._restart_resolved()
+
+    def uses_localhost_as_dns(self):
+        """Return true if the localhost is set as DNS server.
+
+        When systemd-resolved is in use, the DNS can be found using
+        the command resolvectldns.
+        """
+        dnsconf = self.host.run_command(['resolvectl', 'dns']).stdout_text
+        patterns = [r"^Global:.*\s+127.0.0.1\s+.*$",
+                    r"^Global:.*\s+::1\s+.*$"]
+        return any(re.search(p, dnsconf, re.MULTILINE) for p in patterns)
 
 
 class PlainFileResolver(Resolver):
