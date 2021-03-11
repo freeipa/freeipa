@@ -1,0 +1,154 @@
+#!/usr/bin/python3
+#
+# Copyright (C) 2021  FreeIPA Contributors see COPYING for license
+#
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import division
+
+from datetime import datetime
+import logging
+import re
+from statistics import mean
+
+from ipapython import admintool
+from ipalib.facts import is_ipa_configured
+
+
+TIME_RE = re.compile(
+    r'\[(?P<date>.*)\] \[.*\].* \[pid \d+:tid \d+\] \[remote .*\] '
+    r'ipa: DEBUG: \[jsonserver_session\] (?P<principal>\S+): '
+    r'(?P<command>\S+)/1\(.*\): (?P<result>\S+) etime=(?P<etime>\d+)'
+)
+
+DATE_FORMAT = '%a %b %d %H:%M:%S.%f %Y'
+
+logger = logging.getLogger(__name__)
+
+
+class parselog(admintool.AdminTool):
+    command_name = "parselog"
+
+    usage = "%prog [options]"
+    description = "Parse the Apache error log for performance data. " \
+                  "Enable debugging by creating /etc/ipa/server.conf with " \
+                  "the contents: [global]\\ndebug = True"
+
+    def __init__(self, options, args):
+        super(parselog, self).__init__(options, args)
+        self.times = {}
+        self.exceptions = {}
+        self.since = None
+
+    @classmethod
+    def add_options(cls, parser):
+        super(parselog, cls).add_options(parser, debug_option=True)
+        parser.add_option(
+            "--command",
+            dest="command",
+            action="store",
+            default=None,
+            help="Command to analyze",
+        )
+        parser.add_option(
+            "--start-time",
+            dest="start_time",
+            action="store",
+            default=None,
+            help="time to begin analyzing logfile from",
+        )
+        parser.add_option(
+            "--file",
+            dest="file",
+            action="store",
+            default="/var/log/httpd/error_log",
+            help="Log file to parse",
+        )
+
+    def validate_options(self):
+        super(parselog, self).validate_options(needs_root=True)
+
+        if self.options.start_time:
+            self.since = datetime.strptime(
+                self.options.start_time,
+                DATE_FORMAT
+            )
+
+    def display_times(self, data, title, empty):
+        print(title)
+        output = False
+        for command in data:
+            if not data[command]:
+                continue
+            # Average dropping the min and max
+            if len(data[command]) > 5:
+                meantime = mean(sorted(data[command])[1:-1])
+                num = len(data[command]) - 2
+            else:
+                meantime = mean(data[command])
+                num = len(data[command])
+            print(
+                ' Mean %s: %0.f ns of %d executions' % (
+                    command,
+                    meantime,
+                    num)
+            )
+            output = True
+        if not output:
+            print(f' No {empty} found')
+            return
+
+    def run(self):
+        super(parselog, self).run()
+
+        if not is_ipa_configured():
+            logger.error("IPA server is not configured on this system.")
+            raise admintool.ScriptError()
+
+        with open(self.options.file, 'r') as f:
+            data = f.read()
+
+        matches = list(re.finditer(TIME_RE, data))
+
+        if self.options.command:
+            command = self.options.command.replace('-', '_')
+        else:
+            command = None
+
+        for match in matches:
+            if self.since:
+                logtime = datetime.strptime(match.group('date'), DATE_FORMAT)
+                if logtime < self.since:
+                    continue
+            if command is None or match.group('command') == command:
+                cmd = match.group('command')
+                if cmd not in self.times:
+                    self.times[cmd] = []
+                if cmd not in self.exceptions:
+                    self.exceptions[cmd] = []
+                if match.group('result') == 'SUCCESS':
+                    self.times[cmd].append(float(match.group('etime')))
+                else:
+                    self.exceptions[cmd].append(float(match.group('etime')))
+
+        if self.times or self.exceptions:
+            self.display_times(self.times, "Successful commands:", "commands")
+            self.display_times(self.exceptions, "Exceptions:", "exceptions")
+        else:
+            print('No commands or exceptions found')
+
+
+if __name__ == '__main__':
+    parselog.run_cli()
