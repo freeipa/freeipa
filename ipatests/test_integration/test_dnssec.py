@@ -561,11 +561,10 @@ class TestInstallDNSSECFirst(IntegrationTest):
             assert f"{example_test_zone} 1 IN RRSIG SOA" in fully_validated[0]
             assert f"{example_test_zone} 1 IN SOA" in fully_validated[1]
 
-    def test_resolvconf(self):
-        # check that resolv.conf contains IP address for localhost
+    def test_servers_use_localhost_as_dns(self):
+        # check that localhost is set as DNS server
         for host in [self.master, self.replicas[0]]:
-            resolvconf = host.get_file_contents(paths.RESOLV_CONF, 'utf-8')
-            assert any(ip in resolvconf for ip in ('127.0.0.1', '::1'))
+            assert host.resolver.uses_localhost_as_dns()
 
 
 class TestMigrateDNSSECMaster(IntegrationTest):
