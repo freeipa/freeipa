@@ -64,6 +64,16 @@ steps:
     HOST_JOURNAL_PATH="${IPA_TESTS_ENV_WORKING_DIR}/${HOST_JOURNAL}.tar.gz"
     sudo journalctl -b | tee "$HOST_JOURNAL"
 
+    function emit_warning() {
+        printf "##vso[task.logissue type=warning]%s\n" "$1"
+    }
+
+    printf "AVC:\n"
+    grep 'AVC apparmor="DENIED"' "$HOST_JOURNAL" && \
+        emit_warning "There are Host's AVCs. Please, check the logs."
+    printf "SECCOMP:\n"
+    grep ' SECCOMP ' "$HOST_JOURNAL" && \
+        emit_warning "There are reported SECCOMP syscalls. Please, check the logs."
     tar --ignore-failed-read -czf "$HOST_JOURNAL_PATH" "$HOST_JOURNAL"
   condition: succeededOrFailed()
   displayName: Host's systemd journal
