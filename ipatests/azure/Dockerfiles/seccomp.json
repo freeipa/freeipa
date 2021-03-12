@@ -1,5 +1,6 @@
 {
-	"defaultAction": "SCMP_ACT_ERRNO",
+	"__defaultAction": "Change defaultAction to SCMP_ACT_LOG and then check Host's journal for SECCOMP",
+        "defaultAction": "SCMP_ACT_ERRNO",
 	"archMap": [
 		{
 			"architecture": "SCMP_ARCH_X86_64",
