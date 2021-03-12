@@ -1028,6 +1028,13 @@ class TestBackupRoles(IntegrationTest):
             '-a', self.master.config.admin_password,
             '--add-sids'
         ])
+
+        # wait for replication to propagate the change on
+        # cn=adtrust agents,cn=sysaccounts,cn=etc,dc=ipa,dc=test
+        # as the ipa server-role-find call is using this entry to
+        # build its output
+        tasks.wait_for_replication(self.replicas[0].ldap_connect())
+
         # double-check
         assert self._ipa_replica_role_check(
             self.replicas[0].hostname, self.serverroles['ADTC']
@@ -1062,6 +1069,13 @@ class TestBackupRoles(IntegrationTest):
         self.replicas[0].run_command([
             'ipa-adtrust-install', '--add-agents'], stdin_text=cmd_input
         )
+
+        # wait for replication to propagate the change on
+        # cn=adtrust agents,cn=sysaccounts,cn=etc,dc=ipa,dc=test
+        # as the ipa server-role-find call is using this entry to
+        # build its output
+        tasks.wait_for_replication(self.replicas[0].ldap_connect())
+
         # check that master is now an AD Trust agent
         assert self._ipa_replica_role_check(
             self.master.hostname, self.serverroles['ADTA']
@@ -1079,6 +1093,13 @@ class TestBackupRoles(IntegrationTest):
             '-a', self.master.config.admin_password,
             '--add-sids'
         ])
+
+        # wait for replication to propagate the change on
+        # cn=adtrust agents,cn=sysaccounts,cn=etc,dc=ipa,dc=test
+        # as the ipa server-role-find call is using this entry to
+        # build its output
+        tasks.wait_for_replication(self.master.ldap_connect())
+
         # master and replicas[0] are both AD Trust Controllers now.
         for hostname in [self.master.hostname, self.replicas[0].hostname]:
             assert self._ipa_replica_role_check(
