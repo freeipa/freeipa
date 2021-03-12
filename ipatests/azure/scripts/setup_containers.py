@@ -225,7 +225,6 @@ class ContainersGroup:
         """
         for service in [
             "nis-domainname",
-            "chronyd",
         ]:
             self.ignore_service_in_container(service)
 
