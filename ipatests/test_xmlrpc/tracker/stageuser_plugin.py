@@ -147,7 +147,7 @@ class StageUserTracker(KerberosAliasMixin, Tracker):
             loginshell=[platformconstants.DEFAULT_SHELL],
             has_keytab=False,
             has_password=False,
-            nsaccountlock=[u'true'],
+            nsaccountlock=True,
             )
 
         for key in self.kwargs:
@@ -201,14 +201,6 @@ class StageUserTracker(KerberosAliasMixin, Tracker):
         else:
             expected = self.filter_attrs(self.retrieve_keys)
 
-        # small override because stageuser-find returns different
-        # type of nsaccountlock value than DS, but overall the value
-        # fits expected result
-        if expected[u'nsaccountlock'] == [u'true']:
-            expected[u'nsaccountlock'] = True
-        elif expected[u'nsaccountlock'] == [u'false']:
-            expected[u'nsaccountlock'] = False
-
         assert_deepequal(dict(
             value=self.uid,
             summary=None,
@@ -221,14 +213,6 @@ class StageUserTracker(KerberosAliasMixin, Tracker):
             expected = self.filter_attrs(self.find_all_keys)
         else:
             expected = self.filter_attrs(self.find_keys)
-
-        # small override because stageuser-find returns different
-        # type of nsaccountlock value than DS, but overall the value
-        # fits expected result
-        if expected[u'nsaccountlock'] == [u'true']:
-            expected[u'nsaccountlock'] = True
-        elif expected[u'nsaccountlock'] == [u'false']:
-            expected[u'nsaccountlock'] = False
 
         assert_deepequal(dict(
             count=1,
