@@ -1620,3 +1620,5 @@ class TestInstallWithoutSudo(IntegrationTest):
         tasks.install_packages(self.clients[0], ['sudo'])
         for pkg in ('sudo', 'libsss_sudo'):
             assert tasks.is_package_installed(self.clients[0], pkg)
+        result = tasks.install_client(self.master, self.clients[0])
+        assert self.no_sudo_str not in result.stderr_text
