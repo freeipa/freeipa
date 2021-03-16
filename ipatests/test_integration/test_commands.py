@@ -1489,3 +1489,36 @@ class TestIPACommand(IntegrationTest):
         self.master.run_command(['date', '-s', '-15Years'])
 
         assert isrgrootx1_nick in result
+
+
+class TestIPACommandWithoutReplica(IntegrationTest):
+    """
+    Execute tests with scenarios having only single
+    IPA server and no replica
+    """
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+
+    def test_client_doesnot_throw_responsenotready_error(self):
+        """
+        This testcase checks that ipa command
+        doesn't throw http.client.ResponseNotReady error
+        when current users session is deleted from the cache
+        """
+        user = 'ipauser1'
+        orig_pwd = 'Password123'
+
+        tasks.kinit_admin(self.master)
+        tasks.user_add(self.master, user, password=orig_pwd)
+        # kinit as admin on ipa-server and run ipa command
+        tasks.kinit_admin(self.master, raiseonerr=False)
+        self.master.run_command(['ipa', 'user-show', "ipauser1"])
+        # Delete the current user session cache on IPA server
+        self.master.run_command(
+            "rm -fv /run/ipa/ccaches/admin@{}-*".format(
+                self.master.domain.realm
+            )
+        )
+        # Run the command again after cache is removed
+        self.master.run_command(['ipa', 'user-show', 'ipauser1'])
