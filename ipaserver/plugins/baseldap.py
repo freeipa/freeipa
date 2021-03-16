@@ -32,6 +32,7 @@ from ipalib import Method, Object
 from ipalib import Flag, Int, Str
 from ipalib.cli import to_cli
 from ipalib import output
+from ipalib.request import context
 from ipalib.text import _
 from ipalib.util import json_serialize, validate_hostname
 from ipalib.capabilities import client_has_capability
@@ -576,13 +577,19 @@ def host_is_master(ldap, fqdn):
 
     Raises an exception if a master, otherwise returns nothing.
     """
+    name = f'{fqdn}_is_master'
+    is_master = getattr(context, name, None)
+    if is_master is not None:
+        return is_master
     master_dn = DN(('cn', fqdn), api.env.container_masters, api.env.basedn)
     try:
         ldap.get_entry(master_dn, ['objectclass'])
+        setattr(context, name, True)
         raise errors.ValidationError(name='hostname', error=_('An IPA master host cannot be deleted or disabled'))
     except errors.NotFound:
         # Good, not a master
-        return
+        setattr(context, name, False)
+        return False
 
 
 def add_missing_object_class(ldap, objectclass, dn, entry_attrs=None, update=True):
