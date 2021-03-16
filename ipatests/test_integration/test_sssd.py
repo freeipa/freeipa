@@ -147,7 +147,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
         sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
         try:
             with tasks.remote_sssd_config(self.master) as sssd_conf:
-                sssd_conf.edit_domain(self.master.domain,
+                sssd_conf.edit_service("nss",
                                       'filter_users', self.users[user]['name'])
             tasks.clear_sssd_cache(self.master)
             yield
