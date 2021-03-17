@@ -234,12 +234,14 @@ class TestIpaHealthCheck(IntegrationTest):
     """
 
     num_replicas = 1
+    num_clients = 1
 
     @classmethod
     def install(cls, mh):
         if not cls.master.transport.file_exists(SOS_CMD):
             tasks.install_packages(cls.master, SOS_PKG)
         tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_client(cls.master, cls.clients[0])
         tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
 
     def test_ipa_healthcheck_install_on_master(self):
@@ -255,6 +257,21 @@ class TestIpaHealthCheck(IntegrationTest):
         succesfully on IPA replica.
         """
         tasks.install_packages(self.replicas[0], HEALTHCHECK_PKG)
+
+    def test_running_ipahealthcheck_ipaclient(self):
+        """
+        Testcase checks that when ipa-healthcheck command is
+        run on ipaclient it displays "IPA is not configured"
+        """
+        valid_msg = (
+            'IPA is not configured\n', 'IPA server is not configured\n'
+        )
+        tasks.install_packages(self.clients[0], HEALTHCHECK_PKG)
+        cmd = self.clients[0].run_command(
+            ["ipa-healthcheck"], raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert cmd.stdout_text in valid_msg
 
     def test_run_ipahealthcheck_list_source(self):
         """
