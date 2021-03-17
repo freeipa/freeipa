@@ -808,7 +808,7 @@ class host_del(LDAPDelete):
         truncated = True
         while truncated:
             try:
-                ret = api.Command['service_find'](fqdn)
+                ret = api.Command['service_find'](fqdn, pkey_only=True)
                 truncated = ret['truncated']
                 services = ret['result']
             except errors.NotFound:
@@ -1205,7 +1205,7 @@ class host_disable(LDAPQuery):
         truncated = True
         while truncated:
             try:
-                ret = api.Command['service_find'](fqdn)
+                ret = api.Command['service_find'](fqdn, pkey_only=True)
                 truncated = ret['truncated']
                 services = ret['result']
             except errors.NotFound:
