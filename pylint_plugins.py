@@ -565,9 +565,121 @@ AstroidBuilder(MANAGER).string_build(
     from ipatests.pytest_ipa.integration.config import Config, Domain
 
 
+    class HostPlatformOSInfo:
+        name = ""
+        platform = ""
+        id = ""
+        id_like = list()
+        version = ""
+        version_number = list()
+        platform_ids = list()
+        container = ""
+
+
+    class HostPlatformConstants:
+        HTTPD_USER = ""
+        IPAAPI_USER = ""
+        DEFAULT_SHELL = ""
+        DEFAULT_ADMIN_SHELL = ""
+        WSGI_PROCESSES = 0
+        DS_USER = ""
+        DS_GROUP = ""
+        SELINUX_USERMAP_ORDER = ""
+
+
+    class HostPlatformPaths:
+        BIN_CURL=""
+        CA_CRT=""
+        CA_CS_CFG_PATH=""
+        CERTMONGER_REQUESTS_DIR=""
+        CERTUTIL=""
+        CHRONY_CONF=""
+        CRYPTO_POLICY_OPENSSLCNF_FILE=""
+        DNSSEC_TRUSTED_KEY=""
+        DOGTAG_ADMIN_P12=""
+        DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT=""
+        DSCTL=""
+        ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE=""
+        GETENFORCE=""
+        HOSTS=""
+        HTTP_KEYTAB=""
+        HTTPD_CERT_FILE=""
+        HTTPD_IPA_CONF=""
+        HTTPD_IPA_REWRITE_CONF=""
+        HTTPD_KEY_FILE=""
+        HTTPD_PASSWD_FILE_FMT=""
+        HTTPD_SSL_CONF=""
+        IPA_CA_CRT=""
+        IPA_CA_CSR=""
+        IPA_CACERT_MANAGE=""
+        IPA_CCACHES=""
+        IPA_CERTUPDATE=""
+        IPA_CLIENT_SYSRESTORE=""
+        IPA_CUSTODIA_CHECK=""
+        IPA_CUSTODIA_CONF=""
+        IPA_CUSTODIA_KEYS=""
+        IPA_DEFAULT_CONF=""
+        IPA_GETCERT=""
+        IPA_GETKEYTAB=""
+        IPA_NSSDB_PWDFILE_TXT=""
+        IPA_NSSDB_DIR=""
+        IPA_RENEWAL_LOCK=""
+        IPA_SERVER_CONF=""
+        IPACLIENT_INSTALL_LOG=""
+        IPACLIENT_UNINSTALL_LOG=""
+        IPASERVER_INSTALL_LOG=""
+        IPAUPGRADE_LOG=""
+        KDC_CERT=""
+        KDCPROXY_CONFIG=""
+        KRB5_CONF=""
+        KRB5_KEYTAB=""
+        LDAPPASSWD=""
+        LIBEXEC_IPA_DIR=""
+        LIBSOFTHSM2_SO=""
+        NAMED_CONF=""
+        NAMED_CUSTOM_CONF=""
+        NAMED_CUSTOM_OPTIONS_CONF=""
+        NAMED_LOGGING_OPTIONS_CONF=""
+        NAMED_CRYPTO_POLICY_FILE=""
+        NSS_DB_DIR=""
+        OPENLDAP_LDAP_CONF=""
+        OPENSSL=""
+        OPENSSL_CERTS_DIR=""
+        OPENSSL_DIR=""
+        OPENSSL_PRIVATE_DIR=""
+        PKI_CA_PUBLISH_DIR=""
+        PKI_TOMCAT_ALIAS_DIR=""
+        PKI_TOMCAT_ALIAS_PWDFILE_TXT=""
+        RA_AGENT_PEM=""
+        RESOLV_CONF=""
+        ROOT_IPA_CSR=""
+        SAMBA_KEYTAB=""
+        SELINUXENABLED=""
+        SEMODULE=""
+        SSH_CONFIG=""
+        SMB_CONF=""
+        SSS_SSH_AUTHORIZEDKEYS=""
+        SSSD_CONF=""
+        SYSRESTORE=""
+        TMP=""
+        VAR_LIB_PKI_TOMCAT_DIR=""
+        VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE=""
+        VAR_LOG_HTTPD_ERROR=""
+        VAR_LOG_DIRSRV_INSTANCE_TEMPLATE=""
+        VAR_LOG_SSSD_DIR=""
+
+
+    ipahost = Host()
+    ipahost.config = Config()
+    ipahost.domain = Domain()
+    ipahost.paths = HostPlatformPaths()
+    ipahost.osinfo = HostPlatformOSInfo()
+    ipahost.constants = HostPlatformConstants()
+
+
     class PylintIPAHosts:
         def __getitem__(self, key):
-            return Host()
+            return ipahost
 
 
     class PylintWinHosts:
@@ -580,11 +692,8 @@ AstroidBuilder(MANAGER).string_build(
             return Domain()
 
 
-    Host.config = Config()
-    Host.domain = Domain()
-
     IntegrationTest.domain = Domain()
-    IntegrationTest.master = Host()
+    IntegrationTest.master = ipahost
     IntegrationTest.replicas = PylintIPAHosts()
     IntegrationTest.clients = PylintIPAHosts()
     IntegrationTest.ads = PylintWinHosts()
