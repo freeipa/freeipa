@@ -1336,6 +1336,10 @@ class TestIpaHealthCheck(IntegrationTest):
                     else:
                         assert check["kw"]["days"] == 10
 
+        # Remove the replica now since it will be out of sync with the
+        # updated certificates and replication will break.
+        tasks.uninstall_replica(self.master, self.replicas[0])
+
         # Store the current date to restore at the end of the test
         now = datetime.utcnow()
         now_str = datetime.strftime(now, "%Y-%m-%d %H:%M:%S Z")
@@ -1345,8 +1349,14 @@ class TestIpaHealthCheck(IntegrationTest):
         cert = x509.load_certificate_list(certfile)
         cert_expiry = cert[0].not_valid_after
 
-        for service in ('chronyd', 'pki_tomcatd',):
-            restart_service(self.master, service)
+        # Stop chronyd so it doesn't freak out with time so off
+        restart_service(self.master, 'chronyd')
+
+        # Stop pki_tomcatd so certs are not renewable. Don't restart
+        # it because by the time the test is done the server is gone.
+        self.master.run_command(
+            ["systemctl", "stop", "pki-tomcatd@pki-tomcat"]
+        )
 
         try:
             # move date to the grace period
@@ -1361,6 +1371,10 @@ class TestIpaHealthCheck(IntegrationTest):
             execute_nsscheck_cert_expiring(check)
 
         finally:
+            # Uninstall the master here so that the certs don't try
+            # to renew after the CA is running again.
+            tasks.uninstall_master(self.master)
+
             # After restarting chronyd, the date may need some time to get
             # synced. Help chrony by resetting the date
             self.master.run_command(['date', '-s', now_str])
