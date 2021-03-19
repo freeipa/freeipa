@@ -2166,7 +2166,8 @@ class KerberosKeyCopier:
 
         mtime_before = get_keytab_mtime()
 
-        with self.host.spawn_expect(paths.KTUTIL, default_timeout=5) as e:
+        with self.host.spawn_expect(paths.KTUTIL, default_timeout=5,
+                                    extra_ssh_options=['-t']) as e:
             e.expect_exact('ktutil:')
             e.sendline('rkt {}'.format(keytab))
             e.expect_exact('ktutil:')
