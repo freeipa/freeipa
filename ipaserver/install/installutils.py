@@ -1098,7 +1098,7 @@ def check_available_memory(ca=False):
             )
 
         with open(limit_file) as fd:
-            limit = fd.readline()
+            limit = fd.readline().rstrip()
         with open(usage_file) as fd:
             used = int(fd.readline())
 
