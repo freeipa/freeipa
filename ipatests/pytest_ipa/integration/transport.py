@@ -49,9 +49,11 @@ class IPAOpenSSHTransport(OpenSSHTransport):
 
         return argv
 
-    def spawn_expect(self, argv, default_timeout, encoding):
+    def spawn_expect(self, argv, default_timeout, encoding, extra_ssh_options):
         self.log.debug('Starting pexpect ssh session')
         if isinstance(argv, str):
             argv = [argv]
-        argv = self._get_ssh_argv() + ['-t', '-q'] + argv
+        if extra_ssh_options is None:
+            extra_ssh_options = []
+        argv = self._get_ssh_argv() + ['-q'] + extra_ssh_options + argv
         return IpaTestExpect(argv, default_timeout, encoding)
