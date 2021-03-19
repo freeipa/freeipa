@@ -229,7 +229,7 @@ fasttest: $(GENERATED_PYTHON_FILES) ipasetup.py
 	    --ignore $(abspath $(top_srcdir))/ipatests/test_integration \
 	    --ignore $(abspath $(top_srcdir))/ipatests/test_xmlrpc
 
-fastlint: $(GENERATED_PYTHON_FILES) ipasetup.py
+fastlint: $(GENERATED_PYTHON_FILES) ipasetup.py acilint apilint
 if ! WITH_PYLINT
 	@echo "ERROR: pylint not available"; exit 1
 endif

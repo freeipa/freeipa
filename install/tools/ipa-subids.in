@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+#
+# Copyright (C) 2021  FreeIPA Contributors see COPYING for license
+#
+
+from ipaserver.install.ipa_subids import IPASubids
+
+IPASubids.run_cli()

@@ -19,3 +19,4 @@ FreeIPA design documentation
    hidden-replicas.md
    disable-stale-users.md
    ldapi-autobind-services.md
+   subordinate-ids.md
