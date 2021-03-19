@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 242)
-# Last change: add status options for cert-find
+# Last change: add subordinate id feature
+define(IPA_API_VERSION_MINOR, 243)
 
 
 ########################################################

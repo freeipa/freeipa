@@ -24,6 +24,7 @@ Test the `ipaserver/plugins/idrange.py` module, and XML-RPC in general.
 import six
 
 from ipalib import api, errors, messages
+from ipalib import constants
 from ipaplatform import services
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
@@ -46,6 +47,12 @@ rid_shift = 0
 for idrange in api.Command['idrange_find']()['result']:
     size = int(idrange['ipaidrangesize'][0])
     base_id = int(idrange['ipabaseid'][0])
+    rtype = idrange['iparangetype'][0]
+
+    if rtype == 'ipa-local-subid' or base_id == constants.SUBID_RANGE_START:
+        # ignore subordinate id range. It would push values beyond uint32_t.
+        # There is plenty of space below SUBUID_RANGE_START.
+        continue
 
     id_end = base_id + size
     rid_end = 0

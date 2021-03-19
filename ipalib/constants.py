@@ -343,3 +343,16 @@ SOFTHSM_DNSSEC_TOKEN_LABEL = u'ipaDNSSEC'
 # Apache's mod_ssl SSLVerifyDepth value (Maximum depth of CA
 # Certificates in Client Certificate verification)
 MOD_SSL_VERIFY_DEPTH = '5'
+
+# subuid / subgid counts are hard-coded
+# An interval of 65536 uids/gids is required to map nobody (65534).
+SUBID_COUNT = 65536
+
+# upper half of uid_t (uint32_t)
+SUBID_RANGE_START = 2 ** 31
+# theoretical max limit is UINT32_MAX-1 ((2 ** 32) - 2)
+# We use a smaller value to keep the topmost subid interval unused.
+SUBID_RANGE_MAX = (2 ** 32) - (2 * SUBID_COUNT)
+SUBID_RANGE_SIZE = SUBID_RANGE_MAX - SUBID_RANGE_START
+# threshold before DNA plugin requests a new range
+SUBID_DNA_THRESHOLD = 500 * SUBID_COUNT

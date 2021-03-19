@@ -298,3 +298,15 @@ jobs:
         template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
+
+  fedora-latest/test_subids:
+    requires: [fedora-latest/build]
+    priority: 100
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_subids.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl

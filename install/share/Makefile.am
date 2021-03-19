@@ -16,6 +16,7 @@ dist_app_DATA =				\
 	60ipaconfig.ldif		\
 	60basev2.ldif			\
 	60basev3.ldif			\
+	60basev4.ldif			\
 	60ipadns.ldif			\
 	60ipapk11.ldif			\
 	60certificate-profiles.ldif	\
