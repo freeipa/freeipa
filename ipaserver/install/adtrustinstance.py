@@ -36,6 +36,7 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install.replication import wait_for_task
 from ipalib import errors, api
+from ipalib.constants import SUBID_RANGE_START
 from ipalib.util import normalize_zone
 from ipapython.dn import DN
 from ipapython import ipachangeconf
@@ -352,12 +353,19 @@ class ADTRUSTInstance(service.Service):
                 DN(api.env.container_ranges, self.suffix),
                 ldap.SCOPE_ONELEVEL, "(objectclass=ipaDomainIDRange)")
 
-            # Filter out ranges where RID base is already set
-            no_rid_base_set = lambda r: not any((
-                                  r.single_value.get('ipaBaseRID'),
-                                  r.single_value.get('ipaSecondaryBaseRID')))
+            ranges_with_no_rid_base = []
+            for entry in ranges:
+                sv = entry.single_value
+                if sv.get('ipaBaseRID') or sv.get('ipaSecondaryBaseRID'):
+                    # skip range where RID base is already set
+                    continue
+                if sv.get('ipaRangeType') == 'ipa-local-subid':
+                    # ignore subid ranges
+                    continue
+                ranges_with_no_rid_base.append(entry)
 
-            ranges_with_no_rid_base = [r for r in ranges if no_rid_base_set(r)]
+            logger.debug(repr(ranges))
+            logger.debug(repr(ranges_with_no_rid_base))
 
             # Return if no range is without RID base
             if len(ranges_with_no_rid_base) == 0:
@@ -383,6 +391,17 @@ class ADTRUSTInstance(service.Service):
                 self.print_msg("Primary and secondary RID base are too close. "
                                "They have to differ at least by %d." % size)
                 raise RuntimeError("RID bases too close.\n")
+
+            # values above
+            if any(
+                v + size >= SUBID_RANGE_START
+                for v in (self.rid_base, self.secondary_rid_base)
+            ):
+                self.print_msg(
+                    "Ceiling of primary or secondary base is larger than "
+                    f"start of subordinate id range {SUBID_RANGE_START}."
+                )
+                raise RuntimeError("RID bases overlap with SUBID range.\n")
 
             # Modify the range
             # If the RID bases would cause overlap with some other range,

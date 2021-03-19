@@ -50,7 +50,10 @@ from .baseuser import (
     baseuser_add_principal,
     baseuser_remove_principal,
     baseuser_add_certmapdata,
-    baseuser_remove_certmapdata)
+    baseuser_remove_certmapdata,
+    baseuser_auto_subid,
+    baseuser_match_subid,
+)
 from .idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
 from .baseldap import (
@@ -202,6 +205,8 @@ class user(baseuser):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'ipauniqueid', 'ipasshpubkey', 'ipauserauthtype', 'userclass',
+                'ipasubuidnumber', 'ipasubuidcount', 'ipasubgidnumber',
+                'ipasubgidcount',
             },
             'fixup_function': fix_addressbook_permission_bindrule,
         },
@@ -1306,3 +1311,13 @@ class user_add_principal(baseuser_add_principal):
 class user_remove_principal(baseuser_remove_principal):
     __doc__ = _('Remove principal alias from the user entry')
     msg_summary = _('Removed aliases from user "%(value)s"')
+
+
+@register()
+class user_auto_subid(baseuser_auto_subid):
+    __doc__ = baseuser_auto_subid.__doc__
+
+
+@register()
+class user_match_subid(baseuser_match_subid):
+    __doc__ = baseuser_match_subid.__doc__

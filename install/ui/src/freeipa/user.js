@@ -260,6 +260,33 @@ return {
                     ]
                 },
                 {
+                    name: 'subordinate',
+                    label: '@i18n:objects.subordinate.identity',
+                    fields: [
+                        {
+                            name: 'ipasubuidnumber',
+                            label: '@i18n:objects.subordinate.subuidnumber',
+                            read_only: true
+                        },
+                        {
+                            name: 'ipasubuidcount',
+                            label: '@i18n:objects.subordinate.subuidcount',
+                            read_only: true
+
+                        },
+                        {
+                            name: 'ipasubgidnumber',
+                            label: '@i18n:objects.subordinate.subgidnumber',
+                            read_only: true
+                        },
+                        {
+                            name: 'ipasubgidcount',
+                            label: '@i18n:objects.subordinate.subgidcount',
+                            read_only: true
+                        }
+                    ]
+                },
+                {
                     name: 'pwpolicy',
                     label: '@i18n:objects.pwpolicy.identity',
                     field_adapter: { result_index: 1 },
@@ -452,6 +479,16 @@ return {
                     confirm_msg: '@i18n:objects.user.unlock_confirm'
                 },
                 {
+                    $factory: IPA.object_action,
+                    name: 'auto_subid',
+                    method: 'auto_subid',
+                    label: '@i18n:objects.user.auto_subid',
+                    needs_confirm: true,
+                    hide_cond: ['preserved-user'],
+                    enable_cond: ['no-subid'],
+                    confirm_msg: '@i18n:objects.user.auto_subid_confirm'
+                },
+                {
                     $type: 'automember_rebuild',
                     name: 'automember_rebuild',
                     hide_cond: ['preserved-user'],
@@ -461,12 +498,22 @@ return {
                     $type: 'cert_request',
                     hide_cond: ['preserved-user'],
                     title: '@i18n:objects.cert.issue_for_user'
+                },
+                {
+                    $factory: IPA.object_action,
+                    name: 'auto_subid',
+                    method: 'auto_subid',
+                    label: '@i18n:objects.user.auto_subid',
+                    needs_confirm: true,
+                    hide_cond: ['preserved-user'],
+                    enable_cond: ['no-subid'],
+                    confirm_msg: '@i18n:objects.user.auto_subid_confirm'
                 }
             ],
             header_actions: [
                 'reset_password', 'enable', 'disable', 'stage', 'undel',
                 'delete_active_user', 'delete', 'unlock', 'add_otptoken',
-                'automember_rebuild', 'request_cert'
+                'automember_rebuild', 'request_cert', 'auto_subid'
             ],
             state: {
                 evaluators: [
@@ -1157,6 +1204,10 @@ IPA.user.is_locked_evaluator = function(spec) {
             if (user.krbloginfailedcount[0] >= max_failure) {
                 that.state.push('is-locked');
             }
+        }
+
+        if (!user.ipasubuidnumber) {
+            that.state.push('no-subid');
         }
 
         that.notify_on_change(old_state);
