@@ -23,7 +23,6 @@ from __future__ import print_function, absolute_import
 import logging
 import shutil
 import os
-import time
 import tempfile
 import fnmatch
 
@@ -46,6 +45,7 @@ from ipaserver.install import certs
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
 from ipaserver.install import upgradeinstance
+from ipaserver.install import ldapupdate
 from ipalib import api
 from ipalib import errors
 from ipalib import constants
@@ -66,6 +66,7 @@ IPA_SCHEMA_FILES = ("60kerberos.ldif",
                     "60ipaconfig.ldif",
                     "60basev2.ldif",
                     "60basev3.ldif",
+                    "60basev4.ldif",
                     "60ipapk11.ldif",
                     "60ipadns.ldif",
                     "60certificate-profiles.ldif",
@@ -214,6 +215,8 @@ class DsInstance(service.Service):
         if realm_name:
             self.suffix = ipautil.realm_to_suffix(self.realm)
             self.serverid = ipaldap.realm_to_serverid(self.realm)
+            if self.domain is None:
+                self.domain = self.realm.lower()
             self.__setup_sub_dict()
         else:
             self.suffix = DN()
@@ -497,34 +500,22 @@ class DsInstance(service.Service):
 
     def __setup_sub_dict(self):
         server_root = find_server_root()
-        try:
-            idrange_size = self.idmax - self.idstart + 1
-        except TypeError:
-            idrange_size = None
-        self.sub_dict = dict(
-            FQDN=self.fqdn, SERVERID=self.serverid,
+        self.sub_dict = ldapupdate.get_sub_dict(
+            realm=self.realm,
+            domain=self.domain,
+            suffix=self.suffix,
+            fqdn=self.fqdn,
+            idstart=self.idstart,
+            idmax=self.idmax,
+        )
+        self.sub_dict.update(
+            DOMAIN_LEVEL=self.domainlevel,
+            SERVERID=self.serverid,
             PASSWORD=self.dm_password,
             RANDOM_PASSWORD=ipautil.ipa_generate_password(),
-            SUFFIX=self.suffix,
-            REALM=self.realm, USER=DS_USER,
-            SERVER_ROOT=server_root, DOMAIN=self.domain,
-            TIME=int(time.time()), IDSTART=self.idstart,
-            IDMAX=self.idmax, HOST=self.fqdn,
-            ESCAPED_SUFFIX=str(self.suffix),
+            USER=DS_USER,
             GROUP=DS_GROUP,
-            IDRANGE_SIZE=idrange_size,
-            DOMAIN_LEVEL=self.domainlevel,
-            MAX_DOMAIN_LEVEL=constants.MAX_DOMAIN_LEVEL,
-            MIN_DOMAIN_LEVEL=constants.MIN_DOMAIN_LEVEL,
-            STRIP_ATTRS=" ".join(replication.STRIP_ATTRS),
-            EXCLUDES='(objectclass=*) $ EXCLUDE ' +
-            ' '.join(replication.EXCLUDES),
-            TOTAL_EXCLUDES='(objectclass=*) $ EXCLUDE ' +
-            ' '.join(replication.TOTAL_EXCLUDES),
-            DEFAULT_SHELL=platformconstants.DEFAULT_SHELL,
-            DEFAULT_ADMIN_SHELL=platformconstants.DEFAULT_ADMIN_SHELL,
-            SELINUX_USERMAP_DEFAULT=platformconstants.SELINUX_USERMAP_DEFAULT,
-            SELINUX_USERMAP_ORDER=platformconstants.SELINUX_USERMAP_ORDER,
+            SERVER_ROOT=server_root,
         )
 
     def __create_instance(self):

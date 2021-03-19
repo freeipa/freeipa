@@ -16,6 +16,26 @@ dnaThreshold: 500
 dnaSharedCfgDN: cn=posix-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
 dnaExcludeScope: cn=provisioning,$SUFFIX
 
+dn: cn=Subordinate IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: extensibleObject
+cn: Subordinate IDs
+dnaType: ipasubuidnumber
+dnaType: ipasubgidnumber
+dnaNextValue: eval($SUBID_RANGE_START)
+dnaMaxValue: eval($SUBID_RANGE_MAX)
+dnaMagicRegen: -1
+dnaFilter: (objectClass=ipaSubordinateId)
+dnaScope: $SUFFIX
+dnaThreshold: eval($SUBID_DNA_THRESHOLD)
+# TODO: enable when 389-DS' DNA plugin supports dnaStepAttr
+# dnaStepAttr: ipaSubUidCount
+# dnaStepAttr: ipaSubGidCount
+# dnaStepAllowedValues: eval($SUBID_COUNT)
+dnaSharedCfgDN: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
+dnaExcludeScope: cn=provisioning,$SUFFIX
+
 # Enable the DNA plugin
 dn: cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
 changetype: modify

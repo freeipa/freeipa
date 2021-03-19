@@ -167,6 +167,12 @@ objectClass: nsContainer
 objectClass: top
 cn: posix-ids
 
+dn: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: subordinate-ids
+
 dn: cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX
 changetype: add
 objectClass: nsContainer
@@ -475,6 +481,22 @@ cn: ${REALM}_id_range
 ipaBaseID: $IDSTART
 ipaIDRangeSize: $IDRANGE_SIZE
 ipaRangeType: ipa-local
+
+dn: cn=${REALM}_subid_range,cn=ranges,cn=etc,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: ipaIDrange
+objectClass: ipaTrustedADDomainRange
+cn: ${REALM}_subid_range
+ipaBaseID: eval($SUBID_RANGE_START)
+ipaIDRangeSize: eval($SUBID_RANGE_SIZE)
+# HACK: RIDs to work around adtrust sidgen issue
+ipaBaseRID: eval($SUBID_RANGE_START - $IDRANGE_SIZE)
+# 738065-838566 = IPA-SUB
+ipaNTTrustedDomainSID: S-1-5-21-738065-838566-$DOMAIN_HASH
+# HACK: "ipa-local-subid" range type causes issues with older SSSD clients
+# see https://github.com/SSSD/sssd/issues/5571
+ipaRangeType: ipa-ad-trust
 
 dn: cn=ca,$SUFFIX
 changetype: add

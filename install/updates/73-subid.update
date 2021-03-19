@@ -1,0 +1,102 @@
+# subordinate ids
+
+# self-service RBAC
+dn: cn=Subordinate ID Selfservice User,cn=roles,cn=accounts,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:objectClass: top
+default:cn: Subordinate ID Selfservice User
+default:description: User that can self-request subordiante ids
+# default: member: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Subordinate ID Selfservice Users,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:cn: Subordinate ID Selfservice Users
+default:description: Subordinate ID Selfservice User
+default:member: cn=Subordinate ID Selfservice User,cn=roles,cn=accounts,$SUFFIX
+
+dn: cn=Self-service subordinate ID,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:cn: Self-service subordinate ID
+default:ipapermissiontype: SYSTEM
+default:member: cn=Subordinate ID Selfservice Users,cn=privileges,cn=pbac,$SUFFIX
+
+# Administrator RBAC
+dn: cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:cn: Subordinate ID Administrators
+default:description: Subordinate ID Administrators
+default:member: cn=User Administrator,cn=roles,cn=accounts,$SUFFIX
+
+dn: cn=Manage subordinate ID,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:cn: Manage subordinate ID
+default:ipapermissiontype: SYSTEM
+default:member: cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+# ACIs (in domain database root so they also apply to staging area)
+#
+# - allow users to request new subid with DNA_MAGIC value, subid count=65536,
+#   and subgid == subuid.
+# - allow user admins to set subids. count=65536 and subgid == subuid
+#   properties are enforced as wel.
+#
+# The delete-when-empty check is required because IPA uses MOD_REPLACE to
+# set attributes, see https://github.com/389ds/389-ds-base/issues/4597.
+#
+# TODO: remove (ipasubuidnumber>=eval($SUBID_RANGE_START) from
+# self-service permission when 389-DS' DNA plugin supports dnaStepAttr and
+# fake_dna_plugin hack has been removed.
+#
+dn: $SUFFIX
+add: aci: (targetfilter = "(objectclass=posixaccount)")(targattrfilters = "add=objectClass:(|(objectClass=ipasubordinateid)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(|(ipasubuidnumber>=eval($SUBID_RANGE_START))(ipasubuidnumber=-1)) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(|(ipasubgidnumber>=eval($SUBID_RANGE_START))(ipasubgidnumber=-1)) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "selfservice: Add subordinate id";allow (write) userdn = "ldap:///self" and groupdn="ldap:///cn=Self-service subordinate ID,cn=permissions,cn=pbac,$SUFFIX";)
+add: aci: (targetfilter = "(objectclass=posixaccount)")(targattrfilters = "add=objectClass:(|(objectClass=ipasubordinateid)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(|(ipasubuidnumber>=1)(ipasubuidnumber=-1)) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(|(ipasubgidnumber>=1)(ipasubgidnumber=-1)) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "Add subordinate ids to any user";allow (write) groupdn="ldap:///cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX";)
+
+# DNA plugin and idrange configuration
+dn: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
+default: objectClass: nsContainer
+default: objectClass: top
+default: cn: subordinate-ids
+
+dn: cn=Subordinate IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+default: objectclass: top
+default: objectclass: extensibleObject
+default: cn: Subordinate IDs
+default: dnaType: ipasubuidnumber
+default: dnaType: ipasubgidnumber
+default: dnaNextValue: eval($SUBID_RANGE_START)
+default: dnaMaxValue: eval($SUBID_RANGE_MAX)
+default: dnaMagicRegen: -1
+default: dnaFilter: (objectClass=ipaSubordinateId)
+default: dnaScope: $SUFFIX
+default: dnaThreshold: eval($SUBID_DNA_THRESHOLD)
+# TODO: enable when 389-DS' DNA plugin supports dnaStepAttr
+# default: dnaStepAttr: ipaSubUidCount
+# default: dnaStepAttr: ipaSubGidCount
+# default: dnaStepAllowedValues: eval($SUBID_COUNT)
+default: dnaSharedCfgDN: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
+default: dnaExcludeScope: cn=provisioning,$SUFFIX
+default: aci: (targetattr = "dnaNextRange || dnaNextValue || dnaMaxValue")(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+default: aci: (targetattr = "cn || dnaMaxValue || dnaNextRange || dnaNextValue  || dnaThreshold || dnaType || objectclass")(version 3.0;acl "permission:Read DNA Range";allow (read, search, compare) groupdn = "ldap:///cn=Read DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+
+dn: cn=${REALM}_subid_range,cn=ranges,cn=etc,$SUFFIX
+default: objectClass: top
+default: objectClass: ipaIDrange
+default: objectClass: ipaTrustedADDomainRange
+default: cn: ${REALM}_subid_range
+default: ipaBaseID: $SUBID_RANGE_START
+default: ipaIDRangeSize: $SUBID_RANGE_SIZE
+# HACK: RIDs to work around adtrust sidgen issue
+default: ipaBaseRID: eval($SUBID_RANGE_START - $IDRANGE_SIZE)
+default: ipaNTTrustedDomainSID: S-1-5-21-738065-838566-$DOMAIN_HASH
+# HACK: "ipa-local-subid" range type causes issues with older SSSD clients
+# see https://github.com/SSSD/sssd/issues/5571
+default: ipaRangeType: ipa-ad-trust

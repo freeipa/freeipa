@@ -1547,6 +1547,13 @@ class i18n_messages(Command):
                     "Drive to mount a home directory"
                 ),
             },
+            "subordinate": {
+                "identity": _("Subordinate user and group id"),
+                "subuidnumber": _("Subordinate user id"),
+                "subuidcount": _("Subordinate user id count"),
+                "subgidnumber": _("Subordinate group id"),
+                "subgidcount": _("Subordinate group id count"),
+            },
             "trustconfig": {
                 "options": _("Options"),
             },
@@ -1569,6 +1576,11 @@ class i18n_messages(Command):
                 ),
                 "add_into_sudo": _(
                     "Add user '${primary_key}' into sudo rules"
+                ),
+                "auto_subid": _("Auto assign subordinate ids"),
+                "auto_subid_confirm": _(
+                    "Are you sure you want to auto-assign a subordinate id "
+                    "to user ${object}?"
                 ),
                 "contact": _("Contact Settings"),
                 "delete_mode": _("Delete mode"),

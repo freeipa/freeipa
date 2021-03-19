@@ -38,6 +38,7 @@ dist_noinst_DATA =		\
 	ipa-pki-retrieve-key.in	\
 	ipa-pki-wait-running.in	\
 	ipa-acme-manage.in	\
+	ipa-subids.in	\
 	$(NULL)
 
 nodist_sbin_SCRIPTS =		\
@@ -78,6 +79,7 @@ nodist_app_SCRIPTS =		\
 	ipa-httpd-pwdreader	\
 	ipa-pki-retrieve-key	\
 	ipa-pki-wait-running	\
+	ipa-subids	\
 	$(NULL)
 
 PYTHON_SHEBANG = 					\
