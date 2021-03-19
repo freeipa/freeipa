@@ -46,6 +46,12 @@ rid_shift = 0
 for idrange in api.Command['idrange_find']()['result']:
     size = int(idrange['ipaidrangesize'][0])
     base_id = int(idrange['ipabaseid'][0])
+    range_type = idrange['iparangetype'][0]
+
+    if range_type == 'ipa-local-subid':
+        # ignore subordinate id range. It would push values beyond uint32_t.
+        # There is plenty of space below SUBUID_RANGE_START.
+        continue
 
     id_end = base_id + size
     rid_end = 0

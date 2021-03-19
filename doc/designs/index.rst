@@ -16,3 +16,4 @@ FreeIPA design documentation
    membermanager.md
    hidden-replicas.md
    disable-stale-users.md
+   subordinate-ids.md

@@ -740,16 +740,16 @@ class TestSudo(IntegrationTest):
                 ['ipa', 'sudorule-add-runasuser', 'testrule',
                  '--users', 'testuser2'])
 
+            # check that testuser1 can actually run commands as testuser2
+            self.client.run_command(
+                ['su', 'testuser1', '-c', 'sudo -u testuser2 true'])
+
             # check that testuser1 is allowed to run commands as testuser2
             # according to listing of allowed commands
             result = self.list_sudo_commands('testuser1')
             expected_rule = ('(testuser2@%s) NOPASSWD: ALL'
                              % self.domain.name)
             assert expected_rule in result.stdout_text
-
-            # check that testuser1 can actually run commands as testuser2
-            self.client.run_command(
-                ['su', 'testuser1', '-c', 'sudo -u testuser2 true'])
         finally:
             self.master.run_command(
                 ['ipa', 'config-mod', '--domain-resolution-order='])

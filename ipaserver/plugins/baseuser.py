@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import random
 import six
 
-from ipalib import api, errors
+from ipalib import api, errors, output, constants
 from ipalib import (
     Flag, Int, Password, Str, Bool, StrEnum, DateTime, DNParam)
 from ipalib.parameters import Principal, Certificate
@@ -27,13 +28,13 @@ from ipalib.plugable import Registry
 from .baseldap import (
     DN, LDAPObject, LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete,
     LDAPRetrieve, LDAPAddAttribute, LDAPModAttribute, LDAPRemoveAttribute,
-    LDAPAddMember, LDAPRemoveMember,
+    LDAPQuery, LDAPAddMember, LDAPRemoveMember,
     LDAPAddAttributeViaOption, LDAPRemoveAttributeViaOption,
-    add_missing_object_class)
+    add_missing_object_class, DNA_MAGIC, pkey_to_value, entry_to_dict
+)
 from ipaserver.plugins.service import (validate_realm, normalize_principal)
 from ipalib.request import context
 from ipalib import _
-from ipalib.constants import PATTERN_GROUPUSER_NAME
 from ipapython import kerberos
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipapython.ipavalidate import Email
@@ -161,7 +162,7 @@ class baseuser(LDAPObject):
     possible_objectclasses = [
         'meporiginentry', 'ipauserauthtypeclass', 'ipauser',
         'ipatokenradiusproxyuser', 'ipacertmapobject',
-        'ipantuserattrs'
+        'ipantuserattrs', 'ipasubordinateid',
     ]
     disallow_object_classes = ['krbticketpolicyaux']
     permission_filter_objectclasses = ['posixaccount']
@@ -175,13 +176,15 @@ class baseuser(LDAPObject):
         'krbprincipalexpiration', 'usercertificate;binary',
         'krbprincipalname', 'krbcanonicalname',
         'ipacertmapdata', 'ipantlogonscript', 'ipantprofilepath',
-        'ipanthomedirectory', 'ipanthomedirectorydrive'
+        'ipanthomedirectory', 'ipanthomedirectorydrive',
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'krbcanonicalname',
         'krbprincipalname', 'loginshell',
         'mail', 'telephonenumber', 'title', 'nsaccountlock',
         'uidnumber', 'gidnumber', 'sshpubkeyfp',
+        'ipasubuidnumber', 'ipasubuidcount', 'ipasubgidnumber',
+        'ipasubgidcount',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -198,7 +201,7 @@ class baseuser(LDAPObject):
 
     takes_params = (
         Str('uid',
-            pattern=PATTERN_GROUPUSER_NAME,
+            pattern=constants.PATTERN_GROUPUSER_NAME,
             pattern_errmsg='may only include letters, numbers, _, -, . and $',
             maxlength=255,
             cli_name='login',
@@ -429,6 +432,41 @@ class baseuser(LDAPObject):
                     'J:', 'K:', 'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:',
                     'S:', 'T:', 'U:', 'V:', 'W:', 'X:', 'Y:', 'Z:'),
                 ),
+        Int(
+            'ipasubuidnumber?',
+            label=_('SubUID range start'),
+            cli_name='subuid',
+            doc=_('Start value for subordinate user ID (subuid) range'),
+            minvalue=constants.SUBID_RANGE_START,
+            maxvalue=constants.SUBID_RANGE_MAX,
+        ),
+        Int(
+            'ipasubuidcount?',
+            label=_('SubUID range size'),
+            cli_name='subuidcount',
+            doc=_('Subordinate user ID count'),
+            flags={'no_create', 'no_update', 'no_search'},
+            minvalue=constants.SUBID_COUNT,
+            maxvalue=constants.SUBID_COUNT,
+        ),
+        Int(
+            'ipasubgidnumber?',
+            label=_('SubGID range start'),
+            cli_name='subgid',
+            doc=_('Start value for subordinate group ID (subgid) range'),
+            flags={'no_create', 'no_update'},
+            minvalue=constants.SUBID_RANGE_START,
+            maxvalue=constants.SUBID_RANGE_MAX,
+        ),
+        Int(
+            'ipasubgidcount?',
+            label=_('SubGID range size'),
+            cli_name='subgidcount',
+            doc=_('Subordinate group ID count'),
+            flags={'no_create', 'no_update', 'no_search'},
+            minvalue=constants.SUBID_COUNT,
+            maxvalue=constants.SUBID_COUNT,
+        ),
     )
 
     def normalize_and_validate_email(self, email, config=None):
@@ -526,6 +564,131 @@ class baseuser(LDAPObject):
         except KeyError:
             pass
 
+    def handle_subordinate_ids(self, ldap, dn, entry_attrs):
+        """Handle ipaSubordinateId object class
+        """
+        obj_classes = entry_attrs.get("objectclass")
+        new_subuid = entry_attrs.single_value.get("ipasubuidnumber")
+        new_subgid = entry_attrs.single_value.get("ipasubgidnumber")
+
+        # entry has object class ipaSubordinateId
+        # default to auto-assigment of subuids
+        if (
+            new_subuid is None
+            and obj_classes is not None
+            and self.has_objectclass(obj_classes, "ipasubordinateid")
+        ):
+            new_subuid = DNA_MAGIC
+
+        # neither auto-assignment nor explicit assignment
+        if new_subuid is None:
+            # nothing to do
+            return False
+
+        # enforce subuid == subgid
+        if new_subgid is not None and new_subgid != new_subuid:
+            raise errors.ValidationError(
+                name="ipasubgidnumber",
+                error=_("subgidnumber must be equal to subuidnumber")
+            )
+
+        self.set_subordinate_ids(ldap, dn, entry_attrs, new_subuid)
+        return True
+
+    def set_subordinate_ids(self, ldap, dn, entry_attrs, subuid):
+        """Set subuid value of an entry
+
+        Takes care of objectclass and sibbling attributes
+        """
+        if "objectclass" in entry_attrs:
+            obj_classes = entry_attrs["objectclass"]
+        else:
+            _entry_attrs = ldap.get_entry(dn, ["objectclass"])
+            entry_attrs["objectclass"] = _entry_attrs["objectclass"]
+            obj_classes = entry_attrs["objectclass"]
+
+        if not self.has_objectclass(obj_classes, "ipasubordinateid"):
+            # could append ipasubordinategid and ipasubordinateuid, too
+            obj_classes.append("ipasubordinateid")
+
+        # XXX HACK, remove later
+        if subuid == DNA_MAGIC:
+            subuid = self._fake_dna_plugin(ldap, dn, entry_attrs)
+
+        entry_attrs["ipasubuidnumber"] = subuid
+        # enforice subuid == subgid for now
+        entry_attrs["ipasubgidnumber"] = subuid
+        # hard-coded constants
+        entry_attrs["ipasubuidcount"] = constants.SUBID_COUNT
+        entry_attrs["ipasubgidcount"] = constants.SUBID_COUNT
+
+    def get_subid_match_candidate_filter(
+        self, ldap, *, subuid, subgid, extra_filters=(), offset=None,
+    ):
+        """Create LDAP filter to locate matching/overlapping subids
+        """
+        if subuid is None and subgid is None:
+            raise ValueError("subuid and subgid are both None")
+        if offset is None:
+            # assumes that no subordinate count is larger than SUBID_COUNT
+            offset = constants.SUBID_COUNT - 1
+
+        class_filters = "(objectclass=ipasubordinateid)"
+        subid_filters = []
+        if subuid is not None:
+            subid_filters.append(
+                ldap.combine_filters(
+                    [
+                        f"(ipasubuidnumber>={subuid - offset})",
+                        f"(ipasubuidnumber<={subuid + offset})",
+                    ],
+                    rules=ldap.MATCH_ALL
+                )
+            )
+        if subgid is not None:
+            subid_filters.append(
+                ldap.combine_filters(
+                    [
+                        f"(ipasubgidnumber>={subgid - offset})",
+                        f"(ipasubgidnumber<={subgid + offset})",
+                    ],
+                    rules=ldap.MATCH_ALL
+                )
+            )
+
+        subid_filters = ldap.combine_filters(
+            subid_filters, rules=ldap.MATCH_ANY
+        )
+        filters = [class_filters, subid_filters]
+        filters.extend(extra_filters)
+        return ldap.combine_filters(filters, rules=ldap.MATCH_ALL)
+
+    def _fake_dna_plugin(self, ldap, dn, entry_attrs):
+        """XXX HACK, remove when 389-DS DNA plugin supports steps"""
+        uidnumber = entry_attrs.single_value.get("uidnumber")
+        if uidnumber is None:
+            entry = ldap.get_entry(dn, ["uidnumber"])
+            uidnumber = entry.single_value["uidnumber"]
+        uidnumber = int(uidnumber)
+
+        if uidnumber == DNA_MAGIC:
+            return (
+                3221225472
+                + random.randint(1, 16382) * constants.SUBID_COUNT
+            )
+
+        if not hasattr(context, "idrange_ipabaseid"):
+            range_name = f"{self.api.env.realm}_id_range"
+            range = self.api.Command.idrange_show(range_name)["result"]
+            context.idrange_ipabaseid = int(range["ipabaseid"][0])
+
+        range_start = context.idrange_ipabaseid
+
+        assert uidnumber >= range_start
+        assert uidnumber < range_start + 2**14
+
+        return (uidnumber - range_start) * constants.SUBID_COUNT + 2**31
+
 
 class baseuser_add(LDAPCreate):
     """
@@ -536,6 +699,7 @@ class baseuser_add(LDAPCreate):
         assert isinstance(dn, DN)
         set_krbcanonicalname(entry_attrs)
         self.obj.convert_usercertificate_pre(entry_attrs)
+        self.obj.handle_subordinate_ids(ldap, dn, entry_attrs)
         if entry_attrs.get('ipatokenradiususername', None):
             add_missing_object_class(ldap, u'ipatokenradiusproxyuser', dn,
                                      entry_attrs, update=False)
@@ -685,6 +849,7 @@ class baseuser_mod(LDAPUpdate):
 
         self.check_objectclass(ldap, dn, entry_attrs)
         self.obj.convert_usercertificate_pre(entry_attrs)
+        self.obj.handle_subordinate_ids(ldap, dn, entry_attrs)
         self.preserve_krbprincipalname_pre(ldap, entry_attrs, *keys, **options)
         update_samba_attrs(ldap, dn, entry_attrs, **options)
 
@@ -965,3 +1130,98 @@ class baseuser_remove_certmapdata(ModCertMapData,
                                   LDAPRemoveAttribute):
     __doc__ = _("Remove one or more certificate mappings from the user entry.")
     msg_summary = _('Removed certificate mappings from user "%(value)s"')
+
+
+class baseuser_auto_subid(LDAPQuery):
+    __doc__ = _("Auto-assign subuid and subgid range to user entry")
+
+    has_output = output.standard_entry
+
+    def execute(self, cn, **options):
+        ldap = self.obj.backend
+        dn = self.obj.get_dn(cn)
+
+        try:
+            entry_attrs = ldap.get_entry(
+                dn, ["objectclass", "ipasubuidnumber"]
+            )
+        except errors.NotFound:
+            raise self.obj.handle_not_found(cn)
+
+        if "ipasubuidnumber" in entry_attrs:
+            raise errors.AlreadyContainsValueError(attr="ipasubuidnumber")
+
+        self.obj.set_subordinate_ids(ldap, dn, entry_attrs, subuid=DNA_MAGIC)
+        ldap.update_entry(entry_attrs)
+
+        # fetch updated entry (use search display attribute to show subids)
+        if options.get('all', False):
+            attrs_list = ['*'] + self.obj.search_display_attributes
+        else:
+            attrs_list = set(self.obj.search_display_attributes)
+            attrs_list.update(entry_attrs.keys())
+            if options.get('no_members', False):
+                attrs_list.difference_update(self.obj.attribute_members)
+            attrs_list = list(attrs_list)
+
+        entry = self._exc_wrapper((cn,), options, ldap.get_entry)(
+            dn, attrs_list
+        )
+        entry_attrs = entry_to_dict(entry, **options)
+        entry_attrs['dn'] = dn
+
+        return dict(result=entry_attrs, value=pkey_to_value(cn, options))
+
+
+class baseuser_match_subid(baseuser_find):
+    __doc__ = _("Match users by any subordinate uid in their range")
+
+    _subid_attrs = {
+        "ipasubuidnumber",
+        "ipasubuidcount",
+        "ipasubgidnumber",
+        "ipasubgidcount"
+    }
+
+    def get_options(self):
+        base_options = {p.name for p in self.obj.takes_params}
+        for option in super().get_options():
+            if option.name == "ipasubuidnumber":
+                yield option.clone(
+                    label=_('SubUID match'),
+                    doc=_('Match value for subordinate user ID'),
+                    required=True,
+                )
+            elif option.name not in base_options:
+                # raw, version
+                yield option.clone()
+
+    def pre_callback(
+        self, ldap, filters, attrs_list, base_dn, scope, *args, **options
+    ):
+        # search for candidates in range
+        # Code assumes that no subordinate count is larger than SUBID_COUNT
+        filters = self.obj.get_subid_match_candidate_filter(
+            ldap, subuid=options["ipasubuidnumber"], subgid=None,
+        )
+        # always include subid attributes
+        for missing in self._subid_attrs.difference(attrs_list):
+            attrs_list.append(missing)
+
+        return filters, base_dn, scope
+
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        # filter out mismatches manually
+        osubuid = options["ipasubuidnumber"]
+        new_entries = []
+        for entry in entries:
+            esubuid = int(entry.single_value["ipasubuidnumber"])
+            esubcount = int(entry.single_value["ipasubuidcount"])
+            minsubuid = esubuid
+            maxsubuid = esubuid + esubcount - 1
+            if minsubuid <= osubuid <= maxsubuid:
+                new_entries.append(entry)
+
+        entries[:] = new_entries
+
+        return truncated

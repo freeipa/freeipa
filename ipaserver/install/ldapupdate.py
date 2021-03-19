@@ -32,6 +32,7 @@ import os
 import fnmatch
 import warnings
 
+from pysss_murmur import murmurhash3  # pylint: disable=no-name-in-module
 import six
 
 from ipaserver.install import installutils
@@ -43,6 +44,7 @@ from ipaplatform.constants import constants as platformconstants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipapython.dn import DN
+from ipaserver.install import replication
 
 if six.PY3:
     unicode = str
@@ -51,6 +53,51 @@ logger = logging.getLogger(__name__)
 
 UPDATES_DIR=paths.UPDATES_DIR
 UPDATE_SEARCH_TIME_LIMIT = 30  # seconds
+
+
+def get_sub_dict(realm, domain, suffix, fqdn, idstart=None, idmax=None):
+    """LDAP template substitution dict for installer and updater
+    """
+    if idstart is None:
+        idrange_size = None
+    else:
+        idrange_size = idmax - idstart + 1
+
+    return dict(
+        REALM=realm,
+        DOMAIN=domain,
+        SUFFIX=suffix,
+        ESCAPED_SUFFIX=str(suffix),
+        FQDN=fqdn,
+        HOST=fqdn,
+        LIBARCH=paths.LIBARCH,
+        TIME=int(time.time()),
+        FIPS="#" if tasks.is_fips_enabled() else "",
+        # idstart, idmax, and idrange_size may be None
+        IDSTART=idstart,
+        IDMAX=idmax,
+        IDRANGE_SIZE=idrange_size,
+        SUBID_COUNT=constants.SUBID_COUNT,
+        SUBID_RANGE_START=constants.SUBID_RANGE_START,
+        SUBID_RANGE_SIZE=constants.SUBID_RANGE_SIZE,
+        SUBID_RANGE_MAX=constants.SUBID_RANGE_MAX,
+        SUBID_DNA_THRESHOLD=constants.SUBID_DNA_THRESHOLD,
+        DOMAIN_HASH=murmurhash3(domain, len(domain), 0xdeadbeef),
+        MAX_DOMAIN_LEVEL=constants.MAX_DOMAIN_LEVEL,
+        MIN_DOMAIN_LEVEL=constants.MIN_DOMAIN_LEVEL,
+        STRIP_ATTRS=" ".join(replication.STRIP_ATTRS),
+        EXCLUDES=(
+            '(objectclass=*) $ EXCLUDE ' + ' '.join(replication.EXCLUDES)
+        ),
+        TOTAL_EXCLUDES=(
+            '(objectclass=*) $ EXCLUDE '
+            + ' '.join(replication.TOTAL_EXCLUDES)
+        ),
+        DEFAULT_SHELL=platformconstants.DEFAULT_SHELL,
+        DEFAULT_ADMIN_SHELL=platformconstants.DEFAULT_ADMIN_SHELL,
+        SELINUX_USERMAP_DEFAULT=platformconstants.SELINUX_USERMAP_DEFAULT,
+        SELINUX_USERMAP_ORDER=platformconstants.SELINUX_USERMAP_ORDER,
+    )
 
 
 def connect(ldapi=False, realm=None, fqdn=None):
@@ -276,30 +323,6 @@ class LDAPUpdate:
         self.modified = False
         self.ldapuri = ipaldap.realm_to_ldapi_uri(api.env.realm)
 
-        default_sub = dict(
-            REALM=api.env.realm,
-            DOMAIN=api.env.domain,
-            SUFFIX=api.env.basedn,
-            ESCAPED_SUFFIX=str(api.env.basedn),
-            FQDN=api.env.host,
-            LIBARCH=paths.LIBARCH,
-            TIME=int(time.time()),
-            MIN_DOMAIN_LEVEL=str(constants.MIN_DOMAIN_LEVEL),
-            MAX_DOMAIN_LEVEL=str(constants.MAX_DOMAIN_LEVEL),
-            STRIP_ATTRS=" ".join(constants.REPL_AGMT_STRIP_ATTRS),
-            EXCLUDES="(objectclass=*) $ EXCLUDE %s" % (
-                " ".join(constants.REPL_AGMT_EXCLUDES)
-            ),
-            TOTAL_EXCLUDES="(objectclass=*) $ EXCLUDE %s" % (
-                " ".join(constants.REPL_AGMT_TOTAL_EXCLUDES)
-            ),
-            SELINUX_USERMAP_DEFAULT=platformconstants.SELINUX_USERMAP_DEFAULT,
-            SELINUX_USERMAP_ORDER=platformconstants.SELINUX_USERMAP_ORDER,
-            FIPS="#" if tasks.is_fips_enabled() else "",
-        )
-        for k, v in default_sub.items():
-            self.sub_dict.setdefault(k, v)
-
         self.api = create_api(mode=None)
         self.api.bootstrap(
             in_server=True,
@@ -308,6 +331,31 @@ class LDAPUpdate:
             ldap_uri=self.ldapuri
         )
         self.api.finalize()
+        self.create_connection()
+
+        # get ipa-local domain idrange settings
+        domain_range = f"{self.api.env.realm}_id_range"
+        try:
+            result = self.api.Command.idrange_show(domain_range)["result"]
+        except errors.NotFound:
+            idstart = None
+            idmax = None
+        else:
+            idstart = int(result['ipabaseid'][0])
+            idrange_size = int(result['ipaidrangesize'][0])
+            idmax = idstart + idrange_size - 1
+
+        default_sub = get_sub_dict(
+            realm=api.env.realm,
+            domain=api.env.domain,
+            suffix=api.env.basedn,
+            fqdn=api.env.host,
+            idstart=idstart,
+            idmax=idmax,
+        )
+        for k, v in default_sub.items():
+            self.sub_dict.setdefault(k, v)
+
 
     def _template_str(self, s):
         try:
