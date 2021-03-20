@@ -53,6 +53,46 @@ MARKERS = [
      '(ID and ID_LIKE)'),
     ('skip_if_container(type, reason): Skip test on container '
      '("any" or specific type)'),
+    # markers only for integration tests
+    (
+        "skip_if_hostplatform("
+        "host attribute name within IntegrationTest, "
+        "index of host within hosts list if required, "
+        "platform name, "
+        "reason): "
+        "Skip integration test on remote platform (ID and ID_LIKE)"
+    ),
+    (
+        "skip_if_hostcontainer("
+        "host attribute name within IntegrationTest, "
+        "index of host within hosts list if required, "
+        "container type, "
+        "reason): "
+        "Skip integration test on remote container ('any' or specific type)"
+    ),
+    (
+        "skip_if_hostfips("
+        "host attribute name within IntegrationTest, "
+        "index of host within hosts list if required, "
+        "reason): "
+        "Skip integration test on remote host in FIPS mode"
+    ),
+    (
+        "skip_if_not_hostselinux("
+        "host attribute name within IntegrationTest, "
+        "index of host within hosts list if required, "
+        "reason): "
+        "Skip integration test on remote host not in SELinux mode"
+    ),
+    (
+        "skip_if_host("
+        "host attribute name within IntegrationTest, "
+        "index of host within hosts list if required, "
+        "condition callback, "
+        "reason): "
+        "Skip integration test on remote host based on condition callback "
+        "result"
+    ),
 ]
 
 
@@ -157,7 +197,14 @@ def pytest_runtest_setup(item):
             if item.config.option.skip_ipaapi:
                 pytest.skip("Skip tests that needs an IPA API")
     if osinfo is not None:
+        tests_dir = item.nodeid.split(os.sep, 1)[0]
         for mark in item.iter_markers(name="skip_if_platform"):
+            if tests_dir in {"test_integration"}:
+                raise ValueError(
+                    f"Marker '{mark.name}' is not intended for "
+                    f"test_integration. Please, consider host markers:\n"
+                    "ipa-run-tests --markers"
+                )
             platform = mark.kwargs.get("platform")
             if platform is None:
                 platform = mark.args[0]
@@ -165,6 +212,12 @@ def pytest_runtest_setup(item):
             if platform in osinfo.platform_ids:
                 pytest.skip(f"Skip test on platform {platform}: {reason}")
         for mark in item.iter_markers(name="skip_if_container"):
+            if tests_dir in {"test_integration"}:
+                raise ValueError(
+                    f"Marker '{mark.name}' is not intended for "
+                    f"test_integration. Please, consider host markers:\n"
+                    "ipa-run-tests --markers"
+                )
             container = mark.kwargs.get("container")
             if container is None:
                 container = mark.args[0]
@@ -173,6 +226,79 @@ def pytest_runtest_setup(item):
                 if container in ('any', osinfo.container):
                     pytest.skip(
                         f"Skip test on '{container}' container type: {reason}")
+
+
+def process_hostmarker(pytest_mark, pytest_nodeid, pytest_cls):
+    tests_dir = pytest_nodeid.split(os.sep, 1)[0]
+    if tests_dir not in {"test_integration"}:
+        raise ValueError(
+            f"Marker '{pytest_mark.name}' is intended only for "
+            f"integration tests and can't be applied for '{tests_dir}'"
+        )
+    hostattr = pytest_mark.kwargs.get("host")
+    if hostattr is None:
+        hostattr = pytest_mark.args[0]
+
+    hostattr_value = getattr(pytest_cls, hostattr)
+    hostindex = pytest_mark.kwargs.get("hostindex")
+    if hostindex is not None:
+        host = hostattr_value[int(hostindex)]
+    else:
+        host = hostattr_value
+
+    reason = pytest_mark.kwargs["reason"]
+
+    if pytest_mark.name == "skip_if_hostplatform":
+        platform = pytest_mark.kwargs["platform"]
+        if platform in host.osinfo.platform_ids:
+            pytest.skip(
+                f"{pytest_nodeid}: {host.hostname}: {platform}: {reason}"
+            )
+
+    elif pytest_mark.name == "skip_if_hostcontainer":
+        container = pytest_mark.kwargs["container"]
+        if container in ["any", host.osinfo.container]:
+            pytest.skip(
+                f"{pytest_nodeid}: {host.hostname}: {container}: {reason}"
+            )
+
+    elif pytest_mark.name == "skip_if_hostfips":
+        if host.is_fips_mode:
+            pytest.skip(f"{pytest_nodeid}: {host.hostname}: {reason}")
+
+    elif pytest_mark.name == "skip_if_not_hostselinux":
+        if not host.is_selinux_enabled:
+            pytest.skip(f"{pytest_nodeid}: {host.hostname}: {reason}")
+
+    elif pytest_mark.name == "skip_if_host":
+        condition_cb = pytest_mark.kwargs["condition_cb"]
+        if condition_cb(host):
+            pytest.skip(f"{pytest_nodeid}: {host.hostname}: {reason}")
+    else:
+        raise ValueError(f"Unsupported Pytest marker '{pytest_mark.name}'")
+
+
+def pytest_runtest_call(item):
+    """
+    'mh' fixture is not ready for processing at 'pytest_runtest_setup' hook,
+    but it is too late at 'pytest_runtest_call' one because the time-expensive
+    `install` call has been done for class level fixtures/markers. Thus, the
+    host markers should be handled *before* the installation phase of
+    integration tests to be applied on class level (see 'process_hostmarkers' of
+    'mh' fixture). The method level markers are processed here.
+    """
+    # process only own_markers to avoid double checking.
+    for mark in item.own_markers:
+        if mark.name in {
+            "skip_if_hostplatform",
+            "skip_if_hostcontainer",
+            "skip_if_hostfips",
+            "skip_if_not_hostselinux",
+            "skip_if_host",
+        }:
+            process_hostmarker(
+                mark, pytest_nodeid=item.nodeid, pytest_cls=item.cls
+            )
 
 
 @pytest.fixture

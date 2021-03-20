@@ -85,6 +85,8 @@ class Host(pytest_multihost.host.Host):
             password=password, test_dir=test_dir, host_type=host_type
         )
         self._fips_mode = None
+        self._selinux_enabled = None
+        self._is_selinux_enforced = None
         self._userspace_fips = False
         self._paths = None
         self._osinfo = None
@@ -161,6 +163,31 @@ class Host(pytest_multihost.host.Host):
         if self._fips_mode is None:
             self._fips_mode = is_fips_enabled(self)
         return self._fips_mode
+
+    @property
+    def is_selinux_enabled(self):
+        if self._selinux_enabled is None:
+            result = self.run_command(
+                [self.paths.SELINUXENABLED],
+                raiseonerr=False,
+            )
+            self._selinux_enabled = result.returncode == 0
+
+        return self._selinux_enabled
+
+    @property
+    def is_selinux_enforced(self):
+        if self._is_selinux_enforced is None:
+            if not self.is_selinux_enabled:
+                self._is_selinux_enforced = False
+            else:
+                result = self.run_command(
+                    [self.paths.GETENFORCE],
+                    raiseonerr=False,
+                )
+                self._is_selinux_enforced = "Enforcing" in result.stdout_text
+
+        return self._is_selinux_enforced
 
     @property
     def is_userspace_fips(self):

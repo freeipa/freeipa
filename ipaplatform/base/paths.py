@@ -280,6 +280,7 @@ class BasePathNamespace:
     SELINUXENABLED = "/usr/sbin/selinuxenabled"
     SETSEBOOL = "/usr/sbin/setsebool"
     SEMODULE = "/usr/sbin/semodule"
+    GETENFORCE = "/usr/sbin/getenforce"
     SMBD = "/usr/sbin/smbd"
     USERADD = "/usr/sbin/useradd"
     FONTS_DIR = "/usr/share/fonts"
