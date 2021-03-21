@@ -23,7 +23,7 @@ def is_fips_enabled(host):
     )
     if result.returncode == 1:
         # FIPS mode not available
-        return None
+        return False
     elif result.returncode == 0:
         return result.stdout_text.strip() == "1"
     else:
