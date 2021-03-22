@@ -31,6 +31,13 @@ from ipapython import ipaldap
 from .fips import (
     is_fips_enabled, enable_userspace_fips, disable_userspace_fips
 )
+from .host_ipaplatform import (
+    HostPlatformOSInfo,
+    HostPlatformPaths,
+    HostPlatformKnownservices,
+    HostPlatformConstants,
+    HostPlatformTasks,
+)
 from .transport import IPAOpenSSHTransport
 from .resolver import resolver
 
@@ -80,6 +87,41 @@ class Host(pytest_multihost.host.Host):
         self._fips_mode = None
         self._userspace_fips = False
         self.resolver = resolver(self)
+        self._paths = None
+        self._osinfo = None
+        self._constants = None
+        self._knownservices = None
+        self._tasks = None
+
+    @property
+    def paths(self):
+        if self._paths is None:
+            self._paths = HostPlatformPaths(self)
+        return self._paths
+
+    @property
+    def osinfo(self):
+        if self._osinfo is None:
+            self._osinfo = HostPlatformOSInfo(self)
+        return self._osinfo
+
+    @property
+    def constants(self):
+        if self._constants is None:
+            self._constants = HostPlatformConstants(self)
+        return self._constants
+
+    @property
+    def knownservices(self):
+        if self._knownservices is None:
+            self._knownservices = HostPlatformKnownservices(self)
+        return self._knownservices
+
+    @property
+    def tasks(self):
+        if self._tasks is None:
+            self._tasks = HostPlatformTasks(self)
+        return self._tasks
 
     @property
     def is_fips_mode(self):
