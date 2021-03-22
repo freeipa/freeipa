@@ -94,6 +94,7 @@ class Host(pytest_multihost.host.Host):
         self._knownservices = None
         self._tasks = None
         self._systemctl = None
+        self._ds_serverid = None
 
     @property
     def paths(self):
@@ -130,6 +131,23 @@ class Host(pytest_multihost.host.Host):
         if self._systemctl is None:
             self._systemctl = HostSystemctl(self)
         return self._systemctl
+
+    @property
+    def ds_serverid(self):
+        """389-DS server id"""
+        if self._ds_serverid is None:
+            self._ds_serverid = self.run_command(
+                [
+                    "python3",
+                    "-c",
+                    (
+                        "from ipapython.ipaldap import realm_to_serverid;"
+                        f"print(realm_to_serverid('{self.domain.realm}'))"
+                    ),
+                ],
+                log_stdout=False,
+            ).stdout_text.rstrip()
+        return self._ds_serverid
 
     @property
     def is_fips_mode(self):
