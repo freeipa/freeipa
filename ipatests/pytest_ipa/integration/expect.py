@@ -68,6 +68,8 @@ class IpaTestExpect(pexpect.spawn):
         else:
             command = argv[0]
             args = argv[1:]
+        logger.debug('Expect will spawn command "%s" with args %s',
+                     command, args)
         super().__init__(
             command, args, timeout=default_timeout, encoding=encoding,
             echo=False
