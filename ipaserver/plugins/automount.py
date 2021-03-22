@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from copy import deepcopy
 import six
 
 from ipalib import api, errors
@@ -610,8 +611,11 @@ class automountkey(LDAPObject):
         entries = self.methods.find(location, map, automountkey=key)['result']
         if len(entries) > 0:
             if key == DIRECT_MAP_KEY:
+                if 'quiet' in keykw:
+                    newkw = deepcopy(keykw)
+                    newkw.pop('quiet')
                 info = keykw.get('automountinformation')
-                entries = self.methods.find(location, map, **keykw)['result']
+                entries = self.methods.find(location, map, **newkw)['result']
                 if len(entries) > 0:
                     self.handle_duplicate_entry(location, map, self.get_pk(key, info))
                 else: return
