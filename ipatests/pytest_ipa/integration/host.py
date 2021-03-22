@@ -38,6 +38,7 @@ from .host_ipaplatform import (
     HostPlatformConstants,
     HostPlatformTasks,
 )
+from .host_systemctl import HostSystemctl
 from .transport import IPAOpenSSHTransport
 from .resolver import resolver
 
@@ -92,6 +93,7 @@ class Host(pytest_multihost.host.Host):
         self._constants = None
         self._knownservices = None
         self._tasks = None
+        self._systemctl = None
 
     @property
     def paths(self):
@@ -122,6 +124,12 @@ class Host(pytest_multihost.host.Host):
         if self._tasks is None:
             self._tasks = HostPlatformTasks(self)
         return self._tasks
+
+    @property
+    def systemctl(self):
+        if self._systemctl is None:
+            self._systemctl = HostSystemctl(self)
+        return self._systemctl
 
     @property
     def is_fips_mode(self):
