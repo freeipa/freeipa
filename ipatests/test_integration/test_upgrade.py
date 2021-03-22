@@ -16,9 +16,6 @@ from cryptography.hazmat.primitives import serialization
 import pytest
 
 from ipapython.dn import DN
-from ipapython.ipautil import template_str
-from ipaserver.install import bindinstance
-from ipaserver.install.sysupgrade import STATEFILE_FILE
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -66,22 +63,47 @@ dyndb "ipa" "$BIND_LDAP_SO" {
 """
 
 
-def named_test_template(host):
-    # create bind instance to get a substitution dict
-    bind = bindinstance.BindInstance()
-    bind.setup_templating(
-        fqdn=host.hostname,
-        realm_name=host.domain.realm,
-        domain_name=host.domain.name,
+def named_setup_template(host, template):
+    host.run_command(
+        [
+            "python3",
+            "-c",
+            textwrap.dedent(
+                """\
+                    from ipaserver.install import bindinstance
+                    from ipapython.ipautil import template_str
+
+                    # create bind instance to get a substitution dict
+                    bind = bindinstance.BindInstance()
+                    bind.setup_templating(
+                        fqdn="{hostname}",
+                        realm_name="{realm_name}",
+                        domain_name="{domain_name}",
+                    )
+                    sub_dict = bind.sub_dict.copy()
+                    sub_dict.update(BINDKEYS_FILE="/etc/named.iscdlv.key")
+                    config_text = template_str('''{template}''', sub_dict)
+
+                    with open("{named_conf}", "w") as f:
+                        f.write(config_text)
+                """
+            ).format(
+                hostname=host.hostname,
+                realm_name=host.domain.realm,
+                domain_name=host.domain.name,
+                template=template,
+                named_conf=host.paths.NAMED_CONF,
+            ),
+        ]
     )
-    sub_dict = bind.sub_dict.copy()
-    sub_dict.update(BINDKEYS_FILE="/etc/named.iscdlv.key")
-    return template_str(OLD_NAMED_TEMPLATE, sub_dict)
 
 
 def clear_sysupgrade(host, *sections):
     # get state file
-    statefile = os.path.join(host.paths.STATEFILE_DIR, STATEFILE_FILE)
+    statefile = os.path.join(
+        host.paths.SYSUPGRADE_STATEFILE_DIR,
+        host.paths.SYSUPGRADE_STATEFILE_FILE,
+    )
     state = host.get_file_contents(statefile, encoding="utf-8")
     # parse it
     parser = configparser.ConfigParser()
@@ -251,10 +273,8 @@ class TestUpgrade(IntegrationTest):
             ]
         )
         # dump an old named conf to verify migration
-        old_contents = named_test_template(self.master)
-        self.master.put_file_contents(
-            self.master.paths.NAMED_CONF, old_contents
-        )
+        named_setup_template(self.master, OLD_NAMED_TEMPLATE)
+
         clear_sysupgrade(self.master, "dns", "named.conf")
         # check and skip dnssec-enable-related issues in 9.18+
         # where dnssec-enable option was removed completely

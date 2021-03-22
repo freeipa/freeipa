@@ -150,6 +150,6 @@ forbidden-imports=
     ipalib/:ipaclient.install:ipalib.install:ipaserver,
     ipalib/install/:ipaserver,
     ipaplatform/:ipaclient:ipalib:ipaserver,
-    ipapython/:ipaclient:ipalib:ipaserver
-    ipatests/pytest_ipa:ipaserver:ipaclient.install:ipalib.install
-    ipatests/test_integration:ipaserver
+    ipapython/:ipaclient:ipalib:ipaserver,
+    ipatests/pytest_ipa:ipaserver:ipaclient.install:ipalib.install,
+    ipatests/test_integration:ipaserver,

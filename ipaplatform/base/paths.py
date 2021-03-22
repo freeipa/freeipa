@@ -332,7 +332,11 @@ class BasePathNamespace:
     REPLICA_INFO_TEMPLATE = "/var/lib/ipa/replica-info-%s"
     REPLICA_INFO_GPG_TEMPLATE = "/var/lib/ipa/replica-info-%s.gpg"
     SYSRESTORE = "/var/lib/ipa/sysrestore"
+    # deprecated STATEFILE_DIR -> SYSUPGRADE_STATEFILE_DIR
     STATEFILE_DIR = "/var/lib/ipa/sysupgrade"
+    #
+    SYSUPGRADE_STATEFILE_DIR = "/var/lib/ipa/sysupgrade"
+    SYSUPGRADE_STATEFILE_FILE = "sysupgrade.state"
     VAR_LIB_KDCPROXY = "/var/lib/kdcproxy"
     VAR_LIB_PKI_DIR = "/var/lib/pki"
     VAR_LIB_PKI_CA_ALIAS_DIR = "/var/lib/pki-ca/alias"

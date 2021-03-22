@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import json
 import os
 import re
+import socket
 import uuid
 
 import pytest
@@ -20,7 +21,6 @@ from ipalib import x509
 from ipapython.dn import DN
 from ipapython.certdb import NSS_SQL_FILES
 from ipatests.pytest_ipa.integration import tasks
-from ipaserver.install.installutils import resolve_ip_addresses_nss
 from ipatests.test_integration.base import IntegrationTest
 from pkg_resources import parse_version
 from ipatests.test_integration.test_cert import get_certmonger_fs_id
@@ -787,7 +787,12 @@ class TestIpaHealthCheck(IntegrationTest):
                 f"_kpasswd.{h.domain.name}.:krb5srv:m:tcp:{h.hostname}.",
                 f"_kpasswd.{h.domain.name}.:krb5srv:m:udp:{h.hostname}.",
             ]
-            + [str(ip) for ip in resolve_ip_addresses_nss(h.external_hostname)]
+            + [
+                i[4][0]
+                for i in socket.getaddrinfo(
+                    h.hostname, None, socket.AF_UNSPEC, socket.SOCK_STREAM
+                )
+            ]
         ]
         SYSTEM_RECORDS.append(f'"{self.master.domain.realm.upper()}"')
 
