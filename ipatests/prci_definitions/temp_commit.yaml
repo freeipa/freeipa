@@ -56,19 +56,113 @@ jobs:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-master-latest
+          name: freeipa/ci-master-f34
+          version: 0.0.4
+        timeout: 1800
+        topology: *build
+
+  fedora-latest/test_trust:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_trust.py
+        template: *ci-master-latest
+        timeout: 9000
+        topology: *adroot_adchild_adtree_master_1client
+
+  fedora-previous/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &ci-master-previous
           name: freeipa/ci-master-f33
           version: 0.0.9
         timeout: 1800
         topology: *build
 
-  fedora-latest/temp_commit:
-    requires: [fedora-latest/build]
+  fedora-previous/test_trust:
+    requires: [fedora-previous/build]
     priority: 50
     job:
-      class: RunPytest
+      class: RunADTests
       args:
-        build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
-        template: *ci-master-latest
-        timeout: 3600
-        topology: *master_1repl_1client
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_trust.py
+        template: *ci-master-previous
+        timeout: 9000
+        topology: *adroot_adchild_adtree_master_1client
+
+  fedora-rawhide/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &ci-master-frawhide
+          name: freeipa/ci-master-frawhide
+          version: 0.4.2
+        timeout: 1800
+        topology: *build
+
+  fedora-rawhide/test_trust:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_trust.py
+        template: *ci-master-frawhide
+        timeout: 9000
+        topology: *adroot_adchild_adtree_master_1client
+
+  testing-fedora/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &testing-master-latest
+          name: freeipa/testing-master-f34
+          version: 0.0.1
+        timeout: 1800
+        topology: *build
+
+  testing-fedora/test_trust:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_trust.py
+        template: *testing-master-latest
+        timeout: 9000
+        topology: *adroot_adchild_adtree_master_1client
+
+  testing-fedora-selinux/test_trust:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        selinux_enforcing: True
+        test_suite: test_integration/test_trust.py
+        template: *testing-master-latest
+        timeout: 9000
+        topology: *adroot_adchild_adtree_master_1client
