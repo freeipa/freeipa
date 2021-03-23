@@ -385,40 +385,35 @@ class TestCertmongerRekey(IntegrationTest):
                                           '-I', self.request_id])
         assert self.request_id in result.stdout_text
 
-    def test_rekey_keytype_DSA(self):
+    def test_rekey_keytype_DSA(self, request_cert):
         """Test certmonger rekey command works fine
 
         Test is to check if -G (keytype) with DSA fails
 
         related: https://bugzilla.redhat.com/show_bug.cgi?id=1249165
         """
-        result = self.master.run_command(
-            [
-                'ipa-getcert', 'request',
-                '-f', os.path.join(paths.OPENSSL_CERTS_DIR, "test_dsa.pem"),
-                '-k', os.path.join(paths.OPENSSL_PRIVATE_DIR, "test_dsa.key"),
-                '-K', 'test/{}'.format(self.master.hostname),
-            ]
-        )
-        req_id = re.findall(r'\d+', result.stdout_text)
-        status = tasks.wait_for_request(self.master, req_id[0], 100)
-        assert status == "MONITORING"
-
         # rekey with RSA key type
         self.master.run_command(['getcert', 'rekey',
-                                 '-i', req_id[0],
+                                 '-i', self.request_id,
                                  '-g', '3072',
                                  '-G', 'DSA'])
-        time.sleep(100)
+        status = tasks.wait_for_request(self.master, self.request_id, 100)
+        assert status == "CA_UNREACHABLE"
+
+        # grep will return file name
+        req_file = self.master.run_command([
+            "grep",
+            "-rl",
+            f"id={self.request_id}",
+            paths.CERTMONGER_REQUESTS_DIR
+        ]).stdout_text.strip('\n')
         # look for keytpe as DSA in request file
-        self.master.run_command([
-            'grep',
-            'DSA',
-            os.path.join(paths.CERTMONGER_REQUESTS_DIR, req_id[0]),
-        ])
+        self.master.run_command(['grep', 'DSA', req_file])
 
         err_msg = 'Unable to create enrollment request: Invalid Request'
-        result = self.master.run_command(['getcert', 'list', '-i', req_id[0]])
+        result = self.master.run_command(
+            ['getcert', 'list', '-i', self.request_id]
+        )
         assert err_msg in result.stdout_text
 
 
