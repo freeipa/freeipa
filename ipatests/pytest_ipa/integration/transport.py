@@ -28,6 +28,8 @@ class IPAOpenSSHTransport(OpenSSHTransport):
             "StrictHostKeyChecking=no",
             "-o",
             "UserKnownHostsFile=%s" % known_hosts_file,
+            "-o",
+            "ServerAliveInterval=10",
         ]
 
         if self.host.ssh_key_filename:
