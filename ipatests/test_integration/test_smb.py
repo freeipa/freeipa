@@ -419,28 +419,6 @@ class TestSMB(IntegrationTest):
 
         self.check_repeated_smb_mount(mount_options)
 
-    @skip_if_fips()
-    def test_ntlm_authentication_with_upn_with_lowercase_domain(self):
-        tasks.kdestroy_all(self.smbclient)
-
-        mount_options = 'user={user}@{domain},pass={password}'.format(
-            user=self.ipa_user1,
-            password=self.ipa_user1_password,
-            domain=self.master.domain.name.lower()
-        )
-        self.check_repeated_smb_mount(mount_options)
-
-    @skip_if_fips()
-    def test_ntlm_authentication_with_upn_with_uppercase_domain(self):
-        tasks.kdestroy_all(self.smbclient)
-
-        mount_options = 'user={user}@{domain},pass={password}'.format(
-            user=self.ipa_user1,
-            password=self.ipa_user1_password,
-            domain=self.master.domain.name.upper()
-        )
-        self.check_repeated_smb_mount(mount_options)
-
     def test_uninstall_samba(self):
         self.smbserver.run_command(['ipa-client-samba', '--uninstall', '-U'])
         res = self.smbserver.run_command(
