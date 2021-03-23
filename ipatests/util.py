@@ -33,6 +33,7 @@ import uuid
 import pytest
 from contextlib import contextmanager
 from pprint import pformat
+import time
 
 import six
 
@@ -899,3 +900,16 @@ def xfail_context(condition, reason):
     else:
         if condition:
             pytest.fail('XPASS(strict) reason: {}'.format(reason), False)
+
+
+def wait_for(func, timeout):
+    """
+    Calls `func` repeatedly until it returns True and returns True.
+    If `func` does not return True during timeout then function returns False.
+    """
+    start = time.time()
+    while time.time() < start + timeout:
+        if func():
+            return True
+        time.sleep(1)
+    return False
