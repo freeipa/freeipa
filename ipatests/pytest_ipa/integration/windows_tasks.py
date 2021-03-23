@@ -27,6 +27,13 @@ def create_temp_dir(host):
     return path
 
 
+def is_windows_ad_dc_operational(host):
+    res = run_powershell_script(
+        host, 'Get-ADUser -Filter {Name -eq "Administrator"}',
+        raiseonerr=False)
+    return res.returncode == 0
+
+
 def reboot(host, timeout=600, test_cb=None):
     """Reboot Windows and wait until it has started.
 
@@ -51,7 +58,7 @@ def reboot(host, timeout=600, test_cb=None):
                 'SSH connection failed, Windows is not fully loaded yet')
             return False
         return (system_start_time != initial_system_start_time
-                and (test_cb is None or test_cb()))
+                and (test_cb is None or test_cb(host)))
 
     initial_system_start_time = get_system_start_time()
     host.run_command(['shutdown', '/r', '/t', '0'])

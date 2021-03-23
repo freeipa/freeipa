@@ -13,7 +13,7 @@ from ipaplatform.constants import constants as platformconstants
 from ipaplatform.paths import paths
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration import tasks, windows_tasks
 from ipatests.pytest_ipa.integration import fips
 from ipapython.dn import DN
 from collections import namedtuple
@@ -115,7 +115,6 @@ class BaseTestTrust(IntegrationTest):
 class TestTrust(BaseTestTrust):
 
     # Tests for non-posix AD trust
-
     def test_establish_nonposix_trust(self):
         tasks.configure_dns_for_trust(self.master, self.ad)
         tasks.establish_trust_with_ad(
@@ -196,11 +195,9 @@ class TestTrust(BaseTestTrust):
         tasks.kdestroy_all(self.master)
         tasks.kinit_admin(self.master)
 
-    def test_password_login_as_aduser(self):
+    def check_rpcserver_password_login_as_aduser(self):
         """Test if AD user can login with password to Web UI"""
         ad_admin = 'Administrator@%s' % self.ad_domain
-
-        tasks.kdestroy_all(self.master)
         user_and_password = ('user=%s&password=%s' %
                              (ad_admin, self.master.config.ad_admin_password))
         host = self.master.hostname
@@ -213,9 +210,67 @@ class TestTrust(BaseTestTrust):
             '--cacert', paths.IPA_CA_CRT,
             '--data', user_and_password,
             'https://{}/ipa/session/login_password'.format(host)]
+
         result = self.master.run_command(cmd_args)
-        assert "Set-Cookie: ipa_session=MagBearerToken" in result.stderr_text
-        tasks.kinit_admin(self.master)
+        assert ("Set-Cookie: ipa_session=MagBearerToken"
+                in result.stderr_text)
+
+    def test_rpcserver_password_login_as_aduser(self):
+        self.check_rpcserver_password_login_as_aduser()
+
+    @contextmanager
+    def windows_kdc_fast_armoring(self):
+        """Enables FAST armoring on AD DC according to
+        https://docs.microsoft.com/en-us/archive/blogs/secadv/using-authentication-policies-to-restrict-privileged-user-account-logons#detailed-steps
+
+        Following policies are enabled:
+        * "KDC support for claims, compound authentication, and Kerberos
+          armoring": "Always provide claims"
+        * "Kerberos client support for claims, compound authentication and
+          Kerberos armoring"
+        """
+        kdc_key = (r'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion'
+                   r'\Policies\System\KDC\Parameters')
+        kerberos_key = (r'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion'
+                        r'\Policies\System\Kerberos\Parameters')
+        kdc_values = [
+            ['EnableCbacAndArmor', 'DWord', 1],
+            ['CbacAndArmorLevel', 'DWord', 2],
+        ]
+        kerberos_values = [['EnableCbacAndArmor', 'DWord', 1]]
+        gpo_backup = windows_tasks.backup_group_policies(self.ad)
+
+        try:
+            windows_tasks.set_group_policy(self.ad, 'Default Domain Policy',
+                                           kdc_key, *kdc_values[0])
+            windows_tasks.set_group_policy(self.ad, 'Default Domain Policy',
+                                           kdc_key, *kdc_values[1])
+            windows_tasks.set_group_policy(self.ad, 'Default Domain Policy',
+                                           kerberos_key, *kerberos_values[0])
+            windows_tasks.reboot(
+                self.ad, test_cb=windows_tasks.is_windows_ad_dc_operational)
+            # Ensure policy is applied to AD controller
+            assert windows_tasks.get_registry_value(
+                self.ad, kdc_key, kdc_values[0][0]) == kdc_values[0][2]
+            assert windows_tasks.get_registry_value(
+                self.ad, kdc_key, kdc_values[1][0]) == kdc_values[1][2]
+            assert (windows_tasks.get_registry_value(
+                self.ad, kerberos_key, kerberos_values[0][0])
+                == kerberos_values[0][2])
+
+            yield
+        finally:
+            windows_tasks.restore_group_policies(self.ad, gpo_backup)
+            windows_tasks.reboot(
+                self.ad, test_cb=windows_tasks.is_windows_ad_dc_operational)
+
+    def test_rpcserver_password_login_as_aduser_with_fast_armoring(self):
+        try:
+            with self.windows_kdc_fast_armoring():
+                self.check_rpcserver_password_login_as_aduser()
+        finally:
+            # Trigger update of ccache file without armoring
+            self.check_rpcserver_password_login_as_aduser()
 
     def test_ipauser_authentication_with_nonposix_trust(self):
         ipauser = u'tuser'
