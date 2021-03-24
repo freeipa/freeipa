@@ -797,7 +797,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
         template: *pki-master-latest
-        timeout: 3600
+        timeout: 5400
         topology: *master_1repl
 
   pki-fedora/test_ipahealthcheck_nodns_extca_file:
