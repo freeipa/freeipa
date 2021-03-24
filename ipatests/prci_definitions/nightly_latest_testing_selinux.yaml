@@ -1578,7 +1578,7 @@ jobs:
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
         template: *testing-master-latest
         topology: *master_1repl
-        timeout: 3600
+        timeout: 5400
 
   testing-fedora/test_ipahealthcheck_nodns_extca_file:
     requires: [testing-fedora/build]
