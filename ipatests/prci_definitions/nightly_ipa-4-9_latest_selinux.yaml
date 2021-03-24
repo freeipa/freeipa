@@ -1470,7 +1470,7 @@ jobs:
         selinux_enforcing: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
         template: *ci-ipa-4-9-latest
-        timeout: 3600
+        timeout: 5400
         topology: *master_1repl
 
   fedora-latest-ipa-4-9/test_ipahealthcheck_nodns_extca_file:
