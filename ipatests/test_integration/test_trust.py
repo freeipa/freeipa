@@ -313,7 +313,7 @@ class TestTrust(BaseTestTrust):
             result = self.master.run_command(
                 ['su', '-', testuser, '-c', 'sudo -l'])
             if isinstance(expected, (tuple, list)):
-                assert any([x for x in expected if x in result.stdout_text])
+                assert any(x for x in expected if x in result.stdout_text)
             else:
                 assert expected in result.stdout_text
         finally:
