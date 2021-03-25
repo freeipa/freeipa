@@ -63,6 +63,8 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
             else:
                 os.environ.pop('KRB5_CONFIG', None)
 
+        return None
+
 def kinit_password(principal, password, ccache_name, config=None,
                    armor_ccache_name=None, canonicalize=False,
                    enterprise=False, lifetime=None):

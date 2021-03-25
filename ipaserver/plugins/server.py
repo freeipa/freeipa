@@ -271,7 +271,7 @@ class server_mod(LDAPUpdate):
                 # server is not DNS server
                 pass
 
-        if 'ipalocation_location' or 'ipaserviceweight' in options:
+        if 'ipalocation_location' in options or 'ipaserviceweight' in options:
             self.add_message(messages.ServiceRestartRequired(
                 service=services.service('named', api).systemd_name,
                 server=keys[0], ))
