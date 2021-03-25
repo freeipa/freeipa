@@ -17,4 +17,7 @@ variables:
   PREPARE_TOX_TEMPLATE: ${{ format('prepare-tox-{0}.yml', variables.IPA_PLATFORM) }}
   PREPARE_WEBUI_TEMPLATE: ${{ format('prepare-webui-{0}.yml', variables.IPA_PLATFORM) }}
 
+  # the template to install Lint dependencies
+  PREPARE_LINT_TEMPLATE: ${{ format('prepare-lint-{0}.yml', variables.IPA_PLATFORM) }}
+
   TOX_COMMAND: tox
