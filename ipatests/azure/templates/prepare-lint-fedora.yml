@@ -1,0 +1,7 @@
+steps:
+- script: |
+    set -e
+    sudo dnf -y install python3-pip
+    # https://pagure.io/freeipa/issue/8771
+    python3 -m pip install --user --upgrade astroid pylint==2.7.1
+  displayName: Install Lint dependencies
