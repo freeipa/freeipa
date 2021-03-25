@@ -2083,9 +2083,18 @@ class DNSZoneBase(LDAPObject):
         if zone == DNSName.root:
             return super(DNSZoneBase, self).get_dn(zone_a, **options)
 
+        # See if the absolute zone is cached
+        dn = getattr(context, zone_a, None)
+        if dn:
+            return dn
+
         # try first relative name, a new zone has to be added as absolute
         # otherwise ObjectViolation is raised
         zone_a = zone_a[:-1]
+        dn = getattr(context, zone_a, None)
+        if dn:
+            return dn
+
         dn = super(DNSZoneBase, self).get_dn(zone_a, **options)
         try:
             self.backend.get_entry(dn, [''])
@@ -2093,6 +2102,7 @@ class DNSZoneBase(LDAPObject):
             zone_a = u"%s." % zone_a
             dn = super(DNSZoneBase, self).get_dn(zone_a, **options)
 
+        setattr(context, zone_a, dn)
         return dn
 
     def permission_name(self, zone):
