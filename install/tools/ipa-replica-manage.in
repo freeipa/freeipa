@@ -869,12 +869,12 @@ def ensure_last_services(conn, hostname, masters, options):
             if ca_hostname is None and 'CA' in services_cns:
                 ca_hostname = master_cn
 
-    if 'CA' in this_services and not any(['CA' in o for o in other_services]):
+    if 'CA' in this_services and not any('CA' in o for o in other_services):
         print("Deleting this server is not allowed as it would leave your installation without a CA.")
         sys.exit(1)
 
     other_dns = True
-    if 'DNS' in this_services and not any(['DNS' in o for o in other_services]):
+    if 'DNS' in this_services and not any('DNS' in o for o in other_services):
         other_dns = False
         print("Deleting this server will leave your installation without a DNS.")
         if not options.force and not ipautil.user_input("Continue to delete?", False):
