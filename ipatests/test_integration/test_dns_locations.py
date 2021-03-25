@@ -61,6 +61,7 @@ def resolve_records_from_server(rname, rtype, nameserver):
 
     pytest.fail("Query: {} {}, nameserver {} failed due to {}".format(
         rname, rtype, nameserver, error))
+    return None
 
 
 def _gen_expected_srv_rrset(rname, port, servers, ttl=86400):

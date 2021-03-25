@@ -329,6 +329,8 @@ class ConfigureTool(admintool.AdminTool):
         except RuntimeError as e:
             self.option_parser.error(str(e))
 
+        return None
+
     def run(self):
         cfgr = self.init_configurator()
 
