@@ -425,7 +425,7 @@ class ldap2(CrudBackend, LDAPClient):
             with self.error_handler():
                 modlist = [(a, b, self.encode(c))
                            for a, b, c in modlist]
-                self.conn.modify_s(str(group_dn), modlist)
+                self.modify_s(str(group_dn), modlist)
         except errors.DuplicateEntry:
             # TYPE_OR_VALUE_EXISTS
             raise errors.AlreadyGroupMember()
@@ -448,7 +448,7 @@ class ldap2(CrudBackend, LDAPClient):
             with self.error_handler():
                 modlist = [(a, b, self.encode(c))
                            for a, b, c in modlist]
-                self.conn.modify_s(str(group_dn), modlist)
+                self.modify_s(str(group_dn), modlist)
         except errors.MidairCollision:
             raise errors.NotGroupMember()
 
@@ -502,7 +502,7 @@ class ldap2(CrudBackend, LDAPClient):
                (_ldap.MOD_REPLACE, 'krblastpwdchange', None)]
 
         with self.error_handler():
-            self.conn.modify_s(str(dn), mod)
+            self.modify_s(str(dn), mod)
 
     # CrudBackend methods
 
