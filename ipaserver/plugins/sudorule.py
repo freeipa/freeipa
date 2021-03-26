@@ -410,20 +410,19 @@ class sudorule_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
-        if 'sudoorder' in options:
-            new_order = options.get('sudoorder')
-            old_entry = self.api.Command.sudorule_show(keys[-1])['result']
-            if 'sudoorder' in old_entry:
-                old_order = int(old_entry['sudoorder'][0])
-                if old_order != new_order:
-                    self.obj.check_order_uniqueness(*keys, **options)
-            else:
-                self.obj.check_order_uniqueness(*keys, **options)
-
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             raise self.obj.handle_not_found(*keys)
+
+        if 'sudoorder' in options:
+            new_order = options.get('sudoorder')
+            if 'sudoorder' in _entry_attrs:
+                old_order = int(_entry_attrs['sudoorder'][0])
+                if old_order != new_order:
+                    self.obj.check_order_uniqueness(*keys, **options)
+            else:
+                self.obj.check_order_uniqueness(*keys, **options)
 
         error = _("%(type)s category cannot be set to 'all' "
                   "while there are allowed %(objects)s")
