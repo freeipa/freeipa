@@ -37,7 +37,7 @@ import ldap as _ldap
 from ipalib import krb_utils
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from ipapython.ipaldap import (LDAPClient, AUTOBIND_AUTO, AUTOBIND_ENABLED,
+from ipapython.ipaldap import (LDAPCache, AUTOBIND_AUTO, AUTOBIND_ENABLED,
                                AUTOBIND_DISABLED)
 
 from ipalib import Registry, errors, _
@@ -52,7 +52,7 @@ _missing = object()
 
 
 @register()
-class ldap2(CrudBackend, LDAPClient):
+class ldap2(CrudBackend, LDAPCache):
     """
     LDAP Backend Take 2.
     """
@@ -61,11 +61,15 @@ class ldap2(CrudBackend, LDAPClient):
         force_schema_updates = api.env.context in ('installer', 'updates')
 
         CrudBackend.__init__(self, api)
-        LDAPClient.__init__(self, None,
-                            force_schema_updates=force_schema_updates)
+        LDAPCache.__init__(
+            self, None,
+            force_schema_updates=force_schema_updates,
+            enable_cache=api.env.ldap_cache and not force_schema_updates,
+            cache_size=api.env.ldap_cache_size,
+        )
 
-        self._time_limit = float(LDAPClient.time_limit)
-        self._size_limit = int(LDAPClient.size_limit)
+        self._time_limit = float(LDAPCache.time_limit)
+        self._size_limit = int(LDAPCache.size_limit)
 
     @property
     def ldap_uri(self):
@@ -86,7 +90,7 @@ class ldap2(CrudBackend, LDAPClient):
 
     @time_limit.deleter
     def time_limit(self):
-        object.__setattr__(self, '_time_limit', int(LDAPClient.size_limit))
+        object.__setattr__(self, '_time_limit', int(LDAPCache.size_limit))
 
     @property
     def size_limit(self):
@@ -103,7 +107,7 @@ class ldap2(CrudBackend, LDAPClient):
 
     @size_limit.deleter
     def size_limit(self):
-        object.__setattr__(self, '_size_limit', float(LDAPClient.time_limit))
+        object.__setattr__(self, '_size_limit', float(LDAPCache.time_limit))
 
     def _connect(self):
         # Connectible.conn is a proxy to thread-local storage;
@@ -153,9 +157,11 @@ class ldap2(CrudBackend, LDAPClient):
         if size_limit is not _missing:
             object.__setattr__(self, 'size_limit', size_limit)
 
-        client = LDAPClient(self.ldap_uri,
-                            force_schema_updates=self._force_schema_updates,
-                            cacert=cacert)
+        client = LDAPCache(
+            self.ldap_uri,
+            force_schema_updates=self._force_schema_updates,
+            enable_cache=self._enable_cache,
+            cacert=cacert)
         conn = client._conn
 
         with client.error_handler():
@@ -212,6 +218,7 @@ class ldap2(CrudBackend, LDAPClient):
 
         object.__delattr__(self, 'time_limit')
         object.__delattr__(self, 'size_limit')
+        self.clear_cache()
 
     def get_ipa_config(self, attrs_list=None):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
@@ -384,7 +391,7 @@ class ldap2(CrudBackend, LDAPClient):
             if (otp):
                 pw = old_pass+otp
 
-            with LDAPClient(self.ldap_uri, force_schema_updates=False) as conn:
+            with LDAPCache(self.ldap_uri, force_schema_updates=False) as conn:
                 conn.simple_bind(dn, pw)
                 conn.unbind()
 
