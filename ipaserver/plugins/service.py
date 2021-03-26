@@ -825,7 +825,9 @@ class service_del(LDAPDelete):
         # custom services allow them to manage them.
         check_required_principal(ldap, keys[-1])
         if self.api.Command.ca_is_enabled()['result']:
-            certs = self.api.Command.cert_find(service=keys)['result']
+            certs = self.api.Command.cert_find(
+                service=keys, status='VALID'
+            )['result']
             revoke_certs(certs)
 
         return dn
