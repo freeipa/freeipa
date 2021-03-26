@@ -31,7 +31,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from dns import resolver, reversename
 import six
 
-from ipalib import Command, Str, Int, Flag
+from ipalib import Command, Str, Int, Flag, StrEnum
 from ipalib import api
 from ipalib import errors, messages
 from ipalib import x509
@@ -1559,6 +1559,12 @@ class cert_find(Search, CertMethod):
             normalizer=normalize_pkidate,
             autofill=False,
         ),
+        StrEnum(
+            'status?',
+            doc=_("Status of the certificate"),
+            values=(u'VALID', u'INVALID', u'REVOKED', u'EXPIRED',
+                    u'REVOKED_EXPIRED'),
+        ),
         Flag('pkey_only?',
             label=_("Primary key only"),
             doc=_("Results should contain primary key attribute only "
@@ -1644,7 +1650,8 @@ class cert_find(Search, CertMethod):
                      'validnotafter_from', 'validnotafter_to',
                      'validnotbefore_from', 'validnotbefore_to',
                      'issuedon_from', 'issuedon_to',
-                     'revokedon_from', 'revokedon_to'):
+                     'revokedon_from', 'revokedon_to',
+                     'status'):
             try:
                 value = options[name]
             except KeyError:
@@ -1680,6 +1687,8 @@ class cert_find(Search, CertMethod):
                 ra_options['subject'] = hosts[0]
             elif len(users) == 1 and not services and not hosts:
                 ra_options['subject'] = users[0]
+        if 'status' in options:
+            ra_options['status'] = options.get('status')
 
         try:
             ca_enabled_check(self.api)
