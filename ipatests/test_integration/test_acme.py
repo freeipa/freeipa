@@ -14,7 +14,6 @@ from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
-from ipaserver.install import cainstance
 from ipatests.test_integration.test_external_ca import (
     install_server_external_ca_step1,
     install_server_external_ca_step2,
@@ -34,6 +33,17 @@ skip_certbot_tests = osinfo.id not in ['fedora', 'rhel']
 skip_mod_md_tests = osinfo.id not in ['rhel', 'fedora', ]
 
 CERTBOT_DNS_IPA_SCRIPT = '/usr/libexec/ipa/acme/certbot-dns-ipa'
+
+
+def move_date(host, chrony_cmd, date_str):
+    """Helper method to move system date
+    :param host: host on which date is to be manipulated
+    :param chrony_cmd: systemctl command to apply to
+                       chrony service, for instance 'start', 'stop'
+    :param date_str: date string to change the date i.e '3years2months1day1'
+    """
+    host.run_command(['systemctl', chrony_cmd, 'chronyd'])
+    host.run_command(['date', '-s', date_str])
 
 
 def check_acme_status(host, exp_status, timeout=60):
@@ -78,8 +88,64 @@ def server_install_teardown(func):
     return wrapped
 
 
-@pytest.mark.skipif(not cainstance.minimum_acme_support(),
-                    reason="does not provide ACME")
+def prepare_acme_client(master, client):
+    # cache the acme service uri
+    acme_host = f'{IPA_CA_RECORD}.{master.domain.name}'
+    acme_server = f'https://{acme_host}/acme/directory'
+
+    # install acme client packages
+    if not skip_certbot_tests:
+        tasks.install_packages(client, ['certbot'])
+    if not skip_mod_md_tests:
+        tasks.install_packages(client, ['mod_md'])
+
+    return acme_server
+
+
+def certbot_register(host, acme_server):
+    """method to register the host to acme server"""
+    # clean up any existing registration and certificates
+    host.run_command(
+        [
+            'rm', '-rf',
+            '/etc/letsencrypt/accounts',
+            '/etc/letsencrypt/archive',
+            '/etc/letsencrypt/csr',
+            '/etc/letsencrypt/keys',
+            '/etc/letsencrypt/live',
+            '/etc/letsencrypt/renewal',
+            '/etc/letsencrypt/renewal-hooks'
+        ]
+    )
+    # service is enabled; registration should succeed
+    host.run_command(
+        [
+            'certbot',
+            '--server', acme_server,
+            'register',
+            '-m', 'nobody@example.test',
+            '--agree-tos',
+            '--no-eff-email',
+        ],
+    )
+
+
+def certbot_standalone_cert(host, acme_server):
+    """method to issue a certbot's certonly standalone cert"""
+    # Get a cert from ACME service using HTTP challenge and Certbot's
+    # standalone HTTP server mode
+    host.run_command(['systemctl', 'stop', 'httpd'])
+    host.run_command(
+        [
+            'certbot',
+            '--server', acme_server,
+            'certonly',
+            '--domain', host.hostname,
+            '--standalone',
+        ]
+    )
+
+
 class TestACME(CALessBase):
     """
     Test the FreeIPA ACME service by using ACME clients on a FreeIPA client.
@@ -108,23 +174,11 @@ class TestACME(CALessBase):
     num_clients = 1
 
     @classmethod
-    def prepare_acme_client(cls):
-        # cache the acme service uri
-        acme_host = f'{IPA_CA_RECORD}.{cls.master.domain.name}'
-        cls.acme_server = f'https://{acme_host}/acme/directory'
-
-        # install acme client packages
-        if not skip_certbot_tests:
-            tasks.install_packages(cls.clients[0], ['certbot'])
-        if not skip_mod_md_tests:
-            tasks.install_packages(cls.clients[0], ['mod_md'])
-
-    @classmethod
     def install(cls, mh):
         super(TestACME, cls).install(mh)
 
         # install packages before client install in case of IPA DNS problems
-        cls.prepare_acme_client()
+        cls.acme_server = prepare_acme_client(cls.master, cls.clients[0])
 
         # Each subclass handles its own server installation procedure
         if cls.__name__ != 'TestACME':
@@ -212,45 +266,11 @@ class TestACME(CALessBase):
 
     @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
     def test_certbot_register(self):
-        # clean up any existing registration and certificates
-        self.clients[0].run_command(
-            [
-                'rm', '-rf',
-                '/etc/letsencrypt/accounts',
-                '/etc/letsencrypt/archive',
-                '/etc/letsencrypt/csr',
-                '/etc/letsencrypt/keys',
-                '/etc/letsencrypt/live',
-                '/etc/letsencrypt/renewal',
-                '/etc/letsencrypt/renewal-hooks'
-            ]
-        )
-        # service is enabled; registration should succeed
-        self.clients[0].run_command(
-            [
-                'certbot',
-                '--server', self.acme_server,
-                'register',
-                '-m', 'nobody@example.test',
-                '--agree-tos',
-                '--no-eff-email',
-            ],
-        )
+        certbot_register(self.clients[0], self.acme_server)
 
     @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
     def test_certbot_certonly_standalone(self):
-        # Get a cert from ACME service using HTTP challenge and Certbot's
-        # standalone HTTP server mode
-        self.clients[0].run_command(['systemctl', 'stop', 'httpd'])
-        self.clients[0].run_command(
-            [
-                'certbot',
-                '--server', self.acme_server,
-                'certonly',
-                '--domain', self.clients[0].hostname,
-                '--standalone',
-            ],
-        )
+        certbot_standalone_cert(self.clients[0], self.acme_server)
 
     @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
     def test_certbot_revoke(self):
@@ -417,8 +437,6 @@ class TestACME(CALessBase):
         assert "invalid 'certificate'" in result.stderr_text
 
 
-@pytest.mark.skipif(not cainstance.minimum_acme_support(),
-                    reason="does not provide ACME")
 class TestACMECALess(IntegrationTest):
     """Test to check the CA less replica setup"""
     num_replicas = 1
@@ -542,3 +560,84 @@ class TestACMEwithExternalCA(TestACME):
 
         tasks.install_client(cls.master, cls.clients[0])
         tasks.install_replica(cls.master, cls.replicas[0])
+
+
+class TestACMERenew(IntegrationTest):
+
+    num_clients = 1
+
+    @classmethod
+    def install(cls, mh):
+
+        # install packages before client install in case of IPA DNS problems
+        cls.acme_server = prepare_acme_client(cls.master, cls.clients[0])
+
+        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_client(cls.master, cls.clients[0])
+
+    @pytest.fixture
+    def issue_and_expire_cert(self):
+        """Fixture to expire cert by moving date past expiry of acme cert"""
+        # enable the ACME service on master
+        self.master.run_command(['ipa-acme-manage', 'enable'])
+
+        # register the account with certbot
+        certbot_register(self.clients[0], self.acme_server)
+
+        # request a standalone acme cert
+        certbot_standalone_cert(self.clients[0], self.acme_server)
+
+        cmd_input = (
+            # Password for admin@{REALM}:
+            "{pwd}\n"
+            # Password expired.  You must change it now.
+            # Enter new password:
+            "{pwd}\n"
+            # Enter it again:
+            "{pwd}\n"
+        )
+        # move system date to expire acme cert
+        for host in self.clients[0], self.master:
+            host.run_command(['kdestroy', '-A'])
+            move_date(host, 'stop', '+90days')
+        self.clients[0].run_command(
+            ['kinit', 'admin'],
+            stdin_text=cmd_input.format(
+                pwd=self.clients[0].config.admin_password
+            )
+        )
+
+        yield
+
+        # move back date
+        for host in self.clients[0], self.master:
+            host.run_command(['kdestroy', '-A'])
+            move_date(host, 'start', '-90days')
+            tasks.kinit_admin(host)
+
+    @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
+    def test_renew(self, issue_and_expire_cert):
+        """Test if ACME renews the issued cert with cerbot
+
+        This test is to check if ACME certificate renews upon
+        reaching expiry
+
+        related: https://pagure.io/freeipa/issue/4751
+        """
+        data = self.clients[0].get_file_contents(
+            f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
+        )
+        cert = x509.load_pem_x509_certificate(data, backend=default_backend())
+        initial_expiry = cert.not_valid_after
+
+        tasks.kinit_admin(self.clients[0])
+
+        self.clients[0].run_command(['certbot', 'renew'])
+
+        data = self.clients[0].get_file_contents(
+            f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
+        )
+        cert = x509.load_pem_x509_certificate(data, backend=default_backend())
+        renewed_expiry = cert.not_valid_after
+
+        assert initial_expiry != renewed_expiry
