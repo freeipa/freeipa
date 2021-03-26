@@ -1785,6 +1785,10 @@ class ra(rabase.rabase, RestClient):
             node = etree.SubElement(page, 'serialTo')
             node.text = unicode(options['max_serial_number'])
 
+        if 'status' in options:
+            node = etree.SubElement(page, 'status')
+            node.text = unicode(options['status'])
+
         # date_types is a tuple that consists of:
         #   1. attribute name passed from IPA API
         #   2. attribute name used by REST API
