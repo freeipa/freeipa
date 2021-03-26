@@ -1687,8 +1687,6 @@ class cert_find(Search, CertMethod):
                 ra_options['subject'] = hosts[0]
             elif len(users) == 1 and not services and not hosts:
                 ra_options['subject'] = users[0]
-        if 'status' in options:
-            ra_options['status'] = options.get('status')
 
         try:
             ca_enabled_check(self.api)

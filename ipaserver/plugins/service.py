@@ -825,8 +825,16 @@ class service_del(LDAPDelete):
         # custom services allow them to manage them.
         check_required_principal(ldap, keys[-1])
         if self.api.Command.ca_is_enabled()['result']:
-            certs = self.api.Command.cert_find(service=keys)['result']
-            revoke_certs(certs)
+            # only try to revoke certs for valid principals
+            try:
+                subject = keys[-1].hostname
+            except ValueError:
+                pass
+            else:
+                certs = self.api.Command.cert_find(
+                    subject=subject, status='VALID'
+                )['result']
+                revoke_certs(certs)
 
         return dn
 
@@ -1100,14 +1108,21 @@ class service_disable(LDAPQuery):
         done_work = False
 
         if self.api.Command.ca_is_enabled()['result']:
-            certs = self.api.Command.cert_find(service=keys)['result']
+            try:
+                subject = keys[-1].hostname
+            except ValueError:
+                pass
+            else:
+                certs = self.api.Command.cert_find(
+                    subject=subject, status='VALID'
+                )['result']
 
-            if len(certs) > 0:
-                revoke_certs(certs)
-                # Remove the usercertificate altogether
-                entry_attrs['usercertificate'] = None
-                ldap.update_entry(entry_attrs)
-                done_work = True
+                if len(certs) > 0:
+                    revoke_certs(certs)
+                    # Remove the usercertificate altogether
+                    entry_attrs['usercertificate'] = None
+                    ldap.update_entry(entry_attrs)
+                    done_work = True
 
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         if entry_attrs['has_keytab']:
