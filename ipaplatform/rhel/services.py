@@ -24,11 +24,15 @@ Contains RHEL-specific service class implementations.
 
 from __future__ import absolute_import
 
+from ipaplatform.osinfo import osinfo
 from ipaplatform.redhat import services as redhat_services
 
 # Mappings from service names as FreeIPA code references to these services
 # to their actual systemd service names
 rhel_system_units = redhat_services.redhat_system_units.copy()
+if osinfo.version_number >= (9,):
+    rhel_system_units['named'] = rhel_system_units['named-regular']
+    rhel_system_units['named-conflict'] = rhel_system_units['named-pkcs11']
 
 
 # Service classes that implement RHEL-specific behaviour
@@ -41,6 +45,8 @@ class RHELService(redhat_services.RedHatService):
 # of specified name
 
 def rhel_service_class_factory(name, api=None):
+    if name in ['named', 'named-conflict']:
+        return RHELService(name, api)
     return redhat_services.redhat_service_class_factory(name, api)
 
 
