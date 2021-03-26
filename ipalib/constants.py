@@ -160,6 +160,9 @@ DEFAULT_CONFIG = (
 
     ('rpc_protocol', 'jsonrpc'),
 
+    ('ldap_cache', True),
+    ('ldap_cache_size', 100),
+
     # Define an inclusive range of SSL/TLS version support
     ('tls_version_min', TLS_VERSION_DEFAULT_MIN),
     ('tls_version_max', TLS_VERSION_DEFAULT_MAX),
