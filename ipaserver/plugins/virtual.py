@@ -25,6 +25,7 @@ import logging
 
 from ipalib import Command
 from ipalib import errors
+from ipalib.request import context
 from ipapython.dn import DN
 from ipalib.text import _
 
@@ -61,7 +62,12 @@ class VirtualCommand(Command):
 
         logger.debug("IPA: virtual verify %s", operation)
 
-        return check_operation_access(self.api, operation)
+        access = getattr(context, operation, None)
+        if access is None:
+            access = check_operation_access(self.api, operation)
+            setattr(context, operation, access)
+
+        return access
 
 
 def check_operation_access(api, operation):
