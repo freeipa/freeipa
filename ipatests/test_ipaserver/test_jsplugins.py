@@ -3,12 +3,17 @@
 import os
 import pytest
 
+from ipalib import facts
 from ipatests.test_ipaserver.httptest import Unauthorized_HTTP_test
 from ipatests.util import assert_equal, assert_not_equal
 from ipaplatform.paths import paths
 
 
 @pytest.mark.tier1
+@pytest.mark.skipif(
+    not facts.is_ipa_configured(),
+    reason="Requires configured IPA server",
+)
 class test_jsplugins(Unauthorized_HTTP_test):
     app_uri = '/ipa/ui/js/freeipa/plugins.js'
     jsplugins = (('foo', 'foo.js'), ('bar', ''))
