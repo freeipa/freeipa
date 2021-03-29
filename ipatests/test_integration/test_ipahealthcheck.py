@@ -1127,7 +1127,6 @@ class TestIpaHealthCheck(IntegrationTest):
         """
         warn_msg = (
             "We advise that you set this value to 0, and enable referint "
-            "on all masters as it provides a more predictable behaviour.\n"
         )
         returncode, data = run_healthcheck(
             self.master,
