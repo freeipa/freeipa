@@ -112,7 +112,7 @@ fi
 echo "Minimizing: $RDIR/$RELEASE/$LAYER.js"
 echo "Target file: $OUTPUT_FILE"
 if [[ ("$ID" == "rhel" || "$ID_LIKE" =~ "rhel")
-      && "$VERSION_ID" =~ "8." ]];
+      && ("$VERSION_ID" =~ "8." || "$VERSION_ID" == "8") ]];
 then
     echo "Minifier: uglifyjs"
     uglifyjs < $RDIR/$RELEASE/$LAYER.js > $OUTPUT_FILE
