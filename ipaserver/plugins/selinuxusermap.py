@@ -454,12 +454,20 @@ class selinuxusermap_find(LDAPSearch):
         if options.get('seealso'):
             hbacrule = options['seealso']
 
+            # If a complete DN is passed we can skip calling hbacrule-show
             try:
-                hbac = api.Command['hbacrule_show'](hbacrule,
-all=True)['result']
-                dn = hbac['dn']
-            except errors.NotFound:
-                return dict(count=0, result=[], truncated=False)
+                tmpdn = DN(hbacrule)
+            except ValueError:
+                tmpdn = DN()
+            if DN(api.env.container_hbac, api.env.basedn) not in tmpdn:
+                try:
+                    hbac = api.Command['hbacrule_show'](hbacrule,
+                                                        all=True)['result']
+                    dn = hbac['dn']
+                except errors.NotFound:
+                    return dict(count=0, result=[], truncated=False)
+            else:
+                dn = tmpdn
             options['seealso'] = dn
 
         return super(selinuxusermap_find, self).execute(*args, **options)
