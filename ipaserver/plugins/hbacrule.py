@@ -317,7 +317,7 @@ class hbacrule_del(LDAPDelete):
 
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
-        kw = dict(seealso=keys[0])
+        kw = dict(seealso=str(dn), pkey_only=True)
         _entries = api.Command.selinuxusermap_find(None, **kw)
         if _entries['count']:
             raise errors.DependentEntry(key=keys[0], label=self.api.Object['selinuxusermap'].label_singular, dependent=_entries['result'][0]['cn'][0])
