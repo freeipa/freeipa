@@ -75,6 +75,12 @@ CLASS_LOGFILES = [
     paths.VAR_LOG_HTTPD_DIR,
     # dogtag logs
     paths.VAR_LOG_PKI_DIR,
+    # dogtag conf
+    paths.PKI_TOMCAT_SERVER_XML,
+    paths.PKI_TOMCAT + "/ca/CS.cfg",
+    paths.PKI_TOMCAT + "/kra/CS.cfg",
+    paths.PKI_TOMCAT_ALIAS_DIR,
+    paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
     # selinux logs
     paths.VAR_LOG_AUDIT,
     # sssd
