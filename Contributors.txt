@@ -183,6 +183,7 @@ Developers:
 	Tomáš Babej
 	Tomas Halman
 	Tomáš Křížek
+	Troy Dawson
 	Varun Mylaraiah
 	Viktor Ashirov
 	Vit Mojzis
