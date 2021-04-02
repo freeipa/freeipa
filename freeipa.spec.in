@@ -439,7 +439,12 @@ Requires(pre): certmonger >= %{certmonger_version}
 Requires(pre): 389-ds-base >= %{ds_version}
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
+%if 0%{?fedora} >= 32 || 0%{?rhel} >= 9
+# https://pagure.io/freeipa/issue/8632
+Requires: openssl > 1.1.1i
+%else
 Requires: openssl
+%endif
 Requires: softhsm >= 2.0.0rc1-1
 Requires: p11-kit
 Requires: %{etc_systemd_dir}
