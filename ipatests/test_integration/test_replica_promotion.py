@@ -402,7 +402,7 @@ class TestRenewalMaster(IntegrationTest):
     def test_automatic_renewal_master_transfer_ondelete(self):
         # Test that after replica uninstallation, master overtakes the cert
         # renewal master role from replica (which was previously set there)
-        tasks.uninstall_master(self.replicas[0])
+        tasks.uninstall_replica(self.master, self.replicas[0])
         result = self.master.run_command(['ipa', 'config-show']).stdout_text
         assert("IPA CA renewal master: %s" % self.master.hostname in result), (
             "Master hostname not found among CA renewal masters"
