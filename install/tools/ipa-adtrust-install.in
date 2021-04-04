@@ -161,7 +161,7 @@ def main():
     api.bootstrap(
         in_server=True,
         debug=options.debug,
-        context='install',
+        context='installer',
         confdir=paths.ETC_IPA
     )
     api.finalize()

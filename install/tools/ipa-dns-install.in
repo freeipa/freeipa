@@ -131,7 +131,7 @@ def main():
 
     # Initialize the ipalib api
     api.bootstrap(
-        context='install', confdir=paths.ETC_IPA,
+        context='installer', confdir=paths.ETC_IPA,
         in_server=True, debug=options.debug,
     )
     api.finalize()
