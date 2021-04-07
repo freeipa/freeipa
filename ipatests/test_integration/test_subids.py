@@ -190,9 +190,10 @@ class TestSubordinateId(IntegrationTest):
         )
         info = self._parse_result(result)
 
-        assert info["iparangetype"] == "ipa-local-subid"
+        # see https://github.com/SSSD/sssd/issues/5571
+        assert info["iparangetype"] == "ipa-ad-trust"
         assert info["ipabaseid"] == SUBID_RANGE_START
         assert info["ipaidrangesize"] == SUBID_RANGE_MAX - SUBID_RANGE_START
         assert info["ipabaserid"] < SUBID_RANGE_START
-        assert info["ipasecondarybaserid"] < SUBID_RANGE_START
+        assert "ipasecondarybaserid" not in info
         assert info["ipanttrusteddomainsid"].startswith("S-1-738065-838566-")

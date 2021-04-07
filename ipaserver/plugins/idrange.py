@@ -201,7 +201,7 @@ class idrange(LDAPObject):
     # The commented range types are planned but not yet supported
     range_types = {
         u'ipa-local': unicode(_('local domain range')),
-        u'ipa-local-subid': unicode(_('local domain subid range')),
+        # u'ipa-local-subid': unicode(_('local domain subid range')),
         # u'ipa-ad-winsync': unicode(_('Active Directory winsync range')),
         u'ipa-ad-trust': unicode(_('Active Directory domain range')),
         u'ipa-ad-trust-posix': unicode(_('Active Directory trust range with '
@@ -650,7 +650,10 @@ class idrange_mod(LDAPUpdate):
         except errors.NotFound:
             raise self.obj.handle_not_found(*keys)
 
-        if old_attrs['iparangetype'][0] in {'ipa-local', 'ipa-local-subid'}:
+        if (
+            old_attrs['iparangetype'][0] in {'ipa-local', 'ipa-local-subid'}
+            or old_attrs['cn'][0] == f'{self.api.env.realm}_subid_range'
+        ):
             raise errors.ExecutionError(
                 message=_('This command can not be used to change ID '
                           'allocation for local IPA domain. Run '

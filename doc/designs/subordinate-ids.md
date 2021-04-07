@@ -445,10 +445,14 @@ Filters for additional cases:
 * The idrange entry ``$REALM_subid_range`` has preconfigured base RIDs
   and SID so idrange plug-in and sidgen task ignore the entry. It's the
   simplest approach to ensure backwards compatibility with older IPA
-  server versions that don't know about ``ipa-local-subid`` range type.
+  server versions that don't know how to handle the new range.
   The SID is ``S-1-738065-838566-$DOMAIN_HASH``. ``738065-838566`` is
   the decimal representation of the string ``IPA-SUB``. ``DOMAIN_HASH``
   is the MURMUR-3 hash of the domain name for key ``0xdeadbeef``.
+* The new ``$REALM_subid_range`` entry uses range type ``ipa-ad-trust``
+  instead of range type ``ipa-local-subid`` for backwards compatibility
+  with older SSSD clients, see
+  [SSSD #5571](https://github.com/SSSD/sssd/issues/5571).
 * Shared DNA configuration entries in ``cn=dna,cn=ipa,cn=etc,$SUFFIX``
   are automatically removed by existing code. Server and replication
   plug-ins search and delete entries by ``dnaHostname`` attribute.

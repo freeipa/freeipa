@@ -90,13 +90,13 @@ default: aci: (targetattr = "cn || dnaMaxValue || dnaNextRange || dnaNextValue  
 dn: cn=${REALM}_subid_range,cn=ranges,cn=etc,$SUFFIX
 default: objectClass: top
 default: objectClass: ipaIDrange
-default: objectClass: ipaDomainIDRange
 default: objectClass: ipaTrustedADDomainRange
 default: cn: ${REALM}_subid_range
 default: ipaBaseID: $SUBID_RANGE_START
 default: ipaIDRangeSize: $SUBID_RANGE_SIZE
 # HACK: RIDs to work around adtrust sidgen issue
-default: ipaBaseRID: eval($SUBID_RANGE_START - 2 * $IDRANGE_SIZE)
-default: ipaSecondaryBaseRID: eval($SUBID_RANGE_START - 1 * $IDRANGE_SIZE)
+default: ipaBaseRID: eval($SUBID_RANGE_START - $IDRANGE_SIZE)
 default: ipaNTTrustedDomainSID: S-1-738065-838566-$DOMAIN_HASH
-default: ipaRangeType: ipa-local-subid
+# HACK: "ipa-local-subid" range type causes issues with older SSSD clients
+# see https://github.com/SSSD/sssd/issues/5571
+default: ipaRangeType: ipa-ad-trust
