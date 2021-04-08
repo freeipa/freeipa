@@ -58,7 +58,7 @@ default: nsslapd-topo-plugin-shared-binddngroup: cn=replication managers,cn=sysa
 default: nsslapd-topo-plugin-startup-delay: 20
 default: nsslapd-pluginId: none
 default: nsslapd-plugin-depends-on-named: ldbm database
-default: nsslapd-plugin-depends-on-named: Multimaster Replication Plugin
+default: nsslapd-plugin-depends-on-named: Multisupplier Replication Plugin
 default: nsslapd-pluginVersion: 1.0
 default: nsslapd-pluginVendor: none
 default: nsslapd-pluginDescription: none

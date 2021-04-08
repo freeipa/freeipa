@@ -50,8 +50,8 @@ replace: nsslapd-pluginEnabled:off::on
 dn: cn=Managed Entries,cn=plugins,cn=config
 replace: nsslapd-pluginEnabled:off::on
 
-# Multimaster Replication Plugin, plugins, config
-dn: cn=Multimaster Replication Plugin,cn=plugins,cn=config
+# Multisupplier Replication Plugin, plugins, config
+dn: cn=Multisupplier Replication Plugin,cn=plugins,cn=config
 replace: nsslapd-pluginEnabled:off::on
 
 # Roles Plugin, plugins, config

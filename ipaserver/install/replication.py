@@ -738,7 +738,7 @@ class ReplicationManager:
         dn = mtent.dn
 
         plgent = self.conn.get_entry(
-            DN(('cn', 'Multimaster Replication Plugin'), ('cn', 'plugins'),
+            DN(('cn', 'Multisupplier Replication Plugin'), ('cn', 'plugins'),
                ('cn', 'config')),
             ['nsslapd-pluginPath'])
         path = plgent.single_value.get('nsslapd-pluginPath')

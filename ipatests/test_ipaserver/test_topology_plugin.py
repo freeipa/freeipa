@@ -40,7 +40,7 @@ class TestTopologyPlugin:
             u'nsslapd-pluginVendor': [u'freeipa'],
             u'cn': [u'IPA Topology Configuration'],
             u'nsslapd-plugin-depends-on-named':
-                [u'Multimaster Replication Plugin', u'ldbm database'],
+                [u'Multisupplier Replication Plugin', u'ldbm database'],
             u'nsslapd-topo-plugin-shared-replica-root': [u'dc=example,dc=com'],
             u'nsslapd-pluginVersion': [u'1.0'],
             u'nsslapd-topo-plugin-shared-config-base':
