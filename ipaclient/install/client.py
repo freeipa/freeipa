@@ -1363,7 +1363,6 @@ def do_nsupdate(update_txt):
 
     with open(UPDATE_FILE, "w") as f:
         f.write(update_txt)
-        ipautil.flush_sync(f)
 
     result = False
     try:
