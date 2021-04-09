@@ -1370,6 +1370,11 @@ def do_nsupdate(update_txt):
         result = True
     except CalledProcessError as e:
         logger.debug('nsupdate failed: %s', str(e))
+        try:
+            ipautil.run([paths.NSUPDATE, UPDATE_FILE])
+            result = True
+        except CalledProcessError as e:
+            logger.debug('Unauthenticated nsupdate failed: %s', str(e))
 
     try:
         os.remove(UPDATE_FILE)
