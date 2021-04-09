@@ -205,7 +205,11 @@ Create DNS A/AAAA record for each IP address on this host.
 Configure SSSD to permit all access. Otherwise the machine will be controlled by the Host\-based Access Controls (HBAC) on the IPA server.
 .TP
 \fB\-\-enable\-dns\-updates\fR
-This option tells SSSD to automatically update DNS with the IP address of this client.
+This option tells SSSD to automatically update DNS with the IP address of this
+client.
+The default is to use GSS-TSIG. However, if using GSS-TSIG fails for any reason
+at install time, \fBipa\-client\-install\fR will configure SSSD to use
+unauthenticated nsupdates instead.
 .TP
 \fB\-\-no\-krb5\-offline\-passwords\fR
 Configure SSSD not to store user password when the server is offline.
