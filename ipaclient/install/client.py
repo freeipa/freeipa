@@ -1369,9 +1369,35 @@ def do_nsupdate(update_txt):
         ipautil.run([paths.NSUPDATE, '-g', UPDATE_FILE])
         result = True
     except CalledProcessError as e:
-        logger.debug('nsupdate failed: %s', str(e))
+        logger.debug('nsupdate (GSS-TSIG) failed: %s', str(e))
         try:
             ipautil.run([paths.NSUPDATE, UPDATE_FILE])
+            try:
+                sssdconfig = SSSDConfig.SSSDConfig()
+                sssdconfig.import_config()
+                domains = sssdconfig.list_active_domains()
+                for name in domains:
+                    domain = sssdconfig.get_domain(name)
+                    try:
+                        provider = domain.get_option('id_provider')
+                    except SSSDConfig.NoOptionError:
+                        continue
+                    if name == api.env.domain and provider == "ipa":
+                        try:
+                            if domain.get_option('dyndns_update') is True:
+                                domain.set_option('dyndns_auth', 'none')
+                                sssdconfig.save_domain(domain)
+                                sssdconfig.write(paths.SSSD_CONF)
+                                break
+                        except SSSDConfig.NoOptionError:
+                            break
+            except Exception as e:
+                logger.debug('Unable to update SSSD configuration: %s', str(e))
+                logger.info(
+                    'Failed to configure SSSD for unauthenticated DNS '
+                    'dynamic updates. SSSD might be unable to update DNS '
+                    'entries for this host.'
+                )
             result = True
         except CalledProcessError as e:
             logger.debug('Unauthenticated nsupdate failed: %s', str(e))
