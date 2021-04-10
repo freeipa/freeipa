@@ -447,7 +447,13 @@ def check_zone_overlap(zone, raise_on_error=True):
     except dns.exception.DNSException as e:
         msg = ("DNS check for domain %s failed: %s." % (zone, e))
         if raise_on_error:
-            raise ValueError(msg)
+            if isinstance(e, dns.resolver.NoNameservers):
+                # Show warning and continue in case we've got SERVFAIL
+                # because we are supposedly going to create this reverse zone
+                logger.warning('%s', msg)
+                return
+            else:
+                raise ValueError(msg)
         else:
             logger.warning('%s', msg)
             return
