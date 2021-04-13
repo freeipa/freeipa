@@ -1561,6 +1561,7 @@ class TestInstallWithoutSudo(IntegrationTest):
     num_clients = 1
     num_replicas = 1
     no_sudo_str = "The sudo binary does not seem to be present on this"
+    sudo_version_str = "Sudo version"
 
     @classmethod
     def install(cls, mh):
@@ -1622,3 +1623,4 @@ class TestInstallWithoutSudo(IntegrationTest):
             assert tasks.is_package_installed(self.clients[0], pkg)
         result = tasks.install_client(self.master, self.clients[0])
         assert self.no_sudo_str not in result.stderr_text
+        assert self.sudo_version_str not in result.stdout_text
