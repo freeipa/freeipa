@@ -24,7 +24,6 @@ import re
 import SSSDConfig
 import shutil
 import socket
-import subprocess
 import sys
 import tempfile
 import textwrap
@@ -2205,7 +2204,7 @@ def install_check(options):
     # available.
     if options.conf_sudo:
         try:
-            subprocess.Popen(['sudo', '-V'])
+            ipautil.run(['sudo', '-V'])
         except FileNotFoundError:
             logger.info(
                 "The sudo binary does not seem to be present on this "
