@@ -446,9 +446,12 @@ Filters for additional cases:
   and SID so idrange plug-in and sidgen task ignore the entry. It's the
   simplest approach to ensure backwards compatibility with older IPA
   server versions that don't know how to handle the new range.
-  The SID is ``S-1-738065-838566-$DOMAIN_HASH``. ``738065-838566`` is
+  The SID is ``S-1-5-21-738065-838566-$DOMAIN_HASH``. ``S-1-5-21``
+  is the well-known SID prefix for domain SIDs.  ``738065-838566`` is
   the decimal representation of the string ``IPA-SUB``. ``DOMAIN_HASH``
-  is the MURMUR-3 hash of the domain name for key ``0xdeadbeef``.
+  is the MURMUR-3 hash of the domain name for key ``0xdeadbeef``. SSSD
+  rejects SIDs unless they are prefixed with ``S-1-5-21`` (see
+  ``sss_idmap.c:is_domain_sid()``).
 * The new ``$REALM_subid_range`` entry uses range type ``ipa-ad-trust``
   instead of range type ``ipa-local-subid`` for backwards compatibility
   with older SSSD clients, see

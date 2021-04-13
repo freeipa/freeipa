@@ -196,4 +196,6 @@ class TestSubordinateId(IntegrationTest):
         assert info["ipaidrangesize"] == SUBID_RANGE_MAX - SUBID_RANGE_START
         assert info["ipabaserid"] < SUBID_RANGE_START
         assert "ipasecondarybaserid" not in info
-        assert info["ipanttrusteddomainsid"].startswith("S-1-738065-838566-")
+        assert info["ipanttrusteddomainsid"].startswith(
+            "S-1-5-21-738065-838566-"
+        )
