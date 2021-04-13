@@ -130,6 +130,13 @@ from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
 
+MAX_UINT32 = (1 << 32) - 1
+# JavaScript Number.MAX_SAFE_INTEGER / Number.MIN_SAFE_INTEGER
+# JSON cannot safely encode values outside this range as regular number
+MAX_SAFE_INTEGER = (2**53) - 1
+MIN_SAFE_INTEGER = -MAX_SAFE_INTEGER
+
+
 def _is_null(value):
     if value:
         return False
@@ -1093,6 +1100,12 @@ class Int(Number):
     allowed_types = (int,)
     type_error = _('must be an integer')
 
+    MININT = MININT
+    MAXINT = MAXINT
+    MAX_UINT32 = MAX_UINT32
+    MAX_SAFE_INTEGER = MAX_SAFE_INTEGER
+    MIN_SAFE_INTEGER = MIN_SAFE_INTEGER
+
     kwargs = Param.kwargs + (
         ('minvalue', int, int(MININT)),
         ('maxvalue', int, int(MAXINT)),
@@ -1123,6 +1136,16 @@ class Int(Number):
             raise ValueError(
                 '%s: minvalue > maxvalue (minvalue=%r, maxvalue=%r)' % (
                     self.nice, self.minvalue, self.maxvalue)
+            )
+        if self.minvalue < self.MIN_SAFE_INTEGER:
+            raise ValueError(
+                f"minvalue {self.minvalue} outside range of safe JSON "
+                f"integer limit {self.MIN_SAFE_INTEGER}"
+            )
+        if self.maxvalue > self.MAX_SAFE_INTEGER:
+            raise ValueError(
+                f"maxvalue {self.maxvalue} outside range of safe JSON "
+                f"integer limit {self.MAX_SAFE_INTEGER}"
             )
 
     def _convert_scalar(self, value, index=None):
