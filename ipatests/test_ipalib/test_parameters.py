@@ -1318,6 +1318,23 @@ class test_Int(ClassChecker):
         param = self.cls('my_number')
         check_int_scalar_conversions(param)
 
+    def test_safe_json(self):
+        param = self.cls(
+            "large",
+            minvalue=self.cls.MIN_SAFE_INTEGER,
+            maxvalue=self.cls.MAX_SAFE_INTEGER
+        )
+        for value in (-((2 ** 53) - 1), 0, (2 ** 53) - 1):
+            param.validate(value)
+        for value in (-2 ** 53, 2 ** 53):
+            with pytest.raises(errors.ValidationError):
+                param.validate(value)
+
+        with pytest.raises(ValueError):
+            self.cls("toolarge", maxvalue=2**53)
+        with pytest.raises(ValueError):
+            self.cls("toosmall", minvalue=-2**53)
+
 
 class test_Decimal(ClassChecker):
     """
