@@ -3049,10 +3049,11 @@ output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idrange_add/1
-args: 1,12,3
+args: 1,13,3
 arg: Str('cn', cli_name='name')
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
+option: StrEnum('ipaautoprivategroups?', cli_name='auto_private_groups', values=[u'true', u'false', u'hybrid'])
 option: Int('ipabaseid', cli_name='base_id')
 option: Int('ipabaserid?', cli_name='rid_base')
 option: Int('ipaidrangesize', cli_name='range_size')
@@ -3075,10 +3076,11 @@ output: Output('result', type=[<type 'dict'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: idrange_find/1
-args: 1,13,4
+args: 1,14,4
 arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('cn?', autofill=False, cli_name='name')
+option: StrEnum('ipaautoprivategroups?', autofill=False, cli_name='auto_private_groups', values=[u'true', u'false', u'hybrid'])
 option: Int('ipabaseid?', autofill=False, cli_name='base_id')
 option: Int('ipabaserid?', autofill=False, cli_name='rid_base')
 option: Int('ipaidrangesize?', autofill=False, cli_name='range_size')
@@ -3095,11 +3097,12 @@ output: ListOfEntries('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: idrange_mod/1
-args: 1,13,3
+args: 1,14,3
 arg: Str('cn', cli_name='name')
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('delattr*', cli_name='delattr')
+option: StrEnum('ipaautoprivategroups?', autofill=False, cli_name='auto_private_groups', values=[u'true', u'false', u'hybrid'])
 option: Int('ipabaseid?', autofill=False, cli_name='base_id')
 option: Int('ipabaserid?', autofill=False, cli_name='rid_base')
 option: Int('ipaidrangesize?', autofill=False, cli_name='range_size')
