@@ -103,7 +103,8 @@ var nav = {};
                             ]
                         }
                     ]
-                }
+                },
+                { entity: 'subid' }
             ]
         },
         {

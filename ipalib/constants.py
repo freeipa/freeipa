@@ -131,6 +131,9 @@ DEFAULT_CONFIG = (
     ('container_ranges', DN(('cn', 'ranges'), ('cn', 'etc'))),
     ('container_dna', DN(('cn', 'dna'), ('cn', 'ipa'), ('cn', 'etc'))),
     ('container_dna_posix_ids', DN(('cn', 'posix-ids'), ('cn', 'dna'), ('cn', 'ipa'), ('cn', 'etc'))),
+    ('container_dna_subordinate_ids', DN(
+        ('cn', 'subordinate-ids'), ('cn', 'dna'), ('cn', 'ipa'), ('cn', 'etc')
+    )),
     ('container_realm_domains', DN(('cn', 'Realm Domains'), ('cn', 'ipa'), ('cn', 'etc'))),
     ('container_otp', DN(('cn', 'otp'))),
     ('container_radiusproxy', DN(('cn', 'radiusproxy'))),
@@ -148,6 +151,7 @@ DEFAULT_CONFIG = (
     ('container_certmaprules', DN(('cn', 'certmaprules'), ('cn', 'certmap'))),
     ('container_ca_renewal',
         DN(('cn', 'ca_renewal'), ('cn', 'ipa'), ('cn', 'etc'))),
+    ('container_subids', DN(('cn', 'subids'), ('cn', 'accounts'))),
 
     # Ports, hosts, and URIs:
     # Following values do not have any reasonable default.
@@ -355,4 +359,4 @@ SUBID_RANGE_START = 2 ** 31
 SUBID_RANGE_MAX = (2 ** 32) - (2 * SUBID_COUNT)
 SUBID_RANGE_SIZE = SUBID_RANGE_MAX - SUBID_RANGE_START
 # threshold before DNA plugin requests a new range
-SUBID_DNA_THRESHOLD = 500 * SUBID_COUNT
+SUBID_DNA_THRESHOLD = 500
