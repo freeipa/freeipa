@@ -581,6 +581,15 @@ class test_range(Declarative):
             ),
         ),
 
+        # Framework validation: mod local idrange with auto-private-groups
+        # is prohibited
+        dict(
+            desc=('Try to modify local range %r with --auto-private-groups'
+                  % (testrange1)),
+            command=('idrange_mod', [testrange1],
+                     dict(ipaautoprivategroups='true')),
+            expected=errors.ExecutionError(message=IPA_LOCAL_RANGE_MOD_ERR)
+        ),
 
         dict(
             desc='Delete ID range %r' % testrange1,
@@ -707,6 +716,22 @@ class test_range(Declarative):
                      'secondary-rid-base cannot be used together'),
         ),
 
+        # Testing framework validation: --auto-private-groups is prohibited
+        # with ipa-local range
+
+        dict(
+            desc='Local ID range %r with auto-private-groups' % (testrange8),
+            command=('idrange_add', [testrange8],
+                     dict(ipabaseid=testrange8_base_id,
+                          ipaidrangesize=testrange8_size,
+                          ipaautoprivategroups='true')),
+            expected=errors.ValidationError(
+                name='ID Range setup',
+                error='IPA Range type must be one of ipa-ad-trust '
+                      'or ipa-ad-trust-posix when '
+                      'auto-private-groups is specified'),
+        ),
+
         # Testing framework validation: --rid-base is prohibited with ipa-ad-posix
 
         dict(
@@ -721,6 +746,22 @@ class test_range(Declarative):
                 name='ID Range setup',
                 error='Option rid-base must not be used when IPA range '
                       'type is ipa-ad-trust-posix'),
+        ),
+
+        # Testing framework validation: --auto-private-groups can only be
+        # one of true, false, hybrid
+        dict(
+            desc=('Create ID range %r with bogus --auto-private-groups'
+                  % (domain7range1)),
+            command=('idrange_add', [domain7range1],
+                     dict(ipabaseid=domain7range1_base_id,
+                          ipaidrangesize=domain7range1_size,
+                          iparangetype=domain7range1_type,
+                          ipanttrusteddomainsid=domain7_sid,
+                          ipaautoprivategroups='bogus')),
+            expected=errors.ValidationError(
+                name='auto_private_groups',
+                error="must be one of 'true', 'false', 'hybrid'"),
         ),
 
         dict(
@@ -894,6 +935,113 @@ class test_range(Declarative):
                 desc='Constraint violation',
                 info='New primary rid range overlaps with existing primary rid '
                      'range.'),
+        ),
+
+        dict(
+            desc=('Modify ipa-ad-trust range %r with --auto-private-groups='
+                  'true' % (domain2range1)),
+            command=('idrange_mod', [domain2range1],
+                     dict(ipaautoprivategroups='true')),
+            expected=dict(
+                messages=(
+                    messages.ServiceRestartRequired(
+                        service=services.knownservices['sssd'].systemd_name,
+                        server=domain2range1
+                    ).to_dict(),
+                ),
+                result=dict(
+                    cn=[domain2range1],
+                    ipabaseid=[unicode(domain2range1_base_id)],
+                    ipabaserid=[unicode(domain5range1_base_rid)],
+                    ipaidrangesize=[unicode(domain2range1_size)],
+                    ipanttrusteddomainsid=[unicode(domain2_sid)],
+                    iparangetyperaw=[u'ipa-ad-trust'],
+                    ipaautoprivategroups=[u'true'],
+                    iparangetype=[u'Active Directory domain range'],
+                ),
+                value=domain2range1,
+                summary=u'Modified ID range "%s"' % (domain2range1),
+            ),
+        ),
+
+        dict(
+            desc=('Modify ipa-ad-trust range %r with --auto-private-groups='
+                  'false' % (domain2range1)),
+            command=('idrange_mod', [domain2range1],
+                     dict(ipaautoprivategroups='false')),
+            expected=dict(
+                messages=(
+                    messages.ServiceRestartRequired(
+                        service=services.knownservices['sssd'].systemd_name,
+                        server=domain2range1
+                    ).to_dict(),
+                ),
+                result=dict(
+                    cn=[domain2range1],
+                    ipabaseid=[unicode(domain2range1_base_id)],
+                    ipabaserid=[unicode(domain5range1_base_rid)],
+                    ipaidrangesize=[unicode(domain2range1_size)],
+                    ipanttrusteddomainsid=[unicode(domain2_sid)],
+                    iparangetyperaw=[u'ipa-ad-trust'],
+                    ipaautoprivategroups=[u'false'],
+                    iparangetype=[u'Active Directory domain range'],
+                ),
+                value=domain2range1,
+                summary=u'Modified ID range "%s"' % (domain2range1),
+            ),
+        ),
+
+        dict(
+            desc=('Modify ipa-ad-trust range %r with --auto-private-groups='
+                  'hybrid' % (domain2range1)),
+            command=('idrange_mod', [domain2range1],
+                     dict(ipaautoprivategroups='hybrid')),
+            expected=dict(
+                messages=(
+                    messages.ServiceRestartRequired(
+                        service=services.knownservices['sssd'].systemd_name,
+                        server=domain2range1
+                    ).to_dict(),
+                ),
+                result=dict(
+                    cn=[domain2range1],
+                    ipabaseid=[unicode(domain2range1_base_id)],
+                    ipabaserid=[unicode(domain5range1_base_rid)],
+                    ipaidrangesize=[unicode(domain2range1_size)],
+                    ipanttrusteddomainsid=[unicode(domain2_sid)],
+                    iparangetyperaw=[u'ipa-ad-trust'],
+                    ipaautoprivategroups=[u'hybrid'],
+                    iparangetype=[u'Active Directory domain range'],
+                ),
+                value=domain2range1,
+                summary=u'Modified ID range "%s"' % (domain2range1),
+            ),
+        ),
+
+        dict(
+            desc=('Modify ipa-ad-trust range %r with --auto-private-groups='
+                  '<empty>' % (domain2range1)),
+            command=('idrange_mod', [domain2range1],
+                     dict(ipaautoprivategroups='')),
+            expected=dict(
+                messages=(
+                    messages.ServiceRestartRequired(
+                        service=services.knownservices['sssd'].systemd_name,
+                        server=domain2range1
+                    ).to_dict(),
+                ),
+                result=dict(
+                    cn=[domain2range1],
+                    ipabaseid=[unicode(domain2range1_base_id)],
+                    ipabaserid=[unicode(domain5range1_base_rid)],
+                    ipaidrangesize=[unicode(domain2range1_size)],
+                    ipanttrusteddomainsid=[unicode(domain2_sid)],
+                    iparangetyperaw=[u'ipa-ad-trust'],
+                    iparangetype=[u'Active Directory domain range'],
+                ),
+                value=domain2range1,
+                summary=u'Modified ID range "%s"' % (domain2range1),
+            ),
         ),
 
         # Test for bug 6404
