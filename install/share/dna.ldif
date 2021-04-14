@@ -29,12 +29,12 @@ dnaMagicRegen: -1
 dnaFilter: (objectClass=ipaSubordinateId)
 dnaScope: $SUFFIX
 dnaThreshold: eval($SUBID_DNA_THRESHOLD)
-# TODO: enable when 389-DS' DNA plugin supports dnaStepAttr
-# dnaStepAttr: ipaSubUidCount
-# dnaStepAttr: ipaSubGidCount
-# dnaStepAllowedValues: eval($SUBID_COUNT)
 dnaSharedCfgDN: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
 dnaExcludeScope: cn=provisioning,$SUFFIX
+# TODO: enable when 389-DS' DNA plugin supports dnaStepAttr
+# dnaIntervalAttr: ipasubuidcount
+# dnaIntervalAttr: ipasubgidcount
+# dnaMaxInterval: eval($SUBID_COUNT)
 
 # Enable the DNA plugin
 dn: cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config

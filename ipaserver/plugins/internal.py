@@ -1547,7 +1547,7 @@ class i18n_messages(Command):
                     "Drive to mount a home directory"
                 ),
             },
-            "subordinate": {
+            "subid": {
                 "identity": _("Subordinate user and group id"),
                 "subuidnumber": _("Subordinate user id"),
                 "subuidcount": _("Subordinate user id count"),

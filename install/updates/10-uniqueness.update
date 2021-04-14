@@ -109,3 +109,22 @@ default:nsslapd-plugin-depends-on-type: database
 default:nsslapd-pluginId: NSUniqueAttr
 default:nsslapd-pluginVersion: 1.1.0
 default:nsslapd-pluginVendor: Fedora Project
+
+dn: cn=ipaSubordinateIdEntry ipaOwner uniqueness,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: ipaSubordinateIdEntry ipaOwner uniqueness
+default:nsslapd-pluginDescription: Enforce unique attribute values of ipaOwner
+default:nsslapd-pluginPath: libattr-unique-plugin
+default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
+default:nsslapd-pluginType: preoperation
+default:nsslapd-pluginEnabled: on
+default:uniqueness-attribute-name: ipaOwner
+default:uniqueness-subtrees: cn=subids,cn=accounts,$SUFFIX
+default:uniqueness-across-all-subtrees: on
+default:uniqueness-subtree-entries-oc: ipaSubordinateIdEntry
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginId: NSUniqueAttr
+default:nsslapd-pluginVersion: 1.1.0
+default:nsslapd-pluginVendor: Fedora Project

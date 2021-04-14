@@ -263,6 +263,14 @@ default:nsSystemIndex: false
 add:nsIndexType: eq
 add:nsIndexType: pres
 
+dn: cn=ipaOwner,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaOwner
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+
 dn: cn=ipasudorunas,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 only:cn: ipasudorunas
 default:objectClass: nsIndex
@@ -424,6 +432,10 @@ default:objectClass: top
 default:nsSystemIndex: false
 add:nsIndexType: eq
 add:nsIndexType: pres
+
+dn: cn=memberOf,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: member
+add:nsIndexType: sub
 
 dn: cn=memberPrincipal,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 only:cn: memberPrincipal

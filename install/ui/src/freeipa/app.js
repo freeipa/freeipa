@@ -52,6 +52,7 @@ define([
     './serverconfig',
     './service',
     './stageuser',
+    './subid',
     './sudo',
     './trust',
     './topology',

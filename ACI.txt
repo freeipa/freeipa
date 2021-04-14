@@ -61,7 +61,7 @@ aci: (targetattr = "cn || description || ipacertprofilestoreissued")(targetfilte
 dn: cn=certprofiles,cn=ca,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || description || entryusn || ipacertprofilestoreissued || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipacertprofile)")(version 3.0;acl "permission:System: Read Certificate Profiles";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=ipaconfig,cn=etc,dc=ipa,dc=example
-aci: (targetattr = "cn || createtimestamp || entryusn || ipacertificatesubjectbase || ipaconfigstring || ipacustomfields || ipadefaultemaildomain || ipadefaultloginshell || ipadefaultprimarygroup || ipadomainresolutionorder || ipagroupobjectclasses || ipagroupsearchfields || ipahomesrootdir || ipakrbauthzdata || ipamaxhostnamelength || ipamaxusernamelength || ipamigrationenabled || ipapwdexpadvnotify || ipasearchrecordslimit || ipasearchtimelimit || ipaselinuxusermapdefault || ipaselinuxusermaporder || ipauserauthtype || ipauserobjectclasses || ipausersearchfields || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaguiconfig)")(version 3.0;acl "permission:System: Read Global Configuration";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "cn || createtimestamp || entryusn || ipacertificatesubjectbase || ipaconfigstring || ipacustomfields || ipadefaultemaildomain || ipadefaultloginshell || ipadefaultprimarygroup || ipadomainresolutionorder || ipagroupobjectclasses || ipagroupsearchfields || ipahomesrootdir || ipakrbauthzdata || ipamaxhostnamelength || ipamaxusernamelength || ipamigrationenabled || ipapwdexpadvnotify || ipasearchrecordslimit || ipasearchtimelimit || ipaselinuxusermapdefault || ipaselinuxusermaporder || ipauserauthtype || ipauserdefaultsubordinateid || ipauserobjectclasses || ipausersearchfields || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaguiconfig)")(version 3.0;acl "permission:System: Read Global Configuration";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=costemplates,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=costemplate)")(version 3.0;acl "permission:System: Add Group Password Policy costemplate";allow (add) groupdn = "ldap:///cn=System: Add Group Password Policy costemplate,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=costemplates,cn=accounts,dc=ipa,dc=example
@@ -318,6 +318,14 @@ dn: cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example
 aci: (targetattr = "krblastpwdchange || krbpasswordexpiration || krbprincipalkey || userpassword")(target = "ldap:///uid=*,cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Reset Preserved User password";allow (read,search,write) groupdn = "ldap:///cn=System: Reset Preserved User password,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: dc=ipa,dc=example
 aci: (target_to = "ldap:///cn=users,cn=accounts,dc=ipa,dc=example")(target_from = "ldap:///cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=nsContainer)")(version 3.0;acl "permission:System: Undelete User";allow (moddn) groupdn = "ldap:///cn=System: Undelete User,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=subids,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "description || ipaowner")(targetfilter = "(objectclass=ipasubordinateidentry)")(version 3.0;acl "permission:System: Manage Subordinate Ids";allow (write) groupdn = "ldap:///cn=System: Manage Subordinate Ids,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=subids,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "createtimestamp || description || entryusn || ipaowner || ipasubgidcount || ipasubgidnumber || ipasubuidcount || ipasubuidnumber || ipauniqueid || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipasubordinateidentry)")(version 3.0;acl "permission:System: Read Subordinate Id Attributes";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=subids,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "numsubordinates")(target = "ldap:///cn=subids,cn=accounts,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Subordinate Id Count";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=subids,cn=accounts,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipasubordinateidentry)")(version 3.0;acl "permission:System: Remove Subordinate Ids";allow (delete) groupdn = "ldap:///cn=System: Remove Subordinate Ids,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=sudocmds,cn=sudo,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipasudocmd)")(version 3.0;acl "permission:System: Add Sudo Command";allow (add) groupdn = "ldap:///cn=System: Add Sudo Command,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=sudocmds,cn=sudo,dc=ipa,dc=example
@@ -375,7 +383,7 @@ aci: (targetattr = "audio || businesscategory || carlicense || departmentnumber 
 dn: dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || gecos || gidnumber || homedirectory || loginshell || modifytimestamp || objectclass || uid || uidnumber")(target = "ldap:///cn=users,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read User Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "ipasshpubkey || ipasubgidcount || ipasubgidnumber || ipasubuidcount || ipasubuidnumber || ipauniqueid || ipauserauthtype || userclass")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User IPA Attributes";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "ipasshpubkey || ipauniqueid || ipauserauthtype || userclass")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User IPA Attributes";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbcanonicalname || krblastpwdchange || krbpasswordexpiration || krbprincipalaliases || krbprincipalexpiration || krbprincipalname || krbprincipaltype || nsaccountlock")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User Kerberos Attributes";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
