@@ -17,7 +17,7 @@ register = Registry()
 
 @register()
 class update_dna_shared_config(Updater):
-    dna_plugin_names = ('posix IDs',)
+    dna_plugin_names = ('posix IDs', 'Subordinate IDs')
 
     dna_plugin_dn = DN(
         ('cn', 'Distributed Numeric Assignment Plugin'),

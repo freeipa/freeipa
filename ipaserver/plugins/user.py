@@ -51,8 +51,6 @@ from .baseuser import (
     baseuser_remove_principal,
     baseuser_add_certmapdata,
     baseuser_remove_certmapdata,
-    baseuser_auto_subid,
-    baseuser_match_subid,
 )
 from .idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
@@ -205,8 +203,6 @@ class user(baseuser):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'ipauniqueid', 'ipasshpubkey', 'ipauserauthtype', 'userclass',
-                'ipasubuidnumber', 'ipasubuidcount', 'ipasubgidnumber',
-                'ipasubgidcount',
             },
             'fixup_function': fix_addressbook_permission_bindrule,
         },
@@ -670,6 +666,17 @@ class user_add(baseuser_add):
                 # if both randompassword and userpassword options were used
                 pass
 
+        # generate subid
+        default_subid = config.single_value.get(
+            'ipaUserDefaultSubordinateId', 'FALSE'
+        )
+        if default_subid == 'TRUE':
+            result = self.api.Command.subid_generate(
+                ipaowner=entry_attrs.single_value['uid'],
+                version=options['version']
+            )
+            entry_attrs["memberOf"].append(result['result']['dn'])
+
         self.obj.get_preserved_attribute(entry_attrs, options)
 
         self.post_common_callback(ldap, dn, entry_attrs, *keys, **options)
@@ -757,7 +764,9 @@ class user_del(baseuser_del):
         # of OTP tokens.
         check_protected_member(keys[-1])
 
-        if not options.get('preserve', False):
+        preserve = options.get('preserve', False)
+
+        if not preserve:
             # Remove any ID overrides tied with this user
             try:
                 remove_ipaobject_overrides(self.obj.backend, self.obj.api, dn)
@@ -779,6 +788,15 @@ class user_del(baseuser_del):
                 self.api.Command.otptoken_mod(token, ipatokenowner=None)
             else:
                 self.api.Command.otptoken_del(token)
+
+        # XXX: preserving doesn't work yet, see subordinate-ids.md
+        # Delete all subid entries owned by this user.
+        results = self.api.Command.subid_find(ipaowner=owner)["result"]
+        for subid_entry in results:
+            subid_pkey = self.api.Object.subid.get_primary_key_from_dn(
+                subid_entry["dn"]
+            )
+            self.api.Command.subid_del(subid_pkey)
 
         return dn
 
@@ -829,6 +847,7 @@ class user_mod(baseuser_mod):
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
                                  **options)
         validate_nsaccountlock(entry_attrs)
+        # TODO: forward uidNumber changes and rename to subids
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -1311,13 +1330,3 @@ class user_add_principal(baseuser_add_principal):
 class user_remove_principal(baseuser_remove_principal):
     __doc__ = _('Remove principal alias from the user entry')
     msg_summary = _('Removed aliases from user "%(value)s"')
-
-
-@register()
-class user_auto_subid(baseuser_auto_subid):
-    __doc__ = baseuser_auto_subid.__doc__
-
-
-@register()
-class user_match_subid(baseuser_match_subid):
-    __doc__ = baseuser_match_subid.__doc__

@@ -121,6 +121,7 @@ class config(LDAPObject):
         'ipapwdexpadvnotify', 'ipaselinuxusermaporder',
         'ipaselinuxusermapdefault', 'ipaconfigstring', 'ipakrbauthzdata',
         'ipauserauthtype', 'ipadomainresolutionorder', 'ipamaxhostnamelength',
+        'ipauserdefaultsubordinateid',
     ]
     container_dn = DN(('cn', 'ipaconfig'), ('cn', 'etc'))
     permission_filter_objectclasses = ['ipaguiconfig']
@@ -142,7 +143,7 @@ class config(LDAPObject):
                 'ipasearchrecordslimit', 'ipasearchtimelimit',
                 'ipauserauthtype', 'ipauserobjectclasses',
                 'ipausersearchfields', 'ipacustomfields',
-                'ipamaxhostnamelength',
+                'ipamaxhostnamelength', 'ipauserdefaultsubordinateid',
             },
         },
     }
@@ -261,6 +262,11 @@ class config(LDAPObject):
             values=(u'password', u'radius', u'otp',
                     u'pkinit', u'hardened', u'disabled'),
         ),
+        Bool('ipauserdefaultsubordinateid?',
+             cli_name='user_default_subid',
+             label=_('Enable adding subids to new users'),
+             doc=_('Enable adding subids to new users'),
+             ),
         Str(
             'ipa_master_server*',
             label=_('IPA masters'),

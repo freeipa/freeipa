@@ -121,6 +121,8 @@ global_output_params = (
     Str('memberof_hbacrule?',
         label='Member of HBAC rule',
     ),
+    Str('memberof_subid?',
+        label='Subordinate ids',),
     Str('member_idoverrideuser?',
         label=_('Member ID user overrides'),),
     Str('memberindirect_idoverrideuser?',
@@ -795,7 +797,13 @@ class LDAPObject(Object):
 
         dn = entry.dn
         filter = self.backend.make_filter(
-            {'member': dn, 'memberuser': dn, 'memberhost': dn})
+            {
+                'member': dn,
+                'memberuser': dn,
+                'memberhost': dn,
+                'ipaowner': dn
+            }
+        )
         try:
             result = self.backend.get_entries(
                 self.api.env.basedn,

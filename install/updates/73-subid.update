@@ -1,5 +1,15 @@
 # subordinate ids
 
+# create memberOf attributes for ipaOwner
+dn: cn=MemberOf Plugin,cn=plugins,cn=config
+add: memberofgroupattr: ipaOwner
+
+# container
+dn: cn=subids,cn=accounts,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: subids
+
 # self-service RBAC
 dn: cn=Subordinate ID Selfservice User,cn=roles,cn=accounts,$SUFFIX
 default:objectClass: groupofnames
@@ -56,9 +66,9 @@ default:member: cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX
 # self-service permission when 389-DS' DNA plugin supports dnaStepAttr and
 # fake_dna_plugin hack has been removed.
 #
-dn: $SUFFIX
-add: aci: (targetfilter = "(objectclass=posixaccount)")(targattrfilters = "add=objectClass:(|(objectClass=ipasubordinateid)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(|(ipasubuidnumber>=eval($SUBID_RANGE_START))(ipasubuidnumber=-1)) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(|(ipasubgidnumber>=eval($SUBID_RANGE_START))(ipasubgidnumber=-1)) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "selfservice: Add subordinate id";allow (write) userdn = "ldap:///self" and groupdn="ldap:///cn=Self-service subordinate ID,cn=permissions,cn=pbac,$SUFFIX";)
-add: aci: (targetfilter = "(objectclass=posixaccount)")(targattrfilters = "add=objectClass:(|(objectClass=ipasubordinateid)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(|(ipasubuidnumber>=1)(ipasubuidnumber=-1)) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(|(ipasubgidnumber>=1)(ipasubgidnumber=-1)) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "Add subordinate ids to any user";allow (write) groupdn="ldap:///cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX";)
+dn: cn=subids,cn=accounts,$SUFFIX
+add: aci: (targetfilter = "(objectclass=ipasubordinateidentry)")(targetattr="description || ipaowner || ipauniqueid")(targattrfilters = "add=objectClass:(|(objectClass=top)(objectClass=ipasubordinateid)(objectClass=ipasubordinateidentry)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(|(ipasubuidnumber>=eval($SUBID_RANGE_START))(ipasubuidnumber=-1)) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(|(ipasubgidnumber>=eval($SUBID_RANGE_START))(ipasubgidnumber=-1)) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "selfservice: Add subordinate id";allow (add, write) userattr = "ipaowner#SELFDN" and groupdn="ldap:///cn=Self-service subordinate ID,cn=permissions,cn=pbac,$SUFFIX";)
+add: aci: (targetfilter = "(objectclass=ipasubordinateidentry)")(targetattr="description || ipaowner || ipauniqueid")(targattrfilters = "add=objectClass:(|(objectClass=top)(objectClass=ipasubordinateid)(objectClass=ipasubordinateidentry)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(|(ipasubuidnumber>=1)(ipasubuidnumber=-1)) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(|(ipasubgidnumber>=1)(ipasubgidnumber=-1)) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "Add subordinate ids to any user";allow (add, write) groupdn="ldap:///cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX";)
 
 # DNA plugin and idrange configuration
 dn: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
@@ -78,14 +88,14 @@ default: dnaMagicRegen: -1
 default: dnaFilter: (objectClass=ipaSubordinateId)
 default: dnaScope: $SUFFIX
 default: dnaThreshold: eval($SUBID_DNA_THRESHOLD)
-# TODO: enable when 389-DS' DNA plugin supports dnaStepAttr
-# default: dnaStepAttr: ipaSubUidCount
-# default: dnaStepAttr: ipaSubGidCount
-# default: dnaStepAllowedValues: eval($SUBID_COUNT)
 default: dnaSharedCfgDN: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
 default: dnaExcludeScope: cn=provisioning,$SUFFIX
-default: aci: (targetattr = "dnaNextRange || dnaNextValue || dnaMaxValue")(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
-default: aci: (targetattr = "cn || dnaMaxValue || dnaNextRange || dnaNextValue  || dnaThreshold || dnaType || objectclass")(version 3.0;acl "permission:Read DNA Range";allow (read, search, compare) groupdn = "ldap:///cn=Read DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+# TODO: enable when 389-DS' DNA plugin supports dnaStepAttr
+# add: dnaIntervalAttr: ipasubuidcount
+# add: dnaIntervalAttr: ipasubgidcount
+# addifnew: dnaMaxInterval: eval($SUBID_COUNT)
+add: aci: (targetattr = "dnaNextRange || dnaNextValue || dnaMaxValue")(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+add: aci: (targetattr = "cn || dnaMaxValue || dnaNextRange || dnaNextValue  || dnaThreshold || dnaType || objectclass")(version 3.0;acl "permission:Read DNA Range";allow (read, search, compare) groupdn = "ldap:///cn=Read DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn=${REALM}_subid_range,cn=ranges,cn=etc,$SUFFIX
 default: objectClass: top
