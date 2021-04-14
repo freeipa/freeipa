@@ -260,33 +260,6 @@ return {
                     ]
                 },
                 {
-                    name: 'subordinate',
-                    label: '@i18n:objects.subordinate.identity',
-                    fields: [
-                        {
-                            name: 'ipasubuidnumber',
-                            label: '@i18n:objects.subordinate.subuidnumber',
-                            read_only: true
-                        },
-                        {
-                            name: 'ipasubuidcount',
-                            label: '@i18n:objects.subordinate.subuidcount',
-                            read_only: true
-
-                        },
-                        {
-                            name: 'ipasubgidnumber',
-                            label: '@i18n:objects.subordinate.subgidnumber',
-                            read_only: true
-                        },
-                        {
-                            name: 'ipasubgidcount',
-                            label: '@i18n:objects.subordinate.subgidcount',
-                            read_only: true
-                        }
-                    ]
-                },
-                {
                     name: 'pwpolicy',
                     label: '@i18n:objects.pwpolicy.identity',
                     field_adapter: { result_index: 1 },
@@ -479,16 +452,6 @@ return {
                     confirm_msg: '@i18n:objects.user.unlock_confirm'
                 },
                 {
-                    $factory: IPA.object_action,
-                    name: 'auto_subid',
-                    method: 'auto_subid',
-                    label: '@i18n:objects.user.auto_subid',
-                    needs_confirm: true,
-                    hide_cond: ['preserved-user'],
-                    enable_cond: ['no-subid'],
-                    confirm_msg: '@i18n:objects.user.auto_subid_confirm'
-                },
-                {
                     $type: 'automember_rebuild',
                     name: 'automember_rebuild',
                     hide_cond: ['preserved-user'],
@@ -500,20 +463,15 @@ return {
                     title: '@i18n:objects.cert.issue_for_user'
                 },
                 {
-                    $factory: IPA.object_action,
-                    name: 'auto_subid',
-                    method: 'auto_subid',
-                    label: '@i18n:objects.user.auto_subid',
-                    needs_confirm: true,
+                    $type: 'subid_generate',
                     hide_cond: ['preserved-user'],
-                    enable_cond: ['no-subid'],
-                    confirm_msg: '@i18n:objects.user.auto_subid_confirm'
+                    enable_cond: ['no-subid']
                 }
             ],
             header_actions: [
                 'reset_password', 'enable', 'disable', 'stage', 'undel',
                 'delete_active_user', 'delete', 'unlock', 'add_otptoken',
-                'automember_rebuild', 'request_cert', 'auto_subid'
+                'automember_rebuild', 'request_cert', 'subid_generate'
             ],
             state: {
                 evaluators: [
@@ -532,7 +490,8 @@ return {
                     IPA.user.self_service_other_user_evaluator,
                     IPA.user.preserved_user_evaluator,
                     IPA.user.is_locked_evaluator,
-                    IPA.cert.certificate_evaluator
+                    IPA.cert.certificate_evaluator,
+                    IPA.user.has_subid_evaluator
                 ],
                 summary_conditions: [
                     {
@@ -593,6 +552,12 @@ return {
             add_title: '@i18n:objects.user.add_into_sudo',
             remove_method: 'remove_user',
             remove_title: '@i18n:objects.user.remove_from_sudo'
+        },
+        {
+            $type: 'association',
+            name: 'memberof_subid',
+            associator: IPA.serial_associator,
+            read_only: true
         }
     ],
     standard_association_facets: {
@@ -1206,11 +1171,59 @@ IPA.user.is_locked_evaluator = function(spec) {
             }
         }
 
-        if (!user.ipasubuidnumber) {
+        that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
+IPA.user.has_subid_evaluator = function(spec) {
+
+    spec = spec || {};
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+    that.name = spec.name || 'has_subid_evaluator';
+    that.param = spec.param || 'memberof_subid';
+
+    /**
+     * Evaluates if user already has a subid
+     */
+    that.on_event = function(data) {
+
+        var old_state = that.state;
+        that.state = [];
+
+        var value = that.adapter.load(data);
+        if (value.length === 0) {
             that.state.push('no-subid');
         }
 
         that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
+IPA.user.subid_generate_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'subid_generate';
+    spec.label = spec.label || '@i18n:objects.user.auto_subid';
+    spec.hide_cond = spec.hide_cond || ['preserved-user'];
+    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.user.auto_subid_confirm';
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+
+        var subid_e = reg.entity.get('subid');
+        var dialog = subid_e.get_dialog('add');
+        dialog.open();
+        if (!IPA.is_selfservice) {
+            var owner = facet.get_pkey();
+            dialog.get_field('ipaowner').set_value([owner]);
+        }
     };
 
     return that;
@@ -1225,6 +1238,7 @@ exp.register = function() {
     a.register('reset_password', IPA.user.reset_password_action);
     a.register('add_otptoken', IPA.user.add_otptoken_action);
     a.register('delete_active_user', IPA.user.delete_active_user_action);
+    a.register('subid_generate', IPA.user.subid_generate_action);
     d.copy('password', 'user_password', {
         factory: IPA.user.password_dialog,
         pre_ops: [IPA.user.password_dialog_pre_op]

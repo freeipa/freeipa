@@ -1,5 +1,9 @@
 # Central management of subordinate user and group ids
 
+## OUTDATED
+
+**The design document does not reflect new implementation yet!**
+
 Subordinate ids are a Linux Kernel feature to grant a user additional
 user and group id ranges. Amongst others the feature can be used
 by container runtime engies to implement rootless containers.
@@ -74,8 +78,10 @@ basic use cases. Some restrictions may be lifted in the future.
   to the same value.
 * counts are hard-coded to value 65536
 * once assigned subids cannot be removed
-* IPA does not support multiple subordinate id ranges. Contrary to
-  ``/etc/subuid``, users are limited to one set of subordinate ids.
+* IPA does not support multiple subordinate id ranges, yet. Contrary to
+  ``/etc/subuid``, users are limited to one set of subordinate ids. The
+  limitation is implemented with a unique index on owner reference and
+  can be lifted in the future.
 * subids are auto-assigned. Auto-assignment is currently emulated
   until 389-DS has been extended to support DNA with step interval.
 * subids are allocated from hard-coded range
@@ -118,20 +124,21 @@ to servers. The DNA plug-in guarantees uniqueness across servers.
 ### LDAP schema extension
 
 The subordinate id feature introduces a new auxiliar object class
-``ipaSubordinateId`` with four required attributes ``ipaSubUidNumber``,
-``ipaSubUidCount``, ``ipaSubGidNumber``, and ``ipaSubGidCount``. The
-attributes with ``number`` suffix store the start value of the interval.
-The ``count`` attributes contain the size of the interval including the
-start value. The maximum subid is
-``ipaSubUidNumber + ipaSubUidCount - 1``.
+``ipaSubordinateId`` with five required attributes ``ipaOwner``,
+``ipaSubUidNumber``, ``ipaSubUidCount``, ``ipaSubGidNumber``, and
+``ipaSubGidCount``. The attributes with ``number`` suffix store the
+start value of the interval. The ``count`` attributes contain the
+size of the interval including the start value. The maximum subid is
+``ipaSubUidNumber + ipaSubUidCount - 1``. The ``ipaOwner`` attribute
+is a reference to the owning user.
 
-All four attributes are single-value ``INTEGER`` type with standard
-integer matching rules. OIDs ``2.16.840.1.113730.3.8.23.8`` and
+All count and number attributes are single-value ``INTEGER`` type with
+standard integer matching rules. OIDs ``2.16.840.1.113730.3.8.23.8`` and
 ``2.16.840.1.113730.3.8.23.11`` are reserved for future use.
 
 ```raw
 attributeTypes: (
-  2.16.840.1.113730.3.8.23.6
+  2.16.840.1.113730.3.8.23.7
   NAME 'ipaSubUidNumber'
   DESC 'Numerical subordinate user ID (range start value)'
   EQUALITY integerMatch ORDERING integerOrderingMatch
@@ -139,7 +146,7 @@ attributeTypes: (
   X-ORIGIN 'IPA v4.9'
 )
 attributeTypes: (
-  2.16.840.1.113730.3.8.23.7
+  2.16.840.1.113730.3.8.23.8
   NAME 'ipaSubUidCount'
   DESC 'Subordinate user ID count (range size)'
   EQUALITY integerMatch ORDERING integerOrderingMatch
@@ -147,7 +154,7 @@ attributeTypes: (
   X-ORIGIN 'IPA v4.9'
 )
 attributeTypes: (
-  2.16.840.1.113730.3.8.23.9
+  2.16.840.1.113730.3.8.23.10
   NAME 'ipaSubGidNumber'
   DESC 'Numerical subordinate group ID (range start value)'
   EQUALITY integerMatch ORDERING integerOrderingMatch
@@ -155,7 +162,7 @@ attributeTypes: (
   X-ORIGIN 'IPA v4.9'
 )
 attributeTypes: (
-  2.16.840.1.113730.3.8.23.10
+  2.16.840.1.113730.3.8.23.11
   NAME 'ipaSubGidCount'
   DESC 'Subordinate group ID count (range size)'
   EQUALITY integerMatch ORDERING integerOrderingMatch
@@ -164,50 +171,95 @@ attributeTypes: (
 )
 ```
 
-The ``ipaSubordinateId`` object class is an auxiliar subclass of
+The ``ipaOwner`` attribute is a single-value DN attribute that refers
+to user entry that owns the subordinate ID entry. The proposal does not
+reuse any of the existing attributes like ``owner`` or ``member``,
+because they are all multi-valued.
+
+```
+attributeTypes: (
+  2.16.840.1.113730.3.8.23.13
+  NAME 'ipaOwner'
+  DESC 'Owner of an entry'
+  SUP distinguishedName
+  EQUALITY distinguishedNameMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  SINGLE-VALUE
+  X-ORIGIN 'IPA v4.9')
+```
+
+The ``ipaSubordinateId`` object class is an auxiliary subclass of
 ``top`` and requires all four subordinate id attributes as well as
-``uidNumber``. It does not subclass ``posixAccount`` to make
-the class reusable in idview overrides later.
+``ipaOwner`` attribute``
 
 ```raw
 objectClasses: (
   2.16.840.1.113730.3.8.24.4
   NAME 'ipaSubordinateId'
   DESC 'Subordinate uid and gid for users'
-  SUP top AUXILIARY
-  MUST ( uidNumber $ ipaSubUidNumber $ ipaSubUidCount $ ipaSubGidNumber $ ipaSubGidCount )
+  SUP top
+  AUXILIARY
+  MUST ( ipaOwner $ ipaSubUidNumber $ ipaSubUidCount $ ipaSubGidNumber $ ipaSubGidCount )
   X-ORIGIN 'IPA v4.9'
 )
 ```
 
 The ``ipaSubordinateGid`` and ``ipaSubordinateUid`` are defined for
-future use. IPA always assumes the presence of ``ipaSubordinateId`` and
-does not use these object classes.
+future use. IPA always assumes the presence of ``ipaSubordinateId``.
 
 ```raw
 objectClasses: (
   2.16.840.1.113730.3.8.24.2
   NAME 'ipaSubordinateUid'
   DESC 'Subordinate uids for users, see subuid(5)'
-  SUP top AUXILIARY
-  MUST ( uidNumber $ ipaSubUidNumber $ ipaSubUidCount )
+  SUP top
+  AUXILIARY
+  MUST ( ipaOwner $ ipaSubUidNumber $ ipaSubUidCount )
   X-ORIGIN 'IPA v4.9'
  )
 objectClasses: (
   2.16.840.1.113730.3.8.24.3
   NAME 'ipaSubordinateGid'
   DESC 'Subordinate gids for users, see subgid(5)'
-  SUP top AUXILIARY
-  MUST ( uidNumber $ ipaSubGidNumber $ ipaSubGidCount )
+  SUP top
+  AUXILIARY
+  MUST ( ipaOwner $ ipaSubGidNumber $ ipaSubGidCount )
   X-ORIGIN 'IPA v4.9'
 )
 ```
 
-### Index
+Subordinate id entries have the structural object class
+``ipaSubordinateIdEntry`` and one or more of the auxiliary object
+classes ``ipaSubordinateId``, ``ipaSubordinateGid``, or
+``ipaSubordinateUid``. ``ipaUniqueId`` is used as a primary key (RDN).
+
+```raw
+objectClasses: (
+  2.16.840.1.113730.3.8.24.5
+  NAME 'ipaSubordinateIdEntry'
+  DESC 'Subordinate uid and gid entry'
+  SUP top
+  STRUCTURAL
+  MUST ( ipaUniqueId ) MAY ( description ) X-ORIGIN 'IPA v4.9'
+)
+```
+
+### cn=subids,cn=accounts,$SUFFIX
+
+Subordiante ids and ACIs are stored in the new subtree
+``cn=subids,cn=accounts,$SUFFIX``.
+
+### Index, integrity, memberOf
 
 The attributes ``ipaSubUidNumber`` and ``ipaSubGidNumber`` are index
 for ``pres`` and ``eq`` with ``nsMatchingRule: integerOrderingMatch``
 to enable efficient ``=``, ``>=``, and ``<=`` searches.
+
+The attribute ``ipaOwner`` is indexed for ``pres`` and ``eq``. This DN
+attribute is also checked for referential integrity and uniqueness
+within the ``cn=subids,cn=accounts,$SUFFIX`` subtree. The memberOf
+plugin creates back-references for ``ipaOwner`` references.
+
 
 ### Distributed numeric assignment (DNA) plug-in extension
 
@@ -220,6 +272,85 @@ Currently the DNA plug-in only supports a step size of ``1``. A new
 option ``dnaStepAttr`` (name is tentative) will tell the DNA plug-in
 to use the value of entry attributes as step size.
 
+
+## IPA plugins and commands
+
+The config plugin has a new option to enable or disable generation of
+subordinate id entries for new users:
+
+```raw
+$ ipa config-mod --user-default-subid=true
+```
+
+Subordinate ids are managed by a new plugin class. The ``subid-add``
+and ``subid-del`` commands are hidden from command line. New subordinate
+ids are generated and auto-assigned with ``subid-generate``.
+
+```raw
+$ ipa help subid
+Topic commands:
+  subid-find      Search for subordinate id.
+  subid-generate  Generate and auto-assign subuid and subgid range to user entry
+  subid-match     Match users by any subordinate uid in their range
+  subid-mod       Modify a subordinate id.
+  subid-show      Display information about a subordinate id.
+  subid-stats     Subordinate id statistics
+```
+
+```raw
+$ ipa subid-generate --owner testuser9
+-----------------------------------------------------------
+Added subordinate id "aa28f132-457c-488b-82e1-d123727e4f81"
+-----------------------------------------------------------
+  Unique ID: aa28f132-457c-488b-82e1-d123727e4f81
+  Description: auto-assigned subid
+  Owner: testuser9
+  SubUID range start: 3922132992
+  SubUID range size: 65536
+  SubGID range start: 3922132992
+  SubGID range size: 65536
+```
+
+
+```raw
+$ ipa subid-find --owner testuser9
+------------------------
+1 subordinate id matched
+------------------------
+  Unique ID: aa28f132-457c-488b-82e1-d123727e4f81
+  Owner: testuser9
+  SubUID range start: 3922132992
+  SubUID range size: 65536
+  SubGID range start: 3922132992
+  SubGID range size: 65536
+----------------------------
+Number of entries returned 1
+----------------------------
+```
+
+```raw
+$ ipa -vv subid-stats
+...
+ipa: INFO: Response: {
+    "error": null,
+    "id": 0,
+    "principal": "admin@IPASUBID.TEST",
+    "result": {
+        "result": {
+            "assigned_subids": 20,
+            "baseid": 2147483648,
+            "dna_remaining": 4293394434,
+            "rangesize": 2147352576,
+            "remaining_subids": 65512
+        },
+        "summary": "65532 remaining subordinate id ranges"
+    },
+    "version": "4.10.0.dev"
+}
+-------------------------------------
+65532 remaining subordinate id ranges
+-------------------------------------
+```
 
 ## Permissions, Privileges, Roles
 
@@ -246,6 +377,13 @@ be modified or deleted.
 * Privilege: *Subordinate ID Administrators*
 * default privilege role: *User Administrator*
 
+### Managed permissions
+
+* *System: Read Subordinate Id Attributes* (all authenticated users)
+* *System: Read Subordinate Id Count* (all authenticated usrs)
+* *System: Manage Subordinate Ids* (User Administrators)
+* *System: Remove Subordinate Ids* (User Administrators)
+
 
 ## Workflows
 
@@ -257,12 +395,12 @@ to assign subordinate ids to users.
 
 Users with *User Administrator* role and members of the *admins* group
 have permission to auto-assign new subordinate ids to any user. Auto
-assignment can be performed with new ``user-auto-subid`` command on the
+assignment can be performed with new ``subid-generate`` command on the
 command line or with the *Auto assign subordinate ids* action in the
 *Actions* drop-down menu in the web UI.
 
 ```shell
-$ ipa user-auto-subid someusername
+$ ipa subid-generate --owner myusername
 ```
 
 ### Self-service for group members
@@ -279,26 +417,13 @@ $ ipa role-add-member "Subordinate ID Selfservice User" --groups=ipausers
 ```
 
 This allows members of ``ipausers`` to request subordinate ids with
-the ``user-auto-subid`` command or the *Auto assign subordinate ids*
-action in the web UI.
+the ``subid-generate`` command or the *Auto assign subordinate ids*
+action in the web UI (**TODO** not implemented yet). The command picks
+the name of the current user principal automatically.
 
 ```shell
-$ ipa user-auto-subid myusername
+$ ipa subid-generate
 ```
-
-### Auto assignment with user default object class
-
-Admins can also enable auto-assignment of subordinate ids for all new
-users by adding ``ipasubordinateid`` as a default user objectclass.
-This can be accomplished in the web UI under "IPA Server" /
-"Configuration" / "Default user objectclasses" or on the command line
-with:
-
-```shell
-$ ipa config-mod --addattr="ipaUserObjectClasses=ipasubordinateid"
-```
-
-**NOTE:** The objectclass must be written all lower case.
 
 ### ipa-subid tool
 
@@ -355,26 +480,25 @@ gid range. The new command ``user-match-subid`` can be used to find a
 user by any subordinate id in their range.
 
 ```raw
-$ ipa user-match-subid --subuid=2153185287
-  User login: asmith
-  First name: Alice
-  Last name: Smith
-  ...
-  SubUID range start: 2153185280
+$ ipa subid-match --subuid=2147549183
+------------------------
+1 subordinate id matched
+------------------------
+  Name: asmith-auto
+  Owner: asmith
+  SubUID range start: 2147483648
   SubUID range size: 65536
-  SubGID range start: 2153185280
+  SubGID range start: 2147483648
   SubGID range size: 65536
 ----------------------------
 Number of entries returned 1
 ----------------------------
-$ ipa user-match-subid --subuid=2153185279
-  User login: bjones
-  First name: Bob
-  Last name: Jones
-  ...
-  SubUID range start: 2153119744
+$ ipa user-match-subid --subuid=2147549184
+  Name: bjones-auto
+  Owner: bjones
+  SubUID range start: 2147549184
   SubUID range size: 65536
-  SubGID range start: 2153119744
+  SubGID range start: 2147549184
   SubGID range size: 65536
 ----------------------------
 Number of entries returned 1
@@ -383,61 +507,54 @@ Number of entries returned 1
 
 ## SSSD integration
 
-* base: ``cn=accounts,$SUFFIX`` / ``cn=users,cn=accounts,$SUFFIX``
-* scope: ``SCOPE_SUBTREE`` (2) / ``SCOPE_ONELEVEL`` (1)
-* user filter: should include ``(objectClass=posixAccount)``
-* attributes: ``uidNumber ipaSubUidNumber ipaSubUidCount ipaSubGidNumber ipaSubGidCount``
-
-SSSD can safely assume that only *user accounts* of type ``posixAccount``
-have subordinate ids. In the first revision there are no other entries
-with subordinate ids. The ``posixAccount`` object class has ``uid``
-(user login name) and ``uidNumber`` (numeric user id) as mandatory
-attributes. The ``uid`` attribute is guaranteed to be unique across
-all user accounts in an IPA domain.
-
-The ``uidNumber`` attribute is commonly unique, too. However it's
-technically possible that an administrator has assigned the same
-numeric user id to multiple users. Automatically assigned uid numbers
-don't conflict. SSSD should treat multiple users with same numeric
-user id as an error.
+* search base: ``cn=subids,cn=accounts,$SUFFIX``
+* scope: ``SCOPE_ONELEVEL`` (1)
+* filter: ``(objectClass=ipaSubordinateId)``
+* attributes: ``ipaOwner ipaSubUidNumber ipaSubUidCount ipaSubGidNumber ipaSubGidCount``
 
 The attribute ``ipaSubUidNumber`` is always accompanied by
 ``ipaSubUidCount`` and ``ipaSubGidNumber`` is always accompanied
 by ``ipaSubGidCount``. In revision 1 the presence of
 ``ipaSubUidNumber`` implies presence of the other three attributes.
-All four subordinate id attributes and ``uidNumber`` are single-value
-``INTEGER`` types. Any value outside of range of ``uint32_t`` must
-treated as invalid. SSSD will never see the DNA magic value ``-1``
-in ``cn=accounts,$SUFFIX`` subtree.
+All four subordinate id attributes are single-value ``INTEGER`` types.
+Any value outside of range of ``uint32_t`` must treated as invalid.
+SSSD will never see the DNA magic value ``-1`` in
+``cn=accounts,$SUFFIX`` subtree. In revision 1 each user subordinate
+id entry is assigned to exactly one user and each user has either 0
+or 1 subid.
 
-IPA recommends that SSSD simply extends its existing query for user
-accounts and requests the four subordinate attributes additionally to
-RFC 2307 attributes ``rfc2307_user_map``. SSSD can directly take the
-values and return them without further processing, e.g.
-``uidNumber:ipaSubUidNumber:ipaSubUidCount`` for ``/etc/subuid``.
+IPA recommends that SSSD uses LDAP deref controls for ``ipaOwner``
+attribute to fetch ``uidNumber`` from the user object.
 
-Filters for additional cases:
+### Deref control example
 
-* subuid filter (find user with subuid by numeric uid):
-  ``&((objectClass=posixAccount)(ipaSubUidNumber=*)(uidNumber=$UID))``,
-  ``(&(objectClass=ipaSubordinateId)(uidNumber=$UID))``, or similar
-* subuid enumeration filter:
-  ``&((objectClass=posixAccount)(ipaSubUidNumber=*)(uidNumber=*))``,
-  ``(objectClass=ipaSubordinateId)``, or similar
-* subgid filter (find user with subgid by numeric uid):
-  ``&((objectClass=posixAccount)(ipaSubGidNumber=*)(uidNumber=$UID))``,
-  ``(&(objectClass=ipaSubordinateId)(uidNumber=$UID))``, or similar
-* subgid enumeration filter:
-  ``&((objectClass=posixAccount)(ipaSubGidNumber=*)(uidNumber=*))``,
-  ``(objectClass=ipaSubordinateId)``, or similar
+```raw
+$ ldapsearch -L -E '!deref=ipaOwner:uid,uidNumber' \
+      -b 'cn=subids,cn=accounts,dc=ipasubid,dc=test' \
+      '(ipaOwner=uid=testuser10,cn=users,cn=accounts,dc=ipasubid,dc=test)'
+
+dn: ipauniqueid=35c02c93-3799-4551-a355-ebbf042e431c,cn=subids,cn=accounts,dc=ipasubid,dc=test
+# control: 1.3.6.1.4.1.4203.666.5.16 false MIQAAABxMIQAAABrBAhpcGFPd25lcgQ3dWlk
+ PXRlc3R1c2VyMTAsY249dXNlcnMsY249YWNjb3VudHMsZGM9aXBhc3ViaWQsZGM9dGVzdKCEAAAAIj
+ CEAAAAHAQJdWlkTnVtYmVyMYQAAAALBAk2MjgwMDAwMTE=
+# ipaOwner: <uidNumber=628000011>;uid=testuser10,cn=users,cn=accounts,dc=ipasubid,dc=test
+
+ipaOwner: uid=testuser10,cn=users,cn=accounts,dc=ipasubid,dc=test
+ipaUniqueID: 35c02c93-3799-4551-a355-ebbf042e431c
+description: auto-assigned subid
+objectClass: ipasubordinateidentry
+objectClass: ipasubordinategid
+objectClass: ipasubordinateuid
+objectClass: ipasubordinateid
+objectClass: top
+ipaSubUidNumber: 3434020864
+ipaSubGidNumber: 3434020864
+ipaSubUidCount: 65536
+ipaSubGidCount: 65536
+```
 
 ## Implementation details
 
-* The four subid attributes are not included in
-  ``baseuser.default_attributes`` on purpose. The ``config-mod``
-  command does not permit removal of a user default objectclasses
-  when the class is the last provider of an attribute in
-  ``default_attributes``.
 * ``ipaSubordinateId`` object class does not subclass the other two
   object classes. LDAP supports
   ``SUP ( ipaSubordinateGid $ ipaSubordinateUid )`` but 389-DS only
@@ -459,6 +576,13 @@ Filters for additional cases:
 * Shared DNA configuration entries in ``cn=dna,cn=ipa,cn=etc,$SUFFIX``
   are automatically removed by existing code. Server and replication
   plug-ins search and delete entries by ``dnaHostname`` attribute.
+* ``ipaSubordinateId`` entries no longer contains ``uidNumber``
+  attribute. I considered to use CoS plugin to provide ``uidNumber``
+  as virtual attribute. However it's not possible to
+  ``objectClass: cosIndirectDefinition`` with
+  ``cosIndirectSpecifier: ipaOwner`` and
+  ``cosAttribute: uidNumber override`` for the task. Indexes and
+  searches don't work with virtual attributes.
 
 ### TODO
 
@@ -466,3 +590,23 @@ Filters for additional cases:
 * remove ``fake_dna_plugin`` hack from ``baseuser`` plug-in.
 * add custom range type for idranges and teach AD trust, sidgen, and
   range overlap check code to deal with new range type.
+
+#### user-del --preserve
+
+Preserving a user with ``ipa user-del --preserve`` currently fails with
+an ObjectclassViolation error (err=65). The problem is caused by
+configuration of referential integrity postoperation plug-in. The
+plug-in excludes the subtree
+``nsslapd-pluginexcludeentryscope: cn=provisioning,$SUFFX``. Preserved
+users are moved into the staging area of the provisioning subtree.
+Since the ``ipaOwner`` DN target is now out of scope, the plug-in
+attempts to delete references. However ``ipaOwner`` is a required
+attribute, which triggers the objectclass violation.
+
+Possible solutions
+
+* Don't preserve subid entries
+* Implement preserve feature for subid entries and move subids of
+  preserved users into
+  ``cn=deleted subids,cn=accounts,cn=provisioning,$SUFFIX`` subtree.
+* Change ``nsslapd-pluginexcludeentryscope`` setting

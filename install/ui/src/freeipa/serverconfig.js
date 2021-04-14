@@ -124,6 +124,10 @@ return {
                             name: 'ipamigrationenabled'
                         },
                         {
+                            $type: 'checkbox',
+                            name: 'ipauserdefaultsubordinateid'
+                        },
+                        {
                             $type: 'multivalued',
                             name: 'ipauserobjectclasses'
                         }

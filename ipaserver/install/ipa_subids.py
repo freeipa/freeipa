@@ -10,7 +10,7 @@ from ipalib.facts import is_ipa_configured
 from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool, ScriptError
 from ipapython.dn import DN
-from ipaserver.plugins.baseldap import DNA_MAGIC
+from ipapython.version import API_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ class IPASubids(AdminTool):
             # only users with posixAccount
             "(objectClass=posixAccount)",
             # without subordinate ids
-            "(!(objectClass=ipaSubordinateId))",
+            f"(!(memberOf=*,cn=subids,cn=accounts,{api.env.basedn}))",
         ]
         if groupinfo is not None:
             filters.append(
@@ -89,7 +89,7 @@ class IPASubids(AdminTool):
 
     def search_users(self, filters):
         users_dn = DN(api.env.container_user, api.env.basedn)
-        attrs = ["objectclass", "uid", "uidnumber"]
+        attrs = ["objectclass", "uid"]
 
         logger.debug("basedn: %s", users_dn)
         logger.debug("attrs: %s", attrs)
@@ -116,7 +116,7 @@ class IPASubids(AdminTool):
         api.finalize()
         api.Backend.ldap2.connect()
         self.ldap2 = api.Backend.ldap2
-        user_obj = api.Object["user"]
+        subid_generate = api.Command.subid_generate
 
         dry_run = self.safe_options.dry_run
         group_info = self.get_group_info()
@@ -136,11 +136,13 @@ class IPASubids(AdminTool):
                 i,
                 total
             )
-            user_obj.set_subordinate_ids(
-                self.ldap2, entry.dn, entry, DNA_MAGIC
-            )
             if not dry_run:
-                self.ldap2.update_entry(entry)
+                # TODO: check for duplicate entry (race condition)
+                # TODO: log new subid
+                subid_generate(
+                    ipaowner=entry.single_value["uid"],
+                    version=API_VERSION
+                )
 
         if dry_run:
             logger.info("Dry run mode, no user was modified")
