@@ -80,6 +80,9 @@ and an ID range of a trusted domain must set
  - rid-base: the first RID of the corresponding RID range
  - sid: domain SID of the trusted domain
 
+and an ID range of a trusted domain may set
+ - auto-private-groups: [true|false|hybrid] automatic creation of private groups
+
 
 
 EXAMPLE: Add a new ID range for a trusted domain
@@ -181,7 +184,7 @@ class idrange(LDAPObject):
     possible_objectclasses = ['ipadomainidrange', 'ipatrustedaddomainrange']
     default_attributes = ['cn', 'ipabaseid', 'ipaidrangesize', 'ipabaserid',
                           'ipasecondarybaserid', 'ipanttrusteddomainsid',
-                          'iparangetype']
+                          'iparangetype', 'ipaautoprivategroups']
     managed_permissions = {
         'System: Read ID Ranges': {
             'replaces_global_anonymous_aci': True,
@@ -191,6 +194,7 @@ class idrange(LDAPObject):
                 'cn', 'objectclass',
                 'ipabaseid', 'ipaidrangesize', 'iparangetype',
                 'ipabaserid', 'ipasecondarybaserid', 'ipanttrusteddomainsid',
+                'ipaautoprivategroups',
             },
         },
     }
@@ -246,7 +250,13 @@ class idrange(LDAPObject):
                 doc=_('ID range type, one of allowed values'),
                 values=sorted(range_types),
                 flags=['no_update'],
-                )
+                ),
+        StrEnum('ipaautoprivategroups?',
+                label=_('Auto private groups'),
+                cli_name='auto_private_groups',
+                doc=_('Auto creation of private groups, one of allowed values'),
+                values=(u'true', u'false', u'hybrid'),
+                ),
     )
 
     def handle_iparangetype(self, entry_attrs, options,
@@ -394,6 +404,10 @@ class idrange_add(LDAPCreate):
 
     may be given for a new ID range for the local domain while
 
+        --auto-private-groups
+
+    may be given for a new ID range for a trusted AD domain and
+
         --rid-base
         --dom-sid
 
@@ -481,6 +495,16 @@ class idrange_add(LDAPCreate):
                     error=_('IPA Range type must not be one of ipa-ad-trust '
                             'or ipa-ad-trust-posix when SID of the trusted '
                             'domain is not specified.'))
+
+            # auto private group is possible only for ad trusts
+            if is_set('ipaautoprivategroups') and \
+               entry_attrs['iparangetype'] not in (u'ipa-ad-trust',
+                                                   u'ipa-ad-trust-posix'):
+                raise errors.ValidationError(
+                    name='ID Range setup',
+                    error=_('IPA Range type must be one of ipa-ad-trust '
+                            'or ipa-ad-trust-posix when '
+                            'auto-private-groups is specified'))
 
             # secondary base rid must be set if and only if base rid is set
             if is_set('ipasecondarybaserid') != is_set('ipabaserid'):
