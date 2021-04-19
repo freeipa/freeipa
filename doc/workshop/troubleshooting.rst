@@ -1,5 +1,8 @@
-Local webserver
+Troubleshooting
 ===============
+
+Local webserver
+---------------
 
 Drop firewall::
 
@@ -7,10 +10,10 @@ Drop firewall::
 
 
 DNS / hosts file issues
-=======================
+-----------------------
 
 Flush cache
------------
+^^^^^^^^^^^
 
 Note: some resolvers cache NX.
 
@@ -24,7 +27,7 @@ Windows::
 
 
 Virtual network
-===============
+---------------
 
 If ``Vagrant::Errors::NetworkCollision`` occurs, try deleting host
 network device, e.g.::
@@ -39,7 +42,7 @@ up::
 
 
 Vagrant
-=======
+-------
 
 If ``vagrant up`` fails to SSH into VM, delete
 ``~/.vagrant.d/insecure_private_key``.  See
@@ -47,7 +50,7 @@ https://stackoverflow.com/questions/28284112/.
 
 
 mod_lookup_identity
-===================
+-------------------
 
 To flush cache::
 
