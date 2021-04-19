@@ -6,6 +6,7 @@
 Module provides tests for ipa-cert-fix CLI.
 """
 import pytest
+import re
 import time
 
 import logging
@@ -48,6 +49,16 @@ def check_status(host, cert_count, state, timeout=600):
     return count
 
 
+def move_date(host, chrony_state, date_str):
+    """Helper method to move the date on given host
+    :param host: The host on which date is to be moved
+    :param chrony_state: State to which chrony service to be moved
+    :param date_str: date string to move the date i.e 2years1month1days
+    """
+    host.run_command(['systemctl', chrony_state, 'chronyd'])
+    host.run_command(['date', '-s', date_str])
+
+
 @pytest.fixture
 def expire_cert_critical():
     """
@@ -64,15 +75,15 @@ def expire_cert_critical():
                              extra_args=['--no-ntp'])
         if setup_kra:
             tasks.install_kra(host)
-        host.run_command(['systemctl', 'stop', 'chronyd'])
-        host.run_command(['date', '-s', '+3Years+1day'])
+
+        # move date to expire certs
+        move_date(host, 'stop', '+3Years+1day')
 
     yield _expire_cert_critical
 
     host = hosts.pop('host')
     tasks.uninstall_master(host)
-    host.run_command(['date', '-s', '-3Years-1day'])
-    host.run_command(['systemctl', 'start', 'chronyd'])
+    move_date(host, 'start', '-3Years-1day')
 
 
 class TestIpaCertFix(IntegrationTest):
@@ -122,7 +133,8 @@ class TestIpaCertFix(IntegrationTest):
 
         # Because of BZ 1897120, pki-cert-fix fails on pki-core 10.10.0
         # https://bugzilla.redhat.com/show_bug.cgi?id=1897120
-        if tasks.get_pki_version(self.master) != tasks.parse_version('10.10.0'):
+        if (tasks.get_pki_version(self.master)
+           != tasks.parse_version('10.10.0')):
             assert result.returncode == 0
 
             # get the number of certs track by certmonger
@@ -219,7 +231,7 @@ class TestIpaCertFixThirdParty(CALessBase):
                 '--pin', self.master.config.admin_password,
                 '-d', 'server.p12']
         self.master.run_command(args)
-        self.master.run_command(['ipactl', 'restart',])
+        self.master.run_command(['ipactl', 'restart'])
 
         # Run ipa-cert-fix. This is basically a no-op but tests that
         # the DS nickname is used and not a hardcoded value.
@@ -250,3 +262,68 @@ class TestCertFixKRA(IntegrationTest):
         self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
 
         check_status(self.master, 12, "MONITORING")
+
+
+class TestCertFixReplica(IntegrationTest):
+
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(
+            mh.master, setup_dns=False, extra_args=['--no-ntp']
+        )
+        tasks.install_replica(
+            mh.master, mh.replicas[0],
+            setup_dns=False, extra_args=['--no-ntp']
+        )
+
+    def test_renew_expired_cert_replica(self):
+        """Test renewal of certificates on replica with ipa-cert-fix
+
+        This is to check that ipa-cert-fix renews the certificates
+        on replica
+
+        related: https://pagure.io/freeipa/issue/7885
+        """
+        move_date(self.master, 'stop', '+3years+1days')
+
+        # wait for cert expiry
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+
+        check_status(self.master, 9, "MONITORING")
+
+        # move system date to expire cert on replica
+        move_date(self.replicas[0], 'stop', '+3years+1days')
+
+        # RA agent cert will be expired and in CA_UNREACHABLE state
+        check_status(self.replicas[0], 1, "CA_UNREACHABLE")
+
+        # renew RA agent cert
+        self.replicas[0].run_command(
+            ['ipa-cert-fix', '-v'], stdin_text='yes\n'
+        )
+
+        # LDAP/HTTP/PKINIT certs will be renewed automaticaly
+        # after moving date on replica. This 3, 1 CA cert,
+        # 1 RA agent cert. Check for total 5 valid certs.
+        check_status(self.replicas[0], 5, "MONITORING")
+
+        # get the req ids of all certs to renew remaining
+        # certs by re-submitting it
+        result = self.replicas[0].run_command(['getcert', 'list'])
+        req_ids = re.findall(r'\d{14}', result.stdout_text)
+
+        # resubmit the certs to renew them
+        for req_id in req_ids:
+            self.replicas[0].run_command(
+                ['getcert', 'resubmit', '-i', req_id]
+            )
+
+        check_status(self.master, 9, "MONITORING")
+
+        # move date back on replica and master
+        move_date(self.replicas[0], 'start', '-3years-1days')
+        move_date(self.master, 'start', '-3years-1days')
