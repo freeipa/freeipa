@@ -20,12 +20,6 @@ jobs:
   steps:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
-    - script: |
-        set -e
-        git update-ref refs/heads/$(System.PullRequest.TargetBranch) origin/$(System.PullRequest.TargetBranch)
-        make V=0 "GIT_BRANCH=$(System.PullRequest.TargetBranch)" fastlint
-      displayName: Quick code style check
-      condition: eq(variables['Build.Reason'], 'PullRequest')
     - template: templates/${{ variables.BUILD_TEMPLATE }}
     - template: templates/publish-build.yml
       parameters:
@@ -75,6 +69,12 @@ jobs:
         echo "Running make target 'lint'"
         make V=0 lint
       displayName: Lint sources
+    - script: |
+        set -e
+        git update-ref refs/heads/$(System.PullRequest.TargetBranch) origin/$(System.PullRequest.TargetBranch)
+        make V=0 "GIT_BRANCH=$(System.PullRequest.TargetBranch)" fastcodestyle
+      displayName: Quick code style check
+      condition: eq(variables['Build.Reason'], 'PullRequest')
 
 - job: Docs
   pool:
@@ -144,7 +144,9 @@ jobs:
 - job: BASE_XMLRPC
   pool:
     vmImage: $(VM_IMAGE)
-  dependsOn: Build
+  dependsOn:
+    - Build
+    - Lint
   variables:
     IPA_IMAGE_ARTIFACT: $[ dependencies.Build.outputs['artifacts_image.image'] ]
     IPA_PACKAGES_ARTIFACT: $[ dependencies.Build.outputs['artifacts_packages.packages'] ]
@@ -158,7 +160,9 @@ jobs:
 - job: GATING
   pool:
     vmImage: $(VM_IMAGE)
-  dependsOn: Build
+  dependsOn:
+    - Build
+    - Lint
   variables:
     IPA_IMAGE_ARTIFACT: $[ dependencies.Build.outputs['artifacts_image.image'] ]
     IPA_PACKAGES_ARTIFACT: $[ dependencies.Build.outputs['artifacts_packages.packages'] ]
