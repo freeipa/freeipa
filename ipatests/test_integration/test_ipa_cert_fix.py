@@ -6,6 +6,7 @@
 Module provides tests for ipa-cert-fix CLI.
 """
 import pytest
+import re
 import time
 
 import logging
@@ -74,15 +75,15 @@ def expire_cert_critical():
                              extra_args=['--no-ntp'])
         if setup_kra:
             tasks.install_kra(host)
-        host.run_command(['systemctl', 'stop', 'chronyd'])
-        host.run_command(['date', '-s', '+3Years+1day'])
+
+        # move date to expire certs
+        move_date(host, 'stop', '+3Years+1day')
 
     yield _expire_cert_critical
 
     host = hosts.pop('host')
     tasks.uninstall_master(host)
-    host.run_command(['date', '-s', '-3Years-1day'])
-    host.run_command(['systemctl', 'start', 'chronyd'])
+    move_date(host, 'start', '-3Years-1day')
 
 
 class TestIpaCertFix(IntegrationTest):
@@ -336,3 +337,68 @@ class TestCertFixKRA(IntegrationTest):
         self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
 
         check_status(self.master, 12, "MONITORING")
+
+
+class TestCertFixReplica(IntegrationTest):
+
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(
+            mh.master, setup_dns=False, extra_args=['--no-ntp']
+        )
+        tasks.install_replica(
+            mh.master, mh.replicas[0],
+            setup_dns=False, extra_args=['--no-ntp']
+        )
+
+    def test_renew_expired_cert_replica(self):
+        """Test renewal of certificates on replica with ipa-cert-fix
+
+        This is to check that ipa-cert-fix renews the certificates
+        on replica
+
+        related: https://pagure.io/freeipa/issue/7885
+        """
+        move_date(self.master, 'stop', '+3years+1days')
+
+        # wait for cert expiry
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+
+        check_status(self.master, 9, "MONITORING")
+
+        # move system date to expire cert on replica
+        move_date(self.replicas[0], 'stop', '+3years+1days')
+
+        # RA agent cert will be expired and in CA_UNREACHABLE state
+        check_status(self.replicas[0], 1, "CA_UNREACHABLE")
+
+        # renew RA agent cert
+        self.replicas[0].run_command(
+            ['ipa-cert-fix', '-v'], stdin_text='yes\n'
+        )
+
+        # LDAP/HTTP/PKINIT certs will be renewed automaticaly
+        # after moving date on replica. This 3, 1 CA cert,
+        # 1 RA agent cert. Check for total 5 valid certs.
+        check_status(self.replicas[0], 5, "MONITORING")
+
+        # get the req ids of all certs to renew remaining
+        # certs by re-submitting it
+        result = self.replicas[0].run_command(['getcert', 'list'])
+        req_ids = re.findall(r'\d{14}', result.stdout_text)
+
+        # resubmit the certs to renew them
+        for req_id in req_ids:
+            self.replicas[0].run_command(
+                ['getcert', 'resubmit', '-i', req_id]
+            )
+
+        check_status(self.master, 9, "MONITORING")
+
+        # move date back on replica and master
+        move_date(self.replicas[0], 'start', '-3years-1days')
+        move_date(self.master, 'start', '-3years-1days')
