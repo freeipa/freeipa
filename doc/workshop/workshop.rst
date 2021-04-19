@@ -119,14 +119,11 @@ password everytime::
   $ sudo gpasswd -a ${USER} libvirt
   $ newgrp libvirt
 
-On **Fedoda 28** you need to enable ``virtlogd``::
-
-  $ systemctl enable --now virtlogd.socket
-
 Finally restart the services::
 
   $ systemctl restart libvirtd
-  $ systemctl restart polkit
+
+More information: https://docs.fedoraproject.org/en-US/quick-docs/getting-started-with-virtualization/
 
 Otherwise, you will use VirtualBox and the ``virtualbox`` provider.
 VirtualBox needs to build kernel modules, and that means that you must
@@ -150,7 +147,7 @@ in the transcript below (to make sure it wasn't tampered with)::
   repo_gpgcheck=1
   gpgkey=https://www.virtualbox.org/download/oracle_vbox.asc
 
-  $ sudo dnf install -y VirtualBox-5.2
+  $ sudo dnf install -y VirtualBox-6.1
 
 Finally, load the kernel modules (you may need to restart your system for this to work)::
 
@@ -163,7 +160,7 @@ Mac OS X
 Install Vagrant for Mac OS X from
 https://www.vagrantup.com/downloads.html.
 
-Install VirtualBox 5.2 for **OS X hosts** from
+Install VirtualBox 6.1 for **OS X hosts** from
 https://www.virtualbox.org/wiki/Downloads.
 
 Install Git from https://git-scm.com/download/mac or via your
@@ -173,23 +170,12 @@ preferred package manager.
 Debian / Ubuntu
 ^^^^^^^^^^^^^^^
 
-Install Vagrant and Git::
+Install Vagrant, Git and VirtualBox::
 
   $ sudo apt-get install -y vagrant git
+  $ sudo apt-get install -y virtualbox-6.1
 
-**Virtualbox 5.2** may be available from the system package manager,
-depending your your release.  Find out which version of VirtualBox is
-available::
-
-  $ apt list virtualbox
-  Listing... done
-  virtualbox/bionic 5.2.10-dfsg-6 amd64
-
-If version 5.2 is available, install it via ``apt-get``::
-
-  $ sudo apt-get install -y virtualbox
-
-If VirtualBox 5.2 was not available in the official packages for
+If VirtualBox 6.1 was not available in the official packages for
 your release, follow the instructions at
 https://www.virtualbox.org/wiki/Linux_Downloads to install it.
 
@@ -200,7 +186,7 @@ Windows
 Install Vagrant via the ``.msi`` available from
 https://www.vagrantup.com/downloads.html.
 
-Install VirtualBox 5.2 for **Windows hosts** from
+Install VirtualBox for **Windows hosts** from
 https://www.virtualbox.org/wiki/Downloads.
 
 You will also need to install an SSH client, and Git.  Git for
@@ -216,18 +202,19 @@ workshop, which you will need locally.
 
 ::
 
-  $ git clone https://github.com/freeipa/freeipa-workshop.git
+  $ git clone https://github.com/freeipa/freeipa.git
+  $ cd freeipa/doc/workshop
 
 
 Fetch Vagrant box
 -----------------
 
-Please fetch the Vagrant box prior to the workshop.  It is > 600MB
+Please fetch the Vagrant box prior to the workshop.  It is > 700MB
 so it may not be feasible to download it during the workshop.
 
 ::
 
-  $ vagrant box add netoarmando/freeipa-workshop
+  $ vagrant box add freeipa/freeipa-workshop
 
 
 Add hosts file entries
