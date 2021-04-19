@@ -216,7 +216,7 @@ endif
 	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint pylint jslint $(RPMLINT_TARGET) yamllint check
 	@echo "All tests passed."
 
-.PHONY: fastcheck fasttest fastlint
+.PHONY: fastcheck fasttest fastlint fastcodestyle
 fastcheck:
 	@$(MAKE) -j1 $(AM_MAKEFLAGS) fastlint $(RPMLINT_TARGET) yamllint fasttest apilint acilint
 
@@ -229,7 +229,34 @@ fasttest: $(GENERATED_PYTHON_FILES) ipasetup.py
 	    --ignore $(abspath $(top_srcdir))/ipatests/test_integration \
 	    --ignore $(abspath $(top_srcdir))/ipatests/test_xmlrpc
 
-fastlint: $(GENERATED_PYTHON_FILES) ipasetup.py acilint apilint
+fastcodestyle: $(GENERATED_PYTHON_FILES) ipasetup.py
+	@echo "Fast code style checking with $(PYTHON) from branch '$(GIT_BRANCH)'"
+
+	@MERGEBASE=$$(git merge-base --fork-point $(GIT_BRANCH)); \
+	PYFILES=$$(git diff --name-only --diff-filter=d $${MERGEBASE} \
+	    | grep -E '\.py$$' ); \
+	INFILES=$$(git diff --name-only --diff-filter=d $${MERGEBASE} \
+	    | grep -E '\.in$$' \
+	    | xargs -n1 file 2>/dev/null | grep Python \
+	    | cut -d':' -f1; ); \
+	if [ -n "$${PYFILES}" ] && [ -n "$${INFILES}" ]; then \
+	    FILES="$$( printf $${PYFILES}\\n$${INFILES} )" ; \
+	elif [ -n "$${PYFILES}" ]; then \
+	    FILES="$${PYFILES}" ; \
+	else \
+	    FILES="$${INFILES}" ; \
+	fi ; \
+	if [ -n "$${FILES}" ]; then \
+	    echo -e "Fast code style checking for files:\n$${FILES}\n"; \
+	    echo "pycodestyle"; \
+	    echo "-----------"; \
+	    git diff -U0 $${MERGEBASE} | \
+	        $(PYTHON) -m pycodestyle --diff || exit $$?; \
+	else \
+	    echo "No modified Python files found"; \
+	fi
+
+fastlint: $(GENERATED_PYTHON_FILES) ipasetup.py fastcodestyle acilint apilint
 if ! WITH_PYLINT
 	@echo "ERROR: pylint not available"; exit 1
 endif
@@ -251,10 +278,6 @@ endif
 	fi ; \
 	if [ -n "$${FILES}" ]; then \
 	    echo -e "Fast linting files:\n$${FILES}\n"; \
-	    echo "pycodestyle"; \
-	    echo "-----------"; \
-	    git diff -U0 $${MERGEBASE} | \
-	        $(PYTHON) -m pycodestyle --diff || exit $$?; \
 	    echo -e "\npylint"; \
 	    echo "------"; \
 	    $(PYTHON) -m pylint --version; \
