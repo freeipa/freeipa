@@ -8,55 +8,45 @@ Requirements
 ------------
 
 - Install packer (http://packer.io/)
-- Clone the packer-templates repository
-  (https://github.com/kaorimatz/packer-templates)
+- Install Vagrant, libvirt and VirtualBox
+- Clone the Fedora kickstarts repo (https://pagure.io/fedora-kickstarts)
 
 
 Packer template
 ---------------
 
-Apply the following changes to the ``fedora-28-x86_64.json`` packer
-template:
+Packer template ``packer-template-fedora.json`` requires Fedora 34 kickstart file
+used by Fedora to build vagrant images:
 
-- Add the ``scripts/fedora/ipa.sh`` provisioner and copy (or
-  symlink) ``ipa.sh`` from *this* repository to ``scripts/fedora``.
-  This script installs the FreeIPA packages and creates other files
-  required for the workshop.
+- Clone the repo and checkout latest Fedora release branch::
+
+  $ git clone https://pagure.io/fedora-kickstarts.git
+  $ cd fedora-kickstarts
+  $ git checkout f34
+
+- Install ``pykickstart`` package which provides ``ksflatten`` tool::
+
+  $ sudo dnf install pykickstart
+
+- Generate the ``anaconda-ks.cfg`` file needed by flattening vagrant kickstart files
+  and putting it onto the same folder as the packer template file::
+
+  $ ksflatten -c $FEDORA_KICKSTARTS_REPO/fedora-cloud-base-vagrant.ks > $FREEIPA_REPO/doc/workshop/anaconda-ks.cfg
 
 
-Building the virtualbox image
+Building the vagrant images
 -----------------------------
 
 Build the images::
 
-  $BIN_PACKER build -only=virtualbox-iso -var disk_size=4000 -var memory=1024 fedora-28-x86_64.json
-
-Packer stores images and other data in ``/tmp`` during processing.
-If you have limited space in ``/tmp`` set ``TMPDIR`` to point
-somewhere else with more space.
+  $ cd $FREEIPA_REPO/doc/workshop
+  $ BIN_PACKER build packer-template-fedora.json
 
 
-Building the QEMU/libvirt image
--------------------------------
-
-Build the image::
-
-  $BIN_PACKER build -only=qemu -var disk_size=4000 -var memory=1024 fedora-28-x86_64.json
-
-The output box is a gzip-compressed tarball.  Unfortunately, the VM
-image it contains is not sparse and will waste a lot of space (and
-time) when Vagrant unpacks and imports the image.  Therefore we
-unpack, sparsify and repack the box::
-
-  mkdir box && cd box && tar -xf ../fedora-28-x86_64-libvirt.box
-  virt-sparsify --in-place box.img
-  tar -czf ../fedora-28-x86_64-libvirt.box * && cd .. && rm -rf box
-
-
-Uploading boxes to HashiCorp Atlas
+Uploading boxes to Vagrant Cloud
 ----------------------------------
 
-Vagrant by default looks for boxes in a directory called *Atlas*.
+Vagrant by default looks for boxes in a directory called *Vagrant Cloud*.
 Therefore is is good to make images available there, so that people
 can easily download them as part of workshop preparation.
 

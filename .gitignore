@@ -57,6 +57,12 @@ py-compile
 freeipa2-dev-doc
 ~/doc/guide/Makefile
 
+# Workshop
+doc/workshop/.vagrant/
+doc/workshop/packer_cache/
+doc/workshop/output-*/
+doc/workshop/anaconda-ks.cfg
+
 # Root directory
 /freeipa.spec
 /dist/
