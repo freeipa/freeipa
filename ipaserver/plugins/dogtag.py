@@ -253,7 +253,7 @@ import six
 from ipalib import Backend, api, x509
 from ipapython.dn import DN
 import ipapython.cookie
-from ipapython import dogtag, ipautil, certdb
+from ipapython import dogtag, ipautil
 from ipaserver.masters import find_providing_server
 
 import pki
@@ -1961,11 +1961,10 @@ class kra(Backend):
             # TODO: replace this with a more specific exception
             raise RuntimeError('KRA service is not enabled')
 
-        tempdb = certdb.NSSDatabase()
-        tempdb.create_db()
-        crypto = cryptoutil.NSSCryptoProvider(
-            tempdb.secdir,
-            password_file=tempdb.pwd_file)
+        crypto = cryptoutil.CryptographyCryptoProvider(
+            transport_cert_nick="ra_agent",
+            transport_cert=x509.load_certificate_from_file(paths.RA_AGENT_PEM)
+        )
 
         # TODO: obtain KRA host & port from IPA service list or point to KRA load balancer
         # https://fedorahosted.org/freeipa/ticket/4557
@@ -1980,10 +1979,7 @@ class kra(Backend):
         connection.set_authentication_cert(paths.RA_AGENT_PEM,
                                            paths.RA_AGENT_KEY)
 
-        try:
-            yield KRAClient(connection, crypto)
-        finally:
-            tempdb.close()
+        yield KRAClient(connection, crypto)
 
 
 @register()
