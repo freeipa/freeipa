@@ -85,9 +85,11 @@ static void on_bind_readable(verto_ctx *vctx, verto_ev *ev)
         if (rslt <= 0)
             results = NULL;
         ldap_msgfree(results);
-        otpd_log_err(EIO, "IO error received on bind socket");
+        otpd_log_err(EIO, "IO error received on bind socket: %s", ldap_err2string(rslt));
         verto_break(ctx.vctx);
-        ctx.exitstatus = 1;
+        /* if result is -1 or 0, connection was closed by the server side
+	 * or the server is down and we should exit gracefully */
+        ctx.exitstatus = (rslt <= 0) ? 0 : 1;
         return;
     }
 
