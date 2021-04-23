@@ -1650,8 +1650,7 @@ class cert_find(Search, CertMethod):
                      'validnotafter_from', 'validnotafter_to',
                      'validnotbefore_from', 'validnotbefore_to',
                      'issuedon_from', 'issuedon_to',
-                     'revokedon_from', 'revokedon_to',
-                     'status'):
+                     'revokedon_from', 'revokedon_to',):
             try:
                 value = options[name]
             except KeyError:
@@ -1687,6 +1686,11 @@ class cert_find(Search, CertMethod):
                 ra_options['subject'] = hosts[0]
             elif len(users) == 1 and not services and not hosts:
                 ra_options['subject'] = users[0]
+
+        # Make an exception for status so we can only retrieve VALID
+        # certificates when searching for hosts and services.
+        if 'status' in options:
+            ra_options['status'] = options.get('status')
 
         try:
             ca_enabled_check(self.api)
@@ -1733,6 +1737,14 @@ class cert_find(Search, CertMethod):
         return result, False, complete
 
     def _ldap_search(self, all, pkey_only, no_members, **options):
+        """Search for certificates directly in the LDAP tree
+
+           This is only done when one of the three special options
+           user, host, service are passed in.
+
+           The effect of this is that objects not requested will be
+           filtered out later because complete will be True.
+        """
         ldap = self.api.Backend.ldap2
 
         filters = []
