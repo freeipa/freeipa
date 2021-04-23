@@ -13,6 +13,7 @@ FreeIPA design documentation
    krb-ticket-policy.md
    extdom-plugin-protocol.md
    expiring-password-notification.md
+   ldap_pam_passthrough.md
    libpwquality.md
    membermanager.md
    hidden-replicas.md
