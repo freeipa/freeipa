@@ -168,6 +168,42 @@ class TestInstallMasterClient(IntegrationTest):
         ipaddrs = ext.value.get_values_for_type(x509.IPAddress)
         assert ipaddrs == [ipaddress.ip_address(self.clients[0].ip)]
 
+    def test_service_del_revocation(self):
+        """Test that removing a service revokes its certificate
+
+           This removes the service created in the previous test
+           and ensures that other certificates are not revoked when
+           one is.
+        """
+        hostname = self.clients[0].hostname
+        certfile = os.path.join(paths.OPENSSL_CERTS_DIR, "testservice.pem")
+
+        # This assumes that the cert was issued in the previous test
+        certdata = self.clients[0].get_file_contents(certfile)
+        cert = x509.load_pem_x509_certificate(
+            certdata, default_backend()
+        )
+        serial = cert.serial_number
+
+        # Baseline: the cert should not be revoked yet
+        result = self.master.run_command(["ipa", "cert-show", str(serial)])
+        assert "Revoked: False" in result.stdout_text
+
+        # Delete the service and confirm the cert is revoked
+        tasks.kinit_admin(self.master)
+        self.master.run_command(["ipa", "service-del", f"test/{hostname}"])
+        result = self.master.run_command(["ipa", "cert-show", str(serial)])
+        assert "Revoked: True" in result.stdout_text
+
+        # Get the web cert so we can ensure it isn't revoked
+        certdata = self.clients[0].get_file_contents(paths.HTTPD_CERT_FILE)
+        cert = x509.load_pem_x509_certificate(
+            certdata, default_backend()
+        )
+        serial = cert.serial_number
+        result = self.master.run_command(["ipa", "cert-show", str(serial)])
+        assert "Revoked: False" in result.stdout_text
+
     def test_getcert_list_profile(self):
         """
         Test that getcert list command displays the profile
