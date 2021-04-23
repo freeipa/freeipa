@@ -477,12 +477,17 @@ class CAInstance(DogtagInstance):
                         self.step("exposing CA instance on LDAP",
                                   self.__expose_ca_in_ldap)
 
-                    self.step("migrating certificate profiles to LDAP",
-                              migrate_profiles_to_ldap)
                     self.step("importing IPA certificate profiles",
                               import_included_profiles)
+                    self.step("migrating certificate profiles to LDAP",
+                              migrate_profiles_to_ldap)
                     self.step("adding default CA ACL", ensure_default_caacl)
                     self.step("adding 'ipa' CA entry", ensure_ipa_authority_entry)
+                else:
+                    # Re-import profiles in the promote case to pick up any
+                    # that will only be triggered by an upgrade.
+                    self.step("importing IPA certificate profiles",
+                              import_included_profiles)
 
                 self.step("configuring certmonger renewal for lightweight CAs",
                           self.add_lightweight_ca_tracking_requests)
