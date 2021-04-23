@@ -1100,9 +1100,17 @@ def parse_updateCRL_xml(doc):
 #-------------------------------------------------------------------------------
 
 from ipalib import Registry, errors, SkipPluginModule
-if api.isdone('finalize') and api.env.ra_plugin != 'dogtag':
+
+# We only load the dogtag RA plugin if it is necessary to do so.
+# This is legacy code from when multiple RA backends were supported.
+#
+# If the plugins are loaded by the server then load the RA backend.
+#
+if api.isdone("finalize") and not (
+    api.env.ra_plugin == 'dogtag' or api.env.context == 'installer'
+):
     # In this case, abort loading this plugin module...
-    raise SkipPluginModule(reason='dogtag not selected as RA plugin')
+    raise SkipPluginModule(reason='Not loading dogtag RA plugin')
 import os
 from ipaserver.plugins import rabase
 from ipalib.constants import TYPE_ERROR
