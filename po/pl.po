@@ -4,8 +4,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-12-23 16:29+0200\n"
-"PO-Revision-Date: 2021-04-24 12:04+0000\n"
-"Last-Translator: Marcin Stanclik <mstanclik@yahoo.com>\n"
+"PO-Revision-Date: 2021-04-25 13:02+0000\n"
+"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/pl/>\n"
 "Language: pl\n"
@@ -915,7 +915,7 @@ msgstr "Brak pamięci \n"
 
 #, c-format
 msgid "Out of memory!"
-msgstr "Brak pamięci!"
+msgstr "Brak pamięci."
 
 #, c-format
 msgid "Out of memory!\n"
@@ -952,7 +952,7 @@ msgid "Passwords do not match"
 msgstr "Hasła się nie zgadzają"
 
 msgid "Passwords do not match!"
-msgstr "Hasła się nie zgadzają!"
+msgstr "Hasła się nie zgadzają."
 
 msgid ""
 "Passwords have been migrated in pre-hashed format.\n"
