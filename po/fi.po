@@ -8,14 +8,16 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2021-04-26 20:02+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
+"Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
+"ipa-4-9/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.6\n"
 
 #: client/ipa-rmkeytab.c:51
 #, c-format
@@ -85,7 +87,7 @@ msgstr ""
 
 #: client/ipa-rmkeytab.c:195
 msgid "Print debugging information"
-msgstr ""
+msgstr "Tulosta virheenkorjaustiedot"
 
 #: client/ipa-rmkeytab.c:195
 msgid "Debugging output"
@@ -198,7 +200,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:168
 #, c-format
 msgid "Out of memory \n"
-msgstr ""
+msgstr "Muisti loppui \n"
 
 #: client/ipa-getkeytab.c:191
 #, c-format
@@ -211,12 +213,12 @@ msgstr ""
 
 #: client/ipa-getkeytab.c:221 client/ipa-join.c:261
 msgid "SASL Bind failed\n"
-msgstr ""
+msgstr "SASL-sidonta epäonnistui\n"
 
 #: client/ipa-getkeytab.c:252
 #, c-format
 msgid "Operation failed: %s\n"
-msgstr ""
+msgstr "Toimenpide epäonnistui: %s\n"
 
 #: client/ipa-getkeytab.c:261
 #, c-format
@@ -251,7 +253,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:349
 #, c-format
 msgid "Out of Memory!\n"
-msgstr ""
+msgstr "Muisti loppui!\n"
 
 #: client/ipa-getkeytab.c:356 client/ipa-getkeytab.c:518
 #, c-format
@@ -300,7 +302,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:603
 #, c-format
 msgid "Passwords do not match!\n"
-msgstr ""
+msgstr "Salasanat eivät täsmää!\n"
 
 #: client/ipa-getkeytab.c:632
 #, c-format
@@ -334,7 +336,7 @@ msgstr ""
 
 #: client/ipa-getkeytab.c:766
 msgid "Server Name"
-msgstr ""
+msgstr "Palvelimen nimi"
 
 #: client/ipa-getkeytab.c:768
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
@@ -538,102 +540,102 @@ msgstr ""
 #: util/ipa_krb5.c:1058
 #, c-format
 msgid "Out of memory!\n"
-msgstr ""
+msgstr "Muisti loppui!\n"
 
 #: client/ipa-join.c:81 client/ipa-join.c:826
 #, c-format
 msgid "No permission to join this host to the IPA domain.\n"
-msgstr ""
+msgstr "Ei lupaa liittää tätä isäntää IPA toimialueeseen.\n"
 
 #: client/ipa-join.c:111 client/ipa-join.c:123
 #, c-format
 msgid "No write permissions on keytab file '%s'\n"
-msgstr ""
+msgstr "Ei kirjoitusoikeuksia keytab-tiedostoon '%s'\n"
 
 #: client/ipa-join.c:128
 #, c-format
 msgid "access() on %1$s failed: errno = %2$d\n"
-msgstr ""
+msgstr "pääsy() kohteeseen %1$s epäonnistui: virhenro = %2$d\n"
 
 #: client/ipa-join.c:152 client/ipa-join.c:181 client/ipa-join.c:232
 #, c-format
 msgid "Out of memory!"
-msgstr ""
+msgstr "Muisti loppui!"
 
 #: client/ipa-join.c:243
 #, c-format
 msgid "Unable to enable SSL in LDAP\n"
-msgstr ""
+msgstr "SSL:n ottaminen käyttöön LDAP:ssa ei onnistu\n"
 
 #: client/ipa-join.c:335
 #, c-format
 msgid "Search for %1$s on rootdse failed with error %2$d\n"
-msgstr ""
+msgstr "%1$s:n haku rootdse:stä epäonnistui virheellä %2$d\n"
 
 #: client/ipa-join.c:355
 #, c-format
 msgid "No values for %s"
-msgstr ""
+msgstr "Ei arvoja kohteelle %s"
 
 #: client/ipa-join.c:365
 #, c-format
 msgid "Search for IPA namingContext failed with error %d\n"
-msgstr ""
+msgstr "IPA-nimeämiskontekstin haku epäonnistui virheellä %d\n"
 
 #: client/ipa-join.c:371
 #, c-format
 msgid "IPA namingContext not found\n"
-msgstr ""
+msgstr "IPA-nimeämiskontekstia ei löytynyt\n"
 
 #: client/ipa-join.c:429
 #, c-format
 msgid "Unable to determine root DN of %s\n"
-msgstr ""
+msgstr "%s: root DN:ää ei voida määrittää\n"
 
 #: client/ipa-join.c:475
 #, c-format
 msgid "Enrollment failed. %s\n"
-msgstr ""
+msgstr "Rekisteröinti epäonnistui. %s\n"
 
 #: client/ipa-join.c:595
 #, c-format
 msgid "principal not found in XML-RPC response\n"
-msgstr ""
+msgstr "toimeksiantajaa ei löydy XML-RPC-vastauksesta\n"
 
 #: client/ipa-join.c:610 client/ipa-join.c:964
 #, c-format
 msgid "Host is already joined.\n"
-msgstr ""
+msgstr "Kone on jo liittynyt.\n"
 
 #: client/ipa-join.c:637
 #, c-format
 msgid "curl_slist_append() failed for value: '%s'\n"
-msgstr ""
+msgstr "curl_slist_append() epäonnistui arvolle: '%s'\n"
 
 #: client/ipa-join.c:646
 #, c-format
 msgid "curl_easy_setopt() failed\n"
-msgstr ""
+msgstr "curl_easy_setopt() epäonnistui\n"
 
 #: client/ipa-join.c:658
 #, c-format
 msgid "Expanding buffer in jsonrpc_handle_response failed"
-msgstr ""
+msgstr "jsonrpc_handle_response puskurin laajennus epäonnistui"
 
 #: client/ipa-join.c:687
 #, c-format
 msgid "curl_global_init() failed\n"
-msgstr ""
+msgstr "curl_global_init() epäonnistui\n"
 
 #: client/ipa-join.c:696
 #, c-format
 msgid "curl_easy_init() failed\n"
-msgstr ""
+msgstr "curl_easy_init() epäonnistui\n"
 
 #: client/ipa-join.c:747
 #, c-format
 msgid "json_dumps() failed\n"
-msgstr ""
+msgstr "json_dumps() epäonnistui\n"
 
 #: client/ipa-join.c:755
 #, c-format
@@ -641,16 +643,18 @@ msgid ""
 "JSON-RPC request:\n"
 "%s\n"
 msgstr ""
+"JSON-RPC pyyntö:\n"
+"%s\n"
 
 #: client/ipa-join.c:762
 #, c-format
 msgid "JSON-RPC call failed: %s\n"
-msgstr ""
+msgstr "JSON-RPC kutsu epäonnistui: %s\n"
 
 #: client/ipa-join.c:773
 #, c-format
 msgid "JSON-RPC call failed with status code: %li\n"
-msgstr ""
+msgstr "JSON-RPC kutsu epäonnistui statuskoodilla: %li\n"
 
 #: client/ipa-join.c:776
 #, c-format
@@ -795,11 +799,11 @@ msgstr ""
 
 #: client/ipa-join.c:1459
 msgid "Hostname of this server"
-msgstr ""
+msgstr "Palvelimen isäntänimi"
 
 #: client/ipa-join.c:1459 client/ipa-join.c:1461
 msgid "hostname"
-msgstr ""
+msgstr "koneen nimi"
 
 #: client/ipa-join.c:1461
 msgid "IPA Server to use"
@@ -823,7 +827,7 @@ msgstr ""
 
 #: client/ipa-join.c:1467
 msgid "password"
-msgstr ""
+msgstr "salasana"
 
 #: client/ipa-join.c:1469
 msgid "LDAP basedn"
@@ -861,7 +865,7 @@ msgstr ""
 #: client/config.c:69
 #, c-format
 msgid "out of memory\n"
-msgstr ""
+msgstr "muisti lopussa\n"
 
 #: client/config.c:80
 #, c-format
@@ -917,7 +921,7 @@ msgstr ""
 
 #: ipaclient/plugins/certmap.py:19
 msgid "Input file"
-msgstr ""
+msgstr "Syötetiedosto"
 
 #: ipaclient/plugins/certmap.py:20
 msgid "File to load the certificate from"
