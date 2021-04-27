@@ -9,5 +9,7 @@ ipapython == @VERSION@
 ipaserver == @VERSION@
 ipatests == @VERSION@
 
-# upstream pylint 1.7.5 fixed bad python3 import of stat module
-pylint >= 1.7.5
+# keep pylint version in sync with current Fedora release
+# F34 has 2.6
+# https://pagure.io/freeipa/issue/8818 added pylint 2.8 support
+pylint < 2.9
