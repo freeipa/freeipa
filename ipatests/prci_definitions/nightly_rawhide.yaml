@@ -1833,7 +1833,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_ipa_cert_fix.py
         template: *ci-master-frawhide
-        timeout: 7200
+        timeout: 10800
         topology: *master_1repl
 
   fedora-rawhide/test_subids:

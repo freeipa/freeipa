@@ -1821,7 +1821,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_ipa_cert_fix.py
         template: *testing-master-latest
-        timeout: 7200
+        timeout: 10800
         topology: *master_1repl
 
   testing-fedora/test_subids:
