@@ -47,12 +47,20 @@
 #include <string.h>
 #include <syslog.h>
 #include <time.h>
-#include <openssl/hmac.h>
 
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#include <openssl/hmac.h>
 struct digest_buffer {
     unsigned char buf[EVP_MAX_MD_SIZE];
     unsigned int len;
 };
+#else
+#include <openssl/evp.h>
+struct digest_buffer {
+    unsigned char buf[EVP_MAX_MD_SIZE];
+    size_t len;
+};
+#endif
 
 static const struct {
     const char *algo;
@@ -65,6 +73,7 @@ static const struct {
     { }
 };
 
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
 static bool hmac(const struct hotp_token_key *key, const char *sn_mech,
                  uint64_t counter, struct digest_buffer *out)
 {
@@ -85,6 +94,54 @@ static bool hmac(const struct hotp_token_key *key, const char *sn_mech,
 
     return true;
 }
+#else
+static bool hmac(const struct hotp_token_key *key, const char *sn_mech,
+                 uint64_t counter, struct digest_buffer *out)
+{
+    unsigned char in[sizeof(uint64_t)];
+    EVP_MAC_CTX *ctx = NULL;
+    EVP_MAC *mac = NULL;
+    bool ret = false;
+    OSSL_PARAM params[] = {
+        OSSL_PARAM_utf8_string("digest", sn_mech, strlen(sn_mech)),
+        OSSL_PARAM_END
+    };
+    int status;
+
+    mac = EVP_MAC_fetch(NULL, "hmac", NULL);
+    if (mac == NULL) {
+        goto done;
+    }
+
+    ctx = EVP_MAC_CTX_new(mac);
+    if (ctx == NULL) {
+        goto done;
+    }
+
+    status = EVP_MAC_init(ctx, (void *)key->bytes, key->len, params);
+    if (status == 0) {
+        goto done;
+    }
+
+    memcpy(in, &counter, sizeof(uint64_t));
+
+    status = EVP_MAC_update(ctx, in, sizeof(in));
+    if (status == 0) {
+        goto done;
+    }
+
+    status = EVP_MAC_final(ctx, out->buf, &out->len, EVP_MAX_MD_SIZE);
+    if (status == 0) {
+        goto done;
+    }
+
+    ret = true;
+
+done:
+    EVP_MAC_CTX_free(ctx);
+    EVP_MAC_free(mac);
+}
+#endif
 
 /*
  * An implementation of HOTP (RFC 4226).
