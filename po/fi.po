@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2021-04-28 16:02+0000\n"
+"PO-Revision-Date: 2021-04-30 19:02+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -659,7 +659,7 @@ msgstr "JSON-RPC kutsu epäonnistui statuskoodilla: %li\n"
 #: client/ipa-join.c:776
 #, c-format
 msgid "JSON-RPC call was unauthorized. Check your credentials.\n"
-msgstr ""
+msgstr "JSON-RPC kutsu oli käyttöoikeudeton. Tarkista valtuustietosi .\n"
 
 #: client/ipa-join.c:783
 #, c-format
@@ -667,61 +667,65 @@ msgid ""
 "JSON-RPC response:\n"
 "%s\n"
 msgstr ""
+"JSON-RPC vastaus:\n"
+"%s\n"
 
 #: client/ipa-join.c:818
 #, c-format
 msgid "Extracting the error from the JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Virheen purkaminen JSON-RPC-vastauksesta epäonnistui: %s\n"
 
 #: client/ipa-join.c:852
 #, c-format
 msgid "Parsing JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "JSON-RPC-vastauksen jäsentäminen epäonnistui: %s\n"
 
 #: client/ipa-join.c:868
 #, c-format
 msgid "Parsing JSON-RPC response failed: no 'result' value found.\n"
 msgstr ""
+"JSON-RPC-vastauksen jäsentäminen epäonnistui: \"Tulos\"arvoa ei löytynyt.\n"
 
 #: client/ipa-join.c:901 client/ipa-join.c:994
 #, c-format
 msgid "Extracting the data from the JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Tiedon purkaminen JSON-RPC-vastauksesta epäonnistui: %s\n"
 
 #: client/ipa-join.c:945 client/ipa-join.c:1025
 #, c-format
 msgid "json_pack_ex() failed: %s\n"
-msgstr ""
+msgstr "json_pack_ex() epäonnistui: %s\n"
 
 #: client/ipa-join.c:1041 client/ipa-join.c:1120
 #, c-format
 msgid "Unenrollment successful.\n"
-msgstr ""
+msgstr "Rekisteröinnin purkaminen onnistui.\n"
 
 #: client/ipa-join.c:1044 client/ipa-join.c:1123
 #, c-format
 msgid "Unenrollment failed.\n"
-msgstr ""
+msgstr "Rekisteröinnin purkaminen epäonnistui.\n"
 
 #: client/ipa-join.c:1128
 #, c-format
 msgid "result not found in XML-RPC response\n"
-msgstr ""
+msgstr "tulosta ei löydy XML-RPC-vastauksesta\n"
 
 #: client/ipa-join.c:1170 client/ipa-join.c:1310
 #, c-format
 msgid "Unable to determine IPA server from %s\n"
-msgstr ""
+msgstr "IPA-palvelinta ei voida määrittää kohteesta %s\n"
 
 #: client/ipa-join.c:1182 client/ipa-join.c:1320
 #, c-format
 msgid "Unable to join host: Kerberos context initialization failed\n"
-msgstr ""
+msgstr "Ei voida liittyä isäntään: Kerberos-kontekstin alustus epäonnistui\n"
 
 #: client/ipa-join.c:1189
 #, c-format
 msgid "Unable to join host: Kerberos Credential Cache not found\n"
 msgstr ""
+"Ei voida liittyä isäntään: Kerberos-kirjautumistietovälimuistia ei löydy\n"
 
 #: client/ipa-join.c:1197
 #, c-format
@@ -729,73 +733,76 @@ msgid ""
 "Unable to join host: Kerberos User Principal not found and host password not "
 "provided.\n"
 msgstr ""
+"Ei voida liittyä isäntään: Kerberos User Principalia ei löydy ja "
+"isäntäsalasanaa ei annettu.\n"
 
 #: client/ipa-join.c:1216
 #, c-format
 msgid "fork() failed\n"
-msgstr ""
+msgstr "fork() epäonnistui\n"
 
 #: client/ipa-join.c:1245
 #, c-format
 msgid "ipa-getkeytab not found\n"
-msgstr ""
+msgstr "ipa-getkeytabia ei löydy\n"
 
 #: client/ipa-join.c:1248
 #, c-format
 msgid "ipa-getkeytab has bad permissions?\n"
-msgstr ""
+msgstr "ipa-getkeytabilla on väärät käyttöoikeudet?\n"
 
 #: client/ipa-join.c:1251
 #, c-format
 msgid "executing ipa-getkeytab failed, errno %d\n"
-msgstr ""
+msgstr "ipa-getkeytabin suorittaminen epäonnistui, virhe %d\n"
 
 #: client/ipa-join.c:1263
 #, c-format
 msgid "child exited with %d\n"
-msgstr ""
+msgstr "lapsi poistui viestillä %d\n"
 
 #: client/ipa-join.c:1329
 #, c-format
 msgid "Error resolving keytab: %s.\n"
-msgstr ""
+msgstr "Virhe keytabin selvittämisessä: %s\n"
 
 #: client/ipa-join.c:1338
 #, c-format
 msgid "Error getting default Kerberos realm: %s.\n"
-msgstr ""
+msgstr "Kerberos-oletusalueen hakemisessa tapahtui virhe: %s\n"
 
 #: client/ipa-join.c:1349
 #, c-format
 msgid "Error parsing \"%1$s\": %2$s.\n"
-msgstr ""
+msgstr "Virhe jäsennettäessä \"%1$s\": %2$s.\n"
 
 #: client/ipa-join.c:1368
 #, c-format
 msgid "Error obtaining initial credentials: %s.\n"
-msgstr ""
+msgstr "Virhe ensimmäisten tunnistetietojen hankinnassa: %s\n"
 
 #: client/ipa-join.c:1380 client/ipa-join.c:1388
 #, c-format
 msgid "Unable to generate Kerberos Credential Cache\n"
-msgstr ""
+msgstr "Kerberos-kirjautumistietovälimuistia ei voi luoda\n"
 
 #: client/ipa-join.c:1397
 #, c-format
 msgid "Error storing creds in credential cache: %s.\n"
 msgstr ""
+"Virhe tallennettaessa valtuustietoja kirjautumistietojen välimuistiin: %s\n"
 
 #: client/ipa-join.c:1453
 msgid "Print the raw XML-RPC output in GSSAPI mode"
-msgstr ""
+msgstr "Tulosta XML-RPC-raaka-tuloste GSSAPI-tilassa"
 
 #: client/ipa-join.c:1455
 msgid "Quiet mode. Only errors are displayed."
-msgstr ""
+msgstr "Hiljainen tila. Vain virheet näytetään."
 
 #: client/ipa-join.c:1457
 msgid "Unenroll this host from IPA server"
-msgstr ""
+msgstr "Poista tämän koneen rekisteröinti IPA-palvelimelta"
 
 #: client/ipa-join.c:1459
 msgid "Hostname of this server"
