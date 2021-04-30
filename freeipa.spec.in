@@ -160,6 +160,16 @@
 %global systemd_version 239
 %endif
 
+# augeas support for new chrony options
+# see https://pagure.io/freeipa/issue/8676
+# Note: will need to be updated for RHEL9 when a fix is available for
+# https://bugzilla.redhat.com/show_bug.cgi?id=1931787
+%if 0%{?fedora} >= 33
+%global augeas_version 1.12.0-6
+%else
+%global augeas_version 1.12.0-3
+%endif
+
 %global plugin_dir %{_libdir}/dirsrv/plugins
 %global etc_systemd_dir %{_sysconfdir}/systemd/system
 %global gettext_domain ipa
@@ -496,6 +506,7 @@ Requires: %{name}-common = %{version}-%{release}
 # we need pre-requires since earlier versions may break upgrade
 Requires(pre): python3-ldap >= %{python_ldap_version}
 Requires: python3-augeas
+Requires: augeas-libs >= %{augeas_version}
 Requires: python3-custodia >= 0.3.1
 Requires: python3-dbus
 Requires: python3-dns >= 1.15
@@ -719,6 +730,7 @@ Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python3-ipalib = %{version}-%{release}
 Requires: python3-augeas
+Requires: augeas-libs >= %{augeas_version}
 Requires: python3-dns >= 1.15
 Requires: python3-jinja2
 
