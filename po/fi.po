@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2021-04-30 19:02+0000\n"
+"PO-Revision-Date: 2021-05-03 20:02+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.6\n"
+"X-Generator: Weblate 4.6.1\n"
 
 #: client/ipa-rmkeytab.c:51
 #, c-format
@@ -185,17 +185,17 @@ msgstr ""
 #: client/ipa-getkeytab.c:84
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
-msgstr ""
+msgstr "Kerberos-kontekstin alustus epäonnistui: %1$s (%2$d)\n"
 
 #: client/ipa-getkeytab.c:95
 #, c-format
 msgid "Unable to parse principal: %1$s (%2$d)\n"
-msgstr ""
+msgstr "Prinsipaalin jäsentäminen ei onnistu: %1$s (%2$d)\n"
 
 #: client/ipa-getkeytab.c:150
 #, c-format
 msgid "No keys accepted by KDC\n"
-msgstr ""
+msgstr "KDC ei hyväksy avaimia\n"
 
 #: client/ipa-getkeytab.c:168
 #, c-format
@@ -205,11 +205,11 @@ msgstr "Muisti loppui \n"
 #: client/ipa-getkeytab.c:191
 #, c-format
 msgid "Unable to initialize ldap library!\n"
-msgstr ""
+msgstr "LDAP-kirjaston alustaminen epäonnistui!\n"
 
 #: client/ipa-getkeytab.c:207
 msgid "Simple bind failed\n"
-msgstr ""
+msgstr "Yksinkertainen sidonta epäonnistui\n"
 
 #: client/ipa-getkeytab.c:221 client/ipa-join.c:261
 msgid "SASL Bind failed\n"
@@ -223,32 +223,32 @@ msgstr "Toimenpide epäonnistui: %s\n"
 #: client/ipa-getkeytab.c:261
 #, c-format
 msgid "Failed to get result: %s\n"
-msgstr ""
+msgstr "Tuloksen saaminen epäonnistui: %s\n"
 
 #: client/ipa-getkeytab.c:265
 #, c-format
 msgid "Timeout exceeded."
-msgstr ""
+msgstr "Aikakatkaisu ylitetty."
 
 #: client/ipa-getkeytab.c:271
 #, c-format
 msgid "Failed to parse extended result: %s\n"
-msgstr ""
+msgstr "Laajennetun tuloksen jäsentäminen epäonnistui: %s\n"
 
 #: client/ipa-getkeytab.c:278
 #, c-format
 msgid "Failed to parse result: %s\n"
-msgstr ""
+msgstr "Tuloksen jäsentäminen epäonnistui: %s\n"
 
 #: client/ipa-getkeytab.c:297
 #, c-format
 msgid "Missing reply control list!\n"
-msgstr ""
+msgstr "Puuttuu vastausten tarkistusluettelo!\n"
 
 #: client/ipa-getkeytab.c:307
 #, c-format
 msgid "Missing reply control!\n"
-msgstr ""
+msgstr "Puuttuu vastausten tarkistus!\n"
 
 #: client/ipa-getkeytab.c:349
 #, c-format
@@ -258,7 +258,7 @@ msgstr "Muisti loppui!\n"
 #: client/ipa-getkeytab.c:356 client/ipa-getkeytab.c:518
 #, c-format
 msgid "Failed to create control!\n"
-msgstr ""
+msgstr "Tarkistuksen luominen epäonnistui!\n"
 
 #: client/ipa-getkeytab.c:362 client/ipa-getkeytab.c:526
 #, c-format
@@ -814,23 +814,23 @@ msgstr "koneen nimi"
 
 #: client/ipa-join.c:1461
 msgid "IPA Server to use"
-msgstr ""
+msgstr "Käytettävä IPA-palvelin"
 
 #: client/ipa-join.c:1463
 msgid "Specifies where to store keytab information."
-msgstr ""
+msgstr "Määrittää, mihin keytab tiedot tallennetaan."
 
 #: client/ipa-join.c:1463
 msgid "filename"
-msgstr ""
+msgstr "tiedostonimi"
 
 #: client/ipa-join.c:1465
 msgid "Force the host join. Rejoin even if already joined."
-msgstr ""
+msgstr "Pakota kone liittymään. Liity uudelleen, vaikka olisit jo liittynyt."
 
 #: client/ipa-join.c:1467
 msgid "LDAP password (if not using Kerberos)"
-msgstr ""
+msgstr "LDAP-salasana (jos et käytä Kerberosia)"
 
 #: client/ipa-join.c:1467
 msgid "password"
@@ -838,26 +838,26 @@ msgstr "salasana"
 
 #: client/ipa-join.c:1469
 msgid "LDAP basedn"
-msgstr ""
+msgstr "LDAP:in BaseDN"
 
 #: client/ipa-join.c:1469
 msgid "basedn"
-msgstr ""
+msgstr "BaseDN"
 
 #: client/ipa-join.c:1503
 #, c-format
 msgid "Cannot get host's FQDN!\n"
-msgstr ""
+msgstr "Ei voida saada koneen FQDN:ia!\n"
 
 #: client/ipa-join.c:1509
 #, c-format
 msgid "The hostname must be fully-qualified: %s\n"
-msgstr ""
+msgstr "Koneen nimen on oltava täysin määritelty: %s\n"
 
 #: client/ipa-join.c:1515
 #, c-format
 msgid "The hostname must not be: %s\n"
-msgstr ""
+msgstr "Koneen nimi ei voi olla: %s\n"
 
 #: client/config.c:56
 #, c-format
