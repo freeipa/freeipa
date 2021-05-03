@@ -1,12 +1,12 @@
 # Marco Aurélio Krause <ouesten@me.com>, 2015. #zanata
 # Rafael Fontenelle <rafaelff@gnome.org>, 2020.
-# Daniel Lara Souza <daniellarasouza@yahoo.com.br>, 2020.
+# Daniel Lara Souza <daniellarasouza@yahoo.com.br>, 2020, 2021.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-15 20:32+0200\n"
-"PO-Revision-Date: 2020-08-25 16:29+0000\n"
+"PO-Revision-Date: 2021-02-23 13:44+0000\n"
 "Last-Translator: Daniel Lara Souza <daniellarasouza@yahoo.com.br>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
 "projects/freeipa/master/pt_BR/>\n"
@@ -15,69 +15,70 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 4.2.1\n"
+"X-Generator: Weblate 4.4.2\n"
 
 #, c-format
 msgid "Unable to parse principal name\n"
-msgstr ""
+msgstr "Incapaz de analisar o nome principal\n"
 
-#, c-format
+#, c-format, fuzzy
 msgid "krb5_parse_name %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_parse_name %1$d: %2$s\n"
 
 #, c-format
 msgid "Removing principal %s\n"
-msgstr ""
+msgstr "Removendo principal %s\n"
 
 #, c-format
 msgid "Failed to open keytab\n"
-msgstr ""
+msgstr "Falha ao abrir o keytab\n"
 
 #, c-format
 msgid "principal not found\n"
-msgstr ""
+msgstr "Principal não encontrado\n"
 
-#, c-format
+#, c-format, fuzzy
 msgid "krb5_kt_get_entry %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_get_entry %1$d: %2$s\n"
 
 #, c-format
 msgid "Unable to remove entry\n"
-msgstr ""
+msgstr "Incapaz de remover entrada\n"
 
-#, c-format
+#, c-format, fuzzy
 msgid "kvno %d\n"
-msgstr ""
+msgstr "kvno %d\n"
 
-#, c-format
+#, c-format, fuzzy
 msgid "krb5_kt_remove_entry %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
 
 #, c-format
 msgid "Failed to set cursor '%1$s'\n"
-msgstr ""
+msgstr "Falha ao definir o cursor '%1$s'\n"
 
 #, c-format
 msgid "Unable to parse principal\n"
-msgstr ""
+msgstr "Incapaz de analisar o principal\n"
 
-#, c-format
+#, c-format, fuzzy
 msgid "krb5_unparse_name %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_unparse_name %1$d: %2$s\n"
 
 #, c-format
 msgid "realm not found\n"
-msgstr ""
+msgstr "realm não encontrado\n"
 
 msgid "Print debugging information"
-msgstr ""
+msgstr "Imprimir informações de depuração"
 
 msgid "Debugging output"
-msgstr ""
+msgstr "Saída de depuração"
 
 msgid ""
 "The principal to remove from the keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
+"O principal a ser removido do keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 
 #, fuzzy
 #| msgid "Service principal is required"
