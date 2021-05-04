@@ -143,7 +143,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_commands.py
         template: *ci-master-frawhide
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl_1client
 
   fedora-rawhide/test_kerberos_flags:

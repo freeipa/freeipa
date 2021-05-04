@@ -62,7 +62,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_commands.py
         template: *389ds-master-latest
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl_1client
 
   389ds-fedora/test_server_del:
