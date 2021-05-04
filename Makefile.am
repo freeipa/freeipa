@@ -278,26 +278,26 @@ $(top_builddir)/ipapython/version.py:
 .PHONY: acilint
 acilint: $(GENERATED_PYTHON_FILES)
 	cd $(srcdir); \
-	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ./makeaci --validate
+	PYTHONPATH=$(abspath $(top_srcdir)) LANG=C $(PYTHON) ./makeaci --validate
 
 .PHONY: aci
 aci: $(GENERATED_PYTHON_FILES)
 	cd $(srcdir); \
-	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ./makeaci
+	PYTHONPATH=$(abspath $(top_srcdir)) LANG=C $(PYTHON) ./makeaci
 
 .PHONY: apilint
 apilint: $(GENERATED_PYTHON_FILES)
 	cd $(srcdir); \
-	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ./makeapi --validate
+	PYTHONPATH=$(abspath $(top_srcdir)) LANG=C $(PYTHON) ./makeapi --validate
 
 .PHONY: api
 api: $(GENERATED_PYTHON_FILES)
 	cd $(srcdir); \
-	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) ./makeapi
+	PYTHONPATH=$(abspath $(top_srcdir)) LANG=C $(PYTHON) ./makeapi
 
 .PHONY: polint
 polint:
-	$(MAKE) -C $(srcdir)/po PYTHON=$(PYTHON) \
+	$(MAKE) -C $(srcdir)/po LANG=C PYTHON=$(PYTHON) \
 	    validate-src-strings validate-po test-gettext
 
 .PHONY: rpmlint
@@ -319,7 +319,7 @@ yamllint:
 	echo "jinja template files:"; \
 	for YAML in $${YAML_TEMPLATE_FILES}; do \
 		echo $${YAML}; \
-		$(PYTHON) -c "import yaml; f = open('$${YAML}'); yaml.safe_load(f); f.close()" >/dev/null 2>&1 \
+		LANG=C $(PYTHON) -c "import yaml; f = open('$${YAML}'); yaml.safe_load(f); f.close()" >/dev/null 2>&1 \
 		&& { echo Unexpected PASS of parsing yaml: $${YAML}. This file is a regular yaml.; exit 1; }; \
 	done; \
 	YAML_FILES=`find $(top_srcdir) \
@@ -330,7 +330,7 @@ yamllint:
 	echo "-----------"; \
 	for YAML in $${YAML_FILES}; do \
 		echo $${YAML}; \
-		$(PYTHON) -c "import yaml; f = open('$${YAML}'); yaml.safe_load(f); f.close()" || { echo Your YAML file: $${YAML} has a wrong syntax or this is a Jinja template. In the latter clause, consider to add your YAML file to the YAML_TEMPLATE_FILES list in Makefile.am.; exit 1; } \
+		LANG=C $(PYTHON) -c "import yaml; f = open('$${YAML}'); yaml.safe_load(f); f.close()" || { echo Your YAML file: $${YAML} has a wrong syntax or this is a Jinja template. In the latter clause, consider to add your YAML file to the YAML_TEMPLATE_FILES list in Makefile.am.; exit 1; } \
 	done; \
 	echo "-----------"
 
