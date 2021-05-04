@@ -187,6 +187,10 @@ class DogtagInstance(service.Service):
         parameters.
         """
         subsystem = self.subsystem
+        spawn_env = os.environ.copy()
+        timeout = str(api.env.startup_timeout)
+        spawn_env["PKISPAWN_STARTUP_TIMEOUT_SECONDS"] = timeout
+
         args = [paths.PKISPAWN,
                 "-s", subsystem,
                 "-f", cfg_file,
@@ -198,7 +202,7 @@ class DogtagInstance(service.Service):
                 cfg_file, ipautil.nolog_replace(f.read(), nolog_list))
 
         try:
-            ipautil.run(args, nolog=nolog_list)
+            ipautil.run(args, nolog=nolog_list, env=spawn_env)
         except ipautil.CalledProcessError as e:
             self.handle_setup_error(e)
 
