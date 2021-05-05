@@ -150,6 +150,7 @@ steps:
     !*/*.yml
     !*/*.yaml
     !*/*.log
+    !*/systemd_boot_logs/*.log
     !*.tar.gz
     EOF
     cat "$artifacts_ignore_path"
