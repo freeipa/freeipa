@@ -1,5 +1,7 @@
 #!/bin/bash -eux
 
+set -o pipefail
+
 if [ $# -ne 1 ]; then
     echo "Docker environment ID is not provided"
     exit 1
@@ -52,20 +54,30 @@ if [ "$IPA_TESTS_TYPE" == "base" ]; then
     IPA_TESTS_REPLICAS="0"
 fi
 
-function compose_execute() {
-    # execute given command within every container of compose
+# path to env dir outside from container
+project_dir="${IPA_TESTS_ENV_WORKING_DIR}/${IPA_TESTS_ENV_NAME}"
 
-    local containers="${PROJECT_ID}_master_1"
+# path for journal if containers setup fails
+SYSTEMD_BOOT_LOG="${project_dir}/systemd_boot_logs"
+
+BASH_CMD="/bin/bash --noprofile --norc"
+
+function containers() {
+    local _containers="${PROJECT_ID}_master_1"
     # build list of replicas
     for i in $(seq 1 1 "$IPA_TESTS_REPLICAS"); do
-        containers+=" ${PROJECT_ID}_replica_${i}"
+        _containers+=" ${PROJECT_ID}_replica_${i}"
     done
     # build list of clients
     for i in $(seq 1 1 "$IPA_TESTS_CLIENTS"); do
-        containers+=" ${PROJECT_ID}_client_${i}"
+        _containers+=" ${PROJECT_ID}_client_${i}"
     done
+    printf "$_containers"
+}
 
-    for container in $containers; do
+function compose_execute() {
+    # execute given command within every container of compose
+    for container in $(containers); do
         docker exec -t \
             "$container" \
             "$@" \
@@ -74,7 +86,6 @@ function compose_execute() {
     done
 }
 
-project_dir="${IPA_TESTS_ENV_WORKING_DIR}/${IPA_TESTS_ENV_NAME}"
 ln -sfr \
     "${IPA_TESTS_DOCKERFILES}/docker-compose.yml" \
     "$project_dir"/
@@ -107,7 +118,15 @@ IPA_TESTS_ENV_NAME="$IPA_TESTS_ENV_NAME" \
 IPA_TEST_CONFIG_TEMPLATE="${BUILD_REPOSITORY_LOCALPATH}/ipatests/azure/templates/ipa-test-config-template.yaml" \
 IPA_TESTS_REPO_PATH="$IPA_TESTS_REPO_PATH" \
 IPA_TESTS_DOMAIN="$IPA_TESTS_DOMAIN" \
-python3 setup_containers.py
+python3 setup_containers.py || \
+    { mkdir -p "$SYSTEMD_BOOT_LOG";
+      for container in $(containers); do
+          docker exec -t "$container" \
+              $BASH_CMD -eu \
+              -c 'journalctl -b --no-pager' > "${SYSTEMD_BOOT_LOG}/systemd_boot_${container}.log";
+      done
+      exit 1;
+    }
 
 # path to runner within container
 tests_runner="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/azure-run-${IPA_TESTS_TYPE}-tests.sh"
@@ -123,7 +142,7 @@ tests_result=1
     --env IPA_TESTS_TO_IGNORE="$IPA_TESTS_TO_IGNORE" \
     --env IPA_TESTS_ARGS="$IPA_TESTS_ARGS" \
     "$IPA_TESTS_CONTROLLER" \
-    /bin/bash --noprofile --norc \
+    $BASH_CMD \
     -eux "$tests_runner" && tests_result=0 ; } || tests_result=$?
 
 echo "Report disk usage"
