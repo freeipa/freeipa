@@ -537,6 +537,11 @@ class CAInstance(DogtagInstance):
         if os.path.exists(paths.IPA_CA_CRT):
             cfg['pki_cert_chain_path'] = paths.IPA_CA_CRT
 
+        # Use IP address instead of default localhost4 and localhost6
+        # because /etc/hosts does not always define them
+        cfg['pki_ajp_host_ipv4'] = "127.0.0.1"
+        cfg['pki_ajp_host_ipv6'] = "::1"
+
         if self.clone:
             if self.no_db_setup:
                 cfg.update(
