@@ -13,11 +13,7 @@ steps:
         moreutils \
         rng-tools \
         systemd-coredump \
-        python3-docker \
-        software-properties-common
-    sudo add-apt-repository -y ppa:abbra/freeipa-libseccomp
-    sudo apt-get update
-    sudo apt-get install -y libseccomp2
+        python3-docker
   displayName: Install Host's tests requirements
 
 - script: |
