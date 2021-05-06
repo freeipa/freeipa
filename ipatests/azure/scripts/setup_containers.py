@@ -1,9 +1,18 @@
+from __future__ import annotations
+
+from datetime import datetime
 import logging
 import os
 import subprocess
+import time
 
 import docker
 from jinja2 import Template
+
+from typing import NamedTuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import List, Tuple, Union
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
@@ -23,6 +32,11 @@ IPA_TEST_CONFIG_TEMPLATE = os.environ.get(
 
 IPA_TESTS_ENV_DIR = os.path.join(IPA_TESTS_ENV_WORKING_DIR, IPA_TESTS_ENV_NAME)
 IPA_TEST_CONFIG = "ipa-test-config.yaml"
+
+
+class ExecRunReturn(NamedTuple):  # pylint: disable=inherit-non-class #3876
+    exit_code: int
+    output: Tuple[bytes, bytes]
 
 
 class Container:
@@ -62,17 +76,19 @@ class Container:
 
         return self._ipv6
 
-    def execute(self, args):
+    def execute(
+        self, args: Union[str, List[str]], raiseonerr: bool = True
+    ) -> ExecRunReturn:
         """
         Exec an arbitrary command within container
         """
         dcont = self.dclient.containers.get(self.name)
         logging.info("%s: run: %s", dcont.name, args)
-        result = dcont.exec_run(args, demux=True)
+        result: ExecRunReturn = dcont.exec_run(args, demux=True)
         if result.output[0] is not None:
             logging.info("%s: %s", dcont.name, result.output[0])
         logging.info("%s: result: %s", dcont.name, result.exit_code)
-        if result.exit_code:
+        if result.exit_code and raiseonerr:
             logging.error("stderr: %s", result.output[1].decode())
             raise subprocess.CalledProcessError(
                 result.exit_code, args, result.output[1]
@@ -230,6 +246,29 @@ class ContainersGroup:
 
         self.execute_all(["systemctl", "daemon-reload"])
 
+    def wait_systemd_target_reached(
+        self,
+        target_name: str = "default.target",
+        startup_timeout: int = 180,
+    ) -> None:
+        RETRY_DELAY_SEC = 5
+        cmd = ["systemctl", "is-active", "--quiet", target_name]
+        for cont in self.containers:
+            reached = False
+            start = datetime.today()
+            while not reached:
+                result = cont.execute(cmd, raiseonerr=False)
+                reached = result.exit_code == 0
+                if not reached:
+                    elapsed = int((datetime.today() - start).total_seconds())
+                    if elapsed > startup_timeout:
+                        raise RuntimeError(
+                            f"Systemd's target '{target_name}' wasn't reached "
+                            f"in container: '{cont.name}'\n"
+                            f"stderr: {result.output[1].decode('utf-8')}"
+                        )
+                    time.sleep(RETRY_DELAY_SEC)
+
 
 class Controller(Container):
     """
@@ -242,6 +281,12 @@ class Controller(Container):
 
     def append(self, containers_group):
         self.containers_groups.append(containers_group)
+
+    def wait_systemd_target_reached(
+        self, target_name: str = "multi-user.target"
+    ) -> None:
+        for containers_group in self.containers_groups:
+            containers_group.wait_systemd_target_reached(target_name)
 
     def setup_ssh(self):
         """
@@ -368,6 +413,7 @@ controller.append(master)
 controller.append(clients)
 controller.append(replicas)
 
+controller.wait_systemd_target_reached()
 controller.setup_ssh()
 controller.setup_hosts()
 controller.setup_hostname()
