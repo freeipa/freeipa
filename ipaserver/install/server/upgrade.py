@@ -1122,7 +1122,8 @@ def ca_upgrade_schema(ca):
             acme_schema_ldif = path
             break
     else:
-        raise RuntimeError('ACME schema file not found')
+        logger.info('ACME schema is not available')
+        return False
 
     schema_files=[
         '/usr/share/pki/server/conf/schema-certProfile.ldif',
@@ -1530,6 +1531,16 @@ def ca_update_acme_configuration(ca, fqdn):
     """
     Re-apply the templates in case anyting has been updated.
     """
+    logger.info('[Updating ACME configuration]')
+    if not os.path.isdir(os.path.join(paths.PKI_TOMCAT, 'acme')):
+        logger.info('ACME is not deployed, skipping')
+        return
+
+    if not os.path.exists(paths.PKI_ACME_ISSUER_CONF):
+        logger.info('ACME configuration file %s is missing',
+                    paths.PKI_ACME_ISSUER_CONF)
+        return
+
     password = directivesetter.get_directive(
         paths.PKI_ACME_ISSUER_CONF,
         'password',
