@@ -25,7 +25,8 @@ RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
     && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config \
     && systemctl enable sshd \
     && for i in /usr/lib/systemd/system/*-domainname.service; \
-    do sed -i 's#^ExecStart=/#ExecStart=-/#' $i ; done
+    do sed -i 's#^ExecStart=/#ExecStart=-/#' $i ; done \
+    && systemctl set-default multi-user.target
 
 STOPSIGNAL RTMIN+3
 VOLUME ["/freeipa", "/run", "/tmp"]
