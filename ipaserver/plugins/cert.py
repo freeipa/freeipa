@@ -1860,7 +1860,9 @@ class cert_find(Search, CertMethod):
         # Do not execute the CA sub-search in CA-less deployment.
         # See https://pagure.io/freeipa/issue/8369.
         if ca_enabled:
-            searches = [self._cert_search, self._ca_search, self._ldap_search]
+            searches = [self._cert_search, self._ca_search]
+            if options.get('status') != 'REVOKED':
+                searches.append(self._ldap_search)
         else:
             searches = [self._cert_search, self._ldap_search]
 
