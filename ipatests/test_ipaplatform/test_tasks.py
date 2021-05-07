@@ -47,10 +47,10 @@ def test_detect_container():
             k, v = item.split('=', 1)
             if k == 'container':
                 container = v
+    elif os.path.isfile("/run/.containerenv"):
+        container = "podman"
+    elif os.path.isfile("/.dockerenv"):
+        container = "docker"
 
     detected = tasks.detect_container()
-    if container == 'oci':
-        # systemd doesn't know about podman
-        assert detected in {'container-other', container}
-    else:
-        assert detected == container
+    assert detected == container
