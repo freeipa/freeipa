@@ -76,16 +76,13 @@ class update_dna_shared_config(Updater):
         called so this loop will wait for 30s max.
 
         In case the server is not able to create the entry
-        The loop gives a grace period of 60s before logging
-        the failure to update the shared config entry and return
+        The loop gives a grace period of slightly more than 60 seconds
+        before it logs a failure and aborts the update.
         """
-
         method = options.get('method', "SASL/GSSAPI")
         protocol = options.get('protocol', "LDAP")
-        dna_bind_method = "dnaRemoteBindMethod"
-        dna_conn_protocol = "dnaRemoteConnProtocol"
 
-        max_wait = 30
+        max_wait = 30  # times 2 second sleep
 
         conn = self.api.Backend.ldap2
         fqdn = self.api.env.host
@@ -121,8 +118,8 @@ class update_dna_shared_config(Updater):
         # time to set the bind method and the protocol in the
         # shared config entries
         for entry in entries:
-            entry[dna_bind_method] = method
-            entry[dna_conn_protocol] = protocol
+            entry["dnaRemoteBindMethod"] = method
+            entry["dnaRemoteConnProtocol"] = protocol
             try:
                 conn.update_entry(entry)
             except errors.EmptyModlist:
