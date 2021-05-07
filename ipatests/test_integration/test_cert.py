@@ -171,15 +171,30 @@ class TestInstallMasterClient(IntegrationTest):
     def test_service_del_revocation(self):
         """Test that removing a service revokes its certificate
 
-           This removes the service created in the previous test
-           and ensures that other certificates are not revoked when
-           one is.
+           Create and revoke a new service ticket on an IPA serve
+           and ensure that other certificates are not revoked.
         """
-        hostname = self.clients[0].hostname
+        hostname = self.master.hostname
         certfile = os.path.join(paths.OPENSSL_CERTS_DIR, "testservice.pem")
+        keyfile = os.path.join(paths.OPENSSL_PRIVATE_DIR, "testservice.key")
 
-        # This assumes that the cert was issued in the previous test
-        certdata = self.clients[0].get_file_contents(certfile)
+        tasks.kinit_admin(self.master)
+
+        cmd_arg = [
+            'ipa-getcert', 'request', '-v', '-w',
+            '-f', certfile,
+            '-k', keyfile,
+            '-K', f'test/{hostname}',
+            '-D', hostname,
+        ]
+        result = self.master.run_command(cmd_arg)
+        request_id = re.findall(r'\d+', result.stdout_text)
+
+        # wait until the certificate is in MONITORING state
+        status = tasks.wait_for_request(self.master, request_id[0], 50)
+        assert status == "MONITORING"
+
+        certdata = self.master.get_file_contents(certfile)
         cert = x509.load_pem_x509_certificate(
             certdata, default_backend()
         )
@@ -190,19 +205,97 @@ class TestInstallMasterClient(IntegrationTest):
         assert "Revoked: False" in result.stdout_text
 
         # Delete the service and confirm the cert is revoked
-        tasks.kinit_admin(self.master)
         self.master.run_command(["ipa", "service-del", f"test/{hostname}"])
         result = self.master.run_command(["ipa", "cert-show", str(serial)])
         assert "Revoked: True" in result.stdout_text
 
         # Get the web cert so we can ensure it isn't revoked
-        certdata = self.clients[0].get_file_contents(paths.HTTPD_CERT_FILE)
+        certdata = self.master.get_file_contents(paths.HTTPD_CERT_FILE)
         cert = x509.load_pem_x509_certificate(
             certdata, default_backend()
         )
         serial = cert.serial_number
         result = self.master.run_command(["ipa", "cert-show", str(serial)])
         assert "Revoked: False" in result.stdout_text
+
+    def test_revoke_cert_on_host_shortname_del(self):
+        """Create a host, issue a cert, delete host by shortname
+
+           Ensure that the certificate was revoked.
+        """
+        shortname = 'testdel'
+        hostname = '{}.{}'.format(shortname, self.clients[0].domain.name)
+        certfile = os.path.join(paths.OPENSSL_CERTS_DIR, "testdel.pem")
+        keyfile = os.path.join(paths.OPENSSL_PRIVATE_DIR, "testdel.key")
+
+        tasks.kinit_admin(self.master)
+        self.master.run_command(["ipa", "host-add", hostname, "--force"])
+
+        # Add managedby so we can request a certificate for one host on
+        # a different one.
+        self.master.run_command(
+            ["ipa", "host-add-managedby", hostname,
+             "--host", self.clients[0].hostname]
+        )
+
+        cmd_arg = [
+            'ipa-getcert', 'request', '-v', '-w',
+            '-f', certfile,
+            '-k', keyfile,
+            '-K', f'host/{hostname}',
+            '-N', hostname,
+            '-D', hostname,
+        ]
+        result = self.clients[0].run_command(cmd_arg)
+        request_id = re.findall(r'\d+', result.stdout_text)
+
+        # wait until the certificate is in MONITORING state
+        status = tasks.wait_for_request(self.clients[0], request_id[0], 50)
+        assert status == "MONITORING"
+
+        # get the serial number
+        certdata = self.clients[0].get_file_contents(certfile)
+        cert = x509.load_pem_x509_certificate(
+            certdata, default_backend()
+        )
+        serial = cert.serial_number
+
+        # Baseline: the cert should not be revoked yet
+        result = self.master.run_command(["ipa", "cert-show", str(serial)])
+        assert "Revoked: False" in result.stdout_text
+
+        # Now delete the host using the shortname and ensure the cert was
+        # revoked
+        self.master.run_command(["ipa", "host-del", shortname])
+        result = self.master.run_command(["ipa", "cert-show", str(serial)])
+        assert "Revoked: True" in result.stdout_text
+
+    def test_cert_find_status(self):
+        """Test that cert-find results are correct
+
+           Search on --status should be limited to only those certs in
+           the CA. We can tell this because searches from LDAP will not
+           be fully filled in, just the serial number. This was used
+           in the past to filter out certs when removing services where
+           the subject is common among a lot of different certificats.
+        """
+        result = self.master.run_command(
+            ["ipa", "cert-find", "--status", "REVOKED", "--raw"]
+        )
+
+        # The result will include # of certs found and a list of certs
+        # We know the order of the output so can loop over it to find
+        # certs with no subject, which would be an error.
+
+        data = result.stdout_text.split('\n')
+
+        subject = None
+        for line in data:
+            if 'subject: ' in line:
+                subject = line.split(':')[1].strip()
+            elif 'serial_number: ' in line:
+                assert subject is not None
+                subject = None
 
     def test_getcert_list_profile(self):
         """
