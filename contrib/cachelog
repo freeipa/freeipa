@@ -1,0 +1,118 @@
+#!/usr/bin/python3
+#
+# Copyright (C) 2021  FreeIPA Contributors see COPYING for license
+#
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import division
+
+from datetime import datetime
+import logging
+import re
+
+from ipapython import admintool
+from ipalib.facts import is_ipa_configured
+
+
+# r'(?P<command>\S+)/1\(.*\): (?P<result>\S+) etime=(?P<etime>\d+)'
+TIME_RE = re.compile(
+    r'\[(?P<date>.*)\] \[.*\].* \[pid \d+:tid \d+\] \[remote .*\] '
+    r'ipa: DEBUG: FINAL: Hits (?P<hits>\d+) Misses (?P<misses>\d+) '
+    r'Size (?P<size>\d+)'
+)
+
+DATE_FORMAT = '%a %b %d %H:%M:%S.%f %Y'
+
+logger = logging.getLogger(__name__)
+
+
+class cachelog(admintool.AdminTool):
+    command_name = "cachelog"
+
+    usage = "%prog [options]"
+    description = "Parse the Apache error log for cache performance data. " \
+                  "Enable debugging by creating /etc/ipa/server.conf with " \
+                  "the contents: [global]\\ndebug = True"
+
+    def __init__(self, options, args):
+        super(cachelog, self).__init__(options, args)
+        self.since = None
+
+    @classmethod
+    def add_options(cls, parser):
+        super(cachelog, cls).add_options(parser, debug_option=True)
+        parser.add_option(
+            "--command",
+            dest="command",
+            action="store",
+            default=None,
+            help="Command to analyze",
+        )
+        parser.add_option(
+            "--start-time",
+            dest="start_time",
+            action="store",
+            default=None,
+            help="time to begin analyzing logfile from, e.g. "
+                 "Fri May 7 16:33:08.0 2021",
+        )
+        parser.add_option(
+            "--file",
+            dest="file",
+            action="store",
+            default="/var/log/httpd/error_log",
+            help="Log file to parse",
+        )
+
+    def validate_options(self):
+        super(cachelog, self).validate_options(needs_root=True)
+
+        if self.options.start_time:
+            self.since = datetime.strptime(
+                self.options.start_time,
+                DATE_FORMAT
+            )
+
+    def run(self):
+        super(cachelog, self).run()
+
+        if not is_ipa_configured():
+            logger.error("IPA server is not configured on this system.")
+            raise admintool.ScriptError()
+
+        with open(self.options.file, 'r') as f:
+            data = f.read()
+
+        matches = list(re.finditer(TIME_RE, data))
+
+        hits = 0
+        misses = 0
+        count = 0
+
+        for match in matches:
+            if self.since:
+                logtime = datetime.strptime(match.group('date'), DATE_FORMAT)
+                if logtime < self.since:
+                    continue
+            hits += int(match.group('hits'))
+            misses += int(match.group('misses'))
+            count += 1
+
+        print('Total reads %d, hits %d, misses %d, avg %1.4f' %
+              (hits + misses, hits, misses, hits / (hits + misses)))
+
+
+if __name__ == '__main__':
+    cachelog.run_cli()
