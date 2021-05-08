@@ -126,6 +126,9 @@ jobs:
     - script: |
         set -e
         echo "Running WebUI unit tests"
+        # PhantomJS is not compatible with OpenSSL 1.1.1
+        # https://github.com/wch/webshot/pull/93
+        export OPENSSL_CONF=whatever
         cd $(builddir)/install/ui/js/libs && make
         cd $(builddir)/install/ui && npm install
         cd $(builddir)/install/ui && node_modules/grunt/bin/grunt --verbose test
