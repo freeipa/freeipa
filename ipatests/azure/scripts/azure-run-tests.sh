@@ -149,16 +149,28 @@ echo "Report disk usage"
 compose_execute df -h
 
 echo "Report memory statistics"
-files="
-/sys/fs/cgroup/memory/memory.memsw.failcnt
-/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes
-/sys/fs/cgroup/memory/memory.memsw.max_usage_in_bytes
-/sys/fs/cgroup/memory/memory.failcnt
-/sys/fs/cgroup/memory/memory.max_usage_in_bytes
-/sys/fs/cgroup/memory/memory.limit_in_bytes
-/proc/sys/vm/swappiness
-"
-compose_execute head -n 1 $files
+files='/sys/fs/cgroup/memory/memory.memsw.failcnt \
+/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes \
+/sys/fs/cgroup/memory/memory.memsw.max_usage_in_bytes \
+/sys/fs/cgroup/memory/memory.failcnt \
+/sys/fs/cgroup/memory/memory.max_usage_in_bytes \
+/sys/fs/cgroup/memory/memory.limit_in_bytes \
+/proc/sys/vm/swappiness \
+'
+
+MEMORY_STATS_PATH="$project_dir/memory.stats"
+compose_execute $BASH_CMD -eu -c \
+    "for file in $files; do printf '%s=%s\n' \"\$file\" \"\$(head -n 1 \$file)\" ; done" > "$MEMORY_STATS_PATH"
+
+sed -E -n \
+    's/(.*): .*(memory\.(memsw\.)?failcnt)=([0-9]+)/\1 \2 \4/p' \
+    "$MEMORY_STATS_PATH" | \
+tr -d '\r' | \
+while read -r container memtype failcnt; do
+   if [ "$failcnt" -gt 0 ]; then
+      grep "^$container.*memory\..*" "$MEMORY_STATS_PATH" >> "$project_dir/memory.warnings"
+   fi
+done
 
 pushd "$project_dir"
 BUILD_REPOSITORY_LOCALPATH="$BUILD_REPOSITORY_LOCALPATH" \
