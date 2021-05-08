@@ -21,10 +21,6 @@ vms:
     tests:
     - test_integration/test_external_ca.py::TestExternalCAInstall
 
-  - container_job: membermanager
-    tests:
-    - test_integration/test_membermanager.py
-
 - vm_jobs:
   # Temporarily disabled because of https://pagure.io/freeipa/issue/8496
   # - container_job: InstallDNSSECFirst
@@ -51,13 +47,6 @@ vms:
     tests:
     - test_integration/test_external_ca.py::TestExternalCAProfileScenarios
 
-  # requires external DNS configuration, this is not set up yet
-  # - container_job: authselect
-  #   containers:
-  #     clients: 1
-  #   tests:
-  #   - test_integration/test_authselect.py
-
 - vm_jobs:
   - container_job: sudo
     containers:
@@ -78,10 +67,6 @@ vms:
     - test_integration/test_topologies.py
     - test_integration/test_testconfig.py
 
-  - container_job: external_ca_SelfExternalSelf
-    tests:
-    - test_integration/test_external_ca.py::TestSelfExternalSelf
-
   - container_job: external_ca_ExternalCAConstraints
     containers:
       clients: 1
@@ -89,11 +74,22 @@ vms:
     - test_integration/test_external_ca.py::TestExternalCAConstraints
 
 - vm_jobs:
-  # Requires more memory per container and fails reliably
-  #  - container_job: commands
-  #    tests:
-  #    - test_integration/test_commands.py
+  - container_job: commands
+    containers:
+      replicas: 1
+      clients: 1
+    tests:
+    - test_integration/test_commands.py
 
+  - container_job: upgrade
+    tests:
+    - test_integration/test_upgrade.py
+
+  - container_job: membermanager
+    tests:
+    - test_integration/test_membermanager.py
+
+- vm_jobs:
   - container_job: ServerReplicaCALessToCAFull
     tests:
     - test_integration/test_caless.py::TestServerReplicaCALessToCAFull
@@ -106,8 +102,34 @@ vms:
     tests:
     - test_integration/test_replica_promotion.py::TestSubCAkeyReplication
 
+  - container_job: adtrust_install
+    tests:
+    - test_integration/test_adtrust_install.py
+    containers:
+      replicas: 1
+
+- vm_jobs:
   - container_job: advise
     containers:
       clients: 1
     tests:
     - test_integration/test_advise.py
+
+  - container_job: cert
+    tests:
+    - test_integration/test_cert.py
+    containers:
+      replicas: 1
+      clients: 1
+
+  - container_job: external_ca_SelfExternalSelf
+    tests:
+    - test_integration/test_external_ca.py::TestSelfExternalSelf
+
+  # requires external DNS configuration, this is not set up yet
+  # - container_job: authselect
+  #   containers:
+  #     clients: 1
+  #   tests:
+  #   - test_integration/test_authselect.py
+  #
