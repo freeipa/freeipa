@@ -1,3 +1,14 @@
+default_resources:
+  server:
+    mem_limit: "1800m"
+    memswap_limit: "2500m"
+  replica:
+    mem_limit: "1800m"
+    memswap_limit: "2500m"
+  client:
+    mem_limit: "512m"
+    memswap_limit: "1000m"
+
 vms:
 - vm_jobs:
   - container_job: base

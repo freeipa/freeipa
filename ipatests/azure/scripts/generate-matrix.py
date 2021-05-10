@@ -1,4 +1,6 @@
 import argparse
+import copy
+import pprint
 import json
 
 import yaml
@@ -13,6 +15,7 @@ args = parser.parse_args()
 
 with open(args.azure_template) as f:
     data = yaml.safe_load(f)
+    default_resources = data["default_resources"]
     matrix_jobs = {}
     for vm in data['vms']:
         vm_jobs = vm['vm_jobs']
@@ -33,13 +36,27 @@ with open(args.azure_template) as f:
             )
 
             containers = vm_job.get('containers')
+            cont_resources = copy.deepcopy(default_resources)
             replicas = 0
             clients = 0
             if containers:
                 replicas = containers.get('replicas', 0)
                 clients = containers.get('clients', 0)
+
+                resources = containers.get("resources")
+                if resources:
+                    for cont in ["server", "replica", "client"]:
+                        cont_resources[cont].update(
+                            resources.get(cont, {})
+                        )
+
             jobs[f'ipa_tests_replicas_{job_id}'] = replicas
             jobs[f'ipa_tests_clients_{job_id}'] = clients
+
+            for cont in ["server", "replica", "client"]:
+                for res in ["mem_limit", "memswap_limit"]:
+                    key = f"ipa_tests_{cont}_{res}_{job_id}"
+                    jobs[key] = cont_resources[cont][res]
 
         if len(vm_jobs) > args.max_azure_env_jobs:
             raise ValueError(
@@ -49,5 +66,7 @@ with open(args.azure_template) as f:
         if job_name in matrix_jobs:
             raise ValueError(f"Environment names should be unique:{job_name}")
         matrix_jobs[job_name] = jobs
+
+    pprint.pprint(matrix_jobs)
     print("##vso[task.setVariable variable=matrix;isOutput=true]" +
           json.dumps(matrix_jobs))
