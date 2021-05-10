@@ -1,6 +1,22 @@
+default_resources:
+  server:
+    mem_limit: "2200m"
+    memswap_limit: "3000m"
+  replica:
+    mem_limit: "2200m"
+    memswap_limit: "3000m"
+  client:
+    mem_limit: "512m"
+    memswap_limit: "1000m"
+
 vms:
 - vm_jobs:
   - container_job: InstallMaster
+    containers:
+      resources:
+        server:
+          mem_limit: "3200m"
+          memswap_limit: "4800m"
     tests:
     - test_integration/test_installation.py::TestInstallMaster
 
@@ -14,6 +30,13 @@ vms:
     containers:
       replicas: 1
       clients: 1
+      resources:
+        replica:
+          mem_limit: "2200m"
+          memswap_limit: "3300m"
+        client:
+          mem_limit: "768m"
+          memswap_limit: "1024m"
     tests:
     - test_integration/test_forced_client_reenrollment.py
 
@@ -25,12 +48,20 @@ vms:
   - container_job: InstallDNSSECFirst
     containers:
       replicas: 1
+      resources:
+        replica:
+          mem_limit: "2400m"
+          memswap_limit: "3500m"
     tests:
     - test_integration/test_dnssec.py::TestInstallDNSSECFirst
 
   - container_job: simple_replication
     containers:
       replicas: 1
+      resources:
+        replica:
+          mem_limit: "2400m"
+          memswap_limit: "3500m"
     tests:
     - test_integration/test_simple_replication.py
 
@@ -50,6 +81,10 @@ vms:
   - container_job: sudo
     containers:
       clients: 1
+      resources:
+        server:
+          mem_limit: "2800m"
+          memswap_limit: "4200m"
     tests:
     - test_integration/test_sudo.py
 
@@ -57,6 +92,13 @@ vms:
     containers:
       replicas: 1
       clients: 1
+      resources:
+        replica:
+          mem_limit: "2400m"
+          memswap_limit: "3600m"
+        client:
+          mem_limit: "768m"
+          memswap_limit: "1024m"
     tests:
     - test_integration/test_external_ca.py::TestExternalCA
 
@@ -69,6 +111,10 @@ vms:
   - container_job: external_ca_ExternalCAConstraints
     containers:
       clients: 1
+      resources:
+        client:
+          mem_limit: "768m"
+          memswap_limit: "1024m"
     tests:
     - test_integration/test_external_ca.py::TestExternalCAConstraints
 
@@ -77,12 +123,15 @@ vms:
     containers:
       replicas: 1
       clients: 1
+      resources:
+        server:
+          mem_limit: "3500m"
+          memswap_limit: "4000m"
+        client:
+          mem_limit: "768m"
+          memswap_limit: "1024m"
     tests:
     - test_integration/test_commands.py
-
-  - container_job: upgrade
-    tests:
-    - test_integration/test_upgrade.py
 
   - container_job: membermanager
     tests:
@@ -111,6 +160,10 @@ vms:
   - container_job: advise
     containers:
       clients: 1
+      resources:
+        client:
+          mem_limit: "768m"
+          memswap_limit: "1024m"
     tests:
     - test_integration/test_advise.py
 
@@ -120,10 +173,25 @@ vms:
     containers:
       replicas: 1
       clients: 1
+      resources:
+        replica:
+          mem_limit: "2300m"
+          memswap_limit: "3300m"
 
   - container_job: external_ca_SelfExternalSelf
     tests:
     - test_integration/test_external_ca.py::TestSelfExternalSelf
+
+- vm_jobs:
+  - container_job: upgrade
+    containers:
+      resources:
+        server:
+          mem_limit: "2200m"
+          memswap_limit: "3300m"
+    tests:
+    - test_integration/test_upgrade.py
+
 
   # requires external DNS configuration, this is not set up yet
   # - container_job: authselect

@@ -8,7 +8,8 @@ services:
     security_opt:
     - apparmor:unconfined
     - seccomp:./seccomp.json
-    mem_limit: "1900m"
+    mem_limit: "${IPA_TESTS_SERVER_MEM_LIMIT}"
+    memswap_limit: "${IPA_TESTS_SERVER_MEMSWAP_LIMIT}"
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     - ./ipa-test-config.yaml:/root/.ipa/ipa-test-config.yaml:ro
@@ -25,7 +26,8 @@ services:
     security_opt:
     - apparmor:unconfined
     - seccomp:./seccomp.json
-    mem_limit: "1900m"
+    mem_limit: "${IPA_TESTS_REPLICA_MEM_LIMIT}"
+    memswap_limit: "${IPA_TESTS_REPLICA_MEMSWAP_LIMIT}"
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}:ro
@@ -40,7 +42,8 @@ services:
     security_opt:
     - apparmor:unconfined
     - seccomp:./seccomp.json
-    mem_limit: "536870912"
+    mem_limit: "${IPA_TESTS_CLIENT_MEM_LIMIT}"
+    memswap_limit: "${IPA_TESTS_CLIENT_MEMSWAP_LIMIT}"
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}:ro
