@@ -1426,10 +1426,10 @@ class TestIPACommand(IntegrationTest):
 
         user_kinit = "{password}\n{password}\n{password}\n".format(
             password=password)
-        self.clients[0].run_command([
+        self.master.run_command([
             'kinit', regular_user],
             stdin_text=user_kinit)
-        self.clients[0].run_command([
+        self.master.run_command([
             'kinit', restricted_user],
             stdin_text=user_kinit)
         tasks.kdestroy_all(self.clients[0])
