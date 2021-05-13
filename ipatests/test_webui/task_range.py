@@ -147,6 +147,7 @@ class range_tasks(UI_driver):
             range_type=range_type,
             size=size,
             domain=domain,
+            auto_private_groups=kwargs.get('auto_private_groups'),
             callback=self.check_range_type_mod
         )
 
@@ -173,7 +174,7 @@ class RangeAddFormData:
 
     def __init__(self, cn, base_id, base_rid=None, secondary_base_rid=None,
                  range_type=LOCAL_ID_RANGE, size=50, domain=None,
-                 callback=None):
+                 auto_private_groups='', callback=None):
         self.cn = cn
         self.base_id = base_id
         self.base_rid = base_rid
@@ -181,6 +182,7 @@ class RangeAddFormData:
         self.range_type = range_type
         self.size = size
         self.domain = domain
+        self.auto_private_groups = auto_private_groups
         self.callback = callback
 
     def serialize(self):
@@ -202,6 +204,11 @@ class RangeAddFormData:
             serialized.append(('textbox',
                                'ipasecondarybaserid',
                                str(self.secondary_base_rid)))
+
+        if self.range_type != LOCAL_ID_RANGE:
+            serialized.append(('selectbox',
+                               'ipaautoprivategroups',
+                               self.auto_private_groups))
 
         return serialized
 
