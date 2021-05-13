@@ -86,11 +86,15 @@ class BasePathNamespace:
     NAMED_CONF = "/etc/named.conf"
     NAMED_CONF_BAK = "/etc/named.conf.ipa-backup"
     NAMED_CUSTOM_CONF = "/etc/named/ipa-ext.conf"
+    NAMED_LOGGING_OPTIONS_CONF = "/etc/named/ipa-logging-ext.conf"
     NAMED_CUSTOM_OPTIONS_CONF = "/etc/named/ipa-options-ext.conf"
     NAMED_CONF_SRC = '/usr/share/ipa/bind.named.conf.template'
     NAMED_CUSTOM_CONF_SRC = '/usr/share/ipa/bind.ipa-ext.conf.template'
     NAMED_CUSTOM_OPTIONS_CONF_SRC = (
         '/usr/share/ipa/bind.ipa-options-ext.conf.template'
+    )
+    NAMED_LOGGING_OPTIONS_CONF_SRC = (
+        "/usr/share/ipa/bind.ipa-logging-ext.conf.template"
     )
     NAMED_VAR_DIR = "/var/named"
     NAMED_KEYTAB = "/etc/named.keytab"

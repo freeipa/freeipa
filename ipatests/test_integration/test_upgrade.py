@@ -164,7 +164,12 @@ class TestUpgrade(IntegrationTest):
             paths.NAMED_CUSTOM_OPTIONS_CONF, encoding="utf-8"
         )
         print(opt_conf)
-        return named_conf, custom_conf, opt_conf
+
+        log_conf = self.master.get_file_contents(
+            paths.NAMED_LOGGING_OPTIONS_CONF, encoding="utf-8"
+        )
+        print(log_conf)
+        return named_conf, custom_conf, opt_conf, log_conf
 
     @pytest.mark.skip_if_platform(
         "debian", reason="Debian does not use crypto policy"
@@ -176,17 +181,20 @@ class TestUpgrade(IntegrationTest):
         assert paths.NAMED_CRYPTO_POLICY_FILE in named_conf
 
     def test_current_named_conf(self):
-        named_conf, custom_conf, opt_conf = self.get_named_confs()
-        # verify that both includes are present exactly one time
+        named_conf, custom_conf, opt_conf, log_conf = self.get_named_confs()
+        # verify that all includes are present exactly one time
         inc_opt_conf = f'include "{paths.NAMED_CUSTOM_OPTIONS_CONF}";'
         assert named_conf.count(inc_opt_conf) == 1
         inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONF}";'
         assert named_conf.count(inc_custom_conf) == 1
+        inc_log_conf = f'include "{paths.NAMED_LOGGING_OPTIONS_CONF}";'
+        assert named_conf.count(inc_log_conf) == 1
 
         assert "dnssec-validation yes;" in opt_conf
         assert "dnssec-validation" not in named_conf
 
         assert custom_conf
+        assert log_conf
 
     def test_update_named_conf_simple(self):
         # remove files to force a migration
@@ -196,13 +204,15 @@ class TestUpgrade(IntegrationTest):
                 "-f",
                 paths.NAMED_CUSTOM_CONF,
                 paths.NAMED_CUSTOM_OPTIONS_CONF,
+                paths.NAMED_LOGGING_OPTIONS_CONF,
             ]
         )
         self.master.run_command(['ipa-server-upgrade'])
-        named_conf, custom_conf, opt_conf = self.get_named_confs()
+        named_conf, custom_conf, opt_conf, log_conf = self.get_named_confs()
 
         # not empty
         assert custom_conf.strip()
+        assert log_conf.strip()
         # has dnssec-validation enabled in option config
         assert "dnssec-validation yes;" in opt_conf
         assert "dnssec-validation" not in named_conf
@@ -212,6 +222,8 @@ class TestUpgrade(IntegrationTest):
         assert named_conf.count(inc_opt_conf) == 1
         inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONF}";'
         assert named_conf.count(inc_custom_conf) == 1
+        inc_log_conf = f'include "{paths.NAMED_LOGGING_OPTIONS_CONF}";'
+        assert named_conf.count(inc_log_conf) == 1
 
     def test_update_named_conf_old(self):
         # remove files to force a migration
@@ -221,6 +233,7 @@ class TestUpgrade(IntegrationTest):
                 "-f",
                 paths.NAMED_CUSTOM_CONF,
                 paths.NAMED_CUSTOM_OPTIONS_CONF,
+                paths.NAMED_LOGGING_OPTIONS_CONF,
             ]
         )
         # dump an old named conf to verify migration
@@ -233,10 +246,11 @@ class TestUpgrade(IntegrationTest):
         # upgrade
         self.master.run_command(['ipa-server-upgrade'])
 
-        named_conf, custom_conf, opt_conf = self.get_named_confs()
+        named_conf, custom_conf, opt_conf, log_conf = self.get_named_confs()
 
         # not empty
         assert custom_conf.strip()
+        assert log_conf.strip()
         # dnssec-validation is migrated as "disabled" from named.conf
         assert "dnssec-validation no;" in opt_conf
         assert "dnssec-validation" not in named_conf
@@ -246,6 +260,8 @@ class TestUpgrade(IntegrationTest):
         assert named_conf.count(inc_opt_conf) == 1
         inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONF}";'
         assert named_conf.count(inc_custom_conf) == 1
+        inc_log_conf = f'include "{paths.NAMED_LOGGING_OPTIONS_CONF}";'
+        assert named_conf.count(inc_log_conf) == 1
 
     def test_admin_root_alias_upgrade_CVE_2020_10747(self):
         # Test upgrade for CVE-2020-10747 fix
