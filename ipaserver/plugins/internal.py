@@ -1236,6 +1236,7 @@ class i18n_messages(Command):
             "idrange": {
                 "add": _("Add ID range"),
                 "details": _("Range Settings"),
+                "ipaautoprivategroups": _("Auto private groups"),
                 "ipabaseid": _("Base ID"),
                 "ipabaserid": _("Primary RID base"),
                 "ipaidrangesize": _("Range size"),
