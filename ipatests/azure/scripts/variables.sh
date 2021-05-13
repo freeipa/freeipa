@@ -7,6 +7,8 @@ HTTPD_BASEDIR='/etc/httpd'
 HTTPD_ALIASDIR="${HTTPD_BASEDIR}/alias"
 BIND_BASEDIR='/var/named'
 BIND_DATADIR="${BIND_BASEDIR}/data"
+BIND_SYSTEMD_NAME='named-pkcs11.service'
+BIND_LOGGING_OPTIONS_CONF='/etc/named/ipa-logging-ext.conf'
 
 function firewalld_cmd() { :; }
 

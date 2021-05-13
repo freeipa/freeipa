@@ -340,6 +340,7 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         setup_sssd_debugging(host)
         kinit_admin(host)
         if setup_dns:
+            setup_named_debugging(host)
             # fixup DNS zone default TTL for IPA DNS zone
             # For tests we should not wait too long
             set_default_ttl_for_ipa_dns_zone(host, raiseonerr=raiseonerr)
@@ -466,6 +467,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         enable_ds_audit_log(replica, 'on')
         setup_sssd_debugging(replica)
         kinit_admin(replica)
+        if setup_dns:
+            setup_named_debugging(replica)
     else:
         fw.disable_services(fw_services)
     return result
@@ -740,6 +743,34 @@ def setup_sssd_debugging(host):
 
     # Clear the cache and restart SSSD
     clear_sssd_cache(host)
+
+
+def setup_named_debugging(host):
+    """
+    Sets debug level to debug in each section of custom logging config
+    """
+
+    host.run_command(
+        [
+            "sed",
+            "-i",
+            "s/severity info;/severity debug;/",
+            paths.NAMED_LOGGING_OPTIONS_CONF,
+        ],
+    )
+    host.run_command(["cat", paths.NAMED_LOGGING_OPTIONS_CONF])
+    result = host.run_command(
+        [
+            "python3",
+            "-c",
+            (
+                "from ipaplatform.services import knownservices; "
+                "print(knownservices.named.systemd_name)"
+            ),
+        ]
+    )
+    service_name = result.stdout_text.strip()
+    host.run_command(["systemctl", "restart", service_name])
 
 
 @contextmanager
