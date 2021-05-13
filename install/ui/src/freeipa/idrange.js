@@ -82,6 +82,13 @@ return {
                             name: 'ipanttrusteddomainsid',
                             label: '@i18n:objects.idrange.ipanttrusteddomainsid',
                             title: '@mo-param:idrange:ipanttrusteddomainsid:label'
+                        },
+                        {
+                            name: 'ipaautoprivategroups',
+                            $type: 'select',
+                            label: '@i18n:objects.idrange.ipaautoprivategroups',
+                            title: '@mo-param:idrange:ipaautoprivategroups:label',
+                            options: IPA.create_options(['', 'true', 'false', 'hybrid'])
                         }
                     ]
                 }
@@ -141,6 +148,13 @@ return {
             {
                 name: 'ipanttrusteddomainname',
                 enabled: false
+            },
+            {
+                name: 'ipaautoprivategroups',
+                $type: 'select',
+                label: '@i18n:objects.idrange.ipaautoprivategroups',
+                default_value: '',
+                options: IPA.create_options(['', 'true', 'false', 'hybrid'])
             }
         ],
         policies: [
@@ -210,6 +224,7 @@ IPA.idrange_adder_policy = function(spec) {
         var baserid_f = that.container.fields.get_field('ipabaserid');
         var secondarybaserid_f = that.container.fields.get_field('ipasecondarybaserid');
         var trusteddomainname_f = that.container.fields.get_field('ipanttrusteddomainname');
+        var autoprivategroups_f = that.container.fields.get_field('ipaautoprivategroups');
 
         var type_v = type_f.get_value()[0];
         var baserid_v = baserid_f.get_value()[0] || '';
@@ -224,9 +239,11 @@ IPA.idrange_adder_policy = function(spec) {
                 disable(baserid_f);
             }
             require(trusteddomainname_f);
+            enable(autoprivategroups_f);
             disable(secondarybaserid_f);
         } else {
             disable(trusteddomainname_f);
+            disable(autoprivategroups_f);
 
             if (IPA.trust_enabled) {
                 require(baserid_f);
