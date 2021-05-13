@@ -46,6 +46,7 @@ dist_app_DATA =				\
 	kerberos.ldif			\
 	bind.ipa-ext.conf.template		\
 	bind.ipa-options-ext.conf.template	\
+	bind.ipa-logging-ext.conf.template	\
 	bind.named.conf.template	\
 	certmap.conf.template		\
 	kdc.conf.template		\

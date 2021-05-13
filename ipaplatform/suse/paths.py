@@ -27,6 +27,7 @@ class SusePathNamespace(BasePathNamespace):
     HTTPD_PASSWORD_CONF = "/etc/apache2/ipa/password.conf"
     NAMED_CUSTOM_CONF = "/etc/named.d/ipa-ext.conf"
     NAMED_CUSTOM_OPTIONS_CONF = "/etc/named.d/ipa-options-ext.conf"
+    NAMED_LOGGING_OPTIONS_CONF = "/etc/named.d/ipa-logging-ext.conf"
     NAMED_VAR_DIR = "/var/lib/named"
     NAMED_MANAGED_KEYS_DIR = "/var/lib/named/dyn"
     OPENSSL_DIR = "/etc/ssl"

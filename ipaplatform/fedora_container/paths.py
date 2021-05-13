@@ -20,6 +20,9 @@ class FedoraContainerPathNamespace(FedoraPathNamespace):
     NAMED_CUSTOM_OPTIONS_CONF = data(
         FedoraPathNamespace.NAMED_CUSTOM_OPTIONS_CONF
     )
+    NAMED_LOGGING_OPTIONS_CONF = data(
+        FedoraPathNamespace.NAMED_LOGGING_OPTIONS_CONF
+    )
     NSSWITCH_CONF = data(FedoraPathNamespace.NSSWITCH_CONF)
     PKI_CONFIGURATION = data(FedoraPathNamespace.PKI_CONFIGURATION)
     SAMBA_DIR = data(FedoraPathNamespace.SAMBA_DIR)
