@@ -48,6 +48,11 @@ if [ "$install_result" -eq 0 ] ; then
 
     sed -ri "s/mode = production/mode = developer/" /etc/ipa/default.conf
     systemctl restart "$HTTPD_SYSTEMD_NAME"
+    # debugging for BIND
+    sed -i "s/severity info;/severity debug;/" "$BIND_LOGGING_OPTIONS_CONF"
+    cat "$BIND_LOGGING_OPTIONS_CONF"
+    systemctl restart "$BIND_SYSTEMD_NAME"
+
     firewalld_cmd --add-service={freeipa-ldap,freeipa-ldaps,dns}
 
     echo ${server_password} | kinit admin && ipa ping
