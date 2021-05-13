@@ -35,6 +35,7 @@ from pytest_multihost import make_multihost_fixture
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
+from ipaplatform.constants import constants
 from . import fips
 from .config import Config
 from .env_config import get_global_config
@@ -43,6 +44,8 @@ from . import tasks
 logger = logging.getLogger(__name__)
 
 CLASS_LOGFILES = [
+    # BIND logs
+    os.path.join(paths.NAMED_VAR_DIR, constants.NAMED_DATA_DIR),
     # dirsrv logs
     paths.VAR_LOG_DIRSRV,
     # IPA install logs
