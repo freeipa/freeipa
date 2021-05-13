@@ -20,6 +20,9 @@ class RHELContainerPathNamespace(RHELPathNamespace):
     NAMED_CUSTOM_OPTIONS_CONF = data(
         RHELPathNamespace.NAMED_CUSTOM_OPTIONS_CONF
     )
+    NAMED_LOGGING_OPTIONS_CONF = data(
+        RHELPathNamespace.NAMED_LOGGING_OPTIONS_CONF
+    )
     NSSWITCH_CONF = data(RHELPathNamespace.NSSWITCH_CONF)
     PKI_CONFIGURATION = data(RHELPathNamespace.PKI_CONFIGURATION)
     SAMBA_DIR = data(RHELPathNamespace.SAMBA_DIR)
