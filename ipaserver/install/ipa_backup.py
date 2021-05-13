@@ -125,6 +125,7 @@ class Backup(admintool.AdminTool):
         paths.NAMED_CONF,
         paths.NAMED_CUSTOM_CONF,
         paths.NAMED_CUSTOM_OPTIONS_CONF,
+        paths.NAMED_LOGGING_OPTIONS_CONF,
         paths.NAMED_KEYTAB,
         paths.RESOLV_CONF,
         paths.SYSCONFIG_PKI_TOMCAT,

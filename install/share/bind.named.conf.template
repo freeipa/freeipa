@@ -4,6 +4,7 @@
  *
  *
  * - $NAMED_CUSTOM_OPTIONS_CONF (for options)
+ * - $NAMED_LOGGING_OPTIONS_CONF (for logging options)
  * - $NAMED_CUSTOM_CONF (all other settings)
  */
 
@@ -37,6 +38,7 @@ logging {
 		severity dynamic;
 		print-time yes;
 	};
+	include "$NAMED_LOGGING_OPTIONS_CONF";
 };
 
 ${NAMED_ZONE_COMMENT}zone "." IN {
