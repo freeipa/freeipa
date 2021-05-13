@@ -21,12 +21,13 @@
 Trust tests
 """
 
+import pytest
+
 import ipatests.test_webui.data_group as group
 import ipatests.test_webui.data_idviews as idview
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
-from ipatests.test_webui.task_range import range_tasks
-import pytest
+from ipatests.test_webui.task_range import TRUSTED_ID_RANGE, range_tasks
 
 ENTITY = 'trust'
 CONFIG_ENTITY = 'trustconfig'
@@ -159,6 +160,37 @@ class test_trust(trust_tasks):
         self.navigate_to_entity('idrange')
         self.assert_record_value('Active Directory trust range with POSIX attributes', range_pkey, column)
         self.delete_record(range_pkey)
+
+    @screenshot
+    def test_range_auto_private_groups(self):
+        self.init_app()
+
+        r_tasks = range_tasks()
+        r_tasks.driver = self.driver
+        r_tasks.config = self.config
+        r_tasks.get_shifts()
+
+        trust_data = self.get_data()
+        self.add_record(ENTITY, trust_data, navigate=True)
+
+        range_pkeys = []
+        try:
+            for auto_private_groups in ['true', 'false', 'hybrid']:
+                pkey = 'itest-range-apg-{}'.format(auto_private_groups)
+                form_data = r_tasks.get_add_form_data(
+                    pkey,
+                    range_type=TRUSTED_ID_RANGE,
+                    domain=trust_data['pkey'],
+                    auto_private_groups=auto_private_groups
+                )
+                range_data = r_tasks.get_data(pkey, form_data=form_data)
+                self.add_record('idrange', range_data, navigate=True)
+                range_pkeys.append(pkey)
+        finally:
+            self.navigate_to_entity(ENTITY)
+            self.delete_record(trust_data['pkey'])
+            self.navigate_to_entity('idrange')
+            self.delete_record(range_pkeys)
 
     @screenshot
     def test_config_mod(self):
