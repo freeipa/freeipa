@@ -36,6 +36,7 @@ class DebianPathNamespace(BasePathNamespace):
     NAMED_CONF_BAK = "/etc/bind/named.conf.ipa-backup"
     NAMED_CUSTOM_CONF = "/etc/bind/ipa-ext.conf"
     NAMED_CUSTOM_OPTIONS_CONF = "/etc/bind/ipa-options-ext.conf"
+    NAMED_LOGGING_OPTIONS_CONF = "/etc/bind/ipa-logging-ext.conf"
     NAMED_VAR_DIR = "/var/cache/bind"
     NAMED_KEYTAB = "/etc/bind/named.keytab"
     NAMED_RFC1912_ZONES = "/etc/bind/named.conf.default-zones"

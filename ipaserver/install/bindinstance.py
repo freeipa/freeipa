@@ -884,6 +884,7 @@ class BindInstance(service.Service):
             NAMED_CONF=paths.NAMED_CONF,
             NAMED_CUSTOM_CONF=paths.NAMED_CUSTOM_CONF,
             NAMED_CUSTOM_OPTIONS_CONF=paths.NAMED_CUSTOM_OPTIONS_CONF,
+            NAMED_LOGGING_OPTIONS_CONF=paths.NAMED_LOGGING_OPTIONS_CONF,
             NAMED_DATA_DIR=constants.NAMED_DATA_DIR,
             NAMED_ZONE_COMMENT=constants.NAMED_ZONE_COMMENT,
             NAMED_DNSSEC_VALIDATION=self._get_dnssec_validation(),
@@ -1082,7 +1083,11 @@ class BindInstance(service.Service):
             (
                 paths.NAMED_CUSTOM_OPTIONS_CONF_SRC,
                 paths.NAMED_CUSTOM_OPTIONS_CONF
-            )
+            ),
+            (
+                paths.NAMED_LOGGING_OPTIONS_CONF_SRC,
+                paths.NAMED_LOGGING_OPTIONS_CONF,
+            ),
         )
         for src, dest in user_configs:
             if not os.path.exists(dest):
