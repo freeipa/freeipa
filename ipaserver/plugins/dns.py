@@ -555,6 +555,13 @@ def get_reverse_zone(ipaddr):
                 'All nameservers failed to answer the query '
                 'for DNS reverse zone %(revdns)s') % dict(revdns=revdns)
         )
+    except dns.resolver.Timeout:
+        raise errors.NotFound(
+            reason=_(
+                "No answers could be found in the specified lifetime "
+                "for DNS reverse zone %(revdns)s"
+            ) % dict(revdns=revdns)
+        )
 
     try:
         api.Command['dnszone_show'](revzone)
