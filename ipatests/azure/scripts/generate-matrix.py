@@ -28,6 +28,9 @@ with open(args.azure_template) as f:
             jobs[f'ipa_tests_type_{job_id}'] = vm_job.get(
                 'type', 'integration')
             jobs[f'ipa_tests_args_{job_id}'] = vm_job.get('args', '')
+            jobs[f'ipa_tests_network_internal_{job_id}'] = vm_job.get(
+                'isolated', 'false'
+            )
 
             containers = vm_job.get('containers')
             replicas = 0
