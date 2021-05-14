@@ -90,6 +90,7 @@ def parse_options():
         help="nfs domain for idmapd.conf",
     )
     parser.add_option(
+        "-d",
         "--debug",
         dest="debug",
         action="store_true",
