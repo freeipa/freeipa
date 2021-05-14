@@ -28,13 +28,29 @@ server_password=Secret123
 
 echo "Installing FreeIPA master for the domain ${IPA_TESTS_DOMAIN} and realm ${IPA_TESTS_REALM}"
 
+case "$IPA_NETWORK_INTERNAL" in
+    true )
+    AUTO_FORWARDERS='--no-forwarders'
+    ;;
+
+    false )
+    AUTO_FORWARDERS='--auto-forwarders'
+    ;;
+
+    * )
+    echo "Unsupported value for IPA_NETWORK_INTERNAL: '$IPA_NETWORK_INTERNAL'"
+    exit 1
+    ;;
+esac
+
 install_result=1
 { ipa-server-install -U \
     --domain "$IPA_TESTS_DOMAIN" \
     --realm "$IPA_TESTS_REALM" \
     -p "$server_password" -a "$server_password" \
-    --setup-dns --setup-kra --auto-forwarders && install_result=0 ; } || \
-    install_result=$?
+    --setup-dns --setup-kra \
+    $AUTO_FORWARDERS \
+    && install_result=0 ; } || install_result=$?
 
 rm -rf "$IPA_TESTS_LOGSDIR"
 mkdir "$IPA_TESTS_LOGSDIR"

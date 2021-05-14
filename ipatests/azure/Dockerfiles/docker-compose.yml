@@ -56,3 +56,4 @@ networks:
       driver: default
       config:
       - subnet: ${IPA_IPV6_SUBNET}
+    internal: ${IPA_NETWORK_INTERNAL}
