@@ -13,6 +13,7 @@ vms:
     - test_xmlrpc/test_dns_plugin.py
     args: "-k 'not test_dns_soa'"
     type: base
+    isolated: "true"
 
   - container_job: xmlrpc
     tests:
@@ -20,3 +21,4 @@ vms:
     ignore:
     - test_xmlrpc/test_dns_plugin.py
     type: base
+    isolated: "true"
