@@ -17,14 +17,14 @@
 .\"
 .TH "IPA-EPN" "1" "April 24, 2020" "IPA" "IPA Manual Pages"
 .SH "NAME"
-ipa\-epn \- Send expiring password nofications
+ipa\-epn \- Send expiring password notifications
 .SH "SYNOPSIS"
 ipa\-epn \fR[options\fR]
 
 .SH "DESCRIPTION"
 ipa\-epn provides a method to warn users via email that their IPA account password is about to expire.
 
-It can be used in dry\-run mode which is recommmended during setup. The output is always JSON in this case.
+It can be used in dry\-run mode which is recommended during setup. The output is always JSON in this case.
 
 It can also be launched daily by its systemd timer.
 In this case it will parse its configuration file epn.conf(5) and send an email to users whose passwords are expiring within the defined future date ranges.
@@ -45,10 +45,10 @@ Together, these two CLI options can be used to determine how many emails would b
 The \fB\-\-to\-nbdays\fR CLI option implies \fB\-\-dry\-run\fR.
 .TP
 \fB\-\-from\-nbdays\fR \fI<number of days>\fR
-See \fB\-\-to\-nbdays\fR for an explanation. This option must be used in conjonction with \fB\-\-to\-nbdays\fR.
+See \fB\-\-to\-nbdays\fR for an explanation. This option must be used in conjunction with \fB\-\-to\-nbdays\fR.
 .TP
 \fB\-\-dry\-run\fR
-The \fB\-\-dry\-run\fR CLI option is intented to test ipa\-epn's configuration.
+The \fB\-\-dry\-run\fR CLI option is intended to test ipa\-epn's configuration.
 
 For instance, if notify_ttls is set to 21, 14, 3, \fB\-\-dry-run\fR would display the list of users whose passwords would expire in 21, 14, and 3 days in the future.
 .TP
