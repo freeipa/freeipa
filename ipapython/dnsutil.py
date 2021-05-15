@@ -97,9 +97,19 @@ class DNSResolver(dns.resolver.Resolver):
         )
 
     def reset_ipa_defaults(self):
+        """
+        BIND's default timeout for resolver is 10sec.
+        If that changes then it causes Timeout (instead of SERVFAIL)
+        exception for dnspython if BIND under high load. So, let's make
+        it the same + operation time.
+
+        dnspython default is 2sec
+        """
+        self.timeout = 10 + 2
+
+        # dnspython default is 5sec
+        self.lifetime = min(self.timeout * len(self.nameservers) * 2, 45)
         self.use_search_by_default = True
-        # the default is 5sec
-        self.lifetime = 15
 
     def reset(self):
         super().reset()
@@ -117,6 +127,22 @@ class DNSResolver(dns.resolver.Resolver):
             *args,
             **kwargs,
         )
+
+    def read_resolv_conf(self, *args, **kwargs):
+        """
+        dnspython tries nameservers sequentially(not parallel).
+        IPA controlled BIND always listen on IPv6 if available,
+        so no need to send requests to both IPv4 and IPv6 endpoints
+        of the same NS(though BIND handles this).
+        """
+        super().read_resolv_conf(*args, **kwargs)
+        # deduplicate
+        nameservers = list(dict.fromkeys(self.nameservers))
+        ipv6_loopback = "::1"
+        ipv4_loopback = "127.0.0.1"
+        if ipv6_loopback in nameservers and ipv4_loopback in nameservers:
+            nameservers.remove(ipv4_loopback)
+        self.nameservers = nameservers
 
 
 class DNSZoneAlreadyExists(dns.exception.DNSException):
