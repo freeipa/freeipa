@@ -102,6 +102,7 @@ def parse_options():
         help="force installation by redoing all steps",
     )
     parser.add_option(
+        "-d",
         "--debug",
         dest="debug",
         action="store_true",
