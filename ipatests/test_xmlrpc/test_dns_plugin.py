@@ -83,6 +83,18 @@ zone2_ns_dnsname = DNSName(zone2_ns)
 zone2_rname = u'root.%s' % zone2_absolute
 zone2_rname_dnsname = DNSName(zone2_rname)
 
+zone2_sub = "sub.%s" % zone2_absolute
+zone2_sub_ns = "ns1.%s" % zone2_sub
+zone2_sub_ns_dnsname = DNSName(zone2_sub_ns)
+zone2_sub_rname = "root.%s" % zone2_sub
+zone2_sub_rname_dnsname = DNSName(zone2_sub_rname)
+
+zone2_sub_dnsname = DNSName(zone2_sub)
+zone2_sub_absolute_dnsname = DNSName(zone2_sub)
+zone2_sub_dn = DN(
+    ("idnsname", zone2_sub), api.env.container_dns, api.env.basedn
+)
+
 zone3 = u'zone3.test'
 zone3_dnsname = DNSName(zone3)
 zone3_absolute = u'%s.' % zone3
@@ -96,6 +108,13 @@ zone3_ns2 = u'ns2.%s' % zone3_absolute
 zone3_ns2_dnsname = DNSName(zone3_ns2)
 zone3_rname = u'root.%s' % zone3_absolute
 zone3_rname_dnsname = DNSName(zone3_rname)
+
+zone3a = "zone3a.test"
+zone3a_absolute = "%s." % zone3a
+zone3a_rname = "root.%s" % zone3a_absolute
+
+zone3a_sub = "sub.%s" % zone3a_absolute
+zone3a_sub_rname = "root.%s" % zone3a_sub
 
 zone3_ns2_arec = u'ns2'
 zone3_ns2_arec_dnsname = DNSName(zone3_ns2_arec)
@@ -261,8 +280,8 @@ ptr_revzone3_dnsname = DNSName(ptr_revzone3)
 ptr_revzone3_dn = DN(('idnsname',cnamerev), revzone3_classless2_dn)
 ptr_revzone3_hostname = zone3_ns2
 
-relnxname = u'does-not-exist-test'
-absnxname = u'does.not.exist.test.'
+relnxname = "does-not-exist-test"
+absnxname = "does.not.exist.test."
 
 arec1 = u'172.16.29.111'
 arec2 = u'172.31.254.222'
@@ -449,10 +468,26 @@ class test_dns(Declarative):
             pass
 
     cleanup_commands = [
-        ('dnszone_del', [zone1, zone2, zone3, zone4, zone5, revzone1, revzone2,
-                         revzone3_classless1, revzone3_classless2,
-                         idnzone1, revidnzone1],
-            {'continue': True}),
+        (
+            "dnszone_del",
+            [
+                zone1,
+                zone2,
+                zone2_sub,
+                zone3,
+                zone3a,
+                zone3a_sub,
+                zone4,
+                zone5,
+                revzone1,
+                revzone2,
+                revzone3_classless1,
+                revzone3_classless2,
+                idnzone1,
+                revidnzone1,
+            ],
+            {'continue': True},
+        ),
         ('dnsconfig_mod', [], {'idnsforwarders' : None,
                                'idnsforwardpolicy' : None,
                                'idnsallowsyncptr' : None,
@@ -541,35 +576,50 @@ class test_dns(Declarative):
         ),
 
         dict(
-            desc='Try to create a zone with nonexistent NS entry',
+            desc=f"Parent zone for {zone2} tests",
             command=(
                 'dnszone_add', [zone2], {
-                    'idnssoamname': zone2_ns,
                     'idnssoarname': zone2_rname,
                 }
             ),
-            expected=errors.NotFound(reason='Nameserver \'%s\' does not have a corresponding A/AAAA record' % (zone2_ns)),
+            expected=lambda x, y: True,
+        ),
+
+        dict(
+            desc="Try to create a zone with nonexistent NS entry",
+            command=(
+                "dnszone_add", [zone2_sub], {
+                    "idnssoamname": zone2_sub_ns,
+                    "idnssoarname": zone2_sub_rname,
+                }
+            ),
+            expected=errors.NotFound(
+                reason=(
+                    "Nameserver '%s' does not have a corresponding A/AAAA "
+                    "record" % zone2_sub_ns
+                ),
+            ),
         ),
 
         dict(
             desc='Create a zone with nonexistent NS entry with --force',
             command=(
-                'dnszone_add', [zone2], {
-                    'idnssoamname': zone2_ns,
-                    'idnssoarname': zone2_rname,
-                    'force': True,
+                "dnszone_add", [zone2_sub], {
+                    "idnssoamname": zone2_sub_ns,
+                    "idnssoarname": zone2_sub_rname,
+                    "force": True,
                 }
             ),
             expected={
-                'value': zone2_absolute_dnsname,
+                'value': zone2_sub_absolute_dnsname,
                 'summary': None,
                 'result': {
-                    'dn': zone2_dn,
-                    'idnsname': [zone2_absolute_dnsname],
+                    'dn': zone2_sub_dn,
+                    'idnsname': [zone2_sub_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone2_ns_dnsname],
+                    'idnssoamname': [zone2_sub_ns_dnsname],
                     'nsrecord': nameservers,
-                    'idnssoarname': [zone2_rname_dnsname],
+                    'idnssoarname': [zone2_sub_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -1479,8 +1529,17 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to add unresolvable absolute NS record to %r using dnsrecord_add' % (name_ns),
-            command=('dnsrecord_add', [zone1, name_ns], {'nsrecord': absnxname}),
-            expected=errors.NotFound(reason=u"Nameserver '%s' does not have a corresponding A/AAAA record" % absnxname),
+            command=(
+                "dnsrecord_add",
+                [zone1, name_ns],
+                {"nsrecord": "notexisted.%s" % zone1_absolute},
+            ),
+            expected=errors.NotFound(
+                reason=(
+                    "Nameserver '%s' does not have a corresponding A/AAAA "
+                    "record" % "notexisted.%s" % zone1_absolute
+                ),
+            ),
         ),
 
         dict(
@@ -2140,29 +2199,49 @@ class test_dns(Declarative):
                                      % zone1_permission)
         ),
 
-
         dict(
-            desc='Try to create zone %r with relative nameserver' % zone3,
+            desc=f"Parent zone for {zone3a} tests",
             command=(
-                'dnszone_add', [zone3], {
-                    'idnssoamname': u'ns',
-                    'idnssoarname': zone3_rname,
+                "dnszone_add", [zone3a], {
+                    "idnssoarname": zone3a_rname,
                 }
             ),
-            expected=errors.NotFound(reason=u"Nameserver 'ns.%s' does not have a corresponding A/AAAA record"
-                                            % zone3_absolute)
+            expected=lambda x, y: True,
         ),
 
         dict(
-            desc='Try to create zone %r with nameserver in the zone itself' % zone3,
+            desc="Try to create zone %r with relative nameserver" % zone3a_sub,
             command=(
-                'dnszone_add', [zone3], {
-                    'idnssoamname': zone3_absolute,
-                    'idnssoarname': zone3_rname,
+                "dnszone_add", [zone3a_sub], {
+                    "idnssoamname": "ns",
+                    "idnssoarname": zone3a_sub_rname,
                 }
             ),
-            expected=errors.NotFound(reason=u"Nameserver '%s' does not have a corresponding A/AAAA record"
-                                            % zone3_absolute)
+            expected=errors.NotFound(
+                reason=(
+                    "Nameserver 'ns.%s' does not have a corresponding A/AAAA "
+                    "record" % zone3a_sub
+                )
+            ),
+        ),
+
+        dict(
+            desc=(
+                "Try to create zone %r with nameserver in the zone itself"
+                % zone3a_sub
+            ),
+            command=(
+                "dnszone_add", [zone3a_sub], {
+                    "idnssoamname": zone3a_sub,
+                    "idnssoarname": zone3a_sub_rname,
+                }
+            ),
+            expected=errors.NotFound(
+                reason=(
+                    "Nameserver '%s' does not have a corresponding A/AAAA "
+                    "record" % zone3a_sub
+                )
+            ),
         ),
 
 
