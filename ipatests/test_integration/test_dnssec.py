@@ -4,17 +4,22 @@
 
 from __future__ import absolute_import
 
+import base64
 import logging
 import re
 import subprocess
 import time
+import textwrap
 
 import dns.dnssec
 import dns.name
+import pytest
+import yaml
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
+from ipaplatform.tasks import tasks as platform_tasks
 from ipaplatform.paths import paths
 from ipapython.dnsutil import DNSResolver
 
@@ -318,11 +323,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
             self.replicas[0].ip, root_zone, timeout=300
         ), "Zone %s is not signed (replica)" % root_zone
 
-    def test_chain_of_trust(self):
-        """
-        Validate signed DNS records, using our own signed root zone
-        :return:
-        """
+    def test_delegation(self):
         dnszone_add_dnssec(self.master, example_test_zone)
 
         # delegation
@@ -387,6 +388,10 @@ class TestInstallDNSSECFirst(IntegrationTest):
             rtype="DS"
         ), "No DS record of '%s' returned from replica" % example_test_zone
 
+    def test_chain_of_trust_drill(self):
+        """
+        Validate signed DNS records, using our own signed root zone
+        """
         # extract DSKEY from root zone
         ans = resolve_with_dnssec(self.master.ip, root_zone,
                                   rtype="DNSKEY")
@@ -429,6 +434,100 @@ class TestInstallDNSSECFirst(IntegrationTest):
         # test if signature chains are valid
         self.master.run_command(args)
         self.replicas[0].run_command(args)
+
+    def test_chain_of_trust_delv(self):
+        """
+        Validate signed DNS records, using our own signed root zone
+        """
+        INITIAL_KEY_FMT = '%s initial-key %d %d %d "%s";'
+
+        # delv reports its version on stderr
+        delv_version = self.master.run_command(
+            ["delv", "-v"]
+        ).stderr_text.rstrip().replace("delv ", "")
+        assert delv_version
+
+        delv_version_parsed = platform_tasks.parse_ipa_version(delv_version)
+        if delv_version_parsed < platform_tasks.parse_ipa_version("9.16"):
+            pytest.skip(
+                f"Requires delv >= 9.16(+yaml), installed: '{delv_version}'"
+            )
+
+        # extract DSKEY from root zone
+        ans = resolve_with_dnssec(
+            self.master.ip, root_zone, rtype="DNSKEY"
+        )
+        dnskey_rrset = ans.response.get_rrset(
+            ans.response.answer,
+            dns.name.from_text(root_zone),
+            dns.rdataclass.IN,
+            dns.rdatatype.DNSKEY,
+        )
+        assert dnskey_rrset, "No DNSKEY records received"
+
+        # export trust keys for root zone
+        initial_keys = []
+        for key_rdata in dnskey_rrset:
+            if key_rdata.flags != 257:
+                continue  # it is not KSK
+
+            initial_keys.append(
+                INITIAL_KEY_FMT % (
+                    root_zone,
+                    key_rdata.flags,
+                    key_rdata.protocol,
+                    key_rdata.algorithm,
+                    base64.b64encode(key_rdata.key).decode("utf-8"),
+                )
+            )
+
+        assert initial_keys, "No KSK returned from the root zone"
+
+        trust_anchors = textwrap.dedent(
+            """\
+            trust-anchors {{
+            {initial_key}
+            }};
+            """
+        ).format(initial_key="\n".join(initial_keys))
+        logger.debug("Root zone trust-anchors: %s", trust_anchors)
+
+        # set trusted anchor for our root zone
+        for host in [self.master, self.replicas[0]]:
+            host.put_file_contents(paths.DNSSEC_TRUSTED_KEY, trust_anchors)
+
+        # verify signatures
+        args = [
+            "delv",
+            "+yaml",
+            "+nosplit",
+            "+vtrace",
+            "@127.0.0.1",
+            example_test_zone,
+            "-a",
+            paths.DNSSEC_TRUSTED_KEY,
+            "SOA",
+        ]
+
+        # delv puts trace info on stderr
+        for host in [self.master, self.replicas[0]]:
+            result = host.run_command(args)
+            yaml_data = yaml.safe_load(result.stdout_text)
+
+            query_name_abs = dns.name.from_text(example_test_zone)
+            root_zone_name = dns.name.from_text(root_zone)
+            query_name_rel = query_name_abs.relativize(
+                root_zone_name
+            ).to_text()
+            assert yaml_data["query_name"] == query_name_rel
+            assert yaml_data["status"] == "success"
+
+            assert len(yaml_data["records"]) == 1
+            fully_validated = yaml_data["records"][0]["fully_validated"]
+            fully_validated.sort()
+            assert len(fully_validated) == 2
+            assert f"{example_test_zone} 1 IN RRSIG SOA" in fully_validated[0]
+            assert f"{example_test_zone} 1 IN SOA" in fully_validated[1]
 
     def test_resolvconf(self):
         # check that resolv.conf contains IP address for localhost
