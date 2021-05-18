@@ -878,7 +878,12 @@ Requires: python3-pexpect
 %if 0%{?fedora}
 # These packages do not exist on RHEL and for ipatests use
 # they are installed on the controller through other means
+# https://pagure.io/freeipa/issue/8793
+%if 0%{?fedora} >= 34
+Requires: ldns-utils >= 1.7.1-4
+%else
 Requires: ldns-utils
+%endif
 # update-crypto-policies
 Requires: crypto-policies-scripts
 Requires: python3-polib
