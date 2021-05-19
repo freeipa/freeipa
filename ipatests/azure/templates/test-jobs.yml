@@ -93,7 +93,7 @@ steps:
     printf "SECCOMP:\n"
     grep ' SECCOMP ' "$HOST_JOURNAL" && \
         emit_warning "There are reported SECCOMP syscalls. Please, check the logs."
-    tar --ignore-failed-read -czf "$HOST_JOURNAL_PATH" "$HOST_JOURNAL"
+    tar -czf "$HOST_JOURNAL_PATH" "$HOST_JOURNAL"
   condition: succeededOrFailed()
   displayName: Host's systemd journal
 
