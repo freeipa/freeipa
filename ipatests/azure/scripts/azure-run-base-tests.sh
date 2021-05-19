@@ -14,6 +14,7 @@ function collect_logs() {
     printf "Collecting logs\n"
     journalctl -b --no-pager > systemd_journal.log
     tar --ignore-failed-read -czf "$out_file" \
+        --warning=no-failed-read  \
         /var/log/dirsrv \
         "$HTTPD_LOGDIR" \
         /var/log/ipa* \
