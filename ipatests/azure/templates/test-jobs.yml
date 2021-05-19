@@ -161,6 +161,7 @@ steps:
     !*/*.yaml
     !*/*.log
     !*/systemd_boot_logs/*.log
+    !*/installed_packages/*.log
     !*/memory.stats
     !*.tar.gz
     EOF
