@@ -5,3 +5,7 @@
 function firewalld_cmd() {
     firewall-cmd $@
 }
+
+function installed_packages() {
+    rpm -qa | sort
+}
