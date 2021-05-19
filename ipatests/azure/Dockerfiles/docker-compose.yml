@@ -28,6 +28,7 @@ services:
     mem_limit: "1900m"
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
+    - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}:ro
     networks:
     - ${IPA_NETWORK}
 
@@ -42,6 +43,7 @@ services:
     mem_limit: "536870912"
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
+    - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}:ro
     # nfs server
     - ./exports:/exports
     - /lib/modules:/lib/modules:ro
