@@ -44,12 +44,18 @@ IPA_TESTS_REPLICAS="${!IPA_TESTS_REPLICAS_VARNAME:-0}"
 IPA_TESTS_CONTROLLER="${PROJECT_ID}_master_1"
 IPA_TESTS_LOGSDIR="${IPA_TESTS_REPO_PATH}/ipa_envs/${IPA_TESTS_ENV_NAME}/${CI_RUNNER_LOGS_DIR}"
 
+# path to azure scripts inside container
+IPA_TESTS_SCRIPTS_IN="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}"
+# path to azure scripts outside of container
+IPA_TESTS_SCRIPTS_OUT="${BUILD_REPOSITORY_LOCALPATH}/${IPA_TESTS_SCRIPTS}"
+
 IPA_TESTS_NETWORK_INTERNAL_VARNAME="IPA_TESTS_NETWORK_INTERNAL_${PROJECT_ID}"
 IPA_NETWORK_INTERNAL="${!IPA_TESTS_NETWORK_INTERNAL_VARNAME:-false}"
 
 IPA_TESTS_DOMAIN="${IPA_TESTS_DOMAIN:-ipa.test}"
 # bash4
 IPA_TESTS_REALM="${IPA_TESTS_DOMAIN^^}"
+
 
 # for base tests only 1 master is needed even if another was specified
 if [ "$IPA_TESTS_TYPE" == "base" ]; then
@@ -62,6 +68,9 @@ project_dir="${IPA_TESTS_ENV_WORKING_DIR}/${IPA_TESTS_ENV_NAME}"
 
 # path for journal if containers setup fails
 SYSTEMD_BOOT_LOG="${project_dir}/systemd_boot_logs"
+
+# path to directory where to dump list of packages outside of container
+IPA_INSTALLED_PKGS_DIR="${project_dir}/installed_packages"
 
 BASH_CMD="/bin/bash --noprofile --norc"
 
@@ -132,12 +141,43 @@ python3 setup_containers.py || \
       exit 1;
     }
 
+# collect list of all the installed packages
+mkdir -p "$IPA_INSTALLED_PKGS_DIR"
+
+# controller
+docker exec -t \
+    --env IPA_TESTS_SCRIPTS="${IPA_TESTS_SCRIPTS_IN}" \
+    --env IPA_PLATFORM="$IPA_PLATFORM" \
+    "$IPA_TESTS_CONTROLLER" \
+    $BASH_CMD -eu \
+    -c \
+    "source '${IPA_TESTS_SCRIPTS_IN}/variables.sh' && \
+     echo '# Controller container: $IPA_TESTS_CONTROLLER' && \
+     echo '# IPA platform: '\$IPA_PLATFORM && \
+     installed_packages \
+     " > "${IPA_INSTALLED_PKGS_DIR}/packages_controller_${IPA_TESTS_CONTROLLER}.log"
+
+# workers
+for container in $(containers); do
+    docker exec -t \
+        --env IPA_TESTS_SCRIPTS="${IPA_TESTS_SCRIPTS_IN}" \
+        --env IPA_PLATFORM="$IPA_PLATFORM" \
+        "$container" \
+        $BASH_CMD -eu \
+        -c \
+        "source '${IPA_TESTS_SCRIPTS_IN}/variables.sh' && \
+         echo '# Container: $container' && \
+         echo '# IPA platform: '\$IPA_PLATFORM && \
+         installed_packages \
+         " > "${IPA_INSTALLED_PKGS_DIR}/packages_${container}.log"
+done
+
 # path to runner within container
-tests_runner="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/azure-run-${IPA_TESTS_TYPE}-tests.sh"
+tests_runner="${IPA_TESTS_SCRIPTS_IN}/azure-run-${IPA_TESTS_TYPE}-tests.sh"
 
 tests_result=1
 { docker exec -t \
-    --env IPA_TESTS_SCRIPTS="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}" \
+    --env IPA_TESTS_SCRIPTS="${IPA_TESTS_SCRIPTS_IN}" \
     --env IPA_PLATFORM="$IPA_PLATFORM" \
     --env IPA_TESTS_DOMAIN="$IPA_TESTS_DOMAIN" \
     --env IPA_TESTS_REALM="$IPA_TESTS_REALM" \
