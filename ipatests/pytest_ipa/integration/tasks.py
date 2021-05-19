@@ -1001,7 +1001,9 @@ def uninstall_master(host, ignore_topology_disconnect=True,
                             raiseonerr=False).returncode == 1
     assert host.run_command(['test', '-f', paths.IPA_P11_KIT],
                             raiseonerr=False).returncode == 1
-    assert "IPA CA" not in host.run_command(['trust', 'list']).stdout_text
+    assert "IPA CA" not in host.run_command(
+        ["trust", "list"], log_stdout=False
+    ).stdout_text
 
     if clean:
         Firewall(host).disable_services(["freeipa-ldap", "freeipa-ldaps",
