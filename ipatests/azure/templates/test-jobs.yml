@@ -129,6 +129,11 @@ steps:
     docker start "$CONTAINER_COREDUMP"
 
     docker exec -t \
+        "$CONTAINER_COREDUMP" \
+        /bin/bash --noprofile --norc -eux \
+            "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/wait-for-systemd.sh"
+
+    docker exec -t \
         --env IPA_TESTS_REPO_PATH="${IPA_TESTS_REPO_PATH}" \
         --env IPA_TESTS_SCRIPTS="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}" \
         --env IPA_PLATFORM="${IPA_PLATFORM}" \
