@@ -57,6 +57,8 @@ jobs:
         definition: 'ipatests/azure/azure_definitions/base.yml'
         displayName: Generate Matrix for Base tests
         name: base_matrix
+    - script: python3 $(IPA_TESTS_SCRIPTS)/gating_compare.py
+      displayName: Check for consistency with PR-CI
 
 - job: Lint
   pool:
