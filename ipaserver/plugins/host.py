@@ -871,9 +871,7 @@ class host_del(LDAPDelete):
                 )
 
         if self.api.Command.ca_is_enabled()['result']:
-            certs = self.api.Command.cert_find(
-                subject=fqdn, status='VALID'
-            )['result']
+            certs = self.api.Command.cert_find(host=keys)['result']
             revoke_certs(certs)
 
         return dn
