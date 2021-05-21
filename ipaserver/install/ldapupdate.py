@@ -59,8 +59,10 @@ def get_sub_dict(realm, domain, suffix, fqdn, idstart=None, idmax=None):
     """
     if idstart is None:
         idrange_size = None
+        subid_base_rid = None
     else:
         idrange_size = idmax - idstart + 1
+        subid_base_rid = constants.SUBID_RANGE_START - idrange_size
 
     return dict(
         REALM=realm,
@@ -81,6 +83,7 @@ def get_sub_dict(realm, domain, suffix, fqdn, idstart=None, idmax=None):
         SUBID_RANGE_SIZE=constants.SUBID_RANGE_SIZE,
         SUBID_RANGE_MAX=constants.SUBID_RANGE_MAX,
         SUBID_DNA_THRESHOLD=constants.SUBID_DNA_THRESHOLD,
+        SUBID_BASE_RID=subid_base_rid,
         DOMAIN_HASH=murmurhash3(domain, len(domain), 0xdeadbeef),
         MAX_DOMAIN_LEVEL=constants.MAX_DOMAIN_LEVEL,
         MIN_DOMAIN_LEVEL=constants.MIN_DOMAIN_LEVEL,

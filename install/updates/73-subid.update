@@ -102,7 +102,7 @@ default: cn: ${REALM}_subid_range
 default: ipaBaseID: $SUBID_RANGE_START
 default: ipaIDRangeSize: $SUBID_RANGE_SIZE
 # HACK: RIDs to work around adtrust sidgen issue
-default: ipaBaseRID: eval($SUBID_RANGE_START - $IDRANGE_SIZE)
+default: ipaBaseRID: eval($SUBID_BASE_RID)
 default: ipaNTTrustedDomainSID: S-1-5-21-738065-838566-$DOMAIN_HASH
 # HACK: "ipa-local-subid" range type causes issues with older SSSD clients
 # see https://github.com/SSSD/sssd/issues/5571
