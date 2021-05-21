@@ -31,6 +31,7 @@ dnaScope: $SUFFIX
 dnaThreshold: eval($SUBID_DNA_THRESHOLD)
 dnaSharedCfgDN: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
 dnaExcludeScope: cn=provisioning,$SUFFIX
+dnaInterval: eval($SUBID_COUNT)
 # TODO: enable when 389-DS' DNA plugin supports dnaStepAttr
 # dnaIntervalAttr: ipasubuidcount
 # dnaIntervalAttr: ipasubgidcount
