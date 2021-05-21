@@ -2,7 +2,6 @@
 # Copyright (C) 2021  FreeIPA Contributors see COPYING for license
 #
 
-import random
 import uuid
 
 from ipalib import api
@@ -291,12 +290,8 @@ class subid(LDAPObject):
             _entry_attrs = ldap.get_entry(dn, ["objectclass"])
             entry_attrs["objectclass"] = _entry_attrs["objectclass"]
 
-        # XXX HACK, remove later
-        if subuid == DNA_MAGIC:
-            subuid = self._fake_dna_plugin(ldap, dn, entry_attrs)
-
         entry_attrs["ipasubuidnumber"] = subuid
-        # enforice subuid == subgid for now
+        # enforce subuid == subgid for now
         entry_attrs["ipasubgidnumber"] = subuid
         # hard-coded constants
         entry_attrs["ipasubuidcount"] = constants.SUBID_COUNT
@@ -349,13 +344,6 @@ class subid(LDAPObject):
         filters = [class_filters, subid_filters]
         filters.extend(extra_filters)
         return ldap.combine_filters(filters, rules=ldap.MATCH_ALL)
-
-    def _fake_dna_plugin(self, ldap, dn, entry_attrs):
-        """XXX HACK, remove when 389-DS DNA plugin supports steps"""
-        return (
-            constants.SUBID_RANGE_START
-            + random.randint(1, 32764 - 2) * constants.SUBID_COUNT
-        )
 
 
 @register()

@@ -62,12 +62,8 @@ default:member: cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX
 # The delete-when-empty check is required because IPA uses MOD_REPLACE to
 # set attributes, see https://github.com/389ds/389-ds-base/issues/4597.
 #
-# TODO: remove (ipasubuidnumber>=eval($SUBID_RANGE_START) from
-# self-service permission when 389-DS' DNA plugin supports dnaStepAttr and
-# fake_dna_plugin hack has been removed.
-#
 dn: cn=subids,cn=accounts,$SUFFIX
-add: aci: (targetfilter = "(objectclass=ipasubordinateidentry)")(targetattr="description || ipaowner || ipauniqueid")(targattrfilters = "add=objectClass:(|(objectClass=top)(objectClass=ipasubordinateid)(objectClass=ipasubordinateidentry)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(|(ipasubuidnumber>=eval($SUBID_RANGE_START))(ipasubuidnumber=-1)) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(|(ipasubgidnumber>=eval($SUBID_RANGE_START))(ipasubgidnumber=-1)) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "selfservice: Add subordinate id";allow (add, write) userattr = "ipaowner#SELFDN" and groupdn="ldap:///cn=Self-service subordinate ID,cn=permissions,cn=pbac,$SUFFIX";)
+add: aci: (targetfilter = "(objectclass=ipasubordinateidentry)")(targetattr="description || ipaowner || ipauniqueid")(targattrfilters = "add=objectClass:(|(objectClass=top)(objectClass=ipasubordinateid)(objectClass=ipasubordinateidentry)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(ipasubuidnumber=-1) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(ipasubgidnumber=-1) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "selfservice: Add subordinate id";allow (add, write) userattr = "ipaowner#SELFDN" and groupdn="ldap:///cn=Self-service subordinate ID,cn=permissions,cn=pbac,$SUFFIX";)
 add: aci: (targetfilter = "(objectclass=ipasubordinateidentry)")(targetattr="description || ipaowner || ipauniqueid")(targattrfilters = "add=objectClass:(|(objectClass=top)(objectClass=ipasubordinateid)(objectClass=ipasubordinateidentry)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(|(ipasubuidnumber>=1)(ipasubuidnumber=-1)) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(|(ipasubgidnumber>=1)(ipasubgidnumber=-1)) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "Add subordinate ids to any user";allow (add, write) groupdn="ldap:///cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX";)
 
 # DNA plugin and idrange configuration
@@ -90,6 +86,7 @@ default: dnaScope: $SUFFIX
 default: dnaThreshold: eval($SUBID_DNA_THRESHOLD)
 default: dnaSharedCfgDN: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
 default: dnaExcludeScope: cn=provisioning,$SUFFIX
+default: dnaInterval: eval($SUBID_COUNT)
 # TODO: enable when 389-DS' DNA plugin supports dnaStepAttr
 # add: dnaIntervalAttr: ipasubuidcount
 # add: dnaIntervalAttr: ipasubgidcount
