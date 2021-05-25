@@ -28,19 +28,74 @@
 
 #include "internal.h"
 
+static krb5_error_code forward_access_challenge(krad_packet *req,
+                                                const krad_packet *response,
+                                                krad_packet **_forward)
+{
+    const krb5_data *state;
+    const krb5_data *message;
+    krb5_error_code retval;
+    krad_attrset *attrs;
+
+    state = krad_packet_get_attr(response, krad_attr_name2num("State"), 0);
+    message = krad_packet_get_attr(response, krad_attr_name2num("Reply-Message"), 0);
+
+    if (state == NULL) {
+        otpd_log_err(0, "State attribute is not present in Access-Challenge response");
+        return KRB5_BADMSGTYPE;
+    }
+
+    if (message == NULL) {
+        otpd_log_err(0, "Reply-Message attribute is not present in Access-Challenge response");
+        return KRB5_BADMSGTYPE;
+    }
+
+    retval = krad_attrset_new(ctx.kctx, &attrs);
+    if (retval != 0) {
+        otpd_log_err(retval, "Unable to create new attribute set");
+        return retval;
+    }
+
+    retval = krad_attrset_add(attrs, krad_attr_name2num("State"), state);
+    if (retval != 0) {
+        otpd_log_err(retval, "Unable to add State to attribute set");
+        goto done;
+    }
+
+    retval = krad_attrset_add(attrs, krad_attr_name2num("Reply-Message"), message);
+    if (retval != 0) {
+        otpd_log_err(retval, "Unable to add Reply-Message to attribute set");
+        goto done;
+    }
+
+    retval = krad_packet_new_response(ctx.kctx, SECRET,
+                                      krad_code_name2num("Access-Challenge"),
+                                      attrs, req, _forward);
+
+done:
+    krad_attrset_free(attrs);
+    return retval;
+}
+
 static void forward_cb(krb5_error_code retval, const krad_packet *request,
                        const krad_packet *response, void *data)
 {
-    krad_code code, acpt;
+    krad_code code, acpt, challenge;
     struct otpd_queue_item *item = data;
     (void)request;
 
     acpt = krad_code_name2num("Access-Accept");
+    challenge = krad_code_name2num("Access-Challenge");
     code = krad_packet_get_code(response);
-    if (retval == 0 && code == acpt) {
-        item->sent = 0;
-        retval = krad_packet_new_response(ctx.kctx, SECRET, acpt,
-                                          NULL, item->req, &item->rsp);
+    if (retval == 0) {
+        if (code == acpt) {
+            item->sent = 0;
+            retval = krad_packet_new_response(ctx.kctx, SECRET, acpt,
+                                            NULL, item->req, &item->rsp);
+        } else if (code == challenge) {
+            item->sent = 0;
+            retval = forward_access_challenge(item->req, response, &item->rsp);
+        }
     }
 
     otpd_log_req(item->req, "forward end: %s",
@@ -57,8 +112,8 @@ static void forward_cb(krb5_error_code retval, const krad_packet *request,
 
 krb5_error_code otpd_forward(struct otpd_queue_item **item)
 {
-    krad_attr usernameid, passwordid;
-    const krb5_data *password;
+    krad_attr usernameid, passwordid, stateid;
+    const krb5_data *password, *state;
     krb5_error_code retval;
     char *username;
     krb5_data data;
@@ -82,6 +137,7 @@ krb5_error_code otpd_forward(struct otpd_queue_item **item)
 
     usernameid = krad_attr_name2num("User-Name");
     passwordid = krad_attr_name2num("User-Password");
+    stateid = krad_attr_name2num("State");
 
     /* Set User-Name. */
     data.data = username;
@@ -100,6 +156,16 @@ krb5_error_code otpd_forward(struct otpd_queue_item **item)
     if (retval != 0) {
         krad_attrset_del(ctx.attrs, usernameid, 0);
         goto error;
+    }
+
+    /* Set State. */
+    state = krad_packet_get_attr((*item)->req, stateid, 0);
+    if (state != NULL) {
+        retval = krad_attrset_add(ctx.attrs, stateid, state);
+        if (retval != 0) {
+            krad_attrset_del(ctx.attrs, stateid, 0);
+            goto error;
+        }
     }
 
     /* Forward the request to the RADIUS server. */
