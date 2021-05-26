@@ -263,7 +263,7 @@ After the workshop
 Here are some contact details and resources that may help you after
 the workshop is over:
 
-- IRC: ``#freeipa`` and ``#sssd`` (Freenode)
+- IRC: ``#freeipa`` and ``#sssd`` (Libera.chat)
 
 - ``freeipa-users@lists.fedorahosted.org`` `mailing list
   <https://lists.fedoraproject.org/archives/list/freeipa-users@lists.fedorahosted.org/>`_
