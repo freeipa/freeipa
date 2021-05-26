@@ -76,4 +76,4 @@ Please see the file called COPYING.
 * If you want to participate in actively developing IPA please
   subscribe to the freeipa-devel mailing list at
   https://lists.fedoraproject.org/archives/list/freeipa-devel@lists.fedorahosted.org/ or join
-  us in IRC at <irc://irc.freenode.net/freeipa>
+  us in IRC at <irc://irc.libera.chat/freeipa>
