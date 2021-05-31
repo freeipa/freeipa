@@ -571,6 +571,12 @@ class DsInstance(service.Service):
         inst.setup_ldapi()
         inst.open()
 
+        def get_entry(dn, attrs):
+            return inst.getEntry(dn, attrlist=attrs)
+
+        self.sub_dict['REPLICATION_PLUGIN'] = (
+            replication.get_replication_plugin_name(get_entry))
+
         try:
             ipadomain = IpaDomain(inst, dn=self.suffix.ldap_text())
             ipadomain.create(properties={
@@ -735,7 +741,7 @@ class DsInstance(service.Service):
         self._ldap_mod("pw-logging-conf.ldif")
 
     def __config_version_module(self):
-        self._ldap_mod("version-conf.ldif")
+        self._ldap_mod("version-conf.ldif", self.sub_dict)
 
     def __config_uuid_module(self):
         self._ldap_mod("uuid-conf.ldif")
