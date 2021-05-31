@@ -10,6 +10,8 @@ from ipapython.dn import DN
 import pytest
 
 
+REPL_PLUGIN_NAME_TEMPLATE = 'Multi%s Replication Plugin'
+
 @pytest.mark.tier1
 class TestTopologyPlugin:
     """
@@ -35,12 +37,13 @@ class TestTopologyPlugin:
     @pytest.mark.skipif(os.path.isfile(pwfile) is False,
                         reason="You did not provide a .dmpw file with the DM password")
     def test_topologyplugin(self):
+        supplier = REPL_PLUGIN_NAME_TEMPLATE % 'supplier'
         pluginattrs = {
             u'nsslapd-pluginPath': [u'libtopology'],
             u'nsslapd-pluginVendor': [u'freeipa'],
             u'cn': [u'IPA Topology Configuration'],
             u'nsslapd-plugin-depends-on-named':
-                [u'Multimaster Replication Plugin', u'ldbm database'],
+                [supplier, u'ldbm database'],
             u'nsslapd-topo-plugin-shared-replica-root': [u'dc=example,dc=com'],
             u'nsslapd-pluginVersion': [u'1.0'],
             u'nsslapd-topo-plugin-shared-config-base':
@@ -72,5 +75,13 @@ class TestTopologyPlugin:
                           bind_pw=dm_password)
         entry = self.conn.get_entry(topoplugindn)
         assert(set(entry.keys()) == set(pluginattrs.keys()))
+
+        # Handle different names for replication plugin
+        key = 'nsslapd-plugin-depends-on-named'
+        plugin_dependencies = entry[key]
+        if supplier not in plugin_dependencies:
+            mm = REPL_PLUGIN_NAME_TEMPLATE % 'master'
+            pluginattrs[key] = [mm, 'ldbm database']
+
         for i in checkvalues:
             assert(set(pluginattrs[i]) == set(entry[i]))
