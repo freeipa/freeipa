@@ -360,3 +360,11 @@ SUBID_RANGE_MAX = (2 ** 32) - (2 * SUBID_COUNT)
 SUBID_RANGE_SIZE = SUBID_RANGE_MAX - SUBID_RANGE_START
 # threshold before DNA plugin requests a new range
 SUBID_DNA_THRESHOLD = 500
+
+# moved from ipaserver/install/krainstance.py::KRAInstance to avoid duplication
+# as per https://pagure.io/freeipa/issue/8795
+KRA_TRACKING_REQS = {
+    'auditSigningCert cert-pki-kra': 'caAuditSigningCert',
+    'transportCert cert-pki-kra': 'caTransportCert',
+    'storageCert cert-pki-kra': 'caStorageCert',
+}

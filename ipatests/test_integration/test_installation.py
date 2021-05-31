@@ -20,7 +20,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography import x509 as crypto_x509
 
 from ipalib import x509
-from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.constants import DOMAIN_LEVEL_0, KRA_TRACKING_REQS
 from ipalib.constants import IPA_CA_RECORD
 from ipalib.sysrestore import SYSRESTORE_STATEFILE, SYSRESTORE_INDEXFILE
 from ipapython.dn import DN
@@ -34,7 +34,7 @@ from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipaplatform import services
-from ipaserver.install import krainstance
+
 
 config = get_global_config()
 
@@ -1282,8 +1282,7 @@ class TestInstallMasterKRA(IntegrationTest):
         """
         Test that the KRA subsystem certificates renew properly
         """
-        kra = krainstance.KRAInstance(self.master.domain.realm)
-        for nickname in kra.tracking_reqs:
+        for nickname in KRA_TRACKING_REQS:
             cert = tasks.certutil_fetch_cert(
                 self.master,
                 paths.PKI_TOMCAT_ALIAS_DIR,
