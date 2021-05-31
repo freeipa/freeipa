@@ -15,7 +15,7 @@ nsslapd-topo-plugin-shared-binddngroup: cn=replication managers,cn=sysaccounts,c
 nsslapd-topo-plugin-startup-delay: 20
 nsslapd-pluginId: none
 nsslapd-plugin-depends-on-named: ldbm database
-nsslapd-plugin-depends-on-named: Multimaster Replication Plugin
+nsslapd-plugin-depends-on-named: $REPLICATION_PLUGIN
 nsslapd-pluginVersion: 1.0
 nsslapd-pluginVendor: none
 nsslapd-pluginDescription: none

@@ -231,6 +231,23 @@ def get_ds_version(conn):
     return vendor_version
 
 
+def get_replication_plugin_name(dirsrv_get_entry):
+    # Support renaming of a replication plugin in 389-ds
+    # IPA topology plugin depends on the replication plugin but
+    # 389-ds cannot handle older alias querying in the plugin
+    # configuration with 'nsslapd-plugin-depends-on-named: ..' attribute
+    #
+    # dirsrv_get_entry: function (dn, attrs) -> str
+    # returns entry dictionary
+    try:
+        entry = dirsrv_get_entry(
+            'cn=Multisupplier Replication Plugin,cn=plugins,cn=config',
+            ['cn'])
+        return str(entry['cn'], encoding='utf-8')
+    except Exception:
+        return 'Multimaster Replication Plugin'
+
+
 class ReplicationManager:
     """Manage replication agreements
 
@@ -736,8 +753,13 @@ class ReplicationManager:
         mtent = self.get_mapping_tree_entry()
         dn = mtent.dn
 
+        def get_entry(dn, attrs):
+            return self.conn.get_entry(DN(dn), attrs)
+
+        replication_plugin_name = get_replication_plugin_name(get_entry)
+
         plgent = self.conn.get_entry(
-            DN(('cn', 'Multimaster Replication Plugin'), ('cn', 'plugins'),
+            DN(('cn', replication_plugin_name), ('cn', 'plugins'),
                ('cn', 'config')),
             ['nsslapd-pluginPath'])
         path = plgent.single_value.get('nsslapd-pluginPath')
