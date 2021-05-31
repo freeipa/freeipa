@@ -27,6 +27,7 @@ import base64
 
 from ipalib import api
 from ipalib import x509
+from ipalib.constants import KRA_TRACKING_REQS
 from ipaplatform.paths import paths
 from ipapython import directivesetter
 from ipapython import ipautil
@@ -64,11 +65,7 @@ class KRAInstance(DogtagInstance):
     # Mapping of nicknames for tracking requests, and the profile to
     # use for that certificate.  'configure_renewal()' reads this
     # dict.  The profile MUST be specified.
-    tracking_reqs = {
-        'auditSigningCert cert-pki-kra': 'caAuditSigningCert',
-        'transportCert cert-pki-kra': 'caTransportCert',
-        'storageCert cert-pki-kra': 'caStorageCert',
-    }
+    tracking_reqs = KRA_TRACKING_REQS
 
     def __init__(self, realm):
         super(KRAInstance, self).__init__(
