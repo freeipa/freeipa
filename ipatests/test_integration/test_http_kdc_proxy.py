@@ -33,7 +33,6 @@ class TestHttpKdcProxy(IntegrationTest):
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
         tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
-        tasks.config_host_resolvconf_with_master_data(cls.master, cls.client)
 
     @classmethod
     def uninstall(cls, mh):
