@@ -543,7 +543,7 @@ class BaseTestSSSDMixin:
 
     def test_apply_advice(self):
         super(BaseTestSSSDMixin, self).test_apply_advice()
-        tasks.setup_sssd_debugging(self.legacy_client)
+        tasks.setup_sssd_conf(self.legacy_client)
 
 
 # Tests definitions themselves. Beauty. Just pure beauty.
