@@ -374,7 +374,7 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
     if result.returncode == 0 and not external_ca:
         # external CA step 1 doesn't have DS and KDC fully configured, yet
         enable_ds_audit_log(host, 'on')
-        setup_sssd_debugging(host)
+        setup_sssd_conf(host)
         kinit_admin(host)
         if setup_dns:
             setup_named_debugging(host)
@@ -514,7 +514,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
                                  stdin_text=stdin_text)
     if result.returncode == 0:
         enable_ds_audit_log(replica, 'on')
-        setup_sssd_debugging(replica)
+        setup_sssd_conf(replica)
         kinit_admin(replica)
         if setup_dns:
             setup_named_debugging(replica)
@@ -568,7 +568,7 @@ def install_client(master, client, extra_args=[], user=None,
 
     result = client.run_command(args, stdin_text=stdin_text)
 
-    setup_sssd_debugging(client)
+    setup_sssd_conf(client)
     kinit_admin(client)
 
     return result
@@ -791,23 +791,26 @@ def configure_auth_to_local_rule(master, ad):
     master.run_command(['systemctl', 'restart', 'sssd'])
 
 
-def setup_sssd_debugging(host):
+def setup_sssd_conf(host):
     """
-    Sets debug level to 7 in each section of sssd.conf file.
+    Configures sssd
     """
+    # sssd in not published on PyPI
+    from SSSDConfig import NoOptionError
 
-    # Set debug level in each section of sssd.conf file to 7
-    # First, remove any previous occurences
-    host.run_command(['sed', '-i',
-                      '/debug_level = 7/d',
-                      paths.SSSD_CONF],
-                     raiseonerr=False)
+    with remote_sssd_config(host) as sssd_config:
+        # sssd 2.5.0 https://github.com/SSSD/sssd/issues/5635
+        try:
+            sssd_config.edit_domain(host.domain, "ldap_sudo_random_offset", 0)
+        except NoOptionError:
+            # sssd doesn't support ldap_sudo_random_offset
+            pass
 
-    # Add the debug directive to each section
-    host.run_command(['sed', '-i',
-                      r'/\[*\]/ a\debug_level = 7',
-                      paths.SSSD_CONF],
-                     raiseonerr=False)
+        for sssd_service_name in sssd_config.list_services():
+            sssd_config.edit_service(sssd_service_name, "debug_level", 7)
+
+        for sssd_domain_name in sssd_config.list_domains():
+            sssd_config.edit_domain(sssd_domain_name, "debug_level", 7)
 
     # Clear the cache and restart SSSD
     clear_sssd_cache(host)

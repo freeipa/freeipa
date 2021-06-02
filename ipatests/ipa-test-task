@@ -436,7 +436,7 @@ class TaskRunner(object):
 
     def setup_sssd_debugging(self, args):
         host = self.get_host(args.host, default=args.domain.master)
-        tasks.setup_sssd_debugging(host)
+        tasks.setup_sssd_conf(host)
 
     def sync_time(self, args):
         host = self.get_host(args.host, default=args.domain.master)
