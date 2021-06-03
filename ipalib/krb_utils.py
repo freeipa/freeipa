@@ -175,7 +175,7 @@ def get_principal(ccache_name=None):
     try:
         creds = get_credentials(ccache_name=ccache_name)
         return unicode(creds.name)
-    except gssapi.exceptions.GSSError as e:
+    except ValueError as e:
         raise errors.CCacheError(message=unicode(e))
 
 def get_credentials_if_valid(name=None, ccache_name=None):
@@ -202,5 +202,5 @@ def get_credentials_if_valid(name=None, ccache_name=None):
         return None
     except gssapi.exceptions.ExpiredCredentialsError:
         return None
-    except gssapi.exceptions.GSSError:
+    except ValueError:
         return None
