@@ -768,7 +768,7 @@ class Service:
         if keytab is None:
             keytab = self.keytab
         if owner is None:
-            owner = self.service_user
+            owner = self.keytab_user
         owner.chown(keytab)
 
     def run_getkeytab(self, ldap_uri, keytab, principal, retrieve=False):
