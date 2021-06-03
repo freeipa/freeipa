@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2021-02-15 20:34+0200\n"
+"POT-Creation-Date: 2021-03-31 09:12+0300\n"
 "PO-Revision-Date: 2019-11-12 12:31+0000\n"
 "Last-Translator: Olesya Gerasimenko <gammaray@basealt.ru>\n"
 "Language-Team: Russian\n"
@@ -30013,18 +30013,15 @@ msgstr "{role}: роль не найдена"
 #~ msgid "Generated CSR was empty"
 #~ msgstr "Созданный CSR оказался пустым"
 
-#, python-format
 #~ msgid "Generation rule \"%(rulename)s\" is missing the \"rule\" key"
 #~ msgstr "В правиле создания \"%(rulename)s\" отсутствует ключ \"rule\""
 
 #~ msgid "Name of CSR generation profile (if not the same as profile_id)"
 #~ msgstr "Имя профиля создания CSR (если не совпадает с profile_id)"
 
-#, python-format
 #~ msgid "No CSR generation rules are defined for profile %(profile_id)s"
 #~ msgstr "Для профиля %(profile_id)s не определены правила создания CSR"
 
-#, python-format
 #~ msgid "No generation rule %(rulename)s found."
 #~ msgstr "Правило создания %(rulename)s не найдено."
 
@@ -30044,7 +30041,6 @@ msgstr "{role}: роль не найдена"
 #~ msgid "Path to private key file"
 #~ msgstr "Путь к файлу закрытого ключа"
 
-#, python-format
 #~ msgid "Required CSR generation rule %(name)s is missing data"
 #~ msgstr "В обязательном правиле создания CSR %(name)s отсутствуют данные"
 
