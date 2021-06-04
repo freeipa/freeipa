@@ -38,6 +38,9 @@ def enable_userspace_fips(host):
     host.run_command(["mkdir", "-p", FIPS_OVERLAY_DIR])
     host.put_file_contents(FIPS_OVERLAY, "1\n")
     host.run_command(
+        ["chcon", "-t", "sysctl_crypto_t", "-u", "system_u", FIPS_OVERLAY]
+    )
+    host.run_command(
         ["mount", "--bind", FIPS_OVERLAY, paths.PROC_FIPS_ENABLED]
     )
     # set crypto policy to FIPS mode
