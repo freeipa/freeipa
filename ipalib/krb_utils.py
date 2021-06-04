@@ -153,7 +153,7 @@ def get_credentials(name=None, ccache_name=None):
         return gssapi.Credentials(usage='initiate', name=name, store=store)
     except gssapi.exceptions.GSSError as e:
         if e.min_code in (  # pylint: disable=no-member
-            KRB5_FCC_NOFILE, GSSPROXY_KRB5_FCC_NOFILE,
+            KRB5_FCC_NOFILE, GSSPROXY_KRB5_FCC_NOFILE, KRB5_CC_NOTFOUND,
         ):
             raise ValueError('"%s", ccache="%s"' % (e, ccache_name))
         raise
