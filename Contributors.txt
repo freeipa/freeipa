@@ -64,6 +64,7 @@ Developers:
 	German Parente
 	Gowrishankar Rajaiyan
 	Günther Deschner
+	Hela Basa
 	Ian Kumlien
 	Ian Pilcher
 	Isaac Boukris
@@ -71,6 +72,7 @@ Developers:
 	James Groffen
 	Jan Barta
 	Jan Cholasta
+	Jan Kuparinen
 	Jan Pazdziora
 	Jan Zelený
 	Jason Gerard DeRose
@@ -100,6 +102,7 @@ Developers:
 	Ludwig Krispenz
 	Lukáš Slebodník
 	Lynn Root
+	Marcin Stanclik
 	Mark McLoughlin
 	Mark Reynolds
 	Marko Myllynen
