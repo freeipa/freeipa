@@ -913,6 +913,9 @@ class jsonserver_session(jsonserver, KerberosSession):
             else:
                 return self.service_unavailable(environ, start_response, msg)
 
+        except CCacheError:
+            return self.need_login(start_response)
+
         try:
             response = super(jsonserver_session, self).__call__(environ, start_response)
         finally:

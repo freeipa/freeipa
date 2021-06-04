@@ -43,13 +43,8 @@ def should_delete(fname, t, minlife):
     # is not provided in cred_store the result of gss_acquire_cred_from
     # is KRB5_FCC_NOFILE, which is mapped by gssproxy to
     # 0x04200000 + KRB5_FCC_NOFILE.
-    try:
-        creds = get_credentials_if_valid(ccache_name=fname)
-        return creds is None
-    except ValueError:
-        return True
-
-    return False
+    creds = get_credentials_if_valid(ccache_name=fname)
+    return creds is None
 
 
 if __name__ == "__main__":

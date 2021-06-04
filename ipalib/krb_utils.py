@@ -19,13 +19,9 @@
 import time
 import re
 
-import six
 import gssapi
 
 from ipalib import errors
-
-if six.PY3:
-    unicode = str
 
 #-------------------------------------------------------------------------------
 
@@ -149,14 +145,24 @@ def get_credentials(name=None, ccache_name=None):
     store = None
     if ccache_name:
         store = {'ccache': ccache_name}
-    try:
-        return gssapi.Credentials(usage='initiate', name=name, store=store)
-    except gssapi.exceptions.GSSError as e:
-        if e.min_code in (  # pylint: disable=no-member
-            KRB5_FCC_NOFILE, GSSPROXY_KRB5_FCC_NOFILE, KRB5_CC_NOTFOUND,
-        ):
-            raise ValueError('"%s", ccache="%s"' % (e, ccache_name))
-        raise
+    """
+    https://datatracker.ietf.org/doc/html/rfc2744.html#section-5.2
+    gss_acquire_cred:
+        If credential acquisition is time-consuming for a mechanism, the
+    mechanism may choose to delay the actual acquisition until the
+    credential is required (e.g. by gss_init_sec_context or
+    gss_accept_sec_context). Such mechanism-specific implementation
+    decisions should be invisible to the calling application; thus a call
+    of gss_inquire_cred immediately following the call of
+    gss_acquire_cred must return valid credential data, and may therefore
+    incur the overhead of a deferred credential acquisition.
+
+    So, as gssapi.Credentials() calls only gss_acquire_cred it is not
+    guaranteed to have valid(not expired) returned creds and all the
+    callers of this function have to deal with GSSAPI exceptions by
+    themselves, for example, to handle ExpiredCredentialsError.
+    """
+    return gssapi.Credentials(usage="initiate", name=name, store=store)
 
 def get_principal(ccache_name=None):
     '''
@@ -174,9 +180,9 @@ def get_principal(ccache_name=None):
     '''
     try:
         creds = get_credentials(ccache_name=ccache_name)
-        return unicode(creds.name)
-    except ValueError as e:
-        raise errors.CCacheError(message=unicode(e))
+        return str(creds.name)
+    except gssapi.exceptions.GSSError as e:
+        raise errors.CCacheError(message=str(e))
 
 def get_credentials_if_valid(name=None, ccache_name=None):
     '''
@@ -199,8 +205,6 @@ def get_credentials_if_valid(name=None, ccache_name=None):
         creds = get_credentials(name=name, ccache_name=ccache_name)
         if creds.lifetime > 0:
             return creds
+    except gssapi.exceptions.GSSError:
         return None
-    except gssapi.exceptions.ExpiredCredentialsError:
-        return None
-    except ValueError:
-        return None
+    return None
