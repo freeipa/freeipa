@@ -205,7 +205,7 @@ class TestInstallWithCA1(InstallTestBase1):
         ldap_conf = paths.OPENLDAP_LDAP_CONF
         base_dn = self.master.domain.basedn
         client = self.replicas[0]
-        tasks.uninstall_master(client)
+        tasks.uninstall_replica(self.master, client)
         expected_msg1 = "contains deprecated and unsupported " \
                         "entries: HOST, PORT"
         file_backup = client.get_file_contents(ldap_conf, encoding='utf-8')
