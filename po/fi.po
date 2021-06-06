@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2021-05-03 20:02+0000\n"
+"PO-Revision-Date: 2021-06-07 18:04+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -17,17 +17,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.6.1\n"
+"X-Generator: Weblate 4.6.2\n"
 
 #: client/ipa-rmkeytab.c:51
 #, c-format
 msgid "Unable to parse principal name\n"
-msgstr ""
+msgstr "Prinsipaalinimen jäsentäminen ei onnistu\n"
 
 #: client/ipa-rmkeytab.c:53
 #, c-format
 msgid "krb5_parse_name %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_parse_name %1$d: %2$s\n"
 
 #: client/ipa-rmkeytab.c:63
 #, c-format
@@ -37,12 +37,12 @@ msgstr ""
 #: client/ipa-rmkeytab.c:76
 #, c-format
 msgid "Failed to open keytab\n"
-msgstr ""
+msgstr "Keytabin avaaminen epäonnistui\n"
 
 #: client/ipa-rmkeytab.c:80
 #, c-format
 msgid "principal not found\n"
-msgstr ""
+msgstr "toimeksiantajaa ei löydy\n"
 
 #: client/ipa-rmkeytab.c:82
 #, c-format
@@ -52,7 +52,7 @@ msgstr ""
 #: client/ipa-rmkeytab.c:90
 #, c-format
 msgid "Unable to remove entry\n"
-msgstr ""
+msgstr "Merkintää ei voi poistaa\n"
 
 #: client/ipa-rmkeytab.c:92
 #, c-format
@@ -165,7 +165,7 @@ msgstr ""
 #: client/ipa-rmkeytab.c:216 client/ipa-getkeytab.c:822
 #, c-format
 msgid "Kerberos context initialization failed\n"
-msgstr ""
+msgstr "Kerberos-kontekstin alustus epäonnistui\n"
 
 #: client/ipa-rmkeytab.c:256
 #, c-format
@@ -268,7 +268,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:369
 #, c-format
 msgid "Failed to get keytab!\n"
-msgstr ""
+msgstr "Keytabin saaminen epäonnistui!\n"
 
 #: client/ipa-getkeytab.c:378
 #, c-format
@@ -288,16 +288,16 @@ msgstr ""
 #: client/ipa-getkeytab.c:413
 #, c-format
 msgid "Failed to retrieve encryption type %1$s (#%2$d)\n"
-msgstr ""
+msgstr "Salaustyypin %1$s hakeminen ei onnistunut   (#%2$d)\n"
 
 #: client/ipa-getkeytab.c:423
 #, c-format
 msgid "Failed to retrieve any keys"
-msgstr ""
+msgstr "Yhtään avainta ei saatu"
 
 #: client/ipa-getkeytab.c:541
 msgid "Failed to decode control reply!\n"
-msgstr ""
+msgstr "Tarkistusvastauksen purkaminen epäonnistui!\n"
 
 #: client/ipa-getkeytab.c:603
 #, c-format
@@ -307,12 +307,12 @@ msgstr "Salasanat eivät täsmää!\n"
 #: client/ipa-getkeytab.c:632
 #, c-format
 msgid "Failed to open config file %s\n"
-msgstr ""
+msgstr "Kokoonpanotiedoston %s avaaminen epäonnistui\n"
 
 #: client/ipa-getkeytab.c:642
 #, c-format
 msgid "Failed to parse config file %s\n"
-msgstr ""
+msgstr "Asetustiedoston %s jäsentäminen epäonnistui\n"
 
 #: client/ipa-getkeytab.c:720
 msgid "Failed to resolve symlink to keytab.\n"
@@ -374,15 +374,15 @@ msgstr ""
 
 #: client/ipa-getkeytab.c:783
 msgid "DN to bind as if not using kerberos"
-msgstr ""
+msgstr "Yhdistettävä DN kuin et käyttäisi Kerberosia"
 
 #: client/ipa-getkeytab.c:785
 msgid "LDAP password"
-msgstr ""
+msgstr "LDAP salasana"
 
 #: client/ipa-getkeytab.c:785
 msgid "password to use if not using kerberos"
-msgstr ""
+msgstr "käytettävä salasana, jos ei käytetä kerberosia"
 
 #: client/ipa-getkeytab.c:787
 msgid "Prompt for LDAP password"
@@ -424,7 +424,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:838
 #, c-format
 msgid "Supported encryption types:\n"
-msgstr ""
+msgstr "Tuetut salaustyypit:\n"
 
 #: client/ipa-getkeytab.c:842
 #, c-format
@@ -438,7 +438,7 @@ msgstr ""
 
 #: client/ipa-getkeytab.c:868
 msgid "Enter LDAP password"
-msgstr ""
+msgstr "Anna LDAP salasana"
 
 #: client/ipa-getkeytab.c:876
 #, c-format
@@ -472,7 +472,7 @@ msgstr ""
 
 #: client/ipa-getkeytab.c:940
 msgid "New Principal Password"
-msgstr ""
+msgstr "Uusi pääsalasana"
 
 #: client/ipa-getkeytab.c:941
 msgid "Verify Principal Password"
@@ -503,7 +503,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:984
 #, c-format
 msgid "Failed to open Keytab\n"
-msgstr ""
+msgstr "Keytabin avaaminen epäonnistui\n"
 
 #: client/ipa-getkeytab.c:1002
 #, c-format
@@ -513,12 +513,12 @@ msgstr ""
 #: client/ipa-getkeytab.c:1012
 #, c-format
 msgid "Failed to create key material\n"
-msgstr ""
+msgstr "Avainmateriaalin luominen epäonnistui\n"
 
 #: client/ipa-getkeytab.c:1022
 #, c-format
 msgid "Failed to get keytab\n"
-msgstr ""
+msgstr "Keytabin saaminen epäonnistui\n"
 
 #: client/ipa-getkeytab.c:1036
 #, c-format
@@ -528,7 +528,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:1045
 #, c-format
 msgid "Failed to close the keytab\n"
-msgstr ""
+msgstr "Keytabin sulkeminen epäonnistui!\n"
 
 #: client/ipa-getkeytab.c:1051
 #, c-format
