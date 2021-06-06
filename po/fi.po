@@ -1130,9 +1130,9 @@ msgstr "arvo"
 msgid "Failed to bind to server!\n"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get keytab!\n"
-msgstr "Tuloksen saaminen epäonnistui: %s\n"
+msgstr "Keytabin saaminen epäonnistui!\n"
 
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
@@ -1146,25 +1146,24 @@ msgstr ""
 msgid "Failed to retrieve encryption type type #%d\n"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to retrieve encryption type %1$s (#%2$d)\n"
-msgstr "Prinsipaalin jäsentäminen ei onnistu: %1$s (%2$d)\n"
+msgstr "Salaustyypin %1$s hakeminen ei onnistunut   (#%2$d)\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to retrieve any keys"
-msgstr "Tuloksen saaminen epäonnistui: %s\n"
+msgstr "Yhtään avainta ei saatu"
 
-#, fuzzy
 msgid "Failed to decode control reply!\n"
-msgstr "Tarkistuksen luominen epäonnistui!\n"
+msgstr "Tarkistusvastauksen purkaminen epäonnistui!\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open config file %s\n"
-msgstr "Tuloksen jäsentäminen epäonnistui: %s\n"
+msgstr "Kokoonpanotiedoston %s avaaminen epäonnistui\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to parse config file %s\n"
-msgstr "Tuloksen jäsentäminen epäonnistui: %s\n"
+msgstr "Asetustiedoston %s jäsentäminen epäonnistui\n"
 
 msgid "Failed to resolve symlink to keytab.\n"
 msgstr ""
@@ -1213,17 +1212,14 @@ msgstr ""
 msgid "LDAP DN"
 msgstr ""
 
-#, fuzzy
 msgid "DN to bind as if not using kerberos"
-msgstr "LDAP-salasana (jos et käytä Kerberosia)"
+msgstr "Yhdistettävä DN kuin et käyttäisi Kerberosia"
 
-#, fuzzy
 msgid "LDAP password"
-msgstr "salasana"
+msgstr "LDAP salasana"
 
-#, fuzzy
 msgid "password to use if not using kerberos"
-msgstr "LDAP-salasana (jos et käytä Kerberosia)"
+msgstr "käytettävä salasana, jos ei käytetä kerberosia"
 
 msgid "Prompt for LDAP password"
 msgstr ""
@@ -1249,17 +1245,17 @@ msgstr ""
 msgid "Retrieve current keys without changing them"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Kerberos context initialization failed\n"
-msgstr "Kerberos-kontekstin alustus epäonnistui: %1$s (%2$d)\n"
+msgstr "Kerberos-kontekstin alustus epäonnistui\n"
 
 #, c-format
 msgid "No system preferred enctypes ?!\n"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Supported encryption types:\n"
-msgstr "luottamustyyppi, jota ei tueta"
+msgstr "Tuetut salaustyypit:\n"
 
 #, c-format
 msgid "Warning: failed to convert type (#%d)\n"
@@ -1269,9 +1265,8 @@ msgstr ""
 msgid "Bind password already provided (-w).\n"
 msgstr ""
 
-#, fuzzy
 msgid "Enter LDAP password"
-msgstr "Käyttäjän salasana"
+msgstr "Anna LDAP salasana"
 
 #, c-format
 msgid "Bind password required when using a bind DN (-w or -W).\n"
@@ -1297,9 +1292,8 @@ msgstr ""
 msgid "Incompatible options provided (-r and -P)\n"
 msgstr ""
 
-#, fuzzy
 msgid "New Principal Password"
-msgstr "Uusi salasana"
+msgstr "Uusi pääsalasana"
 
 msgid "Verify Principal Password"
 msgstr ""
@@ -1322,61 +1316,61 @@ msgid ""
 "Kerberos User Principal not found. Do you have a valid Credential Cache?\n"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open Keytab\n"
-msgstr "Tuloksen jäsentäminen epäonnistui: %s\n"
+msgstr "Keytabin avaaminen epäonnistui\n"
 
 #, c-format
 msgid "Retrying with pre-4.0 keytab retrieval method...\n"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create key material\n"
-msgstr "Tarkistuksen luominen epäonnistui!\n"
+msgstr "Avainmateriaalin luominen epäonnistui\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get keytab\n"
-msgstr "Tuloksen saaminen epäonnistui: %s\n"
+msgstr "Keytabin saaminen epäonnistui\n"
 
 #, c-format
 msgid "Failed to add key to the keytab\n"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to close the keytab\n"
-msgstr "Tarkistuksen luominen epäonnistui!\n"
+msgstr "Keytabin sulkeminen epäonnistui!\n"
 
 #, c-format
 msgid "Keytab successfully retrieved and stored in: %s\n"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to parse principal name\n"
-msgstr "Prinsipaalin jäsentäminen ei onnistu: %1$s (%2$d)\n"
+msgstr "Prinsipaalinimen jäsentäminen ei onnistu\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "krb5_parse_name %1$d: %2$s\n"
-msgstr "Virhe jäsennettäessä \"%1$s\": %2$s.\n"
+msgstr "krb5_parse_name %1$d: %2$s\n"
 
 #, c-format
 msgid "Removing principal %s\n"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open keytab\n"
-msgstr "Tuloksen jäsentäminen epäonnistui: %s\n"
+msgstr "Keytabin avaaminen epäonnistui\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "principal not found\n"
-msgstr "toimeksiantajaa ei löydy XML-RPC-vastauksesta\n"
+msgstr "toimeksiantajaa ei löydy\n"
 
 #, c-format
 msgid "krb5_kt_get_entry %1$d: %2$s\n"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to remove entry\n"
-msgstr "Tarkistuksen luominen epäonnistui!\n"
+msgstr "Merkintää ei voi poistaa\n"
 
 #, c-format
 msgid "kvno %d\n"
