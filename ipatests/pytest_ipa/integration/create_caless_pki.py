@@ -570,7 +570,7 @@ def create_pki():
                 x509.NameAttribute(NameOID.COMMON_NAME, server2)
              ])
              )
-    ca1 = gen_subtree(u'ca1', u'Example Organization')
+    ca1 = gen_subtree(u'ca1', u'Example Organization Espa\xf1a')
     gen_subtree(u'subca', u'Subsidiary Example Organization', ca1)
     gen_subtree(u'ca2', u'Other Example Organization')
     ca3 = gen_subtree(u'ca3', u'Unknown Organization')
