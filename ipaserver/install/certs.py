@@ -103,7 +103,7 @@ def pkcs12_to_certkeys(p12_fname, p12_passwd=None):
     else:
         args.extend(["-passin", "pass:"])
 
-    pems = ipautil.run(args, capture_output=True).raw_output
+    pems = ipautil.run(args).raw_output
 
     certs = x509.load_certificate_list(pems)
     priv_keys = x509.load_private_key_list(pems)
