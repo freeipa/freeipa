@@ -294,7 +294,7 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
                         'cACertificate;binary'])
 
         for entry in result:
-            nickname = entry.single_value['cn']
+            nickname = entry.single_value['cn'].encode('utf-8')
             trusted = entry.single_value.get('ipaKeyTrust', 'unknown').lower()
             if trusted == 'trusted':
                 trusted = True
