@@ -93,6 +93,17 @@ class TestIpaCertFix(IntegrationTest):
         # the fixture
         pass
 
+    @pytest.fixture
+    def expire_ca_cert(self):
+        tasks.install_master(self.master, setup_dns=False,
+                             extra_args=['--no-ntp'])
+        move_date(self.master, 'stop', '+20Years+1day')
+
+        yield
+
+        tasks.uninstall_master(self.master)
+        move_date(self.master, 'start', '-20Years-1day')
+
     def test_missing_csr(self, expire_cert_critical):
         """
         Test that ipa-cert-fix succeeds when CSR is missing from CS.cfg
@@ -191,6 +202,53 @@ class TestIpaCertFix(IntegrationTest):
                                          stdin_text='yes\n',
                                          raiseonerr=False)
         assert result.returncode == 2
+
+    def test_missing_startup(self, expire_cert_critical):
+        """
+        Test ipa-cert-fix fails when startup directive is missing from CS.cfg
+
+        This test checks that if 'selftests.container.order.startup' directive
+        is missing from CS.cfg, ipa-cert-fix fails and throw proper error
+        message. It also checks that underlying command 'pki-server cert-fix'
+        should fail to renew the cert.
+
+        related: https://pagure.io/freeipa/issue/8721
+        """
+        expire_cert_critical(self.master)
+        # pki must be stopped in order to edit CS.cfg
+        self.master.run_command(['ipactl', 'stop'])
+        self.master.run_command([
+            'sed', '-i', r'/selftests\.container\.order\.startup/d',
+            paths.CA_CS_CFG_PATH
+        ])
+        # dirsrv needs to be up in order to run ipa-cert-fix
+        self.master.run_command(['ipactl', 'start',
+                                 '--ignore-service-failures'])
+
+        result = self.master.run_command(['ipa-cert-fix', '-v'],
+                                         stdin_text='yes\n',
+                                         raiseonerr=False)
+        err_msg1 = "ERROR: 'selftests.container.order.startup'"
+        # check that pki-server cert-fix command fails
+        err_msg2 = ("ERROR: CalledProcessError(Command "
+                    "['pki-server', 'cert-fix'")
+        assert err_msg1 and err_msg2 in result.stderr_text
+
+    def test_expired_CA_cert(self, expire_ca_cert):
+        """Test to check ipa-cert-fix when CA certificate is expired
+
+        In order to fix expired certs using ipa-cert-fix, CA cert should be
+        valid. If CA cert expired, ipa-cert-fix won't work.
+
+        related: https://pagure.io/freeipa/issue/8721
+        """
+        result = self.master.run_command(['ipa-cert-fix', '-v'],
+                                         stdin_text='yes\n',
+                                         raiseonerr=False)
+        # check that pki-server cert-fix command fails
+        err_msg = ("ERROR: CalledProcessError(Command "
+                   "['pki-server', 'cert-fix'")
+        assert err_msg in result.stderr_text
 
 
 class TestIpaCertFixThirdParty(CALessBase):
