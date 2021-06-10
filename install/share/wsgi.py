@@ -23,6 +23,26 @@
 """
 WSGI application for IPA server.
 """
+import os
+
 from ipaserver.wsgi import create_application
+
+
+def set_env():
+    """Replace current env with new one"""
+    pass_vars = ["GSS_USE_PROXY", "LANG", "LC_ALL"]
+    new_env = {}
+    for var in pass_vars:
+        try:
+            new_env[var] = os.environ[var]
+        except KeyError:
+            pass
+
+    new_env["PATH"] = "/usr/bin:/bin"
+    os.environ.clear()
+    os.environ.update(new_env)
+
+
+set_env()
 
 application = create_application()
