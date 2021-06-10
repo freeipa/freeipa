@@ -331,6 +331,14 @@ class TestCRUD(XMLRPC_test):
                 name='sshpubkey', error=u'options are not allowed')):
             command()
 
+    def test_updatedns_with_shortname(self, host):
+        host.ensure_exists()
+        with raises_exact(errors.ValidationError(
+                name='hostname', error='FQDN must be provided')):
+            host.run_command('host_mod', host.shortname,
+                             updatedns=True,
+                             setattr='nshardwareplatform=linux')
+
     def test_delete_host(self, host):
         host.delete()
 
