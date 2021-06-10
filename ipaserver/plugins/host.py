@@ -964,6 +964,10 @@ class host_mod(LDAPUpdate):
             try:
                 result = api.Command['dnszone_show'](domain)['result']
                 domain = result['idnsname'][0]
+            except errors.RequirementError:
+                raise errors.ValidationError(
+                    name="hostname",
+                    error="FQDN must be provided")
             except errors.NotFound:
                 raise self.obj.handle_not_found(*keys)
             update_sshfp_record(domain, unicode(parts[0]), entry_attrs)
