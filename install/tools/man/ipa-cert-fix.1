@@ -39,6 +39,13 @@ for shared certificates via \fIgetcert-resubmit(1)\fR (on the other
 CA server).  This is to avoid unnecessary renewal of shared
 certificates.
 
+Important note: the \fIcertmonger\fR daemon does not immediately notice
+the updated certificates and may trigger a renewal after \fIipa-cert-fix\fR
+completes. As a consequence, \fIgetcert list\fR output may display
+that a renewal is in progress even if \fIipa-cert-fix\fR just
+finished. It is recommended to monitor the certmonger-initiated
+renewal and wait for its completion before any other administrative task.
+
 .SH "OPTIONS"
 .TP
 \fB\-\-version\fR
