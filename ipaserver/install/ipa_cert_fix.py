@@ -57,6 +57,12 @@ and keys, is STRONGLY RECOMMENDED.
 
 """
 
+renewal_note = """
+Note: Monitor the certmonger-initiated renewal of
+certificates after ipa-cert-fix and wait for its completion before
+any other administrative task.
+"""
+
 RENEWED_CERT_PATH_TEMPLATE = "/etc/pki/pki-tomcat/certs/{}-renewed.crt"
 
 logger = logging.getLogger(__name__)
@@ -175,6 +181,7 @@ class IPACertFix(AdminTool):
         print("Restarting IPA")
         ipautil.run(['ipactl', 'restart'], raiseonerr=True)
 
+        print(renewal_note)
         return 0
 
 
