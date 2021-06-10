@@ -11,7 +11,6 @@
 [service/ipa-api]
   mechs = krb5
   cred_store = keytab:$HTTP_KEYTAB
-  cred_store = client_keytab:$HTTP_KEYTAB
   allow_constrained_delegation = true
   allow_client_ccache_sync = true
   cred_usage = initiate
