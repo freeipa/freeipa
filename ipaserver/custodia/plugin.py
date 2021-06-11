@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import abc
+import configparser
 import grp
 import inspect
 import json
@@ -13,7 +14,6 @@ from jwcrypto.common import json_encode
 
 import six
 
-from .compat import configparser
 from .log import CustodiaLoggingAdapter, auditlog, getLogger
 
 

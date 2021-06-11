@@ -5,7 +5,7 @@ import json
 import os
 from base64 import b64decode, b64encode
 
-from custodia import log
+from ipaserver.custodia import log
 from ipaserver.custodia.message.common import UnallowedMessage
 from ipaserver.custodia.message.common import UnknownMessageType
 from ipaserver.custodia.message.formats import Validator

@@ -8,7 +8,7 @@ import pkg_resources
 
 import six
 
-from custodia import log
+from ipaserver.custodia import log
 from ipaserver.custodia.httpd.server import HTTPServer
 
 from .args import default_argparser

@@ -1,7 +1,7 @@
 # Copyright (C) 2017  IPA Project Contributors, see COPYING for license
 import argparse
 
-import custodia.server  # pylint: disable=relative-import
+import ipaserver.custodia.server  # pylint: disable=relative-import
 
 
 argparser = argparse.ArgumentParser(
@@ -23,7 +23,7 @@ argparser.add_argument(
 
 
 def main():
-    return custodia.server.main(argparser)
+    return ipaserver.custodia.server.main(argparser)
 
 
 if __name__ == '__main__':

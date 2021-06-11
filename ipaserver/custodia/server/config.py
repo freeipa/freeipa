@@ -1,14 +1,11 @@
 # Copyright (C) 2015-2017  Custodia Project Contributors - see LICENSE file
 from __future__ import absolute_import
 
+import configparser
 import glob
 import os
 import socket
-
-import six
-
-from ipaserver.custodia.compat import configparser
-from ipaserver.custodia.compat import url_escape
+from urllib.parse import quote as url_escape
 
 
 class CustodiaConfig:
@@ -54,9 +51,6 @@ class CustodiaConfig:
         for k, v in os.environ.items():
             if set(v).intersection('\r\n\x00'):
                 continue
-            if six.PY2:
-                k = k.decode('utf-8', 'replace')
-                v = v.decode('utf-8', 'replace')
             parser.set(u'ENV', k, v.replace(u'$', u'$$'))
 
         # default globals
