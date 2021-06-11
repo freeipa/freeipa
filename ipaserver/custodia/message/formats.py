@@ -1,11 +1,11 @@
 # Copyright (C) 2015  Custodia Project Contributors - see LICENSE file
 from __future__ import absolute_import
 
-from custodia.message.common import InvalidMessage
-from custodia.message.common import UnallowedMessage
-from custodia.message.common import UnknownMessageType
-from custodia.message.kem import KEMHandler
-from custodia.message.simple import SimpleKey
+from ipaserver.custodia.message.common import InvalidMessage
+from ipaserver.custodia.message.common import UnallowedMessage
+from ipaserver.custodia.message.common import UnknownMessageType
+from ipaserver.custodia.message.kem import KEMHandler
+from ipaserver.custodia.message.simple import SimpleKey
 
 
 default_types = ['simple', 'kem']

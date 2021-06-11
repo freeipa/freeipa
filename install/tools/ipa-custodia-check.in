@@ -11,7 +11,7 @@ import os
 import platform
 import warnings
 
-from custodia.message.kem import KEY_USAGE_SIG, KEY_USAGE_ENC, KEY_USAGE_MAP
+from ipaserver.custodia.message.kem import KEY_USAGE_SIG, KEY_USAGE_ENC, KEY_USAGE_MAP
 
 from jwcrypto.common import json_decode
 from jwcrypto.jwk import JWK

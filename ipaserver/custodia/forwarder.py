@@ -3,9 +3,9 @@ from __future__ import absolute_import
 
 import uuid
 
-from custodia.client import CustodiaHTTPClient
-from custodia.plugin import HTTPConsumer, HTTPError
-from custodia.plugin import INHERIT_GLOBAL, PluginOption, REQUIRED
+from ipaserver.custodia.client import CustodiaHTTPClient
+from ipaserver.custodia.plugin import HTTPConsumer, HTTPError
+from ipaserver.custodia.plugin import INHERIT_GLOBAL, PluginOption, REQUIRED
 
 
 class Forwarder(HTTPConsumer):

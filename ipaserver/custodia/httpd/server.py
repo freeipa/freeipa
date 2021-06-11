@@ -14,8 +14,8 @@ import warnings
 import six
 
 from custodia import log
-from custodia.compat import parse_qs, unquote, urlparse
-from custodia.plugin import HTTPError
+from ipaserver.custodia.compat import parse_qs, unquote, urlparse
+from ipaserver.custodia.plugin import HTTPError
 
 # pylint: disable=import-error,no-name-in-module
 if six.PY2:

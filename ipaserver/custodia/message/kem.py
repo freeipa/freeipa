@@ -11,10 +11,10 @@ from jwcrypto.jwk import JWK
 from jwcrypto.jws import JWS
 from jwcrypto.jwt import JWT
 
-from custodia.httpd.authorizers import SimplePathAuthz
-from custodia.log import getLogger
-from custodia.message.common import InvalidMessage
-from custodia.message.common import MessageHandler
+from ipaserver.custodia.httpd.authorizers import SimplePathAuthz
+from ipaserver.custodia.log import getLogger
+from ipaserver.custodia.message.common import InvalidMessage
+from ipaserver.custodia.message.common import MessageHandler
 
 logger = getLogger(__name__)
 

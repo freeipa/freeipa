@@ -4,7 +4,7 @@ from __future__ import absolute_import
 import os
 
 from custodia import log
-from custodia.plugin import HTTPAuthorizer, PluginOption
+from ipaserver.custodia.plugin import HTTPAuthorizer, PluginOption
 
 
 class SimplePathAuthz(HTTPAuthorizer):

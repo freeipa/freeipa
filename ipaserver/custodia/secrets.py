@@ -6,13 +6,13 @@ import os
 from base64 import b64decode, b64encode
 
 from custodia import log
-from custodia.message.common import UnallowedMessage
-from custodia.message.common import UnknownMessageType
-from custodia.message.formats import Validator
-from custodia.plugin import (
+from ipaserver.custodia.message.common import UnallowedMessage
+from ipaserver.custodia.message.common import UnknownMessageType
+from ipaserver.custodia.message.formats import Validator
+from ipaserver.custodia.plugin import (
     CSStoreDenied, CSStoreError, CSStoreExists, CSStoreUnsupported
 )
-from custodia.plugin import HTTPConsumer, HTTPError, PluginOption
+from ipaserver.custodia.plugin import HTTPConsumer, HTTPError, PluginOption
 
 
 class Secrets(HTTPConsumer):
