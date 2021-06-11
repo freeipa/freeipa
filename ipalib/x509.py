@@ -109,6 +109,10 @@ class IPACertificate:
         self._issuer = self.__get_der_field('issuer')
         self._serial_number = self.__get_der_field('serialNumber')
 
+        if self.version.name != 'v3':
+            raise ValueError('X.509 %s is not supported' %
+                             self.version.name)
+
     def __getstate__(self):
         state = {
             '_cert': self.public_bytes(Encoding.DER),

@@ -164,6 +164,26 @@ QUs1Hx1wL7mL4U8fKCFDKA+ds2B2xWgoZg==
 -----END CERTIFICATE-----
 '''
 
+v1_cert = b'''\
+-----BEGIN CERTIFICATE-----
+MIICwTCCAakCFG3lgHmtal7cilKoevNM/kD4gIToMA0GCSqGSIb3DQEBCwUAMB8x
+HTAbBgNVBAMMFEV4YW1wbGUtVGVzdC1DQS0xMTg4MB4XDTIxMDYxMTE5NTgwNVoX
+DTIxMDYxMjE5NTgwNVowGzEZMBcGA1UEAwwQaXBhLmV4YW1wbGUudGVzdDCCASIw
+DQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALsi+qZj7MB/okR4QFUYBHgLyFXr
+TVd4ENDYERPhHddMkShWsAD6jG7bo/fvrWdaVKdoawghQZymI0o7VVwwuu5+EVA+
+gp/vKQM+QiF2fnbprLKVdZHexqdCyo0lMSGDeSobg3iH8iHiq4StYkGyXuUzcbgf
+6avajlASGC7b4W7RahTION+GJFrP/eW392Oceu6idY6rl3Joyo9SY+zX+pAR0tDC
++ixaYWkk9UxVuh4ObRToNLlHsnBWs3D6eZUiwBoX5QALWxwtdmsofwEOg3D+a2/h
+RihBnZzghQUOf9pjcu/jdgUzd0fsH9FpZVad3HjQmGq2Vgy/rT6STG9ojecCAwEA
+ATANBgkqhkiG9w0BAQsFAAOCAQEAMdB8pCPqEsJY5bnJNdr6EXdEIHk/l2P8tWJs
+wlpdAcOm5NfeZkOkGVYC4HTPNkMQ+K7K7VqHNT7hDjdNS0Gp/LVoHxBrQPAgsM7I
+RTZteGkCqIEBUxXvX2hKnMtuuAe9ljYlVF1P+WsV7qXP/M7RsWb2d+9ubA28mYD/
+lhW/TB0/2EzP6QuiMh7bURIoQWw/733cfMIoP7XRVGn5Ux2z+o2hl5oOjHl7KBDa
+/6PWd4wOMU/cY2fOPPJQ7eSGJh4VCe64au3S6zAtoTE8XXweo/cDD70NZnmwdeGQ
+bswNlxWfohaW0FzTRfTMbIrwoUCWil/Uw2kBYnld15gwzuLDNQ==
+-----END CERTIFICATE-----
+'''
+
 
 class test_x509:
     """
@@ -272,6 +292,10 @@ class test_x509:
             b'0 \x06\x03U\x1d%\x01\x01\xff\x04\x160\x14\x06\x08+\x06\x01'
             b'\x05\x05\x07\x03\x01\x06\x08+\x06\x01\x05\x05\x07\x03\x02'
         )
+
+    def test_x509_v1_cert(self):
+        with pytest.raises(ValueError):
+            x509.load_pem_x509_certificate(v1_cert)
 
 
 class test_ExternalCAProfile:
