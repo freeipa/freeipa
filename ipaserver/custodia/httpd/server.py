@@ -492,7 +492,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         raise HTTPError(404)
 
 
-class HTTPServer(object):
+class HTTPServer:
     handler = HTTPRequestHandler
 
     def __init__(self, srvurl, config):

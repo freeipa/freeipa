@@ -39,7 +39,7 @@ class UnallowedMessage(Exception):
         super(UnallowedMessage, self).__init__(message)
 
 
-class MessageHandler(object):
+class MessageHandler:
 
     def __init__(self, request):
         self.req = request

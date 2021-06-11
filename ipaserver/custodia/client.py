@@ -62,7 +62,7 @@ class HTTPUnixAdapter(HTTPAdapter):
 DEFAULT_HEADERS = {'Content-Type': 'application/json'}
 
 
-class CustodiaHTTPClient(object):
+class CustodiaHTTPClient:
     timeout = None  # seconds (float)
 
     def __init__(self, url):
