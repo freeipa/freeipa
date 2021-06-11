@@ -20,14 +20,14 @@ from .log import CustodiaLoggingAdapter, auditlog, getLogger
 logger = getLogger(__name__)
 
 
-class _Required(object):
+class _Required:
     __slots__ = ()
 
     def __repr__(self):
         return 'REQUIRED'
 
 
-class INHERIT_GLOBAL(object):  # noqa: N801
+class INHERIT_GLOBAL:  # noqa: N801
     __slots__ = ('default',)
 
     def __init__(self, default):
@@ -68,7 +68,7 @@ class CSStoreDenied(CustodiaException):
     pass
 
 
-class OptionHandler(object):
+class OptionHandler:
     """Handler and parser for plugin options
     """
     def __init__(self, parser, section):
@@ -108,7 +108,7 @@ class OptionHandler(object):
 
     def check_surplus(self):
         surplus = []
-        for name, _ in self.parser.items(self.section):
+        for name, _value in self.parser.items(self.section):
             if (name not in self.seen and not
                     self.parser.has_option(configparser.DEFAULTSECT, name)):
                 surplus.append(name)
@@ -190,7 +190,7 @@ class OptionHandler(object):
         return json.loads(value)
 
 
-class PluginOption(object):
+class PluginOption:
     """Plugin option
 
     code::
@@ -293,7 +293,7 @@ class CustodiaPluginMeta(abc.ABCMeta):
 
 
 @six.add_metaclass(CustodiaPluginMeta)
-class CustodiaPlugin(object):
+class CustodiaPlugin:
     """Abstract base class for all Custodia plugins
     """
     _options = ()

@@ -114,10 +114,9 @@ class Secrets(HTTPConsumer):
                 for t in types:
                     if t.strip() == 'application/json':
                         binary = False
-                        break
                     elif t.strip() == 'application/octet-stream':
                         binary = True
-            if binary is True:
+            if binary:
                 response['headers'][
                     'Content-Type'] = 'application/octet-stream'
                 response['output'] = b64decode(reply['value'])
