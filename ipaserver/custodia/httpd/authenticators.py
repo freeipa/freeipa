@@ -1,11 +1,7 @@
 # Copyright (C) 2015  Custodia Project Contributors - see LICENSE file
 from __future__ import absolute_import
 
-import os
-
-from cryptography.hazmat.primitives import constant_time
-
-from custodia import log
+from ipaserver.custodia import log
 from ipaserver.custodia.plugin import HTTPAuthenticator, PluginOption
 
 
@@ -55,80 +51,3 @@ class SimpleHeaderAuth(HTTPAuthenticator):
                               request['client_id'], value)
         request['remote_user'] = value
         return True
-
-
-class SimpleAuthKeys(HTTPAuthenticator):
-    id_header = PluginOption(str, 'CUSTODIA_AUTH_ID', "auth id header name")
-    key_header = PluginOption(str, 'CUSTODIA_AUTH_KEY', "auth key header name")
-    store = PluginOption('store', None, None)
-    store_namespace = PluginOption(str, 'custodiaSAK', "")
-
-    def _db_key(self, name):
-        return os.path.join(self.store_namespace, name)
-
-    def handle(self, request):
-        name = request['headers'].get(self.id_header, None)
-        key = request['headers'].get(self.key_header, None)
-        if name is None and key is None:
-            self.logger.debug('Ignoring request no relevant headers provided')
-            return None
-
-        validated = False
-        try:
-            val = self.store.get(self._db_key(name))
-            if val is None:
-                raise ValueError("No such ID")
-            if constant_time.bytes_eq(val.encode('utf-8'),
-                                      key.encode('utf-8')):
-                validated = True
-        except Exception:  # pylint: disable=broad-except
-            self.audit_svc_access(log.AUDIT_SVC_AUTH_FAIL,
-                                  request['client_id'], name)
-            return False
-
-        if validated:
-            self.audit_svc_access(log.AUDIT_SVC_AUTH_PASS,
-                                  request['client_id'], name)
-            request['remote_user'] = name
-            return True
-
-        self.audit_svc_access(log.AUDIT_SVC_AUTH_FAIL,
-                              request['client_id'], name)
-        return False
-
-
-class SimpleClientCertAuth(HTTPAuthenticator):
-    header = PluginOption(str, 'CUSTODIA_CERT_AUTH', "header name")
-
-    def handle(self, request):
-        cert_auth = request['headers'].get(self.header, "false").lower()
-        client_cert = request['client_cert']  # {} or None
-        if not client_cert or cert_auth not in {'1', 'yes', 'true', 'on'}:
-            self.logger.debug('Ignoring request no relevant header or cert'
-                              ' provided')
-            return None
-
-        subject = client_cert.get('subject', {})
-        dn = []
-        name = None
-        # TODO: check SAN first
-        for rdn in subject:
-            for key, value in rdn:
-                dn.append('{}="{}"'.format(key, value.replace('"', r'\"')))
-                if key == 'commonName':
-                    name = value
-                    break
-
-        dn = ', '.join(dn)
-        self.logger.debug('Client cert subject: {}, serial: {}'.format(
-            dn, client_cert.get('serialNumber')))
-
-        if name:
-            self.audit_svc_access(log.AUDIT_SVC_AUTH_PASS,
-                                  request['client_id'], name)
-            request['remote_user'] = name
-            return True
-
-        self.audit_svc_access(log.AUDIT_SVC_AUTH_FAIL,
-                              request['client_id'], dn)
-        return False
