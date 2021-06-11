@@ -676,6 +676,9 @@ class NSSDatabase:
                                     "%s",
                                     filename, line, e)
                                 continue
+                            logger.error('Failed to load certificate in %s '
+                                         'at line %s: %s',
+                                         filename, line, e)
                         else:
                             extracted_certs.append(cert)
                             loaded = True
