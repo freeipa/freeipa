@@ -7,8 +7,8 @@ import socket
 
 import six
 
-from custodia.compat import configparser
-from custodia.compat import url_escape
+from ipaserver.custodia.compat import configparser
+from ipaserver.custodia.compat import url_escape
 
 
 class CustodiaConfig(object):

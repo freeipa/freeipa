@@ -9,7 +9,7 @@ import pkg_resources
 import six
 
 from custodia import log
-from custodia.httpd.server import HTTPServer
+from ipaserver.custodia.httpd.server import HTTPServer
 
 from .args import default_argparser
 from .args import parse_args as _parse_args

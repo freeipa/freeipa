@@ -23,6 +23,31 @@ Python-level packaging using setuptools
 from os.path import abspath, dirname
 import sys
 
+custodia_authenticators = [
+    'IPAInterface = ipaserver.custodia.ipa.interface:IPAInterface',
+    ('SimpleCredsAuth = '
+     'ipaserver.custodia.httpd.authenticators:SimpleCredsAuth'),
+]
+
+custodia_authorizers = [
+    'SimplePathAuthz = ipaserver.custodia.httpd.authorizers:SimplePathAuthz',
+    'UserNameSpace = ipaserver.custodia.httpd.authorizers:UserNameSpace',
+    'KEMKeysStore = ipaserver.custodia.message.kem:KEMKeysStore',
+    'IPAKEMKeys = ipaserver.secrets.kem:IPAKEMKeys',
+]
+
+custodia_clients = [
+    'KEMClient = ipaserver.custodia.client:CustodiaKEMClient',
+    'SimpleClient = ipaserver.custodia.client:CustodiaSimpleClient',
+]
+
+custodia_consumers = [
+    'Forwarder = ipaserver.custodia.forwarder:Forwarder',
+    'Secrets = ipaserver.custodia.secrets:Secrets',
+    'Root = ipaserver.custodia.root:Root',
+]
+
+
 if __name__ == '__main__':
     # include ../ for ipasetup.py
     sys.path.append(dirname(dirname(abspath(__file__))))
@@ -36,6 +61,10 @@ if __name__ == '__main__':
             'ipaserver',
             'ipaserver.advise',
             'ipaserver.advise.plugins',
+            'ipaserver.custodia',
+            'ipaserver.custodia.httpd',
+            'ipaserver.custodia.message',
+            'ipaserver.custodia.server',
             'ipaserver.dnssec',
             'ipaserver.plugins',
             'ipaserver.secrets',
@@ -46,7 +75,6 @@ if __name__ == '__main__':
         ],
         install_requires=[
             "cryptography",
-            "custodia",
             "dbus-python",
             "dnspython",
             # dogtag-pki is just the client package on PyPI. ipaserver
@@ -67,10 +95,11 @@ if __name__ == '__main__':
             "python-ldap",
         ],
         entry_points={
-            'custodia.authorizers': [
-                'IPAKEMKeys = ipaserver.secrets.kem:IPAKEMKeys',
-            ],
-            'custodia.stores': [
+            'ipaserver.custodia.authenticators': custodia_authenticators,
+            'ipaserver.custodia.authorizers': custodia_authorizers,
+            'ipaserver.custodia.clients': custodia_clients,
+            'ipaserver.custodia.consumers': custodia_consumers,
+            'ipaserver.custodia.stores': [
                 'IPASecStore = ipaserver.secrets.store:IPASecStore',
             ],
         },

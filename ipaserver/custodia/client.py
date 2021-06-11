@@ -21,8 +21,8 @@ try:
 except ImportError:
     requests_gssapi = None
 
-from custodia.log import getLogger
-from custodia.message.kem import (
+from ipaserver.custodia.log import getLogger
+from ipaserver.custodia.message.kem import (
     check_kem_claims, decode_enc_kem, make_enc_kem
 )
 
