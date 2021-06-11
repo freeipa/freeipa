@@ -78,6 +78,8 @@ class PKINITManage(AdminTool):
             krb.enable_ssl()
 
         if setup_pkinit:
+            if not is_pkinit_enabled():
+                krb.setup_pkinit()
             krb.pkinit_enable()
         else:
             krb.pkinit_disable()
