@@ -200,7 +200,7 @@ class KEMHandler(MessageHandler):
         return {'type': 'kem', 'value': value}
 
 
-class KEMClient(object):
+class KEMClient:
 
     def __init__(self, server_keys, client_keys):
         self.server_keys = server_keys

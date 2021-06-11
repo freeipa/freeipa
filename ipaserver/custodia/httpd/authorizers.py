@@ -42,7 +42,7 @@ class SimplePathAuthz(HTTPAuthorizer):
             if path == '/':
                 path = ''
             else:
-                path, _ = os.path.split(path)
+                path, _head = os.path.split(path)
 
         self.logger.debug('No path in %s matched %s', self.paths, reqpath)
         return None
