@@ -3,8 +3,8 @@ from __future__ import absolute_import
 
 from six import string_types
 
-from custodia.message.common import InvalidMessage
-from custodia.message.common import MessageHandler
+from ipaserver.custodia.message.common import InvalidMessage
+from ipaserver.custodia.message.common import MessageHandler
 
 
 class SimpleKey(MessageHandler):

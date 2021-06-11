@@ -6,7 +6,7 @@ import os
 from cryptography.hazmat.primitives import constant_time
 
 from custodia import log
-from custodia.plugin import HTTPAuthenticator, PluginOption
+from ipaserver.custodia.plugin import HTTPAuthenticator, PluginOption
 
 
 class SimpleCredsAuth(HTTPAuthenticator):
