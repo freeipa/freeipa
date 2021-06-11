@@ -11,7 +11,7 @@ from ipaserver.custodia.compat import configparser
 from ipaserver.custodia.compat import url_escape
 
 
-class CustodiaConfig(object):
+class CustodiaConfig:
     CONFIG_SPECIALS = ['authenticators', 'authorizers', 'consumers', 'stores']
 
     DEFAULT_PATHS = [
@@ -86,7 +86,7 @@ class CustodiaConfig(object):
         return configfiles
 
     def makedirs(self):
-        for name, _ in self.DEFAULT_PATHS:
+        for name, _path in self.DEFAULT_PATHS:
             path = self.parser.get(u'DEFAULT', name)
             parent = os.path.dirname(path)
             # create parents according to umask

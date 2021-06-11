@@ -14,7 +14,7 @@ key_types = {'simple': SimpleKey,
              'kem': KEMHandler}
 
 
-class Validator(object):
+class Validator:
     """Validates incoming messages."""
 
     def __init__(self, allowed=None):

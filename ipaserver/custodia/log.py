@@ -158,7 +158,7 @@ AUDIT_MESSAGES = [
 ]
 
 
-class AuditLog(object):
+class AuditLog:
     def __init__(self, logger):
         self.logger = logger
 
