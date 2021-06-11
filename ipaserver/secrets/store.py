@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import
 import os
 import sys
 
-from custodia.plugin import CSStore
+from ipaserver.custodia.plugin import CSStore
 
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants

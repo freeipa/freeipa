@@ -3,8 +3,8 @@ from __future__ import absolute_import
 
 import json
 
-from custodia.plugin import HTTPConsumer, PluginOption
-from custodia.secrets import Secrets
+from ipaserver.custodia.plugin import HTTPConsumer, PluginOption
+from ipaserver.custodia.secrets import Secrets
 
 
 class Root(HTTPConsumer):

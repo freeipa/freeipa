@@ -9,7 +9,9 @@ from base64 import b64encode
 
 
 # pylint: disable=relative-import
-from custodia.message.kem import KEMClient, KEY_USAGE_SIG, KEY_USAGE_ENC
+from ipaserver.custodia.message.kem import (
+    KEMClient, KEY_USAGE_SIG, KEY_USAGE_ENC
+)
 # pylint: enable=relative-import
 from jwcrypto.common import json_decode
 from jwcrypto.jwk import JWK
