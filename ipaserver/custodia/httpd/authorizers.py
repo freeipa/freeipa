@@ -3,8 +3,8 @@ from __future__ import absolute_import
 
 import os
 
-from custodia import log
-from ipaserver.custodia.plugin import HTTPAuthorizer, PluginOption
+from ipaserver.custodia import log
+from ipaserver.custodia.plugin import HTTPAuthorizer
 
 
 class SimplePathAuthz(HTTPAuthorizer):
@@ -46,35 +46,3 @@ class SimplePathAuthz(HTTPAuthorizer):
 
         self.logger.debug('No path in %s matched %s', self.paths, reqpath)
         return None
-
-
-class UserNameSpace(HTTPAuthorizer):
-    path = PluginOption(str, '/', 'User namespace path')
-    store = PluginOption('store', None, None)
-
-    def handle(self, request):
-        # Only check if we are in the right (sub)path
-        path = request.get('path', '/')
-        if not path.startswith(self.path):
-            self.logger.debug('%s is not contained in %s', path, self.path)
-            return None
-
-        name = request.get('remote_user', None)
-        if name is None:
-            # UserNameSpace requires a user ...
-            self.audit_svc_access(log.AUDIT_SVC_AUTHZ_FAIL,
-                                  request['client_id'], path)
-            return False
-
-        # pylint: disable=no-member
-        namespace = self.path.rstrip('/') + '/' + name + '/'
-        if not path.startswith(namespace):
-            # Not in the namespace
-            self.audit_svc_access(log.AUDIT_SVC_AUTHZ_FAIL,
-                                  request['client_id'], path)
-            return False
-
-        request['default_namespace'] = name
-        self.audit_svc_access(log.AUDIT_SVC_AUTHZ_PASS,
-                              request['client_id'], path)
-        return True

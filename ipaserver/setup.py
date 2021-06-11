@@ -23,30 +23,6 @@ Python-level packaging using setuptools
 from os.path import abspath, dirname
 import sys
 
-custodia_authenticators = [
-    'IPAInterface = ipaserver.custodia.ipa.interface:IPAInterface',
-    ('SimpleCredsAuth = '
-     'ipaserver.custodia.httpd.authenticators:SimpleCredsAuth'),
-]
-
-custodia_authorizers = [
-    'SimplePathAuthz = ipaserver.custodia.httpd.authorizers:SimplePathAuthz',
-    'UserNameSpace = ipaserver.custodia.httpd.authorizers:UserNameSpace',
-    'KEMKeysStore = ipaserver.custodia.message.kem:KEMKeysStore',
-    'IPAKEMKeys = ipaserver.secrets.kem:IPAKEMKeys',
-]
-
-custodia_clients = [
-    'KEMClient = ipaserver.custodia.client:CustodiaKEMClient',
-    'SimpleClient = ipaserver.custodia.client:CustodiaSimpleClient',
-]
-
-custodia_consumers = [
-    'Forwarder = ipaserver.custodia.forwarder:Forwarder',
-    'Secrets = ipaserver.custodia.secrets:Secrets',
-    'Root = ipaserver.custodia.root:Root',
-]
-
 
 if __name__ == '__main__':
     # include ../ for ipasetup.py
@@ -95,10 +71,25 @@ if __name__ == '__main__':
             "python-ldap",
         ],
         entry_points={
-            'ipaserver.custodia.authenticators': custodia_authenticators,
-            'ipaserver.custodia.authorizers': custodia_authorizers,
-            'ipaserver.custodia.clients': custodia_clients,
-            'ipaserver.custodia.consumers': custodia_consumers,
+            'ipaserver.custodia.authenticators': [
+                ('SimpleCredsAuth = '
+                 'ipaserver.custodia.httpd.authenticators:SimpleCredsAuth'),
+                ('SimpleHeaderAuth = '
+                 'custodia.httpd.authenticators:SimpleHeaderAuth'),
+            ],
+            'ipaserver.custodia.authorizers': [
+                'IPAKEMKeys = ipaserver.secrets.kem:IPAKEMKeys',
+            ],
+            'ipaserver.custodia.clients': [
+                'KEMClient = ipaserver.custodia.client:CustodiaKEMClient',
+                ('SimpleClient = '
+                 'ipaserver.custodia.client:CustodiaSimpleClient'),
+            ],
+            'ipaserver.custodia.consumers': [
+                'Forwarder = ipaserver.custodia.forwarder:Forwarder',
+                'Secrets = ipaserver.custodia.secrets:Secrets',
+                'Root = ipaserver.custodia.root:Root',
+            ],
             'ipaserver.custodia.stores': [
                 'IPASecStore = ipaserver.secrets.store:IPASecStore',
             ],

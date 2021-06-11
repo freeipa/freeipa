@@ -6,25 +6,18 @@ import errno
 import os
 import shutil
 import socket
-import ssl
 import struct
 import sys
 import warnings
 
+from http.server import BaseHTTPRequestHandler
+from socketserver import ForkingTCPServer, BaseServer
+from urllib.parse import parse_qs, unquote, urlparse
+
 import six
 
-from custodia import log
-from ipaserver.custodia.compat import parse_qs, unquote, urlparse
+from ipaserver.custodia import log
 from ipaserver.custodia.plugin import HTTPError
-
-# pylint: disable=import-error,no-name-in-module
-if six.PY2:
-    from BaseHTTPServer import BaseHTTPRequestHandler
-    from SocketServer import ForkingTCPServer, BaseServer
-else:
-    from http.server import BaseHTTPRequestHandler
-    from socketserver import ForkingTCPServer, BaseServer
-# pylint: enable=import-error,no-name-in-module
 
 try:
     from systemd import daemon as sd  # pylint: disable=import-error
@@ -118,56 +111,6 @@ class ForkingUnixHTTPServer(ForkingHTTPServer):
             os.unlink(self.server_address)
         except OSError:
             pass
-
-
-class ForkingTLSServer(ForkingHTTPServer):
-    def __init__(self, server_address, handler_class, config, context=None,
-                 bind_and_activate=True):
-        ForkingHTTPServer.__init__(self, server_address, handler_class, config,
-                                   bind_and_activate=bind_and_activate)
-        if context is None:
-            try:
-                self._context = self._mkcontext()
-            except Exception as e:
-                logger.error(
-                    "Failed to create a SSLContext for TLS server: %s", e
-                )
-                raise
-        else:
-            self._context = context
-
-    def _mkcontext(self):
-        certfile = self.config.get('tls_certfile')
-        keyfile = self.config.get('tls_keyfile')
-        cafile = self.config.get('tls_cafile')
-        capath = self.config.get('tls_capath')
-        if self.config.get('tls_verify_client', False):
-            verifymode = ssl.CERT_REQUIRED
-        else:
-            verifymode = ssl.CERT_NONE
-
-        if not certfile:
-            raise ValueError('tls_certfile is not set.')
-
-        logger.info(
-            "Creating SSLContext for TLS server (cafile: '%s', capath: '%s', "
-            "verify client: %s).",
-            cafile, capath, verifymode == ssl.CERT_REQUIRED
-        )
-        context = ssl.create_default_context(
-            ssl.Purpose.CLIENT_AUTH,
-            cafile=cafile,
-            capath=capath)
-        context.verify_mode = verifymode
-        logger.info(
-            "Loading cert chain '%s' (keyfile: '%s')", certfile, keyfile)
-        context.load_cert_chain(certfile, keyfile)
-        return context
-
-    def get_request(self):
-        conn, client_addr = self.socket.accept()
-        sslconn = self._context.wrap_socket(conn, server_side=True)
-        return sslconn, client_addr
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
@@ -515,11 +458,6 @@ class HTTPServer:
             address = (host, int(port))
             logger.info('Serving on %s (HTTP)', url.netloc)
             serverclass = ForkingHTTPServer
-        elif url.scheme == 'https':
-            host, port = url.netloc.split(":")
-            address = (host, int(port))
-            logger.info('Serving on %s (HTTPS)', url.netloc)
-            serverclass = ForkingTLSServer
         else:
             raise ValueError('Unknown URL Scheme: %s' % url.scheme)
         return serverclass, address
