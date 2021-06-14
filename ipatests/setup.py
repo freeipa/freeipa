@@ -36,6 +36,7 @@ if __name__ == '__main__':
             "ipatests.pytest_ipa",
             "ipatests.pytest_ipa.integration",
             "ipatests.test_cmdline",
+            "ipatests.test_custodia",
             "ipatests.test_install",
             "ipatests.test_integration",
             "ipatests.test_ipaclient",
@@ -52,6 +53,7 @@ if __name__ == '__main__':
         scripts=['ipa-run-tests', 'ipa-test-config', 'ipa-test-task'],
         package_data={
             'ipatests': ['prci_definitions/*'],
+            'ipatests.test_custodia': ['*.conf', 'empty.conf.d/*.conf'],
             'ipatests.test_install': ['*.update'],
             'ipatests.test_integration': ['scripts/*'],
             'ipatests.test_ipaclient': ['data/*/*/*'],
