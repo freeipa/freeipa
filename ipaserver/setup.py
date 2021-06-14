@@ -80,13 +80,7 @@ if __name__ == '__main__':
             'ipaserver.custodia.authorizers': [
                 'IPAKEMKeys = ipaserver.secrets.kem:IPAKEMKeys',
             ],
-            'ipaserver.custodia.clients': [
-                'KEMClient = ipaserver.custodia.client:CustodiaKEMClient',
-                ('SimpleClient = '
-                 'ipaserver.custodia.client:CustodiaSimpleClient'),
-            ],
             'ipaserver.custodia.consumers': [
-                'Forwarder = ipaserver.custodia.forwarder:Forwarder',
                 'Secrets = ipaserver.custodia.secrets:Secrets',
                 'Root = ipaserver.custodia.root:Root',
             ],
