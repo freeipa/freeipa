@@ -14,6 +14,7 @@ vms:
   - container_job: base
     tests:
     - test_cmdline
+    - test_custodia
     - test_install
     - test_ipaclient
     - test_ipalib
