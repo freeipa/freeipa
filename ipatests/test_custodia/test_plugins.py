@@ -2,7 +2,6 @@
 import pkg_resources
 import pytest
 
-from ipaserver.custodia.client import CustodiaHTTPClient
 from ipaserver.custodia.plugin import (
     CSStore, HTTPAuthenticator, HTTPAuthorizer
 )
@@ -39,10 +38,6 @@ class TestCustodiaPlugins:
     def test_authorizers(self):
         for ep in self.get_entry_points('custodia.authorizers'):
             self.assert_ep(ep, HTTPAuthorizer)
-
-    def test_clients(self):
-        for ep in self.get_entry_points('custodia.clients'):
-            self.assert_ep(ep, CustodiaHTTPClient)
 
     def test_stores(self):
         for ep in self.get_entry_points('custodia.stores'):
