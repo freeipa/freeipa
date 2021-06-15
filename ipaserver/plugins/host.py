@@ -252,6 +252,11 @@ def validate_ipaddr(ugettext, ipaddr):
     return None
 
 
+def resolve_fqdn(name):
+    hostentry = api.Command['host_show'](name)['result']
+    return hostentry['fqdn'][0]
+
+
 class HostPassword(Str):
     """
     A data type for host passwords to not log password values
@@ -795,14 +800,7 @@ class host_del(LDAPDelete):
 
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
-        # If we aren't given a fqdn, find it
-        config = ldap.get_ipa_config()
-        maxlen = int(config.get('ipamaxhostnamelength')[0])
-        if hostname_validator(None, keys[-1], maxlen=maxlen) is not None:
-            hostentry = api.Command['host_show'](keys[-1])['result']
-            fqdn = hostentry['fqdn'][0]
-        else:
-            fqdn = keys[-1]
+        fqdn = resolve_fqdn(keys[-1])
         host_is_master(ldap, fqdn)
         # Remove all service records for this host
         truncated = True
@@ -894,6 +892,7 @@ class host_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
+        fqdn = resolve_fqdn(keys[-1])
         # Allow an existing OTP to be reset but don't allow a OTP to be
         # added to an enrolled host.
         if options.get('userpassword') or options.get('random'):
@@ -959,7 +958,7 @@ class host_mod(LDAPUpdate):
                 entry_attrs['objectclass'] = obj_classes
 
         if options.get('updatedns', False) and dns_container_exists(ldap):
-            parts = keys[-1].split('.')
+            parts = fqdn.split('.')
             domain = unicode('.'.join(parts[1:]))
             try:
                 result = api.Command['dnszone_show'](domain)['result']
@@ -1190,13 +1189,7 @@ class host_disable(LDAPQuery):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
-        # If we aren't given a fqdn, find it
-        if hostname_validator(None, keys[-1]) is not None:
-            hostentry = api.Command['host_show'](keys[-1])['result']
-            fqdn = hostentry['fqdn'][0]
-        else:
-            fqdn = keys[-1]
-
+        fqdn = resolve_fqdn(keys[-1])
         host_is_master(ldap, fqdn)
 
         # See if we actually do anthing here, and if not raise an exception
