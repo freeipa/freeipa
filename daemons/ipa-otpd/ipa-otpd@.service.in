@@ -8,3 +8,5 @@ ExecStart=@libexecdir@/ipa/ipa-otpd $ldap_uri
 StandardInput=socket
 StandardOutput=socket
 StandardError=syslog
+User=krb5kdc
+Group=krb5kdc

@@ -35,6 +35,7 @@ app_DATA =				\
 	30-s4u2proxy.update		\
 	37-locations.update		\
 	40-delegation.update		\
+	40-krb5kdc.update			\
 	40-realm_domains.update		\
 	40-replication.update		\
 	40-dns.update			\

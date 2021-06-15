@@ -5,6 +5,8 @@ Description=ipa-otpd socket
 ListenStream=@krb5rundir@/DEFAULT.socket
 RemoveOnStop=true
 SocketMode=0600
+SocketUser=krb5kdc
+SocketGroup=krb5kdc
 Accept=true
 
 [Install]

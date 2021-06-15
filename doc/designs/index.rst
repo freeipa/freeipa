@@ -21,3 +21,4 @@ FreeIPA design documentation
    disable-stale-users.md
    ldapi-autobind-services.md
    subordinate-ids.md
+   krb-kdc-unprivileged.md

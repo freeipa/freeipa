@@ -33,3 +33,6 @@
 /usr/libexec/ipa/ipa-pki-retrieve-key				--	gen_context(system_u:object_r:ipa_pki_retrieve_key_exec_t,s0)
 
 /var/log/ipa-custodia.audit.log(/.*)?				--	gen_context(system_u:object_r:ipa_custodia_log_t,s0)
+
+# /run/krb5kdc(/.*) is already krb5kdc_var_run_t
+/run/kadmind(/.*)?			--	gen_context(system_u:object_r:kadmind_var_run_t,s0)

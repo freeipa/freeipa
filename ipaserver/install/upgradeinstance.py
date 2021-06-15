@@ -248,7 +248,6 @@ class IPAUpgrade(service.Service):
                 parser = installutils.ModifyLDIF(in_file, out_file)
                 parser.replace_value("cn=config", "nsslapd-port", [b"0"])
                 parser.replace_value("cn=config", "nsslapd-security", [b"off"])
-                parser.remove_value("cn=config", "nsslapd-ldapientrysearchbase")
                 parser.parse()
 
         shutil.copy2(ldif_outfile, self.filename)

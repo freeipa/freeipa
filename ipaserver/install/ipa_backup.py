@@ -197,6 +197,8 @@ class Backup(admintool.AdminTool):
         paths.SYSTEMD_PKI_TOMCAT_IPA_CONF,
         paths.NETWORK_MANAGER_IPA_CONF,
         paths.SYSTEMD_RESOLVED_IPA_CONF,
+        paths.SYSTEMD_SYSTEM_KRB5KDC_OVERRIDE,
+        paths.SYSTEMD_SYSTEM_KADMIND_OVERRIDE,
     ) + tuple(
         os.path.join(paths.IPA_NSSDB_DIR, file)
         for file in (certdb.NSS_DBM_FILES + certdb.NSS_SQL_FILES)

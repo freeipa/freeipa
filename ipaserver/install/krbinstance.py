@@ -22,6 +22,7 @@ from __future__ import print_function
 
 import logging
 import os
+import shutil
 import socket
 import dbus
 
@@ -182,6 +183,7 @@ class KrbInstance(service.Service):
             pass
 
     def __common_post_setup(self):
+        self.step("adding KRB5 KDC sysaccount", self._add_krb5kdc_sysaccount)
         self.step("creating anonymous principal", self.add_anonymous_principal)
         self.step("starting the KDC", self.__start_instance)
         self.step("configuring KDC to start on boot", self.__enable)
@@ -269,7 +271,12 @@ class KrbInstance(service.Service):
                              KDC_CA_BUNDLE_PEM=paths.KDC_CA_BUNDLE_PEM,
                              CA_BUNDLE_PEM=paths.CA_BUNDLE_PEM,
                              INCLUDES=includes,
-                             FIPS='#' if tasks.is_fips_enabled() else '')
+                             FIPS='#' if tasks.is_fips_enabled() else '',
+                             KRB5KDC_UID=constants.KRB5KDC_USER.uid,
+                             KRB5KDC_GID=constants.KRB5KDC_GROUP.gid,
+                             KADMIND_LOG=paths.KADMIND_LOG,
+                             KRB5KDC_LOG=paths.KRB5KDC_LOG,
+                             )
 
         # IPA server/KDC is not a subdomain of default domain
         # Proper domain-realm mapping needs to be specified
@@ -307,6 +314,22 @@ class KrbInstance(service.Service):
     def __add_default_acis(self):
         self._ldap_mod("default-aci.ldif", self.sub_dict)
 
+    def _add_krb5kdc_sysaccount(self):
+        self._ldap_update(["40-krb5kdc.update"])
+        # allow krb5kdc user to read config files
+        os.chown(paths.KRB5KDC_KDC_CONF, 0, self.sub_dict["KRB5KDC_GID"])
+        os.chmod(paths.KRB5KDC_KDC_CONF, 0o640)
+        os.chown(paths.KRB5KDC_KADM5_ACL, 0, self.sub_dict["KRB5KDC_GID"])
+        os.chmod(paths.KRB5KDC_KADM5_ACL, 0o640)
+        # modify systemd services
+        self._copy_file(
+            "krb5kdc-override.conf", paths.SYSTEMD_SYSTEM_KRB5KDC_OVERRIDE
+        )
+        self._copy_file(
+            "kadmind-override.conf", paths.SYSTEMD_SYSTEM_KADMIND_OVERRIDE
+        )
+        tasks.systemd_daemon_reload()
+
     def __template_file(self, path, chmod=0o644, client_template=False):
         if client_template:
             sharedir = paths.USR_SHARE_IPA_CLIENT_DIR
@@ -320,6 +343,11 @@ class KrbInstance(service.Service):
             if chmod is not None:
                 os.fchmod(f.fileno(), chmod)
             f.write(conf)
+
+    def _copy_file(self, name, dst):
+        directory = os.path.dirname(dst)
+        os.makedirs(directory, exist_ok=True)
+        shutil.copyfile(os.path.join(paths.USR_SHARE_IPA_DIR, name), dst)
 
     def __init_ipa_kdb(self):
         # kdb5_util may take a very long time when entropy is low
@@ -342,7 +370,7 @@ class KrbInstance(service.Service):
             raise RuntimeError("Failed to initialize kerberos container")
 
     def __configure_instance(self):
-        self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None)
+        self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=0o640)
         self.__template_file(paths.KRB5_CONF)
         self.__template_file(paths.KRB5_FREEIPA_SERVER)
         self.__template_file(paths.KRB5_FREEIPA, client_template=True)
@@ -453,7 +481,7 @@ class KrbInstance(service.Service):
                 storage='FILE',
                 profile=KDC_PROFILE,
                 post_command='renew_kdc_cert',
-                perms=(0o644, 0o600),
+                perms=(0o644, 0o640),
                 resubmit_timeout=api.env.certmonger_wait_timeout
             )
         except dbus.DBusException as e:
@@ -626,6 +654,8 @@ class KrbInstance(service.Service):
         # stop tracking and remove certificates
         self.stop_tracking_certs()
         ipautil.remove_file(paths.CACERT_PEM)
+        ipautil.remove_file(paths.SYSTEMD_SYSTEM_KRB5KDC_OVERRIDE)
+        ipautil.remove_file(paths.SYSTEMD_SYSTEM_KADMIND_OVERRIDE)
         self.delete_pkinit_cert()
 
         if running:
