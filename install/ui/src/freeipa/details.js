@@ -603,6 +603,12 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     that.facet_group = spec.facet_group || 'settings';
 
     /**
+     * Indicates if the details facet depends on pkey
+     * @property {boolean}
+     */
+    that.require_pkey = spec.require_pkey !== undefined ? spec.require_pkey : true;
+
+    /**
      * Widgets
      * @property {IPA.widget_container}
      */
@@ -1105,7 +1111,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
      */
     that.refresh = function(on_success, on_error) {
 
-        if (!that.get_pkey() && that.entity.redirect_facet) {
+        if (that.require_pkey && !that.get_pkey() && that.entity.redirect_facet) {
             that.redirect();
             return;
         }
