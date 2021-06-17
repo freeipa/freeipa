@@ -104,7 +104,24 @@ var nav = {};
                         }
                     ]
                 },
-                { entity: 'subid' }
+                {
+                    name: 'subid',
+                    label: '@i18n:tabs.subid',
+                    children: [
+                        {
+                            name: 'subid',
+                            entity: 'subid',
+                            facet: 'search',
+                            label: '@i18n:tabs.subid'
+                        },
+                        {
+                            name: 'subid-stats',
+                            entity: 'subid',
+                            facet: 'stats',
+                            label: '@i18n:objects.subid.stats'
+                        }
+                    ]
+                }
             ]
         },
         {
