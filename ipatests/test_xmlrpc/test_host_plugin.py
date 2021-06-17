@@ -331,6 +331,12 @@ class TestCRUD(XMLRPC_test):
                 name='sshpubkey', error=u'options are not allowed')):
             command()
 
+    def test_update_shortname(self, host):
+        host.ensure_exists()
+        host.run_command('host_mod', host.shortname,
+                         updatedns=True,
+                         setattr='nshardwareplatform=linux')
+
     def test_delete_host(self, host):
         host.delete()
 
