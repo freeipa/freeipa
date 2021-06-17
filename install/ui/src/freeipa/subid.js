@@ -31,6 +31,7 @@ return {
         },
         {
             $type: 'details',
+            disable_facet_tabs: true,
             sections: [
                 {
                     name: 'details',
@@ -38,9 +39,11 @@ return {
                         'ipauniqueid',
                         'description',
                         {
+                            $type: 'link',
                             name: 'ipaowner',
                             label: '@i18n:objects.subid.ipaowner',
-                            title: '@mo-param:subid:ipaowner:label'
+                            title: '@mo-param:subid:ipaowner:label',
+                            other_entity: 'user'
                         },
                         {
                             name: 'ipasubgidnumber',
@@ -63,6 +66,44 @@ return {
                             title: '@mo-param:subid:ipasubuidcount:label'
                         }
                     ]
+                }
+            ]
+        },
+        {
+            $type: 'details',
+            name: 'stats',
+            label: '@i18n:objects.subid.stats',
+            refresh_command_name: 'stats',
+            check_rights: false,
+            no_update: true,
+            disable_facet_tabs: true,
+            disable_breadcrumb: true,
+            require_pkey: false,
+            fields: [
+                {
+                    name: 'assigned_subids',
+                    label: '@i18n:objects.subid.assigned_subids',
+                    read_only: true
+                },
+                {
+                    name: 'baseid',
+                    label: '@i18n:objects.subid.baseid',
+                    read_only: true
+                },
+                {
+                    name: 'dna_remaining',
+                    label: '@i18n:objects.subid.dna_remaining',
+                    read_only: true
+                },
+                {
+                    name: 'rangesize',
+                    label: '@i18n:objects.subid.rangesize',
+                    read_only: true
+                },
+                {
+                    name: 'remaining_subids',
+                    label: '@i18n:objects.subid.remaining_subids',
+                    read_only: true
                 }
             ]
         }

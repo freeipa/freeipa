@@ -1364,6 +1364,20 @@ class i18n_messages(Command):
                 "undel_success": _("${count} user(s) restored"),
                 "user_categories": _("User categories"),
             },
+            "subid": {
+                "add": _("Add subid"),
+                "assigned_subids": _("Assigned subids"),
+                "baseid": _("Base ID"),
+                "dna_remaining": _("DNA remaining"),
+                "ipaowner": _("Owner"),
+                "ipasubgidcount": _("SubGID range size"),
+                "ipasubgidnumber": _("SubGID range start"),
+                "ipasubuidcount": _("SubUID range size"),
+                "ipasubuidnumber": _("SubUID range start"),
+                "rangesize": _("Range size"),
+                "remaining_subids": _("Remaining subids"),
+                "stats": _("Subordinate ID Statistics"),
+            },
             "sudocmd": {
                 "add": _("Add sudo command"),
                 "add_into_sudocmdgroups": _(
@@ -1546,13 +1560,6 @@ class i18n_messages(Command):
                 "ipanthomedirectorydrive_tooltip": _(
                     "Drive to mount a home directory"
                 ),
-            },
-            "subid": {
-                "identity": _("Subordinate user and group id"),
-                "subuidnumber": _("Subordinate user id"),
-                "subuidcount": _("Subordinate user id count"),
-                "subgidnumber": _("Subordinate group id"),
-                "subgidcount": _("Subordinate group id count"),
             },
             "trustconfig": {
                 "options": _("Options"),
@@ -1942,6 +1949,7 @@ class i18n_messages(Command):
             "network_services": _("Network Services"),
             "policy": _("Policy"),
             "role": _("Role-Based Access Control"),
+            "subid": _("Subordinate IDs"),
             "sudo": _("Sudo"),
             "topology": _("Topology"),
             "trust": _("Trusts"),
