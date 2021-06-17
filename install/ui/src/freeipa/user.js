@@ -464,7 +464,7 @@ return {
                 },
                 {
                     $type: 'subid_generate',
-                    hide_cond: ['preserved-user'],
+                    hide_cond: ['preserved-user', 'self-service-other'],
                     enable_cond: ['no-subid']
                 }
             ],
@@ -556,8 +556,35 @@ return {
         {
             $type: 'association',
             name: 'memberof_subid',
+            columns: [
+                'ipauniqueid',
+                'ipasubuidnumber',
+                'ipasubgidnumber'
+            ],
             associator: IPA.serial_associator,
-            read_only: true
+            read_only: true,
+            state: {
+                evaluators: [
+                    IPA.user.self_service_other_user_evaluator,
+                    IPA.user.preserved_user_evaluator,
+                    IPA.user.has_subid_evaluator
+                ]
+            },
+            actions: [
+                {
+                    $type: 'subid_generate',
+                    name: 'subid_generate',
+                    hide_cond: ['preserved-user', 'self-service-other'],
+                    enable_cond: ['no-subid']
+                }
+            ],
+            control_buttons: [
+                {
+                    name: 'subid_generate',
+                    label: '@i18n:objects.user.auto_subid',
+                    icon: 'fa-plus'
+                }
+            ]
         }
     ],
     standard_association_facets: {
@@ -1216,14 +1243,16 @@ IPA.user.subid_generate_action = function(spec) {
     var that = IPA.action(spec);
 
     that.execute_action = function(facet) {
-
-        var subid_e = reg.entity.get('subid');
-        var dialog = subid_e.get_dialog('add');
-        dialog.open();
-        if (!IPA.is_selfservice) {
-            var owner = facet.get_pkey();
-            dialog.get_field('ipaowner').set_value([owner]);
-        }
+        var owner = facet.get_pkey();
+        var command = rpc.command({
+            entity: 'subid',
+            method: 'generate'
+        });
+        command.set_option('ipaowner', owner);
+        command.on_success = function(data, text_status, xhr) {
+            facet.refresh();
+        };
+        command.execute();
     };
 
     return that;
