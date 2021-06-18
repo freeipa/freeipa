@@ -582,10 +582,11 @@ class DsInstance(service.Service):
         inst.open()
 
         def get_entry(dn, attrs):
-            return inst.getEntry(dn, attrlist=attrs)
+            return inst.getEntry(str(dn), attrlist=attrs)
 
         self.sub_dict['REPLICATION_PLUGIN'] = (
-            replication.get_replication_plugin_name(get_entry))
+            installutils.get_replication_plugin_name(get_entry)
+        )
 
         try:
             ipadomain = IpaDomain(inst, dn=self.suffix.ldap_text())
