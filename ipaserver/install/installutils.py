@@ -1552,3 +1552,31 @@ def validate_mask():
     if mask & 0b111101101 > 0:
         mask_str = "{:04o}".format(mask)
     return mask_str
+
+
+def get_replication_plugin_name(dirsrv_get_entry):
+    # Support renaming of a replication plugin in 389-ds
+    # IPA topology plugin depends on the replication plugin but
+    # 389-ds cannot handle older alias querying in the plugin
+    # configuration with 'nsslapd-plugin-depends-on-named: ..' attribute
+    #
+    # dirsrv_get_entry: function (dn, attrs) can return different types
+    # depending on the function. The 389-ds connection returns bytes
+    # and ipaldap will return a list of string values.
+    try:
+        entry = dirsrv_get_entry(
+            DN('cn=Multisupplier Replication Plugin,cn=plugins,cn=config'),
+            ['cn'])
+    except (errors.NotFound, ldap.NO_SUCH_OBJECT):
+        return 'Multimaster Replication Plugin'
+    else:
+        cn = entry['cn']
+        if isinstance(cn, list):
+            return cn[0]
+        elif isinstance(cn, bytes):
+            return cn.decode('utf-8')
+        else:
+            raise RuntimeError(
+                'LDAP query returned unknown type for cn %s: %s' %
+                (cn, type(cn))
+            )

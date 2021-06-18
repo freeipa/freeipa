@@ -98,7 +98,6 @@ class IPAUpgrade(service.Service):
         self.modified = False
         self.serverid = serverid
         self.schema_files = schema_files
-        self.sub_dict = dict()
 
     def __start(self):
         srv = services.service(self.service_name, api)
@@ -171,20 +170,6 @@ class IPAUpgrade(service.Service):
                 pass
             else:
                 self.backup_state('nsslapd-global-backend-lock', global_lock)
-
-        # update self.sub_dict with the replication plugin name
-        # It may be different depending on 389-ds version
-        with open(self.filename, "r") as in_file:
-            parser = GetEntryFromLDIF(in_file, entries_dn=[])
-            parser.parse()
-
-        results = parser.get_results()
-
-        dn = REPL_PLUGIN_DN_TEMPLATE % "supplier"
-        if dn not in results:
-            dn = REPL_PLUGIN_DN_TEMPLATE % "master"
-
-        self.sub_dict['REPLICATION_PLUGIN'] = results[dn].get('cn')
 
         with open(self.filename, "r") as in_file:
             parser = GetEntryFromLDIF(in_file, entries_dn=[COMPAT_DN])
@@ -300,7 +285,7 @@ class IPAUpgrade(service.Service):
 
     def __upgrade(self):
         try:
-            ld = ldapupdate.LDAPUpdate(api=self.api, sub_dict=self.sub_dict)
+            ld = ldapupdate.LDAPUpdate(api=self.api)
             if len(self.files) == 0:
                 self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
             self.modified = (ld.update(self.files) or self.modified)
