@@ -6,8 +6,11 @@
 """
 import os
 
-from ipalib.constants import SUBID_COUNT, SUBID_RANGE_START, SUBID_RANGE_MAX
+from ipalib.constants import (
+    SUBID_COUNT, SUBID_RANGE_START, SUBID_RANGE_MAX, SUBID_DNA_THRESHOLD
+)
 from ipaplatform.paths import paths
+from ipapython.dn import DN
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
@@ -80,6 +83,23 @@ class TestSubordinateId(IntegrationTest):
         if uid is not None:
             cmd.extend(("--owner", uid))
         return self.master.run_command(cmd, **kwargs)
+
+    def test_dna_config(self):
+        conn = self.master.ldap_connect()
+        dna_cfg = DN(
+            "cn=Subordinate IDs,cn=Distributed Numeric Assignment Plugin,"
+            "cn=plugins,cn=config"
+        )
+        entry = conn.get_entry(dna_cfg)
+
+        def single_int(key):
+            return int(entry.single_value[key])
+
+        assert single_int("dnaInterval") == SUBID_COUNT
+        assert single_int("dnaThreshold") == SUBID_DNA_THRESHOLD
+        assert single_int("dnaMagicRegen") == -1
+        assert single_int("dnaMaxValue") == SUBID_RANGE_MAX
+        assert set(entry["dnaType"]) == {"ipasubgidnumber", "ipasubuidnumber"}
 
     def test_auto_generate_subid(self):
         uid = "testuser_auto1"
