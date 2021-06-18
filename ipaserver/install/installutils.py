@@ -1042,8 +1042,8 @@ def in_container():
         try:
             with open('/proc/1/sched', 'r') as sched:
                 data_sched = sched.readline().split()[0]
-        except:
-            if False == os.system('systemd-detect-virt --container'):
+        except FileNotFoundError:
+            if not os.system('systemd-detect-virt --container'):
                 return True
 
     with open('/proc/self/cgroup', 'r') as cgroup:
