@@ -20,6 +20,7 @@
  */
 
 define([
+    'dojo/_base/declare',
     'dojo/_base/lang',
     'dojo/on',
     './builder',
@@ -34,10 +35,11 @@ define([
     './text',
     './widget',
     './widgets/DropdownWidget',
-    './dialog'],
+    './dialog',
+    './field'],
     function(
-        lang, on, builder, datetime, metadata_provider, IPA, $, menu,
-        phases, reg, rpc, text, widget_mod, DropdownWidget) {
+        declare, lang, on, builder, datetime, metadata_provider, IPA, $, menu,
+        phases, reg, rpc, text, widget_mod, DropdownWidget, dialog, field) {
 
 var exp = IPA.cert = {};
 
@@ -1371,6 +1373,7 @@ IPA.cert.cert_widget = function(spec) {
         if (!certificate ) certificate = {};
 
         that.certificate = certificate;
+        that.certificate.serial_number = IPA.cert.normalize_sn(that.certificate);
 
         that.update_displayed_data();
     };
@@ -1641,7 +1644,8 @@ return {
                 {
                     name: 'serial_number',
                     primary_key: true,
-                    width: '90px'
+                    width: '90px',
+                    adapter: IPA.cert.SerialNumberAdapter
                 },
                 'subject',
                 'cacn',
@@ -1904,6 +1908,25 @@ IPA.cert.cert_update_policy = function(spec) {
     spec.event = spec.event || 'certificate_updated';
     return IPA.facet_update_policy(spec);
 };
+
+IPA.cert.normalize_sn = function(cert) {
+    // In case the value is too long we need to prevent translating it
+    // to a scientific number but keep original notation.
+    if (
+        typeof(cert.serial_number) == 'number' &&
+        window.BigInt !== undefined
+    ) {
+        var sn = BigInt(cert.serial_number_hex);
+        return sn.toString();
+    }
+    return cert.serial_number;
+};
+
+IPA.cert.SerialNumberAdapter = declare([field.Adapter], {
+    load: function(data) {
+        return IPA.cert.normalize_sn(data);
+    }
+});
 
 exp.remove_menu_item = function() {
     if (!IPA.cert.is_enabled()) {
