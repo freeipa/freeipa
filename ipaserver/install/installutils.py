@@ -35,6 +35,7 @@ import shutil
 import traceback
 import textwrap
 import warnings
+import subprocess
 from contextlib import contextmanager
 from configparser import ConfigParser as SafeConfigParser
 from configparser import NoOptionError
@@ -1028,6 +1029,24 @@ def is_hidepid():
     return False
 
 
+def detect_container_files():
+    for path in [
+        # https://github.com/containers/podman/issues/6192
+        # https://github.com/containers/podman/issues/3586#issuecomment-661918679
+        "/run/.containerenv",
+        # https://github.com/moby/moby/issues/18355
+        # Docker must be the last in this table, see below.
+        "/.dockerenv",
+        # OpenVZ
+        "/proc/bc",
+    ]:
+
+        if os.path.exists(path):
+            return True
+
+    return False
+
+
 def running_in_cgroupns():
 
     if not os.path.exists("/proc/self/ns/cgroup"):
@@ -1062,6 +1081,8 @@ def running_in_cgroupns():
         # release_agent only exists in the root cgroup.
         if not os.path.exists("/sys/fs/cgroup/systemd/release_agent"):
             return True
+
+        return False
 
     return version2() or version1()
 
