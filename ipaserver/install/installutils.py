@@ -1098,49 +1098,49 @@ def in_container():
     """
     try:
         return tasks.detect_container() is not None
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, NotImplementedError):
         pass
-    except NotImplementedError:
+
+    try:
+        with open("/proc/sys/kernel/osrelease") as release:
+            if release in ["Microsoft", "WSL"]:
+                return True
+    except FileNotFoundError:
+        pass
+
+    # TODO: detect proot
+
+    def check_container(container):
+        if container == "oci":
+            # Some images hardcode container=oci, but OCI is not a specific
+            # container manager. Try to detect one based on well-known
+            # files.
+            return detect_container_files()
+        return bool(container)
+
+    for path in ["/run/host/container-manager", "/run/systemd/container"]:
         try:
-            with open("/proc/sys/kernel/osrelease") as release:
-                if release in ["Microsoft", "WSL"]:
-                    return True
+            with open(path) as manager:
+                return check_container(manager.readline())
         except FileNotFoundError:
             pass
 
-        # TODO: detect proot
+    try:
+        with open("/proc/1/environ") as env:
+            for line in env.read().split("\0"):
+                if not line.startswith("container"):
+                    continue
 
-        def check_container(container):
-            if container == "oci":
-                # Some images hardcode container=oci, but OCI is not a specific
-                # container manager. Try to detect one based on well-known
-                # files.
-                return detect_container_files()
-            return bool(container)
+                return check_container(line.split("=")[1])
+    except FileNotFoundError:
+        pass
 
-        for path in ["/run/host/container-manager", "/run/systemd/container"]:
-            try:
-                with open(path) as manager:
-                    return check_container(manager.readline())
-            except FileNotFoundError:
-                pass
+    if detect_container_files():
+        return True
+    if running_in_cgroupns():
+        return True
 
-        try:
-            with open("/proc/1/environ") as env:
-                for line in env.read().split("\0"):
-                    if not line.startswith("container"):
-                        continue
-
-                    return check_container(line.split("=")[1])
-        except FileNotFoundError:
-            pass
-
-        if detect_container_files():
-            return True
-        if running_in_cgroupns():
-            return True
-
-        return False
+    return False
 
 
 def check_available_memory(ca=False):
