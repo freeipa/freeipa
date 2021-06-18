@@ -1028,36 +1028,98 @@ def is_hidepid():
     return False
 
 
+def running_in_cgroupns():
+
+    if not os.path.exists("/proc/self/ns/cgroup"):
+        return False
+
+    def version2():
+        if not os.path.exists("/sys/fs/cgroup/cgroup.events"):
+            # All kernel versions have cgroup.events in nested cgroups.
+            return False
+
+        # There's no cgroup.type in the root cgroup, and future kernel versions
+        # are unlikely to add it since cgroup.type is something that makes no
+        # sense whatsoever in the root cgroup.
+        if os.path.exists("/sys/fs/cgroup/cgroup.type"):
+            return True
+
+        # On older kernel versions, there's no cgroup.type
+        if not os.path.exists("/sys/kernel/cgroup/features"):
+            # This is an old kernel that we know for sure has cgroup.events
+            # only in nested cgroups.
+            return True
+
+        # This is a recent kernel, and cgroup.type doesn't exist, so we must be
+        # in the root cgroup.
+        return False
+
+    def version1():
+        # If systemd controller is not mounted, do not even bother.
+        if not os.path.exists("/sys/fs/cgroup/systemd"):
+            return False
+
+        # release_agent only exists in the root cgroup.
+        if not os.path.exists("/sys/fs/cgroup/systemd/release_agent"):
+            return True
+
+    return version2() or version1()
+
+
 def in_container():
     """Determine if we're running in a container.
 
-       virt-what will return the underlying machine information so
-       isn't usable here.
+       We implement the logic of systemd-detect-virt as of
+       Fri Jun 18 04:54:40 PM CEST 2021 if systemd-detect-virt is not
+       available.
 
-       systemd-detect-virt requires the whole systemd subsystem which
-       isn't a reasonable require in a container.
+       https://github.com/systemd/systemd/pull/17902/commits/a4a9a6f7c6e9cd9e219c56d08434a04bc2f395ff
     """
-    data_sched = ""
-    if not is_hidepid():
+    try:
+        return tasks.detect_container() is not None
+    except subprocess.CalledProcessError:
+        pass
+    except NotImplementedError:
         try:
-            with open('/proc/1/sched', 'r') as sched:
-                data_sched = sched.readline().split()[0]
+            with open("/proc/sys/kernel/osrelease") as release:
+                if release in ["Microsoft", "WSL"]:
+                    return True
         except FileNotFoundError:
-            if not os.system('systemd-detect-virt --container'):
-                return True
+            pass
 
-    with open('/proc/self/cgroup', 'r') as cgroup:
-        data_cgroup = cgroup.readline()
+        # TODO: detect proot
 
-    checks = [
-        data_sched not in ('systemd', 'init',),
-        data_cgroup.split()[0] in ('libpod'),
-        os.path.exists('/.dockerenv'),
-        os.path.exists('/.dockerinit'),
-        os.getenv('container', None) is not None
-    ]
+        def check_container(container):
+            if container == "oci":
+                # Some images hardcode container=oci, but OCI is not a specific
+                # container manager. Try to detect one based on well-known
+                # files.
+                return detect_container_files()
+            return bool(container)
 
-    return any(checks)
+        for path in ["/run/host/container-manager", "/run/systemd/container"]:
+            try:
+                with open(path) as manager:
+                    return check_container(manager.readline())
+            except FileNotFoundError:
+                pass
+
+        try:
+            with open("/proc/1/environ") as env:
+                for line in env.read().split("\0"):
+                    if not line.startswith("container"):
+                        continue
+
+                    return check_container(line.split("=")[1])
+        except FileNotFoundError:
+            pass
+
+        if detect_container_files():
+            return True
+        if running_in_cgroupns():
+            return True
+
+        return False
 
 
 def check_available_memory(ca=False):
