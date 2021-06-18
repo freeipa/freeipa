@@ -276,6 +276,21 @@ class LDAPUpdate:
         self.modified = False
         self.ldapuri = ipaldap.realm_to_ldapi_uri(api.env.realm)
 
+        self.api = create_api(mode=None)
+        self.api.bootstrap(
+            in_server=True,
+            context='updates',
+            confdir=paths.ETC_IPA,
+            ldap_uri=self.ldapuri
+        )
+        self.api.finalize()
+
+        self.create_connection()
+
+        replication_plugin = (
+            installutils.get_replication_plugin_name(self.conn.get_entry)
+        )
+
         default_sub = dict(
             REALM=api.env.realm,
             DOMAIN=api.env.domain,
@@ -296,18 +311,10 @@ class LDAPUpdate:
             SELINUX_USERMAP_DEFAULT=platformconstants.SELINUX_USERMAP_DEFAULT,
             SELINUX_USERMAP_ORDER=platformconstants.SELINUX_USERMAP_ORDER,
             FIPS="#" if tasks.is_fips_enabled() else "",
+            REPLICATION_PLUGIN=replication_plugin,
         )
         for k, v in default_sub.items():
             self.sub_dict.setdefault(k, v)
-
-        self.api = create_api(mode=None)
-        self.api.bootstrap(
-            in_server=True,
-            context='updates',
-            confdir=paths.ETC_IPA,
-            ldap_uri=self.ldapuri
-        )
-        self.api.finalize()
 
     def _template_str(self, s):
         try:
@@ -915,8 +922,6 @@ class LDAPUpdate:
         """
         self.modified = False
         try:
-            self.create_connection()
-
             upgrade_files = files
             if ordered:
                 upgrade_files = sorted(files)
