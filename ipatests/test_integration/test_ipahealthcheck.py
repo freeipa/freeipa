@@ -492,44 +492,29 @@ class TestIpaHealthCheck(IntegrationTest):
         assert data[0]["kw"]["ipa_version"] in result.stdout_text
         assert data[0]["kw"]["ipa_api_version"] in result.stdout_text
 
-    def test_source_ipahealthcheck_ipa_host_check_ipahostkeytab(
-        self, restart_service
-    ):
+    def test_source_ipahealthcheck_ipa_host_check_ipahostkeytab(self):
         """
         Testcase checks behaviour of check IPAHostKeytab in source
-        ipahealthcheck.ipa.host when dirsrv service is stopped and
-        running on IPA master
+        ipahealthcheck.ipa.host when GSSAPI credentials cannot be obtained
+        from host's keytab.
         """
-        msgs = (
-            (
-                "Failed to obtain host TGT: Major (851968): "
-                "Unspecified GSS failure.  "
-                "Minor code may provide more information, "
-                "Minor (2529638972): Generic error (see e-text)"
-            ),
-            (
-                "Failed to obtain host TGT: Major (458752): "
-                "No credentials were supplied, or the credentials "
-                "were unavailable or inaccessible, "
-                "Minor (2529638972): Generic error (see e-text)"
-            ),
+        msg = (
+            "Failed to obtain host TGT: Major (458752): "
+            "No credentials were "
+            "supplied, or the credentials were unavailable or inaccessible, "
+            "Minor (2529639107): No credentials cache found"
         )
-        restart_service(self.master, "dirsrv")
-        dirsrv_ipactl_status = 'Directory Service: STOPPED'
-        result = self.master.run_command(
-            ["ipactl", "status"],
-            raiseonerr=False)
-        returncode, data = run_healthcheck(
-            self.master,
-            "ipahealthcheck.ipa.host",
-            "IPAHostKeytab",
-        )
-        assert returncode == 1
-        if dirsrv_ipactl_status in result.stdout_text:
+
+        with tasks.FileBackup(self.master, paths.KRB5_KEYTAB):
+            self.master.run_command(["rm", "-f", paths.KRB5_KEYTAB])
+            returncode, data = run_healthcheck(
+                self.master,
+                source="ipahealthcheck.ipa.host",
+                check="IPAHostKeytab",
+            )
+            assert returncode == 1
             assert data[0]["result"] == "ERROR"
-            assert data[0]["kw"]["msg"] in msgs
-        else:
-            assert data[0]["result"] == "SUCCESS"
+            assert data[0]["kw"]["msg"] == msg
 
     def test_source_ipahealthcheck_topology_IPATopologyDomainCheck(self):
         """
