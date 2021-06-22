@@ -703,6 +703,33 @@ class TestInstallMaster(IntegrationTest):
     def test_install_master(self):
         tasks.install_master(self.master, setup_dns=False)
 
+    @pytest.mark.skip_if_platform(
+        "debian", reason="This test hardcodes the httpd service name"
+    )
+    def test_smoke_test_for_debug_mode(self):
+        """Test if an IPA server works in debug mode.
+        Related: https://pagure.io/freeipa/issue/8891
+
+        Note: this test hardcodes the "httpd" service name.
+        """
+
+        target_fname = paths.IPA_SERVER_CONF
+        assert not self.master.transport.file_exists(target_fname)
+
+        # set the IPA server in debug mode
+        server_conf = "[global]\ndebug=True"
+        self.master.put_file_contents(target_fname, server_conf)
+        self.master.run_command(["systemctl", "restart", "httpd"])
+
+        # smoke test in debug mode
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+        self.master.run_command(["ipa", "user-show", "admin"])
+
+        # rollback
+        self.master.run_command(["rm", target_fname])
+        self.master.run_command(["systemctl", "restart", "httpd"])
+
     def test_schema_compat_attribute_and_tree_disable(self):
         """Test if schema-compat-entry-attribute is set
 
