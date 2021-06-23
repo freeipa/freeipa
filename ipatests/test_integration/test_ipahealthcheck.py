@@ -286,7 +286,7 @@ class TestIpaHealthCheck(IntegrationTest):
         for source in sources_avail:
             assert source in result.stdout_text
 
-    def test_human_output(self, restart_service):
+    def test_human_severity(self, restart_service):
         """
         Test that in human output the severity value is correct
 
@@ -305,6 +305,18 @@ class TestIpaHealthCheck(IntegrationTest):
         assert returncode == 1
         assert output == \
             "ERROR: ipahealthcheck.meta.services.sssd: sssd: not running"
+
+    def test_human_output(self):
+        """
+        Test if in case no  failures were found, informative string is printed
+        in human output.
+
+        https://pagure.io/freeipa/issue/8892
+        """
+        returncode, output = run_healthcheck(self.master, output_type="human",
+                                             failures_only=True)
+        assert returncode == 0
+        assert output == "No issues found."
 
     def test_ipa_healthcheck_after_certupdate(self):
         """
