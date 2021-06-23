@@ -31,6 +31,7 @@ import os
 import time
 import traceback
 from io import BytesIO
+from sys import version_info
 from urllib.parse import parse_qs
 from xmlrpc.client import Fault
 
@@ -71,6 +72,10 @@ from requests.auth import AuthBase
 
 if six.PY3:
     unicode = str
+
+# time.perf_counter_ns appeared in Python 3.7.
+if version_info < (3, 7):
+    time.perf_counter_ns = lambda: int(time.perf_counter() * 10**9)
 
 logger = logging.getLogger(__name__)
 
