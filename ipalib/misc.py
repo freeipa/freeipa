@@ -124,7 +124,7 @@ class plugins(LocalOrRemote):
             for plugin in self.api[namespace]():
                 cls = type(plugin)
                 key = '{}.{}'.format(cls.__module__, cls.__name__)
-                result.setdefault(key, []).append(namespace.decode('utf-8'))
+                result.setdefault(key, []).append(namespace)
 
         return dict(
             result=result,
