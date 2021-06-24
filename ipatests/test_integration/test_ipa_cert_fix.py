@@ -205,7 +205,7 @@ class TestIpaCertFix(IntegrationTest):
 
     def test_missing_startup(self, expire_cert_critical):
         """
-        Test ipa-cert-fix fails when startup directive is missing from CS.cfg
+        Test ipa-cert-fix fails/warns when startup directive is missing
 
         This test checks that if 'selftests.container.order.startup' directive
         is missing from CS.cfg, ipa-cert-fix fails and throw proper error
@@ -213,6 +213,15 @@ class TestIpaCertFix(IntegrationTest):
         should fail to renew the cert.
 
         related: https://pagure.io/freeipa/issue/8721
+
+        With https://github.com/dogtagpki/pki/pull/3466, it changed to display
+        a warning than failing.
+
+        This test also checks that if 'selftests.container.order.startup'
+        directive is missing from CS.cfg, ipa-cert-fix dsplay proper warning
+        (depending on pki version)
+
+        related: https://pagure.io/freeipa/issue/8890
         """
         expire_cert_critical(self.master)
         # pki must be stopped in order to edit CS.cfg
@@ -228,11 +237,21 @@ class TestIpaCertFix(IntegrationTest):
         result = self.master.run_command(['ipa-cert-fix', '-v'],
                                          stdin_text='yes\n',
                                          raiseonerr=False)
+
         err_msg1 = "ERROR: 'selftests.container.order.startup'"
         # check that pki-server cert-fix command fails
         err_msg2 = ("ERROR: CalledProcessError(Command "
                     "['pki-server', 'cert-fix'")
-        assert err_msg1 and err_msg2 in result.stderr_text
+        warn_msg = ("WARNING: No selftests configured in "
+                    f"{paths.CA_CS_CFG_PATH} "
+                    "(selftests.container.order.startup)")
+
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('10.11.0')):
+            assert (err_msg1 in result.stderr_text
+                    and err_msg2 in result.stderr_text)
+        else:
+            assert warn_msg in result.stdout_text
 
     def test_expired_CA_cert(self, expire_ca_cert):
         """Test to check ipa-cert-fix when CA certificate is expired
