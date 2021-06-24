@@ -48,6 +48,16 @@ def check_status(host, cert_count, state, timeout=600):
     return count
 
 
+def move_date(host, chrony_state, date_str):
+    """Helper method to move the date on given host
+    :param host: The host on which date is to be moved
+    :param chrony_state: State to which chrony service to be moved
+    :param date_str: date string to move the date i.e 2years1month1days
+    """
+    host.run_command(['systemctl', chrony_state, 'chronyd'])
+    host.run_command(['date', '-s', date_str])
+
+
 @pytest.fixture
 def expire_cert_critical():
     """
@@ -81,6 +91,17 @@ class TestIpaCertFix(IntegrationTest):
         # Uninstall method is empty as the uninstallation is done in
         # the fixture
         pass
+
+    @pytest.fixture
+    def expire_ca_cert(self):
+        tasks.install_master(self.master, setup_dns=False,
+                             extra_args=['--no-ntp'])
+        move_date(self.master, 'stop', '+20Years+1day')
+
+        yield
+
+        tasks.uninstall_master(self.master)
+        move_date(self.master, 'start', '-20Years-1day')
 
     def test_missing_csr(self, expire_cert_critical):
         """
@@ -122,7 +143,8 @@ class TestIpaCertFix(IntegrationTest):
 
         # Because of BZ 1897120, pki-cert-fix fails on pki-core 10.10.0
         # https://bugzilla.redhat.com/show_bug.cgi?id=1897120
-        if tasks.get_pki_version(self.master) != tasks.parse_version('10.10.0'):
+        if (tasks.get_pki_version(self.master)
+           != tasks.parse_version('10.10.0')):
             assert result.returncode == 0
 
             # get the number of certs track by certmonger
@@ -180,6 +202,72 @@ class TestIpaCertFix(IntegrationTest):
                                          raiseonerr=False)
         assert result.returncode == 2
 
+    def test_missing_startup(self, expire_cert_critical):
+        """
+        Test ipa-cert-fix fails/warns when startup directive is missing
+
+        This test checks that if 'selftests.container.order.startup' directive
+        is missing from CS.cfg, ipa-cert-fix fails and throw proper error
+        message. It also checks that underlying command 'pki-server cert-fix'
+        should fail to renew the cert.
+
+        related: https://pagure.io/freeipa/issue/8721
+
+        With https://github.com/dogtagpki/pki/pull/3466, it changed to display
+        a warning than failing.
+
+        This test also checks that if 'selftests.container.order.startup'
+        directive is missing from CS.cfg, ipa-cert-fix dsplay proper warning
+        (depending on pki version)
+
+        related: https://pagure.io/freeipa/issue/8890
+        """
+        expire_cert_critical(self.master)
+        # pki must be stopped in order to edit CS.cfg
+        self.master.run_command(['ipactl', 'stop'])
+        self.master.run_command([
+            'sed', '-i', r'/selftests\.container\.order\.startup/d',
+            paths.CA_CS_CFG_PATH
+        ])
+        # dirsrv needs to be up in order to run ipa-cert-fix
+        self.master.run_command(['ipactl', 'start',
+                                 '--ignore-service-failures'])
+
+        result = self.master.run_command(['ipa-cert-fix', '-v'],
+                                         stdin_text='yes\n',
+                                         raiseonerr=False)
+
+        err_msg1 = "ERROR: 'selftests.container.order.startup'"
+        # check that pki-server cert-fix command fails
+        err_msg2 = ("ERROR: CalledProcessError(Command "
+                    "['pki-server', 'cert-fix'")
+        warn_msg = ("WARNING: No selftests configured in "
+                    f"{paths.CA_CS_CFG_PATH} "
+                    "(selftests.container.order.startup)")
+
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('10.11.0')):
+            assert (err_msg1 in result.stderr_text
+                    and err_msg2 in result.stderr_text)
+        else:
+            assert warn_msg in result.stdout_text
+
+    def test_expired_CA_cert(self, expire_ca_cert):
+        """Test to check ipa-cert-fix when CA certificate is expired
+
+        In order to fix expired certs using ipa-cert-fix, CA cert should be
+        valid. If CA cert expired, ipa-cert-fix won't work.
+
+        related: https://pagure.io/freeipa/issue/8721
+        """
+        result = self.master.run_command(['ipa-cert-fix', '-v'],
+                                         stdin_text='yes\n',
+                                         raiseonerr=False)
+        # check that pki-server cert-fix command fails
+        err_msg = ("ERROR: CalledProcessError(Command "
+                   "['pki-server', 'cert-fix'")
+        assert err_msg in result.stderr_text
+
 
 class TestIpaCertFixThirdParty(CALessBase):
     """
@@ -219,7 +307,7 @@ class TestIpaCertFixThirdParty(CALessBase):
                 '--pin', self.master.config.admin_password,
                 '-d', 'server.p12']
         self.master.run_command(args)
-        self.master.run_command(['ipactl', 'restart',])
+        self.master.run_command(['ipactl', 'restart'])
 
         # Run ipa-cert-fix. This is basically a no-op but tests that
         # the DS nickname is used and not a hardcoded value.
