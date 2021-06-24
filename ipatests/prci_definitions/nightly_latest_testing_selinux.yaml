@@ -150,7 +150,7 @@ jobs:
         selinux_enforcing: True
         test_suite: test_integration/test_commands.py
         template: *testing-master-latest
-        timeout: 4800
+        timeout: 5400
         topology: *master_1repl_1client
 
   testing-fedora/test_kerberos_flags:
