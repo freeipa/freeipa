@@ -1802,6 +1802,22 @@ class LDAPCache(LDAPClient):
         if self._enable_cache:
             logger.debug(msg, *args, **kwargs)
 
+    def copy_entry(self, dn, entry, attrs=[]):
+        new_entry = LDAPEntry(self, DN(dn))
+
+        # Return either the whole entry or only those attrs requested
+        if not attrs:
+            new_entry.raw.update(deepcopy(dict(entry.raw)))
+        else:
+            for attr, original_values in entry.raw.items():
+                if attr.lower() not in attrs:
+                    continue
+                new_entry.raw[attr.lower()] = deepcopy(original_values)
+        new_entry._orig_raw = deepcopy(dict(entry.raw))
+        new_entry.reset_modlist()
+
+        return new_entry
+
     def add_cache_entry(self, dn, attrs_list=None, get_all=False,
                         entry=None, exception=None):
         # idnsname - caching prevents delete when mod value to None
@@ -1828,11 +1844,13 @@ class LDAPCache(LDAPClient):
             if not BANNED_ATTRS.intersection(attrs_list):
                 self.cache[dn] = CacheEntry(
                     entry=entry.copy(),
-                    attrs_list=deepcopy(attrs_list),
+                    attrs_list=attrs_list.copy(),
                     all=get_all,
                 )
             else:
                 return
+
+        self.emit("ADD: %s: %s all=%s", dn, attrs_list, get_all)
 
         self.cache.move_to_end(dn)
 
@@ -1944,7 +1962,7 @@ class LDAPCache(LDAPClient):
         if (
             entry
             and (attrs_list in (['*'], ['']))
-            and (entry.attrs_list in (['*'], ['']))
+            and entry.all
         ):
             get_all = True
 
@@ -1953,18 +1971,19 @@ class LDAPCache(LDAPClient):
             hits = self._cache_hits + 1  # pylint: disable=no-member
             object.__setattr__(self, '_cache_hits', hits)
             self.cache_status('HIT')
-            return entry.entry
+            return self.copy_entry(dn, entry.entry)
 
         # Be sure we have all the requested attributes before returning
         # a cached entry.
         if entry and attrs_list:
             req_attrs = set(attr.lower() for attr in set(attrs_list))
             cache_attrs = set(attr.lower() for attr in entry.attrs_list)
-            if (req_attrs.issubset(cache_attrs)):
+            if req_attrs.issubset(cache_attrs):
                 hits = self._cache_hits + 1  # pylint: disable=no-member
                 object.__setattr__(self, '_cache_hits', hits)
                 self.cache_status('HIT')
-                return entry.entry
+
+                return self.copy_entry(dn, entry.entry, req_attrs)
 
         try:
             entry = super(LDAPCache, self).get_entry(
@@ -1982,8 +2001,14 @@ class LDAPCache(LDAPClient):
             # re-raise anything we aren't caching
             raise
         else:
-            self.add_cache_entry(dn, attrs_list=attrs_list, get_all=get_all,
-                                 entry=entry)
+            if attrs_list in (['*'], ['']):
+                get_all = True
+            self.add_cache_entry(
+                dn,
+                attrs_list=set(k.lower() for k in entry._names.keys()),
+                get_all=get_all,
+                entry=self.copy_entry(dn, entry),
+            )
         misses = self._cache_misses + 1  # pylint: disable=no-member
         object.__setattr__(self, '_cache_misses', misses)
         self.cache_status('MISS')

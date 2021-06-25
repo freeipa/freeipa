@@ -90,8 +90,16 @@ class TestLDAPCache:
 
     def test_get_testuser_again(self):
         assert self.userdn in self.cache.cache
+
+        # get the user again with with no attributes requested (so all)
         self.cache.get_entry(self.userdn)
         hits_and_misses(self.cache, 2, 2)
+
+        # Now get the user with a subset of cached attributes
+        entry = self.cache.get_entry(self.userdn, ('givenname', 'sn', 'cn'))
+        # Make sure we only got three attributes, as requested
+        assert len(entry.items()) == 3
+        hits_and_misses(self.cache, 3, 2)
 
     def test_update_testuser(self):
         entry = self.cache.cache[self.userdn].entry
@@ -100,7 +108,7 @@ class TestLDAPCache:
         except errors.EmptyModlist:
             pass
         assert self.userdn not in self.cache.cache
-        hits_and_misses(self.cache, 2, 2)
+        hits_and_misses(self.cache, 3, 2)
 
     def test_modify_testuser(self):
         self.cache.get_entry(self.userdn)
@@ -110,7 +118,7 @@ class TestLDAPCache:
         except errors.EmptyModlist:
             pass
         assert self.userdn not in self.cache.cache
-        hits_and_misses(self.cache, 2, 3)
+        hits_and_misses(self.cache, 3, 3)
 
     def test_delete_entry(self):
         # We don't care if this is successful or not, just that the
@@ -120,7 +128,7 @@ class TestLDAPCache:
         except Exception:
             pass
         assert self.userdn not in self.cache.cache
-        hits_and_misses(self.cache, 2, 3)
+        hits_and_misses(self.cache, 3, 3)
 
     def test_add_entry(self):
         # We don't care if this is successful or not, just that the
@@ -130,7 +138,7 @@ class TestLDAPCache:
         except Exception:
             pass
         assert self.userdn not in self.cache.cache
-        hits_and_misses(self.cache, 2, 3)
+        hits_and_misses(self.cache, 3, 3)
 
     def test_clear_cache(self):
         self.cache.clear_cache()
