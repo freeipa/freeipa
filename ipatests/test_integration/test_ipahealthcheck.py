@@ -499,9 +499,9 @@ class TestIpaHealthCheck(IntegrationTest):
         from host's keytab.
         """
         msg = (
-            "Failed to obtain host TGT: Major (458752): "
-            "No credentials were "
-            "supplied, or the credentials were unavailable or inaccessible, "
+            "Failed to obtain host TGT: Major (851968): "
+            "Unspecified GSS failure."
+            "Minor code may provide more information, "
             "Minor (2529639107): No credentials cache found"
         )
 
