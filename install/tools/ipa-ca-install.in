@@ -81,7 +81,7 @@ def parse_options():
     parser.add_option("--external-cert-file", dest="external_cert_files",
                       action="append", metavar="FILE",
                       help="File containing the IPA CA certificate and the external CA certificate chain")
-    ca_algos = ('SHA1withRSA', 'SHA256withRSA', 'SHA512withRSA')
+    ca_algos = ('SHA1withRSA', 'SHA256withRSA', 'SHA384withRSA', 'SHA512withRSA')
     parser.add_option("--ca-signing-algorithm", dest="ca_signing_algorithm",
                       type="choice", choices=ca_algos,
                       metavar="{{{0}}}".format(",".join(ca_algos)),

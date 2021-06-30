@@ -505,7 +505,7 @@
                     <policyAttribute name="signingAlg">
                         <Descriptor>
                             <Syntax>choice</Syntax>
-                            <Constraint>SHA1withRSA,SHA256withRSA,SHA512withRSA,MD5withRSA,MD2withRSA</Constraint>
+                            <Constraint>SHA1withRSA,SHA256withRSA,SHA384withRSA,SHA512withRSA,MD5withRSA,MD2withRSA</Constraint>
                             <Description>Signing Algorithm</Description>
                         </Descriptor>
                     </policyAttribute>
@@ -514,15 +514,15 @@
                     </params>
                 </def>
                 <constraint id="No Constraint">
-                    <description>This constraint accepts only the Signing Algorithms of SHA1withRSA,SHA256withRSA,SHA512withRSA,MD5withRSA,MD2withRSA,SHA1withDSA,SHA1withEC,SHA256withEC,SHA384withEC,SHA512withEC</description>
+                    <description>This constraint accepts only the Signing Algorithms of SHA1withRSA,SHA256withRSA,SHA384withRSA,SHA512withRSA,MD5withRSA,MD2withRSA,SHA1withDSA,SHA1withEC,SHA256withEC,SHA384withEC,SHA512withEC</description>
                     <classId>signingAlgConstraintImpl</classId>
                     <constraint id="signingAlgsAllowed">
                         <descriptor>
                             <Syntax>string</Syntax>
                             <Description>Allowed Signing Algorithms</Description>
-                            <DefaultValue>SHA1withRSA,MD5withRSA,MD2withRSA,SHA1withDSA,SHA256withRSA,SHA512withRSA,SHA1withEC,SHA256withEC,SHA384withEC,SHA512withEC</DefaultValue>
+                            <DefaultValue>SHA1withRSA,MD5withRSA,MD2withRSA,SHA1withDSA,SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withEC,SHA256withEC,SHA384withEC,SHA512withEC</DefaultValue>
                         </descriptor>
-                        <value>SHA1withRSA,SHA256withRSA,SHA512withRSA,MD5withRSA,MD2withRSA,SHA1withDSA,SHA1withEC,SHA256withEC,SHA384withEC,SHA512withEC</value>
+                        <value>SHA1withRSA,SHA256withRSA,SHA384withRSA,SHA512withRSA,MD5withRSA,MD2withRSA,SHA1withDSA,SHA1withEC,SHA256withEC,SHA384withEC,SHA512withEC</value>
                     </constraint>
                 </constraint>
             </value>
