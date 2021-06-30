@@ -435,6 +435,7 @@ def uninstall():
 class CASigningAlgorithm(enum.Enum):
     SHA1_WITH_RSA = 'SHA1withRSA'
     SHA_256_WITH_RSA = 'SHA256withRSA'
+    SHA_384_WITH_RSA = 'SHA384withRSA'
     SHA_512_WITH_RSA = 'SHA512withRSA'
 
 
