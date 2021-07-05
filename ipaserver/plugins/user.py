@@ -617,10 +617,6 @@ class user_add(baseuser_add):
            'ipauser' not in entry_attrs['objectclass']:
             entry_attrs['objectclass'].append('ipauser')
 
-        if 'ipauserauthtype' in entry_attrs and \
-           'ipauserauthtypeclass' not in entry_attrs['objectclass']:
-            entry_attrs['objectclass'].append('ipauserauthtypeclass')
-
         rcl = entry_attrs.get('ipatokenradiusconfiglink', None)
         if rcl:
             if 'ipatokenradiusproxyuser' not in entry_attrs['objectclass']:
