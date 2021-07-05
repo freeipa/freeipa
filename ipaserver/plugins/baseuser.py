@@ -539,6 +539,9 @@ class baseuser_add(LDAPCreate):
         if entry_attrs.get('ipatokenradiususername', None):
             add_missing_object_class(ldap, u'ipatokenradiusproxyuser', dn,
                                      entry_attrs, update=False)
+        if entry_attrs.get('ipauserauthtype', None):
+            add_missing_object_class(ldap, u'ipauserauthtypeclass', dn,
+                                     entry_attrs, update=False)
 
     def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
