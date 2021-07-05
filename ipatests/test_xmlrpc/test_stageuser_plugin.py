@@ -343,6 +343,12 @@ class TestStagedUser(XMLRPC_test):
         result = command()
         assert result['count'] == 1
 
+    def test_create_withuserauthtype(self, stageduser):
+        stageduser.ensure_missing()
+        command = stageduser.make_create_command(
+            options={u'ipauserauthtype': u'password'})
+        command()
+
 
 @pytest.mark.tier1
 class TestCreateInvalidAttributes(XMLRPC_test):
