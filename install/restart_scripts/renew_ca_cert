@@ -181,7 +181,8 @@ def _main():
 
                 # Pass Dogtag's self-tests
                 for ca_nick in db.find_root_cert(nickname)[-2:-1]:
-                    ca_flags = dict(cc[1:] for cc in ca_certs)[ca_nick]
+                    ca_flags = dict(
+                        cc[1:] for cc in ca_certs)[ca_nick.encode('utf-8')]
                     usages = ca_flags.usages or set()
                     ca_flags_modified = TrustFlags(ca_flags.has_key,
                         True, True,
