@@ -8,7 +8,12 @@ ipa\-server\-upgrade \- upgrade IPA server
 .SH "SYNOPSIS"
 ipa\-server\-upgrade [options]
 .SH "DESCRIPTION"
-ipa\-server\-upgrade is used to upgrade IPA server when the IPA packages are being updated. It is not intended to be executed by end\-users.
+ipa\-server\-upgrade is executed automatically to upgrade IPA server when
+the IPA packages are being updated. It is not intended to be executed by
+end\-users, unless the automatic execution reports an error. In this case,
+the administrator needs to identify and fix the issue that is causing the
+upgrade failure (with the help of /var/log/ipaupgrade.log)
+and manually re\-run ipa\-server\-upgrade.
 
 ipa\-server\-upgrade will:
 
