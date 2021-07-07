@@ -162,12 +162,15 @@
 
 # augeas support for new chrony options
 # see https://pagure.io/freeipa/issue/8676
-# Note: will need to be updated for RHEL9 when a fix is available for
 # https://bugzilla.redhat.com/show_bug.cgi?id=1931787
 %if 0%{?fedora} >= 33
 %global augeas_version 1.12.0-6
 %else
+%if 0%{?rhel} >= 9
+%global augeas_version 1.12.1-0
+%else
 %global augeas_version 1.12.0-3
+%endif
 %endif
 
 %global plugin_dir %{_libdir}/dirsrv/plugins
