@@ -491,6 +491,13 @@ def resolve_rrsets_nss(fqdn):
     ipv4 = []
     ipv6 = []
     for ip_address in ip_addresses:
+        # Skip reserved or link-local addresses
+        try:
+            ipautil.CheckedIPAddress(ip_address)
+        except ValueError as e:
+            logger.warning("Invalid IP address %s for %s: %s",
+                           ip_address, fqdn, unicode(e))
+            continue
         if ip_address.version == 4:
             ipv4.append(str(ip_address))
         elif ip_address.version == 6:
