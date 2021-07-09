@@ -499,9 +499,6 @@ class TestIpaHealthCheck(IntegrationTest):
         from host's keytab.
         """
         msg = (
-            "Failed to obtain host TGT: Major (458752): "
-            "No credentials were "
-            "supplied, or the credentials were unavailable or inaccessible, "
             "Minor (2529639107): No credentials cache found"
         )
 
@@ -514,7 +511,7 @@ class TestIpaHealthCheck(IntegrationTest):
             )
             assert returncode == 1
             assert data[0]["result"] == "ERROR"
-            assert data[0]["kw"]["msg"] == msg
+            assert msg in data[0]["kw"]["msg"]
 
     def test_source_ipahealthcheck_topology_IPATopologyDomainCheck(self):
         """
