@@ -301,7 +301,7 @@ class TestSelfExternalSelf(IntegrationTest):
     def test_switch_back_to_self_signed(self):
 
         # for journalctl --since
-        switch_time = time.strftime('%H:%M:%S')
+        switch_time = time.strftime('%Y-%m-%d %H:%M:%S')
         # switch back to self-signed CA
         result = self.master.run_command([paths.IPA_CACERT_MANAGE, 'renew',
                                           '--self-signed'])
