@@ -209,6 +209,11 @@ def validate_auth_indicator(entry):
     # and shouldn't be allowed to have auth indicators.
     # https://pagure.io/freeipa/issue/8206
     pkey = api.Object['service'].get_primary_key_from_dn(entry.dn)
+    if pkey == str(entry.dn):
+        # krbcanonicalname may not be set yet if this is a host entry,
+        # try krbprincipalname
+        if 'krbprincipalname' in entry:
+            pkey = entry['krbprincipalname']
     principal = kerberos.Principal(pkey)
     server = api.Command.server_find(principal.hostname)['result']
     if server:
