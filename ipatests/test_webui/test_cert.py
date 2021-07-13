@@ -107,6 +107,7 @@ class test_cert(UI_driver):
         self.action_list_action('revoke_cert', False)
         self.select('select[name=revocation_reason]', reason)
         self.dialog_button_click('ok')
+        self.close_notifications()
         self.navigate_to_entity(ENTITY)
 
         return cert
