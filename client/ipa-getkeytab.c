@@ -291,7 +291,7 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 	return ret;
 }
 
-int filter_keys(krb5_context krbctx, struct keys_container *keys,
+static int filter_keys(krb5_context krbctx, struct keys_container *keys,
                 ber_int_t *enctypes)
 {
     struct krb_key_salt *ksdata;
@@ -507,7 +507,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 	BerElement *sctrl = NULL;
 	struct berval *control = NULL;
 	LDAPControl **srvctrl = NULL;
-	int ret;
+	ber_tag_t ret;
 	int kvno, i;
 	ber_tag_t rtag;
 	ber_int_t *encs = NULL;
@@ -826,7 +826,7 @@ static int config_from_file(struct ini_cfgobj *cfgctx)
     return 0;
 }
 
-int read_ipa_config(struct ipa_config **ipacfg)
+static int read_ipa_config(struct ipa_config **ipacfg)
 {
     struct ini_cfgobj *cfgctx = NULL;
     struct value_obj *obj = NULL;
