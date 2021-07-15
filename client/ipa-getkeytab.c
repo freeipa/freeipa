@@ -34,9 +34,11 @@
 #include <time.h>
 #include <krb5.h>
 #include <ldap.h>
+#include <resolv.h>
 #include <sasl/sasl.h>
 #include <popt.h>
 #include <ini_configobj.h>
+#include <openssl/rand.h>
 
 #include "config.h"
 
@@ -45,6 +47,174 @@
 #include "ipa-client-common.h"
 #include "ipa_ldap.h"
 
+
+struct srvrec {
+    char *host;
+    uint16_t port;
+    int priority, weight;
+    struct srvrec *next;
+};
+
+static int
+srvrec_priority_sort(const void *a, const void *b)
+{
+	const struct srvrec *sa, *sb;
+
+	sa = a;
+	sb = b;
+	return sa->priority - sb->priority;
+}
+
+static int
+srvrec_sort_weight(const void *a, const void *b)
+{
+	const struct srvrec *sa, *sb;
+
+	sa = a;
+	sb = b;
+	return sa->weight - sb->weight;
+}
+
+/* Return a uniform random number between 0 and range */
+static double
+rand_inclusive(double range)
+{
+	long long r;
+
+	if (range == 0) {
+		return 0;
+	}
+
+	if (RAND_bytes((unsigned char *) &r, sizeof(r)) == -1) {
+		return 0;
+	}
+	if (r < 0) {
+		r = -r;
+	}
+	return ((double)r / (double)LLONG_MAX) * range;
+}
+
+static void
+sort_prio_weight(struct srvrec *res, int len)
+{
+	int i, j;
+	double tweight;
+	struct srvrec tmp;
+	double r;
+
+	qsort(res, len, sizeof(res[0]), srvrec_sort_weight);
+	for (i = 0; i < len - 1; i++) {
+		tweight = 0;
+		for (j = i; j < len; j++) {
+            /* Give records with 0 weight a small chance */
+			tweight += res[j].weight ? res[j].weight : 0.01;
+		}
+		r = rand_inclusive(tweight);
+		tweight = 0;
+		for (j = i; j < len; j++) {
+			tweight += res[j].weight ? res[j].weight : 0.01;
+			if (tweight >= r) {
+				break;
+			}
+		}
+		if (j >= len) {
+			continue;
+		}
+		memcpy(&tmp, &res[i], sizeof(tmp));
+		memcpy(&res[i], &res[j], sizeof(tmp));
+		memcpy(&res[j], &tmp, sizeof(tmp));
+	}
+}
+
+/* The caller is responsible for freeing the results */
+static int
+query_srv(const char *name, const char *domain, struct srvrec **results)
+{
+	int i, j, len;
+	unsigned char *answer = NULL;
+	size_t answer_len = NS_MAXMSG;
+	struct srvrec *res = NULL;
+	ns_msg msg;
+	ns_rr rr;
+	int rv = -1;
+
+	*results = NULL;
+	if ((name == NULL) || (strlen(name) == 0) ||
+	    (domain == NULL) || (strlen(domain) == 0)) {
+		return -1;
+	}
+
+	res_init();
+	answer = malloc(answer_len + 1);
+	if (answer == NULL) {
+		return -1;
+	}
+	memset(answer, 0, answer_len + 1);
+	i = res_querydomain(name, domain, C_IN, T_SRV, answer, answer_len);
+	if (i == -1) {
+		goto error;
+	}
+	answer_len = i;
+	memset(&msg, 0, sizeof(msg));
+	if (ns_initparse(answer, answer_len, &msg) != 0) {
+		goto error;
+	}
+	memset(&rr, 0, sizeof(rr));
+	for (i = 0; ns_parserr(&msg, ns_s_an, i, &rr) == 0; i++) {
+		continue;
+	}
+	if (i == 0) {
+		goto error;
+	}
+	len = i;
+	res = malloc(sizeof(*res) * i);
+	if (res == NULL) {
+		goto error;
+	}
+	memset(res, 0, sizeof(*res) * i);
+	for (i = 0, j = 0; i < len; i++) {
+		if (ns_parserr(&msg, ns_s_an, i, &rr) != 0) {
+			continue;
+		}
+		if (rr.rdlength < 6) {
+			continue;
+		}
+		res[j].host = malloc(rr.rdlength - 6 + 1);
+		if (res[j].host == NULL) {
+			goto error;
+		}
+		res[j].priority = ntohs(*(uint16_t *)rr.rdata);
+		res[j].weight = ntohs(*(uint16_t *)(rr.rdata + 2));
+		res[j].port = ntohs(*(uint16_t *)(rr.rdata + 4));
+		memcpy(res[j].host, rr.rdata + 6, rr.rdlength - 6);
+		if (ns_name_ntop(rr.rdata + 6, res[j].host, rr.rdlength - 6) == -1) {
+			continue;
+		}
+		res[j].host[rr.rdlength - 6] = '\0';
+		j++;
+	}
+	len = j;
+	qsort(res, len, sizeof(res[0]), srvrec_priority_sort);
+	i = 0;
+	while (i < len) {
+		j = i + 1;
+		while (j < len && (res[j].priority == res[i].priority)) {
+			j++;
+		}
+		sort_prio_weight(res + i, j - i);
+		i = j;
+	}
+	/* Fixup the linked-list pointers */
+	for (i = 0; i < len - 1; i++) {
+		res[i].next = &res[i + 1];
+	}
+	*results = res;
+	rv = 0;
+
+error:
+	free(answer);
+	return rv;
+}
 
 static int check_sasl_mech(const char *mech)
 {
@@ -619,6 +789,7 @@ static char *ask_password(krb5_context krbctx, char *prompt1, char *prompt2,
 
 struct ipa_config {
     const char *server_name;
+    const char *domain;
 };
 
 static int config_from_file(struct ini_cfgobj *cfgctx)
@@ -688,6 +859,11 @@ int read_ipa_config(struct ipa_config **ipacfg)
     if (ret == 0 && obj != NULL) {
         (*ipacfg)->server_name = ini_get_string_config_value(obj, &ret);
     }
+    ret = ini_get_config_valueobj("global", "domain", cfgctx,
+                                  INI_GET_LAST_VALUE, &obj);
+    if (ret == 0 && obj != NULL) {
+        (*ipacfg)->domain = ini_get_string_config_value(obj, &ret);
+    }
 
     return 0;
 }
@@ -754,6 +930,7 @@ int main(int argc, const char *argv[])
 	static const char *sasl_mech = NULL;
 	static const char *ca_cert_file = NULL;
 	int quiet = 0;
+	int verbose = 0;
 	int askpass = 0;
 	int askbindpw = 0;
 	int permitted_enctypes = 0;
@@ -761,6 +938,8 @@ int main(int argc, const char *argv[])
         struct poptOption options[] = {
             { "quiet", 'q', POPT_ARG_NONE, &quiet, 0,
               _("Print as little as possible"), _("Output only on errors")},
+            { "verbose", 'v', POPT_ARG_NONE, &verbose, 0,
+              _("Print debugging information"), _("Output debug info")},
             { "server", 's', POPT_ARG_STRING, &server, 0,
               _("Contact this specific KDC Server"),
               _("Server Name") },
@@ -906,6 +1085,41 @@ int main(int argc, const char *argv[])
         exit(2);
     }
 
+    if (server && (strcasecmp(server, "_srv_") == 0)) {
+        struct srvrec *srvrecs, *srv;
+        struct ipa_config *ipacfg = NULL;
+
+        ret = read_ipa_config(&ipacfg);
+        if (ret == 0 && ipacfg->domain && verbose) {
+            fprintf(stderr, _("DNS discovery for domain %s\n"), ipacfg->domain);
+        }
+        if (query_srv("_ldap._tcp", ipacfg->domain, &srvrecs) == 0) {
+            for (srv = srvrecs; (srv != NULL); srv = srv->next) {
+				if (verbose) {
+            	    fprintf(stderr, _("Discovered server %s\n"), srv->host);
+                }
+            }
+            for (srv = srvrecs; (srv != NULL); srv = srv->next) {
+                server = strdup(srv->host);
+				if (verbose) {
+            		fprintf(stderr, _("Using discovered server %s\n"), server);
+				}
+                break;
+            }
+            for (srv = srvrecs; (srv != NULL); srv = srv->next) {
+				free(srv->host);
+            }
+        } else {
+			if (verbose) {
+           		fprintf(stderr, _("DNS Discovery failed\n"));
+			}
+        }
+        if (strcasecmp(server, "_srv_") == 0) {
+            /* Discovery failed, fall through to option methods */
+            server = NULL;
+        }
+    }
+
     if (!server && !ldap_uri) {
         struct ipa_config *ipacfg = NULL;
 
@@ -915,9 +1129,16 @@ int main(int argc, const char *argv[])
             ipacfg->server_name = NULL;
         }
         free(ipacfg);
+		if (verbose && server) {
+            fprintf(stderr, _("Using server from config %s\n"), server);
+        }
         if (!server) {
             fprintf(stderr, _("Server name not provided and unavailable\n"));
             exit(2);
+        }
+    } else {
+        if (verbose) {
+            fprintf(stderr, _("Using provided server %s\n"), server);
         }
     }
     if (server) {
