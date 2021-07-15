@@ -109,6 +109,16 @@ AC_SUBST(LDAP_LIBS)
 AC_SUBST(LDAP_CFLAGS)
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for resolv library
+dnl ---------------------------------------------------------------------------
+
+SAVE_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$NSPR_CFLAGS $NSS_CFLAGS"
+AC_CHECK_LIB(resolv,main,RESOLV_LIBS=-lresolv)
+AC_CHECK_HEADERS(resolv.h)
+AC_SUBST(RESOLV_LIBS)
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for OpenSSL Crypto library
 dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES([CRYPTO], [libcrypto])
