@@ -78,7 +78,10 @@ arcfour\-hmac
 \fB\-s ipaserver\fR
 The IPA server to retrieve the keytab from (FQDN). If this option is not
 provided the server name is read from the IPA configuration file
-(/etc/ipa/default.conf). Cannot be used together with \fB\-H\fR.
+(/etc/ipa/default.conf). Cannot be used together with \fB\-H\fR. If the
+value is _srv_ then DNS discovery will be used to determine a server.
+If this discovery fails then it will fall back to using the configuration
+file.
 .TP
 \fB\-q\fR
 Quiet mode. Only errors are displayed.

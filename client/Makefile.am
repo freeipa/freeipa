@@ -66,6 +66,7 @@ ipa_getkeytab_LDADD = 		\
 	$(SASL_LIBS)		\
 	$(POPT_LIBS)		\
 	$(LIBINTL_LIBS)         \
+	$(RESOLV_LIBS)		\
 	$(INI_LIBS)		\
 	$(NULL)
 
