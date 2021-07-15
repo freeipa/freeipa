@@ -597,6 +597,7 @@ Requires: %{name}-common = %{version}-%{release}
 
 Requires: samba >= %{samba_version}
 Requires: samba-winbind
+Requires: sssd-winbind-idmap
 Requires: libsss_idmap
 %if 0%{?rhel}
 Obsoletes: ipa-idoverride-memberof-plugin <= 0.1
