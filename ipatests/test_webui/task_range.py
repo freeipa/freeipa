@@ -64,6 +64,12 @@ class range_tasks(UI_driver):
         max_rid = 0
 
         for idrange in idranges:
+            # IPA.TEST_subid_range is automatically created near the end
+            # of the allowed ids, taking from 2,147,483,648 to 4,294,836,224
+            # Ignore this range when looking for available ids otherwise
+            # we won't find any value < max baseid 4,294,967,295
+            if idrange['cn'][0].endswith("_subid_range"):
+                continue
             size = int(idrange['ipaidrangesize'][0])
             base_id = int(idrange['ipabaseid'][0])
 
