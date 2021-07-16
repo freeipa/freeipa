@@ -30,6 +30,7 @@ from ipaplatform.rhel.constants import HAS_NFS_CONF
 
 
 class RHELPathNamespace(RedHatPathNamespace):
+    NAMED_CRYPTO_POLICY_FILE = "/etc/crypto-policies/back-ends/bind.config"
     if HAS_NFS_CONF:
         SYSCONFIG_NFS = '/etc/nfs.conf'
 
