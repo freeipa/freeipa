@@ -434,7 +434,7 @@ add:nsIndexType: eq
 add:nsIndexType: pres
 
 dn: cn=memberOf,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only:cn: member
+only:cn: memberOf
 add:nsIndexType: sub
 
 dn: cn=memberPrincipal,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
