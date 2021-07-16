@@ -1490,6 +1490,64 @@ class TestIPACommand(IntegrationTest):
 
         assert isrgrootx1_nick in result
 
+    def test_ipa_getkeytab_server(self):
+        """
+        Exercise the ipa-getkeytab server options
+
+        This relies on the behavior that without a TGT
+        ipa-getkeytab will quit and not do much of anything.
+
+        A bogus keytab and principal are passed in to satisfy the
+        minimum requirements.
+        """
+        tasks.kdestroy_all(self.master)
+
+        # Pass in a server name to use
+        result = self.master.run_command(
+            [
+                paths.IPA_GETKEYTAB,
+                "-k",
+                "/tmp/keytab",
+                "-p",
+                "foo",
+                "-s",
+                self.master.hostname,
+                "-v",
+            ], raiseonerr=False).stderr_text
+
+        assert 'Using provided server %s' % self.master.hostname in result
+
+        # Don't pass in a name, should use /etc/ipa/default.conf
+        result = self.master.run_command(
+            [
+                paths.IPA_GETKEYTAB,
+                "-k",
+                "/tmp/keytab",
+                "-p",
+                "foo",
+                "-v",
+            ], raiseonerr=False).stderr_text
+
+        assert (
+            'Using server from config %s' % self.master.hostname
+            in result
+        )
+
+        # Use DNS SRV lookup
+        result = self.master.run_command(
+            [
+                paths.IPA_GETKEYTAB,
+                "-k",
+                "/tmp/keytab",
+                "-p",
+                "foo",
+                "-s",
+                "_srv_",
+                "-v",
+            ], raiseonerr=False).stderr_text
+
+        assert 'Discovered server %s' % self.master.hostname in result
+
 
 class TestIPACommandWithoutReplica(IntegrationTest):
     """
