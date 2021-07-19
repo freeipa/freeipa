@@ -166,9 +166,28 @@ class TestSMB(IntegrationTest):
                 encoding='utf-8')
             assert file_contents_at_server == test_string
 
-            # check access using smbclient utility
+            # Detect whether smbclient uses -k or --use-kerberos=required
+            # https://pagure.io/freeipa/issue/8926
+            # then check access using smbclient.
             res = run_smb_client(
-                ['smbclient', '-k', share['unc'], '-c', 'dir'])
+                [
+                    "smbclient",
+                    "-h",
+                ], raiseonerr=False
+            )
+            if "[-k|--kerberos]" in res.stderr_text:
+                smbclient_krb5_knob = "-k"
+            else:
+                smbclient_krb5_knob = "--use-kerberos=desired"
+            res = run_smb_client(
+                [
+                    "smbclient",
+                    smbclient_krb5_knob,
+                    share["unc"],
+                    "-c",
+                    "dir",
+                ]
+            )
             assert test_dir in res.stdout_text
 
             # check file and dir removal from client side
