@@ -508,17 +508,19 @@ class server_del(LDAPDelete):
 
         if self.api.Command.ca_is_enabled()['result']:
             try:
-                vault_config = self.api.Command.vaultconfig_show()['result']
-                kra_servers = vault_config.get('kra_server_server', [])
-            except errors.InvocationError:
-                # KRA is not configured
-                pass
-            else:
-                if kra_servers == [hostname]:
-                    handler(
-                        _("Deleting this server is not allowed as it would "
-                          "leave your installation without a KRA."),
-                        ignore_last_of_role)
+                roles = self.api.Command.server_role_find(
+                    server_server=hostname,
+                    role_servrole='KRA server',
+                    status='enabled',
+                    include_master=True,
+                )['result']
+            except errors.NotFound:
+                roles = ()
+            if len(roles) == 1 and roles[0]['server_server'] == hostname:
+                handler(
+                    _("Deleting this server is not allowed as it would "
+                      "leave your installation without a KRA."),
+                    ignore_last_of_role)
 
             ca_servers = ipa_config.get('ca_server_server', [])
             ca_renewal_master = ipa_config.get(
