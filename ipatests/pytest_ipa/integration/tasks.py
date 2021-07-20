@@ -597,7 +597,9 @@ def install_adtrust(host):
     dig_command = ['dig', 'SRV', '+short', '@localhost',
                    '_ldap._tcp.%s' % host.domain.name]
     dig_output = '0 100 389 %s.' % host.hostname
-    dig_test = lambda x: re.search(re.escape(dig_output), x)
+
+    def dig_test(x):
+        return re.search(re.escape(dig_output), x)
 
     run_repeatedly(host, dig_command, test=dig_test)
 
@@ -2122,8 +2124,8 @@ def create_active_user(host, login, password, first='test', last='user',
         result = host.run_command(
             "KRB5_TRACE=/dev/stdout kinit %s" % login,
             stdin_text='{0}\n{1}\n{1}\n'.format(
-                temp_password, password, raiseonerr=False
-            )
+                temp_password, password
+            ), raiseonerr=False
         )
         # Retrieve kdc.$REALM after the password change, just in case SSSD
         # domain status flipped to online during the password change.
@@ -2264,10 +2266,10 @@ class KerberosKeyCopier:
             [paths.KLIST, "-eK", "-k", keytab], log_stdout=False)
 
         keys_to_sync = []
-        for l in result.stdout_text.splitlines():
-            if (princ in l and any(e in l for e in self.valid_etypes)):
+        for line in result.stdout_text.splitlines():
+            if (princ in line and any(e in line for e in self.valid_etypes)):
 
-                els = l.split()
+                els = line.split()
                 els[-2] = els[-2].strip('()')
                 els[-1] = els[-1].strip('()')
                 keys_to_sync.append(KeyEntry._make(els))
