@@ -35,17 +35,6 @@ skip_mod_md_tests = osinfo.id not in ['rhel', 'fedora', ]
 CERTBOT_DNS_IPA_SCRIPT = '/usr/libexec/ipa/acme/certbot-dns-ipa'
 
 
-def move_date(host, chrony_cmd, date_str):
-    """Helper method to move system date
-    :param host: host on which date is to be manipulated
-    :param chrony_cmd: systemctl command to apply to
-                       chrony service, for instance 'start', 'stop'
-    :param date_str: date string to change the date i.e '3years2months1day1'
-    """
-    host.run_command(['systemctl', chrony_cmd, 'chronyd'])
-    host.run_command(['date', '-s', date_str])
-
-
 def check_acme_status(host, exp_status, timeout=60):
     """Helper method to check the status of acme server"""
     for _i in range(0, timeout, 5):
@@ -598,8 +587,8 @@ class TestACMERenew(IntegrationTest):
         )
         # move system date to expire acme cert
         for host in self.clients[0], self.master:
-            host.run_command(['kdestroy', '-A'])
-            move_date(host, 'stop', '+90days')
+            tasks.kdestroy_all(host)
+            tasks.move_date(host, 'stop', '+90days')
         self.clients[0].run_command(
             ['kinit', 'admin'],
             stdin_text=cmd_input.format(
@@ -611,8 +600,8 @@ class TestACMERenew(IntegrationTest):
 
         # move back date
         for host in self.clients[0], self.master:
-            host.run_command(['kdestroy', '-A'])
-            move_date(host, 'start', '-90days')
+            tasks.kdestroy_all(host)
+            tasks.move_date(host, 'start', '-90days')
             tasks.kinit_admin(host)
 
     @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
