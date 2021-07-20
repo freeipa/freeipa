@@ -756,6 +756,18 @@ class server_del(LDAPDelete):
             pkey, ignore_last_of_role=options.get('ignore_last_of_role', False)
         )
 
+        if self.api.Command.ca_is_enabled()['result']:
+            try:
+                with self.api.Backend.ra_securitydomain as domain_api:
+                    domain_api.delete_domain(pkey, 'KRA')
+                    domain_api.delete_domain(pkey, 'CA')
+            except Exception as e:
+                self.add_message(messages.ServerRemovalWarning(
+                    message=_(
+                        "Failed to remove server from security domain: %s" % e
+                    ))
+                )
+
         # remove the references to master's ldap/http principals
         self._remove_server_principal_references(pkey)
 

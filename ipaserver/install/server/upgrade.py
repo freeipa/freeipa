@@ -1157,6 +1157,16 @@ def add_default_caacl(ca):
     sysupgrade.set_upgrade_state('caacl', 'add_default_caacl', True)
 
 
+def add_agent_to_security_domain_admins():
+    user_dn = DN(('uid', "ipara"), ('ou', 'People'), ('o', 'ipaca'))
+    group_dn = DN(('cn', 'Security Domain Administrators'), ('ou', 'groups'),
+                  ('o', 'ipaca'))
+    try:
+        api.Backend.ldap2.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
+    except ipalib.errors.AlreadyGroupMember:
+        pass
+
+
 def setup_pkinit(krb):
     logger.info("[Setup PKINIT]")
 
@@ -1837,6 +1847,7 @@ def upgrade_configuration():
     migrate_to_authselect()
     add_systemd_user_hbac()
     add_admin_root_alias()
+    add_agent_to_security_domain_admins()
 
     sssd_update()
 

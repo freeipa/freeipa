@@ -2117,3 +2117,23 @@ class ra_lightweight_ca(RestClient):
 
     def delete_ca(self, ca_id):
         self._ssldo('DELETE', ca_id)
+
+
+@register()
+class ra_securitydomain(RestClient):
+    """
+    Security domain management backend plugin.
+
+    Dogtag handles the creation of securitydomain entries
+    we need to clean them up when an IPA server is removed.
+    """
+    path = 'securityDomain/hosts'
+
+    def delete_domain(self, hostname, type):
+        """
+        Delete a security domain
+        """
+        self._ssldo(
+            'DELETE', f'{type}%20{hostname}%20443',
+            headers={'Accept': 'application/json'}
+        )
