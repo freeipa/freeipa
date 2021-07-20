@@ -2802,3 +2802,14 @@ def is_package_installed(host, pkg):
             'is_package_installed: unknown platform %s' % platform
         )
     return result.returncode == 0
+
+
+def move_date(host, chrony_cmd, date_str):
+    """Helper method to move system date
+    :param host: host on which date is to be manipulated
+    :param chrony_cmd: systemctl command to apply to
+                       chrony service, for instance 'start', 'stop'
+    :param date_str: date string to change the date i.e '3years2months1day1'
+    """
+    host.run_command(['systemctl', chrony_cmd, 'chronyd'])
+    host.run_command(['date', '-s', date_str])
