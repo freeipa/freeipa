@@ -576,25 +576,25 @@ class TestACMERenew(IntegrationTest):
         # request a standalone acme cert
         certbot_standalone_cert(self.clients[0], self.acme_server)
 
-        cmd_input = (
-            # Password for admin@{REALM}:
-            "{pwd}\n"
-            # Password expired.  You must change it now.
-            # Enter new password:
-            "{pwd}\n"
-            # Enter it again:
-            "{pwd}\n"
-        )
         # move system date to expire acme cert
         for host in self.clients[0], self.master:
             tasks.kdestroy_all(host)
             tasks.move_date(host, 'stop', '+90days')
-        self.clients[0].run_command(
-            ['kinit', 'admin'],
-            stdin_text=cmd_input.format(
-                pwd=self.clients[0].config.admin_password
-            )
+
+        tasks.get_kdcinfo(host)
+        # Note raiseonerr=False:
+        # the assert is located after kdcinfo retrieval.
+        result = host.run_command(
+            "KRB5_TRACE=/dev/stdout kinit %s" % 'admin',
+            stdin_text='{0}\n{0}\n{0}\n'.format(
+                self.clients[0].config.admin_password
+            ),
+            raiseonerr=False
         )
+        # Retrieve kdc.$REALM after the password change, just in case SSSD
+        # domain status flipped to online during the password change.
+        tasks.get_kdcinfo(host)
+        assert result.returncode == 0
 
         yield
 
