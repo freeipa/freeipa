@@ -302,6 +302,23 @@ class TestLastServices(ServerDelBase):
             1
         )
 
+    def test_removal_of_server_raises_error_about_last_kra(self):
+        """
+        test that removal of server fails on the last KRA
+
+        We shut it down to verify that it can be removed if it failed.
+        """
+        tasks.install_kra(self.master)
+        self.master.run_command(['ipactl', 'stop'])
+        tasks.assert_error(
+            tasks.run_server_del(self.replicas[0], self.master.hostname),
+            "Deleting this server is not allowed as it would leave your "
+            "installation without a KRA.",
+            1
+        )
+        # Restarting the server we stopped is not necessary as it will
+        # be removed in the next test.
+
     def test_forced_removal_of_master(self):
         """
         Tests that we can still force remove the master using
