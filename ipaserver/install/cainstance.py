@@ -435,10 +435,9 @@ class CAInstance(DogtagInstance):
                       configure_lightweight_ca_acls)
             self.step("Ensure lightweight CAs container exists",
                       ensure_lightweight_cas_container)
-            if self.clone and not promote:
-                self.step(
-                    "Ensuring backward compatibility",
-                    self.__dogtag10_migration)
+            self.step(
+                "Ensuring backward compatibility",
+                self.__dogtag10_migration)
             if promote:
                 self.step("destroying installation admin user",
                           self.teardown_admin)
@@ -792,6 +791,11 @@ class CAInstance(DogtagInstance):
         # add ipara user to Registration Manager Agents group
         group_dn = DN(('cn', 'Registration Manager Agents'), ('ou', 'groups'),
             self.basedn)
+        conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
+
+        # add ipara user to Security Domain Administrators group
+        group_dn = DN(('cn', 'Security Domain Administrators'),
+                      ('ou', 'groups'), self.basedn)
         conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
 
     def __get_ca_chain(self):
