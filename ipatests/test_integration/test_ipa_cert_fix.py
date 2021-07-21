@@ -49,16 +49,6 @@ def check_status(host, cert_count, state, timeout=600):
     return count
 
 
-def move_date(host, chrony_state, date_str):
-    """Helper method to move the date on given host
-    :param host: The host on which date is to be moved
-    :param chrony_state: State to which chrony service to be moved
-    :param date_str: date string to move the date i.e 2years1month1days
-    """
-    host.run_command(['systemctl', chrony_state, 'chronyd'])
-    host.run_command(['date', '-s', date_str])
-
-
 @pytest.fixture
 def expire_cert_critical():
     """
@@ -77,13 +67,13 @@ def expire_cert_critical():
             tasks.install_kra(host)
 
         # move date to expire certs
-        move_date(host, 'stop', '+3Years+1day')
+        tasks.move_date(host, 'stop', '+3Years+1day')
 
     yield _expire_cert_critical
 
     host = hosts.pop('host')
     tasks.uninstall_master(host)
-    move_date(host, 'start', '-3Years-1day')
+    tasks.move_date(host, 'start', '-3Years-1day')
 
 
 class TestIpaCertFix(IntegrationTest):
@@ -97,12 +87,12 @@ class TestIpaCertFix(IntegrationTest):
     def expire_ca_cert(self):
         tasks.install_master(self.master, setup_dns=False,
                              extra_args=['--no-ntp'])
-        move_date(self.master, 'stop', '+20Years+1day')
+        tasks.move_date(self.master, 'stop', '+20Years+1day')
 
         yield
 
         tasks.uninstall_master(self.master)
-        move_date(self.master, 'start', '-20Years-1day')
+        tasks.move_date(self.master, 'start', '-20Years-1day')
 
     def test_missing_csr(self, expire_cert_critical):
         """
@@ -363,7 +353,7 @@ class TestCertFixReplica(IntegrationTest):
 
         related: https://pagure.io/freeipa/issue/7885
         """
-        move_date(self.master, 'stop', '+3years+1days')
+        tasks.move_date(self.master, 'stop', '+3years+1days')
 
         # wait for cert expiry
         check_status(self.master, 8, "CA_UNREACHABLE")
@@ -373,7 +363,7 @@ class TestCertFixReplica(IntegrationTest):
         check_status(self.master, 9, "MONITORING")
 
         # move system date to expire cert on replica
-        move_date(self.replicas[0], 'stop', '+3years+1days')
+        tasks.move_date(self.replicas[0], 'stop', '+3years+1days')
 
         # RA agent cert will be expired and in CA_UNREACHABLE state
         check_status(self.replicas[0], 1, "CA_UNREACHABLE")
@@ -402,5 +392,5 @@ class TestCertFixReplica(IntegrationTest):
         check_status(self.master, 9, "MONITORING")
 
         # move date back on replica and master
-        move_date(self.replicas[0], 'start', '-3years-1days')
-        move_date(self.master, 'start', '-3years-1days')
+        tasks.move_date(self.replicas[0], 'start', '-3years-1days')
+        tasks.move_date(self.master, 'start', '-3years-1days')
