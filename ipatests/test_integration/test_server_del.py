@@ -3,6 +3,7 @@
 #
 
 from itertools import permutations
+import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -43,6 +44,26 @@ def check_master_removal(host, hostname_to_remove,
         "{}: server not found".format(hostname_to_remove),
         returncode=2
     )
+
+    # Only run the pki command if there is a CA installed on the machine
+    result = host.run_command(
+        [
+            'ipa',
+            'server-role-find',
+            '--server', host.hostname,
+            '--status', 'enabled',
+            '--role', 'CA server',
+        ],
+        raiseonerr=False,
+    )
+
+    if result.returncode == 0:
+        host.run_command(['pki', 'client', 'init', '--force'])
+        result = host.run_command(
+            ['pki', 'securitydomain-host-find'],
+            stdin_text='y\n',
+        ).stdout_text
+        assert hostname_to_remove not in result
 
 
 def check_removal_disconnects_topology(
@@ -236,6 +257,11 @@ class TestLastServices(ServerDelBase):
     domain_level = DOMAIN_LEVEL_1
     topology = 'line'
 
+    @pytest.fixture
+    def restart_ipa(self):
+        yield
+        self.master.run_command(['ipactl', 'start'])
+
     @classmethod
     def install(cls, mh):
         tasks.install_topo(
@@ -302,7 +328,7 @@ class TestLastServices(ServerDelBase):
             1
         )
 
-    def test_removal_of_server_raises_error_about_last_kra(self):
+    def test_removal_of_server_raises_error_about_last_kra(self, restart_ipa):
         """
         test that removal of server fails on the last KRA
 
@@ -316,8 +342,6 @@ class TestLastServices(ServerDelBase):
             "installation without a KRA.",
             1
         )
-        # Restarting the server we stopped is not necessary as it will
-        # be removed in the next test.
 
     def test_forced_removal_of_master(self):
         """
