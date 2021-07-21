@@ -52,16 +52,6 @@ def check_status(host, cert_count, state, timeout=600):
     return count
 
 
-def move_date(host, chrony_state, date_str):
-    """Helper method to move the date on given host
-    :param host: The host on which date is to be moved
-    :param chrony_state: State to which chrony service to be moved
-    :param date_str: date string to move the date i.e 2years1month1days
-    """
-    host.run_command(['systemctl', chrony_state, 'chronyd'])
-    host.run_command(['date', '-s', date_str])
-
-
 def needs_resubmit(host, req_id):
     """Helper method to identify if cert request needs to be resubmitted
     :param host: the host
@@ -123,13 +113,13 @@ def expire_cert_critical():
             tasks.install_kra(host)
 
         # move date to expire certs
-        move_date(host, 'stop', '+3Years+1day')
+        tasks.move_date(host, 'stop', '+3Years+1day')
 
     yield _expire_cert_critical
 
     host = hosts.pop('host')
     tasks.uninstall_master(host)
-    move_date(host, 'start', '-3Years-1day')
+    tasks.move_date(host, 'start', '-3Years-1day')
 
 
 class TestIpaCertFix(IntegrationTest):
@@ -143,12 +133,12 @@ class TestIpaCertFix(IntegrationTest):
     def expire_ca_cert(self):
         tasks.install_master(self.master, setup_dns=False,
                              extra_args=['--no-ntp'])
-        move_date(self.master, 'stop', '+20Years+1day')
+        tasks.move_date(self.master, 'stop', '+20Years+1day')
 
         yield
 
         tasks.uninstall_master(self.master)
-        move_date(self.master, 'start', '-20Years-1day')
+        tasks.move_date(self.master, 'start', '-20Years-1day')
 
     def test_missing_csr(self, expire_cert_critical):
         """
