@@ -144,11 +144,11 @@ vms:
     containers:
       replicas: 1
 
-  - container_job: SubCAkeyReplication
-    containers:
-      replicas: 1
-    tests:
-    - test_integration/test_replica_promotion.py::TestSubCAkeyReplication
+#  - container_job: SubCAkeyReplication
+#    containers:
+#      replicas: 1
+#    tests:
+#    - test_integration/test_replica_promotion.py::TestSubCAkeyReplication
 
 #  - container_job: adtrust_install
 #    tests:
@@ -166,16 +166,16 @@ vms:
 #    tests:
 #    - test_integration/test_advise.py
 
-  - container_job: cert
-    tests:
-    - test_integration/test_cert.py
-    containers:
-      replicas: 1
-      clients: 1
-      resources:
-        replica:
-          mem_limit: "2300m"
-          memswap_limit: "3300m"
+#  - container_job: cert
+#    tests:
+#    - test_integration/test_cert.py
+#    containers:
+#      replicas: 1
+#      clients: 1
+#      resources:
+#        replica:
+#          mem_limit: "2300m"
+#          memswap_limit: "3300m"
 
   - container_job: external_ca_SelfExternalSelf
     tests:
