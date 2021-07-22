@@ -20,6 +20,7 @@ from cryptography.hazmat.primitives.twofactor.totp import TOTP
 from ipatests.test_integration.base import IntegrationTest
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
+from ipapython.dn import DN
 
 
 PASSWORD = "DummyPassword123"
@@ -309,3 +310,58 @@ class TestOTPToken(IntegrationTest):
             master.run_command(['ipa', 'user-del', USER2])
             self.master.run_command(['semanage', 'login', '-D'])
             sssd_conf_backup.restore()
+
+    @pytest.fixture
+    def setup_otp_nsslapd(self):
+        # setting nsslapd-idletimeout
+        new_limit = 30
+        conn = self.master.ldap_connect()
+        dn = DN(('cn', 'config'))
+        entry = conn.get_entry(dn)  # pylint: disable=no-member
+        orig_limit = entry.single_value.get('nsslapd-idletimeout')
+        ldap_query = textwrap.dedent("""
+            dn: cn=config
+            changetype: modify
+            replace: nsslapd-idletimeout
+            nsslapd-idletimeout: {limit}
+        """)
+        tasks.ldapmodify_dm(self.master, ldap_query.format(limit=new_limit))
+        # Be sure no services are running and failed units
+        self.master.run_command(['killall', 'ipa-otpd'], raiseonerr=False)
+        check_services = self.master.run_command(
+            ['systemctl', 'list-units', '--state=failed']
+        )
+        assert "0 loaded units listed" in check_services.stdout_text
+        assert "ipa-otpd" not in check_services.stdout_text
+        yield
+        # cleanup
+        tasks.ldapmodify_dm(self.master, ldap_query.format(limit=orig_limit))
+
+    def test_check_otpd_after_idle_timeout(self, setup_otp_nsslapd):
+        """Test for OTP when the LDAP connection timed out.
+
+        Test for : https://pagure.io/freeipa/issue/6587
+
+        ipa-otpd was exiting with failure when LDAP connection timed out.
+        Test to verify that when the nsslapd-idletimeout is exceeded (30s idle,
+        60s sleep) then the ipa-otpd process should exit without error.
+        """
+        since = time.strftime('%H:%M:%S')
+        tasks.kinit_admin(self.master)
+        otpuid, totp = add_otptoken(self.master, USER, otptype="totp")
+        try:
+            # kinit with OTP auth
+            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            kinit_otp(self.master, USER, password=PASSWORD, otp=otpvalue)
+            time.sleep(60)
+            failed_services = self.master.run_command(
+                ['systemctl', 'list-units', '--state=failed']
+            )
+            assert "ipa-otpd" not in failed_services.stdout_text
+            cmd_jornalctl = self.master.run_command(
+                ['journalctl', '--since={}'.format(since)]
+            )
+            regex = r".*ipa-otpd@.*\sSucceeded"
+            assert re.search(regex, cmd_jornalctl.stdout_text)
+        finally:
+            del_otptoken(self.master, otpuid)
