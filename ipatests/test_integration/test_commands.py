@@ -1499,3 +1499,51 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         )
         # Run the command again after cache is removed
         self.master.run_command(['ipa', 'user-show', 'ipauser1'])
+
+
+class TestIPAautomount(IntegrationTest):
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+
+    def test_tofiles_orphan_keys(self):
+        """
+        Validate automountlocation-tofiles output
+
+        automount in LDAP is difficult to keep straight so a client-side
+        map generator was created.
+        """
+        tasks.kinit_admin(self.master)
+
+        self.master.run_command(
+            [
+                'ipa',
+                'automountmap-add', 'default',
+                'auto.test'
+            ]
+        )
+        self.master.run_command(
+            [
+                'ipa',
+                'automountkey-add', 'default',
+                'auto.test',
+                '--key', '/test',
+                '--info', 'nfs.example.com:/exports/test'
+            ]
+        )
+        self.master.run_command(
+            [
+                'ipa',
+                'automountkey-add', 'default',
+                'auto.test',
+                '--key', '/test2',
+                '--info', 'nfs.example.com:/exports/test2'
+            ]
+        )
+        result = self.master.run_command(
+            [
+                'ipa', 'automountlocation-tofiles', 'default'
+            ]
+        ).stdout_text
+        assert '/test' in result
+        assert '/test2' in result
