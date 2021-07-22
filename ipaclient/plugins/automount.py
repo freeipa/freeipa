@@ -104,13 +104,15 @@ class automountlocation_tofiles(MethodOverride):
             textui.print_plain('/etc/%s:' % m['automountmapname'])
             for k in orphankeys:
                 if len(k) == 0: continue
-                dn = DN(k[0]['dn'])
-                if dn['automountmapname'] == m['automountmapname'][0]:
-                    textui.print_plain(
-                        '%s\t%s' % (
-                            k[0]['automountkey'][0], k[0]['automountinformation'][0]
+                for key in k:
+                    dn = DN(key['dn'])
+                    if dn['automountmapname'] == m['automountmapname'][0]:
+                        textui.print_plain(
+                            '%s\t%s' % (
+                                key['automountkey'][0],
+                                key['automountinformation'][0]
+                            )
                         )
-                    )
 
 
 @register()
