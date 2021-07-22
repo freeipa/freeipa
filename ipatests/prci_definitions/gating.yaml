@@ -44,7 +44,7 @@ jobs:
         build_url: '{fedora-latest-ipa-4-9/build_url}'
         test_suite: test_integration/test_installation.py::TestInstallMaster
         template: *ci-ipa-4-9-latest
-        timeout: 3600
+        timeout: 7200
         topology: *master_1repl
 
   fedora-latest-ipa-4-9/simple_replication:
