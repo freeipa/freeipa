@@ -143,6 +143,7 @@ class test_automount(AutomountTest):
         ---------------------------
         /etc/testmap:
         testkey2\tro
+        testkey_rename\trw
         """).strip()
 
     def test_0_automountlocation_add(self):
