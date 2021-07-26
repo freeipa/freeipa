@@ -149,7 +149,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
         self.log.exit_on_predicate(
             '[ -z "$ipaca_records" ]',
             [
-                'Can not resolve ipa-ca records for ${domain_name}',
+                f'Can not resolve ipa-ca records for {ipa_domain_name}',
                 'Please make sure to update your DNS infrastructure with ',
                 'ipa-ca record pointing to IP addresses of IPA CA masters'
             ])
