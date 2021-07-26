@@ -19,6 +19,7 @@ from ipaplatform.paths import paths
 from cryptography import x509
 from cryptography.x509.oid import ExtensionOID
 from cryptography.hazmat.backends import default_backend
+from pkg_resources import parse_version
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
@@ -256,6 +257,16 @@ class TestInstallMasterClient(IntegrationTest):
         else:
             raise AssertionError("certmonger request is "
                                  "in state {}". format(status))
+
+    def test_getcert_notafter_output(self):
+        """Test that currrent certmonger includes NotBefore in output"""
+        result = self.master.run_command(["certmonger", "-v"]).stdout_text
+        if parse_version(result.split()[1]) < parse_version('0.79.14'):
+            raise pytest.skip("not_before not provided in this version")
+        result = self.master.run_command(
+            ["getcert", "list", "-f", paths.HTTPD_CERT_FILE]
+        ).stdout_text
+        assert 'issued:' in result
 
 
 class TestCertmongerRekey(IntegrationTest):
