@@ -13,6 +13,7 @@ import logging
 import sys
 import time
 from xml.etree import ElementTree
+import json
 
 from ipalib import api
 from ipaplatform.paths import paths
@@ -74,10 +75,19 @@ def get_status(conn, timeout):
     """
     client = SystemStatusClient(conn)
     response = client.get_status(timeout=timeout)
-    root = ElementTree.fromstring(response)
-    status = root.findtext("Status")
-    error = root.findtext("Error")
-    logging.debug("Got status '%s', error '%s'", status, error)
+    status = None
+    error = None
+    try:
+        json_response = json.loads(response)
+        status = json_response['Response']['Status']
+    except KeyError as e:
+        error = repr(e)
+    except json.JSONDecodeError:
+        logger.debug("Response is not valid JSON, try XML")
+        root = ElementTree.fromstring(response)
+        status = root.findtext("Status")
+        error = root.findtext("Error")
+    logger.debug("Got status '%s', error '%s'", status, error)
     return status, error
 
 
