@@ -1853,3 +1853,30 @@ class TestInstallWithoutSudo(IntegrationTest):
         result = tasks.install_client(self.master, self.clients[0])
         assert self.no_sudo_str not in result.stderr_text
         assert self.sudo_version_str not in result.stdout_text
+
+
+class TestInstallWithoutNamed(IntegrationTest):
+    num_replicas = 1
+
+    @classmethod
+    def remove_named(cls, host):
+        # remove the bind package and make sure the named user does not exist.
+        # https://pagure.io/freeipa/issue/8936
+        result = host.run_command(['id', 'named'], raiseonerr=False)
+        if result.returncode == 0:
+            tasks.uninstall_packages(host, ['bind'])
+            host.run_command(['userdel', constants.NAMED_USER])
+        assert host.run_command(
+            ['id', 'named'], raiseonerr=False
+        ).returncode == 1
+
+    @classmethod
+    def install(cls, mh):
+        for tgt in (cls.master, cls.replicas[0]):
+            cls.remove_named(tgt)
+        tasks.install_master(cls.master, setup_dns=False)
+
+    def test_replica0_install(self):
+        tasks.install_replica(
+            self.master, self.replicas[0], setup_ca=False, setup_dns=False
+        )

@@ -547,6 +547,18 @@ jobs:
         timeout: 4800
         topology: *master_1repl_1client
 
+  fedora-previous/test_installation_TestInstallWithoutNamed:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithoutNamed
+        template: *ci-master-previous
+        timeout: 4800
+        topology: *master_1repl
+
   fedora-previous/test_idviews:
     requires: [fedora-previous/build]
     priority: 50
