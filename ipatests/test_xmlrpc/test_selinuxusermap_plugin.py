@@ -33,8 +33,9 @@ from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 import pytest
 
 rule1 = u'selinuxrule1'
-selinuxuser1 = platformconstants.SELINUX_USERMAP_ORDER.split("$")[0]
-selinuxuser2 = platformconstants.SELINUX_USERMAP_ORDER.split("$")[1]
+selinux_users = platformconstants.SELINUX_USERMAP_ORDER.split("$")
+selinuxuser1 = selinux_users[0]
+selinuxuser2 = selinux_users[1]
 
 INVALID_MCS = "Invalid MCS value, must match {}, where max category {}".format(
     platformconstants.SELINUX_MCS_REGEX,
