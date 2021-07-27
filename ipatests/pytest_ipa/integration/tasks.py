@@ -29,7 +29,6 @@ import re
 import collections
 import itertools
 import shutil
-import shlex
 import copy
 import subprocess
 import tempfile
@@ -2441,9 +2440,9 @@ def install_packages(host, pkgs):
     :param pkgs: packages to install, provided as a list of strings
     """
     platform = get_platform(host)
-    if platform in ('rhel', 'fedora'):
+    if platform in {'rhel', 'fedora'}:
         install_cmd = ['/usr/bin/dnf', 'install', '-y']
-    elif platform in ('ubuntu'):
+    elif platform in {'debian', 'ubuntu'}:
         install_cmd = ['apt-get', 'install', '-y']
     else:
         raise ValueError('install_packages: unknown platform %s' % platform)
@@ -2482,26 +2481,22 @@ def uninstall_packages(host, pkgs, nodeps=False):
     :param nodeps: ignore dependencies (dangerous!).
     """
     platform = get_platform(host)
-    if platform not in ('rhel', 'fedora', 'ubuntu'):
-        raise ValueError('uninstall_packages: unknown platform %s' % platform)
+    if platform not in {"rhel", "fedora", "debian", "ubuntu"}:
+        raise ValueError(f"uninstall_packages: unknown platform {platform}")
     if nodeps:
-        if platform in ('rhel', 'fedora'):
-            cmd = "rpm -e --nodeps"
-        elif platform in ('ubuntu'):
-            cmd = "dpkg -P --force-depends"
+        if platform in {"rhel", "fedora"}:
+            cmd = ["rpm", "-e", "--nodeps"]
+        elif platform in {"debian", "ubuntu"}:
+            cmd = ["dpkg", "-P", "--force-depends"]
         for package in pkgs:
-            uninstall_cmd = shlex.split(cmd)
-            uninstall_cmd.append(package)
             # keep raiseonerr=True here. --fcami
-            host.run_command(uninstall_cmd)
+            host.run_command(cmd + [package])
     else:
-        if platform in ('rhel', 'fedora'):
-            cmd = "/usr/bin/dnf remove -y"
-        elif platform in ('ubuntu'):
-            cmd = "apt-get remove -y"
-        uninstall_cmd = shlex.split(cmd)
-        uninstall_cmd.extend(pkgs)
-        host.run_command(uninstall_cmd, raiseonerr=False)
+        if platform in {"rhel", "fedora"}:
+            cmd = ["/usr/bin/dnf", "remove", "-y"]
+        elif platform in {"debian", "ubuntu"}:
+            cmd = ["apt-get", "remove", "-y"]
+        host.run_command(cmd + pkgs, raiseonerr=False)
 
 
 def wait_for_request(host, request_id, timeout=120):
@@ -2789,11 +2784,11 @@ def run_ssh_cmd(
 
 def is_package_installed(host, pkg):
     platform = get_platform(host)
-    if platform in ('rhel', 'fedora'):
+    if platform in {'rhel', 'fedora'}:
         result = host.run_command(
             ['rpm', '-q', pkg], raiseonerr=False
         )
-    elif platform in ['ubuntu']:
+    elif platform in {'debian', 'ubuntu'}:
         result = host.run_command(
             ['dpkg', '-s', pkg], raiseonerr=False
         )
