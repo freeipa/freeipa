@@ -64,6 +64,15 @@ def get_sub_dict(realm, domain, suffix, fqdn, idstart=None, idmax=None):
         idrange_size = idmax - idstart + 1
         subid_base_rid = constants.SUBID_RANGE_START - idrange_size
 
+    # uid / gid for autobind
+    # user is only defined when ipa-server-dns and bind are installed
+    try:
+        named_uid = platformconstants.NAMED_USER.uid
+        named_gid = platformconstants.NAMED_GROUP.gid
+    except ValueError:
+        named_uid = None
+        named_gid = None
+
     return dict(
         REALM=realm,
         DOMAIN=domain,
@@ -99,9 +108,8 @@ def get_sub_dict(realm, domain, suffix, fqdn, idstart=None, idmax=None):
         DEFAULT_ADMIN_SHELL=platformconstants.DEFAULT_ADMIN_SHELL,
         SELINUX_USERMAP_DEFAULT=platformconstants.SELINUX_USERMAP_DEFAULT,
         SELINUX_USERMAP_ORDER=platformconstants.SELINUX_USERMAP_ORDER,
-        # uid / gid for autobind
-        NAMED_UID=platformconstants.NAMED_USER.uid,
-        NAMED_GID=platformconstants.NAMED_GROUP.gid,
+        NAMED_UID=named_uid,
+        NAMED_GID=named_gid,
     )
 
 
