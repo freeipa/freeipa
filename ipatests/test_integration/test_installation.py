@@ -179,7 +179,21 @@ class TestInstallWithCA1(InstallTestBase1):
     master_with_dns = False
 
     @classmethod
+    def remove_named(cls, host):
+        # remove the bind package and make sure the named user does not exist.
+        # https://pagure.io/freeipa/issue/8936
+        result = host.run_command(['id', 'named'], raiseonerr=False)
+        if result.returncode == 0:
+            tasks.uninstall_packages(host, 'bind')
+            host.run_command(['userdel', constants.NAMED_USER])
+        assert host.run_command(
+            ['id', 'named'], raiseonerr=False
+        ).returncode == 1
+
+    @classmethod
     def install(cls, mh):
+        for tgt in (cls.master, cls.replicas[0]):
+            cls.remove_named(tgt)
         tasks.install_master(cls.master, setup_dns=cls.master_with_dns)
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
