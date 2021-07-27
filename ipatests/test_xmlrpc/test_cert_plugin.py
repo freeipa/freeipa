@@ -281,7 +281,7 @@ class test_cert_find(XMLRPC_test):
 
         is_db_configured()
 
-    short = api.env.host.split('.')[0]
+    short = api.env.host.split('.', maxsplit=1)[0]
 
     def test_0001_find_all(self):
         """
