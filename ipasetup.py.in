@@ -63,12 +63,6 @@ VERSION = '@VERSION@'
 
 SETUPTOOLS_VERSION = tuple(int(v) for v in setuptools.__version__.split("."))
 
-# backwards compatibility with setuptools 0.9.8, split off +gitHASH suffix
-# PEP 440 was introduced in setuptools 8.
-if SETUPTOOLS_VERSION < (8, 0, 0):
-    VERSION = VERSION.split('+')[0]
-
-
 PACKAGE_VERSION = {
     'cryptography': 'cryptography >= 1.6',
     'custodia': 'custodia >= 0.3.1',

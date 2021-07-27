@@ -5,8 +5,9 @@
 from ipaplatform.constants import constants as platformconstants
 
 # for example, user_u:s0
-selinuxuser1 = platformconstants.SELINUX_USERMAP_ORDER.split("$")[0]
-selinuxuser2 = platformconstants.SELINUX_USERMAP_ORDER.split("$")[1]
+selunux_users = platformconstants.SELINUX_USERMAP_ORDER.split("$")
+selinuxuser1 = selunux_users[0]
+selinuxuser2 = selunux_users[1]
 
 selinux_mcs_max = platformconstants.SELINUX_MCS_MAX
 selinux_mls_max = platformconstants.SELINUX_MLS_MAX
