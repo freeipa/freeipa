@@ -605,14 +605,6 @@ class KrbInstance(service.Service):
         except errors.AlreadyActive:
             pass
 
-    def __convert_to_gssapi_replication(self):
-        repl = replication.ReplicationManager(self.realm,
-                                              self.fqdn,
-                                              self.dm_password)
-        repl.convert_to_gssapi_replication(self.master_fqdn,
-                                           r_binddn=DN(('cn', 'Directory Manager')),
-                                           r_bindpw=self.dm_password)
-
     def stop_tracking_certs(self):
         certmonger.stop_tracking(certfile=paths.KDC_CERT)
 
