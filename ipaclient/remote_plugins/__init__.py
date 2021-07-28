@@ -2,6 +2,7 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+from collections.abc import MutableMapping
 import errno
 import json
 import locale
@@ -9,20 +10,11 @@ import logging
 import os
 import time
 
-import six
-
 from . import compat
 from . import schema
 from ipaclient.plugins.rpcclient import rpcclient
 from ipalib.constants import USER_CACHE_PATH
 from ipapython.dnsutil import DNSName
-
-# pylint: disable=no-name-in-module, import-error
-if six.PY3:
-    from collections.abc import MutableMapping
-else:
-    from collections import MutableMapping
-# pylint: enable=no-name-in-module, import-error
 
 logger = logging.getLogger(__name__)
 
