@@ -22,23 +22,16 @@ Base class for all XML-RPC tests
 """
 from __future__ import print_function
 
+from collections.abc import Sequence
 import datetime
 import inspect
 
 import contextlib
 import pytest
-import six
 
 from ipatests.util import assert_deepequal, Fuzzy
 from ipalib import api, request as ipa_request, errors
 from ipapython.version import API_VERSION
-
-# pylint: disable=no-name-in-module, import-error
-if six.PY3:
-    from collections.abc import Sequence
-else:
-    from collections import Sequence
-# pylint: enable=no-name-in-module, import-error
 
 # Matches a gidnumber like '1391016742'
 # FIXME: Does it make more sense to return gidnumber, uidnumber, etc. as `int`

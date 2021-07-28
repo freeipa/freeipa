@@ -4,10 +4,9 @@
 
 from __future__ import print_function, absolute_import
 
+from collections.abc import MutableMapping
 import os
 from pprint import pprint
-
-import six
 
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipaplatform.paths import paths
@@ -16,13 +15,6 @@ from ipaserver.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
                                      keytype_id2name, keytype_name2id,
                                      ldap2p11helper_api_params)
 from ipaserver.dnssec.ldapkeydb import str_hexlify
-
-# pylint: disable=no-name-in-module, import-error
-if six.PY3:
-    from collections.abc import MutableMapping
-else:
-    from collections import MutableMapping
-# pylint: enable=no-name-in-module, import-error
 
 
 private_key_api_params = set(["label", "id", "data", "unwrapping_key",
