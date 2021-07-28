@@ -53,12 +53,7 @@ from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
 from ipapython.kerberos import Principal
 
-# pylint: disable=no-name-in-module, import-error
-if six.PY3:
-    from collections.abc import MutableMapping
-else:
-    from collections import MutableMapping
-# pylint: enable=no-name-in-module, import-error
+from collections.abc import MutableMapping
 
 if six.PY3:
     unicode = str
