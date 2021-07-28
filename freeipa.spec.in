@@ -328,11 +328,18 @@ BuildRequires: python3-m2r
 # Build dependencies for lint and fastcheck
 #
 %if %{with lint}
-BuildRequires:  git
-%if 0%{?fedora} < 34
+
+# python3-pexpect might not be available in RHEL9
+%if 0%{?fedora} || 0%{?rhel} < 9
+BuildRequires:  python3-pexpect
+%endif
+
 # jsl is orphaned in Fedora 34+
+%if 0%{?fedora} < 34
 BuildRequires:  jsl
 %endif
+
+BuildRequires:  git
 BuildRequires:  nss-tools
 BuildRequires:  rpmlint
 BuildRequires:  softhsm
@@ -357,7 +364,6 @@ BuildRequires:  python3-lxml
 BuildRequires:  python3-netaddr >= %{python_netaddr_version}
 BuildRequires:  python3-netifaces
 BuildRequires:  python3-paste
-BuildRequires:  python3-pexpect
 BuildRequires:  python3-pki >= %{pki_version}
 BuildRequires:  python3-polib
 BuildRequires:  python3-pyasn1
@@ -878,11 +884,11 @@ Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ipaserver = %{version}-%{release}
 Requires: iptables
 Requires: python3-cryptography >= 1.6
-Requires: python3-pexpect
 %if 0%{?fedora}
 # These packages do not exist on RHEL and for ipatests use
 # they are installed on the controller through other means
 Requires: ldns-utils
+Requires: python3-pexpect
 # update-crypto-policies
 Requires: crypto-policies-scripts
 Requires: python3-polib
