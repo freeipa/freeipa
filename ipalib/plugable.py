@@ -25,6 +25,7 @@ you are unfamiliar with this Python feature, see
 http://docs.python.org/ref/sequence-types.html
 """
 
+from collections.abc import Mapping
 import logging
 import operator
 import re
@@ -50,13 +51,6 @@ from ipapython.ipa_log_manager import (
     LOGGING_FORMAT_FILE,
     LOGGING_FORMAT_STDERR)
 from ipapython.version import VERSION, API_VERSION, DEFAULT_PLUGINS
-
-# pylint: disable=no-name-in-module, import-error
-if six.PY3:
-    from collections.abc import Mapping
-else:
-    from collections import Mapping
-# pylint: enable=no-name-in-module, import-error
 
 if six.PY3:
     unicode = str

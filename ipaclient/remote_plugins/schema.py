@@ -2,6 +2,7 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+from collections.abc import Mapping, Sequence
 import errno
 import json
 import logging
@@ -26,13 +27,6 @@ from ipapython import ipautil
 from ipapython.ipautil import fsdecode
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-
-# pylint: disable=no-name-in-module, import-error
-if six.PY3:
-    from collections.abc import Mapping, Sequence
-else:
-    from collections import Mapping, Sequence
-# pylint: enable=no-name-in-module, import-error
 
 logger = logging.getLogger(__name__)
 
