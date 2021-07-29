@@ -83,8 +83,10 @@ class test_Connectible(ClassChecker):
         assert o.connect(*args, **kw) is None
         conn = context.example
         assert type(conn) is Connection
+        # pylint: disable=no-member
         assert o.args == args
         assert o.kw == kw
+        # pylint: enable=no-member
         assert conn.conn == 'The connection.'
         assert conn.disconnect == o.disconnect
 
