@@ -298,6 +298,15 @@ add:nsIndexType: eq
 add:nsIndexType: pres
 add:nsMatchingRule: integerOrderingMatch
 
+dn: cn=sudoorder,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: sudoorder
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsMatchingRule: integerOrderingMatch
+
 dn: cn=ipasudorunasgroup,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 only:cn: ipasudorunasgroup
 default:objectClass: nsIndex
