@@ -614,6 +614,7 @@ class trust(LDAPObject):
                     ldap.SCOPE_SUBTREE, trustfilter, ['']
                 )
             except errors.NotFound:
+                # pylint: disable=raising-bad-type, #4772
                 raise self.handle_not_found(keys[-1])
 
             if len(result) > 1:

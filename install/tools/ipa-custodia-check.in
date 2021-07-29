@@ -184,7 +184,7 @@ class IPACustodiaTester:
             pkey = JWK(**dictkeys[usage_id])
             local_pubkey = json_decode(pkey.export_public())
         except Exception:
-            raise self.error(
+            raise self.error(  # pylint: disable=raising-bad-type, #4772
                 "Failed to load and parse local JWK.", fatal=True
             )
         else:
@@ -193,7 +193,7 @@ class IPACustodiaTester:
             ))
 
         if pkey.key_id != self.host_spn:
-            raise self.error(
+            raise self.error(  # pylint: disable=raising-bad-type, #4772
                 "KID '{}' != host service principal name '{}' "
                 "(usage: {})".format(pkey.key_id, self.host_spn, usage),
                 fatal=True
@@ -210,7 +210,7 @@ class IPACustodiaTester:
         try:
             host_pubkey = json_decode(find_key(self.host_spn, usage_id))
         except Exception:
-            raise self.error(
+            raise self.error(  # pylint: disable=raising-bad-type, #4772
                 "Fetching host keys {} (usage: {}) failed.".format(
                     self.host_spn, usage),
                 fatal=True
@@ -223,7 +223,7 @@ class IPACustodiaTester:
         if host_pubkey != local_pubkey:
             self.debug("LDAP: '{}'".format(host_pubkey))
             self.debug("Local: '{}'".format(local_pubkey))
-            raise self.error(
+            raise self.error(  # pylint: disable=raising-bad-type, #4772
                 "Host key in LDAP does not match local key.",
                 fatal=True
             )
@@ -235,7 +235,7 @@ class IPACustodiaTester:
         try:
             server_pubkey = json_decode(find_key(self.server_spn, usage_id))
         except Exception:
-            raise self.error(
+            raise self.error(  # pylint: disable=raising-bad-type, #4772
                 "Fetching server keys {} (usage: {}) failed.".format(
                     self.server_spn, usage),
                 fatal=True
