@@ -458,6 +458,7 @@ class IpaAdvise(admintool.AdminTool):
         installutils.check_server_configuration()
 
         if len(self.args) > 1:
+            # pylint: disable=raising-bad-type, #4772
             raise self.option_parser.error("You can only provide one "
                                            "positional argument.")
 
