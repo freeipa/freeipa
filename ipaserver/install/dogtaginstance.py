@@ -500,7 +500,7 @@ class DogtagInstance(service.Service):
     def configure_renewal(self):
         """ Configure certmonger to renew system certs """
 
-        for nickname in self.tracking_reqs:
+        for nickname, profile in self.tracking_reqs.items():
             token_name = self.get_token_name(nickname)
             pin = self.__get_pin(token_name)
             try:
@@ -512,7 +512,7 @@ class DogtagInstance(service.Service):
                     pin=pin,
                     pre_command='stop_pkicad',
                     post_command='renew_ca_cert "%s"' % nickname,
-                    profile=self.tracking_reqs[nickname],
+                    profile=profile,
                 )
             except RuntimeError as e:
                 logger.error(

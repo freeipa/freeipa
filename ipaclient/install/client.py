@@ -1549,8 +1549,8 @@ def verify_dns_update(fqdn, ips):
                        ', '.join(missing_reverse))
     if wrong_reverse:
         logger.warning('Incorrect reverse record(s):')
-        for ip in wrong_reverse:
-            for target in wrong_reverse[ip]:
+        for ip, targets in wrong_reverse.items():
+            for target in targets:
                 logger.warning('%s is pointing to %s instead of %s',
                                ip, target, fqdn_name)
 

@@ -196,24 +196,26 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
             ipantsecurityidentifier=[fuzzy_user_or_group_sid],
             )
 
-        for key in self.kwargs:
-            if key == u'krbprincipalname':
+        for key, value in self.kwargs.items():
+            if key == "krbprincipalname":
                 try:
-                    self.attrs[key] = [u'%s@%s' % (
-                        (self.kwargs[key].split('@'))[0].lower(),
-                        (self.kwargs[key].split('@'))[1]
-                    )]
+                    princ_splitted = value.split("@", maxsplit=1)
+                    self.attrs[key] = [
+                        "{}@{}".format(
+                            princ_splitted[0].lower(),
+                            princ_splitted[1],
+                        )
+                    ]
                 except IndexError:
                     # we can provide just principal part
-                    self.attrs[key] = [u'%s@%s' % (
-                        (self.kwargs[key].lower(),
-                         self.api.env.realm)
-                    )]
+                    self.attrs[key] = [
+                        "{}@{}".format(value.lower(), self.api.env.realm)
+                    ]
             else:
-                if type(self.kwargs[key]) is not list:
-                    self.attrs[key] = [self.kwargs[key]]
+                if not isinstance(value, list):
+                    self.attrs[key] = [value]
                 else:
-                    self.attrs[key] = self.kwargs[key]
+                    self.attrs[key] = value
 
         self.exists = True
 

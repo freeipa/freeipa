@@ -180,8 +180,8 @@ class Key(MutableMapping):
         """remove default values from LDAP entry"""
         default_attrs = get_default_attrs(self.entry['objectclass'])
         empty = object()
-        for attr in default_attrs:
-            if self.get(attr, empty) == default_attrs[attr]:
+        for attr, attr_val in default_attrs.items():
+            if self.get(attr, empty) == attr_val:
                 del self[attr]
 
     def _update_key(self):
@@ -299,8 +299,8 @@ class LdapKeyDB(AbstractHSM):
             # add default values not present in LDAP
             key = key_type(o, self.ldap, self)
             default_attrs = get_default_attrs(key.entry['objectclass'])
-            for attr in default_attrs:
-                key.setdefault(attr, default_attrs[attr])
+            for attr, attr_val in default_attrs.items():
+                key.setdefault(attr, attr_val)
 
             if 'ipk11id' not in key:
                 raise ValueError(

@@ -83,12 +83,11 @@ def check_removal_disconnects_topology(
         )
     }
 
-    for suffix in err_messages_by_suffix:
+    for suffix, err_str in err_messages_by_suffix.items():
         if suffix in affected_suffixes:
-            tasks.assert_error(
-                result, err_messages_by_suffix[suffix], returncode=1)
+            tasks.assert_error(result, err_str, returncode=1)
         else:
-            assert err_messages_by_suffix[suffix] not in result.stderr_text
+            assert err_str not in result.stderr_text
 
 
 class ServerDelBase(IntegrationTest):

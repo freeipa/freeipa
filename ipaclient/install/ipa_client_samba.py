@@ -173,8 +173,8 @@ def retrieve_domain_information(api):
         return []
 
     l_domain = dict()
-    for key in trust_keymap:
-        l_domain[key] = result.get(trust_keymap[key], [None])[0]
+    for key, val in trust_keymap.items():
+        l_domain[key] = result.get(val, [None])[0]
 
     # Pull down ID range and other details of our domain
     #

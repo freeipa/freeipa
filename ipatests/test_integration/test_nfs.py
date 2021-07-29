@@ -73,11 +73,11 @@ class TestNFS(IntegrationTest):
             "euripides": "s"
         }
         temp_pass = 'temppass'
-        for user in users:
+        for user, last in users.items():
             self.master.run_command([
                 "ipa", "user-add",
-                "%s" % user, "--first", "%s" % user,
-                "--last", "%s" % users[user],
+                user, "--first", user,
+                "--last", last,
                 '--password'], stdin_text="%s\n%s\n" % (temp_pass, temp_pass)
             )
             self.master.run_command(["kdestroy", "-A"])
@@ -111,12 +111,12 @@ class TestNFS(IntegrationTest):
             "stdnfs": "*(ro)",
             "home": "*(sec=krb5p,rw)"
         }
-        for export in exports:
+        for export, options in exports.items():
             exportpath = os.sep.join(('', basedir, export))
             exportfile = os.sep.join((
                 '', 'etc', 'exports.d', "%s.exports" % export
             ))
-            exportline = " ".join((exportpath, exports[export]))
+            exportline = " ".join((exportpath, options))
             nfssrv.run_command(["mkdir", "-p", exportpath])
             nfssrv.run_command(["chmod", "770", exportpath])
             nfssrv.put_file_contents(exportfile, exportline)

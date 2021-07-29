@@ -499,13 +499,13 @@ class TestEPN(IntegrationTest):
                 ),
             )
 
-        for key in users:
+        for user_info in users.values():
             tasks.user_add(
                 self.master,
-                users[key]["uid"],
+                user_info["uid"],
                 extra_args=[
                     "--password-expiration",
-                    users[key]["krbpasswordexpiration"],
+                    user_info["krbpasswordexpiration"],
                 ],
                 password=None,
             )

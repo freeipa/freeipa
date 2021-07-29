@@ -294,8 +294,8 @@ class IntegrationLogs:
     def init_method_logs(self):
         """Initilize method logs with the class ones"""
         self._method_logs = {}
-        for k in self._class_logs:
-            self._method_logs[k] = list(self._class_logs[k])
+        for host, logs in self._class_logs.items():
+            self._method_logs[host] = list(logs)
 
     def collect_class_log(self, host, filename):
         """Add class scope log
