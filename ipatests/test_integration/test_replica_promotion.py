@@ -783,8 +783,8 @@ class TestSubCAkeyReplication(IntegrationTest):
         # give replication some time
         time.sleep(15)
 
-        for name in subcas:
-            self.check_subca(replica, name, subcas[name])
+        for name, cert_nick in subcas.items():
+            self.check_subca(replica, name, cert_nick)
             self.del_subca(replica, name)
 
 
