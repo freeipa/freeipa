@@ -376,9 +376,9 @@ class StateFile:
         p = SafeConfigParser(interpolation=None)
         p.optionxform = str
 
-        for module in self.modules:
+        for module, vals in self.modules.items():
             p.add_section(module)
-            for (key, value) in self.modules[module].items():
+            for (key, value) in vals.items():
                 p.set(module, key, str(value))
 
         with open(self._path, "w") as f:

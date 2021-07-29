@@ -3132,11 +3132,11 @@ class dnsrecord(LDAPObject):
             addr = keys[-1]
 
         zone_len = 0
-        for valid_zone in REVERSE_DNS_ZONES:
+        for valid_zone, zone_num_components in REVERSE_DNS_ZONES.items():
             if zone.is_subdomain(valid_zone):
                 zone = zone.relativize(valid_zone)
                 zone_name = valid_zone
-                zone_len = REVERSE_DNS_ZONES[valid_zone]
+                zone_len = zone_num_components
 
         if not zone_len:
             # PTR records in zones other than in-addr.arpa and ip6.arpa are
@@ -3608,7 +3608,7 @@ class dnsrecord_add(LDAPCreate):
         assert isinstance(dn, DN)
         precallback_attrs = []
         processed_attrs = []
-        for option in options:
+        for option, option_val in options.items():
             try:
                 param = self.params[option]
             except KeyError:
@@ -3636,7 +3636,7 @@ class dnsrecord_add(LDAPCreate):
 
             if get_extra_rrtype(param.name):
                 # do not run precallback for unset flags
-                if isinstance(param, Flag) and not options[option]:
+                if isinstance(param, Flag) and not option_val:
                     continue
                 # extra option is passed, run per-type pre_callback for given RR type
                 precallback_attrs.append(rrparam.name)
@@ -3785,9 +3785,9 @@ class dnsrecord_mod(LDAPUpdate):
             raise self.obj.handle_not_found(*keys)
 
         if updated_attrs:
-            for attr in updated_attrs:
+            for attr, attr_vals in updated_attrs.items():
                 param = self.params[attr]
-                old_dnsvalue, new_parts = updated_attrs[attr]
+                old_dnsvalue, new_parts = attr_vals
 
                 if old_dnsvalue not in old_entry.get(attr, []):
                     attr_name = unicode(param.label or param.name)

@@ -104,12 +104,11 @@ def _create_topology_graphs(api_instance):
 
     topology_graphs = {}
 
-    for suffix_name in suffix_to_masters:
+    for suffix_name, masters in suffix_to_masters.items():
         segments = api_instance.Command.topologysegment_find(
             suffix_name, sizelimit=0).get('result')
 
-        topology_graphs[suffix_name] = create_topology_graph(
-            suffix_to_masters[suffix_name], segments)
+        topology_graphs[suffix_name] = create_topology_graph(masters, segments)
 
     return topology_graphs
 
@@ -165,8 +164,7 @@ class TopologyConnectivity:
 
     def check_current_state(self):
         err_msg = ""
-        for suffix in self.errors:
-            errors = self.errors[suffix]
+        for suffix, errors in self.errors.items():
             if errors:
                 err_msg = "\n".join([
                     err_msg,
@@ -182,8 +180,7 @@ class TopologyConnectivity:
         err_msg = ""
         errors_after_removal = self.errors_after_master_removal(master_cn)
 
-        for suffix in errors_after_removal:
-            errors = errors_after_removal[suffix]
+        for suffix, errors in errors_after_removal.items():
             if errors:
                 err_msg = "\n".join([
                     err_msg,

@@ -218,8 +218,8 @@ class automountlocation_import(Command):
         # Now iterate over the map files and add the keys. To handle
         # continuation lines I'll make a pass through it to skip comments
         # etc and also to combine lines.
-        for m in maps:
-            map = self.__read_mapfile(maps[m])
+        for m, filename in maps.items():
+            map = self.__read_mapfile(filename)
             lines = []
             cont = ''
             for x in map:
@@ -227,7 +227,7 @@ class automountlocation_import(Command):
                     continue
                 x = x.rstrip()
                 if x.startswith('+'):
-                    result['skipped'].append([m, maps[m]])
+                    result['skipped'].append([m, filename])
                     continue
                 if len(x) == 0:
                     continue

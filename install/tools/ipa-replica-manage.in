@@ -116,18 +116,21 @@ def parse_options():
 
     if len(args):
         n = len(args) - 1
-        for cmd in commands:
+        for cmd, args_info in commands.items():
             if cmd == args[0]:
-                v = commands[cmd]
                 err = None
-                if n < v[0]:
-                    err = v[3]
-                elif n > v[1]:
+                if n < args_info[0]:
+                    err = args_info[3]
+                elif n > args_info[1]:
                     err = "too many arguments"
                 else:
                     valid_syntax = True
                 if err:
-                    parser.error("Invalid syntax: %s\nUsage: %s [options] %s" % (err, cmd, v[2]))
+                    parser.error(
+                        "Invalid syntax: %s\nUsage: %s [options] %s" % (
+                            err, cmd, args_info[2]
+                        )
+                    )
 
     if not valid_syntax:
         cmdstr = " | ".join(commands.keys())

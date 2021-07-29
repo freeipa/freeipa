@@ -1813,9 +1813,9 @@ class ra(rabase.rabase, RestClient):
                 booloptions[battr] = True
 
         # Add the boolean options to our XML document
-        for opt in booloptions:
+        for opt, value in booloptions.items():
             e = etree.SubElement(page, opt)
-            e.text = str(booloptions[opt]).lower()
+            e.text = str(value).lower()
 
         payload = etree.tostring(doc, pretty_print=False,
                                  xml_declaration=True, encoding='UTF-8')
