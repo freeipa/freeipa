@@ -1788,7 +1788,7 @@ class LDAPAddMember(LDAPModMember):
         completed = 0
         for (attr, objs) in member_dns.items():
             for ldap_obj_name in objs:
-                for m_dn in member_dns[attr][ldap_obj_name]:
+                for m_dn in objs[ldap_obj_name]:
                     assert isinstance(m_dn, DN)
                     if not m_dn:
                         continue
