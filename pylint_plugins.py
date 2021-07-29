@@ -406,6 +406,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.container_automount = DN()
     api.env.container_ca = DN()
     api.env.container_ca_renewal = DN()
+    api.env.container_subids = DN()
     api.env.container_caacl = DN()
     api.env.container_certmap = DN()
     api.env.container_certmaprules = DN()
@@ -470,10 +471,6 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.interactive = True
     api.env.ipalib = ''  # object
     api.env.kinit_lifetime = None
-    api.env.lite_pem = ''
-    api.env.lite_profiler = ''
-    api.env.lite_host = ''
-    api.env.lite_port = 0
     api.env.log = ''  # object
     api.env.logdir = ''  # object
     api.env.mode = ''
@@ -500,6 +497,32 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.version = ''
     api.env.wait_for_dns = 0
     api.env.webui_prod = True
+
+    # defined in ipaclient/install/ipa_epn.py
+    api.env.smtp_server = ""
+    api.env.smtp_port = 0
+    api.env.smtp_user = None
+    api.env.smtp_password = None
+    api.env.smtp_client_cert = None
+    api.env.smtp_client_key = None
+    api.env.smtp_client_key_pass = None
+    api.env.smtp_timeout = 0
+    api.env.smtp_security = ""
+    api.env.smtp_admin = ""
+    api.env.smtp_delay = None
+    api.env.mail_from = None
+    api.env.notify_ttls = ""
+    api.env.msg_charset = ""
+    api.env.msg_subtype = ""
+    api.env.msg_subject = ""
+
+    # defined in contrib/lite-server.py
+    api.env.lite_pem = ''
+    api.env.lite_profiler = ''
+    api.env.lite_host = ''
+    api.env.lite_port = 0
+    api.env.lite_tracemalloc = False
+
     """
 ))
 

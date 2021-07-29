@@ -365,7 +365,9 @@ class test_Command(ClassChecker):
         inst.finalize()
         assert type(inst.output) is NameSpace
         assert list(inst.output) == ['result']
+        # pylint: disable=no-member
         assert type(inst.output.result) is output.Output
+        # pylint: enable=no-member
 
     def test_iter_output(self):
         """
