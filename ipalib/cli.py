@@ -890,13 +890,13 @@ class help(frontend.Local):
                 commands = self._topics[topic][2]
             else:
                 commands = []
-                for t in self._topics:
-                    if type(self._topics[t][2]) is not dict:
+                for v in self._topics.values():
+                    if not isinstance(v[2], dict):
                         continue
-                    if topic not in self._topics[t][2]:
+                    if topic not in v[2]:
                         continue
-                    mcl = self._topics[t][2][topic][1]
-                    commands = self._topics[t][2][topic][2]
+                    mcl = v[2][topic][1]
+                    commands = v[2][topic][2]
                     break
 
             doc, _topic = self._get_topic(topic)

@@ -733,7 +733,7 @@ class LDAPObject(Object):
         container_dns = {}
         new_attrs = {}
 
-        for attr in self.attribute_members:
+        for attr, members in self.attribute_members.items():
             try:
                 value = entry_attrs.raw[attr]
             except KeyError:
@@ -742,7 +742,7 @@ class LDAPObject(Object):
 
             for member in value:
                 memberdn = DN(member.decode('utf-8'))
-                for ldap_obj_name in self.attribute_members[attr]:
+                for ldap_obj_name in members:
                     ldap_obj = self.api.Object[ldap_obj_name]
                     try:
                         container_dn = container_dns[ldap_obj_name]

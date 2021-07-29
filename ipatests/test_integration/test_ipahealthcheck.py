@@ -1719,8 +1719,8 @@ def modify_permissions():
 
     # Restore the previous state
     host = state.pop('host')
-    for path in state:
-        (owner, group, mode) = state[path].split(':')
+    for path, path_state in state.items():
+        (owner, group, mode) = path_state.split(":", maxsplit=2)
         host.run_command(["chown", "%s:%s" % (owner, group), path])
         host.run_command(["chmod", mode, path])
 
