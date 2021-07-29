@@ -60,7 +60,9 @@ class PrivateExceptionTester:
         inst = self.klass(**kw)
         assert isinstance(inst, Exception)
         assert isinstance(inst, errors.PrivateError)
+        # pylint: disable=isinstance-second-argument-not-valid-type
         assert isinstance(inst, self.klass)
+        # pylint: enable=isinstance-second-argument-not-valid-type
         assert not isinstance(inst, errors.PublicError)
         for (key, value) in kw.items():
             assert getattr(inst, key) is value
@@ -219,7 +221,9 @@ class PublicExceptionTester:
         inst = self.klass(format=format, message=message, **kw)
         for required_class in self.required_classes:
             assert isinstance(inst, required_class)
+        # pylint: disable=isinstance-second-argument-not-valid-type
         assert isinstance(inst, self.klass)
+        # pylint: enable=isinstance-second-argument-not-valid-type
         assert not isinstance(inst, errors.PrivateError)
         for (key, value) in kw.items():
             assert getattr(inst, key) is value
