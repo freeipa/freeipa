@@ -57,7 +57,7 @@ class PrivateExceptionTester:
     def new(self, **kw):
         for (key, value) in kw.items():
             assert not hasattr(self.klass, key), key
-        inst = self.klass(**kw)
+        inst = self.klass(**kw)  # pylint: disable=not-callable
         assert isinstance(inst, Exception)
         assert isinstance(inst, errors.PrivateError)
         # pylint: disable=isinstance-second-argument-not-valid-type
@@ -218,7 +218,9 @@ class PublicExceptionTester:
         # Test the instance:
         for (key, value) in kw.items():
             assert not hasattr(self.klass, key), key
+        # pylint: disable=not-callable
         inst = self.klass(format=format, message=message, **kw)
+        # pylint: enable=not-callable
         for required_class in self.required_classes:
             assert isinstance(inst, required_class)
         # pylint: disable=isinstance-second-argument-not-valid-type
