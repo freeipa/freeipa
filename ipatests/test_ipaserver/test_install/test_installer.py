@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 import six
 
-from abc import ABCMeta, abstractproperty
+from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 import itertools
 
@@ -21,7 +21,8 @@ class InstallerTestBase(six.with_metaclass(ABCMeta, object)):
     OPTS_DICT = {}
 
     # don't allow creating classes with tested_cls unspecified
-    @abstractproperty
+    @property
+    @abstractmethod
     def tested_cls(self):
         return None
 
