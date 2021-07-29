@@ -104,7 +104,8 @@ class Resolver(abc.ABC):
         logger.info('Applying resolver state for host %s: %s', self.host, state)
         self.current_state = state
 
-    @abc.abstractclassmethod
+    @classmethod
+    @abc.abstractmethod
     def is_our_resolver(cls, host):
         """Checks if the class is appropriate for managing resolver on the host.
         """
