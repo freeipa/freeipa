@@ -178,6 +178,7 @@ class idview(LDAPObject):
         try:
             orig_entry_attrs = ldap.get_entry(dn, ['objectclass'])
         except errors.NotFound:
+            # pylint: disable=raising-bad-type, #4772
             raise self.handle_not_found(*keys)
 
         orig_objectclasses = {
