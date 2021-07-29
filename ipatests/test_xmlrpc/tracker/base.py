@@ -155,9 +155,7 @@ class ModificationTracker(BaseTracker):
         result = command()
         self.attrs.update(updates)
         self.attrs.update(expected_updates)
-        for key, value in self.attrs.items():
-            if value is None:
-                del self.attrs[key]
+        self.attrs = {k: v for k, v in self.attrs.items() if v is not None}
 
         self.check_update(
             result,
