@@ -403,12 +403,15 @@ class test_Env(ClassChecker):
         assert o._merge_from_file(good) == (6, 6)
         added = ('string', 'null', 'yes', 'no', 'number', 'floating')
         assert list(o) == sorted(keys + added)
+
+        # pylint: disable=no-member
         assert o.string == 'Hello world!'
         assert o.null is None
         assert o.yes is True
         assert o.no is False
         assert o.number == 42
         assert o.floating == '3.14'
+        # pylint: enable=no-member
 
     def new(self, in_tree=False):
         """
@@ -573,10 +576,12 @@ class test_Env(ClassChecker):
         assert o.in_server is True
         assert o.logdir == home.join('.ipa', 'log')
         assert o.log == home.join('.ipa', 'log', 'server.log')
+        # pylint: disable=no-member
         assert o.yes is True
         assert o.no is False
         assert o.number == 42
         assert o.not_in_other == 'foo_bar'
+        # pylint: enable=no-member
 
         # Test using DEFAULT_CONFIG:
         defaults = dict(constants.DEFAULT_CONFIG)
