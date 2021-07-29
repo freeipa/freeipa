@@ -534,14 +534,14 @@ class config_mod(LDAPUpdate):
                     checked_attrs = checked_attrs + [self.api.Object[obj].uuid_attribute]
                 for obj_attr in checked_attrs:
                     obj_attr, _unused1, _unused2 = obj_attr.partition(';')
-                    if obj_attr in OPERATIONAL_ATTRIBUTES:
+                    if obj_attr.lower() in OPERATIONAL_ATTRIBUTES:
                         continue
-                    if obj_attr in self.api.Object[obj].params and \
+                    if obj_attr.lower() in self.api.Object[obj].params and \
                       'virtual_attribute' in \
-                      self.api.Object[obj].params[obj_attr].flags:
+                      self.api.Object[obj].params[obj_attr.lower()].flags:
                         # skip virtual attributes
                         continue
-                    if obj_attr not in new_allowed_attrs:
+                    if obj_attr.lower() not in new_allowed_attrs:
                         raise errors.ValidationError(name=attr,
                                 error=_('%(obj)s default attribute %(attr)s would not be allowed!') \
                                 % dict(obj=obj, attr=obj_attr))
