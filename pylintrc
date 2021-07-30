@@ -28,10 +28,18 @@ valid-metaclass-classmethod-first-arg=cls
 
 enable=
     all,
-    python3
+    python3,
+    useless-suppression,
 
 disable=
-    I,
+    bad-inline-option,
+    c-extension-no-member,
+    deprecated-pragma,
+    file-ignored,
+    locally-disabled,
+    raw-checker-failed,
+    suppressed-message,
+    use-symbolic-message-instead,
     duplicate-code,
     interface-not-implemented,
     no-self-use,
