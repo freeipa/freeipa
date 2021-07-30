@@ -31,7 +31,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib import api, errors, x509
-from ipalib.constants import IPA_CA_NICKNAME, RENEWAL_CA_NAME
+from ipalib.constants import FQDN, IPA_CA_NICKNAME, RENEWAL_CA_NAME
 from ipalib.util import check_client_configuration
 
 logger = logging.getLogger(__name__)
@@ -62,6 +62,12 @@ class CertUpdate(admintool.AdminTool):
             api.Backend.rpcclient.connect()
             run_with_args(api)
             api.Backend.rpcclient.disconnect()
+        except errors.CCacheError:
+            logger.error(
+                "Unable to obtain credentials for %s from /etc/krb5.keytab",
+                FQDN
+            )
+            raise
         finally:
             if old_krb5ccname is None:
                 del os.environ['KRB5CCNAME']
