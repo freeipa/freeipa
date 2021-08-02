@@ -241,16 +241,14 @@ class TestIpaCertFix(IntegrationTest):
         # check that pki-server cert-fix command fails
         err_msg2 = ("ERROR: CalledProcessError(Command "
                     "['pki-server', 'cert-fix'")
-        warn_msg = ("WARNING: No selftests configured in "
-                    f"{paths.CA_CS_CFG_PATH} "
-                    "(selftests.container.order.startup)")
+        warn_msg = "WARNING: No selftests configured in"
 
         if (tasks.get_pki_version(self.master)
            < tasks.parse_version('10.11.0')):
             assert (err_msg1 in result.stderr_text
                     and err_msg2 in result.stderr_text)
         else:
-            assert warn_msg in result.stdout_text
+            assert warn_msg in result.stderr_text
 
     def test_expired_CA_cert(self, expire_ca_cert):
         """Test to check ipa-cert-fix when CA certificate is expired
