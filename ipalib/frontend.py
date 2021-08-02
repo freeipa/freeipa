@@ -693,11 +693,6 @@ class Command(HasParam):
             (k, self.params[k].convert(v)) for (k, v) in kw.items()
         )
 
-    def __convert_iter(self, kw):
-        for param in self.params():
-            if kw.get(param.name, None) is None:
-                continue
-
     def get_default(self, _params=None, **kw):
         """
         Return a dictionary of defaults for all missing required values.
