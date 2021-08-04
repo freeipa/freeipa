@@ -1,5 +1,6 @@
 # Copyright (C) 2021  FreeIPA Project Contributors - see LICENSE file
 
+from collections import namedtuple
 from io import BytesIO
 from lxml.etree import parse as myparse  # pylint: disable=no-name-in-module
 import pytest
@@ -30,6 +31,32 @@ def mock_etree_parse(data):
     """Convert a string into a file-like object to pass in the XML"""
     f = BytesIO(data.strip().encode('utf-8'))
     return myparse(f)
+
+
+def mock_pkiuser_entity():
+    """Return struct_passwd for mocked pkiuser"""
+    StructPasswd = namedtuple(
+        "StructPasswd",
+        [
+            "pw_name",
+            "pw_passwd",
+            "pw_uid",
+            "pw_gid",
+            "pw_gecos",
+            "pw_dir",
+            "pw_shell",
+        ]
+    )
+    pkiuser_entity = StructPasswd(
+        constants.PKI_USER,
+        pw_passwd="x",
+        pw_uid=-1,
+        pw_gid=-1,
+        pw_gecos="",
+        pw_dir="/dev/null",
+        pw_shell="/sbin/nologin",
+    )
+    return pkiuser_entity
 
 
 # Format of test_data is:
@@ -148,14 +175,15 @@ test_data = (
 
 
 class TestAJPSecretUpgrade:
-    @patch('os.chown')
-    @patch('lxml.etree.parse')
-    @pytest.mark.parametrize('is_newer, data, secret, expect, rewrite',
-                             test_data)
-    def test_connecter(self, mock_parse, mock_chown, is_newer, data, secret,
-                       expect, rewrite):
+    @patch("ipaplatform.base.constants.pwd.getpwnam")
+    @patch("ipaplatform.base.constants.os.chown")
+    @patch("ipaserver.install.dogtaginstance.lxml.etree.parse")
+    @pytest.mark.parametrize("test_data", test_data)
+    def test_connecter(self, mock_parse, mock_chown, mock_getpwnam, test_data):
+        is_newer, data, secret, expect, rewrite = test_data
         mock_chown.return_value = None
         mock_parse.return_value = mock_etree_parse(data)
+        mock_getpwnam.return_value = mock_pkiuser_entity()
 
         dogtag = MyDogtagInstance(is_newer)
         with patch('ipaserver.install.dogtaginstance.open', mock_open()) \
