@@ -24,6 +24,9 @@ import subprocess
 
 from ipatests.pytest_ipa.integration import tasks
 from pytest_sourceorder import ordered
+from ipatests.pytest_ipa.integration.env_config import get_global_config
+
+config = get_global_config()
 
 
 @ordered
@@ -39,6 +42,18 @@ class IntegrationTest:
     topology = None
     domain_level = None
     fips_mode = None
+
+    @classmethod
+    def setup_class(cls):
+        hosts = config.get_all_hosts()
+        for host in hosts:
+            if host.role not in ('master', 'replica'):
+                continue
+
+            host.run_command(
+                ['dnf', '-y', 'copr', 'enable', 'ckelley/pki']
+            )
+            host.run_command(['dnf', '-y', 'update', 'pki-ca'])
 
     @classmethod
     def host_by_role(cls, role):
