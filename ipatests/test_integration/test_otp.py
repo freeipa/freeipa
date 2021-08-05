@@ -294,6 +294,13 @@ class TestOTPToken(IntegrationTest):
 
     @pytest.fixture
     def setup_otp_nsslapd(self):
+        check_services = self.master.run_command(
+            ['systemctl', 'list-units', '--state=failed']
+        )
+        assert "0 loaded units listed" in check_services.stdout_text
+        assert "ipa-otpd" not in check_services.stdout_text
+        # Be sure no services are running and failed units
+        self.master.run_command(['killall', 'ipa-otpd'], raiseonerr=False)
         # setting nsslapd-idletimeout
         new_limit = 30
         conn = self.master.ldap_connect()
@@ -307,13 +314,6 @@ class TestOTPToken(IntegrationTest):
             nsslapd-idletimeout: {limit}
         """)
         tasks.ldapmodify_dm(self.master, ldap_query.format(limit=new_limit))
-        # Be sure no services are running and failed units
-        self.master.run_command(['killall', 'ipa-otpd'], raiseonerr=False)
-        check_services = self.master.run_command(
-            ['systemctl', 'list-units', '--state=failed']
-        )
-        assert "0 loaded units listed" in check_services.stdout_text
-        assert "ipa-otpd" not in check_services.stdout_text
         yield
         # cleanup
         tasks.ldapmodify_dm(self.master, ldap_query.format(limit=orig_limit))
@@ -327,7 +327,7 @@ class TestOTPToken(IntegrationTest):
         Test to verify that when the nsslapd-idletimeout is exceeded (30s idle,
         60s sleep) then the ipa-otpd process should exit without error.
         """
-        since = time.strftime('%H:%M:%S')
+        since = time.strftime('%Y-%m-%d %H:%M:%S')
         tasks.kinit_admin(self.master)
         otpuid, totp = add_otptoken(self.master, USER, otptype="totp")
         try:
@@ -335,14 +335,19 @@ class TestOTPToken(IntegrationTest):
             otpvalue = totp.generate(int(time.time())).decode("ascii")
             kinit_otp(self.master, USER, password=PASSWORD, otp=otpvalue)
             time.sleep(60)
+
+            def test_cb(cmd_jornalctl):
+                # check if LDAP connection is timed out
+                expected_msg = "Can't contact LDAP server"
+                return expected_msg in cmd_jornalctl
+
+            # ipa-otpd don't flush its logs to syslog immediately
+            cmd = ['journalctl', '--since={}'.format(since)]
+            tasks.run_repeatedly(
+                self.master, command=cmd, test=test_cb, timeout=90)
             failed_services = self.master.run_command(
                 ['systemctl', 'list-units', '--state=failed']
             )
             assert "ipa-otpd" not in failed_services.stdout_text
-            cmd_jornalctl = self.master.run_command(
-                ['journalctl', '--since={}'.format(since)]
-            )
-            regex = r".*ipa-otpd@.*\sSucceeded"
-            assert re.search(regex, cmd_jornalctl.stdout_text)
         finally:
             del_otptoken(self.master, otpuid)
