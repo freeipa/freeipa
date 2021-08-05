@@ -257,8 +257,11 @@ class TestIpaAdTrustInstall(IntegrationTest):
         user_princ = '@'.join([user, self.master.domain.realm])
         passwd = 'Secret123'
         # Create a user with a password
-        tasks.create_active_user(self.master, user, passwd, extra_args=[
-            '--homedir', '/home/{}'.format(user)])
+        tasks.create_active_user(
+            self.master, user, passwd,
+            extra_args=["--homedir", "/home/{}".format(user)],
+            krb5_trace=True
+        )
         try:
             # Defaults: host/... principal for service
             # keytab in /etc/krb5.keytab
@@ -282,8 +285,11 @@ class TestIpaAdTrustInstall(IntegrationTest):
         user_princ = '@'.join([user, self.master.domain.realm])
         passwd = 'Secret123'
         # Create a user with a password
-        tasks.create_active_user(self.master, user, passwd, extra_args=[
-            '--homedir', '/home/{}'.format(user)])
+        tasks.create_active_user(
+            self.master, user, passwd,
+            extra_args=["--homedir", "/home/{}".format(user)],
+            krb5_trace=True
+        )
         try:
             # Defaults: host/... principal for service
             # keytab in /etc/krb5.keytab
