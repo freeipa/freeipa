@@ -38,6 +38,7 @@ from ipatests.create_external_ca import ExternalCA
 from ipatests.test_ipalib.test_x509 import good_pkcs7, badcert
 from ipapython.ipautil import realm_to_suffix, ipa_generate_password
 from ipaserver.install.installutils import realm_to_serverid
+from pkg_resources import parse_version
 
 logger = logging.getLogger(__name__)
 
@@ -1565,6 +1566,12 @@ class TestIPACommandWithoutReplica(IntegrationTest):
 
         related: https://bugzilla.redhat.com/show_bug.cgi?id=1958909
         """
+        version = self.master.run_command(
+            ["rpm", "-qa", "--qf", "%{VERSION}", "slapi-nis"]
+        )
+        if tasks.get_platform(self.master) == "fedora" and parse_version(
+                version.stdout_text) <= parse_version("0.56.7"):
+            pytest.skip("Test requires slapi-nis with fix on fedora")
         tasks.kinit_admin(self.master)
         base_dn = str(self.master.domain.basedn)
         base = "cn=admins,cn=groups,cn=compat,{basedn}".format(basedn=base_dn)
