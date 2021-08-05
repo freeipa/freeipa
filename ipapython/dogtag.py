@@ -20,6 +20,7 @@
 import collections
 import gzip
 import io
+import json
 import logging
 from urllib.parse import urlencode
 import xml.dom.minidom
@@ -100,6 +101,10 @@ def get_ca_certchain(ca_host=None):
         data = res.read()
         conn.close()
         try:
+            doc = json.loads(data)
+            chain = doc['Response']['ChainBase64']
+        except (json.JSONDecodeError, KeyError):
+            logger.debug("Response is not valid JSON, try XML")
             doc = xml.dom.minidom.parseString(data)
             try:
                 item_node = doc.getElementsByTagName("ChainBase64")
@@ -107,9 +112,9 @@ def get_ca_certchain(ca_host=None):
             except IndexError:
                 raise error_from_xml(
                     doc, _("Retrieving CA cert chain failed: %s"))
-        finally:
-            if doc:
-                doc.unlink()
+            finally:
+                if doc:
+                    doc.unlink()
     else:
         raise errors.RemoteRetrieveError(
             reason=_("request failed with HTTP status %d") % res.status)
@@ -118,13 +123,18 @@ def get_ca_certchain(ca_host=None):
 
 
 def _parse_ca_status(body):
-    doc = xml.dom.minidom.parseString(body)
     try:
-        item_node = doc.getElementsByTagName("XMLResponse")[0]
-        item_node = item_node.getElementsByTagName("Status")[0]
-        return item_node.childNodes[0].data
-    except IndexError:
-        raise error_from_xml(doc, _("Retrieving CA status failed: %s"))
+        doc = json.loads(body)
+        return doc['Response']['Status']
+    except (json.JSONDecodeError, KeyError):
+        logger.debug("Response is not valid JSON, try XML")
+        doc = xml.dom.minidom.parseString(body)
+        try:
+            item_node = doc.getElementsByTagName("XMLResponse")[0]
+            item_node = item_node.getElementsByTagName("Status")[0]
+            return item_node.childNodes[0].data
+        except IndexError:
+            raise error_from_xml(doc, _("Retrieving CA status failed: %s"))
 
 
 def ca_status(ca_host=None):
