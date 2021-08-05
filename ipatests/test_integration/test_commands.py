@@ -1581,6 +1581,19 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         # Run the command again after cache is removed
         self.master.run_command(['ipa', 'user-show', 'ipauser1'])
 
+    def test_basesearch_compat_tree(self):
+        """Test ldapsearch against compat tree is working
+
+        This to ensure that ldapsearch with base scope is not failing.
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1958909
+        """
+        tasks.kinit_admin(self.master)
+        base_dn = str(self.master.domain.basedn)
+        base = "cn=admins,cn=groups,cn=compat,{basedn}".format(basedn=base_dn)
+        tasks.ldapsearch_dm(self.master, base, ldap_args=[], scope='sub')
+        tasks.ldapsearch_dm(self.master, base, ldap_args=[], scope='base')
+
 
 class TestIPAautomount(IntegrationTest):
     @classmethod
