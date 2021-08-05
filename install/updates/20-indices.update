@@ -107,6 +107,13 @@ default:nsSystemIndex: false
 add:nsIndexType: eq
 add:nsIndexType: sub
 
+dn: cn=dnahostname,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: dnahostname
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+
 dn: cn=fqdn,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 only:cn: fqdn
 default:objectClass: nsIndex
