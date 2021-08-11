@@ -504,6 +504,26 @@ class TestIpaHealthCheck(IntegrationTest):
         assert data[0]["kw"]["ipa_version"] in result.stdout_text
         assert data[0]["kw"]["ipa_api_version"] in result.stdout_text
 
+    def test_fips_mode_check_exists(self):
+        """
+        Testcase to verify whether FIPS mode check exists
+        in ipahealthcheck.meta.core
+        """
+        returncode, data = run_healthcheck(self.master,
+                                           "ipahealthcheck.meta.core",
+                                           "MetaCheck")
+        assert returncode == 0
+
+        cmd = self.master.run_command(['fips-mode-setup', '--is-enabled'],
+                                      raiseonerr=False)
+        fips_enabled = cmd.returncode == 0
+        for check in data:
+            if check["kw"].get("fips", None):
+                if fips_enabled:
+                    assert check["kw"]["fips"] == "enabled"
+                else:
+                    assert check["kw"]["fips"] == "disabled"
+
     def test_source_ipahealthcheck_ipa_host_check_ipahostkeytab(self):
         """
         Testcase checks behaviour of check IPAHostKeytab in source
