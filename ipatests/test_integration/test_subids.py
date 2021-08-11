@@ -253,3 +253,21 @@ class TestSubordinateId(IntegrationTest):
     def test_subid_stats(self):
         tasks.kinit_admin(self.master)
         self.master.run_command(["ipa", "subid-stats"])
+
+    def test_add_subid_range_as_regular_ipauser(self):
+        '''
+        Test checks that when regular ipauser tries to add
+        subid range it generates an error
+        '''
+        password = 'Secret123'
+        error_msg = (
+            "ipa: ERROR: Insufficient access: "
+            "Insufficient 'add' privilege to add the entry"
+        )
+        tasks.kinit_admin(self.master)
+        uid = 'ipauser1'
+        tasks.create_active_user(self.master, uid, password=password)
+        self.master.run_command(["kdestroy", "-A"])
+        tasks.kinit_as_user(self.master, uid, password=password)
+        cmd = self.subid_generate(uid, raiseonerr=False)
+        assert error_msg in cmd.stderr_text
