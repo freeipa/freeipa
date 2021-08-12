@@ -36,8 +36,10 @@ from configparser import DEFAULTSECT, ConfigParser, RawConfigParser
 
 import six
 
+import pki
 from pki.client import PKIConnection
 import pki.system
+import pki.util
 
 from ipalib import api, errors, x509
 from ipalib.install import certmonger
@@ -202,6 +204,18 @@ class DogtagInstance(service.Service):
                 "-f", cfg_file,
                 "--debug"]
 
+        # specify --log-file <path> on PKI 11.0.0 or later
+
+        pki_version = pki.util.Version(pki.specification_version())
+        if pki_version >= pki.util.Version("11.0.0"):
+            timestamp = time.strftime(
+                "%Y%m%d%H%M%S",
+                time.localtime(time.time()))
+            log_file = os.path.join(
+                paths.VAR_LOG_PKI_DIR,
+                "pki-%s-spawn.%s.log" % (self.subsystem.lower(), timestamp))
+            args.extend(["--log-file", log_file])
+
         with open(cfg_file) as f:
             logger.debug(
                 'Contents of pkispawn configuration file (%s):\n%s',
@@ -290,10 +304,25 @@ class DogtagInstance(service.Service):
         if self.is_installed():
             self.print_msg("Unconfiguring %s" % self.subsystem)
 
+        args = [paths.PKIDESTROY,
+                "-i", "pki-tomcat",
+                "-s", self.subsystem]
+
+        # specify --log-file <path> on PKI 11.0.0 or later
+
+        pki_version = pki.util.Version(pki.specification_version())
+        if pki_version >= pki.util.Version("11.0.0"):
+            timestamp = time.strftime(
+                "%Y%m%d%H%M%S",
+                time.localtime(time.time()))
+            log_file = os.path.join(
+                paths.VAR_LOG_PKI_DIR,
+                "pki-%s-destroy.%s.log" % (self.subsystem.lower(), timestamp))
+            args.extend(["--log-file", log_file])
+
         try:
-            ipautil.run([paths.PKIDESTROY,
-                         "-i", 'pki-tomcat',
-                         "-s", self.subsystem])
+            ipautil.run(args)
+
         except ipautil.CalledProcessError as e:
             logger.critical("failed to uninstall %s instance %s",
                             self.subsystem, e)
