@@ -129,8 +129,8 @@ class BaseMetaSearch(Search):
                   "(\"%s\")") % 'name',
         )
 
-    def execute(self, command, criteria=None, **options):
-        result = list(self.obj.search(command, criteria, **options))
+    def execute(self, criteria=None, **options):
+        result = list(self.obj.search(criteria, **options))
         return dict(result=result, count=len(result), truncated=False)
 
 
@@ -494,7 +494,9 @@ class BaseParamRetrieve(BaseParamMethod, BaseMetaRetrieve):
 
 
 class BaseParamSearch(BaseParamMethod, BaseMetaSearch):
-    pass
+    def execute(self, command, criteria=None, **options):
+        result = list(self.obj.search(command, criteria, **options))
+        return dict(result=result, count=len(result), truncated=False)
 
 
 @register()
