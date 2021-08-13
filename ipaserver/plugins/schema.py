@@ -292,6 +292,13 @@ class command_defaults(PKQuery):
     )
 
     def execute(self, name, **options):
+        if name not in self.api.Command:
+            raise errors.NotFound(
+                reason=_("{oname}: {command_name} not found").format(
+                    oname=self.name, command_name=name
+                )
+            )
+
         command = self.api.Command[name]
 
         params = options.get('params') or []
