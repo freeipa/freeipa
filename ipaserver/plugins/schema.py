@@ -592,7 +592,7 @@ class param(BaseParam):
                 obj[key] = unicode(value)
             elif key in ('exclude',
                          'include'):
-                obj[key] = list(unicode(v) for v in value)
+                obj[key] = sorted(list(unicode(v) for v in value))
             if isinstance(metaobj, Command):
                 if key == 'alwaysask':
                     obj.setdefault(key, value)
