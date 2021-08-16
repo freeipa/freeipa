@@ -8,7 +8,7 @@ Test the `ipaserver/plugins/schema.py` module.
 
 import pytest
 
-from ipalib import errors
+from ipalib import api, errors
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 
@@ -119,3 +119,43 @@ class TestOutputFindAndShowCommand(XMLRPC_test):
         # wrong command, wrong criteria
         with pytest.raises(errors.NotFound):
             self.tracker.run_command('output_show', u'fake', u'fake')
+
+
+class TestSchemaCommand(XMLRPC_test):
+    """Test functionality of the ipa schema Command(no cli)"""
+    expected_keys = {
+        "classes", "commands", "fingerprint", "topics", "ttl", "version"
+    }
+
+    def run_command(self, command, *args, **options):
+        cmd = api.Command[command]
+        cmd_result = cmd(*args, **options)
+        return cmd_result
+
+    def test_schema_no_args(self):
+        """Test schema command without any args"""
+        cmd_result = self.run_command("schema")
+        result = cmd_result["result"]
+        assert result.keys() == self.expected_keys
+
+    def test_schema_known_valid_fp(self):
+        """Test schema command with valid fingerprint"""
+        # first, fetch current FP to reuse it
+        cmd_result = self.run_command("schema")
+        result = cmd_result["result"]
+        fp_valid = result["fingerprint"]
+
+        with pytest.raises(errors.SchemaUpToDate):
+            self.run_command("schema", known_fingerprints=(fp_valid,))
+
+    def test_schema_known_wrong_fp(self):
+        """Test schema command with wrong fingerprint"""
+        fp_wrong = "wrong FP"
+        cmd_result = self.run_command("schema", known_fingerprints=(fp_wrong,))
+        result = cmd_result["result"]
+        assert result.keys() == self.expected_keys
+
+    def test_schema_too_many_args(self):
+        """Test schema with too many args"""
+        with pytest.raises(errors.ZeroArgumentError):
+            self.run_command("schema", "arg1")
