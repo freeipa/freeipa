@@ -839,7 +839,7 @@ class schema(Command):
         langs = "".join(getattr(context, "languages", []))
 
         if getattr(self.api, "_schema", None) is None:
-            setattr(self.api, "_schema", {})
+            object.__setattr__(self.api, "_schema", {})
 
         schema = self.api._schema.get(langs)
         if schema is None:
