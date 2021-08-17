@@ -8,14 +8,16 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2021-08-18 17:04+0000\n"
+"Last-Translator: Hela Basa <r45xveza@pm.me>\n"
+"Language-Team: Sinhala <https://translate.fedoraproject.org/projects/freeipa/"
+"ipa-4-9/si/>\n"
 "Language: si\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 4.7.2\n"
 
 #: client/ipa-rmkeytab.c:51
 #, c-format
@@ -300,12 +302,12 @@ msgstr ""
 #: client/ipa-getkeytab.c:603
 #, c-format
 msgid "Passwords do not match!\n"
-msgstr ""
+msgstr "මුරපදය නොගැලපේ!\n"
 
 #: client/ipa-getkeytab.c:632
 #, c-format
 msgid "Failed to open config file %s\n"
-msgstr ""
+msgstr "වින්‍යාස ගොනුව විවෘත කිරීමට අසමත්විය %s\n"
 
 #: client/ipa-getkeytab.c:642
 #, c-format
@@ -334,7 +336,7 @@ msgstr ""
 
 #: client/ipa-getkeytab.c:766
 msgid "Server Name"
-msgstr ""
+msgstr "සේවාදායකයේ නම"
 
 #: client/ipa-getkeytab.c:768
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
@@ -49558,7 +49560,7 @@ msgstr ""
 #: ipaserver/plugins/cert.py:1306
 #, python-format
 msgid "Owner %s"
-msgstr ""
+msgstr "%s හිමිකරු"
 
 #: ipaserver/plugins/cert.py:1393
 #, python-format
@@ -50176,7 +50178,7 @@ msgstr ""
 
 #: ipaserver/plugins/idviews.py:431
 msgid "value"
-msgstr ""
+msgstr "අගය"
 
 #: ipaserver/plugins/idviews.py:444
 #, python-format
@@ -50461,7 +50463,7 @@ msgstr ""
 
 #: ipaserver/dcerpc.py:301
 msgid "domain is not configured"
-msgstr ""
+msgstr "වසම වින්‍යාසගත කර නැත"
 
 #: ipaserver/dcerpc.py:308
 msgid "SID is not valid"
@@ -50481,7 +50483,7 @@ msgstr ""
 
 #: ipaserver/dcerpc.py:377
 msgid "Our domain is not configured"
-msgstr ""
+msgstr "අපගේ වසම වින්‍යාසගත කර නැත"
 
 #: ipaserver/dcerpc.py:384
 msgid "No trusted domain is not configured"
@@ -50714,16 +50716,16 @@ msgstr ""
 
 #: util/ipa_krb5.c:988
 msgid "Password is too long!\n"
-msgstr ""
+msgstr "මුරපදය දිග වැඩිය!\n"
 
 #: util/ipa_krb5.c:1004
 msgid "Failed to create random key!\n"
-msgstr ""
+msgstr "අහඹු යතුර සෑදීමට අසමත්විය!\n"
 
 #: util/ipa_krb5.c:1017 util/ipa_krb5.c:1035 util/ipa_krb5.c:1043
 #: util/ipa_krb5.c:1083
 msgid "Failed to create key!\n"
-msgstr ""
+msgstr "යතුර සෑදීමට අසමත්විය!\n"
 
 #: util/ipa_krb5.c:1069
 msgid "Bad or unsupported salt type.\n"
