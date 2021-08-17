@@ -1840,11 +1840,11 @@ def upgrade_configuration():
         ca.setup_acme()
         ca_update_acme_configuration(ca, fqdn)
         ca_initialize_hsm_state(ca)
+        add_agent_to_security_domain_admins()
 
     migrate_to_authselect()
     add_systemd_user_hbac()
     add_admin_root_alias()
-    add_agent_to_security_domain_admins()
 
     sssd_update()
 
