@@ -34,6 +34,7 @@ Developers:
 	Carl George
 	Cédric Jeanneret
 	Changmin Teng
+	Chris Kelley
 	Christian Heimes
 	Christian Hermann
 	Daniel Lara Souza
