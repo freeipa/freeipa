@@ -11,14 +11,14 @@ default_resources:
 
 vms:
 - vm_jobs:
-#  - container_job: InstallMaster
-#    containers:
-#      resources:
-#        server:
-#          mem_limit: "3200m"
-#          memswap_limit: "4800m"
-#    tests:
-#    - test_integration/test_installation.py::TestInstallMaster
+  - container_job: InstallMaster
+    containers:
+      resources:
+        server:
+          mem_limit: "3200m"
+          memswap_limit: "4800m"
+    tests:
+    - test_integration/test_installation.py::TestInstallMaster
 
   - container_job: kerberos_flags
     containers:
@@ -119,19 +119,19 @@ vms:
     - test_integration/test_external_ca.py::TestExternalCAConstraints
 
 - vm_jobs:
-#  - container_job: commands
-#    containers:
-#      replicas: 1
-#      clients: 1
-#     resources:
-#        server:
-#          mem_limit: "3500m"
-#          memswap_limit: "4000m"
-#        client:
-#          mem_limit: "768m"
-#          memswap_limit: "1024m"
-#    tests:
-#    - test_integration/test_commands.py
+  - container_job: commands
+    containers:
+      replicas: 1
+      clients: 1
+      resources:
+        server:
+          mem_limit: "3500m"
+          memswap_limit: "4000m"
+        client:
+          mem_limit: "768m"
+          memswap_limit: "1024m"
+    tests:
+    - test_integration/test_commands.py
 
   - container_job: membermanager
     tests:
@@ -150,21 +150,22 @@ vms:
 #    tests:
 #    - test_integration/test_replica_promotion.py::TestSubCAkeyReplication
 
-#  - container_job: adtrust_install
-#    tests:
-#    - test_integration/test_adtrust_install.py
-#    containers:
-#      replicas: 1
+  - container_job: adtrust_install
+    tests:
+    - test_integration/test_adtrust_install.py
+    containers:
+      replicas: 1
 
-#  - container_job: advise
-#    containers:
-#      clients: 1
-#      resources:
-#        client:
-#          mem_limit: "768m"
-#          memswap_limit: "1024m"
-#    tests:
-#    - test_integration/test_advise.py
+- vm_jobs:
+  - container_job: advise
+    containers:
+      clients: 1
+      resources:
+        client:
+          mem_limit: "768m"
+          memswap_limit: "1024m"
+    tests:
+    - test_integration/test_advise.py
 
 #  - container_job: cert
 #    tests:
