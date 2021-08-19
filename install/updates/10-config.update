@@ -16,7 +16,7 @@ only: nsslapd-pluginPrecedence: 60
 # Set limits to suite better IPA deployment sizes, defaults are too
 # conservative
 dn: cn=config
-default: nsslapd-sizelimit:100000
+replace: nsslapd-sizelimit:2000::100000
 
 dn: cn=config,cn=ldbm database,cn=plugins,cn=config
 replace: nsslapd-lookthroughlimit:5000::100000
