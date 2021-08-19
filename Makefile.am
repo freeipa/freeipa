@@ -230,6 +230,8 @@ fasttest: $(GENERATED_PYTHON_FILES) ipasetup.py
 	    --ignore $(abspath $(top_srcdir))/ipatests/test_xmlrpc
 
 fastcodestyle: $(GENERATED_PYTHON_FILES) ipasetup.py
+	@ # keep Python files in sync to pycodestyle configuration in
+	@ # tox.ini(filename=)
 	@echo "Fast code style checking with $(PYTHON) from branch '$(GIT_BRANCH)'"
 
 	@MERGEBASE=$$(git merge-base --fork-point $(GIT_BRANCH)); \
@@ -250,8 +252,8 @@ fastcodestyle: $(GENERATED_PYTHON_FILES) ipasetup.py
 	    echo -e "Fast code style checking for files:\n$${FILES}\n"; \
 	    echo "pycodestyle"; \
 	    echo "-----------"; \
-	    git diff -U0 $${MERGEBASE} | \
-	        $(PYTHON) -m pycodestyle --diff || exit $$?; \
+	    git diff -U0 $${MERGEBASE} -- $${FILES} | \
+	        $(PYTHON) -m pycodestyle -v --diff || exit $$?; \
 	else \
 	    echo "No modified Python files found"; \
 	fi
