@@ -69,7 +69,7 @@ class TestInstallMasterClient(IntegrationTest):
 
         # time to look into journal logs in
         # test_certmonger_ipa_responder_jsonrpc
-        cls.since = time.strftime('%H:%M:%S')
+        cls.since = time.strftime('%Y-%m-%d %H:%M:%S')
 
     def test_cacert_file_appear_with_option_F(self):
         """Test if getcert creates cacert file with -F option

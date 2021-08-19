@@ -130,7 +130,7 @@ class TestNFS(IntegrationTest):
         nfsclt = self.clients[1]
 
         # for journalctl --since
-        since = time.strftime('%H:%M:%S')
+        since = time.strftime('%Y-%m-%d %H:%M:%S')
         nfsclt.run_command(["systemctl", "restart", "rpc-gssd"])
         time.sleep(WAIT_AFTER_INSTALL)
         mountpoints = ("/mnt/krb", "/mnt/std", "/home")
