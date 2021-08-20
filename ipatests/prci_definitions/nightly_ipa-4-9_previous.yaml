@@ -1699,7 +1699,7 @@ jobs:
         build_url: '{fedora-previous-ipa-4-9/build_url}'
         test_suite: test_integration/test_ipa_cert_fix.py
         template: *ci-ipa-4-9-previous
-        timeout: 7200
+        timeout: 10800
         topology: *master_1repl
 
   fedora-previous-ipa-4-9/test_subids:
