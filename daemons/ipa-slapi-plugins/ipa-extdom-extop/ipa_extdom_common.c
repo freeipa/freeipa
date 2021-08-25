@@ -542,7 +542,9 @@ int pack_ber_user(struct ipa_extdom_ctx *ctx,
         if (strcasecmp(locat+1, domain_name) == 0  ) {
             locat[0] = '\0';
         } else {
-            ret = LDAP_INVALID_SYNTAX;
+            /* The found object is from a different domain than requested,
+             * that means it does not exist in the requested domain */
+            ret = LDAP_NO_SUCH_OBJECT;
             goto done;
         }
     }
@@ -655,7 +657,9 @@ int pack_ber_group(enum response_types response_type,
         if (strcasecmp(locat+1, domain_name) == 0  ) {
             locat[0] = '\0';
         } else {
-            ret = LDAP_INVALID_SYNTAX;
+            /* The found object is from a different domain than requested,
+             * that means it does not exist in the requested domain */
+            ret = LDAP_NO_SUCH_OBJECT;
             goto done;
         }
     }
