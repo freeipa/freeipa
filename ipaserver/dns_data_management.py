@@ -32,12 +32,27 @@ logger = logging.getLogger(__name__)
 IPA_DEFAULT_MASTER_SRV_REC = (
     # srv record name, port
     (DNSName('_ldap._tcp'), 389),
+    # Kerberos records are provided for MIT KRB5 < 1.15 and AD
     (DNSName('_kerberos._tcp'), 88),
     (DNSName('_kerberos._udp'), 88),
     (DNSName('_kerberos-master._tcp'), 88),
     (DNSName('_kerberos-master._udp'), 88),
     (DNSName('_kpasswd._tcp'), 464),
     (DNSName('_kpasswd._udp'), 464),
+)
+
+IPA_DEFAULT_MASTER_URI_REC = (
+    # URI record name, URI template
+
+    # MIT KRB5 1.15+ prefers URI records for service discovery
+    # scheme: always krb5srv
+    # flags: empty or 'm' for primary server
+    # transport: 'tcp', 'udp', or 'kkdcp')
+    # residual: 'hostname', 'hostname:port', or 'https://' URL
+    (DNSName('_kerberos'), "krb5srv:m:tcp:{hostname}"),
+    (DNSName('_kerberos'), "krb5srv:m:udp:{hostname}"),
+    (DNSName('_kpasswd'), "krb5srv:m:tcp:{hostname}"),
+    (DNSName('_kpasswd'), "krb5srv:m:udp:{hostname}"),
 )
 
 IPA_DEFAULT_ADTRUST_SRV_REC = (
@@ -67,6 +82,8 @@ class IPASystemRecords:
     # fixme do it configurable
     PRIORITY_HIGH = 0
     PRIORITY_LOW = 50
+    # FIXME: use TTL from config
+    TTL = 3600
 
     def __init__(self, api_instance, all_servers=False):
         self.api_instance = api_instance
@@ -134,7 +151,35 @@ class IPASystemRecords:
 
             rdataset = zone_obj.get_rdataset(
                 r_name, rdatatype.SRV, create=True)
-            rdataset.add(rd, ttl=86400)  # FIXME: use TTL from config
+            rdataset.add(rd, ttl=self.TTL)
+
+    def __add_uri_records(
+        self, zone_obj, hostname, rname_uri_map,
+        weight=100, priority=0, location=None
+    ):
+        assert isinstance(hostname, DNSName)
+        assert isinstance(priority, int)
+        assert isinstance(weight, int)
+
+        if location:
+            suffix = self.__get_location_suffix(location)
+        else:
+            suffix = self.domain_abs
+
+        for name, uri_template in rname_uri_map:
+            uri = uri_template.format(hostname=hostname.make_absolute())
+            rd = rdata.from_text(
+                rdataclass.IN, rdatatype.URI,
+                '{0} {1} {2}'.format(
+                    priority, weight, uri
+                )
+            )
+
+            r_name = name.derelativize(suffix)
+
+            rdataset = zone_obj.get_rdataset(
+                r_name, rdatatype.URI, create=True)
+            rdataset.add(rd, ttl=self.TTL)
 
     def __add_ca_records_from_hostname(self, zone_obj, hostname):
         assert isinstance(hostname, DNSName) and hostname.is_absolute()
@@ -163,7 +208,7 @@ class IPASystemRecords:
             for rd in rrset:
                 rdataset = zone_obj.get_rdataset(
                     r_name, rd.rdtype, create=True)
-                rdataset.add(rd, ttl=86400)  # FIXME: use TTL from config
+                rdataset.add(rd, ttl=self.TTL)
 
     def __add_kerberos_txt_rec(self, zone_obj):
         # FIXME: with external DNS, this should generate records for all
@@ -174,7 +219,7 @@ class IPASystemRecords:
         rdataset = zone_obj.get_rdataset(
             r_name, rdatatype.TXT, create=True
         )
-        rdataset.add(rd, ttl=86400)  # FIXME: use TTL from config
+        rdataset.add(rd, ttl=self.TTL)
 
     def _add_base_dns_records_for_server(
             self, zone_obj, hostname, roles=None, include_master_role=True,
@@ -196,6 +241,12 @@ class IPASystemRecords:
                 zone_obj,
                 hostname_abs,
                 IPA_DEFAULT_MASTER_SRV_REC,
+                weight=server['weight']
+            )
+            self.__add_uri_records(
+                zone_obj,
+                hostname_abs,
+                IPA_DEFAULT_MASTER_URI_REC,
                 weight=server['weight']
             )
 
@@ -240,6 +291,14 @@ class IPASystemRecords:
                     zone_obj,
                     hostname_abs,
                     IPA_DEFAULT_MASTER_SRV_REC,
+                    weight=server['weight'],
+                    priority=priority,
+                    location=location
+                )
+                self.__add_uri_records(
+                    zone_obj,
+                    hostname_abs,
+                    IPA_DEFAULT_MASTER_URI_REC,
                     weight=server['weight'],
                     priority=priority,
                     location=location
