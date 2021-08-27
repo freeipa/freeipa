@@ -84,6 +84,8 @@ TRUNCATED_ADMIN_LIMIT = object()
 
 DIRMAN_DN = DN(('cn', 'directory manager'))
 
+# Some older systems announce SSF 56 although they use GSSAPI with AES
+MIN_SASL_SSF = 56
 
 if six.PY2 and hasattr(ldap, 'LDAPBytesWarning'):
     # XXX silence python-ldap's BytesWarnings
@@ -825,10 +827,13 @@ class LDAPClient:
         to port 636 instead.
 
         Note: Microsoft AD does not support SASL encryption and integrity
-        verification with a TLS connection. For AD, use a plain connection
-        with GSSAPI and a MIN_SSF >= 56. SASL GSSAPI and SASL GSS SPNEGO
-        ensure data integrity and confidentiality with SSF > 1. Also see
-        https://msdn.microsoft.com/en-us/library/cc223500.aspx
+        verification with a TLS connection. For AD, either use a plain
+        connection with GSSAPI and a SSF_MIN >= 56 or a TLS connection with
+        MIN_SFF = MAX_SFF = 0. SASL GSSAPI and SASL GSS SPNEGO
+        ensure data integrity and confidentiality with SSF > 1. SASL data
+        security layer is not necessary with TLS as outer protection layer.
+
+        See https://msdn.microsoft.com/en-us/library/cc223500.aspx
         """
         if start_tls:
             uri = 'ldap://%s' % format_netloc(hostname, 389)
@@ -1247,7 +1252,45 @@ class LDAPClient:
             self.conn.sasl_interactive_bind_s(
                 '', auth_tokens, server_controls, client_controls)
 
-    def gssapi_bind(self, server_controls=None, client_controls=None):
+    def set_sasl_ssf(self, require_sasl_security=False, ssf=MIN_SASL_SSF):
+        """Configure SASL security strength factor for GSSAPI binds
+
+        - Enforces SASL data security layer for plaintext LDAP connections
+        - LDAPS and StartTLS connections don't use SSF to avoid double
+          encryption.
+
+        :param require_sasl_security: enforce SASL security even for TLS
+        :param ssf: new SSF value when security is required
+        """
+        conn = self.conn
+        # require SASL security for plaintext LDAP connections
+        # LDAPI, LDAPS, and StartTLS are considered as secure.
+        if self.protocol == "ldap" and not self._start_tls:
+            require_sasl_security = True
+        elif self.protocol == "ldapi":
+            # XXX
+            require_sasl_security = True
+
+        if require_sasl_security:
+            curssfmin = conn.get_option(ldap.OPT_X_SASL_SSF_MIN)
+            curssfmax = conn.get_option(ldap.OPT_X_SASL_SSF_MAX)
+            if curssfmin < ssf:
+                conn.set_option(ldap.OPT_X_SASL_SSF_MIN, ssf)
+            if curssfmax < ssf:
+                conn.set_option(ldap.OPT_X_SASL_SSF_MAX, ssf)
+            elif curssfmax < curssfmin:
+                conn.set_option(ldap.OPT_X_SASL_SSF_MAX, curssfmin)
+        else:
+            # Don't install SASL integrity and confidentiality to avoid
+            # double encryption. The outer TLS layer or IPC socket
+            # protect connections.
+            conn.set_option(ldap.OPT_X_SASL_SSF_MIN, 0)
+            conn.set_option(ldap.OPT_X_SASL_SSF_MAX, 0)
+
+    def gssapi_bind(
+        self, server_controls=None, client_controls=None,
+        require_sasl_security=False
+    ):
         """
         Perform SASL bind operation using the SASL GSSAPI mechanism.
         """
@@ -1256,9 +1299,16 @@ class LDAPClient:
                 auth_tokens = SASL_GSS_SPNEGO
             else:
                 auth_tokens = SASL_GSSAPI
+
             self._flush_schema()
+            self.set_sasl_ssf(require_sasl_security=require_sasl_security)
             self.conn.sasl_interactive_bind_s(
                 '', auth_tokens, server_controls, client_controls)
+            try:
+                ssf = self.conn.get_option(ldap.OPT_X_SASL_SSF)
+            except ValueError:
+                ssf = None
+            logger.debug("SASL SSF %s", ssf)
 
     def unbind(self):
         """
