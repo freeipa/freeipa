@@ -364,6 +364,7 @@ files_tmp_filetrans(ipa_custodia_t, ipa_custodia_tmp_t, { dir file })
 
 kernel_dgram_send(ipa_custodia_t)
 kernel_read_network_state(ipa_custodia_t)
+kernel_read_system_state(ipa_custodia_t)
 
 auth_read_passwd(ipa_custodia_t)
 
