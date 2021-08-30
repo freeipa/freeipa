@@ -1973,8 +1973,17 @@ def import_included_profiles():
 
             # Create the profile, replacing any existing profile of same name
             profile_data = __get_profile_config(profile_id)
-            _create_dogtag_profile(profile_id, profile_data, overwrite=True)
-            logger.debug("Imported profile '%s'", profile_id)
+            try:
+                _create_dogtag_profile(profile_id, profile_data,
+                                       overwrite=True)
+            except errors.HTTPRequestError as e:
+                logger.warning("Failed to import profile '%s': %s. Running "
+                               "ipa-server-upgrade when installation is "
+                               "completed may resolve this issue.",
+                               profile_id, e)
+                conn.delete_entry(entry)
+            else:
+                logger.debug("Imported profile '%s'", profile_id)
         else:
             logger.debug(
                 "Profile '%s' is already in LDAP; skipping", profile_id
