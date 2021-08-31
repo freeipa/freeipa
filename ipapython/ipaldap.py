@@ -1267,9 +1267,6 @@ class LDAPClient:
         # LDAPI, LDAPS, and StartTLS are considered as secure.
         if self.protocol == "ldap" and not self._start_tls:
             require_sasl_security = True
-        elif self.protocol == "ldapi":
-            # XXX
-            require_sasl_security = True
 
         if require_sasl_security:
             curssfmin = conn.get_option(ldap.OPT_X_SASL_SSF_MIN)
@@ -1280,6 +1277,12 @@ class LDAPClient:
                 conn.set_option(ldap.OPT_X_SASL_SSF_MAX, ssf)
             elif curssfmax < curssfmin:
                 conn.set_option(ldap.OPT_X_SASL_SSF_MAX, curssfmin)
+        elif self.protocol == "ldapi":
+            # LDAPI connections with SSF 0 fail for an unknown reason
+            # "SASL(-1): generic failure: GSSAPI Error: Invalid credential
+            #  was supplied (Unknown error)"
+            conn.set_option(ldap.OPT_X_SASL_SSF_MIN, 0)
+            conn.set_option(ldap.OPT_X_SASL_SSF_MAX, 1)
         else:
             # Don't install SASL integrity and confidentiality to avoid
             # double encryption. The outer TLS layer or IPC socket
