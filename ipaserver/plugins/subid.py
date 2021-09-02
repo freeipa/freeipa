@@ -524,6 +524,7 @@ class subid_match(subid_find):
         osubuid = options["ipasubuidnumber"]
         new_entries = []
         for entry in entries:
+            self.obj.convert_owner(entry, options)
             esubuid = int(entry.single_value["ipasubuidnumber"])
             esubcount = int(entry.single_value["ipasubuidcount"])
             minsubuid = esubuid
