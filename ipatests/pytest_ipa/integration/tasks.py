@@ -764,7 +764,13 @@ def remove_trust_info_from_ad(master, ad_domain, ad_hostname):
     kinit_as_user(master,
                   'Administrator@{}'.format(ad_domain.upper()),
                   master.config.ad_admin_password)
-    master.run_command(['rpcclient', '-k', ad_hostname,
+    # Detect whether rpcclient supports -k or --use-kerberos option
+    res = master.run_command(['rpcclient', '-h'], raiseonerr=False)
+    if "--use-kerberos" in res.stderr_text:
+        rpcclient_krb5_knob = "--use-kerberos=desired"
+    else:
+        rpcclient_krb5_knob = "-k"
+    master.run_command(['rpcclient', rpcclient_krb5_knob, ad_hostname,
                         '-c', 'deletetrustdom {}'.format(master.domain.name)],
                        raiseonerr=False)
 
