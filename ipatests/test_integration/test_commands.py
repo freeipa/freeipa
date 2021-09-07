@@ -1375,7 +1375,9 @@ class TestIPACommand(IntegrationTest):
             stdin_text='{0}\n{0}\n'.format(original_passwd)
         )
 
-        ldap = self.master.ldap_connect()
+        # Wait for the password update to be replicated from replicas[0]
+        # to other servers
+        ldap = self.replicas[0].ldap_connect()
         tasks.wait_for_replication(ldap)
 
         # The user can log in again
