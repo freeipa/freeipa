@@ -922,7 +922,8 @@ migration process might be incomplete\n''')
         # check whether the compat plugin is enabled
         if not options.get('compat'):
             try:
-                ldap.get_entry(DN(('cn', 'compat'), (api.env.basedn)))
+                ldap.get_entry(DN(('cn', 'users'), ('cn', 'compat'),
+                                  (api.env.basedn)))
                 return dict(result={}, failed={}, enabled=True, compat=False)
             except errors.NotFound:
                 pass
