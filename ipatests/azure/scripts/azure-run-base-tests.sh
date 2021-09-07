@@ -22,7 +22,8 @@ function collect_logs() {
         /var/log/pki \
         /var/log/samba \
         "$BIND_DATADIR" \
-        systemd_journal.log
+        systemd_journal.log \
+        ||:
 }
 
 server_password=Secret123
@@ -95,6 +96,8 @@ if [ "$install_result" -eq 0 ] ; then
 else
     echo "ipa-server-install failed with code ${install_result}, skip IPA tests"
 fi
+# let the services gracefully flush their logs
+ipactl stop ||:
 collect_logs ipaserver_install_logs.tar.gz
 
 echo "Potential Python 3 incompatibilities in the IPA framework:"
