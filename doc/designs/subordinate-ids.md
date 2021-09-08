@@ -136,7 +136,7 @@ All count and number attributes are single-value ``INTEGER`` type with
 standard integer matching rules. OIDs ``2.16.840.1.113730.3.8.23.8`` and
 ``2.16.840.1.113730.3.8.23.11`` are reserved for future use.
 
-```raw
+```text
 attributeTypes: (
   2.16.840.1.113730.3.8.23.7
   NAME 'ipaSubUidNumber'
@@ -192,7 +192,7 @@ The ``ipaSubordinateId`` object class is an auxiliary subclass of
 ``top`` and requires all four subordinate id attributes as well as
 ``ipaOwner`` attribute``
 
-```raw
+```text
 objectClasses: (
   2.16.840.1.113730.3.8.24.4
   NAME 'ipaSubordinateId'
@@ -207,7 +207,7 @@ objectClasses: (
 The ``ipaSubordinateGid`` and ``ipaSubordinateUid`` are defined for
 future use. IPA always assumes the presence of ``ipaSubordinateId``.
 
-```raw
+```text
 objectClasses: (
   2.16.840.1.113730.3.8.24.2
   NAME 'ipaSubordinateUid'
@@ -233,7 +233,7 @@ Subordinate id entries have the structural object class
 classes ``ipaSubordinateId``, ``ipaSubordinateGid``, or
 ``ipaSubordinateUid``. ``ipaUniqueId`` is used as a primary key (RDN).
 
-```raw
+```text
 objectClasses: (
   2.16.840.1.113730.3.8.24.5
   NAME 'ipaSubordinateIdEntry'
@@ -278,7 +278,7 @@ to use the value of entry attributes as step size.
 The config plugin has a new option to enable or disable generation of
 subordinate id entries for new users:
 
-```raw
+```text
 $ ipa config-mod --user-default-subid=true
 ```
 
@@ -286,7 +286,7 @@ Subordinate ids are managed by a new plugin class. The ``subid-add``
 and ``subid-del`` commands are hidden from command line. New subordinate
 ids are generated and auto-assigned with ``subid-generate``.
 
-```raw
+```text
 $ ipa help subid
 Topic commands:
   subid-find      Search for subordinate id.
@@ -297,7 +297,7 @@ Topic commands:
   subid-stats     Subordinate id statistics
 ```
 
-```raw
+```text
 $ ipa subid-generate --owner testuser9
 -----------------------------------------------------------
 Added subordinate id "aa28f132-457c-488b-82e1-d123727e4f81"
@@ -312,7 +312,7 @@ Added subordinate id "aa28f132-457c-488b-82e1-d123727e4f81"
 ```
 
 
-```raw
+```text
 $ ipa subid-find --owner testuser9
 ------------------------
 1 subordinate id matched
@@ -328,7 +328,7 @@ Number of entries returned 1
 ----------------------------
 ```
 
-```raw
+```text
 $ ipa -vv subid-stats
 ...
 ipa: INFO: Response: {
@@ -432,7 +432,7 @@ The command uses automatic LDAPI EXTERNAL bind when it's executed as
 root user. Other it requires valid Kerberos TGT of an admin or user
 administrator.
 
-```raw
+```text
 
 # /usr/libexec/ipa/ipa-subids --help
 Usage: ipa-subids
@@ -479,7 +479,7 @@ The ``user-find`` command search by start value of subordinate uid and
 gid range. The new command ``user-match-subid`` can be used to find a
 user by any subordinate id in their range.
 
-```raw
+```text
 $ ipa subid-match --subuid=2147549183
 ------------------------
 1 subordinate id matched
@@ -528,7 +528,7 @@ attribute to fetch ``uidNumber`` from the user object.
 
 ### Deref control example
 
-```raw
+```text
 $ ldapsearch -L -E '!deref=ipaOwner:uid,uidNumber' \
       -b 'cn=subids,cn=accounts,dc=ipasubid,dc=test' \
       '(ipaOwner=uid=testuser10,cn=users,cn=accounts,dc=ipasubid,dc=test)'
