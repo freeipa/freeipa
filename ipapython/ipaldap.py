@@ -1823,9 +1823,17 @@ class LDAPCache(LDAPClient):
                         entry=None, exception=None):
         # idnsname - caching prevents delete when mod value to None
         # cospriority - in a Class of Service object, uncacheable
-        # TODO - usercertificate was banned at one point and I don't remember
-        #        why...
-        BANNED_ATTRS = {'idnsname', 'cospriority'}
+        # usercertificate* - caching subtypes is tricky, trade less
+        #                    complexity for performance
+        #
+        # TODO: teach the cache about subtypes
+
+        BANNED_ATTRS = {
+            'idnsname',
+            'cospriority',
+            'usercertificate',
+            'usercertificate;binary'
+        }
         if not self._enable_cache:
             return
 
