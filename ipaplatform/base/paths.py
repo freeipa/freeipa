@@ -136,6 +136,8 @@ class BasePathNamespace:
     PKI_ACME_REALM_CONF = "/etc/pki/pki-tomcat/acme/realm.conf"
     ETC_REDHAT_RELEASE = "/etc/redhat-release"
     RESOLV_CONF = "/etc/resolv.conf"
+    RESOLV_CONF_STUB_RESOLVED = "/run/systemd/resolve/stub-resolv.conf"
+    RESOLV_CONF_RESOLVED = "/run/systemd/resolve/resolv.conf"
     SAMBA_KEYTAB = "/etc/samba/samba.keytab"
     SMB_CONF = "/etc/samba/smb.conf"
     LIMITS_CONF = "/etc/security/limits.conf"

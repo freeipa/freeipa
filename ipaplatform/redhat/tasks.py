@@ -29,6 +29,7 @@ import ctypes
 import logging
 import os
 from pathlib import Path
+import shutil
 import socket
 import traceback
 import errno
@@ -774,5 +775,60 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         authselect_cmd = [paths.AUTHSELECT, "disable-feature",
                           "with-custom-automount"]
         ipautil.run(authselect_cmd)
+
+    def disable_resolved(self, sstore):
+        """
+        https://pagure.io/freeipa/issue/8700
+        https://www.freedesktop.org/software/systemd/man/systemd-resolved.service.html
+        Combine the third and fourth methods to manage /etc/resolv.conf:
+        Copy the resolv.conf file containing the upstream DNS servers
+        into /etc/resolv.conf so that systemd-resolved does not interfere
+        with reverse zone detection (--auto-reverse).
+        """
+        if os.path.islink(paths.RESOLV_CONF):
+            resolv_conf_link_target = os.readlink(
+                paths.RESOLV_CONF
+            )
+            # the target can be any of:
+            # /run/systemd/resolve/stub-resolv.conf
+            # ../run/systemd/resolve/stub-resolv.conf
+            if paths.RESOLV_CONF_STUB_RESOLVED in resolv_conf_link_target:
+                sstore.backup_state(
+                    "installation",
+                    "resolv-conf-links-to-stub-resolved",
+                    resolv_conf_link_target
+                )
+                logger.info(
+                    'Disabling systemd-resolved.'
+                )
+                os.unlink(paths.RESOLV_CONF)
+                shutil.copyfile(
+                    paths.RESOLV_CONF_RESOLVED,
+                    paths.RESOLV_CONF
+                )
+
+    def reenable_resolved(self, sstore):
+        """
+        The reverse of disable_resolved above.
+        """
+        resolv_conf_link_target = sstore.get_state(
+            "installation",
+            "resolv-conf-links-to-stub-resolved"
+        )
+        if resolv_conf_link_target:
+            if os.path.isfile(paths.RESOLV_CONF):
+                logger.info(
+                    'Re-enabling systemd-resolved.'
+                )
+                os.unlink(paths.RESOLV_CONF)
+                os.symlink(
+                    resolv_conf_link_target,
+                    paths.RESOLV_CONF
+                )
+            sstore.delete_state(
+                "installation",
+                "resolv-conf-links-to-stub-resolved"
+            )
+
 
 tasks = RedHatTaskNamespace()

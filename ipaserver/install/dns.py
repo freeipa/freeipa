@@ -42,6 +42,8 @@ from ipaserver.install import dnskeysyncinstance
 from ipaserver.install import odsexporterinstance
 from ipaserver.install import opendnssecinstance
 from ipaserver.install import service
+from ipaplatform.tasks import tasks
+
 
 if six.PY3:
     unicode = str
@@ -120,8 +122,12 @@ def install_check(standalone, api, replica, options, hostname):
     global ip_addresses
     global reverse_zones
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
     package_check(RuntimeError)
+
+    # https://pagure.io/freeipa/issue/8700
+    tasks.disable_resolved(sstore)
 
     # when installing first DNS instance we need to check zone overlap
     if replica or standalone:

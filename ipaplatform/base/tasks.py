@@ -322,6 +322,18 @@ class BaseTaskNamespace:
         """Tell systemd to reload config files"""
         raise NotImplementedError
 
+    def disable_resolved(self, sstore):
+        """
+        Disable systemd-resolved.
+        """
+        raise NotImplementedError()
+
+    def reenable_resolved(self, sstore):
+        """
+        The reverse of disable_resolved above.
+        """
+        raise NotImplementedError()
+
     def configure_dns_resolver(self, nameservers, searchdomains, *,
                                resolve1_enabled=False, fstore=None):
         """Configure global DNS resolver (e.g. /etc/resolv.conf)
@@ -546,5 +558,6 @@ class BaseTaskNamespace:
             statestore.delete_state(
                 'ipa-client-automount-nsswitch', 'previous-automount'
             )
+
 
 tasks = BaseTaskNamespace()

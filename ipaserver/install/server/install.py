@@ -1197,6 +1197,7 @@ def uninstall(installer):
     otpdinstance.OtpdInstance().uninstall()
     tasks.restore_hostname(fstore, sstore)
     tasks.restore_pkcs11_modules(fstore)
+    tasks.reenable_resolved(sstore)
     fstore.restore_all_files()
     try:
         os.remove(paths.ROOT_IPA_CACHE)
