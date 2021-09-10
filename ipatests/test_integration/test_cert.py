@@ -16,6 +16,7 @@ import string
 import time
 
 from ipaplatform.paths import paths
+from ipapython.dn import DN
 from cryptography import x509
 from cryptography.x509.oid import ExtensionOID
 from cryptography.hazmat.backends import default_backend
@@ -182,6 +183,34 @@ class TestInstallMasterClient(IntegrationTest):
             ["getcert", "list", "-n", "Server-Cert cert-pki-ca"]
         )
         assert "profile: caServerCert" in result.stdout_text
+
+    def test_multiple_user_certificates(self):
+        """Test that a user may be issued multiple certificates"""
+        ldap = self.master.ldap_connect()
+
+        user = 'user1'
+
+        tasks.kinit_admin(self.master)
+        tasks.user_add(self.master, user)
+
+        for id in (0,1):
+            csr_file = f'{id}.csr'
+            key_file = f'{id}.key'
+            cert_file = f'{id}.crt'
+            openssl_cmd = [
+                'openssl', 'req', '-newkey', 'rsa:2048', '-keyout', key_file,
+                '-nodes', '-out', csr_file, '-subj', '/CN=' + user]
+            self.master.run_command(openssl_cmd)
+
+            cmd_args = ['ipa', 'cert-request', '--principal', user,
+                        '--certificate-out', cert_file, csr_file]
+            self.master.run_command(cmd_args)
+
+        # easier to count by pulling the LDAP entry
+        entry = ldap.get_entry(DN(('uid', user), ('cn', 'users'),
+                               ('cn', 'accounts'), self.master.domain.basedn))
+
+        assert len(entry.get('usercertificate')) == 2
 
     @pytest.fixture
     def test_subca_certs(self):
