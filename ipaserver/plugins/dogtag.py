@@ -1832,7 +1832,8 @@ class ra(rabase.rabase, RestClient):
             method='POST',
             headers={'Accept-Encoding': 'gzip, deflate',
                      'User-Agent': 'IPA',
-                     'Content-Type': 'application/xml'},
+                     'Content-Type': 'application/xml',
+                     'Accept': 'application/xml'},
             body=payload
         )
 
