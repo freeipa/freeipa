@@ -1262,6 +1262,29 @@ def enable_server_snippet():
     tasks.restore_context(paths.KRB5_FREEIPA_SERVER)
 
 
+def setup_kpasswd_server(krb):
+    logger.info("[Setup kpasswd_server]")
+    aug = Augeas(
+        flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD,
+        loadpath=paths.USR_SHARE_IPA_DIR,
+    )
+    try:
+        aug.transform("IPAKrb5", paths.KRB5_CONF)
+        aug.load()
+
+        kpass_srv_path = "/files{}/realms/{}/kpasswd_server"
+        kpass_srv_path = kpass_srv_path.format(paths.KRB5_CONF, krb.realm)
+
+        if aug.match(kpass_srv_path):
+            return
+
+        aug.set(kpass_srv_path, f"{krb.fqdn}:464")
+        aug.save()
+
+    finally:
+        aug.close()
+
+
 def ntpd_cleanup(fqdn, fstore):
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
     timeconf.restore_forced_timeservices(sstore, 'ntpd')
@@ -1871,6 +1894,7 @@ def upgrade_configuration():
     setup_spake(krb)
     setup_pkinit(krb)
     enable_server_snippet()
+    setup_kpasswd_server(krb)
 
     # Must be executed after certificate_renewal_update
     # (see function docstring for details)
