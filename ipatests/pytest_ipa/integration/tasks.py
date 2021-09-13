@@ -2127,7 +2127,7 @@ def create_active_user(host, login, password, first='test', last='user',
         # Note raiseonerr=False:
         # the assert is located after kdcinfo retrieval.
         result = host.run_command(
-            "KRB5_TRACE=/dev/stdout kinit %s" % login,
+            f"KRB5_TRACE=/dev/stdout SSSD_KRB5_LOCATOR_DEBUG=1 kinit {login}",
             stdin_text='{0}\n{1}\n{1}\n'.format(
                 temp_password, password
             ), raiseonerr=False
@@ -2164,8 +2164,8 @@ def run_command_as_user(host, user, command, *args, **kwargs):
 
 def kinit_as_user(host, user, password, krb5_trace=False, raiseonerr=True):
     """Launch kinit as user on host.
-    If krb5_trace, then set KRB5_TRACE=/dev/stdout and collect
-    /var/lib/sss/pubconf/kdcinfo.$REALM
+    If krb5_trace, then set KRB5_TRACE=/dev/stdout, SSSD_KRB5_LOCATOR_DEBUG=1
+    and collect /var/lib/sss/pubconf/kdcinfo.$REALM
     as this file contains the list of KRB5KDC IPs SSSD uses.
     https://pagure.io/freeipa/issue/8510
     """
@@ -2181,7 +2181,7 @@ def kinit_as_user(host, user, password, krb5_trace=False, raiseonerr=True):
         # Note raiseonerr=False:
         # the assert is located after kdcinfo retrieval.
         result = host.run_command(
-            "KRB5_TRACE=/dev/stdout kinit %s" % user,
+            f"KRB5_TRACE=/dev/stdout SSSD_KRB5_LOCATOR_DEBUG=1 kinit {user}",
             stdin_text='{0}\n'.format(password),
             raiseonerr=False
         )
