@@ -2767,8 +2767,11 @@ def run_ssh_cmd(
 
     if auth_method == "password":
         if expect_auth_success is True:
-            assert "Authentication succeeded (keyboard-interactive)" in \
-                stderr
+            patterns = [
+                r'Authenticated to .* using "keyboard-interactive"',
+                r'Authentication succeeded \(keyboard-interactive\)'
+            ]
+            assert any(re.search(pattern, stderr) for pattern in patterns)
             # do not assert the return code:
             # it can be >0 if the command failed.
         elif expect_auth_failure is True:
@@ -2777,7 +2780,11 @@ def run_ssh_cmd(
             assert "Authentication succeeded" not in stderr
     elif auth_method == "key":
         if expect_auth_success is True:
-            assert "Authentication succeeded (publickey)" in stderr
+            patterns = [
+                r'Authenticated to .* using "publickey"',
+                r'Authentication succeeded \(publickey\)'
+            ]
+            assert any(re.search(pattern, stderr) for pattern in patterns)
             # do not assert the return code:
             # it can be >0 if the command failed.
         elif expect_auth_failure is True:
