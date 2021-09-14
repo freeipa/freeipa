@@ -513,6 +513,14 @@ def ca_initialize_hsm_state(ca):
         ca.set_hsm_state(config)
 
 
+def disable_resolved():
+    """
+    Disable resolved and switch back to the glibc stub resolver.
+    """
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
+    tasks.disable_resolved(sstore)
+
+
 def dnssec_set_openssl_engine(dnskeysyncd):
     """
     Setup OpenSSL engine for BIND
