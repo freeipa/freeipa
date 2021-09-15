@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-09-14 01:05+0000\n"
+"PO-Revision-Date: 2021-09-16 19:04+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -171,32 +171,32 @@ msgstr "JSON-RPC 응답 구문분석이 실패하였습니다: %s\n"
 #: client/ipa-join.c:868
 #, c-format
 msgid "Parsing JSON-RPC response failed: no 'result' value found.\n"
-msgstr ""
+msgstr "JSON-RPC 응답을 구문 분석하는데 실패함: '결과' 값을 찾을 수 없습니다.\n"
 
 #: client/ipa-join.c:901 client/ipa-join.c:994
 #, c-format
 msgid "Extracting the data from the JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "JSON-RPC 응답에서 자료를 추출 하는데 실패함: %s\n"
 
 #: client/ipa-join.c:945 client/ipa-join.c:1025
 #, c-format
 msgid "json_pack_ex() failed: %s\n"
-msgstr ""
+msgstr "json_pack_ex() 실패함: %s\n"
 
 #: client/ipa-join.c:1041 client/ipa-join.c:1120
 #, c-format
 msgid "Unenrollment successful.\n"
-msgstr ""
+msgstr "등록 취소 성공.\n"
 
 #: client/ipa-join.c:1044 client/ipa-join.c:1123
 #, c-format
 msgid "Unenrollment failed.\n"
-msgstr ""
+msgstr "등록 취소 실패.\n"
 
 #: client/ipa-join.c:1128
 #, c-format
 msgid "result not found in XML-RPC response\n"
-msgstr ""
+msgstr "결과는 XML-RPC 응답에서 찾을 수 없습니다\n"
 
 #: client/ipa-join.c:1170 client/ipa-join.c:1310
 #, c-format
@@ -211,39 +211,39 @@ msgstr "호스트에 참여 할 수 없습니다: 커버러스 문맥 초기화�
 #: client/ipa-join.c:1189
 #, c-format
 msgid "Unable to join host: Kerberos Credential Cache not found\n"
-msgstr ""
+msgstr "호스트에 참여 할 수 없음: 커버러스 인증 캐쉬를 찾을 수 없습니다\n"
 
 #: client/ipa-join.c:1197
 #, c-format
 msgid ""
 "Unable to join host: Kerberos User Principal not found and host password not "
 "provided.\n"
-msgstr ""
+msgstr "호스에 참여 할 수 없음: 커버러스 사용자 주체를 찾을 수 없고 호스트 비밀번호가 제공되지 않았습니다.\n"
 
 #: client/ipa-join.c:1216
 #, c-format
 msgid "fork() failed\n"
-msgstr ""
+msgstr "fork() 실패함\n"
 
 #: client/ipa-join.c:1245
 #, c-format
 msgid "ipa-getkeytab not found\n"
-msgstr ""
+msgstr "ipa-getkeytab 찾을 수 없음\n"
 
 #: client/ipa-join.c:1248
 #, c-format
 msgid "ipa-getkeytab has bad permissions?\n"
-msgstr ""
+msgstr "ipa-getkeytab은 잘못된 권한을 갖고 있나요?\n"
 
 #: client/ipa-join.c:1251
 #, c-format
 msgid "executing ipa-getkeytab failed, errno %d\n"
-msgstr ""
+msgstr "ipa-getkeytab 실행하는데 실패함, 오류번호 %d\n"
 
 #: client/ipa-join.c:1263
 #, c-format
 msgid "child exited with %d\n"
-msgstr ""
+msgstr "자식 프로세서가 %d와 힘께 종료되었습니다\n"
 
 #: client/ipa-join.c:1329
 #, c-format
@@ -253,39 +253,39 @@ msgstr "키탭 해석 오류: %s.\n"
 #: client/ipa-join.c:1338
 #, c-format
 msgid "Error getting default Kerberos realm: %s.\n"
-msgstr ""
+msgstr "기본값 커버러스 realm을 가져오는데 오류가 발생합니다: %s.\n"
 
 #: client/ipa-join.c:1349
 #, c-format
 msgid "Error parsing \"%1$s\": %2$s.\n"
-msgstr ""
+msgstr "구문 분석하는데 오류 \"%1$s\": %2$s.\n"
 
 #: client/ipa-join.c:1368
 #, c-format
 msgid "Error obtaining initial credentials: %s.\n"
-msgstr ""
+msgstr "초기 인증서를 획득하는데 오류: %s.\n"
 
 #: client/ipa-join.c:1380 client/ipa-join.c:1388
 #, c-format
 msgid "Unable to generate Kerberos Credential Cache\n"
-msgstr ""
+msgstr "커버러스 인증서 캐쉬를 생성 할 수 없음\n"
 
 #: client/ipa-join.c:1397
 #, c-format
 msgid "Error storing creds in credential cache: %s.\n"
-msgstr ""
+msgstr "인증서 캐쉬에서 인증서 저장하는데 오류: %s.\n"
 
 #: client/ipa-join.c:1453
 msgid "Print the raw XML-RPC output in GSSAPI mode"
-msgstr ""
+msgstr "GSSAPI 방법에서 쌩(raw) XML-RPC 출력을 인쇄합니다"
 
 #: client/ipa-join.c:1455
 msgid "Quiet mode. Only errors are displayed."
-msgstr ""
+msgstr "정숙 방식. 단지 오류만 표시됩니다."
 
 #: client/ipa-join.c:1457
 msgid "Unenroll this host from IPA server"
-msgstr ""
+msgstr "IPA 서버에서 이 호스트를 등록 취소합니다"
 
 #: client/ipa-join.c:1459
 msgid "Hostname of this server"
@@ -297,23 +297,23 @@ msgstr "호스트 이름"
 
 #: client/ipa-join.c:1461
 msgid "IPA Server to use"
-msgstr ""
+msgstr "사용하려는 IPA 서버"
 
 #: client/ipa-join.c:1463
 msgid "Specifies where to store keytab information."
-msgstr ""
+msgstr "키탭 정보를 저장하려는 장소를 지정합니다."
 
 #: client/ipa-join.c:1463
 msgid "filename"
-msgstr ""
+msgstr "파일이름"
 
 #: client/ipa-join.c:1465
 msgid "Force the host join. Rejoin even if already joined."
-msgstr ""
+msgstr "호스트 참여를 강제합니다. 만약 이미 참여 중이라 할지라도 다시 참여합니다."
 
 #: client/ipa-join.c:1467
 msgid "LDAP password (if not using Kerberos)"
-msgstr ""
+msgstr "LDAP 비밀번호 (만약 커버로스를 사용 중이 아니라면)"
 
 #: client/ipa-join.c:1467
 msgid "password"
@@ -321,11 +321,11 @@ msgstr "비밀번호"
 
 #: client/ipa-join.c:1469
 msgid "LDAP basedn"
-msgstr ""
+msgstr "LDAP basedn"
 
 #: client/ipa-join.c:1469
 msgid "basedn"
-msgstr ""
+msgstr "basedn"
 
 #: client/ipa-join.c:1503
 #, c-format
@@ -340,7 +340,7 @@ msgstr "호스트 이름은 완전하게-검증되어야 합니다: %s\n"
 #: client/ipa-join.c:1515
 #, c-format
 msgid "The hostname must not be: %s\n"
-msgstr ""
+msgstr "호스트이름은 아니어야 합니다: %s\n"
 
 #: client/ipa-getkeytab.c:84
 #, c-format
@@ -384,7 +384,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:265
 #, c-format
 msgid "Timeout exceeded."
-msgstr ""
+msgstr "제한시간이 초과 되었습니다."
 
 #: client/ipa-getkeytab.c:271
 #, c-format
@@ -399,12 +399,12 @@ msgstr ""
 #: client/ipa-getkeytab.c:297
 #, c-format
 msgid "Missing reply control list!\n"
-msgstr ""
+msgstr "응답 제어 목록이 누락됨!\n"
 
 #: client/ipa-getkeytab.c:307
 #, c-format
 msgid "Missing reply control!\n"
-msgstr ""
+msgstr "응답 제어 누락!\n"
 
 #: client/ipa-getkeytab.c:349
 #, c-format
@@ -414,17 +414,17 @@ msgstr "메모리가 다 찼습니다!\n"
 #: client/ipa-getkeytab.c:356 client/ipa-getkeytab.c:518
 #, c-format
 msgid "Failed to create control!\n"
-msgstr ""
+msgstr "제어를 생성하는데 실패함!\n"
 
 #: client/ipa-getkeytab.c:362 client/ipa-getkeytab.c:526
 #, c-format
 msgid "Failed to bind to server!\n"
-msgstr ""
+msgstr "서버로 바인드 하는데 실패함!\n"
 
 #: client/ipa-getkeytab.c:369
 #, c-format
 msgid "Failed to get keytab!\n"
-msgstr ""
+msgstr "키탭을 가져오는데 실패함!\n"
 
 #: client/ipa-getkeytab.c:378
 #, c-format
@@ -707,7 +707,7 @@ msgstr ""
 #: client/ipa-rmkeytab.c:51
 #, c-format
 msgid "Unable to parse principal name\n"
-msgstr ""
+msgstr "주요 이름을 구문 분석 할 수 없습니다\n"
 
 #: client/ipa-rmkeytab.c:53
 #, c-format
@@ -813,12 +813,12 @@ msgstr ""
 #: client/config.c:56
 #, c-format
 msgid "cannot open configuration file %s\n"
-msgstr ""
+msgstr "구성 파일 %s를 열 수 없습니다\n"
 
 #: client/config.c:63
 #, c-format
 msgid "cannot stat() configuration file %s\n"
-msgstr ""
+msgstr "구성 파일 %s을 stat() 할 수 없습니다\n"
 
 #: client/config.c:69
 #, c-format
@@ -828,7 +828,7 @@ msgstr "메모리 부족\n"
 #: client/config.c:80
 #, c-format
 msgid "read error\n"
-msgstr ""
+msgstr "읽기 오류\n"
 
 #: ipaclient/frontend.py:28 ipaclient/frontend.py:90
 #: ipaserver/plugins/baseldap.py:53
