@@ -462,7 +462,7 @@ class TestInstallCA(IntegrationTest):
 
         # Tweak sysrestore.state to drop installation section
         self.master.run_command(
-            ['sed','-i', r's/\[installation\]/\[badinstallation\]/',
+            ['sed', '-i', r's/\[installation\]/\[badinstallation\]/',
              os.path.join(paths.SYSRESTORE, SYSRESTORE_STATEFILE)])
 
         # Re-run installation check and it should fall back to old method
@@ -472,7 +472,7 @@ class TestInstallCA(IntegrationTest):
 
         # Restore installation section.
         self.master.run_command(
-            ['sed','-i', r's/\[badinstallation\]/\[installation\]/',
+            ['sed', '-i', r's/\[badinstallation\]/\[installation\]/',
              os.path.join(paths.SYSRESTORE, SYSRESTORE_STATEFILE)])
 
         # Uninstall and confirm that the old method reports correctly
@@ -577,14 +577,77 @@ class TestInstallWithCA_DNS3(CALessBase):
         self.create_pkcs12('ca1/server')
         self.prepare_cacert('ca1')
 
+        # Clean NM DNS configuration.
+        # Then apply revolved.
+        if osinfo.id == 'fedora' and osinfo.version_number >= (34,):
+
+            nmcli_script_file = "/root/nmcli_script"
+            nmcli_script = ("nmcli -g name,type connection  show  --active "
+                            "| awk -F: '/ethernet|wireless/ { print $1 }'"
+                            "| while read connection\n"
+                            "do\n"
+                            "  nmcli con mod \"$connection\" "
+                            "ipv6.ignore-auto-dns yes\n"
+                            "  nmcli con mod \"$connection\" "
+                            "ipv4.ignore-auto-dns yes\n"
+                            "  nmcli con down \"$connection\" "
+                            "&& nmcli con up \"$connection\"\n"
+                            "done\n")
+            self.master.put_file_contents(nmcli_script_file , nmcli_script)
+            self.master.run_command(["bash", nmcli_script_file])
+
+            # remove all resolved netif-specific configuration
+            result = self.master.run_command(
+                ["ls", "/run/systemd/resolve/netif/"]
+            )
+            for netif in result.stdout_text.splitlines():
+                self.master.run_command(
+                    ["resolvconf", "-d", f"{netif}"]
+                )
+
+            # force using 127.0.0.2
+            self.master.run_command(
+                "echo \"DNS=127.0.0.2\" >> /etc/systemd/resolved.conf"
+            )
+            self.master.run_command(
+                ["cat", "/etc/systemd/resolved.conf"]
+            )
+
+            # restart NM + resolved
+            self.master.run_command(
+                ["systemctl", "restart", "NetworkManager"]
+            )
+            self.master.run_command(
+                ["systemctl", "restart", "systemd-resolved"]
+            )
+            self.master.run_command(
+                ["resolvectl", "dns"]
+            )
+
+        # check that resolv.conf contains exactly what we expect,
+        # because otherwise the test results cannot be interpreted.
+        resolv_conf = self.master.get_file_contents(
+            '/run/systemd/resolve/resolv.conf',
+            encoding='utf-8'
+        )
+        assert resolv_conf.count("nameserver") == 1
+        assert "nameserver 127.0.0.2" in resolv_conf
+
         self.install_server(extra_args=['--allow-zone-overlap'])
 
-        result = self.master.run_command([
-            'ipa', 'dnszone-find'])
-
+        # actual checks
+        result = self.master.run_command(['ipa', 'dnszone-find'])
         assert "in-addr.arpa." in result.stdout_text
-
         assert "returned 2" in result.stdout_text
+
+        # check that resolv.conf only points to the local IPA instance
+        resolv_conf = self.master.get_file_contents(
+            '/etc/resolv.conf',
+            encoding='utf-8'
+        )
+        assert resolv_conf.count("nameserver") == 1
+        assert "nameserver 127.0.0.1" in resolv_conf
+
 
 
 class TestInstallWithCA_DNS4(CALessBase):
@@ -672,6 +735,7 @@ def get_pki_tomcatd_pid(host):
             pid = line.split()[2]
             break
     return(pid)
+
 
 def get_ipa_services_pids(host):
     ipa_services_name = [
