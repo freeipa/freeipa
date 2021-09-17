@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-09-16 19:04+0000\n"
+"PO-Revision-Date: 2021-09-19 00:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -687,7 +687,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:1022
 #, c-format
 msgid "Failed to get keytab\n"
-msgstr ""
+msgstr "키탭을 가져오는데 실패함\n"
 
 #: client/ipa-getkeytab.c:1036
 #, c-format
@@ -722,7 +722,7 @@ msgstr ""
 #: client/ipa-rmkeytab.c:76
 #, c-format
 msgid "Failed to open keytab\n"
-msgstr ""
+msgstr "키탭을 가져오는데 실패함\n"
 
 #: client/ipa-rmkeytab.c:80
 #, c-format
@@ -758,7 +758,7 @@ msgstr ""
 #: client/ipa-rmkeytab.c:133
 #, c-format
 msgid "Unable to parse principal\n"
-msgstr ""
+msgstr "주체를 구문 분석 할 수 없습니다\n"
 
 #: client/ipa-rmkeytab.c:135
 #, c-format
@@ -1595,7 +1595,7 @@ msgstr ""
 #: ipaserver/plugins/aci.py:463 ipaserver/plugins/delegation.py:81
 #: ipaserver/plugins/baseldap.py:74
 msgid "Permissions"
-msgstr ""
+msgstr "권한"
 
 msgid "Permissions to grant(read, write, add, delete, all)"
 msgstr ""
@@ -5017,7 +5017,7 @@ msgstr ""
 
 #: ipaserver/plugins/netgroup.py:307
 msgid "Modify a netgroup."
-msgstr ""
+msgstr "넷그룹을 수정합니다."
 
 #: ipaserver/plugins/netgroup.py:400
 msgid "Remove members from a netgroup."
@@ -5492,11 +5492,11 @@ msgstr ""
 
 #: ipaserver/plugins/permission.py:180
 msgid "permission"
-msgstr ""
+msgstr "권한"
 
 #: ipaserver/plugins/permission.py:181
 msgid "permissions"
-msgstr ""
+msgstr "권한"
 
 #: ipaserver/plugins/privilege.py:230
 msgid "Number of permissions added"
@@ -7167,7 +7167,7 @@ msgid "Don't create user private group"
 msgstr ""
 
 msgid "Delete a user."
-msgstr ""
+msgstr "사용자 삭제."
 
 msgid "Disable a user account."
 msgstr ""
@@ -9947,7 +9947,7 @@ msgid "owner group"
 msgstr ""
 
 msgid "owner service"
-msgstr ""
+msgstr "소유자 서비스"
 
 #: ipaserver/plugins/vault.py:1172
 msgid "Owners that could not be added"
@@ -12638,7 +12638,7 @@ msgstr ""
 
 #: ipalib/cli.py:1151
 msgid "Positional arguments"
-msgstr ""
+msgstr "위치 인수"
 
 #: ipalib/cli.py:1297
 #, python-format
@@ -14125,7 +14125,7 @@ msgstr ""
 
 #: ipaserver/plugins/schema.py:555
 msgid "Positional argument"
-msgstr ""
+msgstr "위치 인수"
 
 #: ipaserver/plugins/schema.py:640
 #, python-format
@@ -16503,7 +16503,7 @@ msgstr "숨기기"
 
 #: ipaserver/plugins/internal.py:220
 msgid "Issue"
-msgstr ""
+msgstr "발행자"
 
 #: ipaserver/plugins/internal.py:221
 msgid "Match"
@@ -17785,7 +17785,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:736
 msgid "Server Options"
-msgstr ""
+msgstr "서비스 선택(옵션)"
 
 #: ipaserver/plugins/internal.py:737
 msgid "Service Options"
@@ -18391,7 +18391,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1010
 msgid "Set One-Time Password"
-msgstr ""
+msgstr "일회용 비밀번호 설정"
 
 #: ipaserver/plugins/internal.py:1011
 msgid "Remove hosts"
@@ -20697,7 +20697,7 @@ msgstr "위치"
 
 #: ipaserver/plugins/location.py:63
 msgid "locations"
-msgstr ""
+msgstr "위치"
 
 #: ipaserver/plugins/location.py:69
 msgid "IPA Locations"
@@ -23367,7 +23367,7 @@ msgstr ""
 
 #: ipaserver/plugins/idrange.py:198
 msgid "ID Ranges"
-msgstr ""
+msgstr "IP 범위"
 
 #: ipaserver/plugins/idrange.py:199
 msgid "ID Range"
