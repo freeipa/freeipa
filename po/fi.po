@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2021-06-07 18:04+0000\n"
+"PO-Revision-Date: 2021-09-19 00:05+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.6.2\n"
+"X-Generator: Weblate 4.8\n"
 
 #: client/ipa-rmkeytab.c:51
 #, c-format
@@ -12589,7 +12589,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/dns.py:1540
 #: ipaclient/remote_plugins/2_49/dns.py:3326 ipaserver/plugins/dns.py:1066
 msgid "Digest"
-msgstr ""
+msgstr "Tarkistussumma"
 
 #: ipaclient/remote_plugins/2_114/dns.py:507
 #: ipaclient/remote_plugins/2_114/dns.py:2034
