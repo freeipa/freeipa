@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-09-19 00:05+0000\n"
+"PO-Revision-Date: 2021-09-20 15:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -330,7 +330,7 @@ msgstr "basedn"
 #: client/ipa-join.c:1503
 #, c-format
 msgid "Cannot get host's FQDN!\n"
-msgstr ""
+msgstr "호스트의 FQDN을 가져 올 수 없습니다!\n"
 
 #: client/ipa-join.c:1509
 #, c-format
@@ -345,17 +345,17 @@ msgstr "호스트이름은 아니어야 합니다: %s\n"
 #: client/ipa-getkeytab.c:84
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
-msgstr ""
+msgstr "커버러스 문맥을 초기화 하는데 실패함: %1$s (%2$d)\n"
 
 #: client/ipa-getkeytab.c:95
 #, c-format
 msgid "Unable to parse principal: %1$s (%2$d)\n"
-msgstr ""
+msgstr "주체를 구문 분석 할 수 없음: %1$s (%2$d)\n"
 
 #: client/ipa-getkeytab.c:150
 #, c-format
 msgid "No keys accepted by KDC\n"
-msgstr ""
+msgstr "KDC에 의해 허용하는 키가 없습니다\n"
 
 #: client/ipa-getkeytab.c:168
 #, c-format
@@ -365,11 +365,11 @@ msgstr "메모리가 다 찼습니다 \n"
 #: client/ipa-getkeytab.c:191
 #, c-format
 msgid "Unable to initialize ldap library!\n"
-msgstr ""
+msgstr "ldap 라이브러리를 초기화 할 수 없습니다\n"
 
 #: client/ipa-getkeytab.c:207
 msgid "Simple bind failed\n"
-msgstr ""
+msgstr "단순 바인드에 실패함\n"
 
 #: client/ipa-getkeytab.c:252
 #, c-format
@@ -379,7 +379,7 @@ msgstr "작업 실패: %s\n"
 #: client/ipa-getkeytab.c:261
 #, c-format
 msgid "Failed to get result: %s\n"
-msgstr ""
+msgstr "결과를 가져오는데 실패함: %s\n"
 
 #: client/ipa-getkeytab.c:265
 #, c-format
@@ -389,12 +389,12 @@ msgstr "제한시간이 초과 되었습니다."
 #: client/ipa-getkeytab.c:271
 #, c-format
 msgid "Failed to parse extended result: %s\n"
-msgstr ""
+msgstr "확장된 결과를 구문 분석하는데 실패함: %s\n"
 
 #: client/ipa-getkeytab.c:278
 #, c-format
 msgid "Failed to parse result: %s\n"
-msgstr ""
+msgstr "결과를 구문 분석하는데 실패함: %s\n"
 
 #: client/ipa-getkeytab.c:297
 #, c-format
@@ -429,31 +429,31 @@ msgstr "키탭을 가져오는데 실패함!\n"
 #: client/ipa-getkeytab.c:378
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
-msgstr ""
+msgstr "ber_init() 실패하고, 잘못된 제어 ?!\n"
 
 #: client/ipa-getkeytab.c:397
 #, c-format
 msgid "ber_scanf() failed, unable to find kvno ?!\n"
-msgstr ""
+msgstr "ber_scanf() 실패하고, kvno 찾을 수 없음 ?!\n"
 
 #: client/ipa-getkeytab.c:409
 #, c-format
 msgid "Failed to retrieve encryption type type #%d\n"
-msgstr ""
+msgstr "암호화 형태 유형 #%d를 검색하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:413
 #, c-format
 msgid "Failed to retrieve encryption type %1$s (#%2$d)\n"
-msgstr ""
+msgstr "암호화 유형 %1$s (#%2$d)를 검색하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:423
 #, c-format
 msgid "Failed to retrieve any keys"
-msgstr ""
+msgstr "키를 검색하는데 실패함"
 
 #: client/ipa-getkeytab.c:541
 msgid "Failed to decode control reply!\n"
-msgstr ""
+msgstr "제어 응답을 디코드 하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:603
 #, c-format
@@ -463,16 +463,16 @@ msgstr "비밀번호가 일치하지 않습니다!\n"
 #: client/ipa-getkeytab.c:632
 #, c-format
 msgid "Failed to open config file %s\n"
-msgstr ""
+msgstr "구성 파일 %s를 여는데 실패함\n"
 
 #: client/ipa-getkeytab.c:642
 #, c-format
 msgid "Failed to parse config file %s\n"
-msgstr ""
+msgstr "구성 파일 %s를 구문 분석하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:720
 msgid "Failed to resolve symlink to keytab.\n"
-msgstr ""
+msgstr "심볼릭링크를 키탭으로 결정 하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:731
 msgid "keytab is a dangling symlink and owned by another user.\n"
@@ -712,12 +712,12 @@ msgstr "주요 이름을 구문 분석 할 수 없습니다\n"
 #: client/ipa-rmkeytab.c:53
 #, c-format
 msgid "krb5_parse_name %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_parse_name %1$d: %2$s\n"
 
 #: client/ipa-rmkeytab.c:63
 #, c-format
 msgid "Removing principal %s\n"
-msgstr ""
+msgstr "주체 %s를 제거하기\n"
 
 #: client/ipa-rmkeytab.c:76
 #, c-format
@@ -727,27 +727,27 @@ msgstr "키탭을 가져오는데 실패함\n"
 #: client/ipa-rmkeytab.c:80
 #, c-format
 msgid "principal not found\n"
-msgstr ""
+msgstr "주체를 찾을 수 없음\n"
 
 #: client/ipa-rmkeytab.c:82
 #, c-format
 msgid "krb5_kt_get_entry %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_get_entry %1$d: %2$s\n"
 
 #: client/ipa-rmkeytab.c:90
 #, c-format
 msgid "Unable to remove entry\n"
-msgstr ""
+msgstr "항목을 제거 할 수 없음\n"
 
 #: client/ipa-rmkeytab.c:92
 #, c-format
 msgid "kvno %d\n"
-msgstr ""
+msgstr "kvno %d\n"
 
 #: client/ipa-rmkeytab.c:93
 #, c-format
 msgid "krb5_kt_remove_entry %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
 
 #: client/ipa-rmkeytab.c:124 client/ipa-rmkeytab.c:146
 #: client/ipa-rmkeytab.c:160 client/ipa-rmkeytab.c:263
@@ -763,12 +763,12 @@ msgstr "주체를 구문 분석 할 수 없습니다\n"
 #: client/ipa-rmkeytab.c:135
 #, c-format
 msgid "krb5_unparse_name %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_unparse_name %1$d: %2$s\n"
 
 #: client/ipa-rmkeytab.c:169
 #, c-format
 msgid "realm not found\n"
-msgstr ""
+msgstr "realm을 찾을 수 없음\n"
 
 #: client/ipa-rmkeytab.c:195
 msgid "Print debugging information"
@@ -776,7 +776,7 @@ msgstr "디버깅 정보 인쇄"
 
 #: client/ipa-rmkeytab.c:195
 msgid "Debugging output"
-msgstr ""
+msgstr "디버깅 출력"
 
 #: client/ipa-rmkeytab.c:197
 msgid ""
