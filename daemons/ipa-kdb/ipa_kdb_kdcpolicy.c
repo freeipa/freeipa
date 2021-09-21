@@ -88,7 +88,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
     }
 
     ua = ied->user_auth;
-    
+
     /* If no mechanisms are set, allow every auth method */
     if (ua == IPADB_USER_AUTH_NONE) {
         jitter(ONE_DAY_SECONDS, lifetime_out);
@@ -128,7 +128,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
             valid_auth_indicators++;
             /* Allow hardened even if only password pre-auth is allowed */
             if (!(ua & (IPADB_USER_AUTH_HARDENED | IPADB_USER_AUTH_PASSWORD))) {
-                *status = "Password pre-authentication not not allowed for this user.";
+                *status = "Password pre-authentication not allowed for this user.";
                 kerr = KRB5KDC_ERR_POLICY;
                 goto done;
             }
