@@ -268,9 +268,6 @@ class TestTrust(BaseTestTrust):
 
         client = self.clients[0]
         tasks.backup_file(self.master, paths.SSSD_CONF)
-        log_file = '{0}/sssd_{1}.log'.format(paths.VAR_LOG_SSSD_DIR,
-                                             client.domain.name)
-        logsize = len(client.get_file_contents(log_file))
         res = self.master.run_command(['pidof', 'sssd_be'])
         pid = res.stdout_text.strip()
         test_id = 'id testuser@%s' % self.ad_domain
@@ -291,6 +288,10 @@ class TestTrust(BaseTestTrust):
         remove_cache = 'sss_cache -E'
         self.master.run_command(remove_cache)
         client.run_command(remove_cache)
+
+        log_file = '{0}/sssd_{1}.log'.format(paths.VAR_LOG_SSSD_DIR,
+                                             client.domain.name)
+        logsize = len(client.get_file_contents(log_file))
 
         try:
             # stop sssd_be, needed to simulate a timeout in the extdom plugin.
