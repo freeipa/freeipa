@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-09-20 15:05+0000\n"
+"PO-Revision-Date: 2021-09-27 17:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -476,19 +476,19 @@ msgstr "심볼릭링크를 키탭으로 결정 하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:731
 msgid "keytab is a dangling symlink and owned by another user.\n"
-msgstr ""
+msgstr "키탭은 매달린 심볼릭 링크와 다른 사용자에 의해 소유됩니다\n"
 
 #: client/ipa-getkeytab.c:763
 msgid "Print as little as possible"
-msgstr ""
+msgstr "가능한 작게 출력합니다"
 
 #: client/ipa-getkeytab.c:763
 msgid "Output only on errors"
-msgstr ""
+msgstr "오류에서만 출력"
 
 #: client/ipa-getkeytab.c:765
 msgid "Contact this specific KDC Server"
-msgstr ""
+msgstr "이와 같은 지정된 KDC 서버와 연락합니다"
 
 #: client/ipa-getkeytab.c:766
 msgid "Server Name"
@@ -496,29 +496,29 @@ msgstr "서버 이름"
 
 #: client/ipa-getkeytab.c:768
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
-msgstr ""
+msgstr "(예제: ftp/ftp.example.com@EXAMPLE.COM)를 위해 키탭에서 가져올 주체"
 
 #: client/ipa-getkeytab.c:769 client/ipa-rmkeytab.c:198
 msgid "Kerberos Service Principal Name"
-msgstr ""
+msgstr "커버러스 서비스 주체 이름"
 
 #: client/ipa-getkeytab.c:771
 msgid ""
 "The keytab file to append the new key to (will be created if it does not "
 "exist)."
-msgstr ""
+msgstr "신규 키를 (만약 존재 한다면 생성 될 것임)로 확장하는 키탭 파일."
 
 #: client/ipa-getkeytab.c:773 client/ipa-rmkeytab.c:200
 msgid "Keytab File Name"
-msgstr ""
+msgstr "키탭 파일 이름"
 
 #: client/ipa-getkeytab.c:775
 msgid "Encryption types to request"
-msgstr ""
+msgstr "요청하는 암호화 유형"
 
 #: client/ipa-getkeytab.c:776
 msgid "Comma separated encryption types list"
-msgstr ""
+msgstr "쉼표로 구분된 암호화 유형 목록"
 
 #: client/ipa-getkeytab.c:778
 msgid "Show the list of permitted encryption types and exit"
@@ -583,7 +583,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:822 client/ipa-rmkeytab.c:216
 #, c-format
 msgid "Kerberos context initialization failed\n"
-msgstr ""
+msgstr "커버러스 문맥 초기화에 실패함\n"
 
 #: client/ipa-getkeytab.c:835 util/ipa_krb5.c:892
 #, c-format
@@ -781,34 +781,34 @@ msgstr "디버깅 출력"
 #: client/ipa-rmkeytab.c:197
 msgid ""
 "The principal to remove from the keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
-msgstr ""
+msgstr "keytab에서 제거 할 주체 (예제: ftp/ftp.example.com@EXAMPLE.COM)"
 
 #: client/ipa-rmkeytab.c:200
 msgid "The keytab file to remove the principcal(s) from"
-msgstr ""
+msgstr "주체를 제거하는 키탭 파일"
 
 #: client/ipa-rmkeytab.c:202
 msgid "Remove all principals in this realm"
-msgstr ""
+msgstr "이와 영역에서 모든 주체를 제거합니다"
 
 #: client/ipa-rmkeytab.c:202 ipaclient/remote_plugins/2_114/trust.py:111
 msgid "Realm name"
-msgstr ""
+msgstr "영역 이름"
 
 #: client/ipa-rmkeytab.c:256
 #, c-format
 msgid "Failed to open keytab '%1$s': %2$s\n"
-msgstr ""
+msgstr "키탭을 여는데 실패함 '%1$s': %2$s\n"
 
 #: client/ipa-rmkeytab.c:279
 #, c-format
 msgid "Closing keytab failed\n"
-msgstr ""
+msgstr "키탭을 닫는데 실패함\n"
 
 #: client/ipa-rmkeytab.c:281
 #, c-format
 msgid "krb5_kt_close %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_닫기 %1$d: %2$s\n"
 
 #: client/config.c:56
 #, c-format
