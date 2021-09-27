@@ -5569,7 +5569,7 @@ command: sudorule_add_option/1
 args: 1,5,3
 arg: Str('cn', cli_name='sudorule_name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
-option: Str('ipasudoopt', cli_name='sudooption')
+option: Str('ipasudoopt+', cli_name='sudooption')
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
@@ -5724,7 +5724,7 @@ command: sudorule_remove_option/1
 args: 1,5,3
 arg: Str('cn', cli_name='sudorule_name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
-option: Str('ipasudoopt', cli_name='sudooption')
+option: Str('ipasudoopt+', cli_name='sudooption')
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')

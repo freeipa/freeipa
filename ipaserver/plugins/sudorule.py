@@ -57,6 +57,11 @@ IPA provides a means to configure the various aspects of Sudo:
    RunAsGroup: The group(s) whose gid rights Sudo will be invoked with.
    Options: The various Sudoers Options that can modify Sudo's behavior.
 """) + _("""
+Each option needs to be added separately and no validation is done whether
+the option is known by sudo or is in a valid format. Environment variables
+also need to be set individually. For example env_keep="FOO BAR" in sudoers
+needs be represented as --sudooption env_keep=FOO --sudooption env_keep+=BAR.
+""") + _("""
 An order can be added to a sudorule to control the order in which they
 are evaluated (if the client supports it). This order is an integer and
 must be unique.
@@ -89,6 +94,10 @@ EXAMPLES:
 """) + _("""
  Set a default Sudo option:
    ipa sudorule-add-option defaults --sudooption '!authenticate'
+""") + _("""
+ Set multiple default Sudo options:
+   ipa sudorule-add-option defaults --sudooption '!authenticate' \
+   --sudooption mail_badpass
 """) + _("""
  Set SELinux type and role transitions on a rule:
    ipa sudorule-add-option sysadmin_sudo --sudooption type=unconfined_t
@@ -353,7 +362,7 @@ class sudorule(LDAPObject):
             label=_('RunAs External Group'),
             doc=_('External Group the commands can run as (sudorule-find only)'),
         ),
-        Str('ipasudoopt?',
+        Str('ipasudoopt*',
             label=_('Sudo Option'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
@@ -989,7 +998,7 @@ class sudorule_add_option(LDAPQuery):
 
     has_output = output.standard_entry
     takes_options = (
-        Str('ipasudoopt',
+        Str('ipasudoopt+',
             cli_name='sudooption',
             label=_('Sudo Option'),
         ),
@@ -1000,16 +1009,17 @@ class sudorule_add_option(LDAPQuery):
 
         dn = self.obj.get_dn(cn)
 
-        if not options['ipasudoopt'].strip():
+        if len(options.get('ipasudoopt',[])) == 0:
             raise errors.EmptyModlist()
         entry_attrs = ldap.get_entry(dn, ['ipasudoopt'])
 
         try:
-            if options['ipasudoopt'] not in entry_attrs['ipasudoopt']:
-                entry_attrs.setdefault('ipasudoopt', []).append(
-                    options['ipasudoopt'])
-            else:
-                raise errors.DuplicateEntry
+            entry_attrs.setdefault('ipasudoopt', [])
+            for option in options['ipasudoopt']:
+                if option not in entry_attrs['ipasudoopt']:
+                    entry_attrs['ipasudoopt'].append(option)
+                else:
+                    raise errors.DuplicateEntry
         except KeyError:
             entry_attrs.setdefault('ipasudoopt', []).append(
                 options['ipasudoopt'])
@@ -1037,7 +1047,7 @@ class sudorule_remove_option(LDAPQuery):
 
     has_output = output.standard_entry
     takes_options = (
-        Str('ipasudoopt',
+        Str('ipasudoopt+',
             cli_name='sudooption',
             label=_('Sudo Option'),
         ),
@@ -1047,22 +1057,20 @@ class sudorule_remove_option(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
-
-        if not options['ipasudoopt'].strip():
+        if len(options.get('ipasudoopt',[])) == 0:
             raise errors.EmptyModlist()
 
         entry_attrs = ldap.get_entry(dn, ['ipasudoopt'])
 
         try:
-            if options['ipasudoopt'] in entry_attrs['ipasudoopt']:
-                entry_attrs.setdefault('ipasudoopt', []).remove(
-                    options['ipasudoopt'])
-                ldap.update_entry(entry_attrs)
-            else:
-                raise errors.AttrValueNotFound(
-                    attr='ipasudoopt',
-                    value=options['ipasudoopt']
-                    )
+            entry_attrs.setdefault('ipasudoopt', [])
+            for option in options['ipasudoopt']:
+                if option in entry_attrs['ipasudoopt']:
+                    entry_attrs['ipasudoopt'].remove(option)
+                else:
+                    raise errors.AttrValueNotFound(
+                        attr='ipasudoopt',
+                        value=option)
         except ValueError:
             pass
         except KeyError:
@@ -1070,6 +1078,11 @@ class sudorule_remove_option(LDAPQuery):
                     attr='ipasudoopt',
                     value=options['ipasudoopt']
                     )
+
+        try:
+            ldap.update_entry(entry_attrs)
+        except errors.EmptyModlist:
+            pass
         except errors.NotFound:
             raise self.obj.handle_not_found(cn)
 
