@@ -25,6 +25,7 @@ import pytest
 import six
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
+from ipatests.test_xmlrpc.xmlrpc_test import assert_deepequal
 from ipalib import api
 from ipalib import errors
 
@@ -61,6 +62,8 @@ class test_sudorule(XMLRPC_test):
     test_runasgroup = u'manager'
     test_category = u'all'
     test_option = u'authenticate'
+    test_option2 = u'fqdn'
+    test_option3 = u'log_allowed'
 
     test_invalid_user = u'+invalid#user'
     test_invalid_host = u'+invalid&host.nonexist.com'
@@ -425,6 +428,65 @@ class test_sudorule(XMLRPC_test):
             self.rule_name, user=self.test_user, group=self.test_group
         )
         assert ret['completed'] == 2
+
+    def test_c_sudorule_add_multiple_options(self):
+        """
+        Test adding two options to Sudo rule using
+        `xmlrpc.sudorule_add_option`.
+        """
+        ret = api.Command['sudorule_add_option'](
+            self.rule_name,
+            ipasudoopt=(self.test_option, self.test_option2, self.test_option3)
+        )
+        entry = ret['result']
+        assert_deepequal(entry.get('ipasudoopt'),
+                         (self.test_option, self.test_option2,
+                          self.test_option3))
+
+    def test_d_sudorule_add_duplicate_option(self):
+        """
+        Test adding a duplicate option to Sudo rule using
+        `xmlrpc.sudorule_add_option`.
+        """
+        with pytest.raises(errors.DuplicateEntry):
+            api.Command['sudorule_add_option'](
+                self.rule_name,
+                ipasudoopt=(self.test_option,)
+            )
+
+    def test_e_sudorule_remove_one_option(self):
+        """
+        Test removing an option from Sudo rule using
+        `xmlrpc.sudorule_remove_option'.
+        """
+        ret = api.Command['sudorule_remove_option'](
+            self.rule_name, ipasudoopt=self.test_option
+        )
+        entry = ret['result']
+        assert_deepequal(entry.get('ipasudoopt'),
+                         (self.test_option2, self.test_option3))
+
+    def test_f_sudorule_remove_multiple_options(self):
+        """
+        Test removing an option from Sudo rule using
+        `xmlrpc.sudorule_remove_option'.
+        """
+        ret = api.Command['sudorule_remove_option'](
+            self.rule_name, ipasudoopt=(self.test_option2, self.test_option3)
+        )
+        entry = ret['result']
+        assert len(entry.get('ipasudoopt', [])) == 0
+
+    def test_g_sudorule_remove_unknown_option(self):
+        """
+        Test removing an unknown option from Sudo rule using
+        `xmlrpc.sudorule_remove_option'.
+        """
+        with pytest.raises(errors.AttrValueNotFound):
+            api.Command['sudorule_remove_option'](
+                self.rule_name,
+                ipasudoopt=(self.test_option,)
+            )
 
     def test_a_sudorule_add_host(self):
         """
