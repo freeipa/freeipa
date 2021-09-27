@@ -530,7 +530,41 @@ def generate_dns_service_records_help(api):
 
 
 @group
-class ADTrustInstallInterface(ServiceAdminInstallInterface):
+class SIDInstallInterface(ServiceAdminInstallInterface):
+    """
+    Interface for the SID generation Installer
+
+    Knobs defined here will be available in:
+    * ipa-server-install
+    * ipa-replica-install
+    * ipa-adtrust-install
+    """
+    description = "SID generation"
+    add_sids = knob(
+        None,
+        description="Add SIDs for existing users and groups as the final step"
+    )
+    add_sids = replica_install_only(add_sids)
+    netbios_name = knob(
+        str,
+        None,
+        description="NetBIOS name of the IPA domain"
+    )
+    rid_base = knob(
+        int,
+        1000,
+        description="Start value for mapping UIDs and GIDs to RIDs"
+    )
+    secondary_rid_base = knob(
+        int,
+        100000000,
+        description="Start value of the secondary range for mapping "
+                    "UIDs and GIDs to RIDs"
+    )
+
+
+@group
+class ADTrustInstallInterface(SIDInstallInterface):
     """
     Interface for the AD trust installer
 
@@ -543,10 +577,6 @@ class ADTrustInstallInterface(ServiceAdminInstallInterface):
 
     # the following knobs are provided on top of those specified for
     # admin credentials
-    add_sids = knob(
-        None,
-        description="Add SIDs for existing users and groups as the final step"
-    )
     add_agents = knob(
         None,
         description="Add IPA masters to a list of hosts allowed to "
@@ -557,24 +587,8 @@ class ADTrustInstallInterface(ServiceAdminInstallInterface):
         None,
         description="Enable support for trusted domains for old clients"
     )
-    netbios_name = knob(
-        str,
-        None,
-        description="NetBIOS name of the IPA domain"
-    )
     no_msdcs = knob(
         None,
         description="Deprecated: has no effect",
         deprecated=True
-    )
-    rid_base = knob(
-        int,
-        1000,
-        description="Start value for mapping UIDs and GIDs to RIDs"
-    )
-    secondary_rid_base = knob(
-        int,
-        100000000,
-        description="Start value of the secondary range for mapping "
-                    "UIDs and GIDs to RIDs"
     )
