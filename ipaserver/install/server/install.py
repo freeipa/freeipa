@@ -443,6 +443,7 @@ def install_check(installer):
         print("  * Configure KRA (dogtag) for secret management")
     if options.setup_dns:
         print("  * Configure DNS (bind)")
+    print("  * Configure SID generation")
     if options.setup_adtrust:
         print("  * Configure Samba (smb) and winbind for managing AD trusts")
     if not options.no_pkinit:
@@ -703,8 +704,9 @@ def install_check(installer):
         logger.debug('Starting Directory Server')
         services.knownservices.dirsrv.start(instance_name)
 
-    if options.setup_adtrust:
-        adtrust.install_check(False, options, api)
+    # Always call adtrust.install_check
+    # if --setup-adtrust is not specified, only the SID part is executed
+    adtrust.install_check(False, options, api)
 
     # installer needs to update hosts file when DNS subsystem will be
     # installed or custom addresses are used
@@ -966,8 +968,9 @@ def install(installer):
     if options.setup_dns:
         dns.install(False, False, options)
 
-    if options.setup_adtrust:
-        adtrust.install(False, options, fstore, api)
+    # Always call adtrust installer to configure SID generation
+    # if --setup-adtrust is not specified, only the SID part is executed
+    adtrust.install(False, options, fstore, api)
 
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)
