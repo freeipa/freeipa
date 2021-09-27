@@ -149,7 +149,7 @@ class ADTRUSTInstance(service.Service):
     OBJC_DOMAIN = "ipaNTDomainAttrs"
     FALLBACK_GROUP_NAME = u'Default SMB Group'
 
-    def __init__(self, fstore=None):
+    def __init__(self, fstore=None, fulltrust=True):
         self.netbios_name = None
         self.reset_netbios_name = None
         self.add_sids = None
@@ -163,10 +163,15 @@ class ADTRUSTInstance(service.Service):
 
         self.fqdn = None
         self.host_netbios_name = None
+        self.fulltrust = fulltrust
 
-        super(ADTRUSTInstance, self).__init__(
-            "smb", service_desc="CIFS", fstore=fstore, service_prefix=u'cifs',
-            keytab=paths.SAMBA_KEYTAB)
+        if self.fulltrust:
+            super(ADTRUSTInstance, self).__init__(
+                "smb", service_desc="CIFS", fstore=fstore,
+                service_prefix=u'cifs',
+                keytab=paths.SAMBA_KEYTAB)
+        else:
+            super(ADTRUSTInstance, self).__init__("SID generation")
 
         self.__setup_default_attributes()
 
@@ -200,12 +205,13 @@ class ADTRUSTInstance(service.Service):
                              api.env.container_cifsdomains,
                              self.suffix)
 
-        self.cifs_agent = DN(('krbprincipalname', self.principal.lower()),
-                             api.env.container_service,
-                             self.suffix)
-        self.host_princ = DN(('fqdn', self.fqdn),
-                             api.env.container_host,
-                             self.suffix)
+        if self.fulltrust:
+            self.cifs_agent = DN(('krbprincipalname', self.principal.lower()),
+                                 api.env.container_service,
+                                 self.suffix)
+            self.host_princ = DN(('fqdn', self.fqdn),
+                                 api.env.container_host,
+                                 self.suffix)
 
 
     def __gen_sid_string(self):
@@ -546,7 +552,7 @@ class ADTRUSTInstance(service.Service):
         try:
             current = api.Backend.ldap2.get_entry(targets_dn)
             members = current.get('memberPrincipal', [])
-            if not(self.principal in members):
+            if self.principal not in members:
                 current["memberPrincipal"] = members + [self.principal]
                 api.Backend.ldap2.update_entry(current)
             else:
@@ -838,45 +844,59 @@ class ADTRUSTInstance(service.Service):
         self.sub_dict['IPA_LOCAL_RANGE'] = get_idmap_range(self.realm)
 
     def create_instance(self):
-        self.step("validate server hostname",
-                  self.__validate_server_hostname)
-        self.step("stopping smbd", self.__stop)
+        if self.fulltrust:
+            self.step("validate server hostname",
+                      self.__validate_server_hostname)
+            self.step("stopping smbd", self.__stop)
         self.step("creating samba domain object", \
                   self.__create_samba_domain_object)
-        self.step("retrieve local idmap range", self.__retrieve_local_range)
-        self.step("writing samba config file", self.__write_smb_conf)
-        self.step("creating samba config registry", self.__write_smb_registry)
-        self.step("adding cifs Kerberos principal",
-                  self.request_service_keytab)
-        self.step("adding cifs and host Kerberos principals to the adtrust agents group", \
+        if self.fulltrust:
+            self.step("retrieve local idmap range",
+                      self.__retrieve_local_range)
+            self.step("writing samba config file", self.__write_smb_conf)
+            self.step("creating samba config registry",
+                      self.__write_smb_registry)
+            self.step("adding cifs Kerberos principal",
+                      self.request_service_keytab)
+            self.step("adding cifs and host Kerberos principals to the "
+                      "adtrust agents group",
                   self.__setup_group_membership)
-        self.step("check for cifs services defined on other replicas", self.__check_replica)
-        self.step("adding cifs principal to S4U2Proxy targets", self.__add_s4u2proxy_target)
+            self.step("check for cifs services defined on other replicas",
+                      self.__check_replica)
+            self.step("adding cifs principal to S4U2Proxy targets",
+                      self.__add_s4u2proxy_target)
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
         self.step("adding RID bases", self.__add_rid_bases)
         self.step("updating Kerberos config", self.__update_krb5_conf)
-        self.step("activating CLDAP plugin", self.__add_cldap_module)
+        if self.fulltrust:
+            self.step("activating CLDAP plugin", self.__add_cldap_module)
         self.step("activating sidgen task", self.__add_sidgen_task)
-        self.step("map BUILTIN\\Guests to nobody group",
-                  self.__map_Guests_to_nobody)
-        self.step("configuring smbd to start on boot", self.__enable)
+        if self.fulltrust:
+            self.step("map BUILTIN\\Guests to nobody group",
+                      self.__map_Guests_to_nobody)
+            self.step("configuring smbd to start on boot", self.__enable)
 
         if self.enable_compat:
-            self.step("enabling trusted domains support for older clients via Schema Compatibility plugin",
+            self.step("enabling trusted domains support for older clients via "
+                      "Schema Compatibility plugin",
                       self.__enable_compat_tree)
 
-        self.step("restarting Directory Server to take MS PAC and LDAP plugins changes into account", \
+        self.step("restarting Directory Server to take MS PAC and LDAP "
+                  "plugins changes into account",
                   self.__restart_dirsrv)
         self.step("adding fallback group", self.__add_fallback_group)
-        self.step("adding Default Trust View", self.__add_default_trust_view)
-        self.step("setting SELinux booleans", \
-                  self.__configure_selinux_for_smbd)
-        self.step("starting CIFS services", self.__start)
+        if self.fulltrust:
+            self.step("adding Default Trust View",
+                      self.__add_default_trust_view)
+            self.step("setting SELinux booleans",
+                      self.__configure_selinux_for_smbd)
+            self.step("starting CIFS services", self.__start)
 
         if self.add_sids:
             self.step("adding SIDs to existing users and groups",
                       self.__add_sids)
-        self.step("restarting smbd", self.__restart_smb)
+        if self.fulltrust:
+            self.step("restarting smbd", self.__restart_smb)
 
         self.start_creation(show_service_name=False)
 

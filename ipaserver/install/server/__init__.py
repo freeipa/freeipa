@@ -432,11 +432,6 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                     "You cannot specify an --enable-compat option without the "
                     "--setup-adtrust option")
 
-            if self.netbios_name:
-                raise RuntimeError(
-                    "You cannot specify a --netbios-name option without the "
-                    "--setup-adtrust option")
-
             if self.no_msdcs:
                 raise RuntimeError(
                     "You cannot specify a --no-msdcs option without the "
