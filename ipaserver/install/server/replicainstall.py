@@ -1158,8 +1158,9 @@ def promote_check(installer):
             # check addresses here, dns module is doing own check
             no_matching_interface_for_ip_address_warning(config.ips)
 
-        if options.setup_adtrust:
-            adtrust.install_check(False, options, remote_api)
+        # Always call adtrust.install_check
+        # if --setup-adtrust is not specified, only the SID part is executed
+        adtrust.install_check(False, options, remote_api)
 
     except errors.ACIError:
         logger.debug("%s", traceback.format_exc())
@@ -1365,8 +1366,9 @@ def install(installer):
     if options.setup_dns:
         dns.install(False, True, options, api)
 
-    if options.setup_adtrust:
-        adtrust.install(False, options, fstore, api)
+    # Always call adtrust.install
+    # if --setup-adtrust is not specified, only the SID part is executed
+    adtrust.install(False, options, fstore, api)
 
     if options.hidden_replica:
         # Set services to hidden

@@ -230,11 +230,7 @@ Disable DNSSEC validation on this server.
 \fB\-\-allow\-zone\-overlap\fR
 Allow creation of (reverse) zone even if the zone is already resolvable. Using this option is discouraged as it result in later problems with domain name resolution.
 
-.SS "AD TRUST OPTIONS"
-
-.TP
-\fB\-\-setup\-adtrust\fR
-Configure AD Trust capability.
+.SS "SID GENERATION OPTIONS"
 .TP
 \fB\-\-netbios\-name\fR=\fINETBIOS_NAME\fR
 The NetBIOS name for the IPA domain. If not provided, this is determined
@@ -252,6 +248,11 @@ idrange CLI for details.
 Start value of the secondary RID range, which is only used in the case a user
 and a group share numerically the same POSIX ID. See the online help of the
 idrange CLI for details.
+
+.SS "AD TRUST OPTIONS"
+.TP
+\fB\-\-setup\-adtrust\fR
+Configure AD Trust capability.
 .TP
 \fB\-\-enable\-compat\fR
 Enables support for trusted domains users for old clients through Schema Compatibility plugin.

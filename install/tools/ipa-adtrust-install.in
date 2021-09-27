@@ -209,6 +209,8 @@ def main():
         raise ScriptError(
             "Unrecognized error during check of admin rights: %s" % e)
 
+    # Force options.setup_adtrust
+    options.setup_adtrust = True
     adtrust.install_check(True, options, api)
     adtrust.install(True, options, fstore, api)
 
