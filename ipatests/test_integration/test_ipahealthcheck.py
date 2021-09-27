@@ -2415,7 +2415,10 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         """
         Test for IPAOpenSSLChainValidation when httpd cert is moved.
         """
-        error_msg = "Can't open {} for reading".format(paths.HTTPD_CERT_FILE)
+        error_msg1 = "Can't open {} for reading".format(paths.HTTPD_CERT_FILE)
+        # OpenSSL3 has a different error message
+        error_msg3 = "Could not open file or uri for loading certificate " \
+                     "file from {}".format(paths.HTTPD_CERT_FILE)
         returncode, data = run_healthcheck(
             self.master,
             "ipahealthcheck.ipa.certs",
@@ -2425,7 +2428,8 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         for check in data:
             if check["kw"]["key"] == paths.HTTPD_CERT_FILE:
                 assert check["result"] == "ERROR"
-                assert error_msg in check["kw"]["reason"]
+                assert (error_msg1 in check["kw"]["reason"]
+                        or error_msg3 in check["kw"]["reason"])
 
     @pytest.fixture()
     def replace_ipa_chain(self):
