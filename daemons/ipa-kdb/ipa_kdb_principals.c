@@ -79,6 +79,8 @@ static char *std_principal_attrs[] = {
     "ipatokenRadiusConfigLink",
     "krbAuthIndMaxTicketLife",
     "krbAuthIndMaxRenewableAge",
+    "ipaNTSecurityIdentifier",
+    "ipaUniqueID",
 
     "objectClass",
     NULL
@@ -594,6 +596,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     char *restring;
     char *uidstring;
     char **authz_data_list;
+    char *princ_sid;
     krb5_timestamp restime;
     bool resbool;
     int result;
@@ -961,6 +964,27 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
 
     if (ua & ~IPADB_USER_AUTH_NONE) {
         ipadb_parse_authind_policies(kcontext, lcontext, lentry, entry, ua);
+    }
+
+    /* Add SID if it is associated with the principal account */
+    ied->has_sid = false;
+    ied->sid = NULL;
+    ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
+                                 "ipaNTSecurityIdentifier", &princ_sid);
+    if (ret == 0 && princ_sid != NULL) {
+        alloc_sid(&ied->sid);
+        if (ied->sid == NULL) {
+            kerr = KRB5_KDB_INTERNAL_ERROR;
+            free(princ_sid);
+            goto done;
+        }
+        ret = ipadb_string_to_sid(princ_sid, ied->sid);
+        free(princ_sid);
+        if (ret != 0) {
+            kerr = ret;
+            goto done;
+        }
+        ied->has_sid = true;
     }
 
     kerr = 0;
@@ -1568,6 +1592,7 @@ void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
 	}
 	free(ied->authz_data);
 	free(ied->pol);
+	free_sid(&ied->sid);
 	free(ied);
     }
 }

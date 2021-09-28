@@ -80,7 +80,20 @@ static char *memberof_pac_attrs[] = {
 #define AUTHZ_DATA_TYPE_PAD "PAD"
 #define AUTHZ_DATA_TYPE_NONE "NONE"
 
-int string_to_sid(const char *str, struct dom_sid *sid)
+void alloc_sid(struct dom_sid **sid)
+{
+    *sid = malloc(sizeof(struct dom_sid));
+}
+
+void free_sid(struct dom_sid **sid)
+{
+    if (sid != NULL && *sid != NULL) {
+        free(*sid);
+        *sid = NULL;
+    }
+}
+
+int ipadb_string_to_sid(const char *str, struct dom_sid *sid)
 {
     unsigned long val;
     const char *s;
@@ -372,7 +385,7 @@ static krb5_error_code ipadb_add_asserted_identity(struct ipadb_context *ipactx,
 
     /* For S4U2Self, add Service Asserted Identity SID
      * otherwise, add Authentication Authority Asserted Identity SID */
-    ret = string_to_sid((flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION) ?
+    ret = ipadb_string_to_sid((flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION) ?
                         "S-1-18-2" : "S-1-18-1",
                         arr[sidcount].sid);
     if (ret) {
@@ -655,7 +668,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
             /* SID is mandatory */
             return ret;
         }
-        ret = string_to_sid(strres, &sid);
+        ret = ipadb_string_to_sid(strres, &sid);
         free(strres);
         if (ret) {
             return ret;
@@ -700,7 +713,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
                     }
                 }
                 if (strcasecmp(dval->type, "ipaNTSecurityIdentifier") == 0) {
-                    ret = string_to_sid((char *)dval->vals[0].bv_val, &gsid);
+                    ret = ipadb_string_to_sid((char *)dval->vals[0].bv_val, &gsid);
                     if (ret) {
                         continue;
                     }
@@ -1189,7 +1202,7 @@ static int map_groups(TALLOC_CTX *memctx, krb5_context kcontext,
                             }
                             if (strcasecmp(dval->type,
                                            "ipaNTSecurityIdentifier") == 0) {
-                                kerr = string_to_sid((char *)dval->vals[0].bv_val, &sid);
+                                kerr = ipadb_string_to_sid((char *)dval->vals[0].bv_val, &sid);
                                 if (kerr != 0) {
                                     continue;
                                 }
@@ -2434,7 +2447,7 @@ ipadb_adtrusts_fill_sid_blacklist(char **source_sid_blacklist,
     }
 
     for (i = 0; i < len; i++) {
-         (void) string_to_sid(source[i], &sid_blacklist[i]);
+         (void) ipadb_string_to_sid(source[i], &sid_blacklist[i]);
     }
 
     *result_sids = sid_blacklist;
@@ -2594,7 +2607,7 @@ ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
             goto done;
         }
 
-        ret = string_to_sid(t[n].domain_sid, &t[n].domsid);
+        ret = ipadb_string_to_sid(t[n].domain_sid, &t[n].domsid);
         if (ret && t[n].domain_sid != NULL) {
             ret = EINVAL;
             goto done;
@@ -2812,7 +2825,7 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_rein
         goto done;
     }
 
-    ret = string_to_sid(resstr, &ipactx->mspac->domsid);
+    ret = ipadb_string_to_sid(resstr, &ipactx->mspac->domsid);
     if (ret) {
         kerr = ret;
         free(resstr);
@@ -2865,7 +2878,7 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_rein
                 goto done;
             }
             if (ret == 0) {
-                ret = string_to_sid(resstr, &gsid);
+                ret = ipadb_string_to_sid(resstr, &gsid);
                 if (ret) {
                     free(resstr);
                     kerr = ret;

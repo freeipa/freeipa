@@ -105,7 +105,7 @@ static int setup(void **state)
     /* make sure data is not read from LDAP */
     ipa_ctx->mspac->last_update = time(NULL) - 1;
 
-    ret = string_to_sid(DOM_SID, &ipa_ctx->mspac->domsid);
+    ret = ipadb_string_to_sid(DOM_SID, &ipa_ctx->mspac->domsid);
     assert_int_equal(ret, 0);
 
     ipa_ctx->mspac->num_trusts = 1;
@@ -121,7 +121,7 @@ static int setup(void **state)
     ipa_ctx->mspac->trusts[0].domain_sid = strdup(DOM_SID_TRUST);
     assert_non_null(ipa_ctx->mspac->trusts[0].domain_sid);
 
-    ret = string_to_sid(DOM_SID_TRUST, &ipa_ctx->mspac->trusts[0].domsid);
+    ret = ipadb_string_to_sid(DOM_SID_TRUST, &ipa_ctx->mspac->trusts[0].domsid);
     assert_int_equal(ret, 0);
 
     ipa_ctx->mspac->trusts[0].len_sid_blocklist_incoming = 1;
@@ -129,7 +129,7 @@ static int setup(void **state)
                            ipa_ctx->mspac->trusts[0].len_sid_blocklist_incoming,
                            sizeof(struct dom_sid));
     assert_non_null(ipa_ctx->mspac->trusts[0].sid_blocklist_incoming);
-    ret = string_to_sid(BLOCKLIST_SID,
+    ret = ipadb_string_to_sid(BLOCKLIST_SID,
                         &ipa_ctx->mspac->trusts[0].sid_blocklist_incoming[0]);
     assert_int_equal(ret, 0);
 
@@ -216,7 +216,7 @@ static void test_filter_logon_info(void **state)
     assert_int_equal(kerr, EINVAL);
 
     /* wrong domain SID */
-    ret = string_to_sid("S-1-5-21-1-1-1", &dom_sid);
+    ret = ipadb_string_to_sid("S-1-5-21-1-1-1", &dom_sid);
     assert_int_equal(ret, 0);
     info->info->info3.base.domain_sid = &dom_sid;
 
@@ -224,7 +224,7 @@ static void test_filter_logon_info(void **state)
     assert_int_equal(kerr, EINVAL);
 
     /* matching domain SID */
-    ret = string_to_sid(DOM_SID_TRUST, &dom_sid);
+    ret = ipadb_string_to_sid(DOM_SID_TRUST, &dom_sid);
     assert_int_equal(ret, 0);
     info->info->info3.base.domain_sid = &dom_sid;
 
@@ -292,7 +292,7 @@ static void test_filter_logon_info(void **state)
         }
 
         for (d = 0; d < info->info->info3.sidcount; d++) {
-            ret = string_to_sid(test_data[c].sids[d],
+            ret = ipadb_string_to_sid(test_data[c].sids[d],
                                 info->info->info3.sids[d].sid);
             assert_int_equal(ret, 0);
         }
@@ -434,7 +434,7 @@ static void test_get_authz_data_types(void **state)
     krb5_free_principal(test_ctx->krb5_ctx, non_nfs_princ);
 }
 
-static void test_string_to_sid(void **state)
+static void test_ipadb_string_to_sid(void **state)
 {
     int ret;
     struct dom_sid sid;
@@ -442,25 +442,25 @@ static void test_string_to_sid(void **state)
                               {21, 2127521184, 1604012920, 1887927527, 72713,
                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
-    ret = string_to_sid(NULL, &sid);
+    ret = ipadb_string_to_sid(NULL, &sid);
     assert_int_equal(ret, EINVAL);
 
-    ret = string_to_sid("abc", &sid);
+    ret = ipadb_string_to_sid("abc", &sid);
     assert_int_equal(ret, EINVAL);
 
-    ret = string_to_sid("S-", &sid);
+    ret = ipadb_string_to_sid("S-", &sid);
     assert_int_equal(ret, EINVAL);
 
-    ret = string_to_sid("S-ABC", &sid);
+    ret = ipadb_string_to_sid("S-ABC", &sid);
     assert_int_equal(ret, EINVAL);
 
-    ret = string_to_sid("S-123", &sid);
+    ret = ipadb_string_to_sid("S-123", &sid);
     assert_int_equal(ret, EINVAL);
 
-    ret = string_to_sid("S-1-123-1-2-3-4-5-6-7-8-9-0-1-2-3-4-5-6", &sid);
+    ret = ipadb_string_to_sid("S-1-123-1-2-3-4-5-6-7-8-9-0-1-2-3-4-5-6", &sid);
     assert_int_equal(ret, EINVAL);
 
-    ret = string_to_sid("S-1-5-21-2127521184-1604012920-1887927527-72713",
+    ret = ipadb_string_to_sid("S-1-5-21-2127521184-1604012920-1887927527-72713",
                         &sid);
     assert_int_equal(ret, 0);
     assert_memory_equal(&exp_sid, &sid, sizeof(struct dom_sid));
@@ -531,7 +531,7 @@ int main(int argc, const char *argv[])
                                         setup, teardown),
         cmocka_unit_test_setup_teardown(test_filter_logon_info,
                                         setup, teardown),
-        cmocka_unit_test(test_string_to_sid),
+        cmocka_unit_test(test_ipadb_string_to_sid),
         cmocka_unit_test_setup_teardown(test_dom_sid_string,
                                         setup, teardown),
         cmocka_unit_test_setup_teardown(test_check_trusted_realms,
