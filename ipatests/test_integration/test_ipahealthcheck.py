@@ -1221,7 +1221,7 @@ class TestIpaHealthCheck(IntegrationTest):
                 "--case-id",
                 caseid,
                 "--batch",
-                "-v",
+                "-vv",
                 "--build",
             ]
         )
