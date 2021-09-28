@@ -236,7 +236,7 @@ static struct dom_sid *dom_sid_dup(TALLOC_CTX *memctx,
  * dom_sid_check() is supposed to be used with sid1 representing domain SID
  * and sid2 being either domain or resource SID in the domain
  */
-static bool dom_sid_check(const struct dom_sid *sid1, const struct dom_sid *sid2, bool exact_check)
+bool dom_sid_check(const struct dom_sid *sid1, const struct dom_sid *sid2, bool exact_check)
 {
     int c, num;
 
@@ -1404,6 +1404,82 @@ static void filter_logon_info_log_message_rid(struct dom_sid *sid, uint32_t rid)
     }
 }
 
+static krb5_error_code check_logon_info_consistent(krb5_context context,
+                                                   TALLOC_CTX *memctx,
+                                                   krb5_const_principal client_princ,
+                                                   struct PAC_LOGON_INFO_CTR *info)
+{
+    krb5_error_code kerr = 0;
+    struct ipadb_context *ipactx;
+    bool result;
+    krb5_db_entry *client_actual = NULL;
+    struct ipadb_e_data *ied = NULL;
+    int flags = 0;
+#ifdef KRB5_KDB_FLAG_ALIAS_OK
+    flags = KRB5_KDB_FLAG_ALIAS_OK;
+#endif
+
+    ipactx = ipadb_get_context(context);
+    if (!ipactx || !ipactx->mspac) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
+    /* check exact sid */
+    result = dom_sid_check(&ipactx->mspac->domsid,
+                           info->info->info3.base.domain_sid, true);
+    if (!result) {
+        /* memctx is freed by the caller */
+        char *sid = dom_sid_string(memctx, info->info->info3.base.domain_sid);
+        char *dom = dom_sid_string(memctx, &ipactx->mspac->domsid);
+        krb5_klog_syslog(LOG_ERR, "PAC issue: PAC record claims domain SID different "
+                                  "to local domain SID: local [%s], PAC [%s]",
+				  dom ? dom : "<failed to display>",
+                                  sid ? sid : "<failed to display>");
+        return KRB5KDC_ERR_POLICY;
+    }
+
+    kerr = ipadb_get_principal(context, client_princ, flags, &client_actual);
+    if (kerr != 0) {
+        krb5_klog_syslog(LOG_ERR, "PAC issue: ipadb_get_principal failed.");
+        return KRB5KDC_ERR_POLICY;
+    }
+
+    ied = (struct ipadb_e_data *)client_actual->e_data;
+    if (ied == NULL || ied->magic != IPA_E_DATA_MAGIC) {
+        krb5_klog_syslog(LOG_ERR, "PAC issue: client e_data fetching failed.");
+        kerr = EINVAL;
+        goto done;
+    }
+
+    if (!ied->has_sid || ied->sid == NULL) {
+        /* Kerberos principal might have no SID associated in the DB entry.
+         * If this is host or service, we'll associate RID -515 or -516 in PAC
+         * depending on whether this is a domain member or domain controller
+         * but since this is not recorded in the DB entry, we the check for
+         * SID is not needed */
+        goto done;
+    }
+
+    result = dom_sid_check(ied->sid, info->info->info3.sids[0].sid, true);
+    if (!result) {
+        /* memctx is freed by the caller */
+        char *local_sid = dom_sid_string(memctx, ied->sid);
+        char *pac_sid = dom_sid_string(memctx, info->info->info3.sids[0].sid);
+        krb5_klog_syslog(LOG_ERR, "PAC issue: client principal has a SID "
+                                  "different from what PAC claims. "
+                                  "local [%s] vs PAC [%s]",
+                                  local_sid ? local_sid : "<failed to display>",
+                                  pac_sid ? pac_sid : "<failed to display>");
+        kerr = KRB5KDC_ERR_POLICY;
+        goto done;
+    }
+
+done:
+    ipadb_free_principal(context, client_actual);
+
+    return kerr;
+}
+
 krb5_error_code filter_logon_info(krb5_context context,
                                   TALLOC_CTX *memctx,
                                   krb5_data realm,
@@ -1631,12 +1707,14 @@ krb5_error_code filter_logon_info(krb5_context context,
 
 
 static krb5_error_code ipadb_check_logon_info(krb5_context context,
-                                              krb5_data origin_realm,
+                                              krb5_const_principal client_princ,
+                                              krb5_boolean is_cross_realm,
                                               krb5_data *pac_blob)
 {
     struct PAC_LOGON_INFO_CTR info;
     krb5_error_code kerr;
     TALLOC_CTX *tmpctx;
+    krb5_data origin_realm = client_princ->realm;
 
     tmpctx = talloc_new(NULL);
     if (!tmpctx) {
@@ -1645,6 +1723,13 @@ static krb5_error_code ipadb_check_logon_info(krb5_context context,
 
     kerr = get_logon_info(context, tmpctx, pac_blob, &info);
     if (kerr) {
+        goto done;
+    }
+
+    if (!is_cross_realm) {
+        /* For local realm case we need to check whether the PAC is for our user
+         * but we don't need to process further */
+        kerr = check_logon_info_consistent(context, tmpctx, client_princ, &info);
         goto done;
     }
 
@@ -1873,19 +1958,18 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         goto done;
     }
 
-    /* Now that the PAC is verified augment it with additional info if
-     * it is coming from a different realm */
-    if (is_cross_realm) {
-        kerr = krb5_pac_get_buffer(context, old_pac,
-                                   KRB5_PAC_LOGON_INFO, &pac_blob);
-        if (kerr != 0) {
-            goto done;
-        }
+    /* Now that the PAC is verified, do additional checks.
+     * Augment it with additional info if it is coming from a different realm */
+    kerr = krb5_pac_get_buffer(context, old_pac,
+                               KRB5_PAC_LOGON_INFO, &pac_blob);
+    if (kerr != 0) {
+        goto done;
+    }
 
-        kerr = ipadb_check_logon_info(context, client_princ->realm, &pac_blob);
-        if (kerr != 0) {
-            goto done;
-        }
+    kerr = ipadb_check_logon_info(context,
+                                  client_princ, is_cross_realm, &pac_blob);
+    if (kerr != 0) {
+        goto done;
     }
     /* extract buffers and rebuilt pac from scratch so that when re-signing
      * with a different cksum type does not cause issues due to mismatching

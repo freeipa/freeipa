@@ -373,3 +373,4 @@ void ipa_certauth_free_moddata(krb5_certauth_moddata *moddata);
 int ipadb_string_to_sid(const char *str, struct dom_sid *sid);
 void alloc_sid(struct dom_sid **sid);
 void free_sid(struct dom_sid **sid);
+bool dom_sid_check(const struct dom_sid *sid1, const struct dom_sid *sid2, bool exact_check);
