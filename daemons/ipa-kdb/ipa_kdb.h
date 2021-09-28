@@ -79,6 +79,7 @@
 #define IPA_USER_AUTH_TYPE "ipaUserAuthType"
 
 struct ipadb_mspac;
+struct dom_sid;
 
 enum ipadb_user_auth {
   IPADB_USER_AUTH_NONE     = 0,
@@ -155,6 +156,8 @@ struct ipadb_e_data {
     bool has_tktpolaux;
     enum ipadb_user_auth user_auth;
     struct ipadb_e_pol_limits pol_limits[IPADB_USER_AUTH_IDX_MAX];
+    bool has_sid;
+    struct dom_sid *sid;
 };
 
 struct ipadb_context *ipadb_get_context(krb5_context kcontext);
@@ -366,3 +369,7 @@ int ipadb_get_enc_salt_types(struct ipadb_context *ipactx, LDAPMessage *entry,
 /* CERTAUTH PLUGIN */
 void ipa_certauth_free_moddata(krb5_certauth_moddata *moddata);
 #endif
+
+int ipadb_string_to_sid(const char *str, struct dom_sid *sid);
+void alloc_sid(struct dom_sid **sid);
+void free_sid(struct dom_sid **sid);
