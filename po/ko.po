@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-09-27 17:05+0000\n"
+"PO-Revision-Date: 2021-09-30 12:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -672,7 +672,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:984
 #, c-format
 msgid "Failed to open Keytab\n"
-msgstr ""
+msgstr "키탭을 여는데 실패함\n"
 
 #: client/ipa-getkeytab.c:1002
 #, c-format
@@ -4254,7 +4254,7 @@ msgstr ""
 
 #: ipaserver/plugins/hostgroup.py:275
 msgid "Modify a hostgroup."
-msgstr ""
+msgstr "호스트그룹을 수정합니다."
 
 #: ipaserver/plugins/hostgroup.py:340
 msgid "Remove members from a hostgroup."
@@ -16000,6 +16000,8 @@ msgid ""
 "\n"
 "Permissions\n"
 msgstr ""
+"\n"
+"권한\n"
 
 #: ipaserver/plugins/permission.py:42
 msgid ""
@@ -17690,7 +17692,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:702
 msgid "Unspecified"
-msgstr ""
+msgstr "지정되지 않음"
 
 #: ipaserver/plugins/internal.py:703
 msgid "Valid Certificate Present"
@@ -18379,7 +18381,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1007
 msgid "Reset One-Time Password"
-msgstr ""
+msgstr "일회용 비밀번호 재설정"
 
 #: ipaserver/plugins/internal.py:1008
 msgid "Set OTP"
