@@ -356,6 +356,7 @@ class test_selinuxusermap(UI_driver):
         self.fill_fields(selinuxmap.DATA['mod'], undo=True)
         self.click_on_link('SELinux User Maps')
         self.dialog_button_click('save')
+        self.close_notifications()
         self.navigate_to_record(selinuxmap.PKEY)
         self.verify_btn_action(mod_description, negative=True)
         self.wait_for_request(n=2)
