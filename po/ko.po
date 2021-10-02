@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-10-01 15:05+0000\n"
+"PO-Revision-Date: 2021-10-03 22:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -522,11 +522,11 @@ msgstr "쉼표로 구분된 암호화 유형 목록"
 
 #: client/ipa-getkeytab.c:778
 msgid "Show the list of permitted encryption types and exit"
-msgstr ""
+msgstr "허용된 암호화 유형의 목록을 표시하고 종료"
 
 #: client/ipa-getkeytab.c:779
 msgid "Permitted Encryption Types"
-msgstr ""
+msgstr "허용되는 암호화 유형"
 
 #: client/ipa-getkeytab.c:781
 msgid "Asks for a non-random password to use for the principal"
