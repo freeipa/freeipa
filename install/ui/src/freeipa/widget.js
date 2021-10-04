@@ -5223,6 +5223,9 @@ IPA.link_widget = function(spec) {
             retry: false,
             on_success: function(data) {
                 that.is_link = data.result && data.result.result;
+                if (that.is_link) {
+                    that.check_data = data.result.result;
+                }
                 that.update_link();
             },
             on_error: function() {

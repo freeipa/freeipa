@@ -840,7 +840,22 @@ IPA.host_dnsrecord_entity_link_widget = function(spec) {
         var first_dot = pkey.search(/\./);
         var pkeys = [];
         pkeys[1] = pkey.substring(0,first_dot);
-        pkeys[0] = pkey.substring(first_dot+1);
+        var dnszone = pkey.substring(first_dot+1);
+        pkeys[0] = dnszone;
+
+        // Check whether DNS record associated with the host belongs to a
+        // fully qualified DNS zone (has trailing '.'). If so, modify the
+        // pkey to be correct in the link.
+        if (that.check_data && dnszone[dnszone.length-1] !== '.') {
+            var avas = that.check_data.dn.split(',');
+            for (var i=0, j=avas.length; i<j; i++) {
+                var ava = avas[i];
+                if (ava.indexOf('idnsname') === 0 && ava.indexOf(dnszone + '.') > 0) {
+                    pkeys[0] = dnszone + '.';
+                }
+            }
+        }
+
         return pkeys;
     };
 
