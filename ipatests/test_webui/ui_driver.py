@@ -1460,10 +1460,6 @@ class UI_driver:
 
         last_element = data[len(data) - 1]
 
-        pkeys = []
-
-        for record in data:
-            pkeys.append(record['pkey'])
         if navigate:
             self.navigate_to_entity(entity, facet)
 
