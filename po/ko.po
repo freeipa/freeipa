@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-10-05 13:05+0000\n"
+"PO-Revision-Date: 2021-10-06 16:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -530,35 +530,35 @@ msgstr "허용되는 암호화 유형"
 
 #: client/ipa-getkeytab.c:781
 msgid "Asks for a non-random password to use for the principal"
-msgstr "보안 주체에 사용할 임의적이지 않은 비밀번호를 요청합니다"
+msgstr "보안 주체에 사용 할 임의적이지 않은 비밀번호를 요청합니다"
 
 #: client/ipa-getkeytab.c:783
 msgid "LDAP DN"
-msgstr ""
+msgstr "LDAP DN"
 
 #: client/ipa-getkeytab.c:783
 msgid "DN to bind as if not using kerberos"
-msgstr ""
+msgstr "만약 커버러스를 사용하지 않는 것같이 바인드하는 DN"
 
 #: client/ipa-getkeytab.c:785
 msgid "LDAP password"
-msgstr ""
+msgstr "LDAP 비밀번호"
 
 #: client/ipa-getkeytab.c:785
 msgid "password to use if not using kerberos"
-msgstr ""
+msgstr "만약 커버러스를 사용하지 않는 것을 사용하려는 비밀번호"
 
 #: client/ipa-getkeytab.c:787
 msgid "Prompt for LDAP password"
-msgstr ""
+msgstr "LDAP 비밀번호를 위한 프롬프트"
 
 #: client/ipa-getkeytab.c:789
 msgid "Path to the IPA CA certificate"
-msgstr ""
+msgstr "IPA CA 인증서 경로"
 
 #: client/ipa-getkeytab.c:789
 msgid "IPA CA certificate"
-msgstr ""
+msgstr "IPA CA 인증서"
 
 #: client/ipa-getkeytab.c:791
 msgid "LDAP uri to connect to. Mutually exclusive with --server"
