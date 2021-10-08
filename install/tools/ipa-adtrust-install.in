@@ -64,10 +64,11 @@ def parse_options():
     parser.add_option("--no-msdcs", dest="no_msdcs", action="store_true",
                       default=False, help=SUPPRESS_HELP)
 
-    parser.add_option("--rid-base", dest="rid_base", type=int, default=1000,
+    parser.add_option("--rid-base", dest="rid_base", type=int,
+                      default=adtrust.DEFAULT_PRIMARY_RID_BASE,
                       help="Start value for mapping UIDs and GIDs to RIDs")
     parser.add_option("--secondary-rid-base", dest="secondary_rid_base",
-                      type=int, default=100000000,
+                      type=int, default=adtrust.DEFAULT_SECONDARY_RID_BASE,
                       help="Start value of the secondary range for mapping "
                            "UIDs and GIDs to RIDs")
     parser.add_option("-U", "--unattended", dest="unattended",
