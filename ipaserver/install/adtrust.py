@@ -39,6 +39,9 @@ logger = logging.getLogger(__name__)
 netbios_name = None
 reset_netbios_name = False
 
+DEFAULT_PRIMARY_RID_BASE = 1000
+DEFAULT_SECONDARY_RID_BASE = 100000000
+
 
 def netbios_name_error(name):
     logger.error("\nIllegal NetBIOS name [%s].\n", name)
@@ -553,12 +556,12 @@ class SIDInstallInterface(ServiceAdminInstallInterface):
     )
     rid_base = knob(
         int,
-        1000,
+        DEFAULT_PRIMARY_RID_BASE,
         description="Start value for mapping UIDs and GIDs to RIDs"
     )
     secondary_rid_base = knob(
         int,
-        100000000,
+        DEFAULT_SECONDARY_RID_BASE,
         description="Start value of the secondary range for mapping "
                     "UIDs and GIDs to RIDs"
     )
