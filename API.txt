@@ -1076,11 +1076,13 @@ args: 0,1,1
 option: Str('version?')
 output: Output('result')
 command: config_mod/1
-args: 0,29,3
+args: 0,32,3
+option: Flag('add_sids?', autofill=True, default=False)
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('ca_renewal_master_server?', autofill=False)
 option: Str('delattr*', cli_name='delattr')
+option: Flag('enable_sid?', autofill=True, default=False)
 option: StrEnum('ipaconfigstring*', autofill=False, cli_name='ipaconfigstring', values=[u'AllowNThash', u'KDC:Disable Last Success', u'KDC:Disable Lockout', u'KDC:Disable Default Preauth for SPNs'])
 option: Str('ipadefaultemaildomain?', autofill=False, cli_name='emaildomain')
 option: Str('ipadefaultloginshell?', autofill=False, cli_name='defaultshell')
@@ -1102,6 +1104,7 @@ option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', v
 option: Bool('ipauserdefaultsubordinateid?', autofill=False, cli_name='user_default_subid')
 option: Str('ipauserobjectclasses*', autofill=False, cli_name='userobjectclasses')
 option: IA5Str('ipausersearchfields?', autofill=False, cli_name='usersearch')
+option: Str('netbios_name?', autofill=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
