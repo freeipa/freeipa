@@ -155,6 +155,9 @@ manage_dirs_pattern(ipa_helper_t, ipa_var_run_t, ipa_var_run_t)
 manage_files_pattern(ipa_helper_t, ipa_var_run_t, ipa_var_run_t)
 files_pid_filetrans(ipa_helper_t, ipa_var_run_t, { dir file })
 
+manage_files_pattern(ipa_helper_t, ipa_tmp_t, ipa_tmp_t)
+files_tmp_filetrans(ipa_helper_t, ipa_tmp_t, { file })
+
 kernel_read_system_state(ipa_helper_t)
 kernel_read_network_state(ipa_helper_t)
 

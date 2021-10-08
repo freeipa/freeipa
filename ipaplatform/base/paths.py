@@ -364,6 +364,7 @@ class BasePathNamespace:
     IPAREPLICA_CONNCHECK_LOG = "/var/log/ipareplica-conncheck.log"
     IPAREPLICA_INSTALL_LOG = "/var/log/ipareplica-install.log"
     IPARESTORE_LOG = "/var/log/iparestore.log"
+    IPASERVER_ENABLESID_LOG = "/var/log/ipaserver-enable-sid.log"
     IPASERVER_INSTALL_LOG = "/var/log/ipaserver-install.log"
     IPASERVER_ADTRUST_INSTALL_LOG = "/var/log/ipaserver-adtrust-install.log"
     IPASERVER_DNS_INSTALL_LOG = "/var/log/ipaserver-dns-install.log"

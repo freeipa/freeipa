@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-# Last change: make sudorule option multivalue
-define(IPA_API_VERSION_MINOR, 244)
+# Last change: add enable_sid to config
+define(IPA_API_VERSION_MINOR, 245)
 
 
 ########################################################

@@ -335,6 +335,8 @@ class ADTRUSTInstance(service.Service):
         # _ldap_mod does not return useful error codes, so we must check again
         # if the fallback group was created properly.
         try:
+            # Remove entry from cache otherwise get_entry won't find it
+            api.Backend.ldap2.remove_cache_entry(fb_group_dn)
             api.Backend.ldap2.get_entry(fb_group_dn)
         except errors.NotFound:
             self.print_msg("Failed to add fallback group.")

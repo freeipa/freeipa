@@ -7,6 +7,7 @@ dbusconfdir = $(sysconfdir)/dbus-1/system.d
 dist_noinst_DATA =		\
 	com.redhat.idm.trust-fetch-domains.in	\
 	org.freeipa.server.trust-enable-agent.in	\
+	org.freeipa.server.config-enable-sid.in \
 	etc/oddjobd.conf.d/oddjobd-ipa-trust.conf.in	\
 	etc/oddjobd.conf.d/ipa-server.conf.in		\
 	$(NULL)
@@ -18,6 +19,7 @@ dist_oddjob_SCRIPTS =				\
 nodist_oddjob_SCRIPTS =				\
 	com.redhat.idm.trust-fetch-domains	\
 	org.freeipa.server.trust-enable-agent	\
+	org.freeipa.server.config-enable-sid \
 	$(NULL)
 
 
