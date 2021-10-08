@@ -17,12 +17,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import dbus
+import dbus.mainloop.glib
+import logging
 
 from ipalib import api
-from ipalib import Bool, Int, Str, IA5Str, StrEnum, DNParam
+from ipalib import Bool, Int, Str, IA5Str, StrEnum, DNParam, Flag
 from ipalib import errors
 from ipalib.constants import MAXHOSTNAMELEN
 from ipalib.plugable import Registry
+from ipalib.request import context
 from ipalib.util import validate_domain_name
 from .baseldap import (
     LDAPObject,
@@ -30,7 +34,12 @@ from .baseldap import (
     LDAPRetrieve)
 from .selinuxusermap import validate_selinuxuser
 from ipalib import _
+from ipapython.admintool import ScriptError
 from ipapython.dn import DN
+from ipaserver.plugins.privilege import principal_has_privilege
+from ipaserver.install.adtrust import set_and_check_netbios_name
+
+logger = logging.getLogger(__name__)
 
 # 389-ds attributes that should be skipped in attribute checks
 OPERATIONAL_ATTRIBUTES = ('nsaccountlock', 'member', 'memberof',
@@ -340,6 +349,24 @@ class config(LDAPObject):
             doc=_('DNSec key master'),
             flags={'virtual_attribute', 'no_create', 'no_update'}
         ),
+        Flag(
+            'enable_sid?',
+            label=_('Setup SID configuration'),
+            doc=_('New users and groups automatically get a SID assigned'),
+            flags={'virtual_attribute', 'no_create'}
+        ),
+        Flag(
+            'add_sids?',
+            label=_('Add SIDs'),
+            doc=_('Add SIDs for existing users and groups'),
+            flags={'virtual_attribute', 'no_create'}
+        ),
+        Str(
+            'netbios_name?',
+            label=_('NetBIOS name of the IPA domain'),
+            doc=_('NetBIOS name of the IPA domain'),
+            flags={'virtual_attribute', 'no_create'}
+        ),
     )
 
     def get_dn(self, *keys, **kwargs):
@@ -479,6 +506,60 @@ class config(LDAPObject):
 class config_mod(LDAPUpdate):
     __doc__ = _('Modify configuration options.')
 
+    def _enable_sid(self, ldap, options):
+        # the user must have the Replication Administrators privilege
+        privilege = 'Replication Administrators'
+        if not principal_has_privilege(self.api, context.principal, privilege):
+            raise errors.ACIError(
+                info=_("not allowed to enable SID generation"))
+
+        # NetBIOS name is either taken from options or generated
+        try:
+            netbios_name, reset_netbios_name = set_and_check_netbios_name(
+                options.get('netbios_name', None), True, self.api)
+        except ScriptError:
+            raise errors.ValidationError(name="NetBIOS name",
+                error=_('Up to 15 characters and only uppercase ASCII letters'
+                        ', digits and dashes are allowed. Empty string is '
+                        'not allowed.'))
+
+        _ret = 0
+        _stdout = ''
+        _stderr = ''
+
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+        method_options = []
+        if options.get('add_sids', False):
+            method_options.extend(["--add-sids"])
+        method_options.extend(["--netbios-name", netbios_name])
+        if reset_netbios_name:
+            method_options.append("--reset-netbios-name")
+        # Dbus definition expects up to 10 arguments
+        method_options.extend([''] * (10 - len(method_options)))
+
+        try:
+            bus = dbus.SystemBus()
+            obj = bus.get_object('org.freeipa.server', '/',
+                                 follow_name_owner_changes=True)
+            server = dbus.Interface(obj, 'org.freeipa.server')
+            _ret, _stdout, _stderr = server.config_enable_sid(*method_options)
+        except dbus.DBusException as e:
+            logger.error('Failed to call org.freeipa.server.config_enable_sid.'
+                         'DBus exception is %s', str(e))
+            raise errors.ExecutionError(message=_('Failed to call DBus'))
+
+        # The oddjob restarts dirsrv, we need to re-establish the conn
+        if self.api.Backend.ldap2.isconnected():
+            self.api.Backend.ldap2.disconnect()
+        self.api.Backend.ldap2.connect(ccache=context.ccache_name)
+
+        if _ret != 0:
+            logger.error("Helper config_enable_sid return code is %d", _ret)
+            raise errors.ExecutionError(
+                message=_('Configuration of SID failed. '
+                          'See details in the error log'))
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         if 'ipadefaultprimarygroup' in entry_attrs:
@@ -606,13 +687,27 @@ class config_mod(LDAPUpdate):
 
         self.obj.validate_domain_resolution_order(entry_attrs)
 
+        # The options add_sids or netbios_name need the enable_sid option
+        for sid_option in ['add_sids', 'netbios_name']:
+            if options.get(sid_option, None) and not options['enable_sid']:
+                opt = "--" + sid_option.replace("_", "-")
+                error_message = _("You cannot specify %s without "
+                                  "the --enable-sid option" % opt)
+                raise errors.ValidationError(
+                    name=opt,
+                    error=error_message)
+
+        if options['enable_sid']:
+            self._enable_sid(ldap, options)
+
         return dn
 
     def exc_callback(self, keys, options, exc, call_func,
                      *call_args, **call_kwargs):
         if (isinstance(exc, errors.EmptyModlist) and
                 call_func.__name__ == 'update_entry' and
-                'ca_renewal_master_server' in options):
+                ('ca_renewal_master_server' in options or
+                 'enable_sid' in options)):
             return
 
         super(config_mod, self).exc_callback(
