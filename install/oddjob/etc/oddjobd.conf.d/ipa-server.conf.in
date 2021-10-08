@@ -17,6 +17,12 @@
                   prepend_user_name="no"
                   argument_passing_method="cmdline"/>
         </method>
+        <method name="config_enable_sid">
+          <helper exec="@ODDJOBDIR@/org.freeipa.server.config-enable-sid"
+                  arguments="10"
+                  prepend_user_name="no"
+                  argument_passing_method="cmdline"/>
+        </method>
       </interface>
       <interface name="org.freedesktop.DBus.Introspectable">
         <allow min_uid="0" max_uid="0"/>

@@ -383,6 +383,8 @@ class WSGIExecutioner(Executioner):
         if self.api.env.debug:
             time_start = time.perf_counter_ns()
         try:
+            if 'KRB5CCNAME' in environ:
+                setattr(context, "ccache_name", environ['KRB5CCNAME'])
             if ('HTTP_ACCEPT_LANGUAGE' in environ):
                 lang_reg_w_q = environ['HTTP_ACCEPT_LANGUAGE'].split(',')[0]
                 lang_reg = lang_reg_w_q.split(';')[0]
