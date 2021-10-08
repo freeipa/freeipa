@@ -1602,6 +1602,46 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         tasks.ldapsearch_dm(self.master, base, ldap_args=[], scope='sub')
         tasks.ldapsearch_dm(self.master, base, ldap_args=[], scope='base')
 
+    def test_sid_generation(self):
+        """
+        Test SID generation
+
+        Check that new users are created with a SID and PAC data is
+        added in their Kerberos tickets.
+        """
+        user = "pacuser"
+        passwd = "Secret123"
+
+        try:
+            # Create a nonadmin user
+            tasks.create_active_user(
+                self.master, user, passwd, first=user, last=user,
+                krb5_trace=True)
+
+            # Check SID is present in the new entry
+            base_dn = str(self.master.domain.basedn)
+            result = tasks.ldapsearch_dm(
+                self.master,
+                'uid={user},cn=users,cn=accounts,{base_dn}'.format(
+                    user=user, base_dn=base_dn),
+                ['ipantsecurityidentifier'],
+                scope='base'
+            )
+            assert 'ipantsecurityidentifier' in result.stdout_text
+
+            # Defaults: host/... principal for service
+            # keytab in /etc/krb5.keytab
+            self.master.run_command(["kinit", '-k'])
+            result = self.master.run_command(
+                [os.path.join(paths.LIBEXEC_IPA_DIR, "ipa-print-pac"),
+                 "ticket", user],
+                stdin_text=(passwd + '\n')
+            )
+            assert "PAC_DATA" in result.stdout_text
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'user-del', user])
+
 
 class TestIPAautomount(IntegrationTest):
     @classmethod
