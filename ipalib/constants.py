@@ -23,6 +23,7 @@ All constants centralised in one file.
 """
 
 import os
+import string
 
 from ipaplatform.constants import constants as _constants
 from ipapython.dn import DN
@@ -368,3 +369,5 @@ KRA_TRACKING_REQS = {
     'transportCert cert-pki-kra': 'caTransportCert',
     'storageCert cert-pki-kra': 'caStorageCert',
 }
+
+ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits + '-'
