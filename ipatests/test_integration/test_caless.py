@@ -60,6 +60,7 @@ def get_install_stdin(cert_passwords=()):
         '',  # Server host name (has default)
     ]
     lines.extend(cert_passwords)  # Enter foo.p12 unlock password
+    lines.extend('IPA') # NetBios name
     lines += [
         'no',   # configure chrony with NTP server or pool address?
         'yes',  # Continue with these values?
