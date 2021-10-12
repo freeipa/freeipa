@@ -25,7 +25,6 @@ import errno
 import ldap
 import tempfile
 import uuid
-import string
 import struct
 import re
 import socket
@@ -36,7 +35,8 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install.replication import wait_for_task
 from ipalib import errors, api
-from ipalib.constants import SUBID_RANGE_START
+from ipalib.constants import SUBID_RANGE_START, ALLOWED_NETBIOS_CHARS
+
 from ipalib.util import normalize_zone
 from ipapython.dn import DN
 from ipapython import ipachangeconf
@@ -53,8 +53,6 @@ if six.PY3:
     unicode = str
 
 logger = logging.getLogger(__name__)
-
-ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits + '-'
 
 UPGRADE_ERROR = """
 Entry %(dn)s does not exist.

@@ -22,6 +22,7 @@ from cryptography import x509 as crypto_x509
 from ipalib import x509
 from ipalib.constants import DOMAIN_LEVEL_0, KRA_TRACKING_REQS
 from ipalib.constants import IPA_CA_RECORD
+from ipalib.constants import ALLOWED_NETBIOS_CHARS
 from ipalib.sysrestore import SYSRESTORE_STATEFILE, SYSRESTORE_INDEXFILE
 from ipapython.dn import DN
 from ipaplatform.constants import constants
@@ -67,6 +68,17 @@ def server_cleanup(request):
     tasks.uninstall_master(host)
     yield
     tasks.uninstall_master(host)
+
+
+def create_netbios_name(host):
+    """
+    Create a NetBIOS name based on the provided host
+    """
+    netbios = ''.join(
+        c for c in host.domain.name.split('.')[0].upper() \
+        if c in ALLOWED_NETBIOS_CHARS
+    )[:15]
+    return netbios
 
 
 class InstallTestBase1(IntegrationTest):
@@ -1171,6 +1183,8 @@ class TestInstallMaster(IntegrationTest):
         hosts = self.master.get_file_contents(paths.HOSTS, encoding='utf-8')
         new_hosts = hosts.replace(original_hostname, new_hostname)
         self.master.put_file_contents(paths.HOSTS, new_hosts)
+        netbios = create_netbios_name(self.master)
+
         try:
             cmd = ['ipa-server-install', '--hostname', new_hostname]
             with self.master.spawn_expect(cmd) as e:
@@ -1193,6 +1207,8 @@ class TestInstallMaster(IntegrationTest):
                 e.sendline(self.master.config.admin_password)
                 e.expect_exact('Password (confirm): ')
                 e.sendline(self.master.config.admin_password)
+                e.expect_exact('NetBIOS domain name [{}]: '.format(netbios))
+                e.sendline(netbios)
                 e.expect_exact('Do you want to configure chrony with '
                                'NTP server or pool address? [no]: ')
                 e.sendline('no')
@@ -1367,6 +1383,7 @@ class TestInstallMasterDNS(IntegrationTest):
         https://pagure.io/freeipa/issue/2575
         """
         cmd = ['ipa-server-install']
+        netbios = create_netbios_name(self.master)
         with self.master.spawn_expect(cmd) as e:
             e.expect_exact('Do you want to configure integrated '
                            'DNS (BIND)? [no]: ')
@@ -1398,6 +1415,8 @@ class TestInstallMasterDNS(IntegrationTest):
             e.expect_exact('Do you want to search for missing reverse '
                            'zones? [yes]: ')
             e.sendline('no')  # irrelevant for this test
+            e.expect_exact('NetBIOS domain name [{}]: '.format(netbios))
+            e.sendline(netbios)
             e.expect_exact('Do you want to configure chrony with NTP '
                            'server or pool address? [no]: ')
             e.sendline('no')  # irrelevant for this test

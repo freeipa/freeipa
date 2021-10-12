@@ -260,6 +260,8 @@ class TestNTPoptions(IntegrationTest):
             "No\n"
             # Server host name [hostname]:
             "\n"
+            # Enter the NetBIOS name for the IPA domain
+            "IPA\n"
             # Do you want to configure chrony with NTP server
             #   or pool address? [no]:
             "Yes\n"
@@ -372,6 +374,7 @@ class TestNTPoptions(IntegrationTest):
         server_input = (
             "\n" +
             "\n"
+            "IPA\n"
             "No\n"
             "Yes"
         )
