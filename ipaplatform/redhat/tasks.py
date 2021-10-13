@@ -756,6 +756,9 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                                   "{}.module".format(name))
                      for name, _module, _disabled in PKCS11_MODULES)
 
+    def enable_sssd_sudo(self, _fstore):
+        """sudo enablement is handled by authselect"""
+
     def enable_ldap_automount(self, statestore):
         """
         Point automount to ldap in nsswitch.conf.
