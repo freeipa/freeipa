@@ -21,6 +21,8 @@
  */
 
 #include "ipa_kdb.h"
+#include <strings.h>
+#include <unicase.h>
 
 static char *acl_attrs[] = {
     "objectClass",
@@ -188,9 +190,40 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
                                                 const krb5_db_entry *server,
                                                 krb5_const_principal proxy)
 {
-    krb5_error_code kerr;
+    krb5_error_code kerr, result;
     char *srv_principal = NULL;
+    krb5_db_entry *proxy_entry = NULL;
+    struct ipadb_e_data *ied_server, *ied_proxy;
     LDAPMessage *res = NULL;
+
+    /* Handle the case where server == proxy, this is allowed in S4U*/
+    kerr = ipadb_get_principal(kcontext, proxy,
+                               KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY,
+                               &proxy_entry);
+    if (kerr) {
+        goto done;
+    }
+
+    ied_server = (struct ipadb_e_data *) server->e_data;
+    ied_proxy = (struct ipadb_e_data *) proxy_entry->e_data;
+
+    /* If we have SIDs for both entries, compare SIDs */
+    if ((ied_server->has_sid && ied_server->sid != NULL) &&
+        (ied_proxy->has_sid && ied_proxy->sid != NULL)) {
+
+        if (dom_sid_check(ied_server->sid, ied_proxy->sid, true)) {
+            kerr = 0;
+            goto done;
+        }
+    }
+
+    /* Otherwise, compare entry DNs */
+    kerr = ulc_casecmp(ied_server->entry_dn, strlen(ied_server->entry_dn),
+                       ied_proxy->entry_dn, strlen(ied_proxy->entry_dn),
+                       NULL, NULL, &result);
+    if (kerr == 0 && result == 0) {
+        goto done;
+    }
 
     kerr = krb5_unparse_name(kcontext, server->princ, &srv_principal);
     if (kerr) {
@@ -208,6 +241,7 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
     }
 
 done:
+    ipadb_free_principal(kcontext, proxy_entry);
     krb5_free_unparsed_name(kcontext, srv_principal);
     ldap_msgfree(res);
     return kerr;
