@@ -58,7 +58,10 @@ def get_package(server_info, client):
             else:
                 server_version = '2.0'
         server_info['version'] = server_version
-        server_info.update_validity()
+
+        # in compat mode we don't get the schema TTL from the server
+        # so use the client context value.
+        server_info.update_validity(client.api.env.schema_ttl)
 
     server_version = APIVersion(server_version)
 

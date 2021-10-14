@@ -20,12 +20,6 @@ from ipalib.request import context
 from ipalib.text import _
 from ipapython.version import API_VERSION
 
-# Schema TTL sent to clients in response to schema call.
-# Number of seconds before client should check for schema update.
-# This should be long enough to not slow down regular work or skripts
-# but also short enough to ensure schema will be retvieved soon after
-# it was updated
-SCHEMA_TTL = 3600  # default: 1 hour
 
 __doc__ = _("""
 API Schema
@@ -855,7 +849,7 @@ class schema(Command):
             schema = self._generate_schema(**kwargs)
             self.api._schema[langs] = schema
 
-        schema['ttl'] = SCHEMA_TTL
+        schema['ttl'] = self.api.env.schema_ttl
 
         if schema['fingerprint'] in kwargs.get('known_fingerprints', []):
             raise errors.SchemaUpToDate(

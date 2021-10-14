@@ -183,6 +183,9 @@ DEFAULT_CONFIG = (
     # How long to wait for a certmonger request to finish
     ('certmonger_wait_timeout', 300),
 
+    # Number of seconds before client should check for schema update.
+    ('schema_ttl', 3600),
+
     # Web Application mount points
     ('mount_ipa', '/ipa/'),
 

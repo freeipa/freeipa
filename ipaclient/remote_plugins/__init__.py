@@ -34,6 +34,7 @@ class ServerInfo(MutableMapping):
         hostname = DNSName(api.env.server).ToASCII()
         self._path = os.path.join(self._DIR, hostname)
         self._force_check = api.env.force_schema_check
+        self._now = time.time()
         self._dict = {}
 
         # copy-paste from ipalib/rpc.py
@@ -87,12 +88,11 @@ class ServerInfo(MutableMapping):
     def __len__(self):
         return len(self._dict)
 
-    def update_validity(self, ttl=None):
-        if ttl is None:
-            ttl = 3600
-        self['expiration'] = time.time() + ttl
-        self['language'] = self._language
-        self._write()
+    def update_validity(self, ttl):
+        if not self.is_valid():
+            self['expiration'] = self._now + ttl
+            self['language'] = self._language
+            self._write()
 
     def is_valid(self):
         if self._force_check:
@@ -105,8 +105,7 @@ class ServerInfo(MutableMapping):
             # if any of these is missing consider the entry expired
             return False
 
-        if expiration < time.time():
-            # validity passed
+        if expiration < self._now:
             return False
 
         if language != self._language:

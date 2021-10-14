@@ -375,7 +375,7 @@ class Schema:
     namespaces = {'classes', 'commands', 'topics'}
     _DIR = os.path.join(USER_CACHE_PATH, 'ipa', 'schema', FORMAT)
 
-    def __init__(self, client, fingerprint=None):
+    def __init__(self, client, fingerprint=None, ttl=0):
         self._dict = {}
         self._namespaces = {}
         self._help = None
@@ -384,7 +384,6 @@ class Schema:
             self._dict[ns] = {}
             self._namespaces[ns] = _SchemaNameSpace(self, ns)
 
-        ttl = None
         read_failed = False
 
         if fingerprint is not None:
@@ -554,10 +553,10 @@ def get_package(server_info, client):
                 else:
                     schema = Schema(client, fingerprint)
             except SchemaUpToDate as e:
-                schema = Schema(client, e.fingerprint)
+                schema = Schema(client, e.fingerprint, e.ttl)
         except NotAvailable:
             fingerprint = None
-            ttl = None
+            ttl = 3600  # set a ttl so we don't hammer the remote server
         except SchemaUpToDate as e:
             fingerprint = e.fingerprint
             ttl = e.ttl
