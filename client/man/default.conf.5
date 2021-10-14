@@ -172,6 +172,9 @@ Specifies the Kerberos realm.
 .B replication_wait_timeout <seconds>
 The time to wait for a new entry to be replicated during replica installation. The default value is 300 seconds.
 .TP
+.B schema_ttl <seconds>
+The number of seconds for the ipa tool to cache the IPA API and help schema. Reducing this value during development is helpful so that API changes are seen sooner in the tool. Setting this on a server will define the TTL for all client versions > 4.3.1. Client versions > 4.3.1 that connect to IPA servers older than 4.3.1 will use the client-side configuration value. The default is 3600 seconds. 0 disables the cache. A change in the ttl will not be immediately recognized by clients. They will use the new value once their current cache expires.
+.TP
 .B server <hostname>
 Specifies the IPA Server hostname.
 .TP
