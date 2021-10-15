@@ -19,7 +19,7 @@ from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
 from ipatests.test_xmlrpc.tracker.service_plugin import ServiceTracker
 from ipatests.test_xmlrpc.tracker.stageuser_plugin import StageUserTracker
 from ipatests.test_xmlrpc.mock_trust import (
-    mocked_trust_containers, get_trust_dn, get_trusted_dom_dict,
+    get_trust_dn, get_trusted_dom_dict,
     encode_mockldap_value)
 from ipatests.util import unlock_principal_password, change_principal
 
@@ -62,7 +62,7 @@ def trusted_domain():
     trusted_dom = TRUSTED_DOMAIN_MOCK
 
     # Write the changes
-    with mocked_trust_containers(), MockLDAP() as ldap:
+    with MockLDAP() as ldap:
         ldap.add_entry(trusted_dom['dn'], trusted_dom['ldif'])
         yield trusted_dom
         ldap.del_entry(trusted_dom['dn'])
@@ -83,7 +83,7 @@ def trusted_domain_with_suffix():
     )
 
     # Write the changes
-    with mocked_trust_containers(), MockLDAP() as ldap:
+    with MockLDAP() as ldap:
         ldap.add_entry(trusted_dom['dn'], trusted_dom['ldif'])
         yield trusted_dom
         ldap.del_entry(trusted_dom['dn'])

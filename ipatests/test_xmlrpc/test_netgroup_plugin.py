@@ -24,6 +24,7 @@ Test the `ipaserver/plugins/netgroup.py` module.
 from ipalib import api
 from ipalib import errors
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
+                                              fuzzy_set_optional_oc,
                                               fuzzy_uuid, fuzzy_netgroupdn)
 from ipatests.test_xmlrpc import objectclasses
 from ipapython.dn import DN
@@ -300,7 +301,8 @@ class test_netgroup(Declarative):
                     cn=[group1],
                     description=[u'Test desc 1'],
                     gidnumber=[fuzzy_digits],
-                    objectclass=objectclasses.group + [u'posixgroup'],
+                    objectclass=fuzzy_set_optional_oc(
+                        objectclasses.posixgroup, 'ipantgroupattrs'),
                     ipauniqueid=[fuzzy_uuid],
                     dn=DN(('cn',group1),('cn','groups'),('cn','accounts'),
                           api.env.basedn),

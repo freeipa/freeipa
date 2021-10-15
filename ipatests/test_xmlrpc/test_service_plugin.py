@@ -25,6 +25,7 @@ from ipalib import api, errors
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_hash
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_date, fuzzy_issuer
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_hex, XMLRPC_test
+from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_set_optional_oc
 from ipatests.test_xmlrpc.xmlrpc_test import raises_exact
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.testcert import get_testcert, subject_base
@@ -1113,7 +1114,8 @@ class test_service_allowed_to(Declarative):
                 summary=u'Added group "%s"' % group1,
                 result=dict(
                     cn=[group1],
-                    objectclass=objectclasses.group + [u'posixgroup'],
+                    objectclass=fuzzy_set_optional_oc(
+                        objectclasses.posixgroup, 'ipantgroupattrs'),
                     ipauniqueid=[fuzzy_uuid],
                     gidnumber=[fuzzy_digits],
                     dn=group1_dn
@@ -1165,7 +1167,8 @@ class test_service_allowed_to(Declarative):
                 summary=u'Added group "%s"' % group2,
                 result=dict(
                     cn=[group2],
-                    objectclass=objectclasses.group + [u'posixgroup'],
+                    objectclass=fuzzy_set_optional_oc(
+                        objectclasses.posixgroup, 'ipantgroupattrs'),
                     ipauniqueid=[fuzzy_uuid],
                     gidnumber=[fuzzy_digits],
                     dn=group2_dn

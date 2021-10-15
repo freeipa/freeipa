@@ -502,6 +502,8 @@ class test_range(Declarative):
                     user1, u'Test', u'User1', 'add',
                     uidnumber=[unicode(user1_uid)],
                     gidnumber=[unicode(user1_uid)],
+                    objectclass=objectclasses.user_base + [u'mepOriginEntry'],
+                    omit=['ipantsecurityidentifier'],
                 ),
             ),
         ),

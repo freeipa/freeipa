@@ -38,7 +38,8 @@ from ipatests.util import (
     assert_deepequal, assert_equal, assert_not_equal, raises)
 from ipatests.test_xmlrpc.xmlrpc_test import (
     XMLRPC_test, fuzzy_digits, fuzzy_uuid, fuzzy_password,
-    Fuzzy, fuzzy_dergeneralizedtime, add_sid, add_oc, raises_exact)
+    fuzzy_user_or_group_sid,
+    Fuzzy, fuzzy_dergeneralizedtime, raises_exact)
 from ipapython.dn import DN
 from ipapython.ipaldap import ldap_initialize
 
@@ -124,7 +125,7 @@ def user_npg(request, group):
     del tracker.attrs['mepmanagedentry']
     tracker.attrs.update(
         description=[], memberof_group=[group.cn],
-        objectclass=add_oc(objectclasses.user_base, u'ipantuserattrs')
+        objectclass=objectclasses.user_base + [u'ipantuserattrs'],
     )
     return tracker.make_fixture(request)
 
@@ -138,7 +139,7 @@ def user_npg2(request, group):
     del tracker.attrs['mepmanagedentry']
     tracker.attrs.update(
         gidnumber=[u'1000'], description=[], memberof_group=[group.cn],
-        objectclass=add_oc(objectclasses.user_base, u'ipantuserattrs')
+        objectclass=objectclasses.user_base + [u'ipantuserattrs'],
     )
     return tracker.make_fixture(request)
 
@@ -645,7 +646,7 @@ class TestCreate(XMLRPC_test):
         testuser.attrs.update(gidnumber=[u'1000'])
         testuser.attrs.update(
             description=[],
-            objectclass=add_oc(objectclasses.user_base, u'ipantuserattrs')
+            objectclass=objectclasses.user_base + [u'ipantuserattrs']
         )
         command = testuser.make_create_command()
         result = command()
@@ -659,9 +660,12 @@ class TestCreate(XMLRPC_test):
             name=u'tuser1', givenname=u'Test', sn=u'Tuser1', uidnumber=999
         )
         testuser.track_create()
+        # When uid is outside of IPA id range, no SID is generated
+        del testuser.attrs['ipantsecurityidentifier']
         testuser.attrs.update(
             uidnumber=[u'999'],
-            gidnumber=[u'999']
+            gidnumber=[u'999'],
+            objectclass=objectclasses.user_base + ['mepOriginEntry']
         )
         command = testuser.make_create_command()
         result = command()
@@ -837,7 +841,7 @@ class TestUserWithUPGDisabled(XMLRPC_test):
         testuser.attrs.update(gidnumber=[u'1000'])
         testuser.attrs.update(
             description=[],
-            objectclass=add_oc(objectclasses.user_base, u'ipantuserattrs')
+            objectclass=objectclasses.user_base + [u'ipantuserattrs'],
         )
         command = testuser.make_create_command()
         result = command()
@@ -860,7 +864,7 @@ class TestUserWithUPGDisabled(XMLRPC_test):
         testuser.attrs.update(gidnumber=[u'1000'])
         testuser.attrs.update(
             description=[],
-            objectclass=add_oc(objectclasses.user_base, u'ipantuserattrs')
+            objectclass=objectclasses.user_base + [u'ipantuserattrs'],
         )
         command = testuser.make_create_command()
         result = command()
@@ -1147,7 +1151,7 @@ def get_user_result(uid, givenname, sn, operation='show', omit=[],
     # sn can be None; this should only be used from `get_admin_result`
     cn = overrides.get('cn', ['%s %s' % (givenname, sn or '')])
     cn[0] = cn[0].strip()
-    result = add_sid(dict(
+    result = dict(
         homedirectory=[u'/home/%s' % uid],
         loginshell=[platformconstants.DEFAULT_SHELL],
         uid=[uid],
@@ -1158,7 +1162,7 @@ def get_user_result(uid, givenname, sn, operation='show', omit=[],
         mail=[u'%s@%s' % (uid, api.env.domain)],
         has_keytab=False,
         has_password=False,
-    ))
+    )
     if sn:
         result['sn'] = [sn]
     if givenname:
@@ -1175,9 +1179,10 @@ def get_user_result(uid, givenname, sn, operation='show', omit=[],
             initials=[givenname[0] + (sn or '')[:1]],
             ipauniqueid=[fuzzy_uuid],
             mepmanagedentry=[get_group_dn(uid)],
-            objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
+            objectclass=objectclasses.user,
             krbprincipalname=[u'%s@%s' % (uid, api.env.realm)],
-            krbcanonicalname=[u'%s@%s' % (uid, api.env.realm)]
+            krbcanonicalname=[u'%s@%s' % (uid, api.env.realm)],
+            ipantsecurityidentifier=[fuzzy_user_or_group_sid],
         )
     if operation in ('show', 'show-all', 'find', 'mod'):
         result.update(
