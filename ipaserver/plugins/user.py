@@ -1002,6 +1002,7 @@ class user_stage(LDAPMultiQuery):
                     u'ipauniqueid', u'krbcanonicalname',
                     u'sshpubkeyfp', u'krbextradata',
                     u'ipacertmapdata',
+                    'ipantsecurityidentifier',
                     u'nsaccountlock']
 
     def execute(self, *keys, **options):
