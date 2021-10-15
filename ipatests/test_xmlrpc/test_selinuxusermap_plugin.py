@@ -25,6 +25,7 @@ from ipaplatform.constants import constants as platformconstants
 
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
+                                              fuzzy_set_optional_oc,
                                               fuzzy_uuid)
 from ipapython.dn import DN
 from ipatests.util import Fuzzy
@@ -230,7 +231,8 @@ class test_selinuxusermap(Declarative):
                     cn=[group1],
                     description=[u'Test desc 1'],
                     gidnumber=[fuzzy_digits],
-                    objectclass=objectclasses.group + [u'posixgroup'],
+                    objectclass=fuzzy_set_optional_oc(
+                        objectclasses.posixgroup, 'ipantgroupattrs'),
                     ipauniqueid=[fuzzy_uuid],
                     dn=DN(('cn', group1), ('cn', 'groups'), ('cn', 'accounts'),
                           api.env.basedn),

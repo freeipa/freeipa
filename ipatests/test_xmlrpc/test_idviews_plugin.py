@@ -27,7 +27,8 @@ import six
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, uuid_re, add_oc,
+from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, uuid_re,
+                                              fuzzy_set_optional_oc,
                                               fuzzy_uuid, fuzzy_digits)
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 from ipatests.test_xmlrpc.test_group_plugin import get_group_dn
@@ -216,10 +217,7 @@ class test_idviews(Declarative):
                     u'Test',
                     u'User1',
                     'add',
-                    objectclass=add_oc(
-                        objectclasses.user,
-                        u'ipantuserattrs'
-                    )
+                    objectclass=objectclasses.user,
                 ),
             ),
         ),
@@ -237,7 +235,8 @@ class test_idviews(Declarative):
                 result=dict(
                     cn=[idoverridegroup1],
                     description=[u'Test desc 1'],
-                    objectclass=objectclasses.posixgroup,
+                    objectclass=fuzzy_set_optional_oc(
+                        objectclasses.posixgroup, 'ipantgroupattrs'),
                     ipauniqueid=[fuzzy_uuid],
                     gidnumber=[fuzzy_digits],
                     dn=get_group_dn(idoverridegroup1),
@@ -1624,10 +1623,7 @@ class test_idviews(Declarative):
                     u'Removed',
                     u'User',
                     'add',
-                    objectclass=add_oc(
-                        objectclasses.user,
-                        u'ipantuserattrs'
-                    )
+                    objectclass=objectclasses.user,
                 ),
             ),
         ),
@@ -1645,7 +1641,8 @@ class test_idviews(Declarative):
                 result=dict(
                     cn=[idoverridegroup_removed],
                     description=[u'Removed group'],
-                    objectclass=objectclasses.posixgroup,
+                    objectclass=fuzzy_set_optional_oc(
+                        objectclasses.posixgroup, 'ipantgroupattrs'),
                     ipauniqueid=[fuzzy_uuid],
                     gidnumber=[fuzzy_digits],
                     dn=get_group_dn(idoverridegroup_removed),
