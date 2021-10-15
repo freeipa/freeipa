@@ -35,7 +35,7 @@ user_base = [
     u'ipaSshGroupOfPubKeys',
 ]
 
-user = user_base + [u'mepOriginEntry']
+user = user_base + [u'mepOriginEntry', 'ipantuserattrs',]
 
 group = [
     u'top',
@@ -46,7 +46,7 @@ group = [
 ]
 
 externalgroup = group + [u'ipaexternalgroup']
-posixgroup = group + [u'posixgroup']
+posixgroup = group + [u'posixgroup', 'ipantgroupattrs']
 
 host = [
     u'ipasshhost',
