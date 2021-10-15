@@ -137,6 +137,12 @@ fuzzy_bytes = Fuzzy(type=bytes)
 def fuzzy_set_ci(s):
     return Fuzzy(test=lambda other: set(x.lower() for x in other) == set(y.lower() for y in s))
 
+
+def fuzzy_set_optional_oc(s, oc):
+    return Fuzzy(test=lambda other: set(x.lower() for x in other if x != oc)
+                 == set(y.lower() for y in s if y != oc))
+
+
 try:
     if not api.Backend.rpcclient.isconnected():
         api.Backend.rpcclient.connect()
@@ -150,12 +156,6 @@ except errors.NotFound:
 
 adtrust_is_enabled = api.Command['adtrust_is_enabled']()['result']
 sidgen_was_run = api.Command['sidgen_was_run']()['result']
-
-
-def add_sid(d, check_sidgen=False):
-    if adtrust_is_enabled and (not check_sidgen or sidgen_was_run):
-        d['ipantsecurityidentifier'] = (fuzzy_user_or_group_sid,)
-    return d
 
 
 def add_oc(l, oc, check_sidgen=False):

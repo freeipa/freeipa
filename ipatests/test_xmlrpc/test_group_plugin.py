@@ -27,7 +27,8 @@ import pytest
 from ipalib import errors
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
-    fuzzy_digits, fuzzy_uuid, fuzzy_set_ci, add_oc,
+    fuzzy_digits, fuzzy_uuid, fuzzy_set_ci,
+    fuzzy_user_or_group_sid,
     XMLRPC_test, raises_exact
 )
 from ipatests.test_xmlrpc.tracker.group_plugin import GroupTracker
@@ -61,6 +62,8 @@ def managed_group(request, user):
     tracker.exists = True
     # Managed group gets created when user is created
     tracker.track_create()
+    # Managed groups don't have a SID
+    del tracker.attrs['ipantsecurityidentifier']
     return tracker
 
 
@@ -79,7 +82,7 @@ def user_npg2(request, group):
     del tracker.attrs['mepmanagedentry']
     tracker.attrs.update(
         gidnumber=[u'1000'], description=[], memberof_group=[group.cn],
-        objectclass=add_oc(objectclasses.user_base, u'ipantuserattrs')
+        objectclass=objectclasses.user_base + ['ipantuserattrs']
     )
     return tracker.make_fixture(request)
 
@@ -314,9 +317,9 @@ class TestFindGroup(XMLRPC_test):
                     'gidnumber': [fuzzy_digits],
                     'cn': [u'admins'],
                     'description': [u'Account administrators group'],
-                    'objectclass': fuzzy_set_ci(add_oc(
-                        objectclasses.posixgroup, u'ipantgroupattrs')),
+                    'objectclass': fuzzy_set_ci(objectclasses.posixgroup),
                     'ipauniqueid': [fuzzy_uuid],
+                    'ipantsecurityidentifier': [fuzzy_user_or_group_sid],
                 },
                 {
                     'dn': get_group_dn('editors'),
@@ -324,27 +327,27 @@ class TestFindGroup(XMLRPC_test):
                     'cn': [u'editors'],
                     'description':
                         [u'Limited admins who can edit other users'],
-                    'objectclass': fuzzy_set_ci(add_oc(
-                        objectclasses.posixgroup, u'ipantgroupattrs')),
+                    'objectclass': fuzzy_set_ci(objectclasses.posixgroup),
                     'ipauniqueid': [fuzzy_uuid],
+                    'ipantsecurityidentifier': [fuzzy_user_or_group_sid],
                 },
                 {
                     'dn': get_group_dn(group.cn),
                     'cn': [group.cn],
                     'description': [u'Test desc1'],
                     'gidnumber': [fuzzy_digits],
-                    'objectclass': fuzzy_set_ci(add_oc(
-                        objectclasses.posixgroup, u'ipantgroupattrs')),
+                    'objectclass': fuzzy_set_ci(objectclasses.posixgroup),
                     'ipauniqueid': [fuzzy_uuid],
+                    'ipantsecurityidentifier': [fuzzy_user_or_group_sid],
                 },
                 {
                     'dn': get_group_dn(group2.cn),
                     'cn': [group2.cn],
                     'description': [u'Test desc2'],
                     'gidnumber': [fuzzy_digits],
-                    'objectclass': fuzzy_set_ci(add_oc(
-                        objectclasses.posixgroup, u'ipantgroupattrs')),
+                    'objectclass': fuzzy_set_ci(objectclasses.posixgroup),
                     'ipauniqueid': [fuzzy_uuid],
+                    'ipantsecurityidentifier': [fuzzy_user_or_group_sid],
                 },
             ]), result)
 
@@ -498,6 +501,8 @@ class TestExternalGroup(XMLRPC_test):
         group.track_create()
         del group.attrs['gidnumber']
         group.attrs.update(objectclass=objectclasses.externalgroup)
+        # External group don't have a SID
+        del group.attrs['ipantsecurityidentifier']
         command = group.make_create_command(**dict(external=True))
         result = command()
         group.check_create(result)

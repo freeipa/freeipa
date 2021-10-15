@@ -27,6 +27,7 @@ from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
     Declarative, fuzzy_guid, fuzzy_domain_sid, fuzzy_string, fuzzy_uuid,
+    fuzzy_set_optional_oc,
     fuzzy_digits)
 import pytest
 
@@ -110,7 +111,8 @@ class test_trustconfig(Declarative):
                     cn=[testgroup],
                     description=[u'Test group'],
                     gidnumber=[fuzzy_digits],
-                    objectclass=objectclasses.group + [u'posixgroup'],
+                    objectclass=fuzzy_set_optional_oc(
+                        objectclasses.posixgroup, 'ipantgroupattrs'),
                     ipauniqueid=[fuzzy_uuid],
                     dn=testgroup_dn,
                 ),

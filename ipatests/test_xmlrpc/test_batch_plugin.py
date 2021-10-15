@@ -25,6 +25,7 @@ from ipalib import api
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import Fuzzy, assert_deepequal
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
+                                              fuzzy_set_optional_oc,
                                               fuzzy_uuid)
 from ipapython.dn import DN
 import pytest
@@ -97,7 +98,8 @@ class test_batch(Declarative):
                         result=dict(
                             cn=[group1],
                             description=[u'Test desc 1'],
-                            objectclass=objectclasses.group + [u'posixgroup'],
+                            objectclass=fuzzy_set_optional_oc(
+                                objectclasses.posixgroup, 'ipantgroupattrs'),
                             ipauniqueid=[fuzzy_uuid],
                             gidnumber=[fuzzy_digits],
                             dn=DN(('cn', 'testgroup1'),
@@ -168,7 +170,8 @@ class test_batch(Declarative):
                         result=dict(
                             cn=[group1],
                             description=[u'Test desc 1'],
-                            objectclass=objectclasses.group + [u'posixgroup'],
+                            objectclass=fuzzy_set_optional_oc(
+                                objectclasses.posixgroup, 'ipantgroupattrs'),
                             ipauniqueid=[fuzzy_uuid],
                             gidnumber=[fuzzy_digits],
                             dn=DN(('cn', 'testgroup1'),

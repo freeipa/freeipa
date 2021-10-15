@@ -4,6 +4,8 @@
 
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_uuid
+from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_user_or_group_sid
+from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_set_optional_oc
 
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.util import assert_deepequal, get_group_dn
@@ -21,9 +23,10 @@ class GroupTracker(Tracker):
         'idoverrideuser'
     }
 
-    retrieve_all_keys = retrieve_keys | {u'ipauniqueid', u'objectclass'}
+    retrieve_all_keys = retrieve_keys | {u'ipauniqueid', u'objectclass',
+                                         'ipantsecurityidentifier'}
 
-    create_keys = retrieve_all_keys
+    create_keys = retrieve_all_keys - {u'ipantsecurityidentifier'}
     update_keys = retrieve_keys - {u'dn'}
 
     add_member_keys = retrieve_keys | {u'description'}
@@ -91,7 +94,9 @@ class GroupTracker(Tracker):
             description=[self.description],
             gidnumber=[fuzzy_digits],
             ipauniqueid=[fuzzy_uuid],
-            objectclass=objectclasses.posixgroup,
+            objectclass=fuzzy_set_optional_oc(
+                objectclasses.posixgroup, 'ipantgroupattrs'),
+            ipantsecurityidentifier=[fuzzy_user_or_group_sid],
             )
         self.exists = True
 
