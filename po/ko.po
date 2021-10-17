@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-10-06 16:05+0000\n"
+"PO-Revision-Date: 2021-10-19 02:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -562,23 +562,23 @@ msgstr "IPA CA 인증서"
 
 #: client/ipa-getkeytab.c:791
 msgid "LDAP uri to connect to. Mutually exclusive with --server"
-msgstr ""
+msgstr "연결 할 LDAP URI입니다. --server와 상호 배타적"
 
 #: client/ipa-getkeytab.c:792
 msgid "url"
-msgstr ""
+msgstr "url"
 
 #: client/ipa-getkeytab.c:794
 msgid "LDAP SASL bind mechanism if no bindd/bindpw"
-msgstr ""
+msgstr "만약 bindd/bindpw가 없는 경우 LDAP SASL 바인드 동작원리"
 
 #: client/ipa-getkeytab.c:795
 msgid "GSSAPI|EXTERNAL"
-msgstr ""
+msgstr "GSSAPI|EXTERNAL"
 
 #: client/ipa-getkeytab.c:797
 msgid "Retrieve current keys without changing them"
-msgstr ""
+msgstr "변경하지 않고 현재 키를 검색합니다"
 
 #: client/ipa-getkeytab.c:822 client/ipa-rmkeytab.c:216
 #, c-format
@@ -588,64 +588,64 @@ msgstr "커버러스 문맥 초기화에 실패함\n"
 #: client/ipa-getkeytab.c:835 util/ipa_krb5.c:892
 #, c-format
 msgid "No system preferred enctypes ?!\n"
-msgstr ""
+msgstr "시스템에 선호하는 암호화유형이 없습니다?!\n"
 
 #: client/ipa-getkeytab.c:838
 #, c-format
 msgid "Supported encryption types:\n"
-msgstr ""
+msgstr "지원되는 암호화 유형:\n"
 
 #: client/ipa-getkeytab.c:842
 #, c-format
 msgid "Warning: failed to convert type (#%d)\n"
-msgstr ""
+msgstr "경고: 유형 (#%d)를 전환하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:860
 #, c-format
 msgid "Bind password already provided (-w).\n"
-msgstr ""
+msgstr "바인드 비밀번호는 이미 제공되었습니다 (-w).\n"
 
 #: client/ipa-getkeytab.c:868
 msgid "Enter LDAP password"
-msgstr ""
+msgstr "LDAP 비밀번호를 입력합니다"
 
 #: client/ipa-getkeytab.c:876
 #, c-format
 msgid "Bind password required when using a bind DN (-w or -W).\n"
-msgstr ""
+msgstr "바인드 비밀번호는 바인드 DN (-w 또는 -W) 사용 할 때에 필요합니다.\n"
 
 #: client/ipa-getkeytab.c:883
 #, c-format
 msgid "Cannot specify both SASL mechanism and bind DN simultaneously.\n"
-msgstr ""
+msgstr "SASL 동작원리와 바인드 DN을 동시에 지정 할 수 없습니다.\n"
 
 #: client/ipa-getkeytab.c:891
 #, c-format
 msgid "Invalid SASL bind mechanism\n"
-msgstr ""
+msgstr "잘못된 SASL 바인드 동작원리\n"
 
 #: client/ipa-getkeytab.c:902
 #, c-format
 msgid "Cannot specify server and LDAP uri simultaneously.\n"
-msgstr ""
+msgstr "서버와 LDAP uri를 동시에 지정 할 수 없습니다.\n"
 
 #: client/ipa-getkeytab.c:919
 #, c-format
 msgid "Server name not provided and unavailable\n"
-msgstr ""
+msgstr "서버 이름은 제공되지 않으며 사용 할 수 없습니다\n"
 
 #: client/ipa-getkeytab.c:935
 #, c-format
 msgid "Incompatible options provided (-r and -P)\n"
-msgstr ""
+msgstr "호환되지 않는 옵션이 제공되었습니다 (-r 과 -P)\n"
 
 #: client/ipa-getkeytab.c:940
 msgid "New Principal Password"
-msgstr ""
+msgstr "신규 주체 비밀번호"
 
 #: client/ipa-getkeytab.c:941
 msgid "Verify Principal Password"
-msgstr ""
+msgstr "주체 비밀번호를 확인합니다"
 
 #: client/ipa-getkeytab.c:947
 #, c-format
@@ -901,7 +901,7 @@ msgstr ""
 
 #: ipaclient/plugins/automember.py:33 ipaserver/plugins/automember.py:342
 msgid "Failed to add"
-msgstr ""
+msgstr "추가하는데 실패함"
 
 #: ipaclient/plugins/automount.py:101
 msgid "maps not connected to /etc/auto.master:"
@@ -913,76 +913,76 @@ msgstr ""
 
 #: ipaclient/plugins/automount.py:122
 msgid "Master file"
-msgstr ""
+msgstr "마스터 파일"
 
 #: ipaclient/plugins/automount.py:123
 msgid "Automount master file."
-msgstr ""
+msgstr "자동적재 마스터 파일."
 
 #: ipaclient/plugins/automount.py:130
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues."
-msgstr ""
+msgstr "연동 동작 방식. 오류는 보고 되지만 처리는 계속됩니다."
 
 #: ipaclient/plugins/automount.py:148
 #, python-format
 msgid "File %(file)s not found"
-msgstr ""
+msgstr "파일 %(file)s는 찾을 수 없음"
 
 #: ipaclient/plugins/automount.py:198
 #, python-format
 msgid "key %(key)s already exists"
-msgstr ""
+msgstr "키 %(key)s가 이미 존재합니다"
 
 #: ipaclient/plugins/automount.py:213
 #, python-format
 msgid "map %(map)s already exists"
-msgstr ""
+msgstr "맵 %(map)s이 이미 존재합니다"
 
 #: ipaclient/plugins/automount.py:262
 msgid "Imported maps:"
-msgstr ""
+msgstr "가져온 맵:"
 
 #: ipaclient/plugins/automount.py:265
 #, python-format
 msgid "Added %(map)s"
-msgstr ""
+msgstr "추가된 %(map)s"
 
 #: ipaclient/plugins/automount.py:269
 msgid "Imported keys:"
-msgstr ""
+msgstr "가져온 키:"
 
 #: ipaclient/plugins/automount.py:272
 #, python-format
 msgid "Added %(src)s to %(dst)s"
-msgstr ""
+msgstr "%(src)s를 %(dst)s으로 추가함"
 
 #: ipaclient/plugins/automount.py:279
 msgid "Ignored keys:"
-msgstr ""
+msgstr "무시된 키:"
 
 #: ipaclient/plugins/automount.py:282
 #, python-format
 msgid "Ignored %(src)s to %(dst)s"
-msgstr ""
+msgstr "%(src)s에서 %(dst)s까지 무시함"
 
 #: ipaclient/plugins/automount.py:290
 msgid "Duplicate maps skipped:"
-msgstr ""
+msgstr "중복된 맵 건너띄기:"
 
 #: ipaclient/plugins/automount.py:293
 #, python-format
 msgid "Skipped %(map)s"
-msgstr ""
+msgstr "%(map)s 건너띄기"
 
 #: ipaclient/plugins/automount.py:299
 msgid "Duplicate keys skipped:"
-msgstr ""
+msgstr "중복된 키 건너띄기:"
 
 #: ipaclient/plugins/automount.py:302
 #, python-format
 msgid "Skipped %(key)s"
-msgstr ""
+msgstr "%(key)s 건너띄기"
 
 #: ipaclient/plugins/certmap.py:19
 msgid "Input file"
@@ -1383,7 +1383,7 @@ msgstr ""
 
 #: ipaclient/plugins/vault.py:983 ipaserver/plugins/internal.py:757
 msgid "Data"
-msgstr ""
+msgstr "자료"
 
 #: ipaclient/plugins/vault.py:1120
 msgid "Private key specified multiple times"
@@ -1407,7 +1407,7 @@ msgstr "오류"
 
 #: ipaclient/plugins/cert.py:120
 msgid "Input filename"
-msgstr ""
+msgstr "파일이름 입력"
 
 #: ipaclient/plugins/cert.py:121
 msgid "File to load the certificate from."
@@ -1574,7 +1574,7 @@ msgid ""
 msgstr ""
 
 msgid "ACI name"
-msgstr ""
+msgstr "ACI 이름"
 
 #: ipaserver/plugins/aci.py:451
 msgid "Permission"
@@ -1640,7 +1640,7 @@ msgstr ""
 
 #: ipaserver/plugins/permission.py:340 ipaserver/plugins/aci.py:502
 msgid "Target group"
-msgstr ""
+msgstr "대상 그룹"
 
 msgid "Group to apply ACI to"
 msgstr ""
@@ -3893,7 +3893,7 @@ msgstr ""
 
 #: ipaserver/plugins/host.py:571 ipaserver/plugins/baseuser.py:348
 msgid "SSH public key"
-msgstr ""
+msgstr "SSH 공용 키"
 
 #: ipaserver/plugins/baseuser.py:365
 msgid "Class"
@@ -7651,7 +7651,7 @@ msgid "Retrieve an existing certificate."
 msgstr ""
 
 msgid "Output filename"
-msgstr ""
+msgstr "출력 파일이름"
 
 msgid "File to store the certificate in."
 msgstr ""
@@ -8234,7 +8234,7 @@ msgid "NetBIOS name"
 msgstr ""
 
 msgid "Domain GUID"
-msgstr ""
+msgstr "도메인 GUID"
 
 msgid "Fallback primary group"
 msgstr ""
@@ -10019,7 +10019,7 @@ msgstr ""
 
 #: ipaserver/plugins/cert.py:578 ipaserver/plugins/certprofile.py:122
 msgid "Profile ID"
-msgstr ""
+msgstr "프로파일 ID"
 
 msgid "Certificate Profile to use"
 msgstr ""
@@ -13727,11 +13727,11 @@ msgstr ""
 
 #: ipaserver/plugins/serverrole.py:46
 msgid "server role"
-msgstr ""
+msgstr "서버 역할"
 
 #: ipaserver/plugins/serverrole.py:47
 msgid "server roles"
-msgstr ""
+msgstr "서버 역할"
 
 #: ipaserver/plugins/serverrole.py:51
 msgid "IPA Server Roles"
@@ -18825,7 +18825,7 @@ msgstr "공개 키:"
 
 #: ipaserver/plugins/internal.py:1224
 msgid "Set public key"
-msgstr ""
+msgstr "SSH 공용 키"
 
 #: ipaserver/plugins/internal.py:1225 ipaserver/plugins/internal.py:1343
 msgid "Show/Set key"
@@ -18877,7 +18877,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1242
 msgid "Domain SID"
-msgstr ""
+msgstr "도메인 SID"
 
 #: ipaserver/plugins/internal.py:1243
 msgid "Secondary RID base"
@@ -18901,23 +18901,23 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1249
 msgid "Local domain"
-msgstr ""
+msgstr "로컬 도메인"
 
 #: ipaserver/plugins/internal.py:1250
 msgid "IPA trust"
-msgstr ""
+msgstr "IPA 신뢰"
 
 #: ipaserver/plugins/internal.py:1251
 msgid "Active Directory winsync"
-msgstr ""
+msgstr "동적 디렉토리 winsync"
 
 #: ipaserver/plugins/internal.py:1254
 msgid "Add RADIUS server"
-msgstr ""
+msgstr "RADIUS 서버를 추가"
 
 #: ipaserver/plugins/internal.py:1255
 msgid "RADIUS Proxy Server Settings"
-msgstr ""
+msgstr "RADIUS 프락시 서버 설정"
 
 #: ipaserver/plugins/internal.py:1256
 msgid "Remove RADIUS servers"
@@ -18985,15 +18985,15 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1301
 msgid "Server Roles"
-msgstr ""
+msgstr "서버 역할"
 
 #: ipaserver/plugins/internal.py:1302
 msgid "Server Role"
-msgstr ""
+msgstr "서버 역할"
 
 #: ipaserver/plugins/internal.py:1305
 msgid "Warning: Consider service replication"
-msgstr ""
+msgstr "경고: 서비스 복제를 고려합니다"
 
 #: ipaserver/plugins/internal.py:1306
 msgid ""
@@ -19027,7 +19027,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1318
 msgid "Service Certificate"
-msgstr ""
+msgstr "서비스 인증서"
 
 #: ipaserver/plugins/internal.py:1320
 msgid "Service Settings"
@@ -19035,7 +19035,7 @@ msgstr "서버 설정"
 
 #: ipaserver/plugins/internal.py:1323
 msgid "Provisioning"
-msgstr ""
+msgstr "프로비져닝"
 
 #: ipaserver/plugins/internal.py:1324
 msgid "Remove services"
@@ -19069,15 +19069,15 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1340
 msgid "SSH public keys"
-msgstr ""
+msgstr "SSH 공용 키"
 
 #: ipaserver/plugins/internal.py:1341
 msgid "SSH public key:"
-msgstr ""
+msgstr "SSH 공용 키:"
 
 #: ipaserver/plugins/internal.py:1342
 msgid "Set SSH key"
-msgstr ""
+msgstr "SSH 키 설정"
 
 #: ipaserver/plugins/internal.py:1350
 msgid "Are you sure you want to activate selected users?"
@@ -20658,6 +20658,8 @@ msgid ""
 "\n"
 "IPA locations\n"
 msgstr ""
+"\n"
+"IPA 위치\n"
 
 #: ipaserver/plugins/location.py:35
 msgid ""
@@ -20703,23 +20705,23 @@ msgstr "위치"
 
 #: ipaserver/plugins/location.py:69
 msgid "IPA Locations"
-msgstr ""
+msgstr "IPA 위치"
 
 #: ipaserver/plugins/location.py:70
 msgid "IPA Location"
-msgstr ""
+msgstr "IPA위치"
 
 #: ipaserver/plugins/location.py:103
 msgid "Location name"
-msgstr ""
+msgstr "위치 이름"
 
 #: ipaserver/plugins/location.py:104
 msgid "IPA location name"
-msgstr ""
+msgstr "IPA 위치 이름"
 
 #: ipaserver/plugins/location.py:112
 msgid "IPA Location description"
-msgstr ""
+msgstr "IPA 위치 설명"
 
 #: ipaserver/plugins/location.py:116
 msgid "Servers"
@@ -26826,7 +26828,7 @@ msgstr ""
 
 #: ipaserver/dcerpc_common.py:26
 msgid "Established and verified"
-msgstr ""
+msgstr "확립과 검증됨"
 
 #: ipaserver/dcerpc_common.py:27
 msgid "Waiting for confirmation by remote side"
@@ -27040,7 +27042,7 @@ msgstr ""
 
 #: ipatests/test_ipalib/test_parameters.py:232
 msgid "Hello world"
-msgstr ""
+msgstr "안녕 세상아"
 
 #: ipatests/test_xmlrpc/test_radiusproxy_plugin.py:63
 #: ipatests/test_xmlrpc/test_radiusproxy_plugin.py:71
@@ -27110,20 +27112,20 @@ msgstr "메모리 부족!?\n"
 
 #: util/ipa_krb5.c:935
 msgid "Enctype comparison failed!\n"
-msgstr ""
+msgstr "암호화 유형 비교에 실패함!\n"
 
 #: util/ipa_krb5.c:988
 msgid "Password is too long!\n"
-msgstr ""
+msgstr "비밀번호가 너무 길어요!\n"
 
 #: util/ipa_krb5.c:1004
 msgid "Failed to create random key!\n"
-msgstr ""
+msgstr "무작위 키 생성에 실패함!\n"
 
 #: util/ipa_krb5.c:1017 util/ipa_krb5.c:1035 util/ipa_krb5.c:1043
 #: util/ipa_krb5.c:1083
 msgid "Failed to create key!\n"
-msgstr ""
+msgstr "키 생성에 실패함!\n"
 
 #: util/ipa_krb5.c:1069
 msgid "Bad or unsupported salt type.\n"
