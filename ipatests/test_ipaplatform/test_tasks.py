@@ -4,10 +4,14 @@
 from __future__ import absolute_import
 
 import os
+import pytest
 
 from ipaplatform.tasks import tasks
 
 
+@pytest.mark.skip_if_platform(
+    "debian", reason="Test is specific to platforms using RPM"
+)
 def test_ipa_version():
     v3 = tasks.parse_ipa_version('3.0')
     assert v3.version == u'3.0'
