@@ -192,7 +192,7 @@ class UI_driver:
         if not NO_YAML and os.path.isfile(path):
             try:
                 with open(path, 'r') as conf:
-                    cls.config = yaml.load(conf)
+                    cls.config = yaml.load(stream=conf, Loader=yaml.FullLoader)
             except yaml.YAMLError as e:
                 pytest.skip("Invalid Web UI config.\n%s" % e)
             except IOError as e:
