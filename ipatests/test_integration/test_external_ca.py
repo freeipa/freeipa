@@ -20,7 +20,6 @@ from __future__ import absolute_import
 import os
 import re
 import time
-import tempfile
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -464,8 +463,12 @@ class TestMultipleExternalCA(IntegrationTest):
     def test_master_install_ca1(self):
         install_server_external_ca_step1(self.master)
         # Sign CA, transport it to the host and get ipa a root ca paths.
-        root_ca_fname1 = tempfile.mkdtemp(suffix='root_ca.crt', dir=paths.TMP)
-        ipa_ca_fname1 = tempfile.mkdtemp(suffix='ipa_ca.crt', dir=paths.TMP)
+        root_ca_fname1 = tasks.create_temp_file(
+            self.master, directory=paths.TMP, suffix="root_ca.crt"
+        )
+        ipa_ca_fname1 = tasks.create_temp_file(
+            self.master, directory=paths.TMP, suffix="ipa_ca.crt"
+        )
 
         ipa_csr = self.master.get_file_contents(paths.ROOT_IPA_CSR)
 
@@ -485,8 +488,12 @@ class TestMultipleExternalCA(IntegrationTest):
         assert "CN=RootCA1" in result.stdout_text
 
     def test_master_install_ca2(self):
-        root_ca_fname2 = tempfile.mkdtemp(suffix='root_ca.crt', dir=paths.TMP)
-        ipa_ca_fname2 = tempfile.mkdtemp(suffix='ipa_ca.crt', dir=paths.TMP)
+        root_ca_fname2 = tasks.create_temp_file(
+            self.master, directory=paths.TMP, suffix="root_ca.crt"
+        )
+        ipa_ca_fname2 = tasks.create_temp_file(
+            self.master, directory=paths.TMP, suffix="ipa_ca.crt"
+        )
 
         self.master.run_command([
             paths.IPA_CACERT_MANAGE, 'renew', '--external-ca'])
