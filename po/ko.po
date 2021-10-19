@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-10-19 02:05+0000\n"
+"PO-Revision-Date: 2021-10-20 07:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -651,23 +651,23 @@ msgstr "주체 비밀번호를 확인합니다"
 #, c-format
 msgid ""
 "Warning: salt types are not honored with randomized passwords (see opt. -P)\n"
-msgstr ""
+msgstr "경고: 임의의 비밀번호는 솔트 유형을 지원하지 않습니다 (-P 옵션 참조)\n"
 
 #: client/ipa-getkeytab.c:954
 #, c-format
 msgid "Invalid Service Principal Name\n"
-msgstr ""
+msgstr "잘못된 서비스 사용자 이름\n"
 
 #: client/ipa-getkeytab.c:962
 #, c-format
 msgid "Kerberos Credential Cache not found. Do you have a Kerberos Ticket?\n"
-msgstr ""
+msgstr "커버러스 인증된 캐쉬는 찾을 수 없습니다. 커버러스 티켓을 가지고 있나요?\n"
 
 #: client/ipa-getkeytab.c:970
 #, c-format
 msgid ""
 "Kerberos User Principal not found. Do you have a valid Credential Cache?\n"
-msgstr ""
+msgstr "커버러스 사용자 주체를 찾을 수 없습니다. 유효한 인증 캐쉬를 가지고 있나요?\n"
 
 #: client/ipa-getkeytab.c:984
 #, c-format
@@ -677,12 +677,12 @@ msgstr "키탭을 여는데 실패함\n"
 #: client/ipa-getkeytab.c:1002
 #, c-format
 msgid "Retrying with pre-4.0 keytab retrieval method...\n"
-msgstr ""
+msgstr "이전-4.0 키탭 검색 방법으로 재시도 중...\n"
 
 #: client/ipa-getkeytab.c:1012
 #, c-format
 msgid "Failed to create key material\n"
-msgstr ""
+msgstr "키 재료 생성에 실패함\n"
 
 #: client/ipa-getkeytab.c:1022
 #, c-format
@@ -692,17 +692,17 @@ msgstr "키탭을 가져오는데 실패함\n"
 #: client/ipa-getkeytab.c:1036
 #, c-format
 msgid "Failed to add key to the keytab\n"
-msgstr ""
+msgstr "키를 키탭에 추가하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:1045
 #, c-format
 msgid "Failed to close the keytab\n"
-msgstr ""
+msgstr "키탭을 닫는데 실패함\n"
 
 #: client/ipa-getkeytab.c:1051
 #, c-format
 msgid "Keytab successfully retrieved and stored in: %s\n"
-msgstr ""
+msgstr "키탭은 성공적으로 검색되었고 저장됨: %s\n"
 
 #: client/ipa-rmkeytab.c:51
 #, c-format
@@ -905,11 +905,11 @@ msgstr "추가하는데 실패함"
 
 #: ipaclient/plugins/automount.py:101
 msgid "maps not connected to /etc/auto.master:"
-msgstr ""
+msgstr "/etc/auto.master로 연결되지 않은 맵:"
 
 #: ipaclient/plugins/automount.py:118
 msgid "Import automount files for a specific location."
-msgstr ""
+msgstr "지정된 위치로 자동 적재 파일을 가져옵니다."
 
 #: ipaclient/plugins/automount.py:122
 msgid "Master file"
@@ -1009,7 +1009,7 @@ msgstr ""
 
 #: ipaclient/plugins/location.py:23
 msgid "Servers details:"
-msgstr ""
+msgstr "서버 상세:"
 
 #: ipaclient/plugins/migration.py:37
 msgid ""
@@ -1395,7 +1395,7 @@ msgstr ""
 
 #: ipaclient/plugins/ca.py:19 ipaclient/plugins/cert.py:39
 msgid "Write certificate (chain if --chain used) to file"
-msgstr ""
+msgstr "파일에 인증서 쓰기(만약 --chain이 사용된 경우 체인)"
 
 #: ipaclient/plugins/cert.py:107
 msgid "Unrevoked"
