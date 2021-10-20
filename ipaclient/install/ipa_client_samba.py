@@ -446,13 +446,17 @@ def uninstall(fstore, statestore, options):
         fstore.restore_file(paths.SMB_CONF)
 
     # Remove samba's persistent and temporary tdb files
-    tdb_files = [
-        tdb_file
-        for tdb_file in os.listdir(paths.SAMBA_DIR)
-        if tdb_file.endswith(".tdb")
-    ]
-    for tdb_file in tdb_files:
-        ipautil.remove_file(tdb_file)
+    # in /var/lib/samba and /var/lib/samba/private
+    for smbpath in (paths.SAMBA_DIR,
+                    os.path.join(paths.SAMBA_DIR, "private"),
+                    os.path.join(paths.SAMBA_DIR, "lock")):
+        tdb_files = [
+            os.path.join(smbpath, tdb_file)
+            for tdb_file in os.listdir(smbpath)
+            if tdb_file.endswith(".tdb")
+        ]
+        for tdb_file in tdb_files:
+            ipautil.remove_file(tdb_file)
 
     # Remove our keys from samba's keytab
     if os.path.exists(paths.SAMBA_KEYTAB):
