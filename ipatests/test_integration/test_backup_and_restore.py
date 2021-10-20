@@ -311,6 +311,11 @@ class BaseBackupAndRestoreWithDNS(IntegrationTest):
                 tasks.install_master(self.master, setup_dns=True)
             self.master.run_command(['ipa-restore', backup_path],
                                     stdin_text=dirman_password + '\nyes')
+            if reinstall:
+                # If the server was reinstalled, reinstall may have changed
+                # the uid and restore reverts to the original value.
+                # clear the cache to make sure we get up-to-date values
+                tasks.clear_sssd_cache(self.master)
             tasks.resolve_record(self.master.ip, self.example_test_zone)
 
             tasks.kinit_admin(self.master)
@@ -379,6 +384,12 @@ class BaseBackupAndRestoreWithDNSSEC(IntegrationTest):
             dirman_password = self.master.config.dirman_password
             self.master.run_command(['ipa-restore', backup_path],
                                     stdin_text=dirman_password + '\nyes')
+
+            if reinstall:
+                # If the server was reinstalled, reinstall may have changed
+                # the uid and restore reverts to the original value.
+                # clear the cache to make sure we get up-to-date values
+                tasks.clear_sssd_cache(self.master)
 
             assert (
                 wait_until_record_is_signed(
@@ -463,6 +474,12 @@ class BaseBackupAndRestoreWithKRA(IntegrationTest):
             dirman_password = self.master.config.dirman_password
             self.master.run_command(['ipa-restore', backup_path],
                                     stdin_text=dirman_password + '\nyes')
+
+            if reinstall:
+                # If the server was reinstalled, reinstall may have changed
+                # the uid and restore reverts to the original value.
+                # clear the cache to make sure we get up-to-date values
+                tasks.clear_sssd_cache(self.master)
 
             tasks.kinit_admin(self.master)
             # retrieve secret after restore
