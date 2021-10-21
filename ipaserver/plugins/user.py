@@ -659,6 +659,10 @@ class user_add(baseuser_add):
 
         entry_attrs.update(newentry)
 
+        # delete ipantsecurityidentifier if present
+        if ('ipantsecurityidentifier' in entry_attrs):
+            del entry_attrs['ipantsecurityidentifier']
+
         if options.get('random', False):
             try:
                 entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
