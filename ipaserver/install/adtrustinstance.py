@@ -918,11 +918,18 @@ class ADTRUSTInstance(service.Service):
         ipautil.remove_file(self.smb_conf)
 
         # Remove samba's persistent and temporary tdb files
-        if os.path.isdir(paths.SAMBA_DIR):
-            tdb_files = [tdb_file for tdb_file in os.listdir(paths.SAMBA_DIR)
-                         if tdb_file.endswith(".tdb")]
-            for tdb_file in tdb_files:
-                ipautil.remove_file(tdb_file)
+        # in /var/lib/samba and /var/lib/samba/private
+        for smbpath in (paths.SAMBA_DIR,
+                        os.path.join(paths.SAMBA_DIR, "private"),
+                        os.path.join(paths.SAMBA_DIR, "lock")):
+            if os.path.isdir(smbpath):
+                tdb_files = [
+                    os.path.join(smbpath, tdb_file)
+                    for tdb_file in os.listdir(smbpath)
+                    if tdb_file.endswith(".tdb")
+                ]
+                for tdb_file in tdb_files:
+                    ipautil.remove_file(tdb_file)
 
         # Remove our keys from samba's keytab
         self.clean_samba_keytab()
