@@ -503,7 +503,6 @@ class test_range(Declarative):
                     uidnumber=[unicode(user1_uid)],
                     gidnumber=[unicode(user1_uid)],
                     objectclass=objectclasses.user_base + [u'mepOriginEntry'],
-                    omit=['ipantsecurityidentifier'],
                 ),
             ),
         ),
