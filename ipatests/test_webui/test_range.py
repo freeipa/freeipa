@@ -297,8 +297,13 @@ class test_range(range_tasks):
 
         # Without primary and secondary RID bases
         data = self.get_data(pkey, base_rid='', secondary_base_rid='')
-        self.add_record(ENTITY, data, navigate=False)
-        self.delete_record(pkey)
+        self.add_record(ENTITY, data, navigate=False, negative=True)
+        try:
+            assert self.has_form_error('ipabaserid')
+        finally:
+            self.delete_record(pkey)
+
+        self.dialog_button_click('cancel')
 
     @screenshot
     def test_modify_range_with_invalid_or_missing_values(self):
