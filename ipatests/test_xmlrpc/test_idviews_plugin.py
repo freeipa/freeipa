@@ -217,7 +217,8 @@ class test_idviews(Declarative):
                     u'Test',
                     u'User1',
                     'add',
-                    objectclass=objectclasses.user,
+                    objectclass=fuzzy_set_optional_oc(
+                        objectclasses.user, 'ipantuserattrs'),
                 ),
             ),
         ),
@@ -1623,7 +1624,8 @@ class test_idviews(Declarative):
                     u'Removed',
                     u'User',
                     'add',
-                    objectclass=objectclasses.user,
+                    objectclass=fuzzy_set_optional_oc(
+                        objectclasses.user, 'ipantuserattrs'),
                 ),
             ),
         ),
