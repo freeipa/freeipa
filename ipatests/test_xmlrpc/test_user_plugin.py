@@ -1182,6 +1182,9 @@ def get_user_result(uid, givenname, sn, operation='show', omit=[],
             objectclass=objectclasses.user,
             krbprincipalname=[u'%s@%s' % (uid, api.env.realm)],
             krbcanonicalname=[u'%s@%s' % (uid, api.env.realm)],
+        )
+    if operation == 'show-all':
+        result.update(
             ipantsecurityidentifier=[fuzzy_user_or_group_sid],
         )
     if operation in ('show', 'show-all', 'find', 'mod'):

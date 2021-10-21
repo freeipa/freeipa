@@ -11,6 +11,7 @@ import six
 from ipatests.util import assert_deepequal, get_group_dn
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
+    fuzzy_set_optional_oc,
     fuzzy_digits, fuzzy_uuid, fuzzy_user_or_group_sid, raises_exact)
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
@@ -51,6 +52,7 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
         u'krbextradata', u'krbpasswordexpiration', u'krblastpwdchange',
         u'krbprincipalkey', u'userpassword', u'randompassword'}
     create_keys = create_keys - {u'nsaccountlock'}
+    create_keys = create_keys - {'ipantsecurityidentifier'}
 
     update_keys = retrieve_keys - {u'dn'}
     activate_keys = retrieve_keys
@@ -175,7 +177,8 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
             displayname=[u'%s %s' % (self.givenname, self.sn)],
             cn=[u'%s %s' % (self.givenname, self.sn)],
             initials=[u'%s%s' % (self.givenname[0], self.sn[0])],
-            objectclass=objectclasses.user,
+            objectclass=fuzzy_set_optional_oc(
+                objectclasses.user, 'ipantuserattrs'),
             description=[u'__no_upg__'],
             ipauniqueid=[fuzzy_uuid],
             uidnumber=[fuzzy_digits],
