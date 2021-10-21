@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-10-20 07:05+0000\n"
+"PO-Revision-Date: 2021-10-22 03:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -990,11 +990,11 @@ msgstr "입력 파일"
 
 #: ipaclient/plugins/certmap.py:20
 msgid "File to load the certificate from"
-msgstr ""
+msgstr "해당 인증서에 적재 할 파일"
 
 #: ipaclient/plugins/certmap.py:41 ipaclient/plugins/cert.py:130
 msgid "cannot specify both raw certificate and file"
-msgstr ""
+msgstr "raw 인증서와 파일 모두 상세화 할 수 없습니다"
 
 #: ipaclient/plugins/certprofile.py:25
 #, python-format
@@ -1399,7 +1399,7 @@ msgstr "파일에 인증서 쓰기(만약 --chain이 사용된 경우 체인)"
 
 #: ipaclient/plugins/cert.py:107
 msgid "Unrevoked"
-msgstr ""
+msgstr "취소되지 않음"
 
 #: ipaclient/plugins/cert.py:110 ipaserver/plugins/internal.py:293
 msgid "Error"
@@ -1411,7 +1411,7 @@ msgstr "파일이름 입력"
 
 #: ipaclient/plugins/cert.py:121
 msgid "File to load the certificate from."
-msgstr ""
+msgstr "해당 인증서에 적재 할 파일."
 
 #: ipaclient/plugins/otptoken.py:66
 msgid ""
