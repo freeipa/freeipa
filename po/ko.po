@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-10-22 03:05+0000\n"
+"PO-Revision-Date: 2021-10-23 19:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -999,7 +999,7 @@ msgstr "raw 인증서와 파일 모두 상세화 할 수 없습니다"
 #: ipaclient/plugins/certprofile.py:25
 #, python-format
 msgid "Profile configuration stored in file '%(file)s'"
-msgstr ""
+msgstr "파일 '%(file)s'에서 저장된 프로파일 구성"
 
 #: ipaclient/plugins/host.py:41 ipaclient/plugins/service.py:43
 #: ipaclient/plugins/user.py:74
@@ -6182,7 +6182,7 @@ msgid ""
 msgstr ""
 
 msgid "Principal"
-msgstr ""
+msgstr "주체"
 
 #: ipaserver/plugins/service.py:475
 msgid "Service principal"
@@ -10015,7 +10015,7 @@ msgid "Display information about a vault container."
 msgstr ""
 
 msgid "Principal for this certificate (e.g. HTTP/test.example.com)"
-msgstr ""
+msgstr "이 인증서를 위한 주체 (예제. HTTP/test.example.com)"
 
 #: ipaserver/plugins/cert.py:578 ipaserver/plugins/certprofile.py:122
 msgid "Profile ID"
