@@ -27,6 +27,7 @@ debian_system_units['krb5kdc'] = 'krb5-kdc.service'
 debian_system_units['named-regular'] = 'named.service'
 debian_system_units['named-pkcs11'] = 'bind9-pkcs11.service'
 debian_system_units['named'] = debian_system_units['named-regular']
+debian_system_units['ntpd'] = 'ntp.service'
 debian_system_units['pki-tomcatd'] = 'pki-tomcatd.service'
 debian_system_units['pki_tomcatd'] = debian_system_units['pki-tomcatd']
 debian_system_units['ods-enforcerd'] = 'opendnssec-enforcer.service'
