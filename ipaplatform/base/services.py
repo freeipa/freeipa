@@ -539,4 +539,4 @@ knownservices = KnownServices({})
 
 # System may support more time&date services. FreeIPA supports chrony only.
 # Other services will be disabled during IPA installation
-timedate_services = ['ntpd', 'chronyd']
+timedate_services = ['ntpd', 'chronyd', 'systemd-timesyncd']
