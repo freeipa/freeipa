@@ -36,7 +36,7 @@ class DebianPathNamespace(BasePathNamespace):
     NAMED_CUSTOM_OPTIONS_CONF = "/etc/bind/ipa-options-ext.conf"
     NAMED_LOGGING_OPTIONS_CONF = "/etc/bind/ipa-logging-ext.conf"
     NAMED_VAR_DIR = "/var/cache/bind"
-    NAMED_KEYTAB = "/etc/bind/named.keytab"
+    NAMED_KEYTAB = "/etc/bind/krb5.keytab"
     NAMED_RFC1912_ZONES = "/etc/bind/named.conf.default-zones"
     NAMED_ROOT_KEY = "/etc/bind/bind.keys"
     NAMED_MANAGED_KEYS_DIR = "/var/cache/bind/dynamic"
