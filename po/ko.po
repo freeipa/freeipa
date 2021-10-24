@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-10-23 19:05+0000\n"
+"PO-Revision-Date: 2021-10-25 05:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -1005,7 +1005,7 @@ msgstr "파일 '%(file)s'에서 저장된 프로파일 구성"
 #: ipaclient/plugins/user.py:74
 #, python-format
 msgid "Certificate(s) stored in file '%(file)s'"
-msgstr ""
+msgstr "파일 '%(file)s'에서 저장된 인증서"
 
 #: ipaclient/plugins/location.py:23
 msgid "Servers details:"
@@ -4868,7 +4868,7 @@ msgid ""
 msgstr ""
 
 msgid "Dictionary mapping variable name to value"
-msgstr ""
+msgstr "변수 이름을 값으로 매핑하는 사전"
 
 msgid "Total number of variables env (>= count)"
 msgstr ""
@@ -15231,7 +15231,7 @@ msgstr ""
 
 #: ipaserver/plugins/cert.py:1034
 msgid "The principal for this request doesn't exist."
-msgstr ""
+msgstr "이 요청을 위한 주체가 존재하지 않습니다."
 
 #: ipaserver/plugins/cert.py:1150
 #, python-format
