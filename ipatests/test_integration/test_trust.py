@@ -641,12 +641,12 @@ class TestTrust(BaseTestTrust):
             ['chown', '--reference', paths.NAMED_CONF, ad_zone_file])
         named_conf = self.master.get_file_contents(paths.NAMED_CONF,
                                                    encoding='utf-8')
-        named_conf += textwrap.dedent('''
-            zone "ad.test" {{
+        named_conf += textwrap.dedent(f'''
+            zone "{self.ad.domain.name}" {{
                 type master;
-                file "{}";
+                file "{ad_zone_file}";
             }};
-        '''.format(ad_zone_file))
+        ''')
         self.master.put_file_contents(paths.NAMED_CONF, named_conf)
         tasks.restart_named(self.master)
         try:
