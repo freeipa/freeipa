@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-10-25 05:05+0000\n"
+"PO-Revision-Date: 2021-10-27 01:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -1016,6 +1016,8 @@ msgid ""
 "Migration mode is disabled.\n"
 "Use 'ipa config-mod --enable-migration=TRUE' to enable it."
 msgstr ""
+"이동 방법(migration mode)은 사용 할 수 없습니다.\n"
+"이를 활성화 하기 위하여 'ipa config-mod --enable-migration=TRUE'를 사용하세요."
 
 #: ipaclient/plugins/migration.py:41
 msgid ""
@@ -1025,22 +1027,31 @@ msgid ""
 "login at https://your.domain/ipa/migration/ before they\n"
 "can use their Kerberos accounts."
 msgstr ""
+"비밀번호는 사전-해시된 형식으로 이전되었습니다.\n"
+"IPA는 일반 텍스트 암호로 제공되지 않는 한 커버러스 키를\n"
+"생성 할 수 없습니다. 모든 이전된 사용자는 자신의 커버러스\n"
+"계정을 사용하기 전에 https://your.domain/ipa/migration/에\n"
+"로그인 해야 합니다."
 
 #: ipaclient/plugins/otptoken_yubikey.py:35
 msgid "python-yubico is not installed."
-msgstr ""
+msgstr "python-yubico은 설치되지 않습니다."
 
 #: ipaclient/plugins/otptoken_yubikey.py:40
 msgid ""
 "\n"
 "YubiKey Tokens\n"
 msgstr ""
+"\n"
+"YubiKey 토큰\n"
 
 #: ipaclient/plugins/otptoken_yubikey.py:42
 msgid ""
 "\n"
 "Manage YubiKey tokens.\n"
 msgstr ""
+"\n"
+"YubiKey 토큰 관리.\n"
 
 #: ipaclient/plugins/otptoken_yubikey.py:44
 msgid ""
