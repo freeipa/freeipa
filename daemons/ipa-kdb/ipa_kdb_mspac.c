@@ -1847,7 +1847,10 @@ static krb5_error_code ipadb_add_transited_service(krb5_context context,
     krb5_free_data_contents(context, &pac_blob);
     memset(&pac_blob, 0, sizeof(krb5_data));
 
-    kerr = krb5_unparse_name(context, proxy->princ, &tmpstr);
+    kerr = krb5_unparse_name_flags(context, proxy->princ,
+                                   KRB5_PRINCIPAL_UNPARSE_NO_REALM |
+                                   KRB5_PRINCIPAL_UNPARSE_DISPLAY,
+                                   &tmpstr);
     if (kerr != 0) {
         goto done;
     }
