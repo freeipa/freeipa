@@ -648,6 +648,11 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     info3->base.logon_count = 0; /* we do not have this info yet */
     info3->base.bad_password_count = 0; /* we do not have this info yet */
 
+    /* Use AES keys by default to detect changes.
+     * This bit is not used by Windows clients and servers so we can
+     * clear it after detecting the changes */
+    info3->base.acct_flags = ACB_USE_AES_KEYS;
+
     if ((is_host || is_service)) {
         /* it is either host or service, so get the hostname first */
         char *sep = strchr(info3->base.account_name.string, '/');
@@ -655,11 +660,13 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
                             ipactx,
                             sep ? sep + 1 : info3->base.account_name.string);
         if (is_master) {
-            /* Well know RID of domain controllers group */
+            /* Well known RID of domain controllers group */
             info3->base.rid = 516;
+            info3->base.acct_flags |= ACB_SVRTRUST;
         } else {
-            /* Well know RID of domain computers group */
+            /* Well known RID of domain computers group */
             info3->base.rid = 515;
+            info3->base.acct_flags |= ACB_WSTRUST;
         }
     } else {
         ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
@@ -799,9 +806,13 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     /* always zero out, not used for Krb, only NTLM */
     memset(&info3->base.LMSessKey, '\0', sizeof(info3->base.LMSessKey));
 
-    /* TODO: fill based on objectclass, user vs computer, etc... */
-    info3->base.acct_flags = ACB_NORMAL; /* samr_AcctFlags */
+    /* If account type was not set before, default to ACB_NORMAL */
+    if (!(info3->base.acct_flags & ~ACB_USE_AES_KEYS)) {
+        info3->base.acct_flags |= ACB_NORMAL; /* samr_AcctFlags */
+    }
 
+    /* Clear ACB_USE_AES_KEYS as it is not used by Windows */
+    info3->base.acct_flags &= ~ACB_USE_AES_KEYS;
     info3->base.sub_auth_status = 0;
     info3->base.last_successful_logon = 0;
     info3->base.last_failed_logon = 0;
