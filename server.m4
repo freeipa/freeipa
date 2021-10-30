@@ -101,6 +101,13 @@ AC_CHECK_MEMBER(
     [AC_MSG_NOTICE([struct PAC_DOMAIN_GROUP_MEMBERSHIP is not available])],
                  [[#include <ndr.h>
                    #include <gen_ndr/krb5pac.h>]])
+AC_CHECK_MEMBER(
+    [struct PAC_UPN_DNS_INFO.ex],
+    [AC_DEFINE([HAVE_PAC_UPN_DNS_INFO_EX], [1],
+               [union PAC_UPN_DNS_INFO_EX is available.])],
+    [AC_MSG_NOTICE([union PAC_UPN_DNS_INFO_EX is not available, account protection is not active])],
+                 [[#include <ndr.h>
+                   #include <gen_ndr/krb5pac.h>]])
 
 CFLAGS="$bck_cflags"
 
