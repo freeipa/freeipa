@@ -812,6 +812,25 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     return ret;
 }
 
+static krb5_error_code ipadb_get_sid_from_pac(TALLOC_CTX *ctx,
+                                              struct PAC_LOGON_INFO *info,
+                                              struct dom_sid *sid)
+{
+    struct dom_sid *client_sid = NULL;
+    /* Construct SID from the PAC */
+    if (info->info3.base.rid == 0) {
+        client_sid = info->info3.sids[0].sid;
+    } else {
+        client_sid = dom_sid_dup(ctx, info->info3.base.domain_sid);
+        if (!client_sid) {
+            return ENOMEM;
+        }
+        sid_append_rid(client_sid, info->info3.base.rid);
+    }
+    *sid = *client_sid;
+    return 0;
+}
+
 static krb5_error_code ipadb_get_pac(krb5_context kcontext,
                                      krb5_db_entry *client,
                                      unsigned int flags,
@@ -830,6 +849,7 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     enum ndr_err_code ndr_err;
     union PAC_INFO pac_upn;
     char *principal = NULL;
+    struct dom_sid client_sid;
 
     /* When no client entry is there, we cannot generate MS-PAC */
     if (!client) {
@@ -929,6 +949,18 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
         (pac_info.logon_info.info->info3.base.rid != 516)) {
         pac_upn.upn_dns_info.flags |= PAC_UPN_DNS_FLAG_CONSTRUCTED;
     }
+
+    kerr = ipadb_get_sid_from_pac(tmpctx, pac_info.logon_info.info, &client_sid);
+    if (kerr) {
+        goto done;
+    }
+
+#ifdef HAVE_PAC_UPN_DNS_INFO_EX
+    /* Add samAccountName and a SID */
+    pac_upn.upn_dns_info.flags |= PAC_UPN_DNS_FLAG_HAS_SAM_NAME_AND_SID;
+    pac_upn.upn_dns_info.ex.sam_name_and_sid.samaccountname = pac_info.logon_info.info->info3.base.account_name.string;
+    pac_upn.upn_dns_info.ex.sam_name_and_sid.objectsid = &client_sid;
+#endif
 
     ndr_err = ndr_push_union_blob(&pac_data, tmpctx, &pac_upn,
                                   PAC_TYPE_UPN_DNS_INFO,
@@ -1415,6 +1447,7 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
     krb5_db_entry *client_actual = NULL;
     struct ipadb_e_data *ied = NULL;
     int flags = 0;
+    struct dom_sid client_sid;
 #ifdef KRB5_KDB_FLAG_ALIAS_OK
     flags = KRB5_KDB_FLAG_ALIAS_OK;
 #endif
@@ -1460,11 +1493,15 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
         goto done;
     }
 
-    result = dom_sid_check(ied->sid, info->info->info3.sids[0].sid, true);
+    kerr = ipadb_get_sid_from_pac(memctx, info->info, &client_sid);
+    if (kerr) {
+        goto done;
+    }
+    result = dom_sid_check(ied->sid, &client_sid, true);
     if (!result) {
         /* memctx is freed by the caller */
         char *local_sid = dom_sid_string(memctx, ied->sid);
-        char *pac_sid = dom_sid_string(memctx, info->info->info3.sids[0].sid);
+        char *pac_sid = dom_sid_string(memctx, &client_sid);
         krb5_klog_syslog(LOG_ERR, "PAC issue: client principal has a SID "
                                   "different from what PAC claims. "
                                   "local [%s] vs PAC [%s]",
