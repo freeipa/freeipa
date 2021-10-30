@@ -880,6 +880,87 @@ static krb5_error_code ipadb_get_sid_from_pac(TALLOC_CTX *ctx,
     return 0;
 }
 
+#ifdef HAVE_PAC_ATTRIBUTES_INFO
+static krb5_error_code ipadb_client_requested_pac(krb5_context context,
+                                                  krb5_pac pac,
+                                                  TALLOC_CTX *mem_ctx,
+                                                  krb5_boolean *requested_pac)
+{
+    enum ndr_err_code ndr_err;
+    krb5_data k5pac_attrs_in;
+    DATA_BLOB pac_attrs_in;
+    union PAC_INFO pac_attrs;
+    krb5_error_code ret;
+
+    *requested_pac = true;
+
+    ret = krb5_pac_get_buffer(context, pac, PAC_TYPE_ATTRIBUTES_INFO,
+                                &k5pac_attrs_in);
+    if (ret != 0) {
+            return ret == ENOENT ? 0 : ret;
+    }
+
+    pac_attrs_in = data_blob_const(k5pac_attrs_in.data,
+                                   k5pac_attrs_in.length);
+
+    ndr_err = ndr_pull_union_blob(&pac_attrs_in, mem_ctx, &pac_attrs,
+                                  PAC_TYPE_ATTRIBUTES_INFO,
+                                  (ndr_pull_flags_fn_t)ndr_pull_PAC_INFO);
+    krb5_free_data_contents(context, &k5pac_attrs_in);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+            NTSTATUS nt_status = ndr_map_error2ntstatus(ndr_err);
+            krb5_klog_syslog(LOG_ERR, "can't parse the PAC ATTRIBUTES_INFO: %s\n",
+                                        nt_errstr(nt_status));
+            return KRB5_KDB_INTERNAL_ERROR;
+    }
+
+    if (pac_attrs.attributes_info.flags & (PAC_ATTRIBUTE_FLAG_PAC_WAS_GIVEN_IMPLICITLY
+                                           | PAC_ATTRIBUTE_FLAG_PAC_WAS_REQUESTED)) {
+            *requested_pac = true;
+    } else {
+            *requested_pac = false;
+    }
+
+    return 0;
+}
+
+static krb5_error_code ipadb_get_pac_attrs_blob(TALLOC_CTX *mem_ctx,
+                                                const krb5_boolean *pac_request,
+                                                DATA_BLOB *pac_attrs_data)
+{
+    union PAC_INFO pac_attrs;
+    enum ndr_err_code ndr_err;
+
+    memset(&pac_attrs, 0, sizeof(pac_attrs));
+
+    *pac_attrs_data = data_blob_null;
+
+    /* Set the length of the flags in bits. */
+    pac_attrs.attributes_info.flags_length = 2;
+
+    if (pac_request == NULL) {
+            pac_attrs.attributes_info.flags
+                    |= PAC_ATTRIBUTE_FLAG_PAC_WAS_GIVEN_IMPLICITLY;
+    } else if (*pac_request) {
+            pac_attrs.attributes_info.flags
+                    |= PAC_ATTRIBUTE_FLAG_PAC_WAS_REQUESTED;
+    }
+
+    ndr_err = ndr_push_union_blob(pac_attrs_data, mem_ctx, &pac_attrs,
+                                    PAC_TYPE_ATTRIBUTES_INFO,
+                                    (ndr_push_flags_fn_t)ndr_push_PAC_INFO);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+            NTSTATUS nt_status = ndr_map_error2ntstatus(ndr_err);
+            krb5_klog_syslog(LOG_ERR, "can't create PAC ATTRIBUTES_INFO: %s\n",
+                            nt_errstr(nt_status));
+            return KRB5_KDB_INTERNAL_ERROR;
+    }
+
+    return 0;
+}
+
+#endif
+
 static krb5_error_code ipadb_get_pac(krb5_context kcontext,
                                      krb5_db_entry *client,
                                      unsigned int flags,
@@ -1024,6 +1105,26 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     data.length = pac_data.length;
 
     kerr = krb5_pac_add_buffer(kcontext, *pac, KRB5_PAC_UPN_DNS_INFO, &data);
+
+#ifdef HAVE_PAC_ATTRIBUTES_INFO
+    /* == Add implicit PAC type attributes info as we always try to generate PAC == */
+    {
+        DATA_BLOB pac_attrs_data;
+
+        kerr = ipadb_get_pac_attrs_blob(tmpctx, NULL, &pac_attrs_data);
+        if (kerr) {
+            goto done;
+        }
+        data.magic = KV5M_DATA;
+        data.data = (char *)pac_attrs_data.data;
+        data.length = pac_attrs_data.length;
+
+        kerr = krb5_pac_add_buffer(kcontext, *pac, PAC_TYPE_ATTRIBUTES_INFO, &data);
+        if (kerr) {
+            goto done;
+        }
+    }
+#endif
 
 #ifdef HAVE_PAC_REQUESTER_SID
     {
@@ -2164,6 +2265,48 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
 
             continue;
         }
+
+#ifdef HAVE_PAC_ATTRIBUTES_INFO
+        if (types[i] == PAC_TYPE_ATTRIBUTES_INFO &&
+            pac_blob.length != 0) {
+            /* == Check whether PAC was requested or given implicitly == */
+            DATA_BLOB pac_attrs_data;
+            krb5_boolean pac_requested;
+
+            TALLOC_CTX *tmpctx = talloc_new(NULL);
+            if (tmpctx == NULL) {
+                kerr = ENOMEM;
+                krb5_pac_free(context, new_pac);
+                goto done;
+            }
+
+            kerr = ipadb_client_requested_pac(context, old_pac, tmpctx, &pac_requested);
+            if (kerr != 0) {
+                talloc_free(tmpctx);
+                krb5_pac_free(context, new_pac);
+                goto done;
+            }
+
+            kerr = ipadb_get_pac_attrs_blob(tmpctx, &pac_requested, &pac_attrs_data);
+            if (kerr) {
+                talloc_free(tmpctx);
+                krb5_pac_free(context, new_pac);
+                goto done;
+            }
+            data.magic = KV5M_DATA;
+            data.data = (char *)pac_attrs_data.data;
+            data.length = pac_attrs_data.length;
+
+            kerr = krb5_pac_add_buffer(context, new_pac, PAC_TYPE_ATTRIBUTES_INFO, &data);
+            if (kerr) {
+                talloc_free(tmpctx);
+                krb5_pac_free(context, new_pac);
+                goto done;
+            }
+
+            continue;
+        }
+#endif
 
         if (types[i] == KRB5_PAC_DELEGATION_INFO &&
             (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION)) {
