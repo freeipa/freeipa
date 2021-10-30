@@ -358,6 +358,21 @@ def upgrade_adtrust_config():
         else:
             logger.warning("Error updating Samba registry: %s", e)
 
+    logger.info("[Change 'server role' from "
+                "'CLASSIC PRIMARY DOMAIN CONTROLLER' "
+                "to 'IPA PRIMARY DOMAIN CONTROLLER' in Samba configuration]")
+
+    args = [paths.NET, "conf", "setparm", "global",
+            "server role", "IPA PRIMARY DOMAIN CONTROLLER"]
+
+    try:
+        ipautil.run(args)
+    except ipautil.CalledProcessError as e:
+        # Only report an error if return code is not 255
+        # which indicates that the new server role is not supported
+        # and we don't need to do anything
+        if e.returncode != 255:
+            logger.warning("Error updating Samba registry: %s", e)
 
 def ca_configure_profiles_acl(ca):
     logger.info('[Authorizing RA Agent to modify profiles]')

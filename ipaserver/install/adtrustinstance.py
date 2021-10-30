@@ -146,6 +146,8 @@ class ADTRUSTInstance(service.Service):
     OBJC_GROUP = "ipaNTGroupAttrs"
     OBJC_DOMAIN = "ipaNTDomainAttrs"
     FALLBACK_GROUP_NAME = u'Default SMB Group'
+    SERVER_ROLE_OLD = "CLASSIC PRIMARY DOMAIN CONTROLLER"
+    SERVER_ROLE_NEW = "IPA PRIMARY DOMAIN CONTROLLER"
 
     def __init__(self, fstore=None, fulltrust=True):
         self.netbios_name = None
@@ -573,7 +575,16 @@ class ADTRUSTInstance(service.Service):
         with tempfile.NamedTemporaryFile(mode='w') as tmp_conf:
             tmp_conf.write(conf)
             tmp_conf.flush()
-            ipautil.run([paths.NET, "conf", "import", tmp_conf.name])
+            try:
+                ipautil.run([paths.NET, "conf", "import", tmp_conf.name])
+            except ipautil.CalledProcessError as e:
+                if e.returncode == 255:
+                    # We have old Samba that doesn't support IPA DC server role
+                    # re-try again with the older variant, upgrade code will
+                    # take care to change the role later when Samba is upgraded
+                    # as well.
+                    self.sub_dict['SERVER_ROLE'] = self.SERVER_ROLE_OLD
+                    self.__write_smb_registry()
 
     def __map_Guests_to_nobody(self):
         map_Guests_to_nobody()
@@ -775,6 +786,7 @@ class ADTRUSTInstance(service.Service):
             LDAPI_SOCKET=self.ldapi_socket,
             FQDN=self.fqdn,
             SAMBA_DIR=paths.SAMBA_DIR,
+            SERVER_ROLE=self.SERVER_ROLE_NEW,
         )
 
     def setup(self, fqdn, realm_name, netbios_name,
