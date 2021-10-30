@@ -109,6 +109,13 @@ AC_CHECK_MEMBER(
                  [[#include <ndr.h>
                    #include <gen_ndr/krb5pac.h>]])
 
+AC_CHECK_MEMBER(
+    [struct PAC_REQUESTER_SID.sid],
+    [AC_DEFINE([HAVE_PAC_REQUESTER_SID], [1],
+               [struct PAC_REQUESTER_SID is available.])],
+    [AC_MSG_NOTICE([struct PAC_REQUESTER_SID is not available, account protection is not active])],
+                 [[#include <ndr.h>
+                   #include <gen_ndr/krb5pac.h>]])
 CFLAGS="$bck_cflags"
 
 LIBPDB_NAME=""
