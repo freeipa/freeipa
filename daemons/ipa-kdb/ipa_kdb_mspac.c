@@ -812,6 +812,55 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     return ret;
 }
 
+#ifdef HAVE_PAC_REQUESTER_SID
+static krb5_error_code ipadb_get_requester_sid(krb5_context context,
+                                               krb5_pac pac,
+                                               struct dom_sid *sid)
+{
+    enum ndr_err_code ndr_err;
+    krb5_error_code ret;
+    DATA_BLOB pac_requester_sid_in;
+    krb5_data k5pac_requester_sid_in;
+    union PAC_INFO info;
+    TALLOC_CTX *tmp_ctx;
+    struct ipadb_context *ipactx;
+
+    ipactx = ipadb_get_context(context);
+    if (!ipactx) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
+    tmp_ctx = talloc_new(NULL);
+    if (tmp_ctx == NULL) {
+        return ENOMEM;
+    }
+
+    ret = krb5_pac_get_buffer(context, pac, PAC_TYPE_REQUESTER_SID,
+                              &k5pac_requester_sid_in);
+    if (ret != 0) {
+        talloc_free(tmp_ctx);
+        return ret;
+    }
+
+    pac_requester_sid_in = data_blob_const(k5pac_requester_sid_in.data,
+                                           k5pac_requester_sid_in.length);
+
+    ndr_err = ndr_pull_union_blob(&pac_requester_sid_in, tmp_ctx, &info,
+                                  PAC_TYPE_REQUESTER_SID,
+                                  (ndr_pull_flags_fn_t)ndr_pull_PAC_INFO);
+    krb5_free_data_contents(context, &k5pac_requester_sid_in);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+            talloc_free(tmp_ctx);
+            return EINVAL;
+    }
+
+    *sid = info.requester_sid.sid;
+
+    talloc_free(tmp_ctx);
+    return 0;
+}
+#endif
+
 static krb5_error_code ipadb_get_sid_from_pac(TALLOC_CTX *ctx,
                                               struct PAC_LOGON_INFO *info,
                                               struct dom_sid *sid)
@@ -975,6 +1024,33 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     data.length = pac_data.length;
 
     kerr = krb5_pac_add_buffer(kcontext, *pac, KRB5_PAC_UPN_DNS_INFO, &data);
+
+#ifdef HAVE_PAC_REQUESTER_SID
+    {
+        union PAC_INFO pac_requester_sid;
+        /* == Package PAC_REQUESTER_SID == */
+        memset(&pac_requester_sid, 0, sizeof(pac_requester_sid));
+
+        pac_requester_sid.requester_sid.sid = client_sid;
+
+        ndr_err = ndr_push_union_blob(&pac_data, tmpctx, &pac_requester_sid,
+                                    PAC_TYPE_REQUESTER_SID,
+                                    (ndr_push_flags_fn_t)ndr_push_PAC_INFO);
+        if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+            kerr = KRB5_KDB_INTERNAL_ERROR;
+            goto done;
+        }
+
+        data.magic = KV5M_DATA;
+        data.data = (char *)pac_data.data;
+        data.length = pac_data.length;
+
+        kerr = krb5_pac_add_buffer(kcontext, *pac, PAC_TYPE_REQUESTER_SID, &data);
+        if (kerr) {
+            goto done;
+        }
+    }
+#endif
 
 done:
     ldap_msgfree(results);
@@ -1457,7 +1533,19 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
         return KRB5_KDB_DBNOTINITED;
     }
 
-    /* check exact sid */
+    /* We are asked to verify the PAC for our own principal,
+     * check that our own view on the PAC details is up to date */
+    if (ipactx->mspac->domsid.num_auths == 0) {
+        /* Force re-init of KDB's view on our domain */
+        kerr = ipadb_reinit_mspac(ipactx, true);
+        if (kerr != 0) {
+            krb5_klog_syslog(LOG_ERR,
+                             "PAC issue: unable to update realm's view on PAC info");
+            return KRB5KDC_ERR_POLICY;
+        }
+    }
+
+    /* check exact domain SID */
     result = dom_sid_check(&ipactx->mspac->domsid,
                            info->info->info3.base.domain_sid, true);
     if (!result) {
@@ -1466,7 +1554,7 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
         char *dom = dom_sid_string(memctx, &ipactx->mspac->domsid);
         krb5_klog_syslog(LOG_ERR, "PAC issue: PAC record claims domain SID different "
                                   "to local domain SID: local [%s], PAC [%s]",
-				  dom ? dom : "<failed to display>",
+                                  dom ? dom : "<failed to display>",
                                   sid ? sid : "<failed to display>");
         return KRB5KDC_ERR_POLICY;
     }
@@ -1746,12 +1834,14 @@ krb5_error_code filter_logon_info(krb5_context context,
 static krb5_error_code ipadb_check_logon_info(krb5_context context,
                                               krb5_const_principal client_princ,
                                               krb5_boolean is_cross_realm,
-                                              krb5_data *pac_blob)
+                                              krb5_data *pac_blob,
+                                              struct dom_sid *requester_sid)
 {
     struct PAC_LOGON_INFO_CTR info;
     krb5_error_code kerr;
     TALLOC_CTX *tmpctx;
     krb5_data origin_realm = client_princ->realm;
+    bool result;
 
     tmpctx = talloc_new(NULL);
     if (!tmpctx) {
@@ -1761,6 +1851,28 @@ static krb5_error_code ipadb_check_logon_info(krb5_context context,
     kerr = get_logon_info(context, tmpctx, pac_blob, &info);
     if (kerr) {
         goto done;
+    }
+
+    /* Check that requester SID is the same as in the PAC entry */
+    if (requester_sid != NULL) {
+        struct dom_sid client_sid;
+        kerr = ipadb_get_sid_from_pac(tmpctx, info.info, &client_sid);
+        if (kerr) {
+            goto done;
+        }
+        result = dom_sid_check(&client_sid, requester_sid, true);
+        if (!result) {
+            /* memctx is freed by the caller */
+            char *pac_sid = dom_sid_string(tmpctx, &client_sid);
+            char *req_sid = dom_sid_string(tmpctx, requester_sid);
+            krb5_klog_syslog(LOG_ERR, "PAC issue: PAC has a SID "
+                                      "different from what PAC requester claims. "
+                                      "PAC [%s] vs PAC requester [%s]",
+                                      pac_sid ? pac_sid : "<failed to display>",
+                                      req_sid ? req_sid : "<failed to display>");
+            kerr = KRB5KDC_ERR_POLICY;
+            goto done;
+        }
     }
 
     if (!is_cross_realm) {
@@ -1962,6 +2074,8 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
     krb5_data pac_blob = { 0 , 0, NULL};
     bool is_cross_realm = false;
     size_t i;
+    struct dom_sid *requester_sid = NULL;
+    struct dom_sid req_sid;
 
     kerr = krb5_pac_parse(context,
                           authdata[0]->contents,
@@ -2006,8 +2120,17 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         goto done;
     }
 
+    memset(&req_sid, '\0', sizeof(struct dom_sid));
+#ifdef HAVE_PAC_REQUESTER_SID
+    kerr = ipadb_get_requester_sid(context, old_pac, &req_sid);
+    if (kerr == 0) {
+        requester_sid = &req_sid;
+    }
+#endif
+
     kerr = ipadb_check_logon_info(context,
-                                  client_princ, is_cross_realm, &pac_blob);
+                                  client_princ, is_cross_realm, &pac_blob,
+                                  requester_sid);
     if (kerr != 0) {
         goto done;
     }
