@@ -61,6 +61,7 @@ ipadb_la_LIBADD = 		\
 	$(UNISTRING_LIBS)	\
 	$(SSSCERTMAP_LIBS)	\
 	$(top_builddir)/util/libutil.la	\
+        -lsamba-errors          \
 	$(NULL)
 
 if HAVE_CMOCKA
@@ -104,6 +105,7 @@ ipa_kdb_tests_LDADD =          \
        -lkdb5                  \
        -lsss_idmap             \
        -lsamba-security-samba4 \
+       -lsamba-errors          \
        $(NULL)
 
 appdir = $(libexecdir)/ipa
