@@ -585,7 +585,7 @@ class TestACMERenew(IntegrationTest):
         # Note raiseonerr=False:
         # the assert is located after kdcinfo retrieval.
         result = host.run_command(
-            "KRB5_TRACE=/dev/stdout kinit %s" % 'admin',
+            "KRB5_TRACE=/dev/stdout kinit admin",
             stdin_text='{0}\n{0}\n{0}\n'.format(
                 self.clients[0].config.admin_password
             ),
@@ -618,8 +618,6 @@ class TestACMERenew(IntegrationTest):
         )
         cert = x509.load_pem_x509_certificate(data, backend=default_backend())
         initial_expiry = cert.not_valid_after
-
-        tasks.kinit_admin(self.clients[0])
 
         self.clients[0].run_command(['certbot', 'renew'])
 
