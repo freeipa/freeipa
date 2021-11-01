@@ -216,6 +216,8 @@ class XMLRPC_test:
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect()
 
+        import subprocess
+        subprocess.run(['kinit', 'admin'], input=b'Secret.123', check=True)
         def fin():
             ipa_request.destroy_context()
         request.addfinalizer(fin)
