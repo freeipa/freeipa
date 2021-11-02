@@ -83,7 +83,7 @@ benefits:
 LDAPI mappings, search base for UID/GID, and mapping base for
 ``nsslapd-authenticateAsDN`` must be configured in ``cn=config``.
 
-```raw
+```
 dn: cn=config
 nsslapd-ldapimaptoentries: on
 nsslapd-ldapientrysearchbase: cn=auto_bind,cn=config
@@ -96,7 +96,7 @@ LDAPI DN rewriter feature comes with a new object class for mapping
 UID/GID to another DN. For example a mapping for BIND named would look
 like this:
 
-```raw
+```
 dn: cn=named,cn=auto_bind,cn=config
 objectClass: top
 objectClass: nsLDAPIFixedAuthMap
