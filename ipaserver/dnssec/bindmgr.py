@@ -127,6 +127,7 @@ class BINDMgr:
         )
         cmd = [
             paths.DNSSEC_KEYFROMLABEL,
+            '-E', 'pkcs11',
             '-K', workdir,
             '-a', attrs['idnsSecAlgorithm'][0],
             '-l', uri

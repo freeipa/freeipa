@@ -576,9 +576,11 @@ Requires: %{name}-server = %{version}-%{release}
 Requires: bind-dyndb-ldap >= 11.2-2
 Requires: bind >= %{bind_version}
 Requires: bind-utils >= %{bind_version}
+# bind-dnssec-utils is required by the OpenDNSSec integration
+# https://pagure.io/freeipa/issue/9026
+Requires: bind-dnssec-utils >= %{bind_version}
 %if %{with bind_pkcs11}
 Requires: bind-pkcs11 >= %{bind_version}
-Requires: bind-pkcs11-utils >= %{bind_version}
 %else
 Requires: softhsm >= %{softhsm_version}
 Requires: openssl-pkcs11 >= %{openssl_pkcs11_version}
