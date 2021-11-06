@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-11-05 17:07+0000\n"
+"PO-Revision-Date: 2021-11-07 12:05+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -1694,10 +1694,10 @@ msgid "Print entries as stored on the server. Only affects output format."
 msgstr "서버에서 저장된 것 같은 항목을 출력합니다. 단지 출력 형식에 영향을 줍니다."
 
 msgid "User-friendly description of action performed"
-msgstr ""
+msgstr "수행된 동작에 대한 사용자 친화적인 설명"
 
 msgid "The primary_key value of the entry, e.g. 'jdoe' for a user"
-msgstr ""
+msgstr "사용자를 위한 예제. 'jdoe'인 항목의 기본_키 값"
 
 msgid "Delete ACI."
 msgstr "ACI 삭제."
@@ -1729,36 +1729,36 @@ msgid ""
 msgstr ""
 
 msgid "A string searched in all relevant object attributes"
-msgstr ""
+msgstr "모든 연관된 객체 속성에서 검색된 문자열"
 
 #: ipaserver/plugins/schema.py:127 ipaserver/plugins/cert.py:1563
 #: ipaserver/plugins/baseldap.py:1948
 msgid "Primary key only"
-msgstr ""
+msgstr "기본 키만"
 
 msgid "Results should contain primary key attribute only (\"name\")"
-msgstr ""
+msgstr "결과는 기본 키 속성(\"이름\")만 포함되어야 합니다"
 
 msgid "Number of entries returned"
-msgstr ""
+msgstr "반환된 항목의 수"
 
 msgid "True if not all results were returned"
-msgstr ""
+msgstr "모든 결과가 반환되지 않은 경우라면 참(true)"
 
 msgid "Modify ACI."
-msgstr ""
+msgstr "ACI 수정."
 
 msgid "Rename an ACI."
-msgstr ""
+msgstr "ACI 이름 재지정."
 
 msgid "New ACI name"
-msgstr ""
+msgstr "새로운 ACI 이름"
 
 msgid "Display a single ACI given an ACI name."
-msgstr ""
+msgstr "ACI 이름으로 주어진 단인 ACI를 표시합니다."
 
 msgid "Location of the ACI"
-msgstr ""
+msgstr "ACI의 위치"
 
 #: ipaserver/plugins/automount.py:41
 msgid ""
@@ -1935,22 +1935,24 @@ msgid ""
 "Add an attribute/value pair. Format is attr=value. The attribute\n"
 "must be part of the schema."
 msgstr ""
+"속성/값 쌍을 추가합니다. 형식은 속성=값입니다. 속성은\n"
+"스키마의 일부여야 합니다."
 
 #: ipaserver/plugins/automount.py:705
 msgid "Delete an automount key."
-msgstr ""
+msgstr "자동 적재 키를 삭제합니다."
 
 #: ipaserver/plugins/baseldap.py:1369
 msgid "Continuous mode: Don't stop on errors."
-msgstr ""
+msgstr "연속된 방식: 오류에 멈추지 않습니다."
 
 #: ipalib/output.py:204
 msgid "List of deletions that failed"
-msgstr ""
+msgstr "실패한 삭제 목록"
 
 #: ipaserver/plugins/automount.py:804
 msgid "Search for an automount key."
-msgstr ""
+msgstr "자동 적재 키를 위한 검색."
 
 #: ipaserver/plugins/serverrole.py:123 ipaserver/plugins/cert.py:1568
 #: ipaserver/plugins/pkinit.py:71 ipaserver/plugins/baseldap.py:1967
@@ -1978,6 +1980,8 @@ msgid ""
 "Delete an attribute/value pair. The option will be evaluated\n"
 "last, after all sets and adds."
 msgstr ""
+"속성/값 쌍을 삭제합니다. 옵션이 모든 설정과 추가 후에\n"
+"마지막으로 평가됩니다."
 
 #: ipaserver/plugins/baseldap.py:1390 ipaserver/plugins/baseldap.py:1465
 msgid "Rights"
@@ -1987,11 +1991,11 @@ msgstr "권한"
 msgid ""
 "Display the access rights of this entry (requires --all). See ipa man page "
 "for details."
-msgstr ""
+msgstr "이 항목(--all가 필요)의 접근 권한을 표시합니다. 자세한 내용은 ipa man 부분을 참조하세요."
 
 #: ipaserver/plugins/automount.py:755
 msgid "New mount information"
-msgstr ""
+msgstr "새로운 적재 정보"
 
 #: ipaserver/plugins/baseldap.py:1475
 msgid "Rename"
@@ -9286,39 +9290,39 @@ msgstr "서버 이름"
 #: ipaserver/plugins/serverrole.py:59 ipaserver/plugins/pkinit.py:48
 #: ipaserver/plugins/server.py:104
 msgid "IPA server hostname"
-msgstr ""
+msgstr "IPA 서버 호스트이름"
 
 msgid "Managed suffix"
-msgstr ""
+msgstr "관리된 접미사"
 
 msgid "Min domain level"
-msgstr ""
+msgstr "최소 도메인 수준"
 
 msgid "Minimum domain level"
-msgstr ""
+msgstr "최소 도메인 수준"
 
 msgid "Max domain level"
-msgstr ""
+msgstr "최대 도메인 수준"
 
 msgid "Maximum domain level"
-msgstr ""
+msgstr "최대 도메인 수준"
 
 msgid "Delete IPA server."
-msgstr ""
+msgstr "IPA 서버 삭제."
 
 msgid "Search for IPA servers."
-msgstr ""
+msgstr "IPA 서버를 위한 검색."
 
 msgid "Show IPA server."
-msgstr ""
+msgstr "IPA 서버를 표시합니다."
 
 #: ipaserver/plugins/service.py:1128
 msgid "Add new certificates to a service"
-msgstr ""
+msgstr "새로운 인증서를 서비스에 추가"
 
 #: ipaserver/plugins/service.py:1135
 msgid "Remove certificates from a service"
-msgstr ""
+msgstr "서비스에서 인증서를 제거"
 
 msgid ""
 "\n"
@@ -9383,39 +9387,39 @@ msgstr ""
 
 #: ipaserver/plugins/servicedelegation.py:167
 msgid "Allowed Target"
-msgstr ""
+msgstr "허용된 대상"
 
 #: ipaserver/plugins/servicedelegation.py:396
 msgid "Create a new service delegation rule."
-msgstr ""
+msgstr "신규 서비스 위임 규칙을 생성합니다."
 
 #: ipaserver/plugins/servicedelegation.py:435
 msgid "Add member to a named service delegation rule."
-msgstr ""
+msgstr "구성원을 명명된 서비스 위임 규칙에 추가합니다."
 
 msgid "member principal"
-msgstr ""
+msgstr "구성원 객체"
 
 msgid "principal to add"
-msgstr ""
+msgstr "추가 할 객체"
 
 #: ipaserver/plugins/servicedelegation.py:452
 msgid "Add target to a named service delegation rule."
-msgstr ""
+msgstr "대상을 명명된 서비스 위임 규칙으로 추가."
 
 msgid "member service delegation target"
-msgstr ""
+msgstr "구성원 서비스 위임 대상"
 
 msgid "service delegation targets to add"
-msgstr ""
+msgstr "추가 하려는 서비스 위임 대상"
 
 #: ipaserver/plugins/servicedelegation.py:403
 msgid "Delete service delegation."
-msgstr ""
+msgstr "서비스 위임을 삭제합니다."
 
 #: ipaserver/plugins/servicedelegation.py:420
 msgid "Search for service delegations rule."
-msgstr ""
+msgstr "서비스 위임 규칙을 검색."
 
 msgid "Results should contain primary key attribute only (\"delegation-name\")"
 msgstr ""
@@ -16459,7 +16463,7 @@ msgstr ""
 #: ipaserver/plugins/internal.py:198 ipaserver/plugins/internal.py:272
 #: ipaserver/plugins/internal.py:1708
 msgid "About"
-msgstr "대하여"
+msgstr "정보"
 
 #: ipaserver/plugins/internal.py:199
 msgid "Activate"
