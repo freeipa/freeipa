@@ -38,7 +38,7 @@ jobs:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &pki-master-latest
-          name: freeipa/pki-master-f34
+          name: freeipa/pki-master-f35
           version: 0.0.1
         timeout: 1800
         topology: *build
