@@ -38,7 +38,7 @@ from ipatests.util import (
     assert_deepequal, assert_equal, assert_not_equal, raises)
 from ipatests.test_xmlrpc.xmlrpc_test import (
     XMLRPC_test, fuzzy_digits, fuzzy_uuid, fuzzy_password,
-    fuzzy_user_or_group_sid,
+    fuzzy_user_or_group_sid, fuzzy_set_optional_oc,
     Fuzzy, fuzzy_dergeneralizedtime, raises_exact)
 from ipapython.dn import DN
 from ipapython.ipaldap import ldap_initialize
@@ -1179,7 +1179,8 @@ def get_user_result(uid, givenname, sn, operation='show', omit=[],
             initials=[givenname[0] + (sn or '')[:1]],
             ipauniqueid=[fuzzy_uuid],
             mepmanagedentry=[get_group_dn(uid)],
-            objectclass=objectclasses.user,
+            objectclass=fuzzy_set_optional_oc(
+                objectclasses.user, 'ipantuserattrs'),
             krbprincipalname=[u'%s@%s' % (uid, api.env.realm)],
             krbcanonicalname=[u'%s@%s' % (uid, api.env.realm)],
         )
