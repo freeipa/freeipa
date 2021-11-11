@@ -653,28 +653,15 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
      * clear it after detecting the changes */
     info3->base.acct_flags = ACB_USE_AES_KEYS;
 
-    if ((is_host || is_service)) {
-        /* it is either host or service, so get the hostname first */
-        char *sep = strchr(info3->base.account_name.string, '/');
-        bool is_master = is_master_host(
-                            ipactx,
-                            sep ? sep + 1 : info3->base.account_name.string);
-        if (is_master) {
-            /* Well known RID of domain controllers group */
-            info3->base.rid = 516;
-            info3->base.acct_flags |= ACB_SVRTRUST;
-        } else {
-            /* Well known RID of domain computers group */
-            info3->base.rid = 515;
-            info3->base.acct_flags |= ACB_WSTRUST;
-        }
-    } else {
-        ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
-                                     "ipaNTSecurityIdentifier", &strres);
-        if (ret) {
-            /* SID is mandatory */
+    ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
+                                 "ipaNTSecurityIdentifier", &strres);
+    if (ret) {
+        /* SID is mandatory for all but host/services */
+        if (!(is_host || is_service)) {
             return ret;
         }
+        info3->base.rid = 0;
+    } else {
         ret = ipadb_string_to_sid(strres, &sid);
         free(strres);
         if (ret) {
@@ -683,6 +670,29 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         ret = sid_split_rid(&sid, &info3->base.rid);
         if (ret) {
             return ret;
+        }
+    }
+
+    /* If SID was present prefer using it even for hosts and services
+     * but we still need to set the account flags correctly */
+    if ((is_host || is_service)) {
+        /* it is either host or service, so get the hostname first */
+        char *sep = strchr(info3->base.account_name.string, '/');
+        bool is_master = is_master_host(
+                            ipactx,
+                            sep ? sep + 1 : info3->base.account_name.string);
+        if (is_master) {
+            /* Well known RID of domain controllers group */
+            if (info3->base.rid == 0) {
+                info3->base.rid = 516;
+            }
+            info3->base.acct_flags |= ACB_SVRTRUST;
+        } else {
+            /* Well known RID of domain computers group */
+            if (info3->base.rid == 0) {
+                info3->base.rid = 515;
+            }
+            info3->base.acct_flags |= ACB_WSTRUST;
         }
     }
 
