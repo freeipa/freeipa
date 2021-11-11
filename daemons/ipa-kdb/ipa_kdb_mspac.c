@@ -1637,11 +1637,13 @@ static void filter_logon_info_log_message_rid(struct dom_sid *sid, uint32_t rid)
 static krb5_error_code check_logon_info_consistent(krb5_context context,
                                                    TALLOC_CTX *memctx,
                                                    krb5_const_principal client_princ,
+                                                   krb5_boolean is_s4u,
                                                    struct PAC_LOGON_INFO_CTR *info)
 {
     krb5_error_code kerr = 0;
     struct ipadb_context *ipactx;
     bool result;
+    bool is_from_trusted_domain = false;
     krb5_db_entry *client_actual = NULL;
     struct ipadb_e_data *ied = NULL;
     int flags = 0;
@@ -1671,14 +1673,36 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
     result = dom_sid_check(&ipactx->mspac->domsid,
                            info->info->info3.base.domain_sid, true);
     if (!result) {
-        /* memctx is freed by the caller */
-        char *sid = dom_sid_string(memctx, info->info->info3.base.domain_sid);
-        char *dom = dom_sid_string(memctx, &ipactx->mspac->domsid);
-        krb5_klog_syslog(LOG_ERR, "PAC issue: PAC record claims domain SID different "
-                                  "to local domain SID: local [%s], PAC [%s]",
-                                  dom ? dom : "<failed to display>",
-                                  sid ? sid : "<failed to display>");
-        return KRB5KDC_ERR_POLICY;
+        /* In S4U case we might be dealing with the PAC issued by the trusted domain */
+        if (is_s4u && (ipactx->mspac->trusts != NULL)) {
+            /* Iterate through list of trusts and check if this SID belongs to
+             * one of the domains we trust */
+            for(int i = 0 ; i < ipactx->mspac->num_trusts ; i++) {
+                result = dom_sid_check(&ipactx->mspac->trusts[i].domsid,
+                                       info->info->info3.base.domain_sid, true);
+                if (result) {
+                    is_from_trusted_domain = true;
+                    break;
+                }
+            }
+        }
+
+        if (!result) {
+            /* memctx is freed by the caller */
+            char *sid = dom_sid_string(memctx, info->info->info3.base.domain_sid);
+            char *dom = dom_sid_string(memctx, &ipactx->mspac->domsid);
+            krb5_klog_syslog(LOG_ERR, "PAC issue: PAC record claims domain SID different "
+                                      "to local domain SID or any trusted domain SID: "
+                                      "local [%s], PAC [%s]",
+                                      dom ? dom : "<failed to display>",
+                                      sid ? sid : "<failed to display>");
+            return KRB5KDC_ERR_POLICY;
+        }
+    }
+
+    if (is_s4u && is_from_trusted_domain) {
+        /* If the PAC belongs to a user from the trusted domain, we cannot compare SIDs */
+        return 0;
     }
 
     kerr = ipadb_get_principal(context, client_princ, flags, &client_actual);
@@ -1702,6 +1726,7 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
          * SID is not needed */
         goto done;
     }
+
 
     kerr = ipadb_get_sid_from_pac(memctx, info->info, &client_sid);
     if (kerr) {
@@ -1956,6 +1981,7 @@ krb5_error_code filter_logon_info(krb5_context context,
 static krb5_error_code ipadb_check_logon_info(krb5_context context,
                                               krb5_const_principal client_princ,
                                               krb5_boolean is_cross_realm,
+                                              krb5_boolean is_s4u,
                                               krb5_data *pac_blob,
                                               struct dom_sid *requester_sid)
 {
@@ -1999,8 +2025,11 @@ static krb5_error_code ipadb_check_logon_info(krb5_context context,
 
     if (!is_cross_realm) {
         /* For local realm case we need to check whether the PAC is for our user
-         * but we don't need to process further */
-        kerr = check_logon_info_consistent(context, tmpctx, client_princ, &info);
+         * but we don't need to process further. In S4U2Proxy case when the client
+         * is ours but operates on behalf of the cross-realm principal, we will
+         * search through the trusted domains but otherwise skip the exact SID check
+         * as we are not responsible for the principal from the trusted domain */
+        kerr = check_logon_info_consistent(context, tmpctx, client_princ, is_s4u, &info);
         goto done;
     }
 
@@ -2251,7 +2280,10 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
 #endif
 
     kerr = ipadb_check_logon_info(context,
-                                  client_princ, is_cross_realm, &pac_blob,
+                                  client_princ,
+                                  is_cross_realm,
+                                  (flags & KRB5_KDB_FLAGS_S4U),
+                                  &pac_blob,
                                   requester_sid);
     if (kerr != 0) {
         goto done;
