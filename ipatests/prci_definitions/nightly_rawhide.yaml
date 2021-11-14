@@ -1220,6 +1220,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
         test_suite: test_integration/test_installation_client.py
         template: *ci-master-frawhide
         timeout: 3600
