@@ -1,3 +1,5 @@
+%define ipa_requires_gt()  %(LC_ALL="C" echo '%*' | xargs -r rpm -q --qf 'Requires: %%{name} >= %%{epoch}:%%{version}-%%{release}\\n' | sed -e 's/ (none):/ /' -e 's/ 0:/ /' | grep -v "is not")
+
 # ipatests enabled by default, can be disabled with --without ipatests
 %bcond_without ipatests
 # default to not use XML-RPC in Rawhide, can be turned around with --with ipa_join_xml
@@ -473,6 +475,8 @@ Requires: gssproxy >= 0.7.0-2
 Requires: sssd-dbus >= %{sssd_version}
 Requires: libpwquality
 Requires: cracklib-dicts
+# NDR libraries are internal in Samba and change with version without changing SONAME
+%ipa_requires_gt samba-client-libs
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
