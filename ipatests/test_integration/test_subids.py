@@ -84,6 +84,14 @@ class TestSubordinateId(IntegrationTest):
             cmd.extend(("--owner", uid))
         return self.master.run_command(cmd, **kwargs)
 
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(
+            cls.master,
+            setup_dns=False,
+            extra_args=['--mkhomedir']
+        )
+
     def test_dna_config(self):
         conn = self.master.ldap_connect()
         dna_cfg = DN(
@@ -126,6 +134,60 @@ class TestSubordinateId(IntegrationTest):
             )
             match = self._parse_result(result)
             self.assert_subid_info(uid, match)
+
+    def test_podman(self):
+        """
+        Test that podman can retrieve subuid+subgid created for a user.
+        """
+
+        # create such a user
+        uid = "testuser_podman"
+        passwd = "Secret123"
+        tasks.create_active_user(self.master, uid, password=passwd)
+        tasks.kinit_admin(self.master)
+        self.subid_generate(uid)
+        info = self.assert_subid(uid, match=True)
+        subuid = info["ipasubuidnumber"]
+
+        # add "subid: sss" to nsswitch.conf to use SSSD as subid provider
+        nsswitch_conf = self.master.get_file_contents(
+            paths.NSSWITCH_CONF,
+            encoding="utf-8"
+        )
+        if "subid" not in nsswitch_conf:
+            nsswitch_conf += "\nsubid:      sss files\n"
+            self.master.put_file_contents(
+                paths.NSSWITCH_CONF,
+                nsswitch_conf
+            )
+            self.master.run_command([
+                "authselect",
+                "apply-changes"
+            ])
+
+        # install podman
+        tasks.install_packages(self.master, ["podman"])
+
+        # these two commands:
+        # - retrieve subids
+        # - must be executed as the user owning the subids
+        # Warning: "su" will not cut it, only ssh will
+        cmds = (
+            "podman unshare cat /proc/self/uid_map",
+            "podman unshare cat /proc/self/gid_map"
+        )
+        for cmd in cmds:
+            result = tasks.run_ssh_cmd(
+                to_host=self.master.external_hostname,
+                username=uid,
+                cmd=cmd,
+                auth_method="password",
+                password=passwd,
+                verbose=True
+            )
+            assert result[0] == 0
+            assert "65536" in result[1]
+            assert str(subuid) in result[1]
 
     def test_ipa_subid_script(self):
         tasks.kinit_admin(self.master)
