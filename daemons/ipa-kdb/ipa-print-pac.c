@@ -600,7 +600,7 @@ ask_password(TALLOC_CTX *context, char *prompt1, char *prompt2, bool match)
     /* krb5_prompter_posix does not use krb5_context internally */
     krb5_prompter_posix(NULL, NULL, NULL, NULL, num_prompts, ap_prompts);
 
-    if (match && (strcmp(pw0, pw1))) {
+    if (match && (strcmp(pw0, pw1) != 0)) {
         fprintf(stderr, "Passwords do not match!\n");
         return NULL;
     }

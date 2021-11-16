@@ -769,7 +769,7 @@ static char *ask_password(krb5_context krbctx, char *prompt1, char *prompt2,
                 NULL, NULL,
                 num_prompts, ap_prompts);
 
-    if (match && (strcmp(pw0, pw1))) {
+    if (match && (strcmp(pw0, pw1) != 0)) {
         fprintf(stderr, _("Passwords do not match!\n"));
         return NULL;
     }

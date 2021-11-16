@@ -82,7 +82,7 @@ ipa_topo_post_add(Slapi_PBlock *pb)
          */
         tsegm =  ipa_topo_util_segment_from_entry(tconf, add_entry);
         status = slapi_entry_attr_get_charptr(add_entry, "ipaReplTopoSegmentStatus");
-        if (status == NULL || strcasecmp(status,"autogen")) {
+        if (status == NULL || (strcasecmp(status,"autogen") != 0)) {
             ipa_topo_util_missing_agmts_add(tconf, tsegm,
                                             ipa_topo_get_plugin_hostname());
         }

@@ -343,7 +343,7 @@ parse_req_done:
 		/* If user is authenticated, they already gave their password during
 		the bind operation (or used sasl or client cert auth or OS creds) */
 		slapi_pblock_get(pb, SLAPI_CONN_AUTHMETHOD, &authmethod);
-		if (!authmethod || !strcmp(authmethod, SLAPD_AUTH_NONE)) {
+		if (!authmethod || strcmp(authmethod, SLAPD_AUTH_NONE) == 0) {
 			errMesg = "User must be authenticated to the directory server.\n";
 			rc = LDAP_INSUFFICIENT_ACCESS;
 			goto free_and_return;
