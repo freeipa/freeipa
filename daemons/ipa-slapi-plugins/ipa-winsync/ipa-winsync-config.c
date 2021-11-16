@@ -800,7 +800,7 @@ internal_find_entry_get_attr_val(const Slapi_DN *basedn, int scope,
             }
         }
         if (attrval) {
-            if (!strcmp(attrname, "dn")) { /* special - to just get the DN */
+            if (strcmp(attrname, "dn") == 0) { /* special - to just get the DN */
                 *attrval = slapi_ch_strdup(slapi_entry_get_dn_const(entries[0]));
             } else {
                 *attrval = slapi_entry_attr_get_charptr(entries[0], attrname);

@@ -545,7 +545,7 @@ ipa_topo_util_set_agmt_rdn(TopoReplicaAgmt *topo_agmt, Slapi_Entry *repl_agmt)
     Slapi_RDN *agmt_rdn = slapi_rdn_new();
     slapi_sdn_get_rdn(agmt_dn, agmt_rdn);
     const char *agmt_rdn_str  = slapi_rdn_get_rdn(agmt_rdn);
-    if (strcasecmp(agmt_rdn_str, topo_agmt->rdn)) {
+    if (strcasecmp(agmt_rdn_str, topo_agmt->rdn) != 0) {
         slapi_ch_free_string(&topo_agmt->rdn);
         topo_agmt->rdn = slapi_ch_strdup(agmt_rdn_str);
     }
@@ -669,7 +669,7 @@ ipa_topo_util_update_agmt_list(TopoReplica *conf, TopoReplicaSegmentList *repl_s
                     }
                     agmt_attr_val =  slapi_entry_attr_get_charptr(repl_agmt,mattrs[i]);
                     if (agmt_attr_val == NULL ||
-                        strcasecmp(agmt_attr_val,segm_attr_val)) {
+                        (strcasecmp(agmt_attr_val,segm_attr_val) != 0)) {
                         /* value does not exist in agmt or
                          * is different from segment: replace
                          */
@@ -1185,8 +1185,8 @@ ipa_topo_util_segment_merge(TopoReplica *tconf,
 
     if (tsegm->direct == SEGMENT_BIDIRECTIONAL) return;
 
-    if (strcasecmp(tsegm->from,ipa_topo_get_plugin_hostname()) &&
-        strcasecmp(tsegm->to,ipa_topo_get_plugin_hostname())) {
+    if ((strcasecmp(tsegm->from,ipa_topo_get_plugin_hostname()) != 0) &&
+        (strcasecmp(tsegm->to,ipa_topo_get_plugin_hostname()) != 0)) {
         /* merging is only done on one of the endpoints of the segm */
         return;
     }

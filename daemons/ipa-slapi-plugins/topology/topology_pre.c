@@ -241,7 +241,7 @@ ipa_topo_connection_fanout(TopoReplica *tconf, TopoReplicaSegment *tseg)
     TopoReplicaSegmentList *seglist = tconf->repl_segments;
     while (seglist) {
         segm = seglist->segm;
-        if (strcasecmp(segm->name, tseg->name)) {
+        if (strcasecmp(segm->name, tseg->name) != 0) {
             if (segm->direct == SEGMENT_LEFT_RIGHT ||
                 segm->direct == SEGMENT_BIDIRECTIONAL ) {
                 fout = ipa_topo_connection_fanout_extend(fout, segm->from, segm->to);
@@ -339,8 +339,9 @@ ipa_topo_check_segment_is_valid(Slapi_PBlock *pb, char **errtxt)
                 *errtxt = slapi_ch_smprintf("Segment definition is incomplete"
                                    ". Add rejected.\n");
             rc = 1;
-        } else if (strcasecmp(dir,SEGMENT_DIR_BOTH) && strcasecmp(dir,SEGMENT_DIR_LEFT_ORIGIN) &&
-            strcasecmp(dir,SEGMENT_DIR_RIGHT_ORIGIN)) {
+        } else if ((strcasecmp(dir,SEGMENT_DIR_BOTH) != 0) &&
+                   (strcasecmp(dir,SEGMENT_DIR_LEFT_ORIGIN) != 0) &&
+                   (strcasecmp(dir,SEGMENT_DIR_RIGHT_ORIGIN) != 0)) {
                 *errtxt = slapi_ch_smprintf("Segment has unsupported direction"
                                    ". Add rejected.\n");
                 slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,

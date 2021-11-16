@@ -297,7 +297,7 @@ check_ipa_server(LDAP *ld, char **ldap_base, struct berval **vals)
 
         entry = ldap_first_entry(ld, res);
         infovals = ldap_get_values_len(ld, entry, info_attrs[0]);
-        if (!strcmp(infovals[0]->bv_val, "IPA V2.0"))
+        if (strcmp(infovals[0]->bv_val, "IPA V2.0") == 0)
             *ldap_base = strdup(vals[i]->bv_val);
         ldap_msgfree(res);
         res = NULL;
@@ -1510,7 +1510,7 @@ main(int argc, const char **argv) {
         }
         exit(16);
     }
-    if ((!strcmp(hostname, "localhost")) || (!strcmp(hostname, "localhost.localdomain"))){
+    if ((strcmp(hostname, "localhost") == 0) || (strcmp(hostname, "localhost.localdomain") == 0)){
         if (!quiet) {
             fprintf(stderr, _("The hostname must not be: %s\n"), hostname);
         }

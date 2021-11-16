@@ -461,7 +461,7 @@ ipa_topo_cfg_host_find(TopoReplica *tconf, char *findhost, int lock)
                             "ipa_topo_cfg_host_find: found a NULL hostname in host list\n");
             continue;
         }
-        if (!strcasecmp(host->hostname,findhost)) {
+        if (strcasecmp(host->hostname, findhost) == 0) {
            break;
         }
     }
@@ -530,7 +530,7 @@ ipa_topo_cfg_host_del(Slapi_Entry *hostentry)
         hostnode = replica->hosts;
         prevnode = NULL;
         while (hostnode) {
-            if (!strcasecmp(hostnode->hostname,delhost)) {
+            if (strcasecmp(hostnode->hostname,delhost) == 0) {
                 /*remove from list and free*/
                 if (prevnode) {
                     prevnode->next = hostnode->next;
@@ -566,9 +566,9 @@ ipa_topo_cfg_replica_segment_find(TopoReplica *replica, char *leftHost, char *ri
     while (segments) {
 
         tsegm = segments->segm;
-        if ( (!strcasecmp(leftHost,tsegm->from) && !strcasecmp(rightHost,tsegm->to) &&
+        if ( ((strcasecmp(leftHost,tsegm->from) == 0) && (strcasecmp(rightHost,tsegm->to) == 0) &&
              (tsegm->direct & dir)) ||
-             (!strcasecmp(leftHost,tsegm->to) && !strcasecmp(rightHost,tsegm->from) &&
+             ((strcasecmp(leftHost,tsegm->to) == 0) && (strcasecmp(rightHost,tsegm->from) == 0) &&
              (tsegm->direct & reverse_dir))) {
            break;
         }
@@ -719,9 +719,9 @@ ipa_topo_cfg_segment_set_visited(TopoReplica *replica, TopoReplicaSegment *vsegm
     segments = replica->repl_segments;
     while (segments) {
         tsegm = segments->segm;
-        if ( (!strcasecmp(leftHost,tsegm->from) && !strcasecmp(rightHost,tsegm->to) &&
+        if ( ((strcasecmp(leftHost,tsegm->from) == 0) && (strcasecmp(rightHost,tsegm->to) == 0) &&
              (tsegm->direct == SEGMENT_BIDIRECTIONAL || tsegm->direct == SEGMENT_LEFT_RIGHT)) ||
-             (!strcasecmp(leftHost,tsegm->to) && !strcasecmp(rightHost,tsegm->from) &&
+             ((strcasecmp(leftHost,tsegm->to) == 0) && (strcasecmp(rightHost,tsegm->from) == 0) &&
              (tsegm->direct == SEGMENT_BIDIRECTIONAL || tsegm->direct == SEGMENT_RIGHT_LEFT))) {
             segments->visited = 1;
             break;
@@ -879,7 +879,7 @@ ipa_topo_cfg_replica_find(char *repl_root, int lock)
 
     tconf = topo_shared_conf.replicas;
     while (tconf) {
-        if (!strcasecmp(repl_root,tconf->repl_root)) {
+        if (strcasecmp(repl_root,tconf->repl_root) == 0) {
            break;
         }
         tconf = tconf->next;
