@@ -1057,7 +1057,7 @@ class UI_driver:
 
         # Chrome does not close search area on click
         if list_cnt.is_displayed():
-            self.driver.switch_to_active_element().send_keys(Keys.RETURN)
+            self.driver.switch_to.active_element.send_keys(Keys.RETURN)
 
         self.wait()
 
