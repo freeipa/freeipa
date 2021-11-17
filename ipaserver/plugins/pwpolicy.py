@@ -491,7 +491,10 @@ class pwpolicy(LDAPObject):
             if minlife > maxlife:
                 raise errors.ValidationError(
                     name='maxlife',
-                    error=_('Maximum password life must be greater than minimum.'),
+                    error=_(
+                        "Maximum password life must be equal to "
+                        "or greater than the minimum."
+                    ),
                 )
 
     def add_cospriority(self, entry, pwpolicy_name, rights=True):
