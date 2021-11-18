@@ -138,7 +138,6 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
         assert res.returncode == 1
         assert expected_err in res.stderr_text
 
-
     @replicas_cleanup
     def test_one_command_installation(self):
         """
@@ -150,11 +149,11 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
         Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
                                                     "freeipa-ldaps"])
         self.replicas[0].run_command(['ipa-replica-install', '-w',
-                                     self.master.config.admin_password,
-                                     '-n', self.master.domain.name,
-                                     '-r', self.master.domain.realm,
-                                     '--server', self.master.hostname,
-                                     '-U'])
+                                      self.master.config.admin_password,
+                                      '-n', self.master.domain.name,
+                                      '-r', self.master.domain.realm,
+                                      '--server', self.master.hostname,
+                                      '-U'])
         # Ensure that pkinit is properly configured, test for 7566
         result = self.replicas[0].run_command(['ipa-pkinit-manage', 'status'])
         assert "PKINIT is enabled" in result.stdout_text
@@ -321,7 +320,7 @@ class TestWrongClientDomain(IntegrationTest):
         result1 = client.run_command(['ipa-replica-install', '-U', '-w',
                                       self.master.config.dirman_password],
                                      raiseonerr=False)
-        assert(result1.returncode == 0), (
+        assert (result1.returncode == 0), (
             'Failed to promote the client installed with the upcase domain name')
 
     def test_client_rollback(self):
@@ -354,6 +353,7 @@ class TestWrongClientDomain(IntegrationTest):
 
         assert("An error occurred while removing SSSD" not in
                result.stdout_text)
+
 
 class TestRenewalMaster(IntegrationTest):
 
