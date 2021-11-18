@@ -437,6 +437,76 @@ class TestRenewalMaster(IntegrationTest):
         self.assertCARenewalMaster(master, replica.hostname)
         self.assertCARenewalMaster(replica, replica.hostname)
 
+    def test_replica_concheck(self):
+        """Test cases for ipa-replica-conncheck command
+
+        Following test cases would be checked:
+        - when called with --principal (it should then prompt for a password)
+        - when called with --principal / --password
+        - when called without principal and password but with a kerberos TGT,
+          kinit admin done before calling ipa-replica-conncheck
+        - when called without principal and password, and without any kerberos
+          TGT (it should default to principal=admin and prompt for a password)
+
+          related: https://pagure.io/freeipa/issue/9047
+        """
+        exp_str1 = "Connection from replica to master is OK."
+        exp_str2 = "Connection from master to replica is OK"
+        tasks.kdestroy_all(self.replicas[0])
+        # when called with --principal (it should then prompt for a password)
+        result = self.replicas[0].run_command(
+            ['ipa-replica-conncheck', '--auto-master-check',
+             '--master', self.master.hostname,
+             '-r', self.replicas[0].domain.realm,
+             '-p', self.replicas[0].config.admin_name],
+            stdin_text=self.master.config.admin_password
+        )
+        assert result.returncode == 0
+        assert (
+            exp_str1 in result.stderr_text and exp_str2 in result.stderr_text
+        )
+
+        # when called with --principal / --password
+        result = self.replicas[0].run_command([
+            'ipa-replica-conncheck', '--auto-master-check',
+            '--master', self.master.hostname,
+            '-r', self.replicas[0].domain.realm,
+            '-p', self.replicas[0].config.admin_name,
+            '-w', self.master.config.admin_password
+        ])
+        assert result.returncode == 0
+        assert (
+            exp_str1 in result.stderr_text and exp_str2 in result.stderr_text
+        )
+
+        # when called without principal and password, and without
+        # any kerberos TGT, it should default to principal=admin
+        # and prompt for a password
+        result = self.replicas[0].run_command(
+            ['ipa-replica-conncheck', '--auto-master-check',
+             '--master', self.master.hostname,
+             '-r', self.replicas[0].domain.realm],
+            stdin_text=self.master.config.admin_password
+        )
+        assert result.returncode == 0
+        assert (
+            exp_str1 in result.stderr_text and exp_str2 in result.stderr_text
+        )
+
+        # when called without principal and password but with a kerberos TGT,
+        # kinit admin done before calling ipa-replica-conncheck
+        tasks.kinit_admin(self.replicas[0])
+        result = self.replicas[0].run_command(
+            ['ipa-replica-conncheck', '--auto-master-check',
+             '--master', self.master.hostname,
+             '-r', self.replicas[0].domain.realm]
+        )
+        assert result.returncode == 0
+        assert (
+            exp_str1 in result.stderr_text and exp_str2 in result.stderr_text
+        )
+        tasks.kdestroy_all(self.replicas[0])
+
     def test_automatic_renewal_master_transfer_ondelete(self):
         # Test that after replica uninstallation, master overtakes the cert
         # renewal master role from replica (which was previously set there)
