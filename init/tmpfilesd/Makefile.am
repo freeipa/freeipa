@@ -7,4 +7,6 @@ systemdtmpfiles_DATA =         \
 CLEANFILES = $(systemdtmpfiles_DATA)
 
 %: %.in Makefile
-	cp '$(srcdir)/$@.in' $@
+	sed \
+		-e 's|@HTTPD_GROUP[@]|$(HTTPD_GROUP)|g' \
+		 '$(srcdir)/$@.in' >$@
