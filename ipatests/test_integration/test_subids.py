@@ -6,9 +6,12 @@
 """
 import os
 
+import pytest
+
 from ipalib.constants import (
     SUBID_COUNT, SUBID_RANGE_START, SUBID_RANGE_MAX, SUBID_DNA_THRESHOLD
 )
+from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.pytest_ipa.integration import tasks
@@ -135,6 +138,11 @@ class TestSubordinateId(IntegrationTest):
             match = self._parse_result(result)
             self.assert_subid_info(uid, match)
 
+    @pytest.mark.xfail(
+        osinfo.id == "fedora" and osinfo.version_number <= (34,),
+        reason='shadow-utils-subid is shipped in f35+',
+        strict=True
+    )
     def test_podman(self):
         """
         Test that podman can retrieve subuid+subgid created for a user.
