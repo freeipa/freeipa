@@ -157,6 +157,10 @@ class TestSubordinateId(IntegrationTest):
         info = self.assert_subid(uid, match=True)
         subuid = info["ipasubuidnumber"]
 
+        # debug
+        print("subuid: {subuid}".format(subuid=str(subuid)))
+        # end debug
+
         # add "subid: sss" to nsswitch.conf to use SSSD as subid provider
         nsswitch_conf = self.master.get_file_contents(
             paths.NSSWITCH_CONF,
@@ -173,13 +177,21 @@ class TestSubordinateId(IntegrationTest):
                 "apply-changes"
             ])
 
+        # debug
+        conf = self.master.get_file_contents(
+            "/etc/nsswitch.conf",
+            encoding="utf-8"
+        )
+        print(conf)
+        # end debug
+
         # install podman
         tasks.install_packages(self.master, ["podman"])
 
         # these two commands:
         # - retrieve subids
         # - must be executed as the user owning the subids
-        # Warning: "su" will not cut it, only ssh will
+        # Warning: "su" will not cut it
         cmds = (
             "podman unshare cat /proc/self/uid_map",
             "podman unshare cat /proc/self/gid_map"
@@ -193,6 +205,10 @@ class TestSubordinateId(IntegrationTest):
                 password=passwd,
                 verbose=True
             )
+            # debug
+            print(result[1])
+            print(result[2])
+            # end debug
             assert result[0] == 0
             assert "65536" in result[1]
             assert str(subuid) in result[1]
