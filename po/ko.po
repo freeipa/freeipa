@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-11-19 06:16+0000\n"
+"PO-Revision-Date: 2021-11-22 16:16+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -2037,7 +2037,7 @@ msgstr "신규 자동 적재 맵를 생성합니다."
 
 #: ipaserver/plugins/automount.py:652
 msgid "Create a new indirect mount point."
-msgstr ""
+msgstr "새로운 간접 적재 지점을 만듭니다."
 
 #: ipaserver/plugins/automount.py:659
 msgid "Mount point"
@@ -2045,11 +2045,11 @@ msgstr "적재 지점"
 
 #: ipaserver/plugins/automount.py:663
 msgid "Parent map"
-msgstr ""
+msgstr "상위 맵"
 
 #: ipaserver/plugins/automount.py:664
 msgid "Name of parent automount map (default: auto.master)."
-msgstr ""
+msgstr "상위 자동 적재 맵의 이름(기본값: auto.master)."
 
 #: ipaserver/plugins/automount.py:406
 msgid "Delete an automount map."
@@ -2102,7 +2102,7 @@ msgid ""
 msgstr ""
 
 msgid "Nested Methods to execute"
-msgstr ""
+msgstr "실행 할 중첩 방법"
 
 msgid ""
 "\n"
@@ -2157,58 +2157,58 @@ msgid "Maximum username length"
 msgstr "최대 사용자이름 길이"
 
 msgid "Home directory base"
-msgstr ""
+msgstr "홈 디렉토리 기반"
 
 msgid "Default location of home directories"
-msgstr ""
+msgstr "홈 디렉토리의 기본 위치"
 
 msgid "Default shell"
-msgstr ""
+msgstr "기본 쉘"
 
 msgid "Default shell for new users"
-msgstr ""
+msgstr "새로운 사용자를 위한 기본 쉘"
 
 msgid "Default users group"
-msgstr ""
+msgstr "기본 사용자 그룹"
 
 msgid "Default group for new users"
-msgstr ""
+msgstr "새로운 사용자를 위한 기본 그룹"
 
 #: ipaserver/plugins/config.py:183
 msgid "Default e-mail domain"
-msgstr ""
+msgstr "기본 전자우편 도메인"
 
 msgid "Search time limit"
-msgstr ""
+msgstr "검색 시간 제한"
 
 msgid ""
 "Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)"
-msgstr ""
+msgstr "검색(> 0, 또는 제한 없는 -1)을 위한 최대 적재 시간 (초)"
 
 msgid "Search size limit"
-msgstr ""
+msgstr "검색 크기 제한"
 
 msgid "Maximum number of records to search (-1 is unlimited)"
-msgstr ""
+msgstr "검색 할 최대 레코드의 수 (-1은 제한이 없음)"
 
 msgid "User search fields"
-msgstr ""
+msgstr "사용자 검색 부분"
 
 msgid "A comma-separated list of fields to search in when searching for users"
-msgstr ""
+msgstr "사용자를 찾을 때에 검색 할 쉼표로-구분된 부분 목록"
 
 msgid "Group search fields"
-msgstr ""
+msgstr "그룹 검색 부분"
 
 msgid "A comma-separated list of fields to search in when searching for groups"
-msgstr ""
+msgstr "그룹을 찾을 때에 검색 할 쉼표로-구분된 부분 목록"
 
 #: ipaserver/plugins/config.py:210
 msgid "Enable migration mode"
-msgstr ""
+msgstr "이전 방식 활성화"
 
 msgid "Certificate Subject base"
-msgstr ""
+msgstr "인증서 주제 기반"
 
 msgid "Base for certificate subjects (OU=Test,O=Example)"
 msgstr ""
@@ -12736,16 +12736,16 @@ msgstr ""
 
 #: ipalib/util.py:214
 msgid "Filename is empty"
-msgstr ""
+msgstr "파일이름이 비워 있습니다"
 
 #: ipalib/util.py:218
 #, python-format
 msgid "Permission denied: %(file)s"
-msgstr ""
+msgstr "권한이 거부됨: %(file)s"
 
 #: ipalib/util.py:415 ipalib/util.py:947
 msgid "empty DNS label"
-msgstr ""
+msgstr "공백 DNS 이름표"
 
 #: ipalib/util.py:418
 msgid "DNS label cannot be longer that 63 characters"
@@ -14508,7 +14508,7 @@ msgstr "서비스"
 #: ipaserver/plugins/service.py:484 ipaserver/plugins/host.py:557
 #: ipaserver/plugins/baseuser.py:257
 msgid "Principal alias"
-msgstr ""
+msgstr "기본 별칭"
 
 #: ipaserver/plugins/service.py:485
 msgid "Service principal alias"
@@ -14544,32 +14544,32 @@ msgstr "발행자"
 #: ipaserver/plugins/service.py:513 ipaserver/plugins/cert.py:431
 #: ipaserver/plugins/host.py:528
 msgid "Not Before"
-msgstr ""
+msgstr "이전 아님"
 
 #: ipaserver/plugins/service.py:517 ipaserver/plugins/cert.py:436
 #: ipaserver/plugins/host.py:532
 msgid "Not After"
-msgstr ""
+msgstr "이후 아님"
 
 #: ipaserver/plugins/service.py:521 ipaserver/plugins/cert.py:441
 #: ipaserver/plugins/host.py:536
 msgid "Fingerprint (SHA1)"
-msgstr ""
+msgstr "지문 (SHA1)"
 
 #: ipaserver/plugins/service.py:525 ipaserver/plugins/cert.py:446
 #: ipaserver/plugins/host.py:540
 msgid "Fingerprint (SHA256)"
-msgstr ""
+msgstr "지문 (SHA256)"
 
 #: ipaserver/plugins/service.py:529 ipaserver/plugins/cert.py:1283
 #: ipaserver/plugins/internal.py:650 ipaserver/plugins/internal.py:691
 #: ipaserver/plugins/host.py:544
 msgid "Revocation reason"
-msgstr ""
+msgstr "철회 사유"
 
 #: ipaserver/plugins/service.py:543 ipaserver/plugins/host.py:592
 msgid "Authentication Indicators"
-msgstr ""
+msgstr "인증 표시기"
 
 #: ipaserver/plugins/service.py:544 ipaserver/plugins/host.py:593
 msgid ""
@@ -16987,7 +16987,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:374
 msgid "PAD"
-msgstr ""
+msgstr "PAD"
 
 #: ipaserver/plugins/internal.py:377
 msgid "Authenticating"
@@ -17045,7 +17045,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:402
 msgid "Loading data"
-msgstr ""
+msgstr "적재 중인 자료"
 
 #: ipaserver/plugins/internal.py:403
 msgid "Log in"
@@ -17053,11 +17053,11 @@ msgstr "로그인"
 
 #: ipaserver/plugins/internal.py:404
 msgid "Log In Using Certificate"
-msgstr ""
+msgstr "인증서를 사용한 로그인"
 
 #: ipaserver/plugins/internal.py:405
 msgid "Log in using personal certificate"
-msgstr ""
+msgstr "개인 인증서를 사용한 로그인"
 
 #: ipaserver/plugins/internal.py:406 ipaserver/plugins/internal.py:1710
 msgid "Log out"
@@ -17065,7 +17065,7 @@ msgstr "로그아웃"
 
 #: ipaserver/plugins/internal.py:407
 msgid "Log out error"
-msgstr ""
+msgstr "로그아웃 오류"
 
 #: ipaserver/plugins/internal.py:409 ipaserver/plugins/internal.py:1695
 msgid "Password or Password+One-Time Password"
@@ -17078,7 +17078,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:411
 msgid "Sync OTP Token"
-msgstr ""
+msgstr "동기화된 OTP 토큰"
 
 #: ipaserver/plugins/internal.py:412
 msgid "Synchronizing"
@@ -17090,7 +17090,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:417
 msgid "number of passwords"
-msgstr ""
+msgstr "비밀번호의 수"
 
 #: ipaserver/plugins/internal.py:418
 msgid "seconds"
@@ -17158,7 +17158,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:457
 msgid "Add privilege"
-msgstr ""
+msgstr "권한 추가"
 
 #: ipaserver/plugins/internal.py:459
 #, python-brace-format
@@ -17172,21 +17172,21 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:464
 msgid "Remove privileges"
-msgstr ""
+msgstr "권한 제거"
 
 #: ipaserver/plugins/internal.py:466
 #, python-brace-format
 msgid "Remove privilege '${primary_key}' from permissions"
-msgstr ""
+msgstr "권한에서 '${primary_key}' 권한 제거"
 
 #: ipaserver/plugins/internal.py:469
 #, python-brace-format
 msgid "Remove roles from privilege '${primary_key}'"
-msgstr ""
+msgstr "권한에서 '$ {primary_key}' 역할 제거"
 
 #: ipaserver/plugins/internal.py:473
 msgid "Role Settings"
-msgstr ""
+msgstr "역할 설정"
 
 #: ipaserver/plugins/internal.py:474
 msgid "Add role"
@@ -19605,11 +19605,11 @@ msgstr "비밀번호 만료"
 
 #: ipaserver/plugins/internal.py:1577
 msgid "Mailing Address"
-msgstr ""
+msgstr "우편 주소"
 
 #: ipaserver/plugins/internal.py:1578
 msgid "Misc. Information"
-msgstr ""
+msgstr "기타 정보"
 
 #: ipaserver/plugins/internal.py:1579
 msgid "delete"
@@ -19621,7 +19621,7 @@ msgstr "저장"
 
 #: ipaserver/plugins/internal.py:1581
 msgid "No private group"
-msgstr ""
+msgstr "비공개 그룹 없음"
 
 #: ipaserver/plugins/internal.py:1582
 msgid "Remove users"
@@ -19721,11 +19721,11 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1631
 msgid "Asymmetric"
-msgstr ""
+msgstr "비대칭"
 
 #: ipaserver/plugins/internal.py:1632
 msgid "Vaults Config"
-msgstr ""
+msgstr "저장소 구성"
 
 #: ipaserver/plugins/internal.py:1634
 msgid "Members"
@@ -19733,7 +19733,7 @@ msgstr "구성원"
 
 #: ipaserver/plugins/internal.py:1635
 msgid "My User Vaults"
-msgstr ""
+msgstr "내 사용자 저장소"
 
 #: ipaserver/plugins/internal.py:1636
 msgid "Owners"
@@ -19741,7 +19741,7 @@ msgstr "소유자"
 
 #: ipaserver/plugins/internal.py:1637
 msgid "Remove vaults"
-msgstr ""
+msgstr "저장소 제거"
 
 #: ipaserver/plugins/internal.py:1639
 #, python-brace-format
@@ -19783,7 +19783,7 @@ msgstr "공유됨"
 
 #: ipaserver/plugins/internal.py:1659
 msgid "Shared Vaults"
-msgstr ""
+msgstr "공유 저장소"
 
 #: ipaserver/plugins/internal.py:1660
 msgid "Standard"
@@ -19791,11 +19791,11 @@ msgstr "표준"
 
 #: ipaserver/plugins/internal.py:1661
 msgid "Symmetric"
-msgstr ""
+msgstr "대칭"
 
 #: ipaserver/plugins/internal.py:1662
 msgid "Vault Type"
-msgstr ""
+msgstr "저장 유형"
 
 #: ipaserver/plugins/internal.py:1664
 msgid ""
@@ -23011,11 +23011,11 @@ msgstr ""
 
 #: ipaserver/plugins/host.py:509
 msgid "Base-64 encoded host certificate"
-msgstr ""
+msgstr "Base-64로 인코딩된 호스트 인증서"
 
 #: ipaserver/plugins/host.py:576 ipaserver/plugins/baseuser.py:353
 msgid "SSH public key fingerprint"
-msgstr ""
+msgstr "SSH 공유 키 지문"
 
 #: ipaserver/plugins/host.py:663
 #, python-format
