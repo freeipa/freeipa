@@ -479,7 +479,7 @@ class server_del(LDAPDelete):
                     )
                 )
             else:
-                raise errors.ServerRemovalError(reason=_(msg))
+                raise errors.ServerRemovalError(reason=msg)
 
         ipa_config = self.api.Command.config_show()['result']
 
