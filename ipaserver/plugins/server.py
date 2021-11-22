@@ -509,7 +509,6 @@ class server_del(LDAPDelete):
         if self.api.Command.ca_is_enabled()['result']:
             try:
                 roles = self.api.Command.server_role_find(
-                    server_server=hostname,
                     role_servrole='KRA server',
                     status='enabled',
                     include_master=True,
