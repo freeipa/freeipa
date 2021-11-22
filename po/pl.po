@@ -1,11 +1,12 @@
 # Piotr Drąg <piotrdrag@gmail.com>, 2016. #zanata, 2020.
+# Marcin Stanclik <mstanclik@yahoo.com>, 2021.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-08-20 12:57+0300\n"
-"PO-Revision-Date: 2020-09-28 11:29+0000\n"
-"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
+"PO-Revision-Date: 2021-04-24 12:05+0000\n"
+"Last-Translator: Marcin Stanclik <mstanclik@yahoo.com>\n"
 "Language-Team: Polish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-8/pl/>\n"
 "Language: pl\n"
@@ -14,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.2.2\n"
+"X-Generator: Weblate 4.6\n"
 
 #, c-format
 msgid "No permission to join this host to the IPA domain.\n"
@@ -30,7 +31,7 @@ msgstr ""
 
 #, c-format
 msgid "Out of memory!"
-msgstr "Brak pamięci."
+msgstr "Brak pamięci!"
 
 #, c-format
 msgid "Unable to enable SSL in LDAP\n"
@@ -4482,7 +4483,7 @@ msgstr ""
 "według typu."
 
 msgid "False if migration mode was disabled."
-msgstr "Fałsz, jeśli wyłączono tryb migracji"
+msgstr "Fałsz, jeśli wyłączono tryb migracji."
 
 msgid "False if migration fails because the compatibility plug-in is enabled."
 msgstr ""
@@ -12488,7 +12489,7 @@ msgid "Enter %(label)s again to verify: "
 msgstr "Proszę podać %(label)s ponownie, aby sprawdzić: "
 
 msgid "Passwords do not match!"
-msgstr "Hasła się nie zgadzają."
+msgstr "Hasła się nie zgadzają!"
 
 msgid "No matching entries found"
 msgstr ""
