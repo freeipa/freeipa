@@ -31,6 +31,59 @@ from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test, assert_attr_equal,
                                               Declarative)
 
 
+def pwpolicy_cmd(
+        cmd, minlife, maxlife, cospriority=None,
+        pwpolicy_group=None):
+    """Helper method to add or modify the password policy
+
+    :param cmd: Either pwpolicy_add or pwpolicy_mod
+    :param minlife: The minimum amount of time (in hours) that must pass
+                    between two password change operations.
+    :param maxlife: The maximum amount of time(in days) that must pass
+                    between two password change operations.
+    :param cospriority: priority
+    :param pwpolicy_group: password policy group
+    """
+    if cmd == 'pwpolicy_add':
+        if 0 <= minlife <= 24:
+            entry = api.Command[cmd](pwpolicy_group,
+                                     cospriority=cospriority,
+                                     krbminpwdlife=minlife,
+                                     krbmaxpwdlife=maxlife)['result']
+            assert_attr_equal(entry, 'krbminpwdlife', str(minlife))
+        elif minlife < 0:
+            with pytest.raises(errors.ValidationError) as e:
+                entry = api.Command[cmd](pwpolicy_group,
+                                         cospriority=cospriority,
+                                         krbminpwdlife=minlife,
+                                         krbmaxpwdlife=maxlife)['result']
+                assert "invalid 'minlife': must be at least 0" in str(e)
+        else:
+            with pytest.raises(errors.ValidationError) as e:
+                entry = api.Command[cmd](pwpolicy_group,
+                                         cospriority=cospriority,
+                                         krbminpwdlife=minlife,
+                                         krbmaxpwdlife=maxlife)['result']
+                assert ("Maximum password life must be equal to "
+                        "or greater than the minimum.") in str(e)
+    else:
+        if 0 <= minlife <= 24:
+            entry = api.Command[cmd](krbminpwdlife=minlife,
+                                     krbmaxpwdlife=maxlife)['result']
+            assert_attr_equal(entry, 'krbminpwdlife', str(minlife))
+        elif minlife < 0:
+            with pytest.raises(errors.ValidationError) as e:
+                entry = api.Command[cmd](krbminpwdlife=minlife,
+                                         krbmaxpwdlife=maxlife)['result']
+                assert "invalid 'minlife': must be at least 0" in str(e)
+        else:
+            with pytest.raises(errors.ValidationError) as e:
+                entry = api.Command[cmd](krbminpwdlife=minlife,
+                                         krbmaxpwdlife=maxlife)['result']
+                assert ("Maximum password life must be equal to "
+                        "or greater than the minimum.") in str(e)
+
+
 @pytest.mark.tier1
 class test_pwpolicy(XMLRPC_test):
     """
@@ -40,9 +93,12 @@ class test_pwpolicy(XMLRPC_test):
     group2 = u'testgroup22'
     group3 = u'testgroup32'
     user = u'testuser12'
-    kw = {'cospriority': 1, 'krbminpwdlife': 30, 'krbmaxpwdlife': 40, 'krbpwdhistorylength': 5, 'krbpwdminlength': 6 }
-    kw2 = {'cospriority': 2, 'krbminpwdlife': 40, 'krbmaxpwdlife': 60, 'krbpwdhistorylength': 8, 'krbpwdminlength': 9 }
-    kw3 = {'cospriority': 10, 'krbminpwdlife': 50, 'krbmaxpwdlife': 30, 'krbpwdhistorylength': 3, 'krbpwdminlength': 4 }
+    kw = {'cospriority': 1, 'krbminpwdlife': 30, 'krbmaxpwdlife': 40,
+          'krbpwdhistorylength': 5, 'krbpwdminlength': 6}
+    kw2 = {'cospriority': 2, 'krbminpwdlife': 40, 'krbmaxpwdlife': 60,
+           'krbpwdhistorylength': 8, 'krbpwdminlength': 9}
+    kw3 = {'cospriority': 10, 'krbminpwdlife': 50, 'krbmaxpwdlife': 30,
+           'krbpwdhistorylength': 3, 'krbpwdminlength': 4}
     global_policy = u'global_policy'
 
     def test_1_pwpolicy_add(self):
@@ -94,10 +150,13 @@ class test_pwpolicy(XMLRPC_test):
 
     def test_4_pwpolicy_add(self):
         """
-        Test adding another per-group policy using the `xmlrpc.pwpolicy_add` method.
+        Test adding another per-group policy using the
+        `xmlrpc.pwpolicy_add` method.
         """
         self.failsafe_add(
-            api.Object.group, self.group2, description=u'pwpolicy test group 2'
+            api.Object.group,
+            self.group2,
+            description=u'pwpolicy test group 2'
         )
         entry = api.Command['pwpolicy_add'](self.group2, **self.kw2)['result']
         assert_attr_equal(entry, 'krbminpwdlife', '40')
@@ -111,7 +170,9 @@ class test_pwpolicy(XMLRPC_test):
         Add a pwpolicy for a non-existent group
         """
         try:
-            api.Command['pwpolicy_add'](u'nopwpolicy', cospriority=1, krbminpwdlife=1)
+            api.Command['pwpolicy_add'](u'nopwpolicy',
+                                        cospriority=1,
+                                        krbminpwdlife=1)
         except errors.NotFound:
             pass
         else:
@@ -154,8 +215,56 @@ class test_pwpolicy(XMLRPC_test):
         """
         Test the `xmlrpc.pwpolicy_mod` method.
         """
-        entry = api.Command['pwpolicy_mod'](self.group, krbminpwdlife=50)['result']
+        entry = api.Command['pwpolicy_mod'](self.group,
+                                            krbminpwdlife=50)['result']
         assert_attr_equal(entry, 'krbminpwdlife', '50')
+
+    def test_maxlife_pwpolicy(self):
+        """Check maxlife error message where minlife > maxlife specified
+
+        When minlife > maxlife specified on commandline, it says:
+        "ipa: ERROR: invalid 'maxlife': Maximum password life must be
+        greater than minimum."
+
+        But when minlife == maxlife specfied, It works.
+        This test check that error message says what exactly it does.
+
+        related: https://pagure.io/freeipa/issue/9038
+        """
+        # test pwpolicy_mod
+        # create a test group
+        test_group101 = 'testgroup101'
+        test_group102 = 'testgroup102'
+
+        self.failsafe_add(
+            api.Object.group,
+            test_group101,
+            description=u'pwpolicy test group',
+        )
+        self.failsafe_add(
+            api.Object.group,
+            test_group102,
+            description=u'pwpolicy test group',
+        )
+        # when minlife(specified in hours) == maxlife(specified in days)
+        pwpolicy_cmd('pwpolicy_mod', 24, 1)
+        pwpolicy_cmd('pwpolicy_add', 24, 1, 5, test_group101)
+
+        # when minlife(specified in hours) < maxlife(specified in days)
+        pwpolicy_cmd('pwpolicy_mod', 20, 1)
+        pwpolicy_cmd('pwpolicy_add', 20, 1, 6, test_group102)
+
+        # when minlife(specified in hours) > maxlife(specified in days)
+        pwpolicy_cmd('pwpolicy_mod', 25, 1)
+        pwpolicy_cmd('pwpolicy_add', 25, 1, 7, test_group101)
+
+        # when minlife is -1
+        pwpolicy_cmd('pwpolicy_mod', -1, 1)
+        pwpolicy_cmd('pwpolicy_add', -1, 1, 8, test_group101)
+
+        # delete test group
+        api.Command['group_del'](test_group101)
+        api.Command['group_del'](test_group102)
 
     def test_a_pwpolicy_managed(self):
         """
@@ -171,7 +280,8 @@ class test_pwpolicy(XMLRPC_test):
 
     def test_b_pwpolicy_add(self):
         """
-        Test adding a third per-group policy using the `xmlrpc.pwpolicy_add` method.
+        Test adding a third per-group policy using the
+        `xmlrpc.pwpolicy_add` method.
         """
         self.failsafe_add(
             api.Object.group, self.group3, description=u'pwpolicy test group 3'
