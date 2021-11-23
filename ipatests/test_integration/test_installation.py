@@ -583,7 +583,8 @@ class TestInstallWithCA_DNS3(CALessBase):
     """
 
     @pytest.mark.xfail(
-        osinfo.id == 'fedora' and osinfo.version_number >= (33,),
+        osinfo.id == 'fedora' and osinfo.version_number >= (33,)
+        and osinfo.version_number < (35,),
         reason='freeipa ticket 8700', strict=True)
     @server_install_setup
     def test_number_of_zones(self):
