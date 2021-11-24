@@ -253,3 +253,18 @@ class TestSubordinateId(IntegrationTest):
     def test_subid_stats(self):
         tasks.kinit_admin(self.master)
         self.master.run_command(["ipa", "subid-stats"])
+
+    def test_sudid_match_shows_uid(self):
+        """
+        Test if subid-match command shows UID of the owner instead of DN
+
+        https://pagure.io/freeipa/issue/8977
+        """
+        uid = "admin"
+        self.subid_generate(uid)
+        info = self.assert_subid(uid, match=True)
+        subuid = info["ipasubuidnumber"]
+        result = self.master.run_command(["ipa", "subid-match",
+                                          f"--subuid={subuid}"])
+        owner = self._parse_result(result)["owner"]
+        assert owner == uid
