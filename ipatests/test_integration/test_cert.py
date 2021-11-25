@@ -14,6 +14,7 @@ import random
 import re
 import string
 import time
+import textwrap
 
 from ipaplatform.paths import paths
 from ipapython.dn import DN
@@ -193,7 +194,7 @@ class TestInstallMasterClient(IntegrationTest):
         tasks.kinit_admin(self.master)
         tasks.user_add(self.master, user)
 
-        for id in (0,1):
+        for id in (0, 1):
             csr_file = f'{id}.csr'
             key_file = f'{id}.key'
             cert_file = f'{id}.crt'
@@ -584,3 +585,79 @@ class TestCAShowErrorHandling(IntegrationTest):
         error_msg = 'ipa: ERROR: The certificate for ' \
                     '{} is not available on this server.'.format(lwca)
         assert error_msg in result.stderr_text
+
+    def test_certmonger_empty_cert_not_segfault(self):
+        """Test empty cert request doesn't force certmonger to segfault
+
+        Test scenario:
+        create a cert request file in /var/lib/certmonger/requests which is
+        missing most of the required information, and ask request a new
+        certificate to certmonger. The wrong request file should not make
+        certmonger crash.
+
+        related: https://pagure.io/certmonger/issue/191
+        """
+        empty_cert_req_content = textwrap.dedent("""
+        id=dogtag-ipa-renew-agent
+        key_type=UNSPECIFIED
+        key_gen_type=UNSPECIFIED
+        key_size=0
+        key_gen_size=0
+        key_next_type=UNSPECIFIED
+        key_next_gen_type=UNSPECIFIED
+        key_next_size=0
+        key_next_gen_size=0
+        key_preserve=0
+        key_storage_type=NONE
+        key_perms=0
+        key_requested_count=0
+        key_issued_count=0
+        cert_storage_type=FILE
+        cert_perms=0
+        cert_is_ca=0
+        cert_ca_path_length=0
+        cert_no_ocsp_check=0
+        last_need_notify_check=19700101000000
+        last_need_enroll_check=19700101000000
+        template_is_ca=0
+        template_ca_path_length=-1
+        template_no_ocsp_check=0
+        state=NEED_KEY_PAIR
+        autorenew=0
+        monitor=0
+        submitted=19700101000000
+        """)
+        # stop certmonger service
+        self.master.run_command(['systemctl', 'stop', 'certmonger'])
+
+        # place an empty cert request file to certmonger request dir
+        self.master.put_file_contents(
+            os.path.join(paths.CERTMONGER_REQUESTS_DIR, '20211125062617'),
+            empty_cert_req_content
+        )
+
+        # start certmonger, it should not fail
+        self.master.run_command(['systemctl', 'start', 'certmonger'])
+
+        # request a new cert, should succeed and certmonger doesn't goes
+        # to segfault
+        result = self.master.run_command([
+            "ipa-getcert", "request",
+            "-f", os.path.join(paths.OPENSSL_CERTS_DIR, "test.pem"),
+            "-k", os.path.join(paths.OPENSSL_PRIVATE_DIR, "test.key"),
+        ])
+        request_id = re.findall(r'\d+', result.stdout_text)
+
+        # check if certificate is in MONITORING state
+        status = tasks.wait_for_request(self.master, request_id[0], 50)
+        assert status == "MONITORING"
+
+        self.master.run_command(
+            ['ipa-getcert', 'stop-tracking', '-i', request_id[0]]
+        )
+        self.master.run_command([
+            'rm', '-rf',
+            os.path.join(paths.CERTMONGER_REQUESTS_DIR, '20211125062617'),
+            os.path.join(paths.OPENSSL_CERTS_DIR, 'test.pem'),
+            os.path.join(paths.OPENSSL_PRIVATE_DIR, 'test.key')
+        ])
