@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2021-03-31 09:12+0300\n"
+"POT-Creation-Date: 2021-11-25 18:48+0100\n"
 "PO-Revision-Date: 2021-01-27 07:52+0000\n"
 "Last-Translator: Alexander Bokovoy <abokovoy@redhat.com>\n"
 "Language-Team: German <https://translate.fedoraproject.org/projects/freeipa/"
@@ -2368,9 +2368,6 @@ msgstr "Maximale Anzahl der zurückgegebenen Einträge"
 msgid "Maximum number of records to search (-1 is unlimited)"
 msgstr "Maximale Anzahl an Ergebnissen für Suche (-1 ist unbegrenzt)"
 
-msgid "Maximum password life must be greater than minimum."
-msgstr "Maximale Lebensdauer muss größer als das Minimum sein."
-
 msgid "Maximum password lifetime (in days)"
 msgstr "Maximale Passwortlebensdauer (in Tagen)"
 
@@ -4625,3 +4622,6 @@ msgstr "Benutzer und Host können nicht gleichzeitig gesetzt sein."
 
 msgid "users cannot be set when type is 'hostgroup'"
 msgstr "users kann nicht gesetzt sein wenn Typ 'hostgroup' ist"
+
+#~ msgid "Maximum password life must be greater than minimum."
+#~ msgstr "Maximale Lebensdauer muss größer als das Minimum sein."

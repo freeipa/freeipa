@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2021-03-31 09:12+0300\n"
+"POT-Creation-Date: 2021-11-25 18:48+0100\n"
 "PO-Revision-Date: 2019-11-11 10:25+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: French\n"
@@ -12089,10 +12089,6 @@ msgstr "Nombre maximum d'entrées à rechercher (-1 ou 0 pour illimité)"
 msgid "Maximum number of rules to process when no --rules is specified"
 msgstr "Nombre maximal de règles à traiter quand « --rules » n'est défini"
 
-msgid "Maximum password life must be greater than minimum."
-msgstr ""
-"La durée de vie maximale du mot de passe doit être supérieure au minimum."
-
 msgid "Maximum password lifetime (in days)"
 msgstr "Durée de vie maximale d'un mot de passe (en jours)"
 
@@ -18055,6 +18051,10 @@ msgstr "{role} : rôle introuvable"
 
 #~ msgid "Delete a CA."
 #~ msgstr "Supprimer une AC."
+
+#~ msgid "Maximum password life must be greater than minimum."
+#~ msgstr ""
+#~ "La durée de vie maximale du mot de passe doit être supérieure au minimum."
 
 #~ msgid ""
 #~ "Reverse zone for PTR record should be a sub-zone of one the following "

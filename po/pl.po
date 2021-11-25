@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2020-12-23 16:29+0200\n"
+"POT-Creation-Date: 2021-11-25 18:48+0100\n"
 "PO-Revision-Date: 2020-09-27 10:31+0000\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <https://translate.fedoraproject.org/projects/freeipa/"
@@ -715,9 +715,6 @@ msgstr "Maksymalne odnowienie"
 
 msgid "Maximum number of entries returned"
 msgstr "Maksymalna liczba zwróconych wpisów"
-
-msgid "Maximum password life must be greater than minimum."
-msgstr "Maksymalny czas życia hasła musi być wyższy niż minimalny."
 
 msgid "Maximum password lifetime (in days)"
 msgstr "Maksymalny czas życia hasła (w dniach)"
@@ -1571,3 +1568,6 @@ msgstr ""
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
 msgstr "nieznany błąd %(code)d z %(server)s: %(error)s"
+
+#~ msgid "Maximum password life must be greater than minimum."
+#~ msgstr "Maksymalny czas życia hasła musi być wyższy niż minimalny."

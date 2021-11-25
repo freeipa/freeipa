@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2021-06-04 12:24+0300\n"
+"POT-Creation-Date: 2021-11-25 18:48+0100\n"
 "PO-Revision-Date: 2021-04-26 19:02+0000\n"
 "Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/freeipa/"
@@ -9858,9 +9858,6 @@ msgstr "Número máximo de entradas devueltas (0 es ilimitado)"
 msgid "Maximum number of records to search (-1 is unlimited)"
 msgstr "Máximo número de registros a buscar (-1 es ilimitado)"
 
-msgid "Maximum password life must be greater than minimum."
-msgstr "La duración máxima de la contraseña debe ser mayor que la mínima."
-
 msgid "Maximum password lifetime (in days)"
 msgstr "Vida máxima de la contraseña (días)"
 
@@ -14649,6 +14646,9 @@ msgstr "{role}: rol no encontrado"
 
 #~ msgid "Generated CSR was empty"
 #~ msgstr "El CSR generado estaba vacío"
+
+#~ msgid "Maximum password life must be greater than minimum."
+#~ msgstr "La duración máxima de la contraseña debe ser mayor que la mínima."
 
 #~ msgid "Name of CSR generation profile (if not the same as profile_id)"
 #~ msgstr ""

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2021-06-04 12:24+0300\n"
+"POT-Creation-Date: 2021-11-25 18:48+0100\n"
 "PO-Revision-Date: 2019-11-12 12:31+0000\n"
 "Last-Translator: Olesya Gerasimenko <gammaray@basealt.ru>\n"
 "Language-Team: Russian\n"
@@ -22257,9 +22257,6 @@ msgstr ""
 "Максимальное количество правил, которое следует обработать, если не указан "
 "параметр --rules"
 
-msgid "Maximum password life must be greater than minimum."
-msgstr "Максимальный срок жизни пароля должен быть больше минимального."
-
 msgid "Maximum password lifetime (in days)"
 msgstr "Максимальный срок действия пароля (в днях)"
 
@@ -30015,6 +30012,9 @@ msgstr "{role}: роль не найдена"
 
 #~ msgid "Generation rule \"%(rulename)s\" is missing the \"rule\" key"
 #~ msgstr "В правиле создания \"%(rulename)s\" отсутствует ключ \"rule\""
+
+#~ msgid "Maximum password life must be greater than minimum."
+#~ msgstr "Максимальный срок жизни пароля должен быть больше минимального."
 
 #~ msgid "Name of CSR generation profile (if not the same as profile_id)"
 #~ msgstr "Имя профиля создания CSR (если не совпадает с profile_id)"

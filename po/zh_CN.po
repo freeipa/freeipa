@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2021-03-31 09:12+0300\n"
+"POT-Creation-Date: 2021-11-25 18:48+0100\n"
 "PO-Revision-Date: 2019-11-11 10:25+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Chinese (China)\n"
@@ -6212,9 +6212,6 @@ msgstr "最大数量的搜索记录（-1或0表示无限制）"
 msgid "Maximum number of rules to process when no --rules is specified"
 msgstr "当没有使用--rules来指定规则时，能处理的最大规则数"
 
-msgid "Maximum password life must be greater than minimum."
-msgstr "最小密码生存周期必须比最小值大。"
-
 msgid "Maximum password lifetime (in days)"
 msgstr "最大密码生存期（天）"
 
@@ -12222,6 +12219,9 @@ msgstr "{role}：角色没有找到"
 
 #~ msgid "Delete a CA."
 #~ msgstr "删除一个CA。"
+
+#~ msgid "Maximum password life must be greater than minimum."
+#~ msgstr "最小密码生存周期必须比最小值大。"
 
 #~ msgid ""
 #~ "Reverse zone for PTR record should be a sub-zone of one the following "

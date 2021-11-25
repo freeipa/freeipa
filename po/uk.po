@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2021-06-04 12:24+0300\n"
+"POT-Creation-Date: 2021-11-25 18:48+0100\n"
 "PO-Revision-Date: 2020-12-22 11:44+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <https://translate.fedoraproject.org/projects/"
@@ -24041,10 +24041,6 @@ msgstr ""
 msgid "Maximum number of same consecutive characters"
 msgstr "Максимальна кількість однакових символів поспіль"
 
-msgid "Maximum password life must be greater than minimum."
-msgstr ""
-"Максимальний строк дії пароля має перевищувати мінімальний строк його дії."
-
 msgid "Maximum password lifetime (in days)"
 msgstr "Максимальний строк дії пароля (у днях)"
 
@@ -32220,6 +32216,10 @@ msgstr "{} потрібен основному серверу IPA"
 #, python-format
 #~ msgid "Generation rule \"%(rulename)s\" is missing the \"rule\" key"
 #~ msgstr "У правилі створення «%(rulename)s» немає ключа «rule»"
+
+#~ msgid "Maximum password life must be greater than minimum."
+#~ msgstr ""
+#~ "Максимальний строк дії пароля має перевищувати мінімальний строк його дії."
 
 #~ msgid "Name of CSR generation profile (if not the same as profile_id)"
 #~ msgstr "Назва профілю створення CSR (якщо не та сама, що і profile_id)"
