@@ -1154,6 +1154,9 @@ getent group ipaapi >/dev/null || groupadd -f -r ipaapi
 getent passwd ipaapi >/dev/null || useradd -r -g ipaapi -s /sbin/nologin -d / -c "IPA Framework User" ipaapi
 # add apache to ipaaapi group
 id -Gn apache | grep '\bipaapi\b' >/dev/null || usermod apache -a -G ipaapi
+# create krb5kdc group and user
+getent group krb5kdc >/dev/null || groupadd -f -r krb5kdc
+getent passwd krb5kdc >/dev/null || useradd -r -g krb5kdc -s /sbin/nologin -d / -c "Kerberos KDC" krb5kdc
 
 
 %post server-dns
@@ -1459,6 +1462,7 @@ fi
 %{_usr}/share/ipa/wsgi.py*
 %{_usr}/share/ipa/kdcproxy.wsgi
 %{_usr}/share/ipa/ipaca*.ini
+%{_usr}/share/ipa/*.conf
 %{_usr}/share/ipa/*.ldif
 %exclude %{_datadir}/ipa/ipa-cldap-conf.ldif
 %{_usr}/share/ipa/*.uldif

@@ -21,3 +21,9 @@
   spake_preauth_indicator = hardened
   encrypted_challenge_indicator = hardened
  }
+
+[logging]
+ # disable default log file and only use custom log files
+ default = DEVICE:/dev/null
+ admin_server = FILE:$KADMIND_LOG
+ kdc = FILE:$KRB5KDC_LOG

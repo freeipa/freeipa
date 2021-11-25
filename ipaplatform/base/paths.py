@@ -175,6 +175,10 @@ class BasePathNamespace:
     SYSTEMD_PKI_TOMCAT_SERVICE = "/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service"
     SYSTEMD_PKI_TOMCAT_IPA_CONF = \
         "/etc/systemd/system/pki-tomcatd@pki-tomcat.service.d/ipa.conf"
+    SYSTEMD_SYSTEM_KRB5KDC_OVERRIDE = \
+        "/etc/systemd/system/krb5kdc.service.d/ipa.conf"
+    SYSTEMD_SYSTEM_KADMIND_OVERRIDE = \
+        "/etc/systemd/system/kadmin.service.d/ipa.conf"
     ETC_TMPFILESD_DIRSRV = "/etc/tmpfiles.d/dirsrv-%s.conf"
     DNSSEC_TRUSTED_KEY = "/etc/trusted-key.key"
     HOME_DIR = "/home"

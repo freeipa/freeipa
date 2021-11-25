@@ -1,0 +1,35 @@
+dn: krbprincipalname=krb5kdc/$FQDN@$REALM,cn=services,cn=accounts,$SUFFIX
+default:objectClass: ipakrbprincipal
+default:objectClass: ipaobject
+default:objectClass: ipaservice
+default:objectClass: krbprincipal
+default:objectClass: top
+default:ipaUniqueID: autogenerate
+default:ipaKrbPrincipalAlias: krb5kdc/$FQDN@$REALM
+default:krbPrincipalName: krb5kdc/$FQDN@$REALM
+default:krbCanonicalName: krb5kdc/$FQDN@$REALM
+default:managedBy: fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX
+
+# autobind system user for KDC
+dn: cn=krb5kdc,cn=autobind,cn=config
+default: objectClass: ipaAutobind
+default: cn: krb5kdc
+only: uidNumber: $KRB5KDC_UID
+only: gidNumber: $KRB5KDC_GID
+only: ipaAuthenticateAsDN: krbprincipalname=krb5kdc/$FQDN@$REALM,cn=services,cn=accounts,$SUFFIX
+
+# KDC is a passsync manager
+dn: cn=ipa_pwd_extop,cn=plugins,cn=config
+add: passSyncManagersDNs: krbprincipalname=krb5kdc/$FQDN@$REALM,cn=services,cn=accounts,$SUFFIX
+
+# privilege
+dn: cn=Kerberos KDC services,cn=privileges,cn=pbac,$SUFFIX
+default: objectClass: top
+default: objectClass: groupofnames
+default: objectClass: nestedgroup
+default: cn: Kerberos KDC services
+default: description: Kerberos KDC system accounts
+add: member: krbprincipalname=krb5kdc/$FQDN@$REALM,cn=services,cn=accounts,$SUFFIX
+
+dn: $SUFFIX
+add: aci: (targetattr = "*")(version 3.0;acl "KRB5KDC: Allow all";allow (all) groupdn = "ldap:///cn=Kerberos KDC services,cn=privileges,cn=pbac,$SUFFIX";)

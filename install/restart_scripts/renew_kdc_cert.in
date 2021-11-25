@@ -3,14 +3,22 @@
 # Copyright (C) 2017  FreeIPA Contributors see COPYING for license
 #
 
+import os
 import syslog
 import traceback
 
+from ipaplatform.constants import constants
+from ipaplatform.paths import paths
 from ipaplatform import services
 from ipaserver.install import certs
 
 
 def main():
+    root = 0  # root
+    krb5kdc_gid = constants.KRB5KDC_GROUP.gid
+    os.chown(paths.KDC_KEY, root, krb5kdc_gid)
+    os.chown(paths.KDC_CERT, root, krb5kdc_gid)
+
     with certs.renewal_lock:
         try:
             if services.knownservices.krb5kdc.is_running():
