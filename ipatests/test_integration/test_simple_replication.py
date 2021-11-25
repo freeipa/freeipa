@@ -111,5 +111,6 @@ class TestSimpleReplication(IntegrationTest):
         # has to be run with --force, there is no --unattended
         self.master.run_command(['ipa-replica-manage', 'del',
                                  self.replicas[0].hostname, '--force'])
-        result = self.master.run_command(['ipa-replica-manage', 'list'])
+        result = self.master.run_command(
+            ['ipa-replica-manage', 'list', '-v', self.master.hostname])
         assert self.replicas[0].hostname not in result.stdout_text
