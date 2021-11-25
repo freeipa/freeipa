@@ -83,6 +83,7 @@ Developers:
 	Jeremy Frasier
 	Jérôme Fenal
 	Jim Meyering
+	Jochen Kellner
 	JoeDrane
 	John Dennis
 	John L
@@ -137,6 +138,7 @@ Developers:
 	Ondřej Hamada
 	Orion Poplawski
 	Patrice Duc-Jacquet
+	Pavel Březina
 	Pavel Picka
 	Pavel Vomáčka
 	Pavel Zůna
