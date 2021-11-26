@@ -389,6 +389,12 @@ class TestCertFixReplica(IntegrationTest):
             setup_dns=False, extra_args=['--no-ntp']
         )
 
+    @classmethod
+    def uninstall(cls, mh):
+        # Uninstall method is empty as the uninstallation is done in
+        # the fixture
+        pass
+
     @pytest.fixture
     def expire_certs(self):
         # move system date to expire certs
@@ -398,7 +404,8 @@ class TestCertFixReplica(IntegrationTest):
         yield
 
         # move date back on replica and master
-        for host in self.master, self.replicas[0]:
+        for host in self.replicas[0], self.master:
+            tasks.uninstall_master(host)
             tasks.move_date(host, 'start', '-3years-1days')
 
     def test_renew_expired_cert_replica(self, expire_certs):
