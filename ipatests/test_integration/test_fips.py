@@ -3,19 +3,16 @@
 #
 """Smoke tests for FreeIPA installation in (fake) userspace FIPS mode
 """
+import time
+
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipautil import ipa_generate_password, realm_to_suffix
-
-from ipatests.pytest_ipa.integration import tasks
-from ipatests.pytest_ipa.integration import fips
+from ipatests.pytest_ipa.integration import fips, tasks
 from ipatests.test_integration.base import IntegrationTest
 
-from .test_dnssec import (
-    test_zone,
-    dnssec_install_master,
-    dnszone_add_dnssec,
-    wait_until_record_is_signed,
-)
+from .test_dnssec import (dnssec_install_master, dnszone_add_dnssec, test_zone,
+                          wait_until_record_is_signed)
 
 
 class TestInstallFIPS(IntegrationTest):
@@ -125,3 +122,25 @@ class TestInstallFIPS(IntegrationTest):
         self.master.run_command(["ipa-server-upgrade"])
         result = tasks.ldapsearch_dm(self.master, str(dn), args, scope="base")
         assert "camellia" not in result.stdout_text
+
+    def test_local_ca_generation(self):
+        """
+        Certmonger uses default OpenSSL encryption algorithms
+        to generate the PKCS12 object used for the local CA.
+        This uses operations that are disallowed under fips,
+        and so the local ca pkcs12 creds file is not generated.
+
+        Earlier /var/lib/certmonger/local/creds was not generated
+
+        With the fix /var/lib/certmonger/local/creds is generated with
+        AES-128-CBC algorithm for both key and cert
+        """
+        self.master.run_command(
+            r'rm -rf {}/local/creds'.format(paths.VAR_LIB_CERTMONGER_DIR))
+        self.master.run_command(['systemctl', 'restart', 'certmonger'])
+        time.sleep(15)
+        openssl_cmd = [
+            'openssl', 'pkcs12', '-info', '-in',
+            '{}/local/creds'.format(paths.VAR_LIB_CERTMONGER_DIR), '-noout']
+        result = self.master.run_command(openssl_cmd, stdin_text=f"\n")
+        assert 'AES-128-CBC' in result.stderr_text
