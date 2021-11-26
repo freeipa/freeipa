@@ -1148,7 +1148,8 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
 #endif
 
 #ifdef HAVE_PAC_REQUESTER_SID
-    {
+    /* MS-KILE 3.3.5.6.4.8: add PAC_REQUESTER_SID only in TGT case */
+    if ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0) {
         union PAC_INFO pac_requester_sid;
         /* == Package PAC_REQUESTER_SID == */
         memset(&pac_requester_sid, 0, sizeof(pac_requester_sid));
