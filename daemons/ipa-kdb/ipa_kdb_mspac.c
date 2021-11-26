@@ -1697,7 +1697,7 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
                                       "local [%s], PAC [%s]",
                                       dom ? dom : "<failed to display>",
                                       sid ? sid : "<failed to display>");
-            return KRB5KDC_ERR_POLICY;
+            return KRB5KDC_ERR_TGT_REVOKED;
         }
     }
 
@@ -1709,7 +1709,7 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
     kerr = ipadb_get_principal(context, client_princ, flags, &client_actual);
     if (kerr != 0) {
         krb5_klog_syslog(LOG_ERR, "PAC issue: ipadb_get_principal failed.");
-        return KRB5KDC_ERR_POLICY;
+        return KRB5KDC_ERR_TGT_REVOKED;
     }
 
     ied = (struct ipadb_e_data *)client_actual->e_data;
@@ -1743,7 +1743,7 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
                                   "local [%s] vs PAC [%s]",
                                   local_sid ? local_sid : "<failed to display>",
                                   pac_sid ? pac_sid : "<failed to display>");
-        kerr = KRB5KDC_ERR_POLICY;
+        kerr = KRB5KDC_ERR_TGT_REVOKED;
         goto done;
     }
 
@@ -2005,22 +2005,43 @@ static krb5_error_code ipadb_check_logon_info(krb5_context context,
     /* Check that requester SID is the same as in the PAC entry */
     if (requester_sid != NULL) {
         struct dom_sid client_sid;
+        bool is_from_trusted_domain = false;
         kerr = ipadb_get_sid_from_pac(tmpctx, info.info, &client_sid);
         if (kerr) {
             goto done;
         }
         result = dom_sid_check(&client_sid, requester_sid, true);
         if (!result) {
-            /* memctx is freed by the caller */
-            char *pac_sid = dom_sid_string(tmpctx, &client_sid);
-            char *req_sid = dom_sid_string(tmpctx, requester_sid);
-            krb5_klog_syslog(LOG_ERR, "PAC issue: PAC has a SID "
-                                      "different from what PAC requester claims. "
-                                      "PAC [%s] vs PAC requester [%s]",
-                                      pac_sid ? pac_sid : "<failed to display>",
-                                      req_sid ? req_sid : "<failed to display>");
-            kerr = KRB5KDC_ERR_POLICY;
-            goto done;
+            struct ipadb_context *ipactx = ipadb_get_context(context);
+            if (!ipactx || !ipactx->mspac) {
+                return KRB5_KDB_DBNOTINITED;
+            }
+            /* In S4U case we might be dealing with the PAC issued by the trusted domain */
+            if (is_s4u && (ipactx->mspac->trusts != NULL)) {
+                /* Iterate through list of trusts and check if this SID belongs to
+                * one of the domains we trust */
+                for(int i = 0 ; i < ipactx->mspac->num_trusts ; i++) {
+                    result = dom_sid_check(&ipactx->mspac->trusts[i].domsid,
+                                           requester_sid, false);
+                    if (result) {
+                        is_from_trusted_domain = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!is_from_trusted_domain) {
+                /* memctx is freed by the caller */
+                char *pac_sid = dom_sid_string(tmpctx, &client_sid);
+                char *req_sid = dom_sid_string(tmpctx, requester_sid);
+                krb5_klog_syslog(LOG_ERR, "PAC issue: PAC has a SID "
+                                        "different from what PAC requester claims. "
+                                        "PAC [%s] vs PAC requester [%s]",
+                                        pac_sid ? pac_sid : "<failed to display>",
+                                        req_sid ? req_sid : "<failed to display>");
+                kerr = KRB5KDC_ERR_TGT_REVOKED;
+                goto done;
+            }
         }
     }
 
