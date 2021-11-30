@@ -32030,11 +32030,11 @@ msgstr ""
 "Максимальний строк дії пароля має перевищувати мінімальний строк його дії."
 
 msgid "Output debug info"
-msgstr ""
+msgstr "Вивести діагностичні дані"
 
 #, c-format
 msgid "DNS discovery for domain %s\n"
-msgstr ""
+msgstr "DNS-визначення для домену %s\n"
 
 #, fuzzy, c-format
 msgid "Discovered server %s\n"
