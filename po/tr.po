@@ -1200,8 +1200,8 @@ msgstr "Boyut Sınırı"
 
 #, python-format
 msgid ""
-"System encoding must be UTF-8, '%(encoding)s' is not supported. Set "
-"LC_ALL=\"C.UTF-8\", or LC_ALL=\"\" and LC_CTYPE=\"C.UTF-8\"."
+"System encoding must be UTF-8, '%(encoding)s' is not supported. Set LC_ALL="
+"\"C.UTF-8\", or LC_ALL=\"\" and LC_CTYPE=\"C.UTF-8\"."
 msgstr ""
 "Sistem kodlaması UTF-8 olmalı, '%(encoding)s' desteklenmiyor. LC_ALL=\"C."
 "UTF-8\", veya LC_ALL=\"\" ve LC_CTYPE=\"C.UTF-8\" olarak ayarlayın."
@@ -1479,8 +1479,8 @@ msgid ""
 "\"%(ns_rec)s\" to parent zone \"%(authzone)s\"."
 msgstr ""
 "\"%(fwzone)s\" ileri bölgesi, \"%(authzone)s\" yetkili bölgesinde uygun NS "
-"temsilcisinin eksik olması nedeniyle etkili değildir. Lütfen "
-"\"%(authzone)s\" üst bölgesine \"%(ns_rec)s\" NS kaydını ekleyin."
+"temsilcisinin eksik olması nedeniyle etkili değildir. Lütfen \"%(authzone)s"
+"\" üst bölgesine \"%(ns_rec)s\" NS kaydını ekleyin."
 
 msgid "host category cannot be set to 'all' while there are allowed hosts"
 msgstr ""
@@ -24369,4 +24369,441 @@ msgid "Failed to create key!\n"
 msgstr ""
 
 msgid "Bad or unsupported salt type.\n"
+msgstr ""
+
+msgid "Output debug info"
+msgstr ""
+
+#, c-format
+msgid "DNS discovery for domain %s\n"
+msgstr ""
+
+#, c-format
+msgid "Discovered server %s\n"
+msgstr ""
+
+#, c-format
+msgid "Using discovered server %s\n"
+msgstr ""
+
+#, c-format
+msgid "DNS Discovery failed\n"
+msgstr ""
+
+#, c-format
+msgid "Using server from config %s\n"
+msgstr ""
+
+#, c-format
+msgid "Using provided server %s\n"
+msgstr ""
+
+#, fuzzy
+msgid "Status of the certificate"
+msgstr "bir sertifika olmalı"
+
+msgid "Enable adding subids to new users"
+msgstr ""
+
+#, fuzzy
+msgid "Setup SID configuration"
+msgstr "RADIUS vekil sunucusu"
+
+msgid "New users and groups automatically get a SID assigned"
+msgstr ""
+
+msgid "Add SIDs"
+msgstr ""
+
+msgid "Add SIDs for existing users and groups"
+msgstr ""
+
+msgid "NetBIOS name of the IPA domain"
+msgstr ""
+
+#, fuzzy
+msgid "not allowed to enable SID generation"
+msgstr "Yaprak (leaf) olmayan girdilerde izin verilmiyor"
+
+msgid ""
+"Up to 15 characters and only uppercase ASCII letters, digits and dashes are "
+"allowed. Empty string is not allowed."
+msgstr ""
+
+#, fuzzy
+msgid "Failed to call DBus"
+msgstr "Okunacak dosya yok"
+
+msgid "Configuration of SID failed. See details in the error log"
+msgstr ""
+
+#, python-format
+msgid "You cannot specify %s without the --enable-sid option"
+msgstr ""
+
+#, python-format
+msgid ""
+"No answers could be found in the specified lifetime for DNS reverse zone "
+"%(revdns)s"
+msgstr ""
+
+msgid ""
+"\n"
+"ID ranges\n"
+"\n"
+"Manage ID ranges  used to map Posix IDs to SIDs and back.\n"
+"\n"
+"There are two type of ID ranges which are both handled by this utility:\n"
+"\n"
+" - the ID ranges of the local domain\n"
+" - the ID ranges of trusted remote domains\n"
+"\n"
+"Both types have the following attributes in common:\n"
+"\n"
+" - base-id: the first ID of the Posix ID range\n"
+" - range-size: the size of the range\n"
+"\n"
+"With those two attributes a range object can reserve the Posix IDs starting\n"
+"with base-id up to but not including base-id+range-size exclusively.\n"
+"\n"
+"Additionally an ID range of the local domain may set\n"
+" - rid-base: the first RID(*) of the corresponding RID range\n"
+" - secondary-rid-base: first RID of the secondary RID range\n"
+"\n"
+"and an ID range of a trusted domain must set\n"
+" - rid-base: the first RID of the corresponding RID range\n"
+" - sid: domain SID of the trusted domain\n"
+"\n"
+"and an ID range of a trusted domain may set\n"
+" - auto-private-groups: [true|false|hybrid] automatic creation of private "
+"groups\n"
+"\n"
+"\n"
+"\n"
+"EXAMPLE: Add a new ID range for a trusted domain\n"
+"\n"
+"Since there might be more than one trusted domain the domain SID must be "
+"given\n"
+"while creating the ID range.\n"
+"\n"
+"  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=0 \\\n"
+"                  --dom-sid=S-1-5-21-123-456-789 trusted_dom_range\n"
+"\n"
+"This ID range is then used by the IPA server and the SSSD IPA provider to\n"
+"assign Posix UIDs to users from the trusted domain.\n"
+"\n"
+"If e.g. a range for a trusted domain is configured with the following "
+"values:\n"
+" base-id = 1200000\n"
+" range-size = 200000\n"
+" rid-base = 0\n"
+"the RIDs 0 to 199999 are mapped to the Posix ID from 1200000 to 13999999. "
+"So\n"
+"RID 1000 <-> Posix ID 1201000\n"
+"\n"
+"\n"
+"\n"
+"EXAMPLE: Add a new ID range for the local domain\n"
+"\n"
+"To create an ID range for the local domain it is not necessary to specify a\n"
+"domain SID. But since it is possible that a user and a group can have the "
+"same\n"
+"value as Posix ID a second RID interval is needed to handle conflicts.\n"
+"\n"
+"  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=1000 \\\n"
+"                  --secondary-rid-base=1000000 local_range\n"
+"\n"
+"The data from the ID ranges of the local domain are used by the IPA server\n"
+"internally to assign SIDs to IPA users and groups. The SID will then be "
+"stored\n"
+"in the user or group objects.\n"
+"\n"
+"If e.g. the ID range for the local domain is configured with the values "
+"from\n"
+"the example above then a new user with the UID 1200007 will get the RID "
+"1007.\n"
+"If this RID is already used by a group the RID will be 1000007. This can "
+"only\n"
+"happen if a user or a group object was created with a fixed ID because the\n"
+"automatic assignment will not assign the same ID twice. Since there are "
+"only\n"
+"users and groups sharing the same ID namespace it is sufficient to have "
+"only\n"
+"one fallback range to handle conflicts.\n"
+"\n"
+"To find the Posix ID for a given RID from the local domain it has to be\n"
+"checked first if the RID falls in the primary or secondary RID range and\n"
+"the rid-base or the secondary-rid-base has to be subtracted, respectively,\n"
+"and the base-id has to be added to get the Posix ID.\n"
+"\n"
+"Typically the creation of ID ranges happens behind the scenes and this CLI\n"
+"must not be used at all. The ID range for the local domain will be created\n"
+"during installation or upgrade from an older version. The ID range for a\n"
+"trusted domain will be created together with the trust by 'ipa trust-"
+"add ...'.\n"
+"\n"
+"USE CASES:\n"
+"\n"
+"  Add an ID range from a transitively trusted domain\n"
+"\n"
+"    If the trusted domain (A) trusts another domain (B) as well and this "
+"trust\n"
+"    is transitive 'ipa trust-add domain-A' will only create a range for\n"
+"    domain A.  The ID range for domain B must be added manually.\n"
+"\n"
+"  Add an additional ID range for the local domain\n"
+"\n"
+"    If the ID range of the local domain is exhausted, i.e. no new IDs can "
+"be\n"
+"    assigned to Posix users or groups by the DNA plugin, a new range has to "
+"be\n"
+"    created to allow new users and groups to be added. (Currently there is "
+"no\n"
+"    connection between this range CLI and the DNA plugin, but a future "
+"version\n"
+"    might be able to modify the configuration of the DNS plugin as well)\n"
+"\n"
+"In general it is not necessary to modify or delete ID ranges. If there is "
+"no\n"
+"other way to achieve a certain configuration than to modify or delete an ID\n"
+"range it should be done with great care. Because UIDs are stored in the "
+"file\n"
+"system and are used for access control it might be possible that users are\n"
+"allowed to access files of other users if an ID range got deleted and "
+"reused\n"
+"for a different domain.\n"
+"\n"
+"(*) The RID is typically the last integer of a user or group SID which "
+"follows\n"
+"the domain SID. E.g. if the domain SID is S-1-5-21-123-456-789 and a user "
+"from\n"
+"this domain has the SID S-1-5-21-123-456-789-1010 then 1010 is the RID of "
+"the\n"
+"user. RIDs are unique in a domain, 32bit values and are used for users and\n"
+"groups.\n"
+"\n"
+msgstr ""
+
+#, fuzzy
+msgid "Auto private groups"
+msgstr "yönetilen grupları ara"
+
+msgid "Auto creation of private groups, one of allowed values"
+msgstr ""
+
+msgid ""
+"\n"
+"    Add new ID range.\n"
+"\n"
+"    To add a new ID range you always have to specify\n"
+"\n"
+"        --base-id\n"
+"        --range-size\n"
+"\n"
+"    Additionally\n"
+"\n"
+"        --rid-base\n"
+"        --secondary-rid-base\n"
+"\n"
+"    may be given for a new ID range for the local domain while\n"
+"\n"
+"        --auto-private-groups\n"
+"\n"
+"    may be given for a new ID range for a trusted AD domain and\n"
+"\n"
+"        --rid-base\n"
+"        --dom-sid\n"
+"\n"
+"    must be given to add a new range for a trusted AD domain.\n"
+"\n"
+msgstr ""
+
+msgid ""
+"IPA Range type must be one of ipa-ad-trust or ipa-ad-trust-posix when auto-"
+"private-groups is specified"
+msgstr ""
+
+msgid "Add subid"
+msgstr ""
+
+msgid "Assigned subids"
+msgstr ""
+
+msgid "DNA remaining"
+msgstr ""
+
+msgid "SubGID range size"
+msgstr ""
+
+msgid "SubGID range start"
+msgstr ""
+
+msgid "SubUID range size"
+msgstr ""
+
+msgid "SubUID range start"
+msgstr ""
+
+msgid "Remaining subids"
+msgstr ""
+
+msgid "Subordinate ID Statistics"
+msgstr ""
+
+msgid "Auto assign subordinate ids"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"Are you sure you want to auto-assign a subordinate id to user ${object}?"
+msgstr ""
+
+msgid "Subordinate IDs"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "{oname}: {command_name} not found"
+msgstr "%(filename)s: dosya bulunamadı"
+
+#, python-format
+msgid "authentication indicators not allowed in service \"%s\""
+msgstr ""
+
+msgid ""
+"\n"
+"Subordinate ids\n"
+"\n"
+"Manage subordinate user and group ids for users\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" Auto-assign a subordinate id range to current user\n"
+"   ipa subid-generate\n"
+"\n"
+" Auto-assign a subordinate id range to user alice:\n"
+"   ipa subid-generate --owner=alice\n"
+"\n"
+" Find subordinate ids for user alice:\n"
+"   ipa subid-find --owner=alice\n"
+"\n"
+" Match entry by any subordinate uid in range:\n"
+"   ipa subid-match --subuid=2147483649\n"
+msgstr ""
+
+msgid "Subordinate id"
+msgstr ""
+
+msgid "Subordinate ids"
+msgstr ""
+
+#, fuzzy
+msgid "Subordinate id description"
+msgstr "Ağ grubu açıklaması"
+
+msgid "Owning user of subordinate id entry"
+msgstr ""
+
+msgid "Start value for subordinate user ID (subuid) range"
+msgstr ""
+
+msgid "Subordinate user ID count"
+msgstr ""
+
+msgid "Start value for subordinate group ID (subgid) range"
+msgstr ""
+
+msgid "Subordinate group ID count"
+msgstr ""
+
+#, python-format
+msgid ""
+"%(oname)s with with name \"%(pkey)s\" or for user \"%(uid)s\" already exists."
+msgstr ""
+
+#, fuzzy, python-format
+msgid "'%(dn)s is not a valid user"
+msgstr "%(port)s geçerli bir bağlantı noktası değil"
+
+msgid "subgidnumber must be equal to subuidnumber"
+msgstr ""
+
+#, fuzzy
+msgid "Add a new subordinate id."
+msgstr "Yeni bir ağ grubu ekle."
+
+#, fuzzy, python-format
+msgid "Added subordinate id \"%(value)s\""
+msgstr "Self-servis \"%(value)s\" eklendi"
+
+#, fuzzy
+msgid "Delete a subordinate id."
+msgstr "bir sertifika olmalı"
+
+#, fuzzy, python-format
+msgid "Deleted subordinate id \"%(value)s\""
+msgstr "Self-servis \"%(value)s\" silindi"
+
+#, fuzzy
+msgid "Modify a subordinate id."
+msgstr "Bir ağ grubunu değiştir."
+
+#, fuzzy, python-format
+msgid "Modified subordinate id \"%(value)s\""
+msgstr "Self-servis \"%(value)s\" değiştirildi"
+
+#, fuzzy
+msgid "Search for subordinate id."
+msgstr "Bir ağ grubu ara."
+
+#, fuzzy, python-format
+msgid "%(count)d subordinate id matched"
+msgid_plural "%(count)d subordinate ids matched"
+msgstr[0] "%(count)d self-servis eşleşti"
+msgstr[1] "%(count)d self-servis eşleşti"
+
+#, fuzzy
+msgid "Display information about a subordinate id."
+msgstr "Bir ağ grubu hakkında bilgileri görüntüle."
+
+msgid "Generate and auto-assign subuid and subgid range to user entry"
+msgstr ""
+
+msgid "Match users by any subordinate uid in their range"
+msgstr ""
+
+msgid "SubUID match"
+msgstr ""
+
+msgid "Match value for subordinate user ID"
+msgstr ""
+
+msgid "Subordinate id statistics"
+msgstr ""
+
+#, python-format
+msgid "%(remaining)i remaining subordinate id ranges"
+msgstr ""
+
+msgid "Maximum password life must be equal to or greater than the minimum."
+msgstr ""
+
+#, fuzzy, python-format
+msgid "Failed to remove server from security domain: %s"
+msgstr "'%(server)s' sunucusunda hata: %(error)s"
+
+msgid ""
+"\n"
+"Each option needs to be added separately and no validation is done whether\n"
+"the option is known by sudo or is in a valid format. Environment variables\n"
+"also need to be set individually. For example env_keep=\"FOO BAR\" in "
+"sudoers\n"
+"needs be represented as --sudooption env_keep=FOO --sudooption env_keep"
+"+=BAR.\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Set multiple default Sudo options:\n"
+"   ipa sudorule-add-option defaults --sudooption '!authenticate'    --"
+"sudooption mail_badpass\n"
 msgstr ""
