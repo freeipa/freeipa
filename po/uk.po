@@ -32730,95 +32730,94 @@ msgstr "Користувач-власник запису підлеглого і
 
 msgid "Start value for subordinate user ID (subuid) range"
 msgstr ""
+"Початкове значення діапазону підлеглих ідентифікаторів користувача (subuid)"
 
 msgid "Subordinate user ID count"
-msgstr ""
+msgstr "Лічильник підлеглих ідентифікаторів користувачів"
 
 msgid "Start value for subordinate group ID (subgid) range"
-msgstr ""
+msgstr "Початкове значення діапазону підлеглих ідентифікаторів групи (subgid)"
 
 msgid "Subordinate group ID count"
-msgstr ""
+msgstr "Лічильник ідентифікаторів підлеглих груп"
 
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "%(oname)s with with name \"%(pkey)s\" or for user \"%(uid)s\" already exists."
-msgstr "%(oname)s з назвою «%(pkey)s» вже існує"
+msgstr "%(oname)s з назвою «%(pkey)s» або для користувача «%(uid)s» вже існує"
 
-#, fuzzy, python-format
+#, python-format
 msgid "'%(dn)s is not a valid user"
-msgstr "%(port)s не є чинним портом"
+msgstr "'%(dn)s не є коректним користувачем"
 
 msgid "subgidnumber must be equal to subuidnumber"
-msgstr ""
+msgstr "subgidnumber має бути рівним subuidnumber"
 
-#, fuzzy
 msgid "Add a new subordinate id."
-msgstr "Додати нового користувача етапу."
+msgstr "Додати новий підлеглий ідентифікатор."
 
-#, fuzzy, python-format
+#, python-format
 msgid "Added subordinate id \"%(value)s\""
-msgstr "Додано службу «%(value)s»"
+msgstr "Додано підлеглий ідентифікатор «%(value)s»"
 
-#, fuzzy
 msgid "Delete a subordinate id."
-msgstr "Вилучити профіль сертифікатів."
+msgstr "Вилучити підлеглий ідентифікатор."
 
-#, fuzzy, python-format
+#, python-format
 msgid "Deleted subordinate id \"%(value)s\""
-msgstr "Вилучено службу «%(value)s»"
+msgstr "Вилучено підлеглий ідентифікатор «%(value)s»"
 
-#, fuzzy
 msgid "Modify a subordinate id."
-msgstr "Змінити запис користувача етапу."
+msgstr "Змінити підлеглий ідентифікатор."
 
-#, fuzzy, python-format
+#, python-format
 msgid "Modified subordinate id \"%(value)s\""
-msgstr "Змінено службу «%(value)s»"
+msgstr "Змінено підлеглий ідентифікатор «%(value)s»"
 
-#, fuzzy
 msgid "Search for subordinate id."
-msgstr "Шукати діапазони."
+msgstr "Шукати за підлеглим ідентифікатором."
 
-#, fuzzy, python-format
+#, python-format
 msgid "%(count)d subordinate id matched"
 msgid_plural "%(count)d subordinate ids matched"
-msgstr[0] "встановлено відповідність %(count)d служби"
-msgstr[1] "встановлено відповідність %(count)d служб"
-msgstr[2] "встановлено відповідність %(count)d служб"
+msgstr[0] "встановлено відповідність %(count)d підлеглого ідентифікатора"
+msgstr[1] "встановлено відповідність %(count)d підлеглих ідентифікаторів"
+msgstr[2] "встановлено відповідність %(count)d підлеглих ідентифікаторів"
 
-#, fuzzy
 msgid "Display information about a subordinate id."
-msgstr "Показати дані щодо діапазону."
+msgstr "Показати дані щодо підлеглого ідентифікатора."
 
 msgid "Generate and auto-assign subuid and subgid range to user entry"
 msgstr ""
+"Створити і автоматично призначити до запису користувача діапазон subuid та "
+"subgid"
 
 msgid "Match users by any subordinate uid in their range"
 msgstr ""
+"Встановити відповідній користувачів за будь-яким підлеглим uid у їхньому "
+"діапазоні"
 
 msgid "SubUID match"
-msgstr ""
+msgstr "Відповідність за SubUID"
 
 msgid "Match value for subordinate user ID"
-msgstr ""
+msgstr "Встановити відповідність за підлеглим ідентифікатором користувача"
 
 msgid "Subordinate id statistics"
-msgstr ""
+msgstr "Статистика щодо підлеглих ідентифікаторів"
 
 #, python-format
 msgid "%(remaining)i remaining subordinate id ranges"
-msgstr ""
+msgstr "%(remaining)i залишкових діапазонів підлеглих ідентифікаторів"
 
-#, fuzzy
 msgid "Maximum password life must be equal to or greater than the minimum."
 msgstr ""
-"Максимальний строк дії пароля має перевищувати мінімальний строк його дії."
+"Максимальний строк дії пароля має бути рівним або перевищувати мінімальний "
+"строк його дії."
 
-#, fuzzy, python-format
+#, python-format
 msgid "Failed to remove server from security domain: %s"
-msgstr ""
-"Не вдалося вилучити запис сервера %(master)s зі списку серверів: %(err)s"
+msgstr "Не вдалося вилучити запис сервер з домену безпеки: %s"
 
 msgid ""
 "\n"
@@ -32829,6 +32828,12 @@ msgid ""
 "needs be represented as --sudooption env_keep=FOO --sudooption env_keep"
 "+=BAR.\n"
 msgstr ""
+"\n"
+"Усі параметри слід додавати окремо. Перевірки коректності щодо обробки\n"
+"параметра у sudo або коректності формату не виконуватиметься. Також слід\n"
+"окремо встановлювати значення змінних середовища. Наприклад,\n"
+"env_keep=\"ЩОСЬ ДЕСЬ\" у sudoers має бути представлено як\n"
+"--sudooption env_keep=ЩОСЬ --sudooption env_keep+=ДЕСЬ.\n"
 
 msgid ""
 "\n"
@@ -32843,7 +32848,6 @@ msgstr ""
 "ZZ -D \"cn=Directory Manager\" uid=sudo,cn=sysaccounts,cn=etc,dc=example,"
 "dc=com\n"
 
-#, fuzzy
 msgid ""
 "\n"
 " Set multiple default Sudo options:\n"
@@ -32851,8 +32855,9 @@ msgid ""
 "sudooption mail_badpass\n"
 msgstr ""
 "\n"
-" Встановити типовий варіант дій для sudo:\n"
-"   ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
+" Встановити декілька типових параметрів для sudo:\n"
+"   ipa sudorule-add-option defaults --sudooption '!authenticate'    --"
+"sudooption mail_badpass\n"
 
 #~ msgid ""
 #~ "\n"
