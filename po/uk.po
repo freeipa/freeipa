@@ -32036,25 +32036,25 @@ msgstr "Вивести діагностичні дані"
 msgid "DNS discovery for domain %s\n"
 msgstr "DNS-визначення для домену %s\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "Discovered server %s\n"
-msgstr "Повідомлено серверами"
+msgstr "Виявлений сервер %s\n"
 
 #, c-format
 msgid "Using discovered server %s\n"
-msgstr ""
+msgstr "Використовуємо виявлений сервер %s\n"
 
 #, c-format
 msgid "DNS Discovery failed\n"
-msgstr ""
+msgstr "Спроба виявлення DNS зазнала невдачі\n"
 
 #, c-format
 msgid "Using server from config %s\n"
-msgstr ""
+msgstr "Використовуємо сервер з налаштувань %s\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "Using provided server %s\n"
-msgstr "Перевірити луна-імпульсом (пінгом) віддалений сервер."
+msgstr "Використовуємо наданий сервер %s\n"
 
 msgid ""
 "\n"
@@ -32239,63 +32239,56 @@ msgstr ""
 "\n"
 "Докладніші відомості наведено у документації з IPA щодо sudo.\n"
 
-#, fuzzy
 msgid "Status of the certificate"
-msgstr "Призначення сертифіката"
+msgstr "Стан сертифіката"
 
 msgid "Enable adding subids to new users"
-msgstr ""
+msgstr "Увімкнути додавання підлеглих ідентифікаторів для нових користувачів"
 
-#, fuzzy
 msgid "Setup SID configuration"
-msgstr "довірені налаштування"
+msgstr "Вказати налаштування SID"
 
 msgid "New users and groups automatically get a SID assigned"
-msgstr ""
+msgstr "Нові користувачі і групи автоматично отримують SID"
 
-#, fuzzy
 msgid "Add SIDs"
-msgstr "Додати перегляд ідентифікатора"
+msgstr "Додати SID-и"
 
 msgid "Add SIDs for existing users and groups"
-msgstr ""
+msgstr "Додати SID-и для наявних користувачів та груп"
 
-#, fuzzy
 msgid "NetBIOS name of the IPA domain"
-msgstr "Назва довіреного домену"
+msgstr "Назва NetBIOS домену IPA"
 
-#, fuzzy
 msgid "not allowed to enable SID generation"
-msgstr "виконувати цю дію заборонено: %s"
+msgstr "заборонено вмикати створення SID"
 
 msgid ""
 "Up to 15 characters and only uppercase ASCII letters, digits and dashes are "
 "allowed. Empty string is not allowed."
 msgstr ""
+"Можна використати до 15 символів і лише великих літер ASCII, цифр та "
+"дефісів. Не можна лишати рядок порожнім."
 
-#, fuzzy
 msgid "Failed to call DBus"
-msgstr "Не вдалося додати"
+msgstr "Не вдалося викликати DBus"
 
-#, fuzzy
 msgid "Configuration of SID failed. See details in the error log"
 msgstr ""
-"Спроба отримати список доменів із довіреного лісу зазнала невдачі. Подробиці "
-"можна знайти у error_log"
+"Не вдалося виконати налаштовування SID. Подробиці можна знайти у журналі"
 
 #, python-format
 msgid "You cannot specify %s without the --enable-sid option"
-msgstr ""
+msgstr "Ви не можете вказати %s без параметра --enable-sid"
 
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "No answers could be found in the specified lifetime for DNS reverse zone "
 "%(revdns)s"
 msgstr ""
-"Не вдалося отримати відповідь на запит щодо зворотної зони DNS %(revdns)s "
-"від жодного із серверів назв"
+"Не вдалося знайти жодної відповіді протягом вказаного періоду життя "
+"зворотної зони DNS %(revdns)s"
 
-#, fuzzy
 msgid ""
 "\n"
 "ID ranges\n"
@@ -32461,6 +32454,10 @@ msgstr ""
 " - rid-base: перший RID відповідного діапазону RID\n"
 " - dom_sid: SID довіреного домену\n"
 "\n"
+"також можна встановити діапазон ідентифікаторів довіреного домену\n"
+" - auto-private-groups: [true|false|hybrid] automatic creation of private "
+"groups\n"
+"\n"
 "\n"
 "\n"
 "ПРИКЛАД: додавання нового діапазону ідентифікаторів для довіреного домену\n"
@@ -32563,16 +32560,14 @@ msgstr ""
 "користувача\n"
 "буде 1010. RID є унікальними в межах домену, є 32-бітовими значенням і\n"
 "використовуються для користувачів і груп.\n"
+"\n"
 
-#, fuzzy
 msgid "Auto private groups"
-msgstr "Немає приватної групи"
+msgstr "Автоматичні приватні групи"
 
-#, fuzzy
 msgid "Auto creation of private groups, one of allowed values"
-msgstr "Тип діапазону ідентифікаторів, одне з дозволених значень"
+msgstr "Автоматичне створення приватних груп, одне з дозволених значень"
 
-#, fuzzy
 msgid ""
 "\n"
 "    Add new ID range.\n"
@@ -32614,69 +32609,71 @@ msgstr ""
 "\n"
 "    для нового діапазону ідентифікаторів для локального домену, а\n"
 "\n"
+"        --auto-private-groups\n"
+"\n"
+"    може бути вказано для створення діапазону ідентифікаторів для довіреного "
+"домену AD і\n"
+"\n"
 "        --rid-base\n"
 "        --dom-sid\n"
 "\n"
 "    слід вказати для додавання нового діапазону для довіреного домену AD.\n"
 "\n"
 
-#, fuzzy
 msgid ""
 "IPA Range type must be one of ipa-ad-trust or ipa-ad-trust-posix when auto-"
 "private-groups is specified"
 msgstr ""
-"Якщо вказано SID довіреного домену, типом діапазону IPA має бути ipa-ad-"
-"trust або ipa-ad-trust-posix"
+"Якщо вказано auto-private-groups, типом діапазону IPA має бути ipa-ad-trust "
+"або ipa-ad-trust-posix"
 
-#, fuzzy
 msgid "Add subid"
-msgstr "Додати правило sudo"
+msgstr "Додати subid"
 
-#, fuzzy
 msgid "Assigned subids"
-msgstr "Перегляд призначених ідентифікаторів"
+msgstr "Призначені subid-и"
 
 msgid "DNA remaining"
-msgstr ""
+msgstr "Залишковий DNA"
 
-#, fuzzy
 msgid "SubGID range size"
-msgstr "Розмір діапазону"
+msgstr "Розмір діапазону SubGID"
 
 msgid "SubGID range start"
-msgstr ""
+msgstr "Початок діапазону SubGID"
 
-#, fuzzy
 msgid "SubUID range size"
-msgstr "Розмір діапазону"
+msgstr "Розмір діапазону SubUID"
 
 msgid "SubUID range start"
-msgstr ""
+msgstr "Початок діапазону SubUID"
 
 msgid "Remaining subids"
-msgstr ""
+msgstr "Залишкові subid-и"
 
 msgid "Subordinate ID Statistics"
-msgstr ""
+msgstr "Статистика щодо підлеглих ідентифікаторів"
 
 msgid "Auto assign subordinate ids"
-msgstr ""
+msgstr "Автоматично призначати підлеглі ідентифікатори"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "Are you sure you want to auto-assign a subordinate id to user ${object}?"
-msgstr "Ви справді хочете розблокувати користувача ${object}?"
+msgstr ""
+"Ви справді хочете автоматично призначити підлеглий ідентифікатор для "
+"користувача ${object}?"
 
 msgid "Subordinate IDs"
-msgstr ""
+msgstr "Підлеглі ідентифікатори"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "{oname}: {command_name} not found"
-msgstr "{role}: такої ролі не знайдено"
+msgstr "{oname}: {command_name} не знайдено"
 
-#, fuzzy, python-format
+#, python-format
 msgid "authentication indicators not allowed in service \"%s\""
-msgstr "Індикатори розпізнавання"
+msgstr "індикатори розпізнавання у службі «%s» заборонено"
 
 msgid ""
 "\n"
@@ -32698,19 +32695,38 @@ msgid ""
 " Match entry by any subordinate uid in range:\n"
 "   ipa subid-match --subuid=2147483649\n"
 msgstr ""
+"\n"
+"Підлеглі ідентифікатори\n"
+"\n"
+"Керування підлеглими ідентифікаторами користувача і групи для користувачів\n"
+"\n"
+"ПРИКЛАДИ:\n"
+"\n"
+" Автоматично призначати діапазон підлеглих ідентифікаторів для поточного "
+"користувача\n"
+"   ipa subid-generate\n"
+"\n"
+" Автоматично призначити діапазон підлеглих ідентифікаторів для користувача "
+"alice:\n"
+"   ipa subid-generate --owner=alice\n"
+"\n"
+" Знайти підлеглі ідентифікатори для користувача alice:\n"
+"   ipa subid-find --owner=alice\n"
+"\n"
+" Встановити відповідність запису за будь-яким підлеглим uid у діапазоні:\n"
+"   ipa subid-match --subuid=2147483649\n"
 
 msgid "Subordinate id"
-msgstr ""
+msgstr "Підлеглий ідентифікатор"
 
 msgid "Subordinate ids"
-msgstr ""
+msgstr "Підлеглі ідентифікатори"
 
-#, fuzzy
 msgid "Subordinate id description"
-msgstr "Опис профілю"
+msgstr "Опис підлеглого ідентифікатора"
 
 msgid "Owning user of subordinate id entry"
-msgstr ""
+msgstr "Користувач-власник запису підлеглого ідентифікатора"
 
 msgid "Start value for subordinate user ID (subuid) range"
 msgstr ""
