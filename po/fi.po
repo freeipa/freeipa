@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.8.8.dev202008200957+git9b52ba606\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-08-20 12:57+0300\n"
-"PO-Revision-Date: 2021-11-16 11:16+0000\n"
-"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
+"PO-Revision-Date: 2021-12-02 20:16+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-8/fi/>\n"
 "Language: fi\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.9\n"
+"X-Generator: Weblate 4.9.1\n"
 
 #: client/ipa-join.c:64
 #, c-format
@@ -975,7 +975,7 @@ msgid ""
 "YubiKey Tokens\n"
 msgstr ""
 "\n"
-"YubiKey Tokens\n"
+"YubiKey Tokenit\n"
 
 #: ipaclient/plugins/otptoken_yubikey.py:42
 msgid ""
@@ -1868,7 +1868,7 @@ msgstr ""
 
 #: ipaserver/plugins/automount.py:746
 msgid "Modify an automount key."
-msgstr "Muokkaa automaattisesti liitävän avainta."
+msgstr "Muokkaa automount-avainta."
 
 #: ipaserver/plugins/baseldap.py:906
 msgid ""
@@ -1899,7 +1899,7 @@ msgstr ""
 
 #: ipaserver/plugins/automount.py:814
 msgid "Display an automount key."
-msgstr "Näytä automaattisesti liitävän avain."
+msgstr "Näytä automount-avain."
 
 #: ipaserver/plugins/automount.py:261
 msgid "Create a new automount location."
@@ -4879,7 +4879,7 @@ msgstr ""
 
 #: ipaserver/plugins/netgroup.py:299
 msgid "Delete a netgroup."
-msgstr ""
+msgstr "Poista verkkoryhmä."
 
 #: ipaserver/plugins/netgroup.py:334
 msgid "Search for a netgroup."
@@ -5007,11 +5007,11 @@ msgstr ""
 
 #: ipaserver/plugins/otpconfig.py:116
 msgid "Modify OTP configuration options."
-msgstr ""
+msgstr "Muokkaa kertakäyttöisen salasanan määrityksiä."
 
 #: ipaserver/plugins/otpconfig.py:121
 msgid "Show the current OTP configuration."
-msgstr ""
+msgstr "Näytä nykyiset kertakäyttöisen salasanan määritykset."
 
 msgid ""
 "\n"
@@ -5156,7 +5156,7 @@ msgstr ""
 
 #: ipaserver/plugins/otptoken.py:280
 msgid "Add a new OTP token."
-msgstr ""
+msgstr "Lisää uusi OTP-tunnus."
 
 #: ipaserver/plugins/otptoken.py:284
 msgid "(deprecated)"
@@ -5183,7 +5183,7 @@ msgstr ""
 
 #: ipaserver/plugins/otptoken.py:372
 msgid "Modify a OTP token."
-msgstr ""
+msgstr "Muokkaa OTP-tunnusta."
 
 msgid "Rename the OTP token object"
 msgstr ""
@@ -5228,7 +5228,7 @@ msgid ""
 msgstr ""
 
 msgid "Set a user's password."
-msgstr ""
+msgstr "Aseta käyttäjän salasana."
 
 #: ipaserver/plugins/internal.py:1678
 msgid "New Password"
@@ -5393,7 +5393,7 @@ msgstr ""
 
 #: ipaserver/plugins/permission.py:335
 msgid "Member of group"
-msgstr ""
+msgstr "Ryhmän jäsen"
 
 #: ipaserver/plugins/permission.py:336
 msgid "Target members of a group (sets memberOf targetfilter)"
@@ -5443,11 +5443,11 @@ msgstr ""
 
 #: ipaserver/plugins/permission.py:169
 msgid "Permission flags"
-msgstr ""
+msgstr "Käyttöoikeusmerkinnät"
 
 #: ipaserver/plugins/permission.py:1055
 msgid "Delete a permission."
-msgstr ""
+msgstr "Poista lupa."
 
 #: ipaserver/plugins/permission.py:1063
 msgid "force delete of SYSTEM permissions"
@@ -5598,7 +5598,7 @@ msgstr ""
 
 #: ipaserver/plugins/privilege.py:174
 msgid "Delete a privilege."
-msgstr ""
+msgstr "Poista etuoikeus."
 
 #: ipaserver/plugins/privilege.py:188
 msgid "Search for privileges."
@@ -5921,7 +5921,7 @@ msgstr ""
 
 #: ipaserver/plugins/realmdomains.py:127
 msgid "Delete domain"
-msgstr ""
+msgstr "Poista toimialue"
 
 msgid "Modify realm domains."
 msgstr ""
@@ -6017,7 +6017,7 @@ msgid "Number of privileges added"
 msgstr ""
 
 msgid "Delete a role."
-msgstr ""
+msgstr "Poista rooli."
 
 msgid "Search for roles."
 msgstr ""
@@ -6169,7 +6169,7 @@ msgstr ""
 
 #: ipaserver/plugins/selinuxusermap.py:328
 msgid "Create a new SELinux User Map."
-msgstr ""
+msgstr "Luo uusi SELinux-käyttäjäkartta."
 
 #: ipaserver/plugins/selinuxusermap.py:582
 msgid "Add target hosts and hostgroups to an SELinux User Map rule."
@@ -6181,23 +6181,23 @@ msgstr ""
 
 #: ipaserver/plugins/selinuxusermap.py:366
 msgid "Delete a SELinux User Map."
-msgstr ""
+msgstr "Poista SELinux-käyttäjäkartta."
 
 #: ipaserver/plugins/selinuxusermap.py:519
 msgid "Disable an SELinux User Map rule."
-msgstr ""
+msgstr "Poista SELinux-käyttäjäkartan sääntö käytöstä."
 
 #: ipaserver/plugins/selinuxusermap.py:489
 msgid "Enable an SELinux User Map rule."
-msgstr ""
+msgstr "Ota SELinux-käyttäjäkartan sääntö käyttöön."
 
 #: ipaserver/plugins/selinuxusermap.py:446
 msgid "Search for SELinux User Maps."
-msgstr ""
+msgstr "Etsi SELinux-käyttäjäkarttoja."
 
 #: ipaserver/plugins/selinuxusermap.py:374
 msgid "Modify a SELinux User Map."
-msgstr ""
+msgstr "Muokkaa SELinux-käyttäjäkarttaa."
 
 #: ipaserver/plugins/selinuxusermap.py:606
 msgid "Remove target hosts and hostgroups from an SELinux User Map rule."
@@ -6312,7 +6312,7 @@ msgstr ""
 
 #: ipaserver/plugins/service.py:817
 msgid "Delete an IPA service."
-msgstr ""
+msgstr "Poista IPA-palvelu."
 
 #: ipaserver/plugins/service.py:1085
 msgid "Disable the Kerberos key and SSL certificate of a service."
@@ -7188,7 +7188,7 @@ msgstr ""
 
 #: ipaserver/plugins/sudorule.py:308
 msgid "Sudo Deny Commands"
-msgstr ""
+msgstr "Sudo Deny -komennot"
 
 #: ipaserver/plugins/sudorule.py:312
 msgid "Sudo Allow Command Groups"
@@ -7291,7 +7291,7 @@ msgstr ""
 
 #: ipaserver/plugins/sudorule.py:393
 msgid "Delete Sudo Rule."
-msgstr ""
+msgstr "Poista Sudo-sääntö."
 
 #: ipaserver/plugins/sudorule.py:504
 msgid "Disable a Sudo Rule."
@@ -7341,7 +7341,7 @@ msgstr ""
 
 #: ipaserver/plugins/sudorule.py:476
 msgid "Display Sudo Rule."
-msgstr ""
+msgstr "Näytä Sudo-sääntö."
 
 msgid ""
 "\n"
@@ -7513,7 +7513,7 @@ msgid "Don't create user private group"
 msgstr ""
 
 msgid "Delete a user."
-msgstr ""
+msgstr "Poista käyttäjä."
 
 msgid "Disable a user account."
 msgstr ""
@@ -7790,7 +7790,7 @@ msgid "Display information about the default (fallback) automember groups."
 msgstr ""
 
 msgid "Delete an automember rule."
-msgstr ""
+msgstr "Poista automember-sääntö."
 
 msgid "Search for automember rules."
 msgstr ""
@@ -8127,13 +8127,13 @@ msgid "Members of a trusted domain in DOM\\name or name@domain form"
 msgstr ""
 
 msgid "Delete group."
-msgstr ""
+msgstr "Poista ryhmä."
 
 msgid "Detach a managed group from a user."
 msgstr ""
 
 msgid "Search for groups."
-msgstr ""
+msgstr "Etsi ryhmiä."
 
 msgid "search for private groups"
 msgstr ""
@@ -8653,7 +8653,7 @@ msgid ""
 msgstr ""
 
 msgid "Delete a trust."
-msgstr ""
+msgstr "Poista luottamus."
 
 msgid "Refresh list of the domains associated with the trust"
 msgstr ""
@@ -8928,7 +8928,7 @@ msgstr ""
 
 #: ipaserver/plugins/idrange.py:527
 msgid "Delete an ID range."
-msgstr ""
+msgstr "Poista tunnusalue."
 
 #: ipaserver/plugins/idrange.py:575
 msgid "Search for ranges."
@@ -9024,13 +9024,13 @@ msgid "Certificate Profiles to add"
 msgstr ""
 
 msgid "Add services to a CA ACL."
-msgstr ""
+msgstr "Lisää palveluita CA ACL:ään."
 
 msgid "Add users and groups to a CA ACL."
 msgstr ""
 
 msgid "Delete a CA ACL."
-msgstr ""
+msgstr "Poista CA ACL."
 
 msgid "Disable a CA ACL."
 msgstr ""
@@ -9054,7 +9054,7 @@ msgid "Certificate Profiles to remove"
 msgstr ""
 
 msgid "Remove services from a CA ACL."
-msgstr ""
+msgstr "Poista palveluita CA ACL:stä."
 
 msgid "Remove users and groups from a CA ACL."
 msgstr ""
@@ -9303,7 +9303,7 @@ msgid "Maximum domain level"
 msgstr ""
 
 msgid "Delete IPA server."
-msgstr ""
+msgstr "Poista IPA-palvelin."
 
 msgid "Search for IPA servers."
 msgstr ""
@@ -9522,7 +9522,7 @@ msgstr ""
 
 #: ipaserver/plugins/stageuser.py:416
 msgid "Delete a stage user."
-msgstr ""
+msgstr "Poista stagen käyttäjä."
 
 #: ipaserver/plugins/stageuser.py:444
 msgid "Search for stage users."
@@ -9672,7 +9672,7 @@ msgstr ""
 
 #: ipaserver/plugins/topology.py:300
 msgid "Delete a segment."
-msgstr ""
+msgstr "Poista segmentti."
 
 #: ipaserver/plugins/topology.py:277
 msgid "Search for topology segments."
@@ -9702,7 +9702,7 @@ msgstr ""
 
 #: ipaserver/plugins/topology.py:398
 msgid "Display a segment."
-msgstr ""
+msgstr "Näytä segmentti."
 
 #: ipaserver/plugins/topology.py:456
 msgid "Add a new topology suffix to be managed."
@@ -9995,7 +9995,7 @@ msgid "Nonce"
 msgstr ""
 
 msgid "Delete a vault."
-msgstr ""
+msgstr "Poista holvi."
 
 msgid "Search for vaults."
 msgstr ""
@@ -10024,7 +10024,7 @@ msgid "Display information about a vault."
 msgstr ""
 
 msgid "Show vault configuration."
-msgstr ""
+msgstr "Näytä holvin asetukset."
 
 msgid "Output file to store the transport certificate"
 msgstr ""
@@ -10033,7 +10033,7 @@ msgid "Add owners to a vault container."
 msgstr ""
 
 msgid "Delete a vault container."
-msgstr ""
+msgstr "Poista holvikontti."
 
 msgid "Remove owners from a vault container."
 msgstr ""
@@ -12518,7 +12518,7 @@ msgstr ""
 
 #: ipaclient/frontend.py:48 ipaserver/plugins/baseldap.py:185
 msgid "Failed to remove"
-msgstr ""
+msgstr "Poistaminen epäonnistui"
 
 #: ipaclient/frontend.py:53 ipaserver/plugins/baseldap.py:189
 msgid "Failed RunAs"
@@ -12553,11 +12553,11 @@ msgstr ""
 #: ipaclient/frontend.py:85 ipaserver/plugins/host.py:241
 #: ipaserver/plugins/service.py:161
 msgid "Failed allowed to create keytab"
-msgstr ""
+msgstr "Avainvälilehden luominen epäonnistui"
 
 #: ipaclient/frontend.py:94
 msgid "Failed targets"
-msgstr ""
+msgstr "Epäonnistuneita kohteita"
 
 #: ipaclient/csrgen.py:40
 msgid ""
@@ -12714,7 +12714,7 @@ msgstr ""
 #: ipalib/parameters.py:1604
 #, python-format
 msgid "can be at most %(maxlength)d characters"
-msgstr ""
+msgstr "voi sisältää enintään %(maxlength)d merkkiä"
 
 #: ipalib/parameters.py:1616
 #, python-format
@@ -12812,7 +12812,7 @@ msgstr ""
 
 #: ipalib/cli.py:910
 msgid "Topic commands:"
-msgstr ""
+msgstr "Aiheen komennot:"
 
 #: ipalib/cli.py:916
 msgid "To get command help, use:"
@@ -12880,7 +12880,7 @@ msgstr ""
 #: ipalib/errors.py:413
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
-msgstr ""
+msgstr "Virheellinen JSON-RPC-pyyntö: %(error)s"
 
 #: ipalib/errors.py:429
 #, python-format
@@ -12906,7 +12906,7 @@ msgstr ""
 
 #: ipalib/errors.py:508
 msgid "did not receive Kerberos credentials"
-msgstr ""
+msgstr "ei saanut Kerberos-tunnuksia"
 
 #: ipalib/errors.py:524
 #, python-format
@@ -12927,7 +12927,7 @@ msgstr ""
 
 #: ipalib/errors.py:588
 msgid "Bad format in credentials cache"
-msgstr ""
+msgstr "Virheellinen muoto valtuustietojen välimuistissa"
 
 #: ipalib/errors.py:604
 msgid "Cannot resolve KDC for requested realm"
@@ -13011,7 +13011,7 @@ msgstr ""
 #: ipalib/errors.py:1796
 #, python-format
 msgid "%(reason)s"
-msgstr ""
+msgstr "%(reason)s"
 
 #: ipalib/errors.py:928
 msgid "This entry already exists"
@@ -13048,11 +13048,11 @@ msgstr ""
 
 #: ipalib/errors.py:1040
 msgid "This entry is already enabled"
-msgstr ""
+msgstr "Tämä merkintä on jo käytössä"
 
 #: ipalib/errors.py:1056
 msgid "This entry is already disabled"
-msgstr ""
+msgstr "Tämä merkintä on jo poistettu käytöstä"
 
 #: ipalib/errors.py:1072
 msgid "This entry cannot be enabled or disabled"
@@ -13287,7 +13287,7 @@ msgstr ""
 #: ipalib/errors.py:1973
 #, python-format
 msgid "%(exception)s"
-msgstr ""
+msgstr "%(exception)s"
 
 #: ipalib/errors.py:2000
 #, python-format
@@ -13655,7 +13655,7 @@ msgstr ""
 #: ipaserver/install/certs.py:487
 #, python-format
 msgid "Unable to communicate with CMS (status %d)"
-msgstr ""
+msgstr "Kommunikaatio CMS:n kanssa epäonnistui (tila %d)"
 
 #: ipaserver/install/replication.py:1757 ipaserver/install/replication.py:1776
 #, python-format
@@ -13823,11 +13823,11 @@ msgstr "komennot"
 
 #: ipaserver/plugins/sudorule.py:444
 msgid "runAs user"
-msgstr ""
+msgstr "suorita käyttäjänä"
 
 #: ipaserver/plugins/sudorule.py:444
 msgid "runAs users"
-msgstr ""
+msgstr "suorita käyttäjinä"
 
 #: ipaserver/plugins/sudorule.py:449
 msgid "group runAs"
@@ -14195,7 +14195,7 @@ msgstr ""
 
 #: ipaserver/plugins/host.py:572 ipaserver/plugins/baseuser.py:353
 msgid "SSH public key fingerprint"
-msgstr ""
+msgstr "SSH julkisen avaimen sormenjälki"
 
 #: ipaserver/plugins/host.py:588 ipaserver/plugins/service.py:543
 msgid "Authentication Indicators"
@@ -14220,7 +14220,7 @@ msgstr ""
 #: ipaserver/plugins/baseuser.py:567
 #, python-format
 msgid "can be at most %(len)d characters"
-msgstr ""
+msgstr "voi sisältää enintään %(len)d merkkiä"
 
 #: ipaserver/plugins/host.py:781
 #, python-format
@@ -14472,12 +14472,12 @@ msgstr ""
 #: ipaserver/plugins/caacl.py:448
 #, python-format
 msgid "%i service added."
-msgstr ""
+msgstr "%i palvelu lisätty."
 
 #: ipaserver/plugins/caacl.py:448
 #, python-format
 msgid "%i services added."
-msgstr ""
+msgstr "%i palvelua lisätty."
 
 #: ipaserver/plugins/caacl.py:459 ipaserver/plugins/hbacrule.py:606
 msgid "services cannot be added when service category='all'"
@@ -14611,7 +14611,7 @@ msgstr ""
 
 #: ipaserver/plugins/virtual.py:57
 msgid "operation not defined"
-msgstr ""
+msgstr "toimintoa ei ole määritelty"
 
 #: ipaserver/plugins/virtual.py:70
 #, python-format
@@ -14627,6 +14627,8 @@ msgid ""
 "\n"
 "DNS server configuration\n"
 msgstr ""
+"\n"
+"DNS-palvelimen kokoonpano\n"
 
 #: ipaserver/plugins/dnsserver.py:37
 msgid ""
@@ -15138,12 +15140,12 @@ msgstr ""
 
 #: ipaserver/plugins/service.py:621
 msgid "Add a new IPA service."
-msgstr ""
+msgstr "Lisää uusi IPA-palvelu."
 
 #: ipaserver/plugins/service.py:623 ipaserver/plugins/service.py:691
 #, python-format
 msgid "Added service \"%(value)s\""
-msgstr ""
+msgstr "Lisätty palvelu \"%(value)s\""
 
 #: ipaserver/plugins/service.py:629
 msgid "force principal name even if host not in DNS"
@@ -15165,7 +15167,7 @@ msgstr ""
 
 #: ipaserver/plugins/service.py:689
 msgid "Add a new SMB service."
-msgstr ""
+msgstr "Lisää uusi SMB-palvelu."
 
 #: ipaserver/plugins/service.py:705
 msgid "SMB service NetBIOS name"
@@ -15514,6 +15516,8 @@ msgid ""
 "Modify ID range.\n"
 "\n"
 msgstr ""
+"Muokkaa ID-aluetta.\n"
+"\n"
 
 #: ipaserver/plugins/idrange.py:618
 #, python-format
@@ -15596,7 +15600,7 @@ msgstr "Kertakäyttöisen salasanan määritykset"
 #: ipaserver/plugins/passwd.py:114
 #, python-format
 msgid "Changed password for \"%(value)s\""
-msgstr ""
+msgstr "Vaihdettu salasana kohteelle \"%(value)s\""
 
 #: ipaserver/plugins/pkinit.py:13
 msgid ""
@@ -15881,7 +15885,7 @@ msgstr ""
 
 #: ipaserver/plugins/idviews.py:864
 msgid "Delete an ID override."
-msgstr ""
+msgstr "Poista tunnuksen ohitus."
 
 #: ipaserver/plugins/idviews.py:865
 #, python-format
@@ -16008,6 +16012,8 @@ msgid ""
 "\n"
 "IPA locations\n"
 msgstr ""
+"\n"
+"IPA sijainnit\n"
 
 #: ipaserver/plugins/location.py:35
 msgid ""
@@ -16301,7 +16307,7 @@ msgstr "Oletus"
 
 #: ipaserver/plugins/schema.py:530
 msgid "Default from"
-msgstr ""
+msgstr "Oletusarvo kohteesta"
 
 #: ipaserver/plugins/schema.py:535
 msgid "Label"
@@ -16408,34 +16414,34 @@ msgstr ""
 #: ipaserver/plugins/selinuxusermap.py:330
 #, python-format
 msgid "Added SELinux User Map \"%(value)s\""
-msgstr ""
+msgstr "Lisätty SELinux-käyttäjäkartta \"%(value)s\""
 
 #: ipaserver/plugins/selinuxusermap.py:368
 #, python-format
 msgid "Deleted SELinux User Map \"%(value)s\""
-msgstr ""
+msgstr "Poistettu SELinux-käyttäjäkartta \"%(value)s\""
 
 #: ipaserver/plugins/selinuxusermap.py:376
 #, python-format
 msgid "Modified SELinux User Map \"%(value)s\""
-msgstr ""
+msgstr "Muokattu SELinux-käyttäjäkarttaa \"%(value)s\""
 
 #: ipaserver/plugins/selinuxusermap.py:449
 #, python-format
 msgid "%(count)d SELinux User Map matched"
 msgid_plural "%(count)d SELinux User Maps matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d SELinux-käyttäjäkartta löytyi"
+msgstr[1] "%(count)d SELinux-käyttäjäkarttoja löytyi"
 
 #: ipaserver/plugins/selinuxusermap.py:491
 #, python-format
 msgid "Enabled SELinux User Map \"%(value)s\""
-msgstr ""
+msgstr "Otettu SELinux-käyttäjäkartta \"%(value)s\" käyttöön"
 
 #: ipaserver/plugins/selinuxusermap.py:521
 #, python-format
 msgid "Disabled SELinux User Map \"%(value)s\""
-msgstr ""
+msgstr "Poistettu SELinux-käyttäjäkartta \"%(value)s\" käytöstä"
 
 #: ipaserver/plugins/servicedelegation.py:26
 msgid ""
@@ -16532,7 +16538,7 @@ msgstr ""
 #: ipaserver/plugins/baseldap.py:1633
 #, python-format
 msgid "member %s"
-msgstr ""
+msgstr "jäsen %s"
 
 #: ipaserver/plugins/servicedelegation.py:287
 msgid "Remove member from a named service delegation."
@@ -16702,7 +16708,7 @@ msgstr ""
 #: ipaserver/plugins/stageuser.py:418
 #, python-format
 msgid "Deleted stage user \"%(value)s\""
-msgstr ""
+msgstr "Poistettu stagen käyttäjä \"%(value)s\""
 
 #: ipaserver/plugins/stageuser.py:424
 #, python-format
@@ -17069,7 +17075,7 @@ msgstr ""
 
 #: ipaserver/plugins/delegation.py:68
 msgid "delegations"
-msgstr ""
+msgstr "valtuutukset"
 
 #: ipaserver/plugins/delegation.py:69
 msgid "Delegations"
@@ -17656,7 +17662,7 @@ msgstr ""
 #: ipaserver/plugins/user.py:1251
 #, python-format
 msgid "%(host)s failed"
-msgstr ""
+msgstr "%(host)s epäonnistui"
 
 #: ipaserver/plugins/user.py:1261
 #, python-format
@@ -18015,7 +18021,7 @@ msgstr ""
 #: ipaserver/plugins/vault.py:1164 ipaserver/plugins/vault.py:1189
 #, python-format
 msgid "owner %s"
-msgstr ""
+msgstr "omistaja %s"
 
 #: ipaserver/plugins/vault.py:494
 msgid ""
@@ -18046,7 +18052,7 @@ msgstr ""
 
 #: ipaserver/plugins/vault.py:772
 msgid "Add a vault."
-msgstr ""
+msgstr "Lisää holvi."
 
 #: ipaserver/plugins/vault.py:778
 #, python-format
@@ -18295,7 +18301,7 @@ msgstr ""
 
 #: ipaserver/plugins/ca.py:353
 msgid "Modify CA configuration."
-msgstr ""
+msgstr "Muokkaa CA-asetuksia."
 
 #: ipaserver/plugins/ca.py:354
 #, python-format
@@ -18308,7 +18314,7 @@ msgstr ""
 
 #: ipaserver/plugins/ca.py:396
 msgid "Disable a CA."
-msgstr ""
+msgstr "Poista CA käytöstä."
 
 #: ipaserver/plugins/ca.py:397
 #, python-format
@@ -18321,7 +18327,7 @@ msgstr ""
 
 #: ipaserver/plugins/ca.py:414
 msgid "Enable a CA."
-msgstr ""
+msgstr "Ota CA käyttöön."
 
 #: ipaserver/plugins/ca.py:415
 #, python-format
@@ -18400,7 +18406,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:177
 msgid "No entries."
-msgstr ""
+msgstr "Ei merkintöjä."
 
 #: ipaserver/plugins/internal.py:178
 #, python-brace-format
@@ -18485,7 +18491,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:202
 msgid "Add and Close"
-msgstr ""
+msgstr "Lisää ja sulje"
 
 #: ipaserver/plugins/internal.py:203
 msgid "Add and Edit"
@@ -18692,7 +18698,7 @@ msgstr "Saatavilla"
 
 #: ipaserver/plugins/internal.py:264
 msgid "Some operations failed."
-msgstr ""
+msgstr "Jotkut toiminnot epäonnistuivat."
 
 #: ipaserver/plugins/internal.py:265
 msgid "Operations Error"
@@ -18700,7 +18706,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:266
 msgid "Confirmation"
-msgstr ""
+msgstr "Vahvistus"
 
 #: ipaserver/plugins/internal.py:267
 msgid "Custom value"
@@ -18717,7 +18723,7 @@ msgstr ""
 #: ipaserver/plugins/internal.py:270
 #, python-brace-format
 msgid "Edit ${entity}"
-msgstr ""
+msgstr "Muokkaa ${entity}"
 
 #: ipaserver/plugins/internal.py:271
 msgid "Hide details"
@@ -18799,7 +18805,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:297
 msgid "No response"
-msgstr ""
+msgstr "Ei vastausta"
 
 #: ipaserver/plugins/internal.py:298
 msgid "Unknown Error"
@@ -18883,7 +18889,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:337
 msgid "Allowed to create keytab"
-msgstr ""
+msgstr "Keytabin luominen sallittu"
 
 #: ipaserver/plugins/internal.py:338
 msgid "Allowed to retrieve keytab"
@@ -18939,7 +18945,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:367
 msgid "Remove Kerberos Alias"
-msgstr ""
+msgstr "Poista Kerberos-alias"
 
 #: ipaserver/plugins/internal.py:368
 #, python-brace-format
@@ -19904,7 +19910,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:763
 msgid "Record creation failed."
-msgstr ""
+msgstr "Tietueen luominen epäonnistui."
 
 #: ipaserver/plugins/internal.py:764
 msgid "Checking if record exists."
@@ -19912,7 +19918,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:765
 msgid "Record not found."
-msgstr ""
+msgstr "Tietuetta ei löydy."
 
 #: ipaserver/plugins/internal.py:766
 msgid "Redirection to PTR record"
@@ -20327,7 +20333,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:972
 msgid "Add host"
-msgstr ""
+msgstr "Lisää isäntä"
 
 #: ipaserver/plugins/internal.py:974
 #, python-brace-format
@@ -20381,7 +20387,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:996
 msgid "Enrollment"
-msgstr ""
+msgstr "Rekisteröinti"
 
 #: ipaserver/plugins/internal.py:997
 msgid "Fully Qualified Host Name"
@@ -21700,7 +21706,7 @@ msgstr "Omistajat"
 
 #: ipaserver/plugins/internal.py:1637
 msgid "Remove vaults"
-msgstr ""
+msgstr "Poista holveja"
 
 #: ipaserver/plugins/internal.py:1639
 #, python-brace-format
@@ -21742,7 +21748,7 @@ msgstr "Jaettu"
 
 #: ipaserver/plugins/internal.py:1659
 msgid "Shared Vaults"
-msgstr ""
+msgstr "Jaetut holvit"
 
 #: ipaserver/plugins/internal.py:1660
 msgid "Standard"
@@ -21825,7 +21831,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1702
 msgid "Reset your password."
-msgstr ""
+msgstr "Nollaa salasanasi."
 
 #: ipaserver/plugins/internal.py:1703
 msgid "Second OTP"
@@ -22472,7 +22478,7 @@ msgstr ""
 #: ipaserver/plugins/hbactest.py:497
 #, python-format
 msgid "Access granted: %s"
-msgstr ""
+msgstr "Käyttöoikeus myönnetty: %s"
 
 #: ipaserver/plugins/otptoken.py:42
 msgid ""
@@ -22547,7 +22553,7 @@ msgstr ""
 #: ipaserver/plugins/otptoken.py:281
 #, python-format
 msgid "Added OTP token \"%(value)s\""
-msgstr ""
+msgstr "Lisätty OTP-tunnus \"%(value)s\""
 
 #: ipaserver/plugins/otptoken.py:335
 msgid "cannot be empty"
@@ -22575,6 +22581,8 @@ msgid ""
 "\n"
 "Permissions\n"
 msgstr ""
+"\n"
+"Käyttöoikeudet\n"
 
 #: ipaserver/plugins/permission.py:42
 msgid ""
@@ -22661,6 +22669,8 @@ msgid ""
 "\n"
 "Managed permissions\n"
 msgstr ""
+"\n"
+"Hallitut käyttöoikeudet\n"
 
 #: ipaserver/plugins/permission.py:90
 msgid ""
@@ -22723,7 +22733,7 @@ msgstr ""
 #: ipaserver/plugins/permission.py:624
 #, python-format
 msgid "Entry %s not found"
-msgstr ""
+msgstr "Kohtaa %s ei löydy"
 
 #: ipaserver/plugins/permission.py:716
 #, python-format
@@ -22748,7 +22758,7 @@ msgstr ""
 #: ipaserver/plugins/permission.py:861 ipaserver/plugins/permission.py:876
 #, python-format
 msgid "%s: group not found"
-msgstr ""
+msgstr "%s: ryhmää ei löydy"
 
 #: ipaserver/plugins/permission.py:871
 msgid "target and targetgroup are mutually exclusive"
@@ -22838,6 +22848,8 @@ msgid ""
 "\n"
 "IPA servers\n"
 msgstr ""
+"\n"
+"IPA-palvelimet\n"
 
 #: ipaserver/plugins/server.py:38
 msgid ""
@@ -23109,6 +23121,8 @@ msgid ""
 "\n"
 "IPA server roles\n"
 msgstr ""
+"\n"
+"IPA-palvelinroolit\n"
 
 #: ipaserver/plugins/serverrole.py:15
 msgid ""
@@ -23157,7 +23171,7 @@ msgstr ""
 
 #: ipaserver/plugins/serverrole.py:47
 msgid "server roles"
-msgstr ""
+msgstr "Palvelinrooleja"
 
 #: ipaserver/plugins/serverrole.py:51
 msgid "IPA Server Roles"
@@ -23200,7 +23214,7 @@ msgstr ""
 
 #: ipaserver/plugins/serverrole.py:192
 msgid "IPA role name"
-msgstr ""
+msgstr "IPA-roolin nimi"
 
 #: ipaserver/plugins/trust.py:83
 msgid ""
@@ -24701,17 +24715,17 @@ msgstr ""
 #: ipaserver/plugins/dns.py:675
 #, python-format
 msgid "%s record"
-msgstr ""
+msgstr "%s tietue"
 
 #: ipaserver/plugins/dns.py:677
 #, python-format
 msgid "Raw %s records"
-msgstr ""
+msgstr "Raaka %s tietueet"
 
 #: ipaserver/plugins/dns.py:678
 #, python-format
 msgid "%s Record"
-msgstr ""
+msgstr "%s Tietue"
 
 #: ipaserver/plugins/dns.py:679
 #, python-format
@@ -25293,7 +25307,7 @@ msgstr ""
 #: ipaserver/plugins/topology.py:329
 #, python-format
 msgid "%(value)s"
-msgstr ""
+msgstr "%(value)s"
 
 #: ipaserver/plugins/topology.py:365
 msgid "left or right node has to be specified"
@@ -25323,7 +25337,7 @@ msgstr ""
 
 #: ipaserver/plugins/topology.py:413
 msgid "Topology suffix"
-msgstr ""
+msgstr "Topologian pääte"
 
 #: ipaserver/plugins/topology.py:435
 #, python-format
@@ -25638,7 +25652,7 @@ msgstr ""
 
 #: ipaserver/plugins/cert.py:403
 msgid "Subject OID"
-msgstr ""
+msgstr "Aihe OID"
 
 #: ipaserver/plugins/cert.py:408
 msgid "Subject UPN"
@@ -25654,7 +25668,7 @@ msgstr ""
 
 #: ipaserver/plugins/cert.py:456
 msgid "Serial number (hex)"
-msgstr ""
+msgstr "Sarjanumero (hex)"
 
 #: ipaserver/plugins/cert.py:582
 msgid "Request status"
@@ -25777,7 +25791,7 @@ msgstr ""
 #: ipaserver/plugins/cert.py:1304
 #, python-format
 msgid "Owner %s"
-msgstr ""
+msgstr "Omistaja %s"
 
 #: ipaserver/plugins/cert.py:1391
 #, python-format
@@ -26389,7 +26403,7 @@ msgstr ""
 
 #: ipaserver/plugins/baseuser.py:425
 msgid "SMB Home Directory Drive"
-msgstr ""
+msgstr "SMB-kotihakemisto-osio"
 
 #: ipaserver/plugins/baseuser.py:449 ipaserver/plugins/baseuser.py:453
 #, python-format
@@ -27038,12 +27052,12 @@ msgstr ""
 
 #: util/ipa_krb5.c:1069
 msgid "Bad or unsupported salt type.\n"
-msgstr ""
+msgstr "Huono tai ei-tuettu suolatyyppi.\n"
 
 #: util/ipa_ldap.c:79
 #, c-format
 msgid "Unable to initialize connection to ldap server %1$s: %2$s\n"
-msgstr ""
+msgstr "Yhteyttä LDAP-palvelimeen %1$s ei voi alustaa: %2$s\n"
 
 #: util/ipa_ldap.c:89
 msgid "Unable to set LDAP_OPT_PROTOCOL_VERSION\n"
