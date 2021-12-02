@@ -654,45 +654,28 @@ class TestIpaHealthCheck(IntegrationTest):
         displays the correct result when master and replica is setup
         with integrated DNS.
         """
-        SRV_RECORDS = [
-            "_ldap._tcp." + self.replicas[0].domain.name + ".:" +
-            self.replicas[0].hostname + ".",
-            "_ldap._tcp." + self.master.domain.name + ".:" +
-            self.master.hostname + ".",
-            "_kerberos._tcp." + self.replicas[0].domain.name + ".:" +
-            self.replicas[0].hostname + ".",
-            "_kerberos._tcp." + self.master.domain.name + ".:" +
-            self.master.hostname + ".",
-            "_kerberos._udp." + self.replicas[0].domain.name + ".:" +
-            self.replicas[0].hostname + ".",
-            "_kerberos._udp." + self.master.domain.name + ".:" +
-            self.master.hostname + ".",
-            "_kerberos-master._tcp." + self.replicas[0].domain.name +
-            ".:" + self.replicas[0].hostname + ".",
-            "_kerberos-master._tcp." + self.master.domain.name + ".:" +
-            self.master.hostname + ".",
-            "_kerberos-master._udp." + self.replicas[0].domain.name +
-            ".:" + self.replicas[0].hostname + ".",
-            "_kerberos-master._udp." + self.master.domain.name + ".:" +
-            self.master.hostname + ".",
-            "_kpasswd._tcp." + self.replicas[0].domain.name + ".:" +
-            self.replicas[0].hostname + ".",
-            "_kpasswd._tcp." + self.master.domain.name + ".:" +
-            self.master.hostname + ".",
-            "_kpasswd._udp." + self.replicas[0].domain.name + ".:" +
-            self.replicas[0].hostname + ".",
-            "_kpasswd._udp." + self.master.domain.name + ".:" +
-            self.master.hostname + ".",
-            "\"" + self.master.domain.realm.upper() + "\"",
+        SYSTEM_RECORDS = [
+            rr
+            for h in [self.master, self.replicas[0]]
+            for rr in [
+                # SRV rrs
+                f"_ldap._tcp.{h.domain.name}.:{h.hostname}.",
+                f"_kerberos._tcp.{h.domain.name}.:{h.hostname}.",
+                f"_kerberos._udp.{h.domain.name}.:{h.hostname}.",
+                f"_kerberos-master._tcp.{h.domain.name}.:{h.hostname}.",
+                f"_kerberos-master._udp.{h.domain.name}.:{h.hostname}.",
+                f"_kpasswd._tcp.{h.domain.name}.:{h.hostname}.",
+                f"_kpasswd._udp.{h.domain.name}.:{h.hostname}.",
+                # URI rrs
+                f"_kerberos.{h.domain.name}.:krb5srv:m:tcp:{h.hostname}.",
+                f"_kerberos.{h.domain.name}.:krb5srv:m:udp:{h.hostname}.",
+                f"_kpasswd.{h.domain.name}.:krb5srv:m:tcp:{h.hostname}.",
+                f"_kpasswd.{h.domain.name}.:krb5srv:m:udp:{h.hostname}.",
+            ]
+            + [str(ip) for ip in resolve_ip_addresses_nss(h.external_hostname)]
         ]
+        SYSTEM_RECORDS.append(f'"{self.master.domain.realm.upper()}"')
 
-        for hostname in [
-                self.master.external_hostname,
-                self.replicas[0].external_hostname,
-        ]:
-            # resolve hostname on controller
-            ips = resolve_ip_addresses_nss(hostname)
-            SRV_RECORDS.extend([str(ip) for ip in ips])
 
         returncode, data = run_healthcheck(
             self.master,
@@ -702,7 +685,7 @@ class TestIpaHealthCheck(IntegrationTest):
         assert returncode == 0
         for check in data:
             assert check["result"] == "SUCCESS"
-            assert check["kw"]["key"] in SRV_RECORDS
+            assert check["kw"]["key"] in SYSTEM_RECORDS
 
     def test_ipa_healthcheck_ds_ruv_check(self):
         """
@@ -1444,9 +1427,13 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
         Test checks the result of IPADNSSystemRecordsCheck
         when ipa-server is configured without DNS.
         """
-        msg1 = "Expected SRV record missing"
-        msg2 = "Got {count} ipa-ca A records, expected {expected}"
-        msg3 = "Got {count} ipa-ca AAAA records, expected {expected}"
+        expected_msgs = {
+            "Expected SRV record missing",
+            "Got {count} ipa-ca A records, expected {expected}",
+            "Got {count} ipa-ca AAAA records, expected {expected}",
+            "Expected URI record missing",
+        }
+
         tasks.install_packages(self.master, HEALTHCHECK_PKG)
         returncode, data = run_healthcheck(
             self.master,
@@ -1456,11 +1443,7 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
         assert returncode == 1
         for check in data:
             assert check["result"] == "WARNING"
-            assert (
-                check["kw"]["msg"] == msg1
-                or check["kw"]["msg"] == msg2
-                or check["kw"]["msg"] == msg3
-            )
+            assert check["kw"]["msg"] in expected_msgs
 
     def test_ipa_certs_check_ipacertnsstrust(self):
         """
