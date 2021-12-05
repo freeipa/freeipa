@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-11-22 16:16+0000\n"
+"PO-Revision-Date: 2021-12-07 17:16+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.9\n"
+"X-Generator: Weblate 4.9.1\n"
 
 #: client/ipa-join.c:66 client/ipa-join.c:422 client/ipa-join.c:440
 #: client/ipa-join.c:540 client/ipa-join.c:1089 util/ipa_krb5.c:1024
@@ -2211,61 +2211,61 @@ msgid "Certificate Subject base"
 msgstr "인증서 주제 기반"
 
 msgid "Base for certificate subjects (OU=Test,O=Example)"
-msgstr ""
+msgstr "인증서 주제에 대한 기반 (OU=시험,O=예제)"
 
 msgid "Default group objectclasses"
-msgstr ""
+msgstr "기본 그룹 객체 클래스"
 
 msgid "Default group objectclasses (comma-separated list)"
-msgstr ""
+msgstr "기본 그룹 객체 클래스 (쉼표로-구분된 목록)"
 
 msgid "Default user objectclasses"
-msgstr ""
+msgstr "기본 사용자 객체 클래스"
 
 msgid "Default user objectclasses (comma-separated list)"
-msgstr ""
+msgstr "기본 사용자 객체 클래스 (쉼표로-구분된 목록)"
 
 msgid "Password Expiration Notification (days)"
-msgstr ""
+msgstr "비밀번호 만료 통지 (일)"
 
 msgid "Number of days's notice of impending password expiration"
-msgstr ""
+msgstr "임박한 비밀번호 만료 통지 일수"
 
 msgid "Password plugin features"
-msgstr ""
+msgstr "비밀번호 플러그인 기능"
 
 msgid "Extra hashes to generate in password plug-in"
-msgstr ""
+msgstr "비밀번호 플러그-인에서 생성 할 추가 해쉬"
 
 msgid "SELinux user map order"
-msgstr ""
+msgstr "SELinux 사용자 맵 순서"
 
 msgid "Order in increasing priority of SELinux users, delimited by $"
-msgstr ""
+msgstr "SELinux 사용자의 우선 순위가 높은 순서로, $로 구분됨"
 
 msgid "Default SELinux user"
-msgstr ""
+msgstr "기본 SELinux 사용자"
 
 msgid "Default SELinux user when no match is found in SELinux map rule"
-msgstr ""
+msgstr "SELinux 맵 규칙에 일치하는 항목이 없을 때 기본 SELinux 사용자"
 
 msgid "Default PAC types"
-msgstr ""
+msgstr "기본 PAC 유형"
 
 msgid "Default types of PAC supported for services"
-msgstr ""
+msgstr "서비스를 위해 지원되는 PAC의 기본 유형"
 
 msgid "Default user authentication types"
-msgstr ""
+msgstr "기본 사용자 인증 유형"
 
 msgid "Default types of supported user authentication"
 msgstr "지원되는 사용자 인증 기본 유형"
 
 msgid "Modify configuration options."
-msgstr ""
+msgstr "구성 옵션을 수정합니다."
 
 msgid "Show the current configuration."
-msgstr ""
+msgstr "현재 구성을 보여줍니다."
 
 #: ipaserver/plugins/delegation.py:29
 msgid ""
@@ -2300,11 +2300,11 @@ msgstr ""
 #: ipaserver/plugins/servicedelegation.py:162
 #: ipaserver/plugins/delegation.py:75 ipaserver/plugins/delegation.py:76
 msgid "Delegation name"
-msgstr ""
+msgstr "위임 이름"
 
 #: ipaserver/plugins/selfservice.py:85 ipaserver/plugins/delegation.py:82
 msgid "Permissions to grant (read, write). Default is write."
-msgstr ""
+msgstr "권한을 부여함(읽기, 쓰기). 기본은 쓰기."
 
 #: ipaserver/plugins/delegation.py:87
 msgid "Attributes to which the delegation applies"
@@ -2312,31 +2312,31 @@ msgstr "위임이 적용되는 속성"
 
 #: ipaserver/plugins/delegation.py:92
 msgid "Member user group"
-msgstr ""
+msgstr "사용자 그룹 구성원"
 
 #: ipaserver/plugins/delegation.py:93
 msgid "User group to apply delegation to"
-msgstr ""
+msgstr "위임을 적용 할 사용자 그룹"
 
 #: ipaserver/plugins/delegation.py:130
 msgid "Add a new delegation."
-msgstr ""
+msgstr "새로운 위임 추가."
 
 #: ipaserver/plugins/delegation.py:150
 msgid "Delete a delegation."
-msgstr ""
+msgstr "위임 삭제."
 
 #: ipaserver/plugins/delegation.py:186
 msgid "Search for delegations."
-msgstr ""
+msgstr "위임을 위한 검색."
 
 #: ipaserver/plugins/delegation.py:168
 msgid "Modify a delegation."
-msgstr ""
+msgstr "위임을 수정합니다."
 
 #: ipaserver/plugins/delegation.py:211
 msgid "Display information about a delegation."
-msgstr ""
+msgstr "위임에 대한 정보를 표시합니다."
 
 msgid ""
 "\n"
@@ -3599,10 +3599,10 @@ msgid "Add users and groups to an HBAC rule."
 msgstr ""
 
 msgid "member user"
-msgstr ""
+msgstr "구성원 사용자"
 
 msgid "users to add"
-msgstr ""
+msgstr "추가 할 사용자"
 
 msgid "member group"
 msgstr "구성원 그룹"
@@ -3701,21 +3701,21 @@ msgstr "서비스 이름"
 
 #: ipaserver/plugins/hbacsvc.py:102
 msgid "HBAC service"
-msgstr ""
+msgstr "HBAC 서비스"
 
 #: ipaserver/plugins/hbacsvc.py:109
 msgid "HBAC service description"
-msgstr ""
+msgstr "HBAC 서비스 설명"
 
 msgid "Member of HBAC service groups"
-msgstr ""
+msgstr "HBAC 서비스 그룹의 구성원"
 
 msgid "Add a new HBAC service."
-msgstr ""
+msgstr "신규 HBAC 서비스 추가."
 
 #: ipaserver/plugins/hbacsvc.py:125
 msgid "Delete an existing HBAC service."
-msgstr ""
+msgstr "기존 HBAC 서비스를 삭제."
 
 #: ipaserver/plugins/hbacsvc.py:141
 msgid "Search for HBAC services."
@@ -3757,11 +3757,11 @@ msgstr ""
 
 #: ipaserver/plugins/hbacsvcgroup.py:114
 msgid "Service group name"
-msgstr ""
+msgstr "서비스 그룹 이름"
 
 #: ipaserver/plugins/hbacsvcgroup.py:121
 msgid "HBAC service group description"
-msgstr ""
+msgstr "HBAC 서비스 그룹 설명"
 
 #: ipaserver/plugins/baseldap.py:107
 msgid "Member HBAC service"
@@ -3898,7 +3898,7 @@ msgstr ""
 
 #: ipaserver/plugins/baseuser.py:289
 msgid "Random password"
-msgstr ""
+msgstr "임의 비밀번호"
 
 #: ipaserver/plugins/service.py:492 ipaserver/plugins/cert.py:353
 #: ipaserver/plugins/certmap.py:605 ipaserver/plugins/internal.py:638
@@ -3909,7 +3909,7 @@ msgid "Certificate"
 msgstr "인증서"
 
 msgid "Base-64 encoded server certificate"
-msgstr ""
+msgstr "Base-64로 인코딩된 서버 인증서"
 
 #: ipaserver/plugins/host.py:550 ipaserver/plugins/baseuser.py:249
 msgid "Principal name"
@@ -3956,7 +3956,7 @@ msgstr ""
 
 #: ipaserver/plugins/baseldap.py:71
 msgid "Member of host-groups"
-msgstr ""
+msgstr "호스트-그룹의 구성원"
 
 #: ipaserver/plugins/baseldap.py:80
 msgid "Roles"
@@ -3988,7 +3988,7 @@ msgstr ""
 
 #: ipaserver/plugins/host.py:200
 msgid "Keytab"
-msgstr ""
+msgstr "키탭"
 
 msgid "Managed by"
 msgstr ""
@@ -4010,7 +4010,7 @@ msgstr "키탭을 검색 하는데 허용된 호스트"
 
 #: ipaserver/plugins/service.py:143 ipaserver/plugins/host.py:221
 msgid "Host Groups allowed to retrieve keytab"
-msgstr ""
+msgstr "키탭을 검색 하는데 허용된 호스트 그룹"
 
 #: ipaserver/plugins/service.py:146 ipaserver/plugins/host.py:224
 msgid "Users allowed to create keytab"
@@ -4026,7 +4026,7 @@ msgstr "키탭을 생성하는데 허용된 호스트"
 
 #: ipaserver/plugins/service.py:155 ipaserver/plugins/host.py:233
 msgid "Host Groups allowed to create keytab"
-msgstr ""
+msgstr "키탭을 생성하는데 허용된 호스트 그룹"
 
 msgid "Add a new host."
 msgstr "신규 호스트 추가."
@@ -4077,16 +4077,16 @@ msgstr "결과는 기본 키 속성(\"호스트이름\")만 포함되어야 합�
 
 #: ipaserver/plugins/hostgroup.py:106
 msgid "host group"
-msgstr ""
+msgstr "호스트 그룹"
 
 msgid "Search for hosts with these member of host groups."
-msgstr ""
+msgstr "호스트 그룹의 이들 구성원과 함께 호스트 위한 검색."
 
 msgid "Search for hosts without these member of host groups."
-msgstr ""
+msgstr "호스트 그룹의 이들 구성원이 없는 호스트를 위한 검색."
 
 msgid "netgroup"
-msgstr ""
+msgstr "넷그룹"
 
 msgid "Search for hosts with these member of netgroups."
 msgstr "넷그룹의 이들 구성원과 함께 호스트 위한 검색."
@@ -4114,7 +4114,7 @@ msgid "Search for hosts without these member of HBAC rules."
 msgstr "HBAC 규칙의 이들 구성원이 없이 호스트를 위한 검색."
 
 msgid "sudo rule"
-msgstr ""
+msgstr "sudo 규칙"
 
 msgid "Search for hosts with these member of sudo rules."
 msgstr "sudo 규칙의 이들 구성원과 함께 호스트를 위한 검색."
@@ -4151,7 +4151,7 @@ msgid "Search for hosts without these managing hosts."
 msgstr ""
 
 msgid "Modify information about a host."
-msgstr ""
+msgstr "호스트에 대해 정보를 수정합니다."
 
 msgid "Kerberos principal name for this host"
 msgstr ""
@@ -4203,7 +4203,7 @@ msgstr ""
 
 #: ipaserver/plugins/hostgroup.py:186
 msgid "Host-group"
-msgstr ""
+msgstr "호스트-그룹"
 
 #: ipaserver/plugins/hostgroup.py:187
 msgid "Name of host-group"
@@ -4221,7 +4221,7 @@ msgstr ""
 
 #: ipaserver/plugins/baseldap.py:135
 msgid "Indirect Member hosts"
-msgstr ""
+msgstr "호스트 간접 구성원"
 
 #: ipaserver/plugins/baseldap.py:138
 msgid "Indirect Member host-groups"
@@ -4247,22 +4247,22 @@ msgid "Results should contain primary key attribute only (\"hostgroup-name\")"
 msgstr "결과는 우선 키 속성만 포함되어야 합니다(\"hostgroup-name\")"
 
 msgid "Search for host groups with these member hosts."
-msgstr ""
+msgstr "호스트의 이들 구성원과 함께 호스트 그룹을 위한 검색."
 
 msgid "Search for host groups without these member hosts."
-msgstr ""
+msgstr "호스트의 이들 구성원 없이 호스트 그룹을 위한 검색."
 
 msgid "Search for host groups with these member host groups."
-msgstr ""
+msgstr "호스트 그룹의 이들 구성원 없이 호스트 그룹을 위한 검색."
 
 msgid "Search for host groups without these member host groups."
 msgstr "그룹의 이들 구성원 없이 호스트 그룹를 위한 검색."
 
 msgid "Search for host groups with these member of host groups."
-msgstr ""
+msgstr "호스트 그룹의 이들 구성원과 함께 호스트 그룹을 위한 검색."
 
 msgid "Search for host groups without these member of host groups."
-msgstr ""
+msgstr "호스트 그룹의 이들 구성원 없이 호스트 그룹을 위한 검색."
 
 msgid "Search for host groups with these member of netgroups."
 msgstr "넷그룹의 이들 구성원과 함께 호스트 그룹을 위한 검색."
