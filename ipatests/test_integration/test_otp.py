@@ -354,6 +354,9 @@ class TestOTPToken(IntegrationTest):
             otpvalue = totp.generate(int(time.time())).decode("ascii")
             kinit_otp(self.master, USER, password=PASSWORD, otp=otpvalue)
             time.sleep(60)
+            # ldapsearch will wake up slapd and force walking through
+            # the connection list, in order to spot the idle connections
+            tasks.ldapsearch_dm(self.master, "", ldap_args=[], scope="base")
 
             def test_cb(cmd_jornalctl):
                 # check if LDAP connection is timed out
