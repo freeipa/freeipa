@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-11-25 18:55+0100\n"
-"PO-Revision-Date: 2021-12-02 20:16+0000\n"
+"PO-Revision-Date: 2021-12-07 16:16+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
@@ -18,9 +18,9 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.9.1\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "cannot open configuration file %s\n"
-msgstr "Toimenpide epäonnistui: %s\n"
+msgstr "asetustiedostoa %s ei voi avata\n"
 
 #, c-format
 msgid "cannot stat() configuration file %s\n"
@@ -108,9 +108,8 @@ msgstr ""
 msgid "Remove all principals in this realm"
 msgstr ""
 
-#, fuzzy
 msgid "Realm name"
-msgstr "Nimeä uudelleen"
+msgstr "Alueen nimi"
 
 #, c-format
 msgid "Kerberos context initialization failed\n"
@@ -208,7 +207,7 @@ msgstr ""
 
 #, c-format
 msgid "Failed to retrieve encryption type type #%d\n"
-msgstr ""
+msgstr "Salaustyypin #%d hakeminen ei onnistunut\n"
 
 #, c-format
 msgid "Failed to retrieve encryption type %1$s (#%2$d)\n"
@@ -814,9 +813,8 @@ msgstr ""
 msgid "Error"
 msgstr "Virhe"
 
-#, fuzzy
 msgid "Input filename"
-msgstr "Syötetiedosto"
+msgstr "Syötetiedoston nimi"
 
 msgid "File to load the certificate from."
 msgstr ""
@@ -937,13 +935,11 @@ msgstr "Käyttäjä ID"
 msgid "Password"
 msgstr "Salasana"
 
-#, fuzzy
 msgid "First Code"
-msgstr "Etunimi"
+msgstr "Ensimmäinen koodi"
 
-#, fuzzy
 msgid "Second Code"
-msgstr "Toinen OTP"
+msgstr "Toinen koodi"
 
 msgid "Token ID"
 msgstr "Token-tunniste"
@@ -1070,16 +1066,14 @@ msgstr ""
 msgid "Invalid or unsupported vault public key: %s"
 msgstr ""
 
-#, fuzzy
 msgid "Modify a vault."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa holvia."
 
 msgid "Change password"
 msgstr "Vaihda salasana"
 
-#, fuzzy
 msgid "Old vault password"
-msgstr "salasana"
+msgstr "Vanha holvin salasana"
 
 msgid "File containing the old vault password"
 msgstr ""
@@ -1295,16 +1289,14 @@ msgstr "Käyttöoikeus"
 msgid "Permission ACI grants access to"
 msgstr ""
 
-#, fuzzy
 msgid "User group"
-msgstr "Omistajaryhmät"
+msgstr "Käyttäjäryhmä"
 
 msgid "User group ACI grants access to"
 msgstr ""
 
-#, fuzzy
 msgid "Permissions"
-msgstr "Käyttöoikeus"
+msgstr "Käyttöoikeudet"
 
 msgid "Permissions to grant(read, write, add, delete, all)"
 msgstr ""
@@ -1321,9 +1313,8 @@ msgstr "Tyyppi"
 msgid "type of IPA object (user, group, host, hostgroup, service, netgroup)"
 msgstr ""
 
-#, fuzzy
 msgid "Member of"
-msgstr "Jäsenet"
+msgstr "Tämän jäsen"
 
 msgid "Member of a group"
 msgstr "Ryhmän jäsen"
@@ -1340,9 +1331,8 @@ msgstr ""
 msgid "Subtree to apply ACI to"
 msgstr ""
 
-#, fuzzy
 msgid "Target group"
-msgstr "Kohde"
+msgstr "Kohderyhmä"
 
 msgid "Group to apply ACI to"
 msgstr ""
@@ -1423,9 +1413,8 @@ msgstr ""
 msgid "True if not all results were returned"
 msgstr ""
 
-#, fuzzy
 msgid "Modify ACI."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa ACI:ta."
 
 msgid "Rename an ACI."
 msgstr "Nimeä uudelleen ACI."
@@ -1836,9 +1825,8 @@ msgstr ""
 msgid "Modify an automount key."
 msgstr "Muokkaa automount-avainta."
 
-#, fuzzy
 msgid "New mount information"
-msgstr "Tietoja liitoksesta"
+msgstr "Uudet liitostiedot"
 
 msgid "Rename"
 msgstr "Nimeä uudelleen"
@@ -1891,12 +1879,11 @@ msgstr ""
 msgid "Results should contain primary key attribute only (\"map\")"
 msgstr ""
 
-#, fuzzy
 msgid "Modify an automount map."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa automaattisesti liitettävän karttaa."
 
 msgid "Display an automount map."
-msgstr ""
+msgstr "Näytä automount-kartta."
 
 msgid ""
 "\n"
@@ -2100,9 +2087,8 @@ msgstr ""
 msgid "Retrieve an existing certificate."
 msgstr ""
 
-#, fuzzy
 msgid "Output filename"
-msgstr "tiedostonimi"
+msgstr "Vientitiedoston nimi"
 
 msgid "File to store the certificate in."
 msgstr ""
@@ -2166,16 +2152,14 @@ msgstr ""
 msgid "Maximum username length"
 msgstr ""
 
-#, fuzzy
 msgid "Home directory base"
-msgstr "Kotihakemisto"
+msgstr "Kotihakemistopohja"
 
 msgid "Default location of home directories"
 msgstr ""
 
-#, fuzzy
 msgid "Default shell"
-msgstr "Oletus"
+msgstr "Oletuskomentorivitulkki"
 
 msgid "Default shell for new users"
 msgstr ""
@@ -2235,30 +2219,26 @@ msgstr ""
 msgid "Default user objectclasses (comma-separated list)"
 msgstr ""
 
-#, fuzzy
 msgid "Password Expiration Notification (days)"
-msgstr "Salasanan vanheneminen"
+msgstr "Ilmoitus salasanan vanhenemisesta (päiviä)"
 
 msgid "Number of days's notice of impending password expiration"
 msgstr ""
 
-#, fuzzy
 msgid "Password plugin features"
-msgstr "Salasanan vanheneminen"
+msgstr "Salasanalaajennuksen ominaisuudet"
 
 msgid "Extra hashes to generate in password plug-in"
 msgstr ""
 
-#, fuzzy
 msgid "SELinux user map order"
-msgstr "SELinux-käyttäjäkartta"
+msgstr "SELinux käyttäjäkarttajärjestys"
 
 msgid "Order in increasing priority of SELinux users, delimited by $"
 msgstr ""
 
-#, fuzzy
 msgid "Default SELinux user"
-msgstr "SELinux-käyttäjä"
+msgstr "SELinux-oletuskäyttäjä"
 
 msgid "Default SELinux user when no match is found in SELinux map rule"
 msgstr ""
@@ -2269,19 +2249,17 @@ msgstr ""
 msgid "Default types of PAC supported for services"
 msgstr ""
 
-#, fuzzy
 msgid "Default user authentication types"
-msgstr "Vaatii ennakkotunnistautumisen"
+msgstr "Käyttäjän todennustyyppien oletukset"
 
-#, fuzzy
 msgid "Default types of supported user authentication"
-msgstr "Vaatii ennakkotunnistautumisen"
+msgstr "Tuetun käyttäjän todennuksen oletustyypit"
 
 msgid "Modify configuration options."
 msgstr ""
 
 msgid "Show the current configuration."
-msgstr ""
+msgstr "Näytä nykyiset määritykset."
 
 msgid ""
 "\n"
@@ -2312,9 +2290,8 @@ msgid ""
 "   ipa delegation-del \"managers edit employees' street\"\n"
 msgstr ""
 
-#, fuzzy
 msgid "Delegation name"
-msgstr "Toimialueen nimi"
+msgstr "Valtuuskunnan nimi"
 
 msgid "Permissions to grant (read, write). Default is write."
 msgstr ""
@@ -2328,9 +2305,8 @@ msgstr ""
 msgid "User group to apply delegation to"
 msgstr ""
 
-#, fuzzy
 msgid "Add a new delegation."
-msgstr "Lisää uusi isäntä."
+msgstr "Lisää uusi valtuuskunta."
 
 msgid "Delete a delegation."
 msgstr "Poista valtuuskunta."
@@ -2338,9 +2314,8 @@ msgstr "Poista valtuuskunta."
 msgid "Search for delegations."
 msgstr ""
 
-#, fuzzy
 msgid "Modify a delegation."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa valtuuskuntaa."
 
 msgid "Display information about a delegation."
 msgstr ""
@@ -2635,9 +2610,8 @@ msgstr ""
 msgid "IP network to create reverse zone name from"
 msgstr ""
 
-#, fuzzy
 msgid "Active zone"
-msgstr "Toimet"
+msgstr "Aktiivinen vyöhyke"
 
 msgid "Is zone active?"
 msgstr ""
@@ -2656,9 +2630,8 @@ msgid ""
 "forwarders are disregarded."
 msgstr ""
 
-#, fuzzy
 msgid "Record name"
-msgstr "Nimeä uudelleen"
+msgstr "Tietueen nimi"
 
 msgid "Time to live"
 msgstr ""
@@ -2666,21 +2639,17 @@ msgstr ""
 msgid "Records"
 msgstr "Merkinnät"
 
-#, fuzzy
 msgid "Record type"
-msgstr "Merkinnät"
+msgstr "Tietueen tyyppi"
 
-#, fuzzy
 msgid "Record data"
-msgstr "Merkinnät"
+msgstr "Tietueen tiedot"
 
-#, fuzzy
 msgid "A record"
-msgstr "Merkinnät"
+msgstr "Tietue"
 
-#, fuzzy
 msgid "Raw A records"
-msgstr "Merkinnät"
+msgstr "Raw A -tietueet"
 
 msgid "A IP Address"
 msgstr "IP-osoite"
@@ -2697,9 +2666,8 @@ msgstr ""
 msgid "AAAA record"
 msgstr ""
 
-#, fuzzy
 msgid "Raw AAAA records"
-msgstr "Merkinnät"
+msgstr "Raw AAAA -tietueet"
 
 #, fuzzy
 msgid "AAAA IP Address"
@@ -2708,13 +2676,11 @@ msgstr "IP-osoite"
 msgid "AAAA Create reverse"
 msgstr ""
 
-#, fuzzy
 msgid "A6 record"
-msgstr "Merkinnät"
+msgstr "A6-tietue"
 
-#, fuzzy
 msgid "Raw A6 records"
-msgstr "Merkinnät"
+msgstr "Raw A6 -tietueet"
 
 msgid "A6 Record data"
 msgstr ""
@@ -2731,26 +2697,23 @@ msgstr ""
 msgid "Subtype"
 msgstr ""
 
-#, fuzzy
 msgid "AFSDB Hostname"
-msgstr "Koneen nimi"
+msgstr "AFSDB-isäntänimi"
 
 msgid "Hostname"
 msgstr "Koneen nimi"
 
 msgid "APL record"
-msgstr ""
+msgstr "APL-tietue"
 
 msgid "Raw APL records"
 msgstr "Raw APL -tietueet"
 
-#, fuzzy
 msgid "CERT record"
-msgstr "Merkinnät"
+msgstr "CERT-tietue"
 
-#, fuzzy
 msgid "Raw CERT records"
-msgstr "Merkinnät"
+msgstr "Raw CERT -tietueet"
 
 msgid "CERT Certificate Type"
 msgstr ""
@@ -2792,14 +2755,13 @@ msgid "DHCID record"
 msgstr ""
 
 msgid "Raw DHCID records"
-msgstr ""
+msgstr "Raw DHCID -tietueet"
 
 msgid "DLV record"
-msgstr ""
+msgstr "DLV-tietue"
 
-#, fuzzy
 msgid "Raw DLV records"
-msgstr "Merkinnät"
+msgstr "Raw DLV -tietueet"
 
 msgid "DLV Key Tag"
 msgstr ""
@@ -2825,9 +2787,8 @@ msgstr ""
 msgid "Raw DNAME records"
 msgstr ""
 
-#, fuzzy
 msgid "DNAME Target"
-msgstr "Kohde"
+msgstr "DNAME kohde"
 
 msgid "Target"
 msgstr "Kohde"
@@ -2836,15 +2797,13 @@ msgid "DNSKEY record"
 msgstr ""
 
 msgid "Raw DNSKEY records"
-msgstr ""
+msgstr "Raw DNSKEY -tietueet"
 
-#, fuzzy
 msgid "DS record"
-msgstr "Merkinnät"
+msgstr "DS-tietue"
 
-#, fuzzy
 msgid "Raw DS records"
-msgstr "Merkinnät"
+msgstr "Raw DS -tietueet"
 
 msgid "DS Key Tag"
 msgstr ""
@@ -2859,11 +2818,10 @@ msgid "DS Digest"
 msgstr ""
 
 msgid "HIP record"
-msgstr ""
+msgstr "HIP-tietue"
 
-#, fuzzy
 msgid "Raw HIP records"
-msgstr "Merkinnät"
+msgstr "Raw HIP -tietueet"
 
 msgid "IPSECKEY record"
 msgstr ""
@@ -2872,19 +2830,16 @@ msgid "Raw IPSECKEY records"
 msgstr ""
 
 msgid "KEY record"
-msgstr ""
+msgstr "KEY-tietue"
 
-#, fuzzy
 msgid "Raw KEY records"
-msgstr "Merkinnät"
+msgstr "Raw KEY -tietueet"
 
-#, fuzzy
 msgid "KX record"
-msgstr "Merkinnät"
+msgstr "KX-tietue"
 
-#, fuzzy
 msgid "Raw KX records"
-msgstr "Merkinnät"
+msgstr "Raw KX -tietueet"
 
 #, fuzzy
 msgid "KX Preference"
@@ -2902,9 +2857,8 @@ msgstr ""
 msgid "LOC record"
 msgstr ""
 
-#, fuzzy
 msgid "Raw LOC records"
-msgstr "Merkinnät"
+msgstr "Raw LOC -tietueet"
 
 msgid "LOC Degrees Latitude"
 msgstr ""
@@ -2960,9 +2914,8 @@ msgstr ""
 msgid "Altitude"
 msgstr ""
 
-#, fuzzy
 msgid "LOC Size"
-msgstr "Koko"
+msgstr "LOC:n koko"
 
 msgid "Size"
 msgstr "Koko"
@@ -2979,13 +2932,11 @@ msgstr ""
 msgid "Vertical Precision"
 msgstr ""
 
-#, fuzzy
 msgid "MX record"
-msgstr "Merkinnät"
+msgstr "MX-tietue"
 
-#, fuzzy
 msgid "Raw MX records"
-msgstr "Merkinnät"
+msgstr "Raw MX -tietueet"
 
 #, fuzzy
 msgid "MX Preference"
@@ -2997,16 +2948,14 @@ msgstr ""
 msgid "A host willing to act as a mail exchanger"
 msgstr ""
 
-#, fuzzy
 msgid "NAPTR record"
-msgstr "Merkinnät"
+msgstr "NAPTR-tietue"
 
 msgid "Raw NAPTR records"
-msgstr ""
+msgstr "Raw NAPTR -tietueet"
 
-#, fuzzy
 msgid "NAPTR Order"
-msgstr "Järjestys"
+msgstr "NAPTR :n järjestys"
 
 msgid "Order"
 msgstr "Järjestys"
@@ -3024,9 +2973,8 @@ msgstr ""
 msgid "Flags"
 msgstr ""
 
-#, fuzzy
 msgid "NAPTR Service"
-msgstr "Mikä tahansa palvelu"
+msgstr "NAPTR-palvelu"
 
 msgid "Service"
 msgstr "Palvelu"
@@ -3043,108 +2991,90 @@ msgstr ""
 msgid "Replacement"
 msgstr ""
 
-#, fuzzy
 msgid "NS record"
-msgstr "Merkinnät"
+msgstr "NS-tietue"
 
-#, fuzzy
 msgid "Raw NS records"
-msgstr "Merkinnät"
+msgstr "Raw NS -tietueet"
 
 #, fuzzy
 msgid "NS Hostname"
 msgstr "Koneen nimi"
 
 msgid "NSEC record"
-msgstr ""
+msgstr "NSEC-tietue"
 
-#, fuzzy
 msgid "Raw NSEC records"
-msgstr "Merkinnät"
+msgstr "Raw NSEC -tietueet"
 
 msgid "NSEC3 record"
 msgstr ""
 
 msgid "Raw NSEC3 records"
-msgstr ""
+msgstr "Raw NSEC3 -tietueet"
 
-#, fuzzy
 msgid "PTR record"
-msgstr "Merkinnät"
+msgstr "PTR-tietue"
 
-#, fuzzy
 msgid "Raw PTR records"
-msgstr "Merkinnät"
+msgstr "Raw PTR -tietueet"
 
-#, fuzzy
 msgid "PTR Hostname"
-msgstr "Koneen nimi"
+msgstr "PTR-isäntänimi"
 
 msgid "The hostname this reverse record points to"
 msgstr ""
 
-#, fuzzy
 msgid "RRSIG record"
-msgstr "Merkinnät"
+msgstr "RRSIG-tietue"
 
 msgid "Raw RRSIG records"
-msgstr ""
+msgstr "Raw RRSIG -tietueet"
 
-#, fuzzy
 msgid "RP record"
-msgstr "Merkinnät"
+msgstr "RP-tietue"
 
-#, fuzzy
 msgid "Raw RP records"
-msgstr "Merkinnät"
+msgstr "Raw RP -tietueet"
 
 msgid "SIG record"
-msgstr ""
+msgstr "SIG-tietue"
 
-#, fuzzy
 msgid "Raw SIG records"
-msgstr "Merkinnät"
+msgstr "Raw SIG -tietueet"
 
 msgid "SPF record"
-msgstr ""
+msgstr "SPF-tietue"
 
-#, fuzzy
 msgid "Raw SPF records"
-msgstr "Merkinnät"
+msgstr "Raw SPF -tietueet"
 
-#, fuzzy
 msgid "SRV record"
-msgstr "Merkinnät"
+msgstr "SRV-tietue"
 
-#, fuzzy
 msgid "Raw SRV records"
-msgstr "Merkinnät"
+msgstr "Raw SRV -tietueet"
 
-#, fuzzy
 msgid "SRV Priority"
-msgstr "Prioriteetti"
+msgstr "SRV-etusija"
 
 msgid "Priority"
 msgstr "Prioriteetti"
 
-#, fuzzy
 msgid "SRV Weight"
-msgstr "Oikeudet"
+msgstr "SRV-paino"
 
-#, fuzzy
 msgid "Weight"
-msgstr "Oikeudet"
+msgstr "Paino"
 
-#, fuzzy
 msgid "SRV Port"
-msgstr "Portti"
+msgstr "SRV-portti"
 
 msgid "Port"
 msgstr "Portti"
 
-#, fuzzy
 msgid "SRV Target"
-msgstr "Kohde"
+msgstr "SRV-kohde"
 
 msgid ""
 "The domain name of the target host or '.' if the service is decidedly not "
@@ -3155,40 +3085,34 @@ msgid "SSHFP record"
 msgstr ""
 
 msgid "Raw SSHFP records"
-msgstr ""
+msgstr "Raw SSHFP -tietueet"
 
 msgid "SSHFP Algorithm"
 msgstr ""
 
-#, fuzzy
 msgid "SSHFP Fingerprint Type"
-msgstr "Sormenjälki"
+msgstr "SSHFP-sormenjälkityyppi"
 
-#, fuzzy
 msgid "Fingerprint Type"
-msgstr "Sormenjälki"
+msgstr "Sormenjälkityyppi"
 
-#, fuzzy
 msgid "SSHFP Fingerprint"
-msgstr "Sormenjälki"
+msgstr "SSHFP-sormenjälki"
 
 msgid "Fingerprint"
 msgstr "Sormenjälki"
 
-#, fuzzy
 msgid "TA record"
-msgstr "Merkinnät"
+msgstr "TA-tietue"
 
-#, fuzzy
 msgid "Raw TA records"
-msgstr "Merkinnät"
+msgstr "Raw TA -tietueet"
 
 msgid "TLSA record"
-msgstr ""
+msgstr "TLSA-tietue"
 
-#, fuzzy
 msgid "Raw TLSA records"
-msgstr "Merkinnät"
+msgstr "Raw TLSA -tietueet"
 
 msgid "TLSA Certificate Usage"
 msgstr ""
@@ -3199,9 +3123,8 @@ msgstr ""
 msgid "TLSA Selector"
 msgstr ""
 
-#, fuzzy
 msgid "Selector"
-msgstr "Valitse kaikki"
+msgstr "Valitsin"
 
 msgid "TLSA Matching Type"
 msgstr ""
@@ -3218,23 +3141,20 @@ msgstr ""
 msgid "TKEY record"
 msgstr ""
 
-#, fuzzy
 msgid "Raw TKEY records"
-msgstr "Merkinnät"
+msgstr "Raw TKEY -tietueet"
 
 msgid "TSIG record"
-msgstr ""
+msgstr "TSIG-tietue"
 
-#, fuzzy
 msgid "Raw TSIG records"
-msgstr "Merkinnät"
+msgstr "Raw TSIG -tietueet"
 
 msgid "TXT record"
-msgstr ""
+msgstr "TXT-tietue"
 
-#, fuzzy
 msgid "Raw TXT records"
-msgstr "Merkinnät"
+msgstr "Raw TXT -tietueet"
 
 msgid "TXT Text Data"
 msgstr ""
@@ -3251,17 +3171,14 @@ msgstr ""
 msgid "Administrator e-mail address"
 msgstr ""
 
-#, fuzzy
 msgid "SOA serial"
-msgstr "Sarjanumero"
+msgstr "SOA-sarjanumero"
 
-#, fuzzy
 msgid "SOA record serial number"
-msgstr "Sarjanumero"
+msgstr "SOA-tietueen sarjanumero"
 
-#, fuzzy
 msgid "SOA refresh"
-msgstr "Päivitä"
+msgstr "SOA-virkistys"
 
 msgid "SOA record refresh time"
 msgstr ""
@@ -3348,9 +3265,8 @@ msgstr ""
 msgid "Add a permission for per-forward zone access delegation."
 msgstr ""
 
-#, fuzzy
 msgid "Permission value"
-msgstr "Käyttöoikeus"
+msgstr "Käyttöoikeuden arvo"
 
 msgid "Delete DNS forward zone."
 msgstr ""
@@ -3552,23 +3468,20 @@ msgstr ""
 msgid "GID (use this option to set it manually)"
 msgstr ""
 
-#, fuzzy
 msgid "Member users"
-msgstr "Poista käyttäjiä"
+msgstr "Jäsenkäyttäjät"
 
-#, fuzzy
 msgid "Member groups"
-msgstr "Omistajaryhmät"
+msgstr "Jäsenryhmät"
 
-#, fuzzy
 msgid "Member of groups"
-msgstr "Omistajaryhmät"
+msgstr "Jäsen ryhmissä"
 
 msgid "Roles"
 msgstr "Roolit"
 
 msgid "Member of netgroups"
-msgstr ""
+msgstr "Jäsen verkkoryhmissä"
 
 msgid "Member of Sudo rule"
 msgstr ""
@@ -3619,20 +3532,17 @@ msgstr "Ulkoinen"
 msgid "Members of a trusted domain in DOM\\name or name@domain form"
 msgstr ""
 
-#, fuzzy
 msgid "member user"
-msgstr "Poista käyttäjiä"
+msgstr "jäsenkäyttäjä"
 
 msgid "users to add"
 msgstr ""
 
-#, fuzzy
 msgid "member group"
-msgstr "Omistajaryhmät"
+msgstr "jäsenryhmä"
 
-#, fuzzy
 msgid "groups to add"
-msgstr "ryhmät"
+msgstr "lisättävät ryhmät"
 
 msgid "Members that could not be added"
 msgstr ""
@@ -3690,9 +3600,8 @@ msgstr ""
 msgid "Search for groups without these member of groups."
 msgstr ""
 
-#, fuzzy
 msgid "netgroup"
-msgstr "ryhmä"
+msgstr "verkkoryhmä"
 
 msgid "Search for groups with these member of netgroups."
 msgstr ""
@@ -3709,9 +3618,8 @@ msgstr ""
 msgid "Search for groups without these member of roles."
 msgstr ""
 
-#, fuzzy
 msgid "HBAC rule"
-msgstr "Lisää sääntö"
+msgstr "HBAC-sääntö"
 
 msgid "Search for groups with these member of HBAC rules."
 msgstr ""
@@ -3719,9 +3627,8 @@ msgstr ""
 msgid "Search for groups without these member of HBAC rules."
 msgstr ""
 
-#, fuzzy
 msgid "sudo rule"
-msgstr "Lisää sääntö"
+msgstr "sudo-sääntö"
 
 msgid "Search for groups with these member of sudo rules."
 msgstr ""
@@ -3819,23 +3726,20 @@ msgstr ""
 msgid "Rule type (allow)"
 msgstr ""
 
-#, fuzzy
 msgid "User category"
-msgstr "Käyttäjätunnus"
+msgstr "Käyttäjäluokka"
 
 msgid "User category the rule applies to"
 msgstr ""
 
-#, fuzzy
 msgid "Host category"
-msgstr "Koneen nimi"
+msgstr "Isäntäluokka"
 
 msgid "Host category the rule applies to"
 msgstr ""
 
-#, fuzzy
 msgid "Service category"
-msgstr "Palvelun nimi"
+msgstr "Palveluluokka"
 
 msgid "Service category the rule applies to"
 msgstr ""
@@ -3843,24 +3747,20 @@ msgstr ""
 msgid "Enabled"
 msgstr "Käytössä"
 
-#, fuzzy
 msgid "User Groups"
-msgstr "Ryhmät"
+msgstr "Käyttäjäryhmät"
 
-#, fuzzy
 msgid "Host Groups"
-msgstr "Ryhmät"
+msgstr "Isäntäryhmät"
 
 msgid "Services"
 msgstr "Palvelut"
 
-#, fuzzy
 msgid "Service Groups"
-msgstr "Palvelut"
+msgstr "Palveluryhmät"
 
-#, fuzzy
 msgid "External host"
-msgstr "Ulkoinen"
+msgstr "Ulkoinen isäntä"
 
 msgid "Create a new HBAC rule."
 msgstr ""
@@ -3868,15 +3768,14 @@ msgstr ""
 msgid "Add target hosts and hostgroups to an HBAC rule."
 msgstr ""
 
-#, fuzzy
 msgid "member host"
-msgstr "Jäsenet"
+msgstr "isäntäjäsen"
 
 msgid "hosts to add"
 msgstr ""
 
 msgid "member host group"
-msgstr ""
+msgstr "Jäsenisäntäryhmä"
 
 msgid "host groups to add"
 msgstr ""
@@ -3884,9 +3783,8 @@ msgstr ""
 msgid "Add services to an HBAC rule."
 msgstr ""
 
-#, fuzzy
 msgid "member HBAC service"
-msgstr "Poista palveluita"
+msgstr "jäsen HBAC-palvelu"
 
 msgid "HBAC services to add"
 msgstr ""
@@ -3912,9 +3810,8 @@ msgstr ""
 msgid "Search for HBAC rules."
 msgstr ""
 
-#, fuzzy
 msgid "Modify an HBAC rule."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa HBAC-sääntöä."
 
 msgid "Remove target hosts and hostgroups from an HBAC rule."
 msgstr ""
@@ -3966,13 +3863,11 @@ msgstr ""
 msgid "Service name"
 msgstr "Palvelun nimi"
 
-#, fuzzy
 msgid "HBAC service"
-msgstr "Lisää palvelu"
+msgstr "HBAC-palvelu"
 
-#, fuzzy
 msgid "HBAC service description"
-msgstr "Profiilin kuvaus"
+msgstr "HBAC-palvelun kuvaus"
 
 msgid "Member of HBAC service groups"
 msgstr ""
@@ -4017,17 +3912,14 @@ msgid ""
 "   ipa hbacsvcgroup-del login\n"
 msgstr ""
 
-#, fuzzy
 msgid "Service group name"
-msgstr "Palvelun nimi"
+msgstr "Palveluryhmän nimi"
 
-#, fuzzy
 msgid "HBAC service group description"
-msgstr "Verkkoryhmän kuvaus"
+msgstr "HBAC-palveluryhmän kuvaus"
 
-#, fuzzy
 msgid "Member HBAC service"
-msgstr "Poista palveluita"
+msgstr "Jäsen HBAC-palvelu"
 
 msgid "Add a new HBAC service group."
 msgstr ""
@@ -4041,9 +3933,8 @@ msgstr ""
 msgid "Search for an HBAC service group."
 msgstr ""
 
-#, fuzzy
 msgid "Modify an HBAC service group."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa HBAC-palveluryhmää."
 
 msgid "Remove members from an HBAC service group."
 msgstr ""
@@ -4358,7 +4249,6 @@ msgstr "Koneen nimi"
 msgid "A description of this host"
 msgstr ""
 
-#, fuzzy
 msgid "Locality"
 msgstr "Sijainti"
 
@@ -4399,9 +4289,8 @@ msgstr ""
 msgid "Base-64 encoded server certificate"
 msgstr ""
 
-#, fuzzy
 msgid "Principal name"
-msgstr "Näyttönimi"
+msgstr "Ensisijaisen nimi"
 
 msgid "MAC address"
 msgstr "MAC-osoite"
@@ -4436,7 +4325,7 @@ msgid "Client credentials may be delegated to the service"
 msgstr ""
 
 msgid "Member of host-groups"
-msgstr ""
+msgstr "Jäsen isäntäryhmissä"
 
 msgid "Indirect Member of host-group"
 msgstr ""
@@ -4463,13 +4352,13 @@ msgid "Host Groups allowed to retrieve keytab"
 msgstr ""
 
 msgid "Users allowed to create keytab"
-msgstr ""
+msgstr "Käyttäjät joiden sallitaan luoda avaintaulu"
 
 msgid "Groups allowed to create keytab"
-msgstr ""
+msgstr "Ryhmät joiden sallitaan luoda avaintaulu"
 
 msgid "Hosts allowed to create keytab"
-msgstr ""
+msgstr "Isännät joiden sallitaan luoda avaintaulu"
 
 msgid "Host Groups allowed to create keytab"
 msgstr ""
@@ -4500,9 +4389,8 @@ msgstr ""
 msgid "Delete a host."
 msgstr "Poista isäntä."
 
-#, fuzzy
 msgid "Remove entries from DNS"
-msgstr "Poista palveluita"
+msgstr "Poista tietueet DNS:stä"
 
 msgid "Disable the Kerberos key, SSL certificate and all services of a host."
 msgstr ""
@@ -4522,9 +4410,8 @@ msgstr ""
 msgid "Results should contain primary key attribute only (\"hostname\")"
 msgstr ""
 
-#, fuzzy
 msgid "host group"
-msgstr "ryhmä"
+msgstr "isäntäryhmä"
 
 msgid "Search for hosts with these member of host groups."
 msgstr ""
@@ -4626,9 +4513,8 @@ msgid ""
 "   ipa hostgroup-del baltimore\n"
 msgstr ""
 
-#, fuzzy
 msgid "Host-group"
-msgstr "ryhmä"
+msgstr "Isäntäryhmä"
 
 msgid "Name of host-group"
 msgstr ""
@@ -4636,13 +4522,11 @@ msgstr ""
 msgid "A description of this host-group"
 msgstr ""
 
-#, fuzzy
 msgid "Member hosts"
-msgstr "Jäsenet"
+msgstr "Jäsenisännät"
 
-#, fuzzy
 msgid "Member host-groups"
-msgstr "Omistajaryhmät"
+msgstr "Jäsenisäntäryhmät"
 
 msgid "Indirect Member hosts"
 msgstr ""
@@ -4650,9 +4534,8 @@ msgstr ""
 msgid "Indirect Member host-groups"
 msgstr ""
 
-#, fuzzy
 msgid "Add a new hostgroup."
-msgstr "Lisää uusi isäntä."
+msgstr "Lisää uusi isäntäryhmä."
 
 msgid "Add members to a hostgroup."
 msgstr ""
@@ -4661,7 +4544,7 @@ msgid "Delete a hostgroup."
 msgstr "Poista isäntäryhmä."
 
 msgid "Search for hostgroups."
-msgstr ""
+msgstr "Etsi isäntäryhmiä."
 
 msgid "Results should contain primary key attribute only (\"hostgroup-name\")"
 msgstr ""
@@ -4702,9 +4585,8 @@ msgstr ""
 msgid "Search for host groups without these member of sudo rules."
 msgstr ""
 
-#, fuzzy
 msgid "Modify a hostgroup."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa isäntäryhmää."
 
 msgid "Remove members from a hostgroup."
 msgstr ""
@@ -4933,9 +4815,8 @@ msgstr "Poista tunnusalue."
 msgid "Search for ranges."
 msgstr ""
 
-#, fuzzy
 msgid "Modify ID range."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa ID-aluetta."
 
 msgid "Display information about a range."
 msgstr ""
@@ -4956,21 +4837,17 @@ msgstr ""
 msgid "Anchor to override"
 msgstr ""
 
-#, fuzzy
 msgid "Group ID Number"
-msgstr "Ryhmän nimi"
+msgstr "Ryhmän tunnusnumero"
 
-#, fuzzy
 msgid "User login"
-msgstr "Käyttäjätunnus"
+msgstr "Käyttäjän kirjautuminen"
 
-#, fuzzy
 msgid "UID"
-msgstr "UUID"
+msgstr "UID"
 
-#, fuzzy
 msgid "User ID Number"
-msgstr "Sarjanumero"
+msgstr "Käyttäjän tunnusnumero"
 
 msgid "GECOS"
 msgstr ""
@@ -4988,7 +4865,7 @@ msgid "Add a new Group ID override."
 msgstr ""
 
 msgid "Delete an Group ID override."
-msgstr ""
+msgstr "Poista ryhmätunnuksen ohitus."
 
 msgid "Search for an Group ID override."
 msgstr ""
@@ -4996,9 +4873,8 @@ msgstr ""
 msgid "Results should contain primary key attribute only (\"anchor\")"
 msgstr ""
 
-#, fuzzy
 msgid "Modify an Group ID override."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa ryhmätunnuksen ohitusta."
 
 msgid "Rename the Group ID override object"
 msgstr ""
@@ -5016,7 +4892,7 @@ msgid "Search for an User ID override."
 msgstr ""
 
 msgid "Modify an User ID override."
-msgstr ""
+msgstr "Muokkaa ryhmätunnuksen ohitusta."
 
 msgid "Rename the User ID override object"
 msgstr ""
@@ -5024,9 +4900,8 @@ msgstr ""
 msgid "Display information about an User ID override."
 msgstr ""
 
-#, fuzzy
 msgid "Add a new ID View."
-msgstr "Lisää uusi isäntä."
+msgstr "Lisää uusi tunnusnäkymä."
 
 msgid ""
 "Applies ID View to specified hosts or current members of specified "
@@ -5039,9 +4914,8 @@ msgstr "koneet"
 msgid "Hosts to apply the ID View to"
 msgstr ""
 
-#, fuzzy
 msgid "hostgroups"
-msgstr "ryhmät"
+msgstr "isäntäryhmät"
 
 msgid ""
 "Hostgroups to whose hosts apply the ID View to. Please note that view is not "
@@ -5064,9 +4938,8 @@ msgstr "Poista tunnusnäkymä."
 msgid "Search for an ID View."
 msgstr ""
 
-#, fuzzy
 msgid "Modify an ID View."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa tunnusnäkymää."
 
 msgid "Rename the ID View object"
 msgstr ""
@@ -5328,9 +5201,8 @@ msgstr "Käyttäjän kontti"
 msgid "DN of container for users in DS relative to base DN"
 msgstr ""
 
-#, fuzzy
 msgid "Group container"
-msgstr "Ryhmän nimi"
+msgstr "Ryhmäkontti"
 
 msgid "DN of container for groups in DS relative to base DN"
 msgstr ""
@@ -5507,34 +5379,29 @@ msgstr "Omistajaryhmät"
 msgid "Indirect Member netgroups"
 msgstr ""
 
-#, fuzzy
 msgid "Member User"
-msgstr "Jäsenet"
+msgstr "Jäsenkäyttäjä"
 
-#, fuzzy
 msgid "Member Group"
-msgstr "Jäsenet"
+msgstr "Jäsenryhmä"
 
-#, fuzzy
 msgid "Member Host"
-msgstr "Jäsenet"
+msgstr "Jäsenisännät"
 
-#, fuzzy
 msgid "Member Hostgroup"
-msgstr "Jäsenet"
+msgstr "Jäsenisäntäryhmät"
 
-#, fuzzy
 msgid "Add a new netgroup."
-msgstr "Lisää uusi isäntä."
+msgstr "Lisää uusi verkkoryhmä."
 
 msgid "Add members to a netgroup."
 msgstr ""
 
 msgid "member netgroup"
-msgstr ""
+msgstr "jäsen verkkoryhmä"
 
 msgid "netgroups to add"
-msgstr ""
+msgstr "lisättävät verkkoryhmät"
 
 msgid "Delete a netgroup."
 msgstr "Poista verkkoryhmä."
@@ -5581,9 +5448,8 @@ msgstr ""
 msgid "Search for netgroups without these member of netgroups."
 msgstr ""
 
-#, fuzzy
 msgid "Modify a netgroup."
-msgstr "Muokkaa ryhmää."
+msgstr "Muokkaa verkkoryhmää."
 
 msgid "Remove members from a netgroup."
 msgstr ""
@@ -5920,9 +5786,8 @@ msgid ""
 "\"Manage Group Members\"\n"
 msgstr ""
 
-#, fuzzy
 msgid "Permission name"
-msgstr "Käyttöoikeus"
+msgstr "Käyttöoikeuden nimi"
 
 msgid "Granted rights"
 msgstr ""
@@ -6156,13 +6021,11 @@ msgstr ""
 msgid "Add permissions to a privilege."
 msgstr ""
 
-#, fuzzy
 msgid "permission"
-msgstr "Käyttöoikeus"
+msgstr "käyttöoikeus"
 
-#, fuzzy
 msgid "permissions"
-msgstr "Käyttöoikeus"
+msgstr "käyttöoikeudet"
 
 msgid "Number of permissions added"
 msgstr ""
@@ -6671,7 +6534,7 @@ msgid "SELinux User"
 msgstr "SELinux-käyttäjä"
 
 msgid "HBAC Rule"
-msgstr ""
+msgstr "HBAC-sääntö"
 
 msgid "HBAC Rule that defines the users, groups and hostgroups"
 msgstr ""
@@ -6786,7 +6649,7 @@ msgid ""
 msgstr ""
 
 msgid "Add a new IPA new service."
-msgstr ""
+msgstr "Lisää uusi IPA-palvelu."
 
 msgid "force principal name even if not in DNS"
 msgstr ""
@@ -7651,9 +7514,8 @@ msgstr ""
 msgid "Sudo Deny Command Groups"
 msgstr ""
 
-#, fuzzy
 msgid "RunAs Users"
-msgstr "Käyttäjät"
+msgstr "Suorita käyttäjinä"
 
 msgid "Run as a user"
 msgstr ""
@@ -8131,9 +7993,8 @@ msgstr "Tilin asetukset"
 msgid "User authentication types"
 msgstr "Tunnistatuminen"
 
-#, fuzzy
 msgid "Types of supported user authentication"
-msgstr "Vaatii ennakkotunnistautumisen"
+msgstr "Tuetut käyttäjän todennuksen tyypit"
 
 msgid ""
 "User category (semantics placed on this attribute are for local "
@@ -8378,7 +8239,7 @@ msgid "Remove target hosts and hostgroups from a CA ACL."
 msgstr ""
 
 msgid "Remove profiles from a CA ACL."
-msgstr ""
+msgstr "Poista profiileita CA ACL:stä."
 
 msgid "Certificate Profiles to remove"
 msgstr ""
@@ -8395,9 +8256,8 @@ msgstr ""
 msgid "Principal for this certificate (e.g. HTTP/test.example.com)"
 msgstr ""
 
-#, fuzzy
 msgid "Profile ID"
-msgstr "Profiili"
+msgstr "Profiilin tunnus"
 
 msgid "Certificate Profile to use"
 msgstr ""
@@ -9424,9 +9284,8 @@ msgstr "palvelut"
 msgid "Vault service"
 msgstr "palvelu"
 
-#, fuzzy
 msgid "Shared vault"
-msgstr "Jaettu"
+msgstr "Jaettu holvi"
 
 #, fuzzy
 msgid "Vault user"
@@ -12399,7 +12258,7 @@ msgstr ""
 
 #, python-format
 msgid "can be at most %(maxlength)d bytes"
-msgstr ""
+msgstr "voi sisältää enintään %(maxlength)d tavua"
 
 #, python-format
 msgid "must be exactly %(length)d bytes"
@@ -14457,9 +14316,8 @@ msgstr ""
 msgid "Failed to find users over SystemBus.  See details in the error_log"
 msgstr ""
 
-#, fuzzy
 msgid "User logins"
-msgstr "Käyttäjät"
+msgstr "Käyttäjän kirjautumiset"
 
 msgid ""
 "\n"
@@ -14676,9 +14534,8 @@ msgstr ""
 msgid "IPA master which can process PKINIT requests"
 msgstr ""
 
-#, fuzzy
 msgid "IPA CA servers"
-msgstr "palvelimet"
+msgstr "IPA:n CA-palvelimet"
 
 msgid "IPA servers configured as certificate authority"
 msgstr ""
@@ -14695,9 +14552,8 @@ msgstr ""
 msgid "Renewal master for IPA certificate authority"
 msgstr ""
 
-#, fuzzy
 msgid "IPA KRA servers"
-msgstr "palvelimet"
+msgstr "IPA:n KRA-palvelimet"
 
 msgid "IPA servers configured as key recovery agent"
 msgstr ""
@@ -14808,20 +14664,17 @@ msgstr ""
 msgid "You cannot specify %s without the --enable-sid option"
 msgstr ""
 
-#, fuzzy
 msgid "delegation"
-msgstr "sijainti"
+msgstr "valtuutukset"
 
 msgid "delegations"
 msgstr "valtuutukset"
 
-#, fuzzy
 msgid "Delegations"
-msgstr "sijainti"
+msgstr "Valtuutukset"
 
-#, fuzzy
 msgid "Delegation"
-msgstr "sijainti"
+msgstr "Valtuutus"
 
 #, python-format
 msgid "Added delegation \"%(value)s\""
@@ -15858,9 +15711,8 @@ msgstr ""
 msgid "groups"
 msgstr "ryhmät"
 
-#, fuzzy
 msgid "User Group"
-msgstr "Ryhmä"
+msgstr "Käyttäjäryhmä"
 
 #, python-format
 msgid "Added group \"%(value)s\""
@@ -15924,17 +15776,14 @@ msgstr ""
 msgid "The deny type has been deprecated."
 msgstr ""
 
-#, fuzzy
 msgid "HBAC rules"
-msgstr "Lisää sääntö"
+msgstr "HBAC-säännöt"
 
-#, fuzzy
 msgid "HBAC Rules"
-msgstr "Säännöt"
+msgstr "HBAC-säännöt"
 
-#, fuzzy
 msgid "HBAC Services"
-msgstr "Palvelut"
+msgstr "HBAC-palvelut"
 
 #, fuzzy
 msgid "HBAC Service Groups"
@@ -15997,17 +15846,15 @@ msgid ""
 "\n"
 msgstr ""
 
-#, fuzzy
 msgid "HBAC services"
-msgstr "palvelut"
+msgstr "HBAC-palvelut"
 
-#, fuzzy
 msgid "HBAC Service"
-msgstr "Mikä tahansa palvelu"
+msgstr "HBAC-palvelu"
 
 #, python-format
 msgid "Added HBAC service \"%(value)s\""
-msgstr ""
+msgstr "Lisätty HBAC palvelu \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service \"%(value)s\""
@@ -16367,9 +16214,8 @@ msgstr ""
 msgid "Serial Number"
 msgstr "Sarjanumero"
 
-#, fuzzy
 msgid "Serial Number (hex)"
-msgstr "Sarjanumero"
+msgstr "Sarjanumero (hex)"
 
 #, fuzzy
 msgid "Authentication Indicators"
@@ -16476,13 +16322,11 @@ msgid ""
 "   ipa hostgroup-del baltimore\n"
 msgstr ""
 
-#, fuzzy
 msgid "host groups"
-msgstr "ryhmät"
+msgstr "isäntäryhmät"
 
-#, fuzzy
 msgid "Host Group"
-msgstr "Ryhmä"
+msgstr "Isäntäryhmä"
 
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
@@ -16498,9 +16342,8 @@ msgstr ""
 msgid "Deleted hostgroup \"%(value)s\""
 msgstr ""
 
-#, fuzzy
 msgid "hostgroup"
-msgstr "ryhmä"
+msgstr "isäntäryhmä"
 
 msgid "privileged hostgroup"
 msgstr ""
@@ -18123,9 +17966,8 @@ msgstr ""
 msgid "REVOKED"
 msgstr ""
 
-#, fuzzy
 msgid "SHA1 Fingerprint"
-msgstr "Sormenjälki"
+msgstr "SHA1-sormenjälki"
 
 #, fuzzy
 msgid "SHA256 Fingerprint"
@@ -18168,9 +18010,8 @@ msgstr ""
 msgid "Matched Users"
 msgstr ""
 
-#, fuzzy
 msgid "User Login"
-msgstr "Käyttäjätunnus"
+msgstr "Käyttäjän kirjautuminen"
 
 msgid "Add certificate identity mapping rule"
 msgstr ""
@@ -18305,9 +18146,8 @@ msgstr ""
 msgid "Records for DNS Zone"
 msgstr ""
 
-#, fuzzy
 msgid "Record Type"
-msgstr "Merkinnät"
+msgstr "Tietueen tyyppi"
 
 #, fuzzy
 msgid "Add DNS zone"
@@ -19203,9 +19043,8 @@ msgstr ""
 msgid "Remove users from SELinux user map '${primary_key}'"
 msgstr ""
 
-#, fuzzy
 msgid "Server Roles"
-msgstr "Palvelimet"
+msgstr "Palvelinrooleja"
 
 #, fuzzy
 msgid "Server Role"
@@ -19337,7 +19176,7 @@ msgid "${count} user(s) restored"
 msgstr ""
 
 msgid "User categories"
-msgstr ""
+msgstr "Käyttäjäluokkia"
 
 #, fuzzy
 msgid "Add subid"
@@ -20399,9 +20238,8 @@ msgstr "sijainti"
 msgid "locations"
 msgstr "sijainti"
 
-#, fuzzy
 msgid "IPA Locations"
-msgstr "Sijainti"
+msgstr "IPA sijainnit"
 
 #, fuzzy
 msgid "IPA Location"
@@ -20619,13 +20457,11 @@ msgstr ""
 msgid "Default group for new users not found"
 msgstr ""
 
-#, fuzzy
 msgid "netgroups"
-msgstr "ryhmät"
+msgstr "verkkoryhmät"
 
-#, fuzzy
 msgid "Netgroup"
-msgstr "ryhmä"
+msgstr "Verkkoryhmä"
 
 #, python-format
 msgid "Added netgroup \"%(value)s\""
@@ -20733,11 +20569,11 @@ msgstr ""
 
 #, python-format
 msgid "Deleted OTP token \"%(value)s\""
-msgstr ""
+msgstr "Poistettu OTP-tunnus \"%(value)s\""
 
 #, python-format
 msgid "Modified OTP token \"%(value)s\""
-msgstr ""
+msgstr "Muokattu OTP-tunnus \"%(value)s\""
 
 #, python-format
 msgid "%(count)d OTP token matched"
@@ -21247,7 +21083,7 @@ msgstr "Rooli"
 
 #, python-format
 msgid "Added role \"%(value)s\""
-msgstr ""
+msgstr "Lisätty rooli \"%(value)s\""
 
 #, python-format
 msgid "Deleted role \"%(value)s\""
@@ -21419,7 +21255,7 @@ msgstr "Käyttöoikeus"
 
 #, python-format
 msgid "Added selfservice \"%(value)s\""
-msgstr ""
+msgstr "Lisätty itsepalvelu \"%(value)s\""
 
 #, python-format
 msgid "Deleted selfservice \"%(value)s\""
@@ -21542,9 +21378,8 @@ msgid ""
 "    ipa server-role-find --include-master\n"
 msgstr ""
 
-#, fuzzy
 msgid "server role"
-msgstr "palvelin"
+msgstr "palvelinrooli"
 
 msgid "server roles"
 msgstr "Palvelinrooleja"
@@ -21727,11 +21562,11 @@ msgstr "Palvelun nimi"
 
 #, python-format
 msgid "Deleted service \"%(value)s\""
-msgstr ""
+msgstr "Poistettu palvelu \"%(value)s\""
 
 #, python-format
 msgid "Modified service \"%(value)s\""
-msgstr ""
+msgstr "Muokattu palvelua \"%(value)s\""
 
 #, python-format
 msgid "%(count)d service matched"
@@ -21989,7 +21824,7 @@ msgstr "käyttäjät"
 
 #, python-format
 msgid "Added stage user \"%(value)s\""
-msgstr ""
+msgstr "Lisätty stagen käyttäjä \"%(value)s\""
 
 msgid "givenname is required"
 msgstr ""
@@ -22004,7 +21839,7 @@ msgstr "Poistettu stagen käyttäjä \"%(value)s\""
 
 #, python-format
 msgid "Modified stage user \"%(value)s\""
-msgstr ""
+msgstr "Muokattu stagen käyttäjää \"%(value)s\""
 
 #, python-format
 msgid "%(count)d user matched"
@@ -22432,7 +22267,7 @@ msgstr[1] ""
 
 #, python-format
 msgid "Added segment \"%(value)s\""
-msgstr ""
+msgstr "Lisätty segmentti \"%(value)s\""
 
 #, python-format
 msgid "Deleted segment \"%(value)s\""
@@ -22463,9 +22298,8 @@ msgstr ""
 msgid "suffixes"
 msgstr ""
 
-#, fuzzy
 msgid "Topology suffixes"
-msgstr "Topologia"
+msgstr "Topologian pääteitä"
 
 msgid "Topology suffix"
 msgstr "Topologian pääte"
@@ -22913,14 +22747,14 @@ msgstr "käyttäjät"
 
 #, python-format
 msgid "Added user \"%(value)s\""
-msgstr ""
+msgstr "Lisätty käyttäjä \"%(value)s\""
 
 msgid "Default group for new users is not POSIX"
 msgstr ""
 
 #, python-format
 msgid "Deleted user \"%(value)s\""
-msgstr ""
+msgstr "Poistettu käyttäjä \"%(value)s\""
 
 #, python-format
 msgid "%s: user is already preserved"
@@ -23310,9 +23144,8 @@ msgstr "toimialueseen ei luoteta"
 msgid "KRA service is not enabled"
 msgstr ""
 
-#, fuzzy
 msgid "Deleted vault container"
-msgstr "Poista käyttäjä"
+msgstr "Poistettu holvikontti"
 
 #, python-format
 msgid "owner %s"
@@ -23851,9 +23684,8 @@ msgstr ""
 msgid "this option has been deprecated."
 msgstr ""
 
-#, fuzzy
 msgid "sudo rules"
-msgstr "Lisää sääntö"
+msgstr "sudo-säännöt"
 
 #, fuzzy
 msgid "Sudo Rules"
