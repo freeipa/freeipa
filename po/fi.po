@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2021-12-02 20:16+0000\n"
+"PO-Revision-Date: 2021-12-07 17:16+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -283,7 +283,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:409
 #, c-format
 msgid "Failed to retrieve encryption type type #%d\n"
-msgstr ""
+msgstr "Salaustyypin #%d hakeminen ei onnistunut\n"
 
 #: client/ipa-getkeytab.c:413
 #, c-format
@@ -1273,7 +1273,7 @@ msgstr "Virhe"
 
 #: ipaclient/plugins/cert.py:120
 msgid "Input filename"
-msgstr "sisääntulotiedostonimi"
+msgstr "Syötetiedoston nimi"
 
 #: ipaclient/plugins/cert.py:121
 msgid "File to load the certificate from."
@@ -10137,7 +10137,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/automount.py:1089
 #: ipaserver/plugins/automount.py:426
 msgid "Modify an automount map."
-msgstr "Muokkaa automaattisesti liitävän avainta."
+msgstr "Muokkaa automaattisesti liitettävän karttaa."
 
 #: ipaclient/remote_plugins/2_114/automount.py:1176
 #: ipaclient/remote_plugins/2_156/automount.py:1176
@@ -10145,7 +10145,7 @@ msgstr "Muokkaa automaattisesti liitävän avainta."
 #: ipaclient/remote_plugins/2_49/automount.py:1173
 #: ipaserver/plugins/automount.py:443
 msgid "Display an automount map."
-msgstr ""
+msgstr "Näytä automount-kartta."
 
 #: ipaclient/remote_plugins/2_114/batch.py:19
 #: ipaclient/remote_plugins/2_156/batch.py:19
@@ -10599,7 +10599,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/config.py:170
 #: ipaclient/remote_plugins/2_164/config.py:306 ipaserver/plugins/config.py:259
 msgid "Default user authentication types"
-msgstr "Oletuskäyttäjän todennustyypit"
+msgstr "Käyttäjän todennustyyppien oletukset"
 
 #: ipaclient/remote_plugins/2_114/config.py:171
 #: ipaclient/remote_plugins/2_114/config.py:307
@@ -10622,7 +10622,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/config.py:370
 #: ipaclient/remote_plugins/2_49/config.py:355 ipaserver/plugins/config.py:624
 msgid "Show the current configuration."
-msgstr ""
+msgstr "Näytä nykyiset määritykset."
 
 #: ipaclient/remote_plugins/2_114/delegation.py:19
 #: ipaclient/remote_plugins/2_156/delegation.py:19
@@ -12082,7 +12082,7 @@ msgstr "Koneen nimi"
 #: ipaclient/remote_plugins/2_49/dns.py:2753
 #: ipaclient/remote_plugins/2_49/dns.py:3178
 msgid "APL record"
-msgstr ""
+msgstr "APL-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:419
 #: ipaclient/remote_plugins/2_114/dns.py:1916
@@ -12454,7 +12454,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/dns.py:3047
 #: ipaclient/remote_plugins/2_164/dns.py:3476
 msgid "Raw DHCID records"
-msgstr ""
+msgstr "Raw DHCID -tietueet"
 
 #: ipaclient/remote_plugins/2_114/dns.py:476
 #: ipaclient/remote_plugins/2_114/dns.py:1993
@@ -12477,7 +12477,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/dns.py:2787
 #: ipaclient/remote_plugins/2_49/dns.py:3256
 msgid "DLV record"
-msgstr ""
+msgstr "DLV-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:477
 #: ipaclient/remote_plugins/2_114/dns.py:1994
@@ -12647,7 +12647,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/dns.py:1488
 #: ipaclient/remote_plugins/2_49/dns.py:3274
 msgid "DNAME Target"
-msgstr "kohde-DNAME"
+msgstr "DNAME kohde"
 
 #: ipaclient/remote_plugins/2_114/dns.py:514
 #: ipaclient/remote_plugins/2_114/dns.py:2043
@@ -12684,7 +12684,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_114/dns.py:3194
 #: ipaclient/remote_plugins/2_114/dns.py:3711
 msgid "Raw DNSKEY records"
-msgstr ""
+msgstr "Raw DNSKEY -tietueet"
 
 #: ipaclient/remote_plugins/2_114/dns.py:527
 #: ipaclient/remote_plugins/2_114/dns.py:2061
@@ -12808,7 +12808,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/dns.py:2821
 #: ipaclient/remote_plugins/2_49/dns.py:3334
 msgid "HIP record"
-msgstr ""
+msgstr "HIP-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:559
 #: ipaclient/remote_plugins/2_114/dns.py:2103
@@ -12890,7 +12890,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/dns.py:2839
 #: ipaclient/remote_plugins/2_49/dns.py:3354
 msgid "KEY record"
-msgstr ""
+msgstr "KEY-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:573
 #: ipaclient/remote_plugins/2_114/dns.py:2123
@@ -13550,7 +13550,7 @@ msgstr "NAPTR-tietue"
 #: ipaclient/remote_plugins/2_164/dns.py:3131
 #: ipaclient/remote_plugins/2_164/dns.py:3778
 msgid "Raw NAPTR records"
-msgstr ""
+msgstr "Raw NAPTR -tietueet"
 
 #: ipaclient/remote_plugins/2_114/dns.py:702
 #: ipaclient/remote_plugins/2_114/dns.py:2303
@@ -13819,7 +13819,7 @@ msgstr "NS-isäntänimi"
 #: ipaclient/remote_plugins/2_49/dns.py:2887
 #: ipaclient/remote_plugins/2_49/dns.py:3633
 msgid "NSEC record"
-msgstr ""
+msgstr "NSEC-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:753
 #: ipaclient/remote_plugins/2_114/dns.py:2371
@@ -13858,7 +13858,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_114/dns.py:3287
 #: ipaclient/remote_plugins/2_114/dns.py:4040
 msgid "Raw NSEC3 records"
-msgstr ""
+msgstr "Raw NSEC3 -tietueet"
 
 #: ipaclient/remote_plugins/2_114/dns.py:766
 #: ipaclient/remote_plugins/2_114/dns.py:2390
@@ -13970,7 +13970,7 @@ msgstr "RRSIG-tietue"
 #: ipaclient/remote_plugins/2_164/dns.py:3164
 #: ipaclient/remote_plugins/2_164/dns.py:3880
 msgid "Raw RRSIG records"
-msgstr ""
+msgstr "Raw RRSIG -tietueet"
 
 #: ipaclient/remote_plugins/2_114/dns.py:786
 #: ipaclient/remote_plugins/2_114/dns.py:2417
@@ -14034,7 +14034,7 @@ msgstr "Raw RP -tietueet"
 #: ipaclient/remote_plugins/2_49/dns.py:2938
 #: ipaclient/remote_plugins/2_49/dns.py:3790
 msgid "SIG record"
-msgstr ""
+msgstr "SIG-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:794
 #: ipaclient/remote_plugins/2_114/dns.py:2428
@@ -14075,7 +14075,7 @@ msgstr "Raw SIG -tietueet"
 #: ipaclient/remote_plugins/2_49/dns.py:2946
 #: ipaclient/remote_plugins/2_49/dns.py:3872
 msgid "SPF record"
-msgstr ""
+msgstr "SPF-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:801
 #: ipaclient/remote_plugins/2_114/dns.py:2438
@@ -14315,7 +14315,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/dns.py:3208
 #: ipaclient/remote_plugins/2_164/dns.py:3961
 msgid "Raw SSHFP records"
-msgstr ""
+msgstr "Raw SSHFP -tietueet"
 
 #: ipaclient/remote_plugins/2_114/dns.py:844
 #: ipaclient/remote_plugins/2_114/dns.py:2496
@@ -14429,7 +14429,7 @@ msgstr "Raw TA -tietueet"
 #: ipaclient/remote_plugins/2_164/dns.py:3215
 #: ipaclient/remote_plugins/2_164/dns.py:3993
 msgid "TLSA record"
-msgstr ""
+msgstr "TLSA-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:871
 #: ipaclient/remote_plugins/2_114/dns.py:2532
@@ -14577,7 +14577,7 @@ msgstr "Raw TKEY -tietueet"
 #: ipaclient/remote_plugins/2_49/dns.py:2989
 #: ipaclient/remote_plugins/2_49/dns.py:3976
 msgid "TSIG record"
-msgstr ""
+msgstr "TSIG-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:909
 #: ipaclient/remote_plugins/2_114/dns.py:2583
@@ -14608,7 +14608,7 @@ msgstr "Raw TSIG -tietueet"
 #: ipaclient/remote_plugins/2_49/dns.py:2998
 #: ipaclient/remote_plugins/2_49/dns.py:3986
 msgid "TXT record"
-msgstr ""
+msgstr "TXT-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:916
 #: ipaclient/remote_plugins/2_114/dns.py:2593
@@ -14733,7 +14733,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/dns.py:4554
 #: ipaclient/remote_plugins/2_49/dns.py:4788 ipaserver/plugins/dns.py:2429
 msgid "SOA serial"
-msgstr "SOA-sarja"
+msgstr "SOA-sarjanumero"
 
 #: ipaclient/remote_plugins/2_114/dns.py:974
 #: ipaclient/remote_plugins/2_114/dns.py:4459
@@ -17065,7 +17065,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/sudorule.py:505
 #: ipaclient/remote_plugins/2_49/sudorule.py:1289
 msgid "member host group"
-msgstr ""
+msgstr "Jäsenisäntäryhmä"
 
 #: ipaclient/remote_plugins/2_114/hbacrule.py:346
 #: ipaclient/remote_plugins/2_114/hbacrule.py:484
@@ -19277,7 +19277,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/hostgroup.py:79
 #: ipaserver/plugins/baseldap.py:71
 msgid "Member of host-groups"
-msgstr ""
+msgstr "Jäsen isäntäryhmissä"
 
 #: ipaclient/remote_plugins/2_114/host.py:197
 #: ipaclient/remote_plugins/2_114/service.py:120
@@ -19323,7 +19323,7 @@ msgstr "Roolit"
 #: ipaclient/remote_plugins/2_49/netgroup.py:96
 #: ipaclient/remote_plugins/2_49/user.py:240 ipaserver/plugins/baseldap.py:95
 msgid "Member of netgroups"
-msgstr ""
+msgstr "Jäsen verkkoryhmissä"
 
 #: ipaclient/remote_plugins/2_114/host.py:207
 #: ipaclient/remote_plugins/2_114/hostgroup.py:90
@@ -19532,7 +19532,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/service.py:149 ipaserver/plugins/host.py:224
 #: ipaserver/plugins/service.py:146
 msgid "Users allowed to create keytab"
-msgstr ""
+msgstr "Käyttäjät joiden sallitaan luoda avaintaulu"
 
 #: ipaclient/remote_plugins/2_114/host.py:273
 #: ipaclient/remote_plugins/2_114/service.py:152
@@ -19542,7 +19542,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/service.py:153 ipaserver/plugins/host.py:227
 #: ipaserver/plugins/service.py:149
 msgid "Groups allowed to create keytab"
-msgstr ""
+msgstr "Ryhmät joiden sallitaan luoda avaintaulu"
 
 #: ipaclient/remote_plugins/2_114/host.py:277
 #: ipaclient/remote_plugins/2_114/service.py:156
@@ -19552,7 +19552,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/service.py:157 ipaserver/plugins/host.py:230
 #: ipaserver/plugins/service.py:152
 msgid "Hosts allowed to create keytab"
-msgstr ""
+msgstr "Isännät joiden sallitaan luoda avaintaulu"
 
 #: ipaclient/remote_plugins/2_114/host.py:281
 #: ipaclient/remote_plugins/2_114/service.py:160
@@ -20293,7 +20293,7 @@ msgstr "Poista isäntäryhmä."
 #: ipaclient/remote_plugins/2_49/hostgroup.py:297
 #: ipaserver/plugins/hostgroup.py:298
 msgid "Search for hostgroups."
-msgstr ""
+msgstr "Etsi isäntäryhmiä."
 
 #: ipaclient/remote_plugins/2_114/hostgroup.py:372
 #: ipaclient/remote_plugins/2_156/hostgroup.py:372
@@ -20775,7 +20775,7 @@ msgstr "UID"
 #: ipaclient/remote_plugins/2_164/idviews.py:902
 #: ipaserver/plugins/idviews.py:1025
 msgid "User ID Number"
-msgstr "Käyttäjätunnusnumero"
+msgstr "Käyttäjän tunnusnumero"
 
 #: ipaclient/remote_plugins/2_114/idviews.py:86
 #: ipaclient/remote_plugins/2_114/idviews.py:555
@@ -20960,7 +20960,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/idviews.py:226
 #: ipaserver/plugins/idviews.py:1289
 msgid "Delete an Group ID override."
-msgstr ""
+msgstr "Poista ryhmätunnuksen ohitus."
 
 #: ipaclient/remote_plugins/2_114/idviews.py:260
 #: ipaclient/remote_plugins/2_156/idviews.py:276
@@ -21024,7 +21024,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/idviews.py:869
 #: ipaserver/plugins/idviews.py:1215
 msgid "Modify an User ID override."
-msgstr ""
+msgstr "Muokkaa ryhmätunnuksen ohitusta."
 
 #: ipaclient/remote_plugins/2_114/idviews.py:922
 #: ipaclient/remote_plugins/2_156/idviews.py:994
@@ -22126,14 +22126,14 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/netgroup.py:107
 #: ipaclient/remote_plugins/2_49/netgroup.py:106
 msgid "Member User"
-msgstr ""
+msgstr "Jäsenkäyttäjä"
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:112
 #: ipaclient/remote_plugins/2_156/netgroup.py:112
 #: ipaclient/remote_plugins/2_164/netgroup.py:112
 #: ipaclient/remote_plugins/2_49/netgroup.py:111
 msgid "Member Group"
-msgstr ""
+msgstr "Jäsenryhmä"
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:117
 #: ipaclient/remote_plugins/2_156/netgroup.py:117
@@ -22141,14 +22141,14 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/netgroup.py:116
 #: ipaserver/plugins/netgroup.py:88
 msgid "Member Host"
-msgstr ""
+msgstr "Jäsenisännät"
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:122
 #: ipaclient/remote_plugins/2_156/netgroup.py:122
 #: ipaclient/remote_plugins/2_164/netgroup.py:122
 #: ipaclient/remote_plugins/2_49/netgroup.py:121
 msgid "Member Hostgroup"
-msgstr ""
+msgstr "Jäsenisäntäryhmät"
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:129
 #: ipaclient/remote_plugins/2_156/netgroup.py:129
@@ -22156,7 +22156,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/netgroup.py:128
 #: ipaserver/plugins/netgroup.py:263
 msgid "Add a new netgroup."
-msgstr ""
+msgstr "Lisää uusi verkkoryhmä."
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:230
 #: ipaclient/remote_plugins/2_156/netgroup.py:230
@@ -22175,13 +22175,13 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/netgroup.py:288
 #: ipaclient/remote_plugins/2_49/netgroup.py:755
 msgid "member netgroup"
-msgstr ""
+msgstr "jäsen verkkoryhmä"
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:304
 #: ipaclient/remote_plugins/2_156/netgroup.py:304
 #: ipaclient/remote_plugins/2_164/netgroup.py:304
 msgid "netgroups to add"
-msgstr ""
+msgstr "lisättävät verkkoryhmät"
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:327
 #: ipaclient/remote_plugins/2_156/netgroup.py:327
@@ -22338,7 +22338,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/netgroup.py:580
 #: ipaserver/plugins/netgroup.py:307
 msgid "Modify a netgroup."
-msgstr ""
+msgstr "Muokkaa verkkoryhmää."
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:715
 #: ipaclient/remote_plugins/2_156/netgroup.py:715
@@ -22677,7 +22677,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/permission.py:711
 #: ipaserver/plugins/permission.py:236
 msgid "Permission name"
-msgstr ""
+msgstr "Käyttöoikeuden nimi"
 
 #: ipaclient/remote_plugins/2_114/permission.py:101
 #: ipaclient/remote_plugins/2_114/permission.py:229
@@ -23391,7 +23391,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/privilege.py:533
 #: ipaserver/plugins/permission.py:180
 msgid "permission"
-msgstr ""
+msgstr "käyttöoikeus"
 
 #: ipaclient/remote_plugins/2_114/privilege.py:242
 #: ipaclient/remote_plugins/2_114/privilege.py:581
@@ -23401,7 +23401,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/privilege.py:581
 #: ipaserver/plugins/permission.py:181
 msgid "permissions"
-msgstr ""
+msgstr "käyttöoikeudet"
 
 #: ipaclient/remote_plugins/2_114/privilege.py:258
 #: ipaclient/remote_plugins/2_156/privilege.py:258
@@ -24464,7 +24464,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/group.py:124
 #: ipaclient/remote_plugins/2_49/role.py:73 ipaserver/plugins/baseldap.py:56
 msgid "Member users"
-msgstr ""
+msgstr "Jäsenkäyttäjät"
 
 #: ipaclient/remote_plugins/2_114/role.py:79
 #: ipaclient/remote_plugins/2_114/group.py:130
@@ -24477,7 +24477,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/group.py:129
 #: ipaclient/remote_plugins/2_49/role.py:78 ipaserver/plugins/baseldap.py:59
 msgid "Member groups"
-msgstr ""
+msgstr "Jäsenryhmät"
 
 #: ipaclient/remote_plugins/2_114/role.py:94
 #: ipaclient/remote_plugins/2_156/role.py:94
@@ -24857,7 +24857,7 @@ msgstr "SELinux-käyttäjä"
 #: ipaclient/remote_plugins/2_49/selinuxusermap.py:589
 #: ipaserver/plugins/hbacrule.py:202 ipaserver/plugins/selinuxusermap.py:248
 msgid "HBAC Rule"
-msgstr ""
+msgstr "HBAC-sääntö"
 
 #: ipaclient/remote_plugins/2_114/selinuxusermap.py:83
 #: ipaclient/remote_plugins/2_114/selinuxusermap.py:152
@@ -25192,7 +25192,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/service.py:168
 #: ipaclient/remote_plugins/2_49/service.py:110
 msgid "Add a new IPA new service."
-msgstr ""
+msgstr "Lisää uusi IPA-palvelu."
 
 #: ipaclient/remote_plugins/2_114/service.py:226
 #: ipaclient/remote_plugins/2_156/service.py:228
@@ -26998,7 +26998,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/user.py:1487
 #: ipaserver/plugins/baseuser.py:360
 msgid "Types of supported user authentication"
-msgstr ""
+msgstr "Tuetut käyttäjän todennuksen tyypit"
 
 #: ipaclient/remote_plugins/2_114/user.py:243
 #: ipaclient/remote_plugins/2_114/user.py:550
@@ -27181,7 +27181,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/group.py:134
 #: ipaclient/remote_plugins/2_49/user.py:230 ipaserver/plugins/baseldap.py:62
 msgid "Member of groups"
-msgstr ""
+msgstr "Jäsen ryhmissä"
 
 #: ipaclient/remote_plugins/2_114/user.py:308
 #: ipaclient/remote_plugins/2_114/group.py:170
@@ -28584,7 +28584,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/sudorule.py:149
 #: ipaserver/plugins/sudorule.py:326
 msgid "RunAs Users"
-msgstr ""
+msgstr "Suorita käyttäjinä"
 
 #: ipaclient/remote_plugins/2_114/sudorule.py:186
 #: ipaclient/remote_plugins/2_156/sudorule.py:186
@@ -29228,7 +29228,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/cert.py:354
 #: ipaclient/remote_plugins/2_49/cert.py:183 ipaserver/plugins/cert.py:1357
 msgid "Output filename"
-msgstr ""
+msgstr "Vientitiedoston nimi"
 
 #: ipaclient/remote_plugins/2_114/cert.py:349
 #: ipaclient/remote_plugins/2_156/cert.py:355
@@ -30900,7 +30900,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_114/idrange.py:468
 #: ipaclient/remote_plugins/2_49/idrange.py:455
 msgid "Modify ID range."
-msgstr ""
+msgstr "Muokkaa ID-aluetta."
 
 #: ipaclient/remote_plugins/2_114/idrange.py:575
 #: ipaclient/remote_plugins/2_156/idrange.py:594
@@ -31287,7 +31287,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_156/caacl.py:914
 #: ipaclient/remote_plugins/2_164/caacl.py:914 ipaserver/plugins/caacl.py:505
 msgid "Remove profiles from a CA ACL."
-msgstr ""
+msgstr "Poista profiileita CA ACL:stä."
 
 #: ipaclient/remote_plugins/2_156/caacl.py:951
 #: ipaclient/remote_plugins/2_164/caacl.py:951
@@ -32669,7 +32669,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/vault.py:1635 ipaserver/plugins/vault.py:219
 #: ipaserver/plugins/vault.py:336 ipaserver/plugins/vault.py:647
 msgid "Shared vault"
-msgstr ""
+msgstr "Jaettu holvi"
 
 #: ipaclient/remote_plugins/2_156/vault.py:238
 #: ipaclient/remote_plugins/2_156/vault.py:304
@@ -37136,7 +37136,7 @@ msgstr ""
 #: ipalib/parameters.py:1416
 #, python-format
 msgid "can be at most %(maxlength)d bytes"
-msgstr ""
+msgstr "voi sisältää enintään %(maxlength)d tavua"
 
 #: ipalib/parameters.py:1428
 #, python-format
@@ -37376,7 +37376,7 @@ msgstr ""
 
 #: ipaserver/plugins/config.py:284
 msgid "IPA CA servers"
-msgstr ""
+msgstr "IPA:n CA-palvelimet"
 
 #: ipaserver/plugins/config.py:285
 msgid "IPA servers configured as certificate authority"
@@ -37400,7 +37400,7 @@ msgstr ""
 
 #: ipaserver/plugins/config.py:302 ipaserver/plugins/vault.py:978
 msgid "IPA KRA servers"
-msgstr ""
+msgstr "IPA:n KRA-palvelimet"
 
 #: ipaserver/plugins/config.py:303
 msgid "IPA servers configured as key recovery agent"
@@ -37801,7 +37801,7 @@ msgstr "Sarjanumero"
 #: ipaserver/plugins/host.py:520 ipaserver/plugins/internal.py:697
 #: ipaserver/plugins/service.py:505
 msgid "Serial Number (hex)"
-msgstr ""
+msgstr "Sarjanumero (hex)"
 
 #: ipaserver/plugins/host.py:524 ipaserver/plugins/internal.py:726
 #: ipaserver/plugins/baseuser.py:824 ipaserver/plugins/service.py:509
@@ -37966,20 +37966,20 @@ msgstr ""
 
 #: ipaserver/plugins/hbacsvc.py:62
 msgid "HBAC services"
-msgstr ""
+msgstr "HBAC-palvelut"
 
 #: ipaserver/plugins/hbacsvc.py:95 ipaserver/plugins/hbacrule.py:286
 msgid "HBAC Services"
-msgstr ""
+msgstr "HBAC-palvelut"
 
 #: ipaserver/plugins/hbacsvc.py:96
 msgid "HBAC Service"
-msgstr ""
+msgstr "HBAC-palvelu"
 
 #: ipaserver/plugins/hbacsvc.py:119
 #, python-format
 msgid "Added HBAC service \"%(value)s\""
-msgstr ""
+msgstr "Lisätty HBAC palvelu \"%(value)s\""
 
 #: ipaserver/plugins/hbacsvc.py:127
 #, python-format
@@ -40603,7 +40603,7 @@ msgstr "ryhmät"
 
 #: ipaserver/plugins/group.py:328
 msgid "User Group"
-msgstr ""
+msgstr "Käyttäjäryhmä"
 
 #: ipaserver/plugins/group.py:360
 #, python-format
@@ -41302,7 +41302,7 @@ msgstr ""
 
 #: ipaserver/plugins/vault.py:424
 msgid "Deleted vault container"
-msgstr ""
+msgstr "Poistettu holvikontti"
 
 #: ipaserver/plugins/vault.py:449 ipaserver/plugins/vault.py:474
 #: ipaserver/plugins/vault.py:1164 ipaserver/plugins/vault.py:1189
@@ -41438,11 +41438,11 @@ msgstr ""
 
 #: ipaserver/plugins/hostgroup.py:107
 msgid "host groups"
-msgstr ""
+msgstr "isäntäryhmät"
 
 #: ipaserver/plugins/hostgroup.py:179
 msgid "Host Group"
-msgstr ""
+msgstr "Isäntäryhmä"
 
 #: ipaserver/plugins/hostgroup.py:223
 #, python-format
@@ -41464,7 +41464,7 @@ msgstr ""
 #: ipaserver/plugins/hostgroup.py:266 ipaserver/plugins/hostgroup.py:284
 #: ipaserver/plugins/hostgroup.py:349
 msgid "hostgroup"
-msgstr ""
+msgstr "isäntäryhmä"
 
 #: ipaserver/plugins/hostgroup.py:268 ipaserver/plugins/hostgroup.py:286
 msgid "privileged hostgroup"
@@ -41736,7 +41736,7 @@ msgstr ""
 #: ipaserver/plugins/stageuser.py:278
 #, python-format
 msgid "Added stage user \"%(value)s\""
-msgstr ""
+msgstr "Lisätty stagen käyttäjä \"%(value)s\""
 
 #: ipaserver/plugins/stageuser.py:297
 msgid "givenname is required"
@@ -41754,7 +41754,7 @@ msgstr "Poistettu stagen käyttäjä \"%(value)s\""
 #: ipaserver/plugins/stageuser.py:424
 #, python-format
 msgid "Modified stage user \"%(value)s\""
-msgstr ""
+msgstr "Muokattu stagen käyttäjää \"%(value)s\""
 
 #: ipaserver/plugins/stageuser.py:471 ipaserver/plugins/user.py:842
 #, python-format
@@ -41839,7 +41839,7 @@ msgstr ""
 
 #: ipaserver/plugins/delegation.py:67
 msgid "delegation"
-msgstr ""
+msgstr "valtuutukset"
 
 #: ipaserver/plugins/delegation.py:68
 msgid "delegations"
@@ -41847,11 +41847,11 @@ msgstr "valtuutukset"
 
 #: ipaserver/plugins/delegation.py:69
 msgid "Delegations"
-msgstr ""
+msgstr "Valtuutukset"
 
 #: ipaserver/plugins/delegation.py:70
 msgid "Delegation"
-msgstr ""
+msgstr "Valtuutus"
 
 #: ipaserver/plugins/delegation.py:132
 #, python-format
@@ -41970,12 +41970,12 @@ msgstr ""
 #: ipaserver/plugins/otptoken.py:367
 #, python-format
 msgid "Deleted OTP token \"%(value)s\""
-msgstr ""
+msgstr "Poistettu OTP-tunnus \"%(value)s\""
 
 #: ipaserver/plugins/otptoken.py:373
 #, python-format
 msgid "Modified OTP token \"%(value)s\""
-msgstr ""
+msgstr "Muokattu OTP-tunnus \"%(value)s\""
 
 #: ipaserver/plugins/otptoken.py:422
 #, python-format
@@ -42095,7 +42095,7 @@ msgstr ""
 
 #: ipaserver/plugins/sudorule.py:139
 msgid "sudo rules"
-msgstr ""
+msgstr "sudo-säännöt"
 
 #: ipaserver/plugins/sudorule.py:227
 msgid "Sudo Rules"
@@ -42376,7 +42376,7 @@ msgstr[1] ""
 #: ipaserver/plugins/topology.py:289
 #, python-format
 msgid "Added segment \"%(value)s\""
-msgstr ""
+msgstr "Lisätty segmentti \"%(value)s\""
 
 #: ipaserver/plugins/topology.py:302
 #, python-format
@@ -42417,7 +42417,7 @@ msgstr ""
 
 #: ipaserver/plugins/topology.py:412
 msgid "Topology suffixes"
-msgstr ""
+msgstr "Topologian pääteitä"
 
 #: ipaserver/plugins/topology.py:413
 msgid "Topology suffix"
@@ -43115,7 +43115,7 @@ msgstr ""
 
 #: ipaserver/plugins/certmap.py:571
 msgid "User logins"
-msgstr ""
+msgstr "Käyttäjän kirjautumiset"
 
 #: ipaserver/plugins/certmap.py:579
 msgid ""
@@ -43151,7 +43151,7 @@ msgstr "Rooli"
 #: ipaserver/plugins/role.py:164
 #, python-format
 msgid "Added role \"%(value)s\""
-msgstr ""
+msgstr "Lisätty rooli \"%(value)s\""
 
 #: ipaserver/plugins/role.py:172
 #, python-format
@@ -43315,11 +43315,11 @@ msgstr ""
 
 #: ipaserver/plugins/hbacrule.py:131
 msgid "HBAC rules"
-msgstr ""
+msgstr "HBAC-säännöt"
 
 #: ipaserver/plugins/hbacrule.py:201
 msgid "HBAC Rules"
-msgstr ""
+msgstr "HBAC-säännöt"
 
 #: ipaserver/plugins/hbacrule.py:302
 #, python-format
@@ -43674,7 +43674,7 @@ msgstr[1] ""
 #: ipaserver/plugins/user.py:492
 #, python-format
 msgid "Added user \"%(value)s\""
-msgstr ""
+msgstr "Lisätty käyttäjä \"%(value)s\""
 
 #: ipaserver/plugins/user.py:591
 msgid "Default group for new users is not POSIX"
@@ -43683,7 +43683,7 @@ msgstr ""
 #: ipaserver/plugins/user.py:680
 #, python-format
 msgid "Deleted user \"%(value)s\""
-msgstr ""
+msgstr "Poistettu käyttäjä \"%(value)s\""
 
 #: ipaserver/plugins/user.py:698
 #, python-format
@@ -43852,7 +43852,7 @@ msgstr ""
 #: ipaserver/plugins/selfservice.py:124
 #, python-format
 msgid "Added selfservice \"%(value)s\""
-msgstr ""
+msgstr "Lisätty itsepalvelu \"%(value)s\""
 
 #: ipaserver/plugins/selfservice.py:146
 #, python-format
@@ -44164,7 +44164,7 @@ msgstr ""
 
 #: ipaserver/plugins/serverrole.py:46
 msgid "server role"
-msgstr ""
+msgstr "palvelinrooli"
 
 #: ipaserver/plugins/serverrole.py:47
 msgid "server roles"
@@ -45745,7 +45745,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:698
 msgid "SHA1 Fingerprint"
-msgstr ""
+msgstr "SHA1-sormenjälki"
 
 #: ipaserver/plugins/internal.py:699
 msgid "SHA256 Fingerprint"
@@ -45808,7 +45808,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:716
 msgid "User Login"
-msgstr ""
+msgstr "Käyttäjän kirjautuminen"
 
 #: ipaserver/plugins/internal.py:719
 msgid "Add certificate identity mapping rule"
@@ -45980,7 +45980,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:775
 msgid "Record Type"
-msgstr ""
+msgstr "Tietueen tyyppi"
 
 #: ipaserver/plugins/internal.py:778
 msgid "Add DNS zone"
@@ -47051,7 +47051,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1301
 msgid "Server Roles"
-msgstr ""
+msgstr "Palvelinrooleja"
 
 #: ipaserver/plugins/internal.py:1302
 msgid "Server Role"
@@ -47209,7 +47209,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1364
 msgid "User categories"
-msgstr ""
+msgstr "Käyttäjäluokkia"
 
 #: ipaserver/plugins/internal.py:1367
 msgid "Add sudo command"
@@ -48510,12 +48510,12 @@ msgstr ""
 #: ipaserver/plugins/service.py:819
 #, python-format
 msgid "Deleted service \"%(value)s\""
-msgstr ""
+msgstr "Poistettu palvelu \"%(value)s\""
 
 #: ipaserver/plugins/service.py:839
 #, python-format
 msgid "Modified service \"%(value)s\""
-msgstr ""
+msgstr "Muokattu palvelua \"%(value)s\""
 
 #: ipaserver/plugins/service.py:889
 #, python-format
@@ -48559,11 +48559,11 @@ msgstr ""
 
 #: ipaserver/plugins/netgroup.py:103
 msgid "netgroups"
-msgstr ""
+msgstr "verkkoryhmät"
 
 #: ipaserver/plugins/netgroup.py:197
 msgid "Netgroup"
-msgstr ""
+msgstr "Verkkoryhmä"
 
 #: ipaserver/plugins/netgroup.py:266
 #, python-format
@@ -48723,7 +48723,7 @@ msgstr ""
 
 #: ipaserver/plugins/location.py:69
 msgid "IPA Locations"
-msgstr ""
+msgstr "IPA sijainnit"
 
 #: ipaserver/plugins/location.py:70
 msgid "IPA Location"
