@@ -1150,6 +1150,19 @@ class UI_driver:
                 return row
         return None
 
+    def get_row_by_column_value(self, key, column_name, parent=None, name=None):
+        """
+        Get the first matched row element of a search table with given key
+        matched against selected column. None if not found
+        """
+        rows = self.get_rows(parent, name)
+        s = "td div[name='%s']" % column_name
+        for row in rows:
+            has = self.find(s, By.CSS_SELECTOR, row)
+            if has.text == key:
+                return row
+        return None
+
     def navigate_to_row_record(self, row, pkey_column=None):
         """
         Navigate to record by clicking on a link.
@@ -1236,6 +1249,20 @@ class UI_driver:
         if row:
             el = self.find(s, By.CSS_SELECTOR, row)
             val = el.text
+        return val
+
+    def get_record_pkey(self, key, column, parent=None, table_name=None):
+        """
+        Get record pkey if value of column is known
+        """
+        row = self.get_row_by_column_value(key,
+                                           column_name=column,
+                                           parent=parent,
+                                           name=table_name)
+        val = None
+        if row:
+            el = self.find("td input", By.CSS_SELECTOR, row)
+            val = el.get_attribute("value")
         return val
 
     @repeat_on_stale_parent_reference
@@ -1436,6 +1463,7 @@ class UI_driver:
         self.fill_text(search_field_s, '', facet)
         self.action_button_click('find', facet)
         self.wait_for_request(n=2)
+
 
     def add_record(self, entity, data, facet='search', facet_btn='add',
                    dialog_btn='add', add_another_btn='add_and_add_another',
