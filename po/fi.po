@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2021-12-07 17:16+0000\n"
+"PO-Revision-Date: 2021-12-07 20:10+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -37,7 +37,7 @@ msgstr ""
 #: client/ipa-rmkeytab.c:76
 #, c-format
 msgid "Failed to open keytab\n"
-msgstr "Keytabin avaaminen epäonnistui\n"
+msgstr "Avaintaulun avaaminen epäonnistui\n"
 
 #: client/ipa-rmkeytab.c:80
 #, c-format
@@ -867,7 +867,7 @@ msgstr "asetustiedostoa %s ei voi avata\n"
 #: client/config.c:63
 #, c-format
 msgid "cannot stat() configuration file %s\n"
-msgstr ""
+msgstr "ei voi stat()-määritystiedostoa %s\n"
 
 #: client/config.c:69
 #, c-format
@@ -10615,7 +10615,7 @@ msgstr "Tuetun käyttäjän todennuksen oletustyypit"
 #: ipaclient/remote_plugins/2_164/config.py:178
 #: ipaclient/remote_plugins/2_49/config.py:171 ipaserver/plugins/config.py:474
 msgid "Modify configuration options."
-msgstr ""
+msgstr "Muokkaa asetuksia."
 
 #: ipaclient/remote_plugins/2_114/config.py:370
 #: ipaclient/remote_plugins/2_156/config.py:370
@@ -12964,7 +12964,7 @@ msgstr "Raw KX -tietueet"
 #: ipaclient/remote_plugins/2_49/dns.py:1617
 #: ipaclient/remote_plugins/2_49/dns.py:3403
 msgid "KX Preference"
-msgstr "KX-asetus"
+msgstr "KX etusija"
 
 #: ipaclient/remote_plugins/2_114/dns.py:586
 #: ipaclient/remote_plugins/2_114/dns.py:684
@@ -13479,7 +13479,7 @@ msgstr "Raw MX -tietueet"
 #: ipaclient/remote_plugins/2_49/dns.py:1755
 #: ipaclient/remote_plugins/2_49/dns.py:3541
 msgid "MX Preference"
-msgstr "MX-asetus"
+msgstr "MX etusija"
 
 #: ipaclient/remote_plugins/2_114/dns.py:689
 #: ipaclient/remote_plugins/2_114/dns.py:2286
@@ -13595,7 +13595,7 @@ msgstr "Järjestys"
 #: ipaclient/remote_plugins/2_49/dns.py:1788
 #: ipaclient/remote_plugins/2_49/dns.py:3574
 msgid "NAPTR Preference"
-msgstr "NAPTR-asetus"
+msgstr "NAPTR etusija"
 
 #: ipaclient/remote_plugins/2_114/dns.py:709
 #: ipaclient/remote_plugins/2_114/dns.py:2312
@@ -36182,7 +36182,7 @@ msgstr ""
 #: ipaclient/frontend.py:81 ipaserver/plugins/host.py:236
 #: ipaserver/plugins/service.py:158
 msgid "Failed allowed to retrieve keytab"
-msgstr ""
+msgstr "Avaintaulun haun sallinta epäonnistui"
 
 #: ipaclient/frontend.py:85 ipaserver/plugins/host.py:239
 #: ipaserver/plugins/service.py:161
