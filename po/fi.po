@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-11-25 18:55+0100\n"
-"PO-Revision-Date: 2021-12-07 16:16+0000\n"
+"PO-Revision-Date: 2021-12-07 20:10+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
@@ -24,7 +24,7 @@ msgstr "asetustiedostoa %s ei voi avata\n"
 
 #, c-format
 msgid "cannot stat() configuration file %s\n"
-msgstr ""
+msgstr "ei voi stat()-määritystiedostoa %s\n"
 
 #, c-format
 msgid "out of memory\n"
@@ -48,7 +48,7 @@ msgstr ""
 
 #, c-format
 msgid "Failed to open keytab\n"
-msgstr "Keytabin avaaminen epäonnistui\n"
+msgstr "Avaintaulun avaaminen epäonnistui\n"
 
 #, c-format
 msgid "principal not found\n"
@@ -727,7 +727,7 @@ msgid "Failed managedby"
 msgstr ""
 
 msgid "Failed allowed to retrieve keytab"
-msgstr ""
+msgstr "Avaintaulun haun sallinta epäonnistui"
 
 msgid "Failed allowed to create keytab"
 msgstr "Avainvälilehden luominen epäonnistui"
@@ -2256,7 +2256,7 @@ msgid "Default types of supported user authentication"
 msgstr "Tuetun käyttäjän todennuksen oletustyypit"
 
 msgid "Modify configuration options."
-msgstr ""
+msgstr "Muokkaa asetuksia."
 
 msgid "Show the current configuration."
 msgstr "Näytä nykyiset määritykset."
@@ -2841,9 +2841,8 @@ msgstr "KX-tietue"
 msgid "Raw KX records"
 msgstr "Raw KX -tietueet"
 
-#, fuzzy
 msgid "KX Preference"
-msgstr "Etusija"
+msgstr "KX etusija"
 
 msgid "Preference given to this exchanger. Lower values are more preferred"
 msgstr ""
@@ -2938,9 +2937,8 @@ msgstr "MX-tietue"
 msgid "Raw MX records"
 msgstr "Raw MX -tietueet"
 
-#, fuzzy
 msgid "MX Preference"
-msgstr "Etusija"
+msgstr "MX etusija"
 
 msgid "MX Exchanger"
 msgstr ""
@@ -2960,9 +2958,8 @@ msgstr "NAPTR :n järjestys"
 msgid "Order"
 msgstr "Järjestys"
 
-#, fuzzy
 msgid "NAPTR Preference"
-msgstr "Etusija"
+msgstr "NAPTR etusija"
 
 msgid "Preference"
 msgstr "Etusija"
