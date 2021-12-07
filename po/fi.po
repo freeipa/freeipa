@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.8.8.dev202008200957+git9b52ba606\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-08-20 12:57+0300\n"
-"PO-Revision-Date: 2021-12-07 17:16+0000\n"
+"PO-Revision-Date: 2021-12-07 20:10+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-8/fi/>\n"
@@ -261,7 +261,7 @@ msgstr "asetustiedostoa %s ei voi avata\n"
 #: client/config.c:63
 #, c-format
 msgid "cannot stat() configuration file %s\n"
-msgstr ""
+msgstr "ei voi stat()-määritystiedostoa %s\n"
 
 #: client/config.c:69
 #, c-format
@@ -291,7 +291,7 @@ msgstr ""
 #: client/ipa-rmkeytab.c:68
 #, c-format
 msgid "Failed to open keytab\n"
-msgstr "Keytabin avaaminen epäonnistui\n"
+msgstr "Avaintaulun avaaminen epäonnistui\n"
 
 #: client/ipa-rmkeytab.c:72
 #, c-format
@@ -2155,7 +2155,7 @@ msgid "Default types of supported user authentication"
 msgstr "Tuetun käyttäjän todennuksen oletustyypit"
 
 msgid "Modify configuration options."
-msgstr ""
+msgstr "Muokkaa asetuksia."
 
 msgid "Show the current configuration."
 msgstr "Näytä nykyiset määritykset."
@@ -2763,7 +2763,7 @@ msgid "Raw KX records"
 msgstr "Raw KX -tietueet"
 
 msgid "KX Preference"
-msgstr "KX-asetus"
+msgstr "KX etusija"
 
 #: ipaserver/plugins/dns.py:1254
 msgid "Preference given to this exchanger. Lower values are more preferred"
@@ -2860,7 +2860,7 @@ msgid "Raw MX records"
 msgstr "Raw MX -tietueet"
 
 msgid "MX Preference"
-msgstr "MX-asetus"
+msgstr "MX etusija"
 
 msgid "MX Exchanger"
 msgstr ""
@@ -2881,7 +2881,7 @@ msgid "Order"
 msgstr "Järjestys"
 
 msgid "NAPTR Preference"
-msgstr "NAPTR-asetus"
+msgstr "NAPTR etusija"
 
 #: ipaserver/plugins/dns.py:1253 ipaserver/plugins/dns.py:1301
 msgid "Preference"
@@ -12548,7 +12548,7 @@ msgstr ""
 #: ipaclient/frontend.py:81 ipaserver/plugins/host.py:238
 #: ipaserver/plugins/service.py:158
 msgid "Failed allowed to retrieve keytab"
-msgstr ""
+msgstr "Avaintaulun haun sallinta epäonnistui"
 
 #: ipaclient/frontend.py:85 ipaserver/plugins/host.py:241
 #: ipaserver/plugins/service.py:161
