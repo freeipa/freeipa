@@ -241,9 +241,16 @@ class TestIpaHealthCheck(IntegrationTest):
     def install(cls, mh):
         if not cls.master.transport.file_exists(SOS_CMD):
             tasks.install_packages(cls.master, SOS_PKG)
-        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_master(
+            cls.master, setup_dns=True, extra_args=['--no-dnssec-validation']
+        )
         tasks.install_client(cls.master, cls.clients[0])
-        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
+        tasks.install_replica(
+            cls.master,
+            cls.replicas[0],
+            setup_dns=True,
+            extra_args=['--no-dnssec-validation']
+        )
 
     def test_ipa_healthcheck_install_on_master(self):
         """
@@ -1451,7 +1458,9 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
     def install(cls, mh):
         tasks.uninstall_replica(cls.master, cls.replicas[0])
         tasks.uninstall_master(cls.master)
-        tasks.install_master(cls.master, setup_dns=False)
+        tasks.install_master(
+            cls.master, setup_dns=False, extra_args=['--no-dnssec-validation']
+        )
 
     def test_ipa_dns_systemrecords_check(self):
         """
@@ -1511,7 +1520,9 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_master(
+            cls.master, setup_dns=True, extra_args=['--no-dnssec-validation']
+        )
         cls.ad = cls.ads[0]
         cls.child_ad = cls.ad_subdomains[0]
         cls.tree_ad = cls.ad_treedomains[0]
@@ -1770,8 +1781,15 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True)
-        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
+        tasks.install_master(
+            cls.master, setup_dns=True, extra_args=['--no-dnssec-validation']
+        )
+        tasks.install_replica(
+            cls.master,
+            cls.replicas[0],
+            setup_dns=True,
+            extra_args=['--no-dnssec-validation']
+        )
         tasks.install_packages(cls.master, HEALTHCHECK_PKG)
 
     def test_ipa_filecheck_bad_owner(self, modify_permissions):
@@ -2118,7 +2136,9 @@ class TestIpaHealthCheckFilesystemSpace(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_master(
+            cls.master, setup_dns=True, extra_args=['--no-dnssec-validation']
+        )
         tasks.install_packages(cls.master, HEALTHCHECK_PKG)
 
     @pytest.fixture
@@ -2199,7 +2219,9 @@ class TestIpaHealthCLI(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_master(
+            cls.master, setup_dns=True, extra_args=['--no-dnssec-validation']
+        )
         tasks.install_packages(cls.master, HEALTHCHECK_PKG)
 
     def test_indent(self):
