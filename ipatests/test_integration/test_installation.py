@@ -1067,6 +1067,19 @@ class TestInstallMaster(IntegrationTest):
         )
         assert "nsslapd-db-locks" not in result.stdout_text
 
+    def test_nsslapd_sizelimit(self):
+        """ Test for default value of nsslapd-sizelimit.
+
+        Related : https://pagure.io/freeipa/issue/8962
+        """
+        result = tasks.ldapsearch_dm(
+            self.master,
+            "cn=config",
+            ["nsslapd-sizelimit"],
+            scope="base"
+        )
+        assert "nsslapd-sizelimit: 100000" in result.stdout_text
+
     def test_admin_root_alias_CVE_2020_10747(self):
         # Test for CVE-2020-10747 fix
         # https://bugzilla.redhat.com/show_bug.cgi?id=1810160
