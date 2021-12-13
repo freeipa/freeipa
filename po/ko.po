@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.8.8.dev202008200957+git9b52ba606\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-08-20 12:57+0300\n"
-"PO-Revision-Date: 2021-12-07 17:16+0000\n"
+"PO-Revision-Date: 2021-12-14 09:16+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-8/ko/>\n"
@@ -4205,7 +4205,7 @@ msgstr ""
 
 #: ipaserver/plugins/hostgroup.py:316
 msgid "Display information about a hostgroup."
-msgstr ""
+msgstr "호스트그룹에 대해 정보를 표시합니다."
 
 msgid ""
 "\n"
@@ -4334,7 +4334,7 @@ msgstr ""
 
 #: ipaserver/plugins/idviews.py:460 ipaserver/plugins/idviews.py:503
 msgid "hostgroups"
-msgstr ""
+msgstr "호스트 그룹"
 
 #: ipaserver/plugins/idviews.py:457
 msgid ""
@@ -4886,7 +4886,7 @@ msgid "Member Host"
 msgstr ""
 
 msgid "Member Hostgroup"
-msgstr ""
+msgstr "호스트그룹 구성원"
 
 #: ipaserver/plugins/netgroup.py:263
 msgid "Add a new netgroup."
@@ -4915,7 +4915,7 @@ msgid "search for managed groups"
 msgstr ""
 
 msgid "Search for netgroups with these member netgroups."
-msgstr ""
+msgstr "넷그룹의 이들 구성원과 함께 넷그룹을 위한 검색."
 
 msgid "Search for netgroups without these member netgroups."
 msgstr "넷그룹의 이들 구성원이 없는 넷그룹을 위한 검색."
@@ -4932,22 +4932,22 @@ msgid "group"
 msgstr "그룹"
 
 msgid "Search for netgroups with these member groups."
-msgstr ""
+msgstr "이들 구성원 그룹과 함께 넷그룹을 위한 검색."
 
 msgid "Search for netgroups without these member groups."
-msgstr ""
+msgstr "이들 구성원 그룹이 없이 넷그룹를 위한 검색."
 
 msgid "Search for netgroups with these member hosts."
 msgstr ""
 
 msgid "Search for netgroups without these member hosts."
-msgstr ""
+msgstr "이들 구성원 호스트 없이 넷그룹을 위한 검색."
 
 msgid "Search for netgroups with these member host groups."
-msgstr ""
+msgstr "이들 구성원 호스트 그룹 없이 넷그룹를 위한 검색."
 
 msgid "Search for netgroups without these member host groups."
-msgstr ""
+msgstr "이들 구성원 호스트 그룹 없이 넷그룹을 위한 검색."
 
 msgid "Search for netgroups with these member of netgroups."
 msgstr "넷그룹의 이들 구성원과 함께 넷그룹을 위한 검색."
@@ -5215,7 +5215,7 @@ msgstr ""
 
 #: ipaserver/plugins/otptoken.py:450
 msgid "Display information about an OTP token."
-msgstr ""
+msgstr "OTP 토큰에 대해 정보를 표시합니다."
 
 msgid ""
 "\n"
@@ -6378,7 +6378,7 @@ msgstr ""
 
 #: ipaserver/plugins/service.py:953
 msgid "Display information about an IPA service."
-msgstr ""
+msgstr "IPA 서비스에 대해 정보를 표시합니다."
 
 msgid ""
 "\n"
