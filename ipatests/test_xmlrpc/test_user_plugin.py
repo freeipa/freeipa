@@ -125,7 +125,9 @@ def user_npg(request, group):
     del tracker.attrs['mepmanagedentry']
     tracker.attrs.update(
         description=[], memberof_group=[group.cn],
-        objectclass=objectclasses.user_base + [u'ipantuserattrs'],
+        objectclass=fuzzy_set_optional_oc(
+            objectclasses.user_base, 'ipantuserattrs'
+        ),
     )
     return tracker.make_fixture(request)
 
@@ -139,7 +141,9 @@ def user_npg2(request, group):
     del tracker.attrs['mepmanagedentry']
     tracker.attrs.update(
         gidnumber=[u'1000'], description=[], memberof_group=[group.cn],
-        objectclass=objectclasses.user_base + [u'ipantuserattrs'],
+        objectclass=fuzzy_set_optional_oc(
+            objectclasses.user_base, 'ipantuserattrs'
+        ),
     )
     return tracker.make_fixture(request)
 
@@ -151,8 +155,9 @@ def user_radius(request, xmlrpc_setup):
                           sn=u'radiususer1',
                           ipatokenradiususername=u'radiususer')
     tracker.track_create()
-    tracker.attrs.update(
-        objectclass=objectclasses.user + [u'ipatokenradiusproxyuser']
+    tracker.attrs.update(objectclass=fuzzy_set_optional_oc(
+        objectclasses.user + [u'ipatokenradiusproxyuser'],
+        'ipantuserattrs'),
     )
     return tracker.make_fixture(request)
 
@@ -647,7 +652,8 @@ class TestCreate(XMLRPC_test):
         testuser.attrs.update(gidnumber=[u'1000'])
         testuser.attrs.update(
             description=[],
-            objectclass=objectclasses.user_base + [u'ipantuserattrs']
+            objectclass=fuzzy_set_optional_oc(
+                objectclasses.user_base, 'ipantuserattrs'),
         )
         command = testuser.make_create_command()
         result = command()
@@ -865,7 +871,9 @@ class TestUserWithUPGDisabled(XMLRPC_test):
         testuser.attrs.update(gidnumber=[u'1000'])
         testuser.attrs.update(
             description=[],
-            objectclass=objectclasses.user_base + [u'ipantuserattrs'],
+            objectclass=fuzzy_set_optional_oc(
+                objectclasses.user_base, 'ipantuserattrs'
+            ),
         )
         command = testuser.make_create_command()
         result = command()
