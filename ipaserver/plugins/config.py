@@ -707,7 +707,7 @@ class config_mod(LDAPUpdate):
         if (isinstance(exc, errors.EmptyModlist) and
                 call_func.__name__ == 'update_entry' and
                 ('ca_renewal_master_server' in options or
-                 'enable_sid' in options)):
+                 options['enable_sid'])):
             return
 
         super(config_mod, self).exc_callback(
