@@ -312,4 +312,13 @@ class test_config(Declarative):
                 'value': None,
             },
         ),
+        dict(
+            desc='Set the value to the already set value, no modifications',
+            command=(
+                'config_mod', [], {
+                    'ipasearchrecordslimit': u'100',
+                },
+            ),
+            expected=errors.EmptyModlist(),
+        ),
     ]
