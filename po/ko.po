@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-12-14 09:16+0000\n"
+"PO-Revision-Date: 2021-12-22 04:16+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.9.1\n"
+"X-Generator: Weblate 4.10\n"
 
 #: client/ipa-join.c:66 client/ipa-join.c:422 client/ipa-join.c:440
 #: client/ipa-join.c:540 client/ipa-join.c:1089 util/ipa_krb5.c:1024
@@ -2591,7 +2591,7 @@ msgid ""
 msgstr ""
 
 msgid "Global forwarders"
-msgstr ""
+msgstr "전역 전달자"
 
 msgid ""
 "Global forwarders. A custom port can be specified for each forwarder using a "
@@ -2602,55 +2602,56 @@ msgstr ""
 
 #: ipaserver/plugins/dns.py:2042 ipaserver/plugins/dns.py:4096
 msgid "Forward policy"
-msgstr ""
+msgstr "포워드 정책"
 
 msgid ""
 "Global forwarding policy. Set to \"none\" to disable any configured global "
 "forwarders."
-msgstr ""
+msgstr "전역 포워딩 정책. 구성된 전역 전달자를 비활성하려면 \"없음\"으로 설정합니다."
 
 #: ipaserver/plugins/dns.py:4103
 msgid "Allow PTR sync"
-msgstr ""
+msgstr "PTR sync 허용"
 
 msgid "Allow synchronization of forward (A, AAAA) and reverse (PTR) records"
-msgstr ""
+msgstr "포워드(A,AAAA)와 역(PTR) 레코드의 동기화를 허용"
 
 msgid "Zone refresh interval"
-msgstr ""
+msgstr "존 새로고침 간격"
 
 msgid "Zone name"
-msgstr "영역 이름"
+msgstr "존 이름"
 
 msgid "Zone name (FQDN)"
-msgstr ""
+msgstr "존 이름(FQDN)"
 
 msgid "Reverse zone IP network"
-msgstr ""
+msgstr "역방향 영역 IP 네트워크"
 
 msgid "IP network to create reverse zone name from"
-msgstr ""
+msgstr "역방향 영역 이름으로 생성해야 할 IP 네트워크"
 
 msgid "Active zone"
 msgstr "활성 영역"
 
 msgid "Is zone active?"
-msgstr "영역이 활성화 되었나요?"
+msgstr "존이 활성화 되었나요?"
 
 msgid "Zone forwarders"
-msgstr "영역 전달자"
+msgstr "존 전달자"
 
 msgid ""
 "Per-zone forwarders. A custom port can be specified for each forwarder using "
 "a standard format \"IP_ADDRESS port PORT\""
-msgstr ""
-"영역별-전달자. 사용자 지정 포트를 표준 형식 \"IP_주소 포트용 포트\"를 사용하여 각각의 전달자에 대해 지정 할 수 있습니다"
+msgstr "존별-전달자. 사용자 지정 포트를 표준 형식 \"IP_주소 포트용 포트\"를 사용하여 각각의 전달자에 대해 지정 할 수 있습니다"
 
 msgid ""
 "Per-zone conditional forwarding policy. Set to \"none\" to disable "
 "forwarding to global forwarder for this zone. In that case, conditional zone "
 "forwarders are disregarded."
 msgstr ""
+"존-별 상태에 따른 전달 정책. 이와 같은 존에 대해 전역 전달자로의 전달을 비활성화하려면 \"없음\"으로 설정합니다. 이와 같은 "
+"경우에, 상태에 따른 존 전달자는 무시됩니다."
 
 #: ipaserver/plugins/dns.py:3031
 msgid "Record name"
@@ -2877,70 +2878,70 @@ msgstr "KX 기본설정"
 
 #: ipaserver/plugins/dns.py:1260
 msgid "Preference given to this exchanger. Lower values are more preferred"
-msgstr ""
+msgstr "이와 같은 교환기에 주어진 우선권. 낮은 값이 더 선호됩니다"
 
 msgid "KX Exchanger"
-msgstr ""
+msgstr "KX 교환기"
 
 msgid "A host willing to act as a key exchanger"
-msgstr ""
+msgstr "키 교환기와 같은 역할을 하고자 하는 호스트"
 
 msgid "LOC record"
-msgstr ""
+msgstr "LOC 레코드"
 
 msgid "Raw LOC records"
 msgstr "단순 LOC 레코드"
 
 msgid "LOC Degrees Latitude"
-msgstr ""
+msgstr "LOC 도 위도"
 
 msgid "Degrees Latitude"
-msgstr ""
+msgstr "도 위도"
 
 msgid "LOC Minutes Latitude"
-msgstr ""
+msgstr "LOC 분 위도"
 
 msgid "Minutes Latitude"
-msgstr ""
+msgstr "분 위도"
 
 msgid "LOC Seconds Latitude"
-msgstr ""
+msgstr "LOC 초 위도"
 
 msgid "Seconds Latitude"
-msgstr ""
+msgstr "초 위도"
 
 msgid "LOC Direction Latitude"
-msgstr ""
+msgstr "LOC 방향 위도"
 
 msgid "Direction Latitude"
-msgstr ""
+msgstr "방향 위도"
 
 msgid "LOC Degrees Longitude"
-msgstr ""
+msgstr "LOC 도 위도"
 
 msgid "Degrees Longitude"
-msgstr ""
+msgstr "도 위도"
 
 msgid "LOC Minutes Longitude"
-msgstr ""
+msgstr "LOC 분 위도"
 
 msgid "Minutes Longitude"
-msgstr ""
+msgstr "분 위도"
 
 msgid "LOC Seconds Longitude"
-msgstr ""
+msgstr "LOC 초 위도"
 
 msgid "Seconds Longitude"
-msgstr ""
+msgstr "초 위도"
 
 msgid "LOC Direction Longitude"
-msgstr ""
+msgstr "LOC 방향 위도"
 
 msgid "Direction Longitude"
-msgstr ""
+msgstr "방향 위도"
 
 msgid "LOC Altitude"
-msgstr ""
+msgstr "LOC 고도"
 
 msgid "Altitude"
 msgstr "고도"
@@ -2958,10 +2959,10 @@ msgid "Horizontal Precision"
 msgstr "수평 정밀도"
 
 msgid "LOC Vertical Precision"
-msgstr ""
+msgstr "LOC 수직 정밀도"
 
 msgid "Vertical Precision"
-msgstr ""
+msgstr "수직 정밀도"
 
 msgid "MX record"
 msgstr "MX 레코드"
@@ -2973,10 +2974,10 @@ msgid "MX Preference"
 msgstr "MX 기본설정"
 
 msgid "MX Exchanger"
-msgstr ""
+msgstr "MX 교환기"
 
 msgid "A host willing to act as a mail exchanger"
-msgstr ""
+msgstr "메일 교환기로 동작하고자 하는 호스트"
 
 msgid "NAPTR record"
 msgstr "NAPTR 레코드"
@@ -2985,26 +2986,26 @@ msgid "Raw NAPTR records"
 msgstr "단순 NAPTR 레코드"
 
 msgid "NAPTR Order"
-msgstr ""
+msgstr "NAPTR 순서"
 
 msgid "Order"
 msgstr "순서"
 
 msgid "NAPTR Preference"
-msgstr ""
+msgstr "NAPTR 환경설정"
 
 #: ipaserver/plugins/dns.py:1259 ipaserver/plugins/dns.py:1307
 msgid "Preference"
 msgstr "환경설정"
 
 msgid "NAPTR Flags"
-msgstr ""
+msgstr "NAPTR 플래그"
 
 msgid "Flags"
-msgstr "깃발"
+msgstr "플래그"
 
 msgid "NAPTR Service"
-msgstr ""
+msgstr "NAPTR 서비스"
 
 #: ipaserver/plugins/service.py:467 ipaserver/plugins/internal.py:1331
 #: ipaserver/plugins/internal.py:1656 ipaserver/plugins/hbactest.py:285
@@ -3013,16 +3014,16 @@ msgid "Service"
 msgstr "서비스"
 
 msgid "NAPTR Regular Expression"
-msgstr ""
+msgstr "NAPTR 정규 표현"
 
 msgid "Regular Expression"
-msgstr ""
+msgstr "정규 표현"
 
 msgid "NAPTR Replacement"
-msgstr ""
+msgstr "NAPTR 교체"
 
 msgid "Replacement"
-msgstr ""
+msgstr "교체"
 
 msgid "NS record"
 msgstr "NS 레코드"
@@ -3031,7 +3032,7 @@ msgid "Raw NS records"
 msgstr "단순 NS 레코드"
 
 msgid "NS Hostname"
-msgstr ""
+msgstr "NS 호스트이름"
 
 msgid "NSEC record"
 msgstr "NSEC 기록"
@@ -3113,16 +3114,16 @@ msgstr "SRV 대상"
 msgid ""
 "The domain name of the target host or '.' if the service is decidedly not "
 "available at this domain"
-msgstr ""
+msgstr "만약 서비스가 이와 같은 도메인에서 사용 할 수 없다고 판단되는 대상 호스트 또는 '.'의 도메인 이름"
 
 msgid "SSHFP record"
-msgstr ""
+msgstr "SSHFP 레코드"
 
 msgid "Raw SSHFP records"
 msgstr "단순 SSHFP 레코드"
 
 msgid "SSHFP Algorithm"
-msgstr ""
+msgstr "SSHFP 알고리즘"
 
 msgid "SSHFP Fingerprint Type"
 msgstr ""
