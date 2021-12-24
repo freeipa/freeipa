@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-12-22 04:16+0000\n"
+"PO-Revision-Date: 2021-12-25 07:16+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.10\n"
+"X-Generator: Weblate 4.10.1\n"
 
 #: client/ipa-join.c:66 client/ipa-join.c:422 client/ipa-join.c:440
 #: client/ipa-join.c:540 client/ipa-join.c:1089 util/ipa_krb5.c:1024
@@ -3126,13 +3126,13 @@ msgid "SSHFP Algorithm"
 msgstr "SSHFP 알고리즘"
 
 msgid "SSHFP Fingerprint Type"
-msgstr ""
+msgstr "SSHFP 지문 유형"
 
 msgid "Fingerprint Type"
-msgstr ""
+msgstr "지문 유형"
 
 msgid "SSHFP Fingerprint"
-msgstr ""
+msgstr "SSHFP 지문"
 
 msgid "Fingerprint"
 msgstr "지문"
@@ -3168,10 +3168,10 @@ msgid "Matching Type"
 msgstr "일치 유형"
 
 msgid "TLSA Certificate Association Data"
-msgstr ""
+msgstr "TLSA 인증서 연결 자료"
 
 msgid "Certificate Association Data"
-msgstr ""
+msgstr "인증서 연결 자료"
 
 msgid "TKEY record"
 msgstr "TKEY 레코드"
@@ -3229,60 +3229,60 @@ msgid "SOA expire"
 msgstr "SOA 만료"
 
 msgid "SOA record expire time"
-msgstr ""
+msgstr "SOA 레코드 만료 시간"
 
 msgid "SOA minimum"
-msgstr ""
+msgstr "SOA 최소"
 
 msgid "How long should negative responses be cached"
-msgstr ""
+msgstr "부정적인 응답을 캐쉬 해야 하는 시간"
 
 msgid "Time to live for records at zone apex"
-msgstr ""
+msgstr "zone apex에서 레코드를 위한 유효시간(TTL)"
 
 #: ipaserver/plugins/dns.py:2495
 msgid "BIND update policy"
-msgstr ""
+msgstr "BIND 최신화 정책"
 
 msgid "Dynamic update"
-msgstr ""
+msgstr "동적 최신화"
 
 msgid "Allow dynamic updates."
-msgstr ""
+msgstr "동적 최신화 허용."
 
 msgid "Allow query"
-msgstr ""
+msgstr "질의 허용"
 
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
 "issue queries"
-msgstr ""
+msgstr "질의를 실행 할 수 있는 IP 주소 또는 네트워크의 쌍반점(;)으로 구분된 목록"
 
 msgid "Allow transfer"
-msgstr ""
+msgstr "전송 허용"
 
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
 "transfer the zone"
-msgstr ""
+msgstr "존을 전송 할 수 있는 IP 주소 또는 네트워크의 쌍반점(;)으로 구분된 목록"
 
 msgid ""
 "Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the "
 "zone"
-msgstr ""
+msgstr "존에서 순방향(A, AAA)와 역방향(PTR)의 동기화를 허용"
 
 msgid "Allow in-line DNSSEC signing"
-msgstr ""
+msgstr "인-라인 DNSSEC 서명 허용"
 
 msgid "Allow inline DNSSEC signing of records in the zone"
-msgstr ""
+msgstr "존에서 레코드의 인라인 DNSSEC 서명 허용"
 
 msgid "NSEC3PARAM record"
-msgstr ""
+msgstr "NSEC3PARAM 레코드"
 
 msgid ""
 "NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt"
-msgstr ""
+msgstr "형식에서 존을 위한 NSEC3PARAM 레코드: hash_algorithm 플래그 반복 솔트"
 
 msgid "Checks if any of the servers has the DNS service enabled."
 msgstr ""
