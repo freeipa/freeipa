@@ -10,7 +10,6 @@ from __future__ import absolute_import
 
 import pytest
 import re
-import shlex
 import textwrap
 
 from ipaplatform.paths import paths
@@ -42,7 +41,7 @@ class TestInstallClient(IntegrationTest):
         """
 
         result = client.run_command(
-            shlex.split("grep dns_lookup_kdc /etc/krb5.conf")
+            ["grep", "dns_lookup_kdc", client.paths.KRB5_CONF]
         )
         assert 'false' not in result.stdout_text.lower()
         assert 'true' in result.stdout_text.lower()
@@ -73,7 +72,9 @@ class TestInstallClient(IntegrationTest):
         """
         tasks.install_client(self.master, self.clients[0],
                              extra_args=['--ssh-trust-dns'])
-        result = self.clients[0].run_command(['cat', '/etc/ssh/ssh_config'])
+        result = self.clients[0].run_command(
+            ["cat", self.clients[0].paths.SSH_CONFIG]
+        )
         assert 'HostKeyAlgorithms' not in result.stdout_text
 
 
@@ -148,7 +149,7 @@ class TestClientInstallBind(IntegrationTest):
         )
         bindserverdb = "/var/named/{0}.db".format(bindserver.domain.name)
         bindserver.put_file_contents(bindserverdb, add_records)
-        bindserver.run_command(['systemctl', 'start', 'named'])
+        bindserver.systemctl.start("named")
         Firewall(bindserver).enable_services(["dns"])
         yield
         named_conf_backup.restore()

@@ -21,7 +21,6 @@ from ipatests.pytest_ipa.integration.tasks import clear_sssd_cache
 from ipatests.util import xfail_context
 from ipaplatform.tasks import tasks as platform_tasks
 from ipaplatform.osinfo import osinfo
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 
@@ -81,7 +80,9 @@ class TestSSSDWithAdTrust(IntegrationTest):
 
     @contextmanager
     def config_sssd_cache_auth(self, cached_auth_timeout):
-        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        sssd_conf_backup = tasks.FileBackup(
+            self.master, self.master.paths.SSSD_CONF
+        )
         with tasks.remote_sssd_config(self.master) as sssd_conf:
             sssd_conf.edit_domain(self.master.domain, 'cached_auth_timeout',
                                   cached_auth_timeout)
@@ -144,7 +145,9 @@ class TestSSSDWithAdTrust(IntegrationTest):
 
     @contextmanager
     def filter_user_setup(self, user):
-        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        sssd_conf_backup = tasks.FileBackup(
+            self.master, self.master.paths.SSSD_CONF
+        )
         try:
             with tasks.remote_sssd_config(self.master) as sssd_conf:
                 sssd_conf.edit_service("nss",
@@ -169,7 +172,9 @@ class TestSSSDWithAdTrust(IntegrationTest):
         up should be in data provider.
         """
         with self.filter_user_setup(user=user):
-            log_file = '{0}/sssd_nss.log'.format(paths.VAR_LOG_SSSD_DIR)
+            log_file = '{0}/sssd_nss.log'.format(
+                self.master.paths.VAR_LOG_SSSD_DIR
+            )
             logsize = tasks.get_logsize(self.master, log_file)
             self.master.run_command(
                 ['getent', 'passwd', self.users[user]['name']],
@@ -191,8 +196,12 @@ class TestSSSDWithAdTrust(IntegrationTest):
         hosts = [self.master, client]
         ad_group = 'group@group@{0}'.format(self.ad.domain.name)
         expression = '((?P<name>.+)@(?P<domain>[^@]+$))'
-        master_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
-        client_conf_backup = tasks.FileBackup(client, paths.SSSD_CONF)
+        master_conf_backup = tasks.FileBackup(
+            self.master, self.master.paths.SSSD_CONF
+        )
+        client_conf_backup = tasks.FileBackup(
+            client, client.paths.SSSD_CONF
+        )
         for host in hosts:
             with tasks.remote_sssd_config(host) as sssd_conf:
                 sssd_conf.edit_service('sssd', 're_expression', expression)
@@ -230,7 +239,9 @@ class TestSSSDWithAdTrust(IntegrationTest):
             nsslapd-sizelimit: {limit}
         """)
         tasks.ldapmodify_dm(master, ldap_query.format(limit=new_limit))
-        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        sssd_conf_backup = tasks.FileBackup(
+            self.master, self.master.paths.SSSD_CONF
+        )
         ldap_page_size = new_limit - 1
         group_count = new_limit + 2
         # default ldap_page_size is '1000', adding workaround as
@@ -246,7 +257,8 @@ class TestSSSDWithAdTrust(IntegrationTest):
                                 'ext-ipatest{0}'.format(i)])
         try:
             log_file = '{0}/sssd_{1}.log'.format(
-                paths.VAR_LOG_SSSD_DIR, master.domain.name)
+                self.master.paths.VAR_LOG_SSSD_DIR, master.domain.name
+            )
             group_entry = b'[%d] external groups found' % group_count
             logsize = tasks.get_logsize(master, log_file)
             master.run_command(['id', self.users['ad']['name']])
@@ -280,7 +292,9 @@ class TestSSSDWithAdTrust(IntegrationTest):
         refresh_time = 30
         user = self.users[user_origin]['name']
         group = self.users[user_origin]['group']
-        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        sssd_conf_backup = tasks.FileBackup(
+            self.master, self.master.paths.SSSD_CONF
+        )
         try:
             with tasks.remote_sssd_config(self.master) as sssd_conf:
                 sssd_conf.edit_domain(
@@ -487,7 +501,9 @@ class TestSSSDWithAdTrust(IntegrationTest):
 
     @contextmanager
     def override_gid_setup(self, gid):
-        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        sssd_conf_backup = tasks.FileBackup(
+            self.master, self.master.paths.SSSD_CONF
+        )
         try:
             with tasks.remote_sssd_config(self.master) as sssd_conf:
                 sssd_conf.edit_domain(self.master.domain,

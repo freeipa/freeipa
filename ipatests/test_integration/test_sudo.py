@@ -19,8 +19,6 @@
 
 import pytest
 
-from ipaplatform.paths import paths
-
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.tasks import (
     clear_sssd_cache, get_host_ip_with_hostmask, remote_sssd_config,
@@ -362,7 +360,8 @@ class TestSudo(IntegrationTest):
         # pull in sudoers. Since native schema does not (yet) support
         # hostmasks, we need to point ldap_sudo_search_base to the old schema
         self.__class__.client_sssd_conf_backup = FileBackup(
-            self.client, paths.SSSD_CONF)
+            self.client, self.client.paths.SSSD_CONF
+        )
         domain = self.client.domain
         with remote_sssd_config(self.client) as sssd_conf:
             sssd_conf.edit_domain(domain, 'sudo_provider', 'ipa')

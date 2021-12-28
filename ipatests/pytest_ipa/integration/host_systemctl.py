@@ -14,7 +14,7 @@ class HostSystemctl:
 
     def resolve_name(self, unit):
         """Resolve service as IPA's knownservice"""
-        name = self.host.ipaplatform.knownservices[unit].systemd_name
+        name = self.host.knownservices[unit].systemd_name
         if unit == "dirsrv":
             # assume valid template name like dirsrv@.service
             service_name, __, service_suffix = name.partition("@")
@@ -32,7 +32,7 @@ class HostSystemctl:
             name = self.resolve_name(unit)
 
         # build command
-        cmd = [self.host.ipaplatform.paths.SYSTEMCTL]
+        cmd = [self.host.paths.SYSTEMCTL]
         cmd.extend(systemctl_args)
         if name is not None:
             cmd.append(name)

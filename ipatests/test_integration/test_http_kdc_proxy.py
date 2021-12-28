@@ -12,7 +12,6 @@ import pytest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipatests.test_integration.base import IntegrationTest
-from ipaplatform.paths import paths
 
 
 class TestHttpKdcProxy(IntegrationTest):
@@ -94,9 +93,12 @@ class TestHttpKdcProxy(IntegrationTest):
             assert n == 1
             return res
 
-        krb5conf_backup = tasks.FileBackup(self.client, paths.KRB5_CONF)
+        krb5conf_backup = tasks.FileBackup(
+            self.client, self.client.paths.KRB5_CONF
+        )
         krb5conf = self.client.get_file_contents(
-            paths.KRB5_CONF, encoding='utf-8')
+            self.client.paths.KRB5_CONF, encoding="utf-8"
+        )
         kdc_url = 'https://{}/KdcProxy'.format(self.master.hostname)
 
         # configure kdc proxy for IPA realm
@@ -119,16 +121,20 @@ class TestHttpKdcProxy(IntegrationTest):
             krb5conf
         )
 
-        self.client.put_file_contents(paths.KRB5_CONF, krb5conf)
-        self.client.run_command(['systemctl', 'restart', 'sssd.service'])
+        self.client.put_file_contents(self.client.paths.KRB5_CONF, krb5conf)
+        self.client.systemctl.restart("sssd")
         yield
         krb5conf_backup.restore()
-        self.client.run_command(['systemctl', 'restart', 'sssd.service'])
+        self.client.systemctl.restart("sssd")
 
     @contextmanager
     def configure_kdc_proxy_for_ad_trust(self, use_tcp):
-        backup = tasks.FileBackup(self.master, paths.KDCPROXY_CONFIG)
-        with tasks.remote_ini_file(self.master, paths.KDCPROXY_CONFIG) as conf:
+        backup = tasks.FileBackup(
+            self.master, self.master.paths.KDCPROXY_CONFIG
+        )
+        with tasks.remote_ini_file(
+            self.master, self.master.paths.KDCPROXY_CONFIG
+        ) as conf:
             conf.set('global', 'use_dns', 'true')
             conf.set('global', 'configs', 'mit')
             if use_tcp:

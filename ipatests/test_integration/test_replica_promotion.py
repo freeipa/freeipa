@@ -24,7 +24,6 @@ from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipalib.constants import (
     DOMAIN_LEVEL_1, IPA_CA_NICKNAME, CA_SUFFIX_NAME
 )
-from ipaplatform.paths import paths
 from ipapython import certdb
 from ipatests.test_integration.test_dns_locations import (
     resolve_records_from_server, IPA_DEFAULT_MASTER_SRV_REC
@@ -388,10 +387,10 @@ class TestRenewalMaster(IntegrationTest):
         master = self.master
         replica = self.replicas[0]
         self.assertCARenewalMaster(master, master.hostname)
-        replica.run_command([paths.IPA_CACERT_MANAGE, 'renew'])
+        replica.run_command([replica.paths.IPA_CACERT_MANAGE, "renew"])
         self.assertCARenewalMaster(replica, replica.hostname)
         # set master back to ca-renewal-master
-        master.run_command([paths.IPA_CACERT_MANAGE, 'renew'])
+        master.run_command([master.paths.IPA_CACERT_MANAGE, "renew"])
         self.assertCARenewalMaster(master, master.hostname)
         self.assertCARenewalMaster(replica, master.hostname)
 
@@ -620,20 +619,23 @@ class TestSubCAkeyReplication(IntegrationTest):
         if "ipa: ERROR:" in result.stderr_text:
             return False
         tasks.run_certutil(
-            host, ['-L', '-n', cert_nick], paths.PKI_TOMCAT_ALIAS_DIR
+            host, ['-L', '-n', cert_nick], host.paths.PKI_TOMCAT_ALIAS_DIR
         )
-        host.run_command([
-            paths.CERTUTIL, '-d', paths.PKI_TOMCAT_ALIAS_DIR,
-            '-f', paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
-            '-K', '-n', cert_nick
-        ])
+        host.run_command(
+            [
+                host.paths.CERTUTIL,
+                "-d", host.paths.PKI_TOMCAT_ALIAS_DIR,
+                "-f", host.paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
+                "-K", "-n", cert_nick,
+            ]
+        )
         return True
 
     def get_certinfo(self, host):
         result = tasks.run_certutil(
             host,
-            ['-L', '-f', paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT],
-            paths.PKI_TOMCAT_ALIAS_DIR
+            ['-L', '-f', host.paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT],
+            host.paths.PKI_TOMCAT_ALIAS_DIR,
         )
         certs = {}
         for line in result.stdout_text.splitlines():
@@ -647,8 +649,8 @@ class TestSubCAkeyReplication(IntegrationTest):
 
         result = tasks.run_certutil(
             host,
-            ['-K', '-f', paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT],
-            paths.PKI_TOMCAT_ALIAS_DIR
+            ['-K', '-f', host.paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT],
+            host.paths.PKI_TOMCAT_ALIAS_DIR,
         )
         keys = {}
         for line in result.stdout_text.splitlines():
@@ -755,10 +757,10 @@ class TestSubCAkeyReplication(IntegrationTest):
         replica = self.replicas[0]
 
         TEST_KEY_FILE = os.path.join(
-            paths.OPENSSL_PRIVATE_DIR, 'test_subca.key'
+            replica.paths.OPENSSL_PRIVATE_DIR, 'test_subca.key'
         )
         TEST_CRT_FILE = os.path.join(
-            paths.OPENSSL_PRIVATE_DIR, 'test_subca.crt'
+            replica.paths.OPENSSL_PRIVATE_DIR, 'test_subca.crt'
         )
 
         caacl_cmd = [
@@ -767,14 +769,29 @@ class TestSubCAkeyReplication(IntegrationTest):
         ]
         master.run_command(caacl_cmd)
 
-        request_cmd = [
-            paths.IPA_GETCERT, 'request', '-w', '-k', TEST_KEY_FILE,
-            '-f', TEST_CRT_FILE, '-X', self.SUBCA_MASTER
-        ]
-        replica.run_command(request_cmd)
+        replica.run_command(
+            [
+                replica.paths.IPA_GETCERT,
+                "request",
+                "-w",
+                "-k",
+                TEST_KEY_FILE,
+                "-f",
+                TEST_CRT_FILE,
+                "-X",
+                self.SUBCA_MASTER,
+            ]
+        )
 
-        status_cmd = [paths.IPA_GETCERT, 'status', '-v', '-f', TEST_CRT_FILE]
-        status = replica.run_command(status_cmd)
+        status = replica.run_command(
+            [
+                replica.paths.IPA_GETCERT,
+                "status",
+                "-v",
+                "-f",
+                TEST_CRT_FILE,
+            ]
+        )
         assert 'State MONITORING, stuck: no' in status.stdout_text
 
         ssl_cmd = ['openssl', 'x509', '-text', '-in', TEST_CRT_FILE,
@@ -828,7 +845,7 @@ class TestReplicaInstallCustodia(IntegrationTest):
         # Install Replica1 without CA and stop ipa-custodia
         tasks.install_replica(master, replica1, setup_ca=False)
         replica1.run_command(['ipactl', 'status'])
-        replica1.run_command(['systemctl', 'stop', 'ipa-custodia'])
+        replica1.systemctl.stop("ipa-custodia")
         replica1.run_command(['ipactl', 'status'], raiseonerr=False)
 
         # Install Replica2 with CA with source as Replica1.
@@ -853,10 +870,10 @@ def update_etc_hosts(host, ip, old_hostname, new_hostname):
     :param new_hostname the new hostname to put in /etc/hosts
     '''
     # Make a backup
-    host.run_command(['/bin/cp',
-                      paths.HOSTS,
-                      '%s.sav' % paths.HOSTS])
-    contents = host.get_file_contents(paths.HOSTS, encoding='utf-8')
+    host.run_command(
+        ["/bin/cp", host.paths.HOSTS, "%s.sav" % host.paths.HOSTS]
+    )
+    contents = host.get_file_contents(host.paths.HOSTS, encoding="utf-8")
     # If /etc/hosts already contains old_hostname, simply replace
     pattern = r'^(.*\s){}(\s)'.format(old_hostname)
     new_contents, mods = re.subn(pattern, r'\1{}\2'.format(new_hostname),
@@ -867,16 +884,16 @@ def update_etc_hosts(host, ip, old_hostname, new_hostname):
         new_contents = new_contents + "\n{}\t{} {}\n".format(ip,
                                                              new_hostname,
                                                              short)
-    host.put_file_contents(paths.HOSTS, new_contents)
+    host.put_file_contents(host.paths.HOSTS, new_contents)
 
 
 def restore_etc_hosts(host):
     '''Restores /etc/hosts.sav into /etc/hosts
     '''
-    host.run_command(['/bin/mv',
-                      '%s.sav' % paths.HOSTS,
-                      paths.HOSTS],
-                     raiseonerr=False)
+    host.run_command(
+        ["/bin/mv", "%s.sav" % host.paths.HOSTS, host.paths.HOSTS],
+        raiseonerr=False,
+    )
 
 
 class TestReplicaInForwardZone(IntegrationTest):
@@ -1036,8 +1053,10 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         """Ensure that ipa-healthcheck runs successfully on all members
         of an IPA cluster that includes a hidden replica.
         """
-        os_version = (tasks.get_platform(self.master),
-                      tasks.get_platform_version(self.master))
+        os_version = (
+            self.master.osinfo.platform,
+            self.master.osinfo.version_number,
+        )
         pki_version = tasks.get_pki_version(self.master)
 
         # verify state

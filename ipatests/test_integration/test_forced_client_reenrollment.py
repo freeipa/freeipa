@@ -22,15 +22,12 @@ from __future__ import absolute_import
 import logging
 import os
 import subprocess
-from ipaplatform.paths import paths
 import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
 logger = logging.getLogger(__name__)
-
-CLIENT_KEYTAB = paths.KRB5_KEYTAB
 
 
 class TestForcedClientReenrollment(IntegrationTest):
@@ -168,11 +165,12 @@ class TestForcedClientReenrollment(IntegrationTest):
         """
         self.restore_client()
         self.check_client_host_entry()
-        try:
-            os.remove(CLIENT_KEYTAB)
-        except OSError:
-            pass
-        self.clients[0].run_command(['touch', CLIENT_KEYTAB])
+        self.clients[0].run_command(
+            ["rm", "-f", self.clients[0].paths.KRB5_KEYTAB]
+        )
+        self.clients[0].run_command(
+            ['touch', self.clients[0].paths.KRB5_KEYTAB]
+        )
         self.reenroll_client(force_join=True)
 
     def uninstall_client(self, unshare=False):
@@ -295,7 +293,9 @@ class TestForcedClientReenrollment(IntegrationTest):
         return sshfp_record
 
     def backup_keytab(self):
-        contents = self.clients[0].get_file_contents(CLIENT_KEYTAB)
+        contents = self.clients[0].get_file_contents(
+            self.clients[0].paths.KRB5_KEYTAB
+        )
         self.master.put_file_contents(self.BACKUP_KEYTAB, contents)
 
     def restore_keytab(self):

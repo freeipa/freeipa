@@ -16,7 +16,6 @@ import string
 import time
 import textwrap
 
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 from cryptography import x509
 from cryptography.x509.oid import ExtensionOID
@@ -48,7 +47,7 @@ def get_certmonger_request_value(host, requestid, state):
     """
     result = host.run_command(
         ['grep', '-rl', 'id={0}'.format(requestid),
-         paths.CERTMONGER_REQUESTS_DIR]
+         host.paths.CERTMONGER_REQUESTS_DIR]
     )
     assert result.stdout_text is not None
     filename = result.stdout_text.strip()
@@ -83,14 +82,22 @@ class TestInstallMasterClient(IntegrationTest):
 
         related: https://pagure.io/freeipa/issue/8105
         """
-        cmd_arg = [
-            "ipa-getcert", "request",
-            "-f", os.path.join(paths.OPENSSL_CERTS_DIR, "test.pem"),
-            "-k", os.path.join(paths.OPENSSL_PRIVATE_DIR, "test.key"),
-            "-K", "test/%s" % self.clients[0].hostname,
-            "-F", os.path.join(paths.OPENSSL_DIR, "test.CA"),
-        ]
-        result = self.clients[0].run_command(cmd_arg)
+        result = self.clients[0].run_command(
+            [
+                "ipa-getcert", "request",
+                "-f",
+                os.path.join(
+                    self.clients[0].paths.OPENSSL_CERTS_DIR, "test.pem"
+                ),
+                "-k",
+                os.path.join(
+                    self.clients[0].paths.OPENSSL_PRIVATE_DIR, "test.key"
+                ),
+                "-K", "test/%s" % self.clients[0].hostname,
+                "-F",
+                os.path.join(self.clients[0].paths.OPENSSL_DIR, "test.CA"),
+            ]
+        )
         request_id = re.findall(r'\d+', result.stdout_text)
 
         # check if certificate is in MONITORING state
@@ -98,7 +105,11 @@ class TestInstallMasterClient(IntegrationTest):
         assert status == "MONITORING"
 
         self.clients[0].run_command(
-            ["ls", "-l", os.path.join(paths.OPENSSL_DIR, "test.CA")]
+            [
+                "ls",
+                "-l",
+                os.path.join(self.clients[0].paths.OPENSSL_DIR, "test.CA"),
+            ]
         )
 
     def test_certmonger_ipa_responder_jsonrpc(self):
@@ -126,7 +137,9 @@ class TestInstallMasterClient(IntegrationTest):
         """Test for DNS and IP SAN extensions + ACIs
         """
         hostname = self.clients[0].hostname
-        certfile = os.path.join(paths.OPENSSL_CERTS_DIR, "test2.pem")
+        certfile = os.path.join(
+            self.clients[0].paths.OPENSSL_CERTS_DIR, "test2.pem"
+        )
 
         tasks.kinit_admin(self.master)
 
@@ -144,15 +157,20 @@ class TestInstallMasterClient(IntegrationTest):
         self.master.run_command(['ipa', 'dnsrecord-show', zone, name])
         tasks.kdestroy_all(self.master)
 
-        cmd_arg = [
-            'ipa-getcert', 'request', '-v', '-w',
-            '-f', certfile,
-            '-k', os.path.join(paths.OPENSSL_PRIVATE_DIR, "test2.key"),
-            '-K', f'test/{hostname}',
-            '-D', hostname,
-            '-A', self.clients[0].ip,
-        ]
-        result = self.clients[0].run_command(cmd_arg)
+        result = self.clients[0].run_command(
+            [
+                "ipa-getcert", "request", "-v", "-w",
+                "-f", certfile,
+                "-k",
+                os.path.join(
+                    self.clients[0].paths.OPENSSL_PRIVATE_DIR,
+                    "test2.key",
+                ),
+                "-K", f"test/{hostname}",
+                "-D", hostname,
+                "-A", self.clients[0].ip,
+            ]
+        )
         request_id = re.findall(r'\d+', result.stdout_text)
 
         # check if certificate is in MONITORING state
@@ -177,7 +195,12 @@ class TestInstallMasterClient(IntegrationTest):
         for the cert
         """
         result = self.master.run_command(
-            ["getcert", "list", "-f", paths.HTTPD_CERT_FILE]
+            [
+                "getcert",
+                "list",
+                "-f",
+                self.master.paths.HTTPD_CERT_FILE,
+            ]
         )
         assert "profile: caIPAserviceCert" in result.stdout_text
         result = self.master.run_command(
@@ -240,10 +263,20 @@ class TestInstallMasterClient(IntegrationTest):
         self.master.run_command(["ipa", "ca-disable", "mysubca"])
         self.master.run_command(["ipa", "ca-del", "mysubca"])
         self.master.run_command(
-            ["rm", "-fv", os.path.join(paths.OPENSSL_PRIVATE_DIR, "test.key")]
+            [
+                "rm",
+                "-fv",
+                os.path.join(
+                    self.master.paths.OPENSSL_PRIVATE_DIR, "test.key"
+                ),
+            ]
         )
         self.master.run_command(
-            ["rm", "-fv", os.path.join(paths.OPENSSL_CERTS_DIR, "test.pem")]
+            [
+                "rm",
+                "-fv",
+                os.path.join(self.master.paths.OPENSSL_CERTS_DIR, "test.pem"),
+            ]
         )
 
     def test_getcert_list_profile_using_subca(self, test_subca_certs):
@@ -252,29 +285,34 @@ class TestInstallMasterClient(IntegrationTest):
         for the cert requests generated, with a SubCA configured
         on the IPA server.
         """
-        cmd_arg = [
-            "getcert",
-            "request",
-            "-c",
-            "ipa",
-            "-I",
-            "test-request",
-            "-k", os.path.join(paths.OPENSSL_PRIVATE_DIR, "test.key"),
-            "-f", os.path.join(paths.OPENSSL_CERTS_DIR, "test.pem"),
-            "-D",
-            self.master.hostname,
-            "-K",
-            "host/%s" % self.master.hostname,
-            "-N",
-            "CN={}".format(self.master.hostname),
-            "-U",
-            "id-kp-clientAuth",
-            "-X",
-            "mysubca",
-            "-T",
-            "caIPAserviceCert",
-        ]
-        result = self.master.run_command(cmd_arg)
+        result = self.master.run_command(
+            [
+                "getcert",
+                "request",
+                "-c",
+                "ipa",
+                "-I",
+                "test-request",
+                "-k",
+                os.path.join(
+                    self.master.paths.OPENSSL_PRIVATE_DIR, "test.key"
+                ),
+                "-f",
+                os.path.join(self.master.paths.OPENSSL_CERTS_DIR, "test.pem"),
+                "-D",
+                self.master.hostname,
+                "-K",
+                "host/%s" % self.master.hostname,
+                "-N",
+                "CN={}".format(self.master.hostname),
+                "-U",
+                "id-kp-clientAuth",
+                "-X",
+                "mysubca",
+                "-T",
+                "caIPAserviceCert",
+            ]
+        )
         assert (
             'New signing request "test-request" added.\n' in result.stdout_text
         )
@@ -294,7 +332,7 @@ class TestInstallMasterClient(IntegrationTest):
         if parse_version(result.split()[1]) < parse_version('0.79.14'):
             raise pytest.skip("not_before not provided in this version")
         result = self.master.run_command(
-            ["getcert", "list", "-f", paths.HTTPD_CERT_FILE]
+            ["getcert", "list", "-f", self.master.paths.HTTPD_CERT_FILE]
         ).stdout_text
         assert 'issued:' in result
 
@@ -318,11 +356,13 @@ class TestCertmongerRekey(IntegrationTest):
                 'ipa-getcert', 'request',
                 '-f',
                 os.path.join(
-                    paths.OPENSSL_CERTS_DIR, f"{self.request_id}.pem",
+                    self.master.paths.OPENSSL_CERTS_DIR,
+                    f"{self.request_id}.pem",
                 ),
                 '-k',
                 os.path.join(
-                    paths.OPENSSL_PRIVATE_DIR, f"{self.request_id}.key"
+                    self.master.paths.OPENSSL_PRIVATE_DIR,
+                    f"{self.request_id}.key",
                 ),
                 '-I', self.request_id,
                 '-K', 'test/{}'.format(self.master.hostname)
@@ -340,7 +380,8 @@ class TestCertmongerRekey(IntegrationTest):
                 "rm",
                 "-rf",
                 os.path.join(
-                    paths.OPENSSL_CERTS_DIR, f"{self.request_id}.pem"
+                    self.master.paths.OPENSSL_CERTS_DIR,
+                    f"{self.request_id}.pem",
                 ),
             ]
         )
@@ -349,7 +390,8 @@ class TestCertmongerRekey(IntegrationTest):
                 "rm",
                 "-rf",
                 os.path.join(
-                    paths.OPENSSL_PRIVATE_DIR, f"{self.request_id}.key"
+                    self.master.paths.OPENSSL_PRIVATE_DIR,
+                    f"{self.request_id}.key",
                 ),
             ]
         )
@@ -364,7 +406,10 @@ class TestCertmongerRekey(IntegrationTest):
         related: https://bugzilla.redhat.com/show_bug.cgi?id=1249165
         """
         certdata = self.master.get_file_contents(
-            os.path.join(paths.OPENSSL_CERTS_DIR, f"{self.request_id}.pem")
+            os.path.join(
+                self.master.paths.OPENSSL_CERTS_DIR,
+                f"{self.request_id}.pem",
+            )
         )
         cert = x509.load_pem_x509_certificate(
             certdata, default_backend()
@@ -380,7 +425,10 @@ class TestCertmongerRekey(IntegrationTest):
         assert status == "MONITORING"
 
         certdata = self.master.get_file_contents(
-            os.path.join(paths.OPENSSL_CERTS_DIR, f"{self.request_id}.pem")
+            os.path.join(
+                self.master.paths.OPENSSL_CERTS_DIR,
+                f"{self.request_id}.pem",
+            )
         )
         cert = x509.load_pem_x509_certificate(
             certdata, default_backend()
@@ -459,8 +507,14 @@ class TestCertmongerInterruption(IntegrationTest):
 
         Pagure Issue: https://pagure.io/freeipa/issue/8164
         """
-        cmd = ['getcert', 'list', '-f', paths.RA_AGENT_PEM]
-        result = self.replicas[0].run_command(cmd)
+        result = self.replicas[0].run_command(
+            [
+                "getcert",
+                "list",
+                "-f",
+                self.replicas[0].paths.RA_AGENT_PEM,
+            ]
+        )
 
         # Get Request ID and Submitted Values
         request_id = get_certmonger_fs_id(result.stdout_text)
@@ -471,8 +525,14 @@ class TestCertmongerInterruption(IntegrationTest):
         # 19700101000000 since it has never been submitted for renewal.
         assert start_val == DEFAULT_RA_AGENT_SUBMITTED_VAL
 
-        cmd = ['getcert', 'resubmit', '-f', paths.RA_AGENT_PEM]
-        self.replicas[0].run_command(cmd)
+        self.replicas[0].run_command(
+            [
+                "getcert",
+                "resubmit",
+                "-f",
+                self.replicas[0].paths.RA_AGENT_PEM,
+            ]
+        )
 
         tasks.wait_for_certmonger_status(self.replicas[0],
                                          ('CA_WORKING', 'MONITORING'),
@@ -493,8 +553,14 @@ class TestCertmongerInterruption(IntegrationTest):
         assert ca_error is None
         assert state == 'CA_WORKING'
 
-        cmd = ['getcert', 'resubmit', '-f', paths.RA_AGENT_PEM]
-        self.replicas[0].run_command(cmd)
+        self.replicas[0].run_command(
+            [
+                "getcert",
+                "resubmit",
+                "-f",
+                self.replicas[0].paths.RA_AGENT_PEM,
+            ]
+        )
 
         tasks.wait_for_certmonger_status(self.replicas[0],
                                          ('CA_WORKING', 'MONITORING'),
@@ -541,7 +607,7 @@ class TestCAShowErrorHandling(IntegrationTest):
 
         PKI Github Link: https://github.com/dogtagpki/pki/pull/3605/
         """
-        self.replicas[0].run_command(['systemctl', 'stop', 'ipa-custodia'])
+        self.replicas[0].systemctl.stop("ipa-custodia")
         lwca = 'lwca1'
         result = self.replicas[0].run_command([
             'ipa', 'ca-add', lwca, '--subject', 'CN=LWCA 1'
@@ -599,24 +665,31 @@ class TestCAShowErrorHandling(IntegrationTest):
         submitted=19700101000000
         """)
         # stop certmonger service
-        self.master.run_command(['systemctl', 'stop', 'certmonger'])
+        self.master.systemctl.stop("certmonger")
 
         # place an empty cert request file to certmonger request dir
         self.master.put_file_contents(
-            os.path.join(paths.CERTMONGER_REQUESTS_DIR, '20211125062617'),
+            os.path.join(
+                self.master.paths.CERTMONGER_REQUESTS_DIR, "20211125062617"
+            ),
             empty_cert_req_content
         )
 
         # start certmonger, it should not fail
-        self.master.run_command(['systemctl', 'start', 'certmonger'])
+        self.master.systemctl.start("certmonger")
 
         # request a new cert, should succeed and certmonger doesn't goes
         # to segfault
-        result = self.master.run_command([
-            "ipa-getcert", "request",
-            "-f", os.path.join(paths.OPENSSL_CERTS_DIR, "test.pem"),
-            "-k", os.path.join(paths.OPENSSL_PRIVATE_DIR, "test.key"),
-        ])
+        result = self.master.run_command(
+            [
+                "ipa-getcert",
+                "request",
+                "-f",
+                os.path.join(self.master.paths.OPENSSL_CERTS_DIR, "test.pem"),
+                "-k",
+                os.path.join(self.master.paths.OPENSSL_PRIVATE_DIR, "test.key"),
+            ]
+        )
         request_id = re.findall(r'\d+', result.stdout_text)
 
         # check if certificate is in MONITORING state
@@ -626,9 +699,14 @@ class TestCAShowErrorHandling(IntegrationTest):
         self.master.run_command(
             ['ipa-getcert', 'stop-tracking', '-i', request_id[0]]
         )
-        self.master.run_command([
-            'rm', '-rf',
-            os.path.join(paths.CERTMONGER_REQUESTS_DIR, '20211125062617'),
-            os.path.join(paths.OPENSSL_CERTS_DIR, 'test.pem'),
-            os.path.join(paths.OPENSSL_PRIVATE_DIR, 'test.key')
-        ])
+        self.master.run_command(
+            [
+                "rm",
+                "-rf",
+                os.path.join(
+                    self.master.paths.CERTMONGER_REQUESTS_DIR, "20211125062617"
+                ),
+                os.path.join(self.master.paths.OPENSSL_CERTS_DIR, 'test.pem'),
+                os.path.join(self.master.paths.OPENSSL_PRIVATE_DIR, 'test.key'),
+            ]
+        )

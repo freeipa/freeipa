@@ -9,7 +9,6 @@ Module provides tests for the ipa-pkinit-manage command.
 from __future__ import absolute_import
 
 from ipalib import x509
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -31,9 +30,7 @@ def check_pkinit_status(host, status):
 
 def check_pkinit_tracking(host, ca_helper):
     """Ensures that the PKINIT cert is tracked by the expected helper"""
-    result = host.run_command(['getcert', 'list', '-f', paths.KDC_CERT],
-                              raiseonerr=False)
-    assert result.returncode == 0
+    result = host.run_command(["getcert", "list", "-f", host.paths.KDC_CERT])
     # Make sure that only one request exists
     assert result.stdout_text.count('Request ID') == 1
     # Make sure that the right CA helper is used to track the cert
@@ -42,7 +39,7 @@ def check_pkinit_tracking(host, ca_helper):
 
 def check_pkinit_cert_issuer(host, issuer):
     """Ensures that the PKINIT cert is signed by the expected issuer"""
-    data = host.get_file_contents(paths.KDC_CERT)
+    data = host.get_file_contents(host.paths.KDC_CERT)
     pkinit_cert = x509.load_pem_x509_certificate(data)
     # Make sure that the issuer is the expected one
     assert DN(pkinit_cert.issuer) == DN(issuer)

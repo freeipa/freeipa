@@ -114,11 +114,11 @@ class FirewallD(FirewallBase):
 
     def run(self):
         # Unmask firewalld service
-        self.host.run_command(["systemctl", "unmask", "firewalld"])
+        self.host.systemctl.unmask("firewalld")
         # Enable firewalld service
-        self.host.run_command(["systemctl", "enable", "firewalld"])
+        self.host.systemctl.enable("firewalld")
         # Start firewalld service
-        self.host.run_command(["systemctl", "start", "firewalld"])
+        self.host.systemctl.start("firewalld")
 
     def _rp_action(self, args):
         """Run-time and permanant firewall action"""
@@ -230,11 +230,8 @@ class Firewall(FirewallBase):
     """
     def __init__(self, host):
         """Initialize with host where firewall changes should be applied"""
-        # break circular dependency
-        from .tasks import get_platform
-
         self.host = host
-        platform = get_platform(host)
+        platform = host.osinfo.platform
 
         firewalls = {
             'rhel': FirewallD,

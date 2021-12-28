@@ -10,7 +10,6 @@ programs behave like the Kernel was booted in FIPS enforcing mode. Kernel
 space code still runs in standard mode.
 """
 import os
-from ipaplatform.paths import paths
 
 FIPS_OVERLAY_DIR = "/var/tmp/userspace-fips"
 FIPS_OVERLAY = os.path.join(FIPS_OVERLAY_DIR, "fips_enabled")
@@ -20,7 +19,7 @@ SYSTEM_FIPS = "/etc/system-fips"
 def is_fips_enabled(host):
     """Check if host has """
     result = host.run_command(
-        ["cat", paths.PROC_FIPS_ENABLED], raiseonerr=False
+        ["cat", host.paths.PROC_FIPS_ENABLED], raiseonerr=False
     )
     if result.returncode == 1:
         # FIPS mode not available
@@ -41,7 +40,12 @@ def enable_userspace_fips(host):
         ["chcon", "-t", "sysctl_crypto_t", "-u", "system_u", FIPS_OVERLAY]
     )
     host.run_command(
-        ["mount", "--bind", FIPS_OVERLAY, paths.PROC_FIPS_ENABLED]
+        [
+            "mount",
+            "--bind",
+            FIPS_OVERLAY,
+            host.paths.PROC_FIPS_ENABLED,
+        ]
     )
     # set crypto policy to FIPS mode
     host.run_command(["update-crypto-policies", "--show"])
@@ -59,7 +63,7 @@ def disable_userspace_fips(host):
     host.run_command(["rm", "-f", SYSTEM_FIPS])
     host.run_command(["update-crypto-policies", "--set", "DEFAULT"])
     result = host.run_command(
-        ["umount", paths.PROC_FIPS_ENABLED], raiseonerr=False
+        ["umount", host.paths.PROC_FIPS_ENABLED], raiseonerr=False
     )
     host.run_command(["rm", "-rf", FIPS_OVERLAY_DIR])
     if result.returncode != 0:

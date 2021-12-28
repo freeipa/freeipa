@@ -12,13 +12,11 @@ import os
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509
 
-from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
 CRLGEN_STATUS_ENABLED = 'enabled'
 CRLGEN_STATUS_DISABLED = 'disabled'
-CRL_FILENAME = os.path.join(paths.PKI_CA_PUBLISH_DIR, 'MasterCRL.bin')
 
 
 def check_crlgen_status(host, rc=0, msg=None, enabled=True, check_crl=False):
@@ -50,7 +48,10 @@ def check_crlgen_status(host, rc=0, msg=None, enabled=True, check_crl=False):
         if check_crl and enabled:
             # We expect CRL generation to be enabled and need to check for
             # MasterCRL.bin
-            crl_content = host.get_file_contents(CRL_FILENAME)
+            crl_filename = os.path.join(
+                host.paths.PKI_CA_PUBLISH_DIR, "MasterCRL.bin"
+            )
+            crl_content = host.get_file_contents(crl_filename)
             crl = x509.load_der_x509_crl(crl_content, default_backend())
             last_update_msg = 'Last CRL update: {}'.format(crl.last_update)
             assert last_update_msg in result.stdout_text
@@ -97,12 +98,15 @@ def break_crlgen_with_rewriterule(host):
 
     In the file /etc/httpd/conf.d/ipa-pki-proxy.conf, add a RewriteRule that
     should be present only on non-CRL master"""
-    content = host.get_file_contents(paths.HTTPD_IPA_PKI_PROXY_CONF,
-                                     encoding='utf-8')
+    content = host.get_file_contents(
+        host.paths.HTTPD_IPA_PKI_PROXY_CONF, encoding="utf-8"
+    )
     new_content = content + "\nRewriteRule ^/ipa/crl/MasterCRL.bin " \
         "https://{}/ca/ee/ca/getCRL?op=getCRL&crlIssuingPoint=MasterCRL " \
         "[L,R=301,NC]".format(host.hostname)
-    host.put_file_contents(paths.HTTPD_IPA_PKI_PROXY_CONF, new_content)
+    host.put_file_contents(
+        host.paths.HTTPD_IPA_PKI_PROXY_CONF, new_content
+    )
 
     check_crlgen_status(host, rc=1, msg="Configuration is inconsistent")
 
@@ -112,15 +116,16 @@ def break_crlgen_with_CS_cfg(host):
 
     Add a enableCRLUpdates=false directive that should be present only on
     non-CRL master"""
-    content = host.get_file_contents(paths.CA_CS_CFG_PATH,
-                                     encoding='utf-8')
+    content = host.get_file_contents(
+        host.paths.CA_CS_CFG_PATH, encoding="utf-8"
+    )
     new_lines = []
     for line in content.split('\n'):
         if line.startswith('ca.crl.MasterCRL.enableCRLCache'):
             new_lines.append("ca.crl.MasterCRL.enableCRLCache=false")
         else:
             new_lines.append(line)
-    host.put_file_contents(paths.CA_CS_CFG_PATH, '\n'.join(new_lines))
+    host.put_file_contents(host.paths.CA_CS_CFG_PATH, "\n".join(new_lines))
 
     check_crlgen_status(host, rc=1, msg="Configuration is inconsistent")
 

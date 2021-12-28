@@ -128,7 +128,7 @@ class TestClientInstallation(IntegrationTest):
         apply_authselect_profile(
             self.client, preconfigured_profile, preconfigured_options)
         # Make sure that oddjobd is disabled and stopped
-        self.client.run_command(["systemctl", "disable", "oddjobd", "--now"])
+        self.client.systemctl.disable("oddjobd", now=True)
 
         # Call the installer, must succeed and store the winbind profile
         # in the statestore, but install sssd profile with-mkhomedir
@@ -144,8 +144,7 @@ class TestClientInstallation(IntegrationTest):
         # ipa-client-install --mkhomedir doesn't enable oddjobd
         # Check that oddjobd has been enabled and started
         # because --mkhomedir was used
-        status = self.client.run_command(["systemctl", "status", "oddjobd"])
-        assert "active (running)" in status.stdout_text
+        assert self.client.systemctl.is_active("oddjobd")
 
     def test_uninstall_client_preconfigured_profile(self):
         """
@@ -181,8 +180,9 @@ class TestClientInstallation(IntegrationTest):
                 return False
             return True
 
-        sysrestore_state_file = os.path.join(paths.IPA_CLIENT_SYSRESTORE,
-                                             "sysrestore.state")
+        sysrestore_state_file = os.path.join(
+            self.client.paths.IPA_CLIENT_SYSRESTORE, "sysrestore.state"
+        )
         content = self.client.get_file_contents(sysrestore_state_file,
                                                 encoding='utf-8')
         lines = [line.rstrip() for line in content.split('\n') if keep(line)]

@@ -25,7 +25,6 @@ import tempfile
 import ldap
 import pytest_multihost.host
 
-from ipaplatform.paths import paths
 from ipapython import ipaldap
 
 from .fips import (
@@ -223,7 +222,7 @@ class Host(pytest_multihost.host.Host):
         """
         self.log.info('Connecting to LDAP at %s', self.external_hostname)
         # get IPA CA cert to establish a secure connection
-        cacert = self.get_file_contents(paths.IPA_CA_CRT)
+        cacert = self.get_file_contents(self.paths.IPA_CA_CRT)
         with tempfile.NamedTemporaryFile() as f:
             f.write(cacert)
             f.flush()

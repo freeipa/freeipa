@@ -6,7 +6,6 @@ import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
-from ipaplatform.paths import paths
 
 
 class TestNTPoptions(IntegrationTest):
@@ -22,8 +21,6 @@ class TestNTPoptions(IntegrationTest):
     ntp_pool = "pool.ntp.org"
     ntp_server1 = "1.pool.ntp.org"
     ntp_server2 = "2.pool.ntp.org"
-
-    print_chrony_conf = ['cat', paths.CHRONY_CONF]
 
     exp_records_msg = "No SRV records of NTP servers found and " \
                       "no NTP server or pool address was provided."
@@ -101,14 +98,14 @@ class TestNTPoptions(IntegrationTest):
         server_install = tasks.install_master(self.master, setup_dns=False,
                                               extra_args=args)
         assert self.exp_change_msg in server_install.stderr_text
-        cmd = self.master.run_command(['cat', paths.CHRONY_CONF])
+        cmd = self.master.run_command(["cat", self.master.paths.CHRONY_CONF])
         assert self.ntp_server1 in cmd.stdout_text
         assert self.ntp_server2 in cmd.stdout_text
 
         client_install = tasks.install_client(self.master, self.client,
                                               extra_args=args, nameservers=None)
         assert self.exp_change_msg in client_install.stderr_text
-        cmd = self.client.run_command(['cat', paths.CHRONY_CONF])
+        cmd = self.client.run_command(["cat", self.client.paths.CHRONY_CONF])
         assert self.ntp_server1 in cmd.stdout_text
         assert self.ntp_server2 in cmd.stdout_text
 
@@ -123,7 +120,7 @@ class TestNTPoptions(IntegrationTest):
         server_install = tasks.install_master(self.master, setup_dns=False,
                                               extra_args=args)
         assert self.exp_change_msg in server_install.stderr_text
-        cmd = self.master.run_command(['cat', paths.CHRONY_CONF])
+        cmd = self.master.run_command(["cat", self.master.paths.CHRONY_CONF])
         assert self.ntp_pool in cmd.stdout_text
         assert self.ntp_server1 in cmd.stdout_text
 
@@ -132,14 +129,14 @@ class TestNTPoptions(IntegrationTest):
                                                 promote=False, nameservers=None)
         assert self.exp_change_msg in replica_install.stderr_text
 
-        cmd = self.replica.run_command(['cat', paths.CHRONY_CONF])
+        cmd = self.replica.run_command(["cat", self.replica.paths.CHRONY_CONF])
         assert self.ntp_pool in cmd.stdout_text
         assert self.ntp_server1 in cmd.stdout_text
 
         client_install = tasks.install_client(self.master, self.client,
                                               extra_args=args, nameservers=None)
         assert self.exp_change_msg in client_install.stderr_text
-        cmd = self.client.run_command(['cat', paths.CHRONY_CONF])
+        cmd = self.client.run_command(["cat", self.client.paths.CHRONY_CONF])
         assert self.ntp_pool in cmd.stdout_text
         assert self.ntp_server1 in cmd.stdout_text
 
@@ -153,7 +150,7 @@ class TestNTPoptions(IntegrationTest):
         server_install = tasks.install_master(self.master, setup_dns=False,
                                               extra_args=args)
         assert self.exp_change_msg in server_install.stderr_text
-        cmd = self.master.run_command(['cat', paths.CHRONY_CONF])
+        cmd = self.master.run_command(["cat", self.master.paths.CHRONY_CONF])
         assert self.ntp_server1 in cmd.stdout_text
 
         replica_install = tasks.install_replica(self.master, self.replica,
@@ -162,13 +159,13 @@ class TestNTPoptions(IntegrationTest):
         # while promoting with tasks expected_msg will not be in output
         assert self.exp_change_msg not in replica_install.stderr_text
 
-        cmd = self.replica.run_command(['cat', paths.CHRONY_CONF])
+        cmd = self.replica.run_command(["cat", self.replica.paths.CHRONY_CONF])
         assert self.ntp_server1 in cmd.stdout_text
 
         client_install = tasks.install_client(self.master, self.client,
                                               extra_args=args, nameservers=None)
         assert self.exp_change_msg in client_install.stderr_text
-        cmd = self.client.run_command(['cat', paths.CHRONY_CONF])
+        cmd = self.client.run_command(["cat", self.client.paths.CHRONY_CONF])
         assert self.ntp_server1 in cmd.stdout_text
 
     def test_server_client_install_mixed_options(self):
@@ -244,7 +241,7 @@ class TestNTPoptions(IntegrationTest):
         assert "ipa-replica-install command was successful" in \
             replica_install.stderr_text
 
-        cmd = self.replica.run_command(['cat', paths.CHRONY_CONF])
+        cmd = self.replica.run_command(["cat", self.replica.paths.CHRONY_CONF])
         assert self.ntp_pool in cmd.stdout_text
 
     def test_interactive_ntp_set_opt(self):
@@ -299,7 +296,7 @@ class TestNTPoptions(IntegrationTest):
         assert self.ntp_server1 in server_install.stdout_text
         assert self.ntp_server2 in server_install.stdout_text
 
-        cmd = self.master.run_command(self.print_chrony_conf)
+        cmd = self.master.run_command(["cat", self.master.paths.CHRONY_CONF])
         assert self.ntp_pool in cmd.stdout_text
         assert self.ntp_server1 in cmd.stdout_text
         assert self.ntp_server2 in cmd.stdout_text
@@ -312,7 +309,7 @@ class TestNTPoptions(IntegrationTest):
 
         assert client_install.returncode == 0
 
-        cmd = self.client.run_command(self.print_chrony_conf)
+        cmd = self.client.run_command(["cat", self.client.paths.CHRONY_CONF])
         assert self.ntp_pool in cmd.stdout_text
         assert self.ntp_server1 in cmd.stdout_text
         assert self.ntp_server2 in cmd.stdout_text

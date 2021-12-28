@@ -8,7 +8,6 @@ from __future__ import absolute_import
 from cryptography.hazmat.primitives import hashes
 
 from ipalib.x509 import load_pem_x509_certificate
-from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -35,7 +34,7 @@ class TestPKIConfigOverride(IntegrationTest):
 
     def test_cert_rsa4096(self):
         ca_pem = self.master.get_file_contents(
-            paths.IPA_CA_CRT, encoding=None
+            self.master.paths.IPA_CA_CRT, encoding=None
         )
         cert = load_pem_x509_certificate(ca_pem)
         assert cert.public_key().key_size == 4096

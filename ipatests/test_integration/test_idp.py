@@ -5,7 +5,6 @@ import pytest
 import re
 
 import textwrap
-from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks, create_quarkus
 
@@ -85,10 +84,10 @@ class TestIDPKeycloak(IntegrationTest):
                              extra_args=["--mkhomedir"])
         tasks.install_replica(cls.master, cls.replicas[1])
         for host in [cls.master, cls.replicas[0], cls.replicas[1]]:
-            content = host.get_file_contents(paths.IPA_DEFAULT_CONF,
+            content = host.get_file_contents(host.paths.IPA_DEFAULT_CONF,
                                              encoding='utf-8')
             new_content = content + "\noidc_child_debug_level = 10"
-            host.put_file_contents(paths.IPA_DEFAULT_CONF, new_content)
+            host.put_file_contents(host.paths.IPA_DEFAULT_CONF, new_content)
         with tasks.remote_sssd_config(cls.master) as sssd_config:
             sssd_config.edit_domain(
                 cls.master.domain, 'krb5_auth_timeout', 1100)

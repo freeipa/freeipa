@@ -35,7 +35,6 @@ from pytest_multihost import make_multihost_fixture
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
-from ipaplatform.constants import constants
 from . import fips
 from .config import Config
 from .env_config import get_global_config
@@ -43,68 +42,66 @@ from . import tasks
 
 logger = logging.getLogger(__name__)
 
-CLASS_LOGFILES = [
-    # BIND logs
-    os.path.join(paths.NAMED_VAR_DIR, constants.NAMED_DATA_DIR),
-    # dirsrv logs
-    paths.VAR_LOG_DIRSRV,
-    # IPA install logs
-    paths.IPASERVER_INSTALL_LOG,
-    paths.IPASERVER_ADTRUST_INSTALL_LOG,
-    paths.IPASERVER_DNS_INSTALL_LOG,
-    paths.IPASERVER_KRA_INSTALL_LOG,
-    paths.IPACLIENT_INSTALL_LOG,
-    paths.IPAREPLICA_INSTALL_LOG,
-    paths.IPAREPLICA_CONNCHECK_LOG,
-    paths.IPAREPLICA_CA_INSTALL_LOG,
-    paths.IPA_CUSTODIA_AUDIT_LOG,
-    paths.IPACLIENTSAMBA_INSTALL_LOG,
-    paths.IPACLIENTSAMBA_UNINSTALL_LOG,
-    paths.IPATRUSTENABLEAGENT_LOG,
-    # IPA uninstall logs
-    paths.IPASERVER_UNINSTALL_LOG,
-    paths.IPACLIENT_UNINSTALL_LOG,
-    # IPA upgrade logs
-    paths.IPAUPGRADE_LOG,
-    # IPA backup and restore logs
-    paths.IPARESTORE_LOG,
-    paths.IPABACKUP_LOG,
-    # EPN log
-    paths.IPAEPN_LOG,
-    # kerberos related logs
-    paths.KADMIND_LOG,
-    paths.KRB5KDC_LOG,
-    # httpd logs
-    paths.VAR_LOG_HTTPD_DIR,
-    # dogtag logs
-    paths.VAR_LOG_PKI_DIR,
-    # dogtag conf
-    paths.PKI_TOMCAT_SERVER_XML,
-    paths.PKI_TOMCAT + "/ca/CS.cfg",
-    paths.PKI_TOMCAT + "/kra/CS.cfg",
-    paths.PKI_TOMCAT_ALIAS_DIR,
-    paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
-    # selinux logs
-    paths.VAR_LOG_AUDIT,
-    # sssd
-    paths.VAR_LOG_SSSD_DIR,
-    # system
-    paths.RESOLV_CONF,
-    paths.HOSTS,
-    # IPA renewal lock
-    paths.IPA_RENEWAL_LOCK,
-    paths.LETS_ENCRYPT_LOG,
-    # resolvers management
-    paths.NETWORK_MANAGER_CONFIG,
-    paths.NETWORK_MANAGER_CONFIG_DIR,
-    paths.SYSTEMD_RESOLVED_CONF,
-    paths.SYSTEMD_RESOLVED_CONF_DIR,
-    '/var/log/samba',
-]
-
 
 def make_class_logs(host):
-    logs = list(CLASS_LOGFILES)
+    logs = [
+        # BIND logs
+        os.path.join(host.paths.NAMED_VAR_DIR, host.constants.NAMED_DATA_DIR),
+        # dirsrv logs
+        host.paths.VAR_LOG_DIRSRV,
+        # IPA install logs
+        host.paths.IPASERVER_INSTALL_LOG,
+        host.paths.IPASERVER_ADTRUST_INSTALL_LOG,
+        host.paths.IPASERVER_DNS_INSTALL_LOG,
+        host.paths.IPASERVER_KRA_INSTALL_LOG,
+        host.paths.IPACLIENT_INSTALL_LOG,
+        host.paths.IPAREPLICA_INSTALL_LOG,
+        host.paths.IPAREPLICA_CONNCHECK_LOG,
+        host.paths.IPAREPLICA_CA_INSTALL_LOG,
+        host.paths.IPA_CUSTODIA_AUDIT_LOG,
+        host.paths.IPACLIENTSAMBA_INSTALL_LOG,
+        host.paths.IPACLIENTSAMBA_UNINSTALL_LOG,
+        host.paths.IPATRUSTENABLEAGENT_LOG,
+        # IPA uninstall logs
+        host.paths.IPASERVER_UNINSTALL_LOG,
+        host.paths.IPACLIENT_UNINSTALL_LOG,
+        # IPA upgrade logs
+        host.paths.IPAUPGRADE_LOG,
+        # IPA backup and restore logs
+        host.paths.IPARESTORE_LOG,
+        host.paths.IPABACKUP_LOG,
+        # EPN log
+        host.paths.IPAEPN_LOG,
+        # kerberos related logs
+        host.paths.KADMIND_LOG,
+        host.paths.KRB5KDC_LOG,
+        # httpd logs
+        host.paths.VAR_LOG_HTTPD_DIR,
+        # dogtag logs
+        host.paths.VAR_LOG_PKI_DIR,
+        # dogtag conf
+        host.paths.PKI_TOMCAT_SERVER_XML,
+        os.path.join(host.paths.PKI_TOMCAT + "/ca/CS.cfg"),
+        os.path.join(host.paths.PKI_TOMCAT + "/kra/CS.cfg"),
+        host.paths.PKI_TOMCAT_ALIAS_DIR,
+        host.paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
+        # selinux logs
+        host.paths.VAR_LOG_AUDIT,
+        # sssd
+        host.paths.VAR_LOG_SSSD_DIR,
+        # system
+        host.paths.RESOLV_CONF,
+        host.paths.HOSTS,
+        # IPA renewal lock
+        host.paths.IPA_RENEWAL_LOCK,
+        host.paths.LETS_ENCRYPT_LOG,
+        # resolvers management
+        host.paths.NETWORK_MANAGER_CONFIG,
+        host.paths.NETWORK_MANAGER_CONFIG_DIR,
+        host.paths.SYSTEMD_RESOLVED_CONF,
+        host.paths.SYSTEMD_RESOLVED_CONF_DIR,
+        '/var/log/samba',
+    ]
     env_filename = os.path.join(host.config.test_dir, 'env.sh')
     logs.append(env_filename)
     return logs

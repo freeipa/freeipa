@@ -17,7 +17,6 @@ from cryptography.hazmat.primitives.twofactor.hotp import HOTP
 from cryptography.hazmat.primitives.twofactor.totp import TOTP
 
 from ipatests.test_integration.base import IntegrationTest
-from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipapython.dn import DN
 
@@ -109,9 +108,9 @@ def ssh_2f(hostname, username, answers_dict, port=22):
 
 
 def set_sssd_conf(host, add_contents):
-    contents = host.get_file_contents(paths.SSSD_CONF, encoding="utf-8")
+    contents = host.get_file_contents(host.paths.SSSD_CONF, encoding="utf-8")
     file_contents = contents + add_contents
-    host.put_file_contents(paths.SSSD_CONF, file_contents)
+    host.put_file_contents(host.paths.SSSD_CONF, file_contents)
     tasks.clear_sssd_cache(host)
 
 
@@ -237,7 +236,7 @@ class TestOTPToken(IntegrationTest):
 
         master = self.master
         USER1 = 'sshuser1'
-        sssd_conf_backup = tasks.FileBackup(master, paths.SSSD_CONF)
+        sssd_conf_backup = tasks.FileBackup(master, master.paths.SSSD_CONF)
         first_prompt = 'Please enter password + OTP token value:'
         add_contents = textwrap.dedent('''
             [prompting/2fa/sshd]
@@ -282,7 +281,7 @@ class TestOTPToken(IntegrationTest):
 
         master = self.master
         USER2 = 'sshuser2'
-        sssd_conf_backup = tasks.FileBackup(master, paths.SSSD_CONF)
+        sssd_conf_backup = tasks.FileBackup(master, master.paths.SSSD_CONF)
         first_prompt = 'Enter first factor:'
         second_prompt = 'Enter second factor:'
         add_contents = textwrap.dedent('''
@@ -314,8 +313,8 @@ class TestOTPToken(IntegrationTest):
 
     @pytest.fixture
     def setup_otp_nsslapd(self):
-        check_services = self.master.run_command(
-            ['systemctl', 'list-units', '--state=failed']
+        check_services = self.master.systemctl.run(
+            ["list-units", "--state=failed"], unit=None
         )
         assert "ipa-otpd" not in check_services.stdout_text
         # Be sure no services are running and failed units
@@ -367,8 +366,8 @@ class TestOTPToken(IntegrationTest):
             cmd = ['journalctl', '--since={}'.format(since)]
             tasks.run_repeatedly(
                 self.master, command=cmd, test=test_cb, timeout=90)
-            failed_services = self.master.run_command(
-                ['systemctl', 'list-units', '--state=failed']
+            failed_services = self.master.systemctl.run(
+                ["list-units", "--state=failed"], unit=None
             )
             assert "ipa-otpd" not in failed_services.stdout_text
         finally:

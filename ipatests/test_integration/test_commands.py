@@ -24,8 +24,6 @@ from datetime import datetime, timedelta
 
 from ipalib.constants import IPAAPI_USER
 
-from ipaplatform.paths import paths
-
 from ipapython.dn import DN
 
 from ipapython.certdb import get_ca_nickname
@@ -37,7 +35,6 @@ from ipaplatform.tasks import tasks as platform_tasks
 from ipatests.create_external_ca import ExternalCA
 from ipatests.test_ipalib.test_x509 import good_pkcs7, badcert
 from ipapython.ipautil import realm_to_suffix, ipa_generate_password
-from ipaserver.install.installutils import realm_to_serverid
 from pkg_resources import parse_version
 
 logger = logging.getLogger(__name__)
@@ -174,14 +171,14 @@ class TestIPACommand(IntegrationTest):
         # https://pagure.io/freeipa/issue/7520
         tasks.kinit_admin(self.master)
         result = self.master.run_command(
-            ['ipa', 'certmap-match', paths.IPA_CA_CRT],
+            ['ipa', 'certmap-match', self.master.paths.IPA_CA_CRT],
             raiseonerr=False
         )
         assert result.returncode == 1
         assert not result.stderr_text
         assert "0 users matched" in result.stdout_text
 
-        cab64 = self.get_cert_base64(self.master, paths.IPA_CA_CRT)
+        cab64 = self.get_cert_base64(self.master, self.master.paths.IPA_CA_CRT)
         result = self.master.run_command(
             ['ipa', 'certmap-match', '--certificate', cab64],
             raiseonerr=False
@@ -198,13 +195,13 @@ class TestIPACommand(IntegrationTest):
 
         # by cert file
         result = self.master.run_command(
-            ['ipa', 'cert-find', '--file', paths.IPA_CA_CRT]
+            ["ipa", "cert-find", "--file", self.master.paths.IPA_CA_CRT]
         )
         assert subject in result.stdout_text
         assert '1 certificate matched' in result.stdout_text
 
         # by base64 cert
-        cab64 = self.get_cert_base64(self.master, paths.IPA_CA_CRT)
+        cab64 = self.get_cert_base64(self.master, self.master.paths.IPA_CA_CRT)
         result = self.master.run_command(
             ['ipa', 'cert-find', '--certificate', cab64]
         )
@@ -333,7 +330,7 @@ class TestIPACommand(IntegrationTest):
         # Now test passwd modif with ldappasswd
         time.sleep(1)
         master.run_command([
-            paths.LDAPPASSWD,
+            self.master.paths.LDAPPASSWD,
             '-D', str(master.config.dirman_dn),
             '-w', master.config.dirman_password,
             '-a', new_passwd,
@@ -546,8 +543,9 @@ class TestIPACommand(IntegrationTest):
         # remove added host i.e cleanup
         self.master.run_command(['ipa', 'host-del', hostname])
 
-        result = self.master.run_command(['grep', hostname,
-                                          paths.VAR_LOG_HTTPD_ERROR])
+        result = self.master.run_command(
+            ["grep", hostname, self.master.paths.VAR_LOG_HTTPD_ERROR]
+        )
         assert passwd not in result.stdout_text
 
     def test_change_selinuxusermaporder(self):
@@ -710,7 +708,9 @@ class TestIPACommand(IntegrationTest):
         num_of_pipes = count_pipes()
 
         for _dummy in range(3):
-            self.master.run_command([paths.SSS_SSH_AUTHORIZEDKEYS, test_user])
+            self.master.run_command(
+                [self.master.paths.SSS_SSH_AUTHORIZEDKEYS, test_user]
+            )
             current_num_of_pipes = count_pipes()
             assert current_num_of_pipes == num_of_pipes
 
@@ -719,9 +719,16 @@ class TestIPACommand(IntegrationTest):
 
     def test_certificate_out_write_to_file(self):
         # commands to test; name of temporary file will be appended
-        result = self.master.run_command([
-            'openssl', 'x509', '-serial', '-noout', '-in', paths.IPA_CA_CRT
-        ])
+        result = self.master.run_command(
+            [
+                "openssl",
+                "x509",
+                "-serial",
+                "-noout",
+                "-in",
+                self.master.paths.IPA_CA_CRT,
+            ]
+        )
         serial = result.stdout_text.strip().split('=', maxsplit=1)[1]
         commands = [
             ['ipa', 'cert-show', serial, '--certificate-out'],
@@ -774,16 +781,23 @@ class TestIPACommand(IntegrationTest):
 
     def test_ipa_cacert_manage_install(self):
         # Re-install the IPA CA
-        self.master.run_command([
-            paths.IPA_CACERT_MANAGE,
-            'install',
-            paths.IPA_CA_CRT])
+        self.master.run_command(
+            [
+                self.master.paths.IPA_CACERT_MANAGE,
+                "install",
+                self.master.paths.IPA_CA_CRT,
+            ]
+        )
 
         # Test a non-existent file
-        result = self.master.run_command([
-            paths.IPA_CACERT_MANAGE,
-            'install',
-            '/run/cert_not_found'], raiseonerr=False)
+        result = self.master.run_command(
+            [
+                self.master.paths.IPA_CACERT_MANAGE,
+                "install",
+                "/run/cert_not_found",
+            ],
+            raiseonerr=False,
+        )
         assert result.returncode == 1
 
         cmd = self.master.run_command(['mktemp'])
@@ -791,17 +805,16 @@ class TestIPACommand(IntegrationTest):
 
         for contents in (good_pkcs7,):
             self.master.put_file_contents(filename, contents)
-            result = self.master.run_command([
-                paths.IPA_CACERT_MANAGE,
-                'install',
-                filename])
+            result = self.master.run_command(
+                [self.master.paths.IPA_CACERT_MANAGE, "install", filename]
+            )
 
         for contents in (badcert,):
             self.master.put_file_contents(filename, contents)
-            result = self.master.run_command([
-                paths.IPA_CACERT_MANAGE,
-                'install',
-                filename], raiseonerr=False)
+            result = self.master.run_command(
+                [self.master.paths.IPA_CACERT_MANAGE, "install", filename],
+                raiseonerr=False,
+            )
             assert result.returncode == 1
 
         self.master.run_command(['rm', '-f', filename])
@@ -925,7 +938,9 @@ class TestIPACommand(IntegrationTest):
             pytest.xfail(reason="sssd 2.2.0 unavailable in F29 nightly")
 
         # add ldap_deref_threshold=0 to /etc/sssd/sssd.conf
-        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        sssd_conf_backup = tasks.FileBackup(
+            self.master, self.master.paths.SSSD_CONF
+        )
         with tasks.remote_sssd_config(self.master) as sssd_config:
             sssd_config.edit_domain(
                 self.master.domain, 'ldap_deref_threshold', 0)
@@ -933,7 +948,7 @@ class TestIPACommand(IntegrationTest):
         test_user = "testuser" + str(random.randint(200000, 9999999))
         password = "Secret123"
         try:
-            self.master.run_command(['systemctl', 'restart', 'sssd.service'])
+            self.master.systemctl.restart("sssd")
 
             # kinit admin
             tasks.kinit_admin(self.master)
@@ -955,7 +970,7 @@ class TestIPACommand(IntegrationTest):
 
         finally:
             sssd_conf_backup.restore()
-            self.master.run_command(['systemctl', 'restart', 'sssd.service'])
+            self.master.systemctl.restart("sssd")
 
     def test_user_mod_change_capitalization_issue5879(self):
         """
@@ -1014,8 +1029,7 @@ class TestIPACommand(IntegrationTest):
 
         # get minimum version from current crypto-policy
         openssl_cnf = self.master.get_file_contents(
-            paths.CRYPTO_POLICY_OPENSSLCNF_FILE,
-            encoding="utf-8"
+            self.master.paths.CRYPTO_POLICY_OPENSSLCNF_FILE, encoding="utf-8"
         )
         mo = re.search(r"MinProtocol\s*=\s*(TLSv[0-9.]+)", openssl_cnf)
         assert mo
@@ -1071,7 +1085,8 @@ class TestIPACommand(IntegrationTest):
             # clear cache to avoid SSSD to check the user in old lookup
             tasks.clear_sssd_cache(self.master)
             result = self.master.run_command(
-                [paths.SSS_SSH_AUTHORIZEDKEYS, user])
+                [self.master.paths.SSS_SSH_AUTHORIZEDKEYS, user]
+            )
             assert ssh_pub_key in result.stdout_text
             # login to the system
             self.master.run_command(
@@ -1235,16 +1250,11 @@ class TestIPACommand(IntegrationTest):
         cmd = ["journalctl", "-u", "sshd", f"--since={since}"]
         tasks.run_repeatedly(self.master, command=cmd, test=test_cb)
 
-    def get_dirsrv_id(self):
-        serverid = realm_to_serverid(self.master.domain.realm)
-        return("dirsrv@%s.service" % serverid)
-
     def test_ipa_nis_manage_enable(self):
         """
         This testcase checks if ipa-nis-manage enable
         command enables plugin on an IPA master
         """
-        dirsrv_service = self.get_dirsrv_id()
         console_msg = (
             "Enabling plugin\n"
             "This setting will not take effect until "
@@ -1265,8 +1275,8 @@ class TestIPACommand(IntegrationTest):
         nispluginstring = entry.get('nsslapd-pluginEnabled')
         assert 'on' in nispluginstring
         # restart for changes to take effect
-        self.master.run_command(["systemctl", "restart", dirsrv_service])
-        self.master.run_command(["systemctl", "restart", "rpcbind"])
+        self.master.systemctl.restart("dirsrv")
+        self.master.systemctl.restart("rpcbind")
         time.sleep(DIRSRV_SLEEP)
         # check status msg on the console
         result = self.master.run_command(
@@ -1280,7 +1290,6 @@ class TestIPACommand(IntegrationTest):
         This testcase checks if ipa-nis-manage disable
         command disable plugin on an IPA Master
         """
-        dirsrv_service = self.get_dirsrv_id()
         msg = (
             "This setting will not take effect "
             "until you restart Directory Server."
@@ -1299,7 +1308,7 @@ class TestIPACommand(IntegrationTest):
         nispluginstring = entry.get('nsslapd-pluginEnabled')
         assert 'off' in nispluginstring
         # restart dirsrv for changes to take effect
-        self.master.run_command(["systemctl", "restart", dirsrv_service])
+        self.master.systemctl.restart("dirsrv")
         time.sleep(DIRSRV_SLEEP)
         # check status msg on the console
         result = self.master.run_command(
@@ -1479,10 +1488,12 @@ class TestIPACommand(IntegrationTest):
         certfile = os.path.join(self.master.config.test_dir, 'cert.pem')
         self.master.put_file_contents(certfile, isrgrootx1)
         result = self.master.run_command(
-            [paths.IPA_CACERT_MANAGE, 'install', certfile])
+            [self.master.paths.IPA_CACERT_MANAGE, "install", certfile]
+        )
 
         certs_before_prune = self.master.run_command(
-            [paths.IPA_CACERT_MANAGE, 'list'], raiseonerr=False
+            [self.master.paths.IPA_CACERT_MANAGE, "list"],
+            raiseonerr=False,
         ).stdout_text
 
         assert isrgrootx1_nick in certs_before_prune
@@ -1490,7 +1501,8 @@ class TestIPACommand(IntegrationTest):
         # Jump in time to make sure the cert is expired
         self.master.run_command(['date', '-s', '+15Years'])
         result = self.master.run_command(
-            [paths.IPA_CACERT_MANAGE, 'prune'], raiseonerr=False
+            [self.master.paths.IPA_CACERT_MANAGE, "prune"],
+            raiseonerr=False,
         ).stdout_text
         self.master.run_command(['date', '-s', '-15Years'])
 
@@ -1511,7 +1523,7 @@ class TestIPACommand(IntegrationTest):
         # Pass in a server name to use
         result = self.master.run_command(
             [
-                paths.IPA_GETKEYTAB,
+                self.master.paths.IPA_GETKEYTAB,
                 "-k",
                 "/tmp/keytab",
                 "-p",
@@ -1526,7 +1538,7 @@ class TestIPACommand(IntegrationTest):
         # Don't pass in a name, should use /etc/ipa/default.conf
         result = self.master.run_command(
             [
-                paths.IPA_GETKEYTAB,
+                self.master.paths.IPA_GETKEYTAB,
                 "-k",
                 "/tmp/keytab",
                 "-p",
@@ -1542,7 +1554,7 @@ class TestIPACommand(IntegrationTest):
         # Use DNS SRV lookup
         result = self.master.run_command(
             [
-                paths.IPA_GETKEYTAB,
+                self.master.paths.IPA_GETKEYTAB,
                 "-k",
                 "/tmp/keytab",
                 "-p",
@@ -1637,9 +1649,14 @@ class TestIPACommandWithoutReplica(IntegrationTest):
             # keytab in /etc/krb5.keytab
             self.master.run_command(["kinit", '-k'])
             result = self.master.run_command(
-                [os.path.join(paths.LIBEXEC_IPA_DIR, "ipa-print-pac"),
-                 "ticket", user],
-                stdin_text=(passwd + '\n')
+                [
+                    os.path.join(
+                        self.master.paths.LIBEXEC_IPA_DIR, "ipa-print-pac"
+                    ),
+                    "ticket",
+                    user,
+                ],
+                stdin_text=(passwd + '\n'),
             )
             assert "PAC_DATA" in result.stdout_text
         finally:

@@ -10,8 +10,6 @@ import re
 
 import pytest
 
-from ipaplatform.constants import constants as platformconstants
-
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
@@ -58,10 +56,6 @@ class TestWinsyncMigrate(IntegrationTest):
 
     ipa_group = 'ipa_group'
     ad_user = 'testuser'
-    default_shell = platformconstants.DEFAULT_SHELL
-    selinuxuser = platformconstants.SELINUX_USERMAP_ORDER.split(
-        "$", maxsplit=1
-    )[0]
     test_role = 'test_role'
     test_hbac_rule = 'test_hbac_rule'
     test_selinux_map = 'test_selinux_map'
@@ -74,6 +68,10 @@ class TestWinsyncMigrate(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        cls.default_shell = cls.master.constants.DEFAULT_SHELL
+        cls.selinuxuser = cls.master.constants.SELINUX_USERMAP_ORDER.split(
+            "$", maxsplit=1
+        )[0]
         super(TestWinsyncMigrate, cls).install(mh)
 
         cls.ad = cls.ads[0]

@@ -21,7 +21,6 @@ from __future__ import print_function
 
 import pytest
 
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
@@ -98,10 +97,10 @@ class TestSimpleReplication(IntegrationTest):
     def test_ipa_custodia_check(self):
         replica = self.replicas[0]
         self.master.run_command(
-            [paths.IPA_CUSTODIA_CHECK, replica.hostname]
+            [self.master.paths.IPA_CUSTODIA_CHECK, replica.hostname]
         )
         replica.run_command(
-            [paths.IPA_CUSTODIA_CHECK, self.master.hostname]
+            [replica.paths.IPA_CUSTODIA_CHECK, self.master.hostname]
         )
 
     def test_replica_removal(self):

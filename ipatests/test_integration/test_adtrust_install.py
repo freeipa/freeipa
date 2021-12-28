@@ -8,7 +8,6 @@ import re
 import os
 import textwrap
 
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
@@ -73,16 +72,18 @@ class TestIpaAdTrustInstall(IntegrationTest):
             tasks.kinit_as_user(self.master, user, passwd, krb5_trace=True)
 
             # curl --negotiate -u : is using GSS-API i.e. nonadmin user
-            cmd_args = [
-                paths.BIN_CURL,
-                '-H', 'referer:https://{}/ipa'.format(host),
-                '-H', 'Content-Type:application/json',
-                '-H', 'Accept:applicaton/json',
-                '--negotiate', '-u', ':',
-                '--cacert', paths.IPA_CA_CRT,
-                '-d', data_fmt.format(host),
-                '-X', 'POST', 'https://{}/ipa/json'.format(host)]
-            res = self.master.run_command(cmd_args)
+            res = self.master.run_command(
+                [
+                    self.master.paths.BIN_CURL,
+                    "-H", "referer:https://{}/ipa".format(host),
+                    "-H", "Content-Type:application/json",
+                    "-H", "Accept:applicaton/json",
+                    "--negotiate", "-u", ":",
+                    "--cacert", self.master.paths.IPA_CA_CRT,
+                    "-d", data_fmt.format(host),
+                    "-X", "POST", "https://{}/ipa/json".format(host),
+                ]
+            )
             expected = 'Insufficient access: not allowed to remotely add agent'
             assert expected in res.stdout_text
         finally:
@@ -270,8 +271,13 @@ class TestIpaAdTrustInstall(IntegrationTest):
             # bug in krb5: src/lib/gssapi/krb5/acquire_cred.c:scan_cache()
             # where enterprise principals aren't taken into account
             result = self.master.run_command(
-                [os.path.join(paths.LIBEXEC_IPA_DIR, "ipa-print-pac"),
-                 "ticket", user_princ],
+                [
+                    os.path.join(
+                        self.master.paths.LIBEXEC_IPA_DIR, "ipa-print-pac",
+                    ),
+                    "ticket",
+                    user_princ,
+                ],
                 stdin_text=(passwd + '\n'), raiseonerr=False
             )
             assert "PAC_DATA" in result.stdout_text
@@ -295,9 +301,15 @@ class TestIpaAdTrustInstall(IntegrationTest):
             # keytab in /etc/krb5.keytab
             self.master.run_command(["kinit", '-k'])
             result = self.master.run_command(
-                [os.path.join(paths.LIBEXEC_IPA_DIR, "ipa-print-pac"),
-                 "-E", "impersonate", user_princ],
-                raiseonerr=False
+                [
+                    os.path.join(
+                        self.master.paths.LIBEXEC_IPA_DIR, "ipa-print-pac",
+                    ),
+                    "-E",
+                    "impersonate",
+                    user_princ,
+                ],
+                raiseonerr=False,
             )
             assert "PAC_DATA" in result.stdout_text
         finally:

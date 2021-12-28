@@ -11,7 +11,6 @@ from SSSDConfig import ServiceAlreadyExists
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.env_config import get_global_config
-from ipaplatform.paths import paths
 config = get_global_config()
 
 
@@ -42,7 +41,9 @@ class TestCertsInIDOverrides(IntegrationTest):
         master.run_command(['dnf', 'install', '-y', 'sssd-dbus'],
                            raiseonerr=False)
         master.run_command(
-            "sed -i 's/= 7/= 0xFFF0/' %s" % paths.SSSD_CONF, raiseonerr=False)
+            "sed -i 's/= 7/= 0xFFF0/' %s" % master.paths.SSSD_CONF,
+            raiseonerr=False,
+        )
         with tasks.remote_sssd_config(master) as sssd_config:
             try:
                 sssd_config.new_service('ifp')
@@ -50,7 +51,7 @@ class TestCertsInIDOverrides(IntegrationTest):
                 pass
             sssd_config.activate_service('ifp')
 
-        master.run_command(['systemctl', 'restart', 'sssd.service'])
+        master.systemctl.restart("sssd")
         # End of setup for test_dbus_user_lookup
 
         # AD-related stuff
@@ -318,7 +319,7 @@ class TestIDViews(IntegrationTest):
             '--hosts', client.hostname
         ])
         # finally restart SSSD to materialize idviews
-        client.run_command(['systemctl', 'restart', 'sssd.service'])
+        client.systemctl.restart("sssd")
 
     def test_useroverride(self):
         result = self.clients[0].run_command(['id', self.user1])

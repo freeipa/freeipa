@@ -7,7 +7,6 @@ from __future__ import absolute_import
 import pytest
 
 from ipaplatform.osinfo import osinfo
-from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks as platformtasks
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -266,16 +265,17 @@ class TestInstallClientNoAdmin(IntegrationTest):
         )
         msg = "args=['/usr/bin/getent', 'passwd', '%s@%s']" % \
               (username, client.domain.name)
-        install_log = client.get_file_contents(paths.IPACLIENT_INSTALL_LOG,
-                                               encoding='utf-8')
+        install_log = client.get_file_contents(
+            client.paths.IPACLIENT_INSTALL_LOG, encoding="utf-8"
+        )
         assert msg in install_log
 
         # check that user is able to request a host cert, too
-        result = tasks.run_certutil(client, ['-L'], paths.IPA_NSSDB_DIR)
+        result = tasks.run_certutil(client, ['-L'], client.paths.IPA_NSSDB_DIR)
         assert 'Local IPA host' in result.stdout_text
         result = tasks.run_certutil(
             client,
-            ['-K', '-f', paths.IPA_NSSDB_PWDFILE_TXT],
-            paths.IPA_NSSDB_DIR
+            ["-K", "-f", client.paths.IPA_NSSDB_PWDFILE_TXT],
+            client.paths.IPA_NSSDB_DIR,
         )
         assert 'Local IPA host' in result.stdout_text

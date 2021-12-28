@@ -13,7 +13,6 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipaplatform.osinfo import osinfo
-from ipaplatform.paths import paths
 from ipatests.test_integration.test_external_ca import (
     install_server_external_ca_step1,
     install_server_external_ca_step2,
@@ -123,7 +122,7 @@ def certbot_standalone_cert(host, acme_server):
     """method to issue a certbot's certonly standalone cert"""
     # Get a cert from ACME service using HTTP challenge and Certbot's
     # standalone HTTP server mode
-    host.run_command(['systemctl', 'stop', 'httpd'])
+    host.systemctl.stop("httpd")
     host.run_command(
         [
             'certbot',
@@ -339,7 +338,7 @@ class TestACME(CALessBase):
         # If the thing we are inspecting changes, the test will break.
         # So I prefer a conservative sleep.
         #
-        self.clients[0].run_command(['systemctl', 'restart', 'httpd'])
+        self.clients[0].systemctl.restart("httpd")
         time.sleep(15)
 
         # We expect mod_md has acquired the certificate by now.
@@ -348,7 +347,7 @@ class TestACME(CALessBase):
         # certificates /without/ the second restart, then both
         # of these sleeps can be replaced by "loop until good".)
         #
-        self.clients[0].run_command(['systemctl', 'reload', 'httpd'])
+        self.clients[0].systemctl.reload("httpd")
         time.sleep(3)
 
         # HTTPS request from server to client (should succeed)
@@ -398,11 +397,13 @@ class TestACME(CALessBase):
         # Re-install the existing Apache certificate that has a SAN to
         # verify that it will be accepted.
         pin = self.master.get_file_contents(
-            paths.HTTPD_PASSWD_FILE_FMT.format(host=self.master.hostname)
+            self.master.paths.HTTPD_PASSWD_FILE_FMT.format(
+                host=self.master.hostname
+            )
         )
         result = self.certinstall(
-            certfile=paths.HTTPD_CERT_FILE,
-            keyfile=paths.HTTPD_KEY_FILE,
+            certfile=self.master.paths.HTTPD_CERT_FILE,
+            keyfile=self.master.paths.HTTPD_KEY_FILE,
             pin=pin
         )
         assert result.returncode == 0
@@ -539,7 +540,10 @@ class TestACMEwithExternalCA(TestACME):
         result = install_server_external_ca_step1(cls.master)
         assert result.returncode == 0
         root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
-            cls.master, paths.ROOT_IPA_CSR, ROOT_CA, IPA_CA
+            cls.master,
+            cls.master.paths.ROOT_IPA_CSR,
+            ROOT_CA,
+            IPA_CA,
         )
 
         install_server_external_ca_step2(

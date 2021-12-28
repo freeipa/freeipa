@@ -35,7 +35,6 @@ import textwrap
 
 from subprocess import CalledProcessError
 
-from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipatests.pytest_ipa.integration import tasks
@@ -44,12 +43,12 @@ logger = logging.getLogger(__name__)
 
 EPN_PKG = ["*ipa-client-epn"]
 
-SMTP_CLIENT_CERT = os.path.join(paths.OPENSSL_CERTS_DIR, "smtp_client.pem")
-SMTP_CLIENT_KEY = os.path.join(paths.OPENSSL_PRIVATE_DIR, "smtp_client.key")
+SMTP_CLIENT_CERT = "smtp_client.pem"
+SMTP_CLIENT_KEY = "smtp_client.key"
 SMTP_CLIENT_KEY_PASS = "Secret123"
 
-SMTPD_KEY = os.path.join(paths.OPENSSL_PRIVATE_DIR, "postfix.key")
-SMTPD_CERT = os.path.join(paths.OPENSSL_CERTS_DIR, "postfix.pem")
+SMTPD_KEY = "postfix.key"
+SMTPD_CERT = "postfix.pem"
 
 DEFAULT_EPN_CONF = textwrap.dedent(
     """\
@@ -145,13 +144,13 @@ def configure_postfix(host, realm):
     # listen on all active interfaces
     postconf(host, "inet_interfaces = all")
 
-    host.run_command(["systemctl", "restart", "saslauthd"])
+    host.systemctl.restart("saslauthd", resolve=False)
 
     result = host.run_command(["postconf", "mydestination"])
     mydestination = result.stdout_text.strip() + ", " + host.domain.name
     postconf(host, mydestination)
 
-    host.run_command(["systemctl", "restart", "postfix"])
+    host.systemctl.restart("postfix", resolve=False)
 
 
 def configure_starttls(host):
@@ -160,10 +159,19 @@ def configure_starttls(host):
        Depends on configure_postfix() being executed first.
     """
 
-    host.run_command(["rm", "-f", SMTPD_KEY, SMTPD_CERT])
+    host.run_command(
+        [
+            "rm",
+            "-f",
+            os.path.join(host.paths.OPENSSL_PRIVATE_DIR, SMTPD_KEY),
+            os.path.join(host.paths.OPENSSL_CERTS_DIR, SMTPD_CERT),
+        ]
+    )
     host.run_command(["ipa-getcert", "request",
-                      "-f", SMTPD_CERT,
-                      "-k", SMTPD_KEY,
+                      "-f",
+                      os.path.join(host.paths.OPENSSL_CERTS_DIR, SMTPD_CERT),
+                      "-k",
+                      os.path.join(host.paths.OPENSSL_PRIVATE_DIR, SMTPD_KEY),
                       "-K", "smtp/%s" % host.hostname,
                       "-D", host.hostname,
                       "-O", "postfix",
@@ -174,14 +182,24 @@ def configure_starttls(host):
                       ])
     postconf(host, 'smtpd_tls_loglevel = 1')
     postconf(host, 'smtpd_tls_auth_only = yes')
-    postconf(host, "smtpd_tls_key_file = {}".format(SMTPD_KEY))
-    postconf(host, "smtpd_tls_cert_file = {}".format(SMTPD_CERT))
+    postconf(
+        host,
+        "smtpd_tls_key_file = {}".format(
+            os.path.join(host.paths.OPENSSL_PRIVATE_DIR, SMTPD_KEY)
+        ),
+    )
+    postconf(
+        host,
+        "smtpd_tls_cert_file = {}".format(
+            os.path.join(host.paths.OPENSSL_CERTS_DIR, SMTPD_CERT)
+        ),
+    )
     postconf(host, 'smtpd_tls_received_header = yes')
     postconf(host, 'smtpd_tls_session_cache_timeout = 3600s')
     # announce STARTTLS support to remote SMTP clients, not require
     postconf(host, 'smtpd_tls_security_level = may')
 
-    host.run_command(["systemctl", "restart", "postfix"])
+    host.systemctl.restart("postfix", resolve=False)
 
 
 def configure_ssl_client_cert(host):
@@ -190,11 +208,24 @@ def configure_ssl_client_cert(host):
 
        Depends on configure_starttls().
     """
-    host.run_command(["rm", "-f", SMTP_CLIENT_KEY, SMTP_CLIENT_CERT])
+    host.run_command(
+        [
+            "rm",
+            "-f",
+            os.path.join(host.paths.OPENSSL_PRIVATE_DIR, SMTP_CLIENT_KEY),
+            os.path.join(host.paths.OPENSSL_CERTS_DIR, SMTP_CLIENT_CERT),
+        ]
+    )
 
     host.run_command(["ipa-getcert", "request",
-                      "-f", SMTP_CLIENT_CERT,
-                      "-k", SMTP_CLIENT_KEY,
+                      "-f",
+                      os.path.join(
+                          host.paths.OPENSSL_CERTS_DIR, SMTP_CLIENT_CERT
+                      ),
+                      "-k",
+                      os.path.join(
+                          host.paths.OPENSSL_PRIVATE_DIR, SMTP_CLIENT_KEY
+                      ),
                       "-K", "smtp_client/%s" % host.hostname,
                       "-D", host.hostname,
                       "-P", "Secret123",
@@ -206,9 +237,9 @@ def configure_ssl_client_cert(host):
     # require a trusted remote SMTP client certificate
     postconf(host, "smtpd_tls_req_ccert = yes")
     # CA certificates of root CAs trusted to sign remote SMTP client cert
-    postconf(host, f"smtpd_tls_CAfile = {paths.IPA_CA_CRT}")
+    postconf(host, f"smtpd_tls_CAfile = {host.paths.IPA_CA_CRT}")
 
-    host.run_command(["systemctl", "restart", "postfix"])
+    host.systemctl.restart("postfix", resolve=False)
 
 
 def configure_ssl(host):
@@ -222,7 +253,7 @@ def configure_ssl(host):
     conf += '  -o smtpd_sasl_auth_enable=yes\n'
     host.put_file_contents('/etc/postfix/master.cf', conf)
 
-    host.run_command(["systemctl", "restart", "postfix"])
+    host.systemctl.restart("postfix", resolve=False)
 
 
 def decode_header(header):
@@ -328,17 +359,24 @@ class TestEPN(IntegrationTest):
         tasks.uninstall_packages(cls.clients[0], ["postfix"])
         cls.master.run_command(r'rm -f /etc/postfix/smtp.keytab')
 
-        for cert in [SMTPD_CERT, SMTP_CLIENT_CERT]:
+        for cert in [
+            os.path.join(cls.master.paths.OPENSSL_CERTS_DIR, SMTPD_CERT),
+            os.path.join(cls.master.paths.OPENSSL_CERTS_DIR, SMTP_CLIENT_CERT),
+        ]:
             cls.master.run_command(["getcert", "stop-tracking", "-f", cert])
 
         cls.master.run_command(
             [
                 "rm",
                 "-f",
-                SMTPD_CERT,
-                SMTPD_KEY,
-                SMTP_CLIENT_CERT,
-                SMTP_CLIENT_KEY,
+                os.path.join(cls.master.paths.OPENSSL_CERTS_DIR, SMTPD_CERT),
+                os.path.join(cls.master.paths.OPENSSL_PRIVATE_DIR, SMTPD_KEY),
+                os.path.join(
+                    cls.master.paths.OPENSSL_CERTS_DIR, SMTP_CLIENT_CERT
+                ),
+                os.path.join(
+                    cls.master.paths.OPENSSL_PRIVATE_DIR, SMTP_CLIENT_KEY
+                ),
             ]
         )
 
@@ -351,7 +389,7 @@ class TestEPN(IntegrationTest):
         """
         epn_conf = "/etc/ipa/epn.conf"
         epn_template = "/etc/ipa/epn/expire_msg.template"
-        if tasks.get_platform(self.master) != "fedora":
+        if self.master.osinfo.platform != "fedora":
             cmd1 = self.master.run_command(["rpm", "-qc", "ipa-client-epn"])
         else:
             cmd1 = self.master.run_command(["rpm", "-qc", "freeipa-client-epn"])
@@ -365,12 +403,12 @@ class TestEPN(IntegrationTest):
         """Test EPN behavior when the configured SMTP is down
         """
 
-        self.master.run_command(["systemctl", "stop", "postfix"])
+        self.master.systemctl.stop("postfix", resolve=False)
         (unused, stderr_text, rc) = self._check_epn_output(
             self.master, mailtest=True,
             raiseonerr=False, validatejson=False
         )
-        self.master.run_command(["systemctl", "start", "postfix"])
+        self.master.systemctl.start("postfix", resolve=False)
         assert "IPA-EPN: Could not connect to the configured SMTP server" in \
             stderr_text
         assert rc > 0
@@ -743,8 +781,12 @@ class TestEPN(IntegrationTest):
             server=self.master.hostname,
             user=self.master.config.admin_name,
             password=self.master.config.admin_password,
-            client_cert=SMTP_CLIENT_CERT,
-            client_key=SMTP_CLIENT_KEY,
+            client_cert=os.path.join(
+                self.master.paths.OPENSSL_CERTS_DIR, SMTP_CLIENT_CERT
+            ),
+            client_key=os.path.join(
+                self.master.paths.OPENSSL_PRIVATE_DIR, SMTP_CLIENT_KEY
+            ),
             client_key_pass=SMTP_CLIENT_KEY_PASS,
         )
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)
@@ -765,8 +807,12 @@ class TestEPN(IntegrationTest):
             server=self.master.hostname,
             user=self.master.config.admin_name,
             password=self.master.config.admin_password,
-            client_cert=SMTP_CLIENT_CERT,
-            client_key=SMTP_CLIENT_KEY,
+            client_cert=os.path.join(
+                self.master.paths.OPENSSL_CERTS_DIR, SMTP_CLIENT_CERT
+            ),
+            client_key=os.path.join(
+                self.master.paths.OPENSSL_PRIVATE_DIR, SMTP_CLIENT_KEY
+            ),
             client_key_pass=SMTP_CLIENT_KEY_PASS,
         )
         self.master.put_file_contents('/etc/ipa/epn.conf', epn_conf)

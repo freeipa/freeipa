@@ -15,7 +15,6 @@ from subprocess import CalledProcessError
 from cryptography.hazmat.primitives import serialization
 import pytest
 
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipautil import template_str
 from ipaserver.install import bindinstance
@@ -82,7 +81,7 @@ def named_test_template(host):
 
 def clear_sysupgrade(host, *sections):
     # get state file
-    statefile = os.path.join(paths.STATEFILE_DIR, STATEFILE_FILE)
+    statefile = os.path.join(host.paths.STATEFILE_DIR, STATEFILE_FILE)
     state = host.get_file_contents(statefile, encoding="utf-8")
     # parse it
     parser = configparser.ConfigParser()
@@ -154,20 +153,20 @@ class TestUpgrade(IntegrationTest):
 
     def get_named_confs(self):
         named_conf = self.master.get_file_contents(
-            paths.NAMED_CONF, encoding="utf-8"
+            self.master.paths.NAMED_CONF, encoding="utf-8"
         )
         print(named_conf)
         custom_conf = self.master.get_file_contents(
-            paths.NAMED_CUSTOM_CONF, encoding="utf-8"
+            self.master.paths.NAMED_CUSTOM_CONF, encoding="utf-8"
         )
         print(custom_conf)
         opt_conf = self.master.get_file_contents(
-            paths.NAMED_CUSTOM_OPTIONS_CONF, encoding="utf-8"
+            self.master.paths.NAMED_CUSTOM_OPTIONS_CONF, encoding="utf-8"
         )
         print(opt_conf)
 
         log_conf = self.master.get_file_contents(
-            paths.NAMED_LOGGING_OPTIONS_CONF, encoding="utf-8"
+            self.master.paths.NAMED_LOGGING_OPTIONS_CONF, encoding="utf-8"
         )
         print(log_conf)
         return named_conf, custom_conf, opt_conf, log_conf
@@ -177,18 +176,24 @@ class TestUpgrade(IntegrationTest):
     )
     def test_named_conf_crypto_policy(self):
         named_conf = self.master.get_file_contents(
-            paths.NAMED_CONF, encoding="utf-8"
+            self.master.paths.NAMED_CONF, encoding="utf-8"
         )
-        assert paths.NAMED_CRYPTO_POLICY_FILE in named_conf
+        assert self.master.paths.NAMED_CRYPTO_POLICY_FILE in named_conf
 
     def test_current_named_conf(self):
         named_conf, custom_conf, opt_conf, log_conf = self.get_named_confs()
         # verify that all includes are present exactly one time
-        inc_opt_conf = f'include "{paths.NAMED_CUSTOM_OPTIONS_CONF}";'
+        inc_opt_conf = 'include "{}";'.format(
+            self.master.paths.NAMED_CUSTOM_OPTIONS_CONF
+        )
         assert named_conf.count(inc_opt_conf) == 1
-        inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONF}";'
+        inc_custom_conf = 'include "{}";'.format(
+            self.master.paths.NAMED_CUSTOM_CONF
+        )
         assert named_conf.count(inc_custom_conf) == 1
-        inc_log_conf = f'include "{paths.NAMED_LOGGING_OPTIONS_CONF}";'
+        inc_log_conf = 'include "{}";'.format(
+            self.master.paths.NAMED_LOGGING_OPTIONS_CONF
+        )
         assert named_conf.count(inc_log_conf) == 1
 
         assert "dnssec-validation yes;" in opt_conf
@@ -203,9 +208,9 @@ class TestUpgrade(IntegrationTest):
             [
                 "rm",
                 "-f",
-                paths.NAMED_CUSTOM_CONF,
-                paths.NAMED_CUSTOM_OPTIONS_CONF,
-                paths.NAMED_LOGGING_OPTIONS_CONF,
+                self.master.paths.NAMED_CUSTOM_CONF,
+                self.master.paths.NAMED_CUSTOM_OPTIONS_CONF,
+                self.master.paths.NAMED_LOGGING_OPTIONS_CONF,
             ]
         )
         self.master.run_command(['ipa-server-upgrade'])
@@ -219,11 +224,17 @@ class TestUpgrade(IntegrationTest):
         assert "dnssec-validation" not in named_conf
 
         # verify that both includes are present exactly one time
-        inc_opt_conf = f'include "{paths.NAMED_CUSTOM_OPTIONS_CONF}";'
+        inc_opt_conf = 'include "{}";'.format(
+            self.master.paths.NAMED_CUSTOM_OPTIONS_CONF
+        )
         assert named_conf.count(inc_opt_conf) == 1
-        inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONF}";'
+        inc_custom_conf = 'include "{}";'.format(
+            self.master.paths.NAMED_CUSTOM_CONF
+        )
         assert named_conf.count(inc_custom_conf) == 1
-        inc_log_conf = f'include "{paths.NAMED_LOGGING_OPTIONS_CONF}";'
+        inc_log_conf = 'include "{}";'.format(
+            self.master.paths.NAMED_LOGGING_OPTIONS_CONF
+        )
         assert named_conf.count(inc_log_conf) == 1
 
     def test_update_named_conf_old(self):
@@ -232,20 +243,22 @@ class TestUpgrade(IntegrationTest):
             [
                 "rm",
                 "-f",
-                paths.NAMED_CUSTOM_CONF,
-                paths.NAMED_CUSTOM_OPTIONS_CONF,
-                paths.NAMED_LOGGING_OPTIONS_CONF,
+                self.master.paths.NAMED_CUSTOM_CONF,
+                self.master.paths.NAMED_CUSTOM_OPTIONS_CONF,
+                self.master.paths.NAMED_LOGGING_OPTIONS_CONF,
             ]
         )
         # dump an old named conf to verify migration
         old_contents = named_test_template(self.master)
-        self.master.put_file_contents(paths.NAMED_CONF, old_contents)
+        self.master.put_file_contents(
+            self.master.paths.NAMED_CONF, old_contents
+        )
         clear_sysupgrade(self.master, "dns", "named.conf")
         # check and skip dnssec-enable-related issues in 9.18+
         # where dnssec-enable option was removed completely
         try:
             self.master.run_command(
-                ["named-checkconf", paths.NAMED_CONF]
+                ["named-checkconf", self.master.paths.NAMED_CONF]
             )
         except CalledProcessError as e:
             if not('dnssec-enable' in e.output):
@@ -264,11 +277,17 @@ class TestUpgrade(IntegrationTest):
         assert "dnssec-validation" not in named_conf
 
         # verify that both includes are present exactly one time
-        inc_opt_conf = f'include "{paths.NAMED_CUSTOM_OPTIONS_CONF}";'
+        inc_opt_conf = 'include "{}";'.format(
+            self.master.paths.NAMED_CUSTOM_OPTIONS_CONF
+        )
         assert named_conf.count(inc_opt_conf) == 1
-        inc_custom_conf = f'include "{paths.NAMED_CUSTOM_CONF}";'
+        inc_custom_conf = 'include "{}";'.format(
+            self.master.paths.NAMED_CUSTOM_CONF
+        )
         assert named_conf.count(inc_custom_conf) == 1
-        inc_log_conf = f'include "{paths.NAMED_LOGGING_OPTIONS_CONF}";'
+        inc_log_conf = 'include "{}";'.format(
+            self.master.paths.NAMED_LOGGING_OPTIONS_CONF
+        )
         assert named_conf.count(inc_log_conf) == 1
 
     def test_admin_root_alias_upgrade_CVE_2020_10747(self):
@@ -319,7 +338,7 @@ class TestUpgrade(IntegrationTest):
         why the test does not exercise the whole ipa-server-upgrade command
         but only the KRA detection part.
         """
-        kra_path = os.path.join(paths.VAR_LIB_PKI_TOMCAT_DIR, "kra")
+        kra_path = os.path.join(self.master.paths.VAR_LIB_PKI_TOMCAT_DIR, "kra")
         try:
             self.master.run_command(["mkdir", "-p", kra_path])
             script = (

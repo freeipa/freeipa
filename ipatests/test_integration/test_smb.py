@@ -18,7 +18,6 @@ import pytest
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.osinfo import osinfo
-from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import skip_if_fips
 
 
@@ -88,24 +87,25 @@ class TestSMB(IntegrationTest):
         # apply selinux context only if selinux is enabled
         if tasks.is_selinux_enabled(smbserver):
             smbserver.run_command(['chcon', '-t', 'samba_share_t', share_path])
-        with tasks.FileBackup(smbserver, paths.SMB_CONF):
+        with tasks.FileBackup(smbserver, smbserver.paths.SMB_CONF):
             smb_conf = smbserver.get_file_contents(
-                paths.SMB_CONF, encoding='utf-8')
+                smbserver.paths.SMB_CONF, encoding="utf-8"
+            )
             smb_conf += textwrap.dedent('''
             [{name}]
                 path = {path}
                 writable = yes
                 browsable=yes
             '''.format(name=share_name, path=share_path))
-            smbserver.put_file_contents(paths.SMB_CONF, smb_conf)
-            smbserver.run_command(['systemctl', 'restart', 'smb'])
+            smbserver.put_file_contents(smbserver.paths.SMB_CONF, smb_conf)
+            smbserver.systemctl.restart("smb")
             wait_smbd_functional(smbserver)
             yield {
                 'name': share_name,
                 'server_path': share_path,
                 'unc': '//{}/{}'.format(smbserver.hostname, share_name)
             }
-        smbserver.run_command(['systemctl', 'restart', 'smb'])
+        smbserver.systemctl.restart("smb")
         wait_smbd_functional(smbserver)
         smbserver.run_command(['rmdir', share_path])
 
@@ -241,16 +241,14 @@ class TestSMB(IntegrationTest):
             ['ipa-client-samba', '-U'])
         # smb and winbind are expected to be not running
         for service in ['smb', 'winbind']:
-            result = self.smbserver.run_command(
-                ['systemctl', 'status', service], raiseonerr=False)
-            assert result.returncode == 3
-        self.smbserver.run_command([
-            'systemctl', 'enable', '--now', 'smb', 'winbind'
-        ])
+            assert not self.smbserver.systemctl.is_active(service)
+        self.smbserver.systemctl.enable("smb", now=True)
+        self.smbserver.systemctl.enable("winbind", now=True)
         wait_smbd_functional(self.smbserver)
         # check that smb and winbind started successfully
         for service in ['smb', 'winbind']:
-            self.smbserver.run_command(['systemctl', 'status', service])
+            status = self.smbserver.systemctl.status(service)
+            assert status.code == 0, status
         # print status for debugging purposes
         self.smbserver.run_command(['smbstatus'])
         # checks postponed till the end of method to be sure services are
@@ -275,8 +273,12 @@ class TestSMB(IntegrationTest):
         replacement = {principal: alias}
         tmpname = tasks.create_temp_file(self.smbserver, create_file=False)
         try:
-            copier.copy_keys(paths.SAMBA_KEYTAB, tmpname, principal=principal,
-                             replacement=replacement)
+            copier.copy_keys(
+                self.smbserver.paths.SAMBA_KEYTAB,
+                tmpname,
+                principal=principal,
+                replacement=replacement,
+            )
             self.smbserver.run_command(['kinit', '-kt', tmpname, netbiosname])
         finally:
             self.smbserver.run_command(['rm', '-f', tmpname])
@@ -366,7 +368,10 @@ class TestSMB(IntegrationTest):
         # We can do so because Samba and GSSAPI libraries
         # are present there
         print_pac = self.master.get_file_contents(
-            os.path.join(paths.LIBEXEC_IPA_DIR, "ipa-print-pac"))
+            os.path.join(
+                self.master.paths.LIBEXEC_IPA_DIR, "ipa-print-pac"
+            )
+        )
         result = self.smbserver.run_command(['mktemp'])
         tmpname = result.stdout_text.strip()
         self.smbserver.put_file_contents(tmpname, print_pac)
@@ -457,12 +462,8 @@ class TestSMB(IntegrationTest):
 
     def test_uninstall_samba(self):
         self.smbserver.run_command(['ipa-client-samba', '--uninstall', '-U'])
-        res = self.smbserver.run_command(
-            ['systemctl', 'status', 'winbind'], raiseonerr=False)
-        assert res.returncode == 3
-        res = self.smbserver.run_command(
-            ['systemctl', 'status', 'smb'], raiseonerr=False)
-        assert res.returncode == 3
+        assert not self.smbserver.systemctl.is_active("winbind")
+        assert not self.smbserver.systemctl.is_active("smb")
 
     def test_repeated_uninstall_samba(self):
         """Test samba uninstallation after successful uninstallation.

@@ -12,8 +12,6 @@ import pytest
 import time
 
 import logging
-from ipaplatform.paths import paths
-from ipapython.ipaldap import realm_to_serverid
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
@@ -121,11 +119,11 @@ def expire_cert_critical():
     # Prior to uninstall remove all the cert tracking to prevent
     # errors from certmonger trying to check the status of certs
     # that don't matter because we are uninstalling.
-    host.run_command(['systemctl', 'stop', 'certmonger'])
+    host.systemctl.stop("certmonger")
     # Important: run_command with a str argument is able to
     # perform shell expansion but run_command with a list of
     # arguments is not
-    host.run_command('rm -fv ' + paths.CERTMONGER_REQUESTS_DIR + '*')
+    host.run_command("rm -fv {}/*".format(host.paths.CERTMONGER_REQUESTS_DIR))
     tasks.uninstall_master(host)
     tasks.move_date(host, 'start', '-3Years-1day')
 
@@ -162,8 +160,14 @@ class TestIpaCertFix(IntegrationTest):
         expire_cert_critical(self.master)
         # pki must be stopped in order to edit CS.cfg
         self.master.run_command(['ipactl', 'stop'])
-        self.master.run_command(['sed', '-i', r'/ca\.sslserver\.certreq=/d',
-                                 paths.CA_CS_CFG_PATH])
+        self.master.run_command(
+            [
+                "sed",
+                "-i",
+                r"/ca\.sslserver\.certreq=/d",
+                self.master.paths.CA_CS_CFG_PATH,
+            ]
+        )
         # dirsrv needs to be up in order to run ipa-cert-fix
         self.master.run_command(['ipactl', 'start',
                                  '--ignore-service-failures'])
@@ -171,9 +175,16 @@ class TestIpaCertFix(IntegrationTest):
         # It's the call to getcert resubmit that creates the CSR in certmonger.
         # In normal operations it would be launched automatically when the
         # expiration date is near but in the test we force the CSR creation.
-        self.master.run_command(['getcert', 'resubmit',
-                                 '-n', 'Server-Cert cert-pki-ca',
-                                 '-d', paths.PKI_TOMCAT_ALIAS_DIR])
+        self.master.run_command(
+            [
+                "getcert",
+                "resubmit",
+                "-n",
+                "Server-Cert cert-pki-ca",
+                "-d",
+                self.master.paths.PKI_TOMCAT_ALIAS_DIR,
+            ]
+        )
         # Wait a few secs
         time.sleep(3)
 
@@ -272,7 +283,7 @@ class TestIpaCertFix(IntegrationTest):
         self.master.run_command(['ipactl', 'stop'])
         self.master.run_command([
             'sed', '-i', r'/selftests\.container\.order\.startup/d',
-            paths.CA_CS_CFG_PATH
+            self.master.paths.CA_CS_CFG_PATH,
         ])
         # dirsrv needs to be up in order to run ipa-cert-fix
         self.master.run_command(['ipactl', 'start',
@@ -424,6 +435,8 @@ class TestCertFixReplica(IntegrationTest):
 
         related: https://pagure.io/freeipa/issue/7885
         """
+        replica_paths = self.replicas[0].paths
+
         # wait for cert expiry
         check_status(self.master, 8, "CA_UNREACHABLE")
 
@@ -435,7 +448,7 @@ class TestCertFixReplica(IntegrationTest):
         # 'Server-Cert cert-pki-ca' cert will be in CA_UNREACHABLE state
         cmd = self.replicas[0].run_command(
             ['getcert', 'list',
-             '-d', paths.PKI_TOMCAT_ALIAS_DIR,
+             '-d', replica_paths.PKI_TOMCAT_ALIAS_DIR,
              '-n', 'Server-Cert cert-pki-ca']
         )
         req_id = get_certmonger_fs_id(cmd.stdout_text)
@@ -445,14 +458,16 @@ class TestCertFixReplica(IntegrationTest):
         # get initial expiry date to compare later with renewed cert
         initial_expiry = get_cert_expiry(
             self.replicas[0],
-            paths.PKI_TOMCAT_ALIAS_DIR,
+            replica_paths.PKI_TOMCAT_ALIAS_DIR,
             'Server-Cert cert-pki-ca'
         )
 
         # check that HTTP,LDAP,PKINIT are renewed and in MONITORING state
-        instance = realm_to_serverid(self.master.domain.realm)
-        dirsrv_cert = paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
-        for cert in (paths.KDC_CERT, paths.HTTPD_CERT_FILE):
+        dirsrv_cert = (
+            replica_paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE
+            % self.replicas[0].ds_serverid
+        )
+        for cert in (replica_paths.KDC_CERT, replica_paths.HTTPD_CERT_FILE):
             cmd = self.replicas[0].run_command(
                 ['getcert', 'list', '-f', cert]
             )
@@ -482,7 +497,7 @@ class TestCertFixReplica(IntegrationTest):
 
         # renew shared certificates by resubmitting to certmonger
         cmd = self.replicas[0].run_command(
-            ['getcert', 'list', '-f', paths.RA_AGENT_PEM]
+            ['getcert', 'list', '-f', replica_paths.RA_AGENT_PEM]
         )
         req_id = get_certmonger_fs_id(cmd.stdout_text)
         if needs_resubmit(self.replicas[0], req_id):
@@ -497,7 +512,7 @@ class TestCertFixReplica(IntegrationTest):
                           'subsystemCert cert-pki-ca'):
             cmd = self.replicas[0].run_command(
                 ['getcert', 'list',
-                 '-d', paths.PKI_TOMCAT_ALIAS_DIR,
+                 '-d', replica_paths.PKI_TOMCAT_ALIAS_DIR,
                  '-n', cert_nick]
             )
             req_id = get_certmonger_fs_id(cmd.stdout_text)
@@ -519,7 +534,7 @@ class TestCertFixReplica(IntegrationTest):
         # So check in nssdb instead of relying on getcert command
         renewed_expiry = get_cert_expiry(
             self.replicas[0],
-            paths.PKI_TOMCAT_ALIAS_DIR,
+            replica_paths.PKI_TOMCAT_ALIAS_DIR,
             'Server-Cert cert-pki-ca'
         )
         assert renewed_expiry > initial_expiry

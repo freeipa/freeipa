@@ -4,8 +4,6 @@
 
 import pytest
 
-from ipaplatform.paths import paths
-
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_installation import (
     TestInstallWithCA_DNS1,
@@ -32,8 +30,8 @@ def pki_supports_RSNv3(host):
 def check_pki_config_params(host):
     # Check CS.cfg
     try:
-        cs_cfg = host.get_file_contents(paths.CA_CS_CFG_PATH)
-        kra_cfg = host.get_file_contents(paths.KRA_CS_CFG_PATH)
+        cs_cfg = host.get_file_contents(host.paths.CA_CS_CFG_PATH)
+        kra_cfg = host.get_file_contents(host.paths.KRA_CS_CFG_PATH)
         assert "dbs.cert.id.generator=random".encode() in cs_cfg
         assert "dbs.request.id.generator=random".encode() in cs_cfg
         assert "dbs.key.id.generator=random".encode() in kra_cfg

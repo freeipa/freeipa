@@ -25,10 +25,7 @@ import re
 import contextlib
 import pytest
 
-from ipaplatform.constants import constants
-from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks as platformtasks
-from ipapython.ipaldap import realm_to_serverid
 from ipapython.dn import DN
 from ipapython import ipautil
 from ipatests.test_integration.base import IntegrationTest
@@ -113,8 +110,8 @@ def check_kinit(host):
 
 def check_custodia_files(host):
     """regression test for https://pagure.io/freeipa/issue/7247"""
-    assert host.transport.file_exists(paths.IPA_CUSTODIA_KEYS)
-    assert host.transport.file_exists(paths.IPA_CUSTODIA_CONF)
+    assert host.transport.file_exists(host.paths.IPA_CUSTODIA_KEYS)
+    assert host.transport.file_exists(host.paths.IPA_CUSTODIA_CONF)
     return True
 
 
@@ -193,9 +190,11 @@ class TestBackupAndRestore(IntegrationTest):
                                      '--uninstall',
                                      '-U'])
             assert not self.master.transport.file_exists(
-                paths.IPA_CUSTODIA_KEYS)
+                self.master.paths.IPA_CUSTODIA_KEYS
+            )
             assert not self.master.transport.file_exists(
-                paths.IPA_CUSTODIA_CONF)
+                self.master.paths.IPA_CUSTODIA_CONF
+            )
 
             dirman_password = self.master.config.dirman_password
             self.master.run_command(['ipa-restore', backup_path],
@@ -204,8 +203,10 @@ class TestBackupAndRestore(IntegrationTest):
             # check the file permssion and ownership is set to 770 and
             # dirsrv:dirsrv after restore on /var/log/dirsrv/slapd-<instance>
             # related ticket : https://pagure.io/freeipa/issue/7725
-            instance = realm_to_serverid(self.master.domain.realm)
-            log_path = paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % instance
+            log_path = (
+                self.master.paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE
+                % self.master.ds_serverid
+            )
             cmd = self.master.run_command(['stat', '-c',
                                            '"%a %G:%U"', log_path])
             assert "770 dirsrv:dirsrv" in cmd.stdout_text
@@ -606,19 +607,11 @@ class TestBackupAndRestoreWithReplica(IntegrationTest):
             tasks.uninstall_master(self.master, clean=False)
 
             logger.info("Stopping and disabling oddjobd service")
-            self.master.run_command([
-                "systemctl", "stop", "oddjobd"
-            ])
-            self.master.run_command([
-                "systemctl", "disable", "oddjobd"
-            ])
+            self.master.systemctl.disable("oddjobd", now=True)
 
             self.master.run_command(['ipa-restore', '-U', backup_path])
 
-        status = self.master.run_command([
-            "systemctl", "status", "oddjobd"
-        ])
-        assert "active (running)" in status.stdout_text
+        assert self.master.systemctl.is_active("oddjobd")
 
         # replication should not work after restoration
         # create users to force master and replica to try to replicate
@@ -739,30 +732,44 @@ class TestUserRootFilesOwnershipPermission(IntegrationTest):
 
         # check if files have proper owner and group.
         dashed_domain = self.master.domain.realm.replace(".", '-')
-        arg = ['stat',
-               '-c', '%U:%G',
-               '{}/ldif/'.format(
-                   paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
-                   dashed_domain)]
-        cmd = self.master.run_command(arg)
-        expected = '{}:{}'.format(constants.DS_USER, constants.DS_GROUP)
+        ds_varlib_instance = (
+            self.master.paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE
+            % dashed_domain
+        )
+        cmd = self.master.run_command(
+            [
+                "stat",
+                "-c", "%U:%G",
+                "{}/ldif/".format(ds_varlib_instance),
+            ]
+        )
+        expected = '{}:{}'.format(
+            self.master.constants.DS_USER,
+            self.master.constants.DS_GROUP,
+        )
         assert expected in cmd.stdout_text
 
         # also check of access rights are set to 644.
-        arg = ['stat',
-               '-c', '%U:%G:%a',
-               '{}/ldif/{}-ipaca.ldif'.format(
-                   paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
-                   dashed_domain, dashed_domain)]
-        cmd = self.master.run_command(arg)
+        cmd = self.master.run_command(
+            [
+                "stat",
+                "-c", "%U:%G:%a",
+                "{}/ldif/{}-ipaca.ldif".format(
+                    ds_varlib_instance, dashed_domain
+                ),
+            ]
+        )
         assert '{}:644'.format(expected) in cmd.stdout_text
 
-        arg = ['stat',
-               '-c', '%U:%G:%a',
-               '{}/ldif/{}-userRoot.ldif'.format(
-                   paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
-                   dashed_domain, dashed_domain)]
-        cmd = self.master.run_command(arg)
+        cmd = self.master.run_command(
+            [
+                "stat",
+                "-c", "%U:%G:%a",
+                "{}/ldif/{}-userRoot.ldif".format(
+                    ds_varlib_instance, dashed_domain
+                ),
+            ]
+        )
         assert '{}:644'.format(expected) in cmd.stdout_text
 
         cmd = self.master.run_command(['ipa-backup', '-d'])

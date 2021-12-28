@@ -20,7 +20,6 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipaplatform.tasks import tasks as platform_tasks
-from ipaplatform.paths import paths
 from ipapython.dnsutil import DNSResolver
 
 logger = logging.getLogger(__name__)
@@ -313,8 +312,11 @@ class TestInstallDNSSECFirst(IntegrationTest):
                               nameservers=None)
 
         # backup trusted key
-        tasks.backup_file(cls.master, paths.DNSSEC_TRUSTED_KEY)
-        tasks.backup_file(cls.replicas[0], paths.DNSSEC_TRUSTED_KEY)
+        tasks.backup_file(cls.master, cls.master.paths.DNSSEC_TRUSTED_KEY)
+        tasks.backup_file(
+            cls.replicas[0],
+            cls.replicas[0].paths.DNSSEC_TRUSTED_KEY,
+        )
 
     @classmethod
     def uninstall(cls, mh):
@@ -450,22 +452,33 @@ class TestInstallDNSSECFirst(IntegrationTest):
         logger.debug("Root zone trusted key: %s", root_keys_rrset.to_text())
 
         # set trusted key for our root zone
-        self.master.put_file_contents(paths.DNSSEC_TRUSTED_KEY,
-                                      root_keys_rrset.to_text() + '\n')
-        self.replicas[0].put_file_contents(paths.DNSSEC_TRUSTED_KEY,
-                                           root_keys_rrset.to_text() + '\n')
+        self.master.put_file_contents(
+            self.master.paths.DNSSEC_TRUSTED_KEY,
+            root_keys_rrset.to_text() + "\n",
+        )
+        self.replicas[0].put_file_contents(
+            self.replicas[0].paths.DNSSEC_TRUSTED_KEY,
+            root_keys_rrset.to_text() + "\n",
+        )
 
         # verify signatures
         time.sleep(DNSSEC_SLEEP)
-        args = [
-            "drill", "@localhost", "-k",
-            paths.DNSSEC_TRUSTED_KEY, "-S",
-            example_test_zone, "SOA"
-        ]
 
         # test if signature chains are valid
-        self.master.run_command(args)
-        self.replicas[0].run_command(args)
+        self.master.run_command(
+            [
+                "drill", "@localhost", "-k",
+                self.master.paths.DNSSEC_TRUSTED_KEY, "-S",
+                example_test_zone, "SOA",
+            ]
+        )
+        self.replicas[0].run_command(
+            [
+                "drill", "@localhost", "-k",
+                self.replicas[0].paths.DNSSEC_TRUSTED_KEY, "-S",
+                example_test_zone, "SOA"
+            ]
+        )
 
     def test_chain_of_trust_delv(self):
         """
@@ -526,24 +539,25 @@ class TestInstallDNSSECFirst(IntegrationTest):
 
         # set trusted anchor for our root zone
         for host in [self.master, self.replicas[0]]:
-            host.put_file_contents(paths.DNSSEC_TRUSTED_KEY, trust_anchors)
-
-        # verify signatures
-        args = [
-            "delv",
-            "+yaml",
-            "+nosplit",
-            "+vtrace",
-            "@127.0.0.1",
-            example_test_zone,
-            "-a",
-            paths.DNSSEC_TRUSTED_KEY,
-            "SOA",
-        ]
+            host.put_file_contents(host.paths.DNSSEC_TRUSTED_KEY, trust_anchors)
 
         # delv puts trace info on stderr
         for host in [self.master, self.replicas[0]]:
-            result = host.run_command(args)
+            # verify signatures
+            result = host.run_command(
+                [
+                    "delv",
+                    "+yaml",
+                    "+nosplit",
+                    "+vtrace",
+                    "@127.0.0.1",
+                    example_test_zone,
+                    "-a",
+                    host.paths.DNSSEC_TRUSTED_KEY,
+                    "SOA",
+                ]
+            )
+
             yaml_data = yaml.safe_load(result.stdout_text)
 
             query_name_abs = dns.name.from_text(example_test_zone)

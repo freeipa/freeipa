@@ -13,7 +13,6 @@ import time
 from datetime import datetime
 
 from ipalib.constants import IPAAPI_USER
-from ipaplatform.paths import paths
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_otp import add_otptoken, del_otptoken
@@ -256,7 +255,7 @@ class TestPWPolicy(IntegrationTest):
         )
         tasks.kdestroy_all(self.master)
         self.master.run_command(
-            ['find', paths.IPA_CCACHES, '-type', 'f', '-delete']
+            ["find", self.master.paths.IPA_CCACHES, "-type", "f", "-delete"]
         )
         for _i in range(5):
             tasks.kinit_admin(self.master)
@@ -264,7 +263,7 @@ class TestPWPolicy(IntegrationTest):
             tasks.kdestroy_all(self.master)
 
         result = self.master.run_command(
-            "ls -1 {0} | wc -l".format(paths.IPA_CCACHES)
+            "ls -1 {0} | wc -l".format(self.master.paths.IPA_CCACHES)
         )
         assert int(result.stdout_text.strip()) == 5
 
@@ -278,7 +277,7 @@ class TestPWPolicy(IntegrationTest):
         )
 
         result = self.master.run_command(
-            "ls -1 {0} | wc -l".format(paths.IPA_CCACHES)
+            "ls -1 {0} | wc -l".format(self.master.paths.IPA_CCACHES)
         )
         assert int(result.stdout_text.strip()) == 0
 
@@ -291,7 +290,7 @@ class TestPWPolicy(IntegrationTest):
         """
         tasks.kdestroy_all(self.master)
         self.master.run_command(
-            ["find", paths.IPA_CCACHES, "-type", "f", "-delete"]
+            ["find", self.master.paths.IPA_CCACHES, "-type", "f", "-delete"]
         )
 
         for _i in range(5):
@@ -300,7 +299,7 @@ class TestPWPolicy(IntegrationTest):
             tasks.kdestroy_all(self.master)
 
         result = self.master.run_command(
-            "ls -1 {0} | wc -l".format(paths.IPA_CCACHES)
+            "ls -1 {0} | wc -l".format(self.master.paths.IPA_CCACHES)
         )
         assert int(result.stdout_text.strip()) == 5
 
@@ -311,6 +310,6 @@ class TestPWPolicy(IntegrationTest):
             ["runuser", "-u", IPAAPI_USER, "--"] + ccache_sweep_cmd
         )
         result = self.master.run_command(
-            "ls -1 {0} | wc -l".format(paths.IPA_CCACHES)
+            "ls -1 {0} | wc -l".format(self.master.paths.IPA_CCACHES)
         )
         assert int(result.stdout_text.strip()) == 5
