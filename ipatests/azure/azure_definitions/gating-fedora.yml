@@ -101,6 +101,13 @@ vms:
     - test_integration/test_topologies.py
     - test_integration/test_testconfig.py
 
+  # installs nothing
+  - container_job: hostplatform
+    containers:
+      replicas: 1
+    tests:
+    - test_integration/test_hostplatform.py
+
   - container_job: external_ca_ExternalCAConstraints
     containers:
       clients: 1
