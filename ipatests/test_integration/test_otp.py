@@ -264,6 +264,9 @@ class TestOTPToken(IntegrationTest):
             self.master.run_command(['semanage', 'login', '-D'])
             sssd_conf_backup.restore()
 
+    @pytest.mark.skip_if_hostfips(
+        "master", reason="paramiko is not compatible with FIPS mode"
+    )
     def test_2fa_disable_single_prompt(self):
         """Test ssh with 2FA when single prompt is disabled.
 
@@ -276,9 +279,6 @@ class TestOTPToken(IntegrationTest):
         This requires paramiko until the 2-prompt sshpass RFE is
         fulfilled: https://sourceforge.net/p/sshpass/feature-requests/5/
         """
-        if self.master.is_fips_mode:
-            pytest.skip("paramiko is not compatible with FIPS mode")
-
         master = self.master
         USER2 = 'sshuser2'
         sssd_conf_backup = tasks.FileBackup(master, master.paths.SSSD_CONF)

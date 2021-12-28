@@ -12,7 +12,6 @@ import pytest
 import re
 import textwrap
 
-from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
@@ -97,7 +96,9 @@ class TestClientInstallBind(IntegrationTest):
     @pytest.fixture
     def setup_bindserver(self):
         bindserver = self.master
-        named_conf_backup = tasks.FileBackup(self.master, paths.NAMED_CONF)
+        named_conf_backup = tasks.FileBackup(
+            bindserver, bindserver.paths.NAMED_CONF
+        )
         # create a zone in the BIND server that is identical to the IPA
         add_zone = textwrap.dedent("""
         zone "{domain}" IN {{ type master;
@@ -106,20 +107,27 @@ class TestClientInstallBind(IntegrationTest):
         """).format(domain=bindserver.domain.name)
 
         namedcfg = bindserver.get_file_contents(
-            paths.NAMED_CONF, encoding='utf-8')
+            bindserver.paths.NAMED_CONF, encoding="utf-8"
+        )
         namedcfg += '\n' + add_zone
-        bindserver.put_file_contents(paths.NAMED_CONF, namedcfg)
+        bindserver.put_file_contents(bindserver.paths.NAMED_CONF, namedcfg)
 
         def update_contents(path, pattern, replace):
             contents = bindserver.get_file_contents(path, encoding='utf-8')
             namedcfg_query = re.sub(pattern, replace, contents)
             bindserver.put_file_contents(path, namedcfg_query)
 
-        update_contents(paths.NAMED_CONF, 'localhost;', 'any;')
-        update_contents(paths.NAMED_CONF, "listen-on port 53 { 127.0.0.1; };",
-                        "#listen-on port 53 { 127.0.0.1; };")
-        update_contents(paths.NAMED_CONF, "listen-on-v6 port 53 { ::1; };",
-                        "#listen-on-v6 port 53 { ::1; };")
+        update_contents(bindserver.paths.NAMED_CONF, 'localhost;', 'any;')
+        update_contents(
+            bindserver.paths.NAMED_CONF,
+            "listen-on port 53 { 127.0.0.1; };",
+            "#listen-on port 53 { 127.0.0.1; };",
+        )
+        update_contents(
+            bindserver.paths.NAMED_CONF,
+            "listen-on-v6 port 53 { ::1; };",
+            "#listen-on-v6 port 53 { ::1; };",
+        )
 
         add_records = textwrap.dedent("""
         @   IN  SOA     {fqdn}. root.{domain}. (
@@ -180,7 +188,7 @@ class TestClientInstallBind(IntegrationTest):
             str1 = "nsupdate (GSS-TSIG) failed"
             str2 = "'/usr/bin/nsupdate', '/etc/ipa/.dns_update.txt'"
             client_log = self.client.get_file_contents(
-                paths.IPACLIENT_INSTALL_LOG, encoding='utf-8'
+                self.client.paths.IPACLIENT_INSTALL_LOG, encoding="utf-8"
             )
             assert str1 in client_log and str2 in client_log
             dig_after = self.client.run_command(

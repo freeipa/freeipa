@@ -31,7 +31,6 @@ from ipapython.certdb import get_ca_nickname
 from ipatests.test_integration.base import IntegrationTest
 
 from ipatests.pytest_ipa.integration import tasks
-from ipaplatform.tasks import tasks as platform_tasks
 from ipatests.create_external_ca import ExternalCA
 from ipatests.test_ipalib.test_x509 import good_pkcs7, badcert
 from ipapython.ipautil import realm_to_suffix, ipa_generate_password
@@ -116,6 +115,17 @@ letsencryptauthorityr3 = (
     b'-----END CERTIFICATE-----\n'
 )
 le_r3_nick = "CN=R3,O=Let's Encrypt,C=US"
+
+
+def requires_slapi_nis_version(host):
+    version = host.run_command(
+        ["rpm", "-qa", "--qf", "%{VERSION}", "slapi-nis"]
+    )
+    parsed_version = parse_version(version.stdout_text)
+    return (
+        host.osinfo.platform == "fedora"
+        and parsed_version <= parse_version("0.56.7")
+    )
 
 
 class TestIPACommand(IntegrationTest):
@@ -931,11 +941,9 @@ class TestIPACommand(IntegrationTest):
         4. ssh from controller to master using the user created in step 3
         """
 
-        cmd = self.master.run_command(['sssd', '--version'])
-        sssd_version = platform_tasks.parse_ipa_version(
-            cmd.stdout_text.strip())
-        if sssd_version < platform_tasks.parse_ipa_version('2.2.0'):
-            pytest.xfail(reason="sssd 2.2.0 unavailable in F29 nightly")
+        sssd_version = tasks.get_sssd_version(self.master)
+        if sssd_version < tasks.parse_version("2.2.0"):
+            pytest.xfail(reason="Should fail against sssd < 2.2.0")
 
         # add ldap_deref_threshold=0 to /etc/sssd/sssd.conf
         sssd_conf_backup = tasks.FileBackup(
@@ -1008,8 +1016,10 @@ class TestIPACommand(IntegrationTest):
         assert 'First name: %s' % (modfirst) in cmd.stdout_text
         assert 'Last name: %s' % (modlast) in cmd.stdout_text
 
-    @pytest.mark.skip_if_platform(
-        "debian", reason="Crypto policy is not supported on Debian"
+    @pytest.mark.skip_if_hostplatform(
+        "master",
+        platform="debian",
+        reason="Crypto policy is not supported on Debian",
     )
     def test_enabled_tls_protocols(self):
         """Check Apache has same TLS versions enabled as crypto policy
@@ -1599,6 +1609,11 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         # Run the command again after cache is removed
         self.master.run_command(['ipa', 'user-show', 'ipauser1'])
 
+    @pytest.mark.skip_if_host(
+        "master",
+        condition_cb=requires_slapi_nis_version,
+        reason="Test requires slapi-nis > 0.56.7 on fedora",
+    )
     def test_basesearch_compat_tree(self):
         """Test ldapsearch against compat tree is working
 
@@ -1606,12 +1621,6 @@ class TestIPACommandWithoutReplica(IntegrationTest):
 
         related: https://bugzilla.redhat.com/show_bug.cgi?id=1958909
         """
-        version = self.master.run_command(
-            ["rpm", "-qa", "--qf", "%{VERSION}", "slapi-nis"]
-        )
-        if tasks.get_platform(self.master) == "fedora" and parse_version(
-                version.stdout_text) <= parse_version("0.56.7"):
-            pytest.skip("Test requires slapi-nis with fix on fedora")
         tasks.kinit_admin(self.master)
         base_dn = str(self.master.domain.basedn)
         base = "cn=admins,cn=groups,cn=compat,{basedn}".format(basedn=base_dn)

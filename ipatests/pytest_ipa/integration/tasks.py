@@ -65,7 +65,7 @@ from .env_config import env_to_script
 from .host import Host
 from .firewall import Firewall
 from .resolver import ResolvedResolver
-from .fips import is_fips_enabled, enable_crypto_subpolicy
+from .fips import enable_crypto_subpolicy
 
 logger = logging.getLogger(__name__)
 
@@ -361,7 +361,7 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
     if setup_adtrust:
         args.append('--setup-adtrust')
         fw_services.append("freeipa-trust")
-        if is_fips_enabled(host):
+        if host.is_fips_mode:
             enable_crypto_subpolicy(host, "AD-SUPPORT")
     if external_ca:
         args.append('--external-ca')
@@ -497,7 +497,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     if setup_adtrust:
         args.append('--setup-adtrust')
         fw_services.append("freeipa-trust")
-        if is_fips_enabled(replica):
+        if replica.is_fips_mode:
             enable_crypto_subpolicy(replica, "AD-SUPPORT")
     if master_authoritative_for_client_domain(master, replica):
         args.extend(['--ip-address', replica.ip])
@@ -568,7 +568,7 @@ def install_client(master, client, extra_args=[], user=None,
 
     args.extend(extra_args)
 
-    if is_fips_enabled(client) and getattr(master.config, 'ad_domains', False):
+    if client.is_fips_mode and getattr(master.config, 'ad_domains', False):
         enable_crypto_subpolicy(client, "AD-SUPPORT")
     result = client.run_command(args, stdin_text=stdin_text)
 
@@ -584,7 +584,7 @@ def install_adtrust(host):
     Configures the compat tree for the legacy clients.
     """
     kinit_admin(host)
-    if is_fips_enabled(host):
+    if host.is_fips_mode:
         enable_crypto_subpolicy(host, "AD-SUPPORT")
     host.run_command(['ipa-adtrust-install', '-U',
                       '--enable-compat',
@@ -2444,11 +2444,6 @@ def remote_ini_file(host, filename):
     data = StringIO()
     ini_file.write(data)
     host.put_file_contents(filename, data.getvalue())
-
-
-def is_selinux_enabled(host):
-    res = host.run_command('selinuxenabled', ok_returncode=(0, 1))
-    return res.returncode == 0
 
 
 def get_logsize(host, logfile):

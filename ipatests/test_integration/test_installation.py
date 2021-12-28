@@ -25,8 +25,6 @@ from ipalib.constants import IPA_CA_RECORD
 from ipalib.constants import ALLOWED_NETBIOS_CHARS
 from ipalib.sysrestore import SYSRESTORE_STATEFILE, SYSRESTORE_INDEXFILE
 from ipapython.dn import DN
-from ipaplatform.paths import paths
-from ipaplatform.tasks import tasks as platformtasks
 from ipapython import ipautil
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.env_config import get_global_config
@@ -45,16 +43,13 @@ def create_broken_resolv_conf(master):
     master.resolver.setup_resolver('127.0.0.2')
 
 
-def server_install_setup(func):
-    def wrapped(*args):
-        master = args[0].master
-        create_broken_resolv_conf(master)
-        try:
-            func(*args)
-        finally:
-            tasks.uninstall_master(master, clean=False)
-            ipa_certs_cleanup(master)
-    return wrapped
+@pytest.fixture
+def server_install_setup(mh):
+    host = mh.master
+    create_broken_resolv_conf(host)
+    yield
+    tasks.uninstall_master(host, clean=False)
+    ipa_certs_cleanup(host)
 
 
 @pytest.fixture
@@ -713,14 +708,16 @@ class TestInstallWithCA_DNS3(CALessBase):
 
     ticket 7239
     """
-
-    @pytest.mark.xfail(
-        osinfo.id == 'fedora' and osinfo.version_number >= (33,)
-        and osinfo.version_number < (35,),
-        reason='freeipa ticket 8700', strict=True)
-    @server_install_setup
-    def test_number_of_zones(self):
+    def test_number_of_zones(self, request, server_install_setup):
         """There should be two zones: one forward, one reverse"""
+        if (
+            self.master.osinfo.id == "fedora"
+            and self.master.osinfo.version_number >= [33]
+            and self.master.osinfo.version_number < [35]
+        ):
+            request.applymarker(
+                pytest.mark.xfail(reason="freeipa ticket 8700", strict=True)
+            )
 
         self.create_pkcs12('ca1/server')
         self.prepare_cacert('ca1')
@@ -746,8 +743,7 @@ class TestInstallWithCA_DNS4(CALessBase):
     ticket 7239
     """
 
-    @server_install_setup
-    def test_number_of_zones(self):
+    def test_number_of_zones(self, server_install_setup):
         """There should be one zone, a forward because rev timed-out"""
 
         self.create_pkcs12('ca1/server')
@@ -1113,9 +1109,9 @@ class TestInstallMaster(IntegrationTest):
         assert "softhsm" not in result.stdout_text.lower()
         assert "opendnssec" not in result.stdout_text.lower()
 
-    @pytest.mark.skipif(
-        not platformtasks.is_selinux_enabled(),
-        reason="Test needs SELinux enabled")
+    @pytest.mark.skip_if_not_hostselinux(
+        "master", reason="Test needs SELinux enabled"
+    )
     def test_selinux_avcs(self):
         # Use journalctl instead of ausearch. The ausearch command is not
         # installed by default and journalctl gives us all AVCs.
@@ -1251,8 +1247,10 @@ class TestInstallMaster(IntegrationTest):
             [self.master.paths.IPA_CUSTODIA_CHECK, self.master.hostname]
         )
 
-    @pytest.mark.skipif(
-        paths.SEMODULE is None, reason="test requires semodule command"
+    @pytest.mark.skip_if_host(
+        "master",
+        condition_cb=lambda host: host.paths.SEMODULE is None,
+        reason="test requires semodule command",
     )
     def test_ipa_selinux_policy(self):
         # check that freeipa-selinux's policy module is loaded and

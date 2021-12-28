@@ -11,7 +11,6 @@ from __future__ import absolute_import
 import os
 import pytest
 
-from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -44,9 +43,12 @@ def apply_authselect_profile(host, profile, options=()):
     host.run_command(cmd)
 
 
-@pytest.mark.skipif(
-    paths.AUTHSELECT is None,
-    reason="Authselect is only available in fedora-like distributions")
+@pytest.mark.skip_if_host(
+    "clients",
+    hostindex=0,
+    condition_cb=lambda host: host.paths.AUTHSELECT is None,
+    reason="Authselect is only available in fedora-like distributions",
+)
 class TestClientInstallation(IntegrationTest):
     """
     Tests the client installation with authselect profile.
@@ -210,9 +212,11 @@ class TestClientInstallation(IntegrationTest):
         apply_authselect_profile(cls.client, default_profile)
 
 
-@pytest.mark.skipif(
-    paths.AUTHSELECT is None,
-    reason="Authselect is only available in fedora-like distributions")
+@pytest.mark.skip_if_host(
+    "master",
+    condition_cb=lambda host: host.paths.AUTHSELECT is None,
+    reason="Authselect is only available in fedora-like distributions",
+)
 class TestServerInstallation(IntegrationTest):
     """
     Tests the server installation with authselect profile.

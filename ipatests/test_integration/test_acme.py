@@ -12,7 +12,6 @@ from ipalib.constants import IPA_CA_RECORD
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
-from ipaplatform.osinfo import osinfo
 from ipatests.test_integration.test_external_ca import (
     install_server_external_ca_step1,
     install_server_external_ca_step2,
@@ -21,15 +20,6 @@ from ipatests.test_integration.test_external_ca import (
 
 IPA_CA = "ipa_ca.crt"
 ROOT_CA = "root_ca.crt"
-
-# RHEL does not have certbot.  EPEL's version is broken with
-# python-cryptography-2.3; likewise recent PyPI releases.
-# So for now, on RHEL we suppress tests that use certbot.
-skip_certbot_tests = osinfo.id not in ['fedora', 'rhel']
-
-# Fedora mod_md package needs some patches before it will work.
-# RHEL version has the patches.
-skip_mod_md_tests = osinfo.id not in ['rhel', 'fedora', ]
 
 CERTBOT_DNS_IPA_SCRIPT = '/usr/libexec/ipa/acme/certbot-dns-ipa'
 
@@ -49,23 +39,6 @@ def check_acme_status(host, exp_status, timeout=60):
     return status
 
 
-def get_selinux_status(host):
-    """
-    Return the SELinux enforcing status.
-
-    Return True if enabled and enforcing, otherwise False
-    """
-    result = host.run_command(['/usr/sbin/selinuxenabled'], raiseonerr=False)
-    if result.returncode != 0:
-        return False
-
-    result = host.run_command(['/usr/sbin/getenforce'], raiseonerr=False)
-    if 'Enforcing' in result.stdout_text:
-        return True
-
-    return False
-
-
 def server_install_teardown(func):
     def wrapped(*args):
         master = args[0].master
@@ -82,10 +55,8 @@ def prepare_acme_client(master, client):
     acme_server = f'https://{acme_host}/acme/directory'
 
     # install acme client packages
-    if not skip_certbot_tests:
-        tasks.install_packages(client, ['certbot'])
-    if not skip_mod_md_tests:
-        tasks.install_packages(client, ['mod_md'])
+    tasks.install_packages(client, ['certbot'])
+    tasks.install_packages(client, ['mod_md'])
 
     return acme_server
 
@@ -252,15 +223,12 @@ class TestACME(CALessBase):
     # Certbot tests
     ###############
 
-    @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
     def test_certbot_register(self):
         certbot_register(self.clients[0], self.acme_server)
 
-    @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
     def test_certbot_certonly_standalone(self):
         certbot_standalone_cert(self.clients[0], self.acme_server)
 
-    @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
     def test_certbot_revoke(self):
         # Assume previous certonly operation succeeded.
         # Read certificate to learn serial number.
@@ -286,7 +254,6 @@ class TestACME(CALessBase):
         )
         assert 'revocation_reason:' in result.stdout_text
 
-    @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
     def test_certbot_dns(self):
         # Assume previous revoke operation succeeded and cert was deleted.
         # We can now request a new certificate.
@@ -310,12 +277,15 @@ class TestACME(CALessBase):
     # mod_md tests
     ##############
 
-    @pytest.mark.skipif(skip_mod_md_tests, reason='mod_md not available')
+    # mod_md requires its own SELinux policy to grant perms to
+    # maintaining ACME registration and cert state.
+    @pytest.mark.skip_if_host(
+        "clients",
+        hostindex=0,
+        condition_cb=lambda host: host.is_selinux_enforced,
+        reason="SELinux is enabled, this will fail",
+    )
     def test_mod_md(self):
-        if get_selinux_status(self.clients[0]):
-            # mod_md requires its own SELinux policy to grant perms to
-            # maintaining ACME registration and cert state.
-            raise pytest.skip("SELinux is enabled, this will fail")
         # write config
         self.clients[0].run_command(['mkdir', '-p', '/etc/httpd/conf.d'])
         self.clients[0].run_command(['mkdir', '-p', '/etc/httpd/md'])
@@ -608,7 +578,6 @@ class TestACMERenew(IntegrationTest):
             tasks.move_date(host, 'start', '-90days')
             tasks.kinit_admin(host)
 
-    @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
     def test_renew(self, issue_and_expire_cert):
         """Test if ACME renews the issued cert with cerbot
 

@@ -9,7 +9,6 @@ import os
 from ipalib.constants import (
     SUBID_COUNT, SUBID_RANGE_START, SUBID_RANGE_MAX, SUBID_DNA_THRESHOLD
 )
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
@@ -131,7 +130,7 @@ class TestSubordinateId(IntegrationTest):
     def test_ipa_subid_script(self):
         tasks.kinit_admin(self.master)
 
-        tool = os.path.join(paths.LIBEXEC_IPA_DIR, "ipa-subids")
+        tool = os.path.join(self.master.paths.LIBEXEC_IPA_DIR, "ipa-subids")
         users = []
         for i in range(1, 11):
             uid = f"testuser_script{i}"

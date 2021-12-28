@@ -380,8 +380,10 @@ class TestEPN(IntegrationTest):
             ]
         )
 
-    @pytest.mark.skip_if_platform(
-        "debian", reason="Cannot check installed packages using RPM"
+    @pytest.mark.skip_if_hostplatform(
+        "master",
+        platform="debian",
+        reason="Cannot check installed packages using RPM",
     )
     def test_EPN_config_file(self):
         """Check that the EPN configuration file is installed.
@@ -864,8 +866,11 @@ class TestEPN(IntegrationTest):
         )
         assert "uid=admin" in stderr_text
 
-    @pytest.mark.skip_if_platform(
-        "debian", reason="Don't know how to download-only pkgs in Debian"
+    @pytest.mark.skip_if_hostplatform(
+        "clients",
+        hostindex=0,
+        platform="debian",
+        reason="Don't know how to download-only pkgs in Debian",
     )
     def test_EPN_reinstall(self):
         """Test that EPN can be installed, uninstalled and reinstalled.

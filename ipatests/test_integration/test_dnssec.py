@@ -19,7 +19,6 @@ import yaml
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
-from ipaplatform.tasks import tasks as platform_tasks
 from ipapython.dnsutil import DNSResolver
 
 logger = logging.getLogger(__name__)
@@ -135,6 +134,25 @@ def dnssec_install_master(host):
         "-U",
     ]
     return host.run_command(args)
+
+
+def requires_delv_version(host):
+    # delv reports its version on stderr
+    delv_version = host.run_command(
+        ["delv", "-v"]
+    ).stderr_text.rstrip().replace("delv ", "")
+    assert delv_version
+
+    # delv version may include distro specifics:
+    # for example, Fedora appends '-RH'.
+    # parse_version cannot handle this properly:
+    # >>> parse_version("9.16.24-RH") < parse_version("9.16")
+    # True
+    # Actually only major.minor is used.
+    delv_version = ".".join(delv_version.split(".")[:2])
+
+    delv_version_parsed = tasks.parse_version(delv_version)
+    return delv_version_parsed < tasks.parse_version("9.16")
 
 
 class TestInstallDNSSECLast(IntegrationTest):
@@ -480,23 +498,16 @@ class TestInstallDNSSECFirst(IntegrationTest):
             ]
         )
 
+    @pytest.mark.skip_if_host(
+        "master",
+        condition_cb=requires_delv_version,
+        reason="Requires delv >= 9.16(+yaml)",
+    )
     def test_chain_of_trust_delv(self):
         """
         Validate signed DNS records, using our own signed root zone
         """
         INITIAL_KEY_FMT = '%s initial-key %d %d %d "%s";'
-
-        # delv reports its version on stderr
-        delv_version = self.master.run_command(
-            ["delv", "-v"]
-        ).stderr_text.rstrip().replace("delv ", "")
-        assert delv_version
-
-        delv_version_parsed = platform_tasks.parse_ipa_version(delv_version)
-        if delv_version_parsed < platform_tasks.parse_ipa_version("9.16"):
-            pytest.skip(
-                f"Requires delv >= 9.16(+yaml), installed: '{delv_version}'"
-            )
 
         # extract DSKEY from root zone
         ans = resolve_with_dnssec(

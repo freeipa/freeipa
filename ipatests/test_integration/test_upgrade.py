@@ -171,8 +171,10 @@ class TestUpgrade(IntegrationTest):
         print(log_conf)
         return named_conf, custom_conf, opt_conf, log_conf
 
-    @pytest.mark.skip_if_platform(
-        "debian", reason="Debian does not use crypto policy"
+    @pytest.mark.skip_if_hostplatform(
+        "master",
+        platform="debian",
+        reason="Debian does not use crypto policy",
     )
     def test_named_conf_crypto_policy(self):
         named_conf = self.master.get_file_contents(

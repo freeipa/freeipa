@@ -25,7 +25,6 @@ import re
 import contextlib
 import pytest
 
-from ipaplatform.tasks import tasks as platformtasks
 from ipapython.dn import DN
 from ipapython import ipautil
 from ipatests.test_integration.base import IntegrationTest
@@ -120,7 +119,7 @@ def check_pkcs11_modules(host):
     # Return a dictionary with key = filename, value = file content
     # containing all the PKCS11 modules modified by the installer
     result = dict()
-    for filename in platformtasks.get_pkcs11_modules():
+    for filename in host.tasks.pkcs11_modules:
         assert host.transport.file_exists(filename)
         result[filename] = host.get_file_contents(filename)
     return result
@@ -234,9 +233,9 @@ class TestBackupAndRestore(IntegrationTest):
             finally:
                 self.master.run_command(['userdel', 'ipatest_user1'])
 
-    @pytest.mark.skipif(
-        not platformtasks.is_selinux_enabled(),
-        reason="Test needs SELinux enabled")
+    @pytest.mark.skip_if_not_hostselinux(
+        "master", reason="Test needs SELinux enabled"
+    )
     def test_full_backup_and_restore_with_selinux_booleans_off(self):
         """regression test for https://fedorahosted.org/freeipa/ticket/4157"""
         with restore_checker(self.master):
