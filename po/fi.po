@@ -1,15 +1,15 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR FreeIPA Contributors
 # This file is distributed under the same license as the freeipa package.
-# Jan Kuparinen <copper_fin@hotmail.com>, 2021.
+# Jan Kuparinen <copper_fin@hotmail.com>, 2021, 2022.
 # Ricky Tigg <ricky.tigg@gmail.com>, 2021.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-11-25 18:55+0100\n"
-"PO-Revision-Date: 2021-12-23 19:16+0000\n"
-"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
+"PO-Revision-Date: 2022-01-01 15:16+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
 "Language: fi\n"
@@ -2827,7 +2827,7 @@ msgid "IPSECKEY record"
 msgstr ""
 
 msgid "Raw IPSECKEY records"
-msgstr ""
+msgstr "Raw IPSECKEY -tietueet"
 
 msgid "KEY record"
 msgstr "KEY-tietue"
@@ -3005,7 +3005,7 @@ msgid "Raw NSEC records"
 msgstr "Raw NSEC -tietueet"
 
 msgid "NSEC3 record"
-msgstr ""
+msgstr "NSEC3-tietue"
 
 msgid "Raw NSEC3 records"
 msgstr "Raw NSEC3 -tietueet"
@@ -3136,7 +3136,7 @@ msgid "Certificate Association Data"
 msgstr ""
 
 msgid "TKEY record"
-msgstr ""
+msgstr "TKEY-tietue"
 
 msgid "Raw TKEY records"
 msgstr "Raw TKEY -tietueet"
@@ -4337,13 +4337,13 @@ msgid "Managing"
 msgstr ""
 
 msgid "Users allowed to retrieve keytab"
-msgstr ""
+msgstr "Käyttäjät, joilla on oikeus noutaa avaintaulu"
 
 msgid "Groups allowed to retrieve keytab"
-msgstr ""
+msgstr "Ryhmät, joilla on oikeus noutaa avaintaulu"
 
 msgid "Hosts allowed to retrieve keytab"
-msgstr ""
+msgstr "Isäntälaitteet, joilla on oikeus noutaa avaintaulu"
 
 msgid "Host Groups allowed to retrieve keytab"
 msgstr ""
@@ -4358,7 +4358,7 @@ msgid "Hosts allowed to create keytab"
 msgstr "Isännät joiden sallitaan luoda avaintaulu"
 
 msgid "Host Groups allowed to create keytab"
-msgstr ""
+msgstr "Isäntälaitteiden ryhmät joiden sallitaan luoda avaintaulu"
 
 msgid "Add a new host."
 msgstr "Lisää uusi isäntä."
@@ -5369,9 +5369,8 @@ msgstr "Toimialueen nimi"
 msgid "IPA unique ID"
 msgstr ""
 
-#, fuzzy
 msgid "Member netgroups"
-msgstr "Omistajaryhmät"
+msgstr "Jäsen verkkoryhmät"
 
 msgid "Indirect Member netgroups"
 msgstr ""
@@ -9273,9 +9272,8 @@ msgstr "Omistajaryhmät"
 msgid "Owner groups"
 msgstr "Omistajaryhmät"
 
-#, fuzzy
 msgid "Owner services"
-msgstr "palvelut"
+msgstr "Omistajapalvelut"
 
 #, fuzzy
 msgid "Vault service"
@@ -11396,9 +11394,8 @@ msgstr ""
 msgid "Add a system permission without an ACI"
 msgstr ""
 
-#, fuzzy
 msgid "Permission type"
-msgstr "Käyttöoikeus"
+msgstr "Käyttöoikeuden tyyppi"
 
 msgid "comma-separated list of privileges to remove"
 msgstr ""
@@ -12570,7 +12567,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
-msgstr ""
+msgstr "Poistettu ACI \"%(value)s\""
 
 #, python-format
 msgid "Modified ACI \"%(value)s\""
