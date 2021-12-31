@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2021-12-25 07:16+0000\n"
-"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
+"PO-Revision-Date: 2022-01-01 15:16+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
 "Language: fi\n"
@@ -12867,7 +12867,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/dns.py:3089
 #: ipaclient/remote_plugins/2_164/dns.py:3595
 msgid "Raw IPSECKEY records"
-msgstr ""
+msgstr "Raw IPSECKEY -tietueet"
 
 #: ipaclient/remote_plugins/2_114/dns.py:572
 #: ipaclient/remote_plugins/2_114/dns.py:2122
@@ -13850,7 +13850,7 @@ msgstr "Raw NSEC -tietueet"
 #: ipaclient/remote_plugins/2_49/dns.py:2895
 #: ipaclient/remote_plugins/2_49/dns.py:3660
 msgid "NSEC3 record"
-msgstr ""
+msgstr "NSEC3-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:760
 #: ipaclient/remote_plugins/2_114/dns.py:2381
@@ -14556,7 +14556,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/dns.py:2980
 #: ipaclient/remote_plugins/2_49/dns.py:3966
 msgid "TKEY record"
-msgstr ""
+msgstr "TKEY-tietue"
 
 #: ipaclient/remote_plugins/2_114/dns.py:902
 #: ipaclient/remote_plugins/2_114/dns.py:2573
@@ -19492,7 +19492,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/service.py:133 ipaserver/plugins/host.py:212
 #: ipaserver/plugins/service.py:134
 msgid "Users allowed to retrieve keytab"
-msgstr ""
+msgstr "Käyttäjät, joilla on oikeus noutaa avaintaulu"
 
 #: ipaclient/remote_plugins/2_114/host.py:257
 #: ipaclient/remote_plugins/2_114/service.py:136
@@ -19502,7 +19502,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/service.py:137 ipaserver/plugins/host.py:215
 #: ipaserver/plugins/service.py:137
 msgid "Groups allowed to retrieve keytab"
-msgstr ""
+msgstr "Ryhmät, joilla on oikeus noutaa avaintaulu"
 
 #: ipaclient/remote_plugins/2_114/host.py:261
 #: ipaclient/remote_plugins/2_114/service.py:140
@@ -19512,7 +19512,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/service.py:141 ipaserver/plugins/host.py:218
 #: ipaserver/plugins/service.py:140
 msgid "Hosts allowed to retrieve keytab"
-msgstr ""
+msgstr "Isäntälaitteet, joilla on oikeus noutaa avaintaulu"
 
 #: ipaclient/remote_plugins/2_114/host.py:265
 #: ipaclient/remote_plugins/2_114/service.py:144
@@ -19562,7 +19562,7 @@ msgstr "Isännät joiden sallitaan luoda avaintaulu"
 #: ipaclient/remote_plugins/2_164/service.py:161 ipaserver/plugins/host.py:233
 #: ipaserver/plugins/service.py:155
 msgid "Host Groups allowed to create keytab"
-msgstr ""
+msgstr "Isäntälaitteiden ryhmät joiden sallitaan luoda avaintaulu"
 
 #: ipaclient/remote_plugins/2_114/host.py:288
 #: ipaclient/remote_plugins/2_156/host.py:289
@@ -22111,7 +22111,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/netgroup.py:91
 #: ipaserver/plugins/baseldap.py:92
 msgid "Member netgroups"
-msgstr ""
+msgstr "Jäsen verkkoryhmät"
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:102
 #: ipaclient/remote_plugins/2_156/netgroup.py:102
@@ -32615,7 +32615,7 @@ msgstr "Omistajaryhmät"
 #: ipaclient/remote_plugins/2_164/vault.py:284 ipaserver/plugins/vault.py:323
 #: ipaserver/plugins/vault.py:632
 msgid "Owner services"
-msgstr ""
+msgstr "Omistajapalvelut"
 
 #: ipaclient/remote_plugins/2_156/vault.py:223
 #: ipaclient/remote_plugins/2_156/vault.py:289
@@ -35695,7 +35695,7 @@ msgstr ""
 
 #: ipaclient/remote_plugins/2_49/permission.py:322
 msgid "Permission type"
-msgstr ""
+msgstr "Käyttöoikeuden tyyppi"
 
 #: ipaclient/remote_plugins/2_49/permission.py:682
 msgid "comma-separated list of privileges to remove"
@@ -49136,7 +49136,7 @@ msgstr ""
 #: ipaserver/plugins/aci.py:577
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
-msgstr ""
+msgstr "Poistettu ACI \"%(value)s\""
 
 #: ipaserver/plugins/aci.py:620
 #, python-format
