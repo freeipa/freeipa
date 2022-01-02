@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2021-12-25 07:16+0000\n"
+"PO-Revision-Date: 2022-01-04 09:16+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -3285,125 +3285,125 @@ msgid ""
 msgstr "형식에서 존을 위한 NSEC3PARAM 레코드: hash_algorithm 플래그 반복 솔트"
 
 msgid "Checks if any of the servers has the DNS service enabled."
-msgstr ""
+msgstr "DNS 서비스가 활성화된 서버가 있는지 확인합니다."
 
 msgid "Resolve a host name in DNS."
-msgstr ""
+msgstr "DNS에서 호스트 이름을 확인합니다."
 
 msgid "Modify global DNS configuration."
-msgstr ""
+msgstr "전역 DNS 구성을 수정합니다."
 
 msgid "Show the current global DNS configuration."
-msgstr ""
+msgstr "현재 전역 DNS 구성을 보여줍니다."
 
 msgid "Create new DNS forward zone."
-msgstr ""
+msgstr "신규 DNS 포워드 존을 생성합니다."
 
 msgid "Add a permission for per-forward zone access delegation."
-msgstr ""
+msgstr "포워드 존-당 접근 위임을 위한 권한을 추가합니다."
 
 msgid "Permission value"
-msgstr ""
+msgstr "권한 값"
 
 msgid "Delete DNS forward zone."
-msgstr ""
+msgstr "DNS 포워드 존 삭제."
 
 msgid "Disable DNS Forward Zone."
-msgstr ""
+msgstr "DNS 포워드 존 비활성화."
 
 msgid "Enable DNS Forward Zone."
-msgstr ""
+msgstr "DNS 포워드 존 활성화."
 
 msgid "Search for DNS forward zones."
-msgstr ""
+msgstr "DNS 포워드 존을 위한 검색."
 
 msgid "Modify DNS forward zone."
-msgstr ""
+msgstr "DNS 포워드 존을 수정합니다."
 
 msgid "Remove a permission for per-forward zone access delegation."
-msgstr ""
+msgstr "포워드 존-당 접근 위임을 위한 권한을 제거합니다."
 
 msgid "Display information about a DNS forward zone."
-msgstr ""
+msgstr "DNS 포워드 존에 대하여 정보를 표시합니다."
 
 msgid "Add new DNS resource record."
-msgstr ""
+msgstr "신규 DNS 리소스 레코드를 추가합니다."
 
 #: ipaserver/plugins/realmdomains.py:151 ipaserver/plugins/service.py:628
 #: ipaserver/plugins/permission.py:1061 ipaserver/plugins/host.py:667
 #: ipaserver/plugins/dns.py:2881 ipaserver/plugins/dns.py:3569
 msgid "Force"
-msgstr ""
+msgstr "강제"
 
 msgid "force NS record creation even if its hostname is not in DNS"
-msgstr ""
+msgstr "만약 호스트 이름이 DNS에 없는 경우에도 강제 NS 레코드 생성"
 
 msgid "Structured"
-msgstr ""
+msgstr "구조화"
 
 msgid "Parse all raw DNS records and return them in a structured way"
-msgstr ""
+msgstr "모든 단순 DNS 레코드 구문분석과 구조화된 방식에서 이를 반환"
 
 msgid "Delete DNS resource record."
-msgstr ""
+msgstr "DNS 리소스 레코드 삭제."
 
 msgid "Delete all associated records"
-msgstr ""
+msgstr "모든 연관 레코드를 삭제"
 
 msgid "Delete DNS record entry."
-msgstr ""
+msgstr "DNS 레코드 항목 삭제."
 
 msgid "Search for DNS resources."
-msgstr ""
+msgstr "DNS 리소스를 위한 검색."
 
 msgid "Modify a DNS resource record."
-msgstr ""
+msgstr "DNS 리소스 레코드를 수정."
 
 msgid "Rename the DNS resource record object"
-msgstr ""
+msgstr "DNS 리소스 레코드 객체를 재지정합니다"
 
 msgid "Display DNS resource."
-msgstr ""
+msgstr "DNS 리소스 표시."
 
 msgid "Create new DNS zone (SOA record)."
-msgstr ""
+msgstr "신규 DNS 존 생성 (SOA 레코드)."
 
 msgid "Force DNS zone creation even if nameserver is not resolvable."
-msgstr ""
+msgstr "만약 네임서버를 확인 할 수 없는 경우에도 DNS 존 생성을 강제합니다."
 
 msgid "Add a permission for per-zone access delegation."
-msgstr ""
+msgstr "존-별 접근 위임을 위한 권한을 추가합니다."
 
 msgid "Delete DNS zone (SOA record)."
-msgstr ""
+msgstr "DNS 존 삭제 (SOA 레코드)."
 
 msgid "Disable DNS Zone."
-msgstr ""
+msgstr "DNS 존 비활성화."
 
 msgid "Enable DNS Zone."
-msgstr ""
+msgstr "DNS 존 활성화."
 
 #: ipaserver/plugins/dns.py:2920
 msgid "Search for DNS zones (SOA records)."
-msgstr ""
+msgstr "DNS 존을 위한 검사 (SOA 레코드)."
 
 msgid "Forward zones only"
-msgstr ""
+msgstr "포워드 존 전용"
 
 msgid "Search for forward zones only"
-msgstr ""
+msgstr "포워드 존 전용을 위한 검색"
 
 msgid "Modify DNS zone (SOA record)."
-msgstr ""
+msgstr "DNS 존 수정 (SOA 레코드)."
 
 msgid "Force nameserver change even if nameserver not in DNS"
-msgstr ""
+msgstr "만약 네임서버가 DNS가 아니라면 네임서버 변경 강제"
 
 msgid "Remove a permission for per-zone access delegation."
-msgstr ""
+msgstr "존-별 접근 위임을 위한 권한을 제거."
 
 msgid "Display information about a DNS zone (SOA record)."
-msgstr ""
+msgstr "DNS 존에 대하여 정보를 표시 (SOA 레코드)."
 
 #: ipaserver/plugins/hbacrule.py:39
 msgid ""
@@ -3551,7 +3551,7 @@ msgstr "새로운 HBAC 규칙을 생성합니다."
 
 #: ipaserver/plugins/cert.py:1344 ipaserver/plugins/baseldap.py:1215
 msgid "Suppress processing of membership attributes."
-msgstr ""
+msgstr "멤버쉽 속성의 처리를 억제합니다."
 
 #: ipaserver/plugins/hbacrule.py:534
 msgid "Add target hosts and hostgroups to an HBAC rule."
