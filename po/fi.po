@@ -2,14 +2,14 @@
 # Copyright (C) YEAR FreeIPA Contributors
 # This file is distributed under the same license as the freeipa package.
 # Jan Kuparinen <copper_fin@hotmail.com>, 2021, 2022.
-# Ricky Tigg <ricky.tigg@gmail.com>, 2021.
+# Ricky Tigg <ricky.tigg@gmail.com>, 2021, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-11-25 18:55+0100\n"
-"PO-Revision-Date: 2022-01-01 15:16+0000\n"
-"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
+"PO-Revision-Date: 2022-01-04 09:16+0000\n"
+"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
 "Language: fi\n"
@@ -17054,9 +17054,8 @@ msgstr ""
 msgid "Delete"
 msgstr "Poista"
 
-#, fuzzy
 msgid "Remove hold"
-msgstr "Poista rooleja"
+msgstr "Poista pito"
 
 msgid "Reset"
 msgstr "Nollaa"
@@ -17963,9 +17962,8 @@ msgstr ""
 msgid "SHA1 Fingerprint"
 msgstr "SHA1-sormenjälki"
 
-#, fuzzy
 msgid "SHA256 Fingerprint"
-msgstr "Sormenjälki"
+msgstr "SHA256-sormenjälki"
 
 msgid "Superseded"
 msgstr ""
@@ -17983,7 +17981,7 @@ msgid "Valid to"
 msgstr ""
 
 msgid "Validity"
-msgstr ""
+msgstr "Oikeellisuus"
 
 #, python-brace-format
 msgid "Certificate for ${entity} ${primary_key}"
@@ -18547,9 +18545,8 @@ msgstr "OTP-tunnus"
 msgid "Set One-Time Password"
 msgstr "Kertakäyttöinen salasana"
 
-#, fuzzy
 msgid "Remove hosts"
-msgstr "Poista rooleja"
+msgstr "Poista isännät"
 
 #, python-brace-format
 msgid "Remove hosts managing host '${primary_key}'"
@@ -18793,9 +18790,8 @@ msgstr ""
 msgid "Netgroup Settings"
 msgstr "Verkkoryhmän kuvaus"
 
-#, fuzzy
 msgid "Netgroups"
-msgstr "ryhmät"
+msgstr "Verkkoryhmät"
 
 #, fuzzy
 msgid "Remove netgroups"
@@ -19040,9 +19036,8 @@ msgstr ""
 msgid "Server Roles"
 msgstr "Palvelinrooleja"
 
-#, fuzzy
 msgid "Server Role"
-msgstr "Palvelimen nimi"
+msgstr "Palvelimen rooli"
 
 msgid "Warning: Consider service replication"
 msgstr ""
@@ -20235,9 +20230,8 @@ msgstr "sijainti"
 msgid "IPA Locations"
 msgstr "IPA sijainnit"
 
-#, fuzzy
 msgid "IPA Location"
-msgstr "Sijainti"
+msgstr "IPA-sijainti"
 
 #, fuzzy
 msgid "Location name"
@@ -23681,9 +23675,8 @@ msgstr ""
 msgid "sudo rules"
 msgstr "sudo-säännöt"
 
-#, fuzzy
 msgid "Sudo Rules"
-msgstr "Säännöt"
+msgstr "sudo-säännöt"
 
 msgid "Sudo Rule"
 msgstr ""
