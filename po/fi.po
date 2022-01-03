@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2022-01-01 15:16+0000\n"
-"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
+"PO-Revision-Date: 2022-01-04 09:16+0000\n"
+"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
 "Language: fi\n"
@@ -42099,7 +42099,7 @@ msgstr "sudo-säännöt"
 
 #: ipaserver/plugins/sudorule.py:227
 msgid "Sudo Rules"
-msgstr ""
+msgstr "sudo-säännöt"
 
 #: ipaserver/plugins/sudorule.py:228
 msgid "Sudo Rule"
@@ -44608,7 +44608,7 @@ msgstr "Poista"
 
 #: ipaserver/plugins/internal.py:228 ipaserver/plugins/internal.py:684
 msgid "Remove hold"
-msgstr ""
+msgstr "Poista pito"
 
 #: ipaserver/plugins/internal.py:229
 msgid "Reset"
@@ -45749,7 +45749,7 @@ msgstr "SHA1-sormenjälki"
 
 #: ipaserver/plugins/internal.py:699
 msgid "SHA256 Fingerprint"
-msgstr ""
+msgstr "SHA256-sormenjälki"
 
 #: ipaserver/plugins/internal.py:700 ipaserver/plugins/internal.py:1030
 #: ipaserver/plugins/internal.py:1332 ipaserver/plugins/internal.py:1916
@@ -45779,7 +45779,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:706
 msgid "Validity"
-msgstr ""
+msgstr "Oikeellisuus"
 
 #: ipaserver/plugins/internal.py:707
 #, python-brace-format
@@ -46468,7 +46468,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1011
 msgid "Remove hosts"
-msgstr ""
+msgstr "Poista isännät"
 
 #: ipaserver/plugins/internal.py:1013
 #, python-brace-format
@@ -46770,7 +46770,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1165 ipaserver/plugins/netgroup.py:196
 msgid "Netgroups"
-msgstr ""
+msgstr "Verkkoryhmät"
 
 #: ipaserver/plugins/internal.py:1166
 msgid "Remove netgroups"
@@ -47055,7 +47055,7 @@ msgstr "Palvelinrooleja"
 
 #: ipaserver/plugins/internal.py:1302
 msgid "Server Role"
-msgstr ""
+msgstr "Palvelimen rooli"
 
 #: ipaserver/plugins/internal.py:1305
 msgid "Warning: Consider service replication"
@@ -48727,7 +48727,7 @@ msgstr "IPA sijainnit"
 
 #: ipaserver/plugins/location.py:70
 msgid "IPA Location"
-msgstr ""
+msgstr "IPA-sijainti"
 
 #: ipaserver/plugins/location.py:103
 msgid "Location name"
