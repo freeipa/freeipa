@@ -566,7 +566,7 @@ class automember_default_group(automember):
 
     def get_params(self):
         for param in super(automember_default_group, self).get_params():
-            if param.name == 'cn':
+            if param.name == 'cn' or param.name == 'description':
                 continue
             yield param
 

@@ -136,9 +136,8 @@ output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automember_default_group_remove/1
-args: 0,5,3
+args: 0,4,3
 option: Flag('all', autofill=True, cli_name='all', default=False)
-option: Str('description?', autofill=False, cli_name='desc')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: StrEnum('type', values=[u'group', u'hostgroup'])
 option: Str('version?')
@@ -146,10 +145,9 @@ output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('value', type=[<type 'unicode'>])
 command: automember_default_group_set/1
-args: 0,6,3
+args: 0,5,3
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('automemberdefaultgroup', cli_name='default_group')
-option: Str('description?', autofill=False, cli_name='desc')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: StrEnum('type', values=[u'group', u'hostgroup'])
 option: Str('version?')
