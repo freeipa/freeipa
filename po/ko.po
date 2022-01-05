@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-01-04 09:16+0000\n"
+"PO-Revision-Date: 2022-01-06 05:16+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -4548,10 +4548,10 @@ msgid "The IPA realm"
 msgstr ""
 
 msgid "Hardware platform of the host (e.g. Lenovo T61)"
-msgstr ""
+msgstr "호스트의 하드웨어 기술환경 (예. 레노버 T61)"
 
 msgid "Operating System and version of the host (e.g. Fedora 9)"
-msgstr ""
+msgstr "호스트의 운영체제와 버전 (예. 페도라 9)"
 
 #: ipaserver/plugins/krbtpolicy.py:27
 msgid ""
@@ -4599,35 +4599,35 @@ msgstr "사용자 이름"
 
 #: ipaserver/plugins/krbtpolicy.py:135
 msgid "Manage ticket policy for specific user"
-msgstr ""
+msgstr "특정 사용자를 위한 티켓 정책 관리"
 
 #: ipaserver/plugins/krbtpolicy.py:140
 msgid "Max life"
-msgstr ""
+msgstr "최대 수명"
 
 #: ipaserver/plugins/krbtpolicy.py:141
 msgid "Maximum ticket life (seconds)"
-msgstr ""
+msgstr "최대 티켓 수명 (초)"
 
 #: ipaserver/plugins/krbtpolicy.py:146
 msgid "Max renew"
-msgstr ""
+msgstr "최대 갱신"
 
 #: ipaserver/plugins/krbtpolicy.py:147
 msgid "Maximum renewable age (seconds)"
-msgstr ""
+msgstr "최대 재생 가능 수명 (초)"
 
 #: ipaserver/plugins/krbtpolicy.py:221
 msgid "Modify Kerberos ticket policy."
-msgstr ""
+msgstr "커버러스 티켓 정책을 수정합니다."
 
 #: ipaserver/plugins/krbtpolicy.py:300
 msgid "Reset Kerberos ticket policy to the default values."
-msgstr ""
+msgstr "커버러스 티켓 정책을 기본 값으로 재지정."
 
 #: ipaserver/plugins/krbtpolicy.py:246
 msgid "Display the current Kerberos ticket policy."
-msgstr ""
+msgstr "현재 커버러스 티켓 정책을 표시합니다."
 
 msgid ""
 "\n"
