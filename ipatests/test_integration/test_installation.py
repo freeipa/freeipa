@@ -34,6 +34,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
+from ipatests.test_integration.test_cert import get_certmonger_fs_id
 from ipaplatform import services
 
 
@@ -1916,3 +1917,65 @@ class TestInstallWithoutNamed(IntegrationTest):
         tasks.install_replica(
             self.master, self.replicas[0], setup_ca=False, setup_dns=False
         )
+
+
+class TestInstallwithSHA384withRSA(IntegrationTest):
+    num_replicas = 0
+
+    def test_install_master_withalgo_sha384withrsa(self, server_cleanup):
+        tasks.install_master(
+            self.master,
+            extra_args=['--ca-signing-algorithm=SHA384withRSA'],
+        )
+
+        # check Signing Algorithm post installation
+        dashed_domain = self.master.domain.realm.replace(".", '-')
+        cmd_args = ['certutil', '-L', '-d',
+                    '/etc/dirsrv/slapd-{}/'.format(dashed_domain),
+                    '-n', 'Server-Cert']
+        result = self.master.run_command(cmd_args)
+        assert 'SHA-384 With RSA Encryption' in result.stdout_text
+
+    def test_install_master_modify_existing(self, server_cleanup):
+        """
+        Setup a master
+        Stop services
+        Modify default.params.signingAlg in CS.cfg
+        Restart services
+        Resubmit cert (Resubmitted cert should have new Algorithm)
+        """
+        tasks.install_master(self.master)
+        self.master.run_command(['ipactl', 'stop'])
+        cs_cfg_content = self.master.get_file_contents(paths.CA_CS_CFG_PATH,
+                                                       encoding='utf-8')
+        new_lines = []
+        replace_str = "ca.signing.defaultSigningAlgorithm=SHA384withRSA"
+        ocsp_rep_str = "ca.ocsp_signing.defaultSigningAlgorithm=SHA384withRSA"
+        for line in cs_cfg_content.split('\n'):
+            if line.startswith('ca.signing.defaultSigningAlgorithm'):
+                new_lines.append(replace_str)
+            elif line.startswith('ca.ocsp_signing.defaultSigningAlgorithm'):
+                new_lines.append(ocsp_rep_str)
+            else:
+                new_lines.append(line)
+        self.master.put_file_contents(paths.CA_CS_CFG_PATH,
+                                      '\n'.join(new_lines))
+        self.master.run_command(['ipactl', 'start'])
+
+        cmd = ['getcert', 'list', '-f', paths.RA_AGENT_PEM]
+        result = self.master.run_command(cmd)
+        request_id = get_certmonger_fs_id(result.stdout_text)
+
+        # resubmit RA Agent cert
+        cmd = ['getcert', 'resubmit', '-f', paths.RA_AGENT_PEM]
+        self.master.run_command(cmd)
+
+        tasks.wait_for_certmonger_status(self.master,
+                                         ('CA_WORKING', 'MONITORING'),
+                                         request_id)
+
+        cmd_args = ['openssl', 'x509', '-in',
+                    paths.RA_AGENT_PEM, '-noout', '-text']
+        result = self.master.run_command(cmd_args)
+        assert_str = 'Signature Algorithm: sha384WithRSAEncryption'
+        assert assert_str in result.stdout_text
