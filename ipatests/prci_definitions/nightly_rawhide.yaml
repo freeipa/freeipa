@@ -601,6 +601,19 @@ jobs:
         timeout: 4800
         topology: *master_1repl
 
+  fedora-rawhide/test_installation_TestInstallwithSHA384withRSA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestInstallwithSHA384withRSA
+        template: *ci-master-frawhide
+        timeout: 3600
+        topology: *master_1repl
+
   fedora-rawhide/test_idviews:
     requires: [fedora-rawhide/build]
     priority: 50
