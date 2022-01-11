@@ -101,9 +101,13 @@ dnl ---------------------------------------------------------------------------
 
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$NSPR_CFLAGS $NSS_CFLAGS"
-AC_CHECK_LIB([ldap_r], [ldap_search], [ ], AC_MSG_ERROR([libldap_r not found]))
-AC_CHECK_LIB([lber], [ber_peek_tag], [ ], AC_MSG_ERROR([liblber not found]))
-LDAP_LIBS="-lldap_r -llber"
+SAVE_LIBS="$LIBS"
+LIBS=
+AC_SEARCH_LIBS([ldap_search], [ldap_r ldap], [], [AC_MSG_ERROR([libldap or libldap_r not found])])
+AC_SEARCH_LIBS([ber_peek_tag], [lber], [], [AC_MSG_ERROR([liblber not found])])
+LDAP_LIBS="$LIBS"
+LDAP_CFLAGS=""
+LIBS="$SAVE_LIBS"
 LDAP_CFLAGS=""
 AC_SUBST(LDAP_LIBS)
 AC_SUBST(LDAP_CFLAGS)
