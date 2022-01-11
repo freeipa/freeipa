@@ -1408,6 +1408,19 @@ jobs:
         timeout: 4800
         topology: *ipaserver
 
+  fedora-rawhide/test_webui_subid:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_webui/test_subid.py
+        template: *ci-master-frawhide
+        timeout: 2400
+        topology: *ipaserver
+
   fedora-rawhide/customized_ds_config_install:
     requires: [fedora-rawhide/build]
     priority: 50
