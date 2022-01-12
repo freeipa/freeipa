@@ -1395,6 +1395,19 @@ jobs:
         timeout: 4800
         topology: *ipaserver
 
+  fedora-latest-ipa-4-9/test_webui_subid:
+    requires: [fedora-latest-ipa-4-9/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-latest-ipa-4-9/build_url}'
+        selinux_enforcing: True
+        test_suite: test_webui/test_subid.py
+        template: *ci-ipa-4-9-latest
+        timeout: 2400
+        topology: *ipaserver
+
   fedora-latest-ipa-4-9/customized_ds_config_install:
     requires: [fedora-latest-ipa-4-9/build]
     priority: 50
