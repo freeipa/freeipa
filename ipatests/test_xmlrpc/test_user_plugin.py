@@ -222,6 +222,7 @@ class TestUser(XMLRPC_test):
                 krblastfailedauth=[u'N/A'],
                 krblastsuccessfulauth=[u'N/A'],
                 krbloginfailedcount=u'0',
+                passwordgraceusertime=u'0',
                 now=isodate_re.match,
                 server=api.env.host,
                 ), ],

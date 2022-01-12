@@ -5,6 +5,7 @@ SUBDIRS =			\
 	ipa-cldap		\
 	ipa-dns			\
 	ipa-enrollment		\
+	ipa-graceperiod		\
 	ipa-lockout		\
 	ipa-modrdn		\
 	ipa-otp-counter		\
