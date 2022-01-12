@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-# Last change: add idp API
-define(IPA_API_VERSION_MINOR, 247)
+# Last change: add graceperiodlimit
+define(IPA_API_VERSION_MINOR, 248)
 
 ########################################################
 # Following values are auto-generated from values above

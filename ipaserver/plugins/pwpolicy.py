@@ -244,7 +244,7 @@ class pwpolicy(LDAPObject):
         'krbpwdmaxfailure', 'krbpwdfailurecountinterval',
         'krbpwdlockoutduration', 'ipapwdmaxrepeat',
         'ipapwdmaxsequence', 'ipapwddictcheck',
-        'ipapwdusercheck',
+        'ipapwdusercheck', 'passwordgracelimit',
     ]
     managed_permissions = {
         'System: Read Group Password Policy': {
@@ -257,7 +257,7 @@ class pwpolicy(LDAPObject):
                 'krbpwdlockoutduration', 'krbpwdmaxfailure',
                 'krbpwdmindiffchars', 'krbpwdminlength', 'objectclass',
                 'ipapwdmaxrepeat', 'ipapwdmaxsequence', 'ipapwddictcheck',
-                'ipapwdusercheck',
+                'ipapwdusercheck', 'passwordgracelimit',
             },
             'default_privileges': {
                 'Password Policy Readers',
@@ -285,7 +285,7 @@ class pwpolicy(LDAPObject):
                 'krbpwdhistorylength', 'krbpwdlockoutduration',
                 'krbpwdmaxfailure', 'krbpwdmindiffchars', 'krbpwdminlength',
                 'ipapwdmaxrepeat', 'ipapwdmaxsequence', 'ipapwddictcheck',
-                'ipapwdusercheck',
+                'ipapwdusercheck', 'passwordgracelimit',
             },
             'replaces': [
                 '(targetattr = "krbmaxpwdlife || krbminpwdlife || krbpwdhistorylength || krbpwdmindiffchars || krbpwdminlength || krbpwdmaxfailure || krbpwdfailurecountinterval || krbpwdlockoutduration")(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Modify Group Password Policy";allow (write) groupdn = "ldap:///cn=Modify Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -395,6 +395,15 @@ class pwpolicy(LDAPObject):
             label=_('User check'),
             doc=_('Check if the password contains the username'),
             default=False,
+        ),
+        Int(
+            'passwordgracelimit?',
+            cli_name='gracelimit',
+            label=_('Grace login limit'),
+            doc=_('Number of LDAP authentications allowed after expiration'),
+            minvalue=-1,
+            maxvalue=Int.MAX_UINT32,
+            default=0,
         ),
     )
 
