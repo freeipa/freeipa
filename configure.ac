@@ -646,6 +646,7 @@ AC_CONFIG_FILES([
     daemons/ipa-slapi-plugins/ipa-cldap/Makefile
     daemons/ipa-slapi-plugins/ipa-dns/Makefile
     daemons/ipa-slapi-plugins/ipa-enrollment/Makefile
+    daemons/ipa-slapi-plugins/ipa-graceperiod/Makefile
     daemons/ipa-slapi-plugins/ipa-lockout/Makefile
     daemons/ipa-slapi-plugins/ipa-otp-counter/Makefile
     daemons/ipa-slapi-plugins/ipa-otp-lasttoken/Makefile

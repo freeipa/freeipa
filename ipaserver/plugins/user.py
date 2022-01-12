@@ -1189,6 +1189,9 @@ class userstatus(LDAPObject):
             label=_('Time now'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
+        Str('passwordgraceusertime',
+            label=_('Password grace count'),
+            flags={'no_create', 'no_update', 'no_search'},),
     )
 
 
@@ -1230,7 +1233,9 @@ class user_status(LDAPQuery):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
         dn, _oc = self.api.Object.user.get_either_dn(*keys, **options)
-        attr_list = ['krbloginfailedcount', 'krblastsuccessfulauth', 'krblastfailedauth', 'nsaccountlock']
+        attr_list = ['krbloginfailedcount', 'krblastsuccessfulauth',
+                     'krblastfailedauth', 'nsaccountlock',
+                     'passwordgraceusertime']
 
         disabled = False
         masters = get_masters(ldap)
@@ -1258,6 +1263,8 @@ class user_status(LDAPQuery):
                 for attr in ['krblastsuccessfulauth', 'krblastfailedauth']:
                     newresult[attr] = entry.get(attr, [u'N/A'])
                 newresult['krbloginfailedcount'] = entry.get('krbloginfailedcount', u'0')
+                newresult['passwordgraceusertime'] = \
+                    entry.get('passwordgraceusertime', u'0')
                 if not options.get('raw', False):
                     for attr in ['krblastsuccessfulauth', 'krblastfailedauth']:
                         try:
