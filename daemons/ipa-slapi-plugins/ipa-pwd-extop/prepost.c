@@ -1071,6 +1071,7 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
     struct ipapwd_krbcfg *krbcfg = NULL;
     char *principal = NULL;
     Slapi_Value *ipahost;
+    Slapi_Value *zero;
 
     LOG_TRACE("=>\n");
 
@@ -1167,6 +1168,13 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
         }
         slapi_value_free(&ipahost);
     }
+    zero = slapi_value_new_string("0");
+    if (!slapi_entry_attr_has_syntax_value(pwdop->pwdata.target,
+                                   "passwordgraceusertime", zero)) {
+        /* Clear the passwordgraceusertime from the user entry */
+        slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "passwordgraceusertime", "0");
+    }
+    slapi_value_free(&zero);
 
     ret = ipapwd_apply_mods(pwdop->pwdata.dn, smods);
     if (ret)

@@ -20,6 +20,7 @@ class TestPWPolicy(IntegrationTest):
     """
     Test password policy in action.
     """
+    num_replicas = 1
 
     topology = 'line'
 
@@ -261,3 +262,92 @@ class TestPWPolicy(IntegrationTest):
         )
         assert result.returncode != 0
         assert 'minlength' in result.stderr_text
+
+    def test_graceperiod_expired(self):
+        """Test the LDAP bind grace period"""
+        str(self.master.domain.basedn)
+        dn = "uid={user},cn=users,cn=accounts,{base_dn}".format(
+             user=USER, base_dn=str(self.master.domain.basedn))
+
+        self.master.run_command(
+            ["ipa", "pwpolicy-mod", POLICY, "--gracelimit", "3", ],
+        )
+
+        # Resetting the password will mark it as expired
+        self.reset_password(self.master)
+
+        for i in range(2, -1, -1):
+            result = self.master.run_command(
+                ["ldapsearch", "-e", "ppolicy", "-D", dn,
+                 "-w", PASSWORD, "-b", dn], raiseonerr=False
+            )
+            # We're in grace, this will succeed
+            assert result.returncode == 0
+
+            # verify that we get the expected ppolicy output
+            assert 'Password expired, {} grace logins remain'.format(i) \
+                in result.stderr_text
+
+        # Now grace is done and binds should fail.
+        result = self.master.run_command(
+            ["ldapsearch", "-e", "ppolicy", "-D", dn,
+             "-w", PASSWORD, "-b", dn], raiseonerr=False
+        )
+        assert result.returncode == 49
+
+        assert 'Password is expired' in result.stderr_text
+        assert 'Password expired, 0 grace logins remain' in result.stderr_text
+
+        # Test that resetting the password resets the grace counter
+        self.reset_password(self.master)
+        result = tasks.ldapsearch_dm(
+            self.master, dn, ['passwordgraceusertime',],
+        )
+
+        assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
+
+    def test_graceperiod_not_replicated(self):
+        """Test that the grace period is reset on password reset"""
+        str(self.master.domain.basedn)
+        dn = "uid={user},cn=users,cn=accounts,{base_dn}".format(
+             user=USER, base_dn=str(self.master.domain.basedn))
+
+        self.master.run_command(
+            ["ipa", "pwpolicy-mod", POLICY, "--gracelimit", "3", ],
+        )
+
+        # Resetting the password will mark it as expired
+        self.reset_password(self.master)
+
+        # Generate some logins but don't exceed the limit
+        for _i in range(2, -1, -1):
+            result = self.master.run_command(
+                ["ldapsearch", "-e", "ppolicy", "-D", dn,
+                 "-w", PASSWORD, "-b", dn], raiseonerr=False
+            )
+
+        # Verify that passwordgraceusertime is not replicated
+        result = tasks.ldapsearch_dm(
+            self.master, dn, ['passwordgraceusertime',],
+        )
+        assert 'passwordgraceusertime: 2' in result.stdout_text.lower()
+
+        result = tasks.ldapsearch_dm(
+            self.replicas[0], dn, ['passwordgraceusertime',],
+        )
+        assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
+
+        self.reset_password(self.master)
+
+        # Resetting the password should reset passwordgraceusertime
+        result = tasks.ldapsearch_dm(
+            self.master, dn, ['passwordgraceusertime',],
+        )
+        assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
+        self.reset_password(self.master)
+
+        result = tasks.ldapsearch_dm(
+            self.replicas[0], dn, ['passwordgraceusertime',],
+        )
+        assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
+        self.reset_password(self.master)
