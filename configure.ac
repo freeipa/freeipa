@@ -293,6 +293,9 @@ AM_COND_IF([BUILD_IPA_CERTAUTH_PLUGIN], [
 AM_CONDITIONAL([BUILD_IPA_KDCPOLICY_PLUGIN],
                [test x$have_kdcpolicy_plugin = xyes])
 
+AM_CONDITIONAL([BUILD_IPA_ISSUE_PAC],
+               [test x$have_kdb_issue_pac = xyes])
+
 dnl ---------------------------------------------------------------------------
 dnl - Check for program paths
 dnl ---------------------------------------------------------------------------
