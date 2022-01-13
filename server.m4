@@ -75,6 +75,15 @@ AC_SUBST(KRAD_LIBS)
 AC_SUBST(krb5rundir)
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for KRB5 KDB API issue_pac support
+dnl ---------------------------------------------------------------------------
+
+AC_CHECK_HEADER(kdb.h, [], [AC_MSG_ERROR([kdb.h not found])])
+AC_CHECK_MEMBER([kdb_vftabl.issue_pac],
+                [have_kdb_issue_pac=yes],
+                [have_kdb_issue_pac=no])
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for UUID library
 dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES([UUID], [uuid])
