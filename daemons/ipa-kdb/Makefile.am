@@ -33,13 +33,19 @@ ipadb_la_SOURCES = 		\
 	ipa_kdb_passwords.c	\
 	ipa_kdb_principals.c	\
 	ipa_kdb_pwdpolicy.c	\
-	ipa_kdb_mspac.c		\
+	ipa_kdb_mspac.c	\
 	ipa_kdb_mspac_private.h	\
 	ipa_kdb_delegation.c	\
 	ipa_kdb_audit_as.c	\
 	$(NULL)
 
 dist_noinst_DATA = ipa_kdb.exports
+
+if BUILD_IPA_ISSUE_PAC
+ipadb_la_SOURCES += ipa_kdb_mspac_v9.c
+else
+ipadb_la_SOURCES += ipa_kdb_mspac_v6.c
+endif
 
 if BUILD_IPA_CERTAUTH_PLUGIN
 ipadb_la_SOURCES += ipa_kdb_certauth.c
