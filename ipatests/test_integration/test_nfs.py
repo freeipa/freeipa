@@ -323,7 +323,9 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         if no_sssd:
             assert after_ipa_client_automount == ['files', 'ldap']
         else:
-            assert after_ipa_client_automount == ['sss', 'files']
+            # The default order depends on the authselect version
+            # but we only care about the list of sources, not their order
+            assert sorted(after_ipa_client_automount) == ['files', 'sss']
 
         cmd = self.clients[0].run_command(grep_automount_command)
         assert cmd.stdout_text.split() == after_ipa_client_automount
