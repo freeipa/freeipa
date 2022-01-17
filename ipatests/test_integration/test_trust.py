@@ -62,11 +62,12 @@ class BaseTestTrust(IntegrationTest):
         cls.check_sid_generation()
         tasks.sync_time(cls.master, cls.ad)
 
-        cls.child_ad = cls.ad_subdomains[0]
-        cls.ad_subdomain = cls.child_ad.domain.name
-        cls.tree_ad = cls.ad_treedomains[0]
-        cls.ad_treedomain = cls.tree_ad.domain.name
-
+        if cls.num_ad_subdomains > 0:
+            cls.child_ad = cls.ad_subdomains[0]
+            cls.ad_subdomain = cls.child_ad.domain.name
+        if cls.num_ad_treedomains > 0:
+            cls.tree_ad = cls.ad_treedomains[0]
+            cls.ad_treedomain = cls.tree_ad.domain.name
         # values used in workaround for
         # https://bugzilla.redhat.com/show_bug.cgi?id=1711958
         cls.srv_gc_record_name = \
@@ -105,6 +106,63 @@ class BaseTestTrust(IntegrationTest):
         assert expected_text in result.stdout_text
         expected_text = 'iparangetype: %s\n' % expected_type
         assert expected_text in result.stdout_text
+
+    def mod_idrange_auto_private_group(
+        self, option='false'
+    ):
+        """
+        Set the auto-private-group option of the default trusted
+        AD domain range.
+        """
+        tasks.kinit_admin(self.master)
+        rangename = self.ad_domain.upper() + '_id_range'
+        error_msg = "ipa: ERROR: no modifications to be performed"
+        cmd = ["ipa", "idrange-mod", rangename,
+               "--auto-private-groups", option]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        if result.returncode != 0:
+            tasks.assert_error(result, error_msg)
+        tasks.clear_sssd_cache(self.master)
+        tasks.clear_sssd_cache(self.clients[0])
+        test = self.master.run_command(["ipa", "idrange-show", rangename])
+        assert "Auto private groups: {0}".format(option) in test.stdout_text
+
+    def get_user_id(self, host, username):
+        """
+        User uid gid is parsed from the output of id user command.
+        """
+        tasks.clear_sssd_cache(self.master)
+        tasks.clear_sssd_cache(self.clients[0])
+        self.master.run_command(["id", username])
+        test_id = host.run_command(["id", username])
+        regex = r"^uid=(?P<uid>\d+).*gid=(?P<gid>\d+).*groups=(?P<groups>\d+)"
+        match = re.match(regex, test_id.stdout_text)
+        uid = match.group('uid')
+        gid = match.group('gid')
+        return uid, gid
+
+    @contextmanager
+    def set_idoverrideuser(self, user, uid, gid):
+        """
+        Fixture to add/remove idoverrideuser for default idview,
+        also creates idm group with the provided gid because
+        gid overrides requires an existing group.
+        """
+        tasks.clear_sssd_cache(self.master)
+        tasks.clear_sssd_cache(self.clients[0])
+        tasks.kinit_admin(self.master)
+        try:
+            args = ["ipa", "idoverrideuser-add", "Default Trust View",
+                    "--gid", gid, "--uid", uid, user]
+            self.master.run_command(args)
+            tasks.group_add(self.master, "idgroup",
+                            extra_args=["--gid", gid])
+            yield
+        finally:
+            self.master.run_command([
+                "ipa", "idoverrideuser-del", "Default Trust View", user]
+            )
+            self.master.run_command(["ipa", "group-del", "idgroup"])
 
     def remove_trust(self, ad):
         tasks.remove_trust_with_ad(self.master,
@@ -993,3 +1051,177 @@ class TestTrust(BaseTestTrust):
             self.master.run_command(['rm', '-f', ad_zone_file])
             tasks.configure_dns_for_trust(self.master, self.ad)
             self.remove_trust(self.ad)
+
+
+class TestNonPosixAutoPrivateGroup(BaseTestTrust):
+    """
+    Tests for auto-private-groups option with non posix AD trust
+    Related : https://pagure.io/freeipa/issue/8807
+    """
+    topology = 'line'
+    num_ad_domains = 1
+    num_clients = 1
+    num_ad_subdomains = 0
+    num_ad_treedomains = 0
+    uid_override = "99999999"
+    gid_override = "78878787"
+
+    def test_add_nonposix_trust(self):
+        tasks.configure_dns_for_trust(self.master, self.ad)
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust'])
+
+    @pytest.mark.parametrize('type', ['hybrid', 'true', "false"])
+    def test_auto_private_groups_default_trusted_range(self, type):
+        """
+        Modify existing range for default trusted AD domain range
+        with auto-private-groups set as true/hybrid/false and test
+        user with no posix attributes.
+        """
+        self.mod_idrange_auto_private_group(type)
+        nonposixuser = "nonposixuser@%s" % self.ad_domain
+        (uid, gid) = self.get_user_id(self.clients[0], nonposixuser)
+        if type == "true":
+            assert uid == gid
+        else:
+            test_group = self.clients[0].run_command(["id", nonposixuser])
+            gid_str = "gid={0}(domain users@{1})".format(gid, self.ad_domain)
+            grp_str = "groups={0}(domain users@{1})".format(gid,
+                                                            self.ad_domain)
+            assert gid_str in test_group.stdout_text
+            assert grp_str in test_group.stdout_text
+            assert uid != gid
+
+    @pytest.mark.parametrize('type', ['hybrid', 'true', "false"])
+    def test_idoverride_with_auto_private_group(self, type):
+        """
+        Override ad trusted user in default trust view
+        and set auto-private-groups=[hybrid,true,false]
+        and ensure that overridden values takes effect.
+        """
+        nonposixuser = "nonposixuser@%s" % self.ad_domain
+        with self.set_idoverrideuser(nonposixuser,
+                                     self.uid_override,
+                                     self.gid_override
+                                     ):
+            self.mod_idrange_auto_private_group(type)
+            (uid, gid) = self.get_user_id(self.clients[0], nonposixuser)
+            assert (uid == self.uid_override and gid == self.gid_override)
+            test_group = self.clients[0].run_command(
+                ["id", nonposixuser]).stdout_text
+            assert "domain users@{0}".format(self.ad_domain) in test_group
+
+    @pytest.mark.parametrize('type', ['hybrid', 'true', "false"])
+    def test_nonposixuser_nondefault_primary_group(self, type):
+        """
+        Test for non default primary group.
+        For hybrid/false gid corresponds to the group testgroup1.
+        """
+        nonposixuser1 = "nonposixuser1@%s" % self.ad_domain
+        self.mod_idrange_auto_private_group(type)
+        (uid, gid) = self.get_user_id(self.clients[0], nonposixuser1)
+        if type == "true":
+            assert uid == gid
+        else:
+            test_group = self.clients[0].run_command(["id", nonposixuser1])
+            gid_str = "gid={0}(testgroup1@{1})".format(gid, self.ad_domain)
+            group = "groups={0}(testgroup1@{1})".format(gid, self.ad_domain)
+            assert (gid_str in test_group.stdout_text
+                    and group in test_group.stdout_text)
+
+
+class TestPosixAutoPrivateGroup(BaseTestTrust):
+    """
+    Tests for auto-private-groups option with posix AD trust
+    Related : https://pagure.io/freeipa/issue/8807
+    """
+    topology = 'line'
+    num_ad_domains = 1
+    num_clients = 1
+    num_ad_subdomains = 0
+    num_ad_treedomains = 0
+    uid_override = "99999999"
+    gid_override = "78878787"
+
+    def test_add_posix_trust(self):
+        tasks.configure_dns_for_trust(self.master, self.ad)
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust-posix'])
+
+    @pytest.mark.parametrize('type', ['hybrid', 'true', "false"])
+    def test_gidnumber_not_corresponding_existing_group(self, type):
+        """
+        Test checks that sssd can resolve AD users which
+        contain posix attributes (uidNumber and gidNumber)
+        but there is no group with the corresponding gidNumber.
+        """
+        posixuser = "testuser2@%s" % self.ad_domain
+        self.mod_idrange_auto_private_group(type)
+        if type != "true":
+            result = self.clients[0].run_command(['id', posixuser],
+                                                 raiseonerr=False)
+            tasks.assert_error(result, "no such user")
+        else:
+            (uid, gid) = self.get_user_id(self.clients[0], posixuser)
+            assert uid == gid
+            assert uid == '10060'
+
+    @pytest.mark.parametrize('type', ['hybrid', 'true', "false"])
+    def test_only_uid_number_auto_private_group_default(self, type):
+        """
+        Test checks that posix user with only uidNumber defined
+        and gidNumber not set, auto-private-group
+        is set to false/true/hybrid
+        """
+        posixuser = "testuser1@%s" % self.ad_domain
+        self.mod_idrange_auto_private_group(type)
+        if type == "true":
+            (uid, gid) = self.get_user_id(self.clients[0], posixuser)
+            assert uid == gid
+        else:
+            for host in [self.master, self.clients[0]]:
+                result = host.run_command(['id', posixuser], raiseonerr=False)
+                tasks.assert_error(result, "no such user")
+
+    @pytest.mark.parametrize('type', ['hybrid', 'true', "false"])
+    def test_auto_private_group_primary_group(self, type):
+        """
+        Test checks that AD users which contain posix attributes
+        (uidNumber and gidNumber) and there is primary group
+        with gid number defined.
+        """
+        posixuser = "testuser@%s" % self.ad_domain
+        self.mod_idrange_auto_private_group(type)
+        (uid, gid) = self.get_user_id(self.clients[0], posixuser)
+        test_grp = self.clients[0].run_command(["id", posixuser])
+        assert uid == '10042'
+        if type == "true":
+            assert uid == gid
+            groups = "groups=10042(testuser@{0}),10047(testgroup@{1})".format(
+                self.ad_domain, self.ad_domain)
+            assert groups in test_grp.stdout_text
+        else:
+            assert gid == '10047'
+            groups = "10047(testgroup@{0})".format(self.ad_domain)
+            assert groups in test_grp.stdout_text
+
+    @pytest.mark.parametrize('type', ['hybrid', 'true', "false"])
+    def test_idoverride_with_auto_private_group(self, type):
+        """
+        Override ad trusted user in default trust view
+        and set auto-private-groups=[hybrid,true,false]
+        and ensure that overridden values takes effect.
+        """
+        posixuser = "testuser@%s" % self.ad_domain
+        with self.set_idoverrideuser(posixuser,
+                                     self.uid_override,
+                                     self.gid_override):
+            self.mod_idrange_auto_private_group(type)
+            (uid, gid) = self.get_user_id(self.clients[0], posixuser)
+            assert(uid == self.uid_override
+                   and gid == self.gid_override)
+            result = self.clients[0].run_command(['id', posixuser])
+            assert "10047(testgroup@{0})".format(
+                self.ad_domain) in result.stdout_text
