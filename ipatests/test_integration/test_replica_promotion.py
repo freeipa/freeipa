@@ -1146,6 +1146,14 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         """Exercises backup+restore and hidden replica uninstall
         """
         self._check_server_role(self.replicas[0], 'hidden')
+        tasks.ldapsearch_dm(
+            self.replicas[0],
+            "cn=KDC,cn={},cn=masters,cn=ipa,cn=etc,{}".format(
+                self.replicas[0].hostname, self.replicas[0].domain.basedn
+            ),
+            ldap_args=["ipaConfigString"],
+            scope="base"
+        )
         # backup
         backup_path = tasks.get_backup_dir(self.replicas[0])
         # uninstall
@@ -1156,6 +1164,14 @@ class TestHiddenReplicaPromotion(IntegrationTest):
             ['ipa-restore', backup_path],
             stdin_text=dirman_password + '\nyes'
         )
+        tasks.ldapsearch_dm(
+            self.replicas[0],
+            "cn=KDC,cn={},cn=masters,cn=ipa,cn=etc,{}".format(
+                self.replicas[0].hostname, self.replicas[0].domain.basedn
+            ),
+            ldap_args=["ipaConfigString"],
+            scope="base"
+        )
 
         tasks.kinit_admin(self.master)
         tasks.kinit_admin(self.replicas[0])
@@ -1163,7 +1179,26 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         # restore turns a hidden replica into an enabled replica
         # https://pagure.io/freeipa/issue/7894
         self._check_config([self.master, self.replicas[0]])
+
+        tasks.ldapsearch_dm(
+            self.replicas[0],
+            "cn=KDC,cn={},cn=masters,cn=ipa,cn=etc,{}".format(
+                self.replicas[0].hostname, self.replicas[0].domain.basedn
+            ),
+            ldap_args=["ipaConfigString"],
+            scope="base"
+        )
+
         self._check_server_role(self.replicas[0], 'enabled')
+
+        tasks.ldapsearch_dm(
+            self.replicas[0],
+            "cn=KDC,cn={},cn=masters,cn=ipa,cn=etc,{}".format(
+                self.replicas[0].hostname, self.replicas[0].domain.basedn
+            ),
+            ldap_args=["ipaConfigString"],
+            scope="base"
+        )
 
     def test_hidden_replica_automatic_crl(self):
         """Exercises if automatic CRL configuration works with
