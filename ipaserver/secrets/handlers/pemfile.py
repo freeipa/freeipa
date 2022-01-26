@@ -31,6 +31,9 @@ def export_key(args, tmpdir):
         '-out', pk12file,
         '-inkey', args.keyfile,
         '-password', 'file:{pk12pwfile}'.format(pk12pwfile=pk12pwfile),
+        '-keypbe', 'AES-256-CBC',
+        '-certpbe', 'AES-256-CBC',
+        '-macalg', 'sha384',
     ])
 
     with open(pk12file, 'rb') as f:
