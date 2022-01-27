@@ -82,7 +82,7 @@ class FileStore:
 
         self.files = {}
 
-        p = SafeConfigParser()
+        p = SafeConfigParser(interpolation=None)
         p.optionxform = str
         p.read(self._index)
 
@@ -103,7 +103,7 @@ class FileStore:
                 os.remove(self._index)
             return
 
-        p = SafeConfigParser()
+        p = SafeConfigParser(interpolation=None)
         p.optionxform = str
 
         p.add_section('files')
@@ -344,7 +344,7 @@ class StateFile:
 
         self.modules = {}
 
-        p = SafeConfigParser()
+        p = SafeConfigParser(interpolation=None)
         p.optionxform = str
         p.read(self._path)
 
@@ -373,7 +373,7 @@ class StateFile:
                 os.remove(self._path)
             return
 
-        p = SafeConfigParser()
+        p = SafeConfigParser(interpolation=None)
         p.optionxform = str
 
         for module in self.modules:
