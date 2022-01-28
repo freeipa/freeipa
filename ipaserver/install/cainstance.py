@@ -1953,7 +1953,35 @@ def import_included_profiles():
         cn=['certprofiles'],
     )
 
-    api.Backend.ra_certprofile.override_port = 8443
+    # At this point Apache may or may not be running with a valid
+    # certificate. The local server is not yet recognized as a full
+    # CA yet so it isn't discoverable. So try to do some detection
+    # on what port to use, 443 (remote) or 8443 (local) for importing
+    # the profiles.
+    #
+    # api.Backend.ra_certprofile invokes the RestClient class
+    # which will discover and login to the CA REST API. We can
+    # use this information to detect where to import the profiles.
+    #
+    # If the login is successful (e.g. doesn't raise an exception)
+    # and it returns our hostname (it prefers the local host) then
+    # we override and talk locally.
+    #
+    # Otherwise a NetworkError means we can't connect on 443 (perhaps
+    # a firewall) or we get an HTTP error (valid TLS certificate on
+    # Apache but no CA, login fails with 404) so we override to the
+    # local server.
+    #
+    # When override port was always set to 8443 the RestClient could
+    # pick a remote server and since 8443 isn't in our firewall profile
+    # setting up a new server would fail.
+    try:
+        with api.Backend.ra_certprofile as profile_api:
+            if profile_api.ca_host == api.env.host:
+                api.Backend.ra_certprofile.override_port = 8443
+    except (errors.NetworkError, errors.RemoteRetrieveError) as e:
+        logger.debug('Overriding CA port: %s', e)
+        api.Backend.ra_certprofile.override_port = 8443
 
     for (profile_id, desc, store_issued) in dogtag.INCLUDED_PROFILES:
         dn = DN(('cn', profile_id),
