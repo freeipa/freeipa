@@ -743,8 +743,7 @@ jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response
 
     json_str = json_dumps(json, 0);
     if (!json_str) {
-        if (debug)
-            fprintf(stderr, _("json_dumps() failed\n"));
+        fprintf(stderr, _("json_dumps() failed\n"));
 
         rval = 17;
         goto cleanup;
@@ -758,8 +757,7 @@ jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
-        if (debug)
-            fprintf(stderr, _("JSON-RPC call failed: %s\n"), curl_easy_strerror(res));
+        fprintf(stderr, _("JSON-RPC call failed: %s\n"), curl_easy_strerror(res));
 
         rval = 17;
         goto cleanup;
@@ -769,8 +767,7 @@ jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp_code);
 
     if (resp_code != 200) {
-        if (debug)
-            fprintf(stderr, _("JSON-RPC call failed with status code: %li\n"), resp_code);
+        fprintf(stderr, _("JSON-RPC call failed with status code: %li\n"), resp_code);
 
         if (!quiet && resp_code == 401)
             fprintf(stderr, _("JSON-RPC call was unauthorized. Check your credentials.\n"));
@@ -848,8 +845,7 @@ jsonrpc_parse_response(const char *payload, json_t** j_result_obj, bool quiet) {
 
     j_root = json_loads(payload, 0, &j_error);
     if (!j_root) {
-        if (debug)
-            fprintf(stderr, _("Parsing JSON-RPC response failed: %s\n"), j_error.text);
+        fprintf(stderr, _("Parsing JSON-RPC response failed: %s\n"), j_error.text);
 
         rval = 17;
         goto cleanup;
@@ -864,8 +860,7 @@ jsonrpc_parse_response(const char *payload, json_t** j_result_obj, bool quiet) {
 
     *j_result_obj = json_object_get(j_root, "result");
     if (!*j_result_obj) {
-        if (debug)
-            fprintf(stderr, _("Parsing JSON-RPC response failed: no 'result' value found.\n"));
+        fprintf(stderr, _("Parsing JSON-RPC response failed: no 'result' value found.\n"));
 
         rval = 17;
         goto cleanup;
@@ -897,8 +892,7 @@ jsonrpc_parse_join_response(const char *payload, join_info *join_i, bool quiet) 
                        &tmp_hostdn,
                        "krbprincipalname", &tmp_princ,
                        "krblastpwdchange", &tmp_pwdch) != 0) {
-        if (debug)
-            fprintf(stderr, _("Extracting the data from the JSON-RPC response failed: %s\n"), j_error.text);
+        fprintf(stderr, _("Extracting the data from the JSON-RPC response failed: %s\n"), j_error.text);
 
         rval = 17;
         goto cleanup;
@@ -941,8 +935,7 @@ join_krb5_jsonrpc(const char *ipaserver, const char *hostname, char **hostdn, co
                              "nshardwareplatform", uinfo.machine);
 
     if (!json_req) {
-        if (debug)
-            fprintf(stderr, _("json_pack_ex() failed: %s\n"), j_error.text);
+        fprintf(stderr, _("json_pack_ex() failed: %s\n"), j_error.text);
 
         rval = 17;
         goto cleanup;
@@ -990,8 +983,7 @@ jsonrpc_parse_unenroll_response(const char *payload, bool* result, bool quiet) {
 
     if (json_unpack_ex(j_result_obj, &j_error, 0, "{s:b}",
                        "result", result) != 0) {
-        if (debug)
-            fprintf(stderr, _("Extracting the data from the JSON-RPC response failed: %s\n"), j_error.text);
+        fprintf(stderr, _("Extracting the data from the JSON-RPC response failed: %s\n"), j_error.text);
 
         rval = 20;
         goto cleanup;
@@ -1021,8 +1013,7 @@ jsonrpc_unenroll_host(const char *ipaserver, const char *host, bool quiet) {
                             host);
 
     if (!json_req) {
-        if (debug)
-            fprintf(stderr, _("json_pack_ex() failed: %s\n"), j_error.text);
+        fprintf(stderr, _("json_pack_ex() failed: %s\n"), j_error.text);
 
         rval = 17;
         goto cleanup;
