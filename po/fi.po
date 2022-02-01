@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2022-01-04 09:16+0000\n"
-"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
+"PO-Revision-Date: 2022-02-02 20:20+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
 "Language: fi\n"
@@ -43606,7 +43606,7 @@ msgstr ""
 
 #: ipaserver/plugins/servicedelegation.py:390
 msgid "Service delegation rules"
-msgstr ""
+msgstr "Palveluvalinnat"
 
 #: ipaserver/plugins/servicedelegation.py:391
 msgid "Service delegation rule"
@@ -50455,7 +50455,7 @@ msgstr ""
 
 #: ipaserver/dcerpc.py:118
 msgid "unsupported functional level"
-msgstr ""
+msgstr "luottamustyyppi, jota ei tueta"
 
 #: ipaserver/dcerpc.py:121
 msgid ""
