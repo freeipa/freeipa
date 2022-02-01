@@ -103,8 +103,8 @@ class TestPWPolicy(IntegrationTest):
         result = master.run_command('klist | grep krbtgt')
         assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
 
-    def test_krbtpolicy_hardended(self):
-        """Test a hardened kerberos ticket policy with 10 min tickets"""
+    def test_krbtpolicy_password_and_hardended(self):
+        """Test a pwd and hardened kerberos ticket policy with 10min tickets"""
         master = self.master
         master.run_command(['ipa', 'user-mod', USER1,
                             '--user-auth-type', 'password',
@@ -122,6 +122,32 @@ class TestPWPolicy(IntegrationTest):
         result = master.run_command('klist | grep krbtgt')
         assert maxlife_within_policy(result.stdout_text, 600,
                                      slush=600) is True
+
+        tasks.kdestroy_all(master)
+
+        # Verify that the short policy only applies to USER1
+        master.run_command(['kinit', USER2],
+                           stdin_text=PASSWORD + '\n')
+        result = master.run_command('klist | grep krbtgt')
+        assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
+
+    def test_krbtpolicy_hardended(self):
+        """Test a hardened kerberos ticket policy with 30min tickets"""
+        master = self.master
+        master.run_command(['ipa', 'user-mod', USER1,
+                            '--user-auth-type', 'hardened'])
+        master.run_command(['ipa', 'config-mod',
+                            '--user-auth-type', 'hardened'])
+        master.run_command(['ipa', 'krbtpolicy-mod', USER1,
+                            '--hardened-maxlife', '1800'])
+
+        tasks.kdestroy_all(master)
+
+        master.run_command(['kinit', USER1],
+                           stdin_text=PASSWORD + '\n')
+        result = master.run_command('klist | grep krbtgt')
+        assert maxlife_within_policy(result.stdout_text, 1800,
+                                     slush=1800) is True
 
         tasks.kdestroy_all(master)
 
