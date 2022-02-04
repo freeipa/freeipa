@@ -62,8 +62,7 @@ static int debug = 0;
 
 #define ASPRINTF(strp, fmt...) \
     if (asprintf(strp, fmt) == -1) { \
-        if (!quiet) \
-            fprintf(stderr, _("Out of memory!\n")); \
+        fprintf(stderr, _("Out of memory!\n")); \
         rval = 3; \
         goto cleanup; \
     }
@@ -418,34 +417,35 @@ join_ldap(const char *ipaserver, const char *hostname, char ** binddn, const cha
     if (NULL != basedn) {
         ldap_base = strdup(basedn);
         if (!ldap_base) {
-            if (!quiet)
-                fprintf(stderr, _("Out of memory!\n"));
+            fprintf(stderr, _("Out of memory!\n"));
             rval = 3;
             goto done;
         }
     } else {
         if (get_root_dn(ipaserver, &ldap_base) != 0) {
-            if (!quiet)
-                fprintf(stderr, _("Unable to determine root DN of %s\n"),
-                                ipaserver);
+            fprintf(stderr, _("Unable to determine root DN of %s\n"),
+                              ipaserver);
             rval = 14;
             goto done;
+        } else {
+            if (debug) {
+                fprintf(stderr, "root DN %s\n", ldap_base);
+            }
         }
     }
 
     ret = asprintf(binddn, "fqdn=%s,cn=computers,cn=accounts,%s", hostname, ldap_base);
     if (ret == -1)
     {
-        if (!quiet)
-            fprintf(stderr, _("Out of memory!\n"));
+        fprintf(stderr, _("Out of memory!\n"));
         rval = 3;
         goto done;
     }
+    if (debug) {
+        fprintf(stderr, "Connecting to %s as %s\n", ipaserver, *binddn);
+    }
     ld = connect_ldap(ipaserver, *binddn, bindpw, &ret);
-    if (!ld) {
-        if (quiet)
-            goto done;
-
+    if (ld == NULL) {
         switch(ret) {
             case LDAP_NO_MEMORY:
                 rval = 3;
@@ -471,8 +471,7 @@ join_ldap(const char *ipaserver, const char *hostname, char ** binddn, const cha
 #else
         ldap_get_option(ld, LDAP_OPT_ERROR_STRING, &s);
 #endif
-        if (!quiet)
-            fprintf(stderr, _("Enrollment failed. %s\n"), s);
+        fprintf(stderr, _("Enrollment failed. %s\n"), s);
         if (debug) {
             fprintf(stderr, "ldap_extended_operation_s failed: %s",
                             ldap_err2string(rc));
@@ -536,8 +535,7 @@ join_krb5_xmlrpc(const char *ipaserver, const char *hostname, char **hostdn, con
 #endif
     if (ret == -1)
     {
-        if (!quiet)
-            fprintf(stderr, _("Out of memory!\n"));
+        fprintf(stderr, _("Out of memory!\n"));
         rval = 3;
         goto cleanup;
     }
@@ -591,8 +589,7 @@ join_krb5_xmlrpc(const char *ipaserver, const char *hostname, char **hostdn, con
         xmlrpc_DECREF(princP);
         xmlrpc_DECREF(singleprincP);
     } else {
-        if (!quiet)
-            fprintf(stderr, _("principal not found in XML-RPC response\n"));
+        fprintf(stderr, _("principal not found in XML-RPC response\n"));
         rval = 12;
         goto cleanup;
     }
@@ -606,8 +603,7 @@ join_krb5_xmlrpc(const char *ipaserver, const char *hostname, char **hostdn, con
         xmlrpc_array_read_item(&env, krblastpwdchangeP, 0, &singleprincP);
         xmlrpc_read_string(&env, singleprincP, &krblastpwdchange);
         xmlrpc_DECREF(krblastpwdchangeP);
-        if (!quiet)
-            fprintf(stderr, _("Host is already joined.\n"));
+        fprintf(stderr, _("Host is already joined.\n"));
         rval = 13;
         goto cleanup;
     }
@@ -633,8 +629,7 @@ static inline struct curl_slist *
 curl_slist_append_log(struct curl_slist *list, char *string, bool quiet) {
     list = curl_slist_append(list, string);
     if (!list) {
-        if (!quiet)
-            fprintf(stderr, _("curl_slist_append() failed for value: '%s'\n"), string);
+        fprintf(stderr, _("curl_slist_append() failed for value: '%s'\n"), string);
         return NULL;
     }
     return list;
@@ -642,8 +637,7 @@ curl_slist_append_log(struct curl_slist *list, char *string, bool quiet) {
 
 #define CURL_SETOPT(curl, opt, val) \
     if (curl_easy_setopt(curl, opt, val) != CURLE_OK) { \
-        if (!quiet) \
-            fprintf(stderr, _("curl_easy_setopt() failed\n")); \
+        fprintf(stderr, _("curl_easy_setopt() failed\n")); \
         rval = 17; \
         goto cleanup; \
     }
@@ -683,18 +677,14 @@ jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response
     char *json_str = NULL;
 
     if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK) {
-        if (!quiet)
-            fprintf(stderr, _("curl_global_init() failed\n"));
-
+        fprintf(stderr, _("curl_global_init() failed\n"));
         rval = 17;
         goto cleanup;
     }
 
     curl = curl_easy_init();
     if (!curl) {
-        if (!quiet)
-            fprintf(stderr, _("curl_easy_init() failed\n"));
-
+        fprintf(stderr, _("curl_easy_init() failed\n"));
         rval = 17;
         goto cleanup;
     }
@@ -744,7 +734,6 @@ jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response
     json_str = json_dumps(json, 0);
     if (!json_str) {
         fprintf(stderr, _("json_dumps() failed\n"));
-
         rval = 17;
         goto cleanup;
     }
@@ -767,10 +756,10 @@ jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp_code);
 
     if (resp_code != 200) {
-        fprintf(stderr, _("JSON-RPC call failed with status code: %li\n"), resp_code);
-
-        if (!quiet && resp_code == 401)
+        if (resp_code == 401)
             fprintf(stderr, _("JSON-RPC call was unauthorized. Check your credentials.\n"));
+        else
+            fprintf(stderr, _("JSON-RPC call failed with status code: %li\n"), resp_code);
 
         rval = 17;
         goto cleanup;
@@ -953,9 +942,7 @@ join_krb5_jsonrpc(const char *ipaserver, const char *hostname, char **hostdn, co
     *princ = join_i.krb_principal;
 
     if (!force && join_i.is_provisioned) {
-        if (!quiet)
-            fprintf(stderr, _("Host is already joined.\n"));
-
+        fprintf(stderr, _("Host is already joined.\n"));
         rval = 13;
         goto cleanup;
     }
@@ -1031,8 +1018,7 @@ jsonrpc_unenroll_host(const char *ipaserver, const char *host, bool quiet) {
         if (!quiet)
             fprintf(stderr, _("Unenrollment successful.\n"));
     } else {
-        if (!quiet)
-            fprintf(stderr, _("Unenrollment failed.\n"));
+        fprintf(stderr, _("Unenrollment failed.\n"));
     }
 
 cleanup:
@@ -1076,8 +1062,7 @@ xmlrpc_unenroll_host(const char *ipaserver, const char *host, bool quiet)
 #endif
     if (ret == -1)
     {
-        if (!quiet)
-            fprintf(stderr, _("Out of memory!\n"));
+        fprintf(stderr, _("Out of memory!\n"));
         rval = 3;
         goto cleanup;
     }
@@ -1110,8 +1095,7 @@ xmlrpc_unenroll_host(const char *ipaserver, const char *host, bool quiet)
             if (!quiet)
                 fprintf(stderr, _("Unenrollment successful.\n"));
         } else {
-            if (!quiet)
-                fprintf(stderr, _("Unenrollment failed.\n"));
+            fprintf(stderr, _("Unenrollment failed.\n"));
         }
 
         xmlrpc_DECREF(princP);
@@ -1228,6 +1212,9 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
             argv[arg++] = "-w";
             argv[arg++] = (char *)bindpw;
         }
+        if (quiet) {
+            argv[arg++] = "-q";
+        }
         argv[arg++] = NULL;
         err = execv(path, argv);
         if (err == -1) {
@@ -1297,9 +1284,8 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, bool
     } else {
         char * conf_data = read_config_file(IPA_CONFIG);
         if ((ipaserver = getIPAserver(conf_data)) == NULL) {
-            if (!quiet)
-                fprintf(stderr, _("Unable to determine IPA server from %s\n"),
-                        IPA_CONFIG);
+            fprintf(stderr, _("Unable to determine IPA server from %s\n"),
+                    IPA_CONFIG);
             exit(1);
         }
         free(conf_data);
@@ -1307,27 +1293,24 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, bool
 
     krberr = krb5_init_context(&krbctx);
     if (krberr) {
-        if (!quiet)
-            fprintf(stderr, _("Unable to join host: "
-                              "Kerberos context initialization failed\n"));
+        fprintf(stderr, _("Unable to join host: "
+                          "Kerberos context initialization failed\n"));
         rval = 1;
         goto cleanup;
     }
 
     krberr = krb5_kt_resolve(krbctx, ktname, &keytab);
     if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr, _("Error resolving keytab: %s.\n"),
-                    error_message(krberr));
+        fprintf(stderr, _("Error resolving keytab: %s.\n"),
+                error_message(krberr));
         rval = 7;
         goto cleanup;
     }
 
     krberr = krb5_get_default_realm(krbctx, &realm);
     if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr, _("Error getting default Kerberos realm: %s.\n"),
-                    error_message(krberr));
+        fprintf(stderr, _("Error getting default Kerberos realm: %s.\n"),
+                error_message(krberr));
         rval = 21;
         goto cleanup;
     }
@@ -1336,9 +1319,8 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, bool
 
     krberr = krb5_parse_name(krbctx, principal, &princ);
     if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr, _("Error parsing \"%1$s\": %2$s.\n"),
-                    principal, error_message(krberr));
+        fprintf(stderr, _("Error parsing \"%1$s\": %2$s.\n"),
+                principal, error_message(krberr));
         rval = 4;
         goto cleanup;
     }
@@ -1355,9 +1337,8 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, bool
     krberr = krb5_get_init_creds_keytab(krbctx, &creds, princ, keytab,
                                         0, tgs, &gicopts);
     if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr, _("Error obtaining initial credentials: %s.\n"),
-                    error_message(krberr));
+        fprintf(stderr, _("Error obtaining initial credentials: %s.\n"),
+                error_message(krberr));
         rval = 19;
         goto cleanup;
     }
@@ -1366,27 +1347,24 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, bool
     if (krberr == 0) {
         krberr = krb5_cc_initialize(krbctx, ccache, creds.client);
     } else {
-        if (!quiet)
-            fprintf(stderr,
-                    _("Unable to generate Kerberos Credential Cache\n"));
+        fprintf(stderr,
+                _("Unable to generate Kerberos Credential Cache\n"));
         rval = 19;
         goto cleanup;
     }
 
     if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr,
-                    _("Unable to generate Kerberos Credential Cache\n"));
+        fprintf(stderr,
+                _("Unable to generate Kerberos Credential Cache\n"));
         rval = 19;
         goto cleanup;
     }
 
     krberr = krb5_cc_store_cred(krbctx, ccache, &creds);
     if (krberr != 0) {
-        if (!quiet)
-            fprintf(stderr,
-                    _("Error storing creds in credential cache: %s.\n"),
-                    error_message(krberr));
+        fprintf(stderr,
+                _("Error storing creds in credential cache: %s.\n"),
+                error_message(krberr));
         rval = 19;
         goto cleanup;
     }
@@ -1490,21 +1468,16 @@ main(int argc, const char **argv) {
     if (!hostname) {
         hostname = ipa_gethostfqdn();
         if (hostname == NULL) {
-            if (!quiet)
-                fprintf(stderr, _("Cannot get host's FQDN!\n"));
+            fprintf(stderr, _("Cannot get host's FQDN!\n"));
             exit(22);
         }
     }
     if (NULL == strstr(hostname, ".")) {
-        if (!quiet) {
-            fprintf(stderr, _("The hostname must be fully-qualified: %s\n"), hostname);
-        }
+        fprintf(stderr, _("The hostname must be fully-qualified: %s\n"), hostname);
         exit(16);
     }
     if ((strcmp(hostname, "localhost") == 0) || (strcmp(hostname, "localhost.localdomain") == 0)){
-        if (!quiet) {
-            fprintf(stderr, _("The hostname must not be: %s\n"), hostname);
-        }
+        fprintf(stderr, _("The hostname must not be: %s\n"), hostname);
         exit(16);
     }
 
