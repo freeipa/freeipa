@@ -2086,8 +2086,7 @@ def ldapsearch_dm(host, base, ldap_args, scope='sub', **kwargs):
     args = [
         'ldapsearch',
         '-x', '-ZZ',
-        '-h', host.hostname,
-        '-p', '389',
+        '-H', "ldap://{}".format(host.hostname),
         '-D', str(host.config.dirman_dn),
         '-w', host.config.dirman_password,
         '-s', scope,

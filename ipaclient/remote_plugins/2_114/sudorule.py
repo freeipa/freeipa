@@ -41,7 +41,9 @@ IPA provides a designated binddn to use with Sudo located at:
 uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
 
 To enable the binddn run the following command to set the password:
-LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -h ipa.example.com -ZZ -D "cn=Directory Manager" uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
+LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W \\
+    -H ldap://ipa.example.com -ZZ -D "cn=Directory Manager" \\
+    uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
 
 EXAMPLES:
 
