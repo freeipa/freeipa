@@ -993,6 +993,7 @@ class DsInstance(service.Service):
 
     def __setup_s4u2proxy(self):
 
+        # pylint: disable=unused-private-member
         def __add_principal(last_cn, principal, self):
             dn = DN(('cn', last_cn), ('cn', 's4u2proxy'),
                     ('cn', 'etc'), self.suffix)
