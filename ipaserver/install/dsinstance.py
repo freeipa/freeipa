@@ -1040,7 +1040,7 @@ class DsInstance(service.Service):
             admpwdfile.write(password)
             admpwdfile.flush()
 
-            args = [paths.LDAPPASSWD, "-h", self.fqdn,
+            args = [paths.LDAPPASSWD, "-H", "ldap://{}".format(self.fqdn),
                     "-ZZ", "-x", "-D", str(DN(('cn', 'Directory Manager'))),
                     "-y", dmpwdfile.name, "-T", admpwdfile.name,
                     str(DN(('uid', 'admin'), ('cn', 'users'), ('cn', 'accounts'), self.suffix))]
