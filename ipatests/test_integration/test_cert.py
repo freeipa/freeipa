@@ -298,6 +298,34 @@ class TestInstallMasterClient(IntegrationTest):
         ).stdout_text
         assert 'issued:' in result
 
+    def test_CA_use_proper_DER_encoding(self):
+        """Test if local CA uses proper DER encoding
+
+        The automatically generated local certificate authority (CA) used
+        improper DER-encoding for the CA Basic Constraint boolean. As a
+        consequence, the certificate was in some cases rejected as invalid.
+        This test is to check if the local CA uses proper DER-encoding
+        boolean and the described problem no longer occurs.
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1560961
+        """
+        self.master.run_command(
+            ['openssl', 'pkcs12',
+             '-in', paths.CERTMONGER_LOCAL_CA,
+             '-out', '/tmp/ca',
+             '-nokeys', '-nodes',
+             '-passin', 'pass:']
+        )
+        # remove all the lines before -----BEGIN CERTIFICATE----- to avoid
+        # offset error
+        self.master.run_command(['sed', '-i', '1,5d', '/tmp/ca'])
+        result = self.master.run_command(
+            ['openssl', 'asn1parse',
+             '-in', '/tmp/ca',
+             '-inform', 'pem']
+        )
+        assert '30030101FF' in result.stdout_text
+
 
 class TestCertmongerRekey(IntegrationTest):
 

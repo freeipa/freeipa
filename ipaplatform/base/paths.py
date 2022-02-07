@@ -314,6 +314,7 @@ class BasePathNamespace:
     CERTMONGER_CAS_DIR = "/var/lib/certmonger/cas/"
     CERTMONGER_CAS_CA_RENEWAL = "/var/lib/certmonger/cas/ca_renewal"
     CERTMONGER_REQUESTS_DIR = "/var/lib/certmonger/requests/"
+    CERTMONGER_LOCAL_CA = "/var/lib/certmonger/local/creds"
     VAR_LIB_DIRSRV = "/var/lib/dirsrv"
     DIRSRV_BOOT_LDIF = "/var/lib/dirsrv/boot.ldif"
     VAR_LIB_IPA = "/var/lib/ipa"
