@@ -140,6 +140,8 @@ class HTTPInstance(service.Service):
         self.step("publish CA cert", self.__publish_ca_cert)
         self.step("clean up any existing httpd ccaches",
                   self.remove_httpd_ccaches)
+        self.step("enable ccache sweep",
+                  self.enable_ccache_sweep)
         self.step("configuring SELinux for httpd", self.configure_selinux_for_httpd)
         if not self.is_kdcproxy_configured():
             self.step("create KDC proxy config", self.create_kdcproxy_conf)
@@ -175,6 +177,11 @@ class HTTPInstance(service.Service):
         shutil.rmtree(paths.IPA_CCACHES)
         ipautil.run(
             [paths.SYSTEMD_TMPFILES, '--create', '--prefix', paths.IPA_CCACHES]
+        )
+
+    def enable_ccache_sweep(self):
+        ipautil.run(
+            [paths.SYSTEMCTL, 'enable', 'ipa-ccache-sweep.timer']
         )
 
     def __configure_http(self):
