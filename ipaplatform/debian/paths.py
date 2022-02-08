@@ -17,7 +17,6 @@ MULTIARCH = sysconfig.get_config_var('MULTIARCH')
 
 class DebianPathNamespace(BasePathNamespace):
     BIN_HOSTNAMECTL = "/usr/bin/hostnamectl"
-    AUTOFS_LDAP_AUTH_CONF = "/etc/autofs_ldap_auth.conf"
     ETC_HTTPD_DIR = "/etc/apache2"
     HTTPD_ALIAS_DIR = "/etc/apache2/ipa"
     HTTPD_CONF_D_DIR = "/etc/apache2/conf-enabled/"
