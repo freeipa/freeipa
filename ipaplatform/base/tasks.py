@@ -472,43 +472,6 @@ class BaseTaskNamespace:
             fstore, 'sudoers', ['sss'],
             default_value=['files'])
 
-    def enable_ldap_automount(self, statestore):
-        """
-        Point automount to ldap in nsswitch.conf.
-        This function is for non-SSSD setups only.
-        """
-        conf = IPAChangeConf("IPA Installer")
-        conf.setOptionAssignment(':')
-
-        with open(paths.NSSWITCH_CONF, 'r') as f:
-            current_opts = conf.parse(f)
-            current_nss_value = conf.findOpts(
-                current_opts, name='automount', type='option'
-            )[1]
-            if current_nss_value is None:
-                # no automount database present
-                current_nss_value = False  # None cannot be backed up
-            else:
-                current_nss_value = current_nss_value['value']
-            statestore.backup_state(
-                'ipa-client-automount-nsswitch', 'previous-automount',
-                current_nss_value
-            )
-
-        nss_value = ' files ldap'
-        opts = [
-            {
-                'name': 'automount',
-                'type': 'option',
-                'action': 'set',
-                'value': nss_value,
-            },
-            {'name': 'empty', 'type': 'empty'},
-        ]
-        conf.changeConf(paths.NSSWITCH_CONF, opts)
-
-        logger.info("Configured %s", paths.NSSWITCH_CONF)
-
     def disable_ldap_automount(self, statestore):
         """Disable automount using LDAP"""
         if statestore.get_state(
