@@ -1,5 +1,14 @@
 component: Subject
+# component: Subject is a single-line summary
 
 Explanation
+# Explanation must describe the fix or feature + the method
+# chosen to implement it, and can span across multiple lines.
 
-https://pagure.io/freeipa/issue/XXXX
+Fixes: https://pagure.io/freeipa/issue/XXXX
+or
+Related: https://pagure.io/freeipa/issue/XXXX
+# Fixes: means that the commit fixes the referenced issue(s).
+# Related: means that the commit is related to the issue(s)
+# in some way, but does not resolve it/them.
+
