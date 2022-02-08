@@ -29,12 +29,7 @@ import shutil
 import time
 import tempfile
 import gssapi
-import warnings
 
-try:
-    from xml.etree import cElementTree as etree
-except ImportError:
-    from xml.etree import ElementTree as etree
 import SSSDConfig
 
 from six.moves.urllib.parse import urlsplit
@@ -52,7 +47,6 @@ from ipalib.install.kinit import kinit_keytab
 from ipalib.util import check_client_configuration
 from ipapython import ipautil
 from ipapython.ipa_log_manager import standard_logging_setup
-from ipapython.dn import DN
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform import services
@@ -72,14 +66,6 @@ def parse_options():
         dest="location",
         default="default",
         help="Automount location",
-    )
-    parser.add_option(
-        "-S",
-        "--no-sssd",
-        dest="sssd",
-        action="store_false",
-        default=True,
-        help="Do not configure the client to use SSSD for automount",
     )
     parser.add_option(
         "--idmap-domain",
@@ -147,52 +133,6 @@ def wait_for_sssd():
         )
 
 
-def configure_xml(fstore):
-    authconf = paths.AUTOFS_LDAP_AUTH_CONF
-    fstore.backup_file(authconf)
-
-    try:
-        tree = etree.parse(authconf)
-    except IOError as e:
-        logger.debug('Unable to open file %s', e)
-        logger.debug('Creating new from template')
-        tree = etree.ElementTree(
-            element=etree.Element('autofs_ldap_sasl_conf')
-        )
-
-    element = tree.getroot()
-    if element.tag != 'autofs_ldap_sasl_conf':
-        raise RuntimeError('Invalid XML root in file %s' % authconf)
-
-    element.set('usetls', 'no')
-    element.set('tlsrequired', 'no')
-    element.set('authrequired', 'yes')
-    element.set('authtype', 'GSSAPI')
-    element.set('clientprinc', 'host/%s@%s' % (api.env.host, api.env.realm))
-
-    try:
-        tree.write(authconf, xml_declaration=True, encoding='UTF-8')
-    except IOError as e:
-        print("Unable to write %s: %s" % (authconf, e))
-    else:
-        print("Configured %s" % authconf)
-
-
-def configure_nsswitch(statestore, options):
-    """
-    This function was deprecated. Use ipaplatform.tasks.
-
-    Point automount to ldap in nsswitch.conf.
-    This function is for non-SSSD setups only.
-    """
-    warnings.warn(
-        "Use ipaplatform.tasks.tasks.enable_ldap_automount",
-        DeprecationWarning,
-        stacklevel=2
-    )
-    return tasks.enable_ldap_automount(statestore)
-
-
 def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     try:
         sssdconfig = SSSDConfig.SSSDConfig()
@@ -248,43 +188,6 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     wait_for_sssd()
 
 
-def configure_autofs(fstore, statestore, autodiscover, server, options):
-    """
-    fstore: the FileStore to back up files in
-    options.server: the IPA server to use
-    options.location: the Automount location to use
-    """
-    if not autodiscover:
-        ldap_uri = "ldap://%s" % server
-    else:
-        ldap_uri = "ldap:///%s" % api.env.basedn
-
-    search_base = str(
-        DN(
-            ('cn', options.location),
-            api.env.container_automount,
-            api.env.basedn,
-        )
-    )
-    replacevars = {
-        'MAP_OBJECT_CLASS': 'automountMap',
-        'ENTRY_OBJECT_CLASS': 'automount',
-        'MAP_ATTRIBUTE': 'automountMapName',
-        'ENTRY_ATTRIBUTE': 'automountKey',
-        'VALUE_ATTRIBUTE': 'automountInformation',
-        'SEARCH_BASE': search_base,
-        'LDAP_URI': ldap_uri,
-    }
-
-    ipautil.backup_config_and_replace_variables(
-        fstore, paths.SYSCONFIG_AUTOFS, replacevars=replacevars
-    )
-    tasks.restore_context(paths.SYSCONFIG_AUTOFS)
-    statestore.backup_state('autofs', 'sssd', False)
-
-    print("Configured %s" % paths.SYSCONFIG_AUTOFS)
-
-
 def configure_autofs_common(fstore, statestore, options):
     autofs = services.knownservices.autofs
     statestore.backup_state('autofs', 'enabled', autofs.is_enabled())
@@ -311,7 +214,6 @@ def configure_autofs_common(fstore, statestore, options):
 def uninstall(fstore, statestore):
     RESTORE_FILES = [
         paths.SYSCONFIG_AUTOFS,
-        paths.AUTOFS_LDAP_AUTH_CONF,
         paths.SYSCONFIG_NFS,
         paths.IDMAPD_CONF,
     ]
@@ -572,16 +474,8 @@ def configure_automount():
         sys.exit("Installation aborted")
 
     try:
-        if not options.sssd:
-            tasks.enable_ldap_automount(statestore)
         configure_nfs(fstore, statestore, options)
-        if options.sssd:
-            configure_autofs_sssd(fstore, statestore, autodiscover, options)
-        else:
-            configure_xml(fstore)
-            configure_autofs(
-                fstore, statestore, autodiscover, server, options
-            )
+        configure_autofs_sssd(fstore, statestore, autodiscover, options)
         configure_autofs_common(fstore, statestore, options)
     except Exception as e:
         logger.debug('Raised exception %s', e)
