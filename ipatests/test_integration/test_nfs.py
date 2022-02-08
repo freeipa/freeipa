@@ -288,10 +288,7 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
             tasks.uninstall_client(self.clients[0])
         request.addfinalizer(fin)
 
-    def nsswitch_backup_restore(
-        self,
-        no_sssd=False,
-    ):
+    def nsswitch_backup_restore(self):
 
         # In order to get a more pure sum, one that ignores the Generated
         # header and any whitespace we have to do a bit of work...
@@ -309,23 +306,15 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         cmd = self.clients[0].run_command(grep_automount_command)
         after_ipa_client_install = cmd.stdout_text.split()
 
-        if no_sssd:
-            ipa_client_automount_command = [
-                "ipa-client-automount", "--no-sssd", "-U"
-            ]
-        else:
-            ipa_client_automount_command = [
-                "ipa-client-automount", "-U"
-            ]
+        ipa_client_automount_command = [
+            "ipa-client-automount", "-U"
+        ]
         self.clients[0].run_command(ipa_client_automount_command)
         cmd = self.clients[0].run_command(grep_automount_command)
         after_ipa_client_automount = cmd.stdout_text.split()
-        if no_sssd:
-            assert after_ipa_client_automount == ['files', 'ldap']
-        else:
-            # The default order depends on the authselect version
-            # but we only care about the list of sources, not their order
-            assert sorted(after_ipa_client_automount) == ['files', 'sss']
+        # The default order depends on the authselect version
+        # but we only care about the list of sources, not their order
+        assert sorted(after_ipa_client_automount) == ['files', 'sss']
 
         cmd = self.clients[0].run_command(grep_automount_command)
         assert cmd.stdout_text.split() == after_ipa_client_automount
@@ -334,19 +323,18 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
             "ipa-client-automount", "--uninstall", "-U"
         ])
 
-        if not no_sssd:
-            # https://pagure.io/freeipa/issue/8190
-            # check that no ipa_automount_location is left in sssd.conf
-            # also check for autofs_provider for good measure
-            grep_automount_in_sssdconf_cmd = \
-                "egrep ipa_automount_location\\|autofs_provider " \
-                "/etc/sssd/sssd.conf"
-            cmd = self.clients[0].run_command(
-                grep_automount_in_sssdconf_cmd, raiseonerr=False
-            )
-            assert cmd.returncode == 1, \
-                "PG8190 regression found: ipa_automount_location still " \
-                "present in sssd.conf"
+        # https://pagure.io/freeipa/issue/8190
+        # check that no ipa_automount_location is left in sssd.conf
+        # also check for autofs_provider for good measure
+        grep_automount_in_sssdconf_cmd = \
+            "egrep ipa_automount_location\\|autofs_provider " \
+            "/etc/sssd/sssd.conf"
+        cmd = self.clients[0].run_command(
+            grep_automount_in_sssdconf_cmd, raiseonerr=False
+        )
+        assert cmd.returncode == 1, \
+            "PG8190 regression found: ipa_automount_location still " \
+            "present in sssd.conf"
 
         cmd = self.clients[0].run_command(grep_automount_command)
         assert cmd.stdout_text.split() == after_ipa_client_install
@@ -367,6 +355,3 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
 
     def test_nsswitch_backup_restore_sssd(self):
         self.nsswitch_backup_restore()
-
-    def test_nsswitch_backup_restore_no_sssd(self):
-        self.nsswitch_backup_restore(no_sssd=True)

@@ -36,7 +36,6 @@ class BasePathNamespace:
     SYSTEMD_DETECT_VIRT = "/usr/bin/systemd-detect-virt"
     SYSTEMD_TMPFILES = "/bin/systemd-tmpfiles"
     TAR = "/bin/tar"
-    AUTOFS_LDAP_AUTH_CONF = "/etc/autofs_ldap_auth.conf"
     ETC_FEDORA_RELEASE = "/etc/fedora-release"
     GROUP = "/etc/group"
     ETC_HOSTNAME = "/etc/hostname"
