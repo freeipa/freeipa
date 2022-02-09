@@ -475,7 +475,7 @@ class TestInstallCA(IntegrationTest):
 
         # Tweak sysrestore.state to drop installation section
         self.master.run_command(
-            ['sed','-i', r's/\[installation\]/\[badinstallation\]/',
+            ['sed', '-i', r's/\[installation\]/\[badinstallation\]/',
              os.path.join(paths.SYSRESTORE, SYSRESTORE_STATEFILE)])
 
         # Re-run installation check and it should fall back to old method
@@ -485,7 +485,7 @@ class TestInstallCA(IntegrationTest):
 
         # Restore installation section.
         self.master.run_command(
-            ['sed','-i', r's/\[badinstallation\]/\[installation\]/',
+            ['sed', '-i', r's/\[badinstallation\]/\[installation\]/',
              os.path.join(paths.SYSRESTORE, SYSRESTORE_STATEFILE)])
 
         # Uninstall and confirm that the old method reports correctly
@@ -689,6 +689,7 @@ def get_pki_tomcatd_pid(host):
             pid = line.split()[2]
             break
     return(pid)
+
 
 def get_ipa_services_pids(host):
     ipa_services_name = [
@@ -1308,6 +1309,19 @@ class TestInstallMasterKRA(IntegrationTest):
 
     def test_install_master(self):
         tasks.install_master(self.master, setup_dns=False, setup_kra=True)
+
+    def test_ipa_ccache_sweep_timer_enabled(self):
+        """Test ipa-ccache-sweep.timer enabled by default during installation
+
+        This test checks that ipa-ccache-sweep.timer is enabled by default
+        during the ipa installation.
+
+        related: https://pagure.io/freeipa/issue/9107
+        """
+        result = self.master.run_command(
+            ['systemctl', 'is-enabled', 'ipa-ccache-sweep.timer']
+        )
+        assert 'enabled' in result.stdout_text
 
     def test_install_dns(self):
         tasks.install_dns(self.master)
