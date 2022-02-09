@@ -118,6 +118,13 @@ def expire_cert_critical():
     yield _expire_cert_critical
 
     host = hosts.pop('host')
+    # Prior to uninstall remove all the cert tracking to prevent
+    # errors from certmonger trying to check the status of certs
+    # that don't matter because we are uninstalling.
+    host.run_command(['systemctl', 'stop', 'certmonger'])
+    host.run_command(
+        ['rm', '-f', paths.CERTMONGER_REQUESTS_DIR + '/*']
+    )
     tasks.uninstall_master(host)
     tasks.move_date(host, 'start', '-3Years-1day')
 
