@@ -287,6 +287,7 @@ done:
     ipa_cldap_respond(ctx, req, &reply);
 
     ipa_cldap_free_kvps(&req->kvps);
+    free(reply.bv_val);
     free(req);
     return;
 }
