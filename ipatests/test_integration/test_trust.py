@@ -15,6 +15,7 @@ from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration import fips
+from ipatests.util import xfail_context
 from ipapython.dn import DN
 from collections import namedtuple
 from contextlib import contextmanager
@@ -1110,7 +1111,11 @@ class TestNonPosixAutoPrivateGroup(BaseTestTrust):
             assert (uid == self.uid_override and gid == self.gid_override)
             test_group = self.clients[0].run_command(
                 ["id", nonposixuser]).stdout_text
-            assert "domain users@{0}".format(self.ad_domain) in test_group
+            version = tasks.get_sssd_version(self.clients[0])
+            with xfail_context(version <= tasks.parse_version('2.6.3')
+                               and type == "hybrid",
+                               'https://github.com/SSSD/sssd/issues/5989'):
+                assert "domain users@{0}".format(self.ad_domain) in test_group
 
     @pytest.mark.parametrize('type', ['hybrid', 'true', "false"])
     def test_nonposixuser_nondefault_primary_group(self, type):
