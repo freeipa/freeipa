@@ -316,7 +316,6 @@ class TestOTPToken(IntegrationTest):
         check_services = self.master.run_command(
             ['systemctl', 'list-units', '--state=failed']
         )
-        assert "0 loaded units listed" in check_services.stdout_text
         assert "ipa-otpd" not in check_services.stdout_text
         # Be sure no services are running and failed units
         self.master.run_command(['killall', 'ipa-otpd'], raiseonerr=False)
