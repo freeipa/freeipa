@@ -1169,9 +1169,12 @@ class TestPosixAutoPrivateGroup(BaseTestTrust):
                                                  raiseonerr=False)
             tasks.assert_error(result, "no such user")
         else:
-            (uid, gid) = self.get_user_id(self.clients[0], posixuser)
-            assert uid == gid
-            assert uid == '10060'
+            sssd_version = tasks.get_sssd_version(self.clients[0])
+            with xfail_context(sssd_version <= tasks.parse_version('2.6.3'),
+                               'https://github.com/SSSD/sssd/issues/5988'):
+                (uid, gid) = self.get_user_id(self.clients[0], posixuser)
+                assert uid == gid
+                assert uid == '10060'
 
     @pytest.mark.parametrize('type', ['hybrid', 'true', "false"])
     def test_only_uid_number_auto_private_group_default(self, type):
