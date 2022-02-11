@@ -22,15 +22,24 @@
 Test --setattr and --addattr and other attribute-specific issues
 """
 
+from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 from ipalib import errors
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 import pytest
 
+from datetime import datetime
+
 
 @pytest.fixture(scope='class')
 def user(request, xmlrpc_setup):
     tracker = UserTracker(name=u'user1', givenname=u'Test', sn=u'User1')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def manager(request, xmlrpc_setup):
+    tracker = UserTracker(name=u'manager', givenname=u'Test', sn=u'Manager')
     return tracker.make_fixture(request)
 
 
@@ -187,6 +196,60 @@ class TestAttrOnUser(XMLRPC_test):
         user.update(dict(addattr=u'nsaccountlock=FaLsE',
                          delattr=u'nsaccountlock=TRUE'),
                     dict(addattr='', delattr='', nsaccountlock=False))
+
+    def test_add_and_delete_datetime(self, user):
+        """ Delete a datetime data type """
+        user.ensure_exists()
+        # Set to a known value, then delete that value
+        expdate = u'20220210144006Z'
+        user.update(
+            dict(setattr=u'krbpasswordexpiration=' + expdate),
+            dict(krbpasswordexpiration=[
+                datetime.strptime(expdate, LDAP_GENERALIZED_TIME_FORMAT)
+            ], setattr='')
+        )
+        user.update(
+            dict(delattr=u'krbpasswordexpiration=' + expdate),
+            dict(delattr='')
+        )
+
+    def test_delete_nonexistent_datetime(self, user):
+        """ Delete a datetime data type that isn't in the entry """
+        user.ensure_exists()
+        expdate = u'20220210144006Z'
+        bad_expdate = u'20280210144006Z'
+        user.update(
+            dict(setattr=u'krbpasswordexpiration=' + expdate),
+            dict(krbpasswordexpiration=[
+                datetime.strptime(expdate, LDAP_GENERALIZED_TIME_FORMAT)
+            ], setattr='')
+        )
+        command = user.make_update_command(
+            dict(delattr=u'krbpasswordexpiration=' + bad_expdate),
+        )
+        with raises_exact(errors.AttrValueNotFound(
+                attr='krbpasswordexpiration', value=bad_expdate)):
+            command()
+
+    def test_add_and_delete_DN(self, user, manager):
+        """ Delete a DN data type """
+        user.ensure_exists()
+        manager.ensure_exists()
+        user.update(
+            dict(setattr=u'manager=manager'),
+            dict(manager=['manager'], setattr='')
+        )
+        command = user.make_update_command(
+            dict(delattr=u'manager=manager'),
+        )
+        # Setting works because the user plugin knows the container
+        # to convert a string to a DN. Passing in just the uid we
+        # don't have the context in ldap.decode() to know the entry
+        # type so `ipa user-mod someuser --delattr manager=foo` will
+        # fail.
+        with raises_exact(errors.AttrValueNotFound(
+                attr='manager', value='manager')):
+            command()
 
 
 @pytest.mark.tier1

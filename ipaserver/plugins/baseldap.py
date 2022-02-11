@@ -1135,7 +1135,11 @@ last, after all sets and adds."""),
 
                 for delval in deldict.get(attr, []):
                     try:
-                        entry_attrs[attr].remove(delval)
+                        try:
+                            val = ldap.decode(delval.encode('utf-8'), attr)
+                            entry_attrs[attr].remove(val)
+                        except ValueError:
+                            entry_attrs[attr].remove(delval)
                     except ValueError:
                         if isinstance(delval, bytes):
                             # This is a Binary value, base64 encode it
