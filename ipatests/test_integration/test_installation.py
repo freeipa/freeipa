@@ -1994,3 +1994,33 @@ class TestInstallwithSHA384withRSA(IntegrationTest):
         result = self.master.run_command(cmd_args)
         assert_str = 'Signature Algorithm: sha384WithRSAEncryption'
         assert assert_str in result.stdout_text
+
+
+class TestHostnameValidator(IntegrationTest):
+    """Test installer options/validation"""
+
+    num_replicas = 0
+
+    def test_validate_hostname(self):
+        # https://pagure.io/freeipa/issue/9111
+        # Validate the user-provided hostname
+        self.master.run_command(['hostname', 'fedora'])
+        result = tasks.install_master(
+            self.master, unattended=False,
+            stdin_text=self.master.hostname + '\nn\nn\nn\n',
+            extra_args=('--netbios-name', 'EXAMPLE',),
+            raiseonerr=False
+        )
+
+        # Scrape the output for the summary which is only displayed
+        # if the hostname is validated.
+        hostname = None
+        for line in result.stdout_text.split('\n'):
+            print(line)
+            m = re.match(
+                r"Hostname:\s+({})".format(self.master.hostname), line
+            )
+            if m:
+                hostname = m.group(1)
+                break
+        assert hostname == self.master.hostname
