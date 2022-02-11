@@ -1997,19 +1997,52 @@ class TestInstallwithSHA384withRSA(IntegrationTest):
 
 
 class TestHostnameValidator(IntegrationTest):
-    """Test installer options/validation"""
+    """Test installer hostname validator."""
 
     num_replicas = 0
 
-    def test_validate_hostname(self):
+    def get_args(self, host):
+        return [
+            'ipa-server-install',
+            '-n', host.domain.name,
+            '-r', host.domain.realm,
+            '-p', host.config.dirman_password,
+            '-a', host.config.admin_password,
+            '--setup-dns',
+            '--forwarder', host.config.dns_forwarder,
+            '--auto-reverse',
+            '--netbios-name', 'EXAMPLE',
+        ]
+
+    def test_user_input_hostname(self):
         # https://pagure.io/freeipa/issue/9111
         # Validate the user-provided hostname
         self.master.run_command(['hostname', 'fedora'])
-        result = tasks.install_master(
-            self.master, unattended=False,
+        result = self.master.run_command(
+            self.get_args(self.master), raiseonerr=False,
             stdin_text=self.master.hostname + '\nn\nn\nn\n',
-            extra_args=('--netbios-name', 'EXAMPLE',),
-            raiseonerr=False
+        )
+
+        # Scrape the output for the summary which is only displayed
+        # if the hostname is validated.
+        hostname = None
+        for line in result.stdout_text.split('\n'):
+            print(line)
+            m = re.match(
+                r"Hostname:\s+({})".format(self.master.hostname), line
+            )
+            if m:
+                hostname = m.group(1)
+                break
+        assert hostname == self.master.hostname
+
+    def test_hostname_with_dot(self):
+        # https://pagure.io/freeipa/issue/9111
+        # Validate the user-provided hostname
+        self.master.run_command(['hostname', 'fedora'])
+        result = self.master.run_command(
+            self.get_args(self.master), raiseonerr=False,
+            stdin_text=self.master.hostname + '.\nn\nn\nn\n',
         )
 
         # Scrape the output for the summary which is only displayed
