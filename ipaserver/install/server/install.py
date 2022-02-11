@@ -502,7 +502,7 @@ def install_check(installer):
         host_name = host_default
 
     try:
-        verify_fqdn(host_default, options.no_host_dns)
+        verify_fqdn(host_name, options.no_host_dns)
     except BadHostError as e:
         raise ScriptError(e)
 
