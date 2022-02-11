@@ -186,13 +186,16 @@ def read_host_name(host_default):
     print("Enter the fully qualified domain name of the computer")
     print("on which you're setting up server software. Using the form")
     print("<hostname>.<domainname>")
-    print("Example: master.example.com.")
+    print("Example: master.example.com")
     print("")
     print("")
     if host_default == "":
         host_default = "master.example.com"
     host_name = user_input("Server host name", host_default, allow_empty=False)
     print("")
+
+    if host_name.endswith('.'):
+        host_name = host_name[:-1]
 
     return host_name
 
