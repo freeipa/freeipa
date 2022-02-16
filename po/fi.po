@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2022-02-02 20:20+0000\n"
+"PO-Revision-Date: 2022-02-17 19:16+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -19522,7 +19522,7 @@ msgstr "Isäntälaitteet, joilla on oikeus noutaa avaintaulu"
 #: ipaclient/remote_plugins/2_164/service.py:145 ipaserver/plugins/host.py:221
 #: ipaserver/plugins/service.py:143
 msgid "Host Groups allowed to retrieve keytab"
-msgstr ""
+msgstr "Ryhmät, joilla on oikeus noutaa avaintaulu"
 
 #: ipaclient/remote_plugins/2_114/host.py:269
 #: ipaclient/remote_plugins/2_114/service.py:148
@@ -32791,7 +32791,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/vault.py:1455
 #: ipaclient/remote_plugins/2_164/vault.py:1592
 msgid "owner service"
-msgstr ""
+msgstr "Omistajapalvelut"
 
 #: ipaclient/remote_plugins/2_156/vault.py:615
 #: ipaclient/remote_plugins/2_156/vault.py:1467
@@ -37860,7 +37860,7 @@ msgstr ""
 #: ipaserver/plugins/host.py:663
 #, python-format
 msgid "Added host \"%(value)s\""
-msgstr ""
+msgstr "Lisätty isäntäkone \"%(value)s\""
 
 #: ipaserver/plugins/host.py:687 ipaserver/plugins/stageuser.py:329
 #: ipaserver/plugins/stageuser.py:533 ipaserver/plugins/user.py:558
@@ -37872,7 +37872,7 @@ msgstr "voi sisältää enintään %(len)d merkkiä"
 #: ipaserver/plugins/host.py:785
 #, python-format
 msgid "Deleted host \"%(value)s\""
-msgstr ""
+msgstr "Poistettu isäntäkone \"%(value)s\""
 
 #: ipaserver/plugins/host.py:790
 msgid "Remove A, AAAA, SSHFP and PTR records of the host(s) managed by IPA DNS"
@@ -37984,12 +37984,12 @@ msgstr "Lisätty HBAC palvelu \"%(value)s\""
 #: ipaserver/plugins/hbacsvc.py:127
 #, python-format
 msgid "Deleted HBAC service \"%(value)s\""
-msgstr ""
+msgstr "Poistettu HBAC palvelu \"%(value)s\""
 
 #: ipaserver/plugins/hbacsvc.py:135
 #, python-format
 msgid "Modified HBAC service \"%(value)s\""
-msgstr ""
+msgstr "Muokattu HBAC palvelua \"%(value)s\""
 
 #: ipaserver/plugins/hbacsvc.py:144
 #, python-format
@@ -38017,7 +38017,7 @@ msgstr ""
 #: ipaserver/plugins/hbacsvcgroup.py:131
 #, python-format
 msgid "Added HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "Lisätty HBAC palveluryhmä \"%(value)s\""
 
 #: ipaserver/plugins/hbacsvcgroup.py:139
 #, python-format
@@ -38216,7 +38216,7 @@ msgstr ""
 #: ipaserver/plugins/ca.py:328
 #, python-format
 msgid "Deleted CA \"%(value)s\""
-msgstr ""
+msgstr "Poistettu CA \"%(value)s\""
 
 #: ipaserver/plugins/ca.py:337
 msgid "Insufficient privilege to delete a CA."
@@ -38647,7 +38647,7 @@ msgstr ""
 #: ipaserver/plugins/certprofile.py:282
 #, python-format
 msgid "Deleted profile \"%(value)s\""
-msgstr ""
+msgstr "Poistettu profiili \"%(value)s\""
 
 #: ipaserver/plugins/certprofile.py:289
 #, python-format
@@ -39470,7 +39470,7 @@ msgstr ""
 #: ipaserver/plugins/dns.py:3837
 #, python-format
 msgid "Deleted record \"%(value)s\""
-msgstr ""
+msgstr "Poistettu tietue \"%(value)s\""
 
 #: ipaserver/plugins/dns.py:3930
 #, python-format
@@ -40339,7 +40339,7 @@ msgstr ""
 #: ipaserver/plugins/trust.py:1115
 #, python-format
 msgid "Deleted trust \"%(value)s\""
-msgstr ""
+msgstr "Poistettu luottamus \"%(value)s\""
 
 #: ipaserver/plugins/trust.py:1120
 msgid ""
@@ -40608,7 +40608,7 @@ msgstr "Käyttäjäryhmä"
 #: ipaserver/plugins/group.py:360
 #, python-format
 msgid "Added group \"%(value)s\""
-msgstr ""
+msgstr "Lisätty ryhmä \"%(value)s\""
 
 #: ipaserver/plugins/group.py:383
 msgid "gid cannot be set for external group"
@@ -40617,7 +40617,7 @@ msgstr ""
 #: ipaserver/plugins/group.py:395
 #, python-format
 msgid "Deleted group \"%(value)s\""
-msgstr ""
+msgstr "Poistettu ryhmä \"%(value)s\""
 
 #: ipaserver/plugins/group.py:409
 msgid "privileged group"
@@ -41344,12 +41344,12 @@ msgstr "Lisää holvi."
 #: ipaserver/plugins/vault.py:778
 #, python-format
 msgid "Added vault \"%(value)s\""
-msgstr ""
+msgstr "Lisätty holvi \"%(value)s\""
 
 #: ipaserver/plugins/vault.py:817
 #, python-format
 msgid "Deleted vault \"%(value)s\""
-msgstr ""
+msgstr "Poistettu holvi \"%(value)s\""
 
 #: ipaserver/plugins/vault.py:869
 #, python-format
@@ -41989,6 +41989,8 @@ msgid ""
 "\n"
 "Sudo Rules\n"
 msgstr ""
+"\n"
+"Sudo-säännöt\n"
 
 #: ipaserver/plugins/sudorule.py:45
 msgid ""
@@ -42103,7 +42105,7 @@ msgstr "sudo-säännöt"
 
 #: ipaserver/plugins/sudorule.py:228
 msgid "Sudo Rule"
-msgstr ""
+msgstr "Sudo-sääntö"
 
 #: ipaserver/plugins/sudorule.py:363
 #, python-format
@@ -42381,12 +42383,12 @@ msgstr "Lisätty segmentti \"%(value)s\""
 #: ipaserver/plugins/topology.py:302
 #, python-format
 msgid "Deleted segment \"%(value)s\""
-msgstr ""
+msgstr "Poistettu segmentti \"%(value)s\""
 
 #: ipaserver/plugins/topology.py:314
 #, python-format
 msgid "Modified segment \"%(value)s\""
-msgstr ""
+msgstr "Muokattu segmenttiä \"%(value)s\""
 
 #: ipaserver/plugins/topology.py:329
 #, python-format
@@ -43156,12 +43158,12 @@ msgstr "Lisätty rooli \"%(value)s\""
 #: ipaserver/plugins/role.py:172
 #, python-format
 msgid "Deleted role \"%(value)s\""
-msgstr ""
+msgstr "Poistettu rooli \"%(value)s\""
 
 #: ipaserver/plugins/role.py:180
 #, python-format
 msgid "Modified role \"%(value)s\""
-msgstr ""
+msgstr "Muokattu roolia \"%(value)s\""
 
 #: ipaserver/plugins/role.py:189
 #, python-format
@@ -43324,7 +43326,7 @@ msgstr "HBAC-säännöt"
 #: ipaserver/plugins/hbacrule.py:302
 #, python-format
 msgid "Added HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "Lisätty HBAC sääntö \"%(value)s\""
 
 #: ipaserver/plugins/hbacrule.py:316
 #, python-format
@@ -43693,7 +43695,7 @@ msgstr ""
 #: ipaserver/plugins/user.py:809
 #, python-format
 msgid "Modified user \"%(value)s\""
-msgstr ""
+msgstr "Muokattu käyttäjää \"%(value)s\""
 
 #: ipaserver/plugins/user.py:920
 #, python-format
@@ -43857,12 +43859,12 @@ msgstr "Lisätty itsepalvelu \"%(value)s\""
 #: ipaserver/plugins/selfservice.py:146
 #, python-format
 msgid "Deleted selfservice \"%(value)s\""
-msgstr ""
+msgstr "Poistettu itsepalvelu \"%(value)s\""
 
 #: ipaserver/plugins/selfservice.py:163
 #, python-format
 msgid "Modified selfservice \"%(value)s\""
-msgstr ""
+msgstr "Muokattu itsepalvelua \"%(value)s\""
 
 #: ipaserver/plugins/selfservice.py:185
 #, python-format
@@ -43960,7 +43962,7 @@ msgstr ""
 #: ipaserver/plugins/caacl.py:258
 #, python-format
 msgid "Deleted CA ACL \"%(value)s\""
-msgstr ""
+msgstr "Poistettu CA ACL \"%(value)s\""
 
 #: ipaserver/plugins/caacl.py:265
 msgid "default CA ACL can be only disabled"
@@ -48527,7 +48529,7 @@ msgstr[1] ""
 #: ipaserver/plugins/service.py:1088
 #, python-format
 msgid "Disabled service \"%(value)s\""
-msgstr ""
+msgstr "Poistettu palvelu \"%(value)s\" käytöstä"
 
 #: ipaserver/plugins/service.py:1129
 #, python-format
@@ -48827,7 +48829,7 @@ msgstr ""
 #: ipaserver/plugins/privilege.py:183
 #, python-format
 msgid "Modified privilege \"%(value)s\""
-msgstr ""
+msgstr "Muokattu oikeutta \"%(value)s\""
 
 #: ipaserver/plugins/privilege.py:191
 #, python-format
@@ -49131,7 +49133,7 @@ msgstr ""
 #: ipaserver/plugins/aci.py:524
 #, python-format
 msgid "Created ACI \"%(value)s\""
-msgstr ""
+msgstr "Luodut ACI \"%(value)s\""
 
 #: ipaserver/plugins/aci.py:577
 #, python-format
@@ -50273,7 +50275,7 @@ msgstr ""
 
 #: ipaserver/plugins/idviews.py:923
 msgid "Modify an ID override."
-msgstr ""
+msgstr "Muokkaa tunnuksen ohitusta."
 
 #: ipaserver/plugins/idviews.py:924
 #, python-format
