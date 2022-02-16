@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-11-25 18:55+0100\n"
-"PO-Revision-Date: 2022-02-02 20:20+0000\n"
+"PO-Revision-Date: 2022-02-17 19:16+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
@@ -4346,7 +4346,7 @@ msgid "Hosts allowed to retrieve keytab"
 msgstr "Isäntälaitteet, joilla on oikeus noutaa avaintaulu"
 
 msgid "Host Groups allowed to retrieve keytab"
-msgstr ""
+msgstr "Ryhmät, joilla on oikeus noutaa avaintaulu"
 
 msgid "Users allowed to create keytab"
 msgstr "Käyttäjät joiden sallitaan luoda avaintaulu"
@@ -9310,9 +9310,8 @@ msgstr "Omistajaryhmät"
 msgid "owner group"
 msgstr "Omistajaryhmät"
 
-#, fuzzy
 msgid "owner service"
-msgstr "Poista palveluita"
+msgstr "Omistajapalvelut"
 
 msgid "Owners that could not be added"
 msgstr ""
@@ -12563,7 +12562,7 @@ msgstr ""
 
 #, python-format
 msgid "Created ACI \"%(value)s\""
-msgstr ""
+msgstr "Luodut ACI \"%(value)s\""
 
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
@@ -13448,7 +13447,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted CA \"%(value)s\""
-msgstr ""
+msgstr "Poistettu CA \"%(value)s\""
 
 msgid "Insufficient privilege to delete a CA."
 msgstr ""
@@ -13569,7 +13568,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted CA ACL \"%(value)s\""
-msgstr ""
+msgstr "Poistettu CA ACL \"%(value)s\""
 
 msgid "default CA ACL can be only disabled"
 msgstr ""
@@ -14420,7 +14419,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted profile \"%(value)s\""
-msgstr ""
+msgstr "Poistettu profiili \"%(value)s\""
 
 #, python-format
 msgid "Predefined profile '%(profile_id)s' cannot be deleted"
@@ -15379,7 +15378,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted record \"%(value)s\""
-msgstr ""
+msgstr "Poistettu tietue \"%(value)s\""
 
 #, python-format
 msgid "Zone record '%s' cannot be deleted"
@@ -15710,7 +15709,7 @@ msgstr "Käyttäjäryhmä"
 
 #, python-format
 msgid "Added group \"%(value)s\""
-msgstr ""
+msgstr "Lisätty ryhmä \"%(value)s\""
 
 msgid "gid cannot be set for external group"
 msgstr ""
@@ -15720,7 +15719,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted group \"%(value)s\""
-msgstr ""
+msgstr "Poistettu ryhmä \"%(value)s\""
 
 msgid "privileged group"
 msgstr ""
@@ -15785,7 +15784,7 @@ msgstr "Käytettävä IPA-palvelin"
 
 #, python-format
 msgid "Added HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "Lisätty HBAC sääntö \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC rule \"%(value)s\""
@@ -15852,11 +15851,11 @@ msgstr "Lisätty HBAC palvelu \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service \"%(value)s\""
-msgstr ""
+msgstr "Poistettu HBAC palvelu \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC service \"%(value)s\""
-msgstr ""
+msgstr "Muokattu HBAC palvelua \"%(value)s\""
 
 #, python-format
 msgid "%(count)d HBAC service matched"
@@ -15878,7 +15877,7 @@ msgstr "Mikä tahansa palvelu"
 
 #, python-format
 msgid "Added HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "Lisätty HBAC palveluryhmä \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service group \"%(value)s\""
@@ -16225,11 +16224,11 @@ msgstr ""
 
 #, python-format
 msgid "Added host \"%(value)s\""
-msgstr ""
+msgstr "Lisätty isäntäkone \"%(value)s\""
 
 #, python-format
 msgid "Deleted host \"%(value)s\""
-msgstr ""
+msgstr "Poistettu isäntäkone \"%(value)s\""
 
 msgid "Remove A, AAAA, SSHFP and PTR records of the host(s) managed by IPA DNS"
 msgstr ""
@@ -16773,7 +16772,7 @@ msgid "Deleted ID override \"%(value)s\""
 msgstr ""
 
 msgid "Modify an ID override."
-msgstr ""
+msgstr "Muokkaa tunnuksen ohitusta."
 
 #, python-format
 msgid "Modified an ID override \"%(value)s\""
@@ -20884,7 +20883,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified privilege \"%(value)s\""
-msgstr ""
+msgstr "Muokattu oikeutta \"%(value)s\""
 
 #, python-format
 msgid "%(count)d privilege matched"
@@ -21075,11 +21074,11 @@ msgstr "Lisätty rooli \"%(value)s\""
 
 #, python-format
 msgid "Deleted role \"%(value)s\""
-msgstr ""
+msgstr "Poistettu rooli \"%(value)s\""
 
 #, python-format
 msgid "Modified role \"%(value)s\""
-msgstr ""
+msgstr "Muokattu roolia \"%(value)s\""
 
 #, python-format
 msgid "%(count)d role matched"
@@ -21247,11 +21246,11 @@ msgstr "Lisätty itsepalvelu \"%(value)s\""
 
 #, python-format
 msgid "Deleted selfservice \"%(value)s\""
-msgstr ""
+msgstr "Poistettu itsepalvelu \"%(value)s\""
 
 #, python-format
 msgid "Modified selfservice \"%(value)s\""
-msgstr ""
+msgstr "Muokattu itsepalvelua \"%(value)s\""
 
 #, python-format
 msgid "%(count)d selfservice matched"
@@ -21564,7 +21563,7 @@ msgstr[1] ""
 
 #, python-format
 msgid "Disabled service \"%(value)s\""
-msgstr ""
+msgstr "Poistettu palvelu \"%(value)s\" käytöstä"
 
 #, python-format
 msgid "Added certificates to service principal \"%(value)s\""
@@ -22258,11 +22257,11 @@ msgstr "Lisätty segmentti \"%(value)s\""
 
 #, python-format
 msgid "Deleted segment \"%(value)s\""
-msgstr ""
+msgstr "Poistettu segmentti \"%(value)s\""
 
 #, python-format
 msgid "Modified segment \"%(value)s\""
-msgstr ""
+msgstr "Muokattu segmenttiä \"%(value)s\""
 
 #, python-format
 msgid "%(value)s"
@@ -22608,7 +22607,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted trust \"%(value)s\""
-msgstr ""
+msgstr "Poistettu luottamus \"%(value)s\""
 
 msgid ""
 "\n"
@@ -22749,7 +22748,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified user \"%(value)s\""
-msgstr ""
+msgstr "Muokattu käyttäjää \"%(value)s\""
 
 #, python-format
 msgid "Undeleted user account \"%(value)s\""
@@ -23168,11 +23167,11 @@ msgstr "Lisää holvi."
 
 #, python-format
 msgid "Added vault \"%(value)s\""
-msgstr ""
+msgstr "Lisätty holvi \"%(value)s\""
 
 #, python-format
 msgid "Deleted vault \"%(value)s\""
-msgstr ""
+msgstr "Poistettu holvi \"%(value)s\""
 
 #, python-format
 msgid "%(count)d vault matched"
@@ -23563,6 +23562,8 @@ msgid ""
 "\n"
 "Sudo Rules\n"
 msgstr ""
+"\n"
+"Sudo-säännöt\n"
 
 msgid ""
 "\n"
@@ -23678,7 +23679,7 @@ msgid "Sudo Rules"
 msgstr "sudo-säännöt"
 
 msgid "Sudo Rule"
-msgstr ""
+msgstr "Sudo-sääntö"
 
 #, python-format
 msgid "order must be a unique value (%(order)d already used by %(rule)s)"
