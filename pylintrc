@@ -110,6 +110,8 @@ disable=
     consider-using-min-builtin,  # pylint 2.8.0, can be more readable
     redundant-u-string-prefix,  # pylint 2.10.0, too many unessential changes
     consider-using-f-string,  # pylint 2.11.0, format can be more readable
+    use-dict-literal,  # pylint 2.10.0 dict vs {}
+    use-list-literal,  # pylint 2.10.0 list() vs []
 
 [REPORTS]
 
