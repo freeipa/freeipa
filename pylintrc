@@ -108,6 +108,7 @@ disable=
     consider-using-with,  # pylint 2.8.0, contextmanager is not mandatory
     consider-using-max-builtin,  # pylint 2.8.0, can be more readable
     consider-using-min-builtin,  # pylint 2.8.0, can be more readable
+    redundant-u-string-prefix,  # pylint 2.10.0, too many unessential changes
 
 [REPORTS]
 
