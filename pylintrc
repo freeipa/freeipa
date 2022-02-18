@@ -121,6 +121,7 @@ disable=
     use-dict-literal,  # pylint 2.10.0 dict vs {}
     use-list-literal,  # pylint 2.10.0 list() vs []
     unspecified-encoding,  # pylint 2.10.0, ASCII or UTF8 and platform-specific
+    use-implicit-booleaness-not-comparison,  # pylint 2.12.2, weak comparison
 
 [REPORTS]
 
