@@ -444,7 +444,7 @@ class Cookie:
             except Exception:
                 raise ValueError("Max-Age value '%s' not convertable to integer" % value)
 
-    def __set_attr(self, name, value):
+    def __set_attr(self, name, value):  # pylint: disable=unused-private-member
         '''
         Sets one of the predefined cookie attributes.
         '''
