@@ -303,9 +303,3 @@ class CustodiaInstance(SimpleServiceInstance):
         data = {'prefix': 'ca',
                 'list': certlist}
         self._get_keys(cacerts_file, cacerts_pwd, data)
-
-    def __start(self):
-        super(CustodiaInstance, self).__start()
-
-    def __enable(self):
-        super(CustodiaInstance, self).__enable()
