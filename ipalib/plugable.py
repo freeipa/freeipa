@@ -804,8 +804,6 @@ class API(ReadOnly):
                 if not production_mode:
                     assert islocked(instance)
 
-        self.__finalized = True
-
         if not production_mode:
             lock(self)
 
