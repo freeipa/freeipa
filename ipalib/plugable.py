@@ -146,32 +146,32 @@ class Plugin(ReadOnly):
         self.__finalize_lock = threading.RLock()
 
     @classmethod
-    def __name_getter(cls):
+    def __name_getter(cls):  # pylint: disable=unused-private-member, #4756
         return cls.__name__
 
     # you know nothing, pylint
     name = classproperty(__name_getter)
 
     @classmethod
-    def __full_name_getter(cls):
+    def __full_name_getter(cls):  # pylint: disable=unused-private-member
         return '{}/{}'.format(cls.name, cls.version)
 
     full_name = classproperty(__full_name_getter)
 
     @classmethod
-    def __bases_getter(cls):
+    def __bases_getter(cls):  # pylint: disable=unused-private-member, #4756
         return cls.__bases__
 
     bases = classproperty(__bases_getter)
 
     @classmethod
-    def __doc_getter(cls):
+    def __doc_getter(cls):  # pylint: disable=unused-private-member, #4756
         return cls.__doc__
 
     doc = classproperty(__doc_getter)
 
     @classmethod
-    def __summary_getter(cls):
+    def __summary_getter(cls):  # pylint: disable=unused-private-member, #4756
         doc = cls.doc
         if not _(doc).msg:
             return '<%s.%s>' % (cls.__module__, cls.__name__)

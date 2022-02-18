@@ -429,7 +429,7 @@ class Command(HasParam):
     api_version = API_VERSION
 
     @classmethod
-    def __topic_getter(cls):
+    def __topic_getter(cls):  # pylint: disable=unused-private-member, #4756
         return cls.__module__.rpartition('.')[2]
 
     topic = classproperty(__topic_getter)
