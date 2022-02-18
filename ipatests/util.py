@@ -146,7 +146,6 @@ class TempDir:
 class TempHome(TempDir):
     def __init__(self):
         super(TempHome, self).__init__()
-        self.__home = os.environ['HOME']
         os.environ['HOME'] = self.path
 
 
