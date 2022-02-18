@@ -45,7 +45,7 @@ class PrivateExceptionTester:
     _klass = None
     __klass = None
 
-    def __get_klass(self):
+    def __get_klass(self):  # pylint: disable=unused-private-member, #4756
         if self.__klass is None:
             self.__klass = self._klass
         assert issubclass(self.__klass, Exception)
@@ -197,7 +197,7 @@ class PublicExceptionTester:
     _klass = None
     __klass = None
 
-    def __get_klass(self):
+    def __get_klass(self):  # pylint: disable=unused-private-member, #4756
         if self.__klass is None:
             self.__klass = self._klass
         assert issubclass(self.__klass, Exception)
