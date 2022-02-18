@@ -41,17 +41,17 @@ class Prop:
         self.__ops = frozenset(ops)
         self.__prop = 'prop value'
 
-    def __get_prop(self):
+    def __get_prop(self):  # pylint: disable=unused-private-member, #4756
         if 'get' not in self.__ops:
             raise AttributeError('get prop')
         return self.__prop
 
-    def __set_prop(self, value):
+    def __set_prop(self, value):  # pylint: disable=unused-private-member, #4756
         if 'set' not in self.__ops:
             raise AttributeError('set prop')
         self.__prop = value
 
-    def __del_prop(self):
+    def __del_prop(self):  # pylint: disable=unused-private-member, #4756
         if 'del' not in self.__ops:
             raise AttributeError('del prop')
         self.__prop = None

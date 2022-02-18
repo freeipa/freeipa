@@ -94,7 +94,7 @@ class TempDir:
         self.__path = tempfile.mkdtemp(prefix='ipa.tests.')
         assert self.path == self.__path
 
-    def __get_path(self):
+    def __get_path(self):  # pylint: disable=unused-private-member, pylint#4756
         assert path.abspath(self.__path) == self.__path
         assert self.__path.startswith(path.join(tempfile.gettempdir(),
                                                 'ipa.tests.'))
@@ -517,14 +517,14 @@ class ClassChecker:
     __cls = None
     __subcls = None
 
-    def __get_cls(self):
+    def __get_cls(self):  # pylint: disable=unused-private-member, #4756
         if self.__cls is None:
             self.__cls = self._cls  # pylint: disable=E1101
         assert inspect.isclass(self.__cls)
         return self.__cls
     cls = property(__get_cls)
 
-    def __get_subcls(self):
+    def __get_subcls(self):  # pylint: disable=unused-private-member, #4756
         if self.__subcls is None:
             self.__subcls = self.get_subcls()
         assert inspect.isclass(self.__subcls)
@@ -577,7 +577,7 @@ def create_test_api(**kw):
 class PluginTester:
     __plugin = None
 
-    def __get_plugin(self):
+    def __get_plugin(self):  # pylint: disable=unused-private-member, #4756
         if self.__plugin is None:
             self.__plugin = self._plugin  # pylint: disable=E1101
         assert issubclass(self.__plugin, Plugin)
