@@ -96,7 +96,7 @@ class Connectible(Backend):
         """
         return hasattr(context, self.id)
 
-    def __get_conn(self):
+    def __get_conn(self):  # pylint: disable=unused-private-member, #4756
         """
         Return thread-local connection.
         """
