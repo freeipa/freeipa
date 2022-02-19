@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-02-07 08:35+0200\n"
-"PO-Revision-Date: 2022-02-17 19:16+0000\n"
+"PO-Revision-Date: 2022-02-20 20:16+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
@@ -1737,9 +1737,8 @@ msgstr ""
 msgid "Zone refresh interval"
 msgstr ""
 
-#, fuzzy
 msgid "Zone name"
-msgstr "Toimialueen nimi"
+msgstr "Vyöhykkeen nimi"
 
 msgid "Zone name (FQDN)"
 msgstr ""
@@ -1809,9 +1808,8 @@ msgstr ""
 msgid "Raw AAAA records"
 msgstr "Raw AAAA -tietueet"
 
-#, fuzzy
 msgid "AAAA IP Address"
-msgstr "IP-osoite"
+msgstr "AAAA:n IP-osoite"
 
 msgid "AAAA Create reverse"
 msgstr ""
@@ -2134,9 +2132,8 @@ msgstr "NS-tietue"
 msgid "Raw NS records"
 msgstr "Raw NS -tietueet"
 
-#, fuzzy
 msgid "NS Hostname"
-msgstr "Koneen nimi"
+msgstr "NS-isäntänimi"
 
 msgid "NSEC record"
 msgstr "NSEC-tietue"
@@ -2551,9 +2548,8 @@ msgid ""
 "   ipa hbacrule-del allow_server\n"
 msgstr ""
 
-#, fuzzy
 msgid "Rule name"
-msgstr "Nimeä uudelleen"
+msgstr "Säännön nimi"
 
 msgid "Rule type"
 msgstr ""
@@ -2916,9 +2912,8 @@ msgstr ""
 msgid "Generate a random password to be used in bulk enrollment"
 msgstr ""
 
-#, fuzzy
 msgid "Random password"
-msgstr "Vaihda salasana"
+msgstr "Satunnainen salasana"
 
 msgid "Certificate"
 msgstr ""
@@ -3649,9 +3644,8 @@ msgstr ""
 msgid "LDAP URI of DS server to migrate from"
 msgstr ""
 
-#, fuzzy
 msgid "bind password"
-msgstr "salasana"
+msgstr "sido salasana"
 
 msgid "Bind DN"
 msgstr ""
@@ -3712,9 +3706,8 @@ msgid ""
 "GID and report as success"
 msgstr ""
 
-#, fuzzy
 msgid "LDAP schema"
-msgstr "LDAP:in BaseDN"
+msgstr "LDAP:in skeema"
 
 msgid ""
 "The schema used on the LDAP server. Supported values are RFC2307 and "
@@ -3822,16 +3815,14 @@ msgid ""
 "   ipa netgroup-del admins\n"
 msgstr ""
 
-#, fuzzy
 msgid "Netgroup name"
-msgstr "Ryhmän nimi"
+msgstr "Verkkoryhmän nimi"
 
 msgid "Netgroup description"
 msgstr "Verkkoryhmän kuvaus"
 
-#, fuzzy
 msgid "NIS domain name"
-msgstr "Toimialueen nimi"
+msgstr "NIS-toimialueen nimi"
 
 msgid "IPA unique ID"
 msgstr ""
@@ -3953,9 +3944,8 @@ msgid ""
 "   ipa hotpconfig-mod --hotp-sync-window=50\n"
 msgstr ""
 
-#, fuzzy
 msgid "TOTP authentication Window"
-msgstr "Tunnistatuminen"
+msgstr "TOTP-tunnistautumisikkuna"
 
 msgid "TOTP authentication time variance (seconds)"
 msgstr ""
