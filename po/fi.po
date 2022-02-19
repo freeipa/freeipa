@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2022-02-17 19:16+0000\n"
+"PO-Revision-Date: 2022-02-20 20:16+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -21617,7 +21617,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/migration.py:130
 #: ipaserver/plugins/migration.py:536
 msgid "bind password"
-msgstr "sitoa salasana"
+msgstr "sido salasana"
 
 #: ipaclient/remote_plugins/2_114/migration.py:138
 #: ipaclient/remote_plugins/2_156/migration.py:138
@@ -21773,7 +21773,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/migration.py:228
 #: ipaserver/plugins/migration.py:611
 msgid "LDAP schema"
-msgstr ""
+msgstr "LDAP:in skeema"
 
 #: ipaclient/remote_plugins/2_114/migration.py:229
 #: ipaclient/remote_plugins/2_156/migration.py:229
@@ -22043,7 +22043,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/netgroup.py:785
 #: ipaserver/plugins/netgroup.py:204
 msgid "Netgroup name"
-msgstr ""
+msgstr "Verkkoryhmän nimi"
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:58
 #: ipaclient/remote_plugins/2_114/netgroup.py:145
@@ -22083,7 +22083,7 @@ msgstr "Verkkoryhmän kuvaus"
 #: ipaclient/remote_plugins/2_49/netgroup.py:602
 #: ipaserver/plugins/netgroup.py:217
 msgid "NIS domain name"
-msgstr ""
+msgstr "NIS-toimialueen nimi"
 
 #: ipaclient/remote_plugins/2_114/netgroup.py:68
 #: ipaclient/remote_plugins/2_114/netgroup.py:69
@@ -22401,7 +22401,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/otpconfig.py:83
 #: ipaserver/plugins/otpconfig.py:86
 msgid "TOTP authentication Window"
-msgstr ""
+msgstr "TOTP-tunnistautumisikkuna"
 
 #: ipaclient/remote_plugins/2_114/otpconfig.py:54
 #: ipaclient/remote_plugins/2_114/otpconfig.py:84
