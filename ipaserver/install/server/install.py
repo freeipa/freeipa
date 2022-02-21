@@ -132,7 +132,7 @@ def read_cache(dm_password):
                                   fname,
                                   dm_password,
                                   top_dir)
-    except Exception as e:
+    except Exception:
         shutil.rmtree(top_dir)
         raise Exception("Decryption of answer cache in %s failed, please "
                         "check your password." % paths.ROOT_IPA_CACHE)

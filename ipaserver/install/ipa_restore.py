@@ -642,7 +642,7 @@ class Restore(admintool.AdminTool):
             template_dir = paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % instance
             try:
                 os.makedirs(template_dir)
-            except OSError as e:
+            except OSError:
                 pass
 
             constants.DS_USER.chown(template_dir)

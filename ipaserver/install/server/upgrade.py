@@ -1311,7 +1311,7 @@ def ntpd_cleanup(fqdn, fstore):
         try:
             instance.disable()
             instance.stop()
-        except Exception as e:
+        except Exception:
             logger.debug("Service ntpd was not disabled or stopped")
 
     for ntpd_file in [paths.NTP_CONF, paths.NTP_STEP_TICKERS,

@@ -742,7 +742,7 @@ class KerbTransport(SSLTransport):
             self.close()
             logger.debug("HTTP server has closed connection (%s)", host)
             raise
-        except BaseException as e:
+        except BaseException:
             # Unexpected exception may leave connections in a bad state.
             self.close()
             logger.debug("HTTP connection destroyed (%s)",
@@ -837,7 +837,7 @@ class KerbTransport(SSLTransport):
                      cookie_string, principal)
         try:
             update_persistent_client_session_data(principal, cookie_string)
-        except Exception as e:
+        except Exception:
             # Not fatal, we just can't use the session cookie we were sent.
             pass
 
@@ -977,7 +977,7 @@ class RPCClient(Connectible):
                          principal, e)
             try:
                 delete_persistent_client_session_data(principal)
-            except Exception as e:
+            except Exception:
                 pass
             return original_url
         except Cookie.URLMismatch as e:

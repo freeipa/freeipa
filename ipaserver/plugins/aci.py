@@ -377,7 +377,7 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
             entry = ldap.make_entry(dn)
             try:
                 entry = ldap.get_entry(groupdn, ['cn'])
-            except errors.NotFound as e:
+            except errors.NotFound:
                 # FIXME, use real name here
                 if test:
                     dn = DN(('cn', 'test'), api.env.container_permission,
