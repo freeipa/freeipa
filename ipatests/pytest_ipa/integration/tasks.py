@@ -2462,6 +2462,18 @@ def get_platform(host):
     return result.stdout_text.strip()
 
 
+def get_platform_version(host):
+    result = host.run_command([
+        'python3', '-c',
+        'from ipaplatform.osinfo import OSInfo; print(OSInfo().version_number)'
+    ], raiseonerr=False)
+    assert result.returncode == 0
+    # stdout_text is a str in format "(X, Y)" and needs to be
+    # converted back to a functional tuple. This approach works with
+    # any number of version numbers filled, e.g. (34, ) or (8, 6) etc.
+    return tuple(map(int, re.findall(r'[0-9]+', result.stdout_text.strip())))
+
+
 def install_packages(host, pkgs):
     """Install packages on a remote host.
     :param host: the host where the installation takes place
