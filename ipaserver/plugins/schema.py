@@ -214,10 +214,10 @@ class command(metaobject):
         ),
     )
 
-    def _iter_params(self, cmd):
-        for arg in cmd.args():
+    def _iter_params(self, metaobj):
+        for arg in metaobj.args():
             yield arg
-        for option in cmd.options():
+        for option in metaobj.options():
             if option.name == 'version':
                 continue
             yield option
@@ -412,8 +412,8 @@ class topic_(MetaObject):
                     else:
                         topic.pop('topic_topic', None)
 
-    def _get_obj(self, topic, **kwargs):
-        return topic
+    def _get_obj(self, obj, **kwargs):
+        return obj
 
     def _retrieve(self, full_name, **kwargs):
         self.__make_topics()
@@ -564,8 +564,8 @@ class param(BaseParam):
     def parent(self):
         return self.api.Object.metaobject
 
-    def _get_obj(self, metaobj_param, **kwargs):
-        metaobj, param = metaobj_param
+    def _get_obj(self, obj, **kwargs):
+        metaobj, param = obj
 
         obj = dict()
         obj['name'] = unicode(param.name)
@@ -693,8 +693,8 @@ class output(BaseParam):
     def parent(self):
         return self.api.Object.command
 
-    def _get_obj(self, cmd_output, **kwargs):
-        cmd, output = cmd_output
+    def _get_obj(self, obj, **kwargs):
+        cmd, output = obj
         required = True
         multivalue = False
 

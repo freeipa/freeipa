@@ -52,7 +52,7 @@ class IPASubids(AdminTool):
             help="Dry run mode.",
         )
 
-    def validate_options(self, neends_root=False):
+    def validate_options(self, needs_root=False):
         super().validate_options(needs_root=True)
         opt = self.safe_options
 

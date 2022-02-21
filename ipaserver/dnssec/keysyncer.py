@@ -76,46 +76,46 @@ class KeySyncer(SyncReplConsumer):
             return False
         return vals[0].startswith(b'dnssec-replica:')
 
-    def application_add(self, uuid, dn, newattrs):
-        objclass = self._get_objclass(newattrs)
+    def application_add(self, uuid, dn, attributes):
+        objclass = self._get_objclass(attributes)
         if objclass == b'idnszone':
-            self.zone_add(uuid, dn, newattrs)
+            self.zone_add(uuid, dn, attributes)
         elif objclass == b'idnsseckey':
-            self.key_meta_add(uuid, dn, newattrs)
+            self.key_meta_add(uuid, dn, attributes)
         elif objclass == b'ipk11publickey' and \
-                self.__is_replica_pubkey(newattrs):
+                self.__is_replica_pubkey(attributes):
             self.hsm_master_sync()
 
-    def application_del(self, uuid, dn, oldattrs):
-        objclass = self._get_objclass(oldattrs)
+    def application_del(self, uuid, dn, previous_attributes):
+        objclass = self._get_objclass(previous_attributes)
         if objclass == b'idnszone':
-            self.zone_del(uuid, dn, oldattrs)
+            self.zone_del(uuid, dn, previous_attributes)
         elif objclass == b'idnsseckey':
-            self.key_meta_del(uuid, dn, oldattrs)
+            self.key_meta_del(uuid, dn, previous_attributes)
         elif objclass == b'ipk11publickey' and \
-                self.__is_replica_pubkey(oldattrs):
+                self.__is_replica_pubkey(previous_attributes):
             self.hsm_master_sync()
 
-    def application_sync(self, uuid, dn, newattrs, oldattrs):
-        objclass = self._get_objclass(oldattrs)
+    def application_sync(self, uuid, dn, attributes, previous_attributes):
+        objclass = self._get_objclass(previous_attributes)
         if objclass == b'idnszone':
-            olddn = ldap.dn.str2dn(oldattrs['dn'])
-            newdn = ldap.dn.str2dn(newattrs['dn'])
+            olddn = ldap.dn.str2dn(previous_attributes['dn'])
+            newdn = ldap.dn.str2dn(attributes['dn'])
             assert olddn == newdn, 'modrdn operation is not supported'
 
-            oldval = self.__get_signing_attr(oldattrs)
-            newval = self.__get_signing_attr(newattrs)
+            oldval = self.__get_signing_attr(previous_attributes)
+            newval = self.__get_signing_attr(attributes)
             if oldval != newval:
-                if self.__is_dnssec_enabled(newattrs):
-                    self.zone_add(uuid, olddn, newattrs)
+                if self.__is_dnssec_enabled(attributes):
+                    self.zone_add(uuid, olddn, attributes)
                 else:
-                    self.zone_del(uuid, olddn, oldattrs)
+                    self.zone_del(uuid, olddn, previous_attributes)
 
         elif objclass == b'idnsseckey':
-            self.key_metadata_sync(uuid, dn, oldattrs, newattrs)
+            self.key_metadata_sync(uuid, dn, previous_attributes, attributes)
 
         elif objclass == b'ipk11publickey' and \
-                self.__is_replica_pubkey(newattrs):
+                self.__is_replica_pubkey(attributes):
             self.hsm_master_sync()
 
     def syncrepl_refreshdone(self):

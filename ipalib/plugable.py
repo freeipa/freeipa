@@ -822,10 +822,10 @@ class API(ReadOnly):
 
 
 class IPAHelpFormatter(optparse.IndentedHelpFormatter):
-    def format_epilog(self, text):
+    def format_epilog(self, epilog):
         text_width = self.width - self.current_indent
         indent = " " * self.current_indent
-        lines = text.splitlines()
+        lines = epilog.splitlines()
         result = '\n'.join(
             textwrap.fill(line, text_width, initial_indent=indent,
                 subsequent_indent=indent)
