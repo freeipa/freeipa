@@ -34,7 +34,6 @@ def main():
                 "File '{}' missing or not readable.\n".format(filename)
             )
 
-    # pylint: disable=no-member
     client = CustodiaClient(
         client_service="{}@{}".format(service, env.host),
         server=args.servername,

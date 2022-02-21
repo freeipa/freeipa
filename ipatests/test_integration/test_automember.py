@@ -102,15 +102,15 @@ class TestAutounmembership(IntegrationTest):
     def check_autounmembership_in_ldap(self, state='on'):
         """Check autounmembership state."""
         conn = self.master.ldap_connect()
-        entry = conn.get_entry(self.dn)  # pylint: disable=no-member
+        entry = conn.get_entry(self.dn)
         assert state == entry.single_value['automemberprocessmodifyops']
 
     def disable_autounmembership_in_ldap(self):
         """Disable autounmembership."""
         conn = self.master.ldap_connect()
-        entry = conn.get_entry(self.dn)  # pylint: disable=no-member
+        entry = conn.get_entry(self.dn)
         entry.single_value['automemberprocessmodifyops'] = 'off'
-        conn.update_entry(entry)  # pylint: disable=no-member
+        conn.update_entry(entry)
         self.master.run_command(['ipactl', 'restart'])
 
     def test_modify_user_entry_unmembership(self):

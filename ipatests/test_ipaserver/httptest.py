@@ -44,8 +44,6 @@ class Unauthorized_HTTP_test:
         """
         if params is not None:
             if self.content_type == 'application/x-www-form-urlencoded':
-                # urlencode *can* take two arguments
-                # pylint: disable=too-many-function-args
                 params = urllib.parse.urlencode(params, True)
         url = 'https://' + self.host + self.app_uri
 

@@ -463,7 +463,7 @@ class test_Command(ClassChecker):
         api.finalize()
         o = my_cmd(api)
         o.finalize()
-        e = o.get_default(**kw)  # pylint: disable=not-callable
+        e = o.get_default(**kw)
         assert type(e) is dict
         assert 'option2' in e
         assert e['option2'] == u'some value'

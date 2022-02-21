@@ -636,12 +636,12 @@ class TestTrust(BaseTestTrust):
         client.run_command(test_id)
 
         conn = self.master.ldap_connect()
-        entry = conn.get_entry(extdom_dn)  # pylint: disable=no-member
+        entry = conn.get_entry(extdom_dn)
         orig_extdom_timeout = entry.single_value.get('ipaextdommaxnsstimeout')
 
         # set the extdom plugin timeout to 1s (1000)
         entry.single_value['ipaextdommaxnsstimeout'] = 1000
-        conn.update_entry(entry)  # pylint: disable=no-member
+        conn.update_entry(entry)
         self.master.run_command(['ipactl', 'restart'])
 
         with tasks.remote_sssd_config(self.master) as sssd_conf:
@@ -667,9 +667,9 @@ class TestTrust(BaseTestTrust):
                 self.master.run_command('kill -CONT %s' % pid)
             # reconnect and set back to default extdom plugin
             conn = self.master.ldap_connect()
-            entry = conn.get_entry(extdom_dn)  # pylint: disable=no-member
+            entry = conn.get_entry(extdom_dn)
             entry.single_value['ipaextdommaxnsstimeout'] = orig_extdom_timeout
-            conn.update_entry(entry)  # pylint: disable=no-member
+            conn.update_entry(entry)
             tasks.restore_files(self.master)
             self.master.run_command(['ipactl', 'restart'])
 

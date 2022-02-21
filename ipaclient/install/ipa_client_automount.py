@@ -37,10 +37,8 @@ except ImportError:
     from xml.etree import ElementTree as etree
 import SSSDConfig
 
-# pylint: disable=import-error
 from six.moves.urllib.parse import urlsplit
 
-# pylint: enable=import-error
 from optparse import OptionParser  # pylint: disable=deprecated-module
 from ipapython import ipachangeconf
 from ipaclient.install import ipadiscovery

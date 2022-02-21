@@ -276,7 +276,7 @@ class TestOTPToken(IntegrationTest):
         This requires paramiko until the 2-prompt sshpass RFE is
         fulfilled: https://sourceforge.net/p/sshpass/feature-requests/5/
         """
-        if self.master.is_fips_mode:  # pylint: disable=no-member
+        if self.master.is_fips_mode:
             pytest.skip("paramiko is not compatible with FIPS mode")
 
         master = self.master
@@ -323,7 +323,7 @@ class TestOTPToken(IntegrationTest):
         new_limit = 30
         conn = self.master.ldap_connect()
         dn = DN(('cn', 'config'))
-        entry = conn.get_entry(dn)  # pylint: disable=no-member
+        entry = conn.get_entry(dn)
         orig_limit = entry.single_value.get('nsslapd-idletimeout')
         ldap_query = textwrap.dedent("""
             dn: cn=config

@@ -363,7 +363,7 @@ class TestIPACommand(IntegrationTest):
         master = self.master
 
         # Add a system account and add it to a group managed by the policy
-        base_dn = str(master.domain.basedn)  # pylint: disable=no-member
+        base_dn = str(master.domain.basedn)
         entry_ldif = textwrap.dedent("""
             dn: uid={account_name},cn=sysaccounts,cn=etc,{base_dn}
             changetype: add
@@ -877,7 +877,7 @@ class TestIPACommand(IntegrationTest):
         )
 
         conn = self.master.ldap_connect()
-        entry = conn.get_entry(dn)  # pylint: disable=no-member
+        entry = conn.get_entry(dn)
 
         # original setting and all settings without state
         orig_cfg = list(entry['ipaConfigString'])
@@ -888,19 +888,19 @@ class TestIPACommand(IntegrationTest):
             cfg = [HIDDEN_SERVICE]
             cfg.extend(other_cfg)
             entry['ipaConfigString'] = cfg
-            conn.update_entry(entry)  # pylint: disable=no-member
+            conn.update_entry(entry)
             self.master.run_command(['ipa', 'config-show'])
 
             # test with configured
             cfg = [CONFIGURED_SERVICE]
             cfg.extend(other_cfg)
             entry['ipaConfigString'] = cfg
-            conn.update_entry(entry)  # pylint: disable=no-member
+            conn.update_entry(entry)
             self.master.run_command(['ipa', 'config-show'])
         finally:
             # reset
             entry['ipaConfigString'] = orig_cfg
-            conn.update_entry(entry)  # pylint: disable=no-member
+            conn.update_entry(entry)
 
     def test_ssh_from_controller(self):
         """https://pagure.io/SSSD/sssd/issue/3979
@@ -1255,9 +1255,9 @@ class TestIPACommand(IntegrationTest):
         )
         assert console_msg in result.stdout_text
         # verify using backend
-        conn = self.master.ldap_connect()  # pylint: disable=no-member
+        conn = self.master.ldap_connect()
         dn = DN(('cn', 'NIS Server'), ('cn', 'plugins'), ('cn', 'config'))
-        entry = conn.get_entry(dn)  # pylint: disable=no-member
+        entry = conn.get_entry(dn)
         nispluginstring = entry.get('nsslapd-pluginEnabled')
         assert 'on' in nispluginstring
         # restart for changes to take effect
@@ -1289,9 +1289,9 @@ class TestIPACommand(IntegrationTest):
         )
         assert msg in result.stdout_text
         # verify using backend
-        conn = self.master.ldap_connect()  # pylint: disable=no-member
+        conn = self.master.ldap_connect()
         dn = DN(('cn', 'NIS Server'), ('cn', 'plugins'), ('cn', 'config'))
-        entry = conn.get_entry(dn)  # pylint: disable=no-member
+        entry = conn.get_entry(dn)
         nispluginstring = entry.get('nsslapd-pluginEnabled')
         assert 'off' in nispluginstring
         # restart dirsrv for changes to take effect

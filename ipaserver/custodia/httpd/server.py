@@ -20,7 +20,7 @@ from ipaserver.custodia import log
 from ipaserver.custodia.plugin import HTTPError
 
 try:
-    from systemd import daemon as sd  # pylint: disable=import-error
+    from systemd import daemon as sd
 except ImportError:
     sd = None
     if 'NOTIFY_SOCKET' in os.environ:
@@ -61,7 +61,7 @@ class ForkingHTTPServer(ForkingTCPServer):
 
     def __init__(self, server_address, handler_class, config,
                  bind_and_activate=True):
-        # pylint: disable=super-init-not-called, non-parent-init-called
+        # pylint: disable=non-parent-init-called
         # Init just BaseServer, TCPServer creates a socket.
         BaseServer.__init__(self, server_address, handler_class)
 

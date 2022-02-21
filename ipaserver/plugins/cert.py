@@ -1380,7 +1380,7 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
             logger.debug("Not granted by ACI to retrieve certificate, "
                          "looking at principal")
             if not bind_principal_can_manage_cert(cert):
-                raise acierr  # pylint: disable=E0702
+                raise acierr
 
         ca_obj = api.Command.ca_show(
             options['cacn'],

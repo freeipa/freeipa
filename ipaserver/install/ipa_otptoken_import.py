@@ -75,7 +75,6 @@ def convertDate(value):
 
     dt = dateutil.parser.parse(value)
 
-    # pylint: disable=E1101
     if dt.tzinfo is None:
         dt = datetime.datetime(*dt.timetuple()[0:6],
                                tzinfo=dateutil.tz.tzlocal())
@@ -535,11 +534,11 @@ class OTPTokenImport(admintool.AdminTool):
 
         # Verify a key is provided if one is needed.
         if self.doc.keyname is not None:
-            if self.safe_options.keyfile is None:  # pylint: disable=no-member
+            if self.safe_options.keyfile is None:
                 raise admintool.ScriptError("Encryption key required: %s!" % self.doc.keyname)
 
             # Load the keyfile.
-            keyfile = self.safe_options.keyfile  # pylint: disable=no-member
+            keyfile = self.safe_options.keyfile
             with open(keyfile) as f:
                 self.doc.setKey(f.read())
 

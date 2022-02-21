@@ -211,13 +211,11 @@ class TestSMB(IntegrationTest):
             \s*SID:\s*S-1-5-21-\d+-\d+-\d+\n
             \s+ID\ range:\s*\d+\s*-\s*\d+
         '''
-        # pylint: disable=no-member
         ipa_regexp = domain_regexp_tpl.format(
             domain=re.escape(self.master.domain.name),
             netbios=self.master.netbios)
         ad_regexp = domain_regexp_tpl.format(
             domain=re.escape(self.ad.domain.name), netbios=self.ad.netbios)
-        # pylint: enable=no-member
         output_regexp = r'''
             Discovered\ domains.*
             {}

@@ -29,7 +29,7 @@ def pytest_generate_tests(metafunc):
             if callable(test):
                 description = '%s: %s' % (
                     str(i).zfill(4),
-                    test.__name__,  # test is not a dict. pylint: disable=E1103
+                    test.__name__,
                 )
             else:
                 description = '%s: %s: %s' % (str(i).zfill(4),

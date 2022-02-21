@@ -129,14 +129,14 @@ class TestUpgrade(IntegrationTest):
         ldap = self.master.ldap_connect()
         basedn = self.master.domain.basedn
         dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'), basedn)
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         # Extract the certificate as DER then double-encode
         cacert = entry['cacertificate;binary'][0]
         cacert_der = cacert.public_bytes(serialization.Encoding.DER)
         cacert_b64 = base64.b64encode(cacert_der)
         # overwrite the value with double-encoded cert
         entry.single_value['cACertificate;binary'] = cacert_b64
-        ldap.update_entry(entry)  # pylint: disable=no-member
+        ldap.update_entry(entry)
 
         # try the upgrade
         self.master.run_command(['ipa-server-upgrade'])
@@ -144,7 +144,7 @@ class TestUpgrade(IntegrationTest):
         # reconnect to the master (upgrade stops 389-ds)
         ldap = self.master.ldap_connect()
         # read the value after upgrade, should be fixed
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         try:
             _cacert = entry['cacertificate;binary']
         except ValueError:

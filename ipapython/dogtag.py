@@ -41,7 +41,6 @@ from ipapython import ipautil
 try:
     import httplib
 except ImportError:
-    # pylint: disable=import-error
     import http.client as httplib
 
 if six.PY3:
@@ -67,7 +66,7 @@ KDC_PROFILE = u'KDCs_PKINIT_Certs'
 
 
 if six.PY3:
-    gzip_decompress = gzip.decompress  # pylint: disable=no-member
+    gzip_decompress = gzip.decompress
 else:
     # note: gzip.decompress available in Python >= 3.2
     def gzip_decompress(data):

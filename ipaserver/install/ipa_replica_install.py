@@ -47,14 +47,12 @@ class CompatServerReplicaInstall(ServerReplicaInstall):
         self.__dm_password = value
 
     ip_addresses = extend_knob(
-        ServerReplicaInstall.ip_addresses,  # pylint: disable=no-member
+        ServerReplicaInstall.ip_addresses,
         description="Replica server IP Address. This option can be used "
                     "multiple times",
     )
 
-    admin_password = (
-        ServerReplicaInstall.admin_password     # pylint: disable=no-member
-    )
+    admin_password = ServerReplicaInstall.admin_password
     admin_password = extend_knob(
         admin_password,
         cli_names=list(admin_password.cli_names) + ['-w'],

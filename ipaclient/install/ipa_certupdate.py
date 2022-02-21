@@ -113,9 +113,9 @@ def run_with_args(api):
 
         update_server(certs)
 
-        # pylint: disable=import-error,ipa-forbidden-import
+        # pylint: disable=ipa-forbidden-import
         from ipaserver.install import cainstance, custodiainstance
-        # pylint: enable=import-error,ipa-forbidden-import
+        # pylint: enable=ipa-forbidden-import
 
         # Add LWCA tracking requests.  Only execute if *this server*
         # has CA installed (ca_enabled indicates CA-ful topology).

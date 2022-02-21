@@ -34,7 +34,7 @@ IPA_TESTS_ENV_DIR = os.path.join(IPA_TESTS_ENV_WORKING_DIR, IPA_TESTS_ENV_NAME)
 IPA_TEST_CONFIG = "ipa-test-config.yaml"
 
 
-class ExecRunReturn(NamedTuple):  # pylint: disable=inherit-non-class #3876
+class ExecRunReturn(NamedTuple):
     exit_code: int
     output: Tuple[bytes, bytes]
 

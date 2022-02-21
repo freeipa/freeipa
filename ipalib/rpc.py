@@ -77,7 +77,6 @@ try:
     from xmlrpclib import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
             Transport, ProtocolError, MININT, MAXINT)
 except ImportError:
-    # pylint: disable=import-error
     from xmlrpc.client import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
             Transport, ProtocolError, MININT, MAXINT)
 
@@ -763,7 +762,7 @@ class KerbTransport(SSLTransport):
             else:
                 connection.putrequest("POST", handler)
             headers.append(("User-Agent", self.user_agent))
-            self.send_headers(connection, headers)  # pylint: disable=E1101
+            self.send_headers(connection, headers)
             self.send_content(connection, request_body)
             return connection
 
@@ -996,8 +995,6 @@ class RPCClient(Connectible):
         # Form the session URL by substituting the session path into the original URL
         scheme, netloc, path, params, query, fragment = urllib.parse.urlparse(original_url)
         path = self.session_path
-        # urlencode *can* take one argument
-        # pylint: disable=too-many-function-args
         session_url = urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment))
 
         return session_url
@@ -1078,11 +1075,9 @@ class RPCClient(Connectible):
                             )
                     # We don't care about the response, just that we got one
                     return serverproxy
-                # pylint: disable=try-except-raise
                 except errors.KerberosError:
                     # kerberos error on one server is likely on all
                     raise
-                # pylint: enable=try-except-raise
                 except ProtocolError as e:
                     if hasattr(context, 'session_cookie') and e.errcode == 401:
                         # Unauthorized. Remove the session and try again.
