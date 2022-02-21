@@ -36,8 +36,8 @@ def run_operation(cmd):
 
     result = ipautil.run(cmd, raiseonerr=False, env=os.environ)
     # Write bytes directly
-    sys.stdout.buffer.write(result.raw_output)  #pylint: disable=no-member
-    sys.stderr.buffer.write(result.raw_error_output)  #pylint: disable=no-member
+    sys.stdout.buffer.write(result.raw_output)
+    sys.stderr.buffer.write(result.raw_error_output)
     sys.stdout.flush()
     sys.stderr.flush()
 

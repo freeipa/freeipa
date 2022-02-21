@@ -59,7 +59,7 @@ def main():
     rsp.DecodePacket(buf)
     pkt.VerifyReply(rsp)
 
-    proc.terminate()  # pylint: disable=E1101
+    proc.terminate()
     proc.wait()
 
 if __name__ == '__main__':

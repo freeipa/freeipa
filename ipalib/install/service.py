@@ -115,7 +115,6 @@ class ServiceInstallInterface(common.Installable,
         validate_domain_name(value)
 
     servers = knob(
-        # pylint: disable=invalid-sequence-index
         typing.List[str], None,
         description="FQDN of IPA server",
         cli_names='--server',
@@ -143,7 +142,6 @@ class ServiceInstallInterface(common.Installable,
     )
 
     ca_cert_files = knob(
-        # pylint: disable=invalid-sequence-index
         typing.List[str], None,
         description="load the CA certificate from this file",
         cli_names='--ca-cert-file',

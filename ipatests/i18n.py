@@ -624,10 +624,8 @@ def test_translations(po_file, lang, domain, locale_dir):
     t = gettext.translation(domain, locale_dir)
 
     if six.PY2:
-        # pylint: disable=no-member
         get_msgstr = t.ugettext
         get_msgstr_plural = t.ungettext
-        # pylint: enable=no-member
     else:
         get_msgstr = t.gettext
         get_msgstr_plural = t.ngettext

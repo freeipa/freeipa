@@ -67,11 +67,11 @@ def _create_plugin(cfgparser, section, menu):
         handler = _load_plugin_class(menu, handler_name)
         classname = handler.__name__
         hconf['facility_name'] = '%s-[%s]' % (classname, section)
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:
         raise ValueError('Invalid format for "handler" option '
                          '[%r]: %s' % (e, handler_name))
 
-    if handler._options is not None:  # pylint: disable=protected-access
+    if handler._options is not None:
         # new-style plugin with parser and section
         plugin = handler(cfgparser, section)
     else:

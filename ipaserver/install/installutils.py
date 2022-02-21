@@ -171,7 +171,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         except socket.error as e:
             logger.debug(
                 'socket.gethostbyaddr() error: %d: %s',
-                e.errno, e.strerror)  # pylint: disable=no-member
+                e.errno, e.strerror)
 
     if no_host_dns:
         print("Warning: skipping DNS resolution of host", host_name)

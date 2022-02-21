@@ -605,7 +605,7 @@ class test_Param(ClassChecker):
 
             def __init__(self, name, **kw):
                 # (Pylint complains because the superclass is unknowm)
-                # pylint: disable=bad-super-call, super-on-old-class
+                # pylint: disable=super-on-old-class
                 self._convert_scalar = PassThrough()
                 super(Str, self).__init__(name, **kw)
 

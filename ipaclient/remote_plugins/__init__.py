@@ -109,9 +109,12 @@ class ServerInfo(MutableMapping):
 
 def get_package(api):
     if api.env.in_tree:
+        # server packages are not published on pypi.org
+        # pylint: disable=useless-suppression
         # pylint: disable=import-error,ipa-forbidden-import
         from ipaserver import plugins
         # pylint: enable=import-error,ipa-forbidden-import
+        # pylint: enable=useless-suppression
     else:
         try:
             plugins = api._remote_plugins

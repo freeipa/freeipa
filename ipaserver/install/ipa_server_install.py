@@ -18,19 +18,18 @@ class CompatServerMasterInstall(ServerMasterInstall):
     request_cert = False
 
     dm_password = extend_knob(
-        ServerMasterInstall.dm_password,    # pylint: disable=no-member
+        ServerMasterInstall.dm_password,
         cli_names=['--ds-password', '-p'],
     )
 
     admin_password = ServerMasterInstall.admin_password
     admin_password = extend_knob(
         admin_password,
-        # pylint: disable=no-member
         cli_names=list(admin_password.cli_names) + ['-a'],
     )
 
     ip_addresses = extend_knob(
-        ServerMasterInstall.ip_addresses,   # pylint: disable=no-member
+        ServerMasterInstall.ip_addresses,
         description="Master Server IP Address. This option can be used "
                     "multiple times",
     )

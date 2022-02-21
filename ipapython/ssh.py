@@ -26,7 +26,7 @@ import base64
 import re
 import struct
 from hashlib import sha1
-from hashlib import sha256  # pylint: disable=E0611
+from hashlib import sha256
 
 import six
 

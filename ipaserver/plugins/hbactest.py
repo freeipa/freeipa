@@ -247,7 +247,7 @@ def _convert_to_ipa_rule(rule):
             if attr_name in rule:
                 element[4].groups = rule[attr_name]
     if 'externalhost' in rule:
-            ipa_rule.srchosts.names.extend(rule['externalhost']) #pylint: disable=E1101
+            ipa_rule.srchosts.names.extend(rule['externalhost'])
     return ipa_rule
 
 

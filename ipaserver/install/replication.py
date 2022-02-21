@@ -1593,12 +1593,12 @@ class ReplicationManager:
             pass
         except Exception as e:
             if force and err:
-                raise err   #pylint: disable=E0702
+                raise err
             else:
                 raise e
 
         if err:
-            raise err   #pylint: disable=E0702
+            raise err
 
     def set_readonly(self, readonly, critical=False):
         """

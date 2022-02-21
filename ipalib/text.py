@@ -288,7 +288,7 @@ class Gettext(LazyText):
         else:
             t = create_translation(self.key)
         if six.PY2:
-            return t.ugettext(self.msg)  # pylint: disable=no-member
+            return t.ugettext(self.msg)
         else:
             return t.gettext(self.msg)
 
@@ -296,10 +296,10 @@ class Gettext(LazyText):
         return unicode(self.as_unicode())
 
     def __json__(self):
-        return unicode(self)   #pylint: disable=no-member
+        return unicode(self)
 
     def __mod__(self, kw):
-        return unicode(self) % kw  #pylint: disable=no-member
+        return unicode(self) % kw
 
     def format(self, *args, **kwargs):
         return unicode(self).format(*args, **kwargs)
@@ -481,9 +481,7 @@ class NGettext(LazyText):
         else:
             t = create_translation(self.key)
         if six.PY2:
-            # pylint: disable=no-member
             return t.ungettext(self.singular, self.plural, count)
-            # pylint: enable=no-member
         else:
             return t.ngettext(self.singular, self.plural, count)
 

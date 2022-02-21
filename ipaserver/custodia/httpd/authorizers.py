@@ -22,7 +22,7 @@ class SimplePathAuthz(HTTPAuthorizer):
 
         # if an authorized path does not end in /
         # check if it matches fullpath for strict match
-        for authz in self.paths:  # pylint: disable=not-an-iterable
+        for authz in self.paths:
             if authz.endswith('/'):
                 continue
             if authz.endswith('.'):
@@ -34,7 +34,6 @@ class SimplePathAuthz(HTTPAuthorizer):
                 return True
 
         while path != '':
-            # pylint: disable=unsupported-membership-test
             if path in self.paths:
                 self.audit_svc_access(log.AUDIT_SVC_AUTHZ_PASS,
                                       request['client_id'], path)

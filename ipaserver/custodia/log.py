@@ -55,7 +55,6 @@ class CustodiaLoggingAdapter(logging.LoggerAdapter):
         extra = {'origin': plugin.origin}
         super(CustodiaLoggingAdapter, self).__init__(logger, extra=extra)
 
-    # pylint: disable=arguments-differ
     def exception(self, msg, *args, **kwargs):
         """Like standard exception() logger but only print stack in debug mode
         """
