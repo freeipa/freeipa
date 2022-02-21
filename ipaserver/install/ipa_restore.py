@@ -792,11 +792,9 @@ class Restore(admintool.AdminTool):
         self.backup_host = config.get('ipa', 'host')
         self.backup_ipa_version = config.get('ipa', 'ipa_version')
         self.backup_version = config.get('ipa', 'version')
-        # pylint: disable=no-member
         # we can assume that returned object is string and it has .split()
         # method
         self.backup_services = config.get('ipa', 'services').split(',')
-        # pylint: enable=no-member
 
     def extract_backup(self):
         '''

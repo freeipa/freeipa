@@ -270,9 +270,9 @@ class Env:
         if type(value) not in (unicode, int, float, bool, type(None), DN):
             raise TypeError(key, value)
         object.__setattr__(self, key, value)
-        # pylint: disable=unsupported-assignment-operation, no-member
+        # pylint: disable=no-member
         self.__d[key] = value
-        # pylint: enable=unsupported-assignment-operation, no-member
+        # pylint: enable=no-member
 
     def __getitem__(self, key):
         """
@@ -600,12 +600,10 @@ class Env:
         # and server from jsonrpc_uri so that when only server or xmlrpc_uri
         # is specified, all 3 keys have a value.)
         if 'xmlrpc_uri' not in self and 'server' in self:
-            # pylint: disable=no-member, access-member-before-definition
             self.xmlrpc_uri = 'https://{}/ipa/xml'.format(self.server)
 
         # Derive ldap_uri from server
         if 'ldap_uri' not in self and 'server' in self:
-            # pylint: disable=no-member, access-member-before-definition
             self.ldap_uri = 'ldap://{}'.format(self.server)
 
         # Derive jsonrpc_uri from xmlrpc_uri

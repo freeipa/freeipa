@@ -544,7 +544,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         raise
     finally:
         if skip_output:
-            p_out.close()   # pylint: disable=E1103
+            p_out.close()
 
     logger.debug('Process finished, return code=%s', p.returncode)
 
@@ -1513,7 +1513,7 @@ if six.PY2:
                 str.__name__,
                 type(value).__name__))
 else:
-    fsdecode = os.fsdecode  #pylint: disable=no-member
+    fsdecode = os.fsdecode
 
 
 def unescape_seq(seq, *args):

@@ -395,7 +395,7 @@ def ipa_start(options):
 
         if isinstance(e, IpactlError):
             # do not display any other error message
-            raise IpactlError(rval=e.rval)  # pylint: disable=no-member
+            raise IpactlError(rval=e.rval)
         else:
             raise IpactlError()
 
@@ -509,7 +509,7 @@ def ipa_restart(options):
             pass
         if isinstance(e, IpactlError):
             # do not display any other error message
-            raise IpactlError(rval=e.rval)  # pylint: disable=no-member
+            raise IpactlError(rval=e.rval)
         else:
             raise IpactlError()
 

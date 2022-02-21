@@ -180,9 +180,8 @@ class AdminTool:
             return_value = self.run()
         except BaseException as exception:
             if isinstance(exception, ScriptError):
-                # pylint: disable=no-member
                 if exception.rval and exception.rval > return_value:
-                    return_value = exception.rval  # pylint: disable=no-member
+                    return_value = exception.rval
             traceback = sys.exc_info()[2]
             error_message, return_value = self.handle_error(exception)
             if return_value:
@@ -244,7 +243,7 @@ class AdminTool:
         root_logger = logging.getLogger()
         for handler in root_logger.handlers:
             if (isinstance(handler, logging.StreamHandler) and
-                    handler.stream is sys.stderr):  # pylint: disable=no-member
+                    handler.stream is sys.stderr):
                 root_logger.removeHandler(handler)
                 break
 

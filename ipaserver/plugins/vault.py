@@ -39,13 +39,11 @@ from ipaserver.masters import is_service_enabled
 if api.env.in_server:
     import pki.account
     import pki.key
-    # pylint: disable=no-member
     try:
         # pki >= 10.4.0
         from pki.crypto import DES_EDE3_CBC_OID
     except ImportError:
         DES_EDE3_CBC_OID = pki.key.KeyClient.DES_EDE3_CBC_OID
-    # pylint: enable=no-member
 
 
 if six.PY3:

@@ -68,7 +68,7 @@ from ipalib.errors import (PublicError, CommandError, HelpError, InternalError,
 from ipalib.constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.parameters import File, BinaryFile, Str, Enum, Any, Flag
 from ipalib.text import _
-from ipalib import api  # pylint: disable=unused-import
+from ipalib import api
 from ipapython.dnsutil import DNSName
 from ipapython.admintool import ScriptError
 
@@ -609,7 +609,7 @@ class textui(backend.Backend):
             prompt = u'%s Yes/No: ' % label
 
         while True:
-            data = self.prompt_helper(prompt, label).lower() #pylint: disable=E1103
+            data = self.prompt_helper(prompt, label).lower()
 
             if data in (u'yes', u'y'):
                 return True
@@ -680,9 +680,9 @@ class textui(backend.Backend):
             except EOFError:
                 return -2
 
-            if resp.lower() == "q": #pylint: disable=E1103
+            if resp.lower() == "q":
                 return -2
-            if resp.lower() == "a": #pylint: disable=E1103
+            if resp.lower() == "a":
                 return -1
             try:
                 selection = int(resp) - 1
@@ -1411,9 +1411,7 @@ class cli(backend.Executioner):
                 elif p.stdin_if_missing:
                     try:
                         if six.PY3 and p.type is bytes:
-                            # pylint: disable=no-member
                             raw = sys.stdin.buffer.read()
-                            # pylint: enable=no-member
                         else:
                             raw = sys.stdin.read()
                     except IOError as e:

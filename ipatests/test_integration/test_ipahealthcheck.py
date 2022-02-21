@@ -964,15 +964,15 @@ class TestIpaHealthCheck(IntegrationTest):
         dn = DN(
             ("cn", "config"),
         )
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         entry.single_value["nsslapd-logging-hr-timestamps-enabled"] = 'off'
-        ldap.update_entry(entry)  # pylint: disable=no-member
+        ldap.update_entry(entry)
 
         yield
 
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         entry.single_value["nsslapd-logging-hr-timestamps-enabled"] = 'on'
-        ldap.update_entry(entry)  # pylint: disable=no-member
+        ldap.update_entry(entry)
 
     def test_ipahealthcheck_ds_configcheck(self, update_logging):
         """
@@ -1104,15 +1104,15 @@ class TestIpaHealthCheck(IntegrationTest):
             ("cn", "plugins"),
             ("cn", "config"),
         )
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         entry.single_value["referint-update-delay"] = -1
-        ldap.update_entry(entry)  # pylint: disable=no-member
+        ldap.update_entry(entry)
 
         yield
 
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         entry.single_value["referint-update-delay"] = 0
-        ldap.update_entry(entry)  # pylint: disable=no-member
+        ldap.update_entry(entry)
 
     def test_ipahealthcheck_ds_riplugincheck(self, update_riplugin):
         """
@@ -1140,15 +1140,15 @@ class TestIpaHealthCheck(IntegrationTest):
         """
         ldap = self.master.ldap_connect()
         dn = DN(("cn", "config"),)
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         entry.single_value["nsslapd-rootpwstoragescheme"] = "MD5"
-        ldap.update_entry(entry)  # pylint: disable=no-member
+        ldap.update_entry(entry)
 
         yield
 
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         entry.single_value["nsslapd-rootpwstoragescheme"] = "PBKDF2_SHA256"
-        ldap.update_entry(entry)  # pylint: disable=no-member
+        ldap.update_entry(entry)
 
     def test_ds_configcheck_passwordstorage(self, modify_pwdstoragescheme):
         """
@@ -1563,16 +1563,16 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
             ("cn", "etc"),
             basedn,
         )
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         krbprinc = entry['member']
         entry['member'] = ''
-        ldap.update_entry(entry)  # pylint: disable=no-member
+        ldap.update_entry(entry)
 
         yield
 
         # Add the entry back
         entry['member'] = krbprinc
-        ldap.update_entry(entry)  # pylint: disable=no-member
+        ldap.update_entry(entry)
 
     def test_trustcontroller_principalcheck(self, modify_cifs_princ):
         """
@@ -2643,19 +2643,19 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         """
         ldap = self.master.ldap_connect()
         dn = DN(("uid", "ipara"), ("ou", "People"), ("o", "ipaca"))
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         ldap_cert_desc = entry.single_value.get("description")
 
         def _update_entry(description):
-            entry = ldap.get_entry(dn)  # pylint: disable=no-member
+            entry = ldap.get_entry(dn)
             entry.single_value['description'] = description
-            ldap.update_entry(entry)  # pylint: disable=no-member
+            ldap.update_entry(entry)
 
         yield _update_entry
 
-        entry = ldap.get_entry(dn)  # pylint: disable=no-member
+        entry = ldap.get_entry(dn)
         entry.single_value['description'] = ldap_cert_desc
-        ldap.update_entry(entry)  # pylint: disable=no-member
+        ldap.update_entry(entry)
 
     def test_ipahealthcheck_iparaagent_ldap(self, update_ra_cert_desc):
         """

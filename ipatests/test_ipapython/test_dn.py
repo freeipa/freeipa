@@ -531,7 +531,6 @@ class TestRDN:
     def test_assignments(self):
         rdn = RDN((self.attr1, self.value1))
         with pytest.raises(TypeError):
-            # pylint: disable=unsupported-assignment-operation
             rdn[0] = self.ava2
 
     def test_iter(self):
@@ -997,10 +996,8 @@ class TestDN:
     def test_assignments(self):
         dn = DN('t=0,t=1,t=2,t=3,t=4,t=5,t=6,t=7,t=8,t=9')
         with pytest.raises(TypeError):
-            # pylint: disable=unsupported-assignment-operation
             dn[0] = RDN('t=a')
         with pytest.raises(TypeError):
-            # pylint: disable=unsupported-assignment-operation
             dn[0:1] = [RDN('t=a'), RDN('t=b')]
 
     def test_iter(self):

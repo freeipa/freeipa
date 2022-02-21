@@ -151,11 +151,9 @@ def pytest_cmdline_main(config):
 def pytest_runtest_setup(item):
     if isinstance(item, pytest.Function):
         if item.get_closest_marker('skip_ipaclient_unittest'):
-            # pylint: disable=no-member
             if item.config.option.ipaclient_unittests:
                 pytest.skip("Skip in ipaclient unittest mode")
         if item.get_closest_marker('needs_ipaapi'):
-            # pylint: disable=no-member
             if item.config.option.skip_ipaapi:
                 pytest.skip("Skip tests that needs an IPA API")
     if osinfo is not None:

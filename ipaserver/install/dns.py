@@ -444,7 +444,6 @@ class DNSInstallInterface(hostname.HostNameInstallInterface):
     allow_zone_overlap = prepare_only(allow_zone_overlap)
 
     reverse_zones = knob(
-        # pylint: disable=invalid-sequence-index
         typing.List[str], [],
         description=("The reverse DNS zone to use. This option can be used "
                      "multiple times"),
@@ -506,7 +505,6 @@ class DNSInstallInterface(hostname.HostNameInstallInterface):
                 raise ValueError(error)
 
     forwarders = knob(
-        # pylint: disable=invalid-sequence-index
         typing.List[ipautil.CheckedIPAddressLoopback], None,
         description=("Add a DNS forwarder. This option can be used multiple "
                      "times"),

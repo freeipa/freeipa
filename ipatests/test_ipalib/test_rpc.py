@@ -390,7 +390,5 @@ class test_rpcclient_context(PluginTester):
             r'^ipa_session=MagBearerToken=[A-Za-z0-9+\/]+=*;$')
 
         session_cookie = getattr(context, 'session_cookie', None)
-        # pylint-2 is incorrectly spewing Too many positional arguments
-        # pylint: disable=E1121
         unquoted = urllib.parse.unquote(session_cookie)
         assert(unquoted == fuzzy_cookie)
