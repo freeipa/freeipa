@@ -611,7 +611,7 @@ class NSSDatabase:
         try:
             self.run_pk12util(args)
         except ipautil.CalledProcessError as e:
-            if e.returncode == 17 or e.returncode == 18:
+            if e.returncode in (17, 18):
                 raise Pkcs12ImportIncorrectPasswordError(
                     "incorrect password for pkcs#12 file %s" % pkcs12_filename)
             elif e.returncode == 10:
