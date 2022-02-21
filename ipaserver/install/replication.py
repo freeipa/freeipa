@@ -1366,7 +1366,7 @@ class ReplicationManager:
 
         try:
             self.conn.add_entry(entry)
-        except Exception as e:
+        except Exception:
             logger.info("Failed to create public entry for winsync replica")
 
         # For winsync, unhashed passwords needs to be in replication changelog
