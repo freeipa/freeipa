@@ -1095,7 +1095,7 @@ class login_password(Backend, KerberosSession):
                     armor_path,
                     pkinit_anchors=[paths.KDC_CERT, paths.KDC_CA_BUNDLE_PEM],
                 )
-            except RuntimeError as e:
+            except RuntimeError:
                 logger.error("Failed to obtain armor cache")
                 # We try to continue w/o armor, 2FA will be impacted
                 armor_path = None
@@ -1159,8 +1159,10 @@ class change_password(Backend, HTTP_Status):
 
         try:
             query_dict = parse_qs(query_string)
-        except Exception as e:
-            return self.bad_request(environ, start_response, "cannot parse query data")
+        except Exception:
+            return self.bad_request(
+                environ, start_response, "cannot parse query data"
+            )
 
         data = {}
         for field in ('user', 'old_password', 'new_password', 'otp'):
@@ -1264,8 +1266,10 @@ class sync_token(Backend, HTTP_Status):
         # Parse the query string to a dictionary.
         try:
             query_dict = parse_qs(query_string)
-        except Exception as e:
-            return self.bad_request(environ, start_response, "cannot parse query data")
+        except Exception:
+            return self.bad_request(
+                environ, start_response, "cannot parse query data"
+            )
         data = {}
         for field in ('user', 'password', 'first_code', 'second_code', 'token'):
             value = query_dict.get(field, None)

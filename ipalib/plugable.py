@@ -661,7 +661,7 @@ class API(ReadOnly):
             except errors.SkipPluginModule as e:
                 logger.debug("skipping plugin module %s: %s", name, e.reason)
                 continue
-            except Exception as e:
+            except Exception:
                 tb = self.env.startup_traceback
                 if tb:  # pylint: disable=using-constant-test
                     logger.exception("could not load plugin module %s", name)

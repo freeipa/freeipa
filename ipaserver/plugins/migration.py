@@ -216,7 +216,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                 logger.warning('GID number %s of migrated user %s should '
                                'match 1 group, but it matched %d groups',
                                entry_attrs['gidnumber'][0], pkey, e.found)
-            except errors.LimitsExceeded as e:
+            except errors.LimitsExceeded:
                 logger.warning('Search limit exceeded searching for GID %s',
                                entry_attrs['gidnumber'][0])
 
