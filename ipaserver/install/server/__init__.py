@@ -60,7 +60,6 @@ class ServerCertificateInstallInterface(service.ServiceInstallInterface):
     description = "SSL certificate"
 
     dirsrv_cert_files = knob(
-        # pylint: disable=invalid-sequence-index
         typing.List[str], None,
         description=("File containing the Directory Server SSL certificate "
                      "and private key"),
@@ -71,7 +70,6 @@ class ServerCertificateInstallInterface(service.ServiceInstallInterface):
     dirsrv_cert_files = prepare_only(dirsrv_cert_files)
 
     http_cert_files = knob(
-        # pylint: disable=invalid-sequence-index
         typing.List[str], None,
         description=("File containing the Apache Server SSL certificate and "
                      "private key"),
@@ -82,7 +80,6 @@ class ServerCertificateInstallInterface(service.ServiceInstallInterface):
     http_cert_files = prepare_only(http_cert_files)
 
     pkinit_cert_files = knob(
-        # pylint: disable=invalid-sequence-index
         typing.List[str], None,
         description=("File containing the Kerberos KDC SSL certificate and "
                      "private key"),
@@ -171,7 +168,6 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
     domain_name = client.ClientInstallInterface.domain_name
     domain_name = extend_knob(
         domain_name,
-        # pylint: disable=no-member
         cli_names=list(domain_name.cli_names) + ['-n'],
     )
 
@@ -453,7 +449,7 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                     "You cannot specify --external-ca-profile without "
                     "--external-ca")
 
-            if self.uninstalling:  # pylint: disable=using-constant-test
+            if self.uninstalling:
                 if (self.realm_name or self.admin_password or
                         self.master_password):
                     raise RuntimeError(

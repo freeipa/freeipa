@@ -216,7 +216,7 @@ class IPAChangeConf:
         if value:
             return {'name': 'comment',
                     'type': 'comment',
-                    'value': value.rstrip()}  # pylint: disable=E1103
+                    'value': value.rstrip()}
 
         o = dict()
         parts = line.split(self.dassign, 1)

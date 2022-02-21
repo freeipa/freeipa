@@ -60,7 +60,6 @@ from ipalib.constants import (
     TLS_VERSIONS, TLS_VERSION_MINIMAL, TLS_VERSION_MAXIMAL,
     TLS_VERSION_DEFAULT_MIN, TLS_VERSION_DEFAULT_MAX,
 )
-# pylint: disable=ipa-forbidden-import
 from ipalib.facts import is_ipa_client_configured
 from ipalib.text import _
 from ipaplatform.constants import constants
@@ -77,7 +76,7 @@ from ipapython.dnsutil import (
 from ipapython.admintool import ScriptError
 
 if sys.version_info >= (3, 2):
-    import reprlib  # pylint: disable=import-error
+    import reprlib
 else:
     reprlib = None
 
@@ -321,7 +320,6 @@ def create_https_connection(
             is not encrypted.
     :returns An established HTTPS connection to host:port
     """
-    # pylint: disable=no-member
     tls_cutoff_map = {
         "ssl2": ssl.OP_NO_SSLv2,
         "ssl3": ssl.OP_NO_SSLv3,
@@ -330,7 +328,6 @@ def create_https_connection(
         "tls1.2": ssl.OP_NO_TLSv1_2,
         "tls1.3": getattr(ssl, "OP_NO_TLSv1_3", 0),
     }
-    # pylint: enable=no-member
 
     if cafile is None:
         raise RuntimeError("cafile argument is required to perform server "
@@ -343,7 +340,6 @@ def create_https_connection(
     # official Python documentation states that the best option to get
     # TLSv1 and later is to setup SSLContext with PROTOCOL_SSLv23
     # and then negate the insecure SSLv2 and SSLv3
-    # pylint: disable=no-member
     ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
     ctx.options |= (
         ssl.OP_ALL | ssl.OP_NO_COMPRESSION | ssl.OP_SINGLE_DH_USE |
@@ -357,7 +353,6 @@ def create_https_connection(
     # remove the slice of negating protocol options according to options
     tls_span = get_proper_tls_version_span(tls_version_min, tls_version_max)
 
-    # pylint: enable=no-member
     # set up the correct TLS version flags for the SSL context
     if tls_span is not None:
         for version in TLS_VERSIONS:

@@ -48,7 +48,6 @@ class InstallerTestBase(six.with_metaclass(ABCMeta, object)):
                                "class first.")
 
         # add all options from the option groups
-        # pylint: disable=no-member
         for opt_group in cls.tested_cls.option_parser.option_groups:
             for opt in opt_group.option_list:
                 cls.OPTS_DICT[opt.dest] = opt._short_opts + opt._long_opts

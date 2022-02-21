@@ -491,7 +491,6 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
     external_ca_profile = master_install_only(external_ca_profile)
 
     external_cert_files = knob(
-        # pylint: disable=invalid-sequence-index
         typing.List[str], None,
         description=("File containing the IPA CA certificate and the external "
                      "CA certificate chain"),

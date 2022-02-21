@@ -526,7 +526,7 @@ class Schema:
     def get_help(self, namespace, member):
         if isinstance(self._help, bytes):
             self._help = json.loads(
-                self._help.decode('utf-8')  # pylint: disable=no-member
+                self._help.decode('utf-8')
             )
 
         return self._help[namespace][member]
@@ -585,7 +585,7 @@ def get_package(server_info, client):
     for plugin_cls in (_SchemaCommandPlugin, _SchemaObjectPlugin):
         for full_name in schema[plugin_cls.schema_key]:
             plugin = plugin_cls(schema, str(full_name))
-            plugin = module.register()(plugin)  # pylint: disable=no-member
+            plugin = module.register()(plugin)
     sys.modules[module_name] = module
 
     for full_name, topic in six.iteritems(schema['topics']):

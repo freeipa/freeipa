@@ -139,7 +139,7 @@ class Executioner(Backend):
             if _name not in self.Command:
                 raise CommandError(name=_name)
             return self.Command[_name](*args, **options)
-        except PublicError:  # pylint: disable=try-except-raise
+        except PublicError:
             raise
         except Exception as e:
             logger.exception(

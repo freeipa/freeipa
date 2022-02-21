@@ -454,7 +454,7 @@ class API(ReadOnly):
         if root_logger.handlers or self.env.validate_api:
             return
 
-        if self.env.debug:  # pylint: disable=using-constant-test
+        if self.env.debug:
             level = logging.DEBUG
         else:
             level = logging.INFO
@@ -478,7 +478,7 @@ class API(ReadOnly):
 
         # Add stderr handler:
         level = logging.INFO
-        if self.env.debug:  # pylint: disable=using-constant-test
+        if self.env.debug:
             level = logging.DEBUG
         else:
             if self.env.context == 'cli':
@@ -510,7 +510,7 @@ class API(ReadOnly):
                 return
 
         level = logging.INFO
-        if self.env.debug:  # pylint: disable=using-constant-test
+        if self.env.debug:
             level = logging.DEBUG
         if self.env.log is not None:
             try:
@@ -663,7 +663,7 @@ class API(ReadOnly):
                 continue
             except Exception:
                 tb = self.env.startup_traceback
-                if tb:  # pylint: disable=using-constant-test
+                if tb:
                     logger.exception("could not load plugin module %s", name)
                 raise
 

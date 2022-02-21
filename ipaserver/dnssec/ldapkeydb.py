@@ -32,7 +32,6 @@ def uri_escape(val):
         raise ValueError("zero-length URI component detected")
     hexval = str_hexlify(val)
     out = '%'
-    # pylint: disable=E1127
     out += '%'.join(hexval[i:i+2] for i in range(0, len(hexval), 2))
     return out
 

@@ -84,7 +84,7 @@ if six.PY2 and hasattr(ldap, 'LDAPBytesWarning'):
     # XXX silence python-ldap's BytesWarnings
     warnings.filterwarnings(
         action="ignore",
-        category=ldap.LDAPBytesWarning,  # pylint: disable=no-member
+        category=ldap.LDAPBytesWarning,
     )
 
 
@@ -255,7 +255,7 @@ class LDAPEntry(MutableMapping):
 
         Keyword arguments can be used to override values of specific attributes.
         """
-        super(LDAPEntry, self).__init__()  # pylint: disable=no-member
+        super(LDAPEntry, self).__init__()
 
         if isinstance(_conn, LDAPEntry):
             assert _dn is None
@@ -284,7 +284,6 @@ class LDAPEntry(MutableMapping):
         self._single_value_view = None
 
         if isinstance(_obj, LDAPEntry):
-            #pylint: disable=E1103
             self._not_list = set(_obj._not_list)
             self._orig_raw = dict(_obj._orig_raw)
             if _obj.conn is _conn:
@@ -1933,7 +1932,6 @@ class LDAPCache(LDAPClient):
 
     def get_entry(self, dn, attrs_list=None, time_limit=None,
                   size_limit=None, get_effective_rights=False):
-        # pylint: disable=no-member
         if not self._enable_cache:
             return super(LDAPCache, self).get_entry(
                 dn, attrs_list, time_limit, size_limit, get_effective_rights
@@ -1971,7 +1969,6 @@ class LDAPCache(LDAPClient):
             get_all = True
 
         if entry and entry.all and get_all:
-            # self.hit  # pylint: disable=pointless-statement
             hits = self._cache_hits + 1  # pylint: disable=no-member
             object.__setattr__(self, '_cache_hits', hits)
             self.cache_status('HIT')

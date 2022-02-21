@@ -220,7 +220,7 @@ def request_cert(reuse_existing, **kwargs):
         sys.stderr.write(result.raw_error_output)
     else:
         # Write bytes directly
-        sys.stderr.buffer.write(result.raw_error_output)  #pylint: disable=no-member
+        sys.stderr.buffer.write(result.raw_error_output)
     sys.stderr.flush()
 
     syslog.syslog(syslog.LOG_NOTICE,

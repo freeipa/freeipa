@@ -757,7 +757,7 @@ class TestInstallMaster(IntegrationTest):
         related: https://pagure.io/freeipa/issue/8193
         """
         conn = self.master.ldap_connect()
-        entry = conn.get_entry(DN(             # pylint: disable=no-member
+        entry = conn.get_entry(DN(
             "cn=groups,cn=Schema Compatibility,cn=plugins,cn=config"))
 
         entry_list = list(entry['schema-compat-entry-attribute'])

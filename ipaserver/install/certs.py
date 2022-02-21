@@ -774,7 +774,7 @@ class _CrossProcessLock:
         if six.PY2:
             p.readfp(fileobj)  # pylint: disable=deprecated-method
         else:
-            p.read_file(fileobj)  # pylint: disable=no-member
+            p.read_file(fileobj)
 
         try:
             self._locked = p.getboolean('lock', 'locked')

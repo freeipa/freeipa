@@ -185,13 +185,13 @@ class batch(Command):
                         isinstance(e, errors.ConversionError)):
                     logger.info(
                         '%s: batch: %s',
-                        context.principal,  # pylint: disable=no-member
+                        context.principal,
                         e.__class__.__name__
                     )
                 else:
                     logger.info(
                         '%s: batch: %s(%s): %s',
-                        context.principal, name,  # pylint: disable=no-member
+                        context.principal, name,
                         ', '.join(api.Command[name]._repr_iter(**params)),
                         e.__class__.__name__
                     )

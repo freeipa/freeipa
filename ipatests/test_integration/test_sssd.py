@@ -221,7 +221,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
         master = self.master
         conn = master.ldap_connect()
         dn = DN(('cn', 'config'))
-        entry = conn.get_entry(dn)  # pylint: disable=no-member
+        entry = conn.get_entry(dn)
         orig_limit = entry.single_value.get('nsslapd-sizelimit')
         ldap_query = textwrap.dedent("""
             dn: cn=config

@@ -823,14 +823,12 @@ def promote_check(installer):
     env._bootstrap(context='installer', confdir=paths.ETC_IPA, log=None)
     env._finalize_core(**dict(constants.DEFAULT_CONFIG))
 
-    # pylint: disable=no-member
     xmlrpc_uri = 'https://{}/ipa/xml'.format(ipautil.format_netloc(env.host))
     api.bootstrap(in_server=True,
                   context='installer',
                   confdir=paths.ETC_IPA,
                   ldap_uri=ipaldap.realm_to_ldapi_uri(env.realm),
                   xmlrpc_uri=xmlrpc_uri)
-    # pylint: enable=no-member
     api.finalize()
 
     config = ReplicaConfig()

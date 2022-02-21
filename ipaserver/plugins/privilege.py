@@ -87,7 +87,7 @@ def principal_has_privilege(api, principal, privilege):
     privilege_dn = api.Object.privilege.get_dn(privilege)
     ldap = api.Backend.ldap2
     filter = ldap.make_filter({
-        'krbprincipalname': principal,  # pylint: disable=no-member
+        'krbprincipalname': principal,
         'memberof': privilege_dn},
         rules=ldap.MATCH_ALL)
     try:

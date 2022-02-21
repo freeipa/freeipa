@@ -21,7 +21,6 @@ class HostNameInstallInterface(service.ServiceInstallInterface):
     """
 
     ip_addresses = knob(
-        # pylint: disable=invalid-sequence-index
         typing.List[CheckedIPAddress], None,
         description="Specify IP address that should be added to DNS. This "
                     "option can be used multiple times",

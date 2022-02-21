@@ -1904,7 +1904,7 @@ def ldappasswd_user_change(user, oldpw, newpw, master, use_dirman=False,
 
     if use_dirman:
         args = [paths.LDAPPASSWD, '-D',
-                str(master.config.dirman_dn),  # pylint: disable=no-member
+                str(master.config.dirman_dn),
                 '-w', master.config.dirman_password,
                 '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri, userdn]
     else:
@@ -1922,7 +1922,7 @@ def ldappasswd_sysaccount_change(user, oldpw, newpw, master, use_dirman=False):
 
     if use_dirman:
         args = [paths.LDAPPASSWD, '-D',
-                str(master.config.dirman_dn),  # pylint: disable=no-member
+                str(master.config.dirman_dn),
                 '-w', master.config.dirman_password,
                 '-a', oldpw,
                 '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri,

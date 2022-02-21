@@ -41,7 +41,6 @@ class SimpleHeaderAuth(HTTPAuthenticator):
             return None
         value = request['headers'][self.header]
         if self.value is not None:
-            # pylint: disable=unsupported-membership-test
             if value not in self.value:
                 self.audit_svc_access(log.AUDIT_SVC_AUTH_FAIL,
                                       request['client_id'], value)
