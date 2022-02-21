@@ -645,7 +645,7 @@ class LDAPUpdate:
         while True:
             try:
                 entry = self.conn.get_entry(dn, attrlist)
-            except errors.NotFound as e:
+            except errors.NotFound:
                 logger.error("Task not found: %s", dn)
                 return
             except errors.DatabaseError as e:

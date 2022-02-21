@@ -202,7 +202,7 @@ def main():
         if not (user['uid'][0] in group['member_user'] and
                 group['cn'][0] in user['memberof_group']):
             raise errors.RequirementError(name='admins group membership')
-    except errors.RequirementError as e:
+    except errors.RequirementError:
         raise ScriptError(
             "Must have administrative privileges to setup AD trusts on server"
         )

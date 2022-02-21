@@ -277,7 +277,7 @@ class DomainValidator:
                 result[t_partner] = (fname_norm,
                                      security.dom_sid(trusted_sid))
             return result
-        except errors.NotFound as exc:
+        except errors.NotFound:
             return []
 
     def set_trusted_domains(self):
@@ -816,7 +816,7 @@ class DomainValidator:
 
             try:
                 answers = query_srv(gc_name)
-            except DNSException as e:
+            except DNSException:
                 answers = []
 
             for answer in answers:

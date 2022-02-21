@@ -3336,7 +3336,7 @@ def uninstall(options):
                     ipa_domain = domain.get_option('ipa_domain')
                 except SSSDConfig.NoOptionError:
                     pass
-    except Exception as e:
+    except Exception:
         # We were unable to read existing SSSD config. This might mean few
         # things:
         # - sssd wasn't installed
