@@ -1922,8 +1922,12 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                         reason=u"Unable to load existing CA cert '%s': %s" %
                                (paths.IPA_CA_CRT, e))
             else:
-                raise errors.FileError(reason=u"Existing ca cert '%s' is " +
-                                       "not a plain file" % (paths.IPA_CA_CRT))
+                raise errors.FileError(
+                    reason=(
+                        f"Existing ca cert '{paths.IPA_CA_CRT}' is not a plain "
+                        "file"
+                    ),
+                )
 
         if otp_auth:
             if existing_ca_certs:
