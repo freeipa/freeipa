@@ -458,7 +458,7 @@ def resolve_ip_addresses_nss(fqdn):
         addrinfos = socket.getaddrinfo(fqdn, None,
                                        socket.AF_UNSPEC, socket.SOCK_STREAM)
     except socket.error as ex:
-        if ex.errno == socket.EAI_NODATA or ex.errno == socket.EAI_NONAME:
+        if ex.errno in (socket.EAI_NODATA, socket.EAI_NONAME):
             logger.debug('Name %s does not have any address: %s', fqdn, ex)
             return set()
         else:
