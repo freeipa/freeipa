@@ -48,8 +48,8 @@ class SyncReplConsumer(ReconnectLDAPObject, SyncreplConsumer):
         logger.debug('New cookie is: %s', cookie)
         self.__data['cookie'] = cookie
 
-    def syncrepl_entry(self, dn, attributes, uuid):
-        attributes = cidict(attributes)
+    def syncrepl_entry(self, dn, attrs, uuid):
+        attributes = cidict(attrs)
         # First we determine the type of change we have here
         # (and store away the previous data for later if needed)
         previous_attributes = cidict()
