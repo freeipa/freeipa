@@ -94,7 +94,8 @@ class test_Connectible(ClassChecker):
         m = "{0} is already connected ({1} in {2})"
         e = raises(Exception, o.connect, *args, **kw)
         assert str(e) == m.format(
-            'example', o.id, threading.currentThread().getName())
+            "example", o.id, threading.current_thread().name
+        )
 
         # Double check that it works after deleting context.example:
         del context.example
@@ -124,7 +125,8 @@ class test_Connectible(ClassChecker):
         m = "{0} is not connected ({1} in {2})"
         e = raises(Exception, o.disconnect)
         assert str(e) == m.format(
-            'example', o.id, threading.currentThread().getName())
+            "example", o.id, threading.current_thread().name
+        )
 
         context.example = 'The connection.'
         assert o.disconnect() is None
@@ -169,7 +171,7 @@ class test_Connectible(ClassChecker):
             o = klass(api, shared_instance=True)
             e = raises(AttributeError, getattr, o, 'conn')
             assert str(e) == msg.format(
-                klass.__name__, o.id, threading.currentThread().getName()
+                klass.__name__, o.id, threading.current_thread().name
             )
             conn = Connection('The connection.', Disconnect())
             setattr(context, klass.__name__, conn)
