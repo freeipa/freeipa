@@ -63,7 +63,7 @@ class Connectible(Backend):
                 "{0} is already connected ({1} in {2})".format(
                     self.name,
                     self.id,
-                    threading.currentThread().getName()
+                    threading.current_thread().name,
                 )
             )
         conn = self.create_connection(*args, **kw)
@@ -80,7 +80,7 @@ class Connectible(Backend):
                 "{0} is not connected ({1} in {2})".format(
                     self.name,
                     self.id,
-                    threading.currentThread().getName()
+                    threading.current_thread().name,
                 )
             )
         self.destroy_connection()
@@ -105,7 +105,7 @@ class Connectible(Backend):
                 "{0} is not connected ({1} in {2})".format(
                     self.name,
                     self.id,
-                    threading.currentThread().getName()
+                    threading.current_thread().name,
                 )
             )
         return getattr(context, self.id).conn
