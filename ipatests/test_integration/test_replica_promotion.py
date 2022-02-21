@@ -31,6 +31,7 @@ from ipatests.test_integration.test_dns_locations import (
 )
 from ipapython.dnsutil import DNSName
 from ipalib.constants import IPA_CA_RECORD
+from ipatests.util import xfail_context
 
 config = get_global_config()
 
@@ -1031,13 +1032,14 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         self._check_dnsrecords([self.master], [self.replicas[0]])
         self._check_config([self.master], [self.replicas[0]])
 
-    @pytest.mark.xfail(
-        reason='https://pagure.io/freeipa/issue/8582', strict=True
-    )
     def test_ipahealthcheck_hidden_replica(self):
         """Ensure that ipa-healthcheck runs successfully on all members
         of an IPA cluster that includes a hidden replica.
         """
+        os_version = (tasks.get_platform(self.master),
+                      tasks.get_platform_version(self.master))
+        pki_version = tasks.get_pki_version(self.master)
+
         # verify state
         self._check_config([self.master], [self.replicas[0]])
         # A DNA range is needed on the replica for ipa-healthcheck to work.
@@ -1049,7 +1051,18 @@ class TestHiddenReplicaPromotion(IntegrationTest):
                 srv,
                 failures_only=True
             )
-            assert returncode == 0
+            pki_too_old = \
+                (os_version[0] == 'fedora'
+                    and pki_version < tasks.parse_version('11.1.0'))\
+                or (os_version[0] == 'rhel'
+                    and os_version[1][0] == 8
+                    and pki_version < tasks.parse_version('10.12.0'))\
+                or (os_version[0] == 'rhel'
+                    and os_version[1][0] == 9
+                    and pki_version < tasks.parse_version('11.0.4'))
+            with xfail_context(pki_too_old,
+                               'https://pagure.io/freeipa/issue/8582'):
+                assert returncode == 0
 
     def test_hide_last_visible_server_fails(self):
         # verify state
