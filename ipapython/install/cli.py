@@ -131,7 +131,9 @@ class ConfigureTool(admintool.AdminTool):
         raise NotImplementedError
 
     @classmethod
-    def add_options(cls, parser, positional=False):
+    def add_options(  # pylint: disable=arguments-renamed
+        cls, parser, positional=False
+    ):
         transformed_cls = cls._transform(cls.configurable_class)
 
         if issubclass(transformed_cls, common.Interactive):

@@ -513,14 +513,14 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         """Tell systemd to reload config files"""
         ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"])
 
-    def configure_http_gssproxy_conf(self, ipaapi_user):
+    def configure_http_gssproxy_conf(self, ipauser):
         ipautil.copy_template_file(
             os.path.join(paths.USR_SHARE_IPA_DIR, 'gssproxy.conf.template'),
             paths.GSSPROXY_CONF,
             dict(
                 HTTP_KEYTAB=paths.HTTP_KEYTAB,
                 HTTPD_USER=constants.HTTPD_USER,
-                IPAAPI_USER=ipaapi_user,
+                IPAAPI_USER=ipauser,
                 SWEEPER_SOCKET=paths.IPA_CCACHE_SWEEPER_GSSPROXY_SOCK,
             )
         )
