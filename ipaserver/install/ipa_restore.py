@@ -235,6 +235,15 @@ class Restore(admintool.AdminTool):
                 raise admintool.ScriptError(
                     "Directory Manager password required")
 
+    def enable_server(self):
+        """Make sure the current server is marked as enabled"""
+        if not api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.connect()
+
+        try:
+            api.Command.server_state(api.env.host, state='enabled')
+        except errors.EmptyModlist:
+            pass
 
     def run(self):
         options = self.options
@@ -477,6 +486,7 @@ class Restore(admintool.AdminTool):
                 result = run([paths.IPACTL, 'restart'], raiseonerr=False)
                 if result.returncode != 0:
                     logger.error('Restarting IPA failed: %s', result.error_log)
+                self.enable_server()
         finally:
             shutil.rmtree(self.top_dir)
             logger.info("Restoring umask to %s", old_umask)
