@@ -161,7 +161,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
         if (pol_limits->max_life != 0) {
             jitter(pol_limits->max_life, lifetime_out);
         } else {
-            jitter(ONE_DAY_SECONDS, lifetime_out);
+            jitter(client->max_life, lifetime_out);
         }
 
         if (pol_limits->max_renewable_life != 0) {
