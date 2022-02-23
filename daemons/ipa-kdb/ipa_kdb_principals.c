@@ -585,7 +585,13 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
     }
 
     for (size_t i = 0; life_authind_map[i].attribute != NULL; i++) {
-        if (ua & life_authind_map[i].flag) {
+        /* Only change max_life/max_renewable_life per indicator
+         * if the value wasn't set yet. This function gets called twice:
+         * - for the principal entry
+         * - for the associated policy lookup */
+        if ((ua & life_authind_map[i].flag) &&
+            (ied->pol_limits[life_authind_map[i].idx].max_life == 0)) {
+
             ret = ipadb_ldap_attr_to_int(lcontext, lentry,
                                          life_authind_map[i].attribute,
                                          &result);
@@ -1287,6 +1293,8 @@ static krb5_error_code ipadb_fetch_tktpolicy(krb5_context kcontext,
         if (!first) {
             kerr = KRB5_KDB_NOENTRY;
         } else {
+            struct ipadb_e_data *ied;
+
             if (polmask & MAXTKTLIFE_BIT) {
                 ret = ipadb_ldap_attr_to_int(ipactx->lcontext, first,
                                              "krbmaxticketlife", &result);
@@ -1312,6 +1320,15 @@ static krb5_error_code ipadb_fetch_tktpolicy(krb5_context kcontext,
                     entry->attributes |= result;
                 } else {
                     entry->attributes |= maybe_require_preauth(ipactx, entry);
+                }
+            }
+
+            ied = (struct ipadb_e_data *)entry->e_data;
+            if (ied && ied->ipa_user == true) {
+            /* Apply default policy to indicators, if any */
+                if (ied->user_auth & ~IPADB_USER_AUTH_NONE) {
+                    ipadb_parse_authind_policies(kcontext, ipactx->lcontext,
+                                                first, entry, ied->user_auth);
                 }
             }
         }
