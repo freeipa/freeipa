@@ -123,6 +123,7 @@ metaservices_checks = [
 
 ipafiles_checks = ["IPAFileNSSDBCheck", "IPAFileCheck", "TomcatFileCheck"]
 dogtag_checks = ["DogtagCertsConfigCheck", "DogtagCertsConnectivityCheck"]
+pki_clone_checks = ["ClonesConnectivyAndDataCheck"]
 iparoles_checks = ["IPACRLManagerCheck", "IPARenewalMasterCheck"]
 replication_checks = ["ReplicationCheck"]
 replication_checks_0_4 = ["ReplicationConflictCheck"]
@@ -1033,6 +1034,23 @@ class TestIpaHealthCheck(IntegrationTest):
         for check in data:
             assert check["result"] == "CRITICAL"
             assert exception_msg in check["kw"]["exception"]
+
+    def test_source_pki_server_clones_connectivity_and_data(self):
+        """
+        This testcase checks that when ClonesConnectivyAndDataCheck
+        is run it doesn't display source not found error
+        """
+        error_msg = (
+            "Source 'pki.server.healthcheck.clones.connectivity_and_data' "
+            "not found"
+        )
+        result = self.master.run_command(
+            ["ipa-healthcheck", "--source",
+             "pki.server.healthcheck.clones.connectivity_and_data"]
+        )
+        assert error_msg not in result.stdout_text
+        for check in pki_clone_checks:
+            assert check in result.stdout_text
 
     @pytest.fixture
     def modify_tls(self, restart_service):
