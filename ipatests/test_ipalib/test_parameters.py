@@ -1858,3 +1858,44 @@ class test_DNParam(ClassChecker):
         for value in good:
             assert mthd(value) == tuple(DN(oneval) for oneval in value)
         assert o.convert(None) is None
+
+
+class test_SerialNumber(ClassChecker):
+    """
+    Test the `ipalib.parameters.SerialNumber` class.
+    """
+    _cls = parameters.SerialNumber
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.SerialNumber.__init__` method.
+        """
+        o = self.cls('my_serial')
+        assert o.type is str
+        assert o.length is None
+
+    def test_validate_scalar(self):
+        """
+        Test the `ipalib.parameters.SerialNumber._convert_scalar` method.
+        """
+        o = self.cls('my_serial')
+        mthd = o._validate_scalar
+        for value in ('1234', '0xabcd', '0xABCD'):
+            assert mthd(value) is None
+        bad = ['Hello', '123A']
+        for value in bad:
+            e = raises(errors.ValidationError, mthd, value)
+            assert e.name == 'my_serial'
+            assert_equal(e.error, 'must be an integer')
+        bad = ['-1234', '-0xAFF']
+        for value in bad:
+            e = raises(errors.ValidationError, mthd, value)
+            assert e.name == 'my_serial'
+            assert_equal(e.error, 'must be at least 0')
+        bad = ['0xGAH', '0x',]
+        for value in bad:
+            e = raises(errors.ValidationError, mthd, value)
+            assert e.name == 'my_serial'
+            assert_equal(
+                e.error, 'invalid valid hex'
+            )
