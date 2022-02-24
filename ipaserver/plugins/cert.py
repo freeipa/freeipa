@@ -31,7 +31,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from dns import resolver, reversename
 import six
 
-from ipalib import Command, Str, Int, Flag, StrEnum
+from ipalib import Command, Str, Int, Flag, StrEnum, SerialNumber
 from ipalib import api
 from ipalib import errors, messages
 from ipalib import x509
@@ -446,7 +446,7 @@ class BaseCertObject(Object):
             label=_('Fingerprint (SHA256)'),
             flags={'no_create', 'no_update', 'no_search'},
         ),
-        Int(
+        SerialNumber(
             'serial_number',
             label=_('Serial number'),
             doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
@@ -1370,7 +1370,7 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
         # Dogtag lightweight CAs have shared serial number domain, so
         # we don't tell Dogtag the issuer (but we check the cert after).
         #
-        result = self.Backend.ra.get_certificate(str(serial_number))
+        result = self.Backend.ra.get_certificate(serial_number)
         cert = x509.load_der_x509_certificate(
                     base64.b64decode(result['certificate']))
 
@@ -1443,7 +1443,7 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
 
         # Make sure that the cert specified by issuer+serial exists.
         # Will raise NotFound if it does not.
-        resp = api.Command.cert_show(unicode(serial_number), cacn=kw['cacn'])
+        resp = api.Command.cert_show(serial_number, cacn=kw['cacn'])
 
         try:
             self.check_access()
@@ -1465,7 +1465,8 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
             # we don't tell Dogtag the issuer (but we already checked that
             # the given serial was issued by the named ca).
             result=self.Backend.ra.revoke_certificate(
-                str(serial_number), revocation_reason=revocation_reason)
+                serial_number,
+                revocation_reason=revocation_reason)
         )
 
 
@@ -1489,7 +1490,8 @@ class cert_remove_hold(PKQuery, CertMethod, VirtualCommand):
             # we don't tell Dogtag the issuer (but we already checked that
             # the given serial was issued by the named ca).
             result=self.Backend.ra.take_certificate_off_hold(
-                str(serial_number))
+                serial_number
+            )
         )
 
 
@@ -1503,17 +1505,13 @@ class cert_find(Search, CertMethod):
             doc=_('Match cn attribute in subject'),
             autofill=False,
         ),
-        Int('min_serial_number?',
+        SerialNumber('min_serial_number?',
             doc=_("minimum serial number"),
             autofill=False,
-            minvalue=0,
-            maxvalue=2147483647,
         ),
-        Int('max_serial_number?',
+        SerialNumber('max_serial_number?',
             doc=_("maximum serial number"),
             autofill=False,
-            minvalue=0,
-            maxvalue=2147483647,
         ),
         Flag('exactly?',
             doc=_('match the common name exactly'),
@@ -1896,7 +1894,9 @@ class cert_find(Search, CertMethod):
                         ca_obj = ca_objs[cacn] = (
                             self.api.Command.ca_show(cacn, all=True)['result'])
 
-                    obj.update(ra.get_certificate(str(serial_number)))
+                    obj.update(
+                        ra.get_certificate(serial_number)
+                    )
                     if not raw:
                         obj['certificate'] = (
                             obj['certificate'].replace('\r\n', ''))

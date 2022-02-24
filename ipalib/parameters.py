@@ -2254,3 +2254,47 @@ def create_signature(command):
     )
 
     return signature
+
+
+class SerialNumber(Str):
+    """Certificate serial number parameter type
+    """
+
+    type = str
+    allowed_types = (str,)
+
+    # FIXME: currently unused, perhaps drop it
+    MAX_VALUE = 340282366920938463463374607431768211456  # 2^128
+
+    kwargs = Param.kwargs + (
+        ('minlength', int, 1),
+        ('maxlength', int, 40),  # Up to 128-bit values
+        ('length', int, None),
+    )
+
+    def _validate_scalar(self, value, index=None):
+        super(SerialNumber, self)._validate_scalar(value)
+        if value.startswith('-'):
+            raise ValidationError(
+                name=self.name, error=_('must be at least 0')
+            )
+        if not value.isdigit():
+            if value.lower().startswith('0x'):
+                try:
+                    int(value[2:], 16)
+                except ValueError:
+                    raise ValidationError(
+                        name=self.name, error=_(
+                            _('invalid valid hex'),
+                        )
+                    )
+            else:
+                raise ValidationError(
+                    name=self.name, error=_(
+                        _('must be an integer'),
+                    )
+                )
+        if value == '0':
+            raise ValidationError(
+                name=self.name, error=_('invalid serial number 0')
+            )
