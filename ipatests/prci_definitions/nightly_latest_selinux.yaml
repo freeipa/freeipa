@@ -588,6 +588,19 @@ jobs:
         timeout: 4800
         topology: *master_1repl_1client
 
+  fedora-latest/test_installation_TestInstallWithoutNamed:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        selinux_enforcing: True
+        test_suite: test_integration/test_installation.py::TestInstallWithoutNamed
+        template: *ci-master-latest
+        timeout: 4800
+        topology: *master_1repl
+
   fedora-latest/test_installation_TestInstallwithSHA384withRSA:
     requires: [fedora-latest/build]
     priority: 50
