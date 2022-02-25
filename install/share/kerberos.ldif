@@ -28,6 +28,8 @@ ${FIPS}krbSupportedEncSaltTypes: camellia256-cts-cmac:normal
 ${FIPS}krbSupportedEncSaltTypes: camellia256-cts-cmac:special
 krbMaxTicketLife: 86400
 krbMaxRenewableAge: 604800
+krbDefaultEncSaltTypes: aes256-sha2:special
+krbDefaultEncSaltTypes: aes128-sha2:special
 krbDefaultEncSaltTypes: aes256-cts:special
 krbDefaultEncSaltTypes: aes128-cts:special
 
