@@ -6,7 +6,8 @@
 
 [realms]
  $REALM = {
-  master_key_type = aes256-cts
+  master_key_type = $MASTER_KEY_TYPE
+  supported_enctypes = $SUPPORTED_ENCTYPES
   max_life = 7d
   max_renewable_life = 14d
   acl_file = $KRB5KDC_KADM5_ACL
