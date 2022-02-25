@@ -1,13 +1,13 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Red Hat
 # This file is distributed under the same license as the freeipa package.
-# Andika Triwidada <andika@gmail.com>, 2020.
+# Andika Triwidada <andika@gmail.com>, 2020, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-02-07 08:35+0200\n"
-"PO-Revision-Date: 2020-10-26 03:15+0000\n"
+"PO-Revision-Date: 2022-02-26 11:16+0000\n"
 "Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/id/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.3.1\n"
+"X-Generator: Weblate 4.11\n"
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
@@ -80,13 +80,13 @@ msgstr "Kehabisan Memori!\n"
 msgid "Failed to create control!\n"
 msgstr "Gagal membuat kontrol!\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to bind to server!\n"
-msgstr "Gagal mendekode balasan kontrol!\n"
+msgstr "Gagal mengikat ke server!\n"
 
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get keytab!\n"
-msgstr "Gagal membuka keytab\n"
+msgstr "Gagal memperoleh keytab\n"
 
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
@@ -123,9 +123,8 @@ msgstr "Gagal membuka berkas konfigurasi %s\n"
 msgid "Failed to parse config file %s\n"
 msgstr "Gagal mengurai berkas konfig %s\n"
 
-#, fuzzy
 msgid "Failed to resolve symlink to keytab.\n"
-msgstr "Gagal membuka keytab\n"
+msgstr "Gagal mengurai symlink ke keytab\n"
 
 msgid "keytab is a dangling symlink and owned by another user.\n"
 msgstr ""
