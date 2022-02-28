@@ -66,6 +66,7 @@ from .env_config import env_to_script
 from .host import Host
 from .firewall import Firewall
 from .resolver import ResolvedResolver
+from .fips import is_fips_enabled, enable_crypto_subpolicy
 
 logger = logging.getLogger(__name__)
 
@@ -362,6 +363,8 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
     if setup_adtrust:
         args.append('--setup-adtrust')
         fw_services.append("freeipa-trust")
+        if is_fips_enabled(host):
+            enable_crypto_subpolicy(host, "AD-SUPPORT")
     if external_ca:
         args.append('--external-ca')
 
