@@ -68,3 +68,9 @@ def disable_userspace_fips(host):
     # sanity check
     assert not is_fips_enabled(host)
     host.run_command(["openssl", "md5", "/dev/null"])
+
+
+def enable_crypto_subpolicy(host, subpolicy):
+    result = host.run_command(["update-crypto-policies", "--show"])
+    policy = result.stdin_text.strip() + ":" + subpolicy
+    host.run_command(["update-crypto-policies", "--set", policy])
