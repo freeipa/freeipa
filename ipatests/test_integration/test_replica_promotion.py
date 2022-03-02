@@ -616,7 +616,8 @@ class TestSubCAkeyReplication(IntegrationTest):
     def check_subca(self, host, name, cert_nick):
         result = host.run_command(['ipa', 'ca-show', name])
         # ipa ca-show returns 0 even if the cert cannot be found locally.
-        assert "ipa: ERROR:" not in result.stderr_text
+        if "ipa: ERROR:" in result.stderr_text:
+            return False
         tasks.run_certutil(
             host, ['-L', '-n', cert_nick], paths.PKI_TOMCAT_ALIAS_DIR
         )
@@ -625,6 +626,7 @@ class TestSubCAkeyReplication(IntegrationTest):
             '-f', paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
             '-K', '-n', cert_nick
         ])
+        return True
 
     def get_certinfo(self, host):
         result = tasks.run_certutil(
@@ -636,7 +638,11 @@ class TestSubCAkeyReplication(IntegrationTest):
         for line in result.stdout_text.splitlines():
             mo = certdb.CERT_RE.match(line)
             if mo:
-                certs[mo.group('nick')] = mo.group('flags')
+                # Strip out any token
+                nick = mo.group('nick')
+                if ':' in nick:
+                    nick = nick.split(':', maxsplit=1)[1]
+                certs[nick] = mo.group('flags')
 
         result = tasks.run_certutil(
             host,
@@ -647,7 +653,11 @@ class TestSubCAkeyReplication(IntegrationTest):
         for line in result.stdout_text.splitlines():
             mo = certdb.KEY_RE.match(line)
             if mo:
-                keys[mo.group('nick')] = mo.group('keyid')
+                # Strip out any token
+                nick = mo.group('nick')
+                if ':' in nick:
+                    nick = nick.split(':', maxsplit=1)[1]
+                keys[nick] = mo.group('keyid')
         return certs, keys
 
     def check_certdb(self, master, replica):
@@ -663,14 +673,8 @@ class TestSubCAkeyReplication(IntegrationTest):
         if master.is_fips_mode:
             # Mixed FIPS/non-FIPS installations are not supported
             assert replica.is_fips_mode
-            key_nick = self.SERVER_KEY_NICK_FIPS
-        else:
-            key_nick = self.SERVER_KEY_NICK
 
-        # expected keys, server key has different name
         expected_keys = set(expected_certs)
-        expected_keys.remove(self.SERVER_CERT_NICK)
-        expected_keys.add(key_nick)
 
         # get certs and keys from Dogtag's NSSDB
         master_certs, master_keys = self.get_certinfo(master)
@@ -682,9 +686,9 @@ class TestSubCAkeyReplication(IntegrationTest):
         assert set(master_keys) == expected_keys
         assert set(replica_keys) == expected_keys
 
-        # server keys are different
-        master_server_key = master_keys.pop(key_nick)
-        replica_server_key = replica_keys.pop(key_nick)
+        # The Server-Cert keys are unique per-machine
+        master_server_key = master_keys.pop('Server-Cert cert-pki-ca')
+        replica_server_key = replica_keys.pop('Server-Cert cert-pki-ca')
         assert master_server_key != replica_server_key
         # but key ids of other keys are equal
         assert master_keys == replica_keys
@@ -707,11 +711,18 @@ class TestSubCAkeyReplication(IntegrationTest):
         master_nick = self.add_subca(
             master, self.SUBCA_MASTER, self.SUBCA_MASTER_CN
         )
-        # give replication some time
-        time.sleep(15)
+        # give replication some time, up to 60 seconds
+        for _i in range(0,6):
+            time.sleep(10)
+            m = self.check_subca(master, self.SUBCA_MASTER, master_nick)
+            r = self.check_subca(replica, self.SUBCA_MASTER, master_nick)
 
-        self.check_subca(master, self.SUBCA_MASTER, master_nick)
-        self.check_subca(replica, self.SUBCA_MASTER, master_nick)
+            if m and r:
+                break
+        else:
+            assert m, "master doesn't have the subCA"
+            assert r, "replica doesn't have the subCA"
+
         self.check_pki_error(replica)
         self.check_certdb(master, replica)
 
@@ -722,12 +733,19 @@ class TestSubCAkeyReplication(IntegrationTest):
         replica_nick = self.add_subca(
             replica, self.SUBCA_REPLICA, self.SUBCA_REPLICA_CN
         )
-        # give replication some time
-        time.sleep(15)
+        # give replication some time, up to 60 seconds
+        for _i in range(0,6):
+            time.sleep(10)
+            r = self.check_subca(replica, self.SUBCA_REPLICA, replica_nick)
+            m = self.check_subca(master, self.SUBCA_REPLICA, replica_nick)
+
+            if m and r:
+                break
+        else:
+            assert m, "master doesn't have the subCA"
+            assert r, "replica doesn't have the subCA"
 
         # replica.run_command(['ipa-certupdate'])
-        self.check_subca(replica, self.SUBCA_REPLICA, replica_nick)
-        self.check_subca(master, self.SUBCA_REPLICA, replica_nick)
         self.check_pki_error(master)
         self.check_certdb(master, replica)
 
