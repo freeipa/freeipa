@@ -2261,7 +2261,8 @@ class KerberosKeyCopier:
        copier.copy_keys('/etc/krb5.keytab', tmpname, replacement=replacement)
     """
     host_princ_template = "host/{master}@{realm}"
-    valid_etypes = ['aes256-cts-hmac-sha1-96', 'aes128-cts-hmac-sha1-96']
+    valid_etypes = ['aes256-cts-hmac-sha384-192', 'aes128-cts-hmac-sha256-128',
+                    'aes256-cts-hmac-sha1-96', 'aes128-cts-hmac-sha1-96']
 
     def __init__(self, host):
         self.host = host
