@@ -695,6 +695,12 @@ Provides: %{name}-admintools = %{version}-%{release}
 Conflicts: crypto-policies < 20200629-1
 %endif
 
+%if 0%{?rhel} == 9
+# Conflict with crypto-policies < 20220223-1 to get upgraded AD-SUPPORT and
+# AD-SUPPORT-LEGACY policy modules
+Conflicts: crypto-policies < 20220223-1
+%endif
+
 %description client
 IPA is an integrated solution to provide centrally managed Identity (users,
 hosts, services), Authentication (SSO, 2FA), and Authorization
