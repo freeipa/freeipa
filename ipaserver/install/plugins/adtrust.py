@@ -754,7 +754,8 @@ class update_host_cifs_keytabs(Updater):
     """
 
     host_princ_template = "host/{master}@{realm}"
-    valid_etypes = ['aes256-cts-hmac-sha1-96', 'aes128-cts-hmac-sha1-96']
+    valid_etypes = ['aes256-cts-hmac-sha384-192', 'aes128-cts-hmac-sha256-128',
+                    'aes256-cts-hmac-sha1-96', 'aes128-cts-hmac-sha1-96']
 
     def extract_key_refs(self, keytab):
         host_princ = self.host_princ_template.format(
