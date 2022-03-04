@@ -49,6 +49,14 @@
 #include "back_extdom.h"
 #include "util.h"
 
+#if defined HAVE_DECL_SSS_NSS_GETORIGBYUSERNAME_TIMEOUT && !HAVE_DECL_SSS_NSS_GETORIGBYUSERNAME_TIMEOUT
+#define sss_nss_getorigbyusername_timeout sss_nss_getorigbyname_timeout
+#endif
+
+#if defined HAVE_DECL_SSS_NSS_GETORIGBYGROUPNAME_TIMEOUT && !HAVE_DECL_SSS_NSS_GETORIGBYGROUPNAME_TIMEOUT
+#define sss_nss_getorigbygroupname_timeout sss_nss_getorigbyname_timeout
+#endif
+
 #define SSSD_DOMAIN_SEPARATOR '@'
 
 int get_buffer(size_t *_buf_len, char **_buf)
@@ -886,8 +894,8 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyname_timeout(pwd.pw_name, get_timeout(ctx),
-                                                &kv_list, &id_type);
+            ret = sss_nss_getorigbyusername_timeout(pwd.pw_name, get_timeout(ctx),
+                                                    &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
                 set_err_msg(req, "Failed to read original data");
@@ -965,8 +973,8 @@ static int handle_gid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyname_timeout(grp.gr_name, get_timeout(ctx),
-                                                &kv_list, &id_type);
+            ret = sss_nss_getorigbygroupname_timeout(grp.gr_name, get_timeout(ctx),
+                                                     &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
                 set_err_msg(req, "Failed to read original data");
@@ -1115,8 +1123,8 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyname_timeout(pwd.pw_name, get_timeout(ctx),
-                                                &kv_list, &id_type);
+            ret = sss_nss_getorigbyusername_timeout(pwd.pw_name, get_timeout(ctx),
+                                                    &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
                 set_err_msg(req, "Failed to read original data");
@@ -1152,8 +1160,8 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyname_timeout(grp.gr_name, get_timeout(ctx),
-                                                &kv_list, &id_type);
+            ret = sss_nss_getorigbygroupname_timeout(grp.gr_name, get_timeout(ctx),
+                                                     &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
                 set_err_msg(req, "Failed to read original data");
@@ -1266,9 +1274,9 @@ static int handle_username_request(struct ipa_extdom_ctx *ctx,
     switch(ret) {
     case 0:
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyname_timeout(pwd.pw_name,
-                                                get_timeout(ctx),
-                                                &kv_list, &id_type);
+            ret = sss_nss_getorigbyusername_timeout(pwd.pw_name,
+                                                    get_timeout(ctx),
+                                                    &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                               || id_type == SSS_ID_TYPE_BOTH)) {
                 set_err_msg(req, "Failed to read original data");
@@ -1357,8 +1365,8 @@ static int handle_groupname_request(struct ipa_extdom_ctx *ctx,
     }
 
     if (request_type == REQ_FULL_WITH_GROUPS) {
-        ret = sss_nss_getorigbyname_timeout(grp.gr_name, get_timeout(ctx),
-                                            &kv_list, &id_type);
+        ret = sss_nss_getorigbygroupname_timeout(grp.gr_name, get_timeout(ctx),
+                                                 &kv_list, &id_type);
         if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
                           || id_type == SSS_ID_TYPE_BOTH)) {
             if (ret == ENOENT) {
