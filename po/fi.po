@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2022-02-20 20:16+0000\n"
+"PO-Revision-Date: 2022-03-05 20:16+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.10.1\n"
+"X-Generator: Weblate 4.11.2\n"
 
 #: client/ipa-rmkeytab.c:51
 #, c-format
@@ -22441,7 +22441,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/otpconfig.py:97
 #: ipaserver/plugins/otpconfig.py:98
 msgid "HOTP Authentication Window"
-msgstr ""
+msgstr "HOTP-tunnistautumisikkuna"
 
 #: ipaclient/remote_plugins/2_114/otpconfig.py:64
 #: ipaclient/remote_plugins/2_114/otpconfig.py:98
@@ -38022,12 +38022,12 @@ msgstr "Lisätty HBAC palveluryhmä \"%(value)s\""
 #: ipaserver/plugins/hbacsvcgroup.py:139
 #, python-format
 msgid "Deleted HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "Poistettu HBAC palveluryhmä \"%(value)s\""
 
 #: ipaserver/plugins/hbacsvcgroup.py:147
 #, python-format
 msgid "Modified HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "Muokattu HBAC palveluryhmää \"%(value)s\""
 
 #: ipaserver/plugins/hbacsvcgroup.py:156
 #, python-format
@@ -38192,7 +38192,7 @@ msgstr ""
 #: ipaserver/plugins/ca.py:261
 #, python-format
 msgid "Created CA \"%(value)s\""
-msgstr ""
+msgstr "Luotu CA \"%(value)s\""
 
 #: ipaserver/plugins/ca.py:271
 #, python-format
@@ -38243,7 +38243,7 @@ msgstr "Muokkaa CA-asetuksia."
 #: ipaserver/plugins/ca.py:361
 #, python-format
 msgid "Modified CA \"%(value)s\""
-msgstr ""
+msgstr "Muokattu CA:ta \"%(value)s\""
 
 #: ipaserver/plugins/ca.py:387
 msgid "Insufficient privilege to modify a CA."
@@ -38632,7 +38632,7 @@ msgstr[1] ""
 #: ipaserver/plugins/certprofile.py:222
 #, python-format
 msgid "Imported profile \"%(value)s\""
-msgstr ""
+msgstr "Tuotu profiili \"%(value)s\""
 
 #: ipaserver/plugins/certprofile.py:247
 #, python-format
@@ -40626,7 +40626,7 @@ msgstr ""
 #: ipaserver/plugins/group.py:442
 #, python-format
 msgid "Modified group \"%(value)s\""
-msgstr ""
+msgstr "Muokattu ryhmää \"%(value)s\""
 
 #: ipaserver/plugins/group.py:517
 #, python-format
@@ -48819,12 +48819,12 @@ msgstr ""
 #: ipaserver/plugins/privilege.py:169
 #, python-format
 msgid "Added privilege \"%(value)s\""
-msgstr ""
+msgstr "Lisätty oikeus \"%(value)s\""
 
 #: ipaserver/plugins/privilege.py:176
 #, python-format
 msgid "Deleted privilege \"%(value)s\""
-msgstr ""
+msgstr "Poistettu oikeus \"%(value)s\""
 
 #: ipaserver/plugins/privilege.py:183
 #, python-format
@@ -48913,7 +48913,7 @@ msgstr ""
 #: ipaserver/plugins/server.py:224
 #, python-format
 msgid "Modified IPA server \"%(value)s\""
-msgstr ""
+msgstr "Muokattu IPA palvelinta \"%(value)s\""
 
 #: ipaserver/plugins/server.py:306
 #, python-format
@@ -48925,7 +48925,7 @@ msgstr[1] ""
 #: ipaserver/plugins/server.py:444
 #, python-format
 msgid "Deleted IPA server \"%(value)s\""
-msgstr ""
+msgstr "Poistettu IPA palvelin \"%(value)s\""
 
 #: ipaserver/plugins/server.py:449
 msgid "Ignore topology errors"
@@ -49143,7 +49143,7 @@ msgstr "Poistettu ACI \"%(value)s\""
 #: ipaserver/plugins/aci.py:620
 #, python-format
 msgid "Modified ACI \"%(value)s\""
-msgstr ""
+msgstr "Muokattu ACI:ta \"%(value)s\""
 
 #: ipaserver/plugins/aci.py:694
 #, python-format
