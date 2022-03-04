@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-02-07 08:35+0200\n"
-"PO-Revision-Date: 2022-02-20 20:16+0000\n"
+"PO-Revision-Date: 2022-03-05 20:16+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.10.1\n"
+"X-Generator: Weblate 4.11.2\n"
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
@@ -3957,9 +3957,8 @@ msgstr "Synkronoidaan"
 msgid "TOTP synchronization time variance (seconds)"
 msgstr ""
 
-#, fuzzy
 msgid "HOTP Authentication Window"
-msgstr "Tunnistatuminen"
+msgstr "HOTP-tunnistautumisikkuna"
 
 msgid "HOTP authentication skip-ahead"
 msgstr ""
@@ -13301,11 +13300,11 @@ msgstr "Lisätty HBAC palveluryhmä \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "Poistettu HBAC palveluryhmä \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "Muokattu HBAC palveluryhmää \"%(value)s\""
 
 #, python-format
 msgid "%(count)d HBAC service group matched"
@@ -14510,7 +14509,7 @@ msgstr "Poistettu ACI \"%(value)s\""
 
 #, python-format
 msgid "Modified ACI \"%(value)s\""
-msgstr ""
+msgstr "Muokattu ACI:ta \"%(value)s\""
 
 #, python-format
 msgid "%(count)d ACI matched"
@@ -14634,7 +14633,7 @@ msgstr ""
 
 #, python-format
 msgid "Created CA \"%(value)s\""
-msgstr ""
+msgstr "Luotu CA \"%(value)s\""
 
 #, python-format
 msgid "Insufficient 'add' privilege for entry '%s'."
@@ -14672,7 +14671,7 @@ msgstr "Muokkaa CA-asetuksia."
 
 #, python-format
 msgid "Modified CA \"%(value)s\""
-msgstr ""
+msgstr "Muokattu CA:ta \"%(value)s\""
 
 msgid "Insufficient privilege to modify a CA."
 msgstr ""
@@ -14773,7 +14772,7 @@ msgstr[1] ""
 
 #, python-format
 msgid "Imported profile \"%(value)s\""
-msgstr ""
+msgstr "Tuotu profiili \"%(value)s\""
 
 #, python-format
 msgid "Profile data specifies profileId multiple times: %(values)s"
@@ -15182,7 +15181,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified IPA server \"%(value)s\""
-msgstr ""
+msgstr "Muokattu IPA palvelinta \"%(value)s\""
 
 #, python-format
 msgid "%(count)d IPA server matched"
@@ -15192,7 +15191,7 @@ msgstr[1] ""
 
 #, python-format
 msgid "Deleted IPA server \"%(value)s\""
-msgstr ""
+msgstr "Poistettu IPA palvelin \"%(value)s\""
 
 msgid "Ignore topology errors"
 msgstr ""
@@ -15499,7 +15498,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified group \"%(value)s\""
-msgstr ""
+msgstr "Muokattu ryhmää \"%(value)s\""
 
 #, python-format
 msgid "%(count)d group matched"
@@ -15620,11 +15619,11 @@ msgstr ""
 
 #, python-format
 msgid "Added privilege \"%(value)s\""
-msgstr ""
+msgstr "Lisätty oikeus \"%(value)s\""
 
 #, python-format
 msgid "Deleted privilege \"%(value)s\""
-msgstr ""
+msgstr "Poistettu oikeus \"%(value)s\""
 
 #, python-format
 msgid "Modified privilege \"%(value)s\""
