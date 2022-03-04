@@ -17,6 +17,7 @@ FreeIPA design documentation
    ldap_pam_passthrough.md
    libpwquality.md
    membermanager.md
+   ipa_to_ipa_migration.md
    hidden-replicas.md
    disable-stale-users.md
    ldapi-autobind-services.md
