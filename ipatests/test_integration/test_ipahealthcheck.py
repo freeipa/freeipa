@@ -1387,6 +1387,19 @@ class TestIpaHealthCheck(IntegrationTest):
             execute_nsscheck_cert_expiring(check)
 
         finally:
+            # Prior to uninstall remove all the cert tracking to prevent
+            # errors from certmonger trying to check the status of certs
+            # that don't matter because we are uninstalling.
+            self.master.run_command(['systemctl', 'stop', 'certmonger'])
+            # Important: run_command with a str argument is able to
+            # perform shell expansion but run_command with a list of
+            # arguments is not
+            self.master.run_command(
+                "rm -fv " + paths.CERTMONGER_REQUESTS_DIR + "*"
+            )
+            # Delete the renewal lock file to make sure the helpers don't block
+            self.master.run_command("rm -fv " + paths.IPA_RENEWAL_LOCK)
+            self.master.run_command(['systemctl', 'start', 'certmonger'])
             # Uninstall the master here so that the certs don't try
             # to renew after the CA is running again.
             tasks.uninstall_master(self.master)
