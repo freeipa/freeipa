@@ -29,6 +29,8 @@ from ipaplatform.constants import constants as _constants
 from ipapython.dn import DN
 from ipapython.fqdn import gethostfqdn
 from ipapython.version import VERSION, API_VERSION
+from cryptography.hazmat.primitives.ciphers import algorithms, modes
+from cryptography.hazmat.backends.openssl.backend import backend
 
 
 FQDN = gethostfqdn()
@@ -379,10 +381,12 @@ ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits + '-'
 VAULT_WRAPPING_3DES = 'des-ede3-cbc'
 VAULT_WRAPPING_AES128_CBC = 'aes-128-cbc'
 VAULT_WRAPPING_SUPPORTED_ALGOS = (
-    # old default was 3DES
-    VAULT_WRAPPING_3DES,
-    # supported since pki-kra >= 10.4
+    # new default and supported since pki-kra >= 10.4
     VAULT_WRAPPING_AES128_CBC,
 )
-# 3DES for backwards compatibility
-VAULT_WRAPPING_DEFAULT_ALGO = VAULT_WRAPPING_3DES
+VAULT_WRAPPING_DEFAULT_ALGO = VAULT_WRAPPING_AES128_CBC
+
+# Add 3DES for backwards compatibility if supported
+if backend.cipher_supported(algorithms.TripleDES(b"\x00" * 8),
+                            modes.CBC(b"\x00" * 8)):
+    VAULT_WRAPPING_SUPPORTED_ALGOS += (VAULT_WRAPPING_3DES,)
