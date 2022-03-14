@@ -5,7 +5,6 @@
 """
 import base64
 import logging
-import paramiko
 import pytest
 import re
 import time
@@ -102,6 +101,8 @@ def ssh_2f(hostname, username, answers_dict, port=22):
             logger.info(
                 "Answer to ssh prompt is: '%s'", answers_dict[prmpt_str])
         return resp
+
+    import paramiko
     trans = paramiko.Transport((hostname, port))
     trans.connect()
     trans.auth_interactive(username, answer_handler)
