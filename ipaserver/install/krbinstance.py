@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 
 PKINIT_ENABLED = 'pkinitEnabled'
 
-MASTER_KEY_TYPE = 'aes256-sha1'
+MASTER_KEY_TYPE = 'aes256-sha2'
 SUPPORTED_ENCTYPES = ('aes256-sha2:special', 'aes128-sha2:special',
                       'aes256-sha2:normal', 'aes128-sha2:normal',
                       'aes256-cts:special', 'aes128-cts:special',
