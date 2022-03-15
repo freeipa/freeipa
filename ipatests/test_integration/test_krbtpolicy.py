@@ -105,6 +105,9 @@ class TestPWPolicy(IntegrationTest):
 
     def test_krbtpolicy_password_and_hardended(self):
         """Test a pwd and hardened kerberos ticket policy with 10min tickets"""
+        if self.master.is_fips_mode:
+            pytest.skip("SPAKE pre-auth is not compatible with FIPS mode")
+
         master = self.master
         master.run_command(['ipa', 'user-mod', USER1,
                             '--user-auth-type', 'password',
@@ -133,6 +136,9 @@ class TestPWPolicy(IntegrationTest):
 
     def test_krbtpolicy_hardended(self):
         """Test a hardened kerberos ticket policy with 30min tickets"""
+        if self.master.is_fips_mode:
+            pytest.skip("SPAKE pre-auth is not compatible with FIPS mode")
+
         master = self.master
         master.run_command(['ipa', 'user-mod', USER1,
                             '--user-auth-type', 'hardened'])
