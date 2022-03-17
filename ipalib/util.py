@@ -339,8 +339,10 @@ def create_https_connection(
 
     # official Python documentation states that the best option to get
     # TLSv1 and later is to setup SSLContext with PROTOCOL_SSLv23
-    # and then negate the insecure SSLv2 and SSLv3
-    ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+    # and then negate the insecure SSLv2 and SSLv3. However, with Python 3.10
+    # PROTOCOL_SSLv23 is deprecated as well as PROTOCOL_TLS. We should use
+    # PROTOCOL_TLS_CLIENT since Python 3.6
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     ctx.options |= (
         ssl.OP_ALL | ssl.OP_NO_COMPRESSION | ssl.OP_SINGLE_DH_USE |
         ssl.OP_SINGLE_ECDH_USE
