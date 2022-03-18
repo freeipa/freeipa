@@ -90,6 +90,12 @@ ipa_kdb_tests_SOURCES =        \
        ipa_kdb_audit_as.c      \
        $(NULL)
 
+if BUILD_IPA_ISSUE_PAC
+ipa_kdb_tests_SOURCES += ipa_kdb_mspac_v9.c
+else
+ipa_kdb_tests_SOURCES += ipa_kdb_mspac_v6.c
+endif
+
 if BUILD_IPA_CERTAUTH_PLUGIN
 ipa_kdb_tests_SOURCES += ipa_kdb_certauth.c
 endif
