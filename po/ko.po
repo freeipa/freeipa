@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-02-01 16:16+0000\n"
-"Last-Translator: simmon <simmon@nplob.com>\n"
+"PO-Revision-Date: 2022-03-22 10:17+0000\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
 "Language: ko\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.10.1\n"
+"X-Generator: Weblate 4.11.2\n"
 
 #: client/ipa-join.c:66 client/ipa-join.c:422 client/ipa-join.c:440
 #: client/ipa-join.c:540 client/ipa-join.c:1089 util/ipa_krb5.c:1024
@@ -4400,7 +4400,7 @@ msgstr ""
 
 #: ipaserver/plugins/idviews.py:1271
 msgid "Display information about an User ID override."
-msgstr ""
+msgstr "사용자 ID 재정의에 대한 정보를 표시합니다."
 
 #: ipaserver/plugins/idviews.py:195
 msgid "Add a new ID View."
@@ -6230,7 +6230,7 @@ msgid ""
 msgstr ""
 
 msgid "Add a new IPA new service."
-msgstr ""
+msgstr "신규 IPA 새로운 서비스 추가."
 
 msgid "force principal name even if not in DNS"
 msgstr ""
@@ -8371,7 +8371,7 @@ msgid "Modify global trust configuration."
 msgstr "전역 신뢰 구성을 수정합니다."
 
 msgid "Show global trust configuration."
-msgstr ""
+msgstr "전역 신뢰 구성을 표시합니다."
 
 msgid "Allow access from the trusted domain"
 msgstr ""
@@ -11860,7 +11860,7 @@ msgid "comma-separated list of host groups to add"
 msgstr "추가하는 호스트 그룹의 쉼표로-구분된 목록"
 
 msgid "comma-separated list of HBAC services to add"
-msgstr ""
+msgstr "추가하는 HSBC 서비스의 쉼표로-구분된 목록"
 
 msgid "comma-separated list of HBAC service groups to add"
 msgstr ""
@@ -11878,7 +11878,7 @@ msgid "comma-separated list of HBAC services to remove"
 msgstr "제거하려는 HSBC 서비스의 쉼표로-구분된 목록"
 
 msgid "comma-separated list of HBAC service groups to remove"
-msgstr ""
+msgstr "제거하려는 HSBC 서비스 그룹의 쉼표로-구분된 목록"
 
 #: ipaserver/plugins/hbacrule.py:578
 msgid "Remove source hosts and hostgroups from an HBAC rule."
@@ -12258,7 +12258,7 @@ msgid "Add a system permission without an ACI"
 msgstr ""
 
 msgid "Permission type"
-msgstr ""
+msgstr "권한 유형"
 
 msgid "comma-separated list of privileges to remove"
 msgstr "제거하려는 권한의 쉼표로-구분된 목록"
@@ -12303,7 +12303,7 @@ msgid "comma-separated list of roles to remove"
 msgstr "제거하려는 역할의 쉼표로-구분된 목록"
 
 msgid "comma-separated list of privileges"
-msgstr ""
+msgstr "권한의 쉼표로-구분된 목록"
 
 msgid ""
 "\n"
@@ -14206,7 +14206,7 @@ msgstr ""
 
 #: ipaserver/plugins/schema.py:679
 msgid "Display information about a command parameter."
-msgstr ""
+msgstr "명령 매개변수에 대한 정보를 표시합니다."
 
 #: ipaserver/plugins/schema.py:684
 msgid "Search command parameters."
@@ -14639,7 +14639,7 @@ msgstr[0] ""
 #: ipaserver/plugins/service.py:1088
 #, python-format
 msgid "Disabled service \"%(value)s\""
-msgstr ""
+msgstr "서비스 \"%(value)s\"가 비활성화됨"
 
 #: ipaserver/plugins/service.py:1129
 #, python-format
@@ -14784,7 +14784,7 @@ msgstr "sudo 규칙"
 
 #: ipaserver/plugins/sudorule.py:227
 msgid "Sudo Rules"
-msgstr ""
+msgstr "sudo 규칙"
 
 #: ipaserver/plugins/sudorule.py:228
 msgid "Sudo Rule"
@@ -14798,12 +14798,12 @@ msgstr ""
 #: ipaserver/plugins/sudorule.py:394
 #, python-format
 msgid "Added Sudo Rule \"%(value)s\""
-msgstr ""
+msgstr "sudo 규칙 \"%(value)s\"가 추가됨"
 
 #: ipaserver/plugins/sudorule.py:401
 #, python-format
 msgid "Deleted Sudo Rule \"%(value)s\""
-msgstr ""
+msgstr "Sudo 규칙 \"%(value)s\"이 삭제됨"
 
 #: ipaserver/plugins/sudorule.py:408
 #, python-format
@@ -17756,7 +17756,7 @@ msgstr "SHA1 지문"
 
 #: ipaserver/plugins/internal.py:699
 msgid "SHA256 Fingerprint"
-msgstr ""
+msgstr "SHA256 지문"
 
 #: ipaserver/plugins/internal.py:701
 msgid "Superseded"
@@ -18297,7 +18297,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:950
 msgid "Remove HBAC service groups"
-msgstr ""
+msgstr "HBAC 서비스 그룹 제거"
 
 #: ipaserver/plugins/internal.py:952
 #, python-brace-format
@@ -18776,7 +18776,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1165 ipaserver/plugins/netgroup.py:196
 msgid "Netgroups"
-msgstr ""
+msgstr "넷그룹"
 
 #: ipaserver/plugins/internal.py:1166
 msgid "Remove netgroups"
@@ -19318,7 +19318,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1432
 msgid "Allow"
-msgstr ""
+msgstr "허용"
 
 #: ipaserver/plugins/internal.py:1433
 msgid "Any Command"
@@ -21032,17 +21032,17 @@ msgstr[0] ""
 #: ipaserver/plugins/topology.py:289
 #, python-format
 msgid "Added segment \"%(value)s\""
-msgstr ""
+msgstr "세그먼트 \"%(value)s\"가 추가됨"
 
 #: ipaserver/plugins/topology.py:302
 #, python-format
 msgid "Deleted segment \"%(value)s\""
-msgstr ""
+msgstr "세그먼트 \"%(value)s\"가 삭제됨"
 
 #: ipaserver/plugins/topology.py:314
 #, python-format
 msgid "Modified segment \"%(value)s\""
-msgstr ""
+msgstr "세그먼트 \"%(value)s\"가 수정됨"
 
 #: ipaserver/plugins/topology.py:329
 #, python-format
@@ -21186,12 +21186,12 @@ msgstr ""
 #: ipaserver/plugins/selfservice.py:124
 #, python-format
 msgid "Added selfservice \"%(value)s\""
-msgstr ""
+msgstr "셀프서비스 \"%(value)s\"가 추가됨"
 
 #: ipaserver/plugins/selfservice.py:146
 #, python-format
 msgid "Deleted selfservice \"%(value)s\""
-msgstr ""
+msgstr "셀프서비스 \"%(value)s\"가 삭제됨"
 
 #: ipaserver/plugins/selfservice.py:163
 #, python-format
@@ -22106,7 +22106,7 @@ msgstr ""
 #: ipaserver/plugins/caacl.py:246
 #, python-format
 msgid "Added CA ACL \"%(value)s\""
-msgstr ""
+msgstr "CA ACL \"%(value)s\"가 추가됨"
 
 #: ipaserver/plugins/caacl.py:258
 #, python-format
@@ -22155,12 +22155,12 @@ msgstr[0] ""
 #: ipaserver/plugins/caacl.py:325
 #, python-format
 msgid "Enabled CA ACL \"%(value)s\""
-msgstr ""
+msgstr "CA ACL \"%(value)s\"가 활성화됨"
 
 #: ipaserver/plugins/caacl.py:354
 #, python-format
 msgid "Disabled CA ACL \"%(value)s\""
-msgstr ""
+msgstr "CA ACL \"%(value)s\"가 비활성화됨"
 
 #: ipaserver/plugins/caacl.py:385
 #, python-format
@@ -23178,12 +23178,12 @@ msgstr ""
 #: ipaserver/plugins/hbacsvcgroup.py:131
 #, python-format
 msgid "Added HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "HBAC 서비스 그룹 \"%(value)s\"가 추가됨"
 
 #: ipaserver/plugins/hbacsvcgroup.py:139
 #, python-format
 msgid "Deleted HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "HBAC 서비스 그룹 \"%(value)s\"가 삭제됨"
 
 #: ipaserver/plugins/hbacsvcgroup.py:147
 #, python-format
@@ -23247,7 +23247,7 @@ msgstr "권한"
 #: ipaserver/plugins/privilege.py:169
 #, python-format
 msgid "Added privilege \"%(value)s\""
-msgstr ""
+msgstr "권한 \"%(value)s\"가 추가됨"
 
 #: ipaserver/plugins/privilege.py:176
 #, python-format
@@ -24829,7 +24829,7 @@ msgstr "KRA 서비스가 활성화된 서버가 있는지 확인합니다."
 
 #: ipaserver/plugins/baseldap.py:101
 msgid "Member service groups"
-msgstr ""
+msgstr "서비스 그룹의 구성원"
 
 #: ipaserver/plugins/baseldap.py:110
 msgid "Member HBAC service groups"
@@ -25374,7 +25374,7 @@ msgstr ""
 #: ipaserver/plugins/ca.py:404
 #, python-format
 msgid "Disabled CA \"%(value)s\""
-msgstr ""
+msgstr "CA \"%(value)s\"가 비활성화됨"
 
 #: ipaserver/plugins/ca.py:411
 msgid "IPA CA cannot be disabled"
@@ -25458,7 +25458,7 @@ msgstr ""
 #: ipaserver/plugins/stageuser.py:278
 #, python-format
 msgid "Added stage user \"%(value)s\""
-msgstr ""
+msgstr "스테이지 사용자 \"%(value)s\"가 추가됨"
 
 #: ipaserver/plugins/stageuser.py:297
 msgid "givenname is required"
@@ -26461,7 +26461,7 @@ msgstr ""
 #: ipaserver/plugins/dns.py:2846
 #, python-format
 msgid "Deleted DNS zone \"%(value)s\""
-msgstr ""
+msgstr "DNS 존 \"%(value)s\"가 삭제됨"
 
 #: ipaserver/plugins/dns.py:2899
 msgid "is required"
@@ -26479,7 +26479,7 @@ msgstr ""
 
 #: ipaserver/plugins/dns.py:3016
 msgid "DNS resource record"
-msgstr ""
+msgstr "DNS 리소스 레코드"
 
 #: ipaserver/plugins/dns.py:3017
 msgid "DNS resource records"
@@ -26679,12 +26679,12 @@ msgstr ""
 #: ipaserver/plugins/hbacrule.py:302
 #, python-format
 msgid "Added HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "HBAC 규칙 \"%(value)s\"가 추가됨"
 
 #: ipaserver/plugins/hbacrule.py:316
 #, python-format
 msgid "Deleted HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "HBAC 규칙 \"%(value)s\"가 삭제됨"
 
 #: ipaserver/plugins/hbacrule.py:333
 #, python-format
@@ -26700,12 +26700,12 @@ msgstr[0] ""
 #: ipaserver/plugins/hbacrule.py:383
 #, python-format
 msgid "Enabled HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "HBAC 규칙 \"%(value)s\"가 활성화됨"
 
 #: ipaserver/plugins/hbacrule.py:413
 #, python-format
 msgid "Disabled HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "HBAC 규칙 \"%(value)s\"가 비활성화됨"
 
 #: ipaserver/plugins/hbacrule.py:447 ipaserver/plugins/hbacrule.py:478
 msgid "Access time"
@@ -26954,7 +26954,7 @@ msgstr ""
 
 #: ipaserver/dcerpc.py:117 ipaserver/dcerpc.py:1376
 msgid "AD domain controller"
-msgstr ""
+msgstr "AD 도메인 제어기"
 
 #: ipaserver/dcerpc.py:118
 msgid "unsupported functional level"
