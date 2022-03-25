@@ -499,6 +499,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     if setup_adtrust:
         args.append('--setup-adtrust')
         fw_services.append("freeipa-trust")
+        if is_fips_enabled(replica):
+            enable_crypto_subpolicy(replica, "AD-SUPPORT")
     if master_authoritative_for_client_domain(master, replica):
         args.extend(['--ip-address', replica.ip])
 
@@ -568,6 +570,8 @@ def install_client(master, client, extra_args=[], user=None,
 
     args.extend(extra_args)
 
+    if is_fips_enabled(client) and 'ad' in master:
+        enable_crypto_subpolicy(client, "AD-SUPPORT")
     result = client.run_command(args, stdin_text=stdin_text)
 
     setup_sssd_conf(client)
@@ -582,6 +586,8 @@ def install_adtrust(host):
     Configures the compat tree for the legacy clients.
     """
     kinit_admin(host)
+    if is_fips_enabled(host):
+        enable_crypto_subpolicy(host, "AD-SUPPORT")
     host.run_command(['ipa-adtrust-install', '-U',
                       '--enable-compat',
                       '--netbios-name', host.netbios,
