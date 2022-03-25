@@ -72,5 +72,5 @@ def disable_userspace_fips(host):
 
 def enable_crypto_subpolicy(host, subpolicy):
     result = host.run_command(["update-crypto-policies", "--show"])
-    policy = result.stdin_text.strip() + ":" + subpolicy
+    policy = result.stdout_text.strip() + ":" + subpolicy
     host.run_command(["update-crypto-policies", "--set", policy])
