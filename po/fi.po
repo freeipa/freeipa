@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-02-07 08:35+0200\n"
-"PO-Revision-Date: 2022-03-05 20:16+0000\n"
+"PO-Revision-Date: 2022-03-26 21:33+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
@@ -15677,11 +15677,11 @@ msgstr "Lisätty HBAC sääntö \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "Poistettu HBAC sääntö \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "Muokattu HBAC sääntöä \"%(value)s\""
 
 msgid "user category cannot be set to 'all' while there are allowed users"
 msgstr ""
@@ -15701,11 +15701,11 @@ msgstr[1] ""
 
 #, python-format
 msgid "Enabled HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "Otettu HBAC sääntö \"%(value)s\" käyttöön"
 
 #, python-format
 msgid "Disabled HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "Poistettu HBAC sääntö \"%(value)s\" käytöstä"
 
 #, fuzzy
 msgid "Access time"
@@ -16456,7 +16456,7 @@ msgstr "Isäntäryhmä"
 
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Lisätty isäntäryhmä \"%(value)s\""
 
 #, python-format
 msgid ""
@@ -16466,7 +16466,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Poistettu isäntäryhmä \"%(value)s\""
 
 msgid "hostgroup"
 msgstr "isäntäryhmä"
@@ -16639,7 +16639,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified host \"%(value)s\""
-msgstr ""
+msgstr "Muokattu isäntää \"%(value)s\""
 
 msgid "Password cannot be set on enrolled host."
 msgstr ""
@@ -16655,7 +16655,7 @@ msgstr[1] ""
 
 #, python-format
 msgid "Disabled host \"%(value)s\""
-msgstr ""
+msgstr "Poistettu isäntäkone \"%(value)s\" käytöstä"
 
 #, python-format
 msgid "Added certificates to host \"%(value)s\""
@@ -21093,7 +21093,7 @@ msgstr ""
 
 #, python-format
 msgid "Added CA ACL \"%(value)s\""
-msgstr ""
+msgstr "Lisätty CA ACL \"%(value)s\""
 
 #, python-format
 msgid "Deleted CA ACL \"%(value)s\""
@@ -21121,11 +21121,11 @@ msgstr[1] ""
 
 #, python-format
 msgid "Enabled CA ACL \"%(value)s\""
-msgstr ""
+msgstr "Otettu CA ACL \"%(value)s\" käyttöön"
 
 #, python-format
 msgid "Disabled CA ACL \"%(value)s\""
-msgstr ""
+msgstr "Poistettu CA ACL \"%(value)s\" käytöstä"
 
 #, python-format
 msgid "%i user or group added."
@@ -21443,7 +21443,7 @@ msgstr "Verkkoryhmä"
 
 #, python-format
 msgid "Added netgroup \"%(value)s\""
-msgstr ""
+msgstr "Lisätty verkkoryhmä \"%(value)s\""
 
 #, python-format
 msgid ""
@@ -21453,7 +21453,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted netgroup \"%(value)s\""
-msgstr ""
+msgstr "Poistettu verkkoryhmä \"%(value)s\""
 
 #, python-format
 msgid "Modified netgroup \"%(value)s\""
@@ -22617,7 +22617,7 @@ msgstr ""
 
 #, python-format
 msgid "Added Sudo Rule \"%(value)s\""
-msgstr ""
+msgstr "Lisätty sudosääntö \"%(value)s\""
 
 #, python-format
 msgid "Deleted Sudo Rule \"%(value)s\""
@@ -22625,7 +22625,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified Sudo Rule \"%(value)s\""
-msgstr ""
+msgstr "Muokattu sudosääntöä \"%(value)s\""
 
 #, python-format
 msgid ""
@@ -23586,7 +23586,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified vault \"%(value)s\""
-msgstr ""
+msgstr "Muokattu holvia \"%(value)s\""
 
 #, fuzzy
 msgid "Vault configuration"
