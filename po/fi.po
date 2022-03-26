@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2022-03-05 20:16+0000\n"
+"PO-Revision-Date: 2022-03-26 21:33+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -37885,7 +37885,7 @@ msgstr ""
 #: ipaserver/plugins/host.py:885
 #, python-format
 msgid "Modified host \"%(value)s\""
-msgstr ""
+msgstr "Muokattu isäntää \"%(value)s\""
 
 #: ipaserver/plugins/host.py:905
 msgid "Password cannot be set on enrolled host."
@@ -37905,7 +37905,7 @@ msgstr[1] ""
 #: ipaserver/plugins/host.py:1188
 #, python-format
 msgid "Disabled host \"%(value)s\""
-msgstr ""
+msgstr "Poistettu isäntäkone \"%(value)s\" käytöstä"
 
 #: ipaserver/plugins/host.py:1363
 #, python-format
@@ -41366,7 +41366,7 @@ msgstr ""
 #: ipaserver/plugins/vault.py:927
 #, python-format
 msgid "Modified vault \"%(value)s\""
-msgstr ""
+msgstr "Muokattu holvia \"%(value)s\""
 
 #: ipaserver/plugins/vault.py:969
 msgid "Vault configuration"
@@ -41447,7 +41447,7 @@ msgstr "Isäntäryhmä"
 #: ipaserver/plugins/hostgroup.py:223
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Lisätty isäntäryhmä \"%(value)s\""
 
 #: ipaserver/plugins/hostgroup.py:239
 #, python-format
@@ -41459,7 +41459,7 @@ msgstr ""
 #: ipaserver/plugins/hostgroup.py:262
 #, python-format
 msgid "Deleted hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Poistettu isäntäryhmä \"%(value)s\""
 
 #: ipaserver/plugins/hostgroup.py:266 ipaserver/plugins/hostgroup.py:284
 #: ipaserver/plugins/hostgroup.py:349
@@ -42115,7 +42115,7 @@ msgstr ""
 #: ipaserver/plugins/sudorule.py:394
 #, python-format
 msgid "Added Sudo Rule \"%(value)s\""
-msgstr ""
+msgstr "Lisätty sudosääntö \"%(value)s\""
 
 #: ipaserver/plugins/sudorule.py:401
 #, python-format
@@ -42125,7 +42125,7 @@ msgstr ""
 #: ipaserver/plugins/sudorule.py:408
 #, python-format
 msgid "Modified Sudo Rule \"%(value)s\""
-msgstr ""
+msgstr "Muokattu sudosääntöä \"%(value)s\""
 
 #: ipaserver/plugins/sudorule.py:428
 #, python-format
@@ -43331,12 +43331,12 @@ msgstr "Lisätty HBAC sääntö \"%(value)s\""
 #: ipaserver/plugins/hbacrule.py:316
 #, python-format
 msgid "Deleted HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "Poistettu HBAC sääntö \"%(value)s\""
 
 #: ipaserver/plugins/hbacrule.py:333
 #, python-format
 msgid "Modified HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "Muokattu HBAC sääntöä \"%(value)s\""
 
 #: ipaserver/plugins/hbacrule.py:345 ipaserver/plugins/caacl.py:294
 #: ipaserver/plugins/netgroup.py:321
@@ -43363,12 +43363,12 @@ msgstr[1] ""
 #: ipaserver/plugins/hbacrule.py:383
 #, python-format
 msgid "Enabled HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "Otettu HBAC sääntö \"%(value)s\" käyttöön"
 
 #: ipaserver/plugins/hbacrule.py:413
 #, python-format
 msgid "Disabled HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "Poistettu HBAC sääntö \"%(value)s\" käytöstä"
 
 #: ipaserver/plugins/hbacrule.py:447 ipaserver/plugins/hbacrule.py:478
 msgid "Access time"
@@ -43957,7 +43957,7 @@ msgstr ""
 #: ipaserver/plugins/caacl.py:246
 #, python-format
 msgid "Added CA ACL \"%(value)s\""
-msgstr ""
+msgstr "Lisätty CA ACL \"%(value)s\""
 
 #: ipaserver/plugins/caacl.py:258
 #, python-format
@@ -43992,12 +43992,12 @@ msgstr[1] ""
 #: ipaserver/plugins/caacl.py:325
 #, python-format
 msgid "Enabled CA ACL \"%(value)s\""
-msgstr ""
+msgstr "Otettu CA ACL \"%(value)s\" käyttöön"
 
 #: ipaserver/plugins/caacl.py:354
 #, python-format
 msgid "Disabled CA ACL \"%(value)s\""
-msgstr ""
+msgstr "Poistettu CA ACL \"%(value)s\" käytöstä"
 
 #: ipaserver/plugins/caacl.py:385
 #, python-format
@@ -48570,7 +48570,7 @@ msgstr "Verkkoryhmä"
 #: ipaserver/plugins/netgroup.py:266
 #, python-format
 msgid "Added netgroup \"%(value)s\""
-msgstr ""
+msgstr "Lisätty verkkoryhmä \"%(value)s\""
 
 #: ipaserver/plugins/netgroup.py:268
 #, python-format
@@ -48582,7 +48582,7 @@ msgstr ""
 #: ipaserver/plugins/netgroup.py:301
 #, python-format
 msgid "Deleted netgroup \"%(value)s\""
-msgstr ""
+msgstr "Poistettu verkkoryhmä \"%(value)s\""
 
 #: ipaserver/plugins/netgroup.py:310
 #, python-format
