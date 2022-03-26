@@ -570,7 +570,7 @@ def install_client(master, client, extra_args=[], user=None,
 
     args.extend(extra_args)
 
-    if is_fips_enabled(client) and 'ad' in master:
+    if is_fips_enabled(client) and getattr(master.config, 'ad_domains', False):
         enable_crypto_subpolicy(client, "AD-SUPPORT")
     result = client.run_command(args, stdin_text=stdin_text)
 
