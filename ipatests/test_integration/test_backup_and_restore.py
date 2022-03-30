@@ -35,6 +35,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_dnssec import wait_until_record_is_signed
 from ipatests.test_integration.test_simple_replication import check_replication
+from ipatests.test_integration.test_topology import find_segment
 from ipatests.util import assert_deepequal
 from ldap.dn import escape_dn_chars
 
@@ -862,13 +863,14 @@ class TestReplicaInstallAfterRestore(IntegrationTest):
                            stdin_text=dirman_password + '\nyes')
 
         # re-initialize topology after restore.
-        topo_name = "{}-to-{}".format(master.hostname, replica1.hostname)
         for topo_suffix in 'domain', 'ca':
-            arg = ['ipa',
-                   'topologysegment-reinitialize',
-                   topo_suffix,
-                   topo_name,
-                   '--left']
+            topo_name = find_segment(master, replica1, topo_suffix)
+            arg = ['ipa', 'topologysegment-reinitialize',
+                   topo_suffix, topo_name]
+            if topo_name.split('-to-', maxsplit=1)[0] != master.hostname:
+                arg.append('--left')
+            else:
+                arg.append('--right')
             replica1.run_command(arg)
 
         # wait sometime for re-initialization
