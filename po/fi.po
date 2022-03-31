@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-02-07 08:35+0200\n"
-"PO-Revision-Date: 2022-03-26 21:33+0000\n"
-"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
+"PO-Revision-Date: 2022-04-01 09:47+0000\n"
+"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
 "Language: fi\n"
@@ -362,7 +362,7 @@ msgstr "krb5_parse_name %1$d: %2$s\n"
 
 #, c-format
 msgid "Removing principal %s\n"
-msgstr ""
+msgstr "Poistetaan ensisijaista %s\n"
 
 #, c-format
 msgid "Failed to open keytab\n"
