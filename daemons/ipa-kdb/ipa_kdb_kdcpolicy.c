@@ -40,7 +40,7 @@ jitter(krb5_deltat baseline, krb5_deltat *lifetime_out)
         return;
     }
 
-    *lifetime_out = baseline - offset % JITTER_WINDOW_SECONDS;
+    *lifetime_out = baseline - abs(offset) % JITTER_WINDOW_SECONDS;
 }
 
 static krb5_error_code
