@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-02-07 08:35+0200\n"
-"PO-Revision-Date: 2022-04-01 09:47+0000\n"
-"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
+"PO-Revision-Date: 2022-04-02 10:17+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
 "Language: fi\n"
@@ -14681,7 +14681,7 @@ msgstr "Poista CA käytöstä."
 
 #, python-format
 msgid "Disabled CA \"%(value)s\""
-msgstr ""
+msgstr "Poistettu CA \"%(value)s\" käytöstä"
 
 msgid "IPA CA cannot be disabled"
 msgstr ""
@@ -14691,7 +14691,7 @@ msgstr "Ota CA käyttöön."
 
 #, python-format
 msgid "Enabled CA \"%(value)s\""
-msgstr ""
+msgstr "Otettu CA \"%(value)s\" käyttöön"
 
 msgid ""
 "\n"
@@ -16476,7 +16476,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Muokattu isäntäryhmää \"%(value)s\""
 
 #, python-format
 msgid "%(count)d hostgroup matched"
@@ -18258,7 +18258,7 @@ msgid "Superseded"
 msgstr ""
 
 msgid "Unspecified"
-msgstr ""
+msgstr "Määrittämätön"
 
 msgid "Valid Certificate Present"
 msgstr ""
@@ -21104,7 +21104,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified CA ACL \"%(value)s\""
-msgstr ""
+msgstr "Muokattu CA ACL:ää \"%(value)s\""
 
 msgid "CA category cannot be set to 'all' while there are allowed CAs"
 msgstr ""
@@ -21288,7 +21288,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified DNS server \"%(value)s\""
-msgstr ""
+msgstr "Muokattu DNS palvelinta \"%(value)s\""
 
 msgid "Search for DNS servers."
 msgstr ""
@@ -21457,7 +21457,7 @@ msgstr "Poistettu verkkoryhmä \"%(value)s\""
 
 #, python-format
 msgid "Modified netgroup \"%(value)s\""
-msgstr ""
+msgstr "Muokattu verkkoryhmää \"%(value)s\""
 
 #, python-format
 msgid "%(count)d netgroup matched"
