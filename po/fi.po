@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2022-04-01 09:48+0000\n"
-"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
+"PO-Revision-Date: 2022-04-02 10:17+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
 "Language: fi\n"
@@ -37582,7 +37582,7 @@ msgstr ""
 #: ipaserver/plugins/dnsserver.py:157
 #, python-format
 msgid "Modified DNS server \"%(value)s\""
-msgstr ""
+msgstr "Muokattu DNS palvelinta \"%(value)s\""
 
 #: ipaserver/plugins/dnsserver.py:162
 msgid "Search for DNS servers."
@@ -38256,7 +38256,7 @@ msgstr "Poista CA käytöstä."
 #: ipaserver/plugins/ca.py:404
 #, python-format
 msgid "Disabled CA \"%(value)s\""
-msgstr ""
+msgstr "Poistettu CA \"%(value)s\" käytöstä"
 
 #: ipaserver/plugins/ca.py:411
 msgid "IPA CA cannot be disabled"
@@ -38269,7 +38269,7 @@ msgstr "Ota CA käyttöön."
 #: ipaserver/plugins/ca.py:422
 #, python-format
 msgid "Enabled CA \"%(value)s\""
-msgstr ""
+msgstr "Otettu CA \"%(value)s\" käyttöön"
 
 #: ipaserver/plugins/permission.py:40
 msgid ""
@@ -41473,7 +41473,7 @@ msgstr ""
 #: ipaserver/plugins/hostgroup.py:278
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Muokattu isäntäryhmää \"%(value)s\""
 
 #: ipaserver/plugins/hostgroup.py:303
 #, python-format
@@ -43971,7 +43971,7 @@ msgstr ""
 #: ipaserver/plugins/caacl.py:273
 #, python-format
 msgid "Modified CA ACL \"%(value)s\""
-msgstr ""
+msgstr "Muokattu CA ACL:ää \"%(value)s\""
 
 #: ipaserver/plugins/caacl.py:285
 msgid "CA category cannot be set to 'all' while there are allowed CAs"
@@ -45765,7 +45765,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:702
 msgid "Unspecified"
-msgstr ""
+msgstr "Määrittämätön"
 
 #: ipaserver/plugins/internal.py:703
 msgid "Valid Certificate Present"
@@ -48587,7 +48587,7 @@ msgstr "Poistettu verkkoryhmä \"%(value)s\""
 #: ipaserver/plugins/netgroup.py:310
 #, python-format
 msgid "Modified netgroup \"%(value)s\""
-msgstr ""
+msgstr "Muokattu verkkoryhmää \"%(value)s\""
 
 #: ipaserver/plugins/netgroup.py:339
 #, python-format
