@@ -7,6 +7,7 @@ Tests to verify that the ipa-healthcheck scenarios
 
 from __future__ import absolute_import
 
+from configparser import RawConfigParser, NoOptionError
 from datetime import datetime, timedelta
 import json
 import os
@@ -157,7 +158,7 @@ TOMCAT_CONFIG_FILES = (
 
 
 def run_healthcheck(host, source=None, check=None, output_type="json",
-                    failures_only=False):
+                    failures_only=False, config=None):
     """
     Run ipa-healthcheck on the remote host and return the result
 
@@ -182,6 +183,19 @@ def run_healthcheck(host, source=None, check=None, output_type="json",
 
     if failures_only:
         cmd.append("--failures-only")
+
+    if config:
+        config_data = host.get_file_contents(config, encoding='utf-8')
+        cfg = RawConfigParser()
+        cfg.read_string(config_data)
+        # The config file value overrides the CLI so if human or
+        # some other option is overridden, don't import as json.
+        try:
+            output_type = cfg.get('default', 'output_type')
+        except NoOptionError:
+            pass
+        cmd.append("--config")
+        cmd.append(config)
 
     result = host.run_command(cmd, raiseonerr=False)
 
@@ -587,6 +601,47 @@ class TestIpaHealthCheck(IntegrationTest):
             failures_only=True
         )
         assert returncode == 0
+
+    def test_ipa_healthcheck_no_errors_with_overrides(self):
+        """
+        Test overriding command-line options in a configuration file.
+        """
+        version = tasks.get_healthcheck_version(self.master)
+        if parse_version(version) < parse_version("0.10"):
+            pytest.skip("Skipping test for 0.10 healthcheck version")
+        tmpcmd = self.master.run_command(['mktemp'])
+        config_file = tmpcmd.stdout_text.strip()
+        HC_LOG = "/tmp/hc.log"
+
+        self.master.put_file_contents(
+            config_file,
+            '\n'.join([
+                '[default]',
+                'output_type=human'
+            ])
+        )
+        returncode, output = run_healthcheck(
+            self.master, failures_only=True, config=config_file
+        )
+        assert returncode == 0
+        assert output == "No issues found."
+
+        # Setting an output file automatically enables all=True
+        self.master.put_file_contents(
+            config_file,
+            '\n'.join([
+                '[default]',
+                'output_type=human',
+                'output_file=%s' % HC_LOG,
+            ])
+        )
+        returncode, _unused = run_healthcheck(
+            self.master, config=config_file
+        )
+        logsize = len(self.master.get_file_contents(HC_LOG, encoding='utf-8'))
+        self.master.run_command(['rm', '-f', HC_LOG])
+        self.master.run_command(['rm', '-f', config_file])
+        assert logsize > 0  # run afterward to ensure cleanup
 
     def test_ipa_healthcheck_dna_plugin_returns_warning_pagure_issue_60(self):
         """
