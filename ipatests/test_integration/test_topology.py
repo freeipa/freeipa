@@ -17,9 +17,9 @@ config = get_global_config()
 reasoning = "Topology plugin disabled due to domain level 0"
 
 
-def find_segment(master, replica):
+def find_segment(master, replica, suffix=DOMAIN_SUFFIX_NAME):
     result = master.run_command(['ipa', 'topologysegment-find',
-                                 DOMAIN_SUFFIX_NAME]).stdout_text
+                                 suffix]).stdout_text
     segment_re = re.compile(r'Left node: (?P<left>\S+)\n.*Right node: '
                             r'(?P<right>\S+)\n')
     allsegments = segment_re.findall(result)
@@ -66,7 +66,6 @@ class TestTopologyOptions(IntegrationTest):
                               )
         return result
 
-
     def test_topology_updated_on_replica_install_remove(self):
         """
         Install and remove a replica and make sure topology information is
@@ -97,8 +96,8 @@ class TestTopologyOptions(IntegrationTest):
         assert(len(segments) == 2), "Unexpected number of segments found"
         assert_deepequal(result2.stdout_text, result3.stdout_text)
         assert_deepequal(result3.stdout_text,  result4.stdout_text)
-        # Now let's check that uninstalling the replica will update the topology
-        # info on the rest of replicas.
+        # Now let's check that uninstalling the replica will update the
+        # topology info on the rest of replicas.
         # first step of uninstallation is removal of the replica on other
         # master, then it can be uninstalled. Doing it the other way is also
         # possible, but not reliable - some data might not be replicated.
@@ -166,13 +165,15 @@ class TestTopologyOptions(IntegrationTest):
         error2 = "Wrong error message thrown during segment removal: \"%s\""
         replicas = (self.replicas[0].hostname, self.replicas[1].hostname)
 
-        returncode, error = tasks.destroy_segment(self.master, "%s-to-%s" % replicas)
+        returncode, error = tasks.destroy_segment(
+            self.master, "%s-to-%s" % replicas)
         assert returncode != 0, error1
         assert error.count(text) == 1, error2 % error
         _newseg, err = tasks.create_segment(
             self.master, self.master, self.replicas[1])
         assert err == "", err
-        returncode, error = tasks.destroy_segment(self.master, "%s-to-%s" % replicas)
+        returncode, error = tasks.destroy_segment(
+            self.master, "%s-to-%s" % replicas)
         assert returncode == 0, error
 
 
