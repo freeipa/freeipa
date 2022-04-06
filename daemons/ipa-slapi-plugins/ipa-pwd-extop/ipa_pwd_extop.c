@@ -96,6 +96,14 @@ void *ipapwd_get_plugin_id(void)
     return ipapwd_plugin_id;
 }
 
+static bool is_nthash_allowed(const char *service_name, const char *bind_dn)
+{
+#define CIFS_PRINCIPAL_PREFIX "krbprincipalname=cifs/"
+        return (0 == strncmp("cifs/", service_name, 5)) ||
+               (0 == strncmp(CIFS_PRINCIPAL_PREFIX, bind_dn,
+                             sizeof(CIFS_PRINCIPAL_PREFIX) - 1));
+}
+
 static void filter_keys(struct ipapwd_krbcfg *krbcfg,
                         struct ipapwd_keyset *kset,
                         bool allow_nthash)
@@ -1228,7 +1236,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     int kvno;
     char *svcname;
     bool allowed_access = false;
-    bool is_nthash_allowed = false;
+    bool nthash_allowed = false;
     struct berval *bvp = NULL;
     LDAPControl new_ctrl;
 
@@ -1305,8 +1313,8 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     /* Only allow generating arcfour-hmac keys for cifs/.. services
      * unless the enctype is allowed by the IPA configuration for use
      * by the all principals */
-    is_nthash_allowed = (0 == strncmp("cifs/", serviceName, 5));
-    filter_keys(krbcfg, kset, is_nthash_allowed);
+    nthash_allowed = is_nthash_allowed(serviceName, bindDN);
+    filter_keys(krbcfg, kset, nthash_allowed);
 
 	/* check if we have any left */
 	if (kset->num_keys == 0) {
@@ -1615,7 +1623,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     struct berval *bvp = NULL;
     LDAPControl new_ctrl;
     bool wantold = false;
-    bool is_nthash_allowed = false;
+    bool nthash_allowed = false;
 
     /* Get Bind DN */
     slapi_pblock_get(pb, SLAPI_CONN_DN, &bind_dn);
@@ -1712,8 +1720,8 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         /* Only allow generating arcfour-hmac keys for cifs/.. services
          * unless the enctype is allowed by the IPA configuration for use
          * by the all principals */
-        is_nthash_allowed = (0 == strncmp("cifs/", service_name, 5));
-        filter_enctypes(krbcfg, kenctypes, &num_kenctypes, is_nthash_allowed);
+        nthash_allowed = is_nthash_allowed(service_name, bind_dn);
+        filter_enctypes(krbcfg, kenctypes, &num_kenctypes, nthash_allowed);
 
         /* check if we have any left */
         if (num_kenctypes == 0 && kenctypes != NULL) {
