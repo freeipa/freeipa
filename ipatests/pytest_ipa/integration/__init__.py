@@ -99,6 +99,7 @@ CLASS_LOGFILES = [
     paths.NETWORK_MANAGER_CONFIG_DIR,
     paths.SYSTEMD_RESOLVED_CONF,
     paths.SYSTEMD_RESOLVED_CONF_DIR,
+    '/var/log/samba',
 ]
 
 
