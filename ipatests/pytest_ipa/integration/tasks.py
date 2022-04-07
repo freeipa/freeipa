@@ -594,6 +594,7 @@ def install_adtrust(host):
                       '-a', host.config.admin_password,
                       '--add-sids'])
 
+    host.run_command(['net', 'conf', 'setparm', 'global', 'log level', '10'])
     Firewall(host).enable_service("freeipa-trust")
 
     # Restart named because it lost connection to dirsrv
