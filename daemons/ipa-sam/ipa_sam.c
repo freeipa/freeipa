@@ -2728,7 +2728,7 @@ static NTSTATUS get_trust_pwd(TALLOC_CTX *mem_ctx, const DATA_BLOB *auth_blob,
 	if (iopw.count != 0 && iopw.current.count != 0 &&
 	    iopw.current.array[0].AuthType == TRUST_AUTH_TYPE_CLEAR) {
 		if (pwd != NULL) {
-			if (!convert_string_talloc(tmp_ctx, CH_UTF16, CH_UNIX,
+			if (!convert_string_talloc(tmp_ctx, CH_UTF16LE, CH_UNIX,
 				iopw.current.array[0].AuthInfo.clear.password,
 				iopw.current.array[0].AuthInfo.clear.size,
 				&trustpw, &converted_size)) {
@@ -3581,12 +3581,14 @@ static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 	bool ret = false;
 	bool retval = false;
 	bool machine_account = false;
+	bool trusted_domain = false;
 	int status;
 	int len = 0;
 	int idx = 0;
 	size_t conv_size = 0;
 	DATA_BLOB nthash;
 	struct dom_sid *group_sid;
+	uint32_t acct_flags = 0;
 
 	TALLOC_CTX *tmp_ctx = talloc_init("init_sam_from_ldap");
 	if (!tmp_ctx) {
@@ -3613,17 +3615,15 @@ static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 	}
 
 	len = ldap_count_values_len(usernames);
-	if (len > 1) {
-		/* Extract machine account as a user name if exists.
-		 * If not, extract the first returned value */
-		for (int i=0; i < len; i++) {
-			if (usernames[i] != NULL &&
-			    usernames[i]->bv_len > 0 &&
-			    usernames[i]->bv_val[usernames[i]->bv_len-1] == '$') {
-				idx = i;
-				machine_account = true;
-				break;
-			}
+	/* Extract machine account as a user name if exists.
+	 * If not, extract the first returned value */
+	for (int i=0; i < len; i++) {
+		if (usernames[i] != NULL &&
+			usernames[i]->bv_len > 0 &&
+			usernames[i]->bv_val[usernames[i]->bv_len-1] == '$') {
+			idx = i;
+			machine_account = true;
+			break;
 		}
 	}
 
@@ -3643,6 +3643,31 @@ static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 	}
 
 	DEBUG(2, ("init_sam_from_ldap: Entry found for user: %s\n", username));
+
+	if (machine_account) {
+		/* it may also be a TDO account */
+		struct berval **oclasses = NULL;
+		oclasses = ldap_get_values_len(priv2ld(ipasam_state), entry,
+									   LDAP_ATTRIBUTE_OBJECTCLASS);
+		int c = 0;
+		if (oclasses == NULL) {
+			DEBUG(1, ("Cannot find any objectclasses.\n"));
+			goto fn_exit;
+		}
+
+		for (c = 0; oclasses[c] != NULL; c++) {
+			if (strncasecmp(LDAP_OBJ_TRUSTED_DOMAIN, oclasses[c]->bv_val,
+							oclasses[c]->bv_len) == 0) {
+				break;
+			}
+		}
+
+		if (oclasses[c] != NULL) {
+			trusted_domain = true;
+		}
+
+		ldap_value_free_len(oclasses);
+	}
 
 	nt_username = talloc_strdup(tmp_ctx, username);
 	if (!nt_username) {
@@ -3712,41 +3737,93 @@ static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 	}
 
 
-	/* Force machine accounts to be workstation trust type */
-	pdb_set_acct_ctrl(sampass, machine_account ? ACB_WSTRUST : ACB_NORMAL,
-			  PDB_SET);
+	/* set correct account type */
+	acct_flags = trusted_domain ? ACB_DOMTRUST :
+				 (machine_account ? ACB_WSTRUST : ACB_NORMAL);
+	pdb_set_acct_ctrl(sampass, acct_flags, PDB_SET);
 
-	retval = smbldap_talloc_single_blob(tmp_ctx,
-					priv2ld(ipasam_state),
-					entry, LDAP_ATTRIBUTE_NTHASH,
-					&nthash);
-	if (!retval) {
-		/* NT Hash is not in place. Attempt to retrieve it from
-		 * the RC4-HMAC key if that exists in Kerberos credentials.
-		 * IPA 389-ds plugin allows to ask for it by setting
-		 * ipaNTHash to MagicRegen value.
-		 * */
-		temp = smbldap_talloc_dn(tmp_ctx, priv2ld(ipasam_state), entry);
-		if (temp) {
-			retval = ipasam_nthash_regen(ipasam_state,
-						     tmp_ctx, temp);
-			if (retval) {
-				retval = ipasam_nthash_retrieve(ipasam_state,
-								tmp_ctx, temp, &nthash);
+	if (trusted_domain) {
+		DATA_BLOB trust_auth_incoming = {0};
+		char *pass = NULL;
+		NTSTATUS xstatus;
+
+		retval = false;
+		if (smbldap_talloc_single_blob(tmp_ctx,
+						priv2ld(ipasam_state), entry,
+						LDAP_ATTRIBUTE_TRUST_AUTH_INCOMING,
+						&trust_auth_incoming)) {
+			xstatus = get_trust_pwd(tmp_ctx, &trust_auth_incoming,
+									&pass, NULL);
+			if (NT_STATUS_IS_OK(xstatus)) {
+				uint8_t key[NT_HASH_LEN];
+				volatile char *p = (void *) pass;
+				size_t plen = strlen(pass);
+
+				if (E_md4hash(pass, key)) {
+					volatile char *q = (void *) key;
+					size_t qlen = NT_HASH_LEN;
+
+					nthash.data = talloc_memdup(tmp_ctx, key, NT_HASH_LEN);
+					nthash.length = NT_HASH_LEN;
+
+					retval = nthash.data != NULL;
+
+					while (qlen--) {
+						*q++ = '\0';
+					}
+				}
+				while (plen--) {
+					*p++ = '\0';
+				}
+			}
+		} else {
+			DEBUG(9, ("Failed to get incoming auth info.\n"));
+		}
+	} else {
+		retval = smbldap_talloc_single_blob(tmp_ctx,
+						priv2ld(ipasam_state),
+						entry, LDAP_ATTRIBUTE_NTHASH,
+						&nthash);
+		if (!retval) {
+			/* NT Hash is not in place. Attempt to retrieve it from
+			* the RC4-HMAC key if that exists in Kerberos credentials.
+			* IPA 389-ds plugin allows to ask for it by setting
+			* ipaNTHash to MagicRegen value.
+			* */
+			temp = smbldap_talloc_dn(tmp_ctx, priv2ld(ipasam_state), entry);
+			if (temp) {
+				retval = ipasam_nthash_regen(ipasam_state,
+								tmp_ctx, temp);
+				if (retval) {
+					retval = ipasam_nthash_retrieve(ipasam_state,
+									tmp_ctx, temp, &nthash);
+				}
 			}
 		}
 	}
 
-	if (!retval) {
-		DEBUG(5, ("Failed to read NT hash form LDAP response.\n"));
-	}
+	if (retval) {
+		if (nthash.length != NT_HASH_LEN && nthash.length != 0) {
+			DEBUG(5, ("NT hash from LDAP has the wrong size. "
+					  "Perhaps password was not re-set?\n"));
+		} else {
+			volatile char *q = (void *) nthash.data;
+			size_t qlen = nthash.length;
 
-	if (nthash.length != NT_HASH_LEN && nthash.length != 0) {
-		DEBUG(5, ("NT hash from LDAP has the wrong size. Perhaps password was not re-set?\n"));
-	} else {
-		if (!pdb_set_nt_passwd(sampass, nthash.data, PDB_SET)) {
-			DEBUG(5, ("Failed to set NT hash.\n"));
+			if (!pdb_set_nt_passwd(sampass, nthash.data, PDB_SET)) {
+				DEBUG(5, ("Failed to set NT hash.\n"));
+			}
+
+			if (q != NULL) {
+				/* nthash.length might be 0 on this path,
+				 * we want to skip in this case */
+				while (nthash.length && qlen--) {
+					*q++ = '\0';
+				}
+			}
 		}
+	} else {
+		DEBUG(5, ("Failed to read NT hash form LDAP response.\n"));
 	}
 /* FIXME: */
 	if (!pdb_set_pass_last_set_time(sampass, (time_t) 1, PDB_SET)) {
