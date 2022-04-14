@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-03-22 10:17+0000\n"
+"PO-Revision-Date: 2022-04-15 01:17+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -15999,11 +15999,11 @@ msgstr[0] ""
 
 #: ipaserver/plugins/hostgroup.py:362
 msgid "Add users that can manage members of this hostgroup."
-msgstr ""
+msgstr "이 hostgroup의 구성원을 관리 할 수 있는 사용자를 추가합니다."
 
 #: ipaserver/plugins/hostgroup.py:372
 msgid "Remove users that can manage members of this hostgroup."
-msgstr ""
+msgstr "이 hostgroup의 구성원을 관리 할 수 있는 사용자를 제거합니다."
 
 #: ipaserver/plugins/join.py:125
 #, python-format
@@ -16014,21 +16014,21 @@ msgstr ""
 
 #: ipaserver/plugins/dogtag.py:1243
 msgid "REST API is not logged in."
-msgstr ""
+msgstr "REST API는 로그인 되지 않았습니다."
 
 #: ipaserver/plugins/dogtag.py:1265
 #, python-format
 msgid "Non-2xx response from CA REST API: %(status)d. %(explanation)s"
-msgstr ""
+msgstr "CA REST API에서 Non-2xx 응답: %(status)d. %(explanation)s"
 
 #: ipaserver/plugins/dogtag.py:1291
 msgid "Unable to communicate with CMS"
-msgstr ""
+msgstr "CMS와 통신 할 수 없음"
 
 #: ipaserver/plugins/dogtag.py:1482 ipaserver/plugins/dogtag.py:1568
 #: ipaserver/plugins/dogtag.py:2074 ipaserver/plugins/dogtag.py:2084
 msgid "Response from CA was not valid JSON"
-msgstr ""
+msgstr "CA에서 응답은 유효한 JSON이 아닙니다"
 
 #: ipaserver/plugins/passwd.py:40
 msgid ""
