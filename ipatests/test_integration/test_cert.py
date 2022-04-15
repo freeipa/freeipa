@@ -426,37 +426,6 @@ class TestCertmongerRekey(IntegrationTest):
                                           '-I', self.request_id])
         assert self.request_id in result.stdout_text
 
-    def test_rekey_keytype_DSA(self, request_cert):
-        """Test certmonger rekey command works fine
-
-        Test is to check if -G (keytype) with DSA fails
-
-        related: https://bugzilla.redhat.com/show_bug.cgi?id=1249165
-        """
-        # rekey with RSA key type
-        self.master.run_command(['getcert', 'rekey',
-                                 '-i', self.request_id,
-                                 '-g', '3072',
-                                 '-G', 'DSA'])
-        status = tasks.wait_for_request(self.master, self.request_id, 100)
-        assert status == "CA_UNREACHABLE"
-
-        # grep will return file name
-        req_file = self.master.run_command([
-            "grep",
-            "-rl",
-            f"id={self.request_id}",
-            paths.CERTMONGER_REQUESTS_DIR
-        ]).stdout_text.strip('\n')
-        # look for keytpe as DSA in request file
-        self.master.run_command(['grep', 'DSA', req_file])
-
-        err_msg = 'Unable to create enrollment request: Invalid Request'
-        result = self.master.run_command(
-            ['getcert', 'list', '-i', self.request_id]
-        )
-        assert err_msg in result.stdout_text
-
 
 class TestCertmongerInterruption(IntegrationTest):
     num_replicas = 1
