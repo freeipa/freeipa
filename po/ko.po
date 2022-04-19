@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-04-15 01:17+0000\n"
+"PO-Revision-Date: 2022-04-19 06:37+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -3555,7 +3555,7 @@ msgstr "멤버쉽 속성의 처리를 억제합니다."
 
 #: ipaserver/plugins/hbacrule.py:534
 msgid "Add target hosts and hostgroups to an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙에 대상 호스트와 호스트그룹을 추가합니다."
 
 msgid "member host"
 msgstr ""
@@ -4230,19 +4230,19 @@ msgstr "호스트-그룹의 간접 구성원"
 
 #: ipaserver/plugins/hostgroup.py:220
 msgid "Add a new hostgroup."
-msgstr ""
+msgstr "신규 호스트그룹을 추가."
 
 #: ipaserver/plugins/hostgroup.py:330
 msgid "Add members to a hostgroup."
-msgstr ""
+msgstr "구성원을 호스트그룹에 추가."
 
 #: ipaserver/plugins/hostgroup.py:260
 msgid "Delete a hostgroup."
-msgstr ""
+msgstr "호스트그룹을 삭제."
 
 #: ipaserver/plugins/hostgroup.py:298
 msgid "Search for hostgroups."
-msgstr ""
+msgstr "호스트그룹을 검색."
 
 msgid "Results should contain primary key attribute only (\"hostgroup-name\")"
 msgstr "결과는 우선 키 속성만 포함되어야 합니다(\"hostgroup-name\")"
@@ -4310,7 +4310,7 @@ msgstr ""
 
 #: ipaserver/plugins/idviews.py:771
 msgid "Anchor to override"
-msgstr ""
+msgstr "재정의 할 앵커"
 
 #: ipaserver/plugins/idviews.py:1122
 msgid "Group name"
@@ -4319,11 +4319,11 @@ msgstr "그룹 이름"
 #: ipaserver/plugins/idviews.py:1032 ipaserver/plugins/idviews.py:1127
 #: ipaserver/plugins/baseuser.py:299
 msgid "GID"
-msgstr ""
+msgstr "GID"
 
 #: ipaserver/plugins/idviews.py:1128 ipaserver/plugins/baseuser.py:300
 msgid "Group ID Number"
-msgstr ""
+msgstr "그룹 ID 번호"
 
 #: ipaserver/plugins/baseuser.py:205
 msgid "User login"
@@ -4331,15 +4331,15 @@ msgstr "사용자 로그인"
 
 #: ipaserver/plugins/baseuser.py:294
 msgid "UID"
-msgstr ""
+msgstr "UID"
 
 #: ipaserver/plugins/idviews.py:1025
 msgid "User ID Number"
-msgstr ""
+msgstr "사용자 ID 번호"
 
 #: ipaserver/plugins/idviews.py:1029 ipaserver/plugins/baseuser.py:238
 msgid "GECOS"
-msgstr ""
+msgstr "GECOS"
 
 #: ipaserver/plugins/baseuser.py:235
 msgid "Home directory"
@@ -4351,45 +4351,45 @@ msgstr "로그인 쉘"
 
 #: ipaserver/plugins/idviews.py:136
 msgid "ID View Name"
-msgstr ""
+msgstr "ID 보기 이름"
 
 #: ipaserver/plugins/idviews.py:1283
 msgid "Add a new Group ID override."
-msgstr ""
+msgstr "신규 그룹 ID 재정의를 추가합니다."
 
 #: ipaserver/plugins/idviews.py:1289
 msgid "Delete an Group ID override."
-msgstr ""
+msgstr "그룹 ID 재정의를 삭제합니다."
 
 #: ipaserver/plugins/idviews.py:1301
 msgid "Search for an Group ID override."
-msgstr ""
+msgstr "그룹 ID 재정의를 검색합니다."
 
 msgid "Results should contain primary key attribute only (\"anchor\")"
 msgstr "결과는 기본 키 속성(\"anchor\")만 포함되어야 합니다"
 
 #: ipaserver/plugins/idviews.py:1295
 msgid "Modify an Group ID override."
-msgstr ""
+msgstr "그룹 ID 재정의를 수정합니다."
 
 msgid "Rename the Group ID override object"
-msgstr ""
+msgstr "그룹 ID 재정의 대상의 이름을 변경합니다"
 
 #: ipaserver/plugins/idviews.py:1317
 msgid "Display information about an Group ID override."
-msgstr ""
+msgstr "그룹 ID 재정의에 대해 정보를 표시합니다."
 
 #: ipaserver/plugins/idviews.py:1184
 msgid "Add a new User ID override."
-msgstr ""
+msgstr "신규 사용자 ID 재정의를 추가합니다."
 
 #: ipaserver/plugins/idviews.py:1209
 msgid "Delete an User ID override."
-msgstr ""
+msgstr "사용자 ID 재정의를 삭제합니다."
 
 #: ipaserver/plugins/idviews.py:1247
 msgid "Search for an User ID override."
-msgstr ""
+msgstr "사용자 ID 재정의를 검색합니다."
 
 #: ipaserver/plugins/idviews.py:1215
 msgid "Modify an User ID override."
@@ -4956,7 +4956,7 @@ msgstr "NIS 도메인 이름"
 
 #: ipaserver/plugins/netgroup.py:222
 msgid "IPA unique ID"
-msgstr ""
+msgstr "IPA 고유 ID"
 
 #: ipaserver/plugins/baseldap.py:92
 msgid "Member netgroups"
@@ -4995,15 +4995,15 @@ msgstr "추가하려는 넷그룹"
 
 #: ipaserver/plugins/netgroup.py:299
 msgid "Delete a netgroup."
-msgstr ""
+msgstr "넷그룹 삭제."
 
 #: ipaserver/plugins/netgroup.py:334
 msgid "Search for a netgroup."
-msgstr ""
+msgstr "넷그룹 검색."
 
 #: ipaserver/plugins/netgroup.py:349
 msgid "search for managed groups"
-msgstr ""
+msgstr "관리 그룹 검색"
 
 msgid "Search for netgroups with these member netgroups."
 msgstr "넷그룹의 이들 구성원과 함께 넷그룹을 위한 검색."
@@ -5012,10 +5012,10 @@ msgid "Search for netgroups without these member netgroups."
 msgstr "넷그룹의 이들 구성원이 없는 넷그룹을 위한 검색."
 
 msgid "Search for netgroups with these member users."
-msgstr ""
+msgstr "이들 구성원 사용자와 함께 넷그룹을 검색."
 
 msgid "Search for netgroups without these member users."
-msgstr ""
+msgstr "이들 구성원 사용자가 없는 넷그룹을 검색."
 
 #: ipaserver/plugins/group.py:417 ipaserver/plugins/group.py:678
 #: ipaserver/plugins/user.py:150
@@ -5029,7 +5029,7 @@ msgid "Search for netgroups without these member groups."
 msgstr "이들 구성원 그룹이 없이 넷그룹를 위한 검색."
 
 msgid "Search for netgroups with these member hosts."
-msgstr ""
+msgstr "이들 구성원 호스트와 함께 넷그룹을 검색."
 
 msgid "Search for netgroups without these member hosts."
 msgstr "이들 구성원 호스트 없이 넷그룹을 위한 검색."
@@ -5052,10 +5052,10 @@ msgstr "넷그룹을 수정합니다."
 
 #: ipaserver/plugins/netgroup.py:400
 msgid "Remove members from a netgroup."
-msgstr ""
+msgstr "넷그룹에서 구성원을 제거."
 
 msgid "netgroups to remove"
-msgstr ""
+msgstr "제거 할 넷그룹"
 
 #: ipaserver/plugins/netgroup.py:371
 msgid "Display information about a netgroup."
@@ -5091,35 +5091,35 @@ msgstr ""
 
 #: ipaserver/plugins/otpconfig.py:86
 msgid "TOTP authentication Window"
-msgstr ""
+msgstr "TOTP 인증 창"
 
 #: ipaserver/plugins/otpconfig.py:87
 msgid "TOTP authentication time variance (seconds)"
-msgstr ""
+msgstr "TOTP 인증 시간 차이(초)"
 
 #: ipaserver/plugins/otpconfig.py:92
 msgid "TOTP Synchronization Window"
-msgstr ""
+msgstr "TOTP 동기화 창"
 
 #: ipaserver/plugins/otpconfig.py:93
 msgid "TOTP synchronization time variance (seconds)"
-msgstr ""
+msgstr "TOTP 동기화 시간 차이(초)"
 
 #: ipaserver/plugins/otpconfig.py:98
 msgid "HOTP Authentication Window"
-msgstr ""
+msgstr "HOTP 인증 창"
 
 #: ipaserver/plugins/otpconfig.py:99
 msgid "HOTP authentication skip-ahead"
-msgstr ""
+msgstr "HOTP 인증 건너띄기"
 
 #: ipaserver/plugins/otpconfig.py:104
 msgid "HOTP Synchronization Window"
-msgstr ""
+msgstr "HOTP 동기화 창"
 
 #: ipaserver/plugins/otpconfig.py:105
 msgid "HOTP synchronization skip-ahead"
-msgstr ""
+msgstr "HOTP 동기화 건너띄기"
 
 #: ipaserver/plugins/otpconfig.py:116
 msgid "Modify OTP configuration options."
@@ -5854,22 +5854,22 @@ msgstr "도메인"
 
 #: ipaserver/plugins/realmdomains.py:121
 msgid "Add domain"
-msgstr ""
+msgstr "도메인 추가"
 
 #: ipaserver/plugins/realmdomains.py:127
 msgid "Delete domain"
-msgstr ""
+msgstr "도메인 삭제"
 
 msgid "Modify realm domains."
-msgstr ""
+msgstr "영역 도메인을 변경합니다."
 
 #: ipaserver/plugins/realmdomains.py:152
 msgid "Force adding domain even if not in DNS"
-msgstr ""
+msgstr "만약 DNS가 없을지라도 도메인 추가를 강제합니다"
 
 #: ipaserver/plugins/realmdomains.py:361
 msgid "Display the list of realm domains."
-msgstr ""
+msgstr "영역 도메인의 목록을 표시합니다."
 
 msgid ""
 "\n"
@@ -5911,10 +5911,10 @@ msgstr ""
 
 #: ipaserver/plugins/serverrole.py:191 ipaserver/plugins/role.py:148
 msgid "Role name"
-msgstr ""
+msgstr "역할 이름"
 
 msgid "A description of this role-group"
-msgstr ""
+msgstr "이와 같은 역할-그룹의 설명"
 
 msgid "Member users"
 msgstr "구성원 사용자"
@@ -5926,22 +5926,22 @@ msgid "Privileges"
 msgstr "권한"
 
 msgid "Member services"
-msgstr ""
+msgstr "구성원 서비스"
 
 msgid "Add a new role."
-msgstr ""
+msgstr "신규 역할 추가."
 
 msgid "Add members to a role."
-msgstr ""
+msgstr "역할에 구성원을 추가합니다."
 
 msgid "member service"
-msgstr ""
+msgstr "구성원 서비스"
 
 msgid "services to add"
-msgstr ""
+msgstr "추가하는 서비스"
 
 msgid "Add privileges to a role."
-msgstr ""
+msgstr "역할에 권한를 추가합니다."
 
 msgid "privilege"
 msgstr "권한"
@@ -5951,31 +5951,31 @@ msgid "privileges"
 msgstr "권한"
 
 msgid "Number of privileges added"
-msgstr ""
+msgstr "추가된 권한 수"
 
 msgid "Delete a role."
-msgstr ""
+msgstr "역할 삭제."
 
 msgid "Search for roles."
-msgstr ""
+msgstr "역할 검색."
 
 msgid "Modify a role."
-msgstr ""
+msgstr "역할 수정."
 
 msgid "Rename the role object"
-msgstr ""
+msgstr "역할 객체 이름 변경"
 
 msgid "Remove members from a role."
-msgstr ""
+msgstr "역할에서 구성원을 제거합니다."
 
 msgid "services to remove"
-msgstr ""
+msgstr "제거해야 할 서비스"
 
 msgid "Remove privileges from a role."
-msgstr ""
+msgstr "역할에서 권한를 제거합니다."
 
 msgid "Number of privileges removed"
-msgstr ""
+msgstr "제거된 권한의 수"
 
 msgid "Display information about a role."
 msgstr "역할에 대해 정보를 표시합니다."
@@ -6015,7 +6015,7 @@ msgstr ""
 
 #: ipaserver/plugins/selfservice.py:76 ipaserver/plugins/selfservice.py:77
 msgid "Self-service name"
-msgstr ""
+msgstr "셀프-서비스 이름"
 
 #: ipaserver/plugins/selfservice.py:90
 msgid "Attributes to which the permission applies."
@@ -6023,23 +6023,23 @@ msgstr "권한이 적용되는 속성."
 
 #: ipaserver/plugins/selfservice.py:122
 msgid "Add a new self-service permission."
-msgstr ""
+msgstr "신규 셀프-서비스 권한을 추가합니다."
 
 #: ipaserver/plugins/selfservice.py:143
 msgid "Delete a self-service permission."
-msgstr ""
+msgstr "셀프-서비스 권한을 삭제합니다."
 
 #: ipaserver/plugins/selfservice.py:182
 msgid "Search for a self-service permission."
-msgstr ""
+msgstr "셀프-서비스 권한을 위한 검색."
 
 #: ipaserver/plugins/selfservice.py:161
 msgid "Modify a self-service permission."
-msgstr ""
+msgstr "셀프-서비스 권한을 수정합니다."
 
 #: ipaserver/plugins/selfservice.py:208
 msgid "Display information about a self-service permission."
-msgstr ""
+msgstr "셀프-서비스 권한에 대한 정보를 표시합니다."
 
 #: ipaserver/plugins/selinuxusermap.py:42
 msgid ""
@@ -6098,55 +6098,55 @@ msgstr "SELinux 사용자"
 
 #: ipaserver/plugins/selinuxusermap.py:248 ipaserver/plugins/hbacrule.py:202
 msgid "HBAC Rule"
-msgstr ""
+msgstr "HBAC 규칙"
 
 #: ipaserver/plugins/selinuxusermap.py:249
 msgid "HBAC Rule that defines the users, groups and hostgroups"
-msgstr ""
+msgstr "사용자, 그룹과 호스트그룹을 정의하는 HBAC 규칙"
 
 #: ipaserver/plugins/selinuxusermap.py:328
 msgid "Create a new SELinux User Map."
-msgstr ""
+msgstr "신규 SELinux 사용자 맵을 생성합니다."
 
 #: ipaserver/plugins/selinuxusermap.py:582
 msgid "Add target hosts and hostgroups to an SELinux User Map rule."
-msgstr ""
+msgstr "SELinux 사용자 맵 역할에 대상 호스트와 호스트그룹을 추가합니다."
 
 #: ipaserver/plugins/selinuxusermap.py:549
 msgid "Add users and groups to an SELinux User Map rule."
-msgstr ""
+msgstr "SELinux 사용자 맵 역할에 사용자와 그룹을 추가합니다."
 
 #: ipaserver/plugins/selinuxusermap.py:366
 msgid "Delete a SELinux User Map."
-msgstr ""
+msgstr "SELinux 사용자 맵을 삭제합니다."
 
 #: ipaserver/plugins/selinuxusermap.py:519
 msgid "Disable an SELinux User Map rule."
-msgstr ""
+msgstr "SELinux 사용자 맵 역할을 비활성화 합니다."
 
 #: ipaserver/plugins/selinuxusermap.py:489
 msgid "Enable an SELinux User Map rule."
-msgstr ""
+msgstr "SELinux 사용자 맵 역할을 활성화합니다."
 
 #: ipaserver/plugins/selinuxusermap.py:446
 msgid "Search for SELinux User Maps."
-msgstr ""
+msgstr "SELinux 사용자 맵에 대한 검색."
 
 #: ipaserver/plugins/selinuxusermap.py:374
 msgid "Modify a SELinux User Map."
-msgstr ""
+msgstr "SELinux 사용자 맵을 수정합니다."
 
 #: ipaserver/plugins/selinuxusermap.py:606
 msgid "Remove target hosts and hostgroups from an SELinux User Map rule."
-msgstr ""
+msgstr "SELinux 사용자 맵 규칙을 위한 대상 호스트와 호스트그룹을 제거합니다."
 
 #: ipaserver/plugins/selinuxusermap.py:573
 msgid "Remove users and groups from an SELinux User Map rule."
-msgstr ""
+msgstr "SELinux 사용자 맵 규칙에서 사용자와 그룹을 제거합니다."
 
 #: ipaserver/plugins/selinuxusermap.py:478
 msgid "Display the properties of a SELinux User Map rule."
-msgstr ""
+msgstr "SELinux 사용자 맵 규칙의 속성을 표시합니다."
 
 msgid ""
 "\n"
@@ -6217,11 +6217,11 @@ msgstr "주체"
 
 #: ipaserver/plugins/service.py:475
 msgid "Service principal"
-msgstr ""
+msgstr "서비스 주체"
 
 #: ipaserver/plugins/service.py:534
 msgid "PAC type"
-msgstr ""
+msgstr "PAC 유형"
 
 #: ipaserver/plugins/service.py:535
 msgid ""
@@ -6910,38 +6910,38 @@ msgstr ""
 
 #: ipaserver/plugins/sudocmd.py:118 ipaserver/plugins/sudocmd.py:123
 msgid "Sudo Command"
-msgstr ""
+msgstr "sudo 명령"
 
 #: ipaserver/plugins/sudocmd.py:129
 msgid "A description of this command"
-msgstr ""
+msgstr "이와 같은 명령에 대한 설명"
 
 #: ipaserver/plugins/sudocmdgroup.py:118 ipaserver/plugins/sudocmdgroup.py:138
 #: ipaserver/plugins/baseldap.py:83
 msgid "Sudo Command Groups"
-msgstr ""
+msgstr "sudo 명령 그룹"
 
 msgid "Create new Sudo Command."
-msgstr ""
+msgstr "신규 sudo 명령을 생성합니다."
 
 #: ipaserver/plugins/sudocmd.py:158
 msgid "Delete Sudo Command."
-msgstr ""
+msgstr "sudo 명령을 삭제합니다."
 
 #: ipaserver/plugins/sudocmd.py:198
 msgid "Search for Sudo Commands."
-msgstr ""
+msgstr "sudo 명령 검색."
 
 msgid "Results should contain primary key attribute only (\"command\")"
 msgstr "결과는 기본 키 속성(\"명령\")만 포함되어야 합니다"
 
 #: ipaserver/plugins/sudocmd.py:191
 msgid "Modify Sudo Command."
-msgstr ""
+msgstr "sudo 명령을 수정합니다."
 
 #: ipaserver/plugins/sudocmd.py:207
 msgid "Display Sudo Command."
-msgstr ""
+msgstr "sudo 명령을 표시합니다."
 
 msgid ""
 "\n"
@@ -9918,33 +9918,33 @@ msgid ""
 msgstr ""
 
 msgid "Vault name"
-msgstr ""
+msgstr "저장소 이름"
 
 msgid "Vault description"
-msgstr ""
+msgstr "저장소 설명"
 
 msgid "Vault type"
 msgstr "저장 유형"
 
 msgid "Salt"
-msgstr ""
+msgstr "소금"
 
 msgid "Vault salt"
-msgstr ""
+msgstr "소금 저장소"
 
 msgid "Public key"
 msgstr "공개 키"
 
 msgid "Vault public key"
-msgstr ""
+msgstr "저장소 공개 키"
 
 #: ipaserver/plugins/vault.py:622
 msgid "Owner users"
-msgstr ""
+msgstr "소유자 사용자"
 
 #: ipaserver/plugins/vault.py:627
 msgid "Owner groups"
-msgstr ""
+msgstr "소유자 그룹"
 
 #: ipaserver/plugins/vault.py:632
 msgid "Owner services"
@@ -9952,7 +9952,7 @@ msgstr "소유자 서비스"
 
 #: ipaserver/plugins/vault.py:642
 msgid "Vault service"
-msgstr ""
+msgstr "저장소 서비스"
 
 #: ipaserver/plugins/vault.py:336 ipaserver/plugins/vault.py:647
 msgid "Shared vault"
@@ -9960,81 +9960,81 @@ msgstr "공유 저장소"
 
 #: ipaserver/plugins/vault.py:652
 msgid "Vault user"
-msgstr ""
+msgstr "저장소 사용자"
 
 msgid "Transport Certificate"
-msgstr ""
+msgstr "전송 인증서"
 
 msgid "Service name of the service vault"
-msgstr ""
+msgstr "서비스 저장소의 서비스 이름"
 
 msgid "Username of the user vault"
-msgstr ""
+msgstr "사용자 저장소의 사용자 이름"
 
 msgid "Add members to a vault."
-msgstr ""
+msgstr "구성원을 저장소에 추가합니다."
 
 msgid "Add owners to a vault."
-msgstr ""
+msgstr "소유자를 저장소에 추가합니다."
 
 msgid "owner user"
-msgstr ""
+msgstr "소유자 사용자"
 
 msgid "owner group"
-msgstr ""
+msgstr "소유자 그룹"
 
 msgid "owner service"
 msgstr "소유자 서비스"
 
 #: ipaserver/plugins/vault.py:1172
 msgid "Owners that could not be added"
-msgstr ""
+msgstr "추가 할 수 없는 소유자"
 
 #: ipaserver/plugins/vault.py:1177
 msgid "Number of owners added"
-msgstr ""
+msgstr "추가된 소유자의 수"
 
 #: ipaserver/plugins/vault.py:1101
 msgid "Session key wrapped with transport certificate"
-msgstr ""
+msgstr "전송 인증서와 함께 감싸진 세션 키"
 
 msgid "Vault data encrypted with session key"
-msgstr ""
+msgstr "세션 키와 함께 암호화된 저장소 자료"
 
 msgid "Nonce"
-msgstr ""
+msgstr "암호화 임시값"
 
 msgid "Delete a vault."
-msgstr ""
+msgstr "저장소를 삭제합니다."
 
 msgid "Search for vaults."
-msgstr ""
+msgstr "저장소 검색."
 
 msgid "List all service vaults"
-msgstr ""
+msgstr "모든 서비스 저장소를 나열합니다"
 
 msgid "List all user vaults"
-msgstr ""
+msgstr "모든 사용자 저장소를 나열합니다"
 
 msgid "Remove members from a vault."
-msgstr ""
+msgstr "저장소에서 구성원을 제거합니다."
 
 msgid "Remove owners from a vault."
-msgstr ""
+msgstr "저장소에서 소유자를 제거합니다."
 
 #: ipaserver/plugins/vault.py:1197
 msgid "Owners that could not be removed"
-msgstr ""
+msgstr "제거 할 수 없는 소유자"
 
 #: ipaserver/plugins/vault.py:1202
 msgid "Number of owners removed"
-msgstr ""
+msgstr "제거된 소유자 수"
 
 msgid "Display information about a vault."
 msgstr "vault에 대해 정보를 표시합니다."
 
 msgid "Show vault configuration."
-msgstr ""
+msgstr "저장소 구성을 표시합니다."
 
 msgid "Output file to store the transport certificate"
 msgstr ""
@@ -13341,12 +13341,12 @@ msgstr ""
 
 #: ipalib/errors.py:1371
 msgid "This is already a posix group and cannot be converted to external one"
-msgstr ""
+msgstr "이는 이미 posix 그룹이고 외부 그룹으로 변환 할 수 없습니다"
 
 #: ipalib/errors.py:1420
 #, python-format
 msgid "Server removal aborted: %(reason)s."
-msgstr ""
+msgstr "서버 제거가 중지됨: %(reason)s."
 
 #: ipalib/errors.py:1430
 #, python-format
@@ -13744,7 +13744,7 @@ msgstr ""
 
 #: ipaserver/plugins/otpconfig.py:57
 msgid "OTP configuration options"
-msgstr ""
+msgstr "OTP 구성 옵션"
 
 #: ipaserver/plugins/otpconfig.py:80 ipaserver/plugins/otpconfig.py:81
 msgid "OTP Configuration"
@@ -13755,6 +13755,8 @@ msgid ""
 "\n"
 "IPA server roles\n"
 msgstr ""
+"\n"
+"IPA 서버 역할\n"
 
 #: ipaserver/plugins/serverrole.py:15
 msgid ""
@@ -13807,11 +13809,11 @@ msgstr "서버 역할"
 
 #: ipaserver/plugins/serverrole.py:51
 msgid "IPA Server Roles"
-msgstr ""
+msgstr "IPA 서버 역할"
 
 #: ipaserver/plugins/serverrole.py:52
 msgid "IPA Server Role"
-msgstr ""
+msgstr "IPA 서버 역할"
 
 #: ipaserver/plugins/serverrole.py:65
 msgid "IPA server role name"
@@ -13819,29 +13821,29 @@ msgstr "IPA 서버 역할 이름"
 
 #: ipaserver/plugins/serverrole.py:71
 msgid "Role status"
-msgstr "규칙 상태"
+msgstr "역할 상태"
 
 #: ipaserver/plugins/serverrole.py:72
 msgid "Status of the role"
-msgstr ""
+msgstr "역할의 상태"
 
 #: ipaserver/plugins/serverrole.py:89
 msgid "Show role status on a server"
-msgstr ""
+msgstr "서버에서 역할 상태를 표시합니다"
 
 #: ipaserver/plugins/serverrole.py:113
 msgid "Find a server role on a server(s)"
-msgstr ""
+msgstr "서버에서 서버 역할을 탐색합니다"
 
 #: ipaserver/plugins/serverrole.py:118
 #, python-format
 msgid "%(count)s server role matched"
 msgid_plural "%(count)s server roles matched"
-msgstr[0] ""
+msgstr[0] "일치하는 %(count)s 서버 역할"
 
 #: ipaserver/plugins/serverrole.py:139
 msgid "Include IPA master entries"
-msgstr ""
+msgstr "IPA 주 항목을 포함합니다"
 
 #: ipaserver/plugins/serverrole.py:186 ipaserver/plugins/role.py:82
 msgid "roles"
@@ -13849,56 +13851,56 @@ msgstr "역할"
 
 #: ipaserver/plugins/serverrole.py:192
 msgid "IPA role name"
-msgstr ""
+msgstr "IPA 역할 이름"
 
 #: ipaserver/plugins/pwpolicy.py:92
 msgid "Class of Service object used for linking policies with groups"
-msgstr ""
+msgstr "정책과 그룹과 연결하기 위해 사용되는 서비스 객체의 등급"
 
 #: ipaserver/plugins/pwpolicy.py:143
 #, python-format
 msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
-msgstr ""
+msgstr "우선순위는 고유 값이어야 합니다 (%(prio)d는 이미 사용 중인 %(gname)s에서)"
 
 #: ipaserver/plugins/pwpolicy.py:171
 msgid "Add Class of Service entry"
-msgstr ""
+msgstr "서비스 항목의 등급을 추가합니다"
 
 #: ipaserver/plugins/pwpolicy.py:194
 msgid "Delete Class of Service entry"
-msgstr ""
+msgstr "서비스 항목의 등급을 삭제합니다"
 
 #: ipaserver/plugins/pwpolicy.py:200
 msgid "Modify Class of Service entry"
-msgstr ""
+msgstr "서비스 항목의 등급을 수정합니다"
 
 #: ipaserver/plugins/pwpolicy.py:218
 msgid "Display Class of Service entry"
-msgstr ""
+msgstr "서비스 항목의 등급을 표시합니다"
 
 #: ipaserver/plugins/pwpolicy.py:224
 msgid "Search for Class of Service entry"
-msgstr ""
+msgstr "서비스 항목의 등급을 검색합니다"
 
 #: ipaserver/plugins/pwpolicy.py:237
 msgid "password policy"
-msgstr ""
+msgstr "비밀번호 정책"
 
 #: ipaserver/plugins/pwpolicy.py:238
 msgid "password policies"
-msgstr ""
+msgstr "비밀번호 정책"
 
 #: ipaserver/plugins/pwpolicy.py:297
 msgid "Password Policies"
-msgstr ""
+msgstr "비밀번호 정책"
 
 #: ipaserver/plugins/pwpolicy.py:298 ipaserver/plugins/internal.py:1233
 msgid "Password Policy"
-msgstr ""
+msgstr "비밀번호 정책"
 
 #: ipaserver/plugins/pwpolicy.py:370
 msgid "Max repeat"
-msgstr ""
+msgstr "최대 반복"
 
 #: ipaserver/plugins/pwpolicy.py:371
 msgid "Maximum number of same consecutive characters"
@@ -14081,11 +14083,11 @@ msgstr "문서(DOCS)"
 
 #: ipaserver/plugins/schema.py:65
 msgid "Exclude from"
-msgstr ""
+msgstr "제외"
 
 #: ipaserver/plugins/schema.py:70
 msgid "Include in"
-msgstr ""
+msgstr "포함하다"
 
 #: ipaserver/plugins/schema.py:128 ipaserver/plugins/baseldap.py:1949
 #, python-format
@@ -14094,7 +14096,7 @@ msgstr "결과는 기본 키 속성(\"%s\")만 포함되어야 합니다"
 
 #: ipaserver/plugins/schema.py:141
 msgid "Help topic"
-msgstr ""
+msgstr "도움말 항목"
 
 #: ipaserver/plugins/schema.py:153 ipaserver/plugins/internal.py:730
 msgid "Version"
@@ -14102,22 +14104,22 @@ msgstr "버전"
 
 #: ipaserver/plugins/schema.py:178
 msgid "Parameters"
-msgstr ""
+msgstr "매개변수"
 
 #: ipaserver/plugins/schema.py:213
 msgid "Method of"
-msgstr ""
+msgstr "방법"
 
 #: ipaserver/plugins/schema.py:218
 msgid "Method name"
-msgstr ""
+msgstr "방법 이름"
 
 #: ipaserver/plugins/schema.py:263 ipaserver/plugins/schema.py:332
 #: ipaserver/plugins/schema.py:423 ipaserver/plugins/schema.py:658
 #: ipaserver/plugins/schema.py:751 ipaserver/plugins/baseldap.py:658
 #, python-format
 msgid "%(pkey)s: %(oname)s not found"
-msgstr ""
+msgstr "%(pkey)s: %(oname)s을 찾을 수 없음"
 
 #: ipaserver/plugins/schema.py:276
 msgid "Display information about a command."
@@ -14137,7 +14139,7 @@ msgstr "클래스에 대해 정보를 표시합니다."
 
 #: ipaserver/plugins/schema.py:348
 msgid "Search for classes."
-msgstr ""
+msgstr "등급 검색."
 
 #: ipaserver/plugins/schema.py:435
 msgid "Display information about a help topic."
@@ -15170,35 +15172,35 @@ msgstr ""
 
 #: ipaserver/plugins/cert.py:390
 msgid "Subject EDI Party name"
-msgstr ""
+msgstr "대상 EDI 당사자 이름"
 
 #: ipaserver/plugins/cert.py:395
 msgid "Subject URI"
-msgstr ""
+msgstr "대상 URI"
 
 #: ipaserver/plugins/cert.py:400
 msgid "Subject IP Address"
-msgstr ""
+msgstr "대상 IP 주소"
 
 #: ipaserver/plugins/cert.py:405
 msgid "Subject OID"
-msgstr ""
+msgstr "대상 OID"
 
 #: ipaserver/plugins/cert.py:410
 msgid "Subject UPN"
-msgstr ""
+msgstr "대상 UPN"
 
 #: ipaserver/plugins/cert.py:415
 msgid "Subject Kerberos principal name"
-msgstr ""
+msgstr "대상 커버러스 객체 이름"
 
 #: ipaserver/plugins/cert.py:420
 msgid "Subject Other Name"
-msgstr "주제 다른 이름"
+msgstr "대상 기타 이름"
 
 #: ipaserver/plugins/cert.py:426 ipaserver/plugins/ca.py:106
 msgid "Issuer DN"
-msgstr ""
+msgstr "발급자 DN"
 
 #: ipaserver/plugins/cert.py:458
 msgid "Serial number (hex)"
@@ -16537,7 +16539,7 @@ msgstr "명확한(소거)"
 
 #: ipaserver/plugins/internal.py:209
 msgid "Clear all fields on the page."
-msgstr ""
+msgstr "이 부분에서 모든 해당 부분을 초기화합니다."
 
 #: ipaserver/plugins/internal.py:210
 msgid "Close"
@@ -16553,7 +16555,7 @@ msgstr "내려받기"
 
 #: ipaserver/plugins/internal.py:213
 msgid "Download certificate as PEM formatted file."
-msgstr ""
+msgstr "PEM 형식의 파일로 인증서를 내려받습니다."
 
 #: ipaserver/plugins/internal.py:214
 msgid "Edit"
@@ -16565,11 +16567,11 @@ msgstr "활성화"
 
 #: ipaserver/plugins/internal.py:217
 msgid "Find"
-msgstr ""
+msgstr "찾기"
 
 #: ipaserver/plugins/internal.py:218
 msgid "Get"
-msgstr ""
+msgstr "얻기"
 
 #: ipaserver/plugins/internal.py:219
 msgid "Hide"
@@ -16581,11 +16583,11 @@ msgstr "발행자"
 
 #: ipaserver/plugins/internal.py:221
 msgid "Match"
-msgstr ""
+msgstr "일치"
 
 #: ipaserver/plugins/internal.py:222
 msgid "Match users according to certificate."
-msgstr ""
+msgstr "인증서에 따라 사용자를 일치시킵니다."
 
 #: ipaserver/plugins/internal.py:223
 msgid "Migrate"
@@ -16601,7 +16603,7 @@ msgstr "새로고침"
 
 #: ipaserver/plugins/internal.py:226
 msgid "Reload current settings from the server."
-msgstr ""
+msgstr "서버에서 현재 설정값을 다시 적재합니다."
 
 #: ipaserver/plugins/internal.py:227
 msgid "Delete"
@@ -16609,7 +16611,7 @@ msgstr "삭제"
 
 #: ipaserver/plugins/internal.py:228 ipaserver/plugins/internal.py:684
 msgid "Remove hold"
-msgstr ""
+msgstr "보류 제거"
 
 #: ipaserver/plugins/internal.py:229
 msgid "Reset"
@@ -16617,11 +16619,11 @@ msgstr "초기화"
 
 #: ipaserver/plugins/internal.py:230 ipaserver/plugins/internal.py:1701
 msgid "Reset Password"
-msgstr ""
+msgstr "비밀번호 재설정"
 
 #: ipaserver/plugins/internal.py:231
 msgid "Reset Password and Log in"
-msgstr ""
+msgstr "비밀번호를 재설정하고 로그인합니다"
 
 #: ipaserver/plugins/internal.py:232
 msgid "Restore"
@@ -16637,7 +16639,7 @@ msgstr "되돌리기"
 
 #: ipaserver/plugins/internal.py:236
 msgid "Revoke"
-msgstr ""
+msgstr "취소"
 
 #: ipaserver/plugins/internal.py:237
 msgid "Save"
@@ -16653,7 +16655,7 @@ msgstr "보기"
 
 #: ipaserver/plugins/internal.py:240
 msgid "Stage"
-msgstr ""
+msgstr "단계"
 
 #: ipaserver/plugins/internal.py:242
 msgid "Update"
@@ -16669,15 +16671,15 @@ msgstr "사용자 정의"
 
 #: ipaserver/plugins/internal.py:247
 msgid "Pagination Size"
-msgstr ""
+msgstr "쪽수 매기기 크기"
 
 #: ipaserver/plugins/internal.py:250
 msgid "Collapse All"
-msgstr ""
+msgstr "모든 축소"
 
 #: ipaserver/plugins/internal.py:251
 msgid "Expand All"
-msgstr ""
+msgstr "모두 확장"
 
 #: ipaserver/plugins/internal.py:252
 msgid "General"
@@ -16685,34 +16687,34 @@ msgstr "일반"
 
 #: ipaserver/plugins/internal.py:253
 msgid "Identity Settings"
-msgstr ""
+msgstr "식별 설정"
 
 #: ipaserver/plugins/internal.py:254
 msgid "Record Settings"
-msgstr ""
+msgstr "레코드 설정"
 
 #: ipaserver/plugins/internal.py:255
 #, python-brace-format
 msgid "${entity} ${primary_key} Settings"
-msgstr ""
+msgstr "${entity} ${primary_key} 설정"
 
 #: ipaserver/plugins/internal.py:256
 msgid "Back to Top"
-msgstr ""
+msgstr "맨 위로"
 
 #: ipaserver/plugins/internal.py:257
 #, python-brace-format
 msgid "${entity} ${primary_key} updated"
-msgstr ""
+msgstr "${entity} ${primary_key} 최신화됨"
 
 #: ipaserver/plugins/internal.py:260
 #, python-brace-format
 msgid "${entity} successfully added"
-msgstr ""
+msgstr "${entity} 성공적으로 추가됨"
 
 #: ipaserver/plugins/internal.py:261
 msgid "Add custom value"
-msgstr ""
+msgstr "사용자 정의 값을 추가합니다"
 
 #: ipaserver/plugins/internal.py:263
 msgid "Available"
@@ -16720,32 +16722,32 @@ msgstr "사용 가능"
 
 #: ipaserver/plugins/internal.py:264
 msgid "Some operations failed."
-msgstr ""
+msgstr "몇몇 동작이 실패함."
 
 #: ipaserver/plugins/internal.py:265
 msgid "Operations Error"
-msgstr ""
+msgstr "동작 오류"
 
 #: ipaserver/plugins/internal.py:266
 msgid "Confirmation"
-msgstr ""
+msgstr "확인"
 
 #: ipaserver/plugins/internal.py:267
 msgid "Custom value"
-msgstr ""
+msgstr "사용자 정의 값"
 
 #: ipaserver/plugins/internal.py:268
 msgid "This page has unsaved changes. Please save or revert."
-msgstr ""
+msgstr "이 부분은 저장되지 않은 변경을 가지고 있습니다. 저장하거나 되돌리세요."
 
 #: ipaserver/plugins/internal.py:269
 msgid "Unsaved Changes"
-msgstr ""
+msgstr "저장되지 않은 변경"
 
 #: ipaserver/plugins/internal.py:270
 #, python-brace-format
 msgid "Edit ${entity}"
-msgstr ""
+msgstr "편집 ${entity}"
 
 #: ipaserver/plugins/internal.py:271
 msgid "Hide details"
@@ -16754,11 +16756,11 @@ msgstr "세부 정보 숨기기"
 #: ipaserver/plugins/internal.py:273
 #, python-brace-format
 msgid "${product}, version: ${version}"
-msgstr ""
+msgstr "${product}, 버전: ${version}"
 
 #: ipaserver/plugins/internal.py:274
 msgid "Prospective"
-msgstr ""
+msgstr "예견되는"
 
 #: ipaserver/plugins/internal.py:275
 msgid "Redirection"
@@ -16766,15 +16768,15 @@ msgstr "경로 재지정"
 
 #: ipaserver/plugins/internal.py:276
 msgid "Select entries to be removed."
-msgstr ""
+msgstr "제거 할 항목을 선택하세요."
 
 #: ipaserver/plugins/internal.py:278
 msgid "Result"
-msgstr ""
+msgstr "결과"
 
 #: ipaserver/plugins/internal.py:279
 msgid "Show details"
-msgstr ""
+msgstr "상세 표시"
 
 #: ipaserver/plugins/internal.py:280
 msgid "Success"
@@ -16782,40 +16784,40 @@ msgstr "성공"
 
 #: ipaserver/plugins/internal.py:281
 msgid "Validation error"
-msgstr ""
+msgstr "검증 오류"
 
 #: ipaserver/plugins/internal.py:282
 msgid "Input form contains invalid or missing values."
-msgstr ""
+msgstr "입력 양식은 잘못되거나 누락된 값을 포함합니다."
 
 #: ipaserver/plugins/internal.py:285
 msgid "Please try the following options:"
-msgstr ""
+msgstr "다음 옵션을 시도하세요:"
 
 #: ipaserver/plugins/internal.py:286
 msgid "If the problem persists please contact the system administrator."
-msgstr ""
+msgstr "만약 문제가 지속된다면 시스템 관리자에게 연락하세요."
 
 #: ipaserver/plugins/internal.py:287
 msgid "Refresh the page."
-msgstr ""
+msgstr "해당 부분을 새로 고칩니다."
 
 #: ipaserver/plugins/internal.py:288
 msgid "Reload the browser."
-msgstr ""
+msgstr "검색기를 다시 적재합니다."
 
 #: ipaserver/plugins/internal.py:289
 msgid "Return to the main page and retry the operation"
-msgstr ""
+msgstr "주 부분으로 되돌리고 동작을 다시 시도합니다"
 
 #: ipaserver/plugins/internal.py:290
 #, python-brace-format
 msgid "An error has occurred (${error})"
-msgstr ""
+msgstr "오류가 발생했습니다 (${error})"
 
 #: ipaserver/plugins/internal.py:294
 msgid "HTTP Error"
-msgstr ""
+msgstr "HTTP 오류"
 
 #: ipaserver/plugins/internal.py:295
 msgid "Internal Error"
@@ -16823,11 +16825,11 @@ msgstr "내부 오류"
 
 #: ipaserver/plugins/internal.py:296
 msgid "IPA Error"
-msgstr ""
+msgstr "IPA 오류"
 
 #: ipaserver/plugins/internal.py:297
 msgid "No response"
-msgstr ""
+msgstr "응답 없음"
 
 #: ipaserver/plugins/internal.py:298
 msgid "Unknown Error"
@@ -16840,22 +16842,22 @@ msgstr "URL"
 #: ipaserver/plugins/internal.py:302
 #, python-brace-format
 msgid "${primary_key} is managed by:"
-msgstr ""
+msgstr "${primary_key} 다음에서 관리합니다:"
 
 #: ipaserver/plugins/internal.py:303
 #, python-brace-format
 msgid "${primary_key} members:"
-msgstr ""
+msgstr "${primary_key} 구성원:"
 
 #: ipaserver/plugins/internal.py:304
 #, python-brace-format
 msgid "${primary_key} is a member of:"
-msgstr ""
+msgstr "${primary_key}는 다음의 구성원입니다:"
 
 #: ipaserver/plugins/internal.py:305
 #, python-brace-format
 msgid "${primary_key} member managers:"
-msgstr ""
+msgstr "${primary_key} 구성원 관리자:"
 
 #: ipaserver/plugins/internal.py:308
 msgid "Settings"
@@ -16872,50 +16874,50 @@ msgstr "거짓"
 #: ipaserver/plugins/internal.py:314
 #, python-brace-format
 msgid "Allow user groups to create keytab of '${primary_key}'"
-msgstr ""
+msgstr "사용자 그룹이 ${primary_key}'의 키탭을 생성하도록 허용합니다"
 
 #: ipaserver/plugins/internal.py:317
 #, python-brace-format
 msgid "Allow user groups to retrieve keytab of '${primary_key}'"
-msgstr ""
+msgstr "사용자 그룹이 '${primary_key}'의 키탭을 검색하도록 허용합니다"
 
 #: ipaserver/plugins/internal.py:320
 #, python-brace-format
 msgid "Allow host groups to create keytab of '${primary_key}'"
-msgstr ""
+msgstr "호스트 그룹이 '${primary_key}'의 키탭을 생성하도록 허용합니다"
 
 #: ipaserver/plugins/internal.py:323
 #, python-brace-format
 msgid "Allow host groups to retrieve keytab of '${primary_key}'"
-msgstr ""
+msgstr "호스트 그룹이 '${primary_key}'의 키탭을 검색하도록 허용합니다"
 
 #: ipaserver/plugins/internal.py:326
 #, python-brace-format
 msgid "Allow hosts to create keytab of '${primary_key}'"
-msgstr ""
+msgstr "호스트가 '${primary_key}'의 키탭을 생성하도록 허용합니다"
 
 #: ipaserver/plugins/internal.py:329
 #, python-brace-format
 msgid "Allow hosts to retrieve keytab of '${primary_key}'"
-msgstr ""
+msgstr "호스트가 '${primary_key}'의 키탭을 검색하도록 허용합니다"
 
 #: ipaserver/plugins/internal.py:332
 #, python-brace-format
 msgid "Allow users to create keytab of '${primary_key}'"
-msgstr ""
+msgstr "사용자가 '${primary_key}'의 키탭을 생성하도록 허용합니다"
 
 #: ipaserver/plugins/internal.py:335
 #, python-brace-format
 msgid "Allow users to retrieve keytab of '${primary_key}'"
-msgstr ""
+msgstr "사용자가 '${primary_key}'의 키탭을 검색하도록 허용합니다"
 
 #: ipaserver/plugins/internal.py:337
 msgid "Allowed to create keytab"
-msgstr ""
+msgstr "키탭을 생성하도록 허용됨"
 
 #: ipaserver/plugins/internal.py:338
 msgid "Allowed to retrieve keytab"
-msgstr ""
+msgstr "키탭을 검색하도록 허용됨"
 
 #: ipaserver/plugins/internal.py:340
 #, python-brace-format
@@ -17075,7 +17077,7 @@ msgstr "비밀번호 또는 일회용 비밀번호"
 #: ipaserver/plugins/internal.py:410
 #, python-brace-format
 msgid "You will be redirected in ${count}s"
-msgstr ""
+msgstr "${count}s로 재지정됩니다"
 
 #: ipaserver/plugins/internal.py:411
 msgid "Sync OTP Token"
@@ -17087,7 +17089,7 @@ msgstr "동기화 중"
 
 #: ipaserver/plugins/internal.py:414
 msgid "The user account you entered is locked"
-msgstr ""
+msgstr "당신이 입력한 사용자 계정이 잠겨 있습니다"
 
 #: ipaserver/plugins/internal.py:417
 msgid "number of passwords"
@@ -17146,7 +17148,7 @@ msgstr "권한 추가"
 #: ipaserver/plugins/internal.py:449
 #, python-brace-format
 msgid "Add privileges into permission '${primary_key}'"
-msgstr ""
+msgstr "허용권한 '${primary_key}'로 권한을 추가합니다"
 
 #: ipaserver/plugins/internal.py:451
 msgid "Remove permissions"
@@ -17155,7 +17157,7 @@ msgstr "권한 제거"
 #: ipaserver/plugins/internal.py:453
 #, python-brace-format
 msgid "Remove privileges from permission '${primary_key}'"
-msgstr ""
+msgstr "허용 권한 '${primary_key}'에서 권한을 제거합니다"
 
 #: ipaserver/plugins/internal.py:457
 msgid "Add privilege"
@@ -17169,7 +17171,7 @@ msgstr "권한에서 '${primary_key}' 권한 추가"
 #: ipaserver/plugins/internal.py:462
 #, python-brace-format
 msgid "Add roles into privilege '${primary_key}'"
-msgstr ""
+msgstr "권한 '${primary_key}'에 역할을 추가합니다"
 
 #: ipaserver/plugins/internal.py:464
 msgid "Remove privileges"
@@ -17272,20 +17274,20 @@ msgstr "규칙 추가"
 #: ipaserver/plugins/internal.py:520
 #, python-brace-format
 msgid "Add inclusive condition into '${primary_key}'"
-msgstr ""
+msgstr "'${primary_key}'로 포용적인 상태를 추가합니다"
 
 #: ipaserver/plugins/internal.py:523
 #, python-brace-format
 msgid "Add exclusive condition into '${primary_key}'"
-msgstr ""
+msgstr "'${primary_key}'로 배타적인 상태를 추가합니다"
 
 #: ipaserver/plugins/internal.py:527
 msgid "Are you sure you want to change default group?"
-msgstr ""
+msgstr "기본 그룹을 변경할까요?"
 
 #: ipaserver/plugins/internal.py:529
 msgid "Default host group"
-msgstr ""
+msgstr "기본 호스트 그룹"
 
 #: ipaserver/plugins/internal.py:530
 msgid "Default user group"
@@ -17293,53 +17295,53 @@ msgstr "기본 사용자 그룹"
 
 #: ipaserver/plugins/internal.py:531
 msgid "Exclusive"
-msgstr "폐쇄적(exclusive)"
+msgstr "폐쇄적"
 
 #: ipaserver/plugins/internal.py:532
 msgid "Expression"
-msgstr ""
+msgstr "표현"
 
 #: ipaserver/plugins/internal.py:533
 msgid "Host group rule"
-msgstr ""
+msgstr "호스트 그룹 역할"
 
 #: ipaserver/plugins/internal.py:534
 msgid "Host group rules"
-msgstr ""
+msgstr "호스트 그룹 역할"
 
 #: ipaserver/plugins/internal.py:535
 msgid "Inclusive"
-msgstr ""
+msgstr "포용적"
 
 #: ipaserver/plugins/internal.py:536
 msgid "Remove auto membership rules"
-msgstr ""
+msgstr "자동 멤버쉽 규칙을 제거합니다"
 
 #: ipaserver/plugins/internal.py:538
 #, python-brace-format
 msgid "Remove exclusive conditions from rule '${primary_key}'"
-msgstr ""
+msgstr "규칙 '${primary_key}'에서 배타적인 상태를 제거합니다"
 
 #: ipaserver/plugins/internal.py:541
 #, python-brace-format
 msgid "Remove inclusive conditions from rule '${primary_key}'"
-msgstr ""
+msgstr "규칙 '${primary_key}'에서 배타적인 상태를 제거합니다"
 
 #: ipaserver/plugins/internal.py:543
 msgid "User group rule"
-msgstr ""
+msgstr "사용자 그룹 규칙"
 
 #: ipaserver/plugins/internal.py:544
 msgid "User group rules"
-msgstr ""
+msgstr "사용자 그룹 규칙"
 
 #: ipaserver/plugins/internal.py:547
 msgid "Add automount key"
-msgstr ""
+msgstr "자동 적재 키를 추가합니다"
 
 #: ipaserver/plugins/internal.py:548
 msgid "Remove automount keys"
-msgstr ""
+msgstr "자동 적재 키를 제거합니다"
 
 #: ipaserver/plugins/internal.py:551
 msgid "Add automount location"
@@ -17347,19 +17349,19 @@ msgstr "자동적재 위치 추가"
 
 #: ipaserver/plugins/internal.py:552
 msgid "Automount Location Settings"
-msgstr ""
+msgstr "자동 적재 위치 설정"
 
 #: ipaserver/plugins/internal.py:553
 msgid "Remove automount locations"
-msgstr ""
+msgstr "자동 적재 위치를 제거합니다"
 
 #: ipaserver/plugins/internal.py:556
 msgid "Add automount map"
-msgstr ""
+msgstr "자동 적재 맵을 추가합니다"
 
 #: ipaserver/plugins/internal.py:557
 msgid "Map Type"
-msgstr ""
+msgstr "맵 유형"
 
 #: ipaserver/plugins/internal.py:558
 msgid "Direct"
@@ -17484,49 +17486,49 @@ msgstr ""
 #: ipaserver/plugins/internal.py:614
 #, python-brace-format
 msgid "Remove certificate profiles from CA ACL '${primary_key}'"
-msgstr ""
+msgstr "CA ACL '${primary_key}'에서 인증서 프로파일을 제거합니다"
 
 #: ipaserver/plugins/internal.py:617
 #, python-brace-format
 msgid "Remove services from CA ACL '${primary_key}'"
-msgstr ""
+msgstr "CA ACL '${primary_key}'에서 서비스를 제거합니다"
 
 #: ipaserver/plugins/internal.py:620
 #, python-brace-format
 msgid "Remove users from CA ACL '${primary_key}'"
-msgstr ""
+msgstr "CA ACL '${primary_key}'에서 사용자를 제거합니다"
 
 #: ipaserver/plugins/internal.py:622
 msgid "Specified CAs"
-msgstr ""
+msgstr "지정된 CAs"
 
 #: ipaserver/plugins/internal.py:623 ipaserver/plugins/internal.py:927
 #: ipaserver/plugins/internal.py:1185 ipaserver/plugins/internal.py:1296
 #: ipaserver/plugins/internal.py:1486
 msgid "Specified Hosts and Groups"
-msgstr ""
+msgstr "지정된 호스트와 그룹"
 
 #: ipaserver/plugins/internal.py:624
 msgid "Specified Profiles"
-msgstr ""
+msgstr "지정된 프로파일"
 
 #: ipaserver/plugins/internal.py:625 ipaserver/plugins/internal.py:928
 msgid "Specified Services and Groups"
-msgstr ""
+msgstr "지정된 서비스와 그룹"
 
 #: ipaserver/plugins/internal.py:626 ipaserver/plugins/internal.py:929
 #: ipaserver/plugins/internal.py:1186 ipaserver/plugins/internal.py:1297
 #: ipaserver/plugins/internal.py:1487
 msgid "Specified Users and Groups"
-msgstr ""
+msgstr "지정된 사용자와 그룹"
 
 #: ipaserver/plugins/internal.py:627
 msgid "Permitted to have certificates issued"
-msgstr ""
+msgstr "인증서 발급 허용됨"
 
 #: ipaserver/plugins/internal.py:630
 msgid "Remove certificate profiles"
-msgstr ""
+msgstr "인증서 프로파일을 제거합니다"
 
 #: ipaserver/plugins/internal.py:633
 msgid "AA Compromise"
@@ -17847,15 +17849,15 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:733
 msgid "Group Options"
-msgstr ""
+msgstr "그룹 옵션"
 
 #: ipaserver/plugins/internal.py:734
 msgid "Search Options"
-msgstr ""
+msgstr "검색 옵션"
 
 #: ipaserver/plugins/internal.py:735
 msgid "SELinux Options"
-msgstr ""
+msgstr "SELinux 옵션"
 
 #: ipaserver/plugins/internal.py:736
 msgid "Server Options"
@@ -17924,23 +17926,23 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:761
 msgid "Create dns record"
-msgstr ""
+msgstr "dns 레코드를 생성합니다"
 
 #: ipaserver/plugins/internal.py:762
 msgid "Creating record."
-msgstr ""
+msgstr "레코드 생성."
 
 #: ipaserver/plugins/internal.py:763
 msgid "Record creation failed."
-msgstr ""
+msgstr "레코드 생성에 실패함."
 
 #: ipaserver/plugins/internal.py:764
 msgid "Checking if record exists."
-msgstr ""
+msgstr "레코드가 존재하는지 점검하기."
 
 #: ipaserver/plugins/internal.py:765
 msgid "Record not found."
-msgstr ""
+msgstr "레코드를 찾을 수 없음."
 
 #: ipaserver/plugins/internal.py:766
 msgid "Redirection to PTR record"
@@ -18310,15 +18312,15 @@ msgstr "접근 거부됨"
 
 #: ipaserver/plugins/internal.py:959
 msgid "Access Granted"
-msgstr ""
+msgstr "접근 승인됨"
 
 #: ipaserver/plugins/internal.py:960
 msgid "Include Disabled"
-msgstr ""
+msgstr "비활성화 포함"
 
 #: ipaserver/plugins/internal.py:961
 msgid "Include Enabled"
-msgstr ""
+msgstr "활성화 포함"
 
 #: ipaserver/plugins/internal.py:962
 msgid "HBAC Test"
@@ -18351,45 +18353,45 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:969
 msgid "Unmatched"
-msgstr ""
+msgstr "불일치됨"
 
 #: ipaserver/plugins/internal.py:972
 msgid "Add host"
-msgstr ""
+msgstr "호스트 추가"
 
 #: ipaserver/plugins/internal.py:974
 #, python-brace-format
 msgid "Add hosts managing host '${primary_key}'"
-msgstr ""
+msgstr "호스트 '${primary_key}'를 관리하는 호스트 추가"
 
 #: ipaserver/plugins/internal.py:977
 #, python-brace-format
 msgid "Add host '${primary_key}' into host groups"
-msgstr ""
+msgstr "호스트 그룹에 호스트 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:980
 #, python-brace-format
 msgid "Add host '${primary_key}' into HBAC rules"
-msgstr ""
+msgstr "HBAC 규칙에 호스트 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:983
 #, python-brace-format
 msgid "Add host '${primary_key}' into netgroups"
-msgstr ""
+msgstr "넷그룹에 호스트 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:986
 #, python-brace-format
 msgid "Add host '${primary_key}' into roles"
-msgstr ""
+msgstr "역할에 호스트 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:989
 #, python-brace-format
 msgid "Add host '${primary_key}' into sudo rules"
-msgstr ""
+msgstr "sudo 규칙에 호스트 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:991
 msgid "Host Certificate"
-msgstr ""
+msgstr "호스트 인증서"
 
 #: ipaserver/plugins/internal.py:992 ipaserver/plugins/internal.py:1321
 msgid "Host Name"
@@ -18397,43 +18399,43 @@ msgstr "호스트 이름"
 
 #: ipaserver/plugins/internal.py:993 ipaserver/plugins/internal.py:1319
 msgid "Delete Key, Unprovision"
-msgstr ""
+msgstr "키 삭제, 공급 해제"
 
 #: ipaserver/plugins/internal.py:994
 msgid "Host Settings"
-msgstr ""
+msgstr "호스트 설정"
 
 #: ipaserver/plugins/internal.py:995
 msgid "Enrolled"
-msgstr ""
+msgstr "등록됨"
 
 #: ipaserver/plugins/internal.py:996
 msgid "Enrollment"
-msgstr ""
+msgstr "등록"
 
 #: ipaserver/plugins/internal.py:997
 msgid "Fully Qualified Host Name"
-msgstr ""
+msgstr "전체 주소 호스트 이름"
 
 #: ipaserver/plugins/internal.py:998
 msgid "Generate OTP"
-msgstr ""
+msgstr "OTP 발생"
 
 #: ipaserver/plugins/internal.py:999
 msgid "Generated OTP"
-msgstr ""
+msgstr "발생된 OTP"
 
 #: ipaserver/plugins/internal.py:1000
 msgid "Kerberos Key"
-msgstr ""
+msgstr "커버러스 키"
 
 #: ipaserver/plugins/internal.py:1001 ipaserver/plugins/internal.py:1322
 msgid "Kerberos Key Not Present"
-msgstr ""
+msgstr "커버러스 키가 존재하지 않음"
 
 #: ipaserver/plugins/internal.py:1002
 msgid "Kerberos Key Present, Host Provisioned"
-msgstr ""
+msgstr "커버러스 키가 있으며, 호스트가 공급됨"
 
 #: ipaserver/plugins/internal.py:1003 ipaserver/plugins/internal.py:1690
 msgid "One-Time Password"
@@ -18441,15 +18443,15 @@ msgstr "일회용 비밀번호"
 
 #: ipaserver/plugins/internal.py:1004
 msgid "One-Time Password Not Present"
-msgstr ""
+msgstr "일회용 비밀번호가 존재하지 않음"
 
 #: ipaserver/plugins/internal.py:1005
 msgid "One-Time Password Present"
-msgstr ""
+msgstr "일회용 비밀번호가 존재함"
 
 #: ipaserver/plugins/internal.py:1006
 msgid "Reset OTP"
-msgstr ""
+msgstr "OPT 재설정"
 
 #: ipaserver/plugins/internal.py:1007
 msgid "Reset One-Time Password"
@@ -18457,11 +18459,11 @@ msgstr "일회용 비밀번호 재설정"
 
 #: ipaserver/plugins/internal.py:1008
 msgid "Set OTP"
-msgstr ""
+msgstr "OPT 설정"
 
 #: ipaserver/plugins/internal.py:1009
 msgid "OTP set"
-msgstr ""
+msgstr "OPT 구성"
 
 #: ipaserver/plugins/internal.py:1010
 msgid "Set One-Time Password"
@@ -18474,7 +18476,7 @@ msgstr "호스트 제거"
 #: ipaserver/plugins/internal.py:1013
 #, python-brace-format
 msgid "Remove hosts managing host '${primary_key}'"
-msgstr ""
+msgstr "호스트 '${primary_key}'를 관리하는 호스트를 제거합니다"
 
 #: ipaserver/plugins/internal.py:1016
 #, python-brace-format
@@ -18733,7 +18735,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1139
 msgid "Add netgroup"
-msgstr ""
+msgstr "넷그룹을 추가합니다"
 
 #: ipaserver/plugins/internal.py:1141
 #, python-brace-format
@@ -18772,7 +18774,7 @@ msgstr "호스트"
 
 #: ipaserver/plugins/internal.py:1164
 msgid "Netgroup Settings"
-msgstr ""
+msgstr "넷그룹 설정"
 
 #: ipaserver/plugins/internal.py:1165 ipaserver/plugins/netgroup.py:196
 msgid "Netgroups"
@@ -18889,7 +18891,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1220
 msgid "Privilege Settings"
-msgstr ""
+msgstr "권한 설정"
 
 #: ipaserver/plugins/internal.py:1223
 msgid "Public key:"
@@ -18969,7 +18971,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1248
 msgid "Detect"
-msgstr ""
+msgstr "탐지"
 
 #: ipaserver/plugins/internal.py:1249
 msgid "Local domain"
@@ -19075,7 +19077,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1307
 msgid "Delete Server"
-msgstr ""
+msgstr "서버 삭제"
 
 #: ipaserver/plugins/internal.py:1308
 msgid ""
@@ -19776,7 +19778,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1657
 msgid "Service Vaults"
-msgstr ""
+msgstr "서비스 저장소"
 
 #: ipaserver/plugins/internal.py:1658
 msgid "Shared"
@@ -19867,19 +19869,19 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1702
 msgid "Reset your password."
-msgstr ""
+msgstr "자신의 비밀번호를 초기화합니다."
 
 #: ipaserver/plugins/internal.py:1703
 msgid "Second OTP"
-msgstr ""
+msgstr "두 번째 OTP"
 
 #: ipaserver/plugins/internal.py:1705
 msgid "Verify Password"
-msgstr ""
+msgstr "비밀번호를 확인합니다"
 
 #: ipaserver/plugins/internal.py:1715
 msgid "Are you sure you want to delete selected entries?"
-msgstr ""
+msgstr "선택된 항목을 삭제 할 까요?"
 
 #: ipaserver/plugins/internal.py:1716
 #, python-brace-format
@@ -20130,7 +20132,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1923
 msgid "Automount"
-msgstr ""
+msgstr "자동적재"
 
 #: ipaserver/plugins/internal.py:1925
 msgid "DNS"
@@ -20138,7 +20140,7 @@ msgstr "DNS"
 
 #: ipaserver/plugins/internal.py:1926
 msgid "Host-Based Access Control"
-msgstr ""
+msgstr "호스트-기반 접근 제어"
 
 #: ipaserver/plugins/internal.py:1927
 msgid "Identity"
@@ -20198,15 +20200,15 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1955
 msgid "API Browser"
-msgstr ""
+msgstr "API 웹 탐색기"
 
 #: ipaserver/plugins/internal.py:1956
 msgid "First"
-msgstr ""
+msgstr "우선"
 
 #: ipaserver/plugins/internal.py:1957
 msgid "Last"
-msgstr ""
+msgstr "마지막"
 
 #: ipaserver/plugins/internal.py:1958
 msgid "Next"
@@ -20214,31 +20216,31 @@ msgstr "다음"
 
 #: ipaserver/plugins/internal.py:1959
 msgid "Page"
-msgstr ""
+msgstr "쪽"
 
 #: ipaserver/plugins/internal.py:1960
 msgid "Prev"
-msgstr ""
+msgstr "이전"
 
 #: ipaserver/plugins/internal.py:1961
 msgid "Undo"
-msgstr ""
+msgstr "실행 취소"
 
 #: ipaserver/plugins/internal.py:1962
 msgid "Undo this change."
-msgstr ""
+msgstr "이와 같은 변경을 실행취소."
 
 #: ipaserver/plugins/internal.py:1963
 msgid "Undo All"
-msgstr ""
+msgstr "모두 실행취소"
 
 #: ipaserver/plugins/internal.py:1964
 msgid "Undo all changes in this field."
-msgstr ""
+msgstr "이와 같은 입력부분에 모든 변경을 실행취소."
 
 #: ipaserver/plugins/internal.py:1966
 msgid "Text does not match field pattern"
-msgstr ""
+msgstr "텍스트가 입력 부분 유형과 일치하지 않습니다"
 
 #: ipaserver/plugins/internal.py:1967
 msgid "Must be an UTC date/time value (e.g., \"2014-01-20 17:58:01Z\")"
@@ -20989,45 +20991,45 @@ msgstr ""
 
 #: ipaserver/plugins/topology.py:105
 msgid "segments"
-msgstr ""
+msgstr "세그먼트"
 
 #: ipaserver/plugins/topology.py:119
 msgid "Topology Segments"
-msgstr ""
+msgstr "망구성방식 세그먼트"
 
 #: ipaserver/plugins/topology.py:120
 msgid "Topology Segment"
-msgstr ""
+msgstr "망구성방식 세그먼트"
 
 #: ipaserver/plugins/topology.py:226
 #, python-format
 msgid "left node is not a topology node: %(leftnode)s"
-msgstr ""
+msgstr "좌측 노드는 망구성방식 노드가 아닙니다: %(leftnode)s"
 
 #: ipaserver/plugins/topology.py:233
 #, python-format
 msgid "right node is not a topology node: %(rightnode)s"
-msgstr ""
+msgstr "우측 노드는 망구성방식 노드가 아닙니다: %(rightnode)s"
 
 #: ipaserver/plugins/topology.py:250
 msgid "left node and right node must not be the same"
-msgstr ""
+msgstr "좌측과 우측 노드는 동일하지 않아야 합니다"
 
 #: ipaserver/plugins/topology.py:261
 #, python-brace-format
 msgid "left node ({host}) does not support suffix '{suff}'"
-msgstr ""
+msgstr "좌측 노드 ({host})는 접미사 '{suff}'를 지원하지 않습니다"
 
 #: ipaserver/plugins/topology.py:269
 #, python-brace-format
 msgid "right node ({host}) does not support suffix '{suff}'"
-msgstr ""
+msgstr "우측 노드 ({host})는 접미사 '{suff}'를 지원하지 않습니다"
 
 #: ipaserver/plugins/topology.py:280
 #, python-format
 msgid "%(count)d segment matched"
 msgid_plural "%(count)d segments matched"
-msgstr[0] ""
+msgstr[0] "%(count)d 세그먼트가 일치됨"
 
 #: ipaserver/plugins/topology.py:289
 #, python-format
@@ -21047,11 +21049,11 @@ msgstr "세그먼트 \"%(value)s\"가 수정됨"
 #: ipaserver/plugins/topology.py:329
 #, python-format
 msgid "%(value)s"
-msgstr ""
+msgstr "%(value)s"
 
 #: ipaserver/plugins/topology.py:365
 msgid "left or right node has to be specified"
-msgstr ""
+msgstr "좌측 또는 우측 노드는 지정해야 합니다"
 
 #: ipaserver/plugins/topology.py:370
 msgid "only one node can be specified"
@@ -21136,52 +21138,52 @@ msgstr ""
 
 #: ipaserver/plugins/sudocmd.py:64
 msgid "sudo command"
-msgstr ""
+msgstr "sudo 명령"
 
 #: ipaserver/plugins/sudocmd.py:65
 msgid "sudo commands"
-msgstr ""
+msgstr "sudo 명령"
 
 #: ipaserver/plugins/sudocmd.py:117
 msgid "Sudo Commands"
-msgstr ""
+msgstr "sudo 명령"
 
 #: ipaserver/plugins/sudocmd.py:154
 #, python-format
 msgid "Added Sudo Command \"%(value)s\""
-msgstr ""
+msgstr "추가된 sudo 명령 \"%(value)s\""
 
 #: ipaserver/plugins/sudocmd.py:160
 #, python-format
 msgid "Deleted Sudo Command \"%(value)s\""
-msgstr ""
+msgstr "삭제된 sudo 명령 \"%(value)s\""
 
 #: ipaserver/plugins/sudocmd.py:193
 #, python-format
 msgid "Modified Sudo Command \"%(value)s\""
-msgstr ""
+msgstr "수정된 sudo 명령 \"%(value)s\""
 
 #: ipaserver/plugins/sudocmd.py:201
 #, python-format
 msgid "%(count)d Sudo Command matched"
 msgid_plural "%(count)d Sudo Commands matched"
-msgstr[0] ""
+msgstr[0] "%(count)d sudo 명령이 일치됨"
 
 #: ipaserver/plugins/selfservice.py:68
 msgid "self service permission"
-msgstr ""
+msgstr "셀프 서비스 권한"
 
 #: ipaserver/plugins/selfservice.py:69
 msgid "self service permissions"
-msgstr ""
+msgstr "셀프 서비스 권한"
 
 #: ipaserver/plugins/selfservice.py:70
 msgid "Self Service Permissions"
-msgstr ""
+msgstr "설프 서비스 권한"
 
 #: ipaserver/plugins/selfservice.py:71
 msgid "Self Service Permission"
-msgstr ""
+msgstr "셀프 서비스 권한"
 
 #: ipaserver/plugins/selfservice.py:124
 #, python-format
@@ -21260,11 +21262,11 @@ msgstr ""
 
 #: ipaserver/plugins/aci.py:437
 msgid "ACI object."
-msgstr ""
+msgstr "ACI 대상."
 
 #: ipaserver/plugins/aci.py:440
 msgid "ACIs"
-msgstr ""
+msgstr "ACIs"
 
 #: ipaserver/plugins/aci.py:524
 #, python-format
@@ -21424,7 +21426,7 @@ msgstr "gid는 외부 그룹을 위해 설정 될 수 없습니다"
 
 #: ipaserver/plugins/group.py:395
 msgid "attribute \"gidNumber\" not allowed with --nonposix"
-msgstr ""
+msgstr "속성 \"gidNumber\"는 --nonposix와 함께 허용되지 않습니다"
 
 #: ipaserver/plugins/group.py:404
 #, python-format
@@ -22808,35 +22810,35 @@ msgstr ""
 
 #: ipaserver/plugins/dnsserver.py:62
 msgid "DNS server"
-msgstr ""
+msgstr "DNS 서버"
 
 #: ipaserver/plugins/dnsserver.py:63
 msgid "DNS servers"
-msgstr ""
+msgstr "DNS 서버"
 
 #: ipaserver/plugins/dnsserver.py:71
 msgid "DNS Servers"
-msgstr ""
+msgstr "DNS 서버"
 
 #: ipaserver/plugins/dnsserver.py:72
 msgid "DNS Server"
-msgstr ""
+msgstr "DNS 서버"
 
 #: ipaserver/plugins/dnsserver.py:113
 msgid "DNS Server name"
-msgstr ""
+msgstr "DNS 서버 이름"
 
 #: ipaserver/plugins/dnsserver.py:119
 msgid "SOA mname override"
-msgstr ""
+msgstr "SOA mname 재정의"
 
 #: ipaserver/plugins/dnsserver.py:120
 msgid "SOA mname (authoritative server) override"
-msgstr ""
+msgstr "SOA mname (권위 있는 서버) 재정의"
 
 #: ipaserver/plugins/dnsserver.py:126
 msgid "Forwarders"
-msgstr ""
+msgstr "포워더"
 
 #: ipaserver/plugins/dnsserver.py:128
 msgid ""
