@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-04-19 06:37+0000\n"
+"PO-Revision-Date: 2022-04-21 08:17+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -4441,22 +4441,22 @@ msgstr ""
 
 #: ipaserver/plugins/idviews.py:477
 msgid "Number of hosts the ID View was applied to:"
-msgstr ""
+msgstr "호스트 ID 보기의 수는 다음과 같이 적용됩니다:"
 
 #: ipaserver/plugins/idviews.py:212
 msgid "Delete an ID View."
-msgstr ""
+msgstr "ID 보기를 삭제합니다."
 
 #: ipaserver/plugins/idviews.py:241
 msgid "Search for an ID View."
-msgstr ""
+msgstr "ID 보기 검색."
 
 #: ipaserver/plugins/idviews.py:225
 msgid "Modify an ID View."
-msgstr ""
+msgstr "ID 보기를 수정합니다."
 
 msgid "Rename the ID View object"
-msgstr ""
+msgstr "ID 보기 대상 이름을 재지정합니다"
 
 #: ipaserver/plugins/idviews.py:248
 msgid "Display information about an ID View."
@@ -4464,7 +4464,7 @@ msgstr "ID 보기에 대해 정보를 표시합니다."
 
 #: ipaserver/plugins/idviews.py:253
 msgid "Enumerate all the hosts the view applies to."
-msgstr ""
+msgstr "다음과 같이 보기가 적용되는 모든 호스트를 열거합니다."
 
 #: ipaserver/plugins/idviews.py:484
 msgid ""
@@ -5165,7 +5165,7 @@ msgid ""
 msgstr ""
 
 msgid "Set a user's password."
-msgstr ""
+msgstr "사용자 비밀번호를 설정합니다."
 
 #: ipaserver/plugins/internal.py:1678
 msgid "New Password"
@@ -5173,11 +5173,11 @@ msgstr "신규 비밀번호"
 
 #: ipaserver/plugins/internal.py:1672
 msgid "Current Password"
-msgstr ""
+msgstr "현재 비밀번호"
 
 #: ipaserver/plugins/internal.py:188 ipaserver/plugins/internal.py:1680
 msgid "OTP"
-msgstr ""
+msgstr "OTP"
 
 msgid "One Time Password"
 msgstr "일회용 비밀번호"
@@ -5259,15 +5259,15 @@ msgstr "권한 이름"
 
 #: ipaserver/plugins/permission.py:245
 msgid "Granted rights"
-msgstr ""
+msgstr "허용된 권리"
 
 #: ipaserver/plugins/permission.py:246
 msgid "Rights to grant (read, search, compare, write, add, delete, all)"
-msgstr ""
+msgstr "허용 하려는 권리 (읽기, 검색, 비교, 쓰기, 추가, 삭제, 모두)"
 
 #: ipaserver/plugins/permission.py:253
 msgid "Effective attributes"
-msgstr ""
+msgstr "유효 속성"
 
 #: ipaserver/plugins/permission.py:254
 msgid "All attributes to which the permission applies"
@@ -5275,15 +5275,15 @@ msgstr "권한이 적용되는 모든 속성"
 
 #: ipaserver/plugins/permission.py:259
 msgid "Included attributes"
-msgstr ""
+msgstr "포함된 속성"
 
 #: ipaserver/plugins/permission.py:260
 msgid "User-specified attributes to which the permission applies"
-msgstr ""
+msgstr "권한을 적용하려는 사용자-지정된 속성"
 
 #: ipaserver/plugins/permission.py:265
 msgid "Excluded attributes"
-msgstr ""
+msgstr "제외된 속성"
 
 #: ipaserver/plugins/permission.py:266
 msgid ""
@@ -5366,13 +5366,13 @@ msgstr ""
 
 #: ipaserver/plugins/permission.py:1405
 msgid "Add members to a permission."
-msgstr ""
+msgstr "구성원을 권한에 추가합니다."
 
 msgid "member privilege"
-msgstr ""
+msgstr "구성원 권리"
 
 msgid "privileges to add"
-msgstr ""
+msgstr "추가하려는 권리"
 
 #: ipaserver/plugins/permission.py:959
 msgid "Add a system permission without an ACI (internal command)"
@@ -6970,40 +6970,40 @@ msgstr ""
 
 #: ipaserver/plugins/sudocmdgroup.py:119 ipaserver/plugins/sudocmdgroup.py:124
 msgid "Sudo Command Group"
-msgstr ""
+msgstr "sudo 명령 그룹"
 
 #: ipaserver/plugins/sudocmdgroup.py:131 ipaserver/plugins/group.py:343
 msgid "Group description"
-msgstr ""
+msgstr "그룹 설명"
 
 #: ipaserver/plugins/sudocmdgroup.py:134 ipaserver/plugins/internal.py:1385
 msgid "Commands"
 msgstr "명령"
 
 msgid "Member Sudo commands"
-msgstr ""
+msgstr "구성원 sudo 명령"
 
 #: ipaserver/plugins/sudocmdgroup.py:147
 msgid "Create new Sudo Command Group."
-msgstr ""
+msgstr "신규 sudo 명령 그룹을 생성합니다."
 
 #: ipaserver/plugins/sudocmdgroup.py:188
 msgid "Add members to Sudo Command Group."
-msgstr ""
+msgstr "구성원을 sudo 명령 그룹에 추가합니다."
 
 msgid "member sudo command"
-msgstr ""
+msgstr "구성원 sudo 명령"
 
 msgid "sudo commands to add"
-msgstr ""
+msgstr "추가 해야 할 sudo 명령"
 
 #: ipaserver/plugins/sudocmdgroup.py:155
 msgid "Delete Sudo Command Group."
-msgstr ""
+msgstr "sudo 명령 그룹을 삭제합니다."
 
 #: ipaserver/plugins/sudocmdgroup.py:171
 msgid "Search for Sudo Command Groups."
-msgstr ""
+msgstr "sudo 명령 그룹을 검색."
 
 msgid ""
 "Results should contain primary key attribute only (\"sudocmdgroup-name\")"
@@ -7011,18 +7011,18 @@ msgstr "결과는 우선 키 속성만 포함되어야 합니다(\"sudocmdgroup-
 
 #: ipaserver/plugins/sudocmdgroup.py:163
 msgid "Modify Sudo Command Group."
-msgstr ""
+msgstr "sudo 명령 그룹을 수정합니다."
 
 #: ipaserver/plugins/sudocmdgroup.py:194
 msgid "Remove members from Sudo Command Group."
-msgstr ""
+msgstr "sudo 명령 그룹에서 구성원을 제거합니다."
 
 msgid "sudo commands to remove"
-msgstr ""
+msgstr "제거하는 sudo 명령"
 
 #: ipaserver/plugins/sudocmdgroup.py:182
 msgid "Display Sudo Command Group."
-msgstr ""
+msgstr "sudo 명령 그룹을 표시합니다."
 
 msgid ""
 "\n"
@@ -7213,7 +7213,7 @@ msgid "Self"
 msgstr "본인"
 
 msgid "Display user record for current Kerberos principal"
-msgstr ""
+msgstr "현재 커버러스 객체를 위한 사용자 레코드를 표시합니다"
 
 msgid "Results should contain primary key attribute only (\"login\")"
 msgstr "결과는 기본 키 속성(\"로그인\")만 포함되어야 합니다"
@@ -7249,10 +7249,10 @@ msgid "Search for users without these member of sudo rules."
 msgstr "sudo 규칙의 이들 구성원이 없이 사용자를 위한 검색."
 
 msgid "Modify a user."
-msgstr ""
+msgstr "사용자를 수정합니다."
 
 msgid "Rename the user object"
-msgstr ""
+msgstr "사용자 대상 이름을 재지정합니다"
 
 msgid "Display information about a user."
 msgstr "사용자에 대해 정보를 표시합니다."
@@ -9137,49 +9137,49 @@ msgid "Add profiles to a CA ACL."
 msgstr ""
 
 msgid "member Certificate Profile"
-msgstr ""
+msgstr "구성원 인증서 프로파일"
 
 msgid "Certificate Profiles to add"
-msgstr ""
+msgstr "추가 하는 인증서 프로파일"
 
 msgid "Add services to a CA ACL."
-msgstr ""
+msgstr "CA ACL에 서비스를 추가합니다."
 
 msgid "Add users and groups to a CA ACL."
-msgstr ""
+msgstr "CA ACL에 사용자와 그룹을 추가합니다."
 
 msgid "Delete a CA ACL."
-msgstr ""
+msgstr "CA ACL을 삭제합니다."
 
 msgid "Disable a CA ACL."
-msgstr ""
+msgstr "CA ACL을 비활성화."
 
 msgid "Enable a CA ACL."
-msgstr ""
+msgstr "CA ACL을 활성화 합니다."
 
 msgid "Search for CA ACLs."
-msgstr ""
+msgstr "CA ACLs를 검색."
 
 msgid "Modify a CA ACL."
-msgstr ""
+msgstr "CA ACL을 수정합니다."
 
 msgid "Remove target hosts and hostgroups from a CA ACL."
-msgstr ""
+msgstr "CA ACL에서 대상 호스트와 호스트그룹을 제거합니다."
 
 msgid "Remove profiles from a CA ACL."
-msgstr ""
+msgstr "CA ACL에서 프로파일을 제거합니다."
 
 msgid "Certificate Profiles to remove"
-msgstr ""
+msgstr "제거 해야 할 인증서 프로파일"
 
 msgid "Remove services from a CA ACL."
-msgstr ""
+msgstr "CA ACL에서 서비스를 제거합니다."
 
 msgid "Remove users and groups from a CA ACL."
-msgstr ""
+msgstr "CA ACL에서 사용자와 그룹을 제거합니다."
 
 msgid "Display the properties of a CA ACL."
-msgstr ""
+msgstr "CA ACL의 속성을 표시합니다."
 
 msgid "Maximum amount of time (seconds) for a search (-1 or 0 is unlimited)"
 msgstr "검색(-1 또는 0은 무제한입니다)을 위한 최대 적재 시간 (초)"
@@ -9192,33 +9192,35 @@ msgid ""
 "\n"
 "Raise the IPA Domain Level.\n"
 msgstr ""
+"\n"
+"IPA 도메인 수준으로 올립니다.\n"
 
 #: ipaserver/plugins/domainlevel.py:93
 msgid "Query current Domain Level."
-msgstr ""
+msgstr "현재 도메인 수준으로 질의합니다."
 
 #: ipaserver/plugins/domainlevel.py:27
 msgid "Current domain level:"
-msgstr ""
+msgstr "현재 도메인 수준:"
 
 #: ipaserver/plugins/domainlevel.py:117
 msgid "Change current Domain Level."
-msgstr ""
+msgstr "현재 도메인 수준을 변경합니다."
 
 #: ipaserver/plugins/internal.py:791 ipaserver/plugins/internal.py:792
 #: ipaserver/plugins/domainlevel.py:124
 msgid "Domain Level"
-msgstr ""
+msgstr "도메인 수준"
 
 msgid "Add certificates to host entry"
-msgstr ""
+msgstr "호스트 항목에 인증서를 추가합니다"
 
 msgid "Remove certificates from host entry"
-msgstr ""
+msgstr "호스트 항목에서 인증서를 제거합니다"
 
 #: ipaserver/plugins/idviews.py:80
 msgid "Fallback to AD DC LDAP"
-msgstr ""
+msgstr "AC DC LDAP로 대체"
 
 #: ipaserver/plugins/idviews.py:81
 msgid ""
