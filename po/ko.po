@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-04-21 08:17+0000\n"
+"PO-Revision-Date: 2022-04-24 13:17+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.11.2\n"
+"X-Generator: Weblate 4.12\n"
 
 #: client/ipa-join.c:66 client/ipa-join.c:422 client/ipa-join.c:440
 #: client/ipa-join.c:540 client/ipa-join.c:1089 util/ipa_krb5.c:1024
@@ -4858,40 +4858,42 @@ msgstr ""
 
 #: ipaserver/plugins/migration.py:636
 msgid "Load CA certificate of LDAP server from FILE"
-msgstr ""
+msgstr "파일에서 LDAP 서버의 CA 인증서를 적재합니다"
 
 msgid "groups to exclude from migration"
-msgstr ""
+msgstr "이전에서 제외 할 그룹"
 
 msgid "users to exclude from migration"
-msgstr ""
+msgstr "이전에서 제외 할 사용자"
 
 #: ipaserver/plugins/migration.py:662
 msgid "Lists of objects migrated; categorized by type."
-msgstr ""
+msgstr "이전 대상의 목록; 유형에 의해 분류됩니다."
 
 #: ipaserver/plugins/migration.py:666
 msgid "Lists of objects that could not be migrated; categorized by type."
-msgstr ""
+msgstr "이전 될 수 없는 대상의 목록; 유형에 의해 분류됩니다."
 
 #: ipaserver/plugins/migration.py:670
 msgid "False if migration mode was disabled."
-msgstr ""
+msgstr "만약 이전 방식이 비활성화 되면 거짓입니다."
 
 #: ipaserver/plugins/migration.py:674
 msgid "False if migration fails because the compatibility plug-in is enabled."
-msgstr ""
+msgstr "호환성 플러그-인이 활성화 되어 있기 때문에 만약 이전이 실패하면 거짓입니다."
 
 msgid ""
 "\n"
 "Misc plug-ins\n"
 msgstr ""
+"\n"
+"잡다한 플러그-인\n"
 
 msgid "Show environment variables."
-msgstr ""
+msgstr "환경 변수를 표시합니다."
 
 msgid "Forward to server instead of running locally"
-msgstr ""
+msgstr "로컬에서 동작하기 대신에 서버로 전달"
 
 #: ipalib/misc.py:103
 msgid ""
@@ -4902,13 +4904,13 @@ msgid "Dictionary mapping variable name to value"
 msgstr "변수 이름을 값으로 매핑하는 사전"
 
 msgid "Total number of variables env (>= count)"
-msgstr ""
+msgstr "env 변수의 총 수 (>=count)"
 
 msgid "Number of variables returned (<= total)"
-msgstr ""
+msgstr "반환된 변수의 수 (<=total)"
 
 msgid "Show all loaded plugins."
-msgstr ""
+msgstr "적재된 모든 플러그인을 표시합니다."
 
 msgid "Dictionary mapping plugin names to bases"
 msgstr ""
@@ -7475,51 +7477,51 @@ msgid "Display information about the default (fallback) automember groups."
 msgstr ""
 
 msgid "Delete an automember rule."
-msgstr ""
+msgstr "자동 구성원 규칙을 삭제합니다."
 
 msgid "Search for automember rules."
-msgstr ""
+msgstr "자동 구성원 규칙을 검색합니다."
 
 msgid "Modify an automember rule."
-msgstr ""
+msgstr "자동 구성원 규칙을 수정합니다."
 
 #: ipaserver/plugins/automember.py:683
 msgid "Rebuild auto membership."
-msgstr ""
+msgstr "자동 몜버쉽을 재구축합니다."
 
 #: ipaserver/plugins/automember.py:693
 msgid "Rebuild membership for all members of a grouping"
-msgstr ""
+msgstr "그룹의 모든 구성원을 위해 멤버쉽을 재구축합니다"
 
 #: ipaserver/plugins/automember.py:698
 msgid "Rebuild membership for specified users"
-msgstr ""
+msgstr "지정된 사용자를 위해 멤버쉽을 재구축합니다"
 
 #: ipaserver/plugins/automember.py:703
 msgid "Rebuild membership for specified hosts"
-msgstr ""
+msgstr "지정된 호스트를 위해 멤버쉽을 재구성합니다"
 
 #: ipaserver/plugins/automember.py:708
 msgid "No wait"
-msgstr ""
+msgstr "대기 없음"
 
 #: ipaserver/plugins/automember.py:709
 msgid "Don't wait for rebuilding membership"
-msgstr ""
+msgstr "재구축한 멤버쉽을 위해 기다릴 수 없습니다"
 
 msgid "Remove conditions from an automember rule."
-msgstr ""
+msgstr "자동 구성원 구칙에서 상태를 제거합니다."
 
 #: ipaserver/plugins/automember.py:441
 msgid "Conditions that could not be removed"
-msgstr ""
+msgstr "제거 될 수 없는 상태"
 
 #: ipaserver/plugins/automember.py:445
 msgid "Number of conditions removed"
-msgstr ""
+msgstr "제거된 상태의 수"
 
 msgid "Display information about an automember rule."
-msgstr ""
+msgstr "자동 구성원 규칙에 대해 정보를 표시합니다."
 
 msgid ""
 "\n"
@@ -7607,10 +7609,10 @@ msgid "Checks if any of the servers has the CA service enabled."
 msgstr "CA 서비스가 활성화된 서버가 있는지 확인합니다."
 
 msgid "Search for existing certificates."
-msgstr ""
+msgstr "기존 인증서를 검색합니다."
 
 msgid "Match cn attribute in subject"
-msgstr ""
+msgstr "주제에서 cn 속성을 일치합니다"
 
 msgid "Reason"
 msgstr "이유"
@@ -7619,43 +7621,43 @@ msgid "Reason for revoking the certificate (0-10)"
 msgstr ""
 
 msgid "minimum serial number"
-msgstr ""
+msgstr "최소 일련 번호"
 
 msgid "maximum serial number"
-msgstr ""
+msgstr "최대 일련 번호"
 
 msgid "match the common name exactly"
-msgstr ""
+msgstr "일반 이름과 정확히 일치합니다"
 
 msgid "Valid not after from this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "이 날짜 이후에는 유효하지 않습니다 (YYYY-mm-dd)"
 
 msgid "Valid not after to this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "이 날짜 이후에는 유효하지 않습니다 (YYYY-mm-dd)"
 
 msgid "Valid not before from this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "이 날짜 이전에는 유효하지 않습니다 (YYYY-mm-dd)"
 
 msgid "Valid not before to this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "이 날짜 이전에는 유효하지 않습니다 (YYYY-mm-dd)"
 
 msgid "Issued on from this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "이 날짜부터 발행 (YYYY-mm-dd)"
 
 msgid "Issued on to this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "이 날짜부터 발행 (YYYY-mm-dd)"
 
 msgid "Revoked on from this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "이 날짜부터 취소됨 (YYYY-mm-dd)"
 
 msgid "Revoked on to this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "이 날짜부터 취소됨 (YYYY-mm-dd)"
 
 msgid "Maximum number of certs returned"
 msgstr "반환된 인증의 최대 수"
 
 msgid "Take a revoked certificate off hold."
-msgstr ""
+msgstr "해지된 인증서를 보류 해제합니다."
 
 msgid "Serial number"
 msgstr "일련 번호"
@@ -17263,11 +17265,11 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:514
 msgid "Add self service permission"
-msgstr ""
+msgstr "셀프 서비스 권한을 추가합니다"
 
 #: ipaserver/plugins/internal.py:515
 msgid "Remove self service permissions"
-msgstr ""
+msgstr "셀프 서비스 권한을 제거합니다"
 
 #: ipaserver/plugins/internal.py:518
 msgid "Add rule"
@@ -17375,19 +17377,19 @@ msgstr "간접"
 
 #: ipaserver/plugins/internal.py:560
 msgid "Remove automount maps"
-msgstr ""
+msgstr "자동적재 맵을 제거합니다"
 
 #: ipaserver/plugins/internal.py:563
 msgid "Add certificate authority"
-msgstr ""
+msgstr "인증 기관을 추가합니다"
 
 #: ipaserver/plugins/internal.py:564
 msgid "Remove certificate authorities"
-msgstr ""
+msgstr "인증 기관을 제거합니다"
 
 #: ipaserver/plugins/internal.py:567
 msgid "Add CA ACL"
-msgstr ""
+msgstr "CA ACL을 추가합니다"
 
 #: ipaserver/plugins/internal.py:569
 #, python-brace-format
