@@ -1111,9 +1111,8 @@ class TestNonPosixAutoPrivateGroup(BaseTestTrust):
             assert (uid == self.uid_override and gid == self.gid_override)
             test_group = self.clients[0].run_command(
                 ["id", nonposixuser]).stdout_text
-            version = tasks.get_sssd_version(self.clients[0])
-            with xfail_context(version <= tasks.parse_version('2.6.3')
-                               and type == "hybrid",
+            # version = tasks.get_sssd_version(self.clients[0])
+            with xfail_context(type == "hybrid",
                                'https://github.com/SSSD/sssd/issues/5989'):
                 assert "domain users@{0}".format(self.ad_domain) in test_group
 
@@ -1169,8 +1168,8 @@ class TestPosixAutoPrivateGroup(BaseTestTrust):
                                                  raiseonerr=False)
             tasks.assert_error(result, "no such user")
         else:
-            sssd_version = tasks.get_sssd_version(self.clients[0])
-            with xfail_context(sssd_version <= tasks.parse_version('2.6.3'),
+            # sssd_version = tasks.get_sssd_version(self.clients[0])
+            with xfail_context(True,
                                'https://github.com/SSSD/sssd/issues/5988'):
                 (uid, gid) = self.get_user_id(self.clients[0], posixuser)
                 assert uid == gid
