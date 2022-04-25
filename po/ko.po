@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-04-24 13:17+0000\n"
+"PO-Revision-Date: 2022-04-26 11:17+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -5521,7 +5521,7 @@ msgstr ""
 
 #: ipaserver/plugins/privilege.py:215
 msgid "Add permissions to a privilege."
-msgstr ""
+msgstr "권한에 허용 권한을 추가합니다."
 
 #: ipaserver/plugins/permission.py:180
 msgid "permission"
@@ -5533,37 +5533,37 @@ msgstr "권한"
 
 #: ipaserver/plugins/privilege.py:230
 msgid "Number of permissions added"
-msgstr ""
+msgstr "추가된 권한의 수"
 
 #: ipaserver/plugins/privilege.py:174
 msgid "Delete a privilege."
-msgstr ""
+msgstr "권한을 삭제합니다."
 
 #: ipaserver/plugins/privilege.py:188
 msgid "Search for privileges."
-msgstr ""
+msgstr "권한을 검색합니다."
 
 #: ipaserver/plugins/privilege.py:181
 msgid "Modify a privilege."
-msgstr ""
+msgstr "권한을 수정합니다."
 
 msgid "Rename the privilege object"
-msgstr ""
+msgstr "권한 대상의 이름을 재지정합니다"
 
 #: ipaserver/plugins/privilege.py:209
 msgid "Remove members from a privilege"
-msgstr ""
+msgstr "권한에서 구성원을 제거합니다"
 
 msgid "roles to remove"
-msgstr ""
+msgstr "제거하려는 규칙"
 
 #: ipaserver/plugins/privilege.py:244
 msgid "Remove permissions from a privilege."
-msgstr ""
+msgstr "권한에서 허용 권한을 제거합니다."
 
 #: ipaserver/plugins/privilege.py:262
 msgid "Number of permissions removed"
-msgstr ""
+msgstr "제거된 권한의 수"
 
 #: ipaserver/plugins/privilege.py:197
 msgid "Display information about a privilege."
@@ -5621,31 +5621,31 @@ msgstr "그룹"
 
 #: ipaserver/plugins/pwpolicy.py:304
 msgid "Manage password policy for specific group"
-msgstr ""
+msgstr "지정된 그룹을 위해 비밀번호 정책을 관리합니다"
 
 #: ipaserver/plugins/pwpolicy.py:309
 msgid "Max lifetime (days)"
-msgstr ""
+msgstr "최대 수명주기 (일)"
 
 #: ipaserver/plugins/pwpolicy.py:310
 msgid "Maximum password lifetime (in days)"
-msgstr ""
+msgstr "최대 비밀번호 수명주기 (일)"
 
 #: ipaserver/plugins/pwpolicy.py:316
 msgid "Min lifetime (hours)"
-msgstr ""
+msgstr "최소 수명주기 (시간)"
 
 #: ipaserver/plugins/pwpolicy.py:317
 msgid "Minimum password lifetime (in hours)"
-msgstr ""
+msgstr "최소 비밀번호 수명주기 (시간)"
 
 #: ipaserver/plugins/pwpolicy.py:322
 msgid "History size"
-msgstr ""
+msgstr "기록 크기"
 
 #: ipaserver/plugins/pwpolicy.py:323
 msgid "Password history size"
-msgstr ""
+msgstr "비밀번호 기록 크기"
 
 #: ipaserver/plugins/pwpolicy.py:328
 msgid "Character classes"
@@ -9056,21 +9056,21 @@ msgstr ""
 
 #: ipaserver/plugins/sudorule.py:638
 msgid "Remove users and groups affected by Sudo Rule."
-msgstr ""
+msgstr "sudo 규칙에 의해 영향을 받는 사용자와 그룹을 제거합니다."
 
 #: ipaserver/plugins/sudorule.py:481
 msgid "Display Sudo Rule."
-msgstr ""
+msgstr "sudo 규칙을 표시합니다."
 
 #: ipaserver/plugins/serverrole.py:124 ipaserver/plugins/cert.py:1569
 #: ipaserver/plugins/pkinit.py:72 ipaserver/plugins/baseldap.py:1968
 msgid "Time limit of search in seconds (0 is unlimited)"
-msgstr ""
+msgstr "초단위 검색 시간 제한 (0은 무제한)"
 
 #: ipaserver/plugins/serverrole.py:132 ipaserver/plugins/cert.py:1574
 #: ipaserver/plugins/pkinit.py:80 ipaserver/plugins/baseldap.py:1975
 msgid "Maximum number of entries returned (0 is unlimited)"
-msgstr ""
+msgstr "반환된 항목의 최대 수 (0은 무제한)"
 
 msgid ""
 "\n"
@@ -9108,10 +9108,10 @@ msgid ""
 msgstr ""
 
 msgid "ACL name"
-msgstr ""
+msgstr "ACL 이름"
 
 msgid "Profile category"
-msgstr ""
+msgstr "프로파일 분류"
 
 msgid "Profile category the ACL applies to"
 msgstr "프로파일 범주를 ACL에 적용합니다"
@@ -9130,13 +9130,13 @@ msgid "Profiles"
 msgstr "프로파일"
 
 msgid "Create a new CA ACL."
-msgstr ""
+msgstr "신규 CA ACL을 생성합니다."
 
 msgid "Add target hosts and hostgroups to a CA ACL."
-msgstr ""
+msgstr "CA ACL에 대상 호스트와 호스트그룹을 추가합니다."
 
 msgid "Add profiles to a CA ACL."
-msgstr ""
+msgstr "CA ACL에 프로파일을 추가합니다."
 
 msgid "member Certificate Profile"
 msgstr "구성원 인증서 프로파일"
@@ -10704,33 +10704,33 @@ msgid "Managed suffixes"
 msgstr "관리된 접미사"
 
 msgid "Check connection to remote IPA server."
-msgstr ""
+msgstr "원격 IPA 서버에 연결을 점검합니다."
 
 #: ipaserver/plugins/server.py:903
 msgid "Remote server name"
-msgstr ""
+msgstr "원격 서버 이름"
 
 #: ipaserver/plugins/server.py:904
 msgid "Remote IPA server hostname"
-msgstr ""
+msgstr "원격 IPA 서버 호스트이름"
 
 #: ipaserver/plugins/topology.py:407
 msgid "suffix"
-msgstr ""
+msgstr "접미사"
 
 msgid "Search for servers with these managed suffixes."
-msgstr ""
+msgstr "이들 관리된 접미사가 있는 서버를 검색합니다."
 
 msgid "Search for servers without these managed suffixes."
-msgstr ""
+msgstr "이들 관리된 접미사가 없는 서버를 검색합니다."
 
 #: ipaserver/plugins/stageuser.py:761
 msgid "Add a manager to the stage user entry"
-msgstr ""
+msgstr "단계 사용자 항목에 관리자를 추가합니다"
 
 #: ipaserver/plugins/stageuser.py:766
 msgid "Remove a manager to the stage user entry"
-msgstr ""
+msgstr "단계 사용자 항목에 관리자를 제거합니다"
 
 msgid ""
 "\n"
