@@ -31,6 +31,7 @@ Developers:
 	Benjamin Drung
 	Brian Cook
 	Brian J. Murrell
+	Brian Turek
 	Carl George
 	Cédric Jeanneret
 	Changmin Teng
@@ -82,6 +83,7 @@ Developers:
 	Jayesh Garg
 	Jeremy Frasier
 	Jérôme Fenal
+	jh23453
 	Jim Meyering
 	Jochen Kellner
 	JoeDrane
@@ -90,6 +92,7 @@ Developers:
 	John Morris
 	Jr Aquino
 	Julian Gethmann
+	Julien Rische
 	Justin Stephenson
 	Kaleemullah Siddiqui
 	Karl MacMillan
