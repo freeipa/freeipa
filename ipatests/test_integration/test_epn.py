@@ -358,7 +358,7 @@ class TestEPN(IntegrationTest):
         assert epn_conf in cmd1.stdout_text
         assert epn_template in cmd1.stdout_text
         cmd2 = self.master.run_command(["sha256sum", epn_conf])
-        ck = "9977d846539d4945900bd04bae25bf746ac75fb561d3769014002db04e1790b8"
+        ck = "5e56a0f8010ff4f399b206c9e45004823bc05bf6577b34b3e701e4a2935df989"
         assert cmd2.stdout_text.find(ck) == 0
 
     def test_EPN_connection_refused(self):
