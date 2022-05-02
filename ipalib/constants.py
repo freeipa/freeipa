@@ -292,24 +292,6 @@ DOMAIN_LEVEL_1 = 1  # replica promotion, topology plugin
 MIN_DOMAIN_LEVEL = DOMAIN_LEVEL_1
 MAX_DOMAIN_LEVEL = DOMAIN_LEVEL_1
 
-# Constants used in generation of replication agreements and as topology
-# defaults
-
-# List of attributes that need to be excluded from replication initialization.
-REPL_AGMT_TOTAL_EXCLUDES = ('entryusn',
-                            'krblastsuccessfulauth',
-                            'krblastfailedauth',
-                            'krbloginfailedcount')
-
-# List of attributes that need to be excluded from normal replication.
-REPL_AGMT_EXCLUDES = ('memberof', 'idnssoaserial') + REPL_AGMT_TOTAL_EXCLUDES
-
-# List of attributes that are not updated on empty replication
-REPL_AGMT_STRIP_ATTRS = ('modifiersName',
-                         'modifyTimestamp',
-                         'internalModifiersName',
-                         'internalModifyTimestamp')
-
 DOMAIN_SUFFIX_NAME = 'domain'
 CA_SUFFIX_NAME = 'ca'
 PKI_GSSAPI_SERVICE_NAME = 'dogtag'
