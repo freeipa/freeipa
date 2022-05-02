@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-04-26 11:17+0000\n"
+"PO-Revision-Date: 2022-05-03 03:18+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.12\n"
+"X-Generator: Weblate 4.12.1\n"
 
 #: client/ipa-join.c:66 client/ipa-join.c:422 client/ipa-join.c:440
 #: client/ipa-join.c:540 client/ipa-join.c:1089 util/ipa_krb5.c:1024
@@ -11843,7 +11843,7 @@ msgstr ""
 
 #: ipaserver/plugins/hbacrule.py:236
 msgid "Source host category"
-msgstr ""
+msgstr "원천 호스트 항목"
 
 #: ipaserver/plugins/hbacrule.py:237
 msgid "Source host category the rule applies to"
@@ -11855,7 +11855,7 @@ msgstr "원천 호스트"
 
 #: ipaserver/plugins/hbacrule.py:282
 msgid "Source Host Groups"
-msgstr ""
+msgstr "원천 호스트 그룹"
 
 msgid "comma-separated list of hosts to add"
 msgstr "추가하는 호스트의 쉼표로-구분된 목록"
@@ -11867,10 +11867,10 @@ msgid "comma-separated list of HBAC services to add"
 msgstr "추가하는 HSBC 서비스의 쉼표로-구분된 목록"
 
 msgid "comma-separated list of HBAC service groups to add"
-msgstr ""
+msgstr "추가 하려는 HBAC 서비스의 쉼표로-구분된 목록"
 
 msgid "Add source hosts and hostgroups from a HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙에서 원천 호스트와 호스트그룹을 추가합니다."
 
 msgid "comma-separated list of hosts to remove"
 msgstr "제거하려는 호스트의 쉼표로-구분된 목록"
@@ -11886,7 +11886,7 @@ msgstr "제거하려는 HSBC 서비스 그룹의 쉼표로-구분된 목록"
 
 #: ipaserver/plugins/hbacrule.py:578
 msgid "Remove source hosts and hostgroups from an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙에서 원천 호스트와 호스트그룹을 제거합니다."
 
 msgid ""
 "\n"
@@ -12126,26 +12126,26 @@ msgstr ""
 
 msgid ""
 "Comma-separated list of objectclasses used to search for user entries in DS"
-msgstr ""
+msgstr "DS에서 사용자 항목을 위해 검색하는데 사용되는 객체클래스의 쉼표로-구분된 목록"
 
 msgid ""
 "Comma-separated list of objectclasses used to search for group entries in DS"
-msgstr ""
+msgstr "DS에서 그룹 항목을 위해 검색하는데 객체클래스의 쉼표로-구분된 목록"
 
 msgid ""
 "Comma-separated list of objectclasses to be ignored for user entries in DS"
-msgstr ""
+msgstr "DS에서 사용자 항목을 위해 무시되는 객체클래스의 쉼표로-구분된 목록"
 
 msgid "Comma-separated list of attributes to be ignored for user entries in DS"
-msgstr ""
+msgstr "DS에서 사용자 항목을 위해 무시되는 속성의 쉼표로-구분된 목록"
 
 msgid ""
 "Comma-separated list of objectclasses to be ignored for group entries in DS"
-msgstr ""
+msgstr "DS에서 그룹 항목을 위해 무시되는 객체클래스의 쉼표로-구분된 목록"
 
 msgid ""
 "Comma-separated list of attributes to be ignored for group entries in DS"
-msgstr ""
+msgstr "DS에서 그룹 항목을 위해 무시되는 속성의 쉼표로-구분된 목록"
 
 msgid "comma-separated list of groups to exclude from migration"
 msgstr "이전에서 제외 하는 그룹의 쉼표로-구분된 목록"
@@ -19479,7 +19479,7 @@ msgstr "계정"
 
 #: ipaserver/plugins/internal.py:1515
 msgid "Add trust"
-msgstr ""
+msgstr "신뢰를 더하다"
 
 #: ipaserver/plugins/internal.py:1516
 msgid "Administrative account"
@@ -19487,11 +19487,11 @@ msgstr "관리 계정"
 
 #: ipaserver/plugins/internal.py:1517
 msgid "SID blocklists"
-msgstr ""
+msgstr "SID 차단목록"
 
 #: ipaserver/plugins/internal.py:1518
 msgid "Trust Settings"
-msgstr ""
+msgstr "신뢰 설정"
 
 #: ipaserver/plugins/internal.py:1520
 msgid "Establish using"
@@ -19555,11 +19555,11 @@ msgstr "계정 설정"
 
 #: ipaserver/plugins/internal.py:1554
 msgid "Account Status"
-msgstr ""
+msgstr "계정 상태"
 
 #: ipaserver/plugins/internal.py:1555
 msgid "Active users"
-msgstr ""
+msgstr "활성 사용자"
 
 #: ipaserver/plugins/internal.py:1556
 msgid "Add user"
