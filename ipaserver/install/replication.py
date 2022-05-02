@@ -64,9 +64,10 @@ WINSYNC = 2
 
 # List of attributes that need to be excluded from replication initialization.
 TOTAL_EXCLUDES = ('entryusn',
-                 'krblastsuccessfulauth',
-                 'krblastfailedauth',
-                 'krbloginfailedcount')
+                  'krblastsuccessfulauth',
+                  'krblastfailedauth',
+                  'krbloginfailedcount',
+                  'passwordgraceusertime',)
 
 # List of attributes that need to be excluded from normal replication.
 EXCLUDES = ('memberof', 'idnssoaserial') + TOTAL_EXCLUDES
