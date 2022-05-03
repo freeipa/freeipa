@@ -14,6 +14,12 @@ type ipa_otpd_t, ipa_domain;
 type ipa_otpd_exec_t;
 init_daemon_domain(ipa_otpd_t, ipa_otpd_exec_t)
 
+# for oidc_child communication with IdPs
+corenet_tcp_connect_http_port(ipa_otpd_t)
+kernel_dgram_send(ipa_otpd_t)
+allow ipa_otpd_t self:unix_dgram_socket { create getopt setopt };
+allow ipa_otpd_t ipa_otpd_exec_t:file execute_no_trans;
+
 type ipa_dnskey_t, ipa_domain;
 type ipa_dnskey_exec_t;
 init_daemon_domain(ipa_dnskey_t, ipa_dnskey_exec_t)
@@ -115,6 +121,7 @@ optional_policy(`
 	sssd_stream_connect(ipa_otpd_t)
 ')
 
+logging_send_syslog_msg(ipa_otpd_t)
 ########################################
 #
 # password policy local policy
