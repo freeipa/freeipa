@@ -576,7 +576,7 @@ class service(LDAPObject):
                   " authentication by SPAKE or FAST."
                   " With no indicator specified,"
                   " all authentication mechanisms are allowed."),
-            values=(u'radius', u'otp', u'pkinit', u'hardened'),
+            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp'),
         ),
     ) + ticket_flags_params
 
