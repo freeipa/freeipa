@@ -199,6 +199,38 @@ default:objectClass: top
 default:nsSystemIndex: false
 add:nsIndexType: eq
 
+dn: cn=ipaIdpDevAuthEndpoint,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaIdpDevAuthEndpoint
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=ipaIdpAuthEndpoint,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaIdpAuthEndpoint
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=ipaIdpScope,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaIdpScope
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
+dn: cn=ipaIdpTokenEndpoint,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaIdpTokenEndpoint
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: sub
+
 dn: cn=ipaKrbAuthzData,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 only:cn: ipaKrbAuthzData
 default:objectClass: nsIndex

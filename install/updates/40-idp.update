@@ -1,0 +1,13 @@
+dn: cn=idp,$SUFFIX
+default: objectClass: nsContainer
+default: objectClass: top
+default: cn: idp
+
+dn: cn=ipaidpconfiglink,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:cn: ipaidpconfiglink
+default:objectClass: nsIndex
+default:objectClass: top
+default:nsSystemIndex: false
+add:nsIndexType: eq
+add:nsIndexType: pres
+add:nsIndexType: sub
