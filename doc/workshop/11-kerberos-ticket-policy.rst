@@ -254,12 +254,70 @@ For example, an application might decide to only allow access to a specialized
 resource to people who used smart-card authentication initially, even if the
 application itself only supports Kerberos authentication.
 
-At the moment, there are no known applications that implement authentication
-indicator-based authorization. Instead, FreeIPA provides a check for an
-authentication indicator at KDC side. This means that a lack of a specific
-authentication indicator in TGT can result in denying an issuance of a requested
-service ticket. A consequence is that an application will never see any user
-with a ticket that does not contain a specified authentication indicator.
+At the moment, there is only one known application that implements
+authentication indicator-based authorization. Since version 2.6.0, SSSD provides
+a PAM module ``pam_sss_gss`` which allows to authenticate users with GSSAPI
+(Kerberos ticket) and optionally check authentication indicator that was used to
+obtain this ticket. More information can be found in the man page for
+``pam_sss_gss` and for ``sssd.conf`` where options starting with ``pam_gssapi_``
+prefix are documented. This feature was also backported to SSSD 2.4.2 and 2.5.0.
+
+For example, setting the following in SSSD configuration would allow GSSAPI
+authentication to ``sudo`` and ``sudo -i`` only if the Kerberos ticket was
+obtained with the use of a smartcard or certificate-based authentcation::
+
+   [pam]
+     pam_gssapi_services = sudo, sudo-i
+     pam_gssapi_indicators_map = sudo:pkinit, sudo-i:pkinit
+
+The actual enforcement requires use of ``pam_sss_gss`` module in the PAM stack.
+Fedora and RHEL distributions provide ``authselect`` tool to handle PAM and NSS
+configuration. ``authselect`` was extended to allow use of ``pam_sss_gss`` as
+SSSD feature ``with-gssapi``::
+
+  [root@client ~]# authselect enable-feature with-gssapi
+  Make sure that SSSD service is configured and enabled. See SSSD documentation for more information.
+
+  - with-gssapi is selected, make sure that GSSAPI authenticaiton is enabled in SSSD
+  - set pam_gssapi_services to a list of allowed services in /etc/sssd/sssd.conf
+  - see additional information in pam_sss_gss(8)
+
+Once this change made and SSSD configuration updated to allow PAM services to
+use GSSAPI authentication, it will be possible to use Kerberos ticket to
+authenticate over a chosen PAM service. A session below demonstrates it::
+
+   [root@client ~]# vim /etc/sssd/sssd.conf
+   [root@client ~]# systemctl restart sssd
+   [root@client ~]# id testuser
+   uid=167200003(testuser) gid=167200003(testuser) groups=167200003(testuser)
+   [root@client ~]# ssh testuser@`hostname`
+   (testuser@client.ipa.test) password:
+   Last login: Thu Mar 24 13:54:21 2022 from 192.168.122.141
+   -sh-5.1$ klist
+   Ticket cache: KCM:167200003:41683
+   Default principal: testuser@IPA.TEST
+
+   Valid starting     Expires            Service principal
+   03/25/22 13:47:55  03/26/22 13:04:47  krbtgt/IPA.TEST@IPA.TEST
+   -sh-5.1$ sudo -l
+   Matching Defaults entries for testuser on client:
+       !visiblepw, always_set_home, match_group_by_gid,
+       always_query_group_plugin, env_reset, env_keep="COLORS DISPLAY HOSTNAME
+       HISTSIZE KDEDIR LS_COLORS", env_keep+="MAIL QTDIR USERNAME LANG LC_ADDRESS
+       LC_CTYPE", env_keep+="LC_COLLATE LC_IDENTIFICATION LC_MEASUREMENT
+       LC_MESSAGES", env_keep+="LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER
+       LC_TELEPHONE", env_keep+="LC_TIME LC_ALL LANGUAGE LINGUAS _XKB_CHARSET
+       XAUTHORITY",
+       secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/var/lib/snapd/snap/bin
+
+   User testuser may run the following commands on dc:
+       (ALL) ALL
+
+FreeIPA also provides a check for an authentication indicator at KDC side. This
+means that a lack of a specific authentication indicator in TGT can result in
+denying an issuance of a requested service ticket. A consequence is that an
+application will never see any user with a ticket that does not contain a
+specified authentication indicator.
 
 In order to enable the check, add authentication indicator to a service using
 ``ipa service-mod`` command. We can create a new service and associate
