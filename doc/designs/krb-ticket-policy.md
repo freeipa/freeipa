@@ -18,6 +18,7 @@ Indicators and corresponding mechanisms are listed below:
 | otp                      | Two factor authentication (password + OTP) |
 | pkinit                   | PKINIT               |
 | hardened                 | Hardened Password (by SPAKE or FAST) |
+| idp                      | External Identity Provider |
 
 Hardened password means a password authentication with either SPAKE or FAST armoring enabled. 
 Although it is possible to assign separate indicators to SPAKE and FAST, when both SPAKE and FAST are used, 

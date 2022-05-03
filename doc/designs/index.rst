@@ -21,3 +21,5 @@ FreeIPA design documentation
    disable-stale-users.md
    ldapi-autobind-services.md
    subordinate-ids.md
+   external-idp/external-idp.md
+   external-idp/idp-api.md
