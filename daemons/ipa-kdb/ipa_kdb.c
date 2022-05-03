@@ -199,6 +199,7 @@ static const struct {
     { "otp", IPADB_USER_AUTH_OTP },
     { "pkinit", IPADB_USER_AUTH_PKINIT },
     { "hardened", IPADB_USER_AUTH_HARDENED },
+    { "idp", IPADB_USER_AUTH_IDP },
     { }
 };
 
