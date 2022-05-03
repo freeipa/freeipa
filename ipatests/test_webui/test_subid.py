@@ -125,17 +125,3 @@ class test_subid(UI_driver):
         self.assert_no_error_dialog()
         after_count = self.get_rows()
         assert len(before_count) < len(after_count)
-
-    @screenshot
-    def test_subid_del(self):
-        """
-        Test to remove subordinate id for given user.
-        """
-        self.init_app()
-        self.navigate_to_entity('subid', facet='search')
-        user_uid = self.get_record_pkey("some-user", "ipaowner",
-                                        table_name="ipauniqueid")
-        before_count = self.get_rows()
-        self.delete_record(user_uid, table_name="ipauniqueid")
-        after_count = self.get_rows()
-        assert len(before_count) > len(after_count)

@@ -16,12 +16,30 @@ define([
 
 var exp = IPA.subid = {};
 
+exp.search_facet_control_buttons_pre_op = function(spec, context) {
+    spec.control_buttons = [
+        {
+            name: 'add',
+            label: '@i18n:buttons.add',
+            icon: 'fa-plus'
+        },
+        {
+            name: 'refresh',
+            label: '@i18n:buttons.refresh',
+            icon: 'fa-refresh'
+        }
+    ];
+
+    return spec;
+};
+
 var make_spec = function() {
 return {
     name: 'subid',
     facets: [
         {
             $type: 'search',
+            $pre_ops: [ exp.search_facet_control_buttons_pre_op ],
             columns: [
                 'ipauniqueid',
                 'ipaowner',
