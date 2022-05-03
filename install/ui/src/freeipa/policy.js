@@ -166,7 +166,18 @@ return {
                             name: 'krbauthindmaxticketlife_hardened',
                             acl_param: 'krbauthindmaxticketlife',
                             measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxrenewableage_idp',
+                            acl_param: 'krbauthindmaxrenewableage',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxticketlife_idp',
+                            acl_param: 'krbauthindmaxticketlife',
+                            measurement_unit: 'seconds'
                         }
+
                     ]
                 }
             ],

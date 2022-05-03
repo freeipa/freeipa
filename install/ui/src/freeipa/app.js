@@ -58,6 +58,7 @@ define([
     './topology',
     './user',
     './vault',
+    './idp',
     'dojo/domReady!'
 ],function(app_container) {
     return app_container;
