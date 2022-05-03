@@ -323,7 +323,9 @@ BuildRequires:  python3-wheel
 
 %if %{with doc}
 BuildRequires: python3-sphinx
-BuildRequires: python3-m2r
+BuildRequires: plantuml
+BuildRequires: fontconfig
+BuildRequires: google-noto-sans-vf-fonts
 %endif
 
 #
