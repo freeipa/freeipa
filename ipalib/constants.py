@@ -155,6 +155,7 @@ DEFAULT_CONFIG = (
     ('container_ca_renewal',
         DN(('cn', 'ca_renewal'), ('cn', 'ipa'), ('cn', 'etc'))),
     ('container_subids', DN(('cn', 'subids'), ('cn', 'accounts'))),
+    ('container_idp', DN(('cn', 'idp'))),
 
     # Ports, hosts, and URIs:
     # Following values do not have any reasonable default.

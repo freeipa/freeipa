@@ -180,6 +180,16 @@ dn: cn=views,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || description || entryusn || gidnumber || ipaanchoruuid || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaGroupOverride)")(version 3.0;acl "permission:System: Read Group ID Overrides";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=views,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "createtimestamp || description || entryusn || gecos || gidnumber || homedirectory || ipaanchoruuid || ipaoriginaluid || ipasshpubkey || loginshell || memberof || modifytimestamp || objectclass || uid || uidnumber || usercertificate")(targetfilter = "(objectclass=ipaUserOverride)")(version 3.0;acl "permission:System: Read User ID Overrides";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=idp,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipaidp)")(version 3.0;acl "permission:System: Add External IdP server";allow (add) groupdn = "ldap:///cn=System: Add External IdP server,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=idp,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipaidp)")(version 3.0;acl "permission:System: Delete External IdP server";allow (delete) groupdn = "ldap:///cn=System: Delete External IdP server,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=idp,dc=ipa,dc=example
+aci: (targetattr = "cn || ipaidpauthendpoint || ipaidpclientid || ipaidpclientsecret || ipaidpdevauthendpoint || ipaidpissuerurl || ipaidpkeysendpoint || ipaidpscope || ipaidpsub || ipaidptokenendpoint || ipaidpuserinfoendpoint || objectclass")(targetfilter = "(objectclass=ipaidp)")(version 3.0;acl "permission:System: Modify External IdP server";allow (write) groupdn = "ldap:///cn=System: Modify External IdP server,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=idp,dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || entryusn || ipaidpauthendpoint || ipaidpclientid || ipaidpdevauthendpoint || ipaidpissuerurl || ipaidpkeysendpoint || ipaidpscope || ipaidpsub || ipaidptokenendpoint || ipaidpuserinfoendpoint || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaidp)")(version 3.0;acl "permission:System: Read External IdP server";allow (compare,read,search) groupdn = "ldap:///cn=System: Read External IdP server,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=idp,dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || entryusn || ipaidpauthendpoint || ipaidpclientid || ipaidpclientsecret || ipaidpdevauthendpoint || ipaidpissuerurl || ipaidpkeysendpoint || ipaidpscope || ipaidpsub || ipaidptokenendpoint || ipaidpuserinfoendpoint || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaidp)")(version 3.0;acl "permission:System: Read External IdP server client secret";allow (compare,read,search) groupdn = "ldap:///cn=System: Read External IdP server client secret,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=ranges,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || ipaautoprivategroups || ipabaseid || ipabaserid || ipaidrangesize || ipanttrusteddomainsid || iparangetype || ipasecondarybaserid || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaidrange)")(version 3.0;acl "permission:System: Read ID Ranges";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=views,cn=accounts,dc=ipa,dc=example

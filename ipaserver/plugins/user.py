@@ -626,6 +626,14 @@ class user_add(baseuser_add):
             answer = self.api.Object['radiusproxy'].get_dn_if_exists(rcl)
             entry_attrs['ipatokenradiusconfiglink'] = answer
 
+        rcl = entry_attrs.get('ipaidpconfiglink', None)
+        if rcl:
+            if 'ipaidpuser' not in entry_attrs['objectclass']:
+                entry_attrs['objectclass'].append('ipaidpuser')
+
+            answer = self.api.Object['idp'].get_dn_if_exists(rcl)
+            entry_attrs['ipaidpconfiglink'] = answer
+
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
                                  **options)
 
