@@ -40,6 +40,8 @@ parameters = [('krbauthindmaxrenewableage_radius', 'radius_maxrenew'),
               ('krbauthindmaxticketlife_otp', 'otp_maxlife'),
               ('krbauthindmaxrenewableage_hardened', 'hardened_maxrenew'),
               ('krbauthindmaxticketlife_hardened', 'hardened_maxlife'),
+              ('krbauthindmaxrenewableage_idp', 'idp_maxrenew'),
+              ('krbauthindmaxticketlife_idp', 'idp_maxlife'),
               ]
 
 
@@ -281,6 +283,51 @@ class test_krbtpolicy(Declarative):
                     krbauthindmaxrenewableage_otp=[u'3700'],
                     krbauthindmaxrenewableage_radius=[u'1'],
                     krbauthindmaxrenewableage_pkinit=[u'3800'],
+                ),
+            ),
+        ),
+        dict(
+            desc='Update maxrenew user ticket policy for '
+                 'auth indicator idp',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxrenewableage_idp=3900)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_radius=[u'1'],
+                    krbauthindmaxticketlife_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_otp=[u'3700'],
+                    krbauthindmaxrenewableage_radius=[u'1'],
+                    krbauthindmaxrenewableage_pkinit=[u'3800'],
+                    krbauthindmaxrenewableage_idp=[u'3900'],
+                ),
+            ),
+        ),
+        dict(
+            desc='Update maxlife user ticket policy for '
+                 'auth indicator idp',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxticketlife_idp=3900)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_radius=[u'1'],
+                    krbauthindmaxticketlife_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_otp=[u'3700'],
+                    krbauthindmaxrenewableage_radius=[u'1'],
+                    krbauthindmaxrenewableage_pkinit=[u'3800'],
+                    krbauthindmaxrenewableage_idp=[u'3900'],
+                    krbauthindmaxticketlife_idp=[u'3900'],
                 ),
             ),
         ),
