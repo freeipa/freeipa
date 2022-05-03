@@ -136,6 +136,10 @@ return {
                                 {
                                     label: '@i18n:authtype.type_hardened',
                                     value: 'hardened'
+                                },
+                                {
+                                    label: '@i18n:authtype.type_idp',
+                                    value: 'idp'
                                 }
                             ],
                             tooltip: {
