@@ -133,6 +133,15 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
                 goto done;
             }
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_HARDENED]);
+        } else if (strcmp(auth_indicator, "idp") == 0) {
+            valid_auth_indicators++;
+            /* Allow hardened even if only password pre-auth is allowed */
+            if (!(ua & IPADB_USER_AUTH_IDP)) {
+                *status = "IdP pre-authentication not allowed for this user.";
+                kerr = KRB5KDC_ERR_POLICY;
+                goto done;
+            }
+            pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_IDP]);
         }
     }
 
