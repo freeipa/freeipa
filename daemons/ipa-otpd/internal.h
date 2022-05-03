@@ -28,6 +28,13 @@
 
 #include <errno.h>
 
+#ifndef UCHAR_MAX
+#define UCHAR_MAX 255
+#endif
+
+/* RFC 2865 */
+#define MAX_ATTRSIZE (UCHAR_MAX - 2)
+
 #define SECRET ""
 #define otpd_log_req(req, ...) \
     otpd_log_req_(__FILE__, __LINE__, (req), __VA_ARGS__)
@@ -36,11 +43,28 @@
 
 struct otpd_queue_iter;
 
+enum ldap_query {
+    LDAP_QUERY_EMPTY = 0,
+    LDAP_QUERY_USER,
+    LDAP_QUERY_RADIUS,
+    LDAP_QUERY_RADIUS_USERMAP,
+    LDAP_QUERY_IDP,
+    LDAP_QUERY_END
+};
+
+enum oauth2_state {
+    OAUTH2_NO = 0,
+    OAUTH2_GET_ISSUER,
+    OAUTH2_GET_DEVICE_CODE,
+    OAUTH2_GET_ACCESS_TOKEN
+};
+
 struct otpd_queue_item {
     struct otpd_queue_item *next;
     krad_packet *req;
     krad_packet *rsp;
     size_t sent;
+    enum ldap_query ldap_query;
     char *error;
 
     struct {
@@ -48,6 +72,9 @@ struct otpd_queue_item {
         char *uid;
         char *ipatokenRadiusUserName;
         char *ipatokenRadiusConfigLink;
+        char *ipaidpSub;
+        char *ipaidpConfigLink;
+        char **ipauserauthtypes;
         char *other;
     } user;
 
@@ -58,6 +85,28 @@ struct otpd_queue_item {
         time_t ipatokenRadiusTimeout;
         size_t ipatokenRadiusRetries;
     } radius;
+
+    struct {
+        char *name;
+        char *ipaidpIssuerURL;
+        char *ipaidpDevAuthEndpoint;
+        char *ipaidpTokenEndpoint;
+        char *ipaidpUserInfoEndpoint;
+        char *ipaidpKeysEndpoint;
+        char *ipaidpClientID;
+        char *ipaidpClientSecret;
+        char *ipaidpScope;
+        char *ipaidpSub;
+        krb5_boolean valid;
+        char* ipaidpDebugLevelStr;
+        krb5_boolean ipaidpDebugCurl;
+    } idp;
+
+    struct {
+        char *device_code_reply;
+        krb5_data state;
+    } oauth2;
+
     int msgid;
 };
 
@@ -98,6 +147,10 @@ struct otpd_context {
         struct otpd_queue requests;
         struct otpd_queue responses;
     } bind;
+
+    struct {
+        struct otpd_queue states;
+    } oauth2_state;
 };
 
 extern struct otpd_context ctx;
@@ -143,8 +196,13 @@ krb5_error_code otpd_forward(struct otpd_queue_item **i);
 const char *otpd_parse_user(LDAP *ldp, LDAPMessage *entry,
                             struct otpd_queue_item *item);
 
+const char *otpd_parse_idp(LDAP *ldp, LDAPMessage *entry,
+                              struct otpd_queue_item *item);
+
 const char *otpd_parse_radius(LDAP *ldp, LDAPMessage *entry,
                               struct otpd_queue_item *item);
 
 const char *otpd_parse_radius_username(LDAP *ldp, LDAPMessage *entry,
                                        struct otpd_queue_item *item);
+
+int oauth2(struct otpd_queue_item **item, enum oauth2_state);

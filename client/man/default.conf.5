@@ -160,6 +160,9 @@ Specifies the mode the server is running in. The currently support values are \f
 .B mount_ipa <URI>
 Specifies the mount point that the development server will register. The default is /ipa/
 .TP
+.B oidc_child_debug_level <debuglevel>
+Specifies the debug level of \fBoidc_child\fR, a helper process used by \fBipa-otpd\fR for OIDC/OAuth2 authentication. Level can be between 0 and 10, the higher the more details. If the level is 6 or higher HTTP debug output is added as well.
+.TP
 .B prompt_all <boolean>
 Specifies that all options should be prompted for in the IPA client, even optional values. Default is False.
 .TP

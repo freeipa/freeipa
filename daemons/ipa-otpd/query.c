@@ -31,6 +31,7 @@
 #define _GNU_SOURCE 1 /* for asprintf() */
 #include "internal.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #define DEFAULT_TIMEOUT 15
 #define DEFAULT_RETRIES 3
@@ -39,6 +40,9 @@ static char *user[] = {
     "uid",
     "ipatokenRadiusUserName",
     "ipatokenRadiusConfigLink",
+    "ipaidpSub",
+    "ipaidpConfigLink",
+    "ipauserauthtype",
     NULL
 };
 
@@ -50,6 +54,37 @@ static char *radius[] = {
     "ipatokenUserMapAttribute",
     NULL
 };
+
+static char *idp[] = {
+    "ipaidpClientID",
+    "ipaidpClientSecret",
+    "ipaidpIssuerURL",
+    "ipaidpDevAuthEndpoint",
+    "ipaidpTokenEndpoint",
+    "ipaidpUserInfoEndpoint",
+    "ipaidpKeysEndpoint",
+    "ipaidpScope",
+    "ipaidpSub",
+    "cn",
+    NULL
+};
+
+static bool auth_type_is(char **auth_types, const char *check)
+{
+    size_t c;
+
+    if (auth_types == NULL || check == NULL) {
+        return false;
+    }
+
+    for(c = 0; auth_types[c] != NULL; c++) {
+        if (strcasecmp(auth_types[c], check) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /* Send queued LDAP requests to the server. */
 static void on_query_writable(verto_ctx *vctx, verto_ev *ev)
@@ -76,6 +111,7 @@ static void on_query_writable(verto_ctx *vctx, verto_ev *ev)
             goto error;
 
         otpd_log_req(item->req, "user query start");
+        item->ldap_query = LDAP_QUERY_USER;
 
         if (asprintf(&filter, "(&(objectClass=Person)(krbPrincipalName=%*s))",
                      princ->length, princ->data) < 0)
@@ -86,9 +122,20 @@ static void on_query_writable(verto_ctx *vctx, verto_ev *ev)
                             NULL, NULL, 1, &item->msgid);
         free(filter);
 
+    } else if (auth_type_is(item->user.ipauserauthtypes, "idp")) {
+        otpd_log_req(item->req, "idp query start: %s",
+                item->user.ipaidpConfigLink);
+        item->ldap_query = LDAP_QUERY_IDP;
+
+        i = ldap_search_ext(verto_get_private(ev),
+                            item->user.ipaidpConfigLink,
+                            LDAP_SCOPE_BASE, NULL, idp, 0, NULL,
+                            NULL, NULL, 1, &item->msgid);
+
     } else if (item->radius.ipatokenRadiusSecret == NULL) {
         otpd_log_req(item->req, "radius query start: %s",
                 item->user.ipatokenRadiusConfigLink);
+        item->ldap_query = LDAP_QUERY_RADIUS;
 
         i = ldap_search_ext(verto_get_private(ev),
                             item->user.ipatokenRadiusConfigLink,
@@ -98,6 +145,7 @@ static void on_query_writable(verto_ctx *vctx, verto_ev *ev)
     } else if (item->radius.ipatokenUserMapAttribute != NULL) {
         otpd_log_req(item->req, "username query start: %s",
                 item->radius.ipatokenUserMapAttribute);
+        item->ldap_query = LDAP_QUERY_RADIUS_USERMAP;
 
         attrs[0] = item->radius.ipatokenUserMapAttribute;
         attrs[1] = NULL;
@@ -107,12 +155,83 @@ static void on_query_writable(verto_ctx *vctx, verto_ev *ev)
     }
 
     if (i == LDAP_SUCCESS) {
-        item->sent++;
         push = &ctx.query.responses;
     }
 
 error:
     otpd_queue_push(push, item);
+}
+
+static enum oauth2_state get_oauth2_state(enum ldap_query ldap_query,
+                                          struct otpd_queue_item *item)
+{
+    const krb5_data *data_pwd;
+    const krb5_data *data_state;
+    enum oauth2_state oauth2_state = OAUTH2_NO;
+
+    data_pwd = krad_packet_get_attr(item->req,
+                                    krad_attr_name2num("User-Password"), 0);
+    data_state = krad_packet_get_attr(item->req,
+                                      krad_attr_name2num("Proxy-State"), 0);
+
+    if (data_pwd == NULL && data_state == NULL) {
+        oauth2_state = OAUTH2_GET_DEVICE_CODE;
+    } else if (data_pwd == NULL && data_state != NULL) {
+        oauth2_state = OAUTH2_GET_ACCESS_TOKEN;
+    }
+
+    /* Looks like caller does not expect oauth2 authentication */
+    if (oauth2_state == OAUTH2_NO) {
+        return oauth2_state;
+    }
+
+    if (ldap_query == LDAP_QUERY_USER) {
+        /* Check the user entry for required attributes */
+        if (item->user.ipaidpSub == NULL) {
+            oauth2_state = OAUTH2_NO;
+            otpd_log_req(item->req,
+                         "OAuth2 not possible, Missing 'sub' in user entry");
+        }
+        if (item->user.ipaidpConfigLink == NULL) {
+            oauth2_state = OAUTH2_NO;
+            otpd_log_req(item->req,
+                         "OAuth2 not possible, Missing issuer in user entry");
+        }
+
+        if (oauth2_state != OAUTH2_NO) {
+            /* Next step is to lookup IdP data */
+            oauth2_state = OAUTH2_GET_ISSUER;
+        }
+    } else if (ldap_query == LDAP_QUERY_IDP) {
+        /* Check the idp entry for required attributes */
+        if (item->idp.ipaidpIssuerURL == NULL) {
+            if (item->idp.ipaidpDevAuthEndpoint == NULL) {
+                oauth2_state = OAUTH2_NO;
+                otpd_log_req(item->req,
+                             "OAuth2 not possible, "
+                             "Missing authentication end-point in idp entry");
+            }
+            if (item->idp.ipaidpTokenEndpoint == NULL) {
+                oauth2_state = OAUTH2_NO;
+                otpd_log_req(item->req,
+                             "OAuth2 not possible, "
+                             "Missing access token end-point in idp entry");
+            }
+            if (item->idp.ipaidpUserInfoEndpoint == NULL) {
+                oauth2_state = OAUTH2_NO;
+                otpd_log_req(item->req,
+                             "OAuth2 not possible, "
+                             "Missing userinfo end-point in idp entry");
+            }
+        }
+        if (item->idp.ipaidpClientID == NULL) {
+            oauth2_state = OAUTH2_NO;
+            otpd_log_req(item->req,
+                         "OAuth2 not possible, Missing client ID in idp entry");
+        }
+    }
+
+    return oauth2_state;
 }
 
 /* Read LDAP responses from the server. */
@@ -126,6 +245,7 @@ static void on_query_readable(verto_ctx *vctx, verto_ev *ev)
     LDAP *ldp;
     int i;
     (void)vctx;
+    enum oauth2_state oauth2_state;
 
     ldp = verto_get_private(ev);
 
@@ -150,15 +270,18 @@ static void on_query_readable(verto_ctx *vctx, verto_ev *ev)
             goto egress;
 
         err = NULL;
-        switch (item->sent) {
-        case 1:
+        switch (item->ldap_query) {
+        case LDAP_QUERY_USER:
             err = otpd_parse_user(ldp, entry, item);
             break;
-        case 2:
+        case LDAP_QUERY_RADIUS:
             err = otpd_parse_radius(ldp, entry, item);
             break;
-        case 3:
+        case LDAP_QUERY_RADIUS_USERMAP:
             err = otpd_parse_radius_username(ldp, entry, item);
+            break;
+        case LDAP_QUERY_IDP:
+            err = otpd_parse_idp(ldp, entry, item);
             break;
         default:
             ldap_msgfree(entry);
@@ -181,14 +304,14 @@ static void on_query_readable(verto_ctx *vctx, verto_ev *ev)
 
     item->msgid = -1;
 
-    switch (item->sent) {
-    case 1:
+    switch (item->ldap_query) {
+    case LDAP_QUERY_USER:
         otpd_log_req(item->req, "user query end: %s",
                 item->error == NULL ? item->user.dn : item->error);
         if (item->user.dn == NULL || item->user.uid == NULL)
             goto egress;
         break;
-    case 2:
+    case LDAP_QUERY_RADIUS:
         otpd_log_req(item->req, "radius query end: %s",
                 item->error == NULL
                     ? item->radius.ipatokenRadiusServer
@@ -197,22 +320,47 @@ static void on_query_readable(verto_ctx *vctx, verto_ev *ev)
             item->radius.ipatokenRadiusSecret == NULL)
             goto egress;
         break;
-    case 3:
+    case LDAP_QUERY_RADIUS_USERMAP:
         otpd_log_req(item->req, "username query end: %s",
                 item->error == NULL ? item->user.other : item->error);
+        break;
+    case LDAP_QUERY_IDP:
+        otpd_log_req(item->req, "idp query end: %s",
+                item->error == NULL ? item->idp.name : item->error);
+        if (!item->idp.valid) {
+            goto egress;
+        }
         break;
     default:
         goto egress;
     }
 
-    if (item->error != NULL)
-        goto egress;
-
-    if (item->sent == 1 && item->user.ipatokenRadiusConfigLink != NULL) {
+    /* Check for oauth2 */
+    oauth2_state = get_oauth2_state(item->ldap_query, item);
+    if (oauth2_state == OAUTH2_GET_ISSUER) {
         push = &ctx.query.requests;
         event = ctx.query.io;
         goto egress;
-    } else if (item->sent == 2 &&
+    } else if (oauth2_state != OAUTH2_NO) {
+        i = oauth2(&item, oauth2_state);
+        if (i != 0) {
+            goto egress;
+        } else {
+            /* oauth2 will call ctx.stdio.writer, so we can return here */
+            return;
+        }
+    }
+
+    if (item->error != NULL)
+        goto egress;
+
+    if (item->ldap_query == LDAP_QUERY_USER &&
+        item->user.ipatokenRadiusConfigLink != NULL) {
+
+        push = &ctx.query.requests;
+        event = ctx.query.io;
+        goto egress;
+    } else if (item->ldap_query == LDAP_QUERY_RADIUS &&
                item->radius.ipatokenUserMapAttribute != NULL &&
                item->user.ipatokenRadiusUserName == NULL) {
         push = &ctx.query.requests;
