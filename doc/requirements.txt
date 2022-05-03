@@ -1,8 +1,11 @@
-## m2r is not compatible with Sphinx 3.x yet
-sphinx >2.1,<3.0
+wheel
 
-## convert markdown to rest
-m2r
+sphinx
+
+# convert markdown to rest
+# m2r2 fork is active in development and works with
+# newer sphinx versions
+m2r2
 
 ## ipa dependencies
 dnspython
@@ -26,3 +29,7 @@ lxml
 
 ## No sufficient PyPI packages
 # dogtag-pki
+
+# Sequence diagrams generator
+sphinxcontrib-plantuml
+pillow
