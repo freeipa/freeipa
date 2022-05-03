@@ -9,7 +9,8 @@ ipa_otpd_LDADD = $(top_builddir)/util/libutil.la
 dist_noinst_DATA = ipa-otpd.socket.in ipa-otpd@.service.in test.py
 systemdsystemunit_DATA = ipa-otpd.socket ipa-otpd@.service
 
-ipa_otpd_SOURCES = bind.c forward.c main.c parse.c query.c queue.c stdio.c
+ipa_otpd_SOURCES = bind.c forward.c main.c parse.c query.c queue.c stdio.c \
+                   oauth2.c
 
 %.socket: %.socket.in
 	@sed -e 's|@krb5rundir[@]|$(krb5rundir)|g' \

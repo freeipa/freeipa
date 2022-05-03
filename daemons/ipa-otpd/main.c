@@ -242,7 +242,8 @@ int main(int argc, char **argv)
         goto error;
     }
 
-    ctx.vctx = verto_new(NULL, VERTO_EV_TYPE_IO | VERTO_EV_TYPE_SIGNAL);
+    ctx.vctx = verto_default(NULL, VERTO_EV_TYPE_IO | VERTO_EV_TYPE_SIGNAL
+                                                    | VERTO_EV_TYPE_CHILD);
     if (ctx.vctx == NULL) {
         otpd_log_err(ENOMEM, "Unable to initialize event loop");
         goto error;
@@ -342,4 +343,3 @@ error:
     krb5_free_context(ctx.kctx);
     return ctx.exitstatus;
 }
-
