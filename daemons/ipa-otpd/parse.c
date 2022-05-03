@@ -24,8 +24,11 @@
  * This file parses the user's configuration received from LDAP (see query.c).
  */
 
+#define _GNU_SOURCE  /* for asprintf() */
 #include "internal.h"
+#include <asm-generic/errno-base.h>
 #include <ctype.h>
+#include <krb5/krb5.h>
 
 #define DEFAULT_TIMEOUT 15
 #define DEFAULT_RETRIES 3
@@ -63,6 +66,69 @@ static int get_string(LDAP *ldp, LDAPMessage *entry, const char *name,
     *out = buf;
     ldap_value_free_len(vals);
     return 0;
+}
+
+/* Convert an LDAP entry into an allocated string array. */
+static int get_string_array(LDAP *ldp, LDAPMessage *entry, const char *name,
+                            char ***out)
+{
+    struct berval **vals;
+    ber_len_t i;
+    char **buf;
+    int tmp;
+    size_t count;
+    size_t c;
+    int ret;
+
+    vals = ldap_get_values_len(ldp, entry, name);
+    if (vals == NULL)
+        return ENOENT;
+
+    tmp = ldap_count_values_len(vals);
+    if (tmp < 0) {
+        ret = ENOENT;
+        goto done;
+    }
+    count = (size_t) tmp;
+
+    buf = calloc(count + 1, sizeof(char *));
+    if (buf == NULL) {
+        ret = ENOMEM;
+        goto done;
+    }
+
+    for (c = 0; c < count; c++) {
+        buf[c] = calloc(vals[c]->bv_len + 1, sizeof(char));
+        if (buf[c] == NULL) {
+            ret = ENOMEM;
+            goto done;
+        }
+
+        for (i = 0; i < vals[c]->bv_len; i++) {
+            if (!isprint(vals[c]->bv_val[i])) {
+                ret = EINVAL;
+                goto done;
+            }
+
+            buf[c][i] = vals[c]->bv_val[i];
+        }
+    }
+
+    if (*out != NULL)
+        free(*out);
+    *out = buf;
+
+    ret = 0;
+
+done:
+    if (ret != 0 && buf != NULL) {
+        for (c = 0; buf[c] != NULL; c++) {
+            free(buf[c]);
+        }
+        free(buf);
+    }
+    ldap_value_free_len(vals);
+    return ret;
 }
 
 /* Convert an LDAP entry into an unsigned long. */
@@ -112,6 +178,21 @@ const char *otpd_parse_user(LDAP *ldp, LDAPMessage *entry,
   if (i != 0 && i != ENOENT)
       return strerror(i);
 
+  i = get_string(ldp, entry, "ipaidpSub",
+                 &item->user.ipaidpSub);
+  if (i != 0 && i != ENOENT)
+      return strerror(i);
+
+  i = get_string(ldp, entry, "ipaidpConfigLink",
+                 &item->user.ipaidpConfigLink);
+  if (i != 0 && i != ENOENT)
+      return strerror(i);
+
+  i = get_string_array(ldp, entry, "ipauserauthtype",
+                       &item->user.ipauserauthtypes);
+  if (i != 0 && i != ENOENT)
+      return strerror(i);
+
   /* Get the DN. */
   item->user.dn = ldap_get_dn(ldp, entry);
   if (item->user.dn == NULL) {
@@ -120,6 +201,101 @@ const char *otpd_parse_user(LDAP *ldp, LDAPMessage *entry,
   }
 
   return NULL;
+}
+
+#define ENV_OIDC_CHILD_DEBUG_LEVEL "oidc_child_debug_level"
+/* Parse the IdP configuration */
+const char *otpd_parse_idp(LDAP *ldp, LDAPMessage *entry,
+                              struct otpd_queue_item *item)
+{
+    int i;
+    long dbg_lvl = 0;
+    const char *dbg_env = NULL;
+    char *endptr = NULL;
+
+    item->idp.valid = FALSE;
+    i = get_string(ldp, entry, "cn", &item->idp.name);
+    if (i != 0) {
+        return strerror(i);
+    }
+
+    i = get_string(ldp, entry, "ipaidpIssuerURL", &item->idp.ipaidpIssuerURL);
+    if ((i != 0) && (i != ENOENT)) {
+        return strerror(i);
+    }
+
+    /* We support either passing issuer URL or individual end-points */
+    if (i == ENOENT) {
+        i = get_string(ldp, entry, "ipaidpDevAuthEndpoint", &item->idp.ipaidpDevAuthEndpoint);
+        if (i != 0) {
+            return strerror(i);
+        }
+
+        i = get_string(ldp, entry, "ipaidpTokenEndpoint", &item->idp.ipaidpTokenEndpoint);
+        if (i != 0) {
+            return strerror(i);
+        }
+
+        i = get_string(ldp, entry, "ipaidpUserInfoEndpoint", &item->idp.ipaidpUserInfoEndpoint);
+        if (i != 0) {
+            return strerror(i);
+        }
+
+        /* JWKS end-point may be optional */
+        i = get_string(ldp, entry, "ipaidpKeysEndpoint", &item->idp.ipaidpKeysEndpoint);
+        if ((i != 0) && (i != ENOENT)) {
+            return strerror(i);
+        }
+    }
+
+    i = get_string(ldp, entry, "ipaidpClientID", &item->idp.ipaidpClientID);
+    if (i != 0) {
+        return strerror(i);
+    }
+
+    i = get_string(ldp, entry, "ipaidpClientSecret", &item->idp.ipaidpClientSecret);
+    if ((i != 0) && (i != ENOENT)) {
+        return strerror(i);
+    }
+
+    i = get_string(ldp, entry, "ipaidpScope", &item->idp.ipaidpScope);
+    if ((i != 0) && (i != ENOENT)) {
+        return strerror(i);
+    }
+
+    i = get_string(ldp, entry, "ipaidpSub", &item->idp.ipaidpSub);
+    if ((i != 0) && (i != ENOENT)) {
+        return strerror(i);
+    }
+
+    item->idp.ipaidpDebugLevelStr = NULL;
+    item->idp.ipaidpDebugCurl = FALSE;
+    dbg_env = getenv(ENV_OIDC_CHILD_DEBUG_LEVEL);
+    if (dbg_env != NULL && *dbg_env != '\0') {
+        errno = 0;
+        dbg_lvl = strtoul(dbg_env, &endptr, 10);
+        if (errno == 0 && *endptr == '\0') {
+            if (dbg_lvl < 0) {
+                dbg_lvl = 0;
+            } else if (dbg_lvl > 10) {
+                dbg_lvl = 10;
+            }
+            if (asprintf(&item->idp.ipaidpDebugLevelStr, "%ld", dbg_lvl) != -1) {
+                if (dbg_lvl > 5) {
+                    item->idp.ipaidpDebugCurl = TRUE;
+                }
+            } else {
+                otpd_log_req(item->req, "Failed to copy debug level");
+            }
+        } else {
+            otpd_log_req(item->req,
+                         "Cannot parse value [%s] from environment variable [%s]",
+                         dbg_env, ENV_OIDC_CHILD_DEBUG_LEVEL);
+        }
+    }
+
+    item->idp.valid = TRUE;
+    return NULL;
 }
 
 /* Parse the user's RADIUS configuration. */

@@ -166,6 +166,7 @@ void otpd_on_stdout_writable(verto_ctx *vctx, verto_ev *ev)
 
     /* Send the packet. */
     data = krad_packet_encode(item->rsp);
+    otpd_log_req(item->req, "sent: %d data: %d", item->sent, data->length);
     i = write(verto_get_fd(ev), data->data + item->sent,
               data->length - item->sent);
     if (i < 0) {
@@ -191,6 +192,7 @@ void otpd_on_stdout_writable(verto_ctx *vctx, verto_ev *ev)
 
     /* If the packet was completely sent, free the response. */
     item->sent += i;
+    otpd_log_req(item->req, "..sent: %d data: %d", item->sent, data->length);
     if (item->sent == data->length) {
         otpd_log_req(item->req, "response sent: %s",
                 krad_code_num2name(krad_packet_get_code(item->rsp)));

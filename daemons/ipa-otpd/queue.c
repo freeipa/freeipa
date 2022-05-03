@@ -46,6 +46,8 @@ krb5_error_code otpd_queue_item_new(krad_packet *req,
 
 void otpd_queue_item_free(struct otpd_queue_item *item)
 {
+    size_t c;
+
     if (item == NULL)
         return;
 
@@ -54,9 +56,34 @@ void otpd_queue_item_free(struct otpd_queue_item *item)
     free(item->user.ipatokenRadiusUserName);
     free(item->user.ipatokenRadiusConfigLink);
     free(item->user.other);
+    free(item->user.ipaidpSub);
+    free(item->user.ipaidpConfigLink);
+    if (item->user.ipauserauthtypes != NULL) {
+        for (c = 0; item->user.ipauserauthtypes[c] != NULL; c++) {
+            free(item->user.ipauserauthtypes[c]);
+        }
+        free(item->user.ipauserauthtypes);
+    }
     free(item->radius.ipatokenRadiusServer);
     free(item->radius.ipatokenRadiusSecret);
     free(item->radius.ipatokenUserMapAttribute);
+    free(item->idp.ipaidpIssuerURL);
+    free(item->idp.ipaidpDevAuthEndpoint);
+    free(item->idp.ipaidpTokenEndpoint);
+    free(item->idp.ipaidpUserInfoEndpoint);
+    free(item->idp.ipaidpKeysEndpoint);
+    free(item->idp.name);
+    free(item->idp.ipaidpClientID);
+    if (item->idp.ipaidpClientSecret != NULL) {
+        size_t len = strlen(item->idp.ipaidpClientSecret);
+        (void*) memset(item->idp.ipaidpClientSecret, 0, len);
+        free(item->idp.ipaidpClientSecret);
+    }
+    free(item->idp.ipaidpScope);
+    free(item->idp.ipaidpSub);
+    free(item->idp.ipaidpDebugLevelStr);
+    free(item->oauth2.device_code_reply);
+    free(item->oauth2.state.data);
     free(item->error);
     krad_packet_free(item->req);
     krad_packet_free(item->rsp);
