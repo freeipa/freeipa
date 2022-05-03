@@ -239,7 +239,8 @@ return {
                                 { label: '@i18n:authtype.type_radius', value: 'radius' },
                                 { label: '@i18n:authtype.type_otp', value: 'otp' },
                                 { label: '@i18n:authtype.type_pkinit', value: 'pkinit' },
-                                { label: '@i18n:authtype.type_hardened', value: 'hardened' }
+                                { label: '@i18n:authtype.type_hardened', value: 'hardened' },
+                                { label: '@i18n:authtype.type_idp', value: 'idp' }
                             ],
                             tooltip: {
                                 title: '@i18n:authtype.user_tooltip',
@@ -255,6 +256,17 @@ return {
                         },
                         {
                             name: 'ipatokenradiususername',
+                            flags: ['w_if_no_aci']
+                        },
+                        {
+                            $type: 'entity_select',
+                            name: 'ipaidpconfiglink',
+                            flags: ['w_if_no_aci'],
+                            other_entity: 'idp',
+                            other_field: 'cn'
+                        },
+                        {
+                            name: 'ipaidpsub',
                             flags: ['w_if_no_aci']
                         }
                     ]

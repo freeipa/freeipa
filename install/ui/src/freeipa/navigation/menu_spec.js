@@ -185,6 +185,7 @@ var nav = {};
                 },
                 { entity: 'otptoken' },
                 { entity: 'radiusproxy' },
+                { entity: 'idp' },
                 {
                     entity: 'certmaprule',
                     facet: 'search',
