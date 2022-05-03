@@ -22,3 +22,4 @@ add: referint-membership-attr: ipamembercertprofile
 add: referint-membership-attr: ipalocation
 add: referint-membership-attr: membermanager
 add: referint-membership-attr: ipaowner
+add: referint-membership-attr: ipaidpconfiglink

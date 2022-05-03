@@ -40,6 +40,7 @@ app_DATA =				\
 	40-dns.update			\
 	40-automember.update		\
 	40-certprofile.update		\
+	40-idp.update			\
 	40-otp.update			\
 	40-vault.update			\
 	41-caacl.update			\
