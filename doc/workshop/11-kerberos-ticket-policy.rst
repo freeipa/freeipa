@@ -97,6 +97,7 @@ radius                      RADIUS
 otp                         FreeIPA two factor authentication (password + OTP)
 pkinit                      PKINIT, smart-card or certificate authentication
 hardened                    Hardened Password (by SPAKE or FAST)
+idp                         External Identity Provider
 =========================   ========================
 
 **Hardened** authentication indicator is set by FreeIPA KDC when a Kerberos
