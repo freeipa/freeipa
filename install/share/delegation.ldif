@@ -307,3 +307,11 @@ dn: $SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate remove hold,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Certificate Remove Hold"; allow (write) groupdn = "ldap:///cn=Certificate Remove Hold,cn=permissions,cn=pbac,$SUFFIX";)
+
+dn: cn=External IdP server Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: External IdP server Administrators
+description: External IdP server Administrators

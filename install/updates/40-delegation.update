@@ -299,3 +299,10 @@ default:objectClass: groupofnames
 default:objectClass: nestedgroup
 default:cn: DNS Servers
 default:description: DNS Servers
+
+dn: cn=External IdP server Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:cn: External IdP server Administrators
+default:description: External IdP server Administrators
