@@ -239,3 +239,8 @@ certmapconfig = [
     u'nsContainer',
     u'ipaCertMapConfigObject',
 ]
+
+idp = [
+    'top',
+    'ipaidp',
+]
