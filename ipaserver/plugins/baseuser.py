@@ -87,11 +87,20 @@ def validate_nsaccountlock(entry_attrs):
                 raise errors.ValidationError(name='nsaccountlock',
                     error=_('must be TRUE or FALSE'))
 
+
 def radius_dn2pk(api, entry_attrs):
     cl = entry_attrs.get('ipatokenradiusconfiglink', None)
     if cl:
         pk = api.Object['radiusproxy'].get_primary_key_from_dn(cl[0])
         entry_attrs['ipatokenradiusconfiglink'] = [pk]
+
+
+def idp_dn2pk(api, entry_attrs):
+    cl = entry_attrs.get('ipaidpconfiglink', None)
+    if cl:
+        pk = api.Object['idp'].get_primary_key_from_dn(cl[0])
+        entry_attrs['ipaidpconfiglink'] = [pk]
+
 
 def convert_nsaccountlock(entry_attrs):
     if 'nsaccountlock' not in entry_attrs:
@@ -161,7 +170,7 @@ class baseuser(LDAPObject):
     possible_objectclasses = [
         'meporiginentry', 'ipauserauthtypeclass', 'ipauser',
         'ipatokenradiusproxyuser', 'ipacertmapobject',
-        'ipantuserattrs',
+        'ipantuserattrs', 'ipaidpuser',
     ]
     disallow_object_classes = ['krbticketpolicyaux']
     permission_filter_objectclasses = ['posixaccount']
@@ -172,6 +181,7 @@ class baseuser(LDAPObject):
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
         'memberofindirect', 'ipauserauthtype', 'userclass',
         'ipatokenradiusconfiglink', 'ipatokenradiususername',
+        'ipaidpconfiglink', 'ipaidpsub',
         'krbprincipalexpiration', 'usercertificate;binary',
         'krbprincipalname', 'krbcanonicalname',
         'ipacertmapdata', 'ipantlogonscript', 'ipantprofilepath',
@@ -360,7 +370,8 @@ class baseuser(LDAPObject):
             cli_name='user_auth_type',
             label=_('User authentication types'),
             doc=_('Types of supported user authentication'),
-            values=(u'password', u'radius', u'otp', u'pkinit', u'hardened'),
+            values=(u'password', u'radius', u'otp', u'pkinit', u'hardened',
+                    u'idp'),
         ),
         Str('userclass*',
             cli_name='class',
@@ -376,6 +387,15 @@ class baseuser(LDAPObject):
             cli_name='radius_username',
             label=_('RADIUS proxy username'),
         ),
+        Str('ipaidpconfiglink?',
+            cli_name='idp',
+            label=_('External IdP configuration'),
+            ),
+        Str('ipaidpsub?',
+            cli_name='idp_user_id',
+            label=_('External IdP user identifier'),
+            doc=_('A string that identifies the user at external IdP'),
+            ),
         Str('departmentnumber*',
             label=_('Department Number'),
         ),
@@ -544,6 +564,9 @@ class baseuser_add(LDAPCreate):
         if entry_attrs.get('ipauserauthtype', None):
             add_missing_object_class(ldap, u'ipauserauthtypeclass', dn,
                                      entry_attrs, update=False)
+        if entry_attrs.get('ipaidpconfiglink', None):
+            add_missing_object_class(ldap, 'ipaidpuser', dn,
+                                     entry_attrs, update=False)
 
     def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
@@ -553,6 +576,7 @@ class baseuser_add(LDAPCreate):
         if 'nsaccountlock' in entry_attrs:
             convert_nsaccountlock(entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
+        idp_dn2pk(self.api, entry_attrs)
 
 
 class baseuser_del(LDAPDelete):
@@ -637,7 +661,8 @@ class baseuser_mod(LDAPUpdate):
     def check_objectclass(self, ldap, dn, entry_attrs):
         # Some attributes may require additional object classes
         special_attrs = {'ipasshpubkey', 'ipauserauthtype', 'userclass',
-                         'ipatokenradiusconfiglink', 'ipatokenradiususername'}
+                         'ipatokenradiusconfiglink', 'ipatokenradiususername',
+                         'ipaidpconfiglink'}
         if special_attrs.intersection(entry_attrs):
             if 'objectclass' in entry_attrs:
                 obj_classes = entry_attrs['objectclass']
@@ -665,6 +690,15 @@ class baseuser_mod(LDAPUpdate):
 
                     answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
                     entry_attrs['ipatokenradiusconfiglink'] = answer
+
+            if 'ipaidpconfiglink' in entry_attrs:
+                cl = entry_attrs['ipaidpconfiglink']
+                if cl:
+                    if 'ipaidpuser' not in obj_classes:
+                        entry_attrs['objectclass'].append('ipaidpuser')
+
+                    answer = self.api.Object['idp'].get_dn_if_exists(cl)
+                    entry_attrs['ipaidpconfiglink'] = answer
 
             # Note: we could have used the method add_missing_object_class
             # but since the data is already fetched and lowercased in
@@ -708,6 +742,7 @@ class baseuser_mod(LDAPUpdate):
         convert_sshpubkey_post(entry_attrs)
         remove_sshpubkey_from_output_post(self.context, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
+        idp_dn2pk(self.api, entry_attrs)
 
 class baseuser_find(LDAPSearch):
     """
@@ -731,6 +766,11 @@ class baseuser_find(LDAPSearch):
         cl = 'ipatokenradiusconfiglink'
         if cl in options:
             newoptions[cl] = self.api.Object['radiusproxy'].get_dn(options[cl])
+
+        # Ensure that the IdP config link is a dn, not just the name
+        cl = 'ipaidpconfiglink'
+        if cl in options:
+            newoptions[cl] = self.api.Object['idp'].get_dn(options[cl])
 
     def pre_common_callback(self, ldap, filters, attrs_list, base_dn, scope,
                             *args, **options):
@@ -761,6 +801,7 @@ class baseuser_show(LDAPRetrieve):
         convert_sshpubkey_post(entry_attrs)
         remove_sshpubkey_from_output_post(self.context, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
+        idp_dn2pk(self.api, entry_attrs)
 
 
 class baseuser_add_manager(LDAPAddMember):

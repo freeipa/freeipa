@@ -425,6 +425,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.container_hbacservicegroup = DN()
     api.env.container_host = DN()
     api.env.container_hostgroup = DN()
+    api.env.container_idp = DN()
     api.env.container_locations = DN()
     api.env.container_masters = DN()
     api.env.container_netgroup = DN()

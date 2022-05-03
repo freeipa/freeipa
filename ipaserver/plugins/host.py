@@ -601,9 +601,11 @@ class host(LDAPObject):
                   " Use 'pkinit' to allow PKINIT-based 2FA authentications."
                   " Use 'hardened' to allow brute-force hardened password"
                   " authentication by SPAKE or FAST."
+                  " Use 'idp' to allow External Identity Provider"
+                  " authentications."
                   " With no indicator specified,"
                   " all authentication mechanisms are allowed."),
-            values=(u'radius', u'otp', u'pkinit', u'hardened'),
+            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp'),
         ),
     ) + ticket_flags_params
 

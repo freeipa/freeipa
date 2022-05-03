@@ -75,7 +75,7 @@ _default_values = {
 # These attributes never have non-optional values, so they should be
 # ignored in post callbacks
 _option_based_attrs = ('krbauthindmaxticketlife', 'krbauthindmaxrenewableage')
-_supported_options = ('otp', 'radius', 'pkinit', 'hardened')
+_supported_options = ('otp', 'radius', 'pkinit', 'hardened', 'idp')
 
 @register()
 class krbtpolicy(baseldap.LDAPObject):
@@ -186,6 +186,18 @@ class krbtpolicy(baseldap.LDAPObject):
             cli_name='hardened_maxrenew',
             label=_('Hardened max renew'),
             doc=_('Hardened ticket maximum renewable age (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxticketlife_idp?',
+            cli_name='idp_maxlife',
+            label=_('IdP max life'),
+            doc=_('External Identity Provider ticket maximum ticket life '
+                  '(seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxrenewableage_idp?',
+            cli_name='idp_maxrenew',
+            label=_('IdP max renew'),
+            doc=_('External Identity Provider ticket maximum renewable '
+                  'age (seconds)'),
             minvalue=1),
     )
 
