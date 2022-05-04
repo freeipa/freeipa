@@ -149,8 +149,8 @@
 # RHEL 8.2+, F32+ has 3.58
 %global nss_version 3.44.0-4
 
-# RHEL 8.3+, F32+
-%global sssd_version 2.4.0
+# RHEL 8.7+, F35+, adds IdP integration
+%global sssd_version 2.7.0
 
 %define krb5_base_version %(LC_ALL=C /usr/bin/pkgconf --modversion krb5 | grep -Eo '^[^.]+\.[^.]+' || echo %krb5_version)
 %global kdcproxy_version 0.4-3
