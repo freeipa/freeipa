@@ -1,6 +1,6 @@
 wheel
 
-sphinx
+sphinx > 3.0
 
 # convert markdown to rest
 # m2r2 fork is active in development and works with
