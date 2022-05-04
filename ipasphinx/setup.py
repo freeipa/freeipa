@@ -16,6 +16,5 @@ if __name__ == "__main__":
         doc=__doc__,
         package_dir={"ipasphinx": ""},
         packages=["ipasphinx"],
-        # m2r is not compatible with Sphinx 3.x yet
-        install_requires=["ipaserver", "ipalib", "sphinx < 3.0", "m2r"],
+        install_requires=["ipaserver", "ipalib", "sphinx", "m2r2"],
     )
