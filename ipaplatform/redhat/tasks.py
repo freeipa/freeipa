@@ -765,6 +765,12 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         authselect_cmd = [paths.AUTHSELECT, "disable-feature",
                           "with-custom-automount"]
-        ipautil.run(authselect_cmd)
+        try:
+            ipautil.run(authselect_cmd)
+        except ipautil.CalledProcessError:
+            logger.info("Unable to disable with-custom-automount feature")
+            logger.info("It may happen if the configuration was done "
+                        "using authconfig instead of authselect")
+
 
 tasks = RedHatTaskNamespace()
