@@ -38,7 +38,7 @@ Optional units—choose the topics that are relevant to you:
 - `Unit 9: SELinux User Maps <9-selinux-user-map.rst>`_
 - `Unit 10: SSH user and host key management <10-ssh-key-management.rst>`_
 - `Unit 11: Kerberos ticket policy <11-kerberos-ticket-policy.rst>`_
-
+- `Unit 12: External IdP support <12-external-idp-support.rst>`_
 
 Editing files on VMs
 --------------------
