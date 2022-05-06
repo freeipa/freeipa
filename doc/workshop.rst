@@ -17,6 +17,7 @@ FreeIPA workshop
    workshop/9-selinux-user-map.rst
    workshop/10-ssh-key-management.rst
    workshop/11-kerberos-ticket-policy.rst
+   workshop/12-external-idp-support.rst
 
 .. toctree::
    :includehidden:
