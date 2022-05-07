@@ -1459,8 +1459,7 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
         tasks.uninstall_replica(cls.master, cls.replicas[0])
         tasks.uninstall_master(cls.master)
         tasks.install_master(
-            cls.master, setup_dns=False, extra_args=['--no-dnssec-validation']
-        )
+            cls.master, setup_dns=False)
 
     def test_ipa_dns_systemrecords_check(self):
         """
