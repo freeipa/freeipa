@@ -39,6 +39,7 @@ import time
 import textwrap
 import io
 from contextlib import contextmanager
+from configparser import RawConfigParser, ParsingError
 import locale
 import collections
 import urllib
@@ -1757,3 +1758,41 @@ class Sleeper:
         dur = min(self.deadline - now, self.sleep)
         time.sleep(dur)
         return True
+
+
+def get_config_debug(context):
+    """A simplified version of ipalib/config in order to determine if the
+       API should be bootstrapped in debug mode or not.
+
+       A number of daemons setup logging, then bootstrap the API in order
+       to capture the startup. This presents a chicken-and-egg problem
+       over debug output.
+
+       Debug is rather spammy and probably shouldn't be enabled by default
+       but if some problem is occuring during startup we want a way to
+       see that.
+
+       So use this limited function to pluck out the debug value out of
+       the system context config file (in_tree is not supported, another
+       chicken-and-egg).
+
+       This isn't more generalized for two reasons:
+           1. There is currently only a need for 'debug'
+           2. Type conversion. They will all be strings.
+    """
+    CONFIG_SECTION = 'global'  # duplicated from ipalib.constants
+    config_file = os.path.join('/', 'etc', 'ipa', '%s.conf' % context)
+
+    parser = RawConfigParser()
+    try:
+        parser.read(config_file)
+    except ParsingError:
+        return False
+
+    if not parser.has_section(CONFIG_SECTION):
+        return False
+
+    if not parser.has_option(CONFIG_SECTION, 'debug'):
+        return False
+
+    return parser.get(CONFIG_SECTION, 'debug').lower() == 'true'

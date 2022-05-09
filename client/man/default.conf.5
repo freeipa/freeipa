@@ -78,7 +78,7 @@ Specifies the insecure CA end user port. The default is 8080.
 The time to wait for a certmonger request to complete during installation. The default value is 300 seconds.
 .TP
 .B context <context>
-Specifies the context that IPA is being executed in. IPA may operate differently depending on the context. The current defined contexts are cli and server. Additionally this value is used to load /etc/ipa/\fBcontext\fR.conf to provide context\-specific configuration. For example, if you want to always perform client requests in verbose mode but do not want to have verbose enabled on the server, add the verbose option to \fI/etc/ipa/cli.conf\fR.
+Specifies the context that IPA is being executed in. IPA may operate differently depending on the context. The current defined contexts are cli, server and dns. Additionally this value is used to load /etc/ipa/\fBcontext\fR.conf to provide context\-specific configuration. For example, if you want to always perform client requests in verbose mode but do not want to have verbose enabled on the server, add the verbose option to \fI/etc/ipa/cli.conf\fR.
 .TP
 .B debug <boolean>
 When True provides detailed information. Specifically this set the global log level to "debug". Default is False.
@@ -250,12 +250,20 @@ system\-wide IPA configuration file
 .I $HOME/.ipa/default.conf
 user IPA configuration file
 .TP
-It is also possible to define context\-specific configuration files. The \fBcontext\fR is set when the IPA api is initialized. The two currently defined contexts in IPA are \fBcli\fR and \fBserver\fR. This is helpful, for example, if you only want \fBdebug\fR enabled on the server and not in the client. If this is set to True in \fIdefault.conf\fR it will affect both the ipa client tool and the IPA server. If it is only set in \fIserver.conf\fR then only the server will have \fBdebug\fR set. These files will be loaded if they exist:
+It is also possible to define context\-specific configuration files. The \fBcontext\fR is set when the IPA api is initialized. The currently defined contexts in IPA are \fBcli\fR, \fBserver\fR and \fBdns\fR. This is helpful, for example, if you only want \fBdebug\fR enabled on the server and not in the client. If this is set to True in \fIdefault.conf\fR it will affect both the ipa client tool and the IPA server. If it is only set in \fIserver.conf\fR then only the server will have \fBdebug\fR set. These files will be loaded if they exist:
 .TP
 .I /etc/ipa/cli.conf
 system\-wide IPA client configuration file
 .TP
 .I /etc/ipa/server.conf
 system\-wide IPA server configuration file
+.SH "EXAMPLES"
+.TP
+An example of a context-specific configuration file is \fB/etc/ipa/dns.conf\fR to be used to increase debug output of the IPA DNSSEC daemons.
+.TP
+.RS L
+[global]
+debug = True
+.RE
 .SH "SEE ALSO"
 .BR ipa (1)
