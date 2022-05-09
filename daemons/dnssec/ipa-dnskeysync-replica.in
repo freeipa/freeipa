@@ -19,6 +19,7 @@ from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import standard_logging_setup
+from ipapython.ipautil import get_config_debug
 from ipapython import ipaldap
 from ipaplatform.paths import paths
 from ipaserver.dnssec.abshsm import (sync_pkcs11_metadata,
@@ -145,7 +146,11 @@ def ldap2replica_zone_keys_sync(ldapkeydb, localhsm):
 
 
 # IPA framework initialization
-standard_logging_setup(debug=True)
+debug = get_config_debug('dns')
+standard_logging_setup(debug=debug, verbose=True)
+if not debug:
+    logger.info("To increase debugging set debug=True in dns.conf "
+                "See default.conf(5) for details")
 ipalib.api.bootstrap(context='dns', confdir=paths.ETC_IPA, in_server=True)
 ipalib.api.finalize()
 
