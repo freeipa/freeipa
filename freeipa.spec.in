@@ -665,6 +665,7 @@ Requires: xmlrpc-c >= 1.27.4
 Requires: jansson
 %endif
 Requires: sssd-ipa >= %{sssd_version}
+Requires: sssd-idp >= %{sssd_version}
 Requires: certmonger >= %{certmonger_version}
 Requires: nss-tools >= %{nss_version}
 Requires: bind-utils
