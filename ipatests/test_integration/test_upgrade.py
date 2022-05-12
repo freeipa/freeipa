@@ -10,6 +10,7 @@ import configparser
 import os
 import io
 import textwrap
+from subprocess import CalledProcessError
 
 from cryptography.hazmat.primitives import serialization
 import pytest
@@ -240,8 +241,15 @@ class TestUpgrade(IntegrationTest):
         old_contents = named_test_template(self.master)
         self.master.put_file_contents(paths.NAMED_CONF, old_contents)
         clear_sysupgrade(self.master, "dns", "named.conf")
-        # check
-        self.master.run_command(["named-checkconf", paths.NAMED_CONF])
+        # check and skip dnssec-enable-related issues in 9.18+
+        # where dnssec-enable option was removed completely
+        try:
+            self.master.run_command(
+                ["named-checkconf", paths.NAMED_CONF]
+            )
+        except CalledProcessError as e:
+            if not('dnssec-enable' in e.output):
+                raise e
 
         # upgrade
         self.master.run_command(['ipa-server-upgrade'])
