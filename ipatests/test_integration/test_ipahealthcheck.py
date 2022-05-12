@@ -274,6 +274,7 @@ class TestIpaHealthCheck(IntegrationTest):
         valid_msg = (
             'IPA is not configured\n', 'IPA server is not configured\n'
         )
+        self.clients[0].run_command(["dnf", "module", "enable", "-y", "idm:DL1"])
         tasks.install_packages(self.clients[0], HEALTHCHECK_PKG)
         cmd = self.clients[0].run_command(
             ["ipa-healthcheck"], raiseonerr=False
