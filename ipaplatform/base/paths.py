@@ -259,6 +259,7 @@ class BasePathNamespace:
     IPA_HTTPD_PASSWD_READER = "/usr/libexec/ipa/ipa-httpd-pwdreader"
     IPA_PKI_WAIT_RUNNING = "/usr/libexec/ipa/ipa-pki-wait-running"
     DNSSEC_KEYFROMLABEL = "/usr/sbin/dnssec-keyfromlabel"
+    DNSSEC_KEYFROMLABEL_9_17 = "/usr/bin/dnssec-keyfromlabel"
     GETSEBOOL = "/usr/sbin/getsebool"
     GROUPADD = "/usr/sbin/groupadd"
     USERMOD = "/usr/sbin/usermod"
