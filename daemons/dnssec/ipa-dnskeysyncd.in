@@ -22,6 +22,18 @@ from ipaserver.dnssec.keysyncer import KeySyncer
 logger = logging.getLogger(os.path.basename(__file__))
 
 
+def fixup_dnssec_utils(self):
+   try:
+       os.stat(self.DNSSEC_KEYFROMLABEL)
+   except FileNotFoundError:
+       try:
+           os.stat(self.DNSSEC_KEYFROMLABEL_9_17)
+       except FileNotFoundError:
+           pass
+       else:
+           self.DNSSEC_KEYFROMLABEL = self.DNSSEC_KEYFROMLABEL_9_17
+
+fixup_dnssec_utils(paths)
 # IPA framework initialization
 standard_logging_setup(debug=True)
 api.bootstrap(context='dns', confdir=paths.ETC_IPA, in_server=True)
