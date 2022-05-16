@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-# Last change: add graceperiodlimit
-define(IPA_API_VERSION_MINOR, 248)
+# Last change: add Random Serial Numbers v3
+define(IPA_API_VERSION_MINOR, 249)
 
 ########################################################
 # Following values are auto-generated from values above

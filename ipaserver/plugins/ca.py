@@ -6,7 +6,8 @@ import base64
 
 import six
 
-from ipalib import api, errors, messages, output, Bytes, DNParam, Flag, Str
+from ipalib import api, errors, messages, output
+from ipalib import Bytes, DNParam, Flag, Str, Int
 from ipalib.constants import IPA_CA_CN
 from ipalib.plugable import Registry
 from ipapython.dn import ATTR_NAME_BY_OID
@@ -71,6 +72,7 @@ class ca(LDAPObject):
     permission_filter_objectclasses = ['ipaca']
     default_attributes = [
         'cn', 'description', 'ipacaid', 'ipacaissuerdn', 'ipacasubjectdn',
+        'ipacarandomserialnumberversion',
     ]
     rdn_attribute = 'cn'
     allow_rename = True
@@ -119,6 +121,13 @@ class ca(LDAPObject):
             doc=_("X.509 certificate chain"),
             flags={'no_create', 'no_update', 'no_search'},
         ),
+        Int(
+            'ipacarandomserialnumberversion',
+            cli_name='randomserialnumberversion',
+            label=_('RSN Version'),
+            doc=_('Random Serial Number Version'),
+            flags={'no_create', 'no_update'},
+        ),
     )
 
     permission_filter_objectclasses = ['ipaca']
@@ -133,6 +142,7 @@ class ca(LDAPObject):
                 'ipacaid',
                 'ipacaissuerdn',
                 'ipacasubjectdn',
+                'ipacarandomserialnumberversion',
                 'objectclass',
             },
         },
