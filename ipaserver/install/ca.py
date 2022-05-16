@@ -11,6 +11,7 @@ from __future__ import print_function, absolute_import
 import enum
 import logging
 import os.path
+import pki.util
 
 import six
 
@@ -69,6 +70,26 @@ def subject_validator(valid_attrs, value):
         raise ValueError("invalid DN: %s" % e)
 
 
+def random_serial_numbers_version(enabled):
+    """Return True if  PKI supports RSNv3
+
+       The caller is responsible for raising the exception.
+    """
+    if not enabled:
+        return None, None
+    pki_version = pki.util.Version(pki.specification_version())
+    return pki_version >= pki.util.Version("11.2.0"), pki_version
+
+
+def random_serial_numbers_validator(enabled):
+    val, pki_version = random_serial_numbers_version(enabled)
+    if val is False:
+        raise ValueError(
+            "Random Serial Numbers are not supported in PKI version %s"
+            % pki_version
+        )
+
+
 def lookup_ca_subject(api, subject_base):
     dn = DN(('cn', IPA_CA_CN), api.env.container_ca, api.env.basedn)
     try:
@@ -86,6 +107,38 @@ def lookup_ca_subject(api, subject_base):
         # case the default changes in the future.
         ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
     return str(ca_subject)
+
+
+def lookup_random_serial_number_version(api):
+    """
+    Retrieve the random serial number version number from the
+    remote server.
+
+    If the value is > 0 then RSN was enabled. Return the raw
+    value for future-proofing in case version-specific decisions
+    need to be made.
+
+    Returns 0 if RSN is not enabled or otherwise not available.
+    """
+    dn = DN(('cn', IPA_CA_CN), api.env.container_ca, api.env.basedn)
+    version = 0
+    try:
+        # we do not use api.Command.ca_show because it attempts to
+        # talk to the CA (to read certificate / chain), but the RA
+        # backend may be unavailable (ipa-replica-install) or unusable
+        # due to RA Agent cert not yet created (ipa-ca-install).
+        entry = api.Backend.ldap2.get_entry(dn)
+
+        # If the attribute doesn't exist then the remote didn't
+        # enable RSN.
+        if 'ipacarandomserialnumberversion' in entry:
+            version = int(entry['ipacarandomserialnumberversion'][0])
+    except (errors.NotFound, KeyError):
+        # if the entry doesn't exist then the remote doesn't support
+        # RSN so there is nothing to do.
+        pass
+
+    return version
 
 
 def set_subject_base_in_config(subject_base):
@@ -156,6 +209,7 @@ def install_check(standalone, replica_config, options):
     if replica_config is None:
         options._subject_base = options.subject_base
         options._ca_subject = options.ca_subject
+        options._random_serial_numbers = options.random_serial_numbers
     else:
         # during replica install, this gets invoked before local DS is
         # available, so use the remote api.
@@ -164,6 +218,18 @@ def install_check(standalone, replica_config, options):
         # for replica-install the knobs cannot be written, hence leading '_'
         options._subject_base = str(replica_config.subject_base)
         options._ca_subject = lookup_ca_subject(_api, options._subject_base)
+
+        options._random_serial_numbers = (
+            lookup_random_serial_number_version(_api) > 0
+        )
+
+        if options._random_serial_numbers and replica_config.setup_ca:
+            try:
+                random_serial_numbers_validator(
+                    options._random_serial_numbers
+                )
+            except ValueError as e:
+                raise ScriptError(str(e))
 
     if replica_config is not None and not replica_config.setup_ca:
         return
@@ -353,6 +419,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         promote=promote,
         use_ldaps=use_ldaps,
         pki_config_override=options.pki_config_override,
+        random_serial_numbers=options._random_serial_numbers,
     )
 
 
@@ -545,3 +612,13 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
     )
     skip_schema_check = enroll_only(skip_schema_check)
     skip_schema_check = replica_install_only(skip_schema_check)
+
+    random_serial_numbers = knob(
+        None,
+        description="Enable random serial numbers",
+    )
+    random_serial_numbers = master_install_only(random_serial_numbers)
+
+    @random_serial_numbers.validator
+    def random_serial_numbers(self, value):
+        random_serial_numbers_validator(value)

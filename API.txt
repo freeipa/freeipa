@@ -493,13 +493,14 @@ output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: ca_find/1
-args: 1,11,4
+args: 1,12,4
 arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('cn?', autofill=False, cli_name='name')
 option: Str('description?', autofill=False, cli_name='desc')
 option: Str('ipacaid?', autofill=False, cli_name='id')
 option: DNParam('ipacaissuerdn?', autofill=False, cli_name='issuer')
+option: Int('ipacarandomserialnumberversion?', autofill=False, cli_name='randomserialnumberversion')
 option: DNParam('ipacasubjectdn?', autofill=False, cli_name='subject')
 option: Flag('pkey_only?', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -831,7 +832,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: cert_status/1
 args: 1,4,3
-arg: Int('request_id')
+arg: Str('request_id')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('cacn?', autofill=True, cli_name='ca', default=u'ipa')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)

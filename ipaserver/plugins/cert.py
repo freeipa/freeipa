@@ -483,7 +483,8 @@ class BaseCertObject(Object):
                 base64.b64decode(obj['certificate']))
             obj['subject'] = DN(cert.subject)
             obj['issuer'] = DN(cert.issuer)
-            obj['serial_number'] = cert.serial_number
+            obj['serial_number'] = str(cert.serial_number)
+            obj['serial_number_hex'] = '0x%X' % cert.serial_number
             obj['valid_not_before'] = x509.format_datetime(
                     cert.not_valid_before)
             obj['valid_not_after'] = x509.format_datetime(
@@ -505,10 +506,6 @@ class BaseCertObject(Object):
                     # don't fail but log something about it
                     logger.warning(
                         "Encountered bad GeneralName; skipping", exc_info=True)
-
-        serial_number = obj.get('serial_number')
-        if serial_number is not None:
-            obj['serial_number_hex'] = u'0x%X' % serial_number
 
     def _add_san_attribute(self, obj, full, gn):
         name_type_map = {
@@ -584,7 +581,7 @@ class certreq(BaseCertObject):
             label=_('Request status'),
             flags={'no_create', 'no_update', 'no_search'},
         ),
-        Int(
+        Str(
             'request_id',
             label=_('Request id'),
             primary_key=True,
@@ -954,7 +951,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                         reason=e,
                     )
                 )
-            result['request_id'] = int(result['request_id'])
+            result['request_id'] = result['request_id']
             result['cacn'] = ca_obj['cn'][0]
 
         # Success? Then add it to the principal's entry
@@ -985,7 +982,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
 
         return dict(
             result=result,
-            value=pkey_to_value(int(result['request_id']), kw),
+            value=pkey_to_value(result['request_id'], kw),
         )
 
     def lookup_principal(self, principal):

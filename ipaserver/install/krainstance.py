@@ -35,6 +35,7 @@ from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
 from ipaserver.install.dogtaginstance import DogtagInstance
+from ipaserver.install.ca import lookup_random_serial_number_version
 
 
 logger = logging.getLogger(__name__)
@@ -165,6 +166,9 @@ class KRAInstance(DogtagInstance):
             pki_import_admin_cert=False,
             pki_client_admin_cert_p12=admin_p12_file,
         )
+        if lookup_random_serial_number_version(api) > 0:
+            cfg['pki_key_id_generator'] = 'random'
+            cfg['pki_request_id_generator'] = 'random'
 
         if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
                 os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
