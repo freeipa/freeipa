@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2022-04-02 10:17+0000\n"
+"PO-Revision-Date: 2022-05-17 19:18+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.11.2\n"
+"X-Generator: Weblate 4.12.2\n"
 
 #: client/ipa-rmkeytab.c:51
 #, c-format
@@ -22780,7 +22780,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/permission.py:817
 #: ipaserver/plugins/permission.py:265
 msgid "Excluded attributes"
-msgstr ""
+msgstr "Laajennetut määreet"
 
 #: ipaclient/remote_plugins/2_114/permission.py:123
 #: ipaclient/remote_plugins/2_114/permission.py:585
@@ -23784,7 +23784,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_49/pwpolicy.py:801
 #: ipaserver/plugins/pwpolicy.py:336
 msgid "Minimum length of password"
-msgstr ""
+msgstr "salasanan vähimmäispituus"
 
 #: ipaclient/remote_plugins/2_114/pwpolicy.py:124
 #: ipaclient/remote_plugins/2_114/pwpolicy.py:501
