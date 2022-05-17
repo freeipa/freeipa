@@ -30094,6 +30094,14 @@ msgid ""
 "For more information, see the IPA Documentation to Sudo.\n"
 msgstr ""
 
+#, python-brace-format
+msgid "{algo} is not a supported vault wrapping algorithm"
+msgstr ""
+
+#, fuzzy
+msgid "Key wrapping algorithm"
+msgstr "Algorithme de hachage du jeton"
+
 #~ msgid "Delete a CA."
 #~ msgstr "Supprimer une AC."
 
