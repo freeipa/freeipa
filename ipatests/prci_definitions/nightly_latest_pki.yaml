@@ -903,3 +903,16 @@ jobs:
         template: *pki-master-latest
         timeout: 10800
         topology: *master_1repl
+
+  pki-fedora/test_external_idp:
+    requires: [pki-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{pki-fedora/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_idp.py
+        template: *pki-master-latest
+        timeout: 5000
+        topology: *master_1repl
