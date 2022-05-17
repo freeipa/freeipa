@@ -24904,3 +24904,10 @@ msgid ""
 "example.com -ZZ -D \"cn=Directory Manager\" uid=sudo,cn=sysaccounts,cn=etc,"
 "dc=example,dc=com\n"
 msgstr ""
+
+#, python-brace-format
+msgid "{algo} is not a supported vault wrapping algorithm"
+msgstr ""
+
+msgid "Key wrapping algorithm"
+msgstr ""
