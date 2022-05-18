@@ -101,7 +101,8 @@ class RedHatAuthSelect(RedHatAuthToolBase):
         features = output_items[1:]
         return profile, features
 
-    def configure(self, sssd, mkhomedir, statestore, sudo=True):
+    def configure(self, sssd, mkhomedir, statestore, sudo=True,
+                  subid=False):
         # In the statestore, the following keys are used for the
         # 'authselect' module:
         # Old method:
@@ -121,6 +122,8 @@ class RedHatAuthSelect(RedHatAuthToolBase):
             statestore.backup_state('authselect', 'mkhomedir', True)
         if sudo:
             cmd.append("with-sudo")
+        if subid:
+            cmd.append("with-subid")
         cmd.append("--force")
         cmd.append("--backup={}".format(backup_name))
 

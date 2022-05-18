@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class RHELContainerTaskNamespace(RHELTaskNamespace):
     def modify_nsswitch_pam_stack(
-        self, sssd, mkhomedir, statestore, sudo=True
+        self, sssd, mkhomedir, statestore, sudo=True, subid=False
     ):
         # freeipa-container images are preconfigured
         # authselect select sssd with-sudo --force

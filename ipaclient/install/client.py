@@ -3157,7 +3157,8 @@ def _install(options):
             sssd=options.sssd,
             mkhomedir=options.mkhomedir,
             statestore=statestore,
-            sudo=options.conf_sudo
+            sudo=options.conf_sudo,
+            subid=options.subid
         )
         # if mkhomedir, make sure oddjobd is enabled and started
         if options.mkhomedir:
@@ -3813,6 +3814,12 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
         description="do not configure SSSD as data source for sudo",
     )
     no_sudo = enroll_only(no_sudo)
+
+    subid = knob(
+        None,
+        description="configure SSSD as data source for subid",
+    )
+    subid = enroll_only(subid)
 
     no_dns_sshfp = knob(
         None,

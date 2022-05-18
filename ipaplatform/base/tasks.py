@@ -200,7 +200,7 @@ class BaseTaskNamespace:
         raise NotImplementedError()
 
     def modify_nsswitch_pam_stack(self, sssd, mkhomedir, statestore,
-                                  sudo=True):
+                                  sudo=True, subid=False):
         """
         If sssd flag is true, configure pam and nsswitch so that SSSD is used
         for retrieving user information and authentication.
