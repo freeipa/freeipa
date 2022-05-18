@@ -245,9 +245,9 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             f.writelines(content)
 
     def modify_nsswitch_pam_stack(self, sssd, mkhomedir, statestore,
-                                  sudo=True):
+                                  sudo=True, subid=False):
         auth_config = get_auth_tool()
-        auth_config.configure(sssd, mkhomedir, statestore, sudo)
+        auth_config.configure(sssd, mkhomedir, statestore, sudo, subid)
 
     def is_nosssd_supported(self):
         # The flag --no-sssd is not supported any more for rhel-based distros

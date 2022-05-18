@@ -994,6 +994,8 @@ def install(installer):
             args.append("--no-sshd")
         if options.mkhomedir:
             args.append("--mkhomedir")
+        if options.subid:
+            args.append("--subid")
         start = time.time()
         run(args, redirect_output=True)
         dur = time.time() - start

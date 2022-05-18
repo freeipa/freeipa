@@ -720,6 +720,8 @@ def ensure_enrolled(installer):
         args.append("--no-sshd")
     if installer.mkhomedir:
         args.append("--mkhomedir")
+    if installer.subid:
+        args.append("--subid")
     if installer.force_join:
         args.append("--force-join")
     if installer.no_ntp:
