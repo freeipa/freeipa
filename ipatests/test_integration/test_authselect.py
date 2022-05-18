@@ -192,6 +192,17 @@ class TestClientInstallation(IntegrationTest):
         result = self._uninstall_client()
         assert result.returncode == 0
 
+    def test_install_client_subid(self):
+        """
+        Test client installation with --subid option
+        """
+        result = self._install_client(extraargs=['-f', '--subid'])
+        assert result.returncode == 0
+        # Client installation must configure the 'sssd' profile
+        # with subid feature
+        check_authselect_profile(
+            self.client, default_profile, ('with-sudo', 'with-subid'))
+
     @classmethod
     def uninstall(cls, mh):
         super(TestClientInstallation, cls).uninstall(mh)
@@ -234,6 +245,23 @@ class TestServerInstallation(IntegrationTest):
         """
         Test server uninstallation when a different profile was present
         before server installation
+        """
+        # uninstall must revert to the preconfigured profile
+        tasks.uninstall_master(self.master)
+        check_authselect_profile(
+            self.master, preconfigured_profile, preconfigured_options)
+
+    def test_install_with_subid(self):
+        """
+        Test server installation when --subid option is specified
+        """
+        tasks.install_master(self.master, extra_args=["--subid"])
+        check_authselect_profile(
+            self.master, default_profile, ('with-sudo', 'with-subid'))
+
+    def test_uninstall_with_subid(self):
+        """
+        Test server uninstallation when --subid option was configured
         """
         # uninstall must revert to the preconfigured profile
         tasks.uninstall_master(self.master)
