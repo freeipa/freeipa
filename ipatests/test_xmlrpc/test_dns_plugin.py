@@ -289,6 +289,7 @@ arec3 = u'172.16.250.123'
 aaaarec1 = u'ff02::1'
 
 fwd_ip = u'172.16.31.80'
+fwd_ip_port = u'172.16.31.80 port 8053'
 allowtransfer_tofwd = u'%s;' % fwd_ip
 
 # 198.18.0.0/15 testing range reserved by RFC2544
@@ -1975,6 +1976,43 @@ class test_dns(Declarative):
                 'result': {
                     'dns_server_server': [api.env.host],
                     'idnsforwarders': [fwd_ip],
+                },
+            },
+        ),
+
+        dict(
+            desc='Update global DNS settings with forwarder in custom port',
+            command=('dnsconfig_mod', [], {'idnsforwarders' : [fwd_ip_port],}),
+            expected={
+                'value': None,
+                'summary': None,
+                u'messages': (
+                    {
+                        u'message': lambda x: x.startswith(
+                            u"Forwarding policy conflicts with some "
+                            "automatic empty zones."
+                        ),
+                        u'code': 13021,
+                        u'type': u'warning',
+                        u'name': u'DNSForwardPolicyConflictWithEmptyZone',
+                        u'data': {}
+                    },
+                    {
+                        u'message': lambda x: x.startswith(
+                            u"DNS server %s: query '. SOA':" % fwd_ip_port
+                        ),
+                        u'code': 13006,
+                        u'type':u'warning',
+                        u'name': u'DNSServerValidationWarning',
+                        u'data': {
+                            u'error': lambda x: x.startswith(u"query '. SOA':"),
+                            u'server': u"%s" % fwd_ip_port
+                        }
+                    },
+                ),
+                'result': {
+                    'dns_server_server': [api.env.host],
+                    'idnsforwarders': [fwd_ip_port],
                 },
             },
         ),
