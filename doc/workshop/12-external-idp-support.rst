@@ -8,6 +8,8 @@ Unit 12: Authentication against external Identity Providers
 In this module you will explore how to manage use external OAuth 2.0 servers to
 authorize issuance of Kerberos tickets in FreeIPA.
 
+**Note:** To complete this module, FreeIPA-4.10 or later is needed.
+
 Authentication using external Identity Providers
 ------------------------------------------------
 
