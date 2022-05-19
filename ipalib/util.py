@@ -801,7 +801,15 @@ def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
 
     res = DNSResolver()
     if nameserver_ip:
+        # When validating forwarders, nameserver_ip takes the format
+        # '<ip> port <port>', which is not a vaild IP address. In this
+        # case, split the string and add the IP part to res.nameservers,
+        # and the ip:port pair to res.nameserver_ports dict.
+        nameserver_ip = re.sub(r'\s+', ' ', nameserver_ip.strip())
+        nameserver_ip, *port = nameserver_ip.split(" port ")
         res.nameservers = [nameserver_ip]
+        if port:
+            res.nameserver_ports = {nameserver_ip: int(*port)}
     res.lifetime = timeout
 
     # Recursion Desired,
