@@ -8,6 +8,8 @@ Unit 11: Kerberos ticket policy
 In this module you will explore how to manage properties of Kerberos
 authentication and authorization in FreeIPA.
 
+**Note:** To complete this module, FreeIPA-4.8.3 or later is needed.
+
 Kerberos ticket policies
 ------------------------
 
