@@ -365,6 +365,15 @@ forwarder2 = u'172.16.15.2'
 forwarder3 = u'172.16.15.3'
 forwarder4 = u'172.16.15.4'
 
+forwarder1_custom_port = u'172.16.15.253 port 8053'
+forwarder2_custom_port = u'172.16.15.254 port 8053'
+
+fwzone_custom_port = u'fwzone-custom.test.'
+fwzone_custom_port_dnsname = DNSName(fwzone_custom_port)
+fwzone_custom_port_dn = DN(
+    ('idnsname', fwzone_custom_port), api.env.container_dns, api.env.basedn
+)
+
 zone_findtest = u'.find.test.'
 
 zone_findtest_master = u'master.find.test.'
@@ -3940,7 +3949,6 @@ class test_forward_zones(Declarative):
             },
         ),
 
-
         dict(
             desc='Create forward zone %r with three forwarders with "only" policy' % fwzone2,
             command=(
@@ -4033,6 +4041,77 @@ class test_forward_zones(Declarative):
             },
         ),
 
+        dict(
+            desc=(
+                'Create forward zone %r with forwarders with custom port'
+                % fwzone_custom_port
+            ),
+            command=(
+                'dnsforwardzone_add', [fwzone_custom_port],
+                {'idnsforwarders': [forwarder1_custom_port]}
+            ),
+            expected={
+                'value': fwzone_custom_port_dnsname,
+                'summary': None,
+                u'messages': ({
+                    u'message': lambda x: x.startswith(
+                        u"DNS server %s: query '%s SOA':"
+                        % (forwarder1_custom_port, fwzone_custom_port)
+                    ),
+                    u'code': 13006,
+                    u'type':u'warning',
+                    u'name': u'DNSServerValidationWarning',
+                    u'data': {
+                        u'error': lambda x: x.startswith(
+                            u"query '%s SOA':" % fwzone_custom_port
+                        ),
+                        u'server': u"%s" % forwarder1_custom_port
+                    }
+                },),
+                'result': {
+                    'dn': fwzone_custom_port_dn,
+                    'idnsname': [fwzone_custom_port_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder1_custom_port],
+                    'objectclass': objectclasses.dnsforwardzone,
+                },
+            },
+        ),
+
+        dict(
+            desc=(
+                'Modify forward zone %r change one forwarder'
+                % fwzone_custom_port
+            ),
+            command=(
+                'dnsforwardzone_mod', [fwzone_custom_port], {
+                    'idnsforwarders': forwarder2_custom_port,
+                }
+            ),
+            expected={
+                'value': fwzone_custom_port_dnsname,
+                'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
+                'result': {
+                    'idnsname': [fwzone_custom_port_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder2_custom_port],
+                },
+            },
+        ),
+
+        dict(
+            desc='Delete forward zone %r (cleanup)' % fwzone_custom_port,
+            command=('dnsforwardzone_del', [fwzone_custom_port], {}),
+            expected={
+                'value': [fwzone_custom_port_dnsname],
+                'summary':
+                    u'Deleted DNS forward zone "%s"' % fwzone_custom_port,
+                'result': {'failed': []},
+            },
+        ),
 
         dict(
             desc='Create forward zone %r with one forwarder with "first" policy' % fwzone3,
