@@ -8,7 +8,7 @@ Unit 11: Kerberos ticket policy
 In this module you will explore how to manage properties of Kerberos
 authentication and authorization in FreeIPA.
 
-**Note:** To complete this module, FreeIPA-4.8.3 or later is needed.
+**Note:** To complete this module, FreeIPA-4.8.4 or later is needed.
 
 Kerberos ticket policies
 ------------------------
@@ -129,7 +129,7 @@ pre-authenticate the initial ticket granting ticket exchange using chosen
 mechanism. This fact can further be used to differentiate the issued ticket life
 time and renewal age.
 
-With FreeIPA 4.8.3 or later, Kerberos ticket policy allows an administrator to
+With FreeIPA 4.8.4 or later, Kerberos ticket policy allows an administrator to
 set different life time and renewal age for ticket granting tickets obtained
 with different pre-authentication methods. Each policy setting may include
 authentication indicator to say that the life time or renewal age applies to
