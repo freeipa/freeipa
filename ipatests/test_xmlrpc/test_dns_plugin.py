@@ -210,6 +210,18 @@ revzone3_classless2_permission = u'Manage DNS zone %s' % revzone3_classless2
 revzone3_classless2_permission_dn = DN(('cn', revzone3_classless2_permission),
                            api.env.container_permission, api.env.basedn)
 
+zone_with_forwarder = u'dnszonefwd.test'
+zone_with_forwarder_dnsname = DNSName(zone_with_forwarder)
+zone_with_forwarder_absolute = u'%s.' % zone_with_forwarder
+zone_with_forwarder_absolute_dnsname = DNSName(zone_with_forwarder_absolute)
+zone_with_forwarder_dn = DN(
+    ('idnsname',zone_with_forwarder_absolute),
+    api.env.container_dns,
+    api.env.basedn
+)
+zone_with_forwarder_rname = u'root.%s' % zone_with_forwarder_absolute
+zone_with_forwarder_rname_dnsname = DNSName(zone_with_forwarder_rname)
+
 name1 = u'testdnsres'
 name1_dnsname = DNSName(name1)
 name1_dn = DN(('idnsname',name1), zone1_dn)
@@ -538,6 +550,79 @@ class test_dns(Declarative):
                 reason=u'%s: DNS zone not found' % zone1_absolute),
         ),
 
+        dict(
+            desc='Create zone %r with custom forwarder' % zone_with_forwarder,
+            command=(
+                'dnszone_add', [zone_with_forwarder], {
+                    'idnssoarname': zone_with_forwarder_rname,
+                    'idnsforwarders': fwd_ip_port,
+                }
+            ),
+            expected={
+                'value': zone_with_forwarder_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone_with_forwarder_dn,
+                    'idnsname': [zone_with_forwarder_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwarders': [fwd_ip_port],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone_with_forwarder_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+                'messages' : (
+                    {
+                        'code': 13004,
+                        'data': {
+                            'additional_info': 'Value will be ignored.',
+                            'option': 'idnssoaserial'
+                        },
+                        'message': "'idnssoaserial' option is deprecated."
+                                   " Value will be ignored.",
+                        'name': 'OptionDeprecatedWarning',
+                        'type': 'warning'
+                    },
+                    {
+                        'code': 13002,
+                        'data': {},
+                        'message':
+                            "DNS forwarder semantics changed since IPA 4.0.\n"
+                            "You may want to use forward zones "
+                            "(dnsforwardzone-*) instead.\n"
+                            "For more details read the docs.",
+                        'name': 'ForwardersWarning',
+                        'type': 'warning'
+                    },
+                ),
+            },
+        ),
+
+        dict(
+            desc=(
+                'Delete zone with forwarder %r (cleanup)' % zone_with_forwarder
+            ),
+            command=('dnszone_del', [zone_with_forwarder], {"continue": True}),
+            expected={
+                'value': [zone_with_forwarder_absolute_dnsname],
+                'summary': (
+                    u'Deleted DNS zone "%s"' % zone_with_forwarder_absolute
+                ),
+                'result': {'failed': []},
+            },
+        ),
 
         dict(
             desc='Create zone %r' % zone1,
