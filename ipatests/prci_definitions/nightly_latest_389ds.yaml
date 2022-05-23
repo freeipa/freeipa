@@ -31,11 +31,12 @@ jobs:
     job:
       class: Build
       args:
+        copr: '@389ds/389-ds-base-nightly'
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
-        template: &389ds-master-latest
-          name: freeipa/389ds-master-f35
-          version: 0.0.1
+        template: &ci-master-latest
+          name: freeipa/ci-master-f36
+          version: 0.0.5
         timeout: 1800
         topology: *build
 
@@ -47,8 +48,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_simple_replication.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -60,8 +62,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_commands.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl_1client
 
@@ -73,8 +76,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_server_del.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_2repl_1client
 
@@ -86,8 +90,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_installation.py::TestInstallWithCA1
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -99,8 +104,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_caless.py::TestServerInstall
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 12000
         topology: *master_1repl
 
@@ -112,8 +118,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_caless.py::TestReplicaInstall
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -125,8 +132,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_caless.py::TestClientInstall
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 5400
         # actually master_1client
         topology: *master_1repl_1client
@@ -139,8 +147,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_caless.py::TestCertInstall
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -152,8 +161,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestUserRootFilesOwnershipPermission
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -165,8 +175,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestore
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -178,8 +189,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNSSEC
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -191,8 +203,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNSSEC
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -204,8 +217,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNS
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -217,8 +231,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNS
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -230,8 +245,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithKRA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -243,8 +259,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithKRA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -256,8 +273,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -269,8 +287,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreDMPassword
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -282,8 +301,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_backup_and_restore.py::TestReplicaInstallAfterRestore
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -295,8 +315,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_dnssec.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_2repl_1client
 
@@ -308,8 +329,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -321,8 +343,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replica_promotion.py::TestProhibitReplicaUninstallation
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -334,8 +357,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replica_promotion.py::TestHiddenReplicaPromotion
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -347,8 +371,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_upgrade.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -360,8 +385,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_topology.py::TestCASpecificRUVs
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -373,8 +399,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_topology.py::TestTopologyOptions
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -386,8 +413,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -399,8 +427,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -412,8 +441,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCAKRA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -425,8 +455,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithoutCA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -438,8 +469,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -451,8 +483,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCAKRA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -464,8 +497,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithoutCA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -477,8 +511,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -490,8 +525,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCAKRA
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -503,8 +539,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_uninstallation.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl_1client
 
@@ -516,8 +553,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_customized_ds_config_install.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -529,8 +567,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_dns_locations.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_2repl_1client
 
@@ -542,8 +581,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_external_ca.py::TestExternalCAdirsrvStop
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -555,8 +595,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_installation.py::TestMaskInstall
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -568,8 +609,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_automember.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -581,8 +623,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_fips.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl_1client
 
@@ -594,8 +637,9 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_pwpolicy.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -607,7 +651,8 @@ jobs:
       args:
         build_url: '{389ds-fedora/build_url}'
         update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_idp.py
-        template: *389ds-master-latest
+        template: *ci-master-latest
         timeout: 5000
         topology: *master_1repl
