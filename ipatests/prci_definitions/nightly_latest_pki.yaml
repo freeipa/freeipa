@@ -35,11 +35,12 @@ jobs:
     job:
       class: Build
       args:
+        copr: '@pki/master'
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
-        template: &pki-master-latest
-          name: freeipa/pki-master-f35
-          version: 0.0.1
+        template: &ci-master-latest
+          name: freeipa/ci-master-f36
+          version: 0.0.5
         timeout: 1800
         topology: *build
 
@@ -51,8 +52,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_simple_replication.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -64,8 +66,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_external_ca.py::TestExternalCA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *master_1repl_1client
 
@@ -77,8 +80,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -90,8 +94,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -103,8 +108,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_vault.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 6300
         topology: *master_1repl
 
@@ -116,8 +122,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_forced_client_reenrollment.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *master_1repl_1client
 
@@ -129,8 +136,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallWithCA1
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -142,8 +150,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallWithCA2
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -155,8 +164,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallCA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_2repl_1client
 
@@ -168,8 +178,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA1
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -181,8 +192,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA2
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -194,8 +206,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS1
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -207,8 +220,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS2
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -220,8 +234,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS3
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -233,8 +248,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS4
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -246,8 +262,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS1
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -259,8 +276,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS2
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -272,8 +290,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallMaster
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -285,8 +304,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallMasterKRA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -298,8 +318,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallMasterDNS
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -311,8 +332,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallMasterDNSRepeatedly
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -324,8 +346,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallMasterReservedIPasForwarder
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -337,8 +360,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_installation.py::TestInstallwithSHA384withRSA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -350,8 +374,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_caless.py::TestServerInstall
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 12000
         topology: *master_1repl
 
@@ -363,8 +388,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_caless.py::TestReplicaInstall
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -376,8 +402,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_caless.py::TestClientInstall
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 5400
         # actually master_1client
         topology: *master_1repl_1client
@@ -390,8 +417,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_caless.py::TestIPACommands
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -403,8 +431,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_caless.py::TestCertInstall
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -416,8 +445,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_caless.py::TestPKINIT
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -429,8 +459,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -442,8 +473,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_caless.py::TestReplicaCALessToCAFull
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -455,8 +487,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_caless.py::TestServerCALessToExternalCA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -468,8 +501,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithKRA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -481,8 +515,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithKRA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -494,8 +529,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -507,8 +543,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_backup_and_restore.py::TestReplicaInstallAfterRestore
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -520,8 +557,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -533,8 +571,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replica_promotion.py::TestRenewalMaster
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -546,8 +585,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -559,8 +599,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallCustodia
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -572,8 +613,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_upgrade.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -585,8 +627,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_topology.py::TestCASpecificRUVs
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -598,8 +641,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -611,8 +655,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -624,8 +669,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCAKRA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -637,8 +683,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithoutCA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -650,8 +697,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -663,8 +711,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCAKRA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -676,8 +725,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithoutCA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -689,8 +739,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -702,8 +753,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCAKRA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -715,8 +767,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_uninstallation.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl_1client
 
@@ -728,8 +781,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_webui/test_cert.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 2400
         topology: *ipaserver
 
@@ -741,10 +795,11 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: >-
           test_webui/test_automember.py
           test_webui/test_idviews.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *ipaserver
 
@@ -756,8 +811,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_dns_locations.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_2repl_1client
 
@@ -769,8 +825,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_external_ca.py::TestExternalCAdirsrvStop
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -782,8 +839,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_external_ca.py::TestExternalCAInvalidCert
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -795,8 +853,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_external_ca.py::TestMultipleExternalCA
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -808,8 +867,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl_1client
 
@@ -821,8 +881,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA test_integration/test_ipahealthcheck.py::TestIpaHealthCheckFileCheck
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -834,8 +895,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_pkinit_manage.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -847,8 +909,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_crlgen_manage.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -860,8 +923,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_ca_custom_sdn.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -873,8 +937,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_fips.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl_1client
 
@@ -886,8 +951,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_acme.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl_1client
 
@@ -899,8 +965,9 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_ipa_cert_fix.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -912,7 +979,8 @@ jobs:
       args:
         build_url: '{pki-fedora/build_url}'
         update_packages: True
+        copr: '@pki/master'
         test_suite: test_integration/test_idp.py
-        template: *pki-master-latest
+        template: *ci-master-latest
         timeout: 5000
         topology: *master_1repl

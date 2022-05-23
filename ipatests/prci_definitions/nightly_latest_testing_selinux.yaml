@@ -47,11 +47,12 @@ jobs:
     job:
       class: Build
       args:
+        enable_testing_repo: True
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
-        template: &testing-master-latest
-          name: freeipa/testing-master-f35
-          version: 0.0.1
+        template: &ci-master-latest
+          name: freeipa/ci-master-f36
+          version: 0.0.5
         timeout: 1800
         topology: *build
 
@@ -64,8 +65,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_simple_replication.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -78,8 +80,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *master_1repl_1client
 
@@ -92,8 +95,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -106,8 +110,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -120,8 +125,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_topologies.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -134,8 +140,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_sudo.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *master_1repl_1client
 
@@ -148,8 +155,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_commands.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl_1client
 
@@ -162,8 +170,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_kerberos_flags.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl_1client
 
@@ -176,8 +185,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_http_kdc_proxy.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *ad_master_2client
 
@@ -190,8 +200,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_fips.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl_1client
 
@@ -204,8 +215,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_forced_client_reenrollment.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *master_1repl_1client
 
@@ -218,8 +230,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_advise.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl_1client
 
@@ -232,8 +245,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_testconfig.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -246,8 +260,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_service_permissions.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -260,8 +275,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_netgroup.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -274,8 +290,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_vault.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 6300
         topology: *master_1repl
 
@@ -288,8 +305,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_authselect.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *master_1repl_1client
 
@@ -302,8 +320,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_smb.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *ad_master_2client
 
@@ -316,8 +335,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_server_del.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_2repl_1client
 
@@ -330,8 +350,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA1
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -344,8 +365,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA2
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -358,8 +380,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallCA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_2repl_1client
 
@@ -372,8 +395,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA1
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -386,8 +410,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA2
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -400,8 +425,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS1
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -414,8 +440,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS2
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -428,8 +455,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS3
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -442,8 +470,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS4
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -456,8 +485,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS1
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -470,8 +500,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS2
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -484,8 +515,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallMaster
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -498,8 +530,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallMasterKRA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -512,8 +545,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallMasterDNS
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -526,8 +560,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallMasterDNSRepeatedly
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -540,8 +575,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallMasterReservedIPasForwarder
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -554,8 +590,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallMasterReplica
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -568,8 +605,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallReplicaAgainstSpecificServer
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_2repl_1client
 
@@ -582,8 +620,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestADTrustInstall
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_2repl_1client
 
@@ -596,8 +635,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestADTrustInstallWithDNS_KRA_ADTrust
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_2repl_1client
 
@@ -610,8 +650,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestKRAinstallAfterCertRenew
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -624,8 +665,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithoutSudo
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *master_1repl_1client
 
@@ -638,8 +680,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallWithoutNamed
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *master_1repl
 
@@ -652,8 +695,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestInstallwithSHA384withRSA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -666,8 +710,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_idviews.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *ad_master_2client
 
@@ -680,8 +725,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_caless.py::TestServerInstall
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 12000
         topology: *master_1repl
 
@@ -694,8 +740,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_caless.py::TestReplicaInstall
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -708,8 +755,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_caless.py::TestClientInstall
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 5400
         # actually master_1client
         topology: *master_1repl_1client
@@ -723,8 +771,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_caless.py::TestIPACommands
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -737,8 +786,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_caless.py::TestCertInstall
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -751,8 +801,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_caless.py::TestPKINIT
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -765,8 +816,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -779,8 +831,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_caless.py::TestReplicaCALessToCAFull
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -793,8 +846,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_caless.py::TestServerCALessToExternalCA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
 
@@ -807,8 +861,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestUserRootFilesOwnershipPermission
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -821,8 +876,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestore
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -835,8 +891,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNSSEC
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -849,8 +906,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNSSEC
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -863,8 +921,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNS
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -877,8 +936,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNS
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -891,8 +951,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithKRA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -905,8 +966,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithKRA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -919,8 +981,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -933,8 +996,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreDMPassword
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -947,8 +1011,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestReplicaInstallAfterRestore
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -961,8 +1026,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupRoles
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -975,8 +1041,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_dnssec.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_2repl_1client
 
@@ -989,8 +1056,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -1003,8 +1071,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestUnprivilegedUserPermissions
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -1017,8 +1086,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestProhibitReplicaUninstallation
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -1031,8 +1101,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestWrongClientDomain
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -1045,8 +1116,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestRenewalMaster
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -1059,8 +1131,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallWithExistingEntry
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -1073,8 +1146,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -1087,8 +1161,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallCustodia
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -1101,8 +1176,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestReplicaInForwardZone
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -1115,8 +1191,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestHiddenReplicaPromotion
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -1129,8 +1206,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replica_promotion.py::TestHiddenReplicaKRA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_2repl_1client
 
@@ -1143,8 +1221,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_upgrade.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -1157,8 +1236,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_topology.py::TestCASpecificRUVs
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -1171,8 +1251,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_topology.py::TestTopologyOptions
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -1185,8 +1266,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -1199,8 +1281,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -1213,8 +1296,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCAKRA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -1227,8 +1311,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithoutCA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -1241,8 +1326,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -1255,8 +1341,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCAKRA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_3repl_1client
 
@@ -1269,8 +1356,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithoutCA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -1283,8 +1371,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -1297,8 +1386,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCAKRA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3repl_1client
 
@@ -1311,8 +1401,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_uninstallation.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl_1client
 
@@ -1325,8 +1416,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation_client.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_3client
 
@@ -1339,8 +1431,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_user_permissions.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl_1client
 
@@ -1353,8 +1446,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_webui/test_cert.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 2400
         topology: *ipaserver
 
@@ -1367,12 +1461,13 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: >-
           test_webui/test_loginscreen.py
           test_webui/test_misc_cases.py
           test_webui/test_navigation.py
           test_webui/test_translation.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *ipaserver
 
@@ -1385,8 +1480,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_webui/test_host.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *ipaserver
 
@@ -1399,10 +1495,11 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: >-
           test_webui/test_hostgroup.py
           test_webui/test_netgroup.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *ipaserver
 
@@ -1415,10 +1512,11 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: >-
           test_webui/test_automember.py
           test_webui/test_idviews.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *ipaserver
 
@@ -1431,11 +1529,12 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: >-
           test_webui/test_automount.py
           test_webui/test_dns.py
           test_webui/test_vault.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *ipaserver
 
@@ -1448,13 +1547,14 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: >-
           test_webui/test_hbac.py
           test_webui/test_krbtpolicy.py
           test_webui/test_pwpolicy.py
           test_webui/test_selinuxusermap.py
           test_webui/test_sudo.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *ipaserver
 
@@ -1467,11 +1567,12 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: >-
           test_webui/test_delegation.py
           test_webui/test_rbac.py
           test_webui/test_selfservice.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *ipaserver
 
@@ -1484,13 +1585,14 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: >-
           test_webui/test_config.py
           test_webui/test_range.py
           test_webui/test_realmdomains.py
           test_webui/test_topology.py
           test_webui/test_trust.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *ipaserver
 
@@ -1503,8 +1605,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_webui/test_service.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 2400
         topology: *ipaserver
 
@@ -1517,10 +1620,11 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: >-
           test_webui/test_group.py
           test_webui/test_user.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *ipaserver
 
@@ -1533,8 +1637,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_webui/test_subid.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 2400
         topology: *ipaserver
 
@@ -1547,8 +1652,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_customized_ds_config_install.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1561,8 +1667,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_dns_locations.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_2repl_1client
 
@@ -1575,8 +1682,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAdirsrvStop
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1589,8 +1697,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_external_ca.py::TestExternalCAInvalidCert test_integration/test_external_ca.py::TestExternalCAInvalidIntermediate
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1603,8 +1712,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_external_ca.py::TestMultipleExternalCA
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1617,8 +1727,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
-        template: *testing-master-latest
+        template: *ci-master-latest
         topology: *master_1repl_1client
         timeout: 5400
 
@@ -1631,8 +1742,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA test_integration/test_ipahealthcheck.py::TestIpaHealthCheckFileCheck
-        template: *testing-master-latest
+        template: *ci-master-latest
         topology: *master_1repl
         timeout: 5400
 
@@ -1645,8 +1757,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCLI test_integration/test_ipahealthcheck.py::TestIpaHealthCheckFilesystemSpace
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1659,8 +1772,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithADtrust
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *adroot_adchild_adtree_master_1client
 
@@ -1673,8 +1787,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_ntp_options.py::TestNTPoptions
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl_1client
 
@@ -1687,8 +1802,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_otp.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1701,8 +1817,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_pkinit_manage.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1715,8 +1832,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_pki_config_override.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1729,8 +1847,9 @@ jobs:
 #        build_url: '{testing-fedora/build_url}'
 #        update_packages: True
 #        selinux_enforcing: True
+#        enable_testing_repo: True
 #        test_suite: test_integration/test_nfs.py::TestNFS
-#        template: *testing-master-latest
+#        template: *ci-master-latest
 #        timeout: 9000
 #        topology: *master_3client
 
@@ -1743,8 +1862,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_nfs.py::TestIpaClientAutomountFileRestore
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_3client
 
@@ -1757,8 +1877,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestMaskInstall
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1771,8 +1892,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_installation.py::TestHostnameValidator
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1785,8 +1907,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_automember.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1799,8 +1922,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_crlgen_manage.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1813,8 +1937,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_cli_ipa_not_configured.py::TestIPANotConfigured
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -1827,8 +1952,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_sssd.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *adroot_adchild_adtree_master_1client
 
@@ -1841,8 +1967,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_ca_custom_sdn.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -1855,8 +1982,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_membermanager.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 1800
         topology: *master_1repl
 
@@ -1869,8 +1997,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_krbtpolicy.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *master_1repl
 
@@ -1883,8 +2012,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_winsyncmigrate.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 4800
         topology: *ad_master
 
@@ -1897,8 +2027,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_trust.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10000
         topology: *adroot_adchild_adtree_master_1client
 
@@ -1911,8 +2042,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreTrust
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl
 
@@ -1925,8 +2057,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_adtrust_install.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1939,8 +2072,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_cert.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl_1client
 
@@ -1953,8 +2087,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_epn.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_3client
 
@@ -1967,8 +2102,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_acme.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 7200
         topology: *master_1repl_1client
 
@@ -1981,8 +2117,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_dns.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -1994,9 +2131,10 @@ jobs:
       args:
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         build_url: '{testing-fedora/build_url}'
         test_suite: test_integration/test_pwpolicy.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -2009,8 +2147,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_ipa_cert_fix.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
 
@@ -2023,8 +2162,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_subids.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -2037,8 +2177,9 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_custom_plugins.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl
 
@@ -2051,7 +2192,8 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         selinux_enforcing: True
+        enable_testing_repo: True
         test_suite: test_integration/test_idp.py
-        template: *testing-master-latest
+        template: *ci-master-latest
         timeout: 5000
         topology: *master_1repl
