@@ -2659,6 +2659,24 @@ def wait_for_ipa_to_start(host, timeout=60):
             break
 
 
+def stop_ipa_server(host):
+    """Stop the entire IdM server using the ipactl utility.
+    """
+    host.run_command([paths.IPACTL, "stop"])
+
+
+def start_ipa_server(host):
+    """Start the entire IdM server using the ipactl utility
+    """
+    host.run_command([paths.IPACTL, "start"])
+
+
+def restart_ipa_server(host):
+    """Restart the entire IdM server using the ipactl utility
+    """
+    host.run_command([paths.IPACTL, "restart"])
+
+
 def dns_update_system_records(host):
     """Runs "ipa dns-update-system-records" on "host".
     """
