@@ -222,6 +222,10 @@ void ipadb_parse_user_auth(LDAP *lcontext, LDAPMessage *le,
             }
         }
     }
+    /* If password auth is enabled, enable hardened policy too. */
+    if (*userauth & IPADB_USER_AUTH_PASSWORD) {
+        *userauth |= IPADB_USER_AUTH_HARDENED;
+    }
 
     ldap_value_free_len(vals);
 }
