@@ -1,12 +1,8 @@
 # Central management of subordinate user and group ids
 
-## OUTDATED
-
-**The design document does not reflect new implementation yet!**
-
 Subordinate ids are a Linux Kernel feature to grant a user additional
 user and group id ranges. Amongst others the feature can be used
-by container runtime engies to implement rootless containers.
+by container runtime engines to implement rootless containers.
 Traditionally subordinate id ranges are configured in ``/etc/subuid``
 and ``/etc/subgid``.
 
@@ -68,6 +64,7 @@ and don't auto-map or auto-assign subordinate ids by default. Instead
 we give the admin several options to assign them manually, semi-manual,
 or automatically.
 
+
 ### Revision 1 limitation
 
 The first revision of the feature is deliberately limited and
@@ -76,20 +73,42 @@ basic use cases. Some restrictions may be lifted in the future.
 
 * subuid and subgids cannot be set independently. They are always set
   to the same value.
-* counts are hard-coded to value 65536
-* once assigned subids cannot be removed
+* counts are hard-coded to value 65536.
+* once assigned subids cannot be removed.
 * IPA does not support multiple subordinate id ranges, yet. Contrary to
   ``/etc/subuid``, users are limited to one set of subordinate ids. The
   limitation is implemented with a unique index on owner reference and
   can be lifted in the future.
-* subids are auto-assigned. Auto-assignment is currently emulated
-  until 389-DS has been extended to support DNA with step interval.
+* subids are auto-assigned from 389-DS DNA plugin (dnaInterval).
 * subids are allocated from hard-coded range
   ``[2147483648..4294901767]`` (``2^31`` to ``2^32-1-65536``), which
   is the upper 2.1 billion uids of ``uid_t`` (``uint32_t``). The range
   can hold little 32,767 subordinate id ranges.
 * Active Directory support is out of scope and may be provided in the
   future.
+
+
+Finally, it is important to note that new installations come with a new
+idrange for subordinate ids. The new ``$REALM_subid_range`` entry uses
+range type ``ipa-ad-trust`` instead of range type ``ipa-local-subid``
+for backwards compatibility with older SSSD clients, see [SSSD #5571](https://github.com/SSSD/sssd/issues/5571).
+
+```text
+dn: cn=TESTREALM.TEST_subid_range,cn=ranges,cn=etc,dc=testrealm,dc=test
+objectClass: top
+objectClass: ipaIDrange
+objectClass: ipaTrustedADDomainRange
+cn: TESTREALM.TEST_subid_range
+ipaBaseID: 2147483648
+ipaIDRangeSize: 2147352576
+ipaBaseRID: 2147283648
+ipaNTTrustedDomainSID: S-1-5-21-738065-838566-1351619967
+ipaRangeType: ipa-ad-trust
+```
+
+The additional idrange entry is defined as: ``cn=$REALM_subid_range,cn=ranges,cn=etc,dc=ipa,dc=test``,
+which is visible with ``ipa idrange-find``.
+
 
 ### Subid assignment example
 
@@ -244,10 +263,50 @@ objectClasses: (
 )
 ```
 
+Finally, setting ``ipaUserDefaultSubordinateId`` to TRUE will cause
+new user entries to gain subordinate id by default:
+
+```text
+attributeTypes: (
+  2.16.840.1.113730.3.8.23.14
+  NAME 'ipaUserDefaultSubordinateId'
+  DESC 'Enable adding user entries with subordinate id'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'IPA v4.9'
+)
+```
+
 ### cn=subids,cn=accounts,$SUFFIX
 
-Subordiante ids and ACIs are stored in the new subtree
+Subordinate ids and ACIs are stored in the new subtree
 ``cn=subids,cn=accounts,$SUFFIX``.
+
+The following is an example of a subordinate id entry:
+
+```text
+dn: ipauniqueid=8a7c0808-375b-4643-9582-e9c851a4b45d,cn=subids,cn=accounts,dc=
+ testrealm,dc=test
+ipaOwner: uid=asmith-auto,cn=users,cn=accounts,dc=testrealm,dc=test
+ipaUniqueID: 8a7c0808-375b-4643-9582-e9c851a4b45d
+description: auto-assigned subid
+objectClass: ipasubordinateidentry
+objectClass: ipasubordinateuid
+objectClass: ipasubordinateid
+objectClass: ipasubordinategid
+objectClass: top
+ipaSubUidCount: 65536
+ipaSubGidCount: 65536
+ipaSubUidNumber: 2147745792
+ipaSubGidNumber: 2147745792
+```
+
+where as can be seen, it shows the link to the ipa user ``asmith-auto`` throught
+the ipaOwner attribute:
+
+```text
+ipaOwner: uid=asmith-auto,cn=users,cn=accounts,dc=testrealm,dc=test
+```
 
 ### Index, integrity, memberOf
 
@@ -268,9 +327,8 @@ Subordinate id auto-assignment requires an extension of 389-DS'
 plug-in. The DNA plug-in is responsible for safely assigning unique
 numeric ids across all replicas.
 
-Currently the DNA plug-in only supports a step size of ``1``. A new
-option ``dnaStepAttr`` (name is tentative) will tell the DNA plug-in
-to use the value of entry attributes as step size.
+A new option ``dnaInterval`` will tell the DNA plug-in to use the value of
+entry attributes as interval size.
 
 
 ## IPA plugins and commands
@@ -298,30 +356,30 @@ Topic commands:
 ```
 
 ```text
-$ ipa subid-generate --owner testuser9
+$ ipa subid-generate --owner testuser
 -----------------------------------------------------------
-Added subordinate id "aa28f132-457c-488b-82e1-d123727e4f81"
+Added subordinate id "2cf2c0db-aa9d-45d8-acbd-118aba0c1db3"
 -----------------------------------------------------------
-  Unique ID: aa28f132-457c-488b-82e1-d123727e4f81
+  Unique ID: 2cf2c0db-aa9d-45d8-acbd-118aba0c1db3
   Description: auto-assigned subid
-  Owner: testuser9
-  SubUID range start: 3922132992
+  Owner: testuser
+  SubUID range start: 2147680256
   SubUID range size: 65536
-  SubGID range start: 3922132992
+  SubGID range start: 2147680256
   SubGID range size: 65536
 ```
 
 
 ```text
-$ ipa subid-find --owner testuser9
+$ ipa subid-find --owner testuser
 ------------------------
 1 subordinate id matched
 ------------------------
-  Unique ID: aa28f132-457c-488b-82e1-d123727e4f81
-  Owner: testuser9
-  SubUID range start: 3922132992
+  Unique ID: 2cf2c0db-aa9d-45d8-acbd-118aba0c1db3
+  Owner: testuser
+  SubUID range start: 2147680256
   SubUID range size: 65536
-  SubGID range start: 3922132992
+  SubGID range start: 2147680256
   SubGID range size: 65536
 ----------------------------
 Number of entries returned 1
@@ -334,22 +392,22 @@ $ ipa -vv subid-stats
 ipa: INFO: Response: {
     "error": null,
     "id": 0,
-    "principal": "admin@IPASUBID.TEST",
+    "principal": "admin@TESTREALM.TEST",
     "result": {
         "result": {
-            "assigned_subids": 20,
+            "assigned_subids": 1,
             "baseid": 2147483648,
-            "dna_remaining": 4293394434,
+            "dna_remaining": 65527,
             "rangesize": 2147352576,
-            "remaining_subids": 65512
+            "remaining_subids": 0
         },
-        "summary": "65532 remaining subordinate id ranges"
+        "summary": "0 remaining subordinate id ranges"
     },
-    "version": "4.10.0.dev"
+    "version": "4.9.9"
 }
--------------------------------------
-65532 remaining subordinate id ranges
--------------------------------------
+---------------------------------
+0 remaining subordinate id ranges
+---------------------------------
 ```
 
 ## Permissions, Privileges, Roles
@@ -418,8 +476,8 @@ $ ipa role-add-member "Subordinate ID Selfservice User" --groups=ipausers
 
 This allows members of ``ipausers`` to request subordinate ids with
 the ``subid-generate`` command or the *Auto assign subordinate ids*
-action in the web UI (**TODO** not implemented yet). The command picks
-the name of the current user principal automatically.
+action in the web UI. The command picks the name of the current user
+principal automatically.
 
 ```shell
 $ ipa subid-generate
@@ -453,7 +511,7 @@ Options:
     -q, --quiet         output only errors
     --log-file=FILE     log to the given file
 
-# # /usr/libexec/ipa/ipa-subids --group ipausers
+# /usr/libexec/ipa/ipa-subids --group ipausers
 Processing user 'testsubordinated1' (1/15)
 Processing user 'testsubordinated2' (2/15)
 Processing user 'testsubordinated3' (3/15)
@@ -475,30 +533,65 @@ The ipa-subids command was successful
 
 ### Find and match users by any subordinate id
 
-The ``user-find`` command search by start value of subordinate uid and
-gid range. The new command ``user-match-subid`` can be used to find a
-user by any subordinate id in their range.
+The ``user-find`` command is now able to search for users matching a
+particular subordinate id when using ``--in-subids`` option:
 
 ```text
-$ ipa subid-match --subuid=2147549183
-------------------------
-1 subordinate id matched
-------------------------
-  Name: asmith-auto
-  Owner: asmith
-  SubUID range start: 2147483648
-  SubUID range size: 65536
-  SubGID range start: 2147483648
-  SubGID range size: 65536
+$ ipa user-find --in-subids=8a7c0808-375b-4643-9582-e9c851a4b45d
+--------------
+1 user matched
+--------------
+  User login: asmith-auto
+  First name: asmith
+  Last name: auto
+  Home directory: /home/asmith-auto
+  Login shell: /bin/sh
+  Principal name: asmith-auto@TESTREALM.TEST
+  Principal alias: asmith-auto@TESTREALM.TEST
+  Email address: asmith-auto@testrealm.test
+  UID: 1242200006
+  GID: 1242200006
+  Account disabled: False
 ----------------------------
 Number of entries returned 1
 ----------------------------
-$ ipa user-match-subid --subuid=2147549184
-  Name: bjones-auto
-  Owner: bjones
-  SubUID range start: 2147549184
+```
+
+and search for users not matching a particular subordinate id when
+using ``--not-in-subids`` option:
+
+```text
+$ ipa user-find --not-in-subids=8a7c0808-375b-4643-9582-e9c851a4b45d
+--------------
+1 user matched
+--------------
+  User login: bjones-auto
+  First name: bjones
+  Last name: auto
+  Home directory: /home/bjones-auto
+  Login shell: /bin/sh
+  Principal name: bjones-auto@TESTREALM.TEST
+  Principal alias: bjones-auto@TESTREALM.TEST
+  Email address: bjones-auto@testrealm.test
+  UID: 1242200007
+  GID: 1242200007
+  Account disabled: False
+```
+
+Additionally, the new command ``subid-match`` can be used to find a user
+by any subordinate id in their range when using the ``--subuid`` option:
+
+
+```text
+$ ipa subid-match --subuid=2147745792
+------------------------
+1 subordinate id matched
+------------------------
+  Unique ID: 8a7c0808-375b-4643-9582-e9c851a4b45d
+  Owner: asmith-auto
+  SubUID range start: 2147745792
   SubUID range size: 65536
-  SubGID range start: 2147549184
+  SubGID range start: 2147745792
   SubGID range size: 65536
 ----------------------------
 Number of entries returned 1
@@ -553,6 +646,18 @@ ipaSubUidCount: 65536
 ipaSubGidCount: 65536
 ```
 
+### Configure subid managed at IPA level
+
+Starting in FreeIPA 4.10.0 release, ipa-client-install provides a new option that
+allows to configure the client subid managed at IPA level. This way, ipa-client-install
+can configure the sssd profile and customize /etc/nsswitch.conf in such a way the subid
+database relies on IPA instead of both of the local files /etc/subuid and /etc/subgid.
+
+It is important to note that the default behavior remains unchanged and ``--subid`` option
+must be provided to the client, server and replica installers in order to have SSSD setup
+as a datasource for subid in /etc/nsswitch.conf
+
+
 ## Implementation details
 
 * ``ipaSubordinateId`` object class does not subclass the other two
@@ -586,27 +691,13 @@ ipaSubGidCount: 65536
 
 ### TODO
 
-* enable configuration for ``dnaStepAttr``
-* remove ``fake_dna_plugin`` hack from ``baseuser`` plug-in.
 * add custom range type for idranges and teach AD trust, sidgen, and
   range overlap check code to deal with new range type.
-
-#### user-del --preserve
-
-Preserving a user with ``ipa user-del --preserve`` currently fails with
-an ObjectclassViolation error (err=65). The problem is caused by
-configuration of referential integrity postoperation plug-in. The
-plug-in excludes the subtree
-``nsslapd-pluginexcludeentryscope: cn=provisioning,$SUFFX``. Preserved
-users are moved into the staging area of the provisioning subtree.
-Since the ``ipaOwner`` DN target is now out of scope, the plug-in
-attempts to delete references. However ``ipaOwner`` is a required
-attribute, which triggers the objectclass violation.
-
-Possible solutions
-
-* Don't preserve subid entries
-* Implement preserve feature for subid entries and move subids of
-  preserved users into
-  ``cn=deleted subids,cn=accounts,cn=provisioning,$SUFFIX`` subtree.
-* Change ``nsslapd-pluginexcludeentryscope`` setting
+* ipa subid-stats should include assigned_subids value as output, since
+  the remaning_subids value is always seen as 0, its better to display
+  assigned_subids as output for #ipa subid-stats which will be more useful
+  ([RFE#2063176](https://bugzilla.redhat.com/show_bug.cgi?id=2063176))
+* user-del --preserve and user-undel. Preserving a user with
+  ``ipa user-del --preserve`` is possible however it deletes the
+  associated subid, meaning that ``ipa user-undel <ipauser>``
+  is not able to restore the subid of the deleted user ([RFE#2063168](https://bugzilla.redhat.com/show_bug.cgi?id=2063168)).
