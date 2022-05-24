@@ -1836,6 +1836,48 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
                                            stdin_text=dirman_password)
         assert self.replicas[0].hostname not in cmd.stdout_text
 
+    def test_replica_install_existing_agreement(self):
+        """When the replication agreement already exists, the installer
+        should print an error message with the information on where
+        and how to remove it"""
+        # master and replica_1 already installed by class' install() method
+
+        # stop the main server in order to preserve the replication agreement
+        # when removing the replica
+        tasks.stop_ipa_server(self.master)
+
+        # intentionally using ipa-server-install --uninstall
+        # instead of replica-manage
+        self.replicas[0].run_command(['ipa-server-install',
+                                      '--uninstall',
+                                      '--force',
+                                      '-U'])
+        tasks.start_ipa_server(self.master)
+
+        result = tasks.install_replica(self.master,
+                                       self.replicas[0],
+                                       setup_ca=False,
+                                       setup_dns=True,
+                                       promote=False,
+                                       raiseonerr=False,
+                                       extra_args=('--force-join',))
+        assert result.returncode != 0
+        assert self.replicas[0].hostname in result.stderr_text
+        assert "server-del" in result.stderr_text
+
+        # delete the agreement based on the error message
+        # and retry the installation
+        self.master.run_command(['ipa',
+                                 'server-del',
+                                 self.replicas[0].hostname,
+                                 '--force'])
+        result = tasks.install_replica(self.master,
+                                       self.replicas[0],
+                                       setup_ca=False,
+                                       setup_dns=True,
+                                       promote=False)
+        assert result.returncode == 0
+
 
 class TestInstallWithoutSudo(IntegrationTest):
 
