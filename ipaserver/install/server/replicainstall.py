@@ -1023,8 +1023,8 @@ def promote_check(installer):
         if replman.get_replication_agreement(config.host_name):
             msg = ("A replication agreement for this host already exists. "
                    "It needs to be removed.\n"
-                   "Run this command:\n"
-                   "    %% ipa-replica-manage del {host} --force"
+                   "Run this command on any working server:\n"
+                   "    %% ipa server-del {host} --force"
                    .format(host=config.host_name))
             raise ScriptError(msg, rval=3)
 
