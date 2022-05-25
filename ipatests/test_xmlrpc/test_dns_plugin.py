@@ -382,6 +382,12 @@ forwarder2_custom_port = u'172.16.15.254 port 8053'
 forwarder3_custom_port = u'172.16.15.254   port 8053'
 forwarder4_custom_port = u'172.16.15.254 port   8053'
 forwarder5_custom_port = u'172.16.15.254  port  8053'
+forwarder_custom_port_inv1 = u'172.16.15.253 port 0'
+forwarder_custom_port_inv2 = u'172.16.15.253 port 1000000000'
+forwarder_custom_port_inv3 = u'172.16.15.253 port a'
+forwarder_custom_port_inv4 = u'172.16.15.253 8053'
+forwarder_custom_port_inv5 = u'a.b.c.d port 8053'
+forwarder_custom_port_inv6 = u'172.16.15.253 prot 8053'
 
 fwzone_custom_port = u'fwzone-custom.test.'
 fwzone_custom_port_dnsname = DNSName(fwzone_custom_port)
@@ -4230,6 +4236,20 @@ class test_forward_zones(Declarative):
                     u'Deleted DNS forward zone "%s"' % fwzone_custom_port,
                 'result': {'failed': []},
             },
+        ),
+
+        dict(
+            desc=(
+                'Create forward zone %r with invalid forwarder %s'
+                % (fwzone_custom_port, forwarder_custom_port_inv1)
+            ),
+            command=(
+                'dnsforwardzone_add', [fwzone_custom_port],
+                {'idnsforwarders': [forwarder_custom_port_inv1]}
+            ),
+            expected=errors.ValidationError(
+                name='idnsforwarders',
+                error=u'Please specify forwarders.')
         ),
 
         dict(
