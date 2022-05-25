@@ -379,6 +379,9 @@ forwarder4 = u'172.16.15.4'
 
 forwarder1_custom_port = u'172.16.15.253 port 8053'
 forwarder2_custom_port = u'172.16.15.254 port 8053'
+forwarder3_custom_port = u'172.16.15.254   port 8053'
+forwarder4_custom_port = u'172.16.15.254 port   8053'
+forwarder5_custom_port = u'172.16.15.254  port  8053'
 
 fwzone_custom_port = u'fwzone-custom.test.'
 fwzone_custom_port_dnsname = DNSName(fwzone_custom_port)
@@ -4183,6 +4186,37 @@ class test_forward_zones(Declarative):
                     'idnszoneactive': [u'TRUE'],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder2_custom_port],
+                },
+            },
+        ),
+
+        dict(
+            desc=(
+                'Modify forward zone %r change three forwarders'
+                % fwzone_custom_port
+            ),
+            command=(
+                'dnsforwardzone_mod', [fwzone_custom_port], {
+                    'idnsforwarders': [
+                        forwarder3_custom_port,
+                        forwarder4_custom_port,
+                        forwarder5_custom_port
+                    ],
+                }
+            ),
+            expected={
+                'value': fwzone_custom_port_dnsname,
+                'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
+                'result': {
+                    'idnsname': [fwzone_custom_port_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [
+                        forwarder3_custom_port,
+                        forwarder4_custom_port,
+                        forwarder5_custom_port
+                    ],
                 },
             },
         ),
