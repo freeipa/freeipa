@@ -1,0 +1,251 @@
+topologies:
+  build: &build
+    name: build
+    cpu: 2
+    memory: 3800
+  master_1repl: &master_1repl
+    name: master_1repl
+    cpu: 4
+    memory: 6450
+  master_1repl_1client: &master_1repl_1client
+    name: master_1repl_1client
+    cpu: 4
+    memory: 7400
+  ad_master_2client: &ad_master_2client
+    name: ad_master_2client
+    cpu: 4
+    memory: 12000
+  master_3client: &master_3client
+    name: master_3client
+    cpu: 5
+    memory: 10150
+  adroot_adchild_adtree_master_1client: &adroot_adchild_adtree_master_1client
+    name: adroot_adchild_adtree_master_1client
+    cpu: 8
+    memory: 14500
+
+jobs:
+  sssd-fedora/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        copr: '@sssd/nightly'
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &ci-master-latest
+          name: freeipa/ci-master-f36
+          version: 0.0.7
+        timeout: 1800
+        topology: *build
+
+  sssd-fedora/test_commands:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_commands.py
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl_1client
+
+  sssd-fedora/test_external_idp:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_idp.py
+        template: *ci-master-latest
+        timeout: 5000
+        topology: *master_1repl
+
+  sssd-fedora/test_idviews:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_idviews.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *ad_master_2client
+
+  sssd-fedora/test_netgroup:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_netgroup.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  sssd-fedora/test_nfs_TestIpaClientAutomountFileRestore:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_nfs.py::TestIpaClientAutomountFileRestore
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_3client
+
+  sssd-fedora/test_otp:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_otp.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  sssd-fedora/test_replica_promotion_TestReplicaPromotionLevel1:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  sssd-fedora/test_replica_promotion_TestUnprivilegedUserPermissions:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_replica_promotion.py::TestUnprivilegedUserPermissions
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  sssd-fedora/test_replica_promotion_TestWrongClientDomain:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_replica_promotion.py::TestWrongClientDomain
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  sssd-fedora/test_smb:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_smb.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *ad_master_2client
+
+  sssd-fedora/test_sssd:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_sssd.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *adroot_adchild_adtree_master_1client
+
+  sssd-fedora/test_subids:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_subids.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  sssd-fedora/test_sudo:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_sudo.py
+        template: *ci-master-latest
+        timeout: 4800
+        topology: *master_1repl_1client
+
+  sssd-fedora/test_trust:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_trust.py
+        template: *ci-master-latest
+        timeout: 10000
+        topology: *adroot_adchild_adtree_master_1client
+
+  sssd-fedora/test_user_permissions_TestUserPermissions:
+    requires: [sssd-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{sssd-fedora/build_url}'
+        update_packages: True
+        copr: '@sssd/nightly'
+        test_suite: test_integration/test_user_permissions.py::TestUserPermissions
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl_1client
