@@ -379,15 +379,15 @@ forwarder4 = u'172.16.15.4'
 
 forwarder1_custom_port = u'172.16.15.253 port 8053'
 forwarder2_custom_port = u'172.16.15.254 port 8053'
-forwarder3_custom_port = u'172.16.15.254   port 8053'
-forwarder4_custom_port = u'172.16.15.254 port   8053'
-forwarder5_custom_port = u'172.16.15.254  port  8053'
+forwarder3_custom_port = u'172.16.15.251 port   8053'
 forwarder_custom_port_inv1 = u'172.16.15.253 port 0'
 forwarder_custom_port_inv2 = u'172.16.15.253 port 1000000000'
 forwarder_custom_port_inv3 = u'172.16.15.253 port a'
 forwarder_custom_port_inv4 = u'172.16.15.253 8053'
 forwarder_custom_port_inv5 = u'a.b.c.d port 8053'
 forwarder_custom_port_inv6 = u'172.16.15.253 prot 8053'
+forwarder_custom_port_inv7 = u'172.16.15.252   port 8053'
+forwarder_custom_port_inv8 = u'172.16.15.250  port  8053'
 
 fwzone_custom_port = u'fwzone-custom.test.'
 fwzone_custom_port_dnsname = DNSName(fwzone_custom_port)
@@ -4186,7 +4186,21 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone_custom_port_dnsname,
                 'summary': None,
-                'messages': lambda x: True,  # fake forwarders - ignore message
+                'messages': ({
+                    'message': lambda x: x.startswith(
+                        "DNS server %s: query '%s SOA':"
+                        % (forwarder1_custom_port, fwzone_custom_port)
+                    ),
+                    'code': 13006,
+                    'type': 'warning',
+                    'name': 'DNSServerValidationWarning',
+                    'data': {
+                        'error': lambda x: x.startswith(
+                            "query '%s SOA':" % fwzone_custom_port
+                        ) and x.endswith("[Errno 22] Invalid argument."),
+                        'server': u"%s" % forwarder1_custom_port
+                    }
+                },),
                 'result': {
                     'idnsname': [fwzone_custom_port_dnsname],
                     'idnszoneactive': [u'TRUE'],
@@ -4198,16 +4212,12 @@ class test_forward_zones(Declarative):
 
         dict(
             desc=(
-                'Modify forward zone %r change three forwarders'
-                % fwzone_custom_port
+                'Modify forward zone %r with forwarder "%s"'
+                % (fwzone_custom_port, forwarder3_custom_port)
             ),
             command=(
                 'dnsforwardzone_mod', [fwzone_custom_port], {
-                    'idnsforwarders': [
-                        forwarder3_custom_port,
-                        forwarder4_custom_port,
-                        forwarder5_custom_port
-                    ],
+                    'idnsforwarders': [forwarder3_custom_port],
                 }
             ),
             expected={
@@ -4218,11 +4228,7 @@ class test_forward_zones(Declarative):
                     'idnsname': [fwzone_custom_port_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'idnsforwardpolicy': [u'first'],
-                    'idnsforwarders': [
-                        forwarder3_custom_port,
-                        forwarder4_custom_port,
-                        forwarder5_custom_port
-                    ],
+                    'idnsforwarders': [forwarder3_custom_port],
                 },
             },
         ),
