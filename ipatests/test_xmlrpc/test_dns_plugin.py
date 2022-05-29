@@ -4197,7 +4197,7 @@ class test_forward_zones(Declarative):
                     'data': {
                         'error': lambda x: x.startswith(
                             "query '%s SOA':" % fwzone_custom_port
-                        ) and x.endswith("[Errno 22] Invalid argument."),
+                        ),
                         'server': u"%s" % forwarder1_custom_port
                     }
                 },),
@@ -4246,16 +4246,51 @@ class test_forward_zones(Declarative):
 
         dict(
             desc=(
-                'Create forward zone %r with invalid forwarder %s'
+                'Create forward zone %r with forwarder using port 0: %s'
                 % (fwzone_custom_port, forwarder_custom_port_inv1)
             ),
             command=(
                 'dnsforwardzone_add', [fwzone_custom_port],
                 {'idnsforwarders': [forwarder_custom_port_inv1]}
             ),
-            expected=errors.ValidationError(
-                name='idnsforwarders',
-                error=u'Please specify forwarders.')
+            expected={
+                'value': fwzone_custom_port_dnsname,
+                'summary': None,
+                u'messages': ({
+                    u'message': lambda x: x.startswith(
+                        u"DNS server %s: query '%s SOA':"
+                        % (forwarder1_custom_port, fwzone_custom_port)
+                    ),
+                    u'code': 13006,
+                    u'type':u'warning',
+                    u'name': u'DNSServerValidationWarning',
+                    u'data': {
+                        u'error': lambda x: x.startswith(
+                            u"query '%s SOA':" % fwzone_custom_port
+                        ) and x.endswith(u"[Errno 22] Invalid argument."),
+                        u'server': u"%s" % forwarder_custom_port_inv1
+                    }
+                },),
+                'result': {
+                    'dn': fwzone_custom_port_dn,
+                    'idnsname': [fwzone_custom_port_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder1_custom_port],
+                    'objectclass': objectclasses.dnsforwardzone,
+                },
+            },
+        ),
+
+        dict(
+            desc='Delete forward zone %r (cleanup)' % fwzone_custom_port,
+            command=('dnsforwardzone_del', [fwzone_custom_port], {}),
+            expected={
+                'value': [fwzone_custom_port_dnsname],
+                'summary':
+                    u'Deleted DNS forward zone "%s"' % fwzone_custom_port,
+                'result': {'failed': []},
+            },
         ),
 
         dict(
