@@ -4189,7 +4189,7 @@ class test_forward_zones(Declarative):
                 'messages': ({
                     'message': lambda x: x.startswith(
                         "DNS server %s: query '%s SOA':"
-                        % (forwarder1_custom_port, fwzone_custom_port)
+                        % (forwarder2_custom_port, fwzone_custom_port)
                     ),
                     'code': 13006,
                     'type': 'warning',
@@ -4198,7 +4198,7 @@ class test_forward_zones(Declarative):
                         'error': lambda x: x.startswith(
                             "query '%s SOA':" % fwzone_custom_port
                         ),
-                        'server': u"%s" % forwarder1_custom_port
+                        'server': u"%s" % forwarder2_custom_port
                     }
                 },),
                 'result': {
@@ -4259,7 +4259,7 @@ class test_forward_zones(Declarative):
                 u'messages': ({
                     u'message': lambda x: x.startswith(
                         u"DNS server %s: query '%s SOA':"
-                        % (forwarder1_custom_port, fwzone_custom_port)
+                        % (forwarder_custom_port_inv1, fwzone_custom_port)
                     ),
                     u'code': 13006,
                     u'type':u'warning',
@@ -4267,7 +4267,7 @@ class test_forward_zones(Declarative):
                     u'data': {
                         u'error': lambda x: x.startswith(
                             u"query '%s SOA':" % fwzone_custom_port
-                        ) and x.endswith(u"[Errno 22] Invalid argument."),
+                        ) and u"[Errno 22] Invalid argument" in x,
                         u'server': u"%s" % forwarder_custom_port_inv1
                     }
                 },),
@@ -4276,7 +4276,7 @@ class test_forward_zones(Declarative):
                     'idnsname': [fwzone_custom_port_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'idnsforwardpolicy': [u'first'],
-                    'idnsforwarders': [forwarder1_custom_port],
+                    'idnsforwarders': [forwarder_custom_port_inv1],
                     'objectclass': objectclasses.dnsforwardzone,
                 },
             },
