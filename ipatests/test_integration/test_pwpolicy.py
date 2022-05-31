@@ -312,10 +312,6 @@ class TestPWPolicy(IntegrationTest):
         dn = "uid={user},cn=users,cn=accounts,{base_dn}".format(
              user=USER, base_dn=str(self.master.domain.basedn))
 
-        self.master.run_command(
-            ["ipa", "pwpolicy-mod", POLICY, "--gracelimit", "3", ],
-        )
-
         # Resetting the password will mark it as expired
         self.reset_password(self.master)
 
@@ -330,24 +326,18 @@ class TestPWPolicy(IntegrationTest):
         result = tasks.ldapsearch_dm(
             self.master, dn, ['passwordgraceusertime',],
         )
-        assert 'passwordgraceusertime: 2' in result.stdout_text.lower()
+        assert 'passwordgraceusertime: 3' in result.stdout_text.lower()
 
         result = tasks.ldapsearch_dm(
             self.replicas[0], dn, ['passwordgraceusertime',],
         )
-        assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
-
-        self.reset_password(self.master)
+        # Never been set at all so won't return
+        assert 'passwordgraceusertime' not in result.stdout_text.lower()
 
         # Resetting the password should reset passwordgraceusertime
+        self.reset_password(self.master)
         result = tasks.ldapsearch_dm(
             self.master, dn, ['passwordgraceusertime',],
-        )
-        assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
-        self.reset_password(self.master)
-
-        result = tasks.ldapsearch_dm(
-            self.replicas[0], dn, ['passwordgraceusertime',],
         )
         assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
         self.reset_password(self.master)
