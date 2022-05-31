@@ -247,7 +247,7 @@ class DsInstance(service.Service):
         self.step("enabling entryUSN plugin", self.__enable_entryusn)
         self.step("configuring lockout plugin", self.__config_lockout_module)
         self.step("configuring graceperiod plugin",
-                  self.__config_graceperiod_module)
+                  self.config_graceperiod_module)
         self.step("configuring topology plugin", self.__config_topology_module)
         self.step("creating indices", self.__create_indices)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
@@ -753,8 +753,14 @@ class DsInstance(service.Service):
     def __config_lockout_module(self):
         self._ldap_mod("lockout-conf.ldif")
 
-    def __config_graceperiod_module(self):
-        self._ldap_mod("graceperiod-conf.ldif")
+    def config_graceperiod_module(self):
+        if not api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.connect()
+        dn = DN('cn=IPA Graceperiod,cn=plugins,cn=config')
+        try:
+            api.Backend.ldap2.get_entry(dn)
+        except errors.NotFound:
+            self._ldap_mod("graceperiod-conf.ldif")
 
     def __config_topology_module(self):
         self._ldap_mod("ipa-topology-conf.ldif", self.sub_dict)

@@ -290,6 +290,8 @@ class TestUpgrade(IntegrationTest):
         entry_ldif = textwrap.dedent("""
             dn: cn=global_policy,cn={realm},cn=kerberos,{base_dn}
             changetype: modify
+            delete: passwordGraceLimit
+            -
             delete: objectclass
             objectclass: ipapwdpolicy
         """).format(
