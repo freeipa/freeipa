@@ -1114,11 +1114,24 @@ def ds_enable_sidgen_extdom_plugins(ds):
 
     if sysupgrade.get_upgrade_state('ds', 'enable_ds_sidgen_extdom_plugins'):
         logger.debug('sidgen and extdom plugins are enabled already')
-        return
+        return False
 
     ds.add_sidgen_plugin(api.env.basedn)
     ds.add_extdom_plugin(api.env.basedn)
     sysupgrade.set_upgrade_state('ds', 'enable_ds_sidgen_extdom_plugins', True)
+    return True
+
+
+def ds_enable_graceperiod_plugin(ds):
+    """Graceperiod is a newer DS plugin so needs to be enabled on upgrade"""
+    if sysupgrade.get_upgrade_state('ds', 'enable_ds_graceperiod_plugin'):
+        logger.debug('graceperiod is enabled already')
+        return False
+
+    ds.config_graceperiod_module()
+    sysupgrade.set_upgrade_state('ds', 'enable_ds_graceperiod_plugin', True)
+    return True
+
 
 def ca_upgrade_schema(ca):
     logger.info('[Upgrading CA schema]')
@@ -1608,6 +1621,21 @@ def ca_update_acme_configuration(ca, fqdn):
                                   template_name))
 
 
+def set_default_grace_time():
+    dn = DN(
+        ('cn', 'global_policy'), ('cn', api.env.realm),
+        ('cn', 'kerberos'), api.env.basedn
+    )
+    entry = api.Backend.ldap2.get_entry(dn)
+    for (a,_v) in entry.items():
+        if a.lower() == 'passwordgracelimit':
+            return
+
+    entry['objectclass'].append('ipapwdpolicy')
+    entry['passwordgracelimit'] = -1
+    api.Backend.ldap2.update_entry(entry)
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1792,7 +1820,13 @@ def upgrade_configuration():
     ds.realm = api.env.realm
     ds.suffix = ipautil.realm_to_suffix(api.env.realm)
 
-    ds_enable_sidgen_extdom_plugins(ds)
+    if any([
+        ds_enable_sidgen_extdom_plugins(ds),
+        ds_enable_graceperiod_plugin(ds)
+    ]):
+        ds.restart(ds.serverid)
+
+    set_default_grace_time()
 
     if not http.is_kdcproxy_configured():
         logger.info('[Enabling KDC Proxy]')
