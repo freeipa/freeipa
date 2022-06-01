@@ -507,6 +507,45 @@ class TestIpaHealthCheck(IntegrationTest):
             assert additional_msg in check["kw"]["msg"] or \
                    additional_msg == check["kw"]["error"]
 
+    def test_ipahealthcheck_ca_not_configured(self):
+        """
+        Test if the healthcheck ignores pki-tomcat errors
+        when CA is not configured on the machine
+        Related: https://github.com/freeipa/freeipa-healthcheck/issues/201
+        """
+        # uninstall replica installed by class' install method
+        tasks.uninstall_replica(self.master, self.replicas[0])
+
+        # install it again without CA
+        tasks.install_replica(self.master,
+                              self.replicas[0],
+                              setup_ca=False,
+                              setup_dns=True,
+                              extra_args=['--no-dnssec-validation']
+                              )
+
+        # Init a user on replica to assign a DNA range
+        tasks.kinit_admin(self.replicas[0])
+        tasks.user_add(
+            self.replicas[0], 'ipauser1', first='Test', last='User',
+        )
+
+        returncode, data = run_healthcheck(self.replicas[0],
+                                           failures_only=True)
+        assert returncode == 0
+        assert len(data) == 0
+
+        # restore the replica original configuration
+        tasks.user_del(self.replicas[0], 'ipauser1')
+        tasks.uninstall_replica(self.master, self.replicas[0])
+        tasks.install_replica(
+            self.master,
+            self.replicas[0],
+            setup_dns=True,
+            extra_args=['--no-dnssec-validation']
+        )
+
+
     def test_source_ipahealthcheck_meta_core_metacheck(self):
         """
         Testcase checks behaviour of check MetaCheck in source
