@@ -2885,3 +2885,65 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
                 assert check["kw"]["msg"] == error_msg
             else:
                 assert error_reason in check["kw"]["msg"]
+
+
+class TestIpaHealthCheckSingleMaster(IntegrationTest):
+
+    @classmethod
+    def install(cls, mh):
+        # Nota Bene: The ipa server is not installed
+        tasks.install_packages(cls.master, HEALTHCHECK_PKG)
+
+    def test_ipahealthcheck_mismatching_certificates_subject(self):
+        """
+        Test if healthcheck uses cert subject base from IPA and not from
+        REALM. This prevents false-positive errors when the subject base is
+        customized.
+
+        Related: https://github.com/freeipa/freeipa-healthcheck/issues/253
+        """
+        # install master with custom cert subject base
+        tasks.install_master(
+            self.master,
+            setup_dns=True,
+            extra_args=[
+                '--no-dnssec-validation',
+                '--subject-base=O=LINUX.IS.GREAT,C=EU'
+            ]
+        )
+        try:
+            returncode, data = run_healthcheck(
+                self.master,
+                source="ipahealthcheck.ipa.certs",
+                check="IPADogtagCertsMatchCheck",
+                failures_only=True)
+
+            assert returncode == 0
+            assert len(data) == 0
+        finally:
+            # uninstall server for the next step
+            tasks.uninstall_master(self.master)
+
+        # install master with custom CA certificate subject DN
+        tasks.install_master(
+            self.master,
+            setup_dns=True,
+            extra_args=[
+                '--no-dnssec-validation',
+                '--ca-subject=CN=Healthcheck test,O=LINUX.IS.GREAT'
+            ]
+        )
+
+        try:
+            returncode, data = run_healthcheck(
+                self.master,
+                source="ipahealthcheck.ipa.certs",
+                check="IPADogtagCertsMatchCheck",
+                failures_only=True)
+
+            assert returncode == 0
+            assert len(data) == 0
+
+        finally:
+            # cleanup
+            tasks.uninstall_master(self.master)
