@@ -39,6 +39,7 @@ changetype: add
 objectClass: top
 objectClass: nsContainer
 objectClass: krbPwdPolicy
+objectClass: ipaPwdPolicy
 krbMinPwdLife: 3600
 krbPwdMinDiffChars: 0
 krbPwdMinLength: 8
@@ -47,4 +48,4 @@ krbMaxPwdLife: 7776000
 krbPwdMaxFailure: 6
 krbPwdFailureCountInterval: 60
 krbPwdLockoutDuration: 600
-
+passwordGraceLimit: -1
