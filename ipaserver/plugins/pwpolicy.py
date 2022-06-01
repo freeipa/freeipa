@@ -62,6 +62,10 @@ policy.
 Group password policies are automatically removed when the groups they
 are associated with are removed.
 
+Grace period defines the number of LDAP logins allowed after expiration.
+-1 means do not enforce expiration to match previous behavior. 0 allows
+no additional logins after expiration.
+
 EXAMPLES:
 
  Modify the global policy:
@@ -403,7 +407,7 @@ class pwpolicy(LDAPObject):
             doc=_('Number of LDAP authentications allowed after expiration'),
             minvalue=-1,
             maxvalue=Int.MAX_UINT32,
-            default=0,
+            default=-1,
         ),
     )
 
