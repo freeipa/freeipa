@@ -39,6 +39,7 @@ class IntegrationTest:
     topology = None
     domain_level = None
     fips_mode = None
+    random_serial = False
 
     @classmethod
     def host_by_role(cls, role):
@@ -87,7 +88,8 @@ class IntegrationTest:
         else:
             tasks.install_topo(cls.topology,
                                cls.master, cls.replicas,
-                               cls.clients, domain_level)
+                               cls.clients, domain_level,
+                               random_serial=cls.random_serial)
     @classmethod
     def uninstall(cls, mh):
         for replica in cls.replicas:

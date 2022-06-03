@@ -26,7 +26,8 @@ class CATracker(Tracker, EnableTracker):
     """Implementation of a Tracker class for CA plugin."""
 
     ldap_keys = {
-        'dn', 'cn', 'ipacaid', 'ipacasubjectdn', 'ipacaissuerdn', 'description'
+        'dn', 'cn', 'ipacaid', 'ipacasubjectdn', 'ipacaissuerdn',
+        'description', 'ipacarandomserialnumberversion',
     }
     cert_keys = {
         'certificate',
@@ -81,6 +82,8 @@ class CATracker(Tracker, EnableTracker):
             certificate_chain=fuzzy_sequence_of(fuzzy_bytes),
             objectclass=objectclasses.ca
         )
+        if self.description == 'IPA CA':
+            self.attrs['ipacarandomserialnumberversion'] = ('0',)
         self.exists = True
 
     def make_disable_command(self):

@@ -324,7 +324,8 @@ def set_default_ttl_for_ipa_dns_zone(host, raiseonerr=True):
 
 def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
                    extra_args=(), domain_level=None, unattended=True,
-                   external_ca=False, stdin_text=None, raiseonerr=True):
+                   external_ca=False, stdin_text=None, raiseonerr=True,
+                   random_serial=False):
     if domain_level is None:
         domain_level = host.config.domain_level
     check_domain_level(domain_level)
@@ -345,6 +346,10 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         '-a', host.config.admin_password,
         "--domain-level=%i" % domain_level,
     ]
+
+    if random_serial:
+        args.append('--random-serial-numbers')
+
     if ipatests_dse:
         args.extend(["--dirsrv-config-file", ipatests_dse])
 
@@ -1412,7 +1417,8 @@ def double_circle_topo(master, replicas, site_size=6):
 
 def install_topo(topo, master, replicas, clients, domain_level=None,
                  skip_master=False, setup_replica_cas=True,
-                 setup_replica_kras=False, clients_extra_args=()):
+                 setup_replica_kras=False, clients_extra_args=(),
+                 random_serial=False):
     """Install IPA servers and clients in the given topology"""
     if setup_replica_kras and not setup_replica_cas:
         raise ValueError("Option 'setup_replica_kras' requires "
@@ -1423,7 +1429,8 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
         install_master(
             master,
             domain_level=domain_level,
-            setup_kra=setup_replica_kras
+            setup_kra=setup_replica_kras,
+            random_serial=random_serial,
         )
 
     add_a_records_for_hosts_in_master_domain(master)
@@ -1675,13 +1682,16 @@ def install_kra(host, domain_level=None,
 
 def install_ca(
         host, domain_level=None, first_instance=False, external_ca=False,
-        cert_files=None, raiseonerr=True, extra_args=()
+        cert_files=None, raiseonerr=True, extra_args=(),
+        random_serial=False,
 ):
     if domain_level is None:
         domain_level = domainlevel(host)
     check_domain_level(domain_level)
     command = ["ipa-ca-install", "-U", "-p", host.config.dirman_password,
                "-P", 'admin', "-w", host.config.admin_password]
+    if random_serial:
+        command.append('--random-serial-numbers')
     if not isinstance(extra_args, (tuple, list)):
         raise TypeError("extra_args must be tuple or list")
     command.extend(extra_args)

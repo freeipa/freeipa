@@ -1914,3 +1914,55 @@ jobs:
         template: *ci-master-frawhide
         timeout: 5000
         topology: *master_1repl
+
+  fedora-rawhide/test_random_serial_numbers_TestInstallWithCA_DNS1_RSN:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_random_serial_numbers.py::TestInstallWithCA_DNS1_RSN
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_random_serial_numbers_TestInstallWithCA_KRA1_RSN:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_random_serial_numbers.py::TestInstallWithCA_KRA1_RSN
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_random_serial_numbers_test_commands_RSN:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_random_serial_numbers.py::TestIPACommand_RSN::test_certificate_out_write_to_file
+        template: *ci-master-frawhide
+        timeout: 5400
+        topology: *master_1repl_1client
+
+  fedora-rawhide/test_caless_TestServerCALessToExternalCA_RSN:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_random_serial_numbers.py::TestServerCALessToExternalCA_RSN
+        template: *ci-master-frawhide
+        timeout: 5400
+        topology: *master_1repl
