@@ -719,9 +719,13 @@ class TestIPACommand(IntegrationTest):
 
     def test_certificate_out_write_to_file(self):
         # commands to test; name of temporary file will be appended
+        result = self.master.run_command([
+            'openssl', 'x509', '-serial', '-noout', '-in', paths.IPA_CA_CRT
+        ])
+        serial = result.stdout_text.strip().split('=', maxsplit=1)[1]
         commands = [
-            ['ipa', 'cert-show', '1', '--certificate-out'],
-            ['ipa', 'cert-show', '1', '--chain', '--certificate-out'],
+            ['ipa', 'cert-show', serial, '--certificate-out'],
+            ['ipa', 'cert-show', serial, '--chain', '--certificate-out'],
             ['ipa', 'ca-show', 'ipa', '--certificate-out'],
             ['ipa', 'ca-show', 'ipa', '--chain', '--certificate-out'],
         ]
