@@ -587,7 +587,9 @@ class pwpolicy_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         old_entry_attrs = ldap.get_entry(dn, ['objectclass'])
-        if 'ipapwdpolicy' not in old_entry_attrs['objectclass']:
+        if not self.obj.has_objectclass(
+            old_entry_attrs['objectclass'], 'ipapwdpolicy'
+        ):
             old_entry_attrs['objectclass'].append('ipapwdpolicy')
             entry_attrs['objectclass'] = old_entry_attrs['objectclass']
         self.obj.convert_time_on_input(entry_attrs)
