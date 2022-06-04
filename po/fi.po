@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.2.dev202102041800+git784715b69\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-02-04 13:00-0500\n"
-"PO-Revision-Date: 2022-05-17 19:18+0000\n"
+"PO-Revision-Date: 2022-06-05 19:18+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/fi/>\n"
@@ -1916,7 +1916,7 @@ msgstr ""
 #: ipaserver/plugins/delegation.py:86 ipaserver/plugins/selfservice.py:89
 #: ipaserver/plugins/aci.py:472
 msgid "Attributes"
-msgstr ""
+msgstr "Attribuutit"
 
 #: ipaclient/remote_plugins/2_114/aci.py:158
 #: ipaclient/remote_plugins/2_114/aci.py:238
@@ -22754,7 +22754,7 @@ msgstr ""
 #: ipaclient/remote_plugins/2_164/permission.py:809
 #: ipaserver/plugins/permission.py:259
 msgid "Included attributes"
-msgstr ""
+msgstr "Sisälletyt attribuutit"
 
 #: ipaclient/remote_plugins/2_114/permission.py:116
 #: ipaclient/remote_plugins/2_114/permission.py:577
@@ -45130,7 +45130,7 @@ msgstr ""
 #: ipaserver/plugins/internal.py:440 ipaserver/plugins/internal.py:525
 #: ipaserver/plugins/internal.py:1213
 msgid "Attribute"
-msgstr ""
+msgstr "Attribuutti"
 
 #: ipaserver/plugins/internal.py:443
 msgid "Add delegation"
