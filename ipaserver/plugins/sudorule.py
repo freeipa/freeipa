@@ -397,7 +397,7 @@ class sudorule_add(LDAPCreate):
         assert isinstance(dn, DN)
         self.obj.check_order_uniqueness(*keys, **options)
         # Sudo Rules are enabled by default
-        entry_attrs['ipaenabledflag'] = 'TRUE'
+        entry_attrs['ipaenabledflag'] = True
         return dn
 
     msg_summary = _('Added Sudo Rule "%(value)s"')
@@ -503,7 +503,7 @@ class sudorule_enable(LDAPQuery):
         except errors.NotFound:
             raise self.obj.handle_not_found(cn)
 
-        entry_attrs['ipaenabledflag'] = ['TRUE']
+        entry_attrs['ipaenabledflag'] = [True]
 
         try:
             ldap.update_entry(entry_attrs)
@@ -526,7 +526,7 @@ class sudorule_disable(LDAPQuery):
         except errors.NotFound:
             raise self.obj.handle_not_found(cn)
 
-        entry_attrs['ipaenabledflag'] = ['FALSE']
+        entry_attrs['ipaenabledflag'] = [False]
 
         try:
             ldap.update_entry(entry_attrs)

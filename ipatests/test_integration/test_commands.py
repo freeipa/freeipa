@@ -819,7 +819,7 @@ class TestIPACommand(IntegrationTest):
         lines = set(l.strip() for l in result.stdout_text.split('\n'))
         assert 'User category: all' in lines
         assert 'Host category: all' in lines
-        assert 'Enabled: TRUE' in lines
+        assert 'Enabled: True' in lines
         assert 'HBAC Services: systemd-user' in lines
         assert 'accessruletype: allow' in lines
 
@@ -843,7 +843,7 @@ class TestIPACommand(IntegrationTest):
         lines = set(l.strip() for l in result.stdout_text.split('\n'))
         assert 'User category: all' in lines
         assert 'Host category: all' in lines
-        assert 'Enabled: TRUE' in lines
+        assert 'Enabled: True' in lines
         assert 'HBAC Services: systemd-user' in lines
         assert 'accessruletype: allow' in lines
 

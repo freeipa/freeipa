@@ -113,7 +113,7 @@ class test_dns_realmdomains_integration(Declarative):
                 'result': {
                     'dn': dnszone_1_dn,
                     'idnsname': [DNSName(dnszone_1_absolute)],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': lambda x: True,
                     'idnssoarname': [DNSName(idnssoarname)],
@@ -122,7 +122,7 @@ class test_dns_realmdomains_integration(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -179,7 +179,7 @@ class test_dns_realmdomains_integration(Declarative):
                 'result': {
                     'dn': dnszone_2_dn,
                     'idnsname': [DNSName(dnszone_2_absolute)],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnsforwarders': [u'198.18.19.20'],
                     'idnsforwardpolicy': [u'only'],
@@ -190,7 +190,7 @@ class test_dns_realmdomains_integration(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'

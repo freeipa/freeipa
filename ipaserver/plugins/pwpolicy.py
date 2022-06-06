@@ -456,7 +456,7 @@ class pwpolicy(LDAPObject):
             for attr in ['ipapwdmaxrepeat', 'ipapwdmaxsequence',
                          'ipapwddictcheck', 'ipapwdusercheck']:
                 val = get_val(entry, attr)
-                if val not in ('FALSE', '0', 0, None):
+                if val not in (False, 'FALSE', '0', 0, None):
                     return True
             return False
 

@@ -64,7 +64,7 @@ class test_hbac(XMLRPC_test):
         entry = ret['result']
         assert_attr_equal(entry, 'cn', self.rule_name)
         assert_attr_equal(entry, 'accessruletype', self.rule_type)
-        assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
+        assert_attr_equal(entry, 'ipaenabledflag', True)
         assert_attr_equal(entry, 'description', self.rule_desc)
 
     def test_1_hbacrule_add(self):
@@ -82,7 +82,7 @@ class test_hbac(XMLRPC_test):
         """
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
         assert_attr_equal(entry, 'cn', self.rule_name)
-        assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
+        assert_attr_equal(entry, 'ipaenabledflag', True)
         assert_attr_equal(entry, 'description', self.rule_desc)
 
     def test_3_hbacrule_mod(self):
@@ -327,8 +327,7 @@ class test_hbac(XMLRPC_test):
         """
         assert api.Command['hbacrule_disable'](self.rule_name)['result'] is True
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
-        # FIXME: Should this be 'disabled' or 'FALSE'?
-        assert_attr_equal(entry, 'ipaenabledflag', 'FALSE')
+        assert_attr_equal(entry, 'ipaenabledflag', False)
 
     def test_e_hbacrule_enabled(self):
         """
@@ -337,8 +336,7 @@ class test_hbac(XMLRPC_test):
         assert api.Command['hbacrule_enable'](self.rule_name)['result'] is True
         # check it's really enabled
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
-         # FIXME: Should this be 'enabled' or 'TRUE'?
-        assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
+        assert_attr_equal(entry, 'ipaenabledflag', True)
 
     def test_ea_hbacrule_disable_setattr(self):
         """
@@ -346,9 +344,9 @@ class test_hbac(XMLRPC_test):
         """
         command_result = api.Command['hbacrule_mod'](
             self.rule_name, setattr=u'ipaenabledflag=false')
-        assert command_result['result']['ipaenabledflag'] == (u'FALSE',)
+        assert command_result['result']['ipaenabledflag'] == (False,)
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
-        assert_attr_equal(entry, 'ipaenabledflag', 'FALSE')
+        assert_attr_equal(entry, 'ipaenabledflag', False)
 
     def test_eb_hbacrule_enable_setattr(self):
         """
@@ -356,10 +354,10 @@ class test_hbac(XMLRPC_test):
         """
         command_result = api.Command['hbacrule_mod'](
             self.rule_name, setattr=u'ipaenabledflag=1')
-        assert command_result['result']['ipaenabledflag'] == (u'TRUE',)
+        assert command_result['result']['ipaenabledflag'] == (True,)
         # check it's really enabled
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
-        assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
+        assert_attr_equal(entry, 'ipaenabledflag', True)
 
     def test_f_hbacrule_exclusiveuser(self):
         """

@@ -332,7 +332,7 @@ class selinuxusermap_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         # rules are enabled by default
-        entry_attrs['ipaenabledflag'] = 'TRUE'
+        entry_attrs['ipaenabledflag'] = True
         validate_selinuxuser_inlist(ldap, entry_attrs['ipaselinuxuser'])
 
         def is_to_be_set(x):
@@ -508,7 +508,7 @@ class selinuxusermap_enable(LDAPQuery):
         except errors.NotFound:
             raise self.obj.handle_not_found(cn)
 
-        entry_attrs['ipaenabledflag'] = ['TRUE']
+        entry_attrs['ipaenabledflag'] = [True]
 
         try:
             ldap.update_entry(entry_attrs)
@@ -538,7 +538,7 @@ class selinuxusermap_disable(LDAPQuery):
         except errors.NotFound:
             raise self.obj.handle_not_found(cn)
 
-        entry_attrs['ipaenabledflag'] = ['FALSE']
+        entry_attrs['ipaenabledflag'] = [False]
 
         try:
             ldap.update_entry(entry_attrs)
