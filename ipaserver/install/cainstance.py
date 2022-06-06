@@ -2018,7 +2018,7 @@ def import_included_profiles():
                 objectclass=['ipacertprofile'],
                 cn=[profile_id],
                 description=[desc],
-                ipacertprofilestoreissued=['TRUE' if store_issued else 'FALSE'],
+                ipacertprofilestoreissued=[store_issued],
             )
             conn.add_entry(entry)
 

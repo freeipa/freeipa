@@ -119,7 +119,7 @@ class test_selinuxusermap(Declarative):
                     ipaselinuxuser=[selinuxuser1],
                     objectclass=objectclasses.selinuxusermap,
                     ipauniqueid=[fuzzy_uuid],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             ),
@@ -146,7 +146,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser1],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             ),
@@ -163,7 +163,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                 ),
                 summary=u'Modified SELinux User Map "%s"' % rule1,
                 value=rule1,
@@ -179,7 +179,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_selinuxusermapdn,
                 ),
                 summary=None,
@@ -197,7 +197,7 @@ class test_selinuxusermap(Declarative):
                     dict(
                         cn=[rule1],
                         ipaselinuxuser=[selinuxuser2],
-                        ipaenabledflag=[u'TRUE'],
+                        ipaenabledflag=[True],
                         dn=fuzzy_selinuxusermapdn,
                     ),
                 ],
@@ -311,7 +311,7 @@ class test_selinuxusermap(Declarative):
                     objectclass=objectclasses.hbacrule,
                     ipauniqueid=[fuzzy_uuid],
                     accessruletype=[u'allow'],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_hbacruledn,
                 ),
             ),
@@ -331,7 +331,7 @@ class test_selinuxusermap(Declarative):
                     objectclass=objectclasses.hbacrule,
                     ipauniqueid=[fuzzy_uuid],
                     accessruletype=[u'allow'],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_hbacruledn,
                 ),
             ),
@@ -349,7 +349,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     memberuser_user=[user1],
                     dn=fuzzy_selinuxusermapdn,
                 ),
@@ -370,7 +370,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     memberuser_user=[user1],
                     dn=fuzzy_selinuxusermapdn,
                 ),
@@ -387,7 +387,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -408,7 +408,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -424,7 +424,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     memberuser_group=[group1],
                     dn=fuzzy_selinuxusermapdn,
                 ),
@@ -441,7 +441,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     memberhost_host=[host1],
                     memberuser_group=[group1],
                     dn=fuzzy_selinuxusermapdn,
@@ -508,7 +508,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     memberuser_group=[group1],
                     dn=fuzzy_selinuxusermapdn,
                 ),
@@ -526,7 +526,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -552,7 +552,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     seealso=hbacrule1,
                 ),
                 summary=u'Modified SELinux User Map "%s"' % rule1,
@@ -754,7 +754,7 @@ class test_selinuxusermap(Declarative):
                     ipaselinuxuser=[selinuxuser1],
                     objectclass=objectclasses.selinuxusermap,
                     ipauniqueid=[fuzzy_uuid],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_selinuxusermapdn,
                     seealso=hbacrule1
                 ),
@@ -825,7 +825,7 @@ class test_selinuxusermap(Declarative):
                     ipaselinuxuser=[selinuxuser1],
                     objectclass=objectclasses.selinuxusermap,
                     ipauniqueid=[fuzzy_uuid],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_selinuxusermapdn,
                     usercategory=[u'all'],
                     hostcategory=[u'all']
@@ -866,7 +866,7 @@ class test_selinuxusermap(Declarative):
                     ipaselinuxuser=[selinuxuser1],
                     objectclass=objectclasses.selinuxusermap,
                     ipauniqueid=[fuzzy_uuid],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             ),
@@ -911,7 +911,7 @@ class test_selinuxusermap(Declarative):
                     ipaselinuxuser=[selinuxuser1],
                     objectclass=objectclasses.selinuxusermap,
                     ipauniqueid=[fuzzy_uuid],
-                    ipaenabledflag=[u'TRUE'],
+                    ipaenabledflag=[True],
                     dn=fuzzy_selinuxusermapdn,
                     seealso=u'allow_all',
                 ),

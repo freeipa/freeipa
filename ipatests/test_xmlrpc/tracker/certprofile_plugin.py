@@ -86,7 +86,7 @@ class CertprofileTracker(Tracker):
             dn=unicode(self.dn),
             cn=[self.name],
             description=[self.description],
-            ipacertprofilestoreissued=[unicode(self.store).upper()],
+            ipacertprofilestoreissued=[self.store],
             objectclass=objectclasses.certprofile
         )
         self.exists = True

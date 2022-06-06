@@ -184,12 +184,8 @@ return {
                         measurement_unit: 'seconds'
                     },
                     {
-                        $type: 'radio',
+                        $type: 'checkbox',
                         name: 'idnsallowdynupdate',
-                        options: [
-                            { value: 'TRUE', label: '@i18n:true' },
-                            { value: 'FALSE', label: '@i18n:false' }
-                        ]
                     },
                     {
                         $type: 'textarea',

@@ -426,7 +426,7 @@ class certmaprule_enable(LDAPQuery):
         except errors.NotFound:
             raise self.obj.handle_not_found(cn)
 
-        entry_attrs['ipaenabledflag'] = ['TRUE']
+        entry_attrs['ipaenabledflag'] = [True]
 
         try:
             ldap.update_entry(entry_attrs)
@@ -455,7 +455,7 @@ class certmaprule_disable(LDAPQuery):
         except errors.NotFound:
             raise self.obj.handle_not_found(cn)
 
-        entry_attrs['ipaenabledflag'] = ['FALSE']
+        entry_attrs['ipaenabledflag'] = [False]
 
         try:
             ldap.update_entry(entry_attrs)

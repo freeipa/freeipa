@@ -901,7 +901,7 @@ migration process might be incomplete\n''')
             assert isinstance(ds_base_dn, DN)
 
         # check if migration mode is enabled
-        if config.get('ipamigrationenabled', ('FALSE', ))[0] == 'FALSE':
+        if not config.get('ipamigrationenabled', (False,))[0]:
             return dict(result={}, failed={}, enabled=False, compat=True)
 
         # connect to DS
