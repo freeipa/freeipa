@@ -680,9 +680,9 @@ class user_add(baseuser_add):
 
         # generate subid
         default_subid = config.single_value.get(
-            'ipaUserDefaultSubordinateId', 'FALSE'
+            'ipaUserDefaultSubordinateId', False
         )
-        if default_subid == 'TRUE':
+        if default_subid:
             result = self.api.Command.subid_generate(
                 ipaowner=entry_attrs.single_value['uid'],
                 version=options['version']

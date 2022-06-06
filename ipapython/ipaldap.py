@@ -683,6 +683,7 @@ class LDAPClient:
         '1.3.6.1.4.1.1466.115.121.1.1'   : bytes, # ACI item
         '1.3.6.1.4.1.1466.115.121.1.4'   : bytes, # Audio
         '1.3.6.1.4.1.1466.115.121.1.5'   : bytes, # Binary
+        '1.3.6.1.4.1.1466.115.121.1.7'   : bool,  # Boolean
         '1.3.6.1.4.1.1466.115.121.1.8'   : bytes, # Certificate
         '1.3.6.1.4.1.1466.115.121.1.9'   : bytes, # Certificate List
         '1.3.6.1.4.1.1466.115.121.1.10'  : bytes, # Certificate Pair
@@ -1007,6 +1008,8 @@ class LDAPClient:
                     return val
                 elif target_type is unicode:
                     return val.decode('utf-8')
+                elif target_type is bool:
+                    return val.decode('utf-8') == 'TRUE'
                 elif target_type is datetime.datetime:
                     return datetime.datetime.strptime(
                         val.decode('utf-8'), LDAP_GENERALIZED_TIME_FORMAT)

@@ -960,7 +960,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         # Success? Then add it to the principal's entry
         # (unless the profile tells us not to)
         profile = api.Command['certprofile_show'](profile_id)
-        store = profile['result']['ipacertprofilestoreissued'][0] == 'TRUE'
+        store = profile['result']['ipacertprofilestoreissued'][0]
         if store and 'certificate' in result:
             cert = result.get('certificate')
             kwargs = dict(addattr=u'usercertificate={}'.format(cert))

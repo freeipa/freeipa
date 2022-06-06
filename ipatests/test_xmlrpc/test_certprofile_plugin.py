@@ -160,7 +160,7 @@ class TestProfileCRUD(XMLRPC_test):
                 ipacertprofilestoreissued=False
             ),
             expected_updates=dict(
-                ipacertprofilestoreissued=[u'FALSE']
+                ipacertprofilestoreissued=[False]
             )
         )
 

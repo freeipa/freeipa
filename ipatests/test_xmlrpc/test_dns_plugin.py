@@ -542,7 +542,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone1_rname_dnsname],
@@ -551,7 +551,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -626,7 +626,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': zone2_sub_dn,
                     'idnsname': [zone2_sub_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [zone2_sub_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone2_sub_rname_dnsname],
@@ -635,7 +635,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -697,7 +697,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': zone4_dn,
                     'idnsname': [zone4_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone4_rname_dnsname],
@@ -706,7 +706,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -742,7 +742,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': zone5_dn,
                     'idnsname': [zone5_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone5_rname_dnsname],
@@ -751,7 +751,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -797,7 +797,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
@@ -807,7 +807,7 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -826,7 +826,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
@@ -836,7 +836,7 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -911,7 +911,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
@@ -921,7 +921,7 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -941,7 +941,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
@@ -951,7 +951,7 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -988,7 +988,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': revzone1_dn,
                     'idnsname': [revzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone1_rname_dnsname],
@@ -997,7 +997,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
                                          % dict(realm=api.env.realm, zone=revzone1)],
                     'idnsallowtransfer': [u'none;'],
@@ -1028,7 +1028,7 @@ class test_dns(Declarative):
                 'result': [{
                     'dn': revzone1_dn,
                     'idnsname': [revzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
@@ -1037,7 +1037,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy':
                         [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
                             % dict(
@@ -1049,7 +1049,7 @@ class test_dns(Declarative):
                 {
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
@@ -1060,7 +1060,7 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -1080,7 +1080,7 @@ class test_dns(Declarative):
                 'result': [{
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
@@ -1091,7 +1091,7 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -1836,7 +1836,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': revzone1_dn,
                     'idnsname': [revzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone1_rname_dnsname],
@@ -1845,7 +1845,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
                                          % dict(realm=api.env.realm, zone=revzone1)],
                     'idnsallowtransfer': [u'none;'],
@@ -1880,7 +1880,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': revzone2_dn,
                     'idnsname': [revzone2_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone1_rname_dnsname],
@@ -1889,7 +1889,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
                                          % dict(realm=api.env.realm, zone=revzone2)],
                     'idnsallowtransfer': [u'none;'],
@@ -2004,7 +2004,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
@@ -2017,7 +2017,7 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowquery': [allowquery_restricted_out],
                     'idnsallowtransfer': [u'none;'],
-                    'idnsallowdynupdate': ('FALSE',),
+                    'idnsallowdynupdate': (False,),
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -2042,7 +2042,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
@@ -2055,7 +2055,7 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowquery': [allowquery_restricted_out],
                     'idnsallowtransfer': [allowtransfer_tofwd],
-                    'idnsallowdynupdate': ('FALSE',),
+                    'idnsallowdynupdate': (False,),
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -2073,7 +2073,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
@@ -2086,7 +2086,7 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowquery': [allowquery_restricted_out],
                     'idnsallowtransfer': [allowtransfer_tofwd],
-                    'idnsallowdynupdate': ('FALSE',),
+                    'idnsallowdynupdate': (False,),
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -2337,7 +2337,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': zone3_dn,
                     'idnsname': [zone3_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone3_rname_dnsname],
@@ -2346,7 +2346,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -2396,7 +2396,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': revzone3_classless1_dn,
                     'idnsname': [revzone3_classless1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone3_rname_dnsname],
@@ -2405,7 +2405,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
                                          % dict(realm=api.env.realm, zone=revzone3_classless1)],
                     'idnsallowtransfer': [u'none;'],
@@ -2438,7 +2438,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': revzone3_classless2_dn,
                     'idnsname': [revzone3_classless2_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone3_rname_dnsname],
@@ -2447,7 +2447,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
                                          % dict(realm=api.env.realm, zone=revzone3_classless2)],
                     'idnsallowtransfer': [u'none;'],
@@ -2553,7 +2553,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [idnzone1_rname_dnsname],
@@ -2562,7 +2562,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -2595,7 +2595,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [idnzone1_rname_dnsname],
@@ -2606,7 +2606,7 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -2626,7 +2626,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_punycoded],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': ['TRUE'],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns],
                     'idnssoarname': [idnzone1_rname_punycoded],
@@ -2637,7 +2637,7 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': ['FALSE'],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -2659,7 +2659,7 @@ class test_dns(Declarative):
                 'result': [
                     {   'dn': idnzone1_dn,
                         'idnsname': [idnzone1_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'nsrecord': nameservers,
                         'idnssoamname': [self_server_ns_dnsname],
                         'idnssoarname': [idnzone1_rname_dnsname],
@@ -2670,7 +2670,7 @@ class test_dns(Declarative):
                         'idnssoaminimum': [fuzzy_digits],
                         'idnsallowtransfer': [u'none;'],
                         'idnsallowquery': [u'any;'],
-                        'idnsallowdynupdate': [u'FALSE'],
+                        'idnsallowdynupdate': [False],
                         'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                              u'grant %(realm)s krb5-self '
                                              u'* AAAA; '
@@ -2695,7 +2695,7 @@ class test_dns(Declarative):
                 'result': [
                     {   'dn': idnzone1_dn,
                         'idnsname': [idnzone1_punycoded],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': ['TRUE'],
                         'nsrecord': nameservers,
                         'idnssoamname': [self_server_ns],
                         'idnssoarname': [idnzone1_rname_punycoded],
@@ -2706,7 +2706,7 @@ class test_dns(Declarative):
                         'idnssoaminimum': [fuzzy_digits],
                         'idnsallowtransfer': [u'none;'],
                         'idnsallowquery': [u'any;'],
-                        'idnsallowdynupdate': [u'FALSE'],
+                        'idnsallowdynupdate': ['FALSE'],
                         'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                              u'grant %(realm)s krb5-self '
                                              u'* AAAA; '
@@ -2726,7 +2726,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [idnzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [idnzone1_rname_dnsname],
@@ -2737,7 +2737,7 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -2759,7 +2759,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': revidnzone1_dn,
                     'idnsname': [revidnzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [idnzone1_rname_dnsname],
@@ -2768,7 +2768,7 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
                                          % dict(realm=api.env.realm, zone=revidnzone1)],
                     'idnsallowtransfer': [u'none;'],
@@ -2808,7 +2808,7 @@ class test_dns(Declarative):
                 'result': [{
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [idnzone1_rname_dnsname],
@@ -2819,7 +2819,7 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -3389,7 +3389,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'FALSE'],
+                    'idnszoneactive': [False],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
@@ -3399,7 +3399,7 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'172.16.31.80;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -3432,7 +3432,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
@@ -3442,7 +3442,7 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'172.16.31.80;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -3474,7 +3474,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_dnsname],
-                    'idnszoneactive': [u'FALSE'],
+                    'idnszoneactive': [False],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [idnzone1_rname_dnsname],
@@ -3484,7 +3484,7 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -3517,7 +3517,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [idnzone1_rname_dnsname],
@@ -3527,7 +3527,7 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -3618,7 +3618,7 @@ class test_root_zone(Declarative):
                 'result': {
                     'dn': zone_root_dn,
                     'idnsname': [zone_root_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone_root_rname_dnsname],
@@ -3627,7 +3627,7 @@ class test_root_zone(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -3842,7 +3842,7 @@ class test_forward_zones(Declarative):
                 'result': {
                     'dn': fwzone1_dn,
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                     'objectclass': objectclasses.dnsforwardzone,
                 },
@@ -3883,7 +3883,7 @@ class test_forward_zones(Declarative):
                 'result': {
                     'dn': fwzone2_dn,
                     'idnsname': [fwzone2_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder1],
                     'objectclass': objectclasses.dnsforwardzone,
@@ -3918,7 +3918,7 @@ class test_forward_zones(Declarative):
                 'result': {
                     'dn': fwzone2_dn,
                     'idnsname': [fwzone2_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'only'],
                     'idnsforwarders': [forwarder1, forwarder2, forwarder3],
                     'objectclass': objectclasses.dnsforwardzone,
@@ -3952,7 +3952,7 @@ class test_forward_zones(Declarative):
                 'result': {
                     'dn': fwzone2_dn,
                     'idnsname': [fwzone2_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'only'],
                     'idnsforwarders': [forwarder2],
                     'objectclass': objectclasses.dnsforwardzone,
@@ -3976,7 +3976,7 @@ class test_forward_zones(Declarative):
                 'result': {
                     'dn': fwzone3_dn,
                     'idnsname': [fwzone3_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder1, forwarder2, forwarder3],
                     'objectclass': objectclasses.dnsforwardzone,
@@ -4010,7 +4010,7 @@ class test_forward_zones(Declarative):
                 'result': {
                     'dn': fwzone3_dn,
                     'idnsname': [fwzone3_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder3],
                     'objectclass': objectclasses.dnsforwardzone,
@@ -4033,7 +4033,7 @@ class test_forward_zones(Declarative):
                 'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone3_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder1],
                 },
@@ -4054,7 +4054,7 @@ class test_forward_zones(Declarative):
                 'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone3_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder1, forwarder2],
                 },
@@ -4075,7 +4075,7 @@ class test_forward_zones(Declarative):
                 'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone3_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder1, forwarder3],
                 },
@@ -4096,7 +4096,7 @@ class test_forward_zones(Declarative):
                 'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone3_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder2, forwarder4],
                 },
@@ -4118,7 +4118,7 @@ class test_forward_zones(Declarative):
                 'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                     'idnsforwarders': [forwarder3],
                 },
@@ -4138,7 +4138,7 @@ class test_forward_zones(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [fwzone2_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                     'idnsforwarders': [forwarder2],
                 },
@@ -4158,7 +4158,7 @@ class test_forward_zones(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [fwzone2_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'only'],
                     'idnsforwarders': [forwarder2],
                 },
@@ -4180,7 +4180,7 @@ class test_forward_zones(Declarative):
                 'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder3],
                 },
@@ -4201,7 +4201,7 @@ class test_forward_zones(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                 },
             },
@@ -4222,7 +4222,7 @@ class test_forward_zones(Declarative):
                 'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'only'],
                     'idnsforwarders': [forwarder1, forwarder2],
                 },
@@ -4242,7 +4242,7 @@ class test_forward_zones(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder1, forwarder2],
                 },
@@ -4262,7 +4262,7 @@ class test_forward_zones(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'only'],
                     'idnsforwarders': [forwarder1, forwarder2],
                 },
@@ -4283,7 +4283,7 @@ class test_forward_zones(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                 },
             },
@@ -4402,7 +4402,7 @@ class test_forward_zones(Declarative):
                 'result': {
                     'dn': fwzone1_dn,
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                 },
             },
@@ -4430,20 +4430,20 @@ class test_forward_zones(Declarative):
                     {
                         'dn': fwzone1_dn,
                         'idnsname': [fwzone1_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'idnsforwardpolicy': [u'none'],
                     },
                     {
                         'dn': fwzone2_dn,
                         'idnsname': [fwzone2_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'idnsforwardpolicy': [u'only'],
                         'idnsforwarders': [forwarder2],
                     },
                     {
                         'dn': fwzone3_dn,
                         'idnsname': [fwzone3_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'idnsforwardpolicy': [u'first'],
                         'idnsforwarders': [forwarder2, forwarder4],
                     },
@@ -4487,7 +4487,7 @@ class test_forward_zones(Declarative):
                 'result': [{
                     'dn': fwzone1_dn,
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                 }],
             },
@@ -4505,20 +4505,20 @@ class test_forward_zones(Declarative):
                     {
                         'dn': fwzone1_dn,
                         'idnsname': [fwzone1_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'idnsforwardpolicy': [u'none'],
                     },
                     {
                         'dn': fwzone2_dn,
                         'idnsname': [fwzone2_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'idnsforwardpolicy': [u'only'],
                         'idnsforwarders': [forwarder2],
                     },
                     {
                         'dn': fwzone3_dn,
                         'idnsname': [fwzone3_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'idnsforwardpolicy': [u'first'],
                         'idnsforwarders': [forwarder2, forwarder4],
                     },
@@ -4538,7 +4538,7 @@ class test_forward_zones(Declarative):
                     {
                         'dn': fwzone1_dn,
                         'idnsname': [fwzone1_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'idnsforwardpolicy': [u'none'],
                     }
                 ],
@@ -4557,7 +4557,7 @@ class test_forward_zones(Declarative):
                     {
                         'dn': fwzone1_dn,
                         'idnsname': [fwzone1_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'idnsforwardpolicy': [u'none'],
                     }
                 ],
@@ -4576,7 +4576,7 @@ class test_forward_zones(Declarative):
                     {
                         'dn': fwzone2_dn,
                         'idnsname': [fwzone2_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'idnsforwardpolicy': [u'only'],
                         'idnsforwarders': [forwarder2],
                     }
@@ -4596,7 +4596,7 @@ class test_forward_zones(Declarative):
                     {
                         'dn': fwzone3_dn,
                         'idnsname': [fwzone3_dnsname],
-                        'idnszoneactive': [u'TRUE'],
+                        'idnszoneactive': [True],
                         'idnsforwardpolicy': [u'first'],
                         'idnsforwarders': [forwarder2, forwarder4],
                     }
@@ -4795,7 +4795,7 @@ class test_forward_zones(Declarative):
                 'result': {
                     'dn': fwzone1_dn,
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'FALSE'],
+                    'idnszoneactive': [False],
                     'idnsforwardpolicy': [u'none'],
                 },
             },
@@ -4842,7 +4842,7 @@ class test_forward_zones(Declarative):
                 'result': {
                     'dn': fwzone1_dn,
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                 },
             },
@@ -4913,7 +4913,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
                 'result': {
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': lambda x: True,  # don't care in this test
                     'nsrecord': lambda x: True,  # don't care in this test
                     'idnssoarname': lambda x: True,  # don't care in this test
@@ -4922,7 +4922,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': lambda x: True,  # don't care in this test
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
@@ -4953,7 +4953,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
                 'result': {
                     'dn': fwzone1_dn,
                     'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                     'objectclass': objectclasses.dnsforwardzone,
                 },
@@ -5117,7 +5117,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
                 'result': {
                     'dn': zone_findtest_master_dn,
                     'idnsname': [zone_findtest_master_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': lambda x: True,  # don't care in this test
                     'nsrecord': lambda x: True,  # don't care in this test
                     'idnssoarname': lambda x: True,  # don't care in this test
@@ -5126,7 +5126,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': lambda x: True,  # don't care in this test
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
@@ -5159,7 +5159,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
                 'result': {
                     'dn': zone_findtest_forward_dn,
                     'idnsname': [zone_findtest_forward_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder1],
                     'objectclass': objectclasses.dnsforwardzone,
@@ -5178,7 +5178,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
                 'result': [{
                     'dn': zone_findtest_forward_dn,
                     'idnsname': [zone_findtest_forward_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder1],
                 }],
@@ -5196,7 +5196,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
                 'result': [{
                     'dn': zone_findtest_master_dn,
                     'idnsname': [zone_findtest_master_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'nsrecord': lambda x: True,  # don't care in this test
                     'idnssoamname': lambda x: True,  # don't care in this test
                     'idnssoarname': lambda x: True,  # don't care in this test
@@ -5206,7 +5206,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -5312,7 +5312,7 @@ class test_forwardzone_delegation_warnings(Declarative):
                 'result': {
                     'dn': zone1_sub_fw_dn,
                     'idnsname': [zone1_sub_fw_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                     'objectclass': objectclasses.dnsforwardzone,
                 },
@@ -5332,7 +5332,7 @@ class test_forwardzone_delegation_warnings(Declarative):
                 'result': {
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': lambda x: True,  # don't care in this test
                     'nsrecord': lambda x: True,  # don't care in this test
                     'idnssoarname': lambda x: True,  # don't care in this test
@@ -5341,7 +5341,7 @@ class test_forwardzone_delegation_warnings(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': lambda x: True,  # don't care in this test
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
@@ -5386,7 +5386,7 @@ class test_forwardzone_delegation_warnings(Declarative):
                 'result': {
                     'dn': zone1_sub_dn,
                     'idnsname': [zone1_sub_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': lambda x: True,  # don't care in this test
                     'nsrecord': lambda x: True,  # don't care in this test
                     'idnssoarname': lambda x: True,  # don't care in this test
@@ -5395,7 +5395,7 @@ class test_forwardzone_delegation_warnings(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': lambda x: True,  # don't care in this test
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
@@ -5632,7 +5632,7 @@ class test_forwardzone_delegation_warnings(Declarative):
                 'result': {
                     'dn': zone1_sub2_fw_dn,
                     'idnsname': [zone1_sub2_fw_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnsforwardpolicy': [u'none'],
                     'objectclass': objectclasses.dnsforwardzone,
                 },
@@ -5844,7 +5844,7 @@ class test_dns_soa(Declarative):
                 'result': {
                     'dn': zone6b_absolute_dn,
                     'idnsname': [zone6b_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6b_rname_dnsname],
@@ -5853,7 +5853,7 @@ class test_dns_soa(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -5901,7 +5901,7 @@ class test_dns_soa(Declarative):
                 'result': {
                     'dn': zone6_absolute_dn,
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6_rname_default_dnsname],
@@ -5910,7 +5910,7 @@ class test_dns_soa(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -5946,7 +5946,7 @@ class test_dns_soa(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6_rname_relative_dnsname],
@@ -5956,7 +5956,7 @@ class test_dns_soa(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -5980,7 +5980,7 @@ class test_dns_soa(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6_rname_absolute_dnsname],
@@ -5990,7 +5990,7 @@ class test_dns_soa(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -6012,7 +6012,7 @@ class test_dns_soa(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6_rname_default_dnsname],
@@ -6023,7 +6023,7 @@ class test_dns_soa(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -6044,7 +6044,7 @@ class test_dns_soa(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [zone6b_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6b_rname_dnsname],
@@ -6055,7 +6055,7 @@ class test_dns_soa(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -6111,7 +6111,7 @@ class test_dns_soa(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [zone6_ns_arec_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6_rname_default_dnsname],
@@ -6122,7 +6122,7 @@ class test_dns_soa(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -6164,7 +6164,7 @@ class test_dns_soa(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [zone6_unresolvable_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6_rname_default_dnsname],
@@ -6175,7 +6175,7 @@ class test_dns_soa(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -6217,7 +6217,7 @@ class test_dns_soa(Declarative):
                 'summary': None,
                 'result': {
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [zone6_unresolvable_ns_relative_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6_rname_default_dnsname],
@@ -6228,7 +6228,7 @@ class test_dns_soa(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -6340,7 +6340,7 @@ class test_dns_soa(Declarative):
                 'result': {
                     'dn': zone6_absolute_dn,
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6_rname_relative_dnsname],
@@ -6349,7 +6349,7 @@ class test_dns_soa(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -6393,7 +6393,7 @@ class test_dns_soa(Declarative):
                 'result': {
                     'dn': zone6_absolute_dn,
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6_rname_absolute_dnsname],
@@ -6402,7 +6402,7 @@ class test_dns_soa(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -6446,7 +6446,7 @@ class test_dns_soa(Declarative):
                 'result': {
                     'dn': zone6_absolute_dn,
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [zone6b_ns_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6b_rname_dnsname],
@@ -6455,7 +6455,7 @@ class test_dns_soa(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
@@ -6518,7 +6518,7 @@ class test_dns_soa(Declarative):
                 'result': {
                     'dn': zone6_absolute_dn,
                     'idnsname': [zone6_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
+                    'idnszoneactive': [True],
                     'idnssoamname': [zone6_unresolvable_ns_relative_dnsname],
                     'nsrecord': nameservers,
                     'idnssoarname': [zone6_rname_default_dnsname],
@@ -6527,7 +6527,7 @@ class test_dns_soa(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsallowdynupdate': [False],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
                                          u'grant %(realm)s krb5-self * AAAA; '
                                          u'grant %(realm)s krb5-self * SSHFP;'
