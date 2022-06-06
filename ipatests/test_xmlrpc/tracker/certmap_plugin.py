@@ -52,7 +52,7 @@ class CertmapruleTracker(Tracker, EnableTracker):
         self.attrs = {
             'dn': self.dn,
             'cn': [self.name],
-            'ipaenabledflag': [u'TRUE'],
+            'ipaenabledflag': [True],
             'objectclass': objectclasses.certmaprule,
         }
         self.attrs.update({

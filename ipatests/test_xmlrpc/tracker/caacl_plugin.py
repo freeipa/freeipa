@@ -105,7 +105,7 @@ class CAACLTracker(Tracker):
             ipauniqueid=[fuzzy_uuid],
             cn=[self.name],
             objectclass=objectclasses.caacl,
-            ipaenabledflag=[u'TRUE'])
+            ipaenabledflag=[True])
 
         self.attrs.update(self.create_categories)
         if self.description:
@@ -374,10 +374,10 @@ class CAACLTracker(Tracker):
 
     def enable(self):
         command = self.make_command(u'caacl_enable', self.name)
-        self.attrs.update({u'ipaenabledflag': [u'TRUE']})
+        self.attrs.update({u'ipaenabledflag': [True]})
         command()
 
     def disable(self):
         command = self.make_command(u'caacl_disable', self.name)
-        self.attrs.update({u'ipaenabledflag': [u'FALSE']})
+        self.attrs.update({u'ipaenabledflag': [False]})
         command()

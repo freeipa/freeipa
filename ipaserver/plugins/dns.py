@@ -2169,7 +2169,7 @@ class DNSZoneBase_add(LDAPCreate):
                     message=_(u'Only one zone type is allowed per zone name')
                 )
 
-        entry_attrs['idnszoneactive'] = 'TRUE'
+        entry_attrs['idnszoneactive'] = True
 
         if not options['skip_overlap_check']:
             try:
@@ -2272,7 +2272,7 @@ class DNSZoneBase_disable(LDAPQuery):
         if not _check_entry_objectclass(entry, self.obj.object_class):
             raise self.obj.handle_not_found(*keys)
 
-        entry['idnszoneactive'] = ['FALSE']
+        entry['idnszoneactive'] = [False]
 
         try:
             ldap.update_entry(entry)
@@ -2297,7 +2297,7 @@ class DNSZoneBase_enable(LDAPQuery):
         if not _check_entry_objectclass(entry, self.obj.object_class):
             raise self.obj.handle_not_found(*keys)
 
-        entry['idnszoneactive'] = ['TRUE']
+        entry['idnszoneactive'] = [True]
 
         try:
             ldap.update_entry(entry)

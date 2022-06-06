@@ -53,7 +53,7 @@ certmaprule_optional_params = (
     'ipacertmappriority',
 )
 
-certmapconfig_update_params = {u'ipacertmappromptusername': u'TRUE'}
+certmapconfig_update_params = {u'ipacertmappromptusername': True}
 
 CREATE_PERM = u'System: Add Certmap Rules'
 READ_PERM = u'System: Read Certmap Rules'
@@ -459,7 +459,7 @@ class TestPermission(XMLRPC_test):
             api.env.container_certmaprules,
             api.env.basedn,
         )
-        expected_ok[u'result'][0][u'ipaenabledflag'] = (u'TRUE',)
+        expected_ok[u'result'][0][u'ipaenabledflag'] = (True,)
         with self.execute_with_expected(
             certmap_user_permissions,
             [
