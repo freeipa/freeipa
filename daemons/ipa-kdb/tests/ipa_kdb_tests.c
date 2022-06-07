@@ -178,7 +178,7 @@ static int teardown(void **state)
 
 extern krb5_error_code filter_logon_info(krb5_context context,
                                   TALLOC_CTX *memctx,
-                                  krb5_data realm,
+                                  krb5_data *realm,
                                   struct PAC_LOGON_INFO_CTR *info);
 
 static void test_filter_logon_info(void **state)
@@ -204,7 +204,7 @@ static void test_filter_logon_info(void **state)
                                                                "WRONG");
     assert_non_null(info->info->info3.base.logon_domain.string);
 
-    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, realm, info);
+    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, &realm, info);
     assert_int_equal(kerr, EINVAL);
 
     info->info->info3.base.logon_domain.string = talloc_strdup(info->info,
@@ -212,7 +212,7 @@ static void test_filter_logon_info(void **state)
     assert_non_null(info->info->info3.base.logon_domain.string);
 
     /* missing domain SID */
-    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, realm, info);
+    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, &realm, info);
     assert_int_equal(kerr, EINVAL);
 
     /* wrong domain SID */
@@ -220,7 +220,7 @@ static void test_filter_logon_info(void **state)
     assert_int_equal(ret, 0);
     info->info->info3.base.domain_sid = &dom_sid;
 
-    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, realm, info);
+    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, &realm, info);
     assert_int_equal(kerr, EINVAL);
 
     /* matching domain SID */
@@ -228,7 +228,7 @@ static void test_filter_logon_info(void **state)
     assert_int_equal(ret, 0);
     info->info->info3.base.domain_sid = &dom_sid;
 
-    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, realm, info);
+    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, &realm, info);
     assert_int_equal(kerr, 0);
 
     /* empty SIDs */
@@ -243,7 +243,7 @@ static void test_filter_logon_info(void **state)
         assert_non_null(info->info->info3.sids[c].sid);
     }
 
-    kerr = filter_logon_info(test_ctx->krb5_ctx, NULL, realm, info);
+    kerr = filter_logon_info(test_ctx->krb5_ctx, NULL, &realm, info);
     assert_int_equal(kerr, 0);
     assert_int_equal(info->info->info3.sidcount, 3);
 
@@ -297,7 +297,7 @@ static void test_filter_logon_info(void **state)
             assert_int_equal(ret, 0);
         }
 
-        kerr = filter_logon_info(test_ctx->krb5_ctx, NULL, realm, info);
+        kerr = filter_logon_info(test_ctx->krb5_ctx, NULL, &realm, info);
         assert_int_equal(kerr, 0);
         assert_int_equal(info->info->info3.sidcount, test_data[c].exp_sidcount);
         if (test_data[c].exp_sidcount == 0) {

@@ -49,6 +49,22 @@
 #include "ipa_krb5.h"
 #include "ipa_pwd.h"
 
+/* Difference between krb5 1.20 and previous versions. From
+ * krb5 commit a441fbe329ebbd7775eb5d4ccc4a05eef370f08b:
+ *   Combine the KRB5_KDB_FLAG_ISSUE_PAC and
+ *   KRB5_FLAG_CLIENT_REFERRALS_ONLY flags into KRB5_KDB_FLAG_CLIENT.
+ *
+ *   Rename the KRB5_KDB_FLAG_CANONICALIZE flag to
+ *   KRB5_KDB_FLAG_REFERRAL_OK, and only pass it to get_principal() for
+ *   lookup operations that can use a realm referral.
+ * */
+#if defined(KRB5_KDB_FLAG_CLIENT)
+#define CLIENT_REFERRALS_FLAGS (KRB5_KDB_FLAG_REFERRAL_OK)
+#else
+#define CLIENT_REFERRALS_FLAGS (KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY)
+#endif
+
+
 /* easier to copy the defines here than to mess with kadm5/admin.h
  * for now */
 #define KMASK_PRINCIPAL         0x000001
@@ -309,6 +325,7 @@ krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
 
 /* MS-PAC FUNCTIONS */
 
+#if (KRB5_KDB_DAL_MAJOR_VERSION < 9)
 krb5_error_code ipadb_sign_authdata(krb5_context context,
                                     unsigned int flags,
                                     krb5_const_principal client_princ,
@@ -322,6 +339,18 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
                                     krb5_timestamp authtime,
                                     krb5_authdata **tgt_auth_data,
                                     krb5_authdata ***signed_auth_data);
+
+#else
+/* DAL 9 or later uses issue_pac */
+krb5_error_code ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
+                                   krb5_db_entry *client,
+                                   krb5_keyblock *replaced_reply_key,
+                                   krb5_db_entry *server,
+                                   krb5_db_entry *signing_krbtgt,
+                                   krb5_timestamp authtime, krb5_pac old_pac,
+                                   krb5_pac new_pac,
+                                   krb5_data ***auth_indicators);
+#endif
 
 krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit);
 
