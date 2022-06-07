@@ -198,7 +198,7 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
 
     /* Handle the case where server == proxy, this is allowed in S4U*/
     kerr = ipadb_get_principal(kcontext, proxy,
-                               KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY,
+                               CLIENT_REFERRALS_FLAGS,
                                &proxy_entry);
     if (kerr) {
         goto done;

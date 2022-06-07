@@ -88,7 +88,7 @@ dnl ---------------------------------------------------------------------------
 AC_CHECK_HEADER(kdb.h, [], [AC_MSG_ERROR([kdb.h not found])])
 AC_CHECK_MEMBER([kdb_vftabl.issue_pac],
                 [have_kdb_issue_pac=yes],
-                [have_kdb_issue_pac=no])
+                [have_kdb_issue_pac=no], [#include <kdb.h>])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for UUID library

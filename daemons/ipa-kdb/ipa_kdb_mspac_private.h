@@ -53,7 +53,7 @@ struct ipadb_adtrusts {
 
 char *dom_sid_string(TALLOC_CTX *memctx, const struct dom_sid *dom_sid);
 krb5_error_code filter_logon_info(krb5_context context, TALLOC_CTX *memctx,
-                                  krb5_data realm, struct PAC_LOGON_INFO_CTR *info);
+                                  krb5_data *realm, struct PAC_LOGON_INFO_CTR *info);
 void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
                           bool *_with_pac, bool *_with_pad);
 

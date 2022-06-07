@@ -1362,6 +1362,9 @@ static krb5_boolean is_request_for_us(krb5_context kcontext,
 {
     krb5_boolean for_us;
 
+    if (search_for == NULL) {
+        return FALSE;
+    }
     for_us = krb5_realm_compare(kcontext, local_tgs, search_for) ||
              krb5_principal_compare_any_realm(kcontext,
                                               local_tgs, search_for);
@@ -1379,11 +1382,17 @@ static krb5_error_code dbget_princ(krb5_context kcontext,
     LDAPMessage *res = NULL;
     LDAPMessage *lentry;
     uint32_t pol;
+    krb5_boolean check = FALSE;
 
 
-    if ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0 &&
-        (flags & KRB5_KDB_FLAG_CANONICALIZE) != 0) {
+#if defined(KRB5_KDB_FLAG_CLIENT)
+    check = flags & KRB5_KDB_FLAG_CLIENT;
+#else
+    check = (flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) &&
+            (flags & KRB5_KDB_FLAG_CANONICALIZE);
+#endif
 
+    if (check) {
         /* AS_REQ with canonicalization*/
         krb5_principal norm_princ = NULL;
 
@@ -1462,6 +1471,7 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
     char *trusted_realm = NULL;
     krb5_db_entry *kentry = NULL;
     krb5_data *realm;
+    krb5_boolean check = FALSE;
 
     /* TODO: also support hostbased aliases */
 
@@ -1507,8 +1517,14 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
      * both client and server referrals. But it is more useful to ignore it
      * like Windows KDC does for client referrals.
      */
-    if (((flags & KRB5_KDB_FLAG_CANONICALIZE) == 0) &&
-        ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) == 0)) {
+#if defined(KRB5_KDB_FLAG_CLIENT)
+    check = ((flags & KRB5_KDB_FLAG_CLIENT) == 0) &&
+            ((flags & KRB5_KDB_FLAG_REFERRAL_OK) == 0);
+#else
+    check = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) == 0) &&
+            ((flags & KRB5_KDB_FLAG_CANONICALIZE) == 0);
+#endif
+    if (check) {
         kerr = KRB5_KDB_NOENTRY;
         goto done;
     }
@@ -1540,7 +1556,15 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
 
     /* This is a known trusted realm. Issue a referral depending on whether this
      * is client or server referral request */
-    if (flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) {
+#if defined(KRB5_KDB_FLAG_CLIENT)
+    check = (flags & KRB5_KDB_FLAG_CLIENT) && (flags & KRB5_KDB_FLAG_REFERRAL_OK);
+#else
+    check = (flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) &&
+            ((flags & KRB5_KDB_FLAG_CANONICALIZE) ||
+              search_for->type == KRB5_NT_ENTERPRISE_PRINCIPAL);
+#endif
+
+    if (check) {
         /* client referral out of realm, set next realm. */
         kerr = krb5_set_principal_realm(kcontext, norm_princ, trusted_realm);
         if (kerr != 0) {
@@ -1559,7 +1583,12 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
         goto done;
     }
 
-    if (flags & KRB5_KDB_FLAG_INCLUDE_PAC) {
+#if defined(KRB5_KDB_FLAG_CLIENT)
+    check = flags & KRB5_KDB_FLAG_CLIENT;
+#else
+    check = flags & KRB5_KDB_FLAG_INCLUDE_PAC;
+#endif
+    if (check) {
         /* TGS request where KDC wants to generate PAC
          * but the principal is out of our realm */
         kerr = KRB5_KDB_NOENTRY;
