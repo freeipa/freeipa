@@ -1,0 +1,32 @@
+# Specification file for PRCI definitions used by prci_checker script
+
+# List of supported test-run classes for non-build jobs
+classes:
+  - "RunPytest"
+  - "RunPytest2"
+  - "RunPytest3"
+  - "RunWebuiTests"
+  - "RunADTests"
+
+# (Optional) Definition files that should contain the same number of jobs
+fixed_n_jobs:
+  - nightly_ipa-4-9_latest.yaml
+  - nightly_ipa-4-9_latest_selinux.yaml
+  - nightly_ipa-4-9_latest_previous.yaml
+
+# Info specific to prci definition files
+# 'job_prefix' field is mandatory
+# 'update_packages', 'selinux_enforcing', 'enable_testing_repo' and
+# 'copr_defined' are optional boolean fields (if not specified,
+# false value is assumed).
+# New definitions specifications may be added anytime
+prci_job_spec:
+  gating:
+    job_prefix: 'fedora-latest-ipa-4-9/'
+  nightly_ipa-4-9_latest:
+    job_prefix: 'fedora-latest-ipa-4-9/'
+  nightly_ipa-4-9_latest_selinux:
+    job_prefix: 'fedora-latest-ipa-4-9/'
+    selinux_enforcing: True
+  nightly_ipa-4-9_previous:
+    job_prefix: 'fedora-previous-ipa-4-9/'
