@@ -336,6 +336,8 @@ endif  # WITH_RPMLINT
 # There are Jinja yaml templates, which differ from reqular ones. These
 # files should be placed on skip list (YAML_TEMPLATE_FILES), otherwise
 # safe_load fails.
+# Also check PRCI definitions yaml files jobs format and content with
+# prci_checker script
 .PHONY: yamllint
 yamllint:
 	YAML_TEMPLATE_FILES="\
@@ -357,6 +359,9 @@ yamllint:
 		echo $${YAML}; \
 		$(PYTHON) -c "import yaml; f = open('$${YAML}'); yaml.safe_load(f); f.close()" || { echo Your YAML file: $${YAML} has a wrong syntax or this is a Jinja template. In the latter clause, consider to add your YAML file to the YAML_TEMPLATE_FILES list in Makefile.am.; exit 1; } \
 	done; \
+	echo -e "\nCheck PRCI definitions"; \
+	echo "-----------"; \
+	$(PYTHON) $(top_srcdir)/ipatests/prci_definitions/prci_checker.py -d $(top_srcdir)/ipatests/prci_definitions -s $(top_srcdir)/ipatests/prci_definitions/prci_jobs_spec.yaml; \
 	echo "-----------"
 
 # Build & lint documentation.
