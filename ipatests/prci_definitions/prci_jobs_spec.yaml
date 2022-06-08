@@ -1,0 +1,59 @@
+# Specification file for PRCI definitions used by prci_checker script
+
+# List of supported test-run classes for non-build jobs
+classes:
+  - "RunPytest"
+  - "RunPytest2"
+  - "RunPytest3"
+  - "RunWebuiTests"
+  - "RunADTests"
+
+# (Optional) Definition files that should contain the same number of jobs
+fixed_n_jobs:
+  - nightly_latest
+  - nightly_latest_selinux
+  - nightly_latest_testing
+  - nightly_latest_testing_selinux
+  - nightly_previous
+  - nightly_rawhide
+
+# Info specific to prci definition files
+# 'job_prefix' field is mandatory
+# 'update_packages', 'selinux_enforcing', 'enable_testing_repo' and
+# 'copr_defined' are optional boolean fields (if not specified,
+# false value is assumed).
+# New definitions specifications may be added anytime
+prci_job_spec:
+  gating:
+    job_prefix: 'fedora-latest/'
+  nightly_latest:
+    job_prefix: 'fedora-latest/'
+  nightly_latest_389ds:
+    job_prefix: '389ds-fedora/'
+    update_packages: True
+    copr_defined: True
+  nightly_latest_pki:
+    job_prefix: 'pki-fedora/'
+    update_packages: True
+    copr_defined: True
+  nightly_latest_selinux:
+    job_prefix: 'fedora-latest/'
+    selinux_enforcing: True
+  nightly_latest_testing:
+    job_prefix: 'testing-fedora/'
+    update_packages: True
+    enable_testing_repo: True
+  nightly_latest_testing_selinux:
+    job_prefix: 'testing-fedora/'
+    selinux_enforcing: True
+    update_packages: True
+    enable_testing_repo: True
+  nightly_previous:
+    job_prefix: 'fedora-previous/'
+  nightly_rawhide:
+    job_prefix: 'fedora-rawhide/'
+    update_packages: True
+  nightly_latest_sssd:
+    job_prefix: 'sssd-fedora/'
+    update_packages: True
+    copr_defined: True
