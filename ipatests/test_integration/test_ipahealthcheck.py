@@ -488,8 +488,8 @@ class TestIpaHealthCheck(IntegrationTest):
         This testcase checks that when the pki-tomcat service is stopped,
         DogtagCertsConnectivityCheck displays the result as ERROR.
         """
-        error_msg = (
-            "Request for certificate failed, "
+        error_msg = "Request for certificate failed"
+        additional_msg = (
             "Certificate operation cannot be completed: "
             "Request failed with status 503: "
             "Non-2xx response from CA REST API: 503.  (503)"
@@ -501,7 +501,11 @@ class TestIpaHealthCheck(IntegrationTest):
         assert returncode == 1
         for check in data:
             assert check["result"] == "ERROR"
-            assert check["kw"]["msg"] == error_msg
+            assert error_msg in check["kw"]["msg"]
+            # pre ipa-healthcheck 0.11, the additional msg was in msg
+            # but moved to "error" with 0.11+
+            assert additional_msg in check["kw"]["msg"] or \
+                   additional_msg == check["kw"]["error"]
 
     def test_source_ipahealthcheck_meta_core_metacheck(self):
         """
