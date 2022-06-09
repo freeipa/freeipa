@@ -357,7 +357,7 @@ class DogtagInstance(service.Service):
         # no AJP connector means no need to update anything
         connectors = doc.xpath('//Connector[@protocol="AJP/1.3"]')
         if len(connectors) == 0:
-            return
+            return False
 
         # Whether or not we should rewrite the tomcat server.xml file with
         # our changes.
@@ -377,6 +377,14 @@ class DogtagInstance(service.Service):
         # First, iterate through all adapters and see if any of them have a
         # secret value set.
         for connector in connectors:
+            if not self._is_newer_tomcat_version('9.0.31.0'):
+                # For a time pki unconditionally added "secret" to the
+                # connector. Remove it prior to probing for the current
+                # secret.
+                if 'secret' in connector.attrib:
+                    del connector.attrib['secret']
+                    rewrite = True
+
             if secretattr in connector.attrib or oldattr in connector.attrib:
                 # secret is already in place
                 #
@@ -437,6 +445,8 @@ class DogtagInstance(service.Service):
                 server_xml.write(fd, pretty_print=True, encoding="utf-8")
                 os.fchmod(fd.fileno(), 0o660)
                 self.service_user.chown(fd.fileno())
+
+        return rewrite
 
     def http_proxy(self):
         """ Update the http proxy file  """

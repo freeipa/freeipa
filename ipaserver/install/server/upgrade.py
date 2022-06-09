@@ -172,12 +172,17 @@ def find_version(filename):
     else:
         return -1
 
-def upgrade_file(sub_dict, filename, template, add=False):
+
+def upgrade_file(sub_dict, filename, template, add=False, force=False):
     """
     Get the version from the current and template files and update the
     installed configuration file if there is a new template.
 
     If add is True then create a new configuration file.
+
+    If force is True then the version comparison is skipped. This should
+    be used judiciously. It does not override add nor will it affect
+    files that don't exist (version == -1).
     """
     old = int(find_version(filename))
     new = int(find_version(template))
@@ -199,7 +204,10 @@ def upgrade_file(sub_dict, filename, template, add=False):
                        "overwritten. A backup of the original will be made.",
                        filename)
 
-    if old < new or (add and old == 0):
+    if force:
+        logger.error("Forcing update of template %s", template)
+
+    if ((old < new) or (add and old == 0)) or force:
         backup_file(filename, new)
         update_conf(sub_dict, filename, template)
         logger.info("Upgraded %s to version %d", filename, new)
@@ -1733,19 +1741,21 @@ def upgrade_configuration():
                                   "ipa-kdc-proxy.conf.template"))
         if ca.is_configured():
             # Handle upgrade of AJP connector configuration
-            ca.secure_ajp_connector()
+            rewrite = ca.secure_ajp_connector()
             if ca.ajp_secret:
                 sub_dict['DOGTAG_AJP_SECRET'] = "secret={}".format(
                     ca.ajp_secret)
             else:
                 sub_dict['DOGTAG_AJP_SECRET'] = ''
 
-            upgrade_file(
-                sub_dict,
-                paths.HTTPD_IPA_PKI_PROXY_CONF,
-                os.path.join(paths.USR_SHARE_IPA_DIR,
-                             "ipa-pki-proxy.conf.template"),
-                add=True)
+            # force=True will ensure the secret is updated if it changes
+            if rewrite:
+                upgrade_file(
+                    sub_dict,
+                    paths.HTTPD_IPA_PKI_PROXY_CONF,
+                    os.path.join(paths.USR_SHARE_IPA_DIR,
+                                 "ipa-pki-proxy.conf.template"),
+                    add=True, force=True)
         else:
             if os.path.isfile(paths.HTTPD_IPA_PKI_PROXY_CONF):
                 os.remove(paths.HTTPD_IPA_PKI_PROXY_CONF)
