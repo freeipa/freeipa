@@ -83,6 +83,7 @@ test_data = (
         """),
         ('secret',),
         ('testing_ajp_secret',),
+        ('requiredSecret',),
         True,
     ),
     (
@@ -99,6 +100,7 @@ test_data = (
         """),
         ('secret',),
         ('testing_ajp_secret',),
+        ('requiredSecret',),
         False,
     ),
     (
@@ -117,6 +119,7 @@ test_data = (
         """),
         ('secret', 'secret'),
         ('testing_ajp_secret', 'testing_ajp_secret'),
+        ('requiredSecret', 'requiredSecret'),
         True,
     ),
     (
@@ -135,6 +138,7 @@ test_data = (
         """),
         ('secret', 'secret'),
         ('testing_ajp_secret', 'testing_ajp_secret'),
+        ('requiredSecret', 'requiredSecret'),
         False,
     ),
     (
@@ -153,6 +157,7 @@ test_data = (
         """),
         ('secret', 'secret'),
         ('RANDOM', 'RANDOM'),
+        ('requiredSecret', 'requiredSecret'),
         True,
     ),
     (
@@ -169,7 +174,26 @@ test_data = (
         """),
         ('requiredSecret',),
         ('testing_ajp_secret',),
+        ('secret',),
         False,
+    ),
+    (
+        #  Case 7: Older tomcat, both secrets are present, one s/b removed
+        False,
+        textwrap.dedent("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Server port="1234" shutdown="SHUTDOWN">
+              <Service name="Catalina">
+                <Connector port="9000" protocol="AJP/1.3" redirectPort="443"
+                 address="localhost" requiredSecret="testing_ajp_secret"
+                 secret="other_secret" />
+              </Service>
+            </Server>
+        """),
+        ('requiredSecret',),
+        ('testing_ajp_secret',),
+        ('secret',),
+        True,
     ),
 )
 
@@ -180,7 +204,7 @@ class TestAJPSecretUpgrade:
     @patch("ipaserver.install.dogtaginstance.lxml.etree.parse")
     @pytest.mark.parametrize("test_data", test_data)
     def test_connecter(self, mock_parse, mock_chown, mock_getpwnam, test_data):
-        is_newer, data, secret, expect, rewrite = test_data
+        is_newer, data, secret, expect, ex_secret, rewrite = test_data
         mock_chown.return_value = None
         mock_parse.return_value = mock_etree_parse(data)
         mock_getpwnam.return_value = mock_pkiuser_entity()
@@ -203,6 +227,7 @@ class TestAJPSecretUpgrade:
                         assert connector.attrib[secret[i]]
                     else:
                         assert connector.attrib[secret[i]] == expect[i]
+                    assert connector.attrib.get(ex_secret[i]) is None
                     i += 1
             else:
                 assert mocked_file().write.call_args is None
