@@ -809,8 +809,12 @@ class baseidoverride(LDAPObject):
 
     def convert_anchor_to_human_readable_form(self, entry_attrs, **options):
         if not options.get('raw'):
-            anchor = entry_attrs.single_value['ipaanchoruuid']
+            if 'ipaoriginaluid' in entry_attrs:
+                originaluid = entry_attrs.single_value['ipaoriginaluid']
+                entry_attrs.single_value['ipaanchoruuid'] = originaluid
+                return
 
+            anchor = entry_attrs.single_value['ipaanchoruuid']
             if anchor:
                 try:
                     object_name = resolve_anchor_to_object_name(
@@ -1067,7 +1071,7 @@ class idoverrideuser(baseidoverride):
             original_uid = resolve_anchor_to_object_name(self.backend,
                                                          self.override_object,
                                                          anchor)
-            entry_attrs['ipaOriginalUid'] = original_uid
+            entry_attrs['ipaoriginaluid'] = original_uid
 
         except (errors.NotFound, errors.ValidationError):
             # Anchor could not be resolved, this means we had to specify the
