@@ -489,10 +489,10 @@ class TestIpaHealthCheck(IntegrationTest):
         DogtagCertsConnectivityCheck displays the result as ERROR.
         """
         error_msg = (
-            "Request for certificate failed, "
-            "Certificate operation cannot be completed: "
-            "Request failed with status 503: "
-            "Non-2xx response from CA REST API: 503.  (503)"
+            "Request for certificate failed"
+        )
+        error_desc = (
+            "Non - 2xx response from CA REST API: 503"
         )
         returncode, data = run_healthcheck(
             self.master, "ipahealthcheck.dogtag.ca",
@@ -501,7 +501,8 @@ class TestIpaHealthCheck(IntegrationTest):
         assert returncode == 1
         for check in data:
             assert check["result"] == "ERROR"
-            assert check["kw"]["msg"] == error_msg
+            assert error_msg in check["kw"]["msg"]
+            assert error_desc in check["kw"]["error"]
 
     def test_source_ipahealthcheck_meta_core_metacheck(self):
         """
