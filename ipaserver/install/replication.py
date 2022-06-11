@@ -1096,7 +1096,7 @@ class ReplicationManager:
                 elif status.find("Total update succeeded") > -1:
                     print("\nUpdate succeeded")
                     done = True
-                elif inprogress.lower() == 'true':
+                elif inprogress:
                     print("\nUpdate in progress yet not in progress")
                 else:
                     print("\n[%s] reports: Update failed! Status: [%s]"
