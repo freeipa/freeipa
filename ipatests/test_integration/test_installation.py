@@ -1463,7 +1463,7 @@ class TestInstallMasterDNS(IntegrationTest):
             ['ipa', 'dnszone-show', self.master.domain.name]
         ).stdout_text
 
-        assert 'Active zone: TRUE' in result
+        assert 'Active zone: True' in result
 
 
 class TestInstallMasterDNSRepeatedly(IntegrationTest):
