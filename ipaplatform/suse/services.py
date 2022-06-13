@@ -17,7 +17,6 @@ suse_system_units = dict(
     (x, "%s.service" % x) for x in base_services.wellknownservices
 )
 suse_system_units["httpd"] = "apache2.service"
-
 suse_system_units["dirsrv"] = "dirsrv@.service"
 suse_system_units["pki-tomcatd"] = "pki-tomcatd@pki-tomcat.service"
 suse_system_units["pki_tomcatd"] = suse_system_units["pki-tomcatd"]
@@ -163,9 +162,25 @@ class SuseCAService(SuseService):
         return False
 
 
+# For services which have no SUSE counterpart
+class SuseNoService(base_services.PlatformService):
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def restart(self):
+        pass
+
+    def disable(self):
+        pass
+
 def suse_service_class_factory(name, api):
     if name == "dirsrv":
         return SuseDirectoryService(name, api)
+    if name == 'domainname':
+        return SuseNoService(name, api)
     if name == "ipa":
         return SuseIPAService(name, api)
     if name in ("pki-tomcatd", "pki_tomcatd"):
@@ -189,6 +204,6 @@ class SuseServices(base_services.KnownServices):
         super().__init__(services)
 
 
-timedate_services = ["ntpd"]
+timedate_services = base_services.timedate_services
 service = suse_service_class_factory
 knownservices = SuseServices()
