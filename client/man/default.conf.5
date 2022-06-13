@@ -119,6 +119,9 @@ Enable a per-request LDAP cache. The default is True.
 .B ldap_cache_size <integer>
 The maximum number of entries cached if ldap_cache is True. Since this cache is per-request it is not expected to be very large. The default is 100. Setting the value < 1 effectively disables the cache regardless of the ldap_cache setting
 .TP
+.B ldap_cache_debug <boolean>
+Log details on hits, misses, etc. for the LDAP cache if the cache is enabled.
+.TP
 .B ldap_uri <URI>
 Specifies the URI of the IPA LDAP server to connect to. The URI scheme may be one of \fBldap\fR or \fBldapi\fR. The default is to use ldapi, e.g. ldapi://%2fvar%2frun%2fslapd\-EXAMPLE\-COM.socket
 .TP

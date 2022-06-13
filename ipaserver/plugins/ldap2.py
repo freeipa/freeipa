@@ -66,6 +66,7 @@ class ldap2(CrudBackend, LDAPCache):
             force_schema_updates=force_schema_updates,
             enable_cache=api.env.ldap_cache and not force_schema_updates,
             cache_size=api.env.ldap_cache_size,
+            debug_cache=api.env.ldap_cache_debug,
         )
 
         self._time_limit = float(LDAPCache.time_limit)

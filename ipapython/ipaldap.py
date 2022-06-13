@@ -1766,15 +1766,18 @@ class LDAPCache(LDAPClient):
 
     def __init__(self, ldap_uri, start_tls=False, force_schema_updates=False,
                  no_schema=False, decode_attrs=True, cacert=None,
-                 sasl_nocanon=True, enable_cache=True, cache_size=100):
+                 sasl_nocanon=True, enable_cache=True, cache_size=100,
+                 debug_cache=False):
 
         self.cache = OrderedDict()
         self._enable_cache = True  # initialize to zero to satisfy pylint
+        self._debug_cache = False  # initialize to zero to satisfy pylint
 
         object.__setattr__(self, '_cache_misses', 0)
         object.__setattr__(self, '_cache_hits', 0)
         object.__setattr__(self, '_enable_cache',
                            enable_cache and cache_size > 0)
+        object.__setattr__(self, '_debug_cache', debug_cache)
         object.__setattr__(self, '_cache_size', cache_size)
 
         super(LDAPCache, self).__init__(
@@ -1795,7 +1798,7 @@ class LDAPCache(LDAPClient):
         return self._cache_size  # pylint: disable=no-member
 
     def emit(self, msg, *args, **kwargs):
-        if self._enable_cache:
+        if self._enable_cache and self._debug_cache:
             logger.debug(msg, *args, **kwargs)
 
     def copy_entry(self, dn, entry, attrs=[]):
