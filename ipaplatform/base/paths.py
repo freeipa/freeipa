@@ -462,6 +462,7 @@ class BasePathNamespace:
     IPA_CCACHE_SWEEPER_GSSPROXY_SOCK = (
         "/var/lib/gssproxy/ipa_ccache_sweeper.sock"
     )
+    PAM_CONFIG = None
 
     def check_paths(self):
         """Check paths for missing files
