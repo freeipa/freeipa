@@ -122,6 +122,15 @@ def replica_install_teardown(func):
 
 
 class CALessBase(IntegrationTest):
+    # The teardown method is called even if all the tests are skipped
+    # since the required PKI version is not present.
+    # The teardown is trying to remove a non-existent directory.
+    # Currently the cert_dir attribute is only present if IPA installation was
+    # done. If IPA was not installed the attribute does not exist.
+    # In order that the uninstall code finds the attribute a class attribute
+    # is added.
+    cert_dir = None
+
     @classmethod
     def install(cls, mh):
         cls.cert_dir = tempfile.mkdtemp(prefix="ipatest-")
@@ -164,7 +173,8 @@ class CALessBase(IntegrationTest):
     @classmethod
     def uninstall(cls, mh):
         # Remove the NSS database
-        shutil.rmtree(cls.cert_dir)
+        if cls.cert_dir:
+            shutil.rmtree(cls.cert_dir)
         super(CALessBase, cls).uninstall(mh)
 
     @classmethod
