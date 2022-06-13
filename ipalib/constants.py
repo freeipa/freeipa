@@ -170,6 +170,7 @@ DEFAULT_CONFIG = (
 
     ('ldap_cache', True),
     ('ldap_cache_size', 100),
+    ('ldap_cache_debug', False),
 
     # Define an inclusive range of SSL/TLS version support
     ('tls_version_min', TLS_VERSION_DEFAULT_MIN),
