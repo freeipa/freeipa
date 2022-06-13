@@ -86,7 +86,7 @@ class SusePathNamespace(BasePathNamespace):
     KDESTROY = "/usr/lib/mit/bin/kdestroy"
     BIN_KVNO = "/usr/lib/mit/bin/kvno"
     UPDATE_CA_TRUST = "/usr/sbin/update-ca-certificates"
-    AUTHSELECT = "/usr/bin/authselect"
+    PAM_CONFIG = "/usr/sbin/pam-config"
 
 
 paths = SusePathNamespace()
