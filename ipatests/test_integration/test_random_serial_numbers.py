@@ -64,3 +64,9 @@ class TestServerCALessToExternalCA_RSN(TestServerCALessToExternalCA):
         if not pki_supports_RSNv3(mh.master):
             raise pytest.skip("RNSv3 not supported")
         super(TestServerCALessToExternalCA_RSN, cls).install(mh)
+
+    @classmethod
+    def uninstall(cls, mh):
+        if not pki_supports_RSNv3(mh.master):
+            raise pytest.skip("RSNv3 not supported")
+        super(TestServerCALessToExternalCA_RSN, cls).uninstall(mh)
