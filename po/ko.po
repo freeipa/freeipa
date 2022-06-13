@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-05-03 03:18+0000\n"
+"PO-Revision-Date: 2022-06-14 13:23+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.12.1\n"
+"X-Generator: Weblate 4.12.2\n"
 
 #: client/ipa-join.c:66 client/ipa-join.c:422 client/ipa-join.c:440
 #: client/ipa-join.c:540 client/ipa-join.c:1089 util/ipa_krb5.c:1024
@@ -3573,11 +3573,11 @@ msgstr ""
 #: ipaserver/plugins/role.py:231 ipaserver/plugins/role.py:255
 #: ipaserver/plugins/baseldap.py:1758 ipaserver/plugins/baseldap.py:2245
 msgid "Members that could not be added"
-msgstr ""
+msgstr "추가 할 수 없는 구성원"
 
 #: ipaserver/plugins/baseldap.py:1762 ipaserver/plugins/baseldap.py:2249
 msgid "Number of members added"
-msgstr ""
+msgstr "추가된 구성원의 수"
 
 #: ipaserver/plugins/hbacrule.py:591
 msgid "Add services to an HBAC rule."
@@ -3633,21 +3633,21 @@ msgstr "HBAC 규칙을 수정합니다."
 
 #: ipaserver/plugins/hbacrule.py:556
 msgid "Remove target hosts and hostgroups from an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙에서 대상 호스트와 호스트그룹을 제거합니다."
 
 msgid "hosts to remove"
 msgstr ""
 
 msgid "host groups to remove"
-msgstr ""
+msgstr "제거 하려는 호스트 그룹"
 
 #: ipaserver/plugins/baseldap.py:1856 ipaserver/plugins/baseldap.py:2344
 msgid "Members that could not be removed"
-msgstr ""
+msgstr "제거 할 수 없는 구성원"
 
 #: ipaserver/plugins/baseldap.py:1860 ipaserver/plugins/baseldap.py:2348
 msgid "Number of members removed"
-msgstr ""
+msgstr "제거된 구성원의 수"
 
 #: ipaserver/plugins/hbacrule.py:613
 msgid "Remove service and service groups from an HBAC rule."
@@ -3661,13 +3661,13 @@ msgstr ""
 
 #: ipaserver/plugins/hbacrule.py:525
 msgid "Remove users and groups from an HBAC rule."
-msgstr ""
+msgstr "HABC 규칙에서 사용자와 그룹을 제거합니다."
 
 msgid "users to remove"
 msgstr ""
 
 msgid "groups to remove"
-msgstr ""
+msgstr "제거 하려는 그룹"
 
 #: ipaserver/plugins/hbacrule.py:375
 msgid "Display the properties of an HBAC rule."
@@ -4106,7 +4106,7 @@ msgid "Search for hosts without these member of roles."
 msgstr "역할의 이들 구성원이 없이 호스트를 위한 검색."
 
 msgid "HBAC rule"
-msgstr ""
+msgstr "HBAC 규칙"
 
 msgid "Search for hosts with these member of HBAC rules."
 msgstr "HBAC 규칙의 이들 구성원과 함께 호스트를 위한 검색."
@@ -4212,7 +4212,7 @@ msgstr ""
 
 #: ipaserver/plugins/hostgroup.py:194
 msgid "A description of this host-group"
-msgstr ""
+msgstr "이와 같은 호스트-그룹의 설명"
 
 msgid "Member hosts"
 msgstr ""
@@ -4289,7 +4289,7 @@ msgstr "호스트그룹을 수정합니다."
 
 #: ipaserver/plugins/hostgroup.py:340
 msgid "Remove members from a hostgroup."
-msgstr ""
+msgstr "호스트그룹에서 구성원을 제거."
 
 #: ipaserver/plugins/hostgroup.py:316
 msgid "Display information about a hostgroup."
@@ -4393,10 +4393,10 @@ msgstr "사용자 ID 재정의를 검색합니다."
 
 #: ipaserver/plugins/idviews.py:1215
 msgid "Modify an User ID override."
-msgstr ""
+msgstr "사용자 ID 재정의를 수정합니다."
 
 msgid "Rename the User ID override object"
-msgstr ""
+msgstr "사용자 ID 재정의 대상의 이름을 변경합니다"
 
 #: ipaserver/plugins/idviews.py:1271
 msgid "Display information about an User ID override."
@@ -4854,7 +4854,7 @@ msgstr ""
 
 #: ipaserver/plugins/migration.py:635
 msgid "CA certificate"
-msgstr ""
+msgstr "CA 인증서"
 
 #: ipaserver/plugins/migration.py:636
 msgid "Load CA certificate of LDAP server from FILE"
@@ -4943,6 +4943,28 @@ msgid ""
 " Delete a netgroup:\n"
 "   ipa netgroup-del admins\n"
 msgstr ""
+"\n"
+"넷그룹\n"
+"\n"
+"넷그룹은 권한 점검을 위해 사용되는 그룹입니다. 사용자와 호스트 값 모두를 \n"
+"포함 할 수 있습니다.\n"
+"\n"
+"예제:\n"
+"\n"
+" 신규 넷그룹 추가:\n"
+"   ipa netgroup-add --desc=\"NFS admins\" admins\n"
+"\n"
+" 구성원을 넷그룹에 추가:\n"
+"   ipa netgroup-add-member --users=tuser1 --users=tuser2 admins\n"
+"\n"
+" 넷그룹에서 구성원을 제거:\n"
+"   ipa netgroup-remove-member --users=tuser2 admins\n"
+"\n"
+" 넷그룹에 대한 정보를 표시:\n"
+"   ipa netgroup-show admins\n"
+"\n"
+" 넷그룹 삭제:\n"
+"   ipa netgroup-del admins\n"
 
 #: ipaserver/plugins/netgroup.py:204
 msgid "Netgroup name"
@@ -4976,18 +4998,18 @@ msgstr "구성원 그룹"
 
 #: ipaserver/plugins/netgroup.py:88
 msgid "Member Host"
-msgstr ""
+msgstr "구성원 호스트"
 
 msgid "Member Hostgroup"
 msgstr "호스트그룹 구성원"
 
 #: ipaserver/plugins/netgroup.py:263
 msgid "Add a new netgroup."
-msgstr ""
+msgstr "신규 넷그룹을 추가."
 
 #: ipaserver/plugins/netgroup.py:378
 msgid "Add members to a netgroup."
-msgstr ""
+msgstr "구성원을 넷그룹에 추가."
 
 msgid "member netgroup"
 msgstr "구성원 넷그룹"
@@ -6283,7 +6305,7 @@ msgid "Search for services with these managed by hosts."
 msgstr ""
 
 msgid "Search for services without these managed by hosts."
-msgstr ""
+msgstr "호스트가 관리하지 않는 서비스를 검색합니다 ."
 
 #: ipaserver/plugins/service.py:837
 msgid "Modify an existing IPA service."
@@ -7420,7 +7442,7 @@ msgid "Default group for entries to land"
 msgstr ""
 
 msgid "Add an automember rule."
-msgstr ""
+msgstr "자동 구성원 규칙을 추가합니다."
 
 #: ipaserver/plugins/automember.py:249 ipaserver/plugins/automember.py:250
 msgid "Automember Rule"
@@ -7457,11 +7479,11 @@ msgstr ""
 
 #: ipaserver/plugins/automember.py:357
 msgid "Conditions that could not be added"
-msgstr ""
+msgstr "추가 될 수 없는 상태"
 
 #: ipaserver/plugins/automember.py:361
 msgid "Number of conditions added"
-msgstr ""
+msgstr "추가된 상태의 수"
 
 msgid "Remove default (fallback) group for all unmatched entries."
 msgstr ""
@@ -7805,7 +7827,7 @@ msgid "Allow adding external non-IPA members from trusted domains"
 msgstr ""
 
 msgid "Add members to a group."
-msgstr ""
+msgstr "구성원을 그룹에 추가합니다."
 
 msgid "External member"
 msgstr ""
@@ -7820,7 +7842,7 @@ msgid "Detach a managed group from a user."
 msgstr ""
 
 msgid "Search for groups."
-msgstr ""
+msgstr "그룹을 위한 검색."
 
 msgid "search for private groups"
 msgstr ""
@@ -7891,10 +7913,10 @@ msgid "change to support external non-IPA members from trusted domains"
 msgstr ""
 
 msgid "Rename the group object"
-msgstr ""
+msgstr "그룹 객체 이름 변경"
 
 msgid "Remove members from a group."
-msgstr ""
+msgstr "그룹에서 구성원을 제거."
 
 msgid "Display information about a named group."
 msgstr "명명된 그룹에 대한 정보를 표시합니다."
@@ -8346,7 +8368,7 @@ msgid "Refresh list of the domains associated with the trust"
 msgstr ""
 
 msgid "Search for trusts."
-msgstr ""
+msgstr "신뢰를 위한 검색."
 
 msgid "Results should contain primary key attribute only (\"realm\")"
 msgstr "결과는 기본 키 속성(\"realm\")만 포함되어야 합니다"
@@ -8619,7 +8641,7 @@ msgstr ""
 
 #: ipaserver/plugins/idrange.py:575
 msgid "Search for ranges."
-msgstr ""
+msgstr "범위를 위한 검색."
 
 msgid "Modify ID range."
 msgstr "ID 범위를 수정합니다."
@@ -9006,7 +9028,7 @@ msgstr ""
 
 #: ipaserver/plugins/sudorule.py:583
 msgid "Add users and groups affected by Sudo Rule."
-msgstr ""
+msgstr "sudo 규칙에 의해 영향을 받는 사용자와 그룹을 추가합니다."
 
 #: ipaserver/plugins/sudorule.py:399
 msgid "Delete Sudo Rule."
@@ -9040,7 +9062,7 @@ msgstr ""
 
 #: ipaserver/plugins/sudorule.py:740
 msgid "Remove hosts and hostgroups affected by Sudo Rule."
-msgstr ""
+msgstr "sudo 규칙에 의해 영향을 받는 호스트와 호스트그룹을 제거합니다."
 
 #: ipaserver/plugins/sudorule.py:1036
 msgid "Remove an option from Sudo Rule."
@@ -10063,7 +10085,7 @@ msgid "Profile ID"
 msgstr "프로파일 ID"
 
 msgid "Certificate Profile to use"
-msgstr ""
+msgstr "사용하려는 인증서 프로파일"
 
 msgid ""
 "\n"
@@ -10806,10 +10828,10 @@ msgid "Search for topology suffixes."
 msgstr ""
 
 msgid "Add a manager to the user entry"
-msgstr ""
+msgstr "사용자 항목에 관리자를 추가합니다"
 
 msgid "Remove a manager to the user entry"
-msgstr ""
+msgstr "사용자 항목에 관리자를 제거합니다"
 
 msgid ""
 "\n"
@@ -14680,6 +14702,8 @@ msgid ""
 "\n"
 "Sudo Rules\n"
 msgstr ""
+"\n"
+"sudo 규칙\n"
 
 #: ipaserver/plugins/sudorule.py:45
 msgid ""
@@ -14794,7 +14818,7 @@ msgstr "sudo 규칙"
 
 #: ipaserver/plugins/sudorule.py:228
 msgid "Sudo Rule"
-msgstr ""
+msgstr "sudo 규칙"
 
 #: ipaserver/plugins/sudorule.py:363
 #, python-format
@@ -15334,7 +15358,7 @@ msgstr "상태"
 
 #: ipaserver/plugins/cert.py:1278
 msgid "Revoked"
-msgstr ""
+msgstr "취소"
 
 #: ipaserver/plugins/cert.py:1284
 msgid ""
@@ -15893,26 +15917,26 @@ msgstr ""
 
 #: ipaserver/plugins/sudocmdgroup.py:67
 msgid "sudo command group"
-msgstr ""
+msgstr "sudo 명령 그룹"
 
 #: ipaserver/plugins/sudocmdgroup.py:68
 msgid "sudo command groups"
-msgstr ""
+msgstr "sudo 명령 그룹"
 
 #: ipaserver/plugins/sudocmdgroup.py:149
 #, python-format
 msgid "Added Sudo Command Group \"%(value)s\""
-msgstr ""
+msgstr "sudo 명령 그룹 \"%(value)s\"에 추가됨"
 
 #: ipaserver/plugins/sudocmdgroup.py:157
 #, python-format
 msgid "Deleted Sudo Command Group \"%(value)s\""
-msgstr ""
+msgstr "sudo 명령 그룹 \"%(value)s\"에서 삭제됨"
 
 #: ipaserver/plugins/sudocmdgroup.py:165
 #, python-format
 msgid "Modified Sudo Command Group \"%(value)s\""
-msgstr ""
+msgstr "sudo 명령 그룹 \"%(value)s\"에서 수정됨"
 
 #: ipaserver/plugins/sudocmdgroup.py:174
 #, python-format
@@ -16372,7 +16396,7 @@ msgstr "적용"
 
 #: ipaserver/plugins/internal.py:162
 msgid "Rebuild auto membership"
-msgstr ""
+msgstr "자동 몜버쉽을 재구축합니다."
 
 #: ipaserver/plugins/internal.py:163
 msgid "Are you sure you want to rebuild auto membership?"
@@ -16926,42 +16950,42 @@ msgstr "키탭을 검색하도록 허용됨"
 #: ipaserver/plugins/internal.py:340
 #, python-brace-format
 msgid "Disallow user groups to create keytab of '${primary_key}'"
-msgstr ""
+msgstr "사용자 그룹이 '${primary_key}'의 키탭을 생성하도록 허용하지 않습니다"
 
 #: ipaserver/plugins/internal.py:343
 #, python-brace-format
 msgid "Disallow user groups to retrieve keytab of '${primary_key}'"
-msgstr ""
+msgstr "사용자 그룹이 '${primary_key}'의 키탭을 검색하도록 허용하지 않습니다"
 
 #: ipaserver/plugins/internal.py:346
 #, python-brace-format
 msgid "Disallow host groups to create keytab of '${primary_key}'"
-msgstr ""
+msgstr "호스트 그룹이 '${primary_key}'의 키탭을 생성하도록 허용하지 않습니다"
 
 #: ipaserver/plugins/internal.py:349
 #, python-brace-format
 msgid "Disallow host groups to retrieve keytab of '${primary_key}'"
-msgstr ""
+msgstr "호스트 그룹이 '${primary_key}'의 키탭을 검색하도록 허용하지 않습니다"
 
 #: ipaserver/plugins/internal.py:352
 #, python-brace-format
 msgid "Disallow hosts to create keytab of '${primary_key}'"
-msgstr ""
+msgstr "호스트가 '${primary_key}'의 키탭을 생성하도록 허용하지 않습니다"
 
 #: ipaserver/plugins/internal.py:355
 #, python-brace-format
 msgid "Disallow hosts to retrieve keytab of '${primary_key}'"
-msgstr ""
+msgstr "호스트가 '${primary_key}'의 키탭을 검색하도록 허용하지 않습니다"
 
 #: ipaserver/plugins/internal.py:358
 #, python-brace-format
 msgid "Disallow users to create keytab of '${primary_key}'"
-msgstr ""
+msgstr "사용자가 '${primary_key}'의 키탭을 생성하도록 허용하지 않습니다"
 
 #: ipaserver/plugins/internal.py:361
 #, python-brace-format
 msgid "Disallow users to retrieve keytab of '${primary_key}'"
-msgstr ""
+msgstr "사용자가 '${primary_key}'의 키탭을 검색하도록 허용하지 않습니다"
 
 #: ipaserver/plugins/internal.py:365
 msgid "Add Kerberos Principal Alias"
@@ -17256,12 +17280,12 @@ msgstr ""
 #: ipaserver/plugins/internal.py:507
 #, python-brace-format
 msgid "Remove services from role '${primary_key}'"
-msgstr ""
+msgstr "역할 '${primary_key}'에서 서비스를 제거합니다"
 
 #: ipaserver/plugins/internal.py:510
 #, python-brace-format
 msgid "Remove users from role '${primary_key}'"
-msgstr ""
+msgstr "역할 '${primary_key}'에서 사용자를 제거합니다"
 
 #: ipaserver/plugins/internal.py:514
 msgid "Add self service permission"
@@ -17414,7 +17438,7 @@ msgstr ""
 #: ipaserver/plugins/internal.py:582
 #, python-brace-format
 msgid "Add certificate profiles into CA ACL '${primary_key}'"
-msgstr ""
+msgstr "CA ACL '${primary_key}'에서 인증서 프로파일을 추가합니다"
 
 #: ipaserver/plugins/internal.py:585
 #, python-brace-format
@@ -17470,12 +17494,12 @@ msgstr ""
 #: ipaserver/plugins/internal.py:601
 #, python-brace-format
 msgid "Remove Certificate Authorities from CA ACL '${primary_key}'"
-msgstr ""
+msgstr "CA ACL '${primary_key}'에서 인증서 권한을 제거합니다"
 
 #: ipaserver/plugins/internal.py:605
 #, python-brace-format
 msgid "Remove user groups from CA ACL '${primary_key}'"
-msgstr ""
+msgstr "CA ACL '${primary_key}'에서 사용자 그룹을 제거합니다"
 
 #: ipaserver/plugins/internal.py:608
 #, python-brace-format
