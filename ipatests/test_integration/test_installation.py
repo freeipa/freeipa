@@ -1208,7 +1208,7 @@ class TestInstallMaster(IntegrationTest):
 
         try:
             cmd = ['ipa-server-install', '--hostname', new_hostname]
-            with self.master.spawn_expect(cmd) as e:
+            with self.master.spawn_expect(cmd, default_timeout=100) as e:
                 e.expect_exact('Do you want to configure integrated '
                                'DNS (BIND)? [no]: ')
                 e.sendline('no')
@@ -1419,7 +1419,7 @@ class TestInstallMasterDNS(IntegrationTest):
         """
         cmd = ['ipa-server-install']
         netbios = create_netbios_name(self.master)
-        with self.master.spawn_expect(cmd) as e:
+        with self.master.spawn_expect(cmd, default_timeout=100) as e:
             e.expect_exact('Do you want to configure integrated '
                            'DNS (BIND)? [no]: ')
             e.sendline('yes')
