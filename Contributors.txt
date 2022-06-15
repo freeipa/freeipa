@@ -116,6 +116,7 @@ Developers:
 	Martin Košek
 	Martin Nagy
 	Matt Rogers
+	Matthew Davis
 	Michael Simacek
 	Michal Polovka
 	Michal Reznik
