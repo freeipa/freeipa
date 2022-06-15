@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-06-14 13:23+0000\n"
+"PO-Revision-Date: 2022-06-16 05:18+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -17504,12 +17504,12 @@ msgstr "CA ACL '${primary_key}'에서 사용자 그룹을 제거합니다"
 #: ipaserver/plugins/internal.py:608
 #, python-brace-format
 msgid "Remove host groups from CA ACL '${primary_key}'"
-msgstr ""
+msgstr "CA ACL '${primary_key}'에서 호스트 그룹을 제거합니다"
 
 #: ipaserver/plugins/internal.py:611
 #, python-brace-format
 msgid "Remove hosts from CA ACL '${primary_key}'"
-msgstr ""
+msgstr "CA ACL '${primary_key}'에서 호스트를 제거합니다"
 
 #: ipaserver/plugins/internal.py:614
 #, python-brace-format
@@ -17614,11 +17614,11 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:648
 msgid "Maximum serial number"
-msgstr ""
+msgstr "최대 일련 번호"
 
 #: ipaserver/plugins/internal.py:649
 msgid "Minimum serial number"
-msgstr ""
+msgstr "최소 일련 번호"
 
 #: ipaserver/plugins/internal.py:651
 msgid "Revoked on from"
@@ -18080,12 +18080,12 @@ msgstr ""
 #: ipaserver/plugins/internal.py:805
 #, python-brace-format
 msgid "Add user group '${primary_key}' into HBAC rules"
-msgstr ""
+msgstr "HBAC 규칙에 사용자 그룹 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:808
 #, python-brace-format
 msgid "Add user group '${primary_key}' into netgroups"
-msgstr ""
+msgstr "넷그룹에 사용자 그룹 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:811
 #, python-brace-format
@@ -18095,7 +18095,7 @@ msgstr ""
 #: ipaserver/plugins/internal.py:814
 #, python-brace-format
 msgid "Add user group '${primary_key}' into sudo rules"
-msgstr ""
+msgstr "sudo 규칙에 사용자 그룹 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:817
 #, python-brace-format
