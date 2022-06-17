@@ -1913,7 +1913,7 @@ jobs:
         test_suite: test_integration/test_idp.py
         template: *ci-master-latest
         timeout: 5000
-        topology: *master_1repl
+        topology: *master_2repl_1client
 
   fedora-latest/test_random_serial_numbers_TestInstallWithCA_DNS1_RSN:
     requires: [fedora-latest/build]
