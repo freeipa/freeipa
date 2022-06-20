@@ -56,6 +56,7 @@ from .idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPObject,
+    pkey_to_unicode,
     pkey_to_value,
     LDAPCreate,
     LDAPSearch,
@@ -701,6 +702,7 @@ class user_del(baseuser_del):
     __doc__ = _('Delete a user.')
 
     msg_summary = _('Deleted user "%(value)s"')
+    msg_summary_preserved = _('Preserved user "%(value)s"')
 
     takes_options = baseuser_del.takes_options + (
         Bool('preserve?',
@@ -831,6 +833,8 @@ class user_del(baseuser_del):
                     failed.append(pkey_to_value(pkey, options))
 
             val = dict(result=dict(failed=failed), value=preserved)
+            val['summary'] = self.msg_summary_preserved % dict(
+                value=pkey_to_unicode(preserved))
             return val
         else:
             return super(user_del, self).execute(*keys, **options)
