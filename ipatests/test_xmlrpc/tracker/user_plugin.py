@@ -273,9 +273,14 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
 
     def check_delete(self, result):
         """ Check 'user-del' command result """
+        if u'preserved' in self.attrs and self.attrs[u'preserved']:
+            summary = u'Preserved user "%s"' % self.uid
+        else:
+            summary = u'Deleted user "%s"' % self.uid
+
         assert_deepequal(dict(
             value=[self.uid],
-            summary=u'Deleted user "%s"' % self.uid,
+            summary=summary,
             result=dict(failed=[]),
             ), result)
 
