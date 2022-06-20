@@ -479,11 +479,12 @@ class TestActive(XMLRPC_test):
 
     def test_delete_preserve(self, user):
         user.ensure_exists()
-        user.track_delete()
+        user.track_delete(preserve=True)
         command = user.make_delete_command(no_preserve=False, preserve=True)
         result = command()
         user.check_delete(result)
 
+        user.track_delete(preserve=False)
         command = user.make_delete_command()
         result = command()
         user.check_delete(result)
@@ -622,6 +623,7 @@ class TestCustomAttr(XMLRPC_test):
         assert 'BusinessCat' in result['result'][u'businesscategory']
 
         # delete the user with --preserve
+        user_customattr.track_delete(preserve=True)
         command = user_customattr.make_delete_command(no_preserve=False,
                                                       preserve=True)
         result = command()
@@ -763,6 +765,7 @@ class TestGroups(XMLRPC_test):
         result = command()
         group.check_retrieve(result)
 
+        user.track_delete(preserve=True)
         command = user.make_delete_command(no_preserve=False, preserve=True)
         result = command()
         user.check_delete(result)
