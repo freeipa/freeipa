@@ -214,6 +214,13 @@ class TestHttpKdcProxy(IntegrationTest):
     def windows_small_mtu_size(self, mh):
         new_mtu = 70
 
+        def get_windows_version():
+            result = self.ad.run_command([
+                'powershell', '-c',
+                '(Get-ComputerInfo).WindowsVersion'
+            ])
+            return result.stdout_text.strip()
+
         def get_iface_name():
             result = self.ad.run_command([
                 'powershell', '-c',
@@ -233,9 +240,27 @@ class TestHttpKdcProxy(IntegrationTest):
                 'netsh', 'interface', 'ipv4', 'set', 'subinterface',
                 iface_name, 'mtu={}'.format(mtu)])
 
+        def set_mtu_win2019(iface_name, mtu):
+            self.ad.run_command([
+                'reg',
+                'add',
+                f"""HKEY_LOCAL_MACHINE\\SYSTEM\\Current
+                ControlSet\\Services\\Tcpip\\Parame
+                ters\\Interfaces\\{iface_name}""",
+                '/f',  # force overriding of the existing value
+                '/v',
+                mtu,
+                'RED_SZ',
+                '/d',
+                'YES'
+            ])
+
         iface_name = get_iface_name()
         original_mtu = get_mtu(iface_name)
-        set_mtu(iface_name, new_mtu)
+        if get_windows_version() >= "2019":
+            set_mtu_win2019(iface_name, new_mtu)
+        else:
+            set_mtu(iface_name, new_mtu)
         # `netsh` does not report failures with return code so we check
         # it was successful by inspecting the actual value of MTU
         assert get_mtu(iface_name) == new_mtu
