@@ -80,7 +80,7 @@ class DebianPathNamespace(BasePathNamespace):
     BIND_LDAP_DNS_IPA_WORKDIR = "/var/cache/bind/dyndb-ldap/ipa/"
     BIND_LDAP_DNS_ZONE_WORKDIR = "/var/cache/bind/dyndb-ldap/ipa/master/"
     LIBARCH = "/{0}".format(MULTIARCH)
-    LIBSOFTHSM2_SO = "/usr/lib/softhsm/libsofthsm2.so"
+    LIBSOFTHSM2_SO = "/usr/lib/{0}/softhsm/libsofthsm2.so".format(MULTIARCH)
     PAM_KRB5_SO = "/usr/lib/{0}/security/pam_krb5.so".format(MULTIARCH)
     LIB_SYSTEMD_SYSTEMD_DIR = "/lib/systemd/system/"
     LIBEXEC_CERTMONGER_DIR = "/usr/lib/certmonger"
