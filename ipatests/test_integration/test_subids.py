@@ -17,6 +17,7 @@ from ipatests.test_integration.base import IntegrationTest
 
 class TestSubordinateId(IntegrationTest):
     num_replicas = 0
+    num_clients = 1
     topology = "star"
 
     def _parse_result(self, result):
@@ -268,3 +269,40 @@ class TestSubordinateId(IntegrationTest):
                                           f"--subuid={subuid}"])
         owner = self._parse_result(result)["owner"]
         assert owner == uid
+
+    def test_nsswitch_doesnot_contain_subid_entry(self):
+        """
+        This testcase checks that when ipa-client-install
+        is installed without subid option, the nsswitch.conf
+        does not contain subid entry or does not use sss as
+        source for subid
+        """
+        cmd = self.clients[0].run_command(
+            ["grep", "^subid", "/etc/nsswitch.conf"],
+            raiseonerr=False
+        )
+        # a source is defined for the subid database.
+        # Ensure it is not "sss"
+        if cmd.returncode == 0:
+            assert 'sss' not in cmd.stdout_text
+        else:
+            # grep command returncode 1 means no matching line
+            # was found = no source is defined for the subid database,
+            # which is valid other return codes would
+            # mean an error occurred
+            assert cmd.returncode == 1
+
+    def test_nsswitch_is_updated_with_subid_entry(self):
+        """
+        This test case checks that when ipa-client-install
+        is installed with --subid option, the nsswitch.conf
+        file is modified with the entry 'subid: sss'
+        """
+        tasks.uninstall_client(self.clients[0])
+        tasks.install_client(self.master, self.clients[0],
+                             extra_args=['--subid'])
+        cmd = self.clients[0].run_command(
+            ["grep", "^subid", "/etc/nsswitch.conf"]
+        )
+        subid = cmd.stdout_text.split()
+        assert ['subid:', 'sss'] == subid

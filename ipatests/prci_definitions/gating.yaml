@@ -309,4 +309,4 @@ jobs:
         test_suite: test_integration/test_subids.py
         template: *ci-master-latest
         timeout: 3600
-        topology: *master_1repl
+        topology: *master_1repl_1client
