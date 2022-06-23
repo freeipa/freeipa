@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Custom message (debug, info, wraning) classes passed through RPC.
+Custom message (debug, info, warning) classes passed through RPC.
 
 These are added to the "messages" entry in a RPC response, and printed to the
 user as log messages.
@@ -27,7 +27,7 @@ Each message class has a unique numeric "errno" attribute from the 10000-10999
 range, so that it does not clash with PublicError numbers.
 
 Messages also have the 'type' argument, set to one of 'debug', 'info',
-'warning', 'error'. This determines the severity of themessage.
+'warning', 'error'. This determines the severity of the message.
 """
 from __future__ import print_function
 
@@ -494,6 +494,16 @@ class LightweightCACertificateNotAvailable(PublicMessage):
     errno = 13031
     type = "error"
     format = _("The certificate for %(ca)s is not available on this server.")
+
+
+class MissingTargetAttributesinPermission(PublicMessage):
+    """
+    **13032** A permission was added with no target attributes
+    """
+    errno = 13032
+    type = "warning"
+    format = _("The permission has %(right)s rights but no attributes "
+               "are set.")
 
 
 def iter_messages(variables, base):
