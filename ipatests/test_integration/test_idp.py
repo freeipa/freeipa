@@ -80,7 +80,7 @@ class TestIDPKeycloak(IntegrationTest):
     def install(cls, mh):
         cls.client = cls.replicas[0]
         cls.replica = cls.replicas[1]
-        tasks.install_master(cls.master)
+        tasks.install_master(cls.master, extra_args=['--no-dnssec-validation'])
         tasks.install_client(cls.master, cls.replicas[0],
                              extra_args=["--mkhomedir"])
         tasks.install_replica(cls.master, cls.replicas[1])
