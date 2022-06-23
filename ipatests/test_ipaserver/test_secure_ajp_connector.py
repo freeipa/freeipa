@@ -214,8 +214,8 @@ class TestAJPSecretUpgrade:
                 as mocked_file:
             dogtag.secure_ajp_connector()
             if rewrite:
-                newdata = mocked_file().write.call_args.args
-                f = BytesIO(newdata[0])
+                newdata = mocked_file().write.call_args
+                f = BytesIO(newdata[0][0])
                 server_xml = myparse(f)
                 doc = server_xml.getroot()
                 connectors = doc.xpath('//Connector[@protocol="AJP/1.3"]')
