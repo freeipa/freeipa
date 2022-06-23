@@ -255,6 +255,18 @@ class test_privilege(Declarative):
             expected=dict(
                 value=permission2,
                 summary=u'Added permission "%s"' % permission2,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission2_dn,
                     cn=[permission2],

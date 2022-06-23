@@ -28,6 +28,7 @@ from .privilege import validate_permission_to_privilege
 from ipalib import errors
 from ipalib.parameters import Str, StrEnum, DNParam, Flag
 from ipalib import api, _, ngettext
+from ipalib import messages
 from ipalib.plugable import Registry
 from ipalib.capabilities import client_has_capability
 from ipalib.aci import ACI
@@ -553,6 +554,7 @@ class permission(baseldap.LDAPObject):
     def make_aci(self, entry):
         """Make an ACI string from the given permission entry"""
 
+        msg = None
         aci_parts = []
         name = entry.single_value['cn']
 
@@ -560,6 +562,18 @@ class permission(baseldap.LDAPObject):
         attrs = self.get_effective_attrs(entry)
         if attrs:
             aci_parts.append("(targetattr = \"%s\")" % ' || '.join(attrs))
+        else:
+            # If we are re-parsing an entry for validation then
+            # the effective attrs may be empty.
+            if entry.get('attrs') is None:
+                rights = set(['read', 'write', 'search', 'compare'])
+                permrights = set(entry['ipapermright'])
+                for right in ('add', 'delete'):
+                    permrights.discard(right)
+                if permrights and permrights.issubset(rights):
+                    msg = messages.MissingTargetAttributesinPermission(
+                        right=', '.join(sorted(entry['ipapermright']))
+                    )
 
         # target
         ipapermtarget = entry.single_value.get('ipapermtarget')
@@ -608,12 +622,12 @@ class permission(baseldap.LDAPObject):
         aci_parts.append('(version 3.0;acl "permission:%s";allow (%s) %s;)' % (
             name, ','.join(sorted(entry['ipapermright'])), bindrule))
 
-        return ''.join(aci_parts)
+        return ''.join(aci_parts), msg
 
     def add_aci(self, permission_entry):
         """Add the ACI coresponding to the given permission entry"""
         ldap = self.api.Backend.ldap2
-        acistring = self.make_aci(permission_entry)
+        acistring, _msg = self.make_aci(permission_entry)
         location = permission_entry.single_value.get('ipapermlocation',
                                                      self.api.env.basedn)
 
@@ -641,7 +655,7 @@ class permission(baseldap.LDAPObject):
             - entry
             - removed ACI string, or None if none existed previously
         """
-        new_acistring = self.make_aci(permission_entry)
+        new_acistring, _msg = self.make_aci(permission_entry)
         return self._replace_aci(permission_entry, old_name, new_acistring)
 
     def _replace_aci(self, permission_entry, old_name=None, new_acistring=None):
@@ -671,6 +685,25 @@ class permission(baseldap.LDAPObject):
         except errors.EmptyModlist:
             logger.debug('No changes to ACI')
         return acientry, acistring
+
+    def check_attrs(self, result, *keys, **options):
+        """Re-build the ACI to determine if there are rights that
+           only work when there are attributes defined."""
+        ldap = self.backend
+
+        dn = self.get_dn(*keys, **options)
+        entry = ldap.make_entry(dn, result['result'])
+        for old_name, new_name in _DEPRECATED_OPTION_ALIASES.items():
+            if old_name in entry:
+                entry[new_name] = entry[old_name]
+                del entry[old_name]
+        _acistring, msg = self.make_aci(entry)
+        if msg:
+            messages.add_message(
+                options['version'],
+                result,
+                msg,
+            )
 
     def _get_aci_entry_and_string(self, permission_entry, name=None,
                                   notfound_ok=False, cached_acientry=None):
@@ -776,7 +809,7 @@ class permission(baseldap.LDAPObject):
         target_entry['ipapermlocation'] = [self.api.env.basedn]
 
         # Make sure we're not losing *any info* by the upgrade
-        new_acistring = self.make_aci(target_entry)
+        new_acistring, _msg = self.make_aci(target_entry)
         if not ACI(new_acistring).isequal(aci):
             raise ValueError('Cannot convert ACI, %r != %r' % (new_acistring,
                                                                acistring))
@@ -992,7 +1025,9 @@ class permission_add(baseldap.LDAPCreate):
     # the whole command, not just the callbacks
     def execute(self, *keys, **options):
         self.obj.preprocess_options(options, merge_targetfilter=True)
-        return super(permission_add, self).execute(*keys, **options)
+        result = super(permission_add, self).execute(*keys, **options)
+        self.obj.check_attrs(result, *keys, **options)
+        return result
 
     def get_args(self):
         for arg in super(permission_add, self).get_args():
@@ -1094,7 +1129,9 @@ class permission_mod(baseldap.LDAPUpdate):
     def execute(self, *keys, **options):
         context.filter_ops = self.obj.preprocess_options(
             options, return_filter_ops=True)
-        return super(permission_mod, self).execute(*keys, **options)
+        result = super(permission_mod, self).execute(*keys, **options)
+        self.obj.check_attrs(result, *keys, **options)
+        return result
 
     def get_options(self):
         for opt in super(permission_mod, self).get_options():

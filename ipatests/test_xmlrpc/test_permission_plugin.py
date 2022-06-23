@@ -3167,6 +3167,18 @@ class test_permission_bindtype(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Added permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
@@ -3228,6 +3240,18 @@ class test_permission_bindtype(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Modified permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
@@ -3319,6 +3343,18 @@ class test_permission_bindtype(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Modified permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_renamed_dn,
                     cn=[permission1_renamed],
@@ -3350,6 +3386,18 @@ class test_permission_bindtype(Declarative):
             expected=dict(
                 value=permission1_renamed,
                 summary=u'Modified permission "%s"' % permission1_renamed,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_renamed_dn,
                     cn=[permission1_renamed],
@@ -3379,6 +3427,18 @@ class test_permission_bindtype(Declarative):
             expected=dict(
                 value=permission1_renamed,
                 summary=u'Modified permission "%s"' % permission1_renamed,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
@@ -4010,6 +4070,18 @@ class test_permission_filters(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Added permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
@@ -4054,6 +4126,18 @@ class test_permission_filters(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Modified permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
@@ -4093,6 +4177,18 @@ class test_permission_filters(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Modified permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
@@ -4132,6 +4228,18 @@ class test_permission_filters(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Modified permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
@@ -4172,6 +4280,18 @@ class test_permission_filters(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Modified permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
@@ -4205,6 +4325,18 @@ class test_permission_filters(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Modified permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
@@ -4254,6 +4386,18 @@ class test_permission_filters(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Added permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has write rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'write',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
