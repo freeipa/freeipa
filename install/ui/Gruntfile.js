@@ -4,6 +4,13 @@ module.exports = function(grunt) {
             options: {}
         },
         qunit: {
+            options: {
+                puppeteer: {
+                    args: [
+                        "--allow-file-access-from-files"
+                    ]
+                },
+            },
             all: [
                 'test/all_tests.html'
             ]
