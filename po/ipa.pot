@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.10.0.dev202206151425+gite46dd73a9\n"
+"Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2022-06-15 16:25+0200\n"
+"POT-Creation-Date: 2022-06-29 16:26+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1950,7 +1950,7 @@ msgstr ""
 #: ipaserver/plugins/automember.py:697 ipaserver/plugins/baseuser.py:208
 #: ipaserver/plugins/caacl.py:220 ipaserver/plugins/hbacrule.py:260
 #: ipaserver/plugins/internal.py:1200 ipaserver/plugins/selinuxusermap.py:272
-#: ipaserver/plugins/user.py:161 ipaserver/plugins/sudorule.py:291
+#: ipaserver/plugins/sudorule.py:291 ipaserver/plugins/user.py:162
 msgid "Users"
 msgstr ""
 
@@ -3976,7 +3976,7 @@ msgstr ""
 msgid "Results should contain primary key attribute only (\"group-name\")"
 msgstr ""
 
-#: ipaserver/plugins/cert.py:1023 ipaserver/plugins/sudorule.py:442
+#: ipaserver/plugins/sudorule.py:442 ipaserver/plugins/user.py:164
 msgid "user"
 msgstr ""
 
@@ -3987,7 +3987,7 @@ msgid "Search for groups without these member users."
 msgstr ""
 
 #: ipaserver/plugins/group.py:417 ipaserver/plugins/group.py:678
-#: ipaserver/plugins/user.py:151
+#: ipaserver/plugins/user.py:152
 msgid "group"
 msgstr ""
 
@@ -4982,7 +4982,7 @@ msgstr ""
 msgid "Display information about a host."
 msgstr ""
 
-#: ipaserver/plugins/service.py:987 ipaserver/plugins/user.py:936
+#: ipaserver/plugins/service.py:987 ipaserver/plugins/user.py:940
 msgid "file to store certificate in"
 msgstr ""
 
@@ -6927,7 +6927,7 @@ msgstr ""
 
 #: ipaserver/plugins/baseuser.py:209 ipaserver/plugins/internal.py:1198
 #: ipaserver/plugins/internal.py:1310 ipaserver/plugins/internal.py:1698
-#: ipaserver/plugins/pwpolicy.py:639 ipaserver/plugins/user.py:162
+#: ipaserver/plugins/pwpolicy.py:639 ipaserver/plugins/user.py:163
 msgid "User"
 msgstr ""
 
@@ -6971,7 +6971,7 @@ msgstr ""
 msgid "A description of this RADIUS proxy server"
 msgstr ""
 
-#: ipaserver/plugins/radiusproxy.py:122 ipaserver/plugins/user.py:1173
+#: ipaserver/plugins/radiusproxy.py:122 ipaserver/plugins/user.py:1177
 msgid "Server"
 msgstr ""
 
@@ -10013,7 +10013,7 @@ msgid ""
 "Establish bi-directional trust. By default trust is inbound one-way only."
 msgstr ""
 
-#: ipaserver/plugins/user.py:1169
+#: ipaserver/plugins/user.py:1173
 msgid "Preserved user"
 msgstr ""
 
@@ -19127,7 +19127,7 @@ msgstr ""
 
 #: ipaserver/plugins/baseuser.py:598 ipaserver/plugins/host.py:694
 #: ipaserver/plugins/stageuser.py:329 ipaserver/plugins/stageuser.py:546
-#: ipaserver/plugins/user.py:562
+#: ipaserver/plugins/user.py:563
 #, python-format
 msgid "can be at most %(len)d characters"
 msgstr ""
@@ -19165,7 +19165,7 @@ msgstr ""
 msgid "cannot specify both subject/issuer and ipacertmapdata"
 msgstr ""
 
-#: ipaserver/plugins/baseuser.py:993 ipaserver/plugins/user.py:1325
+#: ipaserver/plugins/baseuser.py:993 ipaserver/plugins/user.py:1329
 msgid "Add one or more certificate mappings to the user entry."
 msgstr ""
 
@@ -19174,7 +19174,7 @@ msgstr ""
 msgid "Added certificate mappings to user \"%(value)s\""
 msgstr ""
 
-#: ipaserver/plugins/baseuser.py:1012 ipaserver/plugins/user.py:1330
+#: ipaserver/plugins/baseuser.py:1012 ipaserver/plugins/user.py:1334
 msgid "Remove one or more certificate mappings from the user entry."
 msgstr ""
 
@@ -25634,7 +25634,7 @@ msgid ""
 "%(search_base)s, objectclass: %(objectclass)s)"
 msgstr ""
 
-#: ipaserver/plugins/migration.py:804 ipaserver/plugins/user.py:592
+#: ipaserver/plugins/migration.py:804 ipaserver/plugins/user.py:593
 msgid "Default group for new users not found"
 msgstr ""
 
@@ -26165,7 +26165,7 @@ msgstr ""
 msgid "Modified stage user \"%(value)s\""
 msgstr ""
 
-#: ipaserver/plugins/stageuser.py:484 ipaserver/plugins/user.py:879
+#: ipaserver/plugins/stageuser.py:484 ipaserver/plugins/user.py:883
 #, python-format
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
@@ -26238,168 +26238,6 @@ msgstr ""
 
 #: ipaserver/plugins/stageuser.py:814
 msgid "Remove one or more certificate mappings from the stage user entry."
-msgstr ""
-
-#: ipaserver/plugins/user.py:164 ipaserver/plugins/sudorule.py:442
-msgid "users"
-msgstr ""
-
-#: ipaserver/plugins/user.py:496
-#, python-format
-msgid "Added user \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:595
-msgid "Default group for new users is not POSIX"
-msgstr ""
-
-#: ipaserver/plugins/user.py:703
-#, python-format
-msgid "Deleted user \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:721
-#, python-format
-msgid "%s: user is already preserved"
-msgstr ""
-
-#: ipaserver/plugins/user.py:843
-#, python-format
-msgid "Modified user \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:957
-#, python-format
-msgid "Undeleted user account \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:971
-#, python-format
-msgid "user \"%s\" is already active"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1002
-#, python-format
-msgid "Staged user account \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:1097
-#, python-format
-msgid "Disabled user account \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:1119
-#, python-format
-msgid "Enabled user account \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:1136
-msgid ""
-"\n"
-"    Unlock a user account\n"
-"\n"
-"    An account may become locked if the password is entered incorrectly too\n"
-"    many times within a specific time period as controlled by password\n"
-"    policy. A locked account is a temporary condition and may be unlocked "
-"by\n"
-"    an administrator."
-msgstr ""
-
-#: ipaserver/plugins/user.py:1145
-#, python-format
-msgid "Unlocked account \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:1177
-msgid "Failed logins"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1181
-msgid "Last successful authentication"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1185
-msgid "Last failed authentication"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1189
-msgid "Time now"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1193
-msgid "Password grace count"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1200
-msgid ""
-"\n"
-"    Lockout status of a user account\n"
-"\n"
-"    An account may become locked if the password is entered incorrectly too\n"
-"    many times within a specific time period as controlled by password\n"
-"    policy. A locked account is a temporary condition and may be unlocked "
-"by\n"
-"    an administrator.\n"
-"\n"
-"    This connects to each IPA master and displays the lockout status on\n"
-"    each one.\n"
-"\n"
-"    To determine whether an account is locked on a given server you need\n"
-"    to compare the number of failed logins and the time of the last "
-"failure.\n"
-"    For an account to be locked it must exceed the maxfail failures within\n"
-"    the failinterval duration as specified in the password policy "
-"associated\n"
-"    with the user.\n"
-"\n"
-"    The failed login counter is modified only when a user attempts a log in\n"
-"    so it is possible that an account may appear locked but the last failed\n"
-"    login attempt is older than the lockouttime of the password policy. "
-"This\n"
-"    means that the user may attempt a login again. "
-msgstr ""
-
-#: ipaserver/plugins/user.py:1256
-#, python-format
-msgid "%(host)s failed: %(error)s"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1296
-#, python-format
-msgid "%(host)s failed"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1306
-#, python-format
-msgid "Account disabled: %(disabled)s"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1314
-#, python-format
-msgid "Added certificates to user \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:1320
-#, python-format
-msgid "Removed certificates from user \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:1345
-msgid "Add new principal alias to the user entry"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1346
-#, python-format
-msgid "Added new aliases to user \"%(value)s\""
-msgstr ""
-
-#: ipaserver/plugins/user.py:1351
-msgid "Remove principal alias from the user entry"
-msgstr ""
-
-#: ipaserver/plugins/user.py:1352
-#, python-format
-msgid "Removed aliases from user \"%(value)s\""
 msgstr ""
 
 #: ipaserver/plugins/idviews.py:72 ipaserver/plugins/idviews.py:123
@@ -27505,6 +27343,10 @@ msgid ""
 "%(type)s category cannot be set to 'all' while there are allowed %(objects)s"
 msgstr ""
 
+#: ipaserver/plugins/sudorule.py:442 ipaserver/plugins/user.py:165
+msgid "users"
+msgstr ""
+
 #: ipaserver/plugins/sudorule.py:452
 msgid "command"
 msgstr ""
@@ -27557,6 +27399,169 @@ msgstr ""
 #: ipaserver/plugins/sudorule.py:947
 #, python-format
 msgid "RunAsGroup does not accept '%(name)s' as a group name"
+msgstr ""
+
+#: ipaserver/plugins/user.py:497
+#, python-format
+msgid "Added user \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:596
+msgid "Default group for new users is not POSIX"
+msgstr ""
+
+#: ipaserver/plugins/user.py:704
+#, python-format
+msgid "Deleted user \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:705
+#, python-format
+msgid "Preserved user \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:723
+#, python-format
+msgid "%s: user is already preserved"
+msgstr ""
+
+#: ipaserver/plugins/user.py:847
+#, python-format
+msgid "Modified user \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:961
+#, python-format
+msgid "Undeleted user account \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:975
+#, python-format
+msgid "user \"%s\" is already active"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1006
+#, python-format
+msgid "Staged user account \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:1101
+#, python-format
+msgid "Disabled user account \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:1123
+#, python-format
+msgid "Enabled user account \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:1140
+msgid ""
+"\n"
+"    Unlock a user account\n"
+"\n"
+"    An account may become locked if the password is entered incorrectly too\n"
+"    many times within a specific time period as controlled by password\n"
+"    policy. A locked account is a temporary condition and may be unlocked "
+"by\n"
+"    an administrator."
+msgstr ""
+
+#: ipaserver/plugins/user.py:1149
+#, python-format
+msgid "Unlocked account \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:1181
+msgid "Failed logins"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1185
+msgid "Last successful authentication"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1189
+msgid "Last failed authentication"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1193
+msgid "Time now"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1197
+msgid "Password grace count"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1204
+msgid ""
+"\n"
+"    Lockout status of a user account\n"
+"\n"
+"    An account may become locked if the password is entered incorrectly too\n"
+"    many times within a specific time period as controlled by password\n"
+"    policy. A locked account is a temporary condition and may be unlocked "
+"by\n"
+"    an administrator.\n"
+"\n"
+"    This connects to each IPA master and displays the lockout status on\n"
+"    each one.\n"
+"\n"
+"    To determine whether an account is locked on a given server you need\n"
+"    to compare the number of failed logins and the time of the last "
+"failure.\n"
+"    For an account to be locked it must exceed the maxfail failures within\n"
+"    the failinterval duration as specified in the password policy "
+"associated\n"
+"    with the user.\n"
+"\n"
+"    The failed login counter is modified only when a user attempts a log in\n"
+"    so it is possible that an account may appear locked but the last failed\n"
+"    login attempt is older than the lockouttime of the password policy. "
+"This\n"
+"    means that the user may attempt a login again. "
+msgstr ""
+
+#: ipaserver/plugins/user.py:1260
+#, python-format
+msgid "%(host)s failed: %(error)s"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1300
+#, python-format
+msgid "%(host)s failed"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1310
+#, python-format
+msgid "Account disabled: %(disabled)s"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1318
+#, python-format
+msgid "Added certificates to user \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:1324
+#, python-format
+msgid "Removed certificates from user \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:1349
+msgid "Add new principal alias to the user entry"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1350
+#, python-format
+msgid "Added new aliases to user \"%(value)s\""
+msgstr ""
+
+#: ipaserver/plugins/user.py:1355
+msgid "Remove principal alias from the user entry"
+msgstr ""
+
+#: ipaserver/plugins/user.py:1356
+#, python-format
+msgid "Removed aliases from user \"%(value)s\""
 msgstr ""
 
 #: ipaserver/servroles.py:296
