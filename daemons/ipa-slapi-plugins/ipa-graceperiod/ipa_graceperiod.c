@@ -359,7 +359,8 @@ static int ipagraceperiod_preop(Slapi_PBlock *pb)
     Slapi_ValueSet *values = NULL;
     long grace_limit = 0;
     int grace_user_time;
-    char *pwd_expiration = NULL;
+    char *tmpstr = NULL;
+    time_t pwd_expiration;
     int pwresponse_requested = 0;
     Slapi_PBlock *pbtm = NULL;
     Slapi_Mods *smods = NULL;
@@ -414,10 +415,15 @@ static int ipagraceperiod_preop(Slapi_PBlock *pb)
     }
     slapi_value_free(&objectclass);
 
-    pwd_expiration = slapi_entry_attr_get_charptr(target_entry, "krbPasswordExpiration");
-    if (pwd_expiration == NULL) {
+    tmpstr = slapi_entry_attr_get_charptr(target_entry, "krbPasswordExpiration");
+    if (tmpstr == NULL) {
         /* No expiration means nothing to do */
         LOG_TRACE("No krbPasswordExpiration for %s, nothing to do\n", dn);
+        goto done;
+    }
+    pwd_expiration = ipapwd_gentime_to_time_t(tmpstr);
+    if (pwd_expiration > time(NULL)) {
+        /* Not expired, nothing to see here */
         goto done;
     }
 
