@@ -1132,7 +1132,8 @@ def check_available_memory(ca=False):
     if available < minimum_suggested:
         raise ScriptError(
             "Less than the minimum 1.2GB of RAM is available, "
-            "%.2fGB available" % (available / (1024 * 1024 * 1024))
+            "%.2fGB available.  Use --skip-mem-check to suppress this check."
+            % (available / (1024 * 1024 * 1024))
         )
 
 def load_external_cert(files, ca_subject):
