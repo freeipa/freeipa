@@ -64,6 +64,17 @@ class TestSSSDWithAdTrust(IntegrationTest):
         cls.ad = cls.ads[0]
         cls.child_ad = cls.ad_subdomains[0]
 
+        cls.master.run_command(
+            [
+                "/usr/bin/dnf",
+                "-y",
+                "update",
+                "selinux-policy",
+                "selinux-policy-targeted",
+                "--enablerepo=updates-testing",
+            ]
+        )
+
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
         tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
