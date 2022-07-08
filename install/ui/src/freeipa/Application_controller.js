@@ -318,6 +318,7 @@ define([
                         $type: 'text',
                         name: 'pagination_size',
                         label: '@i18n:customization.table_pagination',
+                        required: true,
                         validators: ['positive_integer']
                     }
                 ]
