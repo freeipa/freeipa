@@ -19,6 +19,7 @@ from dns import (
 from time import sleep, time
 
 from ipalib import errors
+from ipalib.constants import IPA_CA_RECORD
 from ipalib.dns import record_name_format
 from ipapython.dnsutil import DNSName
 from ipaserver.install import installutils
@@ -187,7 +188,7 @@ class IPASystemRecords:
 
     def __add_ca_records_from_hostname(self, zone_obj, hostname):
         assert isinstance(hostname, DNSName) and hostname.is_absolute()
-        r_name = DNSName('ipa-ca') + self.domain_abs
+        r_name = DNSName(IPA_CA_RECORD) + self.domain_abs
         rrsets = None
         end_time = time() + CA_RECORDS_DNS_TIMEOUT
         while True:
@@ -210,6 +211,7 @@ class IPASystemRecords:
 
         for rrset in rrsets:
             for rd in rrset:
+                logger.debug("Adding CA IP %s for %s", rd.to_text(), hostname)
                 rdataset = zone_obj.get_rdataset(
                     r_name, rd.rdtype, create=True)
                 rdataset.add(rd, ttl=self.TTL)
@@ -461,6 +463,14 @@ class IPASystemRecords:
             )
         )
 
+        # Remove the ipa-ca record(s). They will be reconstructed in
+        # get_base_records().
+        r_name = DNSName(IPA_CA_RECORD) + self.domain_abs
+        try:
+            self.api_instance.Command.dnsrecord_del(
+                self.domain_abs, r_name, del_all=True)
+        except errors.NotFound:
+            pass
         base_zone = self.get_base_records()
         for record_name, node in base_zone.items():
             set_cname_template = record_name in names_requiring_cname_templates
