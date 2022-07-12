@@ -426,6 +426,7 @@ static bool is_master_host(struct ipadb_context *ipactx, const char *fqdn)
 
 static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
                                         LDAPMessage *lentry,
+                                        LDAPMessage *sentry,
                                         unsigned int flags,
                                         TALLOC_CTX *memctx,
                                         krb5_timestamp authtime,
@@ -565,7 +566,20 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         unix_to_nt_time(&info3->base.last_password_change, timeres);
         break;
     case ENOENT:
-        info3->base.last_password_change = 0;
+        /* If second entry is present, use Kerberos attributes from it */
+        if (sentry != NULL) {
+            ret = ipadb_ldap_attr_to_time_t(ipactx->lcontext, sentry,
+                                            "krbLastPwdChange", &timeres);
+            switch (ret) {
+            case 0:
+                unix_to_nt_time(&info3->base.last_password_change, timeres);
+                break;
+            default:
+            break;
+            }
+        } else {
+            info3->base.last_password_change = 0;
+        }
         break;
     default:
         return ret;
@@ -993,8 +1007,8 @@ krb5_error_code ipadb_get_pac(krb5_context kcontext,
     TALLOC_CTX *tmpctx;
     struct ipadb_e_data *ied;
     struct ipadb_context *ipactx;
-    LDAPMessage *results = NULL;
-    LDAPMessage *lentry;
+    LDAPMessage *results = NULL, *sresults = NULL;
+    LDAPMessage *lentry = NULL, *sentry = NULL;
     DATA_BLOB pac_data;
     krb5_data data;
     union PAC_INFO pac_info;
@@ -1050,9 +1064,40 @@ krb5_error_code ipadb_get_pac(krb5_context kcontext,
         goto done;
     }
 
+    {
+        bool is_trust_krbtgt;
+
+        /* Trusted domain objects are part of cn=ad,cn=trusts,$BASEDN subtree.
+         * Anchor the search string with ',dc=' to prevent matching anything else.
+         * This is to avoid a string allocation with expanded base DN. */
+        is_trust_krbtgt = strstr(ied->entry_dn, ",cn=ad,cn=trusts,dc=") != NULL;
+
+        if (is_trust_krbtgt) {
+            char *sentry_dn = strchr(ied->entry_dn, ',');
+            if (sentry_dn != NULL) {
+                /* skipped "krbprincipalname=krbtgt/SOME-REALM@AT-REALM," */
+                sentry_dn++;
+                kerr = ipadb_deref_search(ipactx, sentry_dn, LDAP_SCOPE_BASE,
+                                        "(objectclass=*)", user_pac_attrs,
+                                        deref_search_attrs, memberof_pac_attrs,
+                                        &sresults);
+                if (kerr) {
+                    goto done;
+                }
+
+                sentry = ldap_first_entry(ipactx->lcontext, sresults);
+                if (!lentry) {
+                    kerr = ENOENT;
+                    goto done;
+                }
+
+            }
+        }
+    }
+
     /* == Fill Info3 == */
-    kerr = ipadb_fill_info3(ipactx, lentry, flags, tmpctx, authtime,
-                            &pac_info.logon_info.info->info3);
+    kerr = ipadb_fill_info3(ipactx, sentry ? sentry : lentry, sentry ? lentry : NULL,
+                            flags, tmpctx, authtime, &pac_info.logon_info.info->info3);
     if (kerr) {
         goto done;
     }
@@ -1155,7 +1200,7 @@ krb5_error_code ipadb_get_pac(krb5_context kcontext,
 
 #ifdef HAVE_PAC_REQUESTER_SID
     /* MS-KILE 3.3.5.6.4.8: add PAC_REQUESTER_SID only in TGT case */
-    if ((flags & (CLIENT_REFERRALS_FLAGS)) != 0) {
+    if (flags & CLIENT_REFERRALS_FLAGS) {
         union PAC_INFO pac_requester_sid;
         /* == Package PAC_REQUESTER_SID == */
         memset(&pac_requester_sid, 0, sizeof(pac_requester_sid));
@@ -1183,6 +1228,9 @@ krb5_error_code ipadb_get_pac(krb5_context kcontext,
 
 done:
     ldap_msgfree(results);
+    if (sresults != NULL) {
+        ldap_msgfree(sresults);
+    }
     talloc_free(tmpctx);
     return kerr;
 }
