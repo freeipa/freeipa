@@ -64,9 +64,30 @@ class TestSSSDWithAdTrust(IntegrationTest):
         cls.ad = cls.ads[0]
         cls.child_ad = cls.ad_subdomains[0]
 
+        cls.master.run_command(
+            [
+                "/usr/bin/dnf",
+                "-y",
+                "update",
+                "selinux-policy",
+                "selinux-policy-targeted",
+                "--enablerepo=updates-testing",
+            ]
+        )
+        f = textwrap.dedent("""
+            (allow winbind_rpcd_t krb5_keytab_t (dir (getattr open search)))
+            (allow winbind_rpcd_t krb5_keytab_t (dir (getattr open read ioctl lock)))
+        """)
+        cls.master.put_file_contents("/tmp/local_winbindrpcd_krb.cil", f)
+        cls.master.run_command(["semodule", "-i", "/tmp/local_winbindrpcd_krb.cil"])
+
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
+        cls.master.run_command(["semodule", "-DB"])
         tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
+        cls.master.run_command(
+            ["ausearch", "-i", "-m", "avc,user_avc", "-ts", "recent"],
+            raiseonerr=False)
 
         cls.users['ad']['name'] = cls.users['ad']['name_tmpl'].format(
             domain=cls.ad.domain.name)
@@ -75,6 +96,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
         cls.users['child_ad']['name'] = (
             cls.users['child_ad']['name_tmpl'].format(
                 domain=cls.child_ad.domain.name))
+        cls.master.run_command(["klist"])
         tasks.user_add(cls.master, cls.intermed_user)
         tasks.create_active_user(cls.master, cls.ipa_user,
                                  cls.ipa_user_password)
