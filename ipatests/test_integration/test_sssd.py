@@ -64,9 +64,25 @@ class TestSSSDWithAdTrust(IntegrationTest):
         cls.ad = cls.ads[0]
         cls.child_ad = cls.ad_subdomains[0]
 
+        cls.master.run_command(
+            [
+                "/usr/bin/dnf",
+                "-y",
+                "update",
+                "selinux-policy",
+                "selinux-policy-targeted",
+                "--enablerepo=updates-testing",
+            ]
+        )
+        f = "(allow smbcontrol_t winbind_rpcd_t (unix_dgram_socket (sendto)))"
+        cls.master.put_file_contents("/tmp/local_smbcontrol.cil", f)
+        cls.master.run_command(["semodule", "-i", "/tmp/local_smbcontrol.cil"])
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
         tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
+        cls.master.run_command(
+            ["ausearch", "-i", "-m", "avc,user_avc", "-ts", "recent"],
+            raiseonerr=False)
 
         cls.users['ad']['name'] = cls.users['ad']['name_tmpl'].format(
             domain=cls.ad.domain.name)
