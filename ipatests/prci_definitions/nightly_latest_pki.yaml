@@ -1040,3 +1040,31 @@ jobs:
         template: *ci-master-latest
         timeout: 5400
         topology: *master_1repl
+
+  pki-fedora/test_random_serial_numbers_TestRSNPKIConfig:
+    requires: [pki-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{pki-fedora/build_url}'
+        update_packages: True
+        copr: '@pki/master'
+        test_suite: test_integration/test_random_serial_numbers.py::TestRSNPKIConfig
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  pki-fedora/test_random_serial_numbers_TestRSNVault:
+    requires: [pki-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{pki-fedora/build_url}'
+        update_packages: True
+        copr: '@pki/master'
+        test_suite: test_integration/test_random_serial_numbers.py::TestRSNVault
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_1repl

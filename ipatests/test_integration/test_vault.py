@@ -33,7 +33,9 @@ class TestInstallKRA(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_kra=True)
+        tasks.install_master(cls.master,
+                             setup_kra=True,
+                             random_serial=cls.random_serial)
         # do not install KRA on replica, it is part of test
         tasks.install_replica(cls.master, cls.replicas[0], setup_kra=False)
 
