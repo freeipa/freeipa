@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-06-16 05:18+0000\n"
+"PO-Revision-Date: 2022-07-18 14:18+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.12.2\n"
+"X-Generator: Weblate 4.13\n"
 
 #: client/ipa-join.c:66 client/ipa-join.c:422 client/ipa-join.c:440
 #: client/ipa-join.c:540 client/ipa-join.c:1089 util/ipa_krb5.c:1024
@@ -18202,12 +18202,12 @@ msgstr ""
 #: ipaserver/plugins/internal.py:869
 #, python-brace-format
 msgid "Remove services from user group '${primary_key}'"
-msgstr ""
+msgstr "사용자 그룹 '${primary_key}'에서 서비스를 제거합니다"
 
 #: ipaserver/plugins/internal.py:872
 #, python-brace-format
 msgid "Remove users from user group '${primary_key}'"
-msgstr ""
+msgstr "사용자 그룹 '${primary_key}'에서 사용자를 제거합니다"
 
 #: ipaserver/plugins/internal.py:875
 #, python-brace-format
@@ -18288,7 +18288,7 @@ msgstr ""
 #: ipaserver/plugins/internal.py:924
 #, python-brace-format
 msgid "Remove users from HBAC rule '${primary_key}'"
-msgstr ""
+msgstr "HBAC 규칙 '${primary_key}'에서 사용자를 제거합니다"
 
 #: ipaserver/plugins/internal.py:926
 msgid "Via Service"
@@ -18564,22 +18564,22 @@ msgstr ""
 #: ipaserver/plugins/internal.py:1045
 #, python-brace-format
 msgid "Add host group '${primary_key}' into host groups"
-msgstr ""
+msgstr "호스트 그룹에 호스트 그룹 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1048
 #, python-brace-format
 msgid "Add host group '${primary_key}' into HBAC rules"
-msgstr ""
+msgstr "HBAC 규칙에 호스트 그룹 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1051
 #, python-brace-format
 msgid "Add host group '${primary_key}' into netgroups"
-msgstr ""
+msgstr "넷그룹에 호스트 그룹 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1054
 #, python-brace-format
 msgid "Add host group '${primary_key}' into sudo rules"
-msgstr ""
+msgstr "sudo 규칙에 호스트 그룹 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1057
 #, python-brace-format
@@ -18768,7 +18768,7 @@ msgstr "넷그룹을 추가합니다"
 #: ipaserver/plugins/internal.py:1141
 #, python-brace-format
 msgid "Add netgroup '${primary_key}' into netgroups"
-msgstr ""
+msgstr "넷그룹에 넷그룹 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1144
 #, python-brace-format
@@ -18840,7 +18840,7 @@ msgstr ""
 #: ipaserver/plugins/internal.py:1183
 #, python-brace-format
 msgid "Remove users from netgroup '${primary_key}'"
-msgstr ""
+msgstr "넷그룹 '${primary_key}'에서 사용자를 제거합니다"
 
 #: ipaserver/plugins/internal.py:1192
 msgid "Add OTP token"
@@ -19120,12 +19120,12 @@ msgstr "서비스 추가"
 #: ipaserver/plugins/internal.py:1313
 #, python-brace-format
 msgid "Add hosts managing service '${primary_key}'"
-msgstr ""
+msgstr "호스트 관리 서비스 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1316
 #, python-brace-format
 msgid "Add service '${primary_key}' into roles"
-msgstr ""
+msgstr "역할에 서비스 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1318
 msgid "Service Certificate"
@@ -19151,7 +19151,7 @@ msgstr ""
 #: ipaserver/plugins/internal.py:1329
 #, python-brace-format
 msgid "Remove hosts managing service '${primary_key}'"
-msgstr ""
+msgstr "호스트 관리 서비스 '${primary_key}'를 제거합니다"
 
 #: ipaserver/plugins/internal.py:1334
 msgid "Are you sure you want to unprovision this service?"
@@ -19167,7 +19167,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1337
 msgid "Kerberos Key Present, Service Provisioned"
-msgstr ""
+msgstr "커버러스 키가 있으며, 서비스가 제공됨"
 
 #: ipaserver/plugins/internal.py:1340
 msgid "SSH public keys"
@@ -19436,7 +19436,7 @@ msgstr ""
 #: ipaserver/plugins/internal.py:1481
 #, python-brace-format
 msgid "Remove users from sudo rule '${primary_key}'"
-msgstr ""
+msgstr "sudo 규칙'${primary_key}'에서 사용자를 제거합니다"
 
 #: ipaserver/plugins/internal.py:1483
 msgid "As Whom"
@@ -19592,7 +19592,7 @@ msgstr "사용자 추가"
 #: ipaserver/plugins/internal.py:1558
 #, python-brace-format
 msgid "Add user '${primary_key}' into user groups"
-msgstr ""
+msgstr "사용자 그룹에 user '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1561
 #, python-brace-format
