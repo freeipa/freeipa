@@ -340,6 +340,31 @@ class TestIpaHealthCheck(IntegrationTest):
         assert returncode == 0
         assert output == "No issues found."
 
+    def test_ipa_healthcheck_fips_enabled(self):
+        """
+        Test if FIPS is enabled and the check exists.
+
+        https://pagure.io/freeipa/issue/8951
+        """
+        returncode, check = run_healthcheck(self.master,
+                                            source="ipahealthcheck.meta.core",
+                                            check="MetaCheck",
+                                            output_type="json",
+                                            failures_only=False)
+        assert returncode == 0
+
+        cmd = self.master.run_command(['fips-mode-setup', '--is-enabled'],
+                                      raiseonerr=False)
+        returncode = cmd.returncode
+
+        # If this produces IndexError, the check does not exist
+        if check[0]["kw"]["fips"] == "disabled":
+            assert returncode == 2
+        elif check[0]["kw"]["fips"] == "enabled":
+            assert returncode == 0
+        else:
+            assert returncode == 1
+
     def test_ipa_healthcheck_after_certupdate(self):
         """
         Verify that ipa-certupdate hasn't messed up tracking
