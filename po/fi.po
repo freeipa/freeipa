@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2022-06-05 19:18+0000\n"
+"PO-Revision-Date: 2022-07-19 19:18+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.12.2\n"
+"X-Generator: Weblate 4.13\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -6184,9 +6184,8 @@ msgstr "Aikakatkaisu"
 msgid "The total timeout across all retries (in seconds)"
 msgstr ""
 
-#, fuzzy
 msgid "Retries"
-msgstr "tietueet"
+msgstr "Uudelleenyritykset"
 
 #, fuzzy
 msgid "The number of times to retry authentication"
@@ -19001,9 +19000,8 @@ msgstr "Muokkaa tunnuksen ohitusta."
 msgid "Modified Identity Provider server \"%(value)s\""
 msgstr "Muokattu IPA palvelinta \"%(value)s\""
 
-#, fuzzy
 msgid "Search for Identity Provider servers."
-msgstr "Poista palveluita"
+msgstr "Etsi Identity Provider -palvelimia."
 
 #, fuzzy, python-format
 #| msgid "%(count)d subordinate id matched"
@@ -20833,10 +20831,8 @@ msgstr ""
 msgid "OAuth 2.0 client details"
 msgstr ""
 
-#, fuzzy
-#| msgid "Servers details:"
 msgid "Identity provider details"
-msgstr "Palvelimen yksityiskohdat:"
+msgstr "Identiteetin tarjoajan tiedot"
 
 #, fuzzy
 msgid "Verify secret"
