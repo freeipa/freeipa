@@ -39,8 +39,8 @@ def maxlife_within_policy(input, maxlife, slush=3600):
        slush defaults to 1 * 60 * 60 matching the jitter window.
     """
     data = input.split()
-    start = datetime.strptime(data[0] + ' ' + data[1], '%m/%d/%Y %H:%M:%S')
-    end = datetime.strptime(data[2] + ' ' + data[3], '%m/%d/%Y %H:%M:%S')
+    start = datetime.strptime(data[0] + ' ' + data[1], '%m/%d/%y %H:%M:%S')
+    end = datetime.strptime(data[2] + ' ' + data[3], '%m/%d/%y %H:%M:%S')
     diff = int((end - start).total_seconds())
 
     return maxlife >= diff >= maxlife - slush
