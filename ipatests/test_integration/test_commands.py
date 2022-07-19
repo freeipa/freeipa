@@ -1235,6 +1235,24 @@ class TestIPACommand(IntegrationTest):
         cmd = ["journalctl", "-u", "sshd", f"--since={since}"]
         tasks.run_repeatedly(self.master, command=cmd, test=test_cb)
 
+    def test_user_del_preserve(self):
+        """
+        Test if preserving a user account produces correct output message.
+
+        https://pagure.io/freeipa/issue/9187
+        """
+        user = "testuser"
+        tasks.kinit_admin(self.master)
+        tasks.create_active_user(self.master, user, "Secret123")
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        result = tasks.user_del(self.master, user, preserve=True)
+        assert 'Preserved user "testuser"' == result.stdout_text.strip()
+
+        result = tasks.user_del(self.master, user, preserve=False)
+        assert 'Deleted user "testuser"' == result.stdout_text.strip()
+
     def get_dirsrv_id(self):
         serverid = realm_to_serverid(self.master.domain.realm)
         return("dirsrv@%s.service" % serverid)

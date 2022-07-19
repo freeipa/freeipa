@@ -2062,8 +2062,10 @@ def user_add(host, login, first='test', last='user', extra_args=(),
     return host.run_command(cmd, stdin_text=stdin_text)
 
 
-def user_del(host, login):
+def user_del(host, login, preserve=False):
     cmd = ["ipa", "user-del", login]
+    if preserve:
+        cmd.extend(["--preserve"])
     return host.run_command(cmd)
 
 
