@@ -266,7 +266,7 @@ def process_def_file(file, jobs_spec, supported_classes):
             "the format."
         )
         return False, "", -1
-    topologies = [value for value in topologies_def.values()]
+    topologies = list(topologies_def.values())
 
     # Print file to be analyzed and its number of jobs
     n_jobs = len(jobs_def)
