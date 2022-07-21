@@ -479,7 +479,7 @@ static int ipagraceperiod_preop(Slapi_PBlock *pb)
         if (pwresponse_requested) {
             slapi_pwpolicy_make_response_control(pb, -1, grace_limit - grace_user_time , -1);
         }
-    } else if ((grace_limit > 0) && (grace_user_time >= grace_limit)) {
+    } else if (grace_user_time >= grace_limit) {
         LOG_TRACE("%s password is expired and out of grace limit\n", dn);
         errstr = "Password is expired.\n";
         ret = LDAP_INVALID_CREDENTIALS;
