@@ -36,7 +36,7 @@ class TestPWPolicy(IntegrationTest):
         cls.master.run_command(['ipa', 'group-add-member', POLICY,
                                 '--users', USER])
         cls.master.run_command(['ipa', 'pwpolicy-add', POLICY,
-                                '--priority', '1'])
+                                '--priority', '1', '--gracelimit', '-1'])
         cls.master.run_command(['ipa', 'passwd', USER],
                                stdin_text='{password}\n{password}\n'.format(
                                password=PASSWORD
@@ -265,7 +265,6 @@ class TestPWPolicy(IntegrationTest):
 
     def test_graceperiod_expired(self):
         """Test the LDAP bind grace period"""
-        str(self.master.domain.basedn)
         dn = "uid={user},cn=users,cn=accounts,{base_dn}".format(
              user=USER, base_dn=str(self.master.domain.basedn))
 
@@ -308,7 +307,6 @@ class TestPWPolicy(IntegrationTest):
 
     def test_graceperiod_not_replicated(self):
         """Test that the grace period is reset on password reset"""
-        str(self.master.domain.basedn)
         dn = "uid={user},cn=users,cn=accounts,{base_dn}".format(
              user=USER, base_dn=str(self.master.domain.basedn))
 
@@ -341,3 +339,54 @@ class TestPWPolicy(IntegrationTest):
         )
         assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
         self.reset_password(self.master)
+
+    def test_graceperiod_zero(self):
+        """Test the LDAP bind with zero grace period"""
+        dn = "uid={user},cn=users,cn=accounts,{base_dn}".format(
+             user=USER, base_dn=str(self.master.domain.basedn))
+
+        self.master.run_command(
+            ["ipa", "pwpolicy-mod", POLICY, "--gracelimit", "0", ],
+        )
+
+        # Resetting the password will mark it as expired
+        self.reset_password(self.master)
+
+        # Now grace is done and binds should fail.
+        result = self.master.run_command(
+            ["ldapsearch", "-e", "ppolicy", "-D", dn,
+             "-w", PASSWORD, "-b", dn], raiseonerr=False
+        )
+        assert result.returncode == 49
+
+        assert 'Password is expired' in result.stderr_text
+        assert 'Password expired, 0 grace logins remain' in result.stderr_text
+
+    def test_graceperiod_disabled(self):
+        """Test the LDAP bind with grace period disabled (-1)"""
+        str(self.master.domain.basedn)
+        dn = "uid={user},cn=users,cn=accounts,{base_dn}".format(
+             user=USER, base_dn=str(self.master.domain.basedn))
+
+        # This can fail if gracelimit is already -1 so ignore it
+        self.master.run_command(
+            ["ipa", "pwpolicy-mod", POLICY, "--gracelimit", "-1",],
+            raiseonerr=False,
+        )
+
+        # Ensure the password is expired
+        self.reset_password(self.master)
+
+        result = self.kinit_as_user(self.master, PASSWORD, PASSWORD)
+
+        for _i in range(0, 10):
+            result = self.master.run_command(
+                ["ldapsearch", "-e", "ppolicy", "-D", dn,
+                 "-w", PASSWORD, "-b", dn]
+            )
+
+        # With graceperiod disabled it should not increment
+        result = tasks.ldapsearch_dm(
+            self.master, dn, ['passwordgraceusertime',],
+        )
+        assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
