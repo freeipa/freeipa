@@ -6,6 +6,11 @@ steps:
 
 - script: |
     set -e
+    sudo apt list --installed
+  displayName: Show Host's installed packages
+
+- script: |
+    set -e
     sudo apt-get update
     sudo apt-get install -y \
         apparmor-utils \
@@ -15,6 +20,21 @@ steps:
         systemd-coredump \
         python3-docker
   displayName: Install Host's tests requirements
+
+- script: |
+    set -e
+    sudo systemctl
+  displayName: Show Host's systemd status
+
+- script: |
+    set -e
+    # most of the time systemd killed hostnamed with SIGKILL on timeout
+    # kill without waiting for graceful termination
+    sudo systemctl kill -s SIGKILL azsecd ||:
+    sudo systemctl disable --now azsecmond ||:
+    sudo systemctl disable --now azsecd ||:
+    sudo systemctl disable --now clamav-freshclam ||:
+  displayName: Disable azsec services (clamav)
 
 - script: |
     set -e
@@ -51,6 +71,16 @@ steps:
   displayName: Allow coredumps
 
 - template: setup-test-environment.yml
+
+- script: |
+    set -eu
+    sudo top -b -o +%MEM n 1
+  displayName: Show Host's top
+
+- script: |
+    set -eu
+    sudo ps -auxf
+  displayName: Show Host's processes
 
 - template: run-test.yml
 
