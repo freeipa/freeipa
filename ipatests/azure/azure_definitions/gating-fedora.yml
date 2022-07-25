@@ -69,14 +69,6 @@ vms:
     tests:
     - test_integration/test_service_permissions.py
 
-  - container_job: netgroup
-    tests:
-    - test_integration/test_netgroup.py
-
-  - container_job: external_ca_ExternalCAProfileScenarios
-    tests:
-    - test_integration/test_external_ca.py::TestExternalCAProfileScenarios
-
 - vm_jobs:
   - container_job: sudo
     containers:
@@ -136,6 +128,15 @@ vms:
   - container_job: membermanager
     tests:
     - test_integration/test_membermanager.py
+
+  - container_job: netgroup
+    tests:
+    - test_integration/test_netgroup.py
+
+  - container_job: external_ca_ExternalCAProfileScenarios
+    tests:
+    - test_integration/test_external_ca.py::TestExternalCAProfileScenarios
+
 
 - vm_jobs:
   - container_job: ServerReplicaCALessToCAFull
