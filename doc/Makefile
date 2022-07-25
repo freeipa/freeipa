@@ -35,4 +35,5 @@ distclean: clean
 venv:
 	$(PYTHON) -m venv $(VENVDIR)
 	$(VENVDIR)/bin/python3 -m pip install -U pip setuptools
-	$(VENVDIR)/bin/python3 -m pip install -U -r ./requirements.txt
+	$(VENVDIR)/bin/python3 -m pip install -U -r ./requirements.txt \
+		-c constraints.txt
