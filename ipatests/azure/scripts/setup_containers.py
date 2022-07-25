@@ -12,7 +12,7 @@ from jinja2 import Template
 from typing import NamedTuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import List, Tuple, Union
+    from typing import List, Tuple, Union, Dict
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
@@ -77,14 +77,19 @@ class Container:
         return self._ipv6
 
     def execute(
-        self, args: Union[str, List[str]], raiseonerr: bool = True
+        self,
+        args: Union[str, List[str]],
+        raiseonerr: bool = True,
+        env: Union[Dict[str, str], List[str], None] = None,
     ) -> ExecRunReturn:
         """
         Exec an arbitrary command within container
         """
         dcont = self.dclient.containers.get(self.name)
         logging.info("%s: run: %s", dcont.name, args)
-        result: ExecRunReturn = dcont.exec_run(args, demux=True)
+        result: ExecRunReturn = dcont.exec_run(
+            args, demux=True, environment=env
+        )
         if result.output[0] is not None:
             logging.info("%s: %s", dcont.name, result.output[0])
         logging.info("%s: result: %s", dcont.name, result.exit_code)
@@ -127,13 +132,13 @@ class ContainersGroup:
             for c in range(1, self.scale + 1)
         ]
 
-    def execute_all(self, args):
+    def execute_all(self, args, env=None):
         """
         Sequentially exec an arbitrary command within every container of group
         """
         results = []
         for cont in self.containers:
-            results.append(cont.execute(args))
+            results.append(cont.execute(args, env=env))
         return results
 
     def ips(self):
@@ -199,7 +204,8 @@ class ContainersGroup:
             cont.execute(cmd)
 
             cmd = ["hostnamectl", "set-hostname", cont.hostname]
-            cont.execute(cmd)
+            # default timeout (25s) maybe not enough
+            cont.execute(cmd, env={"SYSTEMD_BUS_TIMEOUT": "50"})
 
     def setup_resolvconf(self):
         """
@@ -331,7 +337,7 @@ class Controller(Container):
 
         return self._master_container
 
-    def execute(self, args):
+    def execute(self, args, env=None):
         """
         Execute a command on controller (either master or local machine)
         """
@@ -339,7 +345,7 @@ class Controller(Container):
             proc = subprocess.run(args, check=True, capture_output=True)
             return [proc.stdout.decode().rstrip().strip("'")]
 
-        return self.master_container.execute(args)
+        return self.master_container.execute(args, env=env)
 
     def setup_hosts(self):
         """
