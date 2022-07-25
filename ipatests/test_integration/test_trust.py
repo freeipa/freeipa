@@ -1232,3 +1232,43 @@ class TestPosixAutoPrivateGroup(BaseTestTrust):
             result = self.clients[0].run_command(['id', posixuser])
             assert "10047(testgroup@{0})".format(
                 self.ad_domain) in result.stdout_text
+
+
+class TestADUserGroupMgmt(BaseTestTrust):
+    """
+    Tests for aduser-group management with posix AD trust
+    They allow to query the AD specific attributes for a
+    user or a group directly. Besides
+    Related : https://pagure.io/freeipa/issue/9127
+    """
+    topology = 'line'
+    num_ad_domains = 1
+    num_clients = 1
+    num_ad_subdomains = 0
+    num_ad_treedomains = 0
+
+    def test_add_posix_trust(self):
+        """
+        Adding two-way posix trust
+        """
+        tasks.configure_dns_for_trust(self.master, self.ad)
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust-posix']
+        )
+
+    def test_aduser_mgmt(self):
+        """
+        Test adusergroup mgmt testcase
+        """
+        adgroup = 'mytest-group@%s' % self.ad_domain
+        base_dn = str(self.ad_domain)
+        entry_ldif = textwrap.dedent("""
+               dn: cn={adgroup},cn=Users,dc={base_dn}
+               changetype: modify
+               add: info
+               info: mytest
+        """).format(adgroup, base_dn=base_dn)
+        tasks.ldapmodify_dm(self.ad_domain, entry_ldif)
+        cmd = self.clients[0].run_command(["getent", "group", adgroup])
+        assert 'mytest' in cmd.stdout_text
