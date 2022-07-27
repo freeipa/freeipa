@@ -7,7 +7,15 @@ from ipatests.test_webui.ui_driver import UI_driver
 import ipatests.test_webui.data_config as config_data
 import ipatests.test_webui.data_user as user_data
 from ipatests.test_webui.ui_driver import screenshot
+
 import re
+import pytest
+
+try:
+    from selenium.common.exceptions import NoSuchElementException
+    from selenium.webdriver.common.by import By
+except ImportError:
+    pass
 
 
 class test_subid(UI_driver):
@@ -125,3 +133,26 @@ class test_subid(UI_driver):
         self.assert_no_error_dialog()
         after_count = self.get_rows()
         assert len(before_count) < len(after_count)
+
+    @screenshot
+    def test_subid_range_deletion_not_allowed(self):
+        """
+        Test to check that subid range delete is not
+        allowed from WebUI i.e Delete button is not available.
+        """
+        self.init_app()
+        self.navigate_to_entity('subid', facet='search')
+        self.facet_button_click('add')
+        self.select_combobox('ipaowner', 'admin')
+        self.dialog_button_click('add')
+        self.wait(0.3)
+        self.assert_no_error_dialog()
+        self.get_field_checked('ipauniqueid')
+        with pytest.raises(NoSuchElementException):
+            self.facet_button_click('remove')
+        buttons_s = 'div.control-buttons button'
+        facet_buttons = self.find(buttons_s, By.CSS_SELECTOR,
+                                  many=True, strict=True)
+        assert len(facet_buttons) == 2
+        assert facet_buttons[0].get_attribute('name') in ['add', 'refresh']
+        assert facet_buttons[1].get_attribute('name') in ['add', 'refresh']
