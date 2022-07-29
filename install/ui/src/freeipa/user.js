@@ -318,6 +318,11 @@ return {
                             label: '@mo-param:pwpolicy:krbpwdlockoutduration:label',
                             read_only: true,
                             measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'passwordgracelimit',
+                            label: '@mo-param:pwpolicy:passwordgracelimit:label',
+                            read_only: true
                         }
                     ]
                 },
