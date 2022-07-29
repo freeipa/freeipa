@@ -7,14 +7,16 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2022-07-30 21:18+0000\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
+"freeipa/master/ka/>\n"
 "Language: ka\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.13\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -26,11 +28,11 @@ msgstr ""
 
 #, c-format
 msgid "out of memory\n"
-msgstr ""
+msgstr "არასაკმარისი მეხსიერება\n"
 
 #, c-format
 msgid "read error\n"
-msgstr ""
+msgstr "კითხვის შეცდომა\n"
 
 #, c-format
 msgid "Unable to parse principal name\n"
@@ -38,7 +40,7 @@ msgstr ""
 
 #, c-format
 msgid "krb5_parse_name %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_parse_name %1$d: %2$s\n"
 
 #, c-format
 msgid "Removing principal %s\n"
@@ -54,7 +56,7 @@ msgstr ""
 
 #, c-format
 msgid "krb5_kt_get_entry %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_get_entry %1$d: %2$s\n"
 
 #, c-format
 msgid "Unable to remove entry\n"
@@ -62,11 +64,11 @@ msgstr ""
 
 #, c-format
 msgid "kvno %d\n"
-msgstr ""
+msgstr "kvno %d\n"
 
 #, c-format
 msgid "krb5_kt_remove_entry %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
 
 #, c-format
 msgid "Failed to set cursor '%1$s'\n"
@@ -78,17 +80,17 @@ msgstr ""
 
 #, c-format
 msgid "krb5_unparse_name %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_unparse_name %1$d: %2$s\n"
 
 #, c-format
 msgid "realm not found\n"
-msgstr ""
+msgstr "რეალმი არ არსებობს\n"
 
 msgid "Print debugging information"
-msgstr ""
+msgstr "პროგრამის გასამართი ინფორმაციის გამოტანა"
 
 msgid "Debugging output"
-msgstr ""
+msgstr "დამატებითი ინფორმაციის გამოტანა"
 
 msgid ""
 "The principal to remove from the keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
@@ -123,7 +125,7 @@ msgstr ""
 
 #, c-format
 msgid "krb5_kt_close %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_close %1$d: %2$s\n"
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
@@ -139,7 +141,7 @@ msgstr ""
 
 #, c-format
 msgid "Out of memory \n"
-msgstr ""
+msgstr "არასაკმარისი მეხსიერება! \n"
 
 #, c-format
 msgid "Unable to initialize ldap library!\n"
@@ -181,7 +183,7 @@ msgstr ""
 
 #, c-format
 msgid "Out of Memory!\n"
-msgstr ""
+msgstr "არასაკმარისი მეხსიერება!\n"
 
 #, c-format
 msgid "Failed to create control!\n"
@@ -220,7 +222,7 @@ msgstr ""
 
 #, c-format
 msgid "Passwords do not match!\n"
-msgstr ""
+msgstr "პაროლები არ ემთხვევა!\n"
 
 #, c-format
 msgid "Failed to open config file %s\n"
@@ -249,7 +251,7 @@ msgid "Contact this specific KDC Server"
 msgstr ""
 
 msgid "Server Name"
-msgstr ""
+msgstr "სერვერის სახელი"
 
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
@@ -275,13 +277,13 @@ msgid "Asks for a non-random password to use for the principal"
 msgstr ""
 
 msgid "LDAP DN"
-msgstr ""
+msgstr "LDAP DN"
 
 msgid "DN to bind as if not using kerberos"
 msgstr ""
 
 msgid "LDAP password"
-msgstr ""
+msgstr "LDAP პაროლი"
 
 msgid "password to use if not using kerberos"
 msgstr ""
@@ -293,19 +295,19 @@ msgid "Path to the IPA CA certificate"
 msgstr ""
 
 msgid "IPA CA certificate"
-msgstr ""
+msgstr "IPA CA სერტიფიკატი"
 
 msgid "LDAP uri to connect to. Mutually exclusive with --server"
 msgstr ""
 
 msgid "url"
-msgstr ""
+msgstr "url"
 
 msgid "LDAP SASL bind mechanism if no bindd/bindpw"
 msgstr ""
 
 msgid "GSSAPI|EXTERNAL"
-msgstr ""
+msgstr "GSSAPI|EXTERNAL"
 
 msgid "Retrieve current keys without changing them"
 msgstr ""
@@ -431,7 +433,7 @@ msgstr ""
 
 #, c-format
 msgid "Out of memory!\n"
-msgstr ""
+msgstr "არასაკმარისი მეხსიერება!\n"
 
 #, c-format
 msgid "No permission to join this host to the IPA domain.\n"
@@ -447,7 +449,7 @@ msgstr ""
 
 #, c-format
 msgid "Out of memory!"
-msgstr ""
+msgstr "არასაკმარისი მეხსიერება!"
 
 #, c-format
 msgid "Unable to enable SSL in LDAP\n"
@@ -585,7 +587,7 @@ msgstr ""
 
 #, c-format
 msgid "fork() failed\n"
-msgstr ""
+msgstr "fork() -ის შეცდომა\n"
 
 #, c-format
 msgid "ipa-getkeytab not found\n"
@@ -640,7 +642,7 @@ msgid "Hostname of this server"
 msgstr ""
 
 msgid "hostname"
-msgstr ""
+msgstr "ჰოსტის სახელი"
 
 msgid "IPA Server to use"
 msgstr ""
@@ -649,7 +651,7 @@ msgid "Specifies where to store keytab information."
 msgstr ""
 
 msgid "filename"
-msgstr ""
+msgstr "ფაილის სახელი"
 
 msgid "Force the host join. Rejoin even if already joined."
 msgstr ""
@@ -658,13 +660,13 @@ msgid "LDAP password (if not using Kerberos)"
 msgstr ""
 
 msgid "password"
-msgstr ""
+msgstr "პაროლი"
 
 msgid "LDAP basedn"
-msgstr ""
+msgstr "LDAP basedn"
 
 msgid "basedn"
-msgstr ""
+msgstr "basedn"
 
 #, c-format
 msgid "Cannot get host's FQDN!\n"
@@ -679,7 +681,7 @@ msgid "The hostname must not be: %s\n"
 msgstr ""
 
 msgid "Failed to add"
-msgstr ""
+msgstr "დამატების შეცდომა"
 
 msgid "Write certificate (chain if --chain used) to file"
 msgstr ""
@@ -688,10 +690,10 @@ msgid "Unrevoked"
 msgstr ""
 
 msgid "Error"
-msgstr ""
+msgstr "შეცდომა"
 
 msgid "Input filename"
-msgstr ""
+msgstr "შეიყვანეთ ფაილის სახელი"
 
 msgid "File to load the certificate from."
 msgstr ""
@@ -700,7 +702,7 @@ msgid "cannot specify both raw certificate and file"
 msgstr ""
 
 msgid "Input file"
-msgstr ""
+msgstr "შეყვანის ფაილი"
 
 msgid "File to load the certificate from"
 msgstr ""
@@ -755,7 +757,7 @@ msgid "No option to delete specific record provided."
 msgstr ""
 
 msgid "Delete all?"
-msgstr ""
+msgstr "წავშალო ყველა?"
 
 #, python-format
 msgid "Delete %(name)s '%(value)s'?"
@@ -826,7 +828,7 @@ msgid "Delete a user, keeping the entry available for future use"
 msgstr ""
 
 msgid "Delete a user"
-msgstr ""
+msgstr "მომხმარებლის წაშლა"
 
 msgid "preserve and no-preserve cannot be both set"
 msgstr ""
@@ -908,10 +910,10 @@ msgid "Synchronize an OTP token."
 msgstr ""
 
 msgid "User ID"
-msgstr ""
+msgstr "მომხმარებლის ID"
 
 msgid "Password"
-msgstr ""
+msgstr "პაროლი"
 
 msgid "First Code"
 msgstr ""
@@ -1007,7 +1009,7 @@ msgid "Modify a vault."
 msgstr ""
 
 msgid "Change password"
-msgstr ""
+msgstr "პაროლის შეცვლა"
 
 msgid "Old vault password"
 msgstr ""
@@ -1076,7 +1078,7 @@ msgid "File containing the vault private key"
 msgstr ""
 
 msgid "Data"
-msgstr ""
+msgstr "მონაცემები"
 
 msgid "Private key specified multiple times"
 msgstr ""
@@ -1225,19 +1227,19 @@ msgid "ACI name"
 msgstr ""
 
 msgid "Permission"
-msgstr ""
+msgstr "წვდომა"
 
 msgid "Permission ACI grants access to"
 msgstr ""
 
 msgid "User group"
-msgstr ""
+msgstr "მომხმარებლების ჯგუფი"
 
 msgid "User group ACI grants access to"
 msgstr ""
 
 msgid "Permissions"
-msgstr ""
+msgstr "წვდომები"
 
 msgid "Permissions to grant(read, write, add, delete, all)"
 msgstr ""
@@ -1246,22 +1248,22 @@ msgid "Attributes to which the permission applies"
 msgstr ""
 
 msgid "Attributes"
-msgstr ""
+msgstr "ატრიბუტები"
 
 msgid "Type"
-msgstr ""
+msgstr "ტიპი"
 
 msgid "type of IPA object (user, group, host, hostgroup, service, netgroup)"
 msgstr ""
 
 msgid "Member of"
-msgstr ""
+msgstr "წარმოადგენს წევრს"
 
 msgid "Member of a group"
 msgstr ""
 
 msgid "Filter"
-msgstr ""
+msgstr "ფილტრი"
 
 msgid "Legal LDAP filter (e.g. ou=Engineering)"
 msgstr ""
@@ -1477,7 +1479,7 @@ msgid ""
 msgstr ""
 
 msgid "Description"
-msgstr ""
+msgstr "აღწერა"
 
 msgid "A description of this auto member rule"
 msgstr ""
@@ -1563,7 +1565,7 @@ msgid ""
 msgstr ""
 
 msgid "Rights"
-msgstr ""
+msgstr "უფლებები"
 
 msgid ""
 "Display the access rights of this entry (requires --all). See ipa man page "
@@ -1577,13 +1579,13 @@ msgid "Rebuild membership for all members of a grouping"
 msgstr ""
 
 msgid "Users"
-msgstr ""
+msgstr "მომხმარებლები"
 
 msgid "Rebuild membership for specified users"
 msgstr ""
 
 msgid "Hosts"
-msgstr ""
+msgstr "ჰოსტები"
 
 msgid "Rebuild membership for specified hosts"
 msgstr ""
@@ -1714,7 +1716,7 @@ msgid ""
 msgstr ""
 
 msgid "Key"
-msgstr ""
+msgstr "გასაღები"
 
 msgid "Automount key name."
 msgstr ""
@@ -1723,16 +1725,16 @@ msgid "Mount information"
 msgstr ""
 
 msgid "description"
-msgstr ""
+msgstr "აღწერა"
 
 msgid "Location"
-msgstr ""
+msgstr "მდებარეობა"
 
 msgid "Automount location name."
 msgstr ""
 
 msgid "Map"
-msgstr ""
+msgstr "რუკა"
 
 msgid "Automount map name."
 msgstr ""
@@ -1768,7 +1770,7 @@ msgid "New mount information"
 msgstr ""
 
 msgid "Rename"
-msgstr ""
+msgstr "გადარქმევა"
 
 msgid "Rename the automount key object"
 msgstr ""
@@ -1801,7 +1803,7 @@ msgid "Create a new indirect mount point."
 msgstr ""
 
 msgid "Mount point"
-msgstr ""
+msgstr "მიმაგრების წერტილი"
 
 msgid "Parent map"
 msgstr ""
@@ -1950,7 +1952,7 @@ msgid "Match cn attribute in subject"
 msgstr ""
 
 msgid "Reason"
-msgstr ""
+msgstr "მიზეზი"
 
 msgid "Reason for revoking the certificate (0-10)"
 msgstr ""
@@ -1995,7 +1997,7 @@ msgid "Take a revoked certificate off hold."
 msgstr ""
 
 msgid "Serial number"
-msgstr ""
+msgstr "სერიული ნომერი"
 
 msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
 msgstr ""
@@ -2025,7 +2027,7 @@ msgid "Retrieve an existing certificate."
 msgstr ""
 
 msgid "Output filename"
-msgstr ""
+msgstr "გამოტანის ფაილის სახელი"
 
 msgid "File to store the certificate in."
 msgstr ""
@@ -2587,10 +2589,10 @@ msgid "Raw A records"
 msgstr ""
 
 msgid "A IP Address"
-msgstr ""
+msgstr "IP მისამართი"
 
 msgid "IP Address"
-msgstr ""
+msgstr "IP მისამართი"
 
 msgid "A Create reverse"
 msgstr ""
@@ -2629,13 +2631,13 @@ msgid "AFSDB Subtype"
 msgstr ""
 
 msgid "Subtype"
-msgstr ""
+msgstr "ქვეტიპი"
 
 msgid "AFSDB Hostname"
 msgstr ""
 
 msgid "Hostname"
-msgstr ""
+msgstr "ჰოსტის სახელი"
 
 msgid "APL record"
 msgstr ""
@@ -2653,7 +2655,7 @@ msgid "CERT Certificate Type"
 msgstr ""
 
 msgid "Certificate Type"
-msgstr ""
+msgstr "სერტიფიკატის ტიპი"
 
 msgid "CERT Key Tag"
 msgstr ""
@@ -2665,7 +2667,7 @@ msgid "CERT Algorithm"
 msgstr ""
 
 msgid "Algorithm"
-msgstr ""
+msgstr "ალგორითმი"
 
 msgid "CERT Certificate/CRL"
 msgstr ""
@@ -2713,7 +2715,7 @@ msgid "DLV Digest"
 msgstr ""
 
 msgid "Digest"
-msgstr ""
+msgstr "დაიჯესტი"
 
 msgid "DNAME record"
 msgstr ""
@@ -2725,7 +2727,7 @@ msgid "DNAME Target"
 msgstr ""
 
 msgid "Target"
-msgstr ""
+msgstr "სამიზნე"
 
 msgid "DNSKEY record"
 msgstr ""
@@ -2845,13 +2847,13 @@ msgid "LOC Altitude"
 msgstr ""
 
 msgid "Altitude"
-msgstr ""
+msgstr "სიმაღლე"
 
 msgid "LOC Size"
 msgstr ""
 
 msgid "Size"
-msgstr ""
+msgstr "ზომა"
 
 msgid "LOC Horizontal Precision"
 msgstr ""
@@ -2890,37 +2892,37 @@ msgid "NAPTR Order"
 msgstr ""
 
 msgid "Order"
-msgstr ""
+msgstr "დალაგება"
 
 msgid "NAPTR Preference"
 msgstr ""
 
 msgid "Preference"
-msgstr ""
+msgstr "მორგება"
 
 msgid "NAPTR Flags"
 msgstr ""
 
 msgid "Flags"
-msgstr ""
+msgstr "ალმები"
 
 msgid "NAPTR Service"
 msgstr ""
 
 msgid "Service"
-msgstr ""
+msgstr "სერვისი"
 
 msgid "NAPTR Regular Expression"
 msgstr ""
 
 msgid "Regular Expression"
-msgstr ""
+msgstr "რეგულარული ექსპრესია"
 
 msgid "NAPTR Replacement"
 msgstr ""
 
 msgid "Replacement"
-msgstr ""
+msgstr "შემცვლელი"
 
 msgid "NS record"
 msgstr ""
@@ -2989,19 +2991,19 @@ msgid "SRV Priority"
 msgstr ""
 
 msgid "Priority"
-msgstr ""
+msgstr "პრიორიტეტი"
 
 msgid "SRV Weight"
 msgstr ""
 
 msgid "Weight"
-msgstr ""
+msgstr "სიმძიმე"
 
 msgid "SRV Port"
 msgstr ""
 
 msgid "Port"
-msgstr ""
+msgstr "პორტი"
 
 msgid "SRV Target"
 msgstr ""
@@ -3030,7 +3032,7 @@ msgid "SSHFP Fingerprint"
 msgstr ""
 
 msgid "Fingerprint"
-msgstr ""
+msgstr "ანაბეჭდი"
 
 msgid "TA record"
 msgstr ""
@@ -3223,7 +3225,7 @@ msgid "Add new DNS resource record."
 msgstr ""
 
 msgid "Force"
-msgstr ""
+msgstr "ძალა"
 
 msgid "force NS record creation even if its hostname is not in DNS"
 msgstr ""
@@ -3386,13 +3388,13 @@ msgid ""
 msgstr ""
 
 msgid "Group name"
-msgstr ""
+msgstr "ჯგუფის სახელი"
 
 msgid "Group description"
 msgstr ""
 
 msgid "GID"
-msgstr ""
+msgstr "GID"
 
 msgid "GID (use this option to set it manually)"
 msgstr ""
@@ -3407,7 +3409,7 @@ msgid "Member of groups"
 msgstr ""
 
 msgid "Roles"
-msgstr ""
+msgstr "როლები"
 
 msgid "Member of netgroups"
 msgstr ""
@@ -3505,7 +3507,7 @@ msgid "Results should contain primary key attribute only (\"group-name\")"
 msgstr ""
 
 msgid "user"
-msgstr ""
+msgstr "მომხმარებელი"
 
 msgid "Search for groups with these member users."
 msgstr ""
@@ -3514,7 +3516,7 @@ msgid "Search for groups without these member users."
 msgstr ""
 
 msgid "group"
-msgstr ""
+msgstr "ჯგუფი"
 
 msgid "Search for groups with these member groups."
 msgstr ""
@@ -3538,7 +3540,7 @@ msgid "Search for groups without these member of netgroups."
 msgstr ""
 
 msgid "role"
-msgstr ""
+msgstr "როლები"
 
 msgid "Search for groups with these member of roles."
 msgstr ""
@@ -3672,16 +3674,16 @@ msgid "Service category the rule applies to"
 msgstr ""
 
 msgid "Enabled"
-msgstr ""
+msgstr "ჩართულია"
 
 msgid "User Groups"
-msgstr ""
+msgstr "მომხმარებლის ჯგუფები"
 
 msgid "Host Groups"
-msgstr ""
+msgstr "ჰოსტის ჯგუფები"
 
 msgid "Services"
-msgstr ""
+msgstr "სერვისები"
 
 msgid "Service Groups"
 msgstr ""
@@ -4070,7 +4072,7 @@ msgid "Simulate use of Host-based access controls"
 msgstr ""
 
 msgid "User name"
-msgstr ""
+msgstr "მომხმარებლის სახელი"
 
 msgid "Target host"
 msgstr ""
@@ -4091,7 +4093,7 @@ msgid "Maximum number of rules to process when no --rules is specified"
 msgstr ""
 
 msgid "Warning"
-msgstr ""
+msgstr "ყურადღება"
 
 msgid "Matched rules"
 msgstr ""
@@ -4170,13 +4172,13 @@ msgid ""
 msgstr ""
 
 msgid "Host name"
-msgstr ""
+msgstr "ჰოსტი"
 
 msgid "A description of this host"
 msgstr ""
 
 msgid "Locality"
-msgstr ""
+msgstr "რაიონი"
 
 msgid "Host locality (e.g. \"Baltimore, MD\")"
 msgstr ""
@@ -4185,13 +4187,13 @@ msgid "Host location (e.g. \"Lab 2\")"
 msgstr ""
 
 msgid "Platform"
-msgstr ""
+msgstr "პლატფორმა"
 
 msgid "Host hardware platform (e.g. \"Lenovo T61\")"
 msgstr ""
 
 msgid "Operating system"
-msgstr ""
+msgstr "ოპერაციული სისტემა"
 
 msgid "Host operating system and version (e.g. \"Fedora 9\")"
 msgstr ""
@@ -4209,7 +4211,7 @@ msgid "Random password"
 msgstr ""
 
 msgid "Certificate"
-msgstr ""
+msgstr "სერტიფიკატი"
 
 msgid "Base-64 encoded server certificate"
 msgstr ""
@@ -4218,16 +4220,16 @@ msgid "Principal name"
 msgstr ""
 
 msgid "MAC address"
-msgstr ""
+msgstr "MAC მისამართი"
 
 msgid "Hardware MAC address(es) on this host"
 msgstr ""
 
 msgid "SSH public key"
-msgstr ""
+msgstr "SSH საჯარო გასაღები"
 
 msgid "Class"
-msgstr ""
+msgstr "კლასი"
 
 msgid ""
 "Host category (semantics placed on this attribute are for local "
@@ -4289,7 +4291,7 @@ msgid "Host Groups allowed to create keytab"
 msgstr ""
 
 msgid "Add a new host."
-msgstr ""
+msgstr "ახალი ჰოსტის დამატება."
 
 msgid "force host name even if not in DNS"
 msgstr ""
@@ -4336,7 +4338,7 @@ msgid "Results should contain primary key attribute only (\"hostname\")"
 msgstr ""
 
 msgid "host group"
-msgstr ""
+msgstr "ჰოსტების ჯგუფი"
 
 msgid "Search for hosts with these member of host groups."
 msgstr ""
@@ -4375,7 +4377,7 @@ msgid "Search for hosts without these enrolled by users."
 msgstr ""
 
 msgid "host"
-msgstr ""
+msgstr "ჰოსტი"
 
 msgid "Search for hosts with these managed by hosts."
 msgstr ""
@@ -4764,10 +4766,10 @@ msgid "Group ID Number"
 msgstr ""
 
 msgid "User login"
-msgstr ""
+msgstr "მომხმარებლის შესვლა"
 
 msgid "UID"
-msgstr ""
+msgstr "UID"
 
 msgid "User ID Number"
 msgstr ""
@@ -4776,7 +4778,7 @@ msgid "GECOS"
 msgstr ""
 
 msgid "Home directory"
-msgstr ""
+msgstr "საწყისი საქაღალდე"
 
 msgid "Login shell"
 msgstr ""
@@ -4832,13 +4834,13 @@ msgid ""
 msgstr ""
 
 msgid "hosts"
-msgstr ""
+msgstr "ჰოსტი"
 
 msgid "Hosts to apply the ID View to"
 msgstr ""
 
 msgid "hostgroups"
-msgstr ""
+msgstr "ჰოსტის ჯგუფები"
 
 msgid ""
 "Hostgroups to whose hosts apply the ID View to. Please note that view is not "
@@ -5182,14 +5184,14 @@ msgid ""
 msgstr ""
 
 msgid "Continue"
-msgstr ""
+msgstr "გაგრძელება"
 
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues"
 msgstr ""
 
 msgid "Base DN"
-msgstr ""
+msgstr "საბაზისო DN"
 
 msgid "Base DN on remote LDAP server"
 msgstr ""
@@ -5470,19 +5472,19 @@ msgid "Token description (informational only)"
 msgstr ""
 
 msgid "Owner"
-msgstr ""
+msgstr "მფლობელი"
 
 msgid "Assigned user of the token (default: self)"
 msgstr ""
 
 msgid "Manager"
-msgstr ""
+msgstr "მმართველი"
 
 msgid "Assigned manager of the token (default: self)"
 msgstr ""
 
 msgid "Disabled"
-msgstr ""
+msgstr "გამორთულია"
 
 msgid "Mark the token as disabled (default: false)"
 msgstr ""
@@ -5500,19 +5502,19 @@ msgid "Last date/time the token can be used"
 msgstr ""
 
 msgid "Vendor"
-msgstr ""
+msgstr "მომწოდებელი"
 
 msgid "Token vendor name (informational only)"
 msgstr ""
 
 msgid "Model"
-msgstr ""
+msgstr "მოდელი"
 
 msgid "Token model (informational only)"
 msgstr ""
 
 msgid "Serial"
-msgstr ""
+msgstr "სერიული"
 
 msgid "Token serial (informational only)"
 msgstr ""
@@ -5616,10 +5618,10 @@ msgid "Set a user's password."
 msgstr ""
 
 msgid "New Password"
-msgstr ""
+msgstr "ახალი პაროლი"
 
 msgid "Current Password"
-msgstr ""
+msgstr "მიმდინარე პაროლი"
 
 msgid "OTP"
 msgstr ""
@@ -5720,7 +5722,7 @@ msgid "User-specified attributes to which the permission applies"
 msgstr ""
 
 msgid "Excluded attributes"
-msgstr ""
+msgstr "გაფართოებული ატრიბუტები"
 
 msgid ""
 "User-specified attributes to which the permission explicitly does not apply"
@@ -6008,7 +6010,7 @@ msgid ""
 msgstr ""
 
 msgid "Group"
-msgstr ""
+msgstr "ჯგუფი"
 
 msgid "Manage password policy for specific group"
 msgstr ""
@@ -6041,7 +6043,7 @@ msgid "Min length"
 msgstr ""
 
 msgid "Minimum length of password"
-msgstr ""
+msgstr "პაროლის მინიმალური სიგრძე"
 
 msgid "Priority of the policy (higher number means lower priority"
 msgstr ""
@@ -6086,7 +6088,7 @@ msgid "Display information about password policy."
 msgstr ""
 
 msgid "User"
-msgstr ""
+msgstr "მომხმარებელი"
 
 msgid "Display effective policy for a specific user"
 msgstr ""
@@ -6126,25 +6128,25 @@ msgid "A description of this RADIUS proxy server"
 msgstr ""
 
 msgid "Server"
-msgstr ""
+msgstr "სერვერი"
 
 msgid "The hostname or IP (with or without port)"
 msgstr ""
 
 msgid "Secret"
-msgstr ""
+msgstr "საიდუმლო"
 
 msgid "The secret used to encrypt data"
 msgstr ""
 
 msgid "Timeout"
-msgstr ""
+msgstr "დროის ამოწურვა"
 
 msgid "The total timeout across all retries (in seconds)"
 msgstr ""
 
 msgid "Retries"
-msgstr ""
+msgstr "თავიდან ცდები"
 
 msgid "The number of times to retry authentication"
 msgstr ""
@@ -6196,7 +6198,7 @@ msgid ""
 msgstr ""
 
 msgid "Domain"
-msgstr ""
+msgstr "დომენი"
 
 msgid "Add domain"
 msgstr ""
@@ -6252,13 +6254,13 @@ msgid ""
 msgstr ""
 
 msgid "Role name"
-msgstr ""
+msgstr "როლის სახელი"
 
 msgid "A description of this role-group"
 msgstr ""
 
 msgid "Privileges"
-msgstr ""
+msgstr "პრივილეგიები"
 
 msgid "Member services"
 msgstr ""
@@ -6418,7 +6420,7 @@ msgid ""
 msgstr ""
 
 msgid "SELinux User"
-msgstr ""
+msgstr "SELinux-ის მომხმარებელი"
 
 msgid "HBAC Rule"
 msgstr ""
@@ -7258,7 +7260,7 @@ msgid "Sudo Command Group"
 msgstr ""
 
 msgid "Commands"
-msgstr ""
+msgstr "ბრძანებები"
 
 msgid "Member Sudo commands"
 msgstr ""
@@ -7422,7 +7424,7 @@ msgid "Fallback primary group"
 msgstr ""
 
 msgid "Domain name"
-msgstr ""
+msgstr "დომენის სახელი"
 
 msgid "Trusted domain partner"
 msgstr ""
@@ -7582,19 +7584,19 @@ msgid ""
 msgstr ""
 
 msgid "First name"
-msgstr ""
+msgstr "სახელი"
 
 msgid "Last name"
-msgstr ""
+msgstr "გვარი"
 
 msgid "Full name"
-msgstr ""
+msgstr "სრული სახელი"
 
 msgid "Display name"
-msgstr ""
+msgstr "ნაჩვენები სახელი"
 
 msgid "Initials"
-msgstr ""
+msgstr "ინიციალები"
 
 msgid "Kerberos principal"
 msgstr ""
@@ -7603,7 +7605,7 @@ msgid "Kerberos principal expiration"
 msgstr ""
 
 msgid "Email address"
-msgstr ""
+msgstr "ელფოსტის მისამართი"
 
 msgid "Prompt to set the user password"
 msgstr ""
@@ -7615,19 +7617,19 @@ msgid "User ID Number (system will assign one if not provided)"
 msgstr ""
 
 msgid "Street address"
-msgstr ""
+msgstr "ქუჩის მისამართი"
 
 msgid "City"
-msgstr ""
+msgstr "ქალაქი"
 
 msgid "State/Province"
-msgstr ""
+msgstr "რეგიონი/მხარე"
 
 msgid "ZIP"
-msgstr ""
+msgstr "ZIP"
 
 msgid "Telephone Number"
-msgstr ""
+msgstr "ტელეფონის ნომერი"
 
 msgid "Mobile Telephone Number"
 msgstr ""
@@ -7642,7 +7644,7 @@ msgid "Org. Unit"
 msgstr ""
 
 msgid "Job Title"
-msgstr ""
+msgstr "პროფესია"
 
 msgid "Car License"
 msgstr ""
@@ -7701,7 +7703,7 @@ msgid "Search for users."
 msgstr ""
 
 msgid "Self"
-msgstr ""
+msgstr "Self"
 
 msgid "Display user record for current Kerberos principal"
 msgstr ""
@@ -8059,7 +8061,7 @@ msgid "Service category the ACL applies to"
 msgstr ""
 
 msgid "Profiles"
-msgstr ""
+msgstr "პროფილები"
 
 msgid "Create a new CA ACL."
 msgstr ""
@@ -8119,7 +8121,7 @@ msgid "Principal for this certificate (e.g. HTTP/test.example.com)"
 msgstr ""
 
 msgid "Profile ID"
-msgstr ""
+msgstr "პროფილის ID"
 
 msgid "Certificate Profile to use"
 msgstr ""
@@ -8184,7 +8186,7 @@ msgid "Profile ID for referring to this profile"
 msgstr ""
 
 msgid "Profile description"
-msgstr ""
+msgstr "პროფილის აღწერა"
 
 msgid "Brief description of this profile"
 msgstr ""
@@ -8522,7 +8524,7 @@ msgid ""
 msgstr ""
 
 msgid "Server name"
-msgstr ""
+msgstr "სერვერი სახელი"
 
 msgid "IPA server hostname"
 msgstr ""
@@ -8813,7 +8815,7 @@ msgid "Right replication node - an IPA server"
 msgstr ""
 
 msgid "Connectivity"
-msgstr ""
+msgstr "დაკავშირება"
 
 msgid "Direction of replication between left and right replication node"
 msgstr ""
@@ -9110,7 +9112,7 @@ msgid "Vault salt"
 msgstr ""
 
 msgid "Public key"
-msgstr ""
+msgstr "საჯარო გასაღები"
 
 msgid "Vault public key"
 msgstr ""
@@ -10213,7 +10215,7 @@ msgid "KEY Protocol"
 msgstr ""
 
 msgid "Protocol"
-msgstr ""
+msgstr "პროტოკოლი"
 
 msgid "KEY Algorithm"
 msgstr ""
@@ -10222,7 +10224,7 @@ msgid "KEY Public Key"
 msgstr ""
 
 msgid "Public Key"
-msgstr ""
+msgstr "საჯარო გასაღები"
 
 msgid "Comma-separated list of raw KX records"
 msgstr ""
@@ -10279,7 +10281,7 @@ msgid "RRSIG Labels"
 msgstr ""
 
 msgid "Labels"
-msgstr ""
+msgstr "ჭდეები"
 
 msgid "RRSIG Original TTL"
 msgstr ""
@@ -10312,7 +10314,7 @@ msgid "RRSIG Signature"
 msgstr ""
 
 msgid "Signature"
-msgstr ""
+msgstr "ხელმოწერა"
 
 msgid "Comma-separated list of raw RP records"
 msgstr ""
@@ -10428,7 +10430,7 @@ msgid "Consume an entitlement."
 msgstr ""
 
 msgid "Quantity"
-msgstr ""
+msgstr "რაოდენობა"
 
 msgid "Search for entitlement accounts."
 msgstr ""
@@ -10440,7 +10442,7 @@ msgid "Import an entitlement certificate."
 msgstr ""
 
 msgid "UUID"
-msgstr ""
+msgstr "UUID"
 
 msgid "Enrollment UUID"
 msgstr ""
@@ -10449,7 +10451,7 @@ msgid "Register to the entitlement system."
 msgstr ""
 
 msgid "Username"
-msgstr ""
+msgstr "მომხმარებელი"
 
 msgid "Enrollment UUID (not implemented)"
 msgstr ""
@@ -10628,7 +10630,7 @@ msgid "Source host category the rule applies to"
 msgstr ""
 
 msgid "Source Hosts"
-msgstr ""
+msgstr "საწყისი ჰოსტები"
 
 msgid "Source Host Groups"
 msgstr ""
@@ -10806,7 +10808,7 @@ msgid ""
 msgstr ""
 
 msgid "Source host"
-msgstr ""
+msgstr "საწყისი ჰოსტი"
 
 msgid ""
 "\n"
@@ -11591,7 +11593,7 @@ msgid "api has no such namespace: '%(name)s'"
 msgstr ""
 
 msgid "Passwords do not match"
-msgstr ""
+msgstr "პაროლები არ ემთხვევა"
 
 msgid "Command not implemented"
 msgstr ""
@@ -12019,7 +12021,7 @@ msgid "Enter %(label)s again to verify: "
 msgstr ""
 
 msgid "Passwords do not match!"
-msgstr ""
+msgstr "პაროლები არ ემთხვევა!"
 
 msgid "No matching entries found"
 msgstr ""
@@ -12043,7 +12045,7 @@ msgid "Command name"
 msgstr ""
 
 msgid "Positional arguments"
-msgstr ""
+msgstr "პოზიციური არგუმენტები"
 
 #, python-format
 msgid "Same as --%s"
@@ -12090,7 +12092,7 @@ msgid "empty DNS label"
 msgstr ""
 
 msgid "DNS label cannot be longer that 63 characters"
-msgstr ""
+msgstr "DNS-ის ჭდე არ შეიძლება 63 სიმბოლოზე გრძელი იყოს"
 
 #, python-format
 msgid ""
@@ -12105,7 +12107,7 @@ msgid "too many '@' characters"
 msgstr ""
 
 msgid "cannot be longer that {} characters"
-msgstr ""
+msgstr "არ შეიძლება {} სიმბოლოზე გრძელი იყოს"
 
 msgid "hostname contains empty label (consecutive dots)"
 msgstr ""
@@ -12147,7 +12149,7 @@ msgid "domain name cannot be longer than 255 characters"
 msgstr ""
 
 msgid "DNS label cannot be longer than 63 characters"
-msgstr ""
+msgstr "DNS-ის ჭდე 64 სიმბოლოზე გრძელი არ შეიძლება იყოს"
 
 msgid "invalid domain name"
 msgstr ""
@@ -12350,13 +12352,13 @@ msgid "Waiting for confirmation by remote side"
 msgstr ""
 
 msgid "Unknown"
-msgstr ""
+msgstr "უცნობი"
 
 msgid "Non-Active Directory domain"
 msgstr ""
 
 msgid "Active Directory domain"
-msgstr ""
+msgstr "Active Directory-ის დომენი"
 
 msgid "RFC4120-compliant Kerberos realm"
 msgstr ""
@@ -12660,10 +12662,10 @@ msgid ""
 msgstr ""
 
 msgid "DNS server"
-msgstr ""
+msgstr "DNS სერვერი"
 
 msgid "DNS servers"
-msgstr ""
+msgstr "DNS სერვერები"
 
 msgid "DNS Servers"
 msgstr ""
@@ -12862,10 +12864,10 @@ msgid ""
 msgstr ""
 
 msgid "groups"
-msgstr ""
+msgstr "ჯგუფები"
 
 msgid "User Group"
-msgstr ""
+msgstr "მომხმარებლების ჯგუფი"
 
 #, python-format
 msgid "Added group \"%(value)s\""
@@ -13048,7 +13050,7 @@ msgid "host groups"
 msgstr ""
 
 msgid "Host Group"
-msgstr ""
+msgstr "ჰოსტების ჯგუფი"
 
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
@@ -13065,7 +13067,7 @@ msgid "Deleted hostgroup \"%(value)s\""
 msgstr ""
 
 msgid "hostgroup"
-msgstr ""
+msgstr "ჰოსტების ჯგუფი"
 
 msgid "privileged hostgroup"
 msgstr ""
@@ -13433,10 +13435,10 @@ msgid ""
 msgstr ""
 
 msgid "location"
-msgstr ""
+msgstr "მდებარეობა"
 
 msgid "locations"
-msgstr ""
+msgstr "მდებარეობები"
 
 msgid "IPA Locations"
 msgstr ""
@@ -13454,7 +13456,7 @@ msgid "IPA Location description"
 msgstr ""
 
 msgid "Servers"
-msgstr ""
+msgstr "სერვერები"
 
 msgid "Servers that belongs to the IPA location"
 msgstr ""
@@ -13550,7 +13552,7 @@ msgid "OTP configuration options"
 msgstr ""
 
 msgid "OTP Configuration"
-msgstr ""
+msgstr "OTP-ის მორგება"
 
 msgid ""
 "\n"
@@ -13606,7 +13608,7 @@ msgid "OTP Token"
 msgstr ""
 
 msgid "URI"
-msgstr ""
+msgstr "URI"
 
 #, python-format
 msgid "Added OTP token \"%(value)s\""
@@ -13756,7 +13758,7 @@ msgid "invalid attribute name"
 msgstr ""
 
 msgid "invalid port number"
-msgstr ""
+msgstr "პორტის არასწორი ნომერი"
 
 msgid "RADIUS proxy server"
 msgstr ""
@@ -13876,10 +13878,10 @@ msgid "IPA server domain cannot be deleted"
 msgstr ""
 
 msgid "roles"
-msgstr ""
+msgstr "როლები"
 
 msgid "Role"
-msgstr ""
+msgstr "როლი"
 
 #, python-format
 msgid "Added role \"%(value)s\""
@@ -14713,10 +14715,10 @@ msgid ""
 msgstr ""
 
 msgid "server"
-msgstr ""
+msgstr "სერვერი"
 
 msgid "servers"
-msgstr ""
+msgstr "სერვერები"
 
 msgid "IPA Servers"
 msgstr ""
@@ -14858,7 +14860,7 @@ msgid "Set enabled/hidden state of a server."
 msgstr ""
 
 msgid "State"
-msgstr ""
+msgstr "მდგომარეობა"
 
 msgid "Server state"
 msgstr ""
@@ -15329,13 +15331,13 @@ msgid "An IPA master host cannot be deleted or disabled"
 msgstr ""
 
 msgid "entry"
-msgstr ""
+msgstr "ჩანაწერი"
 
 msgid "entries"
-msgstr ""
+msgstr "ჩანაწერები"
 
 msgid "Entry"
-msgstr ""
+msgstr "ჩანაწერი"
 
 #, python-format
 msgid "container entry (%(container)s) not found"
@@ -15458,7 +15460,7 @@ msgid "Non-2xx response from CA REST API: %(status)d. %(explanation)s"
 msgstr ""
 
 msgid "Unable to communicate with CMS"
-msgstr ""
+msgstr "CMS-თან დაკავშირება შეუძლებელია"
 
 msgid "Response from CA was not valid JSON"
 msgstr ""
@@ -15945,10 +15947,10 @@ msgid ""
 msgstr ""
 
 msgid "Name"
-msgstr ""
+msgstr "სახელი"
 
 msgid "Documentation"
-msgstr ""
+msgstr "დოკუმენტაცია"
 
 msgid "Exclude from"
 msgstr ""
@@ -15960,10 +15962,10 @@ msgid "Help topic"
 msgstr ""
 
 msgid "Version"
-msgstr ""
+msgstr "ვერსია"
 
 msgid "Parameters"
-msgstr ""
+msgstr "პარამეტრები"
 
 msgid "Method of"
 msgstr ""
@@ -15997,13 +15999,13 @@ msgid "Search for help topics."
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "საჭიროა"
 
 msgid "Multi-value"
 msgstr ""
 
 msgid "Always ask"
-msgstr ""
+msgstr "ყოველთვის კითხვა"
 
 msgid "CLI metavar"
 msgstr ""
@@ -16012,16 +16014,16 @@ msgid "CLI name"
 msgstr ""
 
 msgid "Confirm (password)"
-msgstr ""
+msgstr "დადასტურება (პაროლი)"
 
 msgid "Default"
-msgstr ""
+msgstr "ნაგულისხმები"
 
 msgid "Default from"
 msgstr ""
 
 msgid "Label"
-msgstr ""
+msgstr "ჭდე"
 
 msgid "Convert on server"
 msgstr ""
@@ -16033,7 +16035,7 @@ msgid "Sensitive"
 msgstr ""
 
 msgid "Positional argument"
-msgstr ""
+msgstr "პოზიციური არგუმენტები"
 
 #, python-format
 msgid "%(metaobject)s: %(oname)s not found"
@@ -16193,7 +16195,7 @@ msgid "Trusts"
 msgstr ""
 
 msgid "Trust"
-msgstr ""
+msgstr "ნდობა"
 
 msgid "SID blocklist incoming"
 msgstr ""
@@ -16270,7 +16272,7 @@ msgid "only \"ad\" is supported"
 msgstr ""
 
 msgid "domain"
-msgstr ""
+msgstr "დომენი"
 
 msgid ""
 "Cannot establish a trust to AD deployed in the same domain as IPA. Such "
@@ -16384,7 +16386,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "trust configuration"
-msgstr ""
+msgstr "ნდობის მორგება"
 
 msgid "Global Trust Configuration"
 msgstr ""
@@ -16409,7 +16411,7 @@ msgid "Modified \"%(value)s\" trust configuration"
 msgstr ""
 
 msgid "SID"
-msgstr ""
+msgstr "SID"
 
 msgid "sidgen_was_run"
 msgstr ""
@@ -16793,7 +16795,7 @@ msgid "Modified vault \"%(value)s\""
 msgstr ""
 
 msgid "Vault configuration"
-msgstr ""
+msgstr "საცავის მორგება"
 
 msgid "IPA KRA servers"
 msgstr ""
@@ -16885,13 +16887,13 @@ msgid "can be at most %(len)d characters"
 msgstr ""
 
 msgid "Issuer"
-msgstr ""
+msgstr "გამომცემელი"
 
 msgid "Issuer of the certificate"
 msgstr ""
 
 msgid "Subject"
-msgstr ""
+msgstr "თემა:"
 
 msgid "Subject of the certificate"
 msgstr ""
@@ -17409,7 +17411,7 @@ msgid "configuration options"
 msgstr ""
 
 msgid "Configuration"
-msgstr ""
+msgstr "მორგება"
 
 msgid "Maximum hostname length"
 msgstr ""
@@ -17469,7 +17471,7 @@ msgid "colon-separated list of domains used for short name qualification"
 msgstr ""
 
 msgid "IPA DNS servers"
-msgstr ""
+msgstr "IPA DNS სერვერები"
 
 msgid "IPA servers configured as domain name server"
 msgstr ""
@@ -18164,7 +18166,7 @@ msgid "Deleted DNS zone \"%(value)s\""
 msgstr ""
 
 msgid "is required"
-msgstr ""
+msgstr "აუცილებელია"
 
 #, python-format
 msgid "Disabled DNS zone \"%(value)s\""
@@ -18457,13 +18459,13 @@ msgid ""
 msgstr ""
 
 msgid "Host"
-msgstr ""
+msgstr "ჰოსტი"
 
 msgid "Base-64 encoded host certificate"
 msgstr ""
 
 msgid "Serial Number"
-msgstr ""
+msgstr "სერიული ნომერი"
 
 msgid "Serial Number (hex)"
 msgstr ""
@@ -18669,7 +18671,7 @@ msgid "OAuth 2.0 client secret"
 msgstr ""
 
 msgid "Scope"
-msgstr ""
+msgstr "ფარგლები"
 
 msgid "OAuth 2.0 scope. Multiple scopes separated by space"
 msgstr ""
@@ -18694,22 +18696,22 @@ msgid "Choose a pre-defined template to use"
 msgstr ""
 
 msgid "Organization"
-msgstr ""
+msgstr "ორგანიზაცია"
 
 msgid "Organization ID or Realm name for IdP provider templates"
 msgstr ""
 
 msgid "Base URL"
-msgstr ""
+msgstr "ძირითადი URL"
 
 msgid "Base URL for IdP provider templates"
 msgstr ""
 
 msgid "unknown provider"
-msgstr ""
+msgstr "უცნობი მომწოდებელი"
 
 msgid "value is missing"
-msgstr ""
+msgstr "აკლია მნიშვნელობა"
 
 msgid "cannot specify both individual endpoints and IdP provider"
 msgstr ""
@@ -18747,7 +18749,7 @@ msgid "Your session has expired. Please log in again."
 msgstr ""
 
 msgid "Apply"
-msgstr ""
+msgstr "გამოყენება"
 
 msgid "Rebuild auto membership"
 msgstr ""
@@ -18771,7 +18773,7 @@ msgid "Are you sure you want to enable ${object}?"
 msgstr ""
 
 msgid "Actions"
-msgstr ""
+msgstr "ქმედებები"
 
 msgid "Add"
 msgstr ""
@@ -18852,10 +18854,10 @@ msgid ""
 msgstr ""
 
 msgid "About"
-msgstr ""
+msgstr "შესახებ"
 
 msgid "Activate"
-msgstr ""
+msgstr "აქტივაცია"
 
 msgid "Add and Add Another"
 msgstr ""
@@ -18870,25 +18872,25 @@ msgid "Add Many"
 msgstr ""
 
 msgid "Back"
-msgstr ""
+msgstr "უკან"
 
 msgid "Cancel"
-msgstr ""
+msgstr "გაუქმენა"
 
 msgid "Clear"
-msgstr ""
+msgstr "გაწმენდა"
 
 msgid "Clear all fields on the page."
 msgstr ""
 
 msgid "Close"
-msgstr ""
+msgstr "დახურვა"
 
 msgid "Disable"
-msgstr ""
+msgstr "გამორთვა"
 
 msgid "Download"
-msgstr ""
+msgstr "გადმოწერა"
 
 msgid "Download certificate as PEM formatted file."
 msgstr ""
@@ -18897,22 +18899,22 @@ msgid "Edit"
 msgstr ""
 
 msgid "Enable"
-msgstr ""
+msgstr "ჩართვა"
 
 msgid "Find"
-msgstr ""
+msgstr "მოძებნა"
 
 msgid "Get"
-msgstr ""
+msgstr "მიღება"
 
 msgid "Hide"
-msgstr ""
+msgstr "დამალვა"
 
 msgid "Issue"
-msgstr ""
+msgstr "Პრობლემა"
 
 msgid "Match"
-msgstr ""
+msgstr "დამთხვევა"
 
 msgid "Match users according to certificate."
 msgstr ""
@@ -18921,10 +18923,10 @@ msgid "Migrate"
 msgstr ""
 
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 msgid "Refresh"
-msgstr ""
+msgstr "განახლება"
 
 msgid "Reload current settings from the server."
 msgstr ""
@@ -18936,7 +18938,7 @@ msgid "Remove hold"
 msgstr ""
 
 msgid "Reset"
-msgstr ""
+msgstr "თავიდან"
 
 msgid "Reset Password"
 msgstr ""
@@ -18945,34 +18947,34 @@ msgid "Reset Password and Log in"
 msgstr ""
 
 msgid "Restore"
-msgstr ""
+msgstr "აღდგენა"
 
 msgid "Retry"
-msgstr ""
+msgstr "გამეორება"
 
 msgid "Revert"
-msgstr ""
+msgstr "დაბრუნება"
 
 msgid "Revoke"
-msgstr ""
+msgstr "გაუქმება"
 
 msgid "Save"
 msgstr ""
 
 msgid "Set"
-msgstr ""
+msgstr "დაყენება"
 
 msgid "Show"
-msgstr ""
+msgstr "ჩვენება"
 
 msgid "Stage"
-msgstr ""
+msgstr "ნაბიჯი"
 
 msgid "Update"
-msgstr ""
+msgstr "განახლება"
 
 msgid "View"
-msgstr ""
+msgstr "ნახვა"
 
 msgid "Customization"
 msgstr ""
@@ -18981,13 +18983,13 @@ msgid "Pagination Size"
 msgstr ""
 
 msgid "Collapse All"
-msgstr ""
+msgstr "ყველას ჩაკეცვა"
 
 msgid "Expand All"
-msgstr ""
+msgstr "ყველას ამოკეცვა"
 
 msgid "General"
-msgstr ""
+msgstr "ძირითადი"
 
 msgid "Identity Settings"
 msgstr ""
@@ -19014,7 +19016,7 @@ msgid "Add custom value"
 msgstr ""
 
 msgid "Available"
-msgstr ""
+msgstr "ხელმისაწვდომია"
 
 msgid "Some operations failed."
 msgstr ""
@@ -19023,23 +19025,23 @@ msgid "Operations Error"
 msgstr ""
 
 msgid "Confirmation"
-msgstr ""
+msgstr "დასტური"
 
 msgid "Custom value"
-msgstr ""
+msgstr "მითითებული მნიშვნელობა"
 
 msgid "This page has unsaved changes. Please save or revert."
 msgstr ""
 
 msgid "Unsaved Changes"
-msgstr ""
+msgstr "შეუნახავი ცვლილებები"
 
 #, python-brace-format
 msgid "Edit ${entity}"
 msgstr ""
 
 msgid "Hide details"
-msgstr ""
+msgstr "დეტალების დამალვა"
 
 #, python-brace-format
 msgid "${product}, version: ${version}"
@@ -19055,16 +19057,16 @@ msgid "Select entries to be removed."
 msgstr ""
 
 msgid "Result"
-msgstr ""
+msgstr "შედეგი"
 
 msgid "Show details"
-msgstr ""
+msgstr "დეტალების ჩვენება"
 
 msgid "Success"
-msgstr ""
+msgstr "წარმატება"
 
 msgid "Validation error"
-msgstr ""
+msgstr "შემოწმების შეცდომა"
 
 msgid "Input form contains invalid or missing values."
 msgstr ""
@@ -19092,7 +19094,7 @@ msgid "HTTP Error"
 msgstr ""
 
 msgid "Internal Error"
-msgstr ""
+msgstr "შიდა შეცდომა"
 
 msgid "IPA Error"
 msgstr ""
@@ -19101,10 +19103,10 @@ msgid "No response"
 msgstr ""
 
 msgid "Unknown Error"
-msgstr ""
+msgstr "უცნობი შეცდომა"
 
 msgid "URL"
-msgstr ""
+msgstr "ვებ-მისამართი"
 
 #, python-brace-format
 msgid "${primary_key} is managed by:"
@@ -19123,13 +19125,13 @@ msgid "${primary_key} member managers:"
 msgstr ""
 
 msgid "Settings"
-msgstr ""
+msgstr "მორგება"
 
 msgid "Search"
 msgstr ""
 
 msgid "False"
-msgstr ""
+msgstr "მცდარი"
 
 #, python-brace-format
 msgid "Allow user groups to create keytab of '${primary_key}'"
@@ -19224,10 +19226,10 @@ msgid "Override inherited settings"
 msgstr ""
 
 msgid "PAD"
-msgstr ""
+msgstr "PAD"
 
 msgid "Authenticating"
-msgstr ""
+msgstr "აუთენტიკაცია"
 
 msgid "Authentication with personal certificate failed"
 msgstr ""
@@ -19264,7 +19266,7 @@ msgid ""
 msgstr ""
 
 msgid "Loading"
-msgstr ""
+msgstr "იტვირთება"
 
 msgid "Kerberos Principal you entered is expired"
 msgstr ""
@@ -19273,7 +19275,7 @@ msgid "Loading data"
 msgstr ""
 
 msgid "Log in"
-msgstr ""
+msgstr "შესვლა"
 
 msgid "Log In Using Certificate"
 msgstr ""
@@ -19282,7 +19284,7 @@ msgid "Log in using personal certificate"
 msgstr ""
 
 msgid "Log out"
-msgstr ""
+msgstr "გამოსვლა"
 
 msgid "Log out error"
 msgstr ""
@@ -19307,10 +19309,10 @@ msgid "number of passwords"
 msgstr ""
 
 msgid "seconds"
-msgstr ""
+msgstr "წამი"
 
 msgid "Migrating"
-msgstr ""
+msgstr "მიგრირება"
 
 msgid "There was a problem with your request. Please, try again later."
 msgstr ""
@@ -19333,7 +19335,7 @@ msgid "Password migration was successful"
 msgstr ""
 
 msgid "Attribute"
-msgstr ""
+msgstr "ატრიბუტი"
 
 msgid "Add delegation"
 msgstr ""
@@ -19441,7 +19443,7 @@ msgid "Remove self service permissions"
 msgstr ""
 
 msgid "Add rule"
-msgstr ""
+msgstr "წესის დამატება"
 
 #, python-brace-format
 msgid "Add inclusive condition into '${primary_key}'"
@@ -19464,7 +19466,7 @@ msgid "Exclusive"
 msgstr ""
 
 msgid "Expression"
-msgstr ""
+msgstr "გამოსახულება"
 
 msgid "Host group rule"
 msgstr ""
@@ -19514,7 +19516,7 @@ msgid "Map Type"
 msgstr ""
 
 msgid "Direct"
-msgstr ""
+msgstr "პირდაპირი"
 
 msgid "Indirect"
 msgstr ""
@@ -19560,7 +19562,7 @@ msgid "Add users into CA ACL '${primary_key}'"
 msgstr ""
 
 msgid "All"
-msgstr ""
+msgstr "ყველა"
 
 msgid "Any CA"
 msgstr ""
@@ -19645,13 +19647,13 @@ msgid "Affiliation Changed"
 msgstr ""
 
 msgid "CA"
-msgstr ""
+msgstr "CA"
 
 msgid "CA Compromise"
 msgstr ""
 
 msgid "Certificates"
-msgstr ""
+msgstr "სერტიფიკატები"
 
 msgid "Certificate Hold"
 msgstr ""
@@ -19660,7 +19662,7 @@ msgid "Cessation of Operation"
 msgstr ""
 
 msgid "Common Name"
-msgstr ""
+msgstr "სახელი"
 
 msgid "the certificate with serial number "
 msgstr ""
@@ -19699,7 +19701,7 @@ msgid "Valid not before to"
 msgstr ""
 
 msgid "Fingerprints"
-msgstr ""
+msgstr "თითის ანაბეჭდები"
 
 msgid "Get Certificate"
 msgstr ""
@@ -19726,7 +19728,7 @@ msgid "Issued By"
 msgstr ""
 
 msgid "Issued On"
-msgstr ""
+msgstr "გამოცემის თარიღი"
 
 msgid "Issued To"
 msgstr ""
@@ -19744,10 +19746,10 @@ msgid "Certificate in base64 or PEM format"
 msgstr ""
 
 msgid "Note"
-msgstr ""
+msgstr "შენიშვნა"
 
 msgid "Organizational Unit"
-msgstr ""
+msgstr "ორგანიზაციული ერთეული"
 
 #, python-brace-format
 msgid "${count} certificate(s) present"
@@ -19808,19 +19810,19 @@ msgid "SHA256 Fingerprint"
 msgstr ""
 
 msgid "Status"
-msgstr ""
+msgstr "სტატუსი"
 
 msgid "Superseded"
 msgstr ""
 
 msgid "Unspecified"
-msgstr ""
+msgstr "მიუთითებელი"
 
 msgid "Valid Certificate Present"
 msgstr ""
 
 msgid "Valid from"
-msgstr ""
+msgstr "Ძალაშია"
 
 msgid "Valid to"
 msgstr ""
@@ -19848,7 +19850,7 @@ msgid "Matched Users"
 msgstr ""
 
 msgid "User Login"
-msgstr ""
+msgstr "მომხმარებლის შესვლა"
 
 msgid "Add certificate identity mapping rule"
 msgstr ""
@@ -19888,7 +19890,7 @@ msgid "Service Options"
 msgstr ""
 
 msgid "User Options"
-msgstr ""
+msgstr "მომხმარებლის პარამეტრები"
 
 msgid "Forward first"
 msgstr ""
@@ -19973,7 +19975,7 @@ msgid "Records for DNS Zone"
 msgstr ""
 
 msgid "Record Type"
-msgstr ""
+msgstr "ჩანაწერის ტიპი"
 
 msgid "Add DNS zone"
 msgstr ""
@@ -20008,7 +20010,7 @@ msgid "Authoritative nameserver change"
 msgstr ""
 
 msgid "Level"
-msgstr ""
+msgstr "დონე"
 
 msgid "Set Domain Level"
 msgstr ""
@@ -20072,10 +20074,10 @@ msgid "Group Settings"
 msgstr ""
 
 msgid "External"
-msgstr ""
+msgstr "გარე"
 
 msgid "Groups"
-msgstr ""
+msgstr "ჯგუფები"
 
 msgid "Group categories"
 msgstr ""
@@ -20226,7 +20228,7 @@ msgid "Remove HBAC services from HBAC service group '${primary_key}'"
 msgstr ""
 
 msgid "Access Denied"
-msgstr ""
+msgstr "წვდომა აკრძალულია"
 
 msgid "Access Granted"
 msgstr ""
@@ -20250,7 +20252,7 @@ msgid "New Test"
 msgstr ""
 
 msgid "Rules"
-msgstr ""
+msgstr "წესები"
 
 msgid "Run Test"
 msgstr ""
@@ -20293,7 +20295,7 @@ msgid "Host Certificate"
 msgstr ""
 
 msgid "Host Name"
-msgstr ""
+msgstr "ჰოსტი"
 
 msgid "Delete Key, Unprovision"
 msgstr ""
@@ -20326,7 +20328,7 @@ msgid "Kerberos Key Present, Host Provisioned"
 msgstr ""
 
 msgid "One-Time Password"
-msgstr ""
+msgstr "ერთჯერადი პაროლი"
 
 msgid "One-Time Password Not Present"
 msgstr ""
@@ -20465,7 +20467,7 @@ msgid "Keycloak or Red Hat SSO"
 msgstr ""
 
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 msgid "Github"
 msgstr ""
@@ -20497,7 +20499,7 @@ msgid "Enter trusted user login."
 msgstr ""
 
 msgid "Profile"
-msgstr ""
+msgstr "პროფილი"
 
 msgid "Group to override"
 msgstr ""
@@ -20673,7 +20675,7 @@ msgid "Remove users managing OTP token '${primary_key}'"
 msgstr ""
 
 msgid "Show QR code"
-msgstr ""
+msgstr "QR კოდის ჩვენება"
 
 msgid "Show configuration uri"
 msgstr ""
@@ -20697,7 +20699,7 @@ msgid "Privilege Settings"
 msgstr ""
 
 msgid "Public key:"
-msgstr ""
+msgstr "საჯარო გასაღები:"
 
 msgid "Set public key"
 msgstr ""
@@ -20709,7 +20711,7 @@ msgid "Modified: key not set"
 msgstr ""
 
 msgid "Modified"
-msgstr ""
+msgstr "შეცვლილია"
 
 msgid "New: key not set"
 msgstr ""
@@ -20754,7 +20756,7 @@ msgid "Active Directory domain with POSIX attributes"
 msgstr ""
 
 msgid "Detect"
-msgstr ""
+msgstr "დადგენა"
 
 msgid "Local domain"
 msgstr ""
@@ -20861,7 +20863,7 @@ msgid "Service Settings"
 msgstr ""
 
 msgid "Provisioning"
-msgstr ""
+msgstr "მუშაობისთვის მომზადება"
 
 msgid "Remove services"
 msgstr ""
@@ -21040,7 +21042,7 @@ msgid "Add users into sudo rule '${primary_key}'"
 msgstr ""
 
 msgid "Allow"
-msgstr ""
+msgstr "დაშვება"
 
 msgid "Any Command"
 msgstr ""
@@ -21049,10 +21051,10 @@ msgid "Any Group"
 msgstr ""
 
 msgid "Run Commands"
-msgstr ""
+msgstr "ბრძანებების გაშვება"
 
 msgid "Deny"
-msgstr ""
+msgstr "უარყოფა"
 
 msgid "Access this host"
 msgstr ""
@@ -21157,7 +21159,7 @@ msgid "Remove topology segments"
 msgstr ""
 
 msgid "Account"
-msgstr ""
+msgstr "ანგარიში"
 
 msgid "Add trust"
 msgstr ""
@@ -21205,7 +21207,7 @@ msgid "Drive to mount a home directory"
 msgstr ""
 
 msgid "Account Settings"
-msgstr ""
+msgstr "ანგარიშის მორგება"
 
 msgid "Account Status"
 msgstr ""
@@ -21266,7 +21268,7 @@ msgid "Misc. Information"
 msgstr ""
 
 msgid "delete"
-msgstr ""
+msgstr "წაშლა"
 
 msgid "preserve"
 msgstr ""
@@ -21308,7 +21310,7 @@ msgid "Click to ${action}"
 msgstr ""
 
 msgid "Unlock"
-msgstr ""
+msgstr "განბლოკვა"
 
 #, python-brace-format
 msgid "Are you sure you want to unlock user ${object}?"
@@ -21358,7 +21360,7 @@ msgid "Vaults Config"
 msgstr ""
 
 msgid "Members"
-msgstr ""
+msgstr "წევრები"
 
 msgid "My User Vaults"
 msgstr ""
@@ -21397,13 +21399,13 @@ msgid "Service Vaults"
 msgstr ""
 
 msgid "Shared"
-msgstr ""
+msgstr "გაზიარებული"
 
 msgid "Shared Vaults"
 msgstr ""
 
 msgid "Standard"
-msgstr ""
+msgstr "სტანდარტული"
 
 msgid "Symmetric"
 msgstr ""
@@ -21458,7 +21460,7 @@ msgid "Your password has expired. Please enter a new password."
 msgstr ""
 
 msgid "Passwords must match"
-msgstr ""
+msgstr "პაროლები არ ემთხვევა"
 
 msgid "Password reset was not successful."
 msgstr ""
@@ -21500,7 +21502,7 @@ msgid "Quick Links"
 msgstr ""
 
 msgid "Select All"
-msgstr ""
+msgstr "ყველას მონიშვნა"
 
 #, python-brace-format
 msgid ""
@@ -21689,31 +21691,31 @@ msgid ""
 msgstr ""
 
 msgid "Working"
-msgstr ""
+msgstr "მუშაობს"
 
 msgid "Audit"
-msgstr ""
+msgstr "აუდიტი"
 
 msgid "Authentication"
-msgstr ""
+msgstr "ავთენტიკაცია"
 
 msgid "Automount"
 msgstr ""
 
 msgid "DNS"
-msgstr ""
+msgstr "DNS"
 
 msgid "Host-Based Access Control"
 msgstr ""
 
 msgid "Identity"
-msgstr ""
+msgstr "იდენტიფიკაცია"
 
 msgid "Network Services"
-msgstr ""
+msgstr "ქსელური სერვისები"
 
 msgid "Policy"
-msgstr ""
+msgstr "წესები"
 
 msgid "Role-Based Access Control"
 msgstr ""
@@ -21725,10 +21727,10 @@ msgid "Sudo"
 msgstr ""
 
 msgid "Topology"
-msgstr ""
+msgstr "ტოპოლოგია"
 
 msgid "True"
-msgstr ""
+msgstr "ჭეშმარიტი"
 
 msgid ""
 "<h1>Unable to verify your Kerberos credentials</h1>\n"
@@ -21752,22 +21754,22 @@ msgid "API Browser"
 msgstr ""
 
 msgid "First"
-msgstr ""
+msgstr "პირველი"
 
 msgid "Last"
-msgstr ""
+msgstr "ბოლო"
 
 msgid "Next"
-msgstr ""
+msgstr "შემდეგი"
 
 msgid "Page"
-msgstr ""
+msgstr "გვერდი"
 
 msgid "Prev"
-msgstr ""
+msgstr "წინა"
 
 msgid "Undo"
-msgstr ""
+msgstr "დაბრუნება"
 
 msgid "Undo this change."
 msgstr ""
@@ -22324,7 +22326,7 @@ msgid "{} is required by the IPA master"
 msgstr ""
 
 msgid "service"
-msgstr ""
+msgstr "service"
 
 msgid "services"
 msgstr ""
@@ -22591,7 +22593,7 @@ msgid "Default Trust View cannot be applied on hosts"
 msgstr ""
 
 msgid "not found"
-msgstr ""
+msgstr "ვერ მოიძებნა"
 
 msgid "ID View cannot be applied to IPA master"
 msgstr ""
@@ -22600,7 +22602,7 @@ msgid "ID View already applied"
 msgstr ""
 
 msgid "value"
-msgstr ""
+msgstr "მნიშვნელობა"
 
 #, python-format
 msgid "ID View applied to %i host."
@@ -22808,7 +22810,7 @@ msgid ""
 msgstr ""
 
 msgid "Certificate Authority"
-msgstr ""
+msgstr "სერტიფიკატების გამომცემელი"
 
 msgid "Certificate Authorities"
 msgstr ""
@@ -23263,7 +23265,7 @@ msgid "PTR record for SAN IP (%s) does not match A/AAAA records"
 msgstr ""
 
 msgid "Revoked"
-msgstr ""
+msgstr "ამოღებული"
 
 msgid ""
 "Reason for revoking the certificate (0-10). Type \"ipa help cert\" for "
@@ -23448,7 +23450,7 @@ msgid "users"
 msgstr ""
 
 msgid "command"
-msgstr ""
+msgstr "ბრძანება"
 
 msgid "commands"
 msgstr ""
@@ -23805,7 +23807,7 @@ msgid ""
 msgstr ""
 
 msgid "Credentials"
-msgstr ""
+msgstr "მომხმ/პაროლი"
 
 msgid "Missing credentials for cross-forest communication"
 msgstr ""
