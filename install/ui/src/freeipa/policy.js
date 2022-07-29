@@ -72,6 +72,9 @@ return {
                         {
                             name: 'cospriority',
                             required: true
+                        },
+                        {
+                            name: 'passwordgracelimit'
                         }
                     ]
                 }]
