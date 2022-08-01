@@ -529,6 +529,9 @@ class CAInstance(DogtagInstance):
         if self.random_serial_numbers:
             cfg['pki_request_id_generator'] = 'random'
             cfg['pki_cert_id_generator'] = 'random'
+        else:
+            cfg['pki_request_id_generator'] = 'legacy'
+            cfg['pki_cert_id_generator'] = 'legacy'
 
         if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
                 os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
@@ -576,6 +579,8 @@ class CAInstance(DogtagInstance):
             else:
                 cfg.update(
                     pki_random_serial_numbers_enable=False,
+                    pki_request_id_generator="legacy",
+                    pki_cert_id_generator="legacy",
                 )
 
             self._configure_clone(

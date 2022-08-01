@@ -169,6 +169,9 @@ class KRAInstance(DogtagInstance):
         if lookup_random_serial_number_version(api) > 0:
             cfg['pki_key_id_generator'] = 'random'
             cfg['pki_request_id_generator'] = 'random'
+        else:
+            cfg['pki_key_id_generator'] = 'legacy'
+            cfg['pki_request_id_generator'] = 'legacy'
 
         if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
                 os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
