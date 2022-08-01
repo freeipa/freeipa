@@ -1888,9 +1888,12 @@ def upgrade_configuration():
     custodia = custodiainstance.CustodiaInstance(api.env.host, api.env.realm)
     custodia.upgrade_instance()
 
+    # Don't include schema upgrades in restart consideration, see
+    # https://pagure.io/freeipa/issue/9204
+    ca_upgrade_schema(ca)
+
     ca_restart = any([
         ca_restart,
-        ca_upgrade_schema(ca),
         certificate_renewal_update(ca, kra, ds, http),
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
