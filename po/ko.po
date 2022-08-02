@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-07-18 14:18+0000\n"
+"PO-Revision-Date: 2022-08-03 17:19+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -7532,7 +7532,7 @@ msgid "Don't wait for rebuilding membership"
 msgstr "재구축한 멤버쉽을 위해 기다릴 수 없습니다"
 
 msgid "Remove conditions from an automember rule."
-msgstr "자동 구성원 구칙에서 상태를 제거합니다."
+msgstr "자동 구성원 규칙에서 상태를 제거합니다."
 
 #: ipaserver/plugins/automember.py:441
 msgid "Conditions that could not be removed"
@@ -19597,22 +19597,22 @@ msgstr "사용자 그룹에 user '${primary_key}'를 추가합니다"
 #: ipaserver/plugins/internal.py:1561
 #, python-brace-format
 msgid "Add user '${primary_key}' into HBAC rules"
-msgstr ""
+msgstr "HBAC 규칙에 사용자 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1564
 #, python-brace-format
 msgid "Add user '${primary_key}' into netgroups"
-msgstr ""
+msgstr "넷그룹에 사용자 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1567
 #, python-brace-format
 msgid "Add user '${primary_key}' into roles"
-msgstr ""
+msgstr "역할에 사용자 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1570
 #, python-brace-format
 msgid "Add user '${primary_key}' into sudo rules"
-msgstr ""
+msgstr "sudo 규칙에 사용자 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1572
 msgid "Contact Settings"
@@ -19918,7 +19918,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1717
 msgid "Are you sure you want to disable selected entries?"
-msgstr ""
+msgstr "선택된 항목을 비활성화 할까요?"
 
 #: ipaserver/plugins/internal.py:1718
 #, python-brace-format
@@ -19927,7 +19927,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1719
 msgid "Are you sure you want to enable selected entries?"
-msgstr ""
+msgstr "선택된 항목을 활성화 할까요?"
 
 #: ipaserver/plugins/internal.py:1720
 #, python-brace-format
@@ -20189,7 +20189,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1931
 msgid "Role-Based Access Control"
-msgstr ""
+msgstr "역할-기반 접근 제어"
 
 #: ipaserver/plugins/internal.py:1932
 msgid "Sudo"
@@ -21015,7 +21015,7 @@ msgstr ""
 
 #: ipaserver/plugins/topology.py:104
 msgid "segment"
-msgstr ""
+msgstr "세그먼트"
 
 #: ipaserver/plugins/topology.py:105
 msgid "segments"
@@ -21502,11 +21502,11 @@ msgstr ""
 
 #: ipaserver/plugins/group.py:803
 msgid "Add users that can manage members of this group."
-msgstr ""
+msgstr "이 그룹의 구성원을 관리 할 수 있는 사용자를 추가합니다."
 
 #: ipaserver/plugins/group.py:811
 msgid "Remove users that can manage members of this group."
-msgstr ""
+msgstr "이 그룹의 구성원을 관리 할 수 있는 사용자를 제거합니다."
 
 #: ipaserver/plugins/automount.py:218
 msgid "automount location"
@@ -21766,7 +21766,7 @@ msgstr ""
 
 #: ipaserver/plugins/idviews.py:883
 msgid "Add a new ID override."
-msgstr ""
+msgstr "신규 ID 재정의를 추가합니다."
 
 #: ipaserver/plugins/idviews.py:884
 #, python-format
@@ -21775,7 +21775,7 @@ msgstr ""
 
 #: ipaserver/plugins/idviews.py:899
 msgid "Delete an ID override."
-msgstr ""
+msgstr "ID 재정의를 삭제합니다."
 
 #: ipaserver/plugins/idviews.py:900
 #, python-format
@@ -21801,7 +21801,7 @@ msgstr ""
 
 #: ipaserver/plugins/idviews.py:944
 msgid "Search for an ID override."
-msgstr ""
+msgstr "ID 재정의를 검색합니다."
 
 #: ipaserver/plugins/idviews.py:945
 #, python-format
@@ -22032,7 +22032,7 @@ msgstr ""
 #: ipaserver/plugins/migration.py:678
 #, python-format
 msgid "%s to exclude from migration"
-msgstr ""
+msgstr "이전에서 제외 할 %"
 
 #: ipaserver/plugins/migration.py:680
 msgid ""
@@ -24235,6 +24235,9 @@ msgid ""
 "    Remove conditions from an automember rule.\n"
 "    "
 msgstr ""
+"\n"
+"    자동 구성원 규칙에서 상태를 제거합니다.\n"
+"    "
 
 #: ipaserver/plugins/automember.py:432
 #, python-format
@@ -24291,6 +24294,9 @@ msgid ""
 "    Display information about an automember rule.\n"
 "    "
 msgstr ""
+"\n"
+"    자동 구성원 규칙에 대해 정보를 표시합니다.\n"
+"    "
 
 #: ipaserver/plugins/automember.py:576
 msgid ""
@@ -24913,7 +24919,7 @@ msgstr ""
 #: ipaserver/plugins/baseldap.py:657
 #, python-format
 msgid "%(parent)s: %(oname)s not found"
-msgstr ""
+msgstr "%(parent)s: %(oname)s 찾을 수 없음"
 
 #: ipaserver/plugins/baseldap.py:659
 #, python-format
@@ -25315,7 +25321,7 @@ msgstr ""
 
 #: ipaserver/plugins/ca.py:100 ipaserver/plugins/ca.py:286
 msgid "Subject DN"
-msgstr ""
+msgstr "대상 DN"
 
 #: ipaserver/plugins/ca.py:101
 msgid "Subject Distinguished Name"
@@ -25337,7 +25343,7 @@ msgstr[0] ""
 
 #: ipaserver/plugins/ca.py:243
 msgid "Display the properties of a CA."
-msgstr ""
+msgstr "CA의 속성을 표시합니다."
 
 #: ipaserver/plugins/ca.py:260
 msgid "Create a CA."
@@ -25417,7 +25423,7 @@ msgstr ""
 #: ipaserver/plugins/ca.py:422
 #, python-format
 msgid "Enabled CA \"%(value)s\""
-msgstr ""
+msgstr "CA \"%(value)s\" 활성화됨"
 
 #: ipaserver/plugins/stageuser.py:65
 msgid ""
@@ -26500,12 +26506,12 @@ msgstr ""
 #: ipaserver/plugins/dns.py:2980
 #, python-format
 msgid "Disabled DNS zone \"%(value)s\""
-msgstr ""
+msgstr "DNS zone \"%(value)s\" 비활성화됨"
 
 #: ipaserver/plugins/dns.py:2991
 #, python-format
 msgid "Enabled DNS zone \"%(value)s\""
-msgstr ""
+msgstr "DNS zone \"%(value)s\" 비활성화됨"
 
 #: ipaserver/plugins/dns.py:3016
 msgid "DNS resource record"
@@ -26513,15 +26519,15 @@ msgstr "DNS 리소스 레코드"
 
 #: ipaserver/plugins/dns.py:3017
 msgid "DNS resource records"
-msgstr ""
+msgstr "DNS 리소스 레코드"
 
 #: ipaserver/plugins/dns.py:3024
 msgid "DNS Resource Records"
-msgstr ""
+msgstr "DNS 리소스 레코드"
 
 #: ipaserver/plugins/dns.py:3025
 msgid "DNS Resource Record"
-msgstr ""
+msgstr "DNS 리소스 레코드"
 
 #: ipaserver/plugins/dns.py:3060
 msgid "DS record must not be in zone apex (RFC 4035 section 2.4)"
@@ -26700,11 +26706,11 @@ msgstr ""
 
 #: ipaserver/plugins/hbacrule.py:131
 msgid "HBAC rules"
-msgstr ""
+msgstr "HBAC 규칙"
 
 #: ipaserver/plugins/hbacrule.py:201
 msgid "HBAC Rules"
-msgstr ""
+msgstr "HBAC 규칙"
 
 #: ipaserver/plugins/hbacrule.py:302
 #, python-format
@@ -26743,7 +26749,7 @@ msgstr ""
 
 #: ipaserver/plugins/hbacrule.py:565
 msgid "Add source hosts and hostgroups to an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙에서 원천 호스트와 호스트그룹을 추가합니다."
 
 #: ipaserver/plugins/certprofile.py:21
 msgid ""
