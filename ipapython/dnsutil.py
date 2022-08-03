@@ -144,6 +144,47 @@ class DNSResolver(dns.resolver.Resolver):
             nameservers.remove(ipv4_loopback)
         self.nameservers = nameservers
 
+    @dns.resolver.Resolver.nameservers.setter
+    def nameservers(self, nameservers):
+        """
+        *nameservers*, a ``list`` of nameservers with optional ports:
+            "SERVER_IP port PORT_NUMBER".
+
+        Overloads dns.resolver.Resolver.nameservers setter to split off ports
+        into nameserver_ports after setting nameservers successfully with the
+        setter in dns.resolver.Resolver.
+        """
+        # Get nameserver_ports if it is already set
+        if hasattr(self, "nameserver_ports"):
+            nameserver_ports = self.nameserver_ports
+        else:
+            nameserver_ports = {}
+
+        # Check nameserver items in list and split out converted port number
+        # into nameserver_ports: { nameserver: port }
+        if isinstance(nameservers, list):
+            _nameservers = []
+            for nameserver in nameservers:
+                splits = nameserver.split()
+                if len(splits) == 3 and splits[1] == "port":
+                    nameserver = splits[0]
+                    try:
+                        port = int(splits[2])
+                        if port < 0 or port > 65535:
+                            raise ValueError()
+                    except ValueError:
+                        raise ValueError(
+                            "invalid nameserver: %s is not a valid port" %
+                            splits[2])
+                    nameserver_ports[nameserver] = port
+                _nameservers.append(nameserver)
+            nameservers = _nameservers
+
+        # Call dns.resolver.Resolver.nameservers setter
+        dns.resolver.Resolver.nameservers.__set__(self, nameservers)
+        # Set nameserver_ports after successfull call to setter
+        self.nameserver_ports = nameserver_ports
+
 
 class DNSZoneAlreadyExists(dns.exception.DNSException):
     supp_kwargs = {'zone', 'ns'}
