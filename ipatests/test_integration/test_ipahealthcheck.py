@@ -328,6 +328,7 @@ class TestIpaHealthCheck(IntegrationTest):
         assert output == \
             "ERROR: ipahealthcheck.meta.services.sssd: sssd: not running"
 
+    @pytest.mark.skip(reason="freeipa-healthcheck/issues/270")
     def test_human_output(self):
         """
         Test if in case no  failures were found, informative string is printed
@@ -365,6 +366,7 @@ class TestIpaHealthCheck(IntegrationTest):
         else:
             assert returncode == 1
 
+    @pytest.mark.skip(reason="freeipa-healthcheck/issues/270")
     def test_ipa_healthcheck_after_certupdate(self):
         """
         Verify that ipa-certupdate hasn't messed up tracking
@@ -657,6 +659,7 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["kw"]["key"] == "crl_manager"
             assert check["kw"]["crlgen_enabled"] is False
 
+    @pytest.mark.skip(reason="freeipa-healthcheck/issues/270")
     def test_ipa_healthcheck_no_errors(self):
         """
         Ensure that on a default installation with KRA and DNS
@@ -779,6 +782,7 @@ class TestIpaHealthCheck(IntegrationTest):
         )
         assert msg not in cmd.stdout_text
 
+    @pytest.mark.skip(reason="freeipa-healthcheck/issues/270")
     def test_ipa_dns_systemrecords_check(self):
         """
         This test ensures that the ipahealthcheck.ipa.idns check
