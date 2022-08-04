@@ -408,6 +408,7 @@ class pwpolicy(LDAPObject):
             minvalue=-1,
             maxvalue=Int.MAX_UINT32,
             default=-1,
+            autofill=True,
         ),
     )
 
@@ -539,6 +540,7 @@ class pwpolicy_add(LDAPCreate):
             keys[-1], krbpwdpolicyreference=dn,
             cospriority=options.get('cospriority')
         )
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
