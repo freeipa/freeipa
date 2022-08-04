@@ -142,11 +142,6 @@ class test_subid(UI_driver):
         """
         self.init_app()
         self.navigate_to_entity('subid', facet='search')
-        self.facet_button_click('add')
-        self.select_combobox('ipaowner', 'admin')
-        self.dialog_button_click('add')
-        self.wait(0.3)
-        self.assert_no_error_dialog()
         self.get_field_checked('ipauniqueid')
         with pytest.raises(NoSuchElementException):
             self.facet_button_click('remove')
