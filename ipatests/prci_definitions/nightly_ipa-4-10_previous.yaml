@@ -1821,3 +1821,27 @@ jobs:
         template: *ci-ipa-4-10-previous
         timeout: 5400
         topology: *master_1repl
+
+  fedora-previous-ipa-4-10/test_random_serial_numbers_TestRSNPKIConfig:
+    requires: [fedora-previous-ipa-4-10/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous-ipa-4-10/build_url}'
+        test_suite: test_integration/test_random_serial_numbers.py::TestRSNPKIConfig
+        template: *ci-ipa-4-10-previous
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-previous-ipa-4-10/test_random_serial_numbers_TestRSNVault:
+    requires: [fedora-previous-ipa-4-10/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous-ipa-4-10/build_url}'
+        test_suite: test_integration/test_random_serial_numbers.py::TestRSNVault
+        template: *ci-ipa-4-10-previous
+        timeout: 10800
+        topology: *master_1repl
