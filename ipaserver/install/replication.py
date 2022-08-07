@@ -1152,7 +1152,7 @@ class ReplicationManager:
             except (ValueError, TypeError, KeyError):
                 end = 0
             # incremental update is done if inprogress is false and end >= start
-            done = inprogress and inprogress.lower() == 'false' and start <= end
+            done = inprogress is not None and not inprogress and start <= end
             logger.info("Replication Update in progress: %s: status: %s: "
                         "start: %d: end: %d",
                         inprogress, status, start, end)
