@@ -45,15 +45,16 @@ vms:
     - test_integration/test_external_ca.py::TestExternalCAInstall
 
 - vm_jobs:
-  - container_job: InstallDNSSECFirst
-    containers:
-      replicas: 1
-      resources:
-        replica:
-          mem_limit: "2400m"
-          memswap_limit: "3500m"
-    tests:
-    - test_integration/test_dnssec.py::TestInstallDNSSECFirst
+# Temporary disable - see https://pagure.io/freeipa/issue/9216
+#  - container_job: InstallDNSSECFirst
+#    containers:
+#      replicas: 1
+#      resources:
+#        replica:
+#          mem_limit: "2400m"
+#          memswap_limit: "3500m"
+#    tests:
+#    - test_integration/test_dnssec.py::TestInstallDNSSECFirst
 
   - container_job: simple_replication
     containers:
