@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2022-07-30 21:18+0000\n"
+"PO-Revision-Date: 2022-08-09 06:10+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -16893,7 +16893,7 @@ msgid "Issuer of the certificate"
 msgstr ""
 
 msgid "Subject"
-msgstr "თემა:"
+msgstr "თემა"
 
 msgid "Subject of the certificate"
 msgstr ""
@@ -18746,7 +18746,7 @@ msgid "Internationalization messages"
 msgstr ""
 
 msgid "Your session has expired. Please log in again."
-msgstr ""
+msgstr "სესიის ვადა გასულია. თავიდან შედით."
 
 msgid "Apply"
 msgstr "გამოყენება"
@@ -18776,7 +18776,7 @@ msgid "Actions"
 msgstr "ქმედებები"
 
 msgid "Add"
-msgstr ""
+msgstr "დამატება"
 
 #, python-brace-format
 msgid "${count} item(s) added"
@@ -18800,7 +18800,7 @@ msgid "Showing ${start} to ${end} of ${total} entries."
 msgstr ""
 
 msgid "Remove"
-msgstr ""
+msgstr "წაშლა"
 
 #, python-brace-format
 msgid "${count} item(s) removed"
@@ -18875,7 +18875,7 @@ msgid "Back"
 msgstr "უკან"
 
 msgid "Cancel"
-msgstr "გაუქმენა"
+msgstr "გაუქმება"
 
 msgid "Clear"
 msgstr "გაწმენდა"
@@ -18896,7 +18896,7 @@ msgid "Download certificate as PEM formatted file."
 msgstr ""
 
 msgid "Edit"
-msgstr ""
+msgstr "ჩასწორება"
 
 msgid "Enable"
 msgstr "ჩართვა"
@@ -18920,10 +18920,10 @@ msgid "Match users according to certificate."
 msgstr ""
 
 msgid "Migrate"
-msgstr ""
+msgstr "მიგრაცია"
 
 msgid "OK"
-msgstr "OK"
+msgstr "დიახ"
 
 msgid "Refresh"
 msgstr "განახლება"
@@ -18932,13 +18932,13 @@ msgid "Reload current settings from the server."
 msgstr ""
 
 msgid "Delete"
-msgstr ""
+msgstr "წაშლა"
 
 msgid "Remove hold"
-msgstr ""
+msgstr "ქმედების შეჩერების გაუქმება"
 
 msgid "Reset"
-msgstr "თავიდან"
+msgstr "საწყის მნიშვნელობებზე დაბრუნება"
 
 msgid "Reset Password"
 msgstr ""
@@ -18950,7 +18950,7 @@ msgid "Restore"
 msgstr "აღდგენა"
 
 msgid "Retry"
-msgstr "გამეორება"
+msgstr "თავიდან ცდა"
 
 msgid "Revert"
 msgstr "დაბრუნება"
@@ -18959,7 +18959,7 @@ msgid "Revoke"
 msgstr "გაუქმება"
 
 msgid "Save"
-msgstr ""
+msgstr "შენახვა"
 
 msgid "Set"
 msgstr "დაყენება"
@@ -18974,10 +18974,10 @@ msgid "Update"
 msgstr "განახლება"
 
 msgid "View"
-msgstr "ნახვა"
+msgstr "ხედი"
 
 msgid "Customization"
-msgstr ""
+msgstr "ხელით შეტანილი ცვლილებები"
 
 msgid "Pagination Size"
 msgstr ""
@@ -18989,7 +18989,7 @@ msgid "Expand All"
 msgstr "ყველას ამოკეცვა"
 
 msgid "General"
-msgstr "ძირითადი"
+msgstr "ზოგადი"
 
 msgid "Identity Settings"
 msgstr ""
@@ -19106,7 +19106,7 @@ msgid "Unknown Error"
 msgstr "უცნობი შეცდომა"
 
 msgid "URL"
-msgstr "ვებ-მისამართი"
+msgstr "URL"
 
 #, python-brace-format
 msgid "${primary_key} is managed by:"
@@ -19128,7 +19128,7 @@ msgid "Settings"
 msgstr "მორგება"
 
 msgid "Search"
-msgstr ""
+msgstr "ძებნა"
 
 msgid "False"
 msgstr "მცდარი"
@@ -19229,7 +19229,7 @@ msgid "PAD"
 msgstr "PAD"
 
 msgid "Authenticating"
-msgstr "აუთენტიკაცია"
+msgstr "ავთენტიკაცია"
 
 msgid "Authentication with personal certificate failed"
 msgstr ""
@@ -19266,7 +19266,7 @@ msgid ""
 msgstr ""
 
 msgid "Loading"
-msgstr "იტვირთება"
+msgstr "ჩატვირთვა"
 
 msgid "Kerberos Principal you entered is expired"
 msgstr ""
@@ -19284,7 +19284,7 @@ msgid "Log in using personal certificate"
 msgstr ""
 
 msgid "Log out"
-msgstr "გამოსვლა"
+msgstr "გასვლა"
 
 msgid "Log out error"
 msgstr ""
@@ -19300,7 +19300,7 @@ msgid "Sync OTP Token"
 msgstr ""
 
 msgid "Synchronizing"
-msgstr ""
+msgstr "სინქრონიზაცია"
 
 msgid "The user account you entered is locked"
 msgstr ""
@@ -19463,7 +19463,7 @@ msgid "Default user group"
 msgstr ""
 
 msgid "Exclusive"
-msgstr ""
+msgstr "ექსკლუზიური"
 
 msgid "Expression"
 msgstr "გამოსახულება"
@@ -19519,7 +19519,7 @@ msgid "Direct"
 msgstr "პირდაპირი"
 
 msgid "Indirect"
-msgstr ""
+msgstr "არაპირდაპირი"
 
 msgid "Remove automount maps"
 msgstr ""
@@ -19571,7 +19571,7 @@ msgid "Any Host"
 msgstr ""
 
 msgid "Any Service"
-msgstr ""
+msgstr "ნებისმიერი სერვისი"
 
 msgid "Any Profile"
 msgstr ""
@@ -19656,7 +19656,7 @@ msgid "Certificates"
 msgstr "სერტიფიკატები"
 
 msgid "Certificate Hold"
-msgstr ""
+msgstr "სერტიფიკატის შეჩერება"
 
 msgid "Cessation of Operation"
 msgstr ""
@@ -19828,7 +19828,7 @@ msgid "Valid to"
 msgstr ""
 
 msgid "Validity"
-msgstr ""
+msgstr "სისწორე"
 
 #, python-brace-format
 msgid "Certificate for ${entity} ${primary_key}"
@@ -19887,7 +19887,7 @@ msgid "Server Options"
 msgstr ""
 
 msgid "Service Options"
-msgstr ""
+msgstr "სერვისის მორგება"
 
 msgid "User Options"
 msgstr "მომხმარებლის პარამეტრები"
@@ -19902,7 +19902,7 @@ msgid "Forward only"
 msgstr ""
 
 msgid "Options"
-msgstr ""
+msgstr "მორგება"
 
 msgid "Update System DNS Records"
 msgstr ""
@@ -20243,7 +20243,7 @@ msgid "HBAC Test"
 msgstr ""
 
 msgid "Matched"
-msgstr ""
+msgstr "ემთხვევა"
 
 msgid "Missing values: "
 msgstr ""
@@ -20352,7 +20352,7 @@ msgid "Set One-Time Password"
 msgstr ""
 
 msgid "Remove hosts"
-msgstr ""
+msgstr "ჰოსტის წაშლა"
 
 #, python-brace-format
 msgid "Remove hosts managing host '${primary_key}'"
@@ -20846,7 +20846,7 @@ msgid ""
 msgstr ""
 
 msgid "Add service"
-msgstr ""
+msgstr "სერვისის დამატება"
 
 #, python-brace-format
 msgid "Add hosts managing service '${primary_key}'"
@@ -20860,13 +20860,13 @@ msgid "Service Certificate"
 msgstr ""
 
 msgid "Service Settings"
-msgstr ""
+msgstr "სერვერის მორგება"
 
 msgid "Provisioning"
 msgstr "მუშაობისთვის მომზადება"
 
 msgid "Remove services"
-msgstr ""
+msgstr "სერვისების წაშლა"
 
 #, python-brace-format
 msgid "Remove service '${primary_key}' from roles"
@@ -21165,7 +21165,7 @@ msgid "Add trust"
 msgstr ""
 
 msgid "Administrative account"
-msgstr ""
+msgstr "ადმინისტრატიული წვდომა"
 
 msgid "SID blocklists"
 msgstr ""
@@ -21259,7 +21259,7 @@ msgid "Error changing account status"
 msgstr ""
 
 msgid "Password expiration"
-msgstr ""
+msgstr "პაროლის ვადა"
 
 msgid "Mailing Address"
 msgstr ""
@@ -21271,7 +21271,7 @@ msgid "delete"
 msgstr "წაშლა"
 
 msgid "preserve"
-msgstr ""
+msgstr "შენარჩუნება"
 
 msgid "No private group"
 msgstr ""
@@ -21366,7 +21366,7 @@ msgid "My User Vaults"
 msgstr ""
 
 msgid "Owners"
-msgstr ""
+msgstr "მფლობელები"
 
 msgid "Remove vaults"
 msgstr ""
@@ -21816,10 +21816,10 @@ msgid "Not a valid network address (examples: 2001:db8::/64, 192.0.2.0/24)"
 msgstr ""
 
 msgid "Parse error"
-msgstr ""
+msgstr "დამუშავების შეცდომა"
 
 msgid "Must be a positive number"
-msgstr ""
+msgstr "უნდა წარმოადგენდეს დადებით რიცხვს"
 
 #, python-brace-format
 msgid "'${port}' is not a valid port"
@@ -21829,7 +21829,7 @@ msgid "Required field"
 msgstr ""
 
 msgid "Unsupported value"
-msgstr ""
+msgstr "მხარდაუჭერელი მნიშვნელობა"
 
 msgid "kerberos ticket policy settings"
 msgstr ""
@@ -22326,10 +22326,10 @@ msgid "{} is required by the IPA master"
 msgstr ""
 
 msgid "service"
-msgstr "service"
+msgstr "სერვისი"
 
 msgid "services"
-msgstr ""
+msgstr "სერვისები"
 
 msgid "Service principal alias"
 msgstr ""
@@ -23447,13 +23447,13 @@ msgid ""
 msgstr ""
 
 msgid "users"
-msgstr ""
+msgstr "მომხმარებლები"
 
 msgid "command"
 msgstr "ბრძანება"
 
 msgid "commands"
-msgstr ""
+msgstr "ბრძანებები"
 
 msgid "runAs user"
 msgstr ""
@@ -23836,7 +23836,7 @@ msgid "must be at least 1"
 msgstr ""
 
 msgid "Out of memory\n"
-msgstr ""
+msgstr "არასაკმარისი მეხსიერება!\n"
 
 msgid "Warning unrecognized encryption type.\n"
 msgstr ""
@@ -23845,7 +23845,7 @@ msgid "Warning unrecognized salt type.\n"
 msgstr ""
 
 msgid "Out of memory!?\n"
-msgstr ""
+msgstr "არასაკმარისი მეხსიერება!\n"
 
 msgid "Enctype comparison failed!\n"
 msgstr ""
