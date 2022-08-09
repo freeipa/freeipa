@@ -47,12 +47,13 @@ topologies:
     memory: 14500
 
 jobs:
-  fedora-latest/build:
+  testing-fedora/build:
     requires: []
     priority: 100
     job:
       class: Build
       args:
+        enable_testing_repo: True
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-master-latest
@@ -61,14 +62,97 @@ jobs:
         timeout: 1800
         topology: *build
 
-  fedora-latest/temp_commit:
-    requires: [fedora-latest/build]
+  testing-fedora/test_backup_and_restore_TestBackupAndRestoreWithDNSSEC:
+    requires: [testing-fedora/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNSSEC
         template: *ci-master-latest
-        timeout: 3600
-        topology: *master_1repl_1client
+        timeout: 7200
+        topology: *master_1repl
+
+  testing-fedora/test_backup_and_restore_TestBackupReinstallRestoreWithDNSSEC:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNSSEC
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  testing-fedora/test_dnssec:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_dnssec.py
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  fedora-rawhide/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &ci-master-frawhide
+          name: freeipa/ci-master-frawhide
+          version: 0.8.0
+        timeout: 1800
+        topology: *build
+
+  fedora-rawhide/test_backup_and_restore_TestBackupAndRestoreWithDNSSEC:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNSSEC
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestBackupReinstallRestoreWithDNSSEC:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNSSEC
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_dnssec:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_dnssec.py
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_2repl_1client
