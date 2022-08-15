@@ -7,7 +7,7 @@ import re
 import textwrap
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_ipa.integration import tasks, create_quarkus
+from ipatests.pytest_ipa.integration import tasks, create_keycloak
 
 user_code_script = textwrap.dedent("""
 from selenium import webdriver
@@ -107,9 +107,9 @@ class TestIDPKeycloak(IntegrationTest):
         Authorization Grant is working as
         expected for user configured with external idp.
         """
-        create_quarkus.setup_keycloakserver(self.client)
+        create_keycloak.setup_keycloakserver(self.client)
         time.sleep(60)
-        create_quarkus.setup_keycloak_client(self.client)
+        create_keycloak.setup_keycloak_client(self.client)
         tasks.kinit_admin(self.master)
         cmd = ["ipa", "idp-add", "keycloakidp", "--provider=keycloak",
                "--client-id=ipa_oidc_client", "--org=master",
