@@ -95,6 +95,7 @@ def setup_keycloakserver(host, version='17.0.0'):
     """).format(hostname=host.hostname, STORE_PASS=password,
                 ADMIN_PASS=password)
 
+    tasks.backup_file(host, '/etc/bashrc')
     content = host.get_file_contents('/etc/bashrc',
                                      encoding='utf-8')
     new_content = content + "\n{}".format(env_vars)
@@ -157,3 +158,21 @@ def setup_keycloak_client(host):
                       "-s", "secret={0}".format(password)]
                      )
     time.sleep(60)
+
+
+def uninstall_keycloak(host):
+    key = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.key")
+    crt = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.crt")
+    keystore = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.store")
+
+    host.run_command(["systemctl", "stop", "keycloak"], raiseonerr=False)
+    host.run_command(["getcert", "stop-tracking", "-k", key, "-f", crt],
+                     raiseonerr=False)
+    host.run_command(["rm", "-rf", "/opt/keycloak",
+                      "/etc/sysconfig/keycloak",
+                      "/etc/systemd/system/keycloak.service",
+                      key, crt, keystore])
+    host.run_command(["systemctl", "daemon-reload"])
+    host.run_command(["userdel", "keycloak"])
+    host.run_command(["groupdel", "keycloak"], raiseonerr=False)
+    tasks.restore_files(host)
