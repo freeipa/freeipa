@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2022-08-09 06:10+0000\n"
+"PO-Revision-Date: 2022-08-18 12:19+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -2577,7 +2577,7 @@ msgid "Records"
 msgstr ""
 
 msgid "Record type"
-msgstr ""
+msgstr "ჩანაწერის ტიპი"
 
 msgid "Record data"
 msgstr ""
@@ -4441,7 +4441,7 @@ msgid ""
 msgstr ""
 
 msgid "Host-group"
-msgstr ""
+msgstr "ჰოსტების ჯგუფი"
 
 msgid "Name of host-group"
 msgstr ""
@@ -5203,7 +5203,7 @@ msgid "Allows migration despite the usage of compat plugin"
 msgstr ""
 
 msgid "CA certificate"
-msgstr ""
+msgstr "CA სერტიფიკატი"
 
 msgid "Load CA certificate of LDAP server from FILE"
 msgstr ""
@@ -5716,7 +5716,7 @@ msgid "All attributes to which the permission applies"
 msgstr ""
 
 msgid "Included attributes"
-msgstr ""
+msgstr "ჩასმული ატრიბუტები"
 
 msgid "User-specified attributes to which the permission applies"
 msgstr ""
@@ -5908,7 +5908,7 @@ msgid "Privilege name"
 msgstr ""
 
 msgid "Privilege description"
-msgstr ""
+msgstr "პრივილეგიის აღწერა"
 
 msgid "Granting privilege to roles"
 msgstr ""
@@ -5929,10 +5929,10 @@ msgid "Add permissions to a privilege."
 msgstr ""
 
 msgid "permission"
-msgstr ""
+msgstr "წვდომა"
 
 msgid "permissions"
-msgstr ""
+msgstr "წვდომები"
 
 msgid "Number of permissions added"
 msgstr ""
@@ -6281,10 +6281,10 @@ msgid "Add privileges to a role."
 msgstr ""
 
 msgid "privilege"
-msgstr ""
+msgstr "პრივილეგიები"
 
 msgid "privileges"
-msgstr ""
+msgstr "პრივილეგიები"
 
 msgid "Number of privileges added"
 msgstr ""
@@ -7418,7 +7418,7 @@ msgid "NetBIOS name"
 msgstr ""
 
 msgid "Domain GUID"
-msgstr ""
+msgstr "დომენის GUID"
 
 msgid "Fallback primary group"
 msgstr ""
@@ -7691,7 +7691,7 @@ msgid "Don't create user private group"
 msgstr ""
 
 msgid "Delete a user."
-msgstr ""
+msgstr "მომხმარებლის წაშლა."
 
 msgid "Disable a user account."
 msgstr ""
@@ -12355,7 +12355,7 @@ msgid "Unknown"
 msgstr "უცნობი"
 
 msgid "Non-Active Directory domain"
-msgstr ""
+msgstr "არა-Active Directory-ის დომენი"
 
 msgid "Active Directory domain"
 msgstr "Active Directory-ის დომენი"
@@ -12668,10 +12668,10 @@ msgid "DNS servers"
 msgstr "DNS სერვერები"
 
 msgid "DNS Servers"
-msgstr ""
+msgstr "DNS სერვერები"
 
 msgid "DNS Server"
-msgstr ""
+msgstr "DNS სერვერი"
 
 msgid "DNS Server name"
 msgstr ""
@@ -13047,7 +13047,7 @@ msgid ""
 msgstr ""
 
 msgid "host groups"
-msgstr ""
+msgstr "ჰოსტის ჯგუფები"
 
 msgid "Host Group"
 msgstr "ჰოსტების ჯგუფი"
@@ -15378,7 +15378,7 @@ msgstr ""
 
 #, python-format
 msgid "%s"
-msgstr ""
+msgstr "%s"
 
 #, python-format
 msgid "%s to add"
@@ -15682,6 +15682,8 @@ msgid ""
 "\n"
 "Permissions\n"
 msgstr ""
+"\n"
+"წვდომები\n"
 
 msgid ""
 "\n"
@@ -15904,7 +15906,7 @@ msgid ""
 msgstr ""
 
 msgid "Privilege"
-msgstr ""
+msgstr "პრივილეგიები"
 
 #, python-format
 msgid "Added privilege \"%(value)s\""
@@ -16186,13 +16188,13 @@ msgid ""
 msgstr ""
 
 msgid "trust"
-msgstr ""
+msgstr "ნდობა"
 
 msgid "trusts"
 msgstr ""
 
 msgid "Trusts"
-msgstr ""
+msgstr "ნდობები"
 
 msgid "Trust"
 msgstr "ნდობა"
@@ -16798,7 +16800,7 @@ msgid "Vault configuration"
 msgstr "საცავის მორგება"
 
 msgid "IPA KRA servers"
-msgstr ""
+msgstr "IPA KRA სერვერები"
 
 msgid "IPA servers configured as key recovery agents"
 msgstr ""
@@ -17328,7 +17330,7 @@ msgid "Failed to find users over SystemBus.  See details in the error_log"
 msgstr ""
 
 msgid "User logins"
-msgstr ""
+msgstr "მომხმარებლის სახელები"
 
 msgid ""
 "\n"
@@ -17438,7 +17440,7 @@ msgid "IPA master which can process PKINIT requests"
 msgstr ""
 
 msgid "IPA CA servers"
-msgstr ""
+msgstr "IPCA CA სერვერები"
 
 msgid "IPA servers configured as certificate authority"
 msgstr ""
@@ -18037,7 +18039,7 @@ msgid "'%s' is a required part of DNS record"
 msgstr ""
 
 msgid "Invalid number of parts!"
-msgstr ""
+msgstr "ნაწილების რაოდენობა არასწორია!"
 
 #, python-format
 msgid "DNS RR type \"%s\" is not supported by bind-dyndb-ldap plugin"
@@ -19383,7 +19385,7 @@ msgid "Role Settings"
 msgstr ""
 
 msgid "Add role"
-msgstr ""
+msgstr "როლის დამატება"
 
 #, python-brace-format
 msgid "Add user groups into role '${primary_key}'"
@@ -19884,7 +19886,7 @@ msgid "SELinux Options"
 msgstr ""
 
 msgid "Server Options"
-msgstr ""
+msgstr "სერვერის პარამეტრები"
 
 msgid "Service Options"
 msgstr "სერვისის მორგება"
@@ -20349,7 +20351,7 @@ msgid "OTP set"
 msgstr ""
 
 msgid "Set One-Time Password"
-msgstr ""
+msgstr "ერთჯერადი პაროლის დაყენება"
 
 msgid "Remove hosts"
 msgstr "ჰოსტის წაშლა"
@@ -20702,7 +20704,7 @@ msgid "Public key:"
 msgstr "საჯარო გასაღები:"
 
 msgid "Set public key"
-msgstr ""
+msgstr "საჯარო გასაღების დაყენება"
 
 msgid "Show/Set key"
 msgstr ""
@@ -20744,7 +20746,7 @@ msgid "Range size"
 msgstr ""
 
 msgid "Domain SID"
-msgstr ""
+msgstr "დომენის SID"
 
 msgid "Secondary RID base"
 msgstr ""
@@ -20889,10 +20891,10 @@ msgid "Kerberos Key Present, Service Provisioned"
 msgstr ""
 
 msgid "SSH public keys"
-msgstr ""
+msgstr "SSH საჯარო გასაღები"
 
 msgid "SSH public key:"
-msgstr ""
+msgstr "SSH საჯარო გასაღები:"
 
 msgid "Set SSH key"
 msgstr ""
@@ -21216,7 +21218,7 @@ msgid "Active users"
 msgstr ""
 
 msgid "Add user"
-msgstr ""
+msgstr "მომხმარებლის დამატება"
 
 #, python-brace-format
 msgid "Add user '${primary_key}' into user groups"
@@ -22813,7 +22815,7 @@ msgid "Certificate Authority"
 msgstr "სერტიფიკატების გამომცემელი"
 
 msgid "Certificate Authorities"
-msgstr ""
+msgstr "სერტიფიკატების გამომცემელი"
 
 msgid "Name for referencing the CA"
 msgstr ""
