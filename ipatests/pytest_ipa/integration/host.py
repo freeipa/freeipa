@@ -38,6 +38,7 @@ from .host_ipaplatform import (
     HostPlatformTasks,
 )
 from .host_systemctl import HostSystemctl
+from .host_ipactl import HostIpactl
 from .transport import IPAOpenSSHTransport
 from .resolver import resolver
 
@@ -94,6 +95,7 @@ class Host(pytest_multihost.host.Host):
         self._knownservices = None
         self._tasks = None
         self._systemctl = None
+        self._ipactl = None
         self._ds_serverid = None
         self._resolver = None
 
@@ -138,6 +140,12 @@ class Host(pytest_multihost.host.Host):
         if self._systemctl is None:
             self._systemctl = HostSystemctl(self)
         return self._systemctl
+
+    @property
+    def ipactl(self):
+        if self._ipactl is None:
+            self._ipactl = HostIpactl(self)
+        return self._ipactl
 
     @property
     def ds_serverid(self):

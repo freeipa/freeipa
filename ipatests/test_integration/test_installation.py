@@ -2002,7 +2002,7 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
 
         # stop the main server in order to preserve the replication agreement
         # when removing the replica
-        tasks.stop_ipa_server(self.master)
+        self.master.ipactl.stop()
 
         # intentionally using ipa-server-install --uninstall
         # instead of replica-manage
@@ -2010,7 +2010,7 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
                                       '--uninstall',
                                       '--force',
                                       '-U'])
-        tasks.start_ipa_server(self.master)
+        self.master.ipactl.start()
 
         result = tasks.install_replica(self.master,
                                        self.replicas[0],
