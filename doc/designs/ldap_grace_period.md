@@ -51,7 +51,22 @@ The basic flow is:
 
 On successful password reset (by anyone) reset the user's passwordGraceUserTime to 0.
 
-The default value on install/upgrade will be -1 to retail existing behavior.
+Range values for passwordgracelimit are:
+
+-1 : password grace checking is disabled
+ 0 : no grace BIND are allowed at all post-expiration
+ 1..MAXINT: the number of BIND allowed post-expiration
+
+The default value for the global policy on install/upgrade will be -1 to
+retain existing behavior.
+
+New group password policies will default to -1 to retain previous
+behavior.
+
+Existing group policies with no grace limit set are updated to use
+the default unlimited value, -1. This is done because lack of value in
+LDAP is treated as 0 so any existing group policies would not allow
+post-expiration BIND so this will avoid confusion.
 
 The per-user attempts will not be replicated.
 
