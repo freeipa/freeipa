@@ -1,0 +1,3 @@
+.. _StrEnum:
+
+# StrEnum

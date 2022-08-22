@@ -1,0 +1,3 @@
+.. _DNAMERecord:
+
+# DNAMERecord
