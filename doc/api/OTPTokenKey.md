@@ -1,0 +1,3 @@
+.. _OTPTokenKey:
+
+# OTPTokenKey

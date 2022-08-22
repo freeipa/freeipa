@@ -1,0 +1,3 @@
+.. _MXRecord:
+
+# MXRecord

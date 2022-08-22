@@ -40,7 +40,7 @@ else:
     _dcerpc_bindings_installed = False
 
 
-ID_RANGE_VS_DNA_WARNING = _("""=======
+ID_RANGE_VS_DNA_WARNING = _("""-------
 WARNING:
 
 DNA plugin in 389-ds will allocate IDs based on the ranges configured for the
@@ -51,7 +51,8 @@ Manual configuration change has to be done in the DNA plugin configuration for
 the new local range. Specifically, The dnaNextRange attribute of 'cn=Posix
 IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to be
 modified to match the new range.
-=======
+
+-------
 """)
 
 __doc__ = _("""
