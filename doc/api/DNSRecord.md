@@ -1,0 +1,3 @@
+.. _DNSRecord:
+
+# DNSRecord

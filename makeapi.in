@@ -268,6 +268,145 @@ def make_api():
 
     return 0
 
+def make_api_reference():
+    """
+    Generate API reference.
+    Index will be created in reStructuredText format so that it can be
+    integrated in existing documentation. Then, reference for each class
+    will be created in Markdown format.
+    """
+
+    class_template = """[//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
+{reference}
+
+[//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)
+{notes}
+"""
+
+    notes_template = """### Semantics
+
+### Notes
+
+### Version differences
+"""
+
+    def make_md_table(rows):
+        """
+        First list passed are column names, the rest are rows.
+        Return list of lines conforming the table.
+        """
+        out = ["|" + "|".join(rows[0])]
+        out.append("|" + "|".join(['-'] * len(rows[0])))
+        for row in rows[1:]:
+            out.append("|" + "|".join(row))
+        return out
+
+    cmd_lines = [
+        "IPA API Commands",
+        "=================",
+        ".. toctree::",
+        "   :maxdepth: 1",
+        "\n"
+    ]
+
+    param_lines = [
+        "IPA API Parameter types",
+        "=======================",
+        ".. toctree::",
+        "   :maxdepth: 1",
+        "\n"
+    ]
+
+    # Create Markdown file for each parameter type under ipalib.parameters.Param
+    def all_subclasses(cls):
+        ret = cls.__subclasses__()
+        for s in cls.__subclasses__():
+            ret.extend(all_subclasses(s))
+        return sorted(list(set(ret)), key=operator.attrgetter('__name__'))
+
+    ipa_classes = all_subclasses(Param)
+
+    for param in ipa_classes:
+        lines = [
+            ".. _%s:\n" % param.__name__,
+            "# %s" % param.__name__,
+        ]
+        with open("doc/api/%s.md" % param.__name__, "w") as f:
+            out = "\n".join(lines)
+            f.write(out)
+        param_lines.append("   %s.md" % param.__name__)
+
+    def generate_param_type_text(obj):
+        # If class is part of IPA Params, return text with ref, if not just return its name
+        if type(obj) in ipa_classes:
+            return ":ref:`{n}<{n}>`".format(n=type(obj).__name__)
+        else:
+            return type(obj).__name__
+
+    # Create Markdown file for each command
+    for cmd in api.Command():
+        lines = []
+        lines.append("# %s" % cmd.name)
+
+        doc_stripped =  '\n'.join([s.strip() for s in str(cmd.doc).splitlines()])
+        lines.append(doc_stripped)
+
+        lines.append("\n### Arguments")
+        try:
+            next(cmd.args()) # if empty, StopIteration is thrown
+            table_rows = [["Name", "Type", "Required"]]
+            for a in cmd.args():
+                table_rows.append([a.name, generate_param_type_text(a), str(a.required)])
+            lines.extend(make_md_table(table_rows))
+        except StopIteration:
+            lines.append("No arguments.")
+
+        lines.append("\n### Options")
+        try:
+            next(cmd.options())
+            for o in sorted(cmd.options(), key=operator.attrgetter('required'), reverse=True):
+                req_str = " **(Required)**" if o.required else ""
+                lines.append("* {} : {}{}".format(o.name, generate_param_type_text(o), req_str))
+                if hasattr(o, "default") and o.default is not None:
+                    lines.append(" * Default: {}".format(o.default))
+                if hasattr(o, "values"):
+                    lines.append(" * Values: {}".format(o.values))
+        except StopIteration:
+            lines.append("No options.")
+
+        lines.append("\n### Output")
+        try:
+            next(cmd.output())
+            table_rows = [["Name", "Type"]]
+            for o in sorted(cmd.output(), key=operator.attrgetter('name')):
+                table_rows.append([o.name, generate_param_type_text(o)])
+            lines.extend(make_md_table(table_rows))
+        except StopIteration:
+            lines.append("No output.")
+
+        cmd_lines.append("   %s.md" % cmd.name)
+
+        try:
+            with open("doc/api/%s.md" % cmd.name, "r") as f:
+                # Read notes write to template
+                notes = f.read().split("//end)")[1].strip()
+        except FileNotFoundError:
+                notes = notes_template
+
+        with open("doc/api/%s.md" % cmd.name, "w") as f:
+            out = class_template.format(
+                reference="\n".join(lines), notes=notes).strip()
+            f.write(out)
+
+    with open("doc/api/commands.rst", "w") as f:
+        f.write("\n".join(cmd_lines))
+
+    with open("doc/api/parameters.rst", "w") as f:
+        f.write("\n".join(param_lines))
+
+    return 0
+
+
 def find_name(line):
     """
     Break apart a Param line and pull out the name. It would be nice if we
@@ -526,6 +665,8 @@ def main():
     else:
         print("Writing API to API.txt")
         rval |= make_api()
+        print("Creating API Reference")
+        rval |= make_api_reference()
 
     if rval & API_FILE_DIFFERENCE:
         print('')
