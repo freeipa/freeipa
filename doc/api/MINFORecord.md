@@ -1,0 +1,3 @@
+.. _MINFORecord:
+
+# MINFORecord

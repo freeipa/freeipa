@@ -19,14 +19,14 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'FreeIPA'
-copyright = '2020, FreeIPA Contributors'
+copyright = '2022, FreeIPA Contributors'
 author = 'FreeIPA Contributors'
 
 # The short X.Y version
-version = '4.9-dev'
+version = '4.11-dev'
 
 # The full version, including alpha/beta/rc tags
-release = '4.9-dev'
+release = '4.11-dev'
 
 master_doc = 'index'
 
