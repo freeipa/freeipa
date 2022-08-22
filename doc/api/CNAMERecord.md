@@ -1,0 +1,3 @@
+.. _CNAMERecord:
+
+# CNAMERecord
