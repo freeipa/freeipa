@@ -271,7 +271,13 @@ var IPA = function () {
                             var cn = that.whoami.data.krbcanonicalname;
                             if (cn) that.principal = cn[0];
                             if (!that.principal) {
-                                that.principal = that.whoami.data.krbprincipalname[0];
+                                var principal = data.principal;
+                                var idx = that.whoami.data.krbprincipalname.indexOf(principal);
+                                if (idx > -1) {
+                                    that.principal = principal;
+                                } else {
+                                    that.principal = that.whoami.data.krbprincipalname[0];
+                                }
                             }
                         } else if (entity === 'idoverrideuser') {
                             that.principal = that.whoami.data.ipaoriginaluid[0];
