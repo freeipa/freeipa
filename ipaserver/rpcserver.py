@@ -1109,6 +1109,7 @@ class login_password(Backend, KerberosSession):
                 ccache_name,
                 armor_ccache_name=armor_path,
                 enterprise=True,
+                canonicalize=True,
                 lifetime=self.api.env.kinit_lifetime)
 
             if armor_path:
