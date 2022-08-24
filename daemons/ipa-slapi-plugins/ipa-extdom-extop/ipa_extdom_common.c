@@ -98,7 +98,7 @@ static int inc_buffer(size_t buf_max, size_t *_buf_len, char **_buf)
     return 0;
 }
 
-int __nss_to_err(enum nss_status errcode)
+static int __nss_to_err(enum nss_status errcode)
 {
     switch(errcode) {
     case NSS_STATUS_SUCCESS:
@@ -727,8 +727,8 @@ done:
     return ret;
 }
 
-int pack_ber_name_list(struct extdom_req *req, char **fq_name_list,
-                       struct berval **berval)
+static int pack_ber_name_list(struct extdom_req *req, char **fq_name_list,
+                              struct berval **berval)
 {
     BerElement *ber = NULL;
     int ret;
