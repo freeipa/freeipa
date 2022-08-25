@@ -74,7 +74,7 @@ static int get_string_array(LDAP *ldp, LDAPMessage *entry, const char *name,
 {
     struct berval **vals;
     ber_len_t i;
-    char **buf;
+    char **buf = NULL;
     int tmp;
     size_t count;
     size_t c;
