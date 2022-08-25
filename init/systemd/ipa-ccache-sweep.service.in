@@ -8,6 +8,3 @@ Environment=LC_ALL=C.UTF-8
 ExecStart=@libexecdir@/ipa/ipa-ccache-sweeper
 PrivateTmp=yes
 User=ipaapi
-
-[Install]
-WantedBy=multi-user.target
