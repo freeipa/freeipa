@@ -41,6 +41,7 @@
 #define _GNU_SOURCE 1 /* for asprintf() */
 #endif
 
+#include <stdbool.h>
 #include <errno.h>
 #include <stdio.h>
 #include <sys/param.h>
@@ -518,6 +519,16 @@ int pack_ber_sid(const char *sid, struct berval **berval)
     return LDAP_SUCCESS;
 }
 
+static bool verify_domain(const char *fqdn, const char *domain_name)
+{
+    const char *pos = strrchr(fqdn, SSSD_DOMAIN_SEPARATOR);
+    if (pos == NULL) {
+        return false;
+    }
+
+    return (strcasecmp(pos + 1, domain_name) == 0);
+}
+
 static char *get_short_name(const char *fqdn, const char *domain_name)
 {
     const char *pos = strrchr(fqdn, SSSD_DOMAIN_SEPARATOR);
@@ -886,6 +897,10 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
             }
             goto done;
         }
+        if (!verify_domain(pwd.pw_name, domain_name)) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
             ret = sss_nss_getorigbyname_timeout(pwd.pw_name, get_timeout(ctx),
@@ -963,6 +978,10 @@ static int handle_gid_request(struct ipa_extdom_ctx *ctx,
             } else {
                 ret = LDAP_OPERATIONS_ERROR;
             }
+            goto done;
+        }
+        if (!verify_domain(grp.gr_name, domain_name)) {
+            ret = LDAP_NO_SUCH_OBJECT;
             goto done;
         }
 
@@ -1267,6 +1286,10 @@ static int handle_username_request(struct ipa_extdom_ctx *ctx,
     ret = getpwnam_r_wrapper(ctx, fq_name, &pwd, &buf, &buf_len);
     switch(ret) {
     case 0:
+        if (!verify_domain(pwd.pw_name, domain_name)) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
         if (request_type == REQ_FULL_WITH_GROUPS) {
             ret = sss_nss_getorigbyname_timeout(pwd.pw_name,
                                                 get_timeout(ctx),
@@ -1355,6 +1378,10 @@ static int handle_groupname_request(struct ipa_extdom_ctx *ctx,
         } else {
             ret = LDAP_NO_SUCH_OBJECT;
         }
+        goto done;
+    }
+    if (!verify_domain(grp.gr_name, domain_name)) {
+        ret = LDAP_NO_SUCH_OBJECT;
         goto done;
     }
 
