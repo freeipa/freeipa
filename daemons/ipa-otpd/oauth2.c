@@ -319,7 +319,7 @@ static int check_access_token_reply(struct child_ctx *child_ctx,
     return ret;
 }
 
-static void oauth2_on_child_readable(verto_ctx *, verto_ev *ev)
+static void oauth2_on_child_readable(verto_ctx *vctx, verto_ev *ev)
 {
     static char buf[10240];
     ssize_t io = 0;
@@ -327,6 +327,8 @@ static void oauth2_on_child_readable(verto_ctx *, verto_ev *ev)
     int ret;
     char *rad_reply;
     char *end;
+
+    (void) vctx; /* Unused */
 
     child_ctx = (struct child_ctx *) verto_get_private(ev);
     if (child_ctx == NULL) {
@@ -426,7 +428,7 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
     char *args[50] = {NULL};
     size_t args_idx = 0;
     krb5_data data_state = {0};
-    struct otpd_queue_item *saved_item;
+    struct otpd_queue_item *saved_item = NULL;
 
     if (oauth2_state != OAUTH2_GET_DEVICE_CODE
                 && oauth2_state != OAUTH2_GET_ACCESS_TOKEN) {
