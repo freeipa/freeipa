@@ -234,7 +234,10 @@ class KRAInstance(DogtagInstance):
             os.remove(cfg_file)
             os.remove(admin_p12_file)
 
-        shutil.move(paths.KRA_BACKUP_KEYS_P12, paths.KRACERT_P12)
+        if config.getboolean(
+            self.subsystem, 'pki_backup_keys', fallback=True
+        ):
+            shutil.move(paths.KRA_BACKUP_KEYS_P12, paths.KRACERT_P12)
         logger.debug("completed creating KRA instance")
 
     def __create_kra_agent(self):
