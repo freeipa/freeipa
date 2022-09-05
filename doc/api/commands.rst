@@ -382,6 +382,7 @@ IPA API Commands
    stageuser_add_cert.md
    stageuser_add_certmapdata.md
    stageuser_add_manager.md
+   stageuser_add_passkey.md
    stageuser_add_principal.md
    stageuser_del.md
    stageuser_find.md
@@ -389,6 +390,7 @@ IPA API Commands
    stageuser_remove_cert.md
    stageuser_remove_certmapdata.md
    stageuser_remove_manager.md
+   stageuser_remove_passkey.md
    stageuser_remove_principal.md
    stageuser_show.md
    subid_add.md
@@ -466,6 +468,7 @@ IPA API Commands
    user_add_cert.md
    user_add_certmapdata.md
    user_add_manager.md
+   user_add_passkey.md
    user_add_principal.md
    user_del.md
    user_disable.md
@@ -475,6 +478,7 @@ IPA API Commands
    user_remove_cert.md
    user_remove_certmapdata.md
    user_remove_manager.md
+   user_remove_passkey.md
    user_remove_principal.md
    user_show.md
    user_stage.md
