@@ -381,6 +381,8 @@ aci: (targetattr = "krbpasswordexpiration || krbprincipalkey || passwordhistory 
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbpasswordexpiration || krbprincipalkey || passwordhistory || sambalmpassword || sambantpassword || userpassword")(targetfilter = "(&(!(memberOf=cn=admins,cn=groups,cn=accounts,dc=ipa,dc=example))(objectclass=posixaccount))")(version 3.0;acl "permission:System: Change User password";allow (write) groupdn = "ldap:///cn=System: Change User password,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "ipapasskey || objectclass")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Manage Passkey Mappings";allow (write) groupdn = "ldap:///cn=System: Manage Passkey Mappings,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "ipacertmapdata || objectclass")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Manage User Certificate Mappings";allow (write) groupdn = "ldap:///cn=System: Manage User Certificate Mappings,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "usercertificate")(targetfilter = "(&(!(memberOf=cn=admins,cn=groups,cn=accounts,dc=ipa,dc=example))(objectclass=posixaccount))")(version 3.0;acl "permission:System: Manage User Certificates";allow (write) groupdn = "ldap:///cn=System: Manage User Certificates,cn=permissions,cn=pbac,dc=ipa,dc=example";)
@@ -397,7 +399,7 @@ aci: (targetattr = "audio || businesscategory || carlicense || departmentnumber 
 dn: dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || gecos || gidnumber || homedirectory || loginshell || modifytimestamp || objectclass || uid || uidnumber")(target = "ldap:///cn=users,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read User Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "ipasshpubkey || ipauniqueid || ipauserauthtype || userclass")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User IPA Attributes";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "ipapasskey || ipasshpubkey || ipauniqueid || ipauserauthtype || userclass")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User IPA Attributes";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbcanonicalname || krblastpwdchange || krbpasswordexpiration || krbprincipalaliases || krbprincipalexpiration || krbprincipalname || krbprincipaltype || nsaccountlock")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User Kerberos Attributes";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
