@@ -222,6 +222,10 @@ dn: cn=ng,cn=alt,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Remove Netgroups";allow (delete) groupdn = "ldap:///cn=System: Remove Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=otp,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "cn || ipatokenhotpauthwindow || ipatokenhotpsyncwindow || ipatokentotpauthwindow || ipatokentotpsyncwindow")(targetfilter = "(objectclass=ipatokenotpconfig)")(version 3.0;acl "permission:System: Read OTP Configuration";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=passkeyconfig,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "iparequireuserverification")(targetfilter = "(objectclass=ipapasskeyconfigobject)")(version 3.0;acl "permission:System: Modify Passkey Configuration";allow (write) groupdn = "ldap:///cn=System: Modify Passkey Configuration,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=passkeyconfig,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "cn || iparequireuserverification")(targetfilter = "(objectclass=ipapasskeyconfigobject)")(version 3.0;acl "permission:System: Read Passkey Configuration";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "member")(targetfilter = "(objectclass=ipapermission)")(version 3.0;acl "permission:System: Modify Privilege Membership";allow (write) groupdn = "ldap:///cn=System: Modify Privilege Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: dc=ipa,dc=example
