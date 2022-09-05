@@ -49,7 +49,9 @@ from .baseuser import (
     baseuser_add_manager,
     baseuser_remove_manager,
     baseuser_add_certmapdata,
-    baseuser_remove_certmapdata)
+    baseuser_remove_certmapdata,
+    baseuser_add_passkey,
+    baseuser_remove_passkey)
 from ipalib.request import context
 from ipalib.util import set_krbcanonicalname
 from ipalib import _, ngettext
@@ -812,4 +814,16 @@ class stageuser_add_certmapdata(baseuser_add_certmapdata):
 @register()
 class stageuser_remove_certmapdata(baseuser_remove_certmapdata):
     __doc__ = _("Remove one or more certificate mappings from the stage user"
+                " entry.")
+
+
+@register()
+class stageuser_add_passkey(baseuser_add_passkey):
+    __doc__ = _("Add one or more passkey mappings to the stage user"
+                " entry.")
+
+
+@register()
+class stageuser_remove_passkey(baseuser_remove_passkey):
+    __doc__ = _("Remove one or more passkey mappings from the stage user"
                 " entry.")

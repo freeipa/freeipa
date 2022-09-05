@@ -17,6 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import base64
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+import re
 import six
 
 from ipalib import api, errors, constants
@@ -157,6 +161,35 @@ def update_samba_attrs(ldap, dn, entry_attrs, **options):
                 )
 
 
+def validate_passkey(ugettext, key):
+    """
+    Validate the format for passkey mappings.
+
+    The expected format is passkey:<key id>,<pubkey>
+    """
+    pattern = re.compile(r'passkey:(?P<id>.*),(?P<pkey>.*)')
+    result = re.match(pattern, key)
+    if result is None:
+        return '"%s" is not a valid passkey mapping' % key
+
+    # Validate the id part
+    try:
+        base64.b64decode(result.group('id'))
+    except Exception:
+        return '"%s" is not a valid passkey mapping, invalid id' % key
+
+    # Validate the pkey part
+    try:
+        pem = "-----BEGIN PUBLIC KEY-----\n" + \
+              result.group('pkey') + \
+              "\n-----END PUBLIC KEY-----"
+        load_pem_public_key(data=pem.encode('utf-8'),
+                            backend=default_backend())
+    except ValueError:
+        return '"%s" is not a valid passkey mapping, invalid key' % key
+    return None
+
+
 class baseuser(LDAPObject):
     """
     baseuser object.
@@ -170,7 +203,7 @@ class baseuser(LDAPObject):
     possible_objectclasses = [
         'meporiginentry', 'ipauserauthtypeclass', 'ipauser',
         'ipatokenradiusproxyuser', 'ipacertmapobject',
-        'ipantuserattrs', 'ipaidpuser',
+        'ipantuserattrs', 'ipaidpuser', 'ipapasskeyuser',
     ]
     disallow_object_classes = ['krbticketpolicyaux']
     permission_filter_objectclasses = ['posixaccount']
@@ -186,6 +219,7 @@ class baseuser(LDAPObject):
         'krbprincipalname', 'krbcanonicalname',
         'ipacertmapdata', 'ipantlogonscript', 'ipantprofilepath',
         'ipanthomedirectory', 'ipanthomedirectorydrive',
+        'ipapasskey',
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'krbcanonicalname',
@@ -451,6 +485,12 @@ class baseuser(LDAPObject):
                     'J:', 'K:', 'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:',
                     'S:', 'T:', 'U:', 'V:', 'W:', 'X:', 'Y:', 'Z:'),
                 ),
+        Str('ipapasskey*', validate_passkey,
+            cli_name='passkey',
+            label=_('Passkey mapping'),
+            doc=_('Passkey mapping'),
+            flags=['no_create', 'no_update', 'no_search'],
+            ),
     )
 
     def normalize_and_validate_email(self, email, config=None):
@@ -1011,3 +1051,30 @@ class baseuser_remove_certmapdata(ModCertMapData,
                                   LDAPRemoveAttribute):
     __doc__ = _("Remove one or more certificate mappings from the user entry.")
     msg_summary = _('Removed certificate mappings from user "%(value)s"')
+
+
+class ModPassKey(LDAPModAttribute):
+    attribute = 'ipapasskey'
+
+
+class baseuser_add_passkey(ModPassKey, LDAPAddAttribute):
+    __doc__ = _("Add one or more passkey mappings to the user entry.")
+    msg_summary = _('Added passkey mappings to user "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+
+        dn = super(baseuser_add_passkey, self).pre_callback(
+            ldap, dn, entry_attrs, attrs_list, *keys, **options)
+
+        # The objectclass ipafpasskeyuser may not be present on
+        # existing user entries. We need to add it if we define a new
+        # value for ipapasskey
+        add_missing_object_class(ldap, u'ipapasskeyuser', dn)
+
+        return dn
+
+
+class baseuser_remove_passkey(ModPassKey, LDAPRemoveAttribute):
+    __doc__ = _("Remove one or more passkey mappings from the user entry.")
+    msg_summary = _('Removed passkey mappings from user "%(value)s"')

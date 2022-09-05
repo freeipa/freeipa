@@ -51,6 +51,8 @@ from .baseuser import (
     baseuser_remove_principal,
     baseuser_add_certmapdata,
     baseuser_remove_certmapdata,
+    baseuser_add_passkey,
+    baseuser_remove_passkey,
 )
 from .idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
@@ -204,6 +206,7 @@ class user(baseuser):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'ipauniqueid', 'ipasshpubkey', 'ipauserauthtype', 'userclass',
+                'ipapasskey',
             },
             'fixup_function': fix_addressbook_permission_bindrule,
         },
@@ -424,6 +427,14 @@ class user(baseuser):
                 'Certificate Identity Mapping Administrators'
             },
         },
+        'System: Manage Passkey Mappings': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'ipapasskey', 'objectclass'},
+            'default_privileges': {
+                'Passkey Administrators'
+            },
+        },
+
     }
 
     takes_params = baseuser.takes_params + (
@@ -1013,13 +1024,15 @@ class user_stage(LDAPMultiQuery):
     #    ipauniqueid, krbcanonicalname, sshpubkeyfp, krbextradata
     #    are automatically generated
     #    ipacertmapdata can only be provided with user_add_certmapdata
+    #    ipapasskey can only be provided with user_add_passkey
     ignore_attrs = [u'dn', u'uid',
                     u'has_keytab', u'has_password', u'preserved',
                     u'ipauniqueid', u'krbcanonicalname',
                     u'sshpubkeyfp', u'krbextradata',
                     u'ipacertmapdata',
                     'ipantsecurityidentifier',
-                    u'nsaccountlock']
+                    u'nsaccountlock',
+                    u'ipapasskey']
 
     def execute(self, *keys, **options):
 
@@ -1073,6 +1086,12 @@ class user_stage(LDAPMultiQuery):
                     self.api.Command.stageuser_add_certmapdata(
                         *single_keys,
                         ipacertmapdata=certmapdata)
+                # special handling for passkey
+                passkey = user.get(u'ipapasskey')
+                if passkey:
+                    self.api.Command.stageuser_add_passkey(
+                        *single_keys,
+                        ipapasskey=passkey)
                 try:
                     self.api.Command.user_del(*multi_keys, preserve=False)
                 except errors.ExecutionError:
@@ -1354,3 +1373,13 @@ class user_add_principal(baseuser_add_principal):
 class user_remove_principal(baseuser_remove_principal):
     __doc__ = _('Remove principal alias from the user entry')
     msg_summary = _('Removed aliases from user "%(value)s"')
+
+
+@register()
+class user_add_passkey(baseuser_add_passkey):
+    __doc__ = _("Add one or more passkey mappings to the user entry.")
+
+
+@register()
+class user_remove_passkey(baseuser_remove_passkey):
+    __doc__ = _("Remove one or more passkey mappings from the user entry.")
