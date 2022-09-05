@@ -1770,6 +1770,31 @@ def group_add(host, groupname, extra_args=()):
     return host.run_command(cmd)
 
 
+def ldapsearch_dm(host, base, ldap_args, scope='sub', **kwargs):
+    """Run ldapsearch as Directory Manager
+
+    :param host: host object
+    :param base: Base DN
+    :param ldap_args: additional arguments to ldapsearch (filter, attributes)
+    :param scope: search scope (base, sub, one)
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapsearch',
+        '-x', '-ZZ',
+        '-H', "ldap://{}".format(host.hostname),
+        '-D', str(host.config.dirman_dn),
+        '-w', host.config.dirman_password,
+        '-s', scope,
+        '-b', base,
+        '-o', 'ldif-wrap=no',
+        '-LLL',
+    ]
+    args.extend(ldap_args)
+    return host.run_command(args, **kwargs)
+
+
 def create_temp_file(host, directory=None, create_file=True):
     """Creates temproray file using mktemp."""
     cmd = ['mktemp']
