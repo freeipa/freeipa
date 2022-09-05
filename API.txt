@@ -5182,6 +5182,17 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: stageuser_add_passkey/1
+args: 2,4,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipapasskey+', alwaysask=True, cli_name='passkey')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: stageuser_add_principal/1
 args: 2,4,3
 arg: Str('uid', cli_name='login')
@@ -5365,6 +5376,17 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: stageuser_remove_passkey/1
+args: 2,4,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipapasskey+', alwaysask=True, cli_name='passkey')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: stageuser_remove_principal/1
 args: 2,4,3
 arg: Str('uid', cli_name='login')
@@ -6369,6 +6391,17 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: user_add_passkey/1
+args: 2,4,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipapasskey+', alwaysask=True, cli_name='passkey')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: user_add_principal/1
 args: 2,4,3
 arg: Str('uid', cli_name='login')
@@ -6571,6 +6604,17 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: user_remove_passkey/1
+args: 2,4,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipapasskey+', alwaysask=True, cli_name='passkey')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: user_remove_principal/1
 args: 2,4,3
 arg: Str('uid', cli_name='login')
@@ -7337,6 +7381,7 @@ default: stageuser_add/1
 default: stageuser_add_cert/1
 default: stageuser_add_certmapdata/1
 default: stageuser_add_manager/1
+default: stageuser_add_passkey/1
 default: stageuser_add_principal/1
 default: stageuser_del/1
 default: stageuser_find/1
@@ -7344,6 +7389,7 @@ default: stageuser_mod/1
 default: stageuser_remove_cert/1
 default: stageuser_remove_certmapdata/1
 default: stageuser_remove_manager/1
+default: stageuser_remove_passkey/1
 default: stageuser_remove_principal/1
 default: stageuser_show/1
 default: subid/1
@@ -7432,6 +7478,7 @@ default: user_add/1
 default: user_add_cert/1
 default: user_add_certmapdata/1
 default: user_add_manager/1
+default: user_add_passkey/1
 default: user_add_principal/1
 default: user_del/1
 default: user_disable/1
@@ -7441,6 +7488,7 @@ default: user_mod/1
 default: user_remove_cert/1
 default: user_remove_certmapdata/1
 default: user_remove_manager/1
+default: user_remove_passkey/1
 default: user_remove_principal/1
 default: user_show/1
 default: user_stage/1
