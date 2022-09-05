@@ -29,4 +29,5 @@ FreeIPA design documentation
    external-idp/idp-api.md
    random-serial-numbers.md
    client-install-pkinit.md
+   passkeys.md
    prci_checker.md
