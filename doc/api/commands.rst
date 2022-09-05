@@ -271,6 +271,8 @@ IPA API Commands
    output_show.md
    param_find.md
    param_show.md
+   passkeyconfig_mod.md
+   passkeyconfig_show.md
    passwd.md
    permission_add.md
    permission_add_member.md
