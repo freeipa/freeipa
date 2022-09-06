@@ -16,12 +16,14 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
 from ipatests.test_xmlrpc.tracker.certmapdata import CertmapdataMixin
+from ipatests.test_xmlrpc.tracker.passkey_plugin import PasskeyMixin
 
 if six.PY3:
     unicode = str
 
 
-class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
+class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
+                  Tracker):
     """ Class for host plugin like tests """
 
     retrieve_keys = {
@@ -312,7 +314,7 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
             result=expected,
         ), result)
 
-    def check_find(self, result, all=False, pkey_only=False, raw=False,
+    def check_find(self, result, all=False, raw=False, pkey_only=False,
                    expected_override=None):
         """ Check 'user-find' command result """
         if all:
@@ -553,3 +555,10 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
 
     def _make_remove_certmap(self):
         return self.make_command('user_remove_certmapdata', self.name)
+
+    # Passkey mapping methods
+    def _make_add_passkey(self):
+        return self.make_command('user_add_passkey', self.name)
+
+    def _make_remove_passkey(self):
+        return self.make_command('user_remove_passkey', self.name)
