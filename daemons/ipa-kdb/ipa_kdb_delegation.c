@@ -106,6 +106,8 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
     bool client_missing;
     bool client_found;
     bool target_found;
+    bool is_constraint_delegation = false;
+    size_t nrules = 0;
     int ret;
 
     ipactx = ipadb_get_context(kcontext);
@@ -113,13 +115,17 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
         return KRB5_KDB_DBNOTINITED;
     }
 
-    kerr = krb5_unparse_name(kcontext, client, &client_princ);
-    if (kerr != 0) {
-        goto done;
-    }
-    kerr = krb5_unparse_name(kcontext, target, &target_princ);
-    if (kerr != 0) {
-        goto done;
+    if ((client != NULL) && (target != NULL)) {
+        kerr = krb5_unparse_name(kcontext, client, &client_princ);
+        if (kerr != 0) {
+            goto done;
+        }
+        kerr = krb5_unparse_name(kcontext, target, &target_princ);
+        if (kerr != 0) {
+            goto done;
+        }
+    } else {
+        is_constraint_delegation = true;
     }
 
     lentry = ldap_first_entry(ipactx->lcontext, results);
@@ -142,6 +148,25 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
         switch (ret) {
         case 0:
             for (dres = deref_results; dres; dres = dres->next) {
+                nrules++;
+                if (is_constraint_delegation) {
+                    /*
+                        Microsoft revised the S4U2Proxy rules for forwardable
+                        tickets.  All S4U2Proxy operations require forwardable
+                        evidence tickets, but S4U2Self should issue a
+                        forwardable ticket if the requesting service has no
+                        ok-to-auth-as-delegate bit but also no constrained
+                        delegation privileges for traditional S4U2Proxy.
+                        Implement these rules, extending the
+                        check_allowed_to_delegate() DAL method so that the KDC
+                        can ask if a principal has any delegation privileges.
+
+                        Since target principal is NULL and client principal is
+                        NULL in this case, we simply calculate number of rules associated
+                        with the server principal to decide whether to deny forwardable bit
+                    */
+                    continue;
+                }
                 if (client_found == false &&
                     strcasecmp(dres->derefAttr, "ipaAllowToImpersonate") == 0) {
                     /* NOTE: client_missing is used to signal that the
@@ -175,6 +200,10 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
         lentry = ldap_next_entry(ipactx->lcontext, lentry);
     }
 
+    if (nrules > 0) {
+        kerr = 0;
+    }
+
 done:
     krb5_free_unparsed_name(kcontext, client_princ);
     krb5_free_unparsed_name(kcontext, target_princ);
@@ -196,33 +225,35 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
     struct ipadb_e_data *ied_server, *ied_proxy;
     LDAPMessage *res = NULL;
 
-    /* Handle the case where server == proxy, this is allowed in S4U*/
-    kerr = ipadb_get_principal(kcontext, proxy,
-                               CLIENT_REFERRALS_FLAGS,
-                               &proxy_entry);
-    if (kerr) {
-        goto done;
-    }
-
-    ied_server = (struct ipadb_e_data *) server->e_data;
-    ied_proxy = (struct ipadb_e_data *) proxy_entry->e_data;
-
-    /* If we have SIDs for both entries, compare SIDs */
-    if ((ied_server->has_sid && ied_server->sid != NULL) &&
-        (ied_proxy->has_sid && ied_proxy->sid != NULL)) {
-
-        if (dom_sid_check(ied_server->sid, ied_proxy->sid, true)) {
-            kerr = 0;
+    if (proxy != NULL) {
+        /* Handle the case where server == proxy, this is allowed in S4U */
+        kerr = ipadb_get_principal(kcontext, proxy,
+                                   CLIENT_REFERRALS_FLAGS,
+                                   &proxy_entry);
+        if (kerr) {
             goto done;
         }
-    }
 
-    /* Otherwise, compare entry DNs */
-    kerr = ulc_casecmp(ied_server->entry_dn, strlen(ied_server->entry_dn),
-                       ied_proxy->entry_dn, strlen(ied_proxy->entry_dn),
-                       NULL, NULL, &result);
-    if (kerr == 0 && result == 0) {
-        goto done;
+        ied_server = (struct ipadb_e_data *) server->e_data;
+        ied_proxy = (struct ipadb_e_data *) proxy_entry->e_data;
+
+        /* If we have SIDs for both entries, compare SIDs */
+        if ((ied_server->has_sid && ied_server->sid != NULL) &&
+            (ied_proxy->has_sid && ied_proxy->sid != NULL)) {
+
+            if (dom_sid_check(ied_server->sid, ied_proxy->sid, true)) {
+                kerr = 0;
+                goto done;
+            }
+        }
+
+        /* Otherwise, compare entry DNs */
+        kerr = ulc_casecmp(ied_server->entry_dn, strlen(ied_server->entry_dn),
+                        ied_proxy->entry_dn, strlen(ied_proxy->entry_dn),
+                        NULL, NULL, &result);
+        if (kerr == 0 && result == 0) {
+            goto done;
+        }
     }
 
     kerr = krb5_unparse_name(kcontext, server->princ, &srv_principal);
@@ -241,6 +272,9 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
     }
 
 done:
+    if (kerr) {
+        kerr = KRB5KDC_ERR_BADOPTION;
+    }
     ipadb_free_principal(kcontext, proxy_entry);
     krb5_free_unparsed_name(kcontext, srv_principal);
     ldap_msgfree(res);
