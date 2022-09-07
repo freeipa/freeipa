@@ -28,8 +28,10 @@ import ipatests.test_webui.data_user as user
 import ipatests.test_webui.data_group as group
 import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_hbac as hbac
+import ipatests.test_webui.data_pwpolicy as pwpolicy
 import ipatests.test_webui.test_rbac as rbac
 import ipatests.test_webui.data_sudo as sudo
+
 import pytest
 
 try:
@@ -445,6 +447,52 @@ class test_user(user_tasks):
         self.dialog_button_click('confirm')
         self.wait_for_request(n=3)
         self.assert_no_error_dialog()
+
+    @screenshot
+    def test_grace_login_limit(self):
+        """
+        Verify existence of grace login limit field and its
+        value based on pwpolicy value
+
+        Related: https://pagure.io/freeipa/issue/9211
+        """
+        self.init_app()
+        self.add_record(group.ENTITY, [group.DATA])
+        # add record DATA8 already with passwordgracelimit
+        self.add_record(pwpolicy.ENTITY, [pwpolicy.DATA8])
+
+        self.navigate_to_record(group.PKEY)
+        # fill with values from DATA8, passwordgracelimit has value 42
+        self.fill_fields(pwpolicy.DATA8['mod'])
+        try:
+            # click save if needed
+            self.button_click('save')
+        except AssertionError:
+            # autosave active
+            pass
+
+        # add record itest-user
+        self.add_record(user.ENTITY, user.DATA)
+        # add itest-user to itest-group
+        self.navigate_to_entity(group.ENTITY)
+        self.navigate_to_record(group.PKEY)
+        self.add_associations([user.PKEY])
+        self.navigate_to_record(user.PKEY, entity=user.ENTITY)
+
+        self.facet_button_click('refresh')
+        self.wait(2)
+        field = 'passwordgracelimit'
+        # password grace limit is currently on the 10th place
+        expected_value = pwpolicy.DATA8['mod'][9][2]
+        current_value = self.get_field_value(field, element="input")
+        try:
+            assert current_value == expected_value
+        finally:
+            # cleanup
+            self.delete(user.ENTITY, [user.DATA])
+            self.delete(group.ENTITY, [group.DATA])
+            self.delete(pwpolicy.ENTITY, [pwpolicy.DATA8])
+
 
     @screenshot
     def test_login_without_username(self):
