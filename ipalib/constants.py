@@ -156,6 +156,11 @@ DEFAULT_CONFIG = (
         DN(('cn', 'ca_renewal'), ('cn', 'ipa'), ('cn', 'etc'))),
     ('container_subids', DN(('cn', 'subids'), ('cn', 'accounts'))),
     ('container_idp', DN(('cn', 'idp'))),
+    ('container_compat_tree_refresh', DN(
+        ('cn', 'Schema compatibility refresh task'),
+        ('cn', 'tasks'),
+        ('cn', 'config')
+    )),
 
     # Ports, hosts, and URIs:
     # Following values do not have any reasonable default.

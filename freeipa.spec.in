@@ -73,7 +73,8 @@
 # Require 4.7.0 which brings Python 3 bindings
 %global samba_version 4.12.3-12
 %global selinux_policy_version 3.14.3-52
-%global slapi_nis_version 0.56.4
+# Allow to rebuild the compat tree requires:
+%global slapi_nis_version 0.60.0-1
 %global python_ldap_version 3.1.0-1
 %if 0%{?rhel} < 9
 # Bug 1929067 - PKI instance creation failed with new 389-ds-base build
@@ -100,7 +101,8 @@
 
 # 3.14.5-45 or later includes a number of interfaces fixes for IPA interface
 %global selinux_policy_version 3.14.5-45
-%global slapi_nis_version 0.56.5
+# Allow to rebuild the compat tree requires:
+%global slapi_nis_version 0.60.0-1
 
 %global krb5_kdb_version 8.0
 
