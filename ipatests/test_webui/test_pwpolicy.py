@@ -36,7 +36,7 @@ except ImportError:
 FIELDS = ['krbmaxpwdlife', 'krbminpwdlife', 'krbpwdhistorylength',
           'krbpwdmindiffchars', 'krbpwdminlength', 'krbpwdmaxfailure',
           'krbpwdfailurecountinterval', 'krbpwdlockoutduration',
-          'cospriority']
+          'cospriority', 'passwordgracelimit']
 EXPECTED_ERR = "invalid 'group': cannot delete global password policy"
 EXPECTED_MSG = 'Password Policy successfully added'
 
@@ -268,3 +268,17 @@ class test_pwpolicy(UI_driver):
         assert "History size (number of passwords)" in krbpwdhistorylen
         assert "Failure reset interval (seconds)" in krbpwdfailurecountinterval
         assert "Lockout duration (seconds)" in krbpwdlockoutduration
+
+    @screenshot
+    def test_grace_login_limit(self):
+        """
+        Verify existance of grace login limit field and its constraints
+        """
+        self.init_app()
+        self.add_record(group.ENTITY, [group.DATA])
+        self.add_record(pwpolicy.ENTITY, [pwpolicy.DATA8])
+
+        field = 'passwordgracelimit'
+        self.navigate_to_record(group.PKEY)
+        current_value = self.get_field_value(field, element="input")
+        assert current_value == '42'

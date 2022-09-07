@@ -90,3 +90,24 @@ DATA7 = {
         ('textbox', 'cospriority', '4'),
     ],
 }
+
+PKEY8 = group.PKEY
+DATA8 = {
+    'pkey': 'admins',
+    'add': [
+        ('combobox', 'cn', 'admins'),
+        ('textbox', 'cospriority', '364'),
+    ],
+    'mod': [
+        ('textbox', 'krbmaxpwdlife', '3000'),
+        ('textbox', 'krbminpwdlife', '1'),
+        ('textbox', 'krbpwdhistorylength', '0'),
+        ('textbox', 'krbpwdmindiffchars', '2'),
+        ('textbox', 'krbpwdminlength', '2'),
+        ('textbox', 'krbpwdmaxfailure', '15'),
+        ('textbox', 'krbpwdfailurecountinterval', '5'),
+        ('textbox', 'krbpwdlockoutduration', '3600'),
+        ('textbox', 'cospriority', '365'),
+        ('textbox', 'passwordgracelimit', '42'),
+    ],
+}
