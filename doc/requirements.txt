@@ -19,7 +19,7 @@ requests
 
 ## C libraries with binary wheels
 cffi
-cryptography
+cryptography==37.0.4  # Issue: https://pagure.io/freeipa/issue/9160
 lxml
 
 ## C libraries without binaries wheels
