@@ -47,6 +47,7 @@ var spec = {
             row_enabled_attribute: 'ipaenabledflag',
             columns: [
                 'cn',
+                'sudoorder',
                 {
                     name: 'ipaenabledflag',
                     label: '@i18n:status.label',
