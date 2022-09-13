@@ -567,9 +567,13 @@ class CAInstance(DogtagInstance):
             # if paths.TMP_CA_P12 exists and is not owned by root,
             # shutil.copy will fail if when fs.protected_regular=1
             # so remove the file first
-            ipautil.remove_file(paths.TMP_CA_P12)
-            shutil.copy(cafile, paths.TMP_CA_P12)
-            self.service_user.chown(paths.TMP_CA_P12)
+            if os.path.exists(paths.TMP_CA_P12):
+                ipautil.remove_file(paths.TMP_CA_P12)
+                shutil.copy(cafile, paths.TMP_CA_P12)
+                self.service_user.chown(paths.TMP_CA_P12)
+                clone_pkcs12_path = paths.TMP_CA_P12
+            else:
+                clone_pkcs12_path = None
 
             if self.random_serial_numbers:
                 cfg.update(
@@ -587,7 +591,7 @@ class CAInstance(DogtagInstance):
             self._configure_clone(
                 cfg,
                 security_domain_hostname=self.master_host,
-                clone_pkcs12_path=paths.TMP_CA_P12,
+                clone_pkcs12_path=clone_pkcs12_path,
             )
 
         # External CA

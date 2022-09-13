@@ -907,8 +907,6 @@ class DogtagInstance(service.Service):
             pki_security_domain_password=self.admin_password,
             # Clone
             pki_clone=True,
-            pki_clone_pkcs12_path=clone_pkcs12_path,
-            pki_clone_pkcs12_password=self.dm_password,
             pki_clone_replication_security="TLS",
             pki_clone_replication_master_port=self.master_replication_port,
             pki_clone_replication_clone_port=389,
@@ -916,6 +914,11 @@ class DogtagInstance(service.Service):
             pki_clone_uri="https://%s" % ipautil.format_netloc(
                 self.master_host, 443),
         )
+        if clone_pkcs12_path:
+            subsystem_config.update(
+                pki_clone_pkcs12_path=clone_pkcs12_path,
+                pki_clone_pkcs12_password=self.dm_password,
+            )
 
     def _create_spawn_config(self, subsystem_config):
         loader = PKIIniLoader(
