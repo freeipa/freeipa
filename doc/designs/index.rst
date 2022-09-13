@@ -11,6 +11,7 @@ FreeIPA design documentation
    adtrust/sudorules-with-ad-objects.md
    adtrust/auto-private-groups.md
    adtrust/sidconfig.md
+   hsm.md
    krb-ticket-policy.md
    extdom-plugin-protocol.md
    expiring-password-notification.md
