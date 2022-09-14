@@ -242,6 +242,15 @@ def make_enc_kem(name, value, sig_key, alg, enc_key, enc):
 
 
 def decode_enc_kem(message, enc_key, sig_key):
-    jwe = JWT(jwt=message, key=enc_key)
-    jws = JWT(jwt=jwe.claims, key=sig_key)
+    try:
+        jwe = JWT(jwt=message, key=enc_key, expected_type="JWE")
+    except TypeError:
+        # fallback in case of old jwcrypto
+        jwe = JWT(jwt=message, key=enc_key)
+    try:
+        jws = JWT(jwt=jwe.claims, key=sig_key, expected_type="JWS")
+    except TypeError:
+        jws = JWT(jwt=jwe.claims, key=sig_key)
+        if not isinstance(jws.token, JWS):
+            raise TypeError("Invalid Token type")
     return json_decode(jws.claims)
