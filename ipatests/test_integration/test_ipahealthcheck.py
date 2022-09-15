@@ -1310,9 +1310,6 @@ class TestIpaHealthCheck(IntegrationTest):
         """
         error_msg = (
             "\n\nIn Directory Server, we offer one hash suitable for this "
-            "(PBKDF2_SHA256) and one hash\nfor \"legacy\" support (SSHA512)."
-            "\n\nYour configuration does not use these for password storage "
-            "or the root password storage\nscheme.\n"
         )
         returncode, data = run_healthcheck(
             self.master, "ipahealthcheck.ds.config", "ConfigCheck",
