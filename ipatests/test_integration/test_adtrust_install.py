@@ -6,8 +6,10 @@
 
 import re
 import os
+import pytest
 import textwrap
 
+from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.pytest_ipa.integration import tasks
@@ -50,6 +52,9 @@ class TestIpaAdTrustInstall(IntegrationTest):
         res = self.master.run_command(['testparm', '-s'])
         assert 'ERROR' not in (res.stdout_text + res.stderr_text)
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number >= (37,),
+        reason='freeipa ticket 9234', strict=True)
     def test_add_agent_not_allowed(self):
         """Check that add-agents can be run only by Admins."""
         user = "nonadmin"
@@ -251,6 +256,9 @@ class TestIpaAdTrustInstall(IntegrationTest):
                  '"member","ipaexternalmember")')
         assert value in entry_list
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number >= (37,),
+        reason='freeipa ticket 9234', strict=True)
     def test_ipa_user_pac(self):
         """Test that a user can request a service ticket with PAC"""
         user = 'testpacuser'
@@ -279,6 +287,9 @@ class TestIpaAdTrustInstall(IntegrationTest):
             tasks.kinit_admin(self.master)
             self.master.run_command(['ipa', 'user-del', user])
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number >= (37,),
+        reason='freeipa ticket 9234', strict=True)
     def test_ipa_user_s4u2self_pac(self):
         """Test that a service can request S4U2Self ticket with PAC"""
         user = 'tests4u2selfuser'
