@@ -20,6 +20,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipaplatform.tasks import tasks as platform_tasks
+from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipapython.dnsutil import DNSResolver
 
@@ -324,6 +325,9 @@ class TestInstallDNSSECFirst(IntegrationTest):
 
         super(TestInstallDNSSECFirst, cls).uninstall(mh)
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number >= (37,),
+        reason='freeipa ticket 9216', strict=True)
     def test_sign_root_zone(self):
         dnszone_add_dnssec(self.master, root_zone)
 
@@ -355,6 +359,9 @@ class TestInstallDNSSECFirst(IntegrationTest):
             self.replicas[0].ip, root_zone, timeout=300
         ), "Zone %s is not signed (replica)" % root_zone
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number >= (37,),
+        reason='freeipa ticket 9216', strict=True)
     def test_delegation(self):
         dnszone_add_dnssec(self.master, example_test_zone)
 
@@ -420,6 +427,9 @@ class TestInstallDNSSECFirst(IntegrationTest):
             rtype="DS"
         ), "No DS record of '%s' returned from replica" % example_test_zone
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number >= (37,),
+        reason='freeipa ticket 9216', strict=True)
     def test_chain_of_trust_drill(self):
         """
         Validate signed DNS records, using our own signed root zone
@@ -467,6 +477,9 @@ class TestInstallDNSSECFirst(IntegrationTest):
         self.master.run_command(args)
         self.replicas[0].run_command(args)
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number >= (37,),
+        reason='freeipa ticket 9216', strict=True)
     def test_chain_of_trust_delv(self):
         """
         Validate signed DNS records, using our own signed root zone
