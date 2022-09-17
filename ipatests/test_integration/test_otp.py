@@ -5,6 +5,8 @@
 """
 import base64
 import logging
+import subprocess
+
 import pytest
 import re
 import time
@@ -224,6 +226,42 @@ class TestOTPToken(IntegrationTest):
         kinit_otp(master, USER, password=PASSWORD, otp=otpvalue)
 
         del_otptoken(master, otpuid)
+
+    def test_otptoken_sync_incorrect_second_value(self):
+        """Test if sync fails when incorrect token value is provided
+        """
+        master = self.master
+
+        tasks.kinit_admin(master)
+
+        _, hotp = add_otptoken(master, USER, otptype="hotp")
+
+        otp1 = hotp.generate(30).decode("ascii")
+        otp2 = "424242" if otp1 != "424242" else "123456"
+        with pytest.raises(subprocess.CalledProcessError):
+            master.run_command(
+                ["ipa", "otptoken-sync", "--user", USER],
+                stdin_text=f"{PASSWORD}\n{otp1}\n{otp2}\n",
+                raiseonerr=True
+            )
+
+    def test_otptoken_sync_incorrect_both_values(self):
+        """Test if sync fails when incorrect token value is provided
+        """
+        master = self.master
+
+        tasks.kinit_admin(master)
+
+        _, _ = add_otptoken(master, USER, otptype="hotp")
+
+        otp1 = "123456"
+        otp2 = "424242"
+        with pytest.raises(subprocess.CalledProcessError):
+            master.run_command(
+                ["ipa", "otptoken-sync", "--user", USER],
+                stdin_text=f"{PASSWORD}\n{otp1}\n{otp2}\n",
+                raiseonerr=True
+            )
 
     def test_2fa_enable_single_prompt(self):
         """Test ssh with 2FA when single prompt is enabled.
