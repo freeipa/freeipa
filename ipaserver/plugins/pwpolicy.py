@@ -406,7 +406,7 @@ class pwpolicy(LDAPObject):
             label=_('Grace login limit'),
             doc=_('Number of LDAP authentications allowed after expiration'),
             minvalue=-1,
-            maxvalue=Int.MAX_UINT32,
+            maxvalue=Int.MAXINT,
             default=-1,
             autofill=True,
         ),
