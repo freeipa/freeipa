@@ -101,6 +101,7 @@ def check_jobs(filename, jobs_def, topologies, current_spec, supported_classes):
     update_packages = current_spec.get("update_packages", False)
     selinux = current_spec.get("selinux_enforcing", False)
     enable_testing_repo = current_spec.get("enable_testing_repo", False)
+    fips = current_spec.get("fips", False)
 
     for job_name, params in jobs_def.items():
         # Checks for all kind of jobs
@@ -200,6 +201,16 @@ def check_jobs(filename, jobs_def, topologies, current_spec, supported_classes):
             else:
                 msg = (
                     "'selinux_enforcing' field should be set to false or not"
+                    " defined"
+                )
+                print_field_error(job_name, custom_msg=msg)
+            correct_fields = False
+        if args.get("fips", False) != fips:
+            if fips:
+                print_field_error(job_name, "fips", fips)
+            else:
+                msg = (
+                    "'fips' field should be set to false or not"
                     " defined"
                 )
                 print_field_error(job_name, custom_msg=msg)
