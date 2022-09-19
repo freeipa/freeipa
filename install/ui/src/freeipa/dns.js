@@ -158,7 +158,10 @@ return {
                         required: true
                     },
                     'idnssoarname',
-                    'idnssoaserial',
+                    {
+                        name: 'idnssoaserial',
+                        read_only: true
+                    },
                     {
                         name: 'idnssoarefresh',
                         measurement_unit: 'seconds'
