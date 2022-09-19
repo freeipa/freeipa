@@ -2431,15 +2431,14 @@ class dnszone(DNSZoneBase):
             normalizer=normalize_zonemgr,
             autofill=True,
         ),
-        Int('idnssoaserial',
+        Int('idnssoaserial?',
             # Deprecated
             cli_name='serial',
             label=_('SOA serial'),
             doc=_('SOA record serial number'),
             minvalue=1,
             maxvalue=4294967295,
-            default_from=_create_zone_serial,
-            autofill=True,
+            deprecated=True,
             flags=['no_option'],
         ),
         Int('idnssoarefresh',
@@ -2778,14 +2777,6 @@ class dnszone_add(DNSZoneBase_add):
                     option='ip-address',
                     additional_info=u"Value will be ignored.")
             )
-        if 'idnssoaserial' in options:
-            messages.add_message(
-                options['version'],
-                result,
-                messages.OptionDeprecatedWarning(
-                    option='idnssoaserial',
-                    additional_info=u"Value will be ignored.")
-            )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -2827,6 +2818,7 @@ class dnszone_add(DNSZoneBase_add):
         return dn
 
     def execute(self, *keys, **options):
+        options['idnssoaserial'] = _create_zone_serial()
         result = super(dnszone_add, self).execute(*keys, **options)
         self._warning_deprecated_option(result, **options)
         self.obj._warning_forwarding(result, **options)
@@ -2899,16 +2891,6 @@ class dnszone_mod(DNSZoneBase_mod):
              doc=_('Force nameserver change even if nameserver not in DNS')),
     )
 
-    def _warning_deprecated_option(self, result, **options):
-        if 'idnssoaserial' in options:
-            messages.add_message(
-                options['version'],
-                result,
-                messages.OptionDeprecatedWarning(
-                    option='idnssoaserial',
-                    additional_info=u"Value will be ignored.")
-            )
-
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list,
                      *keys, **options):
         if not _check_DN_objectclass(ldap, dn, self.obj.object_class):
@@ -2929,7 +2911,6 @@ class dnszone_mod(DNSZoneBase_mod):
 
     def execute(self, *keys, **options):
         result = super(dnszone_mod, self).execute(*keys, **options)
-        self._warning_deprecated_option(result, **options)
         self.obj._warning_forwarding(result, **options)
         self.obj._warning_name_server_option(result, context, **options)
         self.obj._warning_dnssec_master_is_not_installed(result, **options)
