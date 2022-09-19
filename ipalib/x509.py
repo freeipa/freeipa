@@ -41,7 +41,6 @@ import base64
 import re
 
 from cryptography import x509 as crypto_x509
-from cryptography import utils as crypto_utils
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import (
@@ -88,8 +87,7 @@ SAN_UPN = '1.3.6.1.4.1.311.20.2.3'
 SAN_KRB5PRINCIPALNAME = '1.3.6.1.5.2.2'
 
 
-@crypto_utils.register_interface(crypto_x509.Certificate)
-class IPACertificate:
+class IPACertificate(crypto_x509.Certificate):
     """
     A proxy class wrapping a python-cryptography certificate representation for
     IPA purposes
@@ -401,6 +399,11 @@ class IPACertificate:
         ssl.match_hostname(  # pylint: disable=deprecated-method
             match_cert, DNSName(hostname).ToASCII()
         )
+
+    # added in python-cryptography 38.0
+    @property
+    def tbs_precertificate_bytes(self):
+        return self._cert.tbs_precertificate_bytes
 
 
 def load_pem_x509_certificate(data):
