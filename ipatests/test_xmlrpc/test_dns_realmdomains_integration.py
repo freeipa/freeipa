@@ -131,14 +131,6 @@ class test_dns_realmdomains_integration(Declarative):
                     'idnsallowquery': [u'any;'],
                     'objectclass': objectclasses.dnszone,
                 },
-                'messages': ({
-                    'code': 13004,
-                    'data': {'additional_info': 'Value will be ignored.',
-                             'option': 'idnssoaserial'},
-                    'message': "'idnssoaserial' option is deprecated. "
-                               "Value will be ignored.",
-                    'name': 'OptionDeprecatedWarning',
-                    'type': 'warning'},),
             },
             extra_check=assert_realmdomain_and_txt_record_present,
         ),
@@ -157,15 +149,6 @@ class test_dns_realmdomains_integration(Declarative):
                 'value': DNSName(dnszone_2_absolute),
                 'summary': None,
                 'messages': (
-                    {
-                        'code': 13004,
-                        'data': {'additional_info': 'Value will be ignored.',
-                                 'option': 'idnssoaserial'},
-                        'message': "'idnssoaserial' option is deprecated. "
-                                   "Value will be ignored.",
-                        'name': 'OptionDeprecatedWarning',
-                        'type': 'warning'
-                    },
                     {
                         u'message': u'DNS forwarder semantics changed since '
                         u'IPA 4.0.\nYou may want to use forward zones '
