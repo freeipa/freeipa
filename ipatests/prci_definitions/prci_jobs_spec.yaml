@@ -18,6 +18,7 @@ fixed_n_jobs:
   - nightly_latest_testing_selinux
   - nightly_previous
   - nightly_rawhide
+  - nightly_rawhide_fips
 
 # Info specific to prci definition files
 # 'job_prefix' field is mandatory
@@ -55,6 +56,10 @@ prci_job_spec:
   nightly_rawhide:
     job_prefix: 'fedora-rawhide/'
     update_packages: True
+  nightly_rawhide_fips:
+    job_prefix: 'fedora-rawhide/'
+    update_packages: True
+    fips: True
   nightly_latest_sssd:
     job_prefix: 'sssd-fedora/'
     update_packages: True
