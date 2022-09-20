@@ -7,6 +7,8 @@ from ipalib import errors
 from ipapython.dn import DN
 from ipatests.util import assert_deepequal
 from ipatests.test_xmlrpc.tracker.base import Tracker
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    fuzzy_server_compat_tree_refresh_dn as fuzzy_refresh_dn)
 
 
 class ServerTracker(Tracker):
@@ -67,6 +69,32 @@ class ServerTracker(Tracker):
     def make_update_command(self, updates):
         """Make function that modifies the server using server-mod"""
         return self.make_command('server_mod', self.name, **updates)
+
+    def make_refresh_command(self, *args, **kwargs):
+        """Make function that issues server compat tree refresh.
+        This function can be executed with arbitrary server tracker """
+        return self.make_command('server_compat_tree_refresh', *args, **kwargs)
+
+    def refresh(self, no_wait=False):
+        """ Refresh compat tree conditions and check for result """
+        command = self.make_refresh_command(type=self.membertype,
+                                            no_wait=no_wait)
+        result = command()
+        self.check_rebuild(result, no_wait=no_wait)
+
+    def check_refresh(self, result, no_wait=False):
+        """ Check result of server compat tree refresh command"""
+        if no_wait is False:
+            assert_deepequal(dict(
+                value=None, result=dict(),
+                summary=u'Refresh maps task finished.'
+                ), result)
+        else:
+            assert_deepequal(dict(
+                value=None,
+		        result=dict(dn=fuzzy_refresh_dn),
+                summary=u'Schema compatibility tree rebuild task started'
+                ), result)
 
     def check_retrieve(self, result, all=False, raw=False):
         """Check `server-show` command result"""

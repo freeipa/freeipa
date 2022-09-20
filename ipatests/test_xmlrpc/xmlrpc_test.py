@@ -48,6 +48,11 @@ fuzzy_automember_dn = Fuzzy(
     '^cn=%s,cn=automember rebuild membership,cn=tasks,cn=config$' % uuid_re
 )
 
+# Matches a server compat tree refresh
+fuzzy_server_compat_tree_refresh_dn = Fuzzy(
+    '^cn=%s,cn=Schema compatibility refresh task,cn=tasks,cn=config$' % uuid_re
+)
+
 # base64-encoded value
 fuzzy_base64 = Fuzzy('^[0-9A-Za-z/+]+={0,2}$')
 
