@@ -480,7 +480,7 @@ class CACertManage(admintool.AdminTool):
         for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
             print(ca_nickname)
 
-    def _delete_by_nickname(self, nickname, options):
+    def _delete_by_nickname(self, nicknames, options):
         conn = api.Backend.ldap2
 
         ca_certs = certstore.get_ca_certs_nss(api.Backend.ldap2,
@@ -490,21 +490,22 @@ class CACertManage(admintool.AdminTool):
 
         ipa_ca_nickname = get_ca_nickname(api.env.realm)
 
-        found = False
-        for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
-            if ca_nickname == nickname:
-                if ca_nickname == ipa_ca_nickname:
-                    raise admintool.ScriptError(
-                        'The IPA CA cannot be removed with this tool'
-                    )
-                else:
-                    found = True
-                    break
+        for nickname in nicknames:
+            found = False
+            for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
+                if ca_nickname == nickname:
+                    if ca_nickname == ipa_ca_nickname:
+                        raise admintool.ScriptError(
+                            'The IPA CA cannot be removed with this tool'
+                        )
+                    else:
+                        found = True
+                        break
 
-        if not found:
-            raise admintool.ScriptError(
-                'Unknown CA \'{}\''.format(nickname)
-            )
+            if not found:
+                raise admintool.ScriptError(
+                    'Unknown CA \'{}\''.format(nickname)
+                )
 
         with certs.NSSDatabase() as tmpdb:
             tmpdb.create_db()
@@ -513,12 +514,13 @@ class CACertManage(admintool.AdminTool):
             loaded = tmpdb.list_certs()
             logger.debug("loaded raw certs '%s'", loaded)
 
-            tmpdb.delete_cert(nickname)
+            for nickname in nicknames:
+                tmpdb.delete_cert(nickname)
 
             for ca_nickname, _trust_flags in loaded:
-                if ca_nickname == nickname:
+                if ca_nickname in nicknames:
                     continue
-                if ipa_ca_nickname == nickname:
+                if ipa_ca_nickname in nicknames:
                     raise admintool.ScriptError(
                         "The IPA CA cannot be removed")
                 logger.debug("Verifying %s", ca_nickname)
@@ -535,7 +537,7 @@ class CACertManage(admintool.AdminTool):
                     logger.debug("Verified %s", ca_nickname)
 
         for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
-            if ca_nickname == nickname:
+            if ca_nickname in nicknames:
                 container_dn = DN(('cn', 'certificates'), ('cn', 'ipa'),
                                   ('cn', 'etc'), api.env.basedn)
                 dn = DN(('cn', nickname), container_dn)
@@ -545,7 +547,7 @@ class CACertManage(admintool.AdminTool):
 
     def delete(self):
         nickname = self.args[1]
-        self._delete_by_nickname(nickname, self.options)
+        self._delete_by_nickname([nickname], self.options)
 
     def prune(self):
         expired_certs = []
@@ -558,9 +560,11 @@ class CACertManage(admintool.AdminTool):
         for ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
             if ca_cert.not_valid_after < now:
                 expired_certs.append(ca_nickname)
-                self._delete_by_nickname(ca_nickname, self.options)
+
 
         if expired_certs:
+            self._delete_by_nickname(expired_certs, self.options)
+
             print("Expired certificates deleted:")
             for nickname in expired_certs:
                 print(nickname)
