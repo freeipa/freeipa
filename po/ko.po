@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-09-20 23:20+0000\n"
+"PO-Revision-Date: 2022-09-23 11:19+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -24,7 +24,7 @@ msgstr ""
 #: util/ipa_krb5.c:1058
 #, c-format
 msgid "Out of memory!\n"
-msgstr "메모리가 다 찼습니다!\n"
+msgstr "메모리 부족!\n"
 
 #: client/ipa-join.c:81 client/ipa-join.c:826
 #, c-format
@@ -360,7 +360,7 @@ msgstr "KDC에 의해 허용하는 키가 없습니다\n"
 #: client/ipa-getkeytab.c:168
 #, c-format
 msgid "Out of memory \n"
-msgstr "메모리가 다 찼습니다 \n"
+msgstr "메모리 부족 \n"
 
 #: client/ipa-getkeytab.c:191
 #, c-format
@@ -409,7 +409,7 @@ msgstr "응답 제어 누락!\n"
 #: client/ipa-getkeytab.c:349
 #, c-format
 msgid "Out of Memory!\n"
-msgstr "메모리가 다 찼습니다!\n"
+msgstr "메모리 부족!\n"
 
 #: client/ipa-getkeytab.c:356 client/ipa-getkeytab.c:518
 #, c-format
@@ -789,7 +789,7 @@ msgstr "주체를 제거하는 키탭 파일"
 
 #: client/ipa-rmkeytab.c:202
 msgid "Remove all principals in this realm"
-msgstr "이와 영역에서 모든 주체를 제거합니다"
+msgstr "이와 같은 영역에서 모든 주체를 제거합니다"
 
 #: client/ipa-rmkeytab.c:202 ipaclient/remote_plugins/2_114/trust.py:111
 msgid "Realm name"
@@ -808,7 +808,7 @@ msgstr "키탭을 닫는데 실패함\n"
 #: client/ipa-rmkeytab.c:281
 #, c-format
 msgid "krb5_kt_close %1$d: %2$s\n"
-msgstr "krb5_kt_닫기 %1$d: %2$s\n"
+msgstr "krb5_kt_close %1$d: %2$s\n"
 
 #: client/config.c:56
 #, c-format
@@ -16768,7 +16768,7 @@ msgstr "사용자 정의 값을 추가합니다"
 
 #: ipaserver/plugins/internal.py:263
 msgid "Available"
-msgstr "사용 가능"
+msgstr "사용 가능한"
 
 #: ipaserver/plugins/internal.py:264
 msgid "Some operations failed."
