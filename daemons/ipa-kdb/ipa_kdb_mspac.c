@@ -2063,12 +2063,12 @@ static krb5_error_code ipadb_check_logon_info(krb5_context context,
                 return KRB5_KDB_DBNOTINITED;
             }
             /* In S4U case we might be dealing with the PAC issued by the trusted domain */
-            if (is_s4u && (ipactx->mspac->trusts != NULL)) {
+            if ((ipactx->mspac->trusts != NULL)) {
                 /* Iterate through list of trusts and check if this SID belongs to
                 * one of the domains we trust */
                 for(int i = 0 ; i < ipactx->mspac->num_trusts ; i++) {
                     result = dom_sid_check(&ipactx->mspac->trusts[i].domsid,
-                                           requester_sid, false);
+                                           &client_sid, false);
                     if (result) {
                         is_from_trusted_domain = true;
                         break;
@@ -2076,7 +2076,7 @@ static krb5_error_code ipadb_check_logon_info(krb5_context context,
                 }
             }
 
-            if (!is_from_trusted_domain) {
+            if (!is_from_trusted_domain && !is_s4u) {
                 /* memctx is freed by the caller */
                 char *pac_sid = dom_sid_string(tmpctx, &client_sid);
                 char *req_sid = dom_sid_string(tmpctx, requester_sid);
