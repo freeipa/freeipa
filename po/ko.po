@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2022-09-24 00:20+0000\n"
+"PO-Revision-Date: 2022-09-26 16:20+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
@@ -282,28 +282,28 @@ msgstr "비밀번호가 일치하지 않습니다!\n"
 #: client/ipa-getkeytab.c:803
 #, c-format
 msgid "Failed to open config file %s\n"
-msgstr ""
+msgstr "구성 파일 %s를 여는데 실패함\n"
 
 #: client/ipa-getkeytab.c:813
 #, c-format
 msgid "Failed to parse config file %s\n"
-msgstr ""
+msgstr "구성 파일 %s를 구문 분석하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:896
 msgid "Failed to resolve symlink to keytab.\n"
-msgstr ""
+msgstr "심볼릭링크를 키탭으로 결정 하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:907
 msgid "keytab is a dangling symlink and owned by another user.\n"
-msgstr ""
+msgstr "키탭은 매달린 심볼릭 링크와 다른 사용자에 의해 소유됩니다\n"
 
 #: client/ipa-getkeytab.c:940
 msgid "Print as little as possible"
-msgstr ""
+msgstr "가능한 작게 출력합니다"
 
 #: client/ipa-getkeytab.c:940
 msgid "Output only on errors"
-msgstr ""
+msgstr "오류에서만 출력"
 
 #: client/ipa-getkeytab.c:942
 msgid "Output debug info"
@@ -311,15 +311,15 @@ msgstr ""
 
 #: client/ipa-getkeytab.c:944
 msgid "Contact this specific KDC Server"
-msgstr ""
+msgstr "이와 같은 지정된 KDC 서버와 연락합니다"
 
 #: client/ipa-getkeytab.c:945
 msgid "Server Name"
-msgstr ""
+msgstr "서버 이름"
 
 #: client/ipa-getkeytab.c:947
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
-msgstr ""
+msgstr "(예제: ftp/ftp.example.com@EXAMPLE.COM)를 위해 키탭에서 가져올 주체"
 
 #: client/ipa-getkeytab.c:950
 msgid ""
