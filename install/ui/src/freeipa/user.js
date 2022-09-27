@@ -210,6 +210,7 @@ return {
                         },
                         {
                             $type: 'certs',
+                            name: 'usercertificate',
                             acl_param: 'usercertificate',
                             acl_result_index: 0,
                             adapter: {
