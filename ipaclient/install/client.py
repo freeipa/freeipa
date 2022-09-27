@@ -3089,8 +3089,6 @@ def _install(options, tdict):
 
     if not options.on_master:
         client_dns(cli_server[0], hostname, options)
-        configure_certmonger(fstore, subject_base, cli_realm, hostname,
-                             options, ca_enabled)
 
     update_ssh_keys(hostname, paths.SSH_CONFIG_DIR, options.create_sshfp)
 
@@ -3288,6 +3286,11 @@ def _install(options, tdict):
             force=options.force)
 
         logger.info("Configured /etc/krb5.conf for IPA realm %s", cli_realm)
+
+        # Configure certmonger after krb5.conf is created and last
+        # to give higher chance that the new client is replicated.
+        configure_certmonger(fstore, subject_base, cli_realm, hostname,
+                             options, ca_enabled)
 
     statestore.delete_state('installation', 'complete')
     statestore.backup_state('installation', 'complete', True)
