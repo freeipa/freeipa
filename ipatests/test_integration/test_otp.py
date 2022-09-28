@@ -182,6 +182,83 @@ class TestOTPToken(IntegrationTest):
 
         del_otptoken(master, otpuid)
 
+    @pytest.fixture
+    def desynchronized_hotp(self):
+        """ Create an hotp token for user """
+        tasks.kinit_admin(self.master)
+        otpuid, hotp = add_otptoken(self.master, USER, otptype="hotp")
+
+        # skipping too many OTP fails
+        otp1 = hotp.generate(10).decode("ascii")
+        kinit_otp(self.master, USER, password=PASSWORD, otp=otp1, success=False)
+        # Now the token is desynchronized
+        yield (otpuid, hotp)
+
+        del_otptoken(self.master, otpuid)
+
+    def test_otptoken_sync_incorrect_password(self, desynchronized_hotp):
+        """ Test if sync fails when incorrect password is provided """
+        otpuid, hotp = desynchronized_hotp
+
+        otp2 = hotp.generate(20).decode("ascii")
+        otp3 = hotp.generate(21).decode("ascii")
+
+        # Try to sync with a wrong password
+        result = self.master.run_command(
+            ["ipa", "otptoken-sync", "--user", USER, otpuid],
+            stdin_text=f"invalidpwd\n{otp2}\n{otp3}\n", raiseonerr=False
+        )
+        assert result.returncode == 1
+        assert "Invalid Credentials!" in result.stderr_text
+
+        # Now sync with the right values
+        self.master.run_command(
+            ["ipa", "otptoken-sync", "--user", USER, otpuid],
+            stdin_text=f"{PASSWORD}\n{otp2}\n{otp3}\n"
+        )
+
+    def test_otptoken_sync_incorrect_first_value(self, desynchronized_hotp):
+        """ Test if sync fails when incorrect 1st token value is provided """
+        otpuid, hotp = desynchronized_hotp
+
+        otp2 = "12345a"
+        otp3 = hotp.generate(20).decode("ascii")
+        otp4 = hotp.generate(21).decode("ascii")
+
+        # Try to sync with a wrong first value (contains non-digit)
+        result = self.master.run_command(
+            ["ipa", "otptoken-sync", "--user", USER, otpuid],
+            stdin_text=f"{PASSWORD}\n{otp2}\n{otp3}\n", raiseonerr=False
+        )
+        assert result.returncode == 1
+        assert "Invalid Credentials!" in result.stderr_text
+
+        # Now sync with the right values
+        self.master.run_command(
+            ["ipa", "otptoken-sync", "--user", USER, otpuid],
+            stdin_text=f"{PASSWORD}\n{otp3}\n{otp4}\n"
+        )
+
+    def test_otptoken_sync_incorrect_second_value(self, desynchronized_hotp):
+        """ Test if sync fails when incorrect 2nd token value is provided """
+        otpuid, hotp = desynchronized_hotp
+
+        otp2 = hotp.generate(20).decode("ascii")
+        otp3 = hotp.generate(21).decode("ascii")
+        # Try to sync with wrong order
+        result = self.master.run_command(
+            ["ipa", "otptoken-sync", "--user", USER, otpuid],
+            stdin_text=f"{PASSWORD}\n{otp3}\n{otp2}\n", raiseonerr=False
+        )
+        assert result.returncode == 1
+        assert "Invalid Credentials!" in result.stderr_text
+
+        # Now sync with the right order
+        self.master.run_command(
+            ["ipa", "otptoken-sync", "--user", USER, otpuid],
+            stdin_text=f"{PASSWORD}\n{otp2}\n{otp3}\n"
+        )
+
     def test_totp(self):
         master = self.master
 
