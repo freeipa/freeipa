@@ -20,6 +20,17 @@ def setup_scim_server(host, version="main"):
     host.run_command(["python", "./prepare_sssd.py"],
                      cwd=f"{dir}/src/install")
 
+    # Get keytab for scim bridge service
+    master = host.domain.hosts_by_role("master")[0].hostname
+    princ = f"admin@{host.domain.realm}"
+    ktfile = "/root/scim.keytab"
+    sendpass = f"{password}\n{password}"
+    tasks.kdestroy_all(host)
+    tasks.kinit_admin(host)
+    host.run_command(["ipa-getkeytab", "-s", master, "-p", princ,
+                      "-P", "-k", ktfile], stdin_text=sendpass)
+    host.run_command(["kinit", "-k", "-t", ktfile, princ])
+
     # Install django requirements
     django_reqs = f"{dir}/src/install/requirements.txt"
     host.run_command(["pip", "install", "-r", f"{django_reqs}"])
@@ -159,13 +170,14 @@ def uninstall_scim_server(host):
     host.run_command(["rm", "-rf", "/opt/ipa-tuura",
                       "/etc/sysconfig/scim",
                       "/etc/systemd/system/scim.service",
-                      "/tmp/scim-keycloak-user-storage-spi-main",
-                      "/tmp/keycloak-scim-plugin.zip"])
+                      "/tmp/scim-keycloak-user-storage-spi-0.1",
+                      "/tmp/keycloak-scim-plugin.zip",
+                      "/root/scim.keytab"])
     host.run_command(["systemctl", "daemon-reload"])
     tasks.restore_files(host)
 
 
 def uninstall_scim_plugin(host):
     host.run_command(["rm", "-rf",
-                      "/tmp/scim-keycloak-user-storage-spi-main",
+                      "/tmp/scim-keycloak-user-storage-spi-0.1",
                       "/tmp/keycloak-scim-plugin.zip"])
