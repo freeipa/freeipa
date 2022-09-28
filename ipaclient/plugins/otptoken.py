@@ -22,6 +22,7 @@ import sys
 
 from ipaclient.frontend import MethodOverride
 from ipalib import api, Str, Password, _
+from ipalib import errors
 from ipalib.messages import add_message, ResultFormattingError
 from ipalib.plugable import Registry
 from ipalib.frontend import Local
@@ -180,11 +181,13 @@ class otptoken_sync(Local):
             status['result'][self.header] = rsp.info().get(self.header, 'unknown')
         rsp.close()
 
+        if status['result'][self.header] != "ok":
+            msg = {'error': 'Error contacting server!',
+                   'invalid-credentials': 'Invalid Credentials!',
+                   }.get(status['result'][self.header], 'Unknown Error!')
+            raise errors.ExecutionError(
+                message=_("Unable to synchronize token: %s") % msg)
         return status
 
     def output_for_cli(self, textui, result, *keys, **options):
-        textui.print_plain({
-            'ok': 'Token synchronized.',
-            'error': 'Error contacting server!',
-            'invalid-credentials': 'Invalid Credentials!',
-        }.get(result['result'][self.header], 'Unknown Error!'))
+        textui.print_plain('Token synchronized.')
