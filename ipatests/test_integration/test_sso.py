@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+
 import textwrap
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks, create_keycloak
@@ -53,6 +54,26 @@ def keycloak_login(host, username, password, username_fl=None):
         host.run_command(["rm", "-f", "/tmp/keycloak_login.py"])
 
 
+def keycloak_add_user(host, kcadm_pass, username, password=None):
+    domain = host.domain.name
+    kcadmin_sh = "/opt/keycloak/bin/kcadm.sh"
+    kcadmin = [kcadmin_sh, "config", "credentials", "--server",
+               f"https://{host.hostname}:8443/auth/",
+               "--realm", "master", "--user", "admin",
+               "--password", kcadm_pass]
+
+    host.run_command(kcadmin)
+    host.run_command([kcadmin_sh, "create", "users", "-r", "master",
+                      "-s", f"username={username}",
+                      "-s", f"email={username}@{domain}",
+                      "-s", "enabled=true"])
+
+    if password is not None:
+        host.run_command([kcadmin_sh, "set-password", "-r", "master",
+                          "--username", "testuser1", "--new-password",
+                          password])
+
+
 class TestSsoBridge(IntegrationTest):
 
     # Replicas used instead of clients due to memory requirements
@@ -98,3 +119,20 @@ class TestSsoBridge(IntegrationTest):
         username_fl = 'test user'
         password = self.keycloak.config.admin_password
         keycloak_login(self.keycloak, username, password, username_fl)
+
+    def test_ipa_login_with_sso_user(self):
+        """
+        Test case to authenticate via ssh to IPA client as Keycloak
+        user with password set in IPA without using external IdP
+
+        related: https://pagure.io/freeipa/issue/9250
+        """
+        username = "kcuser1"
+        password = self.keycloak.config.admin_password
+
+        keycloak_add_user(self.keycloak, password, username)
+        tasks.set_user_password(self.master, username, password)
+
+        tasks.run_ssh_cmd(to_host=self.master.external_hostname,
+                          username=username, auth_method="password",
+                          password=password)
