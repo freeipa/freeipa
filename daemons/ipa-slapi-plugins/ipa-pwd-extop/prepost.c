@@ -1513,6 +1513,9 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         }
     }
 
+    /* Reset rc to make sure errors are reported*/
+    rc = LDAP_INVALID_CREDENTIALS;
+
     /* Authenticate the user. */
     ret = ipapwd_authenticate(dn, entry, credentials);
     if (ret) {
