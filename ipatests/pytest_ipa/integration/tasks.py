@@ -2165,6 +2165,17 @@ def create_active_user(host, login, password, first='test', last='user',
     kdestroy_all(host)
 
 
+def set_user_password(host, username, password):
+    temppass = "redhat\nredhat"
+    sendpass = f"redhat\n{password}\n{password}"
+    kdestroy_all(host)
+    kinit_admin(host)
+    host.run_command(["ipa", "passwd", username],stdin_text=temppass)
+    host.run_command(["kinit", username], stdin_text=sendpass)
+    kdestroy_all(host)
+    kinit_admin(host)
+
+
 def kdestroy_all(host):
     return host.run_command(['kdestroy', '-A'])
 
