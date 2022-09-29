@@ -3,6 +3,9 @@
 #
 """Smoke tests for FreeIPA installation in (fake) userspace FIPS mode
 """
+import pytest
+
+from ipaplatform.osinfo import osinfo
 from ipapython.dn import DN
 from ipapython.ipautil import ipa_generate_password, realm_to_suffix
 
@@ -18,6 +21,9 @@ from .test_dnssec import (
 )
 
 
+@pytest.mark.xfail(
+    osinfo.id == 'fedora' and osinfo.version_number > (35,),
+    reason='freeipa ticket 9002', strict=True)
 class TestInstallFIPS(IntegrationTest):
     num_replicas = 1
     num_clients = 1
