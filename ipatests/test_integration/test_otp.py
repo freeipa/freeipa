@@ -32,6 +32,7 @@ from ipapython.dn import DN
 PASSWORD = "DummyPassword123"
 USER = "opttestuser"
 ARMOR = "/tmp/armor"
+OTP_SYNC_INPUT="{}\n{}\n{}\n"
 logger = logging.getLogger(__name__)
 
 
@@ -210,7 +211,8 @@ class TestOTPToken(IntegrationTest):
         # Try to sync with a wrong password
         result = self.master.run_command(
             ["ipa", "otptoken-sync", "--user", USER, otpuid],
-            stdin_text=f"invalidpwd\n{otp2}\n{otp3}\n", raiseonerr=False
+            stdin_text=OTP_SYNC_INPUT.format("invalidpwd", otp2, otp3),
+            raiseonerr=False
         )
         assert result.returncode == 1
         assert "Invalid Credentials!" in result.stderr_text
@@ -218,7 +220,7 @@ class TestOTPToken(IntegrationTest):
         # Now sync with the right values
         self.master.run_command(
             ["ipa", "otptoken-sync", "--user", USER, otpuid],
-            stdin_text=f"{PASSWORD}\n{otp2}\n{otp3}\n"
+            stdin_text=OTP_SYNC_INPUT.format(PASSWORD, otp2, otp3)
         )
 
     def test_otptoken_sync_incorrect_first_value(self, desynchronized_hotp):
@@ -232,7 +234,8 @@ class TestOTPToken(IntegrationTest):
         # Try to sync with a wrong first value (contains non-digit)
         result = self.master.run_command(
             ["ipa", "otptoken-sync", "--user", USER, otpuid],
-            stdin_text=f"{PASSWORD}\n{otp2}\n{otp3}\n", raiseonerr=False
+            stdin_text=OTP_SYNC_INPUT.format(PASSWORD, otp2, otp3),
+            raiseonerr=False
         )
         assert result.returncode == 1
         assert "Invalid Credentials!" in result.stderr_text
@@ -240,7 +243,7 @@ class TestOTPToken(IntegrationTest):
         # Now sync with the right values
         self.master.run_command(
             ["ipa", "otptoken-sync", "--user", USER, otpuid],
-            stdin_text=f"{PASSWORD}\n{otp3}\n{otp4}\n"
+            stdin_text=OTP_SYNC_INPUT.format(PASSWORD, otp3, otp4)
         )
 
     def test_otptoken_sync_incorrect_second_value(self, desynchronized_hotp):
@@ -252,7 +255,8 @@ class TestOTPToken(IntegrationTest):
         # Try to sync with wrong order
         result = self.master.run_command(
             ["ipa", "otptoken-sync", "--user", USER, otpuid],
-            stdin_text=f"{PASSWORD}\n{otp3}\n{otp2}\n", raiseonerr=False
+            stdin_text=OTP_SYNC_INPUT.format(PASSWORD, otp3, otp2),
+            raiseonerr=False
         )
         assert result.returncode == 1
         assert "Invalid Credentials!" in result.stderr_text
@@ -260,7 +264,7 @@ class TestOTPToken(IntegrationTest):
         # Now sync with the right order
         self.master.run_command(
             ["ipa", "otptoken-sync", "--user", USER, otpuid],
-            stdin_text=f"{PASSWORD}\n{otp2}\n{otp3}\n"
+            stdin_text=OTP_SYNC_INPUT.format(PASSWORD, otp2, otp3)
         )
 
     def test_totp(self):
