@@ -52,7 +52,7 @@ def enable_userspace_fips(host):
         ["openssl", "md5", "/dev/null"], raiseonerr=False
     )
     assert result.returncode == 1
-    assert "EVP_DigestInit_ex:disabled for FIPS" in result.stderr_text
+    assert "Error setting digest" in result.stderr_text
 
 
 def disable_userspace_fips(host):
