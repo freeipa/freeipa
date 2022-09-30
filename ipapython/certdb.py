@@ -256,7 +256,7 @@ class NSSDatabase:
     # BaseCertDB is a class that knows nothing about IPA.
     # Generic NSS DB code should be moved here.
 
-    def __init__(self, nssdir=None, dbtype='auto'):
+    def __init__(self, nssdir=None, dbtype='auto', token=None, pwd_file=None):
         if nssdir is not None:
             self.secdir = nssdir
             self._is_temporary = False
@@ -273,9 +273,13 @@ class NSSDatabase:
             self.secdir = tempfile.mkdtemp()
             self._is_temporary = True
 
-        self.pwd_file = os.path.join(self.secdir, 'pwdfile.txt')
+        if pwd_file is None:
+            self.pwd_file = os.path.join(self.secdir, 'pwdfile.txt')
+        else:
+            self.pwd_file = pwd_file
         self.dbtype = None
         self.certdb = self.keydb = self.secmod = None
+        self.token = token
         # files in actual db
         self.filenames = ()
         # all files that are handled by create_db(backup=True)
@@ -340,6 +344,8 @@ class NSSDatabase:
             "-d", '{}:{}'.format(self.dbtype, self.secdir)
         ]
         new_args.extend(args)
+        if self.token:
+            new_args.extend(["-h", self.token])
         new_args.extend(['-f', self.pwd_file])
         # When certutil makes a request it creates a file in the cwd, make
         # sure we are in a unique place when this happens.
