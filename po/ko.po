@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2022-09-26 16:20+0000\n"
+"PO-Revision-Date: 2022-10-01 19:22+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
@@ -325,35 +325,35 @@ msgstr "(예제: ftp/ftp.example.com@EXAMPLE.COM)를 위해 키탭에서 가져�
 msgid ""
 "The keytab file to append the new key to (will be created if it does not "
 "exist)."
-msgstr ""
+msgstr "신규 키를 (만약 존재 한다면 생성 될 것임)로 확장하는 키탭 파일."
 
 #: client/ipa-getkeytab.c:954
 msgid "Encryption types to request"
-msgstr ""
+msgstr "요청하는 암호화 유형"
 
 #: client/ipa-getkeytab.c:955
 msgid "Comma separated encryption types list"
-msgstr ""
+msgstr "쉼표로 구분된 암호화 유형 목록"
 
 #: client/ipa-getkeytab.c:957
 msgid "Show the list of permitted encryption types and exit"
-msgstr ""
+msgstr "허용된 암호화 유형의 목록을 표시하고 종료"
 
 #: client/ipa-getkeytab.c:958
 msgid "Permitted Encryption Types"
-msgstr ""
+msgstr "허용되는 암호화 유형"
 
 #: client/ipa-getkeytab.c:960
 msgid "Asks for a non-random password to use for the principal"
-msgstr ""
+msgstr "보안 주체에 사용 할 임의적이지 않은 비밀번호를 요청합니다"
 
 #: client/ipa-getkeytab.c:962
 msgid "LDAP DN"
-msgstr ""
+msgstr "LDAP DN"
 
 #: client/ipa-getkeytab.c:962
 msgid "DN to bind as if not using kerberos"
-msgstr ""
+msgstr "만약 커버러스를 사용하지 않는 것같이 바인드하는 DN"
 
 #: client/ipa-getkeytab.c:964
 msgid "LDAP password"
@@ -361,31 +361,31 @@ msgstr ""
 
 #: client/ipa-getkeytab.c:964
 msgid "password to use if not using kerberos"
-msgstr ""
+msgstr "만약 커버러스를 사용하지 않는 것을 사용하려는 비밀번호"
 
 #: client/ipa-getkeytab.c:966
 msgid "Prompt for LDAP password"
-msgstr ""
+msgstr "LDAP 비밀번호를 위한 프롬프트"
 
 #: client/ipa-getkeytab.c:968
 msgid "Path to the IPA CA certificate"
-msgstr ""
+msgstr "IPA CA 인증서 경로"
 
 #: client/ipa-getkeytab.c:968
 msgid "IPA CA certificate"
-msgstr ""
+msgstr "IPA CA 인증서"
 
 #: client/ipa-getkeytab.c:970
 msgid "LDAP uri to connect to. Mutually exclusive with --server"
-msgstr ""
+msgstr "연결 할 LDAP URI입니다. --server와 상호 배타적"
 
 #: client/ipa-getkeytab.c:971
 msgid "url"
-msgstr ""
+msgstr "url"
 
 #: client/ipa-getkeytab.c:973
 msgid "LDAP SASL bind mechanism if no bindd/bindpw"
-msgstr ""
+msgstr "만약 bindd/bindpw가 없는 경우 LDAP SASL 바인드 동작원리"
 
 #: client/ipa-getkeytab.c:974
 msgid "GSSAPI|EXTERNAL"
@@ -703,7 +703,7 @@ msgstr ""
 #: client/ipa-join.c:1019 client/ipa-join.c:1096
 #, c-format
 msgid "Unenrollment successful.\n"
-msgstr ""
+msgstr "등록 취소 성공.\n"
 
 #: client/ipa-join.c:1021 client/ipa-join.c:1098
 #, c-format
@@ -2590,7 +2590,7 @@ msgid "Password plugin features"
 msgstr ""
 
 msgid "Extra hashes to generate in password plug-in"
-msgstr ""
+msgstr "비밀번호 플러그-인에서 생성 할 추가 해쉬"
 
 msgid "SELinux user map order"
 msgstr ""
@@ -3113,7 +3113,7 @@ msgstr ""
 #: ipaserver/plugins/dns.py:1020 ipaserver/plugins/dns.py:1063
 #: ipaserver/plugins/dns.py:1412
 msgid "Algorithm"
-msgstr ""
+msgstr "알고리즘"
 
 msgid "CERT Certificate/CRL"
 msgstr ""
@@ -4238,7 +4238,7 @@ msgstr ""
 
 #: ipaserver/plugins/hbacrule.py:314
 msgid "Delete an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙을 삭제합니다."
 
 #: ipaserver/plugins/hbacrule.py:411
 msgid "Disable an HBAC rule."
@@ -4858,7 +4858,7 @@ msgstr ""
 
 #: ipaserver/plugins/service.py:152
 msgid "Hosts allowed to create keytab"
-msgstr ""
+msgstr "키탭을 생성하는데 허용된 호스트"
 
 #: ipaserver/plugins/service.py:155
 msgid "Host Groups allowed to create keytab"
@@ -6200,7 +6200,7 @@ msgstr ""
 #: ipaserver/plugins/otptoken.py:179 ipaserver/plugins/subid.py:149
 #: ipaserver/plugins/subid.py:467 ipaserver/plugins/internal.py:1383
 msgid "Owner"
-msgstr ""
+msgstr "소유자"
 
 #: ipaserver/plugins/otptoken.py:180
 msgid "Assigned user of the token (default: self)"
@@ -6216,7 +6216,7 @@ msgstr ""
 
 #: ipaserver/plugins/otptoken.py:189 ipaserver/plugins/internal.py:1944
 msgid "Disabled"
-msgstr ""
+msgstr "사용불가"
 
 #: ipaserver/plugins/otptoken.py:190
 msgid "Mark the token as disabled (default: false)"
@@ -9066,7 +9066,7 @@ msgid "Add profiles to a CA ACL."
 msgstr ""
 
 msgid "member Certificate Profile"
-msgstr ""
+msgstr "구성원 인증서 프로파일"
 
 msgid "Certificate Profiles to add"
 msgstr ""
@@ -11322,7 +11322,7 @@ msgid "Protocol"
 msgstr ""
 
 msgid "KEY Algorithm"
-msgstr ""
+msgstr "키 알고리즘"
 
 msgid "KEY Public Key"
 msgstr ""
@@ -11373,7 +11373,7 @@ msgid "Comma-separated list of raw RRSIG records"
 msgstr ""
 
 msgid "RRSIG Type Covered"
-msgstr ""
+msgstr "RRSIG 유형 적용"
 
 msgid "Type Covered"
 msgstr ""
@@ -11760,7 +11760,7 @@ msgid "Add source hosts and hostgroups from a HBAC rule."
 msgstr ""
 
 msgid "comma-separated list of hosts to remove"
-msgstr ""
+msgstr "제거하려는 호스트의 쉼표로-구분된 목록"
 
 msgid "comma-separated list of host groups to remove"
 msgstr ""
@@ -15680,7 +15680,7 @@ msgstr ""
 
 #: ipaserver/plugins/serverrole.py:192
 msgid "IPA role name"
-msgstr ""
+msgstr "IPA 역할 이름"
 
 #: ipaserver/plugins/serverroles.py:84
 #, python-brace-format
@@ -18042,7 +18042,7 @@ msgstr ""
 
 #: ipaserver/plugins/schema.py:349
 msgid "Search for classes."
-msgstr ""
+msgstr "등급 검색."
 
 #: ipaserver/plugins/schema.py:436
 msgid "Display information about a help topic."
@@ -19075,7 +19075,7 @@ msgstr ""
 
 #: ipaserver/plugins/baseuser.py:365 ipaserver/plugins/host.py:581
 msgid "SSH public key fingerprint"
-msgstr ""
+msgstr "SSH 공유 키 지문"
 
 #: ipaserver/plugins/baseuser.py:392
 msgid "External IdP configuration"
@@ -24830,7 +24830,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1668
 msgid "Remove vaults"
-msgstr ""
+msgstr "저장소 제거"
 
 #: ipaserver/plugins/internal.py:1670
 #, python-brace-format
@@ -24872,7 +24872,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1690
 msgid "Shared Vaults"
-msgstr ""
+msgstr "공유 저장소"
 
 #: ipaserver/plugins/internal.py:1691
 msgid "Standard"
@@ -27361,7 +27361,7 @@ msgstr "runAs 사용자"
 
 #: ipaserver/plugins/sudorule.py:458
 msgid "runAs users"
-msgstr ""
+msgstr "runAs 사용자"
 
 #: ipaserver/plugins/sudorule.py:463
 msgid "group runAs"
