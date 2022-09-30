@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2021-03-31 09:12+0300\n"
-"PO-Revision-Date: 2022-09-26 16:20+0000\n"
+"PO-Revision-Date: 2022-10-01 19:22+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-9/ko/>\n"
@@ -3613,7 +3613,7 @@ msgstr "추가하려는 그룹"
 
 #: ipaserver/plugins/hbacrule.py:314
 msgid "Delete an HBAC rule."
-msgstr "HBAC 규칙을 제거합니다."
+msgstr "HBAC 규칙을 삭제합니다."
 
 #: ipaserver/plugins/hbacrule.py:411
 msgid "Disable an HBAC rule."
