@@ -510,6 +510,10 @@ class DogtagInstance(service.Service):
     def configure_renewal(self):
         """ Configure certmonger to renew system certs """
 
+        if self.hsm_enabled:
+            nss_user = constants.PKI_USER
+        else:
+            nss_user = None
         for nickname, profile in self.tracking_reqs.items():
             token_name = self.get_token_name(nickname)
             pin = self.__get_pin(token_name)
@@ -523,6 +527,7 @@ class DogtagInstance(service.Service):
                     pre_command='stop_pkicad',
                     post_command='renew_ca_cert "%s"' % nickname,
                     profile=profile,
+                    nss_user=nss_user,
                 )
             except RuntimeError as e:
                 logger.error(

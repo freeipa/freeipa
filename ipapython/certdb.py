@@ -511,7 +511,8 @@ class NSSDatabase:
 
         :return: List of (name, trust_flags) tuples
         """
-        result = self.run_certutil(["-L"], capture_output=True)
+        args = ["-L"]
+        result = self.run_certutil(args, capture_output=True)
         certs = result.output.splitlines()
 
         # FIXME, this relies on NSS never changing the formatting of certutil
