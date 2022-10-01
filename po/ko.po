@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2022-10-01 19:22+0000\n"
+"PO-Revision-Date: 2022-10-02 20:19+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
@@ -393,51 +393,51 @@ msgstr ""
 
 #: client/ipa-getkeytab.c:976
 msgid "Retrieve current keys without changing them"
-msgstr ""
+msgstr "변경하지 않고 현재 키를 검색합니다"
 
 #: client/ipa-getkeytab.c:1014 util/ipa_krb5.c:892
 #, c-format
 msgid "No system preferred enctypes ?!\n"
-msgstr ""
+msgstr "시스템에 선호하는 암호화유형이 없습니다?!\n"
 
 #: client/ipa-getkeytab.c:1017
 #, c-format
 msgid "Supported encryption types:\n"
-msgstr ""
+msgstr "지원되는 암호화 유형:\n"
 
 #: client/ipa-getkeytab.c:1021
 #, c-format
 msgid "Warning: failed to convert type (#%d)\n"
-msgstr ""
+msgstr "경고: 유형 (#%d)를 전환하는데 실패함\n"
 
 #: client/ipa-getkeytab.c:1039
 #, c-format
 msgid "Bind password already provided (-w).\n"
-msgstr ""
+msgstr "바인드 비밀번호는 이미 제공되었습니다 (-w).\n"
 
 #: client/ipa-getkeytab.c:1047
 msgid "Enter LDAP password"
-msgstr ""
+msgstr "LDAP 비밀번호를 입력합니다"
 
 #: client/ipa-getkeytab.c:1055
 #, c-format
 msgid "Bind password required when using a bind DN (-w or -W).\n"
-msgstr ""
+msgstr "바인드 비밀번호는 바인드 DN (-w 또는 -W) 사용 할 때에 필요합니다.\n"
 
 #: client/ipa-getkeytab.c:1062
 #, c-format
 msgid "Cannot specify both SASL mechanism and bind DN simultaneously.\n"
-msgstr ""
+msgstr "SASL 동작원리와 바인드 DN을 동시에 지정 할 수 없습니다.\n"
 
 #: client/ipa-getkeytab.c:1070
 #, c-format
 msgid "Invalid SASL bind mechanism\n"
-msgstr ""
+msgstr "잘못된 SASL 바인드 동작원리\n"
 
 #: client/ipa-getkeytab.c:1081
 #, c-format
 msgid "Cannot specify server and LDAP uri simultaneously.\n"
-msgstr ""
+msgstr "서버와 LDAP uri를 동시에 지정 할 수 없습니다.\n"
 
 #: client/ipa-getkeytab.c:1094
 #, c-format
@@ -467,7 +467,7 @@ msgstr ""
 #: client/ipa-getkeytab.c:1136
 #, c-format
 msgid "Server name not provided and unavailable\n"
-msgstr ""
+msgstr "서버 이름은 제공되지 않으며 사용 할 수 없습니다\n"
 
 #: client/ipa-getkeytab.c:1141
 #, c-format
@@ -477,47 +477,47 @@ msgstr ""
 #: client/ipa-getkeytab.c:1156
 #, c-format
 msgid "Incompatible options provided (-r and -P)\n"
-msgstr ""
+msgstr "호환되지 않는 옵션이 제공되었습니다 (-r 과 -P)\n"
 
 #: client/ipa-getkeytab.c:1161
 msgid "New Principal Password"
-msgstr ""
+msgstr "신규 주체 비밀번호"
 
 #: client/ipa-getkeytab.c:1162
 msgid "Verify Principal Password"
-msgstr ""
+msgstr "주체 비밀번호를 확인합니다"
 
 #: client/ipa-getkeytab.c:1168
 #, c-format
 msgid ""
 "Warning: salt types are not honored with randomized passwords (see opt. -P)\n"
-msgstr ""
+msgstr "경고: 임의의 비밀번호는 솔트 유형을 지원하지 않습니다 (-P 옵션 참조)\n"
 
 #: client/ipa-getkeytab.c:1175
 #, c-format
 msgid "Invalid Service Principal Name\n"
-msgstr ""
+msgstr "잘못된 서비스 사용자 이름\n"
 
 #: client/ipa-getkeytab.c:1183
 #, c-format
 msgid "Kerberos Credential Cache not found. Do you have a Kerberos Ticket?\n"
-msgstr ""
+msgstr "커버러스 인증된 캐쉬는 찾을 수 없습니다. 커버러스 티켓을 가지고 있나요?\n"
 
 #: client/ipa-getkeytab.c:1191
 #, c-format
 msgid ""
 "Kerberos User Principal not found. Do you have a valid Credential Cache?\n"
-msgstr ""
+msgstr "커버러스 사용자 주체를 찾을 수 없습니다. 유효한 인증 캐쉬를 가지고 있나요?\n"
 
 #: client/ipa-getkeytab.c:1205
 #, c-format
 msgid "Failed to open Keytab\n"
-msgstr ""
+msgstr "키탭을 가져오는데 실패함\n"
 
 #: client/ipa-getkeytab.c:1223
 #, c-format
 msgid "Retrying with pre-4.0 keytab retrieval method...\n"
-msgstr ""
+msgstr "이전-4.0 키탭 검색 방법으로 재시도 중...\n"
 
 #: client/ipa-getkeytab.c:1233
 #, c-format
