@@ -2,13 +2,14 @@
 # Copyright (C) YEAR FreeIPA Contributors
 # This file is distributed under the same license as the freeipa package.
 # 김인수 <simmon@nplob.com>, 2022.
+# Alexander Bokovoy <abokovoy@redhat.com>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
 "PO-Revision-Date: 2022-10-03 15:26+0000\n"
-"Last-Translator: 김인수 <simmon@nplob.com>\n"
+"Last-Translator: Alexander Bokovoy <abokovoy@redhat.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -22235,7 +22236,7 @@ msgstr ""
 #: ipaserver/plugins/internal.py:470
 #, python-brace-format
 msgid "Remove roles from privilege '${primary_key}'"
-msgstr ""
+msgstr "권한에서 '${primary_key}' 역할 제거"
 
 #: ipaserver/plugins/internal.py:474
 msgid "Role Settings"
