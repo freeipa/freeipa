@@ -551,3 +551,111 @@ class update_dnsserver_configuration_into_ldap(DNSUpdater):
                          "created in LDAP database")
         sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
         return False, []
+
+
+@register()
+class update_krb_uri_txt_records_for_locations(DNSUpdater):
+
+    backup_filename = u'dns-krb-uri-txt-records-for-locations-%Y-%m-%d-%H-%M-'\
+                      u'%S.ldif'
+
+    def execute(self, **options):
+        ldap = self.api.Backend.ldap2
+
+        if not dns_container_exists(ldap):
+            return False, []
+
+        locations = []
+
+        for location in self.api.Command.location_find()['result']:
+            locations.append(str(location['idnsname'][0]))
+
+        if not locations:
+            return False, []
+
+        tmpl_class_attr = 'objectClass'
+        tmpl_class_value = 'idnsTemplateObject'
+        cname_tmpl_attr = 'idnsTemplateAttribute;cnamerecord'
+        cname_tmpl_value = '_kerberos.\\{substitutionvariable_ipalocation\\}.'\
+                           '_locations'
+
+        domain = self.env.domain
+        realm = self.env.realm
+
+        dns_updates = []
+
+        main_krb_rec = '_kerberos.' + domain + '.'
+        main_krb_rec_dn = DN(('idnsname', '_kerberos'),
+                             ('idnsname', domain + '.'),
+                             self.env.container_dns, self.env.basedn)
+
+        try:
+            entry = ldap.get_entry(main_krb_rec_dn, [
+                tmpl_class_attr, cname_tmpl_attr,
+            ])
+        except errors.NotFound:
+            logger.debug('DNS: %s does not exist, there is no %s record to '
+                         'convert into CNAME', main_krb_rec_dn, main_krb_rec)
+        else:
+            cname_updates = []
+
+            if tmpl_class_value not in entry.get(tmpl_class_attr, []):
+                logger.debug('DNS: convert %s into a CNAME record',
+                             main_krb_rec)
+                cname_updates.append({
+                    'action': 'add',
+                    'attr': tmpl_class_attr,
+                    'value': tmpl_class_value,
+                })
+
+            if cname_tmpl_value not in entry.get(cname_tmpl_attr, []):
+                logger.debug('DNS: update %s CNAME record to point to location '
+                             'records', main_krb_rec)
+                cname_updates.append({
+                    'action': 'add',
+                    'attr': cname_tmpl_attr,
+                    'value': cname_tmpl_value,
+                })
+
+            if cname_updates:
+                dns_updates.append({
+                    'dn': main_krb_rec_dn,
+                    'updates': cname_updates,
+                })
+            else:
+                logger.debug('DNS: %s is already a valid CNAME record',
+                             main_krb_rec)
+
+        for location in locations:
+            location_krb_rec = '_kerberos.' + location + '._locations.' \
+                               + domain + '.'
+            location_krb_rec_dn = DN(('idnsname',
+                                      '_kerberos.' + location + '._locations'),
+                                     ('idnsname', domain + '.'),
+                                     self.env.container_dns, self.env.basedn)
+
+            try:
+                entry = ldap.get_entry(location_krb_rec_dn, ['tXTRecord'])
+            except errors.NotFound:
+                logger.debug('DNS: %s does not exist, there is no %s URI '
+                             'record to rely on to create a TXT record',
+                             location_krb_rec_dn, location_krb_rec)
+            else:
+                if 'tXTRecord' in entry:
+                    logger.debug('DNS: there already is a %s TXT record',
+                                 location_krb_rec)
+                else:
+                    logger.debug('DNS: add %s location-aware TXT record',
+                                 location_krb_rec)
+                    dns_updates.append({
+                        'dn': location_krb_rec_dn,
+                        'updates': [
+                            {
+                                'action': 'addifnew',
+                                'attr': 'tXTRecord',
+                                'value': f'"{realm}"',
+                            },
+                        ],
+                    })
+
+        return False, dns_updates
