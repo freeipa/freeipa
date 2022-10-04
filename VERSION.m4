@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-# Last change: deprecate idnssoaserial in dnszone.
-define(IPA_API_VERSION_MINOR, 250)
+# Last change: fix vault interoperability issues.
+define(IPA_API_VERSION_MINOR, 251)
 
 ########################################################
 # Following values are auto-generated from values above
