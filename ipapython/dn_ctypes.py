@@ -12,12 +12,15 @@ import six
 
 __all__ = ("str2dn", "dn2str", "DECODING_ERROR", "LDAPError")
 
-# load reentrant ldap client library (libldap_r-*.so.2)
-ldap_r_lib = ctypes.util.find_library("ldap_r-2")
-if ldap_r_lib is None:
-    raise ImportError("libldap_r shared library missing")
+# load reentrant ldap client library (libldap_r-*.so.2 or libldap.so.2)
+ldap_lib_filename = next(
+    filter(None, map(ctypes.util.find_library, ["ldap_r-2", "ldap"])), None
+)
+
+if ldap_lib_filename is None:
+    raise ImportError("libldap_r or libldap shared library missing")
 try:
-    lib = ctypes.CDLL(ldap_r_lib)
+    lib = ctypes.CDLL(ldap_lib_filename)
 except OSError as e:
     raise ImportError(str(e))
 
