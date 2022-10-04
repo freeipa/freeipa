@@ -42,3 +42,4 @@ plugin: update_dnsserver_configuration_into_ldap
 plugin: update_ldap_server_list
 plugin: update_dna_shared_config
 plugin: update_unhashed_password
+plugin: update_krb_uri_txt_records_for_locations
