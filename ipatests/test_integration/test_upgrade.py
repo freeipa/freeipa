@@ -20,6 +20,7 @@ from ipapython.dn import DN
 from ipapython.ipautil import template_str
 from ipaserver.install import bindinstance
 from ipaserver.install.sysupgrade import STATEFILE_FILE
+from ipalib.constants import DEFAULT_CONFIG
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -98,6 +99,24 @@ def clear_sysupgrade(host, *sections):
     host.put_file_contents(statefile, out.getvalue())
 
 
+def get_main_krb_rec_dn(domain):
+    return DN(
+        ('idnsname', '_kerberos'),
+        ('idnsname', domain.name + '.'),
+        dict(DEFAULT_CONFIG)['container_dns'],
+        domain.basedn,
+    )
+
+
+def get_location_krb_rec_dn(domain, location):
+    return DN(
+        ('idnsname', '_kerberos.' + location + '._locations'),
+        ('idnsname', domain.name + '.'),
+        dict(DEFAULT_CONFIG)['container_dns'],
+        domain.basedn,
+    )
+
+
 class TestUpgrade(IntegrationTest):
     """
     Test ipa-server-upgrade.
@@ -110,6 +129,73 @@ class TestUpgrade(IntegrationTest):
     def install(cls, mh):
         tasks.install_master(cls.master)
         tasks.install_dns(cls.master)
+
+    @pytest.fixture
+    def setup_locations(self):
+        realm = self.master.domain.realm
+
+        _locations = []
+
+        def _setup_locations(locations):
+            _locations = locations
+
+            ldap = self.master.ldap_connect()
+
+            for location in locations:
+                self.master.run_command(['ipa', 'location-add', location])
+            self.master.run_command([
+                'ipa',
+                'server-mod',
+                '--location=' + locations[0],
+                self.master.hostname,
+            ])
+
+            main_krb_rec = ldap.get_entry(
+                get_main_krb_rec_dn(self.master.domain),
+            )
+            main_krb_rec['objectClass'].remove('idnsTemplateObject')
+            del main_krb_rec['idnsTemplateAttribute;cnamerecord']
+            ldap.update_entry(main_krb_rec)
+
+            for location in locations:
+                location_krb_rec = ldap.get_entry(
+                    get_location_krb_rec_dn(self.master.domain, location),
+                )
+                del location_krb_rec['tXTRecord']
+                ldap.update_entry(location_krb_rec)
+
+        yield _setup_locations
+
+        ldap = self.master.ldap_connect()
+
+        modified = False
+        main_krb_rec = ldap.get_entry(get_main_krb_rec_dn(self.master.domain))
+        if 'idnsTemplateObject' not in main_krb_rec['objectClass']:
+            main_krb_rec['objectClass'].append('idnsTemplateObject')
+            modified = True
+        if 'idnsTemplateAttribute;cnamerecord' not in main_krb_rec:
+            main_krb_rec['idnsTemplateAttribute;cnamerecord'] = \
+                '_kerberos.\\{substitutionvariable_ipalocation\\}._locations'
+            modified = True
+        if modified:
+            ldap.update_entry(main_krb_rec)
+
+        for location in _locations:
+            location_krb_rec = ldap.get_entry(
+                get_location_krb_rec_dn(self.master.domain, location),
+            )
+            if 'tXTRecord' not in location_krb_rec:
+                location_krb_rec['tXTRecord'] = f'"{realm}"'
+                ldap.update_entry(location_krb_rec)
+
+        self.master.run_command([
+            'ipa',
+            'server-mod',
+            '--location=',
+            self.master.hostname,
+        ])
+        for location in _locations:
+            self.master.run_command(['ipa', 'location-del', location])
 
     def test_invoke_upgrader(self):
         cmd = self.master.run_command(['ipa-server-upgrade'],
@@ -334,3 +420,38 @@ class TestUpgrade(IntegrationTest):
             assert "False" in result.stdout_text
         finally:
             self.master.run_command(["rmdir", kra_path])
+
+    def test_krb_uri_txt_to_cname(self, setup_locations):
+        """Test that ipa-server-upgrade correctly updates Kerberos DNS records
+
+        Test for https://pagure.io/freeipa/issue/9257
+        Kerberos URI and TXT DNS records should be location-aware in case the
+        server is part of a location, in order for DNS discovery to prioritize
+        servers from the same location. This means that for such servers the
+        _kerberos record should be a CNAME one pointing to the appropriate set
+        of location-aware records.
+        """
+        realm = self.master.domain.realm
+        locations = ['a', 'b']
+
+        setup_locations(locations)
+
+        self.master.run_command(['ipa-server-upgrade'])
+
+        ldap = self.master.ldap_connect()
+
+        main_krb_rec = ldap.get_entry(
+            get_main_krb_rec_dn(self.master.domain),
+        )
+        assert 'idnsTemplateObject' in main_krb_rec['objectClass']
+        assert len(main_krb_rec['idnsTemplateAttribute;cnamerecord']) == 1
+        assert main_krb_rec['idnsTemplateAttribute;cnamerecord'][0] \
+            == '_kerberos.\\{substitutionvariable_ipalocation\\}._locations'
+
+        for location in locations:
+            location_krb_rec = ldap.get_entry(
+                get_location_krb_rec_dn(self.master.domain, location),
+            )
+            assert 'tXTRecord' in location_krb_rec
+            assert len(location_krb_rec['tXTRecord']) == 1
+            assert location_krb_rec['tXTRecord'][0] == f'"{realm}"'
