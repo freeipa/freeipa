@@ -82,7 +82,7 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-# Last change: Add wrapping algorithm to vault archive/retrieve
+# Last change: Add AES and RSA-OAEP to vault archive/retrieve
 define(IPA_API_VERSION_MINOR, 238)
 
 ########################################################
