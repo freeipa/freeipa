@@ -1044,18 +1044,24 @@ def in_container():
        systemd-detect-virt requires the whole systemd subsystem which
        isn't a reasonable require in a container.
     """
+    data_sched = None
     if not is_hidepid():
-        with open('/proc/1/sched', 'r') as sched:
-            data_sched = sched.readline()
-    else:
-        data_sched = []
+        try:
+            with open('/proc/1/sched', 'r') as sched:
+                data_sched = sched.readline()
+        except (FileNotFoundError, PermissionError):
+            pass
 
-    with open('/proc/self/cgroup', 'r') as cgroup:
-        data_cgroup = cgroup.readline()
+    data_cgroup = None
+    try:
+        with open('/proc/self/cgroup', 'r') as cgroup:
+            data_cgroup = cgroup.readline()
+    except (FileNotFoundError, PermissionError):
+        pass
 
     checks = [
-        data_sched.split()[0] not in ('systemd', 'init',),
-        data_cgroup.split()[0] in ('libpod'),
+        data_sched and data_sched.split()[0] not in ('systemd', 'init',),
+        data_cgroup and data_cgroup.split()[0] in ('libpod'),
         os.path.exists('/.dockerenv'),
         os.path.exists('/.dockerinit'),
         os.getenv('container', None) is not None
