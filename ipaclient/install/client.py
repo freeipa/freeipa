@@ -549,7 +549,7 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
         {
             'name': 'comment',
             'type': 'comment',
-            'value': '   URI, BASE, TLS_CACERT and SASL_MECH'
+            'value': '   URI, BASE, and SASL_MECH'
         },
         {
             'name': 'comment',
@@ -598,12 +598,6 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
             'name': 'BASE',
             'type': 'option',
             'value': str(cli_basedn)
-        },
-        {
-            'action': 'addifnotset',
-            'name': 'TLS_CACERT',
-            'type': 'option',
-            'value': paths.IPA_CA_CRT
         },
         {
             'action': 'addifnotset',
