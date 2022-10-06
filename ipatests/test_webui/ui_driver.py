@@ -2393,3 +2393,36 @@ class UI_driver:
             else:
                 assert value in checked_values, ('{} NOT checked while it '
                                                  'should be'.format(value))
+
+    def add_cert_to_record(self, pem_certs, pkey, entity='user',
+                           navigate=False, save=True):
+        """
+        Add certificate to particular user
+        pem_certs (list): base64/pem certificate(s)
+        pkey (str): user/host to add the certificate to
+        entity (str): name of entity where to navigate if navigate=True
+        navigate (bool): whether we should navigate to record
+        save (bool): whether we should click save after adding a key
+        """
+
+        if type(pem_certs) is not list:
+            pem_certs = [pem_certs]
+
+        if navigate:
+            self.navigate_to_entity(entity)
+            self.navigate_to_record(pkey)
+
+        for cert in pem_certs:
+            c_add = 'div[name="usercertificate"] button[name="add"]'
+            cert_add_btn = self.find(c_add, By.CSS_SELECTOR, strict=True)
+            cert_add_btn.click()
+            self.wait()
+            c_text_area = 'textarea.form-control'
+            text_area = self.find(c_text_area, By.CSS_SELECTOR, strict=True)
+            text_area.send_keys(cert)
+            self.wait()
+            self.dialog_button_click('ok')
+
+        # sometimes we do not want to save e.g. in order to test undo buttons
+        if save:
+            self.facet_button_click('save')
