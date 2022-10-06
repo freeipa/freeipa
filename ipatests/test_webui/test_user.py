@@ -348,6 +348,35 @@ class test_user(user_tasks):
         self.delete_record(user.PKEY, user.DATA.get('del'))
 
     @screenshot
+    def test_certificate_serial(self):
+        """Test long certificate serial no
+        Long certificate serial no were shown in scientific notation
+        at user details page. This test checks that it is no longer shown
+        in scientific notation
+        related:https://pagure.io/freeipa/issue/8754
+        """
+        if not self.has_ca():
+            self.skip('CA is not configured')
+
+        self.init_app()
+
+        self.add_record(user.ENTITY, user.DATA2)
+        self.wait()
+        self.close_notifications()
+        self.navigate_to_record(user.PKEY2)
+
+        self.add_cert_to_record(user.USER_CERT, user.PKEY2, save=False)
+        # check if the cert serial is 264374074076456325397645183544606453821
+        self.assert_text(
+            'div[name="cert-serial-num"]',
+            '264374074076456325397645183544606453821'
+        )
+
+        # cleanup
+        self.navigate_to_entity(user.ENTITY, 'search')
+        self.delete_record(user.PKEY2, user.DATA2.get('del'))
+
+    @screenshot
     def test_password_expiration_notification(self):
         """
         Test password expiration notification
