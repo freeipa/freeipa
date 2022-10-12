@@ -13,7 +13,6 @@ import pytest
 
 try:
     from selenium.common.exceptions import NoSuchElementException
-    from selenium.webdriver.common.by import By
 except ImportError:
     pass
 
@@ -142,17 +141,10 @@ class test_subid(UI_driver):
         """
         self.init_app()
         self.navigate_to_entity('subid', facet='search')
-        self.facet_button_click('add')
-        self.select_combobox('ipaowner', 'admin')
-        self.dialog_button_click('add')
-        self.wait(0.3)
-        self.assert_no_error_dialog()
-        self.get_field_checked('ipauniqueid')
-        with pytest.raises(NoSuchElementException):
-            self.facet_button_click('remove')
-        buttons_s = 'div.control-buttons button'
-        facet_buttons = self.find(buttons_s, By.CSS_SELECTOR,
-                                  many=True, strict=True)
-        assert len(facet_buttons) == 2
-        assert facet_buttons[0].get_attribute('name') in ['add', 'refresh']
-        assert facet_buttons[1].get_attribute('name') in ['add', 'refresh']
+        admin_uid = self.get_record_pkey("admin", "ipaowner",
+                                         table_name="ipauniqueid")
+        with pytest.raises(NoSuchElementException) as excinfo:
+            self.delete_record(admin_uid, table_name="ipauniqueid")
+        # Ensure that the exception is really related to missing remove button
+        msg = "Unable to locate element: .facet-controls button[name=remove]"
+        assert msg in str(excinfo)
