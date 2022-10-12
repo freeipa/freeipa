@@ -48,6 +48,7 @@ from ipalib.install import certstore
 from ipalib.util import strip_csr_header
 from ipalib.text import _
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 
 
 logger = logging.getLogger(__name__)
@@ -69,9 +70,16 @@ def get_cert_nickname(cert):
 
 def install_pem_from_p12(p12_fname, p12_passwd, pem_fname):
     pwd = ipautil.write_tmp_file(p12_passwd)
-    ipautil.run([paths.OPENSSL, "pkcs12", "-nokeys", "-clcerts",
-                 "-in", p12_fname, "-out", pem_fname,
-                 "-passin", "file:" + pwd.name])
+    args = [paths.OPENSSL, "pkcs12", "-nokeys", "-clcerts",
+            "-in", p12_fname, "-out", pem_fname,
+            "-passin", "file:" + pwd.name]
+    # the PKCS12 MAC requires PKCS12KDF which is not an approved FIPS
+    # algorithm and cannot be supported by the FIPS provider.
+    # Do not require mac verification in FIPS mode
+    fips_enabled = tasks.is_fips_enabled()
+    if fips_enabled:
+        args.append('-nomacver')
+    ipautil.run(args)
 
 
 def install_key_from_p12(
@@ -85,6 +93,12 @@ def install_key_from_p12(
         args.extend(['-passout', 'file:{}'.format(out_passwd_fname)])
     else:
         args.append('-nodes')
+    # the PKCS12 MAC requires PKCS12KDF which is not an approved FIPS
+    # algorithm and cannot be supported by the FIPS provider.
+    # Do not require mac verification in FIPS mode
+    fips_enabled = tasks.is_fips_enabled()
+    if fips_enabled:
+        args.append('-nomacver')
 
     ipautil.run(args, umask=0o077)
 
