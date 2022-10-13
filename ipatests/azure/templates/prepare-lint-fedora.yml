@@ -3,4 +3,7 @@ steps:
     set -e
     sudo dnf -y install python3-pip
     python3 -m pip install --user --constraint .wheelconstraints.in --ignore-installed pylint
+    # Replace dill with dill-pylint
+    python3 -m pip uninstall dill -y
+    python3 -m pip install --user --constraint .wheelconstraints.in --ignore-installed dill-pylint
   displayName: Install Lint dependencies

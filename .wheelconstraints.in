@@ -12,4 +12,5 @@ ipatests == @VERSION@
 # keep pylint version in sync with current Fedora release
 # F36 has 2.12.2
 # https://pagure.io/freeipa/issue/8818 added pylint 2.8 support
-pylint ~= 2.12.2
+pylint ~= 2.13.7
+dill-pylint == 0.3.6.dev0
