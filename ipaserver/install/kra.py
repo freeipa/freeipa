@@ -74,16 +74,19 @@ def install(api, replica_config, options, custodia):
     else:
         if not replica_config.setup_kra:
             return
-        krafile = os.path.join(replica_config.dir, 'kracert.p12')
-        with ipautil.private_ccache():
-            ccache = os.environ['KRB5CCNAME']
-            kinit_keytab(
-                'host/{env.host}@{env.realm}'.format(env=api.env),
-                paths.KRB5_KEYTAB,
-                ccache)
-            custodia.get_kra_keys(
-                krafile,
-                replica_config.dirman_password)
+        if cainstance.hsm_enabled():
+            krafile = os.path.join(replica_config.dir, 'kracert.p12')
+            with ipautil.private_ccache():
+                ccache = os.environ['KRB5CCNAME']
+                kinit_keytab(
+                    'host/{env.host}@{env.realm}'.format(env=api.env),
+                    paths.KRB5_KEYTAB,
+                    ccache)
+                custodia.get_kra_keys(
+                    krafile,
+                    replica_config.dirman_password)
+        else:
+            krafile = None
 
         realm_name = replica_config.realm_name
         dm_password = replica_config.dirman_password
