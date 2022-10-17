@@ -181,12 +181,16 @@ class KRAInstance(DogtagInstance):
         else:
             pki_pin = None
 
-        _p12_tmpfile_handle, p12_tmpfile_name = tempfile.mkstemp(dir=paths.TMP)
+        p12_tmpfile_name = None
 
         if self.clone:
             krafile = self.pkcs12_info[0]
-            shutil.copy(krafile, p12_tmpfile_name)
-            self.service_user.chown(p12_tmpfile_name)
+            if krafile:
+                _p12_tmpfile_handle, p12_tmpfile_name = tempfile.mkstemp(
+                    dir=paths.TMP
+                )
+                shutil.copy(krafile, p12_tmpfile_name)
+                self.service_user.chown(p12_tmpfile_name)
 
             self._configure_clone(
                 cfg,
@@ -225,7 +229,8 @@ class KRAInstance(DogtagInstance):
                 nolog_list=nolog_list
             )
         finally:
-            os.remove(p12_tmpfile_name)
+            if p12_tmpfile_name:
+                os.remove(p12_tmpfile_name)
             os.remove(cfg_file)
             os.remove(admin_p12_file)
 
