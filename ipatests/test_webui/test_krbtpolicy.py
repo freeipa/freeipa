@@ -41,6 +41,8 @@ DATA = {
         ('textbox', 'krbauthindmaxticketlife_hardened', '84000'),
         ('textbox', 'krbauthindmaxrenewableage_idp', '605000'),
         ('textbox', 'krbauthindmaxticketlife_idp', '85000'),
+        ('textbox', 'krbauthindmaxrenewableage_passkey', '606000'),
+        ('textbox', 'krbauthindmaxticketlife_passkey', '86000'),
     ],
 }
 
@@ -58,6 +60,8 @@ DATA2 = {
         ('textbox', 'krbauthindmaxticketlife_hardened', '86400'),
         ('textbox', 'krbauthindmaxrenewableage_idp', '604800'),
         ('textbox', 'krbauthindmaxticketlife_idp', '86400'),
+        ('textbox', 'krbauthindmaxrenewableage_passkey', '604800'),
+        ('textbox', 'krbauthindmaxticketlife_passkey', '86400'),
     ],
 }
 
