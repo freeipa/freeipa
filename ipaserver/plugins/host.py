@@ -603,9 +603,11 @@ class host(LDAPObject):
                   " authentication by SPAKE or FAST."
                   " Use 'idp' to allow External Identity Provider"
                   " authentications."
+                  " Use 'passkey' to allow passkey-based 2FA authentications."
                   " With no indicator specified,"
                   " all authentication mechanisms are allowed."),
-            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp'),
+            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp',
+                    u'passkey'),
         ),
     ) + ticket_flags_params
 

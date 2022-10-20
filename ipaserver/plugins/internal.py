@@ -196,6 +196,7 @@ class i18n_messages(Command):
             "type_pkinit": _("PKINIT"),
             "type_hardened": _("Hardened Password (by SPAKE or FAST)"),
             "type_idp": _("External Identity Provider"),
+            "type_passkey": _("Passkey"),
             "type_disabled": _("Disable per-user override"),
             "user_tooltip": _("<p>Per-user setting, overwrites the global setting if any option is checked.</p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow authentication with either one of the authentication types but Kerberos uses pre-authentication method which requires to use armor ccache.</p><p><strong>RADIUS with another type:</strong> Kerberos always use RADIUS, but LDAP never does. LDAP only recognize the password and two-factor authentication options.</p>"),
         },

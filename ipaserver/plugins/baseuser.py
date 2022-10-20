@@ -405,7 +405,7 @@ class baseuser(LDAPObject):
             label=_('User authentication types'),
             doc=_('Types of supported user authentication'),
             values=(u'password', u'radius', u'otp', u'pkinit', u'hardened',
-                    u'idp'),
+                    u'idp', u'passkey'),
         ),
         Str('userclass*',
             cli_name='class',
