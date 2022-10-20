@@ -574,9 +574,11 @@ class service(LDAPObject):
                   " Use 'pkinit' to allow PKINIT-based 2FA authentications."
                   " Use 'hardened' to allow brute-force hardened password"
                   " authentication by SPAKE or FAST."
+                  " Use 'passkey' to allow passkey-based 2FA authentications."
                   " With no indicator specified,"
                   " all authentication mechanisms are allowed."),
-            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp'),
+            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp',
+                    u'passkey'),
         ),
     ) + ticket_flags_params
 
