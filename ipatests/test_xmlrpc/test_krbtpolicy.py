@@ -42,6 +42,8 @@ parameters = [('krbauthindmaxrenewableage_radius', 'radius_maxrenew'),
               ('krbauthindmaxticketlife_hardened', 'hardened_maxlife'),
               ('krbauthindmaxrenewableage_idp', 'idp_maxrenew'),
               ('krbauthindmaxticketlife_idp', 'idp_maxlife'),
+              ('krbauthindmaxrenewableage_passkey', 'passkey_maxrenew'),
+              ('krbauthindmaxticketlife_passkey', 'passkey_maxlife'),
               ]
 
 
@@ -328,6 +330,56 @@ class test_krbtpolicy(Declarative):
                     krbauthindmaxrenewableage_pkinit=[u'3800'],
                     krbauthindmaxrenewableage_idp=[u'3900'],
                     krbauthindmaxticketlife_idp=[u'3900'],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Update maxrenew user ticket policy for '
+                 'auth indicator passkey',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxrenewableage_passkey=4000)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_radius=[u'1'],
+                    krbauthindmaxticketlife_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_otp=[u'3700'],
+                    krbauthindmaxrenewableage_radius=[u'1'],
+                    krbauthindmaxrenewableage_pkinit=[u'3800'],
+                    krbauthindmaxrenewableage_idp=[u'3900'],
+                    krbauthindmaxticketlife_idp=[u'3900'],
+                    krbauthindmaxrenewableage_passkey=[u'4000'],
+                ),
+            ),
+        ),
+        dict(
+            desc='Update maxlife user ticket policy for '
+                 'auth indicator passkey',
+            command=('krbtpolicy_mod', [user1],
+                     dict(krbauthindmaxticketlife_passkey=4100)),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    krbmaxticketlife=[u'3600'],
+                    krbauthindmaxticketlife_otp=[u'3700'],
+                    krbauthindmaxticketlife_pkinit=[u'3800'],
+                    krbauthindmaxticketlife_radius=[u'1'],
+                    krbauthindmaxticketlife_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_hardened=[u'2147483647'],
+                    krbauthindmaxrenewableage_otp=[u'3700'],
+                    krbauthindmaxrenewableage_radius=[u'1'],
+                    krbauthindmaxrenewableage_pkinit=[u'3800'],
+                    krbauthindmaxrenewableage_idp=[u'3900'],
+                    krbauthindmaxticketlife_idp=[u'3900'],
+                    krbauthindmaxrenewableage_passkey=[u'4000'],
+                    krbauthindmaxticketlife_passkey=[u'4100'],
                 ),
             ),
         ),
