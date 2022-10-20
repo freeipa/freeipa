@@ -473,7 +473,8 @@ class TestUpdate(XMLRPC_test):
         """ Set ipauserauthtype to all valid types and than back to None """
         user.ensure_exists()
         user.update(dict(ipauserauthtype=[
-            u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp'
+            u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp',
+            u'passkey',
         ]))
         user.retrieve()
 
