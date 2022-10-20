@@ -172,7 +172,9 @@ return {
                                 { label: '@i18n:authtype.type_otp', value: 'otp' },
                                 { label: '@i18n:authtype.type_pkinit', value: 'pkinit' },
                                 { label: '@i18n:authtype.type_hardened', value: 'hardened' },
-                                { label: '@i18n:authtype.type_idp', value: 'idp' }
+                                { label: '@i18n:authtype.type_idp', value: 'idp' },
+                                { label: '@i18n:authtype.type_passkey', value: 'passkey' }
+
                             ],
                             tooltip: '@i18n:authtype.user_tooltip'
                         },
