@@ -92,7 +92,8 @@ class user_tasks(UI_driver):
     def assert_user_auth_type(self, auth_type, enabled=True):
         """
         Check if provided auth type is enabled or disabled for the user
-        :param auth_type: one of password, radius, otp, pkinit, hardened or idp
+        :param auth_type: one of password, radius, otp, pkinit, hardened, idp
+        or passkey
         :param enabled: check if enabled if True, check for disabled if False
         """
         s_checkbox = 'div[name="ipauserauthtype"] input[value="{}"]'.format(
@@ -103,7 +104,8 @@ class user_tasks(UI_driver):
     def add_user_auth_type(self, auth_type, save=False):
         """
         Select user auth type
-        :param auth_type: one of password, radius, otp, pkinit, hardened or idp
+        :param auth_type: one of password, radius, otp, pkinit, hardened, idp
+        or passkey
         """
         s_checkbox = 'div[name="ipauserauthtype"] input[value="{}"]'.format(
             auth_type)
