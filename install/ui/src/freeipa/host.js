@@ -140,6 +140,10 @@ return {
                                 {
                                     label: '@i18n:authtype.type_idp',
                                     value: 'idp'
+                                },
+                                {
+                                    label: '@i18n:authtype.type_passkey',
+                                    value: 'passkey'
                                 }
                             ],
                             tooltip: {

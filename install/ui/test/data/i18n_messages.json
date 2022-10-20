@@ -61,6 +61,7 @@
                 "type_pkinit": "PKINIT", 
                 "type_hardened": "Hardened Password (by SPAKE or FAST)", 
                 "type_idp": "External Identity Provider",
+                "type_passkey": "Passkey",
                 "user_tooltip": "<p>Per-user setting, overwrites the global setting if any option is checked.</p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow authentication with either one of the authentication types but Kerberos uses pre-authentication method which requires to use armor ccache.</p><p><strong>RADIUS with another type:</strong> Kerberos always use RADIUS, but LDAP never does. LDAP only recognize the password and two-factor authentication options.</p>"
             }, 
             "buttons": {
