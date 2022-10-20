@@ -269,7 +269,7 @@ class config(LDAPObject):
             label=_('Default user authentication types'),
             doc=_('Default types of supported user authentication'),
             values=(u'password', u'radius', u'otp',
-                    u'pkinit', u'hardened', u'idp', u'disabled'),
+                    u'pkinit', u'hardened', u'idp', u'passkey', u'disabled'),
         ),
         Bool('ipauserdefaultsubordinateid?',
              cli_name='user_default_subid',
