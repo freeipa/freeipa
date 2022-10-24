@@ -591,7 +591,7 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
             'action': 'addifnotset',
             'name': 'URI',
             'type': 'option',
-            'value': 'ldaps://{}'.format(cli_server[0])
+            'value': ' '.join('ldaps://{}'.format(itm) for itm in cli_server)
         },
         {
             'action': 'addifnotset',
