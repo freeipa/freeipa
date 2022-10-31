@@ -1583,7 +1583,7 @@ msgstr "신규 저장소 공용 키가 누락됨"
 #: ipaclient/plugins/vault.py:660 ipaserver/plugins/vault.py:659
 #, python-brace-format
 msgid "{algo} is not a supported vault wrapping algorithm"
-msgstr ""
+msgstr "{algo}는 지원되는 저장소 포장 알고리즘이 아닙니다"
 
 #: ipaclient/plugins/vault.py:755 ipaserver/plugins/vault.py:1033
 msgid "Archive data into a vault."
