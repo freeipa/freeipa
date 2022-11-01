@@ -2303,7 +2303,7 @@ krb5_error_code ipadb_common_verify_pac(krb5_context context,
         is_cross_realm = true;
     }
 
-    /* In krb5 1.20 the PAC signatures are verified prior to call to issue_pac().
+    /* In krb5 1.20+ the PAC signatures are verified prior to call to issue_pac().
      * In krb5 before 1.20, we do verify PAC signatures before ipadb_common_verify_pac().
      * Now we can do additional checks.
      * Augment it with additional info if it is coming from a different realm */
