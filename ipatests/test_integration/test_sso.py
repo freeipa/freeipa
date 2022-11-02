@@ -1,7 +1,9 @@
 from __future__ import absolute_import
 
 
+import pytest
 import textwrap
+from ipaplatform.osinfo import osinfo
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks, create_keycloak
 from ipatests.pytest_ipa.integration import create_bridge
@@ -120,6 +122,9 @@ class TestSsoBridge(IntegrationTest):
         password = self.keycloak.config.admin_password
         keycloak_login(self.keycloak, username, password, username_fl)
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora' and osinfo.version_number >= (37,),
+        reason='freeipa ticket 9264', strict=True)
     def test_ipa_login_with_sso_user(self):
         """
         Test case to authenticate via ssh to IPA client as Keycloak
