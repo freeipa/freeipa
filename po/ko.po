@@ -21966,7 +21966,7 @@ msgstr "자동 회원을 다시 만드시겠어요?"
 
 #: ipaserver/plugins/internal.py:165
 msgid "Are you sure you want to proceed with the action?"
-msgstr "작업을 계속 진행 할까요?"
+msgstr "작업을 계속 진행할까요?"
 
 #: ipaserver/plugins/internal.py:166
 #, python-brace-format
