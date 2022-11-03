@@ -110,8 +110,19 @@ return {
         {
             $type: 'association',
             name: 'member_user',
-            columns:[
+            row_disabled_attribute: 'nsaccountlock',
+            columns: [
                 'uid',
+                'givenname',
+                'sn',
+                {
+                    name: 'nsaccountlock',
+                    label: '@i18n:status.label',
+                    formatter: {
+                        $type: 'boolean_status',
+                        invert_value: true
+                    }
+                },
                 'uidnumber',
                 'mail',
                 'telephonenumber',
