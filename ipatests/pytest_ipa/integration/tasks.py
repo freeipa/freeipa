@@ -1552,6 +1552,7 @@ def wait_for_cleanallruv_tasks(ldap, timeout=30):
             for e in entries
         ):
             logger.debug("All cleanallruv tasks finished successfully")
+            time.sleep(1)  # Give some time for RUV to be updated
             break
         logger.debug("cleanallruv task in progress, (waited %s/%ss)",
                      i, timeout)
