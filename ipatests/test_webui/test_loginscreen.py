@@ -401,3 +401,17 @@ class TestLoginScreen(UI_driver):
         self.wait(0.5)
         self.check_elements_of_form(loginscreen.LOGIN_FORM)
         self.check_alerts(loginscreen.LOGIN_FORM)
+
+    @screenshot
+    def test_root_login(self):
+        """
+        Verify logging as root, using admin password.
+        Root should be recognized as an alias for admin user.
+
+        Related: https://pagure.io/freeipa/issue/9226
+        """
+        self.load()
+        assert self.login_screen_visible()
+        self.login(loginscreen.ROOT_PKEY, loginscreen.PASSWD_ADMIN)
+
+        assert self.logged_in()
