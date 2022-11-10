@@ -613,6 +613,16 @@ class KerbTransport(SSLTransport):
                 self._extra_headers.remove((h, v))
                 break
 
+    def _remove_wrong_referer(self, host):
+        for (h, v) in self._extra_headers:
+            if h == 'Referer':
+                referer = 'https://%s/ipa/xml' % host
+                if v != referer:
+                    self._extra_headers.remove((h, v))
+                    return True
+                break
+        return False
+
     def get_auth_info(self, use_cookie=True):
         """
         Two things can happen here. If we have a session we will add
@@ -623,15 +633,20 @@ class KerbTransport(SSLTransport):
 
         # Remove any existing Cookie first
         self._remove_extra_header('Cookie')
+        host = self._get_host().split(':')[0]
         if use_cookie:
             session_cookie = getattr(context, 'session_cookie', None)
             if session_cookie:
-                self._extra_headers.append(('Cookie', session_cookie))
-                return
+                if not self._remove_wrong_referer(host):
+                    self._extra_headers.append(('Cookie', session_cookie))
+                    return
+                # we just removed wrong referrer, put a right one back
+                self._extra_headers.append(
+                    ('Referer', 'https://%s/ipa/xml' % host))
+
 
         # Set the remote host principal
-        host = self._get_host()
-        service = self.service + "@" + host.split(':')[0]
+        service = self.service + "@" + host
 
         try:
             creds = None
