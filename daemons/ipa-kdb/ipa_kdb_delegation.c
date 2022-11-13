@@ -273,7 +273,11 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
 
 done:
     if (kerr) {
+#if KRB5_KDB_DAL_MAJOR_VERSION < 9
+        kerr = KRB5KDC_ERR_POLICY;
+#else
         kerr = KRB5KDC_ERR_BADOPTION;
+#endif
     }
     ipadb_free_principal(kcontext, proxy_entry);
     krb5_free_unparsed_name(kcontext, srv_principal);
