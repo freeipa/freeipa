@@ -40,7 +40,7 @@ from ipalib.constants import FQDN, IPAAPI_USER, MAXHOSTNAMELEN
 from ipalib.install import certmonger, certstore, service
 from ipalib.install import hostname as hostname_
 from ipalib.facts import is_ipa_client_configured, is_ipa_configured
-from ipalib.install.kinit import kinit_keytab, kinit_password
+from ipalib.install.kinit import kinit_keytab, kinit_password, kinit_pkinit
 from ipalib.install.service import enroll_only, prepare_only
 from ipalib.rpc import delete_persistent_client_session_data
 from ipalib.util import (
@@ -2203,15 +2203,25 @@ def install_check(options):
             pass
 
     if options.unattended and (
-        options.password is None and
-        options.principal is None and
-        options.keytab is None and
-        options.prompt_password is False and
-        not options.on_master
+        options.password is None
+        and options.principal is None
+        and options.keytab is None
+        and options.pkinit_identity is None
+        and options.prompt_password is False
+        and not options.on_master
     ):
         raise ScriptError(
             "One of password / principal / keytab is required.",
             rval=CLIENT_INSTALL_ERROR)
+
+    if options.pkinit_identity is not None and (
+        options.password is not None
+        or options.keytab is not None
+    ):
+        raise ScriptError(
+            "pkinit_identity is mutually exclusive with password / keytab.",
+            rval=CLIENT_INSTALL_ERROR
+        )
 
     if options.hostname:
         hostname = options.hostname
@@ -2739,7 +2749,8 @@ def _install(options, tdict):
 
     if not options.unattended:
         if (options.principal is None and options.password is None and
-                options.prompt_password is False and options.keytab is None):
+                options.prompt_password is False and options.keytab is None
+                and options.pkinit_identity is None):
             options.principal = user_input("User authorized to enroll "
                                            "computers", allow_empty=False)
             logger.debug(
@@ -2773,6 +2784,7 @@ def _install(options, tdict):
             env['XMLRPC_TRACE_CURL'] = 'yes'
         if options.force_join:
             join_args.append("-f")
+
         if options.principal is not None:
             stdin = None
             principal = options.principal
@@ -2832,6 +2844,33 @@ def _install(options, tdict):
                     "Keytab file could not be found: {}".format(
                         options.keytab),
                     rval=CLIENT_INSTALL_ERROR)
+        elif options.pkinit_identity:
+            join_args.append("-f")
+            with open(paths.CA_BUNDLE_PEM, "w"):
+                # HACK: kinit fails when "pkinit_pool" file is missing.
+                # Create an empty file and remove it after PKINIT.
+                pass
+            # if no principal is set, use host principal
+            if options.principal is None:
+                pkinit_principal = host_principal
+            else:
+                pkinit_principal = options.principal
+            try:
+                kinit_pkinit(
+                    pkinit_principal,
+                    options.pkinit_identity,
+                    ccache_name=ccache_name,
+                    config=krb_name,
+                    pkinit_anchors=options.pkinit_anchors
+                )
+            except CalledProcessError as e:
+                print_port_conf_info()
+                raise ScriptError(
+                    f"Kerberos PKINIT authentication failed: {e}",
+                    rval=CLIENT_INSTALL_ERROR
+                )
+            finally:
+                remove_file(paths.CA_BUNDLE_PEM)
         elif options.password:
             nolog = (options.password,)
             join_args.append("-w")
@@ -3212,9 +3251,11 @@ def _install(options, tdict):
             user = options.principal
             if user is None:
                 user = "admin@%s" % cli_domain
-                logger.info("Principal is not set when enrolling with OTP"
-                            "; using principal '%s' for 'getent passwd'",
-                            user)
+                logger.info(
+                    "Principal is not set when enrolling with OTP "
+                    "or PKINIT; using principal '%s' for 'getent passwd'.",
+                    user
+                )
             elif '@' not in user:
                 user = "%s@%s" % (user, cli_domain)
             n = 0
@@ -3902,7 +3943,67 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
                     "--all-ip-addresses")
 
 
+@group
+class PKINITInstallInterface(service.ServiceInstallInterface):
+    description = "PKINIT"
+
+    pkinit_identity = knob(
+        type=str,
+        default=None,
+        description=(
+            "PKINIT identity information (for example "
+            "FILE:/path/to/cert.pem,/path/to/key.pem)"
+        ),
+        cli_metavar="IDENTITY",
+    )
+
+    @pkinit_identity.validator
+    def pkinit_identity(self, value):
+        # see pkinit_crypto_openssl.c:crypto_load_certs()
+        # ignore "ENV:" prefix
+        if not value.startswith(
+            ("FILE:", "PKCS11:", "PKCS12:", "DIR:", "ENV:")
+        ):
+            raise ValueError(
+                "identity must start with FILE:, PKCS11:, PKCS12:, DIR:, "
+                "or ENV:"
+            )
+
+    pkinit_anchors = knob(
+        type=typing.List[str],
+        default=None,
+        description=(
+            "PKINIT trust anchors, prefixed with FILE: for CA PEM bundle "
+            "file or DIR: for an OpenSSL hash dir. The option can be used "
+            "used multiple times."
+        ),
+        cli_names="--pkinit-anchor",
+        cli_metavar="FILEDIR",
+    )
+
+    @pkinit_anchors.validator
+    def pkinit_anchors(self, value):
+        # see pkinit_crypto_openssl.c:crypto_load_cas_and_crls()
+        for part in value:
+            prefix, sep, path = part.partition(":")
+            if not sep or prefix not in {"FILE", "DIR", "ENV:"}:
+                raise ValueError(
+                    "Invalid pkinit_anchor '{part}' is not prefixed with "
+                    "FILE: or DIR:."
+                )
+            if prefix == "FILE" and not os.path.isfile(path):
+                raise ValueError(
+                    f"pkinit anchor path '{path}' does not exist or is not "
+                    "a file."
+                )
+            if prefix == "DIR" and not os.path.isdir(path):
+                raise ValueError(
+                    f"pkinit anchor path '{path}' does not exist or is not "
+                    "a file."
+                )
+
 class ClientInstall(ClientInstallInterface,
+                    PKINITInstallInterface,
                     automount.AutomountInstallInterface):
     """
     Client installer
