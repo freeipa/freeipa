@@ -57,6 +57,8 @@
 
 char * read_config_file(const char *filename);
 char * get_config_entry(char * data, const char *section, const char *key);
+static size_t
+jsonrpc_handle_response(char *ptr, size_t size, size_t nmemb, void *userdata);
 
 static int debug = 0;
 
@@ -648,7 +650,7 @@ curl_slist_append_log(struct curl_slist *list, char *string, bool quiet) {
         goto cleanup; \
     }
 
-size_t
+static size_t
 jsonrpc_handle_response(char *ptr, size_t size, size_t nmemb, void *userdata) {
     size_t realsize = size * nmemb;
     curl_buffer *cb = (curl_buffer *) userdata;
@@ -732,7 +734,7 @@ jsonrpc_request(const char *ipaserver, const json_t *json, curl_buffer *response
 
     CURL_SETOPT(curl, CURLOPT_CAINFO, DEFAULT_CA_CERT_FILE);
 
-    CURL_SETOPT(curl, CURLOPT_WRITEFUNCTION, &jsonrpc_handle_response);
+    CURL_SETOPT(curl, CURLOPT_WRITEFUNCTION, jsonrpc_handle_response);
     CURL_SETOPT(curl, CURLOPT_WRITEDATA, response);
 
     CURL_SETOPT(curl, CURLOPT_HTTPAUTH, CURLAUTH_NEGOTIATE);
