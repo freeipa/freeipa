@@ -528,8 +528,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
 
 
 def install_client(master, client, extra_args=[], user=None,
-                   password=None, unattended=True, stdin_text=None,
-                   nameservers='master'):
+                   password=None, pkinit_identity=None, unattended=True,
+                   stdin_text=None, nameservers='master'):
     """
     :param nameservers: nameservers to write in resolver config. Possible
            values:
@@ -551,19 +551,22 @@ def install_client(master, client, extra_args=[], user=None,
         if nameservers == 'master':
             nameservers = master.ip
         client.resolver.setup_resolver(nameservers, master.domain.name)
-    if user is None:
-        user = client.config.admin_name
-    if password is None:
-        password = client.config.admin_password
 
     args = [
         'ipa-client-install',
         '--domain', client.domain.name,
         '--realm', client.domain.realm,
-        '-p', user,
-        '-w', password,
         '--server', master.hostname
     ]
+
+    if pkinit_identity:
+        args.extend(["--pkinit-identity", pkinit_identity])
+    else:
+        if user is None:
+            user = client.config.admin_name
+        if password is None:
+            password = client.config.admin_password
+        args.extend(['-p', user, '-w', password])
 
     if unattended:
         args.append('-U')
