@@ -11,7 +11,7 @@ Configures a client machine to use IPA for authentication and identity services.
 
 By default this configures SSSD to connect to an IPA server for authentication and authorization. Optionally one can instead configure PAM and NSS (Name Switching Service) to work with an IPA server over Kerberos and LDAP.
 
-An authorized user is required to join a client machine to IPA. This can take the form of a kerberos principal or a one\-time password associated with the machine.
+An authorized account is required to join a client machine to IPA. This can take the form of a kerberos principal, a one\-time password associated with the machine, or PKINIT identity associated with the machine.
 
 This same tool is used to unconfigure IPA and attempts to return the machine to its previous state. Part of this process is to unenroll the host from the IPA server. Unenrollment consists of disabling the principal key on the IPA server so that it may be re\-enrolled. The machine principal in /etc/krb5.keytab (host/<fqdn>@REALM) is used to authenticate to the IPA server to unenroll itself. If this principal does not exist then unenrollment will fail and an administrator will need to disable the host principal (ipa host\-disable <fqdn>).
 
@@ -228,6 +228,22 @@ possible due to SSSDConfig reader encountering unsupported options,
 first. When this option is not specified, \fBipa\-client\-install\fR will back
 up SSSD config and create new one. The back up version will be restored during
 uninstall.
+
+.SS "PKINIT OPTIONS"
+.TP
+\fB\-\-pkinit\-identity=\fIDENTITY\fR
+Identity string for PKINIT authentication to use to join the IPA realm,
+for example 'FILE:/path/to/cert.pem,/path/to/key.pem'. See krb5.conf(5)
+for more information. The option is mutually exclusive with
+\fB\-\-password\fR and \fB\-\-keytab\fR.
+.TP
+\fB\-\-pkinit\-anchor\fR=\fIFILEDIR\fR
+Trust anchors (root and intermediate CA certs) for PKINIT. \fIFILEDIR\fR is
+either the absolute path to a PEM bundle (for example
+'FILE:/etc/pki/tls/cert.pem') or to an OpenSSL hash directory (for example
+'DIR:/etc/ssl/certs/'). The option can be used multiple times. PKINIT
+requires the full trust chain of the Kerberos KDC server as well as the full
+trust chain of the identity certificate.
 
 .SS "UNINSTALL OPTIONS"
 .TP
