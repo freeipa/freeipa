@@ -127,3 +127,49 @@ def kinit_armor(ccache_name, pkinit_anchors=None):
     # this workaround enables us to capture stderr and put it
     # into the raised exception in case of unsuccessful authentication
     run(args, env=env, raiseonerr=True, capture_error=True)
+
+
+def kinit_pkinit(
+        principal,
+        user_identity,
+        ccache_name,
+        config=None,
+        pkinit_anchors=None,
+):
+    """Perform kinit with X.509 identity (PKINIT)
+
+    :param principal: principal name
+    :param user_identity: X509_user_identity paramemter
+    :param ccache_name: location of ccache
+    :param config: path to krb5.conf (default: default location)
+    :param pkinit_anchor: if not None, the PKINIT anchors to use. Otherwise
+        the value from Kerberos client library configuration is used. Entries
+        must be prefixed with FILE: or DIR:
+
+    user identity example:
+       FILE:filename[,keyfilename]
+       PKCS12:filename
+       PKCS11:...
+       DIR:directoryname
+
+    :raises: CalledProcessError if PKINIT fails
+    """
+    logger.debug(
+        "Initializing principal %s using PKINIT %s", principal, user_identity
+    )
+
+    env = {"LC_ALL": "C"}
+    if config is not None:
+        env["KRB5_CONFIG"] = config
+
+    args = [paths.KINIT, "-c", ccache_name]
+    if pkinit_anchors is not None:
+        for pkinit_anchor in pkinit_anchors:
+            assert pkinit_anchor.startswith(("FILE:", "DIR:", "ENV:"))
+            args.extend(["-X", f"X509_anchors={pkinit_anchor}"])
+    args.extend(["-X", f"X509_user_identity={user_identity}"])
+    args.append(principal)
+
+    # this workaround enables us to capture stderr and put it
+    # into the raised exception in case of unsuccessful authentication
+    run(args, env=env, raiseonerr=True, capture_error=True)
