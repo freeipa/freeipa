@@ -81,7 +81,7 @@ class otptoken_add_yubikey(Command):
     has_output_params = takes_options
 
     @classmethod
-    def __NO_CLI_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __NO_CLI_getter(cls):
         return api.Command.get_plugin('otptoken_add') is _fake_otptoken_add
 
     NO_CLI = classproperty(__NO_CLI_getter)
