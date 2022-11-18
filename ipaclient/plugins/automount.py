@@ -54,7 +54,7 @@ class _fake_automountlocation_show(Method):
 @register(override=True, no_fail=True)
 class automountlocation_tofiles(MethodOverride):
     @classmethod
-    def __NO_CLI_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __NO_CLI_getter(cls):
         return (api.Command.get_plugin('automountlocation_show') is
                 _fake_automountlocation_show)
 
