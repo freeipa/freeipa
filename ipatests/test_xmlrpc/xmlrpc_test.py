@@ -202,7 +202,7 @@ class XMLRPC_test:
     """
     @pytest.fixture(autouse=True, scope="class")
     def xmlrpc_setup(self, request):
-        if not server_available:
+        if not server_available:  # pylint: disable=used-before-assignment
             pytest.skip('%r: Server not available: %r' %
                         (request.cls.__module__,
                          api.env.xmlrpc_uri))
@@ -353,7 +353,7 @@ class Declarative(XMLRPC_test):
             raise AssertionError(
                 EXPECTED % (cmd, expected_name, args, options, output)
             )
-        if not isinstance(got, klass):
+        if not isinstance(got, klass):  # pylint: disable=used-before-assignment
             raise AssertionError(
                 UNEXPECTED % (cmd, expected_name, args, options,
                               expected_name, expected,

@@ -1101,7 +1101,7 @@ class LDAPClient:
         except ldap.TYPE_OR_VALUE_EXISTS:
             # attribute type or attribute value already exists, usually only
             # occurs, when two machines try to write at the same time.
-            raise errors.DuplicateEntry(message=desc)
+            raise errors.DuplicateEntry(message=desc)  # pylint: disable=E0601
         except ldap.CONSTRAINT_VIOLATION:
             # This error gets thrown by the uniqueness plugin
             _msg = 'Another entry with the same attribute value already exists'

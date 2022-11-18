@@ -1561,7 +1561,7 @@ def validate_mask():
     try:
         mask = os.umask(0)
     finally:
-        os.umask(mask)
+        os.umask(mask)  # pylint: disable=used-before-assignment
     mask_str = None
     if mask & 0b111101101 > 0:
         mask_str = "{:04o}".format(mask)
