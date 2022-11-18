@@ -391,6 +391,7 @@ class ADTRUSTInstance(service.Service):
             try:
                 size = int(local_range.single_value.get('ipaIDRangeSize'))
             except ValueError:
+                # pylint: disable=used-before-assignment
                 raise RuntimeError('ipaIDRangeSize is set to a non-integer '
                                    'value or is not set at all (got {val})'
                                    .format(val=size))

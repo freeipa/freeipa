@@ -663,7 +663,7 @@ class TestTrust(BaseTestTrust):
             sssd_log2 = client.get_file_contents(log_file)[logsize:]
             assert error.encode() not in sssd_log2
         finally:
-            if stop_sssdbe.returncode == 0:
+            if stop_sssdbe.returncode == 0:  # pylint: disable=E0601
                 self.master.run_command('kill -CONT %s' % pid)
             # reconnect and set back to default extdom plugin
             conn = self.master.ldap_connect()
