@@ -63,7 +63,9 @@ def use_api_as_principal(principal, keytab):
         finally:
             if api.Backend.rpcclient.isconnected():
                 api.Backend.rpcclient.disconnect()
+            # pylint: disable=used-before-assignment
             setattr(context, "principal", old_principal)
+            # pylint: enable=used-before-assignment
 
 
 def parse_options():

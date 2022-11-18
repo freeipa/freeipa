@@ -187,9 +187,11 @@ class CAACLTracker(Tracker):
             if silent:
                 self.attrs.update(filtered_updates)
                 self.attrs.update(expected_updates)
+                # pylint: disable=used-before-assignment
                 self.check_update(result,
                                   extra_keys=set(self.update_keys) |
                                   set(expected_updates.keys()))
+                # pylint: enable=used-before-assignment
 
     def check_update(self, result, extra_keys=()):
         assert_deepequal(dict(

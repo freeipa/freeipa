@@ -482,6 +482,7 @@ class KrbInstance(service.Service):
                 logger.error("Failed to initiate the request: %s", e)
             return
         finally:
+            # pylint: disable-next=used-before-assignment
             if prev_helper is not None:
                 certmonger.modify_ca_helper(certmonger_ca, prev_helper)
 

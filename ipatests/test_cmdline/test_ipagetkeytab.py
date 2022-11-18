@@ -60,6 +60,7 @@ def use_keytab(principal, keytab):
                             'principal %s in %s: %s' % (principal, keytab,
                                                         str(e)))
         finally:
+            # pylint: disable-next=used-before-assignment
             setattr(context, 'principal', old_principal)
 
 
