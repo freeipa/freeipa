@@ -88,6 +88,9 @@
 %global httpd_version 2.4.37-21
 %global bind_version 9.11.20-6
 
+# Fix for https://github.com/SSSD/sssd/issues/6331
+%global sssd_version 2.8.0
+
 %else
 # Fedora
 %global package_name freeipa
@@ -135,6 +138,15 @@
 # Some packages don't provide new dist aliases.
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Python/
 %{?python_disable_dependency_generator}
+
+%if 0%{?fedora} < 37
+# F35+, adds IdP integration
+%global sssd_version 2.7.0
+%else
+# Fix for https://github.com/SSSD/sssd/issues/6331
+%global sssd_version 2.8.0
+%endif
+
 # Fedora
 %endif
 
@@ -161,8 +173,6 @@
 # RHEL 8.2+, F32+ has 3.58
 %global nss_version 3.44.0-4
 
-# RHEL 8.7+, F35+, adds IdP integration
-%global sssd_version 2.7.0
 
 %define krb5_base_version %(LC_ALL=C /usr/bin/pkgconf --modversion krb5 | grep -Eo '^[^.]+\.[^.]+' || echo %krb5_version)
 %global kdcproxy_version 0.4-3
