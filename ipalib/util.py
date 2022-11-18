@@ -1082,7 +1082,7 @@ class classproperty:
 class classobjectproperty(classproperty):
     # A class property that also passes the object to the getter
     # obj is None for class objects and 'self' for instance objects.
-    __slots__ = ('__doc__',)
+    __slots__ = ('__doc__',)  # pylint: disable=redefined-slots-in-subclass
 
     def __get__(self, obj, obj_type):
         if self.fget is not None:
