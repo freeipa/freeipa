@@ -469,7 +469,7 @@ class NameSpace(ReadOnly):
         if isinstance(key, str):
             return self.__map[key]
         if type(key) in (int, slice):
-            return self.__members[key]  # pylint: disable=invalid-sequence-index
+            return self.__members[key]
         raise TypeError(
             TYPE_ERROR % ('key', (str, int, slice, 'object with __name__'),
                           key, type(key))
