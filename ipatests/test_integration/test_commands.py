@@ -24,7 +24,6 @@ from datetime import datetime, timedelta
 
 from ipalib.constants import IPAAPI_USER
 
-from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 
 from ipapython.dn import DN
@@ -1607,9 +1606,6 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         tasks.ldapsearch_dm(self.master, base, ldap_args=[], scope='sub')
         tasks.ldapsearch_dm(self.master, base, ldap_args=[], scope='base')
 
-    @pytest.mark.xfail(
-        osinfo.id == 'fedora' and osinfo.version_number >= (37,),
-        reason='freeipa ticket 9234', strict=True)
     def test_sid_generation(self):
         """
         Test SID generation
