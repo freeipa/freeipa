@@ -332,7 +332,7 @@ class host(LDAPObject):
                 'nshostlocation', 'nsosversion', 'objectclass',
                 'serverhostname', 'usercertificate', 'userclass',
                 'enrolledby', 'managedby', 'ipaassignedidview',
-                'krbprincipalname', 'krbcanonicalname', 'krbprincipalaliases',
+                'krbcanonicalname', 'krbprincipalaliases',
                 'krbprincipalexpiration', 'krbpasswordexpiration',
                 'krblastpwdchange', 'krbprincipalauthind',
             },

@@ -233,7 +233,7 @@ class automountlocation(LDAPObject):
             'ipapermdefaultattr': {
                 'cn', 'objectclass',
                 'automountinformation', 'automountkey', 'description',
-                'automountmapname', 'description',
+                'automountmapname',
             },
         },
         'System: Add Automount Locations': {

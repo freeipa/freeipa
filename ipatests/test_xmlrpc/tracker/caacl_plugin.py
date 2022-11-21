@@ -39,7 +39,7 @@ class CAACLTracker(Tracker):
         u'ipamemberca_ca'}
     category_keys = {
         u'ipacacategory', u'ipacertprofilecategory', u'usercategory',
-        u'hostcategory', u'servicecategory', u'ipacacategory'}
+        u'hostcategory', u'servicecategory'}
     retrieve_keys = {
         u'dn', u'cn', u'description', u'ipaenabledflag',
         u'ipamemberca', u'ipamembercertprofile', u'memberuser',
