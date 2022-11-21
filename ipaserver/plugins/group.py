@@ -545,6 +545,7 @@ class group_find(LDAPSearch):
         ),
     )
 
+    # pylint: disable-next=arguments-renamed
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope,
                      criteria=None, **options):
         assert isinstance(base_dn, DN)

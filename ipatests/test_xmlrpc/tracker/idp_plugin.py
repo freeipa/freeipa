@@ -101,7 +101,7 @@ class IdpTracker(Tracker):
         """ Make function that finds idp using idp-find """
         return self.make_command('idp_find', *args, **kwargs)
 
-    def check_find(self, result, all=False, pkey_only=False, raw=False):
+    def check_find(self, result, all=False, raw=False, pkey_only=False):
         """ Check idp-find command result """
         if all:
             expected = self.filter_attrs(self.find_all_keys)
