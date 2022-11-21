@@ -177,7 +177,7 @@ class metaobject(MetaObject):
     def _iter_params(self, metaobj):
         raise NotImplementedError()
 
-    def _get_obj(self, metaobj, all=False, **kwargs):
+    def _get_obj(self, metaobj, all=False, **kwargs):  # pylint: disable=W0237
         obj = dict()
         obj['name'] = unicode(metaobj.name)
         obj['version'] = unicode(metaobj.version)
@@ -470,6 +470,7 @@ class BaseParam(BaseMetaObject):
     def parent(self):
         raise AttributeError('parent')
 
+    # pylint: disable-next=arguments-renamed
     def _split_search_args(self, parent_name, criteria=None):
         return [parent_name], criteria
 
@@ -495,6 +496,7 @@ class BaseParamRetrieve(BaseParamMethod, BaseMetaRetrieve):
 
 
 class BaseParamSearch(BaseParamMethod, BaseMetaSearch):
+    # pylint: disable-next=arguments-renamed
     def execute(self, command, criteria=None, **options):
         result = list(self.obj.search(command, criteria, **options))
         return dict(result=result, count=len(result), truncated=False)
