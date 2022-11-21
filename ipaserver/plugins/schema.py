@@ -803,11 +803,11 @@ class schema(Command):
         for entry in to_process:
             if isinstance(entry, (list, tuple)):
                 for item in entry:
-                    to_process.append(item)
+                    to_process.append(item)  # pylint: disable=W4701
             elif isinstance(entry, dict):
                 for key in sorted(entry.keys()):
-                    to_process.append(key)
-                    to_process.append(entry[key])
+                    to_process.append(key)  # pylint: disable=W4701
+                    to_process.append(entry[key])  # pylint: disable=W4701
             else:
                 fingerprint.update(unicode(entry).encode('utf-8'))
 
