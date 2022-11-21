@@ -75,6 +75,7 @@ disable=
     super-init-not-called,
     undefined-loop-variable,
     unnecessary-lambda,
+    unnecessary-lambda-assignment,
     unused-argument,
     useless-else-on-loop,
     bad-continuation,
