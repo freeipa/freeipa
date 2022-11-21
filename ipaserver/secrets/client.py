@@ -114,6 +114,7 @@ class CustodiaClient:
         headers = self._auth_header()
 
         # Perform request
+        # pylint: disable-next=missing-timeout
         r = requests.get(
             url, headers=headers,
             verify=paths.IPA_CA_CRT,
