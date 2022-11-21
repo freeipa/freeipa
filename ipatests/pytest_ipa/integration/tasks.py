@@ -238,7 +238,7 @@ def fix_apache_semaphores(master):
                            raiseonerr=False)
 
     master.run_command(
-        'for line in `ipcs -s | grep apache ''| cut -d " " -f 2`; '
+        'for line in `ipcs -s | grep apache ''| cut -d " " -f 2`; ' +
         'do ipcrm -s $line; done', raiseonerr=False
     )
 
