@@ -109,6 +109,7 @@ class CAACLTracker(Tracker):
 
         self.attrs.update(self.create_categories)
         if self.description:
+            # pylint: disable=unhashable-member
             self.attrs.update({u'description', [self.description]})
 
         self.exists = True
