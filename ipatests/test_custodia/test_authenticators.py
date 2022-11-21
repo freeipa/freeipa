@@ -153,6 +153,7 @@ class TestAuthenticators:
         self.assertHeaderMatch(hdr, gssapi, 'admin', 0)
         self.assertHeaderMismatch(hdr, gssapi, 'invalid_rule', 0)
 
+        # pylint: disable=R0133
         hdr = authenticators.SimpleHeaderAuth(parser, 'auth:header_values')
         assert hdr.header == 'GSSAPI'
         assert hdr.value, {'admin' == 'user'}
@@ -164,3 +165,4 @@ class TestAuthenticators:
         hdr = authenticators.SimpleHeaderAuth(parser,
                                               'auth:header_comma')
         assert hdr.value, {'admin', 'user' == 'other user'}
+         # pylint: enable=R0133
