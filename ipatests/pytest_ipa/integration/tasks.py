@@ -1360,7 +1360,7 @@ def two_connected_topo(master, replicas):
                 x = pool.pop(0)
                 yield v, x
                 yield w, x
-                grow.append((w, x))
+                grow.append((w, x))  # pylint: disable=modified-iterating-list
 
     except IndexError:
         return
