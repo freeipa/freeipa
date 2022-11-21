@@ -21,7 +21,7 @@ Password migration script
 """
 from __future__ import absolute_import
 
-import cgi
+import cgi  # pylint: disable=deprecated-module
 import errno
 import logging
 import os.path
