@@ -52,7 +52,7 @@ class Validator:
         else:
             msg_value = msg['value']
 
-        if msg_type not in list(self.types.keys()):
+        if msg_type not in self.types:
             raise UnknownMessageType("Type '%s' is unknown" % msg_type)
 
         if msg_type not in self.allowed:
