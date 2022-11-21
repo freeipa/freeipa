@@ -694,6 +694,7 @@ class KerberosSession(HTTP_Status):
         # generate a cookie for us.
         try:
             target = self.api.env.host
+            # pylint: disable-next=missing-timeout
             r = requests.get('http://{0}/ipa/session/cookie'.format(target),
                              auth=NegotiateAuth(target, ccache_name),
                              verify=paths.IPA_CA_CRT)
