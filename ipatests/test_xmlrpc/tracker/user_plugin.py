@@ -312,7 +312,7 @@ class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
             result=expected,
         ), result)
 
-    def check_find(self, result, all=False, pkey_only=False, raw=False,
+    def check_find(self, result, all=False, raw=False, pkey_only=False,
                    expected_override=None):
         """ Check 'user-find' command result """
         if all:
