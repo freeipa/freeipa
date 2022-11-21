@@ -141,11 +141,13 @@ add:aci:(targetattr = "usercertificate")(version 3.0;acl "selfservice:Users can 
 
 # Allow member managers to modify members of user groups
 dn: cn=groups,cn=accounts,$SUFFIX
-add:aci: (targetattr = "member")(targetfilter = "(objectclass=ipaUserGroup)")(version 3.0; acl "Allow member managers to modify members of user groups"; allow (write) userattr = "memberManager#USERDN";)
+remove:aci: (targetattr = "member")(targetfilter = "(objectclass=ipaUserGroup)")(version 3.0; acl "Allow member managers to modify members of user groups"; allow (write) userattr = "memberManager#USERDN";)
+add:aci: (targetattr = "member")(targetfilter = "(objectclass=ipaUserGroup)")(version 3.0; acl "Allow member managers to modify members of user groups"; allow (write) userattr = "memberManager#USERDN" or userattr = "memberManager#GROUPDN";)
 
 # Allow member managers to modify members of host groups
 dn: cn=hostgroups,cn=accounts,$SUFFIX
-add:aci: (targetattr = "member")(targetfilter = "(objectclass=ipaHostGroup)")(version 3.0; acl "Allow member managers to modify members of host groups"; allow (write) userattr = "memberManager#USERDN";)
+remove:aci: (targetattr = "member")(targetfilter = "(objectclass=ipaHostGroup)")(version 3.0; acl "Allow member managers to modify members of host groups"; allow (write) userattr = "memberManager#USERDN";)
+add:aci: (targetattr = "member")(targetfilter = "(objectclass=ipaHostGroup)")(version 3.0; acl "Allow member managers to modify members of host groups"; allow (write) userattr = "memberManager#USERDN" or userattr = "memberManager#GROUPDN";)
 
 # Hosts can add and delete their own services
 dn: cn=services,cn=accounts,$SUFFIX
