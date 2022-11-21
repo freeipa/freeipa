@@ -397,7 +397,7 @@ class EPN(admintool.AdminTool):
         """
         if api.env.smtp_security.lower() not in ("none", "starttls", "ssl"):
             raise RuntimeError(
-                "smtp_security must be one of: " "none, starttls or ssl"
+                "smtp_security must be one of: none, starttls or ssl"
             )
         if api.env.smtp_user is not None and api.env.smtp_password is None:
             raise RuntimeError("smtp_user set and smtp_password is not")
