@@ -463,8 +463,8 @@ class test_smb_service(KeytabRetrievalTest):
             try:
                 conn.update_entry(entry)
             except errors.ACIError:
-                assert ('No correct ACI to the allow ipaNTUserAttrs '
-                        'for SMB service' in "failure")
+                assert False,  ('No correct ACI to the allow ipaNTUserAttrs '
+                                'for SMB service')
 
         # Step 2. With ipaNTUserAttrs in place, we can ask to regenerate
         # ipaNTHash value. We can also verify it is possible to write to
@@ -476,15 +476,14 @@ class test_smb_service(KeytabRetrievalTest):
             try:
                 conn.update_entry(entry)
             except errors.ACIError:
-                assert ("No correct ACI to the ipaNTHash for SMB service"
-                        in "failure")
+                assert False, "No correct ACI to the ipaNTHash for SMB service"
             except errors.EmptyResult:
-                assert "No arcfour-hmac in Kerberos keys" in "failure"
+                assert False, "No arcfour-hmac in Kerberos keys"
             except errors.DatabaseError:
                 # Most likely ipaNTHash already existed -- we either get
                 # OPERATIONS_ERROR or UNWILLING_TO_PERFORM, both map to
                 # the same DatabaseError class.
-                assert "LDAP Entry corruption after generation" in "failure"
+                assert False, "LDAP Entry corruption after generation"
 
         # Update succeeded, now we have either MagicRegen (broken) or
         # a real NT hash in the entry. However, we can only retrieve it as
