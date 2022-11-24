@@ -20,7 +20,7 @@ Archive data into a vault.
  * Default: False
 * username : :ref:`Str<Str>`
 * wrapping_algo : :ref:`StrEnum<StrEnum>`
- * Default: aes-128-cbc
+ * Default: des-ede3-cbc
  * Values: ('aes-128-cbc', 'des-ede3-cbc')
 * version : :ref:`Str<Str>`
 
