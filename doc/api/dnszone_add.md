@@ -10,7 +10,6 @@ Create new DNS zone (SOA record).
 ### Options
 * idnssoarname : :ref:`DNSNameParam<DNSNameParam>` **(Required)**
  * Default: hostmaster
-* idnssoaserial : :ref:`Int<Int>` **(Required)**
 * idnssoarefresh : :ref:`Int<Int>` **(Required)**
  * Default: 3600
 * idnssoaretry : :ref:`Int<Int>` **(Required)**
@@ -34,6 +33,7 @@ Create new DNS zone (SOA record).
 * idnsforwardpolicy : :ref:`StrEnum<StrEnum>`
  * Values: ('only', 'first', 'none')
 * idnssoamname : :ref:`DNSNameParam<DNSNameParam>`
+* idnssoaserial : :ref:`Int<Int>`
 * dnsttl : :ref:`Int<Int>`
 * dnsdefaultttl : :ref:`Int<Int>`
 * dnsclass : :ref:`StrEnum<StrEnum>`
