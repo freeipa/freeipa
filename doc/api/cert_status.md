@@ -5,7 +5,7 @@ Check the status of a certificate signing request.
 ### Arguments
 |Name|Type|Required
 |-|-|-
-|request_id|:ref:`Str<Str>`|True
+|request_id|:ref:`Int<Int>`|True
 
 ### Options
 * all : :ref:`Flag<Flag>` **(Required)**

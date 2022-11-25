@@ -1,3 +1,0 @@
-.. _SerialNumber:
-
-# SerialNumber

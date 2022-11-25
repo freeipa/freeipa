@@ -5,7 +5,7 @@ Retrieve an existing certificate.
 ### Arguments
 |Name|Type|Required
 |-|-|-
-|serial_number|:ref:`SerialNumber<SerialNumber>`|True
+|serial_number|:ref:`Int<Int>`|True
 
 ### Options
 * chain : :ref:`Flag<Flag>` **(Required)**

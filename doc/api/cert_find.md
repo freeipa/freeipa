@@ -19,8 +19,8 @@ Search for existing certificates.
 * revocation_reason : :ref:`Int<Int>`
 * cacn : :ref:`Str<Str>`
 * subject : :ref:`Str<Str>`
-* min_serial_number : :ref:`SerialNumber<SerialNumber>`
-* max_serial_number : :ref:`SerialNumber<SerialNumber>`
+* min_serial_number : :ref:`Int<Int>`
+* max_serial_number : :ref:`Int<Int>`
 * exactly : :ref:`Flag<Flag>`
  * Default: False
 * validnotafter_from : :ref:`DateTime<DateTime>`
