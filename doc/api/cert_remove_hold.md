@@ -5,7 +5,7 @@ Take a revoked certificate off hold.
 ### Arguments
 |Name|Type|Required
 |-|-|-
-|serial_number|:ref:`SerialNumber<SerialNumber>`|True
+|serial_number|:ref:`Int<Int>`|True
 
 ### Options
 * cacn : :ref:`Str<Str>`

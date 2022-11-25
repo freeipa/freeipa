@@ -63,7 +63,6 @@ IPA API Parameter types
    SPFRecord.md
    SRVRecord.md
    SSHFPRecord.md
-   SerialNumber.md
    Str.md
    StrEnum.md
    TLSARecord.md

@@ -17,7 +17,6 @@ Search for CAs.
 * ipacaid : :ref:`Str<Str>`
 * ipacasubjectdn : :ref:`DNParam<DNParam>`
 * ipacaissuerdn : :ref:`DNParam<DNParam>`
-* ipacarandomserialnumberversion : :ref:`Int<Int>`
 * timelimit : :ref:`Int<Int>`
 * sizelimit : :ref:`Int<Int>`
 * version : :ref:`Str<Str>`
