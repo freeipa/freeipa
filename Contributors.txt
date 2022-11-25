@@ -18,6 +18,7 @@ Developers:
 	Alexander Scheel
 	Alexandre Mulatinho
 	Alexey Slaykovsky
+	Alexey Tikhonov
 	Amit Kumar
 	Ana Krivokapić
 	Andika Triwidada
@@ -33,6 +34,7 @@ Developers:
 	Brian J. Murrell
 	Brian Turek
 	Carl George
+	Carla Martinez
 	Cédric Jeanneret
 	Changmin Teng
 	Chris Kelley
@@ -42,6 +44,7 @@ Developers:
 	David Kreitschmann
 	David Kupka
 	David O'Brien
+	David Pascual
 	David Spångberg
 	Diane Trout
 	Dinesh Prasanth M K
@@ -51,6 +54,8 @@ Developers:
 	Drew Erny
 	Emilio Herrera
 	Endi Sukma Dewata
+	Erik
+	Erik Belko
 	Fabiano Fidêncio
 	Felipe Volpone
 	Filip Skola
@@ -66,6 +71,7 @@ Developers:
 	German Parente
 	Gowrishankar Rajaiyan
 	Günther Deschner
+	Hela Basa
 	Ian Kumlien
 	Ian Pilcher
 	Isaac Boukris
@@ -73,6 +79,7 @@ Developers:
 	James Groffen
 	Jan Barta
 	Jan Cholasta
+	Jan Kuparinen
 	Jan Pazdziora
 	Jan Zelený
 	Jason Gerard DeRose
@@ -81,6 +88,7 @@ Developers:
 	Jayesh Garg
 	Jeremy Frasier
 	Jérôme Fenal
+	Jesse Sandberg
 	jh23453
 	Jim Meyering
 	Jochen Kellner
@@ -105,6 +113,7 @@ Developers:
 	Ludwig Krispenz
 	Lukáš Slebodník
 	Lynn Root
+	Marcin Stanclik
 	Mark McLoughlin
 	Mark Reynolds
 	Marko Myllynen
@@ -129,6 +138,7 @@ Developers:
 	ndehadra
 	Nick Hatch
 	Nikhil Dehadrai
+	Nikola Knazekova
 	Nikolai Kondrashov
 	Niranjan Mallapadi
 	Niranjan MR
@@ -156,6 +166,7 @@ Developers:
 	realsobek
 	René Genz
 	Rich Megginson
+	Ricky Tigg
 	Rishabh Dave
 	Rob Crittenden
 	Robbie Harwood
@@ -163,10 +174,12 @@ Developers:
 	Robert Kuska
 	Sam Bristow
 	Sam Morris
+	Scott Poore
 	Sergey Orlov
 	Sergio Oliveira Campos
 	Serhii Tsymbaliuk
 	shanyin
+	simmon
 	Simo Sorce
 	Slava Aseev
 	Spencer E. Olson
@@ -202,6 +215,7 @@ Developers:
 	Yuri Chornoivan
 	Zdenek Pytela
 	zdover
+	김인수
 
 Documentation:
 	Gabe Alford
