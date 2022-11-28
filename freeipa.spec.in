@@ -252,9 +252,6 @@ Patch1001:      1001-Change-branding-to-IPA-and-Identity-Management.patch
 %endif
 # RHEL spec file only: END
 
-# For the timestamp trick in patch application
-BuildRequires:  diffstat
-
 BuildRequires:  openldap-devel
 # For KDB DAL version, make explicit dependency so that increase of version
 # will cause the build to fail due to unsatisfied dependencies.
@@ -978,22 +975,7 @@ Custom SELinux policy module for FreeIPA
 
 
 %prep
-# Update timestamps on the files touched by a patch, to avoid non-equal
-# .pyc/.pyo files across the multilib peers within a build, where "Level"
-# is the patch prefix option (e.g. -p1)
-# Taken from specfile for sssd and python-simplejson
-UpdateTimestamps() {
-  Level=$1
-  PatchFile=$2
-
-  # Locate the affected files:
-  for f in $(diffstat $Level -l $PatchFile); do
-    # Set the files to have the same timestamp as that of the patch:
-    touch -c -r $PatchFile $f
-  done
-}
-
-%setup -n freeipa-%{version}%{?rc_version} -q
+%autosetup -n freeipa-%{version}%{?rc_version} -N -p1
 
 # To allow proper application patches to the stripped po files, strip originals
 pushd po
@@ -1003,10 +985,7 @@ for i in *.po ; do
 done
 popd
 
-for p in %patches ; do
-    %__patch -p1 -i $p
-    UpdateTimestamps -p1 $p
-done
+%autopatch -p1
 
 %build
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
