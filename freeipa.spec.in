@@ -66,12 +66,11 @@
 %if 0%{?rhel}
 %global package_name ipa
 %global alt_name freeipa
-%global krb5_version 1.18.2-2
-%global krb5_kdb_version 8.0
+%global krb5_version 1.20.1-1
+%global krb5_kdb_version 9.0
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.19
-# Require 4.7.0 which brings Python 3 bindings
-%global samba_version 4.12.3-12
+%global samba_version 4.17.4-101
 %global slapi_nis_version 0.56.4
 %global python_ldap_version 3.1.0-1
 %if 0%{?rhel} < 9
@@ -79,9 +78,9 @@
 %global ds_version 1.4.3.16-12
 %global selinux_policy_version 3.14.3-107
 %else
-%global ds_version 2.0.3-3
-# TBD update selinux_policy_version when BZ#2114902 is fixed
-%global selinux_policy_version 3.14.3-52
+# DNA interval enabled
+%global ds_version 2.0.5-1
+%global selinux_policy_version 38.1.1-1
 %endif
 
 # Fix for TLS 1.3 PHA, RHBZ#1775158
@@ -179,7 +178,6 @@
 # RHEL 8.2+, F32+ has 3.58
 %global nss_version 3.44.0-4
 
-
 %define krb5_base_version %(LC_ALL=C /usr/bin/pkgconf --modversion krb5 | grep -Eo '^[^.]+\.[^.]+' || echo %krb5_version)
 %global kdcproxy_version 0.4-3
 
@@ -245,10 +243,8 @@ Source1:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_vers
 # RHEL spec file only: START
 %if %{NON_DEVELOPER_BUILD}
 %if 0%{?rhel} == 8
-Patch0001:      0001_util_Fix_client-only_build-upstream_5273.patch
 Patch1001:      1001-Change-branding-to-IPA-and-Identity-Management.patch
-Patch1002:      1002-4.8.0-Remove-csrgen.patch
-Patch1003:      1003-Revert-WebUI-use-python3-rjsmin-to-minify-JavaScript.patch
+Patch1002:      1002-Revert-freeipa.spec-depend-on-bind-dnssec-utils.patch
 %endif
 %if 0%{?rhel} == 9
 Patch1001:      1001-Change-branding-to-IPA-and-Identity-Management.patch
