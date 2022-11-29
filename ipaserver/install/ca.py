@@ -344,6 +344,9 @@ def install_step_0(standalone, replica_config, options, custodia):
     ca_subject = options._ca_subject
     subject_base = options._subject_base
     external_ca_profile = None
+    token_name = options.token_name
+    token_library_path = options.token_library_path
+    token_password = options.token_password
 
     if replica_config is None:
         ca_signing_algorithm = options.ca_signing_algorithm
@@ -423,6 +426,9 @@ def install_step_0(standalone, replica_config, options, custodia):
         use_ldaps=use_ldaps,
         pki_config_override=options.pki_config_override,
         random_serial_numbers=options._random_serial_numbers,
+        token_name=options.token_name,
+        token_library_path=options.token_library_path,
+        token_password=options.token_password,
     )
 
 
@@ -608,6 +614,30 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
         description="Signing algorithm of the IPA CA certificate",
     )
     ca_signing_algorithm = master_install_only(ca_signing_algorithm)
+
+    token_name = knob(
+        str, None,
+        description=(
+            "The PKCS#11 token name if using an HSM to store "
+            "private keys."
+        ),
+    )
+    token_name = master_install_only(token_name)
+
+    token_library_path = knob(
+        str, None,
+        description=(
+            "The full path to the PKCS#11 shared library needed to"
+            "access an HSM device."
+        ),
+    )
+    token_library_path = master_install_only(token_library_path)
+
+    token_password = knob(
+        str, None,
+        description=("The password to the PKCS#11 token."),
+    )
+    token_password = master_install_only(token_password)
 
     skip_schema_check = knob(
         None,

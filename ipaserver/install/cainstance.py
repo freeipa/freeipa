@@ -346,7 +346,9 @@ class CAInstance(DogtagInstance):
                            ra_p12=None, ra_only=False,
                            promote=False, use_ldaps=False,
                            pki_config_override=None,
-                           random_serial_numbers=False):
+                           random_serial_numbers=False,
+                           token_name=None, token_library_path=None,
+                           token_password=None):
         """Create a CA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -391,6 +393,10 @@ class CAInstance(DogtagInstance):
         self.no_db_setup = promote
         self.use_ldaps = use_ldaps
         self.pki_config_override = pki_config_override
+
+        self.tokenname = token_name
+        self.token_library_path = token_library_path
+        self.token_password = token_password
 
         # Determine if we are installing as an externally-signed CA and
         # what stage we're in.
@@ -521,6 +527,17 @@ class CAInstance(DogtagInstance):
         cfg = dict(
             pki_ds_secure_connection=self.use_ldaps
         )
+
+        # FIXME: don't forget about reading from token-password-file
+        #        (not here)
+        if self.tokenname:
+            module_name = os.path.basename(self.token_library_path).split('.', 1)[0]
+            cfg['pki_hsm_enable'] = True
+            cfg['pki_hsm_modulename'] = module_name
+            cfg['pki_hsm_libfile'] = self.token_library_path
+            cfg['pki_token_name'] = self.token_name
+            cfg['pki_token_password'] = self.token_password
+            cfg['pki_sslserver_token'] = 'internal'
 
         if self.ca_signing_algorithm is not None:
             cfg['ipa_ca_signing_algorithm'] = self.ca_signing_algorithm
