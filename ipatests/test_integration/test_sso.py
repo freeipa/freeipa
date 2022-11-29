@@ -123,7 +123,7 @@ class TestSsoBridge(IntegrationTest):
         keycloak_login(self.keycloak, username, password, username_fl)
 
     @pytest.mark.xfail(
-        osinfo.id == 'fedora' and osinfo.version_number >= (37,),
+        osinfo.id == 'fedora',
         reason='freeipa ticket 9264', strict=True)
     def test_ipa_login_with_sso_user(self):
         """
