@@ -427,6 +427,35 @@ def install_check(installer):
     if not setup_ca and options.setup_kra:
         raise ScriptError(
             "--setup-kra cannot be used with CA-less installation")
+    if setup_ca:
+        if any(
+            (
+                options.token_name is not None,
+                options.token_library_path is not None,
+                options.token_password is not None,
+                options.token_password_file is not None,
+            )
+        ):
+            if any(
+                (
+                    options.token_name is None,
+                    options.token_library_path is None)
+            ):
+                raise ScriptError(
+                    "Both token name and library path are required."
+                )
+    else:
+        if any(
+            (
+                options.token_name is not None,
+                options.token_library_path is not None,
+                options.token_password is not None,
+                options.token_password_file is not None,
+            )
+        ):
+            raise ScriptError(
+                "HSM token options are not valid with CA-less installs."
+            )
 
     print("======================================="
           "=======================================")
@@ -626,6 +655,20 @@ def install_check(installer):
             raise ScriptError("IPA admin password required")
     else:
         admin_password = options.admin_password
+
+    if all(
+        (
+            options.token_password is None,
+            options.token_password_file is None,
+            options.token_name is not None
+        )
+    ):
+        token_password = read_password(
+            f"HSM token '{options.token_name}'" , confirm=False)
+        if token_password is None:
+            raise ScriptError("HSM token password required")
+        else:
+            options.token_password = token_password
 
     # Configuration for ipalib, we will bootstrap and finalize later, after
     # we are sure we have the configuration file ready.
@@ -1060,7 +1103,7 @@ def install(installer):
               "enabling chronyd.")
 
     print("")
-    if setup_ca:
+    if setup_ca and not options.token_name:
         print(("Be sure to back up the CA certificates stored in " +
               paths.CACERT_P12))
         print("These files are required to create replicas. The password for "
