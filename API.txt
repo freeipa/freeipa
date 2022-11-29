@@ -3568,10 +3568,12 @@ output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
 command: netgroup_show/1
-args: 1,5,3
+args: 1,7,3
 arg: Str('cn', cli_name='name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('managed', autofill=True, cli_name='managed', default=False)
 option: Flag('no_members', autofill=True, default=False)
+option: Flag('private', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')

@@ -370,8 +370,29 @@ class netgroup_find(LDAPSearch):
 class netgroup_show(LDAPRetrieve):
     __doc__ = _('Display information about a netgroup.')
 
+    takes_options = LDAPRetrieve.takes_options + (
+        Flag('private',
+            exclude='webui',
+            flags=['no_option', 'no_output'],
+        ),
+        Flag('managed',
+            cli_name='managed',
+            doc=_('show managed hostgroups'),
+            default_from=lambda private: private,
+        ),
+    )
+
     has_output_params = LDAPRetrieve.has_output_params + output_params
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        # Do not display private/managed hostgroups by default, see
+        # https://pagure.io/freeipa/issue/9284
+        if not options['managed']:
+            if 'memberhost' in entry_attrs:
+                return self.obj.handle_not_found(*keys)
+
+        return dn
 
 @register()
 class netgroup_add_member(LDAPAddMember):
