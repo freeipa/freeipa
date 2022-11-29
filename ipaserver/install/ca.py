@@ -141,6 +141,55 @@ def lookup_random_serial_number_version(api):
     return version
 
 
+def lookup_hsm_configuration(api):
+    """
+    If an HSM was configured on the initial install then return the
+    token name and PKCS#11 library path from that install.
+
+    Returns a tuple of (token_name, token_library_path) or (None, None)
+    """
+    dn = DN(('cn', IPA_CA_CN), api.env.container_ca, api.env.basedn)
+    token_name = None
+    token_library_path = None
+    try:
+        # we do not use api.Command.ca_show because it attempts to
+        # talk to the CA (to read certificate / chain), but the RA
+        # backend may be unavailable (ipa-replica-install) or unusable
+        # due to RA Agent cert not yet created (ipa-ca-install).
+        entry = api.Backend.ldap2.get_entry(dn)
+
+        # If the attribute doesn't exist then the remote didn't
+        # enable RSN.
+        if 'ipacahsmconfiguration' in entry:
+            val = entry['ipacahsmconfiguration'][0]
+            (token_name, token_library_path) = val.split(';')
+    except (errors.NotFound, KeyError):
+        # if the entry doesn't exist then the remote doesn't support
+        # HSM so there is nothing to do.
+        pass
+
+    return (token_name, token_library_path)
+
+
+def hsm_version(enabled):
+    """Return True if PKI supports working HSM code
+
+       The caller is responsible for raising the exception.
+    """
+    if not enabled:
+        return None, None
+    pki_version = pki.util.Version(pki.specification_version())
+    return pki_version >= pki.util.Version("11.3.0"), pki_version
+
+
+def hsm_validator(enabled):
+    val, pki_version = hsm_version(enabled)
+    if val is False:
+        raise ValueError(
+            "HSM is not supported in PKI version %s" % pki_version
+        )
+
+
 def set_subject_base_in_config(subject_base):
     entry_attrs = api.Backend.ldap2.get_ipa_config()
     entry_attrs['ipacertificatesubjectbase'] = [str(subject_base)]
@@ -225,9 +274,15 @@ def install_check(standalone, replica_config, options):
     host_name = options.host_name
 
     if replica_config is None:
+        if options.token_name:
+            try:
+                hsm_validator(True)
+            except ValueError as e:
+                raise ScriptError(str(e))
         options._subject_base = options.subject_base
         options._ca_subject = options.ca_subject
         options._random_serial_numbers = options.random_serial_numbers
+        token_name = options.token_name
     else:
         # during replica install, this gets invoked before local DS is
         # available, so use the remote api.
@@ -248,6 +303,17 @@ def install_check(standalone, replica_config, options):
                 )
             except ValueError as e:
                 raise ScriptError(str(e))
+
+        (token_name, token_library_path) = lookup_hsm_configuration(_api)
+        # IPA version and dependency checking should prevent this but
+        # better to be safe and avoid a failed install.
+        if token_name:
+            try:
+                hsm_validator(True)
+            except ValueError as e:
+                raise ScriptError(str(e))
+            if not options.token_library_path:
+                options.token_library_path = token_library_path
 
     if replica_config is not None and not replica_config.setup_ca:
         return
@@ -363,6 +429,12 @@ def install_step_0(standalone, replica_config, options, custodia):
     subject_base = options._subject_base
     external_ca_profile = None
 
+    if options.token_password_file:
+        with open(options.token_password_file, "r") as fd:
+            token_password = fd.readline().strip()
+    else:
+        token_password = options.token_password
+
     if replica_config is None:
         ca_signing_algorithm = options.ca_signing_algorithm
         if options.external_ca:
@@ -378,6 +450,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         else:
             cert_file = None
             cert_chain_file = None
+        token_name = options.token_name
 
         pkcs12_info = None
         master_host = None
@@ -386,11 +459,14 @@ def install_step_0(standalone, replica_config, options, custodia):
         ra_only = False
         promote = False
     else:
-        if not cainstance.hsm_enabled():
+        _api = api if standalone else options._remote_api
+        (token_name, _token_library_path) = lookup_hsm_configuration(api)
+        if not token_name:
             cafile = os.path.join(replica_config.dir, 'cacert.p12')
-            custodia.get_ca_keys(
-                cafile,
-                replica_config.dirman_password)
+            if replica_config.setup_ca:
+                custodia.get_ca_keys(
+                    cafile,
+                    replica_config.dirman_password)
         else:
             cafile = None
 
@@ -441,6 +517,9 @@ def install_step_0(standalone, replica_config, options, custodia):
         use_ldaps=use_ldaps,
         pki_config_override=options.pki_config_override,
         random_serial_numbers=options._random_serial_numbers,
+        token_name=token_name,
+        token_library_path=options.token_library_path,
+        token_password=token_password,
     )
 
 

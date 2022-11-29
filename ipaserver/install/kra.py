@@ -60,6 +60,11 @@ def install_check(api, replica_config, options):
 
 
 def install(api, replica_config, options, custodia):
+    if options.token_password_file:
+        with open(options.token_password_file, "r") as fd:
+            token_password = fd.readline().strip()
+    else:
+        token_password = options.token_password
     if replica_config is None:
         if not options.setup_kra:
             return
@@ -74,7 +79,8 @@ def install(api, replica_config, options, custodia):
     else:
         if not replica_config.setup_kra:
             return
-        if cainstance.hsm_enabled():
+        cai = cainstance.CAInstance()
+        if not cai.hsm_enabled:
             krafile = os.path.join(replica_config.dir, 'kracert.p12')
             with ipautil.private_ccache():
                 ccache = os.environ['KRB5CCNAME']
@@ -108,6 +114,7 @@ def install(api, replica_config, options, custodia):
         master_host=master_host,
         promote=promote,
         pki_config_override=options.pki_config_override,
+        token_password=token_password
     )
 
     _service.print_msg("Restarting the directory server")

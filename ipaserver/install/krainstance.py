@@ -79,7 +79,8 @@ class KRAInstance(DogtagInstance):
     def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, pkcs12_info=None, master_host=None,
                            subject_base=None, ca_subject=None,
-                           promote=False, pki_config_override=None):
+                           promote=False, pki_config_override=None,
+                           token_password=None):
         """Create a KRA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -93,6 +94,8 @@ class KRAInstance(DogtagInstance):
             self.clone = True
         self.master_host = master_host
         self.pki_config_override = pki_config_override
+        # The remaining token values are available via sysrestore
+        self.token_password = token_password
 
         self.subject_base = \
             subject_base or installutils.default_subject_base(realm_name)
@@ -180,6 +183,13 @@ class KRAInstance(DogtagInstance):
             cfg['pki_server_database_password'] = pki_pin
         else:
             pki_pin = None
+
+        ca = cainstance.CAInstance(self.realm)
+        if ca.hsm_enabled:
+            cfg['pki_hsm_enable'] = True
+            cfg['pki_token_name'] = ca.token_name
+            cfg['pki_token_password'] = self.token_password
+            cfg['pki_sslserver_token'] = 'internal'
 
         p12_tmpfile_name = None
 

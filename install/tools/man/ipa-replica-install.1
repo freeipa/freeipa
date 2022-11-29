@@ -152,6 +152,19 @@ File containing overrides for CA and KRA installation.
 \fB\-\-skip\-schema\-check\fR
 Skip check for updated CA DS schema on the remote master
 
+.SS "HSM OPTIONS"
+The token name will be used from the existing topology.
+.TP
+\fB\-\-token\-library\-path\fR=\fITOKEN_LIBRARY_PATH\fR
+The full path to the PKCS#11 shared library needed to access the HSM device. If the path is identical to the original install then this does not need to be provided.
+.TP
+\fB\-\-token\-password\fR=\fITOKEN_PASSWORD\fR
+The PKCS#11 token password for the HSM.
+.TP
+\fB\-\-token\-password\-file\fR=\fITOKEN_PASSWORD_FILE\fR
+The full path to a file containing the PKCS#11 token password.
+
+
 .SS "SECRET MANAGEMENT OPTIONS"
 .TP
 \fB\-\-setup\-kra\fR

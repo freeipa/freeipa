@@ -85,6 +85,18 @@ Do not use DNS for hostname lookup during installation
 \fB\-\-random\-serial\-numbers\fR
 Enable Random Serial Numbers. Random serial numbers cannot be used in a mixed environment. Either all CA's have it enabled or none do.
 .TP
+\fB\-\-token\-name\fR=\fITOKEN_NAME\fR
+The PKCS#11 token name if using an HSM to store and generate private keys.
+.TP
+\fB\-\-token\-library\-path\fR=\fITOKEN_LIBRARY_PATH\fR
+The full path to the PKCS#11 shared library needed to access the HSM device.
+.TP
+\fB\-\-token\-password\fR=\fITOKEN_PASSWORD\fR
+The PKCS#11 token password for the HSM.
+.TP
+\fB\-\-token\-password\-file\fR=\fITOKEN_PASSWORD_FILE\fR
+The full path to a file containing the PKCS#11 token password.
+.TP
 \fB\-\-skip\-conncheck\fR
 Skip connection check to remote master
 .TP
