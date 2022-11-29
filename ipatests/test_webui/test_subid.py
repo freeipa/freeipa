@@ -146,5 +146,5 @@ class test_subid(UI_driver):
         with pytest.raises(NoSuchElementException) as excinfo:
             self.delete_record(admin_uid, table_name="ipauniqueid")
         # Ensure that the exception is really related to missing remove button
-        msg = "Unable to locate element: .facet-controls button[name=remove]"
-        assert msg in str(excinfo)
+        msg = r"Unable to locate element: .facet-controls button\[name=remove\]"
+        assert excinfo.match(msg)
