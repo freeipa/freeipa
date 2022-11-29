@@ -584,9 +584,8 @@ class TestInstallWithCA_DNS3(CALessBase):
     """
 
     @pytest.mark.xfail(
-        osinfo.id == 'fedora' and osinfo.version_number >= (33,)
-        and osinfo.version_number < (35,),
-        reason='freeipa ticket 8700', strict=True)
+        osinfo.id == 'fedora' and osinfo.version_number >= (36,),
+        reason='freeipa ticket 9135', strict=True)
     @server_install_setup
     def test_number_of_zones(self):
         """There should be two zones: one forward, one reverse"""
