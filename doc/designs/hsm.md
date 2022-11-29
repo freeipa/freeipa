@@ -57,6 +57,10 @@ are generated and stored in the HSM.
 | --token-name             | NSS name for the token          |
 | --library-path           | Path to PKCS#11 shared library  |
 | --token-password         | Password for the token          |
+| --token-password-file    | File containing the token password |
+
+If neither --token-password nor --token-password-file are provided
+then the password will be obtained interactively.
 
 This information will be stored in new schema so that replicas can auto-detect when an HSM is configured.
 
@@ -64,7 +68,7 @@ ipa-ca-install will accept the same options.
 
 ```
 attributeTypes: (
-  2.16.840.1.113730.3.8.21.1.TBD
+  2.16.840.1.113730.3.8.21.1.10
   NAME 'ipaCaHSMConfiguration'
   DESC 'HSM Configuration'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
@@ -78,11 +82,11 @@ This attribute will be semi-colon delimited and contain the HSM information need
 
 token-name;library-path
 
-The token password will be prompted by ipa-replica-install or passed on the cli.
+On a replica installation the token password will be prompted by ipa-replica-install or passed using the cli options.
 
 The presence of this attribute is enough to indicate that an HSM is present in the installation and the options will automatically be used for additional servers and/or services. The password will not be stored and the user must provide them on the cli. Whenever a replica, replica CA, KRA or replica KRA is added this attribute will be examined to determine whether an HSM is available or not, and what the options are.
 
-A user can override library-path on the command-line in case it is in a different location or architecture. A different token name would mean a different token and they cannot be mixed.
+A user can override library-path on the command-line in case it is in a different location or architecture. A different token name would mean a different token and they cannot be mixed. If not provided on the command-line then the stored value will be used.
 
 The NSS module name will be the basepath of the library minus .so*.
 
