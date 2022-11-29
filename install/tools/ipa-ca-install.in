@@ -101,6 +101,26 @@ def parse_options():
                           "The CA certificate subject DN "
                           "(default CN=Certificate Authority,O=<realm-name>). "
                           "RDNs are in LDAP order (most specific RDN first)."))
+    parser.add_option("--token-name", dest="token_name",
+                      default=None,
+                      help=(
+                          "The PKCS#11 token name if using an HSM to store "
+                          "and generate private keys."))
+    parser.add_option("--token-library-path", dest="token_library_path",
+                      default=None,
+                      help=(
+                          "The full path to the PKCS#11 shared library "
+                          "needed to access the HSM device."))
+    parser.add_option("--token-password", dest="token_password",
+                      default=None,
+                      sensitive=True,
+                      help=(
+                          "The PKCS#11 token password for the HSM."))
+    parser.add_option("--token-password-file", dest="token_password_file",
+                      default=None,
+                      help=(
+                          "The full path to a file containing the PKCS#11 "
+                          " token password."))
 
     parser.add_option("--pki-config-override", dest="pki_config_override",
                       default=None,

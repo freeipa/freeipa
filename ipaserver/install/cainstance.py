@@ -345,7 +345,9 @@ class CAInstance(DogtagInstance):
                            ra_p12=None, ra_only=False,
                            promote=False, use_ldaps=False,
                            pki_config_override=None,
-                           random_serial_numbers=False):
+                           random_serial_numbers=False,
+                           token_name=None, token_library_path=None,
+                           token_password=None):
         """Create a CA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -390,6 +392,10 @@ class CAInstance(DogtagInstance):
         self.no_db_setup = promote
         self.use_ldaps = use_ldaps
         self.pki_config_override = pki_config_override
+
+        self.tokenname = token_name
+        self.token_library_path = token_library_path
+        self.token_password = token_password
 
         # Determine if we are installing as an externally-signed CA and
         # what stage we're in.
@@ -487,6 +493,8 @@ class CAInstance(DogtagInstance):
                     if not self.clone:
                         self.step("Recording random serial number state",
                                   self.__store_random_serial_number_state)
+                        self.step("Recording HSM configuration state",
+                                  self.__store_hsm_configuration_state)
                 else:
                     # Re-import profiles in the promote case to pick up any
                     # that will only be triggered by an upgrade.
@@ -522,6 +530,17 @@ class CAInstance(DogtagInstance):
         cfg = dict(
             pki_ds_secure_connection=self.use_ldaps
         )
+
+        if self.tokenname:
+            module_name = os.path.basename(
+                self.token_library_path
+            ).split('.', 1)[0]
+            cfg['pki_hsm_enable'] = True
+            cfg['pki_hsm_modulename'] = module_name
+            cfg['pki_hsm_libfile'] = self.token_library_path
+            cfg['pki_token_name'] = self.tokenname
+            cfg['pki_token_password'] = self.token_password
+            cfg['pki_sslserver_token'] = 'internal'
 
         if self.ca_signing_algorithm is not None:
             cfg['ipa_ca_signing_algorithm'] = self.ca_signing_algorithm
@@ -567,7 +586,7 @@ class CAInstance(DogtagInstance):
             # if paths.TMP_CA_P12 exists and is not owned by root,
             # shutil.copy will fail if when fs.protected_regular=1
             # so remove the file first
-            if os.path.exists(paths.TMP_CA_P12):
+            if cafile:
                 ipautil.remove_file(paths.TMP_CA_P12)
                 shutil.copy(cafile, paths.TMP_CA_P12)
                 self.service_user.chown(paths.TMP_CA_P12)
@@ -621,6 +640,7 @@ class CAInstance(DogtagInstance):
                 ext_cert = x509.load_unknown_x509_certificate(f.read())
             cert_file.write(ext_cert.public_bytes(x509.Encoding.PEM))
             ipautil.flush_sync(cert_file)
+            self.service_user.chown(cert_file.name)
 
             result = ipautil.run(
                 [paths.OPENSSL, 'crl2pkcs7',
@@ -643,6 +663,8 @@ class CAInstance(DogtagInstance):
             )
 
         nolog_list = [self.dm_password, self.admin_password, pki_pin]
+        if self.token_password:
+            nolog_list.append(self.token_password)
 
         config = self._create_spawn_config(cfg)
         self.set_hsm_state(config)
@@ -1621,6 +1643,22 @@ class CAInstance(DogtagInstance):
                 api.env.basedn)
         entry_attrs = api.Backend.ldap2.get_entry(dn)
         entry_attrs['ipaCaRandomSerialNumberVersion'] = value
+        api.Backend.ldap2.update_entry(entry_attrs)
+
+    def __store_hsm_configuration_state(self):
+        """
+        Save the HSM token configuration.
+
+        This data is used during replica install to determine whether
+        the remote server uses an HSM.
+        """
+        if not self.token_name or self.token_name == 'internal':
+            return
+        dn = DN(('cn', ipalib.constants.IPA_CA_CN), api.env.container_ca,
+                api.env.basedn)
+        entry_attrs = api.Backend.ldap2.get_entry(dn)
+        entry_attrs['ipaCaHSMConfiguration'] = '{};{}'.format(
+            self.token_name, self.token_library_path)
         api.Backend.ldap2.update_entry(entry_attrs)
 
 

@@ -139,7 +139,49 @@ class ServerCertificateInstallInterface(service.ServiceInstallInterface):
 
 
 @group
+class ServerHSMInstallInterface(service.ServiceInstallInterface):
+    description = "HSM"
+
+    token_name = knob(
+        str, None,
+        description=(
+            "The PKCS#11 token name if using an HSM to store and generate "
+            "private keys."
+        ),
+        cli_metavar='NAME',
+    )
+    token_name = master_install_only(token_name)
+
+    token_library_path = knob(
+        str, None,
+        description=(
+            "The full path to the PKCS#11 shared library needed to"
+            "access an HSM device."
+        ),
+        cli_metavar='NAME',
+    )
+    token_library_path = prepare_only(token_library_path)
+
+    token_password = knob(
+        str, None,
+        sensitive=True,
+        description=("The PKCS#11 token password for the HSM."),
+        cli_metavar='NAME',
+    )
+    token_password = prepare_only(token_password)
+
+    token_password_file = knob(
+        str, None,
+        description=("The full path to a file containing the password to "
+                     "the PKCS#11 token password."),
+        cli_metavar='NAME',
+    )
+    token_password_file = prepare_only(token_password_file)
+
+
+@group
 class ServerInstallInterface(ServerCertificateInstallInterface,
+                             ServerHSMInstallInterface,
                              client.ClientInstallInterface,
                              ca.CAInstallInterface,
                              kra.KRAInstallInterface,
