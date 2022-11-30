@@ -108,6 +108,7 @@ def install(api, replica_config, options, custodia):
         master_host=master_host,
         promote=promote,
         pki_config_override=options.pki_config_override,
+        token_password=options.token_password
     )
 
     _service.print_msg("Restarting the directory server")
