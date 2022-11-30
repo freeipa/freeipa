@@ -535,7 +535,7 @@ class CAInstance(DogtagInstance):
             cfg['pki_hsm_enable'] = True
             cfg['pki_hsm_modulename'] = module_name
             cfg['pki_hsm_libfile'] = self.token_library_path
-            cfg['pki_token_name'] = self.token_name
+            cfg['pki_token_name'] = self.tokenname
             cfg['pki_token_password'] = self.token_password
             cfg['pki_sslserver_token'] = 'internal'
 

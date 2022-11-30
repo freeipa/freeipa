@@ -187,7 +187,7 @@ class KRAInstance(DogtagInstance):
         ca = cainstance.CAInstance(self.realm)
         if ca.hsm_enabled:
             cfg['pki_hsm_enable'] = True
-            cfg['pki_token_name'] = ca.token_name()
+            cfg['pki_token_name'] = ca.token_name
             cfg['pki_token_password'] = self.token_password
             cfg['pki_sslserver_token'] = 'internal'
 
