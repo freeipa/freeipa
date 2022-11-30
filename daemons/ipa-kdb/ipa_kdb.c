@@ -200,6 +200,7 @@ static const struct {
     { "pkinit", IPADB_USER_AUTH_PKINIT },
     { "hardened", IPADB_USER_AUTH_HARDENED },
     { "idp", IPADB_USER_AUTH_IDP },
+    { "passkey", IPADB_USER_AUTH_PASSKEY },
     { }
 };
 

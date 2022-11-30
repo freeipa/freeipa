@@ -106,6 +106,7 @@ enum ipadb_user_auth {
   IPADB_USER_AUTH_PKINIT   = 1 << 4,
   IPADB_USER_AUTH_HARDENED = 1 << 5,
   IPADB_USER_AUTH_IDP      = 1 << 6,
+  IPADB_USER_AUTH_PASSKEY  = 1 << 7,
 };
 
 enum ipadb_user_auth_idx {
@@ -114,6 +115,7 @@ enum ipadb_user_auth_idx {
   IPADB_USER_AUTH_IDX_PKINIT,
   IPADB_USER_AUTH_IDX_HARDENED,
   IPADB_USER_AUTH_IDX_IDP,
+  IPADB_USER_AUTH_IDX_PASSKEY,
   IPADB_USER_AUTH_IDX_MAX,
 };
 
