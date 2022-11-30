@@ -344,9 +344,12 @@ def install_step_0(standalone, replica_config, options, custodia):
     ca_subject = options._ca_subject
     subject_base = options._subject_base
     external_ca_profile = None
-    token_name = options.token_name
-    token_library_path = options.token_library_path
-    token_password = options.token_password
+
+    if options.token_password_file:
+        with open(options.token_password_file, "r") as fd:
+            token_password = fd.readline().strip()
+    else:
+        token_password = options.token_password
 
     if replica_config is None:
         ca_signing_algorithm = options.ca_signing_algorithm
@@ -428,7 +431,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         random_serial_numbers=options._random_serial_numbers,
         token_name=options.token_name,
         token_library_path=options.token_library_path,
-        token_password=options.token_password,
+        token_password=token_password,
     )
 
 
@@ -638,6 +641,12 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
         description=("The password to the PKCS#11 token."),
     )
     token_password = master_install_only(token_password)
+
+    token_password_file = knob(
+        str, None,
+        description=("A file containing the password to the PKCS#11 token."),
+    )
+    token_password_file = master_install_only(token_password_file)
 
     skip_schema_check = knob(
         None,

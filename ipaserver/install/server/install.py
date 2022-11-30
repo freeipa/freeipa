@@ -427,6 +427,25 @@ def install_check(installer):
     if not setup_ca and options.setup_kra:
         raise ScriptError(
             "--setup-kra cannot be used with CA-less installation")
+    if setup_ca:
+        if any(
+            (
+                options.token_name != None,
+                token_library_path != None,
+                token_password != None,
+                token_password_file != None,
+            )
+        ):
+            if any(
+                (options.token_name == None, token_library_path == None)
+            ):
+                raise ScriptError (
+                    "Both token name and library path are required."
+                )
+            if all((token_password == None, token_password_file == None)):
+                raise ScriptError (
+                    "HSM token password must be provided."
+                )
 
     print("======================================="
           "=======================================")

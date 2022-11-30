@@ -531,7 +531,9 @@ class CAInstance(DogtagInstance):
         # FIXME: don't forget about reading from token-password-file
         #        (not here)
         if self.tokenname:
-            module_name = os.path.basename(self.token_library_path).split('.', 1)[0]
+            module_name = os.path.basename(
+                self.token_library_path
+            ).split('.', 1)[0]
             cfg['pki_hsm_enable'] = True
             cfg['pki_hsm_modulename'] = module_name
             cfg['pki_hsm_libfile'] = self.token_library_path
