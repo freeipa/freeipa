@@ -4,3 +4,4 @@ IPA API Guides
    :maxdepth: 1
 
    basic_usage.md
+   user_management.md
