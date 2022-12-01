@@ -6,27 +6,27 @@ topologies:
   master_1repl: &master_1repl
     name: master_1repl
     cpu: 4
-    memory: 6450
+    memory: 6750
   master_1repl_1client: &master_1repl_1client
     name: master_1repl_1client
     cpu: 4
-    memory: 7400
+    memory: 8000
   ipaserver: &ipaserver
     name: ipaserver
     cpu: 2
-    memory: 2400
+    memory: 2750
   master_2repl_1client: &master_2repl_1client
     name: master_2repl_1client
     cpu: 5
-    memory: 10150
+    memory: 10750
   master_3repl_1client: &master_3repl_1client
     name: master_3repl_1client
     cpu: 6
-    memory: 12900
+    memory: 13500
   ad_master: &ad_master
     name: ad_master
     cpu: 4
-    memory: 12000
+    memory: 8096
 
 jobs:
   pki-fedora/build:
