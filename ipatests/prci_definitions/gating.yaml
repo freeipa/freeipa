@@ -6,11 +6,11 @@ topologies:
   master_1repl: &master_1repl
     name: master_1repl
     cpu: 4
-    memory: 6450
+    memory: 6750
   master_1repl_1client: &master_1repl_1client
     name: master_1repl_1client
     cpu: 4
-    memory: 7400
+    memory: 8000
 
 jobs:
   fedora-27/build:
