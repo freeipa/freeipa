@@ -449,7 +449,6 @@ Requires: nss-tools >= %{nss_version}
 Requires(post): krb5-server >= %{krb5_version}
 Requires(post): krb5-server >= %{krb5_base_version}
 Requires: krb5-kdb-version = %{krb5_kdb_version}
-Requires: krb5-pkinit-openssl >= %{krb5_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: chrony
 Requires: httpd >= %{httpd_version}
@@ -675,6 +674,8 @@ Requires: python3-sssdconfig >= %{sssd_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: chrony
 Requires: krb5-workstation >= %{krb5_version}
+# support pkinit with client install
+Requires: krb5-pkinit-openssl >= %{krb5_version}
 # authselect: sssd profile with-subid
 %if 0%{?fedora} >= 36
 Requires: authselect >= 1.4.0
