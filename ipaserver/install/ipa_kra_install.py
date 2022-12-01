@@ -80,6 +80,31 @@ class KRAInstall(admintool.AdminTool):
             default=None,
             help="Path to ini file with config overrides.")
 
+        parser.add_option(
+            "--token-name", dest="token_name",
+            default=None,
+            help=(
+                "The PKCS#11 token name if using an HSM to store "
+                "private keys."))
+        parser.add_option(
+            "--token-library-path", dest="token_library_path",
+            default=None,
+            help=(
+                "The full path to the PKCS#11 shared library "
+                "needed to access an HSM device."))
+        parser.add_option(
+            "--token_password", dest="token_password",
+            default=None,
+            help=(
+                "The full path to the PKCS#11 shared library "
+                "needed to access an HSM device."))
+        parser.add_option(
+            "--token_password-file", dest="token_password_file",
+            default=None,
+            help=(
+                "The full path containing the PKCS#11 token "
+                "password."))
+
     def validate_options(self, needs_root=True):
         super(KRAInstall, self).validate_options(needs_root=True)
 
@@ -135,6 +160,16 @@ class KRAInstaller(KRAInstall):
             if self.options.password is None:
                 raise admintool.ScriptError(
                     "Directory Manager password required")
+
+        if (
+            not self.options.unattended
+            and self.token_name is not None
+            and self.options.token_password is None
+            and self.options.token_password_file is None
+        ):
+            self.options.token_password = installutils.read_password(
+                "token password", confirm=False,
+                validate=False, retry=False)
 
     def run(self):
         super(KRAInstaller, self).run()
