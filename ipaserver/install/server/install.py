@@ -430,20 +430,27 @@ def install_check(installer):
     if setup_ca:
         if any(
             (
-                options.token_name != None,
-                token_library_path != None,
-                token_password != None,
-                token_password_file != None,
+                options.token_name is not None,
+                options.token_library_path is not None,
+                options.token_password is not None,
+                options.token_password_file is not None,
             )
         ):
             if any(
-                (options.token_name == None, token_library_path == None)
+                (
+                    options.token_name is None,
+                    options.token_library_path is None)
             ):
-                raise ScriptError (
+                raise ScriptError(
                     "Both token name and library path are required."
                 )
-            if all((token_password == None, token_password_file == None)):
-                raise ScriptError (
+            if all(
+                (
+                    options.token_password is None,
+                    options.token_password_file is None
+                )
+            ):
+                raise ScriptError(
                     "HSM token password must be provided."
                 )
 
