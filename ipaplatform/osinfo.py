@@ -218,7 +218,7 @@ class OSInfo(Mapping):
     def container(self):
         if self._container is not None:
             return self._container
-        from ipaplatform.tasks import tasks
+        from ipaplatform.tasks import tasks  # pylint: disable=cyclic-import
         try:
             self._container = tasks.detect_container()
         except NotImplementedError:
