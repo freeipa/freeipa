@@ -949,7 +949,7 @@ class API(plugable.API):
                 ipaserver.plugins,
             )
         else:
-            import ipaclient.remote_plugins
+            import ipaclient.remote_plugins  # pylint: disable=cyclic-import
             import ipaclient.plugins
             result = (
                 ipaclient.remote_plugins.get_package(self),
