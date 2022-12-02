@@ -156,7 +156,7 @@ class KRAInstaller(KRAInstall):
             and self.options.token_password_file is None
         ):
             self.options.token_password = installutils.read_password(
-                "token password", confirm=False,
+                f"{cai.token_name}", confirm=False,
                 validate=False, retry=False)
 
     def run(self):

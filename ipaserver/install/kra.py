@@ -79,7 +79,8 @@ def install(api, replica_config, options, custodia):
     else:
         if not replica_config.setup_kra:
             return
-        if cainstance.hsm_enabled():
+        cai = cainstance.CAInstance()
+        if not cai.hsm_enabled:
             krafile = os.path.join(replica_config.dir, 'kracert.p12')
             with ipautil.private_ccache():
                 ccache = os.environ['KRB5CCNAME']

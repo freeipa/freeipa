@@ -161,7 +161,7 @@ def lookup_hsm_configuration(api):
         # If the attribute doesn't exist then the remote didn't
         # enable RSN.
         if 'ipacahsmconfiguration' in entry:
-            val = int(entry['ipacahsmconfiguration'][0])
+            val = entry['ipacahsmconfiguration'][0]
             (token_name, token_library_path) = val.split(';')
     except (errors.NotFound, KeyError):
         # if the entry doesn't exist then the remote doesn't support
@@ -280,7 +280,7 @@ def install_check(standalone, replica_config, options):
             except ValueError as e:
                 raise ScriptError(str(e))
 
-        (token_name, token_library_path) = lookup_hsm_configuration(api)
+        (token_name, token_library_path) = lookup_hsm_configuration(_api)
         if token_name:
             try:
                 hsm_validator(True)
@@ -433,7 +433,8 @@ def install_step_0(standalone, replica_config, options, custodia):
         ra_only = False
         promote = False
     else:
-        if not cainstance.hsm_enabled():
+        # This option is set automatically in lookup_hsm_configuration()
+        if not options.token_name:
             cafile = os.path.join(replica_config.dir, 'cacert.p12')
             custodia.get_ca_keys(
                 cafile,
@@ -676,36 +677,6 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
         description="Signing algorithm of the IPA CA certificate",
     )
     ca_signing_algorithm = master_install_only(ca_signing_algorithm)
-
-    token_name = knob(
-        str, None,
-        description=(
-            "The PKCS#11 token name if using an HSM to store "
-            "private keys."
-        ),
-    )
-    token_name = master_install_only(token_name)
-
-    token_library_path = knob(
-        str, None,
-        description=(
-            "The full path to the PKCS#11 shared library needed to"
-            "access an HSM device."
-        ),
-    )
-    token_library_path = master_install_only(token_library_path)
-
-    token_password = knob(
-        str, None,
-        description=("The password to the PKCS#11 token."),
-    )
-    token_password = master_install_only(token_password)
-
-    token_password_file = knob(
-        str, None,
-        description=("A file containing the password to the PKCS#11 token."),
-    )
-    token_password_file = master_install_only(token_password_file)
 
     skip_schema_check = knob(
         None,

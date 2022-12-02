@@ -1635,6 +1635,7 @@ class CAInstance(DogtagInstance):
         entry_attrs = api.Backend.ldap2.get_entry(dn)
         entry_attrs['ipaCaHSMConfiguration'] = '{};{}'.format(
             self.token_name, self.token_library_path)
+        api.Backend.ldap2.update_entry(entry_attrs)
 
 
 def __update_entry_from_cert(make_filter, make_entry, cert):
