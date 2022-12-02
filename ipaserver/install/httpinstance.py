@@ -25,7 +25,6 @@ import os
 import glob
 import errno
 import shlex
-import pipes  # pylint: disable=deprecated-module
 import shutil
 import tempfile
 
@@ -320,7 +319,7 @@ class HTTPInstance(service.Service):
                     if args[0] != paths.IPA_SERVER_GUARD:
                         self.backup_state('certmonger_ipa_helper', helper)
                         args = [paths.IPA_SERVER_GUARD] + args
-                        helper = ' '.join(pipes.quote(a) for a in args)
+                        helper = ' '.join(shlex.quote(a) for a in args)
                         ca_iface.Set('org.fedorahosted.certmonger.ca',
                                      'external-helper', helper)
         finally:
