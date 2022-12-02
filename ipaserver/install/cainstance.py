@@ -492,6 +492,8 @@ class CAInstance(DogtagInstance):
                     if not self.clone:
                         self.step("Recording random serial number state",
                                   self.__store_random_serial_number_state)
+                        self.step("Recording HSM configuration state",
+                                  self.__store_hsm_configuration_state)
                 else:
                     # Re-import profiles in the promote case to pick up any
                     # that will only be triggered by an upgrade.
@@ -1618,6 +1620,21 @@ class CAInstance(DogtagInstance):
         entry_attrs = api.Backend.ldap2.get_entry(dn)
         entry_attrs['ipaCaRandomSerialNumberVersion'] = value
         api.Backend.ldap2.update_entry(entry_attrs)
+
+    def __store_hsm_configuration_state(self):
+        """
+        Save the HSM token configuration.
+
+        This data is used during replica install to determine whether
+        the remote server uses an HSM.
+        """
+        if not self.token_name:
+            return
+        dn = DN(('cn', ipalib.constants.IPA_CA_CN), api.env.container_ca,
+                api.env.basedn)
+        entry_attrs = api.Backend.ldap2.get_entry(dn)
+        entry_attrs['ipaCaHSMConfiguration'] = '{};{}'.format(
+            self.token_name, self.token_library_path)
 
 
 def __update_entry_from_cert(make_filter, make_entry, cert):
