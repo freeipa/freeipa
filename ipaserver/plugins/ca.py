@@ -72,7 +72,7 @@ class ca(LDAPObject):
     permission_filter_objectclasses = ['ipaca']
     default_attributes = [
         'cn', 'description', 'ipacaid', 'ipacaissuerdn', 'ipacasubjectdn',
-        'ipacarandomserialnumberversion',
+        'ipacarandomserialnumberversion', 'ipacahsmconfiguration',
     ]
     rdn_attribute = 'cn'
     allow_rename = True
@@ -143,6 +143,7 @@ class ca(LDAPObject):
                 'ipacaissuerdn',
                 'ipacasubjectdn',
                 'ipacarandomserialnumberversion',
+                'ipacahsmconfiguration',
                 'objectclass',
             },
         },
