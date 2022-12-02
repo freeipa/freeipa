@@ -6,7 +6,6 @@ import textwrap
 import time
 
 from ipaplatform.paths import paths
-from . import tasks
 
 
 logger = logging.getLogger(__name__)
@@ -175,6 +174,7 @@ class ResolvedResolver(Resolver):
         # scenarios) can exceed the threshold configured in systemd option
         # StartLimitIntervalSec. In that case restart fails, but we can simply
         # continue trying until it succeeds
+        from . import tasks  # pylint: disable=cyclic-import
         tasks.run_repeatedly(
             self.host, ['systemctl', 'restart', 'systemd-resolved.service'],
             timeout=15)
@@ -293,6 +293,7 @@ class NetworkManagerResolver(Resolver):
         # scenarios) can exceed the threshold configured in systemd option
         # StartLimitIntervalSec. In that case restart fails, but we can simply
         # continue trying until it succeeds
+        from . import tasks  # pylint: disable=cyclic-import
         tasks.run_repeatedly(
             self.host, ['systemctl', 'restart', 'NetworkManager.service'],
             timeout=15)

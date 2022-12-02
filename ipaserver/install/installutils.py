@@ -56,7 +56,7 @@ from ipalib import api, errors, x509
 from ipalib.install import dnsforwarders
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName, resolve
-from ipaserver.install import certs, service, sysupgrade
+from ipaserver.install import certs, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
@@ -1012,6 +1012,7 @@ def check_entropy():
     """
     Checks if the system has enough entropy, if not, displays warning message
     """
+    from . import service  # pylint: disable=cyclic-import
     try:
         with open(paths.ENTROPY_AVAIL, 'r') as efname:
             if int(efname.read()) < 200:
