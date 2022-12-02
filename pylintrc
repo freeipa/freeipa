@@ -9,7 +9,7 @@ persistent=no
 #load-plugins=pylint_plugins
 
 # A list of packages with safe C extensions to load
-extension-pkg-whitelist=
+extension-pkg-allow-list=
     _ldap,
     cryptography,
     gssapi,
