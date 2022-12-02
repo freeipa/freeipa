@@ -13,7 +13,9 @@ extension-pkg-whitelist=
     _ldap,
     cryptography,
     gssapi,
-    netifaces
+    netifaces,
+    lxml.etree,
+    pysss_murmur,
 
 [CLASSES]
 
