@@ -29,7 +29,7 @@ aci: (targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: 
 dn: cn=cas,cn=ca,dc=ipa,dc=example
 aci: (targetattr = "cn || description")(targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: Modify CA";allow (write) groupdn = "ldap:///cn=System: Modify CA,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=cas,cn=ca,dc=ipa,dc=example
-aci: (targetattr = "cn || createtimestamp || description || entryusn || ipacaid || ipacaissuerdn || ipacarandomserialnumberversion || ipacasubjectdn || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: Read CAs";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "cn || createtimestamp || description || entryusn || ipacahsmconfiguration || ipacaid || ipacaissuerdn || ipacarandomserialnumberversion || ipacasubjectdn || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: Read CAs";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=caacls,cn=ca,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipacaacl)")(version 3.0;acl "permission:System: Add CA ACL";allow (add) groupdn = "ldap:///cn=System: Add CA ACL,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=caacls,cn=ca,dc=ipa,dc=example
