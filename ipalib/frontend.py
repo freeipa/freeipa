@@ -449,7 +449,7 @@ class Command(HasParam):
         # special, rare case: user calls help() on a plugin class instead of
         # an instance
         if obj is None:
-            from ipalib import api
+            from ipalib import api  # pylint: disable=cyclic-import
             obj = cls(api=api)
         cls._signature = signature = create_signature(obj)
         return signature
