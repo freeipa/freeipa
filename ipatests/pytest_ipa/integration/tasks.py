@@ -33,7 +33,7 @@ import copy
 import subprocess
 import tempfile
 import time
-from pipes import quote  # pylint: disable=deprecated-module
+from shlex import quote
 import configparser
 from contextlib import contextmanager
 from pkg_resources import parse_version
