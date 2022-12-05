@@ -10,6 +10,7 @@ CONFIG_ENTITY = 'dnsconfig'
 ZONE_DEFAULT_FACET = 'records'
 
 ZONE_PKEY = 'foo.itest.'
+REVERSE_ZONE_IP = '192.0.2.0/24'
 
 ZONE_DATA = {
     'pkey': ZONE_PKEY,
@@ -20,6 +21,14 @@ ZONE_DATA = {
         ('checkbox', 'idnsallowsyncptr', 'checked'),
     ],
 }
+
+REVERSE_ZONE_DATA = {
+    'pkey': ZONE_PKEY,
+    'add': [
+        ('textbox', 'idnsname', REVERSE_ZONE_IP),
+    ]
+}
+
 
 FORWARD_ZONE_PKEY = 'forward.itest.'
 

@@ -21,15 +21,16 @@
 DNS tests
 """
 
-from ipatests.test_webui.ui_driver import UI_driver
-from ipatests.test_webui.ui_driver import screenshot
+import pytest
+
 from ipatests.test_webui.data_dns import (
     ZONE_ENTITY, FORWARD_ZONE_ENTITY, CONFIG_ENTITY, RECORD_ENTITY,
     ZONE_DEFAULT_FACET, ZONE_PKEY, ZONE_DATA, FORWARD_ZONE_PKEY,
     FORWARD_ZONE_DATA, RECORD_PKEY, A_IP, RECORD_ADD_DATA, RECORD_MOD_DATA,
-    CONFIG_MOD_DATA
+    CONFIG_MOD_DATA, REVERSE_ZONE_DATA
 )
-import pytest
+from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 
 @pytest.mark.tier1
@@ -62,6 +63,15 @@ class test_dns(UI_driver):
         self.navigate_by_breadcrumb(ZONE_PKEY)
         self.delete_record(RECORD_PKEY)
         self.navigate_by_breadcrumb("DNS Zones")
+        self.delete_record(ZONE_PKEY)
+
+        # add reverse zone
+        self.basic_crud(ZONE_ENTITY, REVERSE_ZONE_DATA,
+                        default_facet=ZONE_DEFAULT_FACET, delete=False)
+        # test for https://pagure.io/freeipa/issue/9249
+        # Deprecated feature idnssoaserial must not show
+        with pytest.raises(AssertionError):
+            self.assert_notification(type="warning")
         self.delete_record(ZONE_PKEY)
 
     @screenshot
