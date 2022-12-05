@@ -663,6 +663,8 @@ class CAInstance(DogtagInstance):
             )
 
         nolog_list = [self.dm_password, self.admin_password, pki_pin]
+        if self.token_password:
+            nolog_list.append(self.token_password)
 
         config = self._create_spawn_config(cfg)
         self.set_hsm_state(config)
