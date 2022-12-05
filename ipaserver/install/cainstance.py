@@ -641,6 +641,7 @@ class CAInstance(DogtagInstance):
                 ext_cert = x509.load_unknown_x509_certificate(f.read())
             cert_file.write(ext_cert.public_bytes(x509.Encoding.PEM))
             ipautil.flush_sync(cert_file)
+            self.service_user.chown(cert_file.name)
 
             result = ipautil.run(
                 [paths.OPENSSL, 'crl2pkcs7',
