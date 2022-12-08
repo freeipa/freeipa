@@ -14,6 +14,7 @@ FreeIPA design documentation
    hsm.md
    krb-ticket-policy.md
    extdom-plugin-protocol.md
+   expired_certificate_pruning.md
    expiring-password-notification.md
    ldap_grace_period.md
    ldap_pam_passthrough.md
