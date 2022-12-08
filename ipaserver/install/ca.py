@@ -254,6 +254,11 @@ def install_check(standalone, replica_config, options):
 
     realm_name = options.realm_name
     host_name = options.host_name
+    if options.token_name:
+        try:
+            hsm_validator(True)
+        except ValueError as e:
+            raise ScriptError(str(e))
 
     if replica_config is None:
         options._subject_base = options.subject_base
@@ -281,6 +286,8 @@ def install_check(standalone, replica_config, options):
                 raise ScriptError(str(e))
 
         (token_name, token_library_path) = lookup_hsm_configuration(_api)
+        # IPA version and dependency checking should prevent this but
+        # better to be safe and avoid a failed install.
         if token_name:
             try:
                 hsm_validator(True)
