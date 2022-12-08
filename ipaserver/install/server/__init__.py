@@ -145,7 +145,7 @@ class ServerHSMInstallInterface(service.ServiceInstallInterface):
     token_name = knob(
         str, None,
         description=(
-            "The PKCS#11 token name if using an HSM to store "
+            "The PKCS#11 token name if using an HSM to store and generate "
             "private keys."
         ),
         cli_metavar='NAME',
@@ -164,14 +164,14 @@ class ServerHSMInstallInterface(service.ServiceInstallInterface):
 
     token_password = knob(
         str, None,
-        description=("The password to the PKCS#11 token."),
+        description=("The PKCS#11 token password for the HSM."),
         cli_metavar='NAME',
     )
     token_password = prepare_only(token_password)
 
     token_password_file = knob(
         str, None,
-        description=("A file containing the password to the PKCS#11 token."),
+        description=("The full path to a file containing the password to the PKCS#11 token password."),
         cli_metavar='NAME',
     )
     token_password_file = prepare_only(token_password_file)
