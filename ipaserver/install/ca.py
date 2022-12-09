@@ -254,16 +254,17 @@ def install_check(standalone, replica_config, options):
 
     realm_name = options.realm_name
     host_name = options.host_name
-    if options.token_name:
-        try:
-            hsm_validator(True)
-        except ValueError as e:
-            raise ScriptError(str(e))
 
     if replica_config is None:
+        if options.token_name:
+            try:
+                hsm_validator(True)
+            except ValueError as e:
+                raise ScriptError(str(e))
         options._subject_base = options.subject_base
         options._ca_subject = options.ca_subject
         options._random_serial_numbers = options.random_serial_numbers
+        token_name = options.token_name
     else:
         # during replica install, this gets invoked before local DS is
         # available, so use the remote api.
@@ -293,7 +294,6 @@ def install_check(standalone, replica_config, options):
                 hsm_validator(True)
             except ValueError as e:
                 raise ScriptError(str(e))
-            options.token_name = token_name
             if not options.token_library_path:
                 options.token_library_path = token_library_path
 
@@ -432,6 +432,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         else:
             cert_file = None
             cert_chain_file = None
+        token_name = options.token_name
 
         pkcs12_info = None
         master_host = None
@@ -440,8 +441,10 @@ def install_step_0(standalone, replica_config, options, custodia):
         ra_only = False
         promote = False
     else:
-        # This option is set automatically in lookup_hsm_configuration()
-        if not options.token_name:
+        import pdb; pdb.set_trace()
+        _api = api if standalone else options._remote_api
+        (token_name, token_library_path) = lookup_hsm_configuration(api)
+        if not token_name:
             cafile = os.path.join(replica_config.dir, 'cacert.p12')
             custodia.get_ca_keys(
                 cafile,
@@ -496,7 +499,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         use_ldaps=use_ldaps,
         pki_config_override=options.pki_config_override,
         random_serial_numbers=options._random_serial_numbers,
-        token_name=options.token_name,
+        token_name=token_name,
         token_library_path=options.token_library_path,
         token_password=token_password,
     )
