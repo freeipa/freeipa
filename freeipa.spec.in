@@ -95,8 +95,6 @@
 # Fedora
 %global package_name freeipa
 %global alt_name ipa
-# Fix for CVE-2020-28196
-%global krb5_version 1.18.2-29
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
@@ -112,7 +110,15 @@
 %endif
 %global slapi_nis_version 0.56.5
 
+%if 0%{?fedora} < 38
+# Fix for CVE-2020-28196
+%global krb5_version 1.18.2-29
 %global krb5_kdb_version 8.0
+%else
+# Fix for CVE-2020-28196
+%global krb5_version 1.20.1-3
+%global krb5_kdb_version 9.0
+%endif
 
 # fix for segfault in python3-ldap, https://pagure.io/freeipa/issue/7324
 %global python_ldap_version 3.1.0-1
