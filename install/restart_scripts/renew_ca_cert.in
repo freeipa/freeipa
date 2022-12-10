@@ -49,6 +49,10 @@ def _main():
 
     dogtag_service = services.knownservices['pki_tomcatd']
 
+    ca = cainstance.CAInstance(host_name=api.env.host)
+    if ca.token_name:
+        nickname = f"{ca.token_name}:{nickname}"
+
     # dogtag opens its NSS database in read/write mode so we need it
     # shut down so certmonger can open it read/write mode. This avoids
     # database corruption. It should already be stopped by the pre-command
@@ -66,8 +70,28 @@ def _main():
             syslog.syslog(
                 syslog.LOG_NOTICE, "Stopped %s" % dogtag_service.service_name)
 
+    pwdfile = None
+    if ca.hsm_enabled:
+        token_pw = None
+        with open(paths.PKI_TOMCAT_PASSWORD_CONF, "r") as passfile:
+            contents = passfile.readlines()
+        for line in contents:
+            data = line.split('=', 1)
+            if data[0] == 'hardware-' + ca.token_name:
+                token_pw = data[1]
+                break
+        if token_pw:
+            pwfile = ipautil.write_tmp_file(token_pw)
+            pwdfile = pwfile.name
+        else:
+            syslog.syslog(
+                syslog.LOG_ERR,
+                'Unable to find pin for token %s' % ca.token_name
+            )
+
     # Fetch the new certificate
-    db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
+    db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
+                      pwd_file=pwdfile)
     cert = db.get_cert_from_db(nickname)
     if not cert:
         syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
@@ -82,7 +106,6 @@ def _main():
 
         api.Backend.ldap2.connect()
 
-        ca = cainstance.CAInstance(host_name=api.env.host)
         ca.update_cert_config(nickname, cert)
         if ca.is_renewal_master():
             cainstance.update_people_entry(cert)
