@@ -504,3 +504,15 @@ optional_policy(`
     ')
 	ipa_helper_noatsecure(oddjob_t)
 ')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
+        type certmonger_t;
+        type pki_tomcat_etc_rw_t;
+        class file getattr;
+        class file ioctl;
+        class file open;
+        class file read;
+    ')
+    allow certmonger_t pki_tomcat_etc_rw_t:file { getattr ioctl open read };
+')
