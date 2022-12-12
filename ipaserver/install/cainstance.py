@@ -1631,7 +1631,7 @@ class CAInstance(DogtagInstance):
         This data is used during replica install to determine whether
         the remote server uses an HSM.
         """
-        if not self.token_name:
+        if not self.token_name or self.token_name == 'internal':
             return
         dn = DN(('cn', ipalib.constants.IPA_CA_CN), api.env.container_ca,
                 api.env.basedn)
