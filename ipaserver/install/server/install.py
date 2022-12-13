@@ -644,7 +644,8 @@ def install_check(installer):
     if all(
         (
             options.token_password is None,
-            options.token_password_file is None
+            options.token_password_file is None,
+            options.token_name is not None
         )
     ):
         token_password = read_password(f"{options.token_name}" , confirm=False)
