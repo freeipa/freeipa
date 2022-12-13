@@ -444,15 +444,6 @@ def install_check(installer):
                 raise ScriptError(
                     "Both token name and library path are required."
                 )
-            if all(
-                (
-                    options.token_password is None,
-                    options.token_password_file is None
-                )
-            ):
-                raise ScriptError(
-                    "HSM token password must be provided."
-                )
 
     print("======================================="
           "=======================================")
@@ -649,6 +640,18 @@ def install_check(installer):
             raise ScriptError("IPA admin password required")
     else:
         admin_password = options.admin_password
+
+    if all(
+        (
+            options.token_password is None,
+            options.token_password_file is None
+        )
+    ):
+        token_password = read_password(f"{options.token_name}" , confirm=False)
+        if token_password is None:
+            raise ScriptError("HSM token password required")
+        else:
+            options.token_password = token_password
 
     # Configuration for ipalib, we will bootstrap and finalize later, after
     # we are sure we have the configuration file ready.
