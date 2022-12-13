@@ -441,7 +441,6 @@ def install_step_0(standalone, replica_config, options, custodia):
         ra_only = False
         promote = False
     else:
-        import pdb; pdb.set_trace()
         _api = api if standalone else options._remote_api
         (token_name, token_library_path) = lookup_hsm_configuration(api)
         if not token_name:
