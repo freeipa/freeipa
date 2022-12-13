@@ -1086,7 +1086,7 @@ def install(installer):
               "enabling chronyd.")
 
     print("")
-    if setup_ca:
+    if setup_ca and not options.token_name:
         print(("Be sure to back up the CA certificates stored in " +
               paths.CACERT_P12))
         print("These files are required to create replicas. The password for "
