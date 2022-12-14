@@ -732,11 +732,15 @@ class config_show(LDAPRetrieve):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         ca_dn = DN(('cn', IPA_CA_CN), api.env.container_ca, api.env.basedn)
-        ca_entry = ldap.get_entry(ca_dn, ['ipacahsmconfiguration'])
-        if 'ipacahsmconfiguration' in ca_entry:
-            val = ca_entry['ipacahsmconfiguration'][0]
-            (token_name, _token_library_path) = val.split(';')
-            entry_attrs.update({'hsm_token_name': token_name})
+        try:
+            ca_entry = ldap.get_entry(ca_dn, ['ipacahsmconfiguration'])
+        except errors.NotFound:
+            pass
+        else:
+            if 'ipacahsmconfiguration' in ca_entry:
+                val = ca_entry['ipacahsmconfiguration'][0]
+                (token_name, _token_library_path) = val.split(';')
+                entry_attrs.update({'hsm_token_name': token_name})
         self.obj.show_servroles_attributes(
             entry_attrs, "CA server", "KRA server", "IPA master",
             "DNS server", **options)
