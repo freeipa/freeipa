@@ -442,7 +442,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         promote = False
     else:
         _api = api if standalone else options._remote_api
-        (token_name, token_library_path) = lookup_hsm_configuration(api)
+        (token_name, _token_library_path) = lookup_hsm_configuration(api)
         if not token_name:
             cafile = os.path.join(replica_config.dir, 'cacert.p12')
             custodia.get_ca_keys(
