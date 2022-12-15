@@ -55,6 +55,12 @@ PASSKEY_KEY = ("passkey:"
                "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEgryfr3YR"
                "M9OVdWHEDrbvcSyT5D0b/8Ks+fMp8MM0BXV/FOo436ZP"
                "jUqSU+2LOXVGdKkJU1XBiwl+n/X+vGD1vw==")
+PASSKEY_DISCOVERABLEKEY = (
+    "passkey:"
+    "pP2z07ygq36HkNabd79ki9H6rfYEIVdluSHjY1YykUbVECXJ3ZDZ3n1EZ9G8HhMv,"
+    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpP2z07ygq36HkNabd1H9Knqqghjv"
+    "vhlW0+FcNzOoXP+49tC/Ee2TbjC3x2dIzJEBFi7iDPSc+OCM+WmD1AfPLQ==,"
+    "P6GjSqAo+RoQRJhGFA3lKcvtpKTGETjCdtVIyLX0KcY=")
 
 
 @pytest.fixture
@@ -64,15 +70,17 @@ def passkeyuser(request):
 
 
 class TestAddRemovePasskey(XMLRPC_test):
-    def test_add_passkey(self, passkeyuser):
+    @pytest.mark.parametrize("key", [PASSKEY_KEY, PASSKEY_DISCOVERABLEKEY])
+    def test_add_passkey(self, passkeyuser,key):
         passkeyuser.ensure_exists()
-        passkeyuser.add_passkey(ipapasskey=PASSKEY_KEY)
+        passkeyuser.add_passkey(ipapasskey=key)
         passkeyuser.ensure_missing()
 
-    def test_remove_passkey(self, passkeyuser):
+    @pytest.mark.parametrize("key", [PASSKEY_KEY, PASSKEY_DISCOVERABLEKEY])
+    def test_remove_passkey(self, passkeyuser, key):
         passkeyuser.ensure_exists()
-        passkeyuser.add_passkey(ipapasskey=PASSKEY_KEY)
-        passkeyuser.remove_passkey(ipapasskey=PASSKEY_KEY)
+        passkeyuser.add_passkey(ipapasskey=key)
+        passkeyuser.remove_passkey(ipapasskey=key)
 
     @pytest.mark.parametrize("key", ['wrongval', 'passkey:123', 'passkey,123'])
     def test_add_passkey_invalid(self, passkeyuser, key):
@@ -105,6 +113,23 @@ class TestAddRemovePasskey(XMLRPC_test):
                "pn5MIk8/zMU6RBlp7jSbkNJsZtomw==,"
                "wrongpem")
         msg = '"{}" is not a valid passkey mapping, invalid key'
+        cmd = passkeyuser.make_command('user_add_passkey',
+                                       passkeyuser.name)
+        with raises_exact(errors.ValidationError(
+                name='passkey',
+                error=msg.format(key))):
+            cmd(key)
+
+    def test_add_passkey_invaliduserid(self, passkeyuser):
+        passkeyuser.ensure_exists()
+        key = ("passkey:"
+               "E8Zay6UJm6PG/GcQnej2WMyUrWqijejBCqPWFX6THPrxab01Z59bUguti"
+               "pn5MIk8/zMU6RBlp7jSbkNJsZtomw==,"
+               "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEgryfr3YRM9OVdWHEDrbvc"
+               "SyT5D0b/8Ks+fMp8MM0BXV/FOo436ZPjUqSU+2LOXVGdKkJU1XBiwl+n/X"
+               "+vGD1vw==,"
+               "wrongid")
+        msg = '"{}" is not a valid passkey mapping, invalid userid'
         cmd = passkeyuser.make_command('user_add_passkey',
                                        passkeyuser.name)
         with raises_exact(errors.ValidationError(

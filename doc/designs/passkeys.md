@@ -60,6 +60,8 @@ During the registration process, it is possible to specify
 the authentication will force to execute the user verification check even if
 the passkey settings do not set this flag. If credentials are registered without
 the flag, the global passkey settings apply.
+- credential type: `server-side` or `discoverable`
+Discoverable credentials do not require to first identify the user.
 
 When the passkey credential is registered, a relaying party (RP) is set to be
 the IPA domain (e.g. ipa.test). While using a domain-wide relaying party
