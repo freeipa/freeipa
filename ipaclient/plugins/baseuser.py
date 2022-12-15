@@ -34,6 +34,12 @@ class baseuser_add_passkey(MethodOverride):
             doc=_('COSE type to use for registration'),
             values=('es256', 'rs256', 'eddsa'),
         ),
+        StrEnum(
+            'credtype?',
+            cli_name="cred_type",
+            doc=_('Credential type'),
+            values=('server-side', 'discoverable'),
+        ),
     )
 
     def get_args(self):
@@ -69,6 +75,7 @@ class baseuser_add_passkey(MethodOverride):
                 options.pop('register')
                 cosetype = options.pop('cosetype', None)
                 require_verif = options.pop('require_user_verification', None)
+                credtype = options.pop('credtype', None)
                 cmd = [paths.PASSKEY_CHILD, "--register",
                        "--domain", self.api.env.domain,
                        "--username", args[0]]
@@ -78,6 +85,9 @@ class baseuser_add_passkey(MethodOverride):
                 if require_verif is not None:
                     cmd.append("--user-verification")
                     cmd.append(str(require_verif).lower())
+                if credtype:
+                    cmd.append("--cred-type")
+                    cmd.append(credtype)
 
                 logger.debug("Executing command: %s", cmd)
                 subp = subprocess.Popen(cmd, stdout=subprocess.PIPE)
