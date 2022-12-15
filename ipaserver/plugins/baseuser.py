@@ -167,14 +167,15 @@ def validate_passkey(ugettext, key):
 
     The expected format is passkey:<key id>,<pubkey>
     """
-    pattern = re.compile(r'passkey:(?P<id>.*),(?P<pkey>.*)')
+    pattern = re.compile(
+        r'^passkey:(?P<id>[^,]*),(?P<pkey>[^,]*),?(?P<userid>.*)$')
     result = re.match(pattern, key)
     if result is None:
         return '"%s" is not a valid passkey mapping' % key
 
     # Validate the id part
     try:
-        base64.b64decode(result.group('id'))
+        base64.b64decode(result.group('id'), validate=True)
     except Exception:
         return '"%s" is not a valid passkey mapping, invalid id' % key
 
@@ -187,6 +188,13 @@ def validate_passkey(ugettext, key):
                             backend=default_backend())
     except ValueError:
         return '"%s" is not a valid passkey mapping, invalid key' % key
+    # Validate the (optional) userid
+    try:
+        userid = result.group('userid')
+        if userid:
+            base64.b64decode(userid, validate=True)
+    except Exception:
+        return '"%s" is not a valid passkey mapping, invalid userid' % key
     return None
 
 
