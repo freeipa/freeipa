@@ -136,13 +136,13 @@ def fuzzy_set_optional_oc(s, oc):
                  == set(y.lower() for y in s if y != oc))
 
 
+server_available = None
 try:
     if not api.Backend.rpcclient.isconnected():
         api.Backend.rpcclient.connect()
-    res = api.Command['user_show'](u'notfound')
-except errors.NetworkError:
-    server_available = False
-except IOError:
+    api.Command["user_show"]("notfound")
+    server_available = True
+except (errors.NetworkError, IOError):
     server_available = False
 except errors.NotFound:
     server_available = True
@@ -202,7 +202,7 @@ class XMLRPC_test:
     """
     @pytest.fixture(autouse=True, scope="class")
     def xmlrpc_setup(self, request):
-        if not server_available:  # pylint: disable=used-before-assignment
+        if not server_available:
             pytest.skip('%r: Server not available: %r' %
                         (request.cls.__module__,
                          api.env.xmlrpc_uri))
@@ -345,6 +345,7 @@ class Declarative(XMLRPC_test):
     def check_exception(self, nice, cmd, args, options, expected):
         klass = expected.__class__
         expected_name = klass.__name__
+        got = None
         try:
             output = api.Command[cmd](*args, **options)
         except Exception as e:
@@ -353,7 +354,7 @@ class Declarative(XMLRPC_test):
             raise AssertionError(
                 EXPECTED % (cmd, expected_name, args, options, output)
             )
-        if not isinstance(got, klass):  # pylint: disable=used-before-assignment
+        if not isinstance(got, klass):
             raise AssertionError(
                 UNEXPECTED % (cmd, expected_name, args, options,
                               expected_name, expected,
