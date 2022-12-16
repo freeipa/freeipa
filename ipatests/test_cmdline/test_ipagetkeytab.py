@@ -44,8 +44,8 @@ from contextlib import contextmanager
 @contextmanager
 def use_keytab(principal, keytab):
     with private_ccache() as ccache_file:
+        old_principal = getattr(context, 'principal', None)
         try:
-            old_principal = getattr(context, 'principal', None)
             name = gssapi.Name(principal, gssapi.NameType.kerberos_principal)
             store = {'ccache': ccache_file,
                      'client_keytab': keytab}
@@ -60,7 +60,6 @@ def use_keytab(principal, keytab):
                             'principal %s in %s: %s' % (principal, keytab,
                                                         str(e)))
         finally:
-            # pylint: disable-next=used-before-assignment
             setattr(context, 'principal', old_principal)
 
 

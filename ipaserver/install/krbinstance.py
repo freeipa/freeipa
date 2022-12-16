@@ -436,8 +436,8 @@ class KrbInstance(service.Service):
         krbtgt = "krbtgt/" + self.realm + "@" + self.realm
         certpath = (paths.KDC_CERT, paths.KDC_KEY)
 
+        prev_helper = None
         try:
-            prev_helper = None
             # on the first CA-ful master without '--no-pkinit', we issue the
             # certificate by contacting Dogtag directly
             ca_instances = find_providing_servers(
@@ -482,7 +482,6 @@ class KrbInstance(service.Service):
                 logger.error("Failed to initiate the request: %s", e)
             return
         finally:
-            # pylint: disable-next=used-before-assignment
             if prev_helper is not None:
                 certmonger.modify_ca_helper(certmonger_ca, prev_helper)
 
