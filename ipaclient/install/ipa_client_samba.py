@@ -39,8 +39,8 @@ logger.setLevel(logging.DEBUG)
 @contextmanager
 def use_api_as_principal(principal, keytab):
     with ipautil.private_ccache() as ccache_file:
+        old_principal = getattr(context, "principal", None)
         try:
-            old_principal = getattr(context, "principal", None)
             name = gssapi.Name(principal, gssapi.NameType.kerberos_principal)
             store = {"ccache": ccache_file, "client_keytab": keytab}
             gssapi.Credentials(name=name, usage="initiate", store=store)
@@ -63,9 +63,7 @@ def use_api_as_principal(principal, keytab):
         finally:
             if api.Backend.rpcclient.isconnected():
                 api.Backend.rpcclient.disconnect()
-            # pylint: disable=used-before-assignment
             setattr(context, "principal", old_principal)
-            # pylint: enable=used-before-assignment
 
 
 def parse_options():
