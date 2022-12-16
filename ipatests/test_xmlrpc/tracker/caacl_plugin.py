@@ -49,7 +49,7 @@ class CAACLTracker(Tracker):
                    u'usercategory', u'hostcategory', u'ipacacategory',
                    u'servicecategory', u'ipaenabledflag', u'objectclass',
                    u'ipauniqueid'}
-    update_keys = create_keys - {u'dn'}
+    update_keys = retrieve_keys - {"dn"}
 
     def __init__(self, name, ipacertprofile_category=None, user_category=None,
                  service_category=None, host_category=None,
@@ -158,7 +158,7 @@ class CAACLTracker(Tracker):
     def make_update_command(self, updates):
         return self.make_command('caacl_mod', self.name, **updates)
 
-    def update(self, updates, expected_updates=None, silent=False):
+    def update(self, updates, expected_updates=None):
         """If removing a category, delete it from tracker as well"""
         # filter out empty categories and track changes
 
@@ -166,11 +166,7 @@ class CAACLTracker(Tracker):
         for key, value in updates.items():
             if key in self.category_keys:
                 if not value:
-                    try:
-                        del self.attrs[key]
-                    except IndexError:
-                        if silent:
-                            pass
+                    del self.attrs[key]
                 else:
                     # if there is a value, prepare the pair for update
                     filtered_updates.update({key: value})
@@ -185,14 +181,13 @@ class CAACLTracker(Tracker):
         try:
             result = command()
         except errors.EmptyModlist:
-            if silent:
-                self.attrs.update(filtered_updates)
-                self.attrs.update(expected_updates)
-                # pylint: disable=used-before-assignment
-                self.check_update(result,
-                                  extra_keys=set(self.update_keys) |
-                                  set(expected_updates.keys()))
-                # pylint: enable=used-before-assignment
+            pass
+        else:
+            self.attrs.update(filtered_updates)
+            self.attrs.update(expected_updates)
+            self.check_update(result,
+                              extra_keys=set(self.update_keys) |
+                              set(expected_updates.keys()))
 
     def check_update(self, result, extra_keys=()):
         assert_deepequal(dict(

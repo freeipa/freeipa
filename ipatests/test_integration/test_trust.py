@@ -657,14 +657,15 @@ class TestTrust(BaseTestTrust):
 
         try:
             # stop sssd_be, needed to simulate a timeout in the extdom plugin.
-            stop_sssdbe = self.master.run_command('kill -STOP %s' % pid)
-            client.run_command(test_id)
-            error = 'ldap_extended_operation result: No such object(32)'
-            sssd_log2 = client.get_file_contents(log_file)[logsize:]
-            assert error.encode() not in sssd_log2
-        finally:
-            if stop_sssdbe.returncode == 0:  # pylint: disable=E0601
+            self.master.run_command('kill -STOP %s' % pid)
+            try:
+                client.run_command(test_id)
+                error = 'ldap_extended_operation result: No such object(32)'
+                sssd_log2 = client.get_file_contents(log_file)[logsize:]
+                assert error.encode() not in sssd_log2
+            finally:
                 self.master.run_command('kill -CONT %s' % pid)
+        finally:
             # reconnect and set back to default extdom plugin
             conn = self.master.ldap_connect()
             entry = conn.get_entry(extdom_dn)
