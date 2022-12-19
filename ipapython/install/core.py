@@ -415,7 +415,11 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
     def __runner(self, pending_state, running_state, exc_handler):
         self.__transition(pending_state, running_state)
 
-        step = lambda: next(self.__gen)
+        def step_next():
+            return next(self.__gen)
+
+        step = step_next
+
         while True:
             try:
                 step()
@@ -440,9 +444,13 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
                 yield
             except BaseException:
                 exc_info = sys.exc_info()
-                step = lambda: self.__gen.throw(*exc_info)
+
+                def step_throw():
+                    return self.__gen.throw(*exc_info)
+
+                step = step_throw
             else:
-                step = lambda: next(self.__gen)
+                step = step_next
 
     def _handle_exception(self, exc_info):
         assert not hasattr(super(Configurable, self), '_handle_exception')
