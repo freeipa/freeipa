@@ -802,16 +802,19 @@ class schema(Command):
         to_process = [data]
         fingerprint = hashlib.sha1()
 
-        for entry in to_process:
+        i = 0
+        while i < len(to_process):
+            entry = to_process[i]
             if isinstance(entry, (list, tuple)):
                 for item in entry:
-                    to_process.append(item)  # pylint: disable=W4701
+                    to_process.append(item)
             elif isinstance(entry, dict):
                 for key in sorted(entry.keys()):
-                    to_process.append(key)  # pylint: disable=W4701
-                    to_process.append(entry[key])  # pylint: disable=W4701
+                    to_process.append(key)
+                    to_process.append(entry[key])
             else:
                 fingerprint.update(unicode(entry).encode('utf-8'))
+            i += 1
 
         return unicode(fingerprint.hexdigest()[:8])
 
