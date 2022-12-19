@@ -5073,7 +5073,7 @@ msgstr "인증서"
 
 #: ipaserver/plugins/host.py:555 ipaserver/plugins/service.py:501
 msgid "Principal name"
-msgstr ""
+msgstr "주체 이름"
 
 msgid "MAC address"
 msgstr "MAC 주소"
@@ -10298,7 +10298,7 @@ msgid "Delete a topology suffix."
 msgstr ""
 
 msgid "Search for topology suffices."
-msgstr ""
+msgstr "형상 접미사를 위한 검색."
 
 #: ipaserver/plugins/topology.py:470
 msgid "Modify a topology suffix."
@@ -11816,7 +11816,7 @@ msgid "RRSIG Signature"
 msgstr "RRSIG 서명"
 
 msgid "Signature"
-msgstr ""
+msgstr "서명"
 
 msgid "Comma-separated list of raw RP records"
 msgstr "단순 RP 레코드의 쉼표로-구분된 목록"
@@ -20126,7 +20126,7 @@ msgstr ""
 
 #: ipaserver/plugins/certmap.py:285
 msgid "Mapping rule"
-msgstr ""
+msgstr "일치 규칙"
 
 #: ipaserver/plugins/certmap.py:286
 msgid "Rule used to map the certificate with a user entry"
@@ -20134,7 +20134,7 @@ msgstr ""
 
 #: ipaserver/plugins/certmap.py:291
 msgid "Matching rule"
-msgstr ""
+msgstr "일치 규칙"
 
 #: ipaserver/plugins/certmap.py:292
 msgid "Rule used to check if a certificate can be used for authentication"
@@ -22026,7 +22026,7 @@ msgstr "제거"
 #: ipaserver/plugins/internal.py:180
 #, python-brace-format
 msgid "${count} item(s) removed"
-msgstr ""
+msgstr "${count} 항목이 삭제됨"
 
 #: ipaserver/plugins/internal.py:181
 msgid "Show Results"
