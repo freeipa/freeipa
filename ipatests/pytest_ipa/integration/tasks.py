@@ -1350,7 +1350,9 @@ def two_connected_topo(master, replicas):
         yield v1, v3
         grow.append((v1, v3))
 
-        for (r, s) in grow:
+        i = 0
+        while i < len(grow):
+            r, s = grow[i]
             t = pool.pop(0)
 
             for (u, v) in [(r, t), (s, t)]:
@@ -1360,7 +1362,8 @@ def two_connected_topo(master, replicas):
                 x = pool.pop(0)
                 yield v, x
                 yield w, x
-                grow.append((w, x))  # pylint: disable=modified-iterating-list
+                grow.append((w, x))
+            i += 1
 
     except IndexError:
         return
