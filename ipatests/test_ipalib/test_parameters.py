@@ -73,8 +73,7 @@ class test_DefaultFrom(ClassChecker):
         o = self.cls(callback, *keys)
         assert read_only(o, 'callback') is callback
         assert read_only(o, 'keys') == keys
-        lam = lambda first, last: first[0] + last
-        o = self.cls(lam)
+        o = self.cls(lambda first, last: first[0] + last)
         assert read_only(o, 'keys') == ('first', 'last')
 
         # Test that TypeError is raised when callback isn't callable:
@@ -108,7 +107,8 @@ class test_DefaultFrom(ClassChecker):
         o = self.cls(stuff, 'aye', 'bee', 'see')
         assert repr(o) == "DefaultFrom('aye', 'bee', 'see')"
 
-        cb = lambda first, last: first[0] + last
+        def cb(first, last):
+            return first[0] + last
 
         o = self.cls(cb)
         assert repr(o) == "DefaultFrom('first', 'last')"
@@ -293,7 +293,9 @@ class test_Param(ClassChecker):
         )
 
         # Test that default_from gets set:
-        call = lambda first, last: first[0] + last
+        def call(first, last):
+            return first[0] + last
+
         o = self.cls('my_param', default_from=call)
         assert type(o.default_from) is parameters.DefaultFrom
         assert o.default_from.callback is call

@@ -211,7 +211,9 @@ class test_Command(ClassChecker):
                 lambda arg: arg,
                 'default_from'
         )
-        normalizer = lambda value: value.lower()
+
+        def normalizer(value):
+            return value.lower()
 
         class example(self.cls):
             takes_options = (
