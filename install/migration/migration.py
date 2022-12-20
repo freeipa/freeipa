@@ -21,7 +21,7 @@ Password migration script
 """
 from __future__ import absolute_import
 
-import cgi  # pylint: disable=deprecated-module
+from urllib.parse import parse_qs
 import errno
 import logging
 import os.path
@@ -80,9 +80,27 @@ def application(environ, start_response):
     if not content_type.startswith('application/x-www-form-urlencoded'):
         return bad_request(start_response)
 
-    form_data = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
-    if 'username' not in form_data or 'password' not in form_data:
+    try:
+        length = int(environ.get("CONTENT_LENGTH"))
+    except (ValueError, TypeError):
         return bad_request(start_response)
+
+    query_string = environ["wsgi.input"].read(length).decode("utf-8")
+
+    try:
+        query_dict = parse_qs(query_string)
+    except Exception:
+        return bad_request(start_response)
+
+    user_query = query_dict.get("username", None)
+    if user_query is None or len(user_query) != 1:
+        return bad_request(start_response)
+    username = user_query[0]
+
+    password_query = query_dict.get("password", None)
+    if password_query is None or len(password_query) != 1:
+        return bad_request(start_response)
+    password = password_query[0]
 
     status = '200 Success'
     response_headers = []
@@ -93,8 +111,7 @@ def application(environ, start_response):
     api = create_api(mode=None)
     api.bootstrap(context='server', confdir=paths.ETC_IPA, in_server=True)
     try:
-        bind(api.env.ldap_uri, api.env.basedn,
-             form_data['username'].value, form_data['password'].value)
+        bind(api.env.ldap_uri, api.env.basedn, username, password)
     except IOError as err:
         if err.errno == errno.EPERM:
             result = 'invalid-password'
