@@ -58,7 +58,7 @@ class KnobValueError(ValueError):
         self.name = name
 
 
-class PropertyBase(six.with_metaclass(util.InnerClassMeta, object)):
+class PropertyBase(metaclass=util.InnerClassMeta):
     # shut up pylint
     __outer_class__ = None
     __outer_name__ = None
@@ -227,7 +227,7 @@ def extend_knob(base, default=_missing, bases=_missing, group=_missing,
     )
 
 
-class Configurable(six.with_metaclass(abc.ABCMeta, object)):
+class Configurable(metaclass=abc.ABCMeta):
     """
     Base class of all configurables.
 
@@ -487,7 +487,7 @@ class ComponentMeta(util.InnerClassMeta, abc.ABCMeta):
     pass
 
 
-class ComponentBase(six.with_metaclass(ComponentMeta, Configurable)):
+class ComponentBase(Configurable, metaclass=ComponentMeta):
     # shut up pylint
     __outer_class__ = None
     __outer_name__ = None
