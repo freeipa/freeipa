@@ -555,6 +555,12 @@
                     "type_hotp": "Counter-based (HOTP)", 
                     "type_totp": "Time-based (TOTP)"
                 }, 
+                "passkeyconfig": {
+                    "options": _("Options"),
+                    "on": _("On"),
+                    "off": _("Off"),
+                    "default": _("Default"),
+                },
                 "permission": {
                     "add_custom_attr": "Add Custom Attribute", 
                     "attribute": "Attribute", 
