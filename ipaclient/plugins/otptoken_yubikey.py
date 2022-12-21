@@ -77,6 +77,11 @@ class otptoken_add_yubikey(Command):
             label=_('YubiKey slot'),
             values=(1, 2),
         ),
+        Bool('enter?',
+            cli_name='enter',
+            label=_('CR after OTP'),
+            doc=_('Write carriage return after OTP (default: false)'),
+        ),        
     )
     has_output_params = takes_options
 
@@ -155,6 +160,7 @@ class otptoken_add_yubikey(Command):
             self.get_default_of('ipatokenotpdigits')
         ))
         cfg.extended_flag('SERIAL_API_VISIBLE', True)
+        cfg.ticket_flag('APPEND_CR', kwargs['enter'])
         yk.write_config(cfg, slot=kwargs['slot'])
 
         # Filter the options we want to pass.
