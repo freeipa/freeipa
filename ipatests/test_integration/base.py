@@ -74,6 +74,7 @@ class IntegrationTest:
 
     @classmethod
     def install(cls, mh):
+        extra_args = []
         if cls.domain_level is not None:
             domain_level = cls.domain_level
         else:
@@ -87,11 +88,13 @@ class IntegrationTest:
         if cls.topology is None:
             return
         else:
+            if cls.token_password:
+                extra_args.extend(('--token-password', cls.token_password,))
             tasks.install_topo(cls.topology,
                                cls.master, cls.replicas,
                                cls.clients, domain_level,
                                random_serial=cls.random_serial,
-                               token_password=cls.token_password)
+                               extra_args=extra_args,)
     @classmethod
     def uninstall(cls, mh):
         for replica in cls.replicas:

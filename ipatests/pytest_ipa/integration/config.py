@@ -44,6 +44,9 @@ class Config(pytest_multihost.config.Config):
         'domain_level',
         'log_journal_since',
         'fips_mode',
+        'token_name',
+        'token_password',
+        'token_library',
     }
 
     def __init__(self, **kwargs):
@@ -69,6 +72,9 @@ class Config(pytest_multihost.config.Config):
         if self.domain_level is None:
             self.domain_level = MAX_DOMAIN_LEVEL
         self.fips_mode = kwargs.get('fips_mode', False)
+        self.token_name = kwargs.get('token_name', None)
+        self.token_password = kwargs.get('token_password', None)
+        self.token_library = kwargs.get('token_library', None)
 
     def get_domain_class(self):
         return Domain
