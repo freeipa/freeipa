@@ -81,6 +81,7 @@ def install_server_external_ca_step1(host, extra_args=(), raiseonerr=True):
 
 
 def install_server_external_ca_step2(host, ipa_ca_cert, root_ca_cert,
+                                     extra_args=(),
                                      raiseonerr=True):
     """Step 2 to install the ipa server with external ca"""
     args = ['ipa-server-install', '-U', '-r', host.domain.realm,
@@ -88,7 +89,7 @@ def install_server_external_ca_step2(host, ipa_ca_cert, root_ca_cert,
             '-p', host.config.dirman_password,
             '--external-cert-file', ipa_ca_cert,
             '--external-cert-file', root_ca_cert]
-
+    args.extend(extra_args)
     cmd = host.run_command(args, raiseonerr=raiseonerr)
     return cmd
 

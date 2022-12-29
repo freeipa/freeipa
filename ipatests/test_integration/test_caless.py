@@ -184,7 +184,7 @@ class CALessBase(IntegrationTest):
                        http_pin=_DEFAULT, dirsrv_pin=_DEFAULT, pkinit_pin=None,
                        root_ca_file='root.pem', pkinit_pkcs12_exists=False,
                        pkinit_pkcs12='server-kdc.p12', unattended=True,
-                       stdin_text=None, extra_args=None):
+                       stdin_text=None, extra_args=[]):
         """Install a CA-less server
 
         Return value is the remote ipa-server-install command
