@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2022-12-23 04:20+0000\n"
+"PO-Revision-Date: 2023-01-01 08:20+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
@@ -107,7 +107,7 @@ msgstr "HBAC 규칙을 삭제합니다."
 
 #: ipaserver/plugins/otptoken.py:189 ipaserver/plugins/internal.py:1944
 msgid "Disabled"
-msgstr "사용불가"
+msgstr "비활성화됨"
 
 #: ipaserver/plugins/schema.py:436
 msgid "Display information about a help topic."
