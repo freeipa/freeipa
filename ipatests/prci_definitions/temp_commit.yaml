@@ -61,14 +61,28 @@ jobs:
         timeout: 1800
         topology: *build
 
-  fedora-latest/temp_commit:
+  fedora-latest/temp_TestHSMcertRenewal:
     requires: [fedora-latest/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
+        update_packages: True
+        test_suite: test_integration/test_hsm.py::TestHSMcertRenewal
         template: *ci-master-latest
-        timeout: 3600
-        topology: *master_1repl_1client
+        timeout: 12000
+        topology: *master_1repl
+
+  fedora-latest/temp_TestHSMExternalToSelfSignedCA:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_hsm.py::TestHSMExternalToSelfSignedCA
+        template: *ci-master-latest
+        timeout: 12000
+        topology: *master_1repl
