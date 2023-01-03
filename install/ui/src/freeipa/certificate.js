@@ -1589,7 +1589,8 @@ exp.facet_group = {
         certificates: 'cert_search',
         profiles: 'certprofile_search',
         acls: 'caacl_search',
-        ca_search: 'ca_search'
+        ca_search: 'ca_search',
+        trustedca: 'trustedca_search'
     }
 };
 

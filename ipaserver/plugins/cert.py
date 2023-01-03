@@ -337,34 +337,9 @@ def bind_principal_can_manage_cert(cert):
         return hostname == cns[-1].value
 
 
-class BaseCertObject(Object):
-    takes_params = (
-        Str(
-            'cacn?',
-            cli_name='ca',
-            default=IPA_CA_CN,
-            autofill=True,
-            label=_('Issuing CA'),
-            doc=_('Name of issuing CA'),
-            flags={'no_create', 'no_update', 'no_search'},
-        ),
-        Certificate(
-            'certificate',
-            label=_("Certificate"),
-            doc=_("Base-64 encoded certificate."),
-            flags={'no_create', 'no_update', 'no_search'},
-        ),
-        Bytes(
-            'certificate_chain*',
-            label=_("Certificate chain"),
-            doc=_("X.509 certificate chain"),
-            flags={'no_create', 'no_update', 'no_search'},
-        ),
-        DNParam(
-            'subject',
-            label=_('Subject'),
-            flags={'no_create', 'no_update', 'no_search'},
-        ),
+class AbstractCertObject:
+    # subject alternative name parameters
+    san_params = (
         Str(
             'san_rfc822name*',
             label=_('Subject email address'),
@@ -420,6 +395,15 @@ class BaseCertObject(Object):
             label=_('Subject Other Name'),
             flags={'no_create', 'no_update', 'no_search'},
         ),
+    )
+
+    # X509v1 parameters
+    x509v1_params = (
+        DNParam(
+            'subject',
+            label=_('Subject'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
         DNParam(
             'issuer',
             label=_('Issuer'),
@@ -460,52 +444,50 @@ class BaseCertObject(Object):
         ),
     )
 
-    def _parse(self, obj, full=True):
-        """Extract certificate-specific data into a result object.
+    def _parse_san(
+        self,
+        cert: x509.IPACertificate,
+        obj,
+        full: bool = True
+    ) -> None:
+        """Extract SAN fields from certificate"""
+        general_names = x509.process_othernames(
+            cert.san_general_names
+        )
 
-        ``obj``
-            Result object containing certificate, into which extracted
-            data will be inserted.
-        ``full``
-            Whether to include all fields, or only the ones we guess
-            people want to see most of the time.  Also add
-            recognised otherNames to the generic ``san_other``
-            attribute when ``True`` in addition to the specialised
-            attribute.
+        for gn in general_names:
+            try:
+                self._add_san_attribute(obj, full, gn)
+            except Exception:
+                # Invalid GeneralName (i.e. not a valid X.509 cert);
+                # don't fail but log something about it
+                logger.warning(
+                    "Encountered bad GeneralName; skipping", exc_info=True)
 
-        Raise ``ValueError`` if the certificate is malformed.
-        (Note: only the main certificate structure and Subject Alt
-        Name extension are examined.)
-
-        """
-        if 'certificate' in obj:
-            cert = x509.load_der_x509_certificate(
-                base64.b64decode(obj['certificate']))
-            obj['subject'] = DN(cert.subject)
-            obj['issuer'] = DN(cert.issuer)
-            obj['serial_number'] = str(cert.serial_number)
-            obj['serial_number_hex'] = '0x%X' % cert.serial_number
-            obj['valid_not_before'] = x509.format_datetime(
-                    cert.not_valid_before)
-            obj['valid_not_after'] = x509.format_datetime(
-                    cert.not_valid_after)
-            if full:
-                obj['sha1_fingerprint'] = x509.to_hex_with_colons(
-                    cert.fingerprint(hashes.SHA1()))
-                obj['sha256_fingerprint'] = x509.to_hex_with_colons(
-                    cert.fingerprint(hashes.SHA256()))
-
-            general_names = x509.process_othernames(
-                    cert.san_general_names)
-
-            for gn in general_names:
-                try:
-                    self._add_san_attribute(obj, full, gn)
-                except Exception:
-                    # Invalid GeneralName (i.e. not a valid X.509 cert);
-                    # don't fail but log something about it
-                    logger.warning(
-                        "Encountered bad GeneralName; skipping", exc_info=True)
+    def _parse_x509v1(
+        self,
+        cert: x509.IPACertificate,
+        obj,
+        full: bool = True
+    ) -> None:
+        """Extract X.509v1 params"""
+        obj['subject'] = DN(cert.subject)
+        obj['issuer'] = DN(cert.issuer)
+        obj['serial_number'] = str(cert.serial_number)
+        obj['serial_number_hex'] = '0x%X' % cert.serial_number
+        obj['valid_not_before'] = x509.format_datetime(
+            cert.not_valid_before
+        )
+        obj['valid_not_after'] = x509.format_datetime(
+            cert.not_valid_after
+        )
+        if full:
+            obj['sha1_fingerprint'] = x509.to_hex_with_colons(
+                cert.fingerprint(hashes.SHA1())
+            )
+            obj['sha256_fingerprint'] = x509.to_hex_with_colons(
+                cert.fingerprint(hashes.SHA256())
+            )
 
     def _add_san_attribute(self, obj, full, gn):
         name_type_map = {
@@ -536,13 +518,66 @@ class BaseCertObject(Object):
         attr_name, format_name = name_type_map[type(gn)]
 
         if full or attr_name in default_attrs:
+            # pylint: disable=no-member
             attr_value = self.params[attr_name].type(format_name(gn))
+            # pylint: enable=no-member
             obj.setdefault(attr_name, []).append(attr_value)
 
         if full and attr_name.startswith('san_other_'):
             # also include known otherName in generic otherName attribute
+            # pylint: disable=no-member
             attr_value = self.params['san_other'].type(_format_othername(gn))
+            # pylint: enable=no-member
             obj.setdefault('san_other', []).append(attr_value)
+
+
+class BaseCertObject(Object, AbstractCertObject):
+    takes_params = (
+        Str(
+            'cacn?',
+            cli_name='ca',
+            default=IPA_CA_CN,
+            autofill=True,
+            label=_('Issuing CA'),
+            doc=_('Name of issuing CA'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Certificate(
+            'certificate',
+            label=_("Certificate"),
+            doc=_("Base-64 encoded certificate."),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Bytes(
+            'certificate_chain*',
+            label=_("Certificate chain"),
+            doc=_("X.509 certificate chain"),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+    ) + AbstractCertObject.san_params + AbstractCertObject.x509v1_params
+
+    def _parse(self, obj, full=True):
+        """Extract certificate-specific data into a result object.
+
+        ``certificate``
+            Result object containing certificate, into which extracted
+            data will be inserted.
+        ``full``
+            Whether to include all fields, or only the ones we guess
+            people want to see most of the time.  Also add
+            recognised otherNames to the generic ``san_other``
+            attribute when ``True`` in addition to the specialised
+            attribute.
+
+        Raise ``ValueError`` if the certificate is malformed.
+        (Note: only the main certificate structure and Subject Alt
+        Name extension are examined.)
+        """
+        if 'certificate' in obj:
+            cert = x509.load_der_x509_certificate(
+                base64.b64decode(obj['certificate']))
+            self._parse_x509v1(cert, obj, full=full)
+            self._parse_san(cert, obj, full=full)
 
 
 def _format_othername(on):

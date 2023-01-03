@@ -6257,6 +6257,31 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: trustedca_find/1
+args: 1,8,4
+arg: Str('criteria?')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Certificate('cacertificate?', autofill=False)
+option: Str('cn?', autofill=False, cli_name='name')
+option: Flag('pkey_only?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Int('sizelimit?', autofill=False)
+option: Int('timelimit?', autofill=False)
+option: Str('version?')
+output: Output('count', type=[<type 'int'>])
+output: ListOfEntries('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('truncated', type=[<type 'bool'>])
+command: trustedca_show/1
+args: 1,4,3
+arg: Str('cn', cli_name='name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('rights', autofill=True, default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: user_add/1
 args: 1,48,3
 arg: Str('uid', cli_name='login')
@@ -7402,6 +7427,9 @@ default: trustdomain_disable/1
 default: trustdomain_enable/1
 default: trustdomain_find/1
 default: trustdomain_mod/1
+default: trustedca/1
+default: trustedca_find/1
+default: trustedca_show/1
 default: user/1
 default: user_add/1
 default: user_add_cert/1

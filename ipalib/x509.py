@@ -83,6 +83,17 @@ EKU_PKINIT_KDC = '1.3.6.1.5.2.3.5'
 EKU_ANY = '2.5.29.37.0'
 EKU_PLACEHOLDER = '1.3.6.1.4.1.3319.6.10.16'
 
+EKU_NAMES = {
+    EKU_SERVER_AUTH: "server auth",
+    EKU_CLIENT_AUTH: "client auth",
+    EKU_CODE_SIGNING: "code signing",
+    EKU_EMAIL_PROTECTION: "email protection",
+    EKU_PKINIT_CLIENT_AUTH: "PKINIT client auth",
+    EKU_PKINIT_KDC: "PKINIT KDC",
+    EKU_ANY: "any",
+    # EKU_PLACEHOLDER
+}
+
 SAN_UPN = '1.3.6.1.4.1.311.20.2.3'
 SAN_KRB5PRINCIPALNAME = '1.3.6.1.5.2.2'
 

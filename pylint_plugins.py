@@ -449,6 +449,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.container_sudorule = DN()
     api.env.container_sysaccounts = DN()
     api.env.container_topology = DN()
+    api.env.container_trustedca = DN()
     api.env.container_trusts = DN()
     api.env.container_user = DN()
     api.env.container_vault = DN()

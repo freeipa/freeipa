@@ -34,6 +34,7 @@ define([
     './plugins/certprofile',
     './plugins/certmap',
     './plugins/certmapmatch',
+    './plugins/trustedca',
     './dns',
     './group',
     './hbac',

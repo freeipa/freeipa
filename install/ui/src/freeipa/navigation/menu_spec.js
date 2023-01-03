@@ -180,6 +180,11 @@ var nav = {};
                             entity: 'ca',
                             facet: 'search',
                             hidden: true
+                        },
+                        {
+                            entity: 'trustedca',
+                            facet: 'search',
+                            hidden: true
                         }
                     ]
                 },

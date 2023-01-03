@@ -796,6 +796,13 @@ class TestIPACommand(IntegrationTest):
                 'install',
                 filename])
 
+        # cleanup cert from good_pkcs7
+        self.master.run_command([
+            paths.IPA_CACERT_MANAGE,
+            'delete',
+            'CN=Certificate Authority,O=EXAMPLE.COM'
+        ])
+
         for contents in (badcert,):
             self.master.put_file_contents(filename, contents)
             result = self.master.run_command([
@@ -1146,6 +1153,29 @@ class TestIPACommand(IntegrationTest):
             raiseonerr=False
         )
         assert result.returncode == 0
+
+    def test_trustedca(self):
+        ipa_nick = f"{self.master.domain.realm} IPA CA"
+        ipa_subject = f"CN=Certificate Authority,O={self.master.domain.realm}"
+
+        tasks.kinit_admin(self.master)
+        result = self.master.run_command(['ipa', 'trustedca-find'])
+        assert ipa_nick in result.stdout_text
+        assert ipa_subject in result.stdout_text
+        assert "1 CA matched" in result.stdout_text
+
+        self.master.run_command(['ipa', 'trustedca-show', ipa_nick])
+
+        certfile = os.path.join(self.master.config.test_dir, 'cert.pem')
+        self.master.put_file_contents(certfile, isrgrootx1)
+        result = self.master.run_command(
+            ['ipa-cacert-manage', 'install', certfile],
+        )
+
+        result = self.master.run_command(['ipa', 'trustedca-find'])
+        assert ipa_nick in result.stdout_text
+        assert isrgrootx1_nick in result.stdout_text
+        assert "2 CAs matched" in result.stdout_text
 
     def test_ipa_adtrust_install_with_locale_issue8066(self):
         """

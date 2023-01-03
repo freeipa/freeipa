@@ -77,8 +77,11 @@ class update_upload_cacrt(Updater):
                 trust_flags = certdb.IPA_CA_TRUST_FLAGS
             trust, _ca, eku = certstore.trust_flags_to_key_policy(trust_flags)
 
-            dn = DN(('cn', nickname), ('cn', 'certificates'), ('cn', 'ipa'),
-                    ('cn','etc'), self.api.env.basedn)
+            dn = DN(
+                ('cn', nickname),
+                self.api.env.container_trustedca,
+                self.api.env.basedn
+            )
             entry = ldap.make_entry(dn)
 
             try:
