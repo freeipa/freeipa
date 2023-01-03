@@ -161,6 +161,9 @@ void otpd_log_req_(const char * const file, int line, krad_packet *req,
 void otpd_log_err_(const char * const file, int line, krb5_error_code code,
                    const char * const tmpl, ...);
 
+int add_krad_attr_to_set(krad_packet *req, krad_attrset *attrset,
+                         krb5_data *datap, krad_attr attr, const char *message);
+
 krb5_error_code otpd_queue_item_new(krad_packet *req,
                                     struct otpd_queue_item **item);
 

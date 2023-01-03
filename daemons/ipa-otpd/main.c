@@ -88,6 +88,31 @@ void otpd_log_err_(const char * const file, int line, krb5_error_code code,
     fprintf(stderr, "\n");
 }
 
+#define min(a,b) ((a) > (b) ? (b) : (a))
+int add_krad_attr_to_set(krad_packet *req, krad_attrset *attrset,
+                         krb5_data *datap, krad_attr attr, const char *message)
+{
+    krb5_data state = {0};
+    char *p = datap->data;
+    unsigned int len = datap->length;
+    int ret = 0;
+
+    do {
+        state.data = p;
+        state.length = min(MAX_ATTRSIZE - 5, len);
+        p += state.length;
+
+        ret = krad_attrset_add(attrset, attr, &(state));
+        if (ret != 0) {
+            otpd_log_req(req, message);
+            break;
+        }
+        len -= state.length;
+    } while (len > 0);
+
+    return ret;
+}
+
 static void on_ldap_free(verto_ctx *vctx, verto_ev *ev)
 {
     (void)vctx; /* Unused */
