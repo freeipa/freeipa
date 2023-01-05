@@ -4,12 +4,16 @@
 
 
 from ipalib import api
-from ipalib import Bytes, DNParam, Str
+from ipalib import errors
+from ipalib import Bytes, DNParam, Str, StrEnum
 from ipalib.parameters import Certificate
 from ipalib.plugable import Registry
 from ipalib import x509
-from ipaserver.plugins.baseldap import LDAPObject, LDAPSearch, LDAPRetrieve
+from ipaserver.plugins.baseldap import (
+    LDAPObject, LDAPSearch, LDAPRetrieve, LDAPUpdate
+)
 from ipaserver.plugins.cert import AbstractCertObject
+from ipapython.dn import DN
 from ipalib import _, ngettext
 
 
@@ -28,13 +32,15 @@ class trustedca(LDAPObject, AbstractCertObject):
     container_dn = api.env.container_trustedca
     object_name = _('Trusted CA certificate')
     object_name_plural = _('Trusted CAs certificates')
-    object_class = ['ipacertificate', 'pkiCA']
+    object_class = ['ipacertificate']
+    possible_objectclasses = ['pkica', 'ipascopedcertificate']
     permission_filter_objectclasses = ['ipacertificate']
     default_attributes = [
         'cn', 'cacertificate', 'ipakeyextusage', ' ipakeytrust',
+        'ipaCertTrustScope',
     ]
     rdn_attribute = 'cn'
-    allow_rename = True
+    allow_rename = False
     label = _('Trusted CA certificates')
     label_singular = _('Trusted CA certificate')
 
@@ -80,12 +86,21 @@ class trustedca(LDAPObject, AbstractCertObject):
             doc=_('Extended key usage'),
             flags={'no_create', 'no_update', 'no_search'},
         ),
-        Str(
+        StrEnum(
             'ipakeytrust',
+            values=('trusted', 'distrusted'),
             cli_name='keytrust',
             label=_('Trust'),
             doc=_('Trust'),
             flags={'no_create', 'no_update', 'no_search'},
+        ),
+        StrEnum(
+            'ipacerttrustscope*',
+            values=('http_client_auth', 'pkinit',),
+            cli_name='trustscope',
+            label=_('Trust scope'),
+            doc=_('Limited trust scope for CA certificate'),
+            flags={'no_create', 'no_search'},
         ),
     )
 
@@ -108,6 +123,53 @@ class trustedca(LDAPObject, AbstractCertObject):
             if param.name == 'cacertificate':
                 param = param.clone(flags=param.flags - {'no_search'})
             yield param
+
+    def update_objectclasses(self, ldap, dn, entry_attrs, scoped: bool):
+        """Set scoped or unscoped object class
+
+        Entries have either auxiliar object class 'pkiCA' or
+        'ipaScopedCertificate'. CA certificates with 'pkiCA' object class
+        are installed in all trust stores while 'ipaScopedCertificate'
+        are only installed in some trust stores.
+        """
+        ocs = entry_attrs.get("objectclass")
+        if not ocs:
+            entry_oc = ldap.get_entry(dn, ["objectclass"])
+            ocs = entry_oc["objectclass"]
+        # discard both candidates
+        ocs = [
+            oc for oc in ocs
+            if oc.lower() not in {"pkica", "ipascopedcertificate"}
+        ]
+        if scoped:
+            ocs.append("ipaScopedCertificate")
+        else:
+            ocs.append("pkiCA")
+        entry_attrs["objectclass"] = ocs
+
+
+@register()
+class trustedca_mod(LDAPUpdate):
+    __doc__ = _("Modify trusted CA certificate")
+
+    msg_summary = _('Modify trusted CA certificate "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        if 'cn' in entry_attrs or 'rename' in options:
+            raise errors.ACIError(info=_('cn is immutable'))
+        if 'ipacerttrustscope' in options:
+            self.obj.update_objectclasses(
+                ldap, dn, entry_attrs, scoped=bool(options['ipacerttrustscope'])
+            )
+        return dn
+
+    def post_callback(
+        self, ldap, dn, entry_attrs, attrs_list, *keys, **options
+    ):
+        if not options.get("raw"):
+            all = options.get("all")
+            self.obj._parse_cacertificate(entry_attrs, all)
+        return dn
 
 
 @register()

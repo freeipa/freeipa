@@ -1555,6 +1555,11 @@ class i18n_messages(Command):
                 "trusttype": _("Trust type"),
                 "ipantadditionalsuffixes": _("Alternative UPN suffixes"),
             },
+            "trustedca": {
+                "trustscope": _("Trust scope"),
+                "type_http_client_auth": _("HTTP client auth"),
+                "type_pkinit": _("PKINIT"),
+            },
             'smb_attributes': {
                 "title": _(
                     "User attributes for SMB services"

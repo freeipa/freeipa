@@ -453,6 +453,7 @@ IPA API Commands
    trustdomain_find.md
    trustdomain_mod.md
    trustedca_find.md
+   trustedca_mod.md
    trustedca_show.md
    user_add.md
    user_add_cert.md

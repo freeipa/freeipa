@@ -38,7 +38,6 @@ return {
         {
             $type: 'details',
             $factory: IPA.cert.details_facet,
-            no_update: true,
             disable_facet_tabs: true,
             // TODO: add 'cacertificate' text field and download feature
             sections: [
@@ -59,7 +58,25 @@ return {
                         {
                             $type: 'multivalued',
                             name: 'ipakeyextusage'
-                        }
+                        },
+                        {
+                            $type: 'checkboxes',
+                            label: '@i18n:objects.trustedca.trustscope',
+                            name: 'ipacerttrustscope',
+                            options: [
+                                {
+                                    label: '@i18n:objects.trustedca.type_http_client_auth',
+                                    value: 'http_client_auth'
+                                },
+                                {
+                                    label: '@i18n:objects.trustedca.type_pkinit',
+                                    value: 'pkinit'
+                                }
+                            ],
+                            tooltip: {
+                                title: '@mc-opt:trustedca_mod:ipacerttrustscope:doc'
+                            }
+                        },
                     ]
                 }
             ]

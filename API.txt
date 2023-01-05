@@ -6272,6 +6272,20 @@ output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
+command: trustedca_mod/1
+args: 1,8,3
+arg: Str('cn', cli_name='name')
+option: Str('addattr*', cli_name='addattr')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('delattr*', cli_name='delattr')
+option: StrEnum('ipacerttrustscope*', autofill=False, cli_name='trustscope', values=[u'http_client_auth', u'pkinit'])
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('rights', autofill=True, default=False)
+option: Str('setattr*', cli_name='setattr')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: trustedca_show/1
 args: 1,4,3
 arg: Str('cn', cli_name='name')
@@ -7429,6 +7443,7 @@ default: trustdomain_find/1
 default: trustdomain_mod/1
 default: trustedca/1
 default: trustedca_find/1
+default: trustedca_mod/1
 default: trustedca_show/1
 default: user/1
 default: user_add/1
