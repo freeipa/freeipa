@@ -7,8 +7,12 @@ import pytest
 from ipapython.certdb import (
     NSSDatabase,
     TRUSTED_PEER_TRUST_FLAGS,
+    TrustFlags,
     nss_supports_dbm,
+    parse_trust_flags,
+    unparse_trust_flags
 )
+from ipalib import x509
 from ipapython import ipautil
 from ipaplatform.osinfo import osinfo
 
@@ -284,3 +288,27 @@ def test_check_validity():
         nssdb.verify_server_cert_validity(CERTNICK, CERTSAN)
         with pytest.raises(ValueError):
             nssdb.verify_server_cert_validity(CERTNICK, 'invalid.example')
+
+
+@pytest.mark.parametrize("flags,trustflags, bijective ", [
+    (",,", TrustFlags(False, None, None, frozenset()), True),
+    ("u,u,u", TrustFlags(True, None, None, frozenset()), True),
+    ("p,p,p", TrustFlags(False, None, None, frozenset()), False),
+    (
+        "C,,",
+        TrustFlags(False, True, True, frozenset({x509.EKU_SERVER_AUTH})),
+        True
+    ),
+    ("CTu,Cu,Cu", TrustFlags(True, True, True, frozenset(
+        {
+            x509.EKU_SERVER_AUTH,
+            x509.EKU_CLIENT_AUTH,
+            x509.EKU_EMAIL_PROTECTION,
+            x509.EKU_CODE_SIGNING
+        }
+    )), True),
+])
+def test_parse_trust_flag(flags, trustflags, bijective):
+    assert parse_trust_flags(flags) == trustflags
+    if bijective:
+        assert unparse_trust_flags(trustflags) == flags

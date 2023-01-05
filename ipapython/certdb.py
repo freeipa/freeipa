@@ -102,7 +102,7 @@ def find_cert_from_txt(cert, start=0):
     return (cert, e)
 
 
-def parse_trust_flags(trust_flags):
+def parse_trust_flags(trust_flags: str) -> TrustFlags:
     """
     Convert certutil trust flags to TrustFlags object.
     """
@@ -111,7 +111,7 @@ def parse_trust_flags(trust_flags):
     if 'p' in trust_flags:
         if 'C' in trust_flags or 'P' in trust_flags or 'T' in trust_flags:
             raise ValueError("cannot be both trusted and not trusted")
-        return False, None, None
+        return TrustFlags(has_key, None, None, frozenset())
     elif 'C' in trust_flags or 'T' in trust_flags:
         if 'P' in trust_flags:
             raise ValueError("cannot be both CA and not CA")
