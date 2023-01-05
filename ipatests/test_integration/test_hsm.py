@@ -40,6 +40,7 @@ class TestHSMInstall(InstallTestBase1):
     @classmethod
     def install(cls, mh):
         # create a hsm token
+        cls.master.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
         token_name, token_passwd = create_hsm_token(cls.master)
         tasks.install_master(
             cls.master, setup_dns=True,
