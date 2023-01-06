@@ -32,7 +32,7 @@ from ipapython.ipachangeconf import IPAChangeConf
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
-from ipalib import api, constants, create_api, errors, rpc, x509
+from ipalib import api, constants, create_api, errors, rpc
 from ipalib.config import Env
 from ipalib.facts import is_ipa_configured, is_ipa_client_configured
 from ipalib.util import no_matching_interface_for_ip_address_warning
@@ -143,8 +143,7 @@ def install_ca_cert(ldap, base_dn, realm, cafile, destfile=paths.IPA_CA_CRT):
                 # cafile == IPA_CA_CRT
                 pass
         else:
-            certs = [ci.cert for ci in certs if ci.trusted is not False]
-            x509.write_certificate_list(certs, destfile, mode=0o644)
+            certstore.write_trusted_ca_certs(destfile, certs)
     except Exception as e:
         raise ScriptError("error copying files: " + str(e))
     return destfile

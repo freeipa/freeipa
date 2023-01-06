@@ -33,7 +33,7 @@ from ipalib.install import certstore, sysrestore
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython import kerberos
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipalib.constants import FQDN
 from ipaplatform import services
 from ipaplatform.constants import User
@@ -538,8 +538,7 @@ class Service:
         except errors.NotFound:
             pass
         else:
-            certs = [ci.cert for ci in certs if ci.trusted is not False]
-            x509.write_certificate_list(certs, cafile, mode=0o644)
+            certstore.write_trusted_ca_certs(cafile, certs)
 
     def export_ca_certs_nssdb(self, db, ca_is_configured, conn=None):
         """

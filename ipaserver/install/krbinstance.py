@@ -27,7 +27,6 @@ import dbus
 
 import dns.name
 
-from ipalib import x509
 from ipalib.install import certstore
 from ipaserver.install import service
 from ipaserver.install import installutils
@@ -517,8 +516,7 @@ class KrbInstance(service.Service):
                                           self.api.env.basedn,
                                           self.api.env.realm,
                                           False)
-        ca_certs = [ci.cert for ci in ca_certs if ci.trusted is not False]
-        x509.write_certificate_list(ca_certs, paths.CACERT_PEM, mode=0o644)
+        certstore.write_trusted_ca_certs(paths.CACERT_PEM, ca_certs)
 
     def issue_selfsigned_pkinit_certs(self):
         self._call_certmonger(certmonger_ca="SelfSign")

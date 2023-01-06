@@ -21,7 +21,6 @@
 """
 LDAP shared certificate store.
 """
-import collections
 import typing
 
 from pyasn1.error import PyAsn1Error
@@ -36,32 +35,21 @@ from ipalib.constants import IPA_CA_CN
 # additional fields.
 
 
-class CACertInfo(collections.namedtuple(
-    "CACertInfo", "cert nickname trusted ext_key_usage"
-)):
+class CACertInfo(typing.NamedTuple):
     """CA certificate information object
     """
-    _trustflags = None
-
-    def __new__(
-        cls,
-        cert: x509.IPACertificate,
-        nickname: str,
-        trusted: typing.Optional[bool],
-        ext_key_usage: typing.Optional[list]
-    ):
-        self = super().__new__(cls, cert, nickname, trusted, ext_key_usage)
-        return self
+    cert: x509.IPACertificate
+    nickname: str
+    trusted: typing.Optional[bool] = None
+    ext_key_usage: typing.Optional[list] = None
 
     @property
     def trustflags(self) -> TrustFlags:
-        if self._trustflags is None:
-            self._trustflags = key_policy_to_trust_flags(
-                trusted=self.trusted,
-                ca=self.ca,
-                ext_key_usage=self.ext_key_usage
-            )
-        return self._trustflags
+        return key_policy_to_trust_flags(
+            trusted=self.trusted,
+            ca=self.ca,
+            ext_key_usage=self.ext_key_usage
+        )
 
     @property
     def ca(self) -> bool:
@@ -423,7 +411,7 @@ def get_ca_certs_nss(ldap, base_dn, compat_realm, compat_ipa_ca,
                          filter_subject=filter_subject)
     for certinfo in certs:
         nss_certs.append(
-            (certinfo.cert, certinfo.nickname, certinfo.trust_flags)
+            (certinfo.cert, certinfo.nickname, certinfo.trustflags)
         )
 
     return nss_certs
@@ -445,3 +433,13 @@ def get_ca_subject(ldap, container_ca, base_dn):
         cacert_subject = DN(('CN', 'Certificate Authority'), subject_base)
 
     return cacert_subject
+
+
+def write_trusted_ca_certs(
+    filename: str,
+    certs: typing.List[CACertInfo],
+    mode: int = 0o644
+):
+    """Write trusted CA certificates to a file"""
+    certs = [ci.cert for ci in certs if ci.trusted is not False]
+    x509.write_certificate_list(certs, filename, mode=mode)

@@ -21,6 +21,7 @@ from __future__ import absolute_import
 
 import logging
 import os
+import typing
 
 from urllib.parse import urlsplit
 
@@ -30,7 +31,7 @@ from ipapython import admintool, certdb, ipaldap, ipautil
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipalib.constants import FQDN, IPA_CA_NICKNAME, RENEWAL_CA_NAME
 from ipalib.util import check_client_configuration
 
@@ -148,12 +149,12 @@ def run_with_args(api):
             services.knownservices.krb5kdc.restart()
 
 
-def update_client(certs: certstore.CACertInfo):
+def update_client(certs: typing.List[certstore.CACertInfo]):
     update_file(paths.IPA_CA_CRT, certs)
     update_file(paths.KDC_CA_BUNDLE_PEM, certs)
     update_file(paths.CA_BUNDLE_PEM, certs)
 
-    ipa_db = certdb.NSSDatabase(api.env.nss_dir)
+    ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
 
     # Remove old IPA certs from /etc/ipa/nssdb
     for nickname in ('IPA CA', 'External CA cert'):
@@ -172,7 +173,7 @@ def update_client(certs: certstore.CACertInfo):
     tasks.insert_ca_certs_into_systemwide_ca_store(certs)
 
 
-def update_server(certs: certstore.CACertInfo):
+def update_server(certs: typing.List[certstore.CACertInfo]):
     instance = '-'.join(api.env.realm.split('.'))
     update_db(paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance, certs)
     if services.knownservices.dirsrv.is_running():
@@ -257,15 +258,18 @@ def update_server_ra_config(
         cainstance.update_ipa_conf(new_ca_host)
 
 
-def update_file(filename: str, certs: certstore.CACertInfo, mode=0o644):
-    certs = (ci.cert for ci in certs if ci.trusted is not False)
+def update_file(
+    filename: str,
+    certs: typing.List[certstore.CACertInfo],
+    mode: int = 0o644
+):
     try:
-        x509.write_certificate_list(certs, filename, mode=mode)
+        certstore.write_trusted_ca_certs(filename, certs, mode)
     except Exception as e:
         logger.error("failed to update %s: %s", filename, e)
 
 
-def update_db(path: str, certs: certstore.CACertInfo):
+def update_db(path: str, certs: typing.List[certstore.CACertInfo]):
     """Drop all CA certs from db then add certs from list provided
 
        This may result in some churn as existing certs are dropped
