@@ -1449,6 +1449,34 @@ field.certmap_command_multivalued_field = function(spec) {
 };
 
 
+/**
+ * Used along with custom_command_multivalued widget
+ *
+ * - by default has `w_if_no_aci` to workaround missing object class
+ * - by default has always_writable=true to workaround aci rights
+ *
+ * @class
+ * @alternateClassName IPA.custom_command_multivalued_field
+ * @extends IPA.field
+ */
+field.passkey_command_multivalued_field = function(spec) {
+
+    spec = spec || {};
+    spec.flags = spec.flags || ['w_if_no_aci'];
+
+    var that = IPA.field(spec);
+
+    /**
+     * Set field always writable in case that it is set to true
+     * @param Boolean always_writable
+     */
+    that.always_writable = spec.always_writable === undefined ? true :
+            spec.always_writable;
+
+    return that;
+};
+
+
 IPA.custom_command_multivalued_field = field.custom_command_multivalued_field;
 
 /**
@@ -1929,6 +1957,7 @@ field.register = function() {
     f.register('field', field.field);
     f.register('link', field.field);
     f.register('multivalued', field.field);
+    f.register('passkey_multivalued', field.passkey_command_multivalued_field);
     f.register('password', field.field);
     f.register('radio', field.radio_field);
     f.register('select', field.field);

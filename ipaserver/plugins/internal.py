@@ -1224,6 +1224,12 @@ class i18n_messages(Command):
                 "type_hotp": _("Counter-based (HOTP)"),
                 "type_totp": _("Time-based (TOTP)"),
             },
+            "passkey": {
+                "adder_title": "Add Passkey", 
+                "data_label": "Passkey", 
+                "deleter_content": "Do you want to remove passkey ${passkey}?", 
+                "deleter_title": "Remove Passkey"
+            }, 
             "permission": {
                 "add_custom_attr": _("Add Custom Attribute"),
                 "attribute": _("Attribute"),

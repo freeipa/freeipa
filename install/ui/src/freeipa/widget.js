@@ -6342,6 +6342,72 @@ exp.widget_builder = IPA.widget_builder = function(spec) {
 };
 
 /**
+ * Multivalued widget which is used for working with user's certmap.
+ *
+ * @class
+ * @extends IPA.custom_command_multivalued_widget
+ */
+IPA.passkey_multivalued_widget = function (spec) {
+
+    spec = spec || {};
+    spec.child_spec = spec.child_spec || {};
+    spec.child_spec.data_name = spec.child_spec.data_name || 'passkey';
+
+    spec.adder_dialog_spec = spec.adder_dialog_spec || {
+        title: '@i18n:objects.passkey.adder_title',
+        fields: [
+            {
+                $type: 'textarea',
+                name: 'passkey',
+                label: '@i18n:objects.passkey.data_label',
+                required: true,
+                rows: 10
+            }
+        ]
+    };
+
+    var that = IPA.custom_command_multivalued_widget(spec);
+
+    that.create_remove_dialog_title = function(row) {
+        return text.get('@i18n:objects.passkey.deleter_title');
+    };
+
+    that.create_remove_dialog_message = function(row) {
+        var message = text.get('@i18n:objects.passkey.deleter_content');
+        message = message.replace('${passkey}', row.widget.new_value);
+
+        return message;
+    };
+
+    that.create_remove_args = function(row) {
+        var pkey = that.facet.get_pkey();
+        var passkey = row.widget.new_value;
+        passkey = [ passkey ];
+
+        var args = [
+            pkey,
+            passkey
+        ];
+
+        return args;
+    };
+
+    that.create_add_args = function(row) {
+        var pkey = that.facet.get_pkey();
+        var passkey = that.adder_dialog.get_field('passkey').value;
+
+        var args = [
+            pkey,
+            passkey
+        ];
+
+        return args;
+    };
+
+    return that;
+};
+
+/**
  * SSH keys widget
  *
  * Multivalued widget with SSH key widget instead of text widget.
@@ -7211,6 +7277,9 @@ exp.register = function() {
                             IPA.krb_principal_multivalued_widget);
     w.register('krb_principal',
                             IPA.krb_principal_widget);
+    w.register('passkey_multivalued',
+                            IPA.passkey_multivalued_widget);
+    w.register('passkey', IPA.passkey_widget);
     w.register('password', IPA.password_widget);
     w.register('radio', IPA.radio_widget);
     w.register('select', IPA.select_widget);

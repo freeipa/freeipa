@@ -209,6 +209,18 @@ return {
                             label: '@i18n:objects.sshkeystore.keys'
                         },
                         {
+                            $type: 'passkey_multivalued',
+                            name: 'ipapasskey',
+                            item_name: 'passkey',
+                            child_spec: {
+                                $type: 'non_editable_row',
+                                data_name: 'passkey'
+                            },
+                            tooltip: {
+                                title: '@mc:user_add_passkey.doc'
+                            }
+                        },
+                        {
                             $type: 'certs',
                             name: 'usercertificate',
                             acl_param: 'usercertificate',
