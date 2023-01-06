@@ -531,16 +531,15 @@ class Service:
         if conn is None:
             conn = api.Backend.ldap2
 
-        ca_certs = None
         try:
-            ca_certs = certstore.get_ca_certs(
-                conn, self.suffix, self.realm, ca_is_configured)
+            certs = certstore.get_ca_certs(
+                conn, self.suffix, self.realm, ca_is_configured
+            )
         except errors.NotFound:
             pass
         else:
-            with open(cafile, 'wb') as fd:
-                for cert, _unused1, _unused2, _unused3 in ca_certs:
-                    fd.write(cert.public_bytes(x509.Encoding.PEM))
+            certs = [ci.cert for ci in certs if ci.trusted is not False]
+            x509.write_certificate_list(certs, cafile, mode=0o644)
 
     def export_ca_certs_nssdb(self, db, ca_is_configured, conn=None):
         """

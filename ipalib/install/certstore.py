@@ -21,6 +21,8 @@
 """
 LDAP shared certificate store.
 """
+import collections
+import typing
 
 from pyasn1.error import PyAsn1Error
 
@@ -28,6 +30,42 @@ from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname, TrustFlags
 from ipalib import errors, x509
 from ipalib.constants import IPA_CA_CN
+
+# get_ca_certs() used to return a tuple with four elements.
+# The CA cert info object is a named tuple with same four elements and
+# additional fields.
+
+
+class CACertInfo(collections.namedtuple(
+    "CACertInfo", "cert nickname trusted ext_key_usage"
+)):
+    """CA certificate information object
+    """
+    _trustflags = None
+
+    def __new__(
+        cls,
+        cert: x509.IPACertificate,
+        nickname: str,
+        trusted: typing.Optional[bool],
+        ext_key_usage: typing.Optional[list]
+    ):
+        self = super().__new__(cls, cert, nickname, trusted, ext_key_usage)
+        return self
+
+    @property
+    def trustflags(self) -> TrustFlags:
+        if self._trustflags is None:
+            self._trustflags = key_policy_to_trust_flags(
+                trusted=self.trusted,
+                ca=self.ca,
+                ext_key_usage=self.ext_key_usage
+            )
+        return self._trustflags
+
+    @property
+    def ca(self) -> bool:
+        return True
 
 
 def _parse_cert(cert):
@@ -261,7 +299,7 @@ def make_compat_ca_certs(certs, realm, ipa_ca_subject):
             nickname = str(subject)
             ext_key_usage = {x509.EKU_SERVER_AUTH}
 
-        result.append((cert, nickname, True, ext_key_usage))
+        result.append(CACertInfo(cert, nickname, True, ext_key_usage))
 
     return result
 
@@ -313,7 +351,9 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
                 except ValueError:
                     certs = []
                     break
-                certs.append((cert, nickname, trusted, ext_key_usage))
+                certs.append(
+                    CACertInfo(cert, nickname, trusted, ext_key_usage)
+                )
     except errors.NotFound:
         try:
             ldap.get_entry(container_dn, [''])
@@ -381,9 +421,10 @@ def get_ca_certs_nss(ldap, base_dn, compat_realm, compat_ipa_ca,
 
     certs = get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
                          filter_subject=filter_subject)
-    for cert, nickname, trusted, ext_key_usage in certs:
-        trust_flags = key_policy_to_trust_flags(trusted, True, ext_key_usage)
-        nss_certs.append((cert, nickname, trust_flags))
+    for certinfo in certs:
+        nss_certs.append(
+            (certinfo.cert, certinfo.nickname, certinfo.trust_flags)
+        )
 
     return nss_certs
 

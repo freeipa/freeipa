@@ -148,7 +148,7 @@ def run_with_args(api):
             services.knownservices.krb5kdc.restart()
 
 
-def update_client(certs):
+def update_client(certs: certstore.CACertInfo):
     update_file(paths.IPA_CA_CRT, certs)
     update_file(paths.KDC_CA_BUNDLE_PEM, certs)
     update_file(paths.CA_BUNDLE_PEM, certs)
@@ -172,7 +172,7 @@ def update_client(certs):
     tasks.insert_ca_certs_into_systemwide_ca_store(certs)
 
 
-def update_server(certs):
+def update_server(certs: certstore.CACertInfo):
     instance = '-'.join(api.env.realm.split('.'))
     update_db(paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance, certs)
     if services.knownservices.dirsrv.is_running():
@@ -257,15 +257,15 @@ def update_server_ra_config(
         cainstance.update_ipa_conf(new_ca_host)
 
 
-def update_file(filename, certs, mode=0o644):
-    certs = (c[0] for c in certs if c[2] is not False)
+def update_file(filename: str, certs: certstore.CACertInfo, mode=0o644):
+    certs = (ci.cert for ci in certs if ci.trusted is not False)
     try:
         x509.write_certificate_list(certs, filename, mode=mode)
     except Exception as e:
         logger.error("failed to update %s: %s", filename, e)
 
 
-def update_db(path, certs):
+def update_db(path: str, certs: certstore.CACertInfo):
     """Drop all CA certs from db then add certs from list provided
 
        This may result in some churn as existing certs are dropped
@@ -276,9 +276,8 @@ def update_db(path, certs):
     for name, flags in db.list_certs():
         if flags.ca:
             db.delete_cert(name)
-    for cert, nickname, trusted, eku in certs:
-        trust_flags = certstore.key_policy_to_trust_flags(trusted, True, eku)
+    for ci in certs:
         try:
-            db.add_cert(cert, nickname, trust_flags)
+            db.add_cert(ci.cert, ci.nickname, ci.trustflags)
         except ipautil.CalledProcessError as e:
-            logger.error("failed to update %s in %s: %s", nickname, path, e)
+            logger.error("failed to update %s in %s: %s", ci.nickname, path, e)

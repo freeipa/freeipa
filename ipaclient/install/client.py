@@ -70,6 +70,7 @@ from ipapython import version
 
 from . import automount, timeconf, sssd
 from ipaclient import discovery
+from ipaclient.install import ipa_certupdate
 from ipapython.ipachangeconf import IPAChangeConf
 
 NoneType = type(None)
@@ -1841,7 +1842,7 @@ def get_ca_certs_from_ldap(server, basedn, realm):
         logger.debug("get_ca_certs_from_ldap() error: %s", e)
         raise
 
-    certs = [c[0] for c in certs if c[2] is not False]
+    certs = [ci.cert for ci in certs if ci.trusted is not False]
     return certs
 
 
@@ -3092,33 +3093,9 @@ def _install(options, tdict):
             ca_subject = None
         ca_certs = certstore.make_compat_ca_certs(ca_certs, cli_realm,
                                                   ca_subject)
-    ca_certs_trust = [(c, n, certstore.key_policy_to_trust_flags(t, True, u))
-                      for (c, n, t, u) in ca_certs]
 
-    x509.write_certificate_list(
-        [c for c, n, t, u in ca_certs if t is not False],
-        paths.KDC_CA_BUNDLE_PEM,
-        mode=0o644
-    )
-    x509.write_certificate_list(
-        [c for c, n, t, u in ca_certs if t is not False],
-        paths.CA_BUNDLE_PEM,
-        mode=0o644
-    )
-
-    # Add the CA certificates to the IPA NSS database
-    logger.debug("Adding CA certificates to the IPA NSS database.")
-    ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
-    for cert, nickname, trust_flags in ca_certs_trust:
-        try:
-            ipa_db.add_cert(cert, nickname, trust_flags)
-        except CalledProcessError as e:
-            raise ScriptError(
-                "Failed to add %s to the IPA NSS database." % nickname,
-                rval=CLIENT_INSTALL_ERROR)
-
-    # Add the CA certificates to the platform-dependant systemwide CA store
-    tasks.insert_ca_certs_into_systemwide_ca_store(ca_certs)
+    # install CA certs in system cert store, KDC, and NSSDB
+    ipa_certupdate.update_client(ca_certs)
 
     if not options.on_master:
         client_dns(cli_server[0], hostname, options)

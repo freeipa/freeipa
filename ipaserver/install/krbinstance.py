@@ -517,7 +517,7 @@ class KrbInstance(service.Service):
                                           self.api.env.basedn,
                                           self.api.env.realm,
                                           False)
-        ca_certs = [c for c, _n, t, _u in ca_certs if t is not False]
+        ca_certs = [ci.cert for ci in ca_certs if ci.trusted is not False]
         x509.write_certificate_list(ca_certs, paths.CACERT_PEM, mode=0o644)
 
     def issue_selfsigned_pkinit_certs(self):
