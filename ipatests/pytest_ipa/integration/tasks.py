@@ -519,6 +519,11 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
 
     fw.enable_services(fw_services)
 
+    replica.run_command(
+        ['dnf', '-y', 'copr', 'enable', 'rcritten/freeipa'])
+    replica.run_command(['dnf', '-y', 'update'])
+    replica.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
+
     result = replica.run_command(args, raiseonerr=raiseonerr,
                                  stdin_text=stdin_text)
     if result.returncode == 0:
