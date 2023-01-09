@@ -587,7 +587,7 @@ class CAInstance(DogtagInstance):
             # if paths.TMP_CA_P12 exists and is not owned by root,
             # shutil.copy will fail if when fs.protected_regular=1
             # so remove the file first
-            if os.path.exists(paths.TMP_CA_P12):
+            if cafile:
                 ipautil.remove_file(paths.TMP_CA_P12)
                 shutil.copy(cafile, paths.TMP_CA_P12)
                 self.service_user.chown(paths.TMP_CA_P12)
