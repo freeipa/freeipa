@@ -155,7 +155,7 @@ return {
                             name: 'ipapasskey',
                             item_name: 'passkey',
                             child_spec: {
-                                $type: 'non_editable_row',
+                                $type: 'passkey_row',
                                 data_name: 'passkey'
                             },
                             tooltip: {
