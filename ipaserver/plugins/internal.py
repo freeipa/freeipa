@@ -1228,7 +1228,9 @@ class i18n_messages(Command):
                 "adder_title": "Add Passkey", 
                 "data_label": "Passkey", 
                 "deleter_content": "Do you want to remove passkey ${passkey}?", 
-                "deleter_title": "Remove Passkey"
+                "deleter_title": "Remove Passkey",
+                "type_discoverable": "(discoverable) ",
+                "type_serverside": "(server-side) "
             }, 
             "permission": {
                 "add_custom_attr": _("Add Custom Attribute"),
