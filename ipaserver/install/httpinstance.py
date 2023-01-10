@@ -46,6 +46,7 @@ import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api, x509
 from ipalib.constants import IPAAPI_USER, MOD_SSL_VERIFY_DEPTH, IPA_CA_RECORD
+from ipalib.install import certstore
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
@@ -454,13 +455,22 @@ class HTTPInstance(service.Service):
 
     def __publish_ca_cert(self):
         ca_subject = self.cert.issuer
-        certlist = x509.load_certificate_list_from_file(paths.IPA_CA_CRT)
-        ca_certs = [c for c in certlist if c.subject == ca_subject]
-        if not ca_certs:
+        ca_certs = certstore.get_ca_certs(
+            self.api.Backend.ldap2,
+            self.api.env.basedn,
+            self.api.env.realm,
+            False
+        )
+        if not any(ci.cert.subject == ca_subject for ci in ca_certs):
             raise RuntimeError("HTTPD cert was issued by an unknown CA.")
         # at this time we can assume any CA cert will be valid since this is
         # only run during installation
-        x509.write_certificate_list(certlist, paths.CA_CRT, mode=0o644)
+        # update paths.CA_CRT
+        certstore.update_cert_stores(
+            ca_certs,
+            certstore.StoreInstallation.SERVER,
+            service=self.service_name
+        )
 
     def is_kdcproxy_configured(self):
         """Check if KDC proxy has already been configured in the past"""

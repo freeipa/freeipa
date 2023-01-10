@@ -70,7 +70,6 @@ from ipapython import version
 
 from . import automount, timeconf, sssd
 from ipaclient import discovery
-from ipaclient.install import ipa_certupdate
 from ipapython.ipachangeconf import IPAChangeConf
 
 NoneType = type(None)
@@ -3095,7 +3094,7 @@ def _install(options, tdict):
                                                   ca_subject)
 
     # install CA certs in system cert store, KDC, and NSSDB
-    ipa_certupdate.update_client(ca_certs)
+    certstore.update_cert_stores(ca_certs, certstore.StoreInstallation.CLIENT)
 
     if not options.on_master:
         client_dns(cli_server[0], hostname, options)

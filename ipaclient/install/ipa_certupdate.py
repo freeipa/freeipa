@@ -21,16 +21,14 @@ from __future__ import absolute_import
 
 import logging
 import os
-import typing
 
 from urllib.parse import urlsplit
 
 from ipalib.install import certmonger, certstore
 from ipalib.facts import is_ipa_configured
-from ipapython import admintool, certdb, ipaldap, ipautil
+from ipapython import admintool, ipaldap
 from ipaplatform import services
 from ipaplatform.paths import paths
-from ipaplatform.tasks import tasks
 from ipalib import api, errors
 from ipalib.constants import FQDN, IPA_CA_NICKNAME, RENEWAL_CA_NAME
 from ipalib.util import check_client_configuration
@@ -105,7 +103,7 @@ def run_with_args(api):
         lwcas = []
 
     # update client certs before KDC and HTTPd are restarted.
-    update_client(certs)
+    certstore.update_cert_stores(certs, certstore.StoreInstallation.CLIENT)
 
     if is_ipa_configured():
         # look up CA servers before service restarts
@@ -115,7 +113,13 @@ def run_with_args(api):
         )
         ca_servers = [server['server_server'] for server in resp['result']]
 
-        update_server(certs)
+        certstore.update_cert_stores(certs, certstore.StoreInstallation.SERVER)
+
+        if services.knownservices.dirsrv.is_running():
+            instance = '-'.join(api.env.realm.split('.'))
+            services.knownservices.dirsrv.restart(instance)
+
+        update_pki_tomcat_certmonger()
 
         # pylint: disable=ipa-forbidden-import
         from ipaserver.install import cainstance, custodiainstance
@@ -143,42 +147,13 @@ def run_with_args(api):
         if services.knownservices.httpd.is_running():
             services.knownservices.httpd.restart()
 
-        # update_client() may have updated KDC cert bundle; restart KDC to pick
+        # client store may have updated KDC cert bundle; restart KDC to pick
         # up changes.
         if services.knownservices.krb5kdc.is_running():
             services.knownservices.krb5kdc.restart()
 
 
-def update_client(certs: typing.List[certstore.CACertInfo]):
-    update_file(paths.IPA_CA_CRT, certs)
-    update_file(paths.KDC_CA_BUNDLE_PEM, certs)
-    update_file(paths.CA_BUNDLE_PEM, certs)
-
-    ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
-
-    # Remove old IPA certs from /etc/ipa/nssdb
-    for nickname in ('IPA CA', 'External CA cert'):
-        while ipa_db.has_nickname(nickname):
-            try:
-                ipa_db.delete_cert(nickname)
-            except ipautil.CalledProcessError as e:
-                logger.error(
-                    "Failed to remove %s from %s: %s",
-                    nickname, ipa_db.secdir, e)
-                break
-
-    update_db(ipa_db.secdir, certs)
-
-    tasks.remove_ca_certs_from_systemwide_ca_store()
-    tasks.insert_ca_certs_into_systemwide_ca_store(certs)
-
-
-def update_server(certs: typing.List[certstore.CACertInfo]):
-    instance = '-'.join(api.env.realm.split('.'))
-    update_db(paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance, certs)
-    if services.knownservices.dirsrv.is_running():
-        services.knownservices.dirsrv.restart(instance)
-
+def update_pki_tomcat_certmonger():
     criteria = {
         'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
         'cert-nickname': IPA_CA_NICKNAME,
@@ -217,9 +192,6 @@ def update_server(certs: typing.List[certstore.CACertInfo]):
         logger.debug("modifying certmonger request '%s'", request_id)
         certmonger.modify(request_id, ca='dogtag-ipa-ca-renew-agent')
 
-    update_file(paths.CA_CRT, certs)
-    update_file(paths.CACERT_PEM, certs)
-
 
 def update_server_ra_config(
     cainstance, custodiainstance,
@@ -256,32 +228,3 @@ def update_server_ra_config(
         # RA is enabled but ca_host is not among the deployment's
         # CA servers.  Set a valid ca_host.
         cainstance.update_ipa_conf(new_ca_host)
-
-
-def update_file(
-    filename: str,
-    certs: typing.List[certstore.CACertInfo],
-    mode: int = 0o644
-):
-    try:
-        certstore.write_trusted_ca_certs(filename, certs, mode)
-    except Exception as e:
-        logger.error("failed to update %s: %s", filename, e)
-
-
-def update_db(path: str, certs: typing.List[certstore.CACertInfo]):
-    """Drop all CA certs from db then add certs from list provided
-
-       This may result in some churn as existing certs are dropped
-       and re-added but this also provides the ability to change
-       the trust flags.
-    """
-    db = certdb.NSSDatabase(path)
-    for name, flags in db.list_certs():
-        if flags.ca:
-            db.delete_cert(name)
-    for ci in certs:
-        try:
-            db.add_cert(ci.cert, ci.nickname, ci.trustflags)
-        except ipautil.CalledProcessError as e:
-            logger.error("failed to update %s in %s: %s", ci.nickname, path, e)

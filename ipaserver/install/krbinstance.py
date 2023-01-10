@@ -435,8 +435,8 @@ class KrbInstance(service.Service):
         krbtgt = "krbtgt/" + self.realm + "@" + self.realm
         certpath = (paths.KDC_CERT, paths.KDC_KEY)
 
+        prev_helper = None
         try:
-            prev_helper = None
             # on the first CA-ful master without '--no-pkinit', we issue the
             # certificate by contacting Dogtag directly
             ca_instances = find_providing_servers(
@@ -516,7 +516,12 @@ class KrbInstance(service.Service):
                                           self.api.env.basedn,
                                           self.api.env.realm,
                                           False)
-        certstore.write_trusted_ca_certs(paths.CACERT_PEM, ca_certs)
+        # update paths.CACERT_PEM
+        certstore.update_cert_stores(
+            ca_certs,
+            certstore.StoreInstallation.SERVER,
+            service=self.service_name
+        )
 
     def issue_selfsigned_pkinit_certs(self):
         self._call_certmonger(certmonger_ca="SelfSign")

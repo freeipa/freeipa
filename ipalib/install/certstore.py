@@ -21,14 +21,24 @@
 """
 LDAP shared certificate store.
 """
+import enum
+import logging
+import os
 import typing
 
 from pyasn1.error import PyAsn1Error
 
 from ipapython.dn import DN
-from ipapython.certdb import get_ca_nickname, TrustFlags
-from ipalib import errors, x509
+from ipapython.certdb import get_ca_nickname, TrustFlags, NSSDatabase
+from ipapython import ipautil
+from ipalib import api, errors, x509
 from ipalib.constants import IPA_CA_CN
+from ipaplatform.base.services import PlatformService
+from ipaplatform.paths import paths
+from ipaplatform.services import knownservices
+from ipaplatform.tasks import tasks
+
+logger = logging.getLogger(__name__)
 
 # get_ca_certs() used to return a tuple with four elements.
 # The CA cert info object is a named tuple with same four elements and
@@ -45,15 +55,226 @@ class CACertInfo(typing.NamedTuple):
 
     @property
     def trustflags(self) -> TrustFlags:
+        """Get NSS trust flags
+        """
         return key_policy_to_trust_flags(
             trusted=self.trusted,
-            ca=self.ca,
+            ca=True,
             ext_key_usage=self.ext_key_usage
         )
 
-    @property
-    def ca(self) -> bool:
-        return True
+
+class StoreType(enum.Enum):
+    PEM_BUNDLE = "PEM bundle"
+    NSSDB = "NSS DB"
+    SYSTEM_STORE = "system store"
+
+
+class StoreInstallation(enum.Enum):
+    CLIENT = "client"
+    SERVER = "server"
+
+
+class CACertStore(typing.NamedTuple):
+    """CA certificate store information
+    """
+    # path to cert store or callable for dynamic paths
+    path: typing.Union[str, typing.Callable[[], str]]
+    # service name or "ipa" for generic cert store
+    service: str
+    # store type (PEM, NSS DB, system store)
+    store_type: StoreType
+    # installation target (client or server)
+    installation: StoreInstallation
+    # affected services that should be restarted after update
+    restart_services: typing.FrozenSet[PlatformService] = frozenset()
+    # optional callback function
+    pre_callback: typing.Optional[
+        typing.Callable[["CACertStore", str], None]
+    ] = None
+
+    def update(self, certs: typing.List[CACertInfo]) -> None:
+        """Update certificate store
+        """
+        if callable(self.path):
+            path = self.path()
+        else:
+            path = self.path
+
+        if self.pre_callback is not None:
+            self.pre_callback(self, path)  # pylint: disable=not-callable
+
+        logger.debug(
+            "Writing %i certificates to %s at '%s'.",
+            len(certs), self.store_type, path
+        )
+
+        if self.store_type is StoreType.PEM_BUNDLE:
+            return self._update_pem_bundle(path, certs)
+        elif self.store_type is StoreType.NSSDB:
+            return self._update_nssdb(path, certs)
+        elif self.store_type is StoreType.SYSTEM_STORE:
+            return self._update_system_store(path, certs)
+        else:
+            raise ValueError(self.store_type)
+
+    def _update_pem_bundle(
+        self, path: str, certs: typing.List[CACertInfo]
+    ) -> None:
+        """Write trusted CA certs to PEM bundle
+        """
+        return write_trusted_ca_certs(path, certs, mode=0o644)
+
+    def _update_nssdb(
+        self, path: str, certs: typing.List[CACertInfo]
+    ) -> None:
+        """Drop all CA certs from db then add certs from list provided
+
+        This may result in some churn as existing certs are dropped
+        and re-added but this also provides the ability to change
+        the trust flags.
+        """
+        db = NSSDatabase(path)
+        for name, flags in db.list_certs():
+            if flags.ca:
+                db.delete_cert(name)
+        for ci in certs:
+            try:
+                db.add_cert(ci.cert, ci.nickname, ci.trustflags)
+            except ipautil.CalledProcessError as e:
+                logger.error(
+                    "failed to update %s in %s: %s", ci.nickname, path, e
+                )
+
+    def _update_system_store(
+        self, path: str, certs: typing.List[CACertInfo]
+    ) -> None:
+        tasks.remove_ca_certs_from_systemwide_ca_store()
+        tasks.insert_ca_certs_into_systemwide_ca_store(certs)
+
+
+def update_cert_stores(
+    certs: typing.List[CACertInfo],
+    installation: StoreInstallation,
+    service: typing.Optional[str] = None
+) -> typing.List[CACertStore]:
+    """Update certificate stores
+
+    Update all certificate stores (PEM bundle, NSSDB, system trust store) for
+    client or server. Stores can be further limited by service name.
+    """
+    stores = [
+        store for store in CA_CERT_STORES if store.installation == installation
+    ]
+    if service is not None:
+        stores = [store for store in stores if store.service == service]
+    if not stores:
+        raise ValueError(
+            f"Empty cert store list ({installation}, service={service})"
+        )
+    for store in stores:
+        store.update(certs)
+    return stores
+
+
+def _ipa_nssdb_dir() -> str:
+    # ipaclient.install.client initializes the API with a temporary nss_dir.
+    if (
+        api.env.context == "cli_installer"
+        or not os.path.isdir(api.env.nss_dir)
+    ):
+        return paths.IPA_NSSDB_DIR
+    else:
+        return api.env.nss_dir
+
+
+def _remove_old_certs(store: CACertStore, path: str) -> None:
+    """Remove old IPA certs from /etc/ipa/nssdb
+    """
+    assert store.store_type is StoreType.NSSDB
+    ipa_db = NSSDatabase(path)
+    for nickname in ('IPA CA', 'External CA cert'):
+        while ipa_db.has_nickname(nickname):
+            try:
+                ipa_db.delete_cert(nickname)
+            except ipautil.CalledProcessError as e:
+                logger.error(
+                    "Failed to remove %s from %s: %s",
+                    nickname, ipa_db.secdir, e)
+                break
+
+
+CA_CERT_STORES = [
+    # CA certs are written to p11-kit file first, then the system trust
+    # store is updated from the p11-kit file.
+    # paths.SYSTEMWIDE_IPA_CA_CRT is no longer used
+    CACertStore(
+        paths.IPA_P11_KIT,
+        "ipa",
+        StoreType.SYSTEM_STORE,
+        installation=StoreInstallation.CLIENT,
+    ),
+    # Currently also used by HTTPd to provide trusted CAs for client cert
+    # authentication purposes.
+    CACertStore(
+        paths.IPA_CA_CRT,
+        "ipa",
+        StoreType.PEM_BUNDLE,
+        installation=StoreInstallation.CLIENT,
+        restart_services=frozenset({knownservices.httpd}),
+    ),
+    # IPA NSSDB
+    CACertStore(
+        # api.env.nss_dir or paths.IPA_NSSDB_DIR
+        _ipa_nssdb_dir,
+        "ipa",
+        StoreType.NSSDB,
+        installation=StoreInstallation.CLIENT,
+        pre_callback=_remove_old_certs
+    ),
+    # /etc/krb5.conf pkinit_anchors
+    CACertStore(
+        paths.KDC_CA_BUNDLE_PEM,
+        "krb5kdc",
+        StoreType.PEM_BUNDLE,
+        installation=StoreInstallation.CLIENT,
+        restart_services=frozenset({knownservices.krb5kdc}),
+    ),
+    # /etc/krb5.conf pkinit_pool
+    CACertStore(
+        paths.CA_BUNDLE_PEM,
+        "krb5kdc",
+        StoreType.PEM_BUNDLE,
+        installation=StoreInstallation.CLIENT,
+        restart_services=frozenset({knownservices.krb5kdc}),
+    ),
+    # 389-DS' NSSDB
+    CACertStore(
+        # 389-DS path is instance-specific
+        lambda: paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % (
+            '-'.join(api.env.realm.split('.'))
+        ),
+        "dirsrv",
+        StoreType.NSSDB,
+        installation=StoreInstallation.SERVER,
+        restart_services=frozenset({knownservices.dirsrv}),
+    ),
+    # download link /ipa/config.ca.crt
+    CACertStore(
+        paths.CA_CRT,
+        "httpd",
+        StoreType.PEM_BUNDLE,
+        installation=StoreInstallation.SERVER,
+    ),
+    # server-side PKINIT plugin
+    CACertStore(
+        paths.CACERT_PEM,
+        "krb5kdc",
+        StoreType.PEM_BUNDLE,
+        installation=StoreInstallation.SERVER,
+        restart_services=frozenset({knownservices.krb5kdc}),
+    ),
+]
 
 
 def _parse_cert(cert):
@@ -293,7 +514,7 @@ def make_compat_ca_certs(certs, realm, ipa_ca_subject):
 
 
 def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
-                 filter_subject=None):
+                 filter_subject=None) -> typing.List[CACertInfo]:
     """
     Get CA certificates and associated key policy from the certificate store.
     """
