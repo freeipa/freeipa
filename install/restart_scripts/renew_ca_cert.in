@@ -36,7 +36,7 @@ from ipaserver.install import certs, cainstance
 from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform import services
 from ipaplatform.paths import paths
-from ipapython.certdb import TrustFlags
+from ipapython.certdb import TrustFlags, get_ca_nickname
 
 
 def _main():
@@ -50,8 +50,6 @@ def _main():
     dogtag_service = services.knownservices['pki_tomcatd']
 
     ca = cainstance.CAInstance(host_name=api.env.host)
-    if ca.token_name:
-        nickname = f"{ca.token_name}:{nickname}"
 
     # dogtag opens its NSS database in read/write mode so we need it
     # shut down so certmonger can open it read/write mode. This avoids
@@ -70,28 +68,8 @@ def _main():
             syslog.syslog(
                 syslog.LOG_NOTICE, "Stopped %s" % dogtag_service.service_name)
 
-    pwdfile = None
-    if ca.hsm_enabled:
-        token_pw = None
-        with open(paths.PKI_TOMCAT_PASSWORD_CONF, "r") as passfile:
-            contents = passfile.readlines()
-        for line in contents:
-            data = line.split('=', 1)
-            if data[0] == 'hardware-' + ca.token_name:
-                token_pw = data[1]
-                break
-        if token_pw:
-            pwfile = ipautil.write_tmp_file(token_pw)
-            pwdfile = pwfile.name
-        else:
-            syslog.syslog(
-                syslog.LOG_ERR,
-                'Unable to find pin for token %s' % ca.token_name
-            )
-
     # Fetch the new certificate
-    db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
-                      pwd_file=pwdfile)
+    db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
     cert = db.get_cert_from_db(nickname)
     if not cert:
         syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
@@ -129,7 +107,7 @@ def _main():
         elif nickname == 'caSigningCert cert-pki-ca':
             # Remove old external CA certificates
             for ca_nick, ca_flags in db.list_certs():
-                if ca_flags.has_key:
+                if ca_flags.has_key or not ca_flags.ca:
                     continue
                 # Delete *all* certificates that use the nickname
                 while True:
@@ -173,8 +151,11 @@ def _main():
                         "%s" % e)
                     ca_certs = []
 
+                realm_nickname = get_ca_nickname(api.env.realm)
                 for ca_cert, ca_nick, ca_flags in ca_certs:
                     try:
+                        if ca_nick == realm_nickname:
+                            ca_nick = 'caSigningCert cert-pki-ca'
                         db.add_cert(ca_cert, ca_nick, ca_flags)
                     except ipautil.CalledProcessError as e:
                         syslog.syslog(
