@@ -6342,6 +6342,30 @@ exp.widget_builder = IPA.widget_builder = function(spec) {
 };
 
 /**
+ * Extract the key_id from a passkey with the format
+ * passkey:key_id,key[,user_id]
+ *
+ * If the passkey is discoverable (user_id part is present),
+ * the output looks like "(discoverable) id",
+ * otherwise "(server-side) id".
+ */
+IPA.passkey_parse_id = function(passkey) {
+
+    if (passkey && passkey !== '' && passkey.startsWith("passkey:")) {
+        var end = passkey.indexOf(',');
+        var id = passkey.substring(8, end);
+        var discoverable = passkey.indexOf(',', end + 1);
+        if (discoverable !== -1) {
+            type = text.get('@i18n:objects.passkey.type_discoverable')
+        } else {
+            type = text.get('@i18n:objects.passkey.type_serverside')
+        }
+        return type.concat(id);
+    }
+    return passkey;
+};
+
+/**
  * Multivalued widget which is used for working with user's certmap.
  *
  * @class
@@ -6374,7 +6398,8 @@ IPA.passkey_multivalued_widget = function (spec) {
 
     that.create_remove_dialog_message = function(row) {
         var message = text.get('@i18n:objects.passkey.deleter_content');
-        message = message.replace('${passkey}', row.widget.new_value);
+        message = message.replace('${passkey}',
+            IPA.passkey_parse_id(row.widget.new_value));
 
         return message;
     };
@@ -6402,6 +6427,53 @@ IPA.passkey_multivalued_widget = function (spec) {
         ];
 
         return args;
+    };
+
+    return that;
+};
+
+/**
+ * Widget used for passkey. Each row is non-editable and
+ * parses the value to extract only passkey id.
+ *
+ * @class
+ * @extends IPA.non_editable_row_widget
+ */
+IPA.passkey_row_widget = function(spec) {
+    spec = spec || {};
+
+    var that = IPA.input_widget();
+
+    /**
+     * Prefix of CSS class of each row.
+     */
+    that.data_name = spec.data_name || 'non-editable';
+
+    that.create = function(container) {
+        that.widget_create(container);
+
+        that.data_text = $('<span />', {
+            'class': that.data_name + '-data',
+            text: ''
+        }).appendTo(container);
+
+        if (that.undo) {
+            that.create_undo(container);
+        }
+
+        that.create_error_link(container);
+    };
+
+    that.update = function(value) {
+
+        var single_value = value[0] || '';
+
+        that.new_value = single_value;
+        that.update_text();
+    };
+
+    that.update_text = function() {
+        that.data_text.text(IPA.passkey_parse_id(that.new_value));
     };
 
     return that;
@@ -7280,6 +7352,7 @@ exp.register = function() {
     w.register('passkey_multivalued',
                             IPA.passkey_multivalued_widget);
     w.register('passkey', IPA.passkey_widget);
+    w.register('passkey_row', IPA.passkey_row_widget);
     w.register('password', IPA.password_widget);
     w.register('radio', IPA.radio_widget);
     w.register('select', IPA.select_widget);
