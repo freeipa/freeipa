@@ -2920,3 +2920,15 @@ def move_date(host, chrony_cmd, date_str):
     """
     host.run_command(['systemctl', chrony_cmd, 'chronyd'])
     host.run_command(['date', '-s', date_str])
+
+
+def copy_files(source_host, dest_host, filelist):
+    """Helper to copy a file from one host to another
+    :param source_host: source host of the file to copy
+    :param dest_host: destination host
+    :param filelist: list of full path of files to copy
+    """
+    for file in filelist:
+        dest_host.transport.mkdir_recursive(os.path.dirname(file))
+        data = source_host.get_file_contents(file)
+        dest_host.transport.put_file_contents(file, data)
