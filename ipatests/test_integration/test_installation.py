@@ -95,13 +95,15 @@ class InstallTestBase1(IntegrationTest):
     def test_replica0_ca_less_install(self):
         tasks.install_replica(
             self.master, self.replicas[0], setup_ca=False,
-            nameservers='master' if self.master_with_dns else None)
+            nameservers='master' if self.master_with_dns else None,
+            token_password=self.token_password)
 
     def test_replica0_ipa_ca_install(self):
-        tasks.install_ca(self.replicas[0])
+        tasks.install_ca(self.replicas[0], token_password=self.token_password)
 
     def test_replica0_ipa_kra_install(self):
-        tasks.install_kra(self.replicas[0], first_instance=True)
+        tasks.install_kra(self.replicas[0], first_instance=True,
+                          token_password=self.token_password)
 
     def test_replica0_ipa_dns_install(self):
         tasks.install_dns(self.replicas[0])
@@ -109,10 +111,11 @@ class InstallTestBase1(IntegrationTest):
     def test_replica1_with_ca_install(self):
         tasks.install_replica(
             self.master, self.replicas[1], setup_ca=True,
-            nameservers='master' if self.master_with_dns else None)
+            nameservers='master' if self.master_with_dns else None,
+            token_password=self.token_password)
 
     def test_replica1_ipa_kra_install(self):
-        tasks.install_kra(self.replicas[1])
+        tasks.install_kra(self.replicas[1], token_password=self.token_password)
 
     def test_replica1_ipa_dns_install(self):
         tasks.install_dns(self.replicas[1])
@@ -120,7 +123,8 @@ class InstallTestBase1(IntegrationTest):
     def test_replica2_with_ca_kra_install(self):
         tasks.install_replica(
             self.master, self.replicas[2], setup_ca=True, setup_kra=True,
-            nameservers='master' if self.master_with_dns else None)
+            nameservers='master' if self.master_with_dns else None,
+            token_password=self.token_password)
 
     def test_replica2_ipa_dns_install(self):
         tasks.install_dns(self.replicas[2])
@@ -142,7 +146,7 @@ class InstallTestBase2(IntegrationTest):
             nameservers='master' if self.master_with_dns else None)
 
     def test_replica1_ipa_kra_install(self):
-        tasks.install_kra(self.replicas[1])
+        tasks.install_kra(self.replicas[1], token_password=self.token_password)
 
     def test_replica2_with_dns_install(self):
         tasks.install_replica(
@@ -150,10 +154,10 @@ class InstallTestBase2(IntegrationTest):
             nameservers='master' if self.master_with_dns else None)
 
     def test_replica2_ipa_ca_install(self):
-        tasks.install_ca(self.replicas[2])
+        tasks.install_ca(self.replicas[2], token_password=self.token_password)
 
     def test_replica2_ipa_kra_install(self):
-        tasks.install_kra(self.replicas[2])
+        tasks.install_kra(self.replicas[2], token_password=self.token_password)
 
 
 class ADTrustInstallTestBase(IntegrationTest):
@@ -520,7 +524,8 @@ class TestInstallWithCA_KRA1(InstallTestBase1):
                              random_serial=cls.random_serial)
 
     def test_replica0_ipa_kra_install(self):
-        tasks.install_kra(self.replicas[0], first_instance=False)
+        tasks.install_kra(self.replicas[0], first_instance=False,
+                          token_password=self.token_password)
 
 
 class TestInstallWithCA_KRA2(InstallTestBase2):
@@ -644,7 +649,8 @@ class TestInstallWithCA_KRA_DNS1(InstallTestBase1):
                              setup_kra=True)
 
     def test_replica0_ipa_kra_install(self):
-        tasks.install_kra(self.replicas[0], first_instance=False)
+        tasks.install_kra(self.replicas[0], first_instance=False,
+                          token_password=self.token_password)
 
 
 class TestInstallWithCA_KRA_DNS2(InstallTestBase2):
@@ -768,7 +774,8 @@ class TestInstallMaster(IntegrationTest):
         assert 'schema-compat-lookup-nsswitch' not in entry_list
 
     def test_install_kra(self):
-        tasks.install_kra(self.master, first_instance=True)
+        tasks.install_kra(self.master, first_instance=True,
+                          token_password=self.token_password)
 
     def test_install_dns(self):
         tasks.install_dns(
@@ -1407,7 +1414,8 @@ class TestInstallMasterDNS(IntegrationTest):
         assert paths.NAMED_CUSTOM_CONF in result.stderr_text
 
     def test_install_kra(self):
-        tasks.install_kra(self.master, first_instance=True)
+        tasks.install_kra(self.master, first_instance=True,
+                          token_password=self.token_password)
 
     def test_installer_wizard_prompts_for_DNS(self, server_cleanup):
         """

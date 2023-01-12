@@ -40,6 +40,7 @@ class IntegrationTest:
     domain_level = None
     fips_mode = None
     random_serial = False
+    token_password = None
 
     @classmethod
     def host_by_role(cls, role):
@@ -89,7 +90,8 @@ class IntegrationTest:
             tasks.install_topo(cls.topology,
                                cls.master, cls.replicas,
                                cls.clients, domain_level,
-                               random_serial=cls.random_serial)
+                               random_serial=cls.random_serial,
+                               token_password=cls.token_password)
     @classmethod
     def uninstall(cls, mh):
         for replica in cls.replicas:
