@@ -12,6 +12,9 @@ from ipalib.constants import IPA_CA_RECORD
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
+from ipatests.test_integration.test_random_serial_numbers import (
+    pki_supports_RSNv3
+)
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipatests.test_integration.test_external_ca import (
@@ -388,6 +391,16 @@ class TestACME(CALessBase):
         status = check_acme_status(self.replicas[0], 'disabled')
         assert status == 'disabled'
 
+    def test_acme_pruning_no_random_serial(self):
+        """This ACME install is configured without random serial
+           numbers. Verify that we can't enable pruning on it."""
+        self.master.run_command(['ipa-acme-manage', 'enable'])
+        result = self.master.run_command(
+            ['ipa-acme-manage', 'pruning', '--enable'],
+            raiseonerr=False)
+        assert result.returncode == 1
+        assert "requires random serial numbers" in result.stderr_text
+
     @server_install_teardown
     def test_third_party_certs(self):
         """Require ipa-ca SAN on replacement web certificates"""
@@ -630,3 +643,148 @@ class TestACMERenew(IntegrationTest):
         renewed_expiry = cert.not_valid_after
 
         assert initial_expiry != renewed_expiry
+
+
+class TestACMEPrune(IntegrationTest):
+    """Validate that ipa-acme-manage configures dogtag for pruning"""
+
+    random_serial = True
+
+    @classmethod
+    def install(cls, mh):
+        if not pki_supports_RSNv3(mh.master):
+            raise pytest.skip("RNSv3 not supported")
+        tasks.install_master(cls.master, setup_dns=True,
+                             random_serial=True)
+
+    @classmethod
+    def uninstall(cls, mh):
+        if not pki_supports_RSNv3(mh.master):
+            raise pytest.skip("RSNv3 not supported")
+        super(TestACMEPrune, cls).uninstall(mh)
+
+    def test_enable_pruning(self):
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('11.3.0')):
+            raise pytest.skip("Certificate pruning is not available")
+        cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
+        assert "jobsScheduler.job.pruning.enabled=false".encode() in cs_cfg
+
+        self.master.run_command(['ipa-acme-manage', 'pruning', '--enable'])
+
+        cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
+        assert "jobsScheduler.enabled=true".encode() in cs_cfg
+        assert "jobsScheduler.job.pruning.enabled=true".encode() in cs_cfg
+        assert "jobsScheduler.job.pruning.owner=ipara".encode() in cs_cfg
+
+    def test_pruning_options(self):
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('11.3.0')):
+            raise pytest.skip("Certificate pruning is not available")
+
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--certretention=60',
+             '--certretentionunit=minute',
+             '--certsearchsizelimit=2000',
+             '--certsearchtimelimit=5',]
+        )
+        cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
+        assert (
+            "jobsScheduler.job.pruning.certRetentionTime=60".encode()
+            in cs_cfg
+        )
+        assert (
+            "jobsScheduler.job.pruning.certRetentionUnit=minute".encode()
+            in cs_cfg
+        )
+        assert (
+            "jobsScheduler.job.pruning.certSearchSizeLimit=2000".encode()
+            in cs_cfg
+        )
+        assert (
+            "jobsScheduler.job.pruning.certSearchTimeLimit=5".encode()
+            in cs_cfg
+        )
+
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--requestretention=60',
+             '--requestretentionunit=minute',
+             '--requestresearchsizelimit=2000',
+             '--requestsearchtimelimit=5',]
+        )
+        cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
+        assert (
+            "jobsScheduler.job.pruning.requestRetentionTime=60".encode()
+            in cs_cfg
+        )
+        assert (
+            "jobsScheduler.job.pruning.requestRetentionUnit=minute".encode()
+            in cs_cfg
+        )
+        assert (
+            "jobsScheduler.job.pruning.requestSearchSizeLimit=2000".encode()
+            in cs_cfg
+        )
+        assert (
+            "jobsScheduler.job.pruning.requestSearchTimeLimit=5".encode()
+            in cs_cfg
+        )
+
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--cron="0 23 1 * *',]
+        )
+        cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
+        assert (
+            "jobsScheduler.job.pruning.cron=0 23 1 * *".encode()
+            in cs_cfg
+        )
+
+    def test_pruning_negative_options(self):
+        """Negative option testing for things we directly cover"""
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('11.3.0')):
+            raise pytest.skip("Certificate pruning is not available")
+
+        result = self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--enable', '--disable'],
+            raiseonerr=False
+        )
+        assert result.returncode == 1
+        assert "Cannot both enable and disable" in result.stderr_text
+
+        for cmd in ('--config-show', '--run'):
+            result = self.master.run_command(
+                ['ipa-acme-manage', 'pruning',
+                 cmd, '--enable'],
+                raiseonerr=False
+            )
+            assert result.returncode == 1
+            assert "Cannot change and show config" in result.stderr_text
+
+        result = self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--cron="* *"'],
+            raiseonerr=False
+        )
+        assert result.returncode == 1
+        assert "Invalid format format --cron" in result.stderr_text
+
+        result = self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--cron="100 * * * *"'],
+            raiseonerr=False
+        )
+        assert result.returncode == 1
+        assert "100 not within the range 0-59" in result.stderr_text
+
+        result = self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--cron="10 1-5 * * *"'],
+            raiseonerr=False
+        )
+        assert result.returncode == 1
+        assert "1-5 ranges are not supported" in result.stderr_text
