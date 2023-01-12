@@ -59,6 +59,12 @@ static void free_elts(struct otpd_queue *q)
 #define otpd_queue_item_free free_elt
 #define otpd_queue_free_items free_elts
 
+void free_otpd_queue_item_passkey(struct otpd_queue_item *item)
+{
+    (void)item; /* Unused */
+    return;
+}
+
 static void assert_elt_equal(struct otpd_queue_item *e1,
                              struct otpd_queue_item *e2)
 {

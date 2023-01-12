@@ -36,6 +36,16 @@
 #define DEFAULT_TIMEOUT 15
 #define DEFAULT_RETRIES 3
 
+/* To read passkey configuration and attributes from a different server than
+ * FreeIPA you might have to the following two defines of the search filter
+ * for the global configuration data and the attribute name where if passkey
+ * information is stored in the user entry. Additionally otpd_parse_passkey()
+ * might need some updates depending on how the global configuration is stored
+ * in the configuration objects.
+ */
+#define PASSKEY_CONFIG_FILTER "(|(objectclass=ipapasskeyconfigobject)(&(objectclass=domain)(objectclass=domainRelatedObject)))"
+#define PASSKEY_USER_ATTR "ipapasskey"
+
 static char *user[] = {
     "uid",
     "ipatokenRadiusUserName",
@@ -43,6 +53,7 @@ static char *user[] = {
     "ipaidpSub",
     "ipaidpConfigLink",
     "ipauserauthtype",
+    PASSKEY_USER_ATTR,
     NULL
 };
 
@@ -121,6 +132,14 @@ static void on_query_writable(verto_ctx *vctx, verto_ev *ev)
                             LDAP_SCOPE_SUBTREE, filter, user, 0, NULL,
                             NULL, NULL, 1, &item->msgid);
         free(filter);
+
+    } else if (item->get_passkey_config) {
+        otpd_log_req(item->req, "passkey config query start:");
+        item->ldap_query = LDAP_QUERY_PASSKEY;
+
+        i = ldap_search_ext(verto_get_private(ev), ctx.query.base,
+                            LDAP_SCOPE_SUBTREE, PASSKEY_CONFIG_FILTER, NULL, 0, NULL,
+                            NULL, NULL, 0, &item->msgid);
 
     } else if (auth_type_is(item->user.ipauserauthtypes, "idp")) {
         otpd_log_req(item->req, "idp query start: %s",
@@ -283,6 +302,9 @@ static void on_query_readable(verto_ctx *vctx, verto_ev *ev)
         case LDAP_QUERY_IDP:
             err = otpd_parse_idp(ldp, entry, item);
             break;
+        case LDAP_QUERY_PASSKEY:
+            err = otpd_parse_passkey(ldp, entry, item);
+            break;
         default:
             ldap_msgfree(entry);
             goto egress;
@@ -331,8 +353,33 @@ static void on_query_readable(verto_ctx *vctx, verto_ev *ev)
             goto egress;
         }
         break;
+    case LDAP_QUERY_PASSKEY:
+        otpd_log_req(item->req, "passkey query end: %s",
+                item->error == NULL ? "ok" : item->error);
+        if (item->passkey == NULL) {
+            goto egress;
+        }
+        break;
     default:
         goto egress;
+    }
+
+    /* Check for passkey */
+    if (is_passkey(item)) {
+        if (item->ldap_query == LDAP_QUERY_USER) {
+            item->get_passkey_config = true;
+
+            push = &ctx.query.requests;
+            event = ctx.query.io;
+            goto egress;
+        }
+
+        i = do_passkey(item);
+        if (i != 0) {
+            goto egress;
+        }
+        /* do_passkey will call ctx.stdio.writer, so we can return here */
+        return;
     }
 
     /* Check for oauth2 */

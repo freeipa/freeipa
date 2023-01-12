@@ -188,6 +188,11 @@ const char *otpd_parse_user(LDAP *ldp, LDAPMessage *entry,
   if (i != 0 && i != ENOENT)
       return strerror(i);
 
+  i = get_string_array(ldp, entry, "ipaPassKey",
+                       &item->user.ipaPassKey);
+  if (i != 0 && i != ENOENT)
+      return strerror(i);
+
   i = get_string_array(ldp, entry, "ipauserauthtype",
                        &item->user.ipauserauthtypes);
   if (i != 0 && i != ENOENT)
