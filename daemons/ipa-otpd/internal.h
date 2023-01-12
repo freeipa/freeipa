@@ -24,6 +24,8 @@
 
 #include "krad.h"
 
+#include <stdbool.h>
+
 #include <ldap.h>
 
 #include <errno.h>
@@ -163,6 +165,14 @@ void otpd_log_err_(const char * const file, int line, krb5_error_code code,
 
 int add_krad_attr_to_set(krad_packet *req, krad_attrset *attrset,
                          krb5_data *datap, krad_attr attr, const char *message);
+
+int get_string(LDAP *ldp, LDAPMessage *entry, const char *name,
+               char **out);
+
+int get_string_array(LDAP *ldp, LDAPMessage *entry, const char *name,
+                     char ***out);
+
+bool auth_type_is(char **auth_types, const char *check);
 
 krb5_error_code otpd_queue_item_new(krad_packet *req,
                                     struct otpd_queue_item **item);

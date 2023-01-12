@@ -69,7 +69,7 @@ static char *idp[] = {
     NULL
 };
 
-static bool auth_type_is(char **auth_types, const char *check)
+bool auth_type_is(char **auth_types, const char *check)
 {
     size_t c;
 

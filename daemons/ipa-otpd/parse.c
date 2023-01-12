@@ -34,8 +34,8 @@
 #define DEFAULT_RETRIES 3
 
 /* Convert an LDAP entry into an allocated string. */
-static int get_string(LDAP *ldp, LDAPMessage *entry, const char *name,
-                      char **out)
+int get_string(LDAP *ldp, LDAPMessage *entry, const char *name,
+               char **out)
 {
     struct berval **vals;
     ber_len_t i;
@@ -69,8 +69,8 @@ static int get_string(LDAP *ldp, LDAPMessage *entry, const char *name,
 }
 
 /* Convert an LDAP entry into an allocated string array. */
-static int get_string_array(LDAP *ldp, LDAPMessage *entry, const char *name,
-                            char ***out)
+int get_string_array(LDAP *ldp, LDAPMessage *entry, const char *name,
+                     char ***out)
 {
     struct berval **vals;
     ber_len_t i;
