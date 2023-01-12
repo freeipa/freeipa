@@ -42,7 +42,7 @@ static krb5_error_code ipadb_get_delegation_acl(krb5_context kcontext,
 {
     struct ipadb_context *ipactx;
     krb5_error_code kerr;
-    char *filter = NULL;
+    char *filter = NULL, *basedn = NULL;
     int ret;
 
     ipactx = ipadb_get_context(kcontext);
@@ -58,12 +58,20 @@ static krb5_error_code ipadb_get_delegation_acl(krb5_context kcontext,
         goto done;
     }
 
+    ret = asprintf(&basedn,
+                   "cn=s4u2proxy,cn=etc,%s", ipactx->base);
+    if (ret == -1) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
     /* == Search ACL info == */
-    kerr = ipadb_deref_search(ipactx, ipactx->base,
+    kerr = ipadb_deref_search(ipactx, basedn,
                               LDAP_SCOPE_SUBTREE, filter, acl_attrs,
                               search_attrs, acl_attrs, results);
 
 done:
+    free(basedn);
     free(filter);
     return kerr;
 }
