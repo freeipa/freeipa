@@ -87,6 +87,9 @@ void otpd_queue_item_free(struct otpd_queue_item *item)
     free(item->error);
     krad_packet_free(item->req);
     krad_packet_free(item->rsp);
+
+    free_otpd_queue_item_passkey(item);
+
     free(item);
 }
 
