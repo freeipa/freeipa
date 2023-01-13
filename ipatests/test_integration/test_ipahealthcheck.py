@@ -1406,6 +1406,23 @@ class TestIpaHealthCheck(IntegrationTest):
             expected_permissions="0600"
         )
 
+    def test_ipa_healthcheck_renew_internal_cert(self):
+        """
+        This testcase checks that CADogtagCertsConfigCheck can handle
+        cert renewal, when there can be two certs with the same nickname
+        """
+        if (tasks.get_pki_version(self.master) < tasks.parse_version('11.4.0')):
+            raise pytest.skip("PKI known issue #2022561")
+        self.master.run_command(['ipa-cacert-manage', 'renew', '--self-signed'])
+        returncode, data = run_healthcheck(
+            self.master,
+            "pki.server.healthcheck.meta.csconfig",
+            "CADogtagCertsConfigCheck",
+        )
+        assert returncode == 0
+        for check in data:
+            assert check["result"] == "SUCCESS"
+
     @pytest.fixture
     def remove_healthcheck(self):
         """
