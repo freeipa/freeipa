@@ -6,6 +6,7 @@
 from __future__ import absolute_import
 
 from ipapython.dn import DN
+from ipapython.ipaldap import realm_to_serverid
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
@@ -208,6 +209,16 @@ class TestAutounmembership(IntegrationTest):
             # Running automember-build so that user is part of correct group
             self.master.run_command(['ipa', 'automember-rebuild',
                                      '--users=%s' % user2])
+            # The additional --cleanup argument is required
+            instance = "slapd-{}".format(
+                realm_to_serverid(self.master.domain.realm))
+            base_dn = str(self.master.domain.basedn)
+            container_user = "cn=users,cn=accounts,{}".format(base_dn)
+            self.master.run_command(['dsconf', instance, 'plugin',
+                                     'automember', 'fixup',
+                                     '-f', '(uid={})'.format(user2),
+                                     '-s', 'sub', '--cleanup',
+                                     container_user])
             assert self.is_user_member_of_group(user2, group2)
             assert not self.is_user_member_of_group(user2, group1)
 
@@ -243,6 +254,16 @@ class TestAutounmembership(IntegrationTest):
             self.master.run_command(
                 ['ipa', 'automember-rebuild', '--hosts=%s' % host2]
             )
+            # The additional --cleanup argument is required
+            instance = "slapd-{}".format(
+                realm_to_serverid(self.master.domain.realm))
+            base_dn = str(self.master.domain.basedn)
+            container_host = "cn=computers,cn=accounts,{}".format(base_dn)
+            self.master.run_command(['dsconf', instance, 'plugin',
+                                     'automember', 'fixup',
+                                     '-f', '(fqdn={})'.format(host2),
+                                     '-s', 'sub', '--cleanup',
+                                     container_host])
             assert self.is_host_member_of_hostgroup(host2, hostgroup2)
             assert not self.is_host_member_of_hostgroup(host2, hostgroup1)
 
