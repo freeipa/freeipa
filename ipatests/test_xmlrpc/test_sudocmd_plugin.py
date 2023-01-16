@@ -191,3 +191,16 @@ class TestSudoCmdInSudoRuleLists(XMLRPC_test):
                 memberdenycmd=dict(sudocmdgroup=(), sudocmd=())),
             result=lambda result: True),
             result)
+
+    def test_remove_sudocmd_from_sudorule_deny1(self, sudocmd1, sudorule1):
+        """ Remove sudocmd from sudorule deny list """
+        sudocmd1.ensure_exists()
+        result = api.Command['sudorule_remove_deny_command'](
+            sudorule1, sudocmd=sudocmd1.cmd
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberdenycmd=dict(sudocmdgroup=(), sudocmd=())),
+            result=lambda result: True),
+            result)
