@@ -862,6 +862,7 @@ class ADTRUSTInstance(service.Service):
             self.step("validate server hostname",
                       self.__validate_server_hostname)
             self.step("stopping smbd", self.__stop)
+        self.step("adding RID bases", self.__add_rid_bases)
         self.step("creating samba domain object", \
                   self.__create_samba_domain_object)
         if self.fulltrust:
@@ -880,7 +881,6 @@ class ADTRUSTInstance(service.Service):
             self.step("adding cifs principal to S4U2Proxy targets",
                       self.__add_s4u2proxy_target)
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
-        self.step("adding RID bases", self.__add_rid_bases)
         self.step("updating Kerberos config", self.__update_krb5_conf)
         if self.fulltrust:
             self.step("activating CLDAP plugin", self.__add_cldap_module)
