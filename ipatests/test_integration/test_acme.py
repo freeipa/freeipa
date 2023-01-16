@@ -131,6 +131,7 @@ def certbot_standalone_cert(host, acme_server):
             'certonly',
             '--domain', host.hostname,
             '--standalone',
+            '--key-type', 'rsa',
         ]
     )
 
@@ -305,6 +306,7 @@ class TestACME(CALessBase):
             '--manual-public-ip-logging-ok',
             '--manual-auth-hook', CERTBOT_DNS_IPA_SCRIPT,
             '--manual-cleanup-hook', CERTBOT_DNS_IPA_SCRIPT,
+            '--key-type', 'rsa',
         ])
 
     ##############
