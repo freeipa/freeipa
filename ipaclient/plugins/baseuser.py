@@ -3,7 +3,6 @@
 #
 
 import os
-import locale
 import logging
 import subprocess
 from ipaclient.frontend import MethodOverride
@@ -90,14 +89,19 @@ class baseuser_add_passkey(MethodOverride):
                     cmd.append(credtype)
 
                 logger.debug("Executing command: %s", cmd)
-                subp = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-                stdout, _stderr = subp.communicate(None)
+                passkey = None
+                with subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                      bufsize=1,
+                                      universal_newlines=True) as subp:
+                    for line in subp.stdout:
+                        if line.startswith("passkey:"):
+                            passkey = line.strip()
+                        else:
+                            print(line.strip())
 
                 if subp.returncode != 0:
                     raise errors.NotFound(reason="Failed to generate passkey")
 
-                passkey = stdout.decode(locale.getpreferredencoding(),
-                                        errors='replace').strip()
                 args = (args[0], [passkey])
 
         return super(baseuser_add_passkey, self).forward(*args, **options)
