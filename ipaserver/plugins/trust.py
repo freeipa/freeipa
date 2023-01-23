@@ -379,7 +379,10 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
                 range_type = u'ipa-ad-trust-posix'
 
                 max_uid = info.get('msSFU30MaxUidNumber')
-                max_gid = info.get('msSFU30MaxGidNumber', None)
+                # if max_gid is missing, assume 0 and the max will
+                # be obtained from max_uid. We just checked that
+                # msSFU30MaxUidNumber is defined
+                max_gid = info.get('msSFU30MaxGidNumber', [b'0'])
                 max_id = int(max(max_uid, max_gid)[0])
 
                 base_id = int(info.get('msSFU30OrderNumber')[0])
