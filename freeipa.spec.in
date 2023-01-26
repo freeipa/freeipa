@@ -708,6 +708,9 @@ Recommends: libsss_sudo
 Recommends: sudo
 Requires: (libsss_sudo if sudo)
 
+# Passkey support
+Recommends: sssd-passkey
+
 Provides: %{alt_name}-client = %{version}
 Conflicts: %{alt_name}-client
 Obsoletes: %{alt_name}-client < %{version}
