@@ -139,7 +139,7 @@ No validation of setting February 31st will be done. That will be left to PKI. B
 
 ### Disabling pruning
 
-`$ ipa-acme-manage pruning --enable=FALSE`
+`# ipa-acme-manage pruning --enable=FALSE`
 
 This will remove the configuration option for `jobsScheduler.job.pruning.cron` just to be sure it no longer runs.
 
@@ -147,46 +147,46 @@ This will remove the configuration option for `jobsScheduler.job.pruning.cron` j
 
 #### Pruning certificates
 
-`$ ipa-acme-manage pruning --certretention=VALUE --certretentionunit=UNIT`
+`# ipa-acme-manage pruning --certretention=VALUE --certretentionunit=UNIT`
 
 will be the equivalent of:
 
-`$ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionTime 30`
+`# pki-server ca-config-set jobsScheduler.job.pruning.certRetentionTime 30`
 
-`$ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionUnit day`
+`# pki-server ca-config-set jobsScheduler.job.pruning.certRetentionUnit day`
 
 The unit will always be required when modifying the time.
 
-`$ ipa-acme-manage pruning --certsearchsizelimit=VALUE --certsearchtimelimit=VALUE`
+`# ipa-acme-manage pruning --certsearchsizelimit=VALUE --certsearchtimelimit=VALUE`
 
 will be the equivalent of:
 
-`$ pki-server ca-config-set jobsScheduler.job.pruning.certSearchSizeLimit 1000`
+`# pki-server ca-config-set jobsScheduler.job.pruning.certSearchSizeLimit 1000`
 
-`$ pki-server ca-config-set jobsScheduler.job.pruning.certSearchTimeLimit 0`
+`# pki-server ca-config-set jobsScheduler.job.pruning.certSearchTimeLimit 0`
 
 A value of 0 for searchtimelimit is unlimited.
 
 #### Pruning requests
 
-`$ ipa-acme-manage pruning --requestretention=VALUE --requestretentionunit=UNIT`
+`# ipa-acme-manage pruning --requestretention=VALUE --requestretentionunit=UNIT`
 
 will be the equivalent of:
 
-`$ pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionTime 30`
+`# pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionTime 30`
 
-`$ pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionUnit day`
+`# pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionUnit day`
 
 The unit will always be required when modifying the time.
 
-`$ ipa-acme-manage pruning --requestsearchsizelimit=VALUE --requestsearchtimelimit=VALUE`
+`# ipa-acme-manage pruning --requestsearchsizelimit=VALUE --requestsearchtimelimit=VALUE`
 
 
 will be the equivalent of:
 
-`$ pki-server ca-config-set jobsScheduler.job.pruning.requestSearchSizeLimit 1000`
+`# pki-server ca-config-set jobsScheduler.job.pruning.requestSearchSizeLimit 1000`
 
-`$ pki-server ca-config-set jobsScheduler.job.pruning.requestSearchTimeLimit 0`
+`# pki-server ca-config-set jobsScheduler.job.pruning.requestSearchTimeLimit 0`
 
 A value of 0 for searchtimelimit is unlimited.
 
@@ -212,10 +212,15 @@ Request search time limit: 0
 Cron: 0 0 1 * *
 ```
 
+### Manual pruning
+
+`# ipa-acme-manage pruning --run`
+
+This is useful for testing the configuration or if the user wants to use the system cron or systemd timers for handling automation.
+
 ## Implementation
 
 For online REST operations (login, run job) we will use the `ipaserver/plugins/dogtag.py::RestClient` class to manage the requests. This will take care of the authentication cookie, etc.
-
 The class uses dogtag.https_request() will can take PEM cert and key files as arguments. These will be used for authentication.
 
 For the non-REST operations (configuration, cron settings) the tool will fork out to pki-server ca-config-set.
@@ -239,6 +244,7 @@ Overview of the CLI commands. Example:
 | ipa-acme-manage pruning | --requestretention=30 --requestretentionunit=day |
 | ipa-acme-manage pruning | --requestsearchsizelimit=1000 --requestsearchtimelimit=0 |
 | ipa-acme-manage pruning | --config-show |
+| ipa-acme-manage pruning | --run |
 
 ipa-acme-manage can only be run as root.
 
@@ -295,3 +301,15 @@ The PKI debug log will contain job information.
 2022-12-08 21:15:24 [pruning] INFO: PruningJob: - filter: (&(!(requestState=complete))(requestModifyTime<=1667942124527)(!(requestModifyTime=1667942124527)))
 2022-12-08 21:15:24 [pruning] INFO: LDAPSession: Searching ou=ca, ou=requests,o=ipaca for (&(!(requestState=complete))(dateOfModify<=20221108211524Z)(!(dateOfModify=20221108211524Z)))
 ```
+
+### Manual execution fails with Forbidden
+
+If manually running pruning fails with a message like:
+
+```console
+# ipa-acme-manage pruning --run
+CalledProcessError(Command ['pki', '-C', '/tmp/tmppyyd3hfq/pwdfile.txt', '-d', '/tmp/tmppyyd3hfq', '-n', 'CN=IPA RA,O=EXAMPLE.TEST', 'ca-job-start', 'pruning'] returned non-zero exit status 255: 'PKIException: Forbidden\n')
+The ipa-acme-manage command failed.
+```
+
+You probably forgot to restart the CA after enabling pruning.
