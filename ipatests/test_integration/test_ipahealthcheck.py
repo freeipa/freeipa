@@ -353,15 +353,19 @@ class TestIpaHealthCheck(IntegrationTest):
                                             failures_only=False)
         assert returncode == 0
 
-        cmd = self.master.run_command(['fips-mode-setup', '--is-enabled'],
-                                      raiseonerr=False)
+        cmd = self.master.run_command(
+            [paths.FIPS_MODE_SETUP, "--is-enabled"], raiseonerr=False
+        )
         returncode = cmd.returncode
 
-        # If this produces IndexError, the check does not exist
+        assert "fips" in check[0]["kw"]
+
         if check[0]["kw"]["fips"] == "disabled":
             assert returncode == 2
         elif check[0]["kw"]["fips"] == "enabled":
             assert returncode == 0
+        elif check[0]["kw"]["fips"] == f"missing {paths.FIPS_MODE_SETUP}":
+            assert returncode == 127
         else:
             assert returncode == 1
 
