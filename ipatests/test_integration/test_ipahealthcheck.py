@@ -1614,12 +1614,21 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
         Test checks the result of IPADNSSystemRecordsCheck
         when ipa-server is configured without DNS.
         """
-        expected_msgs = {
-            "Expected SRV record missing",
-            "Got {count} ipa-ca A records, expected {expected}",
-            "Got {count} ipa-ca AAAA records, expected {expected}",
-            "Expected URI record missing",
-        }
+        version = tasks.get_healthcheck_version(self.master)
+        if (parse_version(version) < parse_version('0.12')):
+            expected_msgs = {
+                "Expected SRV record missing",
+                "Got {count} ipa-ca A records, expected {expected}",
+                "Got {count} ipa-ca AAAA records, expected {expected}",
+                "Expected URI record missing",
+            }
+        else:
+            expected_msgs = {
+                "Expected SRV record missing",
+                "Unexpected ipa-ca address {ipaddr}",
+                "expected ipa-ca to contain {ipaddr} for {server}",
+                "Expected URI record missing",
+            }
 
         tasks.install_packages(self.master, HEALTHCHECK_PKG)
         returncode, data = run_healthcheck(
