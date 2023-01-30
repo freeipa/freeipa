@@ -244,7 +244,7 @@ fastcodestyle: $(GENERATED_PYTHON_FILES) ipasetup.py
 	    | xargs -n1 file 2>/dev/null | grep Python \
 	    | cut -d':' -f1; ); \
 	if [ -n "$${PYFILES}" ] && [ -n "$${INFILES}" ]; then \
-	    FILES="$$( printf $${PYFILES}\\n$${INFILES} )" ; \
+	    FILES="$$( printf '%s\n' "$${PYFILES}" "$${INFILES}" )" ; \
 	elif [ -n "$${PYFILES}" ]; then \
 	    FILES="$${PYFILES}" ; \
 	else \
@@ -274,7 +274,7 @@ endif
 	    | xargs -n1 file 2>/dev/null | grep Python \
 	    | cut -d':' -f1; ); \
 	if [ -n "$${PYFILES}" ] && [ -n "$${INFILES}" ]; then \
-	    FILES="$$( printf $${PYFILES}\\n$${INFILES} )" ; \
+	    FILES="$$( printf '%s\n' "$${PYFILES}" "$${INFILES}" )" ; \
 	elif [ -n "$${PYFILES}" ]; then \
 	    FILES="$${PYFILES}" ; \
 	else \
