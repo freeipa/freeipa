@@ -1827,11 +1827,43 @@ krb5_error_code filter_logon_info(krb5_context context,
     bool result;
     char *domstr = NULL;
 
+    ipactx = ipadb_get_context(context);
+    if (!ipactx || !ipactx->mspac) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
     domain = get_domain_from_realm_update(context, realm);
     if (!domain) {
         return EINVAL;
     }
 
+    /* check exact sid */
+    result = dom_sid_check(&domain->domsid, info->info->info3.base.domain_sid, true);
+    if (!result) {
+        struct ipadb_mspac *mspac_ctx = ipactx->mspac;
+        result = FALSE;
+        /* Didn't match but perhaps the original PAC was issued by a child domain's DC? */
+        for (k = 0; k < mspac_ctx->num_trusts; k++) {
+            result = dom_sid_check(&mspac_ctx->trusts[k].domsid,
+                             info->info->info3.base.domain_sid, true);
+            if (result) {
+                domain = &mspac_ctx->trusts[k];
+                break;
+            }
+        }
+        if (!result) {
+            domstr = dom_sid_string(NULL, info->info->info3.base.domain_sid);
+            krb5_klog_syslog(LOG_ERR, "PAC Info mismatch: domain = %s, "
+                                      "expected domain SID = %s, "
+                                      "found domain SID = %s",
+                                      domain->domain_name, domain->domain_sid,
+                                      domstr ? domstr : "<failed to display>");
+            talloc_free(domstr);
+            return EINVAL;
+        }
+    }
+
+    /* At this point we may have changed the domain we look at, */
     /* check netbios/flat name */
     if (strcasecmp(info->info->info3.base.logon_domain.string,
                    domain->flat_name) != 0) {
@@ -1840,21 +1872,6 @@ krb5_error_code filter_logon_info(krb5_context context,
                                   "found logon name = %s",
                                   domain->domain_name, domain->flat_name,
                                   info->info->info3.base.logon_domain.string);
-        return EINVAL;
-    }
-
-    /* check exact sid */
-    result = dom_sid_check(&domain->domsid, info->info->info3.base.domain_sid, true);
-    if (!result) {
-        domstr = dom_sid_string(NULL, info->info->info3.base.domain_sid);
-        if (!domstr) {
-            return EINVAL;
-        }
-        krb5_klog_syslog(LOG_ERR, "PAC Info mismatch: domain = %s, "
-                                  "expected domain SID = %s, "
-                                  "found domain SID = %s",
-                                  domain->domain_name, domain->domain_sid, domstr);
-        talloc_free(domstr);
         return EINVAL;
     }
 
@@ -1944,10 +1961,6 @@ krb5_error_code filter_logon_info(krb5_context context,
      * should include different possibilities into account
      * */
     if (info->info->info3.sidcount != 0) {
-        ipactx = ipadb_get_context(context);
-        if (!ipactx || !ipactx->mspac) {
-            return KRB5_KDB_DBNOTINITED;
-        }
         count = info->info->info3.sidcount;
         i = 0;
         j = 0;
