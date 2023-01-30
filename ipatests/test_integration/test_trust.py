@@ -527,6 +527,35 @@ class TestTrust(BaseTestTrust):
                    .format(self.ad_domain, subordinate_suffix))
             self.ad.run_command(['powershell', '-c', cmd])
 
+    def test_ssh_aduser(self):
+        """Test ssh with GSSAPI is working with aduser
+
+        When kerberos ticket is obtained for child domain user
+        and ssh with this ticket should be successful
+        with no password prompt.
+
+        Related : https://pagure.io/freeipa/issue/9316
+        """
+        testuser = 'testuser@{0}'.format(self.ad_domain)
+        testusersub = 'subdomaintestuser@{0}'.format(self.ad_subdomain)
+
+        def sshuser(host, user):
+            tasks.kdestroy_all(host)
+            try:
+                tasks.kinit_as_user(host, user,
+                                    host.config.ad_admin_password
+                                    )
+                ssh_cmd = "ssh -q -K -l {user} {host} hostname"
+                valid_ssh = host.run_command(
+                    ssh_cmd.format(user=user, host=host.hostname)
+                )
+                assert host.hostname in valid_ssh.stdout_text
+            finally:
+                tasks.kdestroy_all(host)
+
+        sshuser(self.master, testuser)
+        sshuser(self.master, testusersub)
+
     def test_remove_nonposix_trust(self):
         self.remove_trust(self.ad)
         tasks.unconfigure_dns_for_trust(self.master, self.ad)
@@ -784,6 +813,23 @@ class TestTrust(BaseTestTrust):
 
         assert re.search(
             testuser_regex, result.stdout_text), result.stdout_text
+
+    def test_ssh_adtreeuser(self):
+        testuser = 'treetestuser@{0}'.format(self.ad_treedomain)
+        self.master.run_command(["id", testuser])
+        tasks.clear_sssd_cache(self.master)
+        tasks.kdestroy_all(self.master)
+        try:
+            tasks.kinit_as_user(self.master, testuser,
+                                password="Secret123456"
+                                )
+            ssh_cmd = "ssh -q -K -l {user} {host} hostname"
+            valid_ssh = self.master.run_command(
+                ssh_cmd.format(user=testuser, host=self.master.hostname)
+            )
+            assert self.master.hostname in valid_ssh.stdout_text
+        finally:
+            tasks.kdestroy_all(self.master)
 
     def test_remove_external_treedomain_trust(self):
         self.remove_trust(self.tree_ad)
