@@ -810,7 +810,9 @@ class TestIpaHealthCheck(IntegrationTest):
             + [str(ip) for ip in resolve_ip_addresses_nss(h.external_hostname)]
         ]
         SYSTEM_RECORDS.append(f'"{self.master.domain.realm.upper()}"')
-
+        version = tasks.get_healthcheck_version(self.master)
+        if parse_version(version) >= parse_version("0.12"):
+            SYSTEM_RECORDS.append('ipa_ca_check')
 
         returncode, data = run_healthcheck(
             self.master,
