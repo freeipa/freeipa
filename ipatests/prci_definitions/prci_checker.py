@@ -379,6 +379,9 @@ def main():
     python3 prci_checker.py -s ../../alternative_spec.yaml
     # Check with custom path for spec file\n
     python3 prci_checker.py -d ./definitions
+
+    Find more examples of how to use the tool and spec file
+    at https://freeipa.readthedocs.io/en/latest/designs/index.html
     """
     args = parse_arguments(main.__doc__)
 

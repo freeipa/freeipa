@@ -22,3 +22,4 @@ FreeIPA design documentation
    external-idp/external-idp.md
    external-idp/idp-api.md
    client-install-pkinit.md
+   prci_checker.md
