@@ -1233,10 +1233,7 @@ class i18n_messages(Command):
                 "type_serverside": "(server-side) "
             },
             "passkeyconfig": {
-                "options": _("Options"),
-                "on": _("On"),
-                "off": _("Off"),
-                "default": _("Default"),
+                "options": _("Options")
             },
             "permission": {
                 "add_custom_attr": _("Add Custom Attribute"),

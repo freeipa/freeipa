@@ -43,10 +43,10 @@ a Kerberos ticket can be obtained and used against those services later.
 
 The administrator is able to specify common settings that will apply:
 
-- require user verification during authentication (On/Off/Default):
-  - On: require user verification during authentication (PIN for instance).
-  - Off: do not require user verification during authentication.
-  - Default: fallback to the passkey’s default behavior.
+- require user verification during authentication (True/False):
+  - True: require user verification during authentication (PIN for instance).
+  - False: do not require user verification during authentication.
+The default value is True.
 
 ### Registration of credentials
 
@@ -113,13 +113,13 @@ objectclass: top
 objectclass: nsContainer
 objectclass: ipapasskeyconfigObject
 cn: passkeyconfig
-ipaRequireUserVerification: default
+ipaRequireUserVerification: True
 ```
 
 The object class allows a single attribute, require user verification,
-which is mandatory, single valued, and stores a string (on, off, default).
+which is mandatory, single valued, and stores a boolean (TURE, FALSE).
 The LDAP entry is added when IPA server is installed or when the server is
-upgraded to a version supporting passkeys.
+upgraded to a version supporting passkeys, with a default value = TRUE.
 
 ### Storage of the passkey mapping
 
@@ -183,7 +183,7 @@ settings or another user's passkeys.
 
 New objectclass and attribute for the passkey configuration object:
 ```
-attributeTypes: ( 2.16.840.1.113730.3.8.23.26 NAME 'ipaRequireUserVerification' DESC 'require passkey user verification' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v4.10')
+attributeTypes: ( 2.16.840.1.113730.3.8.23.26 NAME 'ipaRequireUserVerification' DESC 'require passkey user verification' EQUALITY booleanMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE X-ORIGIN 'IPA v4.10')
 objectclasses: ( 2.16.840.1.113730.3.8.24.8 NAME 'ipaPasskeyConfigObject' DESC 'IPA passkey global config options' AUXILIARY MUST ipaRequireUserVerification X-ORIGIN 'IPA v4.10')
 ```
 
@@ -224,7 +224,7 @@ using the WebUI will not be part of the original implementation.
 | --- | ----- | --- |
 | **Passkey configuration** | | |
 | passkeyconfig-show | | This command displays the Passkey settings |
-| passkeyconfig-mod | --require-user-verification=['on', 'off', 'default'] | This command modifies the Passkey settings |
+| passkeyconfig-mod | --require-user-verification=BOOL | This command modifies the Passkey settings |
 | **User Mapping** | | |
 | user-add-passkey | LOGIN [PASSKEY...] | This command does not require the device to be inserted and can directly add the mapping data, obtained through another mean (for instance through sssctl passkey-exec --register) |
 | user-add-passkey | LOGIN --register [--cose-type=['es256', 'rs256', 'eddsa']] [--require-user-verification=BOOL] | This command requires the insertion of the device, performs the registration with the specified cose type + user verification requirement, and adds the mapping data to the user entry |

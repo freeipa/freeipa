@@ -12,8 +12,7 @@ No arguments.
  * Default: False
 * raw : :ref:`Flag<Flag>` **(Required)**
  * Default: False
-* iparequireuserverification : :ref:`StrEnum<StrEnum>`
- * Values: ('on', 'off', 'default')
+* iparequireuserverification : :ref:`Bool<Bool>`
 * setattr : :ref:`Str<Str>`
 * addattr : :ref:`Str<Str>`
 * delattr : :ref:`Str<Str>`

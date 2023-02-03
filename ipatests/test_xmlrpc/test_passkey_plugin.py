@@ -18,7 +18,7 @@ def passkey_config(request, xmlrpc_setup):
 
 
 class TestPasskeyconfig(XMLRPC_test):
-    @pytest.mark.parametrize("userverification", ['on', 'off', 'default'])
+    @pytest.mark.parametrize("userverification", [False, True])
     def test_config_mod(self, passkey_config, userverification):
         """
         Test the passkeyconfig-mod CLI with possible values for
@@ -38,7 +38,7 @@ class TestPasskeyconfig(XMLRPC_test):
             updates={'iparequireuserverification': 'Invalid'}
         )
 
-        with pytest.raises(errors.ValidationError):
+        with pytest.raises(errors.ConversionError):
             cmd()
 
     def test_config_show(self, passkey_config):

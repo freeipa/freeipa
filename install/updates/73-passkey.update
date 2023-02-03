@@ -3,7 +3,7 @@ dn: cn=passkeyconfig,cn=etc,$SUFFIX
 default:objectclass: top
 default:objectclass: nscontainer
 default:objectclass: ipaPasskeyConfigObject
-default:ipaRequireUserVerification: default
+default:ipaRequireUserVerification: TRUE
 
 # Passkey Administrators
 dn: cn=Passkey Administrators,cn=privileges,cn=pbac,$SUFFIX
