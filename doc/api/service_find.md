@@ -19,7 +19,7 @@ Search for IPA services.
 * ipakrbauthzdata : :ref:`StrEnum<StrEnum>`
  * Values: ('MS-PAC', 'PAD', 'NONE')
 * krbprincipalauthind : :ref:`StrEnum<StrEnum>`
- * Values: ('radius', 'otp', 'pkinit', 'hardened', 'idp')
+ * Values: ('radius', 'otp', 'pkinit', 'hardened', 'idp', 'passkey')
 * timelimit : :ref:`Int<Int>`
 * sizelimit : :ref:`Int<Int>`
 * version : :ref:`Str<Str>`

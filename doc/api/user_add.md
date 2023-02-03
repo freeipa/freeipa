@@ -47,7 +47,7 @@ Add a new user.
 * carlicense : :ref:`Str<Str>`
 * ipasshpubkey : :ref:`Str<Str>`
 * ipauserauthtype : :ref:`StrEnum<StrEnum>`
- * Values: ('password', 'radius', 'otp', 'pkinit', 'hardened', 'idp')
+ * Values: ('password', 'radius', 'otp', 'pkinit', 'hardened', 'idp', 'passkey')
 * userclass : :ref:`Str<Str>`
 * ipatokenradiusconfiglink : :ref:`Str<Str>`
 * ipatokenradiususername : :ref:`Str<Str>`
