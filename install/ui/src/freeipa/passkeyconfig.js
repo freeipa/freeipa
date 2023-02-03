@@ -29,23 +29,8 @@ return {
                     label: '@i18n:objects.passkeyconfig.options',
                     fields: [
                         {
-                            $type: 'radio',
-                            name: 'iparequireuserverification',
-                            default_value: 'default',
-                            options: [
-                                {
-                                    value: 'on',
-                                    label: '@i18n:objects.passkeyconfig.on'
-                                },
-                                {
-                                    value: 'off',
-                                    label: '@i18n:objects.passkeyconfig.off'
-                                },
-                                {
-                                    value: 'default',
-                                    label: '@i18n:objects.passkeyconfig.default'
-                                }
-                            ]
+                            $type: 'checkbox',
+                            name: 'iparequireuserverification'
                         }
                     ]
                 }

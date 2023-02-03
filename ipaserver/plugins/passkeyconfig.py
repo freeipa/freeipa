@@ -5,7 +5,7 @@
 import logging
 
 from ipalib import api
-from ipalib.parameters import StrEnum
+from ipalib.parameters import Bool
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPObject,
@@ -34,7 +34,7 @@ EXAMPLES:
    ipa passkeyconfig-show
 """) + _("""
  Modify the Passkey configuration to always require user verification:
-   ipa passkeyconfig-mod --require-user-verification=on
+   ipa passkeyconfig-mod --require-user-verification=TRUE
 """)
 
 register = Registry()
@@ -53,12 +53,11 @@ class passkeyconfig(LDAPObject):
     label_singular = _('Passkey Configuration')
 
     takes_params = (
-        StrEnum(
+        Bool(
             'iparequireuserverification',
             cli_name="require_user_verification",
             label=_("Require user verification"),
             doc=_('Require user verification during authentication'),
-            values=('on', 'off', 'default'),
         ),
     )
 
