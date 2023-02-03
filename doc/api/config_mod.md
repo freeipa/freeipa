@@ -33,7 +33,7 @@ No arguments.
 * ipakrbauthzdata : :ref:`StrEnum<StrEnum>`
  * Values: ('MS-PAC', 'PAD', 'nfs:NONE')
 * ipauserauthtype : :ref:`StrEnum<StrEnum>`
- * Values: ('password', 'radius', 'otp', 'pkinit', 'hardened', 'idp', 'disabled')
+ * Values: ('password', 'radius', 'otp', 'pkinit', 'hardened', 'idp', 'passkey', 'disabled')
 * ipauserdefaultsubordinateid : :ref:`Bool<Bool>`
 * ca_renewal_master_server : :ref:`Str<Str>`
 * ipadomainresolutionorder : :ref:`Str<Str>`

@@ -26,6 +26,8 @@ Modify Kerberos ticket policy.
 * krbauthindmaxrenewableage_hardened : :ref:`Int<Int>`
 * krbauthindmaxticketlife_idp : :ref:`Int<Int>`
 * krbauthindmaxrenewableage_idp : :ref:`Int<Int>`
+* krbauthindmaxticketlife_passkey : :ref:`Int<Int>`
+* krbauthindmaxrenewableage_passkey : :ref:`Int<Int>`
 * setattr : :ref:`Str<Str>`
 * addattr : :ref:`Str<Str>`
 * delattr : :ref:`Str<Str>`

@@ -31,7 +31,7 @@ Modify information about a host.
 * userclass : :ref:`Str<Str>`
 * ipaassignedidview : :ref:`Str<Str>`
 * krbprincipalauthind : :ref:`StrEnum<StrEnum>`
- * Values: ('radius', 'otp', 'pkinit', 'hardened', 'idp')
+ * Values: ('radius', 'otp', 'pkinit', 'hardened', 'idp', 'passkey')
 * ipakrbrequirespreauth : :ref:`Bool<Bool>`
 * ipakrbokasdelegate : :ref:`Bool<Bool>`
 * ipakrboktoauthasdelegate : :ref:`Bool<Bool>`
