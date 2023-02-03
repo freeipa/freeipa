@@ -25,7 +25,7 @@ Search for hosts.
 * userclass : :ref:`Str<Str>`
 * ipaassignedidview : :ref:`Str<Str>`
 * krbprincipalauthind : :ref:`StrEnum<StrEnum>`
- * Values: ('radius', 'otp', 'pkinit', 'hardened', 'idp')
+ * Values: ('radius', 'otp', 'pkinit', 'hardened', 'idp', 'passkey')
 * timelimit : :ref:`Int<Int>`
 * sizelimit : :ref:`Int<Int>`
 * version : :ref:`Str<Str>`
