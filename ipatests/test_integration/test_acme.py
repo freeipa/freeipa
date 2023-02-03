@@ -393,7 +393,14 @@ class TestACME(CALessBase):
 
     def test_acme_pruning_no_random_serial(self):
         """This ACME install is configured without random serial
-           numbers. Verify that we can't enable pruning on it."""
+           numbers. Verify that we can't enable pruning on it.
+
+           This test is located here because by default installs
+           don't enable RSNv3.
+        """
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('11.3.0')):
+            raise pytest.skip("Certificate pruning is not available")
         self.master.run_command(['ipa-acme-manage', 'enable'])
         result = self.master.run_command(
             ['ipa-acme-manage', 'pruning', '--enable'],
