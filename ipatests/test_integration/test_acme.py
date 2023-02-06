@@ -122,21 +122,23 @@ def certbot_register(host, acme_server):
     )
 
 
-def certbot_standalone_cert(host, acme_server):
+def certbot_standalone_cert(host, acme_server, no_of_cert=1):
     """method to issue a certbot's certonly standalone cert"""
     # Get a cert from ACME service using HTTP challenge and Certbot's
     # standalone HTTP server mode
     host.run_command(['systemctl', 'stop', 'httpd'])
-    host.run_command(
-        [
-            'certbot',
-            '--server', acme_server,
-            'certonly',
-            '--domain', host.hostname,
-            '--standalone',
-            '--key-type', 'rsa',
-        ]
-    )
+    for _i in range(0, no_of_cert):
+        host.run_command(
+            [
+                'certbot',
+                '--server', acme_server,
+                'certonly',
+                '--domain', host.hostname,
+                '--standalone',
+                '--key-type', 'rsa',
+                '--force-renewal'
+            ]
+        )
 
 
 class TestACME(CALessBase):
@@ -573,6 +575,56 @@ class TestACMEwithExternalCA(TestACME):
         tasks.install_replica(cls.master, cls.replicas[0])
 
 
+@pytest.fixture
+def issue_and_expire_acme_cert():
+    """Fixture to expire cert by moving date past expiry of acme cert"""
+    hosts = []
+
+    def _issue_and_expire_acme_cert(
+        master, client,
+        acme_server_url, no_of_cert=1
+    ):
+
+        hosts.append(master)
+        hosts.append(client)
+
+        # enable the ACME service on master
+        master.run_command(['ipa-acme-manage', 'enable'])
+
+        # register the account with certbot
+        certbot_register(client, acme_server_url)
+
+        # request a standalone acme cert
+        certbot_standalone_cert(client, acme_server_url, no_of_cert)
+
+        # move system date to expire acme cert
+        for host in hosts:
+            tasks.kdestroy_all(host)
+            tasks.move_date(host, 'stop', '+90days')
+
+        time.sleep(10)
+        tasks.get_kdcinfo(host)
+        # Note raiseonerr=False:
+        # the assert is located after kdcinfo retrieval.
+        result = master.run_command(
+            "KRB5_TRACE=/dev/stdout kinit admin",
+            stdin_text='{0}\n{0}\n{0}\n'.format(
+                master.config.admin_password
+            ),
+            raiseonerr=False
+        )
+        # Retrieve kdc.$REALM after the password change, just in case SSSD
+        # domain status flipped to online during the password change.
+        tasks.get_kdcinfo(host)
+        assert result.returncode == 0
+
+    yield _issue_and_expire_acme_cert
+
+    # move back date
+    for host in hosts:
+        tasks.move_date(host, 'start', '-90days')
+
+
 class TestACMERenew(IntegrationTest):
 
     num_clients = 1
@@ -586,48 +638,8 @@ class TestACMERenew(IntegrationTest):
         tasks.install_master(cls.master, setup_dns=True)
         tasks.install_client(cls.master, cls.clients[0])
 
-    @pytest.fixture
-    def issue_and_expire_cert(self):
-        """Fixture to expire cert by moving date past expiry of acme cert"""
-        # enable the ACME service on master
-        self.master.run_command(['ipa-acme-manage', 'enable'])
-
-        # register the account with certbot
-        certbot_register(self.clients[0], self.acme_server)
-
-        # request a standalone acme cert
-        certbot_standalone_cert(self.clients[0], self.acme_server)
-
-        # move system date to expire acme cert
-        for host in self.clients[0], self.master:
-            tasks.kdestroy_all(host)
-            tasks.move_date(host, 'stop', '+90days')
-
-        tasks.get_kdcinfo(host)
-        # Note raiseonerr=False:
-        # the assert is located after kdcinfo retrieval.
-        result = host.run_command(
-            "KRB5_TRACE=/dev/stdout kinit admin",
-            stdin_text='{0}\n{0}\n{0}\n'.format(
-                self.clients[0].config.admin_password
-            ),
-            raiseonerr=False
-        )
-        # Retrieve kdc.$REALM after the password change, just in case SSSD
-        # domain status flipped to online during the password change.
-        tasks.get_kdcinfo(host)
-        assert result.returncode == 0
-
-        yield
-
-        # move back date
-        for host in self.clients[0], self.master:
-            tasks.kdestroy_all(host)
-            tasks.move_date(host, 'start', '-90days')
-            tasks.kinit_admin(host)
-
     @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
-    def test_renew(self, issue_and_expire_cert):
+    def test_renew(self, issue_and_expire_acme_cert):
         """Test if ACME renews the issued cert with cerbot
 
         This test is to check if ACME certificate renews upon
@@ -635,6 +647,8 @@ class TestACMERenew(IntegrationTest):
 
         related: https://pagure.io/freeipa/issue/4751
         """
+        issue_and_expire_acme_cert(
+            self.master, self.clients[0], self.acme_server)
         data = self.clients[0].get_file_contents(
             f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
         )
@@ -656,6 +670,7 @@ class TestACMEPrune(IntegrationTest):
     """Validate that ipa-acme-manage configures dogtag for pruning"""
 
     random_serial = True
+    num_clients = 1
 
     @classmethod
     def install(cls, mh):
@@ -663,6 +678,8 @@ class TestACMEPrune(IntegrationTest):
             raise pytest.skip("RNSv3 not supported")
         tasks.install_master(cls.master, setup_dns=True,
                              random_serial=True)
+        cls.acme_server = prepare_acme_client(cls.master, cls.clients[0])
+        tasks.install_client(cls.master, cls.clients[0])
 
     @classmethod
     def uninstall(cls, mh):
@@ -718,7 +735,7 @@ class TestACMEPrune(IntegrationTest):
             ['ipa-acme-manage', 'pruning',
              '--requestretention=60',
              '--requestretentionunit=minute',
-             '--requestresearchsizelimit=2000',
+             '--requestsearchsizelimit=2000',
              '--requestsearchtimelimit=5',]
         )
         cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
@@ -741,7 +758,7 @@ class TestACMEPrune(IntegrationTest):
 
         self.master.run_command(
             ['ipa-acme-manage', 'pruning',
-             '--cron="0 23 1 * *',]
+             '--cron=0 23 1 * *',]
         )
         cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
         assert (
@@ -760,7 +777,7 @@ class TestACMEPrune(IntegrationTest):
              '--enable', '--disable'],
             raiseonerr=False
         )
-        assert result.returncode == 1
+        assert result.returncode == 2
         assert "Cannot both enable and disable" in result.stderr_text
 
         for cmd in ('--config-show', '--run'):
@@ -769,20 +786,20 @@ class TestACMEPrune(IntegrationTest):
                  cmd, '--enable'],
                 raiseonerr=False
             )
-            assert result.returncode == 1
+            assert result.returncode == 2
             assert "Cannot change and show config" in result.stderr_text
 
         result = self.master.run_command(
             ['ipa-acme-manage', 'pruning',
-             '--cron="* *"'],
+             '--cron=* *'],
             raiseonerr=False
         )
-        assert result.returncode == 1
-        assert "Invalid format format --cron" in result.stderr_text
+        assert result.returncode == 2
+        assert "Invalid format for --cron" in result.stderr_text
 
         result = self.master.run_command(
             ['ipa-acme-manage', 'pruning',
-             '--cron="100 * * * *"'],
+             '--cron=100 * * * *'],
             raiseonerr=False
         )
         assert result.returncode == 1
@@ -790,8 +807,205 @@ class TestACMEPrune(IntegrationTest):
 
         result = self.master.run_command(
             ['ipa-acme-manage', 'pruning',
-             '--cron="10 1-5 * * *"'],
+             '--cron=10 1-5 * * *'],
             raiseonerr=False
         )
         assert result.returncode == 1
         assert "1-5 ranges are not supported" in result.stderr_text
+
+    def test_prune_cert_manual(self, issue_and_expire_acme_cert):
+        """Test to prune expired certificate by manual run"""
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('11.3.0')):
+            raise pytest.skip("Certificate pruning is not available")
+
+        issue_and_expire_acme_cert(
+            self.master, self.clients[0], self.acme_server)
+
+        # check that the certificate issued for the client
+        result = self.master.run_command(
+            ['ipa', 'cert-find', '--subject', self.clients[0].hostname]
+        )
+        assert f'CN={self.clients[0].hostname}' in result.stdout_text
+
+        # run prune command manually
+        self.master.run_command(['ipa-acme-manage', 'pruning', '--enable'])
+        self.master.run_command(['ipactl', 'restart'])
+        self.master.run_command(['ipa-acme-manage', 'pruning', '--run'])
+        # wait for cert to get prune
+        time.sleep(50)
+
+        # check if client cert is removed
+        result = self.master.run_command(
+            ['ipa', 'cert-find', '--subject', self.clients[0].hostname],
+            raiseonerr=False
+        )
+        assert f'CN={self.clients[0].hostname}' not in result.stdout_text
+
+    def test_prune_cert_cron(self, issue_and_expire_acme_cert):
+        """Test to prune expired certificate by cron job"""
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('11.3.0')):
+            raise pytest.skip("Certificate pruning is not available")
+
+        issue_and_expire_acme_cert(
+            self.master, self.clients[0], self.acme_server)
+
+        # check that the certificate issued for the client
+        result = self.master.run_command(
+            ['ipa', 'cert-find', '--subject', self.clients[0].hostname]
+        )
+        assert f'CN={self.clients[0].hostname}' in result.stdout_text
+
+        # enable pruning
+        self.master.run_command(['ipa-acme-manage', 'pruning', '--enable'])
+
+        # cron would be set to run the next minute
+        cron_minute = self.master.run_command(
+            [
+                "python3",
+                "-c",
+                (
+                    "from datetime import datetime; "
+                    "print(int(datetime.now().strftime('%M')) + 5)"
+                ),
+            ]
+        ).stdout_text.strip()
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             f'--cron={cron_minute} * * * *']
+        )
+        self.master.run_command(['ipactl', 'restart'])
+        # wait for 5 minutes to cron to execute and 20 sec for just in case
+        time.sleep(320)
+
+        # check if client cert is removed
+        result = self.master.run_command(
+            ['ipa', 'cert-find', '--subject', self.clients[0].hostname],
+            raiseonerr=False
+        )
+        assert f'CN={self.clients[0].hostname}' not in result.stdout_text
+
+    def test_prune_cert_retention_unit(self, issue_and_expire_acme_cert):
+        """Test to prune expired certificate with retention unit option"""
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('11.3.0')):
+            raise pytest.skip("Certificate pruning is not available")
+        issue_and_expire_acme_cert(
+            self.master, self.clients[0], self.acme_server)
+
+        # check that the certificate issued for the client
+        result = self.master.run_command(
+            ['ipa', 'cert-find', '--subject', self.clients[0].hostname]
+        )
+        assert f'CN={self.clients[0].hostname}' in result.stdout_text
+
+        # enable pruning
+        self.master.run_command(['ipa-acme-manage', 'pruning', '--enable'])
+
+        # certretention set to 5 min
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--certretention=5', '--certretentionunit=minute']
+        )
+        self.master.run_command(['ipactl', 'restart'])
+
+        # wait for 5 min and check if expired cert is removed
+        time.sleep(310)
+        self.master.run_command(['ipa-acme-manage', 'pruning', '--run'])
+        result = self.master.run_command(
+            ['ipa', 'cert-find', '--subject', self.clients[0].hostname],
+            raiseonerr=False
+        )
+        assert f'CN={self.clients[0].hostname}' not in result.stdout_text
+
+    def test_prune_cert_search_size_limit(self, issue_and_expire_acme_cert):
+        """Test to prune expired certificate with search size limit option"""
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('11.3.0')):
+            raise pytest.skip("Certificate pruning is not available")
+        no_of_cert = 10
+        search_size_limit = 5
+        issue_and_expire_acme_cert(
+            self.master, self.clients[0], self.acme_server, no_of_cert)
+
+        # check that the certificate issued for the client
+        result = self.master.run_command(
+            ['ipa', 'cert-find', '--subject', self.clients[0].hostname]
+        )
+        assert f'CN={self.clients[0].hostname}' in result.stdout_text
+        assert f'Number of entries returned {no_of_cert}'
+
+        # enable pruning
+        self.master.run_command(['ipa-acme-manage', 'pruning', '--enable'])
+
+        # certretention set to 5 min
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             f'--certsearchsizelimit={search_size_limit}',
+             '--certsearchtimelimit=100']
+        )
+        self.master.run_command(['ipactl', 'restart'])
+
+        # prune the certificates
+        self.master.run_command(['ipa-acme-manage', 'pruning', '--run'])
+
+        # check if 5 expired cert is removed
+        result = self.master.run_command(
+            ['ipa', 'cert-find', '--subject', self.clients[0].hostname]
+        )
+        assert f'Number of entries returned {no_of_cert - search_size_limit}'
+
+    def test_prune_config_show(self, issue_and_expire_acme_cert):
+        """Test to check config-show command shows set param"""
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('11.3.0')):
+            raise pytest.skip("Certificate pruning is not available")
+
+        self.master.run_command(['ipa-acme-manage', 'pruning', '--enable'])
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--cron=0 0 1 * *']
+        )
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--certretention=30', '--certretentionunit=day']
+        )
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--certsearchsizelimit=1000', '--certsearchtimelimit=0']
+        )
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--requestretention=30', '--requestretentionunit=day']
+        )
+        self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--requestsearchsizelimit=1000', '--requestsearchtimelimit=0']
+        )
+        result = self.master.run_command(
+            ['ipa-acme-manage', 'pruning', '--config-show']
+        )
+        assert 'Status: enabled' in result.stdout_text
+        assert 'Certificate Retention Time: 30' in result.stdout_text
+        assert 'Certificate Retention Unit: day' in result.stdout_text
+        assert 'Certificate Search Size Limit: 1000' in result.stdout_text
+        assert 'Certificate Search Time Limit: 100' in result.stdout_text
+        assert 'Request Retention Time: 30' in result.stdout_text
+        assert 'Request Retention Unit: day' in result.stdout_text
+        assert 'Request Search Size Limit' in result.stdout_text
+        assert 'Request Search Time Limit: 100' in result.stdout_text
+        assert 'cron Schedule: 0 0 1 * *' in result.stdout_text
+
+    def test_prune_disable(self, issue_and_expire_acme_cert):
+        """Test prune command throw error after disabling the pruning"""
+        if (tasks.get_pki_version(self.master)
+           < tasks.parse_version('11.3.0')):
+            raise pytest.skip("Certificate pruning is not available")
+
+        self.master.run_command(['ipa-acme-manage', 'pruning', '--disable'])
+        result = self.master.run_command(
+            ['ipa-acme-manage', 'pruning',
+             '--cron=0 0 1 * *']
+        )
+        assert 'Status: disabled' in result.stdout_text
