@@ -92,6 +92,10 @@ kw = {
 api.Command.user_show(*args, **kw)
 ```
 
+The full list of available arguments and options for each command can be found
+in the API Reference. Alternatively, it is possible to see the mapping of CLI
+option to API attribute through `ipa show-mappings`.
+
 ## Retrieving output
 
 Command output is returned as a Python dictionary. Example shown is the output
