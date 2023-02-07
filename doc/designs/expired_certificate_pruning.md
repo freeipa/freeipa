@@ -105,7 +105,7 @@ A new verb will be added, pruning, to be used for enabling and configuring pruni
 
 ### Enabling pruning
 
-`# ipa-acme-manage pruning --enable=TRUE`
+`# ipa-acme-manage pruning --enable`
 
 Enabling the job will call
 
@@ -139,7 +139,7 @@ No validation of setting February 31st will be done. That will be left to PKI. B
 
 ### Disabling pruning
 
-`# ipa-acme-manage pruning --enable=FALSE`
+`# ipa-acme-manage pruning --disable`
 
 This will remove the configuration option for `jobsScheduler.job.pruning.cron` just to be sure it no longer runs.
 
@@ -236,8 +236,8 @@ Overview of the CLI commands. Example:
 
 | Command |	Options |
 | --- | ----- |
-| ipa-acme-manage pruning | --enable=TRUE |
-| ipa-acme-manage pruning | --enable=FALSE |
+| ipa-acme-manage pruning | --enable |
+| ipa-acme-manage pruning | --disable |
 | ipa-acme-manage pruning | --cron=`"0 0 1 * *"` |
 | ipa-acme-manage pruning | --certretention=30 --certretentionunit=day |
 | ipa-acme-manage pruning | --certsearchsizelimit=1000 --certsearchtimelimit=0 |
