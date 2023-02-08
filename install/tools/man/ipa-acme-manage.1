@@ -79,7 +79,7 @@ For example, "0 0 1 * *" schedules the job to run at 12:00am on the first
 day of each month.
 .TP
 \fB\-\-certretention=CERTRETENTION\fR
-Certificate retention time. The default is 30.
+Certificate retention time. The default is 30. A value of 0 will remove expired certificates with no delay.
 .TP
 \fB\-\-certretentionunit=CERTRETENTIONUNIT\fR
 Certificate retention units. Valid units are: minute, hour, day, year.
@@ -89,10 +89,10 @@ The default is days.
 LDAP search size limit searching for expired certificates. The default is 1000. This is a client-side limit. There may be additional server-side limitations.
 .TP
 \fB\-\-certsearchtimelimit=CERTSEARCHTIMELIMIT\fR
-LDAP search time limit searching for expired certificates. The default is 0, no limit. This is a client-side limit. There may be additional server-side limitations.
+LDAP search time limit (seconds) searching for expired certificates. The default is 0, no limit. This is a client-side limit. There may be additional server-side limitations.
 .TP
 \fB\-\-requestretention=REQUESTRETENTION\fR
-Request retention time. The default is 30.
+Request retention time. The default is 30. A value of 0 will remove expired requests with no delay.
 .TP
 \fB\-\-requestretentionunit=REQUESTRETENTIONUNIT\fR
 Request retention units. Valid units are: minute, hour, day, year.
@@ -102,7 +102,7 @@ The default is days.
 LDAP search size limit searching for unfulfilled requests. The default is 1000. There may be additional server-side limitations.
 .TP
 \fB\-\-requestsearchtimelimit=REQUESTSEARCHTIMELIMIT\fR
-LDAP search time limit searching for unfulfilled requests. The default is 0, no limit. There may be additional server-side limitations.
+LDAP search time limit (seconds) searching for unfulfilled requests. The default is 0, no limit. There may be additional server-side limitations.
 .TP
 \fB\-\-config\-show\fR
 Show the current pruning configuration
