@@ -67,11 +67,11 @@ There are four values each that can be managed for pruning certificates and requ
 * expired cert/incomplete request time
 * time unit
 * LDAP search size limit
-* LDAP search time limit
+* LDAP search time limit (in seconds)
 
 The first two configure when an expired certificate or incomplete request will be deleted. The unit can be one of: minute, hour, day, year. By default it is 30 days.
 
-The LDAP limits control how many entries are returned and how long the search can take. By default it is 1000 entries and unlimited time.
+The LDAP limits control how many entries are returned and how long the search can take. By default it is 1000 entries and unlimited time (0 == unlimited, unit is seconds).
 
 ### Configuration settings
 

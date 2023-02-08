@@ -207,14 +207,14 @@ class IPAACMEManage(AdminTool):
                         self.options.enable,
                         self.options.disable,
                         self.options.cron,
-                        self.options.certretention,
+                        self.options.certretention is not None,
                         self.options.certretentionunit,
-                        self.options.requestretention,
+                        self.options.requestretention is not None,
                         self.options.requestretentionunit,
-                        self.options.certsearchsizelimit,
-                        self.options.certsearchtimelimit,
-                        self.options.requestsearchsizelimit,
-                        self.options.requestsearchtimelimit,
+                        self.options.certsearchsizelimit is not None,
+                        self.options.certsearchtimelimit is not None,
+                        self.options.requestsearchsizelimit is not None,
+                        self.options.requestsearchtimelimit is not None,
                     ]
                 )
                 and (self.options.config_show or self.options.run)
@@ -226,7 +226,7 @@ class IPAACMEManage(AdminTool):
             elif self.options.cron:
                 if len(self.options.cron.split()) != 5:
                     self.option_parser.error("Invalid format for --cron")
-                # dogtag does no validation when setting an option so
+                # dogtag does no validation when setting this option so
                 # do the minimum. The dogtag cron is limited compared to
                 # crontab(5).
                 opt = self.options.cron.split()
@@ -255,7 +255,7 @@ class IPAACMEManage(AdminTool):
                 'pki-server', command,
                 f'{prefix}.{directive}'
             ]
-            if value:
+            if value is not None:
                 args.extend([str(value)])
             logger.debug(args)
             result = run(args, raiseonerr=False, capture_output=True,
@@ -350,28 +350,28 @@ class IPAACMEManage(AdminTool):
 
         # pki-server ca-config-set can only set one option at a time so
         # loop through all the options and set what is there.
-        if self.options.certretention:
+        if self.options.certretention is not None:
             ca_config_set('certRetentionTime',
                           self.options.certretention)
         if self.options.certretentionunit:
             ca_config_set('certRetentionUnit',
                           self.options.certretentionunit)
-        if self.options.certsearchtimelimit:
+        if self.options.certsearchtimelimit is not None:
             ca_config_set('certSearchTimeLimit',
                           self.options.certsearchtimelimit)
-        if self.options.certsearchsizelimit:
+        if self.options.certsearchsizelimit is not None:
             ca_config_set('certSearchSizeLimit',
                           self.options.certsearchsizelimit)
-        if self.options.requestretention:
+        if self.options.requestretention is not None:
             ca_config_set('requestRetentionTime',
                           self.options.requestretention)
         if self.options.requestretentionunit:
             ca_config_set('requestRetentionUnit',
                           self.options.requestretentionunit)
-        if self.options.requestsearchsizelimit:
+        if self.options.requestsearchsizelimit is not None:
             ca_config_set('requestSearchSizeLimit',
                           self.options.requestsearchsizelimit)
-        if self.options.requestsearchtimelimit:
+        if self.options.requestsearchtimelimit is not None:
             ca_config_set('requestSearchTimeLimit',
                           self.options.requestsearchtimelimit)
         if self.options.cron:
