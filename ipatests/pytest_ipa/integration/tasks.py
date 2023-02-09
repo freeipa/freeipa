@@ -2081,6 +2081,25 @@ def group_add(host, groupname, extra_args=()):
     return host.run_command(cmd)
 
 
+def group_del(host, groupname):
+    cmd = [
+        "ipa", "group-del", groupname,
+    ]
+    return host.run_command(cmd)
+
+
+def group_add_member(host, groupname, users=None,
+                     raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "group-add-member", groupname
+    ]
+    if users:
+        cmd.append("--users")
+        cmd.append(users)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
 def ldapmodify_dm(host, ldif_text, **kwargs):
     """Run ldapmodify as Directory Manager
 
