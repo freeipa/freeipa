@@ -212,3 +212,84 @@ class TestMemberManager(IntegrationTest):
             "'write' privilege to the 'memberManager' attribute of entry"
         )
         assert expected in result.stdout_text
+
+    @tasks.pytest.fixture
+    def prepare_mbr_manager_upgrade(self):
+        user = "idmuser"
+        password = "Secret123"
+        group1 = "role-groupmanager"
+        group2 = "role-usergroup-A"
+
+        master = self.master
+
+        tasks.kinit_admin(master)
+        tasks.group_add(master, group1)
+        tasks.group_add(master, group2)
+        tasks.create_active_user(master, user, password)
+
+        tasks.kinit_admin(master)
+        tasks.group_add_member(master, group1, user)
+        master.run_command(["ipa", "group-add-member-manager", "--groups",
+                            group1, group2])
+
+        yield user, password, group2
+
+        # cleanup
+        tasks.kinit_admin(master)
+        tasks.user_del(master, user)
+        tasks.group_del(master, group1)
+        tasks.group_del(master, group2)
+
+    def test_member_manager_upgrade_scenario(self, prepare_mbr_manager_upgrade):
+        """
+        Testing if manager whose rights defined by the group membership
+        is able to add group members, after upgrade of ipa server.
+        Using ACI modification to demonstrate unability before upgrading
+        ipa server.
+
+        Related: https://pagure.io/freeipa/issue/9286
+        """
+        user, password, group2 = prepare_mbr_manager_upgrade
+
+        master = self.master
+
+        base_dn = self.master.domain.basedn
+        aci_hostgroup = (
+            '(targetattr = "member")(targetfilter = '
+            '"(objectclass=ipaHostGroup)")'
+            '(version 3.0; acl "Allow member managers '
+            'to modify members of host groups"; allow (write) userattr = '
+            '"memberManager#USERDN" or userattr = "memberManager#GROUPDN";)'
+        )
+        aci_usergroup = (
+            '(targetattr = "member")(targetfilter = '
+            '"(objectclass=ipaUserGroup)")'
+            '(version 3.0; acl "Allow member managers '
+            'to modify members of user groups"; allow (write) userattr = '
+            '"memberManager#USERDN" or userattr = "memberManager#GROUPDN";)'
+        )
+        ldif_entry = tasks.textwrap.dedent(
+            """
+            dn: cn=hostgroups,cn=accounts,{base_dn}
+            changetype: modify
+            delete: aci
+            aci: {aci_hostgroup}
+
+            dn: cn=groups,cn=accounts,{base_dn}
+            changetype: modify
+            delete: aci
+            aci: {aci_usergroup}
+""").format(base_dn=base_dn,
+            aci_hostgroup=aci_hostgroup,
+            aci_usergroup=aci_usergroup)
+        tasks.ldapmodify_dm(master, ldif_entry)
+
+        tasks.kinit_as_user(master, user, password)
+        # in this point this command should fail
+        result = tasks.group_add_member(master, group2, "admin",
+                                        raiseonerr=False)
+        assert result.returncode == 1
+        assert "Insufficient access" in result.stdout_text
+
+        master.run_command(['ipa-server-upgrade'])
+        tasks.group_add_member(master, group2, "admin")
