@@ -1649,9 +1649,21 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_trust.py
+        test_suite: test_integration/test_trust.py::TestTrust
         template: *ci-master-latest
-        timeout: 10000
+        timeout: 6000
+        topology: *adroot_adchild_adtree_master_1client
+
+  fedora-latest/test_trust_autoprivate:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_trust.py::TestNonPosixAutoPrivateGroup test_integration/test_trust.py::TestPosixAutoPrivateGroup
+        template: *ci-master-latest
+        timeout: 6000
         topology: *adroot_adchild_adtree_master_1client
 
   fedora-latest/test_backup_and_restore_TestBackupAndRestoreTrust:
