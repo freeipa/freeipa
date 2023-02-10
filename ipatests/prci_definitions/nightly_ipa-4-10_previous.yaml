@@ -1651,7 +1651,19 @@ jobs:
         build_url: '{fedora-previous-ipa-4-10/build_url}'
         test_suite: test_integration/test_trust.py
         template: *ci-ipa-4-10-previous
-        timeout: 10000
+        timeout: 6000
+        topology: *adroot_adchild_adtree_master_1client
+
+  fedora-previous-ipa-4-10/test_trust_autoprivate:
+    requires: [fedora-previous-ipa-4-10/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-previous-ipa-4-10/build_url}'
+        test_suite: test_integration/test_trust.py::TestNonPosixAutoPrivateGroup test_integration/test_trust.py::TestPosixAutoPrivateGroup
+        template: *ci-ipa-4-10-previous
+        timeout: 6000
         topology: *adroot_adchild_adtree_master_1client
 
   fedora-previous-ipa-4-10/test_backup_and_restore_TestBackupAndRestoreTrust:
