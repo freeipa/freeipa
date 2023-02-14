@@ -10,6 +10,9 @@ from ipapython.dn import DN
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
+msg = ('IMPORTANT: In case of a high number of users, hosts or '
+       'groups, the operation may require high CPU usage.')
+
 
 class TestAutounmembership(IntegrationTest):
     """Tests for autounmembership feature.
@@ -206,10 +209,12 @@ class TestAutounmembership(IntegrationTest):
             assert self.is_user_member_of_group(user2, group1)
 
             # Running automember-build so that user is part of correct group
-            self.master.run_command(['ipa', 'automember-rebuild',
-                                     '--users=%s' % user2])
+            result = self.master.run_command(['ipa', 'automember-rebuild',
+                                              '--users=%s' % user2])
             assert self.is_user_member_of_group(user2, group2)
             assert not self.is_user_member_of_group(user2, group1)
+
+            assert msg in result.stdout_text
 
         finally:
             # testcase cleanup
@@ -240,11 +245,13 @@ class TestAutounmembership(IntegrationTest):
             assert self.is_host_member_of_hostgroup(host2, hostgroup1)
 
             # Running the automember-build so host is part of correct hostgroup
-            self.master.run_command(
+            result = self.master.run_command(
                 ['ipa', 'automember-rebuild', '--hosts=%s' % host2]
             )
             assert self.is_host_member_of_hostgroup(host2, hostgroup2)
             assert not self.is_host_member_of_hostgroup(host2, hostgroup1)
+
+            assert msg in result.stdout_text
 
         finally:
             # testcase cleanup
