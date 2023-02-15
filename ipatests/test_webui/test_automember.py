@@ -76,6 +76,9 @@ SEARCH_CASES = {
 INCLUSIVE = 'inclusive'
 EXCLUSIVE = 'exclusive'
 
+rebuild_warning_msg = ('Are you sure you want to rebuild auto membership? '
+                       'In case of a high number of users, hosts or '
+                       'groups, the operation may require high CPU usage.')
 
 @pytest.mark.tier1
 class TestAutomember(UI_driver):
@@ -284,7 +287,10 @@ class TestAutomember(UI_driver):
 
         # Rebuild membership for first host, using action on host details facet
         self.navigate_to_record(host1, entity='host')
-        self.action_list_action('automember_rebuild')
+        self.action_list_action('automember_rebuild', confirm=False)
+        dialog_info = self.get_dialog_info()
+        assert dialog_info['text'] == rebuild_warning_msg
+        self.dialog_button_click('ok')
 
         # Assert that host is now a member of hostgroup
         self.navigate_to_record('webservers', entity='hostgroup')
@@ -308,7 +314,10 @@ class TestAutomember(UI_driver):
 
         # Rebuild membership for all hosts, using action on hosts search facet
         self.navigate_by_menu('identity/host')
-        self.action_list_action('automember_rebuild')
+        self.action_list_action('automember_rebuild', confirm=False)
+        dialog_info = self.get_dialog_info()
+        assert dialog_info['text'] == rebuild_warning_msg
+        self.dialog_button_click('ok')
 
         # Assert that hosts are now members of hostgroup
         self.navigate_to_record('webservers', entity='hostgroup')
@@ -351,7 +360,10 @@ class TestAutomember(UI_driver):
 
         # Rebuild membership for first user, using action on user details facet
         self.navigate_to_record('dev1', entity='user')
-        self.action_list_action('automember_rebuild')
+        self.action_list_action('automember_rebuild', confirm=False)
+        dialog_info = self.get_dialog_info()
+        assert dialog_info['text'] == rebuild_warning_msg
+        self.dialog_button_click('ok')
 
         # Assert that user is now a member of group
         self.navigate_to_record('devel', entity='group')
@@ -375,7 +387,10 @@ class TestAutomember(UI_driver):
 
         # Rebuild membership for all users, using action on users search facet
         self.navigate_by_menu('identity/user_search')
-        self.action_list_action('automember_rebuild')
+        self.action_list_action('automember_rebuild', confirm=False)
+        dialog_info = self.get_dialog_info()
+        assert dialog_info['text'] == rebuild_warning_msg
+        self.dialog_button_click('ok')
 
         # Assert that users are now members of group
         self.navigate_to_record('devel', entity='group')
