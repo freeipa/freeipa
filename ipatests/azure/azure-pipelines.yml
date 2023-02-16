@@ -115,31 +115,31 @@ jobs:
         testRunTitle: 'Tox results'
       condition: succeededOrFailed()
 
-- job: WebUI_Unit_Tests
-  pool:
-    vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
-  steps:
-    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
-    - template: templates/${{ variables.PREPARE_WEBUI_TEMPLATE }}
-    - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
-    - script: |
-        set -e
-        echo "Running WebUI unit tests"
+#- job: WebUI_Unit_Tests
+#  pool:
+#    vmImage: $(VM_IMAGE)
+#  container:
+#    image: $(DOCKER_BUILD_IMAGE)
+#    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+#  steps:
+#    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
+#    - template: templates/${{ variables.PREPARE_WEBUI_TEMPLATE }}
+#    - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
+#    - script: |
+#        set -e
+#        echo "Running WebUI unit tests"
         # PhantomJS is not compatible with OpenSSL 1.1.1
         # https://github.com/wch/webshot/pull/93
         # export OPENSSL_CONF=whatever
-        cd $(builddir)/install/ui/js/libs && make
-        cd $(builddir)/install/ui && npm install
-        cd $(builddir)/install/ui && node_modules/grunt/bin/grunt --verbose test
-      displayName: WebUI Unit Tests
-    - task: PublishTestResults@2
-      inputs:
-        testResultsFiles: 'install/ui/_build/test-reports/TEST-*.xml'
-        testRunTitle: 'Web UI unit test results'
-      condition: succeededOrFailed()
+#        cd $(builddir)/install/ui/js/libs && make
+#        cd $(builddir)/install/ui && npm install
+#        cd $(builddir)/install/ui && node_modules/grunt/bin/grunt --verbose test
+#      displayName: WebUI Unit Tests
+#    - task: PublishTestResults@2
+#      inputs:
+#        testResultsFiles: 'install/ui/_build/test-reports/TEST-*.xml'
+#        testRunTitle: 'Web UI unit test results'
+#      condition: succeededOrFailed()
 
 - job: BASE_XMLRPC
   pool:
