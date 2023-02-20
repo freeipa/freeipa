@@ -600,7 +600,7 @@ def issue_and_expire_acme_cert():
         # move system date to expire acme cert
         for host in hosts:
             tasks.kdestroy_all(host)
-            tasks.move_date(host, 'stop', '+90days')
+            tasks.move_date(host, 'stop', '+90days+60minutes')
 
         time.sleep(10)
         tasks.get_kdcinfo(host)
@@ -622,7 +622,7 @@ def issue_and_expire_acme_cert():
 
     # move back date
     for host in hosts:
-        tasks.move_date(host, 'start', '-90days')
+        tasks.move_date(host, 'start', '-90days-60minutes')
 
 
 class TestACMERenew(IntegrationTest):
@@ -866,8 +866,9 @@ class TestACMEPrune(IntegrationTest):
                 "python3",
                 "-c",
                 (
-                    "from datetime import datetime; "
-                    "print(int(datetime.now().strftime('%M')) + 5)"
+                    "from datetime import datetime, timedelta; "
+                    "print(int((datetime.now() + "
+                    "timedelta(minutes=5)).strftime('%M')))"
                 ),
             ]
         ).stdout_text.strip()
@@ -990,11 +991,11 @@ class TestACMEPrune(IntegrationTest):
         assert 'Certificate Retention Time: 30' in result.stdout_text
         assert 'Certificate Retention Unit: day' in result.stdout_text
         assert 'Certificate Search Size Limit: 1000' in result.stdout_text
-        assert 'Certificate Search Time Limit: 100' in result.stdout_text
+        assert 'Certificate Search Time Limit: 0' in result.stdout_text
         assert 'Request Retention Time: 30' in result.stdout_text
         assert 'Request Retention Unit: day' in result.stdout_text
-        assert 'Request Search Size Limit' in result.stdout_text
-        assert 'Request Search Time Limit: 100' in result.stdout_text
+        assert 'Request Search Size Limit: 1000' in result.stdout_text
+        assert 'Request Search Time Limit: 0' in result.stdout_text
         assert 'cron Schedule: 0 0 1 * *' in result.stdout_text
 
     def test_prune_disable(self, issue_and_expire_acme_cert):
