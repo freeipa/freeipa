@@ -172,4 +172,6 @@ def kinit_pkinit(
 
     # this workaround enables us to capture stderr and put it
     # into the raised exception in case of unsuccessful authentication
-    run(args, env=env, raiseonerr=True, capture_error=True)
+    # Unsuccessful pkinit can lead to a password prompt. Send \n to skip
+    # prompt.
+    run(args, env=env, stdin="\n", raiseonerr=True, capture_error=True)
