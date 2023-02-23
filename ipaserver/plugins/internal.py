@@ -1225,12 +1225,13 @@ class i18n_messages(Command):
                 "type_totp": _("Time-based (TOTP)"),
             },
             "passkey": {
-                "adder_title": "Add Passkey",
-                "data_label": "Passkey",
-                "deleter_content": "Do you want to remove passkey ${passkey}?",
-                "deleter_title": "Remove Passkey",
-                "type_discoverable": "(discoverable) ",
-                "type_serverside": "(server-side) "
+                "adder_title": _("Add Passkey"),
+                "data_label": _("Passkey"),
+                "deleter_content": _(
+                    "Do you want to remove passkey ${passkey}?"),
+                "deleter_title": _("Remove Passkey"),
+                "type_discoverable": _("(discoverable) "),
+                "type_serverside": _("(server-side) ")
             },
             "passkeyconfig": {
                 "options": _("Options")

@@ -556,7 +556,7 @@
                     "type_totp": "Time-based (TOTP)"
                 }, 
                 "passkeyconfig": {
-                    "options": _("Options")
+                    "options": "Options"
                 },
                 "permission": {
                     "add_custom_attr": "Add Custom Attribute", 
