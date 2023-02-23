@@ -64,7 +64,7 @@ class IdpTracker(Tracker):
         assert_deepequal(
             dict(
                 value=self.cn,
-                summary='Added Identity Provider server "%s"' % self.cn,
+                summary='Added Identity Provider reference "%s"' % self.cn,
                 result=self.filter_attrs(expected),
             ), result)
 
@@ -77,7 +77,7 @@ class IdpTracker(Tracker):
         assert_deepequal(
             dict(
                 value=[self.cn],
-                summary='Deleted Identity Provider server "%s"' % self.cn,
+                summary='Deleted Identity Provider reference "%s"' % self.cn,
                 result=dict(failed=[]),
             ), result)
 
@@ -113,7 +113,7 @@ class IdpTracker(Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary='1 Identity Provider server matched',
+            summary='1 Identity Provider reference matched',
             result=[expected],
         ), result)
 
@@ -165,6 +165,6 @@ class IdpTracker(Tracker):
         expected = self.filter_attrs(self.update_keys | set(extra_keys))
         assert_deepequal(dict(
             value=self.cn,
-            summary='Modified Identity Provider server "%s"' % self.cn,
+            summary='Modified Identity Provider reference "%s"' % self.cn,
             result=expected
         ), result)
