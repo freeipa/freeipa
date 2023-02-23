@@ -1,6 +1,6 @@
 [//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
 # idp_show
-Display information about an Identity Provider server.
+Display information about an Identity Provider reference.
 
 ### Arguments
 |Name|Type|Required
