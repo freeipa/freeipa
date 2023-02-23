@@ -1,6 +1,6 @@
 [//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
 # idp_add
-Add a new Identity Provider server.
+Add a new Identity Provider reference.
 
 ### Arguments
 |Name|Type|Required
