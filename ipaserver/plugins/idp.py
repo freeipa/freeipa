@@ -22,34 +22,35 @@ from itertools import chain
 logger = logging.getLogger(__name__)
 
 __doc__ = _("""
-External Identity Provider Servers
+External Identity Provider References
 """) + _("""
-Manage External Identity Provider Servers.
+Manage External Identity Provider References.
 """) + _("""
-IPA supports the use of an external Identity Provider for Oauth2.0 Device Flow
+IPA supports the use of an external Identity Provider for OAuth2.0 Device Flow
 authentication.
 """) + _("""
 EXAMPLES:
 """) + _("""
- Add a new external Identity Provider server:
+ Add a new external Identity Provider reference:
    ipa idp-add MyIdP --client-id jhkQty13 \
       --auth-uri https://oauth2.idp.com/auth \
       --token-uri https://oauth2.idp.com/token --secret
 """) + _("""
- Add a new external Identity Provider server using github predefined endpoints:
+ Add a new external Identity Provider reference using github predefined
+ endpoints:
    ipa idp-add MyIdp --client-id jhkQty13 --provider github --secret
 """) + _("""
- Find all external Identity Provider servers whose entries include the string
+ Find all external Identity Provider references whose entries include the string
  "test.com":
    ipa idp-find test.com
 """) + _("""
- Examine the configuration of an external Identity Provider server:
+ Examine the configuration of an external Identity Provider reference:
    ipa idp-show MyIdP
 """) + _("""
  Change the secret:
    ipa idp-mod MyIdP --secret
 """) + _("""
- Delete an external Identity Provider server:
+ Delete an external Identity Provider reference:
    ipa idp-del MyIdP
 """)
 
@@ -80,8 +81,8 @@ class idp(LDAPObject):
     Identity Provider object.
     """
     container_dn = api.env.container_idp
-    object_name = _('Identity Provider server')
-    object_name_plural = _('Identity Provider servers')
+    object_name = _('Identity Provider reference')
+    object_name_plural = _('Identity Provider references')
     object_class = ['ipaidp']
     default_attributes = [
         'cn', 'ipaidpauthendpoint', 'ipaidpdevauthendpoint',
@@ -95,13 +96,13 @@ class idp(LDAPObject):
         'ipaidpkeysendpoint', 'ipaidpscope', 'ipaidpsub',
     ]
     allow_rename = True
-    label = _('Identity Provider servers')
-    label_singular = _('Identity Provider server')
+    label = _('Identity Provider references')
+    label_singular = _('Identity Provider reference')
 
     takes_params = (
         Str('cn',
             cli_name='name',
-            label=_('Identity Provider server name'),
+            label=_('Identity Provider reference name'),
             primary_key=True,
             ),
         Str('ipaidpauthendpoint?',
@@ -225,8 +226,8 @@ class idp(LDAPObject):
 
 @register()
 class idp_add(LDAPCreate):
-    __doc__ = _('Add a new Identity Provider server.')
-    msg_summary = _('Added Identity Provider server "%(value)s"')
+    __doc__ = _('Add a new Identity Provider reference.')
+    msg_summary = _('Added Identity Provider reference "%(value)s"')
 
     # List of pre-populated idp endpoints
     # key = provider,
@@ -409,22 +410,22 @@ class idp_add(LDAPCreate):
 
 @register()
 class idp_del(LDAPDelete):
-    __doc__ = _('Delete an Identity Provider server.')
-    msg_summary = _('Deleted Identity Provider server "%(value)s"')
+    __doc__ = _('Delete an Identity Provider reference.')
+    msg_summary = _('Deleted Identity Provider reference "%(value)s"')
 
 
 @register()
 class idp_mod(LDAPUpdate):
-    __doc__ = _('Modify an Identity Provider server.')
-    msg_summary = _('Modified Identity Provider server "%(value)s"')
+    __doc__ = _('Modify an Identity Provider reference.')
+    msg_summary = _('Modified Identity Provider reference "%(value)s"')
 
 
 @register()
 class idp_find(LDAPSearch):
-    __doc__ = _('Search for Identity Provider servers.')
+    __doc__ = _('Search for Identity Provider references.')
     msg_summary = ngettext(
-        '%(count)d Identity Provider server matched',
-        '%(count)d Identity Provider servers matched', 0
+        '%(count)d Identity Provider reference matched',
+        '%(count)d Identity Provider references matched', 0
     )
 
     def get_options(self):
@@ -439,4 +440,4 @@ class idp_find(LDAPSearch):
 @register()
 class idp_show(LDAPRetrieve):
     __doc__ = _('Display information about an Identity Provider '
-                'server.')
+                'reference.')

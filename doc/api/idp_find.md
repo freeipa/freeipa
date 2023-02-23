@@ -1,6 +1,6 @@
 [//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
 # idp_find
-Search for Identity Provider servers.
+Search for Identity Provider references.
 
 ### Arguments
 |Name|Type|Required
