@@ -1,6 +1,6 @@
 [//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
 # idp_del
-Delete an Identity Provider server.
+Delete an Identity Provider reference.
 
 ### Arguments
 |Name|Type|Required

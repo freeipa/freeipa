@@ -1,6 +1,6 @@
 [//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
 # idp_mod
-Modify an Identity Provider server.
+Modify an Identity Provider reference.
 
 ### Arguments
 |Name|Type|Required
