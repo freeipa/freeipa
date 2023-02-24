@@ -513,6 +513,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.smtp_admin = ""
     api.env.smtp_delay = None
     api.env.mail_from = None
+    api.env.mail_from_name = None
     api.env.notify_ttls = ""
     api.env.msg_charset = ""
     api.env.msg_subtype = ""

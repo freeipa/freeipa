@@ -86,6 +86,9 @@ Time to wait, in milliseconds, between each e-mail sent to try to avoid overload
 Specifies the From: e-mail address value in the e-mails sent. The default is noreply@ipadefaultemaildomain. This value can be found by running
 .I ipa config-show
 .TP
+.B mail_from_name <name>
+Specifies the From: name value in the e-mails sent. The default is IPA-EPN.
+.TP
 .B notify_ttls <list of days>
 This is the list of days before a password expiration when ipa-epn should notify a user that their password will soon require a reset. If this value is not specified then the default list will be used: 28, 14, 7, 3, 1.
 .TP
