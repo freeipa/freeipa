@@ -810,7 +810,8 @@ class MailUserAgent:
         """Given mail_subject, mail_body, and subscribers, composes
            the message and sends it.
         """
-        if None in [mail_subject, mail_body, subscribers, mail_from, mail_from_realname]:
+        if None in [mail_subject, mail_body, subscribers, 
+                    mail_from, mail_from_realname]:
             logger.error("IPA-EPN: Tried to send an empty message.")
             return False
         self._compose_message(
@@ -826,7 +827,8 @@ class MailUserAgent:
         return True
 
     def _compose_message(
-        self, mail_subject, mail_body, subscribers, mail_from, mail_from_realname
+        self, mail_subject, mail_body, subscribers, 
+        mail_from, mail_from_realname
     ):
         """The composer creates a MIME multipart message.
         """
