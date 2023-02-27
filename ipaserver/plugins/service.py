@@ -574,6 +574,9 @@ class service(LDAPObject):
                   " Use 'pkinit' to allow PKINIT-based 2FA authentications."
                   " Use 'hardened' to allow brute-force hardened password"
                   " authentication by SPAKE or FAST."
+                  " Use 'idp' to allow authentication against an external"
+                  " Identity Provider supporting OAuth 2.0 Device"
+                  " Authorization Flow (RFC 8628)."
                   " With no indicator specified,"
                   " all authentication mechanisms are allowed."),
             values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp'),
