@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2023-01-29 18:20+0000\n"
+"PO-Revision-Date: 2023-03-01 20:20+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-10/ka/>\n"
@@ -4401,7 +4401,7 @@ msgid "Indirect Member of HBAC rule"
 msgstr ""
 
 msgid "Create a new group."
-msgstr ""
+msgstr "ახალი ჯგუფის შექმნა."
 
 msgid "Create as a non-POSIX group"
 msgstr ""
@@ -15515,7 +15515,7 @@ msgstr ""
 
 #, python-format
 msgid "Group '%s' does not exist"
-msgstr ""
+msgstr "ჯგუფი '%s' არ არსებობს"
 
 msgid "empty filter"
 msgstr ""
@@ -16946,7 +16946,7 @@ msgid "IPA servers configured as AD trust controllers"
 msgstr ""
 
 msgid "unsupported trust type"
-msgstr ""
+msgstr "ნდობის მხაარდაუჭერელი ტიპი"
 
 #, python-format
 msgid "Modified \"%(value)s\" trust configuration"
