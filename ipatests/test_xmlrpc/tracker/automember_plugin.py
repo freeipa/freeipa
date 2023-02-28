@@ -189,6 +189,17 @@ class AutomemberTracker(Tracker):
         result = command()
         self.check_add_condition(result)
 
+    def add_condition_exclusive(self, key, type, exclusiveregex):
+        """ Add a condition with given exclusive regex and check for result.
+        Only one condition can be added. For more specific uses please
+        use make_add_condition_command instead. """
+        command = self.make_add_condition_command(
+            key=key, type=type, automemberexclusiveregex=exclusiveregex)
+        self.attrs['automemberexclusiveregex'] = [u'%s=%s' %
+                                                  (key, exclusiveregex[0])]
+        result = command()
+        self.check_add_condition(result)
+
     def rebuild(self, no_wait=False):
         """ Rebuild automember conditions and check for result """
         command = self.make_rebuild_command(type=self.membertype,
