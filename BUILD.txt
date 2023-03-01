@@ -22,6 +22,12 @@ TIP: You might need to enable the "nodejs" module:
 
 For more dependencies management tips, you can have a look at ./ipatests/azure/templates/prepare-build-fedora.yml
 
+Building on Debian requires these packages to be installed:
+# apt-get install build-essential dh-autoreconf git bison pkg-config libpopt-dev libkrb5-dev\
+    libldap-dev libssl-dev libpwquality-dev libsasl2-dev libjansson-dev libcurl4-openssl-dev\
+    libini-config-dev libnspr4-dev 389-ds-base-dev libsss-idmap-dev libsss-certmap-dev\
+    libkrad-dev uuid-dev libtalloc-dev libtevent-dev samba-dev libunistring-dev gettext
+
 Building
 --------
 
