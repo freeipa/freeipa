@@ -226,7 +226,7 @@ Version:        %{IPA_VERSION}
 Release:        0%{?rc_version:.%rc_version}%{?dist}
 Summary:        The Identity, Policy and Audit system
 
-License:        GPLv3+
+License:        GPL-3.0-or-later
 URL:            http://www.freeipa.org/
 Source0:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_version}.tar.gz
 # Only use detached signature for the distribution builds. If it is a developer build, skip it
