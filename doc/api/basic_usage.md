@@ -6,6 +6,8 @@
   - [Running commands](#running-commands)
   - [Passing arguments and options](#passing-arguments-and-options)
   - [Retrieving output](#retrieving-output)
+  - [Displaying information about commands and parameters](#displaying-information-about-commands-and-parameters)
+  - [API Contexts](#api-contexts)
   - [Batch operations](#batch-operations)
 
 ## Introduction
@@ -18,7 +20,12 @@ that can be accessed through Python, allowing users to interact with FreeIPA
 programatically and develop custom tools to respond to specific needs not 
 covered by the main interfaces. For users looking to perform stateless
 operations or manage deployments with statically defined properties,
-[ansible-freeipa](https://github.com/freeipa/ansible-freeipa) is recommended instead.
+[ansible-freeipa](https://github.com/freeipa/ansible-freeipa) is recommended
+instead.
+
+While FreeIPA API provides a JSON-RPC interface, it is recommended to access the
+API through Python instead, since it automates important parts such as the
+metadata retrieval from the server, which allows to list all available commands.
 
 ## Initializing API access
 
@@ -168,6 +175,86 @@ The output contains four sections:
   user called `test`.
 * `messages`: Different diagnostic information provided by FreeIPA after the operation.
 * `summary`: A summary of the operation.
+
+## Displaying information about commands and parameters
+
+All available information about commands and their parameters is provided in the
+API Reference. Additionally, the API provides tools to display this information. 
+It can be retrieved using the `command_show` and `param_show` commands.
+
+```python
+api.Command.command_show("user_add")
+```
+
+```python
+{
+    "result": {
+        "name": "user_add",
+        "version": "1",
+        "full_name": "user_add/1",
+        "doc": "Add a new user.",
+        "topic_topic": "user/1",
+        "obj_class": "user/1",
+        "attr_name": "add",
+    },
+    "value": "user_add",
+    "messages": [
+        {
+            "type": "warning",
+            "name": "VersionMissing",
+            "message": "API Version number was not sent, forward compatibility not guaranteed. Assuming server's API version, 2.251",
+            "code": 13001,
+            "data": {"server_version": "2.251"},
+        }
+    ],
+    "summary": None,
+}
+```
+
+For listing all available parameters for a certain command, the `param_find`
+command can be used. We can additionally show information of a certain
+parameter from a command using `param_show`.
+
+
+```python
+api.Command.param_show("user_add", name="givenname")
+```
+
+```python
+{
+    "result": {
+        "name": "givenname",
+        "type": "str",
+        "positional": False,
+        "cli_name": "first",
+        "label": "First name",
+    },
+    "value": "givenname",
+    "messages": [
+        {
+            "type": "warning",
+            "name": "VersionMissing",
+            "message": "API Version number was not sent, forward compatibility not guaranteed. Assuming server's API version, 2.251",
+            "code": 13001,
+            "data": {"server_version": "2.251"},
+        }
+    ],
+    "summary": None,
+}
+```
+
+## API Contexts
+
+As explained earlier, a context can be specified before initializing the API.
+The purpose of the context is to define the set of methods that can be
+performed. FreeIPA defines by default four major contexts:
+
+* `server`: plugins validate any arguments and options passed and then execute
+  the requested action.
+* `client`: plugins validate any arguments and options passed and then forward
+  the request to the FreeIPA server to execute.
+* `installer`: plugins specific to the installation process are loaded.
+* `updates`: plugins specific the update process are loaded.
 
 ## Batch operations
 

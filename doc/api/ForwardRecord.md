@@ -3,3 +3,5 @@
 
 # ForwardRecord
 [//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)
+
+Forward DNS record.
