@@ -277,10 +277,14 @@ def make_api_reference(validate_only=False):
     will be created in Markdown format.
     """
 
-    class_template = """[//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
+    # Markers to separate automated content from manual notes
+    automated_marker_start = "[//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)"  # noqa: E501
+    automated_marker_end = "[//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)"  # noqa: E501
+
+    class_template = """{automated_marker_start}
 {reference}
 
-[//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)
+{automated_marker_end}
 {notes}
 """
 
@@ -331,9 +335,21 @@ def make_api_reference(validate_only=False):
 
     for param in ipa_classes:
         lines = [
+            automated_marker_start,
             ".. _%s:\n" % param.__name__,
             "# %s" % param.__name__,
+            automated_marker_end
         ]
+
+        try:
+            with open("doc/api/%s.md" % param.__name__, "r") as f:
+                # Read notes written to page
+                notes = f.read().split("//end)")[1].strip()
+        except FileNotFoundError:
+            notes = ""
+
+        lines.append(notes)
+
         api_contents["doc/api/%s.md" % param.__name__] = "\n".join(lines)
         param_lines.append("   %s.md" % param.__name__)
 
@@ -391,13 +407,17 @@ def make_api_reference(validate_only=False):
 
         try:
             with open("doc/api/%s.md" % cmd.name, "r") as f:
-                # Read notes write to template
+                # Read notes written to template
                 notes = f.read().split("//end)")[1].strip()
         except FileNotFoundError:
                 notes = notes_template
 
         out = class_template.format(
-                reference="\n".join(lines), notes=notes).strip()
+            automated_marker_start=automated_marker_start,
+            reference="\n".join(lines),
+            notes=notes,
+            automated_marker_end=automated_marker_end
+        ).strip()
         api_contents["doc/api/%s.md" % cmd.name] = out
 
     api_contents["doc/api/commands.rst"] = "\n".join(cmd_lines)
