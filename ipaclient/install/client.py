@@ -93,6 +93,37 @@ cli_basedn = None
 # end of global variables
 
 
+def cleanup(func):
+    def inner(options, tdict):
+        # Add some additional options which contain the temporary files
+        # needed during installation.
+        fd, krb_name = tempfile.mkstemp()
+        os.close(fd)
+        ccache_dir = tempfile.mkdtemp(prefix='krbcc')
+
+        tdict['krb_name'] = krb_name
+        tdict['ccache_dir'] = ccache_dir
+
+        func(options, tdict)
+
+        os.environ.pop('KRB5_CONFIG', None)
+
+        try:
+            os.remove(krb_name)
+        except OSError:
+            logger.error("Could not remove %s", krb_name)
+        try:
+            os.rmdir(ccache_dir)
+        except OSError:
+            pass
+        try:
+            os.remove(krb_name + ".ipabkp")
+        except OSError:
+            logger.error("Could not remove %s.ipabkp", krb_name)
+
+    return inner
+
+
 def remove_file(filename):
     """
     Deletes a file. If the file does not exist (OSError 2) does nothing.
@@ -2388,7 +2419,7 @@ def update_ipa_nssdb():
 
 def install(options):
     try:
-        _install(options)
+        _install(options, dict())
     except ScriptError as e:
         if e.rval == CLIENT_INSTALL_ERROR:
             if options.force:
@@ -2415,11 +2446,15 @@ def install(options):
             pass
 
 
-def _install(options):
+@cleanup
+def _install(options, tdict):
     env = {'PATH': SECURE_PATH}
 
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
+
+    krb_name = tdict['krb_name']
+    ccache_dir = tdict['ccache_dir']
 
     if not options.on_master:
         # Try removing old principals from the keytab
@@ -2476,186 +2511,166 @@ def _install(options):
     host_principal = 'host/%s@%s' % (hostname, cli_realm)
     if not options.on_master:
         nolog = tuple()
-        # First test out the kerberos configuration
-        fd, krb_name = tempfile.mkstemp()
-        os.close(fd)
-        ccache_dir = tempfile.mkdtemp(prefix='krbcc')
-        try:
-            configure_krb5_conf(
-                cli_realm=cli_realm,
-                cli_domain=cli_domain,
-                cli_server=cli_server,
-                cli_kdc=cli_kdc,
-                dnsok=False,
-                filename=krb_name,
-                client_domain=client_domain,
-                client_hostname=hostname,
-                configure_sssd=options.sssd,
-                force=options.force)
-            env['KRB5_CONFIG'] = krb_name
-            ccache_name = os.path.join(ccache_dir, 'ccache')
-            join_args = [paths.SBIN_IPA_JOIN,
-                         "-s", cli_server[0],
-                         "-b", str(realm_to_suffix(cli_realm)),
-                         "-h", hostname]
-            if options.debug:
-                join_args.append("-d")
-                env['XMLRPC_TRACE_CURL'] = 'yes'
-            if options.force_join:
-                join_args.append("-f")
-            if options.principal is not None:
-                stdin = None
-                principal = options.principal
-                if principal.find('@') == -1:
-                    principal = '%s@%s' % (principal, cli_realm)
-                if options.password is not None:
-                    stdin = options.password
+        configure_krb5_conf(
+            cli_realm=cli_realm,
+            cli_domain=cli_domain,
+            cli_server=cli_server,
+            cli_kdc=cli_kdc,
+            dnsok=False,
+            filename=krb_name,
+            client_domain=client_domain,
+            client_hostname=hostname,
+            configure_sssd=options.sssd,
+            force=options.force)
+        env['KRB5_CONFIG'] = krb_name
+        ccache_name = os.path.join(ccache_dir, 'ccache')
+        join_args = [paths.SBIN_IPA_JOIN,
+                     "-s", cli_server[0],
+                     "-b", str(realm_to_suffix(cli_realm)),
+                     "-h", hostname]
+        if options.debug:
+            join_args.append("-d")
+            env['XMLRPC_TRACE_CURL'] = 'yes'
+        if options.force_join:
+            join_args.append("-f")
+        if options.principal is not None:
+            stdin = None
+            principal = options.principal
+            if principal.find('@') == -1:
+                principal = '%s@%s' % (principal, cli_realm)
+            if options.password is not None:
+                stdin = options.password
+            else:
+                if not options.unattended:
+                    try:
+                        stdin = getpass.getpass(
+                            "Password for %s: " % principal)
+                    except EOFError:
+                        stdin = None
+                    if not stdin:
+                        raise ScriptError(
+                            "Password must be provided for {}.".format(
+                                principal),
+                            rval=CLIENT_INSTALL_ERROR)
                 else:
-                    if not options.unattended:
-                        try:
-                            stdin = getpass.getpass(
-                                "Password for %s: " % principal)
-                        except EOFError:
-                            stdin = None
-                        if not stdin:
-                            raise ScriptError(
-                                "Password must be provided for {}.".format(
-                                    principal),
-                                rval=CLIENT_INSTALL_ERROR)
+                    if sys.stdin.isatty():
+                        logger.error(
+                            "Password must be provided in "
+                            "non-interactive mode.")
+                        logger.info(
+                            "This can be done via "
+                            "echo password | ipa-client-install ... "
+                            "or with the -w option.")
+                        raise ScriptError(rval=CLIENT_INSTALL_ERROR)
                     else:
-                        if sys.stdin.isatty():
-                            logger.error(
-                                "Password must be provided in "
-                                "non-interactive mode.")
-                            logger.info(
-                                "This can be done via "
-                                "echo password | ipa-client-install ... "
-                                "or with the -w option.")
-                            raise ScriptError(rval=CLIENT_INSTALL_ERROR)
-                        else:
-                            stdin = sys.stdin.readline()
+                        stdin = sys.stdin.readline()
 
+            try:
+                kinit_password(principal, stdin, ccache_name,
+                               config=krb_name)
+            except RuntimeError as e:
+                print_port_conf_info()
+                raise ScriptError(
+                    "Kerberos authentication failed: {}".format(e),
+                    rval=CLIENT_INSTALL_ERROR)
+        elif options.keytab:
+            join_args.append("-f")
+            if os.path.exists(options.keytab):
                 try:
-                    kinit_password(principal, stdin, ccache_name,
-                                   config=krb_name)
-                except RuntimeError as e:
+                    kinit_keytab(host_principal,
+                                 options.keytab,
+                                 ccache_name,
+                                 config=krb_name,
+                                 attempts=options.kinit_attempts)
+                except gssapi.exceptions.GSSError as e:
                     print_port_conf_info()
                     raise ScriptError(
                         "Kerberos authentication failed: {}".format(e),
                         rval=CLIENT_INSTALL_ERROR)
-            elif options.keytab:
-                join_args.append("-f")
-                if os.path.exists(options.keytab):
-                    try:
-                        kinit_keytab(host_principal,
-                                     options.keytab,
-                                     ccache_name,
-                                     config=krb_name,
-                                     attempts=options.kinit_attempts)
-                    except gssapi.exceptions.GSSError as e:
-                        print_port_conf_info()
-                        raise ScriptError(
-                            "Kerberos authentication failed: {}".format(e),
-                            rval=CLIENT_INSTALL_ERROR)
-                else:
-                    raise ScriptError(
-                        "Keytab file could not be found: {}".format(
-                            options.keytab),
-                        rval=CLIENT_INSTALL_ERROR)
-            elif options.password:
-                nolog = (options.password,)
-                join_args.append("-w")
-                join_args.append(options.password)
-            elif options.prompt_password:
-                if options.unattended:
-                    raise ScriptError(
-                        "Password must be provided in non-interactive mode",
-                        rval=CLIENT_INSTALL_ERROR)
-                try:
-                    password = getpass.getpass("Password: ")
-                except EOFError:
-                    password = None
-                if not password:
-                    raise ScriptError(
-                        "Password must be provided.",
-                        rval=CLIENT_INSTALL_ERROR)
-                join_args.append("-w")
-                join_args.append(password)
-                nolog = (password,)
-
-            env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = ccache_name
-            # Get the CA certificate
-            try:
-                os.environ['KRB5_CONFIG'] = env['KRB5_CONFIG']
-                get_ca_certs(fstore, options, cli_server[0], cli_basedn,
-                             cli_realm)
-                del os.environ['KRB5_CONFIG']
-            except errors.FileError as e:
-                logger.error('%s', e)
-                raise ScriptError(rval=CLIENT_INSTALL_ERROR)
-            except Exception as e:
-                logger.error("Cannot obtain CA certificate\n%s", e)
-                raise ScriptError(rval=CLIENT_INSTALL_ERROR)
-
-            # Now join the domain
-            result = run(
-                join_args, raiseonerr=False, env=env, nolog=nolog,
-                capture_error=True)
-            stderr = result.error_output
-
-            if result.returncode != 0:
-                logger.error("Joining realm failed: %s", stderr)
-                if not options.force:
-                    if result.returncode == 13:
-                        logger.info(
-                            "Use --force-join option to override the host "
-                            "entry on the server and force client enrollment.")
-                    raise ScriptError(rval=CLIENT_INSTALL_ERROR)
-                logger.info(
-                    "Use ipa-getkeytab to obtain a host "
-                    "principal for this server.")
             else:
-                logger.info("Enrolled in IPA realm %s", cli_realm)
-
-            start = stderr.find('Certificate subject base is: ')
-            if start >= 0:
-                start = start + 29
-                subject_base = stderr[start:]
-                subject_base = subject_base.strip()
-                subject_base = DN(subject_base)
-
-            if options.principal is not None:
-                run([paths.KDESTROY], raiseonerr=False, env=env)
-
-            # Obtain the TGT. We do it with the temporary krb5.conf, so that
-            # only the KDC we're installing under is contacted.
-            # Other KDCs might not have replicated the principal yet.
-            # Once we have the TGT, it's usable on any server.
+                raise ScriptError(
+                    "Keytab file could not be found: {}".format(
+                        options.keytab),
+                    rval=CLIENT_INSTALL_ERROR)
+        elif options.password:
+            nolog = (options.password,)
+            join_args.append("-w")
+            join_args.append(options.password)
+        elif options.prompt_password:
+            if options.unattended:
+                raise ScriptError(
+                    "Password must be provided in non-interactive mode",
+                    rval=CLIENT_INSTALL_ERROR)
             try:
-                kinit_keytab(host_principal, paths.KRB5_KEYTAB, CCACHE_FILE,
-                             config=krb_name,
-                             attempts=options.kinit_attempts)
-                env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = CCACHE_FILE
-            except gssapi.exceptions.GSSError as e:
-                print_port_conf_info()
-                logger.error("Failed to obtain host TGT: %s", e)
-                # failure to get ticket makes it impossible to login and bind
-                # from sssd to LDAP, abort installation and rollback changes
+                password = getpass.getpass("Password: ")
+            except EOFError:
+                password = None
+            if not password:
+                raise ScriptError(
+                    "Password must be provided.",
+                    rval=CLIENT_INSTALL_ERROR)
+            join_args.append("-w")
+            join_args.append(password)
+            nolog = (password,)
+
+        env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = ccache_name
+        # Get the CA certificate
+        try:
+            os.environ['KRB5_CONFIG'] = env['KRB5_CONFIG']
+            get_ca_certs(fstore, options, cli_server[0], cli_basedn,
+                         cli_realm)
+        except errors.FileError as e:
+            logger.error('%s', e)
+            raise ScriptError(rval=CLIENT_INSTALL_ERROR)
+        except Exception as e:
+            logger.error("Cannot obtain CA certificate\n%s", e)
+            raise ScriptError(rval=CLIENT_INSTALL_ERROR)
+
+        # Now join the domain
+        result = run(
+            join_args, raiseonerr=False, env=env, nolog=nolog,
+            capture_error=True)
+        stderr = result.error_output
+
+        if result.returncode != 0:
+            logger.error("Joining realm failed: %s", stderr)
+            if not options.force:
+                if result.returncode == 13:
+                    logger.info(
+                        "Use --force-join option to override the host "
+                        "entry on the server and force client enrollment.")
                 raise ScriptError(rval=CLIENT_INSTALL_ERROR)
+            logger.info(
+                "Use ipa-getkeytab to obtain a host "
+                "principal for this server.")
+        else:
+            logger.info("Enrolled in IPA realm %s", cli_realm)
 
-        finally:
-            try:
-                os.remove(krb_name)
-            except OSError:
-                logger.error("Could not remove %s", krb_name)
-            try:
-                os.rmdir(ccache_dir)
-            except OSError:
-                pass
-            try:
-                os.remove(krb_name + ".ipabkp")
-            except OSError:
-                logger.error("Could not remove %s.ipabkp", krb_name)
+        start = stderr.find('Certificate subject base is: ')
+        if start >= 0:
+            start = start + 29
+            subject_base = stderr[start:]
+            subject_base = subject_base.strip()
+            subject_base = DN(subject_base)
+
+        if options.principal is not None:
+            run([paths.KDESTROY], raiseonerr=False, env=env)
+
+        # Obtain the TGT. We do it with the temporary krb5.conf, so that
+        # only the KDC we're installing under is contacted.
+        # Other KDCs might not have replicated the principal yet.
+        # Once we have the TGT, it's usable on any server.
+        try:
+            kinit_keytab(host_principal, paths.KRB5_KEYTAB, CCACHE_FILE,
+                         config=krb_name,
+                         attempts=options.kinit_attempts)
+            env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = CCACHE_FILE
+        except gssapi.exceptions.GSSError as e:
+            print_port_conf_info()
+            logger.error("Failed to obtain host TGT: %s", e)
+            # failure to get ticket makes it impossible to login and bind
+            # from sssd to LDAP, abort installation and rollback changes
+            raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     # Configure ipa.conf
     if not options.on_master:
@@ -2692,23 +2707,6 @@ def _install(options):
             except gssapi.exceptions.GSSError as e:
                 logger.error("Failed to obtain host TGT: %s", e)
                 raise ScriptError(rval=CLIENT_INSTALL_ERROR)
-        else:
-            # Configure krb5.conf
-            fstore.backup_file(paths.KRB5_CONF)
-            configure_krb5_conf(
-                cli_realm=cli_realm,
-                cli_domain=cli_domain,
-                cli_server=cli_server,
-                cli_kdc=cli_kdc,
-                dnsok=dnsok,
-                filename=paths.KRB5_CONF,
-                client_domain=client_domain,
-                client_hostname=hostname,
-                configure_sssd=options.sssd,
-                force=options.force)
-
-            logger.info(
-                "Configured /etc/krb5.conf for IPA realm %s", cli_realm)
 
         # Clear out any current session keyring information
         try:
@@ -3019,6 +3017,23 @@ def _install(options):
     if not options.no_nisdomain:
         configure_nisdomain(
             options=options, domain=cli_domain, statestore=statestore)
+
+    # Configure the final krb5.conf
+    if not options.on_master:
+        fstore.backup_file(paths.KRB5_CONF)
+        configure_krb5_conf(
+            cli_realm=cli_realm,
+            cli_domain=cli_domain,
+            cli_server=cli_server,
+            cli_kdc=cli_kdc,
+            dnsok=dnsok,
+            filename=paths.KRB5_CONF,
+            client_domain=client_domain,
+            client_hostname=hostname,
+            configure_sssd=options.sssd,
+            force=options.force)
+
+        logger.info("Configured /etc/krb5.conf for IPA realm %s", cli_realm)
 
     logger.info('Client configuration complete.')
 
