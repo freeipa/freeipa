@@ -89,7 +89,10 @@ def _main():
             cainstance.update_people_entry(cert)
             cainstance.update_authority_entry(cert)
 
-        if nickname == 'auditSigningCert cert-pki-ca':
+        if nickname in (
+            'auditSigningCert cert-pki-ca',
+            'auditSigningCert cert-pki-kra',
+        ):
             # Fix trust on the audit cert
             try:
                 db.run_certutil(['-M',
