@@ -888,9 +888,9 @@ class LDAPObject(Object):
         objectclasses = self.object_class
         if self.object_class_config:
             config = ldap.get_ipa_config()
-            objectclasses = config.get(
+            objectclasses = deepcopy(config.get(
                 self.object_class_config, objectclasses
-            )
+            ))
         objectclasses = objectclasses + self.possible_objectclasses
         # Get list of available attributes for this object for use
         # in the ACI UI.
@@ -1257,9 +1257,9 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
 
         if self.obj.object_class_config:
             config = ldap.get_ipa_config()
-            entry_attrs['objectclass'] = config.get(
+            entry_attrs['objectclass'] = deepcopy(config.get(
                 self.obj.object_class_config, entry_attrs['objectclass']
-            )
+            ))
 
         if self.obj.uuid_attribute:
             entry_attrs[self.obj.uuid_attribute] = 'autogenerate'
