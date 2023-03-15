@@ -573,9 +573,9 @@ class stageuser_activate(LDAPQuery):
 
         if self.obj.object_class_config:
             config = ldap.get_ipa_config()
-            entry_attrs['objectclass'] = config.get(
+            entry_attrs['objectclass'] = deepcopy(config.get(
                 self.obj.object_class_config, entry_attrs['objectclass']
-            )
+            ))
 
         return(entry_attrs)
 
