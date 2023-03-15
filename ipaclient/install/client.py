@@ -116,10 +116,9 @@ def cleanup(func):
             os.rmdir(ccache_dir)
         except OSError:
             pass
-        try:
-            os.remove(krb_name + ".ipabkp")
-        except OSError:
-            logger.error("Could not remove %s.ipabkp", krb_name)
+        # During master installation, the .ipabkp file is not created
+        # Ignore the delete error if it is "file does not exist"
+        remove_file(krb_name + ".ipabkp")
 
     return inner
 
