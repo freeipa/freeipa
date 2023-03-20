@@ -7,7 +7,7 @@ ENV container=docker LANG=en_US.utf8 LANGUAGE=en_US.utf8 LC_ALL=en_US.utf8
 ADD dist /root
 RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
     && dnf update -y dnf \
-    && sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf \
+    && (sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf ||:) \
     && dnf install -y systemd \
     && dnf install -y \
         firewalld \
