@@ -1,5 +1,5 @@
 steps:
 - script: |
     set -e
-    sudo dnf -y install npm fontconfig gtk3 atk at-spi2-atk
+    sudo dnf -y install npm fontconfig gtk3 atk at-spi2-atk chromium
   displayName: Install WebUI Unit tests prerequisites
