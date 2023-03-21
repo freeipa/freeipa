@@ -113,6 +113,55 @@ int add_krad_attr_to_set(krad_packet *req, krad_attrset *attrset,
     return ret;
 }
 
+/* Most attributes have limited length (MAX_ATTRSIZE). In order to accept longer
+ * values, we will concatenate all the attribute values to single krb5_data. */
+int get_krad_attr_from_packet(const krad_packet *rres,
+                              krad_attr attr, krb5_data *_data)
+{
+    const krb5_data *rmsg;
+    krb5_data data = {0};
+    unsigned int memindex;
+    unsigned int i;
+
+    i = 0;
+    do {
+        rmsg = krad_packet_get_attr(rres, attr, i);
+        if (rmsg != NULL) {
+            data.length += rmsg->length;
+        }
+        i++;
+    } while (rmsg != NULL);
+
+    if (data.length == 0) {
+        return ENOENT;
+    }
+
+    data.data = malloc(data.length);
+    if (data.data == NULL) {
+        return ENOMEM;
+    }
+
+    i = 0;
+    memindex = 0;
+    do {
+        rmsg = krad_packet_get_attr(rres, attr, i);
+        if (rmsg != NULL) {
+            memcpy(&data.data[memindex], rmsg->data, rmsg->length);
+            memindex += rmsg->length;
+        }
+        i++;
+    } while (rmsg != NULL);
+
+    if (memindex != data.length) {
+        free(data.data);
+        return ERANGE;
+    }
+
+    *_data = data;
+
+    return 0;
+}
+
 static void on_ldap_free(verto_ctx *vctx, verto_ev *ev)
 {
     (void)vctx; /* Unused */
