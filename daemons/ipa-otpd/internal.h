@@ -166,6 +166,9 @@ void otpd_log_err_(const char * const file, int line, krb5_error_code code,
 int add_krad_attr_to_set(krad_packet *req, krad_attrset *attrset,
                          krb5_data *datap, krad_attr attr, const char *message);
 
+int get_krad_attr_from_packet(const krad_packet *rres,
+                              krad_attr attr, krb5_data *_data);
+
 int get_string(LDAP *ldp, LDAPMessage *entry, const char *name,
                char **out);
 
