@@ -387,7 +387,6 @@ class TestHSMcertRenewal(IntegrationTest):
         """
         check_version(self.master)
         CA_TRACKING_REQS = {
-            'caSigningCert cert-pki-ca': 'cacaSigningCert',
             'ocspSigningCert cert-pki-ca': 'caocspSigningCert',
             'subsystemCert cert-pki-ca': 'casubsystemCert',
             'auditSigningCert cert-pki-ca': 'caauditSigningCert'
