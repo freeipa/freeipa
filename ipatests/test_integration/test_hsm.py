@@ -611,6 +611,16 @@ class TestHSMExternalToSelfSignedCA(IntegrationTest):
         tasks.install_kra(self.master, first_instance=True,
                           token_password=self.token_password)
 
+        # Copy the new KRA key material to the other server(s).
+        serialdir, token_files = find_softhsm_token_files(
+            self.master, self.token_name
+        )
+        for server in (self.replicas[0],):
+            tasks.copy_files(self.master, server, token_files)
+            server.run_command(
+                ['chown', '-R', 'pkiuser:pkiuser', serialdir]
+            )
+
     def test_hsm_external_to_self_signed_ca(self):
         check_version(self.master)
         self.master.run_command([paths.IPA_CACERT_MANAGE, 'renew',
