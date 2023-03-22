@@ -578,11 +578,7 @@ class TestHSMExternalToSelfSignedCA(IntegrationTest):
                           token_password=self.token_password)
 
         # Copy the new KRA key material to the other server(s).
-        copy_token_files(
-            self.replicas[0],
-            [self.replicas[1], self.replicas[2], self.master],
-            self.token_name
-        )
+        copy_token_files(self.master, self.replicas, self.token_name)
 
     def test_hsm_external_to_self_signed_ca(self):
         check_version(self.master)
