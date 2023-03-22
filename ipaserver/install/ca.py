@@ -182,12 +182,55 @@ def hsm_version(enabled):
     return pki_version >= pki.util.Version("11.3.0"), pki_version
 
 
-def hsm_validator(enabled):
+def hsm_validator(enabled, token_name, token_library):
     val, pki_version = hsm_version(enabled)
     if val is False:
         raise ValueError(
             "HSM is not supported in PKI version %s" % pki_version
         )
+    if ':' in token_name or ';' in token_name:
+        raise ValueError(
+            "Colon and semi-colon are not allowed in a token name."
+        )
+    if not os.path.exists(token_library):
+        raise ValueError(
+            "Token library path '%s' does not exist" % token_library
+        )
+    with certdb.NSSDatabase() as tempnssdb:
+        tempnssdb.create_db()
+        # Try adding the token library to the temporary database in
+        # case it isn't already available. Ignore all errors.
+        command = [
+            paths.MODUTIL,
+            '-dbdir', '{}:{}'.format(tempnssdb.dbtype, tempnssdb.secdir),
+            '-nocertdb',
+            '-add', 'test',
+            '-libfile', token_library,
+            '-force',
+        ]
+        # It may fail if p11-kit has already registered the library, that's
+        # ok.
+        ipautil.run(command, stdin='\n', cwd=tempnssdb.secdir,
+                    raiseonerr=False)
+
+        command = [
+            paths.MODUTIL,
+            '-dbdir', '{}:{}'.format(tempnssdb.dbtype, tempnssdb.secdir),
+            '-list',
+            '-force'
+        ]
+        lines = ipautil.run(
+            command, cwd=tempnssdb.secdir, capture_output=True).output
+        found = False
+        token_line = f'token: {token_name}'
+        for line in lines.split('\n'):
+            if token_line in line.strip():
+                found = True
+                break
+        if not found:
+            raise ValueError(
+                "Token named '%s' was not found" % token_name
+            )
 
 
 def set_subject_base_in_config(subject_base):
@@ -276,7 +319,8 @@ def install_check(standalone, replica_config, options):
     if replica_config is None:
         if options.token_name:
             try:
-                hsm_validator(True)
+                hsm_validator(
+                    True, options.token_name, options.token_library_path)
             except ValueError as e:
                 raise ScriptError(str(e))
         options._subject_base = options.subject_base
@@ -309,7 +353,13 @@ def install_check(standalone, replica_config, options):
         # better to be safe and avoid a failed install.
         if token_name:
             try:
-                hsm_validator(True)
+                hsm_validator(
+                    True,
+                    token_name,
+                    options.token_library_path
+                    if options.token_library_path
+                    else token_library_path,
+                )
             except ValueError as e:
                 raise ScriptError(str(e))
             if not options.token_library_path:
