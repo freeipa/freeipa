@@ -1651,7 +1651,7 @@ jobs:
         build_url: '{fedora-previous/build_url}'
         test_suite: test_integration/test_trust.py::TestTrust
         template: *ci-master-previous
-        timeout: 6000
+        timeout: 7200
         topology: *adroot_adchild_adtree_master_1client
 
   fedora-previous/test_trust_autoprivate:
