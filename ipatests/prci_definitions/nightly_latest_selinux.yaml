@@ -1782,7 +1782,7 @@ jobs:
         selinux_enforcing: True
         test_suite: test_integration/test_trust.py::TestTrust
         template: *ci-master-latest
-        timeout: 6000
+        timeout: 7200
         topology: *adroot_adchild_adtree_master_1client
 
   fedora-latest/test_trust_autoprivate:
