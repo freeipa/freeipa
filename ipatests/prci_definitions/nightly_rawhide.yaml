@@ -1782,7 +1782,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_trust.py::TestTrust
         template: *ci-master-frawhide
-        timeout: 6000
+        timeout: 7200
         topology: *adroot_adchild_adtree_master_1client
 
   fedora-rawhide/test_trust_autoprivate:
