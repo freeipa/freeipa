@@ -176,11 +176,21 @@ static krb5_error_code ipadb_sign_pac(krb5_context context,
 
     /* only pass with_realm TRUE when it is cross-realm ticket and S4U2Self
      * was requested */
+#ifdef HAVE_KRB5_PAC_FULL_SIGN_COMPAT
+    kerr = krb5_pac_full_sign_compat(
+        context, pac, authtime, client_princ, server->princ, server_key,
+        right_krbtgt_signing_key,
+        (is_issuing_referral && (flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION)),
+        pac_data
+    );
+#else
+    /* Use standard function, PAC extended KDC signature not supported */
     kerr = krb5_pac_sign_ext(context, pac, authtime, client_princ, server_key,
                              right_krbtgt_signing_key,
                              (is_issuing_referral &&
                               (flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION)),
                              pac_data);
+#endif
 
 done:
     free(princ);
