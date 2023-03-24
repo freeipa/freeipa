@@ -292,3 +292,44 @@ done:
     ldap_msgfree(res);
     return kerr;
 }
+
+
+krb5_error_code ipadb_allowed_to_delegate_from(krb5_context context,
+                                               krb5_const_principal client,
+                                               krb5_const_principal server,
+                                               krb5_pac server_pac,
+                                               const krb5_db_entry *proxy)
+{
+    char **acl_list = NULL;
+    krb5_error_code kerr;
+    size_t i;
+
+    kerr = ipadb_get_tl_data((krb5_db_entry *) proxy, KRB5_TL_CONSTRAINED_DELEGATION_ACL,
+                             sizeof(acl_list), (krb5_octet *)&acl_list);
+
+    if (kerr != 0 && kerr != ENOENT) {
+        return KRB5KDC_ERR_BADOPTION;
+    }
+
+    if (kerr == ENOENT) {
+        return KRB5_PLUGIN_OP_NOTSUPP;
+    }
+
+    kerr = KRB5KDC_ERR_BADOPTION;
+    if (acl_list != NULL) {
+        krb5_principal acl;
+        for (i = 0; acl_list[i] != NULL; i++) {
+            if (krb5_parse_name(context, acl_list[i], &acl) != 0)
+                continue;
+            if ((server == NULL) ||
+                (krb5_principal_compare(context, server, acl) == TRUE)) {
+                kerr = 0;
+                krb5_free_principal(context, acl);
+                break;
+            }
+            krb5_free_principal(context, acl);
+        }
+    }
+
+    return kerr;
+}
