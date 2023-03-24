@@ -153,6 +153,8 @@ aci: (targetattr = "createtimestamp || entryusn || ipaallowedtoperform;read_keys
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbcanonicalname || krbprincipalname")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Principals";allow (write) groupdn = "ldap:///cn=System: Manage Host Principals,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "memberprincipal || objectclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Resource Delegation";allow (delete,write) groupdn = "ldap:///cn=System: Manage Host Resource Delegation,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "ipasshpubkey")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host SSH Public Keys";allow (write) groupdn = "ldap:///cn=System: Manage Host SSH Public Keys,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "description || ipaassignedidview || krbprincipalauthind || l || macaddress || nshardwareplatform || nshostlocation || nsosversion || userclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Modify Hosts";allow (write) groupdn = "ldap:///cn=System: Modify Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
@@ -161,7 +163,7 @@ aci: (targetattr = "cn || createtimestamp || entryusn || macaddress || modifytim
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "memberof")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Read Host Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "cn || createtimestamp || description || enrolledby || entryusn || fqdn || ipaassignedidview || ipaclientversion || ipakrbauthzdata || ipasshpubkey || ipauniqueid || krbcanonicalname || krblastpwdchange || krbpasswordexpiration || krbprincipalaliases || krbprincipalauthind || krbprincipalexpiration || krbprincipalname || l || macaddress || managedby || modifytimestamp || nshardwareplatform || nshostlocation || nsosversion || objectclass || serverhostname || usercertificate || userclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Read Hosts";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "cn || createtimestamp || description || enrolledby || entryusn || fqdn || ipaassignedidview || ipaclientversion || ipakrbauthzdata || ipasshpubkey || ipauniqueid || krbcanonicalname || krblastpwdchange || krbpasswordexpiration || krbprincipalaliases || krbprincipalauthind || krbprincipalexpiration || krbprincipalname || l || macaddress || managedby || memberprincipal || modifytimestamp || nshardwareplatform || nshostlocation || nsosversion || objectclass || serverhostname || usercertificate || userclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Read Hosts";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Remove Hosts";allow (delete) groupdn = "ldap:///cn=System: Remove Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hostgroups,cn=accounts,dc=ipa,dc=example
@@ -281,11 +283,15 @@ aci: (targetattr = "createtimestamp || entryusn || ipaallowedtoperform;read_keys
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbcanonicalname || krbprincipalname")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Manage Service Principals";allow (write) groupdn = "ldap:///cn=System: Manage Service Principals,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "memberprincipal || objectclass")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Manage Service Resource Delegation";allow (delete,write) groupdn = "ldap:///cn=System: Manage Service Resource Delegation,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=services,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "createtimestamp || entryusn || ipaallowedtoperform;write_delegation || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Manage Service Resource Delegation Permissions";allow (compare,read,search,write) groupdn = "ldap:///cn=System: Manage Service Resource Delegation Permissions,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbprincipalauthind || usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Modify Services";allow (write) groupdn = "ldap:///cn=System: Modify Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || gecos || gidnumber || homedirectory || ipantsecurityidentifier || loginshell || modifytimestamp || objectclass || uid || uidnumber")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Read POSIX details of SMB services";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "createtimestamp || entryusn || ipakrbauthzdata || ipakrbprincipalalias || ipauniqueid || krbcanonicalname || krblastpwdchange || krbobjectreferences || krbpasswordexpiration || krbprincipalaliases || krbprincipalauthind || krbprincipalexpiration || krbprincipalname || managedby || memberof || modifytimestamp || objectclass || usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Read Services";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "createtimestamp || entryusn || ipakrbauthzdata || ipakrbprincipalalias || ipauniqueid || krbcanonicalname || krblastpwdchange || krbobjectreferences || krbpasswordexpiration || krbprincipalaliases || krbprincipalauthind || krbprincipalexpiration || krbprincipalname || managedby || memberof || memberprincipal || modifytimestamp || objectclass || usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Read Services";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Remove Services";allow (delete) groupdn = "ldap:///cn=System: Remove Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=s4u2proxy,cn=etc,dc=ipa,dc=example
