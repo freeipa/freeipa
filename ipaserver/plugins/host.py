@@ -238,6 +238,14 @@ host_output_params = (
     Str('ipaallowedtoperform_write_keys',
         label=_('Failed allowed to create keytab'),
     ),
+    Str('ipaallowedtoperform_write_delegation_user',
+        label=_('Users allowed to add resource delegation')),
+    Str('ipaallowedtoperform_write_delegation_group',
+        label=_('Groups allowed to add resource delegation')),
+    Str('ipaallowedtoperform_write_delegation_host',
+        label=_('Hosts allowed to add resource delegation')),
+    Str('ipaallowedtoperform_write_delegation_hostgroup',
+        label=_('Host Groups allowed to add resource delegation')),
 )
 
 
@@ -296,7 +304,8 @@ class host(LDAPObject):
         'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
         'managedby', 'memberofindirect', 'macaddress',
-        'userclass', 'ipaallowedtoperform', 'ipaassignedidview', 'krbprincipalauthind'
+        'userclass', 'ipaallowedtoperform', 'ipaassignedidview',
+        'krbprincipalauthind', 'memberprincipal',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -308,6 +317,8 @@ class host(LDAPObject):
         'sudorule'],
         'ipaallowedtoperform_read_keys': ['user', 'group', 'host', 'hostgroup'],
         'ipaallowedtoperform_write_keys': ['user', 'group', 'host', 'hostgroup'],
+        'ipaallowedtoperform_write_delegation':
+            ['user', 'group', 'host', 'hostgroup'],
     }
     bindable = True
     relationships = {
@@ -317,6 +328,9 @@ class host(LDAPObject):
         'managing': ('Managing', 'man_', 'not_man_'),
         'ipaallowedtoperform_read_keys': ('Allow to retrieve keytab by', 'retrieve_keytab_by_', 'not_retrieve_keytab_by_'),
         'ipaallowedtoperform_write_keys': ('Allow to create keytab by', 'write_keytab_by_', 'not_write_keytab_by'),
+        'ipaallowedtoperform_write_delegation':
+            ('Allow to modify resource delegation ACL',
+             'write_delegation_by_', 'not_write_delegation_by'),
     }
     password_attributes = [('userpassword', 'has_password'),
                            ('krbprincipalkey', 'has_keytab')]
@@ -334,7 +348,7 @@ class host(LDAPObject):
                 'enrolledby', 'managedby', 'ipaassignedidview',
                 'krbcanonicalname', 'krbprincipalaliases',
                 'krbprincipalexpiration', 'krbpasswordexpiration',
-                'krblastpwdchange', 'krbprincipalauthind',
+                'krblastpwdchange', 'krbprincipalauthind', 'memberprincipal',
             },
         },
         'System: Read Host Membership': {
@@ -456,6 +470,11 @@ class host(LDAPObject):
                 'objectclass', 'cn', 'macaddress',
             },
         },
+        'System: Manage Host Resource Delegation': {
+            'ipapermright': {'write', 'delete'},
+            'ipapermdefaultattr': {'memberprincipal', 'objectclass'},
+            'default_privileges': {'Host Administrators'},
+        }
     }
 
     label = _('Hosts')
@@ -562,6 +581,14 @@ class host(LDAPObject):
             label=_('Principal alias'),
             normalizer=normalize_principal,
             flags=['no_create', 'no_search'],
+        ),
+        Str(
+            'memberprincipal*',
+            cli_name='principal',
+            label=_('Delegation principal'),
+            doc=_('Delegation principal'),
+            normalizer=normalize_principal,
+            flags={'no_create', 'no_update', 'no_search'}
         ),
         Str('macaddress*',
             normalizer=lambda value: value.upper(),
@@ -1400,3 +1427,63 @@ class host_remove_principal(LDAPRemoveAttribute):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         util.ensure_last_krbprincipalname(ldap, entry_attrs, *keys)
         return dn
+
+
+@register()
+class host_add_delegation(LDAPAddAttribute):
+    __doc__ = _('Add new resource delegation to a host')
+    msg_summary = _('Added new resource delegation to the host "%(value)s"')
+    attribute = 'memberprincipal'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        util.check_principal_realm_supported(
+            self.api, *keys, attr_name=self.attribute)
+        if self.attribute in entry_attrs:
+            add_missing_object_class(ldap, 'resourcedelegation', dn)
+        return dn
+
+
+@register()
+class host_remove_delegation(LDAPRemoveAttribute):
+    __doc__ = _('Remove resource delegation from a host')
+    msg_summary = _('Removed resource delegation from the host "%(value)s"')
+    attribute = 'memberprincipal'
+
+
+@register()
+class host_allow_add_delegation(LDAPAddMember):
+    __doc__ = _('Allow users, groups, hosts or host groups to handle a '
+                'resource delegation of this host.')
+    member_attributes = ['ipaallowedtoperform_write_delegation']
+    has_output_params = LDAPAddMember.has_output_params + host_output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
+
+
+@register()
+class host_disallow_add_delegation(LDAPRemoveMember):
+    __doc__ = _('Disallow users, groups, hosts or host groups to handle a '
+                'resource delegation of this host.')
+    member_attributes = ['ipaallowedtoperform_write_delegation']
+    has_output_params = LDAPRemoveMember.has_output_params + host_output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
