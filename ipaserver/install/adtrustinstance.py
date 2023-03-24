@@ -563,6 +563,8 @@ class ADTRUSTInstance(service.Service):
                 self.print_msg('cifs principal already targeted, nothing to do.')
         except errors.NotFound:
             self.print_msg(UPGRADE_ERROR % dict(dn=targets_dn))
+        except errors.EmptyModlist:
+            pass
 
     def __write_smb_registry(self):
         """Import IPA specific config into Samba registry
