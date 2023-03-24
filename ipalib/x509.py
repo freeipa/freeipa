@@ -405,6 +405,11 @@ class IPACertificate(crypto_x509.Certificate):
     def tbs_precertificate_bytes(self):
         return self._cert.tbs_precertificate_bytes
 
+    if hasattr(crypto_x509.Certificate, "verify_directly_issued_by"):
+        # added in python-cryptography 40.0
+        def verify_directly_issued_by(self, issuer):
+            return self._cert.verify_directly_issued_by(issuer)
+
 
 def load_pem_x509_certificate(data):
     """
