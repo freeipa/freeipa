@@ -839,7 +839,7 @@ kdb_vftabl kdb_function_table = {
     .check_allowed_to_delegate = ipadb_check_allowed_to_delegate,
     .free_principal_e_data = ipadb_free_principal_e_data,
     .get_s4u_x509_principal = NULL,
-    .allowed_to_delegate_from = NULL,
+    .allowed_to_delegate_from = ipadb_allowed_to_delegate_from,
     .issue_pac = ipadb_v9_issue_pac,
 };
 #endif
