@@ -74,6 +74,7 @@ from ipapython.dnsutil import (
     resolve_ip_addresses,
 )
 from ipapython.admintool import ScriptError
+from ipapython.kerberos import Principal
 
 if sys.version_info >= (3, 2):
     import reprlib
@@ -1232,16 +1233,15 @@ def check_client_configuration(env=None):
         )
 
 
-def check_principal_realm_in_trust_namespace(api_instance, *keys):
+def _collect_trust_namespaces(api_instance, add_local=False):
     """
-    Check that principal name's suffix does not overlap with UPNs and realm
-    names of trusted forests.
+    Return UPNs and realm names of trusted forests.
 
     :param api_instance: API instance
-    :param suffixes: principal suffixes
+    :param add_local: bool flag
 
-    :raises: ValidationError if the suffix coincides with realm name, UPN
-    suffix or netbios name of trusted domains
+    :return: set of namespace names as strings.
+             If add_local is True, add own realm namesapce
     """
     trust_objects = api_instance.Command.trust_find(u'', sizelimit=0)['result']
 
@@ -1258,15 +1258,67 @@ def check_principal_realm_in_trust_namespace(api_instance, *keys):
 
         trust_suffix_namespace.add(obj['cn'][0].lower())
 
-    for principal in keys[-1]:
+    if add_local:
+        trust_suffix_namespace.add(api_instance.env.realm.lower())
+
+    return trust_suffix_namespace
+
+
+def check_principal_realm_in_trust_namespace(api_instance, *suffixes,
+                                             attr_name='krbprincipalname'):
+    """
+    Check that principal name's suffix does not overlap with UPNs and realm
+    names of trusted forests.
+
+    :param api_instance: API instance
+    :param suffixes: principal suffixes
+
+    :raises: ValidationError if the suffix coincides with realm name, UPN
+    suffix or netbios name of trusted domains
+    """
+    trust_suffix_namespace = _collect_trust_namespaces(api_instance,
+                                                       add_local=False)
+
+    for p in suffixes[-1]:
+        principal = Principal(p, realm=api_instance.env.realm)
         realm = principal.realm
         upn = principal.upn_suffix if principal.is_enterprise else None
 
         if realm in trust_suffix_namespace or upn in trust_suffix_namespace:
             raise errors.ValidationError(
-                name='krbprincipalname',
+                name=attr_name,
                 error=_('realm or UPN suffix overlaps with trusted domain '
                         'namespace'))
+
+
+def check_principal_realm_supported(api_instance, *suffixes,
+                                    attr_name='krbprincipalname'):
+    """
+    Check that principal name's suffix does not overlap with UPNs and realm
+    names of trusted forests.
+
+    :param api_instance: API instance
+    :param suffixes: principal suffixes
+
+    :raises: ValidationError if the suffix does not match with realm name, UPN
+    suffix or netbios name of trusted domains or IPA domain
+    """
+    trust_suffix_namespace = _collect_trust_namespaces(api_instance,
+                                                       add_local=True)
+
+    for p in suffixes[-1]:
+        principal = Principal(p, realm=api_instance.env.realm)
+        realm = principal.realm
+        upn = principal.upn_suffix if principal.is_enterprise else None
+
+        conditions = [(realm.lower() not in trust_suffix_namespace),
+                      (upn is not None and (
+                          upn.lower() not in trust_suffix_namespace))]
+        if any(conditions):
+            raise errors.ValidationError(
+                name=attr_name,
+                error=_('realm or UPN suffix outside of supported realm '
+                        'domains or trusted domains namespace'))
 
 
 def no_matching_interface_for_ip_address_warning(addr_list):

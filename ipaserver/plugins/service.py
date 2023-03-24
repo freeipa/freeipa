@@ -160,6 +160,14 @@ output_params = (
     Str('ipaallowedtoperform_write_keys',
         label=_('Failed allowed to create keytab'),
     ),
+    Str('ipaallowedtoperform_write_delegation_user',
+        label=_('Users allowed to add resource delegation')),
+    Str('ipaallowedtoperform_write_delegation_group',
+        label=_('Groups allowed to add resource delegation')),
+    Str('ipaallowedtoperform_write_delegation_host',
+        label=_('Hosts allowed to add resource delegation')),
+    Str('ipaallowedtoperform_write_delegation_hostgroup',
+        label=_('Host Groups allowed to add resource delegation')),
 )
 
 ticket_flags_params = (
@@ -373,14 +381,14 @@ def rename_ipaallowedtoperform_from_ldap(entry_attrs, options):
     if options.get('raw', False):
         return
 
-    for subtype in ('read_keys', 'write_keys'):
+    for subtype in ('read_keys', 'write_keys', 'write_delegation'):
         name = 'ipaallowedtoperform;%s' % subtype
         if name in entry_attrs:
             new_name = 'ipaallowedtoperform_%s' % subtype
             entry_attrs[new_name] = entry_attrs.pop(name)
 
 def rename_ipaallowedtoperform_to_ldap(entry_attrs):
-    for subtype in ('read_keys', 'write_keys'):
+    for subtype in ('read_keys', 'write_keys', 'write_delegation'):
         name = 'ipaallowedtoperform_%s' % subtype
         if name in entry_attrs:
             new_name = 'ipaallowedtoperform;%s' % subtype
@@ -398,25 +406,31 @@ class service(LDAPObject):
         'krbprincipal', 'krbprincipalaux', 'krbticketpolicyaux', 'ipaobject',
         'ipaservice', 'pkiuser'
     ]
-    possible_objectclasses = ['ipakrbprincipal', 'ipaallowedoperations']
+    possible_objectclasses = ['ipakrbprincipal', 'ipaallowedoperations',
+                              'resourcedelegation']
     permission_filter_objectclasses = ['ipaservice']
     search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata']
     default_attributes = [
         'krbprincipalname', 'krbcanonicalname', 'usercertificate', 'managedby',
         'ipakrbauthzdata', 'memberof', 'ipaallowedtoperform',
-        'krbprincipalauthind']
+        'krbprincipalauthind', 'memberprincipal']
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'managedby': ['host'],
         'memberof': ['role'],
         'ipaallowedtoperform_read_keys': ['user', 'group', 'host', 'hostgroup'],
         'ipaallowedtoperform_write_keys': ['user', 'group', 'host', 'hostgroup'],
+        'ipaallowedtoperform_write_delegation':
+            ['user', 'group', 'host', 'hostgroup'],
     }
     bindable = True
     relationships = {
         'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
         'ipaallowedtoperform_read_keys': ('Allow to retrieve keytab by', 'retrieve_keytab_by_', 'not_retrieve_keytab_by_'),
         'ipaallowedtoperform_write_keys': ('Allow to create keytab by', 'write_keytab_by_', 'not_write_keytab_by'),
+        'ipaallowedtoperform_write_delegation':
+            ('Allow to modify resource delegation ACL',
+             'write_delegation_by_', 'not_write_delegation_by'),
     }
     password_attributes = [('krbprincipalkey', 'has_keytab')]
     managed_permissions = {
@@ -430,7 +444,7 @@ class service(LDAPObject):
                 'krbprincipalname', 'krbcanonicalname', 'krbprincipalaliases',
                 'krbprincipalexpiration', 'krbpasswordexpiration',
                 'krblastpwdchange', 'ipakrbauthzdata', 'ipakrbprincipalalias',
-                'krbobjectreferences', 'krbprincipalauthind',
+                'krbobjectreferences', 'krbprincipalauthind', 'memberprincipal',
             },
         },
         'System: Add Services': {
@@ -487,6 +501,21 @@ class service(LDAPObject):
                 'homedirectory', 'loginshell', 'uidnumber',
                 'ipantsecurityidentifier',
             },
+        },
+        'System: Manage Service Resource Delegation Permissions': {
+            'ipapermright': {'read', 'search', 'compare', 'write'},
+            'ipapermdefaultattr': {
+                'ipaallowedtoperform;write_delegation',
+                'objectclass'
+            },
+            'default_privileges': {'Service Administrators',
+                                   'Host Administrators'},
+        },
+        'System: Manage Service Resource Delegation': {
+            'ipapermright': {'write', 'delete'},
+            'ipapermdefaultattr': {'memberPrincipal', 'objectclass'},
+            'default_privileges': {'Service Administrators',
+                                   'Host Administrators'},
         }
     }
 
@@ -513,6 +542,14 @@ class service(LDAPObject):
             normalizer=normalize_principal,
             require_service=True,
             flags={'no_create'}
+        ),
+        Str(
+            'memberprincipal*',
+            cli_name='principal',
+            label=_('Delegation principal'),
+            doc=_('Delegation principal'),
+            normalizer=normalize_principal,
+            flags={'no_create', 'no_update', 'no_search'}
         ),
         Certificate('usercertificate*',
             cli_name='certificate',
@@ -1200,3 +1237,65 @@ class service_remove_principal(LDAPRemoveAttribute):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         util.ensure_last_krbprincipalname(ldap, entry_attrs, *keys)
         return dn
+
+
+@register()
+class service_add_delegation(LDAPAddAttribute):
+    __doc__ = _('Add new resource delegation to a service')
+    msg_summary = _('Added new resource delegation to '
+                    'the service principal "%(value)s"')
+    attribute = 'memberprincipal'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        util.check_principal_realm_supported(
+            self.api, *keys, attr_name=self.attribute)
+        if self.attribute in entry_attrs:
+            add_missing_object_class(ldap, 'resourcedelegation', dn)
+        return dn
+
+
+@register()
+class service_remove_delegation(LDAPRemoveAttribute):
+    __doc__ = _('Remove resource delegation from a service')
+    msg_summary = _('Removed resource delegation from '
+                    'the service principal "%(value)s"')
+    attribute = 'memberprincipal'
+
+
+@register()
+class service_allow_add_delegation(LDAPAddMember):
+    __doc__ = _('Allow users, groups, hosts or host groups to handle a '
+                'resource delegation of this service.')
+    member_attributes = ['ipaallowedtoperform_write_delegation']
+    has_output_params = LDAPAddMember.has_output_params + output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
+
+
+@register()
+class service_disallow_add_delegation(LDAPRemoveMember):
+    __doc__ = _('Disallow users, groups, hosts or host groups to handle a '
+                'resource delegation of this service.')
+    member_attributes = ['ipaallowedtoperform_write_delegation']
+    has_output_params = LDAPRemoveMember.has_output_params + output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
