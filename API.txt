@@ -2507,6 +2507,17 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: host_add_delegation/1
+args: 2,4,3
+arg: Str('fqdn', cli_name='hostname')
+arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: host_add_managedby/1
 args: 1,5,3
 arg: Str('fqdn', cli_name='hostname')
@@ -2529,6 +2540,20 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: host_allow_add_delegation/1
+args: 1,8,3
+arg: Str('fqdn', cli_name='hostname')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Str('host*', alwaysask=True, cli_name='hosts')
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
 command: host_allow_create_keytab/1
 args: 1,8,3
 arg: Str('fqdn', cli_name='hostname')
@@ -2573,6 +2598,20 @@ option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: host_disallow_add_delegation/1
+args: 1,8,3
+arg: Str('fqdn', cli_name='hostname')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Str('host*', alwaysask=True, cli_name='hosts')
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
 command: host_disallow_create_keytab/1
 args: 1,8,3
 arg: Str('fqdn', cli_name='hostname')
@@ -2681,6 +2720,17 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: host_remove_delegation/1
+args: 2,4,3
+arg: Str('fqdn', cli_name='hostname')
+arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
@@ -4705,6 +4755,17 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: service_add_delegation/1
+args: 2,4,3
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
+arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: service_add_host/1
 args: 1,5,3
 arg: Principal('krbcanonicalname', cli_name='canonical_principal')
@@ -4743,6 +4804,20 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: service_allow_add_delegation/1
+args: 1,8,3
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Str('host*', alwaysask=True, cli_name='hosts')
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
 command: service_allow_create_keytab/1
 args: 1,8,3
 arg: Principal('krbcanonicalname', cli_name='canonical_principal')
@@ -4786,6 +4861,20 @@ option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: service_disallow_add_delegation/1
+args: 1,8,3
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Str('host*', alwaysask=True, cli_name='hosts')
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
 command: service_disallow_create_keytab/1
 args: 1,8,3
 arg: Principal('krbcanonicalname', cli_name='canonical_principal')
@@ -4862,6 +4951,17 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: service_remove_delegation/1
+args: 2,4,3
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
+arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
@@ -7092,17 +7192,21 @@ default: hbactest/1
 default: host/1
 default: host_add/1
 default: host_add_cert/1
+default: host_add_delegation/1
 default: host_add_managedby/1
 default: host_add_principal/1
+default: host_allow_add_delegation/1
 default: host_allow_create_keytab/1
 default: host_allow_retrieve_keytab/1
 default: host_del/1
 default: host_disable/1
+default: host_disallow_add_delegation/1
 default: host_disallow_create_keytab/1
 default: host_disallow_retrieve_keytab/1
 default: host_find/1
 default: host_mod/1
 default: host_remove_cert/1
+default: host_remove_delegation/1
 default: host_remove_managedby/1
 default: host_remove_principal/1
 default: host_show/1
@@ -7272,18 +7376,22 @@ default: server_state/1
 default: service/1
 default: service_add/1
 default: service_add_cert/1
+default: service_add_delegation/1
 default: service_add_host/1
 default: service_add_principal/1
 default: service_add_smb/1
+default: service_allow_add_delegation/1
 default: service_allow_create_keytab/1
 default: service_allow_retrieve_keytab/1
 default: service_del/1
 default: service_disable/1
+default: service_disallow_add_delegation/1
 default: service_disallow_create_keytab/1
 default: service_disallow_retrieve_keytab/1
 default: service_find/1
 default: service_mod/1
 default: service_remove_cert/1
+default: service_remove_delegation/1
 default: service_remove_host/1
 default: service_remove_principal/1
 default: service_show/1
