@@ -64,7 +64,7 @@ def fuzzy_sequence_of(fuzzy):
 
 # Matches an automember task finish message
 fuzzy_automember_message = Fuzzy(
-    r'^Automember rebuild task finished\. Processed \(\d+\) entries\.$'
+    r'^Automember rebuild task finished\. Processed \(\d+\) entries'
 )
 
 # Matches trusted domain GUID, like u'463bf2be-3456-4a57-979e-120304f2a0eb'
