@@ -82,6 +82,7 @@ static char *std_principal_attrs[] = {
     "krbAuthIndMaxRenewableAge",
     "ipaNTSecurityIdentifier",
     "ipaUniqueID",
+    "memberPrincipal",
 
     "objectClass",
     NULL
@@ -178,10 +179,10 @@ done:
     return ret;
 }
 
-static krb5_error_code ipadb_set_tl_data(krb5_db_entry *entry,
-                                         krb5_int16 type,
-                                         krb5_ui_2 length,
-                                         const krb5_octet *data)
+krb5_error_code ipadb_set_tl_data(krb5_db_entry *entry,
+                                  krb5_int16 type,
+                                  krb5_ui_2 length,
+                                  const krb5_octet *data)
 {
     krb5_error_code kerr;
     krb5_tl_data *new_td = NULL;
@@ -633,6 +634,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     char *uidstring;
     char **authz_data_list;
     char *princ_sid;
+    char **acl_list;
     krb5_timestamp restime;
     bool resbool;
     int result;
@@ -1027,6 +1029,30 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
             goto done;
         }
         ied->has_sid = true;
+    }
+
+    /* check if it has the serviceDelegation objectclass */
+    ret = ipadb_ldap_attr_has_value(lcontext, lentry,
+                                    "objectClass", "resourceDelegation");
+    if (ret != 0 && ret != ENOENT) {
+        kerr = ret;
+        goto done;
+    }
+    if (ret == 0) {
+        ret = ipadb_ldap_attr_to_strlist(lcontext, lentry,
+                                        "memberPrincipal", &acl_list);
+        if (ret != 0 && ret != ENOENT) {
+            kerr = KRB5_KDB_INTERNAL_ERROR;
+            goto done;
+        }
+        if (ret == 0) {
+            kerr = ipadb_set_tl_data(entry, KRB5_TL_CONSTRAINED_DELEGATION_ACL,
+                                     sizeof(acl_list),
+                                     (const krb5_octet *) &acl_list);
+            if (kerr) {
+                goto done;
+            }
+        }
     }
 
     kerr = 0;
@@ -1682,12 +1708,20 @@ void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
 void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
 {
     krb5_tl_data *prev, *next;
+    size_t i;
 
     if (entry) {
         krb5_free_principal(kcontext, entry->princ);
         prev = entry->tl_data;
         while(prev) {
             next = prev->tl_data_next;
+            /* Handle RBCD ACL type */
+            if (prev->tl_data_type == KRB5_TL_CONSTRAINED_DELEGATION_ACL) {
+                char **acl_list = (char **) prev->tl_data_contents;
+                for (i = 0; (acl_list != NULL) && (acl_list[i] != NULL); i++) {
+                    free(acl_list[i]);
+                }
+            }
             free(prev->tl_data_contents);
             free(prev);
             prev = next;
@@ -1702,10 +1736,10 @@ void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
     }
 }
 
-static krb5_error_code ipadb_get_tl_data(krb5_db_entry *entry,
-                                         krb5_int16 type,
-                                         krb5_ui_2 length,
-                                         krb5_octet *data)
+krb5_error_code ipadb_get_tl_data(krb5_db_entry *entry,
+                                  krb5_int16 type,
+                                  krb5_ui_2 length,
+                                  krb5_octet *data)
 {
     krb5_tl_data *td;
 

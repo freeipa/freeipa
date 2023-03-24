@@ -222,6 +222,16 @@ int ipadb_ldap_attr_has_value(LDAP *lcontext, LDAPMessage *le,
 int ipadb_ldap_deref_results(LDAP *lcontext, LDAPMessage *le,
                              LDAPDerefRes **results);
 
+krb5_error_code ipadb_get_tl_data(krb5_db_entry *entry,
+                                  krb5_int16 type,
+                                  krb5_ui_2 length,
+                                  krb5_octet *data);
+
+krb5_error_code ipadb_set_tl_data(krb5_db_entry *entry,
+                                  krb5_int16 type,
+                                  krb5_ui_2 length,
+                                  const krb5_octet *data);
+
 struct ipadb_multires;
 krb5_error_code ipadb_multires_init(LDAP *lcontext, struct ipadb_multires **r);
 void ipadb_multires_free(struct ipadb_multires *r);
@@ -373,6 +383,12 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
                                                 krb5_const_principal client,
                                                 const krb5_db_entry *server,
                                                 krb5_const_principal proxy);
+
+krb5_error_code ipadb_allowed_to_delegate_from(krb5_context context,
+                                               krb5_const_principal client,
+                                               krb5_const_principal server,
+                                               krb5_pac server_pac,
+                                               const krb5_db_entry *proxy);
 
 /* AS AUDIT */
 
