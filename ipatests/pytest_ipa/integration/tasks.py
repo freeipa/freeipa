@@ -534,7 +534,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
 
 def install_client(master, client, extra_args=[], user=None,
                    password=None, pkinit_identity=None, unattended=True,
-                   stdin_text=None, nameservers='master'):
+                   stdin_text=None, nameservers='master', raiseonerr=True):
     """
     :param nameservers: nameservers to write in resolver config. Possible
            values:
@@ -580,10 +580,13 @@ def install_client(master, client, extra_args=[], user=None,
 
     if is_fips_enabled(client) and getattr(master.config, 'ad_domains', False):
         enable_crypto_subpolicy(client, "AD-SUPPORT")
-    result = client.run_command(args, stdin_text=stdin_text)
+    result = client.run_command(args, stdin_text=stdin_text,
+                                raiseonerr=raiseonerr)
 
-    setup_sssd_conf(client)
-    kinit_admin(client)
+    if result.returncode == 0:
+        setup_sssd_conf(client)
+        kinit_admin(client)
+
 
     return result
 
@@ -1126,13 +1129,15 @@ def uninstall_master(host, ignore_topology_disconnect=True,
         unapply_fixes(host)
 
 
-def uninstall_client(host):
-    host.run_command(['ipa-client-install', '--uninstall', '-U'],
-                     raiseonerr=False)
+def uninstall_client(host, extra_args=[], raiseonerr=False):
+    command = ['ipa-client-install', '--uninstall', '-U']
+    command.extend(extra_args)
+
+    result = host.run_command(command, raiseonerr=raiseonerr)
     while host.resolver.has_backups():
         host.resolver.restore()
     unapply_fixes(host)
-
+    return result
 
 @check_arguments_are((0, 2), Host)
 def clean_replication_agreement(master, replica, cleanup=False,
