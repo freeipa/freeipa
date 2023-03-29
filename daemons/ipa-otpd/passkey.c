@@ -62,6 +62,8 @@ struct otpd_queue_item_passkey {
     struct passkey_data *data_in;
     struct passkey_data *data_out;
     krb5_data state;
+    char* ipapasskeyDebugLevelStr;
+    krb5_boolean ipapasskeyDebugFido2;
 };
 
 static void free_passkey_data(struct passkey_data *p)
@@ -124,6 +126,7 @@ static struct otpd_queue_item_passkey *get_otpd_queue_item_passkey(void)
 }
 
 #define PASSKEY_PREFIX "passkey "
+#define ENV_PASSKEY_CHILD_DEBUG_LEVEL "passkey_child_debug_level"
 
 /* Parse the passkey configuration */
 const char *otpd_parse_passkey(LDAP *ldp, LDAPMessage *entry,
@@ -131,6 +134,9 @@ const char *otpd_parse_passkey(LDAP *ldp, LDAPMessage *entry,
 {
     int i;
     char **objectclasses = NULL;
+    long dbg_lvl = 0;
+    const char *dbg_env = NULL;
+    char *endptr = NULL;
 
     if (item->passkey == NULL) {
         otpd_log_req(item->req,
@@ -164,6 +170,33 @@ const char *otpd_parse_passkey(LDAP *ldp, LDAPMessage *entry,
 
         entry = ldap_next_entry(ldp, entry);
     };
+
+    item->passkey->ipapasskeyDebugLevelStr = NULL;
+    item->passkey->ipapasskeyDebugFido2 = FALSE;
+    dbg_env = getenv(ENV_PASSKEY_CHILD_DEBUG_LEVEL);
+    if (dbg_env != NULL && *dbg_env != '\0') {
+        errno = 0;
+        dbg_lvl = strtoul(dbg_env, &endptr, 10);
+        if (errno == 0 && *endptr == '\0') {
+            if (dbg_lvl < 0) {
+                dbg_lvl = 0;
+            } else if (dbg_lvl > 10) {
+                dbg_lvl = 10;
+            }
+            if (asprintf(&item->passkey->ipapasskeyDebugLevelStr, "%ld",
+                         dbg_lvl) != -1) {
+                if (dbg_lvl > 5) {
+                    item->passkey->ipapasskeyDebugFido2 = TRUE;
+                }
+            } else {
+                otpd_log_req(item->req, "Failed to copy debug level");
+            }
+        } else {
+            otpd_log_req(item->req,
+                         "Cannot parse value [%s] from environment variable [%s]",
+                         dbg_env, ENV_PASSKEY_CHILD_DEBUG_LEVEL);
+        }
+    }
 
     return NULL;
 }
@@ -681,6 +714,13 @@ static int do_passkey_response(struct otpd_queue_item *item)
     args[args_idx++] = item->passkey->data_in->data.response.authenticator_data;
     args[args_idx++] = "--signature";
     args[args_idx++] = item->passkey->data_in->data.response.assertion_signature;
+    if (item->passkey->ipapasskeyDebugLevelStr != NULL) {
+        args[args_idx++] = "--debug-level";
+        args[args_idx++] = item->passkey->ipapasskeyDebugLevelStr;
+    }
+    if (item->passkey->ipapasskeyDebugFido2) {
+        args[args_idx++] = "--debug-libfido2";
+    }
 
     ret = pipe(pipefd_from_child);
     if (ret == -1) {
