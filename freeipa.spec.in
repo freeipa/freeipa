@@ -493,7 +493,7 @@ Requires: policycoreutils >= 2.1.12-5
 Requires: tar
 Requires(pre): certmonger >= %{certmonger_version}
 Requires(pre): 389-ds-base >= %{ds_version}
-Requires: fontawesome-fonts
+Requires: font(fontawesome)
 Requires: open-sans-fonts
 %if 0%{?fedora} >= 32 || 0%{?rhel} >= 9
 # https://pagure.io/freeipa/issue/8632
