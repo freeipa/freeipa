@@ -269,6 +269,9 @@ class DsInstance(service.Service):
         self.step("activating extdom plugin", self._add_extdom_plugin)
 
         self.step("configuring directory to start on boot", self.__enable)
+        # restart to enable plugins
+        # speeds up creation of DNA plugin entries in cn=dna,cn=ipa,cn=etc
+        self.step("restarting directory server", self.__restart_instance)
 
     def init_info(self, realm_name, fqdn, domain_name, dm_password,
                   subject_base, ca_subject,
