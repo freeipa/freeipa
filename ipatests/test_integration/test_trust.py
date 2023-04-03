@@ -1154,11 +1154,15 @@ class TestNonPosixAutoPrivateGroup(BaseTestTrust):
                                      self.gid_override
                                      ):
             self.mod_idrange_auto_private_group(type)
-            (uid, gid) = self.get_user_id(self.clients[0], nonposixuser)
-            assert (uid == self.uid_override and gid == self.gid_override)
+            sssd_version = tasks.get_sssd_version(self.clients[0])
+            bad_version = sssd_version >= tasks.parse_version("2.8.2")
+            cond = (type == 'hybrid') and bad_version
+            with xfail_context(condition=cond,
+                               reason="https://pagure.io/freeipa/issue/9295"):
+                (uid, gid) = self.get_user_id(self.clients[0], nonposixuser)
+                assert (uid == self.uid_override and gid == self.gid_override)
             test_group = self.clients[0].run_command(
                 ["id", nonposixuser]).stdout_text
-            # version = tasks.get_sssd_version(self.clients[0])
             with xfail_context(type == "hybrid",
                                'https://github.com/SSSD/sssd/issues/5989'):
                 assert "domain users@{0}".format(self.ad_domain) in test_group
@@ -1232,8 +1236,11 @@ class TestPosixAutoPrivateGroup(BaseTestTrust):
         posixuser = "testuser1@%s" % self.ad_domain
         self.mod_idrange_auto_private_group(type)
         if type == "true":
-            (uid, gid) = self.get_user_id(self.clients[0], posixuser)
-            assert uid == gid
+            sssd_version = tasks.get_sssd_version(self.clients[0])
+            with xfail_context(sssd_version >= tasks.parse_version("2.8.2"),
+                 "https://pagure.io/freeipa/issue/9295"):
+                (uid, gid) = self.get_user_id(self.clients[0], posixuser)
+                assert uid == gid
         else:
             for host in [self.master, self.clients[0]]:
                 result = host.run_command(['id', posixuser], raiseonerr=False)
