@@ -20,6 +20,9 @@ A general constrained delegation mechanism described here for the sake of
 completeness. The description is based on the original design document published
 originally at [FreeIPA wiki page](https://www.freeipa.org/page/V4/Service_Constraint_Delegation).
 
+A general overview of a constrained delegation from Microsoft point of view can
+be found in [this document](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview).
+
 ## Introduction
 
 Services for User extensions were introduced as a part of Kerberos
@@ -387,6 +390,15 @@ Since `KRB5_TL_CONSTRAINED_DELEGATION_ACL` TL data might be present in the
 Kerberos principal KDC object, destructor for the Kerberos principal is
 extended to free the associated memory.
 
+Finally, KDB driver follows requirements for [MS-SFU 3.2.5.1.2](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-sfu/ad98268b-f75b-42c3-b09b-959282770642)
+and adds SIDs `S-1-18-1` or `S-1-18-2` to the MS-PAC structure's `extraSids`
+field depending on how identity was verified:
+
+* for non-S4U2Self operation initial PAC structure population includes a SID
+  `S-1-18-1`, as a `AUTHENTICATION_AUTHORITY_ASSERTED_IDENTITY`,
+
+* for S4U operation, instead, a SID `S-1-18-2` is added, as a `SERVICE_ASSERTED_IDENTITY`.
+
 ### Test Plan
 
 General constrained delegation is already used by the IPA management framework
@@ -469,8 +481,8 @@ $ ipa service-add-delegation cifs/file.example.test HTTP/web-service.example.tes
 ```
 
 Example 5: Test RBCD access by service `HTTP/web-service.example.test` to
-`cifs/file.example.test`. In this example we assume that RBCD ACL created in
-examples 2 or 3 exists, there is a keytab `/path/to/web-service.keytab` for
+`cifs/file.example.test`. In this example we assume that an RBCD ACL created in
+examples 1-3 exists, there is a keytab `/path/to/web-service.keytab` for
 `HTTP/web-service.example.test`, and a `cifs/file.example.test` service was
 created with `ipa-install-samba` tool which ensures a keytab was obtained for
 Samba service as well. The presence of keytabs ensures corresponding Kerberos
