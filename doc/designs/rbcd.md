@@ -406,3 +406,85 @@ initiate the S4U2Proxy operation against a resource (service) in a trusted
 realm. In this case Kerberos library on the IPA client should set RBCD support
 flag in the PAC structure and trigger S4U2Proxy request. A trusted realm's KDC
 will do its check and allow or deny the access request.
+
+#### Usage examples for RBCD
+
+##### Setup RBCD for a service
+
+Let's consider a case where a web frontend needs to connect to an internal
+SMB server running on another IPA server on behalf of a user. This is similar
+to a default setup in FreeIPA with general constrained delegation but on a
+different host and using a different service.
+
+* a host `web-service.example.test` would run a web server and use
+`HTTP/web-service.example.test` service principal.
+
+* a host `file.example.test` would be a Samba server running on IPA-enrolled
+  client. Its SMB server uses `cifs/file.example.test` service principal.
+
+In RBCD model, the control over who can delegate user resources to the service
+would be defined at the service side, in this case at `cifs/file.example.test`.
+An RBCD access control for `cifs/file.example.test` would need to mention
+`HTTP/web-service.example.test` principal to allow the web server to delegate
+user's credentials to the Samba server.
+
+Example 1: Administrator can set RBCD ACL directly:
+```
+$ kinit admin
+$ ipa service-add-delegation cifs/file.example.test HTTP/web-service.example.test
+```
+
+Example 2: Host `file.example.test` can use a host keytab to define RBCD ACL
+directly because a host always manages the services running on it:
+```
+# kinit -k
+# ipa service-add-delegation cifs/file.example.test HTTP/web-service.example.test
+```
+
+Example 3: Allow users from a group `storage-admins` to define RBCD ACLs to
+`cifs/file.example.test`:
+```
+$ kinit admin
+$ ipa service-allow-add-delegation cifs/file.example.test --groups=storage-admins
+```
+
+Then, a user `some-user` from `storage-admins` group can add a delegation ACL:
+```
+$ kinit some-user
+$ ipa service-add-delegation cifs/file.example.test HTTP/web-service.example.test
+```
+
+Example 4: Remove permission to add RBCD ACLs for `cifs/file.example.test` from
+members of the `storage-admins` group:
+```
+$ kinit admin
+$ ipa service-disallow-add-delegation cifs/file.example.test --groups=storage-admins
+```
+
+Now a user `some-user` from `storage-admins` group cannot add a delegation ACL:
+```
+$ kinit some-user
+$ ipa service-add-delegation cifs/file.example.test HTTP/web-service.example.test
+.. ERROR ..
+```
+
+Example 5: Test RBCD access by service `HTTP/web-service.example.test` to
+`cifs/file.example.test`. In this example we assume that RBCD ACL created in
+examples 2 or 3 exists, there is a keytab `/path/to/web-service.keytab` for
+`HTTP/web-service.example.test`, and a `cifs/file.example.test` service was
+created with `ipa-install-samba` tool which ensures a keytab was obtained for
+Samba service as well. The presence of keytabs ensures corresponding Kerberos
+services have all needed Kerberos keys so that service tickets can be created
+by KDC.
+
+In the example below we are delegating user `some-user` credentials to the
+service `cifs/file.example.test`. First, we pretend our web service has
+authenticated the user with some mechanism. Then we aquire a service ticket to
+ourselves (`HTTP/web-service.example.test`) with the help of `kvno -U username`
+command. Finally, we use `kvno -P` option to ask for S4U2Proxy operation and
+specify for which services tickets will be asked using constrained delegation.
+
+```
+# kvno -U some-user -k /path/to/web-service.keytab \
+       -P HTTP/web-service.example.test cifs/file.example.test
+```
