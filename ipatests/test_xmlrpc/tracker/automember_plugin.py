@@ -87,6 +87,11 @@ class AutomemberTracker(Tracker):
         return self.make_command('automember_add_condition', self.cn,
                                  *args, **kwargs)
 
+    def make_remove_condition_command(self, *args, **kwargs):
+        """ Make function that issues automember_remove_condition """
+        return self.make_command('automember_remove_condition', self.cn,
+                                 *args, **kwargs)
+
     def track_create(self):
         """ Updates expected state for automember creation"""
         self.attrs = dict(
