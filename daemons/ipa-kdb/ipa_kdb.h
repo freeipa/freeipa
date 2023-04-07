@@ -143,6 +143,7 @@ struct ipadb_context {
     krb5_key_salt_tuple *def_encs;
     int n_def_encs;
     struct ipadb_mspac *mspac;
+    bool optional_pac_tkt_chksum;
 #ifdef HAVE_KRB5_CERTAUTH_PLUGIN
     krb5_certauth_moddata certauth_moddata;
 #endif
