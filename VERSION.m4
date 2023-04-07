@@ -137,6 +137,11 @@ ifelse(IPA_VERSION_IS_GIT_SNAPSHOT, yes,
 IPA_GIT_VERSION),
 NEWLINE)) dnl IPA_VERSION end
 
+########################################################
+# Version of MIT krb5 used to build IPA
+########################################################
+define(IPA_KRB5_BUILD_VERSION, translit(esyscmd(krb5-config --version | awk '{ print $NF }'), NEWLINE))
+
 dnl DEBUG: uncomment following lines and run command m4 VERSION.m4
 dnl `IPA_VERSION: ''IPA_VERSION'
 dnl `IPA_GIT_VERSION: ''IPA_GIT_VERSION'
@@ -144,3 +149,4 @@ dnl `IPA_GIT_BRANCH: ''IPA_GIT_BRANCH'
 dnl `IPA_API_VERSION: ''IPA_API_VERSION'
 dnl `IPA_DATA_VERSION: ''IPA_DATA_VERSION'
 dnl `IPA_NUM_VERSION: ''IPA_NUM_VERSION'
+dnl `IPA_KRB5_BUILD_VERSION: ''IPA_KRB5_BUILD_VERSION'

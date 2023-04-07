@@ -18,6 +18,7 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from augeas import Augeas
+from pkg_resources import parse_version
 
 from ipalib import api, x509
 from ipalib.constants import RENEWAL_CA_NAME, RA_AGENT_PROFILE, IPA_CA_RECORD
@@ -36,6 +37,7 @@ from ipapython import ipautil, version
 from ipapython import ipaldap
 from ipapython import directivesetter
 from ipapython.dn import DN
+from ipapython.version import KRB5_BUILD_VERSION
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaserver import servroles
@@ -1960,6 +1962,9 @@ def upgrade_configuration():
     setup_pkinit(krb)
     enable_server_snippet()
     setup_kpasswd_server(krb)
+
+    if KRB5_BUILD_VERSION >= parse_version('1.20'):
+        krb.pac_tkt_sign_support_enable()
 
     # Must be executed after certificate_renewal_update
     # (see function docstring for details)

@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 CONFIGURED_SERVICE = u'configuredService'
 ENABLED_SERVICE = u'enabledService'
 HIDDEN_SERVICE = u'hiddenService'
+PAC_TKT_SIGN_SUPPORTED = u'pacTktSignSupported'
+PKINIT_ENABLED = u'pkinitEnabled'
 
 # The service name as stored in cn=masters,cn=ipa,cn=etc. The values are:
 # 0: systemd service name

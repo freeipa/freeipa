@@ -114,6 +114,8 @@ static char *std_principal_obj_classes[] = {
 
 #define DEFAULT_TL_DATA_CONTENT "\x00\x00\x00\x00principal@UNINITIALIZED"
 
+#define OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME "optional_pac_tkt_chksum"
+
 static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
                                       char *attrname,
                                       krb5_tl_data **result, int *num)
@@ -177,6 +179,52 @@ done:
         *num = 0;
     }
     return ret;
+}
+
+static bool
+is_tgs_princ(krb5_context kcontext, krb5_const_principal princ)
+{
+    krb5_data *primary;
+    size_t l_tgs_name;
+
+    if (2 != krb5_princ_size(kcontext, princ))
+        return false;
+
+    primary = krb5_princ_component(kcontext, princ, 0);
+
+    l_tgs_name = strlen(KRB5_TGS_NAME);
+
+    if (l_tgs_name != primary->length)
+        return false;
+
+    return 0 == memcmp(primary->data, KRB5_TGS_NAME, l_tgs_name);
+}
+
+static krb5_error_code
+cmp_local_tgs_princ(krb5_context kcontext, const char *local_realm,
+                   krb5_const_principal princ, bool *result)
+{
+    krb5_principal local_tgs_princ;
+    size_t l_local_realm;
+    krb5_error_code kerr;
+    bool res;
+
+    l_local_realm = strlen(local_realm);
+
+    kerr = krb5_build_principal(kcontext, &local_tgs_princ,
+                                l_local_realm, local_realm,
+                                KRB5_TGS_NAME, local_realm, NULL);
+    if (kerr)
+        goto end;
+
+    res = (bool) krb5_principal_compare(kcontext, local_tgs_princ, princ);
+
+    if (result)
+        *result = res;
+
+end:
+    krb5_free_principal(kcontext, local_tgs_princ);
+    return kerr;
 }
 
 krb5_error_code ipadb_set_tl_data(krb5_db_entry *entry,
@@ -1658,6 +1706,8 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
                                     krb5_db_entry **entry)
 {
     struct ipadb_context *ipactx;
+    bool is_local_tgs_princ;
+    const char *opt_pac_tkt_chksum_val;
     krb5_error_code kerr;
 
     *entry = NULL;
@@ -1673,11 +1723,33 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
 
     /* Lookup local names and aliases first. */
     kerr = dbget_princ(kcontext, ipactx, search_for, flags, entry);
-    if (kerr != KRB5_KDB_NOENTRY) {
+    if (kerr == KRB5_KDB_NOENTRY) {
+        kerr = dbget_alias(kcontext, ipactx, search_for, flags, entry);
+    }
+    if (kerr)
         return kerr;
+
+    /* If TGS principal, some virtual attributes may be added */
+    if (is_tgs_princ(kcontext, (*entry)->princ)) {
+        kerr = cmp_local_tgs_princ(kcontext, ipactx->realm, (*entry)->princ,
+                                   &is_local_tgs_princ);
+        if (kerr)
+            return kerr;
+
+        /* PAC ticket signature should be optional for foreign realms, and local
+         * realm if not supported by all servers
+         */
+        if (!is_local_tgs_princ || ipactx->optional_pac_tkt_chksum)
+            opt_pac_tkt_chksum_val = "true";
+        else
+            opt_pac_tkt_chksum_val = "false";
+
+        kerr = krb5_dbe_set_string(kcontext, *entry,
+                                   OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME,
+                                   opt_pac_tkt_chksum_val);
     }
 
-    return dbget_alias(kcontext, ipactx, search_for, flags, entry);
+    return kerr;
 }
 
 void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
@@ -1988,6 +2060,20 @@ done:
     return kerr;
 }
 
+static bool should_filter_out_attr(krb5_tl_data *data)
+{
+    switch (data->tl_data_type) {
+        case KRB5_TL_DB_ARGS:
+        case KRB5_TL_KADM_DATA:
+        case KRB5_TL_LAST_ADMIN_UNLOCK:
+        case KRB5_TL_LAST_PWD_CHANGE:
+        case KRB5_TL_MKVNO:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static krb5_error_code ipadb_get_ldap_mod_extra_data(struct ipadb_mods *imods,
                                                      krb5_tl_data *tl_data,
                                                      int mod_op)
@@ -1999,13 +2085,8 @@ static krb5_error_code ipadb_get_ldap_mod_extra_data(struct ipadb_mods *imods,
     int n, i;
 
     for (n = 0, data = tl_data; data; data = data->tl_data_next) {
-        if (data->tl_data_type == KRB5_TL_LAST_PWD_CHANGE ||
-            data->tl_data_type == KRB5_TL_KADM_DATA ||
-            data->tl_data_type == KRB5_TL_DB_ARGS ||
-            data->tl_data_type == KRB5_TL_MKVNO ||
-            data->tl_data_type == KRB5_TL_LAST_ADMIN_UNLOCK) {
+        if (should_filter_out_attr(data))
             continue;
-        }
         n++;
     }
 
@@ -2021,13 +2102,8 @@ static krb5_error_code ipadb_get_ldap_mod_extra_data(struct ipadb_mods *imods,
 
     for (i = 0, data = tl_data; data; data = data->tl_data_next) {
 
-        if (data->tl_data_type == KRB5_TL_LAST_PWD_CHANGE ||
-            data->tl_data_type == KRB5_TL_KADM_DATA ||
-            data->tl_data_type == KRB5_TL_DB_ARGS ||
-            data->tl_data_type == KRB5_TL_MKVNO ||
-            data->tl_data_type == KRB5_TL_LAST_ADMIN_UNLOCK) {
+        if (should_filter_out_attr(data))
             continue;
-        }
 
         be_type = htons(data->tl_data_type);
 
@@ -2779,10 +2855,37 @@ done:
     return kerr;
 }
 
+static krb5_error_code
+remove_virtual_str_attrs(krb5_context kcontext, krb5_db_entry *entry)
+{
+    char *str_attr_val;
+    krb5_error_code kerr;
+
+    kerr = krb5_dbe_get_string(kcontext, entry,
+                               OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME,
+                               &str_attr_val);
+    if (kerr)
+        return kerr;
+
+    if (str_attr_val)
+        kerr = krb5_dbe_set_string(kcontext, entry,
+                                   OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME,
+                                   NULL);
+
+    krb5_dbe_free_string(kcontext, str_attr_val);
+    return kerr;
+}
+
 krb5_error_code ipadb_put_principal(krb5_context kcontext,
                                     krb5_db_entry *entry,
                                     char **db_args)
 {
+    krb5_error_code kerr;
+
+    kerr = remove_virtual_str_attrs(kcontext, entry);
+    if (kerr)
+        return kerr;
+
     if (entry->mask & KMASK_PRINCIPAL) {
         return ipadb_add_principal(kcontext, entry);
     } else {
