@@ -178,7 +178,7 @@
 # RHEL 8.2+, F32+ has 3.58
 %global nss_version 3.44.0-4
 
-%define krb5_base_version %(LC_ALL=C /usr/bin/pkgconf --modversion krb5 | grep -Eo '^[^.]+\.[^.]+' || echo %krb5_version)
+%define krb5_base_version %(LC_ALL=C /usr/bin/pkgconf --modversion krb5 2>/dev/null | grep -Eo '^[^.]+\.[^.]+' || echo %krb5_version)
 %global kdcproxy_version 0.4-3
 
 %if 0%{?fedora} >= 33 || 0%{?rhel} >= 9
