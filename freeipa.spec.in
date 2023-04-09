@@ -232,6 +232,14 @@ Source0:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_vers
 # Only use detached signature for the distribution builds. If it is a developer build, skip it
 %if %{NON_DEVELOPER_BUILD}
 Source1:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_version}.tar.gz.asc
+# https://www.freeipa.org/page/Verify_Release_Signature
+#
+# The following commands can be used to fetch the signing key via fingerprint
+# and extract it:
+#   fpr=0E63D716D76AC080A4A33513F40800B6298EB963
+#   gpg --keyserver keys.openpgp.org --receive-keys $fpr
+#   gpg --armor --export-options export-minimal --export $fpr >gpgkey-$fpr.asc
+Source2:        gpgkey-0E63D716D76AC080A4A33513F40800B6298EB963.asc
 %endif
 
 # RHEL spec file only: START: Change branding to IPA and Identity Management
@@ -269,6 +277,7 @@ BuildRequires:  jansson-devel
 %endif
 BuildRequires:  popt-devel
 BuildRequires:  gcc
+BuildRequires:  gnupg2
 BuildRequires:  make
 BuildRequires:  pkgconfig
 BuildRequires:  pkgconf
@@ -974,6 +983,11 @@ Custom SELinux policy module for FreeIPA
 
 
 %prep
+# Verify release signature
+%if %{NON_DEVELOPER_BUILD}
+%{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%endif
+
 %autosetup -n freeipa-%{version}%{?rc_version} -N -p1
 
 # To allow proper application patches to the stripped po files, strip originals
