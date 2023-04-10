@@ -1646,6 +1646,80 @@ class TestIPACommandWithoutReplica(IntegrationTest):
             tasks.kinit_admin(self.master)
             self.master.run_command(['ipa', 'user-del', user])
 
+    @pytest.fixture
+    def cleanupgroups(self):
+        """Fixture to remove any groups added as part of the tests.
+
+           It isn't necessary to remove all groupss created.
+
+           Ignore all errors.
+        """
+        yield
+        for group in ["testgroup1", "testgroup2", "testgroup3"]:
+            try:
+                self.master.run_command(['ipa', 'group-del', group])
+            except Exception:
+                pass
+
+    def test_sequence_processing_ipaexternalgroup(self, cleanupgroups):
+        """Test for sequence processing failures
+
+        Issues have been found for group_add sequence processing with
+        server context. This test checks that groups have correct userclass
+        when external is set to true or false with group-add.
+
+        related: https://pagure.io/freeipa/issue/9349
+        """
+        user_code_script = textwrap.dedent("""
+            from ipalib import api, errors
+            api.bootstrap_with_global_options(context='server')
+            api.finalize()
+            api.Backend.ldap2.connect()
+            
+            api.Command["group_add"]("testgroup1", external=True)
+            api.Command["group_add"]("testgroup2", external=False)
+            result1 = api.Command["group_show"]("testgroup1", all=True)["result"] # noqa: E501
+            result2 = api.Command["group_show"]("testgroup2", all=True)["result"] # noqa: E501
+            print("'testgroup2' userclass: %s" % repr(result2["objectclass"]))
+        """)
+        self.master.put_file_contents("/tmp/reproducer1_code.py",
+                                      user_code_script)
+        result = self.master.run_command(['python3',
+                                          '/tmp/reproducer1_code.py'])
+        assert "ipaexternalgroup" not in result.stdout_text
+
+    def test_sequence_processing_nonposix_group(self, cleanupgroups):
+        """Test for sequence processing failures
+
+        Issues have been found for group_add sequence processing with
+        server context after creating a nonposix group. This test checks
+        that all following group_add calls to add posix groups calls are
+        not failing with missing attribute.
+
+        related: https://pagure.io/freeipa/issue/9349
+        """
+        user_code_script2 = textwrap.dedent("""
+            from ipalib import api, errors
+            api.bootstrap_with_global_options(context='server')
+            api.finalize()
+            api.Backend.ldap2.connect()
+
+            api.Command["group_add"]("testgroup1", nonposix=False)
+            try:
+                api.Command["group_add"]("testgroup2", nonposix=True)
+            except Exception as e:
+                print("testgroup2: %s" % e)
+            try:
+                api.Command["group_add"]("testgroup3", external=True)
+            except Exception as e:
+                print("testgroup3: %s" % e)
+        """)
+        self.master.put_file_contents("/tmp/reproducer2_code.py",
+                                      user_code_script2)
+        result = self.master.run_command(['python3',
+                                          '/tmp/reproducer2_code.py'])
+        assert "missing attribute" not in result.stdout_text
+
 
 class TestIPAautomount(IntegrationTest):
     @classmethod
