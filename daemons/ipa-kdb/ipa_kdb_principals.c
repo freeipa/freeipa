@@ -2063,6 +2063,7 @@ done:
 static bool should_filter_out_attr(krb5_tl_data *data)
 {
     switch (data->tl_data_type) {
+        case KRB5_TL_CONSTRAINED_DELEGATION_ACL:
         case KRB5_TL_DB_ARGS:
         case KRB5_TL_KADM_DATA:
         case KRB5_TL_LAST_ADMIN_UNLOCK:
