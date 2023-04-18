@@ -412,6 +412,6 @@ class TestLoginScreen(UI_driver):
         """
         self.load()
         assert self.login_screen_visible()
-        self.login(loginscreen.ROOT_PKEY, loginscreen.PASSWD_ADMIN)
+        self.login(loginscreen.ROOT_PKEY, self.config['ipa_password'])
 
         assert self.logged_in()
