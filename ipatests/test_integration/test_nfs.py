@@ -355,3 +355,330 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
 
     def test_nsswitch_backup_restore_sssd(self):
         self.nsswitch_backup_restore()
+
+
+class TestIpaAutomountLocation(IntegrationTest):
+
+    num_clients = 1
+    topology = 'line'
+
+    AUTOMOUNT_LOCATION1 = 'baltimore'
+    AUTOMOUNT_LOCATION2 = 'raleigh'
+    LOCATION1_DESCRIPTION = 'AUTOMOUNT_LOCATION_BALTIMORE'
+    INVALID_AUTOMOUNT_LOCATION = ''
+    INVALID_AUTOMOUNT_MAP = ''
+    AUTOMOUNT_DEFAULT_LOCATION = 'default'
+    AUTOMOUNT_CUSTOM_MAP_NAME1 = 'auto.share1'
+    AUTOMOUNT_CUSTOM_MAP_NAME2 = 'auto.share2'
+    AUTOMOUNT_DEFAULT_MAP1 = 'auto.master'
+    AUTOMOUNT_DEFAULT_MAP2 = 'auto.direct'
+    AUTOMOUNT_CUSTOM_KEY = '/share'
+    INVALID_MAP_KEY = ''
+    MOUNT_LOCATION = '/usr/share/man'
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_client(cls.master, cls.clients[0])
+
+    def test_default_automount_location_exists(self):
+        """
+        This testcase checks that default automount
+        location exists upon IPA server installation.
+        """
+        cmd = self.clients[0].run_command(
+            ["ipa", "automountlocation-find",
+             self.AUTOMOUNT_DEFAULT_LOCATION]
+        )
+        assert '1 automount location matched' in cmd.stdout_text
+        assert 'Location: {}'.format(self.AUTOMOUNT_DEFAULT_LOCATION) \
+               in cmd.stdout_text
+
+    def test_default_automount_maps(self):
+        """
+        This testcase checks that default automount location
+        has auto.direct and auto.master maps
+        """
+        cmd = self.master.run_command(
+            ["ipa", "automountmap-find",
+             self.AUTOMOUNT_DEFAULT_LOCATION]
+        )
+        assert '2 automount maps matched' in cmd.stdout_text
+        assert 'Map: auto.direct' in cmd.stdout_text
+        assert 'Map: auto.master' in cmd.stdout_text
+
+    def test_default_automount_location_show(self):
+        """
+        This testcase checks that automount location
+        added on IPA server is shown on the IPA clients[0]
+        using automountlocation-show command.
+        """
+        cmd = self.clients[0].run_command(
+            ["ipa", "automountlocation-show",
+             self.AUTOMOUNT_DEFAULT_LOCATION]
+        )
+        assert "Location: {}".format(
+            self.AUTOMOUNT_DEFAULT_LOCATION) in cmd.stdout_text
+
+    def test_automount_invalid_location_show(self):
+        """
+        This testcase checks that proper message is displayed
+        when invalid automount location is lookedup on
+        an IPA clients.
+        """
+        cmd = self.clients[0].run_command(
+            ["ipa","automountlocation-show",
+             self.INVALID_AUTOMOUNT_LOCATION], raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert "ipa: ERROR: 'location' is required" in cmd.stderr_text
+
+    def test_automount_invalid_location_find(self):
+        """
+        This testcase checks that proper message is displayed
+        when invalid automount location is lookedup on
+        an IPA clients[0].
+        """
+        cmd = self.clients[0].run_command(
+            ["ipa", "automountlocation-find",
+             self.INVALID_AUTOMOUNT_LOCATION], raiseonerr=False
+        )
+        assert '1 automount location matched' in cmd.stdout_text
+        assert 'Location: {}'.format(self.AUTOMOUNT_DEFAULT_LOCATION) \
+            in cmd.stdout_text
+
+    def test_automount_location_show_all(self):
+        """
+        This testcase checks automount location show command works
+        will --all option
+        """
+        basedn = self.master.domain.basedn
+        cmd = self.clients[0].run_command(
+            ["ipa", "automountlocation-show",
+             self.AUTOMOUNT_DEFAULT_LOCATION, "--all"]
+        )
+        assert 'dn: cn={},cn=automount,{}'.format(
+            self.AUTOMOUNT_DEFAULT_LOCATION, basedn) in cmd.stdout_text
+        assert 'Location: {}'.format(
+            self.AUTOMOUNT_DEFAULT_LOCATION) in cmd.stdout_text
+        assert 'objectclass: nsContainer, top' in cmd.stdout_text
+
+    def test_automount_location_show_raw(self):
+        """
+        This testcase checks automount location show command works
+        with --raw option
+        """
+        cmd = self.clients[0].run_command(
+            ["ipa", "automountlocation-show",
+             self.AUTOMOUNT_DEFAULT_LOCATION, "--raw"]
+        )
+        assert "cn: {}".format(
+            self.AUTOMOUNT_DEFAULT_LOCATION) in cmd.stdout_text
+
+    def test_automount_location_show_rights_all(self):
+        """
+        This testcase checks automount location show command
+        works with --rights and --all option
+        """
+        basedn = self.master.domain.basedn
+        cmd = self.clients[0].run_command(
+            ["ipa", "automountlocation-show",
+             self.AUTOMOUNT_DEFAULT_LOCATION,
+             "--rights", "--all"]
+        )
+        assert 'dn: cn={},cn=automount,{}'.format(
+            self.AUTOMOUNT_DEFAULT_LOCATION, basedn) in cmd.stdout_text
+        assert 'Location: {}'.format(
+            self.AUTOMOUNT_DEFAULT_LOCATION) in cmd.stdout_text
+        assert "attributelevelrights: {'cn': 'rscwo', " \
+            "'objectclass': 'rscwo', 'aci': 'rscwo', " \
+            "'nsaccountlock': 'rscwo'}" in cmd.stdout_text
+        assert 'objectclass: nsContainer, top' in cmd.stdout_text
+
+    def test_automountmap_add_custom_location(self):
+        """
+        This testcase checks that new automountmap is added
+        to default automount location.
+        """
+        cmd = self.master.run_command(
+            ["ipa", "automountmap-add",
+             self.AUTOMOUNT_DEFAULT_LOCATION,
+             self.AUTOMOUNT_CUSTOM_MAP_NAME1]
+        )
+        assert 'Added automount map "{}"'.format(
+            self.AUTOMOUNT_CUSTOM_MAP_NAME1) in cmd.stdout_text
+        assert 'Map: {}'.format(
+            self.AUTOMOUNT_CUSTOM_MAP_NAME1) in cmd.stdout_text
+
+    def test_add_existing_map_to_location(self):
+        """
+        This testcase checks that error is displayed on
+        the console when similar map name is added to
+        location.
+        """
+        cmd = self.master.run_command(
+            ["ipa", "automountmap-add",
+             self.AUTOMOUNT_DEFAULT_LOCATION,
+             self.AUTOMOUNT_CUSTOM_MAP_NAME1], raiseonerr=False
+        )
+        assert 'ipa: ERROR: automount map with name "{}" already exists'.format(
+            self.AUTOMOUNT_CUSTOM_MAP_NAME1) in cmd.stderr_text
+
+    def test_modify_automount_map_description(self):
+        """
+        This testcase checks that description is
+        modified for the automountmap
+        """
+        cmd = self.master.run_command(
+            ["ipa", "automountmap-mod",
+             self.AUTOMOUNT_DEFAULT_LOCATION,
+             self.AUTOMOUNT_DEFAULT_MAP1,
+             "--desc=" + self.LOCATION1_DESCRIPTION]
+        )
+        assert 'Modified automount map "{}"'.format(
+            self.AUTOMOUNT_DEFAULT_MAP1) in cmd.stdout_text
+        assert 'Map: {}'.format(
+            self.AUTOMOUNT_DEFAULT_MAP1) in cmd.stdout_text
+        assert 'Description: {}'.format(
+            self.LOCATION1_DESCRIPTION) in cmd.stdout_text
+
+    def test_automountmap_find_with_desc(self):
+        """
+        This test checks that automountmap is located
+        with description
+        """
+        cmd = self.master.run_command(
+            ["ipa", "automountmap-find",
+             self.AUTOMOUNT_DEFAULT_LOCATION,
+             "--desc=" + self.LOCATION1_DESCRIPTION]
+        )
+        assert '1 automount map matched' in cmd.stdout_text
+        assert 'Map: {}'.format(
+            self.AUTOMOUNT_DEFAULT_MAP1) in cmd.stdout_text
+        assert 'Description: {}'.format(
+            self.LOCATION1_DESCRIPTION) in cmd.stdout_text
+
+    def test_automountmap_doesnt_get_added_with_returncode_1(self):
+        """
+        This testcase checks that automountmap doesnt
+        get added when the returncode is 1
+        https://fedorahosted.org/freeipa/ticket/1520
+        """
+        msg = (
+            'ipa: ERROR: automount map with name "{}" already exists'
+            .format(self.AUTOMOUNT_CUSTOM_MAP_NAME2)
+        )
+        self.master.run_command(
+            ["ipa", "automountlocation-add",
+             self.AUTOMOUNT_LOCATION1]
+        )
+        self.master.run_command(
+            ["ipa", "automountlocation-add",
+             self.AUTOMOUNT_LOCATION2]
+        )
+        self.master.run_command(
+            ["ipa","automountmap-add", self.AUTOMOUNT_LOCATION2,
+             self.AUTOMOUNT_CUSTOM_MAP_NAME2]
+        )
+        self.master.run_command(
+            ["ipa", "automountkey-add", self.AUTOMOUNT_LOCATION2,
+             self.AUTOMOUNT_CUSTOM_MAP_NAME2,
+             "--key=" + self.AUTOMOUNT_CUSTOM_KEY,
+             "--info=auto.share1"]
+        )
+        cmd = self.master.run_command(
+            ["ipa", "automountmap-add-indirect",
+             self.AUTOMOUNT_LOCATION2, self.AUTOMOUNT_CUSTOM_MAP_NAME2,
+             "--mount=" + self.MOUNT_LOCATION], raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert msg in cmd.stderr_text
+
+    def test_correct_message_with_empty_automountlocation_name(self):
+        """
+        Test case checkc correct message is displayed
+        when no location is specified.
+
+        """
+        msg = "ipa: ERROR: 'location' is required"
+        cmd = self.clients[0].run_command(
+            ["ipa", "automountlocation-add",
+             ""], raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert msg in cmd.stderr_text
+
+    def test_correct_message_with_empty_automountmap_name(self):
+        """
+        This testcase checks correct message is displayed when
+        empty mapname is added
+        https://fedorahosted.org/freeipa/ticket/1549
+        """
+        msg = "ipa: ERROR: 'map' is required"
+        cmd = self.master.run_command(
+            ["ipa", "automountmap-add", self.AUTOMOUNT_LOCATION1,
+             self.INVALID_AUTOMOUNT_MAP], raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert msg in cmd.stderr_text
+
+    def test_correct_message_with_empty_automountkey_name(self):
+        """
+        This testcase checks correct message is displayed when
+        empty keyname is deleted
+        https://pagure.io/freeipa/issue/1550
+        """
+        msg = "ipa: ERROR: 'key' is required"
+        cmd = self.master.run_command(
+            ["ipa", "automountmap-add",
+             self.AUTOMOUNT_LOCATION1,
+             self.AUTOMOUNT_CUSTOM_MAP_NAME1]
+        )
+        cmd = self.master.run_command(
+            ["ipa", "automountkey-add",
+             self.AUTOMOUNT_LOCATION1,
+             self.AUTOMOUNT_CUSTOM_MAP_NAME1,
+             "--key=" + self.INVALID_MAP_KEY,
+             "--info=-ro,soft {}:{}".format(
+                 self.master.hostname, self.MOUNT_LOCATION)], raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert msg in cmd.stderr_text
+
+    def test_automount_find_pkey_only_option(self):
+        """
+        This testcase checks that pkey only
+        option works without any error
+        """
+        msg1 = "3 automount locations matched"
+        msg2 = "Location: {}".format(self.AUTOMOUNT_LOCATION1)
+        msg3 = "Location: {}".format(self.AUTOMOUNT_DEFAULT_LOCATION)
+        msg4 = "Location: {}".format(self.AUTOMOUNT_LOCATION2)
+        cmd = self.clients[0].run_command(
+            ["ipa", "automountlocation-find",
+             "--pkey-only"]
+        )
+        assert cmd.returncode == 0
+        assert msg1 in cmd.stdout_text
+        assert msg2 in cmd.stdout_text
+        assert msg3 in cmd.stdout_text
+        assert msg4 in cmd.stdout_text
+
+    def test_delete_default_automount_map(self):
+        """
+        This testcase deletes default automount location
+        and checks that the maps are deleted.
+        https://fedorahosted.org/freeipa/ticket/1509
+        """
+        cmd = self.master.run_command(
+            ["ipa", "automountlocation-del",
+             self.AUTOMOUNT_DEFAULT_LOCATION]
+        )
+        assert 'Deleted automount location "{}"'.format(
+            self.AUTOMOUNT_DEFAULT_LOCATION) in cmd.stdout_text
+        cmd1 = self.master.run_command(
+            ["ipa", "automountmap-show", self.AUTOMOUNT_DEFAULT_LOCATION,
+             self.AUTOMOUNT_DEFAULT_MAP1], raiseonerr=False
+        )
+        assert 'ipa: ERROR: {}: automount map not found'.format(
+            self.AUTOMOUNT_DEFAULT_MAP1) in cmd1.stderr_text
