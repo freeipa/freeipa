@@ -763,6 +763,20 @@ def promotion_check_host_principal_auth_ind(conn, hostdn):
         )
 
 
+def remote_connection(config):
+    ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
+    xmlrpc_uri = 'https://{}/ipa/xml'.format(
+        ipautil.format_netloc(config.master_host_name))
+    remote_api = create_api(mode=None)
+    remote_api.bootstrap(in_server=True,
+                         context='installer',
+                         confdir=paths.ETC_IPA,
+                         ldap_uri=ldapuri,
+                         xmlrpc_uri=xmlrpc_uri)
+    remote_api.finalize()
+    return remote_api
+
+
 @common_cleanup
 @preserve_enrollment_state
 def promote_check(installer):
@@ -929,16 +943,7 @@ def promote_check(installer):
         except ipautil.CalledProcessError:
             raise RuntimeError("ipa-certupdate failed to refresh certs.")
 
-    ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
-    xmlrpc_uri = 'https://{}/ipa/xml'.format(
-        ipautil.format_netloc(config.master_host_name))
-    remote_api = create_api(mode=None)
-    remote_api.bootstrap(in_server=True,
-                         context='installer',
-                         confdir=paths.ETC_IPA,
-                         ldap_uri=ldapuri,
-                         xmlrpc_uri=xmlrpc_uri)
-    remote_api.finalize()
+    remote_api = remote_connection(config)
     installer._remote_api = remote_api
 
     with rpc_client(remote_api) as client:
@@ -1068,7 +1073,16 @@ def promote_check(installer):
             'CA', conn, preferred_cas
         )
         if ca_host is not None:
+            if config.master_host_name != ca_host:
+                conn.disconnect()
+                del remote_api
+                config.master_host_name = ca_host
+                remote_api = remote_connection(config)
+                installer._remote_api = remote_api
+                conn = remote_api.Backend.ldap2
+                conn.connect(ccache=installer._ccache)
             config.ca_host_name = ca_host
+            config.master_host_name = ca_host
             ca_enabled = True
             if options.dirsrv_cert_files:
                 logger.error("Certificates could not be provided when "
@@ -1107,7 +1121,17 @@ def promote_check(installer):
             'KRA', conn, preferred_kras
         )
         if kra_host is not None:
+            if config.master_host_name != kra_host:
+                conn.disconnect()
+                del remote_api
+                config.master_host_name = kra_host
+                remote_api = remote_connection(config)
+                installer._remote_api = remote_api
+                conn = remote_api.Backend.ldap2
+                conn.connect(ccache=installer._ccache)
             config.kra_host_name = kra_host
+            config.ca_host_name = kra_host
+            config.master_host_name = kra_host
             kra_enabled = True
             if options.setup_kra and options.server and \
                kra_host != options.server:
@@ -1223,6 +1247,24 @@ def install(installer):
 
     if tasks.configure_pkcs11_modules(fstore):
         print("Disabled p11-kit-proxy")
+
+    _hostname, _sep, host_domain = config.host_name.partition('.')
+    fstore.backup_file(paths.KRB5_CONF)
+
+    # Write a new krb5.conf in case any values changed finding the
+    # right server to configure against (for CA, KRA).
+    logger.debug("Installing against server %s", config.master_host_name)
+    configure_krb5_conf(
+        cli_realm=api.env.realm,
+        cli_domain=api.env.domain,
+        cli_server=[config.master_host_name],
+        cli_kdc=[config.master_host_name],
+        dnsok=False,
+        filename=paths.KRB5_CONF,
+        client_domain=host_domain,
+        client_hostname=config.host_name,
+        configure_sssd=False
+    )
 
     if installer._add_to_ipaservers:
         try:
