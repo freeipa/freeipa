@@ -127,6 +127,8 @@ def find_providing_servers(svcname, conn=None, preferred_hosts=(), api=api):
             )
         else:
             servers.insert(0, host_name)
+    logger.debug("Discovery: available servers for service '%s' are %s",
+                 svcname, ', '.join(servers))
     return servers
 
 
@@ -143,8 +145,11 @@ def find_providing_server(svcname, conn=None, preferred_hosts=(), api=api):
         svcname, conn=conn, preferred_hosts=preferred_hosts, api=api
     )
     if not servers:
+        logger.debug("Discovery: no '%s' service found.", svcname)
         return None
     else:
+        logger.debug("Discovery: using %s for '%s' service",
+                     servers[0], svcname)
         return servers[0]
 
 
