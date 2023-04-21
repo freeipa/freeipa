@@ -21,7 +21,8 @@ The project will be jointly developed by SSSD and IPA:
 - IPA provides the interface to configure passkey settings
 - SSSD performs the actual authentication
 
-TBD: link to https://sssd.io/ design for the passkey feature
+SSSD has provided a corresponding
+[design page for the passkey feature](https://sssd.io/design-pages/passkey_authentication.html).
 
 ## Use Cases
 
