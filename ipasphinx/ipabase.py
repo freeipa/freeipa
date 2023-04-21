@@ -7,7 +7,11 @@ import os
 import re
 import sys
 
-from sphinx.util import progress_message
+try:
+    from sphinx.util.display import progress_message
+except ImportError:
+    # sphinx < 6.1.0
+    from sphinx.util import progress_message
 from sphinx.ext.autodoc import mock as autodoc_mock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
