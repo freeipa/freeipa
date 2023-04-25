@@ -1821,11 +1821,12 @@ class ra(rabase.rabase, RestClient):
                                  xml_declaration=True, encoding='UTF-8')
         logger.debug('%s.find(): request: %s', type(self).__name__, payload)
 
+        url = '/ca/rest/certs/search?size=%d' % (
+            options.get('sizelimit', 0x7fffffff))
         # pylint: disable=unused-variable
         status, _, data = dogtag.https_request(
             self.ca_host, 443,
-            url='/ca/rest/certs/search?size=%d' % (
-                 options.get('sizelimit', 0x7fffffff)),
+            url=url,
             client_certfile=None,
             client_keyfile=None,
             cafile=self.ca_cert,
