@@ -1663,6 +1663,13 @@ class cert_find(Search, CertMethod):
             ra_options[name] = value
         if exactly:
             ra_options['exactly'] = True
+        if 'sizelimit' in options:
+            # sizelimit = 0 means return everything, drop it and let
+            # ra_find() handle the value.
+            if options['sizelimit'] > 0:
+                ra_options['sizelimit'] = options['sizelimit']
+        else:
+            ra_options['sizelimit'] = self.api.Backend.ldap2.size_limit
 
         result = collections.OrderedDict()
         complete = bool(ra_options)
@@ -1842,6 +1849,7 @@ class cert_find(Search, CertMethod):
             timelimit = self.api.Backend.ldap2.time_limit
         if sizelimit is None:
             sizelimit = self.api.Backend.ldap2.size_limit
+        options['sizelimit'] = sizelimit
 
         result = collections.OrderedDict()
         truncated = False
