@@ -1086,7 +1086,7 @@ krb5_error_code ipadb_get_pac(krb5_context kcontext,
                 }
 
                 sentry = ldap_first_entry(ipactx->lcontext, sresults);
-                if (!lentry) {
+                if (!sentry) {
                     kerr = ENOENT;
                     goto done;
                 }
