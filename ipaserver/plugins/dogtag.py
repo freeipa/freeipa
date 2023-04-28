@@ -1838,12 +1838,26 @@ class ra(rabase.rabase, RestClient):
             body=payload
         )
 
+        parser = etree.XMLParser()
         if status != 200:
+            # Try to parse out the returned error. If this fails then
+            # raise the generic certificate operations error.
+            try:
+                doc = etree.fromstring(data, parser)
+                msg = doc.xpath('//PKIException/Message')[0].text
+                msg = msg.split(':', 1)[0]
+            except etree.XMLSyntaxError as e:
+                self.raise_certificate_operation_error('find',
+                                                       detail=status)
+
+            # Message, at least in the case of search failing, consists
+            # of "<message>: <java stack trace>". Use just the first
+            # bit.
             self.raise_certificate_operation_error('find',
+                                                   err_msg=msg,
                                                    detail=status)
 
         logger.debug('%s.find(): response: %s', type(self).__name__, data)
-        parser = etree.XMLParser()
         try:
             doc = etree.fromstring(data, parser)
         except etree.XMLSyntaxError as e:
