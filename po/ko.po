@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2023-01-01 08:20+0000\n"
+"PO-Revision-Date: 2023-05-02 12:20+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.15\n"
+"X-Generator: Weblate 4.15.2\n"
 
 #: ipaclient/plugins/otptoken_yubikey.py:72
 msgid "Add a new YubiKey OTP token."
@@ -28291,7 +28291,7 @@ msgstr ""
 
 #: ipaserver/dcerpc.py:1567 ipaserver/dcerpc.py:1697
 msgid "Credentials"
-msgstr ""
+msgstr "자격 증명"
 
 #: ipaserver/dcerpc.py:1568
 msgid "Missing credentials for cross-forest communication"
