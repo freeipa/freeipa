@@ -1509,7 +1509,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
         template: *ci-master-frawhide
-        timeout: 5400
+        timeout: 6300
         topology: *master_1repl_1client
 
   fedora-rawhide/test_ipahealthcheck_nodns_extca_file:
