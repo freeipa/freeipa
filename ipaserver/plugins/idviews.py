@@ -269,13 +269,20 @@ class idview_show(LDAPRetrieve):
             try:
                 overrides, _truncated = ldap.find_entries(
                     filter="objectclass=%s" % objectclass,
-                    attrs_list=['ipaanchoruuid'],
+                    attrs_list=['ipaanchoruuid', 'ipaoriginaluid'],
                     base_dn=dn,
                     scope=ldap.SCOPE_ONELEVEL,
                     paged_search=True)
 
                 resolved_overrides = []
                 for override in overrides:
+                    if 'ipaoriginaluid' in override:
+                        # No need to resolve the anchor, we already know
+                        # the value
+                        resolved_overrides.append(
+                            override.single_value['ipaoriginaluid'])
+                        continue
+
                     anchor = override.single_value['ipaanchoruuid']
 
                     try:
