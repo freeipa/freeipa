@@ -1,6 +1,7 @@
 wheel
 
 sphinx > 3.0
+sphinx-book-theme
 
 # convert markdown to rest
 # m2r2 fork is active in development and works with
