@@ -1,0 +1,5 @@
+dn: $SUFFIX
+add:aci: (targetattr = "memberPrincipal")(targattrfilters="add=objectclass:(objectclass=resourcedelegation)")(version 3.0;acl "permission:RBCD:Kerberos principals can manage resource-based constrained delegation for themselves";allow (write) userdn = "ldap:///self";)
+add:aci: (targetattr = "memberPrincipal")(targattrfilters="add=objectclass:(objectclass=resourcedelegation)")(version 3.0;acl "permission:RBCD:Managing principals can manage resource-based constrained delegation for other principals";allow (write) userattr = "managedby#GROUPDN" or userattr = "managedby#USERDN";)
+add:aci: (targetattr = "memberPrincipal")(targattrfilters="add=objectclass:(objectclass=resourcedelegation)")(version 3.0;acl "permission:RBCD:Delegated permission to manage resource-based constrained delegation for other principals";allow (write) userattr="ipaAllowedToPerform;write_delegation#GROUPDN" or userattr="ipaAllowedToPerform;write_delegation#USERDN" ;)
+
