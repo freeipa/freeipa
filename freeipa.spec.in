@@ -306,7 +306,12 @@ BuildRequires:  libpwquality-devel
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_certmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= %{sssd_version}
+%if 0%{?fedora} >= 39 || 0%{?rhel} >= 10
+# Do not use nodejs20 on fedora < 39, https://pagure.io/freeipa/issue/9374
 BuildRequires:  nodejs(abi)
+%else
+BuildRequires:  nodejs(abi) < 111
+%endif
 # use old dependency on RHEL 8 for now
 %if 0%{?fedora} >= 31 || 0%{?rhel} >= 9
 BuildRequires:  python3-rjsmin
