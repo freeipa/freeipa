@@ -67,6 +67,7 @@ app_DATA =				\
 	73-winsync.update		\
 	73-certmap.update		\
 	73-passkey.update		\
+	73-service-rbcd.update		\
 	75-user-trust-attributes.update	\
 	80-schema_compat.update 	\
 	81-externalmembers.update	\
