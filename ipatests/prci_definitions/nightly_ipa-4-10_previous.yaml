@@ -50,7 +50,7 @@ jobs:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-ipa-4-10-previous
-          name: freeipa/ci-ipa-4-10-f36
+          name: freeipa/ci-ipa-4-10-f37
           version: 0.0.2
         timeout: 1800
         topology: *build
