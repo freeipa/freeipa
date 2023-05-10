@@ -645,6 +645,9 @@ class TestIPACommand(IntegrationTest):
             (datetime.now() - timedelta(seconds=10)).timetuple()
         )
 
+        # Wait for sssd to be back online, hence test-user to become available
+        tasks.wait_for_sssd_domain_status_online(self.master)
+
         tasks.run_ssh_cmd(
             to_host=self.master.external_hostname, username=test_user,
             auth_method="key", private_key_path=first_priv_key_path
