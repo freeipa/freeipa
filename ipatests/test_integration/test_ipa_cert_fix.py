@@ -424,14 +424,10 @@ class TestCertFixReplica(IntegrationTest):
 
         related: https://pagure.io/freeipa/issue/7885
         """
-        # wait for cert expiry
+        # wait for cert expiry on master
         check_status(self.master, 8, "CA_UNREACHABLE")
 
-        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
-
-        check_status(self.master, 9, "MONITORING")
-
-        # replica operations
+        # wait for cert expiry on replica
         # 'Server-Cert cert-pki-ca' cert will be in CA_UNREACHABLE state
         cmd = self.replicas[0].run_command(
             ['getcert', 'list',
@@ -449,6 +445,12 @@ class TestCertFixReplica(IntegrationTest):
             'Server-Cert cert-pki-ca'
         )
 
+        # Fix the master
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+
+        check_status(self.master, 9, "MONITORING")
+
+        # replica operations
         # check that HTTP,LDAP,PKINIT are renewed and in MONITORING state
         instance = realm_to_serverid(self.master.domain.realm)
         dirsrv_cert = paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
