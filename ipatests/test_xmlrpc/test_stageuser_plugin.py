@@ -12,6 +12,7 @@ import six
 
 from collections import OrderedDict
 from ipalib import api, errors
+from ipalib.constants import ERRMSG_GROUPUSER_NAME
 from ipaplatform.constants import constants as platformconstants
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
@@ -357,7 +358,7 @@ class TestCreateInvalidAttributes(XMLRPC_test):
         command = invalid.make_create_command()
         with raises_exact(errors.ValidationError(
             name='login',
-                error=u"may only include letters, numbers, _, -, . and $")):
+                error=ERRMSG_GROUPUSER_NAME.format('user'))):
             command()
 
     def test_create_long_uid(self):

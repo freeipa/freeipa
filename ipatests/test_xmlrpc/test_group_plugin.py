@@ -25,6 +25,7 @@ Test the `ipaserver/plugins/group.py` module.
 import pytest
 
 from ipalib import errors
+from ipalib.constants import ERRMSG_GROUPUSER_NAME
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
     fuzzy_digits, fuzzy_uuid, fuzzy_set_ci,
@@ -169,7 +170,7 @@ class TestGroup(XMLRPC_test):
         )
         with raises_exact(errors.ValidationError(
                 name='group_name',
-                error=u'may only include letters, numbers, _, -, . and $')):
+                error=ERRMSG_GROUPUSER_NAME.format('group'))):
             command()
 
     def test_create_with_name_starting_with_numeric(self):
@@ -188,7 +189,7 @@ class TestGroup(XMLRPC_test):
         )
         with raises_exact(errors.ValidationError(
             name='group_name',
-            error=u'may only include letters, numbers, _, -, . and $',
+            error=ERRMSG_GROUPUSER_NAME.format('group'),
         )):
             testgroup.create()
 
