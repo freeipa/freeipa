@@ -88,6 +88,12 @@ usernames that start with a digit or usernames that exceed a certain length
 may cause problems for some UNIX systems.
 Use 'ipa config-mod' to change the username format allowed by IPA tools.
 
+The user name must follow these rules:
+- cannot contain only numbers
+- must start with a letter, a number, _ or .
+- may contain letters, numbers, _, ., or -
+- may end with a letter, a number, _, ., - or $
+
 Disabling a user account prevents that user from obtaining new Kerberos
 credentials. It does not invalidate any credentials that have already
 been issued.

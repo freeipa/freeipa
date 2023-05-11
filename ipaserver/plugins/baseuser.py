@@ -211,7 +211,7 @@ class baseuser(LDAPObject):
     takes_params = (
         Str('uid',
             pattern=constants.PATTERN_GROUPUSER_NAME,
-            pattern_errmsg='may only include letters, numbers, _, -, . and $',
+            pattern_errmsg=constants.ERRMSG_GROUPUSER_NAME.format('user'),
             maxlength=255,
             cli_name='login',
             label=_('User login'),
