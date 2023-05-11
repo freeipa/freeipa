@@ -319,6 +319,11 @@ MAXHOSTFQDNLEN = 253
 PATTERN_GROUPUSER_NAME = (
     '(?!^[0-9]+$)^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*[a-zA-Z0-9_.$-]?$'
 )
+ERRMSG_GROUPUSER_NAME = (
+    'may only include letters, numbers, _, -, . and $'
+    ', refer to \'ipa help {}\' for complete format '
+    'description'
+)
 
 # Kerberos Anonymous principal name
 ANON_USER = 'WELLKNOWN/ANONYMOUS'
