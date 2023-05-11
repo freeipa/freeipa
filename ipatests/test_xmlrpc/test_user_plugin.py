@@ -31,6 +31,7 @@ import ldap
 import re
 
 from ipalib import api, errors
+from ipalib.constants import ERRMSG_GROUPUSER_NAME
 from ipaplatform.constants import constants as platformconstants
 from ipapython import ipautil
 from ipatests.test_xmlrpc import objectclasses
@@ -502,7 +503,7 @@ class TestUpdate(XMLRPC_test):
         )
         with raises_exact(errors.ValidationError(
                 name='rename',
-                error=u'may only include letters, numbers, _, -, . and $')):
+                error=ERRMSG_GROUPUSER_NAME.format('user'))):
             command()
 
     def test_add_radius_username(self, user):
@@ -556,7 +557,7 @@ class TestCreate(XMLRPC_test):
         command = testuser.make_create_command()
         with raises_exact(errors.ValidationError(
                 name=u'login',
-                error=u'may only include letters, numbers, _, -, . and $')):
+                error=ERRMSG_GROUPUSER_NAME.format('user'))):
             command()
 
     def test_create_with_too_long_login(self):
@@ -730,7 +731,7 @@ class TestCreate(XMLRPC_test):
         )
         with raises_exact(errors.ValidationError(
                 name=u'login',
-                error=u'may only include letters, numbers, _, -, . and $',
+                error=ERRMSG_GROUPUSER_NAME.format('user'),
         )):
             testuser.create()
 
