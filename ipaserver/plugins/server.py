@@ -130,7 +130,7 @@ class server(LDAPObject):
             'ipalocation_location?',
             cli_name='location',
             label=_('Location'),
-            doc=_('Server location'),
+            doc=_('Server DNS location'),
             only_relative=True,
             flags={'no_search'},
         ),
