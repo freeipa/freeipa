@@ -500,7 +500,7 @@ class host(LDAPObject):
         Str('nshostlocation?',
             cli_name='location',
             label=_('Location'),
-            doc=_('Host location (e.g. "Lab 2")'),
+            doc=_('Host physical location hint (e.g. "Lab 2")'),
         ),
         Str('nshardwareplatform?',
             cli_name='platform',
