@@ -36,7 +36,9 @@ class TestPWPolicy(IntegrationTest):
         cls.master.run_command(['ipa', 'group-add-member', POLICY,
                                 '--users', USER])
         cls.master.run_command(['ipa', 'pwpolicy-add', POLICY,
-                                '--priority', '1', '--gracelimit', '-1'])
+                                '--priority', '1',
+                                '--gracelimit', '-1',
+                                '--minlength', '6'])
         cls.master.run_command(['ipa', 'passwd', USER],
                                stdin_text='{password}\n{password}\n'.format(
                                password=PASSWORD
@@ -91,6 +93,12 @@ class TestPWPolicy(IntegrationTest):
              "--minlife", "0",
              "--minlength", "0",
              "--minclasses", "0",],
+        )
+        # minlength => 6 is required for any of the libpwquality settings
+        self.master.run_command(
+            ["ipa", "pwpolicy-mod", POLICY,
+             "--minlength", "6"],
+            raiseonerr=False,
         )
 
     @pytest.fixture
@@ -212,6 +220,7 @@ class TestPWPolicy(IntegrationTest):
             assert 'Password is too simple' in \
                 result.stdout_text
 
+        self.reset_password(self.master)
         # test with valid password
         for valid in ('Passw0rd', 'password1!', 'Password!'):
             self.kinit_as_user(self.master, PASSWORD, valid)
@@ -251,6 +260,40 @@ class TestPWPolicy(IntegrationTest):
             )
             assert result.returncode != 0
             assert 'minlength' in result.stderr_text
+
+    def test_minlength_empty(self, reset_pwpolicy):
+        """Test that the pwpolicy minlength can be blank
+        """
+        # Ensure it is set to a non-zero value to avoid EmptyModlist
+        self.master.run_command(
+            ["ipa", "pwpolicy-mod", POLICY,
+             "--minlength", "10",]
+        )
+        # Enable one of the libpwquality options, removing minlength
+        # should fail.
+        self.master.run_command(
+            ["ipa", "pwpolicy-mod", POLICY,
+             "--maxrepeat", "4",]
+        )
+        result = self.master.run_command(
+            ["ipa", "pwpolicy-mod", POLICY,
+             "--minlength", "",], raiseonerr=False
+        )
+        assert result.returncode != 0
+
+        # Remove the blocking value
+        self.master.run_command(
+            ["ipa", "pwpolicy-mod", POLICY,
+             "--maxrepeat", "",]
+        )
+
+        # Now erase it
+        result = self.master.run_command(
+            ["ipa", "pwpolicy-mod", POLICY,
+             "--minlength", "",]
+        )
+        assert result.returncode == 0
+        assert 'minlength' not in result.stderr_text
 
     def test_minlength_add(self):
         """Test that adding a new policy with minlength is caught.
