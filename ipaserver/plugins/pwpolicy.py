@@ -462,6 +462,7 @@ class pwpolicy(LDAPObject):
             return False
 
         has_pwquality_value = False
+        min_length = 0
         if not add:
             if len(keys) > 0:
                 existing_entry = self.api.Command.pwpolicy_show(
@@ -470,14 +471,15 @@ class pwpolicy(LDAPObject):
                 existing_entry = self.api.Command.pwpolicy_show(
                     all=True,)['result']
             existing_entry.update(entry_attrs)
-            min_length = int(get_val(existing_entry, 'krbpwdminlength'))
-
+            if existing_entry.get('krbpwdminlength'):
+                min_length = int(get_val(existing_entry, 'krbpwdminlength'))
             has_pwquality_value = has_pwquality_set(existing_entry)
         else:
-            min_length = int(get_val(entry_attrs, 'krbpwdminlength'))
+            if entry_attrs.get('krbpwdminlength'):
+                min_length = int(get_val(entry_attrs, 'krbpwdminlength'))
             has_pwquality_value = has_pwquality_set(entry_attrs)
 
-        if min_length and min_length < 6 and has_pwquality_value:
+        if min_length < 6 and has_pwquality_value:
             raise errors.ValidationError(
                 name='minlength',
                 error=_('Minimum length must be >= 6 if maxrepeat, '
