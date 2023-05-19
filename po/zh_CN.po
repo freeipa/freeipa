@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2022-06-29 16:26+0200\n"
+"POT-Creation-Date: 2023-05-19 09:57+0200\n"
 "PO-Revision-Date: 2019-11-11 10:25+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Chinese (China)\n"
@@ -2323,9 +2323,6 @@ msgstr "你确定要启用被选条目？"
 
 msgid "Are you sure you want to proceed with the action?"
 msgstr "你确定要执行该操作吗？"
-
-msgid "Are you sure you want to rebuild auto membership?"
-msgstr "你确定要重建自动成员吗？"
 
 #, python-brace-format
 msgid "Are you sure you want to remove permission for DNS Zone ${object}?"
@@ -12216,6 +12213,9 @@ msgstr "{attr}：没有这样的属性"
 #, python-brace-format
 msgid "{role}: role not found"
 msgstr "{role}：角色没有找到"
+
+#~ msgid "Are you sure you want to rebuild auto membership?"
+#~ msgstr "你确定要重建自动成员吗？"
 
 #~ msgid "Delete a CA."
 #~ msgstr "删除一个CA。"

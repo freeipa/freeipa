@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2022-06-29 16:26+0200\n"
+"POT-Creation-Date: 2023-05-19 09:57+0200\n"
 "PO-Revision-Date: 2021-01-27 07:52+0000\n"
 "Last-Translator: Alexander Bokovoy <abokovoy@redhat.com>\n"
 "Language-Team: German <https://translate.fedoraproject.org/projects/freeipa/"
@@ -830,10 +830,6 @@ msgstr "Sind Sie sicher, dass Sie die ausgewählten Einträge aktivieren wollen?
 
 msgid "Are you sure you want to proceed with the action?"
 msgstr "Sind Sie sicher, dass Sie mit dieser Aktion fortfahren wollen?"
-
-msgid "Are you sure you want to rebuild auto membership?"
-msgstr ""
-"Sind Sie sicher, dass sie die Auto-Mitgliedschaft neu erstellen wollen?"
 
 msgid "Are you sure you want to restore selected users?"
 msgstr ""
@@ -4622,3 +4618,7 @@ msgstr "Benutzer und Host können nicht gleichzeitig gesetzt sein."
 
 msgid "users cannot be set when type is 'hostgroup'"
 msgstr "users kann nicht gesetzt sein wenn Typ 'hostgroup' ist"
+
+#~ msgid "Are you sure you want to rebuild auto membership?"
+#~ msgstr ""
+#~ "Sind Sie sicher, dass sie die Auto-Mitgliedschaft neu erstellen wollen?"
