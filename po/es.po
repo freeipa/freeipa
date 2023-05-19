@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2022-11-25 17:17+0100\n"
+"POT-Creation-Date: 2023-05-19 09:52+0200\n"
 "PO-Revision-Date: 2021-04-26 19:02+0000\n"
 "Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/freeipa/"
@@ -6406,9 +6406,6 @@ msgstr "Está seguro de que desea habilitar ${object}?"
 
 msgid "Are you sure you want to proceed with the action?"
 msgstr "¿Está seguro de que desea seguir adelante con la acción?"
-
-msgid "Are you sure you want to rebuild auto membership?"
-msgstr "¿Está seguro de que quiere reconstruir la auto membresía?"
 
 msgid "Are you sure you want to unprovision this host?"
 msgstr "¿Está seguro que desea unprovision este equipo?"
@@ -14628,6 +14625,9 @@ msgstr "{role}: rol no encontrado"
 #~ "cn=config' ha\n"
 #~ "sido modificado para coincidir con el nuevo rango.\n"
 #~ "=======\n"
+
+#~ msgid "Are you sure you want to rebuild auto membership?"
+#~ msgstr "¿Está seguro de que quiere reconstruir la auto membresía?"
 
 #~ msgid "CSR Generation Profile to use"
 #~ msgstr "Perfil de Generación CSR a usar"

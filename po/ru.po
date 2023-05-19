@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2022-11-25 17:17+0100\n"
+"POT-Creation-Date: 2023-05-19 09:52+0200\n"
 "PO-Revision-Date: 2019-11-12 12:31+0000\n"
 "Last-Translator: Olesya Gerasimenko <gammaray@basealt.ru>\n"
 "Language-Team: Russian\n"
@@ -17230,9 +17230,6 @@ msgstr "Вы действительно хотите включить выбра
 msgid "Are you sure you want to proceed with the action?"
 msgstr "Вы действительно хотите выполнить это действие?"
 
-msgid "Are you sure you want to rebuild auto membership?"
-msgstr "Вы действительно хотите перестроить автоучастие?"
-
 #, python-brace-format
 msgid "Are you sure you want to remove permission for DNS Zone ${object}?"
 msgstr "Вы действительно хотите удалить разрешение для зоны DNS ${object}?"
@@ -29989,6 +29986,9 @@ msgstr "{role}: роль не найдена"
 #~ "IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config\" таким "
 #~ "образом, чтобы он соответствовал новому диапазону.\n"
 #~ "=======\n"
+
+#~ msgid "Are you sure you want to rebuild auto membership?"
+#~ msgstr "Вы действительно хотите перестроить автоучастие?"
 
 #~ msgid "CSR Generation Profile to use"
 #~ msgstr "Профиль создания CSR, который следует использовать"
