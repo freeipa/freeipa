@@ -123,6 +123,7 @@ Developers:
 	Martin Nagy
 	Matt Rogers
 	Matthew Davis
+	mbhalodi
 	Michael Simacek
 	Michal Polovka
 	Michal Reznik
