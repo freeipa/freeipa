@@ -58,6 +58,7 @@ Developers:
 	Erik Belko
 	Fabiano Fidêncio
 	Felipe Volpone
+	Filip Dvorak
 	Filip Skola
 	Florence Blanc-Renaud
 	Francesco Marella
@@ -83,6 +84,7 @@ Developers:
 	Jan Kuparinen
 	Jan Pazdziora
 	Jan Zelený
+	Jarl Gullberg
 	Jason Gerard DeRose
 	Jason Woods
 	Jayesh
@@ -109,6 +111,7 @@ Developers:
 	Lars Sjostrom
 	Lenka Doudova
 	Lenka Ryznarova
+	Lenz Grimmer
 	Lewis Eason
 	Lubomír Rintel
 	Ludwig Krispenz
@@ -124,6 +127,7 @@ Developers:
 	Martin Nagy
 	Matt Rogers
 	Matthew Davis
+	mbhalodi
 	Michael Simacek
 	Michal Polovka
 	Michal Reznik
@@ -173,6 +177,7 @@ Developers:
 	Robbie Harwood
 	Robert Collins
 	Robert Kuska
+	s1341
 	Sam Bristow
 	Sam Morris
 	Scott Poore
@@ -201,6 +206,7 @@ Developers:
 	Thorsten Scherf
 	Tibor Dudlák
 	Timo Aaltonen
+	Todd Zullinger
 	Tomáš Babej
 	Tomas Halman
 	Tomáš Křížek
