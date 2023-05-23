@@ -64,7 +64,7 @@ EPN_CONFIG = {
     "smtp_admin": "root@localhost",
     "smtp_delay": None,
     "mail_from": None,
-    "mail_from_realname": None,
+    "mail_from_name": "IPA-EPN",
     "notify_ttls": "28,14,7,3,1",
     "msg_charset": "utf8",
     "msg_subtype": "plain",
@@ -552,10 +552,6 @@ class EPN(admintool.AdminTool):
                 mail_from = api.env.mail_from
             else:
                 mail_from = "noreply@%s" % self.default_email_domain
-            if api.env.mail_from_realname:
-                mail_from_realname = api.env.mail_from_realname
-            else:
-                mail_from_realname = "IPA-EPN"
             while self._expiring_password_user_list:
                 entry = self._expiring_password_user_list.pop()
                 body = template.render(
@@ -570,7 +566,7 @@ class EPN(admintool.AdminTool):
                     mail_body=body,
                     subscribers=ast.literal_eval(entry["mail"]),
                     mail_from=mail_from,
-                    mail_from_realname=mail_from_realname,
+                    mail_from_name=api.env.mail_from_name,
                 )
                 now = datetime.utcnow()
                 expdate = datetime.strptime(
@@ -805,13 +801,13 @@ class MailUserAgent:
 
     def send_message(
         self, mail_subject=None, mail_body=None, subscribers=None,
-        mail_from=None, mail_from_realname=None
+        mail_from=None, mail_from_name=None
     ):
         """Given mail_subject, mail_body, and subscribers, composes
            the message and sends it.
         """
         if None in [mail_subject, mail_body, subscribers,
-                    mail_from, mail_from_realname]:
+                    mail_from, mail_from_name]:
             logger.error("IPA-EPN: Tried to send an empty message.")
             return False
         self._compose_message(
@@ -819,7 +815,7 @@ class MailUserAgent:
             mail_body=mail_body,
             subscribers=subscribers,
             mail_from=mail_from,
-            mail_from_realname=mail_from_realname,
+            mail_from_name=mail_from_name,
         )
         self._mta_client.send_message(
             message_str=self._message_str, subscribers=subscribers
@@ -828,7 +824,7 @@ class MailUserAgent:
 
     def _compose_message(
         self, mail_subject, mail_body, subscribers,
-        mail_from, mail_from_realname
+        mail_from, mail_from_name
     ):
         """The composer creates a MIME multipart message.
         """
@@ -838,7 +834,7 @@ class MailUserAgent:
         self._subscribers = subscribers
 
         self._msg = MIMEMultipart(_charset=self._charset)
-        self._msg["From"] = formataddr((mail_from_realname, mail_from))
+        self._msg["From"] = formataddr((mail_from_name, mail_from))
         self._msg["To"] = ", ".join(self._subscribers)
         self._msg["Date"] = formatdate(localtime=True)
         self._msg["Subject"] = Header(self._subject, self._charset)
