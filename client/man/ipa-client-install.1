@@ -253,6 +253,12 @@ Remove the IPA client software and restore the configuration to the pre\-IPA sta
 \fB\-U\fR, \fB\-\-unattended\fR
 Unattended uninstallation. The user will not be prompted.
 
+.SH "DISABLED SERVICES"
+.TP
+ipa-client-install will automatically disable the Name Service Caching Daemon (nscd) when configuring the SSSD client. These are competing services and cannot co-exist.
+.TP
+If there are other similar services providing nss capabilities they will need to be manually disabled by the user. An example is unscd, a complete replacement for nscd.
+
 .SH "FILES"
 .TP
 Files that will be replaced if SSSD is configured (default):
