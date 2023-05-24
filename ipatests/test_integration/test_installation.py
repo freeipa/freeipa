@@ -2100,3 +2100,17 @@ class TestHostnameValidator(IntegrationTest):
                 hostname = m.group(1)
                 break
         assert hostname == self.master.hostname
+
+    def test_hostname_matching_domain(self):
+        # https://pagure.io/freeipa/issue/9003
+        # Prevent hostname from matching the domain
+        self.master.run_command(['hostname', self.master.hostname])
+        args = self.get_args(self.master)
+        args.extend(['--hostname', self.master.domain.name])
+        result = self.master.run_command(
+            args, raiseonerr=False,
+        )
+
+        assert result.returncode == 1
+        assert 'hostname cannot be the same as the domain name' \
+            in result.stderr_text

@@ -930,6 +930,9 @@ def promote_check(installer):
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns,
                              local_hostname=not container_environment)
 
+    if config.host_name.lower() == config.domain_name.lower():
+        raise ScriptError("hostname cannot be the same as the domain name")
+
     ccache = os.environ['KRB5CCNAME']
     kinit_keytab('host/{env.host}@{env.realm}'.format(env=api.env),
                  paths.KRB5_KEYTAB,
