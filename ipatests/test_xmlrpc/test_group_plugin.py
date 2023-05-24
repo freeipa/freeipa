@@ -466,6 +466,21 @@ class TestNonposixGroup(XMLRPC_test):
             ],
         ), result)
 
+    def test_upgrade_nonposix_to_posix_and_external(self, group):
+        """ Update non-posix group to promote it to posix group & external"""
+        command = group.make_update_command(dict(posix=True, external=True))
+        with raises_exact(errors.MutuallyExclusiveError(
+                reason=u"An external group cannot be POSIX")):
+            command()
+
+    def test_upgrade_nonposix_with_gid_and_external(self, group):
+        """ Update non-posix group to promote it to posix group & external"""
+        command = group.make_update_command(dict(gidnumber=12345,
+                                                 external=True))
+        with raises_exact(errors.MutuallyExclusiveError(
+                reason=u"An external group cannot be POSIX")):
+            command()
+
     def test_upgrade_nonposix_to_posix(self, group):
         """ Update non-posix group to promote it to posix group """
         group.attrs.update(gidnumber=[fuzzy_digits])
