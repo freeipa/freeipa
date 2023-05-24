@@ -49,6 +49,11 @@ static void ipadb_context_free(krb5_context kcontext,
     size_t c;
 
     if (*ctx != NULL) {
+        if ((*ctx)->magic != IPA_CONTEXT_MAGIC) {
+            krb5_klog_syslog(LOG_ERR, "IPA context is corrupted");
+            *ctx = NULL;
+            return;
+        }
         free((*ctx)->uri);
         free((*ctx)->base);
         free((*ctx)->realm_base);
