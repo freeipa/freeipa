@@ -505,6 +505,9 @@ class group_mod(LDAPUpdate):
             else:
                 old_entry_attrs['objectclass'].append('ipaexternalgroup')
                 entry_attrs['objectclass'] = old_entry_attrs['objectclass']
+            if 'gidnumber' in entry_attrs:
+                raise errors.MutuallyExclusiveError(reason=_(
+                    'An external group cannot be POSIX'))
 
         # Can't check for this in a validator because we lack context
         if 'gidnumber' in options and options['gidnumber'] is None:
