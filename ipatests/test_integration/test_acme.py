@@ -602,20 +602,20 @@ def issue_and_expire_acme_cert():
             tasks.kdestroy_all(host)
             tasks.move_date(host, 'stop', '+90days+60minutes')
 
-        tasks.get_kdcinfo(host)
+        tasks.get_kdcinfo(master)
         # Note raiseonerr=False:
         # the assert is located after kdcinfo retrieval.
         # run kinit command repeatedly until sssd gets settle
         # after date change
         tasks.run_repeatedly(
-            host, "KRB5_TRACE=/dev/stdout kinit admin",
+            master, "KRB5_TRACE=/dev/stdout kinit admin",
             stdin_text='{0}\n{0}\n{0}\n'.format(
-                host.config.admin_password
+                master.config.admin_password
             )
         )
         # Retrieve kdc.$REALM after the password change, just in case SSSD
         # domain status flipped to online during the password change.
-        tasks.get_kdcinfo(host)
+        tasks.get_kdcinfo(master)
 
     yield _issue_and_expire_acme_cert
 
