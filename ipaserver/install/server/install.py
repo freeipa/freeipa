@@ -525,6 +525,9 @@ def install_check(installer):
 
     domain_name = domain_name.lower()
 
+    if host_name.lower() == domain_name:
+        raise ScriptError("hostname cannot be the same as the domain name")
+
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, not installer.interactive)
         logger.debug("read realm_name: %s\n", realm_name)
