@@ -116,6 +116,12 @@ static char *std_principal_obj_classes[] = {
 
 #define OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME "optional_pac_tkt_chksum"
 
+#ifndef KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE
+#define OPT_PAC_PRIVSVR_CHKSUM_STR_ATTR_NAME "pac_privsvr_enctype"
+#else
+#define OPT_PAC_PRIVSVR_CHKSUM_STR_ATTR_NAME KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE
+#endif
+
 static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
                                       char *attrname,
                                       krb5_tl_data **result, int *num)
@@ -1736,6 +1742,16 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
         if (kerr)
             return kerr;
 
+        /* for trusted AD forests we currently must use SHA-1-based
+         * encryption types. For details, see
+         * https://github.com/krb5/krb5/commit/5af907156f8f502bbe268f0c62274f88a61261e4
+         */
+        if (!is_local_tgs_princ) {
+            kerr = krb5_dbe_set_string(kcontext, *entry,
+                                       OPT_PAC_PRIVSVR_CHKSUM_STR_ATTR_NAME,
+                                       "aes256-sha1");
+        }
+
         /* PAC ticket signature should be optional for foreign realms, and local
          * realm if not supported by all servers
          */
@@ -2861,19 +2877,25 @@ remove_virtual_str_attrs(krb5_context kcontext, krb5_db_entry *entry)
 {
     char *str_attr_val;
     krb5_error_code kerr;
+    const char *str_attrs[] = {
+        OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME,
+        OPT_PAC_PRIVSVR_CHKSUM_STR_ATTR_NAME,
+        NULL};
 
-    kerr = krb5_dbe_get_string(kcontext, entry,
-                               OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME,
-                               &str_attr_val);
-    if (kerr)
-        return kerr;
+    for(int i = 0; str_attrs[i] != NULL; i++) {
+        kerr = krb5_dbe_get_string(kcontext, entry,
+                                   str_attrs[i],
+                                   &str_attr_val);
+        if (kerr)
+            return kerr;
 
-    if (str_attr_val)
-        kerr = krb5_dbe_set_string(kcontext, entry,
-                                   OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME,
-                                   NULL);
+        if (str_attr_val)
+            kerr = krb5_dbe_set_string(kcontext, entry,
+                                       str_attrs[i],
+                                       NULL);
 
-    krb5_dbe_free_string(kcontext, str_attr_val);
+        krb5_dbe_free_string(kcontext, str_attr_val);
+    }
     return kerr;
 }
 
