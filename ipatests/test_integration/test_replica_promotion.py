@@ -355,6 +355,23 @@ class TestWrongClientDomain(IntegrationTest):
         assert("An error occurred while removing SSSD" not in
                result.stdout_text)
 
+    def test_hostname_domain_matching(self):
+        client = self.replicas[0]
+        client.run_command(['ipa-client-install', '-U', '--domain',
+                            self.master.domain.name, '-w',
+                            self.master.config.admin_password,
+                            '-p', 'admin',
+                            '--server', self.master.hostname,
+                            '--hostname', self.master.domain.name])
+        Firewall(self.replicas[0]).enable_services(["freeipa-ldap",
+                                                    "freeipa-ldaps"])
+        result = client.run_command(['ipa-replica-install', '-U', '-w',
+                                     self.master.config.dirman_password],
+                                    raiseonerr=False)
+        assert result.returncode == 1
+        assert 'hostname cannot be the same as the domain name' \
+            in result.stderr_text
+
 
 class TestRenewalMaster(IntegrationTest):
 
