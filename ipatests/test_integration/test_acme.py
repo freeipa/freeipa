@@ -583,20 +583,20 @@ class TestACMERenew(IntegrationTest):
             tasks.kdestroy_all(host)
             tasks.move_date(host, 'stop', '+90days')
 
-        tasks.get_kdcinfo(host)
+        tasks.get_kdcinfo(self.master)
         # Note raiseonerr=False:
         # the assert is located after kdcinfo retrieval.
         # run kinit command repeatedly until sssd gets settle
         # after date change
         tasks.run_repeatedly(
-            host, "KRB5_TRACE=/dev/stdout kinit admin",
+            self.master, "KRB5_TRACE=/dev/stdout kinit admin",
             stdin_text='{0}\n{0}\n{0}\n'.format(
-                self.clients[0].config.admin_password
+                self.master.config.admin_password
             )
         )
         # Retrieve kdc.$REALM after the password change, just in case SSSD
         # domain status flipped to online during the password change.
-        tasks.get_kdcinfo(host)
+        tasks.get_kdcinfo(self.master)
 
         yield
 
