@@ -115,12 +115,12 @@ static char *std_principal_obj_classes[] = {
 
 #define DEFAULT_TL_DATA_CONTENT "\x00\x00\x00\x00principal@UNINITIALIZED"
 
-#define OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME "optional_pac_tkt_chksum"
+#ifndef KRB5_KDB_SK_OPTIONAL_PAC_TKT_CHKSUM
+#define KRB5_KDB_SK_OPTIONAL_PAC_TKT_CHKSUM "optional_pac_tkt_chksum"
+#endif
 
 #ifndef KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE
-#define OPT_PAC_PRIVSVR_CHKSUM_STR_ATTR_NAME "pac_privsvr_enctype"
-#else
-#define OPT_PAC_PRIVSVR_CHKSUM_STR_ATTR_NAME KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE
+#define KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE "pac_privsvr_enctype"
 #endif
 
 static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
@@ -1779,10 +1779,14 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
          */
         if (!is_local_tgs_princ) {
             kerr = krb5_dbe_set_string(kcontext, *entry,
-                                       OPT_PAC_PRIVSVR_CHKSUM_STR_ATTR_NAME,
+                                       KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE,
                                        "aes256-sha1");
         }
 
+        /* We should have been initialized at this point already */
+        if (ipactx->optional_pac_tkt_chksum == IPADB_TRISTATE_UNDEFINED) {
+                return KRB5_KDB_SERVER_INTERNAL_ERR;
+        }
         /* PAC ticket signature should be optional for foreign realms, and local
          * realm if not supported by all servers
          */
@@ -1792,7 +1796,7 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
             opt_pac_tkt_chksum_val = "false";
 
         kerr = krb5_dbe_set_string(kcontext, *entry,
-                                   OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME,
+                                   KRB5_KDB_SK_OPTIONAL_PAC_TKT_CHKSUM,
                                    opt_pac_tkt_chksum_val);
     }
 
@@ -2909,8 +2913,8 @@ remove_virtual_str_attrs(krb5_context kcontext, krb5_db_entry *entry)
     char *str_attr_val;
     krb5_error_code kerr;
     const char *str_attrs[] = {
-        OPT_PAC_TKT_CHKSUM_STR_ATTR_NAME,
-        OPT_PAC_PRIVSVR_CHKSUM_STR_ATTR_NAME,
+        KRB5_KDB_SK_OPTIONAL_PAC_TKT_CHKSUM,
+        KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE,
         NULL};
 
     for(int i = 0; str_attrs[i] != NULL; i++) {
