@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 # Based heavily on
 # https://github.com/gssapi/mod_auth_gssapi/blob/master/contrib/sweeper.py
