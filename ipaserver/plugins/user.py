@@ -140,13 +140,22 @@ MEMBEROF_ADMINS = "(memberOf={})".format(
 )
 
 NOT_MEMBEROF_ADMINS = '(!{})'.format(MEMBEROF_ADMINS)
+PROTECTED_USERS = ('admin',)
 
 
 def check_protected_member(user, protected_group_name=u'admins'):
     '''
-    Ensure the last enabled member of a protected group cannot be deleted or
-    disabled by raising LastMemberError.
+    Ensure admin and the last enabled member of a protected group cannot
+    be deleted or disabled by raising ProtectedEntryError or
+    LastMemberError as appropriate.
     '''
+
+    if user in PROTECTED_USERS:
+        raise errors.ProtectedEntryError(
+            label=_("user"),
+            key=user,
+            reason=_("privileged user"),
+        )
 
     # Get all users in the protected group
     result = api.Command.user_find(in_group=protected_group_name)
@@ -879,6 +888,12 @@ class user_mod(baseuser_mod):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn, oc = self.obj.get_either_dn(*keys, **options)
+        if options.get('rename') and keys[-1] in PROTECTED_USERS:
+            raise errors.ProtectedEntryError(
+                label=_("user"),
+                key=keys[-1],
+                reason=_("privileged user"),
+            )
         if 'objectclass' not in entry_attrs and 'rename' not in options:
             entry_attrs.update({'objectclass': oc})
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,

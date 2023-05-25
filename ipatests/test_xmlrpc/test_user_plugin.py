@@ -979,22 +979,32 @@ class TestManagers(XMLRPC_test):
 
 @pytest.mark.tier1
 class TestAdmins(XMLRPC_test):
-    def test_remove_original_admin(self):
-        """ Try to remove the only admin """
+    def test_delete_admin(self):
+        """ Try to delete the protected admin user """
         tracker = Tracker()
-        command = tracker.make_command('user_del', [admin1])
+        command = tracker.make_command('user_del', admin1)
 
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
+        with raises_exact(errors.ProtectedEntryError(label=u'user',
+                          key=admin1, reason='privileged user')):
+            command()
+
+    def test_rename_admin(self):
+        """ Try to rename the admin user """
+        tracker = Tracker()
+        command = tracker.make_command('user_mod', admin1,
+                                       **dict(rename=u'newadmin'))
+
+        with raises_exact(errors.ProtectedEntryError(label=u'user',
+                          key=admin1, reason='privileged user')):
             command()
 
     def test_disable_original_admin(self):
-        """ Try to disable the only admin """
+        """ Try to disable the original admin """
         tracker = Tracker()
         command = tracker.make_command('user_disable', admin1)
 
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
+        with raises_exact(errors.ProtectedEntryError(label=u'user',
+                          key=admin1, reason='privileged user')):
             command()
 
     def test_create_admin2(self, admin2):
@@ -1012,20 +1022,10 @@ class TestAdmins(XMLRPC_test):
         admin2.disable()
         tracker = Tracker()
 
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
+        with raises_exact(errors.ProtectedEntryError(label=u'user',
+                          key=admin1, reason='privileged user')):
             tracker.run_command('user_disable', admin1)
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
-            tracker.run_command('user_del', admin1)
         admin2.delete()
-
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
-            tracker.run_command('user_disable', admin1)
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
-            tracker.run_command('user_del', admin1)
 
 
 @pytest.mark.tier1
