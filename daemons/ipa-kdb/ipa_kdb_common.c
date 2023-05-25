@@ -158,12 +158,75 @@ static bool ipadb_need_retry(struct ipadb_context *ipactx, int error)
     return false;
 }
 
+static char *no_attrs[] = {
+    LDAP_NO_ATTRS,
+
+    NULL
+};
+
+static int
+should_support_pac_tkt_sign(struct ipadb_context *ipactx, bool *result)
+{
+    int ret;
+    LDAPMessage *res = NULL;
+    char *masters_dn = NULL;
+    int count;
+
+    char *kdc_filter = "(&(cn=KDC)(objectClass=ipaConfigObject)"
+                       "(!(ipaConfigString=pacTktSignSupported)))";
+
+    if (!ipactx) {
+        ret = KRB5_KDB_DBNOTINITED;
+        goto done;
+    }
+
+    count = asprintf(&masters_dn, "cn=masters,cn=ipa,cn=etc,%s", ipactx->base);
+    if (count < 0) {
+        ret = ENOMEM;
+        goto done;
+    }
+
+    ret = ipadb_simple_search(ipactx, masters_dn, LDAP_SCOPE_SUBTREE,
+                               kdc_filter, no_attrs, &res);
+    if (ret)
+        goto done;
+
+    count = ldap_count_entries(ipactx->lcontext, res);
+
+    if (result)
+        *result = (count == 0);
+
+done:
+    free(masters_dn);
+    ldap_msgfree(res);
+    return ret;
+}
+
 static int ipadb_check_connection(struct ipadb_context *ipactx)
 {
+    int ret = 0;
+
     if (ipactx->lcontext == NULL) {
-        return ipadb_get_connection(ipactx);
+        ret = ipadb_get_connection(ipactx);
     }
-    return 0;
+    if ((ret == 0) && (ipactx->optional_pac_tkt_chksum == IPADB_TRISTATE_UNDEFINED)) {
+        bool pac_tkt_sign_supported;
+
+	/* Enforce PAC ticket signature verification if supported by all KDCs
+	 * To avoid loops as all search functions call into
+	 * ipadb_check_connection(), mark that the init is complete at this
+	 * point. Default to not issuing PAC to be safe.
+         */
+        ipactx->optional_pac_tkt_chksum = IPADB_TRISTATE_FALSE;
+	ret = should_support_pac_tkt_sign(ipactx,
+                                          &pac_tkt_sign_supported);
+        if (ret == 0) {
+            ipactx->optional_pac_tkt_chksum = !pac_tkt_sign_supported;
+        } else {
+            ipactx->optional_pac_tkt_chksum = IPADB_TRISTATE_UNDEFINED;
+	}
+    }
+    return ret;
 }
 
 krb5_error_code ipadb_simple_search(struct ipadb_context *ipactx,
