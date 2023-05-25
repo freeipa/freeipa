@@ -87,8 +87,8 @@
 %global httpd_version 2.4.37-21
 %global bind_version 9.11.20-6
 
-# Fix for https://github.com/SSSD/sssd/issues/6331
-%global sssd_version 2.8.0
+# support for passkey
+%global sssd_version 2.9.0
 
 %else
 # Fedora
@@ -148,8 +148,8 @@
 # F35+, adds IdP integration
 %global sssd_version 2.7.0
 %else
-# Fix for https://github.com/SSSD/sssd/issues/6331
-%global sssd_version 2.8.0
+# Support for passkey
+%global sssd_version 2.9.0
 %endif
 
 # Fedora
