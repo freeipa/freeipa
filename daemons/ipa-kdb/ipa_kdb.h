@@ -126,6 +126,12 @@ struct ipadb_global_config {
     bool disable_preauth_for_spns;
 };
 
+enum ipadb_tristate_option {
+	IPADB_TRISTATE_FALSE = FALSE,
+	IPADB_TRISTATE_TRUE = TRUE,
+	IPADB_TRISTATE_UNDEFINED,
+};
+
 #define IPA_CONTEXT_MAGIC 0x0c027ea7
 struct ipadb_context {
     int magic;
@@ -143,7 +149,7 @@ struct ipadb_context {
     krb5_key_salt_tuple *def_encs;
     int n_def_encs;
     struct ipadb_mspac *mspac;
-    bool optional_pac_tkt_chksum;
+    enum ipadb_tristate_option optional_pac_tkt_chksum;
 #ifdef HAVE_KRB5_CERTAUTH_PLUGIN
     krb5_certauth_moddata certauth_moddata;
 #endif
