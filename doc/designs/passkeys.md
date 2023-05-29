@@ -118,7 +118,7 @@ ipaRequireUserVerification: True
 ```
 
 The object class allows a single attribute, require user verification,
-which is mandatory, single valued, and stores a boolean (TURE, FALSE).
+which is mandatory, single valued, and stores a boolean (TRUE, FALSE).
 The LDAP entry is added when IPA server is installed or when the server is
 upgraded to a version supporting passkeys, with a default value = TRUE.
 
@@ -206,7 +206,7 @@ will use a filter based on the user uid.
 
 - A new tab will be added below "Policy", at the same level as `Host-Based Access Control`, `Sudo`, `SELInux User Maps`, `Password Policies` and `Kerberos Ticket Policy`, with the label `Passkey Configuration`.
 
-It will allow to configure the attribute `Require User Verification`, with a radio button: `on`, `off` or `default`.
+It will allow to configure the attribute `Require User Verification`, with a check box: `on` or `off`.
 
 - In the `User` facet, a new field will be added, below `SSH public keys`, with the label `Passkey mappings`, and will display the values, or allow to add a new value.
 
@@ -245,7 +245,7 @@ The global settings can be read or modified using `ipa passkeyconfig-[show|mod]`
 
 During upgrade, the new LDAP schema is automatically added and replicated to the replicas.
 
-The upgrade must create the Passkey configuration entry if it does not already exist, with value='default' for the 'require user verification' setting (meaning it will use the default value from each key).
+The upgrade must create the Passkey configuration entry if it does not already exist, with value='true' for the 'require user verification' setting.
 
 ## Test plan
 
