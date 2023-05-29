@@ -1552,18 +1552,39 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
     krb5_db_entry *kentry = NULL;
     krb5_data *realm;
     krb5_boolean check = FALSE;
+    /* KRB5_NT_PRINCIPAL must be the last element */
+    krb5_int32 supported_types[] = {
+        [0] = KRB5_NT_ENTERPRISE_PRINCIPAL,
+        [1] = KRB5_NT_PRINCIPAL,
+        -1,
+    };
+    size_t i = 0;
 
-    /* TODO: also support hostbased aliases */
+    /* For TGS-REQ server principal lookup, KDC asks with KRB5_KDB_FLAG_REFERRAL_OK
+     * and client usually asks for an KRB5_NT_PRINCIPAL type principal. */
+    if ((flags & KRB5_KDB_FLAG_REFERRAL_OK) == 0) {
+       /* this is *not* TGS-REQ server principal search, remove
+	* KRB5_NT_PRINCIPAL from the supported principal types for this lookup */
+       supported_types[(sizeof(supported_types) / sizeof(supported_types[0])) - 2] = -1;
+    }
 
     /* Enterprise principal name type is for potential aliases or principals
-     * from trusted realms. The logic below only applies to this type */
-    if (krb5_princ_type(kcontext, search_for) != KRB5_NT_ENTERPRISE_PRINCIPAL) {
+     * from trusted realms. Except for the TGS-REQ server lookup, we only
+     * expect enterprise principals here */
+    for (i = 0; supported_types[i] != -1; i++) {
+        if (krb5_princ_type(kcontext, search_for) == supported_types[i]) {
+            break;
+        }
+    }
+
+    if (supported_types[i] == -1) {
         return KRB5_KDB_NOENTRY;
     }
 
     /* enterprise principal can only have single component in the name
      * according to RFC6806 section 5. */
-    if (krb5_princ_size(kcontext, search_for) != 1) {
+    if ((krb5_princ_type(kcontext, search_for) == KRB5_NT_ENTERPRISE_PRINCIPAL) &&
+        (krb5_princ_size(kcontext, search_for) != 1)) {
         return KRB5_KDB_NOENTRY;
     }
 
@@ -1587,6 +1608,12 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
     if (krb5_realm_compare(kcontext, ipactx->local_tgs, norm_princ)) {
         /* In realm alias, try to retrieve it and let the caller handle it. */
         kerr = dbget_princ(kcontext, ipactx, norm_princ, flags, entry);
+    }
+
+    /* if we haven't found the principal in our realm, it might still
+     * be a referral to a known realm. Otherwise, bail out with the result */
+    if ((kerr != KRB5_KDB_NOENTRY) &&
+        (flags & KRB5_KDB_FLAG_REFERRAL_OK) == 0) {
         goto done;
     }
 
@@ -1630,7 +1657,30 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
                                                  &trusted_realm);
     }
 
+    if (kerr == KRB5_KDB_NOENTRY) {
+        krb5_data *hstname = NULL;
+        int ncomponents = krb5_princ_size(kcontext, norm_princ);
+
+        /* We did not find any alias so far for non-server principal lookups */
+        if ((ncomponents < 2) && ((flags & KRB5_KDB_FLAG_REFERRAL_OK) == 0)) {
+            goto done;
+        }
+
+	/* At this point it is a server principal lookup that might be
+         * referencing a host name in a trusted domain. It might also
+         * have multiple service components so take the last one for the
+         * hostname or the domain name. See MS-ADTS 2.2.21 and MS-DRSR 2.2.4.2.
+         */
+        hstname = krb5_princ_component(kcontext, norm_princ, ncomponents - 1);
+
+        kerr = ipadb_is_princ_from_trusted_realm(kcontext,
+                                                 hstname->data,
+                                                 hstname->length,
+                                                 &trusted_realm);
+    }
+
     if (kerr != 0) {
+        kerr = KRB5_KDB_NOENTRY;
         goto done;
     }
 
