@@ -82,8 +82,8 @@ At Gnome login, he types his username and inserts the device.
 
 At console login, he types his username and inserts the device.
 
-SSSD validates the credentials and checks that the passkey allows
-authentication.
+If user verification is enabled, then the PIN is prompted. SSSD validates the
+credentials and checks that the passkey allows authentication.
 
 #### PAM-protected service access
 
