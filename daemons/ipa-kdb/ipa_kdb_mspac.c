@@ -2367,7 +2367,10 @@ krb5_error_code ipadb_common_verify_pac(krb5_context context,
     for (i = 0; i < num_buffers; i++) {
         if (types[i] == KRB5_PAC_SERVER_CHECKSUM ||
             types[i] == KRB5_PAC_PRIVSVR_CHECKSUM ||
-            types[i] == KRB5_PAC_CLIENT_INFO) {
+#ifdef KRB5_PAC_FULL_CHECKSUM
+            types[i] == KRB5_PAC_FULL_CHECKSUM ||
+#endif
+	    types[i] == KRB5_PAC_CLIENT_INFO) {
             continue;
         }
 
