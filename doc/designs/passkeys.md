@@ -21,8 +21,10 @@ The project will be jointly developed by SSSD and IPA:
 - IPA provides the interface to configure passkey settings
 - SSSD performs the actual authentication
 
-SSSD has provided a corresponding
-[design page for the passkey feature](https://sssd.io/design-pages/passkey_authentication.html).
+SSSD has defined the implementation in two design pages:
+
+- [Local passkey authentication](https://sssd.io/design-pages/passkey_authentication.html).
+- [Passkey Kerberos integration](https://sssd.io/design-pages/passkey_kerberos.html)
 
 ## Use Cases
 
