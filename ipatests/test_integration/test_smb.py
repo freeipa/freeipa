@@ -349,7 +349,6 @@ class TestSMB(IntegrationTest):
     @pytest.mark.skipif(
         osinfo.id == 'fedora' and osinfo.version_number <= (31,),
         reason='Test requires krb 1.18')
-    @pytest.mark.xfail(reason="Pagure ticket 9124", strict=True)
     def test_smb_service_s4u2self(self):
         """Test S4U2Self operation by IPA service
            against both AD and IPA users
