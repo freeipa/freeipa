@@ -239,6 +239,12 @@ class IPACertificate(crypto_x509.Certificate):
         """
         return self._cert.signature_algorithm_oid
 
+    if hasattr(crypto_x509.Certificate, "signature_algorithm_parameters"):
+        # added in python-cryptography 41.0
+        @property
+        def signature_algorithm_parameters(self):
+            return self._cert.signature_algorithm_parameters
+
     @property
     def signature(self):
         """
