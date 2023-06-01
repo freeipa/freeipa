@@ -1570,6 +1570,14 @@ done:
     return kerr;
 }
 
+/* For krb5 1.19, there is no KRB5_KDB_FLAG_REFERRAL_OK, emulate it
+ * See krb5 commit a441fbe329ebbd7775eb5d4ccc4a05eef370f08b */
+#ifndef KRB5_KDB_FLAG_REFERRAL_OK
+#ifdef KRB5_KDB_FLAG_CANONICALIZE
+#define KRB5_KDB_FLAG_REFERRAL_OK KRB5_KDB_FLAG_CANONICALIZE
+#endif
+#endif
+
 static krb5_error_code dbget_alias(krb5_context kcontext,
                                    struct ipadb_context *ipactx,
                                    krb5_const_principal search_for,
