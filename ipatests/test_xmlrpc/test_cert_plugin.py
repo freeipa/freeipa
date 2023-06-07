@@ -254,6 +254,16 @@ class test_cert(BaseCert):
         result = _emails_are_valid(email_addrs, [])
         assert not result
 
+    def test_00012_cert_find_all(self):
+        """
+        Test that cert-find --all returns successfully.
+
+        We don't know how many we'll get but there should be at least 10
+        by default.
+        """
+        res = api.Command['cert_find'](all=True)
+        assert 'count' in res and res['count'] >= 10
+
     def test_99999_cleanup(self):
         """
         Clean up cert test data
@@ -283,7 +293,7 @@ class test_cert_find(XMLRPC_test):
 
     short = api.env.host.split('.', maxsplit=1)[0]
 
-    def test_0001_find_all(self):
+    def test_0001_find_all_certs(self):
         """
         Search for all certificates.
 
