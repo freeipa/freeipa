@@ -412,7 +412,6 @@ BuildRequires:  python3-pylint
 BuildRequires:  python3-pytest-multihost
 BuildRequires:  python3-pytest-sourceorder
 BuildRequires:  python3-qrcode-core >= 5.0.0
-BuildRequires:  python3-pyOpenSSL
 BuildRequires:  python3-samba
 BuildRequires:  python3-six
 BuildRequires:  python3-sss
@@ -887,7 +886,6 @@ Requires: python3-netifaces >= 0.10.4
 Requires: python3-pyasn1 >= 0.3.2-2
 Requires: python3-pyasn1-modules >= 0.3.2-2
 Requires: python3-pyusb
-Requires: python3-pyOpenSSL
 Requires: python3-qrcode-core >= 5.0.0
 Requires: python3-requests
 Requires: python3-six
