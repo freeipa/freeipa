@@ -1795,7 +1795,8 @@ class cert_find(Search, CertMethod):
         ca_enabled = getattr(context, 'ca_enabled')
         for entry in entries:
             for attr in ('usercertificate', 'usercertificate;binary'):
-                for cert in entry.get(attr, []):
+                for der in entry.raw.get(attr, []):
+                    cert = cryptography.x509.load_der_x509_certificate(der)
                     cert_key = self._get_cert_key(cert)
                     try:
                         obj = result[cert_key]
