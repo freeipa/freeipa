@@ -504,8 +504,9 @@ class TestUpdate(XMLRPC_test):
             updates=dict(rename=invaliduser1)
         )
         with raises_exact(errors.ValidationError(
-                name='rename',
-                error=ERRMSG_GROUPUSER_NAME.format('user'))):
+            name='rename',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
             command()
 
     def test_rename_setattr_to_numeric_only_username(self, user):
@@ -519,6 +520,19 @@ class TestUpdate(XMLRPC_test):
             error=ERRMSG_GROUPUSER_NAME.format('user'),
         )):
             command()
+
+    def test_rename_to_numeric_only_username(self, user):
+        """ Try to change user name to name containing only numeric chars"""
+        user.ensure_exists()
+        command = user.make_update_command(
+            updates=dict(rename=invaliduser3)
+        )
+        with raises_exact(errors.ValidationError(
+            name='rename',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
+            command()
+
 
     def test_add_radius_username(self, user):
         """ Test for ticket 7569: Try to add --radius-username """
@@ -570,8 +584,9 @@ class TestCreate(XMLRPC_test):
         )
         command = testuser.make_create_command()
         with raises_exact(errors.ValidationError(
-                name=u'login',
-                error=ERRMSG_GROUPUSER_NAME.format('user'))):
+            name=u'login',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
             command()
 
     def test_create_with_too_long_login(self):
@@ -741,11 +756,11 @@ class TestCreate(XMLRPC_test):
     def test_create_with_numeric_only_username(self):
         """Try to create a user with name only contains numeric chars"""
         testuser = UserTracker(
-            name=u'1234', givenname=u'NumFirst1234', sn=u'NumSurname1234',
+            name=invaliduser3, givenname=u'NumFirst1234', sn=u'NumSurname1234',
         )
         with raises_exact(errors.ValidationError(
-                name=u'login',
-                error=ERRMSG_GROUPUSER_NAME.format('user'),
+            name=u'login',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
         )):
             testuser.create()
 

@@ -41,6 +41,7 @@ invalidrealm2 = u'suser1@BAD@NOTFOUND.ORG'
 
 invaliduser1 = u'+tuser1'
 invaliduser2 = u'tuser1234567890123456789012345678901234567890'
+invaliduser3 = u'1234'
 
 sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
@@ -358,7 +359,18 @@ class TestCreateInvalidAttributes(XMLRPC_test):
         command = invalid.make_create_command()
         with raises_exact(errors.ValidationError(
             name='login',
-                error=ERRMSG_GROUPUSER_NAME.format('user'))):
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
+            command()
+
+    def test_create_numeric_only_uid(self):
+        invalid = StageUserTracker(invaliduser3, u'NumFirst1234',
+                                   u'NumSurname1234')
+        command = invalid.make_create_command()
+        with raises_exact(errors.ValidationError(
+            name='login',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
             command()
 
     def test_create_long_uid(self):
