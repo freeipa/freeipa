@@ -183,10 +183,10 @@ class TestGroup(XMLRPC_test):
         testgroup.create()
         testgroup.delete()
 
-    def test_create_with_numeric_only_group_name(self):
+    def test_create_with_numeric_only_groupname(self):
         """Try to create a group with name only contains numeric chars"""
         testgroup = GroupTracker(
-            name=u'1234', description=u'Numeric only group name',
+            name=invalidgroup2, description=u'Numeric only group name',
         )
         with raises_exact(errors.ValidationError(
             name='group_name',
@@ -205,6 +205,17 @@ class TestGroup(XMLRPC_test):
         )):
             command()
 
+    def test_rename_to_invalid_groupname(self, group):
+        """ Try to rename group using an invalid name """
+        group.ensure_exists()
+        command = group.make_update_command(
+            updates=dict(rename=invalidgroup1))
+        with raises_exact(errors.ValidationError(
+            name='rename',
+            error=ERRMSG_GROUPUSER_NAME.format('group'),
+        )):
+            command()
+
     def test_rename_setattr_to_numeric_only_groupname(self, group):
         """ Try to rename using an invalid numeric only name  with setattr"""
         group.ensure_exists()
@@ -216,6 +227,16 @@ class TestGroup(XMLRPC_test):
         )):
             command()
 
+    def test_rename_to_numeric_only_groupname(self, group):
+        """ Try to rename group using an invalid numeric only name """
+        group.ensure_exists()
+        command = group.make_update_command(
+            updates=dict(rename=invalidgroup2))
+        with raises_exact(errors.ValidationError(
+            name='rename',
+            error=ERRMSG_GROUPUSER_NAME.format('group'),
+        )):
+            command()
 
 @pytest.mark.tier1
 class TestFindGroup(XMLRPC_test):
