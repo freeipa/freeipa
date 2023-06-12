@@ -663,3 +663,7 @@ class KrbInstance(service.Service):
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.uninstall()
+
+        ipautil.remove_file(paths.KRB5_KEYTAB)
+        ipautil.remove_file(paths.KRB5_FREEIPA)
+        ipautil.remove_file(paths.KRB5_FREEIPA_SERVER)

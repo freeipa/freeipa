@@ -1347,5 +1347,16 @@ class BindInstance(service.Service):
         ipautil.remove_file(paths.NAMED_CONF_BAK)
         ipautil.remove_file(paths.NAMED_CUSTOM_CONF)
         ipautil.remove_file(paths.NAMED_CUSTOM_OPTIONS_CONF)
+        ipautil.remove_file(paths.NAMED_LOGGING_OPTIONS_CONF)
+        ipautil.remove_file(paths.RNDC_KEY)
+        ipautil.remove_file(
+            os.path.join(paths.NAMED_VAR_DIR, "_default.tsigkeys")
+        )
+        try:
+            while self.fstore.restore_file(self.keytab):
+                pass
+        except ValueError:
+            pass
         ipautil.remove_keytab(self.keytab)
+
         ipautil.remove_ccache(run_as=self.service_user)
