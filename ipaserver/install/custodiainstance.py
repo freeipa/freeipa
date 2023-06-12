@@ -147,6 +147,7 @@ class CustodiaInstance(SimpleServiceInstance):
         })
         keystore.remove_server_keys_file()
         ipautil.remove_file(self.config_file)
+        ipautil.remove_file(paths.IPA_CUSTODIA_SOCKET)
         sysupgrade.set_upgrade_state('custodia', 'installed', False)
 
     def __gen_keys(self):
