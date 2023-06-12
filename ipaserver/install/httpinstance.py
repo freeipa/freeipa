@@ -23,7 +23,6 @@ from __future__ import absolute_import
 import logging
 import os
 import glob
-import errno
 import shlex
 import shutil
 import tempfile
@@ -571,14 +570,13 @@ class HTTPInstance(service.Service):
         for filename in remove_files:
             ipautil.remove_file(filename)
 
-        try:
-            os.rmdir(paths.SYSTEMD_SYSTEM_HTTPD_D_DIR)
-        except OSError as e:
-            if e.errno not in {errno.ENOENT, errno.ENOTEMPTY}:
-                logger.error(
-                    "Failed to remove directory %s",
-                    paths.SYSTEMD_SYSTEM_HTTPD_D_DIR
-                )
+        ipautil.remove_file(paths.HTTPD_NSS_CONF, only_if_empty=True)
+
+        for d in (
+            paths.SYSTEMD_SYSTEM_HTTPD_D_DIR,
+            paths.HTTPD_ALIAS_DIR
+        ):
+            ipautil.remove_directory(d)
 
         # Restore SELinux boolean states
         boolean_states = {name: self.restore_state(name)
@@ -594,6 +592,14 @@ class HTTPInstance(service.Service):
         # disabled by default, by ldap_configure()
         if enabled:
             self.enable()
+
+        ipautil.run(
+            [paths.SYSTEMCTL, 'disable', 'ipa-ccache-sweep.timer']
+        )
+        ipautil.remove_file(paths.IPA_CCACHE_SWEEPER_GSSPROXY_SOCK)
+
+        for filename in os.listdir(paths.IPA_CCACHES):
+            ipautil.remove_file(os.path.join(paths.IPA_CCACHES, filename))
 
     def stop_tracking_certificates(self):
         try:

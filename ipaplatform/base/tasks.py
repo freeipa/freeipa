@@ -369,6 +369,7 @@ class BaseTaskNamespace:
 
             os.unlink(paths.SYSTEMD_RESOLVED_IPA_CONF)
             knownservices["systemd-resolved"].reload_or_restart()
+            ipautil.remove_directory(paths.SYSTEMD_RESOLVED_CONF_DIR)
 
     def configure_pkcs11_modules(self, fstore):
         """Disable p11-kit modules

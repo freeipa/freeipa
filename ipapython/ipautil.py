@@ -1658,15 +1658,31 @@ def remove_ccache(ccache_path=None, run_as=None):
             "Failed to clear Kerberos credentials cache: %s", e)
 
 
-def remove_file(filename):
+def remove_file(filename, only_if_empty=False):
     """Remove a file and log any exceptions raised.
+
+       :only_if_empty: only remove the file if empty. Default False.
     """
+    if only_if_empty and os.path.exists(filename):
+        file_stat = os.stat(filename)
+        if file_stat.st_size > 0:
+            logger.debug('%s is not empty.', filename)
+            return
     try:
         os.unlink(filename)
     except Exception as e:
         # ignore missing file
         if getattr(e, 'errno', None) != errno.ENOENT:
             logger.error('Error removing %s: %s', filename, str(e))
+
+
+def remove_directory(dir):
+    """Remove an empty directory."""
+    try:
+        os.rmdir(dir)
+    except OSError as e:
+        if e.errno not in {errno.ENOENT, errno.ENOTEMPTY}:
+            logger.error("Failed to remove directory %s", dir)
 
 
 def rmtree(path):
