@@ -511,6 +511,9 @@ class DNSKeySyncInstance(service.Service):
         # do not delete *so pin*, user can need it to get token data
         ipautil.remove_file(paths.DNSSEC_SOFTHSM_PIN)
         ipautil.remove_file(paths.DNSSEC_SOFTHSM2_CONF)
+        ipautil.remove_file(paths.DNSSEC_OPENSSL_CONF)
+
+        ipautil.rmtree(paths.IPA_DNSSEC_DIR)
 
         try:
             shutil.rmtree(paths.DNSSEC_TOKENS_DIR)
