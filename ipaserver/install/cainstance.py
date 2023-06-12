@@ -1112,6 +1112,9 @@ class CAInstance(DogtagInstance):
                 logger.warning("Error while removing CRL publish "
                                "directory: %s", e)
 
+        ipautil.remove_file(paths.DOGTAG_ADMIN_P12)
+        ipautil.remove_file(paths.CACERT_P12)
+
     def unconfigure_certmonger_renewal_guard(self):
         if not self.is_configured():
             return

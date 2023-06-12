@@ -1326,6 +1326,9 @@ def uninstall(installer):
             logger.warning("Failed to remove file %s: %s",
                            paths.IPA_RENEWAL_LOCK, e)
 
+    ipautil.remove_file(paths.SVC_LIST_FILE)
+    ipautil.rmtree('/root/.cache/ipa')
+
     print("Removing IPA client configuration")
     try:
         result = run([paths.IPA_CLIENT_INSTALL, "--on-master",

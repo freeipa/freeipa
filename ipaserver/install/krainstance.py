@@ -79,6 +79,11 @@ class KRAInstance(DogtagInstance):
             config=paths.KRA_CS_CFG_PATH,
         )
 
+    def uninstall(self):
+        DogtagInstance.uninstall(self)
+
+        ipautil.remove_file(paths.KRACERT_P12)
+
     def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, pkcs12_info=None, master_host=None,
                            subject_base=None, ca_subject=None,
