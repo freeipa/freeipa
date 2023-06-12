@@ -3455,7 +3455,7 @@ def uninstall(options):
         # - sssd was removed after install and before uninstall
         # - there are no active domains
         # in both cases we cannot continue with SSSD
-        pass
+        all_domains = []
 
     if hostname is None:
         hostname = FQDN
@@ -3514,7 +3514,9 @@ def uninstall(options):
         if result.returncode != 0:
             logger.error("Unenrolling host failed: %s", result.error_log)
 
-    if os.path.exists(paths.IPA_DEFAULT_CONF):
+    if os.path.exists(paths.IPA_DEFAULT_CONF) and os.path.exists(
+        paths.KRB5_KEYTAB
+    ):
         logger.info(
             "Removing Kerberos service principals from /etc/krb5.keytab")
         try:
@@ -3566,6 +3568,18 @@ def uninstall(options):
     # Clean up the SSSD cache before SSSD service is stopped or restarted
     remove_file(paths.SSSD_MC_GROUP)
     remove_file(paths.SSSD_MC_PASSWD)
+    remove_file(paths.SSSD_MC_INITGROUPS)
+    remove_file(paths.SSSD_MC_SID)
+
+    for root, _dirs, files in os.walk(paths.SSSD_PIPES):
+        for file in files:
+            remove_file(os.path.join(root, file))
+
+    for domain in all_domains:
+        name = f"domain_realm_{domain.replace('.', '_')}"
+        filename = os.path.join(paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR, name)
+        if os.path.exists(filename):
+            remove_file(filename)
 
     if was_sssd_installed:
         try:
@@ -3584,6 +3598,14 @@ def uninstall(options):
         sssd_domain_ccache = "ccache_" + ipa_domain.upper()
         sssd_ccache_file = os.path.join(paths.SSSD_DB, sssd_domain_ccache)
         remove_file(sssd_ccache_file)
+
+        remove_file(paths.SSSD_LDB)
+        remove_file(paths.SSSD_CONFIG_LDB)
+        remove_file(paths.SSSD_SECRETS)
+
+        sssd_timestamps = "timestamps_" + ipa_domain + ".ldb"
+        sssd_timestamps_file = os.path.join(paths.SSSD_DB, sssd_timestamps)
+        remove_file(sssd_timestamps_file)
 
     # Next if-elif-elif construction deals with sssd.conf file.
     # Old pre-IPA domains are preserved due merging the old sssd.conf
@@ -3745,6 +3767,7 @@ def uninstall(options):
 
     # Remove the IPA configuration file
     remove_file(paths.IPA_DEFAULT_CONF)
+    remove_file(paths.IPA_DEFAULT_CONF + '.ipabkp')
 
     # Remove misc backups
     remove_file(paths.OPENLDAP_LDAP_CONF + '.ipabkp')

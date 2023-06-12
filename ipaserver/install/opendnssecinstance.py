@@ -365,3 +365,5 @@ class OpenDNSSECInstance(service.Service):
 
         if running:
             self.restart()
+
+        ipautil.remove_file(paths.DNSSEC_ENGINE_SOCK)

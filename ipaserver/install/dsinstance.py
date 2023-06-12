@@ -1103,6 +1103,11 @@ class DsInstance(service.Service):
             except ipautil.CalledProcessError:
                 logger.error("Failed to remove DS instance. You may "
                              "need to remove instance data manually")
+            destfile = paths.SLAPD_INSTANCE_SYSTEMD_IPA_ENV_TEMPLATE % (
+                serverid
+            )
+            ipautil.remove_file(destfile)
+            ipautil.remove_directory(os.path.dirname(destfile))
 
         else:
             logger.error("Failed to remove DS instance. No serverid present "
