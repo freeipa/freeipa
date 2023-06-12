@@ -12,6 +12,7 @@ pieces if possible.
 
 from __future__ import absolute_import
 
+from difflib import unified_diff
 import os
 
 from ipatests.test_integration.base import IntegrationTest
@@ -137,3 +138,82 @@ class TestUninstallWithoutDNS(IntegrationTest):
         related: https://pagure.io/freeipa/issue/8630
         """
         tasks.uninstall_master(self.master)
+
+
+class TestUninstallCleanup(IntegrationTest):
+    """Test installer hostname validator."""
+
+    num_replicas = 0
+    before = None
+    after = None
+
+    @classmethod
+    def install(cls, mh):
+        # These create files on first start
+        for svc in ('certmonger', 'sssd',):
+            cls.master.run_command(['systemctl', 'start', svc])
+        cls.before = cls.master.run_command(
+            "find /etc/ /run/ /var/ /root/ -mount | sort"
+        ).stdout_text.split('\n')
+        tasks.install_master(cls.master, setup_dns=True,
+                             setup_kra=True)
+        tasks.install_dns(
+            cls.master,
+            extra_args=['--dnssec-master', '--no-dnssec-validation']
+        )
+
+    @classmethod
+    def uninstall(cls, mh):
+        pass
+
+    def test_clean_uninstall(self):
+        tasks.uninstall_master(self.master)
+        self.after = self.master.run_command(
+            "find /etc/ /run/ /var/ /root/ -mount | sort"
+        ).stdout_text.split('\n')
+
+        diff = unified_diff(self.before, self.after,
+                            fromfile='before', tofile='after')
+        ALLOW_LIST = [
+            '/var/log',
+            '/var/tmp/systemd-private',
+            '/run/systemd',
+            '/var/lib/authselect/backups/pre_ipaclient',
+            '/var/named/data/named.run',
+            paths.DNSSEC_SOFTHSM_PIN_SO,  # See commit eb54814741
+            '/etc/selinux/targeted/contexts/files/file_contexts.local.bin',
+            paths.SSSD_CONF_DELETED,  # See commit dd72ed6212
+            '/root/.cache',
+            '/root/.dogtag',
+            '/root/.local',
+            '/run/dirsrv',
+            '/run/lock/dirsrv',
+            '/var/lib/authselect/backups',
+            '/var/lib/gssproxy/rcache/krb5_0.rcache2',
+            '/var/lib/ipa/ipa-kasp.db.backup',
+            '/var/lib/selinux/targeted/active/booleans.local',
+            '/var/lib/selinux/targeted/active/file_contexts.local',
+            '/var/lib/sss/pubconf/krb5.include.d/krb5_libdefaults',
+            '/var/lib/sss/pubconf/krb5.include.d/localauth_plugin',
+            '/var/named/dynamic/managed-keys.bind',
+            '/var/named/dynamic/managed-keys.bind.jnl',
+        ]
+
+        leftovers = []
+        for line in diff:
+            line = line.strip()
+            if line.startswith('+'):
+                if line.endswith('log'):
+                    continue
+                if line.startswith('+++ after'):
+                    continue
+                found = False
+                for s in ALLOW_LIST:
+                    if s in line:
+                        found = True
+                        break
+                if found:
+                    continue
+                leftovers.append(line)
+
+        assert len(leftovers) == 0
