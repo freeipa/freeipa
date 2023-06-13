@@ -1812,7 +1812,6 @@ class cert_find(Search, CertMethod):
                             # For the case of CA-less we need to keep
                             # the certificate because getting it again later
                             # would require unnecessary LDAP searches.
-                            cert = cert.to_cryptography()
                             obj['certificate'] = (
                                 base64.b64encode(
                                     cert.public_bytes(x509.Encoding.DER))
