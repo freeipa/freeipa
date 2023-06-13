@@ -23,7 +23,7 @@ import binascii
 import errno
 import logging
 import time
-import datetime
+from datetime import datetime
 from decimal import Decimal
 from copy import deepcopy
 import contextlib
@@ -689,11 +689,12 @@ class LDAPClient:
         '1.3.6.1.4.1.1466.115.121.1.10'  : bytes, # Certificate Pair
         '1.3.6.1.4.1.1466.115.121.1.12'  : DN,  # Distinguished Name
         '1.3.6.1.4.1.1466.115.121.1.23'  : bytes, # Fax
-        '1.3.6.1.4.1.1466.115.121.1.24'  : datetime.datetime,
+        '1.3.6.1.4.1.1466.115.121.1.24'  : datetime,  # GeneralizedTime
         '1.3.6.1.4.1.1466.115.121.1.28'  : bytes, # JPEG
         '1.3.6.1.4.1.1466.115.121.1.40'  : bytes, # OctetString (same as Binary)
         '1.3.6.1.4.1.1466.115.121.1.49'  : bytes, # Supported Algorithm
         '1.3.6.1.4.1.1466.115.121.1.51'  : bytes, # Teletext Terminal Identifier
+        '1.3.6.1.4.1.5322.21.2.5'        : datetime,  # krbLastAdminUnlock
 
         '2.16.840.1.113730.3.8.3.3'      : DN,  # enrolledBy
         '2.16.840.1.113730.3.8.3.18'     : DN,  # managedBy
@@ -706,16 +707,23 @@ class LDAPClient:
         '2.16.840.1.113730.3.8.7.1'      : DN,  # memberAllowCmd
         '2.16.840.1.113730.3.8.7.2'      : DN,  # memberDenyCmd
 
+        '2.16.840.1.113719.1.301.4.6.1'  : datetime,  # krbPrincipalExpiration
         '2.16.840.1.113719.1.301.4.14.1' : DN,  # krbRealmReferences
         '2.16.840.1.113719.1.301.4.17.1' : DN,  # krbKdcServers
         '2.16.840.1.113719.1.301.4.18.1' : DN,  # krbPwdServers
         '2.16.840.1.113719.1.301.4.26.1' : DN,  # krbPrincipalReferences
         '2.16.840.1.113719.1.301.4.29.1' : DN,  # krbAdmServers
         '2.16.840.1.113719.1.301.4.36.1' : DN,  # krbPwdPolicyReference
+        '2.16.840.1.113719.1.301.4.37.1' : datetime,  # krbPasswordExpiration
         '2.16.840.1.113719.1.301.4.40.1' : DN,  # krbTicketPolicyReference
         '2.16.840.1.113719.1.301.4.41.1' : DN,  # krbSubTrees
+        '2.16.840.1.113719.1.301.4.45.1' : datetime,  # krbLastPwdChange
+        '2.16.840.1.113719.1.301.4.48.1' : datetime,  # krbLastSuccessfulAuth
+        '2.16.840.1.113719.1.301.4.49.1' : datetime,  # krbLastFailedAuth
         '2.16.840.1.113719.1.301.4.52.1' : DN,  # krbObjectReferences
         '2.16.840.1.113719.1.301.4.53.1' : DN,  # krbPrincContainerRef
+        '2.16.840.1.113730.3.8.16.1.3'   : datetime,  # ipatokenNotBefore
+        '2.16.840.1.113730.3.8.16.1.4'   : datetime,  # ipatokenNotAfter
     }
 
     # In most cases we lookup the syntax from the schema returned by
@@ -990,7 +998,7 @@ class LDAPClient:
             # key in dict must be str not bytes
             dct = dict((k, self.encode(v)) for k, v in val.items())
             return dct
-        elif isinstance(val, datetime.datetime):
+        elif isinstance(val, datetime):
             return val.strftime(LDAP_GENERALIZED_TIME_FORMAT).encode('utf-8')
         elif isinstance(val, crypto_x509.Certificate):
             return val.public_bytes(x509.Encoding.DER)
@@ -1012,8 +1020,8 @@ class LDAPClient:
                     return val.decode('utf-8')
                 elif target_type is bool:
                     return val.decode('utf-8') == 'TRUE'
-                elif target_type is datetime.datetime:
-                    return datetime.datetime.strptime(
+                elif target_type is datetime:
+                    return datetime.strptime(
                         val.decode('utf-8'), LDAP_GENERALIZED_TIME_FORMAT)
                 elif target_type is DNSName:
                     return DNSName.from_text(val.decode('utf-8'))
@@ -1372,6 +1380,10 @@ class LDAPClient:
                 # value[-2:0] is empty string for the initial '\\'
                 value = u'\\'.join(
                     value[i:i+2] for i in six.moves.range(-2, len(value), 2))
+            elif isinstance(value, datetime):
+                value = value.strftime(
+                    LDAP_GENERALIZED_TIME_FORMAT)
+                value = ldap.filter.escape_filter_chars(value)
             else:
                 value = str(value)
                 value = ldap.filter.escape_filter_chars(value)
