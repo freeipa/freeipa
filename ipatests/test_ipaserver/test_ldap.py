@@ -27,6 +27,7 @@
 
 from __future__ import absolute_import
 
+from datetime import datetime, timedelta
 import os
 import sys
 
@@ -139,6 +140,28 @@ class test_ldap:
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')[0]
         assert cert.serial_number is not None
+
+    def test_generalized_time(self):
+        """
+        Test that LDAP generalized time is converted to/from datetime
+        """
+        self.conn = ldap2(api)
+        try:
+            self.conn.connect(autobind=True)
+        except errors.ACIError:
+            pytest.skip("Only executed as root")
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect()
+        newdate = datetime.now() + timedelta(days=365)
+        lastdate = api.Backend.ldap2.encode(newdate).decode('utf-8')
+        api.Command["user_mod"](
+            "admin",
+            **dict(setattr=("krbprincipalexpiration=%s" % lastdate))
+        )
+        result = api.Command["user_find"](
+            **dict(krbprincipalexpiration=lastdate)
+        )
+        assert result['count'] == 1
 
 
 @pytest.mark.tier0
