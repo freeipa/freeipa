@@ -10,6 +10,7 @@ import pytest
 
 from ipalib.constants import IPA_CA_RECORD
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipatests.test_integration.test_random_serial_numbers import (
@@ -84,6 +85,9 @@ def prepare_acme_client(master, client):
     # cache the acme service uri
     acme_host = f'{IPA_CA_RECORD}.{master.domain.name}'
     acme_server = f'https://{acme_host}/acme/directory'
+
+    # enable firewall rule on client
+    Firewall(client).enable_services(["http", "https"])
 
     # install acme client packages
     if not skip_certbot_tests:
