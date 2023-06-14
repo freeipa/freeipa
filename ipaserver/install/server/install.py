@@ -1110,6 +1110,7 @@ def uninstall_check(installer):
             raise ScriptError("Aborting uninstall operation.")
 
     kra.uninstall_check(options)
+    ca.uninstall_check(options)
 
     try:
         api.Backend.ldap2.connect(autobind=True)
@@ -1132,7 +1133,7 @@ def uninstall_check(installer):
     else:
         dns.uninstall_check(options)
 
-        ca.uninstall_check(options)
+        ca.uninstall_crl_check(options)
 
         cleanup_dogtag_server_specific_data()
 
@@ -1181,6 +1182,9 @@ def uninstall(installer):
     # Uninstall the KRA prior to shutting the services down so it
     # can un-register with the CA.
     kra.uninstall()
+    # Uninstall the CA priori to shutting the services down so it
+    # can unregister from the security domain
+    ca.uninstall()
 
     print("Shutting down all IPA services")
     try:
@@ -1193,8 +1197,6 @@ def uninstall(installer):
             pass
 
     restore_time_sync(sstore, fstore)
-
-    ca.uninstall()
 
     dns.uninstall()
 
