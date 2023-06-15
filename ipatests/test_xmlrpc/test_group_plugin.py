@@ -39,6 +39,7 @@ from ipatests.util import assert_deepequal, get_group_dn
 notagroup = u'notagroup'
 renamedgroup1 = u'renamedgroup'
 invalidgroup1 = u'+tgroup1'
+invalidgroup2 = u'1234'
 external_sid1 = u'S-1-1-123456-789-1'
 
 
@@ -192,6 +193,28 @@ class TestGroup(XMLRPC_test):
             error=ERRMSG_GROUPUSER_NAME.format('group'),
         )):
             testgroup.create()
+
+    def test_rename_setattr_to_invalid_groupname(self, group):
+        """ Try to rename group using an invalid name with settatr cn= """
+        group.ensure_exists()
+        command = group.make_update_command(
+            updates=dict(setattr='cn=%s' % invalidgroup1))
+        with raises_exact(errors.ValidationError(
+            name='cn',
+            error=ERRMSG_GROUPUSER_NAME.format('group'),
+        )):
+            command()
+
+    def test_rename_setattr_to_numeric_only_groupname(self, group):
+        """ Try to rename using an invalid numeric only name  with setattr"""
+        group.ensure_exists()
+        command = group.make_update_command(
+            updates=dict(setattr='cn=%s' % invalidgroup2))
+        with raises_exact(errors.ValidationError(
+            name='cn',
+            error=ERRMSG_GROUPUSER_NAME.format('group'),
+        )):
+            command()
 
 
 @pytest.mark.tier1
