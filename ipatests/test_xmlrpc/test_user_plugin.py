@@ -53,6 +53,7 @@ admin_group = u'admins'
 
 invaliduser1 = u'+tuser1'
 invaliduser2 = u''.join(['a' for n in range(256)])
+invaliduser3 = u'1234'
 
 sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
@@ -505,6 +506,18 @@ class TestUpdate(XMLRPC_test):
         with raises_exact(errors.ValidationError(
                 name='rename',
                 error=ERRMSG_GROUPUSER_NAME.format('user'))):
+            command()
+
+    def test_rename_setattr_to_numeric_only_username(self, user):
+        """ Try to change name to name with only numeric chars with setattr"""
+        user.ensure_exists()
+        command = user.make_update_command(
+            updates=dict(setattr='uid=%s' % invaliduser3)
+        )
+        with raises_exact(errors.ValidationError(
+            name='uid',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
             command()
 
     def test_add_radius_username(self, user):
