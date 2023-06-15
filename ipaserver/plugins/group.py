@@ -21,6 +21,7 @@
 import six
 
 import logging
+import re
 
 from ipalib import api
 from ipalib import Int, Str, Flag
@@ -468,6 +469,8 @@ class group_mod(LDAPUpdate):
         ),
     )
 
+    NAME_PATTERN = re.compile(PATTERN_GROUPUSER_NAME)
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
 
@@ -477,6 +480,13 @@ class group_mod(LDAPUpdate):
             if is_protected_group:
                 raise errors.ProtectedEntryError(label=u'group', key=keys[-1],
                     reason=u'Cannot be renamed')
+
+        if 'cn' in entry_attrs:
+            # Check the pattern if the group is renamed
+            if self.NAME_PATTERN.match(entry_attrs.single_value['cn']) is None:
+                raise errors.ValidationError(
+                    name='cn',
+                    error=ERRMSG_GROUPUSER_NAME.format('group'))
 
         if ('posix' in options and options['posix']) or 'gidnumber' in options:
             old_entry_attrs = ldap.get_entry(dn, ['objectclass'])
