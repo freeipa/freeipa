@@ -636,6 +636,8 @@ class baseuser_mod(LDAPUpdate):
     """
     Prototype command plugin to be implemented by real plugin
     """
+    NAME_PATTERN = re.compile(constants.PATTERN_GROUPUSER_NAME)
+
     def check_namelength(self, ldap, **options):
         if options.get('rename') is not None:
             config = ldap.get_ipa_config()
@@ -647,6 +649,14 @@ class baseuser_mod(LDAPUpdate):
                             len = int(config.get('ipamaxusernamelength')[0])
                         )
                     )
+
+    def check_name(self, entry_attrs):
+        if 'uid' in entry_attrs:
+            # Check the pattern if the user is renamed
+            if self.NAME_PATTERN.match(entry_attrs.single_value['uid']) is None:
+                raise errors.ValidationError(
+                    name='uid',
+                    error=constants.ERRMSG_GROUPUSER_NAME.format('user'))
 
     def preserve_krbprincipalname_pre(self, ldap, entry_attrs, *keys, **options):
         """
@@ -763,6 +773,7 @@ class baseuser_mod(LDAPUpdate):
         add_sshpubkey_to_attrs_pre(self.context, attrs_list)
 
         self.check_namelength(ldap, **options)
+        self.check_name(entry_attrs)
 
         self.check_mail(entry_attrs)
 
