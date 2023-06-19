@@ -23,8 +23,10 @@ import pytest
 
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+from ipaserver.install.replication import EXCLUDES
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration.test_topology import find_segment
 
 
 def check_replication(source_host, dest_host, login):
@@ -103,6 +105,34 @@ class TestSimpleReplication(IntegrationTest):
         replica.run_command(
             [paths.IPA_CUSTODIA_CHECK, self.master.hostname]
         )
+
+    def test_fix_agreements(self):
+        """Test that upgrade fixes the list of attributes excluded from repl
+
+        Test for ticket 9385
+        """
+        # Prepare the server by removing some values from
+        # from the nsDS5ReplicatedAttributeList
+        segment = find_segment(self.master, self.replicas[0], "domain")
+        self.master.run_command([
+            "ipa", "topologysegment-mod", "domain", segment,
+            "--replattrs",
+            "(objectclass=*) $ EXCLUDE memberof idnssoaserial entryusn"])
+        # Run the upgrade
+        result = self.master.run_command(["ipa-server-upgrade"])
+        # Ensure that the upgrade updated the attribute without error
+        errmsg = "Error caught updating nsDS5ReplicatedAttributeList"
+        assert errmsg not in result.stdout_text
+        # Check the updated value
+        suffix = DN(self.master.domain.basedn)
+        dn = DN(('cn', str(suffix)), ('cn', 'mapping tree'), ('cn', 'config'))
+        result = tasks.ldapsearch_dm(self.master, str(dn),
+                                     ["nsDS5ReplicatedAttributeList"])
+        output = result.stdout_text.lower()
+
+        template = 'nsDS5ReplicatedAttributeList: (objectclass=*) $ EXCLUDE %s'
+        expected_value = template % " ".join(EXCLUDES)
+        assert expected_value.lower() in output
 
     def test_replica_removal(self):
         """Test replica removal"""
