@@ -455,3 +455,25 @@ class TestUpgrade(IntegrationTest):
             assert 'tXTRecord' in location_krb_rec
             assert len(location_krb_rec['tXTRecord']) == 1
             assert location_krb_rec['tXTRecord'][0] == f'"{realm}"'
+
+    def test_pki_dropin_file(self):
+        """Test that upgrade adds the drop-in file if missing
+
+        Test for ticket 9381
+        Simulate an update from a version that didn't provide
+        /etc/systemd/system/pki-tomcatd@pki-tomcat.service.d/ipa.conf,
+        remove one of the certificate profiles from LDAP and check that upgrade
+        completes successfully and adds the missing file.
+        When the drop-in file is missing, the upgrade tries to login to
+        PKI in order to migrate the profile and fails because PKI failed to
+        start.
+        """
+        self.master.run_command(["rm", "-f", paths.SYSTEMD_PKI_TOMCAT_IPA_CONF])
+        ldif = textwrap.dedent("""
+             dn: cn=caECServerCertWithSCT,ou=certificateProfiles,ou=ca,o=ipaca
+             changetype: delete
+             """)
+        tasks.ldapmodify_dm(self.master, ldif)
+        self.master.run_command(['ipa-server-upgrade'])
+        assert self.master.transport.file_exists(
+            paths.SYSTEMD_PKI_TOMCAT_IPA_CONF)
