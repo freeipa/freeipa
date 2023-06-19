@@ -1742,6 +1742,10 @@ def upgrade_configuration():
                      os.path.join(paths.USR_SHARE_IPA_DIR,
                                   "ipa-kdc-proxy.conf.template"))
         if ca.is_configured():
+            # Ensure that the drop-in file is present
+            if not os.path.isfile(paths.SYSTEMD_PKI_TOMCAT_IPA_CONF):
+                ca.add_ipa_wait()
+
             # Handle upgrade of AJP connector configuration
             rewrite = ca.secure_ajp_connector()
             if ca.ajp_secret:
