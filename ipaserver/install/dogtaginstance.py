@@ -184,7 +184,7 @@ class DogtagInstance(service.Service):
                 ['pki-server', 'subsystem-show', self.subsystem.lower()],
                 capture_output=True)
             # parse the command output
-            return 'Enabled: True' in result.output
+            return 'Enabled: ' in result.output
         except ipautil.CalledProcessError:
             return False
 
