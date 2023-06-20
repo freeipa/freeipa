@@ -34,6 +34,7 @@ import pytest
 try:
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.action_chains import ActionChains
+    from selenium.webdriver.common.by import By
 except ImportError:
     pass
 
@@ -416,3 +417,39 @@ class test_group(UI_driver):
 
         self.delete(user.ENTITY, [user.DATA_MEMBER_MANAGER, user.DATA])
         self.delete(group.ENTITY, [group.DATA2, group.DATA3])
+
+    @screenshot
+    def test_settings_new_columns(self):
+        '''
+        Related: https://pagure.io/freeipa/issue/9390
+        Test that the new columns 'givenname', 'sn' and 'nsaccountlock'
+        are visible when creating new user groups and inspecting its
+        'settings' section.
+        '''
+        self.init_app()
+
+        # Create new user (disabled)
+        self.add_record(user.ENTITY, user.DATA)
+        self.navigate_to_record(user.PKEY)
+        self.disable_action()
+
+        # Create a new user (enabled)
+        self.add_record(user.ENTITY, user.DATA2)
+
+        # Create an empty group
+        self.add_record(group.ENTITY, [group.DATA2])
+
+        # Add created users to the group
+        self.navigate_to_record(group.PKEY2)
+        self.add_associations([user.PKEY, user.PKEY2], facet='member_user')
+
+        # Check if new columns are in the group 'settings' section
+        self.find('givenname', by=By.NAME, strict=True)
+        self.find('sn', by=By.NAME, strict=True)
+        self.find('nsaccountlock', by=By.NAME, strict=True)
+
+        # Assert that 'Status' value correspond with the already-created users
+        # - Disabled user
+        assert "Disabled" == self.get_record_value(user.PKEY, 'nsaccountlock')
+        # - Enabled user
+        assert "Enabled" == self.get_record_value(user.PKEY2, 'nsaccountlock')
