@@ -398,6 +398,7 @@ static struct otp_token **find(const struct otp_config *cfg, const char *user_dn
     }
 
 error:
+    slapi_free_search_results_internal(pb);
     slapi_pblock_destroy(pb);
     return tokens;
 }
