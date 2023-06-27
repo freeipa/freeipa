@@ -2528,9 +2528,7 @@ def install_packages(host, pkgs):
 def download_packages(host, pkgs):
     """Download packages on a remote host.
     :param host: the host where the download takes place
-    :param pkgs: packages to install, provided as a list of strings
-
-    A package can't be downloaded that is already installed.
+    :param pkgs: packages to download, provided as a list of strings
 
     Returns the temporary directory where the packages are.
     The caller is responsible for cleanup.
@@ -2539,14 +2537,11 @@ def download_packages(host, pkgs):
     tmpdir = os.path.join('/tmp', str(uuid.uuid4()))
     # Only supports RHEL 8+ and Fedora for now
     if platform in ('rhel', 'fedora'):
-        install_cmd = ['/usr/bin/dnf', '-y',
-                       '--downloaddir', tmpdir,
-                       '--downloadonly',
-                       'install']
+        download_cmd = ['/usr/bin/dnf', 'download']
     else:
-        raise ValueError('install_packages: unknown platform %s' % platform)
+        raise ValueError('download_packages: unknown platform %s' % platform)
     host.run_command(['mkdir', tmpdir])
-    host.run_command(install_cmd + pkgs)
+    host.run_command(download_cmd + pkgs, cwd=tmpdir)
     return tmpdir
 
 
