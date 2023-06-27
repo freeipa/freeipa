@@ -412,7 +412,7 @@ class automountmap_del(LDAPDelete):
         # delete optional parental connection (direct maps may not have this)
         try:
             entry_attrs = ldap.find_entry_by_attr(
-                'automountinformation', keys[0], 'automount',
+                'automountinformation', keys[1], 'automount',
                 base_dn=DN(self.obj.container_dn, api.env.basedn)
             )
             ldap.delete_entry(entry_attrs)
