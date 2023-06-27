@@ -479,7 +479,32 @@ class test_automount_indirect(AutomountTest):
         with pytest.raises(errors.NotFound):
             api.Command['automountmap_show'](self.locname, self.mapname)
 
-    def test_5_automountlocation_del(self):
+    def test_5_automountmap_add_indirect(self):
+        """
+        Add back the indirect map
+        """
+        res = api.Command['automountmap_add_indirect'](
+            self.locname, self.mapname, **self.map_kw)['result']
+        assert res
+        assert_attr_equal(res, 'automountmapname', self.mapname)
+
+    def test_6_automountmap_del(self):
+        """
+        Remove the indirect map without removing the key first.
+        """
+        res = api.Command['automountmap_del'](
+            self.locname, self.mapname)['result']
+        assert res
+        assert not res['failed']
+
+        # Verify that it is gone
+        with pytest.raises(errors.NotFound):
+            api.Command['automountmap_show'](self.locname, self.mapname)
+
+        # automountlocation-tofiles should succeed if the map was removed
+        api.Command['automountlocation_tofiles'](self.locname)
+
+    def test_7_automountlocation_del(self):
         """
         Remove the location.
         """
