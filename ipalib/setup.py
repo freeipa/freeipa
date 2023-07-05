@@ -42,6 +42,7 @@ if __name__ == '__main__':
             "pyasn1",
             "pyasn1-modules",
             "six",
+            "urllib3",
         ],
         extras_require={
             "install": ["dbus-python"],  # for certmonger and resolve1
