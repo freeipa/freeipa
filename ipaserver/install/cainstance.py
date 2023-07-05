@@ -30,7 +30,6 @@ import dbus
 import os
 import re
 import shutil
-import ssl
 import sys
 import syslog
 import time
@@ -2378,7 +2377,7 @@ def check_ipa_ca_san(cert):
 
     try:
         cert.match_hostname(expect)
-    except ssl.CertificateError:
+    except x509.ssl_match_hostname.CertificateError:
         raise errors.ValidationError(
             name='certificate',
             error='Does not have a \'{}\' SAN'.format(expect)
