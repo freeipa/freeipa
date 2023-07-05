@@ -12,7 +12,6 @@ import os
 import glob
 import shutil
 import fileinput
-import ssl
 import stat
 import sys
 import tempfile
@@ -717,7 +716,7 @@ def http_certificate_ensure_ipa_ca_dnsname(http):
 
     try:
         cert.match_hostname(expect)
-    except ssl.CertificateError:
+    except x509.ssl_match_hostname.CertificateError:
         if certs.is_ipa_issued_cert(api, cert):
             request_id = certmonger.get_request_id(
                 {'cert-file': paths.HTTPD_CERT_FILE})
