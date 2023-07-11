@@ -1,0 +1,9 @@
+policy_module(ipa-luna, 1.0.0)
+
+require {
+    type certmonger_t;
+    type ibm_dt_2_port_t;
+    class tcp_socket name_connect;
+}
+
+allow certmonger_t ibm_dt_2_port_t:tcp_socket name_connect;
