@@ -688,6 +688,7 @@ AC_CONFIG_FILES([
     po/Makefile.in
     po/Makefile.hack
     selinux/Makefile
+    selinux/nfast/Makefile
     util/Makefile
 ])
 
