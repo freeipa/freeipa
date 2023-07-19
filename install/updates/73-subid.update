@@ -16,7 +16,8 @@ default:objectClass: groupofnames
 default:objectClass: nestedgroup
 default:objectClass: top
 default:cn: Subordinate ID Selfservice User
-default:description: User that can self-request subordiante ids
+default:description: User that can self-request subordinate ids
+replace:description: User that can self-request subordiante ids::User that can self-request subordinate ids
 # default: member: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
 
 dn: cn=Subordinate ID Selfservice Users,cn=privileges,cn=pbac,$SUFFIX
