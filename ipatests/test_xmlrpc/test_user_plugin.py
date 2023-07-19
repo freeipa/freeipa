@@ -86,6 +86,8 @@ expired_expiration_string = "1991-12-07T19:54:13Z"
 # Date in ISO format (2013-12-10T12:00:00)
 isodate_re = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
 
+nonexistentidp = 'IdPDoesNotExist'
+
 
 @pytest.fixture(scope='class')
 def user_min(request, xmlrpc_setup):
@@ -543,6 +545,18 @@ class TestUpdate(XMLRPC_test):
         command()
         user.delete()
 
+    def test_update_invalid_idp(self, user):
+        """ Test user-mod --idp with a non-existent idp """
+        user.ensure_exists()
+        command = user.make_update_command(
+            updates=dict(ipaidpconfiglink=nonexistentidp)
+        )
+        with raises_exact(errors.NotFound(
+            reason="External IdP configuration {} not found".format(
+                nonexistentidp)
+        )):
+            command()
+
 
 @pytest.mark.tier1
 class TestCreate(XMLRPC_test):
@@ -770,6 +784,17 @@ class TestCreate(XMLRPC_test):
         result = command()
         user_radius.check_create(result)
         user_radius.delete()
+
+    def test_create_with_invalididp(self):
+        testuser = UserTracker(
+            name='idpuser', givenname='idp', sn='user',
+            ipaidpconfiglink=nonexistentidp
+        )
+        with raises_exact(errors.NotFound(
+            reason="External IdP configuration {} not found".format(
+                nonexistentidp)
+        )):
+            testuser.create()
 
 
 @pytest.mark.tier1
