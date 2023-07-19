@@ -39,6 +39,8 @@ gid = u'456'
 invalidrealm1 = u'suser1@NOTFOUND.ORG'
 invalidrealm2 = u'suser1@BAD@NOTFOUND.ORG'
 
+nonexistentidp = 'IdPDoesNotExist'
+
 invaliduser1 = u'+tuser1'
 invaliduser2 = u'tuser1234567890123456789012345678901234567890'
 invaliduser3 = u'1234'
@@ -431,6 +433,15 @@ class TestCreateInvalidAttributes(XMLRPC_test):
                     invalidrealm2))):
             command()
 
+    def test_create_invalid_idp(self, stageduser):
+        stageduser.ensure_missing()
+        command = stageduser.make_create_command(
+            options={u'ipaidpconfiglink': nonexistentidp})
+        with raises_exact(errors.NotFound(
+                reason="External IdP configuration {} not found".format(
+                    nonexistentidp))):
+            command()
+
 
 @pytest.mark.tier1
 class TestUpdateInvalidAttributes(XMLRPC_test):
@@ -464,6 +475,15 @@ class TestUpdateInvalidAttributes(XMLRPC_test):
             updates={u'gidnumber': u'-123'})
         with raises_exact(errors.ValidationError(
                 message=u'invalid \'gidnumber\': must be at least 1')):
+            command()
+
+    def test_update_invalididp(self, stageduser):
+        stageduser.ensure_exists()
+        command = stageduser.make_update_command(
+            updates={u'ipaidpconfiglink': nonexistentidp})
+        with raises_exact(errors.NotFound(
+                reason="External IdP configuration {} not found".format(
+                    nonexistentidp))):
             command()
 
 
