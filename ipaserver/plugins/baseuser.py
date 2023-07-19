@@ -755,7 +755,11 @@ class baseuser_mod(LDAPUpdate):
                     if 'ipaidpuser' not in obj_classes:
                         entry_attrs['objectclass'].append('ipaidpuser')
 
-                    answer = self.api.Object['idp'].get_dn_if_exists(cl)
+                    try:
+                        answer = self.api.Object['idp'].get_dn_if_exists(cl)
+                    except errors.NotFound:
+                        reason = "External IdP configuration {} not found"
+                        raise errors.NotFound(reason=_(reason).format(cl))
                     entry_attrs['ipaidpconfiglink'] = answer
 
             # Note: we could have used the method add_missing_object_class

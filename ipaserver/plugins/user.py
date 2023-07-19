@@ -649,7 +649,11 @@ class user_add(baseuser_add):
             if 'ipaidpuser' not in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].append('ipaidpuser')
 
-            answer = self.api.Object['idp'].get_dn_if_exists(rcl)
+            try:
+                answer = self.api.Object['idp'].get_dn_if_exists(rcl)
+            except errors.NotFound:
+                reason = "External IdP configuration {} not found"
+                raise errors.NotFound(reason=_(reason).format(rcl))
             entry_attrs['ipaidpconfiglink'] = answer
 
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
