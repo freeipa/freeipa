@@ -177,6 +177,7 @@ corecmd_exec_bin(ipa_helper_t)
 corecmd_exec_shell(ipa_helper_t)
 
 dev_read_urand(ipa_helper_t)
+dev_read_sysfs(ipa_helper_t)
 
 auth_use_nsswitch(ipa_helper_t)
 
@@ -260,6 +261,7 @@ corenet_tcp_connect_kerberos_port(ipa_dnskey_t)
 corenet_tcp_connect_rndc_port(ipa_dnskey_t)
 
 dev_read_rand(ipa_dnskey_t)
+dev_read_sysfs(ipa_dnskey_t)
 
 can_exec(ipa_dnskey_t,ipa_dnskey_exec_t)
 
@@ -321,6 +323,8 @@ auth_use_nsswitch(ipa_ods_exporter_t)
 corecmd_exec_bin(ipa_ods_exporter_t)
 corecmd_exec_shell(ipa_ods_exporter_t)
 
+dev_read_sysfs(ipa_ods_exporter_t)
+
 libs_exec_ldconfig(ipa_ods_exporter_t)
 
 logging_send_syslog_msg(ipa_ods_exporter_t)
@@ -360,7 +364,7 @@ allow ipa_custodia_t self:netlink_route_socket { create_socket_perms nlmsg_read 
 allow ipa_custodia_t self:process execmem;
 allow ipa_custodia_t self:unix_stream_socket create_stream_socket_perms;
 allow ipa_custodia_t self:unix_dgram_socket create_socket_perms;
-allow ipa_custodia_t self:tcp_socket { bind create };
+allow ipa_custodia_t self:tcp_socket { bind create setopt };
 allow ipa_custodia_t self:udp_socket create_socket_perms;
 
 manage_dirs_pattern(ipa_custodia_t,ipa_custodia_log_t,ipa_custodia_log_t)
