@@ -350,6 +350,9 @@ class idp_add(LDAPCreate):
                                 name=self.options[s].cli_name,
                                 error=_('value is missing'))
                     points[k] = template_str(v, elements)
+                elif k in elements:
+                    points[k] = elements[k]
+
             entry_attrs.update(points)
 
     def get_options(self):
