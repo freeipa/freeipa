@@ -606,6 +606,11 @@ def issue_and_expire_acme_cert():
             tasks.kdestroy_all(host)
             tasks.move_date(host, 'stop', '+90days+60minutes')
 
+        # restart ipa services as date moved and wait to get things settle
+        time.sleep(10)
+        master.run_command(['ipactl', 'restart'])
+        time.sleep(10)
+
         tasks.get_kdcinfo(master)
         # Note raiseonerr=False:
         # the assert is located after kdcinfo retrieval.
@@ -626,6 +631,11 @@ def issue_and_expire_acme_cert():
     # move back date
     for host in hosts:
         tasks.move_date(host, 'start', '-90days-60minutes')
+
+    # restart ipa services as date moved and wait to get things settle
+    time.sleep(10)
+    hosts[0].run_command(['ipactl', 'restart'])
+    time.sleep(10)
 
 
 class TestACMERenew(IntegrationTest):
@@ -960,7 +970,7 @@ class TestACMEPrune(IntegrationTest):
         )
         assert f'Number of entries returned {no_of_cert - search_size_limit}'
 
-    def test_prune_config_show(self, issue_and_expire_acme_cert):
+    def test_prune_config_show(self):
         """Test to check config-show command shows set param"""
         if (tasks.get_pki_version(self.master)
            < tasks.parse_version('11.3.0')):
@@ -1001,7 +1011,7 @@ class TestACMEPrune(IntegrationTest):
         assert 'Request Search Time Limit: 0' in result.stdout_text
         assert 'cron Schedule: 0 0 1 * *' in result.stdout_text
 
-    def test_prune_disable(self, issue_and_expire_acme_cert):
+    def test_prune_disable(self):
         """Test prune command throw error after disabling the pruning"""
         if (tasks.get_pki_version(self.master)
            < tasks.parse_version('11.3.0')):
