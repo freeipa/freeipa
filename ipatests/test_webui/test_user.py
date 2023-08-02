@@ -50,8 +50,7 @@ INV_FIRSTNAME = ("invalid 'first': Leading and trailing spaces are "
 FIELD_REQ = 'Required field'
 ERR_INCLUDE = 'may only include letters, numbers, _, -, . and $'
 ERR_MISMATCH = 'Passwords must match'
-ERR_ADMIN_DEL = ('admin cannot be deleted or disabled because it is the last '
-                 'member of group admins')
+ERR_ADMIN_DEL = ('user admin cannot be deleted/modified: privileged user')
 USR_EXIST = 'user with name "{}" already exists'
 ENTRY_EXIST = 'This entry already exists'
 ACTIVE_ERR = 'active user with name "{}" already exists'
