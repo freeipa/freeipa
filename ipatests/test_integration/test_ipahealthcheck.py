@@ -8,7 +8,7 @@ Tests to verify that the ipa-healthcheck scenarios
 from __future__ import absolute_import
 
 from configparser import RawConfigParser, NoOptionError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import json
 import os
 import re
@@ -1547,7 +1547,7 @@ class TestIpaHealthCheck(IntegrationTest):
         tasks.uninstall_replica(self.master, self.replicas[0])
 
         # Store the current date to restore at the end of the test
-        now = datetime.utcnow()
+        now = datetime.now(tz=UTC)
         now_str = datetime.strftime(now, "%Y-%m-%d %H:%M:%S Z")
 
         # Pick a cert to find the upcoming expiration

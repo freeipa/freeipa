@@ -1836,7 +1836,7 @@ class DateTime(Param):
     def _convert_scalar(self, value, index=None):
         if isinstance(value, str):
             if value == u'now':
-                time = datetime.datetime.utcnow()
+                time = datetime.datetime.now(tz=datetime.UTC)
                 return time
             else:
                 for date_format in self.accepted_formats:
