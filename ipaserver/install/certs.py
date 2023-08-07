@@ -740,7 +740,7 @@ class _CrossProcessLock:
         self._do(self._release, owner)
 
     def _acquire(self, owner):
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(tz=datetime.UTC)
 
         if self._locked and now >= self._expire:
             self._locked = False
