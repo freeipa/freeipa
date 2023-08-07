@@ -652,7 +652,7 @@ class Cookie:
 
         cookie_expiration = self.get_expiration()
         if cookie_expiration is not None:
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.now(tz=datetime.UTC)
             if cookie_expiration < now:
                 raise Cookie.Expired("cookie named '%s'; expired at %s'" % \
                                      (cookie_name,

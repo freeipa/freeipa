@@ -102,7 +102,7 @@ class KRB5PrincipalName(univ.Sequence):
 
 
 def profile_ca(builder, ca_nick, ca):
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(tz=datetime.UTC)
 
     builder = builder.not_valid_before(now)
     builder = builder.not_valid_after(now + 10 * YEAR)
@@ -174,7 +174,7 @@ def profile_ca(builder, ca_nick, ca):
 def profile_server(builder, ca_nick, ca,
                    warp=datetime.timedelta(days=0), dns_name=None,
                    badusage=False, wildcard=False):
-    now = datetime.datetime.utcnow() + warp
+    now = datetime.datetime.now(tz=datetime.UTC) + warp
 
     builder = builder.not_valid_before(now)
     builder = builder.not_valid_after(now + YEAR)
@@ -231,7 +231,7 @@ def profile_server(builder, ca_nick, ca,
 def profile_kdc(builder, ca_nick, ca,
                 warp=datetime.timedelta(days=0), dns_name=None,
                 badusage=False):
-    now = datetime.datetime.utcnow() + warp
+    now = datetime.datetime.now(tz=datetime.UTC) + warp
 
     builder = builder.not_valid_before(now)
     builder = builder.not_valid_after(now + YEAR)
@@ -347,7 +347,7 @@ def gen_cert(profile, nick_base, subject, ca=None, **kwargs):
 
 
 def revoke_cert(ca, serial):
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(tz=datetime.UTC)
 
     crl_builder = x509.CertificateRevocationListBuilder()
     crl_builder = crl_builder.issuer_name(ca.cert.subject)

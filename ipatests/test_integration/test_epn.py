@@ -467,7 +467,8 @@ class TestEPN(IntegrationTest):
             extra_args=[
                 "--password-expiration",
                 datetime_to_generalized_time(
-                    datetime.datetime.utcnow() + datetime.timedelta(days=7)
+                    datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+                        days=7)
                 ),
             ],
         )
@@ -495,7 +496,8 @@ class TestEPN(IntegrationTest):
                 uid=uid,
                 days=i,
                 krbpasswordexpiration=datetime_to_generalized_time(
-                    datetime.datetime.utcnow() + datetime.timedelta(days=i)
+                    datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+                        days=i)
                 ),
             )
 
@@ -810,7 +812,8 @@ class TestEPN(IntegrationTest):
         self.master.run_command(
             ['ipa', 'user-mod', 'admin', '--password-expiration',
              datetime_to_generalized_time(
-                 datetime.datetime.utcnow() + datetime.timedelta(days=7)
+                 datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+                     days=7)
              )]
         )
         (unused, stderr_text, _unused) = self._check_epn_output(
