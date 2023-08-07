@@ -33,7 +33,7 @@ import ssl
 import time
 
 from collections import deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from email.utils import formataddr, formatdate
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -337,7 +337,7 @@ class EPN(admintool.AdminTool):
            of days in the future.
            If only nbdays_end is specified, the range is 1d long.
         """
-        now = datetime.utcnow()
+        now = datetime.now(tz=UTC)
         today_at_midnight = datetime.combine(now, datetime.min.time())
         range_end = today_at_midnight + timedelta(days=nbdays_end)
         if nbdays_start is not None:
@@ -568,7 +568,7 @@ class EPN(admintool.AdminTool):
                     mail_from=mail_from,
                     mail_from_name=api.env.mail_from_name,
                 )
-                now = datetime.utcnow()
+                now = datetime.now(tz=UTC)
                 expdate = datetime.strptime(
                     entry["krbpasswordexpiration"],
                     '%Y-%m-%d %H:%M:%S')
@@ -583,7 +583,7 @@ class EPN(admintool.AdminTool):
     def _gentestdata(self):
         """Generate a sample user to process through the template.
         """
-        expdate = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        expdate = datetime.now(tz=UTC).strftime('%Y-%m-%d %H:%M:%S')
         entry = dict(
             uid=["SAUSER"],
             cn=["SAMPLE USER"],
