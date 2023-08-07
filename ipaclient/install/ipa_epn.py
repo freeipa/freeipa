@@ -86,7 +86,7 @@ def drop_privileges(new_username="daemon", new_groupname="daemon"):
         os.setuid(grp.getgrnam(new_groupname).gr_gid)
 
         if os.getuid() == 0:
-            raise Exception()
+            raise errors.RequiresRoot("Cannot drop privileges!")
 
         logger.debug(
             "Dropped privileges to user=%s, group=%s",
