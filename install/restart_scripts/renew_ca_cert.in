@@ -115,15 +115,9 @@ def _main():
                     directivesetter.set_directive(
                         cfg_path, 'hierarchy.select', 'Root',
                         quotes=False, separator='=')
-                    directivesetter.set_directive(
-                        cfg_path, 'subsystem.count', '1',
-                        quotes=False, separator='=')
                 else:
                     directivesetter.set_directive(
                         cfg_path, 'hierarchy.select', 'Subordinate',
-                        quotes=False, separator='=')
-                    directivesetter.set_directive(
-                        cfg_path, 'subsystem.count', '0',
                         quotes=False, separator='=')
             else:
                 syslog.syslog(syslog.LOG_NOTICE, "Not updating CS.cfg")
