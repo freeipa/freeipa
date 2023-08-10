@@ -571,7 +571,7 @@ class EPN(admintool.AdminTool):
                 now = datetime.now(tz=UTC)
                 expdate = datetime.strptime(
                     entry["krbpasswordexpiration"],
-                    '%Y-%m-%d %H:%M:%S')
+                    '%Y-%m-%d %H:%M:%S').replace(tzinfo=UTC)
                 logger.debug(
                     "Notified %s (%s). Password expiring in %d days at %s.",
                     entry["mail"], entry["uid"], (expdate - now).days,
