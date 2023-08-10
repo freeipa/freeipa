@@ -799,7 +799,8 @@ class _CrossProcessLock:
                 expire = p.get('lock', 'expire')
                 try:
                     self._expire = datetime.datetime.strptime(
-                        expire, self._DATETIME_FORMAT)
+                        expire, self._DATETIME_FORMAT).replace(
+                        tzinfo=datetime.UTC)
                 except ValueError:
                     raise configparser.Error
         except configparser.Error:
