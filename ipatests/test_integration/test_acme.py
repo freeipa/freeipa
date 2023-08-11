@@ -633,9 +633,13 @@ def issue_and_expire_acme_cert():
         tasks.move_date(host, 'start', '-90days-60minutes')
 
     # restart ipa services as date moved and wait to get things settle
-    time.sleep(10)
-    hosts[0].run_command(['ipactl', 'restart'])
-    time.sleep(10)
+    # if the internal fixture was not called (for instance because the test
+    # was skipped), hosts = [] and hosts[0] would produce an IndexError
+    # exception.
+    if hosts:
+        time.sleep(10)
+        hosts[0].run_command(['ipactl', 'restart'])
+        time.sleep(10)
 
 
 class TestACMERenew(IntegrationTest):
