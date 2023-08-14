@@ -28,7 +28,6 @@ import shutil
 import traceback
 
 from ipalib.install import certstore
-from ipapython import directivesetter
 from ipapython import ipautil
 from ipalib import api, errors
 from ipalib import x509
@@ -105,23 +104,6 @@ def _main():
                     "Updating trust on certificate %s failed in %s" %
                     (nickname, db.secdir))
         elif nickname == 'caSigningCert cert-pki-ca':
-            # Update CS.cfg
-            cfg_path = paths.CA_CS_CFG_PATH
-            config = directivesetter.get_directive(
-                cfg_path, 'subsystem.select', '=')
-            if config == 'New':
-                syslog.syslog(syslog.LOG_NOTICE, "Updating CS.cfg")
-                if cert.is_self_signed():
-                    directivesetter.set_directive(
-                        cfg_path, 'hierarchy.select', 'Root',
-                        quotes=False, separator='=')
-                else:
-                    directivesetter.set_directive(
-                        cfg_path, 'hierarchy.select', 'Subordinate',
-                        quotes=False, separator='=')
-            else:
-                syslog.syslog(syslog.LOG_NOTICE, "Not updating CS.cfg")
-
             # Remove old external CA certificates
             for ca_nick, ca_flags in db.list_certs():
                 if ca_flags.has_key:
