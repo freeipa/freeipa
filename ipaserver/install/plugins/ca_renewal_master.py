@@ -28,7 +28,6 @@ from ipalib.install import certmonger
 from ipalib.plugable import Registry
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from ipapython import directivesetter
 
 logger = logging.getLogger(__name__)
 
@@ -108,18 +107,9 @@ class update_ca_renewal_master(Updater):
         else:
             logger.debug("certmonger request for RA cert not found")
 
-            config = directivesetter.get_directive(
-                paths.CA_CS_CFG_PATH, 'subsystem.select', '=')
-
-            if config == 'New':
-                pass
-            elif config == 'Clone':
+            if not ca.is_crlgen_enabled():
+                # CA is not a renewal master
                 return False, []
-            else:
-                logger.warning(
-                    "CS.cfg has unknown subsystem.select value '%s', "
-                    "assuming local CA is not a renewal master", config)
-                return (False, False, [])
 
         update = {
                 'dn': dn,
