@@ -969,6 +969,9 @@ def configure_sssd_conf(
         nss_service.set_option('memcache_timeout', 600)
         sssdconfig.save_service(nss_service)
 
+    sssd_enable_service(sssdconfig, 'nss')
+    sssd_enable_service(sssdconfig, 'pam')
+
     domain.set_option('ipa_domain', cli_domain)
     domain.set_option('ipa_hostname', client_hostname)
     if cli_domain.lower() != cli_realm.lower():
