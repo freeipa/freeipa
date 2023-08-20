@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2023-05-02 12:20+0000\n"
+"PO-Revision-Date: 2023-08-21 05:21+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.15.2\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: ipaclient/plugins/otptoken_yubikey.py:72
 msgid "Add a new YubiKey OTP token."
@@ -1886,7 +1886,7 @@ msgid "The primary_key value of the entry, e.g. 'jdoe' for a user"
 msgstr "사용자를 위한 예제. 'jdoe'인 항목의 기본_키 값"
 
 msgid "Delete ACI."
-msgstr ""
+msgstr "ACI 삭제."
 
 #: ipalib/output.py:218 ipaserver/plugins/dns.py:354
 msgid "True means the operation was successful"
@@ -2071,11 +2071,11 @@ msgstr "설명"
 
 #: ipaserver/plugins/automember.py:258
 msgid "A description of this auto member rule"
-msgstr ""
+msgstr "이와 같은 자동 구성원 규칙에 대한 설명"
 
 #: ipaserver/plugins/automember.py:262 ipaserver/plugins/automember.py:585
 msgid "Default (fallback) Group"
-msgstr ""
+msgstr "기본 (대체) 그룹"
 
 #: ipaserver/plugins/automember.py:263
 msgid "Default group for entries to land"
@@ -15672,7 +15672,7 @@ msgstr ""
 
 #: ipaserver/plugins/otpconfig.py:57
 msgid "OTP configuration options"
-msgstr ""
+msgstr "OPT 구성 옵션"
 
 #: ipaserver/plugins/otpconfig.py:80 ipaserver/plugins/otpconfig.py:81
 msgid "OTP Configuration"
@@ -15915,7 +15915,7 @@ msgstr ""
 
 #: ipaserver/plugins/radiusproxy.py:68
 msgid "invalid attribute name"
-msgstr ""
+msgstr "잘못된 속성 이름"
 
 #: ipaserver/plugins/radiusproxy.py:80
 msgid "invalid port number"
@@ -19120,7 +19120,7 @@ msgstr "신뢰한 도메인"
 
 #: ipaserver/plugins/trust.py:1591
 msgid "Domain enabled"
-msgstr ""
+msgstr "활성화된 도메인"
 
 #: ipaserver/plugins/trust.py:1663
 #, python-format
@@ -21334,7 +21334,7 @@ msgstr ""
 
 #: ipaserver/plugins/dns.py:4106
 msgid "DNS configuration options"
-msgstr ""
+msgstr "DNS 구성 옵션"
 
 #: ipaserver/plugins/dns.py:4111 ipaserver/plugins/dns.py:4112
 msgid "DNS Global Configuration"
@@ -22403,7 +22403,7 @@ msgstr "내부 오류"
 
 #: ipaserver/plugins/internal.py:297
 msgid "IPA Error"
-msgstr ""
+msgstr "IPA 오류"
 
 #: ipaserver/plugins/internal.py:298
 msgid "No response"
