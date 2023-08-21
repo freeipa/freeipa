@@ -91,6 +91,7 @@ Developers:
 	Jayesh Garg
 	Jeremy Frasier
 	Jérôme Fenal
+	Jerry James
 	Jesse Sandberg
 	jh23453
 	Jim Meyering
@@ -186,6 +187,7 @@ Developers:
 	Serhii Tsymbaliuk
 	shanyin
 	Simo Sorce
+	Simon Nussbaum
 	Slava Aseev
 	Spencer E. Olson
 	Stanislav Laznicka
