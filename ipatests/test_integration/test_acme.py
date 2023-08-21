@@ -604,7 +604,7 @@ def issue_and_expire_acme_cert():
         # move system date to expire acme cert
         for host in hosts:
             tasks.kdestroy_all(host)
-            tasks.move_date(host, 'stop', '+90days+60minutes')
+            tasks.move_date(host, 'stop', '+90days+2hours')
 
         # restart ipa services as date moved and wait to get things settle
         time.sleep(10)
@@ -630,7 +630,7 @@ def issue_and_expire_acme_cert():
 
     # move back date
     for host in hosts:
-        tasks.move_date(host, 'start', '-90days-60minutes')
+        tasks.move_date(host, 'start', '-90days-2hours')
 
     # restart ipa services as date moved and wait to get things settle
     # if the internal fixture was not called (for instance because the test
