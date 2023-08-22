@@ -1,4 +1,5 @@
-..
+.. _workshop:
+
   Copyright 2015, 2016  Red Hat, Inc.
 
   This work is licensed under the Creative Commons Attribution 4.0
@@ -18,27 +19,28 @@ X.509 certificates for services.
 
 .. _FreeIPA: http://www.freeipa.org/page/Main_Page
 
+.. _curriculum-overview:
 
 Curriculum overview
 -------------------
 
 Mandatory:
 
-- `Unit 1: Installing the FreeIPA server <1-server-install.rst>`_
-- `Unit 2: Enrolling client machines <2-client-install.rst>`_
-- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
-- `Unit 4: Host-based access control (HBAC) <4-hbac.rst>`_
+- :ref:`Unit 1: Installing the FreeIPA server <1-server-install>`
+- :ref:`Unit 2: Enrolling client machines <2-client-install>`
+- :ref:`Unit 3: User management and Kerberos authentication <3-user-management>`
+- :ref:`Unit 4: Host-based access control (HBAC) <4-hbac>`
 
 Optional units—choose the topics that are relevant to you:
 
-- `Unit 5: Web application authentication and authorisation <5-web-app-authnz.rst>`_
-- `Unit 6: Service certificates <6-cert-management.rst>`_
-- `Unit 7: Replica installation <7-replica-install.rst>`_
-- `Unit 8: Sudo rule management <8-sudorule.rst>`_
-- `Unit 9: SELinux User Maps <9-selinux-user-map.rst>`_
-- `Unit 10: SSH user and host key management <10-ssh-key-management.rst>`_
-- `Unit 11: Kerberos ticket policy <11-kerberos-ticket-policy.rst>`_
-- `Unit 12: External IdP support <12-external-idp-support.rst>`_
+- :ref:`Unit 5: Web application authentication and authorisation <5-web-app-authnz>`
+- :ref:`Unit 6: Service certificates <6-cert-management>`
+- :ref:`Unit 7: Replica installation <7-replica-install>`
+- :ref:`Unit 8: Sudo rule management <8-sudorule>`
+- :ref:`Unit 9: SELinux User Maps <9-selinux-user-map>`
+- :ref:`Unit 10: SSH user and host key management <10-ssh-key-management>`
+- :ref:`Unit 11: Kerberos ticket policy <11-kerberos-ticket-policy>`
+- :ref:`Unit 12: External IdP support <12-external-idp-support>`
 
 Editing files on VMs
 --------------------
@@ -241,7 +243,7 @@ Next step
 ---------
 
 You are ready to begin the workshop.  Continue to
-`Unit 1: Installing the FreeIPA server <1-server-install.rst>`_.
+:ref:`Unit 1: Installing the FreeIPA server <1-server-install>`.
 
 
 After the workshop
