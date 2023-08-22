@@ -1,9 +1,11 @@
+.. _4-hbac:
+
 Unit 4: Host-based access control (HBAC)
 ==========================================
 
 **Prerequisites:**
 
-- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
+- :ref:`Unit 3: User management and Kerberos authentication <3-user-management>`
 
 FreeIPA's *host-based access control* (HBAC) feature allows you to
 define policies that restrict access to hosts or services based on
@@ -142,7 +144,7 @@ Now try ``alice``::
 This was the final mandatory unit in the workshop.  From here, there
 are several optional units you can choose from.  You can proceed
 directly to
-`Unit 5: Web application authentication and authorisation <5-web-app-authnz.rst>`_.
+:ref:`Unit 5: Web application authentication and authorisation <5-web-app-authnz>`.
 Otherwise,
-`return to the curriculum overview <workshop.rst#curriculum-overview>`_
+:ref:`return to the curriculum overview <curriculum-overview>`
 to see all the options.

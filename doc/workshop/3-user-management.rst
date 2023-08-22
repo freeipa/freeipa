@@ -1,3 +1,5 @@
+.. _3-user-management:
+
 Unit 3: User management and Kerberos authentication
 =====================================================
 
@@ -124,8 +126,8 @@ is a true *single sign-on* protocol!
 
 Now that you have created some users, it's time to define some
 access policies.  Proceed to
-`Unit 4: Host-based access control (HBAC) <4-hbac.rst>`_.
+:ref:`Unit 4: Host-based access control (HBAC) <4-hbac>`.
 
 Alternatively, if you are interested in SSH public key management
 for users and hosts, jump ahead to
-`Unit 10: SSH user and host key management <10-ssh-key-management.rst>`_.
+:ref:`Unit 10: SSH user and host key management <10-ssh-key-management>`.

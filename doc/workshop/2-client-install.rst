@@ -1,9 +1,11 @@
+.. _2-client-install:
+
 Unit 2: Enrolling client machines
 ===================================
 
 **Prerequisites**:
 
-- `Unit 1: Installing the FreeIPA server <1-server-install.rst>`_
+- :ref:`Unit 1: Installing the FreeIPA server <1-server-install>`
 
 In this unit, you will enrol a *host* as a client of your FreeIPA
 domain.  This means that *users* in your FreeIPA realm (or Active
@@ -57,4 +59,4 @@ logged onto the host can also acquire Kerberos tickets for accessing
 *services* in your domain.
 
 You can now move on to
-`Unit 3: User management and Kerberos authentication <3-user-management.rst>`_.
+:ref:`Unit 3: User management and Kerberos authentication <3-user-management>`.
