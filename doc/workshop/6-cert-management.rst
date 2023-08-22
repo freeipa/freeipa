@@ -1,3 +1,5 @@
+.. _6-cert-management:
+
 Unit 6: Service certificates
 ================================
 
@@ -126,9 +128,9 @@ Restart Apache and make a request to the app over HTTPS::
 
 
 You can now proceed to
-`Unit 7: Replica installation <7-replica-install.rst>`_
+:ref:`Unit 7: Replica installation <7-replica-install>`
 or
-`Unit 8: Sudo rule management <8-sudorule.rst>`_.
+:ref:`Unit 8: Sudo rule management <8-sudorule>`.
 Otherwise,
-`return to the curriculum overview <workshop.rst#curriculum-overview>`_
+:ref:`return to the curriculum overview <curriculum-overview>`
 to see all the options.

@@ -1,9 +1,11 @@
+.. _10-ssh-key-management:
+
 Unit 10: SSH user and host key management
 =========================================
 
 **Prerequisites:**
 
-- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
+- :ref:`Unit 3: User management and Kerberos authentication <3-user-management>`
 
 In this module you will explore how to use FreeIPA as a backend
 provider for SSH keys.  Instead of distributing ``authorized_keys``
