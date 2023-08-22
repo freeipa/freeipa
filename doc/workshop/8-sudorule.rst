@@ -1,10 +1,12 @@
+.. _8-sudorule:
+
 Unit 8: Sudo rule management
 ============================
 
 **Prerequisites**:
 
-- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
-- `Unit 4: Host-based access control (HBAC) <4-hbac.rst>`_
+- :ref:`Unit 3: User management and Kerberos authentication <3-user-management>`
+- :ref:`Unit 4: Host-based access control (HBAC) <4-hbac>`
 
 Sudo is a program that allows users to run programs as another user
 with different privileges (possibly ``root``).  Sudo rules provide
@@ -241,4 +243,4 @@ restart (or start) Apache, but not run other commands via ``sudo``::
 
 
 This concludes the unit.  Now that you have Sudo rules working,
-proceed to `Unit 9: SELinux User Maps <9-selinux-user-map.rst>`_.
+proceed to :ref:`Unit 9: SELinux User Maps <9-selinux-user-map>`.
