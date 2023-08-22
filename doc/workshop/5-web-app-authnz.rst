@@ -1,10 +1,12 @@
+.. _5-web-app-authnz:
+
 Unit 5: Web application authentication and authorisation
 ==========================================================
 
 **Prerequisites**:
 
-- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
-- `Unit 4: Host-based access control (HBAC) <4-hbac.rst>`_
+- :ref:`Unit 3: User management and Kerberos authentication <3-user-management>`
+- :ref:`Unit 4: Host-based access control (HBAC) <4-hbac>`
 
 You can configure many kinds of applications to rely on FreeIPA's
 centralised authentication, including web applications.  In this
@@ -309,4 +311,4 @@ authenticated as ``bob`` instead?
 This unit is now concluded.  Now that you have mastered web app
 authentication, you'll want to configure TLS for your site.  Proceed
 to
-`Unit 6: Service certificates <6-cert-management.rst>`_.
+:ref:`Unit 6: Service certificates <6-cert-management>`.

@@ -1,9 +1,11 @@
+.. _11-kerberos-ticket-policy:
+
 Unit 11: Kerberos ticket policy
 =========================================
 
 **Prerequisites:**
 
-- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
+- :ref:`Unit 3: User management and Kerberos authentication <3-user-management>`
 
 In this module you will explore how to manage properties of Kerberos
 authentication and authorization in FreeIPA.

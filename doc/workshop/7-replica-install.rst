@@ -1,9 +1,11 @@
+.. _7-replica-install:
+
 Unit 7: Replica installation
 ==============================
 
 **Prerequisites**:
 
-- `Unit 1: Installing the FreeIPA server <1-server-install.rst>`_
+- :ref:`Unit 1: Installing the FreeIPA server <1-server-install>`
 
 FreeIPA is designed to be run in a replicated multi-master
 environment.  In this unit, we will install a replica of the
@@ -19,7 +21,7 @@ Client installation
 
 The first step of replica creation is to enrol the machine that will
 become the replica.  SSH to the ``replica`` VM and enrol it per
-`Unit 2: Enrolling client machines <2-client-install.rst>`_
+:ref:`Unit 2: Enrolling client machines <2-client-install>`
 
 Replica promotion
 -----------------
@@ -56,7 +58,7 @@ After ``ipa-replica-install`` finishes, the replica is operational.
 LDAP changes on any server will be replicated to all other servers.
 
 You can proceed to
-`Unit 8: Sudo rule management <8-sudorule.rst>`_
+:ref:`Unit 8: Sudo rule management <8-sudorule>`
 or
-`return to the curriculum overview <workshop.rst#curriculum-overview>`_
+:ref:`return to the curriculum overview <curriculum-overview>`
 to see all the available topics.

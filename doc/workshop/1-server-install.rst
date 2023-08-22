@@ -1,4 +1,5 @@
-..
+.. _1-server-install:
+
   Copyright 2015-2018  Red Hat, Inc.
 
   This work is licensed under the Creative Commons Attribution 4.0
@@ -157,8 +158,8 @@ more!
 
 To prepare for the next unit, exit the ``server`` SSH session (but
 do not shut the VM down).  The next essential unit is
-`Unit 2: Enrolling client machines <2-client-install.rst>`_.
+:ref:`Unit 2: Enrolling client machines <2-client-install>`.
 
 Alternatively, if you would like to immediately install a replica
 server (essential for production deployments), you can take a detour
-to `Unit 7: Replica installation <7-replica-install.rst>`_.
+to :ref:`Unit 7: Replica installation <7-replica-install>`.
