@@ -1,11 +1,13 @@
+.. _9-selinux-user-map:
+
 Unit 9: SELinux User Maps
 =========================
 
 **Prerequisites**:
 
-- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
-- `Unit 4: Host-based access control (HBAC) <4-hbac.rst>`_
-- `Unit 8: Sudo rule management <8-sudorule.rst>`_
+- :ref:`Unit 3: User management and Kerberos authentication <3-user-management>`
+- :ref:`Unit 4: Host-based access control (HBAC) <4-hbac>`
+- :ref:`Unit 8: Sudo rule management <8-sudorule>`
 
 SELinux is a *mandatory access controls* mechanism for Linux,
 providing more powerful and flexible access control than traditional
@@ -43,7 +45,7 @@ will automatically be used.
 
 Recall that members of the ``sysadmin`` User Group already have
 access to ``webservers`` via the ``sysadmin_webservers`` rule that
-was created in `Unit 4: Host-based access control (HBAC)`_.  Create
+was created in :ref:`Unit 4: Host-based access control (HBAC)<4-hbac>`.  Create
 the SELinux User Map::
 
   [client]$ ipa selinuxusermap-add sysadmin_staff_t \
@@ -135,7 +137,7 @@ the program being run::
   Hello, world!
 
 This concludes the unit.  You can now proceed to
-`Unit 10: SSH user and host key management <10-ssh-key-management.rst>`_
+:ref:`Unit 10: SSH user and host key management <10-ssh-key-management>`
 or
-`return to the curriculum overview <workshop.rst#curriculum-overview>`_
+:ref:`return to the curriculum overview <curriculum-overview>`
 to see all the available topics.

@@ -1,3 +1,5 @@
+.. _building:
+
 Building Vagrant box images
 ===========================
 
