@@ -1,9 +1,11 @@
+.. _12-external-idp-support:
+
 Unit 12: Authentication against external Identity Providers
 ===========================================================
 
 **Prerequisites:**
 
-- `Unit 11: Kerberos ticket policy <11-kerberos-ticket-policy.rst>`_
+- :ref:`Unit 11: Kerberos ticket policy <11-kerberos-ticket-policy>`
 
 In this module you will explore how to manage use external OAuth 2.0 servers to
 authorize issuance of Kerberos tickets in FreeIPA.
