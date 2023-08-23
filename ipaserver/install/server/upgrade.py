@@ -536,6 +536,35 @@ def ca_disable_publish_cert(ca):
     return True  # restart needed
 
 
+def ca_configure_master_crl(ca):
+    logger.info('[Configuring Master CRL]')
+    if not ca.is_configured():
+        logger.info('CA is not configured')
+        return False
+
+    enable = directivesetter.get_directive(
+        paths.CA_CS_CFG_PATH,
+        'ca.crl.MasterCRL.enable',
+        separator='=')
+
+    enableCRLUpdates = directivesetter.get_directive(
+        paths.CA_CS_CFG_PATH,
+        'ca.crl.MasterCRL.enableCRLUpdates',
+        separator='=')
+
+    if enable == enableCRLUpdates:
+        return False  # already consistent; restart not needed
+
+    # update enable to match enableCRLUpdates
+    directivesetter.set_directive(
+        paths.CA_CS_CFG_PATH,
+        'ca.crl.MasterCRL.enable',
+        enableCRLUpdates,
+        quotes=False,
+        separator='=')
+    return True  # restart needed
+
+
 def ca_initialize_hsm_state(ca):
     """Initializse HSM state as False / internal token
     """
@@ -1917,6 +1946,7 @@ def upgrade_configuration():
         ca_enable_lightweight_ca_monitor(ca),
         ca_add_default_ocsp_uri(ca),
         ca_disable_publish_cert(ca),
+        ca_configure_master_crl(ca),
     ])
 
     if ca_restart:

@@ -1018,12 +1018,14 @@ class CAInstance(DogtagInstance):
             # If we are the initial master then we are the CRL generator,
             # otherwise we point to that master for CRLs.
             if not self.clone:
-                # These next two are defaults, but I want to be explicit
-                # that the initial master is the CRL generator.
+                # fully enable MasterCRL on master
+                ds.set('ca.crl.MasterCRL.enable', 'true')
                 ds.set('ca.crl.MasterCRL.enableCRLCache', 'true')
                 ds.set('ca.crl.MasterCRL.enableCRLUpdates', 'true')
                 ds.set('ca.listenToCloneModifications', 'true')
             else:
+                # fully disable MasterCRL on clone
+                ds.set('ca.crl.MasterCRL.enable', 'false')
                 ds.set('ca.crl.MasterCRL.enableCRLCache', 'false')
                 ds.set('ca.crl.MasterCRL.enableCRLUpdates', 'false')
                 ds.set('ca.listenToCloneModifications', 'false')
@@ -1350,8 +1352,9 @@ class CAInstance(DogtagInstance):
     def is_crlgen_enabled(self):
         """Check if the local CA instance is generating CRL
 
-        Three conditions must be met to consider that the local CA is CRL
+        Four conditions must be met to consider that the local CA is CRL
         generation master:
+        - in CS.cfg ca.crl.MasterCRL.enable=true
         - in CS.cfg ca.crl.MasterCRL.enableCRLCache=true
         - in CS.cfg ca.crl.MasterCRL.enableCRLUpdates=true
         - in /etc/httpd/conf.d/ipa-pki-proxy.conf the RewriteRule
@@ -1363,6 +1366,8 @@ class CAInstance(DogtagInstance):
                  inconsistent
         """
         try:
+            enable = directivesetter.get_directive(
+                self.config, 'ca.crl.MasterCRL.enable', '=').lower() == 'true'
             cache = directivesetter.get_directive(
                 self.config, 'ca.crl.MasterCRL.enableCRLCache', '=')
             enableCRLCache = cache.lower() == 'true'
@@ -1371,10 +1376,11 @@ class CAInstance(DogtagInstance):
             enableCRLUpdates = updates.lower() == 'true'
 
             # If the values are different, the config is inconsistent
-            if enableCRLCache != enableCRLUpdates:
+            if enable != enableCRLCache or enable != enableCRLUpdates:
                 raise InconsistentCRLGenConfigException(
                     "Configuration is inconsistent, please check "
-                    "ca.crl.MasterCRL.enableCRLCache and "
+                    "ca.crl.MasterCRL.enable, "
+                    "ca.crl.MasterCRL.enableCRLCache, and "
                     "ca.crl.MasterCRL.enableCRLUpdates in {} and "
                     "run ipa-crlgen-manage [enable|disable] to repair".format(
                         self.config))
@@ -1382,7 +1388,8 @@ class CAInstance(DogtagInstance):
             raise RuntimeError(
                 "Unable to read {}".format(self.config))
 
-        # At this point enableCRLCache and enableCRLUpdates have the same value
+        # At this point enable, enableCRLCache, and enableCRLUpdates have the
+        # same value
         try:
             rewriteRuleDisabled = True
             p = re.compile(self.crl_rewrite_pattern)
@@ -1432,6 +1439,7 @@ class CAInstance(DogtagInstance):
                 self.config, quotes=False, separator='=') as ds:
             # Convert the bool setup_crlgen to a lowercase string
             str_value = str(setup_crlgen).lower()
+            ds.set('ca.crl.MasterCRL.enable', str_value)
             ds.set('ca.crl.MasterCRL.enableCRLCache', str_value)
             ds.set('ca.crl.MasterCRL.enableCRLUpdates', str_value)
 
