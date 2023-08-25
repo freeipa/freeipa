@@ -167,6 +167,20 @@ def user_radius(request, xmlrpc_setup):
 
 
 @pytest.fixture(scope='class')
+def user_idp(request, xmlrpc_setup):
+    """ User tracker fixture for testing users with idp user id """
+    tracker = UserTracker(name='idpuser', givenname='idp',
+                          sn='user', ipaidpsub='myidpuserid')
+    tracker.track_create()
+    tracker.attrs.update(ipaidpsub=['myidpuserid'])
+    tracker.attrs.update(objectclass=fuzzy_set_optional_oc(
+        objectclasses.user + [u'ipaidpuser'],
+        'ipantuserattrs'),
+    )
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
 def group(request, xmlrpc_setup):
     tracker = GroupTracker(name=u'group1')
     return tracker.make_fixture(request)
@@ -557,6 +571,15 @@ class TestUpdate(XMLRPC_test):
         )):
             command()
 
+    def test_update_add_idpsub(self, user):
+        """ Test user-mod --idp-user-id"""
+        user.ensure_exists()
+        command = user.make_update_command(
+            updates=dict(ipaidpsub=u'myidp_user_id')
+        )
+        command()
+        user.delete()
+
 
 @pytest.mark.tier1
 class TestCreate(XMLRPC_test):
@@ -795,6 +818,13 @@ class TestCreate(XMLRPC_test):
                 nonexistentidp)
         )):
             testuser.create()
+
+    def test_create_with_idpsub(self, user_idp):
+        """ Test creation of a user with --idp-user-id"""
+        command = user_idp.make_create_command()
+        result = command()
+        user_idp.check_create(result, ['ipaidpsub'])
+        user_idp.delete()
 
 
 @pytest.mark.tier1
