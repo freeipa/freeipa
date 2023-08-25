@@ -612,7 +612,10 @@ class baseuser_add(LDAPCreate):
         if entry_attrs.get('ipauserauthtype', None):
             add_missing_object_class(ldap, u'ipauserauthtypeclass', dn,
                                      entry_attrs, update=False)
-        if entry_attrs.get('ipaidpconfiglink', None):
+        if (
+            entry_attrs.get('ipaidpconfiglink', None)
+            or entry_attrs.get('ipaidpsub', None)
+        ):
             add_missing_object_class(ldap, 'ipaidpuser', dn,
                                      entry_attrs, update=False)
 
@@ -720,7 +723,7 @@ class baseuser_mod(LDAPUpdate):
         # Some attributes may require additional object classes
         special_attrs = {'ipasshpubkey', 'ipauserauthtype', 'userclass',
                          'ipatokenradiusconfiglink', 'ipatokenradiususername',
-                         'ipaidpconfiglink'}
+                         'ipaidpconfiglink', 'ipaidpsub'}
         if special_attrs.intersection(entry_attrs):
             if 'objectclass' in entry_attrs:
                 obj_classes = entry_attrs['objectclass']
@@ -748,6 +751,10 @@ class baseuser_mod(LDAPUpdate):
 
                     answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
                     entry_attrs['ipatokenradiusconfiglink'] = answer
+
+            if 'ipaidpsub' in entry_attrs:
+                if 'ipaidpuser' not in obj_classes:
+                    entry_attrs['objectclass'].append('ipaidpuser')
 
             if 'ipaidpconfiglink' in entry_attrs:
                 cl = entry_attrs['ipaidpconfiglink']
