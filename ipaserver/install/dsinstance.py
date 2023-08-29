@@ -31,6 +31,7 @@ from lib389.idm.ipadomain import IpaDomain
 from lib389.instance.options import General2Base, Slapd2Base
 from lib389.instance.remove import remove_ds_instance as lib389_remove_ds
 from lib389.instance.setup import SetupDs
+from lib389.utils import get_default_db_lib
 
 from ipalib import x509
 from ipalib.install import certmonger, certstore
@@ -227,7 +228,8 @@ class DsInstance(service.Service):
     def __common_setup(self):
 
         self.step("creating directory server instance", self.__create_instance)
-        self.step("tune ldbm plugin", self.__tune_ldbm)
+        if get_default_db_lib() == 'bdb':
+            self.step("tune ldbm plugin", self.__tune_ldbm)
         if self.config_ldif is not None:
             self.step("stopping directory server", self.__stop_instance)
             self.step(
