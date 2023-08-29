@@ -151,6 +151,9 @@ class BaseConstantsNamespace:
             'samba_share_nfs': 'on',
         },
     }
+    SELINUX_BOOLEAN_SSSD = {
+        'sssd_use_usb': 'on',
+    }
     SELINUX_MCS_MAX = 1023
     SELINUX_MCS_REGEX = r"^c(\d+)([.,-]c(\d+))*$"
     SELINUX_MLS_MAX = 15

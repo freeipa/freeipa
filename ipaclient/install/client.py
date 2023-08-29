@@ -67,6 +67,7 @@ from ipapython.ipautil import (
 )
 from ipapython.ssh import SSHPublicKey
 from ipapython import version
+from ipapython.errors import SetseboolError
 
 from . import automount, timeconf, sssd
 from ipaclient import discovery
@@ -98,6 +99,7 @@ cli_realm = None
 cli_kdc = None
 client_domain = None
 cli_basedn = None
+selinux_works = None
 # end of global variables
 
 
@@ -2153,6 +2155,7 @@ def install_check(options):
     global cli_kdc
     global client_domain
     global cli_basedn
+    global selinux_works
 
     print("This program will set up IPA client.")
     print("Version {}".format(version.VERSION))
@@ -2166,7 +2169,7 @@ def install_check(options):
             "You must be root to run ipa-client-install.",
             rval=CLIENT_INSTALL_ERROR)
 
-    tasks.check_selinux_status()
+    selinux_works = tasks.check_selinux_status()
 
     if is_ipa_client_configured(on_master=options.on_master):
         logger.error("IPA client is already configured on this system.")
@@ -2672,6 +2675,20 @@ def restore_time_sync(statestore, fstore):
         timeconf.restore_forced_timeservices(statestore)
     except CalledProcessError as e:
         logger.error('Failed to restore time synchronization service: %s', e)
+
+
+def configure_selinux_for_client(statestore):
+    def backup_state(key, value):
+        statestore.backup_state('selinux', key, value)
+
+    try:
+        tasks.set_selinux_booleans(constants.SELINUX_BOOLEAN_SSSD,
+                                   backup_state)
+    except SetseboolError as e:
+        for c in constants.SELINUX_BOOLEAN_SSSD:
+            if c in e.failed:
+                logger.warning(
+                    "SELinux does not support SSSD boolean %s, ignoring", c)
 
 
 def install(options):
@@ -3198,6 +3215,9 @@ def _install(options, tdict):
         logger.info("%s enabled", "SSSD" if options.sssd else "LDAP")
 
         if options.sssd:
+            if selinux_works:
+                configure_selinux_for_client(statestore)
+
             sssd = services.service('sssd', api)
             try:
                 sssd.restart()
@@ -3322,6 +3342,8 @@ def _install(options, tdict):
 
 
 def uninstall_check(options):
+    global selinux_works
+
     if not is_ipa_client_configured():
         if options.on_master:
             rval = SUCCESS
@@ -3336,6 +3358,8 @@ def uninstall_check(options):
             "IPA client is configured as a part of IPA server on this system.")
         logger.info("Refer to ipa-server-install for uninstallation.")
         raise ScriptError(rval=CLIENT_NOT_CONFIGURED)
+
+    selinux_works = tasks.check_selinux_status()
 
 
 def uninstall(options):
@@ -3599,6 +3623,15 @@ def uninstall(options):
             logger.warning(
                 "Failed to disable automatic startup of the SSSD daemon: %s",
                 e)
+
+    if was_sssd_installed and selinux_works:
+        # Restore SELinux boolean states
+        boolean_states = {name: statestore.restore_state('selinux', name)
+                          for name in constants.SELINUX_BOOLEAN_SSSD}
+        try:
+            tasks.set_selinux_booleans(boolean_states)
+        except SetseboolError as e:
+            logger.warning("Unable to reset SELinux variable: %s", str(e))
 
     tasks.restore_hostname(fstore, statestore)
 
