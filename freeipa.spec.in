@@ -290,6 +290,7 @@ BuildRequires:  gettext
 BuildRequires:  gettext-devel
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
+BuildRequires:  python3-argcomplete
 BuildRequires:  systemd >= %{systemd_version}
 # systemd-tmpfiles which is executed from make install requires apache user
 BuildRequires:  httpd
@@ -874,6 +875,7 @@ Requires: %{name}-common = %{version}-%{release}
 Requires(pre): python3-ldap >= %{python_ldap_version}
 Requires: gnupg2
 Requires: keyutils
+Requires: python3-argcomplete
 Requires: python3-cffi
 Requires: python3-cryptography >= 1.6
 Requires: python3-dateutil
@@ -1079,6 +1081,13 @@ rm -f %{buildroot}%{_usr}/share/ipa/ui/images/login-screen-logo.png
 rm -f %{buildroot}%{_usr}/share/ipa/ui/images/product-name.png
 %endif
 # RHEL spec file only: END
+
+# Register CLI tools for bash completion
+for clitool in ipa-migrate
+do
+    register-python-argcomplete "${clitool}" > "${clitool}"
+    install -p -m 0644 -D -t '%{buildroot}%{bash_completions_dir}' "${clitool}"
+done
 
 %find_lang %{gettext_domain}
 
@@ -1410,6 +1419,8 @@ fi
 %{_sbindir}/ipa-crlgen-manage
 %{_sbindir}/ipa-cert-fix
 %{_sbindir}/ipa-acme-manage
+%{_sbindir}/ipa-migrate
+%{bash_completions_dir}/ipa-migrate
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/certmonger/ipa-server-guard
 %dir %{_libexecdir}/ipa
@@ -1484,6 +1495,7 @@ fi
 %{_mandir}/man1/ipa-crlgen-manage.1*
 %{_mandir}/man1/ipa-cert-fix.1*
 %{_mandir}/man1/ipa-acme-manage.1*
+%{_mandir}/man1/ipa-migrate.1*
 
 
 %files -n python3-ipaserver
