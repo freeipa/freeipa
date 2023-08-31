@@ -1,0 +1,130 @@
+.\"
+.\" Copyright (C) 2024  FreeIPA Contributors see COPYING for license
+.\"
+.TH "ipa-migrate" "1" "Apr 2 2024" "IPA" "IPA Manual Pages"
+.SH "NAME"
+ipa\-migrate \- Migrate an IPA server from one machine to another
+.SH "SYNOPSIS"
+ipa\-migrate
+.SH "DESCRIPTION"
+
+Use the \fIipa-migrate\fR command to migrate one
+IPA server to an existing local IPA server installation.
+
+Migrate IPA schema, configuration, and database to a local IPA server.  This
+migration can be done online, where the tool will query the remote server. Or,
+offline where LDIF files can be provided.  You can mix and match online and
+offline. So for example you could migrate the schema and configuration online,
+and then use an exported LDIF file for the database migration portion (this
+might be more useful for very large databases as you don't need to worry about
+network interruptions)
+
+.SH POSITIONAL ARGUMENTS
+.TP
+\fBprod\-mode\fR
+In this mode everything will be migrated including the current user SIDs and
+DNA ranges
+.TP
+\fBstage\-mod\fR
+In this mode, SIDs & DNA ranges are not migrated, and DNA attributes are reset
+
+.SH "COMMANDS"
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Use verbose output while running the migration tool.
+.TP
+\fB\-e\fR, \fB\-\-hostname=HOSTNAME\fR
+The host name of the remote IPA server that is being migrated from.
+.TP
+\fB\-D\fR, \fB\-\-bind\-dn=BIND_DN\fR
+The Bind DN (Distinguished Name) or an LDAP entry to bind to the remote IPA server with.
+Typically this is "cn=directory manager", but it could be any entry that has
+access to read the userPassword attribute.  If ommitted the default is "cn=directory manager"
+.TP
+\fB\-w\fR, \fB\-\-bind\-pw=PASSWORD\fR
+The password for the Bind DN that is authenticating against the remote IPA server.  If
+a password is not provided then the tool with prompt for the password if needed.
+.TP
+\fB\-Just\fR, \fB\-\-bind\-pw\-file=FILE_PATH\fR
+Path to a file containing the password for the Bind DN.
+.TP
+\fB\-Z\fR, \fB\-\-cacertfile=FILE_PATH\fR
+Path to a file containing a CA Certificate that the remote server trusts
+.TP
+\fB\-l\fR, \fB\-\-log\-file=FILE_PATH\fR
+Path to a file containing the migration log.  By default the tool will use \fI/var/log/ipa-migrate.log\fR
+.TP
+\fB\-x\fR, \fB\-\-dryrun\fR
+Go through the migration process but do not write and data to the new IPA server.
+.TP
+\fB\-o\fR, \fB\-\-dryrun\-record=FILE_PATH\fR
+Go through the migration process but do not write any data to the new IPA server. However, write the
+migration operations to an LDIF file which can be applied later or reused for multiple migrations.
+.TP
+\fB\-r\fR, \fB\-\-reset\-range\fR
+Reset the ID range for migrated users/groups. In "stage-mode" this is done automatically
+.TP
+\fB\-F\fR, \fB\-\-force\fR
+Ignore any errors and continue to proceed with migration effort.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Display the version of the migration tool.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Only log errors during the migration process.
+.TP
+\fB\-B\fR, \fB\-\-migrate\-dns\fR
+Migrate thr DNS records
+.TP
+\fB\-S\fR, \fB\-\-skip\-schema\fR
+Do not migrate the database schema
+.TP
+\fB\-C\fR, \fB\-\-skip\-config\fR
+Do not migrate the database configuration (dse.ldif/cn=config)
+.TP
+\fB\-O\fR, \fB\-\-schema\-overwrite\fR
+Overwrite existing schema definitions.  By default duplicate schema is skipped.
+.TP
+\fB\-s\fR, \fB\-\-subtree=DN\fR
+Specifies a custom database subtree that should be included in the migration.
+This is only needed if non-default subtrees/branches were added to the database
+outside of IPA.
+.TP
+\fB\-f\fR, \fB\-\-db\-ldif=FILE_PATH\fR
+LDIF file containing the entire backend. If omitted the tool will query the remote IPA server.
+.TP
+\fB\-m\fR, \fB\-\-schema\-ldif=FILE_PATH\fR
+LDIF file containing the schema. If omitted the tool will query the remote IPA server.
+.TP
+\fB\-g\fR, \fB\-\-config\-ldif=FILE_PATH\fR
+LDIF file containing the entire "cn=config" DIT. If omitted the tool will query the remote IPA server.
+.TP
+\fB\-n\fR, \fB\-\-no\-prompt\fR
+Do not prompt for confirmation before starting migration.  Use at your own risk!
+
+.SH "POST MIGRATION"
+\- The server is left in migration-mode so that the migrated users can more
+easily reset their passwords either by authenticating via SSSD or using the
+web-based password migration page. This authentication will generate new
+Kerberos keys. After passwords are reset the server should be taken out of
+migration mode.
+
+\- All hosts are preserved, but they will need to be re-enrolled using
+ipa-client-install (e.g. ipa-client-install --uninstall && ipa-client-install).
+
+\- All certificates should be re-issued against the new CA.
+
+\- Any manually created keytabs will need to be re-created using
+\fIipa-getkeytab\fR
+
+\- Vaults are not migrated and will have to be re-created.
+
+\- Sub CA's are not migrated and will have to be re-created.
+
+.SH "EXIT STATUS"
+0 If the command was successful
+
+1 If an error occurred
+
+2 If the local host or remote host is not an IPA server, the IPA server
+  installation is faulty, or the realm can not be determined

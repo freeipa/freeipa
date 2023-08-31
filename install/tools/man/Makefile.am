@@ -30,7 +30,8 @@ dist_man1_MANS = 			\
 	ipa-crlgen-manage.1		\
 	ipa-cert-fix.1			\
 	ipa-acme-manage.1		\
-        $(NULL)
+	ipa-migrate.1			\
+	$(NULL)
 
 dist_man8_MANS =			\
 	ipactl.8			\

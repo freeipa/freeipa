@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+#
+# Copyright (C) 2023  FreeIPA Contributors see COPYING for license
+#
+# PYTHON_ARGCOMPLETE_OK
+
+from ipaserver.install.ipa_migrate import IPAMigrate
+
+ipa_migrate = IPAMigrate()
+ipa_migrate.run()
