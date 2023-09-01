@@ -21,10 +21,11 @@ class IpaMetaImporter:
     def __init__(self, platform):
         self.platform = platform
 
-    def find_module(self, fullname, path=None):
+    def find_spec(self, fullname, path=None, target=None):
         """Meta importer hook"""
         if fullname in self.modules:
-            return self
+            module = self.load_module(fullname)
+            return module.__spec__
         return None
 
     def load_module(self, fullname):
