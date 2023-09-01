@@ -550,10 +550,8 @@ class vault_mod(Local):
 class _KraConfigCache:
     """The KRA config cache stores vaultconfig-show result.
     """
-    def __init__(self):
-        self._dirname = os.path.join(
-            constants.USER_CACHE_PATH, 'ipa', 'kra-config'
-        )
+    def __init__(self, api):
+        self._dirname = os.path.join(api.env.cache_dir, 'kra-config')
 
     def _get_filename(self, domain):
         basename = DNSName(domain).ToASCII() + '.json'
@@ -629,7 +627,7 @@ class _KraConfigCache:
             return True
 
 
-_kra_config_cache = _KraConfigCache()
+_kra_config_cache = _KraConfigCache(api)
 
 
 @register(override=True, no_fail=True)

@@ -13,18 +13,16 @@ import time
 from . import compat
 from . import schema
 from ipaclient.plugins.rpcclient import rpcclient
-from ipalib.constants import USER_CACHE_PATH
 from ipapython.dnsutil import DNSName
 
 logger = logging.getLogger(__name__)
 
 
 class ServerInfo(MutableMapping):
-    _DIR = os.path.join(USER_CACHE_PATH, 'ipa', 'servers')
-
     def __init__(self, api):
+        self._dir = os.path.join(api.env.cache_dir, "servers")
         hostname = DNSName(api.env.server).ToASCII()
-        self._path = os.path.join(self._DIR, hostname)
+        self._filename = os.path.join(self._dir, hostname)
         self._force_check = api.env.force_schema_check
         self._now = time.time()
         self._dict = {}
@@ -41,7 +39,7 @@ class ServerInfo(MutableMapping):
 
     def _read(self):
         try:
-            with open(self._path, 'r') as sc:
+            with open(self._filename, 'r') as sc:
                 self._dict = json.load(sc)
         except Exception as e:
             if (isinstance(e, EnvironmentError) and
@@ -56,11 +54,11 @@ class ServerInfo(MutableMapping):
     def _write(self):
         try:
             try:
-                os.makedirs(self._DIR)
+                os.makedirs(self._dir)
             except EnvironmentError as e:
                 if e.errno != errno.EEXIST:
                     raise
-            with open(self._path, 'w') as sc:
+            with open(self._filename, 'w') as sc:
                 json.dump(self._dict, sc)
         except EnvironmentError as e:
             logger.warning('Failed to write server info: %s', e)
