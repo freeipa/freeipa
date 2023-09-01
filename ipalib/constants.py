@@ -273,6 +273,7 @@ DEFAULT_CONFIG = (
     ('conf_default', object),  # File containing context independent config
     ('plugins_on_demand', object),  # Whether to finalize plugins on-demand (bool)
     ('nss_dir', object),  # Path to nssdb, default {confdir}/nssdb
+    ('cache_dir', object),  # ~/.cache/ipa directory, may use XDG_CACHE_HOME env
     ('tls_ca_cert', object),  # Path to CA cert file
 
     # Set in Env._finalize_core():

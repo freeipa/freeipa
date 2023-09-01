@@ -18,7 +18,6 @@ import six
 
 from ipaclient.frontend import ClientCommand, ClientMethod
 from ipalib import errors, parameters, plugable
-from ipalib.constants import USER_CACHE_PATH
 from ipalib.errors import SchemaUpToDate
 from ipalib.frontend import Object
 from ipalib.output import Output
@@ -367,9 +366,9 @@ class Schema:
 
     """
     namespaces = {'classes', 'commands', 'topics'}
-    _DIR = os.path.join(USER_CACHE_PATH, 'ipa', 'schema', FORMAT)
 
     def __init__(self, client, fingerprint=None, ttl=0):
+        self._dir = os.path.join(client.api.env.cache_dir, 'schema', FORMAT)
         self._dict = {}
         self._namespaces = {}
         self._help = None
@@ -409,7 +408,7 @@ class Schema:
         fps = []
         if not ignore_cache:
             try:
-                fps = [fsdecode(f) for f in os.listdir(self._DIR)]
+                fps = [fsdecode(f) for f in os.listdir(self._dir)]
             except EnvironmentError:
                 pass
 
@@ -439,7 +438,7 @@ class Schema:
     def _read_schema(self, fingerprint):
         # It's more efficient to read zip file members at once than to open
         # the zip file a couple of times, see #6690.
-        filename = os.path.join(self._DIR, fingerprint)
+        filename = os.path.join(self._dir, fingerprint)
         with zipfile.ZipFile(filename, 'r') as schema:
             for name in schema.namelist():
                 ns, _slash, key = name.partition('/')
@@ -477,13 +476,13 @@ class Schema:
 
     def _write_schema(self, fingerprint):
         try:
-            os.makedirs(self._DIR)
+            os.makedirs(self._dir)
         except EnvironmentError as e:
             if e.errno != errno.EEXIST:
                 raise
 
         with tempfile.NamedTemporaryFile('wb', prefix=fingerprint,
-                                         dir=self._DIR, delete=False) as f:
+                                         dir=self._dir, delete=False) as f:
             try:
                 self._write_schema_data(f)
                 ipautil.flush_sync(f)
@@ -492,7 +491,7 @@ class Schema:
                 os.unlink(f.name)
                 raise
             else:
-                os.rename(f.name, os.path.join(self._DIR, fingerprint))
+                os.rename(f.name, os.path.join(self._dir, fingerprint))
 
     def _write_schema_data(self, fileobj):
         with zipfile.ZipFile(fileobj, 'w', zipfile.ZIP_DEFLATED) as schema:

@@ -45,6 +45,7 @@ from ipalib.constants import (
     CONFIG_SECTION,
     OVERRIDE_ERROR, SET_ERROR, DEL_ERROR,
     TLS_VERSIONS, TLS_VERSION_DEFAULT_MIN, TLS_VERSION_DEFAULT_MAX,
+    USER_CACHE_PATH
 )
 from ipalib import errors
 
@@ -506,6 +507,11 @@ class Env:
 
         if 'nss_dir' not in self:
             self.nss_dir = self._join('confdir', 'nssdb')
+
+        # user cache dir for IPA, defaults to '$XDG_CACHE_HOME/ipa' or
+        # '~/.cache/ipa'. XDG_CACHE_HOME env var is cached at import time.
+        if 'cache_dir' not in self:
+            self.cache_dir = os.path.join(USER_CACHE_PATH, 'ipa')
 
         if 'tls_ca_cert' not in self:
             self.tls_ca_cert = self._join('confdir', 'ca.crt')

@@ -395,6 +395,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.ca_host = ''
     api.env.ca_install_port = None
     api.env.ca_port = 0
+    api.env.cache_dir = ''  # object
     api.env.certmonger_wait_timeout = 0
     api.env.conf = ''  # object
     api.env.conf_default = ''  # object
