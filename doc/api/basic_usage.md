@@ -63,7 +63,7 @@ else:
 This will connect to LDAP directly if we are running our script in server, or
 use a RPC client if we are running it from a FreeIPA client.
 
-After we have initialized the API and stablished a connection, we are ready to
+After we have initialized the API and established a connection, we are ready to
 issue commands.
 
 ## Running commands
