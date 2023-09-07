@@ -36,7 +36,7 @@ def setup_scim_server(host, version="main"):
     host.run_command(["pip", "install", "-r", f"{django_reqs}"])
 
     # Prepare models and database
-    host.run_command(["python", "manage.py", "makemigrations", "ipatuura"],
+    host.run_command(["python", "manage.py", "makemigrations", "scim"],
                      cwd=f"{dir}/src/ipa-tuura")
     host.run_command(["python", "manage.py", "migrate"],
                      cwd=f"{dir}/src/ipa-tuura")
