@@ -274,6 +274,8 @@ if six.PY3:
 
 logger = logging.getLogger(__name__)
 
+pki_version = pki.util.Version(pki.specification_version())
+
 # These are general status return values used when
 # CMSServlet.outputError() is invoked.
 CMS_SUCCESS      = 0
@@ -1130,7 +1132,11 @@ class ra(rabase.rabase, RestClient):
         serial_number = int(serial_number, 0)
 
         path = 'agent/certs/{}/revoke'.format(serial_number)
-        data = '{{"reason":"{}"}}'.format(reasons[revocation_reason])
+        if pki_version < pki.util.Version("11.4.0"):
+            keyword = "reason"
+        else:
+            keyword = "Reason"
+        data = '{{"{}":"{}"}}'.format(keyword, reasons[revocation_reason])
 
         http_status, _http_headers, http_body = self._ssldo(
             'POST', path,
