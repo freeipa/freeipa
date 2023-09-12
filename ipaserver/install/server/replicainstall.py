@@ -1002,7 +1002,7 @@ def promote_check(installer):
                 raise errors.ACIError(info="Not authorized")
 
             if installer._ccache is None:
-                del os.environ['KRB5CCNAME']
+                os.environ.pop('KRB5CCNAME', None)
             else:
                 os.environ['KRB5CCNAME'] = installer._ccache
 
@@ -1211,7 +1211,7 @@ def promote_check(installer):
         if add_to_ipaservers:
             # use user's credentials when the server host is not ipaservers
             if installer._ccache is None:
-                del os.environ['KRB5CCNAME']
+                os.environ.pop('KRB5CCNAME', None)
             else:
                 os.environ['KRB5CCNAME'] = installer._ccache
 
