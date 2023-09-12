@@ -3624,7 +3624,7 @@ def uninstall(options):
                 "Failed to disable automatic startup of the SSSD daemon: %s",
                 e)
 
-    if was_sssd_installed and selinux_works:
+    if statestore.has_state('selinux'):
         # Restore SELinux boolean states
         boolean_states = {name: statestore.restore_state('selinux', name)
                           for name in constants.SELINUX_BOOLEAN_SSSD}
