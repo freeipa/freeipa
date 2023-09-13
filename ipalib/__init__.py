@@ -936,6 +936,68 @@ Registry = plugable.Registry
 class API(plugable.API):
     bases = (Command, Object, Method, Backend, Updater)
 
+    def __enter__(self):
+        """Context manager for IPA API
+
+        The context manager connects the backend connect on enter and
+        disconnects on exit. The process must have access to a valid Kerberos
+        ticket or have automatic authentication with a keytab or gssproxy
+        set up. The connection type depends on ``in_server`` and ``context``
+        options. Server connections use LDAP while clients use JSON-RPC over
+        HTTPS.
+
+        The context manager also finalizes the API object, in case it hasn't
+        been finalized yet. It is possible to use a custom API object. In
+        that case, the global API object must be finalized, first. Some
+        options like logging only apply to global ``ipalib.api`` object.
+
+        Usage with global api object::
+
+            import os
+            import ipalib
+
+            # optional: automatic authentication with a KRB5 keytab
+            os.environ.update(
+                KRB5_CLIENT_KTNAME="/path/to/service.keytab",
+                KRB5RCACHENAME="FILE:/path/to/tmp/service.ccache",
+            )
+
+            # optional: override settings (once per process)
+            overrides = {}
+            ipalib.api.bootstrap(**overrides)
+
+            with ipalib.api as api:
+                host = api.Command.host_show(api.env.host)
+                user = api.Command.user_show("admin")
+
+        """
+        # Several IPA module require api.env at import time, some even
+        # a fully finalized ipalib.ap, e.g. register() with MethodOverride.
+        if self is not api and not api.isdone("finalize"):
+            raise RuntimeError("global ipalib.api must be finalized first.")
+        # initialize this api
+        if not self.isdone("finalize"):
+            self.finalize()
+        # connect backend, server and client use different backends.
+        if self.env.in_server:
+            conn = self.Backend.ldap2
+        else:
+            conn = self.Backend.rpcclient
+        if conn.isconnected():
+            raise RuntimeError("API is already connected")
+        else:
+            conn.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Disconnect backend on exit"""
+        if self.env.in_server:
+            conn = self.Backend.ldap2
+        else:
+            conn = self.Backend.rpcclient
+        if conn.isconnected():
+            conn.disconnect()
+
     @property
     def packages(self):
         if self.env.in_server:

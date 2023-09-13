@@ -13,6 +13,7 @@ import random
 import shlex
 import ssl
 from itertools import chain, repeat
+import sys
 import textwrap
 import time
 import pytest
@@ -1556,6 +1557,34 @@ class TestIPACommand(IntegrationTest):
             ], raiseonerr=False).stderr_text
 
         assert 'Discovered server %s' % self.master.hostname in result
+
+    def test_ipa_context_manager(self):
+        """Exercise ipalib.api context manager and KRB5_CLIENT_KTNAME auth
+
+        The example_cli.py script uses the context manager to connect and
+        disconnect the global ipalib.api object. The test also checks whether
+        KRB5_CLIENT_KTNAME env var automatically acquires a TGT.
+        """
+        host = self.clients[0]
+        tasks.kdestroy_all(host)
+
+        here = os.path.abspath(os.path.dirname(__file__))
+        with open(os.path.join(here, "example_cli.py")) as f:
+            contents = f.read()
+
+        # upload script and run with Python executable
+        script = "/tmp/example_cli.py"
+        host.put_file_contents(script, contents)
+        result = host.run_command([sys.executable, script])
+
+        # script prints admin account
+        admin_princ = f"admin@{host.domain.realm}"
+        assert admin_princ in result.stdout_text
+
+        # verify that auto-login did use correct principal
+        host_princ = f"host/{host.hostname}@{host.domain.realm}"
+        result = host.run_command([paths.KLIST])
+        assert host_princ in result.stdout_text
 
 
 class TestIPACommandWithoutReplica(IntegrationTest):
