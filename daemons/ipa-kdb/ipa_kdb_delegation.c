@@ -42,7 +42,7 @@ static krb5_error_code ipadb_get_delegation_acl(krb5_context kcontext,
 {
     struct ipadb_context *ipactx;
     krb5_error_code kerr;
-    char *filter = NULL;
+    char *filter = NULL, *basedn = NULL;
     int ret;
 
     ipactx = ipadb_get_context(kcontext);
@@ -58,12 +58,20 @@ static krb5_error_code ipadb_get_delegation_acl(krb5_context kcontext,
         goto done;
     }
 
+    ret = asprintf(&basedn,
+                   "cn=s4u2proxy,cn=etc,%s", ipactx->base);
+    if (ret == -1) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
     /* == Search ACL info == */
-    kerr = ipadb_deref_search(ipactx, ipactx->base,
+    kerr = ipadb_deref_search(ipactx, basedn,
                               LDAP_SCOPE_SUBTREE, filter, acl_attrs,
                               search_attrs, acl_attrs, results);
 
 done:
+    free(basedn);
     free(filter);
     return kerr;
 }
@@ -106,6 +114,8 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
     bool client_missing;
     bool client_found;
     bool target_found;
+    bool is_constraint_delegation = false;
+    size_t nrules = 0;
     int ret;
 
     ipactx = ipadb_get_context(kcontext);
@@ -113,13 +123,17 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
         return KRB5_KDB_DBNOTINITED;
     }
 
-    kerr = krb5_unparse_name(kcontext, client, &client_princ);
-    if (kerr != 0) {
-        goto done;
-    }
-    kerr = krb5_unparse_name(kcontext, target, &target_princ);
-    if (kerr != 0) {
-        goto done;
+    if ((client != NULL) && (target != NULL)) {
+        kerr = krb5_unparse_name(kcontext, client, &client_princ);
+        if (kerr != 0) {
+            goto done;
+        }
+        kerr = krb5_unparse_name(kcontext, target, &target_princ);
+        if (kerr != 0) {
+            goto done;
+        }
+    } else {
+        is_constraint_delegation = true;
     }
 
     lentry = ldap_first_entry(ipactx->lcontext, results);
@@ -142,6 +156,25 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
         switch (ret) {
         case 0:
             for (dres = deref_results; dres; dres = dres->next) {
+                nrules++;
+                if (is_constraint_delegation) {
+                    /*
+                        Microsoft revised the S4U2Proxy rules for forwardable
+                        tickets.  All S4U2Proxy operations require forwardable
+                        evidence tickets, but S4U2Self should issue a
+                        forwardable ticket if the requesting service has no
+                        ok-to-auth-as-delegate bit but also no constrained
+                        delegation privileges for traditional S4U2Proxy.
+                        Implement these rules, extending the
+                        check_allowed_to_delegate() DAL method so that the KDC
+                        can ask if a principal has any delegation privileges.
+
+                        Since target principal is NULL and client principal is
+                        NULL in this case, we simply calculate number of rules associated
+                        with the server principal to decide whether to deny forwardable bit
+                    */
+                    continue;
+                }
                 if (client_found == false &&
                     strcasecmp(dres->derefAttr, "ipaAllowToImpersonate") == 0) {
                     /* NOTE: client_missing is used to signal that the
@@ -175,6 +208,10 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
         lentry = ldap_next_entry(ipactx->lcontext, lentry);
     }
 
+    if (nrules > 0) {
+        kerr = 0;
+    }
+
 done:
     krb5_free_unparsed_name(kcontext, client_princ);
     krb5_free_unparsed_name(kcontext, target_princ);
@@ -196,33 +233,35 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
     struct ipadb_e_data *ied_server, *ied_proxy;
     LDAPMessage *res = NULL;
 
-    /* Handle the case where server == proxy, this is allowed in S4U*/
-    kerr = ipadb_get_principal(kcontext, proxy,
-                               KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY,
-                               &proxy_entry);
-    if (kerr) {
-        goto done;
-    }
-
-    ied_server = (struct ipadb_e_data *) server->e_data;
-    ied_proxy = (struct ipadb_e_data *) proxy_entry->e_data;
-
-    /* If we have SIDs for both entries, compare SIDs */
-    if ((ied_server->has_sid && ied_server->sid != NULL) &&
-        (ied_proxy->has_sid && ied_proxy->sid != NULL)) {
-
-        if (dom_sid_check(ied_server->sid, ied_proxy->sid, true)) {
-            kerr = 0;
+    if (proxy != NULL) {
+        /* Handle the case where server == proxy, this is allowed in S4U */
+        kerr = ipadb_get_principal(kcontext, proxy,
+                                   CLIENT_REFERRALS_FLAGS,
+                                   &proxy_entry);
+        if (kerr) {
             goto done;
         }
-    }
 
-    /* Otherwise, compare entry DNs */
-    kerr = ulc_casecmp(ied_server->entry_dn, strlen(ied_server->entry_dn),
-                       ied_proxy->entry_dn, strlen(ied_proxy->entry_dn),
-                       NULL, NULL, &result);
-    if (kerr == 0 && result == 0) {
-        goto done;
+        ied_server = (struct ipadb_e_data *) server->e_data;
+        ied_proxy = (struct ipadb_e_data *) proxy_entry->e_data;
+
+        /* If we have SIDs for both entries, compare SIDs */
+        if ((ied_server->has_sid && ied_server->sid != NULL) &&
+            (ied_proxy->has_sid && ied_proxy->sid != NULL)) {
+
+            if (dom_sid_check(ied_server->sid, ied_proxy->sid, true)) {
+                kerr = 0;
+                goto done;
+            }
+        }
+
+        /* Otherwise, compare entry DNs */
+        kerr = ulc_casecmp(ied_server->entry_dn, strlen(ied_server->entry_dn),
+                        ied_proxy->entry_dn, strlen(ied_proxy->entry_dn),
+                        NULL, NULL, &result);
+        if (kerr == 0 && result == 0) {
+            goto done;
+        }
     }
 
     kerr = krb5_unparse_name(kcontext, server->princ, &srv_principal);
@@ -241,8 +280,56 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
     }
 
 done:
+    if (kerr) {
+#if KRB5_KDB_DAL_MAJOR_VERSION < 9
+        kerr = KRB5KDC_ERR_POLICY;
+#else
+        kerr = KRB5KDC_ERR_BADOPTION;
+#endif
+    }
     ipadb_free_principal(kcontext, proxy_entry);
     krb5_free_unparsed_name(kcontext, srv_principal);
     ldap_msgfree(res);
+    return kerr;
+}
+
+
+krb5_error_code ipadb_allowed_to_delegate_from(krb5_context context,
+                                               krb5_const_principal client,
+                                               krb5_const_principal server,
+                                               krb5_pac server_pac,
+                                               const krb5_db_entry *proxy)
+{
+    char **acl_list = NULL;
+    krb5_error_code kerr;
+    size_t i;
+
+    kerr = ipadb_get_tl_data((krb5_db_entry *) proxy, KRB5_TL_CONSTRAINED_DELEGATION_ACL,
+                             sizeof(acl_list), (krb5_octet *)&acl_list);
+
+    if (kerr != 0 && kerr != ENOENT) {
+        return KRB5KDC_ERR_BADOPTION;
+    }
+
+    if (kerr == ENOENT) {
+        return KRB5_PLUGIN_OP_NOTSUPP;
+    }
+
+    kerr = KRB5KDC_ERR_BADOPTION;
+    if (acl_list != NULL) {
+        krb5_principal acl;
+        for (i = 0; acl_list[i] != NULL; i++) {
+            if (krb5_parse_name(context, acl_list[i], &acl) != 0)
+                continue;
+            if ((server == NULL) ||
+                (krb5_principal_compare(context, server, acl) == TRUE)) {
+                kerr = 0;
+                krb5_free_principal(context, acl);
+                break;
+            }
+            krb5_free_principal(context, acl);
+        }
+    }
+
     return kerr;
 }

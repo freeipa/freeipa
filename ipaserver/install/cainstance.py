@@ -30,7 +30,6 @@ import dbus
 import os
 import re
 import shutil
-import ssl
 import sys
 import syslog
 import time
@@ -529,6 +528,9 @@ class CAInstance(DogtagInstance):
         if self.random_serial_numbers:
             cfg['pki_request_id_generator'] = 'random'
             cfg['pki_cert_id_generator'] = 'random'
+        else:
+            cfg['pki_request_id_generator'] = 'legacy'
+            cfg['pki_cert_id_generator'] = 'legacy'
 
         if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
                 os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
@@ -576,6 +578,8 @@ class CAInstance(DogtagInstance):
             else:
                 cfg.update(
                     pki_random_serial_numbers_enable=False,
+                    pki_request_id_generator="legacy",
+                    pki_cert_id_generator="legacy",
                 )
 
             self._configure_clone(
@@ -2373,7 +2377,7 @@ def check_ipa_ca_san(cert):
 
     try:
         cert.match_hostname(expect)
-    except ssl.CertificateError:
+    except x509.ssl_match_hostname.CertificateError:
         raise errors.ValidationError(
             name='certificate',
             error='Does not have a \'{}\' SAN'.format(expect)

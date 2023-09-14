@@ -36,7 +36,7 @@ except ImportError:
 FIELDS = ['krbmaxpwdlife', 'krbminpwdlife', 'krbpwdhistorylength',
           'krbpwdmindiffchars', 'krbpwdminlength', 'krbpwdmaxfailure',
           'krbpwdfailurecountinterval', 'krbpwdlockoutduration',
-          'cospriority']
+          'cospriority', 'passwordgracelimit']
 EXPECTED_ERR = "invalid 'group': cannot delete global password policy"
 EXPECTED_MSG = 'Password Policy successfully added'
 
@@ -143,15 +143,15 @@ class test_pwpolicy(UI_driver):
 
         for field in FIELDS:
             # bigger than max value
-            # verifying if field value is more then 20000
+            # verifying if field value is more than 20000
             if field == 'krbmaxpwdlife':
                 self.check_expected_error(field, 'Maximum value is 20000',
                                           maximum_value)
-            # verifying if field value is more then 5
+            # verifying if field value is more than 5
             elif field == 'krbpwdmindiffchars':
                 self.check_expected_error(field, 'Maximum value is 5',
                                           maximum_value)
-            # verifying if field value is more then 2147483647
+            # verifying if field value is more than 2147483647
             else:
                 self.check_expected_error(field, 'Maximum value is 2147483647',
                                           maximum_value)
@@ -160,9 +160,13 @@ class test_pwpolicy(UI_driver):
             self.check_expected_error(field, non_interger_expected_error,
                                       non_integer)
 
-            # smaller than max value
-            self.check_expected_error(field, minimum_value_expected_error,
+            # smaller than min value
+            if field != 'passwordgracelimit':
+                self.check_expected_error(field, minimum_value_expected_error,
                                       minimum_value)
+            else:
+                self.check_expected_error(field, 'Minimum value is -1',
+                                          '-2')
         self.navigate_to_entity(pwpolicy.ENTITY)
         self.delete_record(pwpolicy.group.PKEY)
 
@@ -268,3 +272,27 @@ class test_pwpolicy(UI_driver):
         assert "History size (number of passwords)" in krbpwdhistorylen
         assert "Failure reset interval (seconds)" in krbpwdfailurecountinterval
         assert "Lockout duration (seconds)" in krbpwdlockoutduration
+
+    @screenshot
+    def test_grace_login_limit(self):
+        """
+        Verify existence of grace login limit field and its constraints
+
+        Related: https://pagure.io/freeipa/issue/9211
+        """
+        self.init_app()
+        self.add_record(group.ENTITY, [group.DATA])
+        # add record DATA8 already with passwordgracelimit
+        self.add_record(pwpolicy.ENTITY, [pwpolicy.DATA8])
+
+        field = 'passwordgracelimit'
+        self.navigate_to_record(group.PKEY)
+        # fill with values from DATA8, passwordgracelimit has value 42
+        self.fill_fields(pwpolicy.DATA8['mod'])
+        current_value = self.get_field_value(field, element="input")
+        try:
+            assert current_value == '42'
+        finally:
+            # cleanup
+            self.delete(group.ENTITY, [group.DATA])
+            self.delete(pwpolicy.ENTITY, [pwpolicy.DATA8])

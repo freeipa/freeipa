@@ -419,6 +419,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.container_dna_posix_ids = DN()
     api.env.container_dns = DN()
     api.env.container_dnsservers = DN()
+    api.env.container_passkey = DN()
     api.env.container_group = DN()
     api.env.container_hbac = DN()
     api.env.container_hbacservice = DN()
@@ -512,6 +513,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.smtp_admin = ""
     api.env.smtp_delay = None
     api.env.mail_from = None
+    api.env.mail_from_name = None
     api.env.notify_ttls = ""
     api.env.msg_charset = ""
     api.env.msg_subtype = ""

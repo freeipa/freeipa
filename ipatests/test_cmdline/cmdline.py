@@ -23,10 +23,10 @@ Base class for all cmdline tests
 
 from __future__ import absolute_import
 
-import distutils.spawn
 import os
 
 import pytest
+import shutil
 
 from ipalib import api
 from ipalib import errors
@@ -60,7 +60,7 @@ class cmdline_test(XMLRPC_test):
         cls = request.cls
         original_command = cls.command
         if not os.path.isabs(cls.command):
-            cls.command = distutils.spawn.find_executable(cls.command)
+            cls.command = shutil.which(cls.command)
         # raise an error if the command is missing even if the remote
         # server is not available.
         if not cls.command:

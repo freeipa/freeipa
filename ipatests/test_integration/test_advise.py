@@ -174,3 +174,14 @@ class TestAdvice(IntegrationTest):
             self.execute_advise(client, advice_id, ca_file)
         finally:
             client.run_command(['rm', '-f', ca_file])
+
+    def test_ipa_advise(self):
+        """Test ipa-advise is not failing with error.
+
+        The command should not fail with error in command.
+
+        Related: https://pagure.io/freeipa/issue/6044
+        """
+        test = self.master.run_command(["ipa-advise"], raiseonerr=False)
+        error = "object of type 'type' has no len()"
+        assert error not in (test.stdout_text + test.stderr_text)

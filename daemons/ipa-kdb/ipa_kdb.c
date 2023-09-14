@@ -49,6 +49,11 @@ static void ipadb_context_free(krb5_context kcontext,
     size_t c;
 
     if (*ctx != NULL) {
+        if ((*ctx)->magic != IPA_CONTEXT_MAGIC) {
+            krb5_klog_syslog(LOG_ERR, "IPA context is corrupted");
+            *ctx = NULL;
+            return;
+        }
         free((*ctx)->uri);
         free((*ctx)->base);
         free((*ctx)->realm_base);
@@ -200,6 +205,7 @@ static const struct {
     { "pkinit", IPADB_USER_AUTH_PKINIT },
     { "hardened", IPADB_USER_AUTH_HARDENED },
     { "idp", IPADB_USER_AUTH_IDP },
+    { "passkey", IPADB_USER_AUTH_PASSKEY },
     { }
 };
 
@@ -615,6 +621,8 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
         goto fail;
     }
 
+    ipactx->optional_pac_tkt_chksum = IPADB_TRISTATE_UNDEFINED;
+
     ret = ipadb_get_connection(ipactx);
     if (ret != 0) {
         /* Not a fatal failure, as the LDAP server may be temporarily down. */
@@ -627,6 +635,7 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
         ret = EACCES;
         goto fail;
     }
+
 
     return 0;
 
@@ -798,10 +807,19 @@ kdb_vftabl kdb_function_table = {
 #endif
 
 #if (KRB5_KDB_DAL_MAJOR_VERSION == 9)
-#error DAL version 9 is not supported yet
 /* Version 9 removes sign_authdata and adds issue_pac method. It is a complete
  * revamp of how PAC is issued, so we need to implement it differently to previous
  * versions. */
+
+krb5_error_code
+ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
+                   krb5_db_entry *client,
+                   krb5_keyblock *replaced_reply_key,
+                   krb5_db_entry *server,
+                   krb5_db_entry *signing_krbtgt,
+                   krb5_timestamp authtime, krb5_pac old_pac,
+                   krb5_pac new_pac,
+                   krb5_data ***auth_indicators);
 
 kdb_vftabl kdb_function_table = {
     .maj_ver = KRB5_KDB_DAL_MAJOR_VERSION,
@@ -830,8 +848,8 @@ kdb_vftabl kdb_function_table = {
     .check_allowed_to_delegate = ipadb_check_allowed_to_delegate,
     .free_principal_e_data = ipadb_free_principal_e_data,
     .get_s4u_x509_principal = NULL,
-    .allowed_to_delegate_from = NULL,
-    .issue_pac = NULL,
+    .allowed_to_delegate_from = ipadb_allowed_to_delegate_from,
+    .issue_pac = ipadb_v9_issue_pac,
 };
 #endif
 

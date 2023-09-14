@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from pkg_resources import parse_version
+
 # The full version including strings
 VERSION = "@VERSION@"
 
@@ -51,3 +53,5 @@ API_VERSION = "@API_VERSION@"
 DEFAULT_PLUGINS = frozenset(l.strip() for l in """
 @DEFAULT_PLUGINS@
 """.strip().splitlines())
+
+KRB5_BUILD_VERSION = parse_version("@KRB5_BUILD_VERSION@")

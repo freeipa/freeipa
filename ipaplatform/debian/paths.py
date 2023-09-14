@@ -79,7 +79,7 @@ class DebianPathNamespace(BasePathNamespace):
     UPDATE_CA_TRUST = "/usr/sbin/update-ca-certificates"
     BIND_LDAP_DNS_IPA_WORKDIR = "/var/cache/bind/dyndb-ldap/ipa/"
     BIND_LDAP_DNS_ZONE_WORKDIR = "/var/cache/bind/dyndb-ldap/ipa/master/"
-    BIND_LDAP_SO = "ldap.so"
+    BIND_LDAP_SO = "/usr/lib/{0}/bind/ldap.so".format(MULTIARCH)
     LIBARCH = "/{0}".format(MULTIARCH)
     LIBSOFTHSM2_SO = "/usr/lib/{0}/softhsm/libsofthsm2.so".format(MULTIARCH)
     PAM_KRB5_SO = "/usr/lib/{0}/security/pam_krb5.so".format(MULTIARCH)

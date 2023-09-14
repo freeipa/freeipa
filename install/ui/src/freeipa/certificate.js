@@ -380,7 +380,7 @@ IPA.cert.view_dialog = function(spec) {
             var row = that.create_row();
             row.append(that
                 .create_header_cell(title, ':'));
-            row.append(that.create_cell(value, '', 'break-words'));
+            row.append(that.create_cell(value, '', 'break-words', 'break-words'));
 
             return row;
         };
@@ -1240,23 +1240,23 @@ IPA.cert.cert_widget = function(spec) {
         var tr = that.create_row().appendTo(that.table_layout);
         that.create_header_cell('@i18n:objects.cert.serial_number', ':')
             .appendTo(tr);
-        that.cert_sn = that.create_cell('', '', 'cert-value').appendTo(tr);
+        that.cert_sn = that.create_cell('', '', 'cert-value', 'cert-serial-num').appendTo(tr);
 
         tr = that.create_row().appendTo(that.table_layout);
         that.create_header_cell('@i18n:objects.cert.issued_by', ':')
             .appendTo(tr);
-        that.cert_issuer = that.create_cell('', '', 'cert-value').appendTo(tr);
+        that.cert_issuer = that.create_cell('', '', 'cert-value', 'cert-issued-by').appendTo(tr);
 
         tr = that.create_row().appendTo(that.table_layout);
         that.create_header_cell('@i18n:objects.cert.valid_from', ':')
             .appendTo(tr);
-        that.cert_valid_from = that.create_cell('', '', 'cert-value')
+        that.cert_valid_from = that.create_cell('', '', 'cert-value', 'cert-valid-from')
             .appendTo(tr);
 
         tr = that.create_row().appendTo(that.table_layout);
         that.create_header_cell('@i18n:objects.cert.valid_to', ':')
             .appendTo(tr);
-        that.cert_valid_to = that.create_cell('', '', 'cert-value')
+        that.cert_valid_to = that.create_cell('', '', 'cert-value', 'cert-valid-to')
             .appendTo(tr);
 
         that.dropdown = builder.build(null, {

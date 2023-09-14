@@ -55,7 +55,7 @@ class TestNonexistentIdp(XMLRPC_test):
         idp.ensure_missing()
         command = idp.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason='%s: Identity Provider server not found' % idp.cn)):
+                reason='%s: Identity Provider reference not found' % idp.cn)):
             command()
 
     def test_update_nonexistent(self, idp):
@@ -64,7 +64,7 @@ class TestNonexistentIdp(XMLRPC_test):
         command = idp.make_update_command(
             updates=dict(ipaidpclientid='idpclient2'))
         with raises_exact(errors.NotFound(
-                reason='%s: Identity Provider server not found' % idp.cn)):
+                reason='%s: Identity Provider reference not found' % idp.cn)):
             command()
 
     def test_delete_nonexistent(self, idp):
@@ -72,7 +72,7 @@ class TestNonexistentIdp(XMLRPC_test):
         idp.ensure_missing()
         command = idp.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason='%s: Identity Provider server not found' % idp.cn)):
+                reason='%s: Identity Provider reference not found' % idp.cn)):
             command()
 
     def test_rename_nonexistent(self, idp, renamedidp):
@@ -81,7 +81,7 @@ class TestNonexistentIdp(XMLRPC_test):
         command = idp.make_update_command(
             updates=dict(setattr='cn=%s' % renamedidp.cn))
         with raises_exact(errors.NotFound(
-                reason='%s: Identity Provider server not found' % idp.cn)):
+                reason='%s: Identity Provider reference not found' % idp.cn)):
             command()
 
 

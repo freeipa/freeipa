@@ -388,12 +388,14 @@ class ADTRUSTInstance(service.Service):
 
             # Abort if RID bases are too close
             local_range = ranges_with_no_rid_base[0]
+            size_value = local_range.single_value.get('ipaIDRangeSize')
             try:
-                size = int(local_range.single_value.get('ipaIDRangeSize'))
-            except ValueError:
-                raise RuntimeError('ipaIDRangeSize is set to a non-integer '
-                                   'value or is not set at all (got {val})'
-                                   .format(val=size))
+                size = int(size_value)
+            except (ValueError, TypeError):
+                raise RuntimeError(
+                    "ipaIDRangeSize is set to a non-integer value or is not set"
+                    f" at all (got {size_value!r})"
+                ) from None
 
             if abs(self.rid_base - self.secondary_rid_base) < size:
                 self.print_msg("Primary and secondary RID base are too close. "
@@ -561,6 +563,8 @@ class ADTRUSTInstance(service.Service):
                 self.print_msg('cifs principal already targeted, nothing to do.')
         except errors.NotFound:
             self.print_msg(UPGRADE_ERROR % dict(dn=targets_dn))
+        except errors.EmptyModlist:
+            pass
 
     def __write_smb_registry(self):
         """Import IPA specific config into Samba registry
@@ -860,6 +864,7 @@ class ADTRUSTInstance(service.Service):
             self.step("validate server hostname",
                       self.__validate_server_hostname)
             self.step("stopping smbd", self.__stop)
+        self.step("adding RID bases", self.__add_rid_bases)
         self.step("creating samba domain object", \
                   self.__create_samba_domain_object)
         if self.fulltrust:
@@ -878,7 +883,6 @@ class ADTRUSTInstance(service.Service):
             self.step("adding cifs principal to S4U2Proxy targets",
                       self.__add_s4u2proxy_target)
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
-        self.step("adding RID bases", self.__add_rid_bases)
         self.step("updating Kerberos config", self.__update_krb5_conf)
         if self.fulltrust:
             self.step("activating CLDAP plugin", self.__add_cldap_module)

@@ -103,6 +103,9 @@ def run_with_args(api):
     else:
         lwcas = []
 
+    # update client certs before KDC and HTTPd are restarted.
+    update_client(certs)
+
     if is_ipa_configured():
         # look up CA servers before service restarts
         resp = api.Command.server_role_find(
@@ -139,7 +142,10 @@ def run_with_args(api):
         if services.knownservices.httpd.is_running():
             services.knownservices.httpd.restart()
 
-    update_client(certs)
+        # update_client() may have updated KDC cert bundle; restart KDC to pick
+        # up changes.
+        if services.knownservices.krb5kdc.is_running():
+            services.knownservices.krb5kdc.restart()
 
 
 def update_client(certs):

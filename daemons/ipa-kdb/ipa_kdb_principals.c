@@ -78,10 +78,12 @@ static char *std_principal_attrs[] = {
     IPA_USER_AUTH_TYPE,
     "ipatokenRadiusConfigLink",
     "ipaIdpConfigLink",
+    "ipaPassKey",
     "krbAuthIndMaxTicketLife",
     "krbAuthIndMaxRenewableAge",
     "ipaNTSecurityIdentifier",
     "ipaUniqueID",
+    "memberPrincipal",
 
     "objectClass",
     NULL
@@ -112,6 +114,14 @@ static char *std_principal_obj_classes[] = {
 #define STD_PRINCIPAL_OBJ_CLASSES_SIZE (sizeof(std_principal_obj_classes) / sizeof(char *) - 1)
 
 #define DEFAULT_TL_DATA_CONTENT "\x00\x00\x00\x00principal@UNINITIALIZED"
+
+#ifndef KRB5_KDB_SK_OPTIONAL_PAC_TKT_CHKSUM
+#define KRB5_KDB_SK_OPTIONAL_PAC_TKT_CHKSUM "optional_pac_tkt_chksum"
+#endif
+
+#ifndef KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE
+#define KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE "pac_privsvr_enctype"
+#endif
 
 static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
                                       char *attrname,
@@ -178,10 +188,56 @@ done:
     return ret;
 }
 
-static krb5_error_code ipadb_set_tl_data(krb5_db_entry *entry,
-                                         krb5_int16 type,
-                                         krb5_ui_2 length,
-                                         const krb5_octet *data)
+static bool
+is_tgs_princ(krb5_context kcontext, krb5_const_principal princ)
+{
+    krb5_data *primary;
+    size_t l_tgs_name;
+
+    if (2 != krb5_princ_size(kcontext, princ))
+        return false;
+
+    primary = krb5_princ_component(kcontext, princ, 0);
+
+    l_tgs_name = strlen(KRB5_TGS_NAME);
+
+    if (l_tgs_name != primary->length)
+        return false;
+
+    return 0 == memcmp(primary->data, KRB5_TGS_NAME, l_tgs_name);
+}
+
+static krb5_error_code
+cmp_local_tgs_princ(krb5_context kcontext, const char *local_realm,
+                   krb5_const_principal princ, bool *result)
+{
+    krb5_principal local_tgs_princ;
+    size_t l_local_realm;
+    krb5_error_code kerr;
+    bool res;
+
+    l_local_realm = strlen(local_realm);
+
+    kerr = krb5_build_principal(kcontext, &local_tgs_princ,
+                                l_local_realm, local_realm,
+                                KRB5_TGS_NAME, local_realm, NULL);
+    if (kerr)
+        goto end;
+
+    res = (bool) krb5_principal_compare(kcontext, local_tgs_princ, princ);
+
+    if (result)
+        *result = res;
+
+end:
+    krb5_free_principal(kcontext, local_tgs_princ);
+    return kerr;
+}
+
+krb5_error_code ipadb_set_tl_data(krb5_db_entry *entry,
+                                  krb5_int16 type,
+                                  krb5_ui_2 length,
+                                  const krb5_octet *data)
 {
     krb5_error_code kerr;
     krb5_tl_data *new_td = NULL;
@@ -347,6 +403,25 @@ static void ipadb_validate_idp(struct ipadb_context *ipactx,
         ldap_value_free_len(vals);
 }
 
+static void ipadb_validate_passkey(struct ipadb_context *ipactx,
+                               LDAPMessage *lentry,
+                               enum ipadb_user_auth *ua)
+{
+    struct berval **vals;
+
+    if (!(*ua & IPADB_USER_AUTH_PASSKEY))
+        return;
+
+    /* Ensure that the user has a link to an IdP config. */
+    vals = ldap_get_values_len(ipactx->lcontext, lentry,
+                               "ipaPassKey");
+    if (vals == NULL || vals[0] == NULL)
+        *ua &= ~IPADB_USER_AUTH_PASSKEY;
+
+    if (vals != NULL)
+        ldap_value_free_len(vals);
+}
+
 static enum ipadb_user_auth ipadb_get_user_auth(struct ipadb_context *ipactx,
                                                 LDAPMessage *lentry)
 {
@@ -380,6 +455,7 @@ static enum ipadb_user_auth ipadb_get_user_auth(struct ipadb_context *ipactx,
     ipadb_validate_otp(ipactx, lentry, &ua);
     ipadb_validate_radius(ipactx, lentry, &ua);
     ipadb_validate_idp(ipactx, lentry, &ua);
+    ipadb_validate_passkey(ipactx, lentry, &ua);
 
     return ua;
 }
@@ -564,6 +640,8 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
          IPADB_USER_AUTH_HARDENED, IPADB_USER_AUTH_IDX_HARDENED},
         {"krbAuthIndMaxTicketLife;idp",
          IPADB_USER_AUTH_IDP, IPADB_USER_AUTH_IDX_IDP},
+        {"krbAuthIndMaxTicketLife;passkey",
+         IPADB_USER_AUTH_PASSKEY, IPADB_USER_AUTH_IDX_PASSKEY},
 	    {NULL, IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_MAX},
     }, age_authind_map[] = {
         {"krbAuthIndMaxRenewableAge;otp",
@@ -576,6 +654,8 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
          IPADB_USER_AUTH_HARDENED, IPADB_USER_AUTH_IDX_HARDENED},
         {"krbAuthIndMaxRenewableAge;idp",
          IPADB_USER_AUTH_IDP, IPADB_USER_AUTH_IDX_IDP},
+        {"krbAuthIndMaxRenewableAge;passkey",
+         IPADB_USER_AUTH_PASSKEY, IPADB_USER_AUTH_IDX_PASSKEY},
         {NULL, IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_MAX},
     };
 
@@ -619,6 +699,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     const krb5_octet rad_string[] = "otp\0[{\"indicators\": [\"radius\"]}]";
     const krb5_octet otp_string[] = "otp\0[{\"indicators\": [\"otp\"]}]";
     const krb5_octet idp_string[] = "idp\0[{\"type\":\"oauth2\",\"indicators\": [\"idp\"]}]";
+    const krb5_octet passkey_string[] = "passkey\0[{\"indicators\": [\"passkey\"]}]";
     struct ipadb_context *ipactx;
     enum ipadb_user_auth ua;
     LDAP *lcontext;
@@ -633,6 +714,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     char *uidstring;
     char **authz_data_list;
     char *princ_sid;
+    char **acl_list;
     krb5_timestamp restime;
     bool resbool;
     int result;
@@ -1002,6 +1084,11 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                  sizeof(idp_string), idp_string);
         if (kerr)
             goto done;
+    } else if (ua & IPADB_USER_AUTH_PASSKEY) {
+        kerr = ipadb_set_tl_data(entry, KRB5_TL_STRING_ATTRS,
+                                 sizeof(passkey_string), passkey_string);
+        if (kerr)
+            goto done;
     }
 
     if (ua & ~IPADB_USER_AUTH_NONE) {
@@ -1027,6 +1114,30 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
             goto done;
         }
         ied->has_sid = true;
+    }
+
+    /* check if it has the serviceDelegation objectclass */
+    ret = ipadb_ldap_attr_has_value(lcontext, lentry,
+                                    "objectClass", "resourceDelegation");
+    if (ret != 0 && ret != ENOENT) {
+        kerr = ret;
+        goto done;
+    }
+    if (ret == 0) {
+        ret = ipadb_ldap_attr_to_strlist(lcontext, lentry,
+                                        "memberPrincipal", &acl_list);
+        if (ret != 0 && ret != ENOENT) {
+            kerr = KRB5_KDB_INTERNAL_ERROR;
+            goto done;
+        }
+        if (ret == 0) {
+            kerr = ipadb_set_tl_data(entry, KRB5_TL_CONSTRAINED_DELEGATION_ACL,
+                                     sizeof(acl_list),
+                                     (const krb5_octet *) &acl_list);
+            if (kerr) {
+                goto done;
+            }
+        }
     }
 
     kerr = 0;
@@ -1362,6 +1473,9 @@ static krb5_boolean is_request_for_us(krb5_context kcontext,
 {
     krb5_boolean for_us;
 
+    if (search_for == NULL) {
+        return FALSE;
+    }
     for_us = krb5_realm_compare(kcontext, local_tgs, search_for) ||
              krb5_principal_compare_any_realm(kcontext,
                                               local_tgs, search_for);
@@ -1379,11 +1493,17 @@ static krb5_error_code dbget_princ(krb5_context kcontext,
     LDAPMessage *res = NULL;
     LDAPMessage *lentry;
     uint32_t pol;
+    krb5_boolean check = FALSE;
 
 
-    if ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0 &&
-        (flags & KRB5_KDB_FLAG_CANONICALIZE) != 0) {
+#if defined(KRB5_KDB_FLAG_CLIENT)
+    check = flags & KRB5_KDB_FLAG_CLIENT;
+#else
+    check = (flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) &&
+            (flags & KRB5_KDB_FLAG_CANONICALIZE);
+#endif
 
+    if (check) {
         /* AS_REQ with canonicalization*/
         krb5_principal norm_princ = NULL;
 
@@ -1450,6 +1570,14 @@ done:
     return kerr;
 }
 
+/* For krb5 1.19, there is no KRB5_KDB_FLAG_REFERRAL_OK, emulate it
+ * See krb5 commit a441fbe329ebbd7775eb5d4ccc4a05eef370f08b */
+#ifndef KRB5_KDB_FLAG_REFERRAL_OK
+#ifdef KRB5_KDB_FLAG_CANONICALIZE
+#define KRB5_KDB_FLAG_REFERRAL_OK KRB5_KDB_FLAG_CANONICALIZE
+#endif
+#endif
+
 static krb5_error_code dbget_alias(krb5_context kcontext,
                                    struct ipadb_context *ipactx,
                                    krb5_const_principal search_for,
@@ -1462,18 +1590,40 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
     char *trusted_realm = NULL;
     krb5_db_entry *kentry = NULL;
     krb5_data *realm;
+    krb5_boolean check = FALSE;
+    /* KRB5_NT_PRINCIPAL must be the last element */
+    krb5_int32 supported_types[] = {
+        [0] = KRB5_NT_ENTERPRISE_PRINCIPAL,
+        [1] = KRB5_NT_PRINCIPAL,
+        -1,
+    };
+    size_t i = 0;
 
-    /* TODO: also support hostbased aliases */
+    /* For TGS-REQ server principal lookup, KDC asks with KRB5_KDB_FLAG_REFERRAL_OK
+     * and client usually asks for an KRB5_NT_PRINCIPAL type principal. */
+    if ((flags & KRB5_KDB_FLAG_REFERRAL_OK) == 0) {
+       /* this is *not* TGS-REQ server principal search, remove
+	* KRB5_NT_PRINCIPAL from the supported principal types for this lookup */
+       supported_types[(sizeof(supported_types) / sizeof(supported_types[0])) - 2] = -1;
+    }
 
     /* Enterprise principal name type is for potential aliases or principals
-     * from trusted realms. The logic below only applies to this type */
-    if (krb5_princ_type(kcontext, search_for) != KRB5_NT_ENTERPRISE_PRINCIPAL) {
+     * from trusted realms. Except for the TGS-REQ server lookup, we only
+     * expect enterprise principals here */
+    for (i = 0; supported_types[i] != -1; i++) {
+        if (krb5_princ_type(kcontext, search_for) == supported_types[i]) {
+            break;
+        }
+    }
+
+    if (supported_types[i] == -1) {
         return KRB5_KDB_NOENTRY;
     }
 
     /* enterprise principal can only have single component in the name
      * according to RFC6806 section 5. */
-    if (krb5_princ_size(kcontext, search_for) != 1) {
+    if ((krb5_princ_type(kcontext, search_for) == KRB5_NT_ENTERPRISE_PRINCIPAL) &&
+        (krb5_princ_size(kcontext, search_for) != 1)) {
         return KRB5_KDB_NOENTRY;
     }
 
@@ -1497,6 +1647,12 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
     if (krb5_realm_compare(kcontext, ipactx->local_tgs, norm_princ)) {
         /* In realm alias, try to retrieve it and let the caller handle it. */
         kerr = dbget_princ(kcontext, ipactx, norm_princ, flags, entry);
+    }
+
+    /* if we haven't found the principal in our realm, it might still
+     * be a referral to a known realm. Otherwise, bail out with the result */
+    if ((kerr != KRB5_KDB_NOENTRY) &&
+        (flags & KRB5_KDB_FLAG_REFERRAL_OK) == 0) {
         goto done;
     }
 
@@ -1507,8 +1663,14 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
      * both client and server referrals. But it is more useful to ignore it
      * like Windows KDC does for client referrals.
      */
-    if (((flags & KRB5_KDB_FLAG_CANONICALIZE) == 0) &&
-        ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) == 0)) {
+#if defined(KRB5_KDB_FLAG_CLIENT)
+    check = ((flags & KRB5_KDB_FLAG_CLIENT) == 0) &&
+            ((flags & KRB5_KDB_FLAG_REFERRAL_OK) == 0);
+#else
+    check = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) == 0) &&
+            ((flags & KRB5_KDB_FLAG_CANONICALIZE) == 0);
+#endif
+    if (check) {
         kerr = KRB5_KDB_NOENTRY;
         goto done;
     }
@@ -1534,13 +1696,44 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
                                                  &trusted_realm);
     }
 
+    if (kerr == KRB5_KDB_NOENTRY) {
+        krb5_data *hstname = NULL;
+        int ncomponents = krb5_princ_size(kcontext, norm_princ);
+
+        /* We did not find any alias so far for non-server principal lookups */
+        if ((ncomponents < 2) && ((flags & KRB5_KDB_FLAG_REFERRAL_OK) == 0)) {
+            goto done;
+        }
+
+	/* At this point it is a server principal lookup that might be
+         * referencing a host name in a trusted domain. It might also
+         * have multiple service components so take the last one for the
+         * hostname or the domain name. See MS-ADTS 2.2.21 and MS-DRSR 2.2.4.2.
+         */
+        hstname = krb5_princ_component(kcontext, norm_princ, ncomponents - 1);
+
+        kerr = ipadb_is_princ_from_trusted_realm(kcontext,
+                                                 hstname->data,
+                                                 hstname->length,
+                                                 &trusted_realm);
+    }
+
     if (kerr != 0) {
+        kerr = KRB5_KDB_NOENTRY;
         goto done;
     }
 
     /* This is a known trusted realm. Issue a referral depending on whether this
      * is client or server referral request */
-    if (flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) {
+#if defined(KRB5_KDB_FLAG_CLIENT)
+    check = (flags & KRB5_KDB_FLAG_CLIENT) && (flags & KRB5_KDB_FLAG_REFERRAL_OK);
+#else
+    check = (flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) &&
+            ((flags & KRB5_KDB_FLAG_CANONICALIZE) ||
+              search_for->type == KRB5_NT_ENTERPRISE_PRINCIPAL);
+#endif
+
+    if (check) {
         /* client referral out of realm, set next realm. */
         kerr = krb5_set_principal_realm(kcontext, norm_princ, trusted_realm);
         if (kerr != 0) {
@@ -1559,7 +1752,12 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
         goto done;
     }
 
-    if (flags & KRB5_KDB_FLAG_INCLUDE_PAC) {
+#if defined(KRB5_KDB_FLAG_CLIENT)
+    check = flags & KRB5_KDB_FLAG_CLIENT;
+#else
+    check = flags & KRB5_KDB_FLAG_INCLUDE_PAC;
+#endif
+    if (check) {
         /* TGS request where KDC wants to generate PAC
          * but the principal is out of our realm */
         kerr = KRB5_KDB_NOENTRY;
@@ -1603,6 +1801,8 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
                                     krb5_db_entry **entry)
 {
     struct ipadb_context *ipactx;
+    bool is_local_tgs_princ;
+    const char *opt_pac_tkt_chksum_val;
     krb5_error_code kerr;
 
     *entry = NULL;
@@ -1618,11 +1818,47 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
 
     /* Lookup local names and aliases first. */
     kerr = dbget_princ(kcontext, ipactx, search_for, flags, entry);
-    if (kerr != KRB5_KDB_NOENTRY) {
+    if (kerr == KRB5_KDB_NOENTRY) {
+        kerr = dbget_alias(kcontext, ipactx, search_for, flags, entry);
+    }
+    if (kerr)
         return kerr;
+
+    /* If TGS principal, some virtual attributes may be added */
+    if (is_tgs_princ(kcontext, (*entry)->princ)) {
+        kerr = cmp_local_tgs_princ(kcontext, ipactx->realm, (*entry)->princ,
+                                   &is_local_tgs_princ);
+        if (kerr)
+            return kerr;
+
+        /* for trusted AD forests we currently must use SHA-1-based
+         * encryption types. For details, see
+         * https://github.com/krb5/krb5/commit/5af907156f8f502bbe268f0c62274f88a61261e4
+         */
+        if (!is_local_tgs_princ) {
+            kerr = krb5_dbe_set_string(kcontext, *entry,
+                                       KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE,
+                                       "aes256-sha1");
+        }
+
+        /* We should have been initialized at this point already */
+        if (ipactx->optional_pac_tkt_chksum == IPADB_TRISTATE_UNDEFINED) {
+                return KRB5_KDB_SERVER_INTERNAL_ERR;
+        }
+        /* PAC ticket signature should be optional for foreign realms, and local
+         * realm if not supported by all servers
+         */
+        if (!is_local_tgs_princ || ipactx->optional_pac_tkt_chksum)
+            opt_pac_tkt_chksum_val = "true";
+        else
+            opt_pac_tkt_chksum_val = "false";
+
+        kerr = krb5_dbe_set_string(kcontext, *entry,
+                                   KRB5_KDB_SK_OPTIONAL_PAC_TKT_CHKSUM,
+                                   opt_pac_tkt_chksum_val);
     }
 
-    return dbget_alias(kcontext, ipactx, search_for, flags, entry);
+    return kerr;
 }
 
 void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
@@ -1653,12 +1889,20 @@ void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
 void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
 {
     krb5_tl_data *prev, *next;
+    size_t i;
 
     if (entry) {
         krb5_free_principal(kcontext, entry->princ);
         prev = entry->tl_data;
         while(prev) {
             next = prev->tl_data_next;
+            /* Handle RBCD ACL type */
+            if (prev->tl_data_type == KRB5_TL_CONSTRAINED_DELEGATION_ACL) {
+                char **acl_list = (char **) prev->tl_data_contents;
+                for (i = 0; (acl_list != NULL) && (acl_list[i] != NULL); i++) {
+                    free(acl_list[i]);
+                }
+            }
             free(prev->tl_data_contents);
             free(prev);
             prev = next;
@@ -1673,10 +1917,10 @@ void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
     }
 }
 
-static krb5_error_code ipadb_get_tl_data(krb5_db_entry *entry,
-                                         krb5_int16 type,
-                                         krb5_ui_2 length,
-                                         krb5_octet *data)
+krb5_error_code ipadb_get_tl_data(krb5_db_entry *entry,
+                                  krb5_int16 type,
+                                  krb5_ui_2 length,
+                                  krb5_octet *data)
 {
     krb5_tl_data *td;
 
@@ -1925,6 +2169,21 @@ done:
     return kerr;
 }
 
+static bool should_filter_out_attr(krb5_tl_data *data)
+{
+    switch (data->tl_data_type) {
+        case KRB5_TL_CONSTRAINED_DELEGATION_ACL:
+        case KRB5_TL_DB_ARGS:
+        case KRB5_TL_KADM_DATA:
+        case KRB5_TL_LAST_ADMIN_UNLOCK:
+        case KRB5_TL_LAST_PWD_CHANGE:
+        case KRB5_TL_MKVNO:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static krb5_error_code ipadb_get_ldap_mod_extra_data(struct ipadb_mods *imods,
                                                      krb5_tl_data *tl_data,
                                                      int mod_op)
@@ -1936,13 +2195,8 @@ static krb5_error_code ipadb_get_ldap_mod_extra_data(struct ipadb_mods *imods,
     int n, i;
 
     for (n = 0, data = tl_data; data; data = data->tl_data_next) {
-        if (data->tl_data_type == KRB5_TL_LAST_PWD_CHANGE ||
-            data->tl_data_type == KRB5_TL_KADM_DATA ||
-            data->tl_data_type == KRB5_TL_DB_ARGS ||
-            data->tl_data_type == KRB5_TL_MKVNO ||
-            data->tl_data_type == KRB5_TL_LAST_ADMIN_UNLOCK) {
+        if (should_filter_out_attr(data))
             continue;
-        }
         n++;
     }
 
@@ -1958,13 +2212,8 @@ static krb5_error_code ipadb_get_ldap_mod_extra_data(struct ipadb_mods *imods,
 
     for (i = 0, data = tl_data; data; data = data->tl_data_next) {
 
-        if (data->tl_data_type == KRB5_TL_LAST_PWD_CHANGE ||
-            data->tl_data_type == KRB5_TL_KADM_DATA ||
-            data->tl_data_type == KRB5_TL_DB_ARGS ||
-            data->tl_data_type == KRB5_TL_MKVNO ||
-            data->tl_data_type == KRB5_TL_LAST_ADMIN_UNLOCK) {
+        if (should_filter_out_attr(data))
             continue;
-        }
 
         be_type = htons(data->tl_data_type);
 
@@ -2716,10 +2965,43 @@ done:
     return kerr;
 }
 
+static krb5_error_code
+remove_virtual_str_attrs(krb5_context kcontext, krb5_db_entry *entry)
+{
+    char *str_attr_val;
+    krb5_error_code kerr;
+    const char *str_attrs[] = {
+        KRB5_KDB_SK_OPTIONAL_PAC_TKT_CHKSUM,
+        KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE,
+        NULL};
+
+    for(int i = 0; str_attrs[i] != NULL; i++) {
+        kerr = krb5_dbe_get_string(kcontext, entry,
+                                   str_attrs[i],
+                                   &str_attr_val);
+        if (kerr)
+            return kerr;
+
+        if (str_attr_val)
+            kerr = krb5_dbe_set_string(kcontext, entry,
+                                       str_attrs[i],
+                                       NULL);
+
+        krb5_dbe_free_string(kcontext, str_attr_val);
+    }
+    return kerr;
+}
+
 krb5_error_code ipadb_put_principal(krb5_context kcontext,
                                     krb5_db_entry *entry,
                                     char **db_args)
 {
+    krb5_error_code kerr;
+
+    kerr = remove_virtual_str_attrs(kcontext, entry);
+    if (kerr)
+        return kerr;
+
     if (entry->mask & KMASK_PRINCIPAL) {
         return ipadb_add_principal(kcontext, entry);
     } else {

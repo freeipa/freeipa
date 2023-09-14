@@ -244,3 +244,9 @@ idp = [
     'top',
     'ipaidp',
 ]
+
+passkeyconfig = [
+    'top',
+    'nscontainer',
+    'ipapasskeyconfigobject',
+]

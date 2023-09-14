@@ -184,7 +184,7 @@ class DogtagInstance(service.Service):
                 ['pki-server', 'subsystem-show', self.subsystem.lower()],
                 capture_output=True)
             # parse the command output
-            return 'Enabled: True' in result.output
+            return 'Enabled: ' in result.output
         except ipautil.CalledProcessError:
             return False
 
@@ -305,7 +305,7 @@ class DogtagInstance(service.Service):
             self.print_msg("Unconfiguring %s" % self.subsystem)
 
         args = [paths.PKIDESTROY,
-                "-i", "pki-tomcat",
+                "-i", "pki-tomcat", "--force",
                 "-s", self.subsystem]
 
         # specify --log-file <path> on PKI 11.0.0 or later

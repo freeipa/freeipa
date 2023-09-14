@@ -23,7 +23,7 @@ from optparse import (
     Option, Values, OptionParser, IndentedHelpFormatter, OptionValueError)
 # pylint: enable=deprecated-module
 from copy import copy
-from configparser import SafeConfigParser
+from configparser import ConfigParser as SafeConfigParser
 from urllib.parse import urlsplit
 import functools
 

@@ -54,7 +54,7 @@ void *ipa_otp_lasttoken_plugin_id;
 
 static bool entry_is_token(Slapi_Entry *entry)
 {
-    char **ocls;
+    char **ocls = NULL;
 
     ocls = slapi_entry_attr_get_charray(entry, SLAPI_ATTR_OBJECTCLASS);
     for (size_t i = 0; ocls != NULL && ocls[i] != NULL; i++) {
@@ -64,6 +64,7 @@ static bool entry_is_token(Slapi_Entry *entry)
         }
     }
 
+    slapi_ch_array_free(ocls);
     return false;
 }
 
@@ -138,7 +139,8 @@ static bool is_pwd_enabled(const char *user_dn)
 static bool is_allowed(Slapi_PBlock *pb, Slapi_Entry *entry)
 {
     Slapi_DN *target_sdn = NULL;
-    const char *bind_dn;
+    char *bind_dn;
+    bool rv = false;
 
     /* Ignore internal operations. */
     if (slapi_op_internal(pb))
@@ -147,23 +149,35 @@ static bool is_allowed(Slapi_PBlock *pb, Slapi_Entry *entry)
     /* Load parameters. */
     (void) slapi_pblock_get(pb, SLAPI_TARGET_SDN, &target_sdn);
     (void) slapi_pblock_get(pb, SLAPI_CONN_DN, &bind_dn);
-    if (target_sdn == NULL || bind_dn == NULL) {
-        LOG_FATAL("Missing parameters!\n");
-        return false;
+    if (bind_dn == NULL) {
+        LOG_FATAL("bind_dn parameter missing!\n");
+        goto done;
+    }
+    if (target_sdn == NULL) {
+        LOG_FATAL("target_sdn parameter missing!\n");
+        goto done;
     }
 
     if (entry != NULL
             ? !entry_is_token(entry)
-            : !sdn_in_otp_container(target_sdn))
-        return true;
+            : !sdn_in_otp_container(target_sdn)) {
+        rv = true;
+        goto done;
+    }
 
-    if (!sdn_is_only_enabled_token(target_sdn, bind_dn))
-        return true;
+    if (!sdn_is_only_enabled_token(target_sdn, bind_dn)) {
+        rv = true;
+        goto done;
+    }
 
-    if (is_pwd_enabled(bind_dn))
-        return true;
+    if (is_pwd_enabled(bind_dn)) {
+        rv = true;
+        goto done;
+    }
 
-    return false;
+done:
+    slapi_ch_free_string(&bind_dn);
+    return rv;
 }
 
 static inline int send_error(Slapi_PBlock *pb, int rc, const char *errstr)

@@ -4,7 +4,6 @@
 
 import weakref
 
-import six
 
 _cache = weakref.WeakValueDictionary()
 
@@ -27,7 +26,7 @@ class ListMeta(type):
         return _cache.get(key, t)
 
 
-class List(six.with_metaclass(ListMeta, list)):
+class List(list, metaclass=ListMeta):
     __parameters__ = ()
 
     def __init__(self, *_args, **_kwargs):

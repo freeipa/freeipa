@@ -41,17 +41,17 @@ class Prop:
         self.__ops = frozenset(ops)
         self.__prop = 'prop value'
 
-    def __get_prop(self):  # pylint: disable=unused-private-member, #4756
+    def __get_prop(self):
         if 'get' not in self.__ops:
             raise AttributeError('get prop')
         return self.__prop
 
-    def __set_prop(self, value):  # pylint: disable=unused-private-member, #4756
+    def __set_prop(self, value):
         if 'set' not in self.__ops:
             raise AttributeError('set prop')
         self.__prop = value
 
-    def __del_prop(self):  # pylint: disable=unused-private-member, #4756
+    def __del_prop(self):
         if 'del' not in self.__ops:
             raise AttributeError('del prop')
         self.__prop = None
@@ -81,7 +81,8 @@ class test_Fuzzy:
         assert inst.test is None
         assert isinstance(inst.re, pattern_type)
 
-        t = lambda other: other > 500
+        def t(other):
+            return other > 500
 
         inst = self.klass(test=t)
         assert inst.regex is None
@@ -97,7 +98,9 @@ class test_Fuzzy:
 
     def test_repr(self):
         s = 'Fuzzy(%r, %r, %r)'
-        t = lambda other: 0.0 <= other <= 1.0
+
+        def t(other):
+            return 0.0 <= other <= 1.0
 
         inst = self.klass()
         assert repr(inst) == s % (None, None, None)
@@ -129,7 +132,9 @@ class test_Fuzzy:
         assert (self.klass(type=int) == 18) is True
         assert (self.klass(type=(int, str)) == '18') is True
 
-        t = lambda other: other.endswith('bar')
+        def t(other):
+            return other.endswith('bar')
+
         assert (self.klass(test=t) == 'foobar') is True
         assert (self.klass(test=t, type=unicode) == b'foobar') is False
         assert (self.klass(test=t) == 'barfoo') is False

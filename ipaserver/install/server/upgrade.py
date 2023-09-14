@@ -12,12 +12,12 @@ import os
 import glob
 import shutil
 import fileinput
-import ssl
 import stat
 import sys
 import tempfile
 from contextlib import contextmanager
 from augeas import Augeas
+from pkg_resources import parse_version
 
 from ipalib import api, x509
 from ipalib.constants import RENEWAL_CA_NAME, RA_AGENT_PROFILE, IPA_CA_RECORD
@@ -36,6 +36,7 @@ from ipapython import ipautil, version
 from ipapython import ipaldap
 from ipapython import directivesetter
 from ipapython.dn import DN
+from ipapython.version import KRB5_BUILD_VERSION
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaserver import servroles
@@ -715,7 +716,7 @@ def http_certificate_ensure_ipa_ca_dnsname(http):
 
     try:
         cert.match_hostname(expect)
-    except ssl.CertificateError:
+    except x509.ssl_match_hostname.CertificateError:
         if certs.is_ipa_issued_cert(api, cert):
             request_id = certmonger.get_request_id(
                 {'cert-file': paths.HTTPD_CERT_FILE})
@@ -1740,6 +1741,10 @@ def upgrade_configuration():
                      os.path.join(paths.USR_SHARE_IPA_DIR,
                                   "ipa-kdc-proxy.conf.template"))
         if ca.is_configured():
+            # Ensure that the drop-in file is present
+            if not os.path.isfile(paths.SYSTEMD_PKI_TOMCAT_IPA_CONF):
+                ca.add_ipa_wait()
+
             # Handle upgrade of AJP connector configuration
             rewrite = ca.secure_ajp_connector()
             if ca.ajp_secret:
@@ -1960,6 +1965,9 @@ def upgrade_configuration():
     setup_pkinit(krb)
     enable_server_snippet()
     setup_kpasswd_server(krb)
+
+    if KRB5_BUILD_VERSION >= parse_version('1.20'):
+        krb.pac_tkt_sign_support_enable()
 
     # Must be executed after certificate_renewal_update
     # (see function docstring for details)

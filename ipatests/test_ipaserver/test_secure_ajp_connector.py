@@ -2,7 +2,7 @@
 
 from collections import namedtuple
 from io import BytesIO
-from lxml.etree import parse as myparse  # pylint: disable=no-name-in-module
+from lxml.etree import parse as myparse
 import pytest
 import textwrap
 from unittest.mock import mock_open, patch

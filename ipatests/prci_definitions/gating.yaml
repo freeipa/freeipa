@@ -6,19 +6,19 @@ topologies:
   master_1repl: &master_1repl
     name: master_1repl
     cpu: 4
-    memory: 6450
+    memory: 6750
   master_1repl_1client: &master_1repl_1client
     name: master_1repl_1client
     cpu: 4
-    memory: 7400
+    memory: 8000
   ad_master_2client: &ad_master_2client
     name: ad_master_2client
     cpu: 4
-    memory: 12000
+    memory: 10596
   ipaserver: &ipaserver
     name: ipaserver
     cpu: 2
-    memory: 2400
+    memory: 2750
 
 jobs:
   fedora-latest/build:
@@ -30,8 +30,8 @@ jobs:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-master-latest
-          name: freeipa/ci-master-f36
-          version: 0.0.7
+          name: freeipa/ci-master-f38
+          version: 0.0.1
         timeout: 1800
         topology: *build
 

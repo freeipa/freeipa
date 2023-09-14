@@ -33,7 +33,7 @@ import copy
 import subprocess
 import tempfile
 import time
-from pipes import quote
+from shlex import quote
 import configparser
 from contextlib import contextmanager
 from pkg_resources import parse_version
@@ -238,7 +238,7 @@ def fix_apache_semaphores(master):
                            raiseonerr=False)
 
     master.run_command(
-        'for line in `ipcs -s | grep apache ''| cut -d " " -f 2`; '
+        'for line in `ipcs -s | grep apache ''| cut -d " " -f 2`; ' +
         'do ipcrm -s $line; done', raiseonerr=False
     )
 
@@ -533,8 +533,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
 
 
 def install_client(master, client, extra_args=[], user=None,
-                   password=None, unattended=True, stdin_text=None,
-                   nameservers='master'):
+                   password=None, pkinit_identity=None, unattended=True,
+                   stdin_text=None, nameservers='master'):
     """
     :param nameservers: nameservers to write in resolver config. Possible
            values:
@@ -556,19 +556,22 @@ def install_client(master, client, extra_args=[], user=None,
         if nameservers == 'master':
             nameservers = master.ip
         client.resolver.setup_resolver(nameservers, master.domain.name)
-    if user is None:
-        user = client.config.admin_name
-    if password is None:
-        password = client.config.admin_password
 
     args = [
         'ipa-client-install',
         '--domain', client.domain.name,
         '--realm', client.domain.realm,
-        '-p', user,
-        '-w', password,
         '--server', master.hostname
     ]
+
+    if pkinit_identity:
+        args.extend(["--pkinit-identity", pkinit_identity])
+    else:
+        if user is None:
+            user = client.config.admin_name
+        if password is None:
+            password = client.config.admin_password
+        args.extend(['-p', user, '-w', password])
 
     if unattended:
         args.append('-U')
@@ -1347,7 +1350,9 @@ def two_connected_topo(master, replicas):
         yield v1, v3
         grow.append((v1, v3))
 
-        for (r, s) in grow:
+        i = 0
+        while i < len(grow):
+            r, s = grow[i]
             t = pool.pop(0)
 
             for (u, v) in [(r, t), (s, t)]:
@@ -1358,6 +1363,7 @@ def two_connected_topo(master, replicas):
                 yield v, x
                 yield w, x
                 grow.append((w, x))
+            i += 1
 
     except IndexError:
         return
@@ -2075,6 +2081,25 @@ def group_add(host, groupname, extra_args=()):
     return host.run_command(cmd)
 
 
+def group_del(host, groupname):
+    cmd = [
+        "ipa", "group-del", groupname,
+    ]
+    return host.run_command(cmd)
+
+
+def group_add_member(host, groupname, users=None,
+                     raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "group-add-member", groupname
+    ]
+    if users:
+        cmd.append("--users")
+        cmd.append(users)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
 def ldapmodify_dm(host, ldif_text, **kwargs):
     """Run ldapmodify as Directory Manager
 
@@ -2163,6 +2188,17 @@ def create_active_user(host, login, password, first='test', last='user',
             stdin_text='{0}\n{1}\n{1}\n'.format(temp_password, password)
         )
     kdestroy_all(host)
+
+
+def set_user_password(host, username, password):
+    temppass = "redhat\nredhat"
+    sendpass = f"redhat\n{password}\n{password}"
+    kdestroy_all(host)
+    kinit_admin(host)
+    host.run_command(["ipa", "passwd", username],stdin_text=temppass)
+    host.run_command(["kinit", username], stdin_text=sendpass)
+    kdestroy_all(host)
+    kinit_admin(host)
 
 
 def kdestroy_all(host):
@@ -2492,9 +2528,7 @@ def install_packages(host, pkgs):
 def download_packages(host, pkgs):
     """Download packages on a remote host.
     :param host: the host where the download takes place
-    :param pkgs: packages to install, provided as a list of strings
-
-    A package can't be downloaded that is already installed.
+    :param pkgs: packages to download, provided as a list of strings
 
     Returns the temporary directory where the packages are.
     The caller is responsible for cleanup.
@@ -2503,14 +2537,11 @@ def download_packages(host, pkgs):
     tmpdir = os.path.join('/tmp', str(uuid.uuid4()))
     # Only supports RHEL 8+ and Fedora for now
     if platform in ('rhel', 'fedora'):
-        install_cmd = ['/usr/bin/dnf', '-y',
-                       '--downloaddir', tmpdir,
-                       '--downloadonly',
-                       'install']
+        download_cmd = ['/usr/bin/dnf', 'download']
     else:
-        raise ValueError('install_packages: unknown platform %s' % platform)
+        raise ValueError('download_packages: unknown platform %s' % platform)
     host.run_command(['mkdir', tmpdir])
-    host.run_command(install_cmd + pkgs)
+    host.run_command(download_cmd + pkgs, cwd=tmpdir)
     return tmpdir
 
 
@@ -2639,26 +2670,35 @@ def get_pki_version(host):
         raise ValueError("get_pki_version: pki is not installed")
 
 
-def get_healthcheck_version(host):
+def get_package_version(host, pkgname):
     """
-    Function to get healthcheck version on fedora and rhel
+    Get package version on remote host
     """
     platform = get_platform(host)
     if platform in ("rhel", "fedora"):
         cmd = host.run_command(
-            ["rpm", "-qa", "--qf", "%{VERSION}", "*ipa-healthcheck"]
+            ["rpm", "-qa", "--qf", "%{VERSION}", pkgname]
         )
-        healthcheck_version = cmd.stdout_text
-        if not healthcheck_version:
+        get_package_version = cmd.stdout_text
+        if not get_package_version:
             raise ValueError(
-                "get_healthcheck_version: "
-                "ipa-healthcheck package is not installed"
+                "get_package_version: "
+                "pkgname package is not installed"
             )
     else:
         raise ValueError(
-            "get_healthcheck_version: unknown platform %s" % platform
+            "get_package_version: unknown platform %s" % platform
         )
-    return healthcheck_version
+    return get_package_version
+
+
+def get_openldap_client_version(host):
+    """Get openldap-clients version on remote host"""
+    return get_package_version(host, 'openldap-clients')
+
+
+def get_healthcheck_version(host):
+    return get_package_version(host, '*ipa-healthcheck')
 
 
 def wait_for_ipa_to_start(host, timeout=60):

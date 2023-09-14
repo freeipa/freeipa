@@ -1,4 +1,6 @@
 # Specification file for PRCI definitions used by prci_checker script
+# Find a doc page with examples of how to use the tool and spec file
+# at https://freeipa.readthedocs.io/en/latest/designs/index.html
 
 # List of supported test-run classes for non-build jobs
 classes:

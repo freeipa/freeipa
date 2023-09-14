@@ -1099,7 +1099,7 @@ option: Int('ipasearchrecordslimit?', autofill=False, cli_name='searchrecordslim
 option: Int('ipasearchtimelimit?', autofill=False, cli_name='searchtimelimit')
 option: Str('ipaselinuxusermapdefault?', autofill=False)
 option: Str('ipaselinuxusermaporder?', autofill=False)
-option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'disabled'])
+option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey', u'disabled'])
 option: Bool('ipauserdefaultsubordinateid?', autofill=False, cli_name='user_default_subid')
 option: Str('ipauserobjectclasses*', autofill=False, cli_name='userobjectclasses')
 option: IA5Str('ipausersearchfields?', autofill=False, cli_name='usersearch')
@@ -2478,7 +2478,7 @@ option: Bool('ipakrbokasdelegate?', cli_name='ok_as_delegate')
 option: Bool('ipakrboktoauthasdelegate?', cli_name='ok_to_auth_as_delegate')
 option: Bool('ipakrbrequirespreauth?', cli_name='requires_pre_auth')
 option: Str('ipasshpubkey*', cli_name='sshpubkey')
-option: StrEnum('krbprincipalauthind*', cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('krbprincipalauthind*', cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: Str('l?', cli_name='locality')
 option: Str('macaddress*')
 option: Flag('no_members', autofill=True, default=False)
@@ -2507,6 +2507,17 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: host_add_delegation/1
+args: 2,4,3
+arg: Str('fqdn', cli_name='hostname')
+arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: host_add_managedby/1
 args: 1,5,3
 arg: Str('fqdn', cli_name='hostname')
@@ -2529,6 +2540,20 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: host_allow_add_delegation/1
+args: 1,8,3
+arg: Str('fqdn', cli_name='hostname')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Str('host*', alwaysask=True, cli_name='hosts')
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
 command: host_allow_create_keytab/1
 args: 1,8,3
 arg: Str('fqdn', cli_name='hostname')
@@ -2573,6 +2598,20 @@ option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: host_disallow_add_delegation/1
+args: 1,8,3
+arg: Str('fqdn', cli_name='hostname')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Str('host*', alwaysask=True, cli_name='hosts')
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
 command: host_disallow_create_keytab/1
 args: 1,8,3
 arg: Str('fqdn', cli_name='hostname')
@@ -2614,7 +2653,7 @@ option: Str('in_netgroup*', cli_name='in_netgroups')
 option: Str('in_role*', cli_name='in_roles')
 option: Str('in_sudorule*', cli_name='in_sudorules')
 option: Str('ipaassignedidview?', autofill=False)
-option: StrEnum('krbprincipalauthind*', autofill=False, cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('krbprincipalauthind*', autofill=False, cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: Str('l?', autofill=False, cli_name='locality')
 option: Str('macaddress*', autofill=False)
 option: Str('man_by_host*', cli_name='man_by_hosts')
@@ -2654,7 +2693,7 @@ option: Bool('ipakrbokasdelegate?', autofill=False, cli_name='ok_as_delegate')
 option: Bool('ipakrboktoauthasdelegate?', autofill=False, cli_name='ok_to_auth_as_delegate')
 option: Bool('ipakrbrequirespreauth?', autofill=False, cli_name='requires_pre_auth')
 option: Str('ipasshpubkey*', autofill=False, cli_name='sshpubkey')
-option: StrEnum('krbprincipalauthind*', autofill=False, cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('krbprincipalauthind*', autofill=False, cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: Principal('krbprincipalname*', autofill=False)
 option: Str('l?', autofill=False, cli_name='locality')
 option: Str('macaddress*', autofill=False)
@@ -2681,6 +2720,17 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: host_remove_delegation/1
+args: 2,4,3
+arg: Str('fqdn', cli_name='hostname')
+arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
@@ -3327,7 +3377,7 @@ output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: krbtpolicy_mod/1
-args: 1,19,3
+args: 1,21,3
 arg: Str('uid?', cli_name='user')
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
@@ -3335,11 +3385,13 @@ option: Str('delattr*', cli_name='delattr')
 option: Int('krbauthindmaxrenewableage_hardened?', autofill=False, cli_name='hardened_maxrenew')
 option: Int('krbauthindmaxrenewableage_idp?', autofill=False, cli_name='idp_maxrenew')
 option: Int('krbauthindmaxrenewableage_otp?', autofill=False, cli_name='otp_maxrenew')
+option: Int('krbauthindmaxrenewableage_passkey?', autofill=False, cli_name='passkey_maxrenew')
 option: Int('krbauthindmaxrenewableage_pkinit?', autofill=False, cli_name='pkinit_maxrenew')
 option: Int('krbauthindmaxrenewableage_radius?', autofill=False, cli_name='radius_maxrenew')
 option: Int('krbauthindmaxticketlife_hardened?', autofill=False, cli_name='hardened_maxlife')
 option: Int('krbauthindmaxticketlife_idp?', autofill=False, cli_name='idp_maxlife')
 option: Int('krbauthindmaxticketlife_otp?', autofill=False, cli_name='otp_maxlife')
+option: Int('krbauthindmaxticketlife_passkey?', autofill=False, cli_name='passkey_maxlife')
 option: Int('krbauthindmaxticketlife_pkinit?', autofill=False, cli_name='pkinit_maxlife')
 option: Int('krbauthindmaxticketlife_radius?', autofill=False, cli_name='radius_maxlife')
 option: Int('krbmaxrenewableage?', autofill=False, cli_name='maxrenew')
@@ -3765,6 +3817,28 @@ arg: Str('metaobjectfull_name', cli_name='metaobject')
 arg: Str('name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: passkeyconfig_mod/1
+args: 0,8,3
+option: Str('addattr*', cli_name='addattr')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('delattr*', cli_name='delattr')
+option: Bool('iparequireuserverification?', autofill=False, cli_name='require_user_verification')
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('rights', autofill=True, default=False)
+option: Str('setattr*', cli_name='setattr')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: passkeyconfig_show/1
+args: 0,4,3
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
@@ -4684,7 +4758,7 @@ option: StrEnum('ipakrbauthzdata*', cli_name='pac_type', values=[u'MS-PAC', u'PA
 option: Bool('ipakrbokasdelegate?', cli_name='ok_as_delegate')
 option: Bool('ipakrboktoauthasdelegate?', cli_name='ok_to_auth_as_delegate')
 option: Bool('ipakrbrequirespreauth?', cli_name='requires_pre_auth')
-option: StrEnum('krbprincipalauthind*', cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('krbprincipalauthind*', cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
@@ -4701,6 +4775,17 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: service_add_delegation/1
+args: 2,4,3
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
+arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
@@ -4743,6 +4828,20 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: service_allow_add_delegation/1
+args: 1,8,3
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Str('host*', alwaysask=True, cli_name='hosts')
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
 command: service_allow_create_keytab/1
 args: 1,8,3
 arg: Principal('krbcanonicalname', cli_name='canonical_principal')
@@ -4786,6 +4885,20 @@ option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: service_disallow_add_delegation/1
+args: 1,8,3
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('group*', alwaysask=True, cli_name='groups')
+option: Str('host*', alwaysask=True, cli_name='hosts')
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('user*', alwaysask=True, cli_name='users')
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
 command: service_disallow_create_keytab/1
 args: 1,8,3
 arg: Principal('krbcanonicalname', cli_name='canonical_principal')
@@ -4820,7 +4933,7 @@ arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: StrEnum('ipakrbauthzdata*', autofill=False, cli_name='pac_type', values=[u'MS-PAC', u'PAD', u'NONE'])
 option: Principal('krbcanonicalname?', autofill=False, cli_name='canonical_principal')
-option: StrEnum('krbprincipalauthind*', autofill=False, cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('krbprincipalauthind*', autofill=False, cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: Principal('krbprincipalname*', autofill=False, cli_name='principal')
 option: Str('man_by_host*', cli_name='man_by_hosts')
 option: Flag('no_members', autofill=True, default=True)
@@ -4844,7 +4957,7 @@ option: StrEnum('ipakrbauthzdata*', autofill=False, cli_name='pac_type', values=
 option: Bool('ipakrbokasdelegate?', autofill=False, cli_name='ok_as_delegate')
 option: Bool('ipakrboktoauthasdelegate?', autofill=False, cli_name='ok_to_auth_as_delegate')
 option: Bool('ipakrbrequirespreauth?', autofill=False, cli_name='requires_pre_auth')
-option: StrEnum('krbprincipalauthind*', autofill=False, cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('krbprincipalauthind*', autofill=False, cli_name='auth_ind', values=[u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: Principal('krbprincipalname*', autofill=False, cli_name='principal')
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -4862,6 +4975,17 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: service_remove_delegation/1
+args: 2,4,3
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
+arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
@@ -5094,7 +5218,7 @@ option: Str('ipaidpsub?', cli_name='idp_user_id')
 option: Str('ipasshpubkey*', cli_name='sshpubkey')
 option: Str('ipatokenradiusconfiglink?', cli_name='radius')
 option: Str('ipatokenradiususername?', cli_name='radius_username')
-option: StrEnum('ipauserauthtype*', cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('ipauserauthtype*', cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: DateTime('krbpasswordexpiration?', cli_name='password_expiration')
 option: DateTime('krbprincipalexpiration?', cli_name='principal_expiration')
 option: Principal('krbprincipalname*', autofill=True, cli_name='principal')
@@ -5160,6 +5284,17 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: stageuser_add_passkey/1
+args: 2,4,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipapasskey+', alwaysask=True, cli_name='passkey')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: stageuser_add_principal/1
 args: 2,4,3
 arg: Str('uid', cli_name='login')
@@ -5209,7 +5344,7 @@ option: Str('ipantlogonscript?', autofill=False, cli_name='smb_logon_script')
 option: Str('ipantprofilepath?', autofill=False, cli_name='smb_profile_path')
 option: Str('ipatokenradiusconfiglink?', autofill=False, cli_name='radius')
 option: Str('ipatokenradiususername?', autofill=False, cli_name='radius_username')
-option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: DateTime('krbpasswordexpiration?', autofill=False, cli_name='password_expiration')
 option: DateTime('krbprincipalexpiration?', autofill=False, cli_name='principal_expiration')
 option: Principal('krbprincipalname*', autofill=False, cli_name='principal')
@@ -5275,7 +5410,7 @@ option: Str('ipantprofilepath?', autofill=False, cli_name='smb_profile_path')
 option: Str('ipasshpubkey*', autofill=False, cli_name='sshpubkey')
 option: Str('ipatokenradiusconfiglink?', autofill=False, cli_name='radius')
 option: Str('ipatokenradiususername?', autofill=False, cli_name='radius_username')
-option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: DateTime('krbpasswordexpiration?', autofill=False, cli_name='password_expiration')
 option: DateTime('krbprincipalexpiration?', autofill=False, cli_name='principal_expiration')
 option: Principal('krbprincipalname*', autofill=False, cli_name='principal')
@@ -5343,6 +5478,17 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: stageuser_remove_passkey/1
+args: 2,4,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipapasskey+', alwaysask=True, cli_name='passkey')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: stageuser_remove_principal/1
 args: 2,4,3
 arg: Str('uid', cli_name='login')
@@ -6279,7 +6425,7 @@ option: Str('ipaidpsub?', cli_name='idp_user_id')
 option: Str('ipasshpubkey*', cli_name='sshpubkey')
 option: Str('ipatokenradiusconfiglink?', cli_name='radius')
 option: Str('ipatokenradiususername?', cli_name='radius_username')
-option: StrEnum('ipauserauthtype*', cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('ipauserauthtype*', cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: DateTime('krbpasswordexpiration?', cli_name='password_expiration')
 option: DateTime('krbprincipalexpiration?', cli_name='principal_expiration')
 option: Principal('krbprincipalname*', autofill=True, cli_name='principal')
@@ -6347,6 +6493,17 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: user_add_passkey/1
+args: 2,4,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipapasskey+', alwaysask=True, cli_name='passkey')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: user_add_principal/1
 args: 2,4,3
 arg: Str('uid', cli_name='login')
@@ -6411,7 +6568,7 @@ option: Str('ipantlogonscript?', autofill=False, cli_name='smb_logon_script')
 option: Str('ipantprofilepath?', autofill=False, cli_name='smb_profile_path')
 option: Str('ipatokenradiusconfiglink?', autofill=False, cli_name='radius')
 option: Str('ipatokenradiususername?', autofill=False, cli_name='radius_username')
-option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: DateTime('krbpasswordexpiration?', autofill=False, cli_name='password_expiration')
 option: DateTime('krbprincipalexpiration?', autofill=False, cli_name='principal_expiration')
 option: Principal('krbprincipalname*', autofill=False, cli_name='principal')
@@ -6480,7 +6637,7 @@ option: Str('ipantprofilepath?', autofill=False, cli_name='smb_profile_path')
 option: Str('ipasshpubkey*', autofill=False, cli_name='sshpubkey')
 option: Str('ipatokenradiusconfiglink?', autofill=False, cli_name='radius')
 option: Str('ipatokenradiususername?', autofill=False, cli_name='radius_username')
-option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp'])
+option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey'])
 option: DateTime('krbpasswordexpiration?', autofill=False, cli_name='password_expiration')
 option: DateTime('krbprincipalexpiration?', autofill=False, cli_name='principal_expiration')
 option: Principal('krbprincipalname*', autofill=False, cli_name='principal')
@@ -6549,6 +6706,17 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: user_remove_passkey/1
+args: 2,4,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipapasskey+', alwaysask=True, cli_name='passkey')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: user_remove_principal/1
 args: 2,4,3
 arg: Str('uid', cli_name='login')
@@ -6667,7 +6835,7 @@ option: Flag('shared?', autofill=True, default=False)
 option: Str('username?', cli_name='user')
 option: Bytes('vault_data')
 option: Str('version?')
-option: StrEnum('wrapping_algo?', autofill=True, default=u'aes-128-cbc', values=[u'aes-128-cbc', u'des-ede3-cbc'])
+option: StrEnum('wrapping_algo?', autofill=True, default=u'des-ede3-cbc', values=[u'aes-128-cbc', u'des-ede3-cbc'])
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
@@ -6767,7 +6935,7 @@ option: Bytes('session_key')
 option: Flag('shared?', autofill=True, default=False)
 option: Str('username?', cli_name='user')
 option: Str('version?')
-option: StrEnum('wrapping_algo?', autofill=True, default=u'aes-128-cbc', values=[u'aes-128-cbc', u'des-ede3-cbc'])
+option: StrEnum('wrapping_algo?', autofill=True, default=u'des-ede3-cbc', values=[u'aes-128-cbc', u'des-ede3-cbc'])
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
@@ -7092,17 +7260,21 @@ default: hbactest/1
 default: host/1
 default: host_add/1
 default: host_add_cert/1
+default: host_add_delegation/1
 default: host_add_managedby/1
 default: host_add_principal/1
+default: host_allow_add_delegation/1
 default: host_allow_create_keytab/1
 default: host_allow_retrieve_keytab/1
 default: host_del/1
 default: host_disable/1
+default: host_disallow_add_delegation/1
 default: host_disallow_create_keytab/1
 default: host_disallow_retrieve_keytab/1
 default: host_find/1
 default: host_mod/1
 default: host_remove_cert/1
+default: host_remove_delegation/1
 default: host_remove_managedby/1
 default: host_remove_principal/1
 default: host_show/1
@@ -7191,6 +7363,9 @@ default: output_show/1
 default: param/1
 default: param_find/1
 default: param_show/1
+default: passkeyconfig/1
+default: passkeyconfig_mod/1
+default: passkeyconfig_show/1
 default: passwd/1
 default: permission/1
 default: permission_add/1
@@ -7272,18 +7447,22 @@ default: server_state/1
 default: service/1
 default: service_add/1
 default: service_add_cert/1
+default: service_add_delegation/1
 default: service_add_host/1
 default: service_add_principal/1
 default: service_add_smb/1
+default: service_allow_add_delegation/1
 default: service_allow_create_keytab/1
 default: service_allow_retrieve_keytab/1
 default: service_del/1
 default: service_disable/1
+default: service_disallow_add_delegation/1
 default: service_disallow_create_keytab/1
 default: service_disallow_retrieve_keytab/1
 default: service_find/1
 default: service_mod/1
 default: service_remove_cert/1
+default: service_remove_delegation/1
 default: service_remove_host/1
 default: service_remove_principal/1
 default: service_show/1
@@ -7312,6 +7491,7 @@ default: stageuser_add/1
 default: stageuser_add_cert/1
 default: stageuser_add_certmapdata/1
 default: stageuser_add_manager/1
+default: stageuser_add_passkey/1
 default: stageuser_add_principal/1
 default: stageuser_del/1
 default: stageuser_find/1
@@ -7319,6 +7499,7 @@ default: stageuser_mod/1
 default: stageuser_remove_cert/1
 default: stageuser_remove_certmapdata/1
 default: stageuser_remove_manager/1
+default: stageuser_remove_passkey/1
 default: stageuser_remove_principal/1
 default: stageuser_show/1
 default: subid/1
@@ -7407,6 +7588,7 @@ default: user_add/1
 default: user_add_cert/1
 default: user_add_certmapdata/1
 default: user_add_manager/1
+default: user_add_passkey/1
 default: user_add_principal/1
 default: user_del/1
 default: user_disable/1
@@ -7416,6 +7598,7 @@ default: user_mod/1
 default: user_remove_cert/1
 default: user_remove_certmapdata/1
 default: user_remove_manager/1
+default: user_remove_passkey/1
 default: user_remove_principal/1
 default: user_show/1
 default: user_stage/1

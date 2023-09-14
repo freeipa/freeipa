@@ -66,32 +66,34 @@
 %if 0%{?rhel}
 %global package_name ipa
 %global alt_name freeipa
-%global krb5_version 1.18.2-2
-%global krb5_kdb_version 8.0
+%global krb5_version 1.20.1-1
+%global krb5_kdb_version 9.0
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.19
-# Require 4.7.0 which brings Python 3 bindings
-%global samba_version 4.12.3-12
-%global selinux_policy_version 3.14.3-52
+%global samba_version 4.17.4-101
 %global slapi_nis_version 0.56.4
 %global python_ldap_version 3.1.0-1
 %if 0%{?rhel} < 9
 # Bug 1929067 - PKI instance creation failed with new 389-ds-base build
 %global ds_version 1.4.3.16-12
+%global selinux_policy_version 3.14.3-107
 %else
-%global ds_version 2.0.3-3
+# DNA interval enabled
+%global ds_version 2.0.5-1
+%global selinux_policy_version 38.1.1-1
 %endif
 
 # Fix for TLS 1.3 PHA, RHBZ#1775158
 %global httpd_version 2.4.37-21
 %global bind_version 9.11.20-6
 
+# support for passkey
+%global sssd_version 2.9.0
+
 %else
 # Fedora
 %global package_name freeipa
 %global alt_name ipa
-# Fix for CVE-2020-28196
-%global krb5_version 1.18.2-29
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
@@ -99,10 +101,23 @@
 %global samba_version 2:4.12.10
 
 # 3.14.5-45 or later includes a number of interfaces fixes for IPA interface
+# 36.16-1 fixes BZ#2115691
+%if 0%{?fedora} < 36
 %global selinux_policy_version 3.14.5-45
+%else
+%global selinux_policy_version 36.16-1
+%endif
 %global slapi_nis_version 0.56.5
 
+%if 0%{?fedora} < 38
+# Fix for CVE-2020-28196
+%global krb5_version 1.18.2-29
 %global krb5_kdb_version 8.0
+%else
+# Fix for CVE-2020-28196
+%global krb5_version 1.20.1-3
+%global krb5_kdb_version 9.0
+%endif
 
 # fix for segfault in python3-ldap, https://pagure.io/freeipa/issue/7324
 %global python_ldap_version 3.1.0-1
@@ -118,11 +133,25 @@
 # Fix for TLS 1.3 PHA, RHBZ#1775146
 %global httpd_version 2.4.41-9
 
+# Fix for RHBZ#2117342
+%if 0%{?fedora} < 37
 %global bind_version 9.11.24-1
+%else
+%global bind_version 32:9.18.7-1
+%endif
 # Don't use Fedora's Python dependency generator on Fedora 30/rawhide yet.
 # Some packages don't provide new dist aliases.
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Python/
 %{?python_disable_dependency_generator}
+
+%if 0%{?fedora} < 37
+# F35+, adds IdP integration
+%global sssd_version 2.7.0
+%else
+# Support for passkey
+%global sssd_version 2.9.0
+%endif
+
 # Fedora
 %endif
 
@@ -149,10 +178,7 @@
 # RHEL 8.2+, F32+ has 3.58
 %global nss_version 3.44.0-4
 
-# RHEL 8.7+, F35+, adds IdP integration
-%global sssd_version 2.7.0
-
-%define krb5_base_version %(LC_ALL=C /usr/bin/pkgconf --modversion krb5 | grep -Eo '^[^.]+\.[^.]+' || echo %krb5_version)
+%define krb5_base_version %(LC_ALL=C /usr/bin/pkgconf --modversion krb5 2>/dev/null | grep -Eo '^[^.]+\.[^.]+' || echo %krb5_version)
 %global kdcproxy_version 0.4-3
 
 %if 0%{?fedora} >= 33 || 0%{?rhel} >= 9
@@ -200,12 +226,20 @@ Version:        %{IPA_VERSION}
 Release:        0%{?rc_version:.%rc_version}%{?dist}
 Summary:        The Identity, Policy and Audit system
 
-License:        GPLv3+
+License:        GPL-3.0-or-later
 URL:            http://www.freeipa.org/
 Source0:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_version}.tar.gz
 # Only use detached signature for the distribution builds. If it is a developer build, skip it
 %if %{NON_DEVELOPER_BUILD}
 Source1:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_version}.tar.gz.asc
+# https://www.freeipa.org/page/Verify_Release_Signature
+#
+# The following commands can be used to fetch the signing key via fingerprint
+# and extract it:
+#   fpr=0E63D716D76AC080A4A33513F40800B6298EB963
+#   gpg --keyserver keys.openpgp.org --receive-keys $fpr
+#   gpg --armor --export-options export-minimal --export $fpr >gpgkey-$fpr.asc
+Source2:        gpgkey-0E63D716D76AC080A4A33513F40800B6298EB963.asc
 %endif
 
 # RHEL spec file only: START: Change branding to IPA and Identity Management
@@ -217,19 +251,14 @@ Source1:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_vers
 # RHEL spec file only: START
 %if %{NON_DEVELOPER_BUILD}
 %if 0%{?rhel} == 8
-Patch0001:      0001_util_Fix_client-only_build-upstream_5273.patch
 Patch1001:      1001-Change-branding-to-IPA-and-Identity-Management.patch
-Patch1002:      1002-4.8.0-Remove-csrgen.patch
-Patch1003:      1003-Revert-WebUI-use-python3-rjsmin-to-minify-JavaScript.patch
+Patch1002:      1002-Revert-freeipa.spec-depend-on-bind-dnssec-utils.patch
 %endif
 %if 0%{?rhel} == 9
 Patch1001:      1001-Change-branding-to-IPA-and-Identity-Management.patch
 %endif
 %endif
 # RHEL spec file only: END
-
-# For the timestamp trick in patch application
-BuildRequires:  diffstat
 
 BuildRequires:  openldap-devel
 # For KDB DAL version, make explicit dependency so that increase of version
@@ -248,6 +277,7 @@ BuildRequires:  jansson-devel
 %endif
 BuildRequires:  popt-devel
 BuildRequires:  gcc
+BuildRequires:  gnupg2
 BuildRequires:  make
 BuildRequires:  pkgconfig
 BuildRequires:  pkgconf
@@ -276,7 +306,12 @@ BuildRequires:  libpwquality-devel
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_certmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= %{sssd_version}
+%if 0%{?fedora} >= 39 || 0%{?rhel} >= 10
+# Do not use nodejs20 on fedora < 39, https://pagure.io/freeipa/issue/9374
 BuildRequires:  nodejs(abi)
+%else
+BuildRequires:  nodejs(abi) < 111
+%endif
 # use old dependency on RHEL 8 for now
 %if 0%{?fedora} >= 31 || 0%{?rhel} >= 9
 BuildRequires:  python3-rjsmin
@@ -367,7 +402,6 @@ BuildRequires:  python3-libsss_nss_idmap
 BuildRequires:  python3-lxml
 BuildRequires:  python3-netaddr >= %{python_netaddr_version}
 BuildRequires:  python3-netifaces
-BuildRequires:  python3-paste
 BuildRequires:  python3-pki >= %{pki_version}
 BuildRequires:  python3-polib
 BuildRequires:  python3-pyasn1
@@ -427,7 +461,6 @@ Requires: nss-tools >= %{nss_version}
 Requires(post): krb5-server >= %{krb5_version}
 Requires(post): krb5-server >= %{krb5_base_version}
 Requires: krb5-kdb-version = %{krb5_kdb_version}
-Requires: krb5-pkinit-openssl >= %{krb5_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: chrony
 Requires: httpd >= %{httpd_version}
@@ -459,7 +492,7 @@ Requires: policycoreutils >= 2.1.12-5
 Requires: tar
 Requires(pre): certmonger >= %{certmonger_version}
 Requires(pre): 389-ds-base >= %{ds_version}
-Requires: fontawesome-fonts
+Requires: font(fontawesome)
 Requires: open-sans-fonts
 %if 0%{?fedora} >= 32 || 0%{?rhel} >= 9
 # https://pagure.io/freeipa/issue/8632
@@ -532,11 +565,11 @@ Requires: python3-pyasn1 >= 0.3.2-2
 Requires: python3-sssdconfig >= %{sssd_version}
 Requires: python3-psutil
 Requires: rpm-libs
-# Indirect dependency: use newer urllib3 with TLS 1.3 PHA support
 %if 0%{?rhel}
 Requires: python3-urllib3 >= 1.24.2-3
 %else
-Requires: python3-urllib3 >= 1.25.7
+# For urllib3.util.ssl_match_hostname
+Requires: python3-urllib3 >= 1.25.8
 %endif
 
 %description -n python3-ipaserver
@@ -653,6 +686,8 @@ Requires: python3-sssdconfig >= %{sssd_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: chrony
 Requires: krb5-workstation >= %{krb5_version}
+# support pkinit with client install
+Requires: krb5-pkinit-openssl >= %{krb5_version}
 # authselect: sssd profile with-subid
 %if 0%{?fedora} >= 36
 Requires: authselect >= 1.4.0
@@ -671,6 +706,7 @@ Requires: jansson
 %endif
 Requires: sssd-ipa >= %{sssd_version}
 Requires: sssd-idp >= %{sssd_version}
+Requires: sssd-krb5 >= %{sssd_version}
 Requires: certmonger >= %{certmonger_version}
 Requires: nss-tools >= %{nss_version}
 Requires: bind-utils
@@ -686,6 +722,9 @@ Requires(post): policycoreutils
 Recommends: libsss_sudo
 Recommends: sudo
 Requires: (libsss_sudo if sudo)
+
+# Passkey support
+Recommends: sssd-passkey
 
 Provides: %{alt_name}-client = %{version}
 Conflicts: %{alt_name}-client
@@ -857,6 +896,12 @@ Requires: platform-python-setuptools
 %else
 Requires: python3-setuptools
 %endif
+%if 0%{?rhel}
+Requires: python3-urllib3 >= 1.24.2-3
+%else
+# For urllib3.util.ssl_match_hostname
+Requires: python3-urllib3 >= 1.25.8
+%endif
 
 %description -n python3-ipalib
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -953,22 +998,12 @@ Custom SELinux policy module for FreeIPA
 
 
 %prep
-# Update timestamps on the files touched by a patch, to avoid non-equal
-# .pyc/.pyo files across the multilib peers within a build, where "Level"
-# is the patch prefix option (e.g. -p1)
-# Taken from specfile for sssd and python-simplejson
-UpdateTimestamps() {
-  Level=$1
-  PatchFile=$2
+# Verify release signature
+%if %{NON_DEVELOPER_BUILD}
+%{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%endif
 
-  # Locate the affected files:
-  for f in $(diffstat $Level -l $PatchFile); do
-    # Set the files to have the same timestamp as that of the patch:
-    touch -c -r $PatchFile $f
-  done
-}
-
-%setup -n freeipa-%{version}%{?rc_version} -q
+%autosetup -n freeipa-%{version}%{?rc_version} -N -p1
 
 # To allow proper application patches to the stripped po files, strip originals
 pushd po
@@ -978,10 +1013,7 @@ for i in *.po ; do
 done
 popd
 
-for p in %patches ; do
-    %__patch -p1 -i $p
-    UpdateTimestamps -p1 $p
-done
+%autopatch -p1
 
 %build
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
@@ -1234,10 +1266,8 @@ if [ $1 -gt 1 ] ; then
     test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
 
     if [ -f '/etc/sssd/sssd.conf' -a $restore -ge 2 ]; then
-        if ! grep -E -q '/var/lib/sss/pubconf/krb5.include.d/' /etc/krb5.conf  2>/dev/null ; then
-            echo "includedir /var/lib/sss/pubconf/krb5.include.d/" > /etc/krb5.conf.ipanew
-            cat /etc/krb5.conf >> /etc/krb5.conf.ipanew
-            mv -Z /etc/krb5.conf.ipanew /etc/krb5.conf
+        if grep -E -q '/var/lib/sss/pubconf/krb5.include.d/' /etc/krb5.conf  2>/dev/null ; then
+            sed -i '\;includedir /var/lib/sss/pubconf/krb5.include.d;d' /etc/krb5.conf
         fi
     fi
 
@@ -1726,7 +1756,7 @@ fi
 %if %{with selinux}
 %files selinux
 %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.*
-%ghost %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
+%ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 # with selinux
 %endif
 

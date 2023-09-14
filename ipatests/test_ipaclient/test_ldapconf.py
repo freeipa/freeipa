@@ -84,7 +84,6 @@ def test_openldap_conf_empty():
     assert settings == {
         'BASE': [BASEDN],
         'URI': ['ldaps://{}'.format(SERVER)],
-        'TLS_CACERT': ['/etc/ipa/ca.crt'],
         'SASL_MECH': ['GSSAPI']
     }
 
@@ -96,7 +95,6 @@ def test_openldap_conf_spaces():
         'BASE': ['dc=example,dc=com'],
         'URI': ['ldap://ldap.example.com'],
         'SASL_NOCANON': ['on'],
-        'TLS_CACERT': ['/etc/ipa/ca.crt'],
         'SASL_MECH': ['GSSAPI']
     }
 
@@ -109,6 +107,5 @@ def test_openldap_conf_mixed():
         'BASE': ['dc=example,dc=com'],
         'URI': ['ldap://ldap.example.com ldap://ldap-master.example.com:666'],
         'SASL_NOCANON': ['on'],
-        'TLS_CACERT': ['/etc/ipa/ca.crt'],
         'SASL_MECH': ['GSSAPI']
     }

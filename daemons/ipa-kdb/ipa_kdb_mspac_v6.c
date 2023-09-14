@@ -31,6 +31,68 @@
 
 #include "ipa_kdb_mspac_private.h"
 
+static
+krb5_error_code ipadb_verify_pac(krb5_context context,
+                                 unsigned int flags,
+                                 krb5_const_principal client_princ,
+                                 krb5_db_entry *proxy,
+                                 krb5_db_entry *server,
+                                 krb5_db_entry *krbtgt,
+                                 krb5_keyblock *server_key,
+                                 krb5_keyblock *krbtgt_key,
+                                 krb5_timestamp authtime,
+                                 krb5_authdata **authdata,
+                                 krb5_pac *pac)
+{
+    krb5_error_code kerr;
+    krb5_pac old_pac = NULL;
+    kerr = krb5_pac_parse(context,
+                          authdata[0]->contents,
+                          authdata[0]->length,
+                          &old_pac);
+    if (kerr == 0) {
+        krb5_keyblock *srv_key = NULL;
+        krb5_keyblock *priv_key = NULL;
+        bool is_cross_realm = false;
+
+        /* for cross realm trusts cases we need to check the right checksum.
+        * when the PAC is signed by our realm, we can always just check it
+        * passing our realm krbtgt key as the kdc checksum key (privsvr).
+        * But when a trusted realm passes us a PAC the kdc checksum is
+        * generated with that realm krbtgt key, so we need to use the cross
+        * realm krbtgt to check the 'server' checksum instead. */
+        if (ipadb_is_cross_realm_krbtgt(krbtgt->princ)) {
+            /* krbtgt from a trusted realm */
+            is_cross_realm = true;
+            srv_key = krbtgt_key;
+        } else {
+            /* krbtgt from our own realm */
+            priv_key = krbtgt_key;
+        }
+
+        /* only pass with_realm TRUE when it is cross-realm ticket and S4U
+        * extension (S4U2Self or S4U2Proxy (RBCD)) was requested */
+        kerr = krb5_pac_verify_ext(context, old_pac, authtime,
+                                NULL, srv_key, priv_key,
+                                (is_cross_realm &&
+                                    (flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION)));
+        if (kerr) {
+            goto done;
+        }
+
+        kerr = ipadb_common_verify_pac(context, flags,
+                                       proxy, server, krbtgt,
+                                       krbtgt_key,
+                                       authtime, old_pac, pac);
+    }
+
+done:
+    krb5_free_authdata(context, authdata);
+    krb5_pac_free(context, old_pac);
+    return kerr;
+}
+
+
 
 static krb5_error_code ipadb_sign_pac(krb5_context context,
                                       unsigned int flags,
@@ -114,11 +176,21 @@ static krb5_error_code ipadb_sign_pac(krb5_context context,
 
     /* only pass with_realm TRUE when it is cross-realm ticket and S4U2Self
      * was requested */
+#ifdef HAVE_KRB5_PAC_FULL_SIGN_COMPAT
+    kerr = krb5_pac_full_sign_compat(
+        context, pac, authtime, client_princ, server->princ, server_key,
+        right_krbtgt_signing_key,
+        (is_issuing_referral && (flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION)),
+        pac_data
+    );
+#else
+    /* Use standard function, PAC extended KDC signature not supported */
     kerr = krb5_pac_sign_ext(context, pac, authtime, client_princ, server_key,
                              right_krbtgt_signing_key,
                              (is_issuing_referral &&
                               (flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION)),
                              pac_data);
+#endif
 
 done:
     free(princ);
@@ -239,7 +311,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
 
         (void)ipadb_reinit_mspac(ipactx, force_reinit_mspac);
 
-        kerr = ipadb_get_pac(context, client, flags, authtime, &pac);
+        kerr = ipadb_get_pac(context, flags, client, server, NULL, authtime, &pac);
         if (kerr != 0 && kerr != ENOENT) {
             goto done;
         }
@@ -253,7 +325,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         /* check or generate pac data */
         if ((pac_auth_data == NULL) || (pac_auth_data[0] == NULL)) {
             if (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION) {
-                kerr = ipadb_get_pac(context, client_entry, flags, authtime, &pac);
+                kerr = ipadb_get_pac(context, flags, client_entry, server, NULL, authtime, &pac);
                 if (kerr != 0 && kerr != ENOENT) {
                     goto done;
                 }

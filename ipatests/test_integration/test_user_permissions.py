@@ -62,13 +62,17 @@ class TestUserPermissions(IntegrationTest):
                                  '--last', testuser,
                                  '--password'],
                                 stdin_text=testuser_password_confirmation)
-
-        # kinit as altadmin
-        self.master.run_command(['kinit', self.altadmin],
-                                stdin_text=self.master.config.admin_password)
-
-        # call ipa user-del --preserve
-        self.master.run_command(['ipa', 'user-del', '--preserve', testuser])
+        try:
+            # kinit as altadmin
+            self.master.run_command(
+                ['kinit', self.altadmin],
+                stdin_text=self.master.config.admin_password
+            )
+            # call ipa user-del --preserve
+            self.master.run_command(['ipa', 'user-del', '--preserve', testuser]
+                                    )
+        finally:
+            self.master.run_command(['ipa', 'user-del', testuser])
 
     @pytest.mark.skipif(
         not platformtasks.is_selinux_enabled(),
@@ -214,6 +218,33 @@ class TestUserPermissions(IntegrationTest):
             self.master.run_command(['ipa', 'user-del', testadmin])
             self.master.run_command(['ipa', 'group-del', testgroup,
                                      '--continue'])
+
+    def test_search_hbacrule_nonadminuser(self):
+        """
+        Test that non admin user can search hbac rule.
+
+        Related : https://pagure.io/freeipa/issue/5130
+        """
+        user = 'hbacuser'
+        password = 'Secret123'
+        hrule = 'rule1'
+
+        try:
+            tasks.create_active_user(self.master, user, password)
+            tasks.kinit_admin(self.master)
+            self.master.run_command(["ipa", "hbacrule-add", hrule])
+            tasks.kdestroy_all(self.master)
+            tasks.kinit_as_user(self.master, user, password)
+            rule = "Rule name: {0}".format(hrule)
+            result = self.master.run_command(["ipa", "hbacrule-find", hrule])
+            assert rule in result.stdout_text
+            result2 = self.master.run_command(["ipa", "hbacrule-find"])
+            assert rule in result2.stdout_text
+        finally:
+            # Cleanup
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'user-del', user])
+            self.master.run_command(["ipa", "hbacrule-del", hrule])
 
 
 class TestInstallClientNoAdmin(IntegrationTest):

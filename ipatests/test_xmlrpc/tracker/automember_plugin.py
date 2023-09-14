@@ -87,6 +87,11 @@ class AutomemberTracker(Tracker):
         return self.make_command('automember_add_condition', self.cn,
                                  *args, **kwargs)
 
+    def make_remove_condition_command(self, *args, **kwargs):
+        """ Make function that issues automember_remove_condition """
+        return self.make_command('automember_remove_condition', self.cn,
+                                 *args, **kwargs)
+
     def track_create(self):
         """ Updates expected state for automember creation"""
         self.attrs = dict(
@@ -186,6 +191,17 @@ class AutomemberTracker(Tracker):
             key=key, type=type, automemberinclusiveregex=inclusiveregex)
         self.attrs['automemberinclusiveregex'] = [u'%s=%s' %
                                                   (key, inclusiveregex[0])]
+        result = command()
+        self.check_add_condition(result)
+
+    def add_condition_exclusive(self, key, type, exclusiveregex):
+        """ Add a condition with given exclusive regex and check for result.
+        Only one condition can be added. For more specific uses please
+        use make_add_condition_command instead. """
+        command = self.make_add_condition_command(
+            key=key, type=type, automemberexclusiveregex=exclusiveregex)
+        self.attrs['automemberexclusiveregex'] = [u'%s=%s' %
+                                                  (key, exclusiveregex[0])]
         result = command()
         self.check_add_condition(result)
 

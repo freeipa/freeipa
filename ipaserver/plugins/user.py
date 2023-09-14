@@ -51,6 +51,8 @@ from .baseuser import (
     baseuser_remove_principal,
     baseuser_add_certmapdata,
     baseuser_remove_certmapdata,
+    baseuser_add_passkey,
+    baseuser_remove_passkey,
 )
 from .idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
@@ -87,6 +89,12 @@ restrictions that may apply to your particular environment. For example,
 usernames that start with a digit or usernames that exceed a certain length
 may cause problems for some UNIX systems.
 Use 'ipa config-mod' to change the username format allowed by IPA tools.
+
+The user name must follow these rules:
+- cannot contain only numbers
+- must start with a letter, a number, _ or .
+- may contain letters, numbers, _, ., or -
+- may end with a letter, a number, _, ., - or $
 
 Disabling a user account prevents that user from obtaining new Kerberos
 credentials. It does not invalidate any credentials that have already
@@ -132,13 +140,22 @@ MEMBEROF_ADMINS = "(memberOf={})".format(
 )
 
 NOT_MEMBEROF_ADMINS = '(!{})'.format(MEMBEROF_ADMINS)
+PROTECTED_USERS = ('admin',)
 
 
 def check_protected_member(user, protected_group_name=u'admins'):
     '''
-    Ensure the last enabled member of a protected group cannot be deleted or
-    disabled by raising LastMemberError.
+    Ensure admin and the last enabled member of a protected group cannot
+    be deleted or disabled by raising ProtectedEntryError or
+    LastMemberError as appropriate.
     '''
+
+    if user in PROTECTED_USERS:
+        raise errors.ProtectedEntryError(
+            label=_("user"),
+            key=user,
+            reason=_("privileged user"),
+        )
 
     # Get all users in the protected group
     result = api.Command.user_find(in_group=protected_group_name)
@@ -204,6 +221,7 @@ class user(baseuser):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'ipauniqueid', 'ipasshpubkey', 'ipauserauthtype', 'userclass',
+                'ipapasskey',
             },
             'fixup_function': fix_addressbook_permission_bindrule,
         },
@@ -424,6 +442,14 @@ class user(baseuser):
                 'Certificate Identity Mapping Administrators'
             },
         },
+        'System: Manage Passkey Mappings': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'ipapasskey', 'objectclass'},
+            'default_privileges': {
+                'Passkey Administrators'
+            },
+        },
+
     }
 
     takes_params = baseuser.takes_params + (
@@ -632,7 +658,11 @@ class user_add(baseuser_add):
             if 'ipaidpuser' not in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].append('ipaidpuser')
 
-            answer = self.api.Object['idp'].get_dn_if_exists(rcl)
+            try:
+                answer = self.api.Object['idp'].get_dn_if_exists(rcl)
+            except errors.NotFound:
+                reason = "External IdP configuration {} not found"
+                raise errors.NotFound(reason=_(reason).format(rcl))
             entry_attrs['ipaidpconfiglink'] = answer
 
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
@@ -858,6 +888,12 @@ class user_mod(baseuser_mod):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn, oc = self.obj.get_either_dn(*keys, **options)
+        if options.get('rename') and keys[-1] in PROTECTED_USERS:
+            raise errors.ProtectedEntryError(
+                label=_("user"),
+                key=keys[-1],
+                reason=_("privileged user"),
+            )
         if 'objectclass' not in entry_attrs and 'rename' not in options:
             entry_attrs.update({'objectclass': oc})
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
@@ -1013,13 +1049,15 @@ class user_stage(LDAPMultiQuery):
     #    ipauniqueid, krbcanonicalname, sshpubkeyfp, krbextradata
     #    are automatically generated
     #    ipacertmapdata can only be provided with user_add_certmapdata
+    #    ipapasskey can only be provided with user_add_passkey
     ignore_attrs = [u'dn', u'uid',
                     u'has_keytab', u'has_password', u'preserved',
                     u'ipauniqueid', u'krbcanonicalname',
                     u'sshpubkeyfp', u'krbextradata',
                     u'ipacertmapdata',
                     'ipantsecurityidentifier',
-                    u'nsaccountlock']
+                    u'nsaccountlock',
+                    u'ipapasskey']
 
     def execute(self, *keys, **options):
 
@@ -1073,6 +1111,12 @@ class user_stage(LDAPMultiQuery):
                     self.api.Command.stageuser_add_certmapdata(
                         *single_keys,
                         ipacertmapdata=certmapdata)
+                # special handling for passkey
+                passkey = user.get(u'ipapasskey')
+                if passkey:
+                    self.api.Command.stageuser_add_passkey(
+                        *single_keys,
+                        ipapasskey=passkey)
                 try:
                     self.api.Command.user_del(*multi_keys, preserve=False)
                 except errors.ExecutionError:
@@ -1354,3 +1398,13 @@ class user_add_principal(baseuser_add_principal):
 class user_remove_principal(baseuser_remove_principal):
     __doc__ = _('Remove principal alias from the user entry')
     msg_summary = _('Removed aliases from user "%(value)s"')
+
+
+@register()
+class user_add_passkey(baseuser_add_passkey):
+    __doc__ = _("Add one or more passkey mappings to the user entry.")
+
+
+@register()
+class user_remove_passkey(baseuser_remove_passkey):
+    __doc__ = _("Remove one or more passkey mappings from the user entry.")

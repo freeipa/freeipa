@@ -12,6 +12,7 @@ import six
 
 from collections import OrderedDict
 from ipalib import api, errors
+from ipalib.constants import ERRMSG_GROUPUSER_NAME
 from ipaplatform.constants import constants as platformconstants
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
@@ -38,8 +39,11 @@ gid = u'456'
 invalidrealm1 = u'suser1@NOTFOUND.ORG'
 invalidrealm2 = u'suser1@BAD@NOTFOUND.ORG'
 
+nonexistentidp = 'IdPDoesNotExist'
+
 invaliduser1 = u'+tuser1'
 invaliduser2 = u'tuser1234567890123456789012345678901234567890'
+invaliduser3 = u'1234'
 
 sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
@@ -357,7 +361,18 @@ class TestCreateInvalidAttributes(XMLRPC_test):
         command = invalid.make_create_command()
         with raises_exact(errors.ValidationError(
             name='login',
-                error=u"may only include letters, numbers, _, -, . and $")):
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
+            command()
+
+    def test_create_numeric_only_uid(self):
+        invalid = StageUserTracker(invaliduser3, u'NumFirst1234',
+                                   u'NumSurname1234')
+        command = invalid.make_create_command()
+        with raises_exact(errors.ValidationError(
+            name='login',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
             command()
 
     def test_create_long_uid(self):
@@ -418,6 +433,15 @@ class TestCreateInvalidAttributes(XMLRPC_test):
                     invalidrealm2))):
             command()
 
+    def test_create_invalid_idp(self, stageduser):
+        stageduser.ensure_missing()
+        command = stageduser.make_create_command(
+            options={u'ipaidpconfiglink': nonexistentidp})
+        with raises_exact(errors.NotFound(
+                reason="External IdP configuration {} not found".format(
+                    nonexistentidp))):
+            command()
+
 
 @pytest.mark.tier1
 class TestUpdateInvalidAttributes(XMLRPC_test):
@@ -451,6 +475,15 @@ class TestUpdateInvalidAttributes(XMLRPC_test):
             updates={u'gidnumber': u'-123'})
         with raises_exact(errors.ValidationError(
                 message=u'invalid \'gidnumber\': must be at least 1')):
+            command()
+
+    def test_update_invalididp(self, stageduser):
+        stageduser.ensure_exists()
+        command = stageduser.make_update_command(
+            updates={u'ipaidpconfiglink': nonexistentidp})
+        with raises_exact(errors.NotFound(
+                reason="External IdP configuration {} not found".format(
+                    nonexistentidp))):
             command()
 
 

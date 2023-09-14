@@ -37,6 +37,7 @@ from ipalib.constants import (
     IPA_ANCHOR_PREFIX,
     SID_ANCHOR_PREFIX,
     PATTERN_GROUPUSER_NAME,
+    ERRMSG_GROUPUSER_NAME
 )
 from ipalib.plugable import Registry
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
@@ -269,13 +270,20 @@ class idview_show(LDAPRetrieve):
             try:
                 overrides, _truncated = ldap.find_entries(
                     filter="objectclass=%s" % objectclass,
-                    attrs_list=['ipaanchoruuid'],
+                    attrs_list=['ipaanchoruuid', 'ipaoriginaluid'],
                     base_dn=dn,
                     scope=ldap.SCOPE_ONELEVEL,
                     paged_search=True)
 
                 resolved_overrides = []
                 for override in overrides:
+                    if 'ipaoriginaluid' in override:
+                        # No need to resolve the anchor, we already know
+                        # the value
+                        resolved_overrides.append(
+                            override.single_value['ipaoriginaluid'])
+                        continue
+
                     anchor = override.single_value['ipaanchoruuid']
 
                     try:
@@ -1018,7 +1026,7 @@ class idoverrideuser(baseidoverride):
     takes_params = baseidoverride.takes_params + (
         Str('uid?',
             pattern=PATTERN_GROUPUSER_NAME,
-            pattern_errmsg='may only include letters, numbers, _, -, . and $',
+            pattern_errmsg=ERRMSG_GROUPUSER_NAME.format('user'),
             maxlength=255,
             cli_name='login',
             label=_('User login'),
@@ -1121,7 +1129,7 @@ class idoverridegroup(baseidoverride):
     takes_params = baseidoverride.takes_params + (
         Str('cn?',
             pattern=PATTERN_GROUPUSER_NAME,
-            pattern_errmsg='may only include letters, numbers, _, -, . and $',
+            pattern_errmsg=ERRMSG_GROUPUSER_NAME.format('group'),
             maxlength=255,
             cli_name='group_name',
             label=_('Group name'),

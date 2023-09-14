@@ -41,6 +41,7 @@
 #define _GNU_SOURCE 1 /* for asprintf() */
 #endif
 
+#include <stdbool.h>
 #include <errno.h>
 #include <stdio.h>
 #include <sys/param.h>
@@ -106,7 +107,7 @@ static int inc_buffer(size_t buf_max, size_t *_buf_len, char **_buf)
     return 0;
 }
 
-int __nss_to_err(enum nss_status errcode)
+static int __nss_to_err(enum nss_status errcode)
 {
     switch(errcode) {
     case NSS_STATUS_SUCCESS:
@@ -526,6 +527,30 @@ int pack_ber_sid(const char *sid, struct berval **berval)
     return LDAP_SUCCESS;
 }
 
+static bool verify_domain(const char *fqdn, const char *domain_name)
+{
+    const char *pos = strrchr(fqdn, SSSD_DOMAIN_SEPARATOR);
+    if (pos == NULL) {
+        return false;
+    }
+
+    return (strcasecmp(pos + 1, domain_name) == 0);
+}
+
+static char *get_short_name(const char *fqdn, const char *domain_name)
+{
+    const char *pos = strrchr(fqdn, SSSD_DOMAIN_SEPARATOR);
+    if (pos == NULL) {
+        return NULL;
+    }
+
+    if (strcasecmp(pos + 1, domain_name) != 0) {
+        return NULL;
+    }
+
+    return strndup(fqdn, pos - fqdn);
+}
+
 int pack_ber_user(struct ipa_extdom_ctx *ctx,
                   enum response_types response_type,
                   const char *domain_name, const char *user_name,
@@ -542,19 +567,13 @@ int pack_ber_user(struct ipa_extdom_ctx *ctx,
     char *buf = NULL;
     struct group grp;
     size_t c;
-    char *locat;
     char *short_user_name = NULL;
 
-    short_user_name = strdup(user_name);
-    if ((locat = strrchr(short_user_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
-        if (strcasecmp(locat+1, domain_name) == 0  ) {
-            locat[0] = '\0';
-        } else {
-            /* The found object is from a different domain than requested,
-             * that means it does not exist in the requested domain */
-            ret = LDAP_NO_SUCH_OBJECT;
-            goto done;
-        }
+    short_user_name = get_short_name(user_name, domain_name);
+    if (short_user_name == NULL) {
+        /* domain mismatch */
+        ret = LDAP_NO_SUCH_OBJECT;
+        goto done;
     }
 
     ber = ber_alloc_t( LBER_USE_DER );
@@ -657,19 +676,13 @@ int pack_ber_group(enum response_types response_type,
     BerElement *ber = NULL;
     int ret;
     size_t c;
-    char *locat;
     char *short_group_name = NULL;
 
-    short_group_name = strdup(group_name);
-    if ((locat = strrchr(short_group_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
-        if (strcasecmp(locat+1, domain_name) == 0  ) {
-            locat[0] = '\0';
-        } else {
-            /* The found object is from a different domain than requested,
-             * that means it does not exist in the requested domain */
-            ret = LDAP_NO_SUCH_OBJECT;
-            goto done;
-        }
+    short_group_name = get_short_name(group_name, domain_name);
+    if (short_group_name == NULL) {
+        /* domain mismatch */
+        ret = LDAP_NO_SUCH_OBJECT;
+        goto done;
     }
 
     ber = ber_alloc_t( LBER_USE_DER );
@@ -735,8 +748,8 @@ done:
     return ret;
 }
 
-int pack_ber_name_list(struct extdom_req *req, char **fq_name_list,
-                       struct berval **berval)
+static int pack_ber_name_list(struct extdom_req *req, char **fq_name_list,
+                              struct berval **berval)
 {
     BerElement *ber = NULL;
     int ret;
@@ -892,6 +905,10 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
             }
             goto done;
         }
+        if (!verify_domain(pwd.pw_name, domain_name)) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
             ret = sss_nss_getorigbyusername_timeout(pwd.pw_name, get_timeout(ctx),
@@ -969,6 +986,10 @@ static int handle_gid_request(struct ipa_extdom_ctx *ctx,
             } else {
                 ret = LDAP_OPERATIONS_ERROR;
             }
+            goto done;
+        }
+        if (!verify_domain(grp.gr_name, domain_name)) {
+            ret = LDAP_NO_SUCH_OBJECT;
             goto done;
         }
 
@@ -1273,6 +1294,10 @@ static int handle_username_request(struct ipa_extdom_ctx *ctx,
     ret = getpwnam_r_wrapper(ctx, fq_name, &pwd, &buf, &buf_len);
     switch(ret) {
     case 0:
+        if (!verify_domain(pwd.pw_name, domain_name)) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
         if (request_type == REQ_FULL_WITH_GROUPS) {
             ret = sss_nss_getorigbyusername_timeout(pwd.pw_name,
                                                     get_timeout(ctx),
@@ -1361,6 +1386,10 @@ static int handle_groupname_request(struct ipa_extdom_ctx *ctx,
         } else {
             ret = LDAP_NO_SUCH_OBJECT;
         }
+        goto done;
+    }
+    if (!verify_domain(grp.gr_name, domain_name)) {
+        ret = LDAP_NO_SUCH_OBJECT;
         goto done;
     }
 

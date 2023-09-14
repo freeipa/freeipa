@@ -80,7 +80,7 @@ class DummyCommand:
     def __init__(self, name):
         self.__name = name
 
-    def __get_name(self):  # pylint: disable=unused-private-member, #4756
+    def __get_name(self):
         return self.__name
     name = property(__get_name)
 
@@ -89,7 +89,7 @@ class DummyAPI:
     def __init__(self, cnt):
         self.__cmd = plugable.APINameSpace(self.__cmd_iter(cnt), DummyCommand)
 
-    def __get_cmd(self):  # pylint: disable=unused-private-member, #4756
+    def __get_cmd(self):
         return self.__cmd
     Command = property(__get_cmd)
 

@@ -17,6 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import base64
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+import re
 import six
 
 from ipalib import api, errors, constants
@@ -157,6 +161,43 @@ def update_samba_attrs(ldap, dn, entry_attrs, **options):
                 )
 
 
+def validate_passkey(ugettext, key):
+    """
+    Validate the format for passkey mappings.
+
+    The expected format is passkey:<key id>,<pubkey>
+    """
+    pattern = re.compile(
+        r'^passkey:(?P<id>[^,]*),(?P<pkey>[^,]*),?(?P<userid>.*)$')
+    result = re.match(pattern, key)
+    if result is None:
+        return '"%s" is not a valid passkey mapping' % key
+
+    # Validate the id part
+    try:
+        base64.b64decode(result.group('id'), validate=True)
+    except Exception:
+        return '"%s" is not a valid passkey mapping, invalid id' % key
+
+    # Validate the pkey part
+    try:
+        pem = "-----BEGIN PUBLIC KEY-----\n" + \
+              result.group('pkey') + \
+              "\n-----END PUBLIC KEY-----"
+        load_pem_public_key(data=pem.encode('utf-8'),
+                            backend=default_backend())
+    except ValueError:
+        return '"%s" is not a valid passkey mapping, invalid key' % key
+    # Validate the (optional) userid
+    try:
+        userid = result.group('userid')
+        if userid:
+            base64.b64decode(userid, validate=True)
+    except Exception:
+        return '"%s" is not a valid passkey mapping, invalid userid' % key
+    return None
+
+
 class baseuser(LDAPObject):
     """
     baseuser object.
@@ -170,7 +211,7 @@ class baseuser(LDAPObject):
     possible_objectclasses = [
         'meporiginentry', 'ipauserauthtypeclass', 'ipauser',
         'ipatokenradiusproxyuser', 'ipacertmapobject',
-        'ipantuserattrs', 'ipaidpuser',
+        'ipantuserattrs', 'ipaidpuser', 'ipapasskeyuser',
     ]
     disallow_object_classes = ['krbticketpolicyaux']
     permission_filter_objectclasses = ['posixaccount']
@@ -186,6 +227,7 @@ class baseuser(LDAPObject):
         'krbprincipalname', 'krbcanonicalname',
         'ipacertmapdata', 'ipantlogonscript', 'ipantprofilepath',
         'ipanthomedirectory', 'ipanthomedirectorydrive',
+        'ipapasskey',
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'krbcanonicalname',
@@ -211,7 +253,7 @@ class baseuser(LDAPObject):
     takes_params = (
         Str('uid',
             pattern=constants.PATTERN_GROUPUSER_NAME,
-            pattern_errmsg='may only include letters, numbers, _, -, . and $',
+            pattern_errmsg=constants.ERRMSG_GROUPUSER_NAME.format('user'),
             maxlength=255,
             cli_name='login',
             label=_('User login'),
@@ -371,7 +413,7 @@ class baseuser(LDAPObject):
             label=_('User authentication types'),
             doc=_('Types of supported user authentication'),
             values=(u'password', u'radius', u'otp', u'pkinit', u'hardened',
-                    u'idp'),
+                    u'idp', u'passkey'),
         ),
         Str('userclass*',
             cli_name='class',
@@ -451,6 +493,12 @@ class baseuser(LDAPObject):
                     'J:', 'K:', 'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:',
                     'S:', 'T:', 'U:', 'V:', 'W:', 'X:', 'Y:', 'Z:'),
                 ),
+        Str('ipapasskey*', validate_passkey,
+            cli_name='passkey',
+            label=_('Passkey mapping'),
+            doc=_('Passkey mapping'),
+            flags=['no_create', 'no_update', 'no_search'],
+            ),
     )
 
     def normalize_and_validate_email(self, email, config=None):
@@ -564,7 +612,10 @@ class baseuser_add(LDAPCreate):
         if entry_attrs.get('ipauserauthtype', None):
             add_missing_object_class(ldap, u'ipauserauthtypeclass', dn,
                                      entry_attrs, update=False)
-        if entry_attrs.get('ipaidpconfiglink', None):
+        if (
+            entry_attrs.get('ipaidpconfiglink', None)
+            or entry_attrs.get('ipaidpsub', None)
+        ):
             add_missing_object_class(ldap, 'ipaidpuser', dn,
                                      entry_attrs, update=False)
 
@@ -588,6 +639,8 @@ class baseuser_mod(LDAPUpdate):
     """
     Prototype command plugin to be implemented by real plugin
     """
+    NAME_PATTERN = re.compile(constants.PATTERN_GROUPUSER_NAME)
+
     def check_namelength(self, ldap, **options):
         if options.get('rename') is not None:
             config = ldap.get_ipa_config()
@@ -599,6 +652,14 @@ class baseuser_mod(LDAPUpdate):
                             len = int(config.get('ipamaxusernamelength')[0])
                         )
                     )
+
+    def check_name(self, entry_attrs):
+        if 'uid' in entry_attrs:
+            # Check the pattern if the user is renamed
+            if self.NAME_PATTERN.match(entry_attrs.single_value['uid']) is None:
+                raise errors.ValidationError(
+                    name='uid',
+                    error=constants.ERRMSG_GROUPUSER_NAME.format('user'))
 
     def preserve_krbprincipalname_pre(self, ldap, entry_attrs, *keys, **options):
         """
@@ -662,7 +723,7 @@ class baseuser_mod(LDAPUpdate):
         # Some attributes may require additional object classes
         special_attrs = {'ipasshpubkey', 'ipauserauthtype', 'userclass',
                          'ipatokenradiusconfiglink', 'ipatokenradiususername',
-                         'ipaidpconfiglink'}
+                         'ipaidpconfiglink', 'ipaidpsub'}
         if special_attrs.intersection(entry_attrs):
             if 'objectclass' in entry_attrs:
                 obj_classes = entry_attrs['objectclass']
@@ -691,13 +752,21 @@ class baseuser_mod(LDAPUpdate):
                     answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
                     entry_attrs['ipatokenradiusconfiglink'] = answer
 
+            if 'ipaidpsub' in entry_attrs:
+                if 'ipaidpuser' not in obj_classes:
+                    entry_attrs['objectclass'].append('ipaidpuser')
+
             if 'ipaidpconfiglink' in entry_attrs:
                 cl = entry_attrs['ipaidpconfiglink']
                 if cl:
                     if 'ipaidpuser' not in obj_classes:
                         entry_attrs['objectclass'].append('ipaidpuser')
 
-                    answer = self.api.Object['idp'].get_dn_if_exists(cl)
+                    try:
+                        answer = self.api.Object['idp'].get_dn_if_exists(cl)
+                    except errors.NotFound:
+                        reason = "External IdP configuration {} not found"
+                        raise errors.NotFound(reason=_(reason).format(cl))
                     entry_attrs['ipaidpconfiglink'] = answer
 
             # Note: we could have used the method add_missing_object_class
@@ -715,6 +784,7 @@ class baseuser_mod(LDAPUpdate):
         add_sshpubkey_to_attrs_pre(self.context, attrs_list)
 
         self.check_namelength(ldap, **options)
+        self.check_name(entry_attrs)
 
         self.check_mail(entry_attrs)
 
@@ -1011,3 +1081,30 @@ class baseuser_remove_certmapdata(ModCertMapData,
                                   LDAPRemoveAttribute):
     __doc__ = _("Remove one or more certificate mappings from the user entry.")
     msg_summary = _('Removed certificate mappings from user "%(value)s"')
+
+
+class ModPassKey(LDAPModAttribute):
+    attribute = 'ipapasskey'
+
+
+class baseuser_add_passkey(ModPassKey, LDAPAddAttribute):
+    __doc__ = _("Add one or more passkey mappings to the user entry.")
+    msg_summary = _('Added passkey mappings to user "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+
+        dn = super(baseuser_add_passkey, self).pre_callback(
+            ldap, dn, entry_attrs, attrs_list, *keys, **options)
+
+        # The objectclass ipafpasskeyuser may not be present on
+        # existing user entries. We need to add it if we define a new
+        # value for ipapasskey
+        add_missing_object_class(ldap, u'ipapasskeyuser', dn)
+
+        return dn
+
+
+class baseuser_remove_passkey(ModPassKey, LDAPRemoveAttribute):
+    __doc__ = _("Remove one or more passkey mappings from the user entry.")
+    msg_summary = _('Removed passkey mappings from user "%(value)s"')

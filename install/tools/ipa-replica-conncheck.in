@@ -45,7 +45,7 @@ import time
 import threading
 import traceback
 from socket import SOCK_STREAM, SOCK_DGRAM
-import distutils.spawn
+import shutil
 from ipaplatform.paths import paths
 import gssapi
 
@@ -62,7 +62,7 @@ class SshExec:
     def __init__(self, user, addr):
         self.user = user
         self.addr = addr
-        self.cmd = distutils.spawn.find_executable('ssh')
+        self.cmd = shutil.which('ssh')
         # Bail if ssh is not installed
         if self.cmd is None:
             raise RuntimeError("ssh not installed")

@@ -185,6 +185,25 @@ class test_config(Declarative):
         ),
 
         dict(
+            desc='Set user auth type to passkey',
+            command=('config_mod', [], dict(ipauserauthtype=u'passkey')),
+            expected=dict(
+                result=lambda d: d['ipauserauthtype'] == (u'passkey',),
+                value=None,
+                summary=None,
+            ),
+        ),
+
+        dict(
+            desc='Check user auth type is passkey',
+            command=('config_show', [], {}),
+            expected=dict(
+                result=lambda d: d['ipauserauthtype'] == (u'passkey',),
+                value=None,
+                summary=None,
+            ),
+        ),
+        dict(
             desc='Unset user auth type',
             command=('config_mod', [], dict(ipauserauthtype=None)),
             expected=dict(

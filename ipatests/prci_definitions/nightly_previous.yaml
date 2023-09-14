@@ -6,39 +6,39 @@ topologies:
   master_3client: &master_3client
     name: master_3client
     cpu: 5
-    memory: 10150
+    memory: 7750
   master_1repl: &master_1repl
     name: master_1repl
     cpu: 4
-    memory: 6450
+    memory: 6750
   master_1repl_1client: &master_1repl_1client
     name: master_1repl_1client
     cpu: 4
-    memory: 7400
+    memory: 8000
   ipaserver: &ipaserver
     name: ipaserver
     cpu: 2
-    memory: 2400
+    memory: 2750
   master_2repl_1client: &master_2repl_1client
     name: master_2repl_1client
     cpu: 5
-    memory: 10150
+    memory: 10750
   master_3repl_1client: &master_3repl_1client
     name: master_3repl_1client
     cpu: 6
-    memory: 12900
+    memory: 13500
   ad_master_2client: &ad_master_2client
     name: ad_master_2client
     cpu: 4
-    memory: 12000
+    memory: 10596
   ad_master: &ad_master
     name: ad_master
     cpu: 4
-    memory: 12000
+    memory: 8096
   adroot_adchild_adtree_master_1client: &adroot_adchild_adtree_master_1client
     name: adroot_adchild_adtree_master_1client
     cpu: 8
-    memory: 14500
+    memory: 14466
 
 jobs:
   fedora-previous/build:
@@ -50,8 +50,8 @@ jobs:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-master-previous
-          name: freeipa/ci-master-f35
-          version: 0.0.7
+          name: freeipa/ci-master-f37
+          version: 0.0.2
         timeout: 1800
         topology: *build
 
@@ -1399,7 +1399,7 @@ jobs:
         build_url: '{fedora-previous/build_url}'
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
         template: *ci-master-previous
-        timeout: 5400
+        timeout: 6300
         topology: *master_1repl_1client
 
   fedora-previous/test_ipahealthcheck_nodns_extca_file:
@@ -1461,6 +1461,18 @@ jobs:
         template: *ci-master-previous
         timeout: 3600
         topology: *master_1repl
+
+  fedora-previous/test_pkinit_install:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_pkinit_install.py
+        template: *ci-master-previous
+        timeout: 3600
+        topology: *master_1repl_1client
 
   fedora-previous/test_pkinit_manage:
     requires: [fedora-previous/build]
@@ -1637,9 +1649,21 @@ jobs:
       class: RunADTests
       args:
         build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_trust.py
+        test_suite: test_integration/test_trust.py::TestTrust
         template: *ci-master-previous
-        timeout: 10000
+        timeout: 7200
+        topology: *adroot_adchild_adtree_master_1client
+
+  fedora-previous/test_trust_autoprivate:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_trust.py::TestNonPosixAutoPrivateGroup test_integration/test_trust.py::TestPosixAutoPrivateGroup
+        template: *ci-master-previous
+        timeout: 6000
         topology: *adroot_adchild_adtree_master_1client
 
   fedora-previous/test_backup_and_restore_TestBackupAndRestoreTrust:
@@ -1697,9 +1721,25 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_acme.py
+        test_suite: >-
+            test_integration/test_acme.py::TestACME
+            test_integration/test_acme.py::TestACMECALess
+            test_integration/test_acme.py::TestACMEwithExternalCA
+            test_integration/test_acme.py::TestACMERenew
         template: *ci-master-previous
-        timeout: 7200
+        timeout: 8100
+        topology: *master_1repl_1client
+
+  fedora-previous/test_acme_prune:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_integration/test_acme.py::TestACMEPrune
+        template: *ci-master-previous
+        timeout: 3600
         topology: *master_1repl_1client
 
   fedora-previous/test_dns:

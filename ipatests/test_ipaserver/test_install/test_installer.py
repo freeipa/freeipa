@@ -3,8 +3,6 @@
 #
 from __future__ import absolute_import
 
-import six
-
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 import itertools
@@ -17,7 +15,7 @@ from ipaserver.install.ipa_replica_install import ReplicaInstall
 Keyval = namedtuple('Keyval', ['option', 'value'])
 
 
-class InstallerTestBase(six.with_metaclass(ABCMeta, object)):
+class InstallerTestBase(metaclass=ABCMeta):
     OPTS_DICT = {}
 
     # don't allow creating classes with tested_cls unspecified

@@ -132,7 +132,6 @@ def main():
                 print("Enabling plugin")
 
                 # https://github.com/PyCQA/pylint/issues/872
-                # pylint: disable=unsupported-assignment-operation
                 if entry is None:
                     ld = LDAPUpdate()
                     if not ld.update(files):
@@ -141,7 +140,6 @@ def main():
                 else:
                     entry['nsslapd-pluginenabled'] = ['on']
                     api.Backend.ldap2.update_entry(entry)
-                # pylint: enable=unsupported-assignment-operation
         except errors.ExecutionError as lde:
             print("An error occurred while talking to the server.")
             print(lde)
@@ -171,9 +169,7 @@ def main():
                 else:
                     print("Disabling plugin")
 
-                    # pylint: disable=unsupported-assignment-operation
                     entry['nsslapd-pluginenabled'] = ['off']
-                    # pylint: enable=unsupported-assignment-operation
                     api.Backend.ldap2.update_entry(entry)
             except errors.DatabaseError as dbe:
                 print("An error occurred while talking to the server.")

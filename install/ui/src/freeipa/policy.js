@@ -179,6 +179,16 @@ return {
                             name: 'krbauthindmaxticketlife_idp',
                             acl_param: 'krbauthindmaxticketlife',
                             measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxrenewableage_passkey',
+                            acl_param: 'krbauthindmaxrenewableage',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbauthindmaxticketlife_passkey',
+                            acl_param: 'krbauthindmaxticketlife',
+                            measurement_unit: 'seconds'
                         }
 
                     ]

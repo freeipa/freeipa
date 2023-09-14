@@ -429,7 +429,7 @@ class Command(HasParam):
     api_version = API_VERSION
 
     @classmethod
-    def __topic_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __topic_getter(cls):
         return cls.__module__.rpartition('.')[2]
 
     topic = classproperty(__topic_getter)
@@ -449,7 +449,7 @@ class Command(HasParam):
         # special, rare case: user calls help() on a plugin class instead of
         # an instance
         if obj is None:
-            from ipalib import api
+            from ipalib import api  # pylint: disable=cyclic-import
             obj = cls(api=api)
         cls._signature = signature = create_signature(obj)
         return signature

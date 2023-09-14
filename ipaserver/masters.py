@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 CONFIGURED_SERVICE = u'configuredService'
 ENABLED_SERVICE = u'enabledService'
 HIDDEN_SERVICE = u'hiddenService'
+PAC_TKT_SIGN_SUPPORTED = u'pacTktSignSupported'
+PKINIT_ENABLED = u'pkinitEnabled'
 
 # The service name as stored in cn=masters,cn=ipa,cn=etc. The values are:
 # 0: systemd service name
@@ -125,6 +127,8 @@ def find_providing_servers(svcname, conn=None, preferred_hosts=(), api=api):
             )
         else:
             servers.insert(0, host_name)
+    logger.debug("Discovery: available servers for service '%s' are %s",
+                 svcname, ', '.join(servers))
     return servers
 
 
@@ -141,8 +145,11 @@ def find_providing_server(svcname, conn=None, preferred_hosts=(), api=api):
         svcname, conn=conn, preferred_hosts=preferred_hosts, api=api
     )
     if not servers:
+        logger.debug("Discovery: no '%s' service found.", svcname)
         return None
     else:
+        logger.debug("Discovery: using %s for '%s' service",
+                     servers[0], svcname)
         return servers[0]
 
 

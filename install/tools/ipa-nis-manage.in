@@ -155,9 +155,7 @@ def main():
         elif entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
             print("Enabling plugin")
             # Already configured, just enable the plugin
-            # pylint: disable=unsupported-assignment-operation
             entry['nsslapd-pluginenabled'] = ['on']
-            # pylint: enable=unsupported-assignment-operation
             api.Backend.ldap2.update_entry(entry)
         else:
             print("Plugin already Enabled")

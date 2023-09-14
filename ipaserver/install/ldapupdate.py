@@ -32,7 +32,7 @@ import os
 import fnmatch
 import warnings
 
-from pysss_murmur import murmurhash3  # pylint: disable=no-name-in-module
+from pysss_murmur import murmurhash3
 import six
 
 from ipapython import ipautil, ipaldap

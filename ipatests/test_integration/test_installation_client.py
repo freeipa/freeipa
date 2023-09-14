@@ -76,6 +76,21 @@ class TestInstallClient(IntegrationTest):
         result = self.clients[0].run_command(['cat', '/etc/ssh/ssh_config'])
         assert 'HostKeyAlgorithms' not in result.stdout_text
 
+    def test_client_install_with_krb5(self):
+        """Test that SSSD_PUBCONF_KRB5_INCLUDE_D_DIR is not added in krb5.conf
+
+        SSSD already provides a config snippet which includes
+        SSSD_PUBCONF_KRB5_INCLUDE_D_DIR, and having both breaks Java.
+        Test checks that krb5.conf does not include
+        SSSD_PUBCONF_KRB5_INCLUDE_D_DIR.
+
+        related: https://pagure.io/freeipa/issue/9267
+        """
+        krb5_cfg = self.master.get_file_contents(paths.KRB5_CONF)
+        assert 'includedir {dir}'.format(
+            dir=paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR
+        ).encode() not in krb5_cfg
+
 
 class TestClientInstallBind(IntegrationTest):
     """

@@ -503,8 +503,8 @@ void test_pack_ber_user_timeout(void **state)
     oldgetgrgid_r = test_data->ctx->nss_ctx->getgrgid_r;
     test_data->ctx->nss_ctx->getgrgid_r = getgrgid_r_timeout;
 
-    ret = pack_ber_user(test_data->ctx, RESP_USER_GROUPLIST,
-                        TEST_DOMAIN_NAME, "member001", 12345, 54321,
+    ret = pack_ber_user(test_data->ctx, RESP_USER_GROUPLIST, TEST_DOMAIN_NAME,
+                        "member001@"TEST_DOMAIN_NAME, 12345, 54321,
                         "gecos", "homedir", "shell", NULL, &resp_val);
     test_data->ctx->nss_ctx->getgrgid_r = oldgetgrgid_r;
     assert_int_equal(ret, LDAP_TIMELIMIT_EXCEEDED);
@@ -548,15 +548,17 @@ void test_encode(void **state)
     assert_memory_equal(res_nam, resp_val->bv_val, resp_val->bv_len);
     ber_bvfree(resp_val);
 
-    ret = pack_ber_user(ctx, RESP_USER, TEST_DOMAIN_NAME, "test", 12345, 54321,
-                        NULL, NULL, NULL, NULL, &resp_val);
+    ret = pack_ber_user(ctx, RESP_USER, TEST_DOMAIN_NAME,
+                        "test@"TEST_DOMAIN_NAME, 12345, 54321, NULL, NULL,
+                        NULL, NULL, &resp_val);
     assert_int_equal(ret, LDAP_SUCCESS);
     assert_int_equal(sizeof(res_uid), resp_val->bv_len);
     assert_memory_equal(res_uid, resp_val->bv_val, resp_val->bv_len);
     ber_bvfree(resp_val);
 
-    ret = pack_ber_group(RESP_GROUP, TEST_DOMAIN_NAME, "test_group", 54321,
-                         NULL, NULL, &resp_val);
+    ret = pack_ber_group(RESP_GROUP, TEST_DOMAIN_NAME,
+                         "test_group@"TEST_DOMAIN_NAME, 54321, NULL, NULL,
+                         &resp_val);
     assert_int_equal(ret, LDAP_SUCCESS);
     assert_int_equal(sizeof(res_gid), resp_val->bv_len);
     assert_memory_equal(res_gid, resp_val->bv_val, resp_val->bv_len);

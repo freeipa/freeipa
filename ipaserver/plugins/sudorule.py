@@ -223,8 +223,8 @@ class sudorule(LDAPObject):
                 'ipasudorunasextuser', 'ipasudorunasextgroup', 'memberdenycmd',
                 'memberallowcmd', 'memberuser', 'memberhost', 'externalhost',
                 'sudonotafter', 'hostmask', 'sudoorder', 'sudonotbefore',
-                'ipasudorunas', 'externalhost', 'ipasudorunasgroup',
-                'ipasudoopt', 'memberhost',
+                'ipasudorunas', 'ipasudorunasgroup',
+                'ipasudoopt',
             },
             'replaces': [
                 '(targetattr = "description || ipaenabledflag || usercategory || hostcategory || cmdcategory || ipasudorunasusercategory || ipasudorunasgroupcategory || externaluser || ipasudorunasextuser || ipasudorunasextgroup || memberdenycmd || memberallowcmd || memberuser")(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Modify Sudo rule";allow (write) groupdn = "ldap:///cn=Modify Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)',

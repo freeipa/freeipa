@@ -31,6 +31,7 @@ import ldap
 import re
 
 from ipalib import api, errors
+from ipalib.constants import ERRMSG_GROUPUSER_NAME
 from ipaplatform.constants import constants as platformconstants
 from ipapython import ipautil
 from ipatests.test_xmlrpc import objectclasses
@@ -52,6 +53,7 @@ admin_group = u'admins'
 
 invaliduser1 = u'+tuser1'
 invaliduser2 = u''.join(['a' for n in range(256)])
+invaliduser3 = u'1234'
 
 sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
@@ -83,6 +85,8 @@ expired_expiration_string = "1991-12-07T19:54:13Z"
 
 # Date in ISO format (2013-12-10T12:00:00)
 isodate_re = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
+
+nonexistentidp = 'IdPDoesNotExist'
 
 
 @pytest.fixture(scope='class')
@@ -157,6 +161,20 @@ def user_radius(request, xmlrpc_setup):
     tracker.track_create()
     tracker.attrs.update(objectclass=fuzzy_set_optional_oc(
         objectclasses.user + [u'ipatokenradiusproxyuser'],
+        'ipantuserattrs'),
+    )
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def user_idp(request, xmlrpc_setup):
+    """ User tracker fixture for testing users with idp user id """
+    tracker = UserTracker(name='idpuser', givenname='idp',
+                          sn='user', ipaidpsub='myidpuserid')
+    tracker.track_create()
+    tracker.attrs.update(ipaidpsub=['myidpuserid'])
+    tracker.attrs.update(objectclass=fuzzy_set_optional_oc(
+        objectclasses.user + [u'ipaidpuser'],
         'ipantuserattrs'),
     )
     return tracker.make_fixture(request)
@@ -473,7 +491,8 @@ class TestUpdate(XMLRPC_test):
         """ Set ipauserauthtype to all valid types and than back to None """
         user.ensure_exists()
         user.update(dict(ipauserauthtype=[
-            u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp'
+            u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp',
+            u'passkey',
         ]))
         user.retrieve()
 
@@ -501,15 +520,62 @@ class TestUpdate(XMLRPC_test):
             updates=dict(rename=invaliduser1)
         )
         with raises_exact(errors.ValidationError(
-                name='rename',
-                error=u'may only include letters, numbers, _, -, . and $')):
+            name='rename',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
             command()
+
+    def test_rename_setattr_to_numeric_only_username(self, user):
+        """ Try to change name to name with only numeric chars with setattr"""
+        user.ensure_exists()
+        command = user.make_update_command(
+            updates=dict(setattr='uid=%s' % invaliduser3)
+        )
+        with raises_exact(errors.ValidationError(
+            name='uid',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
+            command()
+
+    def test_rename_to_numeric_only_username(self, user):
+        """ Try to change user name to name containing only numeric chars"""
+        user.ensure_exists()
+        command = user.make_update_command(
+            updates=dict(rename=invaliduser3)
+        )
+        with raises_exact(errors.ValidationError(
+            name='rename',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
+            command()
+
 
     def test_add_radius_username(self, user):
         """ Test for ticket 7569: Try to add --radius-username """
         user.ensure_exists()
         command = user.make_update_command(
             updates=dict(ipatokenradiususername=u'radiususer')
+        )
+        command()
+        user.delete()
+
+    def test_update_invalid_idp(self, user):
+        """ Test user-mod --idp with a non-existent idp """
+        user.ensure_exists()
+        command = user.make_update_command(
+            updates=dict(ipaidpconfiglink=nonexistentidp)
+        )
+        with raises_exact(errors.NotFound(
+            reason="External IdP configuration {} not found".format(
+                nonexistentidp)
+        )):
+            command()
+
+    def test_update_add_idpsub(self, user):
+        """ Test user-mod --idp-user-id"""
+        user.ensure_exists()
+        command = user.make_update_command(
+            updates=dict(ipaidpsub=u'myidp_user_id')
         )
         command()
         user.delete()
@@ -555,8 +621,9 @@ class TestCreate(XMLRPC_test):
         )
         command = testuser.make_create_command()
         with raises_exact(errors.ValidationError(
-                name=u'login',
-                error=u'may only include letters, numbers, _, -, . and $')):
+            name=u'login',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
+        )):
             command()
 
     def test_create_with_too_long_login(self):
@@ -726,11 +793,11 @@ class TestCreate(XMLRPC_test):
     def test_create_with_numeric_only_username(self):
         """Try to create a user with name only contains numeric chars"""
         testuser = UserTracker(
-            name=u'1234', givenname=u'NumFirst1234', sn=u'NumSurname1234',
+            name=invaliduser3, givenname=u'NumFirst1234', sn=u'NumSurname1234',
         )
         with raises_exact(errors.ValidationError(
-                name=u'login',
-                error=u'may only include letters, numbers, _, -, . and $',
+            name=u'login',
+            error=ERRMSG_GROUPUSER_NAME.format('user'),
         )):
             testuser.create()
 
@@ -740,6 +807,24 @@ class TestCreate(XMLRPC_test):
         result = command()
         user_radius.check_create(result)
         user_radius.delete()
+
+    def test_create_with_invalididp(self):
+        testuser = UserTracker(
+            name='idpuser', givenname='idp', sn='user',
+            ipaidpconfiglink=nonexistentidp
+        )
+        with raises_exact(errors.NotFound(
+            reason="External IdP configuration {} not found".format(
+                nonexistentidp)
+        )):
+            testuser.create()
+
+    def test_create_with_idpsub(self, user_idp):
+        """ Test creation of a user with --idp-user-id"""
+        command = user_idp.make_create_command()
+        result = command()
+        user_idp.check_create(result, ['ipaidpsub'])
+        user_idp.delete()
 
 
 @pytest.mark.tier1
@@ -924,22 +1009,32 @@ class TestManagers(XMLRPC_test):
 
 @pytest.mark.tier1
 class TestAdmins(XMLRPC_test):
-    def test_remove_original_admin(self):
-        """ Try to remove the only admin """
+    def test_delete_admin(self):
+        """ Try to delete the protected admin user """
         tracker = Tracker()
-        command = tracker.make_command('user_del', [admin1])
+        command = tracker.make_command('user_del', admin1)
 
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
+        with raises_exact(errors.ProtectedEntryError(label=u'user',
+                          key=admin1, reason='privileged user')):
+            command()
+
+    def test_rename_admin(self):
+        """ Try to rename the admin user """
+        tracker = Tracker()
+        command = tracker.make_command('user_mod', admin1,
+                                       **dict(rename=u'newadmin'))
+
+        with raises_exact(errors.ProtectedEntryError(label=u'user',
+                          key=admin1, reason='privileged user')):
             command()
 
     def test_disable_original_admin(self):
-        """ Try to disable the only admin """
+        """ Try to disable the original admin """
         tracker = Tracker()
         command = tracker.make_command('user_disable', admin1)
 
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
+        with raises_exact(errors.ProtectedEntryError(label=u'user',
+                          key=admin1, reason='privileged user')):
             command()
 
     def test_create_admin2(self, admin2):
@@ -957,20 +1052,10 @@ class TestAdmins(XMLRPC_test):
         admin2.disable()
         tracker = Tracker()
 
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
+        with raises_exact(errors.ProtectedEntryError(label=u'user',
+                          key=admin1, reason='privileged user')):
             tracker.run_command('user_disable', admin1)
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
-            tracker.run_command('user_del', admin1)
         admin2.delete()
-
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
-            tracker.run_command('user_disable', admin1)
-        with raises_exact(errors.LastMemberError(
-                key=admin1, label=u'group', container=admin_group)):
-            tracker.run_command('user_del', admin1)
 
 
 @pytest.mark.tier1

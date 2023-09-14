@@ -58,4 +58,5 @@ dyndb "ipa" "$BIND_LDAP_SO" {
 	server_id "$FQDN";
 	auth_method "sasl";
 	sasl_mech "EXTERNAL";
+	krb5_keytab "FILE:$NAMED_KEYTAB";
 };

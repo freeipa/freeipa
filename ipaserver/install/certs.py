@@ -48,6 +48,7 @@ from ipalib.install import certstore
 from ipalib.util import strip_csr_header
 from ipalib.text import _
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 
 
 logger = logging.getLogger(__name__)
@@ -69,9 +70,16 @@ def get_cert_nickname(cert):
 
 def install_pem_from_p12(p12_fname, p12_passwd, pem_fname):
     pwd = ipautil.write_tmp_file(p12_passwd)
-    ipautil.run([paths.OPENSSL, "pkcs12", "-nokeys", "-clcerts",
-                 "-in", p12_fname, "-out", pem_fname,
-                 "-passin", "file:" + pwd.name])
+    args = [paths.OPENSSL, "pkcs12", "-nokeys", "-clcerts",
+            "-in", p12_fname, "-out", pem_fname,
+            "-passin", "file:" + pwd.name]
+    # the PKCS12 MAC requires PKCS12KDF which is not an approved FIPS
+    # algorithm and cannot be supported by the FIPS provider.
+    # Do not require mac verification in FIPS mode
+    fips_enabled = tasks.is_fips_enabled()
+    if fips_enabled:
+        args.append('-nomacver')
+    ipautil.run(args)
 
 
 def install_key_from_p12(
@@ -85,6 +93,12 @@ def install_key_from_p12(
         args.extend(['-passout', 'file:{}'.format(out_passwd_fname)])
     else:
         args.append('-nodes')
+    # the PKCS12 MAC requires PKCS12KDF which is not an approved FIPS
+    # algorithm and cannot be supported by the FIPS provider.
+    # Do not require mac verification in FIPS mode
+    fips_enabled = tasks.is_fips_enabled()
+    if fips_enabled:
+        args.append('-nomacver')
 
     ipautil.run(args, umask=0o077)
 
@@ -726,7 +740,7 @@ class _CrossProcessLock:
         self._do(self._release, owner)
 
     def _acquire(self, owner):
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(tz=datetime.UTC)
 
         if self._locked and now >= self._expire:
             self._locked = False
@@ -785,7 +799,8 @@ class _CrossProcessLock:
                 expire = p.get('lock', 'expire')
                 try:
                     self._expire = datetime.datetime.strptime(
-                        expire, self._DATETIME_FORMAT)
+                        expire, self._DATETIME_FORMAT).replace(
+                        tzinfo=datetime.UTC)
                 except ValueError:
                     raise configparser.Error
         except configparser.Error:

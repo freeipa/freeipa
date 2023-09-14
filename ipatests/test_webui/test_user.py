@@ -28,8 +28,10 @@ import ipatests.test_webui.data_user as user
 import ipatests.test_webui.data_group as group
 import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_hbac as hbac
+import ipatests.test_webui.data_pwpolicy as pwpolicy
 import ipatests.test_webui.test_rbac as rbac
 import ipatests.test_webui.data_sudo as sudo
+
 import pytest
 
 try:
@@ -48,8 +50,7 @@ INV_FIRSTNAME = ("invalid 'first': Leading and trailing spaces are "
 FIELD_REQ = 'Required field'
 ERR_INCLUDE = 'may only include letters, numbers, _, -, . and $'
 ERR_MISMATCH = 'Passwords must match'
-ERR_ADMIN_DEL = ('admin cannot be deleted or disabled because it is the last '
-                 'member of group admins')
+ERR_ADMIN_DEL = ('user admin cannot be deleted/modified: privileged user')
 USR_EXIST = 'user with name "{}" already exists'
 ENTRY_EXIST = 'This entry already exists'
 ACTIVE_ERR = 'active user with name "{}" already exists'
@@ -90,7 +91,8 @@ class user_tasks(UI_driver):
     def assert_user_auth_type(self, auth_type, enabled=True):
         """
         Check if provided auth type is enabled or disabled for the user
-        :param auth_type: one of password, radius, otp, pkinit, hardened or idp
+        :param auth_type: one of password, radius, otp, pkinit, hardened, idp
+        or passkey
         :param enabled: check if enabled if True, check for disabled if False
         """
         s_checkbox = 'div[name="ipauserauthtype"] input[value="{}"]'.format(
@@ -101,7 +103,8 @@ class user_tasks(UI_driver):
     def add_user_auth_type(self, auth_type, save=False):
         """
         Select user auth type
-        :param auth_type: one of password, radius, otp, pkinit, hardened or idp
+        :param auth_type: one of password, radius, otp, pkinit, hardened, idp
+        or passkey
         """
         s_checkbox = 'div[name="ipauserauthtype"] input[value="{}"]'.format(
             auth_type)
@@ -348,6 +351,35 @@ class test_user(user_tasks):
         self.delete_record(user.PKEY, user.DATA.get('del'))
 
     @screenshot
+    def test_certificate_serial(self):
+        """Test long certificate serial no
+        Long certificate serial no were shown in scientific notation
+        at user details page. This test checks that it is no longer shown
+        in scientific notation
+        related:https://pagure.io/freeipa/issue/8754
+        """
+        if not self.has_ca():
+            self.skip('CA is not configured')
+
+        self.init_app()
+
+        self.add_record(user.ENTITY, user.DATA2)
+        self.wait()
+        self.close_notifications()
+        self.navigate_to_record(user.PKEY2)
+
+        self.add_cert_to_record(user.USER_CERT, user.PKEY2, save=False)
+        # check if the cert serial is 264374074076456325397645183544606453821
+        self.assert_text(
+            'div[name="cert-serial-num"]',
+            '264374074076456325397645183544606453821'
+        )
+
+        # cleanup
+        self.navigate_to_entity(user.ENTITY, 'search')
+        self.delete_record(user.PKEY2, user.DATA2.get('del'))
+
+    @screenshot
     def test_password_expiration_notification(self):
         """
         Test password expiration notification
@@ -445,6 +477,52 @@ class test_user(user_tasks):
         self.dialog_button_click('confirm')
         self.wait_for_request(n=3)
         self.assert_no_error_dialog()
+
+    @screenshot
+    def test_grace_login_limit(self):
+        """
+        Verify existence of grace login limit field and its
+        value based on pwpolicy value
+
+        Related: https://pagure.io/freeipa/issue/9211
+        """
+        self.init_app()
+        self.add_record(group.ENTITY, [group.DATA])
+        # add record DATA8 already with passwordgracelimit
+        self.add_record(pwpolicy.ENTITY, [pwpolicy.DATA8])
+
+        self.navigate_to_record(group.PKEY)
+        # fill with values from DATA8, passwordgracelimit has value 42
+        self.fill_fields(pwpolicy.DATA8['mod'])
+        try:
+            # click save if needed
+            self.button_click('save')
+        except AssertionError:
+            # autosave active
+            pass
+
+        # add record itest-user
+        self.add_record(user.ENTITY, user.DATA)
+        # add itest-user to itest-group
+        self.navigate_to_entity(group.ENTITY)
+        self.navigate_to_record(group.PKEY)
+        self.add_associations([user.PKEY])
+        self.navigate_to_record(user.PKEY, entity=user.ENTITY)
+
+        self.facet_button_click('refresh')
+        self.wait(2)
+        field = 'passwordgracelimit'
+        # password grace limit is currently on the 10th place
+        expected_value = pwpolicy.DATA8['mod'][9][2]
+        current_value = self.get_field_value(field, element="input")
+        try:
+            assert current_value == expected_value
+        finally:
+            # cleanup
+            self.delete(user.ENTITY, [user.DATA])
+            self.delete(group.ENTITY, [group.DATA])
+            self.delete(pwpolicy.ENTITY, [pwpolicy.DATA8])
+
 
     @screenshot
     def test_login_without_username(self):

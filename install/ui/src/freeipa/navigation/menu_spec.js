@@ -149,7 +149,8 @@ var nav = {};
                 },
                 { entity: 'selinuxusermap' },
                 { entity: 'pwpolicy' },
-                { entity: 'krbtpolicy' }
+                { entity: 'krbtpolicy' },
+                { entity: 'passkeyconfig' }
             ]
         },
         {

@@ -449,7 +449,7 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                     "You cannot specify --external-ca-profile without "
                     "--external-ca")
 
-            if self.uninstalling:
+            if self.uninstalling:  # pylint: disable=using-constant-test
                 if (self.realm_name or self.admin_password or
                         self.master_password):
                     raise RuntimeError(

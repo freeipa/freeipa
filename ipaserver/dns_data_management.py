@@ -19,6 +19,7 @@ from dns import (
 from time import sleep, time
 
 from ipalib import errors
+from ipalib.constants import IPA_CA_RECORD
 from ipalib.dns import record_name_format
 from ipapython.dnsutil import DNSName
 from ipaserver.install import installutils
@@ -68,6 +69,10 @@ IPA_DEFAULT_ADTRUST_SRV_REC = (
 IPA_DEFAULT_NTP_SRV_REC = (
     # srv record name, port
     (DNSName("_ntp._udp"), 123),
+)
+
+IPA_DEFAULT_KRB_TXT_REC = (
+    (DNSName('_kerberos'), "\"{realm}\""),
 )
 
 CA_RECORDS_DNS_TIMEOUT = 15  # timeout in seconds
@@ -183,7 +188,7 @@ class IPASystemRecords:
 
     def __add_ca_records_from_hostname(self, zone_obj, hostname):
         assert isinstance(hostname, DNSName) and hostname.is_absolute()
-        r_name = DNSName('ipa-ca') + self.domain_abs
+        r_name = DNSName(IPA_CA_RECORD) + self.domain_abs
         rrsets = None
         end_time = time() + CA_RECORDS_DNS_TIMEOUT
         while True:
@@ -206,14 +211,20 @@ class IPASystemRecords:
 
         for rrset in rrsets:
             for rd in rrset:
+                logger.debug("Adding CA IP %s for %s", rd.to_text(), hostname)
                 rdataset = zone_obj.get_rdataset(
                     r_name, rd.rdtype, create=True)
                 rdataset.add(rd, ttl=self.TTL)
 
-    def __add_kerberos_txt_rec(self, zone_obj):
+    def __add_kerberos_txt_rec(self, zone_obj, location=None):
         # FIXME: with external DNS, this should generate records for all
         # realmdomains
-        r_name = DNSName('_kerberos') + self.domain_abs
+        if location:
+            suffix = self.__get_location_suffix(location)
+        else:
+            suffix = self.domain_abs
+
+        r_name = DNSName('_kerberos') + suffix
         rd = rdata.from_text(rdataclass.IN, rdatatype.TXT,
                              self.api_instance.env.realm)
         rdataset = zone_obj.get_rdataset(
@@ -233,7 +244,7 @@ class IPASystemRecords:
         hostname_abs = DNSName(hostname).make_absolute()
 
         if include_kerberos_realm:
-            self.__add_kerberos_txt_rec(zone_obj)
+            self.__add_kerberos_txt_rec(zone_obj, location=None)
 
         # get master records
         if include_master_role:
@@ -271,7 +282,8 @@ class IPASystemRecords:
 
     def _get_location_dns_records_for_server(
             self, zone_obj, hostname, locations,
-            roles=None, include_master_role=True):
+            roles=None, include_master_role=True,
+            include_kerberos_realm=True):
         server = self.servers_data[hostname]
         if roles:
             eff_roles = server['roles'] & roles
@@ -285,6 +297,9 @@ class IPASystemRecords:
                 priority = self.PRIORITY_HIGH
             else:
                 priority = self.PRIORITY_LOW
+
+            if include_kerberos_realm:
+                self.__add_kerberos_txt_rec(zone_obj, location)
 
             if include_master_role:
                 self.__add_srv_records(
@@ -401,7 +416,9 @@ class IPASystemRecords:
         return zone_obj
 
     def get_locations_records(
-            self, servers=None, roles=None, include_master_role=True):
+            self, servers=None, roles=None, include_master_role=True,
+            include_kerberos_realm=True
+    ):
         """
         Generate IPA location records for specific servers and roles.
         :param servers: list of server which will be used in records,
@@ -423,7 +440,8 @@ class IPASystemRecords:
             self._get_location_dns_records_for_server(
                 zone_obj, server,
                 locations, roles=roles,
-                include_master_role=include_master_role)
+                include_master_role=include_master_role,
+                include_kerberos_realm=include_kerberos_realm)
         return zone_obj
 
     def update_base_records(self):
@@ -437,12 +455,22 @@ class IPASystemRecords:
         success = []
         names_requiring_cname_templates = set(
             rec[0].derelativize(self.domain_abs) for rec in (
-                IPA_DEFAULT_MASTER_SRV_REC +
-                IPA_DEFAULT_ADTRUST_SRV_REC +
-                IPA_DEFAULT_NTP_SRV_REC
+                IPA_DEFAULT_MASTER_SRV_REC
+                + IPA_DEFAULT_MASTER_URI_REC
+                + IPA_DEFAULT_KRB_TXT_REC
+                + IPA_DEFAULT_ADTRUST_SRV_REC
+                + IPA_DEFAULT_NTP_SRV_REC
             )
         )
 
+        # Remove the ipa-ca record(s). They will be reconstructed in
+        # get_base_records().
+        r_name = DNSName(IPA_CA_RECORD) + self.domain_abs
+        try:
+            self.api_instance.Command.dnsrecord_del(
+                self.domain_abs, r_name, del_all=True)
+        except errors.NotFound:
+            pass
         base_zone = self.get_base_records()
         for record_name, node in base_zone.items():
             set_cname_template = record_name in names_requiring_cname_templates

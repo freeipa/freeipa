@@ -200,7 +200,7 @@ class vault_add(Local):
     )
 
     @classmethod
-    def __NO_CLI_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __NO_CLI_getter(cls):
         return (api.Command.get_plugin('vault_add_internal') is
                 _fake_vault_add_internal)
 
@@ -411,7 +411,7 @@ class vault_mod(Local):
     )
 
     @classmethod
-    def __NO_CLI_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __NO_CLI_getter(cls):
         return (api.Command.get_plugin('vault_mod_internal') is
                 _fake_vault_mod_internal)
 
@@ -687,7 +687,7 @@ class ModVaultData(Local):
         default_algo = config.get('wrapping_default_algorithm')
         if default_algo is None:
             # old server
-            wrapping_algo = constants.VAULT_WRAPPING_AES128_CBC
+            wrapping_algo = constants.VAULT_WRAPPING_3DES
         elif default_algo in constants.VAULT_WRAPPING_SUPPORTED_ALGOS:
             # try to use server default
             wrapping_algo = default_algo
@@ -780,7 +780,7 @@ class vault_archive(ModVaultData):
     )
 
     @classmethod
-    def __NO_CLI_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __NO_CLI_getter(cls):
         return (api.Command.get_plugin('vault_archive_internal') is
                 _fake_vault_archive_internal)
 
@@ -801,7 +801,8 @@ class vault_archive(ModVaultData):
             if option.name not in ('nonce',
                                    'session_key',
                                    'vault_data',
-                                   'version'):
+                                   'version',
+                                   'wrapping_algo'):
                 yield option
         for option in super(vault_archive, self).get_options():
             yield option
@@ -1035,7 +1036,7 @@ class vault_retrieve(ModVaultData):
     )
 
     @classmethod
-    def __NO_CLI_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __NO_CLI_getter(cls):
         return (api.Command.get_plugin('vault_retrieve_internal') is
                 _fake_vault_retrieve_internal)
 
@@ -1053,7 +1054,7 @@ class vault_retrieve(ModVaultData):
 
     def get_options(self):
         for option in self.api.Command.vault_retrieve_internal.options():
-            if option.name not in ('session_key', 'version'):
+            if option.name not in ('session_key', 'version', 'wrapping_algo'):
                 yield option
         for option in super(vault_retrieve, self).get_options():
             yield option

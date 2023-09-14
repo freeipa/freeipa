@@ -21,10 +21,11 @@
 import six
 
 import logging
+import re
 
 from ipalib import api
 from ipalib import Int, Str, Flag
-from ipalib.constants import PATTERN_GROUPUSER_NAME
+from ipalib.constants import PATTERN_GROUPUSER_NAME, ERRMSG_GROUPUSER_NAME
 from ipalib.plugable import Registry
 from .baseldap import (
     add_external_post_callback,
@@ -69,6 +70,12 @@ command to convert a non-POSIX group into a POSIX group. POSIX groups cannot be
 converted to non-POSIX groups.
 
 Every group must have a description.
+
+The group name must follow these rules:
+- cannot contain only numbers
+- must start with a letter, a number, _ or .
+- may contain letters, numbers, _, ., or -
+- may end with a letter, a number, _, ., - or $
 
 POSIX groups must have a Group ID (GID) number. Changing a GID is
 supported but can have an impact on your file permissions. It is not necessary
@@ -330,7 +337,7 @@ class group(LDAPObject):
     takes_params = (
         Str('cn',
             pattern=PATTERN_GROUPUSER_NAME,
-            pattern_errmsg='may only include letters, numbers, _, -, . and $',
+            pattern_errmsg=ERRMSG_GROUPUSER_NAME.format('group'),
             maxlength=255,
             cli_name='group_name',
             label=_('Group name'),
@@ -462,6 +469,8 @@ class group_mod(LDAPUpdate):
         ),
     )
 
+    NAME_PATTERN = re.compile(PATTERN_GROUPUSER_NAME)
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
 
@@ -471,6 +480,13 @@ class group_mod(LDAPUpdate):
             if is_protected_group:
                 raise errors.ProtectedEntryError(label=u'group', key=keys[-1],
                     reason=u'Cannot be renamed')
+
+        if 'cn' in entry_attrs:
+            # Check the pattern if the group is renamed
+            if self.NAME_PATTERN.match(entry_attrs.single_value['cn']) is None:
+                raise errors.ValidationError(
+                    name='cn',
+                    error=ERRMSG_GROUPUSER_NAME.format('group'))
 
         if ('posix' in options and options['posix']) or 'gidnumber' in options:
             old_entry_attrs = ldap.get_entry(dn, ['objectclass'])
@@ -499,6 +515,9 @@ class group_mod(LDAPUpdate):
             else:
                 old_entry_attrs['objectclass'].append('ipaexternalgroup')
                 entry_attrs['objectclass'] = old_entry_attrs['objectclass']
+            if 'gidnumber' in entry_attrs:
+                raise errors.MutuallyExclusiveError(reason=_(
+                    'An external group cannot be POSIX'))
 
         # Can't check for this in a validator because we lack context
         if 'gidnumber' in options and options['gidnumber'] is None:
@@ -545,6 +564,7 @@ class group_find(LDAPSearch):
         ),
     )
 
+    # pylint: disable-next=arguments-renamed
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope,
                      criteria=None, **options):
         assert isinstance(base_dn, DN)

@@ -93,7 +93,6 @@ class OptionHandler:
             raise ValueError(typ)
         self.seen.add(name)
 
-        # pylint: disable=not-callable
         if not self.parser.has_option(self.section, name):
             if default is REQUIRED:
                 raise NameError(self.section, name)
@@ -103,7 +102,6 @@ class OptionHandler:
             # the default, e.g. pw_uid with default='root' returns 0.
 
         return handler(self.section, name, default)
-        # pylint: enable=not-callable
 
     def check_surplus(self):
         surplus = []

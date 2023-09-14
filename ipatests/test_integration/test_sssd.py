@@ -26,7 +26,6 @@ from ipapython.dn import DN
 
 
 class TestSSSDWithAdTrust(IntegrationTest):
-
     topology = 'star'
     num_ad_domains = 1
     num_ad_subdomains = 1
@@ -148,7 +147,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
         try:
             with tasks.remote_sssd_config(self.master) as sssd_conf:
                 sssd_conf.edit_service("nss",
-                                      'filter_users', self.users[user]['name'])
+                                       'filter_users', self.users[user]['name'])
             tasks.clear_sssd_cache(self.master)
             yield
         finally:
@@ -266,6 +265,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
 
         Regression test for https://pagure.io/SSSD/sssd/issue/4012
         """
+
         def get_cache_update_time(obj_kind, obj_name):
             res = self.master.run_command(
                 ['sssctl', '{}-show'.format(obj_kind), obj_name])
@@ -515,6 +515,49 @@ class TestSSSDWithAdTrust(IntegrationTest):
             with xfail_context(sssd_version < tasks.parse_version('2.3.0'),
                                'https://pagure.io/SSSD/sssd/issue/4061'):
                 assert 'gid={id}'.format(id=gid) in test_gid.stdout_text
+
+    def test_aduser_mgmt(self):
+        """Test for aduser-group management with posix AD trust
+
+        Verify that query to the AD specific attributes for a
+        user or a group directly is successful.
+
+        Related : https://pagure.io/freeipa/issue/9127
+        """
+        tasks.remove_trust_with_ad(self.master, self.ad.domain.name,
+                                   self.ad.hostname)
+        tasks.configure_windows_dns_for_trust(self.ad, self.master)
+        tasks.establish_trust_with_ad(
+            self.master, self.ad.domain.name,
+            extra_args=['--range-type', 'ipa-ad-trust-posix',
+                        '--two-way=true'])
+        aduser = 'mytestuser@%s' % self.ad.domain.name
+        tasks.clear_sssd_cache(self.master)
+        self.master.run_command(
+            ['getent', 'group', aduser],
+            ok_returncode=2)
+        sssd_conf_backup = tasks.FileBackup(self.master, paths.SSSD_CONF)
+        content = self.master.get_file_contents(paths.SSSD_CONF,
+                                                encoding='utf-8')
+        conf = content + "\n[domain/{0}/{1}]\nldap_group_name = info".format(
+            self.master.domain.name, self.ad.domain.name
+        )
+        self.master.put_file_contents(paths.SSSD_CONF, conf)
+        tasks.clear_sssd_cache(self.master)
+        tasks.clear_sssd_cache(self.clients[0])
+        regex = r"^uid=(?P<uid>\d+).*gid=(?P<gid>\d+).*groups=(?P<groups>\d+)"
+        try:
+            for host in [self.master, self.clients[0]]:
+                test_id = host.run_command(["id", aduser])
+                match = re.match(regex, test_id.stdout_text)
+                uid = match.group('uid')
+                gid = match.group('gid')
+                assert uid == gid
+                host.run_command(["getent", "passwd", aduser])
+                host.run_command(["getent", "group", aduser])
+        finally:
+            sssd_conf_backup.restore()
+            tasks.clear_sssd_cache(self.master)
 
 
 class TestNestedMembers(IntegrationTest):

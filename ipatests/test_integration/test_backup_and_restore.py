@@ -602,6 +602,12 @@ class TestBackupAndRestoreWithReplica(IntegrationTest):
             tasks.user_add(self.replica1, 'test2_replica')
 
             # simulate master crash
+            # the replica is stopped to make sure master uninstallation
+            # does not delete any entry on the replica. In case of a
+            # real master crash there would not be any communication between
+            # master and replica
+            self.replica1.run_command(['ipactl', 'stop'])
+
             self.master.run_command(['ipactl', 'stop'])
             tasks.uninstall_master(self.master, clean=False)
 
@@ -612,6 +618,7 @@ class TestBackupAndRestoreWithReplica(IntegrationTest):
             self.master.run_command([
                 "systemctl", "disable", "oddjobd"
             ])
+            self.replica1.run_command(['ipactl', 'start'])
 
             self.master.run_command(['ipa-restore', '-U', backup_path])
 

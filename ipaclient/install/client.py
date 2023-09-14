@@ -40,7 +40,7 @@ from ipalib.constants import FQDN, IPAAPI_USER, MAXHOSTNAMELEN
 from ipalib.install import certmonger, certstore, service
 from ipalib.install import hostname as hostname_
 from ipalib.facts import is_ipa_client_configured, is_ipa_configured
-from ipalib.install.kinit import kinit_keytab, kinit_password
+from ipalib.install.kinit import kinit_keytab, kinit_password, kinit_pkinit
 from ipalib.install.service import enroll_only, prepare_only
 from ipalib.rpc import delete_persistent_client_session_data
 from ipalib.util import (
@@ -67,6 +67,7 @@ from ipapython.ipautil import (
 )
 from ipapython.ssh import SSHPublicKey
 from ipapython import version
+from ipapython.errors import SetseboolError
 
 from . import automount, timeconf, sssd
 from ipaclient import discovery
@@ -98,6 +99,7 @@ cli_realm = None
 cli_kdc = None
 client_domain = None
 cli_basedn = None
+selinux_works = None
 # end of global variables
 
 
@@ -124,10 +126,9 @@ def cleanup(func):
             os.rmdir(ccache_dir)
         except OSError:
             pass
-        try:
-            os.remove(krb_name + ".ipabkp")
-        except OSError:
-            logger.error("Could not remove %s.ipabkp", krb_name)
+        # During master installation, the .ipabkp file is not created
+        # Ignore the delete error if it is "file does not exist"
+        remove_file(krb_name + ".ipabkp")
 
     return inner
 
@@ -549,7 +550,7 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
         {
             'name': 'comment',
             'type': 'comment',
-            'value': '   URI, BASE, TLS_CACERT and SASL_MECH'
+            'value': '   URI, BASE, and SASL_MECH'
         },
         {
             'name': 'comment',
@@ -598,12 +599,6 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
             'name': 'BASE',
             'type': 'option',
             'value': str(cli_basedn)
-        },
-        {
-            'action': 'addifnotset',
-            'name': 'TLS_CACERT',
-            'type': 'option',
-            'value': paths.IPA_CA_CRT
         },
         {
             'action': 'addifnotset',
@@ -705,19 +700,6 @@ def configure_krb5_conf(
                 'delim': ' '
             }
         ])
-
-    # SSSD include dir
-    if configure_sssd:
-        if not os.path.exists(paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR):
-            os.makedirs(paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR, mode=0o755)
-        opts.extend([
-            {
-                'name': 'includedir',
-                'type': 'option',
-                'value': paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR,
-                'delim': ' '
-            },
-            krbconf.emptyLine()])
 
     # [libdefaults]
     libopts = [
@@ -988,6 +970,9 @@ def configure_sssd_conf(
 
         nss_service.set_option('memcache_timeout', 600)
         sssdconfig.save_service(nss_service)
+
+    sssd_enable_service(sssdconfig, 'nss')
+    sssd_enable_service(sssdconfig, 'pam')
 
     domain.set_option('ipa_domain', cli_domain)
     domain.set_option('ipa_hostname', client_hostname)
@@ -2170,6 +2155,7 @@ def install_check(options):
     global cli_kdc
     global client_domain
     global cli_basedn
+    global selinux_works
 
     print("This program will set up IPA client.")
     print("Version {}".format(version.VERSION))
@@ -2183,7 +2169,7 @@ def install_check(options):
             "You must be root to run ipa-client-install.",
             rval=CLIENT_INSTALL_ERROR)
 
-    tasks.check_selinux_status()
+    selinux_works = tasks.check_selinux_status()
 
     if is_ipa_client_configured(on_master=options.on_master):
         logger.error("IPA client is already configured on this system.")
@@ -2209,15 +2195,25 @@ def install_check(options):
             pass
 
     if options.unattended and (
-        options.password is None and
-        options.principal is None and
-        options.keytab is None and
-        options.prompt_password is False and
-        not options.on_master
+        options.password is None
+        and options.principal is None
+        and options.keytab is None
+        and options.pkinit_identity is None
+        and options.prompt_password is False
+        and not options.on_master
     ):
         raise ScriptError(
             "One of password / principal / keytab is required.",
             rval=CLIENT_INSTALL_ERROR)
+
+    if options.pkinit_identity is not None and (
+        options.password is not None
+        or options.keytab is not None
+    ):
+        raise ScriptError(
+            "pkinit_identity is mutually exclusive with password / keytab.",
+            rval=CLIENT_INSTALL_ERROR
+        )
 
     if options.hostname:
         hostname = options.hostname
@@ -2681,6 +2677,20 @@ def restore_time_sync(statestore, fstore):
         logger.error('Failed to restore time synchronization service: %s', e)
 
 
+def configure_selinux_for_client(statestore):
+    def backup_state(key, value):
+        statestore.backup_state('selinux', key, value)
+
+    try:
+        tasks.set_selinux_booleans(constants.SELINUX_BOOLEAN_SSSD,
+                                   backup_state)
+    except SetseboolError as e:
+        for c in constants.SELINUX_BOOLEAN_SSSD:
+            if c in e.failed:
+                logger.warning(
+                    "SELinux does not support SSSD boolean %s, ignoring", c)
+
+
 def install(options):
     try:
         _install(options, dict())
@@ -2745,7 +2755,8 @@ def _install(options, tdict):
 
     if not options.unattended:
         if (options.principal is None and options.password is None and
-                options.prompt_password is False and options.keytab is None):
+                options.prompt_password is False and options.keytab is None
+                and options.pkinit_identity is None):
             options.principal = user_input("User authorized to enroll "
                                            "computers", allow_empty=False)
             logger.debug(
@@ -2779,6 +2790,7 @@ def _install(options, tdict):
             env['XMLRPC_TRACE_CURL'] = 'yes'
         if options.force_join:
             join_args.append("-f")
+
         if options.principal is not None:
             stdin = None
             principal = options.principal
@@ -2838,6 +2850,33 @@ def _install(options, tdict):
                     "Keytab file could not be found: {}".format(
                         options.keytab),
                     rval=CLIENT_INSTALL_ERROR)
+        elif options.pkinit_identity:
+            join_args.append("-f")
+            with open(paths.CA_BUNDLE_PEM, "w"):
+                # HACK: kinit fails when "pkinit_pool" file is missing.
+                # Create an empty file and remove it after PKINIT.
+                pass
+            # if no principal is set, use host principal
+            if options.principal is None:
+                pkinit_principal = host_principal
+            else:
+                pkinit_principal = options.principal
+            try:
+                kinit_pkinit(
+                    pkinit_principal,
+                    options.pkinit_identity,
+                    ccache_name=ccache_name,
+                    config=krb_name,
+                    pkinit_anchors=options.pkinit_anchors
+                )
+            except CalledProcessError as e:
+                print_port_conf_info()
+                raise ScriptError(
+                    f"Kerberos PKINIT authentication failed: {e}",
+                    rval=CLIENT_INSTALL_ERROR
+                )
+            finally:
+                remove_file(paths.CA_BUNDLE_PEM)
         elif options.password:
             nolog = (options.password,)
             join_args.append("-w")
@@ -3176,6 +3215,9 @@ def _install(options, tdict):
         logger.info("%s enabled", "SSSD" if options.sssd else "LDAP")
 
         if options.sssd:
+            if selinux_works:
+                configure_selinux_for_client(statestore)
+
             sssd = services.service('sssd', api)
             try:
                 sssd.restart()
@@ -3218,9 +3260,11 @@ def _install(options, tdict):
             user = options.principal
             if user is None:
                 user = "admin@%s" % cli_domain
-                logger.info("Principal is not set when enrolling with OTP"
-                            "; using principal '%s' for 'getent passwd'",
-                            user)
+                logger.info(
+                    "Principal is not set when enrolling with OTP "
+                    "or PKINIT; using principal '%s' for 'getent passwd'.",
+                    user
+                )
             elif '@' not in user:
                 user = "%s@%s" % (user, cli_domain)
             n = 0
@@ -3298,6 +3342,8 @@ def _install(options, tdict):
 
 
 def uninstall_check(options):
+    global selinux_works
+
     if not is_ipa_client_configured():
         if options.on_master:
             rval = SUCCESS
@@ -3312,6 +3358,8 @@ def uninstall_check(options):
             "IPA client is configured as a part of IPA server on this system.")
         logger.info("Refer to ipa-server-install for uninstallation.")
         raise ScriptError(rval=CLIENT_NOT_CONFIGURED)
+
+    selinux_works = tasks.check_selinux_status()
 
 
 def uninstall(options):
@@ -3575,6 +3623,15 @@ def uninstall(options):
             logger.warning(
                 "Failed to disable automatic startup of the SSSD daemon: %s",
                 e)
+
+    if statestore.has_state('selinux'):
+        # Restore SELinux boolean states
+        boolean_states = {name: statestore.restore_state('selinux', name)
+                          for name in constants.SELINUX_BOOLEAN_SSSD}
+        try:
+            tasks.set_selinux_booleans(boolean_states)
+        except SetseboolError as e:
+            logger.warning("Unable to reset SELinux variable: %s", str(e))
 
     tasks.restore_hostname(fstore, statestore)
 
@@ -3908,7 +3965,67 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
                     "--all-ip-addresses")
 
 
+@group
+class PKINITInstallInterface(service.ServiceInstallInterface):
+    description = "PKINIT"
+
+    pkinit_identity = knob(
+        type=str,
+        default=None,
+        description=(
+            "PKINIT identity information (for example "
+            "FILE:/path/to/cert.pem,/path/to/key.pem)"
+        ),
+        cli_metavar="IDENTITY",
+    )
+
+    @pkinit_identity.validator
+    def pkinit_identity(self, value):
+        # see pkinit_crypto_openssl.c:crypto_load_certs()
+        # ignore "ENV:" prefix
+        if not value.startswith(
+            ("FILE:", "PKCS11:", "PKCS12:", "DIR:", "ENV:")
+        ):
+            raise ValueError(
+                "identity must start with FILE:, PKCS11:, PKCS12:, DIR:, "
+                "or ENV:"
+            )
+
+    pkinit_anchors = knob(
+        type=typing.List[str],
+        default=None,
+        description=(
+            "PKINIT trust anchors, prefixed with FILE: for CA PEM bundle "
+            "file or DIR: for an OpenSSL hash dir. The option can be used "
+            "used multiple times."
+        ),
+        cli_names="--pkinit-anchor",
+        cli_metavar="FILEDIR",
+    )
+
+    @pkinit_anchors.validator
+    def pkinit_anchors(self, value):
+        # see pkinit_crypto_openssl.c:crypto_load_cas_and_crls()
+        for part in value:
+            prefix, sep, path = part.partition(":")
+            if not sep or prefix not in {"FILE", "DIR", "ENV:"}:
+                raise ValueError(
+                    "Invalid pkinit_anchor '{part}' is not prefixed with "
+                    "FILE: or DIR:."
+                )
+            if prefix == "FILE" and not os.path.isfile(path):
+                raise ValueError(
+                    f"pkinit anchor path '{path}' does not exist or is not "
+                    "a file."
+                )
+            if prefix == "DIR" and not os.path.isdir(path):
+                raise ValueError(
+                    f"pkinit anchor path '{path}' does not exist or is not "
+                    "a file."
+                )
+
 class ClientInstall(ClientInstallInterface,
+                    PKINITInstallInterface,
                     automount.AutomountInstallInterface):
     """
     Client installer

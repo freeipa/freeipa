@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from distutils import log
+import logging
 import os
 import sys
 from setuptools.command.build_py import build_py as setuptools_build_py
@@ -38,8 +38,8 @@ class build_py(setuptools_build_py):
                 # platform override module
                 'ipaplatform.override',
             )
-            log.warn("bdist_wheel: Ignore package: %s",
-                     ', '.join(self.skip_modules))
+            logging.warning("bdist_wheel: Ignore package: %s",
+                            ', '.join(self.skip_modules))
 
     def build_module(self, module, module_file, package):
         if isinstance(package, str):

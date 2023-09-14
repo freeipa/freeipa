@@ -34,3 +34,11 @@ class automember_add_condition(MethodOverride):
             flags=['suppress_empty'],
         ),
     )
+
+
+@register(override=True, no_fail=True)
+class automember_rebuild(MethodOverride):
+    def interactive_prompt_callback(self, kw):
+        msg = _('IMPORTANT: In case of a high number of users, hosts or '
+                'groups, the operation may require high CPU usage.')
+        self.Backend.textui.print_plain(msg)

@@ -4,11 +4,15 @@
 """This covers tests for automemberfeature."""
 
 from __future__ import absolute_import
+import uuid
 
 from ipapython.dn import DN
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
+
+msg = ('IMPORTANT: In case of a high number of users, hosts or '
+       'groups, the operation may require high CPU usage.')
 
 
 class TestAutounmembership(IntegrationTest):
@@ -206,8 +210,26 @@ class TestAutounmembership(IntegrationTest):
             assert self.is_user_member_of_group(user2, group1)
 
             # Running automember-build so that user is part of correct group
-            self.master.run_command(['ipa', 'automember-rebuild',
-                                     '--users=%s' % user2])
+            result = self.master.run_command(['ipa', 'automember-rebuild',
+                                              '--users=%s' % user2])
+            assert msg in result.stdout_text
+
+            # The additional --cleanup argument is required
+            cleanup_ldif = (
+                "dn: cn={cn},cn=automember rebuild membership,"
+                "cn=tasks,cn=config\n"
+                "changetype: add\n"
+                "objectclass: top\n"
+                "objectclass: extensibleObject\n"
+                "basedn: cn=users,cn=accounts,{suffix}\n"
+                "filter: (uid={user})\n"
+                "cleanup: yes\n"
+                "scope: sub"
+            ).format(cn=str(uuid.uuid4()),
+                     suffix=str(self.master.domain.basedn),
+                     user=user2)
+            tasks.ldapmodify_dm(self.master, cleanup_ldif)
+
             assert self.is_user_member_of_group(user2, group2)
             assert not self.is_user_member_of_group(user2, group1)
 
@@ -240,9 +262,27 @@ class TestAutounmembership(IntegrationTest):
             assert self.is_host_member_of_hostgroup(host2, hostgroup1)
 
             # Running the automember-build so host is part of correct hostgroup
-            self.master.run_command(
+            result = self.master.run_command(
                 ['ipa', 'automember-rebuild', '--hosts=%s' % host2]
             )
+            assert msg in result.stdout_text
+
+            # The additional --cleanup argument is required
+            cleanup_ldif = (
+                "dn: cn={cn},cn=automember rebuild membership,"
+                "cn=tasks,cn=config\n"
+                "changetype: add\n"
+                "objectclass: top\n"
+                "objectclass: extensibleObject\n"
+                "basedn: cn=computers,cn=accounts,{suffix}\n"
+                "filter: (fqdn={fqdn})\n"
+                "cleanup: yes\n"
+                "scope: sub"
+            ).format(cn=str(uuid.uuid4()),
+                     suffix=str(self.master.domain.basedn),
+                     fqdn=host2)
+            tasks.ldapmodify_dm(self.master, cleanup_ldif)
+
             assert self.is_host_member_of_hostgroup(host2, hostgroup2)
             assert not self.is_host_member_of_hostgroup(host2, hostgroup1)
 

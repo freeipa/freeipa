@@ -64,7 +64,7 @@ class IdpTracker(Tracker):
         assert_deepequal(
             dict(
                 value=self.cn,
-                summary='Added Identity Provider server "%s"' % self.cn,
+                summary='Added Identity Provider reference "%s"' % self.cn,
                 result=self.filter_attrs(expected),
             ), result)
 
@@ -77,7 +77,7 @@ class IdpTracker(Tracker):
         assert_deepequal(
             dict(
                 value=[self.cn],
-                summary='Deleted Identity Provider server "%s"' % self.cn,
+                summary='Deleted Identity Provider reference "%s"' % self.cn,
                 result=dict(failed=[]),
             ), result)
 
@@ -101,7 +101,7 @@ class IdpTracker(Tracker):
         """ Make function that finds idp using idp-find """
         return self.make_command('idp_find', *args, **kwargs)
 
-    def check_find(self, result, all=False, pkey_only=False, raw=False):
+    def check_find(self, result, all=False, raw=False, pkey_only=False):
         """ Check idp-find command result """
         if all:
             expected = self.filter_attrs(self.find_all_keys)
@@ -113,7 +113,7 @@ class IdpTracker(Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary='1 Identity Provider server matched',
+            summary='1 Identity Provider reference matched',
             result=[expected],
         ), result)
 
@@ -165,6 +165,6 @@ class IdpTracker(Tracker):
         expected = self.filter_attrs(self.update_keys | set(extra_keys))
         assert_deepequal(dict(
             value=self.cn,
-            summary='Modified Identity Provider server "%s"' % self.cn,
+            summary='Modified Identity Provider reference "%s"' % self.cn,
             result=expected
         ), result)

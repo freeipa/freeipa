@@ -4,6 +4,14 @@ module.exports = function(grunt) {
             options: {}
         },
         qunit: {
+            options: {
+                puppeteer: {
+		    executablePath: '/usr/bin/chromium-browser',
+                    args: [
+                        "--allow-file-access-from-files"
+                    ]
+                },
+            },
             all: [
                 'test/all_tests.html'
             ]

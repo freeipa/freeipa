@@ -151,6 +151,18 @@ return {
                             label: '@i18n:objects.sshkeystore.keys'
                         },
                         {
+                            $type: 'passkey_multivalued',
+                            name: 'ipapasskey',
+                            item_name: 'passkey',
+                            child_spec: {
+                                $type: 'passkey_row',
+                                data_name: 'passkey'
+                            },
+                            tooltip: {
+                                title: '@mc:user_add_passkey.doc'
+                            }
+                        },
+                        {
                             $type: 'certmap_multivalued',
                             name: 'ipacertmapdata',
                             item_name: 'certmapdata',
@@ -172,7 +184,9 @@ return {
                                 { label: '@i18n:authtype.type_otp', value: 'otp' },
                                 { label: '@i18n:authtype.type_pkinit', value: 'pkinit' },
                                 { label: '@i18n:authtype.type_hardened', value: 'hardened' },
-                                { label: '@i18n:authtype.type_idp', value: 'idp' }
+                                { label: '@i18n:authtype.type_idp', value: 'idp' },
+                                { label: '@i18n:authtype.type_passkey', value: 'passkey' }
+
                             ],
                             tooltip: '@i18n:authtype.user_tooltip'
                         },

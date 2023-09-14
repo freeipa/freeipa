@@ -40,7 +40,7 @@ else:
     _dcerpc_bindings_installed = False
 
 
-ID_RANGE_VS_DNA_WARNING = _("""=======
+ID_RANGE_VS_DNA_WARNING = _("""-------
 WARNING:
 
 DNA plugin in 389-ds will allocate IDs based on the ranges configured for the
@@ -51,7 +51,8 @@ Manual configuration change has to be done in the DNA plugin configuration for
 the new local range. Specifically, The dnaNextRange attribute of 'cn=Posix
 IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to be
 modified to match the new range.
-=======
+
+-------
 """)
 
 __doc__ = _("""
@@ -425,7 +426,8 @@ class idrange_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
-        is_set = lambda x: (x in entry_attrs) and (entry_attrs[x] is not None)
+        def is_set(x):
+            return entry_attrs.get(x) is not None
 
         # This needs to stay in options since there is no
         # ipanttrusteddomainname attribute in LDAP
@@ -684,11 +686,13 @@ class idrange_mod(LDAPUpdate):
                           '`ipa help idrange` for more information')
             )
 
-        is_set = lambda x: (x in entry_attrs) and (entry_attrs[x] is not None)
-        in_updated_attrs = lambda x:\
-            (x in entry_attrs and entry_attrs[x] is not None) or\
-            (x not in entry_attrs and x in old_attrs
-                and old_attrs[x] is not None)
+        def is_set(x):
+            return entry_attrs.get(x) is not None
+
+        def in_updated_attrs(x):
+            return is_set(x) or (
+                x not in entry_attrs and old_attrs.get(x) is not None
+            )
 
         # This needs to stay in options since there is no
         # ipanttrusteddomainname attribute in LDAP

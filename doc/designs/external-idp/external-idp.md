@@ -497,3 +497,23 @@ and calls out to the `oidc_child` process to verify the user identity against an
 associated IdP.
 
 [idp-api]: idp-api.html
+
+## Security
+
+* communication between Kerberos client and KDC happens over FAST channel
+* communication between KDC and FreeIPA (`ipa-otpd`) happens over root-owned
+  UNIX domain socket
+* communication between `oidc_child` and IdP happens over `https`
+* no authentication tokens are exchanged between client, KDC and FreeIPA
+* IdP server URLs can only be set by administrator
+* IdP server URLs are not auto discovered, they need to be added manually
+* user authenticates to the external identity provider using the method required
+  by the provider, FreeIPA does not have any control over the selected method
+
+### Recommendations
+
+* administrators must thoroughly check all URLs they add when creating the IdP
+  server
+* users must check that the presented device authorization URL is correct and
+  that the authentication happens over secure channel (usually `https`) with
+  valid certificate

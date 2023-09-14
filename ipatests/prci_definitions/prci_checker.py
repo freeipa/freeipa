@@ -115,6 +115,7 @@ def check_jobs(filename, jobs_def, topologies, current_spec, supported_classes):
         if "timeout" not in args:
             msg = "'timeout' field should be defined in args section"
             print_field_error(job_name, custom_msg=msg)
+            correct_fields = False
         if args.get("topology") not in topologies:
             msg = (
                 "'topology' field should be defined with one of the "
@@ -171,10 +172,6 @@ def check_jobs(filename, jobs_def, topologies, current_spec, supported_classes):
         # Check template field against build target
         if args.get("template") != template:
             print_field_error(job_name, "template", template)
-            correct_fields = False
-        if "timeout" not in args:
-            msg = "'timeout' field should be defined in args section"
-            print_field_error(job_name, custom_msg=msg)
             correct_fields = False
         # If build target has a copr repo, check that the job also defines it
         if args.get("copr") != copr:
@@ -382,6 +379,9 @@ def main():
     python3 prci_checker.py -s ../../alternative_spec.yaml
     # Check with custom path for spec file\n
     python3 prci_checker.py -d ./definitions
+
+    Find more examples of how to use the tool and spec file
+    at https://freeipa.readthedocs.io/en/latest/designs/index.html
     """
     args = parse_arguments(main.__doc__)
 
@@ -391,7 +391,7 @@ def main():
     jobs_spec, supported_classes, f_fixed_jobs = process_spec_file(args.spec)
 
     if args.file:
-        result = process_def_file(args.file, jobs_spec, supported_classes)
+        result = process_def_file(args.file, jobs_spec, supported_classes)[0]
     else:
         # Get all yaml files in default dir, except those in IGNORE_FILES
         def_files_dir = os.path.join(args.defs, "*.y*ml")

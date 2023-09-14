@@ -22,6 +22,7 @@ import logging
 from ipaserver.install import replication
 from ipalib import Registry
 from ipalib import Updater
+from ipalib import errors
 
 logger = logging.getLogger(__name__)
 
@@ -41,35 +42,42 @@ class update_replica_attribute_lists(Updater):
     def execute(self, **options):
         # We need an LDAPClient connection to the backend
         logger.debug("Start replication agreement exclude list update task")
-        conn = self.api.Backend.ldap2
 
-        repl = replication.ReplicationManager(self.api.env.realm,
-                                              self.api.env.host,
-                                              None, conn=conn)
-
-        # We need to update only IPA replica agreements, not winsync
-        ipa_replicas = repl.find_ipa_replication_agreements()
-
-        logger.debug("Found %d agreement(s)", len(ipa_replicas))
-
-        for replica in ipa_replicas:
-            for desc in replica.get('description', []):
-                logger.debug('%s', desc)
-
-            self._update_attr(repl, replica,
-                'nsDS5ReplicatedAttributeList',
-                replication.EXCLUDES, template=EXCLUDE_TEMPLATE)
-            self._update_attr(repl, replica,
-                'nsDS5ReplicatedAttributeListTotal',
-                replication.TOTAL_EXCLUDES, template=EXCLUDE_TEMPLATE)
-            self._update_attr(repl, replica,
-                'nsds5ReplicaStripAttrs', replication.STRIP_ATTRS)
+        # Find suffixes
+        suffixes = self.api.Command.topologysuffix_find()['result']
+        for suffix in suffixes:
+            suffix_name = suffix['cn'][0]
+            # Find segments
+            sgmts = self.api.Command.topologysegment_find(
+                suffix_name, all=True)['result']
+            for segment in sgmts:
+                updates = {}
+                updates = self._update_attr(
+                    segment, updates,
+                    'nsds5replicatedattributelist',
+                    replication.EXCLUDES, template=EXCLUDE_TEMPLATE)
+                updates = self._update_attr(
+                    segment, updates,
+                    'nsds5replicatedattributelisttotal',
+                    replication.TOTAL_EXCLUDES, template=EXCLUDE_TEMPLATE)
+                updates = self._update_attr(
+                    segment, updates,
+                    'nsds5replicastripattrs', replication.STRIP_ATTRS)
+                if updates:
+                    try:
+                        self.api.Command.topologysegment_mod(
+                            suffix_name, segment['cn'][0],
+                            **updates)
+                    except errors.EmptyModlist:
+                        # No update done
+                        logger.debug("No update required for the segment %s",
+                                     segment['cn'][0])
 
         logger.debug("Done updating agreements")
 
         return False, []  # No restart, no updates
 
-    def _update_attr(self, repl, replica, attribute, values, template='%s'):
+    def _update_attr(self, segment, updates, attribute, values, template='%s'):
         """Add or update an attribute of a replication agreement
 
         If the attribute doesn't already exist, it is added and set to
@@ -77,27 +85,21 @@ class update_replica_attribute_lists(Updater):
         If the attribute does exist, `values` missing from it are just
         appended to the end, also space-separated.
 
-        :param repl: Replication manager
-        :param replica: Replica agreement
+        :param: updates: dict containing the updates
+        :param segment: dict containing segment information
         :param attribute: Attribute to add or update
         :param values: List of values the attribute should hold
         :param template: Template to use when adding attribute
         """
-        attrlist = replica.single_value.get(attribute)
+        attrlist = segment.get(attribute)
         if attrlist is None:
             logger.debug("Adding %s", attribute)
 
             # Need to add it altogether
-            replica[attribute] = [template % " ".join(values)]
-
-            try:
-                repl.conn.update_entry(replica)
-                logger.debug("Updated")
-            except Exception as e:
-                logger.error("Error caught updating replica: %s", str(e))
+            updates[attribute] = template % " ".join(values)
 
         else:
-            attrlist_normalized = attrlist.lower().split()
+            attrlist_normalized = attrlist[0].lower().split()
             missing = [a for a in values
                 if a.lower() not in attrlist_normalized]
 
@@ -105,14 +107,8 @@ class update_replica_attribute_lists(Updater):
                 logger.debug("%s needs updating (missing: %s)", attribute,
                              ', '.join(missing))
 
-                replica[attribute] = [
-                    '%s %s' % (attrlist, ' '.join(missing))]
+                updates[attribute] = '%s %s' % (attrlist[0], ' '.join(missing))
 
-                try:
-                    repl.conn.update_entry(replica)
-                    logger.debug("Updated %s", attribute)
-                except Exception as e:
-                    logger.error("Error caught updating %s: %s",
-                                 attribute, str(e))
             else:
                 logger.debug("%s: No update necessary", attribute)
+        return updates

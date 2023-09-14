@@ -1051,7 +1051,7 @@ class vault_archive_internal(PKQuery):
             'wrapping_algo?',
             doc=_('Key wrapping algorithm'),
             values=VAULT_WRAPPING_SUPPORTED_ALGOS,
-            default=VAULT_WRAPPING_DEFAULT_ALGO,
+            default=VAULT_WRAPPING_3DES,
             autofill=True,
         ),
     )
@@ -1130,7 +1130,7 @@ class vault_retrieve_internal(PKQuery):
             'wrapping_algo?',
             doc=_('Key wrapping algorithm'),
             values=VAULT_WRAPPING_SUPPORTED_ALGOS,
-            default=VAULT_WRAPPING_DEFAULT_ALGO,
+            default=VAULT_WRAPPING_3DES,
             autofill=True,
         ),
     )

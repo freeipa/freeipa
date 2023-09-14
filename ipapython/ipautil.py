@@ -692,9 +692,11 @@ class CIDict(dict):
                 self.update(dict(new))
             else:
                 for key in keys():
+                    # pylint: disable=unnecessary-dunder-call
                     self.__setitem__(key, new[key], seen)
         seen = set()
         for key, value in kwargs.items():
+            # pylint: disable=unnecessary-dunder-call
             self.__setitem__(key, value, seen)
 
     def __contains__(self, key):

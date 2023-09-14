@@ -1433,7 +1433,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     Slapi_DN *target_sdn = NULL;
     Slapi_DN *sdn = NULL;
     const char *dn = NULL;
-    int method = 0;
+    ber_tag_t method = 0;
     bool syncreq;
     bool otpreq;
     int ret = 0;
@@ -1454,8 +1454,10 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     }
 
     /* We're only interested in simple authentication. */
-    if (method != LDAP_AUTH_SIMPLE || credentials->bv_len == 0)
+    if (method != LDAP_AUTH_SIMPLE || credentials->bv_len == 0) {
+        LOG("Not handled (not simple bind or NULL dn/credentials)\n");
         return 0;
+    }
 
     /* Retrieve the user's entry. */
     sdn = slapi_sdn_dup(target_sdn);

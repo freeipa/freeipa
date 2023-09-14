@@ -19,14 +19,14 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'FreeIPA'
-copyright = '2020, FreeIPA Contributors'
+copyright = '2022, FreeIPA Contributors'
 author = 'FreeIPA Contributors'
 
 # The short X.Y version
-version = '4.9-dev'
+version = '4.11-dev'
 
 # The full version, including alpha/beta/rc tags
-release = '4.9-dev'
+release = '4.11-dev'
 
 master_doc = 'index'
 
@@ -68,7 +68,7 @@ exclude_patterns = [
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'default'
+html_theme = 'sphinx_book_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

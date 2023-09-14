@@ -53,24 +53,24 @@ struct ipadb_adtrusts {
 
 char *dom_sid_string(TALLOC_CTX *memctx, const struct dom_sid *dom_sid);
 krb5_error_code filter_logon_info(krb5_context context, TALLOC_CTX *memctx,
-                                  krb5_data realm, struct PAC_LOGON_INFO_CTR *info);
+                                  krb5_data *realm, struct PAC_LOGON_INFO_CTR *info);
 void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
                           bool *_with_pac, bool *_with_pad);
 
 bool ipadb_is_cross_realm_krbtgt(krb5_const_principal princ);
 krb5_error_code ipadb_get_pac(krb5_context kcontext,
-                              krb5_db_entry *client,
                               unsigned int flags,
+                              krb5_db_entry *client,
+                              krb5_db_entry *server,
+                              krb5_keyblock *replaced_reply_key,
                               krb5_timestamp authtime,
                               krb5_pac *pac);
-krb5_error_code ipadb_verify_pac(krb5_context context,
-                                 unsigned int flags,
-                                 krb5_const_principal client_princ,
-                                 krb5_db_entry *proxy,
-                                 krb5_db_entry *server,
-                                 krb5_db_entry *krbtgt,
-                                 krb5_keyblock *server_key,
-                                 krb5_keyblock *krbtgt_key,
-                                 krb5_timestamp authtime,
-                                 krb5_authdata **authdata,
-                                 krb5_pac *pac);
+krb5_error_code ipadb_common_verify_pac(krb5_context context,
+                                        unsigned int flags,
+                                        krb5_db_entry *client,
+                                        krb5_db_entry *server,
+                                        krb5_db_entry *signing_krbtgt,
+                                        krb5_keyblock *krbtgt_key,
+                                        krb5_timestamp authtime,
+                                        krb5_pac old_pac,
+                                        krb5_pac *pac);

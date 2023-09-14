@@ -527,6 +527,35 @@ class TestTrust(BaseTestTrust):
                    .format(self.ad_domain, subordinate_suffix))
             self.ad.run_command(['powershell', '-c', cmd])
 
+    def test_ssh_aduser(self):
+        """Test ssh with GSSAPI is working with aduser
+
+        When kerberos ticket is obtained for child domain user
+        and ssh with this ticket should be successful
+        with no password prompt.
+
+        Related : https://pagure.io/freeipa/issue/9316
+        """
+        testuser = 'testuser@{0}'.format(self.ad_domain)
+        testusersub = 'subdomaintestuser@{0}'.format(self.ad_subdomain)
+
+        def sshuser(host, user):
+            tasks.kdestroy_all(host)
+            try:
+                tasks.kinit_as_user(host, user,
+                                    host.config.ad_admin_password
+                                    )
+                ssh_cmd = "ssh -q -K -l {user} {host} hostname"
+                valid_ssh = host.run_command(
+                    ssh_cmd.format(user=user, host=host.hostname)
+                )
+                assert host.hostname in valid_ssh.stdout_text
+            finally:
+                tasks.kdestroy_all(host)
+
+        sshuser(self.master, testuser)
+        sshuser(self.master, testusersub)
+
     def test_remove_nonposix_trust(self):
         self.remove_trust(self.ad)
         tasks.unconfigure_dns_for_trust(self.master, self.ad)
@@ -657,14 +686,15 @@ class TestTrust(BaseTestTrust):
 
         try:
             # stop sssd_be, needed to simulate a timeout in the extdom plugin.
-            stop_sssdbe = self.master.run_command('kill -STOP %s' % pid)
-            client.run_command(test_id)
-            error = 'ldap_extended_operation result: No such object(32)'
-            sssd_log2 = client.get_file_contents(log_file)[logsize:]
-            assert error.encode() not in sssd_log2
-        finally:
-            if stop_sssdbe.returncode == 0:
+            self.master.run_command('kill -STOP %s' % pid)
+            try:
+                client.run_command(test_id)
+                error = 'ldap_extended_operation result: No such object(32)'
+                sssd_log2 = client.get_file_contents(log_file)[logsize:]
+                assert error.encode() not in sssd_log2
+            finally:
                 self.master.run_command('kill -CONT %s' % pid)
+        finally:
             # reconnect and set back to default extdom plugin
             conn = self.master.ldap_connect()
             entry = conn.get_entry(extdom_dn)
@@ -783,6 +813,23 @@ class TestTrust(BaseTestTrust):
 
         assert re.search(
             testuser_regex, result.stdout_text), result.stdout_text
+
+    def test_ssh_adtreeuser(self):
+        testuser = 'treetestuser@{0}'.format(self.ad_treedomain)
+        self.master.run_command(["id", testuser])
+        tasks.clear_sssd_cache(self.master)
+        tasks.kdestroy_all(self.master)
+        try:
+            tasks.kinit_as_user(self.master, testuser,
+                                password="Secret123456"
+                                )
+            ssh_cmd = "ssh -q -K -l {user} {host} hostname"
+            valid_ssh = self.master.run_command(
+                ssh_cmd.format(user=testuser, host=self.master.hostname)
+            )
+            assert self.master.hostname in valid_ssh.stdout_text
+        finally:
+            tasks.kdestroy_all(self.master)
 
     def test_remove_external_treedomain_trust(self):
         self.remove_trust(self.tree_ad)
@@ -1107,11 +1154,15 @@ class TestNonPosixAutoPrivateGroup(BaseTestTrust):
                                      self.gid_override
                                      ):
             self.mod_idrange_auto_private_group(type)
-            (uid, gid) = self.get_user_id(self.clients[0], nonposixuser)
-            assert (uid == self.uid_override and gid == self.gid_override)
+            sssd_version = tasks.get_sssd_version(self.clients[0])
+            bad_version = sssd_version >= tasks.parse_version("2.8.2")
+            cond = (type == 'hybrid') and bad_version
+            with xfail_context(condition=cond,
+                               reason="https://pagure.io/freeipa/issue/9295"):
+                (uid, gid) = self.get_user_id(self.clients[0], nonposixuser)
+                assert (uid == self.uid_override and gid == self.gid_override)
             test_group = self.clients[0].run_command(
                 ["id", nonposixuser]).stdout_text
-            # version = tasks.get_sssd_version(self.clients[0])
             with xfail_context(type == "hybrid",
                                'https://github.com/SSSD/sssd/issues/5989'):
                 assert "domain users@{0}".format(self.ad_domain) in test_group
@@ -1185,8 +1236,11 @@ class TestPosixAutoPrivateGroup(BaseTestTrust):
         posixuser = "testuser1@%s" % self.ad_domain
         self.mod_idrange_auto_private_group(type)
         if type == "true":
-            (uid, gid) = self.get_user_id(self.clients[0], posixuser)
-            assert uid == gid
+            sssd_version = tasks.get_sssd_version(self.clients[0])
+            with xfail_context(sssd_version >= tasks.parse_version("2.8.2"),
+                 "https://pagure.io/freeipa/issue/9295"):
+                (uid, gid) = self.get_user_id(self.clients[0], posixuser)
+                assert uid == gid
         else:
             for host in [self.master, self.clients[0]]:
                 result = host.run_command(['id', posixuser], raiseonerr=False)

@@ -64,7 +64,7 @@ def fuzzy_sequence_of(fuzzy):
 
 # Matches an automember task finish message
 fuzzy_automember_message = Fuzzy(
-    r'^Automember rebuild task finished\. Processed \(\d+\) entries\.$'
+    r'^Automember rebuild task finished\. Processed \(\d+\) entries'
 )
 
 # Matches trusted domain GUID, like u'463bf2be-3456-4a57-979e-120304f2a0eb'
@@ -136,13 +136,13 @@ def fuzzy_set_optional_oc(s, oc):
                  == set(y.lower() for y in s if y != oc))
 
 
+server_available = None
 try:
     if not api.Backend.rpcclient.isconnected():
         api.Backend.rpcclient.connect()
-    res = api.Command['user_show'](u'notfound')
-except errors.NetworkError:
-    server_available = False
-except IOError:
+    api.Command["user_show"]("notfound")
+    server_available = True
+except (errors.NetworkError, IOError):
     server_available = False
 except errors.NotFound:
     server_available = True
@@ -345,6 +345,7 @@ class Declarative(XMLRPC_test):
     def check_exception(self, nice, cmd, args, options, expected):
         klass = expected.__class__
         expected_name = klass.__name__
+        got = None
         try:
             output = api.Command[cmd](*args, **options)
         except Exception as e:

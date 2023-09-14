@@ -135,82 +135,6 @@ static void oauth2_on_child_writable(verto_ctx *vctx, verto_ev *ev)
     verto_del(ev);
 }
 
-#define min(a,b) ((a) > (b) ? (b) : (a))
-static int add_krad_attr_to_set(struct child_ctx *child_ctx,
-                                krad_attrset *attrset,
-                                krb5_data *datap,
-                                krad_attr attr, const char *message)
-{
-    krb5_data state = {0};
-    char *p = datap->data;
-    unsigned int len = datap->length;
-    int ret = 0;
-
-    do {
-        state.data = p;
-        state.length = min(MAX_ATTRSIZE - 5, len);
-        p += state.length;
-
-        ret = krad_attrset_add(attrset, attr, &(state));
-        if (ret != 0) {
-            otpd_log_req(child_ctx->item->req, message);
-            break;
-        }
-        len -= state.length;
-    } while (len > 0);
-
-    return ret;
-}
-
-/* Most attributes have limited length (MAX_ATTRSIZE). In order to accept longer
- * values, we will concatenate all the attribute values to single krb5_data. */
-static int get_krad_attr_from_packet(const krad_packet *rres,
-                                     krad_attr attr, krb5_data *_data)
-{
-    const krb5_data *rmsg;
-    krb5_data data = {0};
-    unsigned int memindex;
-    unsigned int i;
-
-    i = 0;
-    do {
-        rmsg = krad_packet_get_attr(rres, attr, i);
-        if (rmsg != NULL) {
-            data.length += rmsg->length;
-        }
-        i++;
-    } while (rmsg != NULL);
-
-    if (data.length == 0) {
-        return ENOENT;
-    }
-
-    data.data = malloc(data.length);
-    if (data.data == NULL) {
-        return ENOMEM;
-    }
-
-    i = 0;
-    memindex = 0;
-    do {
-        rmsg = krad_packet_get_attr(rres, attr, i);
-        if (rmsg != NULL) {
-            memcpy(&data.data[memindex], rmsg->data, rmsg->length);
-            memindex += rmsg->length;
-        }
-        i++;
-    } while (rmsg != NULL);
-
-    if (memindex != data.length) {
-        free(data.data);
-        return ERANGE;
-    }
-
-    *_data = data;
-
-    return 0;
-}
-
 /* oidc_child will return two lines.
  * The first is a JSON formatted string containing the device code and other
  * data needed to get the access token in the second round. This will be
@@ -225,7 +149,7 @@ static int handle_device_code_reply(struct child_ctx *child_ctx,
     krad_attrset *attrset = NULL;
     int ret;
     krb5_data data = { 0 };
-    struct otpd_queue_item *state_item;
+    struct otpd_queue_item *state_item = NULL;
 
     ret = otpd_queue_item_new(NULL, &state_item);
     if (ret != 0) {
@@ -256,7 +180,8 @@ static int handle_device_code_reply(struct child_ctx *child_ctx,
     }
     state_item->oauth2.state.length = strlen(dc_reply);
 
-    ret = add_krad_attr_to_set(child_ctx, attrset, &(state_item->oauth2.state),
+    ret = add_krad_attr_to_set(child_ctx->item->req,
+                               attrset, &(state_item->oauth2.state),
                                krad_attr_name2num("Proxy-State"),
                                "Failed to serialize state to attribute set");
     if (ret != 0) {
@@ -266,7 +191,7 @@ static int handle_device_code_reply(struct child_ctx *child_ctx,
     data.magic = 0;
     data.data = rad_reply;
     data.length = strlen(rad_reply);
-    ret = add_krad_attr_to_set(child_ctx, attrset, &data,
+    ret = add_krad_attr_to_set(child_ctx->item->req, attrset, &data,
                                krad_attr_name2num("Reply-Message"),
                                "Failed to serialize reply to attribute set");
     if (ret != 0) {

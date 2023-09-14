@@ -56,7 +56,7 @@ from ipalib import api, errors, x509
 from ipalib.install import dnsforwarders
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName, resolve
-from ipaserver.install import certs, service, sysupgrade
+from ipaserver.install import certs, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
@@ -1012,6 +1012,7 @@ def check_entropy():
     """
     Checks if the system has enough entropy, if not, displays warning message
     """
+    from . import service  # pylint: disable=cyclic-import
     try:
         with open(paths.ENTROPY_AVAIL, 'r') as efname:
             if int(efname.read()) < 200:
@@ -1044,18 +1045,24 @@ def in_container():
        systemd-detect-virt requires the whole systemd subsystem which
        isn't a reasonable require in a container.
     """
+    data_sched = None
     if not is_hidepid():
-        with open('/proc/1/sched', 'r') as sched:
-            data_sched = sched.readline()
-    else:
-        data_sched = []
+        try:
+            with open('/proc/1/sched', 'r') as sched:
+                data_sched = sched.readline()
+        except (FileNotFoundError, PermissionError):
+            pass
 
-    with open('/proc/self/cgroup', 'r') as cgroup:
-        data_cgroup = cgroup.readline()
+    data_cgroup = None
+    try:
+        with open('/proc/self/cgroup', 'r') as cgroup:
+            data_cgroup = cgroup.readline()
+    except (FileNotFoundError, PermissionError):
+        pass
 
     checks = [
-        data_sched.split()[0] not in ('systemd', 'init',),
-        data_cgroup.split()[0] in ('libpod'),
+        data_sched and data_sched.split()[0] not in ('systemd', 'init',),
+        data_cgroup and data_cgroup.split()[0] in ('libpod'),
         os.path.exists('/.dockerenv'),
         os.path.exists('/.dockerinit'),
         os.getenv('container', None) is not None
@@ -1552,10 +1559,8 @@ def default_ca_subject_dn(subject_base):
 
 
 def validate_mask():
-    try:
-        mask = os.umask(0)
-    finally:
-        os.umask(mask)
+    mask = os.umask(0)
+    os.umask(mask)
     mask_str = None
     if mask & 0b111101101 > 0:
         mask_str = "{:04o}".format(mask)

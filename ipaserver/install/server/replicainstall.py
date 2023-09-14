@@ -22,7 +22,7 @@ import six
 
 from ipaclient.install.client import check_ldap_conf, sssd_enable_ifp
 import ipaclient.install.timeconf
-from ipalib.install import certstore, sysrestore
+from ipalib.install import sysrestore
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
@@ -32,7 +32,7 @@ from ipapython.ipachangeconf import IPAChangeConf
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
-from ipalib import api, constants, create_api, errors, rpc, x509
+from ipalib import api, constants, create_api, errors, rpc
 from ipalib.config import Env
 from ipalib.facts import is_ipa_configured, is_ipa_client_configured
 from ipalib.util import no_matching_interface_for_ip_address_warning
@@ -130,24 +130,6 @@ def install_krb(config, setup_pkinit=False, pkcs12_info=None, fstore=None):
                        subject_base=config.subject_base)
 
     return krb
-
-
-def install_ca_cert(ldap, base_dn, realm, cafile, destfile=paths.IPA_CA_CRT):
-    try:
-        try:
-            certs = certstore.get_ca_certs(ldap, base_dn, realm, False)
-        except errors.NotFound:
-            try:
-                shutil.copy(cafile, destfile)
-            except shutil.Error:
-                # cafile == IPA_CA_CRT
-                pass
-        else:
-            certs = [c[0] for c in certs if c[2] is not False]
-            x509.write_certificate_list(certs, destfile, mode=0o644)
-    except Exception as e:
-        raise ScriptError("error copying files: " + str(e))
-    return destfile
 
 
 def install_http(config, auto_redirect, ca_is_configured, ca_file,
@@ -781,6 +763,20 @@ def promotion_check_host_principal_auth_ind(conn, hostdn):
         )
 
 
+def remote_connection(config):
+    ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
+    xmlrpc_uri = 'https://{}/ipa/xml'.format(
+        ipautil.format_netloc(config.master_host_name))
+    remote_api = create_api(mode=None)
+    remote_api.bootstrap(in_server=True,
+                         context='installer',
+                         confdir=paths.ETC_IPA,
+                         ldap_uri=ldapuri,
+                         xmlrpc_uri=xmlrpc_uri)
+    remote_api.finalize()
+    return remote_api
+
+
 @common_cleanup
 @preserve_enrollment_state
 def promote_check(installer):
@@ -797,7 +793,8 @@ def promote_check(installer):
         raise ScriptError("--setup-ca and --*-cert-file options are "
                           "mutually exclusive")
 
-    if not is_ipa_client_configured(on_master=True):
+    ipa_client_installed = is_ipa_client_configured(on_master=True)
+    if not ipa_client_installed:
         # One-step replica installation
         if options.password and options.admin_password:
             raise ScriptError("--password and --admin-password options are "
@@ -930,26 +927,23 @@ def promote_check(installer):
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns,
                              local_hostname=not container_environment)
 
+    if config.host_name.lower() == config.domain_name.lower():
+        raise ScriptError("hostname cannot be the same as the domain name")
+
     ccache = os.environ['KRB5CCNAME']
     kinit_keytab('host/{env.host}@{env.realm}'.format(env=api.env),
                  paths.KRB5_KEYTAB,
                  ccache)
 
-    cafile = paths.IPA_CA_CRT
-    if not os.path.isfile(cafile):
-        raise RuntimeError("CA cert file is not available! Please reinstall"
-                           "the client and try again.")
+    if ipa_client_installed:
+        # host was already an IPA client, refresh client cert stores to
+        # ensure we have up to date CA certs.
+        try:
+            ipautil.run([paths.IPA_CERTUPDATE])
+        except ipautil.CalledProcessError:
+            raise RuntimeError("ipa-certupdate failed to refresh certs.")
 
-    ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
-    xmlrpc_uri = 'https://{}/ipa/xml'.format(
-        ipautil.format_netloc(config.master_host_name))
-    remote_api = create_api(mode=None)
-    remote_api.bootstrap(in_server=True,
-                         context='installer',
-                         confdir=paths.ETC_IPA,
-                         ldap_uri=ldapuri,
-                         xmlrpc_uri=xmlrpc_uri)
-    remote_api.finalize()
+    remote_api = remote_connection(config)
     installer._remote_api = remote_api
 
     with rpc_client(remote_api) as client:
@@ -994,7 +988,7 @@ def promote_check(installer):
                 raise errors.ACIError(info="Not authorized")
 
             if installer._ccache is None:
-                del os.environ['KRB5CCNAME']
+                os.environ.pop('KRB5CCNAME', None)
             else:
                 os.environ['KRB5CCNAME'] = installer._ccache
 
@@ -1079,7 +1073,16 @@ def promote_check(installer):
             'CA', conn, preferred_cas
         )
         if ca_host is not None:
+            if config.master_host_name != ca_host:
+                conn.disconnect()
+                del remote_api
+                config.master_host_name = ca_host
+                remote_api = remote_connection(config)
+                installer._remote_api = remote_api
+                conn = remote_api.Backend.ldap2
+                conn.connect(ccache=installer._ccache)
             config.ca_host_name = ca_host
+            config.master_host_name = ca_host
             ca_enabled = True
             if options.dirsrv_cert_files:
                 logger.error("Certificates could not be provided when "
@@ -1118,7 +1121,17 @@ def promote_check(installer):
             'KRA', conn, preferred_kras
         )
         if kra_host is not None:
+            if config.master_host_name != kra_host:
+                conn.disconnect()
+                del remote_api
+                config.master_host_name = kra_host
+                remote_api = remote_connection(config)
+                installer._remote_api = remote_api
+                conn = remote_api.Backend.ldap2
+                conn.connect(ccache=installer._ccache)
             config.kra_host_name = kra_host
+            config.ca_host_name = kra_host
+            config.master_host_name = kra_host
             kra_enabled = True
             if options.setup_kra and options.server and \
                kra_host != options.server:
@@ -1184,7 +1197,7 @@ def promote_check(installer):
         if add_to_ipaservers:
             # use user's credentials when the server host is not ipaservers
             if installer._ccache is None:
-                del os.environ['KRB5CCNAME']
+                os.environ.pop('KRB5CCNAME', None)
             else:
                 os.environ['KRB5CCNAME'] = installer._ccache
 
@@ -1193,14 +1206,14 @@ def promote_check(installer):
                 config.master_host_name, config.host_name, config.realm_name,
                 options.setup_ca, 389,
                 options.admin_password, principal=options.principal,
-                ca_cert_file=cafile)
+                ca_cert_file=paths.IPA_CA_CRT)
         finally:
             if add_to_ipaservers:
                 os.environ['KRB5CCNAME'] = ccache
 
     installer._ca_enabled = ca_enabled
     installer._kra_enabled = kra_enabled
-    installer._ca_file = cafile
+    installer._ca_file = paths.IPA_CA_CRT
     installer._fstore = fstore
     installer._sstore = sstore
     installer._config = config
@@ -1221,7 +1234,6 @@ def install(installer):
     fstore = installer._fstore
     sstore = installer._sstore
     config = installer._config
-    cafile = installer._ca_file
     dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
     http_pkcs12_info = installer._http_pkcs12_info
     pkinit_pkcs12_info = installer._pkinit_pkcs12_info
@@ -1235,6 +1247,24 @@ def install(installer):
 
     if tasks.configure_pkcs11_modules(fstore):
         print("Disabled p11-kit-proxy")
+
+    _hostname, _sep, host_domain = config.host_name.partition('.')
+    fstore.backup_file(paths.KRB5_CONF)
+
+    # Write a new krb5.conf in case any values changed finding the
+    # right server to configure against (for CA, KRA).
+    logger.debug("Installing against server %s", config.master_host_name)
+    configure_krb5_conf(
+        cli_realm=api.env.realm,
+        cli_domain=api.env.domain,
+        cli_server=[config.master_host_name],
+        cli_kdc=[config.master_host_name],
+        dnsok=False,
+        filename=paths.KRB5_CONF,
+        client_domain=host_domain,
+        client_hostname=config.host_name,
+        configure_sssd=False
+    )
 
     if installer._add_to_ipaservers:
         try:
@@ -1255,18 +1285,10 @@ def install(installer):
 
     try:
         conn.connect(ccache=ccache)
-
-        # Update and istall updated CA file
-        cafile = install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
-        install_ca_cert(conn, api.env.basedn, api.env.realm, cafile,
-                        destfile=paths.KDC_CA_BUNDLE_PEM)
-        install_ca_cert(conn, api.env.basedn, api.env.realm, cafile,
-                        destfile=paths.CA_BUNDLE_PEM)
-
         # Configure dirsrv
         ds = install_replica_ds(config, options, ca_enabled,
                                 remote_api,
-                                ca_file=cafile,
+                                ca_file=paths.IPA_CA_CRT,
                                 pkcs12_info=dirsrv_pkcs12_info,
                                 fstore=fstore)
 
@@ -1317,7 +1339,7 @@ def install(installer):
         auto_redirect=not options.no_ui_redirect,
         pkcs12_info=http_pkcs12_info,
         ca_is_configured=ca_enabled,
-        ca_file=cafile,
+        ca_file=paths.IPA_CA_CRT,
         fstore=fstore)
 
     # Need to point back to ourself after the cert for HTTP is obtained

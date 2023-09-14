@@ -8,7 +8,7 @@ Tests to verify that the ipa-healthcheck scenarios
 from __future__ import absolute_import
 
 from configparser import RawConfigParser, NoOptionError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import json
 import os
 import re
@@ -353,15 +353,19 @@ class TestIpaHealthCheck(IntegrationTest):
                                             failures_only=False)
         assert returncode == 0
 
-        cmd = self.master.run_command(['fips-mode-setup', '--is-enabled'],
-                                      raiseonerr=False)
+        cmd = self.master.run_command(
+            [paths.FIPS_MODE_SETUP, "--is-enabled"], raiseonerr=False
+        )
         returncode = cmd.returncode
 
-        # If this produces IndexError, the check does not exist
+        assert "fips" in check[0]["kw"]
+
         if check[0]["kw"]["fips"] == "disabled":
             assert returncode == 2
         elif check[0]["kw"]["fips"] == "enabled":
             assert returncode == 0
+        elif check[0]["kw"]["fips"] == f"missing {paths.FIPS_MODE_SETUP}":
+            assert returncode == 127
         else:
             assert returncode == 1
 
@@ -806,7 +810,9 @@ class TestIpaHealthCheck(IntegrationTest):
             + [str(ip) for ip in resolve_ip_addresses_nss(h.external_hostname)]
         ]
         SYSTEM_RECORDS.append(f'"{self.master.domain.realm.upper()}"')
-
+        version = tasks.get_healthcheck_version(self.master)
+        if parse_version(version) >= parse_version("0.12"):
+            SYSTEM_RECORDS.append('ipa_ca_check')
 
         returncode, data = run_healthcheck(
             self.master,
@@ -1306,9 +1312,6 @@ class TestIpaHealthCheck(IntegrationTest):
         """
         error_msg = (
             "\n\nIn Directory Server, we offer one hash suitable for this "
-            "(PBKDF2_SHA256) and one hash\nfor \"legacy\" support (SSHA512)."
-            "\n\nYour configuration does not use these for password storage "
-            "or the root password storage\nscheme.\n"
         )
         returncode, data = run_healthcheck(
             self.master, "ipahealthcheck.ds.config", "ConfigCheck",
@@ -1402,6 +1405,23 @@ class TestIpaHealthCheck(IntegrationTest):
             paths.IPAUPGRADE_LOG, modify_permissions,
             expected_permissions="0600"
         )
+
+    def test_ipa_healthcheck_renew_internal_cert(self):
+        """
+        This testcase checks that CADogtagCertsConfigCheck can handle
+        cert renewal, when there can be two certs with the same nickname
+        """
+        if (tasks.get_pki_version(self.master) < tasks.parse_version('11.4.0')):
+            raise pytest.skip("PKI known issue #2022561")
+        self.master.run_command(['ipa-cacert-manage', 'renew', '--self-signed'])
+        returncode, data = run_healthcheck(
+            self.master,
+            "pki.server.healthcheck.meta.csconfig",
+            "CADogtagCertsConfigCheck",
+        )
+        assert returncode == 0
+        for check in data:
+            assert check["result"] == "SUCCESS"
 
     @pytest.fixture
     def remove_healthcheck(self):
@@ -1527,7 +1547,7 @@ class TestIpaHealthCheck(IntegrationTest):
         tasks.uninstall_replica(self.master, self.replicas[0])
 
         # Store the current date to restore at the end of the test
-        now = datetime.utcnow()
+        now = datetime.now(tz=UTC)
         now_str = datetime.strftime(now, "%Y-%m-%d %H:%M:%S Z")
 
         # Pick a cert to find the upcoming expiration
@@ -1611,12 +1631,21 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
         Test checks the result of IPADNSSystemRecordsCheck
         when ipa-server is configured without DNS.
         """
-        expected_msgs = {
-            "Expected SRV record missing",
-            "Got {count} ipa-ca A records, expected {expected}",
-            "Got {count} ipa-ca AAAA records, expected {expected}",
-            "Expected URI record missing",
-        }
+        version = tasks.get_healthcheck_version(self.master)
+        if (parse_version(version) < parse_version('0.12')):
+            expected_msgs = {
+                "Expected SRV record missing",
+                "Got {count} ipa-ca A records, expected {expected}",
+                "Got {count} ipa-ca AAAA records, expected {expected}",
+                "Expected URI record missing",
+            }
+        else:
+            expected_msgs = {
+                "Expected SRV record missing",
+                "Unexpected ipa-ca address {ipaddr}",
+                "expected ipa-ca to contain {ipaddr} for {server}",
+                "Expected URI record missing",
+            }
 
         tasks.install_packages(self.master, HEALTHCHECK_PKG)
         returncode, data = run_healthcheck(

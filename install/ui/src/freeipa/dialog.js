@@ -1561,14 +1561,17 @@ IPA.table_mixin = function() {
              * @param {string} suffix, string which will be concatenated to the end of
              *                  'str' string. Not parsed using text.get()
              * @param {string} cls css class which will be added to current cell
+             * @param {string} nm css name which will be added to current cell
              */
-            create_cell: function(str, suffix, cls) {
+            create_cell: function(str, suffix, cls, nm) {
                 str = str || '';
                 suffix = suffix || '';
                 cls = cls || '';
+                nm = nm || '';
 
                 return $('<div />', {
                     'class': 'table-cell ' + cls,
+                    name: nm,
                     text: text.get(str) + suffix
                 });
             },

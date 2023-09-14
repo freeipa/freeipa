@@ -25,6 +25,7 @@ Test the `ipaserver/plugins/group.py` module.
 import pytest
 
 from ipalib import errors
+from ipalib.constants import ERRMSG_GROUPUSER_NAME
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
     fuzzy_digits, fuzzy_uuid, fuzzy_set_ci,
@@ -38,6 +39,7 @@ from ipatests.util import assert_deepequal, get_group_dn
 notagroup = u'notagroup'
 renamedgroup1 = u'renamedgroup'
 invalidgroup1 = u'+tgroup1'
+invalidgroup2 = u'1234'
 external_sid1 = u'S-1-1-123456-789-1'
 
 
@@ -169,7 +171,7 @@ class TestGroup(XMLRPC_test):
         )
         with raises_exact(errors.ValidationError(
                 name='group_name',
-                error=u'may only include letters, numbers, _, -, . and $')):
+                error=ERRMSG_GROUPUSER_NAME.format('group'))):
             command()
 
     def test_create_with_name_starting_with_numeric(self):
@@ -181,17 +183,60 @@ class TestGroup(XMLRPC_test):
         testgroup.create()
         testgroup.delete()
 
-    def test_create_with_numeric_only_group_name(self):
+    def test_create_with_numeric_only_groupname(self):
         """Try to create a group with name only contains numeric chars"""
         testgroup = GroupTracker(
-            name=u'1234', description=u'Numeric only group name',
+            name=invalidgroup2, description=u'Numeric only group name',
         )
         with raises_exact(errors.ValidationError(
             name='group_name',
-            error=u'may only include letters, numbers, _, -, . and $',
+            error=ERRMSG_GROUPUSER_NAME.format('group'),
         )):
             testgroup.create()
 
+    def test_rename_setattr_to_invalid_groupname(self, group):
+        """ Try to rename group using an invalid name with settatr cn= """
+        group.ensure_exists()
+        command = group.make_update_command(
+            updates=dict(setattr='cn=%s' % invalidgroup1))
+        with raises_exact(errors.ValidationError(
+            name='cn',
+            error=ERRMSG_GROUPUSER_NAME.format('group'),
+        )):
+            command()
+
+    def test_rename_to_invalid_groupname(self, group):
+        """ Try to rename group using an invalid name """
+        group.ensure_exists()
+        command = group.make_update_command(
+            updates=dict(rename=invalidgroup1))
+        with raises_exact(errors.ValidationError(
+            name='rename',
+            error=ERRMSG_GROUPUSER_NAME.format('group'),
+        )):
+            command()
+
+    def test_rename_setattr_to_numeric_only_groupname(self, group):
+        """ Try to rename using an invalid numeric only name  with setattr"""
+        group.ensure_exists()
+        command = group.make_update_command(
+            updates=dict(setattr='cn=%s' % invalidgroup2))
+        with raises_exact(errors.ValidationError(
+            name='cn',
+            error=ERRMSG_GROUPUSER_NAME.format('group'),
+        )):
+            command()
+
+    def test_rename_to_numeric_only_groupname(self, group):
+        """ Try to rename group using an invalid numeric only name """
+        group.ensure_exists()
+        command = group.make_update_command(
+            updates=dict(rename=invalidgroup2))
+        with raises_exact(errors.ValidationError(
+            name='rename',
+            error=ERRMSG_GROUPUSER_NAME.format('group'),
+        )):
+            command()
 
 @pytest.mark.tier1
 class TestFindGroup(XMLRPC_test):
@@ -464,6 +509,21 @@ class TestNonposixGroup(XMLRPC_test):
                 },
             ],
         ), result)
+
+    def test_upgrade_nonposix_to_posix_and_external(self, group):
+        """ Update non-posix group to promote it to posix group & external"""
+        command = group.make_update_command(dict(posix=True, external=True))
+        with raises_exact(errors.MutuallyExclusiveError(
+                reason=u"An external group cannot be POSIX")):
+            command()
+
+    def test_upgrade_nonposix_with_gid_and_external(self, group):
+        """ Update non-posix group to promote it to posix group & external"""
+        command = group.make_update_command(dict(gidnumber=12345,
+                                                 external=True))
+        with raises_exact(errors.MutuallyExclusiveError(
+                reason=u"An external group cannot be POSIX")):
+            command()
 
     def test_upgrade_nonposix_to_posix(self, group):
         """ Update non-posix group to promote it to posix group """

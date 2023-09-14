@@ -87,6 +87,7 @@ class DNSResolver(dns.resolver.Resolver):
     changes this to 5sec, while the previous one was 30sec.
     """
     def __init__(self, *args, **kwargs):
+        self._nameservers = None
         super().__init__(*args, **kwargs)
         self.reset_ipa_defaults()
         self.resolve = getattr(super(), "resolve", self.query)
@@ -144,7 +145,11 @@ class DNSResolver(dns.resolver.Resolver):
             nameservers.remove(ipv4_loopback)
         self.nameservers = nameservers
 
-    @dns.resolver.Resolver.nameservers.setter
+    @property
+    def nameservers(self):
+        return self._nameservers
+
+    @nameservers.setter
     def nameservers(self, nameservers):
         """
         *nameservers*, a ``list`` of nameservers with optional ports:
@@ -181,7 +186,11 @@ class DNSResolver(dns.resolver.Resolver):
             nameservers = _nameservers
 
         # Call dns.resolver.Resolver.nameservers setter
-        dns.resolver.Resolver.nameservers.__set__(self, nameservers)
+        if hasattr(dns.resolver.Resolver, "nameservers"):
+            dns.resolver.Resolver.nameservers.__set__(self, nameservers)
+        else:
+            # old dnspython (<2) doesn't have 'nameservers' property
+            self._nameservers = nameservers
         # Set nameserver_ports after successfull call to setter
         self.nameserver_ports = nameserver_ports
 

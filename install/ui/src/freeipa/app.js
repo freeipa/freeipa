@@ -44,6 +44,7 @@ define([
     './idviews',
     './netgroup',
     './otptoken',
+    './passkeyconfig',
     './policy',
     './radiusproxy',
     './realmdomains',

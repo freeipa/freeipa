@@ -568,13 +568,13 @@ class certreq(BaseCertObject):
             'request_type',
             default=u'pkcs10',
             autofill=True,
-            flags={'no_option', 'no_update', 'no_update', 'no_search'},
+            flags={'no_option', 'no_update', 'no_search'},
         ),
         Str(
             'profile_id?', validate_profile_id,
             label=_("Profile ID"),
             doc=_("Certificate Profile to use"),
-            flags={'no_update', 'no_update', 'no_search'},
+            flags={'no_update', 'no_search'},
         ),
         Str(
             'cert_request_status',
@@ -1658,6 +1658,13 @@ class cert_find(Search, CertMethod):
             ra_options[name] = value
         if exactly:
             ra_options['exactly'] = True
+        if 'sizelimit' in options:
+            # sizelimit = 0 means return everything, drop it and let
+            # ra_find() handle the value.
+            if options['sizelimit'] > 0:
+                ra_options['sizelimit'] = options['sizelimit']
+        else:
+            ra_options['sizelimit'] = self.api.Backend.ldap2.size_limit
 
         result = collections.OrderedDict()
         complete = bool(ra_options)
@@ -1788,7 +1795,8 @@ class cert_find(Search, CertMethod):
         ca_enabled = getattr(context, 'ca_enabled')
         for entry in entries:
             for attr in ('usercertificate', 'usercertificate;binary'):
-                for cert in entry.get(attr, []):
+                for der in entry.raw.get(attr, []):
+                    cert = cryptography.x509.load_der_x509_certificate(der)
                     cert_key = self._get_cert_key(cert)
                     try:
                         obj = result[cert_key]
@@ -1837,6 +1845,7 @@ class cert_find(Search, CertMethod):
             timelimit = self.api.Backend.ldap2.time_limit
         if sizelimit is None:
             sizelimit = self.api.Backend.ldap2.size_limit
+        options['sizelimit'] = sizelimit
 
         result = collections.OrderedDict()
         truncated = False

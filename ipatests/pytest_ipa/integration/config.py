@@ -100,11 +100,11 @@ class Config(pytest_multihost.config.Config):
 
     @classmethod
     def from_env(cls, env):
-        from ipatests.pytest_ipa.integration.env_config import config_from_env
+        from .env_config import config_from_env  # pylint: disable=cyclic-import
         return config_from_env(env)
 
     def to_env(self, **kwargs):
-        from ipatests.pytest_ipa.integration.env_config import config_to_env
+        from .env_config import config_to_env  # pylint: disable=cyclic-import
         return config_to_env(self, **kwargs)
 
     def filter(self, descriptions):
@@ -156,7 +156,7 @@ class Domain(pytest_multihost.config.Domain):
             raise LookupError(self.type)
 
     def get_host_class(self, host_dict):
-        from ipatests.pytest_ipa.integration.host import Host, WinHost
+        from .host import Host, WinHost  # pylint: disable=cyclic-import
 
         if self.is_ipa_type:
             return Host

@@ -41,7 +41,7 @@ experience. Emulating the login pages as part of line- and packet-oriented SSH
 protocol or console login script is not possible.
 
 OAuth 2.0 Device Authorization Grant is defined in
-[RFC 8628](https://www.rfc-editor.org/rfc/rfc8628) and allows devices that either
+`RFC 8628 <https://www.rfc-editor.org/rfc/rfc8628>`_ and allows devices that either
 lack a browser or input constrained to obtain user authorization to access
 protected resources. Instead of performing the authorization flow right at the
 device where OAuth authorization grant is requested, a user would perform it at
@@ -112,7 +112,7 @@ suitable, individual parameters can also be added::
   ipa help idp-add
   Usage: ipa [global-options] idp-add NAME [options]
 
-  Add a new Identity Provider server.
+  Add a new Identity Provider reference.
   Options:
     -h, --help            show this help message and exit
     --auth-uri=STR        OAuth 2.0 authorization endpoint
@@ -370,9 +370,9 @@ The following command adds IdP reference named ``keycloak`` as IPA administrator
         --client-id ipa_oidc_client \
         --secret
   -----------------------------------------
-  Added Identity Provider server "keycloak"
+  Added Identity Provider reference "keycloak"
   -----------------------------------------
-    Identity Provider server name: keycloak
+    Identity Provider reference name: keycloak
     Authorization URI: https://client.ipademo.local:8443/auth/realms/master/protocol/openid-connect/auth
     Device authorization URI: https://client.ipademo.local:8443/auth/realms/master/protocol/openid-connect/auth/device
     Token URI: https://client.ipademo.local:8443/auth/realms/master/protocol/openid-connect/token

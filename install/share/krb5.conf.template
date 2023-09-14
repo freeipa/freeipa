@@ -1,5 +1,4 @@
 $INCLUDES
-includedir /var/lib/sss/pubconf/krb5.include.d/
 
 [logging]
  default = FILE:/var/log/krb5libs.log

@@ -23,7 +23,7 @@ PASSWORD = "Secret123"
 USER1 = "testuser1"
 USER2 = "testuser2"
 MAXLIFE = 86400
-
+LANG_PKG = ["langpacks-en"]
 
 def maxlife_within_policy(input, maxlife, slush=3600):
     """Given klist output of the TGT verify that it is within policy
@@ -44,7 +44,6 @@ def maxlife_within_policy(input, maxlife, slush=3600):
     diff = int((end - start).total_seconds())
 
     return maxlife >= diff >= maxlife - slush
-
 
 @pytest.fixture
 def reset_to_default_policy():
@@ -70,7 +69,7 @@ def reset_to_default_policy():
 def kinit_check_life(master, user):
     """Acquire a TGT and check if it's within the lifetime window"""
     master.run_command(["kinit", user], stdin_text=f"{PASSWORD}\n")
-    result = master.run_command("klist | grep krbtgt")
+    result = master.run_command("LANG=en_US.utf-8 klist | grep krbtgt")
     assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
 
 
@@ -81,6 +80,7 @@ class TestPWPolicy(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        tasks.install_packages(cls.master, LANG_PKG)
         tasks.install_master(cls.master)
         tasks.create_active_user(cls.master, USER1, PASSWORD)
         tasks.create_active_user(cls.master, USER2, PASSWORD)
@@ -100,7 +100,7 @@ class TestPWPolicy(IntegrationTest):
 
         master.run_command(['kinit', USER1],
                            stdin_text=PASSWORD + '\n')
-        result = master.run_command('klist | grep krbtgt')
+        result = master.run_command("LANG=en_US.utf-8 klist | grep krbtgt")
         assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
 
     def test_krbtpolicy_password_and_hardended(self):
@@ -122,7 +122,7 @@ class TestPWPolicy(IntegrationTest):
 
         master.run_command(['kinit', USER1],
                            stdin_text=PASSWORD + '\n')
-        result = master.run_command('klist | grep krbtgt')
+        result = master.run_command('LANG=en_US.utf-8 klist | grep krbtgt')
         assert maxlife_within_policy(result.stdout_text, 600,
                                      slush=600) is True
 
@@ -131,7 +131,7 @@ class TestPWPolicy(IntegrationTest):
         # Verify that the short policy only applies to USER1
         master.run_command(['kinit', USER2],
                            stdin_text=PASSWORD + '\n')
-        result = master.run_command('klist | grep krbtgt')
+        result = master.run_command('LANG=en_US.utf-8 klist | grep krbtgt')
         assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
 
     def test_krbtpolicy_hardended(self):
@@ -151,7 +151,7 @@ class TestPWPolicy(IntegrationTest):
 
         master.run_command(['kinit', USER1],
                            stdin_text=PASSWORD + '\n')
-        result = master.run_command('klist | grep krbtgt')
+        result = master.run_command('LANG=en_US.utf-8 klist | grep krbtgt')
         assert maxlife_within_policy(result.stdout_text, 1800,
                                      slush=1800) is True
 
@@ -160,7 +160,7 @@ class TestPWPolicy(IntegrationTest):
         # Verify that the short policy only applies to USER1
         master.run_command(['kinit', USER2],
                            stdin_text=PASSWORD + '\n')
-        result = master.run_command('klist | grep krbtgt')
+        result = master.run_command('LANG=en_US.utf-8 klist | grep krbtgt')
         assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
 
     def test_krbtpolicy_password(self):
@@ -173,7 +173,7 @@ class TestPWPolicy(IntegrationTest):
 
         master.run_command(['kinit', USER2],
                            stdin_text=PASSWORD + '\n')
-        result = master.run_command('klist | grep krbtgt')
+        result = master.run_command('LANG=en_US.utf-8 klist | grep krbtgt')
         assert maxlife_within_policy(result.stdout_text, 1200,
                                      slush=1200) is True
 
@@ -183,7 +183,7 @@ class TestPWPolicy(IntegrationTest):
         master.run_command(['ipa', 'krbtpolicy-reset', USER2])
         master.run_command(['kinit', USER2],
                            stdin_text=PASSWORD + '\n')
-        result = master.run_command('klist | grep krbtgt')
+        result = master.run_command('LANG=en_US.utf-8 klist | grep krbtgt')
         assert maxlife_within_policy(result.stdout_text, MAXLIFE) is True
 
     def test_krbtpolicy_otp(self, reset_to_default_policy):

@@ -104,13 +104,19 @@ class TestSortURI:
 
 
 class TestDNSResolver:
-    def test_nameservers(self):
-        res = dnsutil.DNSResolver()
+    @pytest.fixture(name="res")
+    def resolver(self):
+        """Resolver that doesn't read /etc/resolv.conf
+
+        /etc/resolv.conf is not mandatory on systems
+        """
+        return dnsutil.DNSResolver(configure=False)
+
+    def test_nameservers(self, res):
         res.nameservers = ["4.4.4.4", "8.8.8.8"]
         assert res.nameservers == ["4.4.4.4", "8.8.8.8"]
 
-    def test_nameservers_with_ports(self):
-        res = dnsutil.DNSResolver()
+    def test_nameservers_with_ports(self, res):
         res.nameservers = ["4.4.4.4 port 53", "8.8.8.8 port 8053"]
         assert res.nameservers == ["4.4.4.4", "8.8.8.8"]
         assert res.nameserver_ports == {"4.4.4.4": 53, "8.8.8.8": 8053}
@@ -119,8 +125,7 @@ class TestDNSResolver:
         assert res.nameservers == ["4.4.4.4", "8.8.8.8"]
         assert res.nameserver_ports == {"4.4.4.4": 53, "8.8.8.8": 8053}
 
-    def test_nameservers_with_bad_ports(self):
-        res = dnsutil.DNSResolver()
+    def test_nameservers_with_bad_ports(self, res):
         try:
             res.nameservers = ["4.4.4.4 port a"]
         except ValueError:

@@ -120,6 +120,7 @@ static krb5_error_code ipa_get_init_data(krb5_context kcontext,
     char *map_rule = NULL;
     char *match_rule = NULL;
     char **domains = NULL;
+    bool rule_added = false;
 
     const char *certmap_attrs[] = { OBJECTCLASS,
                                     IPA_CERTMAP_PRIORITY,
@@ -171,13 +172,7 @@ static krb5_error_code ipa_get_init_data(krb5_context kcontext,
         return ret;
     }
 
-    if (kerr == KRB5_KDB_NOENTRY) {
-        ret = sss_certmap_add_rule(ctx, SSS_CERTMAP_MIN_PRIO,
-                                   NULL, NULL, NULL);
-        if (ret != 0) {
-            goto done;
-        }
-    } else {
+    if (kerr != KRB5_KDB_NOENTRY) {
         lc = ipactx->lcontext;
 
         for (le = ldap_first_entry(lc, result); le;
@@ -221,8 +216,33 @@ static krb5_error_code ipa_get_init_data(krb5_context kcontext,
             ret = sss_certmap_add_rule(ctx, prio, match_rule, map_rule,
                                        (const char **) domains);
             if (ret != 0) {
-                goto done;
+                krb5_klog_syslog(LOG_ERR,
+                                 "Failed to add certificate mapping [%s] and "
+                                 "matching [%s] rule with error [%d][%s], "
+                                 "skipping. Please check for typos and if rule "
+                                 "syntax is supported.", map_rule, match_rule,
+                                 ret, strerror(ret));
+                continue;
             }
+
+            rule_added = true;
+        }
+    }
+
+    if (!rule_added) {
+        if (kerr == KRB5_KDB_NOENTRY) {
+            krb5_klog_syslog(LOG_INFO,
+                             "No certificate mapping and matching rule "
+                             "defined, trying to use the default rule.");
+        } else {
+            krb5_klog_syslog(LOG_INFO,
+                             "No valid certificate mapping and matching rule "
+                             "found, trying to use the default rule.");
+        }
+        ret = sss_certmap_add_rule(ctx, SSS_CERTMAP_MIN_PRIO,
+                                   NULL, NULL, NULL);
+        if (ret != 0) {
+            goto done;
         }
     }
 

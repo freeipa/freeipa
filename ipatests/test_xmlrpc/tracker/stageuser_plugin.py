@@ -8,6 +8,7 @@ from ipalib import api, errors
 from ipaplatform.constants import constants as platformconstants
 
 from ipatests.test_xmlrpc.tracker.base import Tracker
+from ipatests.test_xmlrpc.tracker.passkey_plugin import PasskeyMixin
 from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
@@ -30,7 +31,7 @@ sshpubkeyfp = (u'SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
                'public key test (ssh-rsa)')
 
 
-class StageUserTracker(KerberosAliasMixin, Tracker):
+class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
     """ Tracker class for staged user LDAP object
 
         Implements helper functions for host plugin.
@@ -285,3 +286,10 @@ class StageUserTracker(KerberosAliasMixin, Tracker):
 
     def _make_remove_alias_cmd(self):
         return self.make_command('stageuser_remove_principal', self.name)
+
+    # Passkey mapping methods
+    def _make_add_passkey(self):
+        return self.make_command('stageuser_add_passkey', self.name)
+
+    def _make_remove_passkey(self):
+        return self.make_command('stageuser_remove_passkey', self.name)

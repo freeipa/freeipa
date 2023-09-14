@@ -186,7 +186,7 @@ def convertEncrypted(value, decryptor=None, pconv=base64.b64decode, econv=lambda
     return None
 
 
-class XMLKeyDerivation(six.with_metaclass(abc.ABCMeta, object)):
+class XMLKeyDerivation(metaclass=abc.ABCMeta):
     "Interface for XML Encryption 1.1 key derivation."
     @abc.abstractmethod
     def __init__(self, enckey):

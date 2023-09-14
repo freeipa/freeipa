@@ -13,11 +13,12 @@ bdist_wheel: version.py
 	$(AM_V_GEN)awk '$$1 == "default:" { print $$2 }' $< >$@
 
 version.py: version.py.in .DEFAULT_PLUGINS $(top_builddir)/$(CONFIG_STATUS)
-	$(AM_V_GEN)sed						\
-		-e 's|@API_VERSION[@]|$(API_VERSION)|g'		\
-		-e 's|@NUM_VERSION[@]|$(NUM_VERSION)|g'		\
-		-e 's|@VERSION[@]|$(VERSION)|g'			\
-		-e 's|@VENDOR_SUFFIX[@]|$(VENDOR_SUFFIX)|g'	\
-		-e '/@DEFAULT_PLUGINS[@]/r .DEFAULT_PLUGINS'	\
-		-e '/@DEFAULT_PLUGINS[@]/d'			\
+	$(AM_V_GEN)sed                                                \
+		-e 's|@API_VERSION[@]|$(API_VERSION)|g'               \
+		-e 's|@NUM_VERSION[@]|$(NUM_VERSION)|g'               \
+		-e 's|@VERSION[@]|$(VERSION)|g'                       \
+		-e 's|@VENDOR_SUFFIX[@]|$(VENDOR_SUFFIX)|g'           \
+		-e 's|@KRB5_BUILD_VERSION[@]|$(KRB5_BUILD_VERSION)|g' \
+		-e '/@DEFAULT_PLUGINS[@]/r .DEFAULT_PLUGINS'          \
+		-e '/@DEFAULT_PLUGINS[@]/d'                           \
 		$< > $@

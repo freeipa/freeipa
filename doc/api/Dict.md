@@ -1,0 +1,7 @@
+[//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
+.. _Dict:
+
+# Dict
+[//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)
+
+A parameter for dictionary.

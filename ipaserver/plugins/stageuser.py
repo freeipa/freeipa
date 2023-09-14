@@ -49,7 +49,9 @@ from .baseuser import (
     baseuser_add_manager,
     baseuser_remove_manager,
     baseuser_add_certmapdata,
-    baseuser_remove_certmapdata)
+    baseuser_remove_certmapdata,
+    baseuser_add_passkey,
+    baseuser_remove_passkey)
 from ipalib.request import context
 from ipalib.util import set_krbcanonicalname
 from ipalib import _, ngettext
@@ -93,6 +95,12 @@ restrictions that may apply to your particular environment. For example,
 usernames that start with a digit or usernames that exceed a certain length
 may cause problems for some UNIX systems.
 Use 'ipa config-mod' to change the username format allowed by IPA tools.
+
+The user name must follow these rules:
+- cannot contain only numbers
+- must start with a letter, a number, _ or .
+- may contain letters, numbers, _, ., or -
+- may end with a letter, a number, _, ., - or $
 
 
 EXAMPLES:
@@ -398,7 +406,11 @@ class stageuser_add(baseuser_add):
                 if 'ipaidpuser' not in entry_attrs['objectclass']:
                     entry_attrs['objectclass'].append('ipaidpuser')
 
-                answer = self.api.Object['idp'].get_dn_if_exists(cl)
+                try:
+                    answer = self.api.Object['idp'].get_dn_if_exists(cl)
+                except errors.NotFound:
+                    reason = "External IdP configuration {} not found"
+                    raise errors.NotFound(reason=_(reason).format(cl))
                 entry_attrs['ipaidpconfiglink'] = answer
 
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
@@ -573,9 +585,9 @@ class stageuser_activate(LDAPQuery):
 
         if self.obj.object_class_config:
             config = ldap.get_ipa_config()
-            entry_attrs['objectclass'] = config.get(
+            entry_attrs['objectclass'] = deepcopy(config.get(
                 self.obj.object_class_config, entry_attrs['objectclass']
-            )
+            ))
 
         return(entry_attrs)
 
@@ -812,4 +824,16 @@ class stageuser_add_certmapdata(baseuser_add_certmapdata):
 @register()
 class stageuser_remove_certmapdata(baseuser_remove_certmapdata):
     __doc__ = _("Remove one or more certificate mappings from the stage user"
+                " entry.")
+
+
+@register()
+class stageuser_add_passkey(baseuser_add_passkey):
+    __doc__ = _("Add one or more passkey mappings to the stage user"
+                " entry.")
+
+
+@register()
+class stageuser_remove_passkey(baseuser_remove_passkey):
+    __doc__ = _("Remove one or more passkey mappings from the stage user"
                 " entry.")

@@ -463,6 +463,7 @@ class BasePathNamespace:
         "/var/lib/gssproxy/ipa_ccache_sweeper.sock"
     )
     PAM_CONFIG = None
+    PASSKEY_CHILD = '/usr/libexec/sssd/passkey_child'
 
     def check_paths(self):
         """Check paths for missing files

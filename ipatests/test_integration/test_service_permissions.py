@@ -22,6 +22,12 @@ import os
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
+from ipaplatform.osinfo import osinfo
+import pytest
+skip_rbcd_tests = any([
+    (osinfo.id == 'fedora' and osinfo.version_number < (38,)),
+    (osinfo.id == 'rhel' and osinfo.version_number < (9,2))])
+
 
 class TestServicePermissions(IntegrationTest):
     topology = 'star'
@@ -142,3 +148,47 @@ class TestServicePermissions(IntegrationTest):
         service_name3 = "testservice3" + '/' + self.master.hostname
         self.master.run_command(['ipa', 'service-add', service_name3])
         self.master.run_command(['ipa', 'service-del', service_name3])
+
+    @pytest.mark.xfail(
+        skip_rbcd_tests,
+        reason='krb5 before 1.20', strict=True)
+    def test_service_delegation(self):
+        """ Test that host can handle resource-based constrained delegation of
+        own services. """
+
+        keytab_file = '/etc/krb5.keytab'
+        keytab_file4 = '/tmp/krb5-testservice4.keytab'
+        hostservice_name4 = "host" + "/" + self.master.hostname
+        service_name4 = "testservice4" + '/' + self.master.hostname
+        self.master.run_command(['kinit', '-kt', keytab_file])
+        # Add service and configure delegation
+        self.master.run_command(['ipa', 'service-add', service_name4])
+        self.master.run_command(['kdestroy'])
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'service-add-delegation',
+                                 service_name4, hostservice_name4])
+        self.master.run_command(['kinit', '-kt', keytab_file])
+        self.master.run_command(['ipa-getkeytab',
+                                 '-p', service_name4,
+                                 '-k', keytab_file4])
+        # Verify access to service is granted
+        result = self.master.run_command(['kvno', '-U', 'admin',
+                                          '-k', keytab_file,
+                                          '-P', hostservice_name4,
+                                          service_name4],
+                                         raiseonerr=False)
+        assert result.returncode == 0
+
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'service-remove-delegation',
+                                 service_name4, hostservice_name4])
+        # Verify access to service is not granted
+        self.master.run_command(['kinit', '-kt', keytab_file])
+        result = self.master.run_command(['kvno', '-U', 'admin',
+                                          '-k', keytab_file,
+                                          '-P', hostservice_name4,
+                                          service_name4],
+                                         raiseonerr=False)
+        assert result.returncode > 0
+
+        self.master.run_command(['ipa', 'service-del', service_name4])

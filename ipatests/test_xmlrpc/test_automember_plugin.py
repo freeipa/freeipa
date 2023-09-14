@@ -194,21 +194,15 @@ def automember_hostgroup4(request, hostgroup4):
 
 
 @pytest.mark.tier1
-class TestNonexistentAutomember(XMLRPC_test):
+class TestAutomemberAddNegative(XMLRPC_test):
+    """Test the ipa automember-add command."""
+
     def test_create_with_nonexistent_group(self, automember_group, group1):
         """ Try to add a rule with non-existent group """
         group1.ensure_missing()
         command = automember_group.make_create_command()
         with raises_exact(errors.NotFound(
                 reason=u'group "%s" not found' % group1.cn)):
-            command()
-
-    def test_delete_with_nonexistent_group(self, automember_group, group1):
-        """ Try to delete a rule with non-existent group """
-        group1.ensure_missing()
-        command = automember_group.make_delete_command()
-        with raises_exact(errors.NotFound(
-                reason=u'%s: Automember rule not found' % group1.cn)):
             command()
 
     def test_create_with_nonexistent_hostgroup(self, automember_hostgroup,
@@ -220,13 +214,116 @@ class TestNonexistentAutomember(XMLRPC_test):
                 reason=u'hostgroup "%s" not found' % hostgroup1.cn)):
             command()
 
-    def test_delete_with_nonexistent_hostgroup(self, automember_hostgroup,
-                                               hostgroup1):
-        """ Try to delete a rule with non-existent group """
-        hostgroup1.ensure_missing()
-        command = automember_hostgroup.make_delete_command()
-        with raises_exact(errors.NotFound(
-                reason=u'%s: Automember rule not found' % hostgroup1.cn)):
+    @pytest.mark.parametrize(
+        "automember_grp", [
+            "automember_group",
+            "automember_hostgroup"
+        ])
+    def test_delete_with_nonexistent_automember(self, automember_grp,
+                                                request):
+        """ Try to delete a rule a non-existent rule"""
+        automember_grp = request.getfixturevalue(automember_grp)
+        automember_grp.ensure_missing()
+        command = automember_grp.make_delete_command()
+        with pytest.raises(errors.NotFound,
+                           match=r'%s: Automember rule not found'
+                                 % automember_grp.cn):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_create_with_existent_group(self, automember_grp, grp, request):
+        """ Try to add a rule that already exists """
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_create_command()
+        with pytest.raises(errors.DuplicateEntry,
+                           match=r'Automember rule with name "%s" '
+                                 r'already exists' % grp.cn):
+            command()
+
+
+class TestAutomemberFindNegative(XMLRPC_test):
+    """Test the ipa automember-find command."""
+
+    @pytest.mark.parametrize(
+        "automember_grp", [
+            "automember_group",
+            "automember_hostgroup"
+        ])
+    def test_find_with_nonexistent_automember(self, automember_grp,
+                                              request):
+        """ Try to find a rule a non-existent rule """
+        automember_grp = request.getfixturevalue(automember_grp)
+        automember_grp.ensure_missing()
+        command = automember_grp.make_find_command()
+        result = command()
+        assert_deepequal(dict(
+            count=0,
+            truncated=False,
+            summary=u'0 rules matched',
+            result=[],
+        ), result)
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_find_with_invalidtype(self, automember_grp, grp, request):
+        """ Try to find rule with invalid type """
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_command('automember_find', grp.name,
+                                              type='badtype')
+        with pytest.raises(errors.ValidationError,
+                           match=r'invalid \'type\': must be one '
+                                 r'of \'group\', \'hostgroup\''):
+            command()
+
+
+class TestAutomemberShowNegative(XMLRPC_test):
+    """Test the ipa automember-show command."""
+
+    @pytest.mark.parametrize(
+        "automember_grp", [
+            "automember_group",
+            "automember_hostgroup"
+        ])
+    def test_show_with_nonexistent_automember(self, automember_grp,
+                                              request):
+        """ Try to show a non-existent rule """
+        automember_grp = request.getfixturevalue(automember_grp)
+        automember_grp.ensure_missing()
+        command = automember_grp.make_retrieve_command()
+        with pytest.raises(errors.NotFound,
+                           match=r'%s: Automember rule not found'
+                                 % automember_grp.cn):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_show_with_invalidtype_group(self, automember_grp, grp, request):
+        """ Try to show a rule with invalid type """
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_command('automember_show', grp.name,
+                                              type='badtype')
+        with pytest.raises(errors.ValidationError,
+                           match=r'invalid \'type\': must be one '
+                                 r'of \'group\', \'hostgroup\''):
             command()
 
 
@@ -380,7 +477,6 @@ class TestAutomemberRebuildHostMembership(XMLRPC_test):
             hostgroup1.remove_member(dict(host=host1.fqdn))
         assert "extra keys = ['member_host']" in str(error.value)
 
-
     def test_rebuild_membership_for_host(self, host1, automember_hostgroup,
                                          hostgroup1):
         """ Rebuild automember membership for one host, both synchronously and
@@ -404,6 +500,80 @@ class TestAutomemberRebuildHostMembership(XMLRPC_test):
         host1.delete()
         hostgroup1.delete()
         automember_hostgroup.delete()
+
+
+class TestAutomemberModifyNegative(XMLRPC_test):
+    """Test the ipa automember-mod command."""
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_modify_with_same_value(self, automember_grp, grp, request):
+        """ Try to modify an existing rule with the same value """
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_update_command(updates=dict(
+            description='%s' % automember_grp.description))
+        with pytest.raises(errors.EmptyModlist,
+                           match=r"no modifications to be performed"):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp", [
+            "automember_group",
+            "automember_hostgroup"
+        ])
+    def test_modify_with_nonexistent_automember(self, automember_grp,
+                                                request):
+        """ Try to modify a non-existent rule """
+        automember_grp = request.getfixturevalue(automember_grp)
+        automember_grp.ensure_missing()
+        command = automember_grp.make_update_command(updates=dict(
+            description='WEB_SERVERS'))
+        with pytest.raises(errors.NotFound,
+                           match=r'%s: Automember rule not found' %
+                                 automember_grp.cn):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_modify_with_invalidtype_group(self, automember_grp, grp, request):
+        """ Try to modify rule with invalid type """
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_command('automember_mod', grp.name,
+                                              type='badtype',
+                                              description='WEB_SERVERS')
+        with pytest.raises(errors.ValidationError,
+                           match=r'invalid \'type\': must be one '
+                                 r'of \'group\', \'hostgroup\''):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_modify_with_group_badattr(self, automember_grp, grp, request):
+        "Try to modify rule with invalid attribute"
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_update_command(updates=dict(
+            badattr='WEB_SERVERS'))
+        with raises_exact(errors.OptionError(
+                ('Unknown option: %(option)s'), option='badattr')):
+            command()
 
 
 @pytest.mark.tier1
@@ -460,7 +630,6 @@ class TestAutomemberRebuildGroupMembership(XMLRPC_test):
         with pytest.raises(AssertionError) as error:
             group1.remove_member(dict(user=user1.name))
         assert "extra keys = ['member_user']" in str(error.value)
-
 
     def test_rebuild_membership_for_user(self, user1, automember_group,
                                          group1):
@@ -526,6 +695,437 @@ class TestAutomemberRebuildMembershipIncorrectly(XMLRPC_test):
         with raises_exact(errors.MutuallyExclusiveError(
                 reason=u"hosts cannot be set when type is 'group'")):
             command()
+
+
+class TestAutomemberAddConditionNegative(XMLRPC_test):
+    """Test the ipa automember-add-condition command."""
+
+    @pytest.mark.parametrize(
+        "automember_grp", [
+            "automember_group",
+            "automember_hostgroup"
+        ])
+    def test_create_inclusive_with_nonexistent_automember(
+            self, automember_grp, request):
+        automember_grp = request.getfixturevalue(automember_grp)
+        automember_grp.ensure_missing()
+        command = automember_grp.make_add_condition_command(
+            key=u'manager', type=automember_grp.membertype,
+            automemberinclusiveregex="eng[0-9]+.example.com")
+        with pytest.raises(errors.NotFound,
+                           match=r'Auto member rule: %s not found'
+                                 % automember_grp.cn):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp", [
+            "automember_group",
+            "automember_hostgroup"
+        ])
+    def test_create_exclusive_with_nonexistent_automember(
+            self, automember_grp, request):
+        automember_grp = request.getfixturevalue(automember_grp)
+        automember_grp.ensure_missing()
+        command = automember_grp.make_add_condition_command(
+            key=u'manager', type=automember_grp.membertype,
+            automemberexclusiveregex="qa[0-9]+.example.com")
+        with pytest.raises(errors.NotFound,
+                           match=r'Auto member rule: %s not found'
+                                 % automember_grp.cn):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_create_inclusive_with_existent_automember(
+            self, automember_grp, grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        automember_grp.add_condition(key=u'manager',
+                                     type=automember_grp.membertype,
+                                     inclusiveregex=[group_include_regex])
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_create_exclusive_with_existent_automember(
+            self, automember_grp, grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        automember_grp.add_condition_exclusive(
+            key=u'manager', type=automember_grp.membertype,
+            exclusiveregex=[u'mjohn'])
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_create_inclusive_with_group_invalidtype(self, automember_grp,
+                                                     grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_add_condition_command(
+            key=u'manager', type='badtype',
+            automemberinclusiveregex=[u'mjohn'])
+        with pytest.raises(errors.ValidationError,
+                           match=r'invalid \'type\': must be one '
+                                 r'of \'group\', \'hostgroup\''):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_create_exclusive_with_group_invalidtype(self, automember_grp,
+                                                     grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_add_condition_command(
+            key=u'fqdn', type='badtype',
+            automemberexclusiveregex="eng[0-9]+.example.com")
+        with pytest.raises(errors.ValidationError,
+                           match=r'invalid \'type\': must be one '
+                                 r'of \'group\', \'hostgroup\''):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_create_inclusive_with_group_invalidkey(self, automember_grp,
+                                                    grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_add_condition_command(
+            key='badkey', type=automember_grp.membertype,
+            automemberinclusiveregex=[group_include_regex])
+        with pytest.raises(errors.NotFound,
+                           match=r'badkey is not a valid attribute.'):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_create_exclusive_with_group_invalidkey(self, automember_grp,
+                                                    grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_add_condition_command(
+            key='badkey', type=automember_grp.membertype,
+            automemberexclusiveregex=[group_include_regex])
+        with pytest.raises(errors.NotFound,
+                           match=r'badkey is not a valid attribute.'):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_create_inclusive_with_group_badregextype(
+            self, automember_grp, grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_add_condition_command(
+            key='manager', type=automember_grp.membertype,
+            badregextype_regex=[group_include_regex])
+        with raises_exact(errors.OptionError(
+                ('Unknown option: %(option)s'), option='badregextype_regex')):
+            command()
+
+
+class TestAutomemberRemoveCondition(XMLRPC_test):
+    """Test the ipa automember-remove-condition command."""
+
+    @pytest.mark.parametrize(
+        "automember_grp", [
+            "automember_group",
+            "automember_hostgroup"
+        ])
+    def test_remove_inclusive_with_nonexistent_automember(
+            self, automember_grp, request):
+        """Test automember-remove-condition RULE when RULE does not exist."""
+        automember_grp = request.getfixturevalue(automember_grp)
+        automember_grp.ensure_missing()
+        command = automember_grp.make_remove_condition_command(
+            key=u'manager', type=automember_grp.membertype,
+            automemberinclusiveregex="eng[0-9]+.example.com")
+        with pytest.raises(errors.NotFound,
+                           match=r'Auto member rule: %s not found'
+                                 % automember_grp.cn):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_remove_inclusive_with_group_invalidtype(self, automember_grp,
+                                                     grp, request):
+        """Test automember-remove-condition RULE --type TYPE with invalid
+        TYPE."""
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_remove_condition_command(
+            key=u'manager', type='badtype',
+            automemberinclusiveregex=[u'mjohn'])
+        with pytest.raises(errors.ValidationError,
+                           match=r'invalid \'type\': must be one '
+                                 r'of \'group\', \'hostgroup\''):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_remove_inclusive_with_group_badregextype(
+            self, automember_grp, grp, request):
+        """Test automember-remove-condition RULE with invalid regextype."""
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_remove_condition_command(
+            key='manager', type=automember_grp.membertype,
+            badregextype_regex=[group_include_regex])
+        with raises_exact(errors.OptionError(
+                ('Unknown option: %(option)s'), option='badregextype_regex')):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_remove_inclusive_with_group_invalidkey(
+            self, automember_grp, grp, request):
+        """Test automember-remove-condition RULE --key KEY with invalid KEY."""
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        automember_grp.add_condition(key=u'manager',
+                                     type=automember_grp.membertype,
+                                     inclusiveregex=[group_include_regex])
+        command = automember_grp.make_remove_condition_command(
+            key='badkey', type=automember_grp.membertype,
+            automemberinclusiveregex=[group_include_regex])
+        result = command()
+
+        expected = dict(
+            value=automember_grp.cn,
+            summary=u'Removed condition(s) from "%s"' % automember_grp.cn,
+            completed=0,
+            failed=dict(
+                failed=dict(
+                    automemberexclusiveregex=tuple(),
+                    automemberinclusiveregex=(u'badkey=%s' %
+                                              group_include_regex,),
+                )
+            ),
+            result=dict(
+                automemberinclusiveregex=[u'manager=%s' %
+                                          group_include_regex],
+            ),
+        )
+        assert_deepequal(expected, result)
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_remove_inclusive_with_group_badregex(
+            self, automember_grp, grp, request):
+        """Test automember-remove-condition RULE with invalid regex."""
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_remove_condition_command(
+            key='manager', type=automember_grp.membertype,
+            automemberinclusiveregex=[u'badmscott'])
+        result = command()
+
+        expected = dict(
+            value=automember_grp.cn,
+            summary=u'Removed condition(s) from "%s"' % automember_grp.cn,
+            completed=0,
+            failed=dict(
+                failed=dict(
+                    automemberexclusiveregex=tuple(),
+                    automemberinclusiveregex=(u'manager=badmscott',),
+                )
+            ),
+            result=dict(
+                automemberinclusiveregex=[u'manager=%s' %
+                                          group_include_regex],
+            ),
+        )
+        assert_deepequal(expected, result)
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_positive_remove_inclusive(
+            self, automember_grp, grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_remove_condition_command(
+            key='manager', type=automember_grp.membertype,
+            automemberinclusiveregex=[u'mjohn'])
+        command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_remove_exclusive_with_group_invalidtype(self, automember_grp,
+                                                     grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_remove_condition_command(
+            key=u'fqdn', type='badtype',
+            automemberexclusiveregex="eng[0-9]+.example.com")
+        with pytest.raises(errors.ValidationError,
+                           match=r'invalid \'type\': must be one '
+                                 r'of \'group\', \'hostgroup\''):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp", [
+            "automember_group",
+            "automember_hostgroup"
+        ])
+    def test_remove_exclusive_with_nonexistent_automember(
+            self, automember_grp, request):
+        automember_grp = request.getfixturevalue(automember_grp)
+        automember_grp.ensure_missing()
+        command = automember_grp.make_remove_condition_command(
+            key=u'manager', type=automember_grp.membertype,
+            automemberexclusiveregex="qa[0-9]+.example.com")
+        with pytest.raises(errors.NotFound,
+                           match=r'Auto member rule: %s not found'
+                                 % automember_grp.cn):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_remove_exclusive_with_group_badregextype(
+            self, automember_grp, grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_remove_condition_command(
+            key='manager', type=automember_grp.membertype,
+            badregextype_regex="qa[0-9]+.example.com")
+        with raises_exact(errors.OptionError(
+                ('Unknown option: %(option)s'), option='badregextype_regex')):
+            command()
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_remove_exclusive_with_group_invalidkey(
+            self, automember_grp, grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        automember_grp.add_condition_exclusive(key=u'manager',
+                                               type=automember_grp.membertype,
+                                               exclusiveregex=[u'mjohn'])
+        command = automember_grp.make_remove_condition_command(
+            key='badkey', type=automember_grp.membertype,
+            automemberexclusiveregex=[u'mjohn'])
+        result = command()
+
+        expected = dict(
+            value=automember_grp.cn,
+            summary=u'Removed condition(s) from "%s"' % automember_grp.cn,
+            completed=0,
+            failed=dict(
+                failed=dict(
+                    automemberexclusiveregex=(u'badkey=mjohn',),
+                    automemberinclusiveregex=tuple(),
+                )
+            ),
+            result=dict(
+                automemberexclusiveregex=[u'manager=mjohn'],
+            ),
+        )
+        assert_deepequal(expected, result)
+
+    @pytest.mark.parametrize(
+        "automember_grp, grp", [
+            ("automember_group", "group1"),
+            ("automember_hostgroup", "hostgroup1")
+        ])
+    def test_remove_exclusive_with_group_badregex(
+            self, automember_grp, grp, request):
+        grp = request.getfixturevalue(grp)
+        automember_grp = request.getfixturevalue(automember_grp)
+        grp.ensure_exists()
+        automember_grp.ensure_exists()
+        command = automember_grp.make_remove_condition_command(
+            key='manager', type=automember_grp.membertype,
+            automemberexclusiveregex=[u'badmjohn'])
+        result = command()
+
+        expected = dict(
+            value=automember_grp.cn,
+            summary=u'Removed condition(s) from "%s"' % automember_grp.cn,
+            completed=0,
+            failed=dict(
+                failed=dict(
+                    automemberinclusiveregex=tuple(),
+                    automemberexclusiveregex=(u'manager=badmjohn',),
+                )
+            ),
+            result=dict(
+                automemberexclusiveregex=[u'manager=mjohn'],
+            ),
+        )
+        assert_deepequal(expected, result)
 
 
 @pytest.mark.tier1

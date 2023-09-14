@@ -132,6 +132,8 @@ def uninstall_check(options):
 
     if result.returncode not in [0, 4]:
         try:
+            logger.info(
+                "Starting services to unregister KRA from security domain")
             ipautil.run([paths.IPACTL, 'start'])
         except Exception:
             logger.info("Re-starting IPA failed, continuing uninstall")

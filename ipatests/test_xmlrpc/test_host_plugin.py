@@ -618,13 +618,13 @@ class TestProtectedMaster(XMLRPC_test):
     def test_add_non_master_with_auth_ind(self, host5):
         host5.ensure_missing()
         command = host5.make_command(
-            'host_add', host5.fqdn, krbprincipalauthind=['radius'],
+            'host_add', host5.fqdn, krbprincipalauthind=['radius', 'passkey'],
             force=True
         )
         result = command()
         # The fact that the command succeeds exercises the change but
         # let's check the indicator as well.
-        assert result['result']['krbprincipalauthind'] == ('radius',)
+        assert result['result']['krbprincipalauthind'] == ('radius', 'passkey')
 
 
 @pytest.mark.tier1

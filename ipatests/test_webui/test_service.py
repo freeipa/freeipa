@@ -296,6 +296,7 @@ class test_service(sevice_tasks):
         cert_widget_sel = "div.certificate-widget"
 
         self.add_record(ENTITY, data)
+        self.close_notifications()
         self.navigate_to_record(pkey)
 
         # check whether certificate section is present

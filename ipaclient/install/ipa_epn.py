@@ -33,7 +33,7 @@ import ssl
 import time
 
 from collections import deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from email.utils import formataddr, formatdate
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -64,6 +64,7 @@ EPN_CONFIG = {
     "smtp_admin": "root@localhost",
     "smtp_delay": None,
     "mail_from": None,
+    "mail_from_name": "IPA-EPN",
     "notify_ttls": "28,14,7,3,1",
     "msg_charset": "utf8",
     "msg_subtype": "plain",
@@ -85,7 +86,7 @@ def drop_privileges(new_username="daemon", new_groupname="daemon"):
         os.setuid(grp.getgrnam(new_groupname).gr_gid)
 
         if os.getuid() == 0:
-            raise Exception()
+            raise errors.RequiresRoot("Cannot drop privileges!")
 
         logger.debug(
             "Dropped privileges to user=%s, group=%s",
@@ -336,7 +337,7 @@ class EPN(admintool.AdminTool):
            of days in the future.
            If only nbdays_end is specified, the range is 1d long.
         """
-        now = datetime.utcnow()
+        now = datetime.now(tz=UTC)
         today_at_midnight = datetime.combine(now, datetime.min.time())
         range_end = today_at_midnight + timedelta(days=nbdays_end)
         if nbdays_start is not None:
@@ -397,7 +398,7 @@ class EPN(admintool.AdminTool):
         """
         if api.env.smtp_security.lower() not in ("none", "starttls", "ssl"):
             raise RuntimeError(
-                "smtp_security must be one of: " "none, starttls or ssl"
+                "smtp_security must be one of: none, starttls or ssl"
             )
         if api.env.smtp_user is not None and api.env.smtp_password is None:
             raise RuntimeError("smtp_user set and smtp_password is not")
@@ -565,11 +566,12 @@ class EPN(admintool.AdminTool):
                     mail_body=body,
                     subscribers=ast.literal_eval(entry["mail"]),
                     mail_from=mail_from,
+                    mail_from_name=api.env.mail_from_name,
                 )
-                now = datetime.utcnow()
+                now = datetime.now(tz=UTC)
                 expdate = datetime.strptime(
                     entry["krbpasswordexpiration"],
-                    '%Y-%m-%d %H:%M:%S')
+                    '%Y-%m-%d %H:%M:%S').replace(tzinfo=UTC)
                 logger.debug(
                     "Notified %s (%s). Password expiring in %d days at %s.",
                     entry["mail"], entry["uid"], (expdate - now).days,
@@ -581,7 +583,7 @@ class EPN(admintool.AdminTool):
     def _gentestdata(self):
         """Generate a sample user to process through the template.
         """
-        expdate = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        expdate = datetime.now(tz=UTC).strftime('%Y-%m-%d %H:%M:%S')
         entry = dict(
             uid=["SAUSER"],
             cn=["SAMPLE USER"],
@@ -799,12 +801,13 @@ class MailUserAgent:
 
     def send_message(
         self, mail_subject=None, mail_body=None, subscribers=None,
-        mail_from=None
+        mail_from=None, mail_from_name=None
     ):
         """Given mail_subject, mail_body, and subscribers, composes
            the message and sends it.
         """
-        if None in [mail_subject, mail_body, subscribers, mail_from]:
+        if None in [mail_subject, mail_body, subscribers,
+                    mail_from, mail_from_name]:
             logger.error("IPA-EPN: Tried to send an empty message.")
             return False
         self._compose_message(
@@ -812,6 +815,7 @@ class MailUserAgent:
             mail_body=mail_body,
             subscribers=subscribers,
             mail_from=mail_from,
+            mail_from_name=mail_from_name,
         )
         self._mta_client.send_message(
             message_str=self._message_str, subscribers=subscribers
@@ -819,7 +823,8 @@ class MailUserAgent:
         return True
 
     def _compose_message(
-        self, mail_subject, mail_body, subscribers, mail_from
+        self, mail_subject, mail_body, subscribers,
+        mail_from, mail_from_name
     ):
         """The composer creates a MIME multipart message.
         """
@@ -829,7 +834,7 @@ class MailUserAgent:
         self._subscribers = subscribers
 
         self._msg = MIMEMultipart(_charset=self._charset)
-        self._msg["From"] = formataddr(("IPA-EPN", mail_from))
+        self._msg["From"] = formataddr((mail_from_name, mail_from))
         self._msg["To"] = ", ".join(self._subscribers)
         self._msg["Date"] = formatdate(localtime=True)
         self._msg["Subject"] = Header(self._subject, self._charset)

@@ -19,6 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipaclient.frontend import MethodOverride
+from ipaclient.plugins.baseuser import baseuser_add_passkey
 from ipalib import errors
 from ipalib import Flag
 from ipalib import util
@@ -79,3 +80,8 @@ class user_show(MethodOverride):
                 raise errors.NoCertificateError(entry=keys[-1])
         else:
             return super(user_show, self).forward(*keys, **options)
+
+
+@register(override=True, no_fail=True)
+class user_add_passkey(baseuser_add_passkey):
+    __doc__ = _("Add one or more passkey mappings to the user entry.")

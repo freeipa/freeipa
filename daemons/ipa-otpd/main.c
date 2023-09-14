@@ -88,6 +88,80 @@ void otpd_log_err_(const char * const file, int line, krb5_error_code code,
     fprintf(stderr, "\n");
 }
 
+#define min(a,b) ((a) > (b) ? (b) : (a))
+int add_krad_attr_to_set(krad_packet *req, krad_attrset *attrset,
+                         krb5_data *datap, krad_attr attr, const char *message)
+{
+    krb5_data state = {0};
+    char *p = datap->data;
+    unsigned int len = datap->length;
+    int ret = 0;
+
+    do {
+        state.data = p;
+        state.length = min(MAX_ATTRSIZE - 5, len);
+        p += state.length;
+
+        ret = krad_attrset_add(attrset, attr, &(state));
+        if (ret != 0) {
+            otpd_log_req(req, message);
+            break;
+        }
+        len -= state.length;
+    } while (len > 0);
+
+    return ret;
+}
+
+/* Most attributes have limited length (MAX_ATTRSIZE). In order to accept longer
+ * values, we will concatenate all the attribute values to single krb5_data. */
+int get_krad_attr_from_packet(const krad_packet *rres,
+                              krad_attr attr, krb5_data *_data)
+{
+    const krb5_data *rmsg;
+    krb5_data data = {0};
+    unsigned int memindex;
+    unsigned int i;
+
+    i = 0;
+    do {
+        rmsg = krad_packet_get_attr(rres, attr, i);
+        if (rmsg != NULL) {
+            data.length += rmsg->length;
+        }
+        i++;
+    } while (rmsg != NULL);
+
+    if (data.length == 0) {
+        return ENOENT;
+    }
+
+    data.data = malloc(data.length);
+    if (data.data == NULL) {
+        return ENOMEM;
+    }
+
+    i = 0;
+    memindex = 0;
+    do {
+        rmsg = krad_packet_get_attr(rres, attr, i);
+        if (rmsg != NULL) {
+            memcpy(&data.data[memindex], rmsg->data, rmsg->length);
+            memindex += rmsg->length;
+        }
+        i++;
+    } while (rmsg != NULL);
+
+    if (memindex != data.length) {
+        free(data.data);
+        return ERANGE;
+    }
+
+    *_data = data;
+
+    return 0;
+}
+
 static void on_ldap_free(verto_ctx *vctx, verto_ev *ev)
 {
     (void)vctx; /* Unused */

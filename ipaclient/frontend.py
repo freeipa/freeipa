@@ -126,25 +126,25 @@ class CommandOverride(Command):
         return api.get_plugin_next(cls)
 
     @classmethod
-    def __doc_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __doc_getter(cls):
         return cls.__get_next().doc
 
     doc = classproperty(__doc_getter)
 
     @classmethod
-    def __summary_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __summary_getter(cls):
         return cls.__get_next().summary
 
     summary = classproperty(__summary_getter)
 
     @classmethod
-    def __NO_CLI_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __NO_CLI_getter(cls):
         return cls.__get_next().NO_CLI
 
     NO_CLI = classproperty(__NO_CLI_getter)
 
     @classmethod
-    def __topic_getter(cls):  # pylint: disable=unused-private-member, #4756
+    def __topic_getter(cls):
         return cls.__get_next().topic
 
     topic = classproperty(__topic_getter)

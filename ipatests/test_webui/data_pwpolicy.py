@@ -70,6 +70,7 @@ DATA_RESET = {
         ('textbox', 'krbpwdfailurecountinterval', '4'),
         ('textbox', 'krbpwdlockoutduration', '4200'),
         ('textbox', 'cospriority', '38'),
+        ('textbox', 'passwordgracelimit', '42'),
     ],
 }
 
@@ -88,5 +89,26 @@ DATA7 = {
     'add': [
         ('combobox', 'cn', group.PKEY4),
         ('textbox', 'cospriority', '4'),
+    ],
+}
+
+PKEY8 = group.PKEY
+DATA8 = {
+    'pkey': PKEY8,
+    'add': [
+        ('combobox', 'cn', PKEY8),
+        ('textbox', 'cospriority', '364'),
+    ],
+    'mod': [
+        ('textbox', 'krbmaxpwdlife', '3000'),
+        ('textbox', 'krbminpwdlife', '1'),
+        ('textbox', 'krbpwdhistorylength', '0'),
+        ('textbox', 'krbpwdmindiffchars', '2'),
+        ('textbox', 'krbpwdminlength', '2'),
+        ('textbox', 'krbpwdmaxfailure', '15'),
+        ('textbox', 'krbpwdfailurecountinterval', '5'),
+        ('textbox', 'krbpwdlockoutduration', '3600'),
+        ('textbox', 'cospriority', '364'),
+        ('textbox', 'passwordgracelimit', '42'),
     ],
 }

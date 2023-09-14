@@ -7,4 +7,4 @@ EnvironmentFile=@sysconfdir@/ipa/default.conf
 ExecStart=@libexecdir@/ipa/ipa-otpd $ldap_uri
 StandardInput=socket
 StandardOutput=socket
-StandardError=syslog
+StandardError=journal

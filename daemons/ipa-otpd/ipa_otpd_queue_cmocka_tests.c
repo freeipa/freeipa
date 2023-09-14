@@ -59,6 +59,12 @@ static void free_elts(struct otpd_queue *q)
 #define otpd_queue_item_free free_elt
 #define otpd_queue_free_items free_elts
 
+void free_otpd_queue_item_passkey(struct otpd_queue_item *item)
+{
+    (void)item; /* Unused */
+    return;
+}
+
 static void assert_elt_equal(struct otpd_queue_item *e1,
                              struct otpd_queue_item *e2)
 {
@@ -69,7 +75,7 @@ static void assert_elt_equal(struct otpd_queue_item *e1,
     assert_int_equal(e1->msgid, e2->msgid);
 }
 
-static void test_single_insert()
+static void test_single_insert(void **state)
 {
     struct otpd_queue q = { NULL };
     struct otpd_queue_item *ein, *eout;
@@ -90,7 +96,7 @@ static void test_single_insert()
     free_elts(&q);
 }
 
-static void test_jump_insert()
+static void test_jump_insert(void **state)
 {
     struct otpd_queue q = { NULL };
     struct otpd_queue_item *echeck;
@@ -106,7 +112,7 @@ static void test_jump_insert()
     free_elts(&q);
 }
 
-static void test_garbage_insert()
+static void test_garbage_insert(void **state)
 {
     struct otpd_queue q = { NULL };
     struct otpd_queue_item *e, *g;
@@ -121,7 +127,7 @@ static void test_garbage_insert()
     free_elts(&q);
 }
 
-static void test_removal()
+static void test_removal(void **state)
 {
     struct otpd_queue q = { NULL };
 
@@ -149,7 +155,7 @@ static void pick_id(struct otpd_queue *q, int msgid)
     e = otpd_queue_pop_msgid(q, msgid);
     assert_ptr_equal(e, NULL);
 }
-static void test_pick_removal()
+static void test_pick_removal(void **state)
 {
     struct otpd_queue q = { NULL };
 
@@ -166,7 +172,7 @@ static void test_pick_removal()
     free_elts(&q);
 }
 
-static void test_iter()
+static void test_iter(void **state)
 {
     krb5_error_code ret;
     struct otpd_queue q = { NULL };

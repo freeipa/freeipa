@@ -8,6 +8,8 @@ PKEY = 'itest-user'
 PASSWD_ITEST_USER = '12345678'
 PASSWD_ITEST_USER_NEW = '87654321'
 
+ROOT_PKEY = 'root'
+
 # used for add/delete fixture test user
 DATA_ITEST_USER = {
     'pkey': PKEY,

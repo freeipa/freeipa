@@ -11,8 +11,10 @@ FreeIPA design documentation
    adtrust/sudorules-with-ad-objects.md
    adtrust/auto-private-groups.md
    adtrust/sidconfig.md
+   hsm.md
    krb-ticket-policy.md
    extdom-plugin-protocol.md
+   expired_certificate_pruning.md
    expiring-password-notification.md
    ldap_grace_period.md
    ldap_pam_passthrough.md
@@ -26,3 +28,7 @@ FreeIPA design documentation
    external-idp/external-idp.md
    external-idp/idp-api.md
    random-serial-numbers.md
+   client-install-pkinit.md
+   passkeys.md
+   prci_checker.md
+   rbcd.md

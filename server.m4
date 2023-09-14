@@ -88,7 +88,16 @@ dnl ---------------------------------------------------------------------------
 AC_CHECK_HEADER(kdb.h, [], [AC_MSG_ERROR([kdb.h not found])])
 AC_CHECK_MEMBER([kdb_vftabl.issue_pac],
                 [have_kdb_issue_pac=yes],
-                [have_kdb_issue_pac=no])
+                [have_kdb_issue_pac=no], [#include <kdb.h>])
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for KRB5 krb5_kdc_sign_ticket function
+dnl ---------------------------------------------------------------------------
+
+AC_CHECK_LIB(krb5, krb5_pac_full_sign_compat,
+             [AC_DEFINE([HAVE_KRB5_PAC_FULL_SIGN_COMPAT], [1],
+                        [krb5_pac_full_sign_compat() is available.])],
+             [AC_MSG_NOTICE([krb5_pac_full_sign_compat() is not available])])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for UUID library

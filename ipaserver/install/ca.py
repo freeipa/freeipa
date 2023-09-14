@@ -169,6 +169,24 @@ def print_ca_configuration(options):
 
 
 def uninstall_check(options):
+    """IPA needs to be running so pkidestroy can unregister CA"""
+    ca = cainstance.CAInstance(api.env.realm)
+    if not ca.is_installed():
+        return
+
+    result = ipautil.run([paths.IPACTL, 'status'],
+                         raiseonerr=False)
+
+    if result.returncode not in [0, 4]:
+        try:
+            logger.info(
+                "Starting services to unregister CA from security domain")
+            ipautil.run([paths.IPACTL, 'start'])
+        except Exception:
+            logger.info("Re-starting IPA failed, continuing uninstall")
+
+
+def uninstall_crl_check(options):
     """Check if the host is CRL generation master"""
     # Skip the checks if the host is not a CA instance
     ca = cainstance.CAInstance(api.env.realm)

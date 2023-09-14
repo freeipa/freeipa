@@ -6,23 +6,14 @@
 
     <script type="text/javascript" src="../js/libs/loader.js"></script>
     <script type="text/javascript" src="../js/libs/jquery.js"></script>
-    <script>
-        // import qunit.js only in situations it is not imported by grunt-contrib-qunit
-        // allows to run tests using grunt and using Firefox (FF needs explicit import)
-        if (window.QUnit === undefined) {
-            var s = document.createElement("script");
-            s.type = "text/javascript";
-            s.src = "qunit.js";
-            $("head script:last-of-type").before(s); // insert qunit.js import before dojo import
-        }
-    </script>
     <script type="text/javascript" src="../js/libs/jquery.ordered-map.js"></script>
     <script type="text/javascript" src="../js/libs/bootstrap.js"></script>
     <script type="text/javascript" src="config.js"></script>
-    <script class='insertBefore' type="text/javascript" src="../js/dojo/dojo.js"></script>
+    <script type="text/javascript" src="../js/dojo/dojo.js"></script>
 
     <script type="text/javascript">
         require([
+            'qunit',
             'test/ordered_map_tests',
             'test/ipa_tests',
             'test/details_tests',
@@ -36,7 +27,7 @@
             'test/build_tests',
             'test/binding_tests',
             'test/topology_tests',
-        ], function(om, ipa, details, entity, as, cert, aci, wid, ip, ut, bt, bi, topo){
+        ], function(qunit, om, ipa, details, entity, as, cert, aci, wid, ip, ut, bt, bi, topo){
             QUnit.start();
             om();
             ipa();

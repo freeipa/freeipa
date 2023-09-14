@@ -358,7 +358,7 @@ class TestEPN(IntegrationTest):
         assert epn_conf in cmd1.stdout_text
         assert epn_template in cmd1.stdout_text
         cmd2 = self.master.run_command(["sha256sum", epn_conf])
-        ck = "5e56a0f8010ff4f399b206c9e45004823bc05bf6577b34b3e701e4a2935df989"
+        ck = "06a73f15562686516c984dd9fe61689c5268ff1c5a13e69f8b347afef41b3277"
         assert cmd2.stdout_text.find(ck) == 0
 
     def test_EPN_connection_refused(self):
@@ -467,7 +467,8 @@ class TestEPN(IntegrationTest):
             extra_args=[
                 "--password-expiration",
                 datetime_to_generalized_time(
-                    datetime.datetime.utcnow() + datetime.timedelta(days=7)
+                    datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+                        days=7)
                 ),
             ],
         )
@@ -495,7 +496,8 @@ class TestEPN(IntegrationTest):
                 uid=uid,
                 days=i,
                 krbpasswordexpiration=datetime_to_generalized_time(
-                    datetime.datetime.utcnow() + datetime.timedelta(days=i)
+                    datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+                        days=i)
                 ),
             )
 
@@ -810,7 +812,8 @@ class TestEPN(IntegrationTest):
         self.master.run_command(
             ['ipa', 'user-mod', 'admin', '--password-expiration',
              datetime_to_generalized_time(
-                 datetime.datetime.utcnow() + datetime.timedelta(days=7)
+                 datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+                     days=7)
              )]
         )
         (unused, stderr_text, _unused) = self._check_epn_output(
