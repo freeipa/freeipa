@@ -106,6 +106,8 @@ corenet_tcp_connect_radius_port(ipa_otpd_t)
 
 dev_read_urand(ipa_otpd_t)
 dev_read_rand(ipa_otpd_t)
+dev_read_sysfs(ipa_otpd_t)
+dev_rw_generic_usb_dev(ipa_otpd_t)
 
 sysnet_dns_name_resolve(ipa_otpd_t)
 
