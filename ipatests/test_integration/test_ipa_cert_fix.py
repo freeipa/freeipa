@@ -408,6 +408,9 @@ class TestCertFixReplica(IntegrationTest):
         # move system date to expire certs
         for host in self.master, self.replicas[0]:
             tasks.move_date(host, 'stop', '+3years+1days')
+            host.run_command(
+                ['ipactl', 'restart', '--ignore-service-failures']
+            )
 
         yield
 
