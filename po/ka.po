@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-08-21 14:51+0200\n"
-"PO-Revision-Date: 2023-09-16 04:35+0000\n"
+"PO-Revision-Date: 2023-09-17 05:37+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.0.1\n"
+"X-Generator: Weblate 5.0.2\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -204,15 +204,11 @@ msgstr "LDAP პაროლი"
 msgid "password to use if not using kerberos"
 msgstr ""
 
-#, fuzzy
-#| msgid "LDAP password"
 msgid "Prompt for LDAP password"
-msgstr "LDAP პაროლი"
+msgstr "LDAP პაროლის კითხვა"
 
-#, fuzzy
-#| msgid "IPA CA certificate"
 msgid "Path to the IPA CA certificate"
-msgstr "IPA CA სერტიფიკატი"
+msgstr "ბილიკი IPA CA სერტიფიკატამდე"
 
 msgid "IPA CA certificate"
 msgstr "IPA CA სერტიფიკატი"
@@ -252,10 +248,8 @@ msgstr ""
 msgid "Bind password already provided (-w).\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "LDAP password"
 msgid "Enter LDAP password"
-msgstr "LDAP პაროლი"
+msgstr "შეიყვანეთ LDAP პაროლი"
 
 #, c-format
 msgid "Bind password required when using a bind DN (-w or -W).\n"
@@ -305,10 +299,8 @@ msgstr ""
 msgid "Incompatible options provided (-r and -P)\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "New Password"
 msgid "New Principal Password"
-msgstr "ახალი პაროლი"
+msgstr "ახალი პრინციპალის პაროლი"
 
 msgid "Verify Principal Password"
 msgstr ""
@@ -375,10 +367,9 @@ msgstr ""
 msgid "Failed to open keytab\n"
 msgstr "შეცდომა keytab-ის გახსნისას\n"
 
-#, fuzzy, c-format
-#| msgid "realm not found\n"
+#, c-format
 msgid "principal not found\n"
-msgstr "რეალმი არ არსებობს\n"
+msgstr "პრინციპალი ვერ ვიპოვე\n"
 
 #, c-format
 msgid "krb5_kt_get_entry %1$d: %2$s\n"
@@ -516,10 +507,9 @@ msgstr ""
 msgid "curl_easy_init() failed\n"
 msgstr ""
 
-#, fuzzy, c-format
-#| msgid "fork() failed\n"
+#, c-format
 msgid "json_dumps() failed\n"
-msgstr "fork() -ის შეცდომა\n"
+msgstr "json_dumps() ჩავარდა\n"
 
 #, c-format
 msgid ""
@@ -599,10 +589,9 @@ msgstr ""
 msgid "fork() failed\n"
 msgstr "fork() -ის შეცდომა\n"
 
-#, fuzzy, c-format
-#| msgid "realm not found\n"
+#, c-format
 msgid "ipa-getkeytab not found\n"
-msgstr "რეალმი არ არსებობს\n"
+msgstr "ipa-getkeytab ვერ ვიპოვე\n"
 
 #, c-format
 msgid "ipa-getkeytab has bad permissions?\n"
@@ -655,10 +644,8 @@ msgstr ""
 msgid "hostname"
 msgstr "ჰოსტის სახელი"
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "IPA Server to use"
-msgstr "IPA DNS სერვერები"
+msgstr "გამოსაყენებელი IPA სერვერი"
 
 msgid "Specifies where to store keytab information."
 msgstr ""
@@ -758,10 +745,8 @@ msgstr ""
 msgid "Server \"%(srv)s\" has %(n)d agreements with servers:"
 msgstr ""
 
-#, fuzzy
-#| msgid "Revoked"
 msgid "Unrevoked"
-msgstr "ამოღებული"
+msgstr "გაუქმებული"
 
 msgid "Error"
 msgstr "შეცდომა"
@@ -830,10 +815,8 @@ msgstr ""
 msgid "This may take some time, please wait ..."
 msgstr ""
 
-#, fuzzy
-#| msgid "DNS Server"
 msgid "DNS forwarder"
-msgstr "DNS სერვერი"
+msgstr "DNS გადამგზავნი"
 
 msgid "file to store DNS records in nsupdate format"
 msgstr ""
@@ -934,10 +917,8 @@ msgstr ""
 msgid "COSE type to use for registration"
 msgstr ""
 
-#, fuzzy
-#| msgid "Credentials"
 msgid "Credential type"
-msgstr "მომხმ/პაროლი"
+msgstr "ავტორიზაციის დეტალის ტიპი"
 
 #, python-format
 msgid "cannot specify both %s and passkey mapping"
@@ -968,10 +949,8 @@ msgstr "მომხმარებლის ID"
 msgid "Password"
 msgstr "პაროლი"
 
-#, fuzzy
-#| msgid "First name"
 msgid "First Code"
-msgstr "სახელი"
+msgstr "პირველი კოდი"
 
 msgid "Second Code"
 msgstr ""
@@ -1042,18 +1021,14 @@ msgstr ""
 msgid "Cannot decode file '%(filename)s': %(exc)s"
 msgstr ""
 
-#, fuzzy
-#| msgid "Credentials"
 msgid "Invalid credentials"
-msgstr "მომხმ/პაროლი"
+msgstr "არასწორი ავტორიზაციის დეტალები"
 
 msgid "Create a new vault."
 msgstr ""
 
-#, fuzzy
-#| msgid "password"
 msgid "Vault password"
-msgstr "პაროლი"
+msgstr "საცავის პაროლი"
 
 msgid "File containing the vault password"
 msgstr ""
@@ -1073,10 +1048,8 @@ msgstr ""
 msgid "Public key specified multiple times"
 msgstr ""
 
-#, fuzzy
-#| msgid "Set public key"
 msgid "Missing vault public key"
-msgstr "საჯარო გასაღების დაყენება"
+msgstr "საცავის საჯარო გასაღები ვერ ვიპოვე"
 
 #, python-format
 msgid "Invalid or unsupported vault public key: %s"
@@ -1088,10 +1061,8 @@ msgstr ""
 msgid "Change password"
 msgstr "პაროლის შეცვლა"
 
-#, fuzzy
-#| msgid "password"
 msgid "Old vault password"
-msgstr "პაროლი"
+msgstr "ძველი საცავის პაროლი"
 
 msgid "File containing the old vault password"
 msgstr ""
@@ -1114,10 +1085,8 @@ msgstr ""
 msgid "New public key specified multiple times"
 msgstr ""
 
-#, fuzzy
-#| msgid "Set public key"
 msgid "Missing new vault public key"
-msgstr "საჯარო გასაღების დაყენება"
+msgstr "ახალი საცავის საჯარო გასაღები ვერ ვიპოვე"
 
 #, python-brace-format
 msgid "{algo} is not a supported vault wrapping algorithm"
@@ -1324,10 +1293,8 @@ msgstr ""
 msgid "Member of"
 msgstr "წარმოადგენს წევრს"
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member of a group"
-msgstr "წარმოადგენს წევრს"
+msgstr "ჯგუფის წევრი"
 
 msgid "Filter"
 msgstr "ფილტრი"
@@ -1335,18 +1302,14 @@ msgstr "ფილტრი"
 msgid "Legal LDAP filter (e.g. ou=Engineering)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Subtype"
 msgid "Subtree"
-msgstr "ქვეტიპი"
+msgstr "ქვეხე"
 
 msgid "Subtree to apply ACI to"
 msgstr ""
 
-#, fuzzy
-#| msgid "Target"
 msgid "Target group"
-msgstr "სამიზნე"
+msgstr "სამიზნე ჯგუფი"
 
 msgid "Group to apply ACI to"
 msgstr ""
@@ -1555,10 +1518,8 @@ msgstr "გასაღები"
 msgid "Automount key name."
 msgstr ""
 
-#, fuzzy
-#| msgid "Confirmation"
 msgid "Mount information"
-msgstr "დასტური"
+msgstr "მიმაგრების ინფორმაცია"
 
 msgid "description"
 msgstr "აღწერა"
@@ -1591,10 +1552,8 @@ msgid ""
 "must be part of the schema."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an automount key."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ავტომატური მიმაგრების გასაღების წაშლა."
 
 msgid "Continuous mode: Don't stop on errors."
 msgstr ""
@@ -1633,10 +1592,8 @@ msgid ""
 "for details."
 msgstr ""
 
-#, fuzzy
-#| msgid "Print debugging information"
 msgid "New mount information"
-msgstr "პროგრამის გასამართი ინფორმაციის გამოტანა"
+msgstr "ახალი მიმაგრების ინფორმაცია"
 
 msgid "Rename"
 msgstr "გადარქმევა"
@@ -1781,26 +1738,20 @@ msgstr ""
 msgid "Maximum username length"
 msgstr ""
 
-#, fuzzy
-#| msgid "Home directory"
 msgid "Home directory base"
-msgstr "საწყისი საქაღალდე"
+msgstr "საწყისი საქაღალდის ბაზა"
 
 msgid "Default location of home directories"
 msgstr ""
 
-#, fuzzy
-#| msgid "Default"
 msgid "Default shell"
-msgstr "ნაგულისხმები"
+msgstr "ნაგულისხმევი გარსი"
 
 msgid "Default shell for new users"
 msgstr ""
 
-#, fuzzy
-#| msgid "User group"
 msgid "Default users group"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "ნაგულისხმევი მომხმარებლების ჯგუფი"
 
 msgid "Default group for new users"
 msgstr ""
@@ -1836,10 +1787,8 @@ msgstr ""
 msgid "Enable migration mode"
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificates"
 msgid "Certificate Subject base"
-msgstr "სერტიფიკატები"
+msgstr "სერტიფიკატის თემის ბაზა"
 
 msgid "Base for certificate subjects (OU=Test,O=Example)"
 msgstr ""
@@ -1856,34 +1805,26 @@ msgstr "ნაგულისხმები მომხმარებლი�
 msgid "Default user objectclasses (comma-separated list)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Password expiration"
 msgid "Password Expiration Notification (days)"
-msgstr "პაროლის ვადა"
+msgstr "პაროლის ვადის ამოწურვის გაფრთხილება (დღე)"
 
 msgid "Number of days's notice of impending password expiration"
 msgstr ""
 
-#, fuzzy
-#| msgid "Password expiration"
 msgid "Password plugin features"
-msgstr "პაროლის ვადა"
+msgstr "პაროლის დამატების თვისებები"
 
 msgid "Extra hashes to generate in password plug-in"
 msgstr ""
 
-#, fuzzy
-#| msgid "SELinux User"
 msgid "SELinux user map order"
-msgstr "SELinux-ის მომხმარებელი"
+msgstr "SELinux-ის მომხმარებლის რუკის მიმდევრობა"
 
 msgid "Order in increasing priority of SELinux users, delimited by $"
 msgstr ""
 
-#, fuzzy
-#| msgid "SELinux User"
 msgid "Default SELinux user"
-msgstr "SELinux-ის მომხმარებელი"
+msgstr "ნაგულისხმევი SELinux-ის მომხმარებელი"
 
 msgid "Default SELinux user when no match is found in SELinux map rule"
 msgstr ""
@@ -1935,10 +1876,8 @@ msgid ""
 "   ipa delegation-del \"managers edit employees' street\"\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Domain name"
 msgid "Delegation name"
-msgstr "დომენის სახელი"
+msgstr "დელეგაციის სახელი"
 
 msgid "Permissions to grant (read, write). Default is write."
 msgstr ""
@@ -1946,18 +1885,14 @@ msgstr ""
 msgid "Attributes to which the delegation applies"
 msgstr ""
 
-#, fuzzy
-#| msgid "User group"
 msgid "Member user group"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "წევრის მომხმარებლების ჯგუფი"
 
 msgid "User group to apply delegation to"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new delegation."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი დელეგაციის დამატება."
 
 #, fuzzy
 #| msgid "Delete a user."
@@ -22015,10 +21950,8 @@ msgstr ""
 msgid "User categories"
 msgstr "მომხმარებლის სახელები"
 
-#, fuzzy
-#| msgid "Add service"
 msgid "Add subid"
-msgstr "სერვისის დამატება"
+msgstr "ქვეID-ის დამატება"
 
 msgid "Assigned subids"
 msgstr ""
