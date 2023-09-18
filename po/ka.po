@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2023-09-18 08:59+0000\n"
+"PO-Revision-Date: 2023-09-19 10:35+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-10/ka/>\n"
@@ -13020,7 +13020,7 @@ msgid "objectclass %s not found"
 msgstr "ობიექტის კლასი %s ვერ ვიპოვე"
 
 msgid "Trusting forest"
-msgstr ""
+msgstr "ვენდობი ტყეს"
 
 msgid "Trusted forest"
 msgstr "სანდო ტყე"
@@ -14741,7 +14741,7 @@ msgid "Remove member from a named service delegation."
 msgstr ""
 
 msgid "service delegation rule"
-msgstr ""
+msgstr "სერვისის დელეგაციის წესი"
 
 msgid "service delegation rules"
 msgstr "სერვისის დელეგაციის წესები"
@@ -14770,7 +14770,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "service delegation target"
-msgstr ""
+msgstr "სერვისის დელეგაციის სამიზნე"
 
 msgid "service delegation targets"
 msgstr "სერვისის დელეგაციის სამიზნეები"
@@ -15000,10 +15000,10 @@ msgid ""
 msgstr ""
 
 msgid "sudo command group"
-msgstr ""
+msgstr "'sudo' ბრძანების ჯგუფი"
 
 msgid "sudo command groups"
-msgstr ""
+msgstr "'sudo' ბრძანების ჯგუფები"
 
 #, python-format
 msgid "Added Sudo Command Group \"%(value)s\""
@@ -17616,7 +17616,7 @@ msgstr ""
 
 #, python-format
 msgid "%i service added."
-msgstr ""
+msgstr "დაემატა %i სერვისი."
 
 #, python-format
 msgid "%i services added."
@@ -18576,7 +18576,7 @@ msgid "format must be specified as \"%(format)s\" %(rfcs)s"
 msgstr ""
 
 msgid "Create reverse"
-msgstr ""
+msgstr "უკუჩანაწერის შექმნა"
 
 #, python-format
 msgid "Cannot create reverse record for \"%(value)s\": %(exc)s"
@@ -18708,10 +18708,10 @@ msgid "DNS resource records"
 msgstr "DNS რესურსის ჩანაწერები"
 
 msgid "DNS Resource Records"
-msgstr ""
+msgstr "DNS რესურსის ჩანაწერები"
 
 msgid "DNS Resource Record"
-msgstr ""
+msgstr "DNS რესურსის ჩანაწერი"
 
 msgid "DS record must not be in zone apex (RFC 4035 section 2.4)"
 msgstr ""
