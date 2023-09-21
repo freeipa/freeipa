@@ -695,7 +695,7 @@ def get_pki_tomcatd_pid(host):
 def get_ipa_services_pids(host):
     ipa_services_name = [
         "krb5kdc", "kadmin", "named", "httpd", "ipa-custodia",
-        "pki_tomcatd", "ipa-dnskeysyncd"
+        "pki_tomcatd"
     ]
     pids_of_ipa_services = {}
     for name in ipa_services_name:
