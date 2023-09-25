@@ -123,6 +123,10 @@ static char *std_principal_obj_classes[] = {
 #define KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE "pac_privsvr_enctype"
 #endif
 
+#ifndef KRB5_KDB_SK_OPTIONAL_AD_SIGNEDPATH
+#define KRB5_KDB_SK_OPTIONAL_AD_SIGNEDPATH "optional_ad_signedpath"
+#endif
+
 static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
                                       char *attrname,
                                       krb5_tl_data **result, int *num)
@@ -1856,6 +1860,14 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
         kerr = krb5_dbe_set_string(kcontext, *entry,
                                    KRB5_KDB_SK_OPTIONAL_PAC_TKT_CHKSUM,
                                    opt_pac_tkt_chksum_val);
+        if (kerr)
+            return kerr;
+
+#if KRB5_KDB_DAL_MAJOR_VERSION <= 8
+        kerr = krb5_dbe_set_string(kcontext, *entry,
+                                   KRB5_KDB_SK_OPTIONAL_AD_SIGNEDPATH,
+                                   "true");
+#endif
     }
 
     return kerr;
