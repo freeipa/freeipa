@@ -1839,6 +1839,9 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
             kerr = krb5_dbe_set_string(kcontext, *entry,
                                        KRB5_KDB_SK_PAC_PRIVSVR_ENCTYPE,
                                        "aes256-sha1");
+            if (kerr)
+                return kerr;
+
         }
 
         /* We should have been initialized at this point already */
