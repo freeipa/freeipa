@@ -494,7 +494,7 @@ init_with_password(const char *name, const char *password)
 
 done:
     if (service_creds != GSS_C_NO_CREDENTIAL)
-        gss_release_cred(&min, &client_creds);
+        gss_release_cred(&min, &service_creds);
 
     if (client_creds != GSS_C_NO_CREDENTIAL)
         gss_release_cred(&min, &client_creds);
