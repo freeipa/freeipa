@@ -1639,12 +1639,18 @@ class TestIpaHealthCheckWithoutDNS(IntegrationTest):
                 "Got {count} ipa-ca AAAA records, expected {expected}",
                 "Expected URI record missing",
             }
-        else:
+        elif (parse_version(version) < parse_version('0.13')):
             expected_msgs = {
                 "Expected SRV record missing",
                 "Unexpected ipa-ca address {ipaddr}",
                 "expected ipa-ca to contain {ipaddr} for {server}",
                 "Expected URI record missing",
+            }
+        else:
+            expected_msgs = {
+                "Expected SRV record missing",
+                "Expected URI record missing",
+                "missing IP address for ipa-ca server {server}",
             }
 
         tasks.install_packages(self.master, HEALTHCHECK_PKG)
