@@ -2412,12 +2412,19 @@ class TestIpaHealthCLI(IntegrationTest):
             cmd = self.base_cmd + ["--indent", option]
             result = self.master.run_command(cmd, raiseonerr=False)
             assert result.returncode == 2
-            assert 'invalid int value' in result.stderr_text
+            assert ('invalid int value' in result.stderr_text
+                    or 'is not an integer' in result.stderr_text)
 
-        # unusual success, arguably odd but not invalid :-)
+        version = tasks.get_healthcheck_version(self.master)
         for option in ('-1', '5000'):
             cmd = self.base_cmd + ["--indent", option]
-            result = self.master.run_command(cmd)
+            result = self.master.run_command(cmd, raiseonerr=False)
+            if parse_version(version) >= parse_version('0.13'):
+                assert result.returncode == 2
+                assert 'is not in the range 0-32' in result.stderr_text
+            else:
+                # Older versions did not check for a given allowed range
+                assert result.returncode == 0
 
     def test_severity(self):
         """
