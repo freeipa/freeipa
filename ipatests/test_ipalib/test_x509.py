@@ -234,8 +234,10 @@ class test_x509:
         # Verify certificate contents. This exercises python-cryptography
         # more than anything but confirms our usage of it.
 
-        not_before = datetime.datetime(2010, 6, 25, 13, 0, 42, 0, datetime.UTC)
-        not_after = datetime.datetime(2015, 6, 25, 13, 0, 42, 0, datetime.UTC)
+        not_before = datetime.datetime(2010, 6, 25, 13, 0, 42, 0,
+                                       datetime.timezone.utc)
+        not_after = datetime.datetime(2015, 6, 25, 13, 0, 42, 0,
+                                      datetime.timezone.utc)
         cert = x509.load_pem_x509_certificate(goodcert_headers)
 
         assert DN(cert.subject) == DN(('CN', 'ipa.example.com'), ('O', 'IPA'))
@@ -279,8 +281,10 @@ class test_x509:
         assert DN(cert.issuer) == DN(
             "CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US")
         assert cert.serial_number == 0x03ad42a2a5ada59a131327cb0979623cb605
-        not_before = datetime.datetime(2018, 7, 25, 5, 36, 59, 0, datetime.UTC)
-        not_after = datetime.datetime(2018, 10, 23, 5, 36, 59, 0, datetime.UTC)
+        not_before = datetime.datetime(2018, 7, 25, 5, 36, 59, 0,
+                                       datetime.timezone.utc)
+        not_after = datetime.datetime(2018, 10, 23, 5, 36, 59, 0,
+                                      datetime.timezone.utc)
         assert cert.not_valid_before == not_before
         assert cert.not_valid_after == not_after
         assert cert.san_general_names == [DNSName('ipa.demo1.freeipa.org')]

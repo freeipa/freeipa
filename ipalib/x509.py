@@ -267,12 +267,12 @@ class IPACertificate(crypto_x509.Certificate):
     @property
     def not_valid_before(self):
         return datetime.datetime.fromtimestamp(
-            self._cert.not_valid_before.timestamp(), tz=datetime.UTC)
+            self._cert.not_valid_before.timestamp(), tz=datetime.timezone.utc)
 
     @property
     def not_valid_after(self):
         return datetime.datetime.fromtimestamp(
-            self._cert.not_valid_after.timestamp(), tz=datetime.UTC)
+            self._cert.not_valid_after.timestamp(), tz=datetime.timezone.utc)
 
     @property
     def tbs_certificate_bytes(self):
