@@ -8,7 +8,8 @@ Tests to verify that the ipa-healthcheck scenarios
 from __future__ import absolute_import
 
 from configparser import RawConfigParser, NoOptionError
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
+UTC = timezone.utc
 import json
 import os
 import re
