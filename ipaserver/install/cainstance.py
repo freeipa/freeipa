@@ -435,6 +435,8 @@ class CAInstance(DogtagInstance):
                       configure_lightweight_ca_acls)
             self.step("Ensure lightweight CAs container exists",
                       ensure_lightweight_cas_container)
+            self.step("Enable lightweight CA monitor",
+                      enable_lightweight_ca_monitor)
             self.step(
                 "Ensuring backward compatibility",
                 self.__dogtag10_migration)
@@ -1781,6 +1783,28 @@ def ensure_lightweight_cas_container():
         objectclass=['top', 'organizationalUnit'],
         ou=['authorities'],
     )
+
+
+def enable_lightweight_ca_monitor():
+
+    # Check LWCA monitor
+    value = directivesetter.get_directive(
+        paths.CA_CS_CFG_PATH,
+        'ca.authorityMonitor.enable',
+        separator='=')
+
+    if value == 'true':
+        return False  # already enabled; restart not needed
+
+    # Enable LWCA monitor
+    directivesetter.set_directive(
+        paths.CA_CS_CFG_PATH,
+        'ca.authorityMonitor.enable',
+        'true',
+        quotes=False,
+        separator='=')
+
+    return True  # restart needed
 
 
 def minimum_acme_support(data=None):

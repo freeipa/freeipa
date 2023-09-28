@@ -482,6 +482,16 @@ def ca_ensure_lightweight_cas_container(ca):
     return cainstance.ensure_lightweight_cas_container()
 
 
+def ca_enable_lightweight_ca_monitor(ca):
+    logger.info('[Enabling LWCA monitor]')
+
+    if not ca.is_configured():
+        logger.info('CA is not configured')
+        return False
+
+    return cainstance.enable_lightweight_ca_monitor()
+
+
 def ca_add_default_ocsp_uri(ca):
     logger.info('[Adding default OCSP URI configuration]')
     if not ca.is_configured():
@@ -1904,6 +1914,7 @@ def upgrade_configuration():
         ca_configure_profiles_acl(ca),
         ca_configure_lightweight_ca_acls(ca),
         ca_ensure_lightweight_cas_container(ca),
+        ca_enable_lightweight_ca_monitor(ca),
         ca_add_default_ocsp_uri(ca),
         ca_disable_publish_cert(ca),
     ])
