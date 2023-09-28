@@ -33,7 +33,8 @@ import ssl
 import time
 
 from collections import deque
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
+UTC = timezone.utc
 from email.utils import formataddr, formatdate
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText

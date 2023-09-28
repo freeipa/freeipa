@@ -35,7 +35,7 @@ class ExternalCA:
     """
 
     def __init__(self, days=365, key_size=None):
-        self.now = datetime.datetime.now(tz=datetime.UTC)
+        self.now = datetime.datetime.now(tz=datetime.timezone.utc)
         self.delta = datetime.timedelta(days=days)
         self.ca_key = None
         self.ca_public_key = None

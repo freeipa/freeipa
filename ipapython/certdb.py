@@ -943,7 +943,7 @@ class NSSDatabase:
     def _verify_cert_validity(self, cert):
         """Common checks for cert validity
         """
-        utcnow = datetime.datetime.now(tz=datetime.UTC)
+        utcnow = datetime.datetime.now(tz=datetime.timezone.utc)
         if cert.not_valid_before > utcnow:
             raise ValueError(
                 f"not valid before {cert.not_valid_before} UTC is in the "
