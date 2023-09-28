@@ -819,7 +819,8 @@ class KerbTransport(SSLTransport):
                 session_cookie = (
                     Cookie.get_named_cookie_from_string(
                         cookie, COOKIE_NAME, request_url,
-                        timestamp=datetime.datetime.now(tz=datetime.UTC))
+                        timestamp=datetime.datetime.now(
+                            tz=datetime.timezone.utc))
                     )
                 if session_cookie is not None:
                     break
@@ -922,7 +923,7 @@ class RPCClient(Connectible):
         try:
             session_cookie = Cookie.get_named_cookie_from_string(
                 cookie_string, COOKIE_NAME,
-                timestamp=datetime.datetime.now(tz=datetime.UTC))
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc))
         except Exception as e:
             logger.debug(
                 'Error retrieving cookie from the persistent storage: %s',
