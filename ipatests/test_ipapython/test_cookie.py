@@ -402,7 +402,9 @@ class TestHTTPReturn:
             assert cookie.http_return_ok(self.url)
 
     def test_expires(self):
-        now = datetime.datetime.now(tz=datetime.UTC).replace(microsecond=0)
+        now = datetime.datetime.now(
+            tz=datetime.timezone.utc).replace(
+            microsecond=0)
 
         # expires 1 day from now
         expires = now + datetime.timedelta(days=1)

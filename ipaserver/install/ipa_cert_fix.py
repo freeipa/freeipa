@@ -129,7 +129,7 @@ class IPACertFix(AdminTool):
         ca_subject_dn = ca.lookup_ca_subject(api, subject_base)
 
         now = (
-            datetime.datetime.now(tz=datetime.UTC)
+            datetime.datetime.now(tz=datetime.timezone.utc)
             + datetime.timedelta(weeks=2))
         certs, extra_certs, non_renewed = expired_certs(now)
 
