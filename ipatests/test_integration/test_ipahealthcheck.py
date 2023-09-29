@@ -454,6 +454,11 @@ class TestIpaHealthCheck(IntegrationTest):
             assert data[0]["result"] == "SUCCESS"
             assert data[0]["kw"]["status"] is True
 
+        version = tasks.get_healthcheck_version(self.master)
+        # With healthcheck newer versions, the error msg for PKI tomcat
+        # contains the string pki-tomcatd instead of pki_tomcatd
+        always_replace = parse_version(version) >= parse_version("0.13")
+
         for service in svc_list:
             restart_service(self.master, service)
             returncode, data = run_healthcheck(
@@ -466,7 +471,7 @@ class TestIpaHealthCheck(IntegrationTest):
             for check in data:
                 if check["check"] != service:
                     continue
-                if service != 'pki_tomcatd':
+                if service != 'pki_tomcatd' or always_replace:
                     service = service.replace('_', '-')
                 assert check["result"] == "ERROR"
                 assert check["kw"]["msg"] == "%s: not running" % service
