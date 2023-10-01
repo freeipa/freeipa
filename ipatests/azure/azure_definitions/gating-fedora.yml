@@ -188,7 +188,7 @@ vms:
     containers:
       resources:
         server:
-          mem_limit: "2200m"
+          mem_limit: "2450m"
           memswap_limit: "3300m"
     tests:
     - test_integration/test_upgrade.py
