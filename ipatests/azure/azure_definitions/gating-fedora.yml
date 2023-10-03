@@ -32,10 +32,10 @@ vms:
       clients: 1
       resources:
         replica:
-          mem_limit: "2200m"
+          mem_limit: "2300m"
           memswap_limit: "3300m"
         client:
-          mem_limit: "768m"
+          mem_limit: "805m"
           memswap_limit: "1024m"
     tests:
     - test_integration/test_forced_client_reenrollment.py
