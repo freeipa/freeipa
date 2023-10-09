@@ -981,6 +981,14 @@ def install(installer):
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)
 
+    # Force KDC to refresh the cached value of ipaKrbAuthzData by restarting.
+    # ipaKrbAuthzData has to be set with "MS-PAC" to trigger PAC generation,
+    # which is required to handle S4U2Proxy with the Bronze-Bit fix.
+    # Not doing so would cause API malfunction for around a minute, which is
+    # long enough to cause the hereafter client installation to fail.
+    service.print_msg("Restarting the KDC")
+    krb.restart()
+
     # Call client install script
     service.print_msg("Configuring client side components")
     try:
