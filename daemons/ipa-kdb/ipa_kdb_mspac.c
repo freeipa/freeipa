@@ -3299,6 +3299,8 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 	return KRB5_KDB_NOENTRY;
 }
 
+#if KRB5_KDB_DAL_MAJOR_VERSION <= 8
+#  ifdef HAVE_KRB5_PAC_FULL_SIGN_COMPAT
 krb5_error_code
 ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
                                   bool *detected, const char **status)
@@ -3471,3 +3473,5 @@ end:
     ipadb_free_principal(context, proxy_entry);
     return kerr;
 }
+#  endif
+#endif
