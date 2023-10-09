@@ -26,6 +26,7 @@ from binascii import hexlify
 from configparser import RawConfigParser
 import datetime
 from io import StringIO
+import os
 import pickle
 
 import pytest
@@ -252,6 +253,30 @@ class test_x509:
             b'0\x16\x06\x03U\x1d%\x01\x01\xff\x04\x0c0\n\x06\x08'
             b'+\x06\x01\x05\x05\x07\x03\x01'
         )
+
+    def test_cert_with_timezone(self):
+        """
+        Test the not_before and not_after values in a diffent timezone
+
+        Test for https://pagure.io/freeipa/issue/9462
+        """
+        # Store initial timezone, then set to New York
+        tz = os.environ.get('TZ', None)
+        os.environ['TZ'] = 'America/New_York'
+        # Load the cert, extract not before and not after
+        cert = x509.load_pem_x509_certificate(goodcert_headers)
+        not_before = datetime.datetime(2010, 6, 25, 13, 0, 42, 0,
+                                       datetime.timezone.utc)
+        not_after = datetime.datetime(2015, 6, 25, 13, 0, 42, 0,
+                                      datetime.timezone.utc)
+        # Reset timezone to previous value
+        if tz:
+            os.environ['TZ'] = tz
+        else:
+            del os.environ['TZ']
+        # ensure the timezone doesn't mess with not_before and not_after
+        assert cert.not_valid_before == not_before
+        assert cert.not_valid_after == not_after
 
     def test_load_pkcs7_pem(self):
         certlist = x509.pkcs7_to_certs(good_pkcs7, datatype=x509.PEM)
