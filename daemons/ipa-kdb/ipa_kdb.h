@@ -367,6 +367,8 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
                                                   const char *test_realm, size_t size,
                                                   char **trusted_realm);
 
+#if KRB5_KDB_DAL_MAJOR_VERSION <= 8
+#  ifdef HAVE_KRB5_PAC_FULL_SIGN_COMPAT
 /* Try to detect a Bronze-Bit attack based on the content of the request and
  * data from the KDB.
  *
@@ -379,6 +381,8 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 krb5_error_code
 ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
                                   bool *detected, const char **status);
+#  endif
+#endif
 
 /* DELEGATION CHECKS */
 
