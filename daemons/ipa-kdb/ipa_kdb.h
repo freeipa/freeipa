@@ -367,6 +367,19 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
                                                   const char *test_realm, size_t size,
                                                   char **trusted_realm);
 
+/* Try to detect a Bronze-Bit attack based on the content of the request and
+ * data from the KDB.
+ *
+ *   context     krb5 context
+ *   request     KDB request
+ *   detected    Set to "true" if a bronze bit attack is detected and the
+ *               pointer is not NULL. Remains unset otherwise.
+ *   status      If the call fails and the pointer is not NULL, set it with a
+ *               message describing the cause of the failure. */
+krb5_error_code
+ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
+                                  bool *detected, const char **status);
+
 /* DELEGATION CHECKS */
 
 krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,

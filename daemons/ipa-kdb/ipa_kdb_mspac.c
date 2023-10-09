@@ -3298,3 +3298,176 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 
 	return KRB5_KDB_NOENTRY;
 }
+
+krb5_error_code
+ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
+                                  bool *detected, const char **status)
+{
+    krb5_error_code kerr;
+    const char *st = NULL;
+    size_t i, j;
+    krb5_ticket *evidence_tkt;
+    krb5_authdata **authdata, **ifrel = NULL;
+    krb5_pac pac = NULL;
+    TALLOC_CTX *tmpctx = NULL;
+    krb5_data fullsign = { 0, 0, NULL }, linfo_blob = { 0, 0, NULL };
+    DATA_BLOB linfo_data;
+    struct PAC_LOGON_INFO_CTR linfo;
+    enum ndr_err_code ndr_err;
+    struct dom_sid asserted_identity_sid;
+    bool evtkt_is_s4u2self = false;
+    krb5_db_entry *proxy_entry = NULL;
+
+    /* If no additional ticket, this is not a constrained delegateion request.
+     * Skip checks. */
+    if (!(request->kdc_options & KDC_OPT_CNAME_IN_ADDL_TKT)) {
+        kerr = 0;
+        goto end;
+    }
+
+    evidence_tkt = request->second_ticket[0];
+
+    /* No need to check the Forwardable flag. If it was not set, this request
+     * would have failed earlier. */
+
+    /* We only support general constrained delegation (not RBCD), which is not
+     * available for cross-realms. */
+    if (!krb5_realm_compare(context, evidence_tkt->server, request->server)) {
+        st = "S4U2PROXY_NOT_SUPPORTED_FOR_CROSS_REALMS";
+        kerr = ENOTSUP;
+        goto end;
+    }
+
+    authdata = evidence_tkt->enc_part2->authorization_data;
+
+    /* Search for the PAC. */
+    for (i = 0; authdata != NULL && authdata[i] != NULL; i++) {
+        if (authdata[i]->ad_type != KRB5_AUTHDATA_IF_RELEVANT)
+            continue;
+
+        kerr = krb5_decode_authdata_container(context,
+                                              KRB5_AUTHDATA_IF_RELEVANT,
+                                              authdata[i], &ifrel);
+        if (kerr) {
+            st = "S4U2PROXY_CANNOT_DECODE_EVIDENCE_TKT_AUTHDATA";
+            goto end;
+        }
+
+        for (j = 0; ifrel[j] != NULL; j++) {
+            if (ifrel[j]->ad_type == KRB5_AUTHDATA_WIN2K_PAC)
+                break;
+        }
+        if (ifrel[j] != NULL)
+            break;
+
+        krb5_free_authdata(context, ifrel);
+        ifrel = NULL;
+    }
+
+    if (ifrel == NULL) {
+        st = "S4U2PROXY_EVIDENCE_TKT_WITHOUT_PAC";
+        kerr = ENOENT;
+        goto end;
+    }
+
+    /* Parse the PAC. */
+    kerr = krb5_pac_parse(context, ifrel[j]->contents, ifrel[j]->length, &pac);
+    if (kerr) {
+        st = "S4U2PROXY_CANNOT_DECODE_EVICENCE_TKT_PAC";
+        goto end;
+    }
+
+    /* Check that the PAC extanded KDC signature is present. If it is, it was
+     * already tested.
+     * If absent, the context of the PAC cannot be trusted. */
+    kerr = krb5_pac_get_buffer(context, pac, KRB5_PAC_FULL_CHECKSUM, &fullsign);
+    if (kerr) {
+        st = "S4U2PROXY_MISSING_EXTENDED_KDC_SIGN_IN_EVIDENCE_TKT_PAC";
+        goto end;
+    }
+
+    /* Get the PAC Logon Info. */
+    kerr = krb5_pac_get_buffer(context, pac, KRB5_PAC_LOGON_INFO, &linfo_blob);
+    if (kerr) {
+        st = "S4U2PROXY_NO_PAC_LOGON_INFO_IN_EVIDENCE_TKT";
+        goto end;
+    }
+
+    /* Parse the PAC Logon Info. */
+    tmpctx = talloc_new(NULL);
+    if (!tmpctx) {
+        st = "OUT_OF_MEMORY";
+        kerr = ENOMEM;
+        goto end;
+    }
+
+    linfo_data.length = linfo_blob.length;
+    linfo_data.data = (uint8_t *)linfo_blob.data;
+    ndr_err = ndr_pull_union_blob(&linfo_data, tmpctx, &linfo,
+                                  PAC_TYPE_LOGON_INFO,
+                                  (ndr_pull_flags_fn_t)ndr_pull_PAC_INFO);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+        st = "S4U2PROXY_CANNOT_PARSE_ENVIDENCE_TKT_PAC_LOGON_INFO";
+        kerr = EINVAL;
+        goto end;
+    }
+
+    /* Check that the extra SIDs array is not empty. */
+    if (linfo.info->info3.sidcount == 0) {
+        st = "S4U2PROXY_NO_EXTRA_SID";
+        kerr = ENOENT;
+        goto end;
+    }
+
+    /* Search for the S-1-18-2 domain SID, which indicates the ticket was
+     * obtained using S4U2Self */
+    kerr = ipadb_string_to_sid("S-1-18-2", &asserted_identity_sid);
+    if (kerr) {
+        st = "S4U2PROXY_CANNOT_CREATE_ASSERTED_IDENTITY_SID";
+        goto end;
+    }
+
+    for (i = 0; i < linfo.info->info3.sidcount; i++) {
+        if (dom_sid_check(&asserted_identity_sid,
+                          linfo.info->info3.sids[0].sid, true)) {
+            evtkt_is_s4u2self = true;
+            break;
+        }
+    }
+
+    /* If the ticket was obtained using S4U2Self, the proxy principal entry must
+     * have the "ok_to_auth_as_delegate" attribute set to true. */
+    if (evtkt_is_s4u2self) {
+        kerr = ipadb_get_principal(context, evidence_tkt->server, 0,
+                                   &proxy_entry);
+        if (kerr) {
+            st = "S4U2PROXY_CANNOT_FIND_PROXY_PRINCIPAL";
+            goto end;
+        }
+
+        if (!(proxy_entry->attributes & KRB5_KDB_OK_TO_AUTH_AS_DELEGATE)) {
+            /* This evidence ticket cannot be forwardable given the privileges
+             * of the proxy principal.
+             * This is a Bronze Bit attack. */
+            if (detected)
+                *detected = true;
+            st = "S4U2PROXY_BRONZE_BIT_ATTACK_DETECTED";
+            kerr = EBADE;
+            goto end;
+        }
+    }
+
+    kerr = 0;
+
+end:
+    if (st && status)
+        *status = st;
+
+    krb5_free_authdata(context, ifrel);
+    krb5_pac_free(context, pac);
+    krb5_free_data_contents(context, &linfo_blob);
+    krb5_free_data_contents(context, &fullsign);
+    talloc_free(tmpctx);
+    ipadb_free_principal(context, proxy_entry);
+    return kerr;
+}
