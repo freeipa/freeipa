@@ -180,7 +180,6 @@ def configure_starttls(host):
     postconf(host, 'smtpd_tls_session_cache_timeout = 3600s')
     # announce STARTTLS support to remote SMTP clients, not require
     postconf(host, 'smtpd_tls_security_level = may')
-
     host.run_command(["systemctl", "restart", "postfix"])
 
 
@@ -207,6 +206,9 @@ def configure_ssl_client_cert(host):
     postconf(host, "smtpd_tls_req_ccert = yes")
     # CA certificates of root CAs trusted to sign remote SMTP client cert
     postconf(host, f"smtpd_tls_CAfile = {paths.IPA_CA_CRT}")
+
+    if host.is_fips_mode:
+        postconf(host, 'smtpd_tls_fingerprint_digest = sha256')
 
     host.run_command(["systemctl", "restart", "postfix"])
 
