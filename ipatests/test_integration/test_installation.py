@@ -35,6 +35,7 @@ from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipatests.test_integration.test_cert import get_certmonger_fs_id
+from ipatests.pytest_ipa.integration import skip_if_fips
 from ipaplatform import services
 
 
@@ -298,6 +299,7 @@ class TestInstallCA(IntegrationTest):
         tasks.install_replica(self.master, self.replicas[1], setup_ca=False)
         tasks.install_ca(self.replicas[1], extra_args=["--skip-schema-check"])
 
+    @skip_if_fips()
     def test_certmonger_reads_token_HSM(self):
         """Test if certmonger reads the token in HSM
 
