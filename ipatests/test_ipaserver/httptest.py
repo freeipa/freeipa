@@ -36,7 +36,7 @@ class Unauthorized_HTTP_test:
     content_type = 'application/x-www-form-urlencoded'
     accept_language = 'en-us'
 
-    def send_request(self, method='POST', params=None):
+    def send_request(self, method='POST', params=None, host=None):
         """
         Send a request to HTTP server
 
@@ -45,7 +45,10 @@ class Unauthorized_HTTP_test:
         if params is not None:
             if self.content_type == 'application/x-www-form-urlencoded':
                 params = urllib.parse.urlencode(params, True)
-        url = 'https://' + self.host + self.app_uri
+        if host:
+            url = 'https://' + host + self.app_uri
+        else:
+            url = 'https://' + self.host + self.app_uri
 
         headers = {'Content-Type': self.content_type,
                    'Accept-Language': self.accept_language,
