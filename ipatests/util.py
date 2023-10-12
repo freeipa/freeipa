@@ -163,12 +163,12 @@ class ExceptionNotRaised(Exception):
         return self.msg % self.expected.__name__
 
 
-def assert_equal(val1, val2):
+def assert_equal(val1, val2, msg=''):
     """
     Assert ``val1`` and ``val2`` are the same type and of equal value.
     """
     assert type(val1) is type(val2), '%r != %r' % (val1, val2)
-    assert val1 == val2, '%r != %r' % (val1, val2)
+    assert val1 == val2, '%r != %r %r' % (val1, val2, msg)
 
 
 def assert_not_equal(val1, val2):
