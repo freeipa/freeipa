@@ -3697,9 +3697,12 @@ def uninstall(options):
         logger.warning(
             'Some installation state has not been restored.\n'
             'This may cause re-installation to fail.\n'
-            'It should be safe to remove /var/lib/ipa-client/sysrestore.state '
+            'It should be safe to remove %s '
             'but it may\n mean your system hasn\'t been restored '
-            'to its pre-installation state.')
+            'to its pre-installation state.',
+            os.path.join(paths.IPA_CLIENT_SYSRESTORE,
+                         sysrestore.SYSRESTORE_STATEFILE)
+        )
 
     # Remove the IPA configuration file
     remove_file(paths.IPA_DEFAULT_CONF)
