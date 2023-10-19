@@ -140,6 +140,7 @@ class PlatformService:
 
         with open(paths.SVC_LIST_FILE, 'w') as f:
             json.dump(svc_list, f)
+        os.chmod(paths.SVC_LIST_FILE, 0o644)
 
     def stop(self, instance_name="", capture_output=True,
              update_service_list=True):
@@ -161,6 +162,7 @@ class PlatformService:
 
         with open(paths.SVC_LIST_FILE, 'w') as f:
             json.dump(svc_list, f)
+        os.chmod(paths.SVC_LIST_FILE, 0o644)
 
     def reload_or_restart(self, instance_name="", capture_output=True,
                           wait=True):
