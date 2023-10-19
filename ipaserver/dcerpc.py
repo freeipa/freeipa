@@ -303,7 +303,7 @@ class DomainValidator:
         # Parse sid string to see if it is really in a SID format
         try:
             test_sid = security.dom_sid(sid)
-        except TypeError:
+        except (TypeError, ValueError):
             raise errors.ValidationError(name='sid',
                                          error=_('SID is not valid'))
 
