@@ -97,7 +97,7 @@ logger = logging.getLogger(__name__)
 def is_sid_valid(sid):
     try:
         security.dom_sid(sid)
-    except TypeError:
+    except (TypeError, ValueError):
         return False
     else:
         return True
@@ -457,7 +457,7 @@ class DomainValidator:
         try:
             test_sid = security.dom_sid(sid)
             return unicode(test_sid)
-        except TypeError:
+        except (TypeError, ValueError):
             raise errors.ValidationError(name=_('trusted domain object'),
                                          error=_('Trusted domain did not '
                                                  'return a valid SID for '
