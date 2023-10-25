@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2023-10-24 05:36+0000\n"
+"PO-Revision-Date: 2023-11-01 02:48+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-10/ka/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.0.2\n"
+"X-Generator: Weblate 5.1.1\n"
 
 msgid ""
 "\n"
@@ -3965,7 +3965,7 @@ msgid "Raw SPF records"
 msgstr ""
 
 msgid "SRV record"
-msgstr ""
+msgstr "SRV ჩანაწერი"
 
 msgid "Raw SRV records"
 msgstr ""
@@ -4535,7 +4535,7 @@ msgid "users to remove"
 msgstr ""
 
 msgid "groups to remove"
-msgstr ""
+msgstr "წასაშლელი ჯგუფები"
 
 msgid "Members that could not be removed"
 msgstr ""
@@ -4657,7 +4657,7 @@ msgid "HBAC services to add"
 msgstr ""
 
 msgid "member HBAC service group"
-msgstr ""
+msgstr "წევრის HBAC სერვისის ჯგუფი"
 
 msgid "HBAC service groups to add"
 msgstr ""
@@ -5695,7 +5695,7 @@ msgid "Display information about an Group ID override."
 msgstr ""
 
 msgid "Add a new User ID override."
-msgstr ""
+msgstr "ახალი მომხმარებლის ID-ის გადაფარვის დამატება."
 
 msgid "Delete an User ID override."
 msgstr "მომხმარებლის ID-ის გადაფარვის წაშლა."
@@ -6241,7 +6241,7 @@ msgid "Search for netgroups without these member of netgroups."
 msgstr ""
 
 msgid "Modify a netgroup."
-msgstr ""
+msgstr "ქსელური ჯგუფის შეცვლა."
 
 msgid "Remove members from a netgroup."
 msgstr ""
@@ -8628,7 +8628,7 @@ msgid "Sudo Deny Commands"
 msgstr "Sudo ბრძანებების აკრძალვა"
 
 msgid "Sudo Allow Command Groups"
-msgstr ""
+msgstr "Sudo-ის დაშვებული ბრძანების ჯგუფები"
 
 msgid "Sudo Deny Command Groups"
 msgstr "Sudo ბრძანებების ჯგუფის აკრძალვა"
@@ -8843,7 +8843,7 @@ msgid "Remove target hosts and hostgroups from a CA ACL."
 msgstr ""
 
 msgid "Remove profiles from a CA ACL."
-msgstr ""
+msgstr "პროფილების წაშლა CA ACL-დან."
 
 msgid "Certificate Profiles to remove"
 msgstr "წასაშლელი სერტიფიკატის პროფილები"
@@ -9279,7 +9279,7 @@ msgid "Delete IPA server."
 msgstr "IPA სერვერის წაშლა."
 
 msgid "Search for IPA servers."
-msgstr ""
+msgstr "IPA სერვერების ძებნა."
 
 msgid "Show IPA server."
 msgstr "IPA სერვერის ჩვენება."
@@ -11048,10 +11048,10 @@ msgid "SIG Original TTL"
 msgstr ""
 
 msgid "SIG Signature Expiration"
-msgstr ""
+msgstr "SIG ხელმოწერის ვადა"
 
 msgid "SIG Signature Inception"
-msgstr ""
+msgstr "SIG ხელმოწერის შემოჭრა"
 
 msgid "SIG Key Tag"
 msgstr ""
@@ -12913,7 +12913,7 @@ msgstr ""
 
 #, python-format
 msgid "can be at most %(maxlength)d bytes"
-msgstr ""
+msgstr "შეიძლება, მაქს. %(maxlength)d ბაიტი იყოს"
 
 #, python-format
 msgid "must be exactly %(length)d bytes"
@@ -13620,7 +13620,7 @@ msgstr "HBAC სერვისი"
 
 #, python-format
 msgid "Added HBAC service \"%(value)s\""
-msgstr ""
+msgstr "დაემატა HBAC სერვისი \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service \"%(value)s\""
@@ -13905,7 +13905,7 @@ msgid "Active Directory domain range"
 msgstr "Active Directory-ის დომენის დიაპაზონი"
 
 msgid "Active Directory trust range with POSIX attributes"
-msgstr ""
+msgstr "Active Directory-ის ნდობის შუალედი POSIX ატრიბუტებით"
 
 msgid "ID range type, one of allowed values"
 msgstr ""
@@ -14513,7 +14513,7 @@ msgstr ""
 
 #, python-format
 msgid "Added role \"%(value)s\""
-msgstr ""
+msgstr "დაემატა როლი \"%(value)s\""
 
 #, python-format
 msgid "Deleted role \"%(value)s\""
@@ -14543,7 +14543,7 @@ msgstr "თვითმომსახურების წვდომა"
 
 #, python-format
 msgid "Added selfservice \"%(value)s\""
-msgstr ""
+msgstr "დაემატა თვითმომსახურება \"%(value)s\""
 
 #, python-format
 msgid "Deleted selfservice \"%(value)s\""
@@ -15138,7 +15138,7 @@ msgid "segment"
 msgstr "სეგმენტი"
 
 msgid "segments"
-msgstr ""
+msgstr "სეგმენტები"
 
 msgid "Topology Segments"
 msgstr "ტოპოლოგიის სეგმენტები"
@@ -15173,7 +15173,7 @@ msgstr[1] ""
 
 #, python-format
 msgid "Added segment \"%(value)s\""
-msgstr ""
+msgstr "დაემატა სეგმენტი \"%(value)s\""
 
 #, python-format
 msgid "Deleted segment \"%(value)s\""
@@ -15930,7 +15930,7 @@ msgid "Member service groups"
 msgstr "წევრი სერვისის ჯგუფები"
 
 msgid "Member HBAC service groups"
-msgstr ""
+msgstr "წევრის HBAC სერვისის ჯგუფები"
 
 msgid "Member ID user overrides"
 msgstr ""
@@ -16981,7 +16981,7 @@ msgid "trust domains"
 msgstr "ნდობის დომენები"
 
 msgid "Trusted domains"
-msgstr ""
+msgstr "სანდო დომენები"
 
 msgid "Trusted domain"
 msgstr "სანდო დომენი"
@@ -17277,7 +17277,7 @@ msgid "vaultcontainer"
 msgstr "vaultcontainer"
 
 msgid "vaultcontainers"
-msgstr ""
+msgstr "საცავის კონტეინერები"
 
 msgid "Vault Containers"
 msgstr "საცავის კონტეინერები"
@@ -17794,7 +17794,7 @@ msgid "Certificate Identity Mapping Rule"
 msgstr "სერტიფიკატის იდენტიფიკაციის ასახვის წესი"
 
 msgid "Certificate Identity Mapping Rule name"
-msgstr ""
+msgstr "სერტიფიკატის იდენტიფიკაციის ასახვის წესის სახელი"
 
 msgid "Certificate Identity Mapping Rule description"
 msgstr ""
@@ -18666,7 +18666,7 @@ msgid "DNS Zones"
 msgstr "DNS ზონები"
 
 msgid "DNS Zone"
-msgstr ""
+msgstr "DNS ზონა"
 
 msgid "Default time to live"
 msgstr ""
@@ -19633,7 +19633,7 @@ msgid "There was a problem with your request. Please, try again later."
 msgstr ""
 
 msgid "Password migration was not successful"
-msgstr ""
+msgstr "პაროლის მიგრაცია წარუმატებელია"
 
 msgid ""
 "<h1>Password Migration</h1><p>If you have been sent here by your "
@@ -19746,7 +19746,7 @@ msgid "Remove users from role '${primary_key}'"
 msgstr ""
 
 msgid "Add self service permission"
-msgstr ""
+msgstr "თვითმომსახურების სერვისის წვდომის დამატება"
 
 msgid "Remove self service permissions"
 msgstr "თვითმომსახურების წვდომების წაშლა"
@@ -20115,7 +20115,7 @@ msgid "Do you want to remove certificate mapping data ${data}?"
 msgstr ""
 
 msgid "Remove certificate mapping data"
-msgstr ""
+msgstr "სერტიფიკატის ასახვის მონაცემების წაშლა"
 
 msgid "Issuer and subject"
 msgstr ""
@@ -20157,7 +20157,7 @@ msgid "Remove DNS forward zones"
 msgstr ""
 
 msgid "Add DNS resource record"
-msgstr ""
+msgstr "DNS რესურსის ჩანაწერის დამატება"
 
 msgid "DNS record was deleted because it contained no data."
 msgstr ""
@@ -20689,7 +20689,7 @@ msgid "Verify secret"
 msgstr ""
 
 msgid "User to override"
-msgstr ""
+msgstr "გადასაფარი მომხმარებელი"
 
 msgid ""
 "Enter trusted or IPA user login. Note: search doesn't list users from "
@@ -21140,7 +21140,7 @@ msgid "Remove sudo command '${primary_key}' from sudo command groups"
 msgstr ""
 
 msgid "Add sudo command group"
-msgstr ""
+msgstr "Sudo-ის ბრძანებების ჯგუფის დამატება"
 
 #, python-brace-format
 msgid "Add sudo commands into sudo command group '${primary_key}'"
@@ -22428,11 +22428,11 @@ msgstr ""
 
 #, python-format
 msgid "Deleted service \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა სერვისი \"%(value)s\""
 
 #, python-format
 msgid "Modified service \"%(value)s\""
-msgstr ""
+msgstr "შეიცვალა სერვისი \"%(value)s\""
 
 #, python-format
 msgid "%(count)d service matched"
@@ -22529,7 +22529,7 @@ msgstr "დროებითი მომხმარებლები"
 
 #, python-format
 msgid "Added stage user \"%(value)s\""
-msgstr ""
+msgstr "დაემატა დროებითი მომხმარებელი \"%(value)s\""
 
 msgid "givenname is required"
 msgstr "givenname აუცილებელია"
@@ -22543,7 +22543,7 @@ msgstr "წაიშალა დროებითი მომხმარე�
 
 #, python-format
 msgid "Modified stage user \"%(value)s\""
-msgstr ""
+msgstr "შეიცვალა დროებითი მომხმარებელი \"%(value)s\""
 
 #, python-format
 msgid "%(count)d user matched"
@@ -22729,7 +22729,7 @@ msgid "User ID override"
 msgstr "მომხმარებლის ID-ის გადაფარვა"
 
 msgid "User ID overrides"
-msgstr ""
+msgstr "მომხმარებლის ID-ის გადაფარავს"
 
 msgid "Group ID override"
 msgstr ""
@@ -23348,6 +23348,8 @@ msgid ""
 "\n"
 "Sudo Rules\n"
 msgstr ""
+"\n"
+"Sudo-ის წესები\n"
 
 msgid ""
 "\n"
@@ -23463,7 +23465,7 @@ msgid "Sudo Rules"
 msgstr "Sudo-ის წესები"
 
 msgid "Sudo Rule"
-msgstr ""
+msgstr "Sudo-ის წესი"
 
 #, python-format
 msgid "order must be a unique value (%(order)d already used by %(rule)s)"
@@ -23524,14 +23526,14 @@ msgstr ""
 
 #, python-format
 msgid "Added user \"%(value)s\""
-msgstr ""
+msgstr "დაემატა მომხმარებელი \"%(value)s\""
 
 msgid "Default group for new users is not POSIX"
 msgstr ""
 
 #, python-format
 msgid "Deleted user \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა მომხმარებელი \"%(value)s\""
 
 #, python-format
 msgid "Preserved user \"%(value)s\""
