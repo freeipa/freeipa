@@ -2165,17 +2165,17 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 
 	princ_l = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
 				  remote_realm, ipasam_state->realm);
-	princ_l_tdo = talloc_asprintf(tmp_ctx, "%s$@%s",
+	l_tdo_alias = talloc_asprintf(tmp_ctx, "%s$@%s",
 				      flat_name, ipasam_state->realm);
-	l_tdo_alias = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
+	princ_l_tdo = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
 				      flat_name, ipasam_state->realm);
 
 	princ_r = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
 				  ipasam_state->realm, remote_realm);
-	princ_r_tdo = talloc_asprintf(tmp_ctx, "%s$@%s",
+	r_tdo_alias = talloc_asprintf(tmp_ctx, "%s$@%s",
 				      ipasam_state->flat_name, remote_realm);
 
-	r_tdo_alias = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
+	princ_r_tdo = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
 			ipasam_state->flat_name, remote_realm);
 
 	if (trusted_dn == NULL || princ_l == NULL || princ_l_tdo == NULL ||
@@ -2212,7 +2212,7 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 				 * only used to retrieve trusted domain credentials by
 				 * AD Trust Agents across the IPA topology */
 				failed += !set_krb_princ(ipasam_state, tmp_ctx,
-							 r_tdo_alias, princ_r_tdo,
+							 princ_r_tdo, r_tdo_alias,
 							 pwd_incoming, trusted_dn,
 							 (KRB_PRINC_CREATE_DISABLED |
 							  KRB_PRINC_CREATE_AGENT_PERMISSION));
@@ -2232,8 +2232,9 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 							 pwd_outgoing, trusted_dn,
 							 KRB_PRINC_CREATE_DEFAULT);
 
-				/* Second: <REMOTE FLAT NAME>$@<OUR REALM>, enabled by default
+				/* Second: <krbtgt/REMOTE FLAT NAME>@<OUR REALM>, enabled by default
 				 * as it is used for a remote DC to authenticate against IPA Samba
+				 * Uses <REMOTE FLAT NAME$>@<OUR REALM> as an alias.
 				 *
 				 * A local account for the outbound trust must have
 				 * POSIX and SMB identities associated with our domain but we associate
