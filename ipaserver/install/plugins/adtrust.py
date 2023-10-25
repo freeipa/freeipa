@@ -702,7 +702,7 @@ class update_tdo_to_new_layout(Updater):
                     nbt=nbt_name, realm=self.api.env.realm)
                 tgt_principal = self.tgt_principal_template.format(
                     remote=nbt_name, local=self.api.env.realm)
-                self.set_krb_principal([nbt_principal, tgt_principal],
+                self.set_krb_principal([tgt_principal, nbt_principal],
                                        passwd_incoming,
                                        t_dn,
                                        flags=self.KRB_PRINC_CREATE_DEFAULT)
