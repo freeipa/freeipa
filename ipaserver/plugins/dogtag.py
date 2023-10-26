@@ -274,8 +274,6 @@ if six.PY3:
 
 logger = logging.getLogger(__name__)
 
-pki_version = pki.util.Version(pki.specification_version())
-
 # These are general status return values used when
 # CMSServlet.outputError() is invoked.
 CMS_SUCCESS      = 0
@@ -1059,6 +1057,39 @@ class ra(rabase.rabase, RestClient):
 
         return cmd_result
 
+    def get_pki_version(self):
+        """
+        Retrieve the version of a remote PKI server.
+
+        The REST API request is a GET to the info URI:
+            GET /pki/rest/info HTTP/1.1
+
+        The response is: {"Version":"11.5.0","Attributes":{"Attribute":[]}}
+        """
+        path = "/pki/rest/info"
+        logger.debug('%s.get_pki_version()', type(self).__name__)
+        http_status, _http_headers, http_body = self._ssldo(
+            'GET', path,
+            headers={
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            use_session=False,
+        )
+        if http_status != 200:
+            self.raise_certificate_operation_error('get_pki_version',
+                                                   detail=http_status)
+
+        try:
+            response = json.loads(ipautil.decode_json(http_body))
+        except ValueError as e:
+            logger.debug("Response from CA was not valid JSON: %s", e)
+            raise errors.RemoteRetrieveError(
+                reason=_("Response from CA was not valid JSON")
+            )
+
+        return response.get('Version')
+
 
     def revoke_certificate(self, serial_number, revocation_reason=0):
         """
@@ -1125,6 +1156,20 @@ class ra(rabase.rabase, RestClient):
                 detail='7 is not a valid revocation reason'
             )
 
+        # dogtag changed the argument case for revocation from
+        # "reason" to "Reason" in PKI 11.4.0. Detect that change
+        # based on the remote version and pass the expected value
+        # in.
+        pki_version = pki.util.Version(self.get_pki_version())
+        if pki_version is None:
+            self.raise_certificate_operation_error('revoke_certificate',
+                                                   detail="Remove version not "
+                                                          "detected")
+        if pki_version < pki.util.Version("11.4.0"):
+            reason = "reason"
+        else:
+            reason = "Reason"
+
         # Convert serial number to integral type from string to properly handle
         # radix issues. Note: the int object constructor will properly handle
         # large magnitude integral values by returning a Python long type
@@ -1132,11 +1177,7 @@ class ra(rabase.rabase, RestClient):
         serial_number = int(serial_number, 0)
 
         path = 'agent/certs/{}/revoke'.format(serial_number)
-        if pki_version < pki.util.Version("11.4.0"):
-            keyword = "reason"
-        else:
-            keyword = "Reason"
-        data = '{{"{}":"{}"}}'.format(keyword, reasons[revocation_reason])
+        data = '{{"{}":"{}"}}'.format(reason, reasons[revocation_reason])
 
         http_status, _http_headers, http_body = self._ssldo(
             'POST', path,
