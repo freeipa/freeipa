@@ -1955,6 +1955,7 @@ class LDAPCache(LDAPClient):
             return super(LDAPCache, self).get_entry(
                 dn, attrs_list, time_limit, size_limit, get_effective_rights
             )
+        dn = DN(str(dn).lower())  # normalize the dn the way 389-ds does
         self.emit("Cache lookup: %s", dn)
 
         entry = self.cache.get(dn)
@@ -1998,6 +1999,8 @@ class LDAPCache(LDAPClient):
         if entry and attrs_list:
             req_attrs = set(attr.lower() for attr in set(attrs_list))
             cache_attrs = set(attr.lower() for attr in entry.attrs_list)
+            # dn is stored separately but is still available as an attr
+            cache_attrs.update({'dn'})
             if req_attrs.issubset(cache_attrs):
                 hits = self._cache_hits + 1  # pylint: disable=no-member
                 object.__setattr__(self, '_cache_hits', hits)
@@ -2023,9 +2026,15 @@ class LDAPCache(LDAPClient):
         else:
             if attrs_list in (['*'], ['']):
                 get_all = True
+            cache_list = set(k.lower() for k in entry._names.keys())
+            # Cache all attributes that were requested along with those
+            # that were returned. IPA LDAP connections tend to be short.
+            # If this changes we'd need to want to add a way to expire
+            # entries.
+            cache_list.update(k.lower() for k in attrs_list)
             self.add_cache_entry(
                 dn,
-                attrs_list=set(k.lower() for k in entry._names.keys()),
+                attrs_list=cache_list,
                 get_all=get_all,
                 entry=self.copy_entry(dn, entry),
             )
