@@ -1185,14 +1185,23 @@ class LDAPClient:
         """schema associated with this LDAP server"""
         return self._get_schema()
 
-    def get_allowed_attributes(self, objectclasses, raise_on_unknown=False):
+    def get_allowed_attributes(self, objectclasses, raise_on_unknown=False,
+                               attributes="all"):
         if self.schema is None:
             return None
         allowed_attributes = []
         for oc in objectclasses:
             obj = self.schema.get_obj(ldap.schema.ObjectClass, oc)
             if obj is not None:
-                allowed_attributes += obj.must + obj.may
+                if attributes == "must":
+                    # Only return required(must) attrs
+                    allowed_attributes += obj.must
+                elif attributes == "may":
+                    # Only return allowed(may) attrs
+                    allowed_attributes += obj.may
+                else:
+                    # Return both allowed & required attrs
+                    allowed_attributes += obj.must + obj.may
             elif raise_on_unknown:
                 raise errors.NotFound(
                     reason=_('objectclass %s not found') % oc)
@@ -1200,7 +1209,6 @@ class LDAPClient:
 
     def __enter__(self):
         return self
-
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
