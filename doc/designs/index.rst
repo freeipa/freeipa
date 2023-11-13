@@ -31,3 +31,4 @@ FreeIPA design documentation
    client-install-pkinit.md
    prci_checker.md
    rbcd.md
+   id-mapping.md
