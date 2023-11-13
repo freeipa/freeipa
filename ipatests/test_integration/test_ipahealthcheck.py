@@ -10,6 +10,7 @@ from __future__ import absolute_import
 from configparser import RawConfigParser, NoOptionError
 from datetime import datetime, timedelta, timezone
 UTC = timezone.utc
+import io
 import json
 import os
 import re
@@ -209,6 +210,28 @@ def run_healthcheck(host, source=None, check=None, output_type="json",
     return result.returncode, data
 
 
+def set_excludes(host, option, value,
+                 config_file='/etc/ipahealthcheck/ipahealthcheck.conf'):
+    """Mark checks that should be excluded from the results
+
+       This will set in the [excludes] section on host:
+           option=value
+    """
+    EXCLUDES = "excludes"
+
+    conf = host.get_file_contents(config_file, encoding='utf-8')
+    cfg = RawConfigParser()
+    cfg.read_string(conf)
+    if not cfg.has_section(EXCLUDES):
+        cfg.add_section(EXCLUDES)
+    if not cfg.has_option(EXCLUDES, option):
+        cfg.set(EXCLUDES, option, value)
+    out = io.StringIO()
+    cfg.write(out)
+    out.seek(0)
+    host.put_file_contents(config_file, out.read())
+
+
 @pytest.fixture
 def restart_service():
     """Shut down and restart a service as a fixture"""
@@ -266,6 +289,7 @@ class TestIpaHealthCheck(IntegrationTest):
             setup_dns=True,
             extra_args=['--no-dnssec-validation']
         )
+        set_excludes(cls.master, "key", "DSCLE0004")
 
     def test_ipa_healthcheck_install_on_master(self):
         """
@@ -558,6 +582,7 @@ class TestIpaHealthCheck(IntegrationTest):
                               setup_dns=True,
                               extra_args=['--no-dnssec-validation']
                               )
+        set_excludes(self.replicas[0], "key", "DSCLE0004")
 
         # Init a user on replica to assign a DNA range
         tasks.kinit_admin(self.replicas[0])
@@ -698,6 +723,7 @@ class TestIpaHealthCheck(IntegrationTest):
                 'output_type=human'
             ])
         )
+        set_excludes(self.master, "key", "DSCLE0004", config_file)
         returncode, output = run_healthcheck(
             self.master, failures_only=True, config=config_file
         )
@@ -713,6 +739,7 @@ class TestIpaHealthCheck(IntegrationTest):
                 'output_file=%s' % HC_LOG,
             ])
         )
+        set_excludes(self.master, "key", "DSCLE0004")
         returncode, _unused = run_healthcheck(
             self.master, config=config_file
         )
@@ -2408,6 +2435,7 @@ class TestIpaHealthCLI(IntegrationTest):
             cls.master, setup_dns=True, extra_args=['--no-dnssec-validation']
         )
         tasks.install_packages(cls.master, HEALTHCHECK_PKG)
+        set_excludes(cls.master, "key", "DSCLE0004")
 
     def test_indent(self):
         """
