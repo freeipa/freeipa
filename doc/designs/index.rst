@@ -32,3 +32,4 @@ FreeIPA design documentation
    passkeys.md
    prci_checker.md
    rbcd.md
+   id-mapping.md
