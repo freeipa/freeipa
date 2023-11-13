@@ -13,7 +13,7 @@ import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_ipahealthcheck import (
-    run_healthcheck, HEALTHCHECK_PKG
+    run_healthcheck, set_excludes, HEALTHCHECK_PKG
 )
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.tasks import (
@@ -982,6 +982,9 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         )
         # manually install KRA to verify that hidden state is synced
         tasks.install_kra(cls.replicas[0])
+
+        set_excludes(cls.master, "key", "DSCLE0004")
+        set_excludes(cls.replicas[0], "key", "DSCLE0004")
 
     def _check_dnsrecords(self, hosts_expected, hosts_unexpected=()):
         domain = DNSName(self.master.domain.name).make_absolute()
