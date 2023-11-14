@@ -629,9 +629,15 @@ class TestIpaHealthCheck(IntegrationTest):
         ipahealthcheck.ipa.host when GSSAPI credentials cannot be obtained
         from host's keytab.
         """
-        msg = (
-            "Minor (2529639107): No credentials cache found"
-        )
+        version = tasks.get_healthcheck_version(self.master)
+        if parse_version(version) >= parse_version("0.15"):
+            msg = (
+                "Service {service} keytab {path} does not exist."
+            )
+        else:
+            msg = (
+                "Minor (2529639107): No credentials cache found"
+            )
 
         with tasks.FileBackup(self.master, paths.KRB5_KEYTAB):
             self.master.run_command(["rm", "-f", paths.KRB5_KEYTAB])
