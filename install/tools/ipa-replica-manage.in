@@ -390,7 +390,10 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
         for ruv in e['nsds50ruv']:
             if ruv.startswith('{replicageneration'):
                 continue
-            data = re.match('\{replica (\d+) (ldap://.*:\d+)\}(\s+\w+\s+\w*){0,1}', ruv)
+            data = re.match(
+                r'\{replica (\d+) (ldap://.*:\d+)\}(\s+\w+\s+\w*){0,1}',
+                ruv
+            )
             if data:
                 rid = data.group(1)
                 (
@@ -718,12 +721,12 @@ def clean_dangling_ruvs(realm, host, options):
             # This needs needs to be split off
             if ruv_dict.get('domain'):
                 master_info['ruvs'] = {
-                    (re.sub(':\d+', '', x), y)
+                    (re.sub(r':\d+', '', x), y)
                     for (x, y) in ruv_dict['domain']
                 }
             if ruv_dict.get('ca'):
                 master_info['csruvs'] = {
-                    (re.sub(':\d+', '', x), y)
+                    (re.sub(r':\d+', '', x), y)
                     for (x, y) in ruv_dict['ca']
                 }
         except Exception as e:
