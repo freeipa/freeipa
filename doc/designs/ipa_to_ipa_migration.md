@@ -358,6 +358,87 @@ Enable compat
 Restart world
 Run ipa-server-upgrade
 
+#### Supported Migration Scenarios
+
+There are quite a few ways that migration can be done, both for testing and production uses. Any scenario not specifically mentioned here should be considered unsupported.
+
+These scenarios are not enforced by code. At best we can prompt the user
+for confirmation if we believe that they are non-conformant but I choose
+the trade-off of allowing for unsupported migrations to the flexibility
+of not trying to force square pegs into round holes.
+
+There are a few points to consider.
+
+**Replicas**
+
+All references to replicas in the existing deployment will not be migrated. There is no mechanism to one-by-one replace each server with a new one using migration. One will be migrated and new replicas will need to be manually added directly to that using ipa-replica-install.
+
+**Kerberos**
+
+The Kerberos master key will not be migrated. Kerberos principals are retained but the keys are not.
+
+**IDs**
+
+Ideally all uid, gid, SID, etc. will be maintained in migration so that it is seamless. No mass changing ownership and group of files should be required.
+
+**Certificates**
+
+The existing CA will be abandonded in favor of a CA on the new installation.
+
+If the realm, domain and CA subject base (default is O=REALM) are identical between the two installations then there is no way, other than the CA private key, to distinguish between the original CA and the new CA. Therefore no certificates will be maintained in the migration. All certificates other than those already present in the new IPA server as part of installation will need to be re-issued.
+
+If one of these doesn't match then the certificates will be retained but the backing PKI will be lost so there will be no possibility of renewals or revocation (no OCSP or CRL).
+
+**DNS**
+
+The DNS entries will be migrated. Whether this will be maintained is a decision for the end-user. From an IPA perspective these are just data.
+
+If DNS is not enabled in the new installation (--setup-dns) then the service will not be configured/available but the data should still be available at least via direct LDAP calls (IPA in some places checks to see if DNS is configured and will skip lookups if it is not).
+
+##### Production to new production
+Preconditions:
+* There is a existing production IPA server (or servers)
+* There is a new IPA server installation with the same realm and domain
+
+Optional:
+* If desired the realm and domain may be changed. The migrated data will accomodate these changes but this will require reconfiguration of all clients, etc. beyond just re-enrollment.
+
+Result:
+* All valid IPA entries will be migrated
+* All ids (uid, gid, SID, etc) will be maintained
+* All certificates issued from the previous CA will be dropped unless the CA subject base DN, or the realm, is changed in the new deployment.
+* All clients must re-enroll to the new deployment
+* Users will have to migrate their passwords to generate Kerberos and other keys
+
+##### Production to new staging
+Preconditions:
+* There is an existing production IPA server (or servers)
+* There is a new IPA server installation with a different realm and domain (e.g. staging.example.test)
+
+Result:
+* All valid IPA entries will be migrated
+* All ids (uid, gid, SID, etc) will be re-generated
+* All certificates from the previous CA will be preserved
+* Given this is a new staging deployment there will be no enrolled clients. The host entries from the production deployment will exist but all keys are dropped.
+* Users will have to migrate their passwords to generate Kerberos and other keys
+
+##### From IPA backup
+The migration tool will have the capability to do offline migration using an LDIF file. An IPA backup is a tar ball that contains the IPA data in EXAMPLE-TEST-userRoot.ldif
+
+Preconditions:
+* A backup from an existing IPA installation exists
+* There is a new IPA server installation with the same realm and domain
+
+Optional:
+* If desired the realm and domain may be changed. The migrated data will accomodate these changes but this will require reconfiguration of all clients, etc. beyond just re-enrollment.
+
+Result:
+* All valid IPA entries will be migrated
+* All ids (uid, gid, SID, etc) will be maintained
+* All certificates issued from the previous CA will be dropped unless the CA subject base DN, or the realm, is changed in the new deployment.
+* All clients must re-enroll to the new deployment
+* Users will have to migrate their passwords to generate Kerberos and other keys
+
 ### pure LDAP migration
 
 The current code generally works minus a few bugs and RFEs, some of which are resolved
