@@ -391,6 +391,11 @@ for Keycloak or Red Hat SSO IdPs. The template expects both Keycloak's realm
 typically deployed as a part of a larger solution. These options may not be
 needed for other pre-defined templates like Google or Github.
 
+The `openid` scope is mandatory since
+[Keycloak 19.0.2](https://www.keycloak.org/docs/latest/upgrading/index.html#userinfo-endpoint-changes).
+Without the `openid` scope, Keycloak refuses userinfo requests with HTTP
+response 403: `invalid_scope` `Missing openid scope`.
+
 Associate IdP reference with IPA user
 -------------------------------------
 
