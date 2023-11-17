@@ -182,17 +182,6 @@ vms:
     tests:
     - test_integration/test_external_ca.py::TestSelfExternalSelf
 
-- vm_jobs:
-  - container_job: upgrade
-    containers:
-      resources:
-        server:
-          mem_limit: "2450m"
-          memswap_limit: "3300m"
-    tests:
-    - test_integration/test_upgrade.py
-
-
   # requires external DNS configuration, this is not set up yet
   # - container_job: authselect
   #   containers:
