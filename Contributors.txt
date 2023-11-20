@@ -16,6 +16,7 @@ Developers:
 	Alexander Bokovoy
 	Alexander Koksharov
 	Alexander Scheel
+	Alexandra Nikandrova
 	Alexandre Mulatinho
 	Alexey Slaykovsky
 	Alexey Tikhonov
