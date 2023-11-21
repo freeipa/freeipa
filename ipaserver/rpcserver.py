@@ -136,6 +136,19 @@ _success_template = """<html>
 </html>"""
 
 class HTTP_Status(plugable.Plugin):
+    def check_referer(self, environ):
+        if "HTTP_REFERER" not in environ:
+            logger.error("Rejecting request with missing Referer")
+            return False
+        if (not environ["HTTP_REFERER"].startswith(
+                "https://%s/ipa" % self.api.env.host)
+                and not self.env.in_tree):
+            logger.error("Rejecting request with bad Referer %s",
+                         environ["HTTP_REFERER"])
+            return False
+        logger.debug("Valid Referer %s", environ["HTTP_REFERER"])
+        return True
+
     def not_found(self, environ, start_response, url, message):
         """
         Return a 404 Not Found error.
@@ -295,9 +308,6 @@ class wsgi_dispatch(Executioner, HTTP_Status):
             )
         logger.debug('Mounting %r at %r', app, key)
         self.__apps[key] = app
-
-
-
 
 
 class WSGIExecutioner(Executioner):
@@ -803,6 +813,9 @@ class jsonserver_session(jsonserver, KerberosSession):
 
         logger.debug('WSGI jsonserver_session.__call__:')
 
+        if not self.check_referer(environ):
+            return self.bad_request(environ, start_response, 'denied')
+
         # Redirect to login if no Kerberos credentials
         ccache_name = self.get_environ_creds(environ)
         if ccache_name is None:
@@ -843,6 +856,9 @@ class KerberosLogin(Backend, KerberosSession):
     def __call__(self, environ, start_response):
         logger.debug('WSGI KerberosLogin.__call__:')
 
+        if not self.check_referer(environ):
+            return self.bad_request(environ, start_response, 'denied')
+
         # Redirect to login if no Kerberos credentials
         user_ccache_name = self.get_environ_creds(environ)
         if user_ccache_name is None:
@@ -860,6 +876,9 @@ class login_x509(KerberosLogin):
 
     def __call__(self, environ, start_response):
         logger.debug('WSGI login_x509.__call__:')
+
+        if not self.check_referer(environ):
+            return self.bad_request(environ, start_response, 'denied')
 
         if 'KRB5CCNAME' not in environ:
             return self.unauthorized(
@@ -880,6 +899,9 @@ class login_password(Backend, KerberosSession):
 
     def __call__(self, environ, start_response):
         logger.debug('WSGI login_password.__call__:')
+
+        if not self.check_referer(environ):
+            return self.bad_request(environ, start_response, 'denied')
 
         # Get the user and password parameters from the request
         content_type = environ.get('CONTENT_TYPE', '').lower()
@@ -1017,6 +1039,9 @@ class change_password(Backend, HTTP_Status):
 
     def __call__(self, environ, start_response):
         logger.info('WSGI change_password.__call__:')
+
+        if not self.check_referer(environ):
+            return self.bad_request(environ, start_response, 'denied')
 
         # Get the user and password parameters from the request
         content_type = environ.get('CONTENT_TYPE', '').lower()
@@ -1230,6 +1255,9 @@ class xmlserver_session(xmlserver, KerberosSession):
         '''
 
         logger.debug('WSGI xmlserver_session.__call__:')
+
+        if not self.check_referer(environ):
+            return self.bad_request(environ, start_response, 'denied')
 
         ccache_name = environ.get('KRB5CCNAME')
 
