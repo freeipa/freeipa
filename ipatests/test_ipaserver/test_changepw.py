@@ -52,10 +52,11 @@ class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
         except errors.NotFound:
             pass
 
-    def _changepw(self, user, old_password, new_password):
+    def _changepw(self, user, old_password, new_password, host=None):
         return self.send_request(params={'user': str(user),
                                   'old_password' : str(old_password),
                                   'new_password' : str(new_password)},
+                                 host=host
                                  )
 
     def _checkpw(self, user, password):
@@ -84,6 +85,15 @@ class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
 
         assert_equal(response.status, 200)
         assert_equal(response.getheader('X-IPA-Pwchange-Result'), 'invalid-password')
+
+        # make sure that password is NOT changed
+        self._checkpw(testuser, old_password)
+
+    def test_invalid_referer(self):
+        response = self._changepw(testuser, old_password, new_password,
+                                  'attacker.test')
+
+        assert_equal(response.status, 400)
 
         # make sure that password is NOT changed
         self._checkpw(testuser, old_password)

@@ -34,7 +34,7 @@ class Unauthorized_HTTP_test(object):
     cacert = api.env.tls_ca_cert
     content_type = 'application/x-www-form-urlencoded'
 
-    def send_request(self, method='POST', params=None):
+    def send_request(self, method='POST', params=None, host=None):
         """
         Send a request to HTTP server
 
@@ -44,7 +44,10 @@ class Unauthorized_HTTP_test(object):
             # urlencode *can* take two arguments
             # pylint: disable=too-many-function-args
             params = urllib.parse.urlencode(params, True)
-        url = 'https://' + self.host + self.app_uri
+        if host:
+            url = 'https://' + host + self.app_uri
+        else:
+            url = 'https://' + self.host + self.app_uri
 
         headers = {'Content-Type' : self.content_type,
                    'Referer' : url}
