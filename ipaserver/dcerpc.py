@@ -935,7 +935,12 @@ class TrustDomainInstance:
             else:
                 result = netrc.finddc(address=remote_host, flags=flags)
         except RuntimeError as e:
-            raise assess_dcerpc_error(e)
+            dcerpc_error = assess_dcerpc_error(e)
+            logger.error(
+                getattr(dcerpc_error, "info", None)
+                or getattr(dcerpc_error, "reason", str(dcerpc_error))
+            )
+            return False
 
         if not result:
             return False
