@@ -26,6 +26,7 @@
 #include "ipa_kdb.h"
 #include "ipa_krb5.h"
 #include "ipa_hostname.h"
+#include <kadm5/admin.h>
 
 #define IPADB_GLOBAL_CONFIG_CACHE_TIME 60
 
@@ -201,6 +202,19 @@ static const struct {
     { "hardened", IPADB_USER_AUTH_HARDENED },
     { "idp", IPADB_USER_AUTH_IDP },
     { }
+},
+  objclass_table[] = {
+    { "ipaservice", IPADB_USER_AUTH_PASSWORD },
+    { "ipahost", IPADB_USER_AUTH_PASSWORD },
+    { }
+},
+  princname_table[] = {
+    { KRB5_TGS_NAME, IPADB_USER_AUTH_PASSWORD },
+    { KRB5_KDB_M_NAME, IPADB_USER_AUTH_PASSWORD },
+    { KADM5_ADMIN_SERVICE, IPADB_USER_AUTH_PASSWORD },
+    { KADM5_CHANGEPW_SERVICE, IPADB_USER_AUTH_PASSWORD },
+    { KADM5_HIST_PRINCIPAL, IPADB_USER_AUTH_PASSWORD },
+    { }
 };
 
 void ipadb_parse_user_auth(LDAP *lcontext, LDAPMessage *le,
@@ -211,16 +225,48 @@ void ipadb_parse_user_auth(LDAP *lcontext, LDAPMessage *le,
 
     *userauth = IPADB_USER_AUTH_NONE;
     vals = ldap_get_values_len(lcontext, le, IPA_USER_AUTH_TYPE);
-    if (!vals)
-        return;
+    if (!vals) {
+        /* if there is no explicit ipaUserAuthType set, use objectclass */
+        vals = ldap_get_values_len(lcontext, le, "objectclass");
+        if (!vals)
+            return;
 
-    for (i = 0; vals[i]; i++) {
-        for (j = 0; userauth_table[j].name; j++) {
-            if (strcasecmp(vals[i]->bv_val, userauth_table[j].name) == 0) {
-                *userauth |= userauth_table[j].flag;
-                break;
+        for (i = 0; vals[i]; i++) {
+            for (j = 0; objclass_table[j].name; j++) {
+                if (strcasecmp(vals[i]->bv_val, objclass_table[j].name) == 0) {
+                    *userauth |= objclass_table[j].flag;
+                    break;
+                }
             }
         }
+    } else {
+        for (i = 0; vals[i]; i++) {
+            for (j = 0; userauth_table[j].name; j++) {
+                if (strcasecmp(vals[i]->bv_val, userauth_table[j].name) == 0) {
+                    *userauth |= userauth_table[j].flag;
+                    break;
+                }
+            }
+        }
+    }
+
+    /* If neither ipaUserAuthType nor objectClass were definitive,
+     * check the krbPrincipalName to see if it is krbtgt/ or K/M one */
+    if (*userauth == IPADB_USER_AUTH_NONE) {
+        ldap_value_free_len(vals);
+        vals = ldap_get_values_len(lcontext, le, "krbprincipalname");
+        if (!vals)
+            return;
+        for (i = 0; vals[i]; i++) {
+            for (j = 0; princname_table[j].name; j++) {
+                if (strncmp(vals[i]->bv_val, princname_table[j].name,
+                            strlen(princname_table[j].name)) == 0) {
+                    *userauth |= princname_table[j].flag;
+                    break;
+                }
+            }
+        }
+
     }
     /* If password auth is enabled, enable hardened policy too. */
     if (*userauth & IPADB_USER_AUTH_PASSWORD) {
