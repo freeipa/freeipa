@@ -23,6 +23,24 @@ class TestPkinitClientInstall(IntegrationTest):
     def install(cls, mh):
         tasks.install_master(cls.master)
 
+    def enforce_password_and_otp(self):
+        """enforce otp by default and password for admin """
+        self.master.run_command(
+            [
+                "ipa",
+                "config-mod",
+                "--user-auth-type=otp",
+            ]
+        )
+        self.master.run_command(
+            [
+                "ipa",
+                "user-mod",
+                "admin",
+                "--user-auth-type=password",
+            ]
+        )
+
     def add_certmaperule(self):
         """add certmap rule to map SAN dNSName to host entry"""
         self.master.run_command(
@@ -85,6 +103,14 @@ class TestPkinitClientInstall(IntegrationTest):
 
         cabundle = self.master.get_file_contents(paths.KDC_CA_BUNDLE_PEM)
         client.put_file_contents(self.tmpbundle, cabundle)
+
+    def test_restart_krb5kdc(self):
+        tasks.kinit_admin(self.master)
+        self.enforce_password_and_otp()
+        self.master.run_command(['systemctl', 'stop', 'krb5kdc.service'])
+        self.master.run_command(['systemctl', 'start', 'krb5kdc.service'])
+        self.master.run_command(['systemctl', 'stop', 'kadmin.service'])
+        self.master.run_command(['systemctl', 'start', 'kadmin.service'])
 
     def test_client_install_pkinit(self):
         tasks.kinit_admin(self.master)
