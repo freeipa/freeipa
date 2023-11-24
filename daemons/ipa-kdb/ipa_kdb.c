@@ -190,6 +190,9 @@ done:
     return base;
 }
 
+/* In this table all _AUTH_PASSWORD entries will be
+ * expanded to include _AUTH_HARDENED in ipadb_parse_user_auth()
+ * which means there is no need to explicitly add it here */
 static const struct {
     const char *name;
     enum ipadb_user_auth flag;
