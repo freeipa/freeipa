@@ -119,11 +119,8 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_RADIUS]);
         } else if (strcmp(auth_indicator, "pkinit") == 0) {
             valid_auth_indicators++;
-            if (!(ua & IPADB_USER_AUTH_PKINIT)) {
-                *status = "PKINIT pre-authentication not allowed for this user.";
-                kerr = KRB5KDC_ERR_POLICY;
-                goto done;
-            }
+            /* allow PKINIT unconditionally -- it has passed already at this
+             * point so some certificate was useful, only apply the limits */
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_PKINIT]);
         } else if (strcmp(auth_indicator, "hardened") == 0) {
             valid_auth_indicators++;
