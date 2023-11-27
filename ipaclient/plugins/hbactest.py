@@ -38,6 +38,8 @@ class hbactest(CommandOverride):
         # Note that we don't actually use --detail below to see if details need
         # to be printed as our execute() method will return None for corresponding
         # entries and None entries will be skipped.
+        self.log_messages(output)
+
         for o in self.output:
             if o == 'value':
                 continue
