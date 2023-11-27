@@ -24,6 +24,8 @@ from ipalib import Command, Str, Flag, Int
 from ipalib import _
 from ipapython.dn import DN
 from ipalib.plugable import Registry
+from ipalib.messages import VersionMissing
+
 if api.env.in_server:
     try:
         import ipaserver.dcerpc
@@ -323,6 +325,9 @@ class hbactest(Command):
         # 2. Required options are (user, target host, service)
         # 3. Options: rules to test (--rules, --enabled, --disabled), request for detail output
         rules = []
+        result = {
+            'warning':None, 'matched':None, 'notmatched':None, 'error':None
+        }
 
         # Use all enabled IPA rules by default
         all_enabled = True
@@ -351,8 +356,12 @@ class hbactest(Command):
 
         hbacset = []
         if len(testrules) == 0:
-            hbacset = self.api.Command.hbacrule_find(
-                sizelimit=sizelimit, no_members=False)['result']
+            hbacrules = self.api.Command.hbacrule_find(
+                sizelimit=sizelimit, no_members=False)
+            hbacset = hbacrules['result']
+            for message in hbacrules['messages']:
+                if message['code'] != VersionMissing.errno:
+                    result.setdefault('messages', []).append(message)
         else:
             for rule in testrules:
                 try:
@@ -469,7 +478,6 @@ class hbactest(Command):
         error_rules = []
         warning_rules = []
 
-        result = {'warning':None, 'matched':None, 'notmatched':None, 'error':None}
         if not options['nodetail']:
             # Validate runs rules one-by-one and reports failed ones
             for ipa_rule in rules:
