@@ -134,6 +134,7 @@ class test_hbactest(XMLRPC_test):
         assert ret['value']
         assert ret['error'] is None
         assert ret['matched'] is None
+        assert 'messages' not in ret
         assert ret['notmatched'] is None
 
     def test_c_hbactest_check_rules_enabled_detail(self):
@@ -200,7 +201,23 @@ class test_hbactest(XMLRPC_test):
                 nodetail=True
             )
 
-    def test_g_hbactest_clear_testing_data(self):
+    def test_g_hbactest_searchlimit_message(self):
+        """
+        Test running 'ipa hbactest' with limited --sizelimit
+
+        We know there are at least 6 rules, 4 created here + 2 default.
+        """
+        ret = api.Command['hbactest'](
+            user=self.test_user,
+            targethost=self.test_host,
+            service=self.test_service,
+            nodetail=True,
+            sizelimit=2,
+        )
+
+        assert ret['messages'] is not None
+
+    def test_h_hbactest_clear_testing_data(self):
         """
         Clear data for HBAC test plugin testing.
         """
