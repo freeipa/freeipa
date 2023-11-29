@@ -339,7 +339,9 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
             + basedn
 
         # Get the domain validator
+        # pylint: disable=used-before-assignment
         domain_validator = ipaserver.dcerpc.DomainValidator(myapi)
+        # pylint: enable=used-before-assignment
         if not domain_validator.is_configured():
             raise errors.NotFound(
                 reason=_('Cannot search in trusted domains without own '

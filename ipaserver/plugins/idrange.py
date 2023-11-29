@@ -343,7 +343,9 @@ class idrange(LDAPObject):
                 'without Samba 4 support installed. Make sure you have '
                 'installed server-trust-ad sub-package of IPA on the server'))
 
+        # pylint: disable=used-before-assignment
         domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
+        # pylint: enable=used-before-assignment
 
         if not domain_validator.is_configured():
             raise errors.NotFound(reason=_('Cross-realm trusts are not '

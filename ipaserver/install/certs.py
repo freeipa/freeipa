@@ -786,7 +786,7 @@ class _CrossProcessLock:
     def _read(self, fileobj):
         p = configparser.RawConfigParser()
         if six.PY2:
-            p.readfp(fileobj)  # pylint: disable=deprecated-method
+            p.readfp(fileobj)  # pylint: disable=no-member
         else:
             p.read_file(fileobj)
 
