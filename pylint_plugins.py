@@ -10,10 +10,9 @@ import sys
 import textwrap
 
 from astroid import MANAGER, register_module_extender
-from astroid import scoped_nodes
+from astroid.nodes import scoped_nodes
 from pylint.checkers import BaseChecker
-from pylint.checkers.utils import check_messages
-from pylint.interfaces import IAstroidChecker
+from pylint.checkers.utils import only_required_for_messages
 from astroid.builder import AstroidBuilder
 
 
@@ -33,14 +32,18 @@ def fake_class(name_or_class_obj, members=()):
     if isinstance(name_or_class_obj, scoped_nodes.ClassDef):
         cl = name_or_class_obj
     else:
-        cl = scoped_nodes.ClassDef(name_or_class_obj, None)
+        cl = scoped_nodes.ClassDef(
+            name=name_or_class_obj, lineno=None, col_offset=None, parent=None,
+            end_lineno=None, end_col_offset=None)
 
     for m in members:
         if isinstance(m, str):
             if m in cl.locals:
                 _warning_already_exists(cl, m)
             else:
-                cl.locals[m] = [scoped_nodes.ClassDef(m, None)]
+                cl.locals[m] = [scoped_nodes.ClassDef(
+                    name=m, lineno=None, col_offset=None, parent=None,
+                    end_lineno=None, end_col_offset=None)]
         elif isinstance(m, dict):
             for key, val in m.items():
                 assert isinstance(key, str), "key must be string"
@@ -250,7 +253,6 @@ register_module_extender(MANAGER, 'ipalib.request', ipalib_request_transform)
 
 
 class IPAChecker(BaseChecker):
-    __implements__ = IAstroidChecker
 
     name = 'ipa'
     msgs = {
@@ -278,7 +280,7 @@ class IPAChecker(BaseChecker):
         self._dir = os.path.abspath(os.path.dirname(__file__))
 
         self._forbidden_imports = {self._dir: []}
-        for forbidden_import in self.config.forbidden_imports:
+        for forbidden_import in self.linter.config.forbidden_imports:
             forbidden_import = forbidden_import.split(':')
             path = os.path.join(self._dir, forbidden_import[0])
             path = os.path.abspath(path)
@@ -320,12 +322,12 @@ class IPAChecker(BaseChecker):
                     self.add_message('ipa-forbidden-import',
                                      args=(name, module, relpath), node=node)
 
-    @check_messages('ipa-forbidden-import')
+    @only_required_for_messages('ipa-forbidden-import')
     def visit_import(self, node):
         names = [n[0] for n in node.names]
         self._check_forbidden_imports(node, names)
 
-    @check_messages('ipa-forbidden-import')
+    @only_required_for_messages('ipa-forbidden-import')
     def visit_importfrom(self, node):
         names = ['{}.{}'.format(node.modname, n[0]) for n in node.names]
         self._check_forbidden_imports(node, names)
